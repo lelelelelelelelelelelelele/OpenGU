@@ -26,7 +26,7 @@ OpenGU is an open-source platform designed to provide a comprehensive benchmark 
 
 OpenGU offers a robust and standardized benchmark for evaluating **Graph Unlearning** methods. It ensures a fair comparison between different approaches by providing consistent datasets, evaluation metrics, and experimental setups. This benchmark is instrumental in advancing research in Graph Unlearning, promoting reproducibility, and accelerating innovation in the field.
 
-![Benchmark Framework](Resources\image.png)
+![Benchmark Framework](Resources/image.png)
 
 ## Methods and Content Overview
 
