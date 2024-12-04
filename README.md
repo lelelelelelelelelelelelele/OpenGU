@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Resources/opengsl.jpg" border="0" width=600px/>
+  <img src="Resources/OpenGU.jpg" border="0" width=600px/>
 </div>
 
 ------
