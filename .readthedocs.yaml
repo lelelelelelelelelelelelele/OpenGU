@@ -30,7 +30,8 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-
+sphinx:
+  output_dir: $READTHEDOCS_OUTPUT/html
 # Declare the Python requirements needed to build your documentation
 python:
   install:
