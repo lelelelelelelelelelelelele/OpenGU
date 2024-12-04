@@ -12,9 +12,12 @@
   <a href="#reference">Reference</a>
 </p>
 
-[![Documentation Status](https://readthedocs.org/projects/opengsl/badge/?version=latest)]()
-[![license](https://badgen.net/github/license/FrankCoding00/GU)]()
-[![version](https://img.shields.io/badge/version-0.1-green)]()
+<p align="center">
+  <img src="https://readthedocs.org/projects/opengsl/badge/?version=latest" alt="Documentation Status" />
+  <img src="https://badgen.net/github/license/FrankCoding00/GU" alt="license" />
+  <img src="https://img.shields.io/badge/version-0.1-green" alt="version" />
+</p>
+
 
 # OpenGU
 
