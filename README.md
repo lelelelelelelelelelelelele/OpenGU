@@ -5,15 +5,15 @@
 ------
 
 <p align="center">
-  <a href="">Docs</a> •
+  <a href="https://gu.readthedocs.io/en/latest/">Docs</a> •
   <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
-  <a href="#Docs">Installation</a> •
+  <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#reference">Reference</a>
 </p>
 
 <p align="center">
-  <img src="https://readthedocs.org/projects/opengsl/badge/?version=latest" alt="Documentation Status" />
+  <img src="https://readthedocs.org/projects/gu/badge/?version=latest" alt="Documentation Status" />
   <img src="https://badgen.net/github/license/FrankCoding00/GU" alt="license" />
   <img src="https://img.shields.io/badge/version-0.1-green" alt="version" />
 </p>
