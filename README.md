@@ -5,7 +5,7 @@
 ------
 
 <p align="center">
-  <a href="#document">Docs</a> •
+  <a href="">Docs</a> •
   <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
   <a href="#Docs">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
