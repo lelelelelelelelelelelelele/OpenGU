@@ -13,8 +13,8 @@
 </p>
 
 [![Documentation Status](https://readthedocs.org/projects/opengsl/badge/?version=latest)]()
-[![license](https://badgen.net/github/license/opengsl/opengsl?color=green)]()
-[![version](https://img.shields.io/badge/version-0.0.8-green)]()
+[![license](https://badgen.net/github/license/FrankCoding00/GU)]()
+[![version](https://img.shields.io/badge/version-0.1-green)]()
 
 # OpenGU
 
