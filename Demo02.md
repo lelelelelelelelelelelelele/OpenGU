@@ -6,11 +6,13 @@
 
 <p align="center">
   <a href="https://gu.readthedocs.io/en/latest/">Docs</a> •
-  <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#reference">Reference</a>
+  <a href="#overview-of-the-benchmark">📈 Overview of the Benchmark</a> •
+  <a href="#installation">📥 Installation</a> •
+  <a href="#quick-start">🚀 Quick Start</a> •
+  <a href="#reference">📖 Reference</a>
 </p>
+
+
 
 <p align="center">
   <a href="https://gu.readthedocs.io/en/latest/?badge=latest">
@@ -35,7 +37,7 @@ OpenGU is an open-source platform designed to provide a comprehensive benchmark 
   <p align="center"><em>Figure 1: Overview of the Graph Unlearning Methods Implemented in OpenGU.</em></p>
 </div>
 
-## 📈 Overview of the Benchmark
+## <span id="overview-of-the-benchmark">📈 Overview of the Benchmark</span>
 
 OpenGU offers a robust and standardized benchmark for evaluating **Graph Unlearning** methods. It ensures a fair comparison between different approaches by providing consistent datasets, evaluation metrics, and experimental setups. This benchmark is instrumental in advancing research in Graph Unlearning, promoting reproducibility, and accelerating innovation in the field.
 
@@ -248,7 +250,7 @@ In evaluating the efficiency of GU algorithms in OpenGU, we focus on **scalabili
 
 Together, these metrics provide a comprehensive view of each method’s suitability for real-time and scalable deployment.
 
-## 📥 Installation
+##  <span id="installation">📥 Installation</span>
 
 **Note:** OpenGU depends on several external libraries. To streamline the installation, OpenGU does **NOT** install these libraries for you. Please install them from the provided links before running OpenGU.
 
@@ -291,7 +293,7 @@ pip install -e .
 ```
 
 
-## 🚀 Quick Start
+##  <span id="quick-start">🚀 Quick Start</span>
 
 Follow these steps to quickly get started with OpenGU:
 
@@ -411,7 +413,7 @@ If you use OpenGU in your research, please cite our paper:
 }
 ```
 
-## 📖 Reference
+##  <span id="reference">📖 Reference</span>
 
 <!-- Reference section to be updated later -->
 ```
