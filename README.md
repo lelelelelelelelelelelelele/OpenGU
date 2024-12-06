@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Resources/OpenGU.jpg" alt="OpenGU Logo" border="0" width=600px/>
+  <img src="Resources/OpenGU.png" alt="OpenGU Logo" border="0" width=600px/>
 </div>
 
 ------
