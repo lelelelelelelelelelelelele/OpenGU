@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://gu.readthedocs.io/en/latest/">Docs</a> •
-  <a href="#overview-of-the-benchmark">📈 Overview of the Benchmark</a> •
-  <a href="#installation">📥 Installation</a> •
-  <a href="#quick-start">🚀 Quick Start</a> •
-  <a href="#reference">📖 Reference</a>
+  <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#reference">Reference</a>
 </p>
 
 
@@ -136,11 +136,11 @@ To evaluate the generalizability of GU algorithms, we incorporate three predomin
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #003f5c;">Traditional GNNs</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #f0f0f0; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GCN</strong></li>
-      <li style="background-color: #f0f0f0; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GAT</strong></li>
-      <li style="background-color: #f0f0f0; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GCNII</strong></li>
-      <li style="background-color: #f0f0f0; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GIN</strong></li>
-      <li style="background-color: #f0f0f0; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>Others</strong></li>
+      <li>🔹 **GCN**</li>
+      <li>🔹 **GAT**</li>
+      <li>🔹 **GCNII**</li>
+      <li>🔹 **GIN**</li>
+      <li>🔹 **Others**</li>
     </ul>
   </div>
   
@@ -148,9 +148,9 @@ To evaluate the generalizability of GU algorithms, we incorporate three predomin
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #58508d;">Sampling GNNs</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #e6f7ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GraphSAGE</strong></li>
-      <li style="background-color: #e6f7ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GraphSAINT</strong></li>
-      <li style="background-color: #e6f7ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>ClusterGNN</strong></li>
+      <li>🔸 **GraphSAGE**</li>
+      <li>🔸 **GraphSAINT**</li>
+      <li>🔸 **ClusterGNN**</li>
     </ul>
   </div>
   
@@ -158,10 +158,10 @@ To evaluate the generalizability of GU algorithms, we incorporate three predomin
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #bc5090;">Decoupled GNNs</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #fff0f6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>SGC</strong></li>
-      <li style="background-color: #fff0f6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>SSGC</strong></li>
-      <li style="background-color: #fff0f6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>SIGN</strong></li>
-      <li style="background-color: #fff0f6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>APPNP</strong></li>
+      <li>🔹 **SGC**</li>
+      <li>🔹 **SSGC**</li>
+      <li>🔹 **SIGN**</li>
+      <li>🔹 **APPNP**</li>
     </ul>
   </div>
   
@@ -177,9 +177,9 @@ Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously re
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #ff6361;">Partition-based</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #ffe6e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GraphEraser</strong></li>
-      <li style="background-color: #ffe6e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GUIDE</strong></li>
-      <li style="background-color: #ffe6e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GraphRevoker</strong></li>
+      <li>🔸 **GraphEraser**</li>
+      <li>🔸 **GUIDE**</li>
+      <li>🔸 **GraphRevoker**</li>
     </ul>
   </div>
   
@@ -187,12 +187,12 @@ Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously re
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #ffa600;">IF-based</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GIF</strong></li>
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>CGU</strong></li>
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>CEU</strong></li>
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GST</strong></li>
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>IDEA</strong></li>
-      <li style="background-color: #fff5e6; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>ScaleGUN</strong></li>
+      <li>🔹 **GIF**</li>
+      <li>🔹 **CGU**</li>
+      <li>🔹 **CEU**</li>
+      <li>🔹 **GST**</li>
+      <li>🔹 **IDEA**</li>
+      <li>🔹 **ScaleGUN**</li>
     </ul>
   </div>
   
@@ -200,11 +200,11 @@ Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously re
   <div style="width: 30%; min-width: 200px;">
     <h4 style="text-align: center; color: #003f5c;">Learning-based</h4>
     <ul style="list-style: none; padding: 0;">
-      <li style="background-color: #e6e6ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GNNDelete</strong></li>
-      <li style="background-color: #e6e6ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>MEGU</strong></li>
-      <li style="background-color: #e6e6ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>SGU</strong></li>
-      <li style="background-color: #e6e6ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>D2DGN</strong></li>
-      <li style="background-color: #e6e6ff; margin: 5px 0; padding: 10px; text-align: center; border-radius: 5px;"><strong>GUKD</strong></li>
+      <li>🔸 **GNNDelete**</li>
+      <li>🔸 **MEGU**</li>
+      <li>🔸 **SGU**</li>
+      <li>🔸 **D2DGN**</li>
+      <li>🔸 **GUKD**</li>
     </ul>
   </div>
   
