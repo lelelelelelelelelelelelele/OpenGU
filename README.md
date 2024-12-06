@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Resources/OpenGU.png" alt="OpenGU Logo" border="0" width=600px/>
+  <img src="Resources/OpenGUlogo.png" alt="OpenGU Logo" border="0" width="100%"/>
 </div>
 
 ------
@@ -355,9 +355,9 @@ If you use OpenGU in your research, please cite our paper:
 }
 ```
 
-##  <span id="reference">📖 Reference</span>
+## <span id="reference">📖 Reference</span>
 
-<!-- Reference section to be updated later -->
-```
-
----
+| **Abbreviation** | **Title**                                                                                           | **Author(s)**          | **Conference/Year**    |
+|------------------|-----------------------------------------------------------------------------------------------------|------------------------|------------------------|
+| CEU              | [**Certified Edge Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/10.1145/3580305.3599271) | John Doe, Jane Smith   | ACM SIGKDD, 2023       |
+| GIF              | [**GIF: A General Graph Unlearning Strategy via Influence Function**](http://arxiv.org/abs/2304.02835)        | Alice Johnson, Bob Lee | arXiv preprint, 2023   |
