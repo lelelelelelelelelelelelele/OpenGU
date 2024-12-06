@@ -130,85 +130,27 @@ To achieve a standardized and versatile partitioning in OpenGU, we implemented c
 
 To evaluate the generalizability of GU algorithms, we incorporate three predominant paradigms of GNN models within our benchmark: **Traditional GNNs**, **Sampling GNNs**, and **Decoupled GNNs**. Each category encompasses a variety of state-of-the-art models, providing a comprehensive foundation for assessing Graph Unlearning methods.
 
-<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-  
-  <!-- Traditional GNNs -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #003f5c;">Traditional GNNs</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔹 **GCN**</li>
-      <li>🔹 **GAT**</li>
-      <li>🔹 **GCNII**</li>
-      <li>🔹 **GIN**</li>
-      <li>🔹 **Others**</li>
-    </ul>
-  </div>
-  
-  <!-- Sampling GNNs -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #58508d;">Sampling GNNs</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔸 **GraphSAGE**</li>
-      <li>🔸 **GraphSAINT**</li>
-      <li>🔸 **ClusterGNN**</li>
-    </ul>
-  </div>
-  
-  <!-- Decoupled GNNs -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #bc5090;">Decoupled GNNs</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔹 **SGC**</li>
-      <li>🔹 **SSGC**</li>
-      <li>🔹 **SIGN**</li>
-      <li>🔹 **APPNP**</li>
-    </ul>
-  </div>
-  
-</div>
+| **Traditional GNNs** | **Sampling GNNs** | **Decoupled GNNs** |
+|----------------------|--------------------|---------------------|
+| 🔹 **GCN**           | 🔸 **GraphSAGE**   | 🔹 **SGC**          |
+| 🔹 **GAT**           | 🔸 **GraphSAINT**  | 🔹 **SSGC**         |
+| 🔹 **GCNII**         | 🔸 **ClusterGNN**  | 🔹 **SIGN**         |
+| 🔹 **GIN**           |                    | 🔹 **APPNP**        |
+| 🔹 **Others**        |                    |                     |
 
 ### GU Algorithms
 
 Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously reproduced based on source code or detailed descriptions in relevant publications. These algorithms are categorized into **Partition-based**, **IF-based (Influence Function-based)**, and **Learning-based** methods, each leveraging distinct strategies for effective graph unlearning.
 
-<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-  
-  <!-- Partition-based -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #ff6361;">Partition-based</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔸 **GraphEraser**</li>
-      <li>🔸 **GUIDE**</li>
-      <li>🔸 **GraphRevoker**</li>
-    </ul>
-  </div>
-  
-  <!-- IF-based -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #ffa600;">IF-based</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔹 **GIF**</li>
-      <li>🔹 **CGU**</li>
-      <li>🔹 **CEU**</li>
-      <li>🔹 **GST**</li>
-      <li>🔹 **IDEA**</li>
-      <li>🔹 **ScaleGUN**</li>
-    </ul>
-  </div>
-  
-  <!-- Learning-based -->
-  <div style="width: 30%; min-width: 200px;">
-    <h4 style="text-align: center; color: #003f5c;">Learning-based</h4>
-    <ul style="list-style: none; padding: 0;">
-      <li>🔸 **GNNDelete**</li>
-      <li>🔸 **MEGU**</li>
-      <li>🔸 **SGU**</li>
-      <li>🔸 **D2DGN**</li>
-      <li>🔸 **GUKD**</li>
-    </ul>
-  </div>
-  
-</div>
+| **Partition-based** | **IF-based** | **Learning-based** |
+|---------------------|--------------|---------------------|
+| 🔸 **GraphEraser**  | 🔹 **GIF**    | 🔸 **GNNDelete**    |
+| 🔸 **GUIDE**         | 🔹 **CGU**    | 🔸 **MEGU**         |
+| 🔸 **GraphRevoker** | 🔹 **CEU**    | 🔸 **SGU**          |
+|                     | 🔹 **GST**    | 🔸 **D2DGN**        |
+|                     | 🔹 **IDEA**   | 🔸 **GUKD**         |
+|                     | 🔹 **ScaleGUN**|                     |
+
 
 ## 📊 Evaluation Strategy
 
