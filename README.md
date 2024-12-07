@@ -5,7 +5,7 @@
 ------
 
 <p align="center">
-  <a href="https://gu.readthedocs.io/en/latest/">Docs</a> •
+  <a href="https://opengu.readthedocs.io/en/latest/">Docs</a> •
   <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
@@ -15,7 +15,7 @@
 
 
 <p align="center">
-  <a href="https://gu.readthedocs.io/en/latest/?badge=latest">
+  <a href="https://opengu.readthedocs.io/en/latest/?badge=latest">
   <img src="https://img.shields.io/readthedocs/gu.svg?style=flat-square" alt="Documentation Status"/></a>
   <img src="https://badgen.net/github/license/FrankCoding00/GU" alt="license" />
   <img src="https://img.shields.io/badge/version-0.1-green" alt="version" />
