@@ -78,8 +78,8 @@ Graph Unlearning (GU) scenarios are fundamentally data-driven, making the meticu
 #### Statistical Overview
 For detailed statistics on the datasets used in our evaluation, see the following files:
 
-- [Node and Edge-Level Tasks Statistics](.\Resources\graph_classification_stats.md)
-- [Graph Classification Tasks Statistics](.\Resources\graph_classification_stats.md)
+- [Node and Edge-Level Tasks Statistics](/Resources/graph_classification_stats.md)
+- [Graph Classification Tasks Statistics](/Resources/graph_classification_stats.md)
 
 #### Data Preprocessing Enhancements
 
@@ -156,7 +156,7 @@ We evaluate **efficiency** based on **scalability**, **time complexity**, and **
 These metrics collectively determine each method’s suitability for real-time and scalable deployment.
 
 
-## 📥 Installation
+## <span id="installation">📥 Installation</span>
 
 **Note:** OpenGU depends on several external libraries. To streamline the installation, OpenGU does **NOT** install these libraries for you. Please install them using the provided [`requirements.txt`](OpenGU\requirement.txt) file before running OpenGU.
 
