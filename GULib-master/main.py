@@ -99,6 +99,7 @@ if __name__ == '__main__':
 
     data = process_data(logger,data,args)
 
+
     #model
     model_zoo = model_zoo(args,data)
     model = model_zoo.model

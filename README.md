@@ -158,63 +158,118 @@ These metrics collectively determine each method’s suitability for real-time a
 
 ## <span id="installation">📥 Installation</span>
 
-**Note:** OpenGU depends on several external libraries. To streamline the installation, OpenGU does **NOT** install these libraries for you. Please install them using the provided [`requirements.txt`](OpenGU\requirement.txt) file before running OpenGU.
+### **Prerequisites**
 
-### **Dependencies:**
+- **Python**: 3.8.0
 
-All required dependencies are listed in the [`requirements.txt`](requirements.txt) file. Install them using:
+### **Step 1: Create and Activate a Virtual Environment**
 
-```bash
-pip install -r requirements.txt
-```
+It is recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects. You can create a virtual environment using either `venv` or `conda`.
 
-### **Installing OpenGU**
+#### Using `venv`
+
+1. **Create a Virtual Environment**
+
+    ```bash
+    python -m venv venv
+    ```
+
+2. **Activate the Virtual Environment**
+
+    - **Windows**
+
+        ```bash
+        venv\Scripts\activate
+        ```
+
+    - **Unix or MacOS**
+
+        ```bash
+        source venv/bin/activate
+        ```
+
+#### Using `conda`
+
+1. **Create a Virtual Environment**
+
+    ```bash
+    conda create -n myenv python=3.8
+    ```
+
+2. **Activate the Virtual Environment**
+
+    ```bash
+    conda activate myenv
+    ```
+
+### **Step 2: Install OpenGU**
 
 You can install OpenGU using one of the following methods:
 
 #### 1. **Using Pip**
 
-If OpenGU is available on PyPI in the future, you can install it directly using:
+TODO: To install OpenGU directly from PyPI:
 
 ```bash
 pip install opengu
 ```
 
-TODO:**Note:** Currently, OpenGU is not uploaded to PyPI. Please use the GitHub installation method below.
+#### 2. **Installing from GitHub for Local Development**
 
-#### 2. **Installing from GitHub**
+TODO: To install OpenGU for local development, clone the GitHub repository and install it from the source:
 
-Since OpenGU is not yet available on PyPI, you can install it directly from the GitHub repository:
-
-```bash
-pip install git+https://github.com/bwfan-bit/OpenGU.git
-```
-
-### **Installation for Local Development**
-
-For local development, install OpenGU in editable mode. This allows you to make changes to the code and have them reflected without reinstalling the package.
-
-```bash
-git clone https://github.com/bwfan-bit/OpenGU.git
-cd OpenGU
-pip install -e .
-```
-
-### **Additional Installation Tips**
-
-- **Virtual Environments:** It is recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects.
+1. **Clone the Repository**
 
     ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    git clone https://github.com/bwfan-bit/OpenGU.git
+    cd OpenGU
     ```
 
-- **Verify Installation:** After installation, verify that OpenGU is installed correctly by running:
+2. **Install OpenGU in Editable Mode**
 
     ```bash
-    python -c "import opengu; print(opengu.__version__)"
+    pip install -e .
     ```
 
+### **Step 3: Installing Dependencies**
+
+#### General Dependencies
+
+Install the general dependencies listed in the `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
+
+#### CUDA-Specific Dependencies
+
+For GPU support, install the appropriate versions of PyTorch, CuPy, and related libraries that match your CUDA version.
+
+1. **Install PyTorch and torchvision with CUDA Support**
+
+   Example for CUDA 12.1 (PyTorch version 2.2.1 and torchvision version 0.17.1):
+
+   ```bash
+   pip install torch==2.2.1 torchvision==0.17.1 torchaudio --index-url https://download.pytorch.org/whl/cu121
+   ```
+
+2. **Install CuPy with CUDA Support**
+
+   Example for CUDA 12.x:
+
+   ```bash
+   pip install cupy-cuda12x
+   ```
+
+*Ensure your system has the appropriate CUDA version installed. For more information, refer to the [CuPy Installation Guide](https://docs.cupy.dev/en/stable/install.html#using-pip).*
+
+### **Verify Installation**
+
+After installation, verify that OpenGU is installed correctly by running:
+
+```bash
+python -c "import opengu; print(opengu.__version__)"
+```
 
 ##  <span id="quick-start">🚀 Quick Start</span>
 
@@ -229,85 +284,61 @@ cd OpenGU
 
 ### **Step 2: Install Dependencies**
 
-Ensure all dependencies listed in the [Installation](#installation) section are installed. You can install them using `pip`:
+#### General Dependencies
+You can install the general dependencies using `pip`:
 
 ```bash
 pip install -r requirement.txt
 ```
+#### CUDA-Specific Dependencies
+For CUDA-specific dependencies, refer to the detailed instructions in the [Installation section](#installation)  above.
 
+### **Step 3: Run the Main Script**
 
-### **Step 3: Configure Parameters**
-
-Customize your experiment settings by editing the `config.yaml` file or passing parameters via command line. Key parameters include:
-
-- **method:** The unlearning method to use (e.g., `ceu`, `gnndelete`).
-- **dataset:** The dataset to work with (e.g., `Cora`, `Citeseer`).
-- **cuda:** The CUDA device index to use (e.g., `0`).
-- **proportion_unlearned_nodes:** The proportion of nodes to unlearn (e.g., `0.1` for 10%).
-
-Example `config.yaml`:
-
-```yaml
-method: ceu
-dataset: Cora
-cuda: 0
-proportion_unlearned_nodes: 0.1
-```
-
-### **Step 4: Run the Main Script**
-
-Execute the main script to initiate the graph unlearning process.
+After installing the dependencies, you can run the main script using the following command:
 
 ```bash
-python main.py --method ceu --dataset Cora --cuda 0 --proportion_unlearned_nodes 0.1
+python main.py --cuda 0 --dataset_name <dataset_name> --base_model <base_model> --unlearning_methods <unlearning_methods> --unlearn_task <unlearn_task> --downstream_task <downstream_task> --num_epochs 100 --batch_size 64
 ```
 
-*Alternatively, you can rely on the `config.yaml` configuration:*
+#### Optional arguments:
+
+### **Step 3: Run the Main Script**
+
+After installing the dependencies, you can run the main script using the following command:
 
 ```bash
-python main.py
+python GULib-master/main.py --cuda 0 --dataset_name <dataset_name> --base_model <base_model> --unlearning_methods <unlearning_methods> --unlearn_task <unlearn_task> --downstream_task <downstream_task> --num_epochs 100 --batch_size 64
 ```
 
-### **Detailed Example: Running Node Classification with CEU Method**
 
-1. **Set Up Configuration:**
+#### Optional arguments:
 
-   Create or modify the `config.yaml` file with the desired parameters. For example:
+- `--cuda <cuda_device>`: Specify which GPU to use. Replace `<cuda_device>` with the desired GPU number.
+- `--dataset_name <dataset_name>`: The name of the graph dataset. Replace `<dataset_name>` with a dataset from the list: `cora`, `citeseer`, `pubmed`, `CS`, `Physics`, `flickr`, `ppi`, `Photo`, `Computers`, `DBLP`, `ogbl`, `ogbn-arxiv`, `ogbn-products`.
+- `--base_model <base_model>`: The model architecture to use. Options include `GCN`, `GAT`, `GIN`, `SAGE`, `MLP`, etc.
+- `--unlearning_methods <unlearning_methods>`: The unlearning method to use. Choose from `GraphEraser`, `GUIDE`, `CEU`, etc.
+- `--unlearn_task <unlearn_task>`: The type of unlearning task. Options are `feature`, `node`, and `edge`.
+- `--downstream_task <downstream_task>`: The type of downstream task. Options are `node` and `edge`.
+- `--num_epochs <num_epochs>`: Number of epochs to run.
+- `--batch_size <batch_size>`: The batch size to use.
 
-   ```yaml
-   method: ceu
-   dataset: Cora
-   cuda: 0
-   proportion_unlearned_nodes: 0.1
-   ```
+Note that the above list includes only a subset of the available parameters. For more parameters and their descriptions, please refer to the `GULib-master/parameter_parser.py` file. 
 
-2. **Execute the Script:**
+### Example Command:
 
-   ```bash
-   python main.py
-   ```
+To run the **GCN** model using **GraphEraser** for **node-level unlearning** and **node-level downstream tasks**, you can run the following command:
 
-   *Or pass parameters directly via the command line:*
+```bash
+python GULib-master/main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GraphEraser --unlearn_task node --downstream_task node --num_epochs 100 --batch_size 64
+```
 
-   ```bash
-   python main.py --method ceu --dataset Cora --cuda 0 --proportion_unlearned_nodes 0.1
-   ```
-
-3. **Monitor the Process:**
-
-   The script will initialize the logger, set the random seeds, load and preprocess the data, build the model, and execute the unlearning manager. Logs will provide real-time feedback on the process.
-
-4. **View Results:**
-
-   Upon completion, results including model performance metrics and unlearning effectiveness will be available as per the logging configuration.
-
-### **Additional Tips**
-
-- **Reproducibility:** Ensure that the random seed is set for reproducible experiments. This is handled in the `seed_everything` function within `main.py`.
-  
-- **CUDA Configuration:** Verify that the specified CUDA device is available and properly configured to utilize GPU acceleration.
-
-- **Experiment Management:** The `UnlearningManager` handles the execution of unlearning methods. Familiarize yourself with its parameters and functionalities for advanced use cases.
+This command will:
+- Use the **GCN** model
+- Apply **GraphEraser** as the unlearning method
+- Perform **node-level unlearning** and **node-level downstream tasks**
+- Use the **cora** dataset
+- Train for **100 epochs** with a **batch size of 64**
 
 
 ## 🤝 How to Contribute
