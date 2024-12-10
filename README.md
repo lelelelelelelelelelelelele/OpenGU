@@ -9,7 +9,7 @@
   <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#reference">Reference</a>
+  <a href="#references">References</a>
 </p>
 
 
@@ -338,7 +338,7 @@ If you use OpenGU in your research, please cite our paper:
 }
 ```
 
-## <span id="reference">📖 Reference</span>
+## <span id="references">📖 References</span>
 | **ID** | **Algorithm**   | **Paper**                                                                                             | **Conference/Journal**       |
 |--------|-----------------|-------------------------------------------------------------------------------------------------------|-----------------------------|
 | 1      | GraphEraser     | [**Graph Unlearning**](https://dl.acm.org/doi/abs/10.1145/3548606.3559352)                               | CCS 2022                    |
