@@ -164,43 +164,23 @@ These metrics collectively determine each method’s suitability for real-time a
 
 ### **Step 1: Create and Activate a Virtual Environment**
 
-It is recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects. You can create a virtual environment using either `venv` or `conda`.
+To manage dependencies, it's recommended to use a virtual environment.
 
 #### Using `venv`
 
-1. **Create a Virtual Environment**
-
-    ```bash
-    python -m venv venv
-    ```
-
-2. **Activate the Virtual Environment**
-
-    - **Windows**
-
-        ```bash
-        venv\Scripts\activate
-        ```
-
-    - **Unix or MacOS**
-
-        ```bash
-        source venv/bin/activate
-        ```
+```bash
+python -m venv venv
+venv\Scripts\activate  # Windows
+# or
+source venv/bin/activate  # Unix/MacOS
+```
 
 #### Using `conda`
 
-1. **Create a Virtual Environment**
-
-    ```bash
-    conda create -n myenv python=3.8
-    ```
-
-2. **Activate the Virtual Environment**
-
-    ```bash
-    conda activate myenv
-    ```
+```bash
+conda create -n myenv python=3.8
+conda activate myenv
+```
 
 ### **Step 2: Install OpenGU**
 
