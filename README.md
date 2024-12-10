@@ -273,15 +273,6 @@ pip install -r requirement.txt
 #### CUDA-Specific Dependencies
 For CUDA-specific dependencies, refer to the detailed instructions in the [Installation section](#installation)  above.
 
-### **Step 3: Run the Main Script**
-
-After installing the dependencies, you can run the main script using the following command:
-
-```bash
-python main.py --cuda 0 --dataset_name <dataset_name> --base_model <base_model> --unlearning_methods <unlearning_methods> --unlearn_task <unlearn_task> --downstream_task <downstream_task> --num_epochs 100 --batch_size 64
-```
-
-#### Optional arguments:
 
 ### **Step 3: Run the Main Script**
 
