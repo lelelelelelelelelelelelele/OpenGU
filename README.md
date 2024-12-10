@@ -38,7 +38,7 @@ To further streamline GU research and foster a more unified evaluation landscape
 
 <div align="center">
   <img src="Resources/methods_overview.png" alt="Methods Overview" border="0" width=600px/>
-  <p align="center"><em>Figure 1: Overview of the Graph Unlearning Methods Implemented in OpenGU. TODO:lacking Utu and Projector</em></p>
+  <p align="center"><em>Figure 1: Overview of the Graph Unlearning Methods Implemented in OpenGU.</em></p>
 </div>
 
 ## <span id="overview-of-the-benchmark">📈 Overview of the Benchmark</span>
@@ -211,7 +211,7 @@ TODO: To install OpenGU for local development, clone the GitHub repository and i
     pip install -e .
     ```
 
-### **Step 3: Installing Dependencies**
+### **Step 3: Install Dependencies**
 
 #### General Dependencies
 
