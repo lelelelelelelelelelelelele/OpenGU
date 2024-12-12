@@ -213,17 +213,11 @@ TODO: To install OpenGU for local development, clone the GitHub repository and i
 
 ### **Step 3: Install Dependencies**
 
-#### General Dependencies
-
-Install the general dependencies listed in the `requirements.txt` file:
-
-```bash
-pip install -r requirements.txt
-```
-
 #### CUDA-Specific Dependencies
 
 For GPU support, install the appropriate versions of PyTorch, CuPy, and related libraries that match your CUDA version.
+
+Here is the updated version with the required versions added:
 
 1. **Install PyTorch and torchvision with CUDA Support**
 
@@ -232,6 +226,8 @@ For GPU support, install the appropriate versions of PyTorch, CuPy, and related 
    ```bash
    pip install torch==2.2.1 torchvision==0.17.1 torchaudio --index-url https://download.pytorch.org/whl/cu121
    ```
+
+   Please ensure you install the required versions: `torch==2.2.1` and `torchvision==0.17.1`.
 
 2. **Install CuPy with CUDA Support**
 
@@ -242,6 +238,15 @@ For GPU support, install the appropriate versions of PyTorch, CuPy, and related 
    ```
 
 *Ensure your system has the appropriate CUDA version installed. For more information, refer to the [CuPy Installation Guide](https://docs.cupy.dev/en/stable/install.html#using-pip).*
+
+#### General Dependencies
+Before installing the general dependencies, please ensure you have installed the required versions of PyTorch and torchvision.
+
+Install the general dependencies listed in the `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### **Verify Installation**
 

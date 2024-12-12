@@ -1,5 +1,5 @@
 import argparse
-
+import sys
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -226,5 +226,10 @@ def parameter_parser():
     parser.add_argument('--file_name', type=str, default="unlearning_results", help="file name for results.")
     parser.add_argument('--write', type=bool, default=True, help="write to keep results.")
 
-    args = vars(parser.parse_args())
+    if "sphinx-build" in sys.argv[0]:
+        args = vars(parser.parse_args([]))
+        return args
+    else:
+        args = vars(parser.parse_args())
+        return args
     return args
