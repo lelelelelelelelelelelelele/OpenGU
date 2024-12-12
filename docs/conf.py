@@ -38,6 +38,7 @@ autodoc_default_options = {
     'undoc-members': True,
     'no-inherited-members': True,
     'show-inheritance': True,
+    'property-doc-from-class': True
 }
 
 
