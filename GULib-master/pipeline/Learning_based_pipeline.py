@@ -2,7 +2,45 @@ import numpy as np
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class Learning_based_pipeline:
+    """
+    Base class for implementing a learning-based pipeline. This class defines the basic structure
+    and essential methods that must be implemented by subclasses. It provides attributes for managing
+    runs, data, and performance metrics.
+
+    Class Attributes:
+        args (dict): A dictionary containing configuration arguments for the pipeline.
+
+        logger (Logger): A logger object for logging information during pipeline execution.
+
+        data (Dataset): A dataset object that provides the data for the pipeline.
+
+        model_zoo (ModelZoo): A model zoo that provides models and related functionality.
+
+        run (int): The current run index.
+
+        num_shards (int): The number of shards (partitions) in the pipeline.
+
+        poison_f1 (np.ndarray): Array to store the poison F1 score for each run.
+
+        average_f1 (np.ndarray): Array to store the average F1 score for each run.
+
+        average_auc (np.ndarray): Array to store the average AUC score for each run.
+
+        avg_training_time (np.ndarray): Array to store the average training time for each run.
+
+        avg_unlearning_time (np.ndarray): Array to store the average unlearning time for each run.
+
+        avg_sampling_time (np.ndarray): Array to store the average sampling time for each run.
+    """
     def __init__(self,args,logger,model_zoo):
+        """
+        Initializes the Learning_based_pipeline with the provided arguments, logger, and model zoo.
+
+        Args:
+            args (dict): A dictionary containing the configuration parameters. It must include keys like "num_runs" and "num_shards".
+            logger (Logger): A logger object used to log runtime information.
+            model_zoo (ModelZoo): An object that provides access to models and datasets.
+        """
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
@@ -17,6 +55,27 @@ class Learning_based_pipeline:
         self.avg_sampling_time = np.zeros(self.args["num_runs"])
         
     def run_exp(self):
+        """
+        Executes the experimental pipeline for multiple runs, performing training, unlearning, and evaluation.
+
+        During each run, this method:
+
+        1. Determines the target model.
+        2. Trains the original model.
+        3. Processes unlearning requests.
+        4. Performs unlearning operations.
+        5. Conducts attacks based on the unlearning task (node or edge).
+
+        At the end of all runs, logs the performance metrics including:
+
+        - Poison F1 Score
+        - Unlearn F1 Score
+        - Average AUC Score
+        - Average Training Time
+        - Average Sampling Time
+        - Average Unlearning Time
+
+        """
         for self.run in range(self.args['num_runs']):
             self.determine_target_model()
             self.train_original_model()

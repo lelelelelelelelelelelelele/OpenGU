@@ -10,6 +10,10 @@ from task.D2DGNTrainer import D2DGNTrainer
 from task.IDEATrainer import IDEATrainer
 from task.GraphRevokerTrainer import GraphRevokerTrainer
 from task.CEUTrainer import CEUTrainer
+from task.edge_prediction import EdgePredictor
+from task.node_classification import NodeClassifier
+from task.UtUTrainer import UtUTrainer
+from task.GraphRevokerTrainer import GraphRevokerTrainer
 trainer_mapping = {
     'BaseTrainer': BaseTrainer,
     'GUIDETrainer': GUIDETrainer,

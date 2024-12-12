@@ -64,3 +64,4 @@ API
     :caption: Contents
 
     api/task
+    api/pipeline

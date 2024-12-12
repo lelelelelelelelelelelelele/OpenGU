@@ -4,10 +4,61 @@ BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class IF_based_pipeline:
     """
-    这是一个最基础的IF_based_Pipeline，需要实现其中的所有函数。
-    如果您不想从头实现，请从IF方法的派生类中继承，而不是继承此类。
+    Base class for implementing an IF-based pipeline. This class defines the basic structure 
+    and essential methods that must be implemented by subclasses. If you do not want to 
+    implement the methods from scratch, please inherit from one of the derived classes 
+    that extend this base class.
+    
+    Class Attributes:
+        args (dict): A dictionary containing configuration arguments for the pipeline.
+
+        logger (Logger): A logger object for logging information during pipeline execution.
+
+        data (Dataset): A dataset object that provides the data for the pipeline.
+
+        model_zoo (ModelZoo): A model zoo that provides models and related functionality.
+
+        num_runs (int): The number of runs to execute.
+
+        run (int): The current run index.
+
+        num_shards (int): The number of shards (partitions) in the pipeline.
+
+        poison_f1 (np.ndarray): Array to store the poison F1 score for each run.
+
+        average_f1 (np.ndarray): Array to store the average F1 score for each run.
+
+        average_auc (np.ndarray): Array to store the average AUC score for each run.
+
+        avg_partition_time (np.ndarray): Array to store the average partition time for each run.
+
+        avg_training_time (np.ndarray): Array to store the average training time for each run.
+
+        avg_unlearning_time (np.ndarray): Array to store the average unlearning time for each run.
+
+        deleted_nodes (np.ndarray): Array to store the deleted nodes.
+
+        feature_nodes (np.ndarray): Array to store the feature nodes.
+
+        influence_nodes (np.ndarray): Array to store the influence nodes.
+
+        deleted_edges (np.ndarray): Array to store the deleted edges.
+
+        influence_edges (np.ndarray): Array to store the influence edges.
+
+        num_feats (int): The number of features in the dataset.
     """
     def __init__(self,args,logger,model_zoo):
+        """
+        Initializes the IF_based_pipeline with the provided arguments, logger, and model zoo.
+
+        Args:
+            args (dict): A dictionary containing the configuration parameters. It must include keys like "num_runs" and "num_shards".
+
+            logger (Logger): A logger object used to log runtime information.
+
+            model_zoo (ModelZoo): An object that provides access to models and datasets.
+        """
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
@@ -30,6 +81,29 @@ class IF_based_pipeline:
         self.num_feats = self.data.num_features
     
     def run_exp(self):
+        """
+        Run the experimental process for multiple iterations, training and unlearning the model.
+
+        This method runs the experiment for a specified number of iterations (`num_runs`).
+        During each run, it:
+
+        1. Initializes the target model using the base model provided in `args`.
+        2. Trains the original model.
+        3. Executes the unlearning request and performs the unlearning process.
+        4. If the `unlearn_task` and `downstream_task` are set to "node", it triggers the MIA (Model Inversion Attack) for nodes.
+
+        After all runs, it logs the performance metrics, including:
+        
+        - Poison F1 Score
+        - Unlearn F1 Score
+        - Average AUC Score
+        - Average Training Time
+        - Average Unlearning Time
+
+        Args:
+            self: The instance of the class that contains the experiment configuration and data.
+
+        """
         for self.run in range(self.args['num_runs']):
             self.target_model_name = self.args['base_model']
             self.determine_target_model()
