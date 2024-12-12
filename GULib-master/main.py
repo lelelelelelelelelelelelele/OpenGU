@@ -3,7 +3,6 @@ import random
 # import optuna
 import numpy as np
 import torch
-
 from model.model_zoo import model_zoo
 from dataset.original_dataset import original_dataset
 from parameter_parser import parameter_parser
@@ -27,6 +26,7 @@ import os
 import copy
 
 
+
 def seed_everything(seed_value):
     random.seed(seed_value)
     np.random.seed(seed_value)
@@ -38,7 +38,6 @@ def seed_everything(seed_value):
         torch.cuda.manual_seed_all(seed_value)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = True
-
 # def objective(trial):
 #     para1 = trial.suggest_float('para1', 0.5, 1.5)
 #     para2 = trial.suggest_float('para2', 0.0001, 0.01)
@@ -83,7 +82,6 @@ if __name__ == '__main__':
     
     logger = create_logger(args)
     seed_everything(2024)
-
     torch.cuda.set_device(args['cuda'])
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args["cuda"])
@@ -91,25 +89,22 @@ if __name__ == '__main__':
     #dataset
     original_data = original_dataset(args,logger)
     data,dataset = original_data.load_data()
+    # print(data.edge_index)
     # 使用 assert 直接检查 args 中的参数
-    assert args["num_unlearned_nodes"] == int(data.num_nodes * args["proportion_unlearned_nodes"]), (
-        "Mismatch detected: 'num_unlearned_nodes' (value: {}) is not equal to the calculated value based on 'proportion_unlearned_nodes' (value: {})."
-        .format(args["num_unlearned_nodes"], int(data.num_nodes * args["proportion_nodes"])))
-
-
     data = process_data(logger,data,args)
-
-
     #model
     model_zoo = model_zoo(args,data)
     model = model_zoo.model
     if args["base_model"] not in ["GST","Projector"]:
         logger.log_model_info(model)   
     
-
+    
     manager = UnlearningManager(args, original_data, data, logger, model_zoo, dataset)
-    manager.run()
+    GU_method = manager.get_method()
+    if args["cal_mem"] is True:
+        args["num_runs"] = 1
+        GU_method.run_exp_mem()
+    else:
+        GU_method.run_exp()
  
-
-
 

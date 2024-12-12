@@ -13,7 +13,7 @@ import torch.nn as nn
 import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+import config
 from torch_geometric.data import Data
 from torch_geometric.utils import subgraph, to_undirected
 
@@ -95,6 +95,7 @@ class GUIDE_FUNC:
         adjacency = to_dense_adj(
             edge_index_new).squeeze().to(labels_new.device)
         degrees = adjacency.sum(axis=0)
+        # print(degrees.count_nonzero(),degrees.shape)
         if degrees.count_nonzero() != degrees.shape[0]:
             raise ValueError(
                 'the input graph contains outlier points, leading to a 0-degree')
@@ -445,7 +446,7 @@ class GUIDE_FUNC:
             subbalance).mean().detach().cpu().numpy()/2
         return score_balance_, score_fair_
 
-    def subgraph_repair(self, x, REPAIR_METHOD='Zero', PATH='checkpoints/', DATA_NAME='Cora_0.8', MULTI_GRAPH=None):
+    def subgraph_repair(self, x, REPAIR_METHOD='Zero', PATH='checkpoints/', DATA_NAME='Cora_0.8', MULTI_GRAPH=None, no_repair=False):
         '''
         Repair the subgraphs with selected method, and save the repaired subgraphs to the PATH
         PATH: PATH+DATA_NAME/part{part_id}/subgraphs/part{part_id}_{PARTITION_METHOD}_partition_{REPAIR_METHOD}_repair.pkl
@@ -456,7 +457,9 @@ class GUIDE_FUNC:
         for parts in self.p.shards_ids.keys():
             original_indices = self.p.shards_ids[parts]
             sub_graph = Data(x=self.x[self.p.shards_ids[parts]],
-                             edge_index=self.p.shards_edges[parts], y=self.labels[self.p.shards_ids[parts]])
+                            edge_index=self.p.shards_edges[parts], y=self.labels[self.p.shards_ids[parts]])
+            print(sub_graph)
+            # sub_graph.train_edge_index = sub_graph.edge_index
             base_id = list(range(sub_graph.num_nodes))
             from_ = []
             for key in self.p.inter_pair[parts].keys():
@@ -465,7 +468,7 @@ class GUIDE_FUNC:
 
             
 
-            if len(from_) == 0:
+            if len(from_) == 0 or no_repair:
                 sub_graph.train_mask = torch.ones(
                     sub_graph.num_nodes, dtype=torch.bool)
                 sub_graph.test_mask = torch.ones(
@@ -498,6 +501,7 @@ class GUIDE_FUNC:
                     subplus_graph = self.patch_withouty(
                         sub_graph, x_plus, from_)
                     subplus_graph.uids = base_id + from_
+                    subplus_graph.train_edge_index = subplus_graph.edge_index
                 elif REPAIR_METHOD == 'Mirror':
                     # Mirror Feature
                     
@@ -525,6 +529,8 @@ class GUIDE_FUNC:
                     subplus_graph = self.patch_withouty(
                         sub_graph, x_plus, from_)
                     subplus_graph.uids = base_id + from_
+                    subplus_graph.train_edge_index = sub_graph.edge_index
+                    subplus_graph.test_edge_index = sub_graph.edge_index
                 elif REPAIR_METHOD == 'MixUp':
                     # Mixup Feature
                     mix0up = torch.zeros([len(from_), sub_graph.num_features])
@@ -542,6 +548,7 @@ class GUIDE_FUNC:
 
                     test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
                     test_indices_set = set(self.data.test_indices)
+
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in test_indices_set:
                             test_mask[idx] = True
@@ -556,6 +563,15 @@ class GUIDE_FUNC:
                     subplus_graph = self.patch_withouty(
                         sub_graph, x_plus, from_)
                     subplus_graph.uids = base_id + from_
+                    
+                    # subplus_graph.train_edge_index = sub_graph.edge_index
+                    # subplus_graph.test_edge_index = sub_graph.edge_index
+                    # print(subplus_graph)
+                    train_num = int(subplus_graph.edge_index.size(1)*0.8)
+                    shuffle_num = torch.randperm(subplus_graph.edge_index.size(1))
+                    subplus_graph.train_edge_index = subplus_graph.edge_index[:,shuffle_num][:,:train_num]
+                    subplus_graph.test_edge_index = subplus_graph.edge_index[:,shuffle_num][:,train_num:]
+                    
                 elif REPAIR_METHOD == 'None':
                     sub_graph.train_mask = torch.ones(
                         sub_graph.num_nodes, dtype=torch.bool)
@@ -564,7 +580,7 @@ class GUIDE_FUNC:
                     subplus_graph = sub_graph
                     subplus_graph.uids = base_id           
 
-            
+        
 
             if MULTI_GRAPH is not None:
                 savename = PATH+'{}/part{}/subgraphs/graph{}_part{}_{}.pt'.format(
@@ -574,7 +590,10 @@ class GUIDE_FUNC:
                     DATA_NAME, parts, parts, suffix)
 
             os.makedirs(os.path.dirname(savename), exist_ok=True)
-            torch.save(subplus_graph, savename)
+            if no_repair:
+                torch.save(sub_graph, savename)
+            else:
+                torch.save(subplus_graph, savename)
 
         if MULTI_GRAPH is not None:
             self.p.DPATH = PATH+'{}/part{}/subgraphs/graph{}_part{}_{}.pt'.format(

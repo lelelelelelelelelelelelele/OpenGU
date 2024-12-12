@@ -129,7 +129,8 @@ def negative_sampling_kg(edge_index, edge_type):
 def to_directed(edge_index):
     row, col = edge_index
     mask = row < col
-    return torch.cat([row[mask], col[mask]], dim=0)
+
+    return torch.stack((row[mask], col[mask]), dim=0)
 
 
 def get_loss_fct(name):
@@ -576,7 +577,7 @@ def lr_hessian_inv(w, X, y, lam, batch_size=50000):
 
 
 # training iteration for binary classification
-def lr_optimize(X, y, lam, b=None, num_steps=100, tol=1e-32, verbose=False, opt_choice='LBFGS', lr=0.01, wd=0,
+def lr_optimize(X, y, lam, b=None, num_steps=100, tol=1e-32, verbose=False, opt_choice='LBFGS', lr=0.05, wd=0,
                 X_val=None, y_val=None):
     '''
         b is the noise here. It is either pre-computed for worst-case, or pre-defined.
@@ -665,9 +666,8 @@ def ovr_lr_eval(w, X, y):
     # y_true = torch.zeros(y.size(0),7).cpu()
     # y_index = y.view(y.size(0),-1).cpu()
     # y_true = y_true.scatter_(1, y_index, 1)
-    F1_score = f1_score(y.cpu(), pred.cpu(), average="micro")
-    Recall_score = recall_score(y.cpu(), pred.cpu(), average="micro")
-
+    F1_score = f1_score(y.cpu(), pred.cpu(), average="micro",zero_division=np.nan)
+    Recall_score = recall_score(y.cpu(), pred.cpu(), average="micro",zero_division=np.nan)
     return pred.eq(y).float().mean(), F1_score, Recall_score
 
 
@@ -1132,3 +1132,53 @@ def member_infer_attack(target_model, attack_model, data, logits=None):
     suc_rate = 1 - pred.float().mean()  # label should be zero, aka if pred is 1(member) then attack success
 
     return torch.softmax(logits, dim=-1).squeeze().tolist(), suc_rate.cpu().item()
+
+
+def filter_edge_index_3(train_data, node_indices, all_edges_to_remove=None):
+    
+    # print(all_edges_to_remove)
+    if isinstance(train_data.train_edge_index, torch.Tensor):
+        train_data.train_edge_index = train_data.train_edge_index.cpu()
+
+    edge_index = train_data.train_edge_index
+    node_index = np.isin(edge_index, node_indices)
+
+    col_index = np.nonzero(np.logical_and(node_index[0], node_index[1]))[0]
+    edge_index = train_data.train_edge_index[:, col_index]
+    if all_edges_to_remove is not None:
+        all_edges_to_remove_set = set(map(tuple, all_edges_to_remove.tolist()))
+    else:
+        all_edges_to_remove_set = set()
+    
+    # Convert edge_index to a set of tuples for easy removal
+    edge_set = set(map(tuple, edge_index.T.tolist()))
+    # all_edges_to_remove_set = set(map(tuple, all_edges_to_remove))
+    #判断all_edges_to_remove是否在edge_set中
+    print(all_edges_to_remove_set.issubset(edge_set))
+    # Remove edges specified in all_edges_to_remove
+    edge_set.difference_update(all_edges_to_remove_set)
+
+    # Convert back to numpy array
+    edge_index = np.array(list(edge_set)).T
+
+    return np.searchsorted(node_indices, edge_index)
+
+
+def remove_node_from_graph(data, remove_indices=None):
+
+    for node_id in remove_indices:
+        data.x[node_id] = torch.zeros_like(data.x[node_id])
+        node_mask = torch.ones(data.x.size(0), dtype=torch.bool)
+        node_mask[remove_indices] = False 
+        edge_mask = node_mask[data.edge_index[0]] & node_mask[data.edge_index[1]]
+        data.edge_index = data.edge_index[:, edge_mask]
+        # edge_mask = torch.ones(data.edge_index.shape[1], dtype=torch.bool)
+        # edge_mask[data.edge_index[0] == node_id] = False
+        # edge_mask[data.edge_index[1] == node_id] = False
+        # data.edge_index = data.edge_index[:, edge_mask]
+        if data.edge_weight is not None:
+            data.edge_weight = data.edge_weight[:, edge_mask]
+        
+    
+    return data
+

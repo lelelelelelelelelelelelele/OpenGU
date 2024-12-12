@@ -26,7 +26,7 @@ class GUKDTrainer(BaseTrainer):
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
-        logits_t = F.log_softmax(z_t[self.data.test_mask]).to(self.device)
+        logits_t = F.softmax(z_t[self.data.test_mask],dim=-1).to(self.device)
         for epoch in tqdm(range(self.args['num_epochs']), desc="GUKD_Training", unit="epoch"):
             start_time = time.time()
             self.model.train()
@@ -35,12 +35,13 @@ class GUKDTrainer(BaseTrainer):
                 out = self.model(self.data.xs)
             else:
                 out = self.model(self.data.x, self.data.edge_index)
-            logits_s = F.log_softmax(out[self.data.test_mask],dim=-1)
-            loss = F.mse_loss(logits_s, logits_t)
-            loss.backward(retain_graph=True)
+            # logits_s = F.log_softmax(out[self.data.test_mask],dim=-1)
+            # loss = F.mse_loss(logits_s, logits_t)
+            loss = F.cross_entropy(out[self.data.test_mask],logits_t)
+            loss.backward()
             self.optimizer.step()
             time_sum += time.time() - start_time
-
+            
             #test#
             if (epoch + 1) % self.args["test_freq"] == 0:
                 f1 = self.test_node_fullbatch()
@@ -50,7 +51,7 @@ class GUKDTrainer(BaseTrainer):
                         best_w = copy.deepcopy(self.model.state_dict())
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
 
-        avg_training_time = time_sum / self.args['num_epochs']
+        avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
@@ -72,7 +73,7 @@ class GUKDTrainer(BaseTrainer):
                 edge_index=self.data.train_edge_index,num_nodes=self.data.num_nodes,
                 num_neg_samples=self.data.train_edge_index.size(1)
             )
-        logits_t = self.decode(z_t,self.data.test_edge_index,neg_edge_index).to(self.device)
+        logits_t = self.decode(z_t,self.data.train_edge_index,neg_edge_index).to(self.device)
         for epoch in tqdm(range(self.args['num_epochs']), desc="GUKD_Training", unit="epoch"):
             start_time = time.time()
             self.model.train()
@@ -80,9 +81,9 @@ class GUKDTrainer(BaseTrainer):
             if self.args["base_model"] == "SIGN":
                 out = self.model(self.data.xs)
             else:
-                out = self.model(self.data.x, self.data.test_edge_index)
+                out = self.model(self.data.x, self.data.train_edge_index)
             
-            logits_s = self.decode(out,self.data.test_edge_index,neg_edge_index)
+            logits_s = self.decode(out,self.data.train_edge_index,neg_edge_index)
             loss = F.mse_loss(logits_s, logits_t)
             loss.backward(retain_graph=True)
             self.optimizer.step()
@@ -90,14 +91,14 @@ class GUKDTrainer(BaseTrainer):
 
             #test#
             if (epoch + 1) % self.args["test_freq"] == 0:
-                f1 = self.test_node_fullbatch()
+                f1 = self.evaluate_edge_model()
                 if f1 > best_f1:
                     best_f1 = f1
                     if save:
                         best_w = copy.deepcopy(self.model.state_dict())
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
 
-        avg_training_time = time_sum / self.args['num_epochs']
+        avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)

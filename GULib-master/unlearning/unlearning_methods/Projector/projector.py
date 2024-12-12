@@ -173,6 +173,7 @@ class projector():
         best_valid_score = 0
 
         model = self.model
+        model = model.to(self.device)
         if self.args["require_linear_span"]:
             optimizer = torch.optim.SGD(
                 model.parameters(), lr=self.args["opt_lr"], momentum=0.9)
@@ -217,19 +218,20 @@ class projector():
                 train_acc = pred[mask].max(1)[1].eq(
                     self.data.y[mask]).sum().item() / mask.sum().item()
                 mask = self.data.val_mask
-                val_acc = pred[mask].max(1)[1].eq(
-                    self.data.y[mask]).sum().item() / mask.sum().item()
+                if mask.sum() != 0:
+                    val_acc = pred[mask].max(1)[1].eq(
+                        self.data.y[mask]).sum().item() / mask.sum().item()
                 mask = self.data.test_mask
                 test_acc = pred[mask].max(1)[1].eq(
                     self.data.y[mask]).sum().item() / mask.sum().item()
 
-            if epoch % 1 == 0:
+            if (epoch+1) % 10 == 0:
                 self.logger.info(
-                    f"Epoch: {epoch}, Train: {train_acc:.4f}, Val: {val_acc:.4f}, Test: {test_acc:.4f}"
+                    f"Epoch: {epoch}, Train: {train_acc:.4f}, Test: {test_acc:.4f}"
                 )
 
-            if val_acc > best_valid_score:
-                best_valid_score = val_acc
+            if train_acc > best_valid_score:
+                best_valid_score = test_acc
                 best_params = copy.deepcopy(model.state_dict())
         model.load_state_dict(best_params)
         return model
@@ -261,13 +263,14 @@ class projector():
             train_acc = pred[mask].max(1)[1].eq(
                 self.data.y[mask]).sum().item() / mask.sum().item()
             mask = self.data.val_mask
-            val_acc = pred[mask].max(1)[1].eq(
-                self.data.y[mask]).sum().item() / mask.sum().item()
+            if mask.sum()!=0:
+                val_acc = pred[mask].max(1)[1].eq(
+                    self.data.y[mask]).sum().item() / mask.sum().item()
             mask = self.data.test_mask
             test_acc = pred[mask].max(1)[1].eq(
                 self.data.y[mask]).sum().item() / mask.sum().item()
         print(
-            f"Direct predict >>> Train: {train_acc:.4f}, Val: {val_acc:.4f}, Test: {test_acc:.4f}")
+            f"Direct predict >>> Train: {train_acc:.4f}, Test: {test_acc:.4f}")
         self.direct_average_f1[self.run] = test_acc
 
         # reuse predicted labels
@@ -297,13 +300,14 @@ class projector():
             train_acc = pred[mask].max(1)[1].eq(
                 self.data.y[mask]).sum().item() / mask.sum().item()
             mask = self.data.val_mask
-            val_acc = pred[mask].max(1)[1].eq(
-                self.data.y[mask]).sum().item() / mask.sum().item()
+            if mask.sum()!=0:
+                val_acc = pred[mask].max(1)[1].eq(
+                    self.data.y[mask]).sum().item() / mask.sum().item()
             mask = self.data.test_mask
             test_acc = pred[mask].max(1)[1].eq(
                 self.data.y[mask]).sum().item() / mask.sum().item()
         print(
-            f"Label reuse >>> Train: {train_acc:.4f}, Val: {val_acc:.4f}, Test: {test_acc:.4f}")
+            f"Label reuse >>> Train: {train_acc:.4f}, Test: {test_acc:.4f}")
 
         print(
             ">>> Number of nodes are predicted as the last category",

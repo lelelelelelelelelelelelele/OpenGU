@@ -6,7 +6,7 @@ import numpy as np
 import copy
 from task.BaseTrainer import BaseTrainer
 from tqdm import tqdm
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score,recall_score
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score,recall_score,average_precision_score
 from attack.Attack_methods.GNNDelete_MIA import member_infer_attack
 from torch_geometric.utils import negative_sampling
 from utils.utils import get_loss_fct, trange, Reverse_CE
@@ -15,8 +15,145 @@ from config import root_path
 class GNNDeleteTrainer(BaseTrainer):
     def __init__(self, args, logger, model, data):
         super().__init__(args, logger, model, data)
+        self.df_pos_edge = []
 
-    def train_node_fullbatch(self,save=False):
+    def gnndelete_train(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        if self.args["downstream_task"]=="node":
+            return self.train_node_fullbatch_del(avg_time,run,optimizer, logits_ori,attack_model_all,attack_model_sub)
+        elif self.args["downstream_task"]=="edge":
+            return self.gnndelete_train_edge(avg_time,run,optimizer, logits_ori,attack_model_all,attack_model_sub)
+
+    def gnndelete_train_edge(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        self.model = self.model.to('cuda')
+        self.data = self.data.to('cuda')
+        self.trainer_log = {
+            'unlearning_model': self.args["unlearning_model"],
+            'dataset': self.args["dataset_name"],
+            'log': []}
+        best_metric = 0
+
+        # MI Attack before unlearning
+        if attack_model_all is not None:
+            mi_logit_all_before, mi_sucrate_all_before = member_infer_attack(self.model, attack_model_all, self.data)
+            self.trainer_log['mi_logit_all_before'] = mi_logit_all_before
+            self.trainer_log['mi_sucrate_all_before'] = mi_sucrate_all_before
+        if attack_model_sub is not None:
+            mi_logit_sub_before, mi_sucrate_sub_before = member_infer_attack(self.model, attack_model_sub, self.data)
+            self.trainer_log['mi_logit_sub_before'] = mi_logit_sub_before
+            self.trainer_log['mi_sucrate_sub_before'] = mi_sucrate_sub_before
+
+
+        non_df_node_mask = torch.ones(self.data.x.shape[0], dtype=torch.bool, device=self.data.x.device)
+        non_df_node_mask[self.data.directed_df_edge_index.flatten().unique()] = False
+
+        self.data.sdf_node_1hop_mask_non_df_mask = self.data.sdf_node_1hop_mask & non_df_node_mask
+        self.data.sdf_node_2hop_mask_non_df_mask = self.data.sdf_node_2hop_mask & non_df_node_mask
+        
+        # Original node embeddings
+        with torch.no_grad():
+            if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
+                z1_ori, z2_ori = self.model.get_original_embeddings(self.data.x, return_all_emb=True)
+            else:
+                z1_ori, z2_ori = self.model.get_original_embeddings(self.data.x, self.data.edge_index[:, self.data.dr_mask], return_all_emb=True)
+
+        loss_fct = get_loss_fct(self.args["loss_fct"])
+
+        neg_edge = neg_edge_index = negative_sampling(
+            edge_index=self.data.edge_index,
+            num_nodes=self.data.num_nodes,
+            num_neg_samples=self.data.df_mask.sum())
+
+        for epoch in trange(self.args['num_epochs'], desc='Unlerning'):
+            self.model.train()
+
+            start_time = time.time()
+            z1, z2 = self.model(self.data.x, self.data.edge_index[:, self.data.sdf_mask], return_all_emb=True)
+
+            # Randomness
+            pos_edge = self.data.edge_index[:, self.data.df_mask]
+            # neg_edge = torch.randperm(data.num_nodes)[:pos_edge.view(-1).shape[0]].view(2, -1)
+
+            embed1 = torch.cat([z1[pos_edge[0]], z1[pos_edge[1]]], dim=0)
+            embed1_ori = torch.cat([z1_ori[neg_edge[0]], z1_ori[neg_edge[1]]], dim=0)
+
+            embed2 = torch.cat([z2[pos_edge[0]], z2[pos_edge[1]]], dim=0)
+            embed2_ori = torch.cat([z2_ori[neg_edge[0]], z2_ori[neg_edge[1]]], dim=0)
+
+            loss_r1 = loss_fct(embed1, embed1_ori)
+            loss_r2 = loss_fct(embed2, embed2_ori)
+
+            # Local causality
+            loss_l1 = loss_fct(z1[self.data.sdf_node_1hop_mask_non_df_mask], z1_ori[self.data.sdf_node_1hop_mask_non_df_mask])
+            loss_l2 = loss_fct(z2[self.data.sdf_node_2hop_mask_non_df_mask], z2_ori[self.data.sdf_node_2hop_mask_non_df_mask])
+
+
+            # Total loss
+            '''both_all, both_layerwise, only2_layerwise, only2_all, only1'''
+            loss_l = loss_l1 + loss_l2
+            loss_r = loss_r1 + loss_r2
+
+            loss1 = self.args["alpha"] * loss_r1 + (1 - self.args["alpha"]) * loss_l1
+            loss1.backward(retain_graph=True)
+            optimizer[0].step()
+            optimizer[0].zero_grad()
+
+            loss2 = self.args["alpha"] * loss_r2 + (1 - self.args["alpha"]) * loss_l2
+            loss2.backward(retain_graph=True)
+            optimizer[1].step()
+            optimizer[1].zero_grad()
+
+            loss = loss1 + loss2
+
+            end_time = time.time()
+            epoch_time = end_time - start_time
+
+            step_log = {
+                'Epoch': epoch,
+                'train_loss': loss.item(),
+                'loss_r': loss_r.item(),
+                'loss_l': loss_l.item(),
+                'train_time': epoch_time
+            }
+            msg = [f'{i}: {j:>4d}' if isinstance(j, int) else f'{i}: {j:.4f}' for i, j in step_log.items()]
+            tqdm.write(' | '.join(msg))
+
+            if (epoch + 1) % self.args["test_freq"] == 0:
+                valid_loss, dt_f1,dt_acc ,_,_,_,_,_,_, valid_log = self.eval_edge('test')
+
+                valid_log['epoch'] = epoch
+
+                train_log = {
+                    'epoch': epoch,
+                    'train_loss': loss.item(),
+                    'loss_r': loss_r.item(),
+                    'loss_l': loss_l.item(),
+                    'train_time': epoch_time,
+                }
+                
+                for log in [train_log, valid_log]:
+                    msg = [f'{i}: {j:>4d}' if isinstance(j, int) else f'{i}: {j:.4f}' for i, j in log.items()]
+                    tqdm.write(' | '.join(msg))
+
+                if dt_acc + dt_f1 > best_metric:
+                    best_metric = dt_acc + dt_f1
+                    best_epoch = epoch
+
+                    print(f'Save best checkpoint at epoch {epoch:04d}. Valid loss = {valid_loss:.4f}')
+                    ckpt = {
+                        'model_state': self.model.state_dict(),
+                        # 'optimizer_state': [optimizer[0].state_dict(), optimizer[1].state_dict()],
+                    }
+                    torch.save(ckpt, os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
+        avg_time[run] = epoch_time
+        # Save
+        ckpt = {
+            'model_state': {k: v.to('cpu') for k, v in self.model.state_dict().items()},
+            # 'optimizer_state': [optimizer[0].state_dict(), optimizer[1].state_dict()],
+        }
+        torch.save(ckpt, os.path.join(self.args["checkpoint_dir"], 'model_final.pt'))
+
+
+    def train_node_fullbatch(self,save=False,model_path=False):
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -29,7 +166,7 @@ class GNNDeleteTrainer(BaseTrainer):
             start_time = time.time()
             self.model.train()
             self.optimizer.zero_grad()
-            if self.args["base_model"] == "SIGN" or self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" :
+            if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
                 out = self.model(self.data.features_pre)
             else:
                 out = self.model(self.data.x, self.data.edge_index)
@@ -49,7 +186,8 @@ class GNNDeleteTrainer(BaseTrainer):
 
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+        if not model_path:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
         self.save_model(model_path,best_w)
         return best_f1,avg_training_time
@@ -60,7 +198,7 @@ class GNNDeleteTrainer(BaseTrainer):
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
-        if self.args["base_model"] == "SIGN" or self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" :
+        if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
             y_pred = self.model(self.data.features_pre).cpu()
         else:
             y_pred = self.model(self.data.x, self.data.edge_index).cpu()
@@ -98,7 +236,7 @@ class GNNDeleteTrainer(BaseTrainer):
 
         # Original node embeddings
         with torch.no_grad():
-            if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
+            if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
                 z1_ori, z2_ori = self.model.get_original_embeddings(self.data.features_pre,return_all_emb=True)
             else:
                 z1_ori, z2_ori = self.model.get_original_embeddings(self.data.x, self.data.edge_index[:, self.data.dr_mask],
@@ -116,7 +254,7 @@ class GNNDeleteTrainer(BaseTrainer):
             self.model.train()
 
             start_time = time.time()
-            if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
+            if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
                 z1, z2 = self.model(self.data.features_pre, return_all_emb=True)
             else:    
                 z1, z2 = self.model(self.data.x, self.data.edge_index[:, self.data.sdf_mask], return_all_emb=True)
@@ -195,7 +333,7 @@ class GNNDeleteTrainer(BaseTrainer):
                         # 'optimizer_state': [optimizer[0].state_dict(), optimizer[1].state_dict()],
                     }
                     torch.save(ckpt, os.path.join(self.args["checkpoint_dir"],'model_best.pt'))
-        avg_time[run] = epoch_time/self.args["unlearning_epochs"]  
+        avg_time[run] = epoch_time
         # Save
         ckpt = {
             'model_state': {k: v.to('cpu') for k, v in self.model.state_dict().items()},
@@ -250,6 +388,12 @@ class GNNDeleteTrainer(BaseTrainer):
         self.logger.info("loss:{}  ,dt_acc:{} ,recall:{}  ,dt_f1:{}  ,test_log:{}  ".format(loss, dt_acc, recall, dt_f1, test_log))
         return loss, dt_acc, recall, dt_f1, test_log
 
+    def eval_del(self,stage="val",pred_all=False):
+        if self.args["downstream_task"]=="node":
+            return self.eval_node_fullbatch_del(stage,pred_all)
+        elif self.args["downstream_task"]=="edge":
+            loss, f1,acc,dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log = self.eval_edge(stage, pred_all)
+            return loss,acc,dt_auc,df_auc,test_log
 
     @torch.no_grad()
     def eval_node_fullbatch_del(self,stage='val', pred_all=False):
@@ -267,46 +411,6 @@ class GNNDeleteTrainer(BaseTrainer):
         recall = recall_score(self.data.y[self.data.test_mask].cpu(), pred,average='micro')
         dt_f1 = f1_score(self.data.y[self.data.test_mask].cpu(), pred, average='micro')
 
-        # DF AUC AUP
-        # if self.args.unlearning_model in ['original', 'original_node']:
-        #     df_logit = []
-        # else:
-        #     df_logit = self.model.decode(z, self.data.directed_df_edge_index).sigmoid().tolist()
-
-        # if len(df_logit) > 0:
-        #     df_auc = []
-        #     df_aup = []
-
-        #     # Sample pos samples
-        #     if len(self.df_pos_edge) == 0:
-        #         for i in range(500):
-        #             mask = torch.zeros(self.data.train_pos_edge_index[:, self.data.dr_mask].shape[1], dtype=torch.bool)
-        #             idx = torch.randperm(self.data.train_pos_edge_index[:, self.data.dr_mask].shape[1])[:len(df_logit)]
-        #             mask[idx] = True
-        #             self.df_pos_edge.append(mask)
-
-        #     # Use cached pos samples
-        #     for mask in self.df_pos_edge:
-        #         pos_logit = self.model.decode(z, self.data.train_pos_edge_index[:, self.data.dr_mask][:, mask]).sigmoid().tolist()
-
-        #         logit = df_logit + pos_logit
-        #         label = [0] * len(df_logit) +  [1] * len(df_logit)
-        #         df_auc.append(roc_auc_score(label, logit))
-        #         df_aup.append(average_precision_score(label, logit))
-
-        #     df_auc = np.mean(df_auc)
-        #     df_aup = np.mean(df_aup)
-
-        # else:
-        #     df_auc = np.nan
-        #     df_aup = np.nan
-
-        # Logits for all node pairs
-        # if pred_all:
-        #     logit_all_pair = (z @ z.t()).cpu()
-        # else:
-        #     logit_all_pair = None
-
         log = {
             f'{stage}_loss': loss,
             f'{stage}_dt_acc': dt_acc,
@@ -317,3 +421,185 @@ class GNNDeleteTrainer(BaseTrainer):
             self.model = self.model.to(self.device)
 
         return loss, dt_acc,recall, dt_f1, log
+    
+    @torch.no_grad()
+    def eval(self, model, data, stage='val', pred_all=False):
+        model.eval()
+
+        z = F.log_softmax(model(data.x, data.edge_index), dim=1)
+
+        # DT AUC AUP
+        loss = F.nll_loss(z[data.test_mask], data.y[data.test_mask]).cpu().item()
+        pred = torch.argmax(z[data.test_mask], dim=1).cpu()
+        dt_acc = accuracy_score(data.y[data.test_mask].cpu(), pred)
+        dt_f1 = f1_score(data.y[data.test_mask].cpu(), pred, average='micro')
+
+        if pred_all:
+            logit_all_pair = (z @ z.t()).cpu()
+        else:
+            logit_all_pair = None
+
+        log = {
+            f'{stage}_loss': loss,
+            f'{stage}_dt_acc': dt_acc,
+            f'{stage}_dt_f1': dt_f1,
+        }
+
+        return loss, dt_acc, dt_f1, log
+    
+    @torch.no_grad()
+    def test(self, model, data, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
+        
+        if ckpt == 'best':    # Load best ckpt
+            ckpt = torch.load(os.path.join(self.args.checkpoint_dir, 'model_best.pt'))
+            model.load_state_dict(ckpt['model_state'])
+
+        if 'ogbl' in self.args["dataset_name"]:
+            pred_all = False
+        else:
+            pred_all = True
+        loss, dt_acc, dt_f1, test_log = self.eval(model, data, 'test', pred_all)
+
+        self.trainer_log['dt_loss'] = loss
+        self.trainer_log['dt_acc'] = dt_acc
+        self.trainer_log['dt_f1'] = dt_f1
+
+        if model_retrain is not None:    # Deletion
+            self.trainer_log['ve'] = self.verification_error(model, model_retrain).cpu().item()
+            # self.trainer_log['dr_kld'] = output_kldiv(model, model_retrain, data=data).cpu().item()
+
+        # MI Attack after unlearning
+        if attack_model_all is not None:
+            mi_logit_all_after, mi_sucrate_all_after = member_infer_attack(model, attack_model_all, data)
+            self.trainer_log['mi_logit_all_after'] = mi_logit_all_after
+            self.trainer_log['mi_sucrate_all_after'] = mi_sucrate_all_after
+        if attack_model_sub is not None:
+            mi_logit_sub_after, mi_sucrate_sub_after = member_infer_attack(model, attack_model_sub, data)
+            self.trainer_log['mi_logit_sub_after'] = mi_logit_sub_after
+            self.trainer_log['mi_sucrate_sub_after'] = mi_sucrate_sub_after
+            
+            self.trainer_log['mi_ratio_all'] = np.mean([i[1] / j[1] for i, j in zip(self.trainer_log['mi_logit_all_after'], self.trainer_log['mi_logit_all_before'])])
+            self.trainer_log['mi_ratio_sub'] = np.mean([i[1] / j[1] for i, j in zip(self.trainer_log['mi_logit_sub_after'], self.trainer_log['mi_logit_sub_before'])])
+            print(self.trainer_log['mi_ratio_all'], self.trainer_log['mi_ratio_sub'], self.trainer_log['mi_sucrate_all_after'], self.trainer_log['mi_sucrate_sub_after'])
+            print(self.trainer_log['df_auc'], self.trainer_log['df_aup'])
+
+        return loss, dt_acc, dt_f1, test_log
+
+    @torch.no_grad()
+    def verification_error(self,model1, model2):
+        '''L2 distance between aproximate model and re-trained model'''
+
+        model1 = model1.to('cpu')
+        model2 = model2.to('cpu')
+
+        modules1 = {n: p for n, p in model1.named_parameters()}
+        modules2 = {n: p for n, p in model2.named_parameters()}
+
+        all_names = set(modules1.keys()) & set(modules2.keys())
+
+        print(all_names)
+
+        diff = torch.tensor(0.0).float()
+        for n in all_names:
+            diff += torch.norm(modules1[n] - modules2[n])
+        
+        return diff
+    
+    @torch.no_grad()
+    def eval_edge(self, stage='val', pred_all=False):
+        self.model.eval()
+        pos_edge_index = self.data[f'{stage}_edge_index']
+        neg_edge_index = negative_sampling(
+                edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
+                num_neg_samples=self.data.test_edge_index.size(1)
+            )
+        
+        z = self.model(self.data.x, self.data.test_edge_index)
+        logits = self.decode(z, pos_edge_index, neg_edge_index).sigmoid()
+        label = self.get_link_labels(pos_edge_index, neg_edge_index)
+        pred = torch.where(logits > 0.5, torch.tensor(1), torch.tensor(0))
+        f1 = f1_score(label.cpu(),pred.cpu())
+        acc = accuracy_score(label.cpu(),pred.cpu())
+        # DT AUC AUP
+        loss = F.binary_cross_entropy_with_logits(logits, label).cpu().item()
+
+        dt_auc = roc_auc_score(label.cpu(), logits.cpu())
+        dt_aup = average_precision_score(label.cpu(), logits.cpu())
+
+        # DF AUC AUP
+        if self.args["unlearning_model"] in ['original']:
+            df_logit = []
+        else:
+            # df_logit = model.decode(z, data.train_pos_edge_index[:, data.df_mask]).sigmoid().tolist()
+            df_logit = torch.sigmoid(self.decode_val(z, self.data.directed_df_edge_index)).tolist()
+
+        if len(df_logit) > 0:
+            df_auc = []
+            df_aup = []
+        
+            # Sample pos samples
+            if len(self.df_pos_edge) == 0:
+                for i in range(500):
+                    mask = torch.zeros(self.data.edge_index[:, self.data.dr_mask].shape[1], dtype=torch.bool)
+                    idx = torch.randperm(self.data.edge_index[:, self.data.dr_mask].shape[1])[:len(df_logit)]
+                    mask[idx] = True
+                    self.df_pos_edge.append(mask)
+            
+            # Use cached pos samples
+            for mask in self.df_pos_edge:
+                pos_logit = self.decode(z, self.data.edge_index[:, self.data.dr_mask][:, mask]).sigmoid().tolist()
+                
+                logit = df_logit + pos_logit
+                label = [0] * len(df_logit) +  [1] * len(df_logit)
+                df_auc.append(roc_auc_score(label, logit))
+                df_aup.append(average_precision_score(label, logit))
+        
+            df_auc = np.mean(df_auc)
+            df_aup = np.mean(df_aup)
+
+        else:
+            df_auc = np.nan
+            df_aup = np.nan
+
+        # Logits for all node pairs
+        if pred_all:
+            logit_all_pair = (z @ z.t()).cpu()
+        else:
+            logit_all_pair = None
+
+        log = {
+            f'{stage}_loss': loss,
+            f'{stage}_dt_auc': dt_auc,
+            f'{stage}_dt_aup': dt_aup,
+            f'{stage}_df_auc': df_auc,
+            f'{stage}_df_aup': df_aup,
+            f'{stage}_df_logit_mean': np.mean(df_logit) if len(df_logit) > 0 else np.nan,
+            f'{stage}_df_logit_std': np.std(df_logit) if len(df_logit) > 0 else np.nan
+        }
+
+        return loss, f1,acc,dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, log
+    
+    @torch.no_grad()
+    def get_link_labels(self, pos_edge_index, neg_edge_index):
+        E = pos_edge_index.size(1) + neg_edge_index.size(1)
+        link_labels = torch.zeros(E, dtype=torch.float, device=pos_edge_index.device)
+        link_labels[:pos_edge_index.size(1)] = 1.
+        return link_labels
+    
+    @torch.no_grad()
+    def test_edge(self, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
+        
+        if ckpt == 'best':    # Load best ckpt
+            ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
+            self.model.load_state_dict(ckpt['model_state'])
+
+        if 'ogbl' in self.args["dataset_name"]:
+            pred_all = False
+        else:
+            pred_all = True
+        loss, f1,acc,dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log = self.eval_edge('test', pred_all)
+
+        return loss, f1,acc,dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log
+    
+    
+    

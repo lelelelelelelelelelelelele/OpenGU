@@ -15,7 +15,7 @@ from dataset.original_dataset import original_dataset
 from utils import utils
 from tqdm import tqdm
 from utils.dataset_utils import *
-
+from utils import dataset_utils,utils
 
 class OptimalAggregator:
     def __init__(self, run, model_zoo, data, args,logger):
@@ -36,12 +36,12 @@ class OptimalAggregator:
         
         train_indices = data.train_indices
         # sample a set of nodes from train_indices
-        if self.args["num_opt_samples"] == 100:
-            train_indices = np.random.choice(train_indices, size=100, replace=False)
+        if self.args["num_opt_samples"] == 1000:
+            train_indices = np.random.choice(train_indices, size=1000, replace=False)
         elif self.args["num_opt_samples"] == 10000:
-            train_indices = np.random.choice(train_indices, size=int(train_indices.shape[0] * 0.1), replace=False)
+            train_indices = np.random.choice(train_indices, size=int(len(train_indices) * 0.1), replace=False)
         elif self.args["num_opt_samples"] == 1:
-            train_indices = np.random.choice(train_indices, size=int(train_indices.shape[0]), replace=False)
+            train_indices = np.random.choice(train_indices, size=int(len(train_indices)), replace=False)
 
         train_indices = np.sort(train_indices)
         self.logger.info("Using %s samples for optimization" % (int(train_indices.shape[0])))
@@ -59,7 +59,7 @@ class OptimalAggregator:
         train_data.train_mask = torch.zeros(train_indices.shape[0], dtype=torch.bool)
         train_data.test_mask = torch.ones(train_indices.shape[0], dtype=torch.bool)
         self.true_labels = y
-
+        true_labels =[] 
         self.posteriors = {}
         for shard in range(self.num_shards):
             self.model_zoo.data = train_data
@@ -69,9 +69,14 @@ class OptimalAggregator:
             # else:
             #9.20
             # self.posteriors[shard] = self.model_zoo.posterior_other().to(self.device)
-            self.posteriors[shard] = self.model_zoo.posterior().to(self.device)
-
-
+            # self.posteriors[shard] = self.model_zoo.posterior().to(self.device)
+            if self.args["downstream_task"]=="node":
+                self.posteriors[shard] = self.model_zoo.posterior().to(self.device)
+            elif self.args["downstream_task"]=="edge":
+                self.posteriors[shard],true_label = self.model_zoo.posterior_edge()
+                true_labels.append(true_label)
+        if self.args["downstream_task"]=="edge":
+            self.true_labels = torch.concat(true_labels,dim=-1)
     def optimization(self):
         weight_para = nn.Parameter(torch.full((self.num_shards,), fill_value=1.0 / self.num_shards), requires_grad=True)
         optimizer = optim.Adam([weight_para], lr=self.args['opt_lr'])
@@ -88,7 +93,7 @@ class OptimalAggregator:
 
             for posteriors, labels in train_loader:
                 labels = labels.to(self.device)
-
+                # posteriors = posteriors.to(self.device)
                 optimizer.zero_grad()
                 loss = self._loss_fn(posteriors, labels, weight_para)
                 loss.backward()
@@ -114,8 +119,50 @@ class OptimalAggregator:
         for shard in range(self.num_shards):
             aggregate_posteriors += weight_para[shard] * posteriors[shard]
 
-        aggregate_posteriors = F.softmax(aggregate_posteriors, dim=1)
+        aggregate_posteriors = F.softmax(aggregate_posteriors, dim=1).to(self.device)
         loss_1 = F.cross_entropy(aggregate_posteriors, labels)
         loss_2 = torch.sqrt(torch.sum(weight_para ** 2))
 
         return loss_1 + loss_2
+
+    def _generate_train_data_revoker(self):
+        data = dataset_utils.load_train_test_split(self.logger)
+        # train_indices,_= load_train_test_split(self.logger)
+        
+        train_indices = data.train_indices
+        train_indices = np.array(train_indices)
+
+        com2node = dataset_utils.load_community_data(self.logger)
+        node2com = {}
+        
+        for com, indices in com2node.items():
+            for node in indices:
+                node2com[node] = com
+        node2com = np.array(list(node2com.values()), dtype=np.int64)
+        
+        # sample a set of nodes from train_indices
+        if self.args["num_opt_samples"] == 1000:
+            selected_indices = np.random.choice(np.arange(len(train_indices)), size=1000, replace=False)
+        elif self.args["num_opt_samples"] == 10000:
+            selected_indices = np.random.choice(np.arange(len(train_indices)), size=int(len(train_indices) * 0.1), replace=False)
+        elif self.args["num_opt_samples"] == 1:
+            selected_indices = np.random.choice(np.arange(len(train_indices)), size=int(len(train_indices)), replace=False)
+
+        train_indices = train_indices[selected_indices]
+        self.node2com = node2com[selected_indices]
+
+        train_indices = np.sort(train_indices)
+        self.logger.info("Using %s samples for optimization" % (int(train_indices.shape[0])))
+
+        x = self.data.x[train_indices]
+        y = self.data.y[train_indices]
+        edge_index = utils.filter_edge_index(self.data.edge_index, train_indices)
+
+        train_data = Data(x=x, edge_index=torch.from_numpy(edge_index), y=y)
+        train_data.train_mask = torch.zeros(train_indices.shape[0], dtype=torch.bool)
+        train_data.test_mask = torch.ones(train_indices.shape[0], dtype=torch.bool)
+        self.true_labels = y
+
+        self.posteriors = {}
+        
+        return train_data

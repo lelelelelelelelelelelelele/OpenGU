@@ -6,13 +6,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 import copy
 from tqdm import trange, tqdm
-from torch_geometric.data import DataLoader
+# from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 from torch_geometric.utils import negative_sampling
-from torch_geometric.loader import GraphSAINTRandomWalkSampler
 from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_score, f1_score
 from config import root_path
 from torch_geometric.data import Data
 from torch_geometric.transforms import RandomLinkSplit
+from torch_geometric.loader import NeighborSampler
+from torch_geometric.loader import NeighborLoader
+from torch_geometric.loader import GraphSAINTNodeSampler
+from torch_geometric.loader import ClusterData, ClusterLoader
+from torch_geometric.utils import k_hop_subgraph, to_scipy_sparse_matrix
+from utils.utils import sparse_mx_to_torch_sparse_tensor,normalize_adj
 class BaseTrainer:
     def __init__(self,args,logger,model, data):
         self.args = args
@@ -21,31 +27,44 @@ class BaseTrainer:
         self.data = data
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    def train(self,save=False):
+    def train(self,save=False,model_path=None):
         if self.args["downstream_task"] == 'node':
-            return self.train_node(save)
-        else:
-            return self.train_edge(save)
+            return self.train_node(save,model_path)
+        elif self.args["downstream_task"] == 'edge':
+            return self.train_edge(save,model_path)
+        elif self.args["downstream_task"]=="graph":
+            self.train_loader = DataLoader(self.data[0], batch_size=64, shuffle=False)
+            self.test_loader = DataLoader(self.data[1], batch_size=64, shuffle=False)
+            # self.train_loader = self.gen_loader(mode="train",batch_size=64)
+            # self.test_loader = self.gen_loader(mode="test",batch_size=64)
+            return self.train_graph(save,model_path)
 
-    def train_node(self,save=False):
+    def evaluate(self):
+        if self.args["downstream_task"] == 'node':
+            return self.test_node_fullbatch()
+        elif self.args["downstream_task"] == 'edge':
+            return self.evaluate_edge_model()
+        elif self.args["downstream_task"]=="graph":
+            return self.evaluate_graph_model()
+    def train_node(self,save=False,model_path=None):
         if self.args["use_batch"]:
-            return self.train_node_minibatch(save)
+            return self.train_node_minibatch(save,model_path)
         else:
-            return self.train_node_fullbatch(save)
+            return self.train_node_fullbatch(save,model_path)
 
 
-    def train_edge(self,save=False):
-        print(self.data)
+    def train_edge(self,save=False,model_path=None):
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
+        # print("train_data",self.data)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr,
                                           weight_decay=self.model.config.decay)
         time_sum = 0
         best_f1 = 0
         best_w = 0
-        for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
+        for epoch in tqdm(range(self.args['num_epochs']), desc="Training Edge", unit="epoch"):
             start_time = time.time()
             self.model.train()
 
@@ -63,6 +82,7 @@ class BaseTrainer:
             pos_edge_label = torch.ones(self.data.train_edge_index.size(1),dtype=torch.float32)
 
             edge_logits = self.decode(z=out, pos_edge_index=self.data.train_edge_index,neg_edge_index=neg_edge_index)
+            # edge_logits = torch.sigmoid(edge_logits)
             edge_labels = torch.cat((pos_edge_label,neg_edge_label),dim=-1)
             edge_labels = edge_labels.to(self.device)
             loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels)
@@ -81,11 +101,25 @@ class BaseTrainer:
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, F1_score, loss))
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+        if not model_path:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
         self.save_model(model_path,best_w)
         return best_f1,avg_training_time
 
+    # def get_edge_loss(self,out,edge_index,reduction):
+    #     neg_edge_index = negative_sampling(
+    #             edge_index=edge_index,num_nodes=out.shape[0],
+    #             num_neg_samples=edge_index.size(1)
+    #         )
+    #     neg_edge_label = torch.zeros(neg_edge_index.size(1), dtype=torch.float32)
+    #     pos_edge_label = torch.ones(edge_index.size(1),dtype=torch.float32)
+    #     edge_logits = self.decode(z=out, pos_edge_index=edge_index,neg_edge_index=neg_edge_index)
+    #     edge_labels = torch.cat((pos_edge_label,neg_edge_label),dim=-1)
+    #     edge_labels = edge_labels.to(self.device)
+    #     loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels,reduction=reduction)
+    #     return loss
+        
     def split_edge(self, data):
         # print(type(data.adj))
         temp = Data(x=data.x, y=data.y, edge_index=data.edge_index)
@@ -107,53 +141,210 @@ class BaseTrainer:
 
         return data
     
+    def train_graph(self,save=False,model_path=None):
+        self.model.train()
+        self.model.reset_parameters()
+        self.model = self.model.to(self.device)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr,
+                                          weight_decay=self.model.config.decay)
+        time_sum = 0
+        best_acc = 0
+        best_w = 0
+        for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
+            start_time = time.time()
+            for graph_data in self.train_loader:
+                graph_data = graph_data.to(self.device)
+                self.optimizer.zero_grad()
+
+                if self.args["base_model"] == "SIGN":
+                    logits,feat = self.model(graph_data.xs,return_feature=True)
+                else:
+                    logits,feat = self.model(graph_data.x, graph_data.edge_index,return_feature=True,batch = graph_data.batch)
+                # mask  = torch.ones_like(graph_data.y).bool()
+                
+                loss = F.cross_entropy(logits,graph_data.y)
+
+                loss.backward()
+                self.optimizer.step()
+            self.best_valid_acc = 0
+            time_sum += time.time() - start_time
+
+            if (epoch + 1) % self.args["test_freq"] == 0:
+                acc = self.evaluate_graph_model()
+                if acc > best_acc:
+                    best_acc = acc
+                    if save:
+                        best_w = copy.deepcopy(self.model.state_dict())
+                self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, best_acc, loss))
+        avg_training_time = time_sum / self.args['num_epochs']
+        self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
+        if not model_path:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+        self.save_model(model_path,best_w)
+        return best_acc,avg_training_time
+    
     @torch.no_grad()
     def evaluate_edge_model(self):
-
         self.model.eval()
         self.model = self.model.to(self.device)
+        # self.data.edge_index = torch.tensor(self.data.edge_index,dtype=torch.long)
         self.data = self.data.to(self.device)
 
         if self.args["base_model"] == "SIGN":
             out = self.model(self.data.xs)
         else:
-            out = self.model(self.data.x, self.data.test_edge_index)
+            out = self.model(self.data.x, self.data.train_edge_index)
         neg_edge_index = negative_sampling(
-                edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
-                num_neg_samples=self.data.test_edge_index.size(1)
-            )
-        edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index)
-        edge_pred_logits = torch.sigmoid(edge_pred_logits)
-        edge_pred_logits = edge_pred_logits.cpu()
-        edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
+            edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
+            num_neg_samples=self.data.test_edge_index.size(1)
+        )
+        # print(out.shape,self.data.test_edge_index,neg_edge_index)
+        edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).sigmoid()
         
+        # edge_pred_logits = torch.sigmoid(edge_pred_logits*2-1)
+        # edge_pred_logits = edge_pred_logits.cpu()
+        edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
+        edge_pred = edge_pred_logits.cpu()
         # edge_pred = torch.argmax(edge_pred_logits)
+        # edge_labels = self.data.test_edge_labels
         pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
         neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
         edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
-        F1_score = f1_score(edge_labels.cpu(), edge_pred.cpu())
+        AUC_score = roc_auc_score(edge_labels.cpu(), edge_pred.cpu())
         # Acc_score = accuracy_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
         # Recall_score = recall_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
-        return F1_score
+        return AUC_score
 
-    def decode(self, z, pos_edge_index,neg_edge_index):
-        edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
-        return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
+    def decode(self, z, pos_edge_index, neg_edge_index=None):
+        if neg_edge_index is not None:
+            edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
+            logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
+
+        else:
+            edge_index = pos_edge_index
+            logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
+
+        return logits
 
     def decode_val(self, z, edge_label_index):
-        # print(z.shape)
         return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
 
     def get_edge_labels(self, pos_edge_index, neg_edge_index):
-        num_edge = pos_edge_index.size(1) + neg_edge_index.size(1)
-        edge_labels = torch.zeros(num_edge, dtype=torch.float32, device=self.device)  # float32 or float
+        num_edges = pos_edge_index.size(1) + neg_edge_index.size(1)
+        edge_labels = torch.zeros(num_edges, dtype=torch.float32, device=self.device)  # float32 or float
         edge_labels[:pos_edge_index.size(1)] = 1
         return edge_labels
 
-    def train_node_minibatch(self,save=False):
-        pass
+    def train_node_minibatch(self,save=False,model_path=None):
+        time_sum  = 0
+        best_f1 = 0
+        best_w = 0
+        self.model.train()
+        self.model.reset_parameters()
+        self.model = self.model.to(self.device)
+        self.data.num_nodes = self.data.x.size(0)
+        self.data = self.data.to('cpu')
+        if self.args["base_model"] == "SAINT":
+            self.loader = GraphSAINTNodeSampler(self.data,batch_size=256)
+        elif self.args["base_model"] == "Cluster_GCN":
+            cluster_data = ClusterData(self.data, num_parts=50)  
+            cluster_data.data.num_edges = self.data.edge_index.size(1)
+            self.loader = ClusterLoader(cluster_data, batch_size=5, shuffle=False)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
+        for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
+            start_time = time.time()
+            self.model.train()
+            self.optimizer.zero_grad()
+            for data in self.loader:
+                data = data.to(self.device)
+                out = self.model(data.x, data.edge_index)  # 其他模型
+                loss = F.cross_entropy(out[data.train_mask], data.y[data.train_mask])
+                loss.backward()
+                self.optimizer.step()
+            time_sum += time.time() - start_time
+            
+            if (epoch + 1) % self.args["test_freq"] == 0:
+                f1 = self.test_node_minibatch()  # 使用适当的测试方法
+                if f1 > best_f1:
+                    best_f1 = f1
+                    if save:
+                        best_w = copy.deepcopy(self.model.state_dict())
+                self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
+        avg_training_time = time_sum / self.args['num_epochs']
+        if not model_path:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+        self.save_model(model_path,best_w)
+        
+        return best_f1,avg_training_time
+        # time_sum = 0
+        # best_f1 = 0
+        # best_w = 0
+        # self.model.train()
+        # self.model.reset_parameters()
+        # self.model = self.model.to(self.device)
+        # self.data = self.data.to(self.device)
 
-    def train_node_fullbatch(self,save=False):
+        # # 构建 NeighborLoader
+        # edge_index = self.data.edge_index
+        # train_mask = self.data.train_mask
+        # batch_size = 2048  # minibatch大小
+        # sizes = [10, 10]  # 每层采样的邻居数
+
+        # # 使用 NeighborLoader 构建数据加载器
+        # loader = NeighborLoader(
+        #     self.data,
+        #     num_neighbors=sizes,
+        #     batch_size=batch_size,
+        #     shuffle=True,
+        #     input_nodes=self.data.train_mask,  # 只从训练节点开始采样
+        # )
+
+        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
+        
+        # for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
+        #     start_time = time.time()
+        #     self.model.train()
+        #     self.optimizer.zero_grad()
+
+        #     # 遍历 NeighborLoader 生成的 mini-batch
+        #     for batch in loader:
+        #         # batch = batch.to(self.device)
+        #         # batch: 当前batch，包含了子图的数据
+        #         # batch.x, batch.edge_index, batch.y 是该子图中的节点特征、边和标签
+        #         if self.args["base_model"] == "SIGN":
+        #             out = self.model(batch.xs)  # SIGN模型
+        #         else:
+        #             out = self.model(batch.x, batch.edge_index)  # 其他模型
+
+        #         # 计算损失：仅使用训练集的mask部分进行计算
+        #         loss = F.cross_entropy(out[batch.train_mask], batch.y[batch.train_mask])
+        #         loss.backward()
+        #         self.optimizer.step()
+
+        #     time_sum += time.time() - start_time
+
+        #     # 在指定的频率下进行测试
+        #     if (epoch + 1) % self.args["test_freq"] == 0:
+        #         f1 = self.test_node_minibatch()  # 使用适当的测试方法
+        #         if f1 > best_f1:
+        #             best_f1 = f1
+        #             if save:
+        #                 best_w = copy.deepcopy(self.model.state_dict())
+        #         self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
+
+        # avg_training_time = time_sum / self.args['num_epochs']
+        # self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
+        
+        # if not model_path:
+        #     model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+        
+        # os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+        # self.save_model(model_path, best_w)
+        
+        # return best_f1, avg_training_time
+    def train_node_fullbatch(self,save=False,model_path=None):
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -161,6 +352,8 @@ class BaseTrainer:
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
+        # if self.args['dataset_name'] == "ogbn-products":
+        #     self.model.adj = self.sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
         for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
             start_time = time.time()
@@ -186,9 +379,11 @@ class BaseTrainer:
 
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+        if not model_path:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
         self.save_model(model_path,best_w)
+        
         return best_f1,avg_training_time
 
     @torch.no_grad()
@@ -204,6 +399,55 @@ class BaseTrainer:
         y_pred = np.argmax(y_pred, axis=1)
         f1 = f1_score(y[self.data.test_mask.cpu()], y_pred[self.data.test_mask.cpu()], average="micro")
         return f1
+    
+    @torch.no_grad
+    def test_node_minibatch(self):
+        self.model.eval()  # 设置模型为评估模式
+        all_preds = []  # 用于存储所有预测值
+        all_labels = []  # 用于存储所有真实标签
+
+        for data in self.loader:
+            data = data.to(self.device)
+            out = self.model(data.x, data.edge_index)  # 前向传播
+            pred = out.argmax(dim=1)  # 获取预测类别
+            # 仅选择测试集上的预测和标签
+            all_preds.append(pred[data.test_mask].cpu())
+            all_labels.append(data.y[data.test_mask].cpu())
+
+        # 将分批次预测和真实标签拼接
+        all_preds = torch.cat(all_preds, dim=0).numpy()
+        all_labels = torch.cat(all_labels, dim=0).numpy()
+
+        # 计算 F1-score (支持多分类，average 可选 'micro', 'macro', 'weighted')
+        f1 = f1_score(all_labels, all_preds, average='micro')
+
+        return f1
+        
+    @torch.no_grad()
+    def evaluate_graph_model(self):
+        self.model.eval()
+        self.model = self.model.to(self.device)
+        # self.data = self.data.to(self.device)
+        
+        preds = []
+        labels = []
+        for graph_data in self.test_loader:
+            graph = graph_data.to(self.device)
+            if self.args["base_model"] == "SIGN":
+                logits,feat = self.model(graph.xs,return_feature=True)
+            else:
+                logits,feat = self.model(graph.x, graph.edge_index,return_feature=True,batch = graph.batch)
+            # loss = F.cross_entropy(logits,graph_data.y)
+            # print(logits,feat)
+            pred = logits.argmax(dim=1)
+            preds.append(pred)
+            labels.append(graph.y)
+
+        preds = torch.concat(preds,dim=0).cpu()
+        labels = torch.concat(labels,dim=0).cpu()
+        acc = accuracy_score(labels,preds)
+        return acc
+
 
     def posterior(self):
         self.model.eval()
@@ -214,15 +458,21 @@ class BaseTrainer:
             return F.log_softmax(posteriors[self.data.test_mask, :]).detach()
         else:
             if self.args["base_model"] == "SIGN":
-                posteriors = F.log_softmax(self.model(self.data.xs))
+                posteriors = self.model(self.data.xs)
             else:
-                posteriors = F.log_softmax(self.model(self.data.x,self.data.edge_index))
+                posteriors = self.model(self.data.x,self.data.edge_index)
             for _, mask in self.data('test_mask'):
                 posteriors = F.log_softmax(posteriors[mask.cpu()], dim=-1)
 
         return posteriors.detach()
 
     def save_model(self, save_path,model_dict=None):
+        folder_path = os.path.dirname(save_path)
+
+        # 检查文件夹是否存在，如果不存在则创建
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
         with open(save_path,mode='w') as file:
             if model_dict is not None:
                 self.logger.info('saving best model {}'.format(save_path))
@@ -233,3 +483,113 @@ class BaseTrainer:
 
     def load_model(self, save_path):
         self.model.load_state_dict(torch.load(save_path, map_location=self.device))
+        
+        
+    def prepare_data(self, input_data):
+        data_full = input_data.clone()
+        data = input_data.clone()
+        
+        data.edge_index = data.edge_index_train
+        
+        data.edge_index_train = None
+        data_full.edge_index_train = None
+
+        # to_sparse = T.ToSparseTensor()
+        # self.data = to_sparse(data)
+        self.data.edge_index = input_data.edge_index_train
+        self.data.edge_index_train = None
+        self.data_full = data_full
+        
+    def posterior_con(self,return_features=False,mia=False):
+        # self.logger.debug("generating posteriors")
+        self.model, self.data = self.model.to(self.device), self.data.to(self.device)
+        self.model.eval()
+        if mia:
+            if self.args["base_model"] == "SIGN":
+                posteriors = F.log_softmax(self.model(self.data.xs))
+            else:
+                posteriors = F.log_softmax(self.model(self.data.x,self.data.edge_index))
+            for _, mask in self.data('test_mask'):
+                posteriors = F.log_softmax(posteriors[mask.cpu()], dim=-1)
+
+            return posteriors.detach()
+        else:
+            z, f = self._inference()
+
+        if return_features:
+        #     return z[self.data_full.test_mask], f[self.data_full.test_mask]
+        # return z[self.data_full.test_mask, :]
+            return z[self.data.test_mask], f[self.data.test_mask]
+        return z[self.data.test_mask, :]
+    
+    @torch.no_grad()
+    def _inference(self, no_test_edges=False):
+        # assert not self.data is None and not self.data_full is None
+
+        self.model.eval()
+        self.model = self.model.to(self.device)
+        # self.data_full = self.data.to(self.device) if no_test_edges else self.data_full.to(self.device)
+        self.data = self.data.to(self.device) 
+        
+        # z, feat = self.model(self.data_full.x, self.data_full.edge_index, return_feature=True)
+        z, feat = self.model(self.data.x, self.data.edge_index, return_feature=True)
+
+        return F.log_softmax(z,dim=1), feat
+    
+    def gen_loader(self,mode="train",batch_size=1,shuffle=True):
+        data_list = []
+        if mode == "train":
+            for gid in self.data.train_ids:
+                mask = self.data.graph_id == gid
+                sub_x = self.data.x[mask]
+                sub_edge_index = self.data.edge_index[:,(self.data.edge_index[0] >= mask.nonzero().min()) & (self.data.edge_index[1] <= mask.nonzero().max())]- mask.nonzero().min()
+                sub_y = self.data.y[gid]
+                data_list.append(Data(x=sub_x, edge_index=sub_edge_index, y=sub_y))
+        elif mode == "val":
+            for gid in self.data.val_ids:
+                mask = self.data.graph_id == gid
+                sub_x = self.data.x[mask]
+                sub_edge_index = self.data.edge_index[:,(self.data.edge_index[0] >= mask.nonzero().min()) & (self.data.edge_index[1] <= mask.nonzero().max())]- mask.nonzero().min()
+                sub_y = self.data.y[gid]
+                data_list.append(Data(x=sub_x, edge_index=sub_edge_index, y=sub_y))
+                
+        elif mode == "test":
+            for gid in self.data.test_ids:
+                mask = self.data.graph_id == gid
+                sub_x = self.data.x[mask]
+                sub_edge_index = self.data.edge_index[:,(self.data.edge_index[0] >= mask.nonzero().min()) & (self.data.edge_index[1] <= mask.nonzero().max())]- mask.nonzero().min()
+                sub_y = self.data.y[gid]
+                data_list.append(Data(x=sub_x, edge_index=sub_edge_index, y=sub_y))
+                
+        return DataLoader(data_list,batch_size=batch_size,shuffle=shuffle)
+    
+    def forward_graph_once(self,data):
+        
+        loader = self.gen_loader(mode="train",batch_size=data.y.size(),shuffle=False)
+        logits = []
+        for graph_data in loader:
+            logit = self.model(graph_data.x,graph_data.edge_index,batch=graph_data.batch)
+            logits.append(logit)
+        logits = torch.concat(logits,dim=0)
+        return logits
+    
+    def posterior_edge(self):
+        self.model.eval()
+        self.model = self.model.to(self.device)
+        self.data = self.data.to(self.device)
+
+        neg_edge_index = negative_sampling(
+            edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
+            num_neg_samples=self.data.test_edge_index.size(1)
+        )
+        if self.args["unlearning_methods"] == "GraphRevoker":
+            posteriors = self.model(self.data.x, self.data.test_edge_index)
+            return self.decode(posteriors,pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).detach()
+        else:
+            if self.args["base_model"] == "SIGN":
+                posteriors = self.model(self.data.xs)
+            else:
+                posteriors = self.model(self.data.x,self.data.test_edge_index)
+            posteriors = self.decode(posteriors,pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).sigmoid()
+            # print(posteriors)
+        return posteriors.detach()

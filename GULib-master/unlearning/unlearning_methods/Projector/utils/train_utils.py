@@ -43,14 +43,16 @@ def remove_self_loop(adj):
 def pred_test(out, data, evaluator):
     pred = out.argmax(dim=-1, keepdim=True)
     data.y = data.y.view(-1,1)
+    val_acc = 0
     train_acc = evaluator.eval({
         'y_true': data.y[data.train_indices],
         'y_pred': pred[data.train_indices]
     })['acc']
-    val_acc = evaluator.eval({
-        'y_true': data.y[data.val_indices],
-        'y_pred': pred[data.val_indices]
-    })['acc']
+    if len(data.val_indices) != 0:
+        val_acc = evaluator.eval({
+            'y_true': data.y[data.val_indices],
+            'y_pred': pred[data.val_indices]
+        })['acc']
     test_acc = evaluator.eval({
         'y_true': data.y[data.test_indices],
         'y_pred': pred[data.test_indices]

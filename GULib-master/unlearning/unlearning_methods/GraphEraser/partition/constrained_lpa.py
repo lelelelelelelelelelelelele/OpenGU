@@ -28,7 +28,7 @@ class ConstrainedLPA:
             self.communities[community] = set(nodes)
             self.node_community[nodes] = community
 
-    def community_detection(self, iterations=100):
+    def community_detection(self, iterations=30):
         self.logger.info('detecting communities')
 
         communities = copy.deepcopy(self.communities)

@@ -20,13 +20,9 @@ class SIGNNet(abstract_model):
         self.lins = torch.nn.ModuleList()
         for _ in range(num_layers + 1):
             self.lins.append(torch.nn.Linear(in_channels, 64,bias=False))
-        if self.args["unlearning_methods"] == "GraphRevoker":
-            self.cls = RandomizedClassifier((num_layers + 1)*hidden_channels, out_channels)
-        else:
-            self.lin1 = torch.nn.Linear((num_layers + 1) * 64,64)
+        self.lin1 = torch.nn.Linear((num_layers + 1) * 64,64)
 
-            #########new#########
-            self.lin2 = torch.nn.Linear(64,out_channels)
+        self.lin2 = torch.nn.Linear(64,out_channels)
 
 
         self.dropout = dropout
@@ -37,28 +33,24 @@ class SIGNNet(abstract_model):
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
 
-    def forward(self, xs,return_feature=False):
-
+    def forward(self, xs,return_feature=False,return_all_emb = False):
+        x_list = []
         xs = xs.transpose(0, 1)
         outs = []
         for x, lin in zip(xs, self.lins):
             out = F.dropout(F.relu(lin(x)), p=self.dropout, training=self.training)
             outs.append(out)
         x = torch.cat(outs, dim=-1)
-        if self.args["unlearning_methods"] == "GraphRevoker":
-            feat = xs
-            x = self.cls(feat)
-            if return_feature:
-                return x, feat
-            return x
-        else:
-            x = self.lin1(x)
-
-            x = self.lin2(x)
-        if self.args["unlearning_methods"] == "GIF":
-            return F.log_softmax(x, dim=1)
-        else:
-            return x
+        
+        x = self.lin1(x)
+        x_list.append(x)
+        x = self.lin2(x)
+        x_list.append(x)
+        if return_all_emb:
+            return x_list
+        if return_feature:
+            return x,x_list[0]
+        return x
 
     def forward_SGU(self,xs):
         xs = xs.transpose(0, 1)
@@ -69,32 +61,6 @@ class SIGNNet(abstract_model):
         x = torch.cat(outs, dim=-1)
 
         return x
-
-    def get_features(self, xs):
-        xs = xs.transpose(0, 1)
-        outs = []
-        for x, lin in zip(xs, self.lins):
-            out = F.dropout(F.relu(lin(x)), p=self.dropout, training=self.training)
-            outs.append(out)
-        x = torch.cat(outs, dim=-1)
-        return x
-
-
-    def get_softlabel(self,xs):
-        xs = xs.transpose(0, 1)
-        outs = []
-        for x, lin in zip(xs, self.lins):
-            out = F.dropout(F.relu(lin(x)), p=self.dropout, training=self.training)
-            outs.append(out)
-        x = torch.cat(outs, dim=-1)
-        x = self.lin1(x)
-        x = self.lin2(x)
-
-        return F.softmax(x,dim=1)
-    def emb2softlable(self,x):
-        x = self.lin2(x)
-
-        return F.softmax(x,dim=1)
 
 
     def get_embedding(self,xs):
@@ -136,16 +102,5 @@ class SIGNNet(abstract_model):
 
         # return F.log_softmax(x, dim=1)
         return x
-    
-    # def GIF_inference(self, data):
-    #     xs = data.xs
-    #     outs = []
-    #     for x, lin in zip(xs, self.lins):
-    #         out = F.dropout(F.relu(lin(x)), p=self.dropout, training=self.training)
-    #         outs.append(out)
-    #     x = torch.cat(outs, dim=-1)
-    #     x = self.lin1(x)
-    #     x = self.lin2(x)
-    #     return x
 
     

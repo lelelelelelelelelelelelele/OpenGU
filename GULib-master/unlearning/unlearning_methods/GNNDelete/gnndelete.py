@@ -4,6 +4,7 @@ import os
 import pickle
 import numpy as np
 import torch
+import time
 import torch.nn.functional as F
 from ogb.linkproppred import PygLinkPropPredDataset
 from sklearn.metrics import roc_auc_score
@@ -18,50 +19,31 @@ from task.node_classification import NodeClassifier
 from utils.dataset_utils import load_saved_data
 from utils.utils import negative_sampling_kg, plot_auc
 from utils.utils import to_directed
-from config import root_path,unlearning_path
+from config import root_path,unlearning_path,unlearning_edge_path
 from config import BLUE_COLOR,RESET_COLOR
 from task import get_trainer
 from task.edge_prediction import EdgePredictor
+from pipeline.Learning_based_pipeline import Learning_based_pipeline
 
-class gnndelete:
-    def __init__(self,args,logger,model_zoo,dataset):
+class gnndelete(Learning_based_pipeline):
+    def __init__(self,args,logger,model_zoo):
+        super().__init__(args,logger,model_zoo)
         self.args= args
         self.model_zoo = model_zoo
         self.data = self.model_zoo.data
-        # self.data.train_mask = self.data.val_mask = self.data.test_mask = None
         self.logger = logger
-        self.dataset = dataset
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_runs = self.args["num_runs"]
         self.average_f1 = np.zeros(num_runs)
         self.average_auc = np.zeros(num_runs)
         self.avg_time = np.zeros(num_runs)
         self.run = 0
-        
-
-        # seed_everything(self.args['random_seed'])
-        # self.prepare_dataset()
-        # if self.args["base_model"] == "SGC":
-        #     propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
-        #     features_pre = propagation.forward_SGU(self.data.x,self.data.edge_index)
-        #     self.data.features_pre = features_pre.cuda()
-        # elif self.args["base_model"] == "S2GC":
-        #     propagation = S2GConv(self.data.num_features, self.data.num_classes, K=3, bias=False)
-        #     features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
-        #     self.data.features_pre = features_pre.cuda()
-        # elif self.args["base_model"] == "SIGN":
-        #     self.data.xs = torch.tensor([x.detach().numpy() for x in self.data.xs]).cuda()
-        #     self.data.xs = self.data.xs.transpose(0,1)
-        #     self.data.features_pre = self.data.xs
-        # for self.run in range(10):
-        #     self.train_node(self.data)
-        #     self.delete_node()
-
-        # self.logger.info("average_f1:{}±{}".format(np.mean(self.average_f1),np.std(self.average_f1)))
-        # self.logger.info("average_auc:{}±{}".format(np.mean(self.average_auc),np.std(self.average_auc)))
-        # self.logger.info("avg_time:{}±{}".format(np.mean(self.avg_time),np.std(self.avg_time)))
-        
-    def run_exp(self):
+        self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
+        self.args['in_dim'] = self.data.x.shape[1]
+        self.args['out_dim'] = self.data.num_classes
+        self.args['unlearning_model'] = 'original'
+    
+    def determine_target_model(self):
         if self.args["base_model"] == "SGC":
             propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
             features_pre = propagation.forward_SGU(self.data.x,self.data.edge_index)
@@ -71,27 +53,66 @@ class gnndelete:
             features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
             self.data.features_pre = features_pre.cuda()
         elif self.args["base_model"] == "SIGN":
-            # self.data.xs = torch.tensor([x.detach().numpy() for x in self.data.xs]).cuda()
-            # self.data.xs = self.data.xs.transpose(0,1)
             self.data.features_pre = self.data.xs
-        for self.run in range(self.args["num_runs"]):
-            self.args["unlearn_trainer"] = "GNNDeleteTrainer"
-            self.train_node(self.data,retrain=True)
-            # self.args["unlearn_trainer"] = "GNNDeleteTrainer"
-            self.delete_node()
+        self.args["unlearn_trainer"] = "GNNDeleteTrainer"
+        self.data = self.data.to(self.device)
+        self.args['unlearning_model'] = 'original'
+        model = self.model_zoo.get_model(num_nodes=self.data.num_nodes).to(self.device)
+        self.model_zoo.model = model
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
 
-        self.logger.info(
-            "{}Performance Metrics:\n"
-            " - Average F1 Score: {:.4f} ± {:.4f}\n"
-            " - Average AUC Score: {:.4f} ± {:.4f}\n"
-            " - Average Training Time: {:.4f} ± {:.4f} seconds\n".format(
-                BLUE_COLOR,
-                np.mean(self.average_f1), np.std(self.average_f1),
-                np.mean(self.average_auc), np.std(self.average_auc),
-                np.mean(self.avg_time), np.std(self.avg_time),
-                RESET_COLOR
-            )
-        )
+    def train_original_model(self):
+        self.target_model.train(save=True)
+        self.data = self.data.to(self.device)
+        if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
+            self.original_softlabels = F.softmax(self.target_model.model(self.data.features_pre), dim=1)
+        else:
+            self.original_softlabels = F.softmax(self.target_model.model(self.data.x, self.data.edge_index), dim=1)
+        self.args["unlearning_model"] = 'gnndelete_nodeemb'
+        
+    def unlearn(self):
+        if self.args["unlearn_task"] == "node":
+            self.delete_node()
+        elif self.args["unlearn_task"] == "edge":
+            self.delete_edge()
+        elif self.args["unlearn_task"] == "feature":
+            self.delete_feature()
+    
+    
+    # def run_exp(self):
+        # if self.args["base_model"] == "SGC":
+        #     propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
+        #     features_pre = propagation.forward_SGU(self.data.x,self.data.edge_index)
+        #     self.data.features_pre = features_pre.cuda()
+        # elif self.args["base_model"] == "S2GC":
+        #     propagation = S2GConv(self.data.num_features, self.data.num_classes, K=3, bias=False)
+        #     features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
+        #     self.data.features_pre = features_pre.cuda()
+        # elif self.args["base_model"] == "SIGN":
+        #     self.data.features_pre = self.data.xs
+    #     for self.run in range(self.args["num_runs"]):
+    #         self.args["unlearn_trainer"] = "GNNDeleteTrainer"
+    #         self.train_node(self.data,retrain=True)
+    #         # self.args["unlearn_trainer"] = "GNNDeleteTrainer"
+    #         if self.args["unlearn_task"] == "node":
+    #             self.delete_node()
+    #         elif self.args["unlearn_task"] == "edge":
+    #             self.delete_edge()
+    #         elif self.args["unlearn_task"] == "feature":
+    #             self.delete_feature()
+
+    #     self.logger.info(
+    #         "{}Performance Metrics:\n"
+    #         " - Average F1 Score: {:.4f} ± {:.4f}\n"
+    #         " - Average AUC Score: {:.4f} ± {:.4f}\n"
+    #         " - Average Training Time: {:.4f} ± {:.4f} seconds{}\n".format(
+    #             BLUE_COLOR,
+    #             np.mean(self.average_f1), np.std(self.average_f1),
+    #             np.mean(self.average_auc), np.std(self.average_auc),
+    #             np.mean(self.avg_time), np.std(self.avg_time),
+    #             RESET_COLOR
+    #         )
+    #     )
 
     def prepare_dataset(self):
         df_size = [i / 100 for i in range(10)] + [i / 10 for i in range(10)] + [i for i in range(10)]  # Df_size in percentage
@@ -134,14 +155,14 @@ class gnndelete:
                 data = self.train_test_split_edges_no_neg_adj_mask(data, test_ratio=0.2)
             print(s, data)
 
-            with open(root_path + "/data/GNNDelete/" + self.args["dataset_name"]+ "/" + f'd_{s}.pkl', 'wb') as f:
-                pickle.dump((self.dataset, data), f)
+            # with open(root_path + "/data/GNNDelete/" + self.args["dataset_name"]+ "/" + f'd_{s}.pkl', 'wb') as f:
+            #     pickle.dump((self.dataset, data), f)
 
             _, local_edges, _, mask = k_hop_subgraph(
                 data.test_pos_edge_index.flatten().unique(),
                 2,
                 data.train_pos_edge_index,
-                num_nodes=self.dataset[0].num_nodes)
+                num_nodes=self.data.num_nodes)
             distant_edges = data.train_pos_edge_index[:, ~mask]
             print('Number of edges. Local: ', local_edges.shape[1], 'Distant:', distant_edges.shape[1])
 
@@ -278,90 +299,53 @@ class gnndelete:
 
         return data
 
-    def train_node(self,data = None,retrain=False):
-        self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
-        data = data.to(self.device)
-        self.args['in_dim'] = data.x.shape[1]
-        self.args['out_dim'] = self.dataset.num_classes
-        self.args['unlearning_model'] = 'original'
-        model = self.model_zoo.get_model(num_nodes=data.num_nodes).to(self.device)
-        self.model_zoo.model = model
-        #9.20
-        # if self.args["downstream_task"]=="node":
-        #     self.NodeClassifier = NodeClassifier(self.args, data, self.model_zoo, self.logger)
-        # elif self.args["downstream_task"]=="edge":
-        #     self.NodeClassifier = EdgePredictor(self.args, data, self.model_zoo, self.logger)
-        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+    # def train_node(self,data = None,retrain=False):
+    #     self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
+    #     data = data.to(self.device)
+    #     self.args['in_dim'] = data.x.shape[1]
+    #     self.args['out_dim'] = self.data.num_classes
+    #     self.args['unlearning_model'] = 'original'
+    #     model = self.model_zoo.get_model(num_nodes=data.num_nodes).to(self.device)
+    #     self.model_zoo.model = model
+    #     #9.20
+    #     # if self.args["downstream_task"]=="node":
+    #     #     self.NodeClassifier = NodeClassifier(self.args, data, self.model_zoo, self.logger)
+    #     # elif self.args["downstream_task"]=="edge":
+    #     #     self.NodeClassifier = EdgePredictor(self.args, data, self.model_zoo, self.logger)
+    #     self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
 
-        # if retrain:
-        #     self.NodeClassifier.train_model(retrain=retrain)
-        # else:
-        #     self.NodeClassifier.train_model()
+    #     # if retrain:
+    #     #     self.NodeClassifier.train_model(retrain=retrain)
+    #     # else:
+    #     #     self.NodeClassifier.train_model()
         
-        if os.path.exists(os.path.join(root_path + "/data/model/node_level/",self.args["dataset_name"],self.args["base_model"])):
-            model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/",self.args["dataset_name"],self.args["base_model"]),
-                                    map_location=self.device)
-            # model.load_state_dict(model_ckpt['model_state'], strict=False)
-            self.target_model.model.load_state_dict(model_ckpt, strict=False)
-            self.target_model.model.to(self.device)
+    #     # if os.path.exists(os.path.join(root_path + "/data/model/node_level/",self.args["dataset_name"],self.args["base_model"])):
+    #     #     model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/",self.args["dataset_name"],self.args["base_model"]),
+    #     #                             map_location=self.device)
+    #     #     # model.load_state_dict(model_ckpt['model_state'], strict=False)
+    #     #     self.target_model.model.load_state_dict(model_ckpt, strict=False)
+    #     #     self.target_model.model.to(self.device)
             
-        else:
-            self.target_model.train(save=True)
+    #     # else:
+    #     self.target_model.train(save=True)
         
-        # self.logger.info("original:{}".format(F1))
-        if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
-            self.original_softlabels = F.softmax(self.target_model.model(self.data.features_pre), dim=1)
-        else:
-            self.original_softlabels = F.softmax(self.target_model.model(self.data.x, self.data.edge_index), dim=1)
-        self.args["unlearning_model"] = 'gnndelete_nodeemb'
+    #     # self.logger.info("original:{}".format(F1))
+    #     if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
+    #         self.original_softlabels = F.softmax(self.target_model.model(self.data.features_pre), dim=1)
+    #     else:
+    #         self.original_softlabels = F.softmax(self.target_model.model(self.data.x, self.data.edge_index), dim=1)
+    #     self.args["unlearning_model"] = 'gnndelete_nodeemb'
 
 
 
 
 
     def delete_node(self):
-        # data_num = "13"
-        # self.data = load_saved_data(self.logger,"data/GNNDelete/cora/" + "d_" + data_num + ".pkl")[1]
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
-        # if 'gnndelete' in self.args["unlearning_model"]:
-        #     self.args["checkpoint_dir"] = os.path.join("data/GNNDelete/",
-        #         self.args["checkpoint_dir"], self.args["dataset_name"], self.args["gnn"],
-        #         f'{self.args["unlearning_model"]}-node_deletion',
-        #         '-'.join([str(i) for i in [self.args["loss_fct"], self.args["loss_type"],
-        #                                    self.args["alpha"], self.args["neg_sample_random"]]]),
-        #         '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]])
-        #     )
-        # else:
-        #     self.args["checkpoint_dir"] = os.path.join("data/GNNDelete/",
-        #         self.args["checkpoint_dir"], self.args["dataset_name"], self.args["gnn"],
-        #         f'{self.args["unlearning_model"]}-node_deletion',
-        #         '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]])
-        #     )
-
         os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
-
-        # Df and Dr
-        # if self.args["df_size"] >= 100:  # df_size is number of nodes/edges to be deleted
-            # df_size = int(self.args["df_size"])
-        # else:  # df_size is the ratio
-            # df_size = int(self.args["df_size"] / 100 * self.data["train_pos_edge_index"].shape[1])
-        ############ set the number
-        df_size = int(self.data.num_node * self.args["proportion_unlearned_nodes"])
-
-
-
-
-        # print(f'Original size: {self.data["num_node"]:,}')
-        # print(f'Df size: {df_size:,}')
-        # print("data: {}".format(self.data))
-        # Delete nodes
-
-        #修改为从train——set里面找删除节点
-        # shuffle_num = torch.randperm(len(self.data.train_indices))[:df_size]
-        # df_nodes = np.array(self.data.train_indices)[shuffle_num]
-        # np.savetxt("./data/SGU/unlearning_nodes.txt", df_nodes, fmt="%d")
+        df_size = int(self.data.num_nodes * self.args["proportion_unlearned_nodes"])
         path_un = unlearning_path + "_" + str(self.run) + ".txt"
         df_nodes = np.loadtxt(path_un, dtype=int)
         self.unlearning_nodes = df_nodes
@@ -376,11 +360,6 @@ class gnndelete:
 
         # Delete edges associated with deleted nodes from training set
         res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]
-        # res = []
-        # for aelem in df_nodes:
-        #     comparison = torch.eq(self.data.edge_index, aelem)
-        #     logical_or = torch.logical_or(comparison[0], comparison[1])
-        #     res.append(logical_or)
         df_mask_edge = torch.any(torch.stack(res, dim=0), dim=0)
         df_mask_edge = df_mask_edge.sum(0).bool()
         dr_mask_edge = ~df_mask_edge
@@ -394,7 +373,7 @@ class gnndelete:
             self.data.edge_index[:, df_mask_edge].flatten().unique(),
             2,
             self.data.edge_index,
-            num_nodes=self.data.num_node)
+            num_nodes=self.data.num_nodes)
 
         # Nodes in S_Df
         _, one_hop_edge, _, one_hop_mask = k_hop_subgraph(
@@ -414,7 +393,7 @@ class gnndelete:
         self.data.sdf_node_1hop_mask = sdf_node_1hop
         self.data.sdf_node_2hop_mask = sdf_node_2hop
 
-        print(is_undirected(self.data.edge_index))
+        # print(is_undirected(self.data.edge_index))
 
         two_hop_mask = two_hop_mask.bool()
         df_mask_edge = df_mask_edge.bool()
@@ -430,7 +409,7 @@ class gnndelete:
 
 
 
-        self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_node)
+        self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
 
         if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
             if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
@@ -440,7 +419,7 @@ class gnndelete:
             else:
                 logits_ori = None
 
-            model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/" ,self.args["dataset_name"], self.args["base_model"]), map_location=self.device)
+            model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/" ,self.args["dataset_name"],self.args["downstream_task"] ,self.args["base_model"]), map_location=self.device)
             # model.load_state_dict(model_ckpt['model_state'], strict=False)
             self.target_model.model.load_state_dict(model_ckpt, strict=False)
 
@@ -494,9 +473,10 @@ class gnndelete:
         self.model_zoo.model = self.target_model.model
         self.args["unlearn_trainer"] = "GNNDeleteTrainer"
         self.target_model = get_trainer(self.args, self.logger,self.model_zoo.model, self.data)
+        start_time  = time.time()
         # self.NodeClassifier_Del.GNNDelete_train(self.logger,self.avg_time,self.run,self.NodeClassifier.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
-        self.target_model.train_node_fullbatch_del(self.avg_time, self.run, optimizer,logits_ori, attack_model_all, attack_model_sub)
-        
+        self.target_model.gnndelete_train(self.avg_time, self.run, optimizer,logits_ori, attack_model_all, attack_model_sub)
+        self.avg_unlearning_time[self.run] = time.time() - start_time
 
         #Test
         # if self.args["unlearning_model"] != 'retrain':
@@ -520,7 +500,7 @@ class gnndelete:
         #              attack_model_sub=attack_model_sub)
         self.target_model.test_node_fullbatch_del(model_retrain=None, attack_model_all=attack_model_all,attack_model_sub=attack_model_sub)
         self.target_model.model.to(self.device)
-        loss, dt_acc, recall, dt_f1, log = self.target_model.eval_node_fullbatch_del( 'test')
+        loss, dt_acc, recall, dt_f1, log = self.target_model.eval_del( 'test')
         self.logger.info(
             "Loss: {:.4f} | Accuracy: {:.4f} | Recall: {:.4f} | F1 Score: {:.4f}".format(
                 loss, dt_acc, recall, dt_f1
@@ -537,11 +517,10 @@ class gnndelete:
         original_softlabels_member = self.original_softlabels[df_nodes]
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
 
-        if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args[
-            "base_model"] == "SIGN":
-            unlearning_softlabels_member = self.target_model.model.get_softlabel(self.data.features_pre[df_nodes])
-            unlearning_softlabels_non = self.target_model.model.get_softlabel(
-                self.data.features_pre[self.data.test_indices[:self.mia_num]])
+        if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes]),dim =1)
+            unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.data.features_pre[self.data.test_indices[:self.mia_num]]),dim = 1)
         else:
             unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x, self.data.edge_index)[
                 df_nodes],dim = 1)
@@ -557,3 +536,279 @@ class gnndelete:
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
         plot_auc(mia_test_y, posterior.reshape(-1, 1))
+
+    def delete_edge(self):
+        self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_edge'
+        original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
+                                                          '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
+        os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
+        df_size = int(self.args["df_size"] / 100 * self.data.edge_index.shape[1])
+        
+        path_un = unlearning_edge_path + "_" + str(self.run) + ".txt"
+        self.unlearning_nodes = None
+        self.unlearning_edges = np.loadtxt(path_un, dtype=int)
+
+        # Create a mask for edges to be deleted
+        df_mask_edge = torch.zeros(self.data.edge_index.shape[1], dtype=torch.bool,device=self.device)
+        for edge in self.unlearning_edges:
+            mask = (self.data.edge_index[0] == edge[0]) & (self.data.edge_index[1] == edge[1])
+            mask = mask.to(self.device)
+            df_mask_edge |= mask
+
+        # Ensure the mask is symmetric for undirected graphs
+        if is_undirected(self.data.edge_index):
+            df_mask_edge |= (self.data.edge_index[0] == self.unlearning_edges[:, 1]) & (self.data.edge_index[1] == self.unlearning_edges[:, 0])
+        dr_mask_edge = ~df_mask_edge
+        df_edge = self.data.edge_index[:, df_mask_edge]
+        self.data.directed_df_edge_index = df_edge
+        global_node_mask = torch.ones(self.data.num_nodes, dtype=torch.bool)
+        dr_mask_node = global_node_mask
+        df_mask_node = ~global_node_mask
+
+        _, two_hop_edge, _, two_hop_mask = k_hop_subgraph(
+            self.data.edge_index[:, df_mask_edge].flatten().unique(),
+            2,
+            self.data.edge_index,
+            num_nodes=self.data.num_nodes)
+
+        # Nodes in S_Df
+        _, one_hop_edge, _, one_hop_mask = k_hop_subgraph(
+            self.data.edge_index[:, df_mask_edge].flatten().unique(),
+            1,
+            self.data.edge_index,
+            num_nodes=self.data.num_nodes)
+        
+        sdf_node_1hop = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+        sdf_node_2hop = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+
+        sdf_node_1hop[one_hop_edge.flatten().unique()] = True
+        sdf_node_2hop[two_hop_edge.flatten().unique()] = True
+
+        assert sdf_node_1hop.sum() == len(one_hop_edge.flatten().unique())
+        assert sdf_node_2hop.sum() == len(two_hop_edge.flatten().unique())
+
+        self.data.sdf_node_1hop_mask = sdf_node_1hop
+        self.data.sdf_node_2hop_mask = sdf_node_2hop
+
+        print(is_undirected(self.data.edge_index))
+
+        two_hop_mask = two_hop_mask.bool()
+        df_mask_edge = df_mask_edge.bool()
+        dr_mask_edge = ~df_mask_edge
+        
+        self.data.sdf_mask = two_hop_mask
+        self.data.df_mask = df_mask_edge
+        self.data.dr_mask = dr_mask_edge
+        self.data.dtrain_mask = dr_mask_edge
+
+        self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
+        model_path  = os.path.join(root_path + "/data/model/edge_level/" ,self.args["dataset_name"], self.args["base_model"])
+        if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
+            if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
+                logits_ori = torch.load(os.path.join(original_path, 'pred_proba.pt'))
+                if logits_ori is not None:
+                    logits_ori = logits_ori.to(self.device)
+            else:
+                logits_ori = None
+                logits_ori = torch.load(model_path, map_location=self.device)
+            # model.load_state_dict(model_ckpt['model_state'], strict=False)
+            self.target_model.model.load_state_dict(logits_ori, strict=False)
+            
+        else:  # Initialize a new GNN model
+            retrain = None
+            logits_ori = None
+        self.target_model.model.to(self.device)
+        
+        if 'gnndelete' in self.args["unlearning_model"] and 'nodeemb' in self.args["unlearning_model"]:
+            parameters_to_optimize = [
+                {'params': [p for n, p in self.target_model.model.named_parameters() if 'del' in n], 'weight_decay': 0.0}
+            ]
+            print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters() if 'del' in n])
+            if 'layerwise' in self.args["loss_type"]:
+                optimizer1 = torch.optim.Adam(self.target_model.model.deletion1.parameters(), lr=self.args["unlearn_lr"])
+                optimizer2 = torch.optim.Adam(self.target_model.model.deletion2.parameters(), lr=self.args["unlearn_lr"])
+                optimizer = [optimizer1, optimizer2]
+            else:
+                optimizer = torch.optim.Adam(parameters_to_optimize, lr=self.args["unlearn_lr"])
+        else:
+            if 'gnndelete' in self.args["unlearning_model"]:
+                parameters_to_optimize = [
+                    {'params': [p for n, p in self.target_model.model.named_parameters() if 'del' in n], 'weight_decay': 0.0}
+                ]
+                print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters() if 'del' in n])
+
+            else:
+                parameters_to_optimize = [
+                    {'params': [p for n, p in self.target_model.model.named_parameters()], 'weight_decay': 0.0}
+                ]
+                print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters()])
+
+            optimizer = torch.optim.Adam(parameters_to_optimize, lr=self.args["unlearn_lr"])  # , weight_decay=args.weight_decay)
+
+        attack_model_all = None
+        attack_model_sub = None
+
+        self.model_zoo.model = self.target_model.model
+        self.args["unlearn_trainer"] = "GNNDeleteTrainer"
+        self.target_model = get_trainer(self.args, self.logger,self.model_zoo.model, self.data)
+        # self.NodeClassifier_Del.GNNDelete_train(self.logger,self.avg_time,self.run,self.NodeClassifier.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
+        self.target_model.gnndelete_train(self.avg_time, self.run, optimizer,logits_ori, attack_model_all, attack_model_sub)
+        self.target_model.test_edge(model_retrain=None, attack_model_all=attack_model_all,attack_model_sub=attack_model_sub)
+        self.target_model.model.to(self.device)
+        loss,acc,dt_auc,df_auc,log, = self.target_model.eval_del( 'test')
+        self.logger.info(
+            "Loss: {:.4f} | Accuracy: {:.4f}  | AUC Score: {:.4f}".format(
+                loss, acc, dt_auc
+            )
+        )
+        self.average_f1[self.run] = dt_auc
+
+    def delete_feature(self):
+        self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node_feature'
+        original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
+                                                          '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
+        os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
+        df_size = int(self.data.num_nodes * self.args["proportion_unlearned_nodes"])
+        path_un = unlearning_path + "_" + str(self.run) + ".txt"
+        df_nodes = np.loadtxt(path_un, dtype=int)
+        self.unlearning_nodes = df_nodes
+        df_nodes_set = set(df_nodes)
+        all_exist = df_nodes_set.issubset(self.data.train_indices)
+        self.data.x[df_nodes] = 0
+        assert self.data.x[df_nodes].sum() == 0
+
+        global_node_mask = torch.ones(self.data.num_nodes, dtype=torch.bool)
+        # global_node_mask[df_nodes] = False
+
+        dr_mask_node = global_node_mask
+        df_mask_node = ~global_node_mask
+
+        res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]
+        df_mask_edge = torch.any(torch.stack(res, dim=0), dim=0)
+        df_mask_edge = df_mask_edge.sum(0).bool()
+        dr_mask_edge = ~df_mask_edge
+
+        df_edge = self.data.edge_index[:, df_mask_edge]
+        self.data.directed_df_edge_index = to_directed(df_edge)
+
+        _, two_hop_edge, _, two_hop_mask = k_hop_subgraph(
+            self.data.edge_index[:, df_mask_edge].flatten().unique(),
+            2,
+            self.data.edge_index,
+            num_nodes=self.data.num_nodes)
+
+        # Nodes in S_Df
+        _, one_hop_edge, _, one_hop_mask = k_hop_subgraph(
+            self.data.edge_index[:, df_mask_edge].flatten().unique(),
+            1,
+            self.data.edge_index,
+            num_nodes=self.data.num_nodes)
+        
+        sdf_node_1hop = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+        sdf_node_2hop = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+
+        sdf_node_1hop[one_hop_edge.flatten().unique()] = True
+        sdf_node_2hop[two_hop_edge.flatten().unique()] = True
+
+        assert sdf_node_1hop.sum() == len(one_hop_edge.flatten().unique())
+        assert sdf_node_2hop.sum() == len(two_hop_edge.flatten().unique())
+
+        self.data.sdf_node_1hop_mask = sdf_node_1hop
+        self.data.sdf_node_2hop_mask = sdf_node_2hop
+
+        print(is_undirected(self.data.edge_index))
+
+        two_hop_mask = two_hop_mask.bool()
+        df_mask_edge = df_mask_edge.bool()
+        dr_mask_edge = ~df_mask_edge
+
+        self.data.sdf_mask = two_hop_mask
+        self.data.df_mask = df_mask_edge
+        self.data.dr_mask = dr_mask_edge
+        self.data.dtrain_mask = dr_mask_edge
+
+        self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
+
+        if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
+            if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
+                logits_ori = torch.load(os.path.join(original_path, 'pred_proba.pt'))
+                if logits_ori is not None:
+                    logits_ori = logits_ori.to(self.device)
+            else:
+                logits_ori = None
+            model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/" ,self.args["dataset_name"], self.args["base_model"]), map_location=self.device)
+            # model.load_state_dict(model_ckpt['model_state'], strict=False)
+            self.target_model.model.load_state_dict(model_ckpt, strict=False)
+            
+        else:  # Initialize a new GNN model
+            retrain = None
+            logits_ori = None
+        self.target_model.model.to(self.device)
+
+        if 'gnndelete' in self.args["unlearning_model"] and 'nodeemb' in self.args["unlearning_model"]:
+            parameters_to_optimize = [
+                {'params': [p for n, p in self.target_model.model.named_parameters() if 'del' in n], 'weight_decay': 0.0}
+            ]
+            print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters() if 'del' in n])
+            if 'layerwise' in self.args["loss_type"]:
+                optimizer1 = torch.optim.Adam(self.target_model.model.deletion1.parameters(), lr=self.args["unlearn_lr"])
+                optimizer2 = torch.optim.Adam(self.target_model.model.deletion2.parameters(), lr=self.args["unlearn_lr"])
+                optimizer = [optimizer1, optimizer2]
+            else:
+                optimizer = torch.optim.Adam(parameters_to_optimize, lr=self.args["unlearn_lr"])
+        else:
+            if 'gnndelete' in self.args["unlearning_model"]:
+                parameters_to_optimize = [
+                    {'params': [p for n, p in self.target_model.model.named_parameters() if 'del' in n], 'weight_decay': 0.0}
+                ]
+                print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters() if 'del' in n])
+
+            else:
+                parameters_to_optimize = [
+                    {'params': [p for n, p in self.target_model.model.named_parameters()], 'weight_decay': 0.0}
+                ]
+                print('parameters_to_optimize', [n for n, p in self.target_model.model.named_parameters()])
+
+            optimizer = torch.optim.Adam(parameters_to_optimize, lr=self.args["unlearn_lr"])  # , weight_decay=args.weight_decay)
+
+        attack_model_all = None
+        attack_model_sub = None
+
+        self.model_zoo.model = self.target_model.model
+        self.args["unlearn_trainer"] = "GNNDeleteTrainer"
+        self.target_model = get_trainer(self.args, self.logger,self.model_zoo.model, self.data)
+        # self.NodeClassifier_Del.GNNDelete_train(self.logger,self.avg_time,self.run,self.NodeClassifier.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
+        self.target_model.gnndelete_train(self.avg_time, self.run, optimizer,logits_ori, attack_model_all, attack_model_sub)
+        self.target_model.test_node_fullbatch_del(model_retrain=None, attack_model_all=attack_model_all,attack_model_sub=attack_model_sub)
+        self.target_model.model.to(self.device)
+        loss, dt_acc, recall, dt_f1, log = self.target_model.eval_del( 'test')
+        self.logger.info(
+            "Loss: {:.4f} | Accuracy: {:.4f} | Recall: {:.4f} | F1 Score: {:.4f}".format(
+                loss, dt_acc, recall, dt_f1
+            )
+        )
+        self.average_f1[self.run] = dt_acc
+        self.mia_num = df_size
+        original_softlabels_member = self.original_softlabels[df_nodes]
+        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+
+        if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes]),dim = 1)
+            unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.data.features_pre[self.data.test_indices[:self.mia_num]]),dim = 1)
+        else:
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x, self.data.edge_index)[
+                df_nodes],dim = 1)
+            unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.data.x, self.data.edge_index)[self.data.test_indices[:self.mia_num]],dim=1)
+
+        mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
+        posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
+        posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
+        posterior = np.array([np.linalg.norm(posterior1[i] - posterior2[i]) for i in range(len(posterior1))])
+        # self.logger.info("posterior:{}".format(posterior))
+        auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+        # self.logger.info("auc:{}".format(auc))
+        self.average_auc[self.run] = auc
+        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        

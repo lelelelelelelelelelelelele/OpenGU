@@ -6,7 +6,7 @@ class GraphRevokerTrainer(BaseTrainer):
         super().__init__(args, logger, model, data)
 
     def posterior(self,return_features=False,mia=False):
-        self.logger.debug("generating posteriors")
+        # self.logger.debug("generating posteriors")
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self.model.eval()
         if mia:
@@ -22,18 +22,22 @@ class GraphRevokerTrainer(BaseTrainer):
             z, f = self._inference()
 
         if return_features:
-            return z[self.data_full.test_mask], f[self.data_full.test_mask]
-        return z[self.data_full.test_mask, :]
+        #     return z[self.data_full.test_mask], f[self.data_full.test_mask]
+        # return z[self.data_full.test_mask, :]
+            return z[self.data.test_mask], f[self.data.test_mask]
+        return z[self.data.test_mask, :]
     
     @torch.no_grad()
     def _inference(self, no_test_edges=False):
-        assert not self.data is None and not self.data_full is None
+        # assert not self.data is None and not self.data_full is None
 
         self.model.eval()
         self.model = self.model.to(self.device)
-        self.data_full = self.data.to(self.device) if no_test_edges else self.data_full.to(self.device)
-
-        z, feat = self.model(self.data_full.x, self.data_full.edge_index, return_feature=True)
+        # self.data_full = self.data.to(self.device) if no_test_edges else self.data_full.to(self.device)
+        self.data = self.data.to(self.device) 
+        
+        # z, feat = self.model(self.data_full.x, self.data_full.edge_index, return_feature=True)
+        z, feat = self.model(self.data.x, self.data.edge_index, return_feature=True)
 
         return F.log_softmax(z,dim=1), feat
 

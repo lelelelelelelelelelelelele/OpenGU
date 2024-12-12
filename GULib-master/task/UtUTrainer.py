@@ -12,6 +12,7 @@ from torch_geometric.utils import negative_sampling
 from torch_geometric.loader import GraphSAINTRandomWalkSampler
 from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_score, f1_score
 from utils.utils import member_infer_attack,get_link_labels
+from task.BaseTrainer import BaseTrainer
 class UtUTrainer:
     def __init__(self,args):
         self.args = args
@@ -87,7 +88,7 @@ class UtUTrainer:
             'model_state': model.state_dict(),
             'optimizer_state': optimizer.state_dict(),
         }
-        torch.save(ckpt, os.path.join(args.checkpoint_dir, 'model_best.pt'))
+        torch.save(ckpt, os.path.join(args["checkpoint_dir"], 'model_best.pt'))
         # torch.save(z, os.path.join(args.checkpoint_dir, 'node_embeddings.pt'))
         self.trainer_log['best_metric'] = best_metric
 
@@ -95,10 +96,10 @@ class UtUTrainer:
     def test(self, model, data, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
 
         if ckpt == 'best' and self.args["unlearning_model"] != 'simple':  # Load best ckpt
-            ckpt = torch.load(os.path.join(self.args.checkpoint_dir, 'model_best.pt'), map_location=self.device)
+            ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'), map_location=self.device)
             model.load_state_dict(ckpt['model_state'])
 
-        if 'ogbl' in self.args.dataset:
+        if 'ogbl' in self.args["dataset"]:
             pred_all = False
         else:
             pred_all = True
@@ -144,7 +145,6 @@ class UtUTrainer:
             print(self.trainer_log['mi_ratio_all'], self.trainer_log['mi_ratio_sub'],
                   self.trainer_log['mi_sucrate_all_after'], self.trainer_log['mi_sucrate_sub_after'])
             print(self.trainer_log['df_auc'], self.trainer_log['df_aup'])
-
         return loss, dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log
 
     def eval(self, model, data, stage='val', pred_all=False):
@@ -152,7 +152,7 @@ class UtUTrainer:
         pos_edge_index = data[f'{stage}_pos_edge_index']
         neg_edge_index = data[f'{stage}_neg_edge_index']
 
-        if self.args.eval_on_cpu:
+        if self.args["eval_on_cpu"]:
             model = model.to('cpu')
 
         if hasattr(data, 'dtrain_mask'):
@@ -160,7 +160,7 @@ class UtUTrainer:
         else:
             mask = data.dr_mask
         z = model(data.x, data.train_pos_edge_index[:, mask])
-        logits = model.decode(z, pos_edge_index, neg_edge_index).sigmoid()
+        logits = self.decode(z, pos_edge_index, neg_edge_index).sigmoid()
         label = get_link_labels(pos_edge_index, neg_edge_index)
 
         # DT AUC AUP
@@ -169,11 +169,11 @@ class UtUTrainer:
         dt_aup = average_precision_score(label.cpu(), logits.cpu())
 
         # DF AUC AUP
-        if self.args.unlearning_model in ['original']:
+        if self.args["unlearning_model"] in ['original']:
             df_logit = []
         else:
             # df_logit = model.decode(z, data.train_pos_edge_index[:, data.df_mask]).sigmoid().tolist()
-            df_logit = model.decode(z, data.directed_df_edge_index).sigmoid().tolist()
+            df_logit = self.decode(z, data.directed_df_edge_index).sigmoid().tolist()
 
         if len(df_logit) > 0:
             df_auc = []
@@ -189,7 +189,7 @@ class UtUTrainer:
 
             # Use cached pos samples
             for mask in self.df_pos_edge:
-                pos_logit = model.decode(z, data.train_pos_edge_index[:, data.dr_mask][:, mask]).sigmoid().tolist()
+                pos_logit = self.decode(z, data.train_pos_edge_index[:, data.dr_mask][:, mask]).sigmoid().tolist()
 
                 logit = df_logit + pos_logit
                 label = [0] * len(df_logit) + [1] * len(pos_logit)
@@ -219,7 +219,18 @@ class UtUTrainer:
             f'{stage}_df_logit_std': np.std(df_logit) if len(df_logit) > 0 else np.nan
         }
 
-        if self.args.eval_on_cpu:
+        if self.args["eval_on_cpu"]:
             model = model.to(self.device)
 
         return loss, dt_auc, dt_aup, df_auc, df_aup, df_logit, None, log
+    
+    def decode(self, z, pos_edge_index, neg_edge_index=None):
+        if neg_edge_index is not None:
+            edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
+            logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
+
+        else:
+            edge_index = pos_edge_index
+            logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
+
+        return logits

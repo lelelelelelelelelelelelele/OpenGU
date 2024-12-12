@@ -544,13 +544,13 @@ def batch_unlearn(args, data, edges_to_forget, num_edges_list, device):
 
     acc, f1, losses = [], [], []
     unlearn_time = []
-    for num_edge in tqdm(num_edges_list, desc='unlearn'):
+    for num_edges in tqdm(num_edges_list, desc='unlearn'):
         model = load_model(args, data).to(device)
         parameters = [p for p in model.parameters() if p.requires_grad]
         edges_ = copy.deepcopy(data['edges'])
-        for e in edges_to_forget[:num_edge]:
+        for e in edges_to_forget[:num_edges]:
             edges_.remove(e)
-        # edges_ = [(v1, v2) for v1, v2 in data['edges'] if (v1, v2) not in edges_to_forget[:num_edge]]
+        # edges_ = [(v1, v2) for v1, v2 in data['edges'] if (v1, v2) not in edges_to_forget[:num_edges]]
         # edge_index = torch.tensor(data['edges'], device=device).t()
 
         t0 = time.time()
@@ -594,12 +594,12 @@ def batch_unlearn(args, data, edges_to_forget, num_edges_list, device):
         # inverse_hvps, loss, status = inverse_hvp_cg(data, model, edge_index_prime, v, args.damping, device)
         # with torch.no_grad():
         #     delta = [p + infl for p, infl in zip(parameters, inverse_hvps)]
-        #     # delta = [p + (infl/num_edge) for p, infl in zip(parameters, inverse_hvps)]
+        #     # delta = [p + (infl/num_edges) for p, infl in zip(parameters, inverse_hvps)]
         #     # delta = [p + infl / data['num_nodes'] for p, infl in zip(parameters, inverse_hvps)]
         #     for i, p in enumerate(parameters):
         #         p.copy_(delta[i])
         if args.save:
-            save_model(args, model, type='unlearn', edges=num_edge)
+            save_model(args, model, type='unlearn', edges=num_edges)
         else:
             test_loader = DataLoader(data['test_set'], batch_size=args.test_batch, shuffle=False)
             edge_index_prime = torch.tensor(edges_, device=device).t()

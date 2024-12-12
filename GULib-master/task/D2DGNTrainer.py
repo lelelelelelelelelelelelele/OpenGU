@@ -15,9 +15,10 @@ class D2DGNTrainer(BaseTrainer):
     def d2dgn_train(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
         if self.args["downstream_task"] == 'node':
             return self.d2dgn_train_node(preserver_knowledge,destroyer_knowledge,loss_fn,save)
-        else:
+        elif self.args["downstream_task"] == 'edge':
             return self.d2dgn_train_edge(preserver_knowledge,destroyer_knowledge,loss_fn,save)
-        
+        elif self.args["downstream_task"]=="graph":
+            return self.d2dgn_train_graph(preserver_knowledge,destroyer_knowledge,loss_fn,save)
     def d2dgn_train_node(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
         time_sum = 0
         best_f1 = 0
@@ -74,7 +75,7 @@ class D2DGNTrainer(BaseTrainer):
                 
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
 
-        avg_training_time = time_sum / self.args['num_epochs']
+        avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
@@ -143,7 +144,7 @@ class D2DGNTrainer(BaseTrainer):
                 else:
                     out = self.model(self.data.x, self.data.edge_index,return_all_emb=True)
 
-                loss_func = torch.nn.MSELoss(reduction="sum")
+                loss_func = torch.nn.MSELoss(reduction="mean")
                 loss1 = 0
                 loss2 = 0
                 for conv_out,logit_preserver in zip(out,logits_preserver):
@@ -171,11 +172,16 @@ class D2DGNTrainer(BaseTrainer):
                 
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
 
-        avg_training_time = time_sum / self.args['num_epochs']
+        avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
         os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
         self.save_model(model_path,best_w)
         return best_f1,avg_training_time
     
+    
+    def d2dgn_train_graph(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
+        
+        
+        pass
         

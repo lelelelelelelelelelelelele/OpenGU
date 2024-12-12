@@ -14,22 +14,24 @@ from lightgbm import LGBMClassifier
 from sklearn.metrics import f1_score, accuracy_score,recall_score,roc_auc_score
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.utils import to_undirected
+from torch_geometric.utils import to_undirected,to_scipy_sparse_matrix
 import time
 from task.node_classification import NodeClassifier
 from utils import utils
 from utils.utils import aug_normalized_adjacency, cal_distance
 from sklearn.utils import shuffle
 from torch_geometric.transforms import SIGN
-from config import root_path,unlearning_path
+from config import root_path,unlearning_path,unlearning_edge_path
 from model.base_gnn.Convs import S2GConv,SGConv,GCNConv
 from config import BLUE_COLOR,RESET_COLOR
 from tqdm import tqdm
 from task import get_trainer
 from task.edge_prediction import EdgePredictor
-
-class sgu():
+from torch_geometric.utils import negative_sampling
+from pipeline.Learning_based_pipeline import Learning_based_pipeline
+class sgu(Learning_based_pipeline):
     def __init__(self,args,logger,model_zoo):
+        super().__init__(args,logger,model_zoo)
         self.args = args
         self.logger = logger
         self.model_zoo = model_zoo
@@ -37,173 +39,168 @@ class sgu():
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.alpha = 1
         self.Budget = int(self.data.num_nodes *self.args["Budget"])
-        self.num_node = self.data.num_node
+        self.num_nodes = self.data.num_nodes
         self.timecount = {}
         num_runs = self.args["num_runs"]
         self.average_f1 = np.zeros(num_runs)
         self.average_auc = np.zeros(num_runs)
         self.avg_activating_time = np.zeros(num_runs)
         self.avg_sampling_time = np.zeros(num_runs)
-        self.avg_training_time = np.zeros(num_runs)
+        self.avg_unlearning_time = np.zeros(num_runs)
         self.run = 0
         self.best = 0
         self.final_auc = 0
 
 
-    def run_exp(self):
-        if self.args["parameter_task"] == "optuna":
-            self.node_unlearning()
-        else:
-            for self.run in range(self.args["num_runs"]):
-                if self.args["unlearn_task"] == "node" or self.args["unlearn_task"] == "feature":
-                    self.node_unlearning()
-                elif self.args["unlearn_task"] == "edge":
-                    self.edge_unlearning()
-            self.logger.info(
-            "{}Performance Metrics:\n"
-            " - Average F1 Score: {:.4f} ± {:.4f}\n"
-            " - Average AUC Score: {:.4f} ± {:.4f}\n"
-            " - Average Activating Time: {:.4f} ± {:.4f} seconds\n"
-            " - Average Sampling Time: {:.4f} ± {:.4f} seconds\n"
-            " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
-                BLUE_COLOR,
-                np.mean(self.average_f1), np.std(self.average_f1),
-                np.mean(self.average_auc), np.std(self.average_auc),
-                np.mean(self.avg_activating_time), np.std(self.avg_activating_time),
-                np.mean(self.avg_sampling_time), np.std(self.avg_sampling_time),
-                np.mean(self.avg_training_time), np.std(self.avg_training_time),
-                RESET_COLOR
-                )
-            )
-
-
-    def node_unlearning(self):
-        self.logger.info("unlearning node number:{}".format(self.args["num_unlearned_nodes"]))
-        # train
-        if self.args["parameter_task"] == "optuna":
-            self.features = self.preprocess_feature()
-        else:
-            if self.run == 0:
-                self.features = self.preprocess_feature()
-        # self.target_model.data.pre_features = self.features.clone().detach().float()
-        # 9.20
-        # if self.args["downstream_task"]=="node":
-        #     self.target_model = NodeClassifier(self.args, self.data, self.model_zoo, self.logger)
-        # elif self.args["downstream_task"]=="edge":
-        #     self.target_model = EdgePredictor(self.args, self.data, self.model_zoo, self.logger)
+    def determine_target_model(self):
         self.args["unlearn_trainer"] = 'SGUTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        self.features = self.preprocess_feature()
         self.target_model.data.pre_features = self.features
-
-
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + \
-                         self.args["base_model"]
+        if self.args['dataset_name'] == "ogbn-products":
+            self.target_model.model.adj = self.data.adj
+        
+    def train_original_model(self):
+        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
+                         self.args["base_model"] + "_SGU"
         if os.path.exists(model_path):
             print(f"File {model_path} already exists.")
             self.target_model.load_model(model_path)
         else:
+            self.target_model.train()
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
             with open(model_path, 'w'):
                 print(f"File {model_path} created successfully.")
-                self.target_model.train()
-                self.target_model.load_model(model_path)
-                # self.target_model.save_model(model_path)
-
-        # select unlearning dataset
-        # train_nodes = np.array(self.data.train_indices)
-        # shuffle_num = torch.randperm(train_nodes.size)
-        # self.unlearning_nodes = train_nodes[shuffle_num][:self.args["num_unlearned_nodes"]]
-        path_un = unlearning_path + "_" + str(self.run) + ".txt"
-        self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
-        # F1_score, Accuracy, Recall = self.target_model.eval_unlearning(self.features, self.unlearning_nodes)
-        # self.logger.info(
-        #     'Original Model Unlearning : F1_score = {}  Accuracy = {}  Recall = {}'.format(F1_score, Accuracy, Recall))
+                # self.target_model.load_model(model_path)
+                self.target_model.save_model(model_path)
+        if self.args["poison"] and self.args["unlearn_task"]=="edge":
+            self.poison_f1[self.run] = self.target_model.evaluate()
+    def unlearning_request(self):
+        if self.args["unlearn_task"] == "node":
+            path_un = unlearning_path + "_" + str(self.run) + ".txt"
+            self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
+        elif self.args["unlearn_task"] == "edge":
+            path_un_edge = unlearning_edge_path + "_" + str(self.run) + ".txt"
+            self.unlearning_edges = np.loadtxt(path_un_edge, dtype=int)
+            self.unlearning_nodes = np.unique(self.unlearning_edges)
+            # F1_score, Accuracy, Recall = self.target_model.eval_unlearning(self.features, self.unlearning_nodes)
+            # self.logger.info(
+            #     'Original Model Unlearning : F1_score = {}  Accuracy = {}  Recall = {}'.format(F1_score, Accuracy, Recall))
         self.unlearning_num = self.unlearning_nodes.size
-        self.unlearning_mask = torch.zeros(self.num_node, dtype=torch.bool)
+        self.unlearning_mask = torch.zeros(self.num_nodes, dtype=torch.bool)
         self.unlearning_mask[self.unlearning_nodes] = True
+        print("Unlearning nodes:{}".format(self.unlearning_num))
+        print("All nodes:{}".format(self.num_nodes))
+    def unlearn(self):
+        if self.args["unlearn_task"] == "node":
+            start_time = time.time()
+            if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
+                self.original_emb = F.relu(self.target_model.model(self.features,return_all_emb = True)[0]).clone().detach().float()
+                self.original_softlabels = F.softmax(self.target_model.model(self.features),dim = 1).clone().detach().float()
+            else:
+                self.data = self.data.to(self.device)
+                self.original_emb = F.relu(self.target_model.model(self.data.x,self.data.edge_index,return_all_emb = True)[0]).clone().detach().float()
+                self.original_softlabels = F.softmax(self.target_model.model(self.data.x,self.data.edge_index),dim = 1).clone().detach().float()
 
-        # compute influence_score
-        start_time = time.time()
-        if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
-            # self.softlabels = self.target_model.model.get_softlabel(self.features.cuda()).cpu().detach().numpy()
-            # get frozen model param
-            self.original_emb = self.target_model.model.get_embedding(self.features).clone().detach().float()
-            self.original_softlabels = self.target_model.model.get_softlabel(self.features).clone().detach().float()
-        else:
-            # self.softlabels = self.target_model.model.get_softlabel(self.data.x,self.data.edge_index).cpu().detach().numpy()
-            # get frozen model param
-            self.data = self.data.to(self.device)
-            self.original_emb = self.target_model.model.get_embedding(self.data.x,self.data.edge_index).clone().detach().float()
-            self.original_softlabels = self.target_model.model.get_softlabel(self.data.x,self.data.edge_index).clone().detach().float()
+            self.feature_similarity = self.cal_similarity(self.features, self.unlearning_nodes, True).cuda()
+            self.label_similarity = self.cal_similarity(self.original_softlabels, self.unlearning_nodes, False).cuda()
+            self.influence_score = (self.feature_similarity + self.alpha * self.label_similarity).clone().detach()
+            del self.feature_similarity
+            del self.label_similarity
 
-        self.feature_similarity = self.cal_similarity(self.features, self.unlearning_nodes, True).cuda()
-        # print("feature_similarity ready!")
-        self.label_similarity = self.cal_similarity(self.original_softlabels, self.unlearning_nodes, False).cuda()
-        # print("label_similarity ready!")
-        self.influence_score = (self.feature_similarity + self.alpha * self.label_similarity).clone().detach()
-        # print("influence_score ready!")
-        del self.feature_similarity
-        del self.label_similarity
-        # self.logger.info("influence_score: {}".format(self.influence_score))
+            self.activated_nodes = self.activate_nodes()
+            self.avg_activating_time[self.run] = time.time()-start_time
+            del self.influence_score
+            self.activated_mask = torch.zeros(self.num_nodes, dtype=torch.bool)
+            self.activated_mask[self.activated_nodes] = True
 
-        # select edit datasets
-        # self.activated_nodes = np.loadtxt("./data/SGU/activated_nodes.txt",dtype=int)
-        self.activated_nodes = self.activate_nodes()
-        self.avg_activating_time[self.run] = time.time()-start_time
-        # print("activated_nodes ready!")
-        del self.influence_score
-        self.activated_mask = torch.zeros(self.num_node, dtype=torch.bool)
-        self.activated_mask[self.activated_nodes] = True
-        # np.savetxt(root_path + "/data/SGU/activated_nodes.txt", self.activated_nodes, fmt="%d")
+            parameter_list = []
+            for param_tensor in self.target_model.model.parameters():
+                param_clone = param_tensor.clone().detach().float()
+                parameter_list.append(param_clone)
+            self.original_w = parameter_list
+            self.prototype_embedding = self.get_prototype()
+            activated_label = np.argmax(self.original_softlabels[self.activated_nodes].cpu().numpy(), axis=1)
+            start_time = time.time()
+            self.pos_pair = self.pos_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
+            self.neg_pair = self.neg_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
+            self.avg_sampling_time[self.run] = time.time()-start_time
+            self.best = self.target_model.sgu_unlearning(self.original_softlabels,
+                                                        self.original_w,
+                                                        self.unlearning_nodes,
+                                                        self.activated_nodes,
+                                                        self.pos_pair,
+                                                        self.neg_pair,
+                                                        self.features,
+                                                        self.prototype_embedding,
+                                                        self.avg_unlearning_time,
+                                                        self.average_f1,
+                                                        self.run)
+            self.target_model.load_model(root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
+            self.final_auc = self.mia_attack()
+            self.logger.info("Budget: {}".format(self.Budget))
+        elif self.args["unlearn_task"] == "edge":
+            if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
+                self.original_emb = F.relu(self.target_model.model(self.features,return_all_emb = True)[0]).clone().detach().float()
+                self.original_softlabels = F.softmax(self.target_model.model(self.features),dim = 1).clone().detach().float()
+            else:
+                self.data = self.data.to(self.device)
+                self.original_emb = F.relu(self.target_model.model(self.data.x,self.data.edge_index,return_all_emb = True)[0]).clone().detach().float()
+                self.original_softlabels = F.softmax(self.target_model.model(self.data.x,self.data.edge_index),dim = 1).clone().detach().float()
 
-        parameter_list = []
-        for param_tensor in self.target_model.model.parameters():
-            param_clone = param_tensor.clone().detach().float()
-            parameter_list.append(param_clone)
-        self.original_w = parameter_list
-        # print("parameter_list ready!")
+            self.adj = to_scipy_sparse_matrix(self.data.edge_index, num_nodes=self.data.num_nodes)
+            self.adj_sp = self.adj.tocoo()
+            self.adj_torch = utils.sparse_mx_to_torch_sparse_tensor(self.adj_sp)
+            self.adj_norm_sp = utils.aug_normalized_adjacency(self.adj)
+            self.adj_norm_torch = utils.sparse_mx_to_torch_sparse_tensor(self.adj_norm_sp)
+            degree_torch = torch.sparse.sum(self.adj_torch, dim=0).values()
+            self.deg = np.array(degree_torch)
+            #cal the influence score
+            self.node_cnt_sum = torch.zeros(self.data.num_nodes,requires_grad=False)
+            self.adj_lil = self.adj_sp.tolil()
+            self.adj_norm_lil = self.adj_norm_sp.tolil()
+            self.node_degree = torch.sparse.sum(self.adj_torch.to(self.device), [0]).to_dense().cpu().numpy()
+            node_cnt = np.array(self.adj_norm_lil[self.unlearning_nodes].tocsr().max(axis=0).todense()).flatten()
+            self.degree_heap = []
+            start_time = time.time()
+            for i in self.unlearning_nodes:
+                node_cnt[i] = 1
+                heapq.heappush(self.degree_heap, (self.node_degree[i], i))
 
-        # get prototype embedding
-        self.prototype_embedding = self.get_prototype()
-        # pred = self.target_model.model.emb2softlable(self.prototype_embedding.to(self.device)).cpu().detach().numpy()
-        # pred = np.argmax(pred, axis=1)
-        # self.logger.info("proto_acc:{}".format(accuracy_score(y_true=np.arange(0, self.data.num_classes), y_pred=pred)))
+            self.__prep_cnt_sum(self.node_cnt_sum, node_cnt, self.adj_norm_sp.row, self.adj_norm_sp.col,
+                                self.adj_norm_sp.data)
 
-        # contrastive learning sampling
-        activated_label = np.argmax(self.original_softlabels[self.activated_nodes].cpu().numpy(), axis=1)
-        start_time = time.time()
-        self.pos_pair = self.pos_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
-        self.neg_pair = self.neg_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
-        self.avg_sampling_time[self.run] = time.time()-start_time
-        # delete node
-        # self.delete_node()
-        # self.features_unlearning = self.preprocess_feature(self.edge_mask)
-        # self.features_unlearning = None
-        # unlearning process
-        # self.mia_attack()
-        # self.best = self.target_model.SGU_unlearning(self.original_softlabels,
-        #                                    self.original_w,
-        #                                    self.unlearning_nodes,
-        #                                    self.activated_nodes,
-        #                                    self.pos_pair,
-        #                                    self.neg_pair,
-        #                                    self.features,
-        #                                    self.prototype_embedding,
-        #                                    self.avg_training_time,
-        #                                    self.average_f1,
-        #                                    self.run)
-        self.best = self.SGU_unlearning()
-        # F1_score, Accuracy, Recall = self.target_model.eval_unlearning(self.features, self.unlearning_nodes)
-        # self.logger.info(
-        #     'Original Model Unlearning : F1_score = {}  Accuracy = {}  Recall = {}'.format(F1_score, Accuracy, Recall))
-        # retrain
-        # self.retrain(self.unlearning_nodes, self.edge_mask)
-        # mia attack test
-        self.target_model.load_model(root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/" + self.args["base_model"]+"_unlearning_best.pt")
-        self.final_auc = self.mia_attack()
-        self.logger.info("Budget: {}".format(self.Budget))
+            self.activated_nodes = torch.topk(self.node_cnt_sum, self.Budget)[1].numpy()
+            self.avg_activating_time[self.run] = time.time()-start_time
+            self.activated_mask = torch.zeros(self.num_nodes, dtype=torch.bool)
+            self.activated_mask[self.activated_nodes] = True
 
+            parameter_list = []
+            for param_tensor in self.target_model.model.parameters():
+                param_clone = param_tensor.clone().detach().float()
+                parameter_list.append(param_clone)
+            self.original_w = parameter_list
+            self.prototype_embedding = self.get_prototype()
+            activated_label = np.argmax(self.original_softlabels[self.activated_nodes].cpu().numpy(), axis=1)
+            start_time = time.time()
+            self.pos_pair = self.pos_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
+            self.neg_pair = self.neg_sampling(self.activated_nodes, activated_label, self.unlearning_nodes)
+            self.avg_sampling_time[self.run] = time.time()-start_time
+            self.best = self.target_model.sgu_unlearning_edge(self.original_softlabels,
+                                                        self.original_w,
+                                                        self.unlearning_nodes,
+                                                        self.activated_nodes,
+                                                        self.pos_pair,
+                                                        self.neg_pair,
+                                                        self.features,
+                                                        self.prototype_embedding,
+                                                        self.avg_unlearning_time,
+                                                        self.average_f1,
+                                                        self.run)
+            self.target_model.load_model(root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
+            
         
+    
 
 
     def preprocess_feature(self,edge_mask=None):
@@ -234,6 +231,14 @@ class sgu():
             propagation = propagation = SGConv(self.data.num_features, self.data.num_classes, K=3, bias=False)
             features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
             return features_pre.cuda()
+        elif self.args["base_model"] == "SAINT":
+            propagation = propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
+            features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
+            return features_pre.cuda()
+        elif self.args["base_model"] == "Cluster_GCN":
+            propagation = propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
+            features_pre = propagation.forward_SGU(self.data.x, self.data.edge_index)
+            return features_pre.cuda()
         timesum = time.time()-start_time
         self.timecount["process_feaure_time"] = timesum
 
@@ -248,10 +253,10 @@ class sgu():
 
     def cal_similarity(self,vectors,unleaning_nodes,isfeature):
         # vectors = torch.FloatTensor(vectors)
-        # similarity_matrix = np.zeros((self.num_node,self.num_node))
-        # # similarity_matrix = torch.FloatTensor(self.num_node,self.num_node)
-        # for i in range(self.num_node-1):
-        #     for j in range(i+1,self.num_node):
+        # similarity_matrix = np.zeros((self.num_nodes,self.num_nodes))
+        # # similarity_matrix = torch.FloatTensor(self.num_nodes,self.num_nodes)
+        # for i in range(self.num_nodes-1):
+        #     for j in range(i+1,self.num_nodes):
         #         similarity_matrix[i][j] = cal_distance(vectors[i,:],vectors[j,:])
         #         similarity_matrix[j][i] = similarity_matrix[i][j]
         if self.args["base_model"] == "SIGN" and isfeature:
@@ -290,9 +295,9 @@ class sgu():
 
     def activate_nodes(self):
         activated_node  = list()
-        total_influence = torch.zeros(self.num_node)
+        total_influence = torch.zeros(self.num_nodes)
         self.influence_score[self.unlearning_nodes] = 0
-        # influence_mask = torch.zeros(self.num_node,dtype=torch.bool)
+        # influence_mask = torch.zeros(self.num_nodes,dtype=torch.bool)
         # influence_mask[self.data.train_indices] = True
         # influence_mask[self.unlearning_nodes] = False
         # for i in range(self.args["num_unlearned_nodes"]):
@@ -431,13 +436,13 @@ class sgu():
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
         if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args[
             "base_model"] == "SIGN":
-            unlearning_softlabels_member = self.target_model.model.get_softlabel(self.features[self.unlearning_nodes])
-            unlearning_softlabels_non = self.target_model.model.get_softlabel(
-                self.features[self.data.test_indices[:self.mia_num]])
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.features[self.unlearning_nodes]),dim = 1)
+            unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.features[self.data.test_indices[:self.mia_num]]),dim = 1)
         else:
-            unlearning_softlabels_member = self.target_model.model.get_softlabel(self.data.x,self.data.edge_index)[self.unlearning_nodes]
-            unlearning_softlabels_non = self.target_model.model.get_softlabel(
-                self.data.x,self.data.edge_index)[self.data.test_indices[:self.mia_num]]
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index),dim = 1)[self.unlearning_nodes]
+            unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.data.x,self.data.edge_index),dim = 1)[self.data.test_indices[:self.mia_num]]
 
         mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
         posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
@@ -449,158 +454,6 @@ class sgu():
         # self.logger.info("auc:{}".format(auc))
         # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
         return auc
-
-    def SGU_unlearning(self):
-        self.target_model.model.train()
-        self.avg_training_time[self.run] = 0
-        self.lam = 1
-        self.tau = 0.5
-        self.para1 = self.args["para1"]
-        self.para2 = self.args["para2"]
-        self.para3 = self.args["para3"]
-        self.para4 = self.args["para4"]
-        self.para5 = self.args["para5"]
-        self.target_model.model = self.target_model.model.to(self.device)
-        self.target_model.data = self.target_model.data.to(self.device)
-        prototype_embedding = self.prototype_embedding.to(self.device)
-        self.target_model.optimizer = torch.optim.Adam(self.target_model.model.parameters(), lr=self.target_model.model.config.lr,
-                                          weight_decay=self.target_model.model.config.decay)
-
-        indices = torch.randperm(self.data.y[self.unlearning_nodes].size(0))
-
-        # 使用这些索引重新排列原始张量
-        random_class = self.data.y[self.unlearning_nodes][indices]
-        random_emb_proto = prototype_embedding[random_class]
-        average_probs = torch.ones(self.data.num_classes) / self.data.num_classes
-        stacked_probs = average_probs.repeat(self.args["num_unlearned_nodes"], 1).detach()
-        best = 0
-        best_w = 0
-        F1_score = 0
-        F1_score,Accuracy,Recall = self.target_model.test_node_fullbatch(self.features[self.data.test_indices])
-        self.logger.info("Original F1 Score: {:.4f} ".format(F1_score) )
-        for epoch in tqdm(range(self.args['unlearning_epochs']), desc="Unlearning", unit="epoch"):
-            self.target_model.model.train()
-            self.target_model.optimizer.zero_grad()
-
-
-            ###get emb softlabel###
-            # softlabels_U = F.softmax(self.model(features[unlearning_nodes]),dim=1)
-            # # softlabels_U = self.model.get_softlabel(features[unlearning_nodes])
-            # softlabels_E = F.softmax(self.model(features_unlearning[activated_nodes]),dim=1)
-            # embedding_E = self.model.get_embedding(features_unlearning[activated_nodes])
-            # embedding_U = self.model.get_embedding(features[unlearning_nodes])
-
-            ## 3.25 19-16
-            # softlabels_U = F.softmax(self.model(features[unlearning_nodes]),dim=1)
-            start_time = time.time()
-            if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args[
-                "base_model"] == "SIGN":
-                softlabels_U = self.target_model.model.get_softlabel(self.features[self.unlearning_nodes])
-                softlabels_E = F.softmax(self.target_model.model(self.features[self.activated_nodes]),dim=1)
-                embedding_E = self.target_model.model.get_embedding(self.features[self.activated_nodes])
-                embedding_U = self.target_model.model.get_embedding(self.features[self.unlearning_nodes])
-            else:
-                softlabels_U = self.target_model.model.get_softlabel(self.data.x,self.data.edge_index)[self.unlearning_nodes]
-                softlabels_E = self.target_model.model.get_softlabel(self.data.x,self.data.edge_index)[self.activated_nodes]
-                embedding_E = self.target_model.model.get_embedding(self.data.x,self.data.edge_index)[self.activated_nodes]
-                embedding_U = self.target_model.model.get_embedding(self.data.x,self.data.edge_index)[self.unlearning_nodes]
-            w_U = []
-            ### cal loss###
-            loss_w = 0
-            for param_tensor in self.target_model.model.parameters():
-                param_clone = param_tensor
-                w_U.append(param_tensor)
-            for i in range(len(self.original_w)):
-                delta_w = (w_U[i] - self.original_w[i])
-                loss_w += torch.norm(delta_w)
-            creterion_MSE = torch.nn.MSELoss(reduction="mean")
-            # loss_pE = creterion_MSE(softlabels_E,original_softlabels[activated_nodes])
-            smooth_factor = 1e-9
-            loss_pE = F.kl_div(torch.log(softlabels_E + smooth_factor),self.original_softlabels[self.activated_nodes] + smooth_factor, reduction='batchmean')
-            pos_tensors = [torch.tensor(self.pos_pair[node]) for node in self.activated_nodes]
-            positive_tensors = torch.stack([F.normalize(pos_tensor, p=2, dim=0) for pos_tensor in pos_tensors], dim=0).cuda()
-            pos_scores = torch.exp(torch.einsum('ij,ij->i', F.normalize(embedding_E, p=2, dim=1),
-                                                positive_tensors )/ self.tau)
-            neg_scores = torch.zeros_like(pos_scores)
-
-            ####6/1#########
-            neg_tensors = [torch.tensor(self.neg_pair[node]) for node in self.activated_nodes]
-            negtive_tensors = torch.stack([F.normalize(negtive_tensor, p=2, dim=0) for negtive_tensor in neg_tensors],
-                                           dim=0).cuda()
-            neg_scores = torch.exp(torch.einsum('ij,ij->i', F.normalize(embedding_E, p=2, dim=1),
-                                                negtive_tensors) / self.tau)
-
-            ################
-            # for i, node in enumerate(activated_nodes):
-            #     # neg_tensors = F.normalize(torch.tensor(neg_pair[node][0]), p=2, dim=0).cuda()
-            #     # tmp_emb = F.normalize(embedding_E[i], p=2, dim=0)
-            #     # neg_scores = 10 * torch.dot(neg_tensors,tmp_emb)
-            #
-            #     neg_tensors = [torch.tensor(neg_emb) for neg_emb in neg_pair[node]]
-            #     negtive_tensors = torch.stack([F.normalize(neg_tensor, p=2, dim=0) for neg_tensor in neg_tensors], dim=0).cuda()
-            #     neg_scores[i] = torch.exp(torch.einsum('d,nd->n', F.normalize(embedding_E[i], p=2, dim=0),
-            #                      negtive_tensors) / self.tau).sum()
-            loss_hE = -torch.log(pos_scores /50*neg_scores).sum()
-             
-
-
-            embedding_E_proto = prototype_embedding[self.data.y[self.activated_nodes]]
-            loss_proto = creterion_MSE(embedding_E,embedding_E_proto)
-            # loss_proto = F.kl_div(torch.log(embedding_E),embedding_E_proto, reduction='batchmean')
-            # for node in activated_nodes:
-            #     emb = embedding_E[node]
-            #     pos_num = torch.exp(torch.mul(F.normalize(emb, p=2, dim=0),F.normalize(torch.from_numpy(pos_pair[node]).to(self.device), p=2, dim=0)).sum()/self.tau)
-            #     neg_num = 0
-            #     for neg_emb in neg_pair[node]:
-            #         neg_num += torch.exp(torch.mul(F.normalize(emb, p=2, dim=0),F.normalize(torch.from_numpy(neg_emb).to(self.device), p=2, dim=0)).sum()/self.tau)
-            #     loss_hE += -torch.log(pos_num/neg_num)
-
-            #尝试用随机标签的方式遗忘
-            loss_pU = F.cross_entropy(softlabels_U, random_class.to(self.device))
-
-            #尝试用平均概率的方式遗忘
-            # loss_pU = F.kl_div(torch.log(softlabels_U+smooth_factor),stacked_probs.to(self.device), reduction='batchmean')
-            loss_emb_U = creterion_MSE(embedding_U, random_emb_proto)
-            # loss_emb_U = 0
-            # onehot = F.one_hot(self.data.y[unlearning_nodes]).detach()
-
-            loss = ( self.para1 * loss_w +  self.para3 * loss_pE ) + (self.para2 * loss_hE +  self.para4 * (loss_pU+ loss_emb_U)  + self.para5 * loss_proto)
-            # loss = self.lam * ( self.para3 * loss_pE ) + (self.para2 * loss_hE +  self.para4 * (loss_pU+ loss_emb_U)  )
-            # loss = self.lam * (self.para1 * loss_w + self.para3 * loss_pE + self.para5 * loss_proto) + (
-            #             self.para2 * loss_hE + self.para4 * (loss_pU + loss_emb_U))
-
-            # self.logger.info("loss_w: {}  loss_hE: {} loss_pE: {} loss_pU: {} ".format(self.para1*loss_w,
-            #                                                                                         self.para2 * loss_hE,
-            #                                                                                         self.para3 * loss_pE,
-            #                                                                                         self.para4* (loss_pU+ loss_emb_U)))
-            loss.backward()
-            if (epoch+1) % self.args["test_freq"] == 0:
-                F1_score,Accuracy,Recall = self.target_model.test_node_fullbatch(self.features[self.data.test_indices])
-                self.logger.info("Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}".format(epoch, F1_score, loss) )
-            
-            self.target_model.optimizer.step()
-            self.avg_training_time[self.run] += (time.time() - start_time)/self.args["unlearning_epochs"]
-
-            ##test##
-            # if (epoch+1) % self.args["test_freq"] == 0:
-            #     F1_score,Accuracy,Recall = self.evaluate_SGU_model(features[self.data.test_indices])
-            #     self.logger.info('epoch: {}  F1_score = {}  Accuracy = {}  Recall = {}'.format(epoch, F1_score,Accuracy,Recall))
-            if F1_score > best and epoch > 30:
-                best = F1_score
-                best_w = copy.deepcopy(self.target_model.model.state_dict())
-                # F1_score,Accuracy,Recall = self.target_model.eval_unlearning(self.features,self.unlearning_nodes)
-                # self.logger.info('Unlearning: F1_score = {}  Accuracy = {}  Recall = {}'.format(F1_score,Accuracy,Recall))
-        # F1_score, Accuracy, Recall = self.target_model.eval_unlearning(self.features,self.unlearning_nodes)
-        self.logger.info("Parameters - para1: {:.4f} | para2: {:.4f} | para3: {:.4f} | para4: {:.4f} | para5: {:.4f}".format(self.para1, self.para2, self.para3, self.para4, self.para5))
-
-        self.logger.info('Best Unlearning: F1_score: {:.4f}'.format(best))
-        self.average_f1[self.run] = best
-        
-        save_path = root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/" + self.args["base_model"]+"_unlearning_best.pt"
-        with open(save_path,'w') as file:
-            self.target_model.save_model(save_path,best_w)
-
-        return best
 
     def get_prototype(self):
         train_indices = torch.tensor(self.data.train_indices,requires_grad=False)
@@ -653,30 +506,34 @@ class sgu():
 
 
     def edge_unlearning(self):
-        #add heterophilous_edges
-
-        self.adj = self.data.adj
+        
+        self.adj = to_scipy_sparse_matrix(self.data.edge_index, num_nodes=self.data.num_nodes)
         self.adj_sp = self.adj.tocoo()
         self.adj_torch = utils.sparse_mx_to_torch_sparse_tensor(self.adj_sp)
         self.adj_norm_sp = utils.aug_normalized_adjacency(self.adj)
         self.adj_norm_torch = utils.sparse_mx_to_torch_sparse_tensor(self.adj_norm_sp)
         degree_torch = torch.sparse.sum(self.adj_torch, dim=0).values()
         self.deg = np.array(degree_torch)
-
+        self.data=self.data.to(self.device)
         #find the initailly activated nodes
         # rand = torch.randint(high=self.data.edge_index.size(1),size=(self.args["num_unlearned_edges"],))
         # remove_edge = self.data.edge_index[:,rand]
         if os.path.exists(root_path + "/data/SGU/unlearning_edge.pt"):
             remove_edge = torch.load(root_path+ "/data/SGU/unlearning_edge.pt")
-            updated_edge_index = torch.hstack([self.data.edge_index, remove_edge])
+            updated_edge_index = torch.hstack([self.data.edge_index.to(self.device), remove_edge.to(self.device)])
         else:
-            remove_edge,updated_edge_index = self.generate_heterophilous_edges(self.data.edge_index,self.data.num_node,self.args["proportion_unlearned_edges_num"])
+            remove_edge,updated_edge_index = self.generate_heterophilous_edges(self.data.edge_index,self.data.num_nodes,self.args["proportion_unlearned_edges_num"])
             torch.save(remove_edge,root_path + "/data/SGU/unlearning_edge.pt")
 
         self.data.edge_index = updated_edge_index
+        self.reprocess()
+        # print(self.data.train_edge_index[0,:].max(),self.data.train_edge_index[1,:].max())
+
         self.unlearning_nodes = np.union1d(remove_edge[0],remove_edge[1])
         self.logger.info("add edges:{}".format(remove_edge.size(1)))
 
+        self.args["unlearn_trainer"] = 'SGUTrainer'
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
 
 
         #cal the influence score
@@ -697,27 +554,34 @@ class sgu():
 
         self.features = self.preprocess_feature()
         # self.target_model = NodeClassifier(self.args, self.data, self.model_zoo, self.logger)
-        self.target_model = get_trainer(self.args,self.logger,self.model,self.data)
+        # self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         self.target_model.data.pre_features = self.features
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + \
-                         self.args["base_model"] + self.args["proportion_unlearned_edges"]
+        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
+                         self.args["base_model"] + str(self.args["proportion_unlearned_edges"])
         if os.path.exists(model_path):
             print(f"File {model_path} already exists.")
             self.target_model.load_model(model_path)
         else:
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            with open(model_path, 'w'):
-                print(f"File {model_path} created successfully.")
-                self.target_model.train()
-
+            # os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            # with open(model_path, 'w'):
+            #     print(f"File {model_path} created successfully.")
+            self.target_model.train(save=False,model_path=model_path)
+                # self.target_model.save_model(model_path)
         ##############train################
-
-        self.softlabels = self.target_model.model.get_softlabel(self.features.cuda()).cpu().detach().numpy()
-
+        if self.args["base_model"] in ["SGC","S2GC","SIGN"] :
+            self.softlabels = F.softmax(self.target_model.model(self.features.cuda()),dim = 1).cpu().detach().numpy()
+            self.original_emb = F.relu(self.target_model.model(self.features.cuda(),return_all_emb = True)[0]).clone().detach().float()
+            self.original_softlabels = F.softmax(self.target_model.model(
+                self.features.cuda()),dim = 1).clone().detach().float()
+        else:
+            self.softlabels = F.softmax(self.target_model.model(self.features.cuda(),self.data.edge_index.cuda()),dim = 1)
+            self.original_emb = F.relu(self.target_model.model(self.features.cuda(),self.data.edge_index.cuda(),return_all_emb = True)[0]).clone().detach().float()
+            self.original_softlabels = F.softmax(self.target_model.model(
+                self.features.cuda(),self.data.edge_index.cuda()),dim = 1).clone().detach().float()
+        
+        
         # get frozen model param
-        self.original_emb = self.target_model.model.get_embedding(self.features).clone().detach().float()
-        self.original_softlabels = self.target_model.model.get_softlabel(
-            self.features).clone().detach().float()
+        
         parameter_list = []
         for param_tensor in self.target_model.model.parameters():
             param_clone = param_tensor.clone().detach().float()
@@ -726,11 +590,12 @@ class sgu():
 
         # get prototype embedding
         self.prototype_embedding = self.get_prototype()
-        pred = self.target_model.model.emb2softlable(
-            self.prototype_embedding.to(self.device)).cpu().detach().numpy()
-        pred = np.argmax(pred, axis=1)
-        self.logger.info(
-            "proto_acc:{}".format(accuracy_score(y_true=np.arange(0, self.data.num_classes), y_pred=pred)))
+        
+        # pred = self.target_model.model.emb2softlable(
+        #     self.prototype_embedding.to(self.device)).cpu().detach().numpy()
+        # pred = np.argmax(pred, axis=1)
+        # self.logger.info(
+        #     "proto_acc:{}".format(accuracy_score(y_true=np.arange(0, self.data.num_classes), y_pred=pred)))
 
         # contrastive learning sampling
         activated_label = np.argmax(self.original_softlabels[self.activated_nodes].cpu().numpy(), axis=1)
@@ -739,16 +604,18 @@ class sgu():
 
 
 
-        self.target_model.SGU_unlearning_edge(self.original_softlabels,
+        self.best = self.SGU_unlearning_edge(self.original_softlabels,
                                                 self.original_w,
-                                                self.unlearning_nodes,
+                                                remove_edge,
                                                 self.activated_nodes,
                                                 self.pos_pair,
                                                 self.neg_pair,
                                                 self.features,
                                                 self.prototype_embedding,
                                                 remove_edge)
-
+        # self.target_model.load_model(root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
+        # self.final_auc = self.mia_attack()
+        self.logger.info("Budget: {}".format(self.Budget))
 
 
 
@@ -769,8 +636,8 @@ class sgu():
         tx_values = np.where(mask)[0]
 
         for tx in prange(tx_values[0]):
-            if node_cnt_sum[col[tx]] < K_arr[row[tx]] * data[tx]:
-                node_cnt_sum[col[tx]] = K_arr[row[tx]] * data[tx]
+            if self.node_cnt_sum[col[tx]] < K_arr[row[tx]] * data[tx]:
+                self.node_cnt_sum[col[tx]] = K_arr[row[tx]] * data[tx]
 
     def generate_heterophilous_edges(self,edge_index, node_num, proportion):
         """
@@ -816,9 +683,51 @@ class sgu():
             self.logger.info("{} : {}s".format(key,value))
 
         
+    def reprocess(self):
+        train_new_index = 0
+        val_new_index = 0
+        test_new_index = 0
+        train_dict = {}
+        val_dict = {}
+        test_dict = {}
+        for node in range(self.data.num_nodes):
+            if self.data.train_mask[node]:
+                train_dict[node] = train_new_index
+                train_new_index += 1
+            elif self.data.val_mask[node]:
+                val_dict[node] = val_new_index
+                val_new_index += 1
+            elif self.data.test_mask[node]:
+                test_dict[node] = test_new_index
+                test_new_index += 1
+        # 删除连接训练、验证和测试集之间的边
+        train_edge_index = self.data.edge_index.clone()
+        val_edge_index = self.data.edge_index.clone()
+        test_edge_index = self.data.edge_index.clone()
+        
+        train_edge_mask = self.data.train_mask[train_edge_index[0]] & self.data.train_mask[train_edge_index[1]]
+        self.data.train_edge_index = train_edge_index[:, train_edge_mask]
+        for edge in range(self.data.train_edge_index.size(1)):
+            self.data.train_edge_index[0][edge] = train_dict[self.data.train_edge_index[0][edge].item()]
+            self.data.train_edge_index[1][edge] = train_dict[self.data.train_edge_index[1][edge].item()]
+        # 删除连接验证集之外的边
+        val_edge_mask = self.data.val_mask[val_edge_index[0]] & self.data.val_mask[val_edge_index[1]]
+        self.data.val_edge_index = val_edge_index[:, val_edge_mask]
+        for edge in range(self.data.val_edge_index.size(1)):
+            self.data.val_edge_index[0][edge] = val_dict[self.data.val_edge_index[0][edge].item()]
+            self.data.val_edge_index[1][edge] = val_dict[self.data.val_edge_index[1][edge].item()]
 
+            # 删除连接测试集之外的边
+        test_edge_mask = self.data.test_mask[test_edge_index[0]] & self.data.test_mask[test_edge_index[1]]
+        self.data.test_edge_index = test_edge_index[:, test_edge_mask]
+        for edge in range(self.data.test_edge_index.size(1)):
+            self.data.test_edge_index[0][edge] = test_dict[self.data.test_edge_index[0][edge].item()]
+            self.data.test_edge_index[1][edge] = test_dict[self.data.test_edge_index[1][edge].item()]
     
-
+    
+    
+        
+    
 
 
 

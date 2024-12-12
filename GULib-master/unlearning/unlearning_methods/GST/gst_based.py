@@ -40,9 +40,12 @@ class gst():
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         scattering = self.model_zoo.model
 
-        grad_norm_approx = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # Data dependent res grad norm
-        grad_norm_real = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # true res grad norm
-        grad_norm_worst = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # worst case res grad norm
+        # grad_norm_approx = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # Data dependent res grad norm
+        # grad_norm_real = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # true res grad norm
+        # grad_norm_worst = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # worst case res grad norm
+        grad_norm_approx = torch.zeros( self.args["folds"]).float() # Data dependent res grad norm
+        grad_norm_real = torch.zeros(self.args["folds"]).float() # true res grad norm
+        grad_norm_worst = torch.zeros( self.args["folds"]).float() # worst case res grad norm
         removal_times = torch.zeros(self.args["num_unlearned_nodes"], self.args["folds"]).float() # record the time of each removal
         acc_removal = torch.zeros((2, self.args["num_unlearned_nodes"], self.args["folds"])).float() # record the acc after removal
         num_retrain = torch.zeros((self.args["folds"],)).int()
@@ -53,13 +56,17 @@ class gst():
 
         for fold in range(self.args["num_runs"]):
             self.logger.info('='*20 + '  fold=' + str(fold) + '  ' + '='*20)
-            path_un = unlearning_path + "_" + str(fold) + ".txt"
-            self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
-            train_idx, val_idx, test_idx = self.data.train_indices,self.data.test_indices,self.data.val_indices
+            if self.args["downstream_task"] != "graph":
+                path_un = unlearning_path + "_" + str(fold) + ".txt"
+                self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
             
-            w, durations, acc[0,fold], acc[1,fold],softlabel_original0,softlabel_original1 = self.target_model.train_GST(self.logger,self.args, self.data, scattering, self.device,self.unlearning_nodes,self.nonmember_id)
-
-            
+                train_idx, val_idx, test_idx = self.data.train_indices,self.data.test_indices,self.data.val_indices
+                
+                w, durations, acc[0,fold], acc[1,fold],softlabel_original0,softlabel_original1 = self.target_model.train_GST(self.logger,self.args, self.data, scattering, self.device,self.unlearning_nodes,self.nonmember_id)
+            else:
+                train_list = [self.data[i] for i in self.data.train_indices]
+                test_list = [self.data[i] for i in self.data.test_indices]
+                w, durations, acc[0,fold], acc[1,fold] = self.target_model.train_GST_graph(self.logger,self.args, train_list,test_list, scattering, self.device)
             
             times[fold] = durations[0]+durations[1]
 
@@ -73,16 +80,20 @@ class gst():
             if not self.args["base_model"] == "GIN":
                 w_approx = w.clone().detach() 
 
+            if self.args["downstream_task"] != "graph":
+                self.avg_training_time[fold], num_retrain[fold], self.average_f1[fold], grad_norm_approx[fold], grad_norm_real[fold], grad_norm_worst[fold], removal_queue,softlabel_new1, softlabel_new0 = self.target_model.Unlearn_GST(self.logger,self.args, scattering, self.data, device, w_approx, budget,self.unlearning_nodes,self.nonmember_id,nonlin=True, gamma=1/4,removal_queue = self.unlearning_nodes)
+                mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
+                posterior1 = torch.cat((softlabel_original1, softlabel_original0), 0).cpu().detach()
+                posterior2 = torch.cat((softlabel_new1, softlabel_new0), 0).cpu().detach()
+                posterior = np.array([np.linalg.norm(posterior1[i] - posterior2[i]) for i in range(len(posterior1))])
+                auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+                # self.logger.info("AUC:{}".format(auc))
+                # self.logger.info("F1:{}".format(self.average_f1[fold]))
+                self.average_auc[fold] = auc 
+            else:
+                self.avg_training_time[fold],num_retrain[fold],self.average_f1[fold], grad_norm_approx[fold], grad_norm_real[fold], grad_norm_worst[fold] = self.target_model.Unlearn_GST_graph(self.logger,self.args, scattering,train_list, device, w_approx, budget,nonlin=True, gamma=1/4,test_list = test_list)
             
-            self.avg_training_time[fold], num_retrain[fold], self.average_f1[fold], grad_norm_approx[:, fold], grad_norm_real[:, fold], grad_norm_worst[:, fold], removal_queue,softlabel_new1, softlabel_new0 = self.target_model.Unlearn_GST(self.logger,self.args, scattering, self.data, device, w_approx, budget,self.unlearning_nodes,self.nonmember_id,nonlin=True, gamma=1/4,removal_queue = self.unlearning_nodes)
-            mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
-            posterior1 = torch.cat((softlabel_original1, softlabel_original0), 0).cpu().detach()
-            posterior2 = torch.cat((softlabel_new1, softlabel_new0), 0).cpu().detach()
-            posterior = np.array([np.linalg.norm(posterior1[i] - posterior2[i]) for i in range(len(posterior1))])
-            auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
-            # self.logger.info("AUC:{}".format(auc))
-            # self.logger.info("F1:{}".format(self.average_f1[fold]))
-            self.average_auc[fold] = auc 
+            
 
         # plot_auc(mia_test_y, posterior.reshape(-1, 1))
         self.logger.info(

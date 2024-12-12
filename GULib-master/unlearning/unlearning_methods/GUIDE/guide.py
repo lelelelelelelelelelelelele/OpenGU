@@ -25,109 +25,75 @@ from tqdm import tqdm
 from config import BLUE_COLOR,RESET_COLOR
 from task.edge_prediction import EdgePredictor
 from task import get_trainer
-class guide:
+from pipeline.Shard_based_pipeline import Shard_based_pipeline
+from torch_geometric.utils import negative_sampling
+class guide(Shard_based_pipeline):
     def __init__(self,args,logger,model_zoo):
+        super().__init__(args,logger,model_zoo)
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
-        self.args["unlearn_trainer"] = 'GUIDETrainer'
-        #9.20
-        # if self.args["downstream_task"]=="node":
-        #     self.target_model = NodeClassifier(self.args, self.data, model_zoo, self.logger)
-        # elif self.args["downstream_task"]=="edge":
-        #     self.target_model = EdgePredictor(self.args, self.data, model_zoo, self.logger)
-        self.target_model = get_trainer(self.args,self.logger,model_zoo.model,self.data)
         self.num_classes = self.data.num_classes
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.pm_kernel = PyramidMatchVector()
         self.run = 0
-
         self.unlearning_number = args["num_unlearned_nodes"]
         num_runs = self.args["num_runs"]
         self.G_ny0 = [self.data.edge_index.cpu()]
-        self.avg_partition_time = np.zeros(num_runs)
-        self.average_f1 = np.zeros(num_runs)
-        self.avg_training_time = np.zeros(num_runs)
-        self.avg_updating_time = np.zeros(num_runs)
-        self.average_auc = np.zeros(num_runs)
 
         
         
 
-    def run_exp(self):
-        for self.run in range(self.args['num_runs']):
-            self.partition()
-            self.train_shard_model()
-            self.aggregate_shard_model()
-            self.update_shard()
-            if self.args["unlearn_task"] == "node":
-                self.mia_attack()
-        self.logger.info(
-        "{}Performance Metrics:\n"
-        " - Average F1 Score: {:.4f} ± {:.4f}\n"
-        " - Average AUC Score: {:.4f} ± {:.4f}\n"
-        " - Average Partition Time: {:.4f} ± {:.4f} seconds\n"
-        " - Average Training Time: {:.4f} ± {:.4f} seconds\n"
-        " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
-            BLUE_COLOR,
-            np.mean(self.average_f1), np.std(self.average_f1),
-            np.mean(self.average_auc), np.std(self.average_auc),
-            np.mean(self.avg_partition_time), np.std(self.avg_partition_time),
-            np.mean(self.avg_training_time), np.std(self.avg_training_time),
-            np.mean(self.avg_updating_time), np.std(self.avg_updating_time),
-            RESET_COLOR
-            )
-        )
+    # def run_exp(self):
+    #     for self.run in range(self.args['num_runs']):
+    #         self.logger.info("run :{}".format(self.run))
+    #         self.partition()
+    #         self.train_shard_model()
+    #         self.aggregate_shard_model()
+    #         self.update_shard()
+    #         if self.args["unlearn_task"] == "node":
+    #             self.mia_attack()
+    #     self.logger.info(
+    #     "{}Performance Metrics:\n"
+    #     " - Average F1 Score: {:.4f} ± {:.4f}\n"
+    #     " - Average AUC Score: {:.4f} ± {:.4f}\n"
+    #     " - Average Partition Time: {:.4f} ± {:.4f} seconds\n"
+    #     " - Average Training Time: {:.4f} ± {:.4f} seconds\n"
+    #     " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
+    #         BLUE_COLOR,
+    #         np.mean(self.average_f1), np.std(self.average_f1),
+    #         np.mean(self.average_auc), np.std(self.average_auc),
+    #         np.mean(self.avg_partition_time), np.std(self.avg_partition_time),
+    #         np.mean(self.avg_training_time), np.std(self.avg_training_time),
+    #         np.mean(self.avg_updating_time), np.std(self.avg_updating_time),
+    #         RESET_COLOR
+    #         )
+    #     )
+    #     self.logger.info("avg_updating_time:{}".format(self.avg_updating_time))
 
-
-
-
-
-
-
-    def train_model(self):
-        #9.20
-        # self.target_model.train_model()
-        self.target_model.train()
-        y_pred,y =self.target_model.prediction_info()
-        y_pred = y_pred.numpy()
-        y = y.numpy()
-        accuracy, f1macro, aucroc = self.store_metrics(y_pred,y)
-        self.logger.info("accuracy {:} f1macro: {:.4f} aucroc: {:.4f}".format(
-            accuracy, f1macro, aucroc))
-
-    def store_metrics(self,pred_scores, target_labels):
-        # calculate metrics
-        pred_labels = pred_scores.argmax(axis=1)
-        one_hot_labels = np.eye(self.num_classes)[target_labels]
-        accuracy = accuracy_score(target_labels, pred_labels)
-        f1macro = f1_score(target_labels, pred_labels, average='macro')
-        aucroc = roc_auc_score(one_hot_labels, pred_scores,multi_class='ovr',average='macro')
-
-        return accuracy, f1macro, aucroc
-
-    def partition(self):
-        self.partations_fast = []
-        # if not self.args["is_transductive"]:
-        #     self.GUIDE_methods = GUIDE_FUNC(self.args,self.data,edge_indexs=self.data.train_edge_index, labels=self.data.y[self.data.train_indices], k = self.args['num_shards'])
-        #     self.p1 = self.GUIDE_methods.fit(self.avg_partition_time,self.run,method=self.args["GUIDE_methods"], alpha_=1e-3)
-        # else:
+    
+    def graph_partition(self):
+        """
+            Override of Shard_based_pipeline.graph_partition
+        """
         self.GUIDE_methods = GUIDE_FUNC(self.args,self.data,edge_indexs=self.data.edge_index, labels=self.data.y, k = self.args['num_shards'])
         self.p1 = self.GUIDE_methods.fit(self.avg_partition_time,self.run,method=self.args["GUIDE_methods"], alpha_=1e-3)
-        # self.logger.info("avg_partition_time:{}".format(self.avg_partition_time[self.run]))
-        # if not self.args["is_transductive"]:
-        #     self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x[self.data.train_indices], REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
-        #                                                    DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0)
+        
+    def generate_shard_data(self):
+        # if self.args["dataset_name"] in ["flickr","Chameleon","Minesweeper","Tolokers"]:
+        #     self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x, REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
+        #                                                    DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0,no_repair=True)
         # else:
         self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x, REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
                                                            DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0)
+        # self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x, REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
+        #                                                   DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0)
         savename = self.p1_saved.DPATH.split('partid')[0] + self.p1_saved.method + '_saved.pt'
         torch.save(self.p1_saved, savename)
-        self.partations_fast.append(self.p1_saved)
 
         self.gis_keys_graph = {}
         for part_id in range(self.args['num_shards']):
-            loadname = self.partations_fast[0].DPATH.replace('partid', 'part' + str(part_id))
+            loadname = self.p1_saved.DPATH.replace('partid', 'part' + str(part_id))
             sub_graph = torch.load(loadname)
             self.gis_keys_graph[part_id] = sub_graph
             # kernel feature extraction for further use
@@ -135,13 +101,18 @@ class guide:
             savekfean = loadname.replace('subgraphs', 'subgkfeas').replace('.pt', '_PM' + '.pt')
             os.makedirs(os.path.dirname(savekfean), exist_ok=True)
             torch.save(subg_kfea, savekfean)
-            self.partations_fast[0].FPATH = savekfean.replace('part' + str(part_id), 'partid')
+            self.p1_saved.FPATH = savekfean.replace('part' + str(part_id), 'partid')
             # model save path
             savemodeln = loadname.replace('subgraphs', 'submodels').replace('.pt', '_' + self.args[ "base_model"] + '.pt').replace(
                 'part' + str(part_id), 'partid')
             savemodeln = savemodeln.split('graph')[0] + 'model_part' + savemodeln.split('_part')[1]
-            self.partations_fast[0].MPATH = savemodeln.replace('part' + str(part_id), 'partid')
+            self.p1_saved.MPATH = savemodeln.replace('part' + str(part_id), 'partid')
 
+    def determine_target_model(self):
+        self.args["unlearn_trainer"] = 'GUIDETrainer'
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        
+        
     def train_shard_model(self):
         for part_id in self.p1_saved.shards_ids.keys():
             # submodel training
@@ -157,38 +128,70 @@ class guide:
                     sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
                     sub_graph.xs = torch.tensor([x.detach().cpu().numpy() for x in sub_graph.xs]).cuda()
                     sub_graph.xs = sub_graph.xs.transpose(0,1)
-            # for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
-            #     submodel.model.train()
-            #     # sub_graph = self.gis_keys_graph[part_id]
-            #     # sub_graph = sub_graph.to(self.device)
-            #     labels = sub_graph.y
-            #     # 处理多标签和单标签二分类的问题
-            #     # if labels.sum() > 0:
-            #     #     weight = (labels == 0).sum().item() / labels.sum().item()
-            #     # else:
-            #     #     weight = 1.0
-            #     submodel.optimizer.zero_grad()
-            #     if self.args["base_model"] == "SIGN":
-            #         out = submodel.model(sub_graph.xs)[sub_graph.train_mask]
-            #         loss = F.cross_entropy(out, labels[sub_graph.train_mask[:labels.size(0)]])
-
-            #     else:
-            #         out = submodel.model(sub_graph.x, sub_graph.edge_index)[sub_graph.train_mask]
-            #         loss = F.cross_entropy(out, labels[sub_graph.train_mask[:labels.size(0)]])
-            #     self.logger.info('Epoch: {:03d} | Loss: {:.4f}'.format(epoch + 1, loss))
-
-            #     loss.backward()
-            #     submodel.optimizer.step()
             submodel.data = sub_graph
             submodel.train(save=False)
 
             self.avg_training_time[self.run] = (time.time()-start)/self.args['num_epochs']
             submodel.model.to('cpu')
             sub_graph = sub_graph.to('cpu')
-            savemodeln = self.partations_fast[0].MPATH.replace('partid', 'part' + str(part_id))
+            savemodeln = self.p1_saved.MPATH.replace('partid', 'part' + str(part_id))
             os.makedirs(os.path.dirname(savemodeln), exist_ok=True)
             torch.save(submodel.model.state_dict(), savemodeln)
             self.logger.info("save model {}".format(savemodeln))
+    # def train_model(self):
+    #     self.target_model.train()
+    #     y_pred,y =self.target_model.prediction_info()
+    #     y_pred = y_pred.numpy()
+    #     y = y.numpy()
+    #     accuracy, f1macro, aucroc = self.store_metrics(y_pred,y)
+    #     self.logger.info("accuracy {:} f1macro: {:.4f} aucroc: {:.4f}".format(
+    #         accuracy, f1macro, aucroc))
+
+    def store_metrics(self,pred_scores, target_labels):
+        # calculate metrics
+        pred_labels = pred_scores.argmax(axis=1)
+        one_hot_labels = np.eye(self.num_classes)[target_labels]
+        accuracy = accuracy_score(target_labels, pred_labels)
+        f1macro = f1_score(target_labels, pred_labels, average='macro')
+        aucroc = roc_auc_score(one_hot_labels, pred_scores,multi_class='ovr',average='macro')
+
+        return accuracy, f1macro, aucroc
+
+    # def partition(self):
+    #     self.partations_fast = []
+    #     # if not self.args["is_transductive"]:
+    #     #     self.GUIDE_methods = GUIDE_FUNC(self.args,self.data,edge_indexs=self.data.train_edge_index, labels=self.data.y[self.data.train_indices], k = self.args['num_shards'])
+    #     #     self.p1 = self.GUIDE_methods.fit(self.avg_partition_time,self.run,method=self.args["GUIDE_methods"], alpha_=1e-3)
+    #     # else:
+    #     self.GUIDE_methods = GUIDE_FUNC(self.args,self.data,edge_indexs=self.data.edge_index, labels=self.data.y, k = self.args['num_shards'])
+    #     self.p1 = self.GUIDE_methods.fit(self.avg_partition_time,self.run,method=self.args["GUIDE_methods"], alpha_=1e-3)
+    #     # self.logger.info("avg_partition_time:{}".format(self.avg_partition_time[self.run]))
+    #     # if not self.args["is_transductive"]:
+    #     #     self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x[self.data.train_indices], REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
+    #     #                                                    DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0)
+    #     # else:
+    #     self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x, REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
+    #                                                        DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0)
+    #     savename = self.p1_saved.DPATH.split('partid')[0] + self.p1_saved.method + '_saved.pt'
+    #     torch.save(self.p1_saved, savename)
+    #     self.partations_fast.append(self.p1_saved)
+
+    #     self.gis_keys_graph = {}
+    #     for part_id in range(self.args['num_shards']):
+    #         loadname = self.partations_fast[0].DPATH.replace('partid', 'part' + str(part_id))
+    #         sub_graph = torch.load(loadname)
+    #         self.gis_keys_graph[part_id] = sub_graph
+    #         # kernel feature extraction for further use
+    #         subg_kfea = self.pm_kernel.parse_input([sub_graph.edge_index.cpu()])
+    #         savekfean = loadname.replace('subgraphs', 'subgkfeas').replace('.pt', '_PM' + '.pt')
+    #         os.makedirs(os.path.dirname(savekfean), exist_ok=True)
+    #         torch.save(subg_kfea, savekfean)
+    #         self.partations_fast[0].FPATH = savekfean.replace('part' + str(part_id), 'partid')
+    #         # model save path
+    #         savemodeln = loadname.replace('subgraphs', 'submodels').replace('.pt', '_' + self.args[ "base_model"] + '.pt').replace(
+    #             'part' + str(part_id), 'partid')
+    #         savemodeln = savemodeln.split('graph')[0] + 'model_part' + savemodeln.split('_part')[1]
+    #         self.partations_fast[0].MPATH = savemodeln.replace('part' + str(part_id), 'partid')
 
 
     def aggregate_shard_model(self,after_unlearning=False):
@@ -200,62 +203,101 @@ class guide:
         # if(self.args["is_transductive"]):
         #     subgt_kfea = self.pm_kernel.parse_input([self.data.edge_index.cpu()])
         # else:
-        subgt_kfea = self.pm_kernel.parse_input([self.data.test_edge_index.cpu()])
+        subgt_kfea = self.pm_kernel.parse_input([self.data.edge_index.cpu()])
         #self.logger.info("self.data.test_edge_index {}".format(self.data.test_edge_index.shape))
         subg_kfea = []
         subouts = []
         for part_id in self.p1_saved.shards_ids.keys():
-            loadname = self.partations_fast[0].FPATH.replace('partid', 'part' + str(part_id))
+            loadname = self.p1_saved.FPATH.replace('partid', 'part' + str(part_id))
             subg_kfea += torch.load(loadname)
 
             submodel = self.target_model
-            savemodeln = self.partations_fast[0].MPATH.replace('partid', 'part' + str(part_id))
+            savemodeln = self.p1_saved.MPATH.replace('partid', 'part' + str(part_id))
             submodel.load_model(savemodeln)
             
             submodel.model.to(self.device)
             submodel.model.eval()
-            if self.args["base_model"] == "SIGN":
-                subout = torch.softmax(submodel.model(self.data.xs[self.data.test_indices]),dim=1)
-            else:
-                subout = torch.softmax(submodel.model(self.data.x.to(self.device),self.data.edge_index.to(self.device)),dim = 1)
-                subout = subout[self.data.test_mask]
-            #subout = subout[self.data.test_mask]
-            #self.logger.info("subout {}".format(subout.shape))
-            subouts.append(subout.detach().to('cpu'))
-            submodel.model.to('cpu')
+            subgraph = self.gis_keys_graph[part_id]
+            if self.args["downstream_task"] == "node":
+                if self.args["base_model"] == "SIGN":
+                    subout = torch.softmax(submodel.model(self.data.xs[self.data.test_indices]),dim=1)
+                else:
+                    subout = torch.softmax(submodel.model(self.data.x.to(self.device),self.data.edge_index.to(self.device)),dim = 1)
+                    subout = subout[self.data.test_mask]
+                #subout = subout[self.data.test_mask]
+                #self.logger.info("subout {}".format(subout.shape))
+                subouts.append(subout.detach().to('cpu'))
+                submodel.model.to('cpu')
+            elif self.args["downstream_task"] == "edge":
+                # submodel.data = subgraph
+                # AUC_score = submodel.evaluate_edge_model()
+                # print(AUC_score)
+                # print(self.data)
+                neg_edge_index = negative_sampling(
+                    edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
+                    num_neg_samples=self.data.test_edge_index.size(1)
+                )
+                # neg_edge_index = self.data.test_neg_edge_index
+                if self.args["base_model"] == "SIGN":
+                    subout = submodel.model(self.data.xs)
+                else:
+                    subout = submodel.model(self.data.x.to(self.device),self.data.train_edge_index.to(self.device))
+                subout = submodel.decode(subout,self.data.test_edge_index,neg_edge_index)
+                
+                # pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
+                # neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
+                # edge_pred = torch.where(torch.sigmoid(subout) > 0.5, torch.tensor(1), torch.tensor(0))
+                # target_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+                # AUC_score = roc_auc_score(target_labels.cpu(), edge_pred.detach().cpu().numpy())
+                # print(AUC_score)
+                
+                subouts.append(subout.detach().to('cpu'))
+                submodel.model.to('cpu')
             del submodel, subout
+            
 
         suboutTensor = torch.stack(subouts)
 
         weights = self.pm_kernel.kernel_similarity(subgt_kfea, subg_kfea)
         weights = torch.tensor(weights).to(torch.float32).reshape(len(self.p1_saved.shards_ids.keys()),
                                                                               -1).mean(dim=-1)
-        saveweightn = self.partations_fast[0].MPATH.replace('partid/submodels/', '').replace('model_partid',
+        saveweightn = self.p1_saved.MPATH.replace('partid/submodels/', '').replace('model_partid',
                                                                                          f'_weight')
         os.makedirs(os.path.dirname(saveweightn), exist_ok=True)
         torch.save(weights, saveweightn)
 
         weights = F.softmax(weights, dim=0)
         weighted_pred = torch.tensordot(suboutTensor, weights, dims=([0], [0]))
+        # print(suboutTensor,weights,weighted_pred)
         #self.logger.info("weighted_pred shape{}".format(weighted_pred.detach().cpu().numpy().shape))
 
+        if self.args["downstream_task"] == "node":
+            if 'labeled_mask' in self.data:
+                target_labels = self.data.y[self.data.labeled_mask].detach().cpu().numpy()
+            else:
+                target_labels = self.data.y.detach().cpu().numpy()
+            test_acc, test_f1macro, test_aucroc = self.store_metrics(weighted_pred.detach().cpu().numpy(), target_labels[self.data.test_mask])
+            self.logger.info(f"Test F1 Score: {test_f1macro:.4f}")
+            if after_unlearning:
+                self.average_f1[self.run]  = test_f1macro
+                self.average_auc[self.run] = test_aucroc
+        elif self.args["downstream_task"] == "edge":
+            
+            pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
+            neg_edge_labels = torch.zeros(self.data.test_edge_index.size(1),dtype=torch.float32)
+            edge_pred = torch.where(torch.sigmoid(weighted_pred) > 0.5, torch.tensor(1), torch.tensor(0))
+            # edge_pred = weighted_pred
+            target_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+            AUC_score = roc_auc_score(target_labels.cpu(), edge_pred.detach().cpu().numpy())
 
-        if 'labeled_mask' in self.data:
-            target_labels = self.data.y[self.data.labeled_mask].detach().cpu().numpy()
-        else:
-            target_labels = self.data.y.detach().cpu().numpy()
-
-        # if (not self.args["is_transductive"]):
-        #     target_labels = target_labels[self.data.test_mask.cpu()]
-
-        #self.logger.info("target_labels shape{}".format(target_labels.shape))
+            if after_unlearning:
+                self.average_f1[self.run] = AUC_score
+            else:
+                self.poison_f1[self.run] = AUC_score
         
-        test_acc, test_f1macro, test_aucroc = self.store_metrics(weighted_pred.detach().cpu().numpy(), target_labels[self.data.test_mask])
-        self.logger.info(f"Test F1 Score: {test_f1macro:.4f}")
-        if after_unlearning:
-            self.average_f1[self.run]  = test_f1macro
 
     def update_shard(self):
+        self.start_time = time.time()
         if self.args["unlearn_task"] == "edge":
             #get the deleting edges
             edge_index = self.data.edge_index.numpy()
@@ -284,10 +326,10 @@ class guide:
             # 合并正向边和反向边的索引
             gis_keys_graph = {}
             gis_keys_graph[0] = {}
-            part_set = []
+            self.part_set = []
             all_edges_to_remove = np.concatenate([edges_to_remove, reverse_edges_to_remove])
             for part_id, edge_index in self.p1_saved.shards_edges.items():
-                loadname = self.partations_fast[0].DPATH.replace('partid', 'part' + str(part_id))
+                loadname = self.p1_saved.DPATH.replace('partid', 'part' + str(part_id))
                 sub_graph = torch.load(loadname)
                 gis_keys_graph[0][part_id] = sub_graph
 
@@ -313,7 +355,7 @@ class guide:
                     delete_edge = (original_edge_index == del_edge).all(dim=0)
                     mask = mask | delete_edge  # 更新mask，标记删除的边
                 if not mask.sum() == edge_index.shape[1]:
-                    part_set.append(part_id)
+                    self.part_set.append(part_id)
                 # 5. 使用 mask 更新 shard 的边
                 edge_index_del = edge_index[:,mask]
 
@@ -331,8 +373,8 @@ class guide:
                     new_mask[matching_indices] = False
                 gis_keys_graph[0][part_id].edge_index = gis_keys_graph[0][part_id].edge_index[:, new_mask]
                 
-            part_set = set(part_set)
-            gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
+            self.part_set = set(self.part_set)
+            self.gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
 
             
         elif self.args["unlearn_task"] == "node":
@@ -340,9 +382,9 @@ class guide:
             ids = list(range(self.data.x.size(0)))
             gis = [0] * len(ids)
             inday_ids = range(len(ids))
-            part_ids = self.partations_fast[0].ids_shards.values()
+            part_ids = self.p1_saved.ids_shards.values()
             id_gi_part_innerid += list(zip(ids, gis, part_ids,inday_ids))
-            torch.save(id_gi_part_innerid, self.partations_fast[0].DPATH.split('partid')[0] + 'id_gi_part_innerid.pt')
+            torch.save(id_gi_part_innerid, self.p1_saved.DPATH.split('partid')[0] + 'id_gi_part_innerid.pt')
 
 
             average_countpart = []
@@ -382,44 +424,43 @@ class guide:
             gis_keys_graph = {}
             gis_keys_graph[0] = {}
             for part_id in range(self.args['num_shards']):
-                loadname = self.partations_fast[0].DPATH.replace('partid', 'part' + str(part_id))
+                loadname = self.p1_saved.DPATH.replace('partid', 'part' + str(part_id))
                 sub_graph = torch.load(loadname)
                 gis_keys_graph[0][part_id] = sub_graph
 
-            gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
-            part_set = []
+            self.gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
+            self.part_set = []
             time_sum = 0
             for gi in gi_part_uid.keys():
-                start_time = time.time()
                 for part in gi_part_uid[gi].keys():
-                    part_set.append(part)
-                    #self.logger.info("part  {}, train number: {}".format(part, gis_keys_graph_update[gi][part].train_mask.sum().item()))
+                    self.part_set.append(part)
+                    #self.logger.info("part  {}, train number: {}".format(part, self.gis_keys_graph_update[gi][part].train_mask.sum().item()))
                     delete_subindex = []
                     for id in gi_part_uid[gi][part]:
                         newindex = self.index_to_subindex(part_ids,id)
-                        gis_keys_graph_update[gi][part].y = tensor = torch.cat((gis_keys_graph_update[gi][part].y[:newindex], gis_keys_graph_update[gi][part].y[newindex+1:]))
-                        delete_subindex.append(self.find_uid_2(newindex,gis_keys_graph_update[gi][part].train_mask))
-
-                    reserve_mask = torch.tensor([False if id in delete_subindex else True for id in gis_keys_graph_update[gi][part].uids])
-
-                    sub_graph = gis_keys_graph_update[gi][part].subgraph(reserve_mask)
+                        # self.gis_keys_graph_update[gi][part].y = tensor = torch.cat((self.gis_keys_graph_update[gi][part].y[:newindex], self.gis_keys_graph_update[gi][part].y[newindex+1:]))
+                        delete_subindex.append(self.find_uid_2(newindex,self.gis_keys_graph_update[gi][part].train_mask))
+  
+                    reserve_mask = torch.tensor([False if id in delete_subindex else True for id in self.gis_keys_graph_update[gi][part].uids])
+                    sub_graph = self.gis_keys_graph_update[gi][part].subgraph(reserve_mask)
+                    # if  sub_graph.x.size(0)!=sub_graph.y.size(0):
+                    #     self.logger.info("not match!")
                     sub_graph.uids = list(compress(sub_graph.uids, reserve_mask.tolist()))
-                    gis_keys_graph_update[gi][part] = sub_graph
+                    self.gis_keys_graph_update[gi][part] = sub_graph
                     #self.logger.info("part  {}, after delete train number: {}".format(part, sub_graph.train_mask.sum().item()))
-                time_sum+= time.time()-start_time
-            part_set = set(part_set)
+            self.part_set = set(self.part_set)
             # self.logger.info("update_time:{}".format(time_sum/10))
         elif self.args["unlearn_task"] == "feature":
             id_gi_part_innerid = []
             ids = list(range(self.data.x.size(0)))
             gis = [0] * len(ids)
             inday_ids = range(len(ids))
-            part_ids = self.partations_fast[0].ids_shards.values()
+            part_ids = self.p1_saved.ids_shards.values()
             id_gi_part_innerid += list(zip(ids, gis, part_ids,inday_ids))
-            torch.save(id_gi_part_innerid, self.partations_fast[0].DPATH.split('partid')[0] + 'id_gi_part_innerid.pt')
+            torch.save(id_gi_part_innerid, self.p1_saved.DPATH.split('partid')[0] + 'id_gi_part_innerid.pt')
             gis_keys_graph = {}
             gis_keys_graph[0] = {}
-            part_set = []
+            self.part_set = []
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
             self.unlearning_id = np.loadtxt(path_un, dtype=int)
 
@@ -437,74 +478,108 @@ class guide:
                     gi_tuples_in[j[0]].append(j[1])
 
                 gi_part_uid[i] = gi_tuples_in
-            gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
+            self.gis_keys_graph_update = copy.deepcopy(gis_keys_graph)
 
             for part_id, edge_index in self.p1_saved.shards_ids.items():
-                loadname = self.partations_fast[0].DPATH.replace('partid', 'part' + str(part_id))
+                loadname = self.p1_saved.DPATH.replace('partid', 'part' + str(part_id))
                 sub_graph = torch.load(loadname)
                 gis_keys_graph[0][part_id] = sub_graph
 
             for gi in gi_part_uid.keys():
-                start_time = time.time()
+                
                 for part in gi_part_uid[gi].keys():
-                    part_set.append(part)
-                    #self.logger.info("part  {}, train number: {}".format(part, gis_keys_graph_update[gi][part].train_mask.sum().item()))
+                    self.part_set.append(part)
+                    #self.logger.info("part  {}, train number: {}".format(part, self.gis_keys_graph_update[gi][part].train_mask.sum().item()))
                     delete_subindex = []
                     for id in gi_part_uid[gi][part]:
                         newindex = self.index_to_subindex(part_ids,id)
-                        gis_keys_graph_update[0][part].x[newindex] = torch.zeros_like(gis_keys_graph_update[0][part].x[newindex])
+                        self.gis_keys_graph_update[0][part].x[newindex] = torch.zeros_like(self.gis_keys_graph_update[0][part].x[newindex])
             
                 
 
-
-        G_nx0 = []
-        for part in part_set:
+    def unlearn(self):
+        self.update_shard()
+        self.G_nx0 = []
+        for part in self.part_set:
             #self.logger.info("part  {} ".format(part))
             time_sum = 0
-            for gi in gis_keys_graph_update.keys():
-                G_nx0.append(gis_keys_graph_update[gi][part].edge_index.to('cpu'))
+            for gi in self.gis_keys_graph_update.keys():
+                self.G_nx0.append(self.gis_keys_graph_update[gi][part].edge_index.to('cpu'))
 
             submodel = self.target_model
             submodel.model.to(self.device)
             optimizer = torch.optim.Adam(
                 submodel.model.parameters(), lr=0.01, weight_decay=1e-5)
-            #self.logger.info("gis_keys_graph_update {}".format(gis_keys_graph_update[0][part]))
-            
-            for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
-                start_time = time.time()
-                submodel.model.train()
-                sub_graph = gis_keys_graph_update[0][part]
-                sub_graph = sub_graph.to(self.device)
-                labels = sub_graph.y
-                optimizer.zero_grad()
-                if self.args["base_model"] == "SIGN":
-                    sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
-                    sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
-                    sub_graph.xs = torch.stack(sub_graph.xs).to('cuda')
-                    sub_graph.xs = sub_graph.xs.transpose(0,1)
-                    out = submodel.model(sub_graph.xs)
-                else:
-                    out = submodel.model(sub_graph.x, sub_graph.edge_index)
-                out = out[sub_graph.train_mask]
-                #self.logger.info("labels  {},  out  {}".format(labels.shape,out.shape))
-                loss = F.cross_entropy(out, labels[sub_graph.train_mask[:labels.size(0)]])
-                self.logger.info('Epoch: {:03d} | Loss: {:.4f}'.format(epoch + 1, loss))
+            #self.logger.info("self.gis_keys_graph_update {}".format(self.gis_keys_graph_update[0][part]))
+            if self.args["downstream_task"] == "node":
+                for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
+                    
+                    submodel.model.train()
+                    sub_graph = self.gis_keys_graph_update[0][part]
+                    sub_graph = sub_graph.to(self.device)
+                    labels = sub_graph.y
+                    optimizer.zero_grad()
+                    if self.args["base_model"] == "SIGN":
+                        sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
+                        sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
+                        sub_graph.xs = torch.stack(sub_graph.xs).to('cuda')
+                        sub_graph.xs = sub_graph.xs.transpose(0,1)
+                        out = submodel.model(sub_graph.xs)
+                    else:
+                        out = submodel.model(sub_graph.x, sub_graph.edge_index)
+                    out = out[sub_graph.train_mask]
+                    #self.logger.info("labels  {},  out  {}".format(labels.shape,out.shape))
+                    loss = F.cross_entropy(out, labels[sub_graph.train_mask[:labels.size(0)]])
+                    self.logger.info('Epoch: {:03d} | Loss: {:.4f}'.format(epoch + 1, loss))
 
-                loss.backward()
-                optimizer.step()
-                time_sum+= time.time()-start_time
+                    loss.backward()
+                    optimizer.step()
+            elif self.args["downstream_task"] == "edge":
+                for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
+                    submodel.model.train()
+                    sub_graph = self.gis_keys_graph_update[0][part]
+                    sub_graph = sub_graph.to(self.device)
+                    # print(sub_graph)
+                    optimizer.zero_grad()
+                    if self.args["base_model"] == "SIGN":
+                        sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
+                        sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
+                        sub_graph.xs = torch.stack(sub_graph.xs).to('cuda')
+                        sub_graph.xs = sub_graph.xs.transpose(0,1)
+                        out = submodel.model(sub_graph.xs)
+                    else:
+                        out = submodel.model(sub_graph.x, sub_graph.train_edge_index)
+                    
+                    neg_edge_index = negative_sampling(
+                        edge_index=sub_graph.edge_index,num_nodes=sub_graph.num_nodes,
+                        num_neg_samples=sub_graph.train_edge_index.size(1),force_undirected=True)
+                    edge_pred = submodel.decode(out,sub_graph.train_edge_index,neg_edge_index)
+                    pos_edge_labels = torch.ones(sub_graph.train_edge_index.size(1),dtype=torch.float32)
+                    neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
+                    edge_labels = torch.cat((pos_edge_labels,neg_edge_labels),dim=-1)
+                    edge_labels = edge_labels.to(self.device)
+                    # print(edge_labels,edge_pred)
+                    loss = F.binary_cross_entropy_with_logits(edge_pred,edge_labels)
+                    # print(loss)
+                    self.logger.info('Epoch: {:03d} | Loss: {:.4f}'.format(epoch + 1, loss))
+                    loss.backward()
+                    optimizer.step()
+                    
             # self.logger.info("training_time:{}".format(time_sum/self.args['num_epochs']))
-            self.avg_updating_time[self.run] = time_sum/self.args['num_epochs']
+            
             submodel.model.to('cpu')
             sub_graph.to('cpu')
-            savemodeln = self.partations_fast[0].MPATH.replace('/partid', '_copy/partid').replace('partid',
+            savemodeln = self.p1_saved.MPATH.replace('/partid', '_copy/partid').replace('partid',
                                                                                               'part' + str(part))
             os.makedirs(os.path.dirname(savemodeln), exist_ok=True)
             torch.save(submodel.model.state_dict(), savemodeln)
-        
+
         self.aggregate_shard_model(True)
+        time_sum+= time.time()-self.start_time
+        self.avg_unlearning_time[self.run] = time_sum
+    def attack_unlearning(self):
         if self.args["unlearn_task"] == "node":
-            G_nx0 = self.pm_kernel.parse_input(G_nx0)
+            self.G_nx0 = self.pm_kernel.parse_input(self.G_nx0)
             self.method = self.args["GUIDE_methods"]
             self.positive0, self.negative0 = {}, {}
             self.positive0[self.method], self.negative0[self.method] = [], []
@@ -512,7 +587,7 @@ class guide:
             part_set_all = range(self.args['num_shards'])
             for part in part_set_all:
                 submodel = self.target_model
-                loadname = self.partations_fast[0].MPATH.replace('partid', 'part' + str(part_id))
+                loadname = self.p1_saved.MPATH.replace('partid', 'part' + str(part))
 
                 submodel.load_model(loadname)
                 submodel.model.eval()
@@ -546,7 +621,7 @@ class guide:
             self.suboutTensorn = torch.stack(subout_tests)
 
             weights_gi = torch.load(
-                self.partations_fast[0].MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
+                self.p1_saved.MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
 
             summed = torch.tensordot(
                 self.suboutTensor, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
@@ -557,19 +632,19 @@ class guide:
             self.negative0[self.method].append(summed.cpu())
 
             tmp = time.strftime("%Y%m%d-%H%M%S")
-            savename = self.partations_fast[0].MPATH.split('partid')[
+            savename = self.p1_saved.MPATH.split('partid')[
                         0] + f'evaluation_attack_partition_{self.method}_' + self.args[
                         "dataset_name"] + '_unlearning_idrnd'
             savename += ''.join(tmp)
             savename += ''.join('.pt')
             torch.save(self.unlearning_id, savename)
 
-            savename = self.partations_fast[0].MPATH.split('partid')[
+            savename = self.p1_saved.MPATH.split('partid')[
                         0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_positive0'
             savename += ''.join(tmp)
             savename += ''.join('.pt')
             torch.save(self.positive0, savename)
-            savename = self.partations_fast[0].MPATH.split('partid')[
+            savename = self.p1_saved.MPATH.split('partid')[
                         0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_negative0'
             savename += ''.join(tmp)
             savename += ''.join('.pt')
@@ -583,7 +658,7 @@ class guide:
             for part in part_set_all:
                 submodel = self.target_model
 
-                loadname = self.partations_fast[0].MPATH.replace('partid', 'part' + str(part_id)).replace(self.args["dataset_name"], self.args["dataset_name"]+'_copy')
+                loadname = self.p1_saved.MPATH.replace('partid', 'part' + str(part)).replace(self.args["dataset_name"], self.args["dataset_name"]+'_copy')
 
                 submodel.load_model(loadname)
                 submodel.model.eval()
@@ -620,7 +695,7 @@ class guide:
             # weights_gi = torch.tensor([1.0/args['shards_number']
             #                         for _ in range(args['shards_number'])])
             weights_gi = torch.load(
-                self.partations_fast[0].MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
+                self.p1_saved.MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
 
             summed = torch.tensordot(
                 self.suboutTensor, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
@@ -630,14 +705,16 @@ class guide:
                 self.suboutTensorn, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
             self.negative1[self.method].append(summed.cpu())
 
-            savename = self.partations_fast[0].MPATH.split('partid')[0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_positive1'
+            savename = self.p1_saved.MPATH.split('partid')[0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_positive1'
             savename += ''.join(tmp)
             savename += ''.join('.pt')
             torch.save(self.positive1, savename)
-            savename = self.partations_fast[0].MPATH.split('partid')[0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_negative1'
+            savename = self.p1_saved.MPATH.split('partid')[0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_negative1'
             savename += ''.join(tmp)
             savename += ''.join('.pt')
             torch.save(self.negative1, savename)
+        if self.args["unlearn_task"] == "node" and self.args['downstream_task'] == "node":
+            self.mia_attack()
 
     def mia_attack(self):
         positive_posteriors, negative_posteriors = [], []

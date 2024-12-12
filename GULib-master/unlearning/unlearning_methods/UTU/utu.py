@@ -2,13 +2,15 @@ import copy
 import os
 import math
 import torch
+import numpy as np
 from config import root_path
 from torch_geometric.utils import to_undirected, is_undirected
 from torch_geometric.utils import k_hop_subgraph, is_undirected, to_undirected, negative_sampling, subgraph
 from task.edge_prediction import EdgePredictor
 from utils.utils import split_forget_retain
 from task.UtUTrainer import UtUTrainer
-
+from config import BLUE_COLOR,RESET_COLOR
+import time
 class utu:
     def __init__(self, args, logger, model_zoo):
         self.args = args
@@ -16,12 +18,30 @@ class utu:
         self.model_zoo = model_zoo
         self.data = model_zoo.data
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+        num_runs = self.args["num_runs"]
+        self.poison_f1 = np.zeros(self.args["num_runs"])
+        self.average_f1 = np.zeros(num_runs)
+        self.average_auc = np.zeros(num_runs)
+        self.avg_training_time = np.zeros(num_runs)
 
     def run_exp(self):
-        self.train_gnn()
-        self.delete_gnn()
-
+        for self.run in range(self.args["num_runs"]):
+            self.train_gnn()
+            self.delete_gnn()
+        self.logger.info(
+            "{}Performance Metrics:\n"
+            " - Poison F1 Score: {:.4f} ± {:.4f}\n"
+            " - Unlearn F1 Score: {:.4f} ± {:.4f}\n"
+            " - Average AUC Score: {:.4f} ± {:.4f}\n"
+            " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
+                BLUE_COLOR,
+                np.mean(self.poison_f1), np.std(self.poison_f1),
+                np.mean(self.average_f1), np.std(self.average_f1),
+                np.mean(self.average_auc), np.std(self.average_auc),
+                np.mean(self.avg_training_time), np.std(self.avg_training_time),
+                RESET_COLOR
+                )
+            )
     def train_gnn(self):
         self.args["checkpoint_dir"] = root_path + '/data/UTU/checkpoint_node'
         self.args["checkpoint_dir"] = os.path.join(self.args["checkpoint_dir"], self.args["dataset_name"], self.args["base_model"], 'original',
@@ -37,6 +57,8 @@ class utu:
         self.data.dtrain_mask = torch.ones(self.data.train_pos_edge_index.shape[1], dtype=torch.bool)
         self.EdgePredictor = EdgePredictor(self.args, self.data, self.model_zoo, self.logger)
         self.EdgePredictor.train_UTU_model()
+        if self.args["poison"] and self.args["unlearn_task"]=="edge":
+            self.poison_f1[self.run] = self.EdgePredictor.evaluate_model()
 
     def delete_gnn(self):
         self.args["checkpoint_dir"] = root_path + '/data/UTU/checkpoint_node'
@@ -57,8 +79,8 @@ class utu:
 
         subset = 'in'
         self.data = split_forget_retain(self.data, self.args["df_size"], subset)
-
-        self.EdgePredictor.model = self.model_zoo.get_model(self.data.sdf_node_1hop_mask, self.data.sdf_node_2hop_mask, num_nodes=self.data.num_node)
+        self.args["unlearning_model"]="utu_del"
+        self.EdgePredictor.model = self.model_zoo.get_model(self.data.sdf_node_1hop_mask, self.data.sdf_node_2hop_mask, num_nodes=self.data.num_nodes)
         if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
             if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
                 logits_ori = torch.load(os.path.join(original_path,
@@ -97,8 +119,9 @@ class utu:
         attack_model_sub = None
 
         trainer = UtUTrainer(self.args)
+        start_time = time.time()
         trainer.train(self.EdgePredictor.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
-
+        self.avg_training_time[self.run] = time.time()-start_time
         if self.args["unlearning_model"] != 'retrain':
             retrain_path = os.path.join(
                 'checkpoint', self.args["dataset"], self.args["base_model"], 'retrain',
@@ -119,6 +142,7 @@ class utu:
         test_results = trainer.test(self.EdgePredictor.model, self.data, model_retrain=retrain, attack_model_all=attack_model_all,
                                     attack_model_sub=attack_model_sub)
 
+        self.average_f1[self.run] = test_results[1]
     def train_test_split_edges_no_neg_adj_mask(self, data, val_ratio: float = 0.05, test_ratio: float = 0.05,
                                                two_hop_degree=None):
         '''Avoid adding neg_adj_mask'''

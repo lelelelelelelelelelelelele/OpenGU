@@ -1,6 +1,6 @@
 import torch
 import yaml
-from torch_geometric.nn import SGConv
+from torch_geometric.nn import SGConv,global_mean_pool
 from typing import Union
 import torch.nn.functional as F
 from model.base_gnn.abstract_model import abstract_model,RandomizedClassifier
@@ -9,68 +9,47 @@ from torch import Tensor
 from config import root_path
 from parameter_parser import parameter_parser
 class SGCNet(abstract_model):
-    def __init__(self,args, in_channels, out_channels, num_layers=3):
+    def __init__(self,args, in_channels, out_channels, num_layers=2):
         super(SGCNet, self).__init__()
         self.args = args
         self.config = self.load_config()
         hidden_channels = 64
         self.num_layers = num_layers
         self.convs = torch.nn.ModuleList()
-        if self.args["unlearning_methods"] == "SGU" or self.args["unlearning_methods"] =="GNNDelete":
+        if self.args["unlearning_methods"] == "SGU"  or self.args["unlearning_methods"] == "GNNDelete":
             self.convs.append(torch.nn.Linear(in_channels, 64, bias=False))
             self.convs.append(torch.nn.Linear(64,out_channels,bias=False))
-        elif self.args["unlearning_methods"] == "GraphRevoker":
-            self.convs.append(SGConv(in_channels, hidden_channels))
-            for _ in range(num_layers - 2):
-                self.convs.append(SGConv(hidden_channels, hidden_channels, cached=False))
-            self.convs.append(SGConv(hidden_channels, hidden_channels))
-            self.cls = RandomizedClassifier(hidden_channels, out_channels)
+            self.num_layers = 2
         else:
-            self.convs.append(SGConv(in_channels, 64, K=3, bias=False))
-            self.convs.append(torch.nn.Linear(64, out_channels, bias=False))
+            self.num_layers = 1
+            if self.args["downstream_task"]=="graph":
+                self.convs.append(SGConv(hidden_channels, hidden_channels))
+                self.linear = torch.nn.Linear(hidden_channels,out_channels)
+            else:
+                self.convs.append(SGConv(in_channels, out_channels, K=3, bias=False))
+            
 
-    def forward(self, x, edge_index=None,adjs=None,edge_weight=None,return_feature=False):
-        if self.args["unlearning_methods"] == "GraphRevoker":
-            x = self.convs[0](x,edge_index)
-            feat = self.convs[-1](x, edge_index)
-            x = self.cls(feat)
-            if return_feature:
-                return x, feat
-            return x
-
-        elif self.args["unlearning_methods"] == "SGU" or self.args["unlearning_methods"] =="GNNDelete":
+    def forward(self, x, edge_index=None,return_feature=False,return_all_emb=False,batch = None):
+        x_list = []
+        if self.args["unlearning_methods"] == "SGU" or self.args["unlearning_methods"] == "GNNDelete":
             x = self.convs[0](x)
+            x_list.append(x)
             x = self.convs[1](x)
+            x_list.append(x)
         else:
-            if adjs is None:
-                x = self.convs[0](x, edge_index)
-                x = self.convs[1](x)
-            # else:
-            #     for i, (edge_index_, e_id, size) in enumerate(adjs):
-            #         x_target = x[:size[1]]  # Target nodes are always placed first.
-            #         x = self.convs_batch[i]((x, x_target), edge_index_, edge_weight=edge_weight[e_id])
-
-            #         if i != self.num_layers - 1:
-            #             x = F.dropout(x, p=0.5, training=self.training)
-
-            #     return F.log_softmax(x, dim=1)
-
+            x = self.convs[0](x, edge_index)
+            if self.args["downstream_task"]=="graph":
+                x = global_mean_pool(x,batch)
+                x = F.relu(x)
+                x = F.dropout(x, p=0.5)
+                x = self.linear(x)
+            x_list.append(x)
+        if return_all_emb:
+            return x_list
+        if return_feature:
+            return x,x_list[0]
         return x
 
-    def get_softlabel(self,x):
-        x = self.convs[0](x)
-        x = self.convs[1](x)
-
-        return F.softmax(x,dim=1)
-    def emb2softlable(self,x):
-        x = self.convs[1](x)
-
-        return F.softmax(x,dim=1)
-
-
-    def get_embedding(self,x):
-        emb = self.convs[0](x)
-        return emb
 
     # for link prediction
     def decode(self, z, pos_edge_index, neg_edge_index=None):
@@ -88,41 +67,22 @@ class SGCNet(abstract_model):
         return logits
 
     def reset_parameters(self):
-        for i in range(2):
+        for i in range(self.num_layers):
             self.convs[i].reset_parameters()
 
 
-    def inference(self, x_all, subgraph_loader, device):
-        # Compute representations of nodes layer by layer, using *all*
-        # available edges. This leads to faster computation in contrast to
-        # immediately computing the final representations of each batch.
-        for i in range(self.num_layers):
-            xs = []
-
-            for batch_size, n_id, adj in subgraph_loader:
-                edge_index, _, size = adj.to(device)
-                x = x_all[n_id].to(device)
-                x_target = x[:size[1]]
-                x = self.convs[i]((x, x_target), edge_index)
-                if i != self.num_layers - 1:
-                    x = F.relu(x)
-                xs.append(x.cpu())
-
-            x_all = torch.cat(xs, dim=0)
-
-        return x_all
     
     def reason_once(self,data):
         x, edge_index = data.x, data.edge_index
         x = self.convs[0](x,edge_index)
-        x = self.convs[1](x)
+        # x = self.convs[1](x)
 
         return  x
     
     def reason_once_unlearn(self,data):
         x, edge_index = data.x_unlearn, data.edge_index_unlearn
         x = self.convs[0](x,edge_index)
-        x = self.convs[1](x)
+        # x = self.convs[1](x)
 
         return  x
 
@@ -144,21 +104,21 @@ class SGCNet(abstract_model):
 
     #     return x_all
 
-    # def forward_once(self, data, edge_weight):
-    #     x, edge_index = data.x, data.edge_index
-    #     x = self.convs_batch[0](x, edge_index, edge_weight)
-    #     x = F.dropout(x, p=0.5, training=self.training)
-    #     x = self.convs_batch[1](x, edge_index, edge_weight)
+    def forward_once(self, data, edge_weight):
+        x, edge_index = data.x, data.edge_index
+        x = self.convs[0](x, edge_index, edge_weight)
+        # x = F.dropout(x, p=0.5, training=self.training)
+        # x = self.convs[1](x, edge_index, edge_weight)
 
-    #     return F.log_softmax(x, dim=-1)
+        return F.log_softmax(x, dim=-1)
 
-    # def forward_once_unlearn(self, data, edge_weight):
-    #     x, edge_index = data.x_unlearn, data.edge_index_unlearn
-    #     x = self.convs_batch[0](x, edge_index, edge_weight)
-    #     x = F.dropout(x, p=0.5, training=self.training)
-    #     x = self.convs_batch[1](x, edge_index, edge_weight)
+    def forward_once_unlearn(self, data, edge_weight):
+        x, edge_index = data.x_unlearn, data.edge_index_unlearn
+        x = self.convs[0](x, edge_index, edge_weight)
+        # x = F.dropout(x, p=0.5, training=self.training)
+        # x = self.convs[1](x, edge_index, edge_weight)
 
-    #     return F.log_softmax(x, dim=-1)
+        return F.log_softmax(x, dim=-1)
 
 
     # def load_config(self):

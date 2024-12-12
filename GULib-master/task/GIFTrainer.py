@@ -1,5 +1,5 @@
 from task.BaseTrainer import BaseTrainer
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score,roc_auc_score
 import torch.nn.functional as F
 from torch_geometric.utils import negative_sampling
 import torch
@@ -23,19 +23,30 @@ class GIFTrainer(BaseTrainer):
                 average="micro"
             )
         elif self.args["downstream_task"]=="edge":
-            neg_edge_index = negative_sampling(
-                edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
-                num_neg_samples=self.data.test_edge_index.size(1)
-            )
-            edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index)
-            edge_pred_logits = torch.sigmoid(edge_pred_logits)
-            edge_pred_logits = edge_pred_logits.cpu()
-            edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
-            pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
-            neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
-            edge_labels = torch.cat((pos_edge_labels,neg_edge_labels),dim=-1)
-            test_f1 = f1_score(edge_labels.cpu(), edge_pred.cpu())
+            test_f1 = self.eval_unlearn_edge(out)
+        elif self.args["downstream_task"]=="graph":
+            test_f1 = self.evaluate_graph_model()
         return test_f1
+    
+    def eval_unlearn_edge(self,out):
+        neg_edge_index = negative_sampling(
+            edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
+            num_neg_samples=self.data.test_edge_index.size(1)
+        )
+        # print(out.shape,self.data.test_edge_index,neg_edge_index)
+        edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).sigmoid()
+        # print(edge_pred_logits)
+        # edge_pred_logits = torch.sigmoid(edge_pred_logits)
+        # edge_pred_logits = edge_pred_logits.cpu()
+        edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
+        edge_pred = edge_pred_logits.cpu()
+        # edge_pred = torch.argmax(edge_pred_logits)
+        # edge_labels = self.data.test_edge_labels
+        pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
+        neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
+        edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+        AUC_score = roc_auc_score(edge_labels.detach().cpu(), edge_pred.detach().cpu())
+        return AUC_score
     
     def get_loss(self, out, reduction="none"):
         neg_edge_index = negative_sampling(

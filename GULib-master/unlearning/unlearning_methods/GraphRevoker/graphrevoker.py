@@ -12,13 +12,15 @@ from task.node_classification import NodeClassifier
 from unlearning.unlearning_methods.GraphRevoker.lib_aggregator.aggregator import Aggregator
 from config import BLUE_COLOR,RESET_COLOR
 from task.GraphRevokerTrainer import GraphRevokerTrainer
-
-class graphrevoker:
+from pipeline.Shard_based_pipeline import Shard_based_pipeline
+class graphrevoker(Shard_based_pipeline):
     def __init__(self,args,logger,model_zoo):
+        super().__init__(args,logger,model_zoo)
         self.args = args
         self.logger = logger 
         self.model_zoo = model_zoo
-        self.data = self.model_zoo.data
+        # self.data = self.model_zoo.data
+        self.data_copy = self.model_zoo.data
         self.target_model_name = self.args['base_model']
         self.num_opt_samples = self.args['num_opt_samples']
         self.num_shards = self.args['num_shards']
@@ -29,51 +31,53 @@ class graphrevoker:
         self.avg_training_time = np.zeros(num_runs)
         self.avg_unlearning_time = np.zeros(num_runs)
         self.run = 0
-        self.datafull = self.data.clone()
-    def run_exp(self):
-        self.args["exp"] == "partition"
-        self.train_test_split()
-        self.gen_train_graph()
-        self.graph_partition()
-        self.generate_shard_data()
-        
-        self.load_data()
-        self.determine_target_model()
-        for self.run in range(self.args["num_runs"]):
-            self.args["exp"] = "unlearning"
-            self.train_target_models(self.run)
-            aggregate_f1_score = self.aggregate(self.run)
-            node_unlearning_time = self.unlearning_time_statistic()
-            self.average_f1[self.run] = aggregate_f1_score
+    # def run_exp(self):
+    #     for self.run in range(self.args["num_runs"]):
+    #         self.data = self.data_copy.clone()
+    #         self.datafull = self.data_copy.clone()
+    #         self.args["exp"] == "partition"
+    #         self.train_test_split()
+    #         self.gen_train_graph()
+    #         self.graph_partition()
+    #         self.generate_shard_data()
+            
+    #         self.load_data()
+    #         self.determine_target_model()
+    #         self.args["exp"] = "unlearning"
+    #         self.train_target_models(self.run)
+    #         aggregate_f1_score = self.aggregate(self.run)
+    #         node_unlearning_time = self.unlearning_time_statistic()
+    #         # self.average_f1[self.run] = aggregate_f1_score
 
-            # self.logger.info("Run %f" % self.run)
-            self.args["exp"] = "attack_unlearning"
-            retrained_shards = self.generate_requests()
-            self.update_shard()
-            # is_in = np.all(np.isin(self.unlearning_nodes, self.train_data.train_indices))
-            t = self.train_sequential(retrained_shards)
-            self.avg_unlearning_time[self.run] = t
+    #         # self.logger.info("Run %f" % self.run)
+    #         self.args["exp"] = "attack_unlearning"
+    #         retrained_shards = self.generate_requests()
+    #         self.update_shard()
+    #         # is_in = np.all(np.isin(self.unlearning_nodes, self.train_data.train_indices))
+    #         t = self.train_sequential(retrained_shards)
+    #         self.avg_unlearning_time[self.run] = t
 
-            f1 = self.aggregate(self.run)
-            self.logger.info("Final f1:{}".format(f1))
-            self.attack_graph_unlearning()
+    #         f1 = self.aggregate(self.run)
+    #         self.average_f1[self.run] = f1
+    #         self.logger.info("Final f1:{}".format(f1))
+    #         self.attack_graph_unlearning()
 
-        self.logger.info(
-            "{}Performance Metrics:\n"
-            " - Average F1 Score: {:.4f} ± {:.4f}\n"
-            " - Average AUC Score: {:.4f} ± {:.4f}\n"
-            " - Average Partition Time: {:.4f} ± {:.4f} seconds\n"
-            " - Average Training Time: {:.4f} ± {:.4f} seconds\n"
-            " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
-                BLUE_COLOR,
-                np.mean(self.average_f1), np.std(self.average_f1),
-                np.mean(self.average_auc), np.std(self.average_auc),
-                np.mean(self.avg_partition_time), np.std(self.avg_partition_time),
-                np.mean(self.avg_training_time), np.std(self.avg_training_time),
-                np.mean(self.avg_unlearning_time), np.std(self.avg_unlearning_time),
-                RESET_COLOR
-            )
-        )
+    #     self.logger.info(
+    #         "{}Performance Metrics:\n"
+    #         " - Average F1 Score: {:.4f} ± {:.4f}\n"
+    #         " - Average AUC Score: {:.4f} ± {:.4f}\n"
+    #         " - Average Partition Time: {:.4f} ± {:.4f} seconds\n"
+    #         " - Average Training Time: {:.4f} ± {:.4f} seconds\n"
+    #         " - Average Unlearning Time: {:.4f} ± {:.4f} seconds{}".format(
+    #             BLUE_COLOR,
+    #             np.mean(self.average_f1), np.std(self.average_f1),
+    #             np.mean(self.average_auc), np.std(self.average_auc),
+    #             np.mean(self.avg_partition_time), np.std(self.avg_partition_time),
+    #             np.mean(self.avg_training_time), np.std(self.avg_training_time),
+    #             np.mean(self.avg_unlearning_time), np.std(self.avg_unlearning_time),
+    #             RESET_COLOR
+    #         )
+    #     )
         
 
 
@@ -83,8 +87,8 @@ class graphrevoker:
 
     def gen_train_graph(self):
         # Decouple train test edges. Edges between train and validation are preserved.
-        self.data.edge_index_train = utils.filter_test_edges(self.data.edge_index.numpy(), self.test_indices)
-
+        self.data.edge_index_train = utils.filter_test_edges(self.data.edge_index.detach().cpu().numpy(), self.test_indices)
+        # self.data.edge_index_train = self.data.edge_index
         # The train graph will be deleted. NetworkX is not scalable.
         self.train_graph = None
         #self.train_graph = nx.Graph()
@@ -110,9 +114,11 @@ class graphrevoker:
 
             start_time = time.time()
             partition = GraphPartition(self.args, self.train_graph, self.logger,self.model_zoo,self.data)
+            
             self.community_to_node = partition.graph_partition()
             partition_time = time.time() - start_time
             self.logger.info("Partition cost %s seconds." % partition_time)
+            self.avg_partition_time[self.run] = partition_time
             save_community_data(self.logger,self.community_to_node,community_file)
         else:
             load_community_data(self.logger,community_file)
@@ -126,7 +132,8 @@ class graphrevoker:
         shard_samples = []
         shard_edges = []
         shard_label_dist = []
-        self.datafull.edge_index_train = utils.filter_test_edges(self.datafull.edge_index.numpy(), self.test_indices)
+        # self.datafull.edge_index_train = utils.filter_test_edges(self.datafull.edge_index.detach().cpu().numpy(), self.test_indices)
+        self.datafull.edge_index_train = self.datafull.edge_index
         for shard in tqdm(range(self.args['num_shards'])):
             train_shard_indices = list(self.community_to_node[shard])
             self.shard_data[shard] = build_shard_data(self.datafull, train_shard_indices, self.val_indices, self.test_indices)
@@ -194,11 +201,11 @@ class graphrevoker:
         self.logger.info('training target model, run %s, shard %s' % (run, shard))
 
         #start_time = time.time()
-        print(self.target_model.data)
+        # print(self.target_model.data)
         train_time = self.target_model.train()
         train_time = time.time() - start_time
 
-        dataset_utils.save_target_model(self.logger, self.args, run, self.target_model, shard)
+        dataset_utils.save_target_model(self.logger,self.args,run, self.target_model, shard)
         self.logger.info("Model training time: %s" % (train_time))
 
         return train_time
@@ -263,8 +270,8 @@ class graphrevoker:
             for community, node in self.community_to_node.items():
                 if np.in1d(sample_node, node).any():
                     belong_community.append(community)
-
-        return list(np.unique(belong_community))
+        self.retrained_shards = list(np.unique(belong_community))
+        # return list(np.unique(belong_community))
     
     def train_sequential(self, retrained_shards):
         t = time.time()
@@ -277,18 +284,18 @@ class graphrevoker:
     def train_single(self,data_list, shard_n_list, device, args):
         res_dict = dict()
         for data, shard_n in zip(data_list, shard_n_list):
-            print(data)
+            # print(data)
             self.target_model.data = data
             self.target_model.train()
             suffix = "_unlearned"
-            dataset_utils.save_target_model(self.logger, self.args, self.run, self.target_model, shard_n, suffix)
+            dataset_utils.save_target_model(self.logger,self.args, self.run, self.target_model, shard_n, suffix)
             res_dict[shard_n] =  self.target_model.model.state_dict()
             print('Finish retraining on shard: {}'.format(shard_n))
 
     def update_shard(self):
-        self.node_to_com = dataset_utils.c2n_to_n2c(self.args, self.community_to_node)
+        self.node_to_com = dataset_utils.c2n_to_n2c(self.args,self.community_to_node)
         self.unlearning_indices = defaultdict(list)
-        self.train_data = dataset_utils.load_saved_data(self.logger, config.train_data_file)
+        self.train_data = dataset_utils.load_saved_data(self.logger,config.train_data_file)
         self.train_data.edge_index = self.train_data.edge_index_train
         self.train_data.edge_index_train = None
         # self.train_graph = dataset_utils.load_train_graph(self.logger)
@@ -345,8 +352,8 @@ class graphrevoker:
                 self.affected_shard.append(shard)
 
         # dataset_utils.save_unlearned_data(self.logger,self.train_graph, 'train_graph')
-        dataset_utils.save_unlearned_data(self.logger, self.train_data, 'train_data')
-        dataset_utils.save_unlearned_data(self.logger, self.shard_data_after_unlearning, 'shard_data')
+        dataset_utils.save_unlearned_data(self.logger,self.train_data, 'train_data')
+        dataset_utils.save_unlearned_data(self.logger,self.shard_data_after_unlearning, 'shard_data')
 
     def aggregate_unlearned(self,):
         self.logger.info('aggregating unlearned submodels')
@@ -368,7 +375,7 @@ class graphrevoker:
 
     def _query_target_model(self, unlearned_indices):
         # train_data = dataset_utils.load_unlearned_data(self.logger,'train_data')
-        community_to_node = dataset_utils.load_community_data(self.logger, config.load_community_data, '')
+        community_to_node = dataset_utils.load_community_data(self.logger,config.load_community_data,'')
         # community_to_node = dataset_utils.load_community_data(self.logger,"./data/GraphEraser/processed/cora/community_lpa_10_0",'')
         posteriors_a, posteriors_b = [], []
         for i in tqdm(unlearned_indices, desc="MIA Progress"):
@@ -450,7 +457,7 @@ class graphrevoker:
         posteriors = []
         for shard in range(self.args['num_shards']):
             # self.target_model.model.reset_parameters()
-            dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard, '')
+            dataset_utils.load_target_model(self.logger,self.args, self.run, self.target_model, shard, '')
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.target_model.model = self.target_model.model.to(self.device)
             self.target_model.data = shard_data[shard].to(self.device)
@@ -472,7 +479,7 @@ class graphrevoker:
         for shard in range(self.args['num_shards']):
             if shard in self.affected_shard:
                 suffix = "_unlearned"
-                dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard, suffix)
+                dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard, suffix)
                 #####test
                 # dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model2, shard, '')
                 # params1 = list(self.target_model.model.parameters())
@@ -482,7 +489,7 @@ class graphrevoker:
                 #         print("not equal!")
 
             else:
-                dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard, '')
+                dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard, '')
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             self.target_model.model = self.target_model.model.to(self.device)
             self.target_model.data = shard_data[shard].to(self.device)
@@ -507,3 +514,29 @@ class graphrevoker:
         self.logger.info("Attack_Model_B AUC: %s " % (attack_auc_b))
 
         self.average_auc[self.run] = attack_auc_b
+        
+    def train_shard_model(self):
+        self.train_target_models(self.run)
+    
+    def aggregate_shard_model(self):
+        aggregate_f1_score = self.aggregate(self.run)
+        node_unlearning_time = self.unlearning_time_statistic()
+        if self.args["poison"] and self.args["unlearn_task"]=="edge":
+            self.poison_f1[self.run] = aggregate_f1_score
+            
+    def attack_unlearning(self):
+        if self.args["downstream_task"] == "graph":
+            return
+        if self.args["unlearn_task"] == "node":
+            self.logger.info("start cal AUC")
+            self.attack_graph_unlearning(self.average_auc)
+            
+    def unlearn(self):
+        self.update_shard()
+        # is_in = np.all(np.isin(self.unlearning_nodes, self.train_data.train_indices))
+        t = self.train_sequential(self.retrained_shards)
+        self.avg_unlearning_time[self.run] = t
+
+        f1 = self.aggregate(self.run)
+        self.average_f1[self.run] = f1
+        self.logger.info("Final f1:{}".format(f1))

@@ -3,13 +3,14 @@ import torch
 
 torch.cuda.empty_cache()
 
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score,roc_auc_score
 import numpy as np
 import time
 from torch.utils.data import TensorDataset, DataLoader
 from dataset.original_dataset import original_dataset
 from unlearning.unlearning_methods.GraphRevoker.lib_aggregator.optimal_aggregator import OptimalAggregator
 from unlearning.unlearning_methods.GraphRevoker.lib_aggregator.contra_aggregator_v2 import ContrastiveAggregator
+from unlearning.unlearning_methods.GraphRevoker.lib_aggregator.optimal_edge_aggregator import OptimalEdgeAggregator
 from utils.utils import *
 from utils import dataset_utils
 
@@ -33,10 +34,14 @@ class Aggregator:
         self.true_label = self.shard_data[0].y[self.shard_data[0]['test_mask']].detach().cpu().numpy()
         self.posteriors = []
         self.test_embeddings = []
-
+        self.true_label = self.shard_data[0].y[self.shard_data[0]['test_mask']].detach().cpu().numpy()
+        pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
+        neg_edge_labels = torch.zeros(self.data.test_edge_index.size(1),dtype=torch.float32)
+        edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+        self.true_label_edge = edge_labels
         for shard in range(self.args['num_shards']):
             if self.affected_shard is not None and shard in self.affected_shard:
-                dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard, "_unlearned")
+                dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard, "_unlearned")
             else:
                 dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard, "")
             # dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard, suffix)
@@ -47,7 +52,10 @@ class Aggregator:
                 #self.test_embeddings.append(torch.cat([f, z], 1))
                 self.test_embeddings.append(f)
             else:
-                self.posteriors.append(self.target_model.posterior())
+                if self.args["downstream_task"]=="node":
+                    self.posteriors.append(self.target_model.posterior()) 
+                elif self.args["downstream_task"]=="edge":
+                    self.posteriors.append(self.target_model.posterior_edge()) 
 
         self.posteriors = torch.stack(self.posteriors)
         if len(self.test_embeddings):
@@ -76,21 +84,32 @@ class Aggregator:
 
         posterior = posterior / self.num_shards
 
-        return f1_score(self.true_label, posterior.argmax(axis=1).cpu().numpy(), average="micro"), 0
-
+        if self.args["downstream_task"]=="node":
+            return f1_score(self.true_label, posterior.argmax(axis=1).cpu().numpy(), average="micro"),0
+        elif self.args["downstream_task"]=="edge":
+            return roc_auc_score(self.true_label_edge, posterior.detach().cpu().numpy(),average="micro"),0
     def _majority_aggregator(self):
         pred_labels = []
+        edge_pred_labels = []
         for shard in range(self.num_shards):
             pred_labels.append(self.posteriors[shard].argmax(axis=1).cpu().numpy())
-
-        pred_labels = np.stack(pred_labels)
-        pred_label = np.argmax(
-            np.apply_along_axis(np.bincount, axis=0, arr=pred_labels, minlength=self.posteriors[0].shape[1]), axis=0)
-
-        return f1_score(self.true_label, pred_label, average="micro"), 0
-
+            edge_pred = torch.where(self.posteriors[shard] > 0.5, torch.tensor(1), torch.tensor(0))
+            edge_pred_labels.append(edge_pred.cpu().numpy())
+        if self.args["downstream_task"]=="node":
+            pred_labels = np.stack(pred_labels)
+            pred_label = np.argmax(
+                np.apply_along_axis(np.bincount, axis=0, arr=pred_labels, minlength=self.posteriors[0].shape[1]), axis=0)
+            return f1_score(self.true_label, pred_label, average="micro"), 0
+        elif self.args["downstream_task"]=="edge":
+            edge_pred_labels = np.stack(edge_pred_labels)
+            edge_pred_label = np.argmax(
+                np.apply_along_axis(np.bincount, axis=0, arr=edge_pred_labels, minlength=self.posteriors[0].shape[0]), axis=0)
+            return roc_auc_score(self.true_label_edge, edge_pred_label, average="micro")
     def _optimal_aggregator(self):
-        optimal = OptimalAggregator(self.run, self.target_model, self.data, self.args,self.logger)
+        if self.args["downstream_task"]=="node":
+            optimal = OptimalAggregator(self.run, self.target_model, self.data, self.args,self.logger)
+        elif self.args["downstream_task"]=="edge":
+            optimal = OptimalEdgeAggregator(self.run, self.target_model, self.data, self.args,self.logger)
         optimal.generate_train_data()
         start_time = time.time()
         weight_para = optimal.optimization()
@@ -101,9 +120,12 @@ class Aggregator:
             posterior += self.posteriors[shard] * weight_para[shard]
         aggr_time = time.time() - start_time
 
-        dataset_utils.save_optimal_weight(self.logger, self.args, weight_para, run=self.run)
+        dataset_utils.save_optimal_weight(self.logger,self.args,weight_para, run=self.run)
         
-        return f1_score(self.true_label, posterior.argmax(axis=1).cpu().numpy(), average="micro"), aggr_time
+        if self.args["downstream_task"]=="node":
+            return f1_score(self.true_label, posterior.argmax(axis=1).cpu().numpy(), average="micro"),aggr_time
+        elif self.args["downstream_task"]=="edge":
+            return roc_auc_score(self.true_label_edge, posterior.detach().cpu().numpy(), average="micro"),aggr_time
     
     def _contrastive_aggregator(self):
         proj = ContrastiveAggregator(self.run, self.target_model, self.data, self.args,self.logger)
@@ -119,6 +141,6 @@ class Aggregator:
         posterior = proj_model(self.test_embeddings, is_eval=True)
         aggr_time = time.time() - start_time
         
-        dataset_utils.save_optimal_weight(self.logger, self.args, proj_model, run=self.run)
+        dataset_utils.save_optimal_weight(self.logger,self.args,proj_model, run=self.run)
 
         return f1_score(self.true_label, posterior.argmax(axis=1).cpu().numpy(), average="micro"), aggr_time

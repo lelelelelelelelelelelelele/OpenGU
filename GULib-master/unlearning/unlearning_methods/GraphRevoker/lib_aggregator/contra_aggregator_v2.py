@@ -161,7 +161,7 @@ class ContrastiveAggregator(OptimalAggregator):
 
             if self.args['is_use_test_batch']:
                 self.target_model.gen_test_loader()
-            dataset_utils.load_target_model(self.logger, self.args, self.run, self.target_model, shard)
+            dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard)
 
             z, f = self.target_model._inference()
             #input((z.shape, f.shape))

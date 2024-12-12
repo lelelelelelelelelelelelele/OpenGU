@@ -11,8 +11,19 @@ from config import root_path
 from torch_geometric.transforms import SIGN
 from config import root_path,unlearning_path,split_ratio,unlearning_edge_path
 from utils.utils import filter_edge_index_2
-
+from torch_geometric.utils import negative_sampling
 def process_data(logger,data,args):
+    if args["downstream_task"]=="graph":
+        data.train_mask = torch.zeros(len(data))
+        data.test_mask = torch.zeros(len(data))
+        data.train_mask[:int(len(data)*0.8)] = True
+        data.test_mask[int(len(data)*0.8):] = True
+        data.train_indices =data.train_mask.nonzero(as_tuple=True)[0].tolist()
+        data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
+        
+        return data
+    #     data = graph_cls_process(args,data)
+    #     return data
     if args["unlearning_methods"] == "CEU":
         data = ceu_process(args,data)
         return data
@@ -34,7 +45,7 @@ def process_data(logger,data,args):
             else:
                 data = transductive_split_node(logger,args,data,train_ratio=args["train_ratio"], val_ratio=args["val_ratio"], test_ratio=args["test_ratio"])
                 save_data(logger, data, filename)
-        
+            
     else:
         if args['is_balanced']:
             filename = root_path + '/data/processed/inductive/' + args['dataset_name'] + split_ratio + '_balanced.pkl'
@@ -52,7 +63,7 @@ def process_data(logger,data,args):
             else:
                 data = inductive_split_node(logger,args,data,train_ratio=args["train_ratio"], val_ratio=args["val_ratio"], test_ratio=args["test_ratio"])
                 save_data(logger, data, filename)
-    if args["downstream_task"]=="node":  
+    if args["unlearn_task"]=="node":
         train_nodes = np.array(data.train_indices)
         for i in range(args["num_runs"]):
             shuffle_num = torch.randperm(train_nodes.size)
@@ -60,16 +71,31 @@ def process_data(logger,data,args):
             path_un = unlearning_path + "_" + str(i) + ".txt"
             if not os.path.isfile(path_un):
                 np.savetxt(path_un, unlearning_nodes, fmt="%d")
-    elif args["downstream_task"]=="edge":
+    elif args["unlearn_task"]=="edge":
         train_edges = np.array(data.train_edge_index)
         num_unlearned_edges = int(train_edges.shape[1] * args["unlearn_ratio"])
         for i in range(args["num_runs"]):
-            shuffle_num = torch.randperm(train_edges.shape[1])
-            
-            unlearning_edges = train_edges[:, shuffle_num][:, :num_unlearned_edges]
             path_un_edge = unlearning_edge_path + "_" + str(i) + ".txt"
-            if not os.path.isfile(path_un_edge):
-                np.savetxt(path_un_edge, unlearning_edges.T, fmt="%d")
+            if args["poison"]:
+                if not os.path.isfile(path_un_edge):
+                    unlearning_edges = negative_sampling(
+                        edge_index=data.edge_index, num_nodes=data.num_nodes,
+                        num_neg_samples=num_unlearned_edges,force_undirected=True
+                    )
+                    data.edge_index = torch.cat([data.edge_index, unlearning_edges], dim=1)
+                    data.train_edge_index = torch.cat([data.train_edge_index, unlearning_edges], dim=1)
+                    np.savetxt(path_un_edge, unlearning_edges.T, fmt="%d")
+                else:
+                    unlearning_edges = np.loadtxt(path_un_edge).T
+                    data.edge_index = torch.cat([data.edge_index, torch.tensor(unlearning_edges,dtype=torch.int)], dim=1)
+                    data.train_edge_index = torch.cat([data.train_edge_index, torch.tensor(unlearning_edges,dtype=torch.int)], dim=1)
+            else:
+                shuffle_num = torch.randperm(train_edges.shape[1])
+                unlearning_edges = train_edges[:, shuffle_num][:, :num_unlearned_edges]
+            
+                if not os.path.isfile(path_un_edge):
+                    np.savetxt(path_un_edge, unlearning_edges.T, fmt="%d")
+                
     return data
 
 class BasicDataset(Dataset):
@@ -97,7 +123,7 @@ def ceu_process(args,data):
     features = data.x.numpy()
     num_features = data.x.size(1)
     labels = data.y.tolist()
-    num_nodes = data.num_node
+    num_nodes = data.num_nodes
     if not args['feature']:
         features = initialize_features(data, num_nodes, args['emb_dim'],args)
         num_features = args['emb_dim']
@@ -168,7 +194,7 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
     :return:
     """
 
-    num_nodes = data.num_node
+    num_nodes = data.num_nodes
     indices = torch.randperm(num_nodes)
     edge_index = data.edge_index
 
@@ -257,6 +283,15 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
         data.test_edge_index[0][edge] = test_dict[data.test_edge_index[0][edge].item()]
         data.test_edge_index[1][edge] = test_dict[data.test_edge_index[1][edge].item()]
 
+    test_neg_edge_index = negative_sampling(
+            edge_index=data.test_edge_index,num_nodes=data.num_nodes,
+            num_neg_samples=data.test_edge_index.size(1)
+        )
+    pos_edge_labels = torch.ones(data.test_edge_index.size(1),dtype=torch.float32)
+    neg_edge_labels = torch.zeros(test_neg_edge_index.size(1),dtype=torch.float32)
+    test_edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+    data.test_neg_edge_index = test_neg_edge_index
+    data.edge_labels = test_edge_labels
     # save_train_test_split(logger,args,data.train_indices,data.test_indices)
 
     return data
@@ -277,7 +312,7 @@ def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0
     :return:
     """
 
-    num_nodes = data.num_node
+    num_nodes = data.num_nodes
     labels = data.y  # 假设节点的类别标签保存在 data.y 中
     num_classes = labels.max().item() + 1
     edge_index = data.edge_index
@@ -386,7 +421,8 @@ def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0
     return data
 
 def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
-    num_nodes = data.num_node
+    
+    num_nodes = data.num_nodes
     indices = torch.randperm(num_nodes)
 
     train_mask = indices[:int(train_ratio * num_nodes)]
@@ -406,6 +442,16 @@ def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test
     data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
     data.val_indices = data.val_mask.nonzero(as_tuple=True)[0].tolist()
 
+    num_edges = data.edge_index.size(1)
+    num_train_edges = int(train_ratio * num_edges)
+    num_val_edges = int(val_ratio * num_edges)
+    num_test_edges = int(test_ratio * num_edges)
+    
+    # shuffle_num = torch.randperm(num_edges)
+    # data.train_edge_index = data.edge_index[:, shuffle_num[:num_train_edges]]
+    # data.val_edge_index = data.edge_index[:, shuffle_num[num_train_edges:num_train_edges + num_val_edges]]
+    # data.test_edge_index = data.edge_index[:, shuffle_num[num_train_edges + num_val_edges:]]
+    
     # 获取 edge_index 的起点和终点
     src, dst = data.edge_index[0], data.edge_index[1]
     # 训练集的边：起点和终点都在训练集中
@@ -419,8 +465,38 @@ def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test
     data.val_edge_index = data.edge_index[:, val_edges_mask]
     data.test_edge_index = data.edge_index[:, test_edges_mask]
 
+    # test_neg_edge_index = negative_sampling(
+    #         edge_index=data.test_edge_index,num_nodes=data.num_nodes,
+    #         num_neg_samples=data.test_edge_index.size(1)
+    #     )
+    # pos_edge_labels = torch.ones(data.test_edge_index.size(1),dtype=torch.float32)
+    # neg_edge_labels = torch.zeros(test_neg_edge_index.size(1),dtype=torch.float32)
+    # test_edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
+    # data.test_neg_edge_index = test_neg_edge_index
+    # data.test_edge_labels = test_edge_labels
     # save_train_test_split(logger,args, data.train_indices, data.test_indices)
+    return data
 
+def transductive_split_edge(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
+    num_nodes = data.num_nodes
+    num_edges = data.edge_index.size(1)
+    data.train_mask = torch.ones(num_nodes, dtype=torch.bool)
+    data.val_mask = torch.ones(num_nodes, dtype=torch.bool)
+    data.test_mask = torch.ones(num_nodes, dtype=torch.bool)
+    
+    data.train_indices = data.train_mask.nonzero(as_tuple=True)[0].tolist()
+    data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
+    data.val_indices = data.val_mask.nonzero(as_tuple=True)[0].tolist()
+    
+    num_train_edges = int(train_ratio * num_edges)
+    num_val_edges = int(val_ratio * num_edges)
+    num_test_edges = int(test_ratio * num_edges)
+    
+    shuffle_num = torch.randperm(num_edges)
+    data.train_edge_index = data.edge_index[:, shuffle_num[:num_train_edges]]
+    data.val_edge_index = data.edge_index[:, shuffle_num[num_train_edges:num_train_edges + num_val_edges]]
+    data.test_edge_index = data.edge_index[:, shuffle_num[num_train_edges + num_val_edges:]]
+    
     return data
 
 def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
@@ -494,6 +570,9 @@ def save_train_test_split(logger,args,train_indices, test_indices):
     pickle.dump((train_indices, test_indices), open(train_test_split_file, 'wb'))
 
 def save_data(logger,data, filename):
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     logger.info("save_data {}".format(filename))
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'wb') as file:
@@ -501,11 +580,17 @@ def save_data(logger,data, filename):
 
 def save_train_data(logger,data,filename):
     logger.info("save_train_data {}".format(filename))
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'wb') as file:
         pickle.dump(data, file)
 
 def save_train_graph(logger,gragh_data,filename):
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'wb') as file:
         pickle.dump(gragh_data, file)
@@ -521,11 +606,17 @@ def load_unlearned_data(logger, suffix):
     return pickle.load(open(file_path, 'rb'))
 
 def save_community_data(logger,community_to_node,filename, suffix=''):
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     logger.info('save_community_data {}'.format(filename + suffix))
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     pickle.dump(community_to_node, open(filename + suffix, 'wb'))
 
 def save_shard_data(logger,shard_data, filename):
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     pickle.dump(shard_data, open(filename, 'wb'))
 
@@ -539,14 +630,17 @@ def load_train_graph(logger):
     return pickle.load(open(config.train_graph_file, 'rb'))
 
 def save_embeddings(embeddings,filename):
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     pickle.dump(embeddings, open(filename, 'wb'))
 
-def load_community_data(logger, filename = config.load_community_data, suffix=''):
+def load_community_data(logger,filename = config.load_community_data,suffix=''):
     # logger.info("load_community_data {}".format(filename+suffix))
     return pickle.load(open(filename + suffix, 'rb'))
 
-def load_saved_data(logger, filename = config.train_data_file):
+def load_saved_data(logger,filename = config.train_data_file):
     logger.info('load_saved_data {}'.format(filename))
     with open(filename, 'rb') as file:
         data = pickle.load(file)
@@ -630,3 +724,94 @@ def build_shard_data(data_full, train_shard_indices, val_indices=None, test_indi
     data.edge_index_train = torch.from_numpy(edge_index_train)
 
     return data
+
+def graph_cls_process(graph_data,train_ratio=0.7,val_ratio=0.1,test_ratio=0.2):
+        # 初始化大图的属性
+        all_x = []             # 节点特征
+        all_edge_index = []    # 边索引
+        all_y = []             # 节点标签
+        all_graph_id = []      # 每个节点所属的图ID标签，用于标识节点来源
+
+        node_offset = 0        # 用于跟踪节点索引偏移量
+
+        # 遍历数据集中的每个图
+        
+        for i, data in enumerate(graph_data):
+            # print(data)
+            # 收集节点特征和标签
+            all_x.append(data.x)
+            all_y.append(data.y)
+            
+            # 调整边索引以适应全局大图
+            edge_index = data.edge_index + node_offset
+            all_edge_index.append(edge_index)
+            
+            # 将每个节点的图ID记录下来
+            all_graph_id.append(torch.full((data.num_nodes,), i, dtype=torch.long))
+            
+            # 更新节点偏移量
+            node_offset += data.num_nodes
+
+        # 将所有节点特征、边索引和标签进行拼接
+        big_x = torch.cat(all_x, dim=0)
+        big_edge_index = torch.cat(all_edge_index, dim=1)
+        big_y = torch.cat(all_y, dim=0)
+        big_graph_id = torch.cat(all_graph_id, dim=0)
+
+        # 构建大图的 Data 对象
+        big_graph = Data(x=big_x, edge_index=big_edge_index, y=big_y, graph_id=big_graph_id)
+        data = big_graph
+        graph_ids = torch.unique(data.graph_id)
+        num_train_ids = int(len(graph_ids) * train_ratio)
+        shuffle_num = torch.randperm(len(graph_ids))
+        train_ids = graph_ids[shuffle_num][:num_train_ids]
+        val_ids = graph_ids[shuffle_num][num_train_ids:num_train_ids + int(len(graph_ids) * val_ratio)]
+        test_ids = graph_ids[shuffle_num][num_train_ids + int(len(graph_ids) * val_ratio):]
+        
+        train_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+        val_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+        test_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
+        
+        train_label_mask = torch.zeros(data.y.size(), dtype=torch.bool)
+        val_label_mask = torch.zeros(data.y.size(), dtype=torch.bool)
+        test_label_mask = torch.zeros(data.y.size(), dtype=torch.bool)
+        
+        train_indices = []
+        val_indices = []
+        test_indices = []
+        
+        for gid in train_ids:
+            mask = data.graph_id == gid
+            indice = mask.nonzero(as_tuple=True)[0]
+            train_indices.append(indice)
+            train_mask[mask] = True
+            train_label_mask[gid] = True
+        for gid in val_ids:
+            mask = data.graph_id == gid
+            indice = mask.nonzero(as_tuple=True)[0]
+            val_indices.append(indice)
+            val_mask[mask] = True
+            val_label_mask[gid] = True
+        for gid in test_ids:
+            mask = data.graph_id == gid
+            indice = mask.nonzero(as_tuple=True)[0]
+            test_indices.append(indice)
+            test_mask[mask] = True
+            test_label_mask[gid] = True
+            
+        data.train_ids = train_ids
+        data.val_ids = val_ids
+        data.test_ids = test_ids
+        data.train_mask = train_mask
+        data.val_mask = val_mask
+        data.test_mask = test_mask
+        data.train_indices = train_indices
+        data.val_indices = val_indices
+        data.test_indices = test_indices
+        data.train_label_mask = train_label_mask
+        data.val_label_mask = val_label_mask
+        data.test_label_mask = test_label_mask
+        
+        return data
+        
+

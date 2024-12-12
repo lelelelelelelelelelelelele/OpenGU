@@ -10,6 +10,7 @@ from collections import defaultdict
 
 from attack.Attack_methods.CEU_MIA import _mia_attack
 from task.node_classification import NodeClassifier
+from task import get_trainer
 from tqdm import tqdm
 from scipy.sparse import csr_matrix
 from deeprobust.graph.utils import preprocess
@@ -17,18 +18,21 @@ from deeprobust.graph.defense import GCN
 from deeprobust.graph.global_attack import PGDAttack, MinMax, Metattack
 from unlearning.unlearning_methods.CEU.unlearn import unlearn
 from utils.utils import JSD, remove_undirected_edges
+from pipeline.IF_based_pipeline import IF_based_pipeline
 
-
-class ceu:
-    def __init__(self,args,logger,data,model_zoo):
+class ceu(IF_based_pipeline):
+    def __init__(self,args,logger,model_zoo):
         self.args = args
         self.logger = logger
-        self.data = data
+        self.data = model_zoo.data
         self.model_zoo = model_zoo
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.NodeClassifier = NodeClassifier(args,data,model_zoo,logger)
-        #self.fidelity()
+        # self.NodeClassifier = NodeClassifier(args,self.data,self.model_zoo,self.logger)
+        self.args["unlearn_trainer"] = 'CEUTrainer'
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        self.fidelity()
         self.efficacy()
+        
 
     def fidelity(self):
         self.delete_edges = [100,200,400,800,1000]
@@ -37,8 +41,8 @@ class ceu:
         result = defaultdict(list)
 
         for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
-            original_model = self.NodeClassifier.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
-            original_res, _ = self.NodeClassifier.CEU_test(original_model, test_loader, edge_index)
+            original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+            original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
 
             for num_edges in self.delete_edges:
                 _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
@@ -55,10 +59,10 @@ class ceu:
 
                 _data = copy.deepcopy(self.data)
                 _data['edges'] += random_edges
-                benign_orig = self.NodeClassifier.CEU_train(_data,eval=False, verbose=False)
+                benign_orig = self.target_model.CEU_train(_data,eval=False, verbose=False)
                 benign_unlearn, _ = unlearn(self.args,_data, benign_orig, random_edges, device=self.device)
 
-                benign_res, _ = self.NodeClassifier.CEU_test(benign_unlearn, test_loader, edge_index)
+                benign_res, _ = self.target_model.CEU_test(benign_unlearn, test_loader, edge_index)
                 result['# edges'].append(num_edges)
                 result['setting'].append('Retrain')
                 result['accuracy'].append(original_res['accuracy'])
@@ -70,7 +74,7 @@ class ceu:
                 result['# edges'].append(num_edges)
                 result['setting'].append('Advesarial')
                 result['accuracy'].append(adv_res['accuracy'])
-
+        
         df = pd.DataFrame(data=result)
         print(df.groupby(['# edges', 'setting']).mean())
         if not os.path.exists('./result/CEU'):
@@ -88,8 +92,8 @@ class ceu:
 
 
         for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
-            original_model = self.NodeClassifier.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
-            original_res, _ = self.NodeClassifier.CEU_test(original_model, test_loader, edge_index)
+            original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+            original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
 
             for num_edges in self.delete_edges:
                 def _efficacy(retrain_model, unlearn_model, edge_index_prime):
@@ -127,7 +131,7 @@ class ceu:
 
                 _data = copy.deepcopy(self.data)
                 _data['edges'] += random_edges
-                benign_orig = self.NodeClassifier.CEU_train(_data, eval=False, verbose=False)
+                benign_orig = self.target_model.CEU_train(_data, eval=False, verbose=False)
                 benign_unlearn, _ = unlearn(self.args, _data, benign_orig, random_edges, device=self.device)
 
                 _edges = remove_undirected_edges(self.data['edges'], random_edges)
@@ -172,13 +176,13 @@ class ceu:
 
         data_ = copy.deepcopy(data)
         data_['edges'] = D_prime
-        orig_model_prime = self.NodeClassifier.CEU_train(data_,eval=False, verbose=False)
+        orig_model_prime = self.target_model.CEU_train(data_,eval=False, verbose=False)
         edge_index_d_prime = torch.tensor(D_prime, device=self.device).t()
-        orig_res_prime, orig_loss_prime = self.NodeClassifier.CEU_test(orig_model_prime, test_loader, edge_index_d_prime)
+        orig_res_prime, orig_loss_prime = self.target_model.CEU_test(orig_model_prime, test_loader, edge_index_d_prime)
 
         unlearn_model_prime, _ = unlearn(self.args, data_, orig_model_prime, A, device=self.device)
         edge_index = torch.tensor(data['edges'], device=self.device).t()
-        unlearn_res_prime, unlearn_loss_prime = self.NodeClassifier.CEU_test(unlearn_model_prime, test_loader, edge_index)
+        unlearn_res_prime, unlearn_loss_prime = self.target_model.CEU_test(unlearn_model_prime, test_loader, edge_index)
 
         return orig_res_prime, orig_loss_prime, unlearn_res_prime, unlearn_loss_prime
 
@@ -193,7 +197,7 @@ class ceu:
 
         data_ = copy.deepcopy(data)
         data_['edges'] = D_prime
-        orig_model_prime = self.NodeClassifier.CEU_train(data_,eval=False, verbose=False)
+        orig_model_prime = self.target_model.CEU_train(data_,eval=False, verbose=False)
         unlearn_model_prime, _ = unlearn(self.args, data_, orig_model_prime, A, device=self.device)
         return orig_model_prime, unlearn_model_prime, A
     def adversarial_adjacency_mat(self,data, n_perturbations=500):
@@ -235,3 +239,43 @@ class ceu:
         modified_adj = model.modified_adj.cpu()  # modified_adj is a torch.tensor
         A = torch.cat(torch.where(modified_adj - adj == 1)).view(2, -1).t().tolist()
         return A
+
+    def determine_target_model(self):
+        self.logger.info('target model: %s' % (self.args['base_model'],))
+        self.args["unlearn_trainer"] = "CEUTrainer"
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        
+    def train_original_model(self, run):
+        self.logger.info('training target models, run %s' % run)
+        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
+        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
+        result = defaultdict(list)
+        self.target_model.model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+        original_res, _ = self.target_model.CEU_test(self.target_model.model, test_loader, edge_index)
+        if self.args["poison"]:
+            self.poison_f1 = original_res["accuracy"]
+    def unlearning_request(self):
+        num_edges = int(self.args["unlearn_ratio"]*self.data["num_edges"])
+        _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
+
+        # Benign
+        self.random_edges = []
+        while len(self.random_edges) < num_edges * 2:
+            v1 = random.randint(0, self.data['num_nodes'] - 1)
+            v2 = random.randint(0, self.data['num_nodes'] - 1)
+            if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
+                continue
+            self.random_edges.append((v1, v2))
+            self.random_edges.append((v2, v1))
+
+        self._data = copy.deepcopy(self.data)
+        self._data['edges'] += self.random_edges
+       
+    
+    def unlearn(self):
+        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
+        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
+        benign_orig = self.target_model.CEU_train(self._data,eval=False, verbose=False)
+        benign_unlearn, _ = unlearn(self.args,self._data, benign_orig, self.random_edges, device=self.device)
+        benign_res, _ = self.target_model.CEU_test(benign_unlearn, test_loader, edge_index)
+        self.average_f1 = benign_res["accuracy"]

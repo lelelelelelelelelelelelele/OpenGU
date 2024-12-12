@@ -15,15 +15,16 @@ from unlearning.unlearning_methods.GraphEraser.partition.node_embedding import N
 
 
 class PartitionKMeans(Partition):
-    def __init__(self, args,logger, graph, dataset):
+    def __init__(self, args,logger, graph, dataset,model_zoo):
         super(PartitionKMeans, self).__init__(args, graph, dataset)
 
         self.logger = logger
+        self.model_zoo = model_zoo
         cp.cuda.Device(self.args['cuda']).use()
         self.load_embeddings()
 
     def load_embeddings(self):
-        node_embedding = NodeEmbedding(self.args, self.logger,self.graph, self.dataset)
+        node_embedding = NodeEmbedding(self.args, self.logger,self.graph, self.dataset,model_zoo=self.model_zoo)
 
         if self.partition_method in ["sage_km", "sage_km_base"]:
             self.node_to_embedding = node_embedding.sage_encoder()

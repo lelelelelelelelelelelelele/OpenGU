@@ -97,7 +97,7 @@ class GeometricScattering(MessagePassing):
         """
         return self.tree_nodes * self.Q * d
 
-    def forward(self, data, non_linear=True, use_batch=True):
+    def forward(self, data, non_linear=True, use_batch=True,return_node = False):
         """
         Forward function to perform Geometric Scattering.
         Input:
@@ -147,6 +147,8 @@ class GeometricScattering(MessagePassing):
             tree_node_start_idx += self.J ** (l - 1)
         # reshape the output
         res_x_output = res_x.view(x.size(0), -1)
+        if return_node:
+            return res_x_output
         if use_batch:
             res_x_output = global_mean_pool(res_x_output, batch)
         else:

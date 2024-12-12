@@ -15,41 +15,79 @@ def parameter_parser():
     parser = argparse.ArgumentParser()
  
     #for all methods#
-    parser.add_argument('--cuda', type=int, default=0, help='specify gpu')
+    parser.add_argument('--cuda', type=int, default=1, help='specify gpu')
     parser.add_argument('--num_threads', type=int, default=1)
     parser.add_argument('--root_path', type=str, default='./', help='Set The Root Path')
+    
 
     #data
     parser.add_argument('--dataset_name', type=str, default='cora',
-                        choices=["cora", "citeseer", "pubmed", "CS", "Physics", "flickr", "ppi", "Photo", "Computers","DBLP","ogbl","ogbn-arxiv","ogbn-products"])
-    parser.add_argument('--is_transductive', type=str2bool, default=False, help = "Task is transductive or inductive")
-
+                                          choices = ["cora",
+                                                    "citeseer",
+                                                    "pubmed",
+                                                    "CS",
+                                                    "Physics",
+                                                    "flickr",
+                                                    "Photo",
+                                                    "Computers",
+                                                    "DBLP",
+                                                    "ogbl",
+                                                    "ogbn-arxiv",
+                                                    "ogbn-products",
+                                                    "Squirrel",
+                                                    "Chameleon",
+                                                    "Actor",
+                                                    "Minesweeper",
+                                                    "Tolokers",
+                                                    "Amazon-ratings",
+                                                    "Roman-empire",
+                                                    "Questions",
+                                                    "MUTAG",
+                                                    "COX2",
+                                                    "AIDS",
+                                                    "BZR",
+                                                    "DD",
+                                                    "PROTEINS",
+                                                    "ENZYMES",
+                                                    "DHFR",
+                                                    "NCI1",
+                                                    "PTC_MR",
+                                                    "ogbg-molhiv",
+                                                    "ogbg-molpcba",
+                                                    "ogbg-ppa",
+                                                    "MNISTSuperpixels",
+                                                    "ShapeNet",
+                                                    "IMDB-BINARY",
+                                                    "IMDB-MULTI"])
+    parser.add_argument('--is_transductive', type=str2bool, default=True, help = "Task is transductive or inductive")
+    parser.add_argument('--cal_mem', type=str2bool, default=False, help = "run exp to calculate memory")
     # parser.add_argument('--inductive', type=str, default='normal', choices=['cluster-gcn', 'graphsaint', 'normal'])
     parser.add_argument('--is_balanced' ,type = str2bool,default=False,help="dataset is split with balanced classes" )
     parser.add_argument('--use_batch', type=str2bool, default=False, help="train model with minibatch")
-
+    parser.add_argument('--poison', type=str2bool, default=True, help="poisoned edge")
     
 
-    #model
-    parser.add_argument('--base_model', type=str, default='GCN', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'MLP', "GCN", "GIN","GST","Projector"])
-    parser.add_argument('--unlearning_methods', type=str, default='GraphRevoker',
-                        choices=['GraphEraser', 'GUIDE', 'GNNDelete', 'CEU', "GIF", "SGU","CGU","GST","Projector","MEGU","GraphRevoker","UTU","GUKD","D2DGN","IDEA"])
+    #modelMin
+    parser.add_argument('--base_model', type=str, default='SAGE', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'Cluster_GCN', "GCN", "GIN",
+                                                                          "GST","SAINT","Projector","Cheb","APPNP","GCN2","GATv2","TAG","LightGCN"])
+    parser.add_argument('--unlearning_methods', type=str, default='SGU',
+                        choices=['GraphEraser', 'GUIDE', 'GNNDelete', 'CEU', "GIF", "SGU","CGU","GST","Projector","MEGU","GraphRevoker","UTU","GUKD","D2DGN","IDEA","ScaleGUN"])
     parser.add_argument('--train_ratio', type=float, default=0.8)
     parser.add_argument('--val_ratio', type=float, default=0)
     parser.add_argument('--test_ratio', type=float, default=0.2)
     #task
     parser.add_argument('--exp', type=str, default='sequence',
                         choices=["partition", "unlearning", "node_edge_unlearning", "attack_unlearning","sequence"])
-    parser.add_argument('--unlearn_task', type=str, default='node', choices=['feature', "node", "edge"])
     parser.add_argument('--unlearn_trainer', type=str, default='BaseTrainer')
     parser.add_argument('--parameter_task', type=str, default='normal', choices=['normal', "optuna"])
-    parser.add_argument('--downstream_task', type=str, default='node', choices=['node', "edge"])
+    parser.add_argument('--downstream_task', type=str, default='edge', choices=['node', "edge","graph"])
+    parser.add_argument('--unlearn_task', type=str, default='edge', choices=['feature', "node", "edge"])
 
 
     
     #train#
     parser.add_argument('--num_epochs', type=int, default=100)
-    parser.add_argument('--test_freq', type=int, default=1)
+    parser.add_argument('--test_freq', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--opt_lr', type=float, default=0.001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
     parser.add_argument('--opt_decay', type=float, default=0.0001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
@@ -65,7 +103,7 @@ def parameter_parser():
     #unlearning parameters#
     parser.add_argument('--num_unlearned_nodes', type=int, default=270)
     parser.add_argument('--proportion_unlearned_nodes', type=float, default=0.1)
-    parser.add_argument('--proportion_unlearned_edges', type=str, default="0.0001")
+    parser.add_argument('--proportion_unlearned_edges', type=float, default=0.1)
     parser.add_argument('--proportion_unlearned_edges_num', type=float, default=1e-4)
     parser.add_argument('--unlearn_ratio', type=float, default=0.1)
     parser.add_argument('--unlearn_lr', type=float, default=0.01,help='used in GNNDelete and CEU')
@@ -73,17 +111,17 @@ def parameter_parser():
 
 
     #GUIDE parameter
-    parser.add_argument('--GUIDE_methods', type=str, default= "Fast",choices=["Fast","SR"])
+    parser.add_argument('--GUIDE_methods', type=str, default= "SR",choices=["Fast","SR"])
     parser.add_argument('--GUIDE_repair_methods', type=str, default= "MixUp",choices=["Zero", "Mirror", "MixUp", "NoneR"])
 
 
     #GraphEraser parameter
     parser.add_argument('--num_shards', type=int, default=10)
     parser.add_argument('--partition_method', type=str, default='gpa',
-                        choices=["sage_km", "random", "lpa", "metis", "lpa_base", "sage_km_base","gpa"])
+                        choices=["sage_km", "random", "lpa", "metis", "lpa_base", "sage_km_base","gpa","graph_km"])
     parser.add_argument('--opt_num_epochs', type=int, default=20)
     parser.add_argument('--ratio_deleted_edges', type=float, default=0)
-    parser.add_argument('--aggregator', type=str, default='optimal', choices=['mean', 'majority', 'optimal','contrastive'])
+    parser.add_argument('--aggregator', type=str, default='optimal', choices=['mean', 'majority', 'optimal','contrastive','kernel_similarity'])
     parser.add_argument('--shard_size_delta', type=float, default=0.005)
     parser.add_argument('--terminate_delta', type=int, default=0)
     parser.add_argument('--is_prune', type=str2bool, default=False)
@@ -92,8 +130,7 @@ def parameter_parser():
     parser.add_argument('--is_train_target_model', type=str2bool, default=True)
     parser.add_argument('--is_gen_embedding', type=str2bool, default=True)
     parser.add_argument('--num_runs', type=int, default=1)
-    parser.add_argument('--num_opt_samples', type=int, default=100)
-
+    parser.add_argument('--num_opt_samples', type=int, default=1000)
 
     parser.add_argument('--test_batch_size', type=int, default=64)
     parser.add_argument('--use_test_neighbors', type=str2bool, default=True)
@@ -133,28 +170,28 @@ def parameter_parser():
     parser.add_argument('--GIF_method', type=str, default="GIF", choices=["GIF", "Retrain", "IF"])
     parser.add_argument('--GIF_exp', type=str, default='unlearning')
     parser.add_argument('--is_split', type=str2bool, default=True, help='splitting train/test data')
-    parser.add_argument('--iteration', type=int, default=10)
-    parser.add_argument('--scale', type=int, default=10000000000)
+    parser.add_argument('--iteration', type=int, default=100)
+    parser.add_argument('--scale', type=int, default=1000000)
     parser.add_argument('--damp', type=float, default=0.0)
 
 
     #SGU
     parser.add_argument('--GNN_layer', type=int, default=3)
     parser.add_argument('--unlearning_epochs', type=int, default=50)
-    parser.add_argument('--Budget', type=float, default=0.1)
-    parser.add_argument('--para1', type=float, default=0.5)
-    parser.add_argument('--para2', type=float, default=0.005)
-    parser.add_argument('--para3', type=float, default=23)
-    parser.add_argument('--para4', type=float, default=5)
+    parser.add_argument('--Budget', type=float, default=0.01)
+    parser.add_argument('--para1', type=float, default=2.5)
+    parser.add_argument('--para2', type=float, default=0.01)
+    parser.add_argument('--para3', type=float, default=200)
+    parser.add_argument('--para4', type=float, default=0.1)
     parser.add_argument('--para5', type=float, default=10)
 
     #GST
-    parser.add_argument('--folds', type=int, default=5)
+    parser.add_argument('--folds', type=int, default=10)
     parser.add_argument('--display_step', type=int, default=10)
     parser.add_argument('--rm_disp_step', type=int, default=1)
-    parser.add_argument('--J', type=int, default=2)
-    parser.add_argument('--Q', type=int, default=2)
-    parser.add_argument('--L', type=int, default=2)
+    parser.add_argument('--J', type=int, default=5)
+    parser.add_argument('--Q', type=int, default=4)
+    parser.add_argument('--L', type=int, default=3)
 
     parser.add_argument('--remove_guo', action='store_true', default=False)
     parser.add_argument('--retrain', action='store_true', default=False, help='Retrain GST from scratch or not. If this is true then remove_guo should be false!')
@@ -183,7 +220,7 @@ def parameter_parser():
     parser.add_argument('--XdegNorm', type=str2bool, default=False, help='Apply our degree normaliztion trick')
     parser.add_argument('--add_self_loops', type=str2bool, default=True, help='Add self loops in propagation matrix')
     parser.add_argument('--wd', type=float, default=5e-4, help='Weight decay factor for Adam')
-    parser.add_argument('--featNorm', type=str2bool, default=True, help='Row normalize feature to norm 1.')
+    parser.add_argument('--featNorm', type=str2bool, default=False, help='Row normalize feature to norm 1.')
     parser.add_argument('--GPR', action='store_true', default=False, help='Use GPR model')
     parser.add_argument('--balance_train', action='store_true', default=False,
                         help='Subsample training set to make it balance in class size.')
@@ -226,10 +263,44 @@ def parameter_parser():
     parser.add_argument('--file_name', type=str, default="unlearning_results", help="file name for results.")
     parser.add_argument('--write', type=bool, default=True, help="write to keep results.")
 
+    ###UTULink###
+    parser.add_argument("--eval_on_cpu", type=bool,default=False)
+
+    ###ScaleGUN###
+    parser.add_argument("--path", default="./data/ScaleGUN")
+    parser.add_argument("--del_path_suffix", default="unlearning_data/")
+    parser.add_argument("--analysis_path", default="analysis")
+    parser.add_argument("--trials", type=int, default=3)
+    parser.add_argument("--axis_num", default=1, type=int, choices=[1, 0])
+    parser.add_argument("--prop_algo", type=str,
+                        choices=["power", "push", "MC"], default="push")
+    parser.add_argument("--prop_step", default=3, type=int)
+    parser.add_argument("--r", default=0.5, type=float)
+    parser.add_argument("--decay", default=0.1, type=float)
+    parser.add_argument("--RW", type=int, default=10000,
+                        help="random walk times")
+    parser.add_argument("--rmax", default=0.0, type=float)
+    parser.add_argument("--ppr", default=False, action="store_true")
+    parser.add_argument("--weight_mode", default="test",
+                        type=str, choices=["decay", "avg", "test", "hetero"],)
+
+    parser.add_argument("--optuna", action="store_true", default=False,
+                        help="Use optuna to optimize hyperparameters.",)
+    parser.add_argument("--del_postfix", type=str, default="")
+    parser.add_argument("--del_only", default=False, action="store_true")
+    parser.add_argument("--lr", default=1, type=float)
+    parser.add_argument("--num_batch_removes", default=5, type=int)
+    parser.add_argument("--no_retrain", action="store_true", default=False)
+    parser.add_argument("--edge_idx_start", default=0, type=int)
+    parser.add_argument("--num_removes", default=1, type=int,
+                        help="number of removed edges/nodes in each batch",)
+    # args = vars(parser.parse_args())
+    # return args
+
     if "sphinx-build" in sys.argv[0]:
         args = vars(parser.parse_args([]))
         return args
     else:
         args = vars(parser.parse_args())
         return args
-    return args
+    # return args

@@ -1,4 +1,2 @@
 lr: 0.05
 decay: 0.000001
-convs_batch: False
-is_SGU: True
