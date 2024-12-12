@@ -270,7 +270,7 @@ class ceu(IF_based_pipeline):
 
         self._data = copy.deepcopy(self.data)
         self._data['edges'] += self.random_edges
-       
+    
     
     def unlearn(self):
         test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])

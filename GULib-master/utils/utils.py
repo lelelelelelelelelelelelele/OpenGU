@@ -76,6 +76,7 @@ def connected_component_subgraphs(graph):
 def filter_edge_index_1(data, node_indices):
     """
     Remove unnecessary edges from a torch geometric Data, only keep the edges between node_indices.
+
     Args:
         data (Data): A torch geometric Data.
         node_indices (list): A list of nodes to be deleted from data.
@@ -341,6 +342,7 @@ def preprocess_data(X):
     '''
     input:
         X: (n,d), torch.Tensor
+
     '''
     X_np = X.cpu().numpy()
     scaler = preprocessing.StandardScaler().fit(X_np)
@@ -353,6 +355,7 @@ def preprocess_data(X):
 class MyGraphConv(MessagePassing):
     """
     Use customized propagation matrix. Just PX (or PD^{-1}X), no linear layer yet.
+
     """
     _cached_x: Optional[Tensor]
 
@@ -427,6 +430,7 @@ def get_propagation(edge_index, edge_weight=None, num_nodes=None, improved=False
     """
     return:
         P = D^{-\alpha}AD^{-(1-alpha)}.
+
     """
     fill_value = 2. if improved else 1.
     assert (0 <= alpha) and (alpha <= 1)
@@ -453,6 +457,7 @@ def lr_optimize(X, y, lam, b=None, num_steps=100, tol=1e-32, verbose=False, opt_
                 X_val=None, y_val=None):
     '''
         b is the noise here. It is either pre-computed for worst-case, or pre-defined.
+
     '''
     w = torch.autograd.Variable(torch.zeros(X.size(1)).float().to(device), requires_grad=True)
 
@@ -513,8 +518,10 @@ def lr_loss(w, X, y, lam):
         X: (n,d)
         y: (n,)
         lambda: scalar
+
     return:
         averaged training loss with L2 regularization
+
     '''
     return -F.logsigmoid(y * X.mv(w)).mean() + lam * w.pow(2).sum() / 2
 
@@ -526,8 +533,10 @@ def lr_eval(w, X, y):
         w: (d,)
         X: (n,d)
         y: (n,)
+
     return:
         prediction accuracy
+
     '''
     return X.mv(w).sign().eq(y).float().mean()
 
@@ -536,13 +545,16 @@ def lr_eval(w, X, y):
 def lr_grad(w, X, y, lam):
     '''
     The gradient here is computed wrt sum.
+
     input:
         w: (d,)
         X: (n,d)
         y: (n,)
         lambda: scalar
+
     return:
         gradient: (d,)
+
     '''
     z = torch.sigmoid(y * X.mv(w))
     return X.t().mv((z - 1) * y) + lam * X.size(0) * w
@@ -552,12 +564,14 @@ def lr_grad(w, X, y, lam):
 def lr_hessian_inv(w, X, y, lam, batch_size=50000):
     '''
     The hessian here is computed wrt sum.
+
     input:
         w: (d,)
         X: (n,d)
         y: (n,)
         lambda: scalar
         batch_size: int
+
     return:
         hessian: (d,d)
     '''
@@ -580,7 +594,9 @@ def lr_hessian_inv(w, X, y, lam, batch_size=50000):
 def lr_optimize(X, y, lam, b=None, num_steps=100, tol=1e-32, verbose=False, opt_choice='LBFGS', lr=0.05, wd=0,
                 X_val=None, y_val=None):
     '''
+
         b is the noise here. It is either pre-computed for worst-case, or pre-defined.
+
     '''
     w = torch.autograd.Variable(torch.zeros(X.size(1)).float().to(device), requires_grad=True)
 
@@ -636,12 +652,15 @@ def lr_optimize(X, y, lam, b=None, num_steps=100, tol=1e-32, verbose=False, opt_
 # aggregated loss for multiclass classification
 def ovr_lr_loss(w, X, y, lam, weight=None):
     '''
-     input:
+
+    input:
+
         w: (d,c)
         X: (n,d)
         y: (n,c), one-hot
         lambda: scalar
         weight: (c,) / None
+
     return:
         loss: scalar
     '''
@@ -655,11 +674,15 @@ def ovr_lr_loss(w, X, y, lam, weight=None):
 def ovr_lr_eval(w, X, y):
     '''
     input:
+
         w: (d,c)
         X: (n,d)
         y: (n,), NOT one-hot
+
     return:
+
         loss: scalar
+
     '''
     pred = X.mm(w).max(1)[1]
     # softlabel = F.softmax(X.mm(w))
@@ -674,8 +697,11 @@ def ovr_lr_eval(w, X, y):
 def ovr_lr_optimize(X, y, lam, weight=None, b=None, num_steps=100, tol=1e-32, verbose=False, opt_choice='LBFGS',
                     lr=0.01, wd=0, X_val=None, y_val=None):
     '''
+
     y: (n_train, c). one-hot
+
     y_val: (n_val,) NOT one-hot
+
     '''
     # We use random initialization as in common DL literature.
     # w = torch.zeros(X.size(1), y.size(1)).float()
@@ -786,7 +812,9 @@ def get_K_matrix(X):
 def sqrt_spectral_norm(A, num_iters=100):
     '''
     return:
+
         sqrt of maximum eigenvalue/spectral norm
+
     '''
     x = torch.randn(A.size(0)).float().to(device)
     for i in range(num_iters):
@@ -865,6 +893,7 @@ def remove_node_from_graph(data, node_id=None, removal_queue=None):
     Otherwise remove a random node from a random graph.
 
     Can optionally record the removal queue.
+
     """
 
     # if graph_id is None:
@@ -979,12 +1008,16 @@ def filter_edge_index_2(data, node_indices):
     """
     Remove unnecessary edges from a torch geometric Data, only keep the edges between node_indices.
     An extended version of filter_edge_index_1 which also processes edge_index_train.
+
     Args:
+
         data (Data): A torch geometric Data.
         node_indices (list): A list of nodes to be deleted from data.
 
     Returns:
+
         data.edge_index: The new edge_index after removing the node_indices.
+        
     """
     if isinstance(data.edge_index, torch.Tensor):
         data.edge_index = data.edge_index.cpu()

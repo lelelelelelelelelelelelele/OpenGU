@@ -1,3 +1,3 @@
-import pipeline.IF_based_pipeline
-import pipeline.Learning_based_pipeline
-import pipeline.Shard_based_pipeline
+from .IF_based_pipeline import *
+from .Learning_based_pipeline import *
+from .Shard_based_pipeline import *

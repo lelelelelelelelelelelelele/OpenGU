@@ -63,5 +63,8 @@ API
     :maxdepth: 2
     :caption: Contents
 
+    api/dataset
     api/task
+    api/unlearning
     api/pipeline
+    api/utils
