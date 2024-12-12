@@ -9,7 +9,7 @@
   <a href="#overview-of-the-benchmark">Overview of the Benchmark</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#reference">Reference</a>
+  <a href="#references">References</a>
 </p>
 
 
@@ -24,13 +24,17 @@
 
 # OpenGU
 
-## 📝 Abstract
-
-> **Graph Machine Learning (GML)** has become integral to understanding and analyzing complex relational data, highlighting the growing necessity for **Graph Unlearning (GU)** to address challenges in removing sensitive information from trained graph neural networks (GNNs). Differing from machine unlearning in computer vision (CV) or large language models (LLMs), GU presents unique challenges due to the intricate interactions within graph entities, the diversity of downstream tasks, and the varied nature of unlearning requests. Despite the proliferation of diverse GU strategies, the lack of standardized experimental setups and evaluation criteria, and the limited flexibility in combining downstream tasks and unlearning requests have yielded inconsistencies in comparisons, hindering the thriving development of this research domain. To fill this gap, we have integrated **16 SOTA GU algorithms** and **19 multi-domain datasets** within OpenGU, enabling a variety of downstream tasks on **7 GNN backbones** when responding to flexible unlearning requests. Based on this unified benchmark framework, we are able to provide a comprehensive and fair evaluation for GU. Through extensive experimentation, we have drawn crucial **conclusions** about the effectiveness of existing GU methods, while also gaining valuable insights into its limitations, shedding light on potential avenues for future research.
-
 ## 📚 Introduction
 
-OpenGU is an open-source platform designed to provide a comprehensive benchmark for **Graph Unlearning**. This project aims to facilitate the evaluation and development of Graph Unlearning methodologies by offering standardized datasets, frameworks, and tools. OpenGU leverages advanced techniques in Graph Structure Learning (GSL) to enhance the performance and robustness of Graph Neural Networks (GNNs) across various applications.
+**OpenGU** is an open-source benchmark platform for **Graph Unlearning (GU)**. It facilitates the evaluation and development of GU methodologies by providing standardized datasets, state-of-the-art GU algorithms, and versatile tools. OpenGU integrates **xx SOTA GU algorithms** and **xx multi-domain datasets**, supporting a variety of downstream tasks across **7 GNN backbones**. This unified framework enables flexible unlearning requests and ensures comprehensive and fair evaluations of GU methods, addressing the unique challenges posed by complex relational data.
+
+### Our Contributions
+
+To further streamline GU research and foster a more unified evaluation landscape, **OpenGU** offers the following key contributions:
+
+1. **xx**
+2. **xx**
+3. **...**
 
 <div align="center">
   <img src="Resources/methods_overview.png" alt="Methods Overview" border="0" width=600px/>
@@ -48,9 +52,9 @@ OpenGU offers a robust and standardized benchmark for evaluating **Graph Unlearn
 
 ## 🗂️ Dataset Overview
 
-Graph unlearning scenarios are fundamentally data-driven, making the meticulous selection of datasets indispensable for evaluating the effectiveness of graph unlearning strategies. To assess the effectiveness, efficiency, and robustness of these methods for node or edge-related tasks, we have carefully selected **19 datasets**.
+Graph Unlearning (GU) scenarios are fundamentally data-driven, making the meticulous selection of datasets indispensable for evaluating the effectiveness of graph unlearning strategies. To assess the effectiveness, efficiency, and robustness of these methods for node and edge-related tasks, we have carefully selected **19 graph datasets**. Additionally, for graph-level tasks in diverse application areas, we have selected **18 graph classification datasets**.
 
-### Node and Edge-Level Tasks:
+### Node and Edge-Level Tasks
 
 - **Citation Networks:** Cora, Citeseer, PubMed
 - **Co-author Networks:** CS, Physics
@@ -63,7 +67,7 @@ Graph unlearning scenarios are fundamentally data-driven, making the meticulous 
 - **Crowdsourcing Platform:** Tolokers
 - **Historical and Social Q&A Contexts:** Roman-empire, Questions
 
-### Graph Classification Tasks:
+### Graph Classification Tasks
 
 - **Compounds Networks:** MUTAG, PTC-MR, BZR, COX2, DHFR, AIDS, NCI1, ogbg-molhiv, ogbg-molpcba
 - **Protein Networks:** ENZYMES, DD, PROTEINS, ogbg-ppa
@@ -72,57 +76,15 @@ Graph unlearning scenarios are fundamentally data-driven, making the meticulous 
 - **3D Shapes and Image Superpixels:** ShapeNet, MNISTSuperPixels
 
 #### Statistical Overview
+For detailed statistics on the datasets used in our evaluation, see the following files:
 
-**Table 2: Statistical Overview of Datasets for Node and Edge-Level Tasks in OpenGU Benchmarking**
-
-| Datasets         | Nodes    | Edges      | Features | Classes | Type        | Description           |
-|------------------|----------|------------|----------|---------|-------------|-----------------------|
-| Cora             | 2,708    | 5,278      | 1,433    | 7       | Homophily   | Citation Network      |
-| Citeseer         | 3,327    | 4,732      | 3,703    | 6       | Homophily   | Citation Network      |
-| PubMed           | 19,717   | 44,338     | 500      | 3       | Homophily   | Citation Network      |
-| DBLP             | 17,716   | 52,867     | 1,639    | 4       | Heterophily | Co-author Network     |
-| ogbn-arxiv       | 169,343  | 1,166,243  | 128      | 40      | Homophily   | Citation Network      |
-| CS               | 18,333   | 81,894     | 6,805    | 15      | Homophily   | Co-author Network     |
-| Physics          | 34,493   | 247,962    | 8,415    | 5       | Homophily   | Co-author Network     |
-| Photo            | 7,487    | 119,043    | 745      | 8       | Homophily   | Co-purchasing Network |
-| Computers        | 13,381   | 245,778    | 767      | 10      | Homophily   | Co-purchasing Network |
-| ogbn-products    | 2,449,029| 61,859,140 | 100      | 47      | Homophily   | Co-purchasing Network |
-| Chameleon        | 2,277    | 36,101     | 2,325    | 5       | Heterophily | Wiki-page Network     |
-| Squirrel         | 5,201    | 216,933    | 2,089    | 5       | Heterophily | Wiki-page Network     |
-| Actor            | 7,600    | 29,926     | 931      | 5       | Heterophily | Actor Network         |
-| Minesweeper      | 10,000   | 39,402     | 7        | 2       | Homophily   | Game Synthetic Network|
-| Tolokers         | 11,758   | 519,000    | 10       | 2       | Homophily   | Crowd-sourcing Network|
-| Roman-empire     | 22,662   | 32,927     | 300      | 18      | Heterophily | Article Syntax Network|
-| Amazon-ratings   | 24,492   | 93,050     | 300      | 5       | Heterophily | Rating Network        |
-| Questions        | 48,921   | 153,540    | 301      | 2       | Homophily   | Social Network        |
-| Flickr           | 89,250   | 899,756    | 500      | 7       | Heterophily | Image Network         |
-
-**Table 3: Statistical Overview of Datasets for Graph-Level Tasks in OpenGU Benchmarking**
-
-| Datasets         | Graphs  | Nodes    | Edges  | Features | Classes | Description           |
-|------------------|---------|----------|--------|----------|---------|-----------------------|
-| MUTAG            | 188     | 17.93    | 19.79  | 7        | 2       | Compounds Network     |
-| PTC-MR           | 344     | 14.29    | 14.69  | 18       | 2       | Compounds Network     |
-| BZR              | 405     | 35.75    | 38.36  | 56       | 2       | Compounds Network     |
-| COX2             | 467     | 41.22    | 43.45  | 38       | 2       | Compounds Network     |
-| DHFR             | 467     | 42.43    | 44.54  | 56       | 2       | Compounds Network     |
-| AIDS             | 2,000   | 15.69    | 16.20  | 42       | 2       | Compounds Network     |
-| NCI1             | 4,110   | 29.87    | 32.30  | 37       | 2       | Compounds Network     |
-| ogbg-molhiv      | 41,127  | 25.50    | 27.50  | 9        | 2       | Compounds Network     |
-| ogbg-molpcba     | 437,929 | 26.00    | 28.10  | 9        | 2       | Compounds Network     |
-| ENZYMES          | 600     | 32.63    | 62.14  | 21       | 6       | Protein Network       |
-| DD               | 1,178   | 284.32   | 715.66 | 89       | 2       | Protein Network       |
-| PROTEINS         | 1,113   | 39.06    | 72.82  | 4        | 2       | Protein Network       |
-| ogbg-ppa         | 158,100 | 243.40   | 2,266.10 | 4      | 37      | Protein Network       |
-| IMDB-BINARY      | 1,000   | 19.77    | 96.53  | degree  | 2       | Movie Network         |
-| IMDB-MULTI       | 1,500   | 13.00    | 65.94  | degree  | 3       | Movie Network         |
-| COLLAB           | 5,000   | 74.49    | 2,457.78 | degree | 3       | Collaboration Network |
-| ShapeNet         | 16,881  | 2,616.20 | KNN    | 3        | 50      | Point Cloud Network   |
-| MNISTSuperPixels | 70,000  | 75.00    | 1,393.03 | 1      | 10      | Super-pixel Network   |
+- [Node and Edge-Level Tasks Statistics](/Resources/graph_classification_stats.md)
+- [Graph Classification Tasks Statistics](/Resources/graph_classification_stats.md)
 
 #### Data Preprocessing Enhancements
 
-To achieve a standardized and versatile partitioning in OpenGU, we implemented code that allows arbitrary dataset split ratios, enabling researchers to customize partitions to suit their needs and experiment requirements. In addition to flexible splitting, we also consider label balance within class distributions by providing both balanced and random partitioning options. Furthermore, we introduce preprocessing enhancements that allow datasets to function under both transductive and inductive inference scenarios, permitting evaluations under various settings and offering a broader assessment of algorithm performance.
+To achieve standardized and versatile partitioning in OpenGU, we implemented code that allows arbitrary dataset split ratios, enabling researchers to customize partitions to suit their needs and experiment requirements. In addition to flexible splitting, we also consider label balance within class distributions by providing both balanced and random partitioning options. Furthermore, we introduce preprocessing enhancements that allow datasets to function under both transductive and inductive inference scenarios, permitting evaluations under various settings and offering a broader assessment of algorithm performance.
+
 
 ## 🧠 Algorithm Framework
 
@@ -140,100 +102,154 @@ To evaluate the generalizability of GU algorithms, we incorporate three predomin
 
 ### GU Algorithms
 
-Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously reproduced based on source code or detailed descriptions in relevant publications. These algorithms are categorized into **Partition-based**, **IF-based (Influence Function-based)**, and **Learning-based** methods, each leveraging distinct strategies for effective graph unlearning.
+Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously reproduced based on source code or detailed descriptions in relevant publications. These algorithms are categorized into **Partition-based**, **IF-based (Influence Function-based)**, **Learning-based**, and **Others**, each leveraging distinct strategies for effective graph unlearning.
 
-| **Partition-based** | **IF-based** | **Learning-based** |
-|---------------------|--------------|---------------------|
-| 🔸 **GraphEraser**  | 🔹 **GIF**    | 🔸 **GNNDelete**    |
-| 🔸 **GUIDE**         | 🔹 **CGU**    | 🔸 **MEGU**         |
-| 🔸 **GraphRevoker** | 🔹 **CEU**    | 🔸 **SGU**          |
-|                     | 🔹 **GST**    | 🔸 **D2DGN**        |
-|                     | 🔹 **IDEA**   | 🔸 **GUKD**         |
-|                     | 🔹 **ScaleGUN**|                     |
+| **Partition-based** | **IF-based**     | **Learning-based** | **Others**          |
+|---------------------|------------------|---------------------|---------------------|
+| 🔸 **GraphEraser**  | 🔹 **GIF**       | 🔸 **GNNDelete**    | 🔹 **UtU**          |
+| 🔸 **GUIDE**         | 🔹 **CGU**       | 🔸 **MEGU**         | 🔹 **Projector**    |
+| 🔸 **GraphRevoker** | 🔹 **CEU**       | 🔸 **SGU**          |                     |
+|                     | 🔹 **GST**       | 🔸 **D2DGN**        |                     |
+|                     | 🔹 **IDEA**      | 🔸 **GUKD**         |                     |
+|                     | 🔹 **ScaleGUN**  |                     |                     |
+
 
 
 ## 📊 Evaluation Strategy
 
-To provide a thorough assessment of GU algorithms in diverse real-world scenarios, our benchmark evaluation spans three critical dimensions tailored to GU contexts: **effectiveness**, **robustness**, and **efficiency**. Each dimension includes custom evaluation methods reflecting OpenGU’s mission to serve as a flexible, high-standard benchmark.
+To thoroughly assess GU algorithms in real-world scenarios, our benchmark evaluation focuses on three key dimensions: **effectiveness**, **robustness**, and **efficiency**. Each dimension utilizes tailored evaluation methods aligned with OpenGU’s mission to provide a flexible and high-standard benchmark.
 
 ### Cross-over Design
 
-In previous GU studies, node and feature unlearning typically align with node classification tasks, while edge unlearning is often evaluated in the context of link prediction. However, real-world applications frequently demand the removal of data in scenarios where unlearning requests and downstream tasks intersect. For instance, in a node classification task, it may be necessary to remove edges between nodes, effectively combining edge unlearning with a task traditionally associated with node unlearning. To address this gap, we designed cross-task evaluations in OpenGU, allowing us to measure GU algorithm performance in more complex, realistic scenarios where different unlearning types may apply across diverse downstream tasks. This approach provides a comprehensive and practical evaluation framework to assess the flexibility of GU algorithms in real-world applications.
+Previous GU studies often separate node and edge unlearning, evaluating them through node classification and link prediction tasks, respectively. However, real-world applications may require simultaneous removal of nodes and edges within a single task. For example, removing edges between nodes during a node classification task combines edge and node unlearning. To address this, OpenGU includes cross-task evaluations, enabling the assessment of GU algorithms in complex scenarios where multiple unlearning types interact across diverse tasks. This ensures a comprehensive and practical evaluation framework.
 
 ### Effectiveness
 
-For the effectiveness of GU algorithms within OpenGU, we conduct evaluations tailored to key downstream tasks while specifically examining GU’s performance on **Non-UE**.
+We evaluate **effectiveness** by assessing GU algorithms on key downstream tasks and their impact on **Non-UE** data.
 
-- **Node Classification Tasks:**
+- **Node Classification:**
   - **Metrics:** Accuracy, Precision, F1-score
-  - **Purpose:** Gauge GU’s predictive capability on nodes that remain part of the graph, ensuring that the unlearning process does not degrade the model’s performance on retained data.
-
+  - **Purpose:** Ensure that unlearning does not impair model performance on retained nodes.
+  
 - **Link Prediction:**
   - **Metrics:** AUC-ROC
-  - **Purpose:** Assess the model’s ability to correctly predict relationships between nodes post-unlearning, ensuring that the removal of specific edges does not adversely affect the model’s overall predictive performance.
+  - **Purpose:** Verify that edge removal does not negatively affect overall predictive performance.
+  
+- **Security Attacks:**
+  - **Membership Inference Attack:** Measures if specific nodes were part of the training data. An AUC-ROC near 0.5 indicates minimal leakage.
+  - **Poisoning Attack:** Introduces malicious edges and then removes them. Improved link prediction post-removal shows effective unlearning.
 
-- **Membership Inference Attack and Poisoning Attack:**
-  - **Membership Inference Attack:** Determines whether specific nodes were included in the training data. An AUC-ROC close to 0.5 indicates minimal information leakage.
-  - **Poisoning Attack:** Introduces mismatched or "poisoned" edges to degrade prediction performance, followed by an unlearning request to remove these edges. Improvement in link prediction performance post-removal validates the GU algorithm’s effectiveness in erasing unwanted relationships.
-
-This multi-faceted approach ensures a comprehensive evaluation of both retained and unlearned information within OpenGU.
+This approach evaluates both retained and unlearned information within OpenGU.
 
 ### Robustness
 
-To evaluate the robustness of GU algorithms in OpenGU, we systematically examine model performance under varying levels of deletion intensity. This involves assessing how different proportions of data removal affect the model’s predictive capabilities. Robust GU algorithms should ideally demonstrate minimal performance degradation as deletion intensity increases, reflecting strong resilience in maintaining effective predictions for both retained and partially affected entities.
+**Robustness** is assessed by testing GU algorithms under varying levels of data deletion. We examine how different proportions of data removal impact model performance. Robust GU algorithms should exhibit minimal performance loss as deletion intensity increases, demonstrating resilience in maintaining effective predictions for both retained and partially affected data.
 
 ### Efficiency
 
-In evaluating the efficiency of GU algorithms in OpenGU, we focus on **scalability**, **time complexity**, and **space complexity**:
+We evaluate **efficiency** based on **scalability**, **time complexity**, and **space complexity**:
 
-- **Scalability:** Assesses each method’s adaptability to different dataset sizes, offering insight into performance stability across varying graph scales.
-- **Time Complexity:** Includes both theoretical and empirical evaluation to understand computational demands.
-- **Space Complexity:** Examines memory efficiency by measuring peak memory usage and storage requirements during unlearning, determining which algorithms are viable in resource-limited environments.
+- **Scalability:** Measures adaptability to different dataset sizes, ensuring stable performance across varying graph scales.
+- **Time Complexity:** Assesses computational demands through theoretical and empirical evaluations.
+- **Space Complexity:** Evaluates memory usage and storage requirements during unlearning, determining suitability for resource-constrained environments.
 
-Together, these metrics provide a comprehensive view of each method’s suitability for real-time and scalable deployment.
+These metrics collectively determine each method’s suitability for real-time and scalable deployment.
 
-##  <span id="installation">📥 Installation</span>
 
-**Note:** OpenGU depends on several external libraries. To streamline the installation, OpenGU does **NOT** install these libraries for you. Please install them from the provided links before running OpenGU.
+## <span id="installation">📥 Installation</span>
 
-### **Dependencies:**
-- **Python:** `3.8.0`
-- **PyTorch:** `2.2.1`
-- **TorchVision:** `0.17.1`
-- **torch_scatter:** `2.1.2`
-- **Scipy:** `1.10.1`
-- **torch_sparse:** `0.6.18`
-- **torch_geometric:** `2.6.1`
-- **Matplotlib:** `3.7.5`
-- **Scikit-learn:** `1.3.2`
-- **OGB:** `1.3.6`
-- **PyYAML:** `6.0.2`
-- **DeepRobust:** `0.2.11`
-- **Cupy:** Install via `pip install cupy-cuda12x`
-- **Seaborn:** `0.13.2`
-- **Munkres:** `1.1.4`
-- **CVXPY:** `1.5.2`
-- **PyMetis:** `2023.1.1`
-- **IPDB:** `0.13.13`
+### **Prerequisites**
 
-### **Installing with Pip**
+- **Python**: 3.8.0
+
+### **Step 1: Create and Activate a Virtual Environment**
+
+To manage dependencies, it's recommended to use a virtual environment.
+
+#### Using `venv`
+
+```bash
+python -m venv venv
+venv\Scripts\activate  # Windows
+# or
+source venv/bin/activate  # Unix/MacOS
+```
+
+#### Using `conda`
+
+```bash
+conda create -n myenv python=3.8
+conda activate myenv
+```
+
+### **Step 2: Install OpenGU**
+
+You can install OpenGU using one of the following methods:
+
+#### 1. **Using Pip**
+
+TODO: To install OpenGU directly from PyPI:
 
 ```bash
 pip install opengu
 ```
-Note: The pip install opengu command will only work after the package has been uploaded to PyPI. For now, you can install OpenGU directly from GitHub using the following command:
+
+#### 2. **Installing from GitHub for Local Development**
+
+TODO: To install OpenGU for local development, clone the GitHub repository and install it from the source:
+
+1. **Clone the Repository**
+
+    ```bash
+    git clone https://github.com/bwfan-bit/OpenGU.git
+    cd OpenGU
+    ```
+
+2. **Install OpenGU in Editable Mode**
+
+    ```bash
+    pip install -e .
+    ```
+
+### **Step 3: Install Dependencies**
+
+#### General Dependencies
+
+Install the general dependencies listed in the `requirements.txt` file:
 
 ```bash
-pip install git+https://github.com/OpenGU/OpenGU.git
+pip install -r requirements.txt
 ```
 
-### **Installation for Local Development:**
+#### CUDA-Specific Dependencies
+
+For GPU support, install the appropriate versions of PyTorch, CuPy, and related libraries that match your CUDA version.
+
+1. **Install PyTorch and torchvision with CUDA Support**
+
+   Example for CUDA 12.1 (PyTorch version 2.2.1 and torchvision version 0.17.1):
+
+   ```bash
+   pip install torch==2.2.1 torchvision==0.17.1 torchaudio --index-url https://download.pytorch.org/whl/cu121
+   ```
+
+2. **Install CuPy with CUDA Support**
+
+   Example for CUDA 12.x:
+
+   ```bash
+   pip install cupy-cuda12x
+   ```
+
+*Ensure your system has the appropriate CUDA version installed. For more information, refer to the [CuPy Installation Guide](https://docs.cupy.dev/en/stable/install.html#using-pip).*
+
+### **Verify Installation**
+
+After installation, verify that OpenGU is installed correctly by running:
+
 ```bash
-git clone https://github.com/OpenGU/OpenGU
-cd opengu
-pip install -e .
+python -c "import opengu; print(opengu.__version__)"
 ```
-
 
 ##  <span id="quick-start">🚀 Quick Start</span>
 
@@ -242,91 +258,58 @@ Follow these steps to quickly get started with OpenGU:
 ### **Step 1: Clone the Repository**
 
 ```bash
-git clone https://github.com/OpenGU/OpenGU
+git clone https://github.com/bwfan-bit/OpenGU.git
 cd OpenGU
 ```
 
 ### **Step 2: Install Dependencies**
 
-Ensure all dependencies listed in the [Installation](#installation) section are installed. You can install them using `pip`:
+#### General Dependencies
+You can install the general dependencies using `pip`:
 
 ```bash
-pip install -r OpenGU\requirement.txt
+pip install -r requirement.txt
 ```
+#### CUDA-Specific Dependencies
+For CUDA-specific dependencies, refer to the detailed instructions in the [Installation section](#installation)  above.
 
 
-### **Step 3: Configure Parameters**
+### **Step 3: Run the Main Script**
 
-Customize your experiment settings by editing the `config.yaml` file or passing parameters via command line. Key parameters include:
-
-- **method:** The unlearning method to use (e.g., `ceu`, `gnndelete`).
-- **dataset:** The dataset to work with (e.g., `Cora`, `Citeseer`).
-- **cuda:** The CUDA device index to use (e.g., `0`).
-- **proportion_unlearned_nodes:** The proportion of nodes to unlearn (e.g., `0.1` for 10%).
-
-Example `config.yaml`:
-
-```yaml
-method: ceu
-dataset: Cora
-cuda: 0
-proportion_unlearned_nodes: 0.1
-```
-
-### **Step 4: Run the Main Script**
-
-Execute the main script to initiate the graph unlearning process.
+After installing the dependencies, you can run the main script using the following command:
 
 ```bash
-python main.py --method ceu --dataset Cora --cuda 0 --proportion_unlearned_nodes 0.1
+python GULib-master/main.py --cuda 0 --dataset_name <dataset_name> --base_model <base_model> --unlearning_methods <unlearning_methods> --unlearn_task <unlearn_task> --downstream_task <downstream_task> --num_epochs 100 --batch_size 64
 ```
 
-*Alternatively, you can rely on the `config.yaml` configuration:*
+
+#### Optional arguments:
+
+- `--cuda <cuda_device>`: Specify which GPU to use. Replace `<cuda_device>` with the desired GPU number.
+- `--dataset_name <dataset_name>`: The name of the graph dataset. Replace `<dataset_name>` with a dataset from the list: `cora`, `citeseer`, `pubmed`, `CS`, `Physics`, `flickr`, `ppi`, `Photo`, `Computers`, `DBLP`, `ogbl`, `ogbn-arxiv`, `ogbn-products`.
+- `--base_model <base_model>`: The model architecture to use. Options include `GCN`, `GAT`, `GIN`, `SAGE`, `MLP`, etc.
+- `--unlearning_methods <unlearning_methods>`: The unlearning method to use. Choose from `GraphEraser`, `GUIDE`, `CEU`, etc.
+- `--unlearn_task <unlearn_task>`: The type of unlearning task. Options are `feature`, `node`, and `edge`.
+- `--downstream_task <downstream_task>`: The type of downstream task. Options are `node` and `edge`.
+- `--num_epochs <num_epochs>`: Number of epochs to run.
+- `--batch_size <batch_size>`: The batch size to use.
+
+Note that the above list includes only a subset of the available parameters. For more parameters and their descriptions, please refer to the `GULib-master/parameter_parser.py` file. 
+
+### Example Command:
+
+To run the **GCN** model using **GraphEraser** for **node-level unlearning** and **node-level downstream tasks**, you can run the following command:
 
 ```bash
-python main.py
+python GULib-master/main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GraphEraser --unlearn_task node --downstream_task node --num_epochs 100 --batch_size 64
 ```
 
-### **Detailed Example: Running Node Classification with CEU Method**
-
-1. **Set Up Configuration:**
-
-   Create or modify the `config.yaml` file with the desired parameters. For example:
-
-   ```yaml
-   method: ceu
-   dataset: Cora
-   cuda: 0
-   proportion_unlearned_nodes: 0.1
-   ```
-
-2. **Execute the Script:**
-
-   ```bash
-   python main.py
-   ```
-
-   *Or pass parameters directly via the command line:*
-
-   ```bash
-   python main.py --method ceu --dataset Cora --cuda 0 --proportion_unlearned_nodes 0.1
-   ```
-
-3. **Monitor the Process:**
-
-   The script will initialize the logger, set the random seeds, load and preprocess the data, build the model, and execute the unlearning manager. Logs will provide real-time feedback on the process.
-
-4. **View Results:**
-
-   Upon completion, results including model performance metrics and unlearning effectiveness will be available as per the logging configuration.
-
-### **Additional Tips**
-
-- **Reproducibility:** Ensure that the random seed is set for reproducible experiments. This is handled in the `seed_everything` function within `main.py`.
-  
-- **CUDA Configuration:** Verify that the specified CUDA device is available and properly configured to utilize GPU acceleration.
-
-- **Experiment Management:** The `UnlearningManager` handles the execution of unlearning methods. Familiarize yourself with its parameters and functionalities for advanced use cases.
+This command will:
+- Use the **GCN** model
+- Apply **GraphEraser** as the unlearning method
+- Perform **node-level unlearning** and **node-level downstream tasks**
+- Use the **cora** dataset
+- Train for **100 epochs** with a **batch size of 64**
 
 
 ## 🤝 How to Contribute
@@ -355,9 +338,21 @@ If you use OpenGU in your research, please cite our paper:
 }
 ```
 
-## <span id="reference">📖 Reference</span>
-
-| **Abbreviation** | **Title**                                                                                           | **Author(s)**          | **Conference/Year**    |
-|------------------|-----------------------------------------------------------------------------------------------------|------------------------|------------------------|
-| CEU              | [**Certified Edge Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/10.1145/3580305.3599271) | John Doe, Jane Smith   | ACM SIGKDD, 2023       |
-| GIF              | [**GIF: A General Graph Unlearning Strategy via Influence Function**](http://arxiv.org/abs/2304.02835)        | Alice Johnson, Bob Lee | arXiv preprint, 2023   |
+## <span id="references">📖 References</span>
+| **ID** | **Algorithm**   | **Paper**                                                                                             | **Conference/Journal**       |
+|--------|-----------------|-------------------------------------------------------------------------------------------------------|-----------------------------|
+| 1      | GraphEraser     | [**Graph Unlearning**](https://dl.acm.org/doi/abs/10.1145/3548606.3559352)                               | CCS 2022                    |
+| 2      | GUIDE           | [**Inductive Graph Unlearning**](https://arxiv.org/abs/2304.03093)                                      | USENIX Security 2023         |
+| 3      | GraphRevoker    | [**Graph Unlearning with Efficient Partial Retraining**](https://dl.acm.org/doi/abs/10.1145/3589335.3651265)              | WWW 2024                    |
+| 4      | GIF             | [**GIF: A General Graph Unlearning Strategy via Influence Function**](http://arxiv.org/abs/2304.02835)   | WWW 2023                    |
+| 5      | CGU             | [**Certified Graph Unlearning**](https://arxiv.org/abs/2206.09140)                                    | NeurIPS 2022 Workshop       |
+| 6      | CEU             | [**Certified Edge Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/10.1145/3580305.3599271) | KDD 2023                    |
+| 7      | GST             | [**Unlearning Graph Classifiers with Limited Data Resources**](https://dl.acm.org/doi/abs/10.1145/3543507.3583547)        | WWW 2023                    |
+| 8      | IDEA            | [**IDEA: A Flexible Framework of Certified Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/abs/10.1145/3637528.3671744) | KDD 2024                    |
+| 9      | GNNDelete       | [**GNNDelete: A General Strategy for Unlearning in Graph Neural Networks**](https://arxiv.org/abs/2302.13406) | ICLR 2023                   |
+| 10     | MEGU            | [**Towards Effective and General Graph Unlearning via Mutual Evolution**](https://doi.org/10.1609/aaai.v38i12.29273) | AAAI 2024                   |
+| 11     | D2DGN           | [**Distill to Delete: Unlearning in Graph Networks with Knowledge Distillation**](https://arxiv.org/abs/2309.16173)                   | arXiv 2024                  |
+| 12     | GCU             | [**When Contrastive Learning Meets Graph Unlearning: Graph Contrastive Unlearning for Link Prediction**](https://ieeexplore.ieee.org/abstract/document/10386624)                                   | BigData 2023                |
+| 13     | GUKD            | [**Graph Unlearning Using Knowledge Distillation**](https://dl.acm.org/doi/abs/10.1007/978-981-99-7356-9_29) | ICICS 2023                  |
+| 14     | UtU             | [**Unlink to Unlearn: Simplifying Edge Unlearning in GNNs**](https://arxiv.org/abs/2402.10695)                                     | WWW 2024                    |
+| 15     | Projector       | [**Efficiently Forgetting What You Have Learned in Graph Representation Learning via Projection**](https://arxiv.org/abs/2302.08990)            | AISTATS 2023                |
