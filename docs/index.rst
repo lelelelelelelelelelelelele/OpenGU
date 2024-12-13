@@ -64,7 +64,7 @@ API
     :caption: Contents
 
     api/dataset
+    api/pipeline
     api/task
     api/unlearning
-    api/pipeline
     api/utils

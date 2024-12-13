@@ -60,7 +60,7 @@ GraphRevoker
 GST
 -----------------------
 
-.. automodule:: unlearning.unlearning_methods.GST.gst
+.. automodule:: unlearning.unlearning_methods.GST.gst_based
    :members:
    :special-members: __init__
    :show-inheritance:
