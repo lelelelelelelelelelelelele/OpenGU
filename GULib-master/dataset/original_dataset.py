@@ -26,7 +26,35 @@ from torch_geometric.data import Data, InMemoryDataset
 from torch_geometric.utils import k_hop_subgraph, to_scipy_sparse_matrix
 from utils.utils import sparse_mx_to_torch_sparse_tensor,normalize_adj
 class original_dataset:
+    """
+    This class handles loading and processing of various graph datasets. It supports both inductive and 
+    transductive settings for dataset splits and can handle different types of datasets (e.g., Planetoid, 
+    Amazon, PPI, etc.). The class supports loading and preprocessing the dataset, handling different splits 
+    (train, validation, test), and managing dataset-specific attributes like the number of features and classes.
+
+    Class Attributes:
+        args (dict): A dictionary containing various configuration options like dataset name, split type, 
+                     and base model type.
+        
+        dataset_name (str): The name of the dataset to load.
+        
+        num_features (dict): A dictionary that maps dataset names to the number of features in each dataset.
+        
+        base_model (str): The base model to use (e.g., GCN, GraphSAGE, etc.).
+        
+        logger (logging.Logger): A logger object for logging information.
+    """
     def __init__(self,args,logger):
+        """
+        Initializes the original_dataset object with the provided arguments and logger.
+
+        Args:
+            
+            args (dict): A dictionary containing configuration options.
+            
+            logger (logging.Logger): A logger object used to log dataset loading information.
+
+        """
         self.args = args
         self.dataset_name = self.args['dataset_name']
         self.num_features = {
@@ -67,7 +95,35 @@ class original_dataset:
 
 
     def load_data(self):
-        """ get the original data and split according to inductive or transductive
+        """
+        Loads the dataset based on the dataset name and splits it according to the inductive or 
+        transductive setting. It checks if the data has already been processed and saved; if not, 
+        it loads and processes the raw data from the appropriate source.
+
+        The method performs the following:
+
+            - Checks if the dataset already exists (via file paths) and loads it if available.
+
+            - If the dataset does not exist, it loads the dataset from raw data sources based on 
+              the specified dataset name.
+
+            - Preprocesses the dataset according to its type and settings (e.g., normalizing features, 
+              converting to undirected graphs, handling different splits).
+
+            - Saves the processed data for future use.
+
+        Args:
+            None
+
+        Returns:
+            tuple: A tuple containing two elements:
+
+                - data (Data): The processed graph data object.
+
+                - dataset (Dataset): The dataset object containing additional dataset-specific information.
+
+        Raises:
+            Exception: If the dataset name is not supported or invalid.
         """
         if self.args["is_transductive"]:
             if self.args['is_balanced']:
@@ -241,6 +297,20 @@ class original_dataset:
         return data,dataset
 
     def edge2graph(self,edge_index):
+        """
+        Converts an edge index to an undirected graph and returns its adjacency matrix.
+
+        This method takes an edge index, constructs an undirected graph from it, and returns the corresponding adjacency matrix.
+
+        Args:
+            
+            edge_index (Tensor): The edge index tensor representing the graph's edges, with shape (2, num_edges), where each column represents an edge.
+
+        Returns:
+            
+            scipy.sparse.csr_matrix: The adjacency matrix of the graph, represented in sparse CSR format.
+
+        """
         # 创建一个空的无向图
         G = nx.Graph()
 
@@ -255,6 +325,27 @@ class original_dataset:
 
 
 class WikiPages(InMemoryDataset):
+    """
+    A dataset class for loading and processing the WikiPages dataset.
+
+    This class handles the loading, processing, and saving of the WikiPages dataset,
+    which consists of node features, labels, and graph edges. The dataset is loaded 
+    into memory from processed files or downloaded and processed from the raw files.
+
+    Class Attributes:
+    
+    url (str): The URL from which the dataset can be downloaded.
+    
+    name (str): The name of the dataset (e.g., "chameleon", "squirrel").
+    
+    raw_dir (str): The directory containing the raw dataset files.
+    
+    processed_dir (str): The directory where processed dataset files are stored.
+    
+    raw_file_names (List[str]): The list of raw data file names.
+    
+    processed_file_names (str): The name of the processed dataset file.
+    """
     url = "https://data.dgl.ai/dataset"
 
     def __init__(
@@ -265,32 +356,82 @@ class WikiPages(InMemoryDataset):
         pre_transform: Optional[Callable] = None,
         force_reload: bool = False,
     ) -> None:
+        """
+        Initializes the WikiPages dataset class.
+
+        Args:
+            root (str): The root directory where the dataset will be stored.
+
+            name (str): The name of the dataset (e.g., "chameleon", "squirrel").
+
+            transform (Optional[Callable], optional): A function/transform that takes in a data object and returns a transformed version.
+
+            pre_transform (Optional[Callable], optional): A function/transform that is applied before saving the dataset to disk.
+
+            force_reload (bool, optional): Whether to force reload the dataset even if it is already processed. Defaults to False.
+        """
         self.name = name # [chameleon, squirrel]
 
-        super().__init__(root, transform, pre_transform,
-                         force_reload=force_reload)
+        super().__init__(root, transform, pre_transform,force_reload=force_reload)
+
         self.load(self.processed_paths[0])
 
     @property
     def raw_dir(self) -> str:
+        """
+        Returns the directory path containing the raw data files.
+
+        Returns:
+            str: The path to the raw data directory.
+        """
         return osp.join(self.root, self.name, 'raw')
 
     @property
     def processed_dir(self) -> str:
+        """
+        Returns the directory path where the processed data is stored.
+
+        Returns:
+            str: The path to the processed data directory.
+        """
         return osp.join(self.root, self.name, 'processed')
 
     @property
     def raw_file_names(self) -> List[str]:
+        """
+        Returns the list of raw data file names.
+
+        Returns:
+            List[str]: The list of raw data files.
+        """
         return ["out1_graph_edges.txt", "out1_node_feature_label.txt"]
 
     @property
     def processed_file_names(self) -> str:
+        """
+        Returns the name of the processed dataset file.
+
+        Returns:
+            str: The name of the processed file.
+        """
         return 'data.pt'
 
     def download(self) -> None:
+        """
+        Downloads the dataset from the specified URL and extracts it.
+
+        The dataset is downloaded and extracted into the `raw_dir` directory.
+        """
         fs.cp(f"{self.url}/{self.name.lower()}.zip", self.raw_dir, extract=True)
 
     def process(self) -> None:
+        """
+        Processes the raw dataset and saves it in the processed directory.
+
+        Reads the raw files, extracts the edge index, node features, and labels, 
+        then saves them into a PyTorch `Data` object, which is subsequently saved 
+        to the processed directory.
+        """
         edge_index_path = osp.join(self.raw_dir, "out1_graph_edges.txt")
         data_list = []
         with open(edge_index_path, 'r') as file:
@@ -319,4 +460,10 @@ class WikiPages(InMemoryDataset):
         self.save([data], self.processed_paths[0])
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the dataset.
+
+        Returns:
+            str: The string representation of the dataset.
+        """
         return f'{self.name}()'
