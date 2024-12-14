@@ -21,7 +21,63 @@ from utils.utils import JSD, remove_undirected_edges
 from pipeline.IF_based_pipeline import IF_based_pipeline
 
 class ceu(IF_based_pipeline):
+    """
+    CEU (Certified Edge Unlearning) class for implementing unlearning methods in graph neural networks.
+    This class inherits from IF_based_pipeline.
+
+    Class Attributes:
+        args (dict): Arguments for the CEU pipeline.
+
+        logger (Logger): Logger for logging information.
+
+        data (dict): Data used in the model.
+
+        model_zoo (ModelZoo): Model zoo containing various models.
+
+        device (torch.device): Device to run the computations on (CPU or GPU).
+
+    Methods:
+        __init__(args, logger, model_zoo):
+            Initializes the CEU class with the given arguments, logger, and model zoo.
+
+        fidelity():
+            Evaluates the fidelity of the unlearning process by comparing the accuracy of the original, benign, and adversarial models.
+
+        efficacy():
+            Evaluates the efficacy of the unlearning process by calculating the Jensen-Shannon Divergence (JSD) and privacy leakage.
+
+        adv_retrain_unlearn(data, num_edges):
+            Performs adversarial retraining and unlearning on the given data with a specified number of edges.
+
+        adv_unlearn(data, num_edges):
+            Performs adversarial unlearning on the given data with a specified number of edges.
+
+        adversarial_adjacency_mat(data, n_perturbations=500):
+            Generates an adversarial adjacency matrix with a specified number of perturbations.
+
+        determine_target_model():
+            Determines and sets the target model for the CEU pipeline.
+
+        train_original_model(run):
+            Trains the original model and logs the results.
+
+        unlearning_request():
+            Prepares the data and edges for the unlearning request.
+
+        unlearn():
+            Performs the unlearning process and evaluates the results.
+    """
     def __init__(self,args,logger,model_zoo):
+        """
+        Initializes the CEU class with the given arguments, logger, and model zoo.
+
+        Args:
+            args (dict): A dictionary containing the configuration parameters. It must include keys like "unlearn_trainer" and "unlearn_ratio".
+
+            logger (Logger): A logger object used to log runtime information.
+
+            model_zoo (ModelZoo): An object that provides access to models and datasets.
+        """
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
@@ -30,143 +86,145 @@ class ceu(IF_based_pipeline):
         # self.NodeClassifier = NodeClassifier(args,self.data,self.model_zoo,self.logger)
         self.args["unlearn_trainer"] = 'CEUTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
-        self.fidelity()
-        self.efficacy()
+        # self.fidelity()
+        # self.efficacy()
         
 
-    def fidelity(self):
-        self.delete_edges = [100,200,400,800,1000]
-        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
-        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
-        result = defaultdict(list)
+    # def fidelity(self):
+    #     self.delete_edges = [100,200,400,800,1000]
+    #     test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
+    #     edge_index = torch.tensor(self.data['edges'], device=self.device).t()
+    #     result = defaultdict(list)
 
-        for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
-            original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
-            original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
+    #     for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
+    #         original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+    #         original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
 
-            for num_edges in self.delete_edges:
-                _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
+    #         for num_edges in self.delete_edges:
+    #             _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
 
-                # Benign
-                random_edges = []
-                while len(random_edges) < num_edges * 2:
-                    v1 = random.randint(0, self.data['num_nodes'] - 1)
-                    v2 = random.randint(0, self.data['num_nodes'] - 1)
-                    if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
-                        continue
-                    random_edges.append((v1, v2))
-                    random_edges.append((v2, v1))
+    #             # Benign
+    #             random_edges = []
+    #             while len(random_edges) < num_edges * 2:
+    #                 v1 = random.randint(0, self.data['num_nodes'] - 1)
+    #                 v2 = random.randint(0, self.data['num_nodes'] - 1)
+    #                 if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
+    #                     continue
+    #                 random_edges.append((v1, v2))
+    #                 random_edges.append((v2, v1))
 
-                _data = copy.deepcopy(self.data)
-                _data['edges'] += random_edges
-                benign_orig = self.target_model.CEU_train(_data,eval=False, verbose=False)
-                benign_unlearn, _ = unlearn(self.args,_data, benign_orig, random_edges, device=self.device)
+    #             _data = copy.deepcopy(self.data)
+    #             _data['edges'] += random_edges
+    #             benign_orig = self.target_model.CEU_train(_data,eval=False, verbose=False)
+    #             benign_unlearn, _ = unlearn(self.args,_data, benign_orig, random_edges, device=self.device)
 
-                benign_res, _ = self.target_model.CEU_test(benign_unlearn, test_loader, edge_index)
-                result['# edges'].append(num_edges)
-                result['setting'].append('Retrain')
-                result['accuracy'].append(original_res['accuracy'])
+    #             benign_res, _ = self.target_model.CEU_test(benign_unlearn, test_loader, edge_index)
+    #             result['# edges'].append(num_edges)
+    #             result['setting'].append('Retrain')
+    #             result['accuracy'].append(original_res['accuracy'])
 
-                result['# edges'].append(num_edges)
-                result['setting'].append('Benign')
-                result['accuracy'].append(benign_res['accuracy'])
+    #             result['# edges'].append(num_edges)
+    #             result['setting'].append('Benign')
+    #             result['accuracy'].append(benign_res['accuracy'])
 
-                result['# edges'].append(num_edges)
-                result['setting'].append('Advesarial')
-                result['accuracy'].append(adv_res['accuracy'])
+    #             result['# edges'].append(num_edges)
+    #             result['setting'].append('Advesarial')
+    #             result['accuracy'].append(adv_res['accuracy'])
         
-        df = pd.DataFrame(data=result)
-        print(df.groupby(['# edges', 'setting']).mean())
-        if not os.path.exists('./result/CEU'):
-            os.mkdir('./result/CEU')
-        df.to_csv(f'./result/CEU/fidelity_{self.args["dataset_name"]}_{self.args["base_model"]}.csv')
+    #     df = pd.DataFrame(data=result)
+    #     print(df.groupby(['# edges', 'setting']).mean())
+    #     if not os.path.exists('./result/CEU'):
+    #         os.mkdir('./result/CEU')
+    #     df.to_csv(f'./result/CEU/fidelity_{self.args["dataset_name"]}_{self.args["base_model"]}.csv')
 
-    def efficacy(self):
-        self.delete_edges = [100, 200, 400, 800, 1000]
-        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
-        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
-        nodes = torch.tensor(self.data['nodes'], device=self.device)
+    # def efficacy(self):
+    #     self.delete_edges = [100, 200, 400, 800, 1000]
+    #     test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
+    #     edge_index = torch.tensor(self.data['edges'], device=self.device).t()
+    #     nodes = torch.tensor(self.data['nodes'], device=self.device)
 
-        jsd_result = defaultdict(list)
-        mia_result = defaultdict(list)
+    #     jsd_result = defaultdict(list)
+    #     mia_result = defaultdict(list)
 
 
-        for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
-            original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
-            original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
+    #     for _ in tqdm(range(1), desc=f'{self.args["dataset_name"]}-{self.args["base_model"]}'):
+    #         original_model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+    #         original_res, _ = self.target_model.CEU_test(original_model, test_loader, edge_index)
 
-            for num_edges in self.delete_edges:
-                def _efficacy(retrain_model, unlearn_model, edge_index_prime):
-                    retrain_model.eval()
-                    with torch.no_grad():
-                        retrain_post = retrain_model(nodes, edge_index_prime)
-                    unlearn_model.eval()
-                    with torch.no_grad():
-                        unlearn_post = unlearn_model(nodes, edge_index_prime)
+    #         for num_edges in self.delete_edges:
+    #             def _efficacy(retrain_model, unlearn_model, edge_index_prime):
+    #                 retrain_model.eval()
+    #                 with torch.no_grad():
+    #                     retrain_post = retrain_model(nodes, edge_index_prime)
+    #                 unlearn_model.eval()
+    #                 with torch.no_grad():
+    #                     unlearn_post = unlearn_model(nodes, edge_index_prime)
 
-                    retrain_post = F.softmax(retrain_post, dim=1).cpu().numpy().astype(np.float64)
-                    unlearn_post = F.softmax(unlearn_post, dim=1).cpu().numpy().astype(np.float64)
+    #                 retrain_post = F.softmax(retrain_post, dim=1).cpu().numpy().astype(np.float64)
+    #                 unlearn_post = F.softmax(unlearn_post, dim=1).cpu().numpy().astype(np.float64)
 
-                    _jsd = JSD(retrain_post, unlearn_post)
-                    if np.sum(_jsd < 0) > 0:
-                        _jsd[_jsd < 0] = 0
-                    return np.mean(_jsd)
+    #                 _jsd = JSD(retrain_post, unlearn_post)
+    #                 if np.sum(_jsd < 0) > 0:
+    #                     _jsd[_jsd < 0] = 0
+    #                 return np.mean(_jsd)
 
-                adv_model, adv_unlearn_model, A = self.adv_unlearn(self.data, num_edges)
+    #             adv_model, adv_unlearn_model, A = self.adv_unlearn(self.data, num_edges)
 
-                adv_o_pl, adv_r_pl, adv_u_pl = _mia_attack(self.data, adv_model, original_model,
-                                                           adv_unlearn_model, A, self.device)
-                edge_index_prime = torch.tensor(remove_undirected_edges(self.data['edges'], A), device=self.device).t()
+    #             adv_o_pl, adv_r_pl, adv_u_pl = _mia_attack(self.data, adv_model, original_model,
+    #                                                        adv_unlearn_model, A, self.device)
+    #             edge_index_prime = torch.tensor(remove_undirected_edges(self.data['edges'], A), device=self.device).t()
 
-                adv_jsd = _efficacy(original_model, adv_unlearn_model, edge_index_prime)
+    #             adv_jsd = _efficacy(original_model, adv_unlearn_model, edge_index_prime)
 
-                random_edges = []
-                while len(random_edges) < num_edges * 2:
-                    v1 = random.randint(0, self.data['num_nodes'] - 1)
-                    v2 = random.randint(0, self.data['num_nodes'] - 1)
-                    if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
-                        continue
-                    random_edges.append((v1, v2))
-                    random_edges.append((v2, v1))
+    #             random_edges = []
+    #             while len(random_edges) < num_edges * 2:
+    #                 v1 = random.randint(0, self.data['num_nodes'] - 1)
+    #                 v2 = random.randint(0, self.data['num_nodes'] - 1)
+    #                 if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
+    #                     continue
+    #                 random_edges.append((v1, v2))
+    #                 random_edges.append((v2, v1))
 
-                _data = copy.deepcopy(self.data)
-                _data['edges'] += random_edges
-                benign_orig = self.target_model.CEU_train(_data, eval=False, verbose=False)
-                benign_unlearn, _ = unlearn(self.args, _data, benign_orig, random_edges, device=self.device)
+    #             _data = copy.deepcopy(self.data)
+    #             _data['edges'] += random_edges
+    #             benign_orig = self.target_model.CEU_train(_data, eval=False, verbose=False)
+    #             benign_unlearn, _ = unlearn(self.args, _data, benign_orig, random_edges, device=self.device)
 
-                _edges = remove_undirected_edges(self.data['edges'], random_edges)
-                edge_index_prime = torch.tensor(_edges, device=self.device).t()
-                beni_o_pl, beni_r_pl, beni_u_pl = _mia_attack(self.data, benign_orig, original_model,
-                                                              benign_unlearn, random_edges, self.device)
-                benign_jsd = _efficacy(original_model, benign_unlearn, edge_index_prime)
+    #             _edges = remove_undirected_edges(self.data['edges'], random_edges)
+    #             edge_index_prime = torch.tensor(_edges, device=self.device).t()
+    #             beni_o_pl, beni_r_pl, beni_u_pl = _mia_attack(self.data, benign_orig, original_model,
+    #                                                           benign_unlearn, random_edges, self.device)
+    #             benign_jsd = _efficacy(original_model, benign_unlearn, edge_index_prime)
 
-                jsd_result['# edges'].append(num_edges)
-                jsd_result['setting'].append('adv')
-                jsd_result['jsd'].append(np.mean(adv_jsd))
+    #             jsd_result['# edges'].append(num_edges)
+    #             jsd_result['setting'].append('adv')
+    #             jsd_result['jsd'].append(np.mean(adv_jsd))
 
-                jsd_result['# edges'].append(num_edges)
-                jsd_result['setting'].append('benign')
-                jsd_result['jsd'].append(np.mean(benign_jsd))
+    #             jsd_result['# edges'].append(num_edges)
+    #             jsd_result['setting'].append('benign')
+    #             jsd_result['jsd'].append(np.mean(benign_jsd))
 
-                mia_result['# edges'].append(num_edges)
-                mia_result['setting'].append('adv')
-                mia_result['privacy leakage'].append(adv_u_pl)
+    #             mia_result['# edges'].append(num_edges)
+    #             mia_result['setting'].append('adv')
+    #             mia_result['privacy leakage'].append(adv_u_pl)
 
-                mia_result['# edges'].append(num_edges)
-                mia_result['setting'].append('benign')
-                mia_result['privacy leakage'].append(beni_u_pl)
+    #             mia_result['# edges'].append(num_edges)
+    #             mia_result['setting'].append('benign')
+    #             mia_result['privacy leakage'].append(beni_u_pl)
 
-            jsd_df = pd.DataFrame(jsd_result)
-            jsd_df.to_csv(os.path.join('./result/CEU', f'rq3_jsd_{self.args["dataset_name"]}_{self.args["base_model"]}.csv'))
+    #         jsd_df = pd.DataFrame(jsd_result)
+    #         jsd_df.to_csv(os.path.join('./result/CEU', f'rq3_jsd_{self.args["dataset_name"]}_{self.args["base_model"]}.csv'))
 
-            mia_df = pd.DataFrame(mia_result)
-            mia_df.to_csv(os.path.join('./result/CEU', f'rq3_mia_{self.args["dataset_name"]}_{self.args["base_model"]}.csv'))
+    #         mia_df = pd.DataFrame(mia_result)
+    #         mia_df.to_csv(os.path.join('./result/CEU', f'rq3_mia_{self.args["dataset_name"]}_{self.args["base_model"]}.csv'))
 
     def adv_retrain_unlearn(self,data, num_edges):
+        """
+        performs adversarial retraining to facilitate the unlearning process.
+        """
         test_loader = DataLoader(data['test_set'])
 
         A = self.adversarial_adjacency_mat(data, n_perturbations=int(num_edges))
-        print()
         print('The number we asked:', num_edges)
         print('The number of adv edges:', len(A) / 2)
 
@@ -187,6 +245,11 @@ class ceu(IF_based_pipeline):
         return orig_res_prime, orig_loss_prime, unlearn_res_prime, unlearn_loss_prime
 
     def adv_unlearn(self, data, num_edges):
+        """
+        performs adversarial unlearning. It generates a set of adversarial edges by perturbing the original adjacency matrix with a specified number of edges.
+        These adversarial edges are added to the existing edge data to create a modified dataset. The function then trains a new model using this modified data and performs an unlearning process based on the adversarial edges. 
+        Finally, it returns the original trained model, the unlearned model, and the list of adversarial edges.
+        """
         A = self.adversarial_adjacency_mat(data, n_perturbations=int(num_edges))
         print()
         print('The number we asked:', num_edges)
@@ -201,6 +264,14 @@ class ceu(IF_based_pipeline):
         unlearn_model_prime, _ = unlearn(self.args, data_, orig_model_prime, A, device=self.device)
         return orig_model_prime, unlearn_model_prime, A
     def adversarial_adjacency_mat(self,data, n_perturbations=500):
+        """
+        Generates an adversarial adjacency matrix by introducing perturbations to the original graph structure. 
+        The function leverages a surrogate Graph Convolutional Network (GCN) model to identify and apply 
+        the most impactful modifications, aiming to degrade the performance of the victim model. It performs 
+        a specified number of perturbations, either by adding or removing edges, based on the gradients 
+        computed from the chosen loss function. The resulting adversarial adjacency matrix highlights the 
+        altered connections that most significantly affect the model's predictions.
+        """
         # data = load_data(args)
         n_feat = data['features'].shape[1]
 
@@ -241,20 +312,32 @@ class ceu(IF_based_pipeline):
         return A
 
     def determine_target_model(self):
+        """
+        Determines and sets the target model for the CEU pipeline.
+        This method logs the base model being used and initializes the target model
+        using the provided arguments, logger, model zoo, and data.
+        """
         self.logger.info('target model: %s' % (self.args['base_model'],))
         self.args["unlearn_trainer"] = "CEUTrainer"
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         
     def train_original_model(self, run):
+        """
+        Trains the target model using the provided data and logs the training process. 
+        It also evaluates the model on the test set and stores the accuracy if the model is poisoned.
+        """
         self.logger.info('training target models, run %s' % run)
         test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
         edge_index = torch.tensor(self.data['edges'], device=self.device).t()
-        result = defaultdict(list)
         self.target_model.model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
         original_res, _ = self.target_model.CEU_test(self.target_model.model, test_loader, edge_index)
         if self.args["poison"]:
             self.poison_f1 = original_res["accuracy"]
     def unlearning_request(self):
+        """
+        This method handles the unlearning request by calculating the number of edges to unlearn, 
+        performing adversarial retraining, and generating random edges that are not present in the original data.
+        """
         num_edges = int(self.args["unlearn_ratio"]*self.data["num_edges"])
         _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
 
