@@ -20,7 +20,48 @@ from torch_geometric.loader import ClusterData, ClusterLoader
 from torch_geometric.utils import k_hop_subgraph, to_scipy_sparse_matrix
 from utils.utils import sparse_mx_to_torch_sparse_tensor,normalize_adj
 class BaseTrainer:
+    """
+    A base trainer class for training models on various tasks (node, edge, or graph level).
+
+    This class provides a foundational framework for training different types of models 
+    on graph-based datasets. It manages essential components such as configuration 
+    parameters, logging, model setup, and data handling. Subclasses should extend 
+    this class to implement specific training and evaluation routines tailored to their 
+    respective tasks.
+
+    Attributes:
+        args (dict): Configuration parameters for training, including model type, 
+                     dataset specifications, and training hyperparameters.
+
+        logger (logging.Logger): Logger object for logging training progress, metrics, 
+                                 and other relevant information.
+
+        model (torch.nn.Module): The neural network model to be trained.
+
+        data (torch_geometric.data.Data): The dataset containing graph information, 
+                                         including features, labels, and edge indices, 
+                                         used for training and evaluation.
+
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training.
+    """
     def __init__(self,args,logger,model, data):
+        """
+        Initializes the BaseTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, and other relevant settings.
+
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+
+            model (torch.nn.Module): The neural network model that will be trained.
+
+            data (torch_geometric.data.Data): The dataset containing graph information, 
+                                             including features, labels, and edge indices, 
+                                             used for training and evaluation.
+        """
         self.args = args
         self.logger = logger
         self.model = model
@@ -28,6 +69,25 @@ class BaseTrainer:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def train(self,save=False,model_path=None):
+        """
+        Trains the model based on the specified downstream task (node, edge, or graph).
+
+        This method selects the appropriate training routine based on the task type 
+        defined in the configuration parameters. It can optionally save the best model 
+        weights to the specified path.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                   Defaults to False.
+
+            model_path (str, optional): The path where the best model weights will be saved.
+                                        If None, a default path based on configuration parameters
+                                        will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time per epoch.
+        """
         if self.args["downstream_task"] == 'node':
             return self.train_node(save,model_path)
         elif self.args["downstream_task"] == 'edge':
