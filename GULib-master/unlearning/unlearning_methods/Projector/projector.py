@@ -20,6 +20,17 @@ from config import BLUE_COLOR,RESET_COLOR
 from sklearn.metrics import f1_score, accuracy_score,recall_score,roc_auc_score
 
 class projector():
+    """
+    Projector class Projects the parameters to a subspace that is irrelevant to the node features that need to be forgotten and forgets the node features.
+    It supports node and feature unlearning requests, and downstream tasks of node classification.
+
+    Class Attributes:
+        args (dict): Configuration parameters for the unlearning process.
+
+        logger (Logger): Logger instance for recording informational and debugging messages.
+
+        model_zoo (ModelZoo): Collection of pre-trained models available for training and evaluation within the pipeline.
+    """
     def __init__(self,args,logger,model_zoo):
         self.args = args
         self.logger =logger
@@ -39,7 +50,9 @@ class projector():
 
 
     def run_exp(self):
-
+        """
+        Executes the main experimental pipeline, including data preparation, model training, projection-based unlearning, and evaluation. It iterates over multiple runs, performs unlearning on specified nodes, updates model parameters, and records performance metrics such as F1 score and AUC.
+        """
         for self.run in range(self.args["num_runs"]):
             self.data = copy.deepcopy(self.data_copy)
             if self.args["dataset_name"] =="ogbn-arxiv":
@@ -170,6 +183,9 @@ class projector():
         )
 
     def pre_train(self):
+        """
+        Pre-trains the model using the training data and optimizer settings. The function returns the model with the best validation performance.
+        """
         best_valid_score = 0
 
         model = self.model
@@ -238,6 +254,10 @@ class projector():
 
     @torch.no_grad()
     def evaluation_reuse_labels(self,model,is_unlearning=False):
+        """
+        Evaluates the model's performance by computing both direct predictions and predictions with reused labels.
+        Updates the average F1 and AUC scores based on the evaluation results.
+        """
         model = model.to(self.device)
 
         # directly predict
@@ -319,7 +339,12 @@ class projector():
         self.reuse_average_f1[self.run] = test_acc
 
     def mia_attack(self):
-
+        """
+        Performs a Membership Inference Attack (MIA) to assess the model's privacy by determining 
+        whether specific data points were part of the training dataset. It compares the model's 
+        soft labels before and after the unlearning process and calculates the ROC AUC score to 
+        evaluate the effectiveness of unlearning.
+        """
         self.mia_num = self.unlearning_num
         original_softlabels_member = self.original_softlabels[self.unlearning_nodes]
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]

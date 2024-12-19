@@ -82,7 +82,7 @@ class GUIDETrainer(BaseTrainer):
         self.save_model(model_path,best_w)        
         return best_f1,avg_training_time
 
-    @torch.no_grad
+    # @torch.no_grad
     def test_node_minibatch(self):
         self.model.eval()  # 设置模型为评估模式
         loader = GraphSAINTNodeSampler(self.data, batch_size=256)  # 创建测试阶段的采样器

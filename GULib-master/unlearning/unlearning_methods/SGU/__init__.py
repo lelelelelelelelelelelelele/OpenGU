@@ -1,1 +1,1 @@
-from .sgu import *
+from .sgu import sgu

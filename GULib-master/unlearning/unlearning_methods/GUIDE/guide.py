@@ -28,6 +28,9 @@ from task import get_trainer
 from pipeline.Shard_based_pipeline import Shard_based_pipeline
 from torch_geometric.utils import negative_sampling
 class guide(Shard_based_pipeline):
+    """
+    
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args

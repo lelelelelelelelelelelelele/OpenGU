@@ -12,7 +12,6 @@ from utils.dataset_utils import *
 # from pipeline.Shard_based_components.Aggregation.aggregator_guide import Aggregator_GUIDE
 # from pipeline.Shard_based_components.Partition.kernel_vector import PyramidMatchVector
 from task import get_trainer
-from memory_profiler import profile
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 
@@ -74,7 +73,7 @@ class Shard_based_pipeline:
         self.avg_unlearning_time = np.zeros(self.args["num_runs"])
         pass
     
-    @profile
+    # @profile
     def run_exp_mem(self):
         """
         Executes the experimental pipeline while profiling memory usage.

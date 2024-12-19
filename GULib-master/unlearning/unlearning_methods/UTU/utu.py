@@ -12,6 +12,18 @@ from task.UtUTrainer import UtUTrainer
 from config import BLUE_COLOR,RESET_COLOR
 import time
 class utu:
+    """
+    UTU (Unlink To Unlearn) class is based on direct edge removal and without retraining.
+    It supports both node and edge unlearning requests, but only supports downstream tasks of link prediction.
+
+    Class Attributes:
+        args (dict): Configuration parameters for the unlearning process, including the number of unlearned nodes/edges, 
+                     number of runs, downstream tasks, and other relevant settings.
+
+        logger (Logger): Logger instance for recording informational and debugging messages.
+
+        model_zoo (ModelZoo): Collection of pre-trained models available for training and evaluation within the pipeline.
+    """
     def __init__(self, args, logger, model_zoo):
         self.args = args
         self.logger = logger
@@ -25,6 +37,9 @@ class utu:
         self.avg_training_time = np.zeros(num_runs)
 
     def run_exp(self):
+        """
+        Overall pipeline of UTU method. Executes the UTU unlearning pipeline by iterating through the specified number of runs, training the GNN model, performing unlearning, and logging the resulting performance metrics.
+        """
         for self.run in range(self.args["num_runs"]):
             self.train_gnn()
             self.delete_gnn()
@@ -43,6 +58,12 @@ class utu:
                 )
             )
     def train_gnn(self):
+        """
+        Trains the GNN model using the current dataset and configuration parameters.
+        This function sets up the training environment, initializes necessary directories, processes the dataset,
+        initializes the edge predictor, and trains the UTU model. If poisoning is enabled and the unlearning task is edge-related,
+        it also evaluates the model's performance after poisoning.
+        """
         self.args["checkpoint_dir"] = root_path + '/data/UTU/checkpoint_node'
         self.args["checkpoint_dir"] = os.path.join(self.args["checkpoint_dir"], self.args["dataset_name"], self.args["base_model"], 'original',
                                            str(self.args["random_seed"]))
@@ -61,6 +82,11 @@ class utu:
             self.poison_f1[self.run] = self.EdgePredictor.evaluate_model()
 
     def delete_gnn(self):
+        """
+        Performs unlearning on the GNN model by removing specified data and updating the model parameters.
+        This involves setting up directories for unlearning, splitting the data into forget and retain subsets, initializing the unlearning model,
+        loading the trained model weights, configuring the optimizer, training the unlearning model, and evaluating the updated model's performance.
+        """
         self.args["checkpoint_dir"] = root_path + '/data/UTU/checkpoint_node'
         original_path = os.path.join(self.args["checkpoint_dir"], self.args["dataset_name"], self.args["base_model"], 'original', str(self.args["random_seed"]))
         attack_path_all = os.path.join(self.args["checkpoint_dir"], self.args["dataset_name"],self.args["base_model"], 'member_infer_all',
@@ -145,6 +171,16 @@ class utu:
         self.average_f1[self.run] = test_results[1]
     def train_test_split_edges_no_neg_adj_mask(self, data, val_ratio: float = 0.05, test_ratio: float = 0.05,
                                                two_hop_degree=None):
+        
+        """
+        Splits the edges of the graph into training, validation, and test sets without adding a negative adjacency mask.
+        This function ensures that only the upper triangular portion of the edge index is used, avoiding duplicate edges.
+        It randomly permutes the edges and splits them according to the specified validation and test ratios.
+        If a two_hop_degree is provided, it prioritizes low-degree edges for the test set.
+        Negative samples for validation and testing are generated using negative sampling.
+        """
+        
+        
         '''Avoid adding neg_adj_mask'''
 
         num_nodes = data.num_nodes

@@ -1,1 +1,1 @@
-from .graphrevoker import *
+from .graphrevoker import graphrevoker

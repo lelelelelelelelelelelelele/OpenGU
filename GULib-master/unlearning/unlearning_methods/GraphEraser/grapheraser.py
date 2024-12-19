@@ -22,6 +22,32 @@ BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 
 class grapheraser(Shard_based_pipeline):
+    """
+    GraphEraser Class handles tasks such as generating training graphs, partitioning the graph into shards, managing shard data, 
+    performing unlearning operations on nodes, edges, or features, and evaluating the effectiveness of these unlearning operations. 
+    This class extends the `Shard_based_pipeline` to leverage shard-based processing for scalability and efficiency.
+
+    Class Attributes:
+    args (dict): Configuration parameters for the unlearning process, including methods for partitioning, number of shards, base model specifications, and unlearning task parameters.
+    
+    logger (Logger): Logger instance for logging informational and debugging messages.
+    
+    model_zoo (ModelZoo): Collection of models and associated data used for training and unlearning.
+    
+    data (Data): Deep copy of the original data from the model zoo, used for manipulation during unlearning.
+    
+    partition_method (str): The method used for partitioning the graph (e.g., "graph_km").
+    
+    num_shards (int): The number of shards into which the graph is partitioned.
+    
+    target_model_name (str): The name of the base model targeted for unlearning operations.
+    
+    num_runs (int): The number of experimental runs to perform.
+    
+    run (int):Current run index during multiple experimental runs.
+    
+    affected_shard (list): List of shard indices that are affected by unlearning operations.
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
@@ -37,6 +63,9 @@ class grapheraser(Shard_based_pipeline):
         self.affected_shard = []
         
     def gen_train_graph(self):
+        """
+        This function is designed to generate a training graph based on the specified downstream task.
+        """
         if self.args["downstream_task"] != "graph":
             edge_index = self.data.edge_index.numpy()
             if self.args["downstream_task"] == "node":
@@ -72,7 +101,9 @@ class grapheraser(Shard_based_pipeline):
             save_train_graph(self.logger,self.train_graph,config.train_graph_file)
         
     def graph_partition(self):
-
+        """
+        This function is designed to partition the training graph into shards based on the specified partition.
+        """
         if self.args['is_partition']:
             self.logger.info('graph partitioning')
 
@@ -91,6 +122,9 @@ class grapheraser(Shard_based_pipeline):
             
 
     def generate_shard_data(self):
+        """
+        This function is designed to generate shard data based on the partitioned graph and the specified downstream task.
+        """
         if self.args["downstream_task"] != "graph":
             self.shard_path = config.shard_file
             self.shard_data = {}
@@ -136,15 +170,24 @@ class grapheraser(Shard_based_pipeline):
             save_shard_data(self.logger,self.shard_data,self.shard_path)
 
     def load_data(self):
+        """
+        This function is designed to load the preprocessed data for the unlearning process.
+        """
         self.shard_data = dataset_utils.load_shard_data(self.logger)
         self.train_data = dataset_utils.load_saved_data(self.logger,config.train_data_file)
         self.unlearned_shard_data = self.shard_data
         self.logger.info(self.shard_data)
         
     def determine_target_model(self):
+        """
+        This function is designed to determine the target model for the unlearning process based on the specified downstream task.
+        """
         self.target_model = get_trainer(self.args, self.logger, self.model_zoo.model,self.data)
         
     def run_exp_train(self):
+        """
+        This is the pipeline for training the target model on the shard data.
+        """
         self.train_target_models(self.run)
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.aggregate(self.run)
@@ -193,6 +236,9 @@ class grapheraser(Shard_based_pipeline):
 
 
     def train_test_split(self):
+        """
+        This function is designed to split the training and testing data based on the specified test ratio.
+        """
         if not self.args['is_split']:
             self.logger.info('splitting train/test data')
             self.data.train_indices, self.data.test_indices = train_test_split(np.arange((self.data.num_nodes)),train_size = 0.6,test_size=self.args['test_ratio'], random_state=100)
@@ -208,33 +254,44 @@ class grapheraser(Shard_based_pipeline):
             self.data.train_mask = torch.from_numpy(np.isin(np.arange(self.data.num_nodes), self.data.train_indices))
             self.data.test_mask = torch.from_numpy(np.isin(np.arange(self.data.num_nodes), self.data.test_indices))
 
-    def graph_partition(self):
+    # def graph_partition(self):
+    #     """
+    #     This function is designed to partition the training graph into shards based on the specified partition.
+    #     """
+    #     if self.args['is_partition']:
+    #         self.logger.info('graph partitioning')
 
-        if self.args['is_partition']:
-            self.logger.info('graph partitioning')
+    #         start_time = time.time()
+    #         partition = GraphPartition(self.logger, self.args,self.train_graph, self.data,model_zoo = self.model_zoo)
+    #         self.community_to_node = partition.graph_partition()
+    #         partition_time = time.time() - start_time
+    #         self.logger.info("Partition cost %s seconds." % partition_time)
+    #         self.avg_partition_time[self.run]  = partition_time
 
-            start_time = time.time()
-            partition = GraphPartition(self.logger, self.args,self.train_graph, self.data,model_zoo = self.model_zoo)
-            self.community_to_node = partition.graph_partition()
-            partition_time = time.time() - start_time
-            self.logger.info("Partition cost %s seconds." % partition_time)
-            self.avg_partition_time[self.run]  = partition_time
-
-            save_community_data(self.logger,self.community_to_node,config.community_path)
-        else:
-            self.community_to_node = load_community_data(self.logger,config.community_path)
+    #         save_community_data(self.logger,self.community_to_node,config.community_path)
+    #     else:
+    #         self.community_to_node = load_community_data(self.logger,config.community_path)
 
         # self.logger.info(partition)
 
     def train_shard_model(self):
+        """
+        This function is designed to train the shard model based on the specified downstream task.
+        """
         self.train_target_models(self.run)
         
     def aggregate_shard_model(self):
+        """
+        This function is designed to aggregate the shard models based on the specified downstream task and calculate the score.
+        """
         aggregate_f1_score = self.aggregate(self.run)
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = aggregate_f1_score
         
     def generate_requests(self):
+        """
+        This function is designed to generate unlearning requests, and record the unlearning indices or edges.
+        """
         self.load_preprocessed_data()
         if self.args["downstream_task"] == "graph":
             return
@@ -273,6 +330,9 @@ class grapheraser(Shard_based_pipeline):
                         file.write(str(node) + '\n')
     
     def unlearn(self):
+        """
+        This function is designed to perform unlearning operations based on the specified downstream task and unlearning task. And then calculate the score after unlearning.
+        """
         start_time = time.time()
         if self.args["downstream_task"] != "graph":
             if self.args["unlearn_task"] == "node":
@@ -299,6 +359,9 @@ class grapheraser(Shard_based_pipeline):
         
         
     def attack_unlearning(self):
+        """
+        This
+        """
         if self.args["downstream_task"] == "graph":
             return
         if self.args["unlearn_task"] == "node":

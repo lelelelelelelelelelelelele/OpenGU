@@ -22,6 +22,36 @@ from config import RESET_COLOR,BLUE_COLOR
 from task import get_trainer
 
 class gst():
+    class gst:
+        """
+        GST-based Unlearning Method.
+        This class implements the GST-based unlearning method for graph neural networks.
+        It initializes with the necessary arguments, logger, and model zoo, and manages
+        the unlearning process across multiple runs and folds. The class records performance
+        metrics such as F1 score, AUC score, and training time.
+        
+        Class Attributes:
+            args (dict): Configuration parameters for the unlearning process, including
+                number of unlearned nodes, number of runs, budget, etc.
+
+            model_zoo (ModelZoo): A container for the models and data used in the experiments.
+
+            data (Data): The dataset containing training, validation, and test indices.
+
+            logger (Logger): Logger for recording information and metrics.
+
+            device (torch.device): Device on which computations are performed (CPU or CUDA).
+
+            nonmember_id (list): List of indices representing non-member nodes to be unlearned.
+
+            average_f1 (np.ndarray): Array storing average F1 scores per run.
+
+            average_auc (np.ndarray): Array storing average AUC scores per run.
+
+            avg_training_time (np.ndarray): Array storing average training times per run.
+        """
+        pass
+    
     def __init__(self,args,logger,model_zoo):
         self.args = args
         self.model_zoo = model_zoo

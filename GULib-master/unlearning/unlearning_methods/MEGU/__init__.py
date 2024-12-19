@@ -1,1 +1,1 @@
-from .megu import *
+from .megu import megu

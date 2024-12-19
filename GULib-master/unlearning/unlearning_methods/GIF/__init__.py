@@ -1,1 +1,1 @@
-from .gif import *
+from .gif import gif

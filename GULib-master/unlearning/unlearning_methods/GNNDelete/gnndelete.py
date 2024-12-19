@@ -26,6 +26,32 @@ from task.edge_prediction import EdgePredictor
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
 
 class gnndelete(Learning_based_pipeline):
+    """
+    GNNDelete Class, a pipeline for performing unlearning operations on Graph Neural Networks. It extends the `Learning_based_pipeline` and provides methods to delete nodes, edges, or features from the training data, retrain the model accordingly, and evaluate the impact of these deletions. 
+    This class is designed to support experiments involving the removal of specific data points from a trained GNN model while maintaining model performance and assessing vulnerabilities to membership inference attacks.
+    
+    Class Attributes:
+        args (dict): Configuration parameters and arguments for the GNNDelete.
+
+        logger (Logger): Logger for tracking and recording the pipeline's operations and metrics.
+
+        model_zoo (ModelZoo): Collection of models available for training and evaluation.
+
+        data (Data): The dataset used for training and unlearning, including features and edge information.
+
+        device (torch.device): The device (CPU or CUDA) on which computations are performed.
+
+        average_f1 (np.ndarray): Array storing average F1 scores over multiple runs.
+
+        average_auc (np.ndarray): Array storing average AUC scores over multiple runs.
+
+        avg_time (np.ndarray): Array storing average training and unlearning times over multiple runs.
+
+        run (int): Current run index for tracking multiple experimental runs.
+
+        target_model (Trainer): The model trainer responsible for training and evaluating the target GNN model.
+    """
+
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args= args

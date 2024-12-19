@@ -1,1 +1,1 @@
-from .utu import *
+from .utu import utu

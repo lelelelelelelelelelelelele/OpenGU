@@ -11,6 +11,21 @@ from sklearn.metrics import roc_auc_score
 from attack.MIA_attack import train_attack_model,train_shadow_model,generate_shadow_model_output,evaluate_attack_model,GCNShadowModel,AttackModel
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
 class d2dgn(Learning_based_pipeline):
+    
+    """
+    D2DGN class implements a learning-based pipeline for performing unlearning tasks on graph neural networks. 
+    It supports both node and edge unlearning, executing unlearning requests, training models, 
+    and evaluating the impact through membership inference attacks.
+
+    Class Attributes:
+        args (dict): Configuration parameters for the unlearning process.
+
+        logger (Logger): Logger instance for recording informational and debugging messages.
+
+        model_zoo (ModelZoo): Collection of pre-trained models available for training and evaluation within the pipeline.
+
+        strategy (int): Indicator of the unlearning strategy employed (e.g., 1 for KL divergence, 2 for MSE loss).
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
@@ -60,6 +75,12 @@ class d2dgn(Learning_based_pipeline):
         
 
     def train_test_split(self):
+        """
+        Splits the dataset into training and testing sets based on the specified ratios.
+        If a split has not been performed, it randomly selects training and testing indices,
+        saves the split, and creates corresponding masks. If a split already exists, it
+        loads the precomputed training and testing indices and updates the masks accordingly.
+        """
         if not self.args['is_split']:
             self.logger.info('splitting train/test data')
             self.data.train_indices, self.data.test_indices = train_test_split(np.arange((self.data.num_nodes)),train_size = 0.6,test_size=self.args['test_ratio'], random_state=100)
@@ -77,6 +98,11 @@ class d2dgn(Learning_based_pipeline):
 
 
     def unlearning_request(self):
+        """
+        Handles unlearning requests by removing specified nodes or edges from the graph data.
+        Depending on the unlearning task, it updates the training and testing masks,
+        removes the relevant edges or nodes, and prepares the data for retraining.
+        """
         if self.args["unlearn_task"]=="node":
             
             path_un = config.unlearning_path + "_" + str(self.run) + ".txt"
@@ -129,48 +155,54 @@ class d2dgn(Learning_based_pipeline):
                 num_neg_samples=self.data.edge_index.size(1)
             )
         self.del_data.edge_index = neg_edge_index
-    def pre_train(self):
-        self.preserver = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
-        self.preserver.train()
-        # for name, param in self.preserver.model.named_parameters():
-        #     param.requires_grad = False
-        if self.strategy == 1:
-            self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
 
-            self.loss_fn = "KL"
-            self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=False)
-            self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=False)
-            if self.args["downstream_task"]=="node":
-                self.preserver_knowledge = F.softmax(self.preserver_knowledge.detach(),dim=-1).to(self.device)
-                self.destroyer_knowledge = F.softmax(self.destroyer_knowledge.detach(),dim=-1).to(self.device)
-            else:
-                self.preserver_knowledge = self.preserver_knowledge.detach().to(self.device)
-                self.destroyer_knowledge = self.destroyer_knowledge.detach().to(self.device)
-        elif self.strategy ==2:
-            self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
+    # def pre_train(self):
+    #     """
+    #     Initializes the preserver and destroyer trainers based on the chosen strategy, retrieves their knowledge representations, and prepares the models for the unlearning process by setting up loss functions and device configurations.
+    #     """
+    #     self.preserver = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+    #     self.preserver.train()
+    #     # for name, param in self.preserver.model.named_parameters():
+    #     #     param.requires_grad = False
+    #     if self.strategy == 1:
+    #         self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
 
-            self.loss_fn = "MSE"
-            self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=True)
-            self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=True)
-            for i,know in enumerate(self.preserver_knowledge):
-                self.preserver_knowledge[i] = know.detach().to(self.device)
-            for i,know in enumerate(self.destroyer_knowledge):
-                self.destroyer_knowledge[i] = know.detach().to(self.device)
-        elif self.strategy ==3:
-            self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
-            self.destroyer.train()
+    #         self.loss_fn = "KL"
+    #         self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=False)
+    #         self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=False)
+    #         if self.args["downstream_task"]=="node":
+    #             self.preserver_knowledge = F.softmax(self.preserver_knowledge.detach(),dim=-1).to(self.device)
+    #             self.destroyer_knowledge = F.softmax(self.destroyer_knowledge.detach(),dim=-1).to(self.device)
+    #         else:
+    #             self.preserver_knowledge = self.preserver_knowledge.detach().to(self.device)
+    #             self.destroyer_knowledge = self.destroyer_knowledge.detach().to(self.device)
+    #     elif self.strategy ==2:
+    #         self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
 
-            self.loss_fn = "MSE"
-            self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=True)
-            self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=True)
-            for i,know in enumerate(self.preserver_knowledge):
-                self.preserver_knowledge[i] = know.detach().to(self.device)
-            for i,know in enumerate(self.destroyer_knowledge):
-                self.destroyer_knowledge[i] = know.detach().to(self.device)
+    #         self.loss_fn = "MSE"
+    #         self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=True)
+    #         self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=True)
+    #         for i,know in enumerate(self.preserver_knowledge):
+    #             self.preserver_knowledge[i] = know.detach().to(self.device)
+    #         for i,know in enumerate(self.destroyer_knowledge):
+    #             self.destroyer_knowledge[i] = know.detach().to(self.device)
+    #     elif self.strategy ==3:
+    #         self.destroyer = get_trainer(self.args,self.logger,self.model_zoo.model,self.del_data)
+    #         self.destroyer.train()
+
+    #         self.loss_fn = "MSE"
+    #         self.preserver_knowledge = self.preserver.model(self.data.x, self.data.edge_index,return_all_emb=True)
+    #         self.destroyer_knowledge = self.destroyer.model(self.data.x,self.data.edge_index,return_all_emb=True)
+    #         for i,know in enumerate(self.preserver_knowledge):
+    #             self.preserver_knowledge[i] = know.detach().to(self.device)
+    #         for i,know in enumerate(self.destroyer_knowledge):
+    #             self.destroyer_knowledge[i] = know.detach().to(self.device)
         
 
     def mia_attack(self):
-
+        """
+        This function performs a Membership Inference Attack (MIA) to evaluate the model's vulnerability to such attacks after the unlearning process. It calculates the AUC score by comparing the model's predictions on unlearned nodes versus test nodes, thereby assessing the effectiveness of the unlearning method in protecting against membership inference.
+        """
         self.mia_num = self.unlearning_number
         self.original_softlabels = F.softmax(self.target_model.model(
             self.data.x,self.data.edge_index),dim=1).clone().detach().float()
@@ -209,12 +241,21 @@ class d2dgn(Learning_based_pipeline):
     #     # return attack_auc_score
         
     def train_original_model(self):
+        """
+        Trains the original target model. Initializes the target model using the provided trainer, sets it to training mode, and evaluates its performance if poisoning is enabled for edge unlearning tasks.
+        """
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         self.target_model.train()
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.target_model.evaluate()
         pass
+
     def unlearn(self):
+        """
+        Handles the unlearning process by updating the model to eliminate the influence of specified nodes or edges.
+        This method supports different unlearning strategies, measures the time taken for training and unlearning,
+        and updates the model's performance metrics accordingly.
+        """
         start_time = time.time()
         self.preserver = copy.deepcopy(self.target_model)
         if self.strategy == 1:

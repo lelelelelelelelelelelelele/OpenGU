@@ -10,7 +10,8 @@ class IF_based_pipeline:
     that extend this base class.
     
     Class Attributes:
-        args (dict): A dictionary containing configuration arguments for the pipeline.
+        args (dict): A dictionary containing configuration arguments for the pipeline, including the number of unlearned nodes/edges, 
+                     number of runs, downstream tasks, and other relevant settings.
 
         logger (Logger): A logger object for logging information during pipeline execution.
 
@@ -53,7 +54,7 @@ class IF_based_pipeline:
         Initializes the IF_based_pipeline with the provided arguments, logger, and model zoo.
 
         Args:
-            args (dict): A dictionary containing the configuration parameters. It must include keys like "num_runs" and "num_shards".
+            args (dict): A dictionary containing the configuration parameters.
 
             logger (Logger): A logger object used to log runtime information.
 

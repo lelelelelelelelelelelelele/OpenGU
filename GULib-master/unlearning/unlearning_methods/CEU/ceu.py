@@ -33,51 +33,8 @@ class ceu(IF_based_pipeline):
         data (dict): Data used in the model.
 
         model_zoo (ModelZoo): Model zoo containing various models.
-
-        device (torch.device): Device to run the computations on (CPU or GPU).
-
-    Methods:
-        __init__(args, logger, model_zoo):
-            Initializes the CEU class with the given arguments, logger, and model zoo.
-
-        fidelity():
-            Evaluates the fidelity of the unlearning process by comparing the accuracy of the original, benign, and adversarial models.
-
-        efficacy():
-            Evaluates the efficacy of the unlearning process by calculating the Jensen-Shannon Divergence (JSD) and privacy leakage.
-
-        adv_retrain_unlearn(data, num_edges):
-            Performs adversarial retraining and unlearning on the given data with a specified number of edges.
-
-        adv_unlearn(data, num_edges):
-            Performs adversarial unlearning on the given data with a specified number of edges.
-
-        adversarial_adjacency_mat(data, n_perturbations=500):
-            Generates an adversarial adjacency matrix with a specified number of perturbations.
-
-        determine_target_model():
-            Determines and sets the target model for the CEU pipeline.
-
-        train_original_model(run):
-            Trains the original model and logs the results.
-
-        unlearning_request():
-            Prepares the data and edges for the unlearning request.
-
-        unlearn():
-            Performs the unlearning process and evaluates the results.
     """
     def __init__(self,args,logger,model_zoo):
-        """
-        Initializes the CEU class with the given arguments, logger, and model zoo.
-
-        Args:
-            args (dict): A dictionary containing the configuration parameters. It must include keys like "unlearn_trainer" and "unlearn_ratio".
-
-            logger (Logger): A logger object used to log runtime information.
-
-            model_zoo (ModelZoo): An object that provides access to models and datasets.
-        """
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
@@ -356,6 +313,10 @@ class ceu(IF_based_pipeline):
     
     
     def unlearn(self):
+        """
+        Performs the unlearning process by inferencing without the specified random edges.
+        Evaluates the unlearned model on the test set and updates the average accuracy metric.
+        """
         test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
         edge_index = torch.tensor(self.data['edges'], device=self.device).t()
         benign_orig = self.target_model.CEU_train(self._data,eval=False, verbose=False)

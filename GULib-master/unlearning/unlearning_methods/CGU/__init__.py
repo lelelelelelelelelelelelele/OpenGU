@@ -1,1 +1,1 @@
-from .cgu import *
+from .cgu import cgu

@@ -46,29 +46,43 @@ from config import BLUE_COLOR,RESET_COLOR
 
 from pipeline.IF_based_pipeline import IF_based_pipeline
 
-def plot_auc( y_true, y_score):
-    y_true = y_true
-    y_score = y_score
+# def plot_auc( y_true, y_score):
+#     y_true = y_true
+#     y_score = y_score
 
-    # 计算ROC曲线上的点
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+#     # 计算ROC曲线上的点
+#     fpr, tpr, thresholds = roc_curve(y_true, y_score)
 
-    # 计算AUC
-    roc_auc = auc(fpr, tpr)
+#     # 计算AUC
+#     roc_auc = auc(fpr, tpr)
 
-    # 绘制ROC曲线
-    plt.figure()
-    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Receiver Operating Characteristic (ROC) Curve')
-    plt.legend(loc="lower right")
-    plt.show()
+#     # 绘制ROC曲线
+#     plt.figure()
+#     plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+#     plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+#     plt.xlim([0.0, 1.0])
+#     plt.ylim([0.0, 1.05])
+#     plt.xlabel('False Positive Rate')
+#     plt.ylabel('True Positive Rate')
+#     plt.title('Receiver Operating Characteristic (ROC) Curve')
+#     plt.legend(loc="lower right")
+#     plt.show()
 
 class cgu(IF_based_pipeline):
+    """
+    CGU class implements the Certified Graph Unlearning (CGU) method.
+    It extends the `IF_based_pipeline` class and provides functionalities to handle various unlearning tasks such as
+    node, feature, and edge unlearning. The class initializes necessary parameters, manages the unlearning process,
+    and records relevant performance metrics throughout multiple runs.
+
+    Class Attributes:
+        logger (Logger): Logger object for recording informational messages and debugging.
+
+        args (dict): Dictionary containing configuration arguments for the unlearning process.
+
+        model_zoo (ModelZoo): Collection of models used within the pipeline.
+    """
+    
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.logger = logger
@@ -520,7 +534,7 @@ class cgu(IF_based_pipeline):
                         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
                         self.logger.info('auc:{}'.format(auc))
                         self.average_auc[trail_iter] = auc
-                        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+                        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
                         average = removal_times[:, trail_iter].sum()
                         self.avg_training_time[trail_iter] = average
 
@@ -1256,11 +1270,17 @@ class cgu(IF_based_pipeline):
 
     
     def train_original_model(self, run):
+        """
+        This function implements data preprocessing and original GNN model training by calling functions `prepare_data` and `train_model`.
+        """
         self.prepare_data()
         self.train_model()
         pass
     
     def unlearning_request(self):
+        """
+        This function calculates the deletion budget based on the given parameters and conditions, and updates the queue of nodes or features that need to be deleted.
+        """
         # budget for removal
         c_val = get_c(self.args["delta"])
         # if we need to compute the norms, we should not retrain at all
@@ -1292,6 +1312,9 @@ class cgu(IF_based_pipeline):
         pass
     
     def unlearn(self):
+        """
+        This function implements the unlearning process by removing specified nodes or features or edges from the model. It updates the edge masks, propagates the changes, adjusts the model parameters, and records the performance metrics after each removal.
+        """
         if self.args["unlearn_task"] in ["node","feature"]:
             self.edge_mask = torch.ones(self.data.edge_index.shape[1], dtype=torch.bool)
 
@@ -1317,6 +1340,9 @@ class cgu(IF_based_pipeline):
         pass
     
     def prepare_data(self):
+        """
+        This function prepares the data for training and unlearning procedures. It loads the dataset, processes the features and labels, applies normalization if specified, and sets up training, validation, and testing masks. Additionally, it initializes the graph convolution propagation and trains the initial model with the full dataset.
+        """
         self.logger.info('='*10 + 'Loading data' + '='*10)
         self.logger.info('Dataset:{}'.format( self.args["dataset_name"]))
 
@@ -1412,6 +1438,11 @@ class cgu(IF_based_pipeline):
 
     
     def train_model(self):
+        """
+        Trains the linear model using the preprocessed training data. Depending on the training mode ('ovr' for one-vs-rest or binary classification),
+        it initializes model parameters, optionally adds noise for differential privacy, and optimizes the weights using the specified optimizer and learning rate.
+        After training, it logs the training duration and evaluates the model's performance on validation and test datasets, reporting metrics such as accuracy, F1 score, and recall.
+        """
         self.logger.info("With graph, train mode:{}, optimizer:{}".format( self.args["train_mode"], self.args["optimizer"]))
         start = time.time()
         # reserved for future extension
@@ -1516,6 +1547,17 @@ class cgu(IF_based_pipeline):
         #             self.logger.info('Test accuracy = %.4f' % lr_eval(w_guo, X_test, self.y_test))
                     
     def get_grad(self,index):
+        """
+        This function computes and updates the gradient for a specific index during the node unlearning process.
+        It modifies the feature matrix by zeroing out the features of the node to be unlearned.
+        For node or feature unlearning tasks, it also removes corresponding edges and ensures that self-loops are retained.
+        The function then propagates the updated features using the graph convolution layer, calculates the residual gradient norms,
+        and updates the model parameters accordingly.
+
+        Additionally, it records the time taken for the operation and logs the current state of validation and test accuracies.
+        """
+     
+
         self.X_scaled_copy[self.removal_queue[index]] = 0
         if self.args["unlearn_task"] == 'node':
             # Then remove the correpsonding edges
@@ -1653,6 +1695,12 @@ class cgu(IF_based_pipeline):
             self.logger.info('removal_time:{}'.format(average))
         
     def get_grad_edge(self,index):
+        """
+        Computes and applies gradient updates for edge unlearning. This function removes a specified edge,
+        updates the graph's edge mask, propagates updated features using the graph convolution layer,
+        calculates the gradient differences, adjusts the model parameters accordingly, checks
+        against the defined gradient budget, retrains the model if necessary, and records performance metrics.
+        """
         while (self.data.edge_index[0, self.perm[self.perm_idx]] == self.data.edge_index[1, self.perm[self.perm_idx]]) or (not self.edge_mask[self.perm[self.perm_idx]]):
             self.perm_idx += 1
         self.edge_mask[self.perm[self.perm_idx]] = False

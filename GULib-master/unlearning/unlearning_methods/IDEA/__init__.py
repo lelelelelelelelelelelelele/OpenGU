@@ -1,1 +1,1 @@
-from .idea import *
+from .idea import idea

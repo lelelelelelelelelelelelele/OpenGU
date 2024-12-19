@@ -19,6 +19,23 @@ from task.edge_prediction import EdgePredictor
 from task import get_trainer
 from pipeline.IF_based_pipeline import IF_based_pipeline
 class gif(IF_based_pipeline):
+    
+    """
+    GIF (Graph Influence Function) class Based Unlearning Pipeline.
+    This class implements unlearning methods using Graph Influence Functions (GIF),
+    enabling efficient removal of specific data points, edges, or features from
+    trained graph-based models without the need for retraining from scratch.
+
+    Class Attributes:
+        args (dict): Configuration parameters for the GIF pipeline, including
+            settings for the number of runs, unlearning ratios, and method choices.
+
+        logger (Logger): Logger instance for logging information, debugging, and
+            tracking the pipeline's progress and performance metrics.
+
+        model_zoo (ModelZoo): Collection of models and related data resources used
+            within the pipeline.
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
@@ -339,9 +356,15 @@ class gif(IF_based_pipeline):
         return torch.from_numpy(edge_index[:, remain_indices])
 
     def determine_target_model(self):
+        """
+        Determines and initializes the target model based on the provided configuration.
+        Logs the target model's name, sets the unlearning trainer to 'GIFTrainer',
+        and retrieves the trainer instance using the get_trainer function.
+        """
         self.logger.info('target model: %s' % (self.args['base_model'],))
         self.args["unlearn_trainer"] = "GIFTrainer"
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+    
     def _train_model(self, run):
         self.logger.info('training target models, run %s' % run)
 
@@ -358,6 +381,12 @@ class gif(IF_based_pipeline):
         return train_time, grad_all
     
     def train_original_model(self, run):
+        """
+        Trains the original target model on the dataset without performing any unlearning operations.
+        Logs the training process, records the training time, and updates performance metrics.
+        For graph-based downstream tasks, it prepares the training and testing datasets accordingly.
+        If poisoning is enabled and the unlearning task involves edges, it also evaluates the poisoned F1 score.
+        """
         self.logger.info('training target models, run %s' % run)
         if self.args["downstream_task"]=="graph":
             temp_data = copy.deepcopy(self.model_zoo.data)
@@ -377,6 +406,11 @@ class gif(IF_based_pipeline):
             self.poison_f1[self.run] = self.target_model.evaluate()
     
     def get_if_grad(self, run):
+        """
+        Retrieves the gradients of the target model based on the current unlearning task and downstream task.
+        This method processes the necessary unlearning information and computes the corresponding gradients
+        required for the unlearning process, supporting node, edge, and graph downstream tasks.
+        """
         self.logger.info('training target models, run %s' % run)
         self.target_model.model = self.target_model.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -389,6 +423,11 @@ class gif(IF_based_pipeline):
         return  res
     
     def get_grad(self,unlearn_info=None):
+        """
+        Computes the gradients of the loss functions with respect to the model parameters for the entire dataset,
+        as well as for the subsets of data affected by the unlearning request. This is used to estimate how the
+        model parameters should be updated to effectively unlearn the specified data without retraining from scratch.
+        """
         grad_all, grad1, grad2 = None, None, None
         self.data = self.data.to(self.device)
         if self.args["GIF_method"] in ["GIF", "IF"]:

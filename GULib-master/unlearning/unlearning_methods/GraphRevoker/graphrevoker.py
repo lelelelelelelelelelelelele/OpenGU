@@ -14,6 +14,40 @@ from config import BLUE_COLOR,RESET_COLOR
 from task.GraphRevokerTrainer import GraphRevokerTrainer
 from pipeline.Shard_based_pipeline import Shard_based_pipeline
 class graphrevoker(Shard_based_pipeline):
+    """
+    The GraphRevoker class implements a pipeline for graph unlearning methods within a sharded architecture.
+    It handles the partitioning of the graph, training of target models, aggregation of results, and execution
+    of unlearning attacks. This class is designed to facilitate efficient unlearning in large-scale graph data
+    by leveraging shard-based processing.
+    
+    Class Attributes:
+        args (dict): Configuration parameters for the pipeline, including model settings and experiment details.
+
+        logger (Logger): Logger instance for tracking the workflow and debugging information.
+        
+        model_zoo (ModelZoo): Collection of models used for training and evaluation.
+        
+        data_copy (Data): A copy of the original dataset used to preserve the initial state.
+        
+        target_model_name (str): Identifier for the base model to be used as the target for unlearning.
+        
+        num_opt_samples (int): Number of optimal samples selected for processing.
+        
+        num_shards (int): Total number of data shards the graph is partitioned into.
+        
+        average_f1 (np.ndarray): Array storing average F1 scores across multiple runs.
+        
+        average_auc (np.ndarray): Array storing average AUC scores across multiple runs.
+        
+        avg_partition_time (np.ndarray): Array storing average time taken for graph partitioning across runs.
+        
+        avg_training_time (np.ndarray): Array storing average model training time across runs.
+        
+        avg_unlearning_time (np.ndarray): Array storing average unlearning time across runs.
+        
+        run (int): Current run index in the experiment.
+    """
+
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
