@@ -344,20 +344,22 @@ If you use OpenGU in your research, please cite our paper:
 ```
 
 ## <span id="references">📖 References</span>
-| **ID** | **Algorithm**   | **Paper**                                                                                             | **Conference/Journal**       |
-|--------|-----------------|-------------------------------------------------------------------------------------------------------|-----------------------------|
-| 1      | GraphEraser     | [**Graph Unlearning**](https://dl.acm.org/doi/abs/10.1145/3548606.3559352)                               | CCS 2022                    |
-| 2      | GUIDE           | [**Inductive Graph Unlearning**](https://arxiv.org/abs/2304.03093)                                      | USENIX Security 2023         |
-| 3      | GraphRevoker    | [**Graph Unlearning with Efficient Partial Retraining**](https://dl.acm.org/doi/abs/10.1145/3589335.3651265)              | WWW 2024                    |
-| 4      | GIF             | [**GIF: A General Graph Unlearning Strategy via Influence Function**](http://arxiv.org/abs/2304.02835)   | WWW 2023                    |
-| 5      | CGU             | [**Certified Graph Unlearning**](https://arxiv.org/abs/2206.09140)                                    | NeurIPS 2022 Workshop       |
-| 6      | CEU             | [**Certified Edge Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/10.1145/3580305.3599271) | KDD 2023                    |
-| 7      | GST             | [**Unlearning Graph Classifiers with Limited Data Resources**](https://dl.acm.org/doi/abs/10.1145/3543507.3583547)        | WWW 2023                    |
-| 8      | IDEA            | [**IDEA: A Flexible Framework of Certified Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/abs/10.1145/3637528.3671744) | KDD 2024                    |
-| 9      | GNNDelete       | [**GNNDelete: A General Strategy for Unlearning in Graph Neural Networks**](https://arxiv.org/abs/2302.13406) | ICLR 2023                   |
-| 10     | MEGU            | [**Towards Effective and General Graph Unlearning via Mutual Evolution**](https://doi.org/10.1609/aaai.v38i12.29273) | AAAI 2024                   |
-| 11     | D2DGN           | [**Distill to Delete: Unlearning in Graph Networks with Knowledge Distillation**](https://arxiv.org/abs/2309.16173)                   | arXiv 2024                  |
-| 12     | GCU             | [**When Contrastive Learning Meets Graph Unlearning: Graph Contrastive Unlearning for Link Prediction**](https://ieeexplore.ieee.org/abstract/document/10386624)                                   | BigData 2023                |
-| 13     | GUKD            | [**Graph Unlearning Using Knowledge Distillation**](https://dl.acm.org/doi/abs/10.1007/978-981-99-7356-9_29) | ICICS 2023                  |
-| 14     | UtU             | [**Unlink to Unlearn: Simplifying Edge Unlearning in GNNs**](https://arxiv.org/abs/2402.10695)                                     | WWW 2024                    |
-| 15     | Projector       | [**Efficiently Forgetting What You Have Learned in Graph Representation Learning via Projection**](https://arxiv.org/abs/2302.08990)            | AISTATS 2023                |
+| **ID** | **Algorithm** | **Paper**                                                                                             | **Conference/Journal**       |
+|--------|---------------|-------------------------------------------------------------------------------------------------------|------------------------------|
+| 1      | GraphEraser   | [**Graph Unlearning**](https://dl.acm.org/doi/abs/10.1145/3548606.3559352)                           | CCS 2022                     |
+| 2      | GUIDE         | [**Inductive Graph Unlearning**](https://arxiv.org/abs/2304.03093)                                  | USENIX Security 2023          |
+| 3      | GraphRevoker  | [**Graph Unlearning with Efficient Partial Retraining**](https://dl.acm.org/doi/abs/10.1145/3589335.3651265) | WWW 2024                     |
+| 4      | GIF           | [**GIF: A General Graph Unlearning Strategy via Influence Function**](http://arxiv.org/abs/2304.02835) | WWW 2023                     |
+| 5      | CGU           | [**Certified Graph Unlearning**](https://arxiv.org/abs/2206.09140)                                    | NeurIPS 2022 Workshop        |
+| 6      | CEU           | [**Certified Edge Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/10.1145/3580305.3599271) | KDD 2023                     |
+| 7      | GST           | [**Unlearning Graph Classifiers with Limited Data Resources**](https://dl.acm.org/doi/abs/10.1145/3543507.3583547) | WWW 2023                     |
+| 8      | IDEA          | [**IDEA: A Flexible Framework of Certified Unlearning for Graph Neural Networks**](https://dl.acm.org/doi/abs/10.1145/3637528.3671744) | KDD 2024                     |
+| 9      | GNNDelete     | [**GNNDelete: A General Strategy for Unlearning in Graph Neural Networks**](https://arxiv.org/abs/2302.13406) | ICLR 2023                    |
+| 10     | MEGU          | [**Towards Effective and General Graph Unlearning via Mutual Evolution**](https://doi.org/10.1609/aaai.v38i12.29273) | AAAI 2024                    |
+| 11     | D2DGN         | [**Distill to Delete: Unlearning in Graph Networks with Knowledge Distillation**](https://arxiv.org/abs/2309.16173) | arXiv 2024                   |
+| 12     | GUKD          | [**Graph Unlearning Using Knowledge Distillation**](https://dl.acm.org/doi/abs/10.1007/978-981-99-7356-9_29) | ICICS 2023                   |
+| 13     | UtU           | [**Unlink to Unlearn: Simplifying Edge Unlearning in GNNs**](https://arxiv.org/abs/2402.10695)         | WWW 2024                     |
+| 14     | Projector     | [**Efficiently Forgetting What You Have Learned in Graph Representation Learning via Projection**](https://arxiv.org/abs/2302.08990) | AISTATS 2023                |
+| 15     | ScaleGUN      | [**Scalable and Certifiable Graph Unlearning: Overcoming the Approximation Error Barrier**](https://doi.org/10.48550/arXiv.2408.09212) | arXiv 2024                   |
+| 16     | SGU           |                                                                                                       |                              |
+

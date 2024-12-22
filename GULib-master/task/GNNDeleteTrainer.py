@@ -13,17 +13,99 @@ from utils.utils import get_loss_fct, trange, Reverse_CE
 from config import root_path
 
 class GNNDeleteTrainer(BaseTrainer):
+    """
+    GNNDeleteTrainer class for training and evaluating models using GNNDelete method.
+
+    This class extends the BaseTrainer to implement specific training and evaluation routines 
+    required for the GNNDelete methodology.It handles training procedures for different downstream tasks such as node classification and edge prediction,
+    including methods to evaluate model performance before and after deletion operations. The class also integrates 
+    member inference attacks to assess the privacy implications of the unlearning process.
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                     training hyperparameters, unlearning settings, and other relevant settings.
+        
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+        
+        model (torch.nn.Module): The neural network model to be trained and evaluated.
+        
+        data (torch_geometric.data.Data): The dataset containing graph information for training, 
+                                         validation, and testing.
+        
+        df_pos_edge (list): A list to store positive edges for defensive purposes during training.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the GNNDeleteTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications,
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics,
+                                    and other important information.
+                        
+            model (torch.nn.Module): The neural network model to be trained and evaluated.
+                        
+            data (torch_geometric.data.Data): The dataset containing graph information for training,
+                                            validation, and testing.
+        """
         super().__init__(args, logger, model, data)
         self.df_pos_edge = []
 
     def gnndelete_train(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        """
+        Initiates the training process using the GNNDelete method based on the specified downstream task.
+
+        This method delegates the training process to specialized methods depending on whether the
+        downstream task is node classification or edge prediction.
+
+        Args:
+            avg_time (dict): A dictionary to store average training times.
+            
+            run (int): The current run or experiment index.
+            
+            optimizer (list of torch.optim.Optimizer): A list containing optimizers for different parts of the model.
+            
+            logits_ori (torch.Tensor, optional): Original logits before deletion. Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data. Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data. Defaults to None.
+
+        Returns:
+            None
+        """
         if self.args["downstream_task"]=="node":
             return self.train_node_fullbatch_del(avg_time,run,optimizer, logits_ori,attack_model_all,attack_model_sub)
         elif self.args["downstream_task"]=="edge":
             return self.gnndelete_train_edge(avg_time,run,optimizer, logits_ori,attack_model_all,attack_model_sub)
 
     def gnndelete_train_edge(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        """
+        Trains the GNN model for edge-level tasks using the GNNDelete unlearning method.
+
+        This method handles the training loop for edge prediction tasks, including loss computation,
+        backpropagation, optimizer steps, and periodic evaluation. It also integrates member inference
+        attacks to assess privacy before and after the unlearning process.
+
+        Args:
+            avg_time (dict): A dictionary to store average training times.
+            
+            run (int): The current run or experiment index.
+            
+            optimizer (list of torch.optim.Optimizer): A list containing optimizers for different parts of the model.
+            
+            logits_ori (torch.Tensor, optional): Original logits before deletion. Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data. Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data. Defaults to None.
+
+        Returns:
+            None
+        """
         self.model = self.model.to('cuda')
         self.data = self.data.to('cuda')
         self.trainer_log = {
@@ -154,6 +236,25 @@ class GNNDeleteTrainer(BaseTrainer):
 
 
     def train_node_fullbatch(self,save=False,model_path=False):
+        """
+        Trains the GNN model for node-level tasks using full-batch training.
+
+        This method manages the training loop for node classification tasks, including loss computation,
+        backpropagation, optimizer steps, and periodic evaluation. It tracks the best F1 score and
+        optionally saves the best model weights.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                    Defaults to False.
+            
+            model_path (str, optional): The path to save the model. If False, a default path is used.
+                                        Defaults to False.
+
+        Returns:
+            tuple:
+                best_f1 (float): The best F1 score achieved during training.
+                avg_training_time (float): The average training time per epoch in seconds.
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -195,6 +296,16 @@ class GNNDeleteTrainer(BaseTrainer):
 
     @torch.no_grad()
     def test_node_fullbatch(self):
+        """
+        Tests the GNN model for node-level tasks.
+
+        This method evaluates the trained model on the test set for node classification tasks,
+        computing the F1 score based on the model's predictions.
+
+        Returns:
+            float:
+                f1 (float): The F1 score on the test set.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -209,6 +320,30 @@ class GNNDeleteTrainer(BaseTrainer):
 
 
     def train_node_fullbatch_del(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        """
+        Trains the GNN model for node-level tasks with deletion capabilities using the GNNDelete method.
+
+        This method manages the training loop for node classification tasks, incorporating the unlearning
+        process to remove the influence of specific nodes. It handles loss computation, backpropagation,
+        optimizer steps, and periodic evaluation. Additionally, it integrates member inference attacks
+        to assess privacy before and after the unlearning process.
+
+        Args:
+            avg_time (dict): A dictionary to store average training times.
+            
+            run (int): The current run or experiment index.
+            
+            optimizer (list of torch.optim.Optimizer): A list containing optimizers for different parts of the model.
+            
+            logits_ori (torch.Tensor, optional): Original logits before deletion. Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data. Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data. Defaults to None.
+
+        Returns:
+            None
+        """
         self.trainer_log = {
             'unlearning_model': self.args["unlearning_model"],
             'dataset': self.args["dataset_name"],
@@ -343,7 +478,36 @@ class GNNDeleteTrainer(BaseTrainer):
 
     @torch.no_grad()
     def test_node_fullbatch_del(self, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
+        """
+        Tests the GNN model for node-level tasks after deletion operations.
 
+        This method loads the best model checkpoint, evaluates the model on the test set for node classification,
+        and optionally performs member inference attacks to assess privacy after unlearning.
+
+        Args:
+            model_retrain (torch.nn.Module, optional): The retrained model for deletion verification.
+                                                    Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data.
+                                                        Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data.
+                                                        Defaults to None.
+            
+            ckpt (str, optional): Specifies which checkpoint to load ('best' or other). Defaults to 'best'.
+
+        Returns:
+            tuple:
+                loss (float): The loss value on the test set.
+
+                dt_acc (float): The accuracy on the test set.
+
+                recall (float): The recall on the test set.
+
+                dt_f1 (float): The F1 score on the test set.
+
+                test_log (dict): A dictionary containing additional test metrics.
+        """
         if ckpt == 'best':  # Load best ckpt
             ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
             self.model.load_state_dict(ckpt['model_state'])
@@ -389,6 +553,41 @@ class GNNDeleteTrainer(BaseTrainer):
         return loss, dt_acc, recall, dt_f1, test_log
 
     def eval_del(self,stage="val",pred_all=False):
+        """
+        Evaluates the model's performance on deletion tasks based on the downstream task.
+
+        Depending on whether the downstream task is node classification or edge prediction,
+        this method delegates the evaluation process to the corresponding specialized evaluation method.
+
+        Args:
+            stage (str, optional): The evaluation stage ('val' or 'test'). Defaults to "val".
+            
+            pred_all (bool, optional): Whether to predict logits for all node pairs. Defaults to False.
+
+        Returns:
+            tuple:
+                If downstream_task is "node":
+                    loss (float): The loss value.
+
+                    dt_acc (float): The accuracy.
+
+                    dt_auc (float): The AUC score.
+
+                    df_auc (float): The defensive AUC score.
+
+                    test_log (dict): A dictionary containing evaluation metrics.
+                
+                If downstream_task is "edge":
+                    loss (float): The loss value.
+
+                    acc (float): The accuracy.
+
+                    dt_auc (float): The AUC score.
+
+                    df_auc (float): The defensive AUC score.
+
+                    test_log (dict): A dictionary containing evaluation metrics.
+        """
         if self.args["downstream_task"]=="node":
             return self.eval_node_fullbatch_del(stage,pred_all)
         elif self.args["downstream_task"]=="edge":
@@ -397,6 +596,29 @@ class GNNDeleteTrainer(BaseTrainer):
 
     @torch.no_grad()
     def eval_node_fullbatch_del(self,stage='val', pred_all=False):
+        """
+        Evaluates the model's performance on node-level tasks after deletion.
+
+        This method computes loss, accuracy, recall, and F1 score for node classification tasks
+        based on the specified evaluation stage.
+
+        Args:
+            stage (str, optional): The evaluation stage ('val' or 'test'). Defaults to 'val'.
+            
+            pred_all (bool, optional): Whether to predict logits for all node pairs. Defaults to False.
+
+        Returns:
+            tuple:
+                loss (float): The loss value.
+
+                dt_acc (float): The accuracy score.
+
+                recall (float): The recall score.
+
+                dt_f1 (float): The F1 score.
+
+                log (dict): A dictionary containing evaluation metrics.
+        """
         self.model.eval()
 
         # DT AUC AUP
@@ -424,6 +646,31 @@ class GNNDeleteTrainer(BaseTrainer):
     
     @torch.no_grad()
     def eval(self, model, data, stage='val', pred_all=False):
+        """
+        General evaluation method for node classification tasks.
+
+        This method computes loss, accuracy, and F1 score based on the model's predictions
+        and the true labels of the specified evaluation stage.
+
+        Args:
+            model (torch.nn.Module): The trained model to be evaluated.
+            
+            data (torch_geometric.data.Data): The dataset containing graph information.
+            
+            stage (str, optional): The evaluation stage ('val' or 'test'). Defaults to 'val'.
+            
+            pred_all (bool, optional): Whether to predict logits for all node pairs. Defaults to False.
+
+        Returns:
+            tuple:
+                loss (float): The loss value.
+
+                dt_acc (float): The accuracy score.
+
+                dt_f1 (float): The F1 score.
+
+                log (dict): A dictionary containing evaluation metrics.
+        """
         model.eval()
 
         z = F.log_softmax(model(data.x, data.edge_index), dim=1)
@@ -449,7 +696,39 @@ class GNNDeleteTrainer(BaseTrainer):
     
     @torch.no_grad()
     def test(self, model, data, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
-        
+        """
+        Tests the GNN model for node-level tasks after deletion operations.
+
+        This method loads the best model checkpoint, evaluates the model on the test set for node classification,
+        and optionally performs member inference attacks to assess privacy after unlearning.
+
+        Args:
+            model (torch.nn.Module): The trained model to be evaluated.
+            
+            data (torch_geometric.data.Data): The dataset containing graph information.
+            
+            model_retrain (torch.nn.Module, optional): The retrained model for deletion verification.
+                                                    Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data.
+                                                        Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data.
+                                                        Defaults to None.
+            
+            ckpt (str, optional): Specifies which checkpoint to load ('best' or other). Defaults to 'best'.
+
+        Returns:
+            tuple:
+
+                loss (float): The loss value on the test set.
+
+                dt_acc (float): The accuracy on the test set.
+
+                dt_f1 (float): The F1 score on the test set.
+                
+                test_log (dict): A dictionary containing additional test metrics.
+        """
         if ckpt == 'best':    # Load best ckpt
             ckpt = torch.load(os.path.join(self.args.checkpoint_dir, 'model_best.pt'))
             model.load_state_dict(ckpt['model_state'])
@@ -487,6 +766,22 @@ class GNNDeleteTrainer(BaseTrainer):
 
     @torch.no_grad()
     def verification_error(self,model1, model2):
+        """
+        Computes the verification error between two models.
+
+        This method calculates the L2 distance between the parameters of two models to measure
+        how much the model has changed after the unlearning process.
+
+        Args:
+            model1 (torch.nn.Module): The original model.
+            
+            model2 (torch.nn.Module): The retrained or modified model.
+
+        Returns:
+            torch.Tensor:
+
+                diff (torch.Tensor): The computed verification error (L2 distance).
+        """
         '''L2 distance between aproximate model and re-trained model'''
 
         model1 = model1.to('cpu')
@@ -507,6 +802,41 @@ class GNNDeleteTrainer(BaseTrainer):
     
     @torch.no_grad()
     def eval_edge(self, stage='val', pred_all=False):
+        """
+        Evaluates the model's performance on edge-level tasks.
+
+        This method computes loss, F1 score, accuracy, AUC scores, and other metrics for edge prediction
+        based on the specified evaluation stage. It handles both positive and negative edges and
+        integrates defensive edges for comprehensive evaluation.
+
+        Args:
+            stage (str, optional): The evaluation stage ('val' or 'test'). Defaults to 'val'.
+            
+            pred_all (bool, optional): Whether to predict logits for all node pairs. Defaults to False.
+
+        Returns:
+            tuple:
+
+                loss (float): The loss value.
+
+                f1 (float): The F1 score.
+
+                acc (float): The accuracy score.
+
+                dt_auc (float): The AUC score.
+
+                dt_aup (float): The average precision score.
+
+                df_auc (float): The defensive AUC score.
+
+                df_aup (float): The defensive average precision score.
+
+                df_logit (list): A list of defensive logits.
+
+                logit_all_pair (torch.Tensor or None): Logits for all node pairs if `pred_all` is True.
+
+                log (dict): A dictionary containing evaluation metrics.
+        """
         self.model.eval()
         pos_edge_index = self.data[f'{stage}_edge_index']
         neg_edge_index = negative_sampling(
@@ -581,6 +911,22 @@ class GNNDeleteTrainer(BaseTrainer):
     
     @torch.no_grad()
     def get_link_labels(self, pos_edge_index, neg_edge_index):
+        """
+        Generates labels for positive and negative edges.
+
+        This method creates a label tensor where positive edges are labeled as 1 and
+        negative edges are labeled as 0.
+
+        Args:
+            pos_edge_index (torch.Tensor): Indices of the positive (existing) edges.
+            
+            neg_edge_index (torch.Tensor): Indices of the negative (non-existing) edges.
+
+        Returns:
+            torch.Tensor:
+
+                link_labels (torch.Tensor): A tensor of edge labels.
+        """
         E = pos_edge_index.size(1) + neg_edge_index.size(1)
         link_labels = torch.zeros(E, dtype=torch.float, device=pos_edge_index.device)
         link_labels[:pos_edge_index.size(1)] = 1.
@@ -588,7 +934,47 @@ class GNNDeleteTrainer(BaseTrainer):
     
     @torch.no_grad()
     def test_edge(self, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
-        
+        """
+        Tests the GNN model for edge-level tasks after deletion operations.
+
+        This method loads the best model checkpoint, evaluates the model on the test set for edge prediction,
+        and optionally performs member inference attacks to assess privacy after unlearning.
+
+        Args:
+            model_retrain (torch.nn.Module, optional): The retrained model for deletion verification.
+                                                    Defaults to None.
+            
+            attack_model_all (torch.nn.Module, optional): Model used for member inference attacks on all data.
+                                                        Defaults to None.
+            
+            attack_model_sub (torch.nn.Module, optional): Model used for member inference attacks on a subset of data.
+                                                        Defaults to None.
+            
+            ckpt (str, optional): Specifies which checkpoint to load ('best' or other). Defaults to 'best'.
+
+        Returns:
+            tuple:
+
+                loss (float): The loss value on the test set.
+
+                f1 (float): The F1 score on the test set.
+
+                acc (float): The accuracy on the test set.
+
+                dt_auc (float): The AUC score on the test set.
+
+                dt_aup (float): The average precision score on the test set.
+
+                df_auc (float): The defensive AUC score.
+
+                df_aup (float): The defensive average precision score.
+
+                df_logit (list): A list of defensive logits.
+
+                logit_all_pair (torch.Tensor or None): Logits for all node pairs if `pred_all` is True.
+
+                test_log (dict): A dictionary containing additional test metrics.
+        """
         if ckpt == 'best':    # Load best ckpt
             ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
             self.model.load_state_dict(ckpt['model_state'])

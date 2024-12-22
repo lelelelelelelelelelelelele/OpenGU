@@ -7,16 +7,96 @@ import numpy as np
 import os
 from sklearn.metrics import classification_report
 class CEUTrainer(BaseTrainer):
+    """
+    CEUTrainer class for training and evaluating models using the Certified Unlearning (CEU) method.
+
+    This class extends the BaseTrainer to implement specific training and evaluation routines 
+    required for the CEU methodology. It includes methods for training node-level and edge-level 
+    tasks, evaluating model performance, and handling model persistence.
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                     training hyperparameters, unlearning settings, and other relevant settings.
+
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+
+        model (torch.nn.Module): The neural network model that will be trained.
+
+        data (dict): A dictionary containing datasets for training, validation, and testing.
+                     Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the CEUTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained.
+                        
+            data (dict): A dictionary containing datasets for training, validation, and testing.
+                         Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+        """
         super().__init__(args, logger, model, data)
     
     def CEU_train(self,data,eval=True, verbose=True,return_epoch=False):
+        """
+        Initiates the training process based on the downstream task.
+
+        This method determines the appropriate training routine (node-level or edge-level) 
+        based on the specified downstream task and delegates the training process accordingly.
+
+        Args:
+            data (dict): A dictionary containing datasets for training, validation, and testing.
+                        Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+                
+            eval (bool, optional): Whether to evaluate the model after training. Defaults to True.
+                
+            verbose (bool, optional): Whether to display training progress. Defaults to True.
+                
+            return_epoch (bool, optional): Whether to return the number of epochs trained. 
+                                        Defaults to False.
+        
+        Returns:
+            torch.nn.Module or tuple: The trained model. If `return_epoch` is True, returns a tuple 
+                                    containing the trained model and the number of epochs.
+    """
         # if self.args["downstream_task"]=="node":
         return self.CEU_train_node(data,eval,verbose,return_epoch)
         # elif self.args["downstream_task"]=="edge":
         #     return self.CEU_train_edge(data,eval,verbose,return_epoch)
         
     def CEU_train_node(self,data,eval=True, verbose=True,return_epoch=False):
+        """
+        Trains the model for node-level tasks.
+
+        This method handles the training loop for node classification tasks, including loss 
+        computation, backpropagation, optimizer steps, evaluation, and model saving based 
+        on validation loss improvements and early stopping criteria.
+
+        Args:
+            data (dict): A dictionary containing datasets for training, validation, and testing.
+                         Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+                
+            eval (bool, optional): Whether to evaluate the model after training. Defaults to True.
+                
+            verbose (bool, optional): Whether to display training progress. Defaults to True.
+                
+            return_epoch (bool, optional): Whether to return the number of epochs trained. 
+                                           Defaults to False.
+        
+        Returns:
+            torch.nn.Module or tuple: The trained model. If `return_epoch` is True, returns a tuple 
+                                      containing the trained model and the number of epochs.
+        """
         if verbose:
             t0 = time.time()
             print(f'Start to train a {self.args["model_name"]} model...')
@@ -113,6 +193,28 @@ class CEUTrainer(BaseTrainer):
             return model
 
     def CEU_train_edge(self,data,eval=True, verbose=True,return_epoch=False):
+        """
+        Trains the model for edge-level tasks.
+
+        This method handles the training loop for edge classification tasks, including loss 
+        computation, backpropagation, optimizer steps, evaluation, and model saving based 
+        on validation loss improvements and early stopping criteria.
+
+        Args:
+            data (dict): A dictionary containing datasets for training, validation, and testing.
+                         Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+                
+            eval (bool, optional): Whether to evaluate the model after training. Defaults to True.
+                
+            verbose (bool, optional): Whether to display training progress. Defaults to True.
+                
+            return_epoch (bool, optional): Whether to return the number of epochs trained. 
+                                           Defaults to False.
+        
+        Returns:
+            torch.nn.Module or tuple: The trained model. If `return_epoch` is True, returns a tuple 
+                                      containing the trained model and the number of epochs.
+        """
         if verbose:
             t0 = time.time()
             print(f'Start to train a {self.args["model_name"]} model...')
@@ -215,6 +317,22 @@ class CEUTrainer(BaseTrainer):
 
     @torch.no_grad()
     def CEU_test(self,model, test_loader, edge_index):
+        """
+        Tests the model on the test set and computes classification metrics.
+
+        This method evaluates the model's performance on the test set by computing predictions 
+        and calculating metrics such as F1 score. It also computes the average test loss.
+
+        Args:
+            model (torch.nn.Module): The trained model to be tested.
+
+            test_loader (DataLoader): DataLoader for the test dataset.
+
+            edge_index (torch.LongTensor): Tensor containing edge indices for the graph.
+        
+        Returns:
+            tuple: A tuple containing the classification report as a dictionary and the average test loss.
+        """
         y_preds = []
         y_trues = []
         test_loss = []
@@ -234,6 +352,12 @@ class CEUTrainer(BaseTrainer):
 
     @torch.no_grad()
     def CEU_evaluate(self):
+        """
+        Evaluates the model's performance on the test set and prints the classification report.
+
+        This method computes predictions on the test set and generates a classification report, 
+        including metrics like precision, recall, and F1 score.
+        """
         test_loader = DataLoader(self.data['test_set'], batch_size=self.args['test_batch'], shuffle=False)
         edge_index = torch.tensor(self.data['edges'], device=self.device).t()
         y_preds = []

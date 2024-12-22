@@ -8,18 +8,105 @@ import copy
 import os
 from torch_geometric.utils import negative_sampling
 class D2DGNTrainer(BaseTrainer):
+    """
+    D2DGNTrainer class for training and evaluating models using the Distills to Delete in GNN (D2DGN) unlearning method.
+
+    This class extends the BaseTrainer to implement specific training and evaluation routines 
+    required for the D2DGN methodology. It includes methods for training node-level, edge-level, 
+    and graph-level tasks, evaluating model performance, and handling model persistence.
+    
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                     training hyperparameters, unlearning settings, and other relevant settings.
+    
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+    
+        model (torch.nn.Module): The neural network model that will be trained.
+    
+        data (dict): A dictionary containing datasets for training, validation, and testing.
+                     Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+    
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training.
+    
+        alpha (float): Weighting factor used in the loss function to balance between 
+                       preserver and destroyer knowledge distillation.
+    """
     def __init__(self, args, logger, model, data,alpha=0.5):
+        """
+        Initializes the D2DGNTrainer with the provided configuration, logger, model, data, and alpha.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained.
+                        
+            data (dict): A dictionary containing datasets for training, validation, and testing.
+                         Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
+                         
+            alpha (float, optional): Weighting factor for balancing preserver and destroyer losses. 
+                                     Defaults to 0.5.
+        """
         super().__init__(args, logger, model, data)
         self.alpha = alpha
 
     def d2dgn_train(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
+        """
+        Trains the model based on the downstream task.
+
+        This method delegates the training process to specific methods depending on the 
+        downstream task, which can be node-level, edge-level, or graph-level.
+
+        Args:
+            preserver_knowledge (torch.Tensor): Knowledge to be preserved during unlearning.
+            
+            destroyer_knowledge (torch.Tensor): Knowledge to be destroyed during unlearning.
+            
+            loss_fn (str): The type of loss function to use ("KL" for Kullback-Leibler divergence, 
+                           "MSE" for Mean Squared Error).
+            
+            save (bool, optional): Whether to save the best model weights during training. 
+                                   Defaults to False.
+        
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time.
+        """
         if self.args["downstream_task"] == 'node':
             return self.d2dgn_train_node(preserver_knowledge,destroyer_knowledge,loss_fn,save)
         elif self.args["downstream_task"] == 'edge':
             return self.d2dgn_train_edge(preserver_knowledge,destroyer_knowledge,loss_fn,save)
         elif self.args["downstream_task"]=="graph":
             return self.d2dgn_train_graph(preserver_knowledge,destroyer_knowledge,loss_fn,save)
+        
     def d2dgn_train_node(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
+        """
+        Trains the model for node-level tasks.
+
+        This method handles the training loop for node classification tasks, including loss 
+        computation, backpropagation, optimizer steps, evaluation, and model saving based 
+        on validation F1 score improvements.
+
+        Args:
+            preserver_knowledge (torch.Tensor): Knowledge to be preserved during unlearning.
+            
+            destroyer_knowledge (torch.Tensor): Knowledge to be destroyed during unlearning.
+            
+            loss_fn (str): The type of loss function to use ("KL" for Kullback-Leibler divergence, 
+                           "MSE" for Mean Squared Error).
+            
+            save (bool, optional): Whether to save the best model weights during training. 
+                                   Defaults to False.
+        
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time.
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -84,6 +171,28 @@ class D2DGNTrainer(BaseTrainer):
     
 
     def d2dgn_train_edge(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
+        """
+        Trains the model for edge-level tasks.
+
+        This method handles the training loop for edge classification tasks, including loss 
+        computation, backpropagation, optimizer steps, evaluation, and model saving based 
+        on validation F1 score improvements.
+
+        Args:
+            preserver_knowledge (torch.Tensor): Knowledge to be preserved during unlearning.
+            
+            destroyer_knowledge (torch.Tensor): Knowledge to be destroyed during unlearning.
+            
+            loss_fn (str): The type of loss function to use ("KL" for Kullback-Leibler divergence, 
+                           "MSE" for Mean Squared Error).
+            
+            save (bool, optional): Whether to save the best model weights during training. 
+                                   Defaults to False.
+        
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time.
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -181,7 +290,11 @@ class D2DGNTrainer(BaseTrainer):
     
     
     def d2dgn_train_graph(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
-        
+        """
+        Trains the model for graph-level tasks.
+
+        Incomplete method. To be implemented in future versions.
+        """
         
         pass
         

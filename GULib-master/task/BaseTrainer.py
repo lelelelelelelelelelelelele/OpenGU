@@ -29,7 +29,7 @@ class BaseTrainer:
     this class to implement specific training and evaluation routines tailored to their 
     respective tasks.
 
-    Attributes:
+    Class Attributes:
         args (dict): Configuration parameters for training, including model type, 
                      dataset specifications, and training hyperparameters.
 
@@ -100,13 +100,42 @@ class BaseTrainer:
             return self.train_graph(save,model_path)
 
     def evaluate(self):
+        """
+        Evaluates the model based on the specified downstream task (node, edge, or graph).
+
+        This method selects the appropriate evaluation routine based on the task type 
+        defined in the configuration parameters.
+
+        Returns:
+            float: The evaluation result of the model, such as F1 score, accuracy, etc., 
+                   depending on the task.
+        """
         if self.args["downstream_task"] == 'node':
             return self.test_node_fullbatch()
         elif self.args["downstream_task"] == 'edge':
             return self.evaluate_edge_model()
         elif self.args["downstream_task"]=="graph":
             return self.evaluate_graph_model()
+
     def train_node(self,save=False,model_path=None):
+        """
+        Trains the model for node-level tasks.
+
+        Depending on the configuration, this method either performs mini-batch training 
+        or full-batch training for node classification tasks.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                   Defaults to False.
+
+            model_path (str, optional): The path where the best model weights will be saved.
+                                        If None, a default path based on configuration parameters
+                                        will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time per epoch.
+        """
         if self.args["use_batch"]:
             return self.train_node_minibatch(save,model_path)
         else:
@@ -114,6 +143,24 @@ class BaseTrainer:
 
 
     def train_edge(self,save=False,model_path=None):
+        """
+        Trains the model for edge-level tasks.
+
+        This method handles the training loop for edge classification tasks, including 
+        loss computation, backpropagation, optimizer steps, evaluation, and model saving.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                   Defaults to False.
+
+            model_path (str, optional): The path where the best model weights will be saved.
+                                        If None, a default path based on configuration parameters
+                                        will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time per epoch.
+        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -181,6 +228,20 @@ class BaseTrainer:
     #     return loss
         
     def split_edge(self, data):
+        """
+        Splits the edges of the graph into training, validation, and test sets.
+
+        This method uses the `RandomLinkSplit` utility to randomly split the edges while 
+        maintaining the graph's undirected property and adding negative samples to the training set.
+
+        Args:
+            data (torch_geometric.data.Data): The original graph data containing all edges.
+
+        Returns:
+            torch_geometric.data.Data: The updated graph data with `train_edge_index`, 
+                                        `val_edge_index`, `test_edge_index`, and their 
+                                        corresponding labels and label indices.
+        """
         # print(type(data.adj))
         temp = Data(x=data.x, y=data.y, edge_index=data.edge_index)
         train_data, val_data, test_data = RandomLinkSplit(num_val=0.2, num_test=0.1, is_undirected=True,
@@ -202,6 +263,24 @@ class BaseTrainer:
         return data
     
     def train_graph(self,save=False,model_path=None):
+        """
+        Trains the model for graph-level tasks.
+
+        This method handles the training loop for graph classification tasks, including 
+        loss computation, backpropagation, optimizer steps, evaluation, and model saving.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                   Defaults to False.
+
+            model_path (str, optional): The path where the best model weights will be saved.
+                                        If None, a default path based on configuration parameters
+                                        will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best accuracy achieved during training and 
+                   the average training time per epoch.
+        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -246,6 +325,16 @@ class BaseTrainer:
     
     @torch.no_grad()
     def evaluate_edge_model(self):
+        """
+        Evaluates the model on edge-level tasks using the ROC AUC score.
+
+        This method performs edge prediction by computing logits for both positive and 
+        negative edges, applying a sigmoid activation, and then calculating the 
+        ROC AUC score based on the predicted and true labels.
+
+        Returns:
+            float: The ROC AUC score of the model on edge-level tasks.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         # self.data.edge_index = torch.tensor(self.data.edge_index,dtype=torch.long)
@@ -277,6 +366,22 @@ class BaseTrainer:
         return AUC_score
 
     def decode(self, z, pos_edge_index, neg_edge_index=None):
+        """
+        Decodes the edge logits based on node embeddings.
+
+        This method computes the logits for given edges by taking the dot product 
+        of the corresponding node embeddings. It can handle both positive and 
+        negative edges if provided.
+
+        Args:
+            z (torch.Tensor): The node embeddings.
+            pos_edge_index (torch.LongTensor): The indices of positive edges.
+            neg_edge_index (torch.LongTensor, optional): The indices of negative edges.
+                                                     Defaults to None.
+
+        Returns:
+            torch.Tensor: The computed logits for the edges.
+        """
         if neg_edge_index is not None:
             edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
             logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
@@ -288,15 +393,60 @@ class BaseTrainer:
         return logits
 
     def decode_val(self, z, edge_label_index):
+        """
+        Decodes the logits for validation edges.
+
+        This method computes the logits for validation edges by taking the dot product 
+        of the corresponding node embeddings.
+
+        Args:
+            z (torch.Tensor): The node embeddings.
+            edge_label_index (torch.LongTensor): The indices of edges for validation.
+
+        Returns:
+            torch.Tensor: The computed logits for the validation edges.
+        """
         return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
 
     def get_edge_labels(self, pos_edge_index, neg_edge_index):
+        """
+        Generates edge labels for positive and negative edges.
+
+        This method creates a label tensor where positive edges are labeled as 1 and 
+        negative edges are labeled as 0.
+
+        Args:
+            pos_edge_index (torch.LongTensor): The indices of positive edges.
+            neg_edge_index (torch.LongTensor): The indices of negative edges.
+
+        Returns:
+            torch.Tensor: A tensor containing labels for the edges.
+        """
         num_edges = pos_edge_index.size(1) + neg_edge_index.size(1)
         edge_labels = torch.zeros(num_edges, dtype=torch.float32, device=self.device)  # float32 or float
         edge_labels[:pos_edge_index.size(1)] = 1
         return edge_labels
 
     def train_node_minibatch(self,save=False,model_path=None):
+        """
+        Trains the model for node-level tasks using mini-batch training.
+
+        This method handles the training loop for node classification tasks using 
+        mini-batch data loaders. It includes loss computation, backpropagation, 
+        optimizer steps, evaluation, and model saving.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training.
+                                   Defaults to False.
+
+            model_path (str, optional): The path where the best model weights will be saved.
+                                        If None, a default path based on configuration parameters
+                                        will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time per epoch.
+        """
         time_sum  = 0
         best_f1 = 0
         best_w = 0
@@ -405,6 +555,22 @@ class BaseTrainer:
         
         # return best_f1, avg_training_time
     def train_node_fullbatch(self,save=False,model_path=None):
+        """
+        Trains the model for node-level tasks using full-batch training.
+
+        This method performs full-batch training for node classification tasks, where the entire dataset 
+        is used at once for each forward pass. It includes loss computation, backpropagation, 
+        optimizer steps, evaluation, and model saving.
+
+        Args:
+            save (bool, optional): Whether to save the best model weights during training. Defaults to False.
+            model_path (str, optional): The path where the best model weights will be saved. 
+                                        If None, a default path based on configuration parameters will be used. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the best F1 score achieved during training and 
+                   the average training time per epoch.
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -448,6 +614,15 @@ class BaseTrainer:
 
     @torch.no_grad()
     def test_node_fullbatch(self):
+        """
+        Evaluates the model for node-level tasks using full-batch testing.
+
+        This method performs evaluation on the test set using the entire dataset at once. 
+        It computes the F1 score based on the model's predictions and compares them against the true labels.
+
+        Returns:
+            float: The F1 score on the test set.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -462,6 +637,15 @@ class BaseTrainer:
     
     @torch.no_grad
     def test_node_minibatch(self):
+        """
+        Evaluates the model for node-level tasks using mini-batch testing.
+
+        This method performs evaluation on the test set using mini-batches of data. 
+        It computes the F1 score based on the model's predictions and compares them against the true labels.
+
+        Returns:
+            float: The F1 score on the test set using mini-batch evaluation.
+        """
         self.model.eval()  # 设置模型为评估模式
         all_preds = []  # 用于存储所有预测值
         all_labels = []  # 用于存储所有真实标签
@@ -485,6 +669,15 @@ class BaseTrainer:
         
     @torch.no_grad()
     def evaluate_graph_model(self):
+        """
+        Evaluates the graph model's performance on node-level tasks.
+
+        This method computes the overall accuracy of the model on the test set, 
+        using the model's predictions and comparing them against the true labels.
+
+        Returns:
+            float: The accuracy score on the test set.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         # self.data = self.data.to(self.device)
@@ -510,6 +703,16 @@ class BaseTrainer:
 
 
     def posterior(self):
+        """
+        Computes the model's posteriors for node-level tasks.
+
+        This method performs a forward pass through the model to compute the posteriors for node classification tasks.
+        It applies softmax to the output, optionally using different model configurations, such as GraphRevoker or SIGN.
+        The result is computed based on the test mask and returned.
+
+        Returns:
+            Tensor: The log-softmax of the posteriors for the test set nodes.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -527,6 +730,16 @@ class BaseTrainer:
         return posteriors.detach()
 
     def save_model(self, save_path,model_dict=None):
+        """
+        Saves the model's state or a specific model dictionary to the specified file path.
+
+        This method saves the current state of the model or an optional custom model dictionary to a file. 
+        If the directory does not exist, it is created. The model is saved using PyTorch's `torch.save` method.
+
+        Args:
+            save_path (str): The path to the file where the model will be saved.
+            model_dict (dict, optional): A specific model dictionary to save. If None, the model's current state is saved. Defaults to None.
+        """
         folder_path = os.path.dirname(save_path)
 
         # 检查文件夹是否存在，如果不存在则创建
@@ -542,10 +755,27 @@ class BaseTrainer:
                 torch.save(self.model.state_dict(), save_path)
 
     def load_model(self, save_path):
+        """
+        Loads the model's state from the specified file path.
+
+        This method loads the model's state dictionary from a file using PyTorch's `torch.load` and applies it to the model.
+
+        Args:
+            save_path (str): The path to the file from which the model will be loaded.
+        """
         self.model.load_state_dict(torch.load(save_path, map_location=self.device))
         
         
     def prepare_data(self, input_data):
+        """
+        Prepares the data for training and evaluation.
+
+        This method clones the input data and modifies it for training and evaluation. It specifically sets the edge index
+        to the training edge index and removes the training edge index from the data to prevent it from being used during inference.
+
+        Args:
+            input_data (Data): The input data object containing graph data and edge indices.
+        """
         data_full = input_data.clone()
         data = input_data.clone()
         
@@ -561,6 +791,20 @@ class BaseTrainer:
         self.data_full = data_full
         
     def posterior_con(self,return_features=False,mia=False):
+        """
+        Computes the model's posteriors for node-level tasks with optional feature return.
+
+        This method computes the posteriors for node classification tasks using either full-batch or mini-batch processing. 
+        It also includes an option to return the features from the model, depending on the `return_features` parameter.
+
+        Args:
+            return_features (bool, optional): Whether to return the features along with the posteriors. Defaults to False.
+            mia (bool, optional): Whether to apply the MIA (Model Inversion Attack) method. Defaults to False.
+
+        Returns:
+            Tensor: The log-softmax of the posteriors for the test set nodes.
+            (Optional) Tensor: The features from the model, if `return_features` is True.
+        """
         # self.logger.debug("generating posteriors")
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self.model.eval()
@@ -584,6 +828,18 @@ class BaseTrainer:
     
     @torch.no_grad()
     def _inference(self, no_test_edges=False):
+        """
+        Performs inference on the model without gradient tracking.
+
+        This method runs a forward pass through the model to get the posteriors and features for the input data, 
+        and applies softmax to the results. It performs inference for both training and testing data.
+
+        Args:
+            no_test_edges (bool, optional): Whether to exclude test edges in the data. Defaults to False.
+
+        Returns:
+            tuple: A tuple containing the log-softmax of the posteriors and the features from the model.
+        """
         # assert not self.data is None and not self.data_full is None
 
         self.model.eval()
@@ -597,6 +853,20 @@ class BaseTrainer:
         return F.log_softmax(z,dim=1), feat
     
     def gen_loader(self,mode="train",batch_size=1,shuffle=True):
+        """
+        Generates a data loader for a specified mode (train, validation, or test).
+
+        This method generates mini-batches of graph data for training, validation, or testing. 
+        The data is filtered according to the specified mode, and a DataLoader is returned to handle batching and shuffling.
+
+        Args:
+            mode (str, optional): The mode for generating the loader, can be "train", "val", or "test". Defaults to "train".
+            batch_size (int, optional): The batch size for the DataLoader. Defaults to 1.
+            shuffle (bool, optional): Whether to shuffle the data. Defaults to True.
+
+        Returns:
+            DataLoader: A PyTorch DataLoader that can be used to iterate over the graph data in mini-batches.
+        """
         data_list = []
         if mode == "train":
             for gid in self.data.train_ids:
@@ -624,7 +894,18 @@ class BaseTrainer:
         return DataLoader(data_list,batch_size=batch_size,shuffle=shuffle)
     
     def forward_graph_once(self,data):
-        
+        """
+        Performs a forward pass through the model for a single graph.
+
+        This method performs a forward pass through the model for the given data, which is expected to be a graph. 
+        It computes the logits (model predictions) for the graph and returns them.
+
+        Args:
+            data (Data): The graph data to pass through the model.
+
+        Returns:
+            Tensor: The logits for the graph after a forward pass through the model.
+        """
         loader = self.gen_loader(mode="train",batch_size=data.y.size(),shuffle=False)
         logits = []
         for graph_data in loader:
@@ -634,6 +915,15 @@ class BaseTrainer:
         return logits
     
     def posterior_edge(self):
+        """
+        Computes the model's posteriors for edge-level tasks.
+
+        This method computes the posteriors for edge classification tasks, using the model to predict edge labels for the 
+        positive and negative test edges. The posteriors are then passed through a sigmoid activation to return probabilities.
+
+        Returns:
+            Tensor: The posteriors for the test set edges, passed through a sigmoid activation.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)

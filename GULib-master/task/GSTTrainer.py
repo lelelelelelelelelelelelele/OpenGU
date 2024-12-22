@@ -18,12 +18,65 @@ from utils.utils import *
 from torch_geometric.data import Data
 
 class GSTTrainer(BaseTrainer):
+    """
+    GSTTrainer class for training and evaluating models using the GST (Graph Scattering Transform) unlearning method.
+
+    This class extends the `BaseTrainer` to implement specific training and evaluation routines required for the GST unlearning methodology. 
+    It includes methods for training the GNN model, evaluating its accuracy and loss, generating GST embeddings, and performing 
+    unlearning operations to remove the influence of specific nodes or edges from the trained model.
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                    training hyperparameters, unlearning settings, and other relevant settings.
+
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+
+        model (torch.nn.Module): The neural network model that will be trained and evaluated.
+
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and evaluation.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the GSTTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained and evaluated.
+                        
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
 
     def train(self,model, optimizer, loader, device):
         """
         For GIN.
+        Trains the GNN model for one epoch using the GST unlearning method.
+
+        This method performs a single epoch of training, including forward propagation, loss computation, 
+        backpropagation, and optimizer updates.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be trained.
+            
+            optimizer (torch.optim.Optimizer): The optimizer used for updating model parameters.
+            
+            loader (DataLoader): DataLoader for the training dataset.
+            
+            device (torch.device): The device on which the training is performed (CPU or GPU).
+
+        Returns:
+            float: The average training loss for the epoch.
         """
         model.train()
         total_loss = 0
@@ -40,6 +93,19 @@ class GSTTrainer(BaseTrainer):
     def eval_acc(self, model, loader,device):
         """
         For GIN.
+        Evaluates the accuracy of the GNN model on a given dataset.
+
+        This method computes the accuracy by comparing the model's predictions with the true labels.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be evaluated.
+            
+            loader (DataLoader): DataLoader for the evaluation dataset.
+            
+            device (torch.device): The device on which the evaluation is performed (CPU or GPU).
+
+        Returns:
+            float: The accuracy of the model on the dataset.
         """
         model.eval()
         correct = 0
@@ -54,6 +120,19 @@ class GSTTrainer(BaseTrainer):
     def eval_loss(self,model, loader,device):
         """
         For GIN.
+        Evaluates the loss of the GNN model on a given dataset.
+
+        This method computes the average negative log-likelihood loss over the dataset.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be evaluated.
+            
+            loader (DataLoader): DataLoader for the evaluation dataset.
+            
+            device (torch.device): The device on which the evaluation is performed (CPU or GPU).
+
+        Returns:
+            float: The average loss of the model on the dataset.
         """
         model.eval()
         loss = 0
@@ -66,6 +145,15 @@ class GSTTrainer(BaseTrainer):
 
 
     def num_graphs(self,data):
+        """
+        Determines the number of graphs in a batch of data.
+
+        Args:
+            data (torch_geometric.data.Data): A batch of graph data.
+
+        Returns:
+            int: The number of graphs in the batch.
+        """
         if hasattr(data, 'num_graphs'):
             return data.num_graphs
         else:
@@ -74,10 +162,31 @@ class GSTTrainer(BaseTrainer):
         
     def get_GST_emb(self,data, scattering, device,indices = None,  nonlin=True,is_train=False):
         """
-        Input:
-            datalist: a list of Data objects.
-            scattering: Scattering Transform object.
-            batch: if batch > 0, meaning we want to compute the embedding for all graphs, we should use loader; otherwise we should just Data
+        Generates GST embeddings for specified nodes in the dataset.
+
+        This method applies the Graph Scattering Transform to the node features and returns the embeddings 
+        along with labels. It can selectively return embeddings for specific node indices and optionally 
+        transform labels for training.
+
+        Args:
+            data (torch_geometric.data.Data): The dataset containing node and edge information.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            indices (list or torch.Tensor, optional): Specific node indices to generate embeddings for. 
+                                                     If `None`, embeddings for all nodes are returned. Defaults to `None`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            is_train (bool, optional): If `True`, transforms labels for training purposes. Defaults to `False`.
+
+        Returns:
+            tuple:
+                torch.Tensor: GST embeddings for the specified nodes.
+                
+                torch.Tensor: Corresponding labels for the nodes.
         """
         data = data.to(device)
         X = scattering(data, nonlin, use_batch=False,return_node = True)
@@ -92,10 +201,30 @@ class GSTTrainer(BaseTrainer):
 
     def get_GST_graph_emb(self,datalist, scattering, device, train_split=False, nonlin=True, batch=-1):
         """
-        Input:
-            datalist: a list of Data objects.
-            scattering: Scattering Transform object.
-            batch: if batch > 0, meaning we want to compute the embedding for all graphs, we should use loader; otherwise we should just Data
+        Generates GST embeddings for a list of graphs.
+
+        This method processes a list of graph data objects, applies the Graph Scattering Transform to compute embeddings, 
+        and returns the concatenated embeddings and labels. It supports batch processing for efficiency.
+
+        Args:
+            datalist (list of torch_geometric.data.Data): A list of graph data objects.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            train_split (bool, optional): If `True`, transforms labels for training purposes. Defaults to `False`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            batch (int, optional): Batch size for processing graphs. If `> 0`, uses DataLoader for batching; 
+                                   otherwise, processes graphs individually. Defaults to `-1`.
+
+        Returns:
+            tuple:
+                torch.Tensor: Concatenated GST embeddings for all graphs.
+                
+                torch.Tensor: Concatenated labels for all graphs.
         """
         X = []
         y = []
@@ -124,7 +253,42 @@ class GSTTrainer(BaseTrainer):
 
     def train_GST(self,logger,args, data, scattering, device,unlearning_nodes,nonmember_id,nonlin=True):
         """
-        train_list, val_list, test_list are not dataloaders and should not be confused with the one used in GIN.
+        Trains the model using the GST (Graph Scattering Transform) unlearning method.
+
+        This method generates GST embeddings for training, validation, and testing datasets, trains a 
+        classifier using these embeddings, and evaluates the model's performance. It also computes 
+        soft labels for non-member and unlearning nodes to assess the unlearning effectiveness.
+
+        Args:
+            logger (logging.Logger): Logger object used to log training progress and metrics.
+            
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning.
+            
+            data (torch_geometric.data.Data): The dataset containing edge and node information.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            unlearning_nodes (list or torch.Tensor): List of node indices targeted for unlearning.
+            
+            nonmember_id (list or torch.Tensor): List of node indices not present in the training set.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+
+        Returns:
+            tuple:
+                torch.Tensor: Trained classifier weights.
+                
+                list: List of durations for data processing and classifier training.
+                
+                float: Validation accuracy.
+                
+                float: Test accuracy.
+                
+                torch.Tensor: Soft labels for non-member nodes.
+                
+                torch.Tensor: Soft labels for unlearning nodes.
         """
         durations = []
         t_start = time.perf_counter()
@@ -164,6 +328,35 @@ class GSTTrainer(BaseTrainer):
         return w, durations, val_acc[0], test_acc[0],softlabel_original0,softlabel_original1
 
     def train_GST_graph(self,logger,args, train_list, test_list,scattering, device):
+        """
+        Trains the model on graph-level data using the GST unlearning method.
+
+        This method generates GST embeddings for training and testing graph lists, trains a classifier 
+        using these embeddings, and evaluates the model's performance on test data.
+
+        Args:
+            logger (logging.Logger): Logger object used to log training progress and metrics.
+            
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning.
+            
+            train_list (list of torch_geometric.data.Data): List of training graph data objects.
+            
+            test_list (list of torch_geometric.data.Data): List of testing graph data objects.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+
+        Returns:
+            tuple:
+                torch.Tensor: Trained classifier weights.
+                
+                list: List of durations for data processing and classifier training.
+                
+                float: Validation accuracy (if applicable).
+                
+                float: Test accuracy.
+        """
         durations = []
         t_start = time.perf_counter()
         # generate GST embeddings, use batch for computing
@@ -195,6 +388,50 @@ class GSTTrainer(BaseTrainer):
         return w, durations, val_acc, test_acc
 
     def Unlearn_GST_graph(self,logger,args, scattering, train_list, device, w_approx, budget, val_list=None, test_list=None, nonlin=True, gamma=1/4):
+        """
+        Performs unlearning on graph-level data using the GST method.
+
+        This method removes the influence of specific graphs from the trained model by updating the classifier weights.
+        It ensures that the model forgets the targeted graphs while maintaining performance on validation and test sets.
+
+        Args:
+            logger (logging.Logger): Logger object used to log unlearning progress and metrics.
+            
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            train_list (list of torch_geometric.data.Data): List of training graph data objects.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            w_approx (torch.Tensor): Approximate classifier weights before unlearning.
+            
+            budget (float): Budget parameter controlling the extent of unlearning.
+            
+            val_list (list of torch_geometric.data.Data, optional): List of validation graph data objects. Defaults to `None`.
+            
+            test_list (list of torch_geometric.data.Data, optional): List of testing graph data objects. Defaults to `None`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            gamma (float, optional): Scaling factor used in gradient normalization. Defaults to `1/4`.
+
+        Returns:
+            tuple:
+                float: Total training time for the unlearning process.
+                
+                int: Number of times the model was retrained during unlearning.
+                
+                float: Test accuracy after unlearning.
+                
+                float: Approximated gradient norm.
+                
+                float: Real gradient norm (placeholder for future implementation).
+                
+                float: Worst-case gradient norm (placeholder for future implementation).
+                list: Updated removal queue after unlearning steps.
+        """
         # F for Scattering Transform
         f = np.sqrt(args["L"])
         
@@ -287,8 +524,73 @@ class GSTTrainer(BaseTrainer):
     def Unlearn_GST(self,logger,args, scattering, data, device, w_approx, budget,unlearning_nodes,nonmember_id, graph_removal_queue=None,
                     removal_queue=None, val_list=None, test_list=None, nonlin=True, gamma=1/4):
         """
-        train_list, val_list, test_list are not datasets, they are list of Data objects.
-        The removal logic is Unlearn_GST will generate the removal_queue, and Retrain_GNN will use the exact same removal_queue
+        Performs unlearning on graph-level data using the GST (Graph Scattering Transform) method.
+
+        This method iteratively removes specified nodes from the training graph data, updates the classifier weights 
+        to forget the influence of the removed nodes, and evaluates the model's performance after each removal. 
+        It ensures that the cumulative gradient norm associated with the unlearning process does not exceed the 
+        predefined budget by retraining the model when necessary. Additionally, it computes soft labels for 
+        non-member and unlearning nodes to assess the effectiveness of the unlearning process.
+
+        Args:
+            logger (logging.Logger): Logger object used to log unlearning progress and metrics.
+            
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning. Expected keys include:
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            data (torch_geometric.data.Data): The dataset containing edge and node information, along with train, 
+                                            validation, and test indices.
+            
+            device (torch.device): The computation device (CPU or GPU) on which the model and data are loaded.
+            
+            w_approx (torch.Tensor): Approximate classifier weights before unlearning. Shape should match the number 
+                                    of features and classes (e.g., [num_features, num_classes]).
+            
+            budget (float): Budget parameter controlling the maximum allowable cumulative gradient norm for unlearning.
+            
+            unlearning_nodes (list or torch.Tensor): List of node indices targeted for unlearning.
+            
+            nonmember_id (list or torch.Tensor): List of node indices not present in the training set, used for 
+                                                evaluating the impact of unlearning.
+            
+            graph_removal_queue (torch.Tensor, optional): Predefined queue of graph indices to remove. If `None`, 
+                                                        a random queue is generated. Defaults to `None`.
+            
+            removal_queue (list, optional): Queue of node indices to remove. If `None`, it will be generated based 
+                                            on the `graph_removal_queue`. Defaults to `None`.
+            
+            val_list (list of torch_geometric.data.Data, optional): List of validation graph data objects. 
+                                                                Used to evaluate validation accuracy post-removal. 
+                                                                Defaults to `None`.
+            
+            test_list (list of torch_geometric.data.Data, optional): List of testing graph data objects. 
+                                                                Used to evaluate test accuracy post-removal. 
+                                                                Defaults to `None`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            gamma (float, optional): Scaling factor used in gradient normalization. Defaults to `1/4`.
+
+        Returns:
+            tuple:
+                float: Total training time for the unlearning process (in seconds).
+                
+                int: Number of times the model was retrained during unlearning.
+                
+                float: Test accuracy after the unlearning process.
+                
+                float: Approximated gradient norm associated with the unlearning steps.
+                
+                float: Real gradient norm (currently a placeholder and remains `0`).
+                
+                float: Worst-case gradient norm (currently a placeholder and remains `0`).
+                
+                list: Updated removal queue after unlearning steps, containing tuples of (graph_id, node_id).
+                
+                torch.Tensor: Soft labels for unlearning nodes after unlearning.
+                
+                torch.Tensor: Soft labels for non-member nodes after unlearning.
         """
         
         # F for Scattering Transform
@@ -391,10 +693,56 @@ class GSTTrainer(BaseTrainer):
     def Unlearn_GST_guo(self,logger,args, scattering, train_list, device, w_approx, budget, graph_removal_queue=None,
                         removal_queue=None, val_list=None, test_list=None, nonlin=True, gamma=1/4):
         """
-        train_list, val_list, test_list are not datasets, they are list of Data objects.
-        The removal logic is Unlearn_GST will generate the removal_queue, and Retrain_GNN will use the exact same removal_queue
+        Performs unlearning on graph-level data using the GST method based on Guo's approach.
+
+        This method iteratively removes graphs from the training set, updates the classifier weights 
+        to forget the removed graphs, and evaluates the model's performance after each removal. It 
+        ensures that the unlearning budget is not exceeded by retraining the model when necessary.
+
+        Args:
+            logger (logging.Logger): Logger object used to log unlearning progress and metrics.
+            
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            train_list (list of torch_geometric.data.Data): List of training graph data objects.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            w_approx (torch.Tensor): Approximate classifier weights before unlearning.
+            
+            budget (float): Budget parameter controlling the extent of unlearning.
+            
+            graph_removal_queue (torch.Tensor, optional): Predefined queue of graph indices to remove. 
+                                                         If `None`, a random queue is generated. Defaults to `None`.
+            
+            removal_queue (list, optional): Queue of node indices to remove. If `None`, it will be generated. Defaults to `None`.
+            
+            val_list (list of torch_geometric.data.Data, optional): List of validation graph data objects. Defaults to `None`.
+            
+            test_list (list of torch_geometric.data.Data, optional): List of testing graph data objects. Defaults to `None`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            gamma (float, optional): Scaling factor used in gradient normalization. Defaults to `1/4`.
+
+        Returns:
+            tuple:
+                torch.Tensor: Tensor recording the removal time for each unlearning step.
+                
+                int: Number of times the model was retrained during unlearning.
+                
+                torch.Tensor: Tensor recording the accuracy after each removal (validation and test).
+                
+                torch.Tensor: Approximated gradient norm.
+                
+                torch.Tensor: Real gradient norm.
+                
+                torch.Tensor: Worst-case gradient norm.
+                
+                list: Updated removal queue after unlearning steps.
         """
-        
         # F for Scattering Transform
         f = np.sqrt(args.L)
         
@@ -476,8 +824,52 @@ class GSTTrainer(BaseTrainer):
     def Retrain_GST(self,args, scattering, train_list, device, w_approx, budget, graph_removal_queue=None,
                     removal_queue=None, val_list=None, test_list=None, nonlin=True, gamma=1/4):
         """
-        train_list, val_list, test_list are not datasets, they are list of Data objects.
-        The removal logic is Unlearn_GST will generate the removal_queue, and Retrain_GNN will use the exact same removal_queue
+        Retrains the model after performing unlearning steps using the GST method.
+
+        This method updates the classifier weights based on the modified training data after unlearning, 
+        ensuring that the model retains performance on the remaining data while forgetting the unlearned parts.
+
+        Args:
+            args (dict): Configuration parameters, including hyperparameters for GST and unlearning.
+            
+            scattering (object): The Graph Scattering Transform object used to compute embeddings.
+            
+            train_list (list of torch_geometric.data.Data): List of training graph data objects.
+            
+            device (torch.device): The device on which computations are performed (CPU or GPU).
+            
+            w_approx (torch.Tensor): Approximate classifier weights before retraining.
+            
+            budget (float): Budget parameter controlling the extent of unlearning.
+            
+            graph_removal_queue (torch.Tensor, optional): Predefined queue of graph indices to remove. 
+                                                         If `None`, a random queue is generated. Defaults to `None`.
+            
+            removal_queue (list, optional): Queue of node indices to remove. If `None`, it will be generated. Defaults to `None`.
+            
+            val_list (list of torch_geometric.data.Data, optional): List of validation graph data objects. Defaults to `None`.
+            
+            test_list (list of torch_geometric.data.Data, optional): List of testing graph data objects. Defaults to `None`.
+            
+            nonlin (bool, optional): Whether to apply a non-linear transformation during scattering. Defaults to `True`.
+            
+            gamma (float, optional): Scaling factor used in gradient normalization. Defaults to `1/4`.
+
+        Returns:
+            tuple:
+                torch.Tensor: Tensor recording the removal time for each unlearning step.
+                
+                int: Number of times the model was retrained during unlearning.
+                
+                torch.Tensor: Tensor recording the accuracy after each removal (validation and test).
+                
+                torch.Tensor: Approximated gradient norm.
+                
+                torch.Tensor: Real gradient norm.
+                
+                torch.Tensor: Worst-case gradient norm.
+                
+                list: Updated removal queue after unlearning steps.
         """
         
         # F for Scattering Transform

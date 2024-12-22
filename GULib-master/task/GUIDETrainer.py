@@ -10,11 +10,66 @@ from tqdm import tqdm
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch_geometric.loader import GraphSAINTNodeSampler
 class GUIDETrainer(BaseTrainer):
+    """
+    GUIDETrainer class for training and evaluating Graph Neural Networks (GNNs) using the GUIDE unlearning method.
+
+    This class extends the `BaseTrainer` to implement specific training and evaluation routines required for the GUIDE unlearning methodology.
+    It includes methods for training the GNN model using full-batch or mini-batch approaches, evaluating the model's performance,
+    and obtaining prediction information.
+
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                    training hyperparameters, unlearning settings, and other relevant settings.
+
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+
+        model (torch.nn.Module): The neural network model that will be trained and evaluated.
+
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and evaluation.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the GUIDETrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained and evaluated.
+                        
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
     
 
     def train_node_fullbatch(self,save=False,model_path =False):
+        """
+        Trains the GNN model using a full-batch approach.
+
+        This method performs full-batch training of the GNN model, where the entire graph data is processed in each training epoch.
+        It supports different base models (e.g., SIGN) and logs the training loss and F1-score at specified intervals.
+
+        Args:
+            save (bool, optional): If `True`, saves the best model weights during training. Defaults to `False`.
+            
+            model_path (str or bool, optional): Path to save the trained model. If `False`, no model is saved unless `save` is `True`. Defaults to `False`.
+
+        Returns:
+            tuple:
+                float: Best F1-score achieved during training.
+                
+                float: Average training time per epoch (in seconds).
+        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -43,6 +98,24 @@ class GUIDETrainer(BaseTrainer):
                 self.logger.info('Epoch: {:03d} | Loss: {:.4f} | F1: {:.4f}'.format(epoch + 1, loss, f1macro))
 
     def train_node_minibatch(self,save=False,model_path=None):
+        """
+        Trains the GNN model using a mini-batch approach with GraphSAINT sampling.
+
+        This method performs mini-batch training of the GNN model using the GraphSAINTNodeSampler.
+        It updates the model's parameters based on sampled subgraphs and evaluates the model's performance
+        on the test set at specified intervals. The method also supports saving the best model weights.
+
+        Args:
+            save (bool, optional): If `True`, saves the best model weights during training. Defaults to `False`.
+            
+            model_path (str, optional): Path to save the trained model. If `None`, a default path is used. Defaults to `None`.
+
+        Returns:
+            tuple:
+                float: Best F1-score achieved during training.
+                
+                float: Average training time per epoch (in seconds).
+        """
         time_sum  = 0
         best_f1 = 0
         best_w = 0
@@ -84,6 +157,15 @@ class GUIDETrainer(BaseTrainer):
 
     # @torch.no_grad
     def test_node_minibatch(self):
+        """
+        Evaluates the GNN model's performance on the test set using a mini-batch approach.
+
+        This method performs inference on the test set using the GraphSAINTNodeSampler and computes the F1-score
+        based on the model's predictions. It is designed to work in a mini-batch fashion for scalability.
+
+        Returns:
+            float: The micro-averaged F1-score of the model on the test set.
+        """
         self.model.eval()  # 设置模型为评估模式
         loader = GraphSAINTNodeSampler(self.data, batch_size=256)  # 创建测试阶段的采样器
         all_preds = []  # 用于存储所有预测值
@@ -108,6 +190,18 @@ class GUIDETrainer(BaseTrainer):
     
     @torch.no_grad()
     def prediction_info(self):
+        """
+        Retrieves prediction information for the test set.
+
+        This method performs a forward pass on the entire graph data to obtain predictions for the test nodes.
+        It returns both the predicted labels and the true labels for further analysis or evaluation.
+
+        Returns:
+            tuple:
+                torch.Tensor: Predicted logits for the test nodes.
+                
+                torch.Tensor: True labels for the test nodes.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)

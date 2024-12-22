@@ -2,10 +2,66 @@ from task.BaseTrainer import BaseTrainer
 import torch.nn.functional as F
 import torch
 class GraphRevokerTrainer(BaseTrainer):
+    """
+    GraphRevokerTrainer class for training and evaluating GNN using GraphRevoker unlearning methods.
+
+    This class extends the `BaseTrainer` to implement specific training and evaluation routines 
+    required for various graph unlearning methodologies. It includes methods for generating 
+    posteriors, performing inference, and preparing data for training and evaluation. 
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                     training hyperparameters, unlearning settings, and other relevant settings.
+
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+
+        model (torch.nn.Module): The neural network model that will be trained and evaluated.
+
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+        
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and evaluation.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the GraphRevokerTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained and evaluated.
+                        
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
 
     def posterior(self,return_features=False,mia=False):
+        """
+        Generates posterior probabilities for nodes or edges based on the trained model.
+
+        This method computes the posterior probabilities by performing a forward pass through the model.
+        It can optionally return node features and support member inference attacks (MIA) evaluation.
+
+        Args:
+            return_features (bool, optional): If set to `True`, the method returns both 
+                                              node embeddings and additional features. Defaults to `False`.
+                
+            mia (bool, optional): If set to `True`, the method computes posteriors suitable for 
+                                   evaluating membership inference attacks. Defaults to `False`.
+    
+        Returns:
+            torch.Tensor or tuple:
+                - If `mia` is `True`: Returns the log-softmax probabilities for the specified test mask.
+                - If `return_features` is `True`: Returns a tuple containing node embeddings and additional features.
+                - Otherwise: Returns node embeddings corresponding to the test mask.
+        """
         # self.logger.debug("generating posteriors")
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self.model.eval()
@@ -29,6 +85,22 @@ class GraphRevokerTrainer(BaseTrainer):
     
     @torch.no_grad()
     def _inference(self, no_test_edges=False):
+        """
+        Performs inference to obtain node embeddings and features.
+
+        This method executes a forward pass through the model to compute the log-softmax probabilities 
+        and extract node features. It ensures that the model is in evaluation mode and processes the 
+        data on the appropriate device.
+
+        Args:
+            no_test_edges (bool, optional): If set to `True`, excludes test edges during inference. 
+                                            Defaults to `False`.
+        
+        Returns:
+            tuple:
+                - torch.Tensor: Log-softmax probabilities for each node.
+                - torch.Tensor: Extracted node features.
+        """
         # assert not self.data is None and not self.data_full is None
 
         self.model.eval()
@@ -43,6 +115,19 @@ class GraphRevokerTrainer(BaseTrainer):
 
 
     def prepare_data(self, input_data):
+        """
+        Prepares and splits the input data for training and evaluation.
+
+        This method clones the input data, separates training edges, and initializes data loaders 
+        based on the configuration. It ensures that the training edges are appropriately assigned 
+        for the unlearning process.
+
+        Args:
+            input_data (torch_geometric.data.Data): The original dataset containing all edges and nodes.
+        
+        Returns:
+            None
+        """
         data_full = input_data.clone()
         data = input_data.clone()
         
