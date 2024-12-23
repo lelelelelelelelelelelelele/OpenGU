@@ -14,6 +14,17 @@ from sklearn.metrics import roc_auc_score
 from torch_geometric.loader import NeighborSampler
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 class idea(IF_based_pipeline):
+    """
+    IDEA class implements a IF-based pipeline for performing unlearning tasks on GNNs, enabling efficient removal of specific data points, edges, or features from
+    trained graph-based models without the need for retraining from scratch.
+
+    Class Attributes:
+        args (dict): Configuration parameters for the GIF pipeline, including settings for the number of runs, unlearning ratios, and method choices.
+
+        logger (Logger): Logger instance for logging information, debugging, and tracking the pipeline's progress and performance metrics.
+
+        model_zoo (ModelZoo): Collection of models and related data resources used within the pipeline.
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args

@@ -33,20 +33,6 @@ class grapheraser(Shard_based_pipeline):
     logger (Logger): Logger instance for logging informational and debugging messages.
     
     model_zoo (ModelZoo): Collection of models and associated data used for training and unlearning.
-    
-    data (Data): Deep copy of the original data from the model zoo, used for manipulation during unlearning.
-    
-    partition_method (str): The method used for partitioning the graph (e.g., "graph_km").
-    
-    num_shards (int): The number of shards into which the graph is partitioned.
-    
-    target_model_name (str): The name of the base model targeted for unlearning operations.
-    
-    num_runs (int): The number of experimental runs to perform.
-    
-    run (int):Current run index during multiple experimental runs.
-    
-    affected_shard (list): List of shard indices that are affected by unlearning operations.
     """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)

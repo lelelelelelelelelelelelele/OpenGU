@@ -30,6 +30,17 @@ class GATE(torch.nn.Module):
 
 
 class megu(Learning_based_pipeline):
+    """
+    The `megu` class is a specialized implementation of the `Learning_based_pipeline` class designed for graph unlearning tasks. It provides methods for training, unlearning, and evaluating graph neural network models. 
+    The class handles different unlearning tasks such as node, edge, and feature unlearning, and performs membership inference attacks to assess the privacy of the unlearning process.
+
+    Class Attributes:
+        args (dict): Configuration arguments for the unlearning process.
+
+        logger (Logger): Logger for recording the process.
+
+        model_zoo (ModelZoo): Collection of pre-trained models and data.
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args

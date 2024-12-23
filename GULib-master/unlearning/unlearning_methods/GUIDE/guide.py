@@ -29,7 +29,16 @@ from pipeline.Shard_based_pipeline import Shard_based_pipeline
 from torch_geometric.utils import negative_sampling
 class guide(Shard_based_pipeline):
     """
-    
+    The `guide` class is a specialized implementation of the `Shard_based_pipeline` class designed for 
+    graph unlearning tasks using the GUIDE method. 
+    This method partitions the graph using the GUIDE method, which is different from the other methods like GraphEraser. It repairs the subgraphs and trains models on each subgraph.
+
+    Attributes:
+        args (dict): Configuration arguments for the GUIDE method and unlearning tasks.
+
+        logger (Logger): Logger for recording information and debugging.
+
+        model_zoo (ModelZoo): Collection of models and data used in the pipeline.
     """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)

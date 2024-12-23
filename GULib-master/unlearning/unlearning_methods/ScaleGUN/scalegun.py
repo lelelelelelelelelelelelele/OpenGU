@@ -14,6 +14,19 @@ from pipeline.IF_based_pipeline import IF_based_pipeline
 from config import root_path,unlearning_path,unlearning_edge_path
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 class scalegun(IF_based_pipeline):
+    """
+    ScaleGUN is a class that implements the ScaleGUN unlearning method for graph neural networks.
+    It extends the `IF_based_pipeline` class and provides methods for training, unlearning, and evaluating the model. 
+    The class handles the preparation of data, training of the model, and the unlearning process, which involves removing specific edges or nodes from the graph and updating the model accordingly.
+    
+    Class Attributes:
+        args (dict): A dictionary of arguments and configurations for the model.
+
+        logger (Logger): A logger instance for logging information and metrics.
+
+        model_zoo (ModelZoo): An instance of ModelZoo containing the model and data.
+        """
+    
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args

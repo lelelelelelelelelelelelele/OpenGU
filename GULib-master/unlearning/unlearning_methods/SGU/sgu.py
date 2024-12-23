@@ -30,6 +30,19 @@ from task.edge_prediction import EdgePredictor
 from torch_geometric.utils import negative_sampling
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
 class sgu(Learning_based_pipeline):
+    """
+    The `sgu` class implements a learning-based pipeline for Graph unlearning.
+    It extends the `Learning_based_pipeline` class and provides methods for training, unlearning, and evaluating GNN models. 
+    The class handles both node and edge unlearning tasks, calculates influence scores, performs positive and negative sampling, and evaluates the effectiveness 
+    of the unlearning process using Membership Inference Attack (MIA).
+
+    Class Attributes:
+        args (dict): Configuration arguments for the unlearning process.
+
+        logger (Logger): Logger for recording information and debugging.
+
+        model_zoo (ModelZoo): Collection of models and data for the unlearning process.
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
