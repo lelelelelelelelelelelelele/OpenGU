@@ -53,6 +53,10 @@ class sgu(Learning_based_pipeline):
 
 
     def determine_target_model(self):
+        """
+        Determines and sets up the target model for the unlearning process.
+        """
+
         self.args["unlearn_trainer"] = 'SGUTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         self.features = self.preprocess_feature()
@@ -61,6 +65,14 @@ class sgu(Learning_based_pipeline):
             self.target_model.model.adj = self.data.adj
         
     def train_original_model(self):
+        """
+        Trains the original model or loads an existing model from a specified path.
+        This method checks if a pre-trained model exists at the specified path. If the model exists, it loads the model.
+        If the model does not exist, it trains a new model, saves it to the specified path, and creates necessary directories
+        if they do not exist. Additionally, if the 'poison' argument is set and the 'unlearn_task' is 'edge', it evaluates the model
+        and stores the F1 score.
+        """
+
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
                          self.args["base_model"] + "_SGU"
         if os.path.exists(model_path):
@@ -76,6 +88,12 @@ class sgu(Learning_based_pipeline):
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.target_model.evaluate()
     def unlearning_request(self):
+        """
+        Handles the unlearning request based on the specified unlearning task.
+        This function processes the unlearning request by loading the nodes or edges to be unlearned 
+        from the corresponding files, and then updates the unlearning mask and count accordingly.
+        """
+
         if self.args["unlearn_task"] == "node":
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
             self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
@@ -92,6 +110,14 @@ class sgu(Learning_based_pipeline):
         print("Unlearning nodes:{}".format(self.unlearning_num))
         print("All nodes:{}".format(self.num_nodes))
     def unlearn(self):
+        """
+        Unlearns specific nodes or edges from the graph neural network model based on the specified task.
+        This function handles two types of unlearning tasks: 'node' and 'edge'. Depending on the task, it calculates 
+        the necessary embeddings, soft labels, and influence scores, and then identifies the nodes or edges to be 
+        unlearned. It also performs positive and negative sampling for the unlearning process and updates the model 
+        accordingly.
+        """
+
         if self.args["unlearn_task"] == "node":
             start_time = time.time()
             if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
@@ -204,6 +230,12 @@ class sgu(Learning_based_pipeline):
 
 
     def preprocess_feature(self,edge_mask=None):
+        """
+        Preprocesses the features of the graph data based on the specified base model.
+        This function applies different propagation methods to the input features of the graph
+        data depending on the base model specified in the arguments.
+        """
+
         start_time = time.time()
         if self.args["base_model"] == "SGC":
             propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
@@ -252,6 +284,12 @@ class sgu(Learning_based_pipeline):
             # adj_matrix_last = np.array(adj_matrix_last.cpu())
 
     def cal_similarity(self,vectors,unleaning_nodes,isfeature):
+        """
+        Calculate the similarity matrix between vectors and unlearning nodes.
+        This function computes the similarity between a set of vectors and a subset of vectors identified as unlearning nodes.
+        It normalizes the vectors and computes the similarity matrix using a specified method.
+        """
+
         # vectors = torch.FloatTensor(vectors)
         # similarity_matrix = np.zeros((self.num_nodes,self.num_nodes))
         # # similarity_matrix = torch.FloatTensor(self.num_nodes,self.num_nodes)
@@ -274,6 +312,11 @@ class sgu(Learning_based_pipeline):
         return similarity_matrix
     
     def compute_similarity_in_chunks(self,unlearning_vector, vectors, chunk_size):
+        """
+        Computes the similarity between an unlearning vector and a set of vectors in chunks.
+        This function calculates the similarity between a given unlearning vector and a set of vectors by processing the vectors in chunks to manage memory usage efficiently. The similarity is computed using the dot product between the unlearning vector and each chunk of vectors.
+        """
+
         num_vectors = vectors.size(0)
         similarity_matrix = torch.zeros(num_vectors, device=unlearning_vector.device)
 
@@ -294,6 +337,12 @@ class sgu(Learning_based_pipeline):
         return similarity_matrix
 
     def activate_nodes(self):
+        """
+        Activates a subset of nodes based on their influence scores.
+        This method calculates the influence scores of nodes and selects the top-k nodes with the highest scores to be activated. 
+        The influence scores of the nodes to be unlearned are set to zero before the selection process.
+       """
+
         activated_node  = list()
         total_influence = torch.zeros(self.num_nodes)
         self.influence_score[self.unlearning_nodes] = 0
@@ -312,6 +361,14 @@ class sgu(Learning_based_pipeline):
         return np.array(activated_node.cpu(),dtype=int)
 
     def pos_sampling(self, activated_nodes,activated_labels,unlearning_nodes):
+        
+        """
+        Perform positive sampling for the given activated nodes.
+        This function generates positive samples for each activated node by finding nodes with the same label
+        that are not in the unlearning nodes or activated nodes. It calculates the mean embedding of up to 5 
+        such nodes for each activated node.
+        """
+
         # pos_pair = {}
         # count = 0
         # number = 0
@@ -364,6 +421,13 @@ class sgu(Learning_based_pipeline):
         return pos_pair
 
     def neg_sampling(self, activated_nodes, activated_labels, unlearning_nodes):
+        """
+        Perform negative sampling for the given activated nodes.
+        This function generates negative samples for each activated node by selecting embeddings
+        from nodes with the same label that are not in the unlearning set. The negative samples
+        are created by averaging the embeddings of the selected nodes.
+        """
+
         # neg_pair = {}
         # count = 0
         # for node in activated_nodes:
@@ -417,12 +481,24 @@ class sgu(Learning_based_pipeline):
     #5个自身向量，5个负样本
 
     def delete_node(self):
+        """
+        Deletes nodes specified in the `unlearning_nodes` list from the graph data.
+        This function updates the `edge_mask` attribute to exclude edges connected to the nodes
+        that need to be unlearned. It sets the mask to `False` for all edges where either the 
+        source or target node is in the `unlearning_nodes` list, effectively removing these edges 
+        from the graph.
+        """
+
         self.edge_mask = torch.ones(self.data.edge_index.shape[1], dtype=torch.bool)
         for node in self.unlearning_nodes:
             self.edge_mask[self.data.edge_index[0] == node] = False
             self.edge_mask[self.data.edge_index[1] == node] = False
 
     def retrain(self, unlearning_nodes, edge_mask):
+        """
+        Retrains the target model by removing specific edges and then training the model again.
+        """
+
         self.target_model.data.edge_index = self.target_model.data.edge_index[:,edge_mask]
         self.target_model.train()
         edge_mask = True
@@ -430,6 +506,12 @@ class sgu(Learning_based_pipeline):
         # self.logger.info('unlearning F1_score : {}'.format(F1))
 
     def mia_attack(self):
+        """
+        Perform a Membership Inference Attack (MIA) to evaluate the effectiveness of the unlearning method.
+        This function calculates the AUC (Area Under the Curve) score to determine how well the model can distinguish 
+        between members (nodes that were part of the training set) and non-members (nodes that were not part of the training set) 
+        after the unlearning process.
+        """
 
         self.mia_num = self.unlearning_num
         original_softlabels_member = self.original_softlabels[self.unlearning_nodes]
@@ -456,6 +538,10 @@ class sgu(Learning_based_pipeline):
         return auc
 
     def get_prototype(self):
+        """
+        Computes the prototype embeddings for each class based on the training data, excluding the unlearning and activated nodes.
+        """
+
         train_indices = torch.tensor(self.data.train_indices,requires_grad=False)
         prototype_mask = torch.ones_like(train_indices, dtype=torch.bool)
         u_nodes = torch.from_numpy(self.unlearning_nodes)
@@ -506,6 +592,14 @@ class sgu(Learning_based_pipeline):
 
 
     def edge_unlearning(self):
+        """
+        Perform edge unlearning on the graph data.
+        This function modifies the adjacency matrix of the graph by removing and adding edges, 
+        reprocesses the data, and prepares the model for unlearning. It also calculates the 
+        influence score of nodes, identifies activated nodes, and prepares features for the 
+        target model. The function includes steps for saving and loading the model, as well 
+        as performing contrastive learning sampling.
+        """
         
         self.adj = to_scipy_sparse_matrix(self.data.edge_index, num_nodes=self.data.num_nodes)
         self.adj_sp = self.adj.tocoo()
@@ -627,6 +721,12 @@ class sgu(Learning_based_pipeline):
 
 
     def __prep_cnt_sum(self,node_cnt_sum, K_arr, row, col, data):
+        """
+        Prepares and updates the node count sum based on the given arrays.
+        This function identifies the non-zero indices in the K_arr array and creates a mask to compare these indices with the row array. 
+        It then updates the node_cnt_sum array by iterating through the relevant indices and applying a condition to update the values.
+        """
+
         non_zero_indices = np.where(K_arr > 0)[0]
 
         # 广播non_zero_indices到row数组的形状，然后比较是否相等
@@ -641,15 +741,9 @@ class sgu(Learning_based_pipeline):
 
     def generate_heterophilous_edges(self,edge_index, node_num, proportion):
         """
-        生成异配性的边并更新edge_index。
-
-        参数:
-        edge_index (np.array): 形状为 (2, E) 的数组，其中E是边的数量，每一列代表一对节点索引。
-        node_num (int): 图中节点的总数。
-        proportion (float): 需要生成的异配性边的比例，相对于全连接图的边数量。
-
-        返回:
-        np.array: 更新后的edge_index，包含新的异配性边。
+        Generate heterophilous edges and update edge_index.
+        This function generates heterophilous edges (edges between nodes of different classes) 
+        and updates the given edge_index with these new edges.
         """
 
         # 计算全连接图的边数量
@@ -684,6 +778,10 @@ class sgu(Learning_based_pipeline):
 
         
     def reprocess(self):
+        """
+        Reprocesses the graph data by reindexing the nodes and edges for the training, validation, and test sets.
+        """
+        
         train_new_index = 0
         val_new_index = 0
         test_new_index = 0

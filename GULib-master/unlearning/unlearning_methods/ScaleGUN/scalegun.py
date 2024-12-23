@@ -350,11 +350,25 @@ class scalegun(IF_based_pipeline):
         
         
     def train_original_model(self,run):
+        """
+        Trains the original model using the provided run configuration.
+        This method prepares the data and trains the model based on the 
+        specified run configuration. It is a part of the ScaleGUN 
+        unlearning method.
+        """
+        
         self.prepare_data()
         self.train_model()
         pass
     
     def prepare_data(self):
+        """
+        Prepares the data for the ScaleGUN model.
+        This function performs several preprocessing steps on the input data to prepare it for training and evaluation.
+        It includes normalizing the data, calculating weights, and initializing the propagation graph. Additionally, it
+        splits the data into training, validation, and test sets.
+        """
+
         common(args=self.args,data=self.data,dataset=self.args["dataset_name"],result_path="./data/ScaleGUN/unlearning_data",normalized_dim="column")
         self.start = time.perf_counter()
         weights = get_prop_weight(self.args["weight_mode"], self.args["prop_step"], self.args["decay"])
@@ -410,6 +424,15 @@ class scalegun(IF_based_pipeline):
         pass
     
     def train_model(self):
+        """
+        Trains the model based on the specified training mode and parameters.
+        This function handles the training process for a model, supporting both 
+        one-vs-rest (ovr) and binary classification modes. It initializes the 
+        necessary parameters, performs optimization, and evaluates the model 
+        on validation and test datasets. Additionally, it logs various metrics 
+        and training costs.
+        """
+
         self.logger.info("Training...")
         train_time = time.perf_counter()
         if self.args["train_mode"] == "ovr":
@@ -486,6 +509,14 @@ class scalegun(IF_based_pipeline):
         self.logger.info("first train cost: %.6fs" % (train_finish_time - train_time))
         
     def unlearning_request(self):
+        """
+        Handles the process of unlearning specific edges or nodes from the graph data.
+        This function initiates the unlearning process by setting up necessary parameters,
+        logging the start of the process, and determining the budget for unlearning based
+        on the provided arguments. It then identifies the edges or nodes to be removed
+        and prepares the model for retraining if necessary.
+        """
+
         self.logger.info("start to remove edges...")
         self.logger.info("*" * 20)
         c_val = get_c(self.args["delta"])
@@ -536,6 +567,12 @@ class scalegun(IF_based_pipeline):
         pass
         
     def unlearn(self):
+        """
+        Unlearns specific edges from the graph and updates the model accordingly.
+        This function iteratively removes edges from the graph, updates the model's weights, and evaluates the performance 
+        after each removal. It also compares the gradient norms and retrains the model if necessary.
+        """
+
         for i in range(self.args["num_batch_removes"]):
             edges = self.del_edges[
                 :,

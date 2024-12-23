@@ -461,7 +461,14 @@ class gif(IF_based_pipeline):
         return (grad_all, grad1, grad2)
     
     def get_grad_edge(self,unlearn_info=None):
-        
+        """
+        Computes gradients for unlearning specific components in the target model.
+        This method calculates the gradients of the loss with respect to the model parameters
+        to facilitate the unlearning of certain elements such as edges, nodes, or features
+        based on the specified unlearn_task. It performs forward passes using both the existing
+        data and the modified data after unlearning, computes the corresponding losses, and then
+        derives the gradients necessary for updating the model parameters accordingly.
+        """
         grad_all, grad1, grad2 = None, None, None
         edge_index_r =None
         if self.args["GIF_method"] in ["GIF", "IF"]:
@@ -490,6 +497,9 @@ class gif(IF_based_pipeline):
         return (grad_all, grad1, grad2)
 
     def get_edge_loss(self,out,edge_index,reduction):
+        """
+        Computes the binary cross-entropy loss for predicted edges in a graph neural network.
+        """
         out_decode = (out[edge_index[0]] * out[edge_index[1]]).sum(dim=-1)
 
         edge_label = torch.ones(out_decode.shape,dtype=torch.float32,device=self.device)
@@ -514,6 +524,9 @@ class gif(IF_based_pipeline):
     #     return test_f1
 
     def get_grad_graph(self,unlearn_info=None):
+        """
+        Computes gradients for the target model based on the specified unlearning task.
+        """
         grad_all, grad1, grad2 = None, None, None
         loss = 0
         loss1 = 0
@@ -547,7 +560,15 @@ class gif(IF_based_pipeline):
         grad1 = grad(loss1, model_params, retain_graph=True, create_graph=True)
         grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True)
         return (grad_all, grad1, grad2)
+    
     def get_graph_loss(self,out,mask):
+        """
+        Compute the total cross-entropy loss for graph-level predictions.
+        This function aggregates the loss over all training graphs by selecting node
+        embeddings based on the provided mask, computing the mean embedding for each
+        graph, and calculating the cross-entropy loss against the target labels.
+        """
+        
         total_loss = 0
         if isinstance(mask, np.ndarray):
             mask = torch.from_numpy(mask)
@@ -565,6 +586,13 @@ class gif(IF_based_pipeline):
         return total_loss
 
     def unlearning_request(self):
+        """
+        Handles unlearning requests based on the specified task.
+        This method processes the data for unlearning by selecting nodes, edges, or features to remove or modify.
+        It updates the model's data accordingly and logs relevant information. Depending on the downstream task,
+        it also identifies k-hop neighborhoods related to the unlearning operation.
+        """
+        
         if self.args["downstream_task"]=="graph":
             # print(self.data)
             self.data = graph_cls_process(self.data,train_ratio=0.8,val_ratio=0,test_ratio=0.2)
@@ -625,7 +653,10 @@ class gif(IF_based_pipeline):
             self.find_k_hops_edge(unique_nodes,self.unlearning_edges)
 
     def update_edge_index_unlearn(self, delete_nodes, delete_edge_index=None):
-
+        """
+        Updates the edge index by removing specified edges or edges connected to specified nodes based on the unlearning task.
+        Depending on the 'unlearn_task' parameter, this function either deletes specific edges provided in `delete_edge_index` or removes all edges connected to nodes listed in `delete_nodes`. The updated edge index is returned as a PyTorch tensor.
+        """
         edge_index = self.data.edge_index.cpu().numpy()
 
         unique_indices = np.where(edge_index[0] < edge_index[1])[0]
@@ -656,6 +687,10 @@ class gif(IF_based_pipeline):
         return torch.from_numpy(edge_index[:, remain_indices])
 
     def find_k_hops(self, unique_nodes):
+        """
+        Finds and sets the influenced nodes within a specified number of hops from the given unique nodes based on the unlearning task.
+        """
+        
         edge_index = self.data.edge_index.cpu().numpy()
 
         ## finding influenced neighbors
@@ -679,6 +714,11 @@ class gif(IF_based_pipeline):
             self.influence_nodes = influenced_nodes
 
     def find_k_hops_edge(self,unique_nodes,unique_edges):
+        """
+        Finds and categorizes edges within a specified number of hops from given unique nodes and edges.
+        This function identifies edges influenced by the provided unique nodes and edges by exploring their neighbors up to a defined number of hops. The number of hops is determined based on the type of unlearning task. It categorizes the influenced nodes and edges, and determines which nodes and edges should be deleted or influenced according to the task requirements.
+        """
+        
         edge_index = self.data.edge_index.cpu().numpy()
 
         ## finding influenced neighbors
@@ -714,6 +754,14 @@ class gif(IF_based_pipeline):
         
 
     def approxi(self, res_tuple):
+        """
+        Approximates parameter changes for model unlearning using gradient information.
+        This function processes a tuple of gradients based on the specified unlearning method ('GIF' or 'IF')
+        and iteratively updates an estimated parameter change. It adjusts the model's parameters accordingly
+        and evaluates the unlearned model's performance by calculating the test F1 score.
+        """
+
+
         '''
         res_tuple == (grad_all, grad1, grad2)
         '''
@@ -750,6 +798,12 @@ class gif(IF_based_pipeline):
         return return_grads
     
     def unlearn(self):
+        """
+        Perform the unlearning process by calculating the gradient influence and approximating the unlearning metrics.
+        This method retrieves the gradient information using the current run identifier, computes the unlearning time and 
+        F1 score approximation, and updates the respective averages for F1 score and unlearning time.
+        """
+        
         result_tuple = self.get_if_grad(self.run)
         unlearning_time, f1_score_unlearning = self.approxi(result_tuple)
         self.average_f1[self.run] = f1_score_unlearning

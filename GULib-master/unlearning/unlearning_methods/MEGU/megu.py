@@ -51,14 +51,36 @@ class megu(Learning_based_pipeline):
         
         
     def determine_target_model(self):
+        """
+        Determines and sets the target model for the unlearning process.
+        This function sets the 'unlearn_trainer' argument to 'MEGUTrainer' and 
+        initializes the target model using the get_trainer function with the 
+        provided arguments, logger, model from the model zoo, and data.
+        """
+
         self.args["unlearn_trainer"] = 'MEGUTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         
     def train_original_model(self):
+        """
+        Trains the original model and evaluates it if poisoning is enabled.
+        This method trains the original model by calling the internal _train_model method.
+        If the 'poison' argument is set to True, it evaluates the target model and stores
+        the F1 score for the current run.
+        """
+
         run_training_time, _ = self._train_model(self.run)
         if self.args["poison"]:
             self.poison_f1[self.run] = self.target_model.evaluate()
     def unlearning_request(self):
+        """
+        Handles the unlearning request based on the specified unlearning task.
+        This function performs different unlearning operations on the graph data 
+        depending on the task specified in `self.args["unlearn_task"]`. The tasks 
+        can be 'node', 'edge', or 'feature', and the function updates the graph 
+        data accordingly.
+        """
+
         self.data.x_unlearn = self.data.x.clone()
         self.data.edge_index_unlearn = self.data.edge_index.clone()
         edge_index = self.data.edge_index.cpu().numpy()
@@ -87,6 +109,15 @@ class megu(Learning_based_pipeline):
         self.temp_node = unique_nodes
 
     def unlearn(self):
+        """
+        Unlearns specific nodes from the graph data.
+        This function performs the following steps:
+        1. Converts the adjacency matrix of the graph to a sparse tensor and normalizes it.
+        2. Selects k-hop neighbors for the nodes in the graph.
+        3. Calls the target model's `megu_unlearning` method to unlearn the specified nodes and records the average unlearning time and F1 score.
+        4. Performs a membership inference attack (MIA) and records the average AUC score.
+        """
+
         self.adj = sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
         self.neighbor_khop = self.neighbor_select(self.data.x.cuda())
         self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
@@ -94,6 +125,15 @@ class megu(Learning_based_pipeline):
         
 
     def get_softlabels(self):
+        """
+        Computes and returns the soft labels for the unlearning nodes and a subset of test indices.
+        This function generates soft labels (probability distributions over classes) for two sets of nodes:
+        1. Unlearning nodes specified in `self.unlearing_nodes`.
+        2. A subset of test indices specified in `self.data.test_indices`.
+        The function first checks the base model type specified in `self.args["base_model"]`. If the base model is "SIGN",
+        it computes the output using `self.data.xs`. Otherwise, it uses `self.data.x` and `self.data.edge_index`.
+        """
+
         if self.args["base_model"] == "SIGN":
             out = self.target_model.model(self.data.xs)
         else:
@@ -103,6 +143,10 @@ class megu(Learning_based_pipeline):
         return mem_labels,non_labels
 
     def _train_model(self, run):
+        """
+        Trains the target model using the provided data and measures the training time.
+        """
+
         # self.logger.info('training target models, run %s' % run)
 
         start_time = time.time()
@@ -117,6 +161,15 @@ class megu(Learning_based_pipeline):
         
 
     def neighbor_select(self, features):
+        """
+        Selects neighboring nodes based on cosine similarity of propagated features.
+        This function identifies neighboring nodes that are influenced by unlearning nodes
+        by comparing the cosine similarity between the propagated features and the reversed
+        propagated features. It iteratively adjusts the similarity threshold to find the 
+        most influential nodes and then filters out the nodes that are within a k-hop 
+        subgraph but not part of the unlearning nodes.
+        """
+
         temp_features = features.clone()
         pfeatures = propagate(temp_features, self.num_layers, self.adj)
         reverse_feature = self.reverse_features(temp_features)
@@ -267,6 +320,15 @@ class megu(Learning_based_pipeline):
 
 
     def update_edge_index_unlearn(self, delete_nodes, delete_edge_index=None):
+        """
+        Updates the edge index of a graph by removing specified nodes or edges.
+        This function is used to update the edge index of a graph by unlearning, 
+        i.e., removing certain nodes or edges from the graph. It handles two 
+        unlearning tasks: 'edge' and 'node'. For the 'edge' task, it removes 
+        specified edges. For the 'node' task, it removes all edges connected 
+        to the specified nodes.
+        """
+
         edge_index = self.data.edge_index.cpu().numpy()
 
         unique_indices = np.where(edge_index[0] < edge_index[1])[0]
@@ -299,6 +361,13 @@ class megu(Learning_based_pipeline):
         return torch.from_numpy(edge_index[:, remain_indices])
     
     def reverse_features(self, features):
+        """
+        Reverse the features of specified nodes.
+        This function takes a tensor of features and reverses the features of the nodes
+        specified in the `self.temp_node` list. For each node in `self.temp_node`, the 
+        feature value is subtracted from 1, effectively reversing it.
+        """
+
         reverse_features = features.clone()
         for idx in self.temp_node:
             reverse_features[idx] = 1 - reverse_features[idx]
@@ -308,6 +377,7 @@ class megu(Learning_based_pipeline):
 
     
     def mia_attack(self,mem_labels_o,non_labels_o,mem_labels,non_labels):
+        
         mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
         posterior1 = torch.cat((mem_labels_o, non_labels_o), 0).cpu().detach()
         posterior2 = torch.cat((mem_labels, non_labels), 0).cpu().detach()

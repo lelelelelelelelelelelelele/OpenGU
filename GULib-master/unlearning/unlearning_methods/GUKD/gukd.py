@@ -28,11 +28,25 @@ class gukd(Learning_based_pipeline):
         self.average_attack_auc = np.zeros(num_runs)
 
     def determine_target_model(self):
+        """
+        Determines and initializes the target model for the unlearning process.
+        This method sets the 'unlearn_trainer' argument to 'GUKDTrainer' and obtains the corresponding trainer instance
+        by calling 'get_trainer' with the current arguments, logger, model from the model zoo, and data.
+        """
+
         self.args["unlearn_trainer"] = 'GUKDTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         # self.train_test_split()
         
     def train_original_model(self):
+        """
+        Train the original teacher model.
+        This method initializes and trains the teacher model using the GCNII architecture.
+        It records the average training time, computes the original features from the trained model,
+        and, if data poisoning is enabled for an edge unlearning task, evaluates and stores
+        the poisoning F1 score.
+        """
+
         start_time = time.time()
         teacher_model = GCNII(self.args,self.data.num_features, self.data.num_classes).to(self.device)
         self.teacher_model = get_trainer(self.args,self.logger,teacher_model,self.data)
@@ -124,6 +138,13 @@ class gukd(Learning_based_pipeline):
     #         keep_edges[remove_edges_indices] = False
     #         self.retain_data.edge_index = torch.tensor(edge_index[:, keep_edges], dtype=torch.long)
     def pre_train(self):
+        """
+        Pre-trains the teacher GCNII model on the provided dataset.
+        This function initializes a GCNII teacher model with the specified arguments and data parameters,
+        sets up the training environment, and trains the model using the training data. After training,
+        it computes the output of the teacher model on the dataset and stores the detached output for further use.
+        """
+
         teacher_model = GCNII(self.args,self.retain_data.num_features, self.retain_data.num_classes).to(self.device)
         self.teacher_model = get_trainer(self.args,self.logger,teacher_model,self.data)
         self.teacher_model.train()
@@ -133,6 +154,13 @@ class gukd(Learning_based_pipeline):
         
 
     def mia_attack(self):
+        """
+        Perform a Membership Inference Attack (MIA) to evaluate the vulnerability of the target model.
+        This method assesses whether specific nodes were part of the training data by comparing
+        the soft labels produced by the target model before and after unlearning certain nodes. It
+        computes the posterior differences between original and unlearning soft labels and calculates
+        the Area Under the Receiver Operating Characteristic Curve (AUC) to quantify the attack's effectiveness.
+        """
 
         self.mia_num = self.unlearning_number
         self.original_softlabels = F.softmax(self.target_model.model(
@@ -160,23 +188,30 @@ class gukd(Learning_based_pipeline):
         # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
         return auc
 
-    def mia_attack_edge(self):
-        self.mia_num = self.unlearning_edges.shape[1]
-        neg_edge_index = negative_sampling(edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,num_neg_samples=self.mia_num)
-        original_softlabels_member = self.target_model.decode(self.original_feature,self.unlearning_edges)
-        original_softlabels_non = self.target_model.decode(self.original_feature,neg_edge_index)
-        
-        out_unlearn = self.target_model.model(self.data.x,self.retain_data.edge_index)
-        unlearning_softlabels_member = self.target_model.decode(out_unlearn,self.unlearning_edges)
-        unlearning_softlabels_non = self.target_model.decode(out_unlearn,neg_edge_index)
-        mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
-        posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
-        posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
-        posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
-        print(mia_test_y, posterior.reshape(-1, 1))
-        auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+    # def mia_attack_edge(self):
+    #     """
+    #     Performs a membership inference attack on edge data to evaluate the privacy resilience of the target model.
+    #     This method generates negative samples of edges, decodes the soft labels for both original and unlearned edges
+    #     using the target model, computes the difference in posterior probabilities between the original and
+    #     unlearned models, and calculates the Area Under the ROC Curve (AUC) score to assess the model's vulnerability
+    #     to membership inference attacks. The resulting AUC score is stored for the current run.
+    #     """
 
-        self.average_auc[self.run] = auc
+    #     self.mia_num = self.unlearning_edges.shape[1]
+    #     neg_edge_index = negative_sampling(edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,num_neg_samples=self.mia_num)
+    #     original_softlabels_member = self.target_model.decode(self.original_feature,self.unlearning_edges)
+    #     original_softlabels_non = self.target_model.decode(self.original_feature,neg_edge_index)
+        
+    #     out_unlearn = self.target_model.model(self.data.x,self.retain_data.edge_index)
+    #     unlearning_softlabels_member = self.target_model.decode(out_unlearn,self.unlearning_edges)
+    #     unlearning_softlabels_non = self.target_model.decode(out_unlearn,neg_edge_index)
+    #     mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
+    #     posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
+    #     posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
+    #     posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
+    #     print(mia_test_y, posterior.reshape(-1, 1))
+    #     auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+    #     self.average_auc[self.run] = auc
     
     
     # def mia_attack(self):
@@ -191,6 +226,10 @@ class gukd(Learning_based_pipeline):
 
 
     def unlearning_request(self):
+        """
+        Performs an unlearning operation by removing specified nodes or edges from the dataset.
+        """
+
         self.retain_data = copy.deepcopy(self.data)
         if self.args["unlearn_task"]=="node":
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
@@ -231,6 +270,10 @@ class gukd(Learning_based_pipeline):
         self.z_t = out.detach()
         
     def unlearn(self):
+        """
+        Performs the unlearning process by training the target model using the GUKD method.
+        Stores the resulting best F1 score and the average unlearning time for the current run.
+        """
         best_f1,avg_unlearning_time=self.target_model.gukd_train(self.z_t)
         self.average_f1[self.run] = best_f1
         self.avg_unlearning_time[self.run]=avg_unlearning_time

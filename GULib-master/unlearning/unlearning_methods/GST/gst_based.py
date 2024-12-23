@@ -66,6 +66,12 @@ class gst():
         
 
     def run_exp(self):
+        """
+        Excutes the GST-based unlearning pipeline for the specified number of runs.
+        The method initializes the GST trainer, trains the model, and then unlearns
+        the specified number of nodes. It records the performance metrics for each run.
+        """
+        
         self.args["unlearn_trainer"] = 'GSTTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         scattering = self.model_zoo.model

@@ -519,6 +519,15 @@ class idea(IF_based_pipeline):
     #     self.average_auc[self.run] = auc
         
     def train_original_model(self, run):
+        """
+        Trains the original target model based on the provided run index.
+        This function handles the training process for the target model, including
+        preparing the dataset for graph-based downstream tasks, initiating the training
+        process, and recording the training time. If the model is set to be poisoned
+        and the unlearning task is related to edges, it also evaluates the model's
+        performance.
+        """
+
         self.logger.info('training target models, run %s' % run)
         self.target_model.data.y = self.data.y.squeeze().to(self.device)
         if self.args["downstream_task"]=="graph":
@@ -540,6 +549,12 @@ class idea(IF_based_pipeline):
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.target_model.evaluate()
     def get_if_grad(self, run):
+        """
+        Calculate gradients for different downstream tasks based on the provided run identifier.
+        This function logs the start of the training process for target models and moves the model and data to the specified device.
+        It then generates the training data loader and calculates the gradients based on the type of downstream task specified in the arguments.
+        """
+
         self.logger.info('training target models, run %s' % run)
         self.target_model.model = self.target_model.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -553,6 +568,16 @@ class idea(IF_based_pipeline):
         return  res
     
     def get_grad(self,unlearn_info=None):
+        """
+        Calculate gradients for the target model based on the unlearning task.
+        This function computes the gradients of the loss functions with respect to the 
+        model parameters, considering different unlearning tasks such as edge, node, 
+        or feature unlearning. It handles different base models like 'GCN', 'SGC', or others 
+        by forwarding the data through the appropriate model methods. The function returns 
+        three sets of gradients: one for the overall loss, one for the unlearned data, 
+        and another for a subset of the unlearned data.
+        """
+
         grad_all, grad1, grad2 = None, None, None
         if self.args["base_model"] in ['GCN','SGC']:
             out1 = self.target_model.model.forward_once(self.data, self.edge_weight)
@@ -587,6 +612,15 @@ class idea(IF_based_pipeline):
         return (grad_all, grad1, grad2)
     
     def get_grad_edge(self,unlearn_info=None):
+        """
+        Calculates gradients for the model based on the specified unlearning task.
+        This method computes the gradients of the loss with respect to the model parameters for three different scenarios:
+        1. The overall loss (`grad_all`) using the original output.
+        2. The edge-based loss (`grad1`) using the modified edge indices relevant to the unlearning task.
+        3. The edge-based loss after unlearning (`grad2`) using the unlearned edge indices.
+        It supports various unlearning tasks such as edge, node, and feature unlearning by appropriately adjusting the edge indices. The function returns a tuple containing all three sets of gradients, which can be used for further model updates or analysis.
+        """
+
         grad_all, grad1, grad2 = None, None, None
         edge_index_r =None
         if self.args["base_model"] in ['GCN','SGC']:
@@ -615,6 +649,13 @@ class idea(IF_based_pipeline):
         return (grad_all, grad1, grad2)
     
     def get_loss(self, out, reduction="none"):
+        """
+        Computes the binary cross-entropy loss for edge predictions.
+        This function generates negative edge samples, constructs labels for both positive and negative edges, 
+        decodes the edges using the target model to obtain logits, and calculates the binary cross-entropy loss 
+        between the predicted logits and the true labels.
+        """
+
         neg_edge_index = negative_sampling(
                 edge_index=self.data.train_edge_index,num_nodes=self.data.num_nodes,
                 num_neg_samples=self.data.train_edge_index.size(1)
@@ -628,6 +669,13 @@ class idea(IF_based_pipeline):
         return loss
 
     def get_edge_loss(self,out,edge_index,reduction):
+        """
+        Calculates the binary cross-entropy loss for edges in a graph.
+        This function computes the loss between the decoded output for each edge and 
+        a target label of ones, using binary cross-entropy with logits. The loss can 
+        be reduced based on the specified reduction method.
+        """
+
         out_decode = (out[edge_index[0]] * out[edge_index[1]]).sum(dim=-1)
 
         edge_label = torch.ones(out_decode.shape,dtype=torch.float32,device=self.device)
@@ -636,6 +684,15 @@ class idea(IF_based_pipeline):
         return loss
     
     def get_grad_graph(self,unlearn_info=None):
+        """
+        Compute gradients for different unlearning tasks.
+        This method calculates the gradients of the loss functions associated with the target model
+        for different subsets of the data based on the specified unlearning task. It supports
+        'unlearn_task' types such as 'edge', 'node', and 'feature', creating appropriate masks
+        to isolate the relevant parts of the data. The function returns gradients for the entire
+        dataset as well as for the specified subsets, facilitating the unlearning process.
+        """
+
         grad_all, grad1, grad2 = None, None, None
         out1 = self.target_model.model.reason_once(self.data)
         out2 = self.target_model.model.reason_once_unlearn(self.data)
@@ -665,6 +722,16 @@ class idea(IF_based_pipeline):
         grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True)
         return (grad_all, grad1, grad2)
     def get_graph_loss(self,out,mask):
+        """
+        Calculates the total loss for downstream takss of graph classification in the training dataset.
+        This function computes the cumulative cross-entropy loss for each graph identified by
+        `train_ids` in the training data. It processes the output tensor `out` by applying the
+        provided `mask` to filter relevant nodes. For each graph, it averages the node
+        representations, passes them through the target model's linear layer to obtain logits,
+        and then calculates the cross-entropy loss against the true labels. The total loss is
+        the sum of losses from all relevant graphs.
+        """
+
         total_loss = 0
         if isinstance(mask, np.ndarray):
             mask = torch.from_numpy(mask)
@@ -683,6 +750,13 @@ class idea(IF_based_pipeline):
     
     
     def _gen_train_loader(self):
+        """
+        Generate and initialize the training data loader for the model.
+        This method creates a NeighborSampler-based DataLoader using the training mask and filtered edge indices.
+        It ensures that there are valid edges for sampling by providing a default edge if necessary.
+        Additionally, it computes normalized edge weights for both the primary and unlearned edge indices using GCN normalization.
+        """
+
         self.logger.info("generate train loader")
         train_indices = np.nonzero(self.data.train_mask.cpu().numpy())[0]
         edge_index = self.filter_edge_index(self.data.edge_index, train_indices, reindex=False)
@@ -710,6 +784,11 @@ class idea(IF_based_pipeline):
         self.logger.info("generate train loader finish")
         
     def filter_edge_index(self,edge_index, node_indices, reindex=True):
+        """
+        Filters the edge index to include only edges between specified node indices.
+        This method takes an edge index and a list of node indices, and returns a filtered edge index that contains only the edges where both source and target nodes are in the provided node_indices. If reindex is set to True, the node indices in the edge index are reindexed according to the sorted node_indices list.
+        """
+
         assert np.all(np.diff(node_indices) >= 0), 'node_indices must be sorted'
         if isinstance(edge_index, torch.Tensor):
             edge_index = edge_index.cpu()
@@ -724,6 +803,13 @@ class idea(IF_based_pipeline):
             return edge_index
         
     def unlearn(self):
+        """
+        Unlearn the current model run by removing its influence and updating performance metrics.
+        This method retrieves gradient information for the current run, approximates the time 
+        required for unlearning and the resulting F1 score, and updates the average F1 score 
+        and average unlearning time for the run.
+        """
+
         result_tuple = self.get_if_grad(self.run)
         unlearning_time, f1_score_unlearning = self.approxi(result_tuple)
         self.average_f1[self.run] = f1_score_unlearning

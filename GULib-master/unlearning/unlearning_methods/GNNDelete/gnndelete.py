@@ -70,6 +70,14 @@ class gnndelete(Learning_based_pipeline):
         self.args['unlearning_model'] = 'original'
     
     def determine_target_model(self):
+        """
+        Determines and initializes the target model based on the specified base model.
+        This method selects the appropriate propagation method (SGC, S2GC, or SIGN) based on the
+        'base_model' argument, computes preprocessed features, and sets up the target model
+        for unlearning by configuring the unlearning trainer and loading the model from the
+        model zoo.
+        """
+
         if self.args["base_model"] == "SGC":
             propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
             features_pre = propagation.forward_SGU(self.data.x,self.data.edge_index)
@@ -88,6 +96,10 @@ class gnndelete(Learning_based_pipeline):
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
 
     def train_original_model(self):
+        """
+        Trains the original target model and get the original soft labels for the dataset.
+        """
+
         self.target_model.train(save=True)
         self.data = self.data.to(self.device)
         if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
@@ -97,6 +109,11 @@ class gnndelete(Learning_based_pipeline):
         self.args["unlearning_model"] = 'gnndelete_nodeemb'
         
     def unlearn(self):
+        """
+        Executes the unlearning process based on the specified task.
+        This method determines the type of unlearning operation to perform by checking the 
+        'unlearn_task' argument. Depending on its value, it delegates the operation to the 
+        """
         if self.args["unlearn_task"] == "node":
             self.delete_node()
         elif self.args["unlearn_task"] == "edge":
@@ -367,6 +384,13 @@ class gnndelete(Learning_based_pipeline):
 
 
     def delete_node(self):
+        """
+        Deletes specified nodes from the graph neural network and updates the model accordingly.
+        This method performs node unlearning by removing designated nodes and their associated edges from the training dataset. 
+        It updates the model's masks to exclude these nodes, handles the creation of subgraphs, and manages the retraining or adjustment of the GNN model based on the selected unlearning strategy. 
+        Additionally, it evaluates the updated model's performance and conducts membership inference attacks to assess the effectiveness of the unlearning process.
+        """
+        
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -561,9 +585,18 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
 
     def delete_edge(self):
+        """
+        Deletes specified edges from the graph and updates the model accordingly.
+        This function removes edges defined in `self.unlearning_edges` from the graph data.
+        It updates various masks related to edges and nodes, recalculates subgraphs up to two hops,
+        and prepares the target model for retraining or evaluation based on the unlearning strategy.
+        Additionally, it sets up optimizers for the deletion process, logs relevant metrics, 
+        and ensures the model is correctly loaded and moved to the appropriate device.
+        """
+
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_edge'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -690,6 +723,13 @@ class gnndelete(Learning_based_pipeline):
         self.average_f1[self.run] = dt_auc
 
     def delete_feature(self):
+        """
+        Deletes specified node features and updates the GNN model accordingly.
+        This method performs feature deletion on a subset of nodes designated for unlearning in the graph
+        neural network. It sets the features of these nodes to zero, updates relevant masks for nodes
+        and edges, and prepares the data for unlearning operations.
+        """
+
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node_feature'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -836,5 +876,5 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
         
