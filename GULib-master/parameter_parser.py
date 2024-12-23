@@ -297,7 +297,7 @@ def parameter_parser():
     # args = vars(parser.parse_args())
     # return args
 
-    if "sphinx-build" in sys.argv[0]:
+    if "sphinx-build" in sys.argv[0] or os.environ.get('READTHEDOCS') == 'True':
         args = vars(parser.parse_args([]))
         return args
     else:
