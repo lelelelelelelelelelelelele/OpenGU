@@ -13,9 +13,9 @@ from pipeline.Learning_based_pipeline import Learning_based_pipeline
 class d2dgn(Learning_based_pipeline):
     
     """
-    D2DGN class implements a learning-based pipeline for performing unlearning tasks on graph neural networks. 
-    It supports both node and edge unlearning, executing unlearning requests, training models, 
-    and evaluating the impact through membership inference attacks.
+    D2DGN class implements a learning-based pipeline for performing unlearning tasks on GNNs. 
+    It supports both node and edge unlearning, executing unlearning requests, training models, and evaluating the impact through membership inference attacks.
+    It gets the knowledge from the teacher model and trains the target model using teacher knowledge distillation. 
 
     Class Attributes:
         args (dict): Configuration parameters for the unlearning process.

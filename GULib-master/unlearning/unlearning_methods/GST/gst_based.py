@@ -35,20 +35,8 @@ class gst():
                 number of unlearned nodes, number of runs, budget, etc.
 
             model_zoo (ModelZoo): A container for the models and data used in the experiments.
-
-            data (Data): The dataset containing training, validation, and test indices.
-
+            
             logger (Logger): Logger for recording information and metrics.
-
-            device (torch.device): Device on which computations are performed (CPU or CUDA).
-
-            nonmember_id (list): List of indices representing non-member nodes to be unlearned.
-
-            average_f1 (np.ndarray): Array storing average F1 scores per run.
-
-            average_auc (np.ndarray): Array storing average AUC scores per run.
-
-            avg_training_time (np.ndarray): Array storing average training times per run.
         """
         pass
     

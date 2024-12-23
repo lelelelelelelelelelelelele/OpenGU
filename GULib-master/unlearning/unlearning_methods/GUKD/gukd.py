@@ -11,6 +11,20 @@ from sklearn.metrics import roc_auc_score
 from attack.MIA_attack import train_attack_model,train_shadow_model,generate_shadow_model_output,evaluate_attack_model,GCNShadowModel,AttackModel
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
 class gukd(Learning_based_pipeline):
+    """
+    GUKD class implements a learning-based pipeline for performing unlearning tasks on GNNs. 
+    It supports both node and edge unlearning, executing unlearning requests, training models, and evaluating the impact through membership inference attacks.
+    It gets the knowledge from the teacher model and trains the target model using teacher knowledge distillation. 
+
+    Class Attributes:
+        args (dict): Configuration parameters for the unlearning process.
+
+        logger (Logger): Logger instance for recording informational and debugging messages.
+
+        model_zoo (ModelZoo): Collection of pre-trained models available for training and evaluation within the pipeline.
+
+        strategy (int): Indicator of the unlearning strategy employed (e.g., 1 for KL divergence, 2 for MSE loss).
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args

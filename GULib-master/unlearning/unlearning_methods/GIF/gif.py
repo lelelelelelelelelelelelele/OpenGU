@@ -21,9 +21,7 @@ from pipeline.IF_based_pipeline import IF_based_pipeline
 class gif(IF_based_pipeline):
     
     """
-    GIF (Graph Influence Function) class Based Unlearning Pipeline.
-    This class implements unlearning methods using Graph Influence Functions (GIF),
-    enabling efficient removal of specific data points, edges, or features from
+    GIF (Graph Influence Function) class implements a IF-based pipeline for performing unlearning tasks on GNNs, enabling efficient removal of specific data points, edges, or features from
     trained graph-based models without the need for retraining from scratch.
 
     Class Attributes:
