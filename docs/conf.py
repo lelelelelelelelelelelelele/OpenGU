@@ -40,7 +40,15 @@ autodoc_default_options = {
     'show-inheritance': True,
     'property-doc-from-class': True
 }
-autodoc_mock_imports = ["torch", "torch_scatter", "cupy","torch_sparse","torch-geometric","cupy-cuda12x","torchvision"]
+autodoc_mock_imports = [
+    "torch", 
+    "torch_scatter", 
+    "cupy", 
+    "torch_sparse", 
+    "torch_geometric", 
+    "cupy",  
+    "torchvision"
+]
 
 
 # Napoleon
