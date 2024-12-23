@@ -1,11 +1,11 @@
 sphinx
 sphinx_rtd_theme
+torch
+torchvision
 scipy
 numpy
+pandas
 matplotlib
-torch_scatter
-torch_sparse
-torch_geometric
 scipy
 matplotlib
 scikit-learn
@@ -18,5 +18,6 @@ cvxpy
 pymetis
 ipdb
 cupy-cuda12x
-torch
-torchvision
+torch_scatter
+torch_sparse
+torch_geometric
