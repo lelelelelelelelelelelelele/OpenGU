@@ -21,10 +21,81 @@ class GATE(torch.nn.Module):
         return self.lr(t)
 
 class MEGUTrainer(BaseTrainer):
+    """
+    MEGUTrainer class for performing Mutual Evolution Graph Unlearning (MEGU) on Graph Neural Networks (GNNs).
+
+    This class manages the unlearning process by:
+        - Targeting specific nodes, edges, or features for unlearning.
+
+        - Applying a gating mechanism to modify model parameters accordingly.
+
+        - Ensuring that the model retains its predictive performance on non-targeted data.
+
+        - Evaluating the effectiveness of the unlearning process through appropriate metrics.
+
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                    training hyperparameters, unlearning settings, and other relevant settings.
+        
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+        
+        model (torch.nn.Module): The neural network model that will undergo unlearning.
+        
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+        
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and unlearning.
+        
+        temp_node (list or torch.Tensor): Indices of nodes targeted for unlearning.
+        
+        neighbor_khop (list or torch.Tensor): Indices of neighboring nodes within k hops of the targeted nodes.
+        
+        attack_preparations (dict): Dictionary to store preparations related to attacks or evaluations.
+        
+        loss_all (Any): Placeholder for storing loss values or related information.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the MEGUTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                                     
+            model (torch.nn.Module): The neural network model that will undergo unlearning.
+
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
 
     def megu_unlearning(self,temp_node,neighbor_khop):
+        """
+        Performs the Mutual Evolution Graph Unlearning (MEGU) process on the GNN model.
+        
+        This method targets specific nodes and their neighboring nodes within k hops for unlearning.
+        It utilizes a gating mechanism (`GATE`) to adjust the model's parameters, effectively removing the 
+        influence of the targeted nodes and their neighbors. The unlearning process involves multiple epochs 
+        of training where the model learns to forget the specified elements while retaining performance on 
+        the remaining data.
+
+        Args:
+            temp_node (list or torch.Tensor): Indices of nodes targeted for unlearning.
+
+            neighbor_khop (list or torch.Tensor): Indices of neighboring nodes within k hops of the targeted nodes.
+
+        Returns:
+            tuple: A tuple containing:
+                - unlearn_time (float): Total time taken to perform the unlearning process.
+
+                - test_f1 (float): Evaluation metric (F1 score for node-level tasks or ROC AUC score for edge-level tasks) 
+                                    on the test dataset after unlearning.
+        """
         self.temp_node = temp_node
         self.neighbor_khop = neighbor_khop
         operator = GATE(self.data.num_classes).to(self.device)
@@ -126,6 +197,17 @@ class MEGUTrainer(BaseTrainer):
     
     
     def correct_and_smooth(self, y_soft, preds):
+        """
+        Applies correction and smoothing to the soft predictions using the CorrectAndSmooth method.
+        
+        Args:
+            y_soft (torch.Tensor): The soft predictions (e.g., probabilities) from the model.
+            
+            preds (torch.Tensor): The original predictions from the model before correction and smoothing.
+
+        Returns:
+            torch.Tensor: The corrected and smoothed predictions.
+        """
         pos = CorrectAndSmooth(num_correction_layers=80, correction_alpha=self.args['alpha1'],
                                num_smoothing_layers=80, smoothing_alpha=self.args['alpha2'],
                                autoscale=False, scale=1.)

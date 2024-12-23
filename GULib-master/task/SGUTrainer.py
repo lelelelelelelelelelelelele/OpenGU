@@ -11,16 +11,84 @@ from torch_geometric.utils import negative_sampling
 from torch_geometric.utils import k_hop_subgraph, to_scipy_sparse_matrix
 from utils.utils import sparse_mx_to_torch_sparse_tensor,normalize_adj
 class SGUTrainer(BaseTrainer):
+    """
+    SGUTrainer class for training and performing SGU unlearning method on Graph Neural Networks (GNNs).
+
+    This class includes methods for:
+        - Training the GNN model on node-level or edge-level tasks.
+
+        - Evaluating the model's performance.
+
+        - Performing the SGU unlearning process for nodes and edges.
+
+        - Saving the best-performing model states.
+
+    Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                    training hyperparameters, unlearning settings, and other relevant settings.
+        
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+        
+        model (torch.nn.Module): The neural network model that will be trained and evaluated.
+        
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+        
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and evaluation.
+    """
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the SGUTrainer with the provided configuration, logger, model, and data.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+            
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+            
+            model (torch.nn.Module): The neural network model that will be trained and evaluated.
+            
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
 
     def train(self,save=False,model_path=None):
+        """
+        Trains the GNN model based on the specified downstream task.
+        
+        Depending on the `downstream_task` configuration, this method delegates the training process to 
+        either `train_node` or `train_edge`.
+
+        Args:
+            save (bool, optional): Flag indicating whether to save the trained model. Defaults to `False`.
+            
+            model_path (str, optional): Path to save the trained model if `save` is `True`. Defaults to `None`.
+        
+        Returns:
+            tuple or None: Returns the result of `train_node` or `train_edge` method based on the downstream task.
+                           If the downstream task is neither 'node' nor 'edge', returns `None`.
+        """
         if self.args["downstream_task"] == 'node':
             return self.train_node(save,model_path)
         elif self.args["downstream_task"] == 'edge':
             return self.train_edge(save,model_path)
     
     def train_node_fullbatch(self,save = False, retrain=False):
+        """
+        Trains the GNN model for node-level classification tasks using full-batch training.
+
+        Args:
+            save (bool, optional): Flag indicating whether to save the trained model. Defaults to `False`.
+            
+            retrain (bool, optional): Flag indicating whether to retrain the model. Defaults to `False`.
+        
+        Returns:
+            None
+        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -66,6 +134,18 @@ class SGUTrainer(BaseTrainer):
 
     @torch.no_grad()
     def test_node_fullbatch(self,feature):
+        """
+        Evaluates the GNN model on node-level classification tasks using full-batch evaluation.
+
+        Args:
+            feature (torch.Tensor): The input features for the test nodes.
+        
+        Returns:
+            tuple: A tuple containing:
+                - F1_score (float): The micro-averaged F1 score on the test dataset.
+                - Accuracy (float): The accuracy on the test dataset.
+                - Recall (float): The micro-averaged recall on the test dataset.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -82,6 +162,21 @@ class SGUTrainer(BaseTrainer):
         return F1_score, Acc_score, Recall_score
     
     def train_edge(self, save,model_path):
+        """
+        Trains the GNN model for edge-level tasks.
+        
+        This method resets the model's parameters, initializes the optimizer, and trains the model for a specified 
+        number of epochs. It performs negative sampling for edge classification, computes the loss, and evaluates 
+        the model's performance at regular intervals. The model state with the best ROC AUC score is saved.
+
+        Args:
+            save (bool): Flag indicating whether to save the trained model.
+            
+            model_path (str): Path to save the trained model.
+        
+        Returns:
+            None
+        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -131,6 +226,38 @@ class SGUTrainer(BaseTrainer):
                             avg_training_time,
                             average_f1,
                             run):
+        """
+        Performs SGU unlearning method on node-level tasks.
+        
+        This method targets specific nodes and their activated neighbors for unlearning. It adjusts the model's parameters 
+        to forget the influence of the targeted nodes while preserving the model's performance on other parts of the graph.
+
+        Args:
+            original_softlabels (torch.Tensor): The original soft labels before unlearning.
+            
+            original_w (list): The original model parameters before unlearning.
+            
+            unlearning_nodes (list or torch.Tensor): Indices of nodes targeted for unlearning.
+            
+            activated_nodes (list or torch.Tensor): Indices of neighboring nodes activated for unlearning.
+            
+            pos_pair (dict): Dictionary containing positive pairs for activated nodes.
+            
+            neg_pair (dict): Dictionary containing negative pairs for activated nodes.
+            
+            features (torch.Tensor): Input features for the nodes.
+            
+            prototype_embedding (torch.Tensor): Prototype embeddings for the classes.
+            
+            avg_training_time (list): List to accumulate average training time per run.
+            
+            average_f1 (list): List to store average F1 scores per run.
+            
+            run (int): Index representing the current run.
+        
+        Returns:
+            float: The best F1 score achieved during unlearning.
+        """
         self.model.train()
         avg_training_time[run] = 0
         self.lam = 1
@@ -258,6 +385,38 @@ class SGUTrainer(BaseTrainer):
                         avg_training_time,
                         average_f1,
                         run):
+        """
+        Performs SGU on edge-level tasks.
+        
+        This method targets specific edges and their activated components for unlearning. It adjusts the model's parameters 
+        to forget the influence of the targeted edges while preserving the model's performance on other parts of the graph.
+
+        Args:
+            original_softlabels (torch.Tensor): The original soft labels before unlearning.
+            
+            original_w (list): The original model parameters before unlearning.
+            
+            unlearning_nodes (list or torch.Tensor): Indices of nodes targeted for unlearning.
+            
+            activated_nodes (list or torch.Tensor): Indices of activated nodes for unlearning.
+            
+            pos_pair (dict): Dictionary containing positive pairs for activated nodes.
+            
+            neg_pair (dict): Dictionary containing negative pairs for activated nodes.
+            
+            original_features (torch.Tensor): Original input features for the nodes.
+            
+            prototype_embedding (torch.Tensor): Prototype embeddings for the classes.
+            
+            avg_training_time (list): List to accumulate average training time per run.
+            
+            average_f1 (list): List to store average F1 scores per run.
+            
+            run (int): Index representing the current run.
+        
+        Returns:
+            float: The best F1 score achieved during unlearning.
+        """
         avg_training_time[run] = 0
         self.tau = 0.5
         self.para1 = self.args["para1"]
@@ -367,6 +526,19 @@ class SGUTrainer(BaseTrainer):
         return best
     
     def SGU_eval_edge(self,test_features):
+        """
+        Evaluates the GNN model on edge-level tasks.
+        
+        This method sets the model to evaluation mode, performs a forward pass on the test features, and computes 
+        the ROC AUC score for edge classification. It utilizes negative sampling to generate negative edges for 
+        evaluation.
+
+        Args:
+            test_features (torch.Tensor): The input features for the test edges.
+        
+        Returns:
+            float: The ROC AUC score for edge-level classification on the test dataset.
+        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)

@@ -14,7 +14,7 @@ from config import root_path
 
 class GNNDeleteTrainer(BaseTrainer):
     """
-    GNNDeleteTrainer class for training and evaluating models using GNNDelete method.
+    GNNDeleteTrainer class for training and evaluating GNNs in preparation for applying the GNNDelete method.
 
     This class extends the BaseTrainer to implement specific training and evaluation routines 
     required for the GNNDelete methodology.It handles training procedures for different downstream tasks such as node classification and edge prediction,
@@ -56,7 +56,7 @@ class GNNDeleteTrainer(BaseTrainer):
 
     def gnndelete_train(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
         """
-        Initiates the training process using the GNNDelete method based on the specified downstream task.
+        Initiates the training process based on the specified downstream task.
 
         This method delegates the training process to specialized methods depending on whether the
         downstream task is node classification or edge prediction.
@@ -84,11 +84,11 @@ class GNNDeleteTrainer(BaseTrainer):
 
     def gnndelete_train_edge(self, avg_time, run, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
         """
-        Trains the GNN model for edge-level tasks using the GNNDelete unlearning method.
+        Trains the GNN model for edge-level tasks.
 
         This method handles the training loop for edge prediction tasks, including loss computation,
         backpropagation, optimizer steps, and periodic evaluation. It also integrates member inference
-        attacks to assess privacy before and after the unlearning process.
+        attacks to assess privacy before the unlearning process.
 
         Args:
             avg_time (dict): A dictionary to store average training times.

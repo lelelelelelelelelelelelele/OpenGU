@@ -9,15 +9,87 @@ import copy
 import os
 from torch_geometric.utils import negative_sampling
 class GUKDTrainer(BaseTrainer):
+    """
+    GUKDTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the Graph Unlearning using Knowledge Distillation (GUKD) method.
+
+    This class extends the `BaseTrainer` to implement specific training and evaluation routines required for the GUKD unlearning methodology.
+    It includes methods for training the GNN model using full-batch or mini-batch approaches, evaluating the model's performance,
+    and obtaining prediction information. The GUKD method leverages knowledge distillation techniques to effectively forget 
+    specific nodes or subgraphs from the trained model while maintaining overall performance on the remaining data.
+    
+    Class Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, 
+                    training hyperparameters, unlearning settings, and other relevant settings.
+    
+        logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                 and other important information.
+    
+        model (torch.nn.Module): The neural network model that will be trained and evaluated.
+    
+        data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                          for training, validation, and testing.
+    
+        device (torch.device): The computation device (CPU or GPU) on which the model 
+                               and data are loaded for training and evaluation.
+    """
+
     def __init__(self, args, logger, model, data):
+        """
+        Initializes the GUKDTrainer with the provided configuration, logger, model, and data.
+    
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, 
+                        training hyperparameters, unlearning settings, and other relevant settings.
+                        
+            logger (logging.Logger): Logger object used to log training progress, metrics, 
+                                     and other important information.
+                        
+            model (torch.nn.Module): The neural network model that will be trained and evaluated.
+                        
+            data (torch_geometric.data.Data): The dataset containing edge and node information 
+                                              for training, validation, and testing.
+        """
         super().__init__(args, logger, model, data)
 
     def gukd_train(self,z_t,save=False):
+        """
+        Initiates the training process based on the specified downstream task.
+    
+        This method determines whether to perform node-level or edge-level training based on the `downstream_task` argument
+        and delegates the training process to the corresponding method.
+    
+        Args:
+            z_t (torch.Tensor): Target logits or embeddings used for knowledge distillation during unlearning.
+            save (bool, optional): If `True`, saves the best model weights during training. Defaults to `False`.
+    
+        Returns:
+            tuple:
+                float: Best F1-score achieved during training.
+                float: Total training time (in seconds).
+        """
         if self.args["downstream_task"] == 'node':
             return self.gukd_train_node(z_t,save)
         else:
             return self.gukd_train_edge(z_t,save)
+        
     def gukd_train_node(self,z_t,save):
+        """
+        Trains the GNN model in preparation for node-level unlearning using knowledge distillation.
+    
+        This method performs node-level training where the model learns to mimic the target logits (`z_t`) for the test nodes.
+        It computes the cross-entropy loss between the model's predictions and the target logits, updates the model parameters,
+        and evaluates the model's F1-score at specified intervals. Optionally, it saves the best-performing model weights.
+    
+        Args:
+            z_t (torch.Tensor): Target logits for test nodes, obtained from the teacher model before unlearning.
+            save (bool, optional): If `True`, saves the best model weights based on F1-score. Defaults to `False`.
+    
+        Returns:
+            tuple:
+                float: Best F1-score achieved during training.
+                float: Total training time (in seconds).
+    
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0
@@ -59,6 +131,23 @@ class GUKDTrainer(BaseTrainer):
         return best_f1,avg_training_time
 
     def gukd_train_edge(self,z_t,save):
+        """
+        Trains the GNN model in preparation for edge-level unlearning using knowledge distillation.
+    
+        This method performs edge-level training where the model learns to mimic the target logits (`z_t`) for edge predictions.
+        It computes the mean squared error (MSE) loss between the model's decoded edge scores and the target logits, updates the model parameters,
+        and evaluates the model's F1-score at specified intervals. Optionally, it saves the best-performing model weights.
+    
+        Args:
+            z_t (torch.Tensor): Target logits for edge predictions, obtained from the teacher model before unlearning.
+            save (bool, optional): If `True`, saves the best model weights based on F1-score. Defaults to `False`.
+    
+        Returns:
+            tuple:
+                float: Best F1-score achieved during training.
+                float: Total training time (in seconds).
+    
+        """
         time_sum = 0
         best_f1 = 0
         best_w = 0

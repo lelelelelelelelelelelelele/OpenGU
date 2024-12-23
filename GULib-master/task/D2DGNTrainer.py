@@ -9,8 +9,8 @@ import os
 from torch_geometric.utils import negative_sampling
 class D2DGNTrainer(BaseTrainer):
     """
-    D2DGNTrainer class for training and evaluating models using the Distills to Delete in GNN (D2DGN) unlearning method.
-
+    D2DGNTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the Distills to Delete in GNN (D2DGN) unlearning method.
+    
     This class extends the BaseTrainer to implement specific training and evaluation routines 
     required for the D2DGN methodology. It includes methods for training node-level, edge-level, 
     and graph-level tasks, evaluating model performance, and handling model persistence.

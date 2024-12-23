@@ -8,7 +8,7 @@ import os
 from sklearn.metrics import classification_report
 class CEUTrainer(BaseTrainer):
     """
-    CEUTrainer class for training and evaluating models using the Certified Unlearning (CEU) method.
+    CEUTrainer class for training and evaluating GNN models in preparation for the Certified Unlearning (CEU) method.
 
     This class extends the BaseTrainer to implement specific training and evaluation routines 
     required for the CEU methodology. It includes methods for training node-level and edge-level 

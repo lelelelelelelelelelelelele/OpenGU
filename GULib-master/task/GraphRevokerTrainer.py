@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch
 class GraphRevokerTrainer(BaseTrainer):
     """
-    GraphRevokerTrainer class for training and evaluating GNN using GraphRevoker unlearning methods.
+    GraphRevokerTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the GraphRevoker unlearning method.
 
     This class extends the `BaseTrainer` to implement specific training and evaluation routines 
     required for various graph unlearning methodologies. It includes methods for generating 

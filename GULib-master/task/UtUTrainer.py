@@ -14,7 +14,36 @@ from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_sco
 from utils.utils import member_infer_attack,get_link_labels
 from task.BaseTrainer import BaseTrainer
 class UtUTrainer:
+    """
+    UtUTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for Unlink to Unlearn (UtU) method.
+
+    The `UtUTrainer` class manages the training process of GNN models, incorporating mechanisms for unlearning specific data points 
+    and evaluating the model's resilience against membership inference attacks. It supports both full-batch and mini-batch 
+    training approaches and facilitates the evaluation of model performance on node-level and edge-level tasks.
+
+    Attributes:
+        args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
+                    unlearning settings, and other relevant settings.
+
+        trainer_log (dict): Dictionary for logging training metrics and attack evaluations. Contains keys such as 
+                            'unlearning_model', 'dataset', and 'log'.
+
+        logit_all_pair (Any): Placeholder for storing logits of all node pairs, used in evaluation and attack assessments.
+
+        df_pos_edge (list): List to store positive edge indices for differential privacy or unlearning purposes.
+
+        device (torch.device): The computation device (CPU or GPU) on which the model and data are loaded for training and evaluation.
+    """
     def __init__(self,args):
+        """
+        Initializes the UtUTrainer with the provided configuration.
+
+        Sets up the necessary attributes for training and evaluating the GNN model, including logging structures and device setup.
+
+        Args:
+            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
+                        unlearning settings, and other relevant settings.
+        """
         self.args = args
         self.trainer_log = {
             'unlearning_model': args["unlearning_model"],
@@ -34,6 +63,30 @@ class UtUTrainer:
     #     model.operator.register_hook(lambda grad: grad.mul_(gradient_mask))
 
     def train(self, model, data, optimizer, args, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+        """
+        Trains the GNN model based on the specified dataset.
+
+        Delegates the training process to the appropriate method (`train_fullbatch`) depending on the dataset type.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be trained.
+            
+            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
+            
+            optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
+            
+            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
+                        unlearning settings, and other relevant settings.
+            
+            logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes. Defaults to `None`.
+            
+            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data. Defaults to `None`.
+            
+            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data. Defaults to `None`.
+        
+        Returns:
+            None
+        """
         if 'ogbl' in args["dataset_name"]:
             return self.train_fullbatch(model, data, optimizer, args, logits_ori, attack_model_all, attack_model_sub)
 
@@ -42,6 +95,31 @@ class UtUTrainer:
 
     def train_fullbatch(self, model, data, optimizer, args, logits_ori=None, attack_model_all=None,
                         attack_model_sub=None):
+        """
+        Trains the GNN model using a full-batch training approach.
+
+        Resets the model's parameters, initializes the optimizer, and iterates through the training epochs. It performs 
+        member inference attacks before unlearning, saves model checkpoints, and logs the best performance metrics.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be trained.
+            
+            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
+            
+            optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
+            
+            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
+                        unlearning settings, and other relevant settings.
+            
+            logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes. Defaults to `None`.
+            
+            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data. Defaults to `None`.
+            
+            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data. Defaults to `None`.
+        
+        Returns:
+            None
+        """
         model = model.to(self.device)
         data = data.to(self.device)
 
@@ -69,6 +147,30 @@ class UtUTrainer:
 
     def train_minibatch(self, model, data, optimizer, args, logits_ori=None, attack_model_all=None,
                         attack_model_sub=None):
+        """
+        Trains the GNN model using a mini-batch training approach.
+
+        Currently, this method mirrors the functionality of `train_fullbatch` but is structured for potential mini-batch extensions.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be trained.
+            
+            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
+            
+            optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
+            
+            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
+                        unlearning settings, and other relevant settings.
+            
+            logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes. Defaults to `None`.
+            
+            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data. Defaults to `None`.
+            
+            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data. Defaults to `None`.
+        
+        Returns:
+            None
+        """
         start_time = time.time()
         best_metric = 0
 
@@ -94,7 +196,43 @@ class UtUTrainer:
 
     @torch.no_grad()
     def test(self, model, data, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
+        """
+        Evaluates the GNN model's performance and its resilience against membership inference attacks.
 
+        Loads the best model checkpoint, performs evaluations on node-level or edge-level tasks, and conducts 
+        membership inference attacks post-unlearning to assess privacy preservation.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be evaluated.
+            
+            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
+            
+            model_retrain (torch.nn.Module, optional): The retrained model after unlearning, used for comparison. Defaults to `None`.
+            
+            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data. Defaults to `None`.
+            
+            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data. Defaults to `None`.
+            
+            ckpt (str, optional): Specifies which checkpoint to load for evaluation. Defaults to `'best'`.
+        
+        Returns:
+            tuple: A tuple containing evaluation metrics:
+                   - loss (float): The loss on the test dataset.
+
+                   - dt_auc (float): AUC score for direct testing.
+
+                   - dt_aup (float): Average precision score for direct testing.
+
+                   - df_auc (float): AUC score for differential privacy testing.
+
+                   - df_aup (float): Average precision score for differential privacy testing.
+
+                   - df_logit (Any): Logits for differential privacy testing.
+
+                   - logit_all_pair (Any): Logits for all node pairs (if applicable).
+
+                   - test_log (dict): Dictionary containing additional test metrics.
+        """
         if ckpt == 'best' and self.args["unlearning_model"] != 'simple':  # Load best ckpt
             ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'), map_location=self.device)
             model.load_state_dict(ckpt['model_state'])
@@ -148,6 +286,39 @@ class UtUTrainer:
         return loss, dt_auc, dt_aup, df_auc, df_aup, df_logit, logit_all_pair, test_log
 
     def eval(self, model, data, stage='val', pred_all=False):
+        """
+        Evaluates the GNN model's performance on a specified stage (validation or test).
+
+        Computes loss, AUC scores, and other relevant metrics for both direct testing (DT) and differential privacy testing (DF).
+        Optionally logs logits for all node pairs if `pred_all` is enabled.
+
+        Args:
+            model (torch.nn.Module): The GNN model to be evaluated.
+            
+            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
+            
+            stage (str, optional): The evaluation stage, either 'val' or 'test'. Defaults to `'val'`.
+            
+            pred_all (bool, optional): Flag indicating whether to predict on all node pairs. Defaults to `False`.
+        
+        Returns:
+            tuple: A tuple containing evaluation metrics:
+                   - loss (float): The binary cross-entropy loss on the specified stage.
+
+                   - dt_auc (float): AUC score for direct testing.
+
+                   - dt_aup (float): Average precision score for direct testing.
+
+                   - df_auc (float): AUC score for differential privacy testing.
+
+                   - df_aup (float): Average precision score for differential privacy testing.
+
+                   - df_logit (list): Logits for differential privacy testing.
+
+                   - logit_all_pair (Any): Logits for all node pairs (if applicable).
+
+                   - log (dict): Dictionary containing detailed evaluation metrics.
+        """
         model.eval()
         pos_edge_index = data[f'{stage}_pos_edge_index']
         neg_edge_index = data[f'{stage}_neg_edge_index']
@@ -225,6 +396,22 @@ class UtUTrainer:
         return loss, dt_auc, dt_aup, df_auc, df_aup, df_logit, None, log
     
     def decode(self, z, pos_edge_index, neg_edge_index=None):
+        """
+        Decodes edge logits from node embeddings for link prediction tasks.
+
+        Computes the dot product between pairs of node embeddings to predict the existence of edges. If negative edge 
+        indices are provided, it concatenates the positive and negative edge logits.
+
+        Args:
+            z (torch.Tensor): Node embeddings obtained from the GNN model.
+            
+            pos_edge_index (torch.Tensor): Edge indices for positive (existing) edges.
+            
+            neg_edge_index (torch.Tensor, optional): Edge indices for negative (non-existing) edges. Defaults to `None`.
+        
+        Returns:
+            torch.Tensor: Logits indicating the presence of edges. Higher values suggest a higher likelihood of edge existence.
+        """
         if neg_edge_index is not None:
             edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
             logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)

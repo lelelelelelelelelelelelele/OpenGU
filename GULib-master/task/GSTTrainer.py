@@ -19,7 +19,7 @@ from torch_geometric.data import Data
 
 class GSTTrainer(BaseTrainer):
     """
-    GSTTrainer class for training and evaluating models using the GST (Graph Scattering Transform) unlearning method.
+    GSTTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the GST (Graph Scattering Transform) unlearning method.
 
     This class extends the `BaseTrainer` to implement specific training and evaluation routines required for the GST unlearning methodology. 
     It includes methods for training the GNN model, evaluating its accuracy and loss, generating GST embeddings, and performing 
@@ -253,7 +253,7 @@ class GSTTrainer(BaseTrainer):
 
     def train_GST(self,logger,args, data, scattering, device,unlearning_nodes,nonmember_id,nonlin=True):
         """
-        Trains the model using the GST (Graph Scattering Transform) unlearning method.
+        Trains a classifier using GST (Graph Scattering Transform) embeddings in preparation for the GST unlearning method.
 
         This method generates GST embeddings for training, validation, and testing datasets, trains a 
         classifier using these embeddings, and evaluates the model's performance. It also computes 
@@ -329,7 +329,7 @@ class GSTTrainer(BaseTrainer):
 
     def train_GST_graph(self,logger,args, train_list, test_list,scattering, device):
         """
-        Trains the model on graph-level data using the GST unlearning method.
+        Trains the model on graph-level data.
 
         This method generates GST embeddings for training and testing graph lists, trains a classifier 
         using these embeddings, and evaluates the model's performance on test data.
@@ -389,7 +389,7 @@ class GSTTrainer(BaseTrainer):
 
     def Unlearn_GST_graph(self,logger,args, scattering, train_list, device, w_approx, budget, val_list=None, test_list=None, nonlin=True, gamma=1/4):
         """
-        Performs unlearning on graph-level data using the GST method.
+        Performs unlearning on graph-level data.
 
         This method removes the influence of specific graphs from the trained model by updating the classifier weights.
         It ensures that the model forgets the targeted graphs while maintaining performance on validation and test sets.

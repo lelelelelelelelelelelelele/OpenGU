@@ -11,8 +11,8 @@ from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch_geometric.loader import GraphSAINTNodeSampler
 class GUIDETrainer(BaseTrainer):
     """
-    GUIDETrainer class for training and evaluating Graph Neural Networks (GNNs) using the GUIDE unlearning method.
-
+    GUIDETrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the GUIDE (Guided Inductive Graph Unlearning) unlearning method.
+    
     This class extends the `BaseTrainer` to implement specific training and evaluation routines required for the GUIDE unlearning methodology.
     It includes methods for training the GNN model using full-batch or mini-batch approaches, evaluating the model's performance,
     and obtaining prediction information.

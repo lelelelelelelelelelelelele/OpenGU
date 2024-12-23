@@ -485,7 +485,7 @@ class EdgePredictor:
 
     def train_GUIDE_model(self):
         """
-        Trains the GNN model using the GUIDE (Guided Inductive Graph Unlearning) unlearning method.
+        Trains the GNN model in preparation for using the GUIDE (Guided Inductive Graph Unlearning) unlearning method.
 
         This method handles the training loop, including loss computation, 
         backpropagation, optimizer steps, and periodic logging of the training loss.
@@ -513,7 +513,7 @@ class EdgePredictor:
 
     def train_UTU_model(self):
         """
-        Trains the model using the UTU (Unlink to Unlearn) method.
+        Trains the models in preparation for using the UTU (Unlink to Unlearn) method.
 
         This method manages the training process, including data preparation, 
         loss computation, backpropagation, optimizer steps, evaluation on the validation set, 

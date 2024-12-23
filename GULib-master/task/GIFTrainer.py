@@ -5,7 +5,7 @@ from torch_geometric.utils import negative_sampling
 import torch
 class GIFTrainer(BaseTrainer):
     """
-    GIFTrainer class for training and evaluating models using Graph Influence Function (GIF) unlearning method.
+    GIFTrainer class for training and evaluating GNNs in preparation for applying the Graph Influence Function (GIF) unlearning method.
 
     This class extends the BaseTrainer and provides functionalities specific to the 
     Graph Influence Function (GIF) unlearning method. It handles the evaluation of 
