@@ -1,12 +1,12 @@
-sphinx
-sphinx_rtd_theme
 torch
 torchvision
+cupy-cuda12x
+torch_scatter
+torch_sparse
+torch_geometric
 scipy
 numpy
 pandas
-matplotlib
-scipy
 matplotlib
 scikit-learn
 ogb
@@ -17,7 +17,5 @@ munkres
 cvxpy
 pymetis
 ipdb
-cupy-cuda12x
-torch_scatter
-torch_sparse
-torch_geometric
+sphinx
+sphinx_rtd_theme
