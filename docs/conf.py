@@ -47,7 +47,9 @@ autodoc_mock_imports = [
     "torch_sparse", 
     "torch_geometric", 
     "cupy",  
-    "torchvision"
+    "torchvision",
+    "lightgbm",
+    "deeprobust"
 ]
 
 
