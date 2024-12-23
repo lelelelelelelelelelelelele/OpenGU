@@ -1,5 +1,5 @@
-torch
-torchvision
+torch==2.4.1+cpu
+torchvision==0.19.1+cpu
 cupy-cuda12x
 torch_scatter
 torch_sparse
