@@ -1,9 +1,9 @@
-torch==2.4.1+cu121
+torch==2.4.1
 torch-geometric==2.6.1
 torch_scatter==2.1.2
 torch_sparse==0.6.18
-torchaudio==2.4.1+cu121
-torchvision==0.19.1+cu121
+torchaudio==2.4.1
+torchvision==0.19.1
 cupy-cuda12x==12.3.0
 tqdm==4.67.1
 scipy
