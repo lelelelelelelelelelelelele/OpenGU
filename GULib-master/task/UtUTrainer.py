@@ -21,7 +21,7 @@ class UtUTrainer:
     and evaluating the model's resilience against membership inference attacks. It supports both full-batch and mini-batch 
     training approaches and facilitates the evaluation of model performance on node-level and edge-level tasks.
 
-    Attributes:
+    Class Attributes:
         args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
                     unlearning settings, and other relevant settings.
 

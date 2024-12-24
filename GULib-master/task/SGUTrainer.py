@@ -23,7 +23,7 @@ class SGUTrainer(BaseTrainer):
 
         - Saving the best-performing model states.
 
-    Attributes:
+    Class Attributes:
         args (dict): Configuration parameters, including model type, dataset specifications, 
                     training hyperparameters, unlearning settings, and other relevant settings.
         
@@ -386,7 +386,7 @@ class SGUTrainer(BaseTrainer):
                         average_f1,
                         run):
         """
-        Performs SGU on edge-level tasks.
+        Performs SGU unlearning method on edge-level tasks.
         
         This method targets specific edges and their activated components for unlearning. It adjusts the model's parameters 
         to forget the influence of the targeted edges while preserving the model's performance on other parts of the graph.
