@@ -49,14 +49,6 @@ GraphEraser
     :special-members: __init__
     :show-inheritance:
 
-GraphRevoker
------------------------
-
-.. automodule:: unlearning.unlearning_methods.GraphRevoker.graphrevoker
-   :members:
-   :special-members: __init__
-   :show-inheritance:
-
 GST
 -----------------------
 

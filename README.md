@@ -26,15 +26,17 @@
 
 ## 📚 Introduction
 
-**OpenGU** is an open-source benchmark platform for **Graph Unlearning (GU)**. It facilitates the evaluation and development of GU methodologies by providing standardized datasets, state-of-the-art GU algorithms, and versatile tools. OpenGU integrates **xx SOTA GU algorithms** and **xx multi-domain datasets**, supporting a variety of downstream tasks across **7 GNN backbones**. This unified framework enables flexible unlearning requests and ensures comprehensive and fair evaluations of GU methods, addressing the unique challenges posed by complex relational data.
+**OpenGU** is an open-source benchmark platform for **Graph Unlearning (GU)**. It facilitates the evaluation and development of GU methodologies by providing standardized datasets, state-of-the-art GU algorithms, and versatile tools. OpenGU integrates **16 SOTA GU algorithms** and **37 multi-domain datasets**, supporting a variety of downstream tasks across **13 GNN backbones**. This unified framework enables flexible unlearning requests and ensures comprehensive and fair evaluations of GU methods, addressing the unique challenges posed by complex relational data.
 
 ### Our Contributions
 
 To further streamline GU research and foster a more unified evaluation landscape, **OpenGU** offers the following key contributions:
 
-1. **xx**
-2. **xx**
-3. **...**
+1. **16 SOTA GU algorithms**
+2. **37 popular multi-domain datasets**
+3. **13 GNN backbones**
+4. **code-level 3 \plus 3 cross-experiment configurations**
+5. **8 crucial conclusions**
 
 <div align="center">
   <img src="Resources/methods_overview.png" alt="Methods Overview" border="0" width=600px/>

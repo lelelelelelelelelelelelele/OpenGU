@@ -15,13 +15,6 @@ D2DGNTrainer
    :special-members: __init__
    :show-inheritance:
 
-EdgePredictor
------------------------
-.. autoclass:: task.EdgePredictor
-   :members:
-   :special-members: __init__
-   :show-inheritance:
-
 GIFTrainer
 -----------------------
 .. autoclass:: task.GIFTrainer
@@ -74,13 +67,6 @@ IDEATrainer
 MEGUTrainer
 -----------------------
 .. autoclass:: task.MEGUTrainer
-   :members:
-   :special-members: __init__
-   :show-inheritance:
-
-NodeClassifier
------------------------
-.. autoclass:: task.NodeClassifier
    :members:
    :special-members: __init__
    :show-inheritance:
