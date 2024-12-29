@@ -71,8 +71,6 @@ Graph Unlearning (GU) scenarios are fundamentally data-driven, making the meticu
 
 ### Graph Classification Tasks
 
-### Graph Classification Tasks
-
 - **Compounds Networks**: MUTAG, PTC-MR, BZR, COX2, DHFR, AIDS, NCI1, ogbg-molhiv, ogbg-molpcba
 - **Protein Networks**: ENZYMES, DD, PROTEINS, ogbg-ppa
 - **Movie Networks**: IMDB-BINARY, IMDB-MULTI
