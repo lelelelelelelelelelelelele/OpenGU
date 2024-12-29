@@ -30,13 +30,12 @@
 
 ### Our Contributions
 
-To further streamline GU research and foster a more unified evaluation landscape, **OpenGU** offers the following key contributions:
+To advance Graph Unlearning (GU) research and establish a standardized evaluation framework, **OpenGU** provides the following key contributions:
 
-1. **16 SOTA GU algorithms**
-2. **37 popular multi-domain datasets**
-3. **13 GNN backbones**
-4. **code-level 3 \plus 3 cross-experiment configurations**
-5. **8 crucial conclusions**
+1. **Comprehensive Benchmark**: OpenGU integrates **16 SOTA GU algorithms** and **37 multi-domain datasets**, offering a unified framework to support flexible 3×3 combinations of unlearning requests and downstream tasks.
+2. **Analytical Insights**: Through extensive experiments, OpenGU evaluates GU methods across **effectiveness**, **efficiency**, and **robustness**, providing **8 key insights** that highlight existing limitations and guide future research.
+3. **Open-source Library**: OpenGU is designed as an open-source benchmark library with a unified API, detailed documentation, and user-friendly interfaces, fostering collaboration and innovation in the GU community.
+
 
 <div align="center">
   <img src="Resources/methods_overview.png" alt="Methods Overview" border="0" width=600px/>
@@ -58,49 +57,63 @@ Graph Unlearning (GU) scenarios are fundamentally data-driven, making the meticu
 
 ### Node and Edge-Level Tasks
 
-- **Citation Networks:** Cora, Citeseer, PubMed
-- **Co-author Networks:** CS, Physics
-- **Image Networks:** Flickr
-- **E-commerce and Product Networks:** Photo, Computers, ogbn-products, Amazon-ratings
-- **Scientific and Knowledge Networks:** DBLP, ogbn-arxiv
-- **Webpage Networks:** Squirrel, Chameleon
-- **Actor Networks:** Actor
-- **Online Gaming:** Minesweeper
-- **Crowdsourcing Platform:** Tolokers
-- **Historical and Social Q&A Contexts:** Roman-empire, Questions
+- **Citation Networks**: Cora, Citeseer, PubMed, DBLP, ogbn-arxiv
+- **Co-author Networks**: CS, Physics
+- **Co-purchasing Network**: Photo, Computers, ogbn-products
+- **Rating Networks**: Amazon-ratings
+- **Wiki-page Networks**: Squirrel, Chameleon
+- **Actor Networks**: Actor
+- **Game Synthetic Networks**: Minesweeper
+- **Crowdsourcing Networks**: Tolokers
+- **Article Syntax Networks**: Roman-empire
+- **Social Networks**: Questions
+- **Image Networks**: Flickr
 
 ### Graph Classification Tasks
 
-- **Compounds Networks:** MUTAG, PTC-MR, BZR, COX2, DHFR, AIDS, NCI1, ogbg-molhiv, ogbg-molpcba
-- **Protein Networks:** ENZYMES, DD, PROTEINS, ogbg-ppa
-- **Movie Networks:** IMDB-BINARY, IMDB-MULTI
-- **Collaboration Networks:** COLLAB
-- **3D Shapes and Image Superpixels:** ShapeNet, MNISTSuperPixels
+### Graph Classification Tasks
+
+- **Compounds Networks**: MUTAG, PTC-MR, BZR, COX2, DHFR, AIDS, NCI1, ogbg-molhiv, ogbg-molpcba
+- **Protein Networks**: ENZYMES, DD, PROTEINS, ogbg-ppa
+- **Movie Networks**: IMDB-BINARY, IMDB-MULTI
+- **Collaboration Networks**:  COLLAB
+- **Point Cloud Networks**: ShapeNet
+- **Super-pixel Networks**: MNISTSuperPixels
+
 
 #### Statistical Overview
-For detailed statistics on the datasets used in our evaluation, see the following files:
+For detailed statistics on the datasets used in our evaluation, see the following file:
 
-- [Node and Edge-Level Tasks Statistics](/Resources/graph_classification_stats.md)
-- [Graph Classification Tasks Statistics](/Resources/graph_classification_stats.md)
+- [Dataset Detailed Statistics](Resources/Dataset.png)
 
-#### Data Preprocessing Enhancements
 
-To achieve standardized and versatile partitioning in OpenGU, we implemented code that allows arbitrary dataset split ratios, enabling researchers to customize partitions to suit their needs and experiment requirements. In addition to flexible splitting, we also consider label balance within class distributions by providing both balanced and random partitioning options. Furthermore, we introduce preprocessing enhancements that allow datasets to function under both transductive and inductive inference scenarios, permitting evaluations under various settings and offering a broader assessment of algorithm performance.
+### Data Preprocessing Enhancements
+
+OpenGU introduces flexible preprocessing capabilities to support diverse experimental needs:
+
+1. **Custom Dataset Splitting**:
+   - Enables arbitrary dataset split ratios for tailored training and testing sets.
+   - Supports both balanced and random label distributions.
+
+2. **Inference Scenarios**:
+   - Allows datasets to operate under both **transductive** and **inductive** inference settings, enabling comprehensive evaluations.
 
 
 ## 🧠 Algorithm Framework
 
 ### GNN Backbones
 
-To evaluate the generalizability of GU algorithms, we incorporate three predominant paradigms of GNN models within our benchmark: **Traditional GNNs**, **Sampling GNNs**, and **Decoupled GNNs**. Each category encompasses a variety of state-of-the-art models, providing a comprehensive foundation for assessing Graph Unlearning methods.
+To evaluate the generalizability of GU algorithms, we incorporate three predominant paradigms of GNN models within our benchmark: **Traditional GNNs**, **Sampling GNNs**, and **Decoupled GNNs**. Each category encompasses a variety of state-of-the-art models, providing a comprehensive foundation for assessing Graph Unlearning methods. **In total, OpenGU integrates 13 GNN backbones.**
 
 | **Traditional GNNs** | **Sampling GNNs** | **Decoupled GNNs** |
 |----------------------|--------------------|---------------------|
 | 🔹 **GCN**           | 🔸 **GraphSAGE**   | 🔹 **SGC**          |
-| 🔹 **GAT**           | 🔸 **GraphSAINT**  | 🔹 **SSGC**         |
-| 🔹 **GCNII**         | 🔸 **ClusterGNN**  | 🔹 **SIGN**         |
-| 🔹 **GIN**           |                    | 🔹 **APPNP**        |
-| 🔹 **Others**        |                    |                     |
+| 🔹 **GCNII**         | 🔸 **GraphSAINT**  | 🔹 **SSGC**         |
+| 🔹 **LightGCN**      | 🔸 **ClusterGCN**  | 🔹 **SIGN**         |
+| 🔹 **GAT**           |                    | 🔹 **APPNP**        |
+| 🔹 **GATv2**         |                    |                     |
+| 🔹 **GIN**           |                    |                     |
+
 
 ### GU Algorithms
 
@@ -116,46 +129,28 @@ Our framework encompasses **16 state-of-the-art GU algorithms**, meticulously re
 |                     | 🔹 **ScaleGUN**  |                     |                     |
 
 
-
 ## 📊 Evaluation Strategy
 
-To thoroughly assess GU algorithms in real-world scenarios, our benchmark evaluation focuses on three key dimensions: **effectiveness**, **robustness**, and **efficiency**. Each dimension utilizes tailored evaluation methods aligned with OpenGU’s mission to provide a flexible and high-standard benchmark.
+OpenGU assesses **Graph Unlearning (GU)** algorithms across three key dimensions: **Effectiveness**, **Robustness**, and **Efficiency**.
 
 ### Cross-over Design
-
-Previous GU studies often separate node and edge unlearning, evaluating them through node classification and link prediction tasks, respectively. However, real-world applications may require simultaneous removal of nodes and edges within a single task. For example, removing edges between nodes during a node classification task combines edge and node unlearning. To address this, OpenGU includes cross-task evaluations, enabling the assessment of GU algorithms in complex scenarios where multiple unlearning types interact across diverse tasks. This ensures a comprehensive and practical evaluation framework.
+Real-world scenarios often require simultaneous removal of nodes and edges. OpenGU supports **cross-task evaluations**, enabling a comprehensive assessment when multiple unlearning types interact in diverse tasks.
 
 ### Effectiveness
-
-We evaluate **effectiveness** by assessing GU algorithms on key downstream tasks and their impact on **Non-UE** data.
-
-- **Node Classification:**
-  - **Metrics:** Accuracy, Precision, F1-score
-  - **Purpose:** Ensure that unlearning does not impair model performance on retained nodes.
-  
-- **Link Prediction:**
-  - **Metrics:** AUC-ROC
-  - **Purpose:** Verify that edge removal does not negatively affect overall predictive performance.
-  
-- **Security Attacks:**
-  - **Membership Inference Attack:** Measures if specific nodes were part of the training data. An AUC-ROC near 0.5 indicates minimal leakage.
-  - **Poisoning Attack:** Introduces malicious edges and then removes them. Improved link prediction post-removal shows effective unlearning.
-
-This approach evaluates both retained and unlearned information within OpenGU.
+- **Node Classification (Accuracy, Precision, F1)**: Ensures unlearning does not harm performance on retained nodes.  
+- **Link Prediction (AUC-ROC)**: Checks that removing edges does not degrade predictive accuracy.  
+- **Security Attacks**:  
+  - **MIA (AUC-ROC ~ 0.5)**: Confirms minimal information leakage on whether a node was in training.  
+  - **Poisoning Attack**: Improved link prediction after malicious edges are removed indicates successful unlearning.
 
 ### Robustness
-
-**Robustness** is assessed by testing GU algorithms under varying levels of data deletion. We examine how different proportions of data removal impact model performance. Robust GU algorithms should exhibit minimal performance loss as deletion intensity increases, demonstrating resilience in maintaining effective predictions for both retained and partially affected data.
+We test GU algorithms under **varying deletion intensities**, **noise**, and **sparsity**. Robust solutions should exhibit minimal performance drop when more data is removed or degraded.
 
 ### Efficiency
-
-We evaluate **efficiency** based on **scalability**, **time complexity**, and **space complexity**:
-
-- **Scalability:** Measures adaptability to different dataset sizes, ensuring stable performance across varying graph scales.
-- **Time Complexity:** Assesses computational demands through theoretical and empirical evaluations.
-- **Space Complexity:** Evaluates memory usage and storage requirements during unlearning, determining suitability for resource-constrained environments.
-
-These metrics collectively determine each method’s suitability for real-time and scalable deployment.
+Evaluated on **scalability**, **time complexity**, and **space complexity**:
+- **Scalability**: Performance consistency across different dataset sizes.  
+- **Time Complexity**: Computational cost analyzed both theoretically and empirically.  
+- **Space Complexity**: Memory usage and storage overhead during unlearning.
 
 
 ## <span id="installation">📥 Installation</span>
@@ -190,7 +185,7 @@ You can install OpenGU using one of the following methods:
 
 #### 1. **Using Pip**
 
-TODO: To install OpenGU directly from PyPI:
+To install OpenGU directly from PyPI:
 
 ```bash
 pip install opengu
@@ -198,7 +193,7 @@ pip install opengu
 
 #### 2. **Installing from GitHub for Local Development**
 
-TODO: To install OpenGU for local development, clone the GitHub repository and install it from the source:
+To install OpenGU for local development, clone the GitHub repository and install it from the source:
 
 1. **Clone the Repository**
 
@@ -249,6 +244,24 @@ Install the general dependencies listed in the `requirements.txt` file:
 ```bash
 pip install -r requirements.txt
 ```
+
+#### Additional Dependencies for Graph Libraries
+
+For `torch_scatter`, `torch_geometric`, and `torch_sparse`, if you encounter compilation issues, it's recommended to install the prebuilt wheels directly from the official PyTorch Geometric website. Below are installation examples based on the CUDA version:
+
+1. Visit the [PyTorch Geometric Installation Guide](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) to find the appropriate wheel links.
+
+2. Example installation for CUDA 12.1:
+
+   ```bash
+   pip install torch-scatter -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
+   pip install torch-sparse -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
+   pip install torch-geometric
+   ```
+
+3. If using a different CUDA version, replace `cu121` in the URL with your specific version (e.g., `cu118` for CUDA 11.8).
+
+*Make sure to check the compatibility matrix on the official PyTorch Geometric website for the correct version of `torch`, `torchvision`, and other libraries.*
 
 ### **Verify Installation**
 
@@ -337,11 +350,11 @@ Please ensure that your contributions adhere to the project's coding standards a
 If you use OpenGU in your research, please cite our paper:
 
 ```bibtex
-@article{your2024opengu,
-  title={OpenGU: An Open-Source Benchmark for Graph Unlearning},
-  author={Your Name and Co-author's Name},
+@article{fan2025opengu,
+  title={OpenGU: A Comprehensive Benchmark for Graph Unlearning},
+  author={Fan, Bowen and Ai, Yuming and Li, Xunkai and Guo, Zhilin and Li, Rong-Hua and Wang, Guoren},
   journal={arXiv preprint arXiv:XXXX.XXXXX},
-  year={2024}
+  year={2025}
 }
 ```
 

@@ -97,6 +97,22 @@ Install the remaining dependencies from the `requirements.txt` file:
 
     pip install -r requirements.txt
 
+
+Additional Dependencies for Graph Libraries
+^^^^^^^^^^^^^^^^^^^^
+
+For `torch_scatter`, `torch_geometric`, and `torch_sparse`, if you encounter compilation issues, it's recommended to install the prebuilt wheels directly from the official PyTorch Geometric website. Below are installation examples based on the CUDA version:
+
+1. Visit the [PyTorch Geometric Installation Guide](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) to find the appropriate wheel links.
+
+2. Example installation for CUDA 12.1:
+
+   ```bash
+   pip install torch-scatter -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
+   pip install torch-sparse -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
+   pip install torch-geometric
+   ```
+
 Verify Installation
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -115,12 +131,11 @@ If you use OpenGU in your research, please cite the following paper:
 
 .. code-block:: none
 
-    @inproceedings{openGU2024,
-        title={OpenGU: A Benchmark Platform for Graph Unlearning},
-        author={Your Name and Co-authors},
-        booktitle={Proceedings of the XYZ Conference},
-        year={2024},
-        organization={Conference Organization}
+    @article{fan2025opengu,
+    title={OpenGU: A Comprehensive Benchmark for Graph Unlearning},
+    author={Fan, Bowen and Ai, Yuming and Li, Xunkai and Guo, Zhilin and Li, Rong-Hua and Wang, Guoren},
+    journal={arXiv preprint arXiv:XXXX.XXXXX},
+    year={2025}
     }
 
 .. toctree::
