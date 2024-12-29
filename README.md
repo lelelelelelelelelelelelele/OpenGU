@@ -261,6 +261,23 @@ For `torch_scatter`, `torch_geometric`, and `torch_sparse`, if you encounter com
 
 *Make sure to check the compatibility matrix on the official PyTorch Geometric website for the correct version of `torch`, `torchvision`, and other libraries.*
 
+
+#### Special Installation for ScaleGUN
+If you are using the `ScaleGUN` unlearning method, you need to compile and install the dependencies manually. Navigate to the following directory:
+
+```bash
+cd OpenGU/GULib-master/unlearning/unlearning_methods/ScaleGUN/progation_pkg
+```
+
+Then, run the following commands:
+
+```bash
+pip install cython
+pip install eigency
+python setup.py build_ext --inplace
+```
+These steps will compile the necessary Cython extensions for the `progation_pkg` module.
+
 ### **Verify Installation**
 
 After installation, verify that OpenGU is installed correctly by running:
