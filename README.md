@@ -18,7 +18,7 @@
   <a href="https://opengu.readthedocs.io/en/latest/?badge=latest">
   <img src="https://img.shields.io/readthedocs/opengu.svg?style=flat-square" alt="Documentation Status"/></a>
   <img src="https://badgen.net/github/license/bwfan-bit/OpenGU" alt="license" />
-  <img src="https://img.shields.io/badge/version-0.1-green" alt="version" />
+  <img src="https://img.shields.io/badge/version-1.0-green" alt="version" />
 </p>
 
 
