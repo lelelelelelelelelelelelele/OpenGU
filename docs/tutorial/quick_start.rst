@@ -20,7 +20,7 @@ Install general dependencies:
 
     pip install -r requirements.txt
 
-For CUDA-specific dependencies, follow the instructions in the `Installation section <#installation>`_ above.
+For CUDA-specific dependencies and ScaleGUN dependencies, follow the detailed instructions in the home page.
 
 Step 3: Run the Main Script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

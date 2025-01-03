@@ -13,6 +13,26 @@ from config import root_path,unlearning_path,split_ratio,unlearning_edge_path
 from utils.utils import filter_edge_index_2
 from torch_geometric.utils import negative_sampling
 def process_data(logger,data,args):
+    """
+    Processes the data based on the specified arguments.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        data:
+            
+            The input data object to be processed.
+        
+        args (dict):
+            
+            Configuration parameters that determine the processing steps.
+    
+    Returns:
+        torch_geometric.data.Data:
+            The processed data object.
+    """
     if args["downstream_task"]=="graph":
         data.train_mask = torch.zeros(len(data))
         data.test_mask = torch.zeros(len(data))
@@ -99,8 +119,23 @@ def process_data(logger,data,args):
     return data
 
 class BasicDataset(Dataset):
+    """
+    A basic dataset class for handling nodes and their corresponding labels.
 
+    Args:
+        nodes (list or torch.Tensor): The nodes in the dataset.
+
+        labels (list or torch.Tensor): The labels corresponding to each node.
+    """
     def __init__(self, nodes, labels):
+        """
+        Initializes the BasicDataset with nodes and labels.
+
+        Args:
+            nodes (list or torch.Tensor): The nodes in the dataset.
+
+            labels (list or torch.Tensor): The labels corresponding to each node.
+        """
         self.nodes = nodes
         self.labels = labels
 
@@ -111,6 +146,17 @@ class BasicDataset(Dataset):
         return self.nodes[idx], self.labels[idx]
 
     def remove(self, node):
+        """
+        Removes a node and its corresponding label from the dataset.
+
+        Args:
+            node:
+
+                The node to be removed from the dataset.
+
+        Returns:
+            None
+        """
         index = self.nodes.index(node)
         del self.nodes[index]
         del self.labels[index]
@@ -118,6 +164,78 @@ class BasicDataset(Dataset):
 
 
 def ceu_process(args,data):
+    """
+    Processes the dataset for the CEU (Contrastive Edge Unlearning) method.
+    
+    This function prepares the dataset by extracting nodes, edges, features, and labels from the
+    full dataset. It handles feature initialization if specified, splits the data into training,
+    validation, and test sets, and saves these subsets for future use. The processed data is then
+    organized into a dictionary for downstream tasks.
+    
+    Args:
+        args (dict):
+        
+            A dictionary containing configuration parameters.
+            
+            - 'feature' (bool): Flag indicating whether to use existing features or initialize new ones.
+            
+            - 'emb_dim' (int): The dimensionality of the initialized feature embeddings.
+            
+            - 'dataset_name' (str): The name of the dataset being processed.
+        
+        data (torch_geometric.data.Data):
+        
+            The full dataset containing node features, edge indices, labels, and other relevant information.
+    
+    Returns:
+        dict:
+        
+            A dictionary containing the processed dataset with the following keys:
+            
+                - 'nodes' (list):
+                    
+                    A list of node indices in the dataset.
+                
+                - 'edges' (list of tuples):
+                    
+                    A list of edge tuples representing connections between nodes.
+                
+                - 'features' (numpy.ndarray):
+                    
+                    The feature matrix for all nodes. Initialized or extracted based on the `args['feature']` flag.
+                
+                - 'labels' (list):
+                    
+                    A list of labels corresponding to each node.
+                
+                - 'num_nodes' (int):
+                    
+                    The total number of nodes in the dataset.
+                
+                - 'num_edges' (int):
+                    
+                    The total number of edges in the dataset.
+                
+                - 'num_classes' (int):
+                    
+                    The number of unique classes in the dataset, determined by the maximum label value.
+                
+                - 'num_features' (int):
+                    
+                    The number of features per node.
+                
+                - 'train_set' (BasicDataset):
+                    
+                    The training subset of the dataset.
+                
+                - 'valid_set' (BasicDataset):
+                    
+                    The validation subset of the dataset.
+                
+                - 'test_set' (BasicDataset):
+                    
+                    The test subset of the dataset.
+    """
     nodes = list(range(len(data.x)))
     edges = [(e[0],e[1]) for e in data.edge_index.t().tolist()]
     features = data.x.numpy()
@@ -164,6 +282,33 @@ def ceu_process(args,data):
 
 
 def initialize_features(dataset, num_nodes, emb_dim,args):
+    """
+    Initializes node features for a dataset, loading from disk if available.
+    
+    This function checks if pre-initialized features exist for the specified embedding dimension.
+    If they do, it loads them; otherwise, it initializes features using Xavier normal initialization,
+    saves them to disk, and returns them as a NumPy array.
+    
+    Args:
+        dataset:
+        
+            The dataset for which features are being initialized.
+        
+        num_nodes (int):
+        
+            The total number of nodes in the dataset.
+        
+        emb_dim (int):
+        
+            The dimensionality of the node feature embeddings.
+        
+        args (dict):
+        
+            Configuration parameters, including 'dataset_name'.
+    
+    Returns:
+        numpy.ndarray: The initialized node feature matrix.
+    """
     if emb_dim == 32:
         features_path = os.path.join('./data/CEU', args["dataset_name"], 'features.pt')
     else:
@@ -180,20 +325,37 @@ def initialize_features(dataset, num_nodes, emb_dim,args):
 
 def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
     """
-    create three graph:
-    train: data.x[data.train_mask] data.train_edge_index
-    val: the same
-    test: the same
-
-    :param logger:
-    :param args:
-    :param data:
-    :param train_ratio:
-    :param val_ratio:
-    :param test_ratio:
-    :return:
+    Splits the nodes of a graph into training, validation, and test sets inductively.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters.
+        
+        data:
+            
+            The input data object to be processed.
+        
+        train_ratio (float, optional):
+            
+            Proportion of nodes to include in the training set. Defaults to `0.6`.
+        
+        val_ratio (float, optional):
+            
+            Proportion of nodes to include in the validation set. Defaults to `0.2`.
+        
+        test_ratio (float, optional):
+            
+            Proportion of nodes to include in the test set. Defaults to `0.2`.
+    
+    Returns:
+        torch_geometric.data.Data:
+            The processed data object.
     """
-
     num_nodes = data.num_nodes
     indices = torch.randperm(num_nodes)
     edge_index = data.edge_index
@@ -298,20 +460,42 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
 
 def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
     """
-    create three graph:
-    train: data.x[data.train_mask] data.train_edge_index
-    val: the same
-    test: the same
-
-    :param logger:
-    :param args:
-    :param data:
-    :param train_ratio:
-    :param val_ratio:
-    :param test_ratio:
-    :return:
+    Splits the nodes of a graph into training, validation, and test sets inductively.
+    
+    This function randomly partitions the nodes of the input graph into training, validation, and test subsets
+    based on the specified ratios. It updates the graph's edge indices to ensure that edges are only present
+    within the same subset. Additionally, it performs negative sampling for the test set to prepare for
+    tasks like link prediction.
+    
+    Args:
+        logger:
+        
+            Logger object for logging information and debug messages.
+        
+        args (dict):
+        
+            Configuration parameters.
+        
+        data (torch_geometric.data.Data):
+        
+            The input graph data containing node features, edge indices, and labels.
+        
+        train_ratio (float, optional):
+        
+            Proportion of nodes to include in the training set. Defaults to `0.6`.
+        
+        val_ratio (float, optional):
+        
+            Proportion of nodes to include in the validation set. Defaults to `0.2`.
+        
+        test_ratio (float, optional):
+        
+            Proportion of nodes to include in the test set. Defaults to `0.2`.
+    
+    Returns:
+        torch_geometric.data.Data:
+            The split graph data object.
     """
-
     num_nodes = data.num_nodes
     labels = data.y  # 假设节点的类别标签保存在 data.y 中
     num_classes = labels.max().item() + 1
@@ -478,6 +662,38 @@ def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test
     return data
 
 def transductive_split_edge(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
+    """
+    Splits the nodes of a graph into training, validation, and test sets inductively.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters.
+        
+        data:
+            
+            The input data object to be processed.
+        
+        train_ratio (float, optional):
+            
+            Proportion of nodes to include in the training set. Defaults to `0.6`.
+        
+        val_ratio (float, optional):
+            
+            Proportion of nodes to include in the validation set. Defaults to `0.2`.
+        
+        test_ratio (float, optional):
+            
+            Proportion of nodes to include in the test set. Defaults to `0.2`.
+    
+    Returns:
+        torch_geometric.data.Data:
+            The processed data object.
+    """
     num_nodes = data.num_nodes
     num_edges = data.edge_index.size(1)
     data.train_mask = torch.ones(num_nodes, dtype=torch.bool)
@@ -500,6 +716,38 @@ def transductive_split_edge(logger,args,data, train_ratio=0.8, val_ratio=0, test
     return data
 
 def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
+    """
+    Splits the nodes of a graph into training, validation, and test sets in a balanced manner.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters.
+        
+        data:
+            
+            The input data object to be processed.
+        
+        train_ratio (float, optional):
+            
+            Proportion of nodes to include in the training set. Defaults to `0.6`.
+        
+        val_ratio (float, optional):
+            
+            Proportion of nodes to include in the validation set. Defaults to `0.2`.
+        
+        test_ratio (float, optional):
+            
+            Proportion of nodes to include in the test set. Defaults to `0.2`.
+    
+    Returns:
+        torch_geometric.data.Data:
+            The processed data object.
+    """
     num_nodes = data.num_nodes
     labels = data.y  # 假设节点的类别标签保存在 data.y 中
     num_classes = labels.max().item() + 1
@@ -546,6 +794,29 @@ def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ra
 
 
 def c2n_to_n2c(args, community_to_node):
+    """
+    Converts a community-to-node mapping to a node-to-community mapping.
+    
+    This function transforms a dictionary that maps each community to its list of nodes into a
+    dictionary that maps each individual node to its corresponding community. It processes
+    a specified number of shards as defined in the `args` dictionary.
+    
+    Args:
+        args (dict):
+        
+            A dictionary containing configuration parameters.
+        
+            - 'num_shards' (int): The number of shards to process.
+        
+        community_to_node (dict):
+        
+            A dictionary mapping each community to a list of nodes belonging to that community.
+    
+    Returns:
+        dict:
+        
+            A dictionary mapping each node to its corresponding community.
+    """
     node_list = []
     for i in range(args['num_shards']):
         node_list.extend(list(community_to_node.values())[i])
@@ -564,12 +835,56 @@ def c2n_to_n2c(args, community_to_node):
 
 
 def save_train_test_split(logger,args,train_indices, test_indices):
+    """
+    Saves the train-test split data to a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters.
+        
+        train_indices (list):
+            
+            List of training node indices.
+        
+        test_indices (list):
+            
+            List of testing node indices.
+    
+    Returns:
+        None:
+            The function saves the train-test split data to the specified file.
+    """
     train_test_split_file = config.train_test_split_file
     os.makedirs(os.path.dirname(train_test_split_file), exist_ok=True)
     logger.info("save_train_test_split:{}".format(train_test_split_file) )
     pickle.dump((train_indices, test_indices), open(train_test_split_file, 'wb'))
 
 def save_data(logger,data, filename):
+    """
+    Saves data to a specified file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        data:
+            
+            The data object to be saved.
+        
+        filename (str):
+            
+            Path to the file where data will be saved.
+    
+    Returns:
+        None:
+            The function saves the data to the specified file.
+    """
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -579,6 +894,26 @@ def save_data(logger,data, filename):
         pickle.dump(data, file)
 
 def save_train_data(logger,data,filename):
+    """
+    Saves training data to a specified file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        data:
+            
+            The training data object to be saved.
+        
+        filename (str):
+            
+            Path to the file where training data will be saved.
+    
+    Returns:
+        None:
+            The function saves the training data to the specified file.
+    """
     logger.info("save_train_data {}".format(filename))
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
@@ -588,6 +923,26 @@ def save_train_data(logger,data,filename):
         pickle.dump(data, file)
 
 def save_train_graph(logger,gragh_data,filename):
+    """
+    Saves training graph data to a specified file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        gragh_data:
+            
+            The training graph data to be saved.
+        
+        filename (str):
+            
+            Path to the file where training graph data will be saved.
+    
+    Returns:
+        None:
+            The function saves the training graph data to the specified file.
+    """
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -596,16 +951,76 @@ def save_train_graph(logger,gragh_data,filename):
         pickle.dump(gragh_data, file)
 
 def save_unlearned_data(logger,data, suffix):
+    """
+    Saves unlearned data to a specified file with a suffix.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        data:
+            
+            The unlearned data to be saved.
+        
+        suffix (str):
+            
+            Suffix to append to the filename.
+    
+    Returns:
+        None:
+            The function saves the unlearned data to the specified file.
+    """
     logger.info('saving unlearned data {}'.format('_'.join((config.unlearned_file, suffix))))
     pickle.dump(data, open('_'.join((config.unlearned_file, suffix)), 'wb'))
 
 
 def load_unlearned_data(logger, suffix):
+    """
+    Loads unlearned data from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        suffix (str):
+            
+            Suffix to append to the unlearned file name.
+    
+    Returns:
+        Any:
+            The loaded unlearned data.
+    """
     file_path = '_'.join((config.unlearned_file, suffix))
     logger.info('loading unlearned data from %s' % file_path)
     return pickle.load(open(file_path, 'rb'))
 
 def save_community_data(logger,community_to_node,filename, suffix=''):
+    """
+    Saves community data to a specified file with an optional suffix.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        community_to_node:
+            
+            The community-to-node mapping data to be saved.
+        
+        filename (str):
+            
+            Path to the file where community data will be saved.
+        
+        suffix (str, optional):
+            
+            Suffix to append to the filename. Defaults to ''.
+    
+    Returns:
+        None:
+            The function saves the community data to the specified file.
+    """
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -614,6 +1029,26 @@ def save_community_data(logger,community_to_node,filename, suffix=''):
     pickle.dump(community_to_node, open(filename + suffix, 'wb'))
 
 def save_shard_data(logger,shard_data, filename):
+    """
+    Saves shard data to a specified file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        shard_data:
+            
+            The shard data to be saved.
+        
+        filename (str):
+            
+            Path to the file where shard data will be saved.
+    
+    Returns:
+        None:
+            The function saves the shard data to the specified file.
+    """
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -621,15 +1056,55 @@ def save_shard_data(logger,shard_data, filename):
     pickle.dump(shard_data, open(filename, 'wb'))
 
 def load_shard_data(logger):
+    """
+    Loads shard data from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+    
+    Returns:
+        Any:
+            The loaded shard data.
+    """
     logger.info("load_shard_data {}".format(config.shard_file))
     return pickle.load(open(config.shard_file, 'rb'))
 
 
 def load_train_graph(logger):
+    """
+    Loads the training graph from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+    
+    Returns:
+        Any:
+            The loaded training graph data.
+    """
     logger.info("load_train_graph {}".format(config.train_graph_file))
     return pickle.load(open(config.train_graph_file, 'rb'))
 
 def save_embeddings(embeddings,filename):
+    """
+    Saves embeddings to a specified file.
+    
+    Args:
+        embeddings:
+            
+            The embeddings data to be saved.
+        
+        filename (str):
+            
+            Path to the file where embeddings will be saved.
+    
+    Returns:
+        None:
+            The function saves the embeddings to the specified file.
+    """
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -637,33 +1112,146 @@ def save_embeddings(embeddings,filename):
     pickle.dump(embeddings, open(filename, 'wb'))
 
 def load_community_data(logger,filename = config.load_community_data,suffix=''):
+    """
+    Loads community data from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        filename (str, optional):
+            
+            Path to the community data file. Defaults to `config.load_community_data`.
+        
+        suffix (str, optional):
+            
+            Suffix to append to the filename. Defaults to an empty string.
+    
+    Returns:
+        Any:
+            The loaded community data.
+    """
     # logger.info("load_community_data {}".format(filename+suffix))
     return pickle.load(open(filename + suffix, 'rb'))
 
 def load_saved_data(logger,filename = config.train_data_file):
+    """
+    Loads saved training data from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        filename (str, optional):
+            
+            Path to the saved training data file. Defaults to `config.train_data_file`.
+    
+    Returns:
+        Any:
+            The loaded training data.
+    """
     logger.info('load_saved_data {}'.format(filename))
     with open(filename, 'rb') as file:
         data = pickle.load(file)
     return data
 
 def load_embeddings(logger,filename):
+    """
+    Loads embeddings from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        filename (str):
+            
+            Path to the embeddings file.
+    
+    Returns:
+        Any:
+            The loaded embeddings.
+    """
     logger.info('load_embeddings {}'.format(filename))
     with open(filename, 'rb') as file:
         embeddings = pickle.load(file)
     return embeddings
 
 def load_train_test_split(logger, filename = config.train_test_split_file):
+    """
+    Loads the train-test split data from a file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        filename (str, optional):
+            
+            Path to the train-test split file. Defaults to `config.train_test_split_file`.
+    
+    Returns:
+        dict:
+            The loaded train-test split data.
+    """
     logger.info("load_train_test_split {}".format(filename))
     return  pickle.load(open(filename, 'rb'))
 
 def is_data_exists(filename):
+    """
+    Checks if a data file exists.
+    
+    This function verifies the existence of a file at the specified path.
+
+    Args:
+        filename (str):
+        
+            The path to the file to be checked.
+    
+    Returns:
+        bool:
+            `True` if the file exists, `False` otherwise.
+    """
     return os.path.exists(filename)
 
 def _extract_embedding_method(partition_method):
     return partition_method.split('_')[0]
 
 def save_target_model(logger,args,run, model, shard, suffix=''):
+    """
+    Saves the target model based on experiment type and parameters.
     
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters, including 'exp' and 'num_unlearned_nodes'.
+        
+        run:
+            
+            Identifier for the current run.
+        
+        model:
+            
+            The model object to save.
+        
+        shard:
+            
+            Shard identifier.
+        
+        suffix (str, optional):
+            
+            Suffix to append to the model file name. Defaults to ''.
+    
+    Returns:
+        None:
+            The function saves the model.
+    """
     if not os.path.exists(config.MODEL_PATH + args['dataset_name']):
         os.mkdir(config.MODEL_PATH + args['dataset_name'])
     if args["exp"] in ["node_edge_unlearning", "attack_unlearning"]:
@@ -676,6 +1264,37 @@ def save_target_model(logger,args,run, model, shard, suffix=''):
         # model.save_model(self.target_model_file + '_' + str(shard))
 
 def load_target_model(logger,args, run, model, shard, suffix=''):
+    """
+    Loads the target model based on experiment type and parameters.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters, including 'exp' and 'num_unlearned_nodes'.
+        
+        run:
+            
+            Identifier for the current run.
+        
+        model:
+            
+            The model object to load the weights into.
+        
+        shard:
+            
+            Shard identifier.
+        
+        suffix (str, optional):
+            
+            Suffix to append to the model file name. Defaults to ''.
+    
+    Returns:
+        None
+    """
     if args["exp"] == "node_edge_unlearning":
         model.load_model(
             '_'.join((config.target_model_file, str(shard), str(run), str(args['num_unlearned_nodes']))))
@@ -695,18 +1314,130 @@ def load_target_model(logger,args, run, model, shard, suffix=''):
         # logger.info("load_target_model {}".format(config.target_model_file + '_' + str(shard) + '_' + str(0)))
 
 def save_posteriors(logger,args, posteriors, run, suffix=''):
+    """
+    Saves posterior data to a specified file with an optional suffix.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters, including 'dataset_name' and 'target_model_name'.
+        
+        posteriors:
+            
+            The posterior data to be saved.
+        
+        run:
+            
+            Identifier for the current run.
+        
+        suffix (str, optional):
+            
+            Suffix to append to the filename. Defaults to ''.
+    
+    Returns:
+        None:
+            The function saves the posterior data to the specified file.
+    """
     posteriors_path = config.ANALYSIS_PATH + 'posteriors/' + args['dataset_name'] + '/' + config.target_model_name
     os.makedirs(os.path.dirname(posteriors_path), exist_ok=True)
     logger.info("save_posteriors {}".format(posteriors_path))
     torch.save(posteriors, posteriors_path + '_' + str(run) + suffix)
 
 def save_optimal_weight(logger,args,weight,run):
+    """
+    Saves optimal weight data to a specified file.
+    
+    Args:
+        logger:
+            
+            Logger object for logging information.
+        
+        args (dict):
+            
+            Configuration parameters, including 'dataset_name' and 'optimal_weight_name'.
+        
+        weight:
+            
+            The optimal weight data to be saved.
+        
+        run:
+            
+            Identifier for the current run.
+    
+    Returns:
+        None:
+            The function saves the optimal weight data to the specified file.
+    """
     optimal_weight_path = config.ANALYSIS_PATH + 'optimal/' + args['dataset_name'] + '/' + config.optimal_weight_name
     os.makedirs(os.path.dirname(optimal_weight_path), exist_ok=True)
     torch.save(weight, optimal_weight_path + '_' + str(run))
 
 
 def build_shard_data(data_full, train_shard_indices, val_indices=None, test_indices=None):
+    """
+    Constructs a shard of the dataset by selecting specified training, validation, and test nodes.
+    
+    This function creates a subset of the full dataset (`data_full`) by selecting nodes based on the provided
+    `train_shard_indices`, `val_indices`, and `test_indices`. If `val_indices` or `test_indices` are not
+    provided, they are derived from the corresponding masks in `data_full`. The function ensures that the
+    resulting shard includes all necessary edges between the selected nodes.
+    
+    Args:
+        data_full (torch_geometric.data.Data):
+        
+            The complete dataset containing all nodes, edges, labels, and masks for validation and testing.
+        
+        train_shard_indices (list or numpy.ndarray):
+        
+            A list or array of node indices designated for training within the shard.
+        
+        val_indices (list or numpy.ndarray, optional):
+        
+            A list or array of node indices designated for validation within the shard. If `None`, indices are
+            derived from `data_full.val_mask`.
+        
+        test_indices (list or numpy.ndarray, optional):
+        
+            A list or array of node indices designated for testing within the shard. If `None`, indices are
+            derived from `data_full.test_mask`.
+    
+    Returns:
+        torch_geometric.data.Data:
+        
+            A new `Data` object representing the shard, containing:
+            
+                - `x` (torch.Tensor):
+                    
+                    The feature matrix for the selected nodes.
+                
+                - `edge_index` (torch.Tensor):
+                    
+                    The edge indices connecting the selected nodes.
+                
+                - `y` (torch.Tensor):
+                    
+                    The labels for the selected nodes.
+                
+                - `train_mask` (torch.Tensor):
+                    
+                    A boolean mask indicating which nodes in the shard are designated for training.
+                
+                - `val_mask` (torch.Tensor):
+                    
+                    A boolean mask indicating which nodes in the shard are designated for validation.
+                
+                - `test_mask` (torch.Tensor):
+                    
+                    A boolean mask indicating which nodes in the shard are designated for testing.
+                
+                - `edge_index_train` (torch.Tensor):
+                    
+                    The edge indices used specifically for training within the shard.
+    """
     # Avoid computing val/test indices for multiple times when building multiple shards
     val_indices = torch.nonzero(data_full.val_mask).squeeze(1).numpy() if val_indices is None else val_indices
     test_indices = torch.nonzero(data_full.test_mask).squeeze(1).numpy() if test_indices is None else test_indices
@@ -726,6 +1457,36 @@ def build_shard_data(data_full, train_shard_indices, val_indices=None, test_indi
     return data
 
 def graph_cls_process(graph_data,train_ratio=0.7,val_ratio=0.1,test_ratio=0.2):
+        """
+        Combines multiple graphs into one large graph and splits it into train, validation, and test sets.
+        
+        This function merges individual graphs by concatenating their node features, edges, and labels.
+        It assigns unique graph IDs to each node to track their original graph. The combined graph is then
+        divided into training, validation, and test subsets based on the provided ratios. Masks and indices
+        are created to identify nodes in each subset.
+        
+        Args:
+            graph_data (list of torch_geometric.data.Data):
+            
+                A list of individual graph `Data` objects to be combined.
+            
+            train_ratio (float, optional):
+            
+                Proportion of graphs to include in the training set. Defaults to `0.7`.
+            
+            val_ratio (float, optional):
+            
+                Proportion of graphs to include in the validation set. Defaults to `0.1`.
+            
+            test_ratio (float, optional):
+            
+                Proportion of graphs to include in the test set. Defaults to `0.2`.
+        
+        Returns:
+            torch_geometric.data.Data:
+            
+                The combined and split graph data object.
+        """
         # 初始化大图的属性
         all_x = []             # 节点特征
         all_edge_index = []    # 边索引

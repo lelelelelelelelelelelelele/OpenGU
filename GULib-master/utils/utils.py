@@ -97,6 +97,26 @@ def filter_edge_index_1(data, node_indices):
 
 
 def filter_edge_index(edge_index, node_indices, reindex=True):
+    """
+    Filters the edge index based on specified node indices and optionally reindexes the node indices.
+    
+    Args:
+        edge_index (torch.Tensor or numpy.ndarray):
+            
+            The edge index of the graph in COO format.
+        
+        node_indices (list or array-like):
+            
+            Sorted list of node indices to retain in the edge index.
+        
+        reindex (bool, optional):
+            
+            If `True`, reindexes the node indices to the positions in `node_indices`. Defaults to `True`.
+    
+    Returns:
+        Union[numpy.ndarray, torch.Tensor]:
+            The filtered edge index, reindexed if `reindex=True`, else the original edge index type.
+    """
     assert np.all(np.diff(node_indices) >= 0), 'node_indices must be sorted'
     if isinstance(edge_index, torch.Tensor):
         edge_index = edge_index.cpu()
@@ -354,14 +374,38 @@ def preprocess_data(X):
 
 class MyGraphConv(MessagePassing):
     """
-    Use customized propagation matrix. Just PX (or PD^{-1}X), no linear layer yet.
+    Customized graph convolution layer using a customized propagation matrix.
 
+    This layer performs graph convolution by propagating messages through the graph's edges.
+    It supports options like degree normalization and Generalized PageRank (GPR) for message passing.
     """
     _cached_x: Optional[Tensor]
 
     def __init__(self, K: int = 1,
                  add_self_loops: bool = True,
                  alpha=0.5, XdegNorm=False, GPR=False, **kwargs):
+        """
+        Initializes the MyGraphConv layer.
+
+        Args:
+            K (int, optional):
+                Number of propagation steps. Defaults to `1`.
+            
+            add_self_loops (bool, optional):
+                Whether to add self-loops to the graph. Defaults to `True`.
+            
+            alpha (float, optional):
+                Scaling factor for the propagation. Defaults to `0.5`.
+            
+            XdegNorm (bool, optional):
+                Whether to apply degree normalization to the node features. Defaults to `False`.
+            
+            GPR (bool, optional):
+                Whether to use Generalized PageRank during propagation. Defaults to `False`.
+            
+            **kwargs:
+                Additional keyword arguments passed to the base class `MessagePassing`.
+        """
         kwargs.setdefault('aggr', 'add')
         super().__init__(**kwargs)
 
@@ -374,11 +418,30 @@ class MyGraphConv(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Resets the cached node features.
+        """
         self._cached_x = None  # Not used
 
     def forward(self, x: Tensor, edge_index: Adj,
                 edge_weight: OptTensor = None) -> Tensor:
-        """"""
+        """
+        Performs a forward pass of the graph convolution.
+
+        Args:
+            x (Tensor):
+                Node feature matrix.
+            
+            edge_index (Adj):
+                Graph connectivity in COO format or as a SparseTensor.
+            
+            edge_weight (OptTensor, optional):
+                Edge weights. Defaults to `None`.
+
+        Returns:
+            Tensor:
+                The updated node feature matrix after propagation.
+        """
         if isinstance(edge_index, Tensor):
             edge_index, edge_weight = get_propagation(  # yapf: disable
                 edge_index, edge_weight, x.size(self.node_dim), False,
@@ -414,9 +477,37 @@ class MyGraphConv(MessagePassing):
             return x
 
     def message(self, x_j: Tensor, edge_weight: Tensor) -> Tensor:
+        """
+        Constructs messages from neighboring nodes.
+
+        Args:
+            x_j (Tensor):
+                Features of neighboring nodes.
+            
+            edge_weight (Tensor):
+                Weights of the edges.
+
+        Returns:
+            Tensor:
+                Weighted messages to be aggregated.
+        """
         return edge_weight.view(-1, 1) * x_j
 
     def message_and_aggregate(self, adj_t: SparseTensor, x: Tensor) -> Tensor:
+        """
+        Aggregates messages from neighbors and performs the message passing.
+
+        Args:
+            adj_t (SparseTensor):
+                Sparse adjacency matrix in COO format.
+            
+            x (Tensor):
+                Node feature matrix.
+
+        Returns:
+            Tensor:
+                Aggregated messages.
+        """
         return matmul(adj_t, x, reduce=self.aggr)
 
     def __repr__(self) -> str:
@@ -1168,7 +1259,27 @@ def member_infer_attack(target_model, attack_model, data, logits=None):
 
 
 def filter_edge_index_3(train_data, node_indices, all_edges_to_remove=None):
+    """
+    Filters the edge index of training data based on specified node indices and removes specified edges.
+
+    Args:
+        train_data:
+            
+            The training data object containing the edge index.
+        
+        node_indices (list or array-like):
+            
+            List of node indices to retain in the edge index.
+        
+        all_edges_to_remove (list or array-like, optional):
+            
+            List of edges to remove from the edge index. Each edge should be a tuple of (source, destination).
+            Defaults to `None`.
     
+    Returns:
+        numpy.ndarray:
+            The filtered edge index with node indices mapped back to the `node_indices` array.
+    """
     # print(all_edges_to_remove)
     if isinstance(train_data.train_edge_index, torch.Tensor):
         train_data.train_edge_index = train_data.train_edge_index.cpu()

@@ -107,28 +107,29 @@ For `torch_scatter`, `torch_geometric`, and `torch_sparse`, if you encounter com
 
 2. Example installation for CUDA 12.1:
 
-   ```bash
+.. code-block:: bash
+
    pip install torch-scatter -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
    pip install torch-sparse -f https://data.pyg.org/whl/torch-2.2.1+cu121.html
    pip install torch-geometric
-   ```
 
 Special Installation for ScaleGUN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are using the `ScaleGUN` unlearning method, you need to compile and install the dependencies manually. Navigate to the following directory:
 
-```bash
-cd OpenGU/GULib-master/unlearning/unlearning_methods/ScaleGUN/progation_pkg
-```
+.. code-block:: bash
+
+    cd OpenGU/GULib-master/unlearning/unlearning_methods/ScaleGUN/progation_pkg
 
 Then, run the following commands:
 
-```bash
-pip install cython
-pip install eigency
-python setup.py build_ext --inplace
-```
+.. code-block:: bash
+
+    pip install cython
+    pip install eigency
+    python setup.py build_ext --inplace
+
 These steps will compile the necessary Cython extensions for the `progation_pkg` module.
 
 Verify Installation
@@ -139,8 +140,6 @@ After installation, verify that OpenGU is installed correctly:
 .. code-block:: bash
 
     python -c "import opengu; print(opengu.__version__)"
-
-
 
 Cite
 ----
