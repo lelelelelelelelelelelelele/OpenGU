@@ -18,13 +18,14 @@ from unlearning.unlearning_methods.GUIDE.guide import guide
 from unlearning.unlearning_methods.GIF.gif import gif
 from unlearning.unlearning_methods.CGU.cgu import cgu
 from unlearning.unlearning_methods.GST.gst_based import gst
+from unlearning.unlearning_methods.SGU import sgu
 from unlearning.unlearning_methods.Projector.projector import projector
 from unlearning_manager import UnlearningManager
 from config import unlearning_path
 import sys 
 import os
 import copy
-
+import optuna
 
 
 def seed_everything(seed_value):
@@ -50,7 +51,7 @@ def seed_everything(seed_value):
 #     args["para4"] = para4
 #     args["para5"] = para5
 #     model_zoo_copy = copy.deepcopy(model_zoo)
-#     SGU_instance = SGU(args,logger,model_zoo_copy)
+#     SGU_instance = sgu(args,logger,model_zoo_copy)
 #     # SGU_instance.run = np.random.randint(0,5) 
 #     SGU_instance.run_exp()
 #     return SGU_instance.best 
@@ -69,7 +70,7 @@ def seed_everything(seed_value):
 #     args["para5"] = best_params["para5"]
 #     args["parameter_task"] = "normal"
 #     model_zoo_copy = copy.deepcopy(model_zoo)
-#     SGU_instance = SGU(args,logger,model_zoo_copy)
+#     SGU_instance = sgu(args,logger,model_zoo_copy)
 #     SGU_instance.run_exp()
 #     logger.info("最佳超参数：{}".format(best_params) )
 
@@ -89,7 +90,6 @@ if __name__ == '__main__':
     #dataset
     original_data = original_dataset(args,logger)
     data,dataset = original_data.load_data()
-    # print(data.edge_index)
     # 使用 assert 直接检查 args 中的参数
     data = process_data(logger,data,args)
     #model

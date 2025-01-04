@@ -1,6 +1,5 @@
 import argparse
-import sys
-import os
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -16,7 +15,7 @@ def parameter_parser():
     parser = argparse.ArgumentParser()
  
     #for all methods#
-    parser.add_argument('--cuda', type=int, default=1, help='specify gpu')
+    parser.add_argument('--cuda', type=int, default=3, help='specify gpu')
     parser.add_argument('--num_threads', type=int, default=1)
     parser.add_argument('--root_path', type=str, default='./', help='Set The Root Path')
     
@@ -66,12 +65,14 @@ def parameter_parser():
     parser.add_argument('--is_balanced' ,type = str2bool,default=False,help="dataset is split with balanced classes" )
     parser.add_argument('--use_batch', type=str2bool, default=False, help="train model with minibatch")
     parser.add_argument('--poison', type=str2bool, default=True, help="poisoned edge")
-    
+    parser.add_argument('--process', type=str, default="", help="process data",choices=["feature_noise", "feature_sparsity", "label_noise", "label_sparsity","None"])
+    parser.add_argument('--noise_ratio', type=float, default=0.1, help="noise ratio")
+    parser.add_argument('--sparsity_ratio', type=float, default=0.1, help="sparsity ratio")
 
     #modelMin
-    parser.add_argument('--base_model', type=str, default='SAGE', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'Cluster_GCN', "GCN", "GIN",
+    parser.add_argument('--base_model', type=str, default='SGC', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'Cluster_GCN', "GCN", "GIN",
                                                                           "GST","SAINT","Projector","Cheb","APPNP","GCN2","GATv2","TAG","LightGCN"])
-    parser.add_argument('--unlearning_methods', type=str, default='SGU',
+    parser.add_argument('--unlearning_methods', type=str, default='ScaleGUN',
                         choices=['GraphEraser', 'GUIDE', 'GNNDelete', 'CEU', "GIF", "SGU","CGU","GST","Projector","MEGU","GraphRevoker","UTU","GUKD","D2DGN","IDEA","ScaleGUN"])
     parser.add_argument('--train_ratio', type=float, default=0.8)
     parser.add_argument('--val_ratio', type=float, default=0)
@@ -81,14 +82,14 @@ def parameter_parser():
                         choices=["partition", "unlearning", "node_edge_unlearning", "attack_unlearning","sequence"])
     parser.add_argument('--unlearn_trainer', type=str, default='BaseTrainer')
     parser.add_argument('--parameter_task', type=str, default='normal', choices=['normal', "optuna"])
-    parser.add_argument('--downstream_task', type=str, default='edge', choices=['node', "edge","graph"])
-    parser.add_argument('--unlearn_task', type=str, default='edge', choices=['feature', "node", "edge"])
+    parser.add_argument('--downstream_task', type=str, default='node', choices=['node', "edge","graph"])
+    parser.add_argument('--unlearn_task', type=str, default='node', choices=['feature', "node", "edge"])
 
 
     
     #train#
     parser.add_argument('--num_epochs', type=int, default=100)
-    parser.add_argument('--test_freq', type=int, default=5)
+    parser.add_argument('--test_freq', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--opt_lr', type=float, default=0.001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
     parser.add_argument('--opt_decay', type=float, default=0.0001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
@@ -118,7 +119,7 @@ def parameter_parser():
 
     #GraphEraser parameter
     parser.add_argument('--num_shards', type=int, default=10)
-    parser.add_argument('--partition_method', type=str, default='gpa',
+    parser.add_argument('--partition_method', type=str, default='lpa_base',
                         choices=["sage_km", "random", "lpa", "metis", "lpa_base", "sage_km_base","gpa","graph_km"])
     parser.add_argument('--opt_num_epochs', type=int, default=20)
     parser.add_argument('--ratio_deleted_edges', type=float, default=0)
@@ -139,7 +140,7 @@ def parameter_parser():
 
     #GNNDelete parameter
     parser.add_argument('--checkpoint_dir', type=str, default= './data/GNNDelete/checkpoint_node',help='checkpoint folder')
-    parser.add_argument('--random_seed', type=int, default=42,help='random seed')
+    parser.add_argument('--random_seed', type=int, default=2024,help='random seed')
     parser.add_argument('--hidden_dim', type=int, default=64,help='hidden dimension')
     parser.add_argument('--in_dim', type=int, default=128,help='input dimension')
     parser.add_argument('--out_dim', type=int, default=64,help='output dimension')
@@ -172,19 +173,25 @@ def parameter_parser():
     parser.add_argument('--GIF_exp', type=str, default='unlearning')
     parser.add_argument('--is_split', type=str2bool, default=True, help='splitting train/test data')
     parser.add_argument('--iteration', type=int, default=100)
-    parser.add_argument('--scale', type=int, default=1000000)
+    parser.add_argument('--scale', type=int, default=1000000000)
     parser.add_argument('--damp', type=float, default=0.0)
 
 
     #SGU
     parser.add_argument('--GNN_layer', type=int, default=3)
     parser.add_argument('--unlearning_epochs', type=int, default=50)
-    parser.add_argument('--Budget', type=float, default=0.01)
+    parser.add_argument('--Budget', type=float, default=0.1)
+    # parser.add_argument('--para1', type=float, default=0.01)
+    # parser.add_argument('--para2', type=float, default=0.5)
+    # parser.add_argument('--para3', type=float, default=10)
+    # parser.add_argument('--para4', type=float, default=1.5)
+    # parser.add_argument('--para5', type=float, default=1)
     parser.add_argument('--para1', type=float, default=2.5)
     parser.add_argument('--para2', type=float, default=0.01)
-    parser.add_argument('--para3', type=float, default=200)
+    parser.add_argument('--para3', type=float, default=250)
     parser.add_argument('--para4', type=float, default=0.1)
     parser.add_argument('--para5', type=float, default=10)
+
 
     #GST
     parser.add_argument('--folds', type=int, default=10)
@@ -274,11 +281,11 @@ def parameter_parser():
     parser.add_argument("--trials", type=int, default=3)
     parser.add_argument("--axis_num", default=1, type=int, choices=[1, 0])
     parser.add_argument("--prop_algo", type=str,
-                        choices=["power", "push", "MC"], default="push")
+                        choices=["power", "push", "MC"], default="MC")
     parser.add_argument("--prop_step", default=3, type=int)
     parser.add_argument("--r", default=0.5, type=float)
     parser.add_argument("--decay", default=0.1, type=float)
-    parser.add_argument("--RW", type=int, default=10000,
+    parser.add_argument("--RW", type=int, default=20,
                         help="random walk times")
     parser.add_argument("--rmax", default=0.0, type=float)
     parser.add_argument("--ppr", default=False, action="store_true")
@@ -289,19 +296,11 @@ def parameter_parser():
                         help="Use optuna to optimize hyperparameters.",)
     parser.add_argument("--del_postfix", type=str, default="")
     parser.add_argument("--del_only", default=False, action="store_true")
-    parser.add_argument("--lr", default=1, type=float)
+    parser.add_argument("--lr", default=0.005, type=float)
     parser.add_argument("--num_batch_removes", default=5, type=int)
-    parser.add_argument("--no_retrain", action="store_true", default=False)
+    parser.add_argument("--no_retrain", action="store_true", default=True)
     parser.add_argument("--edge_idx_start", default=0, type=int)
-    parser.add_argument("--num_removes", default=1, type=int,
+    parser.add_argument("--num_removes", default=10, type=int,
                         help="number of removed edges/nodes in each batch",)
-    # args = vars(parser.parse_args())
-    # return args
-
-    if "sphinx-build" in sys.argv[0] or os.environ.get('READTHEDOCS') == 'True':
-        args = vars(parser.parse_args([]))
-        return args
-    else:
-        args = vars(parser.parse_args())
-        return args
-    # return args
+    args = vars(parser.parse_args())
+    return args

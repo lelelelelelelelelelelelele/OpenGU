@@ -40,9 +40,9 @@ embedding_file = processed_data_prefix + embedding_name
 community_file = processed_data_prefix + community_name
 community_path = PROCESSED_DATA_PATH + args['dataset_name'] + "/" + community_name
 # unlearned_file = processed_data_prefix+ '_'.join(('unlearned', str(args['num_unlearned_nodes'])))
-unlearned_file = processed_data_prefix+ '_'.join(('unlearned', str(args['proportion_unlearned_nodes'])))
+unlearned_file = processed_data_prefix+ '_'.join(('unlearned', str(args['unlearn_ratio'])))
 model_path =MODEL_PATH + args['dataset_name'] + "/" + target_model_name
-GIF_logger_name = "_".join((args['dataset_name'], str(args['test_ratio']), args['base_model'], args['unlearn_task'],str(args['unlearn_ratio'])))
+GIF_logger_name = "_".join((args['dataset_name'], str(args['test_ratio']), args['base_model'], args['unlearn_task'],str(args['proportion_unlearned_nodes'])))
 target_model_file = MODEL_PATH + args['dataset_name'] + '/' + target_model_name
 
 
@@ -52,21 +52,24 @@ root_path = "."
 # unlearning_path = root_path + "/data/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] + ".txt"
 if args["is_transductive"]:
     if args["is_balanced"]:
-        unlearning_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_edges_" + str(args["proportion_unlearned_edges"]) + "_" + args["dataset_name"] 
+        unlearning_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
     else:       
-        unlearning_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_edges_" + str(args["proportion_unlearned_edges"]) + "_" + args["dataset_name"] 
+        unlearning_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
 else:
     if args["is_balanced"]:
-        unlearning_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_edges_" + str(args["proportion_unlearned_edges"]) + "_" + args["dataset_name"] 
+        unlearning_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
     else:       
-        unlearning_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_edges_" + str(args["proportion_unlearned_edges"]) + "_" + args["dataset_name"] 
+        unlearning_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
 
 if args["poison"]:
     unlearning_edge_path = unlearning_edge_path + "_poison"
+
+noise_path = root_path + "/data/noise/" + args["dataset_name"] + "/"+ args["process"] +"_"+ str(args["noise_ratio"]) +".txt"
+sparsity_path = root_path + "/data/sparsity/" + args["dataset_name"] + "/"+ args["process"] +"_"+ str(args["sparsity_ratio"]) +".txt"
 
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"

@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from task import get_trainer
-from memory_profiler import profile
+# from memory_profiler import profile
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class IF_based_pipeline:

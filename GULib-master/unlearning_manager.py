@@ -23,7 +23,7 @@ from attack.MIA_attack import GCNShadowModel
 from attack.MIA_attack import train_shadow_model
 from attack.MIA_attack import generate_shadow_model_output
 from attack.MIA_attack import train_attack_model
-from memory_profiler import profile
+# from memory_profiler import profile
 # import optuna
 
 # 方法名称与对应类的映射
