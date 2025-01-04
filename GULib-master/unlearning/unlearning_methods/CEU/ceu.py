@@ -5,13 +5,15 @@ import torch
 import pandas as pd
 import torch.nn.functional as F
 import numpy as np
+import time
 from torch.utils.data import DataLoader
 from collections import defaultdict
-
+from config import unlearning_edge_path, unlearning_path
 from attack.Attack_methods.CEU_MIA import _mia_attack
-from task.node_classification import NodeClassifier
 from task import get_trainer
+from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
+from utils.utils import filter_edge_index_1
 from scipy.sparse import csr_matrix
 from deeprobust.graph.utils import preprocess
 from deeprobust.graph.defense import GCN
@@ -35,14 +37,16 @@ class ceu(IF_based_pipeline):
         model_zoo (ModelZoo): Model zoo containing various models.
     """
     def __init__(self,args,logger,model_zoo):
+        super().__init__(args,logger,model_zoo)
         self.args = args
         self.logger = logger
         self.data = model_zoo.data
+        self._data = copy.deepcopy(self.data)
         self.model_zoo = model_zoo
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # self.NodeClassifier = NodeClassifier(args,self.data,self.model_zoo,self.logger)
-        self.args["unlearn_trainer"] = 'CEUTrainer'
-        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        # self.args["unlearn_trainer"] = 'CEUTrainer'
+        # self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         # self.fidelity()
         # self.efficacy()
         
@@ -182,6 +186,7 @@ class ceu(IF_based_pipeline):
         test_loader = DataLoader(data['test_set'])
 
         A = self.adversarial_adjacency_mat(data, n_perturbations=int(num_edges))
+        print()
         print('The number we asked:', num_edges)
         print('The number of adv edges:', len(A) / 2)
 
@@ -276,50 +281,85 @@ class ceu(IF_based_pipeline):
         """
         self.logger.info('target model: %s' % (self.args['base_model'],))
         self.args["unlearn_trainer"] = "CEUTrainer"
-        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
-        
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self._data)
+
     def train_original_model(self, run):
         """
         Trains the target model using the provided data and logs the training process. 
         It also evaluates the model on the test set and stores the accuracy if the model is poisoned.
         """
         self.logger.info('training target models, run %s' % run)
-        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
-        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
-        self.target_model.model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
-        original_res, _ = self.target_model.CEU_test(self.target_model.model, test_loader, edge_index)
-        if self.args["poison"]:
-            self.poison_f1 = original_res["accuracy"]
+        # test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
+        # edge_index = torch.tensor(self.data['edges'], device=self.device).t()
+        # result = defaultdict(list)
+        start_time = time.time()
+        best_f1,avg_training_time = self.target_model.train()
+        self.avg_training_time[self.run] = time.time() - start_time
+        # self.target_model.model = self.target_model.CEU_train(self.data,eval=False, verbose=False,return_epoch=False)
+        # original_res, _ = self.target_model.CEU_test(self.target_model.model, test_loader, edge_index)
+        f1 = self.target_model.evaluate()
+        self.original_softlabels = self.target_model.get_softlabels()
+        if self.args["poison"] and self.args["downstream_task"]=="edge":
+            self.poison_f1[self.run] = f1
     def unlearning_request(self):
         """
         This method handles the unlearning request by calculating the number of edges to unlearn, 
         performing adversarial retraining, and generating random edges that are not present in the original data.
         """
-        num_edges = int(self.args["unlearn_ratio"]*self.data["num_edges"])
-        _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
-
-        # Benign
-        self.random_edges = []
-        while len(self.random_edges) < num_edges * 2:
-            v1 = random.randint(0, self.data['num_nodes'] - 1)
-            v2 = random.randint(0, self.data['num_nodes'] - 1)
-            if (v1, v2) in self.data['edges'] or (v2, v1) in self.data['edges']:
-                continue
-            self.random_edges.append((v1, v2))
-            self.random_edges.append((v2, v1))
-
+        if self.args["unlearn_task"]=="node":
+            path_un = unlearning_path + "_"+str(self.run)+".txt"
+            if os.path.exists(path_un):
+                print("unlearning nodes")
+                self.unlearning_nodes = np.loadtxt(path_un)
+                self.unlearning_num = self.unlearning_nodes.shape[0]
+                self.unlearning_edges = filter_edge_index_1(self.data, self.unlearning_nodes).T
+        elif self.args["unlearn_task"]=="edge":
+            path_un = unlearning_edge_path + "_"+str(self.run)+".txt"
+            if os.path.exists(path_un):
+                print("unlearning edges")
+                self.unlearning_edges = np.loadtxt(path_un)
+        # _, _, adv_res, _ = self.adv_retrain_unlearn(self.data, num_edges)
         self._data = copy.deepcopy(self.data)
-        self._data['edges'] += self.random_edges
-    
+        edge_index_set = set(map(tuple, self.data.edge_index.T.tolist()))
+        unlearn_edge_set = set(map(tuple, self.unlearning_edges.tolist()))
+        retain_edge_set = edge_index_set - unlearn_edge_set
+        retain_edge_index = np.array(list(retain_edge_set)).T
+        self._data.edge_index = torch.from_numpy(retain_edge_index)
+       
     
     def unlearn(self):
         """
         Performs the unlearning process by inferencing without the specified random edges.
         Evaluates the unlearned model on the test set and updates the average accuracy metric.
         """
-        test_loader = DataLoader(self.data['test_set'], shuffle=False, batch_size=self.args["test_batch"])
-        edge_index = torch.tensor(self.data['edges'], device=self.device).t()
-        benign_orig = self.target_model.CEU_train(self._data,eval=False, verbose=False)
-        benign_unlearn, _ = unlearn(self.args,self._data, benign_orig, self.random_edges, device=self.device)
-        benign_res, _ = self.target_model.CEU_test(benign_unlearn, test_loader, edge_index)
-        self.average_f1 = benign_res["accuracy"]
+        self.target_model.data = self._data
+        # self.target_model.train()
+        start_time = time.time()
+        self.target_model.model, _ = unlearn(self.args,self._data, self.target_model.model, self.unlearning_edges, device=self.device)
+        self.avg_unlearning_time[self.run] = time.time() - start_time
+        f1 = self.target_model.evaluate()
+        self.average_f1[self.run] = f1
+        
+    def mia_attack(self):
+        """
+        This function performs a Membership Inference Attack (MIA) to evaluate the model's vulnerability to such attacks after the unlearning process. It calculates the AUC score by comparing the model's predictions on unlearned nodes versus test nodes, thereby assessing the effectiveness of the unlearning method in protecting against membership inference.
+        """
+        self.data = self.data.to(self.device)
+        self.mia_num = self.unlearning_num
+        original_softlabels_member = self.original_softlabels[self.unlearning_nodes]
+        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+
+        unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index),dim = 1)[self.unlearning_nodes]
+        unlearning_softlabels_non = F.softmax(self.target_model.model(
+                self.data.x,self.data.edge_index),dim = 1)[self.data.test_indices[:self.mia_num]]
+
+        mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
+        posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
+        posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
+        posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
+        # self.logger.info("posterior:{}".format(posterior))
+        auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+        self.average_auc[self.run] = auc
+        # self.logger.info("auc:{}".format(auc))
+        # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        return auc

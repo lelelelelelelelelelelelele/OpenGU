@@ -47,7 +47,6 @@ class gukd(Learning_based_pipeline):
         This method sets the 'unlearn_trainer' argument to 'GUKDTrainer' and obtains the corresponding trainer instance
         by calling 'get_trainer' with the current arguments, logger, model from the model zoo, and data.
         """
-
         self.args["unlearn_trainer"] = 'GUKDTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         # self.train_test_split()
@@ -60,7 +59,6 @@ class gukd(Learning_based_pipeline):
         and, if data poisoning is enabled for an edge unlearning task, evaluates and stores
         the poisoning F1 score.
         """
-
         start_time = time.time()
         teacher_model = GCNII(self.args,self.data.num_features, self.data.num_classes).to(self.device)
         self.teacher_model = get_trainer(self.args,self.logger,teacher_model,self.data)
@@ -158,7 +156,6 @@ class gukd(Learning_based_pipeline):
         sets up the training environment, and trains the model using the training data. After training,
         it computes the output of the teacher model on the dataset and stores the detached output for further use.
         """
-
         teacher_model = GCNII(self.args,self.retain_data.num_features, self.retain_data.num_classes).to(self.device)
         self.teacher_model = get_trainer(self.args,self.logger,teacher_model,self.data)
         self.teacher_model.train()
@@ -175,7 +172,6 @@ class gukd(Learning_based_pipeline):
         computes the posterior differences between original and unlearning soft labels and calculates
         the Area Under the Receiver Operating Characteristic Curve (AUC) to quantify the attack's effectiveness.
         """
-
         self.mia_num = self.unlearning_number
         self.original_softlabels = F.softmax(self.target_model.model(
             self.data.x,self.data.edge_index),dim=1).clone().detach().float()
@@ -203,14 +199,6 @@ class gukd(Learning_based_pipeline):
         return auc
 
     # def mia_attack_edge(self):
-    #     """
-    #     Performs a membership inference attack on edge data to evaluate the privacy resilience of the target model.
-    #     This method generates negative samples of edges, decodes the soft labels for both original and unlearned edges
-    #     using the target model, computes the difference in posterior probabilities between the original and
-    #     unlearned models, and calculates the Area Under the ROC Curve (AUC) score to assess the model's vulnerability
-    #     to membership inference attacks. The resulting AUC score is stored for the current run.
-    #     """
-
     #     self.mia_num = self.unlearning_edges.shape[1]
     #     neg_edge_index = negative_sampling(edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,num_neg_samples=self.mia_num)
     #     original_softlabels_member = self.target_model.decode(self.original_feature,self.unlearning_edges)
@@ -225,6 +213,7 @@ class gukd(Learning_based_pipeline):
     #     posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
     #     print(mia_test_y, posterior.reshape(-1, 1))
     #     auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+
     #     self.average_auc[self.run] = auc
     
     
@@ -243,7 +232,6 @@ class gukd(Learning_based_pipeline):
         """
         Performs an unlearning operation by removing specified nodes or edges from the dataset.
         """
-
         self.retain_data = copy.deepcopy(self.data)
         if self.args["unlearn_task"]=="node":
             path_un = unlearning_path + "_" + str(self.run) + ".txt"

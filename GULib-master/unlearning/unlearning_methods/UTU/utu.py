@@ -9,6 +9,7 @@ from torch_geometric.utils import k_hop_subgraph, is_undirected, to_undirected, 
 from task.edge_prediction import EdgePredictor
 from utils.utils import split_forget_retain
 from task.UtUTrainer import UtUTrainer
+from task import get_trainer
 from config import BLUE_COLOR,RESET_COLOR
 import time
 class utu:
@@ -35,7 +36,7 @@ class utu:
         self.average_f1 = np.zeros(num_runs)
         self.average_auc = np.zeros(num_runs)
         self.avg_training_time = np.zeros(num_runs)
-
+        print(self.data)
     def run_exp(self):
         """
         Overall pipeline of UTU method. Executes the UTU unlearning pipeline by iterating through the specified number of runs, training the GNN model, performing unlearning, and logging the resulting performance metrics.
@@ -71,15 +72,21 @@ class utu:
         self.args['in_dim'] = self.data.x.shape[1]
         self.args['out_dim'] = self.data.num_classes
         self.args['unlearning_model'] = 'original'
-        self.data = self.train_test_split_edges_no_neg_adj_mask(self.data)
-        self.data.dtrain_mask = torch.ones(self.data.train_pos_edge_index.shape[1], dtype=torch.bool)
-        train_pos_edge_index = to_undirected(self.data.train_pos_edge_index)
-        self.data.train_pos_edge_index = train_pos_edge_index
-        self.data.dtrain_mask = torch.ones(self.data.train_pos_edge_index.shape[1], dtype=torch.bool)
-        self.EdgePredictor = EdgePredictor(self.args, self.data, self.model_zoo, self.logger)
-        self.EdgePredictor.train_UTU_model()
+        # self.data = self.train_test_split_edges_no_neg_adj_mask(self.data)
+        self.data.dtrain_mask = torch.ones(self.data.train_edge_index.shape[1], dtype=torch.bool)
+        # train_edge_index = to_undirected(self.data.train_edge_index)
+        # self.data.train_pos_edge_index = train_edge_index
+        self.data.train_pos_edge_index = self.data.train_edge_index
+        self.data.test_pos_edge_index = self.data.test_edge_index
+        self.data.val_pos_edge_index = self.data.val_edge_index
+        # self.data.dtrain_mask = torch.ones(self.data.train_pos_edge_index.shape[1], dtype=torch.bool)
+        self.args["unlearn_trainer"] = 'UTUTrainer'
+        self.EdgePredictor = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        # self.EdgePredictor = EdgePredictor(self.args, self.data,self.model_zoo,self.logger)
+        # self.EdgePredictor.train_UTU_model()
+        self.EdgePredictor.train()
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
-            self.poison_f1[self.run] = self.EdgePredictor.evaluate_model()
+            self.poison_f1[self.run] = self.EdgePredictor.evaluate()
 
     def delete_gnn(self):
         """
@@ -105,8 +112,9 @@ class utu:
 
         subset = 'in'
         self.data = split_forget_retain(self.data, self.args["df_size"], subset)
+        self.EdgePredictor.data = self.data
         self.args["unlearning_model"]="utu_del"
-        self.EdgePredictor.model = self.model_zoo.get_model(self.data.sdf_node_1hop_mask, self.data.sdf_node_2hop_mask, num_nodes=self.data.num_nodes)
+        # self.EdgePredictor.model = self.model_zoo.get_model(self.data.sdf_node_1hop_mask, self.data.sdf_node_2hop_mask, num_nodes=self.data.num_nodes)
         if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
             if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
                 logits_ori = torch.load(os.path.join(original_path,
@@ -116,8 +124,8 @@ class utu:
             else:
                 logits_ori = None
 
-            model_ckpt = torch.load(os.path.join(original_path, 'model_best.pt'), map_location=self.device)
-            self.EdgePredictor.model.load_state_dict(model_ckpt['model_state'], strict=False)
+            # model_ckpt = torch.load(os.path.join(original_path, 'model_best.pt'), map_location=self.device)
+            # self.EdgePredictor.model.load_state_dict(model_ckpt['model_state'], strict=False)
 
         else:  # Initialize a new GNN model
             retrain = None
@@ -144,9 +152,9 @@ class utu:
         attack_model_all = None
         attack_model_sub = None
 
-        trainer = UtUTrainer(self.args)
+        # trainer = UtUTrainer(self.args)
         start_time = time.time()
-        trainer.train(self.EdgePredictor.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
+        self.EdgePredictor.train_UTU_model(optimizer, logits_ori, attack_model_all, attack_model_sub)
         self.avg_training_time[self.run] = time.time()-start_time
         if self.args["unlearning_model"] != 'retrain':
             retrain_path = os.path.join(
@@ -164,14 +172,15 @@ class utu:
                 retrain = None
         else:
             retrain = None
+        
+        auc = self.EdgePredictor.evaluate_edge_model()
+        # print("AUC:", auc)
+        # test_results = self.EdgePredictor.test(self.EdgePredictor.model, self.data, model_retrain=retrain, attack_model_all=attack_model_all,
+        #                             attack_model_sub=attack_model_sub)
 
-        test_results = trainer.test(self.EdgePredictor.model, self.data, model_retrain=retrain, attack_model_all=attack_model_all,
-                                    attack_model_sub=attack_model_sub)
-
-        self.average_f1[self.run] = test_results[1]
+        self.average_f1[self.run] = auc
     def train_test_split_edges_no_neg_adj_mask(self, data, val_ratio: float = 0.05, test_ratio: float = 0.05,
                                                two_hop_degree=None):
-        
         """
         Splits the edges of the graph into training, validation, and test sets without adding a negative adjacency mask.
         This function ensures that only the upper triangular portion of the edge index is used, avoiding duplicate edges.
@@ -179,9 +188,6 @@ class utu:
         If a two_hop_degree is provided, it prioritizes low-degree edges for the test set.
         Negative samples for validation and testing are generated using negative sampling.
         """
-        
-        
-        '''Avoid adding neg_adj_mask'''
 
         num_nodes = data.num_nodes
         row, col = data.edge_index

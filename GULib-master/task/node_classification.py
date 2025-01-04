@@ -25,49 +25,7 @@ from config import root_path
 
 
 class NodeClassifier:
-    """
-    NodeClassifier class for training and evaluating Graph Neural Network (GNN) models on node classification tasks.
-
-    The `NodeClassifier` class provides functionalities to train GNN models, evaluate their performance, and perform
-    selective graph unlearning operations. It supports both standard training and specialized unlearning procedures
-    tailored for specific scenarios such as edge-level unlearning. The class utilizes various evaluation metrics
-    like F1 score, accuracy, and recall to assess model performance.
-
-    Class Attributes:
-        args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
-                    unlearning settings, and other relevant settings.
-
-        data (torch_geometric.data.Data): The dataset containing node features, edge indices, and labels for training,
-                                         validation, and testing.
-
-        model_zoo (Any): Object that provides access to different GNN models and their configurations.
-
-        logger (logging.Logger): Logger object used to log training progress, metrics, and other important information.
-
-        model (torch.nn.Module): The GNN model that will be trained and evaluated.
-
-        model_name (str): Name of the base model being used (e.g., "SIGN", "SGC").
-
-        device (torch.device): The computation device (CPU or GPU) on which the model and data are loaded.
-    """
     def __init__(self,args,data,model_zoo,logger):
-        """
-        Initializes the NodeClassifier with the given configuration, data, model zoo, and logger.
-
-        Sets up the training environment by assigning the model, dataset, and logger. Determines the computation device
-        (CPU or GPU) based on availability.
-
-        Args:
-            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters,
-                        unlearning settings, and other relevant settings.
-
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and labels for training,
-                                             validation, and testing.
-
-            model_zoo (Any): Object that provides access to different GNN models and their configurations.
-
-            logger (logging.Logger): Logger object used to log training progress, metrics, and other important information.
-        """
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.args = args
         self.data = data
@@ -77,17 +35,6 @@ class NodeClassifier:
         self.model_name = self.args['base_model']
 
     def train_model(self,retrain=False):
-        """
-        Trains the GNN model based on the specified dataset.
-
-        Delegates the training process to the appropriate method (`train_fullbatch`) depending on the dataset type.
-
-        Args:
-            retrain (bool, optional): Flag indicating whether to retrain the model. Defaults to `False`.
-
-        Returns:
-            None
-        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -125,16 +72,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def evaluate_model(self):
-        """
-        Evaluates the GNN model's performance on the test dataset.
-
-        Sets the model to evaluation mode and moves it to the designated device. Depending on the base model type,
-        computes predictions using either pre-processed features (`self.data.xs`) or the original node features
-        and edge indices. Calculates the F1 score based on the model's predictions and the true labels on the test mask.
-
-        Returns:
-            float: The micro-averaged F1 score on the test dataset.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -152,18 +89,6 @@ class NodeClassifier:
 
 
     def train_SGU_model(self,retrain=False):
-        """
-        Trains the GNN model for node classification tasks.
-
-        Resets the model's parameters, initializes the optimizer, and iterates through the training epochs.
-        It evaluates the model's performance at regular intervals and saves the model state with the best accuracy.
-
-        Args:
-            retrain (bool, optional): Flag indicating whether to retrain the model. Defaults to `False`.
-
-        Returns:
-            None
-        """
         self.model.train()
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
@@ -199,28 +124,12 @@ class NodeClassifier:
         else:
             model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + \
                          self.args["base_model"]
-        self.save_model(model_path,best_w)
+        # self.save_model(model_path,best_w)
         self.logger.info("best:{}".format(best_acc))
 
 
     @torch.no_grad()
     def evaluate_SGU_model(self,test_features):
-        """
-        Evaluates the GNN model's performance.
-
-        Computes the F1 score, accuracy, and recall for the unlearned nodes to assess the effectiveness of the unlearning process.
-
-        Args:
-            test_features (torch.Tensor): The input features for the test nodes targeted.
-
-        Returns:
-            tuple: A tuple containing evaluation metrics:
-                - F1_score (float): The micro-averaged F1 score on the unlearned test nodes.
-
-                - Acc_score (float): The accuracy on the unlearned test nodes.
-
-                - Recall_score (float): The micro-averaged recall on the unlearned test nodes.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -248,35 +157,6 @@ class NodeClassifier:
                         original_feaures,
                         prototype_embedding,
                         unlearning_edge_index):
-        """
-        Performs SGU unlearning method on edge-level tasks.
-
-        Targets specific edges and their activated components for unlearning. Adjusts the model's parameters to forget the influence
-        of the targeted edges while preserving the model's performance on other parts of the graph. The unlearning process
-        involves minimizing various loss components to ensure effective forgetting and model integrity.
-
-        Args:
-            original_softlabels (torch.Tensor): The original soft labels before unlearning.
-
-            original_w (list): The original model parameters before unlearning.
-
-            unlearning_nodes (list or torch.Tensor): Indices of nodes targeted for unlearning.
-
-            activated_nodes (list or torch.Tensor): Indices of neighboring nodes activated for unlearning.
-
-            pos_pair (dict): Dictionary containing positive pairs for activated nodes.
-
-            neg_pair (dict): Dictionary containing negative pairs for activated nodes.
-
-            original_feaures (torch.Tensor): Original input features for the nodes.
-
-            prototype_embedding (torch.Tensor): Prototype embeddings for the classes.
-
-            unlearning_edge_index (torch.Tensor): Edge indices targeted for unlearning.
-
-        Returns:
-            None
-        """
         self.tau = 0.5
         self.para1 = 0.8
         self.para2 = 0.001
@@ -365,27 +245,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def eval_unlearning(self,features,unlearning_nodes,edge_mask=None):
-        """
-        Evaluates the GNN model's performance on unlearned nodes after SGU.
-
-        Computes the F1 score, accuracy, and recall for the unlearned nodes to assess the effectiveness of the unlearning process.
-
-        Args:
-            features (torch.Tensor): The input features for the nodes.
-
-            unlearning_nodes (list or torch.Tensor): Indices of nodes targeted for unlearning.
-
-            edge_mask (torch.Tensor, optional): Mask to filter specific edges during evaluation. Defaults to `None`.
-
-        Returns:
-            tuple:
-
-                - F1_score (float): The micro-averaged F1 score on the unlearned nodes.
-
-                - Acc_score (float): The accuracy on the unlearned nodes.
-
-                - Recall_score (float): The micro-averaged recall on the unlearned nodes.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -403,17 +262,6 @@ class NodeClassifier:
 
 
     def GIF_evaluate_unlearn_F1(self, new_parameters):
-        """
-        Evaluates the GNN model's F1 score after applying GIF unlearning method.
-
-        Applies the new parameters to the model, performs a forward pass, and computes the F1 score on the test dataset.
-
-        Args:
-            new_parameters (list): A list of new model parameters obtained after the GIF unlearning process.
-
-        Returns:
-            float: The F1 score on the test dataset after unlearning.
-        """
         idx = 0
         for p in self.model.parameters():
             p.data = new_parameters[idx]
@@ -429,16 +277,6 @@ class NodeClassifier:
         return test_f1
 
     def train_GUIDE_model(self):
-        """
-        Trains the GNN models in preparation for applying the GUIDE (Guided Inductive Graph Unlearning) unlearning method.
-
-        Iterates through the specified number of training epochs, performing forward and backward passes.
-        Depending on the base model type, computes the cross-entropy loss using either pre-processed features (`self.data.xs`)
-        or the original node features and edge indices. Logs the loss at each epoch to monitor training progress.
-
-        Returns:
-            None
-        """
         for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
             self.model.train()
             labels = self.data.y
@@ -458,26 +296,6 @@ class NodeClassifier:
 
 
     def CEU_train(self,data,eval=True, verbose=True,return_epoch=False):
-        """
-        Trains the model for node-level task.
-
-        This method trains the model on the provided training dataset, evaluates it on the validation set, and saves
-        the best-performing model based on validation loss. It supports early stopping to prevent overfitting.
-
-        Args:
-            data (dict): A dictionary containing training, validation, and test datasets along with edge information.
-
-            eval (bool, optional): Flag indicating whether to perform evaluation after training. Defaults to `True`.
-
-            verbose (bool, optional): Flag indicating whether to print training progress. Defaults to `True`.
-
-            return_epoch (bool, optional): Flag indicating whether to return the number of training epochs completed. Defaults to `False`.
-
-        Returns:
-            torch.nn.Module: The trained GNN model.
-
-            int, optional: The number of training epochs completed if `return_epoch` is `True`.
-        """
         if verbose:
             t0 = time.time()
             print(f'Start to train a {self.args["model_name"]} model...')
@@ -575,25 +393,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def CEU_test(self,model, test_loader, edge_index):
-        """
-        Tests the GNN model's performance on the test dataset.
-
-        This method evaluates the trained model by computing the classification report and average test loss on the test dataset.
-
-        Args:
-            model (torch.nn.Module): The trained GNN model to be evaluated.
-
-            test_loader (torch.utils.data.DataLoader): DataLoader for the test dataset.
-
-            edge_index (torch.Tensor): Tensor containing edge indices of the graph.
-
-        Returns:
-            tuple:
-
-                - dict: Classification report containing precision, recall, F1-score, and support for each class.
-
-                - float: The average test loss over the test dataset.
-        """
         y_preds = []
         y_trues = []
         test_loss = []
@@ -613,15 +412,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def CEU_evaluate(self):
-        """
-        Evaluates the GNN model's performance on the test dataset.
-
-        This method computes and prints the classification report for the test dataset, providing detailed metrics
-        such as precision, recall, F1-score, and support for each class.
-
-        Returns:
-            None
-        """
         test_loader = DataLoader(self.data['test_set'], batch_size=self.args['test_batch'], shuffle=False)
         edge_index = torch.tensor(self.data['edges'], device=self.device).t()
         y_preds = []
@@ -647,40 +437,6 @@ class NodeClassifier:
 
 
     def GNNDelete_train(self,logger, avg_time,run,model, data, optimizer, args, logits_ori=None, attack_model_all=None, attack_model_sub=None):
-        """
-        Trains the GNN model using the GNNDelete unlearning method.
-
-        This method performs the unlearning process by removing specified edges and assessing the model's performance.
-        It conducts membership inference attacks before unlearning to establish baseline attack metrics, and logs
-        the training progress and evaluation results.
-
-        Args:
-            logger (logging.Logger): Logger object for logging training progress and metrics.
-
-            avg_time (dict): Dictionary to store the average training time per run.
-
-            run (int): The current run index or identifier.
-
-            model (torch.nn.Module): The GNN model to be trained and unlearned.
-
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
-
-            optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
-
-            args (dict): Configuration parameters, including unlearning settings, dataset specifications, and other relevant settings.
-
-            logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes.
-                                                Defaults to `None`.
-
-            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data.
-                                            Defaults to `None`.
-
-            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data.
-                                            Defaults to `None`.
-
-        Returns:
-            None
-        """
         self.trainer_log = {
             'unlearning_model': self.args["unlearning_model"],
             'dataset': self.args["dataset_name"],
@@ -851,37 +607,7 @@ class NodeClassifier:
 
     @torch.no_grad()
     def GNNDelete_test(self, model, data, model_retrain=None, attack_model_all=None, attack_model_sub=None, ckpt='best'):
-        """
-        Tests the GNN models on the test dataset.
-        
-        This method loads a specified checkpoint, evaluates the model's performance on the test dataset,
-        conducts membership inference attacks if provided, logs the results, and returns evaluation metrics.
-        
-        Args:
-            model (torch.nn.Module): The GNN model to be evaluated.
-        
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and labels.
-        
-            model_retrain (torch.nn.Module, optional): The retrained model after unlearning. Defaults to `None`.
-        
-            attack_model_all (Any, optional): The attack model for evaluating membership inference attacks on all data.
-        
-            attack_model_sub (Any, optional): The attack model for evaluating membership inference attacks on a subset of data.
-        
-            ckpt (str, optional): The checkpoint to load for evaluation. Use `'best'` to load the best-performing model. Defaults to `'best'`.
-        
-        Returns:
-            tuple:
-                - float: The cross-entropy loss on the test dataset.
-        
-                - float: The accuracy on the test dataset.
-        
-                - float: The recall on the test dataset.
-        
-                - float: The F1 score on the test dataset.
-        
-                - dict: A dictionary containing additional test metrics.
-        """
+
         if ckpt == 'best':  # Load best ckpt
             ckpt = torch.load(os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
             model.load_state_dict(ckpt['model_state'])
@@ -928,20 +654,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def GNNDelete_eval(self,epoch,retrain):
-        """
-        Evaluates the GNN model's performance on the validation dataset and saves the best model based on validation accuracy.
-        
-        This method computes the evaluation metrics (e.g., accuracy, F1 score, etc.) on the validation set, updates and saves the model if it
-        achieves better validation accuracy than previous epochs, and logs the evaluation results.
-        
-        Args:
-            epoch (int): The current training epoch.
-        
-            retrain (bool): Flag indicating whether the evaluation is after retraining. Determines the checkpoint save path.
-        
-        Returns:
-            None
-        """
         valid_loss, dt_acc, recall, dt_f1, valid_log = self.eval(self.model, self.data, 'val')
         if dt_acc > self.best_valid_acc:
             best_valid_acc = dt_acc
@@ -976,20 +688,6 @@ class NodeClassifier:
     
     @torch.no_grad()
     def evaluate_Del_model(self):
-        """
-        Evaluates the GNN model's performance on the test dataset after deletion.
-        
-        Computes the F1 score, accuracy, and recall on the test dataset to assess the model's performance post-deletion.
-        
-        Returns:
-            tuple:
-        
-                - float: The micro-averaged F1 score on the test dataset.
-        
-                - float: The accuracy on the test dataset.
-        
-                - float: The micro-averaged recall on the test dataset.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -1008,34 +706,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def eval(self, model, data, stage='val', pred_all=False):
-        """
-        Evaluates the GNN model's performance on a specified dataset stage.
-        
-        This method computes the loss, accuracy, recall, and F1 score for the given stage ('val' or 'test').
-        It can optionally compute predictions for all node pairs based on the `pred_all` flag.
-        
-        Args:
-            model (torch.nn.Module): The GNN model to be evaluated.
-        
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and labels.
-        
-            stage (str, optional): The dataset stage to evaluate ('val' or 'test'). Defaults to `'val'`.
-        
-            pred_all (bool, optional): Flag indicating whether to compute predictions for all node pairs. Defaults to `False`.
-        
-        Returns:
-            tuple:
-        
-                - float: The cross-entropy loss for the specified stage.
-        
-                - float: The accuracy on the specified stage.
-        
-                - float: The recall on the specified stage.
-        
-                - float: The F1 score on the specified stage.
-        
-                - dict: A dictionary containing additional evaluation metrics.
-        """
         model.eval()
 
         if self.device == 'cpu':
@@ -1112,18 +782,6 @@ class NodeClassifier:
 
     @torch.no_grad()
     def prediction_info(self):
-        """
-        Retrieves the model's predictions and true labels for the test dataset.
-        
-        This method computes the model's output on the test dataset and returns both the predicted labels and the true labels.
-        
-        Returns:
-            tuple:
-        
-                - torch.Tensor: The predicted labels for the test dataset.
-        
-                - torch.Tensor: The true labels for the test dataset.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -1134,22 +792,6 @@ class NodeClassifier:
 
 
     def posterior(self,return_features=False):
-        """
-        Generates the posterior probabilities from the GNN model.
-        
-        This method performs inference to obtain the log-softmaxed output probabilities from the model.
-        It supports returning either the predictions or both predictions and intermediate features based on the `return_features` flag.
-        
-        Args:
-            return_features (bool, optional): Flag indicating whether to return intermediate features alongside predictions. Defaults to `False`.
-        
-        Returns:
-            torch.Tensor or tuple:
-        
-                - torch.Tensor: The posterior probabilities for the test dataset.
-        
-                - torch.Tensor, optional: The intermediate features if `return_features` is `True`.
-        """
         self.logger.debug("generating posteriors")
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self.model.eval()
@@ -1174,21 +816,6 @@ class NodeClassifier:
     
     @torch.no_grad()
     def _inference(self, no_test_edges=False):
-        """
-        Performs inference to obtain the model's output and intermediate features.
-        
-        This internal method computes the log-softmaxed outputs and retrieves intermediate features from the model.
-        
-        Args:
-            no_test_edges (bool, optional): Flag indicating whether to exclude test edges during inference. Defaults to `False`.
-        
-        Returns:
-            tuple:
-        
-                - torch.Tensor: The log-softmaxed output probabilities.
-        
-                - torch.Tensor: The intermediate features extracted from the model.
-        """
         assert not self.data is None and not self.data_full is None
 
         self.model.eval()
@@ -1200,14 +827,6 @@ class NodeClassifier:
         return F.log_softmax(z,dim=1), feat
 
     def posterior_other(self):
-        """
-        Generates the posterior probabilities from the GNN model using alternative methods.
-        
-        This method computes the log-softmaxed output probabilities based on the unlearning method specified.
-        
-        Returns:
-            torch.Tensor: The posterior probabilities for the test dataset.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -1225,14 +844,6 @@ class NodeClassifier:
         return posteriors.detach()
 
     def generate_embeddings(self):
-        """
-        Generates embeddings for all nodes in the dataset using the GNN model.
-        
-        This method performs inference on the entire dataset to obtain the embeddings from the model.
-        
-        Returns:
-            torch.Tensor: The generated embeddings for all nodes in the dataset.
-        """
         self.model.eval()
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self._gen_test_loader()
@@ -1245,18 +856,6 @@ class NodeClassifier:
     
 
     def prepare_data(self, input_data):
-        """
-        Prepares the dataset for training and evaluation.
-        
-        This method clones the input data, sets up training and full datasets by adjusting edge indices,
-        and generates data loaders based on configuration flags.
-        
-        Args:
-            input_data (torch_geometric.data.Data): The original dataset to be prepared.
-        
-        Returns:
-            None
-        """
         data_full = input_data.clone()
         data = input_data.clone()
         
@@ -1278,14 +877,6 @@ class NodeClassifier:
             self.gen_test_loader()
 
     def gen_train_loader(self):
-        """
-        Generates the training data loader using NeighborLoader.
-        
-        This method creates a NeighborLoader for the training dataset with specified neighbor sizes and batch configurations.
-        
-        Returns:
-            None
-        """
         assert not self.data is None
 
         #self.logger.info("generate train loader")
@@ -1295,14 +886,6 @@ class NodeClassifier:
         #self.logger.info("generate train loader finish")
 
     def gen_test_loader(self):
-        """
-        Generates the test data loader using NeighborLoader.
-        
-        This method creates a NeighborLoader for the full dataset with specified neighbor sizes and batch configurations.
-        
-        Returns:
-            None
-        """
         assert not self.data_full is None
 
         self.test_loader = NeighborLoader(self.data_full, input_nodes=None,
@@ -1365,21 +948,7 @@ class NodeClassifier:
 
     @torch.no_grad()
     def verification_error(self,model1, model2):
-        """
-        Computes the L2 distance between approximate model and re-trained model to measure verification error.
-        
-        This method calculates the sum of L2 norms of the differences between corresponding parameters of two models,
-        providing a quantitative measure of how much the models differ.
-        
-        Args:
-            model1 (torch.nn.Module): The first GNN model.
-        
-            model2 (torch.nn.Module): The second GNN model to compare against the first.
-        
-        Returns:
-            float: The total L2 distance between the two models' parameters.
-        """
-        '''l'''
+        '''L2 distance between aproximate model and re-trained model'''
 
         model1 = model1.to('cpu')
         model2 = model2.to('cpu')
@@ -1398,20 +967,6 @@ class NodeClassifier:
         return diff
 
     def save_model(self, save_path,model_dict=None):
-        """
-        Saves the GNN model's state dictionary to a specified path.
-        
-        This method writes the model's state dictionary to the provided `save_path`. If a `model_dict` is provided,
-        it saves that dictionary instead.
-        
-        Args:
-            save_path (str): The file path where the model's state dictionary will be saved.
-        
-            model_dict (dict, optional): A dictionary of model parameters to save. If `None`, the current model's state dictionary is saved.
-        
-        Returns:
-            None
-        """
         with open(save_path,mode='w') as file:
             if model_dict is not None:
                 self.logger.info('saving best model {}'.format(save_path))
@@ -1421,17 +976,6 @@ class NodeClassifier:
                 torch.save(self.model.state_dict(), save_path)
 
     def load_model(self, save_path):
-        """
-        Loads the GNN model's state dictionary from a specified path.
-        
-        This method reads the model's state dictionary from the provided `save_path` and updates the model accordingly.
-        
-        Args:
-            save_path (str): The file path from where the model's state dictionary will be loaded.
-        
-        Returns:
-            None
-        """
         # self.logger.info('loading model {}'.format(save_path))
         device = torch.device('cpu')
         self.model.load_state_dict(torch.load(save_path, map_location=device))

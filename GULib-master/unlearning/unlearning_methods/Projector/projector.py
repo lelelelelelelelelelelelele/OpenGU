@@ -18,7 +18,7 @@ from unlearning.unlearning_methods.Projector.utils.graph_projector_model_utils i
 import copy
 from config import BLUE_COLOR,RESET_COLOR
 from sklearn.metrics import f1_score, accuracy_score,recall_score,roc_auc_score
-
+from memory_profiler import profile
 class projector():
     """
     Projector class Projects the parameters to a subspace that is irrelevant to the node features that need to be forgotten and forgets the node features.
@@ -48,11 +48,8 @@ class projector():
         self.average_auc = np.zeros(num_runs)
         self.avg_training_time = np.zeros(num_runs)
 
-
-    def run_exp(self):
-        """
-        Executes the main experimental pipeline, including data preparation, model training, projection-based unlearning, and evaluation. It iterates over multiple runs, performs unlearning on specified nodes, updates model parameters, and records performance metrics such as F1 score and AUC.
-        """
+    # @profile
+    def run_exp_mem(self):
         for self.run in range(self.args["num_runs"]):
             self.data = copy.deepcopy(self.data_copy)
             if self.args["dataset_name"] =="ogbn-arxiv":
@@ -163,7 +160,127 @@ class projector():
             self.evaluation_reuse_labels(model_unlearn,True)
 
             self.unlearning_num = self.args["num_unlearned_nodes"]
-            self.mia_attack()
+            # self.mia_attack()
+            self.average_auc[self.run] = self.auc
+        
+        self.logger.info(f"Max Allocated: {torch.cuda.max_memory_allocated()/1024/1024}MB")
+        self.logger.info(f"Max Cached: {torch.cuda.max_memory_reserved()/1024/1024}MB")
+    
+    def run_exp(self):
+        """
+        Executes the main experimental pipeline, including data preparation, model training, projection-based unlearning, and evaluation. It iterates over multiple runs, performs unlearning on specified nodes, updates model parameters, and records performance metrics such as F1 score and AUC.
+        """
+        for self.run in range(self.args["num_runs"]):
+            self.data = copy.deepcopy(self.data_copy)
+            if self.args["dataset_name"] =="ogbn-arxiv":
+                self.evaluator = Evaluator(name=self.args["dataset_name"])
+            # Generate augment node feats
+            # num_train_nodes = len(self.data.train_indices)
+            # train_ind_perm = np.random.permutation(self.data.train_indices)
+            path_un = unlearning_path + "_" + str(self.run) + ".txt"
+            delete_nodes_all = np.loadtxt(path_un, dtype=int)
+            self.unlearning_nodes = delete_nodes_all
+
+            extra_feats = torch.zeros(self.data.x.size(0))
+            extra_feats[delete_nodes_all] = 1
+
+            self.data.x = torch.cat([self.data.x, extra_feats.view(-1, 1)], dim=1)
+            self.data.y[delete_nodes_all] = self.data.num_classes
+            self.data.adj_t = SparseTensor(row=self.data.edge_index[1], col=self.data.edge_index[0])
+            self.data.adj_t = torch_sparse.fill_diag(self.data.adj_t.to_symmetric(), 1)
+            self.data.y_one_hot_train = F.one_hot(
+                self.data.y.squeeze(), self.data.num_classes + 1).float()
+            self.data.y_one_hot_train[self.data.test_indices, :] = 0
+            num_nodes = self.data.x.size(0)
+            self.data.node_inds = torch.arange(self.data.x.size(0))
+
+            self.train_loader = ShaDowKHopSampler(self.data,
+                                            depth=2,
+                                            num_neighbors=self.args["hop_neighbors"],
+                                            batch_size=256,
+                                            shuffle=True,
+                                            node_idx=torch.tensor(self.data.train_indices))
+
+            self.all_loader = ShaDowKHopSampler(self.data,
+                                        depth=2,
+                                        num_neighbors=self.args["hop_neighbors"],
+                                        batch_size=1024,
+                                        shuffle=False)
+
+            x_dims = self.data.x.size(1)
+            y_dims = self.data.y_one_hot_train.size(1)
+            start_time = time.time()
+
+            fn = os.path.join(os.getcwd(),
+                            "data","model","node_level",self.args["dataset_name"],"Projector.pt" )
+            if os.path.exists(fn) and not self.args["regen_model"]:
+                model_optim = Pro_GNN(x_dims, y_dims, self.device, self.args).to(self.device)
+                model_optim.load_state_dict(torch.load(fn))
+            else:
+                model_optim = self.pre_train()
+                # torch.save(model_optim.state_dict(), fn)
+            print("train model time", time.time() - start_time)
+
+            self.evaluation_reuse_labels(model_optim)
+            # projection-based unlearning
+            remain_nodes = np.arange(num_nodes)
+            feat_dim = self.data.x.size(1)
+            label_dim = self.data.y_one_hot_train.size(1)
+
+            W_optim = model_optim.W.data.clone().cpu()
+
+            batch = self.args["parallel_unlearning"]
+            delete_node_batch = [[] for _ in range(batch)]
+            for i, node_i in enumerate(delete_nodes_all):
+                delete_node_batch[i % batch].append(node_i)
+
+            start_time = time.time()
+            for cnt, delete_node_batch_i in enumerate(delete_node_batch):
+                # get remain node feats
+                remain_nodes = np.setdiff1d(remain_nodes, delete_node_batch_i)
+                remain_node_feats = self.data.x[remain_nodes]
+                remain_node_label = self.data.y_one_hot_train[remain_nodes]
+
+                # unlearning
+                extra_channel_norm_before = 0
+                extra_channel_norm_after = 0
+                W_optim_part = torch.split(W_optim, [feat_dim for _ in range(
+                    self.args["x_iters"] + 1)] + [label_dim for _ in range(self.args["y_iters"])])
+                W_optim_part_unlearn = []
+
+                for W_part in W_optim_part[:self.args["x_iters"] + 1]:
+                    XtX = remain_node_feats.T @ remain_node_feats
+                    XtX_inv = torch.linalg.pinv(XtX)
+                    proj_W_optim = XtX @ XtX_inv @ W_part
+                    W_optim_part_unlearn.append(proj_W_optim)
+                    extra_channel_norm_before += W_part[-1, :].norm(2).item()
+                    extra_channel_norm_after += proj_W_optim[-1, :].norm(2).item()
+
+                for W_part in W_optim_part[-self.args["y_iters"]:]:
+                    XtX = remain_node_label.T @ remain_node_label
+                    XtX_inv = torch.linalg.pinv(XtX)
+                    proj_W_optim = XtX @ XtX_inv @ W_part
+                    W_optim_part_unlearn.append(proj_W_optim)
+                    extra_channel_norm_before += W_part[-1, :].norm(2).item()
+                    extra_channel_norm_after += proj_W_optim[-1, :].norm(2).item()
+
+                print('extra_channel_norm_before', extra_channel_norm_before,
+                    'extra_channel_norm_after', extra_channel_norm_after)
+                W_optim = torch.cat(W_optim_part_unlearn, dim=0)
+
+                # evaluate
+                print('Unlearning step %d >>>' % (cnt + 1))
+
+            self.avg_training_time[self.run] = time.time() - start_time
+            self.logger.info("Total time:{}".format(self.avg_training_time[self.run]) )
+
+            model_unlearn = copy.deepcopy(model_optim)
+            model_unlearn.W.data = W_optim
+
+            self.evaluation_reuse_labels(model_unlearn,True)
+
+            self.unlearning_num = self.args["num_unlearned_nodes"]
+            # self.mia_attack()
             self.average_auc[self.run] = self.auc
             # self.logger.info("average_f1:{}".format(self.average_f1[self.run]) )
             # self.logger.info("average_auc:{}".format(self.average_auc[self.run]) )
@@ -172,7 +289,7 @@ class projector():
         " - Average Direct F1 Score: {:.4f} ± {:.4f}\n"
         " - Average Reuse F1 Score: {:.4f} ± {:.4f}\n"
         " - Average AUC Score: {:.4f} ± {:.4f}\n"
-        " - Average Unlearning Time: {:.4f} ± {:.4f} seconds\n".format(
+        " - Average Unlearning Time: {:.4f} ± {:.4f} seconds\n{}".format(
             BLUE_COLOR,
             np.mean(self.direct_average_f1), np.std(self.direct_average_f1),
             np.mean(self.reuse_average_f1), np.std(self.reuse_average_f1),

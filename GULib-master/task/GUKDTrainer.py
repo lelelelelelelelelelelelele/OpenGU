@@ -32,7 +32,6 @@ class GUKDTrainer(BaseTrainer):
         device (torch.device): The computation device (CPU or GPU) on which the model 
                                and data are loaded for training and evaluation.
     """
-
     def __init__(self, args, logger, model, data):
         """
         Initializes the GUKDTrainer with the provided configuration, logger, model, and data.
@@ -71,7 +70,6 @@ class GUKDTrainer(BaseTrainer):
             return self.gukd_train_node(z_t,save)
         else:
             return self.gukd_train_edge(z_t,save)
-        
     def gukd_train_node(self,z_t,save):
         """
         Trains the GNN model in preparation for node-level unlearning using knowledge distillation.
@@ -125,9 +123,10 @@ class GUKDTrainer(BaseTrainer):
 
         avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time
 
     def gukd_train_edge(self,z_t,save):
@@ -189,7 +188,8 @@ class GUKDTrainer(BaseTrainer):
 
         avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time

@@ -13,7 +13,7 @@ from torch_geometric.loader import GraphSAINTRandomWalkSampler
 from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_score, f1_score
 from utils.utils import member_infer_attack,get_link_labels
 from task.BaseTrainer import BaseTrainer
-class UtUTrainer:
+class UtUTrainer(BaseTrainer):
     """
     UtUTrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for Unlink to Unlearn (UtU) method.
 
@@ -34,7 +34,7 @@ class UtUTrainer:
 
         device (torch.device): The computation device (CPU or GPU) on which the model and data are loaded for training and evaluation.
     """
-    def __init__(self,args):
+    def __init__(self, args, logger, model, data):
         """
         Initializes the UtUTrainer with the provided configuration.
 
@@ -44,6 +44,7 @@ class UtUTrainer:
             args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
                         unlearning settings, and other relevant settings.
         """
+        super().__init__(args, logger, model, data)
         self.args = args
         self.trainer_log = {
             'unlearning_model': args["unlearning_model"],
@@ -62,38 +63,14 @@ class UtUTrainer:
     #     gradient_mask = gradient_mask.to(device)
     #     model.operator.register_hook(lambda grad: grad.mul_(gradient_mask))
 
-    def train(self, model, data, optimizer, args, logits_ori=None, attack_model_all=None, attack_model_sub=None):
-        """
-        Trains the GNN model based on the specified dataset.
+    # def train(self, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
+    #     if 'ogbl' in self.args["dataset_name"]:
+    #         return self.train_fullbatch(self.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
 
-        Delegates the training process to the appropriate method (`train_fullbatch`) depending on the dataset type.
+    #     else:
+    #         return self.train_fullbatch(self.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
 
-        Args:
-            model (torch.nn.Module): The GNN model to be trained.
-            
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
-            
-            optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
-            
-            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
-                        unlearning settings, and other relevant settings.
-            
-            logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes. Defaults to `None`.
-            
-            attack_model_all (Any, optional): The attack model used for evaluating membership inference attacks on all data. Defaults to `None`.
-            
-            attack_model_sub (Any, optional): The attack model used for evaluating membership inference attacks on a subset of data. Defaults to `None`.
-        
-        Returns:
-            None
-        """
-        if 'ogbl' in args["dataset_name"]:
-            return self.train_fullbatch(model, data, optimizer, args, logits_ori, attack_model_all, attack_model_sub)
-
-        else:
-            return self.train_fullbatch(model, data, optimizer, args, logits_ori, attack_model_all, attack_model_sub)
-
-    def train_fullbatch(self, model, data, optimizer, args, logits_ori=None, attack_model_all=None,
+    def train_UTU_model(self, optimizer, logits_ori=None, attack_model_all=None,
                         attack_model_sub=None):
         """
         Trains the GNN model using a full-batch training approach.
@@ -102,14 +79,7 @@ class UtUTrainer:
         member inference attacks before unlearning, saves model checkpoints, and logs the best performance metrics.
 
         Args:
-            model (torch.nn.Module): The GNN model to be trained.
-            
-            data (torch_geometric.data.Data): The dataset containing node features, edge indices, and other relevant information.
-            
             optimizer (torch.optim.Optimizer): The optimizer used for updating the model's parameters during training.
-            
-            args (dict): Configuration parameters, including model type, dataset specifications, training hyperparameters, 
-                        unlearning settings, and other relevant settings.
             
             logits_ori (torch.Tensor, optional): The original logits from the model before any unlearning or attack processes. Defaults to `None`.
             
@@ -120,25 +90,25 @@ class UtUTrainer:
         Returns:
             None
         """
-        model = model.to(self.device)
-        data = data.to(self.device)
+        self.model = self.model.to(self.device)
+        self.data = self.data.to(self.device)
 
         best_metric = 0
         loss_fct = nn.MSELoss()
 
         # MI Attack before unlearning
         if attack_model_all is not None:
-            mi_logit_all_before, mi_sucrate_all_before = member_infer_attack(model, attack_model_all, data)
+            mi_logit_all_before, mi_sucrate_all_before = member_infer_attack(self.model, attack_model_all, self.data)
             self.trainer_log['mi_logit_all_before'] = mi_logit_all_before
             self.trainer_log['mi_sucrate_all_before'] = mi_sucrate_all_before
         if attack_model_sub is not None:
-            mi_logit_sub_before, mi_sucrate_sub_before = member_infer_attack(model, attack_model_sub, data)
+            mi_logit_sub_before, mi_sucrate_sub_before = member_infer_attack(self.model, attack_model_sub, self.data)
             self.trainer_log['mi_logit_sub_before'] = mi_logit_sub_before
             self.trainer_log['mi_sucrate_sub_before'] = mi_sucrate_sub_before
-        z = model(data.x, data.train_pos_edge_index[:, data.dr_mask])
+        z = self.model(self.data.x, self.data.train_pos_edge_index[:, self.data.dr_mask])
         # Save
         ckpt = {
-            'model_state': model.state_dict(),
+            'model_state': self.model.state_dict(),
             'optimizer_state': optimizer.state_dict(),
         }
         torch.save(ckpt, os.path.join(self.args["checkpoint_dir"], 'model_best.pt'))
@@ -321,7 +291,10 @@ class UtUTrainer:
         """
         model.eval()
         pos_edge_index = data[f'{stage}_pos_edge_index']
-        neg_edge_index = data[f'{stage}_neg_edge_index']
+        neg_edge_index = negative_sampling(
+            edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
+            num_neg_samples=self.data.test_pos_edge_index.size(1)
+        )
 
         if self.args["eval_on_cpu"]:
             model = model.to('cpu')
@@ -331,11 +304,12 @@ class UtUTrainer:
         else:
             mask = data.dr_mask
         z = model(data.x, data.train_pos_edge_index[:, mask])
-        logits = self.decode(z, pos_edge_index, neg_edge_index).sigmoid()
+        logits = self.decode(z, pos_edge_index, neg_edge_index)
         label = get_link_labels(pos_edge_index, neg_edge_index)
-
+        print(logits,label)
         # DT AUC AUP
         loss = F.binary_cross_entropy_with_logits(logits, label).cpu().item()
+        
         dt_auc = roc_auc_score(label.cpu(), logits.cpu())
         dt_aup = average_precision_score(label.cpu(), logits.cpu())
 
@@ -421,3 +395,5 @@ class UtUTrainer:
             logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
 
         return logits
+    
+    

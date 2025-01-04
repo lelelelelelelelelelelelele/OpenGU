@@ -98,7 +98,6 @@ class guide(Shard_based_pipeline):
         """
         Generates shard data for the graph neural network model based on the partitioning results.
         """
-        
         # if self.args["dataset_name"] in ["flickr","Chameleon","Minesweeper","Tolokers"]:
         #     self.p1_saved = self.GUIDE_methods.subgraph_repair(x=self.data.x, REPAIR_METHOD=self.args["GUIDE_repair_methods"], PATH='./data/GUIDE/checkpoints/',
         #                                                    DATA_NAME='{}'.format(self.args['dataset_name']), MULTI_GRAPH=0,no_repair=True)
@@ -134,7 +133,6 @@ class guide(Shard_based_pipeline):
         initializes the target model using the get_trainer function with the 
         provided arguments, logger, model from the model zoo, and data.
         """
-
         self.args["unlearn_trainer"] = 'GUIDETrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         
@@ -148,7 +146,6 @@ class guide(Shard_based_pipeline):
         model is "SIGN", the subgraph is processed accordingly. The average training time per epoch is recorded, and 
         the trained model is saved to a specified path.
         """
-
         for part_id in self.p1_saved.shards_ids.keys():
             # submodel training
             start = time.time()
@@ -183,13 +180,11 @@ class guide(Shard_based_pipeline):
     #         accuracy, f1macro, aucroc))
 
     def store_metrics(self,pred_scores, target_labels):
-        def store_metrics(self, pred_scores, target_labels):
-            """
-            Calculate and return evaluation metrics for given prediction scores and target labels.
-            This function computes the accuracy, F1 macro score, and AUC-ROC score for the provided 
-            prediction scores and target labels.
-            """
-
+        """
+        Calculate and return evaluation metrics for given prediction scores and target labels.
+        This function computes the accuracy, F1 macro score, and AUC-ROC score for the provided 
+        prediction scores and target labels.
+        """
         # calculate metrics
         pred_labels = pred_scores.argmax(axis=1)
         one_hot_labels = np.eye(self.num_classes)[target_labels]
@@ -243,7 +238,6 @@ class guide(Shard_based_pipeline):
         using a weighted sum based on kernel similarity. The aggregated predictions are then evaluated
         based on the specified downstream task.
         """
-
         results_Fast = {
             'acc': np.zeros((16, 1)),
             'f1macro': np.zeros((16, 1)),
@@ -349,7 +343,6 @@ class guide(Shard_based_pipeline):
         """
         Updates the shard by performing unlearning tasks on edges, nodes, or features based on the specified unlearning task.
         """
-
         self.start_time = time.time()
         if self.args["unlearn_task"] == "edge":
             #get the deleting edges
@@ -554,7 +547,6 @@ class guide(Shard_based_pipeline):
         """
         Unlearns the model by updating the shard and retraining the model on the updated graph data.
         """
-
         self.update_shard()
         self.G_nx0 = []
         for part in self.part_set:
@@ -638,7 +630,6 @@ class guide(Shard_based_pipeline):
         """
         Executes the unlearning attack process for a node classification task.
         """
-
         if self.args["unlearn_task"] == "node":
             self.G_nx0 = self.pm_kernel.parse_input(self.G_nx0)
             self.method = self.args["GUIDE_methods"]
@@ -784,7 +775,6 @@ class guide(Shard_based_pipeline):
         posterior probabilities of positive and negative samples. It calculates 
         the AUC (Area Under the Curve) score to evaluate the attack's effectiveness.
         """
-
         positive_posteriors, negative_posteriors = [], []
         positive_posteriors.append(self.positive0[self.method])
         positive_posteriors.append(self.positive1[self.method])
@@ -825,7 +815,6 @@ class guide(Shard_based_pipeline):
         """
         Calculate the distance between two data points using the specified distance metric.
         """
-
         if distance == 'l2_norm':
             return torch.norm(data0 - data1, dim=1)
         elif distance == 'direct_diff':
@@ -850,13 +839,11 @@ class guide(Shard_based_pipeline):
         Converts a global index to a subindex within a list of partition IDs.
         This function takes a list of partition IDs and a global index, and returns the subindex of the element at the given index within its partition. The subindex is determined by counting the occurrences of the partition ID up to the given index.
         """
-
         part_ids = list(part_ids)
         subindex = part_ids[:index].count(part_ids[index])
         return subindex
 
     def reverse_y(self,y,train_mask):
-
         """
         Reverses the labels in `y` based on the `train_mask`.
         This function takes a tensor `y` containing labels and a boolean mask `train_mask` indicating 
@@ -864,7 +851,6 @@ class guide(Shard_based_pipeline):
         the labels from `y` are placed at the positions indicated by `train_mask`, and all other 
         positions are filled with -1.
         """
-
         ori_y = torch.zeros(len(train_mask))
         count = 0
         for i in range(len(train_mask)):
@@ -879,7 +865,6 @@ class guide(Shard_based_pipeline):
         """
         Finds the unique identifier (uid) corresponding to a given id within a training mask.
         """
-
         for uid in range(len(train_mask)):
             if sum(train_mask[:uid]) == id:
                 return uid

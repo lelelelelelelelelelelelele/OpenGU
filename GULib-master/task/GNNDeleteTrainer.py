@@ -287,10 +287,11 @@ class GNNDeleteTrainer(BaseTrainer):
 
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time
     
 
@@ -844,7 +845,7 @@ class GNNDeleteTrainer(BaseTrainer):
                 num_neg_samples=self.data.test_edge_index.size(1)
             )
         
-        z = self.model(self.data.x, self.data.test_edge_index)
+        z = self.model(self.data.x, self.data.edge_index)
         logits = self.decode(z, pos_edge_index, neg_edge_index).sigmoid()
         label = self.get_link_labels(pos_edge_index, neg_edge_index)
         pred = torch.where(logits > 0.5, torch.tensor(1), torch.tensor(0))

@@ -9,7 +9,7 @@ from torch.autograd import grad
 from torch_geometric.loader import NeighborSampler
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.utils import negative_sampling
-class IDEATrainer(BaseTrainer):    
+class IDEATrainer(BaseTrainer):
     """
     IDEATrainer class for training and evaluating Graph Neural Networks (GNNs) in preparation for applying the IDEA (Inductive Graph Unlearning) unlearning method.
     
@@ -336,7 +336,6 @@ class IDEATrainer(BaseTrainer):
         grad1 = grad(loss1, model_params, retain_graph=True, create_graph=True)
         grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True)
         return (grad_all, grad1, grad2)
-    
     def get_graph_loss(self,out,mask):
         """
         Computes the cross-entropy loss for graph-level predictions.

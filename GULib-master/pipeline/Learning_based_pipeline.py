@@ -1,4 +1,6 @@
 import numpy as np
+from memory_profiler import profile
+import torch
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class Learning_based_pipeline:
@@ -53,7 +55,28 @@ class Learning_based_pipeline:
         self.avg_training_time = np.zeros(self.args["num_runs"])
         self.avg_unlearning_time = np.zeros(self.args["num_runs"])
         self.avg_sampling_time = np.zeros(self.args["num_runs"])
-        
+    
+    # @profile
+    def run_exp_mem(self):
+        """
+        Executes the experimental pipeline while profiling memory usage.
+
+        During each run, this method:
+
+        1. Seeds the random number generator for reproducibility.
+        2. Executes the partitioning step.
+        3. Trains the shard-based models.
+        4. Performs the unlearning step.
+
+        """
+        for self.run in range(self.args["num_runs"]):
+            self.determine_target_model()
+            self.train_original_model()
+            self.unlearning_request()
+            self.unlearn()
+            self.logger.info(f"Max Allocated: {torch.cuda.max_memory_allocated()/1024/1024}MB")
+            self.logger.info(f"Max Cached: {torch.cuda.max_memory_reserved()/1024/1024}MB")
+
     def run_exp(self):
         """
         Executes the experimental pipeline for multiple runs, performing training, unlearning, and evaluation.
@@ -81,10 +104,10 @@ class Learning_based_pipeline:
             self.train_original_model()
             self.unlearning_request()
             self.unlearn()
-            if self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node":
+            if self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node" and False:
                 self.mia_attack()
-            elif self.args["unlearn_task"]=="edge":
-                self.mia_attack_edge()
+            # elif self.args["unlearn_task"]=="edge":
+            #     self.mia_attack_edge()
         self.logger.info(
         "{}Performance Metrics:\n"
         " - Poison F1 Score: {:.4f} ± {:.4f}\n"

@@ -25,8 +25,7 @@ class scalegun(IF_based_pipeline):
         logger (Logger): A logger instance for logging information and metrics.
 
         model_zoo (ModelZoo): An instance of ModelZoo containing the model and data.
-        """
-    
+    """
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args = args
@@ -369,7 +368,6 @@ class scalegun(IF_based_pipeline):
         specified run configuration. It is a part of the ScaleGUN 
         unlearning method.
         """
-        
         self.prepare_data()
         self.train_model()
         pass
@@ -381,7 +379,6 @@ class scalegun(IF_based_pipeline):
         It includes normalizing the data, calculating weights, and initializing the propagation graph. Additionally, it
         splits the data into training, validation, and test sets.
         """
-
         common(args=self.args,data=self.data,dataset=self.args["dataset_name"],result_path="./data/ScaleGUN/unlearning_data",normalized_dim="column")
         self.start = time.perf_counter()
         weights = get_prop_weight(self.args["weight_mode"], self.args["prop_step"], self.args["decay"])
@@ -445,7 +442,6 @@ class scalegun(IF_based_pipeline):
         on validation and test datasets. Additionally, it logs various metrics 
         and training costs.
         """
-
         self.logger.info("Training...")
         train_time = time.perf_counter()
         if self.args["train_mode"] == "ovr":
@@ -529,7 +525,6 @@ class scalegun(IF_based_pipeline):
         on the provided arguments. It then identifies the edges or nodes to be removed
         and prepares the model for retraining if necessary.
         """
-
         self.logger.info("start to remove edges...")
         self.logger.info("*" * 20)
         c_val = get_c(self.args["delta"])
@@ -585,7 +580,6 @@ class scalegun(IF_based_pipeline):
         This function iteratively removes edges from the graph, updates the model's weights, and evaluates the performance 
         after each removal. It also compares the gradient norms and retrains the model if necessary.
         """
-
         for i in range(self.args["num_batch_removes"]):
             edges = self.del_edges[
                 :,
@@ -748,8 +742,8 @@ class scalegun(IF_based_pipeline):
                 posterior2 = torch.cat((softlabel_new1, softlabel_new0), 0).cpu().detach()
                 posterior = np.array([np.linalg.norm(posterior1[i] - posterior2[i]) for i in range(len(posterior1))])
             
-            auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
-            self.logger.info('auc:{}'.format(auc))
-            self.average_auc[self.run] = auc
+            # auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+            # self.logger.info('auc:{}'.format(auc))
+            # self.average_auc[self.run] = auc
         
         

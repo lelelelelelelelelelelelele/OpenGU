@@ -46,27 +46,27 @@ from config import BLUE_COLOR,RESET_COLOR
 
 from pipeline.IF_based_pipeline import IF_based_pipeline
 
-# def plot_auc( y_true, y_score):
-#     y_true = y_true
-#     y_score = y_score
+def plot_auc( y_true, y_score):
+    y_true = y_true
+    y_score = y_score
 
-#     # 计算ROC曲线上的点
-#     fpr, tpr, thresholds = roc_curve(y_true, y_score)
+    # 计算ROC曲线上的点
+    fpr, tpr, thresholds = roc_curve(y_true, y_score)
 
-#     # 计算AUC
-#     roc_auc = auc(fpr, tpr)
+    # 计算AUC
+    roc_auc = auc(fpr, tpr)
 
-#     # 绘制ROC曲线
-#     plt.figure()
-#     plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
-#     plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-#     plt.xlim([0.0, 1.0])
-#     plt.ylim([0.0, 1.05])
-#     plt.xlabel('False Positive Rate')
-#     plt.ylabel('True Positive Rate')
-#     plt.title('Receiver Operating Characteristic (ROC) Curve')
-#     plt.legend(loc="lower right")
-#     plt.show()
+    # 绘制ROC曲线
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc="lower right")
+    plt.show()
 
 class cgu(IF_based_pipeline):
     """
@@ -82,7 +82,6 @@ class cgu(IF_based_pipeline):
 
         model_zoo (ModelZoo): Collection of models used within the pipeline.
     """
-    
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.logger = logger
@@ -90,6 +89,7 @@ class cgu(IF_based_pipeline):
         self.args = args
         self.model_zoo = model_zoo
         self.data = self.model_zoo.data
+        self._data = copy.deepcopy(self.data)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_runs = self.args["num_runs"]
         self.average_f1 = np.zeros(num_runs)
@@ -365,9 +365,9 @@ class cgu(IF_based_pipeline):
         if  self.args["unlearn_task"] == 'node' or self.args["unlearn_task"] == 'feature':
             for trail_iter in range(self.args["num_runs"]):
                 self.logger.info('*'*10 + str(trail_iter) + '*'*10)
-                if self.args["fix_random_seed"]:
-                    # fix the random seed for perm
-                    np.random.seed(trail_iter)
+                # if self.args["fix_random_seed"]:
+                #     # fix the random seed for perm
+                #     np.random.seed(trail_iter)
                 train_id = torch.arange(self.data.x.shape[0])[train_mask.cpu()]
                 # perm = torch.from_numpy(np.random.permutation(train_id.shape[0]))
                 # perm = list(perm)
@@ -534,7 +534,7 @@ class cgu(IF_based_pipeline):
                         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
                         self.logger.info('auc:{}'.format(auc))
                         self.average_auc[trail_iter] = auc
-                        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
+                        plot_auc(mia_test_y, posterior.reshape(-1, 1))
                         average = removal_times[:, trail_iter].sum()
                         self.avg_training_time[trail_iter] = average
 
@@ -1345,7 +1345,8 @@ class cgu(IF_based_pipeline):
         """
         self.logger.info('='*10 + 'Loading data' + '='*10)
         self.logger.info('Dataset:{}'.format( self.args["dataset_name"]))
-
+        
+        self.data = copy.deepcopy(self._data)
         self.data = self.data.to(device)
         
         # self.args["num_unlearned_nodes"] = int(self.data.num_nodes * self.args["unlearn_ratio"])
@@ -1556,8 +1557,6 @@ class cgu(IF_based_pipeline):
 
         Additionally, it records the time taken for the operation and logs the current state of validation and test accuracies.
         """
-     
-
         self.X_scaled_copy[self.removal_queue[index]] = 0
         if self.args["unlearn_task"] == 'node':
             # Then remove the correpsonding edges

@@ -743,6 +743,7 @@ class GSTTrainer(BaseTrainer):
                 
                 list: Updated removal queue after unlearning steps.
         """
+        
         # F for Scattering Transform
         f = np.sqrt(args.L)
         

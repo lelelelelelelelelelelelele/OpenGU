@@ -19,7 +19,6 @@ from task.edge_prediction import EdgePredictor
 from task import get_trainer
 from pipeline.IF_based_pipeline import IF_based_pipeline
 class gif(IF_based_pipeline):
-    
     """
     GIF (Graph Influence Function) class implements a IF-based pipeline for performing unlearning tasks on GNNs, enabling efficient removal of specific data points, edges, or features from
     trained graph-based models without the need for retraining from scratch.
@@ -362,7 +361,6 @@ class gif(IF_based_pipeline):
         self.logger.info('target model: %s' % (self.args['base_model'],))
         self.args["unlearn_trainer"] = "GIFTrainer"
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
-    
     def _train_model(self, run):
         self.logger.info('training target models, run %s' % run)
 
@@ -395,7 +393,10 @@ class gif(IF_based_pipeline):
             self.target_model.data = temp_data
             self.data = train_dataset
         start_time = time.time()
-
+        # model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+        # if os.path.exists(model_path):
+        #     self.target_model.load_model(model_path)
+        # else:
         self.target_model.train(save = False)
         train_time = time.time() - start_time
         self.avg_training_time[self.run] = train_time
@@ -558,7 +559,6 @@ class gif(IF_based_pipeline):
         grad1 = grad(loss1, model_params, retain_graph=True, create_graph=True)
         grad2 = grad(loss2, model_params, retain_graph=True, create_graph=True)
         return (grad_all, grad1, grad2)
-    
     def get_graph_loss(self,out,mask):
         """
         Compute the total cross-entropy loss for graph-level predictions.
@@ -566,7 +566,6 @@ class gif(IF_based_pipeline):
         embeddings based on the provided mask, computing the mean embedding for each
         graph, and calculating the cross-entropy loss against the target labels.
         """
-        
         total_loss = 0
         if isinstance(mask, np.ndarray):
             mask = torch.from_numpy(mask)
@@ -590,7 +589,6 @@ class gif(IF_based_pipeline):
         It updates the model's data accordingly and logs relevant information. Depending on the downstream task,
         it also identifies k-hop neighborhoods related to the unlearning operation.
         """
-        
         if self.args["downstream_task"]=="graph":
             # print(self.data)
             self.data = graph_cls_process(self.data,train_ratio=0.8,val_ratio=0,test_ratio=0.2)
@@ -688,7 +686,6 @@ class gif(IF_based_pipeline):
         """
         Finds and sets the influenced nodes within a specified number of hops from the given unique nodes based on the unlearning task.
         """
-        
         edge_index = self.data.edge_index.cpu().numpy()
 
         ## finding influenced neighbors
@@ -716,7 +713,6 @@ class gif(IF_based_pipeline):
         Finds and categorizes edges within a specified number of hops from given unique nodes and edges.
         This function identifies edges influenced by the provided unique nodes and edges by exploring their neighbors up to a defined number of hops. The number of hops is determined based on the type of unlearning task. It categorizes the influenced nodes and edges, and determines which nodes and edges should be deleted or influenced according to the task requirements.
         """
-        
         edge_index = self.data.edge_index.cpu().numpy()
 
         ## finding influenced neighbors
@@ -758,14 +754,12 @@ class gif(IF_based_pipeline):
         and iteratively updates an estimated parameter change. It adjusts the model's parameters accordingly
         and evaluates the unlearned model's performance by calculating the test F1 score.
         """
-
-
         '''
         res_tuple == (grad_all, grad1, grad2)
         '''
         start_time = time.time()
         iteration, damp, scale = self.args['iteration'], self.args['damp'], self.args['scale']
-        if self.args["dataset_name"] in ["Photo","Computers","Physics"]:
+        if self.args["dataset_name"] in ["Photo","Computers","Physics","Questions"]:
             iteration =int(iteration/10)
             # scale *=10
         if self.args["GIF_method"] =="GIF":
@@ -801,7 +795,6 @@ class gif(IF_based_pipeline):
         This method retrieves the gradient information using the current run identifier, computes the unlearning time and 
         F1 score approximation, and updates the respective averages for F1 score and unlearning time.
         """
-        
         result_tuple = self.get_if_grad(self.run)
         unlearning_time, f1_score_unlearning = self.approxi(result_tuple)
         self.average_f1[self.run] = f1_score_unlearning

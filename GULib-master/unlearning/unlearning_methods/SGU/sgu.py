@@ -69,7 +69,6 @@ class sgu(Learning_based_pipeline):
         """
         Determines and sets up the target model for the unlearning process.
         """
-
         self.args["unlearn_trainer"] = 'SGUTrainer'
         self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         self.features = self.preprocess_feature()
@@ -85,19 +84,18 @@ class sgu(Learning_based_pipeline):
         if they do not exist. Additionally, if the 'poison' argument is set and the 'unlearn_task' is 'edge', it evaluates the model
         and stores the F1 score.
         """
-
         model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
                          self.args["base_model"] + "_SGU"
-        if os.path.exists(model_path):
-            print(f"File {model_path} already exists.")
-            self.target_model.load_model(model_path)
-        else:
-            self.target_model.train()
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            with open(model_path, 'w'):
-                print(f"File {model_path} created successfully.")
-                # self.target_model.load_model(model_path)
-                self.target_model.save_model(model_path)
+        # if os.path.exists(model_path):
+        #     print(f"File {model_path} already exists.")
+        #     self.target_model.load_model(model_path)
+        # else:
+        self.target_model.train()
+        # os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        # with open(model_path, 'w'):
+        #     print(f"File {model_path} created successfully.")
+            # self.target_model.load_model(model_path)
+            # self.target_model.save_model(model_path)
         if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.target_model.evaluate()
     def unlearning_request(self):
@@ -106,7 +104,6 @@ class sgu(Learning_based_pipeline):
         This function processes the unlearning request by loading the nodes or edges to be unlearned 
         from the corresponding files, and then updates the unlearning mask and count accordingly.
         """
-
         if self.args["unlearn_task"] == "node":
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
             self.unlearning_nodes = np.loadtxt(path_un, dtype=int)
@@ -130,7 +127,6 @@ class sgu(Learning_based_pipeline):
         unlearned. It also performs positive and negative sampling for the unlearning process and updates the model 
         accordingly.
         """
-
         if self.args["unlearn_task"] == "node":
             start_time = time.time()
             if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
@@ -175,9 +171,9 @@ class sgu(Learning_based_pipeline):
                                                         self.avg_unlearning_time,
                                                         self.average_f1,
                                                         self.run)
-            self.target_model.load_model(root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
-            self.final_auc = self.mia_attack()
-            self.logger.info("Budget: {}".format(self.Budget))
+            # self.target_model.load_model(root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
+            # self.final_auc = self.mia_attack()
+            # self.logger.info("Budget: {}".format(self.Budget))
         elif self.args["unlearn_task"] == "edge":
             if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
                 self.original_emb = F.relu(self.target_model.model(self.features,return_all_emb = True)[0]).clone().detach().float()
@@ -236,7 +232,7 @@ class sgu(Learning_based_pipeline):
                                                         self.avg_unlearning_time,
                                                         self.average_f1,
                                                         self.run)
-            self.target_model.load_model(root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
+            # self.target_model.load_model(root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt")
             
         
     
@@ -248,7 +244,6 @@ class sgu(Learning_based_pipeline):
         This function applies different propagation methods to the input features of the graph
         data depending on the base model specified in the arguments.
         """
-
         start_time = time.time()
         if self.args["base_model"] == "SGC":
             propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
@@ -302,7 +297,6 @@ class sgu(Learning_based_pipeline):
         This function computes the similarity between a set of vectors and a subset of vectors identified as unlearning nodes.
         It normalizes the vectors and computes the similarity matrix using a specified method.
         """
-
         # vectors = torch.FloatTensor(vectors)
         # similarity_matrix = np.zeros((self.num_nodes,self.num_nodes))
         # # similarity_matrix = torch.FloatTensor(self.num_nodes,self.num_nodes)
@@ -329,7 +323,6 @@ class sgu(Learning_based_pipeline):
         Computes the similarity between an unlearning vector and a set of vectors in chunks.
         This function calculates the similarity between a given unlearning vector and a set of vectors by processing the vectors in chunks to manage memory usage efficiently. The similarity is computed using the dot product between the unlearning vector and each chunk of vectors.
         """
-
         num_vectors = vectors.size(0)
         similarity_matrix = torch.zeros(num_vectors, device=unlearning_vector.device)
 
@@ -354,8 +347,7 @@ class sgu(Learning_based_pipeline):
         Activates a subset of nodes based on their influence scores.
         This method calculates the influence scores of nodes and selects the top-k nodes with the highest scores to be activated. 
         The influence scores of the nodes to be unlearned are set to zero before the selection process.
-       """
-
+        """
         activated_node  = list()
         total_influence = torch.zeros(self.num_nodes)
         self.influence_score[self.unlearning_nodes] = 0
@@ -374,14 +366,12 @@ class sgu(Learning_based_pipeline):
         return np.array(activated_node.cpu(),dtype=int)
 
     def pos_sampling(self, activated_nodes,activated_labels,unlearning_nodes):
-        
         """
         Perform positive sampling for the given activated nodes.
         This function generates positive samples for each activated node by finding nodes with the same label
         that are not in the unlearning nodes or activated nodes. It calculates the mean embedding of up to 5 
         such nodes for each activated node.
         """
-
         # pos_pair = {}
         # count = 0
         # number = 0
@@ -440,7 +430,6 @@ class sgu(Learning_based_pipeline):
         from nodes with the same label that are not in the unlearning set. The negative samples
         are created by averaging the embeddings of the selected nodes.
         """
-
         # neg_pair = {}
         # count = 0
         # for node in activated_nodes:
@@ -501,7 +490,6 @@ class sgu(Learning_based_pipeline):
         source or target node is in the `unlearning_nodes` list, effectively removing these edges 
         from the graph.
         """
-
         self.edge_mask = torch.ones(self.data.edge_index.shape[1], dtype=torch.bool)
         for node in self.unlearning_nodes:
             self.edge_mask[self.data.edge_index[0] == node] = False
@@ -511,7 +499,6 @@ class sgu(Learning_based_pipeline):
         """
         Retrains the target model by removing specific edges and then training the model again.
         """
-
         self.target_model.data.edge_index = self.target_model.data.edge_index[:,edge_mask]
         self.target_model.train()
         edge_mask = True
@@ -525,7 +512,6 @@ class sgu(Learning_based_pipeline):
         between members (nodes that were part of the training set) and non-members (nodes that were not part of the training set) 
         after the unlearning process.
         """
-
         self.mia_num = self.unlearning_num
         original_softlabels_member = self.original_softlabels[self.unlearning_nodes]
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
@@ -554,7 +540,6 @@ class sgu(Learning_based_pipeline):
         """
         Computes the prototype embeddings for each class based on the training data, excluding the unlearning and activated nodes.
         """
-
         train_indices = torch.tensor(self.data.train_indices,requires_grad=False)
         prototype_mask = torch.ones_like(train_indices, dtype=torch.bool)
         u_nodes = torch.from_numpy(self.unlearning_nodes)
@@ -613,7 +598,6 @@ class sgu(Learning_based_pipeline):
         target model. The function includes steps for saving and loading the model, as well 
         as performing contrastive learning sampling.
         """
-        
         self.adj = to_scipy_sparse_matrix(self.data.edge_index, num_nodes=self.data.num_nodes)
         self.adj_sp = self.adj.tocoo()
         self.adj_torch = utils.sparse_mx_to_torch_sparse_tensor(self.adj_sp)
@@ -663,16 +647,16 @@ class sgu(Learning_based_pipeline):
         # self.target_model = NodeClassifier(self.args, self.data, self.model_zoo, self.logger)
         # self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
         self.target_model.data.pre_features = self.features
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
-                         self.args["base_model"] + str(self.args["proportion_unlearned_edges"])
-        if os.path.exists(model_path):
-            print(f"File {model_path} already exists.")
-            self.target_model.load_model(model_path)
-        else:
+        # model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/"+self.args["downstream_task"]+"/" + \
+        #                  self.args["base_model"] + str(self.args["proportion_unlearned_edges"])
+        # if os.path.exists(model_path):
+        #     print(f"File {model_path} already exists.")
+        #     self.target_model.load_model(model_path)
+        # else:
             # os.makedirs(os.path.dirname(model_path), exist_ok=True)
             # with open(model_path, 'w'):
             #     print(f"File {model_path} created successfully.")
-            self.target_model.train(save=False,model_path=model_path)
+        self.target_model.train(save=False)
                 # self.target_model.save_model(model_path)
         ##############train################
         if self.args["base_model"] in ["SGC","S2GC","SIGN"] :
@@ -739,7 +723,6 @@ class sgu(Learning_based_pipeline):
         This function identifies the non-zero indices in the K_arr array and creates a mask to compare these indices with the row array. 
         It then updates the node_cnt_sum array by iterating through the relevant indices and applying a condition to update the values.
         """
-
         non_zero_indices = np.where(K_arr > 0)[0]
 
         # 广播non_zero_indices到row数组的形状，然后比较是否相等
@@ -794,7 +777,6 @@ class sgu(Learning_based_pipeline):
         """
         Reprocesses the graph data by reindexing the nodes and edges for the training, validation, and test sets.
         """
-        
         train_new_index = 0
         val_new_index = 0
         test_new_index = 0

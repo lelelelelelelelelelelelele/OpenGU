@@ -149,13 +149,14 @@ class GUIDETrainer(BaseTrainer):
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
                 
                 avg_training_time = time_sum / self.args['num_epochs']
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)        
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)        
         return best_f1,avg_training_time
 
-    # @torch.no_grad
+    @torch.no_grad
     def test_node_minibatch(self):
         """
         Evaluates the GNN model's performance on the test set using a mini-batch approach.

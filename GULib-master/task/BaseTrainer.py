@@ -116,7 +116,6 @@ class BaseTrainer:
             return self.evaluate_edge_model()
         elif self.args["downstream_task"]=="graph":
             return self.evaluate_graph_model()
-
     def train_node(self,save=False,model_path=None):
         """
         Trains the model for node-level tasks.
@@ -182,7 +181,7 @@ class BaseTrainer:
                 out = self.model(self.data.x, self.data.train_edge_index)
 
             neg_edge_index = negative_sampling(
-                edge_index=self.data.train_edge_index,num_nodes=self.data.num_nodes,
+                edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
                 num_neg_samples=self.data.train_edge_index.size(1)
             )
             neg_edge_label = torch.zeros(neg_edge_index.size(1), dtype=torch.float32)
@@ -190,7 +189,7 @@ class BaseTrainer:
 
             edge_logits = self.decode(z=out, pos_edge_index=self.data.train_edge_index,neg_edge_index=neg_edge_index)
             # edge_logits = torch.sigmoid(edge_logits)
-            edge_labels = torch.cat((pos_edge_label,neg_edge_label),dim=-1)
+            edge_labels = torch.cat((pos_edge_label,neg_edge_label))
             edge_labels = edge_labels.to(self.device)
             loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels)
             # loss = self.get_loss(out)
@@ -208,10 +207,11 @@ class BaseTrainer:
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, F1_score, loss))
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time
 
     # def get_edge_loss(self,out,edge_index,reduction):
@@ -317,10 +317,11 @@ class BaseTrainer:
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, best_acc, loss))
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_acc,avg_training_time
     
     @torch.no_grad()
@@ -343,7 +344,7 @@ class BaseTrainer:
         if self.args["base_model"] == "SIGN":
             out = self.model(self.data.xs)
         else:
-            out = self.model(self.data.x, self.data.train_edge_index)
+            out = self.model(self.data.x, self.data.edge_index)
         neg_edge_index = negative_sampling(
             edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
             num_neg_samples=self.data.test_edge_index.size(1)
@@ -482,10 +483,11 @@ class BaseTrainer:
                         best_w = copy.deepcopy(self.model.state_dict())
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
         avg_training_time = time_sum / self.args['num_epochs']
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         
         return best_f1,avg_training_time
         # time_sum = 0
@@ -578,8 +580,8 @@ class BaseTrainer:
         self.model.reset_parameters()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
-        # if self.args['dataset_name'] == "ogbn-products":
-        #     self.model.adj = self.sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
+        if self.args['dataset_name'] == "ogbn-products":
+            self.model.adj = sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
         for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
             start_time = time.time()
@@ -605,11 +607,11 @@ class BaseTrainer:
 
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        if not model_path:
-            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
-        
+        if save:
+            if not model_path:
+                model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time
 
     @torch.no_grad()
@@ -943,3 +945,5 @@ class BaseTrainer:
             posteriors = self.decode(posteriors,pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).sigmoid()
             # print(posteriors)
         return posteriors.detach()
+    def get_softlabels(self):
+        return F.softmax(self.model(self.data.x,self.data.edge_index),dim=1)

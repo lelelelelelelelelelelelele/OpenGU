@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import time
+import copy
 import torch.nn.functional as F
 from tqdm import tqdm
 from torch_geometric.nn import CorrectAndSmooth
@@ -47,6 +48,7 @@ class megu(Learning_based_pipeline):
         self.logger = logger
         self.model_zoo = model_zoo
         self.data = self.model_zoo.data
+        self._data = copy.deepcopy(self.data)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.num_feats = self.data.num_features
         self.num_layers = self.args["GNN_layer"]
@@ -68,9 +70,8 @@ class megu(Learning_based_pipeline):
         initializes the target model using the get_trainer function with the 
         provided arguments, logger, model from the model zoo, and data.
         """
-
         self.args["unlearn_trainer"] = 'MEGUTrainer'
-        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self.data)
+        self.target_model = get_trainer(self.args,self.logger,self.model_zoo.model,self._data)
         
     def train_original_model(self):
         """
@@ -79,9 +80,10 @@ class megu(Learning_based_pipeline):
         If the 'poison' argument is set to True, it evaluates the target model and stores
         the F1 score for the current run.
         """
-
-        run_training_time, _ = self._train_model(self.run)
-        if self.args["poison"]:
+        self.logger.info('training target models, run %s' % self.run)
+        run_training_time,_ = self._train_model(self.run)
+        self.avg_training_time[self.run] = run_training_time
+        if self.args["poison"] and self.args["unlearn_task"]=="edge":
             self.poison_f1[self.run] = self.target_model.evaluate()
     def unlearning_request(self):
         """
@@ -91,7 +93,6 @@ class megu(Learning_based_pipeline):
         can be 'node', 'edge', or 'feature', and the function updates the graph 
         data accordingly.
         """
-
         self.data.x_unlearn = self.data.x.clone()
         self.data.edge_index_unlearn = self.data.edge_index.clone()
         edge_index = self.data.edge_index.cpu().numpy()
@@ -118,6 +119,7 @@ class megu(Learning_based_pipeline):
             self.data.x_unlearn[unique_nodes] = 0.
 
         self.temp_node = unique_nodes
+        self.target_model.data = self.data
 
     def unlearn(self):
         """
@@ -128,11 +130,10 @@ class megu(Learning_based_pipeline):
         3. Calls the target model's `megu_unlearning` method to unlearn the specified nodes and records the average unlearning time and F1 score.
         4. Performs a membership inference attack (MIA) and records the average AUC score.
         """
-
         self.adj = sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
         self.neighbor_khop = self.neighbor_select(self.data.x.cuda())
         self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
-        self.average_auc[self.run] = self.mia_attack()
+        # self.average_auc[self.run] = self.mia_attack()
         
 
     def get_softlabels(self):
@@ -144,7 +145,6 @@ class megu(Learning_based_pipeline):
         The function first checks the base model type specified in `self.args["base_model"]`. If the base model is "SIGN",
         it computes the output using `self.data.xs`. Otherwise, it uses `self.data.x` and `self.data.edge_index`.
         """
-
         if self.args["base_model"] == "SIGN":
             out = self.target_model.model(self.data.xs)
         else:
@@ -157,11 +157,9 @@ class megu(Learning_based_pipeline):
         """
         Trains the target model using the provided data and measures the training time.
         """
-
         # self.logger.info('training target models, run %s' % run)
 
         start_time = time.time()
-        self.target_model.data = self.data
         res = self.target_model.train()
         train_time = time.time() - start_time
         
@@ -180,7 +178,6 @@ class megu(Learning_based_pipeline):
         most influential nodes and then filters out the nodes that are within a k-hop 
         subgraph but not part of the unlearning nodes.
         """
-
         temp_features = features.clone()
         pfeatures = propagate(temp_features, self.num_layers, self.adj)
         reverse_feature = self.reverse_features(temp_features)
@@ -339,7 +336,6 @@ class megu(Learning_based_pipeline):
         specified edges. For the 'node' task, it removes all edges connected 
         to the specified nodes.
         """
-
         edge_index = self.data.edge_index.cpu().numpy()
 
         unique_indices = np.where(edge_index[0] < edge_index[1])[0]
@@ -378,7 +374,6 @@ class megu(Learning_based_pipeline):
         specified in the `self.temp_node` list. For each node in `self.temp_node`, the 
         feature value is subtracted from 1, effectively reversing it.
         """
-
         reverse_features = features.clone()
         for idx in self.temp_node:
             reverse_features[idx] = 1 - reverse_features[idx]
@@ -387,25 +382,33 @@ class megu(Learning_based_pipeline):
 
 
     
-    def mia_attack(self,mem_labels_o,non_labels_o,mem_labels,non_labels):
-        
-        mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
-        posterior1 = torch.cat((mem_labels_o, non_labels_o), 0).cpu().detach()
-        posterior2 = torch.cat((mem_labels, non_labels), 0).cpu().detach()
+    # def mia_attack(self,mem_labels_o,non_labels_o,mem_labels,non_labels):
+    #     mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
+    #     posterior1 = torch.cat((mem_labels_o, non_labels_o), 0).cpu().detach()
+    #     posterior2 = torch.cat((mem_labels, non_labels), 0).cpu().detach()
+    #     posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
+    #     # self.logger.info("posterior:{}".format(posterior))
+    #     auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+    #     self.average_auc[self.run] = auc
+    #     # self.logger.info("auc:{}".format(auc))
+    #     # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
+    #     return auc
+    
+    def mia_attack(self):
+        self.mia_num = self.args["num_unlearned_nodes"]
+        self.original_softlabels = F.softmax(self.target_model.model(
+            self.data.x,self.data.edge_index),dim=1).clone().detach().float()
+        original_softlabels_member = self.original_softlabels[self.unlearing_nodes]
+        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+        unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index)[self.unlearing_nodes],dim=1)
+        unlearning_softlabels_non = F.softmax(self.target_model.model(
+            self.data.x,self.data.edge_index)[self.data.test_indices[:self.mia_num]],dim=1)
+
+        mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
+        posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
+        posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
         posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
         # self.logger.info("posterior:{}".format(posterior))
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         self.average_auc[self.run] = auc
-        # self.logger.info("auc:{}".format(auc))
-        # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
         return auc
-    
-    def mia_attack(self):
-        shadow_model = GCNShadowModel(self.data.num_features,64 ,self.data.num_classes)
-        shadow_model = train_shadow_model(shadow_model,self.data)
-        soft_labels_train,soft_labels_test = generate_shadow_model_output(shadow_model,self.data)
-
-        attack_mdoel = train_attack_model(soft_labels_train,self.data.num_classes)
-        attack_auc_score = evaluate_attack_model(attack_mdoel,soft_labels_test)
-
-        return attack_auc_score

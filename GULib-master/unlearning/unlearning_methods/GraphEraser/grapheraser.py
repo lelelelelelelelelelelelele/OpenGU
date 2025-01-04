@@ -53,7 +53,7 @@ class grapheraser(Shard_based_pipeline):
         This function is designed to generate a training graph based on the specified downstream task.
         """
         if self.args["downstream_task"] != "graph":
-            edge_index = self.data.edge_index.numpy()
+            edge_index = self.data.edge_index.detach().cpu().numpy()
             if self.args["downstream_task"] == "node":
                 test_edge_indices = np.logical_or(np.isin(edge_index[0], self.data.test_indices),
                                                 np.isin(edge_index[1], self.data.test_indices))
@@ -130,7 +130,7 @@ class grapheraser(Shard_based_pipeline):
                     x = self.data.x
                     train_edge_index = torch.from_numpy(utils.filter_edge_index_3(self.data,shard_indices))
                     test_edge_index = self.data.test_edge_index
-                    edge_index = torch.cat([train_edge_index.cuda(),test_edge_index],dim=1)
+                    edge_index = torch.cat([train_edge_index.cuda(),test_edge_index.cuda()],dim=1)
                     y = self.data.y
                     data = Data(x=x, edge_index=edge_index, y=y)
                     data.train_edge_index = train_edge_index
@@ -241,9 +241,7 @@ class grapheraser(Shard_based_pipeline):
             self.data.test_mask = torch.from_numpy(np.isin(np.arange(self.data.num_nodes), self.data.test_indices))
 
     # def graph_partition(self):
-    #     """
-    #     This function is designed to partition the training graph into shards based on the specified partition.
-    #     """
+
     #     if self.args['is_partition']:
     #         self.logger.info('graph partitioning')
 
@@ -258,7 +256,7 @@ class grapheraser(Shard_based_pipeline):
     #     else:
     #         self.community_to_node = load_community_data(self.logger,config.community_path)
 
-        # self.logger.info(partition)
+    #     # self.logger.info(partition)
 
     def train_shard_model(self):
         """
@@ -289,9 +287,11 @@ class grapheraser(Shard_based_pipeline):
             else:
                 shuffle_num = torch.randperm(self.data.train_indices.size)
                 self.node_unlearning_indices = self.data.train_indices[shuffle_num][:self.args["num_unlearned_nodes"]]
+                
                 with open(path_un,mode="w") as file:
                     for node in self.node_unlearning_indices:
                         file.write(str(node) + '\n')
+            # self.logger.info(self.node_unlearning_indices)
         elif self.args["unlearn_task"] == "edge":
             path_un_edge = config.unlearning_edge_path + "_" + str(self.run) + ".txt"
             if os.path.exists(path_un_edge):
@@ -348,7 +348,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Performs attack-based unlearning based on specified tasks.
         """
-        
         if self.args["downstream_task"] == "graph":
             return
         if self.args["unlearn_task"] == "node":
@@ -364,7 +363,6 @@ class grapheraser(Shard_based_pipeline):
         This method retrieves shard data, training data, and the training graph. It also handles the train-test split,
         loads community-to-node mappings, and initializes the target model for node classification or other tasks.
         """
-
         if self.args["downstream_task"] != "graph":
             self.shard_data = dataset_utils.load_shard_data(self.logger)
             # self.raw_data = self.original_data.load_data()
@@ -387,7 +385,6 @@ class grapheraser(Shard_based_pipeline):
         posterior probabilities for both member (positive) and non-member (negative) samples, and evaluates
         the attack's performance using the average AUC metric.
         """
-        
         # load unlearned indices
         path_un = config.unlearning_path + "_" + str(self.run) + ".txt"
         with open(path_un) as file:
@@ -413,7 +410,6 @@ class grapheraser(Shard_based_pipeline):
         `unlearned_indices`. Depending on the configuration, it may also perform
         repartitioning of shard data and collect additional posterior probabilities.
         """
-
         # load unlearned data
         train_data = dataset_utils.load_unlearned_data(self.logger,'train_data')
         # load optimal weight score
@@ -447,7 +443,6 @@ class grapheraser(Shard_based_pipeline):
         This function iterates over all data shards and determines whether each shard is affected by the unlearning process.
         For affected shards, it loads the corresponding unlearned model; otherwise, it loads the standard model. 
         """
-
         posteriors = []
         for shard in range(self.args['num_shards']):
             if shard in self.affected_shard:
@@ -509,7 +504,6 @@ class grapheraser(Shard_based_pipeline):
         Evaluates the performance of attack models using posterior probabilities.
         This function constructs attack data by combining positive and negative posterior probabilities, calculates the L2 distance between different model posteriors, and evaluates the attack performance by computing the Area Under the Curve (AUC) metrics. The AUC results for each attack model are logged, and the primary attack AUC is stored in the provided average_auc dictionary.
         """
-        
         # constrcut attack data
         label = torch.cat((torch.ones(len(positive_posteriors[0])), torch.zeros(len(negative_posteriors[0]))))
         data={}
@@ -536,7 +530,6 @@ class grapheraser(Shard_based_pipeline):
         and computing the posterior distribution using the target model. 
         It then aggregates all posterior distributions by concatenating them and computing their mean.
         """
-        
         posteriors = []
         for shard in range(self.args['num_shards']):
             # self.target_model.model.reset_parameters()
@@ -559,7 +552,6 @@ class grapheraser(Shard_based_pipeline):
         Calculates the ROC AUC score to evaluate attack performance.
         This function computes the AUC score to assess the effectiveness of an attack by comparing the predicted data against the true labels.
         """
-
         from sklearn.metrics import roc_auc_score
         self.logger.info("Directly calculate the attack AUC")
         return roc_auc_score(label, data.reshape(-1, 1))
@@ -572,7 +564,6 @@ class grapheraser(Shard_based_pipeline):
         - 'l2_norm': Calculates the Euclidean (L2) norm between each pair of elements.
         - 'direct_diff': Computes the direct difference between elements.
         """
-
         if distance == 'l2_norm':
             return np.array([np.linalg.norm(data0[i] - data1[i]) for i in range(len(data0))])
         elif distance == 'direct_diff':
@@ -589,7 +580,6 @@ class grapheraser(Shard_based_pipeline):
         graph data. The updated shard data reflects the unlearning modifications, ensuring that
         the specified unlearning requirements are met.
         """
-
         shard_index  = int(0.5 * self.args["num_shards"])
         remove_shard = torch.randperm(self.args["num_shards"])[:shard_index]
         for shard in remove_shard:
@@ -633,7 +623,6 @@ class grapheraser(Shard_based_pipeline):
         of node IDs, updates training and testing masks, manages shard data after unlearning, and
         optionally repartitions the graph before retraining shard models.
         """
-        
         # reindex the node ids
         self.node_to_com = dataset_utils.c2n_to_n2c(self.args,self.community_to_node)
         train_indices_prune = list(self.node_to_com.keys())
@@ -743,7 +732,6 @@ class grapheraser(Shard_based_pipeline):
         This function updates the relevant data shards, identifies and retrains affected shard models, 
         saves the updated data, and aggregates evaluation metrics after unlearning.
         """
-
         self.node_to_com = dataset_utils.c2n_to_n2c(self.args,self.community_to_node)
         self.num_unlearned_edges = 0
         self.shard_data_after_unlearning = {}
@@ -802,7 +790,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Handles feature unlearning requests by nullifying specified node features. 
         """
-        
         # reindex the node ids
         self.node_to_com = dataset_utils.c2n_to_n2c(self.args,self.community_to_node)
         train_indices_prune = list(self.node_to_com.keys())
@@ -902,7 +889,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Repartitions the training graph and data using the provided suffix.
         """
-
         # load unlearned train_graph and train_data
         train_graph = dataset_utils.load_unlearned_data(self.logger,'train_graph')
         train_data = dataset_utils.load_unlearned_data(self.logger,'train_data')
@@ -921,7 +907,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Trains a shard-specific model using the unlearned training data.
         """
-
         self.logger.info('training target models, shard %s' % shard)
 
         # load shard data
@@ -943,7 +928,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Deletes a specified ratio of edges from the given edge index.
         """
-
         edge_index = edge_index.numpy()
 
         unique_indices = np.where(edge_index[0] < edge_index[1])[0]
@@ -968,7 +952,6 @@ class grapheraser(Shard_based_pipeline):
         connected component within the training graph, updates the training graph to this component,
         and logs the number of nodes and edges after pruning.
         """
-
         # extract the the maximum connected component
         self.logger.debug("Before Prune...  #. of Nodes: %f, #. of Edges: %f" % (
             self.train_graph.number_of_nodes(), self.train_graph.number_of_edges()))
@@ -982,7 +965,6 @@ class grapheraser(Shard_based_pipeline):
         """
         Trains the target models based on the provided run configuration.
         """
-
         if self.args['is_train_target_model']:
             self.logger.info('training target models')
 
@@ -997,12 +979,11 @@ class grapheraser(Shard_based_pipeline):
         Trains the target model using the specified run and data shard.
         This method logs the training initiation, assigns the unlearned shard data to the target model, and sets the model to training mode. It measures the training duration, saves the updated model, and returns the time taken for the training process.
         """
-
         self.logger.info('training target models, run %s, shard %s' % (run, shard))
 
         start_time = time.time()
         self.target_model.data = self.unlearned_shard_data[shard]
-        print("train_data:",self.target_model.data.edge_index)
+        # print("train_data:",self.target_model.data.edge_index)
         self.target_model.train()
 
 
@@ -1019,11 +1000,10 @@ class grapheraser(Shard_based_pipeline):
         and unlearned shard data. It generates posterior probabilities, performs the aggregation of data to 
         compute the F1 score, logs the final test F1 score, and returns the aggregated F1 score.
         """
-        
         self.logger.info('aggregating submodels')
 
         # posteriors, true_label = self.generate_posterior()
-        aggregator = Aggregator(run, self.target_model, self.train_data, self.unlearned_shard_data, self.args,self.logger)
+        aggregator = Aggregator(run, self.target_model, self.train_data, self.unlearned_shard_data, self.args,self.logger,self.affected_shard)
         aggregator.generate_posterior()
         self.aggregate_f1_score = aggregator.aggregate(self.data)
 
@@ -1035,8 +1015,7 @@ class grapheraser(Shard_based_pipeline):
         """
         Constructs a comprehensive graph by aggregating node features, edge indices, labels, and graph IDs from multiple communities.
         This function iterates through each community and its associated graphs, adjusts edge indices to maintain global consistency, and concatenates all node attributes into a single large graph represented by a `Data` object. The resulting graph includes node features (`x`), edge indices (`edge_index`), labels (`y`), and graph IDs (`graph_id`) to identify the origin of each node.
-        """
-
+        """           
         all_x = []             # 节点特征
         all_edge_index = []    # 边索引
         all_y = []             # 节点标签

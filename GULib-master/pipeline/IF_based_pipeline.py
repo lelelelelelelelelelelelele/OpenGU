@@ -1,5 +1,7 @@
+import torch
 import numpy as np
 from task import get_trainer
+from memory_profiler import profile
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class IF_based_pipeline:
@@ -81,6 +83,27 @@ class IF_based_pipeline:
         self.influence_edges = np.array([])
         self.num_feats = self.data.num_features
     
+    # @profile
+    def run_exp_mem(self):
+        """
+        Executes the experimental pipeline while profiling memory usage.
+
+        During each run, this method:
+
+        1. Seeds the random number generator for reproducibility.
+        2. Executes the partitioning step.
+        3. Trains the shard-based models.
+        4. Performs the unlearning step.
+
+        """
+        for self.run in range(self.args["num_runs"]):
+            self.determine_target_model()
+            self.train_original_model(self.run)
+            self.unlearning_request()
+            self.unlearn()
+            self.logger.info(f"Max Allocated: {torch.cuda.max_memory_allocated()/1024/1024}MB")
+            self.logger.info(f"Max Cached: {torch.cuda.max_memory_reserved()/1024/1024}MB")
+
     def run_exp(self):
         """
         Run the experimental process for multiple iterations, training and unlearning the model.

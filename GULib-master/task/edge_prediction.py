@@ -16,55 +16,7 @@ from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_sco
 
 
 class EdgePredictor:
-    """
-    EdgePredictor class for training and evaluating edge prediction models.
-
-    This class provides a framework for training Graph Neural Network (GNN) models to perform 
-    edge prediction tasks. It manages data preparation, model training, evaluation, and 
-    model persistence. The class supports different loss functions and can handle node, edge, 
-    and graph-level downstream tasks.
-
-    Class Attributes:
-        args (dict): Configuration parameters, including model type, dataset specifications, 
-                     training hyperparameters, unlearning settings, and other relevant settings.
-
-        data (dict): A dictionary containing datasets for training, validation, and testing.
-                     Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
-
-        device (torch.device): The computation device (CPU or GPU) on which the model 
-                               and data are loaded for training.
-
-        model_zoo (object): An object that contains the GNN model to be trained and its configuration.
-
-        model (torch.nn.Module): The neural network model that will be trained for edge prediction.
-
-        model_name (str): The name of the base model being used (e.g., "SIGN").
-
-        logger (logging.Logger): Logger object used to log training progress, metrics, 
-                                 and other important information.
-
-        alpha (float): Weighting factor used in the loss function to balance between 
-                       different components of the loss.
-    """
     def __init__(self, args, data, model_zoo, logger):
-        """
-        Initializes the EdgePredictor with the provided configuration, logger, model zoo, data, and alpha.
-
-        Args:
-            args (dict): Configuration parameters, including model type, dataset specifications, 
-                        training hyperparameters, unlearning settings, and other relevant settings.
-                        
-            logger (logging.Logger): Logger object used to log training progress, metrics, 
-                                     and other important information.
-                        
-            model_zoo (object): An object that contains the GNN model to be trained and its configuration.
-                        
-            data (dict): A dictionary containing datasets for training, validation, and testing.
-                         Expected keys include 'train_set', 'valid_set', 'test_set', and 'edges'.
-                        
-            alpha (float, optional): Weighting factor for balancing different loss components. 
-                                     Defaults to 0.5.
-        """
         self.args = args
         self.data = data
         self.data = self.split_edge(self.data)
@@ -75,19 +27,6 @@ class EdgePredictor:
         self.logger = logger
 
     def train_model(self, retrain=False):
-        """
-        Trains the edge prediction model.
-
-        This method initiates the training process. It prepares the data, sets the model to training 
-        mode, and iterates through epochs to optimize the model parameters based on the specified 
-        loss function. Periodically evaluates the model on the validation set and logs the performance.
-
-        Args:
-            retrain (bool, optional): Whether to retrain the model from scratch. Defaults to False.
-
-        Returns:
-            None
-        """
         self.data = self.split_edge(self.data)
         self.model.train()
         self.model.reset_parameters()
@@ -144,16 +83,7 @@ class EdgePredictor:
 
     @torch.no_grad()
     def evaluate_model(self):
-        """
-        Evaluates the model's performance on the validation set.
 
-        This method computes the F1 score based on the model's predictions and the true labels 
-        of the validation set. It performs a forward pass through the model, applies a sigmoid 
-        activation to the logits, and calculates the F1 score.
-
-        Returns:
-            float: The F1 score of the model on the validation set.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -168,30 +98,13 @@ class EdgePredictor:
         edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
         # edge_pred = torch.argmax(edge_pred_logits)
         edge_labels = self.data.val_edge_label
-        F1_score = f1_score(edge_labels.cpu(), edge_pred.cpu())
+        F1_score = roc_auc_score(edge_labels.cpu(), edge_pred.cpu())
         # Acc_score = accuracy_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
         # Recall_score = recall_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
         return F1_score
 
     @torch.no_grad()
     def eval_unlearning(self, features, unlearning_nodes, edge_mask=None):
-        """
-        Evaluates the model's performance on unlearning tasks.
-
-        This method assesses how well the model has unlearned specific nodes by comparing 
-        the predicted labels with the true labels for those nodes. It computes F1 score, 
-        accuracy, and recall.
-
-        Args:
-            features (torch.Tensor): Feature representations of the nodes.
-                
-            unlearning_nodes (list or torch.Tensor): Indices of the nodes to be unlearned.
-                
-            edge_mask (torch.Tensor, optional): Mask for edges, if applicable. Defaults to None.
-
-        Returns:
-            tuple: A tuple containing the F1 score, accuracy, and recall for the unlearned nodes.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -208,19 +121,6 @@ class EdgePredictor:
         return F1_score, Acc_score, Recall_score
 
     def split_edge(self, data):
-        """
-        Splits the edge data into training, validation, and testing sets.
-
-        This method uses the `RandomLinkSplit` function to divide the edges into training, 
-        validation, and testing subsets. It assigns the split edges and their labels back 
-        to the data object.
-
-        Args:
-            data (torch_geometric.data.Data): The original graph data containing all edges.
-
-        Returns:
-            torch_geometric.data.Data: The updated data object with split edges.
-        """
         # print(type(data.adj))
         temp = Data(x=data.x, y=data.y, edge_index=data.edge_index)
         train_data, val_data, test_data = RandomLinkSplit(num_val=0.2, num_test=0.1, is_undirected=True,
@@ -246,60 +146,16 @@ class EdgePredictor:
     #     return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
 
     def decode_val(self, z, edge_label_index):
-        """
-        Decodes the model's output logits for validation edge prediction.
-
-        This method computes the dot product between node embeddings for each edge in 
-        the validation set to obtain logits for edge existence.
-
-        Args:
-            z (torch.Tensor): Node embeddings from the model.
-                
-            edge_label_index (torch.Tensor): Indices of the edges in the validation set.
-
-        Returns:
-            torch.Tensor: Logits for the validation edges.
-        """
         # print(z.shape)
         return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
 
     def get_edge_labels(self, pos_edge_index, neg_edge_index):
-        """
-        Generates labels for positive and negative edges.
-
-        This method creates a label tensor where positive edges are labeled as 1 and 
-        negative edges are labeled as 0.
-
-        Args:
-            pos_edge_index (torch.Tensor): Indices of the positive (existing) edges.
-                
-            neg_edge_index (torch.Tensor): Indices of the negative (non-existing) edges.
-
-        Returns:
-            torch.Tensor: A tensor of edge labels.
-        """
         num_edges = pos_edge_index.size(1) + neg_edge_index.size(1)
         edge_labels = torch.zeros(num_edges, dtype=torch.float32, device=self.device)  # float32 or float
         edge_labels[:pos_edge_index.size(1)] = 1
         return edge_labels
 
     def save_model(self, save_path, model_dict=None):
-        """
-        Saves the model's state or a specific model dictionary to the specified file path.
-
-        This method saves the current state of the model or an optional custom model dictionary 
-        to a file. If the directory does not exist, it is created. The model is saved using 
-        PyTorch's `torch.save` method.
-
-        Args:
-            save_path (str): The path to the file where the model will be saved.
-                
-            model_dict (dict, optional): A specific model dictionary to save. If None, the model's 
-                                         current state is saved. Defaults to None.
-
-        Returns:
-            None
-        """
         with open(save_path, mode='w') as file:
             if model_dict is not None:
                 self.logger.info('saving best model {}'.format(save_path))
@@ -309,32 +165,11 @@ class EdgePredictor:
                 torch.save(self.model.state_dict(), save_path)
 
     def load_model(self, save_path):
-        """
-        Loads the model's state from the specified file path.
-
-        This method loads the model's state dictionary from a file using PyTorch's `torch.load` 
-        and applies it to the model.
-
-        Args:
-            save_path (str): The path to the file from which the model will be loaded.
-
-        Returns:
-            None
-        """
         # self.logger.info('loading model {}'.format(save_path))
         device = torch.device('cpu')
         self.model.load_state_dict(torch.load(save_path, map_location=device))
 
     def posterior_other(self):
-        """
-        Computes the model's posteriors for node-level tasks.
-
-        This method performs a forward pass through the model to compute the posteriors for node 
-        classification tasks. It applies log-softmax to the output based on the test mask.
-
-        Returns:
-            torch.Tensor: The log-softmax of the posteriors for the test set nodes.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -349,15 +184,6 @@ class EdgePredictor:
 
     @torch.no_grad()
     def evaluate_Del_model(self):
-        """
-        Evaluates the model's performance after unlearning.
-
-        This method assesses the model's performance by computing the F1 score, accuracy, 
-        and recall on the validation set after the unlearning process.
-
-        Returns:
-            tuple: A tuple containing the F1 score, accuracy, and recall of the model.
-        """
         # self.data = self.split_edge(self.data)
         self.model.eval()
         self.model = self.model.to(self.device)
@@ -418,21 +244,6 @@ class EdgePredictor:
     #     self.logger.info("best:{}".format(best_acc))
 
     def GIF_evaluate_unlearn_F1(self, new_parameters):
-        """
-        Evaluates the F1 score after applying Graph Influence Function (GIF) based unlearning.
-
-        This method updates the model's parameters with `new_parameters`, which are typically generated by 
-        the Graph Influence Function unlearning process. It performs a forward pass using the updated 
-        model to obtain edge predictions, and then calculates the F1 score by comparing the predicted 
-        edge labels against the true labels.
-
-        Args:
-            new_parameters (list of torch.Tensor or torch.Tensor): 
-                New model parameters to replace the current ones. 
-
-        Returns:
-            float: The F1 score of the model after applying the unlearning process.
-        """
         idx = 0
         for p in self.model.parameters():
             p.data = new_parameters[idx]
@@ -453,18 +264,6 @@ class EdgePredictor:
 
     @torch.no_grad()
     def evaluate_SGU_model(self, test_features):
-        """
-        Evaluates the model's performance after applying the SGU method.
-
-        This method computes the F1 score, accuracy, and recall based on the model's predictions 
-        and the true labels of the validation set.
-
-        Args:
-            test_features (torch.Tensor): Feature representations of the test nodes.
-
-        Returns:
-            tuple: A tuple containing the F1 score, accuracy, and recall of the model.
-        """
         self.model.eval()
         self.model = self.model.to(self.device)
         self.data = self.data.to(self.device)
@@ -484,15 +283,6 @@ class EdgePredictor:
         return F1_score, Acc_score, Recall_score
 
     def train_GUIDE_model(self):
-        """
-        Trains the GNN model in preparation for using the GUIDE (Guided Inductive Graph Unlearning) unlearning method.
-
-        This method handles the training loop, including loss computation, 
-        backpropagation, optimizer steps, and periodic logging of the training loss.
-        
-        Returns:
-            None
-        """
         self.data = self.split_edge(self.data)
         for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
             self.model.train()
@@ -512,16 +302,6 @@ class EdgePredictor:
             self.logger.info('Epoch: {:03d} | Loss: {:.4f}'.format(epoch + 1, loss))
 
     def train_UTU_model(self):
-        """
-        Trains the models in preparation for using the UTU (Unlink to Unlearn) method.
-
-        This method manages the training process, including data preparation, 
-        loss computation, backpropagation, optimizer steps, evaluation on the validation set, 
-        and saving the best model checkpoints based on validation loss improvements.
-
-        Returns:
-            None
-        """
         self.data = self.data.to(self.device)
         self.trainer_log = {
             'unlearning_model': self.args["unlearning_model"],
@@ -591,24 +371,6 @@ class EdgePredictor:
 
     @torch.no_grad()
     def UTU_eval(self, model, data, stage='val', pred_all=False):
-        """
-        Evaluates the model's performance after applying the Unlink to Unlearn (UTU) method.
-
-        This method assesses the model's performance by computing various metrics such as 
-        loss, AUC, and average precision on both destructive (DT) and defensive (DF) sets.
-
-        Args:
-            model (torch.nn.Module): The trained model to be evaluated.
-                
-            data (torch_geometric.data.Data): The dataset containing edge information.
-                
-            stage (str, optional): The evaluation stage, either 'val' or 'test'. Defaults to 'val'.
-                
-            pred_all (bool, optional): Whether to predict logits for all node pairs. Defaults to False.
-
-        Returns:
-            tuple: A tuple containing loss, DT AUC, DT AUP, DF AUC, DF AUP, DF logits, all pair logits, and log dictionary.
-        """
         model.eval()
         pos_edge_index = data[f'{stage}_pos_edge_index']
         neg_edge_index = data[f'{stage}_neg_edge_index']
@@ -680,23 +442,6 @@ class EdgePredictor:
         return loss, dt_auc, dt_aup, df_auc, df_aup, df_logit, None, log
     
     def decode(self, z, pos_edge_index, neg_edge_index=None):
-        """
-        Decodes the edge logits from node embeddings.
-
-        This method computes the dot product between node embeddings for each edge to obtain 
-        logits indicating the existence of edges. It can handle both positive and negative edges.
-
-        Args:
-            z (torch.Tensor): Node embeddings from the model.
-                
-            pos_edge_index (torch.Tensor): Indices of the positive (existing) edges.
-                
-            neg_edge_index (torch.Tensor, optional): Indices of the negative (non-existing) edges.
-                                                    Defaults to None.
-
-        Returns:
-            torch.Tensor: Logits for the specified edges.
-        """
         if neg_edge_index is not None:
             edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
             logits = (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)

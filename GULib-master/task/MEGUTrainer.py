@@ -100,7 +100,7 @@ class MEGUTrainer(BaseTrainer):
         self.neighbor_khop = neighbor_khop
         operator = GATE(self.data.num_classes).to(self.device)
         optimizer = torch.optim.SGD(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
-        self.data = self.data.cuda()
+        self.data = self.data.to(self.device)
             
 
         with torch.no_grad():
@@ -192,7 +192,7 @@ class MEGUTrainer(BaseTrainer):
             neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
             edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
             test_f1 = roc_auc_score(edge_labels.cpu(), edge_pred.cpu())
-
+        self.logger.info("Unlearning time: %.4f, Test F1: %.4f"%(unlearn_time, test_f1))
         return unlearn_time, test_f1
     
     

@@ -12,6 +12,7 @@ from utils.dataset_utils import *
 # from pipeline.Shard_based_components.Aggregation.aggregator_guide import Aggregator_GUIDE
 # from pipeline.Shard_based_components.Partition.kernel_vector import PyramidMatchVector
 from task import get_trainer
+from memory_profiler import profile
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 
@@ -87,11 +88,11 @@ class Shard_based_pipeline:
 
         """
         for self.run in range(self.args["num_runs"]):
-            seed_everything(2024 + self.run)
             self.exp_partition()
             self.exp_train()
             self.exp_unlearn()
-            
+            self.logger.info(f"Max Allocated: {torch.cuda.max_memory_allocated()/1024/1024}MB")
+            self.logger.info(f"Max Cached: {torch.cuda.max_memory_reserved()/1024/1024}MB")
             
     def run_exp(self):
         """
@@ -147,15 +148,11 @@ class Shard_based_pipeline:
             
     def exp_partition(self):
         """
-        Executes the partitioning step of the pipeline.
-
-        This step:
-
-        - Generates training graphs.
-        - Partitions the graphs into *num_shards* shards.
-        - Generates shard data for further training.
-
-        Suitable for methods like GraphEraser and GraphEvoker.
+        Basic Data Partition -> *num_shard* shards
+        
+        Applied for GraphEraser, GraphEevoker
+        
+        GUIDE with different method.
         """
         self.args["exp"] = "partition"
         self.gen_train_graph()
@@ -165,15 +162,10 @@ class Shard_based_pipeline:
     
     def exp_train(self):
         """
-        Executes the training step of the pipeline.
-
-        This step:
-
-        - Loads the training data.
-        - Determines the target model for training.
-        - Trains shard-based models.
-        - Aggregates the results from all shard models.
-        """       
+        Basic Unlearn Training
+        
+        Get original model
+        """
         self.args["exp"] = "unlearning"
         self.load_data()
         self.determine_target_model()
@@ -183,18 +175,12 @@ class Shard_based_pipeline:
         pass
     def exp_unlearn(self):
         """
-        Executes the unlearning and attack evaluation steps.
-
-        This step:
-
-        - Generates unlearning requests.
-        - Performs the unlearning process.
-        - Evaluates the effectiveness of unlearning through attacks.
+        Evaluate Unlearning and Attack_Unlearning
         """
         self.args["exp"] = "attack_unlearning"
         self.generate_requests()
         self.unlearn()
-        self.attack_unlearning()
+        # self.attack_unlearning()
             
             
     def gen_train_graph(self):
@@ -228,33 +214,14 @@ class Shard_based_pipeline:
         pass
     
     
-def seed_everything(seed_value):
-    """
-    Sets the random seed for reproducibility across multiple libraries and environments.
+# def seed_everything(seed_value):
+#     random.seed(seed_value)
+#     np.random.seed(seed_value)
+#     torch.manual_seed(seed_value)
+#     os.environ['PYTHONHASHSEED'] = str(seed_value)
 
-    This function ensures that the random seed is consistently applied to Python's `random` module,
-    NumPy, PyTorch (both CPU and GPU), and the Python hash function. It also configures PyTorch's
-    CuDNN backend for deterministic behavior.
-
-    Args:
-
-        seed_value (int): The seed value to be set for all random number generators.
-
-    Behavior:
-
-        - Seeds the `random` module.
-        - Seeds NumPy's random number generator.
-        - Seeds PyTorch's random number generator for both CPU and GPU.
-        - Sets the `PYTHONHASHSEED` environment variable for consistent hashing.
-        - Configures PyTorch CuDNN backend for deterministic behavior.
-    """
-    random.seed(seed_value)
-    np.random.seed(seed_value)
-    torch.manual_seed(seed_value)
-    os.environ['PYTHONHASHSEED'] = str(seed_value)
-
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed_value)
-        torch.cuda.manual_seed_all(seed_value)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = True
+#     if torch.cuda.is_available():
+#         torch.cuda.manual_seed(seed_value)
+#         torch.cuda.manual_seed_all(seed_value)
+#         torch.backends.cudnn.deterministic = True
+#         torch.backends.cudnn.benchmark = True

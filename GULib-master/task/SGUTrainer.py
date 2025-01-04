@@ -128,7 +128,8 @@ class SGUTrainer(BaseTrainer):
         else:
             model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] +"/"+ self.args["downstream_task"]+ "/" + \
                          self.args["base_model"]
-        self.save_model(model_path,best_w)
+        if save:
+            self.save_model(model_path,best_w)
         self.logger.info("best:{}".format(best_acc))
 
 
@@ -367,9 +368,10 @@ class SGUTrainer(BaseTrainer):
         self.logger.info('Best Unlearning: F1_score: {:.4f}'.format(best))
         average_f1[run] = best
         
-        save_path = root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt"
-        with open(save_path,'w') as file:
-            self.save_model(save_path,best_w)
+        # save_path = root_path + "/data/model/node_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt"
+        # with open(save_path,'w') as file:
+        #     self.save_model(save_path,best_w)
+        self.model.load_state_dict(best_w)
 
         return best
     
@@ -519,10 +521,10 @@ class SGUTrainer(BaseTrainer):
         self.logger.info('Best Unlearning: F1_score: {:.4f}'.format(best))
         average_f1[run] = best
         
-        save_path = root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt"
-        with open(save_path,'w') as file:
-            self.save_model(save_path,best_w)
-
+        # save_path = root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt"
+        # with open(save_path,'w') as file:
+        #     self.save_model(save_path,best_w)
+        self.model.load_state_dict(best_w)
         return best
     
     def SGU_eval_edge(self,test_features):
@@ -545,7 +547,7 @@ class SGUTrainer(BaseTrainer):
         if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
             z = test_features
         else:
-            z = self.model(self.data.x,self.data.train_edge_index)
+            z = self.model(self.data.x,self.data.edge_index)
         neg_edge_index = negative_sampling(
                 edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
                 num_neg_samples=self.data.test_edge_index.size(1)

@@ -37,7 +37,6 @@ class gnndelete(Learning_based_pipeline):
 
         model_zoo (ModelZoo): Collection of models available for training and evaluation.
     """
-
     def __init__(self,args,logger,model_zoo):
         super().__init__(args,logger,model_zoo)
         self.args= args
@@ -63,7 +62,6 @@ class gnndelete(Learning_based_pipeline):
         for unlearning by configuring the unlearning trainer and loading the model from the
         model zoo.
         """
-
         if self.args["base_model"] == "SGC":
             propagation = SGConv(self.data.num_features,self.data.num_classes,K=3,bias=False)
             features_pre = propagation.forward_SGU(self.data.x,self.data.edge_index)
@@ -85,9 +83,10 @@ class gnndelete(Learning_based_pipeline):
         """
         Trains the original target model and get the original soft labels for the dataset.
         """
-
-        self.target_model.train(save=True)
+        self.target_model.train(save=False)
         self.data = self.data.to(self.device)
+        if self.args["poison"] and self.args["unlearn_task"]=="edge":
+            self.poison_f1[self.run] = self.target_model.evaluate()
         if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
             self.original_softlabels = F.softmax(self.target_model.model(self.data.features_pre), dim=1)
         else:
@@ -376,7 +375,6 @@ class gnndelete(Learning_based_pipeline):
         It updates the model's masks to exclude these nodes, handles the creation of subgraphs, and manages the retraining or adjustment of the GNN model based on the selected unlearning strategy. 
         Additionally, it evaluates the updated model's performance and conducts membership inference attacks to assess the effectiveness of the unlearning process.
         """
-        
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -445,7 +443,7 @@ class gnndelete(Learning_based_pipeline):
 
 
 
-        self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
+        model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
 
         if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
             if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
@@ -454,10 +452,13 @@ class gnndelete(Learning_based_pipeline):
                     logits_ori = logits_ori.to(self.device)
             else:
                 logits_ori = None
-
-            model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/" ,self.args["dataset_name"],self.args["downstream_task"] ,self.args["base_model"]), map_location=self.device)
+            
+            model_ckpt = self.target_model.model.state_dict()
+            model.load_state_dict(model_ckpt, strict=False)
+            self.target_model.model = model
+            # model_ckpt = torch.load(os.path.join(root_path + "/data/model/node_level/" ,self.args["dataset_name"],self.args["downstream_task"] ,self.args["base_model"]), map_location=self.device)
             # model.load_state_dict(model_ckpt['model_state'], strict=False)
-            self.target_model.model.load_state_dict(model_ckpt, strict=False)
+            # self.target_model.model.load_state_dict(model_ckpt, strict=False)
 
         else:  # Initialize a new GNN model
             retrain = None
@@ -554,9 +555,11 @@ class gnndelete(Learning_based_pipeline):
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
 
         if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
-            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes]),dim =1)
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes],sdf_node_1hop[df_nodes],sdf_node_2hop[df_nodes]),dim =1)
             unlearning_softlabels_non = F.softmax(self.target_model.model(
-                self.data.features_pre[self.data.test_indices[:self.mia_num]]),dim = 1)
+                self.data.features_pre[self.data.test_indices[:self.mia_num]],
+                sdf_node_1hop[self.data.test_indices[:self.mia_num]],
+                sdf_node_2hop[self.data.test_indices[:self.mia_num]]),dim = 1)
         else:
             unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x, self.data.edge_index)[
                 df_nodes],dim = 1)
@@ -571,7 +574,7 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        plot_auc(mia_test_y, posterior.reshape(-1, 1))
 
     def delete_edge(self):
         """
@@ -582,7 +585,6 @@ class gnndelete(Learning_based_pipeline):
         Additionally, it sets up optimizers for the deletion process, logs relevant metrics, 
         and ensures the model is correctly loaded and moved to the appropriate device.
         """
-
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_edge'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -647,7 +649,7 @@ class gnndelete(Learning_based_pipeline):
         self.data.dtrain_mask = dr_mask_edge
 
         self.target_model.model = self.model_zoo.get_model(sdf_node_1hop, sdf_node_2hop, num_nodes=self.data.num_nodes)
-        model_path  = os.path.join(root_path + "/data/model/edge_level/" ,self.args["dataset_name"], self.args["base_model"])
+        model_path  = os.path.join(root_path + "/data/model/edge_level/" ,self.args["dataset_name"], self.args['downstream_task'],self.args["base_model"])
         if self.args["unlearning_model"] != 'retrain':  # Start from trained GNN model
             if os.path.exists(os.path.join(original_path, 'pred_proba.pt')):
                 logits_ori = torch.load(os.path.join(original_path, 'pred_proba.pt'))
@@ -715,7 +717,6 @@ class gnndelete(Learning_based_pipeline):
         neural network. It sets the features of these nodes to zero, updates relevant masks for nodes
         and edges, and prepares the data for unlearning operations.
         """
-
         self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node_feature'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
@@ -862,5 +863,5 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        plot_auc(mia_test_y, posterior.reshape(-1, 1))
         

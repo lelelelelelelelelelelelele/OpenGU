@@ -83,7 +83,6 @@ class D2DGNTrainer(BaseTrainer):
             return self.d2dgn_train_edge(preserver_knowledge,destroyer_knowledge,loss_fn,save)
         elif self.args["downstream_task"]=="graph":
             return self.d2dgn_train_graph(preserver_knowledge,destroyer_knowledge,loss_fn,save)
-        
     def d2dgn_train_node(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
         """
         Trains the model for node-level tasks.
@@ -124,7 +123,6 @@ class D2DGNTrainer(BaseTrainer):
                 if self.args["base_model"] == "SIGN":
                     out = self.model(self.data.xs)
                 else:
-                    
                     out = self.model(self.data.x, self.data.edge_index)
                 out = F.log_softmax(out,dim=-1)
                 # print(out[self.data.keep_mask].shape)
@@ -164,9 +162,10 @@ class D2DGNTrainer(BaseTrainer):
 
         avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        if save:
+            model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+            os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+            self.save_model(model_path,best_w)
         return best_f1,avg_training_time
     
 
@@ -283,18 +282,14 @@ class D2DGNTrainer(BaseTrainer):
 
         avg_training_time = time_sum 
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
-        os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        self.save_model(model_path,best_w)
+        # model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + self.args["base_model"]
+        # os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
+        # self.save_model(model_path,best_w)
         return best_f1,avg_training_time
     
     
-    def d2dgn_train_graph(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
-        """
-        Trains the model for graph-level tasks.
-
-        Incomplete method. To be implemented in future versions.
-        """
+    # def d2dgn_train_graph(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
         
-        pass
+        
+    #     pass
         
