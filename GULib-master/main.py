@@ -24,8 +24,8 @@ from unlearning_manager import UnlearningManager
 from config import unlearning_path
 import sys 
 import os
-import copy
-import optuna
+# import copy
+# import optuna
 
 
 def seed_everything(seed_value):

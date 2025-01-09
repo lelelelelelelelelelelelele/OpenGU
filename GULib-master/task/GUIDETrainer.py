@@ -156,7 +156,7 @@ class GUIDETrainer(BaseTrainer):
             self.save_model(model_path,best_w)        
         return best_f1,avg_training_time
 
-    @torch.no_grad
+    @torch.no_grad()
     def test_node_minibatch(self):
         """
         Evaluates the GNN model's performance on the test set using a mini-batch approach.

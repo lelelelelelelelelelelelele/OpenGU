@@ -70,9 +70,9 @@ def parameter_parser():
     parser.add_argument('--sparsity_ratio', type=float, default=0.1, help="sparsity ratio")
 
     #modelMin
-    parser.add_argument('--base_model', type=str, default='SGC', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'Cluster_GCN', "GCN", "GIN",
+    parser.add_argument('--base_model', type=str, default='GCN', choices=["SIGN", "SGC","S2GC","SAGE", "GAT", 'Cluster_GCN', "GCN", "GIN",
                                                                           "GST","SAINT","Projector","Cheb","APPNP","GCN2","GATv2","TAG","LightGCN"])
-    parser.add_argument('--unlearning_methods', type=str, default='ScaleGUN',
+    parser.add_argument('--unlearning_methods', type=str, default='SGU',
                         choices=['GraphEraser', 'GUIDE', 'GNNDelete', 'CEU', "GIF", "SGU","CGU","GST","Projector","MEGU","GraphRevoker","UTU","GUKD","D2DGN","IDEA","ScaleGUN"])
     parser.add_argument('--train_ratio', type=float, default=0.8)
     parser.add_argument('--val_ratio', type=float, default=0)

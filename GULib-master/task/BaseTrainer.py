@@ -554,7 +554,7 @@ class BaseTrainer:
         f1 = f1_score(y[self.data.test_mask.cpu()], y_pred[self.data.test_mask.cpu()], average="micro")
         return f1
     
-    @torch.no_grad
+    @torch.no_grad()
     def test_node_minibatch(self):
         """
         Evaluates the model for node-level tasks using mini-batch testing.
