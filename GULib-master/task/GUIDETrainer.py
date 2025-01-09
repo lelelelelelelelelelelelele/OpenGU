@@ -134,14 +134,14 @@ class GUIDETrainer(BaseTrainer):
             self.optimizer.zero_grad()
             for data in loader:
                 data = data.to(self.device)
-                out = self.model(data.x, data.edge_index)  # 其他模型
+                out = self.model(data.x, data.edge_index)
                 loss = F.cross_entropy(out[data.train_mask], data.y[data.train_mask])
                 loss.backward()
                 self.optimizer.step()
             time_sum += time.time() - start_time
             
             if (epoch + 1) % self.args["test_freq"] == 0:
-                f1 = self.test_node_minibatch()  # 使用适当的测试方法
+                f1 = self.test_node_minibatch()
                 if f1 > best_f1:
                     best_f1 = f1
                     if save:
@@ -167,24 +167,22 @@ class GUIDETrainer(BaseTrainer):
         Returns:
             float: The micro-averaged F1-score of the model on the test set.
         """
-        self.model.eval()  # 设置模型为评估模式
-        loader = GraphSAINTNodeSampler(self.data, batch_size=256)  # 创建测试阶段的采样器
-        all_preds = []  # 用于存储所有预测值
-        all_labels = []  # 用于存储所有真实标签
+        self.model.eval()
+        loader = GraphSAINTNodeSampler(self.data, batch_size=256) 
+        all_preds = [] 
+        all_labels = []
 
         for data in loader:
             data = data.to(self.device)
-            out = self.model(data.x, data.edge_index)  # 前向传播
-            pred = out.argmax(dim=1)  # 获取预测类别
-            # 仅选择测试集上的预测和标签
+            out = self.model(data.x, data.edge_index)
+            pred = out.argmax(dim=1) 
+
             all_preds.append(pred[data.test_mask].cpu())
             all_labels.append(data.y[data.test_mask].cpu())
 
-        # 将分批次预测和真实标签拼接
         all_preds = torch.cat(all_preds, dim=0).detach().cpu().numpy()
         all_labels = torch.cat(all_labels, dim=0).detach().cpu().numpy()
 
-        # 计算 F1-score (支持多分类，average 可选 'micro', 'macro', 'weighted')
         f1 = f1_score(all_labels, all_preds, average='micro')
 
         return f1

@@ -156,7 +156,7 @@ class GUKDTrainer(BaseTrainer):
         self.data = self.data.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
         z_t = z_t.to(self.device)
-        # print(self.data.test_edge_index.shape)
+
         neg_edge_index = negative_sampling(
                 edge_index=self.data.train_edge_index,num_nodes=self.data.num_nodes,
                 num_neg_samples=self.data.train_edge_index.size(1)

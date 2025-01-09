@@ -287,9 +287,4 @@ class D2DGNTrainer(BaseTrainer):
         # self.save_model(model_path,best_w)
         return best_f1,avg_training_time
     
-    
-    # def d2dgn_train_graph(self,preserver_knowledge,destroyer_knowledge,loss_fn,save=False):
-        
-        
-    #     pass
         

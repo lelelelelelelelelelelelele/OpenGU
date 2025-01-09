@@ -6,12 +6,6 @@ import random
 from utils import dataset_utils
 from utils import utils
 from utils.dataset_utils import *
-
-# from pipeline.Shard_based_components.Partition.graph_partition import GraphPartition
-# from pipeline.Shard_based_components.Aggregation.aggregator import Aggregator
-# from pipeline.Shard_based_components.Aggregation.aggregator_guide import Aggregator_GUIDE
-# from pipeline.Shard_based_components.Partition.kernel_vector import PyramidMatchVector
-from task import get_trainer
 # from memory_profiler import profile
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
@@ -121,8 +115,6 @@ class Shard_based_pipeline:
             self.exp_train()
             self.exp_unlearn()
             
-            
-                # 输出带有红色文字的日志
         self.logger.info(
             "{}Performance Metrics:\n"
             " - Poison F1 Score: {:.4f} ± {:.4f}\n"

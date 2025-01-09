@@ -95,8 +95,7 @@ class BaseTrainer:
         elif self.args["downstream_task"]=="graph":
             self.train_loader = DataLoader(self.data[0], batch_size=64, shuffle=False)
             self.test_loader = DataLoader(self.data[1], batch_size=64, shuffle=False)
-            # self.train_loader = self.gen_loader(mode="train",batch_size=64)
-            # self.test_loader = self.gen_loader(mode="test",batch_size=64)
+
             return self.train_graph(save,model_path)
 
     def evaluate(self):
@@ -188,16 +187,15 @@ class BaseTrainer:
             pos_edge_label = torch.ones(self.data.train_edge_index.size(1),dtype=torch.float32)
 
             edge_logits = self.decode(z=out, pos_edge_index=self.data.train_edge_index,neg_edge_index=neg_edge_index)
-            # edge_logits = torch.sigmoid(edge_logits)
+
             edge_labels = torch.cat((pos_edge_label,neg_edge_label))
             edge_labels = edge_labels.to(self.device)
             loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels)
-            # loss = self.get_loss(out)
             loss.backward()
             self.optimizer.step()
             self.best_valid_acc = 0
             time_sum += time.time() - start_time
-            # print(loss.item())
+
             if (epoch + 1) % self.args["test_freq"] == 0:
                 F1_score = self.evaluate_edge_model()
                 if F1_score > best_f1:
@@ -214,19 +212,7 @@ class BaseTrainer:
             self.save_model(model_path,best_w)
         return best_f1,avg_training_time
 
-    # def get_edge_loss(self,out,edge_index,reduction):
-    #     neg_edge_index = negative_sampling(
-    #             edge_index=edge_index,num_nodes=out.shape[0],
-    #             num_neg_samples=edge_index.size(1)
-    #         )
-    #     neg_edge_label = torch.zeros(neg_edge_index.size(1), dtype=torch.float32)
-    #     pos_edge_label = torch.ones(edge_index.size(1),dtype=torch.float32)
-    #     edge_logits = self.decode(z=out, pos_edge_index=edge_index,neg_edge_index=neg_edge_index)
-    #     edge_labels = torch.cat((pos_edge_label,neg_edge_label),dim=-1)
-    #     edge_labels = edge_labels.to(self.device)
-    #     loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels,reduction=reduction)
-    #     return loss
-        
+
     def split_edge(self, data):
         """
         Splits the edges of the graph into training, validation, and test sets.
@@ -338,7 +324,7 @@ class BaseTrainer:
         """
         self.model.eval()
         self.model = self.model.to(self.device)
-        # self.data.edge_index = torch.tensor(self.data.edge_index,dtype=torch.long)
+
         self.data = self.data.to(self.device)
 
         if self.args["base_model"] == "SIGN":
@@ -349,21 +335,17 @@ class BaseTrainer:
             edge_index=self.data.edge_index,num_nodes=self.data.num_nodes,
             num_neg_samples=self.data.test_edge_index.size(1)
         )
-        # print(out.shape,self.data.test_edge_index,neg_edge_index)
+
         edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index).sigmoid()
-        
-        # edge_pred_logits = torch.sigmoid(edge_pred_logits*2-1)
-        # edge_pred_logits = edge_pred_logits.cpu()
+
         edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
         edge_pred = edge_pred_logits.cpu()
-        # edge_pred = torch.argmax(edge_pred_logits)
-        # edge_labels = self.data.test_edge_labels
+
         pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
         neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
         edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
         AUC_score = roc_auc_score(edge_labels.cpu(), edge_pred.cpu())
-        # Acc_score = accuracy_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
-        # Recall_score = recall_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
+
         return AUC_score
 
     def decode(self, z, pos_edge_index, neg_edge_index=None):
@@ -490,72 +472,7 @@ class BaseTrainer:
             self.save_model(model_path,best_w)
         
         return best_f1,avg_training_time
-        # time_sum = 0
-        # best_f1 = 0
-        # best_w = 0
-        # self.model.train()
-        # self.model.reset_parameters()
-        # self.model = self.model.to(self.device)
-        # self.data = self.data.to(self.device)
 
-        # # 构建 NeighborLoader
-        # edge_index = self.data.edge_index
-        # train_mask = self.data.train_mask
-        # batch_size = 2048  # minibatch大小
-        # sizes = [10, 10]  # 每层采样的邻居数
-
-        # # 使用 NeighborLoader 构建数据加载器
-        # loader = NeighborLoader(
-        #     self.data,
-        #     num_neighbors=sizes,
-        #     batch_size=batch_size,
-        #     shuffle=True,
-        #     input_nodes=self.data.train_mask,  # 只从训练节点开始采样
-        # )
-
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model.config.lr, weight_decay=self.model.config.decay)
-        
-        # for epoch in tqdm(range(self.args['num_epochs']), desc="BaseTraining", unit="epoch"):
-        #     start_time = time.time()
-        #     self.model.train()
-        #     self.optimizer.zero_grad()
-
-        #     # 遍历 NeighborLoader 生成的 mini-batch
-        #     for batch in loader:
-        #         # batch = batch.to(self.device)
-        #         # batch: 当前batch，包含了子图的数据
-        #         # batch.x, batch.edge_index, batch.y 是该子图中的节点特征、边和标签
-        #         if self.args["base_model"] == "SIGN":
-        #             out = self.model(batch.xs)  # SIGN模型
-        #         else:
-        #             out = self.model(batch.x, batch.edge_index)  # 其他模型
-
-        #         # 计算损失：仅使用训练集的mask部分进行计算
-        #         loss = F.cross_entropy(out[batch.train_mask], batch.y[batch.train_mask])
-        #         loss.backward()
-        #         self.optimizer.step()
-
-        #     time_sum += time.time() - start_time
-
-        #     # 在指定的频率下进行测试
-        #     if (epoch + 1) % self.args["test_freq"] == 0:
-        #         f1 = self.test_node_minibatch()  # 使用适当的测试方法
-        #         if f1 > best_f1:
-        #             best_f1 = f1
-        #             if save:
-        #                 best_w = copy.deepcopy(self.model.state_dict())
-        #         self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, f1, loss))
-
-        # avg_training_time = time_sum / self.args['num_epochs']
-        # self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
-        
-        # if not model_path:
-        #     model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"]  +"/"+self.args["downstream_task"]+"/" + self.args["base_model"]
-        
-        # os.makedirs(root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"], exist_ok=True)
-        # self.save_model(model_path, best_w)
-        
-        # return best_f1, avg_training_time
     def train_node_fullbatch(self,save=False,model_path=None):
         """
         Trains the model for node-level tasks using full-batch training.
@@ -648,19 +565,16 @@ class BaseTrainer:
         Returns:
             float: The F1 score on the test set using mini-batch evaluation.
         """
-        self.model.eval()  # 设置模型为评估模式
-        all_preds = []  # 用于存储所有预测值
-        all_labels = []  # 用于存储所有真实标签
+        self.model.eval()
+        all_preds = []
+        all_labels = []
 
         for data in self.loader:
             data = data.to(self.device)
-            out = self.model(data.x, data.edge_index)  # 前向传播
-            pred = out.argmax(dim=1)  # 获取预测类别
-            # 仅选择测试集上的预测和标签
+            out = self.model(data.x, data.edge_index)
+            pred = out.argmax(dim=1) 
             all_preds.append(pred[data.test_mask].cpu())
             all_labels.append(data.y[data.test_mask].cpu())
-
-        # 将分批次预测和真实标签拼接
         all_preds = torch.cat(all_preds, dim=0).numpy()
         all_labels = torch.cat(all_labels, dim=0).numpy()
 
@@ -743,8 +657,6 @@ class BaseTrainer:
             model_dict (dict, optional): A specific model dictionary to save. If None, the model's current state is saved. Defaults to None.
         """
         folder_path = os.path.dirname(save_path)
-
-        # 检查文件夹是否存在，如果不存在则创建
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
@@ -823,8 +735,6 @@ class BaseTrainer:
             z, f = self._inference()
 
         if return_features:
-        #     return z[self.data_full.test_mask], f[self.data_full.test_mask]
-        # return z[self.data_full.test_mask, :]
             return z[self.data.test_mask], f[self.data.test_mask]
         return z[self.data.test_mask, :]
     

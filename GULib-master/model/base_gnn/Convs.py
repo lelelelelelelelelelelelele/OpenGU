@@ -70,7 +70,6 @@ class S2GConv(MessagePassing):
         self.reset_parameters()
 
     def reset_parameters(self):
-        #self.lin.reset_parameters()
         self._cached_x = None
 
     def forward_SGU(self, x: Tensor, edge_index: Adj,
@@ -90,22 +89,18 @@ class S2GConv(MessagePassing):
             x_set = []
             alpha = 0.05
             output = alpha * x
-            #temp_edge_index, edge_weight = dropout_adj(edge_index, 0.5)
             for k in range(self.K):
                 x = self.propagate(edge_index, x=x, edge_weight=edge_weight,
                                    size=None)
-                # x_set.append(x)
                 output = output + (1. / self.K) * x
-            # x = torch.stack(x_set,2)
-            # alpha = 0.05
-            # x = (1-alpha)*torch.mean(x,2).squeeze() + alpha*x_ori
+
             x = output
             if self.cached:
                 self._cached_x = x
         else:
             x = cache
 
-        return x#self.lin(x)
+        return x
 
     def forward(self, x: Tensor, edge_index: Adj,
                 edge_weight: OptTensor = None) -> Tensor:
@@ -124,15 +119,13 @@ class S2GConv(MessagePassing):
             x_set = []
             alpha = 0.05
             output = alpha * x
-            #temp_edge_index, edge_weight = dropout_adj(edge_index, 0.5)
+
             for k in range(self.K):
                 x = self.propagate(edge_index, x=x, edge_weight=edge_weight,
                                    size=None)
                 # x_set.append(x)
                 output = output + (1. / self.K) * x
-            # x = torch.stack(x_set,2)
-            # alpha = 0.05
-            # x = (1-alpha)*torch.mean(x,2).squeeze() + alpha*x_ori
+
             x = output
             if self.cached:
                 self._cached_x = x
@@ -323,14 +316,12 @@ from torch_geometric.utils.sparse import set_sparse_value
 @torch.jit._overload
 def gcn_norm(edge_index, edge_weight, num_nodes, improved, add_self_loops,
              flow, dtype):
-    # type: (Tensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> OptPairTensor  # noqa
     pass
 
 
 @torch.jit._overload
 def gcn_norm(edge_index, edge_weight, num_nodes, improved, add_self_loops,
              flow, dtype):
-    # type: (SparseTensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> SparseTensor  # noqa
     pass
 
 

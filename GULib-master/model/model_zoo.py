@@ -40,8 +40,6 @@ class model_zoo(abstract_model):
         self.args = args
         self.data = data
         self.determine_model()
-        # if self.args["unlearning_methods"] != "GST":
-        #     self.model_config = model_config(args)
 
 
     def determine_model(self):
@@ -91,19 +89,15 @@ class model_zoo(abstract_model):
             return SIGNNet(self.args,num_feats, num_classes, num_layers=3)
         elif self.args['base_model'] == 'GST':
             return GeometricScattering(self.args["J"], self.args["Q"], self.args["L"]).to(self.device)
-        # elif self.args['base_model'] == 'Projector':
-        #     return Pro_GNN(num_feats+1, num_classes+1,self.device,self.args)
-        # elif self.args['base_model']=="GUKD":
-        #     return GCNII(num_feats, num_classes,num_layers=3)
         else:
             raise Exception('unsupported target models')
 
 
 
 
-    #Code for GNNDelete
+
     def get_model(self,mask_1hop=None, mask_2hop=None, num_nodes=None, num_edge_type=None):
-        #print("get_model:{}".format(self.args["unlearning_model"]))
+
         if 'gnndelete' in self.args["unlearning_model"]:
             model_mapping = {'GCN': GCNDelete, 'GAT': GATDelete, 'GIN': GINDelete,'SAGE':SAGEDelete,"SGC":SGCDelete,"S2GC":S2GCDelete,"SIGN":SIGNDelete,"SAINT":SAINTDelete}
             return model_mapping[self.args["base_model"]](self.args,self.data.num_features, self.data.num_classes,
@@ -112,7 +106,6 @@ class model_zoo(abstract_model):
             model_mapping = {'GCN': GCNNet, 'GAT': GATNet, 'GIN': GINNet,'SAGE':SAGENet,"SGC":SGCNet,"S2GC":S2GCNet,"SIGN":SIGNNet,"SAINT":SAINTNet}
             return model_mapping[self.args["base_model"]](self.args,self.data.num_features, self.data.num_classes)
 
-    # Code for GNNDelete
     def CEU_get_model(self):
         embedding_size = self.args['emb_dim'] if self.data['features'] is None else self.data['features'].shape[1]
         model = CEU_GNN(self.data['num_nodes'], embedding_size,

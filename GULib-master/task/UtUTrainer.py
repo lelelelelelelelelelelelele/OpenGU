@@ -53,22 +53,7 @@ class UtUTrainer(BaseTrainer):
         self.logit_all_pair = None
         self.df_pos_edge = []
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # def freeze_unused_mask(self, model, edge_to_delete, subgraph, h):
-    #     gradient_mask = torch.zeros_like(delete_model.operator)
-    #
-    #     edges = subgraph[h]
-    #     for s, t in edges:
-    #         if s < t:
-    #             gradient_mask[s, t] = 1
-    #     gradient_mask = gradient_mask.to(device)
-    #     model.operator.register_hook(lambda grad: grad.mul_(gradient_mask))
-
-    # def train(self, optimizer, logits_ori=None, attack_model_all=None, attack_model_sub=None):
-    #     if 'ogbl' in self.args["dataset_name"]:
-    #         return self.train_fullbatch(self.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
-
-    #     else:
-    #         return self.train_fullbatch(self.model, self.data, optimizer, self.args, logits_ori, attack_model_all, attack_model_sub)
+    
 
     def train_UTU_model(self, optimizer, logits_ori=None, attack_model_all=None,
                         attack_model_sub=None):
@@ -348,11 +333,6 @@ class UtUTrainer(BaseTrainer):
             df_auc = np.nan
             df_aup = np.nan
 
-        # Logits for all node pairs
-        # if pred_all and stage == 'test':
-        #     logit_all_pair = (z @ z.t()).cpu()
-        # else:
-        #     logit_all_pair = None
 
         log = {
             f'{stage}_loss': loss,

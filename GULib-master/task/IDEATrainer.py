@@ -110,15 +110,13 @@ class IDEATrainer(BaseTrainer):
             edge_index=self.data.test_edge_index,num_nodes=self.data.num_nodes,
             num_neg_samples=self.data.test_edge_index.size(1)
         )
-        # print(out.shape,self.data.test_edge_index,neg_edge_index)
+
         edge_pred_logits = self.decode(z=out, pos_edge_index=self.data.test_edge_index,neg_edge_index=neg_edge_index)
         
         edge_pred_logits = torch.sigmoid(edge_pred_logits)
-        # edge_pred_logits = edge_pred_logits.cpu()
-        # edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
+
         edge_pred = edge_pred_logits.cpu()
-        # edge_pred = torch.argmax(edge_pred_logits)
-        # edge_labels = self.data.test_edge_labels
+
         pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
         neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
         edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
@@ -138,11 +136,6 @@ class IDEATrainer(BaseTrainer):
         Returns:
             tuple: Gradients computed for the entire model, specific unlearning targets, and additional components.
         """
-        # self.logger.info("training model")
-        # self.model.train()
-        # self.model.reset_parameters()
-        # self.model, self.data = self.model.to(self.device), self.data.to(self.device)
-        # self.data.y = self.data.y.squeeze().to(self.device)
         self._gen_train_loader()
         # self.train()
         if self.args["downstream_task"]=="node":

@@ -70,28 +70,4 @@ class GINNet(abstract_model):
         return  x
         
 
-    #GIF
-    # def forward_once(self, data):
-    #     x = F.relu(self.convs[0](data.x, data.edge_index))
-    #     x = self.bn[0](F.dropout(x, p=0.5, training=self.training))
-    #     x = self.convs[1](x, data.edge_index)
-    #     x = self.bn[1](x)
-    #     x = F.relu(self.fc1(x))
-    #     x = F.dropout(x, p=0.5, training=self.training)
-    #     x = self.fc2(x)
-
-    #     # return F.log_softmax(x, dim=1)
-    #     return F.softmax(x, dim=1)
-
-
-    # def forward_once_unlearn(self, data):
-    #     x = F.relu(self.convs[0](data.x_unlearn, data.edge_index_unlearn))
-    #     x = self.bn[0](F.dropout(x, p=0.5, training=self.training))
-    #     x = self.convs[1](x, data.edge_index_unlearn)
-    #     x = self.bn[1](x)
-    #     x = F.relu(self.fc1(x))
-    #     x = F.dropout(x, p=0.5, training=self.training)
-    #     x = self.fc2(x)
-
-    #     return F.log_softmax(x, dim=1)
     

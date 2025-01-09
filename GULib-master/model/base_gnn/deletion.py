@@ -20,8 +20,6 @@ class DeletionLayer(nn.Module):
         self.dim = dim
         self.mask = mask
         self.deletion_weight = nn.Parameter(torch.ones(dim, dim) / 1000)
-        # self.deletion_weight = nn.Parameter(torch.eye(dim, dim))
-        # init.xavier_uniform_(self.deletion_weight)
     
     def forward(self, x, mask=None):
         '''Only apply deletion operator to the local nodes identified by mask'''

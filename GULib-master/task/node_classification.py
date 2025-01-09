@@ -41,7 +41,7 @@ class NodeClassifier:
         self.data = self.data.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model_zoo.model.config.lr, weight_decay=self.model_zoo.model.config.decay)
         time_sum = 0
-        # for epoch in range(self.args['num_epochs']):
+
         for epoch in tqdm(range(self.args['num_epochs']), desc="Training", unit="epoch"):
             start_time = time.time()
             self.model.train()
@@ -50,7 +50,7 @@ class NodeClassifier:
                 out = self.model(self.data.xs)
             else:
                 out = self.model(self.data.x,self.data.edge_index)
-            # print(out.shape,self.data.train_mask.shape,self.data.y.shape)
+
             loss = F.cross_entropy(out[self.data.train_mask],self.data.y[self.data.train_mask])
             
             
@@ -60,8 +60,6 @@ class NodeClassifier:
             time_sum += time.time() - start_time
 
             if (epoch+1) % self.args["test_freq"] == 0:
-                # if self.args["unlearning_methods"] == 'GNNDelete':
-                    # self.GNNDelete_eval(epoch,retrain)
                 
                 F1_score = self.evaluate_model()
                 self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, F1_score, loss))
@@ -83,8 +81,6 @@ class NodeClassifier:
         y_pred = np.argmax(y_pred, axis=1)
         F1_score = f1_score(y[self.data.test_mask.cpu()], y_pred[self.data.test_mask.cpu()], average="micro")
         
-        # Acc_score = accuracy_score(y_true=y[self.data.test_mask.cpu()], y_pred=y_pred[self.data.test_mask.cpu()])
-        # Recall_score = recall_score(y_true=y[self.data.test_mask.cpu()], y_pred=y_pred[self.data.test_mask.cpu()],average="micro")
         return F1_score
 
 
@@ -124,7 +120,7 @@ class NodeClassifier:
         else:
             model_path = root_path + "/data/model/" + self.args["unlearn_task"] + "_level/" + self.args["dataset_name"] + "/" + \
                          self.args["base_model"]
-        # self.save_model(model_path,best_w)
+
         self.logger.info("best:{}".format(best_acc))
 
 
@@ -456,40 +452,6 @@ class NodeClassifier:
             self.trainer_log['mi_logit_sub_before'] = mi_logit_sub_before
             self.trainer_log['mi_sucrate_sub_before'] = mi_sucrate_sub_before
 
-        # All node paris in S_Df without Df
-        ## S_Df 1 hop all pair mask
-        # sdf1_all_pair_mask = torch.zeros(data.num_nodes, data.num_nodes, dtype=torch.bool)
-        # idx = torch.combinations(torch.arange(data.num_nodes)[data.sdf_node_1hop_mask], with_replacement=True).t()
-        # sdf1_all_pair_mask[idx[0], idx[1]] = True
-        # sdf1_all_pair_mask[idx[1], idx[0]] = True
-
-        # assert sdf1_all_pair_mask.sum().cpu() == data.sdf_node_1hop_mask.sum().cpu() * data.sdf_node_1hop_mask.sum().cpu()
-
-        # ## Remove Df itself
-        # sdf1_all_pair_mask[data.train_pos_edge_index[:, data.df_mask][0], data.train_pos_edge_index[:, data.df_mask][1]] = False
-        # sdf1_all_pair_mask[data.train_pos_edge_index[:, data.df_mask][1], data.train_pos_edge_index[:, data.df_mask][0]] = False
-
-        # ## S_Df 2 hop all pair mask
-        # sdf2_all_pair_mask = torch.zeros(data.num_nodes, data.num_nodes, dtype=torch.bool)
-        # idx = torch.combinations(torch.arange(data.num_nodes)[data.sdf_node_2hop_mask], with_replacement=True).t()
-        # sdf2_all_pair_mask[idx[0], idx[1]] = True
-        # sdf2_all_pair_mask[idx[1], idx[0]] = True
-
-        # assert sdf2_all_pair_mask.sum().cpu() == data.sdf_node_2hop_mask.sum().cpu() * data.sdf_node_2hop_mask.sum().cpu()
-
-        # ## Remove Df itself
-        # sdf2_all_pair_mask[data.train_pos_edge_index[:, data.df_mask][0], data.train_pos_edge_index[:, data.df_mask][1]] = False
-        # sdf2_all_pair_mask[data.train_pos_edge_index[:, data.df_mask][1], data.train_pos_edge_index[:, data.df_mask][0]] = False
-
-        # ## Lower triangular mask
-        # idx = torch.tril_indices(data.num_nodes, data.num_nodes, -1)
-        # lower_mask = torch.zeros(data.num_nodes, data.num_nodes, dtype=torch.bool)
-        # lower_mask[idx[0], idx[1]] = True
-
-        # ## The final mask is the intersection
-        # sdf1_all_pair_without_df_mask = sdf1_all_pair_mask & lower_mask
-        # sdf2_all_pair_without_df_mask = sdf2_all_pair_mask & lower_mask
-
         non_df_node_mask = torch.ones(data.x.shape[0], dtype=torch.bool, device=data.x.device)
         non_df_node_mask[data.directed_df_edge_index.flatten().unique()] = False
 
@@ -520,12 +482,8 @@ class NodeClassifier:
                 z1, z2 = model(data.features_pre, return_all_emb=True)
             else:    
                 z1, z2 = model(data.x, data.edge_index[:, data.sdf_mask], return_all_emb=True)
-            # print('current deletion weight', model.deletion1.deletion_weight.sum(), model.deletion2.deletion_weight.sum())
-            # print('aaaaaa', z[data.sdf_node_2hop_mask].sum())
 
-            # Randomness
             pos_edge = data.edge_index[:, data.df_mask]
-            # neg_edge = torch.randperm(data.num_nodes)[:pos_edge.view(-1).shape[0]].view(2, -1)
 
             embed1 = torch.cat([z1[pos_edge[0]], z1[pos_edge[1]]], dim=0)
             embed1_ori = torch.cat([z1_ori[neg_edge[0]], z1_ori[neg_edge[1]]], dim=0)
@@ -621,10 +579,6 @@ class NodeClassifier:
         self.trainer_log['dt_loss'] = loss
         self.trainer_log['dt_acc'] = dt_acc
         self.trainer_log['dt_f1'] = dt_f1
-        # self.trainer_log['df_logit'] = df_logit
-        # self.logit_all_pair = logit_all_pair
-        # self.trainer_log['df_auc'] = df_auc
-        # self.trainer_log['df_aup'] = df_aup
 
         if model_retrain is not None:  # Deletion
             self.trainer_log['ve'] = self.verification_error(model, model_retrain).cpu().item()
@@ -678,9 +632,7 @@ class NodeClassifier:
                                                                        self.args["random_seed"]]]))
                 os.makedirs(retrain_path, exist_ok=True)
                 torch.save(ckpt, retrain_path + '/model_best.pt')
-        # self.logger.info(
-        #     'epoch: {}  valid_loss = {} dt_acc = {} dt_f1 = {} valid_log = {}'.format(epoch, valid_loss, dt_acc, dt_f1,
-        #                                                                               valid_log))
+        
         self.logger.info('Epoch: {:03d} | F1 Score: {:.4f} | Loss: {:.4f}'.format(epoch + 1, dt_f1, valid_loss))
 
 
@@ -711,12 +663,6 @@ class NodeClassifier:
         if self.device == 'cpu':
             model = model.to('cpu')
 
-        # if hasattr(data, 'dtrain_mask'):
-        #     mask = data.dtrain_mask
-        # else:
-        #     mask = data.dr_mask
-        #z = F.log_softmax(model(data.x, data.edge_index), dim=1)
-
         # DT AUC AUP
         if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args["base_model"] == "SIGN":
             z = self.model(self.data.features_pre)
@@ -728,46 +674,6 @@ class NodeClassifier:
         dt_acc = accuracy_score(data.y[data.val_mask].cpu(), pred)
         recall = recall_score(data.y[data.val_mask].cpu(), pred,average='micro')
         dt_f1 = f1_score(data.y[data.val_mask].cpu(), pred, average='micro')
-
-        # DF AUC AUP
-        # if self.args.unlearning_model in ['original', 'original_node']:
-        #     df_logit = []
-        # else:
-        #     df_logit = model.decode(z, data.directed_df_edge_index).sigmoid().tolist()
-
-        # if len(df_logit) > 0:
-        #     df_auc = []
-        #     df_aup = []
-
-        #     # Sample pos samples
-        #     if len(self.df_pos_edge) == 0:
-        #         for i in range(500):
-        #             mask = torch.zeros(data.train_pos_edge_index[:, data.dr_mask].shape[1], dtype=torch.bool)
-        #             idx = torch.randperm(data.train_pos_edge_index[:, data.dr_mask].shape[1])[:len(df_logit)]
-        #             mask[idx] = True
-        #             self.df_pos_edge.append(mask)
-
-        #     # Use cached pos samples
-        #     for mask in self.df_pos_edge:
-        #         pos_logit = model.decode(z, data.train_pos_edge_index[:, data.dr_mask][:, mask]).sigmoid().tolist()
-
-        #         logit = df_logit + pos_logit
-        #         label = [0] * len(df_logit) +  [1] * len(df_logit)
-        #         df_auc.append(roc_auc_score(label, logit))
-        #         df_aup.append(average_precision_score(label, logit))
-
-        #     df_auc = np.mean(df_auc)
-        #     df_aup = np.mean(df_aup)
-
-        # else:
-        #     df_auc = np.nan
-        #     df_aup = np.nan
-
-        # Logits for all node pairs
-        # if pred_all:
-        #     logit_all_pair = (z @ z.t()).cpu()
-        # else:
-        #     logit_all_pair = None
 
         log = {
             f'{stage}_loss': loss,
@@ -795,12 +701,6 @@ class NodeClassifier:
         self.logger.debug("generating posteriors")
         self.model, self.data = self.model.to(self.device), self.data.to(self.device)
         self.model.eval()
-
-        # self._gen_test_loader()
-        # if self.model_name in ['GCN',"SGC","S2GC"] and self.args["unlearning_methods"] == "GIF":
-        #     posteriors = self.model.GIF_inference(self.data.x, self.test_loader, self.edge_weight, self.device)
-        # elif self.model_name in ["SIGN"] and self.args["unlearning_methods"] == "GIF":
-        #     posteriors = self.model.GIF_inference(self.data)
         
         if self.args["unlearning_methods"] == "GraphRevoker":
             z, f = self._inference()
@@ -864,12 +764,9 @@ class NodeClassifier:
         data.edge_index_train = None
         data_full.edge_index_train = None
 
-        # to_sparse = T.ToSparseTensor()
-        # self.data = to_sparse(data)
         self.data.edge_index = input_data.edge_index_train
         self.data.edge_index_train = None
         self.data_full = data_full
-        # self.data_full = to_sparse(data_full)
         
         if self.args['is_use_train_batch']:
             self.gen_train_loader()
@@ -879,11 +776,9 @@ class NodeClassifier:
     def gen_train_loader(self):
         assert not self.data is None
 
-        #self.logger.info("generate train loader")
         self.train_loader = NeighborLoader(self.data, input_nodes=self.data.train_mask,
                                            num_neighbors=[15, 10], batch_size=self.args['batch_size'], 
                                            shuffle=True, num_workers=0, drop_last=True)
-        #self.logger.info("generate train loader finish")
 
     def gen_test_loader(self):
         assert not self.data_full is None
@@ -891,60 +786,6 @@ class NodeClassifier:
         self.test_loader = NeighborLoader(self.data_full, input_nodes=None,
                                           num_neighbors=[15, 10], batch_size=self.args['test_batch_size'], 
                                           shuffle=False, num_workers=0)
-
-
-    # def _gen_test_loader(self):
-    #     test_indices = np.nonzero(self.data.test_mask.cpu().numpy())[0]
-
-    #     if not self.args['use_test_neighbors']:
-    #         edge_index = utils.filter_edge_index(self.data.edge_index, test_indices, reindex=False)
-    #     else:
-    #         edge_index = self.data.edge_index
-
-    #     if edge_index.shape[1] == 0:
-    #         edge_index = torch.tensor([[1, 3], [3, 1]])
-
-    #     self.test_loader = NeighborSampler(
-    #         edge_index, node_idx=None,
-    #         sizes=[-1], num_nodes=self.data.num_nodes,
-    #         # sizes=[5], num_nodes=self.data.num_nodes,
-    #         batch_size=self.args['test_batch_size'], shuffle=False,
-    #         num_workers=0)
-    #     # self.test_loader = NeighborSampler(
-    #     #     edge_index, node_idx=None,
-    #     #     sizes=[-1], num_nodes=self.data.num_nodes,
-    #     #     # sizes=[5], num_nodes=self.data.num_nodes,
-    #     #     batch_size=self.args['test_batch_size'], shuffle=False,
-    #     #     num_workers=0)
-
-    #     if self.model_name == 'GCN':
-    #         _, self.edge_weight = gcn_norm(self.data.edge_index, edge_weight=None, num_nodes=self.data.x.shape[0],
-    #                                        add_self_loops=False)
-    # def _gen_train_loader(self):
-    #     self.logger.info("generate train loader")
-    #     train_indices = np.nonzero(self.data.train_mask.cpu().numpy())[0]
-    #     edge_index = utils.filter_edge_index(self.data.edge_index, train_indices, reindex=False)
-    #     if edge_index.shape[1] == 0:
-    #         edge_index = torch.tensor([[1, 2], [2, 1]])
-
-    #     self.train_loader = NeighborSampler(
-    #         edge_index, node_idx=self.data.train_mask,
-    #         sizes=[5, 5], num_nodes=self.data.num_nodes,
-    #         batch_size=self.args['batch_size'], shuffle=True,
-    #         num_workers=0)
-
-    #     if self.model_name in ['GCN','SGC','S2GC']:
-    #         _, self.edge_weight = gcn_norm(self.data.edge_index, edge_weight=None, num_nodes=self.data.x.shape[0],
-    #                                        add_self_loops=False)
-
-    #         if self.args["GIF_method"] in ["GIF", "IF"]:
-    #             _, self.edge_weight_unlearn = gcn_norm(
-    #                 self.data.edge_index_unlearn,
-    #                 edge_weight=None,
-    #                 num_nodes=self.data.x.shape[0],
-    #                 add_self_loops=False)
-
-    #     self.logger.info("generate train loader finish")
 
     @torch.no_grad()
     def verification_error(self,model1, model2):
@@ -976,7 +817,6 @@ class NodeClassifier:
                 torch.save(self.model.state_dict(), save_path)
 
     def load_model(self, save_path):
-        # self.logger.info('loading model {}'.format(save_path))
         device = torch.device('cpu')
         self.model.load_state_dict(torch.load(save_path, map_location=device))
 

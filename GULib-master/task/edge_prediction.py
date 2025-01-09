@@ -71,15 +71,6 @@ class EdgePredictor:
         avg_training_time = time_sum / self.args['num_epochs']
         self.logger.info("Average training time per epoch: {:.4f}s".format(avg_training_time))
 
-    # def get_loss(self, out, reduction="none"):
-    #     # neg_edge_index = negative_sampling(
-    #     #         edge_index=self.data.train_edge_index,num_nodes=self.data.num_nodes,
-    #     #         num_neg_samples=self.data.train_edge_label_index.size(1)
-    #     #     )
-    #     edge_logits = self.decode(z=out, edge_index=self.data.train_edge_label_index)
-    #     edge_labels = self.data.train_edge_label
-    #     loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels, reduction=reduction)
-    #     return loss
 
     @torch.no_grad()
     def evaluate_model(self):
@@ -96,11 +87,10 @@ class EdgePredictor:
         edge_pred_logits = self.decode_val(z=out, edge_label_index=edge_label_index)
         edge_pred_logits = edge_pred_logits.cpu()
         edge_pred = torch.where(edge_pred_logits > 0.5, torch.tensor(1), torch.tensor(0))
-        # edge_pred = torch.argmax(edge_pred_logits)
+
         edge_labels = self.data.val_edge_label
         F1_score = roc_auc_score(edge_labels.cpu(), edge_pred.cpu())
-        # Acc_score = accuracy_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
-        # Recall_score = recall_score(y_true=edge_labels.cpu(),y_pred=edge_pred.cpu())
+
         return F1_score
 
     @torch.no_grad()
@@ -121,7 +111,6 @@ class EdgePredictor:
         return F1_score, Acc_score, Recall_score
 
     def split_edge(self, data):
-        # print(type(data.adj))
         temp = Data(x=data.x, y=data.y, edge_index=data.edge_index)
         train_data, val_data, test_data = RandomLinkSplit(num_val=0.2, num_test=0.1, is_undirected=True,
                                                           add_negative_train_samples=True)(temp)
@@ -137,16 +126,11 @@ class EdgePredictor:
         data.train_edge_label_index = train_data.edge_label_index
         data.test_edge_label_index = test_data.edge_label_index
         data.val_edge_label_index = val_data.edge_label_index
-        # print(train_data.edge_label.shape)
 
         return data
 
-    # def decode(self, z, edge_index):
-    #     # edge_index = torch.cat([pos_edge_index, neg_edge_index], dim=-1)
-    #     return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
 
     def decode_val(self, z, edge_label_index):
-        # print(z.shape)
         return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
 
     def get_edge_labels(self, pos_edge_index, neg_edge_index):
@@ -203,45 +187,6 @@ class EdgePredictor:
         Acc_score = accuracy_score(y_true=edge_labels.cpu(), y_pred=edge_pred.cpu())
         Recall_score = recall_score(y_true=edge_labels.cpu(), y_pred=edge_pred.cpu())
         return F1_score, Acc_score, Recall_score
-
-    # def train_SGU_model(self, retrain=False):
-    #     self.model.train()
-    #     self.model.reset_parameters()
-    #     self.model = self.model.to(self.device)
-    #     self.data = self.data.to(self.device)
-    #     self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.model_zoo.model.config.lr,
-    #                                       weight_decay=self.model_zoo.model.config.decay)
-    #     start_time = time.time()
-    #     best_acc = 0
-    #     best_w = 0
-    #     for epoch in range(self.args['num_epochs']):
-    #         self.model.train()
-    #         self.optimizer.zero_grad()
-    #         neg_edge_index = negative_sampling(
-    #             edge_index=self.data.train_edge_index, num_nodes=self.data.num_nodes,
-    #             num_neg_samples=self.data.train_edge_label_index.size(1)
-    #         )
-    #         if self.args["base_model"] == "SGC" or self.args["base_model"] == "S2GC" or self.args[
-    #             "base_model"] == "SIGN":
-    #             out = self.model(self.data.pre_features[self.data.train_indices])
-    #         else:
-    #             out = self.model(self.data.x, self.data.train_edge_index)
-    #         edge_logits = self.decode(z=out, edge_index=self.data.train_edge_label_index)
-    #         edge_labels = self.get_edge_labels(self.data.train_edge_label_index, neg_edge_index)
-    #         # edge_labels = edge_labels.to(self.device)
-    #         loss = F.binary_cross_entropy_with_logits(edge_logits, edge_labels)
-    #         loss.backward()
-    #         self.optimizer.step()
-
-    #         if (epoch + 1) % self.args["test_freq"] == 0:
-    #             F1_score, Accuracy, Recall = self.evaluate_SGU_model(self.data.pre_features[self.data.test_indices])
-    #             self.logger.info(
-    #                 'epoch: {}  F1_score = {}  Accuracy = {}  Recall = {}'.format(epoch, F1_score, Accuracy, Recall))
-    #             if Accuracy > best_acc:
-    #                 best_acc = Accuracy
-    #                 best_w = copy.deepcopy(self.model.state_dict())
-
-    #     self.logger.info("best:{}".format(best_acc))
 
     def GIF_evaluate_unlearn_F1(self, new_parameters):
         idx = 0

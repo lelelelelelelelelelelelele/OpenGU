@@ -744,9 +744,8 @@ class GNNDeleteTrainer(BaseTrainer):
         self.trainer_log['dt_acc'] = dt_acc
         self.trainer_log['dt_f1'] = dt_f1
 
-        if model_retrain is not None:    # Deletion
+        if model_retrain is not None: 
             self.trainer_log['ve'] = self.verification_error(model, model_retrain).cpu().item()
-            # self.trainer_log['dr_kld'] = output_kldiv(model, model_retrain, data=data).cpu().item()
 
         # MI Attack after unlearning
         if attack_model_all is not None:

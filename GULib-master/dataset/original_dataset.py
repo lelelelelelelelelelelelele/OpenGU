@@ -236,47 +236,11 @@ class original_dataset:
         elif self.args["dataset_name"] in ["AIDS","BZR","COX2","DD","MUTAG","PROTEINS","PTC_MR","ENZYMES","NCI1","DHFR","IMDB-BINARY","IMDB-MULTI","COLLAB"]:
             dataset = TUDataset(root=root_path + '/data/raw',name=self.args["dataset_name"],use_node_attr=True,use_edge_attr=True)
             
-            # # 初始化大图的属性
-            # all_x = []             # 节点特征
-            # all_edge_index = []    # 边索引
-            # all_y = []             # 节点标签
-            # all_graph_id = []      # 每个节点所属的图ID标签，用于标识节点来源
-
-            # node_offset = 0        # 用于跟踪节点索引偏移量
-
-            # # 遍历数据集中的每个图
-            # for i, data in enumerate(dataset):
-            #     # 收集节点特征和标签
-            #     all_x.append(data.x)
-            #     all_y.append(data.y)
-                
-            #     # 调整边索引以适应全局大图
-            #     edge_index = data.edge_index + node_offset
-            #     all_edge_index.append(edge_index)
-                
-            #     # 将每个节点的图ID记录下来
-            #     all_graph_id.append(torch.full((data.num_nodes,), i, dtype=torch.long))
-                
-            #     # 更新节点偏移量
-            #     node_offset += data.num_nodes
-
-            # # 将所有节点特征、边索引和标签进行拼接
-            # big_x = torch.cat(all_x, dim=0)
-            # big_edge_index = torch.cat(all_edge_index, dim=1)
-            # big_y = torch.cat(all_y, dim=0)
-            # big_graph_id = torch.cat(all_graph_id, dim=0)
-
-            # # 构建大图的 Data 对象
-            # big_graph = Data(x=big_x, edge_index=big_edge_index, y=big_y, graph_id=big_graph_id)
-            # data = big_graph
             data = dataset
             return data,dataset
         else:
             raise Exception('unsupported dataset')
 
-        # data = SIGN(self.args["GNN_layer"])(data)
-        # data.xs = [data.x] + [data[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
-        # data.adj = self.edge2graph(data.edge_index)
         data = T.ToUndirected()(data)
         data.name = self.dataset_name
         if not hasattr(data, 'num_classes'):
@@ -311,13 +275,8 @@ class original_dataset:
             scipy.sparse.csr_matrix: The adjacency matrix of the graph, represented in sparse CSR format.
 
         """
-        # 创建一个空的无向图
         G = nx.Graph()
-
-        # 将边添加到图中
         G.add_edges_from(edge_index.t().tolist())
-
-        # 获取图的邻接矩阵
         adj_matrix = nx.adjacency_matrix(G)
 
 
@@ -445,7 +404,6 @@ class WikiPages(InMemoryDataset):
         node_feature_list = []
         node_label_list = []
         with open(node_feature_label_path, 'r') as file:
-            # Skip the header
             next(file)
             for line in file:
                 node_id, feature, label = line.strip().split('\t')

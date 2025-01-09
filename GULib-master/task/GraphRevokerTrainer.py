@@ -101,14 +101,13 @@ class GraphRevokerTrainer(BaseTrainer):
                 - torch.Tensor: Log-softmax probabilities for each node.
                 - torch.Tensor: Extracted node features.
         """
-        # assert not self.data is None and not self.data_full is None
+
 
         self.model.eval()
         self.model = self.model.to(self.device)
-        # self.data_full = self.data.to(self.device) if no_test_edges else self.data_full.to(self.device)
+    
         self.data = self.data.to(self.device) 
         
-        # z, feat = self.model(self.data_full.x, self.data_full.edge_index, return_feature=True)
         z, feat = self.model(self.data.x, self.data.edge_index, return_feature=True)
 
         return F.log_softmax(z,dim=1), feat
@@ -136,13 +135,11 @@ class GraphRevokerTrainer(BaseTrainer):
         data.edge_index_train = None
         data_full.edge_index_train = None
 
-        # to_sparse = T.ToSparseTensor()
-        # self.data = to_sparse(data)
         self.data.edge_index = input_data.edge_index_train
         self.data.train_edge_index = input_data.edge_index_train
         self.data.edge_index_train = None
         self.data_full = data_full
-        # self.data_full = to_sparse(data_full)
+
         
         if self.args['is_use_train_batch']:
             self.gen_train_loader()

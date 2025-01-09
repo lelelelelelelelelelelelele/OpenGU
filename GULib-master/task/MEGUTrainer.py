@@ -141,20 +141,7 @@ class MEGUTrainer(BaseTrainer):
             else:
                 loss_u = criterionKD(out_ori[self.temp_node], out[self.temp_node]) - F.cross_entropy(out[self.temp_node], preds[self.temp_node])
                 loss_r = criterionKD(out[self.neighbor_khop], out_ori[self.neighbor_khop]) + F.cross_entropy(out_ori[self.neighbor_khop], preds[self.neighbor_khop])
-            # elif self.args["downstream_task"]=="edge":
-            #     neg_edge_index = negative_sampling(
-            #         edge_index=self.data.edge_index_unlearn,num_nodes=self.data.num_nodes,
-            #         num_neg_samples=self.data.edge_index_unlearn.size(1)
-            #     )
-            #     mask = np.isin(self.data.edge_index_unlearn.cpu().numpy(), self.data.edge_index.cpu().numpy()).astype(np.uint8)
-            #     neg_edge_label = torch.zeros(neg_edge_index.size(1), dtype=torch.float32)
-            #     pos_edge_label = torch.ones(neg_edge_index.size(1),dtype=torch.float32)
-            #     edge_labels = torch.cat((pos_edge_label,neg_edge_label),dim=-1)
-            #     edge_logits = self.decode(z=out, pos_edge_index=self.data.edge_index_unlearn,neg_edge_index=neg_edge_index)
-                
-            #     if self.args['dataset_name'] == 'ppi':
-            #         loss_u = criterionKD(out_ori[self.temp_node], out[self.temp_node]) - F.binary_cross_entropy_with_logits(edge_logits, edge_preds[mask])
-            #         loss_r = criterionKD(out[self.neighbor_khop], out_ori[self.neighbor_khop]) + F.binary_cross_entropy_with_logits(out_ori[self.neighbor_khop], preds[self.neighbor_khop])
+            
             loss = self.args['kappa'] * loss_u + loss_r
 
             loss.backward()

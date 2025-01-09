@@ -521,9 +521,7 @@ class SGUTrainer(BaseTrainer):
         self.logger.info('Best Unlearning: F1_score: {:.4f}'.format(best))
         average_f1[run] = best
         
-        # save_path = root_path + "/data/model/edge_level/"+self.args["dataset_name"]+ "/"+self.args["downstream_task"]+"/" + self.args["base_model"]+"_unlearning_best.pt"
-        # with open(save_path,'w') as file:
-        #     self.save_model(save_path,best_w)
+
         self.model.load_state_dict(best_w)
         return best
     
