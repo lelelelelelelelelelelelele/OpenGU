@@ -151,9 +151,10 @@ If you use OpenGU in your research, please cite the following paper:
     @article{fan2025opengu,
     title={OpenGU: A Comprehensive Benchmark for Graph Unlearning},
     author={Fan, Bowen and Ai, Yuming and Li, Xunkai and Guo, Zhilin and Li, Rong-Hua and Wang, Guoren},
-    journal={arXiv preprint arXiv:XXXX.XXXXX},
-    year={2025}
-    }
+    journal={arXiv preprint arXiv:2501.02728},
+    year={2025},
+    url={https://arxiv.org/abs/2501.02728}
+    }   
 
 .. toctree::
     :maxdepth: 1
