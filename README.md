@@ -392,5 +392,5 @@ If you use OpenGU in your research, please cite our paper:
 | 13     | UtU           | [**Unlink to Unlearn: Simplifying Edge Unlearning in GNNs**](https://arxiv.org/abs/2402.10695)         | WWW 2024                     |
 | 14     | Projector     | [**Efficiently Forgetting What You Have Learned in Graph Representation Learning via Projection**](https://arxiv.org/abs/2302.08990) | AISTATS 2023                |
 | 15     | ScaleGUN      | [**Scalable and Certifiable Graph Unlearning: Overcoming the Approximation Error Barrier**](https://doi.org/10.48550/arXiv.2408.09212) | arXiv 2024                   |
-| 16     | SGU           |                                                                                                       |                              |
+| 16  | SGU        | [**Toward Scalable Graph Unlearning: A Node Influence Maximization based Approach**](https://arxiv.org/abs/2501.11823)              | arXiv 2025   |
 
