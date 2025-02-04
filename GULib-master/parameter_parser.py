@@ -1,4 +1,6 @@
 import argparse
+import sys
+import os
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -302,5 +304,10 @@ def parameter_parser():
     parser.add_argument("--edge_idx_start", default=0, type=int)
     parser.add_argument("--num_removes", default=10, type=int,
                         help="number of removed edges/nodes in each batch",)
-    args = vars(parser.parse_args())
-    return args
+
+    if "sphinx-build" in sys.argv[0] or os.environ.get('READTHEDOCS') == 'True':
+        args = vars(parser.parse_args([]))
+        return args
+    else:
+        args = vars(parser.parse_args())
+        return args
