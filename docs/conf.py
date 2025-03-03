@@ -49,7 +49,8 @@ autodoc_mock_imports = [
     "cupy",  
     "torchvision",
     "lightgbm",
-    "deeprobust"
+    "deeprobust",
+    "memory_profiler"
 ]
 
 
