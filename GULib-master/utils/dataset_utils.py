@@ -325,37 +325,20 @@ def initialize_features(dataset, num_nodes, emb_dim,args):
 
 def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
     """
-    Splits the nodes of a graph into training, validation, and test sets inductively.
-    
-    Args:
-        logger:
-            
-            Logger object for logging information.
-        
-        args (dict):
-            
-            Configuration parameters.
-        
-        data:
-            
-            The input data object to be processed.
-        
-        train_ratio (float, optional):
-            
-            Proportion of nodes to include in the training set. Defaults to `0.6`.
-        
-        val_ratio (float, optional):
-            
-            Proportion of nodes to include in the validation set. Defaults to `0.2`.
-        
-        test_ratio (float, optional):
-            
-            Proportion of nodes to include in the test set. Defaults to `0.2`.
-    
-    Returns:
-        torch_geometric.data.Data:
-            The processed data object.
+    create three graph:
+    train: data.x[data.train_mask] data.train_edge_index
+    val: the same
+    test: the same
+
+    :param logger:
+    :param args:
+    :param data:
+    :param train_ratio:
+    :param val_ratio:
+    :param test_ratio:
+    :return:
     """
+
     num_nodes = data.num_nodes
     indices = torch.randperm(num_nodes)
     edge_index = data.edge_index
@@ -364,7 +347,6 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
     val_mask = indices[int(train_ratio * num_nodes):int((train_ratio + val_ratio) * num_nodes)]
     test_mask = indices[int((train_ratio + val_ratio) * num_nodes):]
 
-    # 创建训练、验证和测试集的掩码
     data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
     data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
     data.test_mask = torch.zeros(num_nodes, dtype=torch.bool)
@@ -381,69 +363,22 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
     val_mask = data.val_mask
     test_mask = data.test_mask
 
-    # 获取 edge_index 的起点和终点
-    src, dst = edge_index[0], edge_index[1]
-
-    # 训练集的边：起点和终点都在训练集中
-    train_edges_mask = train_mask[src] & train_mask[dst]
-
-    # 验证集的边：起点和终点都在验证集中
-    val_edges_mask = val_mask[src] & val_mask[dst]
-
-    # 测试集的边：起点和终点都在测试集中
-    test_edges_mask = test_mask[src] & test_mask[dst]
-
-    # 合并三个掩码，生成最终的 edge_index
-    final_edges_mask = train_edges_mask | val_edges_mask | test_edges_mask
-
-    # 根据合并后的 mask 筛选出最终的 edge_index
-    final_edge_index = edge_index[:, final_edges_mask]
-
-    # 将结果保存回 data 对象中
-    data.edge_index = final_edge_index
 
     train_edge_index = data.edge_index.clone()
-    val_edge_index = data.edge_index.clone()
-    test_edge_index = data.edge_index.clone()
 
     train_new_index = 0
-    val_new_index = 0
-    test_new_index = 0
     train_dict = {}
-    val_dict = {}
-    test_dict = {}
     for node in range(num_nodes):
         if data.train_mask[node]:
             train_dict[node] = train_new_index
             train_new_index += 1
-        elif data.val_mask[node]:
-            val_dict[node] = val_new_index
-            val_new_index += 1
-        elif data.test_mask[node]:
-            test_dict[node] = test_new_index
-            test_new_index += 1
 
-
-
-    # 删除连接训练、验证和测试集之间的边
     train_edge_mask = data.train_mask[train_edge_index[0]] & data.train_mask[train_edge_index[1]]
     data.train_edge_index = train_edge_index[:, train_edge_mask]
     for edge in range(data.train_edge_index.size(1)):
         data.train_edge_index[0][edge] = train_dict[data.train_edge_index[0][edge].item()]
         data.train_edge_index[1][edge] = train_dict[data.train_edge_index[1][edge].item()]
-    # 删除连接验证集之外的边
-    val_edge_mask = data.val_mask[val_edge_index[0]] & data.val_mask[val_edge_index[1]]
-    data.val_edge_index = val_edge_index[:, val_edge_mask]
-    for edge in range(data.val_edge_index.size(1)):
-        data.val_edge_index[0][edge] = val_dict[data.val_edge_index[0][edge].item()]
-        data.val_edge_index[1][edge] = val_dict[data.val_edge_index[1][edge].item()]
 
-        # 删除连接测试集之外的边
-    test_edge_mask = data.test_mask[test_edge_index[0]] & data.test_mask[test_edge_index[1]]
-    data.test_edge_index = test_edge_index[:, test_edge_mask]
-    for edge in range(data.test_edge_index.size(1)):
-        data.test_edge_index[0][edge] = test_dict[data.test_edge_index[0][edge].item()]
-        data.test_edge_index[1][edge] = test_dict[data.test_edge_index[1][edge].item()]
 
     test_neg_edge_index = negative_sampling(
             edge_index=data.test_edge_index,num_nodes=data.num_nodes,
@@ -460,44 +395,22 @@ def inductive_split_node(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_
 
 def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0.2, test_ratio=0.2):
     """
-    Splits the nodes of a graph into training, validation, and test sets inductively.
-    
-    This function randomly partitions the nodes of the input graph into training, validation, and test subsets
-    based on the specified ratios. It updates the graph's edge indices to ensure that edges are only present
-    within the same subset. Additionally, it performs negative sampling for the test set to prepare for
-    tasks like link prediction.
-    
-    Args:
-        logger:
-        
-            Logger object for logging information and debug messages.
-        
-        args (dict):
-        
-            Configuration parameters.
-        
-        data (torch_geometric.data.Data):
-        
-            The input graph data containing node features, edge indices, and labels.
-        
-        train_ratio (float, optional):
-        
-            Proportion of nodes to include in the training set. Defaults to `0.6`.
-        
-        val_ratio (float, optional):
-        
-            Proportion of nodes to include in the validation set. Defaults to `0.2`.
-        
-        test_ratio (float, optional):
-        
-            Proportion of nodes to include in the test set. Defaults to `0.2`.
-    
-    Returns:
-        torch_geometric.data.Data:
-            The split graph data object.
+    create three graph:
+    train: data.x[data.train_mask] data.train_edge_index
+    val: the same
+    test: the same
+
+    :param logger:
+    :param args:
+    :param data:
+    :param train_ratio:
+    :param val_ratio:
+    :param test_ratio:
+    :return:
     """
+
     num_nodes = data.num_nodes
-    labels = data.y  # 假设节点的类别标签保存在 data.y 中
+    labels = data.y  
     num_classes = labels.max().item() + 1
     edge_index = data.edge_index
 
@@ -506,8 +419,8 @@ def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0
     test_indices = []
 
     for i in range(num_classes):
-        class_indices = (labels == i).nonzero(as_tuple=True)[0]  # 获取每个类别的节点索引
-        class_indices = class_indices[torch.randperm(class_indices.size(0))]  # 随机打乱
+        class_indices = (labels == i).nonzero(as_tuple=True)[0]  
+        class_indices = class_indices[torch.randperm(class_indices.size(0))] 
 
         num_train = int(train_ratio * len(class_indices))
         num_val = int(val_ratio * len(class_indices))
@@ -531,136 +444,24 @@ def inductive_split_node_balanced(logger,args,data, train_ratio=0.6, val_ratio=0
     data.train_indices =data.train_mask.nonzero(as_tuple=True)[0].tolist()
     data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
     data.val_indices = data.val_mask.nonzero(as_tuple=True)[0].tolist()
-
-    train_mask = data.train_mask
-    val_mask = data.val_mask
-    test_mask = data.test_mask
-
-    # 获取 edge_index 的起点和终点
-    src, dst = edge_index[0], edge_index[1]
-
-    # 训练集的边：起点和终点都在训练集中
-    train_edges_mask = train_mask[src] & train_mask[dst]
-
-    # 验证集的边：起点和终点都在验证集中
-    val_edges_mask = val_mask[src] & val_mask[dst]
-
-    # 测试集的边：起点和终点都在测试集中
-    test_edges_mask = test_mask[src] & test_mask[dst]
-
-    # 合并三个掩码，生成最终的 edge_index
-    final_edges_mask = train_edges_mask | val_edges_mask | test_edges_mask
-
-    # 根据合并后的 mask 筛选出最终的 edge_index
-    final_edge_index = edge_index[:, final_edges_mask]
-
-    # 将结果保存回 data 对象中
-    data.edge_index = final_edge_index
-
+    
     train_edge_index = data.edge_index.clone()
-    val_edge_index = data.edge_index.clone()
-    test_edge_index = data.edge_index.clone()
 
     train_new_index = 0
-    val_new_index = 0
-    test_new_index = 0
     train_dict = {}
-    val_dict = {}
-    test_dict = {}
     for node in range(num_nodes):
         if data.train_mask[node]:
             train_dict[node] = train_new_index
             train_new_index += 1
-        elif data.val_mask[node]:
-            val_dict[node] = val_new_index
-            val_new_index += 1
-        elif data.test_mask[node]:
-            test_dict[node] = test_new_index
-            test_new_index += 1
 
-
-
-    # 删除连接训练、验证和测试集之间的边
     train_edge_mask = data.train_mask[train_edge_index[0]] & data.train_mask[train_edge_index[1]]
     data.train_edge_index = train_edge_index[:, train_edge_mask]
     for edge in range(data.train_edge_index.size(1)):
         data.train_edge_index[0][edge] = train_dict[data.train_edge_index[0][edge].item()]
         data.train_edge_index[1][edge] = train_dict[data.train_edge_index[1][edge].item()]
-    # 删除连接验证集之外的边
-    val_edge_mask = data.val_mask[val_edge_index[0]] & data.val_mask[val_edge_index[1]]
-    data.val_edge_index = val_edge_index[:, val_edge_mask]
-    for edge in range(data.val_edge_index.size(1)):
-        data.val_edge_index[0][edge] = val_dict[data.val_edge_index[0][edge].item()]
-        data.val_edge_index[1][edge] = val_dict[data.val_edge_index[1][edge].item()]
-
-        # 删除连接测试集之外的边
-    test_edge_mask = data.test_mask[test_edge_index[0]] & data.test_mask[test_edge_index[1]]
-    data.test_edge_index = test_edge_index[:, test_edge_mask]
-    for edge in range(data.test_edge_index.size(1)):
-        data.test_edge_index[0][edge] = test_dict[data.test_edge_index[0][edge].item()]
-        data.test_edge_index[1][edge] = test_dict[data.test_edge_index[1][edge].item()]
-
-    # save_train_test_split(logger,args,data.train_indices,data.test_indices)
 
     return data
-
-def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
     
-    num_nodes = data.num_nodes
-    indices = torch.randperm(num_nodes)
-
-    train_mask = indices[:int(train_ratio * num_nodes)]
-    val_mask = indices[int(train_ratio * num_nodes):int((train_ratio + val_ratio) * num_nodes)]
-    test_mask = indices[int((train_ratio + val_ratio) * num_nodes):]
-
-    # 创建训练、验证和测试集的掩码
-    data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    data.test_mask = torch.zeros(num_nodes, dtype=torch.bool)
-
-    data.train_mask[train_mask] = 1
-    data.val_mask[val_mask] = 1
-    data.test_mask[test_mask] = 1
-
-    data.train_indices = data.train_mask.nonzero(as_tuple=True)[0].tolist()
-    data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
-    data.val_indices = data.val_mask.nonzero(as_tuple=True)[0].tolist()
-
-    num_edges = data.edge_index.size(1)
-    num_train_edges = int(train_ratio * num_edges)
-    num_val_edges = int(val_ratio * num_edges)
-    num_test_edges = int(test_ratio * num_edges)
-    
-    # shuffle_num = torch.randperm(num_edges)
-    # data.train_edge_index = data.edge_index[:, shuffle_num[:num_train_edges]]
-    # data.val_edge_index = data.edge_index[:, shuffle_num[num_train_edges:num_train_edges + num_val_edges]]
-    # data.test_edge_index = data.edge_index[:, shuffle_num[num_train_edges + num_val_edges:]]
-    
-    # 获取 edge_index 的起点和终点
-    src, dst = data.edge_index[0], data.edge_index[1]
-    # 训练集的边：起点和终点都在训练集中
-    train_edges_mask = data.train_mask[src] & data.train_mask[dst]
-    # 验证集的边：起点和终点都在验证集中
-    val_edges_mask = data.val_mask[src] & data.val_mask[dst]
-    # 测试集的边：起点和终点都在测试集中
-    test_edges_mask = data.test_mask[src] & data.test_mask[dst]
-    # 根据掩码筛选出训练、验证和测试集的 edge_index
-    data.train_edge_index = data.edge_index[:, train_edges_mask]
-    data.val_edge_index = data.edge_index[:, val_edges_mask]
-    data.test_edge_index = data.edge_index[:, test_edges_mask]
-
-    # test_neg_edge_index = negative_sampling(
-    #         edge_index=data.test_edge_index,num_nodes=data.num_nodes,
-    #         num_neg_samples=data.test_edge_index.size(1)
-    #     )
-    # pos_edge_labels = torch.ones(data.test_edge_index.size(1),dtype=torch.float32)
-    # neg_edge_labels = torch.zeros(test_neg_edge_index.size(1),dtype=torch.float32)
-    # test_edge_labels = torch.cat((pos_edge_labels,neg_edge_labels))
-    # data.test_neg_edge_index = test_neg_edge_index
-    # data.test_edge_labels = test_edge_labels
-    # save_train_test_split(logger,args, data.train_indices, data.test_indices)
-    return data
-
 def transductive_split_edge(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
     """
     Splits the nodes of a graph into training, validation, and test sets inductively.
@@ -749,7 +550,7 @@ def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ra
             The processed data object.
     """
     num_nodes = data.num_nodes
-    labels = data.y  # 假设节点的类别标签保存在 data.y 中
+    labels = data.y  
     num_classes = labels.max().item() + 1
 
     train_indices = []
@@ -757,8 +558,8 @@ def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ra
     test_indices = []
 
     for i in range(num_classes):
-        class_indices = (labels == i).nonzero(as_tuple=True)[0]  # 获取每个类别的节点索引
-        class_indices = class_indices[torch.randperm(class_indices.size(0))]  # 随机打乱
+        class_indices = (labels == i).nonzero(as_tuple=True)[0]  
+        class_indices = class_indices[torch.randperm(class_indices.size(0))]  
 
         num_train = int(train_ratio * len(class_indices))
         num_val = int(val_ratio * len(class_indices))
@@ -767,12 +568,10 @@ def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ra
         val_indices.append(class_indices[num_train:num_train + num_val])
         test_indices.append(class_indices[num_train + num_val:])
 
-    # 合并每个类别的索引
     train_indices = torch.cat(train_indices)
     val_indices = torch.cat(val_indices)
     test_indices = torch.cat(test_indices)
 
-    # 创建训练、验证和测试集的掩码
     data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
     data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
     data.test_mask = torch.zeros(num_nodes, dtype=torch.bool)
@@ -1487,39 +1286,36 @@ def graph_cls_process(graph_data,train_ratio=0.7,val_ratio=0.1,test_ratio=0.2):
             
                 The combined and split graph data object.
         """
-        # 初始化大图的属性
-        all_x = []             # 节点特征
-        all_edge_index = []    # 边索引
-        all_y = []             # 节点标签
-        all_graph_id = []      # 每个节点所属的图ID标签，用于标识节点来源
+        all_x = []            
+        all_edge_index = []    
+        all_y = []            
+        all_graph_id = []     
+        node_offset = 0        
 
-        node_offset = 0        # 用于跟踪节点索引偏移量
-
-        # 遍历数据集中的每个图
+    
         
         for i, data in enumerate(graph_data):
             # print(data)
-            # 收集节点特征和标签
+       
             all_x.append(data.x)
             all_y.append(data.y)
             
-            # 调整边索引以适应全局大图
+
             edge_index = data.edge_index + node_offset
             all_edge_index.append(edge_index)
             
-            # 将每个节点的图ID记录下来
+
             all_graph_id.append(torch.full((data.num_nodes,), i, dtype=torch.long))
             
-            # 更新节点偏移量
+
             node_offset += data.num_nodes
 
-        # 将所有节点特征、边索引和标签进行拼接
         big_x = torch.cat(all_x, dim=0)
         big_edge_index = torch.cat(all_edge_index, dim=1)
         big_y = torch.cat(all_y, dim=0)
         big_graph_id = torch.cat(all_graph_id, dim=0)
 
-        # 构建大图的 Data 对象
+    
         big_graph = Data(x=big_x, edge_index=big_edge_index, y=big_y, graph_id=big_graph_id)
         data = big_graph
         graph_ids = torch.unique(data.graph_id)
