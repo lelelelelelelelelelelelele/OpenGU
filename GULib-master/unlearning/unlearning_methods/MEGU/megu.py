@@ -395,7 +395,7 @@ class megu(Learning_based_pipeline):
     #     return auc
     
     def mia_attack(self):
-        self.mia_num = self.args["num_unlearned_nodes"]
+        self.mia_num = self.unlearing_nodes.shape[0]
         self.original_softlabels = F.softmax(self.target_model.model(
             self.data.x,self.data.edge_index),dim=1).clone().detach().float()
         original_softlabels_member = self.original_softlabels[self.unlearing_nodes]
