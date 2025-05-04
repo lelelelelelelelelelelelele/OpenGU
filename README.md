@@ -360,6 +360,19 @@ We welcome contributions from the community to enhance OpenGU. Whether it's addi
 
 Please ensure that your contributions adhere to the project's coding standards and include appropriate tests.
 
+## 📄 Cite Us
+
+If you use OpenGU in your research, please cite our paper:
+
+```bibtex
+@article{fan2025opengu,
+  title={OpenGU: A Comprehensive Benchmark for Graph Unlearning},
+  author={Fan, Bowen and Ai, Yuming and Li, Xunkai and Guo, Zhilin and Li, Rong-Hua and Wang, Guoren},
+  journal={arXiv preprint arXiv:2501.02728},
+  year={2025},
+  url={https://arxiv.org/abs/2501.02728}
+}
+```
 
 ## <span id="references">📖 References</span>
 | **ID** | **Algorithm** | **Paper**                                                                                             | **Conference/Journal**       |
