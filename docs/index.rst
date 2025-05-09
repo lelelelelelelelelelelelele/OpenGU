@@ -67,7 +67,7 @@ You can install OpenGU using pip or from the GitHub repository for local develop
 
    .. code-block:: bash
 
-       git clone https://github.com/bwfan-bit/OpenGU.git
+       git clone <REPO-URL>
        cd OpenGU
        pip install -e .
 

@@ -52,6 +52,16 @@ autodoc_mock_imports = [
 ]
 
 
+html_show_sourcelink = False
+
+html_context = {
+    "display_github": False,
+    "github_user": "",
+    "github_repo": "",
+    "github_version": "",
+    "conf_py_path": "",
+}
+
 # Napoleon
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False

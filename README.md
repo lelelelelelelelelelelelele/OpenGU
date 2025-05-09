@@ -14,13 +14,6 @@
 
 
 
-<p align="center">
-  <a href="https://opengu.readthedocs.io/en/latest/?badge=latest">
-  <img src="https://img.shields.io/readthedocs/opengu.svg?style=flat-square" alt="Documentation Status"/></a>
-  <img src="https://img.shields.io/github/license/bwfan-bit/OpenGU" alt="license" />
-  <img src="https://img.shields.io/badge/version-1.0-green" alt="version" />
-</p>
-
 
 # OpenGU
 
@@ -196,7 +189,7 @@ To install OpenGU for local development, clone the GitHub repository and install
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/bwfan-bit/OpenGU.git
+    git clone <REPO-URL>
     cd OpenGU
     ```
 
@@ -293,7 +286,7 @@ Follow these steps to quickly get started with OpenGU:
 ### **Step 1: Clone the Repository**
 
 ```bash
-git clone https://github.com/bwfan-bit/OpenGU.git
+git clone <REPO-URL>
 cd OpenGU
 ```
 

@@ -8,7 +8,7 @@ Step 1: Clone the Repository
 
 .. code-block:: bash
 
-    git clone https://github.com/bwfan-bit/OpenGU.git
+    git clone <REPO-URL>
     cd OpenGU
 
 Step 2: Install Dependencies
