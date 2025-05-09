@@ -12,8 +12,6 @@ sys.path.insert(0, os.path.abspath('../GULib-master'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'OpenGU'
-copyright = '2024, Bowen Fan, Yuming Ai, Zhilin Guo'
-author = 'Bowen Fan, Yuming Ai, Zhilin Guo'
 release = '1.0'
 
 # -- General configuration ---------------------------------------------------
