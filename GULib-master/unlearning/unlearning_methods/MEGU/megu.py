@@ -162,9 +162,8 @@ class megu(Learning_based_pipeline):
         start_time = time.time()
         res = self.target_model.train()
         train_time = time.time() - start_time
-        
-        # self.data_store.save_target_model(run, self.target_model)
-        # self.logger.info(f"Model training time: {train_time:.4f}")
+        self.original_softlabels = F.softmax(self.target_model.model(
+            self.data.x.cuda(),self.data.edge_index.cuda()),dim=1).clone().detach().float()
 
         return train_time, res
         
@@ -382,22 +381,8 @@ class megu(Learning_based_pipeline):
 
 
     
-    # def mia_attack(self,mem_labels_o,non_labels_o,mem_labels,non_labels):
-    #     mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
-    #     posterior1 = torch.cat((mem_labels_o, non_labels_o), 0).cpu().detach()
-    #     posterior2 = torch.cat((mem_labels, non_labels), 0).cpu().detach()
-    #     posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
-    #     # self.logger.info("posterior:{}".format(posterior))
-    #     auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
-    #     self.average_auc[self.run] = auc
-    #     # self.logger.info("auc:{}".format(auc))
-    #     # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
-    #     return auc
-    
     def mia_attack(self):
         self.mia_num = self.unlearing_nodes.shape[0]
-        self.original_softlabels = F.softmax(self.target_model.model(
-            self.data.x,self.data.edge_index),dim=1).clone().detach().float()
         original_softlabels_member = self.original_softlabels[self.unlearing_nodes]
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
         unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index)[self.unlearing_nodes],dim=1)
