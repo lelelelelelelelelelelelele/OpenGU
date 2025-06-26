@@ -101,7 +101,8 @@ class megu(Learning_based_pipeline):
         if self.args["unlearn_task"] == 'node':
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
             unique_nodes = np.loadtxt(path_un, dtype=int)
-            self.unlearing_nodes = unique_nodes
+            self.unlearning_nodes = unique_nodes
+            # self.x_unlearn = self.data.x[~np.isin(np.arange(self.data.num_nodes), unique_nodes)].clone()
             self.data.edge_index_unlearn = self.update_edge_index_unlearn(unique_nodes)
 
         if self.args["unlearn_task"] == 'edge':
@@ -109,7 +110,7 @@ class megu(Learning_based_pipeline):
             remove_edges = np.loadtxt(path_un,dtype=int)
             unique_nodes = np.unique(remove_edges)
             self.data.edge_index = self.data.train_edge_index
-            self.data.edge_index_unlearn = self.update_edge_index_unlearn(unique_nodes, remove_edges)
+            self.data.edge_index_unlearn = self.update_edge_index_unlearn(unique_nodes)
 
             
         if self.args["unlearn_task"] == 'feature':
@@ -131,7 +132,10 @@ class megu(Learning_based_pipeline):
         4. Performs a membership inference attack (MIA) and records the average AUC score.
         """
         self.adj = sparse_mx_to_torch_sparse_tensor(normalize_adj(to_scipy_sparse_matrix(self.data.edge_index,num_nodes=self.data.num_nodes))).cuda()
-        self.neighbor_khop = self.neighbor_select(self.data.x.cuda())
+        if self.args["unlearn_task"] == 'node':
+            self.neighbor_khop = self.neighbor_select(self.data.x.cuda())
+        elif self.args["unlearn_task"] == 'edge':
+            self.neighbor_khop = self.temp_node
         self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
         # self.average_auc[self.run] = self.mia_attack()
         
@@ -161,9 +165,12 @@ class megu(Learning_based_pipeline):
 
         start_time = time.time()
         res = self.target_model.train()
-        train_time = time.time() - start_time
         self.original_softlabels = F.softmax(self.target_model.model(
             self.data.x.cuda(),self.data.edge_index.cuda()),dim=1).clone().detach().float()
+        train_time = time.time() - start_time
+        
+        # self.data_store.save_target_model(run, self.target_model)
+        # self.logger.info(f"Model training time: {train_time:.4f}")
 
         return train_time, res
         
@@ -381,11 +388,23 @@ class megu(Learning_based_pipeline):
 
 
     
+    # def mia_attack(self,mem_labels_o,non_labels_o,mem_labels,non_labels):
+    #     mia_test_y = torch.cat((torch.ones(self.args["num_unlearned_nodes"]), torch.zeros(self.args["num_unlearned_nodes"])))
+    #     posterior1 = torch.cat((mem_labels_o, non_labels_o), 0).cpu().detach()
+    #     posterior2 = torch.cat((mem_labels, non_labels), 0).cpu().detach()
+    #     posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
+    #     # self.logger.info("posterior:{}".format(posterior))
+    #     auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
+    #     self.average_auc[self.run] = auc
+    #     # self.logger.info("auc:{}".format(auc))
+    #     # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
+    #     return auc
+    
     def mia_attack(self):
-        self.mia_num = self.unlearing_nodes.shape[0]
-        original_softlabels_member = self.original_softlabels[self.unlearing_nodes]
+        self.mia_num = self.unlearning_nodes.shape[0] if self.unlearning_nodes.shape[0] < len(self.data.test_indices) else len(self.data.test_indices)
+        original_softlabels_member = self.original_softlabels[self.unlearning_nodes[:self.mia_num]]
         original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
-        unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index)[self.unlearing_nodes],dim=1)
+        unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x,self.data.edge_index)[self.unlearning_nodes[:self.mia_num]],dim=1)
         unlearning_softlabels_non = F.softmax(self.target_model.model(
             self.data.x,self.data.edge_index)[self.data.test_indices[:self.mia_num]],dim=1)
 
