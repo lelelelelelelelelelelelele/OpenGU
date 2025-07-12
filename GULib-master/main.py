@@ -39,40 +39,7 @@ def seed_everything(seed_value):
         torch.cuda.manual_seed_all(seed_value)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = True
-# def objective(trial):
-#     para1 = trial.suggest_float('para1', 0.5, 1.5)
-#     para2 = trial.suggest_float('para2', 0.0001, 0.01)
-#     para3 = trial.suggest_int('para3', 20, 500)
-#     para4 = trial.suggest_int('para4', 5, 50)
-#     para5 = trial.suggest_int('para5', 2, 50)
-#     args["para1"] = para1
-#     args["para2"] = para2
-#     args["para3"] = para3
-#     args["para4"] = para4
-#     args["para5"] = para5
-#     model_zoo_copy = copy.deepcopy(model_zoo)
-#     SGU_instance = sgu(args,logger,model_zoo_copy)
-#     # SGU_instance.run = np.random.randint(0,5) 
-#     SGU_instance.run_exp()
-#     return SGU_instance.best 
 
-#     # return 10*abs(SGU_instance.final_auc-0.5)
-
-# def run_optuna(args,logger):
-#     study = optuna.create_study(direction='maximize')
-#     study.optimize(objective, n_trials=100)
-#     best_params = study.best_params
-#     logger.info("最佳超参数：{}".format(best_params) )
-#     args["para1"] = best_params["para1"]
-#     args["para2"] = best_params["para2"]
-#     args["para3"] = best_params["para3"]
-#     args["para4"] = best_params["para4"]
-#     args["para5"] = best_params["para5"]
-#     args["parameter_task"] = "normal"
-#     model_zoo_copy = copy.deepcopy(model_zoo)
-#     SGU_instance = sgu(args,logger,model_zoo_copy)
-#     SGU_instance.run_exp()
-#     logger.info("最佳超参数：{}".format(best_params) )
 
 
 if __name__ == '__main__':
@@ -90,8 +57,8 @@ if __name__ == '__main__':
     #dataset
     original_data = original_dataset(args,logger)
     data,dataset = original_data.load_data()
-    # 使用 assert 直接检查 args 中的参数
     data = process_data(logger,data,args)
+    
     #model
     model_zoo = model_zoo(args,data)
     model = model_zoo.model
