@@ -591,6 +591,41 @@ def transductive_split_node_balanced(logger, args, data, train_ratio=0.6, val_ra
 
     return data
 
+def transductive_split_node(logger,args,data, train_ratio=0.8, val_ratio=0, test_ratio=0.2):
+    
+    num_nodes = data.num_nodes
+    indices = torch.randperm(num_nodes)
+
+    train_mask = indices[:int(train_ratio * num_nodes)]
+    val_mask = indices[int(train_ratio * num_nodes):int((train_ratio + val_ratio) * num_nodes)]
+    test_mask = indices[int((train_ratio + val_ratio) * num_nodes):]
+
+    data.train_mask = torch.zeros(num_nodes, dtype=torch.bool)
+    data.val_mask = torch.zeros(num_nodes, dtype=torch.bool)
+    data.test_mask = torch.zeros(num_nodes, dtype=torch.bool)
+
+    data.train_mask[train_mask] = 1
+    data.val_mask[val_mask] = 1
+    data.test_mask[test_mask] = 1
+
+    data.train_indices = data.train_mask.nonzero(as_tuple=True)[0].tolist()
+    data.test_indices = data.test_mask.nonzero(as_tuple=True)[0].tolist()
+    data.val_indices = data.val_mask.nonzero(as_tuple=True)[0].tolist()
+
+    num_edges = data.edge_index.size(1)
+    num_train_edges = int(train_ratio * num_edges)
+    num_val_edges = int(val_ratio * num_edges)
+    num_test_edges = int(test_ratio * num_edges)
+    
+    src, dst = data.edge_index[0], data.edge_index[1]
+    train_edges_mask = data.train_mask[src] & data.train_mask[dst]
+    val_edges_mask = data.val_mask[src] & data.val_mask[dst]
+    test_edges_mask = data.test_mask[src] & data.test_mask[dst]
+    data.train_edge_index = data.edge_index[:, train_edges_mask]
+    data.val_edge_index = data.edge_index[:, val_edges_mask]
+    data.test_edge_index = data.edge_index[:, test_edges_mask]
+
+    return data
 
 def c2n_to_n2c(args, community_to_node):
     """
