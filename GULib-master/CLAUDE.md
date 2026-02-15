@@ -82,3 +82,36 @@ Core stack: PyTorch + PyTorch Geometric 2.6.1 + torch_scatter + torch_sparse. Se
 - GraphRevoker reuses the `grapheraser` class in the method map
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
+
+## Project Context (Attack Research)
+
+This project is developing **adversarial attacks on GNN unlearning**. The core idea: strategically select nodes for forced unlearning to cause performance collapse in approximate unlearning algorithms. See `self/` directory for detailed context:
+
+- `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology
+- `self/宏观plan.md`: Experiment plan, code modules to build, priority ordering
+- `self/flow.md`: Function-level design, input/output specs, test cases
+
+### Attack Module Structure (Under Development)
+
+```
+attack/attack_strategies/       # Node selection strategies
+  base_strategy.py              # ABC: select_nodes(data, model, k) -> Tensor
+  random_strategy.py            # Baseline
+  degree_strategy.py            # Baseline
+  pagerank_strategy.py          # Baseline
+  tracin_strategy.py            # Core: pseudo-IF
+  im_strategy.py                # Core: Influence Maximization (CELF)
+  hybrid_strategy.py            # Core: IF-IM fusion
+attack/attack_manager.py        # Strategy dispatcher
+attack/attack_eval.py           # F1 drop, MIA AUC, retrain gap
+```
+
+### Result Storage Convention
+
+Experiment results go to `results/{attack_strategy}/{unlearning_method}/{dataset}/{model}/run_{timestamp}.json`. Each JSON contains `config` (parameters), `metrics` (F1 drop, MIA AUC, timing), and `selected_nodes`. The original framework logs remain at `log/`.
+
+### Slash Commands
+
+- `/review [方案或结论]`: Invoke a strict NeurIPS/ICML reviewer persona for critical analysis
+- `/run-exp [参数]`: Run an attack experiment with standardized reporting
+- `/analyze [条件]`: Compare results across strategies/datasets/methods
