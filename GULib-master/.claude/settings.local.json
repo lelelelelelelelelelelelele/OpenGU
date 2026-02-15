@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git checkout:*)",
+      "Bash(python main.py:*)",
+      "Bash(tee:*)"
     ]
   }
 }
