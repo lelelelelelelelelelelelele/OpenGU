@@ -89,6 +89,8 @@ def process_data(logger,data,args):
             shuffle_num = torch.randperm(train_nodes.size)
             unlearning_nodes = train_nodes[shuffle_num][:args["num_unlearned_nodes"]]
             path_un = unlearning_path + "_" + str(i) + ".txt"
+            print(path_un)
+            os.makedirs(os.path.dirname(path_un), exist_ok=True)
             if not os.path.isfile(path_un):
                 np.savetxt(path_un, unlearning_nodes, fmt="%d")
     elif args["unlearn_task"]=="edge":

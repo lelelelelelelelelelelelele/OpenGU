@@ -64,7 +64,7 @@ class PartitionConstrainedLPABase(Partition):
         self.logger = logger
 
     def partition(self):
-        adj_array = nx.linalg.adj_matrix(self.graph).toarray().astype(np.bool)
+        adj_array = nx.linalg.adjacency_matrix(self.graph).toarray().astype(np.bool)
         node_threshold = math.ceil(self.graph.number_of_nodes() / self.args['num_shards'] + self.args['shard_size_delta'] * (self.graph.number_of_nodes()-self.graph.number_of_nodes() / self.args['num_shards']))
 
         self.logger.info(" #. nodes: %s. LPA shard threshold: %s." % (self.graph.number_of_nodes(), node_threshold))
@@ -72,7 +72,8 @@ class PartitionConstrainedLPABase(Partition):
 
         lpa.initialization()
         community_to_node, lpa_deltas = lpa.community_detection()
-
-        pickle.dump(lpa_deltas, open(config.ANALYSIS_PATH + "partition/base_blpa_" + self.args['dataset_name'], 'wb'))
+        os.makedirs(config.ANALYSIS_PATH + "partition", exist_ok=True)
+        file_name = config.ANALYSIS_PATH + "partition/base_blpa_" + self.args['dataset_name']
+        pickle.dump(lpa_deltas, open(file_name, 'wb'))
 
         return self.idx2id(community_to_node, np.array(self.graph.nodes))

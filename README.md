@@ -169,6 +169,9 @@ source venv/bin/activate  # Unix/MacOS
 conda create -n myenv python=3.8
 conda activate myenv
 ```
+conda create -n gnn python=3.8
+
+conda activate gnn
 
 ### **Step 2: Install OpenGU**
 

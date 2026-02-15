@@ -4,7 +4,7 @@ import config
 from model.base_gnn.graphsage import SAGENet
 from utils.dataset_utils import *
 from utils.dataset_utils import _extract_embedding_method
-from model.model_zoo import  model_zoo
+# from model.model_zoo import model_zoo
 from task import BaseTrainer
 from utils.dataset_utils import save_embeddings,load_embeddings
 from config import embedding_file

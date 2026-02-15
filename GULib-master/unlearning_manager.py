@@ -15,7 +15,7 @@ from unlearning.unlearning_methods.GraphRevoker.graphrevoker import graphrevoker
 from unlearning.unlearning_methods.GUKD.gukd import gukd
 from unlearning.unlearning_methods.D2DGN.d2dgn import d2dgn
 from unlearning.unlearning_methods.IDEA.idea import idea
-from unlearning.unlearning_methods.ScaleGUN.scalegun import scalegun
+# from unlearning.unlearning_methods.ScaleGUN.scalegun import scalegun
 from utils.dataset_utils import process_data,save_data
 from attack.Attack_methods.GraphEraser_MIA import GraphEraser_Attack
 from attack.Attack_methods.GUIDE_MIA import GUIDE_MIA
@@ -43,7 +43,7 @@ method_map = {
     "D2DGN": d2dgn,
     "IDEA": idea,
     "CEU": ceu,
-    "ScaleGUN": scalegun,
+    # "ScaleGUN": scalegun,
 }
 
 
