@@ -4,7 +4,14 @@
       "Bash(xargs:*)",
       "Bash(git checkout:*)",
       "Bash(python main.py:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(python:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(done)",
+      "Bash(find:*)"
     ]
   }
 }
