@@ -320,11 +320,15 @@ Epoch:   40 | train_loss: 13.5320 | loss_r: 19.8314 | loss_l: 7.2326 | train_tim
 val_loss: 1.3927 | val_dt_acc: 0.7252 | val_dt_f1: 0.7252 | epoch:   49
 2026-02-16 18:07:15.992: loss:1.4181617498397827  ,dt_acc:0.7252252252252253 ,recall:0.7252252252252253  ,dt_f1:0.7252252252252253  ,test_log:{'test_loss': 1.4181617498397827, 'test_dt_acc': 0.7252252252252253, 'test_dt_f1': 0.7252252252252253}  
 2026-02-16 18:07:16.000: Loss: 1.4182 | Accuracy: 0.7252 | Recall: 0.7252 | F1 Score: 0.7252
-                                                                                                                         2026-02-16 22:44:32.908: [34mPerformance Metrics:
+2026-02-17 02:15:32.739: [34mPerformance Metrics:
  - Poison F1 Score: 0.0000 ± 0.0000
  - Unlearn F1 Score: 0.7252 ± 0.0000
  - Average AUC Score: 0.9609 ± 0.0000
  - Average Training Time: 0.0000 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.6591 ± 0.0000 seconds[0m
+
+ 0.0000
  - Average Sampling Time: 0.0000 ± 0.0000 seconds
  - Average Unlearning Time: 0.7036 ± 0.0000 seconds[0m
 

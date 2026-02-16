@@ -1,5 +1,5 @@
-2026-02-16 18:40:17.163: my pid: 7464
-2026-02-16 18:40:17.164: {'Budget': 0.1,
+2026-02-17 02:36:29.300: my pid: 35292
+2026-02-17 02:36:29.302: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,46 +172,54 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 18:40:17.173: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:40:17.173: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:40:17.233: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+2026-02-17 02:36:29.309: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:29.309: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:29.333: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.005_citeseer_0.txt
-2026-02-16 18:40:17.460: Model Summary:
-2026-02-16 18:40:17.460: Total Parameters: 237,446
-2026-02-16 18:40:17.460: Trainable Parameters: 237,446
-2026-02-16 18:40:17.460: Model Architecture:
+2026-02-17 02:36:29.509: Model Summary:
+2026-02-17 02:36:29.509: Total Parameters: 237,446
+2026-02-17 02:36:29.509: Trainable Parameters: 237,446
+2026-02-17 02:36:29.509: Model Architecture:
 GCNNet(
   (convs): ModuleList(
     (0): GCNConv(3703, 64)
     (1): GCNConv(64, 6)
   )
 )
-2026-02-16 18:40:17.460: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-16 18:40:17.460: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
-2026-02-16 18:40:17.460: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
-2026-02-16 18:40:17.460: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
-2026-02-16 18:40:17.460: Model is in training mode: True
-2026-02-16 18:40:17.460: Model is on device: cuda:0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   0%|          | 0/100 [00:04<?, ?epoch/s]
-Traceback (most recent call last):
-  File "main.py", line 75, in <module>
-    GU_method.run_exp()
-  File "H:\project\OpenGU\GULib-master\pipeline\Learning_based_pipeline.py", line 104, in run_exp
-    self.train_original_model()
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\GUKD\gukd.py", line 65, in train_original_model
-    self.teacher_model.train()
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 92, in train
-    return self.train_node(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 140, in train_node
-    return self.train_node_fullbatch(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 512, in train_node_fullbatch
-    loss.backward()
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\_tensor.py", line 522, in backward
-    torch.autograd.backward(
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\autograd\__init__.py", line 266, in backward
-    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
-RuntimeError: CUDA error: out of memory
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+2026-02-17 02:36:29.509: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 02:36:29.509: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
+2026-02-17 02:36:29.509: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
+2026-02-17 02:36:29.509: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
+2026-02-17 02:36:29.509: Model is in training mode: True
+2026-02-17 02:36:29.509: Model is on device: cuda:0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:18,  5.33epoch/s]2026-02-17 02:36:29.789: Epoch: 010 | F1 Score: 0.6877 | Loss: 1.2014
+2026-02-17 02:36:29.837: Epoch: 020 | F1 Score: 0.7117 | Loss: 0.9304
+BaseTraining:  21%|██        | 21/100 [00:00<00:00, 89.08epoch/s]2026-02-17 02:36:29.886: Epoch: 030 | F1 Score: 0.7222 | Loss: 0.6922
+2026-02-17 02:36:29.933: Epoch: 040 | F1 Score: 0.7282 | Loss: 0.5434
+BaseTraining:  43%|████▎     | 43/100 [00:00<00:00, 136.89epoch/s]2026-02-17 02:36:29.981: Epoch: 050 | F1 Score: 0.7492 | Loss: 0.4343
+2026-02-17 02:36:30.025: Epoch: 060 | F1 Score: 0.7508 | Loss: 0.3424
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 167.47epoch/s]2026-02-17 02:36:30.070: Epoch: 070 | F1 Score: 0.7477 | Loss: 0.2654
+2026-02-17 02:36:30.116: Epoch: 080 | F1 Score: 0.7402 | Loss: 0.2204
+BaseTraining:  89%|████████▉ | 89/100 [00:00<00:00, 187.22epoch/s]2026-02-17 02:36:30.161: Epoch: 090 | F1 Score: 0.7492 | Loss: 0.1855
+2026-02-17 02:36:30.209: Epoch: 100 | F1 Score: 0.7447 | Loss: 0.1370
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 152.32epoch/s]2026-02-17 02:36:30.209: Average training time per epoch: 0.0057s
+
+GUKD_Training:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-17 02:36:30.297: Epoch: 010 | F1 Score: 0.7523 | Loss: 0.5336
+GUKD_Training:  18%|█▊        | 18/100 [00:00<00:00, 179.77epoch/s]2026-02-17 02:36:30.339: Epoch: 020 | F1 Score: 0.7357 | Loss: 0.3705
+2026-02-17 02:36:30.381: Epoch: 030 | F1 Score: 0.7432 | Loss: 0.3423
+2026-02-17 02:36:30.430: Epoch: 040 | F1 Score: 0.7447 | Loss: 0.3244
+GUKD_Training:  40%|████      | 40/100 [00:00<00:00, 196.53epoch/s]2026-02-17 02:36:30.486: Epoch: 050 | F1 Score: 0.7447 | Loss: 0.3117
+2026-02-17 02:36:30.525: Epoch: 060 | F1 Score: 0.7432 | Loss: 0.3093
+GUKD_Training:  62%|██████▏   | 62/100 [00:00<00:00, 204.94epoch/s]2026-02-17 02:36:30.572: Epoch: 070 | F1 Score: 0.7447 | Loss: 0.3046
+2026-02-17 02:36:30.616: Epoch: 080 | F1 Score: 0.7432 | Loss: 0.3021
+GUKD_Training:  85%|████████▌ | 85/100 [00:00<00:00, 211.83epoch/s]2026-02-17 02:36:30.662: Epoch: 090 | F1 Score: 0.7402 | Loss: 0.2981
+2026-02-17 02:36:30.701: Epoch: 100 | F1 Score: 0.7417 | Loss: 0.2975
+GUKD_Training: 100%|██████████| 100/100 [00:00<00:00, 209.22epoch/s]2026-02-17 02:36:30.701: Average training time per epoch: 0.3883s
+2026-02-17 02:36:30.702: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.7523 ± 0.0000
+ - Average AUC Score: 0.0000 ± 0.0000
+ - Average Training Time: 0.6997 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.3883 ± 0.0000 seconds[0m
 

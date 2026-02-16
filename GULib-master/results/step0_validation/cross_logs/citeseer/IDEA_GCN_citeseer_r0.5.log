@@ -1,5 +1,5 @@
-2026-02-16 18:45:05.217: my pid: 31048
-2026-02-16 18:45:05.219: {'Budget': 0.1,
+2026-02-17 02:37:35.714: my pid: 34240
+2026-02-17 02:37:35.715: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,6 +172,47 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 18:45:05.225: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:45:05.225: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:45:05.249: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+2026-02-17 02:37:35.722: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:37:35.722: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:37:35.747: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.5_citeseer_0.txt
+2026-02-17 02:37:35.926: Model Summary:
+2026-02-17 02:37:35.926: Total Parameters: 237,446
+2026-02-17 02:37:35.926: Trainable Parameters: 237,446
+2026-02-17 02:37:35.926: Model Architecture:
+GCNNet(
+  (convs): ModuleList(
+    (0): GCNConv(3703, 64)
+    (1): GCNConv(64, 6)
+  )
+)
+2026-02-17 02:37:35.926: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 02:37:35.927: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
+2026-02-17 02:37:35.927: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
+2026-02-17 02:37:35.927: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
+2026-02-17 02:37:35.927: Model is in training mode: True
+2026-02-17 02:37:35.927: Model is on device: cuda:0
+2026-02-17 02:37:35.927: target model: GCN
+2026-02-17 02:37:35.927: training target models, run 0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:18,  5.29epoch/s]2026-02-17 02:37:36.203: Epoch: 010 | F1 Score: 0.7598 | Loss: 0.5996
+2026-02-17 02:37:36.249: Epoch: 020 | F1 Score: 0.7538 | Loss: 0.3874
+BaseTraining:  24%|██▍       | 24/100 [00:00<00:00, 101.74epoch/s]2026-02-17 02:37:36.295: Epoch: 030 | F1 Score: 0.7523 | Loss: 0.2886
+2026-02-17 02:37:36.335: Epoch: 040 | F1 Score: 0.7417 | Loss: 0.2481
+BaseTraining:  49%|████▉     | 49/100 [00:00<00:00, 157.86epoch/s]2026-02-17 02:37:36.376: Epoch: 050 | F1 Score: 0.7447 | Loss: 0.2100
+2026-02-17 02:37:36.416: Epoch: 060 | F1 Score: 0.7492 | Loss: 0.1837
+2026-02-17 02:37:36.461: Epoch: 070 | F1 Score: 0.7417 | Loss: 0.1707
+BaseTraining:  71%|███████   | 71/100 [00:00<00:00, 179.34epoch/s]2026-02-17 02:37:36.504: Epoch: 080 | F1 Score: 0.7372 | Loss: 0.1575
+2026-02-17 02:37:36.547: Epoch: 090 | F1 Score: 0.7342 | Loss: 0.1454
+BaseTraining:  96%|█████████▌| 96/100 [00:00<00:00, 201.90epoch/s]2026-02-17 02:37:36.589: Epoch: 100 | F1 Score: 0.7327 | Loss: 0.1387
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 162.79epoch/s]2026-02-17 02:37:36.589: Average training time per epoch: 0.0053s
+2026-02-17 02:37:36.589: Train data  #.Nodes: 3327.000000, #.Edges: 9104.000000
+2026-02-17 02:37:36.602: training target models, run 0
+2026-02-17 02:37:36.608: generate train loader
+2026-02-17 02:37:36.620: generate train loader finish
+2026-02-17 02:37:36.980: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.6952 ± 0.0000
+ - Average AUC Score: 0.5641 ± 0.0000
+ - Average Training Time: 0.6606 ± 0.0000
+ - Average Unlearning Time: 0.3277 ± 0.0000 seconds[0m
+

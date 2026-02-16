@@ -1,5 +1,5 @@
-2026-02-16 18:42:47.431: my pid: 34804
-2026-02-16 18:42:47.432: {'Budget': 0.1,
+2026-02-17 02:37:16.594: my pid: 24492
+2026-02-17 02:37:16.596: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,47 +172,55 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 18:42:47.441: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:42:47.441: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:42:47.500: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+2026-02-17 02:37:16.602: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:37:16.603: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:37:16.628: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.1_citeseer_0.txt
-2026-02-16 18:42:47.736: Model Summary:
-2026-02-16 18:42:47.736: Total Parameters: 237,446
-2026-02-16 18:42:47.736: Trainable Parameters: 237,446
-2026-02-16 18:42:47.736: Model Architecture:
+2026-02-17 02:37:16.803: Model Summary:
+2026-02-17 02:37:16.804: Total Parameters: 237,446
+2026-02-17 02:37:16.804: Trainable Parameters: 237,446
+2026-02-17 02:37:16.804: Model Architecture:
 GCNNet(
   (convs): ModuleList(
     (0): GCNConv(3703, 64)
     (1): GCNConv(64, 6)
   )
 )
-2026-02-16 18:42:47.736: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-16 18:42:47.736: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
-2026-02-16 18:42:47.737: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
-2026-02-16 18:42:47.737: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
-2026-02-16 18:42:47.737: Model is in training mode: True
-2026-02-16 18:42:47.737: Model is on device: cuda:0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]fatal   : Memory allocation failure
-BaseTraining:   0%|          | 0/100 [00:22<?, ?epoch/s]
-Traceback (most recent call last):
-  File "main.py", line 75, in <module>
-    GU_method.run_exp()
-  File "H:\project\OpenGU\GULib-master\pipeline\Learning_based_pipeline.py", line 104, in run_exp
-    self.train_original_model()
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\D2DGN\d2dgn.py", line 247, in train_original_model
-    self.target_model.train()
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 92, in train
-    return self.train_node(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 140, in train_node
-    return self.train_node_fullbatch(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 512, in train_node_fullbatch
-    loss.backward()
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\_tensor.py", line 522, in backward
-    torch.autograd.backward(
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\autograd\__init__.py", line 266, in backward
-    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
-RuntimeError: CUDA error: unknown error
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+2026-02-17 02:37:16.804: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 02:37:16.804: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
+2026-02-17 02:37:16.804: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
+2026-02-17 02:37:16.804: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
+2026-02-17 02:37:16.804: Model is in training mode: True
+2026-02-17 02:37:16.804: Model is on device: cuda:0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:21,  4.65epoch/s]2026-02-17 02:37:17.114: Epoch: 010 | F1 Score: 0.7598 | Loss: 0.5996
+2026-02-17 02:37:17.158: Epoch: 020 | F1 Score: 0.7538 | Loss: 0.3874
+BaseTraining:  23%|██▎       | 23/100 [00:00<00:00, 89.81epoch/s]2026-02-17 02:37:17.200: Epoch: 030 | F1 Score: 0.7523 | Loss: 0.2886
+2026-02-17 02:37:17.241: Epoch: 040 | F1 Score: 0.7417 | Loss: 0.2481
+BaseTraining:  47%|████▋     | 47/100 [00:00<00:00, 143.57epoch/s]2026-02-17 02:37:17.290: Epoch: 050 | F1 Score: 0.7447 | Loss: 0.2100
+2026-02-17 02:37:17.336: Epoch: 060 | F1 Score: 0.7492 | Loss: 0.1837
+2026-02-17 02:37:17.375: Epoch: 070 | F1 Score: 0.7417 | Loss: 0.1707
+BaseTraining:  70%|███████   | 70/100 [00:00<00:00, 169.28epoch/s]2026-02-17 02:37:17.417: Epoch: 080 | F1 Score: 0.7372 | Loss: 0.1575
+2026-02-17 02:37:17.458: Epoch: 090 | F1 Score: 0.7342 | Loss: 0.1454
+BaseTraining:  96%|█████████▌| 96/100 [00:00<00:00, 197.41epoch/s]2026-02-17 02:37:17.499: Epoch: 100 | F1 Score: 0.7327 | Loss: 0.1387
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 154.48epoch/s]2026-02-17 02:37:17.499: Average training time per epoch: 0.0056s
+2026-02-17 02:37:17.501: Unlearned 332 nodes.
+
+D2DGNTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-17 02:37:17.628: Epoch: 010 | F1 Score: 0.7583 | Loss: 0.4055
+D2DGNTraining:  13%|█▎        | 13/100 [00:00<00:00, 129.27epoch/s]2026-02-17 02:37:17.703: Epoch: 020 | F1 Score: 0.7492 | Loss: 0.1911
+D2DGNTraining:  28%|██▊       | 28/100 [00:00<00:00, 138.08epoch/s]2026-02-17 02:37:17.771: Epoch: 030 | F1 Score: 0.7432 | Loss: 0.1235
+2026-02-17 02:37:17.823: Epoch: 040 | F1 Score: 0.7417 | Loss: 0.0855
+D2DGNTraining:  46%|████▌     | 46/100 [00:00<00:00, 154.60epoch/s]2026-02-17 02:37:17.879: Epoch: 050 | F1 Score: 0.7492 | Loss: 0.0686
+2026-02-17 02:37:17.935: Epoch: 060 | F1 Score: 0.7492 | Loss: 0.0526
+D2DGNTraining:  65%|██████▌   | 65/100 [00:00<00:00, 166.57epoch/s]2026-02-17 02:37:17.981: Epoch: 070 | F1 Score: 0.7538 | Loss: 0.0415
+2026-02-17 02:37:18.035: Epoch: 080 | F1 Score: 0.7432 | Loss: 0.0417
+D2DGNTraining:  85%|████████▌ | 85/100 [00:00<00:00, 175.78epoch/s]2026-02-17 02:37:18.091: Epoch: 090 | F1 Score: 0.7447 | Loss: 0.0339
+2026-02-17 02:37:18.146: Epoch: 100 | F1 Score: 0.7417 | Loss: 0.0299
+D2DGNTraining: 100%|██████████| 100/100 [00:00<00:00, 166.33epoch/s]2026-02-17 02:37:18.146: Average training time per epoch: 0.5431s
+2026-02-17 02:37:18.146: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.7583 ± 0.0000
+ - Average AUC Score: 0.0000 ± 0.0000
+ - Average Training Time: 0.0115 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.5431 ± 0.0000 seconds[0m
 

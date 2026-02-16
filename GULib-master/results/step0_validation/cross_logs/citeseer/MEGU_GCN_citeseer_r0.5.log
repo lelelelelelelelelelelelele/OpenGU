@@ -1,5 +1,5 @@
-2026-02-16 18:40:04.617: my pid: 7796
-2026-02-16 18:40:04.619: {'Budget': 0.1,
+2026-02-17 02:36:19.676: my pid: 26832
+2026-02-17 02:36:19.677: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,50 +172,45 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 18:40:04.632: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:40:04.632: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:40:04.677: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+2026-02-17 02:36:19.684: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:19.684: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:19.709: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.5_citeseer_0.txt
-2026-02-16 18:40:04.908: Model Summary:
-2026-02-16 18:40:04.909: Total Parameters: 237,446
-2026-02-16 18:40:04.909: Trainable Parameters: 237,446
-2026-02-16 18:40:04.909: Model Architecture:
+2026-02-17 02:36:19.890: Model Summary:
+2026-02-17 02:36:19.890: Total Parameters: 237,446
+2026-02-17 02:36:19.890: Trainable Parameters: 237,446
+2026-02-17 02:36:19.890: Model Architecture:
 GCNNet(
   (convs): ModuleList(
     (0): GCNConv(3703, 64)
     (1): GCNConv(64, 6)
   )
 )
-2026-02-16 18:40:04.909: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-16 18:40:04.909: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
-2026-02-16 18:40:04.909: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
-2026-02-16 18:40:04.909: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
-2026-02-16 18:40:04.909: Model is in training mode: True
-2026-02-16 18:40:04.909: Model is on device: cuda:0
-2026-02-16 18:40:04.920: training target models, run 0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]fatal   : Memory allocation failure
-BaseTraining:   0%|          | 0/100 [00:01<?, ?epoch/s]
-Traceback (most recent call last):
-  File "main.py", line 75, in <module>
-    GU_method.run_exp()
-  File "H:\project\OpenGU\GULib-master\pipeline\Learning_based_pipeline.py", line 104, in run_exp
-    self.train_original_model()
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\MEGU\megu.py", line 84, in train_original_model
-    run_training_time,_ = self._train_model(self.run)
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\MEGU\megu.py", line 167, in _train_model
-    res = self.target_model.train()
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 92, in train
-    return self.train_node(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 140, in train_node
-    return self.train_node_fullbatch(save,model_path)
-  File "H:\project\OpenGU\GULib-master\task\BaseTrainer.py", line 512, in train_node_fullbatch
-    loss.backward()
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\_tensor.py", line 522, in backward
-    torch.autograd.backward(
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\autograd\__init__.py", line 266, in backward
-    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
-RuntimeError: CUDA error: unknown error
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+2026-02-17 02:36:19.890: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 02:36:19.890: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
+2026-02-17 02:36:19.890: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
+2026-02-17 02:36:19.890: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
+2026-02-17 02:36:19.890: Model is in training mode: True
+2026-02-17 02:36:19.890: Model is on device: cuda:0
+2026-02-17 02:36:19.897: training target models, run 0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:21,  4.55epoch/s]2026-02-17 02:36:20.209: Epoch: 010 | F1 Score: 0.7598 | Loss: 0.5996
+2026-02-17 02:36:20.250: Epoch: 020 | F1 Score: 0.7538 | Loss: 0.3874
+BaseTraining:  26%|██▌       | 26/100 [00:00<00:00, 100.77epoch/s]2026-02-17 02:36:20.293: Epoch: 030 | F1 Score: 0.7523 | Loss: 0.2886
+2026-02-17 02:36:20.334: Epoch: 040 | F1 Score: 0.7417 | Loss: 0.2481
+2026-02-17 02:36:20.374: Epoch: 050 | F1 Score: 0.7447 | Loss: 0.2100
+BaseTraining:  50%|█████     | 50/100 [00:00<00:00, 149.12epoch/s]2026-02-17 02:36:20.420: Epoch: 060 | F1 Score: 0.7492 | Loss: 0.1837
+2026-02-17 02:36:20.462: Epoch: 070 | F1 Score: 0.7417 | Loss: 0.1707
+BaseTraining:  74%|███████▍  | 74/100 [00:00<00:00, 178.27epoch/s]2026-02-17 02:36:20.503: Epoch: 080 | F1 Score: 0.7372 | Loss: 0.1575
+2026-02-17 02:36:20.544: Epoch: 090 | F1 Score: 0.7357 | Loss: 0.1454
+2026-02-17 02:36:20.587: Epoch: 100 | F1 Score: 0.7327 | Loss: 0.1387
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 197.74epoch/s]BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 156.92epoch/s]2026-02-17 02:36:20.587: Average training time per epoch: 0.0055s
+
+Unlearning:   0%|          | 0/50 [00:00<?, ?it/s]Unlearning:  28%|██▊       | 14/50 [00:00<00:00, 139.64it/s]Unlearning:  68%|██████▊   | 34/50 [00:00<00:00, 171.81it/s]Unlearning: 100%|██████████| 50/50 [00:00<00:00, 178.45it/s]2026-02-17 02:36:21.303: Unlearning time: 0.2802, Test F1: 0.6997
+2026-02-17 02:36:21.303: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.6997 ± 0.0000
+ - Average AUC Score: 0.0000 ± 0.0000
+ - Average Training Time: 0.6993 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.2802 ± 0.0000 seconds[0m
 

@@ -1,5 +1,5 @@
-2026-02-16 18:41:05.236: my pid: 11036
-2026-02-16 18:41:05.237: {'Budget': 0.1,
+2026-02-17 02:36:38.662: my pid: 33260
+2026-02-17 02:36:38.664: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,31 +172,54 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 18:41:05.244: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:41:05.244: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
-2026-02-16 18:41:05.288: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
+2026-02-17 02:36:38.670: Data already saved! ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:38.670: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2.pkl
+2026-02-17 02:36:38.695: load_saved_data ./data/processed/transductive/citeseer0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.1_citeseer_0.txt
-Traceback (most recent call last):
-  File "main.py", line 63, in <module>
-    model_zoo = model_zoo(args,data)
-  File "H:\project\OpenGU\GULib-master\model\model_zoo.py", line 42, in __init__
-    self.determine_model()
-  File "H:\project\OpenGU\GULib-master\model\model_zoo.py", line 54, in determine_model
-    self.model = self.init_model(self.data.num_features, self.data.num_classes).to(self.device)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 1152, in to
-    return self._apply(convert)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
-    module._apply(fn)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
-    module._apply(fn)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 802, in _apply
-    module._apply(fn)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 825, in _apply
-    param_applied = fn(param)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 1150, in convert
-    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
-RuntimeError: CUDA error: out of memory
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+2026-02-17 02:36:38.875: Model Summary:
+2026-02-17 02:36:38.875: Total Parameters: 237,446
+2026-02-17 02:36:38.875: Trainable Parameters: 237,446
+2026-02-17 02:36:38.877: Model Architecture:
+GCNNet(
+  (convs): ModuleList(
+    (0): GCNConv(3703, 64)
+    (1): GCNConv(64, 6)
+  )
+)
+2026-02-17 02:36:38.877: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 02:36:38.877: Layer: convs.0.lin.weight | Size: torch.Size([64, 3703]) | Requires Grad: True
+2026-02-17 02:36:38.877: Layer: convs.1.bias | Size: torch.Size([6]) | Requires Grad: True
+2026-02-17 02:36:38.877: Layer: convs.1.lin.weight | Size: torch.Size([6, 64]) | Requires Grad: True
+2026-02-17 02:36:38.877: Model is in training mode: True
+2026-02-17 02:36:38.877: Model is on device: cuda:0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:18,  5.37epoch/s]2026-02-17 02:36:39.157: Epoch: 010 | F1 Score: 0.6877 | Loss: 1.2014
+2026-02-17 02:36:39.209: Epoch: 020 | F1 Score: 0.7117 | Loss: 0.9304
+BaseTraining:  20%|██        | 20/100 [00:00<00:00, 84.05epoch/s]2026-02-17 02:36:39.257: Epoch: 030 | F1 Score: 0.7222 | Loss: 0.6922
+2026-02-17 02:36:39.306: Epoch: 040 | F1 Score: 0.7282 | Loss: 0.5434
+BaseTraining:  41%|████      | 41/100 [00:00<00:00, 130.92epoch/s]2026-02-17 02:36:39.353: Epoch: 050 | F1 Score: 0.7492 | Loss: 0.4343
+2026-02-17 02:36:39.403: Epoch: 060 | F1 Score: 0.7508 | Loss: 0.3424
+BaseTraining:  62%|██████▏   | 62/100 [00:00<00:00, 157.88epoch/s]2026-02-17 02:36:39.454: Epoch: 070 | F1 Score: 0.7477 | Loss: 0.2654
+2026-02-17 02:36:39.501: Epoch: 080 | F1 Score: 0.7402 | Loss: 0.2204
+BaseTraining:  84%|████████▍ | 84/100 [00:00<00:00, 176.62epoch/s]2026-02-17 02:36:39.545: Epoch: 090 | F1 Score: 0.7492 | Loss: 0.1855
+2026-02-17 02:36:39.595: Epoch: 100 | F1 Score: 0.7447 | Loss: 0.1370
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 147.92epoch/s]2026-02-17 02:36:39.595: Average training time per epoch: 0.0058s
+
+GUKD_Training:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-17 02:36:39.697: Epoch: 010 | F1 Score: 0.7538 | Loss: 0.5667
+GUKD_Training:  14%|█▍        | 14/100 [00:00<00:00, 138.17epoch/s]2026-02-17 02:36:39.748: Epoch: 020 | F1 Score: 0.7387 | Loss: 0.4104
+2026-02-17 02:36:39.798: Epoch: 030 | F1 Score: 0.7372 | Loss: 0.3777
+GUKD_Training:  36%|███▌      | 36/100 [00:00<00:00, 185.07epoch/s]2026-02-17 02:36:39.839: Epoch: 040 | F1 Score: 0.7462 | Loss: 0.3584
+2026-02-17 02:36:39.883: Epoch: 050 | F1 Score: 0.7417 | Loss: 0.3443
+2026-02-17 02:36:39.927: Epoch: 060 | F1 Score: 0.7432 | Loss: 0.3425
+GUKD_Training:  60%|██████    | 60/100 [00:00<00:00, 200.38epoch/s]2026-02-17 02:36:39.972: Epoch: 070 | F1 Score: 0.7417 | Loss: 0.3361
+2026-02-17 02:36:40.012: Epoch: 080 | F1 Score: 0.7417 | Loss: 0.3344
+GUKD_Training:  85%|████████▌ | 85/100 [00:00<00:00, 219.12epoch/s]2026-02-17 02:36:40.053: Epoch: 090 | F1 Score: 0.7432 | Loss: 0.3306
+2026-02-17 02:36:40.092: Epoch: 100 | F1 Score: 0.7447 | Loss: 0.3293
+GUKD_Training: 100%|██████████| 100/100 [00:00<00:00, 209.12epoch/s]2026-02-17 02:36:40.092: Average training time per epoch: 0.3897s
+2026-02-17 02:36:40.092: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.7538 ± 0.0000
+ - Average AUC Score: 0.0000 ± 0.0000
+ - Average Training Time: 0.7184 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.3897 ± 0.0000 seconds[0m
 
