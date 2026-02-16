@@ -1,0 +1,1025 @@
+arXiv:2505.10040v1  [cs.LG]  15 May 2025
+Instance-Prototype Affinity Learning for
+Non-Exemplar Continual Graph Learning
+Lei Song1, Jiaxing Li1, Shihan Guan1, Youyong Kong1,2∗
+1Jiangsu Provincial Joint International Research Laboratory of Medical Information Processing,
+School of Computer Science and Engineering, Southeast University
+2Key Laboratory of New Generation Artificial Intelligence Technology and Its Interdisciplinary
+Applications (Southeast University), Ministry of Education, China
+{230238577, jiaxing_li, 230228507, kongyouyong}@seu.edu.cn
+Abstract
+Graph Neural Networks (GNN) endure catastrophic forgetting, undermining their
+capacity to preserve previously acquired knowledge amid the assimilation of novel
+information. Rehearsal-based techniques revisit historical examples, adopted as a
+principal strategy to alleviate this phenomenon. However, memory explosion and
+privacy infringements impose significant constraints on their utility. Non-Exemplar
+methods circumvent the prior issues through Prototype Replay (PR), yet feature
+drift presents new challenges. In this paper, our empirical findings reveal that
+Prototype Contrastive Learning (PCL) exhibits less pronounced drift than conven-
+tional PR. Drawing upon PCL, we propose Instance-Prototype Affinity Learning
+(IPAL), a novel paradigm for Non-Exemplar Continual Graph Learning (NECGL).
+Exploiting graph structural information, we formulate Topology-Integrated Gaus-
+sian Prototypes (TIGP), guiding feature distributions towards high-impact nodes to
+augment the model’s capacity for assimilating new knowledge. Instance-Prototype
+Affinity Distillation (IPAD) safeguards task memory by regularizing discontinuities
+in class relationships. Moreover, we embed a Decision Boundary Perception (DBP)
+mechanism within PCL, fostering greater inter-class discriminability. Evaluations
+on four node classification benchmark datasets demonstrate that our method out-
+performs existing state-of-the-art methods, achieving a better trade-off between
+plasticity and stability.
+1 Introduction
+As a potent paradigm for graph data analysis, Graph Neural Networks (GNN) [7, 11, 31, 36] have
+garnered significant academic attention in recent years. However, most existing studies [ 3, 5, 34]
+adhere to a static data regime, where the complete training set is available upfront and model
+parameters remain immutable after initial optimization. The real world exhibits an intrinsically
+dynamic nature, with information incessantly generated, such as user interactions on social media
+or the dissemination of domain-specific publications, posing considerable exigencies for static
+modeling paradigms. Continual Graph Learning (CGL) endeavors to assimilate novel knowledge
+while retaining previously acquired representations. Nonetheless, distributional disparities across
+tasks frequently precipitate catastrophic forgetting, manifesting as marked performance degradation
+on earlier tasks. Rehearsal-based approaches [ 2, 44] ameliorate this challenge by retrospectively
+incorporating a curated subset of exemplars from prior tasks. However, since representative exemplars
+are retained in the memory buffer for each task, the memory footprint escalates with longer task
+∗Corresponding Author.
+Preprint. Under review.
+
+sequences, potentially culminating in memory explosion. Moreover, in privacy-sensitive contexts,
+access to raw examples may be constrained.
+To surmount the challenges identified above, we examine Non-Exemplar Continual Graph Learning
+(NECGL), a more stringent paradigm that prohibits access to prior raw examples when encountering
+new tasks. In this context, catastrophic forgetting is further exacerbated. Existing Non-Exemplar
+approaches [13, 19, 25, 32] revisit historical prototype representations—the embeddings of prior
+classes in the encoder’s latent space—to overcome this limitation via Prototype Replay (PR). How-
+ever, successive updates to model parameters render earlier class prototypes progressively obso-
+lete, giving rise to feature drift—reflected in their misalignment within the evolving feature space.
+Most existing approaches rectify prior class prototypes through feature drift compensation tech-
+niques [6, 37] post-training, or apply knowledge distillation [9, 45] online to regulate the evolution
+of feature space. While feature drift remains an inherent challenge in NECGL, empirical evidence
+suggests that Prototype Contrastive Learning (PCL) [ 14] induces less drift than conventional PR.
+Figure 1: Visualization of feature drift for conventional Pro-
+totype Replay (left column) and Prototype Contrastive Learn-
+ing (right column) on the CS-CL and CoraFull-CL datasets.
+As shown in Figure 1, we visualize
+the extent of feature drift on base
+task samples across the CS-CL and
+CoraFull-CL datasets. Conventional
+PR formulates training with a cross-
+entropy objective, drawing on prior
+class prototypes for classification. As
+model parameters evolve, prototype
+misalignment intensifies, resulting in
+greater prediction errors and exacer-
+bated feature drift. PCL encourages
+learning relational structures between
+instances and prototypes, explicitly
+distinguishing previously encountered
+classes from novel ones, thus attenuat-
+ing task interference. To elucidate this
+phenomenon, we present Theorem 1
+in Appendix A, along with a rigorous
+theoretical proof. In contrast to Graph
+Contrastive Learning [8, 35], PCL in-
+herently establishes positive pairs between instances and class-aligned prototypes, and negative
+pairs with inter-class prototypes, obviating the need for predefined augmentation strategies such as
+edge perturbation or attribute masking. Motivated by this observation, we propose a novel NECGL
+paradigm built upon PCL.
+While existing Non-Exemplar methods sustain model stability through PR and knowledge distillation,
+notable limitations persist. First, most existing works [ 4, 13, 14, 19, 25] derive prototypes by
+averaging feature representations, yet this isotropic way neglects the varying importance of nodes.
+For graph-structured data, node significance is shaped by unique topologies and neighbor influences.
+Second, feature distillation is extensively applied in Non-Exemplar methods due to its inherent
+plug-and-play functionality. Nonetheless, recent research [ 19] indicates that it imposes excessive
+constraints on the feature space, inhibiting model plasticity. Third, a solitary prototype is often
+insufficient to capture the complete distribution of a class. In the context of PCL, the exclusive
+reliance on a single class prototype can give rise to inter-class ambiguity, thereby exacerbating
+catastrophic forgetting.
+To overcome the above limitations, we propose Instance-Prototype Affinity Learning (IPAL), a novel
+framework tailored for NECGL. We evaluate node impact via the PageRank algorithm [ 23] and
+generate Topology-Integrated Gaussian Prototypes (TIGP), directing class distributions towards
+high-impact nodes to facilitate the assimilation of new knowledge. To combat catastrophic forgetting,
+we propose Instance-Prototype Affinity Distillation (IPAD), aligning instance-prototype relationships
+for more flexible regularization of the feature space. Notably, IPAD seamlessly integrates with PCL,
+providing distinct advantages over feature distillation. Moreover, we embed Decision Boundary
+Perception (DBP) mechanism into PCL to promote sharper inter-class delineation by repelling
+instances proximal to decision boundaries.
+2
+
+Contributions. The main contributions of this paper are as follows: i) We propose IPAL, a novel
+paradigm tailored for NECGL that strikes a favorable trade-off between stability and plasticity; ii)
+We utilize the PageRank algorithm to generate more robust TIGP, integrating graph topology into the
+prototype computation to amplify learning capacity; iii) We design IPAD, a knowledge distillation
+method inherently compatible with PCL, enabling more flexible retention of prior knowledge; iv)
+We incorporate the DBP mechanism into the PCL objective for clearer inter-class separation; v)
+Extensive experiments on four node classification benchmark datasets demonstrate that our proposed
+IPAL outperforms existing state-of-the-art methods in the Non-Exemplar scenario.
+2 Related Work
+Continual Graph Learning. CGL seeks to assimilate new knowledge while preventing GNN
+from forgetting historical knowledge. Prior studies adopted regularization, rehearsal, parameter
+isolation, or their combinations to mitigate catastrophic forgetting. Regularization-based meth-
+ods [1, 12, 15, 16] reinforce constraints on pivotal parameters by quantifying their significance, or
+facilitate output alignment via knowledge distillation applied to the model’s logits. Rehearsal-based
+methods [17, 43, 44] store task-specific exemplars in a memory buffer for replay when learning new
+tasks. Parameter isolation methods [ 22, 41] prevent inter-task interference by assigning separate
+parameters or learning task-specific submodules. This work focuses on rehearsal-based methods
+for their superior performance and closer resemblance to human learning. Despite their efficacy,
+prolonged task sequences can impose substantial memory burdens, and privacy restrictions may limit
+access to historical data.
+Non-Exemplar Continual Learning. Non-Exemplar Continual Learning (NECL) updates models
+without revisiting prior raw examples. Existing studies [ 13, 19, 25, 32] circumvent memory and
+privacy concerns via PR, rather than replaying raw examples. However, feature drift remains a
+fundamental flaw of these approaches. While feature distillation curbs substantial variations in the
+feature space, [19] argued it induces excessive regularization, yielding performance akin to freezing
+the backbone after the base task [24]. To reconcile historical prototypes with the new feature space,
+[14, 19, 32, 37, 39] quantified prototype drift via statistical measures derived from new task samples,
+while [4, 6, 13] harnessed learnable neural networks for adaptive compensation. In this paper, we
+empirically observe from Figure 1 that PCL exhibits less prototype drift than conventional PR trained
+with cross-entropy, which motivates the proposal of IPAL.
+3 Preliminaries
+Problem Formulation. This paper explores the Class-Incremental Learning (CIL) setting, wherein a
+GNN is optimized consecutively over a task sequenceT = {T0, T1, ...,TN } with |T |= N + 1. Each
+task Tt≤N = {Gt, Yt} is defined as a semi-supervised node classification task, where Gt = {Vt, Et}
+denotes the task graph with node set Vt and edge set Et. Et can be expressed through a binary
+adjacency matrix At, where 1 indicates an edge and 0 its absence. The label set is given by
+Yt = {y1
+t , y2
+t , ..., yct
+t }, with Yi ∩ Yj = ∅ for i ̸= j. In the NECGL paradigm, the base task T0
+typically comprises considerably more data than each incremental task Tt (t >0), facilitating GNN
+pretraining for improved incremental adaptation, i.e., c0 ≫ ct. Crucially, when learning new tasks,
+access to data from prior tasks is rigorously restricted, allowing only the current task’s data. Our
+aim is to train a GNN on the task sequence T to attain superior performance across all previously
+encountered tasks. For a model with an encoder Fθt(·) and a linear classifier gϕt(·), existing
+approaches predominantly employ PR to alleviate catastrophic forgetting, with the optimization
+objective formalized as follows:
+LPR = E(xt,yt)∈Tt [−yc
+t log gϕt(Fθt(xc
+t))] + E(fm
+M,ym
+M)∈M [−ym
+M log gϕt(fm
+M)] , (1)
+where M denotes the memory buffer storing historical class prototypes (i.e., Gaussian distributions
+with mean µm and diagonal covariance σ2
+m), from which feature representations fm
+M reflecting past
+task distributions are sampled for replay during new task learning.
+Prototype Contrastive Learning. PCL, rooted in Prototypical Networks [30] from few-shot learn-
+ing, captures the semantic association between instance-wise and class-wise representations. The
+3
+
+2ir4jr2krPageRank242kjitrrrrtr
+Online Prototypes),(4),(5Offline Prototypes),(211),(222),(233SamplingInstance-Prototype Affinity Distillation)1(1tftfmtf1~mtf~Knowledge DistillationPrototype Contrastive LearningPullPushPageRankTask SequenceIntegrating TopologyDecision Boundary Perceptionpt
+1tm
+Figure 2: The overall pipeline of the proposed IPAL framework. Upon the culmination of task Tt−1,
+the TIGP are derived and offline archived in memory buffer M. Following the onset of task Tt,
+online prototypes are dynamically updated and integrated with offline prototypes for PCL. In this
+regard, IPAD safeguards prior task memory via relational distillation, while DBP ensures the clear
+demarcation of newly encountered classes. Best viewed in color.
+optimization objective is formally stated as follows:
+LPCL = E(xt,yt)∈Tt
+"
+−log eFθt(xc
+t)⊤·µc/τ
+eFθt(xc
+t)⊤·µc/τ + P
+j̸=c eFθt(xc
+t)⊤·µj/τ
+#
+, (2)
+where µk∈Y0:t =
+P
+(x,y)∈T 1{y=k}Fθ(x)P
+(x,y)∈T 1{y=k} denotes the prototype for the classk, and τ is the temperature
+scaling factor that controls the distributional smoothness. In this paper, offline prototypes from prior
+tasks in M and current task instances form negative pairs, while online prototypes and label-matching
+instances from the current task form positive pairs.
+4 Methodology
+Figure 2 outlines the overall pipeline of the proposed IPAL. In this section, we provide a detailed
+analysis of each component.
+4.1 Topology-Integrated Gaussian Prototypes
+NECGL prohibits access to raw examples from prior tasks. To combat the intensified catastrophic
+forgetting, existing Non-Exemplar methods model each encountered class k with a Gaussian distribu-
+tion N(µk, σ2
+k) after training, and retain it as a class prototype in the memory buffer M. Although
+somewhat effective, treating all nodes uniformly in graph-structured data is untenable. Owing to the
+distinctiveness of graph topology, nodes within disparate neighborhoods exert differential influence
+on their adjacent counterparts. For example, prominent celebrities often possess a vast following, and
+their actions tend to wield greater influence on society. Indeed, such nodes tend to be more indicative
+than low-degree ones. We steer the model to align class distributions with high-impact nodes, aiding
+the assimilation of new knowledge. Drawing inspiration from [23], node importance is evaluated via
+the PageRank algorithm, formalized as follows:
+rt = α
+X
+j∈Nin(t)
+rj
+d+
+j
++ (1 − α), (3)
+where Nin(t) denotes the set of incoming neighbors of node t, and d+
+j = |Nout(j)| represents the
+out-degree of node j. rt is the PageRank for node t, and α is the damping factor. We then reweight
+4
+
+the node contributions with the aid of PageRank to compute the TIGP for each class as follows:
+µk =
+P
+(x,y)∈T rx1{y = k}Fθ(x)
+P
+(x,y)∈T rx1{y = k} , σ 2
+k = diag
+ P
+(x,y)∈T rx1{y = k}(Fθ(x) − µk)2
+P
+(x,y)∈T rx1{y = k}
+!
+.
+(4)
+Importantly, PageRank is computed once per task, avoiding recalculation in later iterations and
+imposing no extra burden on training. Moreover, offline prototypes are derived for all classes
+at the conclusion of each task, while dynamic online prototypes are instantiated for emerging
+classes throughout the PCL process to promote the integration of new knowledge. We visual-
+ize the performance heatmaps for mean-based prototypes and TIGP on three benchmark datasets.
+1 2 3 4 5 6
+Tasks
+1
+2
+3
+4
+5
+6 Tasks
+CS-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+CoraFull-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+Arxiv-CL
+0
+10
+20
+30
+40
+50
+60
+1 2 3 4 5 6
+Tasks
+1
+2
+3
+4
+5
+6 Tasks
+CS-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+CoraFull-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+Arxiv-CL
+0
+10
+20
+30
+40
+50
+60
+1 2 3 4 5 6
+Tasks
+1
+2
+3
+4
+5
+6 Tasks
+CS-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+CoraFull-CL
+0
+20
+40
+60
+80
+100
+1 2 3 4 5
+Tasks
+1
+2
+3
+4
+5 Tasks
+Arxiv-CL
+0
+10
+20
+30
+40
+50
+60
+Figure 3: Performance heatmaps on three datasets
+are shown. Top row: Mean-based prototypes for
+PCL; Middle row: Feature distillation to mitigate
+feature drift; Bottom row: Our proposed IPAL,
+which integrates TIGP and IPAD to better balance
+the trade-off between plasticity and stability.
+Figure 3 demonstrates that TIGP markedly sur-
+passes mean-based prototypes, yielding notably
+enhanced plasticity.
+4.2 Instance-Prototype Affinity Distillation
+A fundamental flaw of NECGL is feature drift
+(refer to Figure 1), wherein continual updates
+to the GNN render previously stored prototypes
+in memory buffer M increasingly obsolete and
+incompatible with the evolving feature space,
+thereby exacerbating the risk of catastrophic for-
+getting during replay. A direct yet effective strat-
+egy involves replaying historical prototypes to
+the classifier gϕt(·), while regularizing the cur-
+rent parameters θt toward their previous opti-
+mum θt−1. A prevalent paradigm in constrain-
+ing θt is feature distillation, formally defined as
+follows:
+LFD = E(xt,yt)∈Tt∥Fθt(xt) − Fθt−1 (xt)∥2.
+(5)
+Only the data from the current task Tt is permis-
+sible for use. While it substantially alleviates the drift issue, we find that feature distillation may
+sacrifice model plasticity for greater stability. As depicted in the middle row of Figure 3, feature
+distillation compels the model to predominantly preserve the initial feature space, with incremental
+learning merely embedding new class distributions within this confined space, thus impeding the
+assimilation of novel knowledge. Our observation concurs with [ 19], which reveals that feature
+distillation may degrade continual learning into merely fine-tuning the classifier while freezing the
+backbone after the base task.
+To circumvent the rigidity of feature distillation, we resort to IPAD, which upholds intra- and inter-
+class instance–prototype relations for more flexible regularization. Moreover, it exhibits intrinsic
+compatibility with the PCL objective function, enabling more reliable control. To elaborate, the
+embeddings fθt−1 and fθt for the current task samples (xt, yt) ∈ Tt are derived from the preceding
+and current GNNs, Fθt−1 (·) and Fθt(·), respectively. Next, we utilize the Mixup strategy [33, 40]
+to interpolate them with prior class prototypes, synthesizing virtual features that maintain close
+proximity to the prototypes, thus ensuring clear class delineation. The formalized expression is as
+follows:
+˜fm
+θt−1 = λfθt−1 + (1 − λ)µm, ˜fm
+θt = λfθt + (1 − λ)µm, (6)
+where λ ∈ [0, 0.4] is drawn from a Beta distribution, i.e., λ ∼ Beta(9, 21). For efficiency, only a
+subset of Tt is engaged in Mixup. To prevent semantic noise in synthetic features, we further enforce
+pseudo-label filtration for label consistency:
+idx = arg max
+m∈Y0:t−1
+
+˜fm⊤
+θt−1 · µm
+
+== ym, (7)
+where idx denotes a boolean tensor that selects the synthetic features ˜fm
+θt−1 [idx] and ˜fm
+θt [idx] whose
+labels match those of the prototypes. Ultimately, these retrieved synthetic features are exploited to
+5
+
+enable effective IPAD, formulated as follows:
+LAD = E(xt,yt)∈St
+
+ X
+m∈Y0:t−1
+∥ ˜fm
+θt [idx]⊤ · µm − ˜fm
+θt−1 [idx]⊤ · µm∥2
+
+, (8)
+where St ⊆ Tt, subset sampling, particularly on large-scale datasets, optimizes computational
+efficiency while regularizing model parameters to resist feature drift and catastrophic forgetting.
+4.3 Decision Boundary Perception
+PCL capitalizes on instance-prototype relationships for incremental learning, minimizing the distance
+between instances and prototypes with congruent labels, while maximizing the separation between
+those with disparate labels. Prototypes are typically assumed to be sufficiently representative class-
+level features. However, in practice, class distributions may exhibit considerable diversity, rendering
+a single prototype inadequate for comprehensive representation. When generalized to new tasks, this
+can give rise to distributional entanglement across classes, resulting in inter-class ambiguity.
+In this paper, we augment PCL with a DBP mechanism, which facilitates explicit inter-class dis-
+entanglement by capturing relational dynamics with boundary-adjacent instances. Information
+entropy [27, 28] is harnessed to quantify the inherent predictive uncertainty of each node. High-
+entropy nodes, often residing near decision boundaries as hard instances, can be leveraged to promote
+sharper inter-class separation. Given the embedding fc
+θt of a node from task Tt with class c, its
+information entropy is calculated as follows:
+p(xc
+t) = softmax(fc⊤
+θt · [µk]k∈Y0:t), H(xc
+t) = −
+X
+k∈Y0:t
+p(xc
+t) logp(xc
+t), (9)
+where [µk]k∈Y0:t represents concatenated offline and online prototypes. Next, the Top- K highest-
+entropy instances from each class in task Tt are identified as hard examples and seamlessly incor-
+porated into PCL training. They dynamically sustain class boundaries and, in conjunction with
+prototype representations, foster explicit demarcation between both novel and previously learned
+classes. Eq. 2 is further reformulated as:
+L′
+PCL = E(xt,yt)∈Tt
+"
+−log eFθt(xc
+t)⊤·µc/τ
+eFθt(xc
+t)⊤·µc/τ + P
+j̸=c eFθt(xc
+t)⊤·µj/τ + P
+c′̸=c eFθt(xc
+t)⊤·Fθt(xc′
+t )/τ
+#
+,
+(10)
+where c′ ∈ Yt, and xc′
+t is drawn from the retrieved hard examples. Moreover, akin to conventional PR,
+K historical embeddings are stochastically sampled from N(µm, σ2
+m) for each previously observed
+class m, and paired with the current instance xc
+t to constitute negative pairs for PCL. Owing to space
+limitations, this term is omitted from the denominator in Eq. 10.
+4.4 Feature Drift Compensation
+While IPAD and PCL exhibit notable efficacy in suppressing feature drift, we further rectify the
+retained prototypes in the memory buffer M via post-task drift compensation informed by the current
+task data (xt, yt) ∈ Tt. The calculation procedure is as follows:
+µ′
+m = µm + β∆µm, ∀m ∈ Y0:t−1, (11)
+where ∆µm = P
+(xt,yt)∈Tt w(xt, µm)(Fθt(xt) − Fθt−1 (xt)), and β is a hyperparameter controlling
+compensation intensity. w(xt, µm) quantifies the proximity between node xt and prototype µm, with
+closer nodes contributing more to drift compensation. The formal definition is given as follows:
+w(xt, µm) = Fθt−1 (xt)⊤ · µmP
+(x′
+t,y′
+t)∈Tt
+Fθt−1 (x′
+t)⊤ · µm
+. (12)
+In this paper, in light of the observation in Figure 1, β is assigned an exceedingly small value.
+6
+
+Algorithm 1: Training procedure for our IPAL.
+Input: Task sequence T = {T0, T1, ...,TN }, GNN encoder Fθ(·), memory buffer M, weighting
+factor α, base task learning rate η0, incremental task learning rate ηt>0, number of
+epochs E.
+Output: Predicted labels for test nodes from all previously learned tasks.
+1 for t = 0, 1, ..., Ndo
+2 for epoch = 1, 2, ..., Edo
+3 if t = 0 then
+// Initial training on T0.
+4 Compute L′
+PCL according to Eq. 10, i.e., Eq. 13 with γ = 0.
+5 θt ← θt − η0∇θtL′
+PCL .
+6 else
+// Incremental training on Tt>0.
+7 Compute L according to Eq. 13.
+8 θt ← θt − ηt∇θtL.
+9 Perform drift compensation on prior class prototypes {µm}m∈Y0:t−1 according to Eq. 11.
+10 Generate TIGP {N(µc, σ2
+c )}c∈Yt according to Eq. 4, and allocate them to the memory buffer
+M.
+// Testing phase.
+11 Predict node labels for all prior task graphs: ˆy(x) = arg max
+k∈Y0:t
+Fθt(x)⊤ · [µk] , ∀x ∈ T0:t.
+12 return ˆy(x).
+4.5 Optimization Objective
+To train the proposed IPAL, the overall optimization objective is as follows:
+L = L′
+PCL + γLAD, (13)
+where γ denotes the weighting factor, governing the trade-off between plasticity and stability. Notably,
+for the base taskT0, the optimization objective is confined toL′
+PCL , with γ = 0. Algorithm 1 provides
+a detailed depiction of the training workflow.
+5 Experiments
+In this section, we empirically investigate the following questions: Q1) Does IPAL yield performance
+gains over existing state-of-the-art NECL methods? Q2) Do the proposed components substantively
+bolster the overall effectiveness of IPAL? Q3) How does the weighting factor γ modulate the
+performance of IPAL?
+5.1 Experimental Setup
+Datasets. We evaluate IPAL on four node classification benchmark datasets: CS-CL [29], CoraFull-
+CL [20], Arxiv-CL [10] and Reddit-CL [ 7]. Following the problem formulation, each dataset is
+partitioned into a base task T0 and a series of incremental tasks {Tt}t=N
+t=1 via label-wise stratification.
+The graph is decomposed into N + 1 disjoint subgraphs, each dedicated to a specific training task.
+All tasks follow a class-wise 6/2/2 split for training/validation/testing. The suffix "-CL" signifies the
+generated task sequence for CGL. The comprehensive descriptions are delineated in Appendix B.1.
+Implementation Details. IPAL takes a 2-layer GCN [11] with a hidden dimension of 128, initializing
+the learning rate withη0 = 1×10−3 for the base task andηt>0 = 1×10−4 for incremental tasks. The
+algorithm implementation and task training are grounded in Continual Graph Learning Benchmark
+(CGLB) [42], with all experiments executed within the PyTorch 3.10 framework powered by an
+NVIDIA 3090 GPU. We set the temperature scaling factor τ = 0.07, damping factor α = 0.85,
+compensation intensity β = 0.1, |St| = 100, and K = 10. The weighting factor γ is tuned via
+grid search over [0.1, 1.0] with a step size of 0.1. Full-graph training is executed on CS-CL and
+CoraFull-CL, while mini-batch training, with a batch size of 2000, is applied to the larger-scale
+7
+
+Table 1: Performance comparison with existing state-of-the-art baselines on CS-CL, CoraFull-CL,
+Arxiv-CL, and Reddit-CL. The best results are highlighted in bold, and the second-best results are
+underlined.
+CS-CL CoraFull-CL Arxiv-CL Reddit-CLMethods AP/%↑ AF/%↑ AP/%↑ AF/%↑ AP/%↑ AF/%↑ AP/%↑ AF/%↑
+Joint 95.53±0.10 - 74.66±0.47 - 55.19±0.76 - 96.11±0.12 -Bare 43.06±3.95 -63.68±4.84 14.63±0.48 -75.57±0.58 16.30±0.18 -74.41±0.38 19.47±0.58 -96.42±0.69
+EWC 48.11±4.73 -57.49±5.84 15.32±0.95 -71.17±2.15 18.04±1.26 -67.91±2.50 20.77±0.89 -94.73±1.25MAS 53.97±3.67 -48.25±4.47 16.82±0.77 -65.27±1.19 21.66±2.93 -45.83±6.20 20.03±1.46 -94.13±1.66LWF 52.41±3.04 -52.45±3.67 16.51±0.84 -69.31±1.35 16.48±0.33 -74.73±0.18 22.59±2.42 -92.42±2.94GEM 56.56±5.06 -47.44±6.15 19.62±0.23 -64.62±0.68 19.36±0.48 -68.06±0.59 44.99±5.78 -64.04±7.37TWP 55.98±4.17 -47.98±5.29 15.65±0.89 -73.85±1.82 18.58±2.16 -67.38±4.04 23.23±3.21 -91.65±4.02ER-GNN81.19±1.82 -17.15±2.20 19.54±0.43 -67.41±0.54 27.13±0.34 -56.55±0.43 84.64±2.04 -14.06±2.53POLO 60.68±2.32 -16.96±3.90 23.27±1.60 -18.03±1.92 32.03±0.75 -45.48±0.86 92.07±1.13 -1.76±0.79EFC 71.65±2.51 -16.35±3.24 38.75±1.85 -19.55±2.02 30.94±0.41 -40.13±1.48 87.49±1.92 -8.20±2.03
+IPAL 83.07±2.16 -12.89±2.50 40.69±2.54 -20.60±0.68 33.10±0.84 -20.59±0.69 92.15±0.13 -0.27±0.19
+1 2 3 4 5 6
+Tasks
+40
+60
+80
+100Average Accuracy/%
+CS-CL
+1 2 3 4 5
+Tasks
+20
+40
+60
+80Average Accuracy/%
+CoraFull-CL
+1 2 3 4 5
+Tasks
+10
+20
+30
+40
+50
+60Average Accuracy/%
+Arxiv-CL
+1 2 3 4 5
+Tasks
+20
+40
+60
+80
+100Average Accuracy/%
+Reddit-CL
+Joint-Train Fine-Tune GEM EWC LWF MAS TWP ER-GNN POLO EFC IPAL
+Figure 4: Learning dynamics over the task sequences on CS-CL, CoraFull-CL, Arxiv-CL, and
+Reddit-CL. The AP is reported on all tasks.
+Arxiv-CL and Reddit-CL datasets. All experiments are run 5 times, with the mean and standard
+deviation reported.
+Baselines and Evaluation Metrics. We compare our IPAL with existing state-of-the-art methods,
+including regularization-based methods (i.e., EWC [ 12], MAS [ 1], LWF [ 15], GEM [ 18], and
+TWP [16]), Non-Exemplar methods (i.e., POLO [32], and EFC [19]), and a classic rehearsal-based
+method, ER-GNN [44]. Furthermore, we consider two canonical baselines: Bare, naive fine-tuning
+without any auxiliary strategy, and Joint, ideal joint training across tasks, serving as the empirical
+lower and upper bounds. Average Performance (AP) and Average Forgetting (AF) evaluate the
+overall classification efficacy and cumulative forgetting across all prior tasks. If a model excels in
+both metrics, it indicates a balanced trade-off between plasticity and stability. The mathematical
+definitions are elucidated in Appendix B.2.
+5.2 Q1: Comparison with the State-of-the-Art
+As shown in Table 1, we compare our IPAL with several state-of-the-art methods on four node
+classification benchmark datasets. Without intervention for catastrophic forgetting, Bare performs
+direct fine-tuning on incremental tasks, leading to considerable erosion of prior knowledge. While
+regularization-based methods mitigate catastrophic forgetting to some extent, their efficacy falls short
+of rehearsal-based and Non-Exemplar approaches. TWP, tailored for graph-structured tasks, yet in this
+context, performs comparably to traditional methods. ER-GNN revisits pivotal historical examples
+to retain previous memory, yet it considers only individual nodes, disregarding the significance of
+topological structure. In contrast, Non-Exemplar methods replay historical prototypes that encapsulate
+both class-wise features and topological information, outperforming ER-GNN on CoraFull-CL,
+Arxiv-CL, and Reddit-CL. However, due to the inherent flaw of conventional PR, feature drift
+progressively exacerbates with continual model updates. Our proposed IPAL capitalizes on the
+PCL paradigm to curb feature drift, consistently outstripping existing methods on four benchmark
+datasets. Notwithstanding a minor decline in AF on CoraFull-CL, IPAL achieves pronounced gains
+in AP. This discrepancy stems from the inclination of POLO and EFC toward favoring stability
+over plasticity, whereas our IPAL achieves a more balanced trade-off, yielding superior performance
+8
+
+Figure 5: Visualization of class distributions on the base task T0.
+Each color corresponds to a specific class, and triangles indicate
+hard examples.
+0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
+Weighting Factor 
+20
+40
+60
+80
+100Average Accuracy/%
+CS-CL
+CoraFull-CL
+Arxiv-CL
+Figure 6: Comparison of various
+γ settings on CS-CL, CoraFull-
+CL, and Arxiv-CL, with AP re-
+ported.
+overall. Figure 4 illustrates the learning dynamics on four datasets, highlighting that our IPAL almost
+invariably outperforms the competing approaches throughout the entire task sequences.
+5.3 Q2: Ablation Studies and Visualization
+To further validate the proposed components, we conduct ablation studies on CS-CL, CoraFull-
+CL, and Arxiv-CL. Table 2 reveals the following observations: i) Replacing the topology-aware
+TIGP with simplistic mean-based prototypes incurs a substantial performance decline, most no-
+tably on CS-CL and Arxiv-CL; ii) Eliminating distillation (including IPAD and FD) leads to
+severe catastrophic forgetting, yielding a performance decline exceeding 8% on each dataset;
+Table 2: Ablation studies on CS-CL, CoraFull-CL, and Arxiv-
+CL. The AP is reported, with the best results highlighted in
+bold. FD refers to Feature Distillation.
+TIGP IPAD FD DBP CS-CL CoraFull-CL Arxiv-CL
+% ! % ! 79.93±1.85 39.98±1.44 30.42±0.74
+! % % ! 64.07±4.32 32.50±2.76 16.89±0.25
+! % ! ! 72.79±2.70 36.04±2.83 27.25±0.71
+! ! % % 75.94±3.05 33.63±2.58 31.06±0.42
+! ! % ! 83.07±2.16 40.69±2.54 33.10±0.84
+iii) While FD proves effective in miti-
+gating catastrophic forgetting and fea-
+ture drift, it may inadvertently impose
+excessive constraints, hindering the
+model’s capacity to assimilate novel
+knowledge; iv) DBP takes into ac-
+count decision-boundary instances in
+the PCL objective, further promoting
+inter-class separation. Moreover, we
+provide visualizations to elucidate the
+contributions of the proposed compo-
+nents in a more intuitive manner. Re-
+fer to Section 4 for the analysis of Figure 3. Figure 5 visualizes the class distributions of the base task
+T0 on CS-CL and CoraFull-CL, with DBP-identified hard examples located at cluster boundaries,
+validating our previous analysis.
+5.4 Q3: Parameter Analysis
+A grid search over [0.1, 1.0] is carried out on the validation sets of CS-CL, CoraFull-CL, and Arxiv-
+CL to examine performance sensitivity to the weighting factor γ. As shown in Figure 6, the optimal
+performance is attained with a weighting factor of 0.6 or 0.7 on small-scale datasets, whereas larger
+datasets require a higher weight. Overall, smaller γ hinders task retention (i.e., stability ↓, plasticity
+↑), while larger values impose undue constraints (i.e., stability ↑, plasticity ↓). Empirically, a value
+around 0.7 strikes a favorable trade-off between plasticity and stability, consistently yielding superior
+performance on all datasets and streamlining the hyperparameter tuning process.
+6 Conclusions and Future Works
+In this paper, we empirically revealed that PCL substantially attenuates feature drift compared to
+conventional PR by harnessing the intrinsic relational topology between instances and prototypes.
+We further proposed IPAL, a novel NECGL paradigm built upon PCL. To be specific, we evaluated
+node importance via the PageRank algorithm and generated the topology-aware TIGP to promote
+PCL training. To address the inherent feature drift and catastrophic forgetting in NECGL, IPAD
+9
+
+was proposed to regularize the relational structure between instances and prototypes, providing
+greater flexibility while seamlessly aligning with the PCL objective function. Furthermore, the DBP
+mechanism was leveraged to mine hard examples, mitigating inter-class ambiguity and fostering
+more pronounced inter-class separability. Extensive empirical evaluations on four node classification
+benchmark datasets, including comparative, ablation, and parameter studies, demonstrated that IPAL
+consistently outperformed existing state-of-the-art methods. Our future work will seek to adapt IPAL
+to online settings with streaming data, promoting its scalability and real-world viability.
+References
+[1] Rahaf Aljundi, Francesca Babiloni, Mohamed Elhoseiny, Marcus Rohrbach, and Tinne Tuyte-
+laars. Memory aware synapses: Learning what (not) to forget. In Proceedings of the European
+conference on computer vision (ECCV), pages 139–154, 2018.
+[2] Elahe Arani, Fahad Sarfraz, and Bahram Zonooz. Learning fast, learning slow: A general contin-
+ual learning method based on complementary learning system.arXiv preprint arXiv:2201.12604,
+2022.
+[3] Wendong Bi, Lun Du, Qiang Fu, Yanlin Wang, Shi Han, and Dongmei Zhang. Mm-gnn:
+Mix-moment graph neural network towards modeling neighborhood feature distribution. In
+Proceedings of the Sixteenth ACM International Conference on Web Search and Data Mining,
+pages 132–140, 2023.
+[4] De Cheng, Yuxin Zhao, Nannan Wang, Guozhang Li, Dingwen Zhang, and Xinbo Gao. Efficient
+statistical sampling adaptation for exemplar-free class incremental learning. IEEE Transactions
+on Circuits and Systems for Video Technology, 2024.
+[5] Yanfei Dong, Mohammed Haroon Dupty, Lambert Deng, Yong Liang Goh, and Wee Sun Lee.
+Protognn: Prototype-assisted message passing framework for non-homophilous graphs. 2022.
+[6] Alex Gomez-Villa, Dipam Goswami, Kai Wang, Andrew D Bagdanov, Bartlomiej Twardowski,
+and Joost van de Weijer. Exemplar-free continual representation learning via learnable drift
+compensation. In European Conference on Computer Vision, pages 473–490. Springer, 2024.
+[7] Will Hamilton, Zhitao Ying, and Jure Leskovec. Inductive representation learning on large
+graphs. Advances in neural information processing systems, 30, 2017.
+[8] Kaveh Hassani and Amir Hosein Khasahmadi. Contrastive multi-view representation learning
+on graphs. In International conference on machine learning, pages 4116–4126. PMLR, 2020.
+[9] Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. Distilling the knowledge in a neural network.
+arXiv preprint arXiv:1503.02531, 2015.
+[10] Weihua Hu, Matthias Fey, Marinka Zitnik, Yuxiao Dong, Hongyu Ren, Bowen Liu, Michele
+Catasta, and Jure Leskovec. Open graph benchmark: Datasets for machine learning on graphs.
+Advances in neural information processing systems, 33:22118–22133, 2020.
+[11] Thomas N Kipf and Max Welling. Semi-supervised classification with graph convolutional
+networks. arXiv preprint arXiv:1609.02907, 2016.
+[12] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins,
+Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, et al.
+Overcoming catastrophic forgetting in neural networks. Proceedings of the national academy of
+sciences, 114(13):3521–3526, 2017.
+[13] Qiwei Li, Yuxin Peng, and Jiahuan Zhou. Fcs: Feature calibration and separation for non-
+exemplar class incremental learning. In Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition, pages 28495–28504, 2024.
+[14] Yayong Li, Peyman Moghadam, Can Peng, Nan Ye, and Piotr Koniusz. Inductive graph few-shot
+class incremental learning. In Proceedings of the Eighteenth ACM International Conference on
+Web Search and Data Mining, pages 466–474, 2025.
+10
+
+[15] Zhizhong Li and Derek Hoiem. Learning without forgetting. IEEE transactions on pattern
+analysis and machine intelligence, 40(12):2935–2947, 2017.
+[16] Huihui Liu, Yiding Yang, and Xinchao Wang. Overcoming catastrophic forgetting in graph
+neural networks. In Proceedings of the AAAI conference on artificial intelligence, volume 35,
+pages 8653–8661, 2021.
+[17] Yilun Liu, Ruihong Qiu, and Zi Huang. Cat: Balanced continual graph learning with graph
+condensation. In 2023 IEEE International Conference on Data Mining (ICDM), pages 1157–
+1162. IEEE, 2023.
+[18] David Lopez-Paz and Marc’Aurelio Ranzato. Gradient episodic memory for continual learning.
+Advances in neural information processing systems, 30, 2017.
+[19] Simone Magistri, Tomaso Trinci, Albin Soutif-Cormerais, Joost van de Weijer, and Andrew D
+Bagdanov. Elastic feature consolidation for cold start exemplar-free incremental learning. arXiv
+preprint arXiv:2402.03917, 2024.
+[20] Andrew Kachites McCallum, Kamal Nigam, Jason Rennie, and Kristie Seymore. Automating
+the construction of internet portals with machine learning. Information Retrieval, 3:127–163,
+2000.
+[21] Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg S Corrado, and Jeff Dean. Distributed repre-
+sentations of words and phrases and their compositionality. Advances in neural information
+processing systems, 26, 2013.
+[22] Chaoxi Niu, Guansong Pang, Ling Chen, and Bing Liu. Replay-and-forget-free graph
+class-incremental learning: A task profiling and prompting approach. arXiv preprint
+arXiv:2410.10341, 2024.
+[23] Lawrence Page, Sergey Brin, Rajeev Motwani, and Terry Winograd. The pagerank citation
+ranking: Bringing order to the web. Technical report, Stanford infolab, 1999.
+[24] Grégoire Petit, Adrian Popescu, Hugo Schindler, David Picard, and Bertrand Delezoide.
+Fetril: Feature translation for exemplar-free class-incremental learning. In Proceedings of
+the IEEE/CVF winter conference on applications of computer vision, pages 3911–3920, 2023.
+[25] Yixin Ren, Li Ke, Dong Li, Hui Xue, Zhao Li, and Shuigeng Zhou. Incremental graph
+classification by class prototype construction and augmentation. In Proceedings of the 32nd
+ACM International Conference on Information and Knowledge Management, pages 2136–2145,
+2023.
+[26] Luana Ruiz, Fernando Gama, and Alejandro Ribeiro. Graph neural networks: Architectures,
+stability, and transferability. Proceedings of the IEEE, 109(5):660–682, 2021.
+[27] Claude Shannon. The lattice theory of information. Transactions of the IRE professional Group
+on Information Theory, 1(1):105–107, 1953.
+[28] Claude E Shannon. A mathematical theory of communication. The Bell system technical
+journal, 27(3):379–423, 1948.
+[29] Oleksandr Shchur, Maximilian Mumme, Aleksandar Bojchevski, and Stephan Günnemann.
+Pitfalls of graph neural network evaluation. arXiv preprint arXiv:1811.05868, 2018.
+[30] Jake Snell, Kevin Swersky, and Richard Zemel. Prototypical networks for few-shot learning.
+Advances in neural information processing systems, 30, 2017.
+[31] Petar Veliˇckovi´c, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Lio, and Yoshua
+Bengio. Graph attention networks. arXiv preprint arXiv:1710.10903, 2017.
+[32] Shaokun Wang, Weiwei Shi, Yuhang He, Yifan Yu, and Yihong Gong. Non-exemplar class-
+incremental learning via adaptive old class reconstruction. In Proceedings of the 31st ACM
+International Conference on Multimedia, pages 4524–4534, 2023.
+11
+
+[33] Yiwei Wang, Wei Wang, Yuxuan Liang, Yujun Cai, and Bryan Hooi. Mixup for node and graph
+classification. In Proceedings of the Web Conference 2021, pages 3663–3674, 2021.
+[34] Felix Wu, Amauri Souza, Tianyi Zhang, Christopher Fifty, Tao Yu, and Kilian Weinberger.
+Simplifying graph convolutional networks. In International conference on machine learning,
+pages 6861–6871. Pmlr, 2019.
+[35] Dongkuan Xu, Wei Cheng, Dongsheng Luo, Haifeng Chen, and Xiang Zhang. Infogcl:
+Information-aware graph contrastive learning. Advances in Neural Information Processing
+Systems, 34:30414–30425, 2021.
+[36] Keyulu Xu, Weihua Hu, Jure Leskovec, and Stefanie Jegelka. How powerful are graph neural
+networks? arXiv preprint arXiv:1810.00826, 2018.
+[37] Lu Yu, Bartlomiej Twardowski, Xialei Liu, Luis Herranz, Kai Wang, Yongmei Cheng, Shangling
+Jui, and Joost van de Weijer. Semantic drift compensation for class-incremental learning. In
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages
+6982–6991, 2020.
+[38] Friedemann Zenke, Ben Poole, and Surya Ganguli. Continual learning through synaptic
+intelligence. In International conference on machine learning, pages 3987–3995. PMLR, 2017.
+[39] Jiang-Tian Zhai, Xialei Liu, Lu Yu, and Ming-Ming Cheng. Fine-grained knowledge selection
+and restoration for non-exemplar class incremental learning. In Proceedings of the AAAI
+Conference on Artificial Intelligence, volume 38, pages 6971–6978, 2024.
+[40] Hongyi Zhang, Moustapha Cisse, Yann N Dauphin, and David Lopez-Paz. mixup: Beyond
+empirical risk minimization. arXiv preprint arXiv:1710.09412, 2017.
+[41] Peiyan Zhang, Yuchen Yan, Chaozhuo Li, Senzhang Wang, Xing Xie, Guojie Song, and
+Sunghun Kim. Continual learning on dynamic graphs via parameter isolation. In Proceedings
+of the 46th International ACM SIGIR Conference on Research and Development in Information
+Retrieval, pages 601–611, 2023.
+[42] Xikun Zhang, Dongjin Song, and Dacheng Tao. Cglb: Benchmark tasks for continual graph
+learning. Advances in Neural Information Processing Systems, 35:13006–13021, 2022.
+[43] Xikun Zhang, Dongjin Song, and Dacheng Tao. Sparsified subgraph memory for continual
+graph representation learning. In 2022 IEEE International Conference on Data Mining (ICDM),
+pages 1335–1340. IEEE, 2022.
+[44] Fan Zhou and Chengtai Cao. Overcoming catastrophic forgetting in graph neural networks with
+experience replay. In Proceedings of the AAAI conference on artificial intelligence, volume 35,
+pages 4714–4722, 2021.
+[45] Fei Zhu, Xu-Yao Zhang, Chuang Wang, Fei Yin, and Cheng-Lin Liu. Prototype augmentation
+and self-supervision for incremental learning. In Proceedings of the IEEE/CVF conference on
+computer vision and pattern recognition, pages 5871–5880, 2021.
+A Theoretical Analysis on Feature Drift
+Notation. Let Fθ(·) : x 7→ f denote the GNN encoder, inherently Lipschitz continuous with respect
+to the input [26]. Access pertaining to task Tt is confined to the current task data (xt, yt) ∈ Tt and the
+prototypes (µm, Σm) stored in the memory buffer M, where m ∈ Y0:t−1. After training on task Tt,
+the GNN encoder is updated from θt−1 to θt. Consider the samples (xm, ym) ∈ T0:t−1 from previous
+tasks. Let the feature distributions follow a Gaussian distribution, where Fθt(xm) ∼ Pt(f) =
+N(µ′
+m, Σ′
+m) and Fθt−1 (xm) ∼ Pt−1(f) = N(µm, Σm). Note that the notation here differs slightly
+from that in the main text, such as the covariance Σm and the diagonal covariance σ2
+m.
+12
+
+In Non-Exemplar Continual Learning (NECL), Prototype Contrastive Learning (PCL) induces less
+drift than conventional Prototype Replay (PR). To validate this theoretically, we adopt the Kullback-
+Leibler (KL) divergence to quantify feature drift and investigate the evolution of feature distributions
+from prior tasks during the assimilation of new tasks for both PCL and PR, as follows:
+DKL(Pt−1∥Pt) =
+Z
+Pt−1(f) log Pt−1(f)
+Pt(f) d f. (14)
+The goal is to prove that the KL divergence for PCL is theoretically less than that for PR, as formulated
+below:
+Theorem 1 In NECL, assuming Gaussian feature distributions with Fθt(xm) ∼ Pt(f) =
+N(µ′
+m, Σ′
+m) and Fθt−1 (xm) ∼ Pt−1(f) = N(µm, Σm), where Σ′
+m and Σm are positive definite,
+PCL incurs a smaller feature drift than PR:
+DKL(Pt−1∥Pt)PCL < DKL(Pt−1∥Pt)PR . (15)
+Proof. For the n-dimensional multivariate Gaussian distribution, the expression has a closed-form
+solution as follows:
+DKL(Pt−1∥Pt) = 1
+2
+
+log det Σ′
+m
+det Σm
++ tr(Σ
+′−1
+m Σm) + (µ′
+m − µm)⊤Σ
+′−1
+m (µ′
+m − µm) − n
+
+. (16)
+To prove Theorem 1, it suffices to show that for prior feature distributions, PCL yields smaller
+∥µ′
+m − µm∥2
+2 and tr(Σ
+′−1
+m Σm − I) than PR.
+PCL updates θt on task Tt by optimizing Eq. 2, with the feature gradient computed as follows:
+∇fθt LPCL ∝ −1
+τ
+"
+µc −
+X
+k∈Y0:t
+ef⊤
+θt·µk/τ
+P
+k′∈Y0:t ef⊤
+θt·µk′/τ µk
+#
+. (17)
+The gradient for the model parameters θt is computed as follows:
+∇θLPCL = ∇fθt LPCL · ∇θFθt(xt). (18)
+Considering (xm, ym) ∈ T0:t−1, we have:
+Fθt(xm) = Fθt−1+∆θ(xm). (19)
+Here, considering an infinitesimal update step ∆θ, it can be approximated by the first-order Taylor
+expansion [38] as follows:
+Fθt(xm) ≈ Fθt−1 (xm) + ∇θFθt−1 (xm) · ∆θ. (20)
+Furthermore, we obtain:
+µ′
+m ≈ µm + E(xm,ym)∈T0:t−1
+
+∇θFθt−1 (xm) · ∆θ
+
+. (21)
+Eq. 2 regularizes the negative sample gradients in Eq. 17 by minimizing Fθt(xt)⊤ · µm, encouraging
+∆θ to drive Fθt(xm) closer to Fθt−1 (xm). Thus, LPCL essentially regularizes ∥µ′
+m − µm∥2
+2,
+effectively alleviating feature shift.
+PR optimizes Eq. 1 during training, with the feature gradient computed as follows:
+∇fθt LPR ∝
+X
+k∈Y0:t
+ 
+ef⊤
+θt·wk
+P
+k′∈Y0:t ef⊤
+θt·wk′
+− 1{k = yc
+t }
+!
+wk, (22)
+where wk denotes the class-k weight of the linear classifier gϕt(·). Since PR exclusively emphasizes
+the classification accuracy of the new sample (xt, yt) ∈ Tt without explicitly regularizing ∆θ to
+maintain the alignment between Fθt(xm) and Fθt−1 (xm), it may exacerbate the deviation, leading
+to an increase in ∥µ′
+m − µm∥2
+2.
+On the other hand, the covariance of past tasks is defined as:
+Σ′
+m = E(xm,ym)∈T0:t−1
+h
+(Fθt(xm) − µ′
+m) (Fθt(xm) − µ′
+m)⊤i
+. (23)
+According to our preceding analysis, PCL encourages alignment between Fθt(xm) and Fθt−1 (xm),
+whereas PR, lacking such a constraint, allows Σm to expand uncontrollably.
+Therefore, we conclude that PCL yields smaller ∥µ′
+m − µm∥2
+2 and tr(Σ
+′−1
+m Σm − I) than PR, thereby
+substantiating the validity of Theorem 1.
+13
+
+Table 3: The statistical information of CS-CL, CoraFull-CL, Arxiv-CL, and Reddit-CL.
+Benchmark Datasets CS-CL CoraFull-CL Arxiv-CL Reddit-CL
+# nodes 18333 19793 169343 232965
+# edges 163788 126842 1166243 114615892
+# features 6805 8710 128 602
+# labels 15 70 40 40
+# base classes 5 30 20 20
+# novel classes 10 40 20 20
+# split 5+5×2 30 +4×10 20 +4×5 20 +4×5
+# tasks 6 5 5 5
+B Extended Details on Experimental Configuration
+B.1 Additional Descriptions on the Datasets
+Four node classification benchmark datasets are engaged in this paper, with the following detailed
+descriptions:
+CS-CL [29]. Coauthor CS is a co-authorship graph based on the Microsoft Academic Graph from the
+KDD Cup 2016 challenge. Nodes stand for authors, linked by edges in cases of co-authorship. Node
+attributes encode paper keywords, and class labels signify the author’s principal research domains.
+In this study, we divide the dataset into a base task with 5 classes and 5 incremental tasks, each
+containing 2 of the remaining 10 classes.
+CoraFull-CL [20]. CoraFull is a more complete citation network dataset than the commonly used
+7-class subset, with nodes as papers, labels as topics, and edges as citation links. All papers are
+classified into 70 discrete topics, from which 30 are designated to constitute the base task, while the
+remaining 40 are evenly partitioned into 4 incremental tasks of 10 topics each.
+Arxiv-CL [10]. OGB-Arxiv is a paper citation network of Arxiv papers extracted from the Microsoft
+Academic Graph. Each node is an Arxiv paper, with directed edges indicating citations between
+papers. The skip-gram model [21] is applied to extract word embeddings from titles and abstracts,
+which are then employed to define node attributes. The dataset comprises 40 subject areas from
+Arxiv Computer Science papers. The first 20 areas form the base task, and the remaining 20 areas are
+grouped into 4 incremental tasks of 5 areas each.
+Reddit-CL [7]. Reddit comprises posts made in September 2014, with each node labeled by its
+associated subreddit. 41 large communities are taken into account to construct a post-to-post graph,
+with edges defined by user comments on both posts. Node attributes include the post title, average
+comment embedding, post score, and comment count. Following [ 42], we exclude the 41st class,
+then treat the first 20 as the base task and group the remaining 20 into 4 incremental tasks of 5 classes
+each.
+Table 3 presents the statistical information of the four benchmark datasets.
+B.2 Mathematical Definitions for the Evaluation Metrics
+Average Performance (AP) and Average Forgetting (AF) quantify the overall classification perfor-
+mance and the extent of catastrophic forgetting, respectively. Their mathematical definitions are as
+follows:
+APt =
+Pt
+i=1 Mt,i
+t , AFt =
+Pt−1
+i=1 Mt,i − Mi,i
+t − 1 , (24)
+where M denotes the lower triangular performance matrix (refer to Figure 3). Mt,i is the prediction
+accuracy on task Ti after training on task Tt, with t indexed from 1 for convenience. Owing to the
+inherent trade-off between AP and AF, an elevated AP may compromise AF, and vice versa. Both
+metrics should be taken into account in performance evaluation.
+14
+
+C Limitations
+While our method exhibits competitive performance in Non-Exemplar Continual Graph Learning,
+several limitations merit further exploration: i) Existing approaches, including ours, assume a unified
+dataset where tasks are simulated by class-based subgraph partitioning within a single graph. However,
+in real-world scenarios involving heterogeneous domains, the cross-domain generalizability remains
+to be validated; ii) Our method is trained offline, but its applicability to online settings, where data
+arrives in a mini-batch streaming manner, remains to be further investigated.
+15

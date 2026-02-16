@@ -1,5 +1,5 @@
-2026-02-16 11:11:09.965: my pid: 21804
-2026-02-16 11:11:09.967: {'Budget': 0.1,
+2026-02-16 12:23:28.920: my pid: 12904
+2026-02-16 12:23:28.921: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,65 +172,47 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 11:11:09.975: Data already saved! ./data/processed/transductive/cora0.8_0_0.2.pkl
-2026-02-16 11:11:09.975: load_saved_data ./data/processed/transductive/cora0.8_0_0.2.pkl
-2026-02-16 11:11:09.991: load_saved_data ./data/processed/transductive/cora0.8_0_0.2dataset.pkl
+2026-02-16 12:23:28.929: Data already saved! ./data/processed/transductive/cora0.8_0_0.2.pkl
+2026-02-16 12:23:28.929: load_saved_data ./data/processed/transductive/cora0.8_0_0.2.pkl
+2026-02-16 12:23:28.940: load_saved_data ./data/processed/transductive/cora0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.5_cora_0.txt
-2026-02-16 11:11:10.216: Model Summary:
-2026-02-16 11:11:10.216: Total Parameters: 92,231
-2026-02-16 11:11:10.217: Trainable Parameters: 92,231
-2026-02-16 11:11:10.217: Model Architecture:
+2026-02-16 12:23:29.103: Model Summary:
+2026-02-16 12:23:29.104: Total Parameters: 92,231
+2026-02-16 12:23:29.104: Trainable Parameters: 92,231
+2026-02-16 12:23:29.104: Model Architecture:
 GCNNet(
   (convs): ModuleList(
     (0): GCNConv(1433, 64)
     (1): GCNConv(64, 7)
   )
 )
-2026-02-16 11:11:10.217: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-16 11:11:10.217: Layer: convs.0.lin.weight | Size: torch.Size([64, 1433]) | Requires Grad: True
-2026-02-16 11:11:10.217: Layer: convs.1.bias | Size: torch.Size([7]) | Requires Grad: True
-2026-02-16 11:11:10.217: Layer: convs.1.lin.weight | Size: torch.Size([7, 64]) | Requires Grad: True
-2026-02-16 11:11:10.217: Model is in training mode: True
-2026-02-16 11:11:10.217: Model is on device: cuda:0
-2026-02-16 11:11:10.217: target model: GCN
-2026-02-16 11:11:10.217: training target models, run 0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:25,  3.90epoch/s]2026-02-16 11:11:10.570: Epoch: 010 | F1 Score: 0.8339 | Loss: 0.9343
-2026-02-16 11:11:10.619: Epoch: 020 | F1 Score: 0.8727 | Loss: 0.4100
-BaseTraining:  20%|██        | 20/100 [00:00<00:01, 70.01epoch/s]2026-02-16 11:11:10.669: Epoch: 030 | F1 Score: 0.8856 | Loss: 0.2710
-2026-02-16 11:11:10.726: Epoch: 040 | F1 Score: 0.8911 | Loss: 0.2113
-BaseTraining:  40%|████      | 40/100 [00:00<00:00, 111.53epoch/s]2026-02-16 11:11:10.778: Epoch: 050 | F1 Score: 0.8893 | Loss: 0.1852
-BaseTraining:  59%|█████▉    | 59/100 [00:00<00:00, 135.97epoch/s]2026-02-16 11:11:10.841: Epoch: 060 | F1 Score: 0.8838 | Loss: 0.1544
-2026-02-16 11:11:10.901: Epoch: 070 | F1 Score: 0.8875 | Loss: 0.1449
-BaseTraining:  76%|███████▌  | 76/100 [00:00<00:00, 144.36epoch/s]2026-02-16 11:11:10.962: Epoch: 080 | F1 Score: 0.8893 | Loss: 0.1256
-2026-02-16 11:11:11.018: Epoch: 090 | F1 Score: 0.8819 | Loss: 0.1171
-BaseTraining:  93%|█████████▎| 93/100 [00:00<00:00, 151.73epoch/s]2026-02-16 11:11:11.083: Epoch: 100 | F1 Score: 0.8838 | Loss: 0.1108
-BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 121.67epoch/s]2026-02-16 11:11:11.083: Average training time per epoch: 0.0072s
-2026-02-16 11:11:11.083: Train data  #.Nodes: 2708.000000, #.Edges: 10556.000000
-2026-02-16 11:11:11.097: training target models, run 0
-2026-02-16 11:11:11.103: generate train loader
-2026-02-16 11:11:11.113: generate train loader finish
+2026-02-16 12:23:29.104: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-16 12:23:29.104: Layer: convs.0.lin.weight | Size: torch.Size([64, 1433]) | Requires Grad: True
+2026-02-16 12:23:29.104: Layer: convs.1.bias | Size: torch.Size([7]) | Requires Grad: True
+2026-02-16 12:23:29.104: Layer: convs.1.lin.weight | Size: torch.Size([7, 64]) | Requires Grad: True
+2026-02-16 12:23:29.104: Model is in training mode: True
+2026-02-16 12:23:29.104: Model is on device: cuda:0
+2026-02-16 12:23:29.104: target model: GCN
+2026-02-16 12:23:29.104: training target models, run 0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:21,  4.56epoch/s]2026-02-16 12:23:29.406: Epoch: 010 | F1 Score: 0.8339 | Loss: 0.9343
+2026-02-16 12:23:29.449: Epoch: 020 | F1 Score: 0.8727 | Loss: 0.4100
+BaseTraining:  24%|██▍       | 24/100 [00:00<00:00, 93.33epoch/s]2026-02-16 12:23:29.498: Epoch: 030 | F1 Score: 0.8856 | Loss: 0.2710
+2026-02-16 12:23:29.541: Epoch: 040 | F1 Score: 0.8911 | Loss: 0.2113
+BaseTraining:  45%|████▌     | 45/100 [00:00<00:00, 133.91epoch/s]2026-02-16 12:23:29.595: Epoch: 050 | F1 Score: 0.8893 | Loss: 0.1852
+2026-02-16 12:23:29.646: Epoch: 060 | F1 Score: 0.8838 | Loss: 0.1544
+BaseTraining:  64%|██████▍   | 64/100 [00:00<00:00, 150.79epoch/s]2026-02-16 12:23:29.702: Epoch: 070 | F1 Score: 0.8875 | Loss: 0.1449
+2026-02-16 12:23:29.744: Epoch: 080 | F1 Score: 0.8893 | Loss: 0.1256
+BaseTraining:  86%|████████▌ | 86/100 [00:00<00:00, 173.06epoch/s]2026-02-16 12:23:29.796: Epoch: 090 | F1 Score: 0.8819 | Loss: 0.1171
+2026-02-16 12:23:29.840: Epoch: 100 | F1 Score: 0.8838 | Loss: 0.1108
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 143.54epoch/s]2026-02-16 12:23:29.840: Average training time per epoch: 0.0060s
+2026-02-16 12:23:29.841: Train data  #.Nodes: 2708.000000, #.Edges: 10556.000000
+2026-02-16 12:23:29.853: training target models, run 0
+2026-02-16 12:23:29.858: generate train loader
+2026-02-16 12:23:29.868: generate train loader finish
+2026-02-16 12:23:30.308: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.8339 ± 0.0000
+ - Average AUC Score: 0.5307 ± 0.0000
+ - Average Training Time: 0.7348 ± 0.0000
+ - Average Unlearning Time: 0.4010 ± 0.0000 seconds[0m
 
-Traceback (most recent call last):
-  File "main.py", line 75, in <module>
-    GU_method.run_exp()
-  File "H:\project\OpenGU\GULib-master\pipeline\IF_based_pipeline.py", line 140, in run_exp
-    self.mia_attack()
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\IDEA\idea.py", line 536, in mia_attack
-    auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\utils\_param_validation.py", line 214, in wrapper
-    return func(*args, **kwargs)
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\metrics\_ranking.py", line 627, in roc_auc_score
-    return _average_binary_score(
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\metrics\_base.py", line 75, in _average_binary_score
-    return binary_metric(y_true, y_score, sample_weight=sample_weight)
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\metrics\_ranking.py", line 387, in _binary_roc_auc_score
-    fpr, tpr, _ = roc_curve(y_true, y_score, sample_weight=sample_weight)
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\utils\_param_validation.py", line 187, in wrapper
-    return func(*args, **kwargs)
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\metrics\_ranking.py", line 1095, in roc_curve
-    fps, tps, thresholds = _binary_clf_curve(
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\metrics\_ranking.py", line 806, in _binary_clf_curve
-    check_consistent_length(y_true, y_score, sample_weight)
-  File "H:\conda_package\envs\gnn\lib\site-packages\sklearn\utils\validation.py", line 407, in check_consistent_length
-    raise ValueError(
-ValueError: Found input variables with inconsistent numbers of samples: [2708, 1896]

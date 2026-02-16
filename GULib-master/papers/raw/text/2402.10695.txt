@@ -1,0 +1,484 @@
+Unlink to Unlearn: Simplifying Edge Unlearning in GNNs
+Jiajun Tan
+Institute of Computing Technology,
+Chinese Academy of Sciences
+University of Chinese Academy of
+Sciences, Beijing, China
+tanjiajun22s@ict.ac.cn
+Fei Sun∗
+Institute of Computing Technology,
+Chinese Academy of Sciences
+Beijing, China
+sunfei@ict.ac.cn
+Ruichen Qiu
+University of Chinese Academy of
+Sciences, Beijing, China
+quiruichen20@mails.ucas.ac.cn
+Du Su
+Institute of Computing Technology,
+Chinese Academy of Sciences
+Beijing, China
+sudu@ict.ac.cn
+Huawei Shen∗
+Institute of Computing Technology,
+Chinese Academy of Sciences
+Beijing, China
+shenhuawei@ict.ac.cn
+ABSTRACT
+As concerns over data privacy intensify, unlearning in Graph Neural
+Networks (GNNs) has emerged as a prominent research frontier in
+academia. This concept is pivotal in enforcing the right to be forgot-
+ten, which entails the selective removal of specific data from trained
+GNNs upon user request. Our research focuses on edge unlearning,
+a process of particular relevance to real-world applications. Cur-
+rent state-of-the-art approaches like GNNDelete can eliminate the
+influence of specific edges yet suffer from over-forgetting, which
+means the unlearning process inadvertently removes excessive in-
+formation beyond needed, leading to a significant performance
+decline for remaining edges. Our analysis identifies the loss func-
+tions of GNNDelete as the primary source of over-forgetting and
+also suggests that loss functions may be redundant for effective edge
+unlearning. Building on these insights, we simplify GNNDelete to
+develop Unlink to Unlearn (UtU), a novel method that facilitates
+unlearning exclusively through unlinking the forget edges from
+graph structure. Our extensive experiments demonstrate that UtU
+delivers privacy protection on par with that of a retrained model
+while preserving high accuracy in downstream tasks, by upholding
+over 97.3% of the retrained model’s privacy protection capabilities
+and 99.8% of its link prediction accuracy. Meanwhile, UtU requires
+only constant computational demands, underscoring its advantage
+as a highly lightweight and practical edge unlearning solution.
+CCS CONCEPTS
+• Security and privacy →Social network security and privacy .
+KEYWORDS
+Machine Unlearning, Graph Neural Networks, Over-forgetting
+∗Corresponding authors.
+Permission to make digital or hard copies of part or all of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for third-party components of this work must be honored.
+For all other uses, contact the owner/author(s).
+WWW ’24 Companion, May 13–17, 2024, Singapore, Singapore
+© 2024 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-0172-6/24/05
+https://doi.org/10.1145/3589335.3651578
+ACM Reference Format:
+Jiajun Tan, Fei Sun, Ruichen Qiu, Du Su, Huawei Shen. 2024. Unlink to
+Unlearn: Simplifying Edge Unlearning in GNNs. In Companion Proceedings
+of the ACM Web Conference 2024 (WWW ’24 Companion), May 13–17, 2024,
+Singapore, Singapore. ACM, New York, NY, USA, 4 pages. https://doi.org/10.
+1145/3589335.3651578
+1 INTRODUCTION
+Although Graph Neural Networks (GNNs) have achieved great
+success in various tasks [16], this advancement inherently comes
+with the risk of privacy leakage, as training data with sensitive
+personal information can be implicitly “remembered” within model
+parameters. To address these concerns, recent legislations, e.g., EU’s
+General Data Protection Regulation (GDPR) and the California Con-
+sumer Privacy Act (CCPA), have granted individuals with the right
+to be forgotten , enabling them to request elimination of their private
+data from online platforms. Consequently, machine unlearning [3]
+has emerged, allowing quick and efficient removal of specific data
+from a trained model, rather than retraining from scratch.
+In this paper, we focus on edge unlearning, a key unlearning
+scheme in graphs, owing to its pivotal role in real-world applications
+such as safeguarding edge privacy in social networks. Consider the
+scenario where individuals in online social networks may seek to
+conceal certain private social connections. In these instances, GNNs
+that have been trained on these graphs require timely updates to
+eliminate any influence of the data intended to be forgotten, while
+preserving performance on retrained edges.
+Recently, GNNDelete has achieved state-of-the-art performance
+in edge unlearning, however, we observed a considerable decline
+in its prediction accuracy for edges in the retained training set,
+especially for those resembling or closely associated with the edges
+subjected to unlearning. We introduce the term over-forgetting to
+describe such a phenomenon, where an unlearning algorithm in-
+advertently eliminates an excessive amount of information from
+the retained data. In this context, “excessive” refers to a scenario
+where the performance of the unlearned model on retained data de-
+teriorates significantly compared to a model retrained from scratch
+using only the retained data.
+In this study, we address the challenge of over-forgetting by in-
+troducing Unlink to Unlearn (UtU). Our investigation has revealed
+deficiencies in the design of GNNDelete’s loss functions. One loss
+arXiv:2402.10695v2  [cs.LG]  11 Mar 2024
+
+WWW ’24 Companion, May 13–17, 2024, Singapore, Singapore Jiajun Tan, Fei Sun, et al.
+function designed to eliminate the influence of forget edges opts for
+an unsuitable optimization objective, being the primary contributor
+to over-forgetting. The other, designed to alleviate the issue of over-
+forgetting, fails to prevent the performance decline of retaining
+edges as intended. In light of these findings, we deprecate both loss
+functions in GNNDelete, while facilitating edge unlearning by un-
+linking forget edges from the original graph structure. Our method
+eliminates the need for complex parameter optimization, reducing
+computation overhead by orders of magnitude. Our experimen-
+tal evaluations indicate that UtU’s performance on downstream
+tasks, its efficacy in unlearning, and its output distribution are
+more aligned with those of the retrained model, which is broadly
+regarded as the gold standard of unlearning.
+2 PRELIMINARIES
+2.1 Operation of GNNs
+Consider a graph 𝐺 = (𝑉,𝐸 )with node set 𝑉 and edge set 𝐸. Each
+node 𝑣𝑖 ∈𝑉 is often associated with a feature vector 𝒙𝑖. A GNN
+model M, parameterized by 𝜽, is composed of multiple GNN layers,
+which process node features and graph structural information to
+generate node embeddings via the message passing mechanism.
+Initialized by 𝒉0
+𝑖 = 𝒙𝑖 for each node 𝑣𝑖, the operation of𝑙-th GNN
+layer can be formally expressed as follows:
+𝒎𝑙
+𝑖 = msg(𝒉𝑙−1
+𝑖 , {𝒉𝑙−1
+𝑗 |𝑗 ∈N(𝑖)}), (1)
+𝒉𝑙
+𝑖 = upd(𝒉𝑙−1
+𝑖 , 𝒎𝑙
+𝑖) (2)
+where N(𝑖)denotes neighborhood of 𝑣𝑖, and msg(·)and upd(·)
+vary among different GNN types, representing message function
+and update function. The final output ofMis the node embeddings
+of last layer, denoted by 𝒉 = M(𝐺,𝜃).
+2.2 Edge Unlearning on GNNs
+Let M0 be a randomly initialized GNN, and let the original model
+M∗be trained using a learning algorithm A(M0,𝐺)on graph 𝐺.
+The forget set, defined as 𝐸𝑑 ⊆𝐸, contains the edges requested for
+removal, while the retain set 𝐸𝑟 = 𝐸\𝐸𝑑 represents the remaining
+edges in the training graph 𝐺. The objective of unlearning is to
+devise an unlearning process Uthat renders the unlearned model
+M𝑢 = U(M∗,𝐺,𝐸 𝑑)indistinguishable from the retrained model
+M𝑟 = A(M0,𝐺𝑟), with 𝐺𝑟 = (𝑉,𝐸𝑟)being the retain graph.
+A variety of unlearning algorithms have been developed to ad-
+dress edge unlearning requests in GNNs. [4, 5] leverages SISA para-
+digm [2], where only the sub-model corresponding to the removed
+data needs to be retrained and then aggregates its result with other
+sub-models. Other strategies directly update the original model, in-
+cluding leveraging the influence function [14], providing a theoreti-
+cal guarantee of unlearning via differential privacy [15], projecting
+parameters to irrelevant subspace [7].
+2.3 GNNDelete
+Recently, GNNDelete [6] surpasses various baseline methods, show-
+ing a strong capability to unlearn selected edges by a learning-to-
+unlearn framework. It first inserts a linear transformation 𝜙 with
+learnable parameters after each GNN layer, while freezing the origi-
+nal model’s parameters.𝜙is only applied to nodes in𝑙-hop enclosing
+subgraph of forget edge 𝑒𝑢𝑣, namely 𝑆𝑙𝑢𝑣 , by transforming each
+□0.4 □0.2 0.0 0.2
+pgnndelete □ poriginal
+10□5
+10□3
+10□1
+Proportion
+(a) Unlearn by GNNDelete.
+□0.4 □0.2 0.0 0.2
+pretrained □ poriginal
+10□5
+10□3
+10□1
+Proportion (b) Retrain from scratch.
+Figure 1: An intuitive demonstration of over-forgetting, com-
+paring the difference of retaining edge predictions before
+and after forgetting. The x-axis represents the change in pre-
+dicted probabilities after unlearning, and the y-axis shows
+the distribution of these changes across the retain set 𝐸𝑟.
+node’s original embedding into unlearned embedding:𝒉′𝑙
+𝑖 = 𝜙𝑙(𝒉𝑙
+𝑖);
+for other nodes, their embeddings remain unchanged.
+Two loss functions, Deleted Edge Consistency (DEC) loss L𝐷𝐸𝐶
+and Neighborhood Influence (NI) loss L𝑁𝐼, are then computed layer-
+wise. Generally, DEC loss is intended for unlearning edges in 𝐸𝑑,
+while the NI loss aims to repair node embeddings in 𝑆𝑙𝑢𝑣. We will
+discuss their design in more detail in 3.2. During the backward pass,
+the parameters of 𝜙 are optimized based on the weighted total loss,
+which is represented as:
+L𝑙 = 𝜆L𝑙
+𝐷𝐸𝐶 +(1 −𝜆)L𝑙
+𝑁𝐼, (3)
+GNNDelete uses 𝜆 = 0.5 to report its performance, claiming this
+setting can achieve the best overall performance.
+3 UTU: UNLINK TO UNLEARN
+While GNNDelete reports a prominent unlearning ability, it suffers
+from the issue of over-forgetting. In this section, we first provide a
+formal introduction to the over-forgetting problem, subsequently
+revealing the connection between GNNDelete’s inappropriate loss
+and over-forgetting. By removing these loss functions, we further
+introduce our simplified approach UtU to alleviate over-forgetting.
+3.1 Over-forgetting in Edge Unlearning
+As previously introduced, over-forgetting refers to the phenom-
+enon where the performance of retain set significantly deterio-
+rates after unlearning. Figure 1 shows the over-forgetting observed
+on GNNDelete. Despite only 5% of the edges being unlearned, a
+substantial 92.4% of the retained edges experience performance
+decrement. Conversely, the retrained model’s predictions for the
+majority of retained edges remain mostly unchanged. In order to
+quantitatively assess over-forgetting, we compare the performance
+of unlearned model against a retrained model to gauge the impact
+of the forgetting procedure.
+For link prediction task, the probability of the existence of the
+edge between nodes (𝑣𝑖,𝑣𝑗)is predicted by integrating their final
+embeddings 𝒉𝐿
+𝑖,𝒉𝐿
+𝑗 using a score function 𝜑(·), as 𝑝𝑖𝑗 = 𝜑(𝒉𝐿
+𝑖,𝒉𝐿
+𝑗).
+For 𝑒𝑖𝑗 ∈𝐸𝑟, we identify over-forgetting if the predicted probability
+of 𝑒𝑖𝑗 in M𝑢 decreases compared to M𝑟, i.e., Δ𝑝𝑖𝑗 = 𝜑(𝒉′
+𝑖,𝒉′
+𝑗)−
+𝜑(𝒉𝑟
+𝑖,𝒉𝑟
+𝑗)< 0, where 𝒉′and 𝒉𝑟 represent embeddings generated
+by models M𝑢 and M𝑟, respectively. Typically, our focus is on the
+overall performance decline across 𝐸𝑟, which can be measured as
+Δ𝑝𝑟 = mean(Δ𝑝𝑖𝑗),∀𝑒𝑖𝑗 ∈𝐸𝑟.
+
+Unlink to Unlearn: Simplifying Edge Unlearning in GNNs WWW ’24 Companion, May 13–17, 2024, Singapore, Singapore
+3.2 Analysis on Unlearning Target
+Now we discuss the design of GNNDelete’s loss functions to find
+out the source of over-forgetting. The Deleted Edge Consistency
+(DEC) loss minimizes the difference between predictions of forget
+edges 𝑒𝑢𝑣 and random-chosen node pairs:
+L𝑙
+DEC = mse({[𝒉′𝑙
+𝑢; 𝒉′𝑙
+𝑣]| 𝑒𝑢𝑣 ∈𝐸𝑑},{[𝒉𝑙
+𝑝; 𝒉𝑙
+𝑞]| 𝑝,𝑞 ∈𝑅 𝑉}), (4)
+where [·; ·]denotes the concatenation of two vectors. mse refers to
+Mean-Squared Error. ∈𝑅 means randomly chosen.
+However, random node pairs may not be a suitable optimiza-
+tion target. The optimization of DEC loss will introduce structural
+noise by encouraging node embeddings in 𝐸𝑑 to reflect random
+connections rather than actual graph topology, leading to inaccu-
+rate representations and prediction results. Moreover, this noise
+propagates to neighboring nodes by message passing mechanism
+as pointed out in Sec. 2.1, degrading the embedding quality on a
+broader scale and exacerbating the issue of over-forgetting.
+Besides, connected nodes in a graph tend to share similar at-
+tributes or belong to the same class according to the homophily
+hypothesis [10]. Despite being removed due to unlearning requests,
+the samples in 𝐸𝑑 originate from pre-existing edges in the graph,
+implying that their end nodes ought to exhibit strong homophily,
+and should not be equated with arbitrarily selected node pairs.
+Neighborhood Influence (NI) loss base on the idea that removing
+𝑒𝑢𝑣 should not affect the predictions of its enclosing subgraph 𝑆𝑢𝑣:
+L𝑙
+NI = mse(∥𝑤{[𝒉′𝑙
+𝑤]| 𝑤 ∈𝑆𝑙
+𝑢𝑣/𝑒𝑙
+𝑢𝑣}, ∥𝑤{[𝒉𝑙
+𝑤]| 𝑤 ∈𝑆𝑙
+𝑢𝑣}), (5)
+where ∥signifies the concatenation of multiple vectors.
+NI loss guides the unlearned embedding𝒉′𝑙𝑤 to match the original
+one, acting as a regularization term for node embeddings in 𝑆𝑙𝑢𝑣 to
+mitigate the structural noise induced by DEC loss. However, note
+that node features and edges are combined as GNN’s input, the
+original embedding is generated using the original graph without
+removing 𝑒𝑢𝑣’s influence. That means the unlearned embedding
+will still contain structural information of edges in forget set, which
+weakens its ability to repair over-forgetting.
+3.3 UtU: a Minimalist Approach
+Given the preceding analysis, we propose to eliminate the DEC loss
+due to its selection of an unsuitable target for forgetting. Following
+the removal of DEC loss, the NI loss, initially serving as a corrective
+measure for DEC loss, is also deemed unnecessary. We then propose
+that edge unlearning can be effectively achieved by only altering
+the input edge indexes to that of retain graph 𝐺𝑟, which can be
+named Unlink to Unlearn :
+𝒉′= M∗(𝐺𝑟;𝜃∗), (6)
+where 𝜃∗denotes parameters of original model M∗.
+This approach is grounded on the insights of GNN operations.
+The edges in the graph mainly facilitate message passing between
+node features, as delineated in Eq. 1. Most GNN models’ parameters
+are located during the node features’ update step, as specified in
+Eq. 2, which does not involve edge utilization. Therefore, removing
+a forgotten edge during inference can effectively block message
+propagation from neighboring nodes linked to the forget set. This
+action alone suffices to eliminate the edge’s influence from the
+model, thereby achieving our unlearning objective.
+Table 1: Statistical Overview of the Datasets.
+Dataset # Nodes # Edges # Features # Classes
+CoraFull 19,793 126,842 8,710 70
+PubMed 19,717 88,648 500 3
+CS 18,333 163,778 6,805 15
+OGB-collab 235,868 2,238,104 128 N/A
+It is worth noting that UtU is remarkably efficient through its
+minimalistic design. Deleting an edge from the graph structure only
+requires O(1)time complexity, making UtU a nearly “zero-cost”
+edge unlearning solution.
+4 EXPERIMENTS
+4.1 Experimental Setup
+Datasets. We conduct the experiments on four real-world datasets,
+including citation networks: CoraFull [ 1] and PubMed [ 1], and
+collaboration networks: CS [12] and OGB-collab [8]. Table 1 shows
+details of these datasets. In accordance with previous work, we split
+90% edges for the training set, 5% for validation, and 5% for test.
+Baselines. We choose most widely-used 2-layer GNNs as back-
+bones: GCN [9], GAT [13], and GIN [17]. We also consider following
+unlearning methods for comparison: Retrain from scratch, Gradient
+Ascent, GIF [14], GNNDelete [6], and a variant of GNNDelete by
+only removing DEC loss, namely GNNDelete-NI.
+Tasks. Following the common practice in [ 6, 15], we train all
+models on link prediction task and then perform edge unlearning.
+Forget edges are randomly chosen from the training set. We vary the
+proportion of forget edges from 0.1% to 5% to examine algorithm
+performance under different scenarios. There are few scenarios
+where more than 5% of edges need to be unlearned simultaneously.
+Metrics. We adopt ROC-AUC to evaluate downstream tasks
+for link prediction. To assess the effectiveness of unlearning, we
+compare the unlearned model against the retrained model using JS
+divergence and ROC-AUC of MI Attack. Additionally, we useΔ𝑝,
+introduced in Sec. 3.1, to compare over-forgetting.
+Implementation. We follow the default hyper-parameter set-
+ting of all baselines, and metrics are reported across an average of
+five independent runs. Codes are available at provided link1.
+4.2 Experiment Result and Anlysis
+4.2.1 Downstream Task. In this part, we compare the utility of
+unlearned models obtained by different unlearning methods, as
+we anticipate that unlearning will not harm the performance of
+GNN on downstream tasks. ROC-AUC was used to determine the
+model’s ability to predict hidden test edges. Results are shown in
+Table 2, where UtU performs the best in most settings, with the
+closest gap of 0.001 on average compared to retraining.
+4.2.2 Unlearning Efficacy. The model after unlearning should treat
+the forget edges as if it had never seen them before. Hence, we
+expect predictions on these edges to be similar to those of a model
+that has been retrained from scratch. Following [ 16], we use the
+activation distance measured by JS divergence, along with mem-
+bership inference (MI) attack [11] to assess whether the model has
+truly achieved the effect of unlearning. Figure 2 illustrates that the
+1https://github.com/Sumsky21/Unlink-to-Unlearn
+
+WWW ’24 Companion, May 13–17, 2024, Singapore, Singapore Jiajun Tan, Fei Sun, et al.
+Table 2: AUC ( ↑) on Link Prediction. Forget Set: 5.0% edges.
+Dataset Model Retrain GradAscent GIF GNNDelete GNNDelete-NI UtU
+CoraFull GCN 0.967 0.563 0.964 0.922 0.967 0.965GAT 0.963 0.766 0.926 0.934 0.947 0.964GIN 0.961 0.596 0.742 0.897 0.958 0.960
+PubMed GCN 0.970 0.375 0.924 0.934 0.968 0.969GAT 0.936 0.766 0.774 0.890 0.927 0.933GIN 0.939 0.545 0.842 0.887 0.938 0.942
+CS GCN 0.968 0.786 0.950 0.947 0.968 0.970GAT 0.963 0.846 0.941 0.943 0.958 0.963GIN 0.960 0.583 0.520 0.900 0.959 0.960
+OGB-collabGCN 0.985 0.406 0.971 0.925 0.981 0.987GAT 0.971 0.755 0.744 0.924 0.960 0.971GIN 0.925 0.683 0.500 0.805 0.912 0.913
+Table 3: AUC on MI Attack. Forget Set: 5.0% edges.
+Dataset Model Retrain GradAscent GIF GNNDelete GNNDelete-NI UtU
+CoraFull GCN 0.580 0.500 0.529 0.712 0.531 0.528GAT 0.582 0.500 0.547 0.719 0.543 0.541GIN 0.586 0.510 0.508 0.721 0.586 0.605
+PubMed GCN 0.616 0.500 0.555 0.652 0.555 0.551GAT 0.624 0.500 0.574 0.708 0.576 0.578GIN 0.603 0.519 0.552 0.752 0.662 0.625
+CS GCN 0.593 0.500 0.580 0.566 0.573 0.577GAT 0.574 0.500 0.543 0.615 0.540 0.542GIN 0.580 0.653 0.497 0.666 0.592 0.590
+OGB-collabGCN 0.515 0.500 0.538 0.542 0.528 0.547GAT 0.560 0.500 0.533 0.484 0.478 0.554GIN 0.571 0.502 0.500 0.511 0.555 0.556
+Avg Diff. with Retrain (%)6.67 4.40 5.53 2.21 1.58
+GCN GAT GIN
+10□5
+10□4
+10□3
+10□2
+10□1
+Activation JS Div.
+Cora
+GCN GAT GIN
+PubMed
+GCN GAT GIN
+CS
+GCN GAT GIN
+OGB-Collab
+Gradient Ascent GIF GNNDelete GNNDelete-NI UtU
+Figure 2: Activation distance ( ↓) on forget set (5.0% edges).
+outputs of forget edges from UtU closely mirror those from the re-
+trained model. Table 3 shows that the resistance to MI Attack of UtU
+is generally more aligned with retraining than baseline methods.
+4.2.3 Over-forgetting evaluation. Figure 3 shows the trend of Δ𝑝
+as the size of the forget set changes. As described in 3.1, Δ𝑝 repre-
+sents the average difference of the edge predictions of the retain
+set, compared with that of retrained. Lower Δ𝑝indicates more seri-
+ous over-forgetting. The results indicate that our method remains
+unaffected by over-forgetting, regardless of the forget set’s size.
+Furthermore, its predictions of retain set are also highly consistent
+with those of the retrained model.
+5 CONCLUSION
+In this work, we address the issue of over-forgetting in the state-of-
+the-art edge unlearning method, GNNDelete. Our analysis identifies
+a correlation between its loss functions and the over-forgetting prob-
+lem. To mitigate this, we introduce a simplified approach named
+Unlink to Unlearn (UtU). UtU effectively eliminates the influence of
+forgotten edges by merely unlinking the forgotten edges, thus ob-
+structing the corresponding message-passing paths in GNN during
+the inference stage. Experimental results demonstrate that UtU acts
+0.1 0.5 1.0 2.5 5.0
+Unlearn ratio (%)
+□ 0 .4
+□ 0 .2
+0 .0
+Retain set ∆p
+Cora
+0.1 0.5 1.0 2.5 5.0
+Unlearn ratio (%)
+□ 0 .4
+□ 0 .2
+0 .0
+Retain set ∆p
+PubMed
+0.1 0.5 1.0 2.5 5.0
+Unlearn ratio (%)
+□ 0 .4
+□ 0 .2
+0 .0
+Retain set ∆p
+CS
+0.1 0.5 1.0 2.5 5.0
+Unlearn ratio (%)
+□ 0 .4
+□ 0 .2
+0 .0
+Retain set ∆p
+OGB-Collab
+Gradient Ascent GIF GNNDelete GNNDelete-NI UtU
+Figure 3: Comparison of over-forgetting on GAT backbone.
+on par with the retrained model with near-zero computational over-
+head. Our findings suggest that removing a small number of edges
+might have little influence on the model parameters, highlighting
+an avenue for future research to investigate this phenomenon.
+ACKNOWLEDGMENTS
+This work was supported by the National Key R&D Program of
+China (2022YFB3103700, 2022YFB3103704), the National Natural
+Science Foundation of China under Grant No. U21B2046, and the
+Innovation Funding of ICT, CAS under Grant No. E361120.
+REFERENCES
+[1] Aleksandar Bojchevski and Stephan Günnemann. 2018. Deep Gaussian Embed-
+ding of Graphs: Unsupervised Inductive Learning via Ranking. In ICLR.
+[2] Lucas Bourtoule, Varun Chandrasekaran, Christopher A. Choquette-Choo, Hen-
+grui Jia, Adelin Travers, Baiwu Zhang, David Lie, and Nicolas Papernot. 2021.
+Machine Unlearning. In IEEE S&P . 141–159.
+[3] Yinzhi Cao and Junfeng Yang. 2015. Towards making systems forget with machine
+unlearning. In IEEE S&P . 463–480.
+[4] Chong Chen, Fei Sun, Min Zhang, and Bolin Ding. 2022. Recommendation
+Unlearning. In WebConf. 2768–2777.
+[5] Min Chen, Zhikun Zhang, Tianhao Wang, Michael Backes, Mathias Humbert,
+and Yang Zhang. 2022. Graph unlearning. In SIGSAC. 499–513.
+[6] Jiali Cheng, George Dasoulas, Huan He, Chirag Agarwal, and Marinka Zitnik.
+2022. GNNDelete: A General Strategy for Unlearning in Graph Neural Networks.
+In ICLR.
+[7] Weilin Cong and Mehrdad Mahdavi. 2023. Efficiently Forgetting What You
+Have Learned in Graph Representation Learning via Projection. In AISTATS.
+6674–6703.
+[8] Weihua Hu, Matthias Fey, Marinka Zitnik, Yuxiao Dong, Hongyu Ren, Bowen
+Liu, Michele Catasta, and Jure Leskovec. 2020. Open Graph Benchmark: Datasets
+for Machine Learning on Graphs. In NIPS, Vol. 33. 22118–22133.
+[9] Thomas N. Kipf and Max Welling. 2017. Semi-Supervised Classification with
+Graph Convolutional Networks. In ICLR.
+[10] Miller McPherson, Lynn Smith-Lovin, and James M Cook. 2001. Birds of a feather:
+Homophily in social networks. Annual review of sociology 27, 1 (2001), 415–444.
+[11] Iyiola E Olatunji, Wolfgang Nejdl, and Megha Khosla. 2021. Membership inference
+attack on graph neural networks. In TPS-ISA. IEEE, 11–20.
+[12] Oleksandr Shchur, Maximilian Mumme, Aleksandar Bojchevski, and Stephan
+Günnemann. 2018. Pitfalls of graph neural network evaluation. arXiv (2018).
+[13] Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro
+Liò, and Yoshua Bengio. 2018. Graph Attention Networks. In ICLR.
+[14] Jiancan Wu, Yi Yang, Yuchun Qian, Yongduo Sui, Xiang Wang, and Xiangnan
+He. 2023. GIF: A General Graph Unlearning Strategy via Influence Function. In
+WebConf. 651–661.
+[15] Kun Wu, Jie Shen, Yue Ning, Ting Wang, and Wendy Hui Wang. 2023. Certified
+edge unlearning for graph neural networks. In SIGKDD. 2606–2617.
+[16] Zonghan Wu, Shirui Pan, Fengwen Chen, Guodong Long, Chengqi Zhang, and
+Philip S. Yu. 2021. A Comprehensive Survey on Graph Neural Networks. IEEE
+TNNLS 32, 1 (2021), 4–24.
+[17] Keyulu Xu, Weihua Hu, Jure Leskovec, and Stefanie Jegelka. 2019. How Powerful
+are Graph Neural Networks?. In ICLR.

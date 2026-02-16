@@ -1,0 +1,1242 @@
+Federated Graph Unlearning
+Yuming Ai*1, Xunkai Li*1, Jiaqi Chao2, Bowen Fan1,
+Zhengyu Wu1, Yinlin Zhu3, Rong-Hua Li1, Guoren Wang1
+1Beijing Institute of Technology, Beijing, China
+2Shandong University, Shandong, China
+3Sun Yat-Sen University, Guangdong, China
+1120211787@bit.edu.cn, cs.xunkai.li@gmail.com, 202300800028@mail.sdu.edu.cn,
+3220241345@bit.edu.cn, jeremywzy96@outlook.com, zhuylin27@mail2.sysu.edu.cn,
+lironghuabit@126.com, wanggrbit@gmail.com
+Abstract
+The demand for data privacy has led to the development of
+frameworks like Federated Graph Learning (FGL), which fa-
+cilitate decentralized model training. However, a significant
+operational challenge in such systems is adhering to the right
+to be forgotten. This principle necessitates robust mecha-
+nisms for two distinct types of data removal: the selective era-
+sure of specific entities and their associated knowledge from
+local subgraphs and the wholesale removal of a user’s entire
+dataset and influence. Existing methods often struggle to fully
+address both unlearning requirements, frequently resulting in
+incomplete data removal or the persistence of residual knowl-
+edge within the system. This work introduces a unified frame-
+work, conceived to provide a comprehensive solution to these
+challenges. The proposed framework employs a bifurcated
+strategy tailored to the specific unlearning request. For fine-
+grained Meta Unlearning, it uses prototype gradients to direct
+the initial local forgetting process, which is then refined by
+generating adversarial graphs to eliminate any remaining data
+traces among affected clients. In the case of complete client
+unlearning, the framework utilizes adversarial graph genera-
+tion exclusively to purge the departed client’s contributions
+from the remaining network. Extensive experiments on mul-
+tiple benchmark datasets validate the proposed approach. The
+framework achieves substantial improvements in model pre-
+diction accuracy across both client and meta-unlearning sce-
+narios when compared to existing methods. Furthermore, ad-
+ditional studies confirm its utility as a plug-in module, where
+it materially enhances the predictive capabilities and unlearn-
+ing effectiveness of other established methods.
+Introduction
+The growing adoption of graph neural networks
+(GNNs) (Wu et al. 2020) in domains like social net-
+works (Wang et al. 2018), bioinformatics (Qu et al. 2023),
+and recommendation systems (Cai et al. 2023) underscores
+the value of graph-structured data. However, real-world
+graphs are inherently distributed across clients and often
+contain sensitive information. Centralized graph learning
+methods, which require data aggregation, risk privacy
+breaches and violate regulations such as GDPR (Regu-
+lation 2018) and CCPA (Pardau 2018). Federated graph
+*These authors contributed equally.
+learning (He et al. 2021) thus emerges, combining privacy-
+preserving computation with graph representation learning.
+This approach ensures regulatory compliance while miti-
+gating performance degradation from data heterogeneity via
+cross-client graph modeling.
+One urgent privacy-preserving compliance to meet is
+granting users’ rights to be forgotten (Yang et al. 2024).
+However, most existing federated graph learning methods
+lack this capability, limiting their applicability in real-world
+deployments and introducing model bias (Chang and Shokri
+2023) and security vulnerabilities (Tolpegin et al. 2020). Un-
+like most existing Federated Unlearning methods (Roman-
+dini et al. 2024; Zhong et al. 2025; Zhao et al. 2024) that
+are primarily designed for independent and identically dis-
+tributed (i.i.d.) non-graph data such as images or text, de-
+signing a unified framework for Federated Graph Unlearn-
+ing (FGU) presents unique challenges.
+Unlearning entities from graph-structured data requires
+not only removing the target node but also its connectivity
+with neighboring nodes, thereby disrupting the topological
+integrity. Moreover, due to the dependency of GNNs on in-
+formation propagation, such structural disturbances can sig-
+nificantly degrade the quality of neighboring nodes’ learned
+representations. In the context of FGU, this work formally
+proposes two unlearn requests that align with the collabora-
+tive training architecture:
+◆ Meta Unlearning: Request to remove specific entities
+and their associated structural information from a client’s
+local subgraph during the federated training process. This
+ensures that historical interactions of forgotten entities no
+longer contribute to cross-client knowledge transfer.
+◆ Client Unlearning: Request to remove an entire client
+during the federated training process, ensuring that all as-
+sociated entities and their interactions cease contributing to
+the global learning process. The knowledge originated from
+forgotten clients that infused to other models during the fed-
+erated process should also be removed.
+Formal mathematical representations of these two unlearn
+requests are provided in the next section. Both requests re-
+flect common real-world demands for protecting user data
+privacy, such as requests to delete personal accounts or to
+fully withdraw a client from federated participation due to
+arXiv:2508.02485v1  [cs.LG]  4 Aug 2025
+
+new regulatory restraints or compromised security.
+Challenge. Although some prior work has attempted to
+address these challenges, key limitations persist:
+① Incomplete Unlearning Support : Existing methods
+handle client unlearnin and meta unlearning in isolation,
+lacking a unified framework to coordinate multi-level un-
+learning. This limits their effectiveness in addressing het-
+erogeneous unlearning requirements in practical settings.
+② Residual Knowledge Permeation : During federated
+training, information from data marked for unlearning may
+propagate to other clients via gradient exchanges and graph-
+structural dependencies. Most prior approaches focus solely
+on the global model and the primary unlearning subject, ne-
+glecting cross-client contamination. Consequently, sensitive
+information might continue to be extracted.
+Method. To address these limitations, we propose PAGE,
+a novel three-stage unlearning framework. The first stage,
+Prototype Matching for Local Unlearn, efficiently removes
+a client’s unique contributions by projecting its data pro-
+totype onto a shared feature subspace and minimally fine-
+tuning the model toward this common representation. Sub-
+sequently, the second stage, Adversarial Graph Generation,
+validates the process by creating adversarial inputs engi-
+neered to maximize the output discrepancy between the
+original and unlearned models, thereby acting as sensitive
+probes for any residual knowledge. Finally, if knowledge
+permeation is detected, the third stage, Negative Knowledge
+Distillation for Influenced Unlearn, identifies the influenced
+clients via prototypical similarity and applies a targeted dis-
+tillation to eradicate the infiltrated information, ensuring a
+comprehensive and robust unlearning outcome.
+Contributions. (1) New Perspective. This paper estab-
+lishes a unified theoretical framework for federated graph
+unlearning that supports multiple unlearn requests. It sets
+the standard for achieving precise decoupling between for-
+gotten and retained knowledge in federated graph scenar-
+ios for the first time. (2) New Method. We propose PAGE,
+a novel approach comprising three key components: a pro-
+totype matching module for guiding local unlearning, an
+adversarial graph generation module for verifying unlearn-
+ing and mitigating residual impact, and a negative knowl-
+edge distillation module for removing unintended knowl-
+edge transfer. (3) SOTA Performance. Across 8 benchmark
+datasets, PAGE achieves state-of-the-art performance, im-
+proving prediction accuracy by 5.08% in client unlearning
+and 1.50% in meta-unlearning scenarios. More impressively,
+it yields up to 11.84% improvement on large-scale graphs.
+PAGE also serves as an effective plug-in to enhance existing
+meta-unlearn methods as the ablation experiment reveals.
+Preliminaries
+Federated Graph Learning
+In this subsection, we present a formal definition of fed-
+erated graph learning (FGL). Assume that the FGL sys-
+tem comprises K clients C = {c1, c2, ..., cK} and a cen-
+tral server. The global graph dataset is defined as G =
+{Gi|ci ∈ C}. The server retains no raw data but the global
+model parameter θg. Each client ci holds a local subgraph
+Gi = {Vi, Ei, Xi}, where Vi represents the node set in ci,
+Ei represents the edge set, Xi represents the feature set. In
+addition, each client holds a local model parameter θi with
+the same architecture as the global model. The objective of
+FGL is to collaboratively train the global graph neural net-
+work model fθg : G → Y(e.g., for node classification or
+link prediction) whose parameters θg are obtained by mini-
+mizing a global loss function:
+min
+θg
+L(θg) =
+KX
+i=1
+|Vi|
+|V| · Li(θg; Gi) (1)
+For a more detailed exposition, we illustrate the training
+procedure of FGL at round t using FedAvg as an example.
+Receive Message. Each client receives the global model
+parameters distributed by the server and initializes the local
+model through θi
+t ← θg
+t .
+Local Update. Each client performs multiple rounds of
+local training using its own subgraph. The goal of local train-
+ing is to obtain θi
+t+1 by optimizing the local loss function:
+θi
+t+1 = min
+θi
+t
+Ltask(θi
+t; Gi) (2)
+Upload Message . Each client uploads the local model
+θi
+t+1 and sampled data size ni to the server.
+Global Aggregation. The server collects the parameters
+uploaded by all K clients and performs weighted averaging:
+θg
+t+1 =
+KX
+i=1
+niP
+j nj
+· θi
+t+1 (3)
+Federated Graph Unlearning
+In this subsection, we give a formal definition of various un-
+learn requests and FGU. The unlearn requests are divided
+into two categories: meta unlearning and client unlearning.
+Meta Unlearning . Meta unlearning represents the un-
+learning of the internal structure of the client subgraph. For
+example, in a social network scenario, if a user asks the plat-
+form to delete his account, the user node and all its associ-
+ated edges need to be removed from the global social graph,
+and subsequent recommendation models no longer rely on
+their historical interactions. When client ci receiving a meta
+unlearn request ∆Gi = {∆Vi, ∆Ei, ∆Xi}, it can be de-
+composed into three dimensions of unlearning: node level
+∆Gi = {∆Vi, ∅, ∅}, edge level ∆Gi = {∅, ∆Ei, ∅} and
+feature level ∆Gi = {∅, ∅, ∆Xi}. For each client, three di-
+mensions of meta unlearn request may occur. Therefore, for
+the entire federated system, the total meta unlearn request is
+defined as ∆G = {∆V, ∆E, ∆X} = SK
+i=1 ∆Gi.
+Client Unlearning. Client unlearning means that the en-
+tire client exits the FGL system, requiring the removal of all
+its data contributions. For instance, if a bank withdraws from
+collaboration due to policy restrictions, all related account
+nodes and associated transaction edges must be removed
+from the global transaction graph without affecting the per-
+formance of the risk control model of other banks. When
+receiving a client unlearn request∆C = {cu1 , cu2 , ..., cuM },
+the FGL system needs to completely and verifiably remove
+all data contributions from some specific clients.
+
+Existing graph unlearning (GU) methods support meta
+unlearn requests: GIF (Wu et al. 2023a) and IDEA (Dong
+et al. 2024) quantify first-order deletion impacts via closed-
+form parameter adjustments, while D2DGN (Sinha, Man-
+dal, and Kankanhalli 2024) and MEGU (Li et al. 2024)
+balance unlearning and reasoning through specialized loss
+functions. For knowledge graphs, FedLU (Zhu, Li, and
+Hu 2023) eliminates triplet knowledge with neuroscience-
+inspired global propagation, and FedDM (Liu and Fang
+2024) leverages diffusion models to mitigate knowledge
+impacts via noisy data generation. Correspondingly, most
+federated unlearning methods only address client unlearn
+requests: FedEraser (Romandini et al. 2024) reconstructs
+models via historical update calibration; FUSED (Zhong
+et al. 2025) trains sparse adapters for knowledge overwrit-
+ing; MoDe (Zhao et al. 2024) employs staged momentum
+degradation and distillation; ReGEnUnlearn (Liu and Liu
+2025) reduces subgraph interference through optimal sam-
+pling and client-specific knowledge extraction.
+Notions. Assume that ˆθ is the randomly initialized orig-
+inal parameters As defined above, the FGL system obtains
+model parameters based on the client set C and the graph
+dataset G by θo = F GL(ˆθ; C; G). When an unlearn request
+< ∆G, ∆C > is received, the retrained model parametersθ∗
+are trained from scratch on retained graph Gr = G \∆G and
+retained client set Cr = C \∆C by θ∗ = F GL(ˆθ; Cr; Gr).
+The parameters of the unlearned model, denoted ¯θ are ob-
+tained by applying the FGU algorithm to the original model
+parameters θo, defined as: ¯θ = F GU(θo; C; G; ∆C; ∆G).
+Objective. From a mathematical definition, the goal of
+the FGU algorithm is to minimize the difference between ¯θ
+and θ∗. From a practical standpoint, the fundamental goal
+of a FGU algorithm is to, under the strict requirements
+of privacy compliance, efficiently and completely eliminate
+the influence of specified data elements (nodes, edges, sub-
+graphs, or entire clients) on the already-trained global graph
+model, while simultaneously minimizing any degradation in
+the model’s ability to represent the remaining data—thereby
+striking an optimal balance between precise unlearning and
+model preservation.
+Unlearning Verification. Membership inference attack is
+a privacy-stealing technique for machine learning models,
+the core goal of which is to determine whether a specific
+data record is used in the training set of the target model.
+The attacker builds an inference model to distinguish be-
+tween member data (training data) and non-member data
+(non-training data) by analyzing the model’s response to in-
+put data (such as prediction confidence, gradient update, or
+recommendation sequence).
+Proposed Method
+In this section, we introduce PAGE, designed to address
+federated graph unlearning under multiple unlearn requests.
+The methodology comprises three core steps: (1) Prototype
+Matching for Local Unlearn: The server leverages proto-
+types to define unlearning objectives, guiding clients in the
+precise erasure of local knowledge; (2) Adversarial Graph
+Generation: Constructing negative samples implicitly con-
+taining knowledge for unlearning by maximizing model dis-
+crepancies before and after unlearning; (3) Negative Knowl-
+edge Distillation for Influence Unlearn: Eliminating the im-
+pact of knowledge permeation on associated clients.
+Architecture Overview
+As shown in Figure 1, in the preprocessing stage on the left,
+each client calculates a local prototype vector and uploads
+it to the server. The server calculates the cosine similarity
+between the vectors and filters out the influenced clients
+based on the similarity. On the right, PAGE operates in three
+stages. First, it performs precise local unlearning by lever-
+aging semantic prototypes, enabling the server to isolate pri-
+vate data components based on client-provided feature cen-
+troids. Next, it validates the unlearning efficacy by gener-
+ating adversarial graph samples that maximize the discrep-
+ancy between the model’s pre- and post-unlearning states,
+thereby creating a sensitive probe for residual knowledge.
+Finally, the method addresses federated knowledge leakage
+by using prototype similarity to identify influenced clients
+and then applying negative knowledge distillation—guided
+by the adversarial samples—to approximate the desired un-
+learned state.
+It is worth noting that under the client unlearn request,
+there is no need to perform prototype matching for local un-
+learning. When all of the data in the client need to be forgot-
+ten, the noise model ˆθ, which is initialized randomly, repre-
+sents the unlearned model ¯θu. Adversarial graph generation
+module and negative knowledge distillation module together
+form the influenced unlearning component.
+Prototype Matching
+The topological correlations in graph data cause conven-
+tional parameter-level unlearning to disrupt structural se-
+mantics, while federated learning’s global-local knowledge
+coupling compounds these difficulties. We thus propose
+a prototype matching-based local unlearning mechanism
+with core principles: (1) Representing data distributions
+abstractly via class prototype vectors (feature-space cen-
+troids), avoiding direct raw graph manipulation; (2) Gen-
+eralizing gradient matching’s behavioral constraint concept
+to feature-space prototype alignment, reducing computation
+costs while preserving graph structure modeling.
+Prototype. The client ci trains a graph neural networkfθi
+on the local dataset Gi and calculates its category prototype
+vector pi. Taking the node classification task as an example,
+for category c, the prototype is defined as the mean repre-
+sentation of the nodes of this category in the feature space:
+pi
+c = 1
+|Vi|
+X
+(xi,yi=c)
+fθi(xi) (4)
+where Vi is the set of all nodes of the category c in the
+client ci. Then, all clients upload their model parameters
+{θi|i = 1, 2, ..., K} and prototype sets P to the server.
+P = {pi
+c|i = 1, 2, ..., K; c ∈ C} (5)
+
+GNN GNN
+Local 
+Training
+Client 1
+Client N
+Local Model N
+Local Model 1
+Prototype 1
+Prototype N
+GNN
+Influenced Clients
+Influenced 
+Prototypes
+Prototype 
+Grad
+Prototype 1
+Prototype N
+Server
+Unlearn 
+Model 1
+Unlearning StagePreprocessing Stage
+Server
+GNN
+GNN
+Unlearn 
+Prototype
+GNN
+ GNN
+Adversarial 
+graph
+Difference 
+Maximization
+Unlearn 
+Model
+Unlearn 
+Data
+Original 
+Model 1
+Local 
+Training
+Gram-Schmidt 
+Space
+Prototype Matching Adversarial Graph Generation
+GNN
+Unlearn 
+Prototype
+Step 1.
+Extraction
+Step 2.
+Upload & Recieve
+Step 3.
+Local Unlearn
+Prototype 
+Grad
+GNN
+Unlearn Model 1
+Alignment 
+Loss
+Influenced Unlearn
+Original 
+Model
+Meta Unlearn
+Client
+Unlearn
+GNN
+GNN
+Unlearn 
+Model 1
+Noise 
+Model
+Client 1
+Reset
+Clients
+Selection
+Unlearn 
+Client ID
+Influenced 
+Clients
+Figure 1: Overview of our proposed PAGE. Left: preprocessing before unlearning. Right: unlearning stage. The server performs
+prototype matching to guide the client to local unlearn. Based on the original model and unlearned model, adversarial graph
+samples are generated to guide the influenced client to perform influenced unlearn.
+The client cu computes the unlearn prototype pdel derived
+from the unlearn data ∆Gu:
+pdel = { 1
+|∆Vu|
+X
+(xu,yu=c)
+fθu(xu)|c ∈ C} (6)
+Gram-Schmidt Prototype Space. The server aggregates
+prototype sets P from all non-unlearning clients. To elimi-
+nate redundant information and construct an orthogonal ba-
+sis space, Gram-Schmidt orthogonalization is employed on
+the prototype vectorsP: v1 = p1/||p1||2, vi = pi−Pi−1
+j=1 <
+pi, vj > vj, ˜vi = vi/||vi||2
+Subsequently, we obtain the orthogonal basis matrixV =
+[˜v1, ˜v2, ...,˜vM ] ∈ Rd×M , M << N, which spans the global
+prototype space Span(P). Then, orthogonal projection de-
+composition is performed to project the unlearning proto-
+types pdel onto Span(P).
+pcom = V VT pdel =
+MX
+i=1
+< pdel, ˜vi > ˜vi (7)
+We can obtain the prototype grad ppriv = pcom − pdel,
+which satisfies the orthogonality.
+< ppriv, ˜vi >= 0, ∀i ∈ {1, 2, ..., M} (8)
+This prototype grad ppriv is termed the pure private
+knowledge guiding vector. Then, distribute ppriv to the
+client cf to perform local unlearn.
+Local Unlearn . The client cf performs local unlearn
+based on the prototype grad ppriv:
+L = MSE (pdel, ppriv) (9)
+And then, we can get the unlearned model paramaters ¯θu.
+Adversarial Graph Generation
+In federated graph unlearning, relying solely on local un-
+learn operations cannot adequately verify knowledge elim-
+ination effectiveness. The primary reasons are: 1. Conceal-
+ment of Residual Knowledge: Unlearning may only be ef-
+fective at specific decision boundaries, requiring sensitive
+samples to expose model behavioral changes; 2. Need for
+Cross-Client Impact Quantification: Knowledge permeation
+levels demand quantifiable assessment tools to provide pre-
+cise unlearning guidance for other influenced clients.
+To address this, we propose a difference-maximized graph
+adversarial generation method. Its core principle systemati-
+cally explores regions where model behavior changes most
+significantly after unlearning by simultaneously perturbing
+graph structures and node features.
+First, the server loads the original model parameters and
+unlearned model parameters θu, ¯θu of the target unlearning
+client cu to establish a dual-model comparison framework.
+The initial inputs for adversarial graph generation comprise
+the node feature matrixXinit ∈ RN×d and adjacency matrix
+Ainit ∈ {0, 1}N×N , which are initialized randomly.
+
+Algorithm 1: Adversarial Graph Generation.
+1: Input: Initial graph Ginit = (Ainit, Xinit), models fθu,
+f¯θu, hyperparameters λ = 0.1, ϵx = 0.1
+2: Output: Adversarial graph Gadv
+3: Initialize optimization variables Avar, Xvar
+4: while not converged do
+5: ˜A ← σ(Avar), Asym ← ( ˜A + ˜AT )/2
+6: G ←(Xvar, Asym)
+7: Ldiff ← CE(fθu(G), f¯θu(G))
+8: Lreg ← ∥Asym − Ainit∥1
+9: Ladv ← Ldiff − λLreg
+10: Update Avar, Xvar
+11: Xvar ← Xinit + clip(Xvar − Xinit, −ϵx, ϵx)
+12: end while
+13: Post-processing:
+14: ∆A ← TopK(|Avar − Ainit|), K= 5
+15: Construct Afinal :
+Afinal [i, j] =
+1 − Ainit[i, j] ∀(i, j) ∈ ∆A
+Avar[i, j] otherwise
+16: Xfinal ← Xinit + clip(Xvar − Xinit, −ϵx, ϵx)
+17: Gadv ← (Xfinal , {(i, j) | Afinal [i, j] > 0.5})
+18: Return Gadv
+Subsequently, gradient ascent is employed to optimize
+perturbations in continuous space, with differentiable adja-
+cency matrix weights Avar and feature matrix Xvar defined
+as optimization variables. Refer to Algorithm 1 for the spe-
+cific optimization process.
+Negative Knowledge Distillation
+To address the challenge of knowledge permeation, this
+module proposes a negative knowledge distillation mecha-
+nism. Using graph adversarial samples, it compels affected
+clients to conform to the post-unlearning state in sensitive
+regions, thereby achieving targeted elimination of knowl-
+edge permeation.
+The server broadcasts the unlearned model parameters ¯θu
+and graph adversarial samples Gadv to other affected clients.
+The output of the unlearned model on these graph adver-
+sarial samples represents the negative knowledge requiring
+elimination. In addition, in each affected client, the local
+positive knowledge needs to be preserved is obtained from
+the local model parameters θi and local data Gi. Through
+this module we can get unlearned model parameters of each
+client ¯θi.
+Distillation architecture . To preserve positive knowl-
+edge, we want to minimize the loss between ¯θi and θi for
+the local dataset Gi:
+Lpos = Ltask(f¯θi(Gi), fθi(Gi)) (10)
+Similarly, in order to unlearn the knowledge requiring
+elimination, we hope that the loss between¯θi and ¯θu on Gadv
+is as small as possible:
+Lneg = L(f¯θi(Gadv), f¯θu(Gadv)) (11)
+where, L is the chosen distillation measure, which is the
+Mean Squared Error (MSE) loss function in this paper.
+Finally, we can get the final objective function:
+L = Lpos + αLneg (12)
+where α is the regularization hyperparameter that bal-
+ances the trade-off between the effects of the two separators.
+Experiments
+In this section, we conduct a comprehensive experimen-
+tal evaluation of PAGE. First, we systematically introduce
+the datasets used in the experiments. Second, we present
+state-of-the-art(SOTA) methods for FU and GU employed
+for comparison. Finally, we describe the specific unlearning
+configurations and evaluation methodologies. Overall, we
+aim to address the following research questions: Q1: Com-
+pared with the SOTA federated unlearning and graph un-
+learning methods, can PAGE achieve the best performance
+under multiple unlearn requests? Q2: How does PAGE
+achieve the dual advantages of maintaining model utility and
+forgetting integrity? Q3: Does PAGE demonstrates strong
+robustness across diverse unlearning scenarios?
+Experimental Setup
+All experiments are conducted on a system equipped with an
+NVIDIA A100 80GB PCIe GPU and an Intel(R) Xeon(R)
+Gold 6240 CPU @ 2.60GHz, with CUDA Version 12.4
+enabled. The software environment is set up with Python
+3.9.16 and PyTorch 1.13.1 to ensure optimal compatibility
+and performance for all algorithms.
+Datasets. To comprehensively evaluate various unlearn-
+ing methods, we collect real-world datasets of varying
+sizes from various domains (e.g., citation networks, co-
+author networks, etc.). From small-scale dataset Cora (Yang,
+Cohen, and Salakhutdinov 2016) to medium-scale dataset
+Photo (Shchur et al. 2018) to large-scale dataset ogbn-
+arxiv (Hu et al. 2020), we assign different numbers of clients
+according to the size of the dataset. Detailed data partition-
+ing and simulation strategies refer to Appendix.
+Baselines. We list Retrain and compare PAGE with
+10 baseline methods. Most existing methods do not si-
+multaneously support meta unlearning and client unlearn-
+ing. Consequently, we divide the comparative experiments
+into two sets: (1) Client unlearning: FedEraser (Roman-
+dini et al. 2024), FUSED (Zhong et al. 2025), MoDe (Zhao
+et al. 2024), ReGEnUnlearn (Liu and Liu 2025). (2)
+Meta unlearning: GIF (Wu et al. 2023a), CEU (Wu et al.
+2023b), D2DGN (Sinha, Mandal, and Kankanhalli 2024),
+MEGU (Li et al. 2024), FedLU (Zhu, Li, and Hu 2023),
+FedDM (Liu and Fang 2024).
+Unlearning Settings . For the three unlearning modes
+in meta-unlearning, we randomly unlearn 10% of relevant
+graph data. Specifically, we randomly unlearn10% of nodes
+for node unlearn request, 10% of edges for edge unlearn re-
+quest and 10% of node features for feature unlearn request.
+For client unlearn, 20% of clients are randomly selected as
+unlearning clients, where all local data need to be unlearned.
+Metrics. To evaluate the prediction performance of the
+model after unlearning, we use accuracy as the performance
+
+Table 1: Performance Comparison. ACC ± STD(%) for node classification. The highest results are highlighted in bold.
+5 Clients 10 Clients 15 Clients 20 Clients
+Cora PubMed CS Photo Tolokers Minesweeper Amazon-ratings ogbn-arxiv
+Client Unlearning (Unlearn Ratio=0.2)
+Retrain 83.98 ± 1.52 83.90 ± 0.82 82.18 ± 0.43 78.41 ± 1.37 78.52 ± 1.51 79.88 ± 0.11 41.09 ± 0.48 57.04 ± 0.28
+FedEraser 83.85 ± 2.37 78.52 ± 3.21 78.22 ± 1.46 54.66 ± 4.72 78.22 ± 1.61 79.81 ± 0.26 36.89 ± 0.40 28.63 ± 2.84
+FUSED 49.43 ± 2.78 83.17 ± 0.40 72.68 ± 4.17 67.60 ± 5.34 78.47 ± 1.54 79.86 ± 0.10 39.08 ± 0.48 38.29 ± 0.43
+MoDe 80.33 ± 4.04 83.20 ± 1.13 73.90 ± 3.42 42.47 ± 8.23 78.47 ± 1.54 79.86 ± 0.10 36.63 ± 4.19 28.31 ± 3.91
+ReGEnUnlearn83.83 ± 1.29 83.74 ± 0.95 78.27 ± 1.92 58.43 ± 9.78 78.54 ± 1.51 80.04 ± 0.21 40.20 ± 1.04 21.59 ± 5.30
+Ours 83.91 ± 1.29 83.57 ± 0.54 78.66 ± 1.06 69.73 ± 2.16 78.52 ± 1.49 80.06 ± 0.04 40.75 ± 0.58 50.13 ± 2.24
+Meta Unlearning (Unlearn Ratio=0.1)
+Retrain 78.65 ± 0.04 83.91 ± 0.17 87.74 ± 0.09 88.62 ± 0.13 78.52 ± 0.18 79.90 ± 0.10 46.58 ± 0.06 69.37 ± 0.02
+GIF 81.02 ± 0.38 84.21 ± 0.13 87.67 ± 0.05 80.44 ± 0.95 78.12 ± 0.08 79.69 ± 0.33 45.62 ± 0.13 67.37 ± 0.02
+D2DGN 75.83 ± 0.61 83.23 ± 0.15 86.98 ± 0.33 79.69 ± 3.53 77.49 ± 0.26 76.14 ± 1.16 45.74 ± 0.20 55.19 ± 0.05
+MEGU 77.96 ± 3.80 83.43 ± 0.05 86.94 ± 0.32 82.03 ± 3.03 78.34 ± 0.04 79.87 ± 0.00 42.63 ± 0.28 56.11 ± 0.13
+FedLU 71.96 ± 0.43 73.14 ± 0.17 80.44 ± 0.16 80.21 ± 0.51 78.32 ± 0.04 79.87 ± 0.00 44.11 ± 0.09 62.75 ± 0.02
+FedDM 80.11 ± 0.63 80.89 ± 0.20 80.67 ± 3.54 51.87 ± 2.57 76.82 ± 1.37 79.89 ± 0.08 32.09 ± 1.23 14.68 ± 3.03
+Ours 81.29 ± 0.17 84.39 ± 0.09 88.66 ± 0.07 88.84 ± 0.39 78.69 ± 0.19 79.92 ± 0.10 46.21 ± 0.13 68.19 ± 0.08
+Table 2: Performance with edge and feature unlearning.
+SimulationMode Strategy Physics ComputersEdge-Level Feature-Level Edge-Level Feature-Level
+Metis
+Retrain92.99 ± 0.07 93.12 ± 0.16 87.09 ± 0.22 84.07 ± 4.47GIF 92.63 ± 0.03 93.01 ± 0.07 72.10 ± 4.79 71.96 ± 3.86D2DGN88.12 ± 0.17 89.01 ± 0.28 71.51 ± 0.67 72.34 ± 1.63MEGU92.59 ± 0.05 92.60 ± 0.03 73.01 ± 1.18 68.17 ± 4.91FedLU91.15 ± 0.03 89.74 ± 0.78 79.89 ± 1.27 79.66 ± 0.19FedDM77.28 ± 1.35 88.94 ± 1.90 45.88 ± 8.11 53.83 ± 0.59PAGE93.40 ± 0.03 93.52 ± 0.03 82.04 ± 0.43 82.42 ± 0.06
+Metis-Plus
+Retrain92.39 ± 0.01 92.70 ± 0.07 86.95 ± 0.23 86.07 ± 0.69GIF 90.37 ± 2.73 92.45 ± 0.18 74.18 ± 4.78 66.84 ± 6.14D2DGN91.17 ± 0.18 84.95 ± 6.05 80.21 ± 0.53 80.26 ± 0.02MEGU92.27 ± 0.06 92.08 ± 0.06 80.13 ± 0.01 77.18 ± 4.47FedLU91.16 ± 0.06 89.84 ± 1.0383.26 ± 0.3784.74 ± 0.46FedDM83.36 ± 2.89 91.81 ± 0.30 76.63 ± 1.13 72.49 ± 3.59PAGE92.66 ± 0.08 92.76 ± 0.0682.04 ± 0.3382.76 ± 0.59
+metric. For meta unlearning, we calculate the prediction ac-
+curacy of the local model on the local dataset. For client
+unlearn, we calculate the prediction accuracy of the global
+model on the local dataset. To rigorously validate unlearning
+effects, we employ membership inference attack (Olatunji,
+Nejdl, and Khosla 2021)(MIA), which can further determine
+whether the target instance has been effectively removed
+from the training set underlying the unlearned model.
+Q1: Performance Comparison
+To answer Q1, we show the prediction performance com-
+parison of each method under different unlearn request set-
+tings in Table 1. The results show that PAGE can outperform
+the baseline level on most datasets. On average, PAGE ex-
+hibits a remarkable average improvement of 5.08% over the
+SOTA approach under client unlearn request and 1.50% un-
+der meta unlearn request. It is noteworthy that on relatively
+small-scale datasets, the performance gap between PAGE
+and other methods is not statistically significant. However,
+on larger-scale datasets, PAGE demonstrates substantial per-
+formance advantages. For instance, under client unlearn re-
+quests, PAGE achieves merely a 2.13% improvement over
+/uni00000013/uni00000011/uni00000014/uni00000013/uni00000011/uni00000015/uni00000013/uni00000011/uni00000016/uni00000013/uni00000011/uni00000017/uni00000013/uni00000011/uni00000018/uni00000013/uni00000011/uni00000019/uni00000013/uni00000011/uni0000001a/uni00000013/uni00000011/uni0000001b/uni00000013/uni00000011/uni0000001c
+/uni00000028/uni00000047/uni0000004a/uni00000048/uni00000003/uni00000024/uni00000057/uni00000057/uni00000044/uni00000046/uni0000004e/uni00000003/uni00000035/uni00000044/uni00000057/uni0000004c/uni00000052
+/uni00000017/uni00000018
+/uni00000018/uni00000013
+/uni00000018/uni00000018
+/uni00000019/uni00000013
+/uni00000019/uni00000018
+/uni0000001a/uni00000013
+/uni0000001a/uni00000018
+/uni0000001b/uni00000013
+/uni0000001b/uni00000018
+/uni0000001c/uni00000013
+/uni0000001c/uni00000018/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c/uni0000000b/uni00000008/uni0000000c
+/uni00000044/uni0000000c/uni00000003/uni0000002a/uni00000024/uni00000037
+/uni0000002a/uni0000002c/uni00000029
+/uni00000030/uni00000028/uni0000002a/uni00000038
+/uni00000027/uni00000015/uni00000027/uni0000002a/uni00000031
+/uni00000029/uni00000048/uni00000047/uni00000027/uni00000030
+/uni00000033/uni00000024/uni0000002a/uni00000028
+/uni00000013/uni00000011/uni00000014/uni00000013/uni00000011/uni00000015/uni00000013/uni00000011/uni00000016/uni00000013/uni00000011/uni00000017/uni00000013/uni00000011/uni00000018/uni00000013/uni00000011/uni00000019/uni00000013/uni00000011/uni0000001a/uni00000013/uni00000011/uni0000001b/uni00000013/uni00000011/uni0000001c
+/uni00000028/uni00000047/uni0000004a/uni00000048/uni00000003/uni00000024/uni00000057/uni00000057/uni00000044/uni00000046/uni0000004e/uni00000003/uni00000035/uni00000044/uni00000057/uni0000004c/uni00000052
+/uni00000019/uni00000013
+/uni00000019/uni00000018
+/uni0000001a/uni00000013
+/uni0000001a/uni00000018
+/uni0000001b/uni00000013
+/uni0000001b/uni00000018
+/uni0000001c/uni00000013
+/uni00000045/uni0000000c/uni00000003/uni00000036/uni0000002a/uni00000026
+/uni0000002a/uni0000002c/uni00000029
+/uni00000030/uni00000028/uni0000002a/uni00000038
+/uni00000027/uni00000015/uni00000027/uni0000002a/uni00000031
+/uni00000029/uni00000048/uni00000047/uni00000027/uni00000030
+/uni00000033/uni00000024/uni0000002a/uni00000028
+Figure 2: Performance on Photo under edge attack.
+SOTA methods on Photo, whereas it attains a 11.84% per-
+formance gain over SOTA methods on ogbn-arxiv. Addition-
+ally, for the other two granularity levels of unlearn requests
+(edge/feature unlearn) within meta-unlearn, we further eval-
+uate PAGE’s performance against comparative methods. As
+shown in Table 2, we compared the prediction performance
+of PAGE and other methods on Physics and Computers un-
+der simulation strategy metis-based community split (Metis)
+and metis-based label imbalance split (Metis-Plus). Except
+for some combinations, the prediction performance of PAGE
+is not as good as FedLU, but it is significantly ahead of other
+methods in other combinations.
+To answer Q1 from the perspective of unlearning capa-
+bility, Fig. 2 presents the unlearning capabilities of various
+methods under varying intensities of edge attack settings un-
+der meta unlearning. The edge-attack configuration involves
+injecting poisoned edges into each client’s data before feder-
+ated learning to degrade original model performance. After
+executing FGU algorithms, the models should regain their
+original performance, where the unlearning efficacy is quan-
+tified by the prediction accuracy (higher accuracy indicates
+stronger unlearning capability). This experiment employs
+
+/uni00000033/uni00000055/uni00000048/uni00000047/uni0000004c/uni00000046/uni00000057/uni0000004c/uni00000052/uni00000051/uni00000003/uni00000033/uni00000048/uni00000055/uni00000049/uni00000052/uni00000055/uni00000050/uni00000044/uni00000051/uni00000046/uni00000048/uni00000013/uni00000011/uni00000019
+/uni00000013/uni00000011/uni0000001a
+/uni00000013/uni00000011/uni0000001b/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051/uni0000004c/uni00000051/uni0000004a/uni00000003/uni00000033/uni00000048/uni00000055/uni00000049/uni00000052/uni00000055/uni00000050/uni00000044/uni00000051/uni00000046/uni00000048/uni00000013/uni00000011/uni00000013
+/uni00000013/uni00000011/uni00000014
+/uni00000013/uni00000011/uni00000015
+/uni00000013/uni00000011/uni00000016
+/uni00000013/uni00000011/uni00000017/uni00000024/uni00000038/uni00000026/uni00000010/uni00000035/uni00000032/uni00000026
+/uni00000033/uni00000055/uni00000048/uni00000047/uni0000004c/uni00000046/uni00000057/uni0000004c/uni00000052/uni00000051/uni00000003/uni00000033/uni00000048/uni00000055/uni00000049/uni00000052/uni00000055/uni00000050/uni00000044/uni00000051/uni00000046/uni00000048/uni00000013/uni00000011/uni00000019
+/uni00000013/uni00000011/uni0000001a
+/uni00000013/uni00000011/uni0000001b/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051/uni0000004c/uni00000051/uni0000004a/uni00000003/uni00000033/uni00000048/uni00000055/uni00000049/uni00000052/uni00000055/uni00000050/uni00000044/uni00000051/uni00000046/uni00000048/uni00000013/uni00000011/uni00000013
+/uni00000013/uni00000011/uni00000014
+/uni00000013/uni00000011/uni00000015
+/uni00000013/uni00000011/uni00000016
+/uni00000013/uni00000011/uni00000017/uni00000024/uni00000038/uni00000026/uni00000010/uni00000035/uni00000032/uni00000026
+/uni00000044/uni0000000c/uni00000003/uni00000026/uni00000052/uni00000055/uni00000044/uni00000045/uni0000000c/uni00000003/uni00000026/uni00000036
+/uni00000032/uni00000055/uni0000004c/uni0000004a/uni0000004c/uni00000051/uni00000044/uni0000004f
+/uni0000003a/uni0000004c/uni00000057/uni0000004b/uni00000003/uni00000033/uni00000024/uni0000002a/uni00000028
+/uni0000002a/uni0000002c/uni00000029
+/uni00000027/uni00000015/uni00000027/uni0000002a/uni00000031
+/uni00000030/uni00000028/uni0000002a/uni00000038
+/uni00000029/uni00000048/uni00000047/uni0000002f/uni00000038
+/uni00000029/uni00000048/uni00000047/uni00000027/uni00000030
+Figure 3: Augmentation study on GU methods. The left column represents original, the right represents combined with PAGE.
+/uni00000013/uni00000011/uni00000014/uni00000013/uni00000011/uni00000015/uni00000013/uni00000011/uni00000016/uni00000013/uni00000011/uni00000017/uni00000013/uni00000011/uni00000018/uni00000013/uni00000011/uni00000019/uni00000013/uni00000011/uni0000001a/uni00000013/uni00000011/uni0000001b/uni00000013/uni00000011/uni0000001c
+/uni00000026/uni0000004f/uni0000004c/uni00000048/uni00000051/uni00000057/uni00000003/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051/uni00000003/uni00000035/uni00000044/uni00000057/uni0000004c/uni00000052
+/uni00000015/uni00000018
+/uni00000016/uni00000013
+/uni00000016/uni00000018
+/uni00000017/uni00000013
+/uni00000017/uni00000018
+/uni00000018/uni00000013
+/uni00000018/uni00000018
+/uni00000019/uni00000013
+/uni00000019/uni00000018
+/uni0000001a/uni00000013/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c/uni0000000b/uni00000008/uni0000000c
+/uni00000044/uni0000000c/uni00000003/uni00000026/uni0000004b/uni00000044/uni00000050/uni00000048/uni0000004f/uni00000048/uni00000052/uni00000051
+/uni00000029/uni00000048/uni00000047/uni00000028/uni00000055/uni00000044/uni00000056/uni00000048/uni00000055
+/uni00000029/uni00000038/uni00000036/uni00000028/uni00000027
+/uni00000030/uni00000052/uni00000027/uni00000048
+/uni00000035/uni00000048/uni0000002a/uni00000028/uni00000051/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051
+/uni00000033/uni00000024/uni0000002a/uni00000028
+/uni00000013/uni00000011/uni00000014/uni00000013/uni00000011/uni00000015/uni00000013/uni00000011/uni00000016/uni00000013/uni00000011/uni00000017/uni00000013/uni00000011/uni00000018/uni00000013/uni00000011/uni00000019/uni00000013/uni00000011/uni0000001a/uni00000013/uni00000011/uni0000001b/uni00000013/uni00000011/uni0000001c
+/uni00000026/uni0000004f/uni0000004c/uni00000048/uni00000051/uni00000057/uni00000003/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051/uni00000003/uni00000035/uni00000044/uni00000057/uni0000004c/uni00000052
+/uni0000001a/uni00000018
+/uni0000001b/uni00000013
+/uni0000001b/uni00000018
+/uni00000045/uni0000000c/uni00000003/uni00000030/uni0000004c/uni00000051/uni00000048/uni00000056/uni0000005a/uni00000048/uni00000048/uni00000053/uni00000048/uni00000055
+/uni00000029/uni00000048/uni00000047/uni00000028/uni00000055/uni00000044/uni00000056/uni00000048/uni00000055
+/uni00000029/uni00000038/uni00000036/uni00000028/uni00000027
+/uni00000030/uni00000052/uni00000027/uni00000048
+/uni00000035/uni00000048/uni0000002a/uni00000028/uni00000051/uni00000038/uni00000051/uni0000004f/uni00000048/uni00000044/uni00000055/uni00000051
+/uni00000033/uni00000024/uni0000002a/uni00000028
+Figure 4: Performance under differnet client unlearn ratio.
+the GAT (Veliˇckovi´c et al. 2018) and SGC (Wu et al. 2019)
+on Photo configurations to evaluate the prediction perfor-
+mance between methods under different edge-attack ratios.
+As demonstrated in Fig. 2, PAGE consistently maintains
+SOTA accuracy under multiple attack ratios, exhibiting min-
+imal sensitivity to increasing attack intensity. For instance,
+on Photo, PAGE achieves 2.94% to 8.62% higher accuracy
+than comparative SOTA methods. These results substantiate
+that PAGE delivers superior unlearning capabilities.
+Q2: Augmentation Study
+In order to systematically verify the effectiveness of the
+components of our proposed method, we designed a series
+of exhaustive augmentation experiments to answer Q2. A
+key point of our method design is the dual role of the influ-
+enced unlearn component: in the client unlearn scenario, it
+operates independently as a core processing engine; while
+in the meta unlearn scenario, it acts as a plug-and-play en-
+hancement plugin. The performance comparison in Q1 has
+verified the effectiveness of this component in client un-
+learn scenario, and here we verify its effectiveness as an
+enhancement plugin in meta unlearn scenario. As shown in
+Fig. 3, in the meta unlearn scenario, we evaluate the predic-
+tion performance and unlearning performance of the existing
+graph unlearning method before and after combining with
+the influenced unlearn component. As can be seen in the fig-
+ure, the prediction performance and unlearning performance
+of the existing local unlearn method are significantly im-
+proved after combining with the influence module. Specif-
+ically, on Cora, the influenced unlearn component yields an
+average improvement of 2.82% in prediction performance
+and 4.64% in unlearning performance compared to the base
+method. On CS, it further enhances prediction performance
+by 4.49% and unlearning performance by 7.22%.
+Q3: Robustness Analysis
+To answer Q3, we designed experiments that evaluate
+model performance under varying unlearn intensities. Us-
+ing GraphSAGE as the backbone under client unlearn with
+louvain simulation, we measured prediction accuracy across
+different unlearn ratios on Chameleon and Minesweeper.
+As shown in Fig. 4, PAGE maintains superior perfor-
+mance over counterparts despite increasing unlearn inten-
+sity. On dataset Chameleon, while slightly underperforming
+RFPS at low unlearn intensities, PAGE demonstrates mini-
+mal fluctuation and remains stable as intensity escalates. No-
+tably, at high forgetting intensities, PAGE exhibits counter-
+intuitive performance gains—increasing accuracy over base-
+lines and widening the performance gap. From the above ex-
+periments, it can be seen that compared with other methods,
+PAGE has stronger robustness.
+Furthermore, Fig. 2 reveals that as the edge-attack ratio
+progressively increases, PAGE persistently maintains pre-
+diction stability without exhibiting significant performance
+fluctuations observed in other methods. This robustness
+against adversarial edge perturbations substantiates PAGE’s
+exceptional resilience.
+Conclusion
+This paper critically analyzes federated and graph unlearn-
+ing methods, revealing incomplete unlearning support and
+residual knowledge permeation as fundamental limitations.
+To address these gaps, we introduce the first multi-scenario
+
+federated graph unlearning framework. Our approach pio-
+neers prototype matching while integrating negative knowl-
+edge distillation to systematically eliminate knowledge per-
+meation. Core innovations include: (1) Utilizing prototype
+vectors as knowledge carriers for precise local unlearning;
+(2) Extracting unlearned knowledge via adversarial graph
+samples; (3) Directing cross-client influence unlearning to
+eradicate permeation impacts without privacy compromise.
+Future research must prioritize integrated frameworks har-
+monizing local and influence unlearning for comprehensive
+permeation mitigation.
+References
+Cai, X.; Huang, C.; Xia, L.; and Ren, X. 2023. LightGCL:
+Simple Yet Effective Graph Contrastive Learning for Rec-
+ommendation. In International Conference on Learning
+Representations, ICLR.
+Chang, H.; and Shokri, R. 2023. Bias propagation in feder-
+ated learning. arXiv preprint arXiv:2309.02160.
+Dong, Y .; Zhang, B.; Lei, Z.; Zou, N.; and Li, J. 2024.
+IDEA: A Flexible Framework of Certified Unlearning for
+Graph Neural Networks. In Proceedings of the 30th ACM
+SIGKDD Conference on Knowledge Discovery and Data
+Mining, 621–630. Association for Computing Machinery.
+ISBN 9798400704901.
+Hamilton, W.; Ying, Z.; and Leskovec, J. 2017. Inductive
+representation learning on large graphs. Advances in Neural
+Information Processing Systems, NeurIPS.
+He, C.; Balasubramanian, K.; Ceyani, E.; Yang, C.; Xie, H.;
+Sun, L.; He, L.; Yang, L.; Yu, P. S.; Rong, Y .; et al. 2021.
+Fedgraphnn: A federated learning system and benchmark for
+graph neural networks. arXiv preprint arXiv:2104.07145.
+Hu, W.; Fey, M.; Zitnik, M.; Dong, Y .; Ren, H.; Liu, B.;
+Catasta, M.; and Leskovec, J. 2020. Open graph benchmark:
+Datasets for machine learning on graphs. Advances in Neu-
+ral Information Processing Systems, NeurIPS.
+Kipf, T. N.; and Welling, M. 2017. Semi-supervised classi-
+fication with graph convolutional networks. InInternational
+Conference on Learning Representations, ICLR.
+Li, X.; Zhao, Y .; Wu, Z.; Zhang, W.; Li, R.-H.; and Wang,
+G. 2024. Towards Effective and General Graph Unlearning
+via Mutual Evolution. Proceedings of the AAAI Conference
+on Artificial Intelligence, 38(12): 13682–13690.
+Liu, B.; and Fang, Y . 2024. Federated knowledge
+graph unlearning via diffusion model. arXiv preprint
+arXiv:2403.08554.
+Liu, F.; and Liu, H. 2025. Subgraph Federated Unlearning.
+In THE WEB CONFERENCE 2025.
+Olatunji, I. E.; Nejdl, W.; and Khosla, M. 2021. Member-
+ship Inference Attack on Graph Neural Networks. In 2021
+Third IEEE International Conference on Trust, Privacy and
+Security in Intelligent Systems and Applications (TPS-ISA) ,
+11–20.
+Pardau, S. L. 2018. The california consumer privacy act:
+Towards a european-style privacy regime in the united states.
+J. Tech. L. & Pol’y, 23: 68.
+Platonov, O.; Kuznedelev, D.; Diskin, M.; Babenko, A.; and
+Prokhorenkova, L. 2023. A critical look at the evaluation of
+GNNs under heterophily: are we really making progress?In-
+ternational Conference on Learning Representations, ICLR.
+Qu, Z.; Yao, T.; Liu, X.; and Wang, G. 2023. A Graph Con-
+volutional Network Based on Univariate Neurodegeneration
+Biomarker for Alzheimer’s Disease Diagnosis. IEEE Jour-
+nal of Translational Engineering in Health and Medicine.
+Regulation, G. D. P. 2018. General data protec-
+tion regulation (GDPR). ntersoft Consulting. Obtenido
+de https://www. epsu. org/sites/¿ default/files/article/-
+files/GDPR FINAL EPSU. pdf.
+Romandini, N.; Mora, A.; Mazzocca, C.; Montanari, R.; and
+Bellavista, P. 2024. Federated unlearning: A survey on meth-
+ods, design guidelines, and evaluation metrics. IEEE Trans-
+actions on Neural Networks and Learning Systems.
+Rozemberczki, B.; Allen, C.; and Sarkar, R. 2021. Multi-
+Scale attributed node embedding. Journal of Complex Net-
+works, 9(2).
+Shchur, O.; Mumme, M.; Bojchevski, A.; and G ¨unnemann,
+S. 2018. Pitfalls of graph neural network evaluation. arXiv
+preprint arXiv:1811.05868.
+Sinha, Y .; Mandal, M.; and Kankanhalli, M. 2024. Distill
+to Delete: Unlearning in Graph Networks with Knowledge
+Distillation. arXiv:2309.16173.
+Tolpegin, V .; Truex, S.; Gursoy, M. E.; and Liu, L. 2020.
+Data poisoning attacks against federated learning systems.
+In European symposium on research in computer security ,
+480–501. Springer.
+Veliˇckovi´c, P.; Cucurull, G.; Casanova, A.; Romero, A.; Lio,
+P.; and Bengio, Y . 2018. Graph attention networks. InInter-
+national Conference on Learning Representations, ICLR.
+Wang, Z.; Chen, T.; Ren, J.; Yu, W.; Cheng, H.; and Lin, L.
+2018. Deep Reasoning with Knowledge Graph for Social
+Relationship Understanding. In Proceedings of the Twenty-
+Seventh International Joint Conference on Artificial Intel-
+ligence, IJCAI-18, 1021–1028. International Joint Confer-
+ences on Artificial Intelligence Organization.
+Wu, F.; Souza, A.; Zhang, T.; Fifty, C.; Yu, T.; and Wein-
+berger, K. 2019. Simplifying graph convolutional networks.
+In International Conference on Machine Learning, ICML.
+Wu, J.; Yang, Y .; Qian, Y .; Sui, Y .; Wang, X.; and He, X.
+2023a. GIF: A General Graph Unlearning Strategy via Influ-
+ence Function. In Proceedings of the ACM Web Conference,
+WWW.
+Wu, K.; Shen, J.; Ning, Y .; Wang, T.; and Wang, W. H.
+2023b. Certified Edge Unlearning for Graph Neural
+Networks. In Proceedings of the 29th ACM SIGKDD
+Conference on Knowledge Discovery and Data Mining ,
+2606–2617. Association for Computing Machinery. ISBN
+9798400701030.
+Wu, Z.; Pan, S.; Chen, F.; Long, G.; Zhang, C.; and Yu, P. S.
+2020. A comprehensive survey on graph neural networks.
+IEEE transactions on neural networks and learning systems,
+32(1): 4–24.
+
+Yang, Y .; Han, X.; Chai, Y .; Ebrahimi, R.; Behnia, R.; and
+Padmanabhan, B. 2024. From Machine Learning to Machine
+Unlearning: Complying with GDPR’s Right to be Forgot-
+ten while Maintaining Business Value of Predictive Models.
+arXiv preprint arXiv:2411.17126.
+Yang, Z.; Cohen, W. W.; and Salakhutdinov, R. 2016. Revis-
+iting Semi-Supervised Learning with Graph Embeddings. In
+International Conference on Machine Learning, ICML.
+Zhao, Y .; Wang, P.; Qi, H.; Huang, J.; Wei, Z.; and Zhang, Q.
+2024. Federated Unlearning With Momentum Degradation.
+IEEE Internet of Things Journal, 11(5): 8860–8870.
+Zhong, Z.; Bao, W.; Wang, J.; Zhang, S.; Zhou, J.; Lyu, L.;
+and Lim, W. Y . B. 2025. Unlearning through knowledge
+overwriting: Reversible federated unlearning via selective
+sparse adapter. In Proceedings of the Computer Vision and
+Pattern Recognition Conference, 30661–30670.
+Zhu, X.; Li, G.; and Hu, W. 2023. Heterogeneous federated
+knowledge graph embedding learning and unlearning. In
+Proceedings of the ACM web conference 2023, 2444–2454.
+
+Appendix
+Datasets
+The following describes the dataset information used in
+all experiments. For the specific data and dataset division,
+please refer to Table 3.
+Cora and PubMed (Yang, Cohen, and Salakhutdinov
+2016) are widely used citation network datasets in the field
+of federated graph unlearning. In these datasets, nodes rep-
+resent research papers, and edges denote citation relation-
+ships between papers. Each node is characterized by word
+vectors, with each being uniquely associated with a specific
+category label, indicating the presence or absence of specific
+words in each paper. These datasets are frequently employed
+in tasks such as node classification, providing a reliable basis
+for evaluating model performance.
+CS and Physics (Shchur et al. 2018), as co-authorship
+graphs originating from Microsoft Academic Graph, are
+specially designed for node classification tasks. In these
+datasets, academic collaboration is depicted such that nodes
+stand for authors, and an edge emerges between two nodes
+when the corresponding authors have co-written a paper.
+For both datasets, node features are denoted by keywords
+related to the papers each author has published, and class
+labels mark the research fields where each author is most
+active, offering abundant semantic information for classifi-
+cation tasks.
+Photo and Computers (Shchur et al. 2018) datasets, orig-
+inating from Amazon’s co-purchase graph, are designed to
+illustrate the relationships between products that are fre-
+quently purchased together. Within these datasets, nodes
+represent single products, and edges signify how often con-
+sumers buy these products in combination—thus mirroring
+the market trends and consumer behaviors on Amazon’s
+e-commerce platform. The Photo dataset is dedicated to
+photographic gear, while the Computers dataset focuses on
+computer-related products; both are commonly employed in
+tasks like node classification.
+Tolokers (Platonov et al. 2023) dataset is sourced from a
+crowdsourcing platform, with the goal of predicting which
+workers have been banned from one of the projects. Nodes
+in the dataset represent workers who have participated in at
+least one of the 13 selected projects, and an edge links two
+workers if they have collaborated on the same task.
+Minesweeper (Platonov et al. 2023) dataset, drawn from
+an online gaming platform, simulates interactions within the
+Minesweeper gaming environment. In this graph, each node
+stands for a player, and edges represent instances of col-
+laboration or competition between players during gameplay.
+Node attributes are derived from player stats and in-game
+metrics, offering a thorough overview of user behavior pat-
+terns. This dataset holds significance for examining social
+connection and behavior trends, and proves useful in eval-
+uating unlearning strategies within dynamic, interaction-
+based networks.
+Amazon-ratings (Platonov et al. 2023) dataset docu-
+ments user interactions with products on Amazon. Within
+this dataset, nodes represent products, and edges link items
+that consumers frequently purchase together. Node features
+are built on FastText embeddings of words from product de-
+scriptions. The dataset’s task is to predict the average ratings
+given by reviewers, and it plays a significant role in tasks
+like forecasting user preferences and understanding product
+correlations. It also serves as a real-world testing ground for
+applying graph neural networks in large-scale scenarios.
+ogbn-arxiv (Hu et al. 2020) is a comprehensive academic
+graph from Microsoft Academic Graph (MAG), created to
+support machine learning tasks on graph data. It presents a
+citation network of arXiv papers, where each paper is repre-
+sented by the average word embeddings from its title and ab-
+stract. The graph structure of ogbn-arxiv features scientific
+papers as nodes and citation links between papers as edges,
+clearly reflecting academic referencing connections. It plays
+an important role in tasks such as node classification.
+Chameleon (Rozemberczki, Allen, and Sarkar 2021) is
+a page-to-page network extracted from specific topics on
+Wikipedia. In the dataset, nodes stand for web pages, and
+edges indicate mutual links between them. Node features are
+derived from several informative nouns on Wikipedia, ob-
+tained through text processing techniques. The dataset clas-
+sifies nodes based on the average monthly traffic of the web
+pages. Its primary task is to classify nodes using their fea-
+tures and the graph structure. Due to its complex graph struc-
+ture and rich node features, it is often used to test the perfor-
+mance of graph neural networks.
+GNN Backbone
+GCN (Kipf and Welling 2017) proposes a novel method
+based on a first-order approximation of spectral convolu-
+tion on graphs. By aggregating the features of neighboring
+nodes, it learns hidden layer representations, which can ef-
+fectively encode local graph structures and node features,
+reduce computational complexity, and is suitable for tasks
+such as node classification, promoting the development of
+deep learning on graph data.
+GAT (Veliˇckovi´c et al. 2018) employs attention mecha-
+nisms to measure how significant each neighbor is to mes-
+sage aggregation, which in turn boosts the model’s repre-
+sentational power and generalization ability. This approach
+allows for the implicit allocation of varying weights to dif-
+ferent nodes in the neighborhood, free from any prior depen-
+dence on graph structures. It enhances adaptability to node
+relationships and is suitable for a range of graph learning
+tasks.
+GraphSAGE (Hamilton, Ying, and Leskovec 2017)
+leverages attribute information from neighboring nodes to
+efficiently generate representations and is specifically de-
+signed to address the challenges of large-scale graph data.
+This method features a general inductive framework that uti-
+lizes sampled and aggregated node feature information to
+efficiently generate node embeddings for unseen new nodes.
+SGC (Wu et al. 2019) simplifies GCN by stripping out
+non-linearities and collapsing weight matrices between con-
+secutive layers, thus forming a linear model. Theoretical
+analyses indicate that this simplified model is equivalent to a
+fixed low-pass filter followed by a linear classifier, boasting
+fewer parameters and greater efficiency.
+
+Table 3: The statistics of the experimental datasets.
+Dataset Nodes Features Edges Classes Train/Val/Test Description
+Cora 2,708 1,433 5,429 7 20%/40%/40% citation network
+PubMed 19,717 500 44,338 3 20%/40%/40% citation network
+ogbn-arxiv 169343 128 231559 40 60%/20%/20% citation network
+Amazon Photo 7,487 745 119,043 8 20%/40%/40% co-purchase graph
+Amazon Computers 13,381 767 245,778 10 20%/40%/40% co-purchase graph
+Coauthor CS 18,333 6,805 81,894 15 20%/40%/40% co-authorship graph
+Coauthor Physics 34,493 8,415 247,962 5 20%/40%/40% co-authorship graph
+Tolokers 11,758 10 519,000 2 50%/25%/25% crowd-sourcing network
+Minesweeper 10,000 7 39,402 2 50%/25%/25% game synthetic network
+Amazon-ratings 24,292 300 93,050 5 50%/25%/25% rating network
+Chameleon 2,277 2,325 36,101 5 48%/32%/20% rating network
+Baseline
+FedEraser (Romandini et al. 2024), as the first federated
+unlearning method, addresses the challenge of efficiently
+removing data from federated learning models. It recon-
+structs the model by leveraging historical parameters re-
+tained by the central server and puts forward a novel cal-
+ibration method for updating the retained parameters. The
+effectiveness and efficiency exhibited by this method hold
+significant importance in the field of federated learning.
+FUSED (Zhong et al. 2025) innovatively achieves fed-
+erated unlearning through knowledge overwriting. Its core
+lies in first analyzing the sensitivity of each model layer to
+knowledge changes via Critical Layer Identification (CLI),
+locating sensitive layers and constructing sparse unlearning
+adapters for them. Then, the original model parameters are
+frozen, and only the adapters are trained to overwrite the
+knowledge to be forgotten with remaining knowledge. This
+method enables reversible unlearning through independent
+adapters, significantly reduces computational and communi-
+cation costs of unlearning, and achieves unlearning perfor-
+mance comparable to retraining, outperforming other base-
+lines remarkably while effectively alleviating the problem of
+indiscriminate unlearning.
+MoDe (Zhao et al. 2024) effectively improves efficiency
+and accuracy on remaining data nodes by decomposing
+the unlearning process into two steps: knowledge erasure
+and memory guidance. It innovatively applies momentum
+degradation to the knowledge erasure strategy to erase im-
+plicit knowledge in the model. Moreover, this training-
+independent and effective method can handle unlearning re-
+quests from clients and categories.
+ReGEnUnlearn (Liu and Liu 2025) proposes a sub-
+graph federated unlearning framework to address the unique
+structural dependency and cross-client interference issues of
+graph data. Through RFPS learning optimal sampling strate-
+gies to reduce cross-client subgraph interference, combined
+with the Parameter-free Graph Prompt Knowledge Distilla-
+tion (PGPKD) module to extract the unique knowledge of
+target clients, it achieves comprehensive unlearning of mul-
+tiple clients, demonstrating high unlearning performance
+and efficiency.
+GIF (Wu et al. 2023a) innovatively addresses graph un-
+learning (GU) by incorporating an influence function for af-
+fected domains, enhancing the efficiency and accuracy of the
+unlearning process. It redefines influence by adding a loss
+term for affected neighborhoods to handle dependencies be-
+tween adjacent nodes, and further derives a closed-form so-
+lution for parameter changes as a basis. Using a universal
+formula that unifies different types of unlearning tasks, GIF
+achieves significant advantages in terms of unlearning effi-
+ciency and performance in the field of graph unlearning.
+D2DGN (Sinha, Mandal, and Kankanhalli 2024) skill-
+fully addresses the challenge of deleting specific elements
+in graph unlearning through knowledge distillation. By di-
+viding and marking the complete graph knowledge, and per-
+forming distillation using response-based soft targets and
+feature-based node embeddings, it achieves unlearning re-
+sults with higher efficiency, better performance, and no ad-
+ditional overhead costs. D2DGN effectively eliminates the
+influence of deleted elements while preserving the required
+knowledge, playing a significant role in the field of graph
+unlearning.
+MEGU (Li et al. 2024) introduces a groundbreaking mu-
+tual evolution approach for graph unlearning (GU), where
+the predictive module and the unlearning module co-evolve
+within a single training framework, and efficiency is en-
+hanced through Adaptive HIN Selection. The adaptability of
+MEGU enables it to demonstrate favorable performance and
+training efficiency in meeting unlearning requirements at the
+feature, node, and edge levels, showing strong advantages in
+the field of GU.
+FedLU (Zhu, Li, and Hu 2023) proposes a framework for
+heterogeneous federated knowledge graph embedding learn-
+ing and unlearning. To address the problems of data hetero-
+geneity and knowledge forgetting in federated knowledge
+graph embedding, this method adopts knowledge distillation
+in the learning phase to mitigate the impact of heterogeneity;
+in the unlearning phase, it combines cognitive neuroscience
+
+to eliminate specific triple knowledge and propagates the un-
+learning effect to the global model through knowledge dis-
+tillation. This method demonstrates good unlearning perfor-
+mance and high unlearning efficiency.
+FedDM (Liu and Fang 2024) is a new framework specifi-
+cally designed for the federated training of diffusion models.
+Through rigorous theoretical analysis, it proves the conver-
+gence of the proposed model and the corresponding condi-
+tions. The experimental results show high communication
+efficiency and model convergence, and can maintain high
+generation quality at different resolutions in terms of image
+modality.
+Federated Learning Simulation Mode
+Metis-based Community Split is a widely adopted feder-
+ated data simulation strategy in SubgraphFL, enabling effi-
+cient data partitioning and effective sharing of graph struc-
+ture knowledge. This method simplifies the graph through
+edge weight matching, performs K-way partitioning, and
+iteratively divides the global graph into tightly connected
+communities by leveraging hierarchical graph partitioning
+capabilities.
+Louvain-based Community Splitis another popular fed-
+erated data simulation strategy in Subgraph-FL, whose core
+lies in partitioning the global graph using the Louvain algo-
+rithm. It identifies community structures by maximizing the
+modularity score, rapidly accomplishes the identification of
+communities in the global graph and provides the basis for
+partitioning, and finally performs partitioning according to
+actual needs.
+Metis-based Label Imbalance Split is a Subgraph-FL
+data simulation strategy based on label distribution similar-
+ity. To address the challenge in controlling subgraph hetero-
+geneity among clients caused by the lack of post-processing
+capabilities in the naive Metis-based Community Split, this
+strategy first defines predefined community partitions, then
+performs clustering based on label distribution similarity,
+thereby merging similar communities under a single client.
+Louvain-based Label Imbalance Split builds on the
+traditional Louvain method by allocating communities to
+clients in line with the similarity of their label distribu-
+tions. This approach ensures that each client receives com-
+munities with consistent label features, thereby easing la-
+bel imbalance and enabling fair model training across fed-
+erated clients. By adjusting label distributions, the strategy
+enhances the fairness and robustness of federated learning,
+reducing potential biases caused by heterogeneous label dis-
+tributions among clients.
+Hyperparameter Settings
+To help reproduce our work, we give the hyperparameters
+related to the training process on each dataset in Table 4.
+Experimental Details
+In this part we will introduce the standardized experimental
+protocol of the experiments mentioned in the main text.
+Performance Comparison . This experiment uses 8
+benchmark datasets and distribute the dataset to differ-
+ent numbers of clients based on the size of the dataset.
+Table 4: Detailed hyperparameter setting on all datasets.
+Dataset lr train
+epoches
+client unlearn
+epoches
+meta unlearn
+epoches α
+Cora 1e-3 10 2 1 5.0
+PubMed 1e-3 10 5 5 1.0
+obgn-arxiv 5e-3 50 25 50 1.0
+Amazon Photo 1e-3 10 5 2 1.0
+Amazon Computers 1e-3 10 5 10 1.0
+Coauthor CS 1e-3 10 5 5 1.0
+Coauthor Physics 1e-3 10 5 10 1.0
+Tolokers 1e-3 20 10 20 1.0
+Minesweeper 1e-3 20 10 20 0.1
+Amazon-ratings 5e-4 50 25 25 1.0
+Chameleon 1e-3 10 5 10 0.2
+Specifically, distribute Cora and PubMed to 5 clients; dis-
+tribute CS and Photo to 10 clients; distribute Tolokers and
+Minesweeper to 15 clients; distribute Amazon-ratings and
+ogbn-arxiv to 20 clients. The simulation mode is louvain-
+based community split and the backbone is selected as GCN.
+In Table 1, for client unlearning, the unlearn ratio is set to
+0.2, and 0.1 for meta unlearning (node unlearning). In Table
+2, on Computers and Physics, we employ metis and metis-
+plus as simulation mode. The unlearn ratio is set to 0.1 and
+the backbone is selected as GAT. In experiment of Fig.2,
+we choose two backbone: GAT and SGC on Photo. And the
+simulation mode is louvain-based community split. As the
+figure show, the unlearn ratio increases from 0.1 to 0.9.
+Augmentation Study In the experiment of augmentation
+study, we choose SGC as the backbone and louvain-based
+community split as the simulation mode under meta unlearn-
+ing (node unlearning) on Cora and CS. The unlearn ratio is
+set to 0.1.
+Robustness Analysis In the experiment of robustness
+analysis, we choose GraphSage as the backbone and
+louvain-based community split as the simulation mode un-
+der client unlearn on Chameleon and Minesweeper. The un-
+learn ratio increases from 0.1 to 0.9.

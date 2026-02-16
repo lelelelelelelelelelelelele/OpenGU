@@ -1,0 +1,101 @@
+[
+  {
+    "arxiv_id": "2402.10695",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2402.10695_unlink_to_unlearn_simplifying_edge_unlearning_in_gnns.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2402.10695.txt",
+    "pages": 4,
+    "chars": 24039,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2403.07353",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2403.07353_graph_unlearning_with_efficient_partial_retraining.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2403.07353.txt",
+    "pages": 8,
+    "chars": 41794,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2408.09212",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2408.09212_scalable_and_certifiable_graph_unlearning_overcoming_the_approxi.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2408.09212.txt",
+    "pages": 37,
+    "chars": 119124,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2408.09705",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2408.09705_community_centric_graph_unlearning.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2408.09705.txt",
+    "pages": 12,
+    "chars": 55142,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2501.02728",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2501.02728_opengu_a_comprehensive_benchmark_for_graph_unlearning.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2501.02728.txt",
+    "pages": 19,
+    "chars": 139034,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2501.11823",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2501.11823_toward_scalable_graph_unlearning_a_node_influence_maximization_b.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2501.11823.txt",
+    "pages": 17,
+    "chars": 99385,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2506.04694",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2506.04694_influence_functions_for_edge_edits_in_non_convex_graph_neural_ne.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2506.04694.txt",
+    "pages": 20,
+    "chars": 58780,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2511.17989",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2511.17989_privacy_auditing_of_multi_domain_graph_pre_trained_model_under_m.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2511.17989.txt",
+    "pages": 12,
+    "chars": 58181,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2505.10040",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2505.10040_instance_prototype_affinity_learning_for_non_exemplar_continual.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2505.10040.txt",
+    "pages": 15,
+    "chars": 50266,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2508.02485",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2508.02485_federated_graph_unlearning.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2508.02485.txt",
+    "pages": 12,
+    "chars": 64998,
+    "ok": true,
+    "error": ""
+  },
+  {
+    "arxiv_id": "2511.10936",
+    "pdf_path": "H:\\project\\OpenGU\\GULib-master\\papers\\2511.10936_graphtoxin_reconstructing_full_unlearned_graphs_from_graph_unlea.pdf",
+    "txt_path": "H:\\project\\OpenGU\\GULib-master\\papers\\raw\\text\\2511.10936.txt",
+    "pages": 22,
+    "chars": 96229,
+    "ok": true,
+    "error": ""
+  }
+]

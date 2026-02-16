@@ -1,0 +1,1986 @@
+Influence Functions for Edge Edits
+in Non-Convex Graph Neural Networks
+Jaeseung Heo1, Kyeongheung Yun2, Seokwon Yoon2,
+MoonJeong Park1, Jungseul Ok1,2, Dongwoo Kim1,2
+1Graduate School of Artificial Intelligence
+2Department of Computer Science & Engineering
+POSTECH, South Korea
+{jsheo12304,yuonsinsa,swyoon,mjeongp,jungseul,dongwookim}@postech.ac.kr
+Abstract
+Understanding how individual edges influence the behavior of graph neural net-
+works (GNNs) is essential for improving their interpretability and robustness.
+Graph influence functions have emerged as promising tools to efficiently estimate
+the effects of edge deletions without retraining. However, existing influence pre-
+diction methods rely on strict convexity assumptions, exclusively consider the
+influence of edge deletions while disregarding edge insertions, and fail to capture
+changes in message propagation caused by these modifications. In this work, we
+propose a proximal Bregman response function specifically tailored for GNNs,
+relaxing the convexity requirement and enabling accurate influence prediction for
+standard neural network architectures. Furthermore, our method explicitly accounts
+for message propagation effects and extends influence prediction to both edge dele-
+tions and insertions in a principled way. Experiments with real-world datasets
+demonstrate accurate influence predictions for different characteristics of GNNs.
+We further demonstrate that the influence function is versatile in applications such
+as graph rewiring and adversarial attacks.
+1 Introduction
+Graph neural networks (GNNs) have demonstrated that leveraging structural relationships, often
+encoded as connectivity between data points, can enhance the predictive performance of neural net-
+works across many tasks. Although the literature clearly identifies the importance of the relationship,
+the individual contribution of each connectivity, i.e., an edge, remains poorly understood.
+Several recent studies have explored edge importance from a particular perspective. For example,
+Nguyen et al. [26] propose an edge rewiring method to mitigate the problem of over-smoothing [23],
+a phenomenon where the learned node representation becomes indistinguishable as the depth of the
+GNN increases. Alon and Yahav [2] suggest edge rewiring methods to overcome the over-squashing,
+which occurs when information propagation encounters bottlenecks between distant nodes.
+Despite progress in addressing individual challenges, a unified framework for quantifying edge
+influence across these perspectives would provide a more comprehensive understanding of their role
+in graph neural networks. For instance, it would allow us to assess how modifying a single edge
+affects model behavior from both over-smoothing and over-squashing perspectives. On the other
+hand, influence functions have been introduced to quantify the impact on evaluation metrics, such
+as validation loss, when a training data point is removed [21]. To do so, the function estimates the
+changes in model parameterswhen the target data point is excluded from the training.
+Applying influence functions [21] to GNNs introduces a unique challenge, primarily because modify-
+ing an edge can alter thepropagation pathsand consequently change the underlyingcomputational
+39th Conference on Neural Information Processing Systems (NeurIPS 2025).
+arXiv:2506.04694v2  [cs.LG]  30 Jan 2026
+
+Over-squashing
+ Over-smoothing
+Beneficial Edges Harmful Edges
+Figure 1: An illustration of beneficial and harmful edges identified by an influence function proposed
+in this work with respect to two evaluation metrics. A harmful edge is one that either blocks informa-
+tion propagation between nodes (over-squashing [2]) or makes node representations indistinguishable
+(over-smoothing [23]). The barbell graph consists of two clusters, each with distinct node labels. The
+influence function can be used to analyze the properties of edges. For example, the edges connecting
+two different clusters mitigate over-squashing while amplifying over-smoothing.
+graphstructure. Previous attempts to adapt influence functions for GNNs have focused on parameter
+changes, failing to address the influence of the changes in the computational graph [7, 35]. Moreover,
+their influence functions rely on the strict convexity assumption of the loss function with respect to
+the model parameters, which limits their applicability to widely used non-convex GNNs.
+In this work, we propose aninfluence functiontailored specifically for GNNs, enabling precise
+predictions regarding the effects of edge modifications from multiple perspectives. To do so, we
+overcome the unique challenges of GNNs by deriving the changes in the evaluation function from
+fundamental principles of calculus. As a result, our function can measure the influence of both edge
+deletion and insertion, the latter of which has not been explored in previous studies. To extend the
+influence function to non-convex GNNs, we establish the proximal Bregman response function [3]
+for node classification. The influence function derived from this response function relies on weaker
+assumptions that generally hold for non-convex GNNs. Figure 1 shows an example of influence
+analysis for a barbell graph from two different perspectives. Through the analysis, one can identify
+that the edges connecting two different clusters have opposite influences on over-squashing and
+over-smoothing, providing a unifying view on edge importance.
+Experiments on real-world datasets demonstrate that our influence function accurately predicts edge
+influence in non-convex GNNs. We further show that the influence function is a versatile tool for
+analyzing various properties of GNNs. We present three practical applications, including 1) an
+analysis of edge rewiring methods suggested to improve the predictive performance of GNNs, 2)
+identifying adversarial edge edits that could alter node predictions, and 3) an analysis of edges
+connecting the nodes with the same label or different labels in terms of the node classification
+performance.
+2 Preliminary
+2.1 Influence function for convex models
+Let L(x, y, θ)be a loss function, where x is the input, y the label, and θ the model parameters. The
+optimal parametersθ ∗ minimize the empirical loss over the training setD train:
+θ∗ = arg min
+θ
+X
+(x,y)∈Dtrain
+L(x, y, θ).(1)
+Influence functions quantify how removing a specific training data point (x′, y′) impacts model
+parameters. Computing the exact impact would require retraining the model by excluding the data
+point from the training set, which is computationally expensive. Instead, one can model aresponse
+functionthat measures the changes in parameters when the data point is upweighted by an amount of
+ϵ∈Rby solving the following optimization problem:
+2
+
+θ∗
+x′,y′,ϵ := arg min
+θ
+1
+N
+X
+(x,y)∈Dtrain
+L(x, y, θ) +ϵL(x′, y′, θ),(2)
+where N=|D train|. For example, θ∗
+x′,y′,ϵ=−1/N corresponds to the optimal parameter obtained from
+Dtrain \ {x′, y′}.
+The changes in parameter further influenceevaluation function f, such as a validation loss. Koh
+and Liang [21] demonstrate that when the loss function L is strictly convex with respect to θ, the
+derivative off
+
+θ∗
+x′,y′,ϵ
+
+with respect toϵevaluated atϵ= 0is:
+d f
+
+θ∗
+x′,y′,ϵ
+
+dϵ
+
+ϵ=0
+=∇ θf(θ∗)⊤ dθ∗
+x′,y′,ϵ
+dϵ
+
+ϵ=0
+=−∇ θf(θ∗)⊤H−1
+θ∗ ∇θL(x′, y′, θ∗),(3)
+where Hθ∗ = 1
+N
+P
+(x,y)∈Dtrain ∇2
+θL(x, y, θ∗) is the Hessian matrix evaluated at θ∗. Finally, one can
+approximate the influence of data point (x′, y′) on the evaluation function f through the linearization
+around the optimal parameterθ ∗ without retraining:
+f
+
+θ∗
+x′,y′,− 1
+N
+
+−f(θ ∗)≈ 1
+N ∇θf(θ∗)⊤H−1
+θ∗ ∇θL(x′, y′, θ∗).(4)
+When the objective is non-convex, the Hessian can be added with a damping term λ∈R , i.e.,
+Hθ∗ +λI, leading to a positive definite matrix. We provide a complete derivation in Section A.
+2.2 Influence function for neural networks
+Although the influence function in Equation (4) reliably measures the influence of an input for a
+linear model with a convex objective, the computation is unreliable in practice with deep neural
+networks, c.f. [4]. Bae et al. [3] identify the three main sources of unreliability related to the standard
+practices of neural network training and fine-tuning: 1) In non-convex models, the response function
+is affected more by parameter initialization than by the influence of the data, as gradient methods
+approximate the solution. 2) The addition of the damping term λ works as an ℓ2 regularizer of
+Equation (1) leading to a different response function. 3) The influence function is measured on fully
+converged parameter θ∗, which is not true in practice due to many reasons, such as early stopping
+and over-fitting mitigation.
+Bae et al. [3] propose a new response function, named the proximal Bregman response function
+(PBRF), to address the three practices:
+θ∗
+θs,x′,y′,ϵ := arg min
+θ
+1
+N
+X
+(x,y)∈Dtrain
+DL (gθ(x), gθs(x), y) +λ
+2 ∥θ−θ s∥2 +ϵL(x ′, y′, θ),(5)
+where gθ is a model parameterized by θ, θs is a reference parameter from which the fine-tuning starts,
+andD L is the Bregman divergence defined as:
+DL (h, h′, y):=L(h, y)− L(h′, y)− ∇hL(h ′, y)⊤ (h−h ′).(6)
+For detailed explanations of each term in Equation (5), please refer to Bae et al. [3].
+The objective can be further linearized around the model output to simulate the local approximations
+made in Equation (4), leading to the following influence function1:
+f
+
+θ∗
+θs,x′,y′,− 1
+N
+
+−f(θ s)≈ 1
+N ∇θf(θs)⊤ 
+J⊤
+hθsHhsJhθs +λI
+−1
+∇θL(x′, y′, θs),(7)
+1Equation (7) is originally proposed by Teso et al. [31] as an approximation of Equation (4). Bae et al. [3]
+provide a corresponding response function to the approximation.
+3
+
+where h and hs denote the model outputs parameterized byθ and θs, respectively. Jhθs is the Jacobian
+of the model outputs with respect to the parameters, and Hhs is the Hessian of L with respect to the
+outputs. When the loss function is convex with respect to the model outputs, the matrixJ⊤
+hθsHhsJhθs
+is positive semi-definite. This convexity condition is satisfied by commonly used loss functions, such
+as cross-entropy and mean squared error. Consequently, for λ >0, the matrix J⊤
+hθsHhsJhθs +λI
+becomes positive definite, ensuring its invertibility. We provide the complete derivation in Section A.
+3 Quantifying the influence of edge edits on GNNs
+Problem setup and notationWe propose an influence function tailored for non-convex GNNs,
+designed to quantify how edge deletions and insertions perturb model predictions and evaluation
+functions. We consider node classification on an undirected graph G= (V,E,X) , where V is the
+set of nodes, E ⊆ V × Vforms the set of edges, and X∈R |V|×d represents the matrix of node
+feature Xv ∈R d for all node v∈ V. We also represent the graph structure using a binary symmetric
+adjacency matrix A∈ {0,1}|V|×|V| , where Auv = 1indicates an edge between nodes u and v. The
+goal of the node classification is to predict the ground truth label yv ∈ Yof node v∈ V. The notation
+hG,θ
+v refers to the representation of node v obtained by a GNN parameterized by θ on graph G. A
+standard supervised training involves a minimization of the average prediction loss L(hG,θ
+v , yv) over
+the entire training setV train ⊆ Vwith respect to the model parameterθ.
+We focus on analyzing the effect of inserting or deleting a single undirected edge {u, v}. The
+derivation naturally generalizes to multiple edge edits, which are provided in Section C. We first
+define the reweighted adjacency matrix Aϵ
+uv such that only the (u, v)and (v, u)entries are updated as
+Aϵ
+uv =A uv + (2I[{u, v} ∈ E]−1)Nϵ, while all other entries remain unchanged. Setting ϵ=−1/N
+corresponds to deleting the edge if it exists, or inserting it otherwise. We denote the edge-reweighted
+graph as Gϵ ={V,E, Aϵ}, where we omit the target edge {u, v}from the adjacency matrix when it
+is clear from context for notational simplicity. We collectively refer to edge deletions and insertions
+asedge edits.
+Decomposition of influence functionLet f(θ,G) be an evaluation function, to which we want to
+measure the influence of an edge edit. Note that unlike standard parameterization of the evaluation
+function, i.e., f(θ), the evaluation function needs to be parameterized by both the model parameter
+θ and the graph structure G, because an edge edit not only changes the model parameter but also
+changes the message propagation paths in GNNs. Due to the dependency of the evaluation function
+on the graph structure, the derivative of the evaluation function with respect to the change in the
+weighting of a target edge is decomposed as follows via the chain rule:
+d f(θ∗
+ϵ ,G ϵ)
+dϵ
+
+ϵ=0
+=∇ θf(θ∗
+0,G) ⊤ ∂θ∗
+ϵ
+∂ϵ
+
+ϵ=0| {z }
+parameter shift
++ ∂f(θ,G ϵ)
+∂Aϵ
+∂Aϵ
+∂ϵ
+
+θ=θ∗
+0 , ϵ=0
+| {z }
+message propagation
+,(8)
+where θ∗
+ϵ represents the response function of an edge edit; a formal definition is provided in the
+following paragraph.
+Remark.The influence functions proposed for GNNs in Chen et al. [7], Wu et al. [35] only consider
+the effect of parameter shift while missing the changes in the message propagation path.
+Parameter shiftTo quantify the change in model parameters for non-convex GNNs, we propose a
+graph-adapted version of the PBRF. The original PBRF, introduced in Equation (5), only quantifies
+the changes in parameters when the weight of a single data point is modified, inapplicable to our
+scenario where the weight of an edge changes. To address this challenge, we introduce an edge-edit
+PBRF that explicitly accounts for changes in node representations caused by an edge edit.
+We define the edge-edit PBRF as follows2:
+2For notational simplicity, we omit the label yv of node v in expressions involving the loss function or the
+Bregman divergence, as it is clear from context.
+4
+
+θ∗
+ϵ := arg min
+θ
+1
+N
+X
+v∈Vtrain
+DL
+
+hG,θ
+v , hG,θs
+v
+
++ λ
+2 ∥θ−θ s∥2 +
+X
+v∈Vtrain
+ϵ
+
+L
+
+hG,θ
+v
+
+− L
+
+hG− 1
+N ,θ
+v
+
+.
+(9)
+The first two terms regularize θ to stay close to the reference parameter θs, both in terms of the output
+space and the parameter space. The final term, with ϵ <0, encourages θ to increase the loss on
+the original graph while decreasing the loss on the edge-edited graph. Thus, edge-edit PBRF can
+be interpreted as identifying parameters near θs that fail to predict correctly on the original graph
+but succeed on the edge-edited graph, thereby responding to the edge edit. The scalar ϵ controls
+the magnitude of this response to the edge edit. Note that θ∗
+0 =θ s, since the Bregman divergence
+DL(h, h′, y)is minimized whenh=h ′.
+Based on the edge-edit PBRF objective, the changes in the evaluation function caused by the parameter
+shift are then given by:
+∇θf(θ∗
+0,G) ⊤ ∂θ∗
+ϵ
+∂ϵ
+
+ϵ=0
+=−∇ θf(θs,G) ⊤G−1 X
+v∈Vtrain
+
+∇θL
+
+hG,θs
+v
+
+− ∇θL
+
+hG− 1
+N ,θs
+v
+
+.(10)
+where G=J ⊤
+hθsHhsJhθs +λI denotes the generalized Gauss–Newton Hessian with a damping
+term, and h and hs denote the node representations obtained using parameters θ and θs, respectively.
+A detailed derivation is provided in Section B.
+Message propagationTo quantify the changes in the evaluation function caused by the modification
+in the message propagation path, we can further expand the message propagation term in Equation (8).
+Since∂A ϵ
+ij/∂ϵ= 0for all{i, j} ̸={u, v}, the message propagation term simplifies as follows:
+∂f(θ,G ϵ)
+∂Aϵ
+∂Aϵ
+∂ϵ
+
+θ=θ∗
+0 , ϵ=0
+= ∂f(θ,G ϵ)
+∂Aϵuv
+∂Aϵ
+uv
+∂ϵ
+
+θ=θs, ϵ=0
++ ∂f(θ,G ϵ)
+∂Aϵvu
+∂Aϵ
+vu
+∂ϵ
+
+θ=θs, ϵ=0
+= (2I[{u, v} ∈ E]−1)N
+∂f(θ s,G)
+∂Auv
++ ∂f(θ s,G)
+∂Avu
+
+.(11)
+Unified influence function under edge editsBy substituting Equation (11) and Equation (10) into
+Equation (8) and linearizing around ϵ= 0, we obtain a first-order approximation of the influence
+function that captures both parameter shift and message propagation effects. The resulting influence
+of an edge edit is given by:
+f
+
+θ∗
+− 1
+N
+,G − 1
+N
+
+−f(θ s,G)≈ 1
+N ∇θf(θs,G) ⊤G−1 X
+v∈Vtrain
+
+∇θL
+
+hG,θs
+v
+
+− ∇θL
+
+hG− 1
+N ,θs
+v
+
+−(2I[{u, v} ∈ E]−1)
+∂f(θ s,G)
+∂Auv
++ ∂f(θ s,G)
+∂Avu
+
+.(12)
+Directly computing G−1 is computationally infeasible for large models. To address this, we approxi-
+mate the inverse Hessian-vector product G−1∇θf(θs,G) using the LiSSA algorithm [1], a stochastic
+iterative method. A detailed description is provided in Section D.
+4 Validation of influence function
+We measure the correctness of the proposed influence function on three different evaluation metrics:
+over-squashing and over-smoothing measures, and a validation loss. Our goal is to precisely predict
+how much over-squashing and over-smoothing measures, and validation loss change when an existing
+edge is deleted from the graph or when a potential edge is added between two nodes.
+5
+
+4.1 Evaluation functions
+We explain the three evaluation functions considered in detail.
+Over-squashingOver-squashing [ 2] is the phenomenon in which information from distant nodes is
+overly compressed during message passing, preventing it from effectively influencing node repre-
+sentations. Topping et al. [32] propose a gradient-based metric ∂hv/∂Xu to quantify the influence
+of the initial node feature Xu on the node representation hv. One way to measure over-squashing
+in a graph is by averaging the gradients between all pairs of distant nodes. However, computing
+these gradients for every such pair is computationally expensive. Moreover, estimating the influence
+function requires taking the derivative of this measurement, which is even more costly due to the
+complexity of the measurement itself. To address this issue, we propose an alternative over-squashing
+measure similar to the gradient-based one but without derivation. Let NL(v) be the set of nodes that
+can be reached from node v in exactly L hops. To measure the influence of node u to node v in an
+L-layer GNN, we first define modified graphG ′(v) ={V,E,X ′}, where
+X′
+u =
+0,ifu∈ N L(v),
+Xu,otherwise, (13)
+for alluinV. With the modified graph, we propose a new over-squashing measure as:
+fOQ(θ,G) =
+X
+v∈V
+hG,θ
+v −h G′(v),θ
+v
+
+2
+.(14)
+The measure computes the average difference in node representations with and without L-hop
+neighborhood node features. It is similar to the gradient-based metric in that both quantify how a
+node’s representation changes when input features of other nodes are modified, although one does so
+through gradient computation and the other through direct input masking.
+Over-smoothingWe use the Dirichlet energy that quantifies the over-smoothing phenomenon in
+GNNs [23]. Dirichlet energy is defined as the average squared ℓ2 distance between the embeddings of
+adjacent nodes [6], and serves as a proxy for the representational diversity across the graph. A lower
+Dirichlet energy indicates more severe over-smoothing, as node representations become increasingly
+indistinguishable due to excessive message passing. Conversely, higher Dirichlet energy suggests
+that node embeddings remain more discriminative.
+Validation lossWe use a standard mean cross-entropy loss on the validation set as an evaluation
+function.
+4.2 Actual vs. predicted influence
+Datasets and experimental setupWe conduct experiments on five datasets: the citation graphs
+Cora, Citeseer, and Pubmed [29, 36], where the task is to predict each paper’s research area based on
+citation relationships; and the Wikipedia graphs Chameleon and Squirrel [28], where the task is to
+estimate page traffic based on hyperlink relationships. For the citation graphs, we follow the data
+splits provided by Yang et al. [36], and for the Wikipedia graphs, we use the splits from Pei et al.
+[27].
+We evaluate the prediction performance of our method on three representative graph neural networks:
+GCN [20], GAT [33], and ChebNet [ 13]. We compare our approach with GIF, an existing graph
+influence function [7, 35]. To measure the actual influence, we first train the model on the original
+graph. We then retrain the GNN on the edge-edited graph by optimizing the minimization objective
+defined by each response function. Specifically, for our influence function, we fine-tuned the model
+by minimizing the objective in Equation (9), using the original model parameters as θs and setting
+ϵ=−1/N . For GIF, we retrain the model by minimizing the loss on the edge-edited graph, using
+the same parameter initialization as the original model. The actual influence is computed as the
+difference between the evaluation values of the original model and the retrained model.
+6
+
+2
+ 0 2 4 6 8
+Estimated Influence ×10 3
+2.0
+0.0
+2.0
+4.0
+6.0
+8.0
+Actual Influence
+×10 3
+Correlation: 0.49
+Validation Loss
+4
+ 2
+ 0 2 4
+Estimated Influence ×10 3
+4.0
+2.0
+0.0
+2.0
+4.0
+Actual Influence
+×10 3
+Correlation: 0.09
+Over-squashing
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5
+Estimated Influence
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+Actual Influence
+Correlation: 0.14
+Dirichlet Energy
+(a) GIF [7, 35]
+3
+ 2
+ 1
+ 0 1 2
+Estimated Influence ×10 3
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+Actual Influence
+×10 3
+Correlation: 0.88
+Validation Loss
+Deletion
+Insertion
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+Estimated Influence ×10 3
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+Actual Influence
+×10 3
+Correlation: 0.94
+Over-squashing
+3
+ 2
+ 1
+ 0 1 2 3
+Estimated Influence
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+3.0
+Actual Influence
+Correlation: 0.95
+Dirichlet Energy
+(b) Ours
+Figure 2: Predicted influence versus actual influence on a four-layer GCN. The x-axis represents
+the predicted influence, the y-axis represents the actual influence, and the dotted line represents the
+perfect alignment.
+ResultsFigure 2 presents scatter plots for the Cora dataset, where each point shows the actual and
+predicted influence of a single edge edit. The x-axis represents the predicted influence computed
+by each method, and the y-axis represents the actual influence. The first row illustrates results from
+GIF [7, 35], while the second row shows results from our proposed method for edge deletions and
+insertions, respectively. Additional results for other GNNs and datasets are provided in Section E.
+GIF [7, 35] fails to reliably estimate actual influences on non-convex GNNs, achieving correlations
+of only 0.09 and 0.14 for over-squashing and Dirichlet energy, respectively. In contrast, our proposed
+method significantly improves prediction, achieving correlations up to 0.95, closely aligning with
+the ideal predictions shown by the grey dotted line. Moreover, our method exhibits strong predictive
+capability for both edge deletions and insertions.
+Table 1: Test accuracy on edge-edited graphs.
+The best result is highlighted in bold.
+Cora CiteSeer PubMed
+GCN 81.0±0.369.3±0.575.6±1.0
+Random 81.1±0.469.2±0.475.7±0.8
+GIF 80.9±0.569.2±0.575.6±0.9
+Ours (DE) 80.8±0.469.5±0.575.4±1.2
+Ours (fOQ) 81.1±0.469.3±0.575.4±1.0
+Ours (VL)82.1±0.569.6±0.776.4±1.3
+We further evaluate how editing the graph to improve
+each measurement affects prediction on the test nodes.
+To perform the edge edits, we first compute the influ-
+ence function with respect to each measurement and
+then edit the edges that are predicted to improve the
+corresponding measurement. For validation loss, we
+edit the edges with the k smallest influence values, as
+negative influence indicates that removing the edge
+is expected to reduce the measurement. For the other
+measurements, we edit the edges with the k largest
+influence values. The value of k is selected to maxi-
+mize validation accuracy. We compare the edge edits
+produced by our influence function to two baselines:
+random edge deletion (Random) and edge edits using GIF [7, 35] in place of our influence function.
+Table 1 shows the test accuracy when the model is trained and evaluated on edge-edited graphs.
+Dirichlet energy (DE), over-squashing (fOQ), and validation loss (VL) are used as shorthand in the
+table. Our edits based on validation loss achieve the best performance across three datasets. This
+result suggests that editing edges to reduce validation loss can be helpful for improving test accuracy.
+In contrast, editing edges to improve Dirichlet energy or the over-squashing measurement does not
+consistently improve test accuracy. This indicates that optimizing these intermediate metrics does not
+necessarily translate to better predictive performance. Finally, editing edges to reduce validation loss
+7
+
+3
+ 2
+ 1
+ 0 1 2
+Parameter Shift Effect ×10 3
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+Propagation Effect
+×10 3
+Correlation: -0.07
+Validation Loss
+Deletion
+Insertion
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+Parameter Shift Effect ×10 3
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+Propagation Effect
+×10 3
+Correlation: 0.01
+Over-squashing
+2
+ 1
+ 0 1 2
+Parameter Shift Effect
+2.0
+1.0
+0.0
+1.0
+2.0
+Propagation Effect
+Correlation: -0.09
+Dirichlet Energy
+Figure 3: The relationship between parameter shift effect and message propagation effect defined
+in Equation (8). The x-axis denotes the parameter shift effect, and the y-axis denotes the message
+propagation effect.
+1.6
+ 0.8
+ 0.0 0.8 1.6
+Estimated Influence ×10 2
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+Actual Influence
+×10 2
+Correlation: 0.91
+10 Edges
+3
+ 2
+ 1
+ 0 1 2
+Estimated Influence ×10 2
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+Actual Influence
+×10 2
+Correlation: 0.88
+20 Edges
+4
+ 2
+ 0 2 4
+Estimated Influence ×10 2
+4.0
+2.0
+0.0
+2.0
+4.0
+Actual Influence
+×10 2
+Correlation: 0.84
+100 Edges
+Figure 4: Predicted influence versus actual influence on a four-layer GCN under varying numbers of
+inserted edges.
+using GIF fails to improve test accuracy, which we attribute to its inaccurate influence estimation on
+non-convex GNNs.
+Analysis on the influence of message propagationWe analyze the importance of explicitly
+incorporating the influence of message propagation when predicting the influence of edge edits. If
+the influence of the message propagation is negligible or highly correlated with the influence of
+the parameter shift, predicting the influence of the message propagation may not be necessary. To
+validate the importance of the message propagation influence, we measure its correlation with the
+influence of parameter shift.
+Figure 3 shows scatter plots comparing these two influences on the Cora dataset. We observe a low
+correlation between the message propagation and parameter shift influence across all metrics, while
+their magnitudes remain comparable. These results underscore the necessity of explicitly measuring
+the influence of message propagation in estimating the influence of edge edits.
+Influence estimation for multiple edge editsWe evaluate the accuracy of the proposed influence
+function in predicting the actual influence under multiple edge edits. Figure 4 presents scatter plots
+of predicted versus actual influence when inserting different numbers of edges. The experiments are
+conducted on the Cora dataset, with validation loss used as the evaluation metric. Specifically, we
+report results for simultaneous insertions of 10, 20, and 100 edges.
+Our influence function maintains a high correlation with the actual influence, achieving 0.84 even
+under 100 simultaneous edge edits. Nonetheless, Figure 4 shows that the accuracy of influence
+estimation diminishes as the number of simultaneous edits increases. We attribute this degradation to
+first-order approximation errors induced by substantial parameter shifts, a phenomenon that has also
+been consistently observed in prior studies on group influence estimation [22, 5, 30].
+5 Applications
+Influence function as a tool for adversarial attackOnce we identify the most influential edges in
+the entire input graph, we can significantly affect the model’s output by editing them. This process
+represents a form of global adversarial attack for the graph, aiming to reduce the performance of the
+entire graph.
+8
+
+Table 2: Test accuracy under adversarial edge edits. The attack ratio denotes the percentage of edges
+added or removed with respect to the total number of edges in the original graph. The values in
+parentheses next to each dataset name indicate the test accuracy on the original graph before any
+edits.
+Cora (81.0) CiteSeer (69.3) PubMed (75.6)
+Attack ratio 1% 3% 5% 1% 3% 5% 1% 3% 5%
+DICE 80.8±0.480.3±0.580.0±0.569.0±0.768.5±0.568.1±0.575.1±0.974.5±1.473.5±1.1
+PRBCD 80.6±0.579.4±0.578.7±0.968.5±0.567.4±0.866.4±0.574.6±1.372.9±1.870.9±1.7
+GIF 80.8±0.480.8±0.680.6±0.469.8±0.769.8±0.769.3±0.575.4±1.175.3±1.075.2±0.9
+Ours (DE) 81.0±0.380.7±0.380.8±0.369.1±0.569.2±0.768.8±0.875.6±1.075.2±1.075.0±1.2
+Ours (fOQ) 80.9±0.480.9±0.680.6±0.768.9±0.669.0±0.568.6±0.875.4±0.974.9±1.074.4±1.1
+Ours (VL)80.2±0.779.1±0.778.4±0.868.2±0.566.7±0.665.1±0.973.2±1.471.2±1.569.9±1.1
+Table 2 presents the adversarial attack performance of our methods, comparing it to previous influence-
+function-based methods and other adversarial attack methods, DICE [34] and PRBCD [14], in the
+white-box scenario. As a result, the GIF shows poor performance, while our method with a validation
+loss metric outperforms the others. An interesting observation is that, among the three metrics we
+tested, the validation loss-based attack is more effective than the tailored attack methods.
+Figure 5: Mean influence of homophilic and het-
+erophilic edges on validation loss for edge insertion
+(left) and edge deletion (right). Each dumbbell con-
+nects the average influence of homophilic (light
+green) and heterophilic (dark green) edges across
+six datasets. A negative value indicates that the
+edge edit decreases the validation loss, thus im-
+proving the performance.
+Explanation of the characteristics of benefi-
+cial edgesWe demonstrate the influence of
+edges connecting the node with the same la-
+bel (homophilic edge) and different labels (het-
+erophilic edge) on GCN. Figure 5 presents a
+dumbbell plot showing the mean influence of
+homophilic and heterophilic edges across six
+datasets, which include three homophilic graphs
+(Cora, CiteSeer, and PubMed), where edges
+tend to connect nodes with the same labels,
+and three heterophilic graphs (Chameleon, Ac-
+tor, and Squirrel), where edges tend to connect
+nodes with different labels.
+For both types of graphs, adding homophilic
+edges is more beneficial than adding het-
+erophilic ones. The opposite effect is observed
+for edge deletion. These findings suggest that
+increasing a graph’s homophily is beneficial,
+which aligns with the homophilic nature of the
+tested GNNs.
+Analysis of the effect of edge rewiringOur approach provides multiple analytical perspectives on
+existing rewiring strategies through various evaluation metrics. Specifically, we analyze BORF [26]
+and FoSR [19]. BORF alleviates over-squashing by inserting edges between nodes with negative
+curvature and mitigates over-smoothing by removing edges with positive curvature, while FoSR
+alleviates over-squashing by inserting edges that enlarge the spectral gap.
+Figure 6 presents the estimated influence of edges selected by BORF and FoSR from three measure-
+ment perspectives. Edge insertions chosen by both methods generally increase the over-squashing
+measurement, while edge deletions in BORF tend to increase the over-smoothing measurement,
+confirming that each method effectively targets its intended GNN challenge. Nevertheless, we also ob-
+serve unintended side effects: edge insertions often exacerbate over-smoothing, and neither insertions
+nor deletions consistently reduce validation loss. Mitigating these side effects could substantially
+enhance the overall effectiveness and reliability of edge rewiring methods.
+9
+
+-0.0200 -0.0100 0.0000 0.0100 0.0200
+Value
+0
+2
+4
+6
+8
+10
+12
+14
+16
+18
+Frequency
+Validation Loss ( )
+Insertion (+103 -97)
+Deletion (+67 -53)
+-0.0080 -0.0040 0.0000 0.0040 0.0080
+Value
+0
+2
+4
+6
+8
+10
+12
+14
+16
+18
+Frequency
+Over-squashing ( )
+Insertion (+141 -59)
+Deletion (+52 -48)
+-3.0000 -1.5000 0.0000 1.5000
+Value
+0
+2
+4
+6
+8
+10
+12
+14
+16
+18
+Frequency
+Dirichlet Energy ( )
+Insertion (+32 -168)
+Deletion (+65 -35)
+(a) BORF [26]
+-0.0300 -0.0150 0.0000 0.0150 0.0300 0.0450
+Value
+0
+3
+6
+9
+12
+15
+18
+21
+24
+27
+Frequency
+Validation Loss ( )
+Insertion (+100 -100)
+-0.0120 -0.0060 0.0000 0.0060 0.0120
+Value
+0
+3
+6
+9
+12
+15
+18
+21
+Frequency
+Over-squashing ( )
+Insertion (+143 -57)
+-3.0000 -1.5000 0.0000 1.5000 3.0000
+Value
+0
+3
+6
+9
+12
+15
+18
+21
+24
+Frequency
+Dirichlet Energy ( )
+Insertion (+66 -134)
+(b) FoSR [19]
+Figure 6: Histograms of the estimated influence of edge insertions (blue) and deletions (red) selected
+by BORF [26] and FoSR [19], evaluated on a four-layer GCN trained on the Texas dataset. Influences
+are measured across validation loss, over-squashing, and over-smoothing. Arrows (↓/↑ ) indicate the
+desired direction of each measurement (decrease/increase).
+6 Related work
+Originally introduced by Cook and Weisberg [12], the influence function quantifies how removing a
+single training point would affect model parameters after retraining. Koh and Liang [21] adapted
+this concept to modern machine learning, providing efficient approximations of the influence on
+model predictions without the need for retraining. Influence functions have since been widely
+employed for model interpretability [17, 16], data valuation [8, 18], adversarial analysis [11, 10], and
+unlearning [39, 37].
+A significant limitation of influence functions is the assumption of strict convexity in the loss
+function [4], which does not hold for many deep learning models. To overcome this, Teso et al. [31]
+approximate the Hessian using the Fisher information matrix, while Bae et al.[3] introduce a proximal
+Bregman response function objective that relaxes this convexity requirement. Recent studies have
+further extended influence functions to diffusion models [25] and large language models [15, 9, 38].
+In graph settings, Chen et al. [7] and Wu et al. [35] apply influence functions to transductive node
+classification, and Song et al. [30] analyze group-level influence.
+7 Conclusion
+We introduce an enhanced graph influence function that estimates the impact of edge perturbations on
+model predictions in Graph Neural Networks. Unlike existing graph influence functions, our approach
+explicitly incorporates message propagation effects and relaxes the convexity assumption, enabling it
+to be applied to commonly used non-convex GNNs. Additionally, we extend the framework to handle
+both edge deletions and insertions, broadening its applicability to real-world graph rewiring tasks.
+Experimental results on various real-world datasets demonstrate that our method provides significantly
+more accurate estimates of influence than previous methods and enables effective improvements in
+key target measurements such as validation loss, over-squashing, and over-smoothing. Despite these
+advances, our method has limitations. Although it achieves high accuracy under multiple edge edits,
+performance gradually declines as the number of simultaneous edits grows, and scalability to deep
+GNNs remains challenging. Future work could address these issues to enhance the applicability of
+the method to complex graph learning tasks.
+10
+
+Acknowledgements
+This work was supported by the National Research Foundation of Korea (NRF) grant funded by the
+Korea government(MSIT) (RS-2024-00337955; RS-2023-00217286) and Institute of Information
+& communications Technology Planning & Evaluation (IITP) grant funded by the Korea govern-
+ment(MSIT) (RS-2024-00457882, National AI Research Lab Project; RS-2019-II191906, Artificial
+Intelligence Graduate School Program(POSTECH)).
+References
+[1] Naman Agarwal, Brian Bullins, and Elad Hazan. Second-order stochastic optimization for
+machine learning in linear time.J. Mach. Learn. Res., 18(1):4148–4187, 2017. 3, D
+[2] Uri Alon and Eran Yahav. On the bottleneck of graph neural networks and its practical
+implications.arXiv preprint arXiv:2006.05205, 2020. 1, 1, 4.1
+[3] Juhan Bae, Nathan Ng, Alston Lo, Marzyeh Ghassemi, and Roger B Grosse. If influence
+functions are the answer, then what is the question?Advances in Neural Information Processing
+Systems, 35:17953–17967, 2022. 1, 2.2, 2.2, 1, 6, A, A.2
+[4] Samyadeep Basu, Philip Pope, and Soheil Feizi. Influence functions in deep learning are fragile.
+arXiv preprint arXiv:2006.14651, 2020. 2.2, 6
+[5] Samyadeep Basu, Xuchen You, and Soheil Feizi. On second-order group influence functions
+for black-box predictions. InInternational Conference on Machine Learning, pages 715–724.
+PMLR, 2020. 4.2
+[6] Chen Cai and Yusu Wang. A note on over-smoothing for graph neural networks.arXiv preprint
+arXiv:2006.13318, 2020. 4.1
+[7] Zizhang Chen, Peizhao Li, Hongfu Liu, and Pengyu Hong. Characterizing the influence of
+graph elements.arXiv preprint arXiv:2210.07441, 2022. 1, 3, 4.2, 2a, 4.2, 4.2, 6
+[8] Anshuman Chhabra, Peizhao Li, Prasant Mohapatra, and Hongfu Liu. " what data benefits my
+classifier?" enhancing model performance and interpretability through influence-based data
+selection. InThe Twelfth International Conference on Learning Representations, 2024. 6
+[9] Sang Keun Choe, Hwijeen Ahn, Juhan Bae, Kewen Zhao, Minsoo Kang, Youngseog Chung,
+Adithya Pratapa, Willie Neiswanger, Emma Strubell, Teruko Mitamura, et al. What is
+your data worth to gpt? llm-scale data valuation with influence functions.arXiv preprint
+arXiv:2405.13954, 2024. 6
+[10] Gilad Cohen and Raja Giryes. Membership inference attack using self influence functions. In
+Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, pages
+4892–4901, 2024. 6
+[11] Gilad Cohen, Guillermo Sapiro, and Raja Giryes. Detecting adversarial samples using influence
+functions and nearest neighbors. InProceedings of the IEEE/CVF conference on computer
+vision and pattern recognition, pages 14453–14462, 2020. 6
+[12] R. Dennis Cook and Sanford Weisberg.Residuals and influence in regression. New York,
+United States Chapman and Hall, 1982. 6
+[13] Michaël Defferrard, Xavier Bresson, and Pierre Vandergheynst. Convolutional neural networks
+on graphs with fast localized spectral filtering.Advances in neural information processing
+systems, 29, 2016. 4.2, E
+[14] Simon Geisler, Tobias Schmidt, Hakan ¸ Sirin, Daniel Zügner, Aleksandar Bojchevski, and
+Stephan Günnemann. Robustness of graph neural networks at scale. In M. Ranzato, A. Beygelz-
+imer, Y . Dauphin, P.S. Liang, and J. Wortman Vaughan, editors,Advances in Neural Information
+Processing Systems, volume 34, pages 7637–7649. Curran Associates, Inc., 2021. 5, F
+11
+
+[15] Roger Grosse, Juhan Bae, Cem Anil, Nelson Elhage, Alex Tamkin, Amirhossein Tajdini,
+Benoit Steiner, Dustin Li, Esin Durmus, Ethan Perez, et al. Studying large language model
+generalization with influence functions.arXiv preprint arXiv:2308.03296, 2023. 6
+[16] Han Guo, Nazneen Fatema Rajani, Peter Hase, Mohit Bansal, and Caiming Xiong. Fastif:
+Scalable influence functions for efficient model interpretation and debugging.arXiv preprint
+arXiv:2012.15781, 2020. 6
+[17] Xiaochuang Han, Byron C Wallace, and Yulia Tsvetkov. Explaining black box predictions and
+unveiling data artifacts through influence functions.arXiv preprint arXiv:2005.06676, 2020. 6
+[18] Yuzheng Hu, Pingbang Hu, Han Zhao, and Jiaqi Ma. Most influential subset selection: Chal-
+lenges, promises, and beyond.Advances in Neural Information Processing Systems, 37:
+119778–119810, 2024. 6
+[19] Kedar Karhadkar, Pradeep Kr. Banerjee, and Guido Montufar. FoSR: First-order spectral
+rewiring for addressing oversquashing in GNNs. InThe Eleventh International Conference on
+Learning Representations, 2023. 5, 6b, 6, F
+[20] Thomas N Kipf and Max Welling. Semi-supervised classification with graph convolutional
+networks.arXiv preprint arXiv:1609.02907, 2016. 4.2
+[21] Pang Wei Koh and Percy Liang. Understanding black-box predictions via influence functions.
+InInternational conference on machine learning, pages 1885–1894. PMLR, 2017. 1, 2.1, 6, A
+[22] Pang Wei W Koh, Kai-Siang Ang, Hubert Teo, and Percy S Liang. On the accuracy of influence
+functions for measuring group effects.Advances in neural information processing systems, 32,
+2019. 4.2
+[23] Qimai Li, Zhichao Han, and Xiao-Ming Wu. Deeper insights into graph convolutional networks
+for semi-supervised learning. InProceedings of the AAAI conference on artificial intelligence,
+volume 32, 2018. 1, 1, 4.1
+[24] Yaxin Li, Wei Jin, Han Xu, and Jiliang Tang. Deeprobust: A pytorch library for adversarial
+attacks and defenses.arXiv preprint arXiv:2005.06149, 2020. F
+[25] Bruno Mlodozeniec, Runa Eschenhagen, Juhan Bae, Alexander Immer, David Krueger, and
+Richard Turner. Influence functions for scalable data attribution in diffusion models.arXiv
+preprint arXiv:2410.13850, 2024. 6
+[26] Khang Nguyen, Nong Minh Hieu, Vinh Duc Nguyen, Nhat Ho, Stanley Osher, and Tan Minh
+Nguyen. Revisiting over-smoothing and over-squashing using ollivier-ricci curvature. In
+International Conference on Machine Learning, pages 25956–25979. PMLR, 2023. 1, 5, 6a, 6,
+F
+[27] Hongbin Pei, Bingzhe Wei, Kevin Chen-Chuan Chang, Yu Lei, and Bo Yang. Geom-gcn:
+Geometric graph convolutional networks.arXiv preprint arXiv:2002.05287, 2020. 4.2
+[28] Benedek Rozemberczki, Carl Allen, and Rik Sarkar. Multi-scale attributed node embedding.
+Journal of Complex Networks, 9(2):cnab014, 2021. 4.2
+[29] Prithviraj Sen, Galileo Namata, Mustafa Bilgic, Lise Getoor, Brian Galligher, and Tina Eliassi-
+Rad. Collective classification in network data.AI magazine, 29(3):93–93, 2008. 4.2
+[30] Jaeyun Song, SungYub Kim, and Eunho Yang. Rge: A repulsive graph rectification for node
+classification via influence. InInternational Conference on Machine Learning, pages 32331–
+32348. PMLR, 2023. 4.2, 6
+[31] Stefano Teso, Andrea Bontempelli, Fausto Giunchiglia, and Andrea Passerini. Interactive label
+cleaning with example-based explanations.Advances in Neural Information Processing Systems,
+34:12966–12977, 2021. 1, 6
+[32] Jake Topping, Francesco Di Giovanni, Benjamin Paul Chamberlain, Xiaowen Dong, and
+Michael M Bronstein. Understanding over-squashing and bottlenecks on graphs via curvature.
+arXiv preprint arXiv:2111.14522, 2021. 4.1
+12
+
+[33] Petar Veliˇckovi´c, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Lio, and Yoshua
+Bengio. Graph attention networks.arXiv preprint arXiv:1710.10903, 2017. 4.2, E
+[34] Marcin Waniek, Tomasz P Michalak, Michael J Wooldridge, and Talal Rahwan. Hiding
+individuals and communities in a social network.Nature Human Behaviour, 2(2):139–147,
+2018. 5, F
+[35] Jiancan Wu, Yi Yang, Yuchun Qian, Yongduo Sui, Xiang Wang, and Xiangnan He. Gif: A
+general graph unlearning strategy via influence function. InProceedings of the ACM Web
+Conference 2023, pages 651–661, 2023. 1, 3, 4.2, 2a, 4.2, 4.2, 6
+[36] Zhilin Yang, William Cohen, and Ruslan Salakhudinov. Revisiting semi-supervised learning
+with graph embeddings. InInternational conference on machine learning, pages 40–48. PMLR,
+2016. 4.2
+[37] Yuanshun Yao, Xiaojun Xu, and Yang Liu. Large language model unlearning.Advances in
+Neural Information Processing Systems, 37:105425–105475, 2024. 6
+[38] Han Zhang, Zhuo Zhang, Yi Zhang, Yuanzhao Zhai, Hanyang Peng, Yu Lei, Yue Yu, Hui Wang,
+Bin Liang, Lin Gui, et al. Correcting large language model behavior via influence function. In
+Proceedings of the AAAI Conference on Artificial Intelligence, volume 39, pages 14477–14485,
+2025. 6
+[39] Yang Zhang, Zhiyu Hu, Yimeng Bai, Jiancan Wu, Qifan Wang, and Fuli Feng. Recommendation
+unlearning via influence function.ACM Transactions on Recommender Systems, 3(2):1–23,
+2024. 6
+13
+
+A Derivation of the influence function
+In this section, we derive the influence function for linear models [21], as shown in Equation (3), and
+for neural networks [3], as shown in Equation (7). In particular, we reformulate the derivation by Bae
+et al. [3] to fit our setting.
+A.1 Influence function for linear models
+We begin by considering the re-weighted objective introduced in Equation (2):
+J(θ, ϵ) =1
+N
+X
+(x,y)∈Dtrain
+L(x, y, θ) +ϵL(x′, y′, θ).(15)
+Assuming that the loss function L is twice continuously differentiable and that J(θ, ϵ)is strictly
+convex in θ, the optimal parameter θ∗
+x′,y′,ϵ minimizing the objective satisfies the first-order optimality
+condition:
+∇θJ(θ ∗
+x′,y′,ϵ, ϵ) = 0.(16)
+To justify that the response function θ∗
+x′,y′,ϵ is differentiable with respect to ϵ, we apply the Implicit
+Function Theorem to the optimality condition. The following conditions must be satisfied for the
+theorem to apply:
+• The function ∇θJ(θ, ϵ)is continuously differentiable in both θ and ϵ. This holds because
+J(θ, ϵ)is constructed as a linear combination of smooth loss functions, and its dependence
+onϵis linear.
+• The optimality condition ∇θJ(θ ∗
+x′,y′,ϵ, ϵ) = 0holds by definition, since θ∗
+x′,y′,ϵ minimizes
+the objectiveJ(θ, ϵ).
+• The Hessian ∇2
+θJ(θ, ϵ), taken with respect to θ, is non-singular in a neighborhood of ϵ= 0,
+asJ(θ, ϵ)is assumed to be strictly convex inθ.
+Under these conditions, the Implicit Function Theorem ensures that θ∗
+x′,y′,ϵ is continuously differen-
+tiable with respect toϵ, and we differentiate Equation (16) using the chain rule:
+d
+dϵ
+
+∇θJ(θ ∗
+x′,y′,ϵ, ϵ)
+
+=∇ 2
+θJ(θ ∗
+x′,y′,ϵ, ϵ)·
+dθ∗
+x′,y′,ϵ
+dϵ +∇ θL(x′, y′, θ∗
+x′,y′,ϵ) = 0.(17)
+Solving for the derivative yields:
+dθ∗
+x′,y′,ϵ
+dϵ =−
+
+∇2
+θJ(θ ∗
+x′,y′,ϵ, ϵ)
+−1
+∇θL(x′, y′, θ∗
+x′,y′,ϵ).(18)
+Evaluating atϵ= 0, we obtain the influence function:
+dθ∗
+x′,y′,ϵ
+dϵ
+
+ϵ=0
+=−
+
+∇2
+θJ(θ ∗,0)
+−1
+∇θL(x′, y′, θ∗),(19)
+whereθ ∗ :=θ ∗
+x′,y′,ϵ=0 is the minimizer of the original objective without perturbation.
+14
+
+A.2 Influence function for neural networks
+Bae et al. [3] demonstrated that the influence function using the generalized Gauss-Newton Hessian
+corresponds to that of the linearized form of the proximal Bregman response function objective3:
+θ∗
+lin,x′,y′,ϵ := arg min
+θ
+1
+N
+X
+(x,y)∈Dtrain
+DLquad
+
+hlin,θ
+x , hθs
+x
+
++ λ
+2 ∥θ−θ s∥2 +ϵ∇ θL(x′, θs)⊤θ,(20)
+where hθ
+x =g θ(x), and Lquad and hlin,θ
+x are the quadratic and linear approximations of the loss and
+model output, respectively:
+Lquad(hθ
+x) =L(hθs
+x ) +∇hθx
+L(hθs
+x )⊤(hθ
+x −h θs
+x ) +1
+2(hθ
+x −h θs
+x )⊤∇2
+hθx
+L(hθs
+x )(hθ
+x −h θs
+x ),
+hlin,θ
+x =h θs
+x +J hθxθs(θ−θ s),(21)
+whereJ hθxθs := ∂hθ
+x
+∂θ
+
+θ=θs
+is the Jacobian of the model output with respect to the parameters.
+We now expand the Bregman divergence term. First, usingLquad(hθs
+x ) =L(hθs
+x ):
+DLquad (hlin,θ
+x , hθs
+x ) =Lquad(hlin,θ
+x )− Lquad(hθs
+x )− ∇hθx
+Lquad(hθs
+x )⊤(hlin,θ
+x −h θs
+x )
+=L(h θs
+x ) +∇hθx
+L(hθs
+x )⊤(hθ
+x −h θs
+x ) +1
+2(hθ
+x −h θs
+x )⊤∇2
+hθx
+L(hθs
+x )(hθ
+x −h θs
+x )
+− L(hθs
+x )− ∇hθx
+L(hθs
+x )⊤(hθ
+x −h θs
+x ).(22)
+Next, usingh lin,θ
+x −h θs
+x =J hθxθs(θ−θ s):
+DLquad (hlin,θ
+x , hθs
+x ) =∇hθx
+L(hθs
+x )⊤Jhθxθs(θ−θ s) +1
+2(θ−θ s)⊤J⊤
+hθxθs∇2
+hθx
+L(hθs
+x )Jhθxθs(θ−θ s)
+− ∇hθx
+L(hθs
+x )⊤Jhθxθs(θ−θ s)
+= 1
+2(θ−θ s)⊤J⊤
+hθxθs∇2
+hθx
+L(hθs
+x )Jhθxθs(θ−θ s).(23)
+Since θ∗
+lin,x′,y′,ϵ is the optimal solution, the gradient of the objective with respect to θ is zero at this
+point:
+0 =− 1
+N
+X
+(x,y)∈Dtrain
+J⊤
+hθxθs∇2
+hθx
+L(hθs
+x )Jhθxθs(θ∗
+lin,x′,y′,ϵ −θ s) +λ(θ∗
+lin,x′,y′,ϵ −θ s) +ϵ∇θL(x′, θs).
+(24)
+Solving forθ ∗
+lin,x′,y′,ϵ, we obtain:
+θ∗
+lin,x′,y′,ϵ =θ s +
+
+J⊤
+hθθsHhsJhθθs +λI
+−1
+∇θL(x′, θs)ϵ,(25)
+where J⊤
+hθθs
+HhsJhθθs := 1
+N
+P
+(x,y)∈Dtrain J⊤
+hθxθs
+∇2
+hθx
+L(hθs
+x )Jhθxθs is the generalized Gauss-Newton
+Hessian.
+3For notational simplicity, we omit the label y in expressions involving the loss function or the Bregman
+divergence, as it is clear from context.
+15
+
+B Gradient derivation for edge-edit PBRF
+Similar to the derivation of the influence function for the PBRF objective in Section A.2, we
+demonstrate that the influence function in Equation (10) corresponds to that of the linearized form of
+the edge-edit PBRF objective:
+θ∗
+lin,ϵ := arg min
+θ
+1
+N
+X
+v∈Vtrain
+DLquad
+
+hG,θ,lin
+v , hG,θs
+v
+
++ λ
+2 ∥θ−θ s∥2
++
+X
+v∈Vtrain
+ϵ
+
+∇θL(hG,θs
+v )− ∇θL(hG− 1
+N ,θs
+v )
+⊤
+θ,(26)
+where Lquad and hG,θ,lin
+v denote the quadratic and linear approximations of the loss and the model
+output, respectively:
+Lquad(hG,θ
+v ) =L(hG,θs
+v ) +∇hG,θ
+v
+L(hG,θs
+v )⊤(hG,θ
+v −h G,θs
+v )
++ 1
+2(hG,θ
+v −h G,θs
+v )⊤∇2
+hG,θ
+v
+L(hG,θs
+v )(hG,θ
+v −h G,θs
+v ),
+hG,θ,lin
+v =h G,θs
+v +J hG,θ
+v θs
+(θ−θ s),(27)
+whereJ hG,θ
+v θs
+:= ∂hG,θ
+v
+∂θ
+
+θ=θs
+is the Jacobian of the model output with respect to the parameters.
+We first expand the Bregman divergence term:
+DLquad (hG,θ,lin
+v , hG,θs
+v ) =Lquad(hG,θ,lin
+v )− Lquad(hG,θs
+v )− ∇hG,θ
+v
+Lquad(hG,θs
+v )⊤(hG,θ,lin
+v −h G,θs
+v )
+=L(h G,θs
+v ) +∇hG,θ
+v
+L(hG,θs
+v )⊤(hG,θ
+v −h G,θs
+v )
++ 1
+2(hG,θ
+v −h G,θs
+v )⊤∇2
+hG,θ
+v
+L(hG,θs
+v )(hG,θ
+v −h G,θs
+v )
+− L(hG,θs
+v )− ∇hG,θ
+v
+L(hG,θs
+v )⊤(hG,θ
+v −h G,θs
+v ).(28)
+Usingh G,θ,lin
+v −h G,θs
+v =J hG,θ
+v θs
+(θ−θ s), we substitute into the expression:
+DLquad (hG,θ,lin
+v , hG,θs
+v ) =∇hG,θ
+v
+L(hG,θs
+v )⊤JhG,θ
+v θs
+(θ−θ s)
++ 1
+2(θ−θ s)⊤J⊤
+hG,θ
+v θs
+∇2
+hG,θ
+v
+L(hG,θs
+v )JhG,θ
+v θs
+(θ−θ s)
+− ∇hG,θ
+v
+L(hG,θs
+v )⊤JhG,θ
+v θs
+(θ−θ s)
+= 1
+2(θ−θ s)⊤J⊤
+hG,θ
+v θs
+∇2
+hG,θ
+v
+L(hG,θs
+v )JhG,θ
+v θs
+(θ−θ s).(29)
+Since θ∗
+lin,ϵ is the optimal parameter minimizing the objective, the derivative of the objective with
+respect toθatθ=θ ∗
+lin,ϵ is zero:
+0 =− 1
+N
+X
+v∈Vtrain
+J⊤
+hG,θ
+v θs
+∇2
+hG,θ
+v
+L(hG,θs
+v )JhG,θ
+v θs
+(θ∗
+lin,ϵ −θ s) +λ(θ∗
+lin,ϵ −θ s)
++
+X
+v∈Vtrain
+ϵ
+
+∇θL(hG,θs
+v )− ∇θL(hG− 1
+N ,θs
+v )
+
+.(30)
+Rearranging the terms, we obtain:
+θ∗
+lin,ϵ =θ s +ϵG −1 X
+v∈Vtrain
+
+∇θL(hG,θs
+v )− ∇θL(hG− 1
+N ,θs
+v )
+
+,(31)
+where G:= 1
+N
+P
+v∈Vtrain J⊤
+hG,θ
+v θs
+∇2
+hG,θ
+v
+L(hG,θs
+v )JhG,θ
+v θs
++λI is the generalized Gauss-Newton matrix.
+Taking the derivative with respect toϵ, we obtain:
+∂θ∗
+lin,ϵ
+∂ϵ = lim
+ϵ→0
+θ∗
+lin,ϵ −θ s
+ϵ =G −1 X
+v∈Vtrain
+
+∇θL(hG,θs
+v )− ∇θL(hG− 1
+N ,θs
+v )
+
+,(32)
+which confirms that the linearized edge-edit PBRF objective yields the same influence function as
+derived in Equation (10).
+16
+
+C Influence function for multiple edge edits
+Problem setup for multiple edge editsIn this section, we extend our influence function to handle
+multiple edge edits. Let S denote the set of edges to be edited. We generalize the definition of Aϵ in
+Section 3 to the multi-edge case by defining
+Aϵ
+uv =A uv +
+
+2I[{u, v} ∈ S]−1
+
+Nϵ.
+The edge-reweighted graph is then given by Gϵ ={V,E, A ϵ}, where edges in S are reweighted.
+Settingϵ=−1/Nimplies that all edges inSare deleted if they exist, and inserted otherwise.
+Parameter shiftFollowing Section 3, the edge-edit PBRF is defined as
+θ∗
+ϵ := arg min
+θ
+1
+N
+X
+v∈Vtrain
+DL
+
+hG,θ
+v , hG,θs
+v
+
++ λ
+2 ∥θ−θ s∥2 +
+X
+v∈Vtrain
+ϵ
+
+L
+
+hG,θ
+v
+
+− L
+
+hG− 1
+N ,θ
+v
+
+.
+(33)
+Following the same derivation steps as in Section B, the contribution of the parameter shift to the
+evaluation function is given by
+∇θf(θ∗
+0,G) ⊤ ∂θ∗
+ϵ
+∂ϵ
+
+ϵ=0
+=−∇ θf(θs,G) ⊤G−1 X
+v∈Vtrain
+
+∇θL
+
+hG,θs
+v
+
+− ∇θL
+
+hG− 1
+N ,θs
+v
+
+,(34)
+where G=J ⊤
+hθsHhsJhθs +λI. The only distinction from the single-edge case lies in the redefinition
+ofG −1/N, which now denotes the graph with multiple edge edits.
+Message propagationUnlike the single-edge case in Section 3, the perturbed adjacency matrix Aϵ
+is influenced simultaneously by all edges in the set S. Consequently, the message propagation effect
+can no longer be attributed to a single edge but must be decomposed into contributions from all edited
+edges. By applying the chain rule, the overall effect is expressed as a summation over gradients with
+respect to each reweighted edge:
+∂f(θ,G ϵ)
+∂Aϵ
+∂Aϵ
+∂ϵ
+
+θ=θ∗
+0 , ϵ=0
+=
+X
+{u,v}∈S
+∂f(θ,G ϵ)
+∂Aϵuv
+∂Aϵ
+uv
+∂ϵ
+
+θ=θs, ϵ=0
++ ∂f(θ,G ϵ)
+∂Aϵvu
+∂Aϵ
+vu
+∂ϵ
+
+θ=θs, ϵ=0
+=
+X
+{u,v}∈S
+(2I[{u, v} ∈ E]−1)N
+∂f(θ s,G)
+∂Auv
++ ∂f(θ s,G)
+∂Avu
+
+.(35)
+Unified influence function under multiple edge editsBy substituting the parameter shift and
+message propagation terms into Equation (8) and linearizing around ϵ= 0, the resulting influence
+under multiple edge edits can be approximated as
+f
+
+θ∗
+− 1
+N
+,G − 1
+N
+
+−f(θ s,G)≈ 1
+N ∇θf(θs,G) ⊤G−1 X
+v∈Vtrain
+
+∇θL
+
+hG,θs
+v
+
+− ∇θL
+
+hG− 1
+N ,θs
+v
+
+−
+X
+{u,v}∈S
+(2I[{u, v} ∈ E]−1)
+∂f(θ s,G)
+∂Auv
++ ∂f(θ s,G)
+∂Avu
+
+.(36)
+17
+
+D Description of LiSSA
+To approximate the inverse of the generalized Gauss–Newton Hessian-vector product G−1v, we
+employ the LiSSA algorithm [1]. LiSSA estimates G−1v by iteratively accumulating powers of the
+residual matrix (I−G) applied to the vector v. When the spectral radius of (I−G) is less than 1,
+the inverse can be expressed using the Neumann series:
+G−1v=
+∞X
+k=0
+(I−G) kv.(37)
+Lettingr (K) = PK
+k=0(I−G) kv, the iteration is defined recursively as:
+r(0) =v, r (k+1) =v+ (I−G)r (k).(38)
+In practice, we perform the update in Equation (38) until convergence. The iteration is terminated
+early if the update difference ∥r(k+1) −r (k)∥ falls below a predefined threshold, or when the number
+of iterations reaches 10,000.
+Since the spectral radius of (I−G) is not necessarily less than 1, we rescale the matrix to ensure
+convergence. Specifically, we define a scaled matrix Gs = 1
+s G, where s > λmax(G), so that the
+spectral radius of(I−G s)is less than 1. The inverse is then computed via
+G−1v= 1
+sG−1
+s v,
+and LiSSA is applied to approximateG −1
+s v.
+To avoid explicitly storing the generalized Gauss–Newton matrixG, the matrix-vector product Gr(k)
+in Equation (38) is computed approximately using a Jacobian-based heuristic. Specifically, we
+compute the Jacobian-vector product x=J hθsr(k), apply the Hessian to obtain x←H hsx, and
+finally compute the transposed Jacobian-vector productGr (k) =J ⊤
+hθsx.
+E Experimental result on other datasets and GNNs
+In this section, we present scatter plots for additional non-convex GNNs and datasets. Figure 7 shows
+the results for additional datasets, while Figure 8 and Figure 9 show the results for ChebNet [13] and
+GAT [33], respectively. Under these settings, our influence function accurately predicts the actual
+influence, consistently showing a correlation above0.8.
+4
+ 2
+ 0 2
+Estimated Influence ×10 5
+4.0
+2.0
+0.0
+2.0
+Actual Influence
+×10 5
+Correlation: 0.98
+Chameleon
+1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5
+Estimated Influence ×10 6
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+Actual Influence
+×10 6
+Correlation: 0.88
+Squirrel
+1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0
+Estimated Influence ×10 3
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+Actual Influence
+×10 3
+Correlation: 0.88
+CiteSeer
+4
+ 2
+ 0 2 4 6 8
+Estimated Influence ×10 5
+4.0
+2.0
+0.0
+2.0
+4.0
+6.0
+8.0
+Actual Influence
+×10 5
+Correlation: 0.92
+PubMed
+(a) Deletion
+2
+ 1
+ 0 1 2
+Estimated Influence ×10 4
+2.0
+1.0
+0.0
+1.0
+2.0
+Actual Influence
+×10 4
+Correlation: 0.99
+Chameleon
+3
+ 2
+ 1
+ 0 1 2 3
+Estimated Influence ×10 5
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+3.0
+Actual Influence
+×10 5
+Correlation: 0.98
+Squirrel
+1.5
+ 1.0
+ 0.5
+ 0.0 0.5
+Estimated Influence ×10 2
+1.5
+1.0
+0.5
+0.0
+0.5
+Actual Influence
+×10 2
+Correlation: 0.94
+CiteSeer
+1.0
+ 0.5
+ 0.0 0.5 1.0
+Estimated Influence ×10 4
+1.0
+0.5
+0.0
+0.5
+1.0
+Actual Influence
+×10 4
+Correlation: 0.94
+PubMed
+(b) Insertion
+Figure 7: The scatter plot of predicted influence and actual influence on four-layer GCN. The x-axis
+represents the predicted influence and y-axis represents the actual influence, and the red-dotted line
+represents the perfect alignment.
+18
+
+8
+ 6
+ 4
+ 2
+ 0 2 4 6
+Estimated Influence×10 4
+8.0
+6.0
+4.0
+2.0
+0.0
+2.0
+4.0
+6.0
+Actual Influence
+×10 4
+Correlation: 0.94
+Validation Loss
+6
+ 4
+ 2
+ 0 2 4 6 8
+Estimated Influence×10 4
+6.0
+4.0
+2.0
+0.0
+2.0
+4.0
+6.0
+8.0
+Actual Influence
+×10 4
+Correlation: 0.94
+Over-squashing
+0.3
+ 0.2
+ 0.1
+ 0.0 0.1 0.2
+Estimated Influence
+0.3
+0.2
+0.1
+0.0
+0.1
+0.2
+Actual Influence
+Correlation: 0.93
+Dirichlet Energy
+(a) Deletion
+1.0
+ 0.5
+ 0.0 0.5 1.0
+Estimated Influence×10 3
+1.0
+0.5
+0.0
+0.5
+1.0
+Actual Influence
+×10 3
+Correlation: 0.91
+Validation Loss
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0
+Estimated Influence×10 3
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+Actual Influence
+×10 3
+Correlation: 0.99
+Over-squashing
+0.2
+ 0.1
+ 0.0 0.1 0.2
+Estimated Influence
+0.2
+0.1
+0.0
+0.1
+0.2
+Actual Influence
+Correlation: 0.99
+Dirichlet Energy
+(b) Insertion
+Figure 8: The scatter plot of predicted influence and actual influence on two-layer ChebNet. The
+x-axis represents the predicted influence and y-axis represents the actual influence, and the red-dotted
+line represents the perfect alignment.
+8
+ 4
+ 0 4 8
+Estimated Influence ×10 4
+1.0
+0.8
+0.5
+0.2
+0.0
+0.2
+0.5
+0.8
+Actual Influence
+×10 3
+Correlation: 0.86
+Validation Loss
+2
+ 1
+ 0 1 2
+Estimated Influence ×10 3
+2.0
+1.0
+0.0
+1.0
+2.0
+Actual Influence
+×10 3
+Correlation: 0.95
+Over-squashing
+6
+ 4
+ 2
+ 0 2 4 6
+Estimated Influence ×10 2
+6.0
+4.0
+2.0
+0.0
+2.0
+4.0
+6.0
+Actual Influence
+×10 2
+Correlation: 0.81
+Dirichlet Energy
+(a) Deletion
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+Estimated Influence ×10 3
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+Actual Influence
+×10 3
+Correlation: 0.94
+Validation Loss
+3
+ 2
+ 1
+ 0 1 2
+Estimated Influence ×10 3
+3.0
+2.0
+1.0
+0.0
+1.0
+2.0
+Actual Influence
+×10 3
+Correlation: 0.96
+Over-squashing
+4
+ 2
+ 0 2 4 6
+Estimated Influence ×10 3
+4.0
+2.0
+0.0
+2.0
+4.0
+6.0
+Actual Influence
+×10 3
+Correlation: 0.80
+Dirichlet Energy
+(b) Insertion
+Figure 9: The scatter plot of predicted influence and actual influence on two-layer GAT. The x-axis
+represents the predicted influence and y-axis represents the actual influence, and the red-dotted line
+represents the perfect alignment.
+F Experimental configuration
+All experiments are conducted using NVIDIA GeForce RTX 3090, NVIDIA RTX A5000, and
+NVIDIA RTX A6000 GPUs. The experiments presented in the main text employ a 4-layer GCN
+model as a representative non-convex GNN. To produce the results in Table 1 and Table 2, we tune the
+model and training hyperparameters of a vanilla GCN over the following search space: learning rates
+{0.1,0.03,0.01} , hidden dimensions {32,64}, and weight decays {10−3,10 −4,10 −5,10 −6,10 −7}.
+Training is performed for 2000 epochs using the SGD optimizer. For influence function computation,
+19
+
+we run the LiSSA algorithm for 10,000 iterations. The damping parameter λ is selected from
+{0.1,0.01,0.001,0.0001} . We randomly sample 10,000 candidate edges for both deletion and
+insertion, and estimate their influence. For Table 1, the number of edges to edit is determined based
+on validation accuracy. The experiments are repeated for 10 independent runs using different random
+seeds provided by the BernNet implementation.
+BORF[ 26] andFoSR[ 19], used in the analysis of edge rewiring methods, are applied with the default
+settings from the original paper. The number of rewired edges reported in Figure 6 is aggregated over
+10 runs, with a total of 200 edges inserted. Unlike FoSR, which performs only edge insertions, BORF
+also considers edge deletions. To improve visualization, we reduce the number of edge deletions,
+as the influence scores for insertions exhibit a long-tailed distribution, making it difficult to display
+them on the same scale as deletions. Accordingly, edge deletions are performed with 120, 100, and
+100 edges, respectively.
+For the adversarial attack experiments in Table 2,DICE[ 34] andPRBCD[ 14] are implemented by
+modifying the PyTorch-based DeepRobust library [24], while maintaining its default settings. For our
+method, we consider both edge insertions and deletions, and select the operations with the highest
+influence scores for validation loss, and the lowest influence scores for over-squashing and Dirichlet
+energy.
+20

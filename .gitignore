@@ -7,3 +7,5 @@ GULib-master/log/GraphRevoker/cora/GCN/2024-12-11-18-48-01.log
 self*
 **/data
 **/log
+# **/papers
+*.pdf

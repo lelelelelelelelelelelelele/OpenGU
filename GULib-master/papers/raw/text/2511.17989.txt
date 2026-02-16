@@ -1,0 +1,1157 @@
+Privacy Auditing of Multi-domain Graph Pre-trained Model
+under Membership Inference Attacks
+Jiai Luo1, Qingyun Sun1, Yuecen Wei2, Haonan Yuan1,
+Xingcheng Fu3, Jianxin Li1*
+1SKLCCSE, School of Computer Science and Engineering, Beihang University, Beijing, China
+2School of Software, Beihang University, China
+3Key Lab of Education Blockchain and Intelligent Technology, Ministry of Education, Guangxi Normal University, China
+{luojy, sunqy, yuanhn, lijx}@buaa.edu.cn, weiyc@buaa.edu.cn, fuxc@gxnu.edu.cn
+Abstract
+Multi-domain graph pre-training has emerged as a pivotal
+technique in developing graph foundation models. While
+it greatly improves the generalization of graph neural net-
+works, its privacy risks under membership inference attacks
+(MIAs), which aim to identify whether a specific instance
+was used in training (member), remain largely unexplored.
+However, effectively conducting MIAs against multi-domain
+graph pre-trained models is a significant challenge due to:
+(i) Enhanced Generalization Capability: Multi-domain pre-
+training reduces the overfitting characteristics commonly ex-
+ploited by MIAs.(ii) Unrepresentative Shadow Datasets: Di-
+verse training graphs hinder the obtaining of reliable shadow
+graphs.(iii) Weakened Membership Signals: Embedding-
+based outputs offer less informative cues than logits for
+MIAs. To tackle these challenges, we proposeMGP-MIA 1, a
+novel framework forM embershipI nferenceA ttacks against
+Multi-domainG raphP re-trained models. Specifically, we
+first propose a membership signal amplification mechanism
+that amplifies the overfitting characteristics of target mod-
+els via machine unlearning. We then design an incremental
+shadow model construction mechanism that builds a reliable
+shadow model with limited shadow graphs via incremental
+learning. Finally, we introduce a similarity-based inference
+mechanism that identifies members based on their similar-
+ity to positive and negative samples. Extensive experiments
+demonstrate the effectiveness of our proposed MGP-MIAand
+reveal the privacy risks of multi-domain graph pre-training.
+1 Introduction
+Multi-domain graph pre-training (Zhao et al. 2024; Yu et al.
+2024, 2025; Wang et al. 2025c; Yuan et al. 2025) has
+emerged as a critical technique for developing graph foun-
+dation models (Zhao et al. 2025; Shi et al. 2024; Mao
+et al. 2024; Liu et al. 2025; Wang et al. 2025d). By pre-
+training Graph Neural Networks (GNNs) across graphs from
+diverse domains using self-supervised learning paradigms
+such as link prediction (Zhang and Chen 2018) and con-
+trastive learning (You et al. 2020), multi-domain graph pre-
+training enables the pre-trained GNNs to capture transfer-
+*Corresponding Author
+Copyright © 2026, Association for the Advancement of Artificial
+Intelligence (www.aaai.org). All rights reserved.
+1Code: https://github.com/RingBDStack/MGP-MIA.
+Single-Domain
+Training Graphs
+Target Model Output Logits
+MIAs against
+Traditional GNN Traditional GNN
+member
+more confident
+non-member
+less confident
+high separability
+members non-members
+overfit to memberssame-distribution 
+shadow graphs obtainable
+MIAs against
+Multi-domain Pre-trained GNN
+Enhanced 
+Generalization Capbility
+Weaken 
+Membership Signals
+Unrepresentative 
+Shadow Dataset
+Multi-Domain
+Training Graphs Multi-domain
+Pre-trained GNN
+Target Model Output Embedding
+same-distribution 
+shadow graphs unobtainable
+not overfits to members
+member
+non-member
+low separability
+members non-members
+Figure 1: A comparison between graph MIAs against Tradi-
+tional GNNs and Multi-domain Pre-trained GNNs.
+able structural and semantic patterns, thereby improving the
+generalization across a wide range of downstream tasks.
+Although multi-domain graph pre-training significantly
+improves graph learning performance (Zhao et al. 2024; Yu
+et al. 2024, 2025; Wang et al. 2025c; Yuan et al. 2025), its
+privacy vulnerabilities under Membership Inference Attacks
+(MIAs) remain largely unexplored. MIAs are privacy attacks
+that aim to determine whether a specific data sample was in-
+cluded in a model’s training set (Olatunji, Nejdl, and Khosla
+2021; He et al. 2021; Wei et al. 2024, 2025; Wang et al.
+2025b; Song et al. 2025; Luo et al. 2025). When develop-
+ers publish pre-trained models on open-source platforms to
+promote reuse and enable downstream users to build their
+own graph foundation models, they may inadvertently ex-
+pose these models to privacy risks. Adversaries can exploit
+the released models to infer the presence of sensitive records
+in the training data, leading to the disclosure of user-related
+information.
+Typical MIAs involve two stages: the attacker first trains
+shadow models on shadow data from the target distribution
+arXiv:2511.17989v1  [cs.LG]  22 Nov 2025
+
+to mimic the target model, then queries the shadow mod-
+els with member and non-member samples in the shadow
+data to collect prediction logits, from which it learns a rule
+to infer whether a target sample was in training, based on
+the fact that models often give higher confidence to mem-
+bers than non-members. However, as shown in Figure 1,
+performing effective MIAs against multi-domain graph pre-
+trained models remains significantly challenging due to
+three key factors:(i) Improved Generalization Capability:
+Multi-domain graph pre-training can capture transferable
+knowledge that improves generalization, thereby mitigating
+the overfitting signals commonly exploited by MIAs.(ii)
+Unrepresentative Shadow Datasets:Multi-domain pre-
+training scenarios involve diverse training graphs from mul-
+tiple domains, making it difficult to obtain domain-aligned
+shadow graphs and thus hindering the construction of a
+reliable and effective shadow model for inference attack.
+(iii) Weakened Membership Signals:Since pre-trained en-
+coders output embeddings rather than logits, the resulting
+representations carry weaker overfitting signals, making it
+harder to distinguish members from non-members.
+The aforementioned challenges limit the effectiveness of
+existing graph MIAs, as further discussed in Section 4.
+To address these limitations, we proposeMGP-MIA , a
+novel framework forM embershipI nferenceA ttacks target-
+ingM ulti-domainG raphP re-trained models. Specifically,to
+amplify membership signals in the target model and coun-
+teract the generalization effect introduced by multi-domain
+pre-training, we propose a membership signal amplification
+mechanism that increases the overfitting degree of the tar-
+get model via machine unlearning, motivated by the obser-
+vation that machine unlearning can release parameter ca-
+pacity and induce stronger memorization on the remaining
+data.To construct a reliable shadow model without access
+to domain-aligned shadow data, we design an incremental
+shadow model construction mechanism. Instead of training
+a shadow model from scratch, this mechanism constructs the
+shadow model by fine-tuning the target model using param-
+eter regularization in an incremental learning manner, allow-
+ing it to better approximate the membership inference char-
+acteristics of the target model only with a limited shadow
+graph.To extract membership signals from output embed-
+dings in the absence of explicit cues like logits, we intro-
+duce a similarity-based inference mechanism. This mecha-
+nism constructs attack features by measuring the similarity
+between a target node and its positive and negative sam-
+ples, and infers membership status based on these similar-
+ity patterns. This design is motivated by the fact that self-
+supervised pre-training paradigms generally encourage em-
+beddings to move closer to positive samples and farther from
+negative ones. We conduct extensive experiments targeting
+the representative multi-domain graph pre-training methods
+and demonstrate the superior performance of MGP-MIA.
+In summary, our main contributions are as follows:
+• We audit the privacy leakage of multi-domain graph
+pre-trained models under Membership Inference Attacks
+(MIAs) and propose a novel approach named MGP-MIA,
+for performing such attacks. To the best of our knowl-
+edge, this is the first work to investigate this problem.
+• We propose a membership signal amplification mecha-
+nism to counteract the generalization effects of multi-
+domain pre-training. We design an incremental shadow
+model construction mechanism to build reliable shadow
+models without domain-aligned shadow data. We intro-
+duce a similarity-based inference mechanism to extract
+membership signals from output embeddings.
+• Extensive experiments against multi-domain graph pre-
+training models demonstrate the effectiveness of MGP-
+MIAand reveal their privacy vulnerabilities to MIAs.
+2 Related Work
+Multi-domain Graph Pre-training.Multi-domain graph
+pre-training serves as the basis for graph foundation mod-
+els (Shi et al. 2024; Mao et al. 2024; Liu et al. 2025; Wang
+et al. 2025d) by applying self-supervised learning to graphs
+from diverse domains (Zhao et al. 2024; Yu et al. 2024,
+2025; Yuan et al. 2025; Wang et al. 2025c), facilitating the
+extraction of transferable knowledge. Existing approaches
+adopt either graph contrastive learning (You et al. 2020)
+or link prediction (Zhang and Chen 2018) objectives. In
+contrastive learning, GCOPE (Zhao et al. 2024) adds vir-
+tual nodes to link domains and optimizes them dynamically
+during training, while SAMGPT (Yu et al. 2025) enhances
+structural consistency using structure tokens to unify mes-
+sage aggregation. MDGFM (Wang et al. 2025c) adaptively
+balances features and topology, refining graphs to reduce
+noise and align structures. In link prediction, MDGPT (Yu
+et al. 2024) uses domain tokens to align semantic features,
+and BRIDGE (Yuan et al. 2025) introduces a domain aligner
+to extract shared representations and suppress noise.
+Graph Membership Inference Attack.Membership in-
+ference attacks (MIAs) aim to determine whether a spe-
+cific data instance was used during the training of a target
+model (Hu et al. 2022). He et al. (2021) and Olatunji, Ne-
+jdl, and Khosla (2021) first extend MIAs to GNNs by incor-
+porating structural information into both target and shadow
+models. ProIA (Wei et al. 2025) enhanced inference per-
+formance by introducing prompt-based techniques to aug-
+ment the attack model’s background knowledge. Mean-
+while, GCL-LEAK(Wang and Wang 2024) is the first graph
+MIA against contrastive learning, but its focus on the fed-
+erated setting with access to the training process makes it
+inapplicable to our scenario. Subsequent work Zhang et al.
+(2022) and Wu et al. (2021) targeted whole-graph member-
+ship, and Wang and Wang (2022) conducted a systematic
+study on inferring the membership of particular groups of
+nodes and links. To operate under more constrained adver-
+sarial settings, Conti et al. (2022) and Dai and Lu (2025)
+propose label-only MIAs.
+3 Problem Formulation
+The goal of MIAs is to infer whether a given instance was
+part of the training setD Train of a target modelF Target. Typi-
+cally, the adversary uses a shadow datasetD Shadow from the
+same distribution asD Train to train a shadow modelF Shadow
+that mimics the target. Based on the outputs ofF Shadow on
+
+/uni00000030/uni00000027/uni0000002a/uni00000033/uni00000037
+/uni00000036/uni00000024/uni00000030/uni0000002a/uni00000033/uni00000037
+/uni00000030/uni00000048/uni00000050/uni00000045/uni00000048/uni00000055/uni00000056/uni00000031/uni00000052/uni00000051/uni00000010/uni00000030/uni00000048/uni00000050/uni00000045/uni00000048/uni00000055/uni00000056
+Figure 2: Separability analysis of output node embeddings.
+/uni00000013/uni00000011/uni00000013
+/uni00000013/uni00000011/uni00000018
+/uni00000014/uni00000011/uni00000013/uni00000026/uni00000052/uni00000056/uni0000004c/uni00000051/uni00000048/uni00000003/uni00000036/uni0000004c/uni00000050/uni0000004c/uni0000004f/uni00000044/uni00000055/uni0000004c/uni00000057/uni0000005c
+/uni00000030/uni00000027/uni0000002a/uni00000033/uni00000037
+/uni00000036/uni00000024/uni00000030/uni0000002a/uni00000033/uni00000037
+/uni00000030/uni00000048/uni00000050/uni00000045/uni00000048/uni00000055/uni00000056/uni00000031/uni00000052/uni00000051/uni00000010/uni00000030/uni00000048/uni00000050/uni00000045/uni00000048/uni00000055/uni00000056 Figure 3: Robustness analysis of output node embeddings.
+DTrain andD Test, the adversary constructs an attack model
+FAttack to infer whether a given instance is a member.
+Attacker’s Goal.We focus on the node-level member-
+ship inference attacks, following prior work (Hu et al. 2022;
+Olatunji, Nejdl, and Khosla 2021; Wei et al. 2025). Given
+a target GNNF Train pre-trained across graphs{G i}m
+i=1 from
+multiple domains, the goal is to determine whether a spe-
+cific nodevwas included in the training set. Formally, the
+attacker aims to learn an attack modelFAttack that maximizes
+the expected accuracy of membership prediction as follows:
+max
+FAttack
+Ev [I(FAttack(v,F Target) =yv)],(1)
+wherey v ∈ {0,1}indicates whether nodevbelongs to the
+training set ofFTarget (1 for member, 0 for non-member), and
+I(·)denotes the indicator function.
+Attacker’s Knowledge.We assume a white box adversary
+with full access to the target modelF Target, including its ar-
+chitecture, parameters, and training algorithm. However, the
+attacker does not have access to the original training process
+or the complete multi-domain training dataset. Instead, the
+attacker is assumed to have a shadow graph from one domain
+that shares a similar distribution with the target nodevun-
+der inference.This setting reflects practical scenarios where
+costly pre-trained models are publicly released to support
+downstream GFM development (Liu et al. 2025), potentially
+exposing privacy vulnerabilities.
+4 Pre-attack Analysis
+In this section, we analyzewhy existing graph MIAs are not
+applicable to multi-domain graph pre-trained models. Exist-
+ing methods can be categorized into two types: confidence-
+based and stability-based. Confidence-based attacks exploit
+confidence scores in the prediction logits, while Stability-
+based attacks assess the stability of predicted labels. Both
+rely on the observation that member instances typically
+yield more confident (for confidence-based) or more stable
+(for stability-based) predictions than non-members. How-
+ever, the outputs of multi-domain graph pre-trained models
+are node embeddings. To assess whether these embeddings
+exhibit separability similar to prediction logits or stability
+similar to output labels for members, we conduct toy exper-
+iments on the Cora (Yang, Cohen, and Salakhudinov 2016)
+dataset using MDGPT (Yu et al. 2024) (link prediction) and
+SAMGPT (Yu et al. 2025) (contrastive learning) as represen-
+tative victims. We summarize two key observations below
+(More experimental details are provided in Appendix C):
+★Takeaway 1: Embeddings are weakly separable be-
+tween members and non-members.To assess whether the
+embeddings exhibit separability between members and non-
+members similar to the logits, we visualize the embeddings
+using PCA (Abdi and Williams 2010) in Figure 2. As shown,
+the embeddings themselves are not clearly separable.
+★Takeaway 2: Embeddings are not more stable for mem-
+bers.We perturb the graph edges and visualize the similar-
+ity between original and perturbed embeddings. As shown
+in Figure 3, member embeddings are not more stable under
+perturbation, particularly in link-prediction-based methods.
+In summary, both the weak separability and the lack of en-
+hanced stability for member nodes in the output embeddings
+clearly highlight the inherent limitations of directly applying
+existing graph membership inference attacks against multi-
+domain graph pre-trained models.
+5 MGP-MIA
+In this section, we presentMGP-MIA , a novel framework
+forM embershipI nferenceA ttacks againstM ulti-domain
+GraphP re-trained models. As illustrated in Figure 4, our
+proposed MGP-MIAconsists of three key components. First,
+the membership signal amplification mechanism enhances
+membership signals by mitigating the generalization effect
+of multi-domain training through machine unlearning. Sec-
+ond, the incremental shadow model construction mechanism
+employs incremental learning to build a shadow model that
+replicates the overfitting behavior of the target model only
+with the limited shadow dataset. Finally, the similarity-based
+inference mechanism constructs attack features by measur-
+ing the similarity between a target sample and its positive
+and negative samples, which are then used to train an attack
+model for membership inference.
+5.1 Membership Signal Amplification Mechanism
+Multi-domain pre-training trains GNNs on multiple graphs
+to learn transferable knowledge that generalizes across di-
+verse downstream tasks and domains. However, the result-
+ing improved generalization reduces the model’s overfitting
+behavior, which in turn weakens the critical membership sig-
+nals and makes effective attacks much more difficult.
+To address this challenge, we propose a membership sig-
+nal amplification mechanism that enhances membership sig-
+nals through machine unlearning. Machine unlearning is a
+privacy-preserving strategy that removes the influence of
+specific data instances from a trained model, making it be-
+
+Multi-domain 
+Graph Pre-training
+Pre-train
+Membership Signal Amplification 
+Mechanism
+Similarity
+-
+Based 
+Inference Mechanism
+Incremental Shadow Model 
+Construction Mechanism
+Unlearned GNN
+Model F          t 
+Fine-tune
+Augment GNN
+Model F             t
+Fine-tune
+Unleanring 
+Graph
+Unlearning 
+Graph
+Shadow Train Graph
+Shadow GNN
+Model F           t
+Incremental
+Learning
+Parameter Regularization
+Shadow GNN
+Model F          t        
+P1 P2 P2... P1 P2 P2...
+positive
+sample
+negative
+sample
+... ...
+similarity matrix
+Attack Model F        t
+Target GNN
+Model fff      ff  
+Enhance Overfitting Building Shadow Model Training Attack Model
+Fisher Information Matrix
+Figure 4: Overview of MGP-MIA. The membership signal amplification mechanism first leverages machine unlearning to
+enhance overfitting. The shadow model is then built from the unlearned model using incremental learning. Finally, the attack
+features are derived from similarities between each sample and its positive and negative counterparts to train the attack model.
+have as if those instances were never used during train-
+ing (Chen et al. 2022). However, prior work has shown that
+inexact machine unlearning can lead to stronger overfitting
+on the remaining samples as it erases specific learned infor-
+mation and reallocates model capacity (Hayes et al. 2025).
+Motivated by this phenomenon, we repurpose this privacy
+protection strategy as a tool to help us enhance the effective-
+ness of membership inference privacy attacks. While vanilla
+machine unlearning methods that do not require access to the
+remaining data typically perform unlearning through gradi-
+ent ascent (Jang et al. 2022; Rashid et al. 2025). Directly
+applying this approach ignores the diverse characteristics of
+different nodes and can severely degrade model utility. In-
+spired by recent advances in unlearning for large language
+models (Wang et al. 2025a), we propose a selective and
+controllable unlearning strategy that employs an argument
+model to identify disproportionately memorized nodes and
+guide the model to suppress overfitted components while
+maintaining the utility of the unlearned model.
+Specifically, we randomly extract a subgraphGUnlearn from
+the given shadow graphG Shadow as the target for inexact
+machine unlearning. The target modelF Target is fine-tuned
+onG Unlearn for a few epochs to produce the augment model
+FAugment. We then compare the output embeddings ofFTarget
+andF Augment to evaluate how the similarity between each
+node and its positive and negative neighbors changes under
+the two models. Specifically, for a given nodev i, we define
+the similarity score vector as follows:
+si =
+"sim(hi,h i+
+1
+), . . . ,sim(hi,h i+
+P
+),
+sim(hi,h i−
+1
+), . . . ,sim(hi,h i−
+N
+)
+#
+,(2)
+whereh i is the out embedding of nodeiproduced by model,
+{i+
+p }P
+p=1 are its positive samples,{i −
+n }N
+n=1 are its negative
+samples, andsim(·,·)denotes the cosine similarity function.
+Lets i
+Target ands i
+Augment denote the similarity between the out-
+put embeddings of nodeiand its positive and negative sam-
+ples under the target and augment models, respectively. The
+difference(s i
+Target−si
+Augment)captures the memorization sen-
+sitivity of nodei, indicating the extent to which its associ-
+ated knowledge should be unlearned. This difference is used
+to compute the teacher similarity scoresi
+Teacher, which serves
+as the guiding signal for the unlearning process:
+si
+Teacher =s i
+Target −λ·(s i
+Target −s i
+Augment),(3)
+whereλis the hyperparameter controlling the strength of
+machine unlearning. Finally, we fine-tune the target model
+Ftarget to minimize the deviation between the student simi-
+larity scores i
+Unlearn and the teacher scores i
+Teacher, resulting in
+the unlearned modelF Unlearn:
+min
+FUnlearn
+X
+ni∈VUnlearn
+∥si
+Unlearn −s i
+Teacher∥2,(4)
+whereV unlearn is the node set of the unlearning graphGUnlearn.
+The unlearned modelF Unlearn releases the model capac-
+ity previously occupied, allowing the remaining data to be
+memorized more strongly and thereby enhancing overfitting.
+5.2 Incremental Shadow Model Construction
+Mechanism
+The shadow model is a surrogate trained by an attacker to
+mimic the target model’s behavior using data from a distri-
+bution similar to the target model’s training set. As the at-
+tacker controls its training process, each instance can be la-
+beled as a member or non-member. By recording the shadow
+model’s outputs with these labels, the attacker builds an at-
+tack dataset capturing behavioral differences between seen
+and unseen data. This dataset is then used to train an attack
+model to infer the real membership of the target model.
+However, in multi-domain graph pre-training, it is im-
+practical to obtain a shadow dataset covering all training do-
+mains. A realistic assumption is that the attacker only has
+access to a shadow graphG Shadow from the same domain
+as the target nodevunder inference. To construct a reliable
+shadow model that mimics the target model’s membership-
+related behavior using limited shadow data, we propose an
+
+incremental shadow model construction mechanism. Specif-
+ically, we randomly split the shadow graph into a training
+graphG Train
+Shadow and a test graphG Test
+Shadow. We use the shadow
+dataset as a proxy to estimate the Fisher Information Matrix
+IUnlearn (Jastrzebski et al. 2021), which quantifies the impor-
+tance of each parameter inF Unlearn to the target domain:
+IUnlearn(θ) =Ev∼GTrain
+Shadow
+∂2Ltask(FUnlearn;v)
+∂θ2 |θ
+
+,(5)
+whereθ∈Θ Unlearn denotes the parameter of the unlearned
+modelF Unlearn, andL task is the loss function associated with
+the pre-training task. We then fine-tune the unlearned model
+FUnlearn on the shadow training graph to obtain the shadow
+model with the following objective:
+min
+ΘShadow
+X
+v∈GTrain
+Shadow
+Ltask(FShadow;v)
++α
+X
+i
+I(i)
+Unlearn
+
+Θ(i)
+Shadow −Θ (i)
+Unlearn
+2
+,(6)
+whereL task is the pre-training loss,I (i)
+Unlearn denotes thei-
+th element of the Fisher Information MatrixI Unlearn, andα
+controls the regularization strength.
+5.3 Similarity-Based Inference Mechanism
+As discussed in Section 4, the output embeddings from
+multi-domain graph pre-trained models themselves lack
+enough membership signals for MIAs. This is because the
+embeddings are primarily correlated with the intrinsic fea-
+tures of the node and its local neighborhood, rather than with
+whether the node was included in the model’s training data.
+To extract membership signals from output embeddings,
+we draw on the principles of self-supervised pre-training,
+which guide models to encode semantic relationships by
+pulling positive samples closer and pushing negative ones
+apart. Following this intuition, we construct attacker fea-
+tures by measuring the embedding similarity between the
+target node and its associated positive and negative samples.
+Specifically, for each target nodev, we randomly selectm
+positive samples{v+
+i }m
+i=1 andmnegative samples{v −
+i }m
+i=1.
+In contrastive learning, eachv +
+i is an augmented view of
+v, whilev −
+i is a randomly sampled node unrelated tov. In
+link prediction,v +
+i shares a ground-truth edge withv, and
+v−
+i does not. These similarity scores form the feature vector
+sv constructed as Eq. (2) to serve as the attack feature. To
+construct the attack datasetD Attack, we generate similarity-
+based feature vectorss v for each nodevwith shadow model
+FShadow in the shadow training graphG Train
+Shadow and shadow
+testing graphsG Test
+Shadow, respectively. Each nodevis associ-
+ated with a membership labely v ∈ {0,1}, whereyv = 1if
+v∈ GTrain
+Shadow (i.e., a member), andy v = 0ifv∈ GTest
+Shadow (i.e.,
+a non-member). The attack dataset is thus defined as:
+DAttack =
+
+(sv, yv)
+v∈ GTrain
+Shadow ∪ GTest
+Shadow
+	
+.(7)
+Finally, we adopt a two-layer MLP as the attack model
+FAttack, trained onD Attack using the cross-entropy loss. Once
+trained, the model can be used during inference to predict the
+membership status of a target node in the real target model
+Ftarget by its similarity-based attack feature vector. The over-
+all procedure and time complexity of our proposed MGP-
+MIAare summarized in Appendix B.
+6 Experiments
+6.1 Experimental Settings
+Datasets.To evaluate the membership inference perfor-
+mance of MGP-MIA, we conduct experiments on five widely
+used benchmark datasets Zhao et al. (2024). Cora, Cite-
+Seer, and PubMed (Yang, Cohen, and Salakhudinov 2016)
+are citation networks where nodes represent publications
+and edges denote citations. Computers and Photos (Shchur
+et al. 2018) are Amazon co-purchase graphs, where nodes
+are products and edges indicate frequent co-purchases. Each
+dataset is randomly split into two equal halves: one for the
+target graphG Train
+Target andG Test
+Target, respectively. The target model
+is trained onG Train
+Target, and membership inference treats nodes
+inG Train
+Target as members and nodes inG Test
+Target as non-members.
+Victims.We evaluate the effectiveness of MGP-MIA
+against four multi-domain graph pre-trained models, catego-
+rized by their self-supervised learning objectives. (1) Con-
+trastive learning: GCOPE (Zhao et al. 2024) introduces vir-
+tual nodes to connect different domains and dynamically op-
+timizes them during training; SAMGPT (Yu et al. 2025) en-
+hances structural consistency across domains via structure
+tokens that unify message aggregation. (2) Link prediction:
+MDGPT (Yu et al. 2024) uses domain tokens to align se-
+mantic features across domains, while BRIDGE (Yuan et al.
+2025) employs a domain aligner to capture shared patterns
+and suppress domain-specific noise.
+Baselines.We compare our proposed MGP-MIAwith sev-
+eral related baseline methods. Since no existing approach
+specifically targets multi-domain graph pre-trained models,
+we adapt suitable variants of relevant baseline methods. Im-
+plementation details are provided in Appendix D. The eval-
+uated baselines include: (1) Embed-MIA (Duddu, Boutet,
+and Shejwalkar 2020), which trains an attack model di-
+rectly on the output embeddings of the nodes in the shadow
+graph to distinguish members from non-members. (2) Grad-
+MIA (Nasr, Shokri, and Houmansadr 2019), which leverages
+the loss gradients with respect to the input node to train an
+attack model, based on the intuition that member samples
+produce smaller and more distinctive gradients. (3) NLO-
+MIA (Conti et al. 2022), which is a label-only attack that
+trains an attack model to infer membership based on em-
+bedding robustness under structural perturbations. (4) GLO-
+MIA (Dai and Lu 2025): which is a black-box attack that
+perturbs the input graph and infers membership by adopting
+a threshold over the output similarity. (5) GE-MIA (Duddu,
+Boutet, and Shejwalkar 2020), which assumes access to a
+few real member and non-member samples, and infers mem-
+bership based on their distances to embedding cluster cen-
+ters. (6) GPIA (Wang and Wang 2022), which fine-tunes the
+model on individual samples to capture parameter changes
+for training an attack model, assuming access to a few real
+member and non-member samples.
+
+Dataset Cora CiteSeer PubMed Photo Computers
+Victims Method ACC F1 ACC F1 ACC F1 ACC F1 ACC F1
+MDGPT
+Embed-MIA 68.89±1.8360.31±4.2766.53±1.2653.25±2.9060.60±0.8061.93±0.6860.81±2.5264.99±1.1661.54±0.5164.70±0.73
+Grad-MIA 51.51±1.4122.03±7.0850.76±0.4914.29±1.8449.21±2.7935.29±4.6150.74±5.1616.65±6.5355.15±4.1241.17±7.13
+NLO-MIA 59.39±0.6950.04±1.7660.75±0.7453.42±2.1154.31±0.5254.51±0.8355.46±2.7654.70±3.4960.85±3.1561.55±1.99
+GLO-MIA 50.00±0.0066.67±0.0050.00±0.0066.67±0.0050.00±0.0066.67±0.0050.00±0.0066.67±0.0050.00±0.0066.67±0.00
+GE-MIA 60.79±1.6367.63±1.9754.90±1.6061.06±1.9951.69±0.8355.04±3.7053.34±2.4458.83±7.0753.16±1.5859.99±3.41
+GPIA 72.20±16.4176.41±15.0768.58±17.6548.45±38.2965.75±4.3462.19±15.1261.95±16.1773.13±8.8468.35±4.3065.84±15.79
+MGP-MIA 81.79±0.9483.99±0.8777.36±1.3180.06±2.0874.77±0.4777.09±1.0674.05±0.3377.23±0.5580.66±1.4382.05±1.33
+BRIDGE
+Embedding 66.62±1.0258.93±1.7465.61±1.5052.31±2.9555.46±0.4858.65±1.0759.43±1.1564.47±1.0158.94±1.5964.20±1.17
+Gradient 49.91±1.7532.35±2.3350.00±2.3040.33±11.2751.45±3.0251.39±3.6849.06±5.3549.60±3.8945.44±3.3247.14±3.13
+NLO-MIA 60.97±1.0253.83±1.5361.48±1.6353.53±2.2852.17±0.5652.13±1.0553.38±4.4955.48±4.7254.54±3.8356.39±3.23
+GLO-MIA 50.92±1.2866.25±0.9350.52±0.7266.06±0.9449.98±0.0766.62±0.1250.02±0.0465.47±2.6748.16±4.0166.63±0.08
+GE-MIA 55.75±3.4359.34±4.3752.86±2.3652.77±8.7650.66±0.3052.13±2.7452.63±1.2262.41±1.8453.20±1.8557.58±7.01
+GPIA 66.76±11.8766.51±13.1662.77±15.7146.22±42.4059.34±5.5955.36±10.6753.28±5.6447.08±30.1454.38±4.5938.15±26.29
+MGP-MIA 81.20±1.1079.97±1.2679.57±1.2580.94±1.4674.93±0.6979.05±0.2870.36±1.7473.06±2.7573.39±0.4376.13±1.05
+Table 1: Membership inference attack performance againstlink-prediction-basedmulti-domain graph pre-trained models. Best
+results are inbold, and runner-ups are underlined .
+Dataset Cora CiteSeer PubMed Photo Computers
+Victims Method ACC F1 ACC F1 ACC F1 ACC F1 ACC F1
+GCOPE
+Embed-MIA60.00±22.3673.33±14.9150.00±0.0066.67±0.0070.32±27.1076.73±22.2760.00±22.3620.00±44.7270.00±27.3940.00±54.77
+Grad-MIA 48.42±4.9450.71±7.9251.02±3.3054.16±0.4757.81±3.8657.11±6.9952.47±7.2055.51±7.5357.97±4.6760.53±2.22
+NLO-MIA 54.58±2.8053.93±3.6453.97±2.0953.10±1.5451.94±0.4448.64±1.8355.21±4.5357.11±4.3955.22±3.2857.76±6.51
+GLO-MIA 41.89±7.8233.12±27.5544.98±0.6960.81±1.1748.64±2.3465.42±2.1645.46±6.1062.30±6.0649.87±0.1653.21±29.75
+GE-MIA 51.19±1.3655.32±9.0150.63±0.5538.08±16.7750.85±0.4432.04±6.7650.96±0.9435.96±27.8850.71±0.3016.62±8.18
+GPIA 80.00±27.3960.00±54.7770.00±27.3966.67±40.8260.00±41.8340.00±54.7780.00±27.3960.00±54.7790.00±22.3693.33±14.91
+MGP-MIA 87.21±1.0488.13±0.8385.86±0.7587.44±0.6080.20±1.7783.37±1.1783.19±1.0585.04±0.6984.80±1.4386.35±0.84
+SAMGPT
+Embedding 54.39±9.8114.10±31.5351.18±10.0243.49±33.1148.61±5.0016.54±29.7650.17±1.4340.22±36.6249.80±1.1442.90±32.76
+Gradient 61.82±2.3360.71±2.5052.19±2.1947.71±3.3450.03±1.2251.76±2.2048.22±1.8252.86±7.4254.70±3.7061.21±4.21
+NLO-MIA 52.87±1.9752.66±3.1449.84±2.5849.63±4.4949.51±0.1851.07±2.6249.11±4.8549.68±4.8550.53±2.8050.67±0.77
+GLO-MIA 61.02±0.6163.52±3.1155.16±5.3147.16±30.8153.71±2.0959.74±11.1051.18±1.9363.45±7.4850.98±1.2335.32±30.08
+GE-MIA 73.32±3.8874.99±4.5273.97±4.4475.67±5.6455.21±0.3551.03±6.1650.61±0.6644.41±11.6455.77±0.6855.34±3.39
+GPIA 58.55±2.7659.11±7.0155.31±2.3057.25±5.8054.59±1.2361.83±3.2484.54±4.8983.94±3.9273.33±16.2877.20±11.04
+MGP-MIA 99.91±0.2099.88±0.2798.83±1.1798.86±1.1491.30±8.6192.37±7.2098.11±3.2298.12±2.9391.72±17.2993.92±12.38
+Table 2: Membership inference attack performance againstcontrastive-learning-basedmulti-domain graph pre-trained mod-
+els. Best results are inbold, and runner-ups are underlined .
+MetricsWe adopt Accuracy (ACC) and F1-score (F1) as
+the evaluation metrics to assess the effectiveness of MIAs.
+Accuracy measures the overall proportion of correctly clas-
+sified member and non-member samples, while F1-score
+provides a balanced evaluation of precision and recall.
+Implements.All the victims are pre-trained across five
+graph datasets. The attacker can only access a shadow graph
+with a similar distribution to the target node under inference
+and does not have access to graphs from all domains. For the
+attacker model, both MGP-MIAand all baselines use a two-
+layer MLP with a latent dimension of 256. Baseline hyper-
+parameters follow the settings recommended in their orig-
+inal papers and are further fine-tuned for fairness. Full hy-
+perparameter configurations and implementation details are
+provided in Appendix D. All experiments are conducted on
+a single NVIDIA V100 GPU and repeated 5 times.
+6.2 Attacking Link-Prediction-Based
+Multi-Domain Graph Pre-trained Models
+We evaluate the performance of MGP-MIAagainst two link-
+prediction–based multi-domain graph pre-trained models:
+MDGPT and BRIDGE. Membership inference results in
+terms of accuracy and F1 score are reported in Table 1.
+Analysis.Table 1 shows that our proposed MGP-MIA
+consistently achieves the best performance across all
+datasets and both link prediction-based multi-domain graph
+pretraining models, MDGPT and BRIDGE. Compared to
+the strongest baseline (GPIA), MGP-MIAimproves accu-
+racy and F1 by 9.6% and 7.5% respectively on Cora with
+MDGPT, even though GPIA benefits from access to real
+member and non-member samples. Similar improvements
+are observed on other datasets, with accuracy and F1 gains
+reaching up to 10.8% and 16.3%. These results highlight the
+
+/uni00000019/uni00000013
+/uni0000001b/uni00000013/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni0000001b/uni00000014/uni00000011/uni0000001b
+/uni0000001a/uni0000001a/uni00000011/uni00000017
+/uni0000001a/uni00000017/uni00000011/uni00000013
+/uni0000001a/uni0000001b/uni00000011/uni00000014
+/uni0000001a/uni00000017/uni00000011/uni00000016/uni0000001a/uni00000015/uni00000011/uni00000017
+/uni00000019/uni00000018/uni00000011/uni00000019/uni00000019/uni00000018/uni00000011/uni00000016/uni00000019/uni00000017/uni00000011/uni0000001b
+/uni00000030/uni00000027/uni0000002a/uni00000033/uni00000037
+/uni00000019/uni00000013
+/uni0000001b/uni00000013
+/uni00000014/uni00000013/uni00000013
+/uni0000001c/uni0000001c/uni00000011/uni0000001c/uni0000001c/uni0000001b/uni00000011/uni0000001b/uni0000001c/uni0000001b/uni00000011/uni00000014/uni0000001c/uni0000001a/uni00000011/uni00000018/uni0000001c/uni0000001a/uni00000011/uni00000018/uni0000001c/uni00000017/uni00000011/uni00000018/uni0000001c/uni00000019/uni00000011/uni00000018
+/uni0000001c/uni00000013/uni00000011/uni00000019
+/uni00000018/uni00000015/uni00000011/uni00000018
+/uni00000036/uni00000024/uni00000030/uni0000002a/uni00000033/uni00000037
+/uni00000026/uni00000052/uni00000055/uni00000044/uni00000026/uni0000004c/uni00000057/uni00000048/uni00000036/uni00000048/uni00000048/uni00000055/uni00000033/uni00000058/uni00000045/uni00000030/uni00000048/uni00000047
+/uni00000019/uni00000013
+/uni0000001b/uni00000013/uni00000029/uni00000014/uni00000003/uni00000036/uni00000046/uni00000052/uni00000055/uni00000048
+/uni0000001b/uni00000017/uni00000011/uni00000013
+/uni0000001b/uni00000013/uni00000011/uni00000014
+/uni0000001a/uni0000001a/uni00000011/uni00000015
+/uni0000001b/uni00000013/uni00000011/uni00000015/uni0000001a/uni0000001b/uni00000011/uni00000014
+/uni0000001a/uni00000015/uni00000011/uni00000018
+/uni00000018/uni00000018/uni00000011/uni00000014/uni00000018/uni00000016/uni00000011/uni0000001b/uni00000018/uni00000016/uni00000011/uni00000014
+/uni00000026/uni00000052/uni00000055/uni00000044/uni00000026/uni0000004c/uni00000057/uni00000048/uni00000036/uni00000048/uni00000048/uni00000055/uni00000033/uni00000058/uni00000045/uni00000030/uni00000048/uni00000047
+/uni00000013
+/uni00000018/uni00000013
+/uni00000014/uni00000013/uni00000013
+/uni0000001c/uni0000001c/uni00000011/uni0000001c/uni0000001c/uni0000001b/uni00000011/uni0000001c/uni0000001c/uni0000001b/uni00000011/uni00000014/uni0000001c/uni0000001a/uni00000011/uni00000017/uni0000001c/uni0000001a/uni00000011/uni00000019/uni0000001c/uni00000016/uni00000011/uni0000001b/uni0000001c/uni00000017/uni00000011/uni0000001c/uni0000001c/uni00000015/uni00000011/uni00000016
+/uni00000014/uni00000013/uni00000011/uni0000001a
+/uni00000024/uni0000004f/uni0000004f/uni0000005a/uni00000012/uni00000052/uni00000003/uni00000038/uni0000002f/uni0000005a/uni00000012/uni00000052/uni00000003/uni0000002c/uni0000002f
+Figure 5: The ablation study of MGP-MIA.
+/uni00000014/uni00000048/uni00000010/uni00000014/uni00000018/uni00000048/uni00000010/uni00000014/uni00000014/uni00000048/uni00000013/uni00000018/uni00000048/uni00000014/uni00000014/uni00000048/uni00000014
+/uni00000019/uni00000013
+/uni0000001a/uni00000013
+/uni0000001b/uni00000013/uni00000024/uni00000046/uni00000046/uni00000058/uni00000055/uni00000044/uni00000046/uni0000005c
+/uni00000030/uni00000027/uni0000002a/uni00000033/uni00000037
+/uni00000014/uni00000048/uni00000010/uni00000016/uni00000018/uni00000048/uni00000010/uni00000016/uni00000014/uni00000048/uni00000010/uni00000015/uni00000018/uni00000048/uni00000010/uni00000015/uni00000014/uni00000048/uni00000010/uni00000014
+/uni0000001b/uni00000013
+/uni00000014/uni00000013/uni00000013
+/uni00000036/uni00000024/uni00000030/uni0000002a/uni00000033/uni00000037
+/uni00000014/uni00000048/uni00000010/uni00000014/uni00000018/uni00000048/uni00000010/uni00000014/uni00000014/uni00000048/uni00000013/uni00000018/uni00000048/uni00000014/uni00000014/uni00000048/uni00000014
+/uni00000019/uni00000013
+/uni0000001b/uni00000013/uni00000029/uni00000014/uni00000003/uni00000036/uni00000046/uni00000052/uni00000055/uni00000048
+/uni00000014/uni00000048/uni00000010/uni00000016/uni00000018/uni00000048/uni00000010/uni00000016/uni00000014/uni00000048/uni00000010/uni00000015/uni00000018/uni00000048/uni00000010/uni00000015/uni00000014/uni00000048/uni00000010/uni00000014
+/uni0000001b/uni00000013
+/uni00000014/uni00000013/uni00000013
+/uni00000026/uni00000052/uni00000055/uni00000044/uni00000026/uni0000004c/uni00000057/uni00000048/uni00000036/uni00000048/uni00000048/uni00000055/uni00000033/uni00000058/uni00000045/uni00000030/uni00000048/uni00000047 Figure 6: The study of hyperparameterα
+effectiveness of MGP-MIAeven using only output embed-
+dings, without requiring privileged supervision.
+6.3 Attacking Contrastive-Learning-Based
+Multi-Domain Graph Pretrained Models
+We evaluate the performance of our proposed MGP-MIA
+against the contrastive-learning-based multi-domain graph
+pre-trained models, specifically GCOPE and SAMGPT.
+Membership inference results in terms of accuracy and F1
+score are reported in Table 2.
+Analysis.As shown in Table 2, MGP-MIAconsistently
+outperforms all baselines across most datasets for both
+GCOPE and SAMGPT. On GCOPE, it achieves the high-
+est accuracy and F1 in all cases except the Computers
+dataset, where GPIA slightly leads. However, GPIA as-
+sumes access to some real member and non-member nodes,
+while MGP-MIArequires no such privileged information.
+On SAMGPT, MGP-MIAachieves the best performance
+across all datasets. For example, it improves over the closest
+baseline by 26.6% in accuracy and 25.0% in F1 on Cora, and
+by over 20% in both metrics on Computers. These results
+highlight the effectiveness and generality of MGP-MIAin
+attacking contrastive-learning-based pre-trained models un-
+der more practical and constrained settings.
+6.4 Ablation Study
+To evaluate the contribution of each component in our pro-
+posed MGP-MIA, we construct two ablated variants:
+•MGP-MIA(w/o UL):This variant removes the Member-
+ship Signal Amplification mechanism described in Sec-
+tion 5.1, which is designed to enhance membership sig-
+nals. Instead, it fine-tunes the target model directly to ob-
+tain the shadow model, omitting the unlearning step.
+•MGP-MIA(w/o IL):This variant removes the Incre-
+mental Shadow Model Construction mechanism, which
+aims to replicate the overfitting behavior of the target
+model using limited shadow data. Instead, it trains the
+shadow model from scratch on the shadow dataset.
+We select MDGPT, which is based on the link prediction ob-
+jective, and SAMGPT, which is based on contrastive learn-
+ing, as the target victims. Experiments are conducted on
+the Cora, CiteSeer, and PubMed datasets. The results of the
+ablation study are shown in Figure 5. As illustrated, both
+components contribute to the overall performance of MGP-
+MIA. The incremental learning module enables the shadow
+model to more closely replicate the overfitting behavior of
+the target model, providing substantial intrinsic gains. The
+unlearning component further improves performance by am-
+plifying membership signals, offering additional benefits.
+6.5 Hyperparameter Study
+In this section, we analyze the sensitivity of MGP-MIA
+to the hyperparameterα, which controls the regularization
+strength during the incremental learning stage by constrain-
+ing important parameters identified by the Fisher Informa-
+tion Matrix in Eq. (5). Using the same victim models and
+dataset settings as the ablation analysis in Section 6.4, the re-
+sults are presented in Figure 6. We observe that MGP-MIAis
+relatively robust to changes inα, maintaining stable perfor-
+mance across a wide range of values. Moreover, the optimal
+setting remains nearly the same across different datasets.
+7 Conclusion
+This paper investigates the privacy risks of multi-domain
+graph pre-trained models via Membership Inference Attacks
+(MIAs). We show that existing graph-based MIA methods
+are largely ineffective in this setting, as output embeddings
+contain limited overfitting signals. To address this, we pro-
+pose MGP-MIA, a novel MIA framework tailored for multi-
+domain graph pre-training. MGP-MIAamplifies member-
+ship signals through unlearning to counteract the general-
+ization from multi-domain training, adopts an incremental
+shadow model construction strategy to replicate the target
+model’s overfitting behavior with limited shadow data, and
+infers membership by measuring similarity to positive and
+negative samples. Extensive experiments on representative
+models demonstrate the effectiveness of MGP-MIAand re-
+veal the privacy risks of multi-domain graph pre-training.
+
+Acknowledgements
+The corresponding author is Jianxin Li. This work was sup-
+ported by the National Natural Science Foundation of China
+under Grants No. 62225202 and No. 62302023, and by the
+Fundamental Research Funds for the Central Universities.
+We express our sincere gratitude to all reviewers for their
+valuable efforts and contributions.
+References
+Abdi, H.; and Williams, L. J. 2010. Principal component
+analysis.Wiley interdisciplinary reviews: computational
+statistics, 2(4): 433–459.
+Chen, M.; Zhang, Z.; Wang, T.; Backes, M.; Humbert, M.;
+and Zhang, Y . 2022. Graph unlearning. InSIGSAC, 499–
+513.
+Conti, M.; Li, J.; Picek, S.; and Xu, J. 2022. Label-only
+membership inference attack against node-level graph neu-
+ral networks. InAISec, 1–12.
+Dai, J.; and Lu, Y . 2025. Graph-Level Label-Only Mem-
+bership Inference Attack Against Graph Neural Networks.
+Applied Sciences, 15(9): 5086.
+Duddu, V .; Boutet, A.; and Shejwalkar, V . 2020. Quantifying
+privacy leakage in graph embedding. InMobiQuitous, 76–
+85.
+Hayes, J.; Shumailov, I.; Triantafillou, E.; Khalifa, A.; and
+Papernot, N. 2025. Inexact unlearning needs more careful
+evaluations to avoid a false sense of privacy. InSaTML,
+497–519. IEEE.
+He, X.; Wen, R.; Wu, Y .; Backes, M.; Shen, Y .; and Zhang,
+Y . 2021. Node-level membership inference attacks against
+graph neural networks.arXiv.
+Hu, H.; Salcic, Z.; Sun, L.; Dobbie, G.; Yu, P. S.; and Zhang,
+X. 2022. Membership inference attacks on machine learn-
+ing: A survey.CSUR, 54(11s): 1–37.
+Jang, J.; Yoon, D.; Yang, S.; Cha, S.; Lee, M.; Logeswaran,
+L.; and Seo, M. 2022. Knowledge unlearning for mitigating
+privacy risks in language models.arXiv.
+Jastrzebski, S.; Arpit, D.; Astrand, O.; Kerg, G. B.; Wang,
+H.; Xiong, C.; Socher, R.; Cho, K.; and Geras, K. J. 2021.
+Catastrophic fisher explosion: Early phase fisher matrix im-
+pacts generalization. InICML, 4772–4784. PMLR.
+Liu, J.; Yang, C.; Lu, Z.; Chen, J.; Li, Y .; Zhang, M.; Bai, T.;
+Fang, Y .; Sun, L.; Yu, P. S.; et al. 2025. Graph foundation
+models: Concepts, opportunities and challenges.TPAMI.
+Luo, J.; Sun, Q.; Yuan, H.; Fu, X.; and Li, J. 2025. Ro-
+bust Graph Learning Against Adversarial Evasion Attacks
+via Prior-Free Diffusion-Based Structure Purification. In
+Proceedings of the ACM on Web Conference 2025, 2098–
+2110.
+Mao, H.; Chen, Z.; Tang, W.; Zhao, J.; Ma, Y .; Zhao, T.;
+Shah, N.; Galkin, M.; and Tang, J. 2024. Graph foundation
+models.CoRR.
+Nasr, M.; Shokri, R.; and Houmansadr, A. 2019. Compre-
+hensive privacy analysis of deep learning: Passive and active
+white-box inference attacks against centralized and feder-
+ated learning. InSP, 739–753. IEEE.
+Olatunji, I. E.; Nejdl, W.; and Khosla, M. 2021. Membership
+inference attack on graph neural networks. InTPS-ISA, 11–
+20. IEEE.
+Rashid, M. R. U.; Liu, J.; Koike-Akino, T.; Wang, Y .; and
+Mehnaz, S. 2025. Forget to flourish: Leveraging machine-
+unlearning on pretrained language models for privacy leak-
+age. InAAAI, volume 39, 20139–20147.
+Shchur, O.; Mumme, M.; Bojchevski, A.; and G ¨unnemann,
+S. 2018. Pitfalls of graph neural network evaluation.arXiv.
+Shi, C.; Chen, J.; Liu, J.; and Yang, C. 2024. Graph founda-
+tion model.Frontiers of Computer Science, 18(6): 186355.
+Song, Y .; Wei, Y .; Lu, Y .; Sun, Q.; Shao, M.; Wang, L.-e.;
+Hu, C.; Li, X.; and Fu, X. 2025. Mitigating message imbal-
+ance in fraud detection with dual-view graph representation
+learning.arXiv preprint arXiv:2507.06469.
+Wang, B.; Zi, Y .; Sun, Y .; Zhao, Y .; and Qin, B. 2025a. Bal-
+ancing Forget Quality and Model Utility: A Reverse KL-
+Divergence Knowledge Distillation Approach for Better Un-
+learning in LLMs. InProceedings of the 2025 Conference of
+the Nations of the Americas Chapter of the Association for
+Computational Linguistics: Human Language Technologies
+(Volume 1: Long Papers), 1306–1321.
+Wang, J.; Yang, L.; Wei, Y .; Si, J.; Guo, C.; Sun, Q.; Li, X.;
+and Fu, X. 2025b. An Out-Of-Distribution Membership In-
+ference Attack Approach for Cross-Domain Graph Attacks.
+arXiv preprint arXiv:2505.20074.
+Wang, S.; Wang, B.; Shen, Z.; Deng, B.; and Kang, Z. 2025c.
+Multi-domain graph foundation models: Robust knowledge
+transfer via topology alignment.ICML.
+Wang, X.; and Wang, W. H. 2022. Group property inference
+attacks against graph neural networks. InSIGSAC, 2871–
+2884.
+Wang, X.; and Wang, W. H. 2024. GCL-Leak: Link Mem-
+bership Inference Attacks against Graph Contrastive Learn-
+ing.Proceedings on Privacy Enhancing Technologies.
+Wang, Z.; Liu, Z.; Ma, T.; Li, J.; Zhang, Z.; Fu, X.; Li, Y .;
+Yuan, Z.; Song, W.; Ma, Y .; et al. 2025d. Graph Foundation
+Models: A Comprehensive Survey.arXiv.
+Wei, Y .; Fu, X.; Liu, L.; Sun, Q.; Peng, H.; and Hu, C. 2025.
+Prompt-based Unifying Inference Attack on Graph Neural
+Networks. InAAAI, volume 39, 12836–12844.
+Wei, Y .; Yuan, H.; Fu, X.; Sun, Q.; Peng, H.; Li, X.; and Hu,
+C. 2024. Poincar ´e differential privacy for hierarchy-aware
+graph embedding. InProceedings of the AAAI Conference
+on Artificial Intelligence, volume 38, 9160–9168.
+Wu, B.; Yang, X.; Pan, S.; and Yuan, X. 2021. Adapting
+membership inference attacks to GNN for graph classifica-
+tion: Approaches and implications. InICDM, 1421–1426.
+IEEE.
+Yang, Z.; Cohen, W.; and Salakhudinov, R. 2016. Revisiting
+semi-supervised learning with graph embeddings. InICML,
+40–48. PMLR.
+You, Y .; Chen, T.; Sui, Y .; Chen, T.; Wang, Z.; and Shen,
+Y . 2020. Graph contrastive learning with augmentations.
+NeurIPS, 33: 5812–5823.
+
+Yu, X.; Gong, Z.; Zhou, C.; Fang, Y .; and Zhang, H. 2025.
+Samgpt: Text-free graph foundation model for multi-domain
+pre-training and cross-domain adaptation. InWWW, 1142–
+1153.
+Yu, X.; Zhou, C.; Fang, Y .; and Zhang, X. 2024. Text-free
+multi-domain graph pre-training: Toward graph foundation
+models.arXiv.
+Yuan, H.; Sun, Q.; Shi, J.; Fu, X.; Hooi, B.; Li, J.; and Yu,
+P. S. 2025. How Much Can Transfer? BRIDGE: Bounded
+Multi-Domain Graph Foundation Model with Generaliza-
+tion Guarantees. InICML.
+Zhang, M.; and Chen, Y . 2018. Link prediction based on
+graph neural networks.NeurIPS, 31.
+Zhang, Z.; Chen, M.; Backes, M.; Shen, Y .; and Zhang, Y .
+2022. Inference attacks against graph neural networks. In
+USENIX Security, 4543–4560.
+Zhao, H.; Chen, A.; Sun, X.; Cheng, H.; and Li, J. 2024. All
+in one and one for all: A simple yet effective method towards
+cross-domain graph pretraining. InSIGKDD, 4443–4454.
+Zhao, Z.; Su, Y .; Li, Y .; Zou, Y .; Li, R.; and Zhang, R.
+2025. A Survey on Self-Supervised Graph Foundation Mod-
+els: Knowledge-Based Perspective.TKDE.
+
+A Time Complexity Analysis
+In this section, we present the complexity analysis of the
+proposed MGP-MIA. The overall time complexity is primar-
+ily determined by the following three components:
+•Membership Signal Amplification Mechanism: This pro-
+cess involves fine-tuning the model on the unlearn-
+ing graphG Unlearn, incurring a time complexity of
+O(E 1nunlearnLfd), wheren unlearn denotes the number of
+nodes inG Unlearn,E 1 is the number of fine-tuning epochs,
+Lis the number of GNN layers,fis the average neigh-
+borhood size, anddis the embedding dimension.
+•Incremental Shadow Model Construction Mechanism:
+This step fine-tunes shadow models on the shadow
+training graphG Train
+Shadow, with a comparable cost of
+O(E 2ntrainLfd), wheren train is the number of nodes in
+GTrain
+Shadow andE 2 is the number of fine-tuning epochs.
+•Similarity-Based Inference Mechanism: This stage re-
+quires only a single forward pass for each node and
+its sampled neighbors, resulting in a complexity of
+O(mLfd), wheremis the number of queried nodes used
+for similarity inference.
+Hence, the total time complexity of our proposed MGP-
+MIAisO((E 1nunlearn +E 2ntrain +m)Lfd), which scales
+linearly with the graph size and embedding dimension.
+B Algorithm
+The overall procedure of our proposed MGP-MIAis sum-
+marized in Algorithm 1.
+Algorithm 1:Overall pipeline of MGP-MIA.
+Input:Shadow graphG Shadow; Target ModelFTarget;
+Hyperparameterα.
+Output:Attack modelF Attack.
+1Randomly partition the shadow graphG Shadow into
+GUnlearn,G Train
+Shadow andG Test
+Shadow ;
+2Amplify membership signals by applying machine
+unlearning onG Unlearn to obtain the unlearned model
+FUnlearn ←(Section 5.1);
+3Construct the shadow modelF Shadow incrementally
+based onG Train
+Shadow ←(Section 5.2);
+4Build the similarity-based attack datasetD Attack and
+obtain the attack modelF Attack ←(Section 5.3).
+C Pre-attack Analysis Details
+The selected multi-domain graph pre-trained models
+(SAMGPT and MDGPT) are trained on five datasets, each
+associated with a specific target training graphG Train
+Target: Cora,
+CiteSeer, PubMed (Yang, Cohen, and Salakhudinov 2016),
+Photo, and Computers (Shchur et al. 2018). For evaluation,
+we directly analyze the output node embeddings of both the
+training graphG Train
+Target and the test graphG Test
+Target to examine
+whether existing graph MIAs can perform effective attacks
+against the multi-domain graph pre-trained models.
+(a) Separability analysis in CiteSeer.
+(b) Separability analysis in PubMed.
+(c) Separability analysis in Photo.
+(d) Separability analysis in Computers.
+Figure 7: Additional separability analysis of embeddings.
+In the first toy experiment, we examine whether the out-
+put node embeddings possess class separability properties
+similar to those of logits. To this end, we apply Principal
+Component Analysis (PCA) (Abdi and Williams 2010) to
+reduce the embedding dimensionality and visualize the re-
+sults to assess whether member and non-member embed-
+dings are distinguishable. Additional results for CiteSeer,
+PubMed, Photo, and Computers are presented in Figure 7.
+In the second toy experiment, we investigate whether the
+output node embeddings exhibit greater robustness for mem-
+ber nodes under input graph perturbations. Specifically, we
+apply random structural perturbations to the graph by adding
+or deleting edges, with a perturbation budget set to 15% of
+the total number of graph edges. We then measure the output
+similarity of the node embeddings before and after perturba-
+tion. Additional results for CiteSeer, PubMed, Photo, and
+Computers are shown in Figure 8.
+Overall, we observe that the embeddings produced by
+the multi-domain graph pre-trained models do not demon-
+strate strong separability between member and non-member
+nodes, nor do they show increased robustness for members.
+This finding suggests that existing graph-based MIA meth-
+ods, which rely on membership signals such as the confi-
+dence of model logits or the robustness of model outputs, are
+ineffective in scenarios involving multi-domain graph pre-
+trained models.
+
+D Experiment Details
+In this section, we elaborate on the experimental details pre-
+sented in this paper, including information on the datasets,
+baselines, and implementation settings.
+D.1 Dataset Details
+Following prior work (Zhao et al. 2024), we pre-train the
+models across five datasets, treating each graph as a separate
+domain. The five datasets are listed below, and their detailed
+statistics are presented in Table 3. All the datasets can be
+obtained in the PyG Python package.
+•Cora(Yang, Cohen, and Salakhudinov 2016): A citation
+network with 2,708 papers categorized into seven classes
+and connected by 5,429 directed citation links. Each pa-
+per is represented by a binary word vector over a dictio-
+nary of 1,433 unique words.
+•CiteSeer(Yang, Cohen, and Salakhudinov 2016): Con-
+tains 3,312 publications classified into six categories,
+linked by 4,732 citation edges. Each document is de-
+scribed by a binary word vector over 3,703 unique terms.
+•PubMed(Yang, Cohen, and Salakhudinov 2016): Com-
+prises 19,717 diabetes-related publications from the
+PubMed database, categorized into three classes.
+•Photo(Shchur et al. 2018): An Amazon product co-
+purchase graph with 7,650 nodes and 238,163 edges.
+Each node is encoded by a 745-dimensional bag-of-
+words feature vector from product reviews and labeled
+into one of eight categories.
+•Computers(Shchur et al. 2018): An Amazon co-purchase
+graph with 13,752 nodes and 245,861 edges (491,722 af-
+ter bidirectional deduplication). Each node is represented
+by a 767-dimensional bag-of-words vector and assigned
+to one of ten classes.
+Table 3: Statistics of datasets.
+Dataset Cora CiteSeer PubMed Photo Computers
+# Nodes 2,708 3,327 19,717 7,650 13,752
+# Edges 10,556 9,104 88,648 238,162 491,722
+# Features 1,433 3,703 500 745 767
+# Avg. Degree 3.89 2.73 4.49 31.13 35.75
+D.2 Baseline Details
+Since no existing graph MIA method is specifically designed
+for multi-domain graph pre-trained models, we compare our
+proposed MGP-MIAagainst adapted variants of existing
+graph MIA approaches, as described below:
+•Embedding(Duddu, Boutet, and Shejwalkar 2020),
+trains a two-layer MLP attack model directly on the out-
+put embeddings of nodes produced by a shadow model
+trained on the shadow training graphG Train
+Shadow, aiming to
+distinguish members from non-members.
+•Gradient(Nasr, Shokri, and Houmansadr 2019), which
+leverages the loss gradients of a shadow model trained
+onG Train
+Shadow, with respect to inputs from bothG Train
+Shadow and
+(a) Robustness analysis in CiteSeer.
+(b) Robustness analysis in PubMed.
+(c) Robustness analysis in Photo.
+(d) Robustness analysis in Computers.
+Figure 8: Additional robustness analysis of embeddings.
+GTest
+Shadow, to train a two-layer MLP attack model. This
+method is based on the intuition that member samples
+produce smaller and more distinctive gradients.
+•NLO-MIA(Conti et al. 2022), a label-only attack that
+trains a two-layer MLP to infer membership based on
+the robustness of embeddings under structural perturba-
+tions. Specifically, it randomly perturbs the graph struc-
+ture by modifying 0.15% of the edges in the input graph,
+repeated 10 times, and records the pairwise similarity be-
+tween perturbed embeddings to form a 45-dimensional
+similarity vector used to train the attack model.
+•GLO-MIA(Dai and Lu 2025): an attack that perturbs
+the input graph in the same way as NLO-MIA. How-
+ever, instead of training a two-layer MLP attack model, it
+uses the average embedding similarity as the distinguish-
+ing characteristic and infers membership by applying a
+threshold over the output embedding similarity.
+•GE-MIA(Duddu, Boutet, and Shejwalkar 2020), which
+assumes access to 20 real member and 20 non-member
+samples, and infers the membership of a given node
+based on its distance to the cluster centers of these refer-
+ence embeddings, using a threshold-based decision rule.
+•GPIA(Wang and Wang 2022) first trains a shadow model
+onG Train
+Shadow, and then fine-tunes it on individual samples
+for 10 epochs to capture parameter change vectors. These
+vectors, collected from bothGTrain
+Shadow andG Test
+Shadow, are used
+to train an attack model. During inference, the target
+model is fine-tuned on the queried sample, and the result-
+
+ing parameter change vector is passed to the attack model
+to determine membership. This method assumes access
+to a small number of real member and non-member sam-
+ples, and relies on the intuition that member samples
+cause smaller parameter changes than non-members.
+D.3 Implement Details
+Hyperparameter Settings.For the hyperparameterλ, we
+setλ= 1in all experiments by default. For the hyperpa-
+rameterα, we setα= 1for MDGPT and BRIDGE across
+all datasets, andα= 1e −2 for GCOPE and SAMGPT, fol-
+lowing preliminary tuning. Additional implementation de-
+tails can be found in our code, which is included in the sup-
+plementary material.
+Running Environment.All experiments were conducted
+on a machine running Ubuntu 20.04 LTS. The system was
+equipped with an Intel(R) Xeon(R) Platinum 8358 CPU @
+2.60GHz and 1TB DDR4 memory. We used an NVIDIA
+Tesla V100 GPU with 32GB of memory for acceleration.
+The software environment included CUDA 12.4, Python
+3.11.0, PyTorch 2.4.0, and PyTorch Geometric 2.6.1.

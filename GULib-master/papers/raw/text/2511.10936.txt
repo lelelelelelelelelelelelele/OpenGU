@@ -1,0 +1,1853 @@
+GraphToxin: Reconstructing Full Unlearned Graphs from Graph Unlearning
+Ying Song and Balaji Palanisamy
+University of Pittsburgh
+Pittsburgh, PA, USA
+Abstract
+Graph unlearning has emerged as a promising solution to com-
+ply with “the right to be forgotten” regulations by enabling the
+removal of sensitive information upon request. However, this
+solution is not foolproof. The involvement of multiple parties
+creates new attack surfaces, and residual traces of deleted
+data can still remain in the unlearned graph neural networks
+(GNNs). These vulnerabilities can be exploited by attackers to
+recover the supposedly erased samples, thereby undermining
+the intended functionality of graph unlearning.
+In this work, we propose GraphToxin, the first full graph re-
+construction attack against graph unlearning. Specifically, we
+introduce a novel curvature matching module to provide fine-
+grained guidance for unlearned graph recovery. We demon-
+strate that GraphToxin can successfully subvert the regula-
+tory guarantees expected from graph unlearning—it can re-
+cover not only a deleted individual’s information and personal
+links but also sensitive content from their connections, thereby
+posing substantially more detrimental threats. Furthermore,
+we extend GraphToxin to multiple-node removal under both
+white-box and black-box settings, showcasing its practical
+feasibility and potential to cause considerable harm.
+We highlight the necessity of worst-case analysis and pro-
+pose a systematic evaluation framework to assess attack per-
+formance under both random and worst-case node removal
+scenarios. Our extensive experiments demonstrate the effec-
+tiveness and flexibility of GraphToxin. Notably, existing de-
+fense mechanisms are largely ineffective against this attack or
+even amplify its performance in some cases. Given the severe
+privacy risks posed by GraphToxin, our work underscores the
+urgent need for more effective and robust defenses.
+1 Introduction
+Graph neural networks (GNNs) have demonstrated remark-
+able success across diverse domains, including social network
+analysis, drug discovery, and financial risk management [24].
+Their strength lies in capturing complex structural dependen-
+cies through iterative message passing. However, this mech-
+anism inherently amplifies the risk of sensitive information
+leakage, raising significant user privacy concerns. Concur-
+rently, data protection regulations such as the General Data
+Protection Regulation (GDPR) [14] enforce the “right to be
+forgotten”, requiring GNNs’ to remove personal data upon
+request. These privacy and legal imperatives have spurred the
+rapid emergence of graph unlearning (GU) [3].
+Graph unlearning aims to remove the influence of specific
+nodes, edges, or subgraphs from a trained GNN while pre-
+serving model performance on the remaining graph. Specifi-
+cally, upon receiving an unlearning request, the model owner
+typically employs parameter adjustments or gradient-based
+optimization to mitigate these effects instead of full retrain-
+ing, which is prohibitively expensive and time-consuming,
+and subsequently releases the unlearned version. Despite its
+success, GU inevitably leaves residual traces of the “forgotten”
+targets. Although such remnants are often small enough to
+avoid noticeable performance degradation, they can still be
+exploited by adversaries through membership inference [46]
+or graph reconstruction attacks, thereby undermining privacy
+guarantees. Moreover, the involvement of multiple parties
+further expands the attack surface. For instance, the service
+providers or platforms can retain copies of the previous mod-
+els prior to unlearning for legitimate reasons such as backup
+and debugging, while users can download such models locally
+on their devices. These decentralized behaviors fundamentally
+undermine the assurance of GU. In this work, we focus on the
+most challenging scenario—node unlearning [30] for node-
+level tasks—and present the first full graph reconstruction
+attack against graph unlearning (GU-FGRA).
+Research Gap—Graph UnlearningTo the best of our knowl-
+edge, only one prior work [46] has investigated the privacy
+risks of GU. However, their study is limited to single-edge
+removal and aims to infer the link membership of a given
+node pair, rather than reconstructing the full unlearned graph
+topology. Consequently, their approach solely reveals mini-
+mal information and fails to recover confidential or sensitive
+content encoded in node features. Additionally, they assume
+1
+arXiv:2511.10936v2  [cs.LG]  6 Feb 2026
+
+that the adversary has access to partial unlearned/remaining
+graphs and a shadow graph with a distribution similar to that
+of the original graph, which are unrealistic in practice due
+to strict security and privacy policies. Even if partial data
+were leaked, finding a faithful replica of the original dataset
+is infeasible and using publicly available data from a different
+distribution severely degrades the quality of reconstructed
+graphs due to distributional shifts.
+Graph Reconstruction Attack (GRA)With respect to GRA,
+existing studies primarily focus on inferring link member-
+ships [13, 39]. Only a few attempt to recover sensitive at-
+tributes [8, 27] or the full graph topology [26, 52]. This in-
+consistent terminology can be misleading, asa true full GRA
+should reveal all graph components. Moreover, current re-
+search typically rely on access to node embeddings or shadow
+models, and often assume that sensitive node features or por-
+tions of the topology are available for recovery. They also
+lack comprehensive evaluation, hindering their practical appli-
+cability in scenarios such as red-teaming and model auditing.
+Machine Unlearning (MU)Existing reconstruction attacks
+against MU cannot be trivially adapted to GU-FGRA, as
+the complex topological structures and rich node features
+in graphs produce entangled patterns during GNN message
+passing. To date, a few works have explored reconstruction
+in MU. These efforts are either limited to linear models for
+exact unlearning [1] or recover only partial removed samples
+under white-box settings, with poor scalability to multiple-
+node removal [15]. Under the i.i.d. assumption commonly
+adopted for tabular data, multiple sample removals can be
+treated as a sequence of independent single removals. In con-
+trast, graph unlearning is fundamentally different: due to the
+“ripple effects” propagated through GNNs, even a single node
+removal can affect its neighbors and higher-order structures,
+preventing a straightforward extension to GU.
+Research QuestionsThe above research gap motivates us to
+identify three key research questions in GU:
+1. Is it possible to recover full unlearned graphs under re-
+alistic white-box settings and how this attack can be
+extended to multiple-node removal?
+2. Can this attack be generalized to black-box settings and
+reconstruct full unlearned graphs using only minimal
+prior knowledge for multiple-node removal?
+3. How can we comprehensively evaluate the performance
+of this full reconstruction attack?
+Unique Challenges and StrategiesBeyond the challenges
+previously discussed, the feasibility of gradient-based GU-
+FGRA under realistic attack settings remains underexplored.
+Since no shadow graphs or models are available and only min-
+imal prior knowledge is mastered, even a simple unlearning
+attack targeting a single node is an intricate task. Notably, our
+goal is to reveal full unlearned graphs rather than a simple
+combination of multiple attribute inference attacks of the re-
+moved node and multiple link membership inference attacks
+of its 1-hop neighbors. This challenge is further exacerbated
+under multiple-node removal, where more complex structural
+and feature entanglements yield increasingly ambiguous gra-
+dient proxies for full graph recovery.
+To answer the key research questions and to address their
+unique challenges under realistic white-box settings, we
+presentGraphToxin, the first full graph reconstruction
+attack against graph unlearning. Since the difference be-
+tween publicly accessible gradients of the original and un-
+learned GNNs implicitly captures the information associated
+with the unlearned graph, GraphToxin exploits this difference
+for full graph recovery through three core modules. First, a
+gradient matching module acts as a holistic roadmap for full
+unlearned graph recovery by bridging the gap between the
+ground-truth gradient difference and the gradients generated
+from the recovered unlearned graph, however, it only yields
+a coarse proxy. Second, a novel curvature matching module
+provides fine-grained signals by downweighting the direc-
+tions of high curvature to ultimately produce a more plausible
+recovery solution. Finally, a feature smoothness module is
+utilized to enforce similarity among connected nodes.
+GraphToxin also tackles the intractable challenge of the
+data-free black-box setting. This scenario presents a ma-
+jor hurdle since the adversary is restricted to using only
+the model’s posterior probabilities instead of its gradients.
+This limitation inevitably introduces approximation errors, as
+black-box GU-FGRA must attempt to infer fine-grained graph
+details from coarse posterior outputs, which can degrade the
+reconstruction quality. To mitigate this issue, GraphToxin in-
+troduces a semantic calibration module. The goal of this mod-
+ule is to minimize the discrepancy between the ground-truth
+labels and the predictions for the recovered nodes, thereby
+encouraging semantically consistent reconstructions.
+The effectiveness of GraphToxin is evaluated through a
+comprehensive evaluation framework. Existing GU meth-
+ods primarily focus on small-scale random removals, which
+provides an incomplete assessment of reconstruction risks.
+[3,21,41,43]. Given the inherent sparsity of real-world graphs,
+this operation often selects nodes that are less influential for
+model predictions. These “unimportant” nodes typically pos-
+sess low degrees and cause negligible influences after removal.
+However, in reality, attackers would prioritize high-value tar-
+gets. To better mimic actual attacks, we propose a worst-case
+evaluation. In our work, we define this worst-case scenario as
+the removal of the top 10% of nodes with the highest degrees.
+Furthermore, traditional evaluation metrics are often insuffi-
+cient to characterize reconstruction quality [7, 34, 50]. Moti-
+vated by this limitation, we develop a systematic evaluation
+framework that incorporates reconstruction-related metrics
+to capture the global consistency of recovered features and
+topology, and performance-level metrics to assess functional
+utility of the full recovered graph.
+2
+
+ContributionOur contributions are summarized as follows:
+1. Pioneering Attack:We design GraphToxin, the first full
+graph reconstruction attack against graph unlearning. It not
+only recovers the removed nodes and their graph topology,
+but also steals the sensitive information of their neighbors,
+posing more detrimental privacy risks.
+2. Novel Methodology:We propose a novel curvature match-
+ing module to provide fine-grained guidance for full un-
+learned graph recovery in realistic settings.
+3. Scalability and Generalization:We successfully extend
+GraphToxin to multiple-node removal with comparable at-
+tack performance, and generalize GraphToxin to the black-
+box setting with only minimal prior knowledge.
+4. Rigorous Evaluation Framework Design:We propose a
+comprehensive evaluation framework grounded in feature-
+level, global-level, and performance-level perspectives. Ad-
+ditionally, we assess GraphToxin after removing the most
+influential nodes to assess its attack potency in reality.
+5. Empirical Validation:We conduct extensive experiments
+across diverse graph datasets, GNN backbones, and both
+exact and approximate graph unlearning methods. The re-
+sults demonstrate the effectiveness and flexibility of Graph-
+Toxin in both white-box and black-box settings, for single
+or multiple-node removal.
+6. Highlighting Urgency for Robust Defenses:We empiri-
+cally show that existing defense methods are ineffective
+against GraphToxin and in some cases may even amplify
+its attack performance. This finding highlights the urgent
+need for developing more effective defense mechanisms
+against this potent attack.
+Social ImpactsGraphToxin is significantly more detrimental
+than existing inference attacks, particularly in high-stake sce-
+narios, because it recovers not only an individual’s sensitive
+content and personal links, but also confidential information
+of her/his contacts. For instance, in financial crediting, reveal-
+ing the full unlearned transaction graphs can expose private
+trades and confidential documents; in healthcare management,
+reconstructing full health information can fuel workplace dis-
+crimination, insurance denial, or social stigma. Once privacy
+is undermined, the consequences are twofold: first, it can trig-
+ger a cascade of adversarial attacks, such as re-identification
+or model extraction; second, organizations face liability for
+non-compliance with regulations and simultaneously erode
+users’ trust in their AI systems.
+2 Background and Problem Statement
+2.1 Notations
+Given an undirected attributed graph G= (V,E,X) , V de-
+notes the set of nodes with |V| elements and each node v is
+associated with a feature vector Xv ∈R 1×d and a label vector
+Yv ∈R 1×|Y|, where d is the feature dimensionality and |Y| de-
+notes the number of labels.E denotes the set of edges with|E|
+elements, which can be represented by an adjacency matrix
+A∈ {0,1}|V|×|V| , where Aw,v =1 iff (w,v)∈E , and Aw,v =0
+otherwise. For simplicity, we denote the graph as G= (A,X) .
+Fo, Fu and Fa indicate the original GNN, unlearned GNN,
+and attack model, respectively.
+2.2 Graph Neural Networks
+The exceptional performance of most GNNs stems from the
+message-passing mechanism, which aggregates information
+from each node v’s local neighborhood N(v) and iteratively
+updates the node embedding Hk
+v after k layers. Formally, this
+process can be expressed as:
+Hk
+v =UPD k(Hk−1
+v ,AGGk−1({Hk−1
+w :w∈N(v)}))(1)
+where H0
+v =X v, and UPD and AGG are two arbitrary differ-
+entiable functions to design diverse GNN variants. For node
+classification tasks, generally, Hk
+v is fed into a linear classifier
+with a softmax function for final prediction.
+2.3 Graph Unlearning
+We consider the most challenging GU—node unlearning
+throughout our paper, which is formally defined as:
+Definition 1(Single Node Unlearning).Given the original
+training graph G= (A,X) , the original trained GNN Fo and
+a single unlearning request ∆Gv = (v,EN 1v ,Xv), node unlearn-
+ing aims to unlearn a single node v, its feature Xv and its links
+to 1-hop neighbors N 1
+v by training an unlearned model Fu
+on the remaining graph G\∆Gv that approximates the fully
+retrained modelF ′
+o (G\∆Gv).
+Definition 2(Multiple Node Unlearning).Upon receiv-
+ing multiple unlearning requests ∆G= (VM ,N 1
+M ,XM ), node
+unlearning aims to unlearn multiple nodes M , their node
+featuresX M and links to their 1-hop neighborsN 1
+M by train-
+ing unlearned model Fu on the remaining graph G\∆G that
+approximates the fully retrained modelF ′
+o (G\∆G).
+2.4 Graph Reconstruction Attack (GRA)
+Definition 3(General GRA).Given access to a GNN Fo
+trained on graph G, a GRA Fa endeavors to recover sensitive
+information ˆGpar that is indistinguishable from its ground-
+truth informationG par ∈G.
+Depending on the adversary’s interaction withFo, a general
+GRA reduces to a white-box setting when the adversary can
+access model gradients ∇L(θ) (hereinafter abbreviated as
+∇L), where θ denotes model parameters. Under the gray-
+box setting, GRA allows the adversary to access intermediate
+3
+
+model outputs such as node embeddings but no gradient-
+level information, whereas the black-box setting restricts the
+adversary to only query the victim model, without access to
+internal representations or gradients.
+Based on the recovered information ˆGpar, a general GRA
+can be instantiated to target different graph components.
+Specifically, it can recover partial or complete node features
+via attribute inference attacks, infer the existence of specific
+edges through link stealing attacks, or reconstruct structural
+information via graph topology reconstruction attacks. In this
+work, we focus on the most challenging setting, namely full
+GRA, which aims to jointly recover both full node features
+and graph topology of the target graph. A systematic compar-
+ison of these attack paradigms is provided in Table 1.
+2.5 Problem Statement
+We formally define the full graph reconstruction attack against
+graph unlearning (GU-FGRA). Specifically, for single-node
+removal, a GU-FGRA aims to recover the full unlearned
+graph Guv = (Vuv ,Euv ,Xuv ), where the recovered nodesVuv =
+[v,N 1
+v ] contain the removed node v and its affected 1-hop
+neighbors N 1
+v . Please note that Guv ̸=∆G v. Unlike ∆Gv, Guv
+additionally recovers node features of its 1-hop neighbors.
+Moreover, recovering ∆Gv can be simply treated as a combi-
+nation of d times attribute inference attacks of a single node
+v and a graph topology reconstruction attack of its associated
+links N 1
+v , where d denotes the number of node features. In
+contrast, recovering Guv is significantly more complicated,
+as it further requires the simultaneous full feature recov-
+ery of multiple recovered nodes. For multiple-node removal,
+attackers strive to reconstruct Gu = (Vu,Eu,Xu). Similarly,
+Gu ̸=∆G where Vu = [VM ,N 1
+M ] contains multiple removed
+nodes M and their 1-hop neighborsN 1
+M . Under white-box set-
+tings, the adversary leverages model gradients ∇L to recover
+the full unlearned graph for both single-node or multiple-node
+removal, while under black-box settings, she/he exploits the
+posterior probabilities P= (p1,p 2, . . . ,p|Y|) obtained before
+and after node removals to achieve the same objective.
+3 Attack Framework Design
+In this section, we formalize the threat model and introduce
+GraphToxin, the first data-free full graph reconstruction attack
+against graph unlearning, followed by an evaluation frame-
+work to systematically assess it.
+3.1 Threat Model
+3.1.1 Attacker’s Goal
+The attacker aims to fully reconstruct the unlearned graph, in-
+cluding the removed nodes, their affected neighborhoods, the
+induced topological structures, and associated node features.
+3.1.2 Attacker’s Knowledge and Capabilities
+We consider a standard MLaaS deployment involving a model
+owner, a server, and users. The model owner trains a GNN on
+a private graph and uploads the GNN to the server. The server
+then deploys the model and packs it into an API for users
+to use [2, 15]. Upon receiving an unlearning request from a
+participant (i.e., a specific node in the private training graph),
+the model owner adopts a graph unlearning method to remove
+any information associated with that participant (i.e., its node
+features and neighboring links), releases the unlearned GNN,
+and deletes the previous version. However, the involvement
+of multiple parties and time gaps between model updates
+expand the attack surface, where the adversary can exploit to
+reconstruct the full unlearned graphs in a data-free manner.
+Our attack setting fundamentally differs from existing re-
+construction attacks. They assume that the adversary either
+has partial access to the original training graphs or unlearned
+graphs, or can obtain shadow graphs. However, these assump-
+tions are unrealistic: first, original training graphs are propri-
+etary and constitute valuable assets of companies and institu-
+tions, necessitating strong protections against potential attack-
+ers; second, shadow graphs typically demand same or similar
+distributions from the original training graphs. Since training
+graphs are usually protected, it is hard for the adversary to
+acquire the distribution information. Therefore, GU-FGRA
+should be strictly operated under a data-free setting.
+We consider two types of attackers: the honest-but-curious
+server and malicious user. Following Hu et al., [15], the
+server has the white-box access to the original and unlearned
+GNNs, but only restricted to model gradients, without any
+prior knowledge of unlearning methods, GNN architecture,
+and training or unlearned graph distributions. This assump-
+tion is realistic as the server can save copies of all uploaded
+models or archive the deleted versions for legitimate reasons,
+including but not limited to backup, auditing, debugging, or
+rollback after accidental deletion. Meanwhile, the malicious
+user only has the black-box access to the original and un-
+learned GNNs. She/he can submit model queries to the server,
+and the server will faithfully respond these queries and send
+posterior-based model predictions back. The user can conduct
+data-free model stealing attacks to construct surrogate mod-
+els based on collected query-response pairs [54]. In addition,
+auditors can also act as a red team to launch GU-FGRA with
+only the minimal required knowledge in a data-free setting,
+enabling them to discover vulnerabilities and anomalies to
+improve the security and privacy of graph-based AI systems.
+We assume that the adversary has knowledge of the number
+of removed nodes and edges, as well as changes in label distri-
+butions. This assumption is practical since such information
+can be exposed through simple count queries, system logs or
+publicly available technical documents, which are commonly
+provided on MLaaS platforms to facilitate proper model us-
+age. Moreover, attackers can employ existing label inference
+4
+
+Table 1:Attack Comparison. √ represents “access" or “applicable", and ∅ denotes “not applicable" or “unknown". N/A means
+currently unexplored in the field.
+Attack Type Attacker’s Knowledge and Capabilities Recovery ContentAttack Unlearning CaseGraph Data Model Access Graph Unlearning Feature TopologyRandom WorseAttribute Inference Attack (N/A)Partial/Shadow Graph Grey/Black Box∅ Single/Partial∅ ∅ ∅Link Stealing Attack [46]Partial/Shadow Graph Grey/Black Box Partial Unlearned Graph∅Single Edge √ ∅Graph Topology Reconstruction Attack (N/A)Partial/Shadow Graph Grey/Black Box∅ ∅Partial/Full ∅ ∅Full Graph Reconstruction Attack (Ours)Data-free White/Black Box #of Node/Edge/Label ChangesFull Full √ √
+techniques to recover labels, which serve as a cornerstone for
+subsequent reconstruction attacks [10, 15].
+3.2 Attack Framework Design
+We introduce GraphToxin and present its framework overview
+in Figure 1. GraphToxin contains three modules:Gradient
+Matchingto extract holistic information for the full unlearned
+graph recovery,Curvature Matchingto provide more fine-
+gradient recovery signals andFeature Smoothnessto capture
+and enforce similarity among connected nodes within the
+unlearned graph. We detail each module as follows.
+Figure 1: An overview of GraphToxin. The white-box Gra-
+phToxin uses gradient difference for full unlearned graph
+recovery. The black-box GraphToxin first estimates gradie-
+nts and then exploits their difference for recovery.
+3.2.1 Gradient Matching
+Design RationaleGradient matching is the foundation of gra-
+dient inversion attacks mainly tailored for federated learning.
+Given the gradients with respect to model parameters, gradient
+matching first initializes a dummy input and then iteratively
+optimizes it by minimizing the distance between the gradi-
+ents induced by the dummy input and the observed model
+gradients. Since our attack settings are strictly data-free and
+only assume the adversary access to actual or estimated gradi-
+ents of the original and unlearned models, gradient matching
+serves as a natural starting point.
+In the graph domain, gradient matching searches for a can-
+didate graph whose induced gradients are consistent with
+the observed ones. Rather than assuming a direct correspon-
+dence between gradients and individual graph components,
+this process imposes a constraint that narrows the space of
+plausible graph reconstructions. However, gradient match-
+ing cannot be trivially applied to GU-FGRA, as the attack
+involves two gradient sets from the original and unlearned
+models. Naively applying gradient matching to each gradient
+set introduces redundant optimization paths while discarding
+the unlearning-induced discrepancy that carries the most in-
+formative recovery signals. Due to the ambiguity of gradient-
+to-graph mappings, independently reconstructed graphs are
+not guaranteed to align, hindering the reliable identification
+of unlearned graph components.
+These limitations motivate a discrepancy-driven design that
+directly operates on gradient differences between the original
+and unlearned GNNs, rather than on separate gradient sets.
+Gradient Matching in GU-FGRAFor clarity, we begin with
+the single-node removal setting and discuss the extension to
+multiple-node removal in a separate section.
+Formally, let ∇L and ∇L−v denote the gradients of the
+original and unlearned GNNs, respectively, where −v repre-
+sents an unlearning request on a single node v. We define the
+observed gradient difference as ∆∇L=∇L−∇L −v, which
+captures unlearning-induced signals associated with the re-
+moved node v and its affected neighborhoods N 1
+v . The adver-
+sary first initializes a dummy graph with the fixed unlearning
+graph size, and then optimizes it by minimizing the distance
+between the dummy and observed gradient difference to re-
+cover the full unlearned graph Guv = (Vuv ,Euv ,Xuv ), where
+Vuv = [v,N1
+v ]. The attack objective is represented as:
+˜Guv =argmin
+˜Guv
+D(∆ ˜∇L,∆∇L)(2)
+where ∆ ˜∇L denotes the gradients induced by the dummy
+graph. For the choice of the distance function D, existing
+gradient matching commonly uses cosine similarity [11, 15]
+or L2 distance [53]. Some prior studies favor L2 distance for
+its superior attack performance while others [22] show that
+cosine similarity correlates more strongly with reconstruction
+quality. Inspired by Fan et al. [9], we combine both metrics
+to leverage their complementary strengths. Specifically, we
+adopt Mean Squared Error (MSE), a normalized form of L2
+distance, to penalize the absolute deviations and mitigate the
+influence of magnitude amplification in the high-dimensional
+gradient space. Meanwhile, cosine similarity is used for di-
+rection consistency and semantic alignment. Following Fan
+5
+
+et al. [9], we treat these two losses equally:
+Lgrad =1− ⟨∆ ˜∇L,∆∇L⟩
+∥∆ ˜∇L∥·∥∆∇L∥ + 1
+M
+M
+∑
+i=1
+
+(∆ ˜∇L)i −(∆∇L) i
+2
+(3)
+whereMis the number of elements in the gradients.
+3.2.2 Curvature Matching
+MotivationGradient matching provides holistic information
+for the full unlearned graph recovery, however, it is not suffi-
+cient to extract more fine-grained recovery signals. The fol-
+lowing illustrative example demonstrates how gradient match-
+ing leads to ambiguity in GU-FGRA and motivate the design
+of curvature matching.
+Figure 2: Example of the Ambiguity of Gradient Matching
+As depicted in Figure 2, we consider a convex loss function
+L1 and obtain L2 by adding noises and slightly changing the
+polynomial coefficients ofL1 to simulate the effect of unlearn-
+ing. As shown in Fig.2.A and B, the two losses induce nearly
+identical gradients and small gradient difference. However,
+we identify two distinct points (marked in blue and pink) that
+produce the identical gradient difference, yet exhibit the sub-
+stantially different curvatures of the loss landscape as shown
+in Fig.2.C and D. This example highlights a fundamental lim-
+itation of gradient matching: multiple candidates can satisfy
+the same gradient difference constraint. In graph learning, this
+ambiguity is further amplified by the permutation invariance
+of GNNs, under which different graph structures can yield
+identical information propagation and gradients. Moreover,
+GU-FGRA aims to recover not only the removed node and its
+incident edges, but also the features of affected neighboring
+nodes. While gradient difference can reflect the removal of a
+node and local connectivity changes, they impose insufficient
+constraints to uniquely characterize neighboring node fea-
+tures. To overcome this ambiguity and provide fine-grained
+signals for full unlearned graph recovery, we next introduce a
+novel curvature matching module.
+Curvature Matching in GU-FGRAWe formalize curvature
+matching as a curvature-aware constraint operating on gradi-
+ent difference. Detailed theorem assumptions and proof are
+provided in Appendix A.
+Theorem 1(Curvature-aware difference Matching).Un-
+der standard smoothness and local approximation as-
+sumptions, minimizing the gradient difference reduces to
+minimizing the curvature-weighted difference (∆ ˜∇L−
+∆∇L)T H−1(∆ ˜∇L−∆∇L).
+In practice, the Hessian matrix H is computationally in-
+feasible as it requires calculating and storing second-order
+derivatives. We leverage the Fisher Information Matrix F
+as the surrogate. Specifically, F is defined as the covariance
+matrix of the gradient of the log-likelihood function with re-
+spect to model parameters θ, quantifying the sensitivity of the
+model’s predicted probability distribution to small changes
+in θ. According to Rame et al. [29], F approximates H with
+probably bounded errors under regular conditions. However,
+since the full F involves an expectation over all possible out-
+puts, the empirical Fisher Information ˜F is typically utilized
+as an efficient approximation [17]. Formally, ˜F is denoted as:
+˜F= 1
+Nu
+Nu
+∑
+i=1
+(∇logp(Y i| ˜Gu,θ))(∇logp(Y i| ˜Gu,θ))T (4)
+whereN u =|V u|is the node size ofG u.
+We then replace H with ˜F in (∆ ˜∇L−∆∇L) T H−1(∆ ˜∇L−
+∆∇L)and derive the following curvature matching loss:
+Lcurv = (∆˜∇L−∆∇L) T ˜F−1(∆ ˜∇L−∆∇L)(5)
+Lcurv naturally encodes the curvature of the loss landscape,
+providing more fine-grained signals for full unlearned graph
+recovery. Not all gradient difference are equally informative:
+some may stem from noises or redundant parameterization,
+while others are highly indicative of the ground-truth features
+and underlying graph structures. By incorporating ˜F, Lcurv
+downweights the directions of high curvature, thereby biasing
+the optimization toward smoother and more stable directions
+in parameter space. Furthermore, ˜F is defined with respect
+to model predictions and thus implicitly reflects how node
+features and graph structures are propagated through message
+passing and projected into posterior probabilities. This com-
+plementary perspective provides sensitivity-aware guidance
+that better aligns with the model’s local behavior.
+3.2.3 Feature Smoothness
+Most real-world graphs follow the homophily principle, where
+neighboring nodes tend to share similar features. Graph
+Dirichlet energy [16, 46, 50] explicitly captures and quantifies
+this feature smoothness:
+Lsmooth =tr(X T LX)(6)
+where tr is the trace of a matrix, L=D−A is the laplacian
+matrix andDis the diagonal degree matrix.
+This regularization penalizes sharp feature differences
+across connected nodes and suppresses degenerate and noisy
+solutions for realistic full graph recovery.
+6
+
+3.2.4 Loss Function
+In summary, the final objective of GraphToxin is:
+Lwhite =L grad +α1Lcurv +α2Lsmooth (7)
+where α1 weights the curvature-aware loss while α2 controls
+feature smoothness regularization. We refer to them as the
+Fisher coefficient and the Laplacian coefficient, respectively.
+3.3 Extensions: Multiple-Node Removal and
+Black-box GraphToxin
+3.3.1 Multiple-Node Removal
+For multiple-node removal, the topology of the full unlearned
+graph Gu is significantly more complex due to the intercon-
+nection of removed nodes and their affected neighbors.
+To simultaneously reconstruct node features and such more
+complicated graph topology, we first initialize the topolog-
+ical structure by sampling a fixed number of edges using
+Bernoulli distribution [34], marked as ˜A0 ∼Bernoulli(p) ,
+where p= |Eu|
+(|Vu|
+2 ) controls the expected edge density and aligns
+with the known edge budget. Next, we adopt the same final
+objective Lwhite as in the single-node removal case, while
+additionally updating the adjacency matrix ˜A via projected
+gradient descent [34]. Each entry(i,j) of ˜A is updated through
+the entry-wise projection operator as:
+ˆAi j =proj [0,1]( ˜Ai j) =
+
+
+
+1, ˜Ai j ≥1
+0, ˜Ai j ≤0
+˜Ai j,otherwise
+(8)
+We then repeat the sampling process using the learned edge
+probabilities from the last iteration to generate the final recon-
+structed adjacency matrix ˆA.
+3.3.2 Black-box GraphToxin
+Distinct from the white-box setting, black-box GraphToxin
+cannot access gradients and relies solely on posterior prob-
+abilities. Despite this constraint, the attack remains feasible
+in practice. The adversary first obtains surrogate models of
+the original and unlearned GNNs (F ′
+o and F ′
+u ) via an existing
+data-free, black-box model extraction attack [54]. We refer
+the interested readers to [54] for additional details.
+Once the copycats are stolen, GraphToxin exploits the gra-
+dient difference between these copycats using the same ob-
+jective Lwhite for full unlearned graph recovery. However, the
+reconstruction quality highly depends on the stealing quality.
+Imperfect model extraction may introduce additional noise
+into the estimated gradients. We incorporate a semantic cali-
+bration loss to mitigate this effect:
+Lseman =CE( ˜Yu,Yu) =−
+|Vu|
+∑
+i=1
+Yui ·logp ui (9)
+where CE is the cross-entropy loss to minimize the discrepan-
+cies between the actual node labels and the model predictions
+of the dummy graph ˜Gu from the copycatF ′
+o .
+The final objective for black-box GraphToxin is:
+Lblack =L grad +α1Lcurv +α2Lsmooth +α3Lseman (10)
+where α3 controls the contribution of semantic calibration,
+referred as the calibration coefficient.
+3.4 Evaluation Framework Design
+3.4.1 Worst-case Scenario
+Existing graph unlearning studies evaluate unlearning effec-
+tiveness under random node removals, but fail to examine
+worst-case scenarios where highly influential nodes are re-
+moved. These scenarios serve as a stress test rather than a
+favorable condition for the attack. Removing influential nodes
+indeed induces larger parameter changes, while simultane-
+ously increases reconstruction difficulty. Such nodes typically
+possess high degrees, amplifying multi-hop dependencies and
+thereby complicating the attribution of entangled features and
+topologies. Moreover, worst-case settings align with realis-
+tic attacker incentives. Nodes with high influence, such as
+public figures in a social network, are more likely to trigger
+unlearning requests and may attract stronger attack interests
+than normal users.
+For single-node removal, we unlearn the top 10% nodes
+with the highest degrees from the training graph and report
+their average attack results to assess the worst-case scenarios,
+while in multiple-node removal, the top 25, 50, 75 nodes with
+the highest degrees are selected and partitioned into 5 non-
+overlapping pairs based on their degree ranking.
+3.4.2 Feature-level Evaluation
+Feature-level evaluation measures the quality of node at-
+tributes within the recovered unlearned graph ˜Gu.
+Root Normalized Mean Squared Error (RNMSE)We fol-
+low Sinha et al. [34] and leverage RNMSE to quantify the
+discrepancies between the recovered and actual node features.
+RNMSE( ˜Xv,Xv) =∥ ˜Xv −Xv∥
+∥Xv∥ (11)
+We finally report the average RNMSE of all nodes in ˜Gu.
+While RNMSE is a standard metric for feature recovery, it
+does not fully capture structural similarity or functional con-
+sistency, as we empirically demonstrate in Section 4.3.1.
+3.4.3 Global-level Evaluation
+Global-level evaluation assesses the preservation of joint fea-
+ture–topology structure of the recovered unlearned subgraph.
+7
+
+We assume that the adversary knows the size of the full
+unlearned graph. For single-node removal, the graph topology
+is fixed, and thus topology-level evaluation is unnecessary. For
+multiple-node removal, traditional link-wise reconstruction
+metrics like Area under Curve (AUC) and Average Precision
+(AP) fail to capture holistic structural patterns. Therefore, we
+adopt the following global-level evaluation metrics:
+Embedding Distance (ED)Node embeddings encode both
+node features and multi-hop structural patterns. Consequently,
+we measure the similarity between the embeddings of the
+recovered and ground-truth unlearned graphs, which are both
+extracted from the original GNN model, denoted as˜Hk,H k, re-
+spectively. Here,k is the number of GNN layers, usuallyk=2 .
+We leverage the squared quadratic Wasserstein distance (p=2)
+[36] to quantify this similarity, defined as ED=W 2
+2 ( ˜Hk,H k).
+Pyramid Match Graph Kernel (PMGK)PMGK is a robust
+measure for graph matching [25], which captures structural
+similarity across multiple scales. Specifically, we first dis-
+cretize continuous node embeddings of the recovered and
+ground-truth graphs into a set of discrete labels via K-means
+clustering, thereby grouping nodes with similar structural
+or semantic patterns. We then create a multi-resolution his-
+togram of these labels of each graph and then take a weighted
+sum of the intersections of these two histograms. In our ex-
+periment, PMGK is computed using the grakel library [33].
+3.4.4 Performance-level Evaluation
+Performance-level evaluation examines whether the recov-
+ered unlearned graph is functionally equivalent to the full
+unlearned graph when processed by the same GNN. This
+level of evaluation is essential as feature and structural simi-
+larities alone cannot guarantee the similar model behavior.
+Attack Accuracy (ATT. ACC)Attack accuracy measures
+whether the recovered graph leads to the same predicted labels
+as the ground-truth unlearned graph under the same GNN.
+ATT.ACC= 1Vu
+ ∑
+v∈Vu
+I
+h
+argmax ˜pv =argmaxp v
+i
+(12)
+where I[·] is the indicator function and p is the posterior
+probability produced by the original GNNF o.
+Attack Fidelity (ATT. FID)Attack fidelity quantifies how
+accurately the recovered graph reproduces the model-specific
+predictions of the full ground-truth unlearned graph.
+ATT.FID= 1Vu
+ ∑
+v∈Vu
+I
+h
+argmax ˜pv =argmax ˆpv
+i
+(13)
+where ˆpv denotes the posterior probability vectors produced
+by the original GNN on the ground-truth unlearned graph.
+Posterior Wasserstein Distance (PWD)To further capture
+the confidence alignment at the distribution level, we measure
+the distance between posterior distributions induced by the re-
+covered and ground-truth unlearned graphs using the squared
+quadratic Wasserstein distance as PWD=W 2
+2 (˜p,ˆp).
+4 Experimental Validation
+In this section, we conduct empirical experiments across
+a range of GNN variants, graph unlearning methods and
+graph datasets to answer our three primary research questions.
+Specifically, we investigate the following key subquestions:
+SQ1: Why is comprehensive evaluation necessary?
+SQ2: How GraphToxin performs for single-node removal?
+SQ3: Can GraphToxin flexibly adapt to different graph un-
+learning methods and GNN backbones?
+SQ4: How GraphToxin performs in worst-case scenarios?
+SQ5: Which impact factors dominate GraphToxin?
+SQ6: How GraphToxin performs in multiple-node removal?
+SQ7: Can GraphToxin be extended to the black-box setting?
+SQ8: How resilient is GraphToxin against defenses?
+4.1 Setups
+4.1.1 Datasets
+We conduct experiments on three benchmark graph datasets:
+Cora, PubMed [44], and Amazon-Photo (Photo) [32]. Dataset
+details are provided in Appendix B.1.
+4.1.2 Unlearning Methods
+We consider the following graph unlearning methods. (1) Ex-
+act unlearning: We directly retrain the GNNs from scratch (Re-
+training). (2) Approximate unlearning: We consider two state-
+of-the-art graph unlearning methods with distinct frameworks:
+MEGU [21] and ETR [43]. MEGU is a learning-based method
+that employs predictive and unlearning modules to mitigate
+unlearning effects, while ETR is a training-free method de-
+signed to erase the influence of deleted nodes and rectify the
+collateral damage to their neighbors.
+The original training and graph unlearning results across
+different GNN backbones and graph datasets are detailed in
+Table 5 in Appendix B.3, which confirm the effectiveness of
+all considered graph unlearning methods.
+4.1.3 GNN Variants
+We use three classical GNN backbones: GCN [18], Graph-
+SAGE [12] and SGC [40].
+4.1.4 Baselines
+To the best of our knowledge, GraphToxin is the first GU-
+FGRA, there are no established baseline methods for direct
+comparison. Accordingly, we consider the following alter-
+native baselines: (1) Random Graph (Rand.), which gener-
+ates random graphs using Gaussian noise without parameter
+updates. (2) Learning with A Few Epochs (FewE.), which
+trains GraphToxin for only the first 1% of the total training
+epochs. This baseline represents a weak attacker with severely
+8
+
+limited optimization budget. Direct adaptations of gradient
+inversion attacks (i.e., gradient matching alone) are evaluated
+as ablations (Please see Section 4.3.4) rather than standalone
+baselines, as they represent simplified variants of GraphToxin.
+4.1.5 Implementation
+All experiments are implemented on 4 Nvidia A100 GPUs.
+For implementation details, please refer to Appendix B.2.
+4.2 Attack Performance (SQ1 - SQ3)
+4.2.1 Necessity of Comprehensive Evaluation (SQ1)
+We first examine the necessity of worst-case evaluation. From
+Table 2, we observe that averaging results under random node
+removal can obscure meaningful differences in reconstruc-
+tion difficulty, motivating the need for worst-case evaluation.
+PubMed exemplifies this problem. Due to its high sparsity
+and limited label space, a random node removal often pro-
+duces relatively simple recovery targets, under which even
+randomly generated graphs may achieve seemingly strong
+performance-level scores. This effect can artificially inflate
+average performance and mask the weakness of Rand. on
+more complex unlearning instances. In contrast, under the
+worst-case settings, the performance of Rand. significantly
+decreases, while GraphToxin remains effective, providing a
+more faithful assessment of reconstruction attacks under chal-
+lenging unlearning scenarios.
+We subsequently motivate a comprehensive evaluation
+framework for GU-FGRA. Existing attacks commonly rely
+on RNMSE for assessing feature reconstruction quality [34].
+While RNMSE is a standard and necessary metric, it is in-
+sufficient when used in isolation. Table 2 shows that even a
+randomly generated graph may achieve a relatively low RN-
+MSE while performing poorly on performance-level metrics.
+This discrepancy indicates that RNMSE alone can obscure
+qualitative differences between the recovered and ground-
+truth unlearned graphs, which are further amplified by the
+message-passing paradigm in GNNs. Hence, more sensitive
+metrics are required to discern subtle variations. Specifically,
+when RNMSE values are nearly indistinguishable, ED can
+reveal substantial divergence in the joint feature–structure
+space. Furthermore, since single-node removal typically in-
+duces only subtle parameter changes, reconstruction results
+across different unlearning methods yield distinct values yet
+appear nearly identical on the scale of 1e−2 . In contrast,
+PMGK can reflect fine-grained changes that are impercepti-
+ble to other metrics.
+4.2.2 Effectiveness (SQ2)
+As shown in Table 2, GraphToxin consistently and substan-
+tially outperforms baselines acrossallexperimental settings
+on nearly every reconstruction quality and performance-level
+evaluation metrics. The superiority of GraphToxin generalizes
+across diverse graph datasets and graph unlearning methods.
+In addition, GraphToxin’s overall advantage holds under both
+random and worst-case node removal scenarios, highlighting
+its robustness. On performance-level metrics, GraphToxin
+achieves up to 11.14× improvement over Rand. on Cora, and
+up to86.73×on Photo.
+4.2.3 Flexibility (SQ3)
+We evaluate the flexibility of GraphToxin across different
+graph unlearning methods and GNN backbones.
+Graph UnlearningThe results in Table 2 demonstrate the
+stable and consistent performance of GraphToxin acrossall
+graph unlearning methods. While minor variations are ob-
+served, these differences arise from the interaction between
+how unlearning signals are manifested in the parameter space
+and the structural properties of the underlying graphs. Specif-
+ically, the attack against Retraining tends to induce larger pa-
+rameter changes, which are particularly exploitable in small
+and sparse graphs such as Cora. In contrast, MEGU intro-
+duces learning-based modules to suppress large parameter
+deviations. This design mitigates the propagation of unlearn-
+ing signals and can lead to reduced distinguishability under
+structure-sensitive metrics such as PMGK. ETR adopts a
+training-free and highly localized strategy that erases the in-
+fluence of deleted nodes while rectifying collateral damage to
+neighboring nodes. Therefore, ETR can better preserve local
+structures, which may account for its stronger global-level
+alignment across diverse graphs.
+GNN BackbonesWe next fix the unlearning target as Retrain-
+ing and investigate the impact of different GNN backbones.
+Compared to the nearly identical performance observed across
+unlearning methods in Table 2,GraphToxin exhibits distinct
+performance across GNN backbones, while still maintaining
+its overall superiority and generalization across all graph
+datasets(Table 6). Detailed results and analysis are provided
+in Appendix B.4 due to space constraints.
+4.3 Parameter Studies (SQ4 and SQ5)
+4.3.1 Worst-case Analysis
+Previous subsections motivate the necessity of worst-case
+evaluation. We now analyze its impact on attack performance.
+As summarized in Table 2 and Table 6, worst-case node re-
+moval leads to markedly different behaviors across graphs.
+On Cora, GraphToxin consistently achieves stronger perfor-
+mance under worst-case removal across nearly all metrics,
+except PMGK. In contrast, on PubMed and Photo, Graph-
+Toxin generally performs better under random-node removal
+for global and performance-level metrics. Similar trends are
+observed across different GNN backbones.
+This divergence highlights the inherent trade-off in worst-
+case evaluation.Removing high-degree nodes increases re-
+9
+
+Table 2:The Performance of GraphToxin for single-node Removal (Backbone: GCN). Unit:1e-2. Arrow indicates the
+direction of better performance and the blue color denotes the superb‘best’results (inbold).
+Dataset GU Baseline RNMSE(↓) ED(↓) PMGK(↑) ATT. ACC(↑) ATT. FID(↑) PWD(↓)
+Random Worst Random Worst Random Worst Random Worst Random Worst Random Worst
+Cora
+Retrain
+Rand. 6.59 3.61 78.76 72.45 84.35 68.35 6.79 9.18 6.31 7.48 82.79 80.23
+FewE 5.08 2.84 73.11 65.9684.62 68.79 57.50 39.29 56.67 37.98 40.47 56.30
+Toxin 4.11 1.95 71.38 52.3584.05 67.21 72.21 84.72 69.00 77.97 29.66 22.35
+MEGU
+Rand. 6.59 3.61 78.76 72.45 84.1968.64 6.79 9.18 6.31 7.48 82.79 80.23
+FewE 5.08 2.84 73.16 66.02 84.11 67.73 57.50 39.29 56.67 37.98 40.48 56.31
+Toxin 4.23 2.10 71.84 51.18 84.3067.21 71.14 82.22 70.31 77.85 30.22 20.72
+ETR
+Rand. 6.59 3.61 78.76 72.43 84.16 67.37 6.79 9.18 6.31 7.48 82.79 80.23
+FewE 5.08 2.84 73.16 66.0284.97 67.73 57.50 39.29 56.67 37.98 40.48 56.31
+Toxin 4.23 2.10 71.84 51.1884.14 66.92 71.14 82.22 70.31 77.85 30.22 20.72
+PubMed
+Retrain
+Rand. 79.58 28.85 68.92 70.95 91.62 68.36 67.46 29.76 74.07 48.19 107.872.59
+FewE 77.73 27.9965.14 61.47 92.30 71.30 67.46 77.19 74.08 67.200.0210.61
+Toxin 53.44 13.3674.17 63.16 90.66 70.68 85.58 88.18 78.17 69.1418.65 12.24
+MEGU
+Rand. 79.58 28.85 68.92 70.95 92.06 70.05 67.46 29.76 74.07 48.19 107.872.59
+FewE 77.73 27.9965.14 61.47 92.55 71.16 67.46 77.19 74.07 67.200.0210.61
+Toxin 53.44 13.3674.17 63.16 91.17 70.42 85.58 88.18 78.17 69.14 18.65 12.24
+ETR
+Rand. 79.58 28.85 68.92 70.95 91.59 69.17 67.46 29.76 74.07 48.19 107.872.59
+FewE 77.73 27.9965.14 61.47 92.61 72.63 67.46 77.19 74.08 67.200.0210.61
+Toxin 53.44 13.3674.17 63.16 91.53 69.05 85.58 88.18 78.17 69.14 18.65 12.24
+Photo
+Retrain
+Rand. 0.61 0.3192.58 107.8369.33 63.29 26.01 2.98 25.20 0.93 74.48 92.92
+FewE 0.61 0.3151.46 68.21 68.03 58.10 67.44 28.76 68.02 28.74 28.12 62.26
+Toxin 0.64 0.3444.49 52.1166.33 49.65 86.11 85.95 85.65 80.85 13.91 30.36
+MEGU
+Rand. 0.61 0.3192.58 107.8368.42 63.22 26.01 2.98 25.20 0.93 74.48 92.92
+FewE 0.61 0.3151.46 68.21 68.08 57.81 67.44 28.76 68.02 28.74 28.12 62.26
+Toxin 0.64 0.3444.49 51.8366.36 49.06 86.11 86.27 85.65 80.66 13.91 30.43
+ETR
+Rand. 0.61 0.3192.58 107.8368.84 63.48 26.01 2.98 25.20 0.93 74.48 92.92
+FewE 0.61 0.3151.46 68.21 68.60 58.02 67.44 28.76 68.02 28.74 28.12 62.26
+Toxin 0.61 0.31 44.49 51.8366.36 49.06 86.11 86.27 85.65 80.66 13.91 30.43
+construction difficulty by amplifying structural ambiguity and
+semantic misalignment. While moderate neighborhood ex-
+pansion can yield more informative signals for recovery, these
+signals may be distorted by over-smoothing or losing crucial
+semantic and structural details during information propaga-
+tion, particularly within heterogeneous neighborhoods.
+4.3.2 Unlearned Graph Size
+Figure 3 shows thatthe attack performance is unstable when
+the unlearned graph is small. As the graph size increases,
+the performance stabilizes and gradually converges across
+different GNN backbones.We provide the visualization of rest
+metrics and corresponding analysis in Appendix B.5.
+4.3.3 Node Homophily
+As illustrated in Figure 3,GraphToxin demonstrates stable
+performance under varying homophily levels, with the GCN
+backbone achieving the strongest performance across most
+metrics. When node homophily approaches one, GraphSAGE
+and SGC diverge from GCN mainly in performance-level eval-
+uation. Outside this extreme range, the attack performance
+across all backbones tends to converge. One possible explana-
+tion is that near-perfect homophilic neighborhoods produce
+indistinguishable node embeddings, thus leading to noninfor-
+mative gradients for recovery. Similarly, the visualization and
+analysis of rest metrics are presented in Appendix B.6.
+4.3.4 Fisher Coefficient
+We evaluate the contribution of the curvature match-
+ing module by varying its Fisher coefficient ( α1) from
+{0,0.01,0.1,1,10} , where α1 =0 serves as the ablation. Fig-
+ure 4empirically confirms the effectiveness of curvature
+matching, as the attack performance generally improves when
+the coefficient is non-zero. Consistent with previous find-
+ings, the results under worst-case removal typically exceed
+those under random removal. Additionally, the random case
+achieves higher attack fidelity when α1 ∈ {0.01,0.1}and
+lower posterior Wasserstein distance whenα1 ∈ {0,0.01,0.1}.
+Overall, GraphToxin attains competitive performance when
+α1 ∈ {0.01,0.1,1}and yields better results for both random
+and worst cases whenα 1 =0.1.
+4.3.5 Laplacian Coefficient
+Figure 5demonstrates the effectiveness of the feature smooth-
+ing module. Similar to prior studies that set Laplacian co-
+efficients (α2) to fairly small values [34, 50], we tune α2 ∈
+{0,1e−7,1e−5,1e−3,0.1} . We observe that the attack per-
+formance under the worst-case removal exceeds that under
+10
+
+Figure 3: Impact of the Full Unlearned Graph Size and Node Homophily
+Figure 4: Impact of Fisher Coefficient
+the random removal in nearly all metrics while the random
+case achieves stronger performance mainly in global and
+performance-level metrics. Overall, GraphToxin achieves su-
+perior performance whenα 2 ∈ {1e−7,1e−5}.
+Figure 5: Impact of Laplacian Coefficient
+4.4 Extensions (SQ6 and SQ7)
+Due to space limitations, we provide detailed performance
+and analysis of the extensions to multiple-node removal and
+the black-box setting in Appendix B.7 and B.8, respectively.
+4.5 Discussion
+4.5.1 Defense (SQ8)
+To investigate the performance of defense mechanisms against
+GraphToxin, we use the most vulnerable and stable attack
+target—Retraining after single-node removal in the white-
+box setting. We adopt both in-processing and post-processing
+privacy-preserving techniques. Pre-processing techniques are
+out of our scope as they typically alter graphs before training,
+making it difficult to disentangle whether observed effects
+stem from unlearning or from data modification.
+Node-level Differential Privacy (Node-DP) in GNNsNode-
+DP in GNNs aims to protect an individual node and all its
+incident edges during message passing. Compared to stan-
+dard or edge-DP, enforcing node-DP is substantially more
+challenging due to structural coupling and multi-hop depen-
+dencies, which amplify per-sample sensitivity and complicate
+privacy accounting. Existing studies either inject noises to
+shallow GNNs [6] or redesign architectures to decouple graph
+convolutions [31, 47]. Despite these efforts, achieving strong
+node-level privacy guarantees with competitive utility remains
+an open problem [19, 35, 42].
+Following Xiang et al. [42], we adopt HeterPoison to im-
+plement node-DP. As the default configuration leads to severe
+utility degradation on GNN backbones, we directly tune the
+noise scale σ∈ {0.006,0.007,0.008,0.009,0.01} from the
+symmetric multivariate Laplace noise LAP(0,σ 2Id), result-
+ing in test accuracies of 79.40%, 76.00%, 69.90%, 61.00%
+11
+
+and 51.90%, respectively. We select σ=0.007 to balance
+between privacy and utility.
+From Table 3,node-DP fails to effectively mitigate Graph-
+Toxin. The reconstruction quality remains comparable to the
+undefended setting, and attack accuracy may even increase.
+We attribute this behavior to the injected DP noise, which
+suppresses weak and unstable gradient components while pre-
+serving more informative signals for recovery. In this sense,
+node-DP can act as a form of regularization, preventing Graph-
+Toxin from overfitting to trivial details.
+Gradient Compression (GC).Given that GraphToxin ex-
+ploits the real or surrogate gradient difference for recovery,
+it is imperative to enhance the privacy of released gradients.
+Gradient compression techniques are widely adopted against
+such gradient-based attacks [48]. Following V ogels et al. [37],
+we prune a proportion p of smaller gradients to assess the im-
+pact of gradient sparsity on GraphToxin. We experiment with
+high pruning ratios of p∈ {0.5,0.7,0.9}. The most stringent
+case, p=0.9 , enforces the extreme gradient sparsity where
+only very few gradients are preserved. The results are shown
+in Table 3. Similar to node-DP,GC cannot effectively defend
+GraphToxin. Preserving only partial gradients can lead to
+attack performance comparable to or even exceeding that ob-
+tained from full gradients. Even under extreme sparsification,
+GraphToxin remains competitive relative to the undefended
+baseline. This finding further supports our previous specula-
+tion that retaining only important and informative gradients
+rather than replicating trivial details can enhance the attack
+performance of GraphToxin.
+4.5.2 Limitation and Future Work
+Assumption RelaxationConsistent with prior work [15, 34],
+we assume that the attacker has access to node labels and
+the size of the unlearned subgraph. While this assumption is
+standard and feasible, removing it would further enhance the
+applicability of GU-FGRA. One possible direction is to in-
+corporate label inference into the GU-FGRA pipeline. When
+the size of the full unlearned graph is unknown, a Frobenious
+norm regularizer [34, 50] can be introduced to ensure graph
+sparsity. Furthermore, graph condensation metrics can be uti-
+lized to evaluate reconstruction quality as the ground-truth
+unlearned graph can be treated as an approximate condensed
+target. We leave these extensions for future work.
+Large-scale Node RemovalThis work follows existing graph
+unlearning research and primarily examines the effectiveness
+of GraphToxin under relatively small-scale node removal. Al-
+though we explore the challenging worst-case scenarios that
+generate comparatively larger unlearned graphs by simultane-
+ously removing multiple highest-degree nodes, investigating
+the scalability of GraphToxin under large-scale multiple-node
+removal presents a promising direction for future work.
+Beyond Degree-Based Worst-case AnalysisNode degree
+provides a direct and interpretable proxy for structural influ-
+ence in the worst-case evaluation, as deleting a node neces-
+sarily removes all of its incident edges. This correspondence
+makes degree a natural criterion for modeling the immediate
+structural impact of unlearning requests, while other measures
+such as node influence [20, 41], may capture different worst-
+case behaviors. Exploring alternative influence criteria could
+provide a more comprehensive view of GU-FGRA.
+Deep Investigation on Complex InteractionsSeveral non-
+trivial findings emerge from the experimental results. For
+instance, GraphToxin remains effective under strict differen-
+tial privacy guarantees, and retaining only a small fraction of
+gradients can suffice for GU-FGRA. These observations sug-
+gest complex interactions among model architectures, graph
+sparsity, node homophily and other possible factors. A deeper
+investigation on these factors is left for future work.
+5 Related Work
+5.1 Graph Unlearning
+Existing graph unlearning methods are commonly categorized
+into exact unlearning and approximate unlearning [30].
+5.1.1 Exact Graph Unlearning
+GraphEraser pioneered the first graph unlearning framework
+[3]. This framework partitions the original training graph
+into disjoint shards and trains a separate GNN on each shard.
+Upon receiving a new unlearning request, the target node is
+removed from its associated shard, followed by retraining of
+the corresponding shard model. Wang et al. [38] subsequently
+extended this framework to inductive settings.
+5.1.2 Approximate Graph Unlearning
+GIF [41] utilizes graph influence functions to estimate pa-
+rameter changes induced by node deletion and subsequently
+applies corrective updates to model parameters to approxi-
+mate the state of a model retrained on the remaining graph.
+GNNDelete [28] formulates unlearning as an optimization
+problem with two objectives: deleted edge consistency, which
+removes the influence of deleted edges from model parameters
+and neighboring representations, and neighborhood influence
+preservation, which ensures that retained model knowledge is
+unaffected after deletion. MEGU [21] introduces a mutual evo-
+lution framework that jointly optimizes a predictive module
+and an unlearning module to generate effective and reliable
+unlearning performance. ETR [43] proposes a training-free
+two-stage unlearning framework. In the Erase stage, ETR
+modifies model parameters to mitigate the impact of deleted
+nodes and their propagated influence on neighboring nodes.
+while the Rectify stage approximates the gradients of the
+remaining nodes to enhance utility after graph unlearning.
+12
+
+Table 3:The Performance of Node-DP and Gradient Compression in Defending GraphToxin (Dataset: Cora). Unit:1e-2.
+Arrow indicates the direction of better performance and theboldfont denotes the‘best’results.
+Defense Type RNMSE(↓) ED(↓) PMGK(↑) ACC(↑) FID(↑) PWD(↓)
+Random Worst Random Worst Random Worst Random Worst Random Worst Random Worst
+DP Node 5.88 3.02 67.95 61.79 82.39 65.44 86.7289.87 57.06 73.69 44.84 45.15
+GC
+p-0.5 4.152.0570.40 48.4083.8167.20 76.6292.8168.64 79.26 31.2117.50
+p-0.7 4.29 2.15 70.06 50.99 83.27 66.16 73.28 86.60 71.5080.5426.74 18.44
+p-0.9 4.142.1566.35 46.1782.5367.27 79.5390.3174.1779.6024.2417.79
+5.2 Graph Reconstruction Attacks
+Existing graph reconstruction attacks against GNNs can be
+broadly categorized into four groups based on their attack
+objectives and assumptions.
+5.2.1 Link Stealing Attack
+Link stealing attacks aim to infer the existence of edges in a
+target graph. He et al. [13] introduced the first link stealing
+attack and provided a comprehensive attack taxonomy us-
+ing various background knowledge. LinkTeller [39] exploits
+node features and labels to propose the first query-based link
+stealing attack via influence analysis in both transductive
+and inductive settings. LinkThief [49] combines node simi-
+larity, generalized structural features, and shadow graphs to
+assist link membership inference. Recently, TrendAttack [46]
+emerged as the first link stealing attack against graph un-
+learning to identify the link membership through confidence
+trends. This line of work focuses on edge-level removal, how-
+ever, node removal introduces substantially broader structural
+changes and poses greater reconstruction challenges.
+5.2.2 Attribute Inference Attack against GNNs
+Attribute inference attacks seek to recover sensitive attributes
+rather than graph structure. Duddu et al. [8] proposed the first
+attribute inference attack against GNNs. They exploited node
+embeddings of partial nodes and their associated sensitive
+features to train a supervised attack classifier for inferring
+sensitive attributes of the target nodes. Olatunji et al. [27]
+developed three attribute inference attacks that leverage par-
+tial sensitive attributes, public non-sensitive attributes and
+shadow graphs to conduct multiple queries. These attacks
+solely target sensitive attributes, rather than full node feature
+recovery, which is a central focus of our work.
+5.2.3 Graph Topology Reconstruction Attack
+Graph topology reconstruction attacks aim to recover the adja-
+cency structure of the target graph. Duddu et al. [8] designed
+the first graph topology reconstruction attack to exploit a
+strong correlation between publicly released embeddings and
+the ground-truth graph topology. Building on the same attack
+setting, GraphMI [51] and Zhang et al. [52] reconstructed
+graph topology with graph statistics similar to the ground-
+truth through a graph encoder-decoder architectures. Olatunji
+et al. [26] employed node features and their explanations to
+guide topology recovery by jointly minimizing reconstruction
+errors on node features and explanations and prediction losses.
+These methods reconstruct only graph topology and depend
+on assumptions that require feature or explanation access,
+thereby restricting their applicability and failing to generalize
+to fully data-free black-box settings.
+5.2.4 Gradient Inversion Attack
+While the above three attack types have broad application
+scenarios, gradient inversion attacks against GNNs are specif-
+ically tailored for graph federated learning. GRAIN [7]
+presents the first gradient inversion attack for partial node fea-
+ture and graph topology recovery. It initially exploits rank de-
+ficiencies in GNN layers to reconstruct candidate subgraphs,
+then iteratively filters unreliable ones, and finally combines
+these candidates with a depth-first search strategy for graph
+recovery. GLG [34] demonstrates that gradient matching en-
+ables recovery of subgraphs in both node and graph-level
+tasks. However, these attacks assume access to client-side
+gradients and cannot be trivially adapted to graph unlearning.
+6 Conclusion
+In this study, we pioneer the investigation into the vulnera-
+bilities of reconstructing the full unlearned graphs through
+graph unlearning. We propose GraphToxin, the first full graph
+reconstruction attack against graph unlearning. Specifically,
+we introduce a novel curvature matching module to provide
+fine-grained signals for full unlearned graph recovery. We fur-
+ther extend GraphToxin to multiple-node removal under both
+white-box and black-box settings. Furthermore, we present
+a comprehensive evaluation framework, demonstrating the
+necessity of worst-case evaluation and multi-level evaluation
+metrics. Extensive experiments demonstrates the effective-
+ness and flexibility of GraphToxin across both white-box
+and black-box settings for single and multiple-node removal.
+In addition, our assessment of existing defense mechanisms
+shows that they provide limited protection and may exhibit
+unintended effects against this attack, highlighting the urgent
+need to develop more robust defenses for graph unlearning.
+13
+
+APPENDIX
+Ethical Considerations
+This study investigates vulnerabilities of graph unlearning
+solely on publicly available benchmark datasets and with un-
+learning algorithms tested on local devices. It does not directly
+compromise personal information or cause harm to real-world
+systems or servers. As a red team, we validate that the pro-
+posed attack reveals substantially more sensitive information
+than existing inference attacks. The findings underscore the
+urgent need for robust countermeasures.
+Open Science
+In accordance with the CFP’s Open Science guidelines, we
+release the artifacts required to reproduce our experiments,
+including the datasets, code, implementation details, and eval-
+uation pipeline. To preserve anonymity during review, these
+materials are hosted in an anonymous repository https:
+//anonymous.4open.science/r/GraphToxin-A854, and
+will be migrated to a public GitHub repository upon accep-
+tance. This artifact release is intended to facilitate further
+investigation into vulnerabilities in graph unlearning and to
+inspire future work on robust defenses.
+A Theorem Assumptions and Proof
+The subsequent theoretical proof of curvature matching is
+built upon the following two assumptions:
+Assumption 1(Empirical Risk Function).We assume that
+L(·) is twice continuously differentiable and the Hessian
+H=∇ 2L(θ) is invertible and symmetric w.r.t. parameter
+θ. Following previous studies [4, 45], we add a damping term
+λI to H ifL(·)is non-convex.
+Assumption 2(Small Parameter Change).We assume that
+the parameter change θ∗ −θ before and after graph unlearn-
+ing is small.
+We empirically observe that this change is small, as re-
+flected in our experimental results. This observation is consis-
+tent with the objective of graph unlearning and is theoretically
+bounded in prior work [5, 41].
+Under the above assumptions, the first-order Taylor expan-
+sion of the gradient∇L(·)around a stationary pointθis:
+∇L(θ∗)≈∇L(θ)+∇ 2L(θ)(θ∗ −θ) (14)
+Gradient-based GU-FGRA initializes a dummy graph and
+iteratively optimizes it to recover a final graph whose in-
+duced gradients explain the observed parameter changes [15].
+Hence:
+∆ ˜∇≈θ ∗ −θ(15)
+where ∆ ˜∇ denotes the parameter change induced by the
+dummy graph. Since the original model is already trained
+and released, its parameters θ are fixed. Without loss of gen-
+erality, GU-FGRA aims to recover parameters ˜θ such that
+∆ ˜∇= ˜θ−θ.
+Based on Equation (14) and Equation (15), we provide the
+proof of Theorem 1 below:
+Proof. Based on Equation (14), we get ∆∇≈H(θ ∗ −θ) .
+Since H is invertible, θ∗ −θ≈H −1∆∇. As for Equation
+(15), under the same linearized relation in Equation (14),
+˜θ−θ≈H −1∆ ˜∇. Therefore, the attack goal is transformed
+to minimize the difference between H−1∆∇ and H−1∆ ˜∇. For-
+mally, H−1(∆ ˜∇−∆∇)≈0 . Take theH1/2 to the left-hand and
+right-hand side, then we get H−1/2(∆ ˜∇−∆∇)≈0 . Consider
+the squared L2 norm, the previous approximation equals to
+(∆ ˜∇−∆∇) T H−1(∆ ˜∇−∆∇), hereby completing the proof.
+B Experimental Validation
+B.1 Datasets
+Cora and PubMed are small-scale and medium-scale citation
+networks with low average node degrees, where nodes repre-
+sent scientific/medical publications, edges denote citations,
+and node features carry author’s personal information. Photo
+is a dense co-purchase graph, where nodes represent products,
+edges indicate frequent co-purchases, and features encode
+product reviews. The dataset statistics are shown in Table 4.
+We follow the standard data split setting commonly used in
+GNN benchmarks [28, 32], randomly selecting20 nodes per
+class for training, 30 nodes per class for validation, and using
+the remaining nodes for testing.
+Table 4:Detailed Graph Statistics
+DatasetsNodes Edges Features LabelsAvg. Deg. Homo.(%)
+Cora 2,708 10,556 1,433 7 3.90 82.52
+PubMed19,717 88,648 500 3 4.50 79.24
+Photo 7,650 238,162 745 8 31.13 83.65
+B.2 Implementation
+1. Victim GNN: We consider 2-layer GNNs with the hid-
+den dimension of 256 and a linear classifier for node
+classification tasks. We tune the learning rate from
+{0.001,0.005}, and set the weight decay as 5e−4 and
+training epochs as 200.
+2. Graph Unlearning: For MEGU, we adopt the default
+setting to set the unlearning rate as 0.05, weight decay
+as 1e−4, tuning epoch as 100, and coefficients in the
+propagation process as 0.8, 0.5 and the coefficient in the
+loss function as 0.01. For ETR, we follow their default
+setting to tune the parameter–rectifying coefficient λ
+from{0.001,0.01,0.3}.
+14
+
+3. GraphToxin: For single-node removal, we randomly
+sample 10% of training nodes or select the top 10%
+highest-degree nodes as attack targets, and report their
+average results throughout our paper. The attacker does
+not have access to the locations of the removed nodes
+and only observes the gradient difference between the
+original and the unlearned GNNs. Unless otherwise spec-
+ified, the Fisher coefficient is set to 1 and the Laplacian
+coefficient is set to 1e−5. AdamW [23] is used as the
+optimizer. Since multiple restarts to the optimizer (e.g,
+L-BFGS) from different starting points can significantly
+improve the reconstruction quality, for a fair comparison,
+we strictly follow the configuration in Sinha et.al. [34]
+for all experiments and only report the attack results
+with a single run of the optimizer. In addition, we strictly
+set the attack learning rate as 0.01 for all experiments.
+Following Geiping et al. [11] and Hu et al. [15], each
+optimization is run for up to10,000 iterations, with most
+attacks converging earlier, and a step size decay is ap-
+plied after 3/8, 5/8, 7/8 of total iterations, using the
+multiplicative factor of 0.5.
+B.3 Original and Unlearning Performance
+Table 5 shows that all graph unlearning methods exhibit com-
+parable performance across the three GNN backbones, with
+variations within 1%. As for GNN backbones, the GCN back-
+bone achieves the highest performance on Cora and PubMed
+while SGC performs best on Photo, with differences of less
+than 2% compared to GCN. Across unlearning methods,
+ETR preserves model utility more effectively on Cora and
+PubMed, while Retraining exceeds other unlearning methods
+with GCN and SGC backbones. In contrast, MEGU yields the
+strongest results with GraphSAGE on Photo. Regarding re-
+moval settings, removing the10% of the highest-degree nodes
+results in larger benign performance degradation compared to
+the random-node removal, which is amplified on sparse and
+smaller-scale graphs.
+B.4 Attack with GNN Backbones
+As shown in Table 6,GraphToxin consistently retains its su-
+periority and generalization across all GNN backbones and
+graph datasets. Taken together, these results suggest that there
+is no universally most vulnerable GNN due to the complex
+interactions among model architecture, graph sparsity and ho-
+mophily. We provide the following plausible explanations: (1)
+GCN aggregates information over local neighborhoods, which
+makes node representations strongly dependent on features
+propagated from their local neighborhoods. This propagation
+can provide more informative gradient signals for recover-
+ing underlying graph structure. However, on dense graphs,
+rapid neighborhood expansion can lead to over-smoothing,
+weakening node-specific signals. As a result, GCN tends to
+achieve more competitive performance on small-scale and
+sparse graphs such as Cora. (2) GraphSAGE relies on random
+neighbor sampling rather than full neighborhood aggregation.
+Consequently, gradients are computed from incomplete and
+randomly varying local structures, which might obfuscate the
+gradient-based guidance for recovery, particularly on sparse
+graphs. While on dense graphs such as Photo, structural re-
+dundancy can offset the randomness introduced by neighbor
+sampling, enabling GraphToxin with the GraphSAGE back-
+bone to maintain strong reconstruction performance. (3) SGC
+employs linear multi-hop feature propagation. Although its
+linearity offers a more direct and simpler proxy for full graph
+recovery, it can suppress fine-grained and node-specific de-
+tails. This dual effect might explain why SGC performs well
+in some metrics on PubMed and Photo, yet exhibits degraded
+performance on Cora.
+B.5 Impact Factor - Unlearned Graph Size
+From Figures 3 and 6, RNMSE remains consistently low
+with minimal variation, indicating its insensitivity to the un-
+learned graph size. PMGK generally decreases as the graph
+size increases. An exception is observed on Photo with the
+GCN backbone, where PMGK rebounds when the deletion
+graph becomes sufficiently large. ED and PWD also exhibit
+a decreasing trend with increasing unlearned graph size. In
+addition, attack accuracy and fidelity show noticeable oscilla-
+tions. These variations arise from single-node removal, where
+each target node induces an unlearned graph of different sizes
+and structural complexity. The results are then sorted by the
+size of the unlearned graph. Heterogeneity across target nodes
+leads to varying reconstruction difficulty, which manifests as
+fluctuations in the plotted results.
+B.6 Impact Factor - Node Homophily
+Consistent with the analysis on unlearned graph size, RN-
+MSE remains largely invariant to changes in the homophily
+of unlearned nodes. However, other metrics exhibit clearer
+correlations with node homophily: PMGK as well as attack ac-
+curacy and fidelity are positively correlated with homophily,
+whereas ED and PWD are negatively correlated. Overall,
+these observationsindicate that node homophily may serve as
+a more informative indicator than unlearned graph size for
+characterizing the vulnerability of GU-FGRA. We leave the
+deeper investigation for future work.
+B.7 Multiple Node Removal
+In this section, we examine the effectiveness of GraphToxin
+under multiple-node removal, where 5, 10, and 15 nodes are
+simultaneously removed from the training graph, respectively.
+For a fair comparison, all hyperparameters are kept identical
+to those in single-node removal. Under the random removal
+15
+
+Table 5:The Performance of the Original and Unlearned GNNs for A Single Node Removal
+Dataset GNN
+Original Retraining MEGU ETR
+ACC AUC Random Worst Random Worst Random Worst
+ACC AUC ACC AUC ACC AUC ACC AUC ACC AUC ACC AUC
+Cora
+GCN 80.2096.70 80.0596.68 79.9996.67 80.0696.66 80.52 96.69 80.5796.76 80.6996.77
+SAGE 81.1096.61 80.9996.66 80.7796.64 80.04 96.54 79.94 96.52 80.80 96.56 80.86 96.57
+SGC 81.1096.12 80.42 96.24 80.24 96.19 80.6496.06 80.49 96.06 81.1096.15 81.1096.17
+PubMed
+GCN 77.4090.44 77.7890.53 77.93 90.40 77.12 90.28 76.68 90.32 77.5390.45 77.7590.46
+SAGE 76.90 89.44 75.53 89.23 74.80 89.08 76.22 89.51 76.05 89.50 76.68 89.54 76.48 89.53
+SGC 78.2090.37 77.9290.44 77.78 90.29 75.25 89.65 75,72 90.03 78.0589.90 78.1289.95
+Photo
+GCN 90.07 99.06 91.0999.05 91.03 99.06 89.11 98.90 89.47 98.96 88.19 98.71 88.26 98.72
+SAGE 91.3199.28 89.2299.05 89.8699.09 90.4099.14 90.1599.14 80.45 93.14 80.38 93.13
+SGC 92.0499.02 91.1498.99 91.4099.00 91.0898.88 90.9798.94 90.11 99.03 90.12 99.03
+Table 6:GraphToxin for A Single Node Removal with Different GNN Backbones (GU: Retraining). Unit:1e-2. Arrow
+indicates the direction of better performance and the blue color denotes the superb‘best’results (inbold).
+Dataset GNN Baseline NRMSE(↓) ED(↓) PMGK(↑) ATT. ACC(↑) ATT. FID(↑) PWD(↓)
+Random Worst Random Worst Random Worst Random Worst Random Worst Random Worst
+Cora
+GCN
+Rand. 6.59 3.61 78.76 72.45 84.35 68.35 6.79 9.18 6.31 7.48 82.79 80.23
+FewE 5.08 2.84 73.11 65.9684.62 68.79 57.50 39.29 56.67 37.98 40.47 56.30
+Toxin 4.11 1.95 71.38 52.3584.05 67.21 72.21 84.72 69.00 77.97 29.66 22.35
+SAGE
+Rand. 6.59 3.61 65.84 63.10 81.13 66.78 6.79 9.18 5.60 6.66 89.97 91.17
+FewE 6.01 3.24 67.71 64.14 80.10 66.94 38.69 28.63 33.93 24.36 56.19 65.42
+Toxin 4.49 1.86 60.20 57.46 82.02 67.10 68.21 64.36 62.26 55.17 33.93 38.72
+SGC
+Rand. 6.59 3.61 95.25 91.71 81.41 67.04 6.79 9.18 8.10 9.26 84.98 80.48
+FewE 6.02 3.38 79.64 80.47 80.32 67.60 32.14 28.66 32.86 28.76 63.28 68.44
+Toxin 4.35 2.16 65.47 66.94 84.04 67.56 72.50 61.03 67.50 55.99 30.97 41.89
+PubMed
+GCN
+Rand. 79.58 28.85 68.92 70.95 91.62 68.36 67.46 29.76 74.07 48.19 107.872.59
+FewE 77.73 27.9965.14 61.47 92.30 71.30 67.46 77.19 74.08 67.200.0210.61
+Toxin 53.44 13.3674.17 63.16 90.66 70.68 85.58 88.18 78.17 69.1418.65 12.24
+SAGE
+Rand. 79.58 28.85 125.38 99.69 91.2872.51 16.80 27.29 1.85 33.33 59.51 50.23
+FewE 79.12 28.03 86.4574.73 93.2469.55 65.21 64.13 55.82 64.16 25.55 32.54
+Toxin 56.36 8.64 80.1276.06 91.32 60.54 75.93 84.17 66.53 73.65 26.97 21.28
+SGC
+Rand. 79.58 28.85 81.82 83.96 91.55 69.86 67.46 29.76 73.15 46.390.00 2.90
+FewE 78.89 28.79 67.72 88.1991.99 69.92 63.10 70.08 58.33 53.30 22.43 19.82
+Toxin 42.97 14.55 64.16 70.6788.98 68.42 81.88 92.48 81.88 69.402.01 12.28
+Photo
+GCN
+Rand. 0.61 0.3192.58 107.8369.33 63.29 26.01 2.98 25.20 0.93 74.48 92.92
+FewE 0.61 0.3151.46 68.21 68.03 58.10 67.44 28.76 68.02 28.74 28.12 62.26
+Toxin 0.64 0.3444.49 52.1166.33 49.65 86.11 85.95 85.65 80.85 13.91 30.36
+SAGE
+Rand. 0.61 0.31116.19 127.1870.49 65.60 26.01 2.98 26.56 3.89 74.77 95.12
+FewE 0.62 0.33 72.00 100.15 65.23 56.95 65.29 29.26 66.60 29.32 29.88 64.59
+Toxin 0.65 0.3455.44 70.7262.42 48.22 94.52 87.79 91.74 81.67 11.51 30.41
+SGC
+Rand. 0.61 0.3194.57 111.1671.23 63.74 26.01 2.98 25.20 1.25 74.11 92.11
+FewE 0.61 0.3158.26 56.17 68.42 60.97 64.69 45.54 65.99 47.94 26.50 41.42
+Toxin 0.66 0.3356.02 47.6065.29 45.59 80.78 90.39 76.55 85.76 21.05 26.89
+16
+
+Figure 6: Impact of the Full Unlearned Graph Size and Node Homophily
+setting, we sample 5 disjoint node sets with the same removal
+size, while in the worst-case removal setting, we select the
+top 25,50,75 highest-degree nodes and partition them into
+five non-overlapping sets based on their degree ranking. The
+average results are reported in Table 7.
+Under the worst-case multiple-node removal, the unlearn-
+ing performance of Retraining improves in accuracy but
+slightly decline in AUC when more nodes are removed. In
+terms of attack performance, GraphToxin consistently out-
+performs other baselines. As the number of removed nodes
+increases, reconstruction-related metrics generally yield better
+results. In contrast, performance-level metrics display a non-
+monotonic pattern, which initially increase and then slightly
+degrade. Additionally, the random-case and worst-case scenar-
+ios exhibit complementary strengths, with neither consistently
+dominating the other across all metrics. This observation
+highlights the necessity of considering both scenarios for a
+comprehensive evaluation.
+B.8 Black-box Setting
+SetupWe now assess the performance of GraphToxin under
+a data-free, black-box setting. Following the configuration in
+Zhuang et al. [54], we utilize a GCN with 2 layers and 256
+hidden units as a surrogate model, and a 3-layer MLP with
+128 and 256 hidden units as a full-parameter graph generator.
+We set the query graph size as250 with 32 feature dimensions.
+During model stealing, each query encompasses training the
+generator 2 times with a learning rate of 1e−6 and training
+the surrogate 5 times with a learning rate of 0.001. The total
+number of queries is set to 100. The stealing performance of
+the original GNN is 79.40% in accuracy and 96.12% in AUC.
+After unlearning, the stealing performance of the unlearned
+GNN under both single and multiple-node removal improves
+in accuracy while slightly declines in AUC. As for GU-FGRA,
+we adopt the same hyperparameter settings as in the white-
+box experiments. For the semantic calibration module, we
+set its coefficient as 50 for single-node removal and 5000 for
+multiple-node removal, as the latter introduces substantially
+higher noise. Average results are reported in Table 8.
+Single Node RemovalWe observe thatblack-box GraphToxin
+consistently outperforms all baselines under single-node re-
+moval. Since we introduce the semantic calibration module to
+enforce the label alignment, the overall attack performance in
+the performance-level metrics is competitive, although the per-
+formance in reconstruction-related metrics degrades relative
+to the white-box setting as expected. A plausible explanation
+is that black-box GraphToxin utilizes the semantic calibration
+during recovery, which might shift some nodes across the
+model’s decision boundary to obtain the correct predictions
+but ignore the actual distance in feature or embedding space.
+Overall, the degradation in such metrics remains acceptable.
+Multiple Node RemovalUnder the black-box multi-node
+removal setting, GraphToxin still exceeds other baselines.
+Compared to single-node removal, performance-level met-
+rics decline when more nodes are unlearned. However, the
+attack results of the reconstruction-related metrics are mixed.
+PMGK and ED decrease, while NRMSE improves in both
+random and worst-case node removal scenarios.
+17
+
+Table 7:GraphToxin for Multiple Node Removals Based on Retraining (Backbone: GCN, Dataset: Cora). Unit:1e-2.
+Arrow indicates the direction of better performance and the blue color denotes the superb‘best’results (inbold).
+Rem. NumRetraining(ACC/AUC)Baseline NRMSE(↓) ED(↓) PMGK(↑) ACC(↑) FID(↑) PWD(↓)
+Random Worst Random Worst Random Worst Random WorstRandom Worst Random Worst Random Worst
+5 80.22/96.64 80.30/96.66
+Rand. 2.34 1.71 73.16 73.52 68.01 62.14 27.88 9.94 23.80 8.68 67.08 77.68
+FewE 2.13 1.65 61.95 62.4170.4760.59 28.75 20.02 28.78 20.15 66.79 72.13
+Toxin 1.66 1.03 56.27 54.5970.4564.82 60.03 70.40 52.06 63.98 47.24 39.08
+10 79.98/96.50 80.44/96.49
+Rand. 1.69 1.42 72.50 73.56 58.88 63.76 24.84 17.72 22.04 16.00 66.75 72.57
+FewE 1.58 1.31 60.10 59.51 64.65 68.37 24.80 20.54 23.63 17.99 65.72 68.30
+Toxin 0.99 0.73 54.36 52.29 65.78 68.64 67.83 64.47 59.12 58.99 39.79 44.09
+15 79.46/96.57 79.84/96.47
+Rand. 1.41 1.28 73.37 74.06 63.11 62.27 21.28 16.61 19.87 15.21 70.53 75.92
+FewE 1.32 1.18 57.73 58.6970.0569.47 22.71 17.38 21.82 16.31 67.23 72.32
+Toxin 0.80 0.69 54.06 55.6766.0570.34 65.63 58.79 53.80 53.50 51.01 51.05
+Table 8:Black-box GraphToxin for A Single and Multiple Node Removals Based on Retraining (Dataset: Cora). Unit:
+1e-2. Arrow indicates the direction of better performance and the blue color denotes the superb‘best’results (inbold).
+Type Retraining(ACC/AUC)Baseline NRMSE(↓) ED(↓) PMGK(↑) ACC(↑) FID(↑) PWD(↓)
+Random Worst Random Worst Random Worst Random WorstRandom Worst Random Worst Random Worst
+Single 79.66/96.10 79.63/96.09
+Rand. 11.51 6.29 127.87 120.86 81.09 67.11 12.20 13.85 13.51 14.40 16.19 14.64
+FewE 5.68 3.10 115.91 96.7882.9867.97 49.40 65.56 47.62 58.30 11.27 9.25
+Toxin 4.76 2.49 87.37 80.0881.5668.30 72.74 82.07 70.95 73.64 8.28 6.97
+Multiple79.86/96.09 79.78/96.10
+Rand. 2.34 1.71 126.49 135.71 65.10 57.04 27.88 9.94 21.81 7.57 14.91 17.83
+FewE 2.35 1.72 111.55 114.6869.4759.83 41.92 38.55 33.20 33.63 13.22 12.76
+Toxin 1.53 1.07 90.04 71.6667.7059.93 59.41 69.60 47.88 60.11 11.56 9.63
+18
+
+References
+[1] Martin Andres Bertran, Shuai Tang, Michael Kearns,
+Jamie Heather Morgenstern, Aaron Roth, and Steven
+Wu. Reconstruction attacks on machine unlearning:
+Simple models are vulnerable. In The Thirty-eighth
+Annual Conference on Neural Information Processing
+Systems, 2024.
+[2] Min Chen, Zhikun Zhang, Tianhao Wang, Michael
+Backes, Mathias Humbert, and Yang Zhang. When ma-
+chine unlearning jeopardizes privacy. In Proceedings
+of the 2021 ACM SIGSAC Conference on Computer
+and Communications Security, CCS ’21, page 896–911,
+New York, NY , USA, 2021. Association for Computing
+Machinery.
+[3] Min Chen, Zhikun Zhang, Tianhao Wang, Michael
+Backes, Mathias Humbert, and Yang Zhang. Graph
+unlearning. In Proceedings of the 2022 ACM SIGSAC
+Conference on Computer and Communications
+Security, CCS ’22, page 499–513, New York, NY , USA,
+2022. Association for Computing Machinery.
+[4] Zizhang Chen, Peizhao Li, Hongfu Liu, and Pengyu
+Hong. Characterizing the influence of graph elements.
+In The Eleventh International Conference on Learning
+Representations, 2023.
+[5] Eli Chien, Chao Pan, and Olgica Milenkovic. Certified
+graph unlearning. In NeurIPS 2022 Workshop: New
+Frontiers in Graph Learning, 2022.
+[6] Ameya Daigavane, Gagan Madan, Aditya Sinha,
+Abhradeep Guha Thakurta, Gaurav Aggarwal, and Pra-
+teek Jain. Node-level differentially private graph neural
+networks, 2022.
+[7] Maria Drencheva, Ivo Petrov, Maximilian Baader, Dim-
+itar Iliev Dimitrov, and Martin Vechev. GRAIN: Exact
+graph reconstruction from gradients. In The Thirteenth
+International Conference on Learning Representations,
+2025.
+[8] Vasisht Duddu, Antoine Boutet, and Virat Shejwalkar.
+Quantifying privacy leakage in graph embedding.
+In MobiQuitous 2020 - 17th EAI International
+Conference on Mobile and Ubiquitous Systems:
+Computing, Networking and Services, MobiQuitous
+’20, page 76–85, New York, NY , USA, 2021. Associa-
+tion for Computing Machinery.
+[9] Mingyuan Fan, Fuyi Wang, Cen Chen, and Jianying
+Zhou. Boosting gradient leakage attacks: data recon-
+struction in realistic fl settings. In Proceedings of
+the 34th USENIX Conference on Security Symposium,
+SEC ’25, USA, 2025. USENIX Association.
+[10] Chong Fu, Xuhong Zhang, Shouling Ji, Jinyin Chen,
+Jingzheng Wu, Shanqing Guo, Jun Zhou, Alex X. Liu,
+and Ting Wang. Label inference attacks against ver-
+tical federated learning. In 31st USENIX Security
+Symposium (USENIX Security 22), pages 1397–1414,
+Boston, MA, August 2022. USENIX Association.
+[11] Jonas Geiping, Hartmut Bauermeister, Hannah Dröge,
+and Michael Moeller. Inverting gradients - how
+easy is it to break privacy in federated learning? In
+Proceedings of the 34th International Conference on
+Neural Information Processing Systems, NIPS ’20, Red
+Hook, NY , USA, 2020. Curran Associates Inc.
+[12] William L. Hamilton, Rex Ying, and Jure Leskovec. In-
+ductive representation learning on large graphs. In
+Proceedings of the 31st International Conference on
+Neural Information Processing Systems, NIPS’17, page
+1025–1035, Red Hook, NY , USA, 2017. Curran Asso-
+ciates Inc.
+[13] Xinlei He, Jinyuan Jia, Michael Backes, Neil Zhenqiang
+Gong, and Yang Zhang. Stealing links from graph neu-
+ral networks. In 30th USENIX Security Symposium
+(USENIX Security 21), pages 2669–2686. USENIX As-
+sociation, August 2021.
+[14] Kalle Hjerppe, Jukka Ruohonen, and Ville Leppanen.
+The general data protection regulation: Requirements,
+architectures, and constraints. In 2019 IEEE 27th
+International Requirements Engineering Conference
+(RE). IEEE, September 2019.
+19
+
+[15] Hongsheng Hu, Shuo Wang, Tian Dong, and Minhui
+Xue. Learn what you want to unlearn: Unlearning in-
+version attacks against machine unlearning. In 2024
+IEEE Symposium on Security and Privacy (SP), pages
+3257–3275, 2024.
+[16] Vassilis Kalofolias. How to learn a graph from smooth
+signals. In Arthur Gretton and Christian C. Robert, ed-
+itors, Proceedings of the 19th International Conference
+on Artificial Intelligence and Statistics, volume 51 of
+Proceedings of Machine Learning Research, pages 920–
+929, Cadiz, Spain, 09–11 May 2016. PMLR.
+[17] Ryo Karakida, Shotaro Akaho, and Shun-ichi Amari.
+Universal statistics of fisher information in deep neural
+networks: Mean field approach. In Kamalika Chaud-
+huri and Masashi Sugiyama, editors, Proceedings of the
+Twenty-Second International Conference on Artificial
+Intelligence and Statistics, volume 89 ofProceedings of
+Machine Learning Research, pages 1032–1041. PMLR,
+16–18 Apr 2019.
+[18] Thomas N. Kipf and Max Welling. Semi-supervised
+classification with graph convolutional networks. In
+International Conference on Learning Representations,
+2017.
+[19] Dian Lei, Zijun Song, Yanli Yuan, Chunhai Li, and
+Liehuang Zhu. Achieving personalized privacy-
+preserving graph neural network via topology awareness.
+In Proceedings of the ACM on Web Conference 2025,
+WWW ’25, page 3552–3560, New York, NY , USA, 2025.
+Association for Computing Machinery.
+[20] Weikai Li, Zhiping Xiao, Xiao Luo, and Yizhou Sun.
+Fast inference of removal-based node influence. In
+Proceedings of the ACM WebConference 2024, WWW
+’24, page 422–433, New York, NY , USA, 2024. Associ-
+ation for Computing Machinery.
+[21] Xunkai Li, Yulin Zhao, Zhengyu Wu, Wentao Zhang,
+Rong-Hua Li, and Guoren Wang. Towards effec-
+tive and general graph unlearning via mutual evolu-
+tion. Proceedings of the AAAI Conference on Artificial
+Intelligence, 38(12):13682–13690, Mar. 2024.
+[22] Can Liu, Jin Wang, , Yipeng Zhou, Yachao Yuan,
+Quanzheng Sheng, and Kejie Lu. Afgi: Towards ac-
+curate and fast-convergent gradient inversion attack in
+federated learning, 2024.
+[23] Ilya Loshchilov and Frank Hutter. Decoupled weight
+decay regularization. In International Conference on
+Learning Representations, 2019.
+[24] Haoran Lu, Lei Wang, Xiaoliang Ma, Jun Cheng, and
+Mengchu Zhou. A survey of graph neural networks
+and their industrial applications. Neurocomputing,
+614:128761, 2025.
+[25] Giannis Nikolentzos, Polykarpos Meladianos, and
+Michalis Vazirgiannis. Matching node embeddings for
+graph similarity. Proceedings of the AAAI Conference
+on Artificial Intelligence, 31(1), Feb. 2017.
+[26] Iyiola Olatunji, Mandeep Rathee, Thorben Funke, and
+Megha Khosla. Private graph extraction via fea-
+ture explanations. Proceedings on Privacy Enhancing
+Technologies, 2023:59–78, 04 2023.
+[27] Iyiola E. Olatunji, Anmar Hizber, Oliver Sihlovec, and
+Megha Khosla. Does black-box attribute inference at-
+tacks on graph neural networks constitute privacy risk?,
+2023.
+[28] Yijian Qin, Ziwei Zhang, Xin Wang, Zeyang Zhang, and
+Wenwu Zhu. Nas-bench-graph: Benchmarking graph
+neural architecture search. In S. Koyejo, S. Mohamed,
+A. Agarwal, D. Belgrave, K. Cho, and A. Oh, editors,
+Advances in Neural Information Processing Systems,
+volume 35, pages 54–69. Curran Associates, Inc., 2022.
+[29] Alexandre Rame, Corentin Dancette, and Matthieu
+Cord. Fishr: Invariant gradient variances for out-of-
+distribution generalization. In Kamalika Chaudhuri,
+Stefanie Jegelka, Le Song, Csaba Szepesvari, Gang
+Niu, and Sivan Sabato, editors, Proceedings of the 39th
+International Conference on Machine Learning, vol-
+ume 162 ofProceedings of Machine Learning Research,
+pages 18347–18377. PMLR, 17–23 Jul 2022.
+[30] Anwar Said, Yuying Zhao, Tyler Derr, Mudassir Shabbir,
+Waseem Abbas, and Xenofon Koutsoukos. A survey of
+graph unlearning, 2024.
+[31] Sina Sajadmanesh, Ali Shahin Shamsabadi, Aurélien
+Bellet, and Daniel Gatica-Perez. Gap: Differentially pri-
+vate graph neural networks with aggregation perturba-
+tion. In 32nd USENIX Security Symposium (USENIX
+Security 23), Anaheim, CA, August 2023. USENIX As-
+sociation.
+[32] Oleksandr Shchur, Maximilian Mumme, Aleksandar Bo-
+jchevski, and Stephan Günnemann. Pitfalls of graph neu-
+ral network evaluation. ArXiv, abs/1811.05868, 2018.
+[33] Giannis Siglidis, Giannis Nikolentzos, Stratis Limnios,
+Christos Giatsidis, Konstantinos Skianis, and Michalis
+Vazirgiannis. Grakel: A graph kernel library in python.
+Journal of Machine Learning Research, 21(54):1–5,
+2020.
+[34] Divya Anand Sinha, Yezi Liu, Ruijie Du, Athina
+Markopoulou, and Yanning Shen. Gradient inversion
+attack on graph neural networks. Transactions on
+Machine Learning Research, 2025.
+20
+
+[35] Yifan Sun and Meng Song. Differentially private
+graph convolutional networks with privacy amplifica-
+tion. In 2024 IEEE 23rd International Conference
+on Trust, Security and Privacy in Computing and
+Communications (TrustCom), pages 2327–2335, 2024.
+[36] Leonid Nisonovich Vaserstein. Markov processes over
+denumerable products of spaces, describing large sys-
+tems of automata. Problemy Peredachi Informatsii,
+5(3):64–72, 1969.
+[37] Thijs V ogels, Sai Praneeth Karimireddy, and Mar-
+tin Jaggi. PowerSGD: practical low-rank gradient
+compression for distributed optimization. Curran As-
+sociates Inc., Red Hook, NY , USA, 2019.
+[38] Cheng-Long Wang, Mengdi Huai, and Di Wang. In-
+ductive graph unlearning. In Proceedings of the 32nd
+USENIX Conference on Security Symposium, SEC
+’23, USA, 2023. USENIX Association.
+[39] Fan Wu, Yunhui Long, Ce Zhang, and Bo Li. Linkteller:
+Recovering private edges from graph neural networks
+via influence analysis. In 2022 IEEE Symposium on
+Security and Privacy (SP), pages 2005–2024, 2022.
+[40] Felix Wu, Amauri Souza, Tianyi Zhang, Christopher
+Fifty, Tao Yu, and Kilian Weinberger. Simplifying graph
+convolutional networks. In Proceedings of the 36th
+International Conference on Machine Learning, pages
+6861–6871. PMLR, 2019.
+[41] Jiancan Wu, Yi Yang, Yuchun Qian, Yongduo Sui, Xi-
+ang Wang, and Xiangnan He. Gif: A general graph un-
+learning strategy via influence function. In Proceedings
+of the ACM Web Conference 2023, WWW ’23, page
+651–661, New York, NY , USA, 2023. Association for
+Computing Machinery.
+[42] Zihang Xiang, Tianhao Wang, and Di Wang. Preserving
+node-level privacy in graph neural networks. In 2024
+IEEE Symposium on Security and Privacy (SP), pages
+4714–4732, 2024.
+[43] Zhe-Rui Yang, Jindong Han, Chang-Dong Wang, and
+Hao Liu. Erase then rectify: a training-free parameter
+editing approach for cost-effective graph unlearning. In
+Proceedings of the Thirty-Ninth AAAI Conference on
+Artificial Intelligence and Thirty-Seventh Conference
+on Innovative Applications of Artificial Intelligence
+and Fifteenth Symposium on Educational Advances
+in Artificial Intelligence, AAAI’25/IAAI’25/EAAI’25.
+AAAI Press, 2025.
+[44] Zhilin Yang, William Cohen, and Ruslan Salakhudi-
+nov. Revisiting semi-supervised learning with graph
+embeddings. In Maria Florina Balcan and Kil-
+ian Q. Weinberger, editors, Proceedings of The 33rd
+International Conference on Machine Learning, vol-
+ume 48 of Proceedings of Machine Learning Research,
+pages 40–48, New York, New York, USA, 20–22 Jun
+2016. PMLR.
+[45] Hanyang Yuan, Jiarong Xu, Renhong Huang, Mingli
+Song, Chunping Wang, and Yang Yang. Can graph
+neural networks expose training data properties? an
+efficient risk assessment approach. In A. Globerson,
+L. Mackey, D. Belgrave, A. Fan, U. Paquet, J. Tomczak,
+and C. Zhang, editors, Advances in Neural Information
+Processing Systems, volume 37, pages 69361–69385.
+Curran Associates, Inc., 2024.
+[46] Jiahao Zhang, Yilong Wang, Zhiwei Zhang, Xiaorui Liu,
+and Suhang Wang. Unlearning inversion attacks for
+graph neural networks, 2025.
+[47] Qiuchen Zhang, Hong kyu Lee, Jing Ma, Jian Lou,
+Carl Yang, and Li Xiong. Dpar: Decoupled graph neu-
+ral networks with node-level differential privacy. In
+Proceedings of the ACM WebConference 2024, WWW
+’24, page 1170–1181, New York, NY , USA, 2024. Asso-
+ciation for Computing Machinery.
+[48] Rui Zhang, Song Guo, Junxiao Wang, Xin Xie, and
+Dacheng Tao. A survey on gradient inversion: Attacks,
+defenses and future directions. In Lud De Raedt, ed-
+itor, Proceedings of the Thirty-First International Joint
+Conference on Artificial Intelligence, IJCAI-22, pages
+5678–5685. International Joint Conferences on Artifi-
+cial Intelligence Organization, 7 2022. Survey Track.
+[49] Yuxing Zhang, Siyuan Meng, Chunchun Chen, Mengyao
+Peng, Hongyan Gu, and Xinli Huang. Link-
+thief: Combining generalized structure knowledge
+with node similarity for link stealing attack against
+gnn. In Proceedings of the 32nd ACM International
+Conference on Multimedia, MM ’24, page 4947–4956,
+New York, NY , USA, 2024. Association for Computing
+Machinery.
+[50] Zaixi Zhang, Qi Liu, Zhenya Huang, Hao Wang, Chee-
+Kong Lee, and Enhong Chen. Model inversion attacks
+against graph neural networks. IEEE Transactions on
+Knowledge and Data Engineering, 35(9):8729–8741,
+2023.
+[51] Zaixi Zhang, Qi Liu, Zhenya Huang, Hao Wang,
+Chengqiang Lu, Chuanren Liu, and Enhong Chen.
+Graphmi: Extracting private graph data from graph neu-
+ral networks. In Zhi-Hua Zhou, editor, Proceedings
+of the Thirtieth International Joint Conference on
+Artificial Intelligence, IJCAI-21, pages 3749–3755. In-
+ternational Joint Conferences on Artificial Intelligence
+Organization, 8 2021. Main Track.
+21
+
+[52] Zhikun Zhang, Min Chen, Michael Backes, Yun Shen,
+and Yang Zhang. Inference attacks against graph neu-
+ral networks. In 31st USENIX Security Symposium
+(USENIX Security 22), pages 4543–4560, Boston, MA,
+August 2022. USENIX Association.
+[53] Ligeng Zhu, Zhijian Liu, and Song Han. Deep leakage
+from gradients. Curran Associates Inc., Red Hook, NY ,
+USA, 2019.
+[54] Yuanxin Zhuang, Chuan Shi, Mengmei Zhang, Jinghui
+Chen, Lingjuan Lyu, Pan Zhou, and Lichao Sun. Un-
+veiling the secrets without data: Can graph neural net-
+works be exploited through Data-Free model extrac-
+tion attacks? In 33rd USENIX Security Symposium
+(USENIX Security 24), pages 5251–5268, Philadelphia,
+PA, August 2024. USENIX Association.
+22

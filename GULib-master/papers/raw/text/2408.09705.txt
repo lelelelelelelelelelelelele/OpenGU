@@ -1,0 +1,1241 @@
+Community-Centric Graph Unlearning
+Yi Li1,2, Shichao Zhang1,2, Guixian Zhang3, Debo Cheng4*
+1Key Lab of Education Blockchain and Intelligent Technology, Ministry of Education,
+Guangxi Normal University, Guilin, 541004, China
+2Guangxi Key Lab of Multi-Source Information Mining and Security,
+Guangxi Normal University, Guilin, 541004, China
+3School of Computer Science and Technology, China University of Mining and Technology,
+Xuzhou, Jiangsu, 221116, China
+4UniSA STEM, University of South Australia,
+Mawson Lakes, Adelaide, Australia
+liiyi.xsjl@gmail.com, zhangsc@mailbox.gxnu.edu.cn, guixian@cumt.edu.cn, chedy055@mymail.unisa.edu.au
+Abstract
+Graph unlearning technology has become increasingly im-
+portant since the advent of the ‘right to be forgotten’ and
+the growing concerns about the privacy and security of ar-
+tificial intelligence. Graph unlearning aims to quickly elim-
+inate the effects of specific data on graph neural networks
+(GNNs). However, most existing deterministic graph un-
+learning frameworks follow a balanced partition-submodel
+training-aggregation paradigm, resulting in a lack of struc-
+tural information between subgraph neighborhoods and re-
+dundant unlearning parameter calculations. To address this is-
+sue, we propose a novel Graph Structure Mapping Unlearning
+paradigm (GSMU) and a novel method based on it named
+Community-centric Graph Eraser (CGE). CGE maps com-
+munity subgraphs to nodes, thereby enabling the reconstruc-
+tion of a node-level unlearning operation within a reduced
+mapped graph. CGE makes the exponential reduction of both
+the amount of training data and the number of unlearning pa-
+rameters. Extensive experiments conducted on five real-world
+datasets and three widely used GNN backbones have veri-
+fied the high performance and efficiency of our CGE method,
+highlighting its potential in the field of graph unlearning.
+https://github.com/liiiyi/CCGU
+Introduction
+As Artificial Intelligence (AI) permeates various sectors,
+protecting individual privacy and data security has become
+an increasingly pressing concern (Wei et al. 2024). Legal
+frameworks, such as the “right to be forgotten” (Pardau
+2018; Mantelero 2013; Cofone 2020), alongside the rise
+of techniques like membership inference attacks (He et al.
+2021) have underscored the need for model providers to
+swiftly remove specific data and mitigate its impacts. In par-
+allel, Graph Neural Networks (GNNs) (Li et al. 2022; Xu
+et al. 2018; Li et al. 2024a,b) have gained prominence as a
+powerful tool, renowned for their ability to model complex
+data relationships. However, their widespread application in
+areas involving highly sensitive data (Zhang et al. 2025),
+such as social networks(Qiu et al. 2018) and recommenda-
+tion systems (Fan et al. 2019), has intensified the demand
+*Corresponding author
+Copyright © 2025, Association for the Advancement of Artificial
+Intelligence (www.aaai.org). All rights reserved.
+for effective privacy-preserving techniques. Among these,
+Graph Unlearning (Chen et al. 2022b) has gained partic-
+ular prominence.
+Graph unlearning seeks to precisely quantify and remove
+the influence of specific data within graph-structured net-
+works while maintaining the integrity of the overall model,
+thereby addressing critical privacy concerns in an era of ex-
+panding AI applications. A straightforward approach to un-
+learning involves retraining the entire model from scratch.
+However, this method is highly impractical due to the sub-
+stantial time costs and associated model downtime. Conse-
+quently, current research in unlearning has focused on de-
+veloping techniques that reduce this time expenditure while
+maintaining the model’s effectiveness (Said et al. 2023).
+To achieve efficient and effective unlearning, researchers
+have developed various strategies that circumvent the costly
+process of full retraining (Guo et al. 2019; Izzo et al. 2021;
+Bourtoule et al. 2021; Chen et al. 2022b). These unlearn-
+ing frameworks are typically divided into approximate and
+deterministic methods (Nguyen et al. 2022). Approximate
+methods (Guo et al. 2019; Izzo et al. 2021) involve fine-
+tuning models to implement unlearning; however, they only
+provide abstract statistical guarantees of privacy. In con-
+trast, deterministic methods, the focus of this paper, in-
+volve retrospective retraining to remove data effects en-
+tirely (Yan et al. 2022). For example, the SISA (Bourtoule
+et al. 2021) approach partitions data for selective retraining.
+GraphEraser (Chen et al. 2022b), building on SISA, uses
+balanced partitioning to ensure equal node distribution and
+aggregates submodels using a learning-based method. Re-
+cently introduced, GUIDE (Wang, Huai, and Wang 2023)
+enhances predictive performance by repairing edges before
+aggregating partitioned subgraphs.
+In summary, the prevailing deterministic graph unlearn-
+ing frameworks (Chen et al. 2022b; Wang, Huai, and Wang
+2023; Chen et al. 2022a) are primarily based on the Balance
+Partition-Submodel Training-Aggregation paradigm ( BP-
+SM-TA). The principal limitation of this paradigm lies in
+its assumption that the unlearning operation can be decom-
+posed into a set of discrete sub-problems, each with its
+own global representativeness. This decomposition, how-
+ever, sacrifices the connectivity between sub-problems and
+arXiv:2408.09705v2  [cs.LG]  14 Dec 2024
+
+increases the complexity of managing them. Graph unlearn-
+ing with BP-SM-TA, two specific challenges arise:
+Challenge 1 (Low Structural Utilization) : In the BP-
+SM-TA paradigm, submodels are treated as independent,
+leading to the disassembly of the original graph during par-
+titioning and resulting in the loss of critical structural infor-
+mation between shards that were originally connected. This,
+in turn, diminishes the overall comprehension of the graph’s
+structure. Additionally, the balanced partitioning method,
+which aims to achieve uniform training times for submodels
+by selecting nodes through clustering, further compromises
+the graph’s structural integrity.
+Challenge 2 (High Model Complexity): In the BP-SM-
+TA paradigm, submodels must independently represent the
+original graph, meaning each submodel needs to capture the
+essential features of the original structure. This requirement
+introduces significant challenges in terms of partitioning and
+structuring the submodels. During the unlearning process,
+this paradigm necessitates retraining all affected submodels,
+which leads to extensive parameter computations. For large
+graphs, simultaneously loading all submodels for aggrega-
+tion incurs substantial time costs, which contradicts the pri-
+mary objective of efficient graph unlearning.
+To tackle the aforementioned challenges, we propose
+a novel G raph S tructure M apping U nlearning paradigm
+(GSMU). Specifically, GSMU generates a mapped graph
+comprising the non-redundant features and structural infor-
+mation of the original graph. The nodes and edges of the
+mapped graph are derived from the subgraphs and inter-
+subgraph node relationships in the original graph. The con-
+struction of edges between mapped nodes addresses the lim-
+itation of submodel independence identified in Challenge
+1. Meanwhile, unlearning operations only require updat-
+ing the affected mapped nodes and edges, thereby avoid-
+ing extensive parameter retraining and addressing the limi-
+tation of independent submodel representativeness identified
+in Challenge 2. Moreover, we propose a novel community-
+centric graph unlearning method, Community-centric Graph
+Eraser (CGE), which serves as a practical implementation
+of GSMU. CGE comprises two components: parameter-free
+community-centric graph mapping and a node-level unlearn-
+ing strategy. Specifically, CGE divides the original graph
+into multiple communities to accomplish the subgraph-node
+mapping required by the GSMU, and subsequently the un-
+learning strategy only needs to be performed on the nodes
+after the mapping, thus controlling the part affected by the
+unlearning requirement at the node level. Our contributions
+are summarized as follows:
+• We propose a novel graph structure mapping unlearn-
+ing paradigm, GSMU, to overcome the space and time
+constraints of the traditional BP-SM-TA paradigm in ad-
+dressing unlearning concerns. To the best of our knowl-
+edge, this is the first application of a mapped graph ap-
+proach in graph unlearning.
+• Based on GSMU, we introduce a new efficient graph un-
+learning framework, CGE, which supports determinis-
+tic data unlearning while maximizing the retention of the
+original graph’s structural information and semantic fea-
+Notation Description
+G = (V, E) Original Graph
+eG = (eV, eE) Mapped Graph
+G 7→eG The Mapping from G to eG
+C = {C1, C2, . . . , Ck} Node Subgraphs Set
+Vu = {vu1, vu2, . . . vun} Unlearning Requests Set
+IVu Unlearning Influence Set
+Update eG(eV′, eE′, eX′, eY′) The process of updating eG
+Table 1: Summary of Notations.
+ture. By mapping communities to nodes, unlearning op-
+erations can be executed at the node level.
+• Extensive experiments on five real-world datasets
+demonstrate that our proposed CGE achieves superior
+performance and remarkable unlearning efficiency across
+datasets of varying scales and characteristics.
+Preliminaries
+Notations. In this paper, we use specific notations to rep-
+resent various components of GNNs and related operations.
+The tilde notation e·, is used to indicate entities produced by
+mapping operations. Calligraphic fonts are employed to de-
+note sets. We summarize the notations in Table 1.
+Deterministic Graph Unlearning. Given a graph G =
+(V, E), where V represents the set of nodes and E represents
+the set of edges, and a GNN backbone model denoted as
+fθ(G), with θ being the model parameters. Suppose the un-
+learning request is a sequence of nodesVu ⊆ V. The goal of
+deterministic graph unlearning is to eliminate the influence
+of these nodes from the model, formalized as:
+fθ′ (G′) ≈ fθ(G) subject to Vu /∈ G′, (1)
+where G′ = ( V \ Vu, E \Eu) and θ′ denotes the updated
+model parameters after unlearning. The advanced objectives
+of graph unlearning should ensure portability, comparable
+model utility to training from Scratch (Chen et al. 2022b),
+the maintenance of model performance before and after un-
+learning, high graph structure utilization, and minimal un-
+learning window periods. Graph unlearning can be broadly
+divided into node-level and edge-level approaches. In our
+GSMU paradigm, edge unlearning is considered a subprob-
+lem of node unlearning. Consequently, our work focuses on
+the node classification task, treating node unlearning as the
+fundamental unit.
+Community Detection. Community detection aims to
+partition a graph G = ( V, E) into a community set C =
+{C1, C2, . . . , Ck}, optimizing intra-community connectiv-
+ity while minimizing inter-community connectivity (Jin
+et al. 2021; Khan and Niazi 2017). Hierarchical commu-
+nity detection (Lancichinetti et al. 2011) further refines this
+process by creating multi-level community structures, which
+clarify relationships at each level. In this paper, we first per-
+form coarse-grained segmentation followed by fine-grained
+segmentation, as described in the next section.
+
+Graph Structure Mapping
+Community Detection
+UpdatingUnlearning Requset
+GNN Backbones
+Node Mapping
+Edge Mapping
+Node Mapping
+Edge Mapping
+Graph Structure Mapping
+Community Detection
+UpdatingUnlearning Requset
+GNN Backbones
+Node Mapping
+Edge Mapping Mapped 
+Graph
+Mapped 
+Graph
+Original 
+Graph
+Original 
+Graph
+...... Process of 
+Mapping
+Figure 1: Community-centric Graph Eraser (CGE) framework. CGE maps the communities in original graph G to obtain graph
+eG by graph structure mapping. Only the related mapped nodes need to be updated when nodes require unlearning.
+Community-Centric Unlearning
+In this section, we detail the GSMU paradigm and the spe-
+cific implementation of CGE.
+GSMU. In contrast to the BP-SM-TA paradigm, GSMU
+employs a subgraph-based graph structure mapping ap-
+proach to derive a representative mapped graph, eG, from the
+original graph, G. Each mapped node in eG corresponds to
+a subgraph in G. After partitioning, G and eG are isolated to
+ensure privacy. When it is necessary to unlearn a node, the
+unlearning operation only affects its corresponding mapped
+nodes, i.e., the subgraphs in which the node resides.
+Definition 1. Graph Structure Mapping Given a graph
+G = ( V, E) with a set of predefined subgraphs C, GSMU
+maps it to a graph eG = ( eV, eE). Each subgraph C ∈ Ccon-
+structs a mapped node, i.e., V 7→ eV = {evi | C ∈ C}.
+An edge eeij is created for each edge eij ∈ Ethat connects
+nodes in different subgraphsCi and Cj, i.e., E 7→eE = {eeij |
+eij ∈ E, eij connects Ci and Cj}. Node features fusion is
+performed on each subgraph, i.e., X 7→ eX = {exi | exi =
+f({xv | v ∈ Vi})}, wheref is a fusion function. Node labels
+are determined by voting within each subgraph, i.e., Y 7→
+eY = {eyi | eyi = g({yv | v ∈ Vi})}, where g is a labeling
+function. The mapping relationship between G and eG is de-
+fined as: G 7→eG =
+n
+V 7→eV, E 7→eE, X 7→eX, Y 7→eY
+o
+.
+Under the developed GSMU framework, we pro-
+pose a community-centric graph unlearning method, i.e.,
+Community-Centric G raph E raser (CGE). The subsequent
+parts will provide an overview of the operational process of
+CGE and explain how CGE constructs mapped graph and
+utilises if for node prediction and unlearning.
+Overview of CGE
+The CGE framework, illustrated in Figure 1, consists of
+two stages: the generation of a community-centered mapped
+graph and a node-level unlearning/training stage. In particu-
+lar, CGE employs hierarchical community detection to con-
+struct a subgraph set C, establish the graph structure map-
+ping in Definition 1, and generate a mapped graph eG for
+subsequent operations.
+• Unlearning: Upon receiving a sequence of unlearning
+requests Vu, CGE employs the node-level unlearning
+strategy to determine the specific influence IVu of Vu
+on the mapped graph eG identifying the specific affected
+mapped edges and nodes. Subsequently, CGE recalcu-
+lates the nodes and edges within IVu according to the
+mapping, thereby updating the graph eG.
+• Prediction: When the node vp requires prediction, CGE
+determines destination community Ci based on the com-
+munity of the adjacent nodes of vp. The node features of
+vp are then fused with the mapped nodes evi correspond-
+ing to Ci, which in turn updates the graph eG acting on the
+GNN. The node evi is reanalyzed to map the attributes of
+the node vp.
+Community-Centric Mapping
+CGE generates a community-centered mapped graph eG and
+establishes a graph structure mapping G 7→eG, as described
+in Definition 1. In particular, eG is utilized solely to retain
+the representative information of G, thereby enabling its
+replacement for representation learning. Each community
+within G is mapped into a node, and the robustness score
+between the mapped node pairs is employed to construct the
+edge relationships.
+Community Detection CGE introduces the Lou-
+vain (Blondel et al. 2008) to initialize communities and
+uses the OSLOM method (Lancichinetti et al. 2011) to
+optimize community structure. Louvain is a community
+detection algorithm based on modularity optimization. It
+attempts to move each node into the community of its
+neighboring nodes to maximize the modularity increment.
+The modularity is calculated as follows:
+Q = 1
+2m
+X
+ij
+
+Aij − kikj
+2m
+
+δ(ci, cj), (2)
+where Aij represents the edge weight between node vi and
+node vj. Additionally, ki and kj denote the degrees of vi
+and vj, respectively. The term m denotes the total weight of
+all edges in G. δ(ci, cj) is an indicator variable that equals
+1 when nodes i and j belong to the same community, and 0
+otherwise.
+OSLOM calculates the statistical significance of the ini-
+tialized communities using the following formula:
+p(C) =
+X
+t≥tC
+TC
+t
+
+pt(1 − p)TC−t, (3)
+
+where TC represents the total number of possible connec-
+tions in community C, tC represents the actual number of
+connections in C, and p represents the probability that nodes
+in C are connected to other nodes. OSLOM then returns an
+optimized community set C = {C1, C2, . . . , Ck}.
+Mapping As delineated in Definition 1, the mapping of
+G 7→ eG comprises four distinct mappings. Among these,
+we categorize the node, feature, and label mapping as node
+mapping, which align with edge mapping.
+Node Mapping. The initial step is to construct a node
+mapping based on the community set C:
+V 7−→eV = {evi | C ∈ C}. (4)
+To ensure that supervised learning goes well, it is essen-
+tial to assign the correct labels and features to the mapped
+nodes. Despite the strict division of communities, node fea-
+tures within a community may vary and have inconsistent
+labels, making it impractical to average the node labels and
+features simply (Zhang et al. 2017). To address this, we cal-
+culated the core feature components of the community and
+designed a feature-based label mapping method. We con-
+struct a feature matrix XC ∈ Rn×d, where d is the feature
+space dimensionality and rows correspond to node feature
+vectors in the community C. Principal Component Analysis
+(PCA) is then applied to XC to reduce its dimensionality.
+Let X′
+C ∈ Rn×k be the transformed feature matrix by PCA,
+where k is the number of principal components based on the
+ratio n components. The community featureefC is calculated
+as the mean of the transformed feature vectors:
+efC = 1
+|VC|
+X
+v∈VC
+x′
+v, (5)
+where x′
+v is the transformed feature vector of nodev in com-
+munity C. The feature mapping is then constructed using the
+fusion feature:
+X 7−→eX = {exi | exi = efCi for Ci ∈ C}, (6)
+where efCi represents the fusion feature of community Ci.
+Next, we identify a subset of nodes within the current
+community C that have the highest feature similarity to the
+mapped node ev, and then perform majority voting on these
+nodes. These nodes are then subjected to a majority voting
+process. Specially, we consider a community C with node
+labels {l1, l2, . . . , ln} and their corresponding feature vec-
+tors XC. We calculate the Euclidean distance between each
+node feature vector xi ∈ XC in the community C and efC.
+di = ∥efC − xi∥2. (7)
+We sort the distances in ascending order and calculate the
+gradient gi = di+1 −di between consecutive distances. The
+distance corresponding to the maximum gradient is given
+by:
+τ = darg max(g). (8)
+Finally, we select nodes with distancesdi ≤ τ and aggregate
+their labels using majority voting:
+elC = mode({li | di ≤ τ}). (9)
+The label mapping is then constructed as:
+Y 7−→eY = {eyi | eyi = elCi for Ci ∈ C}. (10)
+Edge Mapping. Using the adjacency matrix A to repre-
+sent the graph G, for each edge (u, v) ∈ Ewhere node u
+belongs to community Ci and node v belongs to commu-
+nity Cj, we define the edge count between the community
+pair (Ci, Cj) as sij = P
+u∈Ci
+P
+v∈Cj Auv. The robustness
+score Rij of the connection between communities Ci and
+Cj is evaluated using the following formula:
+Rij = ( sijp
+Dout
+i
+) × ( sijq
+Din
+j
+) + sij
+|Ci ∪ Cj|, (11)
+where Dout
+i and Din
+j denote the out-degree of Ci and the in-
+degree of Cj, respectively.
+A smoothing function, wij = λ × exp(−Rij) +η is then
+employed to process the robustness score, representing the
+edge weight of the original community relationship. To store
+these weights, we introduce a set W, where each element is
+a key-value pair: the key is the node pair(i, j), and the value
+is wij. Subsequently, a threshold σ is utilized to filter and
+construct the edge mapping E →eE as follows:
+E 7−→eE = {wij | (Ci, Cj) ∈ Wand wij ≥ σ}. (12)
+Finally, the total mapping relationship is established as
+follows:
+G 7−→eG =
+n
+V 7→eV, E 7→eE, X 7→eX, Y 7→eY
+o
+. (13)
+Node-Level Unlearning Strategy
+Upon receipt of an unlearning request as a sequence, de-
+noted as Vu = {vu1, vu2, . . . vun}, CGE initially identifies
+the communities of the nodes in Vu ⊂ Vfor this batch and
+subsequently returns a set of affected communities, denoted
+as Cu. Based on the graph structure mapping G 7→eG, the set
+of all affected mapped nodes and edges, denoted as IVu, is
+obtained.
+It is important to note that the application of node-level
+PCA computation acts as a filter to exclude non-principal
+components and unlearning requests that are not affected. If
+a node vui is not utilized in the calculation of the features
+and labels associated with the mapped node, it can be in-
+ferred that the information contained within the node is not
+retained within the mapped graph. Consequently, the influ-
+ence of node-level unlearning of vui is effectively negated,
+thereby avoiding unnecessary expenditure of time and re-
+sources.
+Based on IVu, CGE updates the relevant feature and struc-
+ture information of the graph and generates an updated graph
+eG′:
+eG′ = Update eG(eV′, eE′, eX′, eY′). (14)
+The updated graph eG′ and the mapped graph eG must sat-
+isfy the following constraints to completely eliminate spe-
+cific data and its derived information within the model.
+fθ′ ( eG′) ≈ fθ( eG) subject to Vu /∈ eG′. (15)
+
+Dataset #Nodes #Edges #Classes #FeaturesDensity
+Cora 2,708 5,429 7 14,33 0.148%
+Citeseer 3,327 4,732 6 3,703 0.085%
+CS 18,333 163,788 15 6,805 0.097%
+Reddit 232,965 1.1 × 108 41 602 0.040%
+Table 2: Statistics of Datasets.
+Experiments
+To evaluate the efficacy of CGE, we conducted a series of
+comprehensive experiments using four real-world datasets
+and three prevalent GNN backbones. The evaluation ad-
+dresses the following questions: (1) Can CGE provide excel-
+lent and comparable model utility? (2) How efficient is CGE
+in practical applications? (3) Can CGE achieve deterministic
+graph unlearning? Additionally, a series of ablation studies
+were performed to examine CGE’s superiority at each stage
+of the graph unlearning process. We also assessed the appli-
+cability of different community detection methods to CGE,
+as detailed in Appendix D.
+Experimental Setup
+Datasets. We evaluated the CGE on four real-world
+datasets of various sizes, including Cora (Yang, Cohen, and
+Salakhudinov 2016), Citeseer (Yang, Cohen, and Salakhudi-
+nov 2016), CS (Shchur et al. 2018a) and Reddit 1, all of
+which are commonly used in GNN evaluations. The large-
+scale Reddit dataset was specifically included to assess the
+unlearning framework’s performance in a real-world con-
+text. The statistics for these datasets are summarized in Table
+2.
+GNN Backbones. We equipped our CGE with three
+GNN backbones, GCN (Kipf and Welling 2016a),
+GAT (Veliˇckovi´c et al. 2017), and GraphSAGE (Hamilton,
+Ying, and Leskovec 2017), to evaluate its versatility.
+Detailed descriptions of the three backbones can be found
+in Appendix A.
+Baselines. To demonstrate the efficacy of CGE, we com-
+pare it with the state-of-the-art unlearning algorithms, in-
+cluding SISA (Bourtoule et al. 2021), GraphEraser (Chen
+et al. 2022b), and GUIDE (Wang, Huai, and Wang 2023), all
+of which are deterministic unlearning methods based on the
+BP-SM-TA paradigm. We also introducedScratch, a scheme
+involving retraining from beginning to end, to evaluate com-
+parable model utility. For each unlearning batch, 0.5% of
+the original dataset’s nodes were randomly selected. More
+detailed experimental settings are provided in Appendix B.
+Metrics. We consider two key aspects to measure the per-
+formance of CGE: model utility and unlearning efficiency.
+Model utility is assessed using the Macro F1 score, while
+unlearning efficiency is evaluated based on the time cost re-
+quired for model deployment and unlearning.
+1https://docs.dgl.ai/generated/dgl.data.RedditDataset.html
+Implementation. CGE is implemented using Python
+3.8.19 and DGL 2. All experiments were conducted on an
+NVIDIA Tesla A800 GPU server running the Ubuntu 23.04
+LTS operating system.
+Model Utility of CGE
+To answer question (1), we conducted a comparative anal-
+ysis of CGE against the best results from three baselines
+across three GNN backbones and four datasets. This anal-
+ysis aims to verify CGE’s model utility in comparison to
+Scratch, as referenced in the Preliminaries.
+Results. The experimental results presented in Table 3 re-
+veal the following findings: (1) CGE outperforms all estab-
+lished baselines in terms of model utility. For instance, on
+Reddit, CGE shows an average increase of 11.56% com-
+pared to GUIDE and an even more significant average in-
+crease of 33.24% compared to GraphEraser. This superior-
+ity is attributed to two factors: (a) CGE employs a graph-
+optimized community detection method, resulting in a more
+accurate community distribution than the balanced partition-
+ing used in the BP-SM-TA paradigm. (b) CGE accounts for
+the inherent relationships between subgraphs, reducing in-
+formation loss, a consideration overlooked by the BP-SM-
+TA paradigm. (2) CGE demonstrates comparable model util-
+ity to Scratch, which serves as the foundational baseline due
+to its broad and outstanding performance achieved through
+the entire retraining of the dataset. Notably, CGE has even
+outperformed Scratch in certain cases, primarily due to its
+pre-integration of similar data within the same community
+in the original graph, effectively reducing noise. This results
+in a newly mapped graph with more robust and accurate
+information. CGE achieves average performance closer to
+Scratch, fulfilling the objectives of unlearning.
+Efficiency of CGE
+To answer the question (2), we evaluate CGE’s efficiency in
+two tasks: model deployment and unlearning.
+In the model deployment stage, the unlearning framework
+generates a complete prediction model, including graph par-
+titioning, data pre-processing, and initial model training. In
+the unlearning stage, the model performs deterministic un-
+learning on a demand sequence and produces an updated
+model based on the deployed one. Since the training time
+across three backbones on the same dataset is linear, we
+show the average efficiency of different unlearning frame-
+works across all backbones, as presented in Table 4.
+During model deployment stage , CGE’s efficiency sur-
+passes most baselines by retaining only the most representa-
+tive information in the mapped graph. Compared to unlearn-
+ing methods trained on the original graph, the mapped graph
+offers smaller-scale training data with higher representative-
+ness. For example, as shown in Table 5, the CS dataset re-
+quires fewer training data and parameters for the mapped
+graph compared to the representative method GraphEraser
+under the BP-SM-TA paradigm.
+2https://www.dgl.ai
+
+Dataset Model Method
+Scratch SISA GraphEraser GUIDE CGE
+Cora
+SAGE 0.7638 ± 0.0018 0 .6024 ± 0.0073 0 .6910 ± 0.0032 0 .7226 ± 0.0031 0.8745 ±0.0043
+GAT 0.7435 ± 0.0039 0 .5793 ± 0.0027 0 .7324 ± 0.0051 0.6640 ± 0.0049 0.7463 ± 0.0083
+GCN 0.7675 ± 0.0012 0 .5190 ± 0.0057 0 .6992 ± 0.0009 0 .7403 ± 0.0093 0.7586 ± 0.0092
+Citeseer
+SAGE 0.7232 ± 0.0003 0 .5189 ± 0.0021 0 .7112 ± 0.0022 0.7271 ± 0.0022 0.7170 ± 0.0103
+GAT 0.7194 ± 0.0006 0 .5020 ± 0.0007 0 .7004 ± 0.0041 0 .7102 ± 0.0019 0.7473 ± 0.0059
+GCN 0.7197 ± 0.0013 0 .4771 ± 0.0011 0 .6983 ± 0.0062 0 .7033 ± 0.0011 0.7082 ± 0.0003
+CS
+SAGE 0.8913 ± 0.0007 0 .5920 ± 0.0004 0 .7033 ± 0.0007 0 .8016 ± 0.0013 0.8460 ± 0.0004
+GAT 0.8811 ± 0.0014 0 .6611 ± 0.0011 0 .7227 ± 0.0014 0.6939 ± 0.0009 0.7664 ± 0.0039
+GCN 0.8907 ± 0.0023 0 .7004 ± 0.0007 0 .6313 ± 0.0022 0 .7053 ± 0.0007 0.7806 ± 0.0032
+Reddit
+SAGE 0.9443 ± 0.0024 0 .5901 ± 0.0013 0 .5793 ± 0.0085 0 .8201 ± 0.0012 0.9451 ± 0.0015
+GAT 0.9477 ± 0.0018 0 .6611 ± 0.0029 0 .7865 ± 0.0029 0 .8817 ± 0.0091 0.9138 ± 0.0006
+GCN 0.9312 ± 0.0061 0 .6882 ± 0.0044 0 .7727 ± 0.0008 0 .8033 ± 0.0009 0.9302 ± 0.0011
+Table 3: The comparison of Macro F1 scores across different graph unlearning frameworks on four datasets and three GNN
+backbones is shown. Scratch is a retraining scheme from beginning to end, which is used to evaluate the utility of comparable
+models. The best-performing unlearning framework’s performance is in bold, and the runner-up’s performance is underlined.
+Method Model Deployment Unlearning
+Cora Citeseer CS Reddit Cora Citeseer CS Reddit
+Scratch 131.52 109.62 702.11 13048.67 130.23 110.05 700.12 13056.33
+GraphEraser 179.53 167.16 1042.07 61220.05 10.78 12.13 62.56 3128.22
+GUIDE 124.58 127.76 745.10 39064.71 10.11 11.07 71.60 3411.89
+CGE 93.12 108.35 747.82 18143.95 8.12 9.58 9.33 49.52
+Table 4: The comparison of two-stage time consumption of different graph unlearning frameworks on four datasets (second).
+During unlearning stage , CGE’s efficiency advantage
+becomes even more pronounced, significantly surpassing
+Scratch and all baselines. The graph structure mapping min-
+imizes the impact of data size differences, allowing CGE to
+reduce unlearning time to seconds without sacrificing model
+utility. This efficiency results from both the exponential re-
+duction in data and parameters and the node-level unlearn-
+ing strategy. Unlike traditional methods that require retrain-
+ing and aggregation of submodels, CGE only needs to re-
+calculate the relevant mapped node-level data, significantly
+reducing time complexity.
+Index GraphEraser CGE
+#Nodes (T) 18,333 1,756
+#Parameters (T) 43,498,280 217,875
+#Parameters (U) 4,890,365 217,875
+Table 5: Comparison of the quantity of training nodes and
+parameters across different unlearning frameworks on CS
+Dataset. Where ‘T’ and ‘U’ denote the training and unlearn-
+ing processes, respectively.
+Unlearning Ability
+To determine the effectiveness of CGE in unlearning, we uti-
+lize a node-level GNN member inference attack methodol-
+ogy (MIA) (He et al. 2021). This approach involves calcu-
+lating the discrepancy between the original model and the
+model after CGE unlearning, to determine whether a node
+has been successfully removed from the model. After ran-
+domly removing 0.5% of all nodes according to the exper-
+imental parameters, the MIA attack was executed. We con-
+sider two scenarios: A and AC, representing the MIA attack
+results on the original GNN backbones and CGE, respec-
+tively. As shown in Table 6, the AUC of MIA on CGE is sig-
+nificantly lower than that of the original GNN backbones,
+approaching 0.5, which is analogous to random guessing.
+This indicates that CGE does not produce additional infor-
+mation leakage and that its unlearning of nodes and associ-
+ated effects is effective.
+Dataset GCN GAT SAGE
+A A C A A C A A C
+Cora 73.3 50.1 75.2 49.8 74.1 52.1
+Citeseer 78.3 52.1 79.1 50.2 79.7 50.7
+CS 73.1 50.1 72.3 49.3 70.8 48.8
+Reddit 63.1 50.0 65.5 49.6 65.1 49.8
+Table 6: Attack AUC of membership inference against GNN
+backbones and CGE (%).
+Ablation Study
+We aim to evaluate the contribution of different modules in
+CGE to the system by addressing the following questions:
+
+Cora Citeseer CS Reddit0.2
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Information Retention
+CGE-OSLOM BEKM
+(a)
+Cora Citeseer CS Reddit0.0
+0.2
+0.4
+0.6
+0.8
+1.0F1 Score
+SAGE (OSLOM)
+GAT (OSLOM)
+GCN (OSLOM)
+SAGE (BEKM)
+GAT (BEKM)
+GCN (BEKM) (b)
+Figure 2: Quality and utility evaluation of different graph
+partitioning schemes.
+0.0 0.1 0.2 0.3 0.4 0.5
+Unlearning Ratio on CS (%)
+0
+10
+20
+30
+40
+50
+60Time Consumption (s)
+GraphEraser
+GUIDE
+CGE
+0.0 0.1 0.2 0.3 0.4 0.5
+Unlearning Ratio on Reddit (%)
+0
+500
+1000
+1500
+2000
+2500
+3000
+3500
+GraphEraser
+GUIDE
+CGE
+Figure 3: Time consumption of each method under different
+unlearning node ratios.
+Compared to previous schemes, is overlapping com-
+munity detection more advantageous? Most previous
+schemes use similar node feature clustering methods for
+subgraph-balanced partitioning, as BP-SM-TA requires each
+subgraph to represent the original graph. In contrast, CGE
+calculates a highly representative mapped graph without cut-
+ting the original graph, thereby limiting information loss.
+To evaluate the schemes for CGE, we use a custom met-
+ric, Information Retention, which measures cosine similar-
+ity between the low-dimensional embeddings of the original
+graph and the subgraph—higher values indicate less infor-
+mation loss. Additional details and validation experiments
+are provided in Appendix C. Figure 2(a) shows the eval-
+uation results of different graph partitioning schemes Bal-
+anced Kmeans (BEKM) and Louvain-OSLOM (OSLOM)
+across four datasets. The balanced partitioning scheme is
+suboptimal, especially in the Reddit dataset, whose origi-
+nal graph representativeness is below zero, explaining why
+GraphEraser performs poorly on Reddit. In contrast, over-
+lapping community detection better suits CGE. Figure 2(b)
+shows that BEKM leads to a significant decrease in CGE’s
+performance, further validating the above explanation.
+Why can CGE overcome the limitations of balanced par-
+titioning? Previous experiments have shown that balanced
+partitioning is a suboptimal graph partitioning scheme, as it
+causes significant information loss due to graph cutting. This
+scheme is adopted by the BP-SM-TA paradigm to prevent
+imbalanced submodels from causing unmanageable learn-
+ing time consumption, but it sacrifices model utility in the
+process. In contrast, CGE, based on the GSMU paradigm,
+offers a node-level unlearning solution with low parameter
+count and complexity. Figure 3 shows the unlearning effi-
+ciency of CGE on two large-scale datasets CS and Reddit
+under different unlearning node ratios. Notably, CGE avoids
+exponential increases in unlearning time as the number of
+forgotten nodes grows, thus eliminating the need for bal-
+anced partitioning as a protective measure.
+Related Work
+Machine unlearning aims to erase specific data and its de-
+rived effects. Following Cao’s work (Cao and Yang 2015),
+this concept has evolved toward the development of both ap-
+proximate and deterministic unlearning methods.
+Approximate unlearning (Wu et al. 2023; Guo et al. 2019)
+achieves statistical unlearning by fine-tuning model param-
+eters, but it cannot guarantee precise data erasure, posing
+challenges for non-convex models like deep learning. Con-
+versely, deterministic unlearning ensures the complete re-
+moval of data points and their influence, often through re-
+training. SISA (Bourtoule et al. 2021) proposed a method
+involving random balanced partitioning into multiple sub-
+models, where only the affected sub-models are retrained
+based on unlearning requests, and the final prediction is ag-
+gregated from these sub-models. This approach is referred
+to as the BP-SM-TA paradigm in this paper. Building on
+this, Chen et al. extended the concept to graph-structured
+data with GraphEraser (Chen et al. 2022b), and the recently
+proposed GUIDE (Wang, Huai, and Wang 2023) further op-
+timized it for inductive graphs.
+In contrast to previous work, the proposed CGE frame-
+work employs a novel graph structure mapping paradigm,
+which maps the original graph to a highly representative
+low-order graph. It introduces a low-parameter node-level
+unlearning strategy to enhance the utilization and efficiency
+of the graph structure within the unlearning framework.
+Conclusions
+In this work, we introduce GSMU, a novel graph struc-
+ture mapping unlearning paradigm that offers an intuitive
+and efficient approach to graph unlearning. We propose
+the Community-Centric Graph Eraser (CGE) as a practi-
+cal implementation of GSMU. CGE first detects commu-
+nities and maps them to nodes, creating a mapped graph.
+This graph is then used to reconstruct node-level unlearn-
+ing operations and representation learning tasks, resulting
+in high graph structure utilization and significantly reduced
+unlearning computational costs. Comprehensive evaluations
+demonstrate that CGE effectively leverages graph structures,
+offering excellent model utility and significantly improved
+unlearning efficiency. This work establishes a groundbreak-
+ing paradigm for graph unlearning with its streamlined ar-
+chitecture and superior performance.
+CGE shows strong potential but faces challenges with
+traditional community detection techniques on large-scale
+graphs. Future work will leverage deep learning-based meth-
+ods to enhance data insights while addressing privacy con-
+cerns, aiming for a balanced and effective approach.
+
+Acknowledgments
+This work was partially supported by the Project of Guangxi
+Science and Technology (GuiKeAB23026040), Research
+Fund of Guangxi Key Lab of Multi-source Information Min-
+ing & Security (MIMS24-13), Research Fund of Guangxi
+Key Lab of Multi-source Information Mining & Security
+(24-A-01-02), and Innovation Project of Guangxi Graduate
+Education (XYCSR2024102).
+References
+Blondel, V . D.; Guillaume, J.-L.; Lambiotte, R.; and Lefeb-
+vre, E. 2008. Fast unfolding of communities in large net-
+works. Journal of statistical mechanics: theory and experi-
+ment, 2008(10): P10008.
+Bourtoule, L.; Chandrasekaran, V .; Choquette-Choo, C. A.;
+Jia, H.; Travers, A.; Zhang, B.; Lie, D.; and Papernot, N.
+2021. Machine unlearning. In 2021 IEEE Symposium on
+Security and Privacy (SP), 141–159. IEEE.
+Cao, Y .; and Yang, J. 2015. Towards making systems for-
+get with machine unlearning. In 2015 IEEE symposium on
+security and privacy, 463–480. IEEE.
+Chen, C.; Sun, F.; Zhang, M.; and Ding, B. 2022a. Rec-
+ommendation unlearning. In Proceedings of the ACM Web
+Conference 2022, 2768–2777.
+Chen, M.; Zhang, Z.; Wang, T.; Backes, M.; Humbert, M.;
+and Zhang, Y . 2022b. Graph unlearning. In Proceedings of
+the 2022 ACM SIGSAC conference on computer and com-
+munications security, 499–513.
+Cofone, I. 2020. The right to be forgotten: A Canadian and
+comparative perspective. Routledge.
+Fan, W.; Ma, Y .; Li, Q.; He, Y .; Zhao, E.; Tang, J.; and Yin,
+D. 2019. Graph neural networks for social recommendation.
+In The world wide web conference, 417–426.
+Guo, C.; Goldstein, T.; Hannun, A.; and Van Der Maaten, L.
+2019. Certified data removal from machine learning models.
+arXiv preprint arXiv:1911.03030.
+Hamilton, W.; Ying, Z.; and Leskovec, J. 2017. Inductive
+representation learning on large graphs. Advances in neural
+information processing systems, 30.
+He, X.; Wen, R.; Wu, Y .; Backes, M.; Shen, Y .; and Zhang,
+Y . 2021. Node-level membership inference attacks against
+graph neural networks. arXiv preprint arXiv:2102.05429.
+Izzo, Z.; Smart, M. A.; Chaudhuri, K.; and Zou, J. 2021.
+Approximate data deletion from machine learning models.
+In International Conference on Artificial Intelligence and
+Statistics, 2008–2016. PMLR.
+Jin, D.; Yu, Z.; Jiao, P.; Pan, S.; He, D.; Wu, J.; Philip, S. Y .;
+and Zhang, W. 2021. A survey of community detection ap-
+proaches: From statistical modeling to deep learning. IEEE
+Transactions on Knowledge and Data Engineering , 35(2):
+1149–1170.
+Khan, B. S.; and Niazi, M. A. 2017. Network commu-
+nity detection: A review and visual survey. arXiv preprint
+arXiv:1708.00977.
+Kipf, T. N.; and Welling, M. 2016a. Semi-supervised classi-
+fication with graph convolutional networks. arXiv preprint
+arXiv:1609.02907.
+Kipf, T. N.; and Welling, M. 2016b. Variational graph auto-
+encoders. arXiv preprint arXiv:1611.07308.
+Lancichinetti, A.; Radicchi, F.; Ramasco, J. J.; and Fortu-
+nato, S. 2011. Finding statistically significant communities
+in networks. PloS one, 6(4): e18961.
+Li, C.; Cheng, D.; Zhang, G.; and Zhang, S. 2024a. Con-
+trastive learning for fair graph representations via coun-
+terfactual graph augmentation. Knowledge-Based Systems,
+305: 112635.
+Li, Z.; Chen, B.; Xi, P.; Huang, Z.; Zhang, W.; and Zhang,
+S. 2024b. Spatio-Temporal Dynamically Fused Graph Con-
+volutional Network. In 2024 International Joint Conference
+on Neural Networks (IJCNN), 1–8. IEEE.
+Li, Z.; Jian, X.; Wang, Y .; and Chen, L. 2022. Cc-gnn:
+A community and contraction-based graph neural network.
+In 2022 IEEE International Conference on Data Mining
+(ICDM), 231–240. IEEE.
+Mantelero, A. 2013. The EU Proposal for a General Data
+Protection Regulation and the roots of the ‘right to be for-
+gotten’. Computer Law & Security Review, 29(3): 229–235.
+Nguyen, T. T.; Huynh, T. T.; Nguyen, P. L.; Liew, A. W.-C.;
+Yin, H.; and Nguyen, Q. V . H. 2022. A survey of machine
+unlearning. arXiv preprint arXiv:2209.02299.
+Pardau, S. L. 2018. The california consumer privacy act:
+Towards a european-style privacy regime in the united states.
+J. Tech. L. & Pol’y, 23: 68.
+Qiu, J.; Tang, J.; Ma, H.; Dong, Y .; Wang, K.; and Tang, J.
+2018. Deepinf: Social influence prediction with deep learn-
+ing. In Proceedings of the 24th ACM SIGKDD international
+conference on knowledge discovery & data mining , 2110–
+2119.
+Rosvall, M.; and Bergstrom, C. T. 2008. Maps of random
+walks on complex networks reveal community structure.
+Proceedings of the national academy of sciences , 105(4):
+1118–1123.
+Said, A.; Derr, T.; Shabbir, M.; Abbas, W.; and Koutsoukos,
+X. 2023. A survey of graph unlearning. arXiv preprint
+arXiv:2310.02164.
+Shchur, O.; Mumme, M.; Bojchevski, A.; and G ¨unnemann,
+S. 2018a. Pitfalls of graph neural network evaluation. arXiv
+preprint arXiv:1811.05868.
+Shchur, O.; Mumme, M.; Bojchevski, A.; and G ¨unnemann,
+S. 2018b. Pitfalls of graph neural network evaluation. arXiv
+preprint arXiv:1811.05868.
+Veliˇckovi´c, P.; Cucurull, G.; Casanova, A.; Romero, A.; Lio,
+P.; and Bengio, Y . 2017. Graph attention networks. arXiv
+preprint arXiv:1710.10903.
+Wang, C.-L.; Huai, M.; and Wang, D. 2023. Inductive graph
+unlearning. In 32nd USENIX Security Symposium (USENIX
+Security 23), 3205–3222.
+Wei, Y .; Yuan, H.; Fu, X.; Sun, Q.; Peng, H.; Li, X.; and Hu,
+C. 2024. Poincar ´e Differential Privacy for Hierarchy-aware
+
+Graph Embedding. In Proceedings of the AAAI Conference
+on Artificial Intelligence, volume 38, 9160–9168.
+Wu, J.; Yang, Y .; Qian, Y .; Sui, Y .; Wang, X.; and He, X.
+2023. Gif: A general graph unlearning strategy via influence
+function. In Proceedings of the ACM Web Conference 2023,
+651–661.
+Xie, J.; Szymanski, B. K.; and Liu, X. 2011. Slpa: Un-
+covering overlapping communities in social networks via a
+speaker-listener interaction dynamic process. In 2011 ieee
+11th international conference on data mining workshops ,
+344–349. IEEE.
+Xu, K.; Hu, W.; Leskovec, J.; and Jegelka, S. 2018.
+How powerful are graph neural networks? arXiv preprint
+arXiv:1810.00826.
+Yan, H.; Li, X.; Guo, Z.; Li, H.; Li, F.; and Lin, X. 2022.
+ARCANE: An Efficient Architecture for Exact Machine Un-
+learning. In IJCAI, volume 6, 19.
+Yang, Z.; Cohen, W.; and Salakhudinov, R. 2016. Revisiting
+semi-supervised learning with graph embeddings. In Inter-
+national conference on machine learning, 40–48. PMLR.
+Zhang, G.; Yuan, G.; Cheng, D.; Liu, L.; Li, J.; and Zhang,
+S. 2025. Disentangled contrastive learning for fair graph
+representations. Neural Networks, 181: 106781.
+Zhang, S.; Li, X.; Zong, M.; Zhu, X.; and Cheng, D. 2017.
+Learning k for knn classification. ACM Transactions on In-
+telligent Systems and Technology (TIST), 8(3): 1–19.
+
+A. GNN Backbones
+The experimental verification of this work is based on
+three GNN backbones, which are representative mainstream
+graph neural network models, to verify the applicability of
+CGE.
+Graph Convolutional Network (GCN): GCN (Kipf and
+Welling 2016a) uses spectral graph convolutions to aggre-
+gate features from neighbors. The update rule is:
+H(l+1) = σ
+
+ˆD−1
+2 ˆA ˆD−1
+2 H(l)W(l)
+
+, (16)
+where ˆA = A + I and ˆD is its degree matrix.
+Graph Attention Network (GAT): GAT (Veli ˇckovi´c
+et al. 2017) introduces attention by weighting neighbor fea-
+tures based on their importance. The attention coefficient is:
+αij = exp
+
+LeakyReLU
+
+a⊤[Whi∥Whj]
+
+P
+k∈N(i) exp (LeakyReLU (a⊤[Whi∥Whk])).
+(17)
+Graph SAmple and aggreGatE (SAGE): SAGE (Hamil-
+ton, Ying, and Leskovec 2017) generates node embeddings
+by sampling and aggregating neighbor features. The update
+rule is:
+h(l+1)
+v = σ
+
+W(l) · AGG
+
+{h(l)
+v } ∪ {h(l)
+u , ∀u ∈ N(v)}
+
+,
+(18)
+where AGG can be mean, LSTM, or pooling.
+B. Specific Experimental Settings
+Parameter Settings
+Since the three baselines are based on the BP-SM-TA
+paradigm, we set the same number of shards for each. We
+used the Adam optimizer with a default learning rate of 0.01
+and a weight decay of 0.001. As a result, Cora, Citeseer, CS,
+and Reddit were divided into 20, 20, 80, and 300 shards, re-
+spectively. Each GNN backbone was trained for 200 epochs.
+We ran all experiments related to model utility and efficiency
+10 times and reported the average results.
+Evaluation Metrics
+We evaluate the graph model’s utility with the Macro F1
+score and assess the unlearning capability using node-level
+GNN membership inference attacks, measured by the Area
+Under the Curve (AUC).
+Macro F1 Score. The Macro F1 score averages the
+F1 scores for each class, providing an overall mea-
+sure of the model’s classification performance across all
+classes (Shchur et al. 2018b). It is particularly useful when
+dealing with imbalanced data, ensuring that each class is
+equally represented in the final score.
+AUC (Area Under the Curve). AUC evaluates the effec-
+tiveness of the unlearning process by measuring the model’s
+susceptibility to membership inference attacks. It quantifies
+how well the model can distinguish between nodes that were
+part of the training set and those that were not, with higher
+AUC values indicating weaker unlearning ability.
+C. Further Ablation Study
+The BP-SM-TA paradigm requires that each balanced sub-
+graph must maintain a significant degree of representative-
+ness of the original graph. We believe this enforced con-
+straint severely compromises the performance of the graph
+structure. To validate our hypothesis, we evaluate the sub-
+graph (community) partitioning results from two perspec-
+tives: Information Retention and Conductance. The eval-
+uation of Information Retention has been presented in the
+main text, and we will briefly explain its underlying princi-
+ples here.
+Information Retention
+In the ablation study, we assess the Information Retention
+across different graph partitioning schemes to measure how
+well the subgraphs represent the original graph. Specifically,
+We compute the embeddings Zorig and Zsub for the original
+graph and the subgraph, respectively, using a Graph Autoen-
+coder (Kipf and Welling 2016b):
+Zorig = Encoder(Xorig), (19)
+Zsub = Encoder(Xsub). (20)
+The autoencoder reconstructs the features from these em-
+beddings:
+ˆXorig = Decoder(Zorig), (21)
+ˆXsub = Decoder(Zsub). (22)
+Information retention is measured by the cosine similarity
+between the reconstructed features of the original graph and
+the mean of the subgraph reconstruction:
+InfoRet =
+ˆXorig ·
+
+1
+|Vsub|
+P
+v∈Vsub
+ˆXsub,v
+
+∥ ˆXorig∥
+ 1
+|Vsub|
+P
+v∈Vsub
+ˆXsub,v
+
+(23)
+where Vsub represents the set of nodes in the subgraph.
+The final information retention score is the mean similar-
+ity:
+InfoRet score = 1
+N
+NX
+i=1
+InfoReti, (24)
+where N is the number of nodes or comparisons. The value
+of information retention is defined between −1 and 1, with
+a higher value indicating that the information characteris-
+tics of the subgraph are more similar to those of the original
+graph, and the information loss is lower.
+Conductance
+Conductance is a key metric used to evaluate the quality of
+community structures in a graph. It measures the ratio of the
+number of edges that cut through the boundary of a com-
+munity to the total number of edges within that community.
+Lower conductance values indicate that the community is
+more tightly knit, with fewer edges crossing the boundary,
+thus suggesting a more compact and well-defined commu-
+nity structure.
+The conductance ϕ(C) of a community C is given by:
+
+Cora Citeseer CS Reddit0.0
+0.2
+0.4
+0.6
+0.8
+1.0Anti-Conductance
+CGE-OSLOM (AC)
+BEKM (AC)
+Figure 4: Conductance evaluation of different graph parti-
+tioning schemes.
+ϕ(C) = cut(C, ¯C)
+min(vol(C), vol( ¯C)), (25)
+where:
+• cut (C, ¯C) is the number of edges connecting nodes in S
+to nodes outside of C,
+• vol (C) is the sum of the degrees of nodes within C,
+• vol ( ¯C) is the volume of the complement of C.
+Lower values of ϕ(C) indicate a more cohesive commu-
+nity with fewer external connections relative to its internal
+structure.
+The conductance evaluation of the balanced community
+partitioning scheme BEKM and the Louvain-OSLOM (re-
+ferred to as OSLOM) method used in this work is shown
+in Figure 4. OSLOM achieves a lower conductance score,
+demonstrating that the communities it partitions are more
+compact internally and sparser externally. This indicates that
+OSLOM better preserves the intrinsic structural features of
+communities while reducing external connections, thereby
+improving community purity and structural tightness. In
+contrast, BEKM shows higher conductance scores, indicat-
+ing more boundary connections and looser internal struc-
+tures in its partitioned communities. This difference high-
+lights the superiority of OSLOM for complex network anal-
+ysis, making it a more suitable approach for the CGE graph
+unlearning tasks based on GSMU.
+D. Adaptability of Cmmunity Detection
+Methods
+We introduce two widely used community detection meth-
+ods: Infomap (Rosvall and Bergstrom 2008) and SLPA (Xie,
+Szymanski, and Liu 2011).
+• Infomap. Infomap utilizes a method based on random
+walks and information theory to detect communities. It
+minimizes the description length of a network by find-
+ing an optimal partition that compresses the network’s
+structure. The objective function for Infomap can be ex-
+pressed as:
+Modularity = 1
+2m
+X
+i,j
+
+Aij − kikj
+2m
+
+δ(ci, cj), (26)
+Cora Citeseer CS Reddit0.0
+0.2
+0.4
+0.6
+0.8
+1.0F1 Score
+SAGE (OSLOM)
+GAT (OSLOM)
+GCN (OSLOM)
+SAGE (SLPA)
+GAT (SLPA)
+GCN (SLPA)
+SAGE (Infomap)
+GAT (Infomap)
+GCN (Infomap)
+Figure 5: The comparison of Macro F1 scores of different
+community detection methods on four datasets and three
+GNN backbones.
+where Aij is the adjacency matrix, ki and kj are the de-
+grees of nodes i and j, m is the total number of edges,
+and δ(ci, cj) is 1 if nodes i and j are in the same commu-
+nity and 0 otherwise.
+• SLPA.SLPA (Speaker-Listener Label Propagation Algo-
+rithm) is another effective method that uses a label prop-
+agation approach to identify communities. Each node in
+the network iteratively updates its label based on the la-
+bels of its neighbors. The update rule for SLPA is given
+by:
+li(t + 1) = mode{lj(t) | j ∈ N(i)}, (27)
+where li(t) is the label of node i at iteration t, N(i) de-
+notes the set of neighbors of node i, and mode denotes
+the most frequent label among the neighbors.
+Dataset Method
+SLPA OSLOM Infomap
+Cora 16 83 5
+Citeseer 18 99 6
+CS 172 747 77
+Reddit - 18,077 8,763
+Table 7: Partition time consumption of different community
+detection methods. (s) Where ‘-’ means that the time con-
+sumption has exceeded 15 hours.
+For the combination of Louvain and OSLOM coarse and
+fine granularity proposed in the main text, we give a total of
+two structures. For small datasets, Louvain’s dataset delin-
+eation is used as the initialized community and OSLOM is
+used to optimize the community structure. For large datasets,
+we evaluate the conductivity of the initialized communities
+divided by Louvain, select the communities with poor con-
+ductance for fine-grained division, and optimize the commu-
+nity structure using OSLOM.
+Table 7 presents the partitioning durations of different
+community detection methods across four datasets, while
+Figure 5 illustrates their Macro F1 scores on various GNN
+backbones for the same datasets. When considering both
+
+Cora(M) Cora(O) Citeseer(M) Citeseer(O) CS(M) CS(O) Reddit(M) Reddit(O)
+Entropy 1.8197 1.8311 1.7434 1.7533 2.3961 2.4087 3.3967 3.4013
+IR 0.2024 0.2200 0.3068 0.3766 0.0291 0.0285 0.0141 0.0116
+Gini 0.2706 0.2587 0.1400 0.1338 0.4328 0.4225 0.4314 0.4222
+Table 8: Class distribution and imbalance measures for mapped and original graphs. (M) denotes the mapped graph generated
+by CGE and (O) denotes the original graph.
+results, SLPA and OSLOM demonstrate high model util-
+ity; however, SLPA’s time consumption for large datasets
+is prohibitively high, rendering it impractical. Although In-
+fomap is efficient in partitioning, its predictive performance
+is insufficient. Despite the relatively lower partitioning effi-
+ciency of OSLOM, we elected to utilize this method because
+CGE only necessitates a single community detection process
+throughout the workflow. We prefer the method with supe-
+rior performance rather than optimizing time. Moreover, the
+efficiency experiments presented in the main text confirm
+that, despite OSLOM’s lower partitioning efficiency com-
+pared to other methods, it still offers significant advantages
+in model deployment compared to the baselines.
+We carefully analyzed the characteristics of different
+community detection methods. The conventional OSLOM
+method is compatible with a wide range of graph structures,
+including directed graphs. We mitigated its high computa-
+tional cost in large-scale networks by integrating coarse and
+fine-grained methods. In comparison, SLPA relies more on
+the randomness of initialization, while Infomap places an
+undue emphasis on random walks. To ensure the robustness
+of CGE, the more stable OSLOM method was selected.
+It is worth mentioning that the GSMU paradigm and its
+CGE framework proposed in this paper are a novel universal
+and efficient graph unlearning strategy, and its great poten-
+tial supports the integration of any more effective commu-
+nity detection method or graph mapping algorithm.
+E. Evaluation of Class Imbalance in CGE
+In the framework design, it was considered that some nodes
+within a single community may represent noise at the fea-
+ture or label level relative to the entire collective. To miti-
+gate the complete dominance of the majority class, an intu-
+itive approach was proposed based on majority voting and
+Euclidean distance-based local proximity. This allows label
+selection to better align with the community’s local struc-
+ture, thereby minimizing the negative impact on supervised
+learning.
+To validate the approach, we conducted experiments in-
+volving the class distribution of nodes in the generated
+mapped graph and the original graph. The class imbalance
+was quantified using three mathematical measures: class dis-
+tribution vector entropy, class imbalance ratio (IR), and the
+Gini coefficient. The following outlines the methods used
+for calculating these measures:
+• Class Distribution Vector Entropy: The entropy of the
+class distribution vector was calculated using the for-
+mula:
+H = −
+nX
+i=1
+pi log(pi), (28)
+where pi is the proportion of nodes belonging to class
+i, and n is the number of distinct classes. This measure
+quantifies the uncertainty or disorder within the class dis-
+tribution.
+• Class Imbalance Ratio (IR): The class imbalance ratio
+is defined as the ratio between the size of the largest class
+and the size of the smallest class:
+IR = Size of Largest Class
+Size of Smallest Class. (29)
+A higher ratio indicates greater imbalance in the class
+distribution.
+• Gini Coefficient: The Gini coefficient is calculated as:
+G = 1 −
+nX
+i=1
+p2
+i , (30)
+where pi is the proportion of nodes in class i. This mea-
+sure provides a summary of the inequality of the class
+distribution, with higher values indicating greater imbal-
+ance.
+The results of the experiment are summarized in Table 8,
+where (M) denotes the mapped graph generated by CGE and
+(O) denotes the original graph.
+The results indicate that the mapped graph generated by
+CGE did not introduce additional data bias when compared
+to the original graph.

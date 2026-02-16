@@ -168,9 +168,26 @@ class gif(IF_based_pipeline):
             out = self.target_model.model.reason_once(self.data)
         self.original_softlabels = out
         
-        self.mia_num = self.unlearning_nodes.size
-        original_softlabels_member = self.original_softlabels[self.unlearning_nodes]
-        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+        member_indices = np.asarray(self.unlearning_nodes, dtype=int).reshape(-1)
+        nonmember_indices = np.asarray(self.data.test_indices, dtype=int).reshape(-1)
+        max_index = self.original_softlabels.shape[0]
+        member_indices = member_indices[(member_indices >= 0) & (member_indices < max_index)]
+        nonmember_indices = nonmember_indices[(nonmember_indices >= 0) & (nonmember_indices < max_index)]
+        effective_n = min(member_indices.size, nonmember_indices.size)
+        if effective_n < 2:
+            self.average_auc[self.run] = np.nan
+            self.logger.warning(
+                "MIA skipped: effective_n=%d (member=%d, nonmember=%d)",
+                effective_n,
+                member_indices.size,
+                nonmember_indices.size,
+            )
+            return np.nan
+        self.mia_num = effective_n
+        member_tensor = torch.as_tensor(member_indices[:effective_n], dtype=torch.long, device=self.original_softlabels.device)
+        nonmember_tensor = torch.as_tensor(nonmember_indices[:effective_n], dtype=torch.long, device=self.original_softlabels.device)
+        original_softlabels_member = self.original_softlabels[member_tensor]
+        original_softlabels_non = self.original_softlabels[nonmember_tensor]
         # if self.target_model_name in ['GCN','SGC',"S2GC"]:
         #     out = self.target_model.model.forward_once(self.data, self.target_model.edge_weight)
 
@@ -179,17 +196,19 @@ class gif(IF_based_pipeline):
         
         out = self.target_model.model.reason_once_unlearn(self.data)
 
-        unlearning_softlabels_member = out[self.unlearning_nodes]
-        unlearning_softlabels_non = out[self.data.test_indices[:self.mia_num]]
+        unlearning_softlabels_member = out[member_tensor]
+        unlearning_softlabels_non = out[nonmember_tensor]
 
-        mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
+        mia_test_y = np.concatenate((np.ones(self.mia_num), np.zeros(self.mia_num)))
         posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
         posterior2 = torch.cat((unlearning_softlabels_member, unlearning_softlabels_non), 0).cpu().detach()
-        posterior = np.array([np.linalg.norm(posterior1[i]-posterior2[i]) for i in range(len(posterior1))])
-        # self.logger.info("posterior:{}".format(posterior))
-        auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
-        # self.logger.info("auc:{}".format(auc))
-        # self.plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        posterior = torch.norm(posterior1 - posterior2, dim=1).numpy()
+        try:
+            auc = roc_auc_score(mia_test_y, posterior)
+        except ValueError as exc:
+            self.average_auc[self.run] = np.nan
+            self.logger.warning("MIA AUC computation skipped: %s", str(exc))
+            return np.nan
         self.average_auc[self.run] = auc
         return auc
 
