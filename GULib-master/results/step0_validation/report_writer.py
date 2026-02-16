@@ -1,11 +1,27 @@
 import math
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_REPORT_PATH = os.path.join(THIS_DIR, "..", "_journal", "auto_report.md")
+REPORT_STYLE_VERSION = "v1"
+STATUS_SET = {"OK", "X", "TIMEOUT", "WARN", "SKIP"}
+REPORT_HEADER = (
+    "# 自动实验汇报（追加）\n\n"
+    f"- report_style_version = {REPORT_STYLE_VERSION}\n"
+    "- 写入策略：append-only\n\n"
+)
+ENTRY_TEMPLATE = (
+    "### [{timestamp}] {script}\n"
+    "- 任务：dataset={dataset}, model={model}, method={method}, ratio={ratio}\n"
+    "- 日志路径：`{log_file}`\n"
+    "- 执行结果：{status} | f1_before={f1_before} | f1_after={f1_after} | auc={auc} | "
+    "unlearn_time={unlearn_time} | wall_time={wall_time}s\n"
+    "- 异常与定位：{error_summary}\n"
+    "- 下一步建议：{next_step}\n\n"
+)
 
 
 def _fmt_metric(value: Optional[float], digits: int = 4) -> str:
@@ -30,6 +46,21 @@ def _default_next_step(status: str) -> str:
     return "打开日志定位根因并重跑该配置。"
 
 
+def _normalize_status(status: str) -> Tuple[str, Optional[str]]:
+    normalized = str(status or "").strip().upper()
+    if normalized in STATUS_SET:
+        return normalized, None
+    return "WARN", normalized or "EMPTY"
+
+
+def _compose_error_summary(error_type: Optional[str], error_msg: Optional[str]) -> str:
+    if error_type:
+        return f"{error_type}: {error_msg or 'NA'}"
+    if error_msg:
+        return str(error_msg)
+    return "无"
+
+
 def append_report_entry(
     script: str,
     dataset: str,
@@ -52,19 +83,34 @@ def append_report_entry(
     os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
     if not os.path.exists(final_report_path):
         with open(final_report_path, "w", encoding="utf-8") as file_obj:
-            file_obj.write("# 自动实验汇报（追加）\n\n")
+            file_obj.write(REPORT_HEADER)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    suggestion = next_step or _default_next_step(status)
-    error_summary = f"{error_type}: {error_msg}" if error_type else (error_msg or "无")
-    entry = (
-        f"### [{now}] {script}\n"
-        f"- 任务：dataset={dataset}, model={model}, method={method}, ratio={ratio}\n"
-        f"- 日志路径：`{log_file}`\n"
-        f"- 执行结果：{status} | f1_before={_fmt_metric(f1_before)} | f1_after={_fmt_metric(f1_after)} | "
-        f"auc={_fmt_metric(auc)} | unlearn_time={_fmt_metric(unlearn_time)} | wall_time={_fmt_metric(time_s, digits=2)}s\n"
-        f"- 异常与定位：{error_summary}\n"
-        f"- 下一步建议：{suggestion}\n\n"
+    normalized_status, invalid_status = _normalize_status(status)
+    final_error_type = error_type
+    final_error_msg = error_msg
+    if invalid_status:
+        prefix = f"Invalid status input: {invalid_status}; normalized to WARN."
+        final_error_type = final_error_type or "INVALID_STATUS"
+        final_error_msg = f"{prefix} {final_error_msg}" if final_error_msg else prefix
+
+    suggestion = next_step or _default_next_step(normalized_status)
+    entry = ENTRY_TEMPLATE.format(
+        timestamp=now,
+        script=script,
+        dataset=dataset,
+        model=model,
+        method=method,
+        ratio=ratio,
+        log_file=log_file,
+        status=normalized_status,
+        f1_before=_fmt_metric(f1_before),
+        f1_after=_fmt_metric(f1_after),
+        auc=_fmt_metric(auc),
+        unlearn_time=_fmt_metric(unlearn_time),
+        wall_time=_fmt_metric(time_s, digits=2),
+        error_summary=_compose_error_summary(final_error_type, final_error_msg),
+        next_step=suggestion,
     )
     with open(final_report_path, "a", encoding="utf-8") as file_obj:
         file_obj.write(entry)

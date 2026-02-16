@@ -1,0 +1,326 @@
+2026-02-16 19:11:27.940: my pid: 4224
+2026-02-16 19:11:27.941: {'Budget': 0.1,
+ 'GIF_exp': 'unlearning',
+ 'GIF_method': 'GIF',
+ 'GNN_layer': 3,
+ 'GPR': False,
+ 'GST_delta': 0.0001,
+ 'GUIDE_methods': 'SR',
+ 'GUIDE_repair_methods': 'MixUp',
+ 'J': 5,
+ 'L': 3,
+ 'M': 0.25,
+ 'Q': 4,
+ 'RW': 20,
+ 'XdegNorm': False,
+ 'Y_binary': '0',
+ 'add_self_loops': True,
+ 'aggregator': 'optimal',
+ 'alpha': 0.5,
+ 'alpha1': 0.8,
+ 'alpha2': 0.5,
+ 'analysis_path': 'analysis',
+ 'approx': 'cg',
+ 'axis_num': 1,
+ 'balance_train': False,
+ 'base_model': 'GCN',
+ 'batch_size': 1024,
+ 'c': 0.5,
+ 'c1': 1.0,
+ 'cal_mem': False,
+ 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
+ 'compare_gnorm': False,
+ 'compare_guo': False,
+ 'compare_retrain': False,
+ 'cuda': 0,
+ 'damp': 0.0,
+ 'damping': 0.0,
+ 'dataset': 'null',
+ 'dataset_name': 'pubmed',
+ 'decay': 0.1,
+ 'del_only': False,
+ 'del_path_suffix': 'unlearning_data/',
+ 'del_postfix': '',
+ 'delta': 0.0001,
+ 'depth': 300,
+ 'df': 'out',
+ 'df_idx': 'none',
+ 'df_size': 0.5,
+ 'disp': 5,
+ 'display_step': 10,
+ 'downstream_task': 'node',
+ 'dropout_times': 2,
+ 'early_stop': True,
+ 'edge_idx_start': 0,
+ 'emb_dim': 32,
+ 'eps': 1.0,
+ 'eval_on_cpu': False,
+ 'exp': 'sequence',
+ 'featNorm': False,
+ 'feature': False,
+ 'feature_update': True,
+ 'file_name': 'unlearning_results',
+ 'fix_random_seed': False,
+ 'folds': 10,
+ 'gamma_2': 1.0,
+ 'gaussian_mean': 0.0,
+ 'gaussian_std': 0.0,
+ 'hidden': [],
+ 'hidden_dim': 64,
+ 'hop_neighbors': 20,
+ 'in_dim': 128,
+ 'is_balanced': False,
+ 'is_constrained': True,
+ 'is_gen_embedding': True,
+ 'is_partition': True,
+ 'is_prune': False,
+ 'is_split': True,
+ 'is_train_target_model': True,
+ 'is_transductive': True,
+ 'is_use_test_batch': False,
+ 'is_use_train_batch': False,
+ 'iteration': 100,
+ 'kappa': 0.01,
+ 'l': 0.25,
+ 'l2': 1e-05,
+ 'lam': 0.01,
+ 'lambda': 1.0,
+ 'lambda_edge_unlearn': 1.0,
+ 'loss_fct': 'mse_mean',
+ 'loss_type': 'both_layerwise',
+ 'lr': 0.005,
+ 'max_degree': False,
+ 'neg_sample_random': 'non_connected',
+ 'no_retrain': True,
+ 'noise_mode': 'data',
+ 'noise_ratio': 0.1,
+ 'num_batch_removes': 5,
+ 'num_epochs': 100,
+ 'num_opt_samples': 1000,
+ 'num_removes': 10,
+ 'num_runs': 1,
+ 'num_shards': 10,
+ 'num_threads': 1,
+ 'num_unlearned_nodes': 270,
+ 'opt_decay': 0.0001,
+ 'opt_lr': 0.001,
+ 'opt_num_epochs': 20,
+ 'optimizer': 'Adam',
+ 'optuna': False,
+ 'out_dim': 64,
+ 'para1': 2.5,
+ 'para2': 0.01,
+ 'para3': 250,
+ 'para4': 0.1,
+ 'para5': 10,
+ 'parallel_unlearning': 1,
+ 'parameter_task': 'normal',
+ 'partition_method': 'lpa_base',
+ 'path': './data/ScaleGUN',
+ 'patience': 5,
+ 'poison': True,
+ 'ppr': False,
+ 'process': '',
+ 'prop_algo': 'MC',
+ 'prop_step': 3,
+ 'proportion_unlearned_edges': 0.1,
+ 'proportion_unlearned_edges_num': 0.0001,
+ 'proportion_unlearned_nodes': 0.1,
+ 'r': 0.5,
+ 'random_seed': 2024,
+ 'ratio_deleted_edges': 0,
+ 'regen_model': True,
+ 'removal_mode': 'node',
+ 'remove_guo': False,
+ 'repartition': False,
+ 'require_linear_span': True,
+ 'result_dir': './result/CGU',
+ 'retrain': False,
+ 'rm_disp_step': 1,
+ 'rmax': 0.0,
+ 'root_path': './',
+ 'scale': 1000000000,
+ 'shard_size_delta': 0.005,
+ 'sparsity_ratio': 0.1,
+ 'std': 0.01,
+ 'terminate_delta': 0,
+ 'test_batch': 5,
+ 'test_batch_size': 64,
+ 'test_freq': 10,
+ 'test_ratio': 0.2,
+ 'train_batch': 10,
+ 'train_mode': 'ovr',
+ 'train_ratio': 0.8,
+ 'train_sep': False,
+ 'trials': 3,
+ 'unlearn_feature_partial_ratio': 0.5,
+ 'unlearn_lr': 0.01,
+ 'unlearn_ratio': 0.1,
+ 'unlearn_task': 'node',
+ 'unlearn_trainer': 'BaseTrainer',
+ 'unlearning_epochs': 50,
+ 'unlearning_methods': 'SGU',
+ 'unlearning_model': 'gnndelete_nodeemb',
+ 'use_adapt_gcs': False,
+ 'use_batch': False,
+ 'use_cross_entropy': False,
+ 'use_test_neighbors': True,
+ 'val_ratio': 0,
+ 'verbose': False,
+ 'wd': 0.0005,
+ 'weight_mode': 'test',
+ 'write': True,
+ 'x_iters': 3,
+ 'y_iters': 3}
+2026-02-16 19:11:27.947: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:11:27.947: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:11:27.968: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
+./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.1_pubmed_0.txt
+2026-02-16 19:11:28.139: Model Summary:
+2026-02-16 19:11:28.139: Total Parameters: 32,259
+2026-02-16 19:11:28.139: Trainable Parameters: 32,259
+2026-02-16 19:11:28.139: Model Architecture:
+GCNNet(
+  (convs): ModuleList(
+    (0): GCNConv(500, 64)
+    (1): GCNConv(64, 3)
+  )
+)
+2026-02-16 19:11:28.139: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-16 19:11:28.139: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
+2026-02-16 19:11:28.139: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
+2026-02-16 19:11:28.139: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
+2026-02-16 19:11:28.139: Model is in training mode: True
+2026-02-16 19:11:28.139: Model is on device: cuda:0
+  0%|          | 0/100 [00:00<?, ?it/s]2026-02-16 19:11:28.603: epoch:0 loss:1.0971912145614624
+  1%|          | 1/100 [00:00<00:25,  3.87it/s]2026-02-16 19:11:28.676: epoch:1 loss:1.0821869373321533
+2026-02-16 19:11:28.684: epoch:2 loss:1.0658904314041138
+2026-02-16 19:11:28.691: epoch:3 loss:1.0497515201568604
+2026-02-16 19:11:28.698: epoch:4 loss:1.0325660705566406
+2026-02-16 19:11:28.705: epoch:5 loss:1.0156694650650024
+2026-02-16 19:11:28.712: epoch:6 loss:0.9987089037895203
+2026-02-16 19:11:28.720: epoch:7 loss:0.9829519987106323
+2026-02-16 19:11:28.727: epoch:8 loss:0.9660253524780273
+2026-02-16 19:11:28.735: epoch:9 loss:0.9496954679489136
+2026-02-16 19:11:28.781: epoch: 9  F1_score = 0.6120689655172413  Accuracy = 0.6120689655172413  Recall = 0.6120689655172413
+ 10%|█         | 10/100 [00:00<00:02, 33.07it/s]2026-02-16 19:11:28.790: epoch:10 loss:0.9332647919654846
+2026-02-16 19:11:28.800: epoch:11 loss:0.9172414541244507
+2026-02-16 19:11:28.808: epoch:12 loss:0.8992832899093628
+2026-02-16 19:11:28.817: epoch:13 loss:0.8844046592712402
+2026-02-16 19:11:28.826: epoch:14 loss:0.8659932613372803
+2026-02-16 19:11:28.835: epoch:15 loss:0.848396897315979
+2026-02-16 19:11:28.845: epoch:16 loss:0.8328232765197754
+2026-02-16 19:11:28.853: epoch:17 loss:0.8130321502685547
+2026-02-16 19:11:28.861: epoch:18 loss:0.798206090927124
+2026-02-16 19:11:28.869: epoch:19 loss:0.7810543775558472
+2026-02-16 19:11:28.912: epoch: 19  F1_score = 0.7971602434077079  Accuracy = 0.7971602434077079  Recall = 0.7971602434077079
+ 20%|██        | 20/100 [00:00<00:01, 49.91it/s]2026-02-16 19:11:28.920: epoch:20 loss:0.7649849653244019
+2026-02-16 19:11:28.928: epoch:21 loss:0.7476505637168884
+2026-02-16 19:11:28.937: epoch:22 loss:0.7304707765579224
+2026-02-16 19:11:28.945: epoch:23 loss:0.7173064947128296
+2026-02-16 19:11:28.954: epoch:24 loss:0.7024908661842346
+2026-02-16 19:11:28.962: epoch:25 loss:0.6872615814208984
+2026-02-16 19:11:28.970: epoch:26 loss:0.6706007122993469
+2026-02-16 19:11:28.979: epoch:27 loss:0.6531620025634766
+2026-02-16 19:11:28.987: epoch:28 loss:0.6419476866722107
+2026-02-16 19:11:28.995: epoch:29 loss:0.6297341585159302
+2026-02-16 19:11:29.043: epoch: 29  F1_score = 0.8255578093306288  Accuracy = 0.8255578093306288  Recall = 0.8255578093306288
+ 30%|███       | 30/100 [00:00<00:01, 59.36it/s]2026-02-16 19:11:29.051: epoch:30 loss:0.6147310733795166
+2026-02-16 19:11:29.059: epoch:31 loss:0.6042443513870239
+2026-02-16 19:11:29.068: epoch:32 loss:0.5916396379470825
+2026-02-16 19:11:29.078: epoch:33 loss:0.5784749984741211
+2026-02-16 19:11:29.086: epoch:34 loss:0.565407931804657
+2026-02-16 19:11:29.095: epoch:35 loss:0.5588511228561401
+2026-02-16 19:11:29.103: epoch:36 loss:0.5498421788215637
+2026-02-16 19:11:29.112: epoch:37 loss:0.5385528206825256
+2026-02-16 19:11:29.120: epoch:38 loss:0.5316123962402344
+2026-02-16 19:11:29.130: epoch:39 loss:0.521484911441803
+2026-02-16 19:11:29.175: epoch: 39  F1_score = 0.8379817444219066  Accuracy = 0.8379817444219066  Recall = 0.8379817444219066
+ 40%|████      | 40/100 [00:00<00:00, 64.93it/s]2026-02-16 19:11:29.183: epoch:40 loss:0.5138516426086426
+2026-02-16 19:11:29.193: epoch:41 loss:0.5096144080162048
+2026-02-16 19:11:29.202: epoch:42 loss:0.5023077726364136
+2026-02-16 19:11:29.213: epoch:43 loss:0.4951001703739166
+2026-02-16 19:11:29.221: epoch:44 loss:0.48717010021209717
+2026-02-16 19:11:29.230: epoch:45 loss:0.4817398190498352
+2026-02-16 19:11:29.238: epoch:46 loss:0.4768233597278595
+2026-02-16 19:11:29.247: epoch:47 loss:0.472051739692688
+2026-02-16 19:11:29.256: epoch:48 loss:0.46300745010375977
+2026-02-16 19:11:29.265: epoch:49 loss:0.46123766899108887
+2026-02-16 19:11:29.321: epoch: 49  F1_score = 0.843052738336714  Accuracy = 0.843052738336714  Recall = 0.843052738336714
+ 50%|█████     | 50/100 [00:00<00:00, 66.21it/s]2026-02-16 19:11:29.331: epoch:50 loss:0.4576534926891327
+2026-02-16 19:11:29.340: epoch:51 loss:0.4516553282737732
+2026-02-16 19:11:29.348: epoch:52 loss:0.4485064744949341
+2026-02-16 19:11:29.356: epoch:53 loss:0.4433786869049072
+2026-02-16 19:11:29.365: epoch:54 loss:0.4430257976055145
+2026-02-16 19:11:29.373: epoch:55 loss:0.4377495348453522
+2026-02-16 19:11:29.382: epoch:56 loss:0.4361724853515625
+2026-02-16 19:11:29.391: epoch:57 loss:0.4325293302536011
+2026-02-16 19:11:29.400: epoch:58 loss:0.4306718111038208
+2026-02-16 19:11:29.410: epoch:59 loss:0.4293316900730133
+2026-02-16 19:11:29.465: epoch: 59  F1_score = 0.8498985801217038  Accuracy = 0.8498985801217038  Recall = 0.8498985801217038
+ 60%|██████    | 60/100 [00:01<00:00, 67.25it/s]2026-02-16 19:11:29.472: epoch:60 loss:0.42207008600234985
+2026-02-16 19:11:29.480: epoch:61 loss:0.420939564704895
+2026-02-16 19:11:29.488: epoch:62 loss:0.4181913733482361
+2026-02-16 19:11:29.497: epoch:63 loss:0.4139045774936676
+2026-02-16 19:11:29.505: epoch:64 loss:0.4125611484050751
+2026-02-16 19:11:29.514: epoch:65 loss:0.4120648205280304
+2026-02-16 19:11:29.525: epoch:66 loss:0.40924131870269775
+2026-02-16 19:11:29.534: epoch:67 loss:0.41121914982795715
+2026-02-16 19:11:29.544: epoch:68 loss:0.40622222423553467
+2026-02-16 19:11:29.554: epoch:69 loss:0.40414613485336304
+2026-02-16 19:11:29.602: epoch: 69  F1_score = 0.853448275862069  Accuracy = 0.853448275862069  Recall = 0.853448275862069
+ 70%|███████   | 70/100 [00:01<00:00, 69.10it/s]2026-02-16 19:11:29.610: epoch:70 loss:0.4031093418598175
+2026-02-16 19:11:29.619: epoch:71 loss:0.39961349964141846
+2026-02-16 19:11:29.628: epoch:72 loss:0.3943374752998352
+2026-02-16 19:11:29.637: epoch:73 loss:0.39748096466064453
+2026-02-16 19:11:29.644: epoch:74 loss:0.3944554924964905
+2026-02-16 19:11:29.653: epoch:75 loss:0.3932180404663086
+2026-02-16 19:11:29.662: epoch:76 loss:0.39273473620414734
+2026-02-16 19:11:29.670: epoch:77 loss:0.39262276887893677
+2026-02-16 19:11:29.679: epoch:78 loss:0.39073285460472107
+2026-02-16 19:11:29.687: epoch:79 loss:0.38788217306137085
+2026-02-16 19:11:29.737: epoch: 79  F1_score = 0.8577586206896551  Accuracy = 0.8577586206896551  Recall = 0.8577586206896551
+ 80%|████████  | 80/100 [00:01<00:00, 70.77it/s]2026-02-16 19:11:29.744: epoch:80 loss:0.38726574182510376
+2026-02-16 19:11:29.752: epoch:81 loss:0.3857179284095764
+2026-02-16 19:11:29.760: epoch:82 loss:0.3845491111278534
+2026-02-16 19:11:29.768: epoch:83 loss:0.38317355513572693
+2026-02-16 19:11:29.778: epoch:84 loss:0.382004052400589
+2026-02-16 19:11:29.787: epoch:85 loss:0.3787745535373688
+2026-02-16 19:11:29.796: epoch:86 loss:0.3815584182739258
+2026-02-16 19:11:29.805: epoch:87 loss:0.38005122542381287
+2026-02-16 19:11:29.814: epoch:88 loss:0.3759700357913971
+2026-02-16 19:11:29.823: epoch:89 loss:0.3732621371746063
+2026-02-16 19:11:29.870: epoch: 89  F1_score = 0.8605476673427992  Accuracy = 0.8605476673427992  Recall = 0.8605476673427992
+ 90%|█████████ | 90/100 [00:01<00:00, 72.08it/s]2026-02-16 19:11:29.877: epoch:90 loss:0.3728567659854889
+2026-02-16 19:11:29.886: epoch:91 loss:0.37261563539505005
+2026-02-16 19:11:29.894: epoch:92 loss:0.3719180226325989
+2026-02-16 19:11:29.903: epoch:93 loss:0.3731410801410675
+2026-02-16 19:11:29.912: epoch:94 loss:0.37025871872901917
+2026-02-16 19:11:29.921: epoch:95 loss:0.37149757146835327
+2026-02-16 19:11:29.930: epoch:96 loss:0.3672327399253845
+2026-02-16 19:11:29.938: epoch:97 loss:0.3690009117126465
+2026-02-16 19:11:29.947: epoch:98 loss:0.3661671280860901
+2026-02-16 19:11:29.956: epoch:99 loss:0.3669387102127075
+2026-02-16 19:11:30.003: epoch: 99  F1_score = 0.8628296146044625  Accuracy = 0.8628296146044625  Recall = 0.8628296146044625
+100%|██████████| 100/100 [00:01<00:00, 72.92it/s]100%|██████████| 100/100 [00:01<00:00, 62.81it/s]2026-02-16 19:11:30.003: best:0.8628296146044625
+Unlearning nodes:1971
+All nodes:19717
+2026-02-16 19:11:31.575: Original F1 Score: 0.8628 
+
+Unlearning:   0%|          | 0/50 [00:00<?, ?epoch/s]Unlearning:   0%|          | 0/50 [00:05<?, ?epoch/s]
+Traceback (most recent call last):
+  File "main.py", line 75, in <module>
+    GU_method.run_exp()
+  File "H:\project\OpenGU\GULib-master\pipeline\Learning_based_pipeline.py", line 106, in run_exp
+    self.unlearn()
+  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\SGU\sgu.py", line 163, in unlearn
+    self.best = self.target_model.sgu_unlearning(self.original_softlabels,
+  File "H:\project\OpenGU\GULib-master\task\SGUTrainer.py", line 338, in sgu_unlearning
+    loss_pE = F.kl_div(torch.log(softlabels_E + smooth_factor),original_output + smooth_factor, reduction='batchmean')
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\functional.py", line 2961, in kl_div
+    reduced = torch.kl_div(input, target, reduction_enum, log_target=log_target)
+RuntimeError: CUDA error: out of memory
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+

@@ -110,6 +110,15 @@ attack/attack_eval.py           # F1 drop, MIA AUC, retrain gap
 
 Experiment results go to `results/{attack_strategy}/{unlearning_method}/{dataset}/{model}/run_{timestamp}.json`. Each JSON contains `config` (parameters), `metrics` (F1 drop, MIA AUC, timing), and `selected_nodes`. The original framework logs remain at `log/`.
 
+### Document Workflow
+
+Research journal: `results/_journal/auto_report.md` (append-only, governed by `RULES.md` v2)
+- Experiment entries: auto-appended by `report_writer.py` after each run
+- Decision entries: manually appended when making strategic choices (see RULES.md v2)
+- Session separators: added at start of each Claude Code session
+
+Daily summaries: `daily_log/YYYY-MM-DD_log.md` (generated via `/daily-log`)
+
 ### Slash Commands
 
 - `/review [方案或结论]`: Invoke a strict NeurIPS/ICML reviewer persona for critical analysis

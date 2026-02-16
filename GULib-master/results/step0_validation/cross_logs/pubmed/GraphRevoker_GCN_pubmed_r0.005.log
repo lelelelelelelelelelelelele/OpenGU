@@ -1,0 +1,438 @@
+2026-02-16 19:21:31.783: my pid: 7392
+2026-02-16 19:21:31.785: {'Budget': 0.1,
+ 'GIF_exp': 'unlearning',
+ 'GIF_method': 'GIF',
+ 'GNN_layer': 3,
+ 'GPR': False,
+ 'GST_delta': 0.0001,
+ 'GUIDE_methods': 'SR',
+ 'GUIDE_repair_methods': 'MixUp',
+ 'J': 5,
+ 'L': 3,
+ 'M': 0.25,
+ 'Q': 4,
+ 'RW': 20,
+ 'XdegNorm': False,
+ 'Y_binary': '0',
+ 'add_self_loops': True,
+ 'aggregator': 'optimal',
+ 'alpha': 0.5,
+ 'alpha1': 0.8,
+ 'alpha2': 0.5,
+ 'analysis_path': 'analysis',
+ 'approx': 'cg',
+ 'axis_num': 1,
+ 'balance_train': False,
+ 'base_model': 'GCN',
+ 'batch_size': 1024,
+ 'c': 0.5,
+ 'c1': 1.0,
+ 'cal_mem': False,
+ 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
+ 'compare_gnorm': False,
+ 'compare_guo': False,
+ 'compare_retrain': False,
+ 'cuda': 0,
+ 'damp': 0.0,
+ 'damping': 0.0,
+ 'dataset': 'null',
+ 'dataset_name': 'pubmed',
+ 'decay': 0.1,
+ 'del_only': False,
+ 'del_path_suffix': 'unlearning_data/',
+ 'del_postfix': '',
+ 'delta': 0.0001,
+ 'depth': 300,
+ 'df': 'out',
+ 'df_idx': 'none',
+ 'df_size': 0.5,
+ 'disp': 5,
+ 'display_step': 10,
+ 'downstream_task': 'node',
+ 'dropout_times': 2,
+ 'early_stop': True,
+ 'edge_idx_start': 0,
+ 'emb_dim': 32,
+ 'eps': 1.0,
+ 'eval_on_cpu': False,
+ 'exp': 'sequence',
+ 'featNorm': False,
+ 'feature': False,
+ 'feature_update': True,
+ 'file_name': 'unlearning_results',
+ 'fix_random_seed': False,
+ 'folds': 10,
+ 'gamma_2': 1.0,
+ 'gaussian_mean': 0.0,
+ 'gaussian_std': 0.0,
+ 'hidden': [],
+ 'hidden_dim': 64,
+ 'hop_neighbors': 20,
+ 'in_dim': 128,
+ 'is_balanced': False,
+ 'is_constrained': True,
+ 'is_gen_embedding': True,
+ 'is_partition': True,
+ 'is_prune': False,
+ 'is_split': True,
+ 'is_train_target_model': True,
+ 'is_transductive': True,
+ 'is_use_test_batch': False,
+ 'is_use_train_batch': False,
+ 'iteration': 100,
+ 'kappa': 0.01,
+ 'l': 0.25,
+ 'l2': 1e-05,
+ 'lam': 0.01,
+ 'lambda': 1.0,
+ 'lambda_edge_unlearn': 1.0,
+ 'loss_fct': 'mse_mean',
+ 'loss_type': 'both_layerwise',
+ 'lr': 0.005,
+ 'max_degree': False,
+ 'neg_sample_random': 'non_connected',
+ 'no_retrain': True,
+ 'noise_mode': 'data',
+ 'noise_ratio': 0.1,
+ 'num_batch_removes': 5,
+ 'num_epochs': 100,
+ 'num_opt_samples': 1000,
+ 'num_removes': 10,
+ 'num_runs': 1,
+ 'num_shards': 10,
+ 'num_threads': 1,
+ 'num_unlearned_nodes': 270,
+ 'opt_decay': 0.0001,
+ 'opt_lr': 0.001,
+ 'opt_num_epochs': 20,
+ 'optimizer': 'Adam',
+ 'optuna': False,
+ 'out_dim': 64,
+ 'para1': 2.5,
+ 'para2': 0.01,
+ 'para3': 250,
+ 'para4': 0.1,
+ 'para5': 10,
+ 'parallel_unlearning': 1,
+ 'parameter_task': 'normal',
+ 'partition_method': 'lpa_base',
+ 'path': './data/ScaleGUN',
+ 'patience': 5,
+ 'poison': True,
+ 'ppr': False,
+ 'process': '',
+ 'prop_algo': 'MC',
+ 'prop_step': 3,
+ 'proportion_unlearned_edges': 0.1,
+ 'proportion_unlearned_edges_num': 0.0001,
+ 'proportion_unlearned_nodes': 0.005,
+ 'r': 0.5,
+ 'random_seed': 2024,
+ 'ratio_deleted_edges': 0,
+ 'regen_model': True,
+ 'removal_mode': 'node',
+ 'remove_guo': False,
+ 'repartition': False,
+ 'require_linear_span': True,
+ 'result_dir': './result/CGU',
+ 'retrain': False,
+ 'rm_disp_step': 1,
+ 'rmax': 0.0,
+ 'root_path': './',
+ 'scale': 1000000000,
+ 'shard_size_delta': 0.005,
+ 'sparsity_ratio': 0.1,
+ 'std': 0.01,
+ 'terminate_delta': 0,
+ 'test_batch': 5,
+ 'test_batch_size': 64,
+ 'test_freq': 10,
+ 'test_ratio': 0.2,
+ 'train_batch': 10,
+ 'train_mode': 'ovr',
+ 'train_ratio': 0.8,
+ 'train_sep': False,
+ 'trials': 3,
+ 'unlearn_feature_partial_ratio': 0.5,
+ 'unlearn_lr': 0.01,
+ 'unlearn_ratio': 0.005,
+ 'unlearn_task': 'node',
+ 'unlearn_trainer': 'BaseTrainer',
+ 'unlearning_epochs': 50,
+ 'unlearning_methods': 'GraphRevoker',
+ 'unlearning_model': 'gnndelete_nodeemb',
+ 'use_adapt_gcs': False,
+ 'use_batch': False,
+ 'use_cross_entropy': False,
+ 'use_test_neighbors': True,
+ 'val_ratio': 0,
+ 'verbose': False,
+ 'wd': 0.0005,
+ 'weight_mode': 'test',
+ 'write': True,
+ 'x_iters': 3,
+ 'y_iters': 3}
+2026-02-16 19:21:31.790: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:21:31.790: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:21:31.813: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
+./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.005_pubmed_0.txt
+2026-02-16 19:21:31.980: Model Summary:
+2026-02-16 19:21:31.980: Total Parameters: 32,259
+2026-02-16 19:21:31.980: Trainable Parameters: 32,259
+2026-02-16 19:21:31.980: Model Architecture:
+GCNNet(
+  (convs): ModuleList(
+    (0): GCNConv(500, 64)
+    (1): GCNConv(64, 3)
+  )
+)
+2026-02-16 19:21:31.980: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-16 19:21:31.980: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
+2026-02-16 19:21:31.980: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
+2026-02-16 19:21:31.980: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
+2026-02-16 19:21:31.980: Model is in training mode: True
+2026-02-16 19:21:31.980: Model is on device: cuda:0
+2026-02-16 19:21:32.174: After edge deletion. train graph  #.Nodes: 15773.000000, #.Edges: 28065.000000
+2026-02-16 19:21:32.174: After edge deletion. train data  #.Nodes: 19717.000000, #.Edges: 88648.000000
+2026-02-16 19:21:32.174: save_train_data ./data/GraphRevoker/processed/pubmed/train_data
+2026-02-16 19:21:32.341: graph partitioning
+2026-02-16 19:21:32.341: graph partition, method: lpa_base
+2026-02-16 19:21:32.839:  #. nodes: 15773. LPA shard threshold: 1649.
+2026-02-16 19:21:32.839: initializing communities
+2026-02-16 19:21:32.841: detecting communities
+2026-02-16 19:21:32.863: iteration 0
+2026-02-16 19:21:43.170: 5590
+2026-02-16 19:21:43.197: iteration 1
+2026-02-16 19:21:50.872: No optimal solution, break!
+2026-02-16 19:21:50.971: Partition cost 18.630414247512817 seconds.
+2026-02-16 19:21:50.971: save_community_data ./data/GraphRevoker/processed/pubmed/community_lpa_base_10_0
+2026-02-16 19:21:50.972: <unlearning.unlearning_methods.GraphEraser.partition.graph_partition.GraphPartition object at 0x000001EB4361FBB0>
+2026-02-16 19:21:51.180: load_shard_data ./data/GraphRevoker/processed/pubmed/shard_data_lpa_base_10_0.005_0
+2026-02-16 19:21:51.255: load_saved_data ./data/GraphRevoker/processed/pubmed/train_data
+2026-02-16 19:21:51.274: {0: Data(x=[5749, 500], edge_index=[2, 11842], y=[5749], train_mask=[5749], test_mask=[5749]), 1: Data(x=[5760, 500], edge_index=[2, 11578], y=[5760], train_mask=[5760], test_mask=[5760]), 2: Data(x=[5759, 500], edge_index=[2, 10968], y=[5759], train_mask=[5759], test_mask=[5759]), 3: Data(x=[5783, 500], edge_index=[2, 11508], y=[5783], train_mask=[5783], test_mask=[5783]), 4: Data(x=[5743, 500], edge_index=[2, 10976], y=[5743], train_mask=[5743], test_mask=[5743]), 5: Data(x=[5753, 500], edge_index=[2, 11094], y=[5753], train_mask=[5753], test_mask=[5753]), 6: Data(x=[5768, 500], edge_index=[2, 11592], y=[5768], train_mask=[5768], test_mask=[5768]), 7: Data(x=[5768, 500], edge_index=[2, 11308], y=[5768], train_mask=[5768], test_mask=[5768]), 8: Data(x=[5769, 500], edge_index=[2, 11516], y=[5769], train_mask=[5769], test_mask=[5769]), 9: Data(x=[5743, 500], edge_index=[2, 11816], y=[5743], train_mask=[5743], test_mask=[5743])}
+2026-02-16 19:21:51.275: training target models
+2026-02-16 19:21:51.275: training target models, run 0, shard 0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:22,  4.35epoch/s]BaseTraining:   8%|▊         | 8/100 [00:00<00:03, 28.46epoch/s]2026-02-16 19:21:51.712: Epoch: 010 | F1 Score: 0.6042 | Loss: 0.9266
+BaseTraining:  14%|█▍        | 14/100 [00:00<00:02, 37.68epoch/s]2026-02-16 19:21:51.890: Epoch: 020 | F1 Score: 0.7716 | Loss: 0.7283
+BaseTraining:  20%|██        | 20/100 [00:00<00:01, 42.78epoch/s]2026-02-16 19:21:51.952: Epoch: 030 | F1 Score: 0.8032 | Loss: 0.5724
+BaseTraining:  38%|███▊      | 38/100 [00:00<00:00, 84.15epoch/s]2026-02-16 19:21:52.006: Epoch: 040 | F1 Score: 0.8172 | Loss: 0.4691
+2026-02-16 19:21:52.063: Epoch: 050 | F1 Score: 0.8276 | Loss: 0.4072
+BaseTraining:  57%|█████▋    | 57/100 [00:00<00:00, 115.42epoch/s]2026-02-16 19:21:52.111: Epoch: 060 | F1 Score: 0.8301 | Loss: 0.3667
+2026-02-16 19:21:52.164: Epoch: 070 | F1 Score: 0.8306 | Loss: 0.3318
+BaseTraining:  75%|███████▌  | 75/100 [00:00<00:00, 134.80epoch/s]2026-02-16 19:21:52.229: Epoch: 080 | F1 Score: 0.8289 | Loss: 0.3051
+2026-02-16 19:21:52.282: Epoch: 090 | F1 Score: 0.8296 | Loss: 0.2883
+BaseTraining:  93%|█████████▎| 93/100 [00:00<00:00, 145.74epoch/s]2026-02-16 19:21:52.344: Epoch: 100 | F1 Score: 0.8283 | Loss: 0.2623
+BaseTraining: 100%|██████████| 100/100 [00:01<00:00, 97.95epoch/s]2026-02-16 19:21:52.344: Average training time per epoch: 0.0094s
+2026-02-16 19:21:52.346: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_0_0
+2026-02-16 19:21:52.348: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_0_0
+2026-02-16 19:21:52.348: training target models, run 0, shard 1
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:52.407: Epoch: 010 | F1 Score: 0.6425 | Loss: 0.9604
+2026-02-16 19:21:52.452: Epoch: 020 | F1 Score: 0.7411 | Loss: 0.7686
+BaseTraining:  23%|██▎       | 23/100 [00:00<00:00, 219.04epoch/s]2026-02-16 19:21:52.508: Epoch: 030 | F1 Score: 0.7967 | Loss: 0.5997
+2026-02-16 19:21:52.552: Epoch: 040 | F1 Score: 0.8141 | Loss: 0.4878
+BaseTraining:  45%|████▌     | 45/100 [00:00<00:00, 207.00epoch/s]2026-02-16 19:21:52.604: Epoch: 050 | F1 Score: 0.8240 | Loss: 0.4111
+2026-02-16 19:21:52.657: Epoch: 060 | F1 Score: 0.8291 | Loss: 0.3750
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 194.70epoch/s]2026-02-16 19:21:52.718: Epoch: 070 | F1 Score: 0.8309 | Loss: 0.3376
+2026-02-16 19:21:52.764: Epoch: 080 | F1 Score: 0.8311 | Loss: 0.3116
+BaseTraining:  88%|████████▊ | 88/100 [00:00<00:00, 200.33epoch/s]2026-02-16 19:21:52.811: Epoch: 090 | F1 Score: 0.8311 | Loss: 0.2849
+2026-02-16 19:21:52.859: Epoch: 100 | F1 Score: 0.8271 | Loss: 0.2753
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 200.58epoch/s]2026-02-16 19:21:52.859: Average training time per epoch: 0.0045s
+2026-02-16 19:21:52.860: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_1_0
+2026-02-16 19:21:52.862: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_1_0
+2026-02-16 19:21:52.862: training target models, run 0, shard 2
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:52.916: Epoch: 010 | F1 Score: 0.5778 | Loss: 0.9550
+2026-02-16 19:21:52.967: Epoch: 020 | F1 Score: 0.7913 | Loss: 0.7560
+BaseTraining:  20%|██        | 20/100 [00:00<00:00, 196.92epoch/s]2026-02-16 19:21:53.016: Epoch: 030 | F1 Score: 0.8103 | Loss: 0.5871
+2026-02-16 19:21:53.068: Epoch: 040 | F1 Score: 0.8172 | Loss: 0.4692
+BaseTraining:  40%|████      | 40/100 [00:00<00:00, 197.57epoch/s]2026-02-16 19:21:53.119: Epoch: 050 | F1 Score: 0.8238 | Loss: 0.3989
+2026-02-16 19:21:53.168: Epoch: 060 | F1 Score: 0.8230 | Loss: 0.3483
+BaseTraining:  60%|██████    | 60/100 [00:00<00:00, 198.66epoch/s]2026-02-16 19:21:53.216: Epoch: 070 | F1 Score: 0.8240 | Loss: 0.3141
+2026-02-16 19:21:53.274: Epoch: 080 | F1 Score: 0.8266 | Loss: 0.2870
+BaseTraining:  80%|████████  | 80/100 [00:00<00:00, 194.60epoch/s]2026-02-16 19:21:53.323: Epoch: 090 | F1 Score: 0.8263 | Loss: 0.2593
+2026-02-16 19:21:53.375: Epoch: 100 | F1 Score: 0.8263 | Loss: 0.2511
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 195.43epoch/s]BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 195.65epoch/s]2026-02-16 19:21:53.376: Average training time per epoch: 0.0045s
+2026-02-16 19:21:53.377: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_2_0
+2026-02-16 19:21:53.379: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_2_0
+2026-02-16 19:21:53.379: training target models, run 0, shard 3
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:53.434: Epoch: 010 | F1 Score: 0.6095 | Loss: 0.9215
+2026-02-16 19:21:53.478: Epoch: 020 | F1 Score: 0.7675 | Loss: 0.7063
+BaseTraining:  22%|██▏       | 22/100 [00:00<00:00, 217.84epoch/s]2026-02-16 19:21:53.533: Epoch: 030 | F1 Score: 0.7984 | Loss: 0.5361
+2026-02-16 19:21:53.583: Epoch: 040 | F1 Score: 0.8187 | Loss: 0.4327
+BaseTraining:  44%|████▍     | 44/100 [00:00<00:00, 204.09epoch/s]2026-02-16 19:21:53.629: Epoch: 050 | F1 Score: 0.8225 | Loss: 0.3732
+2026-02-16 19:21:53.679: Epoch: 060 | F1 Score: 0.8256 | Loss: 0.3339
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 208.33epoch/s]2026-02-16 19:21:53.726: Epoch: 070 | F1 Score: 0.8329 | Loss: 0.3045
+2026-02-16 19:21:53.772: Epoch: 080 | F1 Score: 0.8332 | Loss: 0.2728
+BaseTraining:  89%|████████▉ | 89/100 [00:00<00:00, 213.34epoch/s]2026-02-16 19:21:53.816: Epoch: 090 | F1 Score: 0.8344 | Loss: 0.2649
+2026-02-16 19:21:53.878: Epoch: 100 | F1 Score: 0.8342 | Loss: 0.2494
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 203.65epoch/s]2026-02-16 19:21:53.878: Average training time per epoch: 0.0044s
+2026-02-16 19:21:53.879: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_3_0
+2026-02-16 19:21:53.881: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_3_0
+2026-02-16 19:21:53.881: training target models, run 0, shard 4
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:53.933: Epoch: 010 | F1 Score: 0.5913 | Loss: 0.9405
+2026-02-16 19:21:53.977: Epoch: 020 | F1 Score: 0.7858 | Loss: 0.7419
+BaseTraining:  22%|██▏       | 22/100 [00:00<00:00, 215.69epoch/s]2026-02-16 19:21:54.025: Epoch: 030 | F1 Score: 0.8134 | Loss: 0.5670
+2026-02-16 19:21:54.073: Epoch: 040 | F1 Score: 0.8243 | Loss: 0.4587
+BaseTraining:  44%|████▍     | 44/100 [00:00<00:00, 215.69epoch/s]2026-02-16 19:21:54.118: Epoch: 050 | F1 Score: 0.8248 | Loss: 0.4007
+2026-02-16 19:21:54.174: Epoch: 060 | F1 Score: 0.8283 | Loss: 0.3601
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 207.33epoch/s]2026-02-16 19:21:54.221: Epoch: 070 | F1 Score: 0.8294 | Loss: 0.3302
+2026-02-16 19:21:54.271: Epoch: 080 | F1 Score: 0.8276 | Loss: 0.3037
+BaseTraining:  87%|████████▋ | 87/100 [00:00<00:00, 203.70epoch/s]2026-02-16 19:21:54.327: Epoch: 090 | F1 Score: 0.8263 | Loss: 0.2871
+2026-02-16 19:21:54.381: Epoch: 100 | F1 Score: 0.8258 | Loss: 0.2610
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 201.15epoch/s]2026-02-16 19:21:54.381: Average training time per epoch: 0.0044s
+2026-02-16 19:21:54.382: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_4_0
+2026-02-16 19:21:54.384: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_4_0
+2026-02-16 19:21:54.384: training target models, run 0, shard 5
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:54.441: Epoch: 010 | F1 Score: 0.6582 | Loss: 0.9184
+2026-02-16 19:21:54.485: Epoch: 020 | F1 Score: 0.7652 | Loss: 0.7219
+BaseTraining:  22%|██▏       | 22/100 [00:00<00:00, 210.43epoch/s]2026-02-16 19:21:54.534: Epoch: 030 | F1 Score: 0.8030 | Loss: 0.5582
+2026-02-16 19:21:54.580: Epoch: 040 | F1 Score: 0.8169 | Loss: 0.4587
+BaseTraining:  44%|████▍     | 44/100 [00:00<00:00, 214.72epoch/s]2026-02-16 19:21:54.627: Epoch: 050 | F1 Score: 0.8251 | Loss: 0.3926
+2026-02-16 19:21:54.677: Epoch: 060 | F1 Score: 0.8276 | Loss: 0.3566
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 209.55epoch/s]2026-02-16 19:21:54.726: Epoch: 070 | F1 Score: 0.8304 | Loss: 0.3307
+2026-02-16 19:21:54.771: Epoch: 080 | F1 Score: 0.8311 | Loss: 0.3042
+BaseTraining:  88%|████████▊ | 88/100 [00:00<00:00, 213.55epoch/s]2026-02-16 19:21:54.819: Epoch: 090 | F1 Score: 0.8347 | Loss: 0.2844
+2026-02-16 19:21:54.868: Epoch: 100 | F1 Score: 0.8370 | Loss: 0.2670
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 209.40epoch/s]2026-02-16 19:21:54.868: Average training time per epoch: 0.0043s
+2026-02-16 19:21:54.870: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_5_0
+2026-02-16 19:21:54.872: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_5_0
+2026-02-16 19:21:54.872: training target models, run 0, shard 6
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:54.928: Epoch: 010 | F1 Score: 0.6569 | Loss: 0.9300
+2026-02-16 19:21:54.981: Epoch: 020 | F1 Score: 0.7814 | Loss: 0.7305
+BaseTraining:  20%|██        | 20/100 [00:00<00:00, 187.68epoch/s]2026-02-16 19:21:55.027: Epoch: 030 | F1 Score: 0.8017 | Loss: 0.5590
+2026-02-16 19:21:55.077: Epoch: 040 | F1 Score: 0.8147 | Loss: 0.4611
+BaseTraining:  41%|████      | 41/100 [00:00<00:00, 199.32epoch/s]2026-02-16 19:21:55.127: Epoch: 050 | F1 Score: 0.8202 | Loss: 0.3904
+2026-02-16 19:21:55.176: Epoch: 060 | F1 Score: 0.8248 | Loss: 0.3412
+BaseTraining:  62%|██████▏   | 62/100 [00:00<00:00, 202.30epoch/s]2026-02-16 19:21:55.220: Epoch: 070 | F1 Score: 0.8253 | Loss: 0.3127
+2026-02-16 19:21:55.263: Epoch: 080 | F1 Score: 0.8251 | Loss: 0.2938
+BaseTraining:  86%|████████▌ | 86/100 [00:00<00:00, 215.27epoch/s]2026-02-16 19:21:55.309: Epoch: 090 | F1 Score: 0.8256 | Loss: 0.2738
+2026-02-16 19:21:55.359: Epoch: 100 | F1 Score: 0.8263 | Loss: 0.2514
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 206.55epoch/s]2026-02-16 19:21:55.359: Average training time per epoch: 0.0043s
+2026-02-16 19:21:55.360: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_6_0
+2026-02-16 19:21:55.362: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_6_0
+2026-02-16 19:21:55.362: training target models, run 0, shard 7
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:55.413: Epoch: 010 | F1 Score: 0.6575 | Loss: 0.9421
+2026-02-16 19:21:55.461: Epoch: 020 | F1 Score: 0.7743 | Loss: 0.7498
+BaseTraining:  22%|██▏       | 22/100 [00:00<00:00, 213.59epoch/s]2026-02-16 19:21:55.513: Epoch: 030 | F1 Score: 0.8053 | Loss: 0.5855
+2026-02-16 19:21:55.557: Epoch: 040 | F1 Score: 0.8152 | Loss: 0.4755
+BaseTraining:  44%|████▍     | 44/100 [00:00<00:00, 210.52epoch/s]2026-02-16 19:21:55.606: Epoch: 050 | F1 Score: 0.8243 | Loss: 0.4125
+2026-02-16 19:21:55.656: Epoch: 060 | F1 Score: 0.8286 | Loss: 0.3692
+BaseTraining:  66%|██████▌   | 66/100 [00:00<00:00, 210.98epoch/s]2026-02-16 19:21:55.702: Epoch: 070 | F1 Score: 0.8314 | Loss: 0.3362
+2026-02-16 19:21:55.752: Epoch: 080 | F1 Score: 0.8304 | Loss: 0.3030
+BaseTraining:  88%|████████▊ | 88/100 [00:00<00:00, 210.40epoch/s]2026-02-16 19:21:55.797: Epoch: 090 | F1 Score: 0.8299 | Loss: 0.2802
+2026-02-16 19:21:55.846: Epoch: 100 | F1 Score: 0.8304 | Loss: 0.2705
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 208.53epoch/s]2026-02-16 19:21:55.847: Average training time per epoch: 0.0043s
+2026-02-16 19:21:55.848: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_7_0
+2026-02-16 19:21:55.850: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_7_0
+2026-02-16 19:21:55.850: training target models, run 0, shard 8
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:55.910: Epoch: 010 | F1 Score: 0.6577 | Loss: 0.9286
+BaseTraining:  19%|█▉        | 19/100 [00:00<00:00, 187.04epoch/s]2026-02-16 19:21:55.964: Epoch: 020 | F1 Score: 0.7743 | Loss: 0.7297
+2026-02-16 19:21:56.012: Epoch: 030 | F1 Score: 0.8048 | Loss: 0.5665
+2026-02-16 19:21:56.058: Epoch: 040 | F1 Score: 0.8202 | Loss: 0.4669
+BaseTraining:  40%|████      | 40/100 [00:00<00:00, 197.01epoch/s]2026-02-16 19:21:56.103: Epoch: 050 | F1 Score: 0.8301 | Loss: 0.4094
+2026-02-16 19:21:56.154: Epoch: 060 | F1 Score: 0.8337 | Loss: 0.3691
+BaseTraining:  62%|██████▏   | 62/100 [00:00<00:00, 202.81epoch/s]2026-02-16 19:21:56.200: Epoch: 070 | F1 Score: 0.8324 | Loss: 0.3415
+2026-02-16 19:21:56.246: Epoch: 080 | F1 Score: 0.8286 | Loss: 0.3149
+BaseTraining:  84%|████████▍ | 84/100 [00:00<00:00, 209.45epoch/s]2026-02-16 19:21:56.291: Epoch: 090 | F1 Score: 0.8299 | Loss: 0.2988
+2026-02-16 19:21:56.338: Epoch: 100 | F1 Score: 0.8311 | Loss: 0.2842
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 205.94epoch/s]2026-02-16 19:21:56.339: Average training time per epoch: 0.0043s
+2026-02-16 19:21:56.340: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_8_0
+2026-02-16 19:21:56.342: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_8_0
+2026-02-16 19:21:56.342: training target models, run 0, shard 9
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-16 19:21:56.396: Epoch: 010 | F1 Score: 0.6572 | Loss: 0.9222
+2026-02-16 19:21:56.445: Epoch: 020 | F1 Score: 0.7852 | Loss: 0.7144
+BaseTraining:  21%|██        | 21/100 [00:00<00:00, 208.81epoch/s]2026-02-16 19:21:56.492: Epoch: 030 | F1 Score: 0.8048 | Loss: 0.5578
+2026-02-16 19:21:56.545: Epoch: 040 | F1 Score: 0.8192 | Loss: 0.4550
+BaseTraining:  42%|████▏     | 42/100 [00:00<00:00, 202.87epoch/s]2026-02-16 19:21:56.600: Epoch: 050 | F1 Score: 0.8243 | Loss: 0.4006
+2026-02-16 19:21:56.653: Epoch: 060 | F1 Score: 0.8266 | Loss: 0.3633
+BaseTraining:  63%|██████▎   | 63/100 [00:00<00:00, 194.73epoch/s]2026-02-16 19:21:56.701: Epoch: 070 | F1 Score: 0.8271 | Loss: 0.3385
+2026-02-16 19:21:56.749: Epoch: 080 | F1 Score: 0.8253 | Loss: 0.3023
+BaseTraining:  85%|████████▌ | 85/100 [00:00<00:00, 201.22epoch/s]2026-02-16 19:21:56.797: Epoch: 090 | F1 Score: 0.8233 | Loss: 0.2951
+2026-02-16 19:21:56.849: Epoch: 100 | F1 Score: 0.8223 | Loss: 0.2710
+BaseTraining: 100%|██████████| 100/100 [00:00<00:00, 199.54epoch/s]2026-02-16 19:21:56.849: Average training time per epoch: 0.0045s
+2026-02-16 19:21:56.850: saving model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_9_0
+2026-02-16 19:21:56.852: save_target_model ./data/GraphRevoker/pubmed/GCN_lpa_base_10_0.005_0_9_0
+2026-02-16 19:21:56.852: aggregating submodels
+2026-02-16 19:21:56.894: Saving posteriors.
+2026-02-16 19:21:56.895: save_posteriors ./data/GraphRevoker/analysis_data/posteriors/pubmed/GCN_lpa_base_10_0.005_0
+2026-02-16 19:21:56.898: load_train_test_split ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:21:56.927: Using 1000 samples for optimization
+
+H:\project\OpenGU\GULib-master\task\BaseTrainer.py:637: UserWarning: Implicit dimension choice for log_softmax has been deprecated. Change the call to include dim=X as an argument.
+  return F.log_softmax(posteriors[self.data.test_mask, :]).detach()
+Training:   0%|          | 0/20 [00:00<?, ?epoch/s]2026-02-16 19:21:57.118: Epoch: 001 | Loss: 32.1473
+Training:   5%|▌         | 1/20 [00:00<00:02,  7.41epoch/s]2026-02-16 19:21:57.226: Epoch: 002 | Loss: 30.7880
+Training:  10%|█         | 2/20 [00:00<00:02,  8.39epoch/s]2026-02-16 19:21:57.331: Epoch: 003 | Loss: 30.5791
+Training:  15%|█▌        | 3/20 [00:00<00:01,  8.91epoch/s]2026-02-16 19:21:57.434: Epoch: 004 | Loss: 30.6882
+Training:  20%|██        | 4/20 [00:00<00:01,  9.19epoch/s]2026-02-16 19:21:57.538: Epoch: 005 | Loss: 30.6804
+Training:  25%|██▌       | 5/20 [00:00<00:01,  9.35epoch/s]2026-02-16 19:21:57.641: Epoch: 006 | Loss: 30.6516
+Training:  30%|███       | 6/20 [00:00<00:01,  9.47epoch/s]2026-02-16 19:21:57.745: Epoch: 007 | Loss: 30.6077
+Training:  35%|███▌      | 7/20 [00:00<00:01,  9.52epoch/s]2026-02-16 19:21:57.848: Epoch: 008 | Loss: 30.6411
+Training:  40%|████      | 8/20 [00:00<00:01,  9.58epoch/s]2026-02-16 19:21:57.951: Epoch: 009 | Loss: 30.6009
+Training:  45%|████▌     | 9/20 [00:00<00:01,  9.60epoch/s]2026-02-16 19:21:58.055: Epoch: 010 | Loss: 30.6153
+Training:  50%|█████     | 10/20 [00:01<00:01,  9.61epoch/s]2026-02-16 19:21:58.159: Epoch: 011 | Loss: 30.5825
+Training:  55%|█████▌    | 11/20 [00:01<00:00,  9.61epoch/s]2026-02-16 19:21:58.262: Epoch: 012 | Loss: 30.5993
+Training:  60%|██████    | 12/20 [00:01<00:00,  9.64epoch/s]2026-02-16 19:21:58.366: Epoch: 013 | Loss: 30.5997
+Training:  65%|██████▌   | 13/20 [00:01<00:00,  9.64epoch/s]2026-02-16 19:21:58.467: Epoch: 014 | Loss: 30.6501
+Training:  70%|███████   | 14/20 [00:01<00:00,  9.72epoch/s]2026-02-16 19:21:58.573: Epoch: 015 | Loss: 30.5925
+Training:  75%|███████▌  | 15/20 [00:01<00:00,  9.64epoch/s]2026-02-16 19:21:58.681: Epoch: 016 | Loss: 30.6785
+Training:  80%|████████  | 16/20 [00:01<00:00,  9.51epoch/s]2026-02-16 19:21:58.789: Epoch: 017 | Loss: 30.6084
+Training:  85%|████████▌ | 17/20 [00:01<00:00,  9.43epoch/s]2026-02-16 19:21:58.898: Epoch: 018 | Loss: 30.6176
+Training:  90%|█████████ | 18/20 [00:01<00:00,  9.35epoch/s]2026-02-16 19:21:59.007: Epoch: 019 | Loss: 30.6258
+Training:  95%|█████████▌| 19/20 [00:02<00:00,  9.30epoch/s]2026-02-16 19:21:59.117: Epoch: 020 | Loss: 30.5634
+Training: 100%|██████████| 20/20 [00:02<00:00,  9.23epoch/s]Training: 100%|██████████| 20/20 [00:02<00:00,  9.37epoch/s]2026-02-16 19:21:59.117: Aggregating Time: 0.1065 seconds per epoch
+2026-02-16 19:21:59.124: Final Test F1: 0.8610547667342799
+2026-02-16 19:21:59.124: load_shard_data ./data/GraphRevoker/processed/pubmed/shard_data_lpa_base_10_0.005_0
+2026-02-16 19:21:59.184: load_saved_data ./data/GraphRevoker/processed/pubmed/train_data
+2026-02-16 19:21:59.209: load_train_graph ./data/GraphRevoker/processed/pubmed/train_graph
+2026-02-16 19:21:59.236: load_train_test_split ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-16 19:21:59.330: Data(x=[5742, 500], edge_index=[2, 11782], y=[5742], train_mask=[5742], test_mask=[5742], train_edge_index=[2, 11780], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.394: Data(x=[5747, 500], edge_index=[2, 11544], y=[5747], train_mask=[5747], test_mask=[5747], train_edge_index=[2, 11544], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.456: Data(x=[5750, 500], edge_index=[2, 10952], y=[5750], train_mask=[5750], test_mask=[5750], train_edge_index=[2, 10950], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.524: Data(x=[5778, 500], edge_index=[2, 11490], y=[5778], train_mask=[5778], test_mask=[5778], train_edge_index=[2, 11490], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.599: Data(x=[5734, 500], edge_index=[2, 10966], y=[5734], train_mask=[5734], test_mask=[5734], train_edge_index=[2, 10966], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.671: Data(x=[5743, 500], edge_index=[2, 11084], y=[5743], train_mask=[5743], test_mask=[5743], train_edge_index=[2, 11082], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.747: Data(x=[5756, 500], edge_index=[2, 11550], y=[5756], train_mask=[5756], test_mask=[5756], train_edge_index=[2, 11550], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.821: Data(x=[5759, 500], edge_index=[2, 11250], y=[5759], train_mask=[5759], test_mask=[5759], train_edge_index=[2, 11246], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.895: Data(x=[5756, 500], edge_index=[2, 11428], y=[5756], train_mask=[5756], test_mask=[5756], train_edge_index=[2, 11426], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.972: Data(x=[5732, 500], edge_index=[2, 11770], y=[5732], train_mask=[5732], test_mask=[5732], train_edge_index=[2, 11768], test_edge_index=[2, 3684])
+2026-02-16 19:21:59.972: saving unlearned data ./data/GraphRevoker/processed/pubmed/unlearned_0.005_train_graph
+2026-02-16 19:22:00.124: saving unlearned data ./data/GraphRevoker/processed/pubmed/unlearned_0.005_train_data
+
+Traceback (most recent call last):
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\serialization.py", line 633, in save
+    _legacy_save(obj, opened_file, pickle_module, pickle_protocol)
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\serialization.py", line 777, in _legacy_save
+    storage._write_file(f, _should_read_directly(f), True, torch._utils._element_size(dtype))
+MemoryError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "main.py", line 75, in <module>
+    GU_method.run_exp()
+  File "H:\project\OpenGU\GULib-master\pipeline\Shard_based_pipeline.py", line 116, in run_exp
+    self.exp_unlearn()
+  File "H:\project\OpenGU\GULib-master\pipeline\Shard_based_pipeline.py", line 174, in exp_unlearn
+    self.unlearn()
+  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\GraphEraser\grapheraser.py", line 325, in unlearn
+    self.graph_node_unlearning_request_respond(self.node_unlearning_indices)
+  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\GraphEraser\grapheraser.py", line 698, in graph_node_unlearning_request_respond
+    dataset_utils.save_unlearned_data(self.logger,self.train_data, 'train_data')
+  File "H:\project\OpenGU\GULib-master\utils\dataset_utils.py", line 811, in save_unlearned_data
+    pickle.dump(data, open('_'.join((config.unlearned_file, suffix)), 'wb'))
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\storage.py", line 937, in __reduce__
+    torch.save(self, b, _use_new_zipfile_serialization=False)
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\serialization.py", line 633, in save
+    _legacy_save(obj, opened_file, pickle_module, pickle_protocol)
+  File "H:\conda_package\envs\gnn\lib\site-packages\torch\serialization.py", line 440, in __exit__
+    self.file_like.flush()
+ValueError: I/O operation on closed file.
