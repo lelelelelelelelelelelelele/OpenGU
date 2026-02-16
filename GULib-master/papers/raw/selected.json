@@ -1,0 +1,597 @@
+[
+  {
+    "arxiv_id": "2402.10695",
+    "arxiv_id_version": "2402.10695v2",
+    "arxiv_abs": "https://arxiv.org/abs/2402.10695",
+    "title": "Unlink to Unlearn: Simplifying Edge Unlearning in GNNs",
+    "summary": "As concerns over data privacy intensify, unlearning in Graph Neural Networks (GNNs) has emerged as a prominent research frontier in academia. This concept is pivotal in enforcing the \\textit{right to be forgotten}, which entails the selective removal of specific data from trained GNNs upon user request. Our research focuses on edge unlearning, a process of particular relevance to real-world applications. Current state-of-the-art approaches like GNNDelete can eliminate the influence of specific edges yet suffer from \\textit{over-forgetting}, which means the unlearning process inadvertently removes excessive information beyond needed, leading to a significant performance decline for remaining edges. Our analysis identifies the loss functions of GNNDelete as the primary source of over-forgetting and also suggests that loss functions may be redundant for effective edge unlearning. Building on these insights, we simplify GNNDelete to develop \\textbf{Unlink to Unlearn} (UtU), a novel method that facilitates unlearning exclusively through unlinking the forget edges from graph structure. Our extensive experiments demonstrate that UtU delivers privacy protection on par with that of a retrained model while preserving high accuracy in downstream tasks, by upholding over 97.3\\% of the retrained model's privacy protection capabilities and 99.8\\% of its link prediction accuracy. Meanwhile, UtU requires only constant computational demands, underscoring its advantage as a highly lightweight and practical edge unlearning solution.",
+    "published": "2024-02-16T13:58:23Z",
+    "updated": "2024-03-11T17:08:36Z",
+    "year": 2024,
+    "authors": [
+      "Jiajun Tan",
+      "Fei Sun",
+      "Ruichen Qiu",
+      "Du Su",
+      "Huawei Shen"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2402.10695v2",
+    "comment": "Accepted by WWW 2024 as a Short Research Paper",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2402.10695v2"
+    ],
+    "keyword_groups": [
+      "mia",
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "The Web Conference",
+    "doi": "10.48550/arXiv.2402.10695",
+    "citations": 17,
+    "citations_num": 17,
+    "venue_score": 3,
+    "influence_score": 2,
+    "repro_score": 1,
+    "match_score_total": 9,
+    "match_score": "3+3+2+1=9",
+    "notes": "relevance=3 from keyword groups: mia,privacy,unlearning",
+    "source_links": [
+      "https://arxiv.org/abs/2402.10695",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2402.10695?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2402.10695"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2402.10695?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2402.10695",
+    "buckets": [
+      "unlearning",
+      "privacy_mia"
+    ],
+    "local_path": "papers/2402.10695_unlink_to_unlearn_simplifying_edge_unlearning_in_gnns.pdf"
+  },
+  {
+    "arxiv_id": "2403.07353",
+    "arxiv_id_version": "2403.07353v2",
+    "arxiv_abs": "https://arxiv.org/abs/2403.07353",
+    "title": "Graph Unlearning with Efficient Partial Retraining",
+    "summary": "Graph Neural Networks (GNNs) have achieved remarkable success in various real-world applications. However, GNNs may be trained on undesirable graph data, which can degrade their performance and reliability. To enable trained GNNs to efficiently unlearn unwanted data, a desirable solution is retraining-based graph unlearning, which partitions the training graph into subgraphs and trains sub-models on them, allowing fast unlearning through partial retraining. However, the graph partition process causes information loss in the training graph, resulting in the low model utility of sub-GNN models. In this paper, we propose GraphRevoker, a novel graph unlearning framework that better maintains the model utility of unlearnable GNNs. Specifically, we preserve the graph property with graph property-aware sharding and effectively aggregate the sub-GNN models for prediction with graph contrastive sub-model aggregation. We conduct extensive experiments to demonstrate the superiority of our proposed approach.",
+    "published": "2024-03-12T06:22:10Z",
+    "updated": "2024-03-13T04:43:23Z",
+    "year": 2024,
+    "authors": [
+      "Jiahao Zhang",
+      "Lin Wang",
+      "Shijie Wang",
+      "Wenqi Fan"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2403.07353v2",
+    "comment": "8 pages, 3 figures, accepted by The Web Conference 2024 (PhD Symposium Track)",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2403.07353v2"
+    ],
+    "keyword_groups": [
+      "partition",
+      "retraining",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "Companion Proceedings of the ACM Web Conference 2024",
+    "doi": "10.1145/3589335.3651265",
+    "citations": 23,
+    "citations_num": 23,
+    "venue_score": 2,
+    "influence_score": 2,
+    "repro_score": 1,
+    "match_score_total": 8,
+    "match_score": "3+2+2+1=8",
+    "notes": "relevance=3 from keyword groups: partition,retraining,unlearning",
+    "source_links": [
+      "https://arxiv.org/abs/2403.07353",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2403.07353?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.1145%2F3589335.3651265"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2403.07353?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.1145%2F3589335.3651265",
+    "buckets": [
+      "unlearning",
+      "influence_retraining",
+      "distill_partition"
+    ],
+    "local_path": "papers/2403.07353_graph_unlearning_with_efficient_partial_retraining.pdf"
+  },
+  {
+    "arxiv_id": "2408.09212",
+    "arxiv_id_version": "2408.09212v3",
+    "arxiv_abs": "https://arxiv.org/abs/2408.09212",
+    "title": "Scalable and Certifiable Graph Unlearning: Overcoming the Approximation Error Barrier",
+    "summary": "Graph unlearning has emerged as a pivotal research area for ensuring privacy protection, given the widespread adoption of Graph Neural Networks (GNNs) in applications involving sensitive user data. Among existing studies, certified graph unlearning is distinguished by providing robust privacy guarantees. However, current certified graph unlearning methods are impractical for large-scale graphs because they necessitate the costly re-computation of graph propagation for each unlearning request. Although numerous scalable techniques have been developed to accelerate graph propagation for GNNs, their integration into certified graph unlearning remains uncertain as these scalable approaches introduce approximation errors into node embeddings. In contrast, certified graph unlearning demands bounded model error on exact node embeddings to maintain its certified guarantee. To address this challenge, we present ScaleGUN, the first approach to scale certified graph unlearning to billion-edge graphs. ScaleGUN integrates the approximate graph propagation technique into certified graph unlearning, offering certified guarantees for three unlearning scenarios: node feature, edge, and node unlearning. Extensive experiments on real-world datasets demonstrate the efficiency and unlearning efficacy of ScaleGUN. Remarkably, ScaleGUN accomplishes $(ε,δ)=(1,10^{-4})$ certified unlearning on the billion-edge graph ogbn-papers100M in 20 seconds for a 5,000 random edge removal request -- of which only 5 seconds are required for updating the node embeddings -- compared to 1.91 hours for retraining and 1.89 hours for re-propagation. Our code is available at https://github.com/luyi256/ScaleGUN.",
+    "published": "2024-08-17T14:41:02Z",
+    "updated": "2025-02-18T01:24:24Z",
+    "year": 2024,
+    "authors": [
+      "Lu Yi",
+      "Zhewei Wei"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2408.09212v3",
+    "comment": "ICLR 2025 (Spotlight)",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2408.09212v3"
+    ],
+    "keyword_groups": [
+      "privacy",
+      "retraining",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "International Conference on Learning Representations",
+    "doi": "unknown",
+    "citations": 10,
+    "citations_num": 10,
+    "venue_score": 2,
+    "influence_score": 2,
+    "repro_score": 2,
+    "match_score_total": 9,
+    "match_score": "3+2+2+2=9",
+    "notes": "relevance=3 from keyword groups: privacy,retraining,unlearning; doi unknown",
+    "source_links": [
+      "https://arxiv.org/abs/2408.09212",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2408.09212?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2408.09212?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "",
+    "buckets": [
+      "unlearning",
+      "privacy_mia",
+      "influence_retraining"
+    ],
+    "local_path": "papers/2408.09212_scalable_and_certifiable_graph_unlearning_overcoming_the_approxi.pdf"
+  },
+  {
+    "arxiv_id": "2408.09705",
+    "arxiv_id_version": "2408.09705v2",
+    "arxiv_abs": "https://arxiv.org/abs/2408.09705",
+    "title": "Community-Centric Graph Unlearning",
+    "summary": "Graph unlearning technology has become increasingly important since the advent of the `right to be forgotten' and the growing concerns about the privacy and security of artificial intelligence. Graph unlearning aims to quickly eliminate the effects of specific data on graph neural networks (GNNs). However, most existing deterministic graph unlearning frameworks follow a balanced partition-submodel training-aggregation paradigm, resulting in a lack of structural information between subgraph neighborhoods and redundant unlearning parameter calculations. To address this issue, we propose a novel Graph Structure Mapping Unlearning paradigm (GSMU) and a novel method based on it named Community-centric Graph Eraser (CGE). CGE maps community subgraphs to nodes, thereby enabling the reconstruction of a node-level unlearning operation within a reduced mapped graph. CGE makes the exponential reduction of both the amount of training data and the number of unlearning parameters. Extensive experiments conducted on five real-world datasets and three widely used GNN backbones have verified the high performance and efficiency of our CGE method, highlighting its potential in the field of graph unlearning.",
+    "published": "2024-08-19T05:37:35Z",
+    "updated": "2024-12-14T15:01:30Z",
+    "year": 2024,
+    "authors": [
+      "Yi Li",
+      "Shichao Zhang",
+      "Guixian Zhang",
+      "Debo Cheng"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2408.09705v2",
+    "comment": "",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2408.09705v2"
+    ],
+    "keyword_groups": [
+      "partition",
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "AAAI Conference on Artificial Intelligence",
+    "doi": "10.48550/arXiv.2408.09705",
+    "citations": 3,
+    "citations_num": 3,
+    "venue_score": 3,
+    "influence_score": 1,
+    "repro_score": 1,
+    "match_score_total": 8,
+    "match_score": "3+3+1+1=8",
+    "notes": "relevance=3 from keyword groups: partition,privacy,unlearning",
+    "source_links": [
+      "https://arxiv.org/abs/2408.09705",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2408.09705?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2408.09705"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2408.09705?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2408.09705",
+    "buckets": [
+      "unlearning",
+      "privacy_mia",
+      "distill_partition"
+    ],
+    "local_path": "papers/2408.09705_community_centric_graph_unlearning.pdf"
+  },
+  {
+    "arxiv_id": "2501.02728",
+    "arxiv_id_version": "2501.02728v1",
+    "arxiv_abs": "https://arxiv.org/abs/2501.02728",
+    "title": "OpenGU: A Comprehensive Benchmark for Graph Unlearning",
+    "summary": "Graph Machine Learning is essential for understanding and analyzing relational data. However, privacy-sensitive applications demand the ability to efficiently remove sensitive information from trained graph neural networks (GNNs), avoiding the unnecessary time and space overhead caused by retraining models from scratch. To address this issue, Graph Unlearning (GU) has emerged as a critical solution, with the potential to support dynamic graph updates in data management systems and enable scalable unlearning in distributed data systems while ensuring privacy compliance. Unlike machine unlearning in computer vision or other fields, GU faces unique difficulties due to the non-Euclidean nature of graph data and the recursive message-passing mechanism of GNNs. Additionally, the diversity of downstream tasks and the complexity of unlearning requests further amplify these challenges. Despite the proliferation of diverse GU strategies, the absence of a benchmark providing fair comparisons for GU, and the limited flexibility in combining downstream tasks and unlearning requests, have yielded inconsistencies in evaluations, hindering the development of this domain. To fill this gap, we present OpenGU, the first GU benchmark, where 16 SOTA GU algorithms and 37 multi-domain datasets are integrated, enabling various downstream tasks with 13 GNN backbones when responding to flexible unlearning requests. Based on this unified benchmark framework, we are able to provide a comprehensive and fair evaluation for GU. Through extensive experimentation, we have drawn $8$ crucial conclusions about existing GU methods, while also gaining valuable insights into their limitations, shedding light on potential avenues for future research.",
+    "published": "2025-01-06T02:57:32Z",
+    "updated": "2025-01-06T02:57:32Z",
+    "year": 2025,
+    "authors": [
+      "Bowen Fan",
+      "Yuming Ai",
+      "Xunkai Li",
+      "Zhilin Guo",
+      "Rong-Hua Li",
+      "Guoren Wang"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2501.02728v1",
+    "comment": "under review",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2501.02728v1"
+    ],
+    "keyword_groups": [
+      "privacy",
+      "retraining",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2501.02728",
+    "citations": 8,
+    "citations_num": 8,
+    "venue_score": 0,
+    "influence_score": 1,
+    "repro_score": 1,
+    "match_score_total": 5,
+    "match_score": "3+0+1+1=5",
+    "notes": "relevance=3 from keyword groups: privacy,retraining,unlearning",
+    "source_links": [
+      "https://arxiv.org/abs/2501.02728",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2501.02728?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2501.02728"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2501.02728?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2501.02728",
+    "buckets": [
+      "unlearning",
+      "privacy_mia",
+      "influence_retraining"
+    ],
+    "local_path": "papers/2501.02728_opengu_a_comprehensive_benchmark_for_graph_unlearning.pdf"
+  },
+  {
+    "arxiv_id": "2501.11823",
+    "arxiv_id_version": "2501.11823v1",
+    "arxiv_abs": "https://arxiv.org/abs/2501.11823",
+    "title": "Toward Scalable Graph Unlearning: A Node Influence Maximization based Approach",
+    "summary": "Machine unlearning, as a pivotal technology for enhancing model robustness and data privacy, has garnered significant attention in prevalent web mining applications, especially in thriving graph-based scenarios. However, most existing graph unlearning (GU) approaches face significant challenges due to the intricate interactions among web-scale graph elements during the model training: (1) The gradient-driven node entanglement hinders the complete knowledge removal in response to unlearning requests; (2) The billion-level graph elements in the web scenarios present inevitable scalability issues. To break the above limitations, we open up a new perspective by drawing a connection between GU and conventional social influence maximization. To this end, we propose Node Influence Maximization (NIM) through the decoupled influence propagation model and fine-grained influence function in a scalable manner, which is crafted to be a plug-and-play strategy to identify potential nodes affected by unlearning entities. This approach enables offline execution independent of GU, allowing it to be seamlessly integrated into most GU methods to improve their unlearning performance. Based on this, we introduce Scalable Graph Unlearning (SGU) as a new fine-tuned framework, which balances the forgetting and reasoning capability of the unlearned model by entity-specific optimizations. Extensive experiments on 14 datasets, including large-scale ogbn-papers100M, have demonstrated the effectiveness of our approach. Specifically, NIM enhances the forgetting capability of most GU methods, while SGU achieves comprehensive SOTA performance and maintains scalability.",
+    "published": "2025-01-21T02:02:35Z",
+    "updated": "2025-01-21T02:02:35Z",
+    "year": 2025,
+    "authors": [
+      "Xunkai Li",
+      "Bowen Fan",
+      "Zhengyu Wu",
+      "Zhiyu Li",
+      "Rong-Hua Li",
+      "Guoren Wang"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2501.11823v1",
+    "comment": "Under Review",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2501.11823v1"
+    ],
+    "keyword_groups": [
+      "influence",
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2501.11823",
+    "citations": 4,
+    "citations_num": 4,
+    "venue_score": 0,
+    "influence_score": 1,
+    "repro_score": 1,
+    "match_score_total": 5,
+    "match_score": "3+0+1+1=5",
+    "notes": "relevance=3 from keyword groups: influence,privacy,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2501.11823",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2501.11823?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2501.11823"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2501.11823?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2501.11823",
+    "buckets": [
+      "unlearning",
+      "privacy_mia",
+      "influence_retraining"
+    ],
+    "local_path": "papers/2501.11823_toward_scalable_graph_unlearning_a_node_influence_maximization_b.pdf"
+  },
+  {
+    "arxiv_id": "2506.04694",
+    "arxiv_id_version": "2506.04694v2",
+    "arxiv_abs": "https://arxiv.org/abs/2506.04694",
+    "title": "Influence Functions for Edge Edits in Non-Convex Graph Neural Networks",
+    "summary": "Understanding how individual edges influence the behavior of graph neural networks (GNNs) is essential for improving their interpretability and robustness. Graph influence functions have emerged as promising tools to efficiently estimate the effects of edge deletions without retraining. However, existing influence prediction methods rely on strict convexity assumptions, exclusively consider the influence of edge deletions while disregarding edge insertions, and fail to capture changes in message propagation caused by these modifications. In this work, we propose a proximal Bregman response function specifically tailored for GNNs, relaxing the convexity requirement and enabling accurate influence prediction for standard neural network architectures. Furthermore, our method explicitly accounts for message propagation effects and extends influence prediction to both edge deletions and insertions in a principled way. Experiments with real-world datasets demonstrate accurate influence predictions for different characteristics of GNNs. We further demonstrate that the influence function is versatile in applications such as graph rewiring and adversarial attacks.",
+    "published": "2025-06-05T07:15:46Z",
+    "updated": "2026-01-30T01:39:46Z",
+    "year": 2025,
+    "authors": [
+      "Jaeseung Heo",
+      "Kyeongheung Yun",
+      "Seokwon Yoon",
+      "MoonJeong Park",
+      "Jungseul Ok",
+      "Dongwoo Kim"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2506.04694v2",
+    "comment": "Accepted by NeurIPS 2025",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2506.04694v2"
+    ],
+    "keyword_groups": [
+      "influence",
+      "retraining",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2506.04694",
+    "citations": 0,
+    "citations_num": 0,
+    "venue_score": 0,
+    "influence_score": 0,
+    "repro_score": 1,
+    "match_score_total": 4,
+    "match_score": "3+0+0+1=4",
+    "notes": "relevance=3 from keyword groups: influence,retraining,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2506.04694",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2506.04694?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2506.04694"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2506.04694?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2506.04694",
+    "buckets": [
+      "unlearning",
+      "influence_retraining"
+    ],
+    "local_path": "papers/2506.04694_influence_functions_for_edge_edits_in_non_convex_graph_neural_ne.pdf"
+  },
+  {
+    "arxiv_id": "2511.17989",
+    "arxiv_id_version": "2511.17989v1",
+    "arxiv_abs": "https://arxiv.org/abs/2511.17989",
+    "title": "Privacy Auditing of Multi-domain Graph Pre-trained Model under Membership Inference Attacks",
+    "summary": "Multi-domain graph pre-training has emerged as a pivotal technique in developing graph foundation models. While it greatly improves the generalization of graph neural networks, its privacy risks under membership inference attacks (MIAs), which aim to identify whether a specific instance was used in training (member), remain largely unexplored. However, effectively conducting MIAs against multi-domain graph pre-trained models is a significant challenge due to: (i) Enhanced Generalization Capability: Multi-domain pre-training reduces the overfitting characteristics commonly exploited by MIAs. (ii) Unrepresentative Shadow Datasets: Diverse training graphs hinder the obtaining of reliable shadow graphs. (iii) Weakened Membership Signals: Embedding-based outputs offer less informative cues than logits for MIAs. To tackle these challenges, we propose MGP-MIA, a novel framework for Membership Inference Attacks against Multi-domain Graph Pre-trained models. Specifically, we first propose a membership signal amplification mechanism that amplifies the overfitting characteristics of target models via machine unlearning. We then design an incremental shadow model construction mechanism that builds a reliable shadow model with limited shadow graphs via incremental learning. Finally, we introduce a similarity-based inference mechanism that identifies members based on their similarity to positive and negative samples. Extensive experiments demonstrate the effectiveness of our proposed MGP-MIA and reveal the privacy risks of multi-domain graph pre-training.",
+    "published": "2025-11-22T09:04:58Z",
+    "updated": "2025-11-22T09:04:58Z",
+    "year": 2025,
+    "authors": [
+      "Jiayi Luo",
+      "Qingyun Sun",
+      "Yuecen Wei",
+      "Haonan Yuan",
+      "Xingcheng Fu",
+      "Jianxin Li"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2511.17989v1",
+    "comment": "Accepted by AAAI 2026(Oral)",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2511.17989v1"
+    ],
+    "keyword_groups": [
+      "mia",
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2511.17989",
+    "citations": 1,
+    "citations_num": 1,
+    "venue_score": 0,
+    "influence_score": 1,
+    "repro_score": 1,
+    "match_score_total": 5,
+    "match_score": "3+0+1+1=5",
+    "notes": "relevance=3 from keyword groups: mia,privacy,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2511.17989",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2511.17989?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2511.17989"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2511.17989?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2511.17989",
+    "buckets": [
+      "unlearning",
+      "privacy_mia"
+    ],
+    "local_path": "papers/2511.17989_privacy_auditing_of_multi_domain_graph_pre_trained_model_under_m.pdf"
+  },
+  {
+    "arxiv_id": "2505.10040",
+    "arxiv_id_version": "2505.10040v1",
+    "arxiv_abs": "https://arxiv.org/abs/2505.10040",
+    "title": "Instance-Prototype Affinity Learning for Non-Exemplar Continual Graph Learning",
+    "summary": "Graph Neural Networks (GNN) endure catastrophic forgetting, undermining their capacity to preserve previously acquired knowledge amid the assimilation of novel information. Rehearsal-based techniques revisit historical examples, adopted as a principal strategy to alleviate this phenomenon. However, memory explosion and privacy infringements impose significant constraints on their utility. Non-Exemplar methods circumvent the prior issues through Prototype Replay (PR), yet feature drift presents new challenges. In this paper, our empirical findings reveal that Prototype Contrastive Learning (PCL) exhibits less pronounced drift than conventional PR. Drawing upon PCL, we propose Instance-Prototype Affinity Learning (IPAL), a novel paradigm for Non-Exemplar Continual Graph Learning (NECGL). Exploiting graph structural information, we formulate Topology-Integrated Gaussian Prototypes (TIGP), guiding feature distributions towards high-impact nodes to augment the model's capacity for assimilating new knowledge. Instance-Prototype Affinity Distillation (IPAD) safeguards task memory by regularizing discontinuities in class relationships. Moreover, we embed a Decision Boundary Perception (DBP) mechanism within PCL, fostering greater inter-class discriminability. Evaluations on four node classification benchmark datasets demonstrate that our method outperforms existing state-of-the-art methods, achieving a better trade-off between plasticity and stability.",
+    "published": "2025-05-15T07:35:27Z",
+    "updated": "2025-05-15T07:35:27Z",
+    "year": 2025,
+    "authors": [
+      "Lei Song",
+      "Jiaxing Li",
+      "Shihan Guan",
+      "Youyong Kong"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2505.10040v1",
+    "comment": "",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2505.10040v1"
+    ],
+    "keyword_groups": [
+      "distillation",
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 3,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2505.10040",
+    "citations": 0,
+    "citations_num": 0,
+    "venue_score": 0,
+    "influence_score": 0,
+    "repro_score": 1,
+    "match_score_total": 4,
+    "match_score": "3+0+0+1=4",
+    "notes": "relevance=3 from keyword groups: distillation,privacy,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2505.10040",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2505.10040?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2505.10040"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2505.10040?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2505.10040",
+    "buckets": [
+      "unlearning",
+      "privacy_mia",
+      "distill_partition"
+    ],
+    "local_path": "papers/2505.10040_instance_prototype_affinity_learning_for_non_exemplar_continual.pdf"
+  },
+  {
+    "arxiv_id": "2508.02485",
+    "arxiv_id_version": "2508.02485v1",
+    "arxiv_abs": "https://arxiv.org/abs/2508.02485",
+    "title": "Federated Graph Unlearning",
+    "summary": "The demand for data privacy has led to the development of frameworks like Federated Graph Learning (FGL), which facilitate decentralized model training. However, a significant operational challenge in such systems is adhering to the right to be forgotten. This principle necessitates robust mechanisms for two distinct types of data removal: the selective erasure of specific entities and their associated knowledge from local subgraphs and the wholesale removal of a user's entire dataset and influence. Existing methods often struggle to fully address both unlearning requirements, frequently resulting in incomplete data removal or the persistence of residual knowledge within the system. This work introduces a unified framework, conceived to provide a comprehensive solution to these challenges. The proposed framework employs a bifurcated strategy tailored to the specific unlearning request. For fine-grained Meta Unlearning, it uses prototype gradients to direct the initial local forgetting process, which is then refined by generating adversarial graphs to eliminate any remaining data traces among affected clients. In the case of complete client unlearning, the framework utilizes adversarial graph generation exclusively to purge the departed client's contributions from the remaining network. Extensive experiments on multiple benchmark datasets validate the proposed approach. The framework achieves substantial improvements in model prediction accuracy across both client and meta-unlearning scenarios when compared to existing methods. Furthermore, additional studies confirm its utility as a plug-in module, where it materially enhances the predictive capabilities and unlearning effectiveness of other established methods.",
+    "published": "2025-08-04T14:57:03Z",
+    "updated": "2025-08-04T14:57:03Z",
+    "year": 2025,
+    "authors": [
+      "Yuming Ai",
+      "Xunkai Li",
+      "Jiaqi Chao",
+      "Bowen Fan",
+      "Zhengyu Wu",
+      "Yinlin Zhu",
+      "Rong-Hua Li",
+      "Guoren Wang"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2508.02485v1",
+    "comment": "under review",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2508.02485v1"
+    ],
+    "keyword_groups": [
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 2,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2508.02485",
+    "citations": 1,
+    "citations_num": 1,
+    "venue_score": 0,
+    "influence_score": 1,
+    "repro_score": 1,
+    "match_score_total": 5,
+    "match_score": "3+0+1+1=5",
+    "notes": "relevance=3 from keyword groups: privacy,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2508.02485",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2508.02485?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2508.02485"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2508.02485?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2508.02485",
+    "buckets": [
+      "unlearning",
+      "privacy_mia"
+    ],
+    "local_path": "papers/2508.02485_federated_graph_unlearning.pdf"
+  },
+  {
+    "arxiv_id": "2511.10936",
+    "arxiv_id_version": "2511.10936v2",
+    "arxiv_abs": "https://arxiv.org/abs/2511.10936",
+    "title": "GraphToxin: Reconstructing Full Unlearned Graphs from Graph Unlearning",
+    "summary": "Graph unlearning has emerged as a promising solution to comply with \"the right to be forgotten\" regulations by enabling the removal of sensitive information upon request. However, this solution is not foolproof. The involvement of multiple parties creates new attack surfaces, and residual traces of deleted data can still remain in the unlearned graph neural networks (GNNs). These vulnerabilities can be exploited by attackers to recover the supposedly erased samples, thereby undermining the intended functionality of graph unlearning. In this work, we propose GraphToxin, the first full graph reconstruction attack against graph unlearning. Specifically, we introduce a novel curvature matching module to provide fine-grained guidance for unlearned graph recovery. We demonstrate that GraphToxin can successfully subvert the regulatory guarantees expected from graph unlearning, it can recover not only a deleted individual's information and personal links but also sensitive content from their connections, thereby posing substantially more detrimental threats. Furthermore, we extend GraphToxin to multiple-node removal under both white-box and black-box settings, showcasing its practical feasibility and potential to cause considerable harm. We highlight the necessity of worst-case analysis and propose a systematic evaluation framework to assess attack performance under both random and worst-case node removal scenarios. Our extensive experiments demonstrate the effectiveness and flexibility of GraphToxin. Notably, existing defense mechanisms are largely ineffective against this attack or even amplify its performance in some cases. Given the severe privacy risks posed by GraphToxin, our work underscores the urgent need for more effective and robust defenses.",
+    "published": "2025-11-14T03:52:00Z",
+    "updated": "2026-02-06T14:07:32Z",
+    "year": 2025,
+    "authors": [
+      "Ying Song",
+      "Balaji Palanisamy"
+    ],
+    "primary_category": "cs.LG",
+    "pdf_link": "https://arxiv.org/pdf/2511.10936v2",
+    "comment": "",
+    "code_link": "",
+    "extra_links": [
+      "https://arxiv.org/pdf/2511.10936v2"
+    ],
+    "keyword_groups": [
+      "privacy",
+      "unlearning"
+    ],
+    "topic_hit_count": 2,
+    "priority_recent": 1,
+    "relevance": 3,
+    "venue": "arXiv.org",
+    "doi": "10.48550/arXiv.2511.10936",
+    "citations": 0,
+    "citations_num": 0,
+    "venue_score": 0,
+    "influence_score": 0,
+    "repro_score": 1,
+    "match_score_total": 4,
+    "match_score": "3+0+0+1=4",
+    "notes": "relevance=3 from keyword groups: privacy,unlearning; early citation stage",
+    "source_links": [
+      "https://arxiv.org/abs/2511.10936",
+      "https://api.semanticscholar.org/graph/v1/paper/arXiv:2511.10936?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+      "https://api.crossref.org/works/10.48550%2FarXiv.2511.10936"
+    ],
+    "s2_evidence_url": "https://api.semanticscholar.org/graph/v1/paper/arXiv:2511.10936?fields=title%2Cyear%2CcitationCount%2Cvenue%2CexternalIds%2Cauthors%2Curl%2CpublicationVenue",
+    "crossref_evidence_url": "https://api.crossref.org/works/10.48550%2FarXiv.2511.10936",
+    "buckets": [
+      "unlearning",
+      "privacy_mia"
+    ],
+    "local_path": "papers/2511.10936_graphtoxin_reconstructing_full_unlearned_graphs_from_graph_unlea.pdf"
+  }
+]

@@ -75,6 +75,79 @@
 * 最后给 **我下一步的阅读/实验清单（5-8 条）**
   不要泛泛科普；我需要的是“读代码能跟得上”的解释。遇到你不确定的部分，明确标注“需要我打开/运行哪段代码来确认”，但不要停下来等我回复——先给出你基于当前仓库结构的最佳推断。
 
+## 0-3 paper loading
+
+-1 ：
+你是一个 research engineering agent。对我当前项目：Graph Unlearning + GNN。你的任务是“建一个可复现的论文库”，覆盖最近两年（以今天为准，优先 2024-02-16 至今）的 GNN/graph learning 论文，并尽量与 graph unlearning / deletion / privacy auditing / membership inference / efficient retraining / influence functions / distillation / partition-based training 等相关。
+
+硬性要求：
+1) 你必须使用可验证来源获取元数据：arXiv +（Semantic Scholar 或 OpenAlex）+（publisher/Crossref 如有）。
+2) 不允许编造 citation counts、venue、DOI、作者信息；不确定就标 unknown，并记录证据链接。
+3) 输出必须可复现：创建目录 papers/；下载 PDF；生成 papers.csv + library.bib + 一份 markdown 总览。
+
+步骤：
+A. 检索与候选（>=20 篇）
+- arXiv 检索：GNN/graph neural network/graph learning +（unlearning/deletion/forgetting/privacy/MIA/influence/distillation/partition/efficient retraining）。
+- 过滤：日期近两年优先；主题必须与图学习强相关。
+- 为每篇补充：arXiv id、标题、年份、作者、primary category、pdf link。
+
+B. 门槛筛选与打分（最终 8–12 篇）
+- 给每篇打分：相关度(0-3) + venue 门槛(0-3) + 影响力(0-3) + 可复现性(0-2)。
+- venue 门槛：若有顶会/高刊信息则加分；若无则按影响力/作者群体/开源实现作为替代，但要写依据。
+- 影响力：优先引用数（S2/OpenAlex）；新论文引用低则标“early”并记录证据。
+- 输出：候选表 + 入选表（含筛选理由）。
+
+C. 下载与整理
+- 下载入选论文 PDF 到 papers/<arxiv_id>_<short_title>.pdf
+- 生成 library.bib（BibTeX）与 papers.csv（字段：arxiv_id,title,year,authors,venue,doi,citations,source_links,keywords,match_score,notes,local_path）
+
+D. 每篇生成“粗提炼卡片”（先结构化、别深度发挥）
+为每篇入选论文生成 1 个 markdown 卡片（papers/notes/<arxiv_id>.md），模板：
+- one-sentence claim
+- task setting + threat model（如果相关）
+- method sketch（3-6 bullet）
+- evaluation: datasets/baselines/metrics
+- “possible reuse for GU” (>=3 bullet)
+- “flags / uncertainties” (>=2 bullet with evidence links)
+
+最后输出：
+1) 入选论文列表（含证据链接）
+2) papers.csv + library.bib 的路径
+3) 每篇卡片路径列表
+
+- 2：
+
+你是一个顶会审稿人 + 论文导师。你将看到我用脚本搜集的最近两年 GNN 相关论文库（包含 papers.csv 元数据与每篇粗提炼卡片 notes/*.md）。你的任务是做“高门槛学术提炼 + 反哺我的研究设计”。
+
+硬性要求：
+- 只基于给定材料与其中的证据链接推断，不要凭空补论文细节。
+- 对每篇论文：纠正粗卡片可能的误读；指出 claim 是否 overstated；补齐“与 GU 的真实连接点”。
+- 产出必须能直接写进论文：related work 结构、positioning 句式、实验清单、gap 的可检验表述。
+
+步骤：
+1) 论文群的结构化综述（不要按时间流水账）
+- 用 3-5 条主线组织：例如 partition/sharding, IF/approx, distill/learning-based, privacy auditing/MIA, efficiency/scalability。
+- 每条主线给：核心问题、代表论文、它们的共同评估范式、最大盲点。
+
+2) 每篇论文的“可写作级提炼”
+对入选 8–12 篇，每篇输出：
+- claim（更精确重写）
+- novelty 判断（相对谁）
+- methods（用 1-2 段讲清楚机制，不要泛）
+- what I can borrow（method/eval/baseline 分开）
+- what I should not borrow（assumption mismatch）
+- 1 句可放 related work 的写法（学术英文句子）
+
+3) 研究机会地图（可投稿级）
+- 给 5–8 个 gaps，每个 gap 必须满足：
+  (a) 可检验（能用实验或理论验证）
+  (b) 与至少 2 篇论文形成明确对比
+  (c) 指出最小增量贡献 + 最大风险
+
+4) 审稿人式 rubric 评估我的 idea（先初评，再复评）
+按 novelty/soundness/significance/eval/reproducibility/story 各 1-5 分，
+并给“达到顶会门槛”的硬性补充清单（最少 8 条，按优先级排序）。
+
 
 
 <!-- 
