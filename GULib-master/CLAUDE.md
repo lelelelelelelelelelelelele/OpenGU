@@ -75,6 +75,20 @@ Each unlearning method in `unlearning/unlearning_methods/{Method}/` inherits fro
 
 Core stack: PyTorch + PyTorch Geometric 2.6.1 + torch_scatter + torch_sparse. See `../requirements.txt` for pinned versions. Additional: ogb, deeprobust, cvxpy, scikit-learn.
 
+### Environment
+
+Use the **conda `gnn` environment** for all Python operations:
+
+```bash
+# Activate before running any Python commands
+conda activate gnn
+
+# Or specify full path if needed
+H:\conda_package\envs\gnn\python.exe main.py ...
+```
+
+The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, etc.).
+
 ## Important Notes
 
 - `config.py` executes `parameter_parser()` at import time, so importing it outside of a CLI context (e.g., in a notebook) will fail or use defaults

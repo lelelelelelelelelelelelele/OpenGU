@@ -11,7 +11,9 @@
       "Bash(git commit:*)",
       "Bash(grep:*)",
       "Bash(done)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pip install pytest -q)",
+      "Bash(conda install:*)"
     ]
   }
 }
