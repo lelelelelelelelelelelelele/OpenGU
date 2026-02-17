@@ -550,21 +550,35 @@ class gnndelete(Learning_based_pipeline):
 
         ###MIA
 
-        self.mia_num = df_size
-        original_softlabels_member = self.original_softlabels[df_nodes]
-        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+        member_indices = np.asarray(df_nodes, dtype=int).reshape(-1)
+        nonmember_indices = np.asarray(self.data.test_indices, dtype=int).reshape(-1)
+        effective_n = min(member_indices.size, nonmember_indices.size)
+        if effective_n < 2:
+            self.average_auc[self.run] = np.nan
+            self.logger.warning(
+                "MIA skipped: effective_n=%d (member=%d, nonmember=%d)",
+                effective_n,
+                member_indices.size,
+                nonmember_indices.size,
+            )
+            return
+        self.mia_num = effective_n
+        member_indices = member_indices[:self.mia_num]
+        nonmember_indices = nonmember_indices[:self.mia_num]
+        original_softlabels_member = self.original_softlabels[member_indices]
+        original_softlabels_non = self.original_softlabels[nonmember_indices]
 
         if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
-            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes],sdf_node_1hop[df_nodes],sdf_node_2hop[df_nodes]),dim =1)
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[member_indices],sdf_node_1hop[member_indices],sdf_node_2hop[member_indices]),dim =1)
             unlearning_softlabels_non = F.softmax(self.target_model.model(
-                self.data.features_pre[self.data.test_indices[:self.mia_num]],
-                sdf_node_1hop[self.data.test_indices[:self.mia_num]],
-                sdf_node_2hop[self.data.test_indices[:self.mia_num]]),dim = 1)
+                self.data.features_pre[nonmember_indices],
+                sdf_node_1hop[nonmember_indices],
+                sdf_node_2hop[nonmember_indices]),dim = 1)
         else:
             unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x, self.data.edge_index)[
-                df_nodes],dim = 1)
+                member_indices],dim = 1)
             unlearning_softlabels_non = F.softmax(self.target_model.model(
-                self.data.x, self.data.edge_index)[self.data.test_indices[:self.mia_num]],dim=1)
+                self.data.x, self.data.edge_index)[nonmember_indices],dim=1)
 
         mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
         posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
@@ -841,19 +855,33 @@ class gnndelete(Learning_based_pipeline):
             )
         )
         self.average_f1[self.run] = dt_acc
-        self.mia_num = df_size
-        original_softlabels_member = self.original_softlabels[df_nodes]
-        original_softlabels_non = self.original_softlabels[self.data.test_indices[:self.mia_num]]
+        member_indices = np.asarray(df_nodes, dtype=int).reshape(-1)
+        nonmember_indices = np.asarray(self.data.test_indices, dtype=int).reshape(-1)
+        effective_n = min(member_indices.size, nonmember_indices.size)
+        if effective_n < 2:
+            self.average_auc[self.run] = np.nan
+            self.logger.warning(
+                "MIA skipped: effective_n=%d (member=%d, nonmember=%d)",
+                effective_n,
+                member_indices.size,
+                nonmember_indices.size,
+            )
+            return
+        self.mia_num = effective_n
+        member_indices = member_indices[:self.mia_num]
+        nonmember_indices = nonmember_indices[:self.mia_num]
+        original_softlabels_member = self.original_softlabels[member_indices]
+        original_softlabels_non = self.original_softlabels[nonmember_indices]
 
         if self.args["base_model"] in ["SIGN","SGC","S2GC"]:
-            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[df_nodes]),dim = 1)
+            unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.features_pre[member_indices]),dim = 1)
             unlearning_softlabels_non = F.softmax(self.target_model.model(
-                self.data.features_pre[self.data.test_indices[:self.mia_num]]),dim = 1)
+                self.data.features_pre[nonmember_indices]),dim = 1)
         else:
             unlearning_softlabels_member = F.softmax(self.target_model.model(self.data.x, self.data.edge_index)[
-                df_nodes],dim = 1)
+                member_indices],dim = 1)
             unlearning_softlabels_non = F.softmax(self.target_model.model(
-                self.data.x, self.data.edge_index)[self.data.test_indices[:self.mia_num]],dim=1)
+                self.data.x, self.data.edge_index)[nonmember_indices],dim=1)
 
         mia_test_y = torch.cat((torch.ones(self.mia_num), torch.zeros(self.mia_num)))
         posterior1 = torch.cat((original_softlabels_member, original_softlabels_non), 0).cpu().detach()
