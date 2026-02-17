@@ -443,7 +443,7 @@
         "status": "X",
         "error_type": "MIA_LENGTH_MISMATCH",
         "error_msg": "ValueError: Found input variables with inconsistent numbers of samples: [2708, 1896]",
-        "time_s": 12.188585996627808,
+        "time_s": 11.874428510665894,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\cora\\GNNDelete_GCN_cora_r0.5.log",
         "f1_before": 0.8838,
         "f1_after": null,
@@ -1493,7 +1493,7 @@
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GNNDelete_GCN_citeseer_r0.005.log",
         "f1_before": 0.7327,
         "f1_after": 0.7252,
-        "unlearn_time": 0.7036,
+        "unlearn_time": 0.6591,
         "auc": 0.9609,
         "dataset": "citeseer",
         "method": "GNNDelete",
@@ -1534,13 +1534,15 @@
         "approx_nodes": 67
       },
       "0.05": {
-        "status": "OK",
-        "time_s": 27.379009246826172,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GNNDelete_GCN_citeseer_r0.05.log",
         "f1_before": 0.7327,
         "f1_after": 0.6997,
-        "unlearn_time": 0.8072,
-        "auc": 0.7489,
+        "unlearn_time": 0.7564,
+        "auc": 0.7492,
         "dataset": "citeseer",
         "method": "GNNDelete",
         "model": "GCN",
@@ -1548,8 +1550,10 @@
         "approx_nodes": 166
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 14.342377662658691,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GNNDelete_GCN_citeseer_r0.1.log",
         "f1_before": 0.7327,
         "f1_after": 0.7207,
@@ -1562,8 +1566,10 @@
         "approx_nodes": 333
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 1146.35715341568,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GNNDelete_GCN_citeseer_r0.2.log",
         "f1_before": 0.7327,
         "f1_after": 0.7237,
@@ -1579,7 +1585,7 @@
         "status": "X",
         "error_type": "MIA_LENGTH_MISMATCH",
         "error_msg": "ValueError: Found input variables with inconsistent numbers of samples: [3326, 2329]",
-        "time_s": 9.673731327056885,
+        "time_s": 11.258434534072876,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GNNDelete_GCN_citeseer_r0.5.log",
         "f1_before": 0.7327,
         "f1_after": null,
@@ -1610,8 +1616,10 @@
         "approx_nodes": 17
       },
       "0.01": {
-        "status": "OK",
-        "time_s": 10.131465911865234,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\SGU_GCN_citeseer_r0.01.log",
         "f1_before": 0.7327,
         "f1_after": 0.7417,
@@ -1640,8 +1648,10 @@
         "approx_nodes": 67
       },
       "0.05": {
-        "status": "OK",
-        "time_s": 10.120188236236572,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\SGU_GCN_citeseer_r0.05.log",
         "f1_before": 0.7327,
         "f1_after": 0.7402,
@@ -1654,8 +1664,10 @@
         "approx_nodes": 166
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 10.148707389831543,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\SGU_GCN_citeseer_r0.1.log",
         "f1_before": 0.7327,
         "f1_after": 0.7432,
@@ -1684,8 +1696,10 @@
         "approx_nodes": 665
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 10.379058361053467,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\SGU_GCN_citeseer_r0.5.log",
         "f1_before": 0.7327,
         "f1_after": 0.7462,
@@ -1716,8 +1730,10 @@
         "approx_nodes": 17
       },
       "0.01": {
-        "status": "OK",
-        "time_s": 9.475788354873657,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\MEGU_GCN_citeseer_r0.01.log",
         "f1_before": 0.7327,
         "f1_after": 0.7237,
@@ -1746,8 +1762,10 @@
         "approx_nodes": 67
       },
       "0.05": {
-        "status": "OK",
-        "time_s": 9.517406225204468,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\MEGU_GCN_citeseer_r0.05.log",
         "f1_before": 0.7327,
         "f1_after": 0.7192,
@@ -1776,8 +1794,10 @@
         "approx_nodes": 333
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 9.69337272644043,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\MEGU_GCN_citeseer_r0.2.log",
         "f1_before": 0.7327,
         "f1_after": 0.7147,
@@ -1790,8 +1810,10 @@
         "approx_nodes": 665
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 9.551664113998413,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\MEGU_GCN_citeseer_r0.5.log",
         "f1_before": 0.7327,
         "f1_after": 0.6997,
@@ -1806,8 +1828,10 @@
     },
     "GUKD": {
       "0.005": {
-        "status": "OK",
-        "time_s": 9.37778902053833,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GUKD_GCN_citeseer_r0.005.log",
         "f1_before": 0.7417,
         "f1_after": 0.7523,
@@ -1868,8 +1892,10 @@
         "approx_nodes": 166
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 9.371833801269531,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GUKD_GCN_citeseer_r0.1.log",
         "f1_before": 0.7447,
         "f1_after": 0.7538,
@@ -1882,8 +1908,10 @@
         "approx_nodes": 333
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 9.397990465164185,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GUKD_GCN_citeseer_r0.2.log",
         "f1_before": 0.7402,
         "f1_after": 0.7538,
@@ -1914,8 +1942,10 @@
     },
     "D2DGN": {
       "0.005": {
-        "status": "OK",
-        "time_s": 9.468657732009888,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\D2DGN_GCN_citeseer_r0.005.log",
         "f1_before": 0.7402,
         "f1_after": 0.7553,
@@ -1944,8 +1974,10 @@
         "approx_nodes": 33
       },
       "0.02": {
-        "status": "OK",
-        "time_s": 9.414217472076416,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\D2DGN_GCN_citeseer_r0.02.log",
         "f1_before": 0.7432,
         "f1_after": 0.7553,
@@ -1974,8 +2006,10 @@
         "approx_nodes": 166
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 9.747031688690186,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\D2DGN_GCN_citeseer_r0.1.log",
         "f1_before": 0.7417,
         "f1_after": 0.7583,
@@ -1988,8 +2022,10 @@
         "approx_nodes": 333
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 9.493004560470581,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\D2DGN_GCN_citeseer_r0.2.log",
         "f1_before": 0.7417,
         "f1_after": 0.7583,
@@ -2116,8 +2152,10 @@
         "approx_nodes": 665
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 9.308759212493896,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\IDEA_GCN_citeseer_r0.5.log",
         "f1_before": 0.7327,
         "f1_after": 0.6952,
@@ -2132,8 +2170,10 @@
     },
     "GraphRevoker": {
       "0.005": {
-        "status": "OK",
-        "time_s": 24.601898908615112,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.005.log",
         "f1_before": 0.6081,
         "f1_after": 0.7492,
@@ -2146,8 +2186,10 @@
         "approx_nodes": 17
       },
       "0.01": {
-        "status": "OK",
-        "time_s": 25.999640941619873,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.01.log",
         "f1_before": 0.6066,
         "f1_after": 0.7538,
@@ -2160,8 +2202,10 @@
         "approx_nodes": 33
       },
       "0.02": {
-        "status": "OK",
-        "time_s": 27.62795090675354,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.02.log",
         "f1_before": 0.5946,
         "f1_after": 0.7523,
@@ -2174,8 +2218,10 @@
         "approx_nodes": 67
       },
       "0.05": {
-        "status": "OK",
-        "time_s": 26.43527054786682,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.05.log",
         "f1_before": 0.5916,
         "f1_after": 0.7568,
@@ -2188,8 +2234,10 @@
         "approx_nodes": 166
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 26.477639198303223,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.1.log",
         "f1_before": 0.5976,
         "f1_after": 0.7462,
@@ -2202,8 +2250,10 @@
         "approx_nodes": 333
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 27.90005373954773,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.2.log",
         "f1_before": 0.5931,
         "f1_after": 0.7432,
@@ -2216,8 +2266,10 @@
         "approx_nodes": 665
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 30.50956678390503,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\citeseer\\GraphRevoker_GCN_citeseer_r0.5.log",
         "f1_before": 0.497,
         "f1_after": 0.6967,
@@ -2234,8 +2286,10 @@
   "pubmed": {
     "GraphEraser": {
       "0.005": {
-        "status": "OK",
-        "time_s": 55.734315633773804,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.005.log",
         "f1_before": 0.8225,
         "f1_after": 0.8613,
@@ -2248,8 +2302,10 @@
         "approx_nodes": 99
       },
       "0.01": {
-        "status": "OK",
-        "time_s": 55.275599241256714,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.01.log",
         "f1_before": 0.8233,
         "f1_after": 0.8605,
@@ -2262,8 +2318,10 @@
         "approx_nodes": 197
       },
       "0.02": {
-        "status": "OK",
-        "time_s": 55.92431902885437,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.02.log",
         "f1_before": 0.8215,
         "f1_after": 0.8613,
@@ -2276,8 +2334,10 @@
         "approx_nodes": 394
       },
       "0.05": {
-        "status": "OK",
-        "time_s": 56.58156394958496,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.05.log",
         "f1_before": 0.8253,
         "f1_after": 0.86,
@@ -2290,8 +2350,10 @@
         "approx_nodes": 986
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 51.67366361618042,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.1.log",
         "f1_before": 0.8245,
         "f1_after": 0.86,
@@ -2304,8 +2366,10 @@
         "approx_nodes": 1972
       },
       "0.2": {
-        "status": "OK",
-        "time_s": 47.340741872787476,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.2.log",
         "f1_before": 0.819,
         "f1_after": 0.8588,
@@ -2318,8 +2382,10 @@
         "approx_nodes": 3943
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 46.89718675613403,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GraphEraser_GCN_pubmed_r0.5.log",
         "f1_before": 0.7916,
         "f1_after": 0.8524,
@@ -2366,8 +2432,10 @@
         "approx_nodes": 197
       },
       "0.02": {
-        "status": "OK",
-        "time_s": 10.655960321426392,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GIF_GCN_pubmed_r0.02.log",
         "f1_before": 0.8628,
         "f1_after": 0.8575,
@@ -2396,8 +2464,10 @@
         "approx_nodes": 986
       },
       "0.1": {
-        "status": "OK",
-        "time_s": 10.830809116363525,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GIF_GCN_pubmed_r0.1.log",
         "f1_before": 0.8628,
         "f1_after": 0.8517,
@@ -2426,8 +2496,10 @@
         "approx_nodes": 3943
       },
       "0.5": {
-        "status": "OK",
-        "time_s": 10.539185285568237,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GIF_GCN_pubmed_r0.5.log",
         "f1_before": 0.8628,
         "f1_after": 0.8327,
@@ -2442,8 +2514,10 @@
     },
     "GUIDE": {
       "0.005": {
-        "status": "OK",
-        "time_s": 142.1316204071045,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.005.log",
         "f1_before": null,
         "f1_after": 0.8547,
@@ -2456,8 +2530,10 @@
         "approx_nodes": 99
       },
       "0.01": {
-        "status": "OK",
-        "time_s": 137.97173166275024,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.01.log",
         "f1_before": null,
         "f1_after": 0.8547,
@@ -2470,8 +2546,10 @@
         "approx_nodes": 197
       },
       "0.02": {
-        "status": "OK",
-        "time_s": 138.77728509902954,
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
         "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.02.log",
         "f1_before": null,
         "f1_after": 0.8547,
@@ -2482,6 +2560,102 @@
         "model": "GCN",
         "unlearn_ratio": 0.02,
         "approx_nodes": 394
+      },
+      "0.05": {
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.05.log",
+        "f1_before": null,
+        "f1_after": 0.8547,
+        "unlearn_time": 30.4255,
+        "auc": 0.9577,
+        "dataset": "pubmed",
+        "method": "GUIDE",
+        "model": "GCN",
+        "unlearn_ratio": 0.05,
+        "approx_nodes": 986
+      },
+      "0.1": {
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.1.log",
+        "f1_before": null,
+        "f1_after": 0.8547,
+        "unlearn_time": 27.2901,
+        "auc": 0.9577,
+        "dataset": "pubmed",
+        "method": "GUIDE",
+        "model": "GCN",
+        "unlearn_ratio": 0.1,
+        "approx_nodes": 1972
+      },
+      "0.2": {
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.2.log",
+        "f1_before": null,
+        "f1_after": 0.8547,
+        "unlearn_time": 24.8392,
+        "auc": 0.9577,
+        "dataset": "pubmed",
+        "method": "GUIDE",
+        "model": "GCN",
+        "unlearn_ratio": 0.2,
+        "approx_nodes": 3943
+      },
+      "0.5": {
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GUIDE_GCN_pubmed_r0.5.log",
+        "f1_before": null,
+        "f1_after": 0.8547,
+        "unlearn_time": 20.4457,
+        "auc": 0.9577,
+        "dataset": "pubmed",
+        "method": "GUIDE",
+        "model": "GCN",
+        "unlearn_ratio": 0.5,
+        "approx_nodes": 9858
+      }
+    },
+    "GNNDelete": {
+      "0.005": {
+        "status": "SKIP",
+        "error_type": null,
+        "error_msg": "Strict OK log exists",
+        "time_s": 0.0,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GNNDelete_GCN_pubmed_r0.005.log",
+        "f1_before": 0.8628,
+        "f1_after": 2026.0,
+        "unlearn_time": 0.784,
+        "auc": 0.8543,
+        "dataset": "pubmed",
+        "method": "GNNDelete",
+        "model": "GCN",
+        "unlearn_ratio": 0.005,
+        "approx_nodes": 99
+      },
+      "0.01": {
+        "status": "OK",
+        "time_s": 15.764487266540527,
+        "log_file": "H:\\project\\OpenGU\\GULib-master\\results\\step0_validation\\cross_logs\\pubmed\\GNNDelete_GCN_pubmed_r0.01.log",
+        "f1_before": 0.8628,
+        "f1_after": 0.8479,
+        "unlearn_time": 0.8769,
+        "auc": 0.6647,
+        "dataset": "pubmed",
+        "method": "GNNDelete",
+        "model": "GCN",
+        "unlearn_ratio": 0.01,
+        "approx_nodes": 197
       }
     }
   }

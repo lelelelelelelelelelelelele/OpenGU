@@ -1,5 +1,5 @@
-2026-02-16 19:15:17.738: my pid: 33636
-2026-02-16 19:15:17.739: {'Budget': 0.1,
+2026-02-17 05:36:58.225: my pid: 32500
+2026-02-17 05:36:58.226: {'Budget': 0.1,
  'GIF_exp': 'unlearning',
  'GIF_method': 'GIF',
  'GNN_layer': 3,
@@ -172,61 +172,45 @@
  'write': True,
  'x_iters': 3,
  'y_iters': 3}
-2026-02-16 19:15:17.746: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-16 19:15:17.746: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-16 19:15:17.782: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
+2026-02-17 05:36:58.232: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-17 05:36:58.232: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
+2026-02-17 05:36:58.254: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
 ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.2_pubmed_0.txt
-2026-02-16 19:15:17.975: Model Summary:
-2026-02-16 19:15:17.975: Total Parameters: 32,259
-2026-02-16 19:15:17.975: Trainable Parameters: 32,259
-2026-02-16 19:15:17.975: Model Architecture:
+2026-02-17 05:36:58.437: Model Summary:
+2026-02-17 05:36:58.438: Total Parameters: 32,259
+2026-02-17 05:36:58.438: Trainable Parameters: 32,259
+2026-02-17 05:36:58.438: Model Architecture:
 GCNNet(
   (convs): ModuleList(
     (0): GCNConv(500, 64)
     (1): GCNConv(64, 3)
   )
 )
-2026-02-16 19:15:17.975: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-16 19:15:17.975: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
-2026-02-16 19:15:17.975: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
-2026-02-16 19:15:17.975: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
-2026-02-16 19:15:17.975: Model is in training mode: True
-2026-02-16 19:15:17.975: Model is on device: cuda:0
-2026-02-16 19:15:17.988: training target models, run 0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:21,  4.71epoch/s]2026-02-16 19:15:18.348: Epoch: 010 | F1 Score: 0.6121 | Loss: 0.9497
-BaseTraining:  16%|█▌        | 16/100 [00:00<00:01, 62.58epoch/s]2026-02-16 19:15:18.434: Epoch: 020 | F1 Score: 0.7972 | Loss: 0.7811
-BaseTraining:  29%|██▉       | 29/100 [00:00<00:00, 86.42epoch/s]2026-02-16 19:15:18.523: Epoch: 030 | F1 Score: 0.8256 | Loss: 0.6297
-2026-02-16 19:15:18.612: Epoch: 040 | F1 Score: 0.8380 | Loss: 0.5215
-BaseTraining:  40%|████      | 40/100 [00:00<00:00, 84.25epoch/s]2026-02-16 19:15:18.705: Epoch: 050 | F1 Score: 0.8431 | Loss: 0.4612
-BaseTraining:  52%|█████▏    | 52/100 [00:00<00:00, 94.49epoch/s]2026-02-16 19:15:18.789: Epoch: 060 | F1 Score: 0.8499 | Loss: 0.4293
-BaseTraining:  65%|██████▌   | 65/100 [00:00<00:00, 103.90epoch/s]2026-02-16 19:15:18.890: Epoch: 070 | F1 Score: 0.8534 | Loss: 0.4041
-BaseTraining:  77%|███████▋  | 77/100 [00:00<00:00, 107.39epoch/s]2026-02-16 19:15:18.989: Epoch: 080 | F1 Score: 0.8578 | Loss: 0.3879
-BaseTraining:  89%|████████▉ | 89/100 [00:00<00:00, 104.62epoch/s]2026-02-16 19:15:19.094: Epoch: 090 | F1 Score: 0.8605 | Loss: 0.3733
-2026-02-16 19:15:19.184: Epoch: 100 | F1 Score: 0.8628 | Loss: 0.3669
-BaseTraining: 100%|██████████| 100/100 [00:01<00:00, 95.06epoch/s]BaseTraining: 100%|██████████| 100/100 [00:01<00:00, 88.87epoch/s]2026-02-16 19:15:19.185: Average training time per epoch: 0.0069s
+2026-02-17 05:36:58.438: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-17 05:36:58.438: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
+2026-02-17 05:36:58.438: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
+2026-02-17 05:36:58.438: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
+2026-02-17 05:36:58.438: Model is in training mode: True
+2026-02-17 05:36:58.438: Model is on device: cuda:0
+2026-02-17 05:36:58.450: training target models, run 0
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:19,  5.01epoch/s]2026-02-17 05:36:58.800: Epoch: 010 | F1 Score: 0.6121 | Loss: 0.9497
+BaseTraining:  15%|█▌        | 15/100 [00:00<00:01, 60.33epoch/s]2026-02-17 05:36:58.886: Epoch: 020 | F1 Score: 0.7972 | Loss: 0.7811
+BaseTraining:  29%|██▉       | 29/100 [00:00<00:00, 89.26epoch/s]2026-02-17 05:36:58.982: Epoch: 030 | F1 Score: 0.8256 | Loss: 0.6297
+2026-02-17 05:36:59.075: Epoch: 040 | F1 Score: 0.8380 | Loss: 0.5215
+BaseTraining:  40%|████      | 40/100 [00:00<00:00, 82.33epoch/s]2026-02-17 05:36:59.167: Epoch: 050 | F1 Score: 0.8431 | Loss: 0.4612
+BaseTraining:  52%|█████▏    | 52/100 [00:00<00:00, 93.04epoch/s]2026-02-17 05:36:59.262: Epoch: 060 | F1 Score: 0.8499 | Loss: 0.4293
+BaseTraining:  63%|██████▎   | 63/100 [00:00<00:00, 97.75epoch/s]2026-02-17 05:36:59.356: Epoch: 070 | F1 Score: 0.8534 | Loss: 0.4041
+BaseTraining:  75%|███████▌  | 75/100 [00:00<00:00, 104.16epoch/s]2026-02-17 05:36:59.444: Epoch: 080 | F1 Score: 0.8578 | Loss: 0.3879
+BaseTraining:  87%|████████▋ | 87/100 [00:00<00:00, 107.87epoch/s]2026-02-17 05:36:59.538: Epoch: 090 | F1 Score: 0.8605 | Loss: 0.3733
+BaseTraining:  99%|█████████▉| 99/100 [00:01<00:00, 111.10epoch/s]2026-02-17 05:36:59.637: Epoch: 100 | F1 Score: 0.8628 | Loss: 0.3669
+BaseTraining: 100%|██████████| 100/100 [00:01<00:00, 89.55epoch/s]2026-02-17 05:36:59.638: Average training time per epoch: 0.0067s
 
-Unlearning:   0%|          | 0/50 [00:00<?, ?it/s]Unlearning:   0%|          | 0/50 [00:02<?, ?it/s]
-Traceback (most recent call last):
-  File "main.py", line 75, in <module>
-    GU_method.run_exp()
-  File "H:\project\OpenGU\GULib-master\pipeline\Learning_based_pipeline.py", line 106, in run_exp
-    self.unlearn()
-  File "H:\project\OpenGU\GULib-master\unlearning\unlearning_methods\MEGU\megu.py", line 139, in unlearn
-    self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
-  File "H:\project\OpenGU\GULib-master\task\MEGUTrainer.py", line 142, in megu_unlearning
-    loss_u = criterionKD(out_ori[self.temp_node], out[self.temp_node]) - F.cross_entropy(out[self.temp_node], preds[self.temp_node])
-  File "H:\project\OpenGU\GULib-master\utils\utils.py", line 1062, in criterionKD
-    return loss_kl(soft_p, soft_q)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 1511, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\module.py", line 1520, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\modules\loss.py", line 470, in forward
-    return F.kl_div(input, target, reduction=self.reduction, log_target=self.log_target)
-  File "H:\conda_package\envs\gnn\lib\site-packages\torch\nn\functional.py", line 2961, in kl_div
-    reduced = torch.kl_div(input, target, reduction_enum, log_target=log_target)
-RuntimeError: CUDA error: out of memory
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+Unlearning:   0%|          | 0/50 [00:00<?, ?it/s]Unlearning:  30%|███       | 15/50 [00:00<00:00, 147.94it/s]Unlearning:  64%|██████▍   | 32/50 [00:00<00:00, 158.75it/s]Unlearning:  98%|█████████▊| 49/50 [00:00<00:00, 162.52it/s]Unlearning: 100%|██████████| 50/50 [00:00<00:00, 160.23it/s]2026-02-17 05:37:01.723: Unlearning time: 0.3121, Test F1: 0.8436
+2026-02-17 05:37:01.724: [34mPerformance Metrics:
+ - Poison F1 Score: 0.0000 ± 0.0000
+ - Unlearn F1 Score: 0.8436 ± 0.0000
+ - Average AUC Score: 0.0000 ± 0.0000
+ - Average Training Time: 1.1959 ± 0.0000
+ - Average Sampling Time: 0.0000 ± 0.0000 seconds
+ - Average Unlearning Time: 0.3121 ± 0.0000 seconds[0m
 
