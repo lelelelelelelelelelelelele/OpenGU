@@ -8783,3 +8783,1284 @@
 - 异常与定位：Strict OK log exists
 - 下一步建议：继续执行下一个未完成配置。
 
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\GNNDelete_GCN_cora_r0.5.log`
+- 执行结果：OK | f1_before=0.8838 | f1_after=0.7472 | auc=0.5150 | unlearn_time=1.1425 | wall_time=24.87s
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\SGU_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8856 | auc=0.0000 | unlearn_time=0.6376 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\SGU_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8838 | auc=0.0000 | unlearn_time=0.7173 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\SGU_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8856 | auc=0.0000 | unlearn_time=0.6418 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\SGU_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8838 | auc=0.0000 | unlearn_time=0.6229 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\SGU_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8893 | auc=0.0000 | unlearn_time=0.6363 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\SGU_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8838 | auc=0.0000 | unlearn_time=0.6408 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=SGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\SGU_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8875 | auc=0.0000 | unlearn_time=0.5845 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\MEGU_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8801 | auc=0.0000 | unlearn_time=0.4021 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\MEGU_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8782 | auc=0.0000 | unlearn_time=0.3657 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\MEGU_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8782 | auc=0.0000 | unlearn_time=0.3578 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\MEGU_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8745 | auc=0.0000 | unlearn_time=0.3498 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\MEGU_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8745 | auc=0.0000 | unlearn_time=0.3925 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\MEGU_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8616 | auc=0.0000 | unlearn_time=0.3433 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=MEGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\MEGU_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8229 | auc=0.0000 | unlearn_time=0.3802 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GUKD_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8911 | f1_after=0.9022 | auc=0.0000 | unlearn_time=0.4817 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\GUKD_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8911 | f1_after=0.9022 | auc=0.0000 | unlearn_time=0.4212 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GUKD_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8893 | f1_after=0.9004 | auc=0.0000 | unlearn_time=0.5007 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GUKD_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8875 | f1_after=0.9022 | auc=0.0000 | unlearn_time=0.4840 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GUKD_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8875 | f1_after=0.9022 | auc=0.0000 | unlearn_time=0.4869 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GUKD_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8893 | f1_after=0.8985 | auc=0.0000 | unlearn_time=0.4889 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GUKD, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\GUKD_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8635 | f1_after=0.8856 | auc=0.0000 | unlearn_time=0.4244 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\D2DGN_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8948 | f1_after=0.8967 | auc=0.0000 | unlearn_time=0.7600 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\D2DGN_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8911 | f1_after=0.8930 | auc=0.0000 | unlearn_time=0.5802 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\D2DGN_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8893 | f1_after=0.8967 | auc=0.0000 | unlearn_time=0.7818 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\D2DGN_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8948 | f1_after=0.8967 | auc=0.0000 | unlearn_time=0.6963 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\D2DGN_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8967 | f1_after=0.9004 | auc=0.0000 | unlearn_time=0.6380 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\D2DGN_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8930 | f1_after=0.8930 | auc=0.0000 | unlearn_time=0.6541 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=D2DGN, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\D2DGN_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8948 | auc=0.0000 | unlearn_time=0.6639 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\IDEA_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8653 | auc=0.6213 | unlearn_time=0.4633 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\IDEA_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8653 | auc=0.6310 | unlearn_time=0.4067 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\IDEA_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8653 | auc=0.6043 | unlearn_time=0.4879 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\IDEA_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8653 | auc=0.5748 | unlearn_time=0.4688 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\IDEA_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8635 | auc=0.5375 | unlearn_time=0.4424 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\IDEA_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8450 | auc=0.5312 | unlearn_time=0.4413 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=IDEA, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\IDEA_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8838 | f1_after=0.8339 | auc=0.5307 | unlearn_time=0.4010 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GraphRevoker_GCN_cora_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7269 | f1_after=0.8413 | auc=0.0000 | unlearn_time=8.3839 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:49] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\cora\GraphRevoker_GCN_cora_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7048 | f1_after=0.8506 | auc=0.0000 | unlearn_time=7.3945 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GraphRevoker_GCN_cora_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7085 | f1_after=0.8487 | auc=0.0000 | unlearn_time=10.2225 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GraphRevoker_GCN_cora_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7103 | f1_after=0.8413 | auc=0.0000 | unlearn_time=9.9554 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GraphRevoker_GCN_cora_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7085 | f1_after=0.8358 | auc=0.0000 | unlearn_time=10.6127 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\round2_logs\GraphRevoker_GCN_cora_r0.2.log`
+- 执行结果：SKIP | f1_before=0.6974 | f1_after=0.8247 | auc=0.0000 | unlearn_time=9.6158 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\ratio05_logs\GraphRevoker_GCN_cora_r0.5.log`
+- 执行结果：SKIP | f1_before=0.5849 | f1_after=0.8026 | auc=0.0000 | unlearn_time=7.8466 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.6216 | f1_after=0.7598 | auc=0.0000 | unlearn_time=9.4910 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.6066 | f1_after=0.7538 | auc=0.0000 | unlearn_time=9.8454 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.5946 | f1_after=0.7523 | auc=0.0000 | unlearn_time=9.4335 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.5916 | f1_after=0.7568 | auc=0.0000 | unlearn_time=11.6647 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.5976 | f1_after=0.7462 | auc=0.0000 | unlearn_time=10.0551 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.5931 | f1_after=0.7432 | auc=0.0000 | unlearn_time=9.0395 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphEraser_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.4970 | f1_after=0.6967 | auc=0.0000 | unlearn_time=8.8926 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7177 | auc=0.6348 | unlearn_time=0.3782 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7162 | auc=0.5666 | unlearn_time=0.3774 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7147 | auc=0.5895 | unlearn_time=0.3365 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7162 | auc=0.6357 | unlearn_time=0.3503 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7147 | auc=0.6001 | unlearn_time=0.3843 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7117 | auc=0.5157 | unlearn_time=0.3638 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GIF_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7012 | auc=0.5162 | unlearn_time=0.3807 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=5.2979 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=7.0715 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=7.8826 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=9.3071 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=9.0041 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=8.2923 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUIDE, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUIDE_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.6721 | auc=0.9321 | unlearn_time=6.2896 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7252 | auc=0.9609 | unlearn_time=0.6591 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.7357 | auc=0.8871 | unlearn_time=0.6798 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.7237 | auc=0.8477 | unlearn_time=0.7515 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.6997 | auc=0.7492 | unlearn_time=0.7564 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7207 | auc=0.6732 | unlearn_time=0.6273 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:37:50] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7237 | auc=0.6054 | unlearn_time=0.6533 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GNNDelete_GCN_citeseer_r0.5.log`
+- 执行结果：OK | f1_before=0.7327 | f1_after=0.7117 | auc=0.5247 | unlearn_time=0.8541 | wall_time=15.71s
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7417 | auc=0.0000 | unlearn_time=0.5769 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7417 | auc=0.0000 | unlearn_time=0.5031 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7477 | auc=0.0000 | unlearn_time=0.5796 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7402 | auc=0.0000 | unlearn_time=0.4673 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7432 | auc=0.0000 | unlearn_time=0.4680 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7462 | auc=0.0000 | unlearn_time=0.5707 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=SGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\SGU_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7462 | auc=0.0000 | unlearn_time=0.4733 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7162 | auc=0.0000 | unlearn_time=0.3572 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7237 | auc=0.0000 | unlearn_time=0.2930 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7207 | auc=0.0000 | unlearn_time=0.3864 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:05] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7192 | auc=0.0000 | unlearn_time=0.2831 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7222 | auc=0.0000 | unlearn_time=0.3328 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7147 | auc=0.0000 | unlearn_time=0.2726 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\MEGU_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.6997 | auc=0.0000 | unlearn_time=0.2802 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7417 | f1_after=0.7523 | auc=0.0000 | unlearn_time=0.3883 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7417 | f1_after=0.7523 | auc=0.0000 | unlearn_time=0.4496 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7402 | f1_after=0.7523 | auc=0.0000 | unlearn_time=0.4753 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7432 | f1_after=0.7523 | auc=0.0000 | unlearn_time=0.4898 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7447 | f1_after=0.7538 | auc=0.0000 | unlearn_time=0.3897 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7402 | f1_after=0.7538 | auc=0.0000 | unlearn_time=0.4005 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GUKD, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GUKD_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7432 | f1_after=0.7553 | auc=0.0000 | unlearn_time=0.4059 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7402 | f1_after=0.7553 | auc=0.0000 | unlearn_time=0.5111 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7643 | auc=0.0000 | unlearn_time=0.5937 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7432 | f1_after=0.7553 | auc=0.0000 | unlearn_time=0.4951 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7402 | f1_after=0.7538 | auc=0.0000 | unlearn_time=0.6287 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7417 | f1_after=0.7583 | auc=0.0000 | unlearn_time=0.5431 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7417 | f1_after=0.7583 | auc=0.0000 | unlearn_time=0.5117 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=D2DGN, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\D2DGN_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7477 | f1_after=0.7568 | auc=0.0000 | unlearn_time=0.6663 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7072 | auc=0.7109 | unlearn_time=0.4286 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7072 | auc=0.6309 | unlearn_time=0.4141 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7042 | auc=0.6504 | unlearn_time=0.4190 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7042 | auc=0.5970 | unlearn_time=0.4151 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.7042 | auc=0.5668 | unlearn_time=0.4278 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.6997 | auc=0.5645 | unlearn_time=0.4328 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\IDEA_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7327 | f1_after=0.6952 | auc=0.5641 | unlearn_time=0.3277 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.005.log`
+- 执行结果：SKIP | f1_before=0.6081 | f1_after=0.7492 | auc=0.0000 | unlearn_time=5.7828 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.01.log`
+- 执行结果：SKIP | f1_before=0.6066 | f1_after=0.7538 | auc=0.0000 | unlearn_time=6.0132 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.02.log`
+- 执行结果：SKIP | f1_before=0.5946 | f1_after=0.7523 | auc=0.0000 | unlearn_time=7.4315 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.05.log`
+- 执行结果：SKIP | f1_before=0.5916 | f1_after=0.7568 | auc=0.0000 | unlearn_time=6.6765 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.1.log`
+- 执行结果：SKIP | f1_before=0.5976 | f1_after=0.7462 | auc=0.0000 | unlearn_time=6.7701 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.2.log`
+- 执行结果：SKIP | f1_before=0.5931 | f1_after=0.7432 | auc=0.0000 | unlearn_time=7.3728 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=citeseer, model=GCN, method=GraphRevoker, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\citeseer\GraphRevoker_GCN_citeseer_r0.5.log`
+- 执行结果：SKIP | f1_before=0.4970 | f1_after=0.6967 | auc=0.0000 | unlearn_time=9.3448 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8225 | f1_after=0.8613 | auc=0.0000 | unlearn_time=11.2691 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8233 | f1_after=0.8605 | auc=0.0000 | unlearn_time=11.3707 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8215 | f1_after=0.8613 | auc=0.0000 | unlearn_time=12.1174 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8253 | f1_after=0.8600 | auc=0.0000 | unlearn_time=12.1369 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8245 | f1_after=0.8600 | auc=0.0000 | unlearn_time=9.9784 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8190 | f1_after=0.8588 | auc=0.0000 | unlearn_time=9.4838 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphEraser, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphEraser_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7916 | f1_after=0.8524 | auc=0.0000 | unlearn_time=9.4326 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8585 | auc=0.6436 | unlearn_time=0.6338 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8593 | auc=0.5902 | unlearn_time=0.4256 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8575 | auc=0.5834 | unlearn_time=0.4138 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8534 | auc=0.6008 | unlearn_time=0.4362 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8517 | auc=0.5938 | unlearn_time=0.4177 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8486 | auc=0.4981 | unlearn_time=0.4322 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GIF, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GIF_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8327 | auc=0.4955 | unlearn_time=0.4128 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=29.8813 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=28.6163 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=30.0762 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=30.4255 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=27.2901 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=24.8392 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUIDE, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUIDE_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=NA | f1_after=0.8547 | auc=0.9577 | unlearn_time=20.4457 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=2026.0000 | auc=0.8543 | unlearn_time=0.7840 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8479 | auc=0.6647 | unlearn_time=0.8769 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8258 | auc=0.6738 | unlearn_time=1.0665 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.7809 | auc=0.5314 | unlearn_time=0.9794 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8045 | auc=0.5071 | unlearn_time=0.8011 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:06] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.7863 | auc=0.4978 | unlearn_time=0.8309 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GNNDelete, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GNNDelete_GCN_pubmed_r0.5.log`
+- 执行结果：OK | f1_before=0.8628 | f1_after=0.7764 | auc=0.4950 | unlearn_time=1.2538 | wall_time=17.78s
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8633 | auc=0.0000 | unlearn_time=0.4359 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8626 | auc=0.0000 | unlearn_time=0.4316 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8631 | auc=0.0000 | unlearn_time=0.4628 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8628 | auc=0.0000 | unlearn_time=0.4853 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8628 | auc=0.0000 | unlearn_time=0.4649 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8631 | auc=0.0000 | unlearn_time=0.4405 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=SGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\SGU_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8628 | auc=0.0000 | unlearn_time=0.5685 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8489 | auc=0.0000 | unlearn_time=0.3265 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8507 | auc=0.0000 | unlearn_time=0.3505 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8504 | auc=0.0000 | unlearn_time=0.3116 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8471 | auc=0.0000 | unlearn_time=0.3036 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8463 | auc=0.0000 | unlearn_time=0.3050 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8436 | auc=0.0000 | unlearn_time=0.3121 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=MEGU, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\MEGU_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8289 | auc=0.0000 | unlearn_time=0.3255 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8633 | f1_after=0.8633 | auc=0.0000 | unlearn_time=0.6851 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8631 | f1_after=0.8631 | auc=0.0000 | unlearn_time=0.6306 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8626 | f1_after=0.8626 | auc=0.0000 | unlearn_time=0.6521 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8631 | f1_after=0.8631 | auc=0.0000 | unlearn_time=0.6293 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8623 | f1_after=0.8623 | auc=0.0000 | unlearn_time=0.6253 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8603 | f1_after=0.8603 | auc=0.0000 | unlearn_time=0.6749 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GUKD, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GUKD_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8585 | f1_after=0.8585 | auc=0.0000 | unlearn_time=0.7050 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8542 | f1_after=0.8542 | auc=0.0000 | unlearn_time=0.6030 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8545 | f1_after=0.8545 | auc=0.0000 | unlearn_time=0.6497 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8552 | f1_after=0.8560 | auc=0.0000 | unlearn_time=0.5865 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8552 | f1_after=0.8560 | auc=0.0000 | unlearn_time=0.6300 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8560 | f1_after=0.8578 | auc=0.0000 | unlearn_time=0.6390 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8567 | f1_after=0.8567 | auc=0.0000 | unlearn_time=0.6657 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=D2DGN, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\D2DGN_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8562 | f1_after=0.8562 | auc=0.0000 | unlearn_time=0.6566 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8626 | auc=0.4667 | unlearn_time=0.4036 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8626 | auc=0.4556 | unlearn_time=0.4508 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8618 | auc=0.4494 | unlearn_time=0.3956 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8588 | auc=0.4835 | unlearn_time=0.3891 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8552 | auc=0.4761 | unlearn_time=0.4364 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8499 | auc=0.4853 | unlearn_time=0.4139 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=IDEA, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\IDEA_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.8628 | f1_after=0.8349 | auc=0.4853 | unlearn_time=0.4381 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.005
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.005.log`
+- 执行结果：SKIP | f1_before=0.8225 | f1_after=0.8613 | auc=0.0000 | unlearn_time=8.2934 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.01
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.01.log`
+- 执行结果：SKIP | f1_before=0.8233 | f1_after=0.8605 | auc=0.0000 | unlearn_time=9.4887 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.02
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.02.log`
+- 执行结果：SKIP | f1_before=0.8215 | f1_after=0.8613 | auc=0.0000 | unlearn_time=8.5290 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.05
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.05.log`
+- 执行结果：SKIP | f1_before=0.8253 | f1_after=0.8600 | auc=0.0000 | unlearn_time=8.6590 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.1
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.1.log`
+- 执行结果：SKIP | f1_before=0.8245 | f1_after=0.8600 | auc=0.0000 | unlearn_time=8.5873 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.2
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.2.log`
+- 执行结果：SKIP | f1_before=0.8190 | f1_after=0.8588 | auc=0.0000 | unlearn_time=8.7754 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
+### [2026-02-17 15:38:24] run_cross_dataset_resume.py
+- 任务：dataset=pubmed, model=GCN, method=GraphRevoker, ratio=0.5
+- 日志路径：`H:\project\OpenGU\GULib-master\results\step0_validation\cross_logs\pubmed\GraphRevoker_GCN_pubmed_r0.5.log`
+- 执行结果：SKIP | f1_before=0.7916 | f1_after=0.8524 | auc=0.0000 | unlearn_time=8.5781 | wall_time=0.00s
+- 异常与定位：Strict OK log exists
+- 下一步建议：继续执行下一个未完成配置。
+
