@@ -3,3 +3,5 @@ from .random_strategy import RandomStrategy
 from .degree_strategy import DegreeStrategy
 from .pagerank_strategy import PageRankStrategy
 from .tracin_strategy import TracInStrategy
+from .im_strategy import IMStrategy
+from .hybrid_strategy import HybridStrategy

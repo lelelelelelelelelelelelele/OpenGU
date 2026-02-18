@@ -23,6 +23,8 @@ from attack.attack_strategies import (
     DegreeStrategy,
     PageRankStrategy,
     TracInStrategy,
+    IMStrategy,
+    HybridStrategy,
 )
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
@@ -55,6 +57,8 @@ class AttackManager:
         "degree": DegreeStrategy,
         "pagerank": PageRankStrategy,
         "tracin": TracInStrategy,
+        "im": IMStrategy,
+        "hybrid": HybridStrategy,
     }
 
     def __init__(

@@ -30,6 +30,8 @@ from .attack_strategies import (
     DegreeStrategy,
     PageRankStrategy,
     TracInStrategy,
+    IMStrategy,
+    HybridStrategy,
 )
 
 # Version info
@@ -49,6 +51,8 @@ __all__ = [
     "DegreeStrategy",
     "PageRankStrategy",
     "TracInStrategy",
+    "IMStrategy",
+    "HybridStrategy",
     # Utilities
     "create_manager",
     "quick_demo",
