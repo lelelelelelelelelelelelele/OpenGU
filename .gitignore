@@ -10,3 +10,6 @@ self*
 # **/papers
 *.pdf
 **/skills
+demo_output*.log
+results/demo_logs/
+results/cache/

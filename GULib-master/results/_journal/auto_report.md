@@ -10064,3 +10064,57 @@
 - 异常与定位：Strict OK log exists
 - 下一步建议：继续执行下一个未完成配置。
 
+
+---
+
+## === SESSION: 2026-02-18 ===
+
+### [2026-02-18] Checkpoint Report: Step 0-4 Complete
+
+#### 进度总结
+| Step | 内容 | 状态 | Commits |
+|------|------|------|---------|
+| 0 | 跨数据集验证 (Cora/Citeseer/Pubmed x 11 methods) | DONE | `3022383` |
+| 1 | Base Strategy ABC + Random | DONE | `0f4b1ab` |
+| 2/3 | Degree + PageRank baselines | DONE | `1ee45e9` |
+| 4 | Attack infrastructure + TracIn + Demo | DONE | `5e67607` |
+
+#### 核心成果
+- 攻击框架端到端跑通：策略选择 -> 节点注入 -> 遗忘执行 -> 指标收集
+- TracIn 验证通过：Cora/GCN/GNNDelete 上 1.32x > Random
+- 4 种策略全部可用：random, degree, pagerank, tracin
+
+#### Demo 结果 (Cora / GCN / GNNDelete)
+```
+Rank  Strategy   F1 Drop   Ratio(%)   vs Random
+1     tracin     0.0904    10.17%     1.32x
+2     random     0.0683     7.72%     baseline
+3     degree     0.0535     6.05%     0.78x
+4     pagerank   0.0535     6.02%     0.78x
+```
+
+#### 方法脆弱性排名 (Random baseline, Cora/GCN, ratio=0.1)
+| Rank | Method | F1 Drop | Pipeline |
+|------|--------|---------|----------|
+| 1 | GNNDelete | 8.31% | Learning-based |
+| 2 | Projector | 5.90% | Learning-based |
+| 3 | GraphEraser | 2.40% | Shard-based |
+| 4 | GIF | 2.22% | IF-based |
+| 5 | IDEA | 2.03% | Learning-based |
+| 6 | MEGU | 1.85% | Learning-based |
+| 7 | D2DGN | 0.74% | Learning-based |
+| 8 | SGU | 0.55% | IF-based |
+| 9 | GUKD | 0.37% | Learning-based |
+| 10 | GUIDE | 0.00% | IF-based |
+
+#### Bug 修复记录
+1. demo_attack.py: parse_known_args 吞参数 -> 补全覆盖
+2. pipeline_adapter.py: CPU/GPU 设备不匹配 -> data.to(device)
+3. gnndelete.py: poison_f1 仅 edge task 记录 -> 移除条件
+4. tracin_strategy.py: O(N^2) 嵌套循环 -> 矩阵运算 + train_mask
+
+#### 下一阶段: Phase A 深度实验
+- 4 methods: GNNDelete, GIF, GraphEraser, GUIDE
+- 4 strategies: random, degree, pagerank, tracin
+- 关键假设: TracIn 在 IF-based 方法 (GIF) 上优势更大
+
