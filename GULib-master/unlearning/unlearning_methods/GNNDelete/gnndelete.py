@@ -588,7 +588,7 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
 
     def delete_edge(self):
         """
@@ -891,5 +891,5 @@ class gnndelete(Learning_based_pipeline):
         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
         # self.logger.info("auc:{}".format(auc))
         self.average_auc[self.run] = auc
-        plot_auc(mia_test_y, posterior.reshape(-1, 1))
-        
+        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
+

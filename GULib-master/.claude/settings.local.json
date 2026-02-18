@@ -18,7 +18,14 @@
       "Bash(H:/conda_package/envs/gnn/python.exe -m pytest:*)",
       "Bash(git -C /h/project/OpenGU/GULib-master log:*)",
       "Bash(git -C /h/project/OpenGU/GULib-master status:*)",
-      "Bash(git -C /h/project/OpenGU/GULib-master diff:*)"
+      "Bash(git -C /h/project/OpenGU/GULib-master diff:*)",
+      "Bash(conda activate:*)",
+      "Bash(/g/ProgramData/miniconda/python -m pytest:*)",
+      "Bash(H:/conda_package/envs/gnn/python.exe:*)",
+      "Bash(ls:*)",
+      "Bash(npx:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(H:conda_packageenvsgnnpython.exe demo_attack.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GNNDelete --strategies random,degree,pagerank,tracin)"
     ]
   }
 }

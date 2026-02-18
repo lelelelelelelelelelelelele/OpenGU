@@ -534,7 +534,7 @@ class cgu(IF_based_pipeline):
                         auc = roc_auc_score(mia_test_y, posterior.reshape(-1, 1))
                         self.logger.info('auc:{}'.format(auc))
                         self.average_auc[trail_iter] = auc
-                        plot_auc(mia_test_y, posterior.reshape(-1, 1))
+                        # plot_auc(mia_test_y, posterior.reshape(-1, 1))
                         average = removal_times[:, trail_iter].sum()
                         self.avg_training_time[trail_iter] = average
 
