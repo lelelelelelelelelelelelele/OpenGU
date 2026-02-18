@@ -29,7 +29,8 @@
       "Bash(\"H:/project/OpenGU/GULib-master/results/_journal/auto_report.md\":*)",
       "Bash(attack_manager \")",
       "Bash(dir \"H:\\\\project\\\\OpenGU\\\\GULib-master\\\\results\\\\checkpoint_report\\\\figures\"\")",
-      "Bash(python3 -c \"import os; [print\\(os.path.join\\(r,f\\)\\) for r,d,files in os.walk\\(''H:/project/OpenGU/GULib-master/results/checkpoint_report''\\) for f in files]\")"
+      "Bash(python3 -c \"import os; [print\\(os.path.join\\(r,f\\)\\) for r,d,files in os.walk\\(''H:/project/OpenGU/GULib-master/results/checkpoint_report''\\) for f in files]\")",
+      "Bash(test -d self)"
     ]
   }
 }
