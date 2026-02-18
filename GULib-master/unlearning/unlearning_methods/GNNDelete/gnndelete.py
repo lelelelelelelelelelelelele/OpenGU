@@ -85,8 +85,8 @@ class gnndelete(Learning_based_pipeline):
         """
         self.target_model.train(save=False)
         self.data = self.data.to(self.device)
-        if self.args["poison"] and self.args["unlearn_task"]=="edge":
-            self.poison_f1[self.run] = self.target_model.evaluate()
+        # Always record pre-unlearning F1 for attack evaluation
+        self.poison_f1[self.run] = self.target_model.evaluate()
         if  self.args["base_model"] in ["SIGN","SGC","S2GC"]:
             self.original_softlabels = F.softmax(self.target_model.model(self.data.features_pre), dim=1)
         else:

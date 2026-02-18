@@ -1,0 +1,302 @@
+"""
+AttackPipeline - Encapsulates main.py logic for attack experiments.
+
+This module provides a reusable pipeline that:
+1. Loads data and initializes models (reuses main.py logic)
+2. Supports custom node selection strategies
+3. Runs unlearning experiments
+4. Collects and returns results
+"""
+import os
+import sys
+import time
+import torch
+import numpy as np
+from typing import Optional, Dict, Any, List
+from torch import Tensor
+
+# Add parent directory to path for imports
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if base_dir not in sys.path:
+    sys.path.append(base_dir)
+
+from model.model_zoo import model_zoo
+from dataset.original_dataset import original_dataset
+from utils.logger import create_logger
+from utils.dataset_utils import process_data, save_data
+from unlearning_manager import UnlearningManager
+from utils.utils import calc_f1
+from config import unlearning_path
+from attack.attack_strategies import BaseStrategy
+
+
+class AttackPipeline:
+    """
+    Pipeline for running attack experiments with custom node selection strategies.
+
+    This class encapsulates the core logic from main.py and adds support for:
+    - Custom node selection strategies
+    - Result caching
+    - Metric collection
+
+    Example:
+        >>> args = parameter_parser()
+        >>> pipeline = AttackPipeline(args)
+        >>> result = pipeline.run_with_strategy(strategy, k=50)
+    """
+
+    def __init__(self, args: Dict[str, Any], logger=None):
+        """
+        Initialize the attack pipeline.
+
+        Args:
+            args: Configuration dictionary from parameter_parser()
+            logger: Optional logger instance (creates one if not provided)
+        """
+        self.args = args
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        # Setup logger
+        if logger is None:
+            self.logger = create_logger(args)
+        else:
+            self.logger = logger
+
+        # Initialize components
+        self.original_data = None
+        self.data = None
+        self.dataset = None
+        self.model_zoo = None
+        self.model = None
+        self.manager = None
+        self.method = None
+
+        # Metrics storage
+        self.f1_before = 0.0
+        self.f1_after = 0.0
+
+        # Run setup
+        self._setup()
+
+    def _setup(self):
+        """Initialize data, model, and unlearning method."""
+        self.logger.info("Initializing AttackPipeline...")
+
+        # Load data
+        self.original_data = original_dataset(self.args, self.logger)
+        self.data, self.dataset = self.original_data.load_data()
+        self.data = process_data(self.logger, self.data, self.args)
+
+        # Initialize model
+        self.model_zoo = model_zoo(self.args, self.data)
+        self.model = self.model_zoo.model
+
+        if self.args["base_model"] not in ["GST", "Projector"]:
+            self.logger.log_model_info(self.model)
+
+        # Initialize unlearning manager
+        self.manager = UnlearningManager(
+            self.args, self.original_data, self.data,
+            self.logger, self.model_zoo, self.dataset
+        )
+        self.method = self.manager.get_method()
+
+        self.logger.info("AttackPipeline initialized successfully.")
+
+    def _evaluate_model(self, model=None) -> float:
+        """
+        Evaluate the model and return F1 score.
+
+        Args:
+            model: Optional model to evaluate (uses pipeline model if None)
+
+        Returns:
+            F1 score on test set
+        """
+        if model is None:
+            model = self.model
+
+        model.eval()
+        device = next(model.parameters()).device
+        data = self.data.to(device)
+
+        with torch.no_grad():
+            # Get predictions
+            out = model(data.x, data.edge_index)
+
+            # Calculate F1 using existing utility
+            y_true = data.y.cpu().numpy()
+            y_pred = out.cpu().numpy()
+            test_mask = data.test_mask
+
+            f1 = calc_f1(y_true, y_pred, test_mask, multilabel=False)
+
+        return f1
+
+    def _inject_unlearn_nodes(self, nodes: Tensor, run_id: int = 0):
+        """
+        Inject selected nodes into the unlearning configuration.
+
+        This writes the selected nodes to the file that the unlearning method
+        will read in unlearning_request().
+
+        Args:
+            nodes: Tensor of node indices to unlearn
+            run_id: Run identifier for file naming
+        """
+        # Ensure nodes are numpy array
+        if isinstance(nodes, Tensor):
+            nodes = nodes.cpu().numpy()
+
+        # Construct path matching config.py format
+        # unlearning_path = root_path + "/data/unlearning_task/{transductive|inductive}/{balanced|imbalanced}/unlearning_nodes_{ratio}_{dataset}"
+        root_path = "."
+
+        if self.args["is_transductive"]:
+            split_type = "transductive"
+        else:
+            split_type = "inductive"
+
+        if self.args["is_balanced"]:
+            balance_type = "balanced"
+        else:
+            balance_type = "imbalanced"
+
+        path = f"{root_path}/data/unlearning_task/{split_type}/{balance_type}/unlearning_nodes_{self.args['unlearn_ratio']}_{self.args['dataset_name']}_{run_id}.txt"
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        # Write nodes to file
+        np.savetxt(path, nodes, fmt='%d')
+
+        self.logger.info(f"Injected {len(nodes)} nodes to unlearn at {path}")
+
+    def run_with_strategy(self, strategy: BaseStrategy, k: int, run_id: int = 0) -> Dict[str, Any]:
+        """
+        Run a complete attack experiment with the given strategy.
+
+        Args:
+            strategy: Node selection strategy
+            k: Number of nodes to select
+            run_id: Run identifier (for multiple runs)
+
+        Returns:
+            Dictionary containing experiment results
+        """
+        start_time = time.time()
+
+        self.logger.info(f"Running attack with strategy: {strategy.__class__.__name__}")
+        self.logger.info(f"Selecting {k} nodes for unlearning")
+
+        # Step 1: Strategy selects nodes
+        selection_start = time.time()
+        selected_nodes = strategy.select_nodes(self.data, self.model, k)
+        selection_time = time.time() - selection_start
+
+        self.logger.info(f"Strategy selected nodes: {selected_nodes[:10].tolist()}... (showing first 10)")
+        self.logger.info(f"Selection took {selection_time:.2f}s")
+
+        # Step 2: Inject selected nodes
+        self._inject_unlearn_nodes(selected_nodes, run_id)
+
+        # Step 3: Run unlearning experiment (trains model + unlearns)
+        # Reset the method to pick up the new unlearning nodes
+        self.method = self.manager.get_method()
+
+        unlearn_start = time.time()
+
+        # Run the unlearning experiment
+        try:
+            # Run a single iteration
+            self.args["num_runs"] = 1
+            self.method.run_exp()
+
+            # Extract results from the method
+            # poison_f1 = pre-unlearning F1 (set during train_original_model for edge tasks)
+            # average_f1 = post-unlearning F1
+            unlearn_time = getattr(self.method, 'avg_unlearning_time', [0])[0] if hasattr(self.method, 'avg_unlearning_time') else 0
+            f1_after = getattr(self.method, 'average_f1', [0])[0] if hasattr(self.method, 'average_f1') else 0
+            mia_auc = getattr(self.method, 'average_auc', [None])[0] if hasattr(self.method, 'average_auc') else None
+
+            # Get pre-unlearning F1: use poison_f1 if available, otherwise evaluate trained model
+            f1_before_arr = getattr(self.method, 'poison_f1', None)
+            if f1_before_arr is not None and f1_before_arr[0] > 0:
+                f1_before = float(f1_before_arr[0])
+            else:
+                # Fallback: evaluate the model after run_exp (it's been trained+unlearned,
+                # so use a fresh evaluation as approximation, or use the training F1 from logs)
+                f1_before = self._evaluate_model()
+
+        except Exception as e:
+            self.logger.error(f"Error during unlearning: {e}")
+            import traceback
+            traceback.print_exc()
+            f1_before = 0.0
+            f1_after = 0.0
+            unlearn_time = time.time() - unlearn_start
+            mia_auc = None
+
+        unlearn_time = time.time() - unlearn_start if unlearn_time == 0 else unlearn_time
+        total_time = time.time() - start_time
+
+        # If f1_after wasn't set properly, evaluate
+        if f1_after == 0:
+            f1_after = self._evaluate_model()
+
+        self.logger.info(f"F1 before unlearning: {f1_before:.4f}")
+        self.logger.info(f"F1 after unlearning: {f1_after:.4f}")
+        self.logger.info(f"F1 drop: {f1_before - f1_after:.4f}")
+        self.logger.info(f"Unlearning took {unlearn_time:.2f}s")
+
+        return {
+            "strategy_name": strategy.__class__.__name__,
+            "selected_nodes": selected_nodes,
+            "f1_before": f1_before,
+            "f1_after": f1_after,
+            "f1_drop": f1_before - f1_after,
+            "unlearn_time": unlearn_time,
+            "selection_time": selection_time,
+            "total_time": total_time,
+            "mia_auc": mia_auc,
+        }
+
+    def compare_strategies(self, strategies: Dict[str, BaseStrategy], k: int) -> List[Dict[str, Any]]:
+        """
+        Compare multiple strategies.
+
+        Args:
+            strategies: Dictionary mapping strategy names to strategy instances
+            k: Number of nodes to select
+
+        Returns:
+            List of result dictionaries
+        """
+        results = []
+
+        for name, strategy in strategies.items():
+            self.logger.info(f"\n{'='*60}")
+            self.logger.info(f"Evaluating strategy: {name}")
+            self.logger.info(f"{'='*60}")
+
+            result = self.run_with_strategy(strategy, k)
+            results.append(result)
+
+        return results
+
+
+def create_pipeline_from_args(args_dict: Optional[Dict[str, Any]] = None) -> AttackPipeline:
+    """
+    Factory function to create an AttackPipeline from arguments.
+
+    Args:
+        args_dict: Optional argument dictionary (uses parameter_parser() if None)
+
+    Returns:
+        Initialized AttackPipeline
+    """
+    if args_dict is None:
+        from parameter_parser import parameter_parser
+        args_dict = parameter_parser()
+
+    return AttackPipeline(args_dict)

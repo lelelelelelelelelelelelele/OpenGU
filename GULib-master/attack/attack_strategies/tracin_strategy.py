@@ -55,8 +55,11 @@ class TracInStrategy(BaseStrategy):
         model.to(self.device)
         data = data.to(self.device)
 
-        # Get candidate nodes (typically all nodes in the graph)
-        candidates = torch.arange(data.num_nodes, device=self.device)
+        # Limit candidates to training nodes (unlearning only selects from train set)
+        if hasattr(data, 'train_mask') and data.train_mask is not None:
+            candidates = data.train_mask.nonzero(as_tuple=False).squeeze(-1).to(self.device)
+        else:
+            candidates = torch.arange(data.num_nodes, device=self.device)
 
         # Compute TracIn scores
         scores = self._compute_tracin_scores(model, data, candidates)
@@ -88,22 +91,19 @@ class TracInStrategy(BaseStrategy):
         Returns:
             scores: [num_candidates] tensor of TracIn scores
         """
-        num_candidates = len(candidates)
-        scores = torch.zeros(num_candidates, device=self.device)
-
-        # Pre-compute gradients for all candidates
+        # Pre-compute gradients for all candidates and stack into matrix
         grads = []
         for node in candidates:
             grad = self._compute_node_gradient(model, data, node)
             grads.append(grad)
 
-        # Compute pairwise influence scores
-        for i, grad_i in enumerate(grads):
-            # Sum of negative dot products with all other nodes
-            score = torch.tensor(0.0, device=self.device)
-            for grad_j in grads:
-                score -= torch.dot(grad_i, grad_j)
-            scores[i] = score
+        # G: [N, d] matrix of per-node gradients
+        G = torch.stack(grads)  # [num_candidates, num_params]
+
+        # TracIn score_i = -sum_j (grad_i · grad_j) = -(G @ G^T).sum(dim=1)[i]
+        # Equivalent: scores = -(G @ G^T @ 1) = -(G @ (G^T @ 1)) for memory efficiency
+        col_sum = G.sum(dim=0)  # [d]
+        scores = -(G @ col_sum)  # [num_candidates]
 
         return scores
 
