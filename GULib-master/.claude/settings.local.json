@@ -25,7 +25,11 @@
       "Bash(ls:*)",
       "Bash(npx:*)",
       "Bash(nvidia-smi:*)",
-      "Bash(H:conda_packageenvsgnnpython.exe demo_attack.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GNNDelete --strategies random,degree,pagerank,tracin)"
+      "Bash(H:conda_packageenvsgnnpython.exe demo_attack.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GNNDelete --strategies random,degree,pagerank,tracin)",
+      "Bash(\"H:/project/OpenGU/GULib-master/results/_journal/auto_report.md\":*)",
+      "Bash(attack_manager \")",
+      "Bash(dir \"H:\\\\project\\\\OpenGU\\\\GULib-master\\\\results\\\\checkpoint_report\\\\figures\"\")",
+      "Bash(python3 -c \"import os; [print\\(os.path.join\\(r,f\\)\\) for r,d,files in os.walk\\(''H:/project/OpenGU/GULib-master/results/checkpoint_report''\\) for f in files]\")"
     ]
   }
 }

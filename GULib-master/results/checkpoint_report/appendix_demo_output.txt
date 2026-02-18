@@ -1,0 +1,70 @@
+======================================================================
+Appendix: Demo Output Excerpt
+Source: results/demo_logs/2026-02-18_cora_GCN_GNNDelete.log
+Date: 2026-02-19 02:57 - 03:01
+======================================================================
+
+[Configuration]
+  Dataset: cora (2708 nodes)
+  Model: GCN (92,231 parameters)
+  Unlearning Method: GNNDelete
+  Nodes to unlearn (k): 135 (5.0%)
+  Strategies compared: random, degree, pagerank, tracin
+
+----------------------------------------------------------------------
+[Strategy 1: Random]
+----------------------------------------------------------------------
+  Selection time: 0.00s
+  Sample selected nodes: [1600, 2035, 585, 1475, 2511, 801, 2234, ...]
+  Training: 100 epochs, avg 0.0074s/epoch
+  F1 before unlearning: 0.8838
+  F1 after unlearning:  0.8155
+  F1 drop: 0.0683 (7.72%)
+  Unlearning time: 1.04s
+
+----------------------------------------------------------------------
+[Strategy 2: Degree]
+----------------------------------------------------------------------
+  Selection time: 0.03s
+  Sample selected nodes: [1358, 306, 1701, 1986, 1810, 1623, 2034, ...]
+  Training: 100 epochs, avg 0.0087s/epoch
+  F1 before unlearning: 0.8838
+  F1 after unlearning:  0.8303
+  F1 drop: 0.0535 (6.05%)
+  Unlearning time: 0.88s
+
+----------------------------------------------------------------------
+[Strategy 3: PageRank]
+----------------------------------------------------------------------
+  Selection time: 0.04s
+  Sample selected nodes: [1358, 1701, 1986, 306, 1810, 2034, 1623, ...]
+  Training: 100 epochs, avg 0.0054s/epoch
+  F1 before unlearning: 0.8893
+  F1 after unlearning:  0.8358
+  F1 drop: 0.0535 (6.02%)
+  Unlearning time: 0.78s
+
+----------------------------------------------------------------------
+[Strategy 4: TracIn]
+----------------------------------------------------------------------
+  Selection time: 8.02s
+  Sample selected nodes: [1528, 578, 96, 1742, 866, 1582, 26, ...]
+  Training: 100 epochs, avg 0.0067s/epoch
+  F1 before unlearning: 0.8893
+  F1 after unlearning:  0.7989
+  F1 drop: 0.0904 (10.17%)
+  Unlearning time: 0.93s
+
+======================================================================
+Strategy Comparison Results (from log)
+======================================================================
+Rank  Strategy       F1 Drop     Ratio(%)    Time(s)     vs Random
+------------------------------------------------------------
+1     tracin         0.0904      10.17       0.93        1.32x
+2     random         0.0683      7.72        1.04
+3     degree         0.0535      6.05        0.88        0.78x
+4     pagerank       0.0535      6.02        0.78        0.78x
+============================================================
+Best Strategy: tracin
+Improvement over Random: 1.32x
+============================================================
