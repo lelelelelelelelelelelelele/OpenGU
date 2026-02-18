@@ -13,7 +13,12 @@
       "Bash(done)",
       "Bash(find:*)",
       "Bash(pip install pytest -q)",
-      "Bash(conda install:*)"
+      "Bash(conda install:*)",
+      "Bash(pytest:*)",
+      "Bash(H:/conda_package/envs/gnn/python.exe -m pytest:*)",
+      "Bash(git -C /h/project/OpenGU/GULib-master log:*)",
+      "Bash(git -C /h/project/OpenGU/GULib-master status:*)",
+      "Bash(git -C /h/project/OpenGU/GULib-master diff:*)"
     ]
   }
 }

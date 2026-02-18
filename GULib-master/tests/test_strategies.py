@@ -1,9 +1,9 @@
-"""Unit tests for attack strategies (Steps 1-3)."""
+"""Unit tests for attack strategies (Steps 1-5)."""
 
 import torch
 from torch_geometric.data import Data
 
-from attack.attack_strategies import RandomStrategy, DegreeStrategy, PageRankStrategy
+from attack.attack_strategies import RandomStrategy, DegreeStrategy, PageRankStrategy, TracInStrategy
 
 
 def _make_dummy_data(num_nodes=100, num_features=16, num_edges=300):
@@ -152,4 +152,70 @@ class TestPageRankStrategy:
         k = 20
         result1 = strategy.select_nodes(data, model=None, k=k)
         result2 = strategy.select_nodes(data, model=None, k=k)
+        assert torch.equal(result1, result2)
+
+
+class TestTracInStrategy:
+    """Tests for TracInStrategy (Step 5)."""
+
+    def _make_dummy_model(self, num_features=16, num_classes=7):
+        """创建一个简单的 GNN 模型用于测试。"""
+        import torch.nn as nn
+        import torch.nn.functional as F
+
+        class DummyGNN(nn.Module):
+            def __init__(self, in_channels, out_channels):
+                super().__init__()
+                self.lin = nn.Linear(in_channels, out_channels)
+
+            def forward(self, x, edge_index=None):
+                return self.lin(x)
+
+        return DummyGNN(num_features, num_classes)
+
+    def test_output_shape(self):
+        """返回恰好 k 个节点"""
+        data = _make_dummy_data(num_nodes=100, num_features=16)
+        model = self._make_dummy_model(num_features=16, num_classes=7)
+        strategy = TracInStrategy(args={})
+        k = 20
+        result = strategy.select_nodes(data, model=model, k=k)
+        assert result.shape == (k,)
+
+    def test_no_duplicates(self):
+        """无重复节点"""
+        data = _make_dummy_data(num_nodes=100, num_features=16)
+        model = self._make_dummy_model(num_features=16, num_classes=7)
+        strategy = TracInStrategy(args={})
+        k = 50
+        result = strategy.select_nodes(data, model=model, k=k)
+        assert len(result.unique()) == k
+
+    def test_valid_indices(self):
+        """所有索引 ∈ [0, N)"""
+        data = _make_dummy_data(num_nodes=80, num_features=16)
+        model = self._make_dummy_model(num_features=16, num_classes=7)
+        strategy = TracInStrategy(args={})
+        k = 30
+        result = strategy.select_nodes(data, model=model, k=k)
+        assert (result >= 0).all() and (result < 80).all()
+
+    def test_ratio_interface(self):
+        """select_nodes_by_ratio 与手动算 k 结果长度一致"""
+        data = _make_dummy_data(num_nodes=200, num_features=16)
+        model = self._make_dummy_model(num_features=16, num_classes=7)
+        strategy = TracInStrategy(args={})
+        ratio = 0.1
+        result = strategy.select_nodes_by_ratio(data, model=model, ratio=ratio)
+        expected_k = int(200 * ratio)
+        assert result.shape == (expected_k,)
+
+    def test_deterministic(self):
+        """TracInStrategy 是确定性的：两次调用结果相同"""
+        data = _make_dummy_data(num_nodes=100, num_features=16)
+        model = self._make_dummy_model(num_features=16, num_classes=7)
+        strategy = TracInStrategy(args={})
+        k = 20
+        result1 = strategy.select_nodes(data, model=model, k=k)
+        result2 = strategy.select_nodes(data, model=model, k=k)
         assert torch.equal(result1, result2)
