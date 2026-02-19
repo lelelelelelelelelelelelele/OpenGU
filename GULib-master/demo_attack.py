@@ -99,6 +99,8 @@ def main():
     args['unlearn_ratio'] = demo_args.unlearn_ratio
     args['num_epochs'] = demo_args.num_epochs
     args['batch_size'] = demo_args.batch_size
+    args['random_seed'] = demo_args.seed
+    args['seed'] = demo_args.seed
 
     # Set random seed
     seed_everything(demo_args.seed)

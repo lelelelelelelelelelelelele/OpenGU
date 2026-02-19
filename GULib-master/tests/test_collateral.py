@@ -3,6 +3,7 @@
 import importlib.util
 import os
 import sys
+import tempfile
 import torch
 import torch.nn as nn
 import numpy as np
@@ -426,3 +427,58 @@ class TestFindCacheEntry:
 
         # Original args should not have strategy_name added
         assert 'strategy_name' not in args
+
+    def test_matches_random_seed_when_scanning_cache_files(self):
+        from eval_collateral import find_cache_entry
+        from attack.result_cache import ResultCache
+        from attack.attack_result import AttackResult
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = ResultCache(cache_dir=tmpdir)
+            base_config = {
+                "dataset_name": "cora",
+                "base_model": "GCN",
+                "unlearning_methods": "GNNDelete",
+                "unlearn_ratio": 0.05,
+                "strategy_name": "random",
+                "unlearn_task": "node",
+                "downstream_task": "node",
+                "is_transductive": True,
+                "is_balanced": False,
+            }
+
+            config_seed_1 = base_config.copy()
+            config_seed_1["random_seed"] = 111
+            config_seed_2 = base_config.copy()
+            config_seed_2["random_seed"] = 222
+
+            result_seed_1 = AttackResult(
+                strategy_name="random",
+                selected_nodes=torch.tensor([1, 2, 3]),
+                f1_before=0.8,
+                f1_after=0.7,
+                unlearn_time=1.0,
+                total_time=1.5,
+            )
+            result_seed_2 = AttackResult(
+                strategy_name="random",
+                selected_nodes=torch.tensor([4, 5, 6]),
+                f1_before=0.8,
+                f1_after=0.6,
+                unlearn_time=1.0,
+                total_time=1.5,
+            )
+
+            cache.save(result_seed_1, config_seed_1)
+            cache.save(result_seed_2, config_seed_2)
+
+            args = {
+                "dataset_name": "cora",
+                "base_model": "GCN",
+                "unlearning_methods": "GNNDelete",
+                "unlearn_ratio": 0.05,
+                "random_seed": 222,
+            }
+            matched = find_cache_entry(cache, args, "random")
+            assert matched is not None
+            assert matched.selected_nodes.tolist() == [4, 5, 6]

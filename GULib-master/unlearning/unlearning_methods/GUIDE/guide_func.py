@@ -100,6 +100,8 @@ class GUIDE_FUNC:
             raise ValueError(
                 'the input graph contains outlier points, leading to a 0-degree')
 
+        device = labels_new.device
+
         if self.method == 'Fast':
             # torch.set_default_dtype(torch.float32)
             W = (adjacency+adjacency.T)/2
@@ -108,7 +110,7 @@ class GUIDE_FUNC:
             W = D12 @ W @ D12
 
             Fairness = torch.zeros(
-                (number_nodes, number_colors))
+                (number_nodes, number_colors), device=device)
             for i in range(number_colors):
                 equal = (labels_new == i)
                 color_index = (labels_new == i).nonzero()
@@ -116,11 +118,11 @@ class GUIDE_FUNC:
                 Fairness[color_index, i] = 1
 
             B_left = Fairness.sum(axis=0).reshape(1, number_colors)
-            B_right = torch.zeros((1, self.number_local))
+            B_right = torch.zeros((1, self.number_local), device=device)
             B_right[:] = torch.sqrt(torch.tensor(
-                number_nodes/self.number_local))
+                number_nodes/self.number_local, device=device))
 
-            Balance = B_left.T @ B_right / torch.tensor(number_nodes)
+            Balance = B_left.T @ B_right / torch.tensor(number_nodes, device=device)
             MB_ = alpha_ * Fairness @ Balance
             H, _ = self.GPI(W, alpha_, Fairness, MB_, Niter=self.NITER_BASE)
             km = KMeans(n_clusters=self.number_local, n_init=10, max_iter=50).fit(
@@ -135,20 +137,20 @@ class GUIDE_FUNC:
             W = D12 @ W @ D12
 
             Fairness = torch.zeros(
-                (number_nodes, number_colors))
+                (number_nodes, number_colors), device=device)
             for i in range(number_colors):
                 color_index = (labels_new == i).nonzero()
                 Fairness[color_index, i] = 1
 
             B_left = Fairness.sum(axis=0).reshape(1, number_colors)
-            B_right = torch.zeros((1, self.number_local))
-            B_right[:] = torch.tensor(number_nodes/self.number_local).sqrt()
+            B_right = torch.zeros((1, self.number_local), device=device)
+            B_right[:] = torch.tensor(number_nodes/self.number_local, device=device).sqrt()
 
-            Balance = B_left.T @ B_right / torch.tensor(number_nodes)
+            Balance = B_left.T @ B_right / torch.tensor(number_nodes, device=device)
             MB1_ = alpha_ * Fairness @ Balance
 
-            R0 = torch.eye(self.number_local)
-            H0 = torch.empty(number_nodes, self.number_local)
+            R0 = torch.eye(self.number_local, device=device)
+            H0 = torch.empty(number_nodes, self.number_local, device=device)
             torch.nn.init.orthogonal_(H0)
             Y0 = torch.diag((H0@H0.T).diag()**(-0.5)) @ H0
             _, labels = Y0.max(dim=1)
@@ -215,7 +217,7 @@ class GUIDE_FUNC:
 
     def SpecRotation(self, H0, R0, Niter=10):
         _, assign_ = H0.max(dim=1)
-        Y0 = torch.zeros(H0.shape)
+        Y0 = torch.zeros(H0.shape, device=H0.device)
         for i in range(H0.shape[1]):
             idx = (assign_ == i).nonzero()
             Y0[:, i] = 0
@@ -239,7 +241,7 @@ class GUIDE_FUNC:
                 _, id_ = valuei_.max(dim=0)
                 if id_ != id0_:
                     converged = False
-                    yi = torch.zeros((1, H0.shape[1]))
+                    yi = torch.zeros((1, H0.shape[1]), device=H0.device)
                     yi[0, id_] = 1
                     Y0[idxi, :] = yi
                     sumY[id0_] = sumY[id0_] - 1
@@ -261,18 +263,20 @@ class GUIDE_FUNC:
         if n_ < m_:
             raise ValueError('MB_.shape[0] should be larger than MB_.shape[1]')
 
+        device = W.device
+
         if H_ == None:
-            H_ = torch.empty(n_, m_)
+            H_ = torch.empty(n_, m_, device=device)
             torch.nn.init.orthogonal_(H_)
 
-        ww = torch.ones(n_, 1)
+        ww = torch.ones(n_, 1, device=device)
         for i in range(10):
             m1 = W @ ww
             tmp = torch.linalg.norm(m1, 2)
             ww = m1/torch.linalg.norm(m1, 2)
         eta_ref = torch.abs(ww.T @ W @ ww)
         eta_ = 1e1**(len(str(int(eta_ref))))
-        W_ = eta_*torch.eye(n_) + W
+        W_ = eta_*torch.eye(n_, device=device) + W
 
         err, iter = 1, 0
         obj = []
@@ -324,12 +328,13 @@ class GUIDE_FUNC:
         count_shards = [op.countOf(assigns.values(), key)
                         for key in shards_key]
 
-        bloss = torch.tensor(count_shards) - n_/shards_number
+        device = self.labels.device
+        bloss = torch.tensor(count_shards, device=device) - n_/shards_number
         sortedb, indicesb = torch.sort(bloss)
         for indb, keyb in enumerate(indicesb):
             if sortedb[indb] < 0:
                 floss = torch.tensor(
-                    df.values[:, keyb])-balancemean*n_/shards_number
+                    df.values[:, keyb], device=device)-balancemean*n_/shards_number
                 sortedf, indicesf = torch.sort(floss)
                 for indf, keyf in enumerate(indicesf):
                     if torch.round(sortedf[indf]) < 0:
@@ -350,12 +355,12 @@ class GUIDE_FUNC:
         queuedict_ = copy.deepcopy(queuedict)
         if len(list(queuedict_.values())) > 0:
             for keyf in set(torch.stack(list(queuedict_.values())).tolist()):
-                bloss = torch.tensor(count_shards) - n_/shards_number
+                bloss = torch.tensor(count_shards, device=device) - n_/shards_number
                 sortedb, indicesb = torch.sort(bloss)
                 for indb, keyb in enumerate(indicesb):
                     if sortedb[indb] < 0:
                         floss = torch.tensor(
-                            df.values[:, keyb]/count_shards[keyb])-balancemean
+                            df.values[:, keyb]/count_shards[keyb], device=device)-balancemean
                         insertnum = (
                             floss[keyf]*count_shards[keyb]).abs().ceil()
                         for _ in range(int(insertnum)):

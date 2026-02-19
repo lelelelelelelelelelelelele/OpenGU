@@ -35,6 +35,19 @@ class ResultCache:
         'base_model',
         'unlearning_methods',
         'unlearn_ratio',
+        'random_seed',
+        'seed',
+        'strategy_name',
+        'unlearn_task',
+        'downstream_task',
+        'is_transductive',
+        'is_balanced',
+    ]
+    LEGACY_CACHE_KEY_FIELDS = [
+        'dataset_name',
+        'base_model',
+        'unlearning_methods',
+        'unlearn_ratio',
         'seed',
         'strategy_name',
         'unlearn_task',
@@ -55,6 +68,21 @@ class ResultCache:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_age_days = max_age_days
 
+    @staticmethod
+    def _field_value(config: Dict[str, Any], field: str) -> Any:
+        if field == 'random_seed':
+            return config.get('random_seed', config.get('seed', "default"))
+        if field == 'seed':
+            return config.get('seed', config.get('random_seed', "default"))
+        return config.get(field, "default")
+
+    def _hash_fields(self, config: Dict[str, Any], fields: List[str]) -> str:
+        key_parts = []
+        for field in fields:
+            value = self._field_value(config, field)
+            key_parts.append(f"{field}={value}")
+        return "_".join(key_parts)
+
     def _generate_cache_key(self, config: Dict[str, Any]) -> str:
         """
         Generate a cache key from configuration.
@@ -65,20 +93,18 @@ class ResultCache:
         Returns:
             Cache key string
         """
-        # Extract relevant fields
-        key_parts = []
-        for field in self.CACHE_KEY_FIELDS:
-            value = config.get(field, "default")
-            key_parts.append(f"{field}={value}")
-
-        # Create deterministic string
-        key_string = "_".join(key_parts)
+        key_string = self._hash_fields(config, self.CACHE_KEY_FIELDS)
 
         # Hash to create safe filename
         hash_obj = hashlib.md5(key_string.encode())
         cache_key = hash_obj.hexdigest()[:16]
 
         return cache_key
+
+    def _generate_legacy_cache_key(self, config: Dict[str, Any]) -> str:
+        key_string = self._hash_fields(config, self.LEGACY_CACHE_KEY_FIELDS)
+        hash_obj = hashlib.md5(key_string.encode())
+        return hash_obj.hexdigest()[:16]
 
     def _get_cache_path(self, cache_key: str) -> Path:
         """Get the file path for a cache key."""
@@ -116,31 +142,31 @@ class ResultCache:
         Returns:
             AttackResult if cache hit, None otherwise
         """
-        cache_key = self._generate_cache_key(config)
-        cache_path = self._get_cache_path(cache_key)
+        cache_keys = [self._generate_cache_key(config)]
+        legacy_key = self._generate_legacy_cache_key(config)
+        if legacy_key not in cache_keys:
+            cache_keys.append(legacy_key)
 
-        if not self._is_cache_valid(cache_path):
-            return None
+        for cache_key in cache_keys:
+            cache_path = self._get_cache_path(cache_key)
+            if not self._is_cache_valid(cache_path):
+                continue
+            try:
+                with open(cache_path, 'r') as f:
+                    cache_data = json.load(f)
 
-        try:
-            with open(cache_path, 'r') as f:
-                cache_data = json.load(f)
+                if 'result' not in cache_data:
+                    continue
 
-            # Verify cache data integrity
-            if 'result' not in cache_data:
-                return None
+                result = AttackResult.from_dict(cache_data['result'])
+                print(f"[Cache] Hit for key: {cache_key}")
+                print(f"[Cache] Cached at: {cache_data.get('cached_at', 'unknown')}")
+                return result
+            except (json.JSONDecodeError, KeyError, TypeError) as e:
+                print(f"[Cache] Error reading cache: {e}")
+                continue
 
-            result = AttackResult.from_dict(cache_data['result'])
-
-            # Log cache hit
-            print(f"[Cache] Hit for key: {cache_key}")
-            print(f"[Cache] Cached at: {cache_data.get('cached_at', 'unknown')}")
-
-            return result
-
-        except (json.JSONDecodeError, KeyError, TypeError) as e:
-            print(f"[Cache] Error reading cache: {e}")
-            return None
+        return None
 
     def save(self, result: AttackResult, config: Dict[str, Any]):
         """
@@ -156,7 +182,7 @@ class ResultCache:
         cache_data = {
             'cache_key': cache_key,
             'cached_at': datetime.now().isoformat(),
-            'config': {k: config.get(k) for k in self.CACHE_KEY_FIELDS},
+            'config': {k: self._field_value(config, k) for k in self.CACHE_KEY_FIELDS},
             'result': result.to_dict(),
         }
 
@@ -175,15 +201,20 @@ class ResultCache:
         Returns:
             True if entry was found and removed, False otherwise
         """
-        cache_key = self._generate_cache_key(config)
-        cache_path = self._get_cache_path(cache_key)
+        cache_keys = [self._generate_cache_key(config)]
+        legacy_key = self._generate_legacy_cache_key(config)
+        if legacy_key not in cache_keys:
+            cache_keys.append(legacy_key)
 
-        if cache_path.exists():
-            cache_path.unlink()
-            print(f"[Cache] Invalidated: {cache_key}")
-            return True
+        removed = False
+        for cache_key in cache_keys:
+            cache_path = self._get_cache_path(cache_key)
+            if cache_path.exists():
+                cache_path.unlink()
+                print(f"[Cache] Invalidated: {cache_key}")
+                removed = True
 
-        return False
+        return removed
 
     def clear_all(self):
         """Clear all cache entries."""

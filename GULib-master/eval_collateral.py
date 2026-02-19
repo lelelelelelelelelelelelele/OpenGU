@@ -63,13 +63,66 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
         'strategy_name': strategy_name,
     }
     target_ratio = float(args.get('unlearn_ratio', 0.1))
+    target_seed = args.get('random_seed', args.get('seed'))
+    if target_seed is not None:
+        try:
+            target_seed = int(target_seed)
+        except (TypeError, ValueError):
+            target_seed = None
 
-    cache_dir = Path(cache.cache_dir)
+    # Fast path: try hash-based cache lookup first when possible.
+    cache_key_fields = getattr(cache, 'CACHE_KEY_FIELDS', None)
+    if not isinstance(cache_key_fields, (list, tuple)):
+        cache_key_fields = [
+            'dataset_name',
+            'base_model',
+            'unlearning_methods',
+            'unlearn_ratio',
+            'random_seed',
+            'seed',
+            'strategy_name',
+        ]
+
+    lookup_config = {}
+    for key in cache_key_fields:
+        if key == 'strategy_name':
+            lookup_config[key] = strategy_name
+            continue
+        value = args.get(key)
+        if key == 'random_seed' and value is None:
+            value = args.get('seed')
+        if key == 'seed' and value is None:
+            value = args.get('random_seed')
+        if isinstance(value, (str, int, float, bool, type(None))):
+            lookup_config[key] = value
+
+    if hasattr(cache, 'get'):
+        cached = cache.get(lookup_config)
+        if cached is not None:
+            return cached
+
+    cache_dir_value = getattr(cache, 'cache_dir', None)
+    if not isinstance(cache_dir_value, (str, os.PathLike, Path)):
+        return None
+    cache_dir = Path(cache_dir_value)
+    if not cache_dir.exists():
+        return None
+
     for fpath in cache_dir.glob('*.json'):
         try:
-            with open(fpath) as f:
+            with open(fpath, encoding='utf-8') as f:
                 data = _json.load(f)
             c = data.get('config', {})
+            cache_seed = c.get('random_seed', c.get('seed'))
+            if target_seed is not None:
+                if cache_seed is None:
+                    continue
+                try:
+                    cache_seed = int(cache_seed)
+                except (TypeError, ValueError):
+                    continue
+                if cache_seed != target_seed:
+                    continue
             if (str(c.get('dataset_name', '')) == target['dataset_name'] and
                 str(c.get('base_model', '')) == target['base_model'] and
                 str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
@@ -78,7 +131,7 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
                 # Found match — build AttackResult
                 from attack.attack_result import AttackResult
                 return AttackResult.from_dict(data['result'])
-        except (ValueError, KeyError, _json.JSONDecodeError):
+        except (ValueError, KeyError, TypeError, _json.JSONDecodeError):
             continue
     return None
 

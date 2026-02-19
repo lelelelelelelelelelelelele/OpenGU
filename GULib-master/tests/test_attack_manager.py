@@ -197,6 +197,26 @@ class TestResultCache:
             key3 = cache._generate_cache_key(config2)
             assert key1 != key3
 
+    def test_random_seed_changes_cache_key(self):
+        """Different random_seed should generate different cache keys."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = ResultCache(cache_dir=tmpdir)
+
+            config1 = {
+                "dataset_name": "cora",
+                "base_model": "SGC",
+                "unlearning_methods": "SGU",
+                "unlearn_ratio": 0.05,
+                "random_seed": 2024,
+                "strategy_name": "random",
+            }
+            config2 = config1.copy()
+            config2["random_seed"] = 2025
+
+            key1 = cache._generate_cache_key(config1)
+            key2 = cache._generate_cache_key(config2)
+            assert key1 != key2
+
     def test_save_and_get(self):
         """Test saving and retrieving from cache."""
         with tempfile.TemporaryDirectory() as tmpdir:
