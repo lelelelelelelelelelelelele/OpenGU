@@ -32,7 +32,8 @@
       "Bash(python3 -c \"import os; [print\\(os.path.join\\(r,f\\)\\) for r,d,files in os.walk\\(''H:/project/OpenGU/GULib-master/results/checkpoint_report''\\) for f in files]\")",
       "Bash(test -d self)",
       "Bash(/h/conda_package/envs/gnn/python:*)",
-      "Bash(H:conda_packageenvsgnnpython.exe -m pytest tests/test_im_hybrid.py -v)"
+      "Bash(H:conda_packageenvsgnnpython.exe -m pytest tests/test_im_hybrid.py -v)",
+      "Bash(results/_journal/auto_report.md:*)"
     ]
   }
 }

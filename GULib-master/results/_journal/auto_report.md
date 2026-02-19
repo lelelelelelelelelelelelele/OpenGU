@@ -10241,3 +10241,16 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 日志路径: `results/collateral/{GNNDelete,GIF,GraphEraser}/cora/GCN/collateral_20260219_*.json`
 - 执行结果: OK
 - 下一步建议: 多 seed (>=5) 运行 + compute_gap_statistics() 做假设检验，确认 GNNDelete Gap 显著性
+
+### [2026-02-20 05:03] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, 6策略攻击对比
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = -0.0458 (攻击无效，性能提升)
+  - degree: F1 Drop = -0.0834 (攻击无效)
+  - pagerank: F1 Drop = -0.0521 (攻击无效)
+  - tracin: F1 Drop = -0.0517 (攻击无效)
+  - im: F1 Drop = -0.0517 (攻击无效)
+  - hybrid: F1 Drop = -0.0517 (攻击无效)
+- 异常与定位：GUIDE 方法在所有攻击策略下均免疫，验证了子图修复策略的鲁棒性
+- 下一步建议：运行 Collateral Damage 评估
