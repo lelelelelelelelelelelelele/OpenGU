@@ -61,6 +61,81 @@ def _compose_error_summary(error_type: Optional[str], error_msg: Optional[str]) 
     return "无"
 
 
+COLLATERAL_TEMPLATE = (
+    "### [{timestamp}] eval_collateral.py\n"
+    "- 任务：dataset={dataset}, model={model}, method={method}, ratio={ratio}\n"
+    "- 策略结果：\n"
+    "{strategy_table}\n"
+    "- 日志路径：`{log_file}`\n"
+    "- 执行结果：{status}\n"
+    "- 异常与定位：{error_summary}\n"
+    "- 下一步建议：{next_step}\n\n"
+)
+
+
+def _build_strategy_table(results: list) -> str:
+    lines = [
+        "| Strategy | Gap% | MeanShift | Flipped% |",
+        "|----------|------|-----------|----------|",
+    ]
+    for r in results:
+        gap_pct = _fmt_metric(r.get("gap_pct"), digits=2) + "%"
+        mean_shift = _fmt_metric(r.get("mean_pred_shift"), digits=4)
+        flipped = _fmt_metric(
+            r.get("fraction_flipped", 0) * 100 if r.get("fraction_flipped") is not None else None,
+            digits=2,
+        ) + "%"
+        lines.append(f"| {r.get('strategy', '?'):<8} | {gap_pct:>4} | {mean_shift:>9} | {flipped:>8} |")
+    return "\n".join(lines)
+
+
+def append_collateral_entry(
+    dataset: str,
+    model: str,
+    method: str,
+    ratio: str,
+    results: list,
+    log_file: str,
+    status: str = "OK",
+    error_type: Optional[str] = None,
+    error_msg: Optional[str] = None,
+    next_step: Optional[str] = None,
+    report_path: Optional[str] = None,
+) -> str:
+    final_report_path = os.path.abspath(report_path or DEFAULT_REPORT_PATH)
+    os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
+    if not os.path.exists(final_report_path):
+        with open(final_report_path, "w", encoding="utf-8") as file_obj:
+            file_obj.write(REPORT_HEADER)
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    normalized_status, invalid_status = _normalize_status(status)
+    final_error_type = error_type
+    final_error_msg = error_msg
+    if invalid_status:
+        prefix = f"Invalid status input: {invalid_status}; normalized to WARN."
+        final_error_type = final_error_type or "INVALID_STATUS"
+        final_error_msg = f"{prefix} {final_error_msg}" if final_error_msg else prefix
+
+    suggestion = next_step or _default_next_step(normalized_status)
+    strategy_table = _build_strategy_table(results) if results else "（无策略结果）"
+    entry = COLLATERAL_TEMPLATE.format(
+        timestamp=now,
+        dataset=dataset,
+        model=model,
+        method=method,
+        ratio=ratio,
+        strategy_table=strategy_table,
+        log_file=log_file,
+        status=normalized_status,
+        error_summary=_compose_error_summary(final_error_type, final_error_msg),
+        next_step=suggestion,
+    )
+    with open(final_report_path, "a", encoding="utf-8") as file_obj:
+        file_obj.write(entry)
+    return final_report_path
+
+
 def append_report_entry(
     script: str,
     dataset: str,

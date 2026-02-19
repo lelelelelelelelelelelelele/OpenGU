@@ -1,10 +1,12 @@
 """Unit tests for IMStrategy, HybridStrategy, and registration."""
 
+import numpy as np
+import pytest
 import torch
 import torch.nn as nn
 from torch_geometric.data import Data
 
-from attack.attack_strategies.im_strategy import IMStrategy
+from attack.attack_strategies.im_strategy import IMStrategy, HAS_NUMBA
 from attack.attack_strategies.hybrid_strategy import HybridStrategy
 
 
@@ -219,3 +221,157 @@ class TestRegistration:
         from attack.attack_strategies import IMStrategy, HybridStrategy
         assert IMStrategy is not None
         assert HybridStrategy is not None
+
+
+# ---------------------------------------------------------------------------
+# TestIMAcceleration
+# ---------------------------------------------------------------------------
+requires_numba = pytest.mark.skipif(not HAS_NUMBA, reason="numba not installed")
+
+
+class TestIMAcceleration:
+    """Tests for numba acceleration, CSR building, and candidate pruning."""
+
+    def test_csr_structure(self):
+        """CSR indptr/indices have correct shapes and values."""
+        # Simple graph: 0->1, 0->2, 1->2
+        edge_index = torch.tensor([[0, 0, 1], [1, 2, 2]], dtype=torch.long)
+        strategy = IMStrategy(args={'mc_rounds': 5})
+        indptr, indices = strategy._build_adjacency_csr(edge_index, num_nodes=3)
+
+        assert indptr.dtype == np.int32
+        assert indices.dtype == np.int32
+        assert len(indptr) == 4  # num_nodes + 1
+        # Node 0 has neighbors [1, 2], node 1 has [2], node 2 has []
+        assert indptr[0] == 0
+        assert indptr[1] == 2  # node 0: 2 edges
+        assert indptr[2] == 3  # node 1: 1 edge
+        assert indptr[3] == 3  # node 2: 0 edges
+        assert list(indices) == [1, 2, 2]
+
+    def test_csr_deduplication(self):
+        """CSR builder deduplicates repeated edges."""
+        # Duplicate edge: 0->1 appears twice
+        edge_index = torch.tensor([[0, 0, 0], [1, 1, 2]], dtype=torch.long)
+        strategy = IMStrategy(args={'mc_rounds': 5})
+        indptr, indices = strategy._build_adjacency_csr(edge_index, num_nodes=3)
+
+        # After dedup: 0->1, 0->2
+        assert indptr[1] - indptr[0] == 2
+        assert sorted(indices[indptr[0]:indptr[1]]) == [1, 2]
+
+    def test_csr_sorted_order(self):
+        """CSR indices within each node are sorted by dst."""
+        edge_index = torch.tensor([[0, 0, 0], [3, 1, 2]], dtype=torch.long)
+        strategy = IMStrategy(args={'mc_rounds': 5})
+        indptr, indices = strategy._build_adjacency_csr(edge_index, num_nodes=4)
+
+        neighbors = list(indices[indptr[0]:indptr[1]])
+        assert neighbors == sorted(neighbors)
+
+    @requires_numba
+    def test_numba_vs_python_consistency(self):
+        """Numba and Python paths produce similar spread on a directed star graph.
+
+        Uses a directed star (hub 0 -> leaves) where the hub clearly
+        has the highest spread, so both paths should agree on the top node.
+        """
+        # Directed star: 0->1, 0->2, ..., 0->9 (no reverse edges)
+        # Plus a short chain: 1->2, 2->3
+        src = list(range(10)) * 0  # empty
+        src = [0] * 9 + [1, 2]
+        dst = list(range(1, 10)) + [2, 3]
+        edge_index = torch.tensor([src, dst], dtype=torch.long)
+        num_nodes = 10
+
+        strategy = IMStrategy(args={'mc_rounds': 500, 'propagation_prob': 0.5})
+        candidates = list(range(num_nodes))
+
+        scores_numba = strategy._compute_initial_gains_numba(
+            edge_index, num_nodes, candidates
+        )
+        scores_python = strategy._compute_initial_gains_python(
+            edge_index, num_nodes, candidates
+        )
+
+        # Both paths should agree that node 0 (the hub) has the highest spread
+        assert scores_numba.argmax().item() == 0
+        assert scores_python.argmax().item() == 0
+
+        # Hub spread should be much higher than isolated leaf nodes (4..9)
+        hub_numba = scores_numba[0].item()
+        leaf_numba = scores_numba[4:].mean().item()
+        assert hub_numba > leaf_numba + 0.5
+
+    @requires_numba
+    def test_numba_deterministic(self):
+        """Numba path produces identical results across calls."""
+        torch.manual_seed(42)
+        data = _make_dummy_data(num_nodes=20, num_edges=50)
+        strategy = IMStrategy(args={'mc_rounds': 50})
+        candidates = list(range(20))
+
+        scores1 = strategy._compute_initial_gains_numba(
+            data.edge_index, data.num_nodes, candidates
+        )
+        scores2 = strategy._compute_initial_gains_numba(
+            data.edge_index, data.num_nodes, candidates
+        )
+        assert torch.equal(scores1, scores2)
+
+    @requires_numba
+    def test_numba_celf_output_shape(self):
+        """Numba CELF returns correct number of nodes."""
+        torch.manual_seed(42)
+        data = _make_dummy_data(num_nodes=30, num_edges=60)
+        strategy = IMStrategy(args={'mc_rounds': 20})
+        candidates = list(range(30))
+
+        selected, scores = strategy._compute_im_celf_numba(
+            data.edge_index, data.num_nodes, 5, candidates
+        )
+        assert len(selected) == 5
+        assert scores.shape == (5,)
+        assert len(set(selected)) == 5  # no duplicates
+
+    def test_candidate_fraction(self):
+        """candidate_fraction prunes candidate set."""
+        torch.manual_seed(42)
+        data = _make_dummy_data(num_nodes=100, num_edges=300)
+        strategy = IMStrategy(args={'mc_rounds': 5, 'candidate_fraction': 0.3})
+        k = 5
+        result = strategy.select_nodes(data, model=None, k=k)
+        assert result.shape == (k,)
+        assert len(result.unique()) == k
+
+    def test_candidate_fraction_preserves_min_k(self):
+        """candidate_fraction never prunes below k candidates."""
+        torch.manual_seed(42)
+        data = _make_dummy_data(num_nodes=50, num_edges=100)
+        # fraction=0.05 would give 2.5 -> 2 candidates, but k=5 should force 5
+        strategy = IMStrategy(args={'mc_rounds': 5, 'candidate_fraction': 0.05})
+        k = 5
+        result = strategy.select_nodes(data, model=None, k=k)
+        assert result.shape == (k,)
+
+    @requires_numba
+    def test_splitmix64_deterministic(self):
+        """splitmix64 RNG produces identical sequences for same seed."""
+        from attack.attack_strategies.im_strategy import _splitmix64
+
+        state1 = np.uint64(12345)
+        state2 = np.uint64(12345)
+
+        results1 = []
+        results2 = []
+        for _ in range(10):
+            state1, z1 = _splitmix64(state1)
+            state2, z2 = _splitmix64(state2)
+            results1.append(z1)
+            results2.append(z2)
+
+        assert results1 == results2
+
+    def test_has_numba_flag(self):
+        """HAS_NUMBA is a boolean."""
+        assert isinstance(HAS_NUMBA, bool)

@@ -222,6 +222,22 @@ def main():
         }, f, indent=2)
     print(f"\nResults saved to: {out_path}")
 
+    # 8. Append to auto_report.md
+    try:
+        from results.step0_validation.report_writer import append_collateral_entry
+        append_collateral_entry(
+            dataset=args['dataset_name'],
+            model=args['base_model'],
+            method=args['unlearning_methods'],
+            ratio=str(args['unlearn_ratio']),
+            results=all_results,
+            log_file=str(out_path),
+            status="OK",
+        )
+        print("Report entry appended to auto_report.md")
+    except Exception as e:
+        print(f"[WARN] Could not append to auto_report.md: {e}")
+
 
 if __name__ == '__main__':
     main()

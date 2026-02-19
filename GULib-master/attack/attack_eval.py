@@ -23,6 +23,9 @@ from scipy import stats
 
 def _predict(model, data):
     """Forward pass returning logits. Handles both f(x) and f(x, edge_index) signatures."""
+    # Move model to data's device (keep everything on CUDA if data is on CUDA)
+    device = data.x.device
+    model = model.to(device)
     model.eval()
     with torch.no_grad():
         if hasattr(model, 'forward') and 'edge_index' in model.forward.__code__.co_varnames:
