@@ -10186,3 +10186,58 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 执行结果：OK | 所有策略 F1 Drop 为负值（遗忘后性能上升）| pagerank: drop=-0.0295 | degree: drop=-0.0443 | tracin: drop=-0.0480 | im: drop=-0.0517 | hybrid: drop=-0.0627 | random: drop=-0.0701
 - 异常与定位：无（GraphEraser 分片聚合架构天然抗攻击，非异常）
 - 下一步建议：确认 Shard-based 方法免疫性，作为论文对照组
+
+### [2026-02-19 23:13] Phase A+ Collateral Damage — 3 Methods × 6 Strategies
+
+**配置**: Cora / GCN / unlearn_ratio=0.05 (135 nodes) / seed=2024
+**脚本**: `eval_collateral.py` (retrain gap + collateral damage)
+
+#### GNNDelete (Learning-based)
+
+| Strategy | Gap | Gap% | MeanShift | MaxShift | Flipped% |
+|----------|-------|--------|-----------|----------|----------|
+| random | 0.0609 | 6.86% | 0.2734 | 0.9244 | 11.67% |
+| degree | 0.2638 | 29.48% | 0.5587 | 0.9303 | 33.35% |
+| pagerank | 0.1919 | 21.44% | 0.3974 | 0.9405 | 23.47% |
+| tracin | 0.0978 | 11.02% | 0.2841 | 0.9120 | 12.88% |
+| im | 0.2140 | 24.02% | 0.3586 | 0.9866 | 26.54% |
+| hybrid | 0.0959 | 10.83% | 0.1588 | 0.9600 | 10.14% |
+
+> 关键观察: degree (29.48%) 和 im (24.02%) Gap 最大；hybrid 的 MeanShift 最低 (0.1588)，说明 hybrid 虽然 Gap 中等但 collateral damage 最小。
+
+#### GIF (IF-based)
+
+| Strategy | Gap | Gap% | MeanShift | MaxShift | Flipped% |
+|----------|--------|--------|-----------|----------|----------|
+| random | -0.0037 | -0.42% | 0.0152 | 0.5416 | 1.26% |
+| degree | 0.0111 | 1.23% | 0.0163 | 0.3365 | 1.31% |
+| pagerank | 0.0074 | 0.82% | 0.0150 | 0.3037 | 0.97% |
+| tracin | 0.0055 | 0.62% | 0.0135 | 0.5575 | 1.12% |
+| im | 0.0018 | 0.21% | 0.0153 | 0.4945 | 1.28% |
+| hybrid | 0.0074 | 0.83% | 0.0170 | 0.5453 | 0.94% |
+
+> 关键观察: 所有 Gap ≤ 1.23%，MeanShift ≤ 0.017，Flipped ≤ 1.31%。GIF 的近似误差极小，几乎等同于 retrain，这意味着 GIF 上的 F1 drop 主要来自**删除集本身的节点重要性**而非近似误差（支持 H0）。
+
+#### GraphEraser (Shard-based)
+
+| Strategy | Gap | Gap% | MeanShift | MaxShift | Flipped% |
+|----------|--------|--------|-----------|----------|----------|
+| random | 0.0609 | 7.64% | 0.2380 | 0.9964 | 25.52% |
+| degree | -0.0037 | -0.47% | 0.2262 | 0.9937 | 24.55% |
+| pagerank | 0.0387 | 4.68% | 0.2429 | 0.9956 | 21.87% |
+| tracin | 0.0498 | 6.47% | 0.2679 | 0.9944 | 26.96% |
+| im | -0.0221 | -2.77% | 0.2165 | 0.9920 | 21.02% |
+| hybrid | 0.0609 | 7.69% | 0.2359 | 0.9966 | 23.93% |
+
+> 关键观察: Gap 正负交替（-2.77% ~ 7.69%），无一致方向性。但 Collateral Damage 普遍高（MeanShift ~0.22-0.27, Flipped ~21-27%），说明 GraphEraser 的分片聚合架构本身就有较大的预测不稳定性（retrain 与 unlearn 的差异大），与策略选择无关。
+
+#### 跨方法对比结论
+
+1. **GNNDelete**: Gap 显著（6.86%-29.48%），支持 H1（近似误差是主要脆弱性来源）
+2. **GIF**: Gap ≈ 0，支持 H0（F1 drop 来自删除集重要性，近似误差极小）
+3. **GraphEraser**: Gap 不一致，Collateral Damage 高但无方向性，分片架构的 stochasticity 是主因
+4. **归因分离验证**: 同一删除集在 GNNDelete 上 Gap >> 0 而在 GIF 上 Gap ≈ 0，证明 Gap 确实来自近似误差而非删除集本身
+
+- 日志路径: `results/collateral/{GNNDelete,GIF,GraphEraser}/cora/GCN/collateral_20260219_*.json`
+- 执行结果: OK
+- 下一步建议: 多 seed (>=5) 运行 + compute_gap_statistics() 做假设检验，确认 GNNDelete Gap 显著性

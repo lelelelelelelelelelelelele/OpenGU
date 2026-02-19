@@ -14,11 +14,29 @@ Usage:
 import os
 import sys
 import json
-import argparse
 import torch
 import numpy as np
 from pathlib import Path
 from datetime import datetime
+
+# Extract --strategies from sys.argv BEFORE any import that triggers
+# config.py (which calls parameter_parser() at import time and rejects
+# unknown args).
+_strategies_str = 'random,degree,pagerank,tracin,im,hybrid'
+_filtered_argv = []
+_skip_next = False
+for _i, _arg in enumerate(sys.argv[1:]):
+    if _skip_next:
+        _skip_next = False
+        continue
+    if _arg == '--strategies':
+        _strategies_str = sys.argv[1:][_i + 1]
+        _skip_next = True
+    elif _arg.startswith('--strategies='):
+        _strategies_str = _arg.split('=', 1)[1]
+    else:
+        _filtered_argv.append(_arg)
+sys.argv = [sys.argv[0]] + _filtered_argv
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 if base_dir not in sys.path:
@@ -31,26 +49,49 @@ from attack.attack_eval import evaluate_retrain_gap, evaluate_collateral_damage
 
 
 def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
-    """Find a cache entry matching the given strategy and config."""
-    config = args.copy()
-    config['strategy_name'] = strategy_name
-    # Remove non-hashable items
-    for key in list(config.keys()):
-        if not isinstance(config[key], (str, int, float, bool, type(None))):
-            del config[key]
-    return cache.get(config)
+    """Find a cache entry by scanning all cache files and matching key fields.
+
+    We scan rather than hash-lookup because the original cache entries may have
+    been saved with slightly different type representations (e.g., args from
+    AttackManager vs parameter_parser).
+    """
+    import json as _json
+    target = {
+        'dataset_name': str(args.get('dataset_name', '')),
+        'base_model': str(args.get('base_model', '')),
+        'unlearning_methods': str(args.get('unlearning_methods', '')),
+        'strategy_name': strategy_name,
+    }
+    target_ratio = float(args.get('unlearn_ratio', 0.1))
+
+    cache_dir = Path(cache.cache_dir)
+    for fpath in cache_dir.glob('*.json'):
+        try:
+            with open(fpath) as f:
+                data = _json.load(f)
+            c = data.get('config', {})
+            if (str(c.get('dataset_name', '')) == target['dataset_name'] and
+                str(c.get('base_model', '')) == target['base_model'] and
+                str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
+                str(c.get('strategy_name', '')) == target['strategy_name'] and
+                abs(float(c.get('unlearn_ratio', -1)) - target_ratio) < 1e-6):
+                # Found match — build AttackResult
+                from attack.attack_result import AttackResult
+                return AttackResult.from_dict(data['result'])
+        except (ValueError, KeyError, _json.JSONDecodeError):
+            continue
+    return None
 
 
 def main():
+    strategies = [s.strip() for s in _strategies_str.split(',')]
+
     # Parse CLI args (inherits all main.py args via parameter_parser)
     args = parameter_parser()
 
-    # Parse strategy list from --strategies (not in parameter_parser)
-    # We re-parse sys.argv manually for this custom arg
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('--strategies', type=str, default='random,degree,pagerank,tracin,im,hybrid')
-    extra_args, _ = parser.parse_known_args()
-    strategies = [s.strip() for s in extra_args.strategies.split(',')]
+    # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
+    # df_size assertion passes (it uses proportion_unlearned_nodes, not unlearn_ratio)
+    args['proportion_unlearned_nodes'] = args['unlearn_ratio']
 
     print(f"Dataset: {args['dataset_name']}, Model: {args['base_model']}, "
           f"Method: {args['unlearning_methods']}")
@@ -123,8 +164,11 @@ def main():
         retain_mask = pipeline.data.train_mask.clone()
         retain_mask[selected_nodes.long()] = False
 
-        # 5. Compute metrics
-        device = next(model_unlearned.parameters()).device
+        # 5. Compute metrics — ensure all models and data on same device
+        device = torch.device(f'cuda:{args["cuda"]}' if torch.cuda.is_available() else 'cpu')
+        model_before = model_before.to(device)
+        model_unlearned = model_unlearned.to(device)
+        model_retrained = model_retrained.to(device)
         data = pipeline.data.to(device)
 
         gap_metrics = evaluate_retrain_gap(

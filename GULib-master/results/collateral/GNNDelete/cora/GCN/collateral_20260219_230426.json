@@ -1,0 +1,23 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GNNDelete",
+    "unlearn_ratio": 0.05
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.8837638376383764,
+      "perf_retrain": 0.8726937269372693,
+      "perf_unlearn": 0.7472324723247232,
+      "drop_retrain": 0.011070110701107083,
+      "gap": 0.1254612546125461,
+      "gap_pct": 14.376321353065535,
+      "mean_pred_shift": 0.2957189679145813,
+      "max_pred_shift": 0.9427871704101562,
+      "fraction_flipped": 0.21633446216583252
+    }
+  ],
+  "timestamp": "2026-02-19T23:04:26.182199"
+}
