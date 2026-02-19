@@ -18,13 +18,15 @@ RATIO_NODES = {"0.005": 13, "0.02": 54, "0.05": 135, "0.1": 270, "0.2": 541}
 METHOD_CATEGORIES = {
     "Shard-based": ["GraphEraser", "GUIDE", "GraphRevoker"],
     "IF-based": ["GIF", "IDEA"],
-    "Learning-based": ["GNNDelete", "SGU", "MEGU", "GUKD", "D2DGN", "Projector"],
+    "Learning-based": ["GNNDelete", "SGU", "MEGU", "GUKD", "D2DGN"],
+    "Standalone": ["Projector"],
 }
 
 CATEGORY_COLORS = {
     "Shard-based": "#e74c3c",
     "IF-based": "#3498db",
     "Learning-based": "#2ecc71",
+    "Standalone": "#f39c12",
 }
 
 METHOD_COLORS = {

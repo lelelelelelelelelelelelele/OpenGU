@@ -16,7 +16,7 @@
 | GraphRevoker | Shard-based | 0.8413 | 0.8487 | 0.8413 | 0.8358 | 0.8247 | 0.0166 |
 | IDEA | IF-based | 0.8653 | 0.8653 | 0.8653 | 0.8635 | 0.8450 | 0.0203 |
 | MEGU | Learning-based | 0.8801 | 0.8782 | 0.8745 | 0.8745 | 0.8616 | 0.0185 |
-| Projector | Learning-based | 0.8616 | 0.8432 | 0.8487 | 0.8026 | SKIP | 0.0590 |
+| Projector | Standalone | 0.8616 | 0.8432 | 0.8487 | 0.8026 | SKIP | 0.0590 |
 | SGU | Learning-based | 0.8856 | 0.8856 | 0.8838 | 0.8893 | 0.8838 | 0.0018 |
 
 ## Unlearning Time by Method and Unlearn Ratio
