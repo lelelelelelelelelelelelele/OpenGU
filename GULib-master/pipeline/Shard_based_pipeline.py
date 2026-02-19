@@ -110,9 +110,11 @@ class Shard_based_pipeline:
 
         """
         for self.run in range(self.args["num_runs"]):
-            
+
             self.exp_partition()
             self.exp_train()
+            if self.args.get("train_only", False):
+                continue
             self.exp_unlearn()
             
         self.logger.info(

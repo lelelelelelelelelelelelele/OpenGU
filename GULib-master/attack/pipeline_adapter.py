@@ -12,7 +12,7 @@ import sys
 import time
 import torch
 import numpy as np
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from torch import Tensor
 
 # Add parent directory to path for imports
@@ -260,6 +260,71 @@ class AttackPipeline:
             "total_time": total_time,
             "mia_auc": mia_auc,
         }
+
+    def _get_trained_model(self):
+        """
+        Extract the trained model from the unlearning method object.
+
+        Different pipeline types store the model in different locations:
+        - Learning_based / IF_based: self.method.target_model.model
+        - Shard_based: aggregated model accessed via disk; use self.method.model_zoo.model
+        """
+        method = self.method
+        # IF_based and Learning_based pipelines
+        if hasattr(method, 'target_model') and method.target_model is not None:
+            if hasattr(method.target_model, 'model'):
+                return method.target_model.model
+        # Shard_based pipelines
+        if hasattr(method, 'model_zoo') and hasattr(method.model_zoo, 'model'):
+            return method.model_zoo.model
+        # Fallback
+        return self.model
+
+    def run_retrain(self, selected_nodes: Tensor) -> Tuple[Any, float]:
+        """
+        Train model from scratch on data EXCLUDING selected_nodes.
+
+        This reinitializes the model and method, sets train_only=True so that
+        run_exp() only trains without performing unlearning, then evaluates.
+
+        Args:
+            selected_nodes: Tensor of node indices to exclude from training
+
+        Returns:
+            (model_retrained, f1_retrained)
+        """
+        # 1. Backup original train_mask
+        original_train_mask = self.data.train_mask.clone()
+
+        # 2. Exclude selected_nodes from train_mask
+        node_idx = selected_nodes.long()
+        self.data.train_mask[node_idx] = False
+
+        # 3. Reinitialize model + method with train_only
+        self.args["train_only"] = True
+        self.args["num_runs"] = 1
+        self.model_zoo = model_zoo(self.args, self.data)
+        self.model = self.model_zoo.model
+
+        self.manager = UnlearningManager(
+            self.args, self.original_data, self.data,
+            self.logger, self.model_zoo, self.dataset
+        )
+        self.method = self.manager.get_method()
+
+        # 4. run_exp() trains only (no unlearning due to train_only flag)
+        self.method.run_exp()
+
+        # 5. Extract retrained model and evaluate
+        model_retrained = self._get_trained_model()
+        f1_retrained = self._evaluate_model(model_retrained)
+
+        # 6. Restore original state
+        self.data.train_mask = original_train_mask
+        self.args["train_only"] = False
+
+        self.logger.info(f"Retrain F1 (excl {len(selected_nodes)} nodes): {f1_retrained:.4f}")
+        return model_retrained, f1_retrained
 
     def compare_strategies(self, strategies: Dict[str, BaseStrategy], k: int) -> List[Dict[str, Any]]:
         """

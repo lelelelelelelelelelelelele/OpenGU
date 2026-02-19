@@ -102,6 +102,8 @@ class Learning_based_pipeline:
         for self.run in range(self.args['num_runs']):
             self.determine_target_model()
             self.train_original_model()
+            if self.args.get("train_only", False):
+                continue
             self.unlearning_request()
             self.unlearn()
             if self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node" and False:

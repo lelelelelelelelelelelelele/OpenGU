@@ -132,6 +132,8 @@ class IF_based_pipeline:
             self.target_model_name = self.args['base_model']
             self.determine_target_model()
             self.train_original_model(self.run)
+            if self.args.get("train_only", False):
+                continue
             self.unlearning_request()
             self.unlearn()
             

@@ -10118,3 +10118,71 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 4 strategies: random, degree, pagerank, tracin
 - 关键假设: TracIn 在 IF-based 方法 (GIF) 上优势更大
 
+
+---
+## Session 2026-02-19-1
+
+### [2026-02-19 00:00] DECISION — Collateral Damage 实现方案
+- 背景：需要量化攻击对保留节点的附带损害，要求精确重训练（retrain-from-scratch）作为对照
+- 选项：A: 在 pipeline 外独立训练新模型 / B: 复用现有 pipeline 的 train_only 模式 / C: 新建独立 retrain 脚本
+- 选择：B — 复用 pipeline + train_only flag。理由：(1) 保证训练流程与原始实验完全一致（optimizer, scheduler, data split 等），避免引入训练差异；(2) 改动最小，只需在 3 个 pipeline 基类中加 early return；(3) AttackPipeline.run_retrain() 封装了模型重初始化 + train_only 调用 + 模型提取的完整流程
+- 影响：修改 pipeline/Shard_based_pipeline.py, IF_based_pipeline.py, Learning_based_pipeline.py（加 train_only 分支）；新增 attack/pipeline_adapter.py 中的 run_retrain() 方法
+- 关联 Step：Step 8
+
+### [2026-02-19 00:01] DECISION — Collateral Damage 度量选择
+- 背景：需要度量近似遗忘对保留节点的预测扰动，参考 UtU 论文的 Δp 指标
+- 选项：A: L2 距离（概率向量欧氏距离）/ B: L-inf per node（每节点最大类别概率偏移）+ fraction_flipped / C: KL 散度
+- 选择：B — L-inf + fraction_flipped。理由：(1) L-inf 捕捉最坏情况扰动，对攻击评估更有意义；(2) fraction_flipped 直观可解释（多少保留节点的预测类别被翻转）；(3) 与 UtU 的 Δp 定义最接近
+- 影响：attack/attack_eval.py 新增 evaluate_collateral_damage() 返回 mean_pred_shift, max_pred_shift, fraction_flipped
+- 关联 Step：Step 8
+
+### [2026-02-19 00:02] Step 8: Retrain 基础设施实现完成
+- 任务：实现 collateral damage 评估的完整基础设施
+- 新增文件：
+  - attack/pipeline_adapter.py (367 行): AttackPipeline 封装，含 run_retrain()、_get_trained_model()
+  - attack/result_cache.py (389 行): ResultCache 磁盘缓存
+  - eval_collateral.py (183 行): 端到端 CLI 评估脚本
+  - tests/test_collateral.py (428 行, 17 测试): train_only、run_retrain、collateral damage 测试
+- 修改文件：
+  - pipeline/Shard_based_pipeline.py: 加 train_only early return
+  - pipeline/IF_based_pipeline.py: 同上
+  - pipeline/Learning_based_pipeline.py: 同上
+  - attack/attack_eval.py: 新增 evaluate_retrain_gap (5参数6返回值)、evaluate_collateral_damage
+- 测试结果：110 tests, 0 failures（含 17 新增 collateral 测试）
+- 代码统计：生产代码 1150→2090 行，测试 1037→1465 行，合计 2187→3555 行
+- 下一步建议：运行 eval_collateral.py 生成实际 retrain gap + collateral damage 数据
+
+### [2026-02-19 00:03] 文档同步更新
+- 任务：同步 CLAUDE.md、PROGRESS_REPORT.md、flow.md 至 Step 8 完成状态
+- CLAUDE.md: Attack Module Structure 去掉 "(Under Development)"，补充 pipeline_adapter/result_cache/eval_collateral，补充 train_only 说明和 results/collateral/ 路径
+- PROGRESS_REPORT.md: 代码统计更新至 3555 行，新增 Step 8 小节，Collateral Damage 标记为已实现
+- flow.md: §5.3 evaluate_retrain_gap 签名修正（4参→5参, 4返回→6返回），新增 §5.4 evaluate_collateral_damage spec，§7 依赖图补充 run_retrain + eval_collateral 链路，测试 5 标记已实现
+- 下一步建议：执行 Phase A+ 实验，运行 eval_collateral.py
+
+### [2026-02-18 03:00] demo_attack.py (backfill)
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=[random,degree,pagerank,tracin], ratio=0.05
+- 日志路径：`results/demo_logs/2026-02-18_cora_GCN_GNNDelete.log`
+- 执行结果：OK | tracin: f1_before=0.8893, f1_after=0.7989, drop=0.0904 (1.32x) | random: drop=0.0683 | degree: drop=0.0535 | pagerank: drop=0.0535
+- 异常与定位：无（修复 3 个 bug 后通过：节点注入路径、device 不匹配、poison_f1 条件）
+- 下一步建议：加入 IM/Hybrid 策略扩展至 6 策略对比
+
+### [2026-02-19 19:52] demo_6strategies.py (backfill)
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=[random,degree,pagerank,tracin,im,hybrid], ratio=0.05
+- 日志路径：`results/demo_logs/2026-02-19_6strategies_cora_GCN_GNNDelete.log`
+- 执行结果：OK | im: f1_before=0.8875, f1_after=0.7491, drop=0.1384 (2.03x) | tracin: drop=0.0904 (1.32x) | hybrid: drop=0.0886 (1.30x) | random: drop=0.0683 | degree: drop=0.0535 | pagerank: drop=0.0535
+- 异常与定位：无
+- 下一步建议：在 GIF 和 GraphEraser 上运行同配置验证泛化性
+
+### [2026-02-19 19:53] demo_6strategies.py (backfill)
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=[random,degree,pagerank,tracin,im,hybrid], ratio=0.05
+- 日志路径：`results/demo_logs/2026-02-19_6strategies_cora_GCN_GIF.log`
+- 执行结果：OK | hybrid: f1_before=0.8930, f1_after=0.8653, drop=0.0277 (3.00x) | tracin: drop=0.0203 (2.20x) | degree: drop=0.0185 (2.00x) | im: drop=0.0166 (1.80x) | pagerank: drop=0.0129 (1.40x) | random: drop=0.0092
+- 异常与定位：无
+- 下一步建议：Hybrid 在 IF-based 方法上最强，验证 IF-IM 融合假设
+
+### [2026-02-19 19:56] demo_6strategies.py (backfill)
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=[random,degree,pagerank,tracin,im,hybrid], ratio=0.05
+- 日志路径：`results/demo_logs/2026-02-19_6strategies_cora_GCN_GraphEraser.log`
+- 执行结果：OK | 所有策略 F1 Drop 为负值（遗忘后性能上升）| pagerank: drop=-0.0295 | degree: drop=-0.0443 | tracin: drop=-0.0480 | im: drop=-0.0517 | hybrid: drop=-0.0627 | random: drop=-0.0701
+- 异常与定位：无（GraphEraser 分片聚合架构天然抗攻击，非异常）
+- 下一步建议：确认 Shard-based 方法免疫性，作为论文对照组

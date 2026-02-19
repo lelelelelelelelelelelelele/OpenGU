@@ -105,7 +105,7 @@ This project is developing **adversarial attacks on GNN unlearning**. The core i
 - `self/宏观plan.md`: Experiment plan, code modules to build, priority ordering
 - `self/flow.md`: Function-level design, input/output specs, test cases
 
-### Attack Module Structure (Under Development)
+### Attack Module Structure
 
 ```
 attack/attack_strategies/       # Node selection strategies
@@ -117,12 +117,24 @@ attack/attack_strategies/       # Node selection strategies
   im_strategy.py                # Core: Influence Maximization (CELF)
   hybrid_strategy.py            # Core: IF-IM fusion
 attack/attack_manager.py        # Strategy dispatcher
-attack/attack_eval.py           # F1 drop, MIA AUC, retrain gap
+attack/attack_eval.py           # F1 drop, MIA AUC, retrain gap, collateral damage
+attack/pipeline_adapter.py      # AttackPipeline: wraps OpenGU pipelines for attack use
+                                #   - _inject_unlearn_nodes(): write node files
+                                #   - run_retrain(): exact retrain-from-scratch
+                                #   - _get_trained_model(): extract model from pipeline
+attack/result_cache.py          # ResultCache: disk-backed caching of pipeline results
+attack/attack_result.py         # AttackResult dataclass for structured results
+eval_collateral.py              # CLI script: runs retrain gap + collateral damage eval
+                                #   Usage: python eval_collateral.py --method GNNDelete --strategy tracin
 ```
+
+The three pipeline base classes (`Shard_based_pipeline`, `IF_based_pipeline`, `Learning_based_pipeline`) support a `train_only` flag (`args["train_only"] = True`) that skips the unlearning phase and returns only the trained model — used by `AttackPipeline.run_retrain()` for exact retrain-from-scratch.
 
 ### Result Storage Convention
 
 Experiment results go to `results/{attack_strategy}/{unlearning_method}/{dataset}/{model}/run_{timestamp}.json`. Each JSON contains `config` (parameters), `metrics` (F1 drop, MIA AUC, timing), and `selected_nodes`. The original framework logs remain at `log/`.
+
+Collateral damage evaluation results go to `results/collateral/{unlearning_method}/{dataset}/{model}/` containing retrain gap and collateral damage metrics.
 
 ### Document Workflow
 

@@ -425,23 +425,31 @@ def evaluate_mia_auc(
 - 随机模型 → AUC ≈ 0.5
 - member 和 non_member 大小不同时仍能正确计算
 
-### 5.3 `evaluate_retrain_gap(model_unlearned, model_retrained, data, test_mask) -> dict`
+### 5.3 `evaluate_retrain_gap(model_before, model_unlearned, model_retrained, data, test_mask) -> dict`
+
+> **已实现**: `attack/attack_eval.py:92`
 
 ```python
 def evaluate_retrain_gap(
+    model_before: torch.nn.Module,
     model_unlearned: torch.nn.Module,
     model_retrained: torch.nn.Module,
     data: Data,
     test_mask: Tensor
 ) -> dict:
     """
-    比较近似遗忘与精确重训的性能差距。
+    Attribution framework: decompose total performance drop.
+
+    - Drop_retrain = Perf_before - Perf_retrain  (inherent loss from deletion)
+    - Gap = Perf_retrain - Perf_unlearn           (extra loss from approximate unlearning)
 
     Returns:
         {
-            "f1_unlearned": float,
-            "f1_retrained": float,
-            "gap": float,              # unlearned - retrained
+            "perf_before": float,
+            "perf_retrain": float,
+            "perf_unlearn": float,
+            "drop_retrain": float,     # perf_before - perf_retrain
+            "gap": float,              # perf_retrain - perf_unlearn
             "gap_pct": float,
         }
     """
@@ -449,7 +457,38 @@ def evaluate_retrain_gap(
 
 **测试**:
 - 同一模型 → gap = 0
-- 验证符号: 如果 unlearned 更差则 gap 为负
+- 验证归因分解: drop_retrain + gap = perf_before - perf_unlearn
+
+### 5.4 `evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_mask) -> dict`
+
+> **已实现**: `attack/attack_eval.py:129`
+
+```python
+def evaluate_collateral_damage(
+    model_unlearned: torch.nn.Module,
+    model_retrained: torch.nn.Module,
+    data: Data,
+    retain_mask: Tensor
+) -> dict:
+    """
+    Measure prediction disturbance on retained nodes (inspired by UtU's Δp).
+
+    Compares model_unlearned vs model_retrained on the retain set.
+    Both models share the same deletion set; the difference isolates
+    the approximation error's collateral effect on retained nodes.
+
+    Returns:
+        {
+            "mean_pred_shift": float,
+            "max_pred_shift": float,
+            "fraction_flipped": float,
+        }
+    """
+```
+
+**测试**:
+- 同一模型 → mean_pred_shift = 0, fraction_flipped = 0
+- 随机模型 vs 训练模型 → shift > 0
 
 ---
 
@@ -508,14 +547,17 @@ def evaluate_retrain_gap(
 
 ### 测试 5: Retrain 对照
 
+> **已实现**: `eval_collateral.py` + `tests/test_collateral.py` (17 测试)
+
 ```
 目的: 证明攻击利用了近似误差
 步骤:
   1. hybrid.select_nodes(k=50) → D_unlearn
   2. GIF unlearning → model_unlearned
-  3. 从头训练 GCN（去掉 D_unlearn）→ model_retrained
-  4. evaluate_retrain_gap(model_unlearned, model_retrained)
-预期: model_unlearned 的 F1 显著低于 model_retrained
+  3. 从头训练 GCN（去掉 D_unlearn）→ model_retrained  (via AttackPipeline.run_retrain())
+  4. evaluate_retrain_gap(model_before, model_unlearned, model_retrained, data, test_mask)
+  5. evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_mask)
+预期: model_unlearned 的 F1 显著低于 model_retrained (gap > 0)
 ```
 
 ---
@@ -540,8 +582,27 @@ attack_eval.evaluate_f1_drop()
 attack_eval.evaluate_mia_auc()
   └── sklearn.metrics.roc_auc_score()
 
+attack_eval.evaluate_retrain_gap()
+  └── sklearn.metrics.f1_score()
+
+attack_eval.evaluate_collateral_damage()
+  └── torch.nn.functional.softmax()
+
 AttackManager.get_strategy()
   └── strategy_map[name](args)
+
+AttackPipeline.run_retrain()
+  ├── model_zoo()           # 重新初始化模型
+  ├── method.run_exp()      # train_only 模式
+  ├── _get_trained_model()  # 提取模型
+  └── _evaluate_model()     # F1 评估
+
+eval_collateral.py
+  ├── ResultCache.get()
+  ├── pipeline._inject_unlearn_nodes()
+  ├── pipeline.run_retrain()
+  ├── evaluate_retrain_gap()
+  └── evaluate_collateral_damage()
 ```
 
 ---

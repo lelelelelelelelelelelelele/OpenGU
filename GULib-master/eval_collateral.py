@@ -1,0 +1,183 @@
+"""
+eval_collateral.py - Evaluate collateral damage and retrain gap metrics.
+
+Reads selected_nodes from cache, re-runs unlearning to get model_unlearned,
+trains from scratch excluding selected_nodes to get model_retrained,
+then computes retrain gap and collateral damage.
+
+Usage:
+    python eval_collateral.py \
+        --dataset_name cora --base_model GCN \
+        --unlearning_methods GNNDelete \
+        --strategies random,degree,pagerank,tracin,im,hybrid
+"""
+import os
+import sys
+import json
+import argparse
+import torch
+import numpy as np
+from pathlib import Path
+from datetime import datetime
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+if base_dir not in sys.path:
+    sys.path.insert(0, base_dir)
+
+from parameter_parser import parameter_parser
+from attack.pipeline_adapter import AttackPipeline
+from attack.result_cache import ResultCache
+from attack.attack_eval import evaluate_retrain_gap, evaluate_collateral_damage
+
+
+def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
+    """Find a cache entry matching the given strategy and config."""
+    config = args.copy()
+    config['strategy_name'] = strategy_name
+    # Remove non-hashable items
+    for key in list(config.keys()):
+        if not isinstance(config[key], (str, int, float, bool, type(None))):
+            del config[key]
+    return cache.get(config)
+
+
+def main():
+    # Parse CLI args (inherits all main.py args via parameter_parser)
+    args = parameter_parser()
+
+    # Parse strategy list from --strategies (not in parameter_parser)
+    # We re-parse sys.argv manually for this custom arg
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--strategies', type=str, default='random,degree,pagerank,tracin,im,hybrid')
+    extra_args, _ = parser.parse_known_args()
+    strategies = [s.strip() for s in extra_args.strategies.split(',')]
+
+    print(f"Dataset: {args['dataset_name']}, Model: {args['base_model']}, "
+          f"Method: {args['unlearning_methods']}")
+    print(f"Strategies: {strategies}")
+    print("=" * 80)
+
+    # Initialize pipeline
+    pipeline = AttackPipeline(args)
+    cache = ResultCache(cache_dir="./results/cache")
+
+    # Storage for results
+    all_results = []
+
+    for strategy_name in strategies:
+        print(f"\n--- Strategy: {strategy_name} ---")
+
+        # 1. Read selected_nodes from cache
+        cached = find_cache_entry(cache, args, strategy_name)
+        if cached is None:
+            print(f"  [SKIP] No cache entry for strategy={strategy_name}")
+            continue
+
+        selected_nodes = cached.selected_nodes
+        if isinstance(selected_nodes, list):
+            selected_nodes = torch.tensor(selected_nodes)
+        print(f"  Loaded {len(selected_nodes)} selected nodes from cache")
+
+        # 2. Inject nodes and run unlearning to get model_unlearned
+        pipeline._inject_unlearn_nodes(selected_nodes, run_id=0)
+
+        # Reset method to pick up the new unlearning nodes
+        pipeline.args["train_only"] = False
+        pipeline.args["num_runs"] = 1
+        from model.model_zoo import model_zoo as mz
+        from unlearning_manager import UnlearningManager
+
+        pipeline.model_zoo = mz(pipeline.args, pipeline.data)
+        pipeline.model = pipeline.model_zoo.model
+        pipeline.manager = UnlearningManager(
+            pipeline.args, pipeline.original_data, pipeline.data,
+            pipeline.logger, pipeline.model_zoo, pipeline.dataset
+        )
+        pipeline.method = pipeline.manager.get_method()
+        pipeline.method.run_exp()
+
+        model_unlearned = pipeline._get_trained_model()
+
+        # Also get a "before" model — evaluate the model trained before unlearning
+        # For retrain_gap we need model_before; use poison_f1 as proxy or
+        # train a fresh model on full data
+        # For simplicity, we re-train on full data as model_before
+        pipeline.args["train_only"] = True
+        pipeline.args["num_runs"] = 1
+        pipeline.model_zoo = mz(pipeline.args, pipeline.data)
+        pipeline.model = pipeline.model_zoo.model
+        pipeline.manager = UnlearningManager(
+            pipeline.args, pipeline.original_data, pipeline.data,
+            pipeline.logger, pipeline.model_zoo, pipeline.dataset
+        )
+        pipeline.method = pipeline.manager.get_method()
+        pipeline.method.run_exp()
+        model_before = pipeline._get_trained_model()
+        pipeline.args["train_only"] = False
+
+        # 3. Retrain-from-scratch excluding selected_nodes
+        model_retrained, f1_retrained = pipeline.run_retrain(selected_nodes)
+
+        # 4. Build masks
+        test_mask = pipeline.data.test_mask
+        retain_mask = pipeline.data.train_mask.clone()
+        retain_mask[selected_nodes.long()] = False
+
+        # 5. Compute metrics
+        device = next(model_unlearned.parameters()).device
+        data = pipeline.data.to(device)
+
+        gap_metrics = evaluate_retrain_gap(
+            model_before, model_unlearned, model_retrained, data, test_mask
+        )
+        collateral_metrics = evaluate_collateral_damage(
+            model_unlearned, model_retrained, data, retain_mask
+        )
+
+        result = {
+            "strategy": strategy_name,
+            **gap_metrics,
+            **collateral_metrics,
+        }
+        all_results.append(result)
+
+        print(f"  Gap: {gap_metrics['gap']:.4f} ({gap_metrics['gap_pct']:.2f}%)")
+        print(f"  MeanShift: {collateral_metrics['mean_pred_shift']:.4f}, "
+              f"MaxShift: {collateral_metrics['max_pred_shift']:.4f}, "
+              f"Flipped: {collateral_metrics['fraction_flipped']:.4f}")
+
+    # 6. Print summary table
+    print("\n" + "=" * 90)
+    print(f"Collateral Damage Summary: {args['unlearning_methods']} / "
+          f"{args['dataset_name']} / {args['base_model']}")
+    print("=" * 90)
+    header = f"{'Strategy':<12}| {'Gap':>8} | {'Gap%':>7} | {'MeanShift':>10} | {'MaxShift':>9} | {'Flipped%':>9}"
+    print(header)
+    print("-" * 90)
+    for r in all_results:
+        print(f"{r['strategy']:<12}| {r['gap']:>8.4f} | {r['gap_pct']:>6.2f}% | "
+              f"{r['mean_pred_shift']:>10.4f} | {r['max_pred_shift']:>9.4f} | "
+              f"{r['fraction_flipped']*100:>8.2f}%")
+    print("=" * 90)
+
+    # 7. Save results to JSON
+    out_dir = Path(f"./results/collateral/{args['unlearning_methods']}/{args['dataset_name']}/{args['base_model']}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = out_dir / f"collateral_{timestamp}.json"
+    with open(out_path, 'w') as f:
+        json.dump({
+            "config": {
+                "dataset_name": args['dataset_name'],
+                "base_model": args['base_model'],
+                "unlearning_methods": args['unlearning_methods'],
+                "unlearn_ratio": args['unlearn_ratio'],
+            },
+            "results": all_results,
+            "timestamp": datetime.now().isoformat(),
+        }, f, indent=2)
+    print(f"\nResults saved to: {out_path}")
+
+
+if __name__ == '__main__':
+    main()
