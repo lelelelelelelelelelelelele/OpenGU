@@ -96,6 +96,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 
 ## Important Notes
 
+- **Never use `--no_cache`** unless explicitly testing cache behavior itself. This flag disables both result cache AND selection cache, causing IM strategy to re-run for ~500s each time instead of using cached selections (sub-second).
 - `config.py` executes `parameter_parser()` at import time, so importing it outside of a CLI context (e.g., in a notebook) will fail or use defaults
 - ScaleGUN is currently commented out in `unlearning_manager.py`
 - GraphRevoker reuses the `grapheraser` class in the method map

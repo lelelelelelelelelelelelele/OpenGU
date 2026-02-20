@@ -22,6 +22,7 @@ import sys
 import json
 import subprocess
 import time
+import threading
 from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
@@ -73,7 +74,7 @@ def run_single_experiment(
     disable_cache=False,
     timeout_map=None,
 ):
-    """Run a single experiment via demo_attack.py subprocess."""
+    """Run a single experiment via demo_attack.py subprocess with real-time output."""
     save_path = os.path.join(
         output_dir,
         f"{method}_{dataset}_{model}_r{ratio}_s{random_seed}.json"
@@ -103,33 +104,70 @@ def run_single_experiment(
     print(f"  Timeout: {timeout_s}s")
     print(f"{'='*60}")
 
-    start = time.time()
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-            cwd=os.path.dirname(os.path.abspath(__file__)),
-        )
-        elapsed = time.time() - start
+    # Set up environment for unbuffered output
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
 
-        if result.returncode != 0:
+    start = time.time()
+    output_lines = []
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            env=env,
+        )
+
+        # Thread to read and display output in real-time
+        def read_output():
+            for line in proc.stdout:
+                print(line, end='')  # Real-time print to terminal
+                output_lines.append(line)
+
+        output_thread = threading.Thread(target=read_output, daemon=True)
+        output_thread.start()
+
+        # Wait for process with timeout
+        remaining = timeout_s - (time.time() - start)
+        if remaining <= 0:
+            proc.kill()
+            proc.wait()
+            print(f"  TIMEOUT (>{timeout_s}s)")
+            return None
+
+        try:
+            proc.wait(timeout=remaining)
+            elapsed = time.time() - start
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            print(f"  TIMEOUT (>{timeout_s}s)")
+            return None
+        finally:
+            output_thread.join(timeout=5)
+
+        full_output = ''.join(output_lines)
+
+        if proc.returncode != 0:
             print(f"  FAILED ({elapsed:.1f}s)")
             # Save error log
             err_path = save_path.replace(".json", "_error.log")
             with open(err_path, "w") as f:
-                f.write(f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}")
+                f.write(full_output)
             print(f"  Error log: {err_path}")
             # Print last few lines of error
-            stderr_lines = result.stderr.strip().split("\n")
-            for line in stderr_lines[-5:]:
+            error_lines = full_output.strip().split("\n")
+            for line in error_lines[-5:]:
                 print(f"  | {line}")
             return None
         else:
             print(f"  OK ({elapsed:.1f}s)")
-            # Extract summary from stdout
-            for line in result.stdout.split("\n"):
+            # Extract summary from output
+            for line in full_output.split("\n"):
                 if any(kw in line for kw in ["Rank", "Best Strategy", "tracin", "random", "degree", "pagerank"]):
                     if "Rank" in line and "Strategy" in line:
                         print(f"  {line.strip()}")
@@ -142,9 +180,6 @@ def run_single_experiment(
                     return json.load(f)
             return {"status": "ok", "time": elapsed}
 
-    except subprocess.TimeoutExpired:
-        print(f"  TIMEOUT (>{timeout_s}s)")
-        return None
     except Exception as e:
         print(f"  ERROR: {e}")
         return None

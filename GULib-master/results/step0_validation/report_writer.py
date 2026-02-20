@@ -227,10 +227,33 @@ def append_attack_result(
         f1_before = getattr(result, "f1_before", None)
         f1_after = getattr(result, "f1_after", None)
         total_time = getattr(result, "total_time", None)
+        selection_cache_hit = getattr(result, "selection_cache_hit", None)
+        selection_time = getattr(result, "selection_time", None)
+        selection_reuse_time = getattr(result, "selection_reuse_time", None)
+        selection_cache_key = getattr(result, "selection_cache_key", None)
+
+        cache_parts = []
+        if selection_cache_hit is True:
+            cache_parts.append(f"cache=HIT(key={selection_cache_key or 'NA'})")
+            cache_parts.append(f"selection={_fmt_metric(selection_time, digits=4)}s")
+            cache_parts.append(f"reuse={_fmt_metric(selection_reuse_time, digits=6)}s")
+            if (
+                selection_time is not None
+                and selection_reuse_time is not None
+                and float(selection_reuse_time) > 0
+            ):
+                speedup = float(selection_time) / float(selection_reuse_time)
+                cache_parts.append(f"speedup={_fmt_metric(speedup, digits=2)}x")
+        elif selection_cache_hit is False:
+            cache_parts.append("cache=MISS")
+            cache_parts.append(f"selection={_fmt_metric(selection_time, digits=4)}s")
+        else:
+            cache_parts.append("cache=NA")
+
         lines.append(
             f"  - {name}: F1 Drop = {_fmt_metric(f1_drop)} "
             f"(f1_before={_fmt_metric(f1_before)}, f1_after={_fmt_metric(f1_after)}, "
-            f"time={_fmt_metric(total_time, digits=1)}s)"
+            f"time={_fmt_metric(total_time, digits=1)}s, {', '.join(cache_parts)})"
         )
     lines.append("- 异常与定位：无")
     lines.append("- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。\n")

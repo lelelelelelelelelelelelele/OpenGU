@@ -262,30 +262,60 @@ class AttackManager:
 
         # Run through pipeline (optionally reusing method-agnostic selection cache)
         result_dict = None
+        selection_cache_hit = False
+        selection_cache_key = None
+        selection_cache_source = None
+        selection_time_value = None
+        selection_reuse_time = None
         if (
             use_cache
             and self.selection_cache is not None
             and strategy_name in self.REUSABLE_SELECTION_STRATEGIES
         ):
             selection_config = self._build_selection_config(strategy_name, k)
+            cache_lookup_start = time.time()
             cached_selection, selection_key, source_file = self.selection_cache.get(selection_config)
+            selection_cache_key = selection_key
+            selection_cache_source = source_file
             if cached_selection is not None:
-                print(f"[SelectionCache] HIT strategy={strategy_name} selection_key={selection_key}")
-                print(f"[SelectionCache] source_cache_file={source_file}")
+                selection_cache_hit = True
                 selected_nodes = torch.tensor(cached_selection.selected_nodes, dtype=torch.long)
+                selection_reuse_time = time.time() - cache_lookup_start
+                selection_time_value = float(cached_selection.selection_time)
+                speedup = None
+                if selection_reuse_time > 0:
+                    speedup = selection_time_value / selection_reuse_time
+                speedup_text = f"{speedup:.2f}x" if speedup is not None else "NA"
+                print(
+                    "[SelectionCache] HIT "
+                    f"strategy={strategy_name} selection_key={selection_cache_key} "
+                    f"original_selection_time={selection_time_value:.4f}s "
+                    f"reuse_time={selection_reuse_time:.6f}s "
+                    f"speedup={speedup_text} "
+                    f"source={selection_cache_source}"
+                )
                 result_dict = self.pipeline.run_with_selected_nodes(
                     strategy_name=strategy_name,
                     selected_nodes=selected_nodes,
-                    selection_time=float(cached_selection.selection_time),
+                    selection_time=selection_time_value,
                 )
             else:
-                print(f"[SelectionCache] MISS strategy={strategy_name} selection_key={selection_key}")
+                print(
+                    "[SelectionCache] MISS "
+                    f"strategy={strategy_name} selection_key={selection_cache_key}"
+                )
                 result_dict = self.pipeline.run_with_strategy(strategy, k)
+                selection_time_value = float(result_dict.get("selection_time", 0.0))
+                print(
+                    "[SelectionCache] MISS-RESULT "
+                    f"strategy={strategy_name} selection_key={selection_cache_key} "
+                    f"original_selection_time={selection_time_value:.4f}s"
+                )
                 to_cache = SelectionResult(
                     strategy_name=strategy_name,
                     selected_nodes=result_dict["selected_nodes"].cpu().tolist(),
-                    selection_time=float(result_dict.get("selection_time", 0.0)),
-                    selection_key=selection_key or "",
+                    selection_time=selection_time_value,
+                    selection_key=selection_cache_key or "",
                     metadata={
                         "dataset_name": selection_config.get("dataset_name"),
                         "base_model": selection_config.get("base_model"),
@@ -297,6 +327,10 @@ class AttackManager:
                 print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
         else:
             result_dict = self.pipeline.run_with_strategy(strategy, k)
+            selection_time_value = float(result_dict.get("selection_time", 0.0))
+
+        if selection_time_value is None:
+            selection_time_value = float(result_dict.get("selection_time", 0.0))
 
         total_time = time.time() - start_time
 
@@ -308,6 +342,11 @@ class AttackManager:
             f1_after=result_dict["f1_after"],
             unlearn_time=result_dict["unlearn_time"],
             total_time=total_time,
+            selection_time=selection_time_value,
+            selection_reuse_time=selection_reuse_time,
+            selection_cache_hit=selection_cache_hit,
+            selection_cache_key=selection_cache_key,
+            selection_cache_source=selection_cache_source,
             mia_auc=result_dict.get("mia_auc"),
             config=config,
         )

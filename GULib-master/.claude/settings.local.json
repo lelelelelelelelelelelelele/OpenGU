@@ -43,7 +43,9 @@
       "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" eval_collateral.py --dataset_name cora --base_model GCN --unlearning_methods GUIDE --strategies random,degree,pagerank,tracin,im,hybrid --cuda 0)",
       "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" eval_collateral.py --dataset_name cora --base_model GCN --unlearning_methods GUIDE --strategies random,degree,pagerank,tracin,im,hybrid --unlearn_ratio 0.05 --cuda 0)",
       "Bash(/h/project/OpenGU/GULib-master/results/_journal/auto_report.md:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(tasklist)",
+      "Bash(wmic:*)"
     ]
   }
 }

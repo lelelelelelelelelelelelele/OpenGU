@@ -5,7 +5,7 @@ set -e
 # 需要运行 GraphEraser 和 GUIDE 在 seeds 42, 212, 722, 1337 上
 
 # 实验参数
-METHODS="GraphEraser,GUIDE"
+METHODS="GNNDelete,GIF,GraphEraser,GUIDE"
 DATASETS="cora"
 BASE_MODEL="GCN"
 STRATEGIES="random,degree,pagerank,tracin,im,hybrid"

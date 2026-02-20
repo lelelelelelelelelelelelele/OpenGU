@@ -10484,3 +10484,117 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - random: F1 Drop = 0.0590 (f1_before=0.8893, f1_after=0.8303, time=2.1s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=1.5s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.1440 (f1_before=0.8875, f1_after=0.7435, time=6.7s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.1440 (f1_before=0.8875, f1_after=0.7435, time=6.7s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:58] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=999
+- 执行结果：
+  - im: F1 Drop = 0.1642 (f1_before=0.8875, f1_after=0.7232, time=533.4s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:59] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=999
+- 执行结果：
+  - im: F1 Drop = 0.1643 (f1_before=0.8875, f1_after=0.7232, time=533.4s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 01:59] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=999
+- 执行结果：
+  - im: F1 Drop = 0.1643 (f1_before=0.8875, f1_after=0.7232, time=533.4s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:07] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:08] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:08] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:09] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=999
+- 执行结果：
+  - im: F1 Drop = 0.1642 (f1_before=0.8875, f1_after=0.7232, time=551.5s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:11] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:14] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s, cache=NA)
+  - tracin: F1 Drop = 0.1440 (f1_before=0.8875, f1_after=0.7435, time=6.7s, cache=NA)
+  - pagerank: F1 Drop = 0.1034 (f1_before=0.8838, f1_after=0.7804, time=1.0s, cache=NA)
+  - random: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=1.5s, cache=NA)
+  - hybrid: F1 Drop = 0.0609 (f1_before=0.8819, f1_after=0.8210, time=14.6s, cache=NA)
+  - degree: F1 Drop = 0.0554 (f1_before=0.8875, f1_after=0.8321, time=1.0s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 02:14] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=0.9s, cache=NA)
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.5s, cache=NA)
+  - hybrid: F1 Drop = 0.0167 (f1_before=0.8875, f1_after=0.8708, time=14.3s, cache=NA)
+  - im: F1 Drop = 0.0166 (f1_before=0.8838, f1_after=0.8672, time=527.0s, cache=NA)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8911, f1_after=0.8819, time=7.6s, cache=NA)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8856, f1_after=0.8801, time=0.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

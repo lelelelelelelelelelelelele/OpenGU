@@ -35,6 +35,11 @@ class AttackResult:
     f1_drop_ratio: float = field(init=False)
     unlearn_time: float
     total_time: float
+    selection_time: Optional[float] = None
+    selection_reuse_time: Optional[float] = None
+    selection_cache_hit: Optional[bool] = None
+    selection_cache_key: Optional[str] = None
+    selection_cache_source: Optional[str] = None
     mia_auc: Optional[float] = None
     run_timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     config: Optional[Dict[str, Any]] = None
@@ -58,6 +63,11 @@ class AttackResult:
             "f1_drop_ratio": round(self.f1_drop_ratio, 2),
             "unlearn_time": round(self.unlearn_time, 4),
             "total_time": round(self.total_time, 4),
+            "selection_time": round(self.selection_time, 4) if self.selection_time is not None else None,
+            "selection_reuse_time": round(self.selection_reuse_time, 6) if self.selection_reuse_time is not None else None,
+            "selection_cache_hit": self.selection_cache_hit,
+            "selection_cache_key": self.selection_cache_key,
+            "selection_cache_source": self.selection_cache_source,
             "mia_auc": round(self.mia_auc, 4) if self.mia_auc is not None else None,
             "run_timestamp": self.run_timestamp,
             "config": self.config or {},
