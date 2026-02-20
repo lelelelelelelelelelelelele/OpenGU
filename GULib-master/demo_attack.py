@@ -57,7 +57,6 @@ if base_dir not in sys.path:
 from parameter_parser import parameter_parser
 from attack import AttackManager
 from attack.attack_result import ComparisonResult
-from results.report_writer import ReportWriter
 
 
 def seed_everything(seed_value):
@@ -187,26 +186,20 @@ def main():
 
     # Write to auto_report.md
     try:
-        report_writer = ReportWriter()
-        report_data = {
-            'script': 'demo_attack.py',
-            'dataset': args['dataset_name'],
-            'model': args['base_model'],
-            'method': args['unlearning_methods'],
-            'strategies': strategies,
-            'unlearn_ratio': args.get('unlearn_ratio', 0.05),
-            'results': {
-                name: {
-                    'f1_drop': result.f1_drop,
-                    'f1_before': result.f1_before,
-                    'f1_after': result.f1_after,
-                    'time': result.total_time,
-                }
-                for name, result in comparison.results.items()
-            }
-        }
-        report_writer.append_attack_result(report_data)
-        print(f"[Report] Results appended to auto_report.md")
+        import sys as _sys
+        _sys.path.insert(0, os.path.join(base_dir, 'results', 'step0_validation'))
+        from report_writer import append_attack_result
+        report_path = append_attack_result(
+            method=args['unlearning_methods'],
+            dataset=args['dataset_name'],
+            model=args['base_model'],
+            strategies=strategies,
+            unlearn_ratio=args.get('unlearn_ratio', 0.05),
+            k=k,
+            seed=demo_args.seed,
+            results=comparison.results,
+        )
+        print(f"[Report] Results appended to {report_path}")
     except Exception as e:
         print(f"[Report] Warning: Could not write to auto_report.md: {e}")
 

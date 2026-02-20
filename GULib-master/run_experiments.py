@@ -56,7 +56,7 @@ PHASE_C = {
 }
 
 
-def run_single_experiment(method, dataset, model, strategies, ratio, cuda, output_dir):
+def run_single_experiment(method, dataset, model, strategies, ratio, cuda, output_dir, random_seed):
     """Run a single experiment via demo_attack.py subprocess."""
     save_path = os.path.join(
         output_dir,
@@ -71,6 +71,7 @@ def run_single_experiment(method, dataset, model, strategies, ratio, cuda, outpu
         "--unlearning_methods", method,
         "--strategies", strategies,
         "--unlearn_ratio", str(ratio),
+        "--seed", str(random_seed),
         "--no_cache",
         "--save_path", save_path,
     ]
@@ -128,7 +129,7 @@ def run_single_experiment(method, dataset, model, strategies, ratio, cuda, outpu
         return None
 
 
-def run_phase(phase_config, cuda, output_base):
+def run_phase(phase_config, cuda, output_base, random_seed):
     """Run all experiments in a phase."""
     phase_name = phase_config["name"]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -149,6 +150,7 @@ def run_phase(phase_config, cuda, output_base):
     print(f"  Datasets: {datasets}")
     print(f"  Strategies: {strategies}")
     print(f"  Ratios: {ratios}")
+    print(f"  Random Seed: {random_seed}")
     print(f"  Total experiments: {total}")
     print(f"  Output: {output_dir}")
     print(f"{'#'*70}")
@@ -164,7 +166,7 @@ def run_phase(phase_config, cuda, output_base):
                 for ratio in ratios:
                     key = f"{method}_{dataset}_{model}_r{ratio}"
                     result = run_single_experiment(
-                        method, dataset, model, strategies, ratio, cuda, output_dir
+                        method, dataset, model, strategies, ratio, cuda, output_dir, random_seed
                     )
                     if result is not None:
                         results[key] = result
@@ -264,6 +266,8 @@ def main():
     parser.add_argument("--cuda", type=int, default=0)
     parser.add_argument("--output", type=str, default="results/experiments",
                         help="Base output directory")
+    parser.add_argument("--random_seed", type=int, default=2024,
+                        help="Random seed passed to demo_attack.py")
 
     # Custom overrides
     parser.add_argument("--methods", type=str, default=None,
@@ -302,7 +306,7 @@ def main():
             config["ratios"] = [float(r) for r in args.ratios.split(",")]
 
         output_dir = os.path.join(args.output, f"phase_{phase_key.lower()}")
-        run_phase(config, args.cuda, output_dir)
+        run_phase(config, args.cuda, output_dir, args.random_seed)
 
 
 if __name__ == "__main__":

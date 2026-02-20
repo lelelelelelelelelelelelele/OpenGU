@@ -1,0 +1,83 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GUIDE",
+    "unlearn_ratio": 0.05
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.6586715867158671,
+      "perf_retrain": 0.7785977859778597,
+      "perf_unlearn": 0.7140221402214023,
+      "drop_retrain": -0.11992619926199255,
+      "gap": 0.06457564575645736,
+      "gap_pct": 8.293838862559216,
+      "mean_pred_shift": 0.23562248051166534,
+      "max_pred_shift": 0.995400607585907,
+      "fraction_flipped": 0.2542537748813629
+    },
+    {
+      "strategy": "degree",
+      "perf_before": 0.7214022140221401,
+      "perf_retrain": 0.7896678966789668,
+      "perf_unlearn": 0.7269372693726938,
+      "drop_retrain": -0.06826568265682664,
+      "gap": 0.06273062730627299,
+      "gap_pct": 7.943925233644851,
+      "mean_pred_shift": 0.26748135685920715,
+      "max_pred_shift": 0.9887402057647705,
+      "fraction_flipped": 0.2659212350845337
+    },
+    {
+      "strategy": "pagerank",
+      "perf_before": 0.7933579335793358,
+      "perf_retrain": 0.6863468634686347,
+      "perf_unlearn": 0.7767527675276754,
+      "drop_retrain": 0.1070110701107011,
+      "gap": -0.0904059040590407,
+      "gap_pct": -13.172043010752704,
+      "mean_pred_shift": 0.2805396318435669,
+      "max_pred_shift": 0.9995945692062378,
+      "fraction_flipped": 0.28960156440734863
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.7416974169741697,
+      "perf_retrain": 0.7841328413284133,
+      "perf_unlearn": 0.8099630996309963,
+      "drop_retrain": -0.042435424354243634,
+      "gap": -0.02583025830258301,
+      "gap_pct": -3.294117647058821,
+      "mean_pred_shift": 0.26748889684677124,
+      "max_pred_shift": 0.9920375943183899,
+      "fraction_flipped": 0.26287657022476196
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.7988929889298891,
+      "perf_retrain": 0.7859778597785979,
+      "perf_unlearn": 0.7490774907749077,
+      "drop_retrain": 0.012915129151291227,
+      "gap": 0.0369003690036902,
+      "gap_pct": 4.694835680751194,
+      "mean_pred_shift": 0.2854567766189575,
+      "max_pred_shift": 0.9995999932289124,
+      "fraction_flipped": 0.2781880795955658
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.7103321033210332,
+      "perf_retrain": 0.7546125461254612,
+      "perf_unlearn": 0.7177121771217713,
+      "drop_retrain": -0.044280442804428,
+      "gap": 0.03690036900368998,
+      "gap_pct": 4.889975550122242,
+      "mean_pred_shift": 0.2275322824716568,
+      "max_pred_shift": 0.9976344108581543,
+      "fraction_flipped": 0.24126046895980835
+    }
+  ],
+  "timestamp": "2026-02-20T08:31:32.298469"
+}

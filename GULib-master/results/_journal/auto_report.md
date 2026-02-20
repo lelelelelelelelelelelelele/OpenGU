@@ -10254,3 +10254,71 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - hybrid: F1 Drop = -0.0517 (攻击无效)
 - 异常与定位：GUIDE 方法在所有攻击策略下均免疫，验证了子图修复策略的鲁棒性
 - 下一步建议：运行 Collateral Damage 评估
+
+### [2026-02-20 07:18] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid: F1 Drop = -0.1231 (f1_before=0.7159, f1_after=0.8390, time=47.9s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-02-20 07:29:42] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.1
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260220_072942.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-20 08:21:18] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.69% |    0.2221 |   21.78% |
+| degree   | 6.00% |    0.2468 |   25.47% |
+| pagerank | 0.49% |    0.2444 |   24.10% |
+| tracin   | 6.54% |    0.3143 |   32.12% |
+| im       | 8.05% |    0.2557 |   22.75% |
+| hybrid   | -1.96% |    0.2343 |   23.88% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260220_082118.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-20 08:31:32] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 8.29% |    0.2356 |   25.43% |
+| degree   | 7.94% |    0.2675 |   26.59% |
+| pagerank | -13.17% |    0.2805 |   28.96% |
+| tracin   | -3.29% |    0.2675 |   26.29% |
+| im       | 4.69% |    0.2855 |   27.82% |
+| hybrid   | 4.89% |    0.2275 |   24.13% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260220_083132.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-02-20 08:21:18] eval_collateral.py - GUIDE Collateral Damage
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05, k=135
+- 日志路径：`results/collateral/GUIDE/cora/GCN/collateral_20260220_082118.json`
+- 执行结果：OK | 全部6策略 Cache Hit，无 SKIP
+
+| Strategy  | F1_before | F1_retrain | F1_unlearn | gap     | gap_pct  | frac_flip |
+|-----------|-----------|------------|------------|---------|----------|-----------|
+| random    | 0.7269    | 0.7638     | 0.7509     | +0.0129 | +1.69%   | 21.8%     |
+| degree    | 0.7491    | 0.7989     | 0.7509     | +0.0480 | +6.00%   | 25.5%     |
+| pagerank  | 0.7657    | 0.7565     | 0.7528     | +0.0037 | +0.49%   | 24.1%     |
+| tracin    | 0.7325    | 0.7897     | 0.7380     | +0.0517 | +6.54%   | 32.1%     |
+| im        | 0.7657    | 0.8247     | 0.7583     | +0.0664 | +8.05%   | 22.7%     |
+| hybrid    | 0.7362    | 0.7528     | 0.7675     | -0.0148 | -1.96%   | 23.9%     |
+
+- 说明：gap = F1_retrain - F1_unlearn（正值=遗忘不彻底；负值=过遗忘）
+- GUIDE 对 IM 策略的 retrain gap 最大（8%）；hybrid 出现负 gap（过遗忘）
+- 异常与定位：无
+- 下一步建议：与 GNNDelete/GIF 的 collateral 数据横向对比，分析 GUIDE 的近似遗忘质量

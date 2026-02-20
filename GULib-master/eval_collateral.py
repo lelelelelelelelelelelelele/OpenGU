@@ -9,7 +9,13 @@ Usage:
     python eval_collateral.py \
         --dataset_name cora --base_model GCN \
         --unlearning_methods GNNDelete \
-        --strategies random,degree,pagerank,tracin,im,hybrid
+        --strategies random,degree,pagerank,tracin,im,hybrid \
+        --unlearn_ratio 0.05
+
+IMPORTANT: Always pass --unlearn_ratio explicitly to match the cached attack results.
+  - Default experiment ratio: 0.05 (used in demo_attack.py runs)
+  - parameter_parser() default is 0.1 — cache lookup will fail silently if mismatched
+  - When not passed, this script defaults to 0.05 (not parameter_parser's 0.1)
 """
 import os
 import sys
@@ -141,6 +147,11 @@ def main():
 
     # Parse CLI args (inherits all main.py args via parameter_parser)
     args = parameter_parser()
+
+    # parameter_parser() defaults unlearn_ratio=0.1, but experiment caches use 0.05.
+    # Override to 0.05 unless the user explicitly passed --unlearn_ratio.
+    if '--unlearn_ratio' not in sys.argv and '--unlearn_ratio=' not in ' '.join(sys.argv):
+        args['unlearn_ratio'] = 0.05
 
     # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
     # df_size assertion passes (it uses proportion_unlearned_nodes, not unlearn_ratio)

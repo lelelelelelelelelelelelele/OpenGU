@@ -381,7 +381,7 @@ class GUIDE_FUNC:
     def partition_stat(self, partitions):
         if self.edge_indexs.max() < self.labels.shape[0]:
             edge_let = torch.cat(
-                [torch.tensor([[self.labels.shape[0]]]), torch.tensor([[self.labels.shape[0]]])], dim=0).to(self.edge_indexs.device)
+                [torch.tensor([[self.labels.shape[0]]], device=self.edge_indexs.device), torch.tensor([[self.labels.shape[0]]], device=self.edge_indexs.device)], dim=0)
             self.edge_indexs = torch.cat((self.edge_indexs, edge_let), 1)
 
         parts_key = set(partitions.values())
@@ -420,12 +420,13 @@ class GUIDE_FUNC:
         # n = dataset[0].num_nodes
         if labels == None:
             labels = self.labels
+        device = labels.device
         n = len(labels)
         parts_number = len(parts_key)
         count_shards = [op.countOf(partitions.values(), key)
                         for key in parts_key]
         score_balance_ = torch.abs(
-            (torch.tensor(count_shards) - n/parts_number)).sum().detach().cpu().numpy()/(2*n)
+            (torch.tensor(count_shards, device=device) - n/parts_number)).sum().detach().cpu().numpy()/(2*n)
 
         label_ = dict(
             zip(range(labels.shape[0]), labels.detach().cpu().numpy()))
@@ -445,10 +446,10 @@ class GUIDE_FUNC:
         subbalance = []
         for i in parts_key:
             subbalance.append(
-                (torch.tensor(df.values[:, i]/count_shards[i])-balancemean).abs().sum())
+                (torch.tensor(df.values[:, i]/count_shards[i], device=device)-balancemean).abs().sum())
 
         score_fair_ = torch.tensor(
-            subbalance).mean().detach().cpu().numpy()/2
+            subbalance, device=device).mean().detach().cpu().numpy()/2
         return score_balance_, score_fair_
 
     def subgraph_repair(self, x, REPAIR_METHOD='Zero', PATH='checkpoints/', DATA_NAME='Cora_0.8', MULTI_GRAPH=None, no_repair=False):
@@ -473,31 +474,33 @@ class GUIDE_FUNC:
 
             
 
+            sg_device = sub_graph.x.device  # consistent device for all tensors
+
             if len(from_) == 0 or no_repair:
                 sub_graph.train_mask = torch.ones(
-                    sub_graph.num_nodes, dtype=torch.bool)
+                    sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                 sub_graph.test_mask = torch.ones(
-                    sub_graph.num_nodes, dtype=torch.bool)
+                    sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                 sub_graph.uids = base_id
 
             else:
                 if REPAIR_METHOD == 'Zero':
                     # Zero Feature
-                    x_plus = torch.zeros([len(from_), sub_graph.num_features])
+                    x_plus = torch.zeros([len(from_), sub_graph.num_features], device=sg_device)
                     # if self.args["is_transductive"]:
-                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     train_indices_set = set(self.data.train_indices)
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in train_indices_set:
                             train_mask[idx] = True
                     sub_graph.train_mask = train_mask
 
-                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     test_indices_set = set(self.data.test_indices)
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in test_indices_set:
                             test_mask[idx] = True
-                    sub_graph.test_mask = test_mask     
+                    sub_graph.test_mask = test_mask
                     # else:
                     #     sub_graph.train_mask = torch.ones(
                     #         sub_graph.num_nodes, dtype=torch.bool)
@@ -509,23 +512,23 @@ class GUIDE_FUNC:
                     subplus_graph.train_edge_index = subplus_graph.edge_index
                 elif REPAIR_METHOD == 'Mirror':
                     # Mirror Feature
-                    
+
 
                     x_plus = sub_graph.x[from_]
                     # if self.args["is_transductive"]:
-                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     train_indices_set = set(self.data.train_indices)
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in train_indices_set:
                             train_mask[idx] = True
                     sub_graph.train_mask = train_mask
 
-                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     test_indices_set = set(self.data.test_indices)
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in test_indices_set:
                             test_mask[idx] = True
-                    sub_graph.test_mask = test_mask     
+                    sub_graph.test_mask = test_mask
                     # else:
                         # sub_graph.train_mask = torch.ones(
                         #     sub_graph.num_nodes, dtype=torch.bool)
@@ -538,20 +541,21 @@ class GUIDE_FUNC:
                     subplus_graph.test_edge_index = sub_graph.edge_index
                 elif REPAIR_METHOD == 'MixUp':
                     # Mixup Feature
-                    mix0up = torch.zeros([len(from_), sub_graph.num_features])
-                    alpha = torch.randn(len(from_), 1).uniform_(0, 1)
+                    device = sub_graph.x.device
+                    mix0up = torch.zeros([len(from_), sub_graph.num_features], device=device)
+                    alpha = torch.randn(len(from_), 1, device=device).uniform_(0, 1)
                     x_plus = alpha * sub_graph.x[from_] + (1-alpha) * mix0up
 
                     ###############
                     # if self.args["is_transductive"]:
-                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    train_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     train_indices_set = set(self.data.train_indices)
                     for idx in range(sub_graph.num_nodes):
                         if original_indices[idx] in train_indices_set:
                             train_mask[idx] = True
                     sub_graph.train_mask = train_mask
 
-                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool)
+                    test_mask = torch.zeros(sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     test_indices_set = set(self.data.test_indices)
 
                     for idx in range(sub_graph.num_nodes):
@@ -579,9 +583,9 @@ class GUIDE_FUNC:
                     
                 elif REPAIR_METHOD == 'None':
                     sub_graph.train_mask = torch.ones(
-                        sub_graph.num_nodes, dtype=torch.bool)
-                    sub_graph.train_mask = torch.ones(
-                        sub_graph.num_nodes, dtype=torch.bool)
+                        sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
+                    sub_graph.test_mask = torch.ones(
+                        sub_graph.num_nodes, dtype=torch.bool, device=sg_device)
                     subplus_graph = sub_graph
                     subplus_graph.uids = base_id           
 
@@ -610,17 +614,18 @@ class GUIDE_FUNC:
         return self.p
 
     def patch_withouty(self, sub_graph, x_trg, from_):
+        device = sub_graph.x.device
         x = torch.cat((sub_graph.x, x_trg), 0)
         to_repair = list(np.asarray(torch.arange(
             len(from_))) + sub_graph.num_nodes)
         edge_let = torch.cat(
-            [torch.tensor([from_, to_repair]), torch.tensor([to_repair, from_])], dim=1).to(sub_graph.x.device)
+            [torch.tensor([from_, to_repair], device=device), torch.tensor([to_repair, from_], device=device)], dim=1)
         edge_index = torch.cat((sub_graph.edge_index, edge_let), 1)
         patch_graph = Data(x=x, edge_index=edge_index, y=sub_graph.y)
         patch_graph.train_mask = torch.cat([sub_graph.train_mask, torch.zeros(
-            len(from_), dtype=torch.bool)])
+            len(from_), dtype=torch.bool, device=device)])
         patch_graph.test_mask = torch.cat([sub_graph.test_mask, torch.zeros(
-            len(from_), dtype=torch.bool)])
+            len(from_), dtype=torch.bool, device=device)])
 
         return patch_graph
 

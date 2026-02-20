@@ -46,7 +46,7 @@ class guide(Shard_based_pipeline):
         self.logger = logger
         self.data = model_zoo.data
         self.num_classes = self.data.num_classes
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda:{}'.format(args["cuda"]) if torch.cuda.is_available() else 'cpu')
         self.pm_kernel = PyramidMatchVector()
         self.run = 0
         self.unlearning_number = args["num_unlearned_nodes"]
@@ -158,7 +158,7 @@ class guide(Shard_based_pipeline):
             if self.args["base_model"] == "SIGN":
                     sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
                     sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
-                    sub_graph.xs = torch.tensor([x.detach().cpu().numpy() for x in sub_graph.xs]).cuda()
+                    sub_graph.xs = torch.tensor([x.detach().cpu().numpy() for x in sub_graph.xs]).to(self.device)
                     sub_graph.xs = sub_graph.xs.transpose(0,1)
             submodel.data = sub_graph
             submodel.train(save=False)
@@ -319,7 +319,7 @@ class guide(Shard_based_pipeline):
                 target_labels = self.data.y[self.data.labeled_mask].detach().cpu().numpy()
             else:
                 target_labels = self.data.y.detach().cpu().numpy()
-            test_acc, test_f1macro, test_aucroc = self.store_metrics(weighted_pred.detach().cpu().numpy(), target_labels[self.data.test_mask])
+            test_acc, test_f1macro, test_aucroc = self.store_metrics(weighted_pred.detach().cpu().numpy(), target_labels[self.data.test_mask.cpu()])
             self.logger.info(f"Test F1 Score: {test_f1macro:.4f}")
             if after_unlearning:
                 self.average_f1[self.run]  = test_f1macro
@@ -328,7 +328,7 @@ class guide(Shard_based_pipeline):
             
             pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
             neg_edge_labels = torch.zeros(self.data.test_edge_index.size(1),dtype=torch.float32)
-            edge_pred = torch.where(torch.sigmoid(weighted_pred) > 0.5, torch.tensor(1), torch.tensor(0))
+            edge_pred = torch.where(torch.sigmoid(weighted_pred) > 0.5, 1, 0)
             # edge_pred = weighted_pred
             target_labels = torch.cat((pos_edge_labels,neg_edge_labels))
             AUC_score = roc_auc_score(target_labels.cpu(), edge_pred.detach().cpu().numpy())
@@ -388,11 +388,11 @@ class guide(Shard_based_pipeline):
                 
                 # 3. 反向映射 shard 的 edge_index 到原始图的 edge_index
                 original_edge_index = torch.clone(edge_index)
-                original_edge_index[0] = torch.tensor([shard_to_original_map[node] for node in edge_index[0].tolist()])
-                original_edge_index[1] = torch.tensor([shard_to_original_map[node] for node in edge_index[1].tolist()])
+                original_edge_index[0] = torch.tensor([shard_to_original_map[node] for node in edge_index[0].tolist()], device=edge_index.device)
+                original_edge_index[1] = torch.tensor([shard_to_original_map[node] for node in edge_index[1].tolist()], device=edge_index.device)
 
                 # 4. 构建删除边的 mask，找到原始图中的边在该 shard 中的匹配位置
-                mask = torch.zeros(edge_index.shape[1], dtype=torch.bool)
+                mask = torch.zeros(edge_index.shape[1], dtype=torch.bool, device=edge_index.device)
                 for del_idx in all_edges_to_remove:
                     # 原始图中需要删除的边
                     del_edge = self.data.edge_index[:, del_idx].unsqueeze(1)
@@ -405,7 +405,7 @@ class guide(Shard_based_pipeline):
                 # 5. 使用 mask 更新 shard 的边
                 edge_index_del = edge_index[:,mask]
 
-                new_mask = torch.ones(gis_keys_graph[0][part_id].edge_index.shape[1], dtype=torch.bool)
+                new_mask = torch.ones(gis_keys_graph[0][part_id].edge_index.shape[1], dtype=torch.bool, device=gis_keys_graph[0][part_id].edge_index.device)
                 for i in range(edge_index_del.shape[1]):
                     edge_to_check = edge_index_del[:, i].unsqueeze(1)  # 取出当前边
 
@@ -487,7 +487,7 @@ class guide(Shard_based_pipeline):
                         # self.gis_keys_graph_update[gi][part].y = tensor = torch.cat((self.gis_keys_graph_update[gi][part].y[:newindex], self.gis_keys_graph_update[gi][part].y[newindex+1:]))
                         delete_subindex.append(self.find_uid_2(newindex,self.gis_keys_graph_update[gi][part].train_mask))
   
-                    reserve_mask = torch.tensor([False if id in delete_subindex else True for id in self.gis_keys_graph_update[gi][part].uids])
+                    reserve_mask = torch.tensor([False if id in delete_subindex else True for id in self.gis_keys_graph_update[gi][part].uids], device=self.gis_keys_graph_update[gi][part].x.device)
                     sub_graph = self.gis_keys_graph_update[gi][part].subgraph(reserve_mask)
                     # if  sub_graph.x.size(0)!=sub_graph.y.size(0):
                     #     self.logger.info("not match!")
@@ -571,7 +571,7 @@ class guide(Shard_based_pipeline):
                     if self.args["base_model"] == "SIGN":
                         sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
                         sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
-                        sub_graph.xs = torch.stack(sub_graph.xs).to('cuda')
+                        sub_graph.xs = torch.stack(sub_graph.xs).to(self.device)
                         sub_graph.xs = sub_graph.xs.transpose(0,1)
                         out = submodel.model(sub_graph.xs)
                     else:
@@ -593,7 +593,7 @@ class guide(Shard_based_pipeline):
                     if self.args["base_model"] == "SIGN":
                         sub_graph = SIGN(self.args["GNN_layer"])(sub_graph)
                         sub_graph.xs = [sub_graph.x] + [sub_graph[f'x{i}'] for i in range(1, self.args["GNN_layer"] + 1)]
-                        sub_graph.xs = torch.stack(sub_graph.xs).to('cuda')
+                        sub_graph.xs = torch.stack(sub_graph.xs).to(self.device)
                         sub_graph.xs = sub_graph.xs.transpose(0,1)
                         out = submodel.model(sub_graph.xs)
                     else:
@@ -603,8 +603,8 @@ class guide(Shard_based_pipeline):
                         edge_index=sub_graph.edge_index,num_nodes=sub_graph.num_nodes,
                         num_neg_samples=sub_graph.train_edge_index.size(1),force_undirected=True)
                     edge_pred = submodel.decode(out,sub_graph.train_edge_index,neg_edge_index)
-                    pos_edge_labels = torch.ones(sub_graph.train_edge_index.size(1),dtype=torch.float32)
-                    neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32)
+                    pos_edge_labels = torch.ones(sub_graph.train_edge_index.size(1),dtype=torch.float32, device=self.device)
+                    neg_edge_labels = torch.zeros(neg_edge_index.size(1),dtype=torch.float32, device=self.device)
                     edge_labels = torch.cat((pos_edge_labels,neg_edge_labels),dim=-1)
                     edge_labels = edge_labels.to(self.device)
                     # print(edge_labels,edge_pred)
@@ -643,7 +643,7 @@ class guide(Shard_based_pipeline):
 
                 submodel.load_model(loadname)
                 submodel.model.eval()
-                submodellist.append(submodel.model.cuda())
+                submodellist.append(submodel.model.to(self.device))
             subouts_train = []
             subout_tests = []
             part_set_all = range(self.args['num_shards'])
@@ -676,11 +676,11 @@ class guide(Shard_based_pipeline):
                 self.p1_saved.MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
 
             summed = torch.tensordot(
-                self.suboutTensor, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
+                self.suboutTensor, torch.softmax(weights_gi.to(self.device), dim=0), dims=([0], [0]))
             self.positive0[self.method].append(summed.cpu())
 
             summed = torch.tensordot(
-                self.suboutTensorn, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
+                self.suboutTensorn, torch.softmax(weights_gi.to(self.device), dim=0), dims=([0], [0]))
             self.negative0[self.method].append(summed.cpu())
 
             tmp = time.strftime("%Y%m%d-%H%M%S")
@@ -750,11 +750,11 @@ class guide(Shard_based_pipeline):
                 self.p1_saved.MPATH.replace('partid/submodels/', '').replace('model_partid', '_weight'))
 
             summed = torch.tensordot(
-                self.suboutTensor, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
+                self.suboutTensor, torch.softmax(weights_gi.to(self.device), dim=0), dims=([0], [0]))
             self.positive1[self.method].append(summed.cpu())
 
             summed = torch.tensordot(
-                self.suboutTensorn, torch.softmax(weights_gi.cuda(), dim=0), dims=([0], [0]))
+                self.suboutTensorn, torch.softmax(weights_gi.to(self.device), dim=0), dims=([0], [0]))
             self.negative1[self.method].append(summed.cpu())
 
             savename = self.p1_saved.MPATH.split('partid')[0] + f'evaluation_attack_partition_{self.method}_' + self.args["dataset_name"] + '_positive1'

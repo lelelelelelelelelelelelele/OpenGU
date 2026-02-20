@@ -135,6 +135,11 @@ class IMStrategy(BaseStrategy):
         self.propagation_prob = args.get('propagation_prob', 0.1)
         self.mc_rounds = args.get('mc_rounds', 100)
         self.candidate_fraction = args.get('candidate_fraction', 1.0)
+        seed_value = args.get('random_seed', args.get('seed', 2024))
+        try:
+            self.random_seed = int(seed_value)
+        except (TypeError, ValueError):
+            self.random_seed = 2024
 
     def select_nodes(
         self,
@@ -181,7 +186,7 @@ class IMStrategy(BaseStrategy):
 
     def _compute_im_celf_python(self, edge_index, num_nodes, k, candidate_set):
         """Pure Python CELF implementation (fallback)."""
-        random.seed(2024)
+        random.seed(self.random_seed)
         adj = self._build_adjacency_python(edge_index, num_nodes)
         prob = self.propagation_prob
         mc = self.mc_rounds
@@ -226,7 +231,7 @@ class IMStrategy(BaseStrategy):
         heap = []
         for node in candidate_set:
             seed_arr = np.array([node], dtype=np.int32)
-            base_seed = 2024 * 10000 + node % 10000
+            base_seed = self.random_seed * 10000 + node % 10000
             spread = _estimate_spread_numba(indptr, indices, seed_arr, prob,
                                             num_nodes, mc, base_seed)
             heapq.heappush(heap, (-spread, 0, node))
@@ -248,7 +253,7 @@ class IMStrategy(BaseStrategy):
                     break
                 else:
                     seed_arr = np.array(selected_set_list + [node], dtype=np.int32)
-                    base_seed = 2024 * 10000 + int(np.sum(np.sort(seed_arr))) % 10000
+                    base_seed = self.random_seed * 10000 + int(np.sum(np.sort(seed_arr))) % 10000
                     new_spread = _estimate_spread_numba(
                         indptr, indices, seed_arr, prob, num_nodes, mc, base_seed
                     )
@@ -278,7 +283,7 @@ class IMStrategy(BaseStrategy):
 
     def _compute_initial_gains_python(self, edge_index, num_nodes, candidate_set):
         """Pure Python initial gains computation (fallback)."""
-        random.seed(2024)
+        random.seed(self.random_seed)
         adj = self._build_adjacency_python(edge_index, num_nodes)
         prob = self.propagation_prob
         mc = self.mc_rounds
@@ -299,7 +304,7 @@ class IMStrategy(BaseStrategy):
         scores = []
         for node in candidate_set:
             seed_arr = np.array([node], dtype=np.int32)
-            base_seed = 2024 * 10000 + node % 10000
+            base_seed = self.random_seed * 10000 + node % 10000
             spread = _estimate_spread_numba(indptr, indices, seed_arr, prob,
                                             num_nodes, mc, base_seed)
             scores.append(spread)
@@ -386,11 +391,12 @@ class IMStrategy(BaseStrategy):
                                     fraction, min_k):
         """Prune candidate set to top-degree fraction, keeping at least min_k."""
         src = edge_index[0]
+        device = src.device
         # Compute degree for candidates only
-        degrees = torch.zeros(num_nodes, dtype=torch.long)
+        degrees = torch.zeros(num_nodes, dtype=torch.long, device=device)
         degrees.scatter_add_(0, src, torch.ones_like(src))
 
-        cand_tensor = torch.tensor(candidate_set, dtype=torch.long)
+        cand_tensor = torch.tensor(candidate_set, dtype=torch.long, device=device)
         cand_degrees = degrees[cand_tensor]
 
         n_keep = max(int(len(candidate_set) * fraction), min_k)

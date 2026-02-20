@@ -49,7 +49,7 @@ if __name__ == '__main__':
     args = parameter_parser()
     
     logger = create_logger(args)
-    seed_everything(2024)
+    seed_everything(args.get("random_seed", 2024))
     torch.cuda.set_device(args['cuda'])
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args["cuda"])

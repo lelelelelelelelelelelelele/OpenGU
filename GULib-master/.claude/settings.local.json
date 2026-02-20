@@ -33,7 +33,16 @@
       "Bash(test -d self)",
       "Bash(/h/conda_package/envs/gnn/python:*)",
       "Bash(H:conda_packageenvsgnnpython.exe -m pytest tests/test_im_hybrid.py -v)",
-      "Bash(results/_journal/auto_report.md:*)"
+      "Bash(results/_journal/auto_report.md:*)",
+      "Bash(for f in \"H:\\\\project\\\\OpenGU\\\\GULib-master\\\\results\\\\cache\"/*.json)",
+      "Bash(do grep -l \"GUIDE\" \"$f\")",
+      "Bash(basename \"$f\")",
+      "Bash(conda run -n gnn python demo_attack.py --strategies im,hybrid --dataset_name cora --base_model GCN --unlearning_methods GUIDE --unlearn_ratio 0.05 --cuda 0)",
+      "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" demo_attack.py --strategies im,hybrid --dataset_name cora --base_model GCN --unlearning_methods GUIDE --unlearn_ratio 0.05 --cuda 0)",
+      "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" demo_attack.py --strategies hybrid --dataset_name cora --base_model GCN --unlearning_methods GUIDE --unlearn_ratio 0.05 --cuda 0)",
+      "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" eval_collateral.py --dataset_name cora --base_model GCN --unlearning_methods GUIDE --strategies random,degree,pagerank,tracin,im,hybrid --cuda 0)",
+      "Bash(\"H:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\" eval_collateral.py --dataset_name cora --base_model GCN --unlearning_methods GUIDE --strategies random,degree,pagerank,tracin,im,hybrid --unlearn_ratio 0.05 --cuda 0)",
+      "Bash(/h/project/OpenGU/GULib-master/results/_journal/auto_report.md:*)"
     ]
   }
 }

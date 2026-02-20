@@ -190,3 +190,51 @@ def append_report_entry(
     with open(final_report_path, "a", encoding="utf-8") as file_obj:
         file_obj.write(entry)
     return final_report_path
+
+def append_attack_result(
+    method: str,
+    dataset: str,
+    model: str,
+    strategies: list,
+    unlearn_ratio: float,
+    k: int,
+    seed: int,
+    results,  # List[AttackResult] or any list with .strategy_name/.f1_drop/.f1_before/.f1_after/.total_time
+    report_path: Optional[str] = None,
+) -> str:
+    """Append a multi-strategy attack comparison result to auto_report.md.
+
+    Used by demo_attack.py and similar scripts that compare multiple
+    strategies in one run and want a single structured summary entry.
+    """
+    final_report_path = os.path.abspath(report_path or DEFAULT_REPORT_PATH)
+    os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
+    if not os.path.exists(final_report_path):
+        with open(final_report_path, "w", encoding="utf-8") as fobj:
+            fobj.write(REPORT_HEADER)
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    lines = [
+        f"\n### [{now}] demo_attack.py - {method} 攻击实验",
+        f"- 任务：dataset={dataset}, model={model}, method={method}, "
+        f"strategies={strategies}, ratio={unlearn_ratio}",
+        f"- 配置：unlearn_ratio={unlearn_ratio} ({k} nodes), seed={seed}",
+        "- 执行结果：",
+    ]
+    for result in results:
+        name = getattr(result, "strategy_name", "?")
+        f1_drop = getattr(result, "f1_drop", None)
+        f1_before = getattr(result, "f1_before", None)
+        f1_after = getattr(result, "f1_after", None)
+        total_time = getattr(result, "total_time", None)
+        lines.append(
+            f"  - {name}: F1 Drop = {_fmt_metric(f1_drop)} "
+            f"(f1_before={_fmt_metric(f1_before)}, f1_after={_fmt_metric(f1_after)}, "
+            f"time={_fmt_metric(total_time, digits=1)}s)"
+        )
+    lines.append("- 异常与定位：无")
+    lines.append("- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。\n")
+
+    with open(final_report_path, "a", encoding="utf-8") as fobj:
+        fobj.write("\n".join(lines))
+    return final_report_path

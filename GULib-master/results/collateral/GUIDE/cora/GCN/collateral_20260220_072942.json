@@ -1,0 +1,10 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GUIDE",
+    "unlearn_ratio": 0.1
+  },
+  "results": [],
+  "timestamp": "2026-02-20T07:29:42.023786"
+}
