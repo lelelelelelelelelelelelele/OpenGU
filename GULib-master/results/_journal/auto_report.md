@@ -10322,3 +10322,149 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - GUIDE 对 IM 策略的 retrain gap 最大（8%）；hybrid 出现负 gap（过遗忘）
 - 异常与定位：无
 - 下一步建议：与 GNNDelete/GIF 的 collateral 数据横向对比，分析 GUIDE 的近似遗忘质量
+
+### [2026-02-20 20:03] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=0.9s)
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.5s)
+  - hybrid: F1 Drop = 0.0166 (f1_before=0.8875, f1_after=0.8708, time=14.3s)
+  - im: F1 Drop = 0.0166 (f1_before=0.8838, f1_after=0.8672, time=527.0s)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8911, f1_after=0.8819, time=7.6s)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8856, f1_after=0.8801, time=0.9s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 20:12] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=514.9s)
+  - tracin: F1 Drop = 0.1439 (f1_before=0.8875, f1_after=0.7435, time=6.7s)
+  - pagerank: F1 Drop = 0.1033 (f1_before=0.8838, f1_after=0.7804, time=1.0s)
+  - random: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=1.5s)
+  - hybrid: F1 Drop = 0.0609 (f1_before=0.8819, f1_after=0.8210, time=14.6s)
+  - degree: F1 Drop = 0.0554 (f1_before=0.8875, f1_after=0.8321, time=1.0s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 20:31] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = 0.0221 (f1_before=0.8930, f1_after=0.8708, time=6.3s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8911, f1_after=0.8727, time=0.7s)
+  - im: F1 Drop = 0.0148 (f1_before=0.8856, f1_after=0.8708, time=514.2s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=0.9s)
+  - hybrid: F1 Drop = 0.0129 (f1_before=0.8875, f1_after=0.8745, time=14.2s)
+  - pagerank: F1 Drop = 0.0111 (f1_before=0.8893, f1_after=0.8782, time=0.8s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 20:41] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.1384 (f1_before=0.8893, f1_after=0.7509, time=1.1s)
+  - random: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=1.4s)
+  - im: F1 Drop = 0.0996 (f1_before=0.8875, f1_after=0.7878, time=559.6s)
+  - degree: F1 Drop = 0.0867 (f1_before=0.8875, f1_after=0.8007, time=1.1s)
+  - hybrid: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=19.4s)
+  - tracin: F1 Drop = 0.0406 (f1_before=0.8911, f1_after=0.8506, time=6.7s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 21:01] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - im: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=535.9s)
+  - random: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=1.3s)
+  - hybrid: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=14.8s)
+  - pagerank: F1 Drop = 0.0166 (f1_before=0.8819, f1_after=0.8653, time=1.0s)
+  - tracin: F1 Drop = 0.0111 (f1_before=0.8856, f1_after=0.8745, time=7.3s)
+  - degree: F1 Drop = 0.0074 (f1_before=0.8875, f1_after=0.8801, time=1.0s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 21:10] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - hybrid: F1 Drop = 0.1513 (f1_before=0.8856, f1_after=0.7343, time=15.3s)
+  - pagerank: F1 Drop = 0.1089 (f1_before=0.8911, f1_after=0.7823, time=1.2s)
+  - tracin: F1 Drop = 0.0830 (f1_before=0.8856, f1_after=0.8026, time=7.4s)
+  - im: F1 Drop = 0.0775 (f1_before=0.8875, f1_after=0.8100, time=530.8s)
+  - degree: F1 Drop = 0.0664 (f1_before=0.8819, f1_after=0.8155, time=1.1s)
+  - random: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=1.5s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 21:30] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - im: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=530.4s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=0.8s)
+  - hybrid: F1 Drop = 0.0185 (f1_before=0.8911, f1_after=0.8727, time=14.8s)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=6.8s)
+  - pagerank: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=0.8s)
+  - random: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=1.0s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 21:39] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = 0.1273 (f1_before=0.8893, f1_after=0.7620, time=7.5s)
+  - degree: F1 Drop = 0.1236 (f1_before=0.8856, f1_after=0.7620, time=1.2s)
+  - pagerank: F1 Drop = 0.1125 (f1_before=0.8893, f1_after=0.7768, time=1.2s)
+  - hybrid: F1 Drop = 0.1070 (f1_before=0.8856, f1_after=0.7786, time=15.1s)
+  - random: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=1.4s)
+  - im: F1 Drop = 0.0443 (f1_before=0.8893, f1_after=0.8450, time=532.0s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+
+### [2026-02-20 23:03:52] MG-0 Stability Report
+
+### MG-0 Stability (5 seeds): Cora / GCN / ratio=0.05
+- Seeds: 42, 212, 722, 1337, 2024
+- Methods: GNNDelete (5 seeds), GIF (5 seeds), GraphEraser (1 seed), GUIDE (1 seed)
+- Strategies: random, degree, pagerank, tracin, im, hybrid
+
+| Method | Strategy | Mean F1 Drop | Std | n_seeds |
+|--------|----------|-------------|-----|---------|
+| GNNDelete | random | 7.90% | 1.77% | 5 |
+| GNNDelete | degree | 7.71% | 2.61% | 5 |
+| GNNDelete | pagerank | 10.33% | 2.77% | 5 |
+| GNNDelete | tracin | 9.70% | 3.62% | 5 |
+| GNNDelete | im | 10.11% | 3.79% | 5 |
+| GNNDelete | hybrid | 9.08% | 3.69% | 5 |
+| GIF | random | 1.22% | 0.53% | 5 |
+| GIF | degree | 1.37% | 0.59% | 5 |
+| GIF | pagerank | 1.55% | 0.46% | 5 |
+| GIF | tracin | 1.59% | 0.50% | 5 |
+| GIF | im | 1.77% | 0.22% | 5 |
+| GIF | hybrid | 1.85% | 0.50% | 5 |
+| GraphEraser | random | -7.01% | 0.00% | 1 |
+| GraphEraser | degree | -4.43% | 0.00% | 1 |
+| GraphEraser | pagerank | -2.95% | 0.00% | 1 |
+| GraphEraser | tracin | -4.80% | 0.00% | 1 |
+| GraphEraser | im | -5.17% | 0.00% | 1 |
+| GraphEraser | hybrid | -6.27% | 0.00% | 1 |
+| GUIDE | random | -4.58% | 0.00% | 1 |
+| GUIDE | degree | -8.34% | 0.00% | 1 |
+| GUIDE | pagerank | -5.21% | 0.00% | 1 |
+| GUIDE | tracin | -5.17% | 0.00% | 1 |
+| GUIDE | im | -8.67% | 0.00% | 1 |
+| GUIDE | hybrid | -12.31% | 0.00% | 1 |
+
+**Key findings:**
+- GNNDelete: attack effective (~8-10%), pagerank/im best
+- GIF: attack weak (~1-2%), all strategies similar
+- GraphEraser/GUIDE: F1 improved (negative drop = attack backfires)
+- Seed 2024 aligns with earlier 4-seed trends for GIF
+- GNNDelete: seed 2024 shows im best, earlier seeds show pagerank best (some variance)
