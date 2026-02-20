@@ -1,0 +1,914 @@
+{
+  "version": "v2_tracin_fix",
+  "description": "Phase A results with TracIn node ID mapping bug fixed (commit 55c8971)",
+  "generated": "2026-02-21T05:07:44.786335",
+  "dataset": "cora",
+  "model": "GCN",
+  "unlearn_ratio": 0.05,
+  "strategies": [
+    "degree",
+    "hybrid",
+    "im",
+    "pagerank",
+    "random",
+    "tracin"
+  ],
+  "methods": [
+    "GIF",
+    "GNNDelete",
+    "GUIDE",
+    "GraphEraser"
+  ],
+  "seeds": [
+    42,
+    212,
+    722,
+    1337,
+    2024
+  ],
+  "raw": {
+    "GIF_s42": {
+      "pagerank": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8653,
+        "f1_drop": 0.024
+      },
+      "random": {
+        "f1_before": 0.8838,
+        "f1_after": 0.8653,
+        "f1_drop": 0.0185
+      },
+      "hybrid": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8708,
+        "f1_drop": 0.0166
+      },
+      "im": {
+        "f1_before": 0.8838,
+        "f1_after": 0.8672,
+        "f1_drop": 0.0166
+      },
+      "degree": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8801,
+        "f1_drop": 0.0055
+      },
+      "tracin": {
+        "f1_before": 0.8838,
+        "f1_after": 0.8653,
+        "f1_drop": 0.0185
+      }
+    },
+    "GNNDelete_s42": {
+      "im": {
+        "f1_before": 0.893,
+        "f1_after": 0.7472,
+        "f1_drop": 0.1458
+      },
+      "pagerank": {
+        "f1_before": 0.8838,
+        "f1_after": 0.7804,
+        "f1_drop": 0.1033
+      },
+      "random": {
+        "f1_before": 0.8838,
+        "f1_after": 0.7915,
+        "f1_drop": 0.0923
+      },
+      "hybrid": {
+        "f1_before": 0.8819,
+        "f1_after": 0.821,
+        "f1_drop": 0.0609
+      },
+      "degree": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8321,
+        "f1_drop": 0.0554
+      },
+      "tracin": {
+        "f1_before": 0.8838,
+        "f1_after": 0.7915,
+        "f1_drop": 0.0923
+      }
+    },
+    "GIF_s212": {
+      "degree": {
+        "f1_before": 0.8911,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0185
+      },
+      "im": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8708,
+        "f1_drop": 0.0148
+      },
+      "random": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0129
+      },
+      "hybrid": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8745,
+        "f1_drop": 0.0129
+      },
+      "pagerank": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8782,
+        "f1_drop": 0.0111
+      },
+      "tracin": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0129
+      }
+    },
+    "GNNDelete_s212": {
+      "pagerank": {
+        "f1_before": 0.8893,
+        "f1_after": 0.7509,
+        "f1_drop": 0.1384
+      },
+      "random": {
+        "f1_before": 0.8856,
+        "f1_after": 0.7804,
+        "f1_drop": 0.1052
+      },
+      "im": {
+        "f1_before": 0.8875,
+        "f1_after": 0.7878,
+        "f1_drop": 0.0996
+      },
+      "degree": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8007,
+        "f1_drop": 0.0867
+      },
+      "hybrid": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8413,
+        "f1_drop": 0.0461
+      },
+      "tracin": {
+        "f1_before": 0.8856,
+        "f1_after": 0.7804,
+        "f1_drop": 0.1052
+      }
+    },
+    "GIF_s722": {
+      "im": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8672,
+        "f1_drop": 0.0203
+      },
+      "random": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0166
+      },
+      "hybrid": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0166
+      },
+      "pagerank": {
+        "f1_before": 0.8819,
+        "f1_after": 0.8653,
+        "f1_drop": 0.0166
+      },
+      "degree": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8801,
+        "f1_drop": 0.0074
+      },
+      "tracin": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0166
+      }
+    },
+    "GNNDelete_s722": {
+      "hybrid": {
+        "f1_before": 0.8856,
+        "f1_after": 0.7343,
+        "f1_drop": 0.1513
+      },
+      "pagerank": {
+        "f1_before": 0.8911,
+        "f1_after": 0.7823,
+        "f1_drop": 0.1089
+      },
+      "im": {
+        "f1_before": 0.8875,
+        "f1_after": 0.81,
+        "f1_drop": 0.0775
+      },
+      "degree": {
+        "f1_before": 0.8819,
+        "f1_after": 0.8155,
+        "f1_drop": 0.0664
+      },
+      "random": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8339,
+        "f1_drop": 0.0554
+      },
+      "tracin": {
+        "f1_before": 0.8893,
+        "f1_after": 0.8339,
+        "f1_drop": 0.0554
+      }
+    },
+    "GIF_s1337": {
+      "im": {
+        "f1_before": 0.8875,
+        "f1_after": 0.8672,
+        "f1_drop": 0.0203
+      },
+      "degree": {
+        "f1_before": 0.8875,
+        "f1_after": 0.869,
+        "f1_drop": 0.0185
+      },
+      "hybrid": {
+        "f1_before": 0.8911,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0185
+      },
+      "pagerank": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8727,
+        "f1_drop": 0.0129
+      },
+      "random": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8819,
+        "f1_drop": 0.0037
+      },
+      "tracin": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8819,
+        "f1_drop": 0.0037
+      }
+    },
+    "GNNDelete_s1337": {
+      "degree": {
+        "f1_before": 0.8856,
+        "f1_after": 0.762,
+        "f1_drop": 0.1236
+      },
+      "pagerank": {
+        "f1_before": 0.8893,
+        "f1_after": 0.7768,
+        "f1_drop": 0.1125
+      },
+      "hybrid": {
+        "f1_before": 0.8856,
+        "f1_after": 0.7786,
+        "f1_drop": 0.107
+      },
+      "random": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8118,
+        "f1_drop": 0.0738
+      },
+      "im": {
+        "f1_before": 0.8893,
+        "f1_after": 0.845,
+        "f1_drop": 0.0443
+      },
+      "tracin": {
+        "f1_before": 0.8856,
+        "f1_after": 0.8118,
+        "f1_drop": 0.0738
+      }
+    },
+    "GUIDE_s42": {
+      "hybrid": {
+        "f1_before": 0.7768,
+        "f1_after": 0.816,
+        "f1_drop": -0.0393
+      },
+      "random": {
+        "f1_before": 0.7583,
+        "f1_after": 0.834,
+        "f1_drop": -0.0757
+      },
+      "im": {
+        "f1_before": 0.7435,
+        "f1_after": 0.8414,
+        "f1_drop": -0.0979
+      },
+      "degree": {
+        "f1_before": 0.6716,
+        "f1_after": 0.8208,
+        "f1_drop": -0.1492
+      },
+      "pagerank": {
+        "f1_before": 0.6661,
+        "f1_after": 0.8174,
+        "f1_drop": -0.1513
+      },
+      "tracin": {
+        "f1_before": 0.7657,
+        "f1_after": 0.837,
+        "f1_drop": -0.0713
+      }
+    },
+    "GraphEraser_s42": {
+      "pagerank": {
+        "f1_before": 0.7897,
+        "f1_after": 0.8376,
+        "f1_drop": -0.0479
+      },
+      "hybrid": {
+        "f1_before": 0.7841,
+        "f1_after": 0.8635,
+        "f1_drop": -0.0793
+      },
+      "random": {
+        "f1_before": 0.7694,
+        "f1_after": 0.8524,
+        "f1_drop": -0.083
+      },
+      "degree": {
+        "f1_before": 0.7878,
+        "f1_after": 0.8708,
+        "f1_drop": -0.083
+      },
+      "im": {
+        "f1_before": 0.7694,
+        "f1_after": 0.8524,
+        "f1_drop": -0.083
+      },
+      "tracin": {
+        "f1_before": 0.7694,
+        "f1_after": 0.8524,
+        "f1_drop": -0.083
+      }
+    },
+    "GUIDE_s212": {
+      "random": {
+        "f1_before": 0.7841,
+        "f1_after": 0.8154,
+        "f1_drop": -0.0312
+      },
+      "degree": {
+        "f1_before": 0.7601,
+        "f1_after": 0.8201,
+        "f1_drop": -0.06
+      },
+      "hybrid": {
+        "f1_before": 0.7583,
+        "f1_after": 0.8307,
+        "f1_drop": -0.0724
+      },
+      "im": {
+        "f1_before": 0.7528,
+        "f1_after": 0.8399,
+        "f1_drop": -0.0872
+      },
+      "pagerank": {
+        "f1_before": 0.7214,
+        "f1_after": 0.8397,
+        "f1_drop": -0.1183
+      },
+      "tracin": {
+        "f1_before": 0.7823,
+        "f1_after": 0.8232,
+        "f1_drop": -0.0409
+      }
+    },
+    "GraphEraser_s212": {
+      "hybrid": {
+        "f1_before": 0.81,
+        "f1_after": 0.8376,
+        "f1_drop": -0.0277
+      },
+      "im": {
+        "f1_before": 0.7915,
+        "f1_after": 0.8266,
+        "f1_drop": -0.0351
+      },
+      "random": {
+        "f1_before": 0.7915,
+        "f1_after": 0.8266,
+        "f1_drop": -0.0351
+      },
+      "degree": {
+        "f1_before": 0.8081,
+        "f1_after": 0.8487,
+        "f1_drop": -0.0406
+      },
+      "pagerank": {
+        "f1_before": 0.7638,
+        "f1_after": 0.8339,
+        "f1_drop": -0.0701
+      },
+      "tracin": {
+        "f1_before": 0.7915,
+        "f1_after": 0.8266,
+        "f1_drop": -0.0351
+      }
+    },
+    "GUIDE_s722": {
+      "hybrid": {
+        "f1_before": 0.7989,
+        "f1_after": 0.8302,
+        "f1_drop": -0.0313
+      },
+      "pagerank": {
+        "f1_before": 0.7731,
+        "f1_after": 0.8273,
+        "f1_drop": -0.0543
+      },
+      "degree": {
+        "f1_before": 0.738,
+        "f1_after": 0.8148,
+        "f1_drop": -0.0768
+      },
+      "im": {
+        "f1_before": 0.7325,
+        "f1_after": 0.8302,
+        "f1_drop": -0.0977
+      },
+      "random": {
+        "f1_before": 0.6974,
+        "f1_after": 0.8189,
+        "f1_drop": -0.1215
+      },
+      "tracin": {
+        "f1_before": 0.7565,
+        "f1_after": 0.8048,
+        "f1_drop": -0.0483
+      }
+    },
+    "GraphEraser_s722": {
+      "degree": {
+        "f1_before": 0.8229,
+        "f1_after": 0.8506,
+        "f1_drop": -0.0277
+      },
+      "hybrid": {
+        "f1_before": 0.8229,
+        "f1_after": 0.8561,
+        "f1_drop": -0.0332
+      },
+      "random": {
+        "f1_before": 0.7934,
+        "f1_after": 0.8542,
+        "f1_drop": -0.0608
+      },
+      "im": {
+        "f1_before": 0.7934,
+        "f1_after": 0.8561,
+        "f1_drop": -0.0627
+      },
+      "pagerank": {
+        "f1_before": 0.7491,
+        "f1_after": 0.8524,
+        "f1_drop": -0.1033
+      },
+      "tracin": {
+        "f1_before": 0.7934,
+        "f1_after": 0.8561,
+        "f1_drop": -0.0627
+      }
+    },
+    "GUIDE_s1337": {
+      "im": {
+        "f1_before": 0.7952,
+        "f1_after": 0.8275,
+        "f1_drop": -0.0323
+      },
+      "random": {
+        "f1_before": 0.7952,
+        "f1_after": 0.8325,
+        "f1_drop": -0.0373
+      },
+      "hybrid": {
+        "f1_before": 0.7657,
+        "f1_after": 0.8252,
+        "f1_drop": -0.0595
+      },
+      "degree": {
+        "f1_before": 0.7472,
+        "f1_after": 0.8183,
+        "f1_drop": -0.0711
+      },
+      "pagerank": {
+        "f1_before": 0.7601,
+        "f1_after": 0.833,
+        "f1_drop": -0.0728
+      },
+      "tracin": {
+        "f1_before": 0.7011,
+        "f1_after": 0.8353,
+        "f1_drop": -0.1342
+      }
+    },
+    "GraphEraser_s1337": {
+      "im": {
+        "f1_before": 0.7878,
+        "f1_after": 0.8524,
+        "f1_drop": -0.0646
+      },
+      "random": {
+        "f1_before": 0.7878,
+        "f1_after": 0.8524,
+        "f1_drop": -0.0646
+      },
+      "hybrid": {
+        "f1_before": 0.7823,
+        "f1_after": 0.8506,
+        "f1_drop": -0.0683
+      },
+      "degree": {
+        "f1_before": 0.7657,
+        "f1_after": 0.8469,
+        "f1_drop": -0.0812
+      },
+      "pagerank": {
+        "f1_before": 0.7675,
+        "f1_after": 0.8598,
+        "f1_drop": -0.0923
+      },
+      "tracin": {
+        "f1_before": 0.7878,
+        "f1_after": 0.8524,
+        "f1_drop": -0.0646
+      }
+    },
+    "GUIDE_s2024": {
+      "random": {
+        "f1_before": 0.7565,
+        "f1_after": 0.8022,
+        "f1_drop": -0.0457
+      },
+      "pagerank": {
+        "f1_before": 0.7638,
+        "f1_after": 0.8159,
+        "f1_drop": -0.0521
+      },
+      "degree": {
+        "f1_before": 0.738,
+        "f1_after": 0.8214,
+        "f1_drop": -0.0834
+      },
+      "im": {
+        "f1_before": 0.7435,
+        "f1_after": 0.8303,
+        "f1_drop": -0.0868
+      },
+      "hybrid": {
+        "f1_before": 0.7159,
+        "f1_after": 0.839,
+        "f1_drop": -0.1231
+      },
+      "tracin": {
+        "f1_before": 0.7159,
+        "f1_after": 0.839,
+        "f1_drop": -0.1231
+      }
+    },
+    "GraphEraser_s2024": {
+      "pagerank": {
+        "f1_before": 0.81,
+        "f1_after": 0.8395,
+        "f1_drop": -0.0295
+      },
+      "degree": {
+        "f1_before": 0.797,
+        "f1_after": 0.8413,
+        "f1_drop": -0.0443
+      },
+      "im": {
+        "f1_before": 0.8026,
+        "f1_after": 0.8542,
+        "f1_drop": -0.0517
+      },
+      "hybrid": {
+        "f1_before": 0.8007,
+        "f1_after": 0.8635,
+        "f1_drop": -0.0627
+      },
+      "random": {
+        "f1_before": 0.7675,
+        "f1_after": 0.8376,
+        "f1_drop": -0.0701
+      },
+      "tracin": {
+        "f1_before": 0.7675,
+        "f1_after": 0.8358,
+        "f1_drop": -0.0683
+      }
+    },
+    "GIF_s2024": {
+      "tracin": {
+        "f1_before": 0.8838,
+        "f1_after": 0.8745,
+        "f1_drop": 0.0092
+      }
+    },
+    "GNNDelete_s2024": {
+      "tracin": {
+        "f1_before": 0.8838,
+        "f1_after": 0.8155,
+        "f1_drop": 0.0683
+      }
+    }
+  },
+  "aggregated": {
+    "GIF": {
+      "degree": {
+        "mean": 0.012475,
+        "std": 0.00606233247191211,
+        "n": 4,
+        "values": [
+          0.0055,
+          0.0185,
+          0.0074,
+          0.0185
+        ]
+      },
+      "hybrid": {
+        "mean": 0.01615,
+        "std": 0.002030394050424695,
+        "n": 4,
+        "values": [
+          0.0166,
+          0.0129,
+          0.0166,
+          0.0185
+        ]
+      },
+      "im": {
+        "mean": 0.018,
+        "std": 0.002386419912756344,
+        "n": 4,
+        "values": [
+          0.0166,
+          0.0148,
+          0.0203,
+          0.0203
+        ]
+      },
+      "pagerank": {
+        "mean": 0.016149999999999998,
+        "std": 0.004946968768852296,
+        "n": 4,
+        "values": [
+          0.024,
+          0.0111,
+          0.0166,
+          0.0129
+        ]
+      },
+      "random": {
+        "mean": 0.012925,
+        "std": 0.005694020986965186,
+        "n": 4,
+        "values": [
+          0.0185,
+          0.0129,
+          0.0166,
+          0.0037
+        ]
+      },
+      "tracin": {
+        "mean": 0.01218,
+        "std": 0.005306373526241816,
+        "n": 5,
+        "values": [
+          0.0185,
+          0.0129,
+          0.0166,
+          0.0037,
+          0.0092
+        ]
+      }
+    },
+    "GNNDelete": {
+      "degree": {
+        "mean": 0.083025,
+        "std": 0.02597771881824884,
+        "n": 4,
+        "values": [
+          0.0554,
+          0.0867,
+          0.0664,
+          0.1236
+        ]
+      },
+      "hybrid": {
+        "mean": 0.09132499999999999,
+        "std": 0.041272531725107434,
+        "n": 4,
+        "values": [
+          0.0609,
+          0.0461,
+          0.1513,
+          0.107
+        ]
+      },
+      "im": {
+        "mean": 0.0918,
+        "std": 0.036869974233785414,
+        "n": 4,
+        "values": [
+          0.1458,
+          0.0996,
+          0.0775,
+          0.0443
+        ]
+      },
+      "pagerank": {
+        "mean": 0.115775,
+        "std": 0.013467623212727625,
+        "n": 4,
+        "values": [
+          0.1033,
+          0.1384,
+          0.1089,
+          0.1125
+        ]
+      },
+      "random": {
+        "mean": 0.081675,
+        "std": 0.01883286688212923,
+        "n": 4,
+        "values": [
+          0.0923,
+          0.1052,
+          0.0554,
+          0.0738
+        ]
+      },
+      "tracin": {
+        "mean": 0.079,
+        "std": 0.017673822450166233,
+        "n": 5,
+        "values": [
+          0.0923,
+          0.1052,
+          0.0554,
+          0.0738,
+          0.0683
+        ]
+      }
+    },
+    "GUIDE": {
+      "degree": {
+        "mean": -0.0881,
+        "std": 0.03150111109151549,
+        "n": 5,
+        "values": [
+          -0.1492,
+          -0.06,
+          -0.0768,
+          -0.0711,
+          -0.0834
+        ]
+      },
+      "hybrid": {
+        "mean": -0.06512,
+        "std": 0.03242445990298065,
+        "n": 5,
+        "values": [
+          -0.0393,
+          -0.0724,
+          -0.0313,
+          -0.0595,
+          -0.1231
+        ]
+      },
+      "im": {
+        "mean": -0.08038,
+        "std": 0.024520799334442588,
+        "n": 5,
+        "values": [
+          -0.0979,
+          -0.0872,
+          -0.0977,
+          -0.0323,
+          -0.0868
+        ]
+      },
+      "pagerank": {
+        "mean": -0.08976,
+        "std": 0.038897382945385924,
+        "n": 5,
+        "values": [
+          -0.1513,
+          -0.1183,
+          -0.0543,
+          -0.0728,
+          -0.0521
+        ]
+      },
+      "random": {
+        "mean": -0.06228,
+        "std": 0.03332256892858052,
+        "n": 5,
+        "values": [
+          -0.0757,
+          -0.0312,
+          -0.1215,
+          -0.0373,
+          -0.0457
+        ]
+      },
+      "tracin": {
+        "mean": -0.08356,
+        "std": 0.038317807870492805,
+        "n": 5,
+        "values": [
+          -0.0713,
+          -0.0409,
+          -0.0483,
+          -0.1342,
+          -0.1231
+        ]
+      }
+    },
+    "GraphEraser": {
+      "degree": {
+        "mean": -0.05536,
+        "std": 0.022525239177420515,
+        "n": 5,
+        "values": [
+          -0.083,
+          -0.0406,
+          -0.0277,
+          -0.0812,
+          -0.0443
+        ]
+      },
+      "hybrid": {
+        "mean": -0.05424,
+        "std": 0.02022034618892565,
+        "n": 5,
+        "values": [
+          -0.0793,
+          -0.0277,
+          -0.0332,
+          -0.0683,
+          -0.0627
+        ]
+      },
+      "im": {
+        "mean": -0.05942000000000001,
+        "std": 0.015777629733264756,
+        "n": 5,
+        "values": [
+          -0.083,
+          -0.0351,
+          -0.0627,
+          -0.0646,
+          -0.0517
+        ]
+      },
+      "pagerank": {
+        "mean": -0.06861999999999999,
+        "std": 0.027295889800480953,
+        "n": 5,
+        "values": [
+          -0.0479,
+          -0.0701,
+          -0.1033,
+          -0.0923,
+          -0.0295
+        ]
+      },
+      "random": {
+        "mean": -0.06272,
+        "std": 0.01572150120058514,
+        "n": 5,
+        "values": [
+          -0.083,
+          -0.0351,
+          -0.0608,
+          -0.0646,
+          -0.0701
+        ]
+      },
+      "tracin": {
+        "mean": -0.06273999999999999,
+        "std": 0.015548710557470674,
+        "n": 5,
+        "values": [
+          -0.083,
+          -0.0351,
+          -0.0627,
+          -0.0646,
+          -0.0683
+        ]
+      }
+    }
+  },
+  "notes": {
+    "tracin": "Rerun with fixed node ID mapping (commit 55c8971)",
+    "other_strategies": "Unchanged from original phase_a results",
+    "seed_2024": "Only tracin available for seed 2024 (original run had only 4 seeds for some methods)"
+  }
+}

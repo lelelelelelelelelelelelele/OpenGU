@@ -10728,3 +10728,239 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - hybrid: F1 Drop = -0.1231 (f1_before=0.7159, f1_after=0.8390, time=47.9s, cache=NA)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=7.9s, cache=MISS, selection=6.5730s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:49] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=8.2s, cache=MISS, selection=7.1424s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:50] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = -0.0830 (f1_before=0.7694, f1_after=0.8524, time=25.8s, cache=MISS, selection=6.5858s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:51] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = -0.0713 (f1_before=0.7657, f1_after=0.8370, time=37.7s, cache=MISS, selection=7.2103s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:51] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=8.9s, cache=MISS, selection=7.4003s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:51] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.2s, cache=MISS, selection=7.1508s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:52] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = -0.0351 (f1_before=0.7915, f1_after=0.8266, time=29.5s, cache=MISS, selection=7.2580s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:53] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = -0.0409 (f1_before=0.7823, f1_after=0.8232, time=38.8s, cache=MISS, selection=7.6158s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:53] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=8.8s, cache=MISS, selection=7.2119s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:54] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=9.8s, cache=MISS, selection=8.7071s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:54] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = -0.0627 (f1_before=0.7934, f1_after=0.8561, time=30.0s, cache=MISS, selection=7.4791s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:55] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = -0.0483 (f1_before=0.7565, f1_after=0.8048, time=43.9s, cache=MISS, selection=9.0457s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:56] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=12.7s, cache=MISS, selection=10.8470s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:56] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=10.5s, cache=MISS, selection=9.4422s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:57] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = -0.0646 (f1_before=0.7878, f1_after=0.8524, time=37.4s, cache=MISS, selection=10.5821s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:58] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = -0.1342 (f1_before=0.7011, f1_after=0.8353, time=44.6s, cache=MISS, selection=10.1508s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:58] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=10.4s, cache=MISS, selection=8.7320s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:58] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8838, f1_after=0.8745, time=9.3s, cache=MISS, selection=8.0623s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 04:59] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = -0.0683 (f1_before=0.7675, f1_after=0.8358, time=28.7s, cache=MISS, selection=7.9055s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 05:00] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = -0.1231 (f1_before=0.7159, f1_after=0.8390, time=35.6s, cache=MISS, selection=6.9993s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 05:21:59] Phase A TracIn Fix — Consolidated Report
+
+**Background**: TracIn had node ID mapping bug (commit 55c8971 fix). `topk_indices` were candidates-array indices, not actual node IDs. All prior tracin results selected wrong nodes.
+
+**Scope**: Phase A only (cora/GCN, ratio=0.05, 4 methods x 5 seeds = 20 experiments)
+
+**Actions taken**:
+1. Moved 12 polluted files to `results/_deprecated_tracin_bug/`
+2. Deleted 21 tracin cache entries from `results/cache/`
+3. Rerun all 20 tracin experiments (results in `tracin_fix_phase_a/`)
+4. Merged table saved to `phase_a_v2_tracin_fix.json`
+
+### Phase A Corrected Results: Cora / GCN / ratio=0.05
+- Seeds: 42, 212, 722, 1337, 2024
+- Methods: GNNDelete, GIF, GraphEraser, GUIDE (all 5 seeds)
+- Strategies: random, degree, pagerank, **tracin (FIXED)**, im, hybrid
+
+| Method | Strategy | Mean F1 Drop | Std | n_seeds |
+|--------|----------|-------------|-----|---------|
+| GNNDelete | random | 8.17% | 1.88% | 4 |
+| GNNDelete | degree | 8.30% | 2.60% | 4 |
+| GNNDelete | pagerank | 11.58% | 1.35% | 4 |
+| GNNDelete | tracin **(FIXED)** | 7.90% | 1.77% | 5 |
+| GNNDelete | im | 9.18% | 3.69% | 4 |
+| GNNDelete | hybrid | 9.13% | 4.13% | 4 |
+| GIF | random | 1.29% | 0.57% | 4 |
+| GIF | degree | 1.25% | 0.61% | 4 |
+| GIF | pagerank | 1.61% | 0.49% | 4 |
+| GIF | tracin **(FIXED)** | 1.22% | 0.53% | 5 |
+| GIF | im | 1.80% | 0.24% | 4 |
+| GIF | hybrid | 1.62% | 0.20% | 4 |
+| GraphEraser | random | -6.27% | 1.57% | 5 |
+| GraphEraser | degree | -5.54% | 2.25% | 5 |
+| GraphEraser | pagerank | -6.86% | 2.73% | 5 |
+| GraphEraser | tracin **(FIXED)** | -6.27% | 1.55% | 5 |
+| GraphEraser | im | -5.94% | 1.58% | 5 |
+| GraphEraser | hybrid | -5.42% | 2.02% | 5 |
+| GUIDE | random | -6.23% | 3.33% | 5 |
+| GUIDE | degree | -8.81% | 3.15% | 5 |
+| GUIDE | pagerank | -8.98% | 3.89% | 5 |
+| GUIDE | tracin **(FIXED)** | -8.36% | 3.83% | 5 |
+| GUIDE | im | -8.04% | 2.45% | 5 |
+| GUIDE | hybrid | -6.51% | 3.24% | 5 |
+
+### TracIn old vs new comparison
+
+| Method | Seed | Old tracin F1 Drop | New tracin F1 Drop | Nodes overlap |
+|--------|------|-------------------|-------------------|---------------|
+| GNNDelete | 42 | 14.39% | 9.23% | 10/135 |
+| GNNDelete | 212 | 4.06% | 10.52% | 6/135 |
+| GNNDelete | 722 | 8.30% | 5.54% | 9/135 |
+| GNNDelete | 1337 | 12.73% | 7.38% | 10/135 |
+| GNNDelete | 2024 | N/A | 6.83% | N/A |
+| GIF | 42 | 0.92% | 1.85% | 12/135 |
+| GIF | 212 | 2.21% | 1.29% | 9/135 |
+| GIF | 722 | 1.11% | 1.66% | 10/135 |
+| GIF | 1337 | 1.66% | 0.37% | 7/135 |
+| GIF | 2024 | N/A | 0.92% | N/A |
+| GraphEraser | 42 | -3.69% | -8.30% | 4/135 |
+| GraphEraser | 212 | -6.09% | -3.51% | 7/135 |
+| GraphEraser | 722 | -5.54% | -6.27% | 4/135 |
+| GraphEraser | 1337 | -4.79% | -6.46% | 4/135 |
+| GraphEraser | 2024 | -4.80% | -6.83% | 10/135 |
+| GUIDE | 42 | -6.37% | -7.13% | 6/135 |
+| GUIDE | 212 | -8.16% | -4.09% | 5/135 |
+| GUIDE | 722 | -6.79% | -4.83% | 3/135 |
+| GUIDE | 1337 | -4.97% | -13.42% | 6/135 |
+| GUIDE | 2024 | -5.17% | -12.31% | 9/135 |
+
+**Key findings (post-fix)**:
+- GNNDelete: tracin mean F1 drop = 7.90% (was 9.87% before fix)
+- GIF: tracin mean F1 drop = 1.22%
+- GraphEraser/GUIDE: tracin still shows negative F1 drop (attack backfires) — consistent with all other strategies on shard-based methods
+- Node selection completely changed: overlap only 3-12/135 between old and new
+- Non-tracin columns unchanged from original Phase A
