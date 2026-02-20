@@ -184,12 +184,11 @@ class AttackPipeline:
         Returns:
             Dictionary containing experiment results
         """
-        start_time = time.time()
-
-        self.logger.info(f"Running attack with strategy: {strategy.__class__.__name__}")
+        strategy_label = strategy.__class__.__name__
+        self.logger.info(f"Running attack with strategy: {strategy_label}")
         self.logger.info(f"Selecting {k} nodes for unlearning")
 
-        # Step 1: Strategy selects nodes
+        start_time = time.time()  # Start timing before selection
         selection_start = time.time()
         selected_nodes = strategy.select_nodes(self.data, self.model, k)
         selection_time = time.time() - selection_start
@@ -197,10 +196,62 @@ class AttackPipeline:
         self.logger.info(f"Strategy selected nodes: {selected_nodes[:10].tolist()}... (showing first 10)")
         self.logger.info(f"Selection took {selection_time:.2f}s")
 
-        # Step 2: Inject selected nodes
+        return self.run_with_selected_nodes(
+            strategy_name=strategy_label,
+            selected_nodes=selected_nodes,
+            selection_time=selection_time,
+            run_id=run_id,
+            start_time=start_time,  # Pass start_time so total_time includes selection
+        )
+
+    def run_with_selected_nodes(
+        self,
+        strategy_name: str,
+        selected_nodes: Tensor,
+        selection_time: float = 0.0,
+        run_id: int = 0,
+        start_time: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Run unlearning with pre-selected nodes (selection already done or reused).
+
+        Args:
+            strategy_name: Strategy label for logging/result metadata
+            selected_nodes: Node indices to unlearn
+            selection_time: Selection cost to record in result
+            run_id: Run identifier (for multiple runs)
+            start_time: Optional start time from before selection (for accurate total_time)
+
+        Returns:
+            Dictionary containing experiment results
+        """
+        if start_time is None:
+            start_time = time.time()  # Fallback if not provided
+        if not isinstance(selected_nodes, Tensor):
+            selected_nodes = torch.tensor(selected_nodes, dtype=torch.long)
+        else:
+            selected_nodes = selected_nodes.cpu().long()
+
+        return self._run_unlearning_with_selected_nodes(
+            strategy_name=strategy_name,
+            selected_nodes=selected_nodes,
+            selection_time=selection_time,
+            run_id=run_id,
+            start_time=start_time,
+        )
+
+    def _run_unlearning_with_selected_nodes(
+        self,
+        strategy_name: str,
+        selected_nodes: Tensor,
+        selection_time: float,
+        run_id: int,
+        start_time: float,
+    ) -> Dict[str, Any]:
+        # Step 1: Inject selected nodes
         self._inject_unlearn_nodes(selected_nodes, run_id)
 
-        # Step 3: Run unlearning experiment (trains model + unlearns)
+        # Step 2: Run unlearning experiment (trains model + unlearns)
         # Reset the method to pick up the new unlearning nodes
         self.method = self.manager.get_method()
 
@@ -250,7 +301,7 @@ class AttackPipeline:
         self.logger.info(f"Unlearning took {unlearn_time:.2f}s")
 
         return {
-            "strategy_name": strategy.__class__.__name__,
+            "strategy_name": strategy_name,
             "selected_nodes": selected_nodes,
             "f1_before": f1_before,
             "f1_after": f1_after,

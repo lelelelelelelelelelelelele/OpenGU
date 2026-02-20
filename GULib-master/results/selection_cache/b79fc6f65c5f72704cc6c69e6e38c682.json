@@ -1,0 +1,31 @@
+{
+  "cache_key": "b79fc6f65c5f72704cc6c69e6e38c682",
+  "cached_at": "2026-02-20T23:31:38.514298",
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearn_ratio": 0.05,
+    "seed": 42,
+    "strategy_name": "im",
+    "k": 135,
+    "is_transductive": true,
+    "is_balanced": false,
+    "train_ratio": 0.8,
+    "val_ratio": 0.0,
+    "test_ratio": 0.2,
+    "graph_fingerprint": "abc",
+    "strategy_params_fingerprint": "def"
+  },
+  "selection_result": {
+    "strategy_name": "im",
+    "selected_nodes": [
+      1,
+      2,
+      3
+    ],
+    "selection_time": 12.3,
+    "selection_key": "b79fc6f65c5f72704cc6c69e6e38c682",
+    "created_at": "2026-02-20T23:31:38.514298",
+    "metadata": {}
+  }
+}

@@ -25,7 +25,12 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 #   --downstream_task: node, edge
 #   --is_transductive: True/False
 #   --is_balanced: True/False
-#   --unlearn_ratio: fraction of nodes/edges to unlearn
+# 运行实验脚本
+./run_mg0_completion.sh   # MG-0 稳定性实验补全
+./run_mg1_citeseer.sh      # MG-1 Citeseer 数据集实验
+./run_mg2_gat.sh           # MG-2 GAT 模型实验
+./run_mg3_extended.sh      # MG-3 扩展实验
+./run_all_generalization.sh  # 全量泛化实验
 ```
 
 No formal test suite exists. Validation is experiment-driven; results are logged to `log/{method}/{dataset}/{model}/`.
@@ -123,6 +128,7 @@ attack/pipeline_adapter.py      # AttackPipeline: wraps OpenGU pipelines for att
                                 #   - run_retrain(): exact retrain-from-scratch
                                 #   - _get_trained_model(): extract model from pipeline
 attack/result_cache.py          # ResultCache: disk-backed caching of pipeline results
+attack/selection_cache.py       # SelectionCache: strategy-agnostic node selection caching
 attack/attack_result.py         # AttackResult dataclass for structured results
 eval_collateral.py              # CLI script: runs retrain gap + collateral damage eval
                                 #   Usage: python eval_collateral.py --method GNNDelete --strategy tracin
@@ -135,6 +141,11 @@ The three pipeline base classes (`Shard_based_pipeline`, `IF_based_pipeline`, `L
 Experiment results go to `results/{attack_strategy}/{unlearning_method}/{dataset}/{model}/run_{timestamp}.json`. Each JSON contains `config` (parameters), `metrics` (F1 drop, MIA AUC, timing), and `selected_nodes`. The original framework logs remain at `log/`.
 
 Collateral damage evaluation results go to `results/collateral/{unlearning_method}/{dataset}/{model}/` containing retrain gap and collateral damage metrics.
+
+Additional results directories:
+- `results/experiments/`: Batch experiment results (contains `phase_a` subdirectory)
+- `results/checkpoint_report/`: Checkpoint reports
+- `results/step0_validation/`: Initial validation results
 
 ### Document Workflow
 

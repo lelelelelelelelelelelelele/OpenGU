@@ -10468,3 +10468,19 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - GraphEraser/GUIDE: F1 improved (negative drop = attack backfires)
 - Seed 2024 aligns with earlier 4-seed trends for GIF
 - GNNDelete: seed 2024 shows im best, earlier seeds show pagerank best (some variance)
+
+### [2026-02-20 23:32] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=31415
+- 执行结果：
+  - random: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=1.8s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-20 23:32] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=31415
+- 执行结果：
+  - random: F1 Drop = 0.0590 (f1_before=0.8893, f1_after=0.8303, time=2.1s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

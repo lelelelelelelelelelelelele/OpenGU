@@ -23,6 +23,7 @@ from .attack_manager import AttackManager, create_manager, quick_demo
 from .attack_result import AttackResult, ComparisonResult
 from .pipeline_adapter import AttackPipeline, create_pipeline_from_args
 from .result_cache import ResultCache, LogBasedCache
+from .selection_cache import SelectionCache, SelectionResult
 
 # Import strategies
 from .attack_strategies import (
@@ -55,6 +56,8 @@ __all__ = [
     "AttackPipeline",
     "ResultCache",
     "LogBasedCache",
+    "SelectionCache",
+    "SelectionResult",
     # Strategies
     "BaseStrategy",
     "RandomStrategy",

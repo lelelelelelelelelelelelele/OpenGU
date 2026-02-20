@@ -24,6 +24,7 @@ import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+from tqdm import tqdm
 
 PYTHON = sys.executable  # Use the same Python interpreter
 
@@ -55,6 +56,10 @@ PHASE_C = {
     "ratios": [0.01, 0.05, 0.1, 0.2],
 }
 
+METHOD_TIMEOUTS = {
+    "GraphEraser": 1200,  # shard-based pipeline may exceed 10min for IM/hybrid
+}
+
 
 def run_single_experiment(
     method,
@@ -66,6 +71,7 @@ def run_single_experiment(
     output_dir,
     random_seed,
     disable_cache=False,
+    timeout_map=None,
 ):
     """Run a single experiment via demo_attack.py subprocess."""
     save_path = os.path.join(
@@ -88,9 +94,13 @@ def run_single_experiment(
         cmd.append("--no_cache")
 
     label = f"{method}/{dataset}/{model}/r={ratio}/seed={random_seed}"
+    timeout_s = 600
+    if isinstance(timeout_map, dict):
+        timeout_s = int(timeout_map.get(method, timeout_s))
     print(f"\n{'='*60}")
     print(f"  Running: {label}")
     print(f"  Strategies: {strategies}")
+    print(f"  Timeout: {timeout_s}s")
     print(f"{'='*60}")
 
     start = time.time()
@@ -99,7 +109,7 @@ def run_single_experiment(
             cmd,
             capture_output=True,
             text=True,
-            timeout=600,  # 10 min max per experiment
+            timeout=timeout_s,
             cwd=os.path.dirname(os.path.abspath(__file__)),
         )
         elapsed = time.time() - start
@@ -133,14 +143,14 @@ def run_single_experiment(
             return {"status": "ok", "time": elapsed}
 
     except subprocess.TimeoutExpired:
-        print(f"  TIMEOUT (>600s)")
+        print(f"  TIMEOUT (>{timeout_s}s)")
         return None
     except Exception as e:
         print(f"  ERROR: {e}")
         return None
 
 
-def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False):
+def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False, timeout_map=None):
     """Run all experiments in a phase."""
     phase_name = phase_config["name"]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -172,19 +182,38 @@ def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False)
     failed = 0
     phase_start = time.time()
 
+    # Build experiment list for progress bar
+    exp_list = []
     for method in methods:
         for dataset in datasets:
             for model in models:
                 for ratio in ratios:
-                    key = f"{method}_{dataset}_{model}_r{ratio}"
-                    result = run_single_experiment(
-                        method, dataset, model, strategies, ratio, cuda, output_dir, random_seed, disable_cache
-                    )
-                    if result is not None:
-                        results[key] = result
-                        completed += 1
-                    else:
-                        failed += 1
+                    exp_list.append((method, dataset, model, ratio))
+
+    # Run experiments with progress bar
+    with tqdm(total=len(exp_list), desc=phase_name, unit="exp",
+              leave=True, ncols=80) as pbar:
+        for method, dataset, model, ratio in exp_list:
+            key = f"{method}_{dataset}_{model}_r{ratio}"
+            result = run_single_experiment(
+                method,
+                dataset,
+                model,
+                strategies,
+                ratio,
+                cuda,
+                output_dir,
+                random_seed,
+                disable_cache,
+                timeout_map,
+            )
+            if result is not None:
+                results[key] = result
+                completed += 1
+            else:
+                failed += 1
+            pbar.update(1)
+            pbar.set_postfix({"completed": completed, "failed": failed})
 
     phase_time = time.time() - phase_start
 
@@ -286,12 +315,16 @@ def main():
                         help="Comma-separated seeds, e.g. 2024,2025,2026")
     parser.add_argument("--no_cache", action="store_true",
                         help="Disable cache in demo_attack.py subprocess calls")
+    parser.add_argument("--method_timeouts", type=str, default=None,
+                        help="Per-method timeout overrides, e.g. GraphEraser:1200,GIF:900")
 
     # Custom overrides
     parser.add_argument("--methods", type=str, default=None,
                         help="Comma-separated methods (overrides phase config)")
     parser.add_argument("--datasets", type=str, default=None,
                         help="Comma-separated datasets (overrides phase config)")
+    parser.add_argument("--base_model", type=str, default=None,
+                        help="Base model (overrides phase config, e.g. GCN, GAT, SGC)")
     parser.add_argument("--strategies", type=str, default=None,
                         help="Comma-separated strategies (overrides phase config)")
     parser.add_argument("--ratios", type=str, default=None,
@@ -314,6 +347,20 @@ def main():
     if args.seeds:
         seed_list = [int(s.strip()) for s in args.seeds.split(",") if s.strip()]
 
+    timeout_map = METHOD_TIMEOUTS.copy()
+    if args.method_timeouts:
+        for item in args.method_timeouts.split(","):
+            item = item.strip()
+            if not item or ":" not in item:
+                continue
+            method, value = item.split(":", 1)
+            method = method.strip()
+            value = value.strip()
+            try:
+                timeout_map[method] = int(value)
+            except ValueError:
+                print(f"[WARN] Invalid timeout override ignored: {item}")
+
     for phase_key in phase_list:
         config = phases[phase_key].copy()
 
@@ -322,6 +369,8 @@ def main():
             config["methods"] = args.methods.split(",")
         if args.datasets:
             config["datasets"] = args.datasets.split(",")
+        if args.base_model:
+            config["models"] = [args.base_model]
         if args.strategies:
             config["strategies"] = args.strategies
         if args.ratios:
@@ -329,7 +378,7 @@ def main():
 
         output_dir = os.path.join(args.output, f"phase_{phase_key.lower()}")
         for seed in seed_list:
-            run_phase(config, args.cuda, output_dir, seed, args.no_cache)
+            run_phase(config, args.cuda, output_dir, seed, args.no_cache, timeout_map)
 
 
 if __name__ == "__main__":

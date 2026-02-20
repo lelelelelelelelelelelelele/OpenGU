@@ -7,6 +7,9 @@ managing strategies, and collecting results.
 import os
 import sys
 import time
+import json
+import hashlib
+import numpy as np
 import torch
 from typing import Dict, List, Optional, Any, Type
 from pathlib import Path
@@ -29,6 +32,7 @@ from attack.attack_strategies import (
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
 from attack.result_cache import ResultCache, LogBasedCache
+from attack.selection_cache import SelectionCache, SelectionResult
 
 
 class AttackManager:
@@ -60,6 +64,7 @@ class AttackManager:
         "im": IMStrategy,
         "hybrid": HybridStrategy,
     }
+    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im"}
 
     def __init__(
         self,
@@ -97,15 +102,81 @@ class AttackManager:
         if use_cache:
             self.cache = ResultCache(cache_dir)
             self.log_cache = LogBasedCache()
+            self.selection_cache = SelectionCache("./results/selection_cache")
         else:
             self.cache = None
             self.log_cache = None
+            self.selection_cache = None
 
         # Results storage
         self.results: Dict[str, AttackResult] = {}
+        self._graph_fingerprint: Optional[str] = None
 
         # Register built-in strategies
         self._register_builtin_strategies()
+
+    @staticmethod
+    def _stable_hash(payload: Dict[str, Any]) -> str:
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
+
+    def _seed_value(self) -> int:
+        seed_value = self.args.get("random_seed", self.args.get("seed", 2024))
+        try:
+            return int(seed_value)
+        except (TypeError, ValueError):
+            return 2024
+
+    def _candidate_nodes(self) -> np.ndarray:
+        if hasattr(self.data, "train_mask") and self.data.train_mask is not None:
+            nodes = self.data.train_mask.nonzero(as_tuple=False).squeeze(-1).cpu().numpy()
+            return nodes.astype(np.int64, copy=False)
+        return np.arange(self.data.num_nodes, dtype=np.int64)
+
+    def _compute_graph_fingerprint(self) -> str:
+        if self._graph_fingerprint is not None:
+            return self._graph_fingerprint
+
+        edge_index = self.data.edge_index.detach().cpu().numpy().astype(np.int64, copy=False)
+        candidates = self._candidate_nodes()
+        digest = hashlib.sha256()
+        digest.update(np.int64(self.data.num_nodes).tobytes())
+        digest.update(edge_index.tobytes())
+        digest.update(candidates.tobytes())
+        self._graph_fingerprint = digest.hexdigest()[:32]
+        return self._graph_fingerprint
+
+    def _strategy_params_for_cache(self, strategy_name: str) -> Dict[str, Any]:
+        if strategy_name == "im":
+            return {
+                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
+                "mc_rounds": int(self.args.get("mc_rounds", 100)),
+                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
+            }
+        elif strategy_name == "pagerank":
+            return {
+                "pagerank_alpha": float(self.args.get("pagerank_alpha", 0.85)),
+            }
+        return {}
+
+    def _build_selection_config(self, strategy_name: str, k: int) -> Dict[str, Any]:
+        strategy_params = self._strategy_params_for_cache(strategy_name)
+        strategy_params_fingerprint = self._stable_hash(strategy_params)
+        return {
+            "dataset_name": str(self.args.get("dataset_name", "")),
+            "base_model": str(self.args.get("base_model", "")),
+            "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
+            "seed": self._seed_value(),
+            "strategy_name": strategy_name,
+            "k": int(k),
+            "is_transductive": bool(self.args.get("is_transductive", True)),
+            "is_balanced": bool(self.args.get("is_balanced", False)),
+            "train_ratio": float(self.args.get("train_ratio", 0.8)),
+            "val_ratio": float(self.args.get("val_ratio", 0.0)),
+            "test_ratio": float(self.args.get("test_ratio", 0.2)),
+            "graph_fingerprint": self._compute_graph_fingerprint(),
+            "strategy_params_fingerprint": strategy_params_fingerprint,
+        }
 
     def _register_builtin_strategies(self):
         """Register all built-in strategies."""
@@ -189,8 +260,43 @@ class AttackManager:
 
         start_time = time.time()
 
-        # Run through pipeline
-        result_dict = self.pipeline.run_with_strategy(strategy, k)
+        # Run through pipeline (optionally reusing method-agnostic selection cache)
+        result_dict = None
+        if (
+            use_cache
+            and self.selection_cache is not None
+            and strategy_name in self.REUSABLE_SELECTION_STRATEGIES
+        ):
+            selection_config = self._build_selection_config(strategy_name, k)
+            cached_selection, selection_key, source_file = self.selection_cache.get(selection_config)
+            if cached_selection is not None:
+                print(f"[SelectionCache] HIT strategy={strategy_name} selection_key={selection_key}")
+                print(f"[SelectionCache] source_cache_file={source_file}")
+                selected_nodes = torch.tensor(cached_selection.selected_nodes, dtype=torch.long)
+                result_dict = self.pipeline.run_with_selected_nodes(
+                    strategy_name=strategy_name,
+                    selected_nodes=selected_nodes,
+                    selection_time=float(cached_selection.selection_time),
+                )
+            else:
+                print(f"[SelectionCache] MISS strategy={strategy_name} selection_key={selection_key}")
+                result_dict = self.pipeline.run_with_strategy(strategy, k)
+                to_cache = SelectionResult(
+                    strategy_name=strategy_name,
+                    selected_nodes=result_dict["selected_nodes"].cpu().tolist(),
+                    selection_time=float(result_dict.get("selection_time", 0.0)),
+                    selection_key=selection_key or "",
+                    metadata={
+                        "dataset_name": selection_config.get("dataset_name"),
+                        "base_model": selection_config.get("base_model"),
+                        "seed": selection_config.get("seed"),
+                        "graph_fingerprint": selection_config.get("graph_fingerprint"),
+                    },
+                )
+                cache_path = self.selection_cache.save(to_cache, selection_config)
+                print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
+        else:
+            result_dict = self.pipeline.run_with_strategy(strategy, k)
 
         total_time = time.time() - start_time
 
