@@ -2,6 +2,7 @@
 
 import os
 import sys
+import json
 
 # Set up mock arguments BEFORE importing config-dependent modules
 sys.argv = ['pytest', '--dataset_name', 'cora', '--base_model', 'SGC', '--unlearning_methods', 'SGU']
@@ -296,6 +297,131 @@ class TestResultCache:
             # Invalidate
             cache.invalidate(config)
             assert cache.get(config) is None
+
+    def test_cache_does_not_fallback_to_legacy_when_k_present(self):
+        """When k is provided, legacy cache entries must not be used."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = ResultCache(cache_dir=tmpdir)
+
+            legacy_config = {
+                "dataset_name": "cora",
+                "base_model": "SGC",
+                "unlearning_methods": "SGU",
+                "unlearn_ratio": 0.05,
+                "seed": 2024,
+                "strategy_name": "random",
+            }
+            request_config = dict(legacy_config)
+            request_config["k"] = 10
+
+            result = AttackResult(
+                strategy_name="random",
+                selected_nodes=torch.tensor([1, 2, 3]),
+                f1_before=0.85,
+                f1_after=0.80,
+                unlearn_time=1.0,
+                total_time=1.5,
+            )
+
+            legacy_key = cache._generate_legacy_cache_key(legacy_config)
+            legacy_path = cache._get_cache_path(legacy_key)
+            with open(legacy_path, "w") as f:
+                json.dump(
+                    {
+                        "cache_key": legacy_key,
+                        "cached_at": "2026-01-01T00:00:00",
+                        "config": legacy_config,
+                        "result": result.to_dict(),
+                    },
+                    f,
+                    indent=2,
+                )
+
+            cached = cache.get(request_config)
+            assert cached is None
+
+    def test_cache_can_fallback_to_legacy_when_k_missing(self):
+        """When k is absent, legacy cache entries should still be readable."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = ResultCache(cache_dir=tmpdir)
+
+            legacy_config = {
+                "dataset_name": "cora",
+                "base_model": "SGC",
+                "unlearning_methods": "SGU",
+                "unlearn_ratio": 0.05,
+                "seed": 2024,
+                "strategy_name": "random",
+            }
+
+            result = AttackResult(
+                strategy_name="random",
+                selected_nodes=torch.tensor([4, 5, 6]),
+                f1_before=0.88,
+                f1_after=0.82,
+                unlearn_time=1.2,
+                total_time=1.8,
+            )
+
+            legacy_key = cache._generate_legacy_cache_key(legacy_config)
+            legacy_path = cache._get_cache_path(legacy_key)
+            with open(legacy_path, "w") as f:
+                json.dump(
+                    {
+                        "cache_key": legacy_key,
+                        "cached_at": "2026-01-01T00:00:00",
+                        "config": legacy_config,
+                        "result": result.to_dict(),
+                    },
+                    f,
+                    indent=2,
+                )
+
+            cached = cache.get(legacy_config)
+            assert cached is not None
+            assert cached.selected_nodes.tolist() == [4, 5, 6]
+
+    def test_invalidate_with_k_does_not_remove_legacy_entry(self):
+        """Invalidate with explicit k should not delete legacy cache file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = ResultCache(cache_dir=tmpdir)
+
+            legacy_config = {
+                "dataset_name": "cora",
+                "base_model": "SGC",
+                "unlearning_methods": "SGU",
+                "unlearn_ratio": 0.05,
+                "seed": 2024,
+                "strategy_name": "random",
+            }
+            request_config = dict(legacy_config)
+            request_config["k"] = 10
+
+            result = AttackResult(
+                strategy_name="random",
+                selected_nodes=torch.tensor([7, 8, 9]),
+                f1_before=0.90,
+                f1_after=0.84,
+                unlearn_time=1.1,
+                total_time=1.6,
+            )
+
+            legacy_key = cache._generate_legacy_cache_key(legacy_config)
+            legacy_path = cache._get_cache_path(legacy_key)
+            with open(legacy_path, "w") as f:
+                json.dump(
+                    {
+                        "cache_key": legacy_key,
+                        "cached_at": "2026-01-01T00:00:00",
+                        "config": legacy_config,
+                        "result": result.to_dict(),
+                    },
+                    f,
+                    indent=2,
+                )
+
+            cache.invalidate(request_config)
+            assert legacy_path.exists()
 
 
 class TestAttackManagerBasics:

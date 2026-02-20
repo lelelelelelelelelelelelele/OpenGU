@@ -7,6 +7,7 @@ experiments. Cache keys are derived from experiment configurations.
 import os
 import json
 import hashlib
+import torch
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -35,6 +36,7 @@ class ResultCache:
         'base_model',
         'unlearning_methods',
         'unlearn_ratio',
+        'k',  # Explicitly include k for cache key uniqueness
         'random_seed',
         'seed',
         'strategy_name',
@@ -106,6 +108,20 @@ class ResultCache:
         hash_obj = hashlib.md5(key_string.encode())
         return hash_obj.hexdigest()[:16]
 
+    @staticmethod
+    def _should_try_legacy(config: Dict[str, Any]) -> bool:
+        """Only allow legacy fallback when k is not explicitly provided."""
+        return ('k' not in config) or (config.get('k') is None)
+
+    def _resolve_cache_keys(self, config: Dict[str, Any]) -> List[str]:
+        """Build cache lookup keys in priority order."""
+        cache_keys = [self._generate_cache_key(config)]
+        if self._should_try_legacy(config):
+            legacy_key = self._generate_legacy_cache_key(config)
+            if legacy_key not in cache_keys:
+                cache_keys.append(legacy_key)
+        return cache_keys
+
     def _get_cache_path(self, cache_key: str) -> Path:
         """Get the file path for a cache key."""
         return self.cache_dir / f"{cache_key}.json"
@@ -142,10 +158,7 @@ class ResultCache:
         Returns:
             AttackResult if cache hit, None otherwise
         """
-        cache_keys = [self._generate_cache_key(config)]
-        legacy_key = self._generate_legacy_cache_key(config)
-        if legacy_key not in cache_keys:
-            cache_keys.append(legacy_key)
+        cache_keys = self._resolve_cache_keys(config)
 
         for cache_key in cache_keys:
             cache_path = self._get_cache_path(cache_key)
@@ -201,10 +214,7 @@ class ResultCache:
         Returns:
             True if entry was found and removed, False otherwise
         """
-        cache_keys = [self._generate_cache_key(config)]
-        legacy_key = self._generate_legacy_cache_key(config)
-        if legacy_key not in cache_keys:
-            cache_keys.append(legacy_key)
+        cache_keys = self._resolve_cache_keys(config)
 
         removed = False
         for cache_key in cache_keys:

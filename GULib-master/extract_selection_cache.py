@@ -146,13 +146,23 @@ def extract_from_phase_a():
 
         print(f"\nProcessing seed={seed}...")
 
-        # Find GNNDelete result file
+        # Find result file - try GNNDelete first, then GraphEraser
         gnn_delete_file = phase_dir / f"GNNDelete_cora_GCN_r0.05_s{seed}.json"
-        if not gnn_delete_file.exists():
-            print(f"  Warning: {gnn_delete_file.name} not found")
+        graph_eraser_file = phase_dir / f"GraphEraser_cora_GCN_r0.05_s{seed}.json"
+
+        result_file = None
+        if gnn_delete_file.exists():
+            result_file = gnn_delete_file
+        elif graph_eraser_file.exists():
+            result_file = graph_eraser_file
+
+        if not result_file:
+            print(f"  Warning: No result file found for seed {seed}")
             continue
 
-        with open(gnn_delete_file, "r") as f:
+        print(f"  Using: {result_file.name}")
+
+        with open(result_file, "r") as f:
             data = json.load(f)
 
         results = data.get("results", {})

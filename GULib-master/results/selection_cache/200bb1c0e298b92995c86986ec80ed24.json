@@ -1,6 +1,6 @@
 {
   "cache_key": "200bb1c0e298b92995c86986ec80ed24",
-  "cached_at": "2026-02-21T03:33:19.639984",
+  "cached_at": "2026-02-21T04:04:32.970067",
   "config": {
     "dataset_name": "cora",
     "base_model": "GCN",
@@ -155,14 +155,16 @@
       344,
       1585
     ],
-    "selection_time": 0.0,
+    "selection_time": 17.9744,
     "selection_key": "200bb1c0e298b92995c86986ec80ed24",
-    "created_at": "2026-02-21T03:33:19.639984",
+    "created_at": "2026-02-21T04:04:32.970067",
     "metadata": {
       "dataset_name": "cora",
       "base_model": "GCN",
       "seed": 2024,
-      "graph_fingerprint": "a3761845fa1231ca9ff4c4bfbb97fe89"
+      "graph_fingerprint": "a3761845fa1231ca9ff4c4bfbb97fe89",
+      "source_k": null,
+      "generated_subset": false
     }
   }
 }
