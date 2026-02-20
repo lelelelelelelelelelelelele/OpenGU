@@ -10702,3 +10702,29 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - pagerank: F1 Drop = -0.0728 (f1_before=0.7601, f1_after=0.8330, time=16.1s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000000s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 03:44] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = -0.0295 (f1_before=0.8100, f1_after=0.8395, time=18.2s, cache=MISS, selection=0.0405s)
+  - degree: F1 Drop = -0.0443 (f1_before=0.7970, f1_after=0.8413, time=17.9s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = -0.0480 (f1_before=0.7860, f1_after=0.8339, time=25.4s, cache=MISS, selection=6.7860s)
+  - im: F1 Drop = -0.0517 (f1_before=0.8026, f1_after=0.8542, time=577.9s, cache=MISS, selection=559.7645s)
+  - hybrid: F1 Drop = -0.0627 (f1_before=0.8007, f1_after=0.8635, time=31.4s, cache=MISS, selection=15.3211s)
+  - random: F1 Drop = -0.0701 (f1_before=0.7675, f1_after=0.8376, time=18.0s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 03:44] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = -0.0457 (f1_before=0.7565, f1_after=0.8022, time=19.3s, cache=NA)
+  - tracin: F1 Drop = -0.0517 (f1_before=0.0000, f1_after=0.0517, time=27.1s, cache=NA)
+  - pagerank: F1 Drop = -0.0521 (f1_before=0.7638, f1_after=0.8159, time=18.7s, cache=NA)
+  - degree: F1 Drop = -0.0834 (f1_before=0.7380, f1_after=0.8214, time=18.2s, cache=NA)
+  - im: F1 Drop = -0.0868 (f1_before=0.7435, f1_after=0.8303, time=593.4s, cache=NA)
+  - hybrid: F1 Drop = -0.1231 (f1_before=0.7159, f1_after=0.8390, time=47.9s, cache=NA)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

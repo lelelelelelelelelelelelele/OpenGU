@@ -67,7 +67,10 @@ class TracInStrategy(BaseStrategy):
         # Select top-k nodes with highest scores
         _, topk_indices = torch.topk(scores, k)
 
-        return topk_indices.cpu()
+        # Map indices back to actual node IDs
+        selected_nodes = candidates[topk_indices]
+
+        return selected_nodes.cpu()
 
     def _compute_tracin_scores(
         self,

@@ -54,7 +54,7 @@ PHASE_C = {
     "datasets": ["cora"],
     "models": ["GCN"],
     "strategies": "random,tracin",
-    "ratios": [0.01, 0.05, 0.1, 0.2],
+    "ratios": [0.2, 0.1, 0.05, 0.01],  # Descending order: larger k first for cache efficiency
 }
 
 METHOD_TIMEOUTS = {

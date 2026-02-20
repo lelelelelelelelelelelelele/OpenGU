@@ -10,7 +10,7 @@ DATASETS="cora"
 BASE_MODEL="GCN"
 STRATEGIES="random,degree,pagerank,tracin,im,hybrid"
 RATIOS="0.05"
-SEEDS="42,212,722,1337"
+SEEDS="42,212,722,1337,2024"
 CUDA=0
 
 echo "=============================================="
