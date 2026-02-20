@@ -6,12 +6,13 @@
     "base_model": "GCN",
     "unlearning_methods": "GraphEraser",
     "unlearn_ratio": 0.05,
-    "seed": null,
+    "seed": 2024,
     "strategy_name": "hybrid",
     "unlearn_task": "node",
     "downstream_task": "node",
     "is_transductive": true,
-    "is_balanced": false
+    "is_balanced": false,
+    "random_seed": 2024
   },
   "result": {
     "strategy_name": "hybrid",

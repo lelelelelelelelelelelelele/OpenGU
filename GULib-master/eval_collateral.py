@@ -121,8 +121,9 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
             c = data.get('config', {})
             cache_seed = c.get('random_seed', c.get('seed'))
             if target_seed is not None:
+                # 兼容旧缓存：cache_seed 为 null 时，假设为 2024（早期实验默认 seed）
                 if cache_seed is None:
-                    continue
+                    cache_seed = 2024
                 try:
                     cache_seed = int(cache_seed)
                 except (TypeError, ValueError):
@@ -289,6 +290,14 @@ def main():
     # 8. Append to auto_report.md
     try:
         from results.step0_validation.report_writer import append_collateral_entry
+        status = "OK" if all_results else "WARN"
+        error_type = None
+        error_msg = None
+        next_step = None
+        if not all_results:
+            error_type = "NO_CACHE_HIT"
+            error_msg = "No matching cache entries found for the requested strategies/ratio/seed."
+            next_step = "先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。"
         append_collateral_entry(
             dataset=args['dataset_name'],
             model=args['base_model'],
@@ -296,7 +305,10 @@ def main():
             ratio=str(args['unlearn_ratio']),
             results=all_results,
             log_file=str(out_path),
-            status="OK",
+            status=status,
+            error_type=error_type,
+            error_msg=error_msg,
+            next_step=next_step,
         )
         print("Report entry appended to auto_report.md")
     except Exception as e:

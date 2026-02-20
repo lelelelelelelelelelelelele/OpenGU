@@ -56,11 +56,21 @@ PHASE_C = {
 }
 
 
-def run_single_experiment(method, dataset, model, strategies, ratio, cuda, output_dir, random_seed):
+def run_single_experiment(
+    method,
+    dataset,
+    model,
+    strategies,
+    ratio,
+    cuda,
+    output_dir,
+    random_seed,
+    disable_cache=False,
+):
     """Run a single experiment via demo_attack.py subprocess."""
     save_path = os.path.join(
         output_dir,
-        f"{method}_{dataset}_{model}_r{ratio}.json"
+        f"{method}_{dataset}_{model}_r{ratio}_s{random_seed}.json"
     )
 
     cmd = [
@@ -72,11 +82,12 @@ def run_single_experiment(method, dataset, model, strategies, ratio, cuda, outpu
         "--strategies", strategies,
         "--unlearn_ratio", str(ratio),
         "--seed", str(random_seed),
-        "--no_cache",
         "--save_path", save_path,
     ]
+    if disable_cache:
+        cmd.append("--no_cache")
 
-    label = f"{method}/{dataset}/{model}/r={ratio}"
+    label = f"{method}/{dataset}/{model}/r={ratio}/seed={random_seed}"
     print(f"\n{'='*60}")
     print(f"  Running: {label}")
     print(f"  Strategies: {strategies}")
@@ -129,11 +140,11 @@ def run_single_experiment(method, dataset, model, strategies, ratio, cuda, outpu
         return None
 
 
-def run_phase(phase_config, cuda, output_base, random_seed):
+def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False):
     """Run all experiments in a phase."""
     phase_name = phase_config["name"]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = os.path.join(output_base, timestamp)
+    output_dir = os.path.join(output_base, f"{timestamp}_seed{random_seed}")
     os.makedirs(output_dir, exist_ok=True)
 
     methods = phase_config["methods"]
@@ -151,6 +162,7 @@ def run_phase(phase_config, cuda, output_base, random_seed):
     print(f"  Strategies: {strategies}")
     print(f"  Ratios: {ratios}")
     print(f"  Random Seed: {random_seed}")
+    print(f"  Cache: {'disabled' if disable_cache else 'enabled'}")
     print(f"  Total experiments: {total}")
     print(f"  Output: {output_dir}")
     print(f"{'#'*70}")
@@ -166,7 +178,7 @@ def run_phase(phase_config, cuda, output_base, random_seed):
                 for ratio in ratios:
                     key = f"{method}_{dataset}_{model}_r{ratio}"
                     result = run_single_experiment(
-                        method, dataset, model, strategies, ratio, cuda, output_dir, random_seed
+                        method, dataset, model, strategies, ratio, cuda, output_dir, random_seed, disable_cache
                     )
                     if result is not None:
                         results[key] = result
@@ -185,6 +197,8 @@ def run_phase(phase_config, cuda, output_base, random_seed):
         "failed": failed,
         "total_time": phase_time,
         "config": phase_config,
+        "random_seed": random_seed,
+        "cache_enabled": not disable_cache,
         "results": results,
     }
 
@@ -268,6 +282,10 @@ def main():
                         help="Base output directory")
     parser.add_argument("--random_seed", type=int, default=2024,
                         help="Random seed passed to demo_attack.py")
+    parser.add_argument("--seeds", type=str, default=None,
+                        help="Comma-separated seeds, e.g. 2024,2025,2026")
+    parser.add_argument("--no_cache", action="store_true",
+                        help="Disable cache in demo_attack.py subprocess calls")
 
     # Custom overrides
     parser.add_argument("--methods", type=str, default=None,
@@ -292,6 +310,10 @@ def main():
     else:
         phase_list = [args.phase]
 
+    seed_list = [args.random_seed]
+    if args.seeds:
+        seed_list = [int(s.strip()) for s in args.seeds.split(",") if s.strip()]
+
     for phase_key in phase_list:
         config = phases[phase_key].copy()
 
@@ -306,7 +328,8 @@ def main():
             config["ratios"] = [float(r) for r in args.ratios.split(",")]
 
         output_dir = os.path.join(args.output, f"phase_{phase_key.lower()}")
-        run_phase(config, args.cuda, output_dir, args.random_seed)
+        for seed in seed_list:
+            run_phase(config, args.cuda, output_dir, seed, args.no_cache)
 
 
 if __name__ == "__main__":
