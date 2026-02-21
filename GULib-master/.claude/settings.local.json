@@ -45,7 +45,10 @@
       "Bash(/h/project/OpenGU/GULib-master/results/_journal/auto_report.md:*)",
       "Bash(cat:*)",
       "Bash(tasklist)",
-      "Bash(wmic:*)"
+      "Bash(wmic:*)",
+      "Bash(python3 << 'EOF':*)",
+      "Bash(chmod:*)",
+      "Bash(tasklist:*)"
     ]
   }
 }
