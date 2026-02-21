@@ -186,9 +186,7 @@ def main():
 
     # Write to auto_report.md
     try:
-        import sys as _sys
-        _sys.path.insert(0, os.path.join(base_dir, 'results', 'step0_validation'))
-        from report_writer import append_attack_result
+        from scripts.evaluation.reporting.writer import append_attack_result
         report_path = append_attack_result(
             method=args['unlearning_methods'],
             dataset=args['dataset_name'],

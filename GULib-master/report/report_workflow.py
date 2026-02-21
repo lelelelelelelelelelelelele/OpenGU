@@ -30,8 +30,18 @@ THRESHOLDS = {
 
 
 def load_summary_files(group: str) -> List[Dict]:
-    """Step 1: 加载实验汇总数据"""
-    summary_files = list(RESULTS_DIR / group / "phase_a" / "*" / "_summary.json")
+    """Step 1: 加载实验汇总数据
+
+    实际目录结构：
+    results/experiments/{group}/phase_a/{timestamp}_seed{seed}/_summary.json
+    """
+    phase_a_dir = RESULTS_DIR / group / "phase_a"
+    if not phase_a_dir.exists():
+        print(f"Warning: Directory not found: {phase_a_dir}")
+        return []
+
+    # 正确使用 glob 模式
+    summary_files = list(phase_a_dir.glob("*/_summary.json"))
     all_data = []
 
     for sf in summary_files:
@@ -46,24 +56,40 @@ def load_summary_files(group: str) -> List[Dict]:
 
 
 def extract_metrics(data: Dict) -> Dict[str, Any]:
-    """Step 2: 提取并聚合指标"""
+    """Step 2: 提取并聚合指标
+
+    实际数据结构：
+    data["results"]["{method}_{dataset}_{model}_r{ratio}"]["results"]["{strategy_name}"]
+    - 每个 strategy_name 直接包含 f1_drop, f1_drop_ratio 等字段
+    """
     results = []
 
-    for exp in data.get("experiments", []):
-        method = exp.get("method", "unknown")
-        strategy = exp.get("strategy", "unknown")
+    results_dict = data.get("results", {})
 
-        # 提取关键指标
-        metrics = {
-            "method": method,
-            "strategy": strategy,
-            "f1_drop": exp.get("f1_drop", 0),
-            "f1_drop_ratio": exp.get("f1_drop_ratio", 0),
-            "retrain_gap": exp.get("retrain_gap", 0),
-            "mia_auc": exp.get("mia_auc", 0),
-            "attack_time": exp.get("attack_time", 0)
-        }
-        results.append(metrics)
+    for exp_key, exp_data in results_dict.items():
+        # 从 key 提取 method: "GNNDelete_cora_GCN_r0.05" -> "GNNDelete"
+        parts = exp_key.split("_")
+        method = parts[0] if parts else "unknown"
+
+        # 获取嵌套的 results（按 strategy 分组）
+        nested_results = exp_data.get("results", {})
+
+        for strategy, attack_data in nested_results.items():
+            # 跳过 comparison 类型的汇总条目
+            if strategy == "comparison":
+                continue
+
+            # 提取关键指标
+            metrics = {
+                "method": method,
+                "strategy": strategy,
+                "f1_drop": attack_data.get("f1_drop", 0),
+                "f1_drop_ratio": attack_data.get("f1_drop_ratio", 0),
+                "retrain_gap": attack_data.get("retrain_gap", 0),
+                "mia_auc": attack_data.get("mia_auc", 0),
+                "attack_time": attack_data.get("total_time", 0)
+            }
+            results.append(metrics)
 
     return aggregate_by_method_strategy(results)
 
@@ -330,11 +356,56 @@ def analyze_group(group: str) -> Dict:
         print(f"Warning: No data found for group {group}")
         return {}
 
-    # Step 2: 提取指标
-    aggregated = {}
+    # Step 2: 提取并聚合所有 seed 的指标
+    # 按 method_strategy 收集所有 f1_drop 值
+    from collections import defaultdict
+    import numpy as np
+
+    all_f1_drops = defaultdict(list)
+    all_retrain_gaps = defaultdict(list)
+    all_mia_aucs = defaultdict(list)
+
     for data in all_data:
-        metrics = extract_metrics(data)
-        aggregated.update(metrics)
+        results_dict = data.get("results", {})
+        for exp_key, exp_data in results_dict.items():
+            parts = exp_key.split("_")
+            method = parts[0] if parts else "unknown"
+            nested_results = exp_data.get("results", {})
+
+            for strategy, attack_data in nested_results.items():
+                if strategy == "comparison":
+                    continue
+
+                key = (method, strategy)
+                f1_drop = attack_data.get("f1_drop")
+                if f1_drop is not None:
+                    all_f1_drops[key].append(f1_drop)
+
+                retrain_gap = attack_data.get("retrain_gap")
+                if retrain_gap is not None:
+                    all_retrain_gaps[key].append(retrain_gap)
+
+                mia_auc = attack_data.get("mia_auc")
+                if mia_auc is not None:
+                    all_mia_aucs[key].append(mia_auc)
+
+    # 计算统计量
+    aggregated = {}
+    for (method, strategy), f1_drops in all_f1_drops.items():
+        key = f"{method}_{strategy}"
+        aggregated[key] = {
+            "method": method,
+            "strategy": strategy,
+            "f1_drop_mean": np.mean(f1_drops),
+            "f1_drop_std": np.std(f1_drops),
+            "f1_drop_min": np.min(f1_drops),
+            "f1_drop_max": np.max(f1_drops),
+            "retrain_gap_mean": np.mean(all_retrain_gaps.get((method, strategy), [0])),
+            "mia_auc_mean": np.mean(all_mia_aucs.get((method, strategy), [0])),
+            "sample_count": len(f1_drops)
+        }
+
+    print(f"  Aggregated {len(aggregated)} method-strategy combinations across {len(all_data)} seeds")
 
     # Step 3: 问题识别
     problems = detect_problems(aggregated)

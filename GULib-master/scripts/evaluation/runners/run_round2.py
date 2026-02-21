@@ -5,9 +5,10 @@ import re
 import subprocess
 import sys
 import time
+from pathlib import Path
 
-from log_resume import parse_log_quality, should_skip
-from report_writer import append_report_entry
+from .log_resume import parse_log_quality, should_skip
+from ..reporting.writer import append_report_entry
 
 METHODS = [
     "GraphEraser",
@@ -25,15 +26,24 @@ RATIOS = ["0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5"]
 TOTAL_NODES = 2708
 TIMEOUT = 1200
 
-RESULTS_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.join(RESULTS_DIR, "..", "..")
-LOG_DIR = os.path.join(RESULTS_DIR, "round2_logs")
-ROUND1_LOG_DIR = os.path.join(RESULTS_DIR, "round1_logs")
-RATIO05_LOG_DIR = os.path.join(RESULTS_DIR, "ratio05_logs")
-SEARCH_LOG_DIRS = [LOG_DIR, ROUND1_LOG_DIR, RATIO05_LOG_DIR]
-OUTPUT_PATH = os.path.join(RESULTS_DIR, "round2_results.json")
-SCRIPT_NAME = os.path.basename(__file__)
-os.makedirs(LOG_DIR, exist_ok=True)
+PROJECT_DIR = Path(__file__).resolve().parents[3]
+OUTPUT_ROOT = PROJECT_DIR / "results" / "evaluation" / "step0"
+LEGACY_ROOT = PROJECT_DIR / "results" / "step0_validation"
+
+LOG_DIR = OUTPUT_ROOT / "round2_logs"
+ROUND1_LOG_DIR = OUTPUT_ROOT / "round1_logs"
+RATIO05_LOG_DIR = OUTPUT_ROOT / "ratio05_logs"
+SEARCH_LOG_DIRS = [
+    str(LOG_DIR),
+    str(ROUND1_LOG_DIR),
+    str(RATIO05_LOG_DIR),
+    str(LEGACY_ROOT / "round2_logs"),
+    str(LEGACY_ROOT / "round1_logs"),
+    str(LEGACY_ROOT / "ratio05_logs"),
+]
+OUTPUT_PATH = OUTPUT_ROOT / "round2_results.json"
+SCRIPT_NAME = Path(__file__).name
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def approx_nodes(ratio: str) -> int:
@@ -41,8 +51,8 @@ def approx_nodes(ratio: str) -> int:
 
 
 def clean_cached_unlearning_files(dataset: str, ratio: str) -> None:
-    pattern = os.path.join(PROJECT_DIR, "data", "unlearning_task", "**", f"*_{ratio}_{dataset}_*.txt")
-    for file_path in glob.glob(pattern, recursive=True):
+    pattern = PROJECT_DIR / "data" / "unlearning_task" / "**" / f"*_{ratio}_{dataset}_*.txt"
+    for file_path in glob.glob(str(pattern), recursive=True):
         try:
             os.remove(file_path)
         except OSError:
@@ -83,7 +93,7 @@ def parse_log_metrics(log_path: str) -> dict:
 
 
 def run_experiment(method: str, ratio: str, dataset: str = "cora", model: str = "GCN") -> dict:
-    log_file = os.path.join(LOG_DIR, f"{method}_{model}_{dataset}_r{ratio}.log")
+    log_file = LOG_DIR / f"{method}_{model}_{dataset}_r{ratio}.log"
     cmd = (
         f'"{sys.executable}" main.py '
         f"--cuda 0 --dataset_name {dataset} --base_model {model} "
@@ -96,18 +106,18 @@ def run_experiment(method: str, ratio: str, dataset: str = "cora", model: str = 
     start = time.time()
 
     try:
-        with open(log_file, "w", encoding="utf-8", errors="replace") as log_obj:
+        with log_file.open("w", encoding="utf-8", errors="replace") as log_obj:
             completed = subprocess.run(
                 cmd,
                 shell=True,
                 timeout=TIMEOUT,
-                cwd=PROJECT_DIR,
+                cwd=str(PROJECT_DIR),
                 stdout=log_obj,
                 stderr=subprocess.STDOUT,
             )
         elapsed = time.time() - start
-        parsed = parse_log_metrics(log_file)
-        quality = parse_log_quality(log_file)
+        parsed = parse_log_metrics(str(log_file))
+        quality = parse_log_quality(str(log_file))
 
         if completed.returncode != 0:
             print(f"X ({elapsed:.1f}s)")
@@ -116,13 +126,13 @@ def run_experiment(method: str, ratio: str, dataset: str = "cora", model: str = 
                 "error_type": quality.get("error_type") or "RETURN_CODE_NONZERO",
                 "error_msg": quality.get("error_msg") or f"returncode={completed.returncode}",
                 "time_s": elapsed,
-                "log_file": log_file,
+                "log_file": str(log_file),
                 **parsed,
             }
 
         if quality["ok"]:
             print(f"OK F1={parsed['f1_after']:.4f} ({elapsed:.1f}s)")
-            return {"status": "OK", "time_s": elapsed, "log_file": log_file, **parsed}
+            return {"status": "OK", "time_s": elapsed, "log_file": str(log_file), **parsed}
 
         print(f"WARN ({elapsed:.1f}s)")
         return {
@@ -130,7 +140,7 @@ def run_experiment(method: str, ratio: str, dataset: str = "cora", model: str = 
             "error_type": quality.get("error_type") or "LOG_INCOMPLETE",
             "error_msg": quality.get("error_msg") or "Log missing strict completion markers",
             "time_s": elapsed,
-            "log_file": log_file,
+            "log_file": str(log_file),
             **parsed,
         }
     except subprocess.TimeoutExpired:
@@ -141,7 +151,7 @@ def run_experiment(method: str, ratio: str, dataset: str = "cora", model: str = 
             "error_type": "TIMEOUT",
             "error_msg": f"Timeout after {TIMEOUT}s",
             "time_s": elapsed,
-            "log_file": log_file,
+            "log_file": str(log_file),
         }
 
 
@@ -200,7 +210,8 @@ def main() -> None:
                 error_msg=result.get("error_msg"),
             )
 
-        with open(OUTPUT_PATH, "w", encoding="utf-8") as file_obj:
+        OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with OUTPUT_PATH.open("w", encoding="utf-8") as file_obj:
             json.dump(all_results, file_obj, indent=2, ensure_ascii=False)
 
     print(f"\n{'=' * 60}")

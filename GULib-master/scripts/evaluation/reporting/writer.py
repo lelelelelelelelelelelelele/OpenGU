@@ -1,11 +1,11 @@
 import math
-import os
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Tuple
 
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_REPORT_PATH = os.path.join(THIS_DIR, "..", "_journal", "auto_report.md")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_REPORT_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.md"
 REPORT_STYLE_VERSION = "v1"
 STATUS_SET = {"OK", "X", "TIMEOUT", "WARN", "SKIP"}
 REPORT_HEADER = (
@@ -78,14 +78,14 @@ def _build_strategy_table(results: list) -> str:
         "| Strategy | Gap% | MeanShift | Flipped% |",
         "|----------|------|-----------|----------|",
     ]
-    for r in results:
-        gap_pct = _fmt_metric(r.get("gap_pct"), digits=2) + "%"
-        mean_shift = _fmt_metric(r.get("mean_pred_shift"), digits=4)
+    for result in results:
+        gap_pct = _fmt_metric(result.get("gap_pct"), digits=2) + "%"
+        mean_shift = _fmt_metric(result.get("mean_pred_shift"), digits=4)
         flipped = _fmt_metric(
-            r.get("fraction_flipped", 0) * 100 if r.get("fraction_flipped") is not None else None,
+            result.get("fraction_flipped", 0) * 100 if result.get("fraction_flipped") is not None else None,
             digits=2,
         ) + "%"
-        lines.append(f"| {r.get('strategy', '?'):<8} | {gap_pct:>4} | {mean_shift:>9} | {flipped:>8} |")
+        lines.append(f"| {result.get('strategy', '?'):<8} | {gap_pct:>4} | {mean_shift:>9} | {flipped:>8} |")
     return "\n".join(lines)
 
 
@@ -102,11 +102,10 @@ def append_collateral_entry(
     next_step: Optional[str] = None,
     report_path: Optional[str] = None,
 ) -> str:
-    final_report_path = os.path.abspath(report_path or DEFAULT_REPORT_PATH)
-    os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
-    if not os.path.exists(final_report_path):
-        with open(final_report_path, "w", encoding="utf-8") as file_obj:
-            file_obj.write(REPORT_HEADER)
+    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path.parent.mkdir(parents=True, exist_ok=True)
+    if not final_report_path.exists():
+        final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     normalized_status, invalid_status = _normalize_status(status)
@@ -131,9 +130,9 @@ def append_collateral_entry(
         error_summary=_compose_error_summary(final_error_type, final_error_msg),
         next_step=suggestion,
     )
-    with open(final_report_path, "a", encoding="utf-8") as file_obj:
+    with final_report_path.open("a", encoding="utf-8") as file_obj:
         file_obj.write(entry)
-    return final_report_path
+    return str(final_report_path)
 
 
 def append_report_entry(
@@ -154,11 +153,10 @@ def append_report_entry(
     next_step: Optional[str] = None,
     report_path: Optional[str] = None,
 ) -> str:
-    final_report_path = os.path.abspath(report_path or DEFAULT_REPORT_PATH)
-    os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
-    if not os.path.exists(final_report_path):
-        with open(final_report_path, "w", encoding="utf-8") as file_obj:
-            file_obj.write(REPORT_HEADER)
+    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path.parent.mkdir(parents=True, exist_ok=True)
+    if not final_report_path.exists():
+        final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     normalized_status, invalid_status = _normalize_status(status)
@@ -187,9 +185,10 @@ def append_report_entry(
         error_summary=_compose_error_summary(final_error_type, final_error_msg),
         next_step=suggestion,
     )
-    with open(final_report_path, "a", encoding="utf-8") as file_obj:
+    with final_report_path.open("a", encoding="utf-8") as file_obj:
         file_obj.write(entry)
-    return final_report_path
+    return str(final_report_path)
+
 
 def append_attack_result(
     method: str,
@@ -199,25 +198,18 @@ def append_attack_result(
     unlearn_ratio: float,
     k: int,
     seed: int,
-    results,  # List[AttackResult] or any list with .strategy_name/.f1_drop/.f1_before/.f1_after/.total_time
+    results,
     report_path: Optional[str] = None,
 ) -> str:
-    """Append a multi-strategy attack comparison result to auto_report.md.
-
-    Used by demo_attack.py and similar scripts that compare multiple
-    strategies in one run and want a single structured summary entry.
-    """
-    final_report_path = os.path.abspath(report_path or DEFAULT_REPORT_PATH)
-    os.makedirs(os.path.dirname(final_report_path), exist_ok=True)
-    if not os.path.exists(final_report_path):
-        with open(final_report_path, "w", encoding="utf-8") as fobj:
-            fobj.write(REPORT_HEADER)
+    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path.parent.mkdir(parents=True, exist_ok=True)
+    if not final_report_path.exists():
+        final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     lines = [
         f"\n### [{now}] demo_attack.py - {method} 攻击实验",
-        f"- 任务：dataset={dataset}, model={model}, method={method}, "
-        f"strategies={strategies}, ratio={unlearn_ratio}",
+        f"- 任务：dataset={dataset}, model={model}, method={method}, strategies={strategies}, ratio={unlearn_ratio}",
         f"- 配置：unlearn_ratio={unlearn_ratio} ({k} nodes), seed={seed}",
         "- 执行结果：",
     ]
@@ -237,11 +229,7 @@ def append_attack_result(
             cache_parts.append(f"cache=HIT(key={selection_cache_key or 'NA'})")
             cache_parts.append(f"selection={_fmt_metric(selection_time, digits=4)}s")
             cache_parts.append(f"reuse={_fmt_metric(selection_reuse_time, digits=6)}s")
-            if (
-                selection_time is not None
-                and selection_reuse_time is not None
-                and float(selection_reuse_time) > 0
-            ):
+            if selection_time is not None and selection_reuse_time is not None and float(selection_reuse_time) > 0:
                 speedup = float(selection_time) / float(selection_reuse_time)
                 cache_parts.append(f"speedup={_fmt_metric(speedup, digits=2)}x")
         elif selection_cache_hit is False:
@@ -258,6 +246,6 @@ def append_attack_result(
     lines.append("- 异常与定位：无")
     lines.append("- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。\n")
 
-    with open(final_report_path, "a", encoding="utf-8") as fobj:
-        fobj.write("\n".join(lines))
-    return final_report_path
+    with final_report_path.open("a", encoding="utf-8") as file_obj:
+        file_obj.write("\n".join(lines))
+    return str(final_report_path)

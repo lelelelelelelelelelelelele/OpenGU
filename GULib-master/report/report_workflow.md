@@ -8,6 +8,8 @@
 3. 问题识别
 4. 改进建议
 
+> 说明：本工作流保持独立，不并入 `scripts/evaluation` 的 Step0 CLI。
+
 ## 使用方式
 
 ```bash

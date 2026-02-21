@@ -5,9 +5,10 @@ import re
 import subprocess
 import sys
 import time
+from pathlib import Path
 
-from log_resume import parse_log_quality, should_skip
-from report_writer import append_report_entry
+from .log_resume import parse_log_quality, should_skip
+from ..reporting.writer import append_report_entry
 
 DATASETS = ["cora", "citeseer", "pubmed"]
 METHODS = [
@@ -26,15 +27,17 @@ RATIOS = ["0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5"]
 NODE_COUNTS = {"cora": 2708, "citeseer": 3327, "pubmed": 19717}
 TIMEOUT = 1200
 
-RESULTS_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.join(RESULTS_DIR, "..", "..")
-CROSS_LOG_ROOT = os.path.join(RESULTS_DIR, "cross_logs")
-ROUND1_LOG_DIR = os.path.join(RESULTS_DIR, "round1_logs")
-ROUND2_LOG_DIR = os.path.join(RESULTS_DIR, "round2_logs")
-RATIO05_LOG_DIR = os.path.join(RESULTS_DIR, "ratio05_logs")
-OUTPUT_PATH = os.path.join(RESULTS_DIR, "cross_dataset_results.json")
-SCRIPT_NAME = os.path.basename(__file__)
-os.makedirs(CROSS_LOG_ROOT, exist_ok=True)
+PROJECT_DIR = Path(__file__).resolve().parents[3]
+OUTPUT_ROOT = PROJECT_DIR / "results" / "evaluation" / "step0"
+LEGACY_ROOT = PROJECT_DIR / "results" / "step0_validation"
+
+CROSS_LOG_ROOT = OUTPUT_ROOT / "cross_logs"
+ROUND1_LOG_DIR = OUTPUT_ROOT / "round1_logs"
+ROUND2_LOG_DIR = OUTPUT_ROOT / "round2_logs"
+RATIO05_LOG_DIR = OUTPUT_ROOT / "ratio05_logs"
+OUTPUT_PATH = OUTPUT_ROOT / "cross_dataset_results.json"
+SCRIPT_NAME = Path(__file__).name
+CROSS_LOG_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 def approx_nodes(dataset: str, ratio: str):
@@ -44,8 +47,8 @@ def approx_nodes(dataset: str, ratio: str):
 
 
 def clean_cached_unlearning_files(dataset: str, ratio: str) -> None:
-    pattern = os.path.join(PROJECT_DIR, "data", "unlearning_task", "**", f"*_{ratio}_{dataset}_*.txt")
-    for file_path in glob.glob(pattern, recursive=True):
+    pattern = PROJECT_DIR / "data" / "unlearning_task" / "**" / f"*_{ratio}_{dataset}_*.txt"
+    for file_path in glob.glob(str(pattern), recursive=True):
         try:
             os.remove(file_path)
         except OSError:
@@ -85,17 +88,26 @@ def parse_log_metrics(log_path: str) -> dict:
     return metrics
 
 
-def get_search_dirs(dataset_dir: str, dataset: str):
-    dirs = [dataset_dir]
+def get_search_dirs(dataset_dir: Path, dataset: str):
+    dirs = [str(dataset_dir)]
     if dataset == "cora":
-        dirs.extend([ROUND2_LOG_DIR, RATIO05_LOG_DIR, ROUND1_LOG_DIR])
+        dirs.extend(
+            [
+                str(ROUND2_LOG_DIR),
+                str(RATIO05_LOG_DIR),
+                str(ROUND1_LOG_DIR),
+                str(LEGACY_ROOT / "round2_logs"),
+                str(LEGACY_ROOT / "ratio05_logs"),
+                str(LEGACY_ROOT / "round1_logs"),
+            ]
+        )
     return dirs
 
 
 def run_experiment(dataset: str, method: str, ratio: str, model: str = "GCN") -> dict:
-    dataset_dir = os.path.join(CROSS_LOG_ROOT, dataset)
-    os.makedirs(dataset_dir, exist_ok=True)
-    log_file = os.path.join(dataset_dir, f"{method}_{model}_{dataset}_r{ratio}.log")
+    dataset_dir = CROSS_LOG_ROOT / dataset
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    log_file = dataset_dir / f"{method}_{model}_{dataset}_r{ratio}.log"
     cmd = (
         f'"{sys.executable}" main.py '
         f"--cuda 0 --dataset_name {dataset} --base_model {model} "
@@ -107,18 +119,18 @@ def run_experiment(dataset: str, method: str, ratio: str, model: str = "GCN") ->
     print(f"[{dataset}|{method}|r={ratio}] start")
     start = time.time()
     try:
-        with open(log_file, "w", encoding="utf-8", errors="replace") as log_obj:
+        with log_file.open("w", encoding="utf-8", errors="replace") as log_obj:
             completed = subprocess.run(
                 cmd,
                 shell=True,
                 timeout=TIMEOUT,
-                cwd=PROJECT_DIR,
+                cwd=str(PROJECT_DIR),
                 stdout=log_obj,
                 stderr=subprocess.STDOUT,
             )
         elapsed = time.time() - start
-        quality = parse_log_quality(log_file)
-        parsed = parse_log_metrics(log_file)
+        quality = parse_log_quality(str(log_file))
+        parsed = parse_log_metrics(str(log_file))
 
         if completed.returncode != 0:
             print(f"[{dataset}|{method}|r={ratio}] X ({elapsed:.1f}s)")
@@ -127,13 +139,13 @@ def run_experiment(dataset: str, method: str, ratio: str, model: str = "GCN") ->
                 "error_type": quality.get("error_type") or "RETURN_CODE_NONZERO",
                 "error_msg": quality.get("error_msg") or f"returncode={completed.returncode}",
                 "time_s": elapsed,
-                "log_file": log_file,
+                "log_file": str(log_file),
                 **parsed,
             }
 
         if quality["ok"]:
             print(f"[{dataset}|{method}|r={ratio}] OK f1_after={parsed['f1_after']:.4f} ({elapsed:.1f}s)")
-            return {"status": "OK", "time_s": elapsed, "log_file": log_file, **parsed}
+            return {"status": "OK", "time_s": elapsed, "log_file": str(log_file), **parsed}
 
         print(f"[{dataset}|{method}|r={ratio}] WARN ({elapsed:.1f}s)")
         return {
@@ -141,7 +153,7 @@ def run_experiment(dataset: str, method: str, ratio: str, model: str = "GCN") ->
             "error_type": quality.get("error_type") or "LOG_INCOMPLETE",
             "error_msg": quality.get("error_msg") or "Log missing strict completion markers",
             "time_s": elapsed,
-            "log_file": log_file,
+            "log_file": str(log_file),
             **parsed,
         }
     except subprocess.TimeoutExpired:
@@ -152,15 +164,15 @@ def run_experiment(dataset: str, method: str, ratio: str, model: str = "GCN") ->
             "error_type": "TIMEOUT",
             "error_msg": f"Timeout after {TIMEOUT}s",
             "time_s": elapsed,
-            "log_file": log_file,
+            "log_file": str(log_file),
         }
 
 
 def main() -> None:
     all_results = {}
     for dataset in DATASETS:
-        dataset_dir = os.path.join(CROSS_LOG_ROOT, dataset)
-        os.makedirs(dataset_dir, exist_ok=True)
+        dataset_dir = CROSS_LOG_ROOT / dataset
+        dataset_dir.mkdir(parents=True, exist_ok=True)
         all_results[dataset] = {}
         for method in METHODS:
             all_results[dataset][method] = {}
@@ -212,7 +224,8 @@ def main() -> None:
                     error_msg=result.get("error_msg"),
                 )
 
-                with open(OUTPUT_PATH, "w", encoding="utf-8") as file_obj:
+                OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+                with OUTPUT_PATH.open("w", encoding="utf-8") as file_obj:
                     json.dump(all_results, file_obj, indent=2, ensure_ascii=False)
 
     print(f"Saved: {OUTPUT_PATH}")

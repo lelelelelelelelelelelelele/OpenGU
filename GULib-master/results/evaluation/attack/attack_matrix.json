@@ -1,0 +1,11 @@
+{
+  "methods": ["GIF", "GNNDelete", "GraphEraser", "GUIDE"],
+  "strategies": ["random", "degree", "pagerank", "tracin", "im", "hybrid"],
+  "values": {
+    "GIF": {"random": 0.009, "degree": 0.019, "pagerank": 0.013, "tracin": 0.020, "im": 0.017, "hybrid": 0.028},
+    "GNNDelete": {"random": 0.068, "degree": 0.054, "pagerank": 0.054, "tracin": 0.090, "im": 0.138, "hybrid": 0.089},
+    "GraphEraser": {"random": -0.070, "degree": -0.044, "pagerank": -0.030, "tracin": -0.048, "im": -0.052, "hybrid": -0.063},
+    "GUIDE": {"random": -0.046, "degree": -0.083, "pagerank": -0.052, "tracin": -0.052, "im": -0.087, "hybrid": -0.123}
+  },
+  "unit": "ratio"
+}

@@ -41,10 +41,13 @@ report/
 
 | 目录 | 说明 |
 |------|------|
-| `step0_validation/` | 初始验证结果 |
+| `step0_validation/` | Step0 历史只读结果 |
+| `evaluation/` | 新 Step0/attack 评估产物目录 |
 | `experiments/` | 批量实验结果 (phase_a) |
 | `collateral/` | 附带损伤评估结果 |
 | `checkpoint_report/` | 已移动至 `report/progress/` |
+
+Step0 工具代码已统一到 `scripts/evaluation/`，入口为 `python -m scripts.evaluation`。
 
 ## 使用说明
 

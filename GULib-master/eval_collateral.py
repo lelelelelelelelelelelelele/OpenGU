@@ -446,7 +446,7 @@ def main():
 
     # 8. Append to auto_report.md
     try:
-        from results.step0_validation.report_writer import append_collateral_entry
+        from scripts.evaluation.reporting.writer import append_collateral_entry
         report_results = final_results if _repair_mode else all_results
         status = "OK" if report_results else "WARN"
         error_type = None

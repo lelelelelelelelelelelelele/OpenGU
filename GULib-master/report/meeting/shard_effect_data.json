@@ -1,0 +1,65 @@
+[
+  {
+    "method": "GNNDelete",
+    "f1_before": 0.8838,
+    "f1_after": 0.7934,
+    "f1_drop": 0.09040000000000004,
+    "pct_change": -10.228558497397605
+  },
+  {
+    "method": "GIF",
+    "f1_before": 0.8838,
+    "f1_after": 0.8764,
+    "f1_drop": 0.007400000000000073,
+    "pct_change": -0.8372935053179535
+  },
+  {
+    "method": "IDEA",
+    "f1_before": 0.8838,
+    "f1_after": 0.8653,
+    "f1_drop": 0.018500000000000072,
+    "pct_change": -2.0932337632948714
+  },
+  {
+    "method": "MEGU",
+    "f1_before": 0.8838,
+    "f1_after": 0.8745,
+    "f1_drop": 0.009299999999999975,
+    "pct_change": -1.0522742701968741
+  },
+  {
+    "method": "SGU",
+    "f1_before": 0.8838,
+    "f1_after": 0.8838,
+    "f1_drop": 0.0,
+    "pct_change": 0.0
+  },
+  {
+    "method": "GUKD",
+    "f1_before": 0.8875,
+    "f1_after": 0.9022,
+    "f1_drop": -0.014700000000000046,
+    "pct_change": 1.6563380281690194
+  },
+  {
+    "method": "D2DGN",
+    "f1_before": 0.8948,
+    "f1_after": 0.8967,
+    "f1_drop": -0.0019000000000000128,
+    "pct_change": 0.21233795261511096
+  },
+  {
+    "method": "GraphEraser",
+    "f1_before": 0.7103,
+    "f1_after": 0.8413,
+    "f1_drop": -0.131,
+    "pct_change": 18.442911445867942
+  },
+  {
+    "method": "GraphRevoker",
+    "f1_before": 0.7103,
+    "f1_after": 0.8413,
+    "f1_drop": -0.131,
+    "pct_change": 18.442911445867942
+  }
+]
