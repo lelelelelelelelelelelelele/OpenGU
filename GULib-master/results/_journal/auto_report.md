@@ -11146,3 +11146,860 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - pagerank: F1 Drop = -0.1141 (f1_before=0.6426, f1_after=0.7568, time=24.6s, cache=HIT(key=756e60c61d74eba56d02877703f9f0ce), selection=0.0476s, reuse=0.000000s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:23] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = 0.1458 (f1_before=0.8930, f1_after=0.7472, time=16.5s, cache=MISS, selection=14.9414s)
+  - im: F1 Drop = 0.1439 (f1_before=0.8875, f1_after=0.7435, time=1.3s, cache=HIT(key=f8bb5e1e745afbb04088032a0dfafc70), selection=514.9342s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.1033 (f1_before=0.8838, f1_after=0.7804, time=1.3s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.070315s, speedup=14.63x)
+  - tracin: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=7.9s, cache=MISS, selection=6.5730s)
+  - random: F1 Drop = 0.0923 (f1_before=0.8838, f1_after=0.7915, time=2.1s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0554 (f1_before=0.8875, f1_after=0.8321, time=1.3s, cache=MISS, selection=0.0428s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:23] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=0.9s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=8.2s, cache=MISS, selection=7.1424s)
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.1s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000995s, speedup=1474.74x)
+  - hybrid: F1 Drop = 0.0166 (f1_before=0.8838, f1_after=0.8672, time=16.4s, cache=MISS, selection=15.2937s)
+  - im: F1 Drop = 0.0092 (f1_before=0.8911, f1_after=0.8819, time=0.9s, cache=HIT(key=f8bb5e1e745afbb04088032a0dfafc70), selection=514.9342s, reuse=0.001005s, speedup=512284.29x)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8856, f1_after=0.8801, time=0.9s, cache=MISS, selection=0.0190s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:25] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = -0.0258 (f1_before=0.7934, f1_after=0.8192, time=34.7s, cache=MISS, selection=15.5197s)
+  - im: F1 Drop = -0.0424 (f1_before=0.7989, f1_after=0.8413, time=18.6s, cache=HIT(key=f8bb5e1e745afbb04088032a0dfafc70), selection=514.9342s, reuse=0.001000s, speedup=514726.07x)
+  - pagerank: F1 Drop = -0.0480 (f1_before=0.7897, f1_after=0.8376, time=20.1s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.000000s)
+  - degree: F1 Drop = -0.0812 (f1_before=0.7878, f1_after=0.8690, time=18.4s, cache=MISS, selection=0.0010s)
+  - tracin: F1 Drop = -0.0830 (f1_before=0.7694, f1_after=0.8524, time=25.8s, cache=MISS, selection=6.5858s)
+  - random: F1 Drop = -0.0830 (f1_before=0.7694, f1_after=0.8524, time=17.8s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:27] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = -0.0713 (f1_before=0.7657, f1_after=0.8370, time=37.7s, cache=MISS, selection=7.2103s)
+  - random: F1 Drop = -0.0757 (f1_before=0.7583, f1_after=0.8340, time=16.7s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000000s)
+  - pagerank: F1 Drop = -0.0979 (f1_before=0.7435, f1_after=0.8414, time=17.6s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.000990s, speedup=1038.78x)
+  - hybrid: F1 Drop = -0.1339 (f1_before=0.7085, f1_after=0.8424, time=42.4s, cache=MISS, selection=16.0744s)
+  - im: F1 Drop = -0.1507 (f1_before=0.6679, f1_after=0.8186, time=17.9s, cache=HIT(key=f8bb5e1e745afbb04088032a0dfafc70), selection=514.9342s, reuse=0.000000s)
+  - degree: F1 Drop = -0.1513 (f1_before=0.6661, f1_after=0.8174, time=17.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:28] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.1384 (f1_before=0.8893, f1_after=0.7509, time=1.4s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000992s, speedup=1139.52x)
+  - tracin: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=8.9s, cache=MISS, selection=7.4003s)
+  - random: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=1.8s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1416.45x)
+  - hybrid: F1 Drop = 0.0996 (f1_before=0.8875, f1_after=0.7878, time=17.4s, cache=MISS, selection=15.6631s)
+  - degree: F1 Drop = 0.0867 (f1_before=0.8875, f1_after=0.8007, time=1.4s, cache=MISS, selection=0.0240s)
+  - im: F1 Drop = 0.0406 (f1_before=0.8911, f1_after=0.8506, time=1.4s, cache=HIT(key=db6701aad57f888288e28aca1477903c), selection=559.5546s, reuse=0.001000s, speedup=559328.43x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:29] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - im: F1 Drop = 0.0221 (f1_before=0.8930, f1_after=0.8708, time=0.9s, cache=HIT(key=db6701aad57f888288e28aca1477903c), selection=559.5546s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8911, f1_after=0.8727, time=1.0s, cache=MISS, selection=0.0190s)
+  - hybrid: F1 Drop = 0.0148 (f1_before=0.8856, f1_after=0.8708, time=16.7s, cache=MISS, selection=15.5661s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=1.3s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1415.78x)
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.2s, cache=MISS, selection=7.1508s)
+  - pagerank: F1 Drop = 0.0111 (f1_before=0.8893, f1_after=0.8782, time=0.9s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000990s, speedup=1141.17x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:31] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = -0.0351 (f1_before=0.7915, f1_after=0.8266, time=19.9s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001000s, speedup=1428.26x)
+  - tracin: F1 Drop = -0.0351 (f1_before=0.7915, f1_after=0.8266, time=29.5s, cache=MISS, selection=7.2580s)
+  - degree: F1 Drop = -0.0406 (f1_before=0.8081, f1_after=0.8487, time=19.0s, cache=MISS, selection=0.0000s)
+  - hybrid: F1 Drop = -0.0535 (f1_before=0.8007, f1_after=0.8542, time=36.4s, cache=MISS, selection=15.8716s)
+  - im: F1 Drop = -0.0664 (f1_before=0.7675, f1_after=0.8339, time=20.0s, cache=HIT(key=db6701aad57f888288e28aca1477903c), selection=559.5546s, reuse=0.000942s, speedup=593711.64x)
+  - pagerank: F1 Drop = -0.0701 (f1_before=0.7638, f1_after=0.8339, time=20.4s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000999s, speedup=1130.82x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:31] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - pagerank: F1 Drop = 0.1089 (f1_before=0.8911, f1_after=0.7823, time=1.4s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.000000s)
+  - im: F1 Drop = 0.0830 (f1_before=0.8856, f1_after=0.8026, time=1.3s, cache=HIT(key=cdaefa7c36b7acca9e79405840a9f58a), selection=530.8123s, reuse=0.000000s)
+  - hybrid: F1 Drop = 0.0775 (f1_before=0.8875, f1_after=0.8100, time=17.3s, cache=MISS, selection=15.6734s)
+  - degree: F1 Drop = 0.0664 (f1_before=0.8819, f1_after=0.8155, time=1.4s, cache=MISS, selection=0.0230s)
+  - tracin: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=8.8s, cache=MISS, selection=7.2119s)
+  - random: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=1.8s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.001000s, speedup=1481.61x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:32] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - hybrid: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=16.5s, cache=MISS, selection=15.3529s)
+  - random: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=1.2s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.001011s, speedup=1465.88x)
+  - pagerank: F1 Drop = 0.0166 (f1_before=0.8819, f1_after=0.8653, time=1.0s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.000999s, speedup=1164.19x)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=9.8s, cache=MISS, selection=8.7071s)
+  - im: F1 Drop = 0.0111 (f1_before=0.8856, f1_after=0.8745, time=1.0s, cache=HIT(key=cdaefa7c36b7acca9e79405840a9f58a), selection=530.8123s, reuse=0.001001s, speedup=530092.42x)
+  - degree: F1 Drop = 0.0074 (f1_before=0.8875, f1_after=0.8801, time=1.0s, cache=MISS, selection=0.0209s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:34] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - degree: F1 Drop = -0.0277 (f1_before=0.8229, f1_after=0.8506, time=19.5s, cache=MISS, selection=0.0010s)
+  - hybrid: F1 Drop = -0.0295 (f1_before=0.7897, f1_after=0.8192, time=42.9s, cache=MISS, selection=16.4775s)
+  - im: F1 Drop = -0.0517 (f1_before=0.8007, f1_after=0.8524, time=20.2s, cache=HIT(key=cdaefa7c36b7acca9e79405840a9f58a), selection=530.8123s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.0627 (f1_before=0.7934, f1_after=0.8561, time=30.0s, cache=MISS, selection=7.4791s)
+  - random: F1 Drop = -0.0627 (f1_before=0.7934, f1_after=0.8561, time=19.1s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.000000s)
+  - pagerank: F1 Drop = -0.1033 (f1_before=0.7491, f1_after=0.8524, time=18.8s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.001000s, speedup=1162.53x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:36] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = -0.0483 (f1_before=0.7565, f1_after=0.8048, time=43.9s, cache=MISS, selection=9.0457s)
+  - degree: F1 Drop = -0.0543 (f1_before=0.7731, f1_after=0.8273, time=16.9s, cache=MISS, selection=0.0000s)
+  - hybrid: F1 Drop = -0.0737 (f1_before=0.7620, f1_after=0.8357, time=44.3s, cache=MISS, selection=16.3232s)
+  - im: F1 Drop = -0.0792 (f1_before=0.7251, f1_after=0.8043, time=17.6s, cache=HIT(key=cdaefa7c36b7acca9e79405840a9f58a), selection=530.8123s, reuse=0.001000s, speedup=530977.38x)
+  - pagerank: F1 Drop = -0.0977 (f1_before=0.7325, f1_after=0.8302, time=16.8s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.001000s, speedup=1163.36x)
+  - random: F1 Drop = -0.1215 (f1_before=0.6974, f1_after=0.8189, time=17.4s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:37] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - im: F1 Drop = 0.1273 (f1_before=0.8893, f1_after=0.7620, time=1.4s, cache=HIT(key=dbc53b1d991164343b17fd73fc93cc0a), selection=532.0490s, reuse=0.000000s)
+  - degree: F1 Drop = 0.1236 (f1_before=0.8856, f1_after=0.7620, time=1.4s, cache=MISS, selection=0.0097s)
+  - pagerank: F1 Drop = 0.1125 (f1_before=0.8893, f1_after=0.7768, time=1.4s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000993s, speedup=1234.34x)
+  - random: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=2.0s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.001000s, speedup=1413.27x)
+  - tracin: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=12.7s, cache=MISS, selection=10.8470s)
+  - hybrid: F1 Drop = 0.0443 (f1_before=0.8893, f1_after=0.8450, time=18.2s, cache=MISS, selection=16.5622s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:37] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - hybrid: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=17.3s, cache=MISS, selection=16.2168s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=1.1s, cache=MISS, selection=0.0220s)
+  - im: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=1.0s, cache=HIT(key=dbc53b1d991164343b17fd73fc93cc0a), selection=532.0490s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=1.0s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=10.5s, cache=MISS, selection=9.4422s)
+  - random: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=1.5s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:39] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - im: F1 Drop = -0.0332 (f1_before=0.8137, f1_after=0.8469, time=19.5s, cache=HIT(key=dbc53b1d991164343b17fd73fc93cc0a), selection=532.0490s, reuse=0.001001s, speedup=531580.57x)
+  - hybrid: F1 Drop = -0.0517 (f1_before=0.8044, f1_after=0.8561, time=34.7s, cache=MISS, selection=15.8972s)
+  - random: F1 Drop = -0.0646 (f1_before=0.7878, f1_after=0.8524, time=19.8s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.000999s, speedup=1415.29x)
+  - tracin: F1 Drop = -0.0646 (f1_before=0.7878, f1_after=0.8524, time=37.4s, cache=MISS, selection=10.5821s)
+  - degree: F1 Drop = -0.0812 (f1_before=0.7657, f1_after=0.8469, time=19.8s, cache=MISS, selection=0.0010s)
+  - pagerank: F1 Drop = -0.0923 (f1_before=0.7675, f1_after=0.8598, time=21.0s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:41] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - pagerank: F1 Drop = -0.0323 (f1_before=0.7952, f1_after=0.8275, time=17.3s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000000s)
+  - random: F1 Drop = -0.0373 (f1_before=0.7952, f1_after=0.8325, time=18.3s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.001000s, speedup=1413.60x)
+  - hybrid: F1 Drop = -0.0542 (f1_before=0.7657, f1_after=0.8199, time=41.9s, cache=MISS, selection=15.9487s)
+  - degree: F1 Drop = -0.0728 (f1_before=0.7601, f1_after=0.8330, time=17.0s, cache=MISS, selection=0.0000s)
+  - im: F1 Drop = -0.0811 (f1_before=0.7491, f1_after=0.8302, time=18.0s, cache=HIT(key=dbc53b1d991164343b17fd73fc93cc0a), selection=532.0490s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.1342 (f1_before=0.7011, f1_after=0.8353, time=44.6s, cache=MISS, selection=10.1508s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:42] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid: F1 Drop = 0.1458 (f1_before=0.8875, f1_after=0.7417, time=17.5s, cache=MISS, selection=16.0730s)
+  - im: F1 Drop = 0.0904 (f1_before=0.8893, f1_after=0.7989, time=1.4s, cache=HIT(key=75e01e91be337fd3898ff32666b9f47b), selection=577.8812s, reuse=0.001000s, speedup=577923.09x)
+  - tracin: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=10.4s, cache=MISS, selection=8.7320s)
+  - random: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=1.7s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000999s, speedup=17988.57x)
+  - degree: F1 Drop = 0.0535 (f1_before=0.8838, f1_after=0.8303, time=1.5s, cache=MISS, selection=0.0240s)
+  - pagerank: F1 Drop = 0.0535 (f1_before=0.8893, f1_after=0.8358, time=1.4s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.001010s, speedup=17982.66x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:42] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - im: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=1.1s, cache=HIT(key=75e01e91be337fd3898ff32666b9f47b), selection=577.8812s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8948, f1_after=0.8764, time=1.0s, cache=MISS, selection=0.0220s)
+  - hybrid: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=16.8s, cache=MISS, selection=15.6824s)
+  - pagerank: F1 Drop = 0.0129 (f1_before=0.8875, f1_after=0.8745, time=1.0s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0093 (f1_before=0.8838, f1_after=0.8745, time=9.3s, cache=MISS, selection=8.0623s)
+  - random: F1 Drop = 0.0092 (f1_before=0.8838, f1_after=0.8745, time=1.2s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.001000s, speedup=17971.42x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:45] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = -0.0295 (f1_before=0.8100, f1_after=0.8395, time=19.5s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.000000s)
+  - degree: F1 Drop = -0.0443 (f1_before=0.7970, f1_after=0.8413, time=20.0s, cache=MISS, selection=0.0000s)
+  - hybrid: F1 Drop = -0.0480 (f1_before=0.8026, f1_after=0.8506, time=34.8s, cache=MISS, selection=15.8759s)
+  - im: F1 Drop = -0.0609 (f1_before=0.7749, f1_after=0.8358, time=20.4s, cache=HIT(key=75e01e91be337fd3898ff32666b9f47b), selection=577.8812s, reuse=0.001002s, speedup=576685.56x)
+  - random: F1 Drop = -0.0683 (f1_before=0.7675, f1_after=0.8358, time=19.1s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000999s, speedup=17992.86x)
+  - tracin: F1 Drop = -0.0683 (f1_before=0.7675, f1_after=0.8358, time=28.7s, cache=MISS, selection=7.9055s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:47] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid: F1 Drop = -0.0050 (f1_before=0.8063, f1_after=0.8113, time=42.7s, cache=MISS, selection=16.1437s)
+  - degree: F1 Drop = -0.0645 (f1_before=0.7417, f1_after=0.8062, time=17.4s, cache=MISS, selection=0.0000s)
+  - im: F1 Drop = -0.0776 (f1_before=0.7454, f1_after=0.8230, time=16.9s, cache=HIT(key=75e01e91be337fd3898ff32666b9f47b), selection=577.8812s, reuse=0.000000s)
+  - random: F1 Drop = -0.0867 (f1_before=0.7435, f1_after=0.8303, time=17.2s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
+  - pagerank: F1 Drop = -0.1090 (f1_before=0.6956, f1_after=0.8046, time=17.2s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.1231 (f1_before=0.7159, f1_after=0.8390, time=35.6s, cache=MISS, selection=6.9993s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:47] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - degree: F1 Drop = 0.0330 (f1_before=0.7327, f1_after=0.6997, time=1.1s, cache=MISS, selection=0.0530s)
+  - im: F1 Drop = 0.0270 (f1_before=0.7327, f1_after=0.7057, time=95.9s, cache=MISS, selection=94.6729s)
+  - hybrid: F1 Drop = 0.0270 (f1_before=0.7312, f1_after=0.7042, time=15.9s, cache=MISS, selection=14.7189s)
+  - random: F1 Drop = 0.0255 (f1_before=0.7282, f1_after=0.7027, time=1.9s, cache=MISS, selection=0.0030s)
+  - pagerank: F1 Drop = 0.0225 (f1_before=0.7297, f1_after=0.7072, time=1.1s, cache=MISS, selection=0.0410s)
+  - tracin: F1 Drop = 0.0180 (f1_before=0.7252, f1_after=0.7072, time=15.8s, cache=MISS, selection=14.6065s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:47] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=0.8s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.001013s, speedup=2.96x)
+  - degree: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=0.6s, cache=MISS, selection=0.0210s)
+  - pagerank: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=0.6s, cache=HIT(key=6460c53b924fd6f49294630114f1e052), selection=0.0410s, reuse=0.000988s, speedup=41.50x)
+  - tracin: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=9.9s, cache=MISS, selection=9.2185s)
+  - im: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=0.6s, cache=HIT(key=f980c4dad46eed23e9ce71efedc63687), selection=94.6729s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.1877 (f1_before=0.0000, f1_after=0.1877, time=16.8s, cache=MISS, selection=15.5033s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:47] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = -0.0570 (f1_before=0.6817, f1_after=0.7387, time=31.6s, cache=HIT(key=6460c53b924fd6f49294630114f1e052), selection=0.0410s, reuse=0.001001s, speedup=40.96x)
+  - degree: F1 Drop = -0.0885 (f1_before=0.6577, f1_after=0.7462, time=27.9s, cache=MISS, selection=0.0010s)
+  - random: F1 Drop = -0.0961 (f1_before=0.6607, f1_after=0.7568, time=28.7s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.000000s)
+  - im: F1 Drop = -0.1096 (f1_before=0.6351, f1_after=0.7447, time=29.4s, cache=HIT(key=f980c4dad46eed23e9ce71efedc63687), selection=94.6729s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.1111 (f1_before=0.6547, f1_after=0.7658, time=39.7s, cache=MISS, selection=12.4161s)
+  - hybrid: F1 Drop = -0.1232 (f1_before=0.6396, f1_after=0.7628, time=41.5s, cache=MISS, selection=19.5374s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:47] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - hybrid: F1 Drop = 0.0330 (f1_before=0.7342, f1_after=0.7012, time=16.5s, cache=MISS, selection=15.1098s)
+  - random: F1 Drop = 0.0315 (f1_before=0.7327, f1_after=0.7012, time=1.6s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = 0.0300 (f1_before=0.7267, f1_after=0.6967, time=1.2s, cache=MISS, selection=0.0537s)
+  - degree: F1 Drop = 0.0255 (f1_before=0.7252, f1_after=0.6997, time=1.3s, cache=MISS, selection=0.0260s)
+  - im: F1 Drop = 0.0225 (f1_before=0.7267, f1_after=0.7042, time=89.3s, cache=MISS, selection=87.9903s)
+  - tracin: F1 Drop = 0.0210 (f1_before=0.7252, f1_after=0.7042, time=11.0s, cache=MISS, selection=9.7584s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:48] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=1.1s, cache=HIT(key=dd631a6e85ab2aa173ab0bbb607ef87a), selection=0.0000s, reuse=0.002001s, speedup=0.00x)
+  - degree: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=0.7s, cache=MISS, selection=0.0201s)
+  - pagerank: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=0.6s, cache=HIT(key=c7a9408a94ad210c6dbe7bccf7094cbb), selection=0.0537s, reuse=0.001008s, speedup=53.24x)
+  - tracin: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=9.7s, cache=MISS, selection=8.9617s)
+  - im: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=0.7s, cache=HIT(key=109781dcf7a2e47f8929dbf47e9a7538), selection=87.9903s, reuse=0.001011s, speedup=87021.52x)
+  - hybrid: F1 Drop = -0.2102 (f1_before=0.0000, f1_after=0.2102, time=15.6s, cache=MISS, selection=14.6525s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:48] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = -0.0570 (f1_before=0.6922, f1_after=0.7492, time=33.7s, cache=MISS, selection=9.5534s)
+  - pagerank: F1 Drop = -0.0796 (f1_before=0.6712, f1_after=0.7508, time=23.3s, cache=HIT(key=c7a9408a94ad210c6dbe7bccf7094cbb), selection=0.0537s, reuse=0.000000s)
+  - random: F1 Drop = -0.0916 (f1_before=0.6592, f1_after=0.7508, time=22.8s, cache=HIT(key=dd631a6e85ab2aa173ab0bbb607ef87a), selection=0.0000s, reuse=0.000999s, speedup=0.00x)
+  - hybrid: F1 Drop = -0.0991 (f1_before=0.6532, f1_after=0.7523, time=40.3s, cache=MISS, selection=15.8799s)
+  - im: F1 Drop = -0.1051 (f1_before=0.6366, f1_after=0.7417, time=25.6s, cache=HIT(key=109781dcf7a2e47f8929dbf47e9a7538), selection=87.9903s, reuse=0.001000s, speedup=87990.30x)
+  - degree: F1 Drop = -0.1141 (f1_before=0.6246, f1_after=0.7387, time=23.6s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:48] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = 0.0285 (f1_before=0.7312, f1_after=0.7027, time=1.3s, cache=MISS, selection=0.0000s)
+  - im: F1 Drop = 0.0285 (f1_before=0.7312, f1_after=0.7027, time=91.0s, cache=MISS, selection=89.6796s)
+  - pagerank: F1 Drop = 0.0255 (f1_before=0.7342, f1_after=0.7087, time=1.1s, cache=MISS, selection=0.0350s)
+  - hybrid: F1 Drop = 0.0240 (f1_before=0.7267, f1_after=0.7027, time=16.4s, cache=MISS, selection=15.3034s)
+  - tracin: F1 Drop = 0.0240 (f1_before=0.7312, f1_after=0.7072, time=11.2s, cache=MISS, selection=10.1558s)
+  - degree: F1 Drop = 0.0150 (f1_before=0.7222, f1_after=0.7072, time=1.0s, cache=MISS, selection=0.0201s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:48] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=0.9s, cache=HIT(key=e544911d8ba5ec0776ded3460cf4d55b), selection=0.0000s, reuse=0.000000s)
+  - degree: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=0.6s, cache=MISS, selection=0.0220s)
+  - pagerank: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=0.6s, cache=HIT(key=18702d1c5f448d2a6c93e480a04345c9), selection=0.0350s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=9.7s, cache=MISS, selection=9.0621s)
+  - im: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=0.7s, cache=HIT(key=9bd7d3351eeceb3910647ef30e09d65c), selection=89.6796s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.1637 (f1_before=0.0000, f1_after=0.1637, time=16.4s, cache=MISS, selection=15.4302s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - pagerank: F1 Drop = -0.0600 (f1_before=0.6757, f1_after=0.7357, time=22.6s, cache=HIT(key=18702d1c5f448d2a6c93e480a04345c9), selection=0.0350s, reuse=0.001000s, speedup=35.00x)
+  - tracin: F1 Drop = -0.0751 (f1_before=0.6787, f1_after=0.7538, time=30.7s, cache=MISS, selection=8.9019s)
+  - degree: F1 Drop = -0.0810 (f1_before=0.6667, f1_after=0.7477, time=23.1s, cache=MISS, selection=0.0010s)
+  - random: F1 Drop = -0.0961 (f1_before=0.6456, f1_after=0.7417, time=21.8s, cache=HIT(key=e544911d8ba5ec0776ded3460cf4d55b), selection=0.0000s, reuse=0.000999s, speedup=0.00x)
+  - im: F1 Drop = -0.1171 (f1_before=0.6246, f1_after=0.7417, time=21.7s, cache=HIT(key=9bd7d3351eeceb3910647ef30e09d65c), selection=89.6796s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.1172 (f1_before=0.6396, f1_after=0.7568, time=36.0s, cache=MISS, selection=15.3479s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - pagerank: F1 Drop = 0.0390 (f1_before=0.7387, f1_after=0.6997, time=1.0s, cache=MISS, selection=0.0370s)
+  - random: F1 Drop = 0.0375 (f1_before=0.7372, f1_after=0.6997, time=1.3s, cache=MISS, selection=0.0000s)
+  - hybrid: F1 Drop = 0.0375 (f1_before=0.7357, f1_after=0.6982, time=16.5s, cache=MISS, selection=15.1290s)
+  - tracin: F1 Drop = 0.0330 (f1_before=0.7357, f1_after=0.7027, time=10.5s, cache=MISS, selection=9.4377s)
+  - degree: F1 Drop = 0.0315 (f1_before=0.7327, f1_after=0.7012, time=1.0s, cache=MISS, selection=0.0210s)
+  - im: F1 Drop = 0.0285 (f1_before=0.7297, f1_after=0.7012, time=85.4s, cache=MISS, selection=84.1961s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=1.3s, cache=HIT(key=408a817782aab10ab0036de4f7d4e982), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - degree: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=0.8s, cache=MISS, selection=0.0386s)
+  - pagerank: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=0.8s, cache=HIT(key=311949fc36049248e5e42350470311dc), selection=0.0370s, reuse=0.000996s, speedup=37.15x)
+  - tracin: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=12.8s, cache=MISS, selection=11.9380s)
+  - im: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=0.9s, cache=HIT(key=17de2a757fe32933ce27a9a94ea978ad), selection=84.1961s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.1967 (f1_before=0.0000, f1_after=0.1967, time=22.5s, cache=MISS, selection=21.2586s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - im: F1 Drop = -0.0660 (f1_before=0.6727, f1_after=0.7387, time=29.4s, cache=HIT(key=17de2a757fe32933ce27a9a94ea978ad), selection=84.1961s, reuse=0.001001s, speedup=84111.99x)
+  - random: F1 Drop = -0.0690 (f1_before=0.6697, f1_after=0.7387, time=28.9s, cache=HIT(key=408a817782aab10ab0036de4f7d4e982), selection=0.0000s, reuse=0.002000s, speedup=0.00x)
+  - tracin: F1 Drop = -0.0780 (f1_before=0.6622, f1_after=0.7402, time=41.5s, cache=MISS, selection=12.3114s)
+  - degree: F1 Drop = -0.0841 (f1_before=0.6667, f1_after=0.7508, time=32.4s, cache=MISS, selection=0.0010s)
+  - hybrid: F1 Drop = -0.0931 (f1_before=0.6637, f1_after=0.7568, time=47.6s, cache=MISS, selection=19.4022s)
+  - pagerank: F1 Drop = -0.1322 (f1_before=0.6216, f1_after=0.7538, time=30.9s, cache=HIT(key=311949fc36049248e5e42350470311dc), selection=0.0370s, reuse=0.001004s, speedup=36.85x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - degree: F1 Drop = 0.0315 (f1_before=0.7297, f1_after=0.6982, time=1.3s, cache=MISS, selection=0.0300s)
+  - im: F1 Drop = 0.0315 (f1_before=0.7342, f1_after=0.7027, time=111.9s, cache=MISS, selection=110.5862s)
+  - pagerank: F1 Drop = 0.0270 (f1_before=0.7357, f1_after=0.7087, time=1.4s, cache=MISS, selection=0.0476s)
+  - tracin: F1 Drop = 0.0270 (f1_before=0.7327, f1_after=0.7057, time=14.4s, cache=MISS, selection=12.9156s)
+  - hybrid: F1 Drop = 0.0240 (f1_before=0.7297, f1_after=0.7057, time=16.1s, cache=MISS, selection=14.9396s)
+  - random: F1 Drop = 0.0210 (f1_before=0.7327, f1_after=0.7117, time=1.6s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=0.9s, cache=HIT(key=4d35f9ae318e1875cedb5797d953687e), selection=0.0000s, reuse=0.000999s, speedup=0.00x)
+  - degree: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=0.7s, cache=MISS, selection=0.0210s)
+  - pagerank: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=0.6s, cache=HIT(key=756e60c61d74eba56d02877703f9f0ce), selection=0.0476s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=9.7s, cache=MISS, selection=9.0975s)
+  - im: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=0.6s, cache=HIT(key=6fa496d8a245311fc5df3ea3bd656938), selection=110.5862s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.2087 (f1_before=0.0000, f1_after=0.2087, time=16.3s, cache=MISS, selection=15.2594s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:49] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - degree: F1 Drop = -0.0615 (f1_before=0.6862, f1_after=0.7477, time=25.2s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = -0.0915 (f1_before=0.6562, f1_after=0.7477, time=33.2s, cache=MISS, selection=9.6950s)
+  - random: F1 Drop = -0.0946 (f1_before=0.6577, f1_after=0.7523, time=25.4s, cache=HIT(key=4d35f9ae318e1875cedb5797d953687e), selection=0.0000s, reuse=0.001004s, speedup=0.00x)
+  - im: F1 Drop = -0.0946 (f1_before=0.6562, f1_after=0.7508, time=22.6s, cache=HIT(key=6fa496d8a245311fc5df3ea3bd656938), selection=110.5862s, reuse=0.001001s, speedup=110475.72x)
+  - hybrid: F1 Drop = -0.1111 (f1_before=0.6351, f1_after=0.7462, time=38.1s, cache=MISS, selection=15.3157s)
+  - pagerank: F1 Drop = -0.1142 (f1_before=0.6426, f1_after=0.7568, time=24.6s, cache=HIT(key=756e60c61d74eba56d02877703f9f0ce), selection=0.0476s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 18:59] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.0517 (f1_before=0.8782, f1_after=0.8266, time=523.7s, cache=MISS, selection=522.1562s)
+  - random: F1 Drop = 0.0498 (f1_before=0.8801, f1_after=0.8303, time=2.1s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=1.7s, cache=MISS, selection=0.0220s)
+  - tracin: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=13.3s, cache=MISS, selection=11.4796s)
+  - hybrid: F1 Drop = 0.0461 (f1_before=0.8856, f1_after=0.8395, time=19.6s, cache=MISS, selection=17.7847s)
+  - pagerank: F1 Drop = 0.0351 (f1_before=0.8856, f1_after=0.8506, time=1.8s, cache=MISS, selection=0.0353s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:00] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GAT, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.2435 (f1_before=0.8819, f1_after=0.6384, time=12.1s, cache=MISS, selection=10.4923s)
+  - degree: F1 Drop = 0.1753 (f1_before=0.8819, f1_after=0.7066, time=1.6s, cache=MISS, selection=0.0200s)
+  - im: F1 Drop = 0.1587 (f1_before=0.8875, f1_after=0.7288, time=1.7s, cache=HIT(key=7999f51fca809266b56854d7b77a5a2d), selection=522.1562s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.1052 (f1_before=0.8745, f1_after=0.7694, time=1.6s, cache=HIT(key=4a0e0d20f02de17bd56d6064d03825ad), selection=0.0353s, reuse=0.001001s, speedup=35.28x)
+  - random: F1 Drop = 0.1033 (f1_before=0.8801, f1_after=0.7768, time=1.9s, cache=HIT(key=965fa46eddcbf0eb47385e24c9073fd0), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0849 (f1_before=0.8893, f1_after=0.8044, time=20.9s, cache=MISS, selection=19.1713s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:03] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GAT, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = -0.0720 (f1_before=0.7694, f1_after=0.8413, time=25.6s, cache=HIT(key=4a0e0d20f02de17bd56d6064d03825ad), selection=0.0353s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.0867 (f1_before=0.7694, f1_after=0.8561, time=36.2s, cache=MISS, selection=11.5036s)
+  - hybrid: F1 Drop = -0.0904 (f1_before=0.7601, f1_after=0.8506, time=45.3s, cache=MISS, selection=20.2151s)
+  - im: F1 Drop = -0.1033 (f1_before=0.7546, f1_after=0.8579, time=26.2s, cache=HIT(key=7999f51fca809266b56854d7b77a5a2d), selection=522.1562s, reuse=0.000000s)
+  - degree: F1 Drop = -0.1070 (f1_before=0.7601, f1_after=0.8672, time=24.6s, cache=MISS, selection=0.0000s)
+  - random: F1 Drop = -0.1310 (f1_before=0.7085, f1_after=0.8395, time=24.4s, cache=HIT(key=965fa46eddcbf0eb47385e24c9073fd0), selection=0.0000s, reuse=0.001002s, speedup=0.00x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:12] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - degree: F1 Drop = 0.0590 (f1_before=0.8911, f1_after=0.8321, time=1.7s, cache=MISS, selection=0.0200s)
+  - pagerank: F1 Drop = 0.0572 (f1_before=0.8930, f1_after=0.8358, time=1.7s, cache=MISS, selection=0.0379s)
+  - tracin: F1 Drop = 0.0572 (f1_before=0.8875, f1_after=0.8303, time=13.0s, cache=MISS, selection=11.2832s)
+  - random: F1 Drop = 0.0443 (f1_before=0.8838, f1_after=0.8395, time=1.9s, cache=MISS, selection=0.0000s)
+  - hybrid: F1 Drop = 0.0406 (f1_before=0.8782, f1_after=0.8376, time=19.5s, cache=MISS, selection=17.7935s)
+  - im: F1 Drop = 0.0332 (f1_before=0.8838, f1_after=0.8506, time=523.0s, cache=MISS, selection=521.2681s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:13] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GAT, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.1697 (f1_before=0.8838, f1_after=0.7140, time=1.6s, cache=HIT(key=04e99b7ed8ba23d49ec6ff8f7f6d9d8c), selection=0.0379s, reuse=0.000000s)
+  - hybrid: F1 Drop = 0.1439 (f1_before=0.8893, f1_after=0.7454, time=20.6s, cache=MISS, selection=18.6838s)
+  - random: F1 Drop = 0.1218 (f1_before=0.8893, f1_after=0.7675, time=2.1s, cache=HIT(key=2db70d9e6e71011b3c771c1139b223b4), selection=0.0000s, reuse=0.001001s, speedup=0.00x)
+  - degree: F1 Drop = 0.0959 (f1_before=0.8893, f1_after=0.7934, time=1.6s, cache=MISS, selection=0.0110s)
+  - tracin: F1 Drop = 0.0720 (f1_before=0.8801, f1_after=0.8081, time=11.9s, cache=MISS, selection=10.3478s)
+  - im: F1 Drop = 0.0498 (f1_before=0.8930, f1_after=0.8432, time=1.6s, cache=HIT(key=8f419effaa59f8769443ba3ded85b986), selection=521.2681s, reuse=0.001001s, speedup=520685.09x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:16] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GAT, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - degree: F1 Drop = -0.0664 (f1_before=0.7952, f1_after=0.8616, time=24.5s, cache=MISS, selection=0.0010s)
+  - random: F1 Drop = -0.0793 (f1_before=0.7768, f1_after=0.8561, time=23.9s, cache=HIT(key=2db70d9e6e71011b3c771c1139b223b4), selection=0.0000s, reuse=0.001002s, speedup=0.00x)
+  - im: F1 Drop = -0.0812 (f1_before=0.7712, f1_after=0.8524, time=26.4s, cache=HIT(key=8f419effaa59f8769443ba3ded85b986), selection=521.2681s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.0904 (f1_before=0.7638, f1_after=0.8542, time=46.4s, cache=MISS, selection=19.8396s)
+  - tracin: F1 Drop = -0.1181 (f1_before=0.7288, f1_after=0.8469, time=36.0s, cache=MISS, selection=11.2511s)
+  - pagerank: F1 Drop = -0.1292 (f1_before=0.7343, f1_after=0.8635, time=24.3s, cache=HIT(key=04e99b7ed8ba23d49ec6ff8f7f6d9d8c), selection=0.0379s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:26] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - degree: F1 Drop = 0.0572 (f1_before=0.8856, f1_after=0.8284, time=1.7s, cache=MISS, selection=0.0206s)
+  - tracin: F1 Drop = 0.0554 (f1_before=0.8875, f1_after=0.8321, time=13.4s, cache=MISS, selection=11.6515s)
+  - hybrid: F1 Drop = 0.0535 (f1_before=0.8875, f1_after=0.8339, time=18.9s, cache=MISS, selection=17.2724s)
+  - pagerank: F1 Drop = 0.0498 (f1_before=0.8856, f1_after=0.8358, time=1.8s, cache=MISS, selection=0.0380s)
+  - im: F1 Drop = 0.0406 (f1_before=0.8856, f1_after=0.8450, time=521.6s, cache=MISS, selection=519.9285s)
+  - random: F1 Drop = 0.0351 (f1_before=0.8838, f1_after=0.8487, time=1.9s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:27] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GAT, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - im: F1 Drop = 0.1458 (f1_before=0.8801, f1_after=0.7343, time=1.6s, cache=HIT(key=186e4c19d2727c8f092924f692e52ac0), selection=519.9285s, reuse=0.000987s, speedup=526621.16x)
+  - tracin: F1 Drop = 0.1365 (f1_before=0.8856, f1_after=0.7491, time=11.6s, cache=MISS, selection=10.0040s)
+  - random: F1 Drop = 0.1218 (f1_before=0.8838, f1_after=0.7620, time=1.8s, cache=HIT(key=11edb024ec4398d3ca7b0a60af0a44b7), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - degree: F1 Drop = 0.1181 (f1_before=0.8893, f1_after=0.7712, time=1.5s, cache=MISS, selection=0.0080s)
+  - hybrid: F1 Drop = 0.1052 (f1_before=0.8819, f1_after=0.7768, time=20.3s, cache=MISS, selection=18.5037s)
+  - pagerank: F1 Drop = 0.0775 (f1_before=0.8893, f1_after=0.8118, time=1.5s, cache=HIT(key=1d13a066ed1aac00e4fa912d7d212619), selection=0.0380s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:30] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GAT, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = -0.0756 (f1_before=0.7749, f1_after=0.8506, time=23.4s, cache=HIT(key=11edb024ec4398d3ca7b0a60af0a44b7), selection=0.0000s, reuse=0.000000s)
+  - im: F1 Drop = -0.0830 (f1_before=0.7601, f1_after=0.8432, time=26.0s, cache=HIT(key=186e4c19d2727c8f092924f692e52ac0), selection=519.9285s, reuse=0.000000s)
+  - degree: F1 Drop = -0.0867 (f1_before=0.7768, f1_after=0.8635, time=23.6s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = -0.0886 (f1_before=0.7731, f1_after=0.8616, time=24.2s, cache=HIT(key=1d13a066ed1aac00e4fa912d7d212619), selection=0.0380s, reuse=0.000000s)
+  - tracin: F1 Drop = -0.1310 (f1_before=0.7435, f1_after=0.8745, time=35.5s, cache=MISS, selection=11.0276s)
+  - hybrid: F1 Drop = -0.1550 (f1_before=0.7048, f1_after=0.8598, time=45.3s, cache=MISS, selection=19.9495s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:39] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - hybrid: F1 Drop = 0.0664 (f1_before=0.8801, f1_after=0.8137, time=18.8s, cache=MISS, selection=17.1120s)
+  - degree: F1 Drop = 0.0609 (f1_before=0.8893, f1_after=0.8284, time=1.6s, cache=MISS, selection=0.0200s)
+  - pagerank: F1 Drop = 0.0535 (f1_before=0.8893, f1_after=0.8358, time=1.7s, cache=MISS, selection=0.0360s)
+  - random: F1 Drop = 0.0461 (f1_before=0.8819, f1_after=0.8358, time=1.9s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = 0.0406 (f1_before=0.8856, f1_after=0.8450, time=12.9s, cache=MISS, selection=11.1560s)
+  - im: F1 Drop = 0.0258 (f1_before=0.8819, f1_after=0.8561, time=510.2s, cache=MISS, selection=508.6033s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:40] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GAT, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - degree: F1 Drop = 0.1605 (f1_before=0.8819, f1_after=0.7214, time=1.5s, cache=MISS, selection=0.0220s)
+  - pagerank: F1 Drop = 0.1587 (f1_before=0.8911, f1_after=0.7325, time=1.6s, cache=HIT(key=69333254b0755586770aa1763edf476b), selection=0.0360s, reuse=0.000000s)
+  - im: F1 Drop = 0.1384 (f1_before=0.8911, f1_after=0.7528, time=1.6s, cache=HIT(key=1038fcc2464ffdf965f0582b8d969b83), selection=508.6033s, reuse=0.001001s, speedup=508034.50x)
+  - random: F1 Drop = 0.1052 (f1_before=0.8819, f1_after=0.7768, time=1.9s, cache=HIT(key=847f7c6ffea6f96f834a706272a1f9a5), selection=0.0000s, reuse=0.001011s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0701 (f1_before=0.8819, f1_after=0.8118, time=20.0s, cache=MISS, selection=18.2000s)
+  - tracin: F1 Drop = 0.0683 (f1_before=0.8875, f1_after=0.8192, time=11.4s, cache=MISS, selection=9.8491s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:43] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GAT, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = -0.0646 (f1_before=0.7731, f1_after=0.8376, time=32.8s, cache=MISS, selection=10.3269s)
+  - hybrid: F1 Drop = -0.0720 (f1_before=0.8007, f1_after=0.8727, time=42.5s, cache=MISS, selection=19.0647s)
+  - im: F1 Drop = -0.0867 (f1_before=0.7731, f1_after=0.8598, time=22.8s, cache=HIT(key=1038fcc2464ffdf965f0582b8d969b83), selection=508.6033s, reuse=0.000000s)
+  - degree: F1 Drop = -0.0978 (f1_before=0.7528, f1_after=0.8506, time=21.8s, cache=MISS, selection=0.0000s)
+  - random: F1 Drop = -0.1125 (f1_before=0.7583, f1_after=0.8708, time=22.1s, cache=HIT(key=847f7c6ffea6f96f834a706272a1f9a5), selection=0.0000s, reuse=0.000000s)
+  - pagerank: F1 Drop = -0.1347 (f1_before=0.7085, f1_after=0.8432, time=23.2s, cache=HIT(key=69333254b0755586770aa1763edf476b), selection=0.0360s, reuse=0.001000s, speedup=36.01x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:52] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.0701 (f1_before=0.8985, f1_after=0.8284, time=12.5s, cache=MISS, selection=10.7937s)
+  - random: F1 Drop = 0.0609 (f1_before=0.8930, f1_after=0.8321, time=1.9s, cache=MISS, selection=0.0000s)
+  - im: F1 Drop = 0.0480 (f1_before=0.8930, f1_after=0.8450, time=511.3s, cache=MISS, selection=509.6970s)
+  - hybrid: F1 Drop = 0.0480 (f1_before=0.8856, f1_after=0.8376, time=18.6s, cache=MISS, selection=16.9581s)
+  - pagerank: F1 Drop = 0.0351 (f1_before=0.8782, f1_after=0.8432, time=1.7s, cache=MISS, selection=0.0320s)
+  - degree: F1 Drop = 0.0314 (f1_before=0.8838, f1_after=0.8524, time=1.6s, cache=MISS, selection=0.0200s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:53] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GAT, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.1458 (f1_before=0.8838, f1_after=0.7380, time=11.6s, cache=MISS, selection=9.9749s)
+  - pagerank: F1 Drop = 0.1421 (f1_before=0.8856, f1_after=0.7435, time=1.5s, cache=HIT(key=2d008fa42bcdb6837728d016a5863c0f), selection=0.0320s, reuse=0.000000s)
+  - im: F1 Drop = 0.1199 (f1_before=0.8967, f1_after=0.7768, time=1.6s, cache=HIT(key=7c463b03c4a8fa904f594feb744d686c), selection=509.6970s, reuse=0.000000s)
+  - degree: F1 Drop = 0.1052 (f1_before=0.8893, f1_after=0.7841, time=1.5s, cache=MISS, selection=0.0180s)
+  - hybrid: F1 Drop = 0.1015 (f1_before=0.8948, f1_after=0.7934, time=19.8s, cache=MISS, selection=18.1329s)
+  - random: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=1.8s, cache=HIT(key=3e8f3e45886778d02888e8b6a443ddc7), selection=0.0000s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:56] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GAT, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = -0.0517 (f1_before=0.7989, f1_after=0.8506, time=22.1s, cache=HIT(key=2d008fa42bcdb6837728d016a5863c0f), selection=0.0320s, reuse=0.000996s, speedup=32.14x)
+  - random: F1 Drop = -0.0775 (f1_before=0.7620, f1_after=0.8395, time=21.5s, cache=HIT(key=3e8f3e45886778d02888e8b6a443ddc7), selection=0.0000s, reuse=0.000000s)
+  - hybrid: F1 Drop = -0.0830 (f1_before=0.7841, f1_after=0.8672, time=40.9s, cache=MISS, selection=18.8497s)
+  - tracin: F1 Drop = -0.0923 (f1_before=0.7601, f1_after=0.8524, time=33.0s, cache=MISS, selection=10.1912s)
+  - im: F1 Drop = -0.1107 (f1_before=0.7509, f1_after=0.8616, time=23.0s, cache=HIT(key=7c463b03c4a8fa904f594feb744d686c), selection=509.6970s, reuse=0.000988s, speedup=516133.35x)
+  - degree: F1 Drop = -0.1144 (f1_before=0.7454, f1_after=0.8598, time=21.9s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:56] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.0465 (f1_before=0.7327, f1_after=0.6862, time=9.3s, cache=MISS, selection=8.2564s)
+  - random: F1 Drop = 0.0435 (f1_before=0.7282, f1_after=0.6847, time=1.3s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.001036s, speedup=2.89x)
+  - im: F1 Drop = 0.0375 (f1_before=0.7297, f1_after=0.6922, time=1.2s, cache=HIT(key=f980c4dad46eed23e9ce71efedc63687), selection=94.6729s, reuse=0.002002s, speedup=47283.52x)
+  - hybrid: F1 Drop = 0.0330 (f1_before=0.7252, f1_after=0.6922, time=15.4s, cache=MISS, selection=14.0820s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:57] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.0315 (f1_before=0.7372, f1_after=0.7057, time=12.7s, cache=MISS, selection=11.2458s)
+  - im: F1 Drop = 0.0300 (f1_before=0.7357, f1_after=0.7057, time=1.4s, cache=HIT(key=f980c4dad46eed23e9ce71efedc63687), selection=94.6729s, reuse=0.000990s, speedup=95614.50x)
+  - hybrid: F1 Drop = 0.0180 (f1_before=0.7282, f1_after=0.7102, time=18.9s, cache=MISS, selection=17.2348s)
+  - random: F1 Drop = 0.0090 (f1_before=0.7177, f1_after=0.7087, time=1.7s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.000998s, speedup=3.00x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:58] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - im: F1 Drop = 0.0450 (f1_before=0.7267, f1_after=0.6817, time=1.2s, cache=HIT(key=109781dcf7a2e47f8929dbf47e9a7538), selection=87.9903s, reuse=0.000000s)
+  - random: F1 Drop = 0.0405 (f1_before=0.7327, f1_after=0.6922, time=1.4s, cache=HIT(key=dd631a6e85ab2aa173ab0bbb607ef87a), selection=0.0000s, reuse=0.000998s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0405 (f1_before=0.7252, f1_after=0.6847, time=16.5s, cache=MISS, selection=15.0956s)
+  - tracin: F1 Drop = 0.0390 (f1_before=0.7252, f1_after=0.6862, time=9.8s, cache=MISS, selection=8.7733s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:59] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - im: F1 Drop = 0.0375 (f1_before=0.7447, f1_after=0.7072, time=1.5s, cache=HIT(key=109781dcf7a2e47f8929dbf47e9a7538), selection=87.9903s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0345 (f1_before=0.7402, f1_after=0.7057, time=15.2s, cache=MISS, selection=13.7209s)
+  - random: F1 Drop = 0.0285 (f1_before=0.7387, f1_after=0.7102, time=1.7s, cache=HIT(key=dd631a6e85ab2aa173ab0bbb607ef87a), selection=0.0000s, reuse=0.001002s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0240 (f1_before=0.7342, f1_after=0.7102, time=19.8s, cache=MISS, selection=17.9680s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 19:59] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = 0.0511 (f1_before=0.7312, f1_after=0.6802, time=1.3s, cache=HIT(key=e544911d8ba5ec0776ded3460cf4d55b), selection=0.0000s, reuse=0.001108s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0375 (f1_before=0.7312, f1_after=0.6937, time=16.9s, cache=MISS, selection=15.5013s)
+  - im: F1 Drop = 0.0360 (f1_before=0.7342, f1_after=0.6982, time=1.2s, cache=HIT(key=9bd7d3351eeceb3910647ef30e09d65c), selection=89.6796s, reuse=0.001001s, speedup=89621.98x)
+  - tracin: F1 Drop = 0.0300 (f1_before=0.7222, f1_after=0.6922, time=10.3s, cache=MISS, selection=9.1798s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:00] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - im: F1 Drop = 0.0285 (f1_before=0.7447, f1_after=0.7162, time=1.5s, cache=HIT(key=9bd7d3351eeceb3910647ef30e09d65c), selection=89.6796s, reuse=0.001000s, speedup=89686.09x)
+  - hybrid: F1 Drop = 0.0255 (f1_before=0.7342, f1_after=0.7087, time=19.6s, cache=MISS, selection=17.7168s)
+  - random: F1 Drop = 0.0225 (f1_before=0.7282, f1_after=0.7057, time=1.9s, cache=HIT(key=e544911d8ba5ec0776ded3460cf4d55b), selection=0.0000s, reuse=0.001001s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0225 (f1_before=0.7267, f1_after=0.7042, time=13.7s, cache=MISS, selection=11.9662s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:01] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = 0.0511 (f1_before=0.7372, f1_after=0.6862, time=1.5s, cache=HIT(key=408a817782aab10ab0036de4f7d4e982), selection=0.0000s, reuse=0.001007s, speedup=0.00x)
+  - im: F1 Drop = 0.0511 (f1_before=0.7387, f1_after=0.6877, time=1.3s, cache=HIT(key=17de2a757fe32933ce27a9a94ea978ad), selection=84.1961s, reuse=0.001000s, speedup=84182.16x)
+  - tracin: F1 Drop = 0.0450 (f1_before=0.7327, f1_after=0.6877, time=10.5s, cache=MISS, selection=9.3518s)
+  - hybrid: F1 Drop = 0.0435 (f1_before=0.7357, f1_after=0.6922, time=16.8s, cache=MISS, selection=15.3573s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:01] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - hybrid: F1 Drop = 0.0315 (f1_before=0.7357, f1_after=0.7042, time=20.2s, cache=MISS, selection=18.2237s)
+  - tracin: F1 Drop = 0.0300 (f1_before=0.7402, f1_after=0.7102, time=13.8s, cache=MISS, selection=12.1507s)
+  - random: F1 Drop = 0.0255 (f1_before=0.7372, f1_after=0.7117, time=1.7s, cache=HIT(key=408a817782aab10ab0036de4f7d4e982), selection=0.0000s, reuse=0.001009s, speedup=0.00x)
+  - im: F1 Drop = 0.0180 (f1_before=0.7312, f1_after=0.7132, time=1.5s, cache=HIT(key=17de2a757fe32933ce27a9a94ea978ad), selection=84.1961s, reuse=0.001003s, speedup=83922.09x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:02] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.0405 (f1_before=0.7297, f1_after=0.6892, time=10.6s, cache=MISS, selection=9.4987s)
+  - random: F1 Drop = 0.0345 (f1_before=0.7327, f1_after=0.6982, time=1.4s, cache=HIT(key=4d35f9ae318e1875cedb5797d953687e), selection=0.0000s, reuse=0.001007s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0330 (f1_before=0.7327, f1_after=0.6997, time=17.0s, cache=MISS, selection=15.5995s)
+  - im: F1 Drop = 0.0300 (f1_before=0.7357, f1_after=0.7057, time=1.3s, cache=HIT(key=6fa496d8a245311fc5df3ea3bd656938), selection=110.5862s, reuse=0.001995s, speedup=55422.65x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:03] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - im: F1 Drop = 0.0315 (f1_before=0.7447, f1_after=0.7132, time=1.5s, cache=HIT(key=6fa496d8a245311fc5df3ea3bd656938), selection=110.5862s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0300 (f1_before=0.7447, f1_after=0.7147, time=13.6s, cache=MISS, selection=12.0796s)
+  - random: F1 Drop = 0.0270 (f1_before=0.7372, f1_after=0.7102, time=1.8s, cache=HIT(key=4d35f9ae318e1875cedb5797d953687e), selection=0.0000s, reuse=0.000999s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0255 (f1_before=0.7372, f1_after=0.7117, time=19.8s, cache=MISS, selection=17.9889s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:04] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=cora, model=GAT, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = 0.0572 (f1_before=0.8893, f1_after=0.8321, time=23.8s, cache=MISS, selection=21.6388s)
+  - random: F1 Drop = 0.0498 (f1_before=0.8801, f1_after=0.8303, time=2.2s, cache=HIT(key=965fa46eddcbf0eb47385e24c9073fd0), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=14.4s, cache=MISS, selection=12.2782s)
+  - im: F1 Drop = 0.0351 (f1_before=0.8856, f1_after=0.8506, time=2.0s, cache=HIT(key=7999f51fca809266b56854d7b77a5a2d), selection=522.1562s, reuse=0.001001s, speedup=521696.52x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:05] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GAT, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.0166 (f1_before=0.8875, f1_after=0.8708, time=1.9s, cache=HIT(key=7999f51fca809266b56854d7b77a5a2d), selection=522.1562s, reuse=0.001011s, speedup=516650.62x)
+  - random: F1 Drop = 0.0166 (f1_before=0.8801, f1_after=0.8635, time=2.0s, cache=HIT(key=965fa46eddcbf0eb47385e24c9073fd0), selection=0.0000s, reuse=0.000998s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0111 (f1_before=0.8893, f1_after=0.8782, time=12.8s, cache=MISS, selection=10.9331s)
+  - hybrid: F1 Drop = 0.0037 (f1_before=0.8653, f1_after=0.8616, time=22.2s, cache=MISS, selection=20.0575s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:05] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=cora, model=GAT, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = 0.0535 (f1_before=0.8893, f1_after=0.8358, time=2.1s, cache=HIT(key=2db70d9e6e71011b3c771c1139b223b4), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0535 (f1_before=0.8930, f1_after=0.8395, time=13.9s, cache=MISS, selection=11.9614s)
+  - im: F1 Drop = 0.0498 (f1_before=0.8875, f1_after=0.8376, time=1.9s, cache=HIT(key=8f419effaa59f8769443ba3ded85b986), selection=521.2681s, reuse=0.000999s, speedup=521554.56x)
+  - hybrid: F1 Drop = 0.0461 (f1_before=0.8856, f1_after=0.8395, time=22.7s, cache=MISS, selection=20.7041s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:06] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GAT, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - hybrid: F1 Drop = 0.0221 (f1_before=0.8745, f1_after=0.8524, time=21.8s, cache=MISS, selection=19.7019s)
+  - im: F1 Drop = 0.0129 (f1_before=0.8782, f1_after=0.8653, time=1.8s, cache=HIT(key=8f419effaa59f8769443ba3ded85b986), selection=521.2681s, reuse=0.000986s, speedup=528744.06x)
+  - random: F1 Drop = 0.0037 (f1_before=0.8782, f1_after=0.8745, time=2.1s, cache=HIT(key=2db70d9e6e71011b3c771c1139b223b4), selection=0.0000s, reuse=0.001000s, speedup=0.00x)
+  - tracin: F1 Drop = -0.0055 (f1_before=0.8653, f1_after=0.8708, time=12.7s, cache=MISS, selection=10.9019s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:07] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=cora, model=GAT, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - hybrid: F1 Drop = 0.0590 (f1_before=0.8875, f1_after=0.8284, time=23.1s, cache=MISS, selection=20.9513s)
+  - tracin: F1 Drop = 0.0572 (f1_before=0.8856, f1_after=0.8284, time=13.4s, cache=MISS, selection=11.5237s)
+  - im: F1 Drop = 0.0498 (f1_before=0.8819, f1_after=0.8321, time=1.9s, cache=HIT(key=186e4c19d2727c8f092924f692e52ac0), selection=519.9285s, reuse=0.001000s, speedup=520090.20x)
+  - random: F1 Drop = 0.0443 (f1_before=0.8856, f1_after=0.8413, time=2.1s, cache=HIT(key=11edb024ec4398d3ca7b0a60af0a44b7), selection=0.0000s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:08] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GAT, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = 0.0111 (f1_before=0.8819, f1_after=0.8708, time=2.0s, cache=HIT(key=11edb024ec4398d3ca7b0a60af0a44b7), selection=0.0000s, reuse=0.001001s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0092 (f1_before=0.8856, f1_after=0.8764, time=21.9s, cache=MISS, selection=19.7928s)
+  - tracin: F1 Drop = 0.0074 (f1_before=0.8764, f1_after=0.8690, time=12.6s, cache=MISS, selection=10.7631s)
+  - im: F1 Drop = 0.0000 (f1_before=0.8745, f1_after=0.8745, time=1.8s, cache=HIT(key=186e4c19d2727c8f092924f692e52ac0), selection=519.9285s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:09] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=cora, model=GAT, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = 0.0664 (f1_before=0.8875, f1_after=0.8210, time=13.6s, cache=MISS, selection=11.7662s)
+  - im: F1 Drop = 0.0535 (f1_before=0.8893, f1_after=0.8358, time=1.9s, cache=HIT(key=1038fcc2464ffdf965f0582b8d969b83), selection=508.6033s, reuse=0.000999s, speedup=508882.84x)
+  - random: F1 Drop = 0.0498 (f1_before=0.8801, f1_after=0.8303, time=2.1s, cache=HIT(key=847f7c6ffea6f96f834a706272a1f9a5), selection=0.0000s, reuse=0.000000s)
+  - hybrid: F1 Drop = 0.0387 (f1_before=0.8838, f1_after=0.8450, time=22.9s, cache=MISS, selection=20.8891s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:10] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GAT, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - tracin: F1 Drop = 0.0148 (f1_before=0.8838, f1_after=0.8690, time=12.8s, cache=MISS, selection=10.8990s)
+  - im: F1 Drop = 0.0055 (f1_before=0.8801, f1_after=0.8745, time=1.8s, cache=HIT(key=1038fcc2464ffdf965f0582b8d969b83), selection=508.6033s, reuse=0.001002s, speedup=507551.00x)
+  - random: F1 Drop = -0.0018 (f1_before=0.8745, f1_after=0.8764, time=2.1s, cache=HIT(key=847f7c6ffea6f96f834a706272a1f9a5), selection=0.0000s, reuse=0.000998s, speedup=0.00x)
+  - hybrid: F1 Drop = -0.0037 (f1_before=0.8690, f1_after=0.8727, time=21.8s, cache=MISS, selection=19.7956s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:10] demo_attack.py - IDEA 攻击实验
+- 任务：dataset=cora, model=GAT, method=IDEA, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid: F1 Drop = 0.0664 (f1_before=0.8911, f1_after=0.8247, time=23.0s, cache=MISS, selection=20.8857s)
+  - random: F1 Drop = 0.0590 (f1_before=0.8911, f1_after=0.8321, time=2.1s, cache=HIT(key=3e8f3e45886778d02888e8b6a443ddc7), selection=0.0000s, reuse=0.000000s)
+  - im: F1 Drop = 0.0443 (f1_before=0.8838, f1_after=0.8395, time=2.0s, cache=HIT(key=7c463b03c4a8fa904f594feb744d686c), selection=509.6970s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0314 (f1_before=0.8801, f1_after=0.8487, time=14.1s, cache=MISS, selection=12.1458s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-21 20:11] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GAT, method=MEGU, strategies=['random', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.0295 (f1_before=0.8967, f1_after=0.8672, time=1.9s, cache=HIT(key=3e8f3e45886778d02888e8b6a443ddc7), selection=0.0000s, reuse=0.001001s, speedup=0.00x)
+  - hybrid: F1 Drop = 0.0221 (f1_before=0.8930, f1_after=0.8708, time=22.0s, cache=MISS, selection=19.8708s)
+  - im: F1 Drop = 0.0203 (f1_before=0.8856, f1_after=0.8653, time=1.7s, cache=HIT(key=7c463b03c4a8fa904f594feb744d686c), selection=509.6970s, reuse=0.001000s, speedup=509491.02x)
+  - tracin: F1 Drop = 0.0185 (f1_before=0.8856, f1_after=0.8672, time=12.5s, cache=MISS, selection=10.7083s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

@@ -9,7 +9,7 @@ echo "=============================================="
 
 cd H:/project/OpenGU/GULib-master
 
-# MG-0: 补全 GraphEraser + GUIDE (4 seeds x 6 strategies x 2 methods = 48 runs)
+# MG-0: 补全 GraphEraser + GUIDE (5 seeds x 6 strategies x 2 methods = 60 runs)
 echo ""
 echo "[1/4] MG-0: Stability (completion)"
 bash run_mg0_completion.sh

@@ -10,12 +10,13 @@
 
 ## 1. 已完成配置（基线与阶段结论）
 
-- [x] `Phase A`：`Cora / GCN / unlearn_ratio=0.05 / seed=2024`，`4 methods × 6 strategies`
-  - methods: `GIF, GNNDelete, GraphEraser, GUIDE`
+- [x] `Phase A`：`Cora / GCN / unlearn_ratio=0.05 / seed=2024`，`3 methods × 6 strategies`
+  - methods: `GIF, GNNDelete, GraphEraser`（已完成）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
-  - 输出：F1 Drop + 初步机制分组结论（learning-based vs shard-based）
+  - 输出：F1 Drop + 初步机制分组结论（Learning-based: IM最强, IF-based: Hybrid最强, Shard-based: 免疫）
 - [x] `Phase A+`：`Cora / GCN / unlearn_ratio=0.05` 的 Retrain/Collateral 基础评估已跑通
-  - 已有 retrain gap + collateral 基础设施与结果（GUIDE 的 collateral 表已补全，见 `results/collateral/GUIDE/cora/GCN/collateral_20260220_082118.json`）
+  - 已有 retrain gap + collateral 基础设施与结果
+  - 核心发现：GNNDelete Gap大(6-30%), GIF Gap≈0(<1.5%), GraphEraser无一致方向
 
 ## 1.5 Sh 文件配置对照表
 
@@ -60,9 +61,10 @@
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 产出：`mean ± std`，确认结论不是 seed 偶然
   - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
-  - 执行命令（gnn）：
-    - `H:\conda_package\envs\gnn\python.exe run_experiments.py --phase A --methods GIF,GNNDelete,GraphEraser,GUIDE --datasets cora --ratios 0.05 --strategies random,degree,pagerank,tracin,im,hybrid --seeds 42,212,722,2024,1337`
-  - **注意**：当前 sh 文件 `run_mg0_completion.sh` 已配置此实验
+  - **状态**：🔄 部分完成
+    - GIF/GNNDelete: ✅ 4 seeds (42,212,722,1337)，❌ 缺 2024
+    - GraphEraser/GUIDE: ✅ 5 seeds (42,212,722,1337,2024) 🎉
+  - **需补跑**：seed 2024 的 GIF/GNNDelete
 
 ### 2.2 MG-1 最小跨数据集泛化
 
@@ -71,6 +73,11 @@
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
   - 规模：`3 × 6 × 5 = 90 runs`
+  - **状态**：🔄 接近完成
+    - GIF: ✅ 5 seeds
+    - GraphEraser: ✅ 5 seeds
+    - GNNDelete: ⚠️ 4 seeds (seed 212 运行失败，日志截断)
+  - **需补跑**：seed 212 的 GNNDelete（检查错误原因）
 
 ### 2.3 MG-2 最小跨模型泛化
 
@@ -79,6 +86,7 @@
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral`
   - 规模：`3 × 6 × 5 = 90 runs`
+  - **状态**：❌ 未开始（sh 文件已配置）
 
 ### 2.4 MG-3（可选）扩展到 5 方法
 
@@ -86,6 +94,7 @@
   - methods: `GIF, GNNDelete, GraphEraser, IDEA, MEGU`
   - 建议先只跑 `random, tracin, im, hybrid` 四策略做筛选
   - 说明：`GST` 当前有兼容问题，不建议放在最小泛化主线
+  - **状态**：❌ 未开始（sh 文件已配置）
 
 ### 2.5 最小泛化通过标准
 
