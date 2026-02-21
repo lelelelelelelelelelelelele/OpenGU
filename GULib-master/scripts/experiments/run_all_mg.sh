@@ -1,25 +1,42 @@
 #!/bin/bash
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "H:/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="H:/project/OpenGU/GULib-master"
+elif [ -d "/h/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="/h/project/OpenGU/GULib-master"
+else
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
 
-# 创建日志目录
-mkdir -p logs
-
-# 日志文件
-LOG_FILE="logs/experiment_$(date +%Y%m%d_%H%M%S).log"
-
-# 重定向所有输出到日志
-exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "实验开始: $(date)"
-echo "Running: MG-0, MG-2, MG-3 (skipping MG-1)"
+echo "Running: MG-0~3 collateral completion + ratio sensitivity"
 echo "=============================================="
 
-bash "$SCRIPT_DIR/run_mg0_completion.sh"
+cd "$REPO_ROOT"
 
-bash "$SCRIPT_DIR/run_mg2_gat.sh"
+echo ""
+echo "[1/5] MG-0 completion + collateral (repair)"
+bash "$SCRIPT_DIR/run_mg0_completion.sh" --repair --run_collateral
 
-bash "$SCRIPT_DIR/run_mg3_extended.sh"
+echo ""
+echo "[2/5] MG-1 citeseer + collateral (repair)"
+bash "$SCRIPT_DIR/run_mg1_citeseer.sh" --repair --run_collateral
 
+echo ""
+echo "[3/5] MG-2 gat + collateral (repair)"
+bash "$SCRIPT_DIR/run_mg2_gat.sh" --repair --run_collateral
+
+echo ""
+echo "[4/5] MG-3 extended + collateral (repair)"
+bash "$SCRIPT_DIR/run_mg3_extended.sh" --repair --run_collateral
+
+echo ""
+echo "[5/5] ratio sensitivity (repair)"
+bash "$SCRIPT_DIR/run_ratio_sensitivity.sh" --repair --run_collateral
+
+echo ""
 echo "=============================================="
 echo "实验结束: $(date)"
