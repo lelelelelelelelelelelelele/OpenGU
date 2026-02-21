@@ -29,25 +29,83 @@ RATIOS="0.05"
 SEEDS="42,212,722,1337,2024"
 CUDA=0
 
+REPAIR_MODE=0
+RUN_COLLATERAL=0
+REPAIR_MODE_ARG=""
+EXTRA_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--repair" ]; then
+        REPAIR_MODE=1
+    elif [ "$arg" = "--run_collateral" ]; then
+        RUN_COLLATERAL=1
+    else
+        EXTRA_ARGS+=("$arg")
+    fi
+done
+
 echo "=============================================="
 echo "MG-2: Cross-Model Generalization"
 echo "Dataset: Cora / GAT"
 echo "Methods: $METHODS"
 echo "Seeds: $SEEDS"
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    echo "Mode: REPAIR"
+fi
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo "Collateral: YES"
+fi
 echo "=============================================="
 
 cd "$REPO_ROOT"
 
 # 使用 run_experiments.py
-"$PYTHON_BIN" run_experiments.py \
-    --methods $METHODS \
-    --datasets $DATASETS \
-    --base_model $BASE_MODEL \
-    --strategies $STRATEGIES \
-    --ratios $RATIOS \
-    --seeds $SEEDS \
-    --cuda $CUDA \
+COMMON_ARGS=(
+    --methods $METHODS
+    --datasets $DATASETS
+    --base_model $BASE_MODEL
+    --strategies $STRATEGIES
+    --ratios $RATIOS
+    --seeds $SEEDS
+    --cuda $CUDA
     --output results/experiments/mg2_gat
+)
+
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    REPAIR_MODE_ARG="--repair"
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" --repair "${EXTRA_ARGS[@]}"
+else
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" "${EXTRA_ARGS[@]}"
+fi
+
+echo ""
+echo "MG-2 experiment complete!"
+
+# 运行 collateral 评估
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo ""
+    echo "=== Running Collateral Evaluation ==="
+
+    for METHOD in $(echo "$METHODS" | tr ',' ' '); do
+        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+            echo ""
+            echo ">>> CollEval: $METHOD, seed: $SEED"
+
+            "$PYTHON_BIN" eval_collateral.py \
+                --dataset_name "$DATASETS" \
+                --base_model "$BASE_MODEL" \
+                --unlearning_methods "$METHOD" \
+                --strategies "$STRATEGIES" \
+                --unlearn_ratio "$RATIOS" \
+                --random_seed "$SEED" \
+                $REPAIR_MODE_ARG
+
+            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+        done
+    done
+
+    echo ""
+    echo "=== Collateral Evaluation Complete ==="
+fi
 
 echo ""
 echo "MG-2 complete!"

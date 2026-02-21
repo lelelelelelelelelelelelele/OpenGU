@@ -36,10 +36,14 @@ SEEDS="42,212,722,1337,2024"
 CUDA=0
 
 REPAIR_MODE=0
+RUN_COLLATERAL=0
+REPAIR_MODE_ARG=""
 EXTRA_ARGS=()
 for arg in "$@"; do
     if [ "$arg" = "--repair" ]; then
         REPAIR_MODE=1
+    elif [ "$arg" = "--run_collateral" ]; then
+        RUN_COLLATERAL=1
     else
         EXTRA_ARGS+=("$arg")
     fi
@@ -53,6 +57,9 @@ echo "Seeds: $SEEDS"
 echo "Strategies: $STRATEGIES"
 if [ "$REPAIR_MODE" -eq 1 ]; then
     echo "Mode: REPAIR (in-place, auto-missing-detection)"
+fi
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo "Collateral: YES"
 fi
 echo "=============================================="
 
@@ -71,6 +78,7 @@ COMMON_ARGS=(
 )
 
 if [ "$REPAIR_MODE" -eq 1 ]; then
+    REPAIR_MODE_ARG="--repair"
     "$PYTHON_BIN" run_experiments.py \
         "${COMMON_ARGS[@]}" \
         --repair \
@@ -85,3 +93,31 @@ echo ""
 echo "=============================================="
 echo "Experiment complete!"
 echo "=============================================="
+
+# 运行 collateral 评估 (如果指定 --run_collateral)
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo ""
+    echo "=== Running Collateral Evaluation ==="
+
+    # 对每个方法分别运行 collateral 评估
+    for METHOD in $(echo "$METHODS" | tr ',' ' '); do
+        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+            echo ""
+            echo ">>> CollEval: $METHOD, seed: $SEED"
+
+            "$PYTHON_BIN" eval_collateral.py \
+                --dataset_name "$DATASETS" \
+                --base_model "$BASE_MODEL" \
+                --unlearning_methods "$METHOD" \
+                --strategies "$STRATEGIES" \
+                --unlearn_ratio "$RATIOS" \
+                --random_seed "$SEED" \
+                $REPAIR_MODE_ARG
+
+            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+        done
+    done
+
+    echo ""
+    echo "=== Collateral Evaluation Complete ==="
+fi

@@ -1,6 +1,6 @@
 # Git 存档检查点
 
-在当前 step 完成后执行 git 存档。
+在当前 step 完成后执行 git 存档，同时更新相关进度文件。
 
 ## 流程
 
@@ -13,7 +13,10 @@
    - `git add` 相关文件（不用 `git add -A`，逐个添加）
    - `git commit -m "step-{N}: {描述}"`
    - 如果是里程碑 step，追加 `git tag`
-5. **更新 flow.md**: 将验收条件中的 `[ ]` 改为 `[x]`
+5. **更新 progress 文件**:
+   - `self/flow.md`: 将验收条件中的 `[ ]` 改为 `[x]`
+   - `self/generalization_experiment_checklist.md`: 如果有对应的实验完成，更新其 checkbox（查找相关配置行，将 `[ ]` 改为 `[x]`）
+   - 检查其他 `self/*.md` 进度文件，如有对应的 checkbox 也一并更新
 6. **输出报告**:
    ```
    ===== Checkpoint: Step {N} =====
@@ -21,6 +24,7 @@
    Status:   PASS / FAIL
    Commit:   {hash} step-{N}: {描述}
    Tag:      {tag or "none"}
+   Updated:  flow.md, generalization_experiment_checklist.md (if applicable)
    Next:     Step {N+1}: {下一步简述}
    ================================
    ```

@@ -22,9 +22,34 @@ else
     PYTHON_BIN="python"
 fi
 
+# 参数解析
+REPAIR_MODE=0
+RUN_COLLATERAL=0
+REPAIR_MODE_ARG=""
+EXTRA_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--repair" ]; then
+        REPAIR_MODE=1
+    elif [ "$arg" = "--run_collateral" ]; then
+        RUN_COLLATERAL=1
+    else
+        EXTRA_ARGS+=("$arg")
+    fi
+done
+
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    REPAIR_MODE_ARG="--repair"
+fi
+
 # ============ MG-3a: Citeseer + IDEA/MEGU ============
 echo "=============================================="
 echo "MG-3a: Extended Methods on Citeseer"
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    echo "Mode: REPAIR"
+fi
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo "Collateral: YES"
+fi
 echo "=============================================="
 
 cd "$REPO_ROOT"
@@ -37,15 +62,42 @@ RATIOS="0.05"
 SEEDS="42,212,722,1337,2024"
 CUDA=0
 
-"$PYTHON_BIN" run_experiments.py \
-    --methods $METHODS_IDEA \
-    --datasets $DATASETS \
-    --base_model $BASE_MODEL \
-    --strategies $STRATEGIES \
-    --ratios $RATIOS \
-    --seeds $SEEDS \
-    --cuda $CUDA \
+COMMON_ARGS=(
+    --methods $METHODS_IDEA
+    --datasets $DATASETS
+    --base_model $BASE_MODEL
+    --strategies $STRATEGIES
+    --ratios $RATIOS
+    --seeds $SEEDS
+    --cuda $CUDA
     --output results/experiments/mg3_citeseer
+)
+
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" --repair "${EXTRA_ARGS[@]}"
+else
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" "${EXTRA_ARGS[@]}"
+fi
+
+# MG-3a collateral 评估
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo ""
+    echo "=== MG-3a Collateral Evaluation ==="
+    for METHOD in $(echo "$METHODS_IDEA" | tr ',' ' '); do
+        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+            echo ">>> CollEval: $METHOD, seed: $SEED"
+            "$PYTHON_BIN" eval_collateral.py \
+                --dataset_name "$DATASETS" \
+                --base_model "$BASE_MODEL" \
+                --unlearning_methods "$METHOD" \
+                --strategies "$STRATEGIES" \
+                --unlearn_ratio "$RATIOS" \
+                --random_seed "$SEED" \
+                $REPAIR_MODE_ARG
+            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+        done
+    done
+fi
 
 # ============ MG-3b: GAT + IDEA/MEGU ============
 echo ""
@@ -53,16 +105,42 @@ echo "=============================================="
 echo "MG-3b: Extended Methods on GAT"
 echo "=============================================="
 
-# run_experiments.py 现在支持 --base_model
-"$PYTHON_BIN" run_experiments.py \
-    --methods $METHODS_IDEA \
-    --datasets cora \
-    --base_model GAT \
-    --strategies $STRATEGIES \
-    --ratios $RATIOS \
-    --seeds $SEEDS \
-    --cuda $CUDA \
+COMMON_ARGS_B=(
+    --methods $METHODS_IDEA
+    --datasets cora
+    --base_model GAT
+    --strategies $STRATEGIES
+    --ratios $RATIOS
+    --seeds $SEEDS
+    --cuda $CUDA
     --output results/experiments/mg3_gat
+)
+
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS_B[@]}" --repair "${EXTRA_ARGS[@]}"
+else
+    "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS_B[@]}" "${EXTRA_ARGS[@]}"
+fi
+
+# MG-3b collateral 评估
+if [ "$RUN_COLLATERAL" -eq 1 ]; then
+    echo ""
+    echo "=== MG-3b Collateral Evaluation ==="
+    for METHOD in $(echo "$METHODS_IDEA" | tr ',' ' '); do
+        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+            echo ">>> CollEval: $METHOD, seed: $SEED"
+            "$PYTHON_BIN" eval_collateral.py \
+                --dataset_name "cora" \
+                --base_model "GAT" \
+                --unlearning_methods "$METHOD" \
+                --strategies "$STRATEGIES" \
+                --unlearn_ratio "$RATIOS" \
+                --random_seed "$SEED" \
+                $REPAIR_MODE_ARG
+            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+        done
+    done
+fi
 
 echo ""
 echo "MG-3 complete!"
