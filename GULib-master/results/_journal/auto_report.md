@@ -12003,3 +12003,16 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - tracin: F1 Drop = 0.0185 (f1_before=0.8856, f1_after=0.8672, time=12.5s, cache=MISS, selection=10.7083s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-22 01:00] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = -0.0312 (f1_before=0.7841, f1_after=0.8154, time=18.8s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001000s, speedup=1428.94x)
+  - tracin: F1 Drop = -0.0409 (f1_before=0.7823, f1_after=0.8232, time=38.8s, cache=MISS, selection=7.6158s)
+  - hybrid: F1 Drop = -0.0802 (f1_before=0.7435, f1_after=0.8238, time=46.1s, cache=MISS, selection=17.5884s)
+  - im: F1 Drop = -0.0869 (f1_before=0.7472, f1_after=0.8341, time=21.5s, cache=HIT(key=db6701aad57f888288e28aca1477903c), selection=559.5546s, reuse=0.000995s, speedup=562411.24x)
+  - pagerank: F1 Drop = -0.0872 (f1_before=0.7528, f1_after=0.8399, time=19.1s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.001000s, speedup=1130.55x)
+  - degree: F1 Drop = -0.1183 (f1_before=0.7214, f1_after=0.8397, time=20.4s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

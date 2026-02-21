@@ -13,18 +13,31 @@ RATIOS="0.05"
 SEEDS="42,212,722,1337,2024"
 CUDA=0
 
+REPAIR_MODE=0
+EXTRA_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--repair" ]; then
+        REPAIR_MODE=1
+    else
+        EXTRA_ARGS+=("$arg")
+    fi
+done
+
 echo "=============================================="
 echo "MG-0 Stability Experiment Completion"
 echo "Methods: $METHODS"
 echo "Model: $BASE_MODEL"
 echo "Seeds: $SEEDS"
 echo "Strategies: $STRATEGIES"
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    echo "Mode: REPAIR (in-place, auto-missing-detection)"
+fi
 echo "=============================================="
 
 cd H:/project/OpenGU/GULib-master
 
-# 使用 run_experiments.py
-H:/conda_package/envs/gnn/python.exe run_experiments.py \
+# 基础参数（普通模式与修补模式共用）
+COMMON_ARGS=(
     --methods $METHODS \
     --datasets $DATASETS \
     --base_model $BASE_MODEL \
@@ -33,6 +46,21 @@ H:/conda_package/envs/gnn/python.exe run_experiments.py \
     --seeds $SEEDS \
     --cuda $CUDA \
     --output results/experiments/mg0_completion
+)
+
+if [ "$REPAIR_MODE" -eq 1 ]; then
+    H:/conda_package/envs/gnn/python.exe run_experiments.py \
+        "${COMMON_ARGS[@]}" \
+        --repair \
+        --repair_dir results/experiments/mg0_completion/phase_a \
+        --repair_select latest_per_seed \
+        --repair_from grid \
+        "${EXTRA_ARGS[@]}"
+else
+    H:/conda_package/envs/gnn/python.exe run_experiments.py \
+        "${COMMON_ARGS[@]}" \
+        "${EXTRA_ARGS[@]}"
+fi
 
 echo ""
 echo "=============================================="

@@ -48,7 +48,8 @@
       "Bash(wmic:*)",
       "Bash(python3 << 'EOF':*)",
       "Bash(chmod:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''H:/project/OpenGU/GULib-master/results/experiments/mg0_completion/phase_a/20260221_182759_seed212/_summary.json''\\)\\); print\\(json.dumps\\(d.get\\(''repair_meta'',[]\\), indent=2\\)\\)\")"
     ]
   }
 }
