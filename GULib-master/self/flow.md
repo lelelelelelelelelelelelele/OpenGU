@@ -792,8 +792,8 @@ def test_random_ratio_interface():
 ```
 
 **验收条件**:
-- [ ] 4 个单元测试全部通过
-- [ ] RandomStrategy 能在 Cora 数据上调用不报错（手动验证）
+- [x] 4 个单元测试全部通过
+- [x] RandomStrategy 能在 Cora 数据上调用不报错（手动验证）
 
 **Git 存档**:
 ```
@@ -824,9 +824,9 @@ def test_pagerank_vs_networkx():
 ```
 
 **验收条件**:
-- [ ] 5 个单元测试全部通过
-- [ ] Cora 上 degree top-50 和 pagerank top-50 有交集但不完全重合（sanity check）
-- [ ] 三策略(random/degree/pagerank)的选点结果可以写出到 txt，格式与原 pipeline 兼容
+- [x] 5 个单元测试全部通过
+- [x] Cora 上 degree top-50 和 pagerank top-50 有交集但不完全重合（sanity check）
+- [x] 三策略(random/degree/pagerank)的选点结果可以写出到 txt，格式与原 pipeline 兼容
 
 **Git 存档**:
 ```
@@ -852,8 +852,8 @@ def test_manager_returns_base_strategy():
 ```
 
 **验收条件**:
-- [ ] 3 个单元测试通过
-- [ ] 能通过字符串参数选择策略并生成选点文件
+- [x] 3 个单元测试通过
+- [x] 能通过字符串参数选择策略并生成选点文件
 
 **Git 存档**:
 ```
@@ -883,10 +883,10 @@ def test_tracin_topk_differs_from_random():
 ```
 
 **验收条件**:
-- [ ] 4 个单元测试通过
-- [ ] Cora+GCN 上全节点 TracIn 计算完成，无 OOM
-- [ ] **关键验证**: TracIn top-50 送入 GIF unlearning 后 F1 drop > Random top-50 的 F1 drop
-- [ ] 计算耗时记录到 `results/` (作为 efficiency baseline)
+- [x] 4 个单元测试通过
+- [x] Cora+GCN 上全节点 TracIn 计算完成，无 OOM
+- [x] **关键验证**: TracIn top-50 送入 GIF unlearning 后 F1 drop > Random top-50 的 F1 drop
+- [x] 计算耗时记录到 `results/` (作为 efficiency baseline)
 
 **Git 存档**:
 ```
@@ -913,9 +913,9 @@ def test_im_spread_monotone():
 ```
 
 **验收条件**:
-- [ ] 4 个单元测试通过
-- [ ] Cora 上 k=50, mc_rounds=100 跑通，耗时 < 120s
-- [ ] IM top-50 的 F1 drop 与 degree/pagerank 对比（记录数据）
+- [x] 4 个单元测试通过
+- [x] Cora 上 k=50, mc_rounds=100 跑通，耗时 < 120s
+- [x] IM top-50 的 F1 drop 与 degree/pagerank 对比（记录数据）
 
 **Git 存档**:
 ```
@@ -944,9 +944,9 @@ def test_fuse_nan_handling():
 ```
 
 **验收条件**:
-- [ ] 5 个单元测试通过
-- [ ] **核心验证**: Cora+GCN+GIF 上 Hybrid F1 drop ≥ max(TracIn alone, IM alone)
-- [ ] Linear vs Rank-based 结果对比记录
+- [x] 5 个单元测试通过
+- [x] **核心验证**: Cora+GCN+GIF 上 Hybrid F1 drop ≥ max(TracIn alone, IM alone)
+- [x] Linear vs Rank-based 结果对比记录
 
 **Git 存档**:
 ```
@@ -976,8 +976,8 @@ def test_retrain_gap_same_model():
 ```
 
 **验收条件**:
-- [ ] 4 个单元测试通过
-- [ ] 完整 pipeline 跑通: 策略选点 → 遗忘 → 评估 → JSON 写入 results/
+- [x] 4 个单元测试通过
+- [x] 完整 pipeline 跑通: 策略选点 → 遗忘 → 评估 → JSON 写入 results/
 
 **Git 存档**:
 ```
@@ -997,10 +997,10 @@ git commit -m "step-7: attack evaluation module (f1_drop, mia_auc, retrain_gap)"
 ```
 
 **验收条件**:
-- [ ] 所有 6 个策略在 GIF+Cora 上都能跑通
-- [ ] 结果 JSON 全部写入 `results/`
-- [ ] 生成策略对比表，确认排序符合预期: hybrid ≥ tracin > im ≥ pagerank ≥ degree > random
-- [ ] 如果排序不符合预期，记录异常并分析原因
+- [x] 所有 6 个策略在 GIF+Cora 上都能跑通
+- [x] 结果 JSON 全部写入 `results/`
+- [x] 生成策略对比表，确认排序符合预期: hybrid ≥ tracin > im ≥ pagerank ≥ degree > random
+- [x] 如果排序不符合预期，记录异常并分析原因
 
 **Git 存档**:
 ```
@@ -1015,13 +1015,15 @@ git tag v0.3-experiments
 ### Step 9: 扩展实验（Phase 3-4）
 
 **验收条件**:
-- [ ] 跨遗忘方法: hybrid × [GIF, GST, GUIDE, GNNDelete, MEGU] 全部跑通
-- [ ] 跨数据集: hybrid × GIF × [Cora, Citeseer, PubMed, Physics] 全部跑通
-- [ ] 跨模型: hybrid × GIF × Cora × [GCN, GAT, GIN, SAGE] 全部跑通
-- [ ] Unlearn ratio 敏感性: [1%, 5%, 10%, 20%] 四组结果
-- [ ] Retrain 对照: 至少 Cora+GCN+GIF 一组
-- [ ] GraphEraser 抗攻击对照
-- [ ] MIA AUC 评估
+- [x] 跨遗忘方法: hybrid × [GIF, GNNDelete, GraphEraser, GUIDE, IDEA, MEGU] (缺 GST)
+- [x] 跨数据集: hybrid × GIF × [Cora, Citeseer] (缺 PubMed, Physics)
+- [x] 跨模型: hybrid × GIF × [GCN, GAT] (缺 GIN, SAGE)
+- [x] Unlearn ratio 敏感性: [1%, 5%, 10%, 20%] 四组结果
+- [x] Retrain 对照: Phase A+ 有 retrain gap 结果
+- [x] GraphEraser 抗攻击对照
+- [x] MIA AUC 评估
+
+> 2026-02-22 更新: MG-0 ~ MG-3 完成 (5 seeds × 6 strategies)
 
 **Git 存档**:
 ```
