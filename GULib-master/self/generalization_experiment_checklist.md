@@ -22,12 +22,12 @@
 
 | Sh 文件 | 实验阶段 | Dataset | Model | Methods | Strategies | Seeds | 输出目录 |
 |---------|---------|---------|-------|---------|------------|-------|----------|
-| `run_mg0_completion.sh` | MG-0 稳定性 | cora | GCN | GIF,GNNDelete,GraphEraser,GUIDE | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg0_completion` |
-| `run_mg1_citeseer.sh` | MG-1 跨数据集 | citeseer | GCN | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg1_citeseer` |
-| `run_mg2_gat.sh` | MG-2 跨模型 | cora | GAT | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg2_gat` |
-| `run_mg3_extended.sh` | MG-3 扩展方法 | citeseer(cora) | GCN(GAT) | IDEA,MEGU | random,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg3_citeseer`, `mg3_gat` |
+| `scripts/experiments/run_mg0_completion.sh` | MG-0 稳定性 | cora | GCN | GIF,GNNDelete,GraphEraser,GUIDE | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg0_completion` |
+| `scripts/experiments/run_mg1_citeseer.sh` | MG-1 跨数据集 | citeseer | GCN | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg1_citeseer` |
+| `scripts/experiments/run_mg2_gat.sh` | MG-2 跨模型 | cora | GAT | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg2_gat` |
+| `scripts/experiments/run_mg3_extended.sh` | MG-3 扩展方法 | citeseer(cora) | GCN(GAT) | IDEA,MEGU | random,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg3_citeseer`, `mg3_gat` |
 
-> 📌 运行全部：`bash run_all_generalization.sh`（跳过 MG-1：`bash run_all_mg.sh`）
+> 📌 运行全部：`bash scripts/experiments/run_all_generalization.sh`（跳过 MG-1：`bash scripts/experiments/run_all_mg.sh`）
 
 ## 1.5 执行前工作流体检（必须先过）
 
@@ -51,7 +51,7 @@
 > - Shard-based: `GraphEraser`, `GUIDE`
 > 可选扩展组（+2 个）：`IDEA`（IF-based）, `MEGU`（Learning-based）。
 
-> 📋 **Sh 文件对应**：`run_mg0_completion.sh`, `run_mg1_citeseer.sh`, `run_mg2_gat.sh`, `run_mg3_extended.sh`
+> 📋 **Sh 文件对应**：`scripts/experiments/run_mg0_completion.sh`, `scripts/experiments/run_mg1_citeseer.sh`, `scripts/experiments/run_mg2_gat.sh`, `scripts/experiments/run_mg3_extended.sh`
 
 ### 2.1 MG-0 稳定性（非泛化，但必做）
 
@@ -144,14 +144,14 @@
 
 ## 4. 推荐执行顺序（按你当前结论风险）
 
-- [ ] `P0`：`run_mg0_completion.sh` - 稳定性实验（5 seeds 验证结论不是 seed 偶然）
+- [x] `P0`：`scripts/experiments/run_mg0_completion.sh` - 稳定性实验（5 seeds 验证结论不是 seed 偶然）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser,GUIDE --datasets cora --base_model GCN`
-- [ ] `P1`：`run_mg1_citeseer.sh` - Citeseer / GCN 复现实验（优先验证当前机制分组是否泛化）
+- [x] `P1`：`scripts/experiments/run_mg1_citeseer.sh` - Citeseer / GCN 复现实验（优先验证当前机制分组是否泛化）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets citeseer --base_model GCN`
 - [ ] `P2`：做 `GIF` 在 `ratio=0.10/0.20`（排查”攻击幅度偏小”是否仅是低比例效应）
-- [ ] `P3`：`run_mg2_gat.sh` - 跨模型（`GAT`）
+- [x] `P3`：`scripts/experiments/run_mg2_gat.sh` - 跨模型（`GAT`）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets cora --base_model GAT`
-- [ ] `P4`：`run_mg3_extended.sh` - 扩展到 IDEA/MEGU
+- [x] `P4`：`scripts/experiments/run_mg3_extended.sh` - 扩展到 IDEA/MEGU
   - sh 已配置：Citeseer(GCN) + Cora(GAT) 各跑 IDEA, MEGU
 - [ ] `P5`：最后补齐 `MIA` 与完整统计检验图表
 

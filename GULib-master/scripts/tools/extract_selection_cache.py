@@ -6,10 +6,10 @@ GraphEraser/GUIDE experiments with the same seeds.
 
 Usage:
     # Extract caches for k=135 (ratio=0.05) from existing results
-    python extract_selection_cache.py --seeds 42,212,722,1337
+    python scripts/tools/extract_selection_cache.py --seeds 42,212,722,1337
 
     # Generate smaller k cache from larger k results
-    python extract_selection_cache.py --generate-subset --source-k 270 --target-k 135
+    python scripts/tools/extract_selection_cache.py --generate-subset --source-k 270 --target-k 135
 """
 import json
 import os

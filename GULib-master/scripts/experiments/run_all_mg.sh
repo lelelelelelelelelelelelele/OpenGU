@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # 创建日志目录
 mkdir -p logs
 
@@ -13,11 +15,11 @@ echo "实验开始: $(date)"
 echo "Running: MG-0, MG-2, MG-3 (skipping MG-1)"
 echo "=============================================="
 
-bash run_mg0_completion.sh
+bash "$SCRIPT_DIR/run_mg0_completion.sh"
 
-bash run_mg2_gat.sh
+bash "$SCRIPT_DIR/run_mg2_gat.sh"
 
-bash run_mg3_extended.sh
+bash "$SCRIPT_DIR/run_mg3_extended.sh"
 
 echo "=============================================="
 echo "实验结束: $(date)"

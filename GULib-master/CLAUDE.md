@@ -26,11 +26,11 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 #   --is_transductive: True/False
 #   --is_balanced: True/False
 # 运行实验脚本
-./run_mg0_completion.sh   # MG-0 稳定性实验补全
-./run_mg1_citeseer.sh      # MG-1 Citeseer 数据集实验
-./run_mg2_gat.sh           # MG-2 GAT 模型实验
-./run_mg3_extended.sh      # MG-3 扩展实验
-./run_all_generalization.sh  # 全量泛化实验
+./scripts/experiments/run_mg0_completion.sh   # MG-0 稳定性实验补全
+./scripts/experiments/run_mg1_citeseer.sh      # MG-1 Citeseer 数据集实验
+./scripts/experiments/run_mg2_gat.sh           # MG-2 GAT 模型实验
+./scripts/experiments/run_mg3_extended.sh      # MG-3 扩展实验
+./scripts/experiments/run_all_generalization.sh  # 全量泛化实验
 ```
 
 No formal test suite exists. Validation is experiment-driven; results are logged to `log/{method}/{dataset}/{model}/`.

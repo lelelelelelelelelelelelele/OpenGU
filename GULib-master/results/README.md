@@ -44,7 +44,7 @@ results/
 - `results/selection_cache/`
   - 由 `attack/selection_cache.py` 维护。
   - 主要复用 `random/pagerank/im` 选点结果。
-  - 建议保留；丢失后可用 `extract_selection_cache.py` 从历史结果重建。
+  - 建议保留；丢失后可用 `scripts/tools/extract_selection_cache.py` 从历史结果重建。
 
 ## 5. 今日整理动作（已执行）
 
