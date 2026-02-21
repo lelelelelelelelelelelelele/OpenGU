@@ -530,7 +530,7 @@ def evaluate_collateral_damage(
     1. hybrid.select_nodes(k=50)
     2. 运行对应遗忘方法
     3. evaluate_f1_drop()
-预期: IF-based 方法 (GIF, GST, GUIDE) F1 drop 大于 Learning-based
+预期: IF-based 方法 (GIF, GST) F1 drop 大于 Learning-based；Shard-based (GraphEraser, GUIDE) 攻击效果较弱
 ```
 
 ### 测试 4: Unlearn ratio 敏感性

@@ -53,7 +53,8 @@ No formal test suite exists. Validation is experiment-driven; results are logged
 
 Three abstract pipeline base classes in `pipeline/`:
 - **Shard_based_pipeline**: For partition-then-aggregate methods (GraphEraser, GraphRevoker)
-- **IF_based_pipeline**: For influence-function-based methods (GIF, GST, GUIDE)
+- **IF_based_pipeline**: For influence-function-based methods (GIF, GST)
+- **Shard_based_pipeline**: For graph-partitioning methods (GraphEraser, GUIDE, GraphRevoker)
 - **Learning_based_pipeline**: For learned unlearning strategies
 
 Each unlearning method in `unlearning/unlearning_methods/{Method}/` inherits from one of these pipelines.

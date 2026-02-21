@@ -57,7 +57,7 @@
 
 建议你优先选：
 
-* GraphEraser（partition-based）+ GIF 或 GUIDE（IF-based）
+* GraphEraser（Shard-based）+ GIF（IF-based）
   如果仓库里更适合别的组合，也可以调整，但必须解释你为何这么选。
 
 ### 4) 把评估与攻击联系起来（这是 GULib 的重点）

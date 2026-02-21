@@ -17,7 +17,7 @@
 | D2DGN | OK | Learning-based | 0.74% | Stable |
 | SGU | OK | Learning-based | 0.55% | Stable |
 | GUKD | OK | Learning-based | 0.37% | Stable |
-| GUIDE | OK | IF-based | 0.00% | **Immune** |
+| GUIDE | OK | Shard-based | 0.00% | **Immune** |
 | GST | FAIL | IF-based | - | N/A |
 | CEU | FAIL | Learning-based | - | N/A |
 | CGU | FAIL | Special (SGC only) | - | N/A |
