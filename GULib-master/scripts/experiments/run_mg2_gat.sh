@@ -4,6 +4,23 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "H:/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="H:/project/OpenGU/GULib-master"
+elif [ -d "/h/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="/h/project/OpenGU/GULib-master"
+else
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+if [ -x "H:/conda_package/envs/gnn/python.exe" ]; then
+    PYTHON_BIN="H:/conda_package/envs/gnn/python.exe"
+elif [ -x "/h/conda_package/envs/gnn/python.exe" ]; then
+    PYTHON_BIN="/h/conda_package/envs/gnn/python.exe"
+else
+    PYTHON_BIN="python"
+fi
+
 METHODS="GIF,GNNDelete,GraphEraser"
 DATASETS="cora"
 BASE_MODEL="GAT"
@@ -19,10 +36,10 @@ echo "Methods: $METHODS"
 echo "Seeds: $SEEDS"
 echo "=============================================="
 
-cd H:/project/OpenGU/GULib-master
+cd "$REPO_ROOT"
 
 # 使用 run_experiments.py
-H:/conda_package/envs/gnn/python.exe run_experiments.py \
+"$PYTHON_BIN" run_experiments.py \
     --methods $METHODS \
     --datasets $DATASETS \
     --base_model $BASE_MODEL \

@@ -4,12 +4,19 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "H:/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="H:/project/OpenGU/GULib-master"
+elif [ -d "/h/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="/h/project/OpenGU/GULib-master"
+else
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
 
 echo "=============================================="
 echo "Running All Generalization Experiments"
 echo "=============================================="
 
-cd H:/project/OpenGU/GULib-master
+cd "$REPO_ROOT"
 
 # MG-0: 补全 GraphEraser + GUIDE (5 seeds x 6 strategies x 2 methods = 60 runs)
 echo ""

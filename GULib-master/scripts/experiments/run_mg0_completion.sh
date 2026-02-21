@@ -1,6 +1,28 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "H:/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="H:/project/OpenGU/GULib-master"
+elif [ -d "/h/project/OpenGU/GULib-master" ]; then
+    REPO_ROOT="/h/project/OpenGU/GULib-master"
+else
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+if [ -x "H:/conda_package/envs/gnn/python.exe" ]; then
+    PYTHON_BIN="H:/conda_package/envs/gnn/python.exe"
+elif [ -x "/h/conda_package/envs/gnn/python.exe" ]; then
+    PYTHON_BIN="/h/conda_package/envs/gnn/python.exe"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+else
+    echo "ERROR: No usable Python interpreter found." >&2
+    exit 1
+fi
+
 # MG-0 稳定性实验补全脚本
 # 需要运行 GraphEraser 和 GUIDE 在 seeds 42, 212, 722, 1337 上
 
@@ -34,7 +56,7 @@ if [ "$REPAIR_MODE" -eq 1 ]; then
 fi
 echo "=============================================="
 
-cd H:/project/OpenGU/GULib-master
+cd "$REPO_ROOT"
 
 # 基础参数（普通模式与修补模式共用）
 COMMON_ARGS=(
@@ -49,12 +71,12 @@ COMMON_ARGS=(
 )
 
 if [ "$REPAIR_MODE" -eq 1 ]; then
-    H:/conda_package/envs/gnn/python.exe run_experiments.py \
+    "$PYTHON_BIN" run_experiments.py \
         "${COMMON_ARGS[@]}" \
         --repair \
         "${EXTRA_ARGS[@]}"
 else
-    H:/conda_package/envs/gnn/python.exe run_experiments.py \
+    "$PYTHON_BIN" run_experiments.py \
         "${COMMON_ARGS[@]}" \
         "${EXTRA_ARGS[@]}"
 fi
