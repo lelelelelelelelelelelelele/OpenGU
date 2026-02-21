@@ -25,23 +25,34 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 
-# Extract --strategies from sys.argv BEFORE any import that triggers
+# Extract custom args from sys.argv BEFORE any import that triggers
 # config.py (which calls parameter_parser() at import time and rejects
 # unknown args).
 _strategies_str = 'random,degree,pagerank,tracin,im,hybrid'
+_repair_mode = False
+_repair_dry_run = False
+_raw_args = list(sys.argv[1:])
 _filtered_argv = []
-_skip_next = False
-for _i, _arg in enumerate(sys.argv[1:]):
-    if _skip_next:
-        _skip_next = False
-        continue
+_i = 0
+while _i < len(_raw_args):
+    _arg = _raw_args[_i]
     if _arg == '--strategies':
-        _strategies_str = sys.argv[1:][_i + 1]
-        _skip_next = True
+        if _i + 1 < len(_raw_args):
+            _strategies_str = _raw_args[_i + 1]
+            _i += 2
+            continue
+        _i += 1
+        continue
     elif _arg.startswith('--strategies='):
         _strategies_str = _arg.split('=', 1)[1]
+    elif _arg == '--repair':
+        _repair_mode = True
+    elif _arg == '--repair_dry_run':
+        _repair_mode = True
+        _repair_dry_run = True
     else:
         _filtered_argv.append(_arg)
+    _i += 1
 sys.argv = [sys.argv[0]] + _filtered_argv
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -143,15 +154,107 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
     return None
 
 
+def _normalize_strategies(strategies):
+    seen = set()
+    normalized = []
+    for s in strategies:
+        s = str(s).strip()
+        if not s or s in seen:
+            continue
+        seen.add(s)
+        normalized.append(s)
+    return normalized
+
+
+def _safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _target_seed(args):
+    seed = args.get('random_seed', args.get('seed'))
+    try:
+        return int(seed)
+    except (TypeError, ValueError):
+        return None
+
+
+def _matches_collateral_config(config: dict, args: dict):
+    if not isinstance(config, dict):
+        return False
+    if str(config.get('dataset_name', '')) != str(args.get('dataset_name', '')):
+        return False
+    if str(config.get('base_model', '')) != str(args.get('base_model', '')):
+        return False
+    if str(config.get('unlearning_methods', '')) != str(args.get('unlearning_methods', '')):
+        return False
+
+    cfg_ratio = _safe_float(config.get('unlearn_ratio'))
+    target_ratio = _safe_float(args.get('unlearn_ratio'))
+    if cfg_ratio is None or target_ratio is None or abs(cfg_ratio - target_ratio) > 1e-6:
+        return False
+
+    # Strict seed match in repair mode: old files without seed are non-exact matches.
+    cfg_seed = config.get('random_seed')
+    if cfg_seed is None:
+        return False
+    try:
+        cfg_seed = int(cfg_seed)
+    except (TypeError, ValueError):
+        return False
+
+    tgt_seed = _target_seed(args)
+    if tgt_seed is None:
+        return False
+    return cfg_seed == tgt_seed
+
+
+def _scan_existing_collateral(args: dict):
+    out_dir = Path(f"./results/collateral/{args['unlearning_methods']}/{args['dataset_name']}/{args['base_model']}")
+    strategy_map = {}
+    matched_files = []
+    if not out_dir.exists():
+        return strategy_map, matched_files
+
+    files = sorted(
+        out_dir.glob("collateral_*.json"),
+        key=lambda p: p.stat().st_mtime
+    )
+    for path in files:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not _matches_collateral_config(data.get('config', {}), args):
+            continue
+
+        matched_files.append(str(path))
+        for result in data.get('results', []):
+            if not isinstance(result, dict):
+                continue
+            strategy = str(result.get('strategy', '')).strip()
+            if not strategy:
+                continue
+            strategy_map[strategy] = result
+    return strategy_map, matched_files
+
+
 def main():
-    strategies = [s.strip() for s in _strategies_str.split(',')]
+    strategies = _normalize_strategies(_strategies_str.split(','))
 
     # Parse CLI args (inherits all main.py args via parameter_parser)
     args = parameter_parser()
 
     # parameter_parser() defaults unlearn_ratio=0.1, but experiment caches use 0.05.
     # Override to 0.05 unless the user explicitly passed --unlearn_ratio.
-    if '--unlearn_ratio' not in sys.argv and '--unlearn_ratio=' not in ' '.join(sys.argv):
+    passed_unlearn_ratio = any(
+        a == '--unlearn_ratio' or str(a).startswith('--unlearn_ratio=')
+        for a in sys.argv[1:]
+    )
+    if not passed_unlearn_ratio:
         args['unlearn_ratio'] = 0.05
 
     # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
@@ -163,6 +266,32 @@ def main():
     print(f"Strategies: {strategies}")
     print("=" * 80)
 
+    existing_results_by_strategy = {}
+    matched_collateral_files = []
+    strategies_to_run = list(strategies)
+    completed_before = []
+
+    if _repair_mode:
+        existing_results_by_strategy, matched_collateral_files = _scan_existing_collateral(args)
+        completed_before = [s for s in strategies if s in existing_results_by_strategy]
+        strategies_to_run = [s for s in strategies if s not in existing_results_by_strategy]
+
+        print(
+            f"[REPAIR] requested={len(strategies)} "
+            f"completed_before={len(completed_before)} "
+            f"missing={len(strategies_to_run)}"
+        )
+        if matched_collateral_files:
+            print(f"[REPAIR] matched_files={len(matched_collateral_files)}")
+        if strategies_to_run:
+            print(f"[REPAIR] missing_strategies={','.join(strategies_to_run)}")
+        else:
+            print("[REPAIR] No missing strategies found")
+            return
+        if _repair_dry_run:
+            print("[REPAIR] Dry-run mode enabled. No collateral evaluation executed.")
+            return
+
     # Initialize pipeline
     pipeline = AttackPipeline(args)
     cache = ResultCache(cache_dir="./results/cache")
@@ -170,7 +299,7 @@ def main():
     # Storage for results
     all_results = []
 
-    for strategy_name in strategies:
+    for strategy_name in strategies_to_run:
         print(f"\n--- Strategy: {strategy_name} ---")
 
         # 1. Read selected_nodes from cache
@@ -263,7 +392,23 @@ def main():
     header = f"{'Strategy':<12}| {'Gap':>8} | {'Gap%':>7} | {'MeanShift':>10} | {'MaxShift':>9} | {'Flipped%':>9}"
     print(header)
     print("-" * 90)
-    for r in all_results:
+    final_results = all_results
+    if _repair_mode:
+        merged = dict(existing_results_by_strategy)
+        for r in all_results:
+            merged[r['strategy']] = r
+        ordered = []
+        seen = set()
+        for s in strategies:
+            if s in merged:
+                ordered.append(merged[s])
+                seen.add(s)
+        for s in sorted(merged.keys()):
+            if s not in seen:
+                ordered.append(merged[s])
+        final_results = ordered
+
+    for r in final_results:
         print(f"{r['strategy']:<12}| {r['gap']:>8.4f} | {r['gap_pct']:>6.2f}% | "
               f"{r['mean_pred_shift']:>10.4f} | {r['max_pred_shift']:>9.4f} | "
               f"{r['fraction_flipped']*100:>8.2f}%")
@@ -281,20 +426,33 @@ def main():
                 "base_model": args['base_model'],
                 "unlearning_methods": args['unlearning_methods'],
                 "unlearn_ratio": args['unlearn_ratio'],
+                "random_seed": args.get('random_seed', args.get('seed')),
+                "strategies_requested": strategies,
             },
-            "results": all_results,
+            "results": final_results,
             "timestamp": datetime.now().isoformat(),
+            **({
+                "repair_meta": {
+                    "repair_mode": True,
+                    "dry_run": _repair_dry_run,
+                    "requested": len(strategies),
+                    "completed_before": len(completed_before),
+                    "executed_now": len(all_results),
+                    "missing_before": len(strategies_to_run),
+                }
+            } if _repair_mode else {}),
         }, f, indent=2)
     print(f"\nResults saved to: {out_path}")
 
     # 8. Append to auto_report.md
     try:
         from results.step0_validation.report_writer import append_collateral_entry
-        status = "OK" if all_results else "WARN"
+        report_results = final_results if _repair_mode else all_results
+        status = "OK" if report_results else "WARN"
         error_type = None
         error_msg = None
         next_step = None
-        if not all_results:
+        if not report_results:
             error_type = "NO_CACHE_HIT"
             error_msg = "No matching cache entries found for the requested strategies/ratio/seed."
             next_step = "先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。"
@@ -303,7 +461,7 @@ def main():
             model=args['base_model'],
             method=args['unlearning_methods'],
             ratio=str(args['unlearn_ratio']),
-            results=all_results,
+            results=report_results,
             log_file=str(out_path),
             status=status,
             error_type=error_type,
