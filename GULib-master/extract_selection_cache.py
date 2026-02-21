@@ -1,5 +1,5 @@
 """
-Extract selected_nodes from phase_a results and create selection_cache entries.
+Extract selected_nodes from experiment results and create selection_cache entries.
 
 This enables cache hits for random/pagerank/im strategies when running
 GraphEraser/GUIDE experiments with the same seeds.
@@ -20,7 +20,11 @@ import hashlib
 import numpy as np
 
 # Base paths
-PHASE_A_DIR = Path("results/experiments/phase_a")
+PHASE_A_CANDIDATES = [
+    Path("results/experiments/mg0_completion/phase_a"),
+    Path("results/experiments/phase_a"),
+    Path("results/experiments/_archive/phase_a"),
+]
 CACHE_DIR = Path("results/selection_cache")
 
 # Seeds and strategies
@@ -123,14 +127,19 @@ def create_cache_entry(strategy_name: str, seed: int, selected_nodes: list,
 
 def extract_from_phase_a():
     """Extract caches from existing phase_a results."""
+    phase_a_dir = next((p for p in PHASE_A_CANDIDATES if p.exists()), PHASE_A_CANDIDATES[0])
     print("Extracting selected_nodes from phase_a results...")
+    print(f"Source directory: {phase_a_dir}")
     print(f"Seeds: {SEEDS}")
     print(f"Cacheable strategies: {CACHEABLE_STRATEGIES}")
     print(f"Graph fingerprint: {GRAPH_FINGERPRINT}")
     print()
 
     # Find all phase_a result directories
-    phase_dirs = sorted([d for d in PHASE_A_DIR.iterdir() if d.is_dir() and "_seed" in d.name])
+    if not phase_a_dir.exists():
+        print(f"Source directory not found: {phase_a_dir}")
+        return
+    phase_dirs = sorted([d for d in phase_a_dir.iterdir() if d.is_dir() and "_seed" in d.name])
     print(f"Found {len(phase_dirs)} phase_a directories")
 
     created = 0
@@ -215,7 +224,10 @@ def generate_subset_from_source(source_k: int, target_k: int):
     source_ratio = source_k / CORA_NUM_NODES
 
     # Find all phase_a directories
-    phase_dirs = sorted([d for d in PHASE_A_DIR.iterdir() if d.is_dir() and "_seed" in d.name])
+    if not phase_a_dir.exists():
+        print(f"Source directory not found: {phase_a_dir}")
+        return
+    phase_dirs = sorted([d for d in phase_a_dir.iterdir() if d.is_dir() and "_seed" in d.name])
 
     if not phase_dirs:
         print("No phase_a directories found!")
@@ -348,3 +360,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    phase_a_dir = next((p for p in PHASE_A_CANDIDATES if p.exists()), PHASE_A_CANDIDATES[0])
+    print(f"Source directory: {phase_a_dir}")

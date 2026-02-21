@@ -5,8 +5,8 @@ Also check if mg0_completion deprecated files had non-tracin data we need.
 import json, glob, os
 import numpy as np
 
-v2_base = 'results/experiments/phase_a_v2_tracin_fix'
-new_base = 'results/experiments/tracin_fix_phase_a/phase_a'
+v2_base = 'results/experiments/_archive/phase_a_v2_tracin_fix'
+new_base = 'results/experiments/_archive/tracin_fix_phase_a/phase_a'
 deprecated_base = 'results/_deprecated_tracin_bug/mg0_completion/phase_a'
 
 # Check what mg0_completion had for seed 2024

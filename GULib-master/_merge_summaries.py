@@ -1,15 +1,15 @@
 """
 Merge old phase_a summaries with new tracin fix data.
 For each seed: replace tracin strategy in each method's results, regenerate _summary.json.
-Output to results/experiments/phase_a_v2_tracin_fix/ directory structure.
+Output to archived phase_a_v2_tracin_fix directory structure.
 """
 import json, glob, os, shutil
 from datetime import datetime
 from copy import deepcopy
 
-old_base = 'results/experiments/phase_a'
-new_base = 'results/experiments/tracin_fix_phase_a/phase_a'
-out_base = 'results/experiments/phase_a_v2_tracin_fix'
+old_base = 'results/experiments/_archive/phase_a'
+new_base = 'results/experiments/_archive/tracin_fix_phase_a/phase_a'
+out_base = 'results/experiments/_archive/phase_a_v2_tracin_fix'
 
 os.makedirs(out_base, exist_ok=True)
 

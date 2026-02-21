@@ -9,16 +9,13 @@
 
 ```text
 results/
-├─ experiments/            # 泛化实验主结果（mg0/mg1/mg2/mg3 + phase_a 系）
+├─ experiments/            # 泛化实验主结果（mg0/mg1/mg2/mg3）
 │  ├─ _archive/            # 已归档的旧批次（保留可追溯性）
 │  ├─ mg0_completion/
 │  ├─ mg1_citeseer/
 │  ├─ mg2_gat/
 │  ├─ mg3_citeseer/
-│  ├─ mg3_gat/
-│  ├─ phase_a/
-│  ├─ tracin_fix_phase_a/
-│  └─ phase_a_v2_tracin_fix/
+│  └─ mg3_gat/
 ├─ cache/                  # ResultCache（哈希键命名，按配置缓存结果）
 ├─ selection_cache/        # SelectionCache（选点缓存，跨方法复用）
 ├─ collateral/             # collateral damage 评估结果
@@ -52,6 +49,10 @@ results/
 - 已将 `mg1_citeseer` 的旧重复批次归档到：
   - `results/experiments/_archive/mg1_citeseer/phase_a/`
 - 当前 `mg1_citeseer/phase_a` 仅保留每个 seed 的最新完整批次（5 个 seed）。
+- 已将历史目录归档到：
+  - `results/experiments/_archive/phase_a/`
+  - `results/experiments/_archive/tracin_fix_phase_a/`
+  - `results/experiments/_archive/phase_a_v2_tracin_fix/`
 
 ## 6. 维护规则（建议长期执行）
 
@@ -59,7 +60,7 @@ results/
 - 对同一实验组同一 seed 的重复批次：
   - 保留最新且 `completed==total_experiments` 的目录。
   - 旧目录移动到 `results/experiments/_archive/...`，不要直接删除。
-- `phase_a` / `phase_a_v2_tracin_fix` 属历史对照数据，优先“冻结”而非重排。
+- `_archive/phase_a*` 与 `_archive/tracin_fix_phase_a` 属历史对照数据，优先“冻结”而非重排。
 - 报告类目录（`checkpoint_report`, `_journal`）保持 append-only。
 
 ## 7. 常用检查命令
@@ -89,7 +90,7 @@ for g in sorted([p for p in root.iterdir() if p.is_dir()]):
 
 ## 8. 当前数据量快照（2026-02-21）
 
-- `results/experiments`: 196 files, ~12.92 MB
+- `results/experiments`: 198 files, ~12.93 MB
 - `results/step0_validation`: 278 files, ~7.42 MB
 - `results/cache`: 483 json, ~3.48 MB
 - `results/selection_cache`: 84 json, ~0.18 MB

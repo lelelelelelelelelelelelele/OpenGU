@@ -19,3 +19,13 @@
 
 归档原因：同 seed 后续批次（18:47-18:49）已成功补齐，旧批次为重复或失败版本。
 
+## 2026-02-21 归档记录（追加）
+
+- 来源：`results/experiments/`
+- 归档到：`results/experiments/_archive/`
+- 归档目录：
+  - `phase_a`
+  - `tracin_fix_phase_a`
+  - `phase_a_v2_tracin_fix`
+
+归档原因：上述目录为历史阶段/修复派生产物，当前主分析路径已切换到 `mg*_*/phase_a`。

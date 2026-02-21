@@ -62,9 +62,9 @@
   - 产出：`mean ± std`，确认结论不是 seed 偶然
   - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
   - **状态**：🔄 部分完成
-    - GIF/GNNDelete: ✅ 4 seeds (42,212,722,1337)，❌ 缺 2024
-    - GraphEraser/GUIDE: ✅ 5 seeds (42,212,722,1337,2024) 🎉
-  - **需补跑**：seed 2024 的 GIF/GNNDelete
+    - GIF/GNNDelete/GraphEraser: ✅ 5 seeds (42,212,722,1337,2024) 🎉
+    - GUIDE: ❌ 缺 seed 212
+  - **需补跑**：seed 212 的 GUIDE
 
 ### 2.2 MG-1 最小跨数据集泛化
 
