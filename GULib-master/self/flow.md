@@ -1018,7 +1018,7 @@ git tag v0.3-experiments
 - [x] 跨遗忘方法: hybrid × [GIF, GNNDelete, GraphEraser, GUIDE, IDEA, MEGU] (缺 GST)
 - [x] 跨数据集: hybrid × GIF × [Cora, Citeseer] (缺 PubMed, Physics)
 - [x] 跨模型: hybrid × GIF × [GCN, GAT] (缺 GIN, SAGE)
-- [x] Unlearn ratio 敏感性: [1%, 5%, 10%, 20%] 四组结果
+- [ ] Unlearn ratio 敏感性: [1%, 5%, 10%, 20%] 四组结果
 - [x] Retrain 对照: Phase A+ 有 retrain gap 结果
 - [x] GraphEraser 抗攻击对照
 - [x] MIA AUC 评估

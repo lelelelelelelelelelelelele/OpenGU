@@ -55,46 +55,39 @@
 
 ### 2.1 MG-0 稳定性（非泛化，但必做）
 
-- [ ] `Cora / GCN / ratio=0.05 / 5 seeds`
+- [x] `Cora / GCN / ratio=0.05 / 5 seeds`
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 产出：`mean ± std`，确认结论不是 seed 偶然
   - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
-  - **状态**：🔄 部分完成
-    - GIF/GNNDelete/GraphEraser: ✅ 5 seeds (42,212,722,1337,2024) 🎉
-    - GUIDE: ❌ 缺 seed 212
-  - **需补跑**：seed 212 的 GUIDE
+  - **状态**：✅ 完成 (2026-02-22)
 
 ### 2.2 MG-1 最小跨数据集泛化
 
-- [ ] `Citeseer / GCN / ratio=0.05 / 5 seeds`
+- [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
   - 规模：`3 × 6 × 5 = 90 runs`
-  - **状态**：🔄 接近完成
-    - GIF: ✅ 5 seeds
-    - GraphEraser: ✅ 5 seeds
-    - GNNDelete: ⚠️ 4 seeds (seed 212 运行失败，日志截断)
-  - **需补跑**：seed 212 的 GNNDelete（检查错误原因）
+  - **状态**：✅ 完成 (2026-02-22)
 
 ### 2.3 MG-2 最小跨模型泛化
 
-- [ ] `Cora / GAT / ratio=0.05 / 5 seeds`
+- [x] `Cora / GAT / ratio=0.05 / 5 seeds`
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral`
   - 规模：`3 × 6 × 5 = 90 runs`
-  - **状态**：❌ 未开始（sh 文件已配置）
+  - **状态**：✅ 完成 (2026-02-22)
 
 ### 2.4 MG-3（可选）扩展到 5 方法
 
-- [ ] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`
+- [x] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`
   - methods: `GIF, GNNDelete, GraphEraser, IDEA, MEGU`
   - 建议先只跑 `random, tracin, im, hybrid` 四策略做筛选
   - 说明：`GST` 当前有兼容问题，不建议放在最小泛化主线
-  - **状态**：❌ 未开始（sh 文件已配置）
+  - **状态**：✅ 完成 (2026-02-22)
 
 ### 2.5 最小泛化通过标准
 

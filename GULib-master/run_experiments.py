@@ -21,6 +21,7 @@ import os
 import sys
 import json
 import re
+import ast
 import subprocess
 import time
 import threading
@@ -66,6 +67,8 @@ RUN_DIR_PATTERN = re.compile(r".*_seed(?P<seed>\d+)$")
 ERROR_LOG_PATTERN = re.compile(
     r"^(?P<method>[^_]+)_(?P<dataset>[^_]+)_(?P<model>[^_]+)_r(?P<ratio>[^_]+)_s(?P<seed>\d+)_error\.log$"
 )
+STRATEGIES_COMPARE_PATTERN = re.compile(r"Strategies to compare:\s*(\[[^\n]+\])")
+STRATEGIES_DICT_PATTERN = re.compile(r"'strategies'\s*:\s*(\[[^\]]+\])")
 
 
 def _parse_seed_from_run_dir(run_dir: Path):
@@ -88,6 +91,123 @@ def _json_name(method, dataset, model, ratio, seed):
 
 def _result_key(method, dataset, model, ratio):
     return f"{method}_{dataset}_{model}_r{_ratio_text(ratio)}"
+
+
+def _normalize_strategies(raw):
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        values = [s.strip() for s in raw.split(",") if s.strip()]
+    elif isinstance(raw, (list, tuple)):
+        values = [str(s).strip() for s in raw if str(s).strip()]
+    else:
+        return None
+    if not values:
+        return None
+    return ",".join(values)
+
+
+def _load_json_file(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _parse_strategies_literal(text):
+    try:
+        parsed = ast.literal_eval(text)
+    except (SyntaxError, ValueError):
+        return None
+    return _normalize_strategies(parsed)
+
+
+def _parse_strategies_from_error_log(error_file):
+    try:
+        with open(error_file, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
+    except OSError:
+        return None
+
+    match = STRATEGIES_COMPARE_PATTERN.search(text)
+    if match:
+        parsed = _parse_strategies_literal(match.group(1))
+        if parsed:
+            return parsed
+
+    match = STRATEGIES_DICT_PATTERN.search(text)
+    if match:
+        parsed = _parse_strategies_literal(match.group(1))
+        if parsed:
+            return parsed
+
+    return None
+
+
+def _resolve_run_strategies(run_dir, fallback_strategies):
+    run_dir = Path(run_dir)
+
+    summary = _load_json_file(run_dir / "_summary.json")
+    if isinstance(summary, dict):
+        config = summary.get("config")
+        if isinstance(config, dict):
+            strategies = _normalize_strategies(config.get("strategies"))
+            if strategies:
+                return strategies, "summary"
+
+    for json_file in sorted(run_dir.glob("*.json")):
+        if json_file.name == "_summary.json":
+            continue
+        data = _load_json_file(json_file)
+        if not isinstance(data, dict):
+            continue
+        config = data.get("config")
+        if not isinstance(config, dict):
+            continue
+        strategies = _normalize_strategies(config.get("strategies"))
+        if strategies:
+            return strategies, f"result_json:{json_file.name}"
+
+    for error_file in sorted(run_dir.glob("*_error.log")):
+        strategies = _parse_strategies_from_error_log(error_file)
+        if strategies:
+            return strategies, f"error_log:{error_file.name}"
+
+    fallback = _normalize_strategies(fallback_strategies)
+    if fallback:
+        return fallback, "fallback"
+
+    return "random,degree,pagerank,tracin", "fallback_default"
+
+
+def _collect_result_map(expected_items):
+    result_map = {}
+    for item in expected_items:
+        json_path = Path(item["json_path"])
+        if not json_path.exists():
+            continue
+        data = _load_json_file(json_path)
+        if data is None:
+            continue
+        result_map[_result_key(item["method"], item["dataset"], item["model"], item["ratio"])] = data
+    return result_map
+
+
+def _summary_needs_rebuild(run_dir, total, completed, failed, result_keys):
+    summary = _load_json_file(Path(run_dir) / "_summary.json")
+    if not isinstance(summary, dict):
+        return True
+    if summary.get("total_experiments") != total:
+        return True
+    if summary.get("completed") != completed:
+        return True
+    if summary.get("failed") != failed:
+        return True
+    summary_results = summary.get("results")
+    if not isinstance(summary_results, dict):
+        return True
+    return set(summary_results.keys()) != set(result_keys)
 
 
 def _build_grid_items(config, seed, run_dir):
@@ -128,7 +248,10 @@ def _scan_missing_items_error_only(run_dir, seed):
         if item_seed != seed:
             continue
         ratio_text = match.group("ratio")
-        ratio_value = float(ratio_text)
+        try:
+            ratio_value = float(ratio_text)
+        except ValueError:
+            ratio_value = ratio_text
         json_path = run_dir / f"{match.group('method')}_{match.group('dataset')}_{match.group('model')}_r{ratio_text}_s{item_seed}.json"
         item = {
             "run_dir": str(run_dir),
@@ -146,68 +269,107 @@ def _scan_missing_items_error_only(run_dir, seed):
     return expected_items, missing_items
 
 
-def _resolve_repair_run_dirs(repair_dir, seed_list, repair_select):
+def _resolve_repair_targets(repair_dir, seed_list, repair_select):
     repair_path = Path(repair_dir)
     if not repair_path.exists():
         raise FileNotFoundError(f"Repair directory not found: {repair_dir}")
 
-    seed_filter = set(seed_list) if seed_list else None
-    candidates = []
+    seed_filter = sorted(set(seed_list)) if seed_list else []
+    seed_filter_set = set(seed_filter) if seed_filter else None
 
     direct_seed = _parse_seed_from_run_dir(repair_path)
     if direct_seed is not None:
-        candidates = [repair_path]
+        if seed_filter_set is None or direct_seed in seed_filter_set:
+            return [{
+                "seed": direct_seed,
+                "run_dir": repair_path,
+                "is_new": False,
+            }]
+        return []
+
+    candidates = [p for p in repair_path.rglob("*") if p.is_dir() and _parse_seed_from_run_dir(p) is not None]
+    if seed_filter_set is not None:
+        candidates = [p for p in candidates if _parse_seed_from_run_dir(p) in seed_filter_set]
+
+    by_seed = {}
+    for run_dir in candidates:
+        seed = _parse_seed_from_run_dir(run_dir)
+        by_seed.setdefault(seed, []).append(run_dir)
+    for seed in by_seed:
+        by_seed[seed].sort(key=lambda p: p.name)
+
+    if seed_filter:
+        target_seeds = seed_filter
     else:
-        candidates = [p for p in repair_path.rglob("*") if p.is_dir() and _parse_seed_from_run_dir(p) is not None]
+        target_seeds = sorted(by_seed.keys())
 
-    if seed_filter is not None:
-        candidates = [p for p in candidates if _parse_seed_from_run_dir(p) in seed_filter]
+    targets = []
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    if repair_select == "latest_per_seed":
-        latest = {}
-        for run_dir in candidates:
-            seed = _parse_seed_from_run_dir(run_dir)
-            prev = latest.get(seed)
-            if prev is None or run_dir.name > prev.name:
-                latest[seed] = run_dir
-        candidates = list(latest.values())
+    if repair_select == "all_runs":
+        for seed in target_seeds:
+            runs = by_seed.get(seed, [])
+            if runs:
+                for run_dir in runs:
+                    targets.append({"seed": seed, "run_dir": run_dir, "is_new": False})
+            else:
+                targets.append({
+                    "seed": seed,
+                    "run_dir": repair_path / f"{timestamp}_seed{seed}",
+                    "is_new": True,
+                })
+        return targets
 
-    return sorted(candidates, key=lambda p: (_parse_seed_from_run_dir(p), p.name))
+    for seed in target_seeds:
+        runs = by_seed.get(seed, [])
+        if runs:
+            targets.append({"seed": seed, "run_dir": runs[-1], "is_new": False})
+        else:
+            targets.append({
+                "seed": seed,
+                "run_dir": repair_path / f"{timestamp}_seed{seed}",
+                "is_new": True,
+            })
+
+    return targets
 
 
-def _rebuild_summary_in_place(run_dir, config, seed, disable_cache, repair_meta, expected_items):
+def _rebuild_summary_in_place(
+    run_dir,
+    config,
+    seed,
+    disable_cache,
+    repair_meta,
+    expected_items,
+    resolved_strategies,
+):
     run_dir = Path(run_dir)
     summary_path = run_dir / "_summary.json"
     old_summary = {}
-    if summary_path.exists():
-        try:
-            with open(summary_path, "r", encoding="utf-8") as f:
-                old_summary = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            old_summary = {}
+    loaded = _load_json_file(summary_path)
+    if isinstance(loaded, dict):
+        old_summary = loaded
 
-    result_map = {}
-    for item in expected_items:
-        json_path = Path(item["json_path"])
-        if not json_path.exists():
-            continue
-        try:
-            with open(json_path, "r", encoding="utf-8") as f:
-                result_map[_result_key(item["method"], item["dataset"], item["model"], item["ratio"])] = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            continue
+    result_map = _collect_result_map(expected_items)
 
     total = len(expected_items)
     completed = len(result_map)
     failed = max(total - completed, 0)
 
     summary = old_summary.copy()
-    summary["phase"] = old_summary.get("phase", f"Repair: {run_dir.parent.name}")
+    summary["phase"] = old_summary.get("phase", config.get("name", f"Repair: {run_dir.parent.name}"))
     summary["timestamp"] = old_summary.get("timestamp", datetime.now().strftime("%Y%m%d_%H%M%S"))
     summary["total_experiments"] = total
     summary["completed"] = completed
     summary["failed"] = failed
-    summary["config"] = config
+    summary_config = {}
+    if isinstance(old_summary.get("config"), dict):
+        summary_config = old_summary["config"].copy()
+    for key in ("name", "methods", "datasets", "models", "ratios"):
+        if key in config:
+            summary_config[key] = config[key]
+    summary_config["strategies"] = resolved_strategies
+    summary["config"] = summary_config
     summary["random_seed"] = seed
     summary["cache_enabled"] = not disable_cache
     summary["results"] = result_map
@@ -226,74 +388,129 @@ def _rebuild_summary_in_place(run_dir, config, seed, disable_cache, repair_meta,
 
 def _run_repair(config, cuda, repair_dir, seed_list, disable_cache=False, timeout_map=None,
                 repair_select="latest_per_seed", repair_from="grid", repair_dry_run=False):
-    run_dirs = _resolve_repair_run_dirs(repair_dir, seed_list, repair_select)
-    if not run_dirs:
+    targets = _resolve_repair_targets(repair_dir, seed_list, repair_select)
+    if not targets:
         print("[REPAIR] No target run directories found.")
         return
 
     print(f"[REPAIR] scan_dir={repair_dir} mode={repair_from} select={repair_select}")
     all_missing = []
     per_run = {}
+    summary_only_runs = []
+    fallback_strategies = config.get("strategies", "")
 
-    for run_dir in run_dirs:
-        seed = _parse_seed_from_run_dir(run_dir)
-        if seed is None:
-            continue
-        if repair_from == "grid":
+    for target in targets:
+        run_dir = Path(target["run_dir"])
+        run_key = str(run_dir)
+        seed = int(target["seed"])
+        is_new = bool(target["is_new"])
+
+        effective_repair_from = repair_from
+        if is_new and repair_from == "error_only":
+            effective_repair_from = "grid"
+
+        if effective_repair_from == "grid":
             expected_items, missing_items = _scan_missing_items_grid(run_dir, config, seed)
         else:
             expected_items, missing_items = _scan_missing_items_error_only(run_dir, seed)
-        per_run[str(run_dir)] = {
+
+        strategies, strategy_source = _resolve_run_strategies(run_dir, fallback_strategies)
+        existing_result_map = _collect_result_map(expected_items)
+        total = len(expected_items)
+        completed = len(existing_result_map)
+        failed_count = max(total - completed, 0)
+        summary_needs_rebuild = is_new or _summary_needs_rebuild(
+            run_dir=run_dir,
+            total=total,
+            completed=completed,
+            failed=failed_count,
+            result_keys=existing_result_map.keys(),
+        )
+
+        per_run[run_key] = {
             "seed": seed,
+            "run_dir": run_dir,
+            "is_new": is_new,
             "expected_items": expected_items,
             "missing_items": missing_items,
+            "attempted": len(missing_items),
             "success": 0,
-            "failed": 0,
+            "failed_exec": 0,
+            "summary_needs_rebuild": summary_needs_rebuild,
+            "effective_repair_from": effective_repair_from,
+            "strategies": strategies,
+            "strategies_source": strategy_source,
         }
+
+        state = "NEW_RUN" if is_new else "EXISTING_RUN"
+        print(
+            f"[REPAIR] {state} seed={seed} run={run_dir} "
+            f"missing={len(missing_items)} "
+            f"strategies={strategies} source={strategy_source}"
+        )
+
+        if summary_needs_rebuild and not missing_items:
+            summary_only_runs.append(run_key)
+
         all_missing.extend(missing_items)
 
-    if not all_missing:
+    if all_missing:
+        print(f"[REPAIR] Found {len(all_missing)} missing experiments:")
+        for item in all_missing:
+            print(f"[REPAIR]   {item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']} @ {item['run_dir']}")
+    else:
         print("[REPAIR] No missing experiments found")
-        return
 
-    print(f"[REPAIR] Found {len(all_missing)} missing experiments:")
-    for item in all_missing:
-        print(f"[REPAIR]   {item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']} @ {item['run_dir']}")
+    if summary_only_runs:
+        print(f"[REPAIR] Found {len(summary_only_runs)} runs with inconsistent summary metadata")
+
+    if not all_missing and not summary_only_runs:
+        return
 
     if repair_dry_run:
         print("[REPAIR] Dry-run mode enabled. No experiments executed.")
         return
 
-    print("[REPAIR] Running repair...")
+    if all_missing:
+        print("[REPAIR] Running repair...")
     for item in all_missing:
+        run_stats = per_run[item["run_dir"]]
+        run_dir = run_stats["run_dir"]
+        if run_stats["is_new"]:
+            os.makedirs(run_dir, exist_ok=True)
         result = run_single_experiment(
             method=item["method"],
             dataset=item["dataset"],
             model=item["model"],
-            strategies=config["strategies"],
+            strategies=run_stats["strategies"],
             ratio=item["ratio"],
             cuda=cuda,
-            output_dir=item["run_dir"],
+            output_dir=str(run_dir),
             random_seed=item["seed"],
             disable_cache=disable_cache,
             timeout_map=timeout_map,
         )
-        run_stats = per_run[item["run_dir"]]
         if result is not None and Path(item["json_path"]).exists():
             run_stats["success"] += 1
         else:
-            run_stats["failed"] += 1
+            run_stats["failed_exec"] += 1
 
     for run_dir, stats in per_run.items():
-        if not stats["expected_items"] or not stats["missing_items"]:
+        should_rebuild_summary = stats["summary_needs_rebuild"] or stats["attempted"] > 0
+        if not stats["expected_items"] or not should_rebuild_summary:
             continue
         repair_meta = {
             "repaired_at": datetime.now().isoformat(),
-            "repair_from": repair_from,
+            "repair_mode": "auto",
+            "seed": stats["seed"],
+            "repair_from": stats["effective_repair_from"],
             "repair_select": repair_select,
-            "attempted": len(stats["missing_items"]),
+            "attempted": stats["attempted"],
             "success": stats["success"],
-            "failed": stats["failed"],
+            "failed": stats["failed_exec"],
+            "summary_only": stats["attempted"] == 0,
+            "strategies_source": stats["strategies_source"],
+            "strategies_used": stats["strategies"],
         }
         summary = _rebuild_summary_in_place(
             run_dir=run_dir,
@@ -302,6 +519,7 @@ def _run_repair(config, cuda, repair_dir, seed_list, disable_cache=False, timeou
             disable_cache=disable_cache,
             repair_meta=repair_meta,
             expected_items=stats["expected_items"],
+            resolved_strategies=stats["strategies"],
         )
         print(
             f"[REPAIR] DONE run={run_dir} "
@@ -416,11 +634,17 @@ def run_single_experiment(
             print(f"  OK ({elapsed:.1f}s)")
             # Extract summary from output
             for line in full_output.split("\n"):
-                if any(kw in line for kw in ["Rank", "Best Strategy", "tracin", "random", "degree", "pagerank"]):
-                    if "Rank" in line and "Strategy" in line:
-                        print(f"  {line.strip()}")
-                    elif line.strip().startswith(("1", "2", "3", "4")):
-                        print(f"  {line.strip()}")
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                if "Rank" in stripped and "Strategy" in stripped:
+                    print(f"  {stripped}")
+                    continue
+                if "Best Strategy" in stripped:
+                    print(f"  {stripped}")
+                    continue
+                if re.match(r"^\d+\s+", stripped):
+                    print(f"  {stripped}")
 
             # Load and return result
             if os.path.exists(save_path):
@@ -601,9 +825,9 @@ def main():
     parser.add_argument("--method_timeouts", type=str, default=None,
                         help="Per-method timeout overrides, e.g. GraphEraser:1200,GIF:900")
     parser.add_argument("--repair", action="store_true",
-                        help="Repair missing experiments in-place without creating new run directories")
+                        help="Auto repair mode: patch missing items in latest runs, create new run only for missing seeds")
     parser.add_argument("--repair_dir", type=str, default=None,
-                        help="Target run dir or parent dir to scan in repair mode")
+                        help="Optional target run dir or parent dir. Defaults to <output>/phase_<phase>")
     parser.add_argument("--repair_select", type=str, choices=["latest_per_seed", "all_runs"],
                         default="latest_per_seed",
                         help="When repair_dir is a parent dir, choose latest run per seed or all runs")
@@ -671,15 +895,15 @@ def main():
         return config
 
     if args.repair:
-        if not args.repair_dir:
-            parser.error("--repair requires --repair_dir")
         if len(phase_list) > 1:
             print(f"[WARN] --repair ignores multiple phases; using {phase_list[0]}")
+        repair_phase = phase_list[0]
+        repair_dir = args.repair_dir or os.path.join(args.output, f"phase_{repair_phase.lower()}")
         config = apply_overrides(phases[phase_list[0]])
         _run_repair(
             config=config,
             cuda=args.cuda,
-            repair_dir=args.repair_dir,
+            repair_dir=repair_dir,
             seed_list=seed_list,
             disable_cache=args.no_cache,
             timeout_map=timeout_map,

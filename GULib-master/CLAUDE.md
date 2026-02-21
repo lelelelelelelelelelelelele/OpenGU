@@ -146,7 +146,7 @@ Collateral damage evaluation results go to `results/collateral/{unlearning_metho
 
 Additional results directories:
 - `results/experiments/`: Batch experiment results (contains `phase_a` subdirectory)
-- `results/checkpoint_report/`: Checkpoint reports
+- `report/progress/2026-02-19_checkpoint/`: Checkpoint reports
 - `results/step0_validation/`: Initial validation results
 
 ### Document Workflow
@@ -156,7 +156,7 @@ Research journal: `results/_journal/auto_report.md` (append-only, governed by `R
 - Decision entries: manually appended when making strategic choices (see RULES.md v2)
 - Session separators: added at start of each Claude Code session
 
-Daily summaries: `daily_log/YYYY-MM-DD_log.md` (generated via `/daily-log`)
+Daily summaries: `report/daily-log/YYYY-MM-DD_log.md` (generated via `/daily-log`)
 
 ### Slash Commands
 

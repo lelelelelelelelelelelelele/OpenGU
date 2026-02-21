@@ -52,9 +52,6 @@ if [ "$REPAIR_MODE" -eq 1 ]; then
     H:/conda_package/envs/gnn/python.exe run_experiments.py \
         "${COMMON_ARGS[@]}" \
         --repair \
-        --repair_dir results/experiments/mg0_completion/phase_a \
-        --repair_select latest_per_seed \
-        --repair_from grid \
         "${EXTRA_ARGS[@]}"
 else
     H:/conda_package/envs/gnn/python.exe run_experiments.py \

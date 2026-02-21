@@ -5,7 +5,7 @@
 `results/` 用于存放实验输出、缓存、验证产物与研究日志。  
 这里是“产物层”，不是核心代码层。
 
-## 2. 当前架构（2026-02-21 快照）
+## 2. 当前架构（2026-02-22 快照）
 
 ```text
 results/
@@ -19,10 +19,12 @@ results/
 ├─ cache/                  # ResultCache（哈希键命名，按配置缓存结果）
 ├─ selection_cache/        # SelectionCache（选点缓存，跨方法复用）
 ├─ collateral/             # collateral damage 评估结果
-├─ checkpoint_report/      # 检查点报告与附录
 ├─ step0_validation/       # step0 验证阶段结果
 ├─ _journal/               # 自动研究日志（append-only）
 └─ _deprecated_tracin_bug/ # 历史问题留档（已废弃）
+
+# 已移至 report/ 目录
+# - checkpoint_report/ → report/progress/2026-02-19_checkpoint/
 ```
 
 ## 3. 命名与数据模型
@@ -60,8 +62,8 @@ results/
 - 对同一实验组同一 seed 的重复批次：
   - 保留最新且 `completed==total_experiments` 的目录。
   - 旧目录移动到 `results/experiments/_archive/...`，不要直接删除。
-- `_archive/phase_a*` 与 `_archive/tracin_fix_phase_a` 属历史对照数据，优先“冻结”而非重排。
-- 报告类目录（`checkpoint_report`, `_journal`）保持 append-only。
+- `_archive/phase_a*` 与 `_archive/tracin_fix_phase_a` 属历史对照数据，优先”冻结”而非重排。
+- 报告类目录（`_journal`）保持 append-only。checkpoint_report 已移至 `report/progress/`。
 
 ## 7. 常用检查命令
 
@@ -88,12 +90,12 @@ for g in sorted([p for p in root.iterdir() if p.is_dir()]):
 (Get-ChildItem results/selection_cache -File *.json).Count
 ```
 
-## 8. 当前数据量快照（2026-02-21）
+## 8. 当前数据量快照（2026-02-22）
 
 - `results/experiments`: 198 files, ~12.93 MB
 - `results/step0_validation`: 278 files, ~7.42 MB
 - `results/cache`: 483 json, ~3.48 MB
 - `results/selection_cache`: 84 json, ~0.18 MB
-- `results/checkpoint_report`: 7 files, ~0.54 MB
+- `report/progress/2026-02-19_checkpoint`: 7 files, ~0.54 MB (已迁移)
 
 说明：当前 cache/selection_cache 文件均可解析，未发现坏文件。
