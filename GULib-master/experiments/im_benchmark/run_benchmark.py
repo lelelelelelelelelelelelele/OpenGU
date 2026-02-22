@@ -295,10 +295,24 @@ def main():
         baseline_spread = results["V0: Baseline"]['spread']
     
     def measure_variant(name, func, *args):
+        # We need to distinguish between completely missing from cache
+        # vs. present in cache but spread == 0.0 (like injected by find_v0.py)
         if bench_args.resume and name in results:
-            print(f"Skipping {name} (Already in cache)", flush=True)
-            return results[name]
-            
+            cached_res = results[name]
+            if cached_res.get('spread', 0.0) > 0.0:
+                print(f"Skipping {name} (Already in cache with spread={cached_res['spread']})", flush=True)
+                return cached_res
+            else:
+                print(f"Found {name} in cache but spread is 0.0. Will evaluate spread only.", flush=True)
+                # Instead of running the full function, we just evaluate spread of the cached selected nodes
+                print(f"Evaluating Final Spread ({eval_mc} MC simulations)...", flush=True)
+                spread = evaluate_spread(edge_index, num_nodes, cached_res['selected'], prob, eval_mc)
+                cached_res['spread'] = spread
+                results[name] = cached_res
+                with open(cache_file, 'w', encoding='utf-8') as f:
+                    json.dump(results, f, ensure_ascii=False, indent=2)
+                return cached_res
+                
         print(f"\n--- Running {name} ---", flush=True)
         start_t = time.time()
         selected = func(*args)
