@@ -65,6 +65,8 @@ class AttackManager:
         "hybrid": HybridStrategy,
     }
     REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im"}
+    # Runtime k-subset reuse is safe only for deterministic ranking strategies.
+    SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
 
     def __init__(
         self,
@@ -178,6 +180,17 @@ class AttackManager:
             "strategy_params_fingerprint": strategy_params_fingerprint,
         }
 
+    def _supports_subset_reuse(self, strategy_name: str) -> bool:
+        if strategy_name not in self.SUBSET_REUSABLE_SELECTION_STRATEGIES:
+            return False
+        if strategy_name == "im":
+            # IM with candidate_fraction < 1 may prune candidate set as a function of k.
+            try:
+                return float(self.args.get("candidate_fraction", 1.0)) >= 1.0
+            except (TypeError, ValueError):
+                return False
+        return True
+
     def _register_builtin_strategies(self):
         """Register all built-in strategies."""
         for name, strategy_class in self.BUILTIN_STRATEGIES.items():
@@ -265,6 +278,8 @@ class AttackManager:
         selection_cache_hit = False
         selection_cache_key = None
         selection_cache_source = None
+        selection_cache_source_k = None
+        selection_cache_lookup_mode = "exact"
         selection_time_value = None
         selection_reuse_time = None
         if (
@@ -277,18 +292,42 @@ class AttackManager:
             cached_selection, selection_key, source_file = self.selection_cache.get(selection_config)
             selection_cache_key = selection_key
             selection_cache_source = source_file
+            if cached_selection is None and self._supports_subset_reuse(strategy_name):
+                (
+                    superset_selection,
+                    superset_key,
+                    superset_source,
+                    superset_k,
+                ) = self.selection_cache.get_smallest_superset(selection_config, required_k=k)
+                if superset_selection is not None:
+                    cached_selection = superset_selection
+                    selection_cache_key = superset_key
+                    selection_cache_source = superset_source
+                    selection_cache_source_k = superset_k
+                    selection_cache_lookup_mode = "superset"
+            if cached_selection is not None and len(cached_selection.selected_nodes) < int(k):
+                print(
+                    "[SelectionCache] MISS-INVALID "
+                    f"strategy={strategy_name} selection_key={selection_cache_key} "
+                    f"cached_count={len(cached_selection.selected_nodes)} required_k={k}"
+                )
+                cached_selection = None
             if cached_selection is not None:
                 selection_cache_hit = True
-                selected_nodes = torch.tensor(cached_selection.selected_nodes, dtype=torch.long)
+                selected_nodes = torch.tensor(cached_selection.selected_nodes[: int(k)], dtype=torch.long)
                 selection_reuse_time = time.time() - cache_lookup_start
                 selection_time_value = float(cached_selection.selection_time)
                 speedup = None
                 if selection_reuse_time > 0:
                     speedup = selection_time_value / selection_reuse_time
                 speedup_text = f"{speedup:.2f}x" if speedup is not None else "NA"
+                mode_text = f"reuse_mode={selection_cache_lookup_mode}"
+                if selection_cache_source_k is not None:
+                    mode_text = f"{mode_text} source_k={selection_cache_source_k} target_k={k}"
                 print(
                     "[SelectionCache] HIT "
                     f"strategy={strategy_name} selection_key={selection_cache_key} "
+                    f"{mode_text} "
                     f"original_selection_time={selection_time_value:.4f}s "
                     f"reuse_time={selection_reuse_time:.6f}s "
                     f"speedup={speedup_text} "

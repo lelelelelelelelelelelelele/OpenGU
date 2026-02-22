@@ -60,7 +60,8 @@ PHASE_C = {
 }
 
 METHOD_TIMEOUTS = {
-    "GraphEraser": 1200,  # shard-based pipeline may exceed 10min for IM/hybrid
+    # Backward-compatible per-method timeout override map.
+    # Values apply to both selection and unlearning phases.
 }
 
 RUN_DIR_PATTERN = re.compile(r".*_seed(?P<seed>\d+)$")
@@ -69,6 +70,59 @@ ERROR_LOG_PATTERN = re.compile(
 )
 STRATEGIES_COMPARE_PATTERN = re.compile(r"Strategies to compare:\s*(\[[^\n]+\])")
 STRATEGIES_DICT_PATTERN = re.compile(r"'strategies'\s*:\s*(\[[^\]]+\])")
+RUNNING_STRATEGY_PATTERN = re.compile(r"\[AttackManager\]\s+Running attack with strategy:\s*(\S+)")
+
+
+def _normalize_strategy_name(strategy):
+    name = str(strategy).strip()
+    if name.lower().endswith("strategy"):
+        name = name[:-8]
+    return name.lower()
+
+
+def _update_phase_state(current_phase, current_strategy, line):
+    """Track selection/unlearning phase transitions from subprocess logs."""
+    stripped = line.strip()
+
+    match = RUNNING_STRATEGY_PATTERN.search(stripped)
+    if match:
+        return "selection", _normalize_strategy_name(match.group(1))
+
+    if "Selection took" in stripped or "[SelectionCache] HIT" in stripped:
+        return "unlearning", current_strategy
+
+    if "Unlearning took" in stripped:
+        return None, current_strategy
+
+    return current_phase, current_strategy
+
+
+def _resolve_phase_timeouts(
+    method,
+    default_selection_timeout,
+    default_unlearning_timeout,
+    method_timeout_map=None,
+):
+    """Resolve per-method phase timeouts; method override applies to both phases."""
+    selection_timeout = int(default_selection_timeout)
+    unlearning_timeout = int(default_unlearning_timeout)
+
+    if not isinstance(method_timeout_map, dict):
+        return selection_timeout, unlearning_timeout
+
+    override = method_timeout_map.get(method)
+    if override is None:
+        return selection_timeout, unlearning_timeout
+
+    if isinstance(override, dict):
+        selection_timeout = int(override.get("selection", selection_timeout))
+        unlearning_timeout = int(override.get("unlearning", unlearning_timeout))
+    else:
+        override_value = int(override)
+        selection_timeout = override_value
+        unlearning_timeout = override_value
+
+    return selection_timeout, unlearning_timeout
 
 
 def _parse_seed_from_run_dir(run_dir: Path):
@@ -386,8 +440,19 @@ def _rebuild_summary_in_place(
     return summary
 
 
-def _run_repair(config, cuda, repair_dir, seed_list, disable_cache=False, timeout_map=None,
-                repair_select="latest_per_seed", repair_from="grid", repair_dry_run=False):
+def _run_repair(
+    config,
+    cuda,
+    repair_dir,
+    seed_list,
+    disable_cache=False,
+    default_selection_timeout=600,
+    default_unlearning_timeout=600,
+    method_timeout_map=None,
+    repair_select="latest_per_seed",
+    repair_from="grid",
+    repair_dry_run=False,
+):
     targets = _resolve_repair_targets(repair_dir, seed_list, repair_select)
     if not targets:
         print("[REPAIR] No target run directories found.")
@@ -488,7 +553,9 @@ def _run_repair(config, cuda, repair_dir, seed_list, disable_cache=False, timeou
             output_dir=str(run_dir),
             random_seed=item["seed"],
             disable_cache=disable_cache,
-            timeout_map=timeout_map,
+            default_selection_timeout=default_selection_timeout,
+            default_unlearning_timeout=default_unlearning_timeout,
+            method_timeout_map=method_timeout_map,
         )
         if result is not None and Path(item["json_path"]).exists():
             run_stats["success"] += 1
@@ -538,7 +605,9 @@ def run_single_experiment(
     output_dir,
     random_seed,
     disable_cache=False,
-    timeout_map=None,
+    default_selection_timeout=600,
+    default_unlearning_timeout=600,
+    method_timeout_map=None,
 ):
     """Run a single experiment via demo_attack.py subprocess with real-time output."""
     save_path = os.path.join(
@@ -561,13 +630,20 @@ def run_single_experiment(
         cmd.append("--no_cache")
 
     label = f"{method}/{dataset}/{model}/r={ratio}/seed={random_seed}"
-    timeout_s = 600
-    if isinstance(timeout_map, dict):
-        timeout_s = int(timeout_map.get(method, timeout_s))
+    selection_timeout_s, unlearning_timeout_s = _resolve_phase_timeouts(
+        method=method,
+        default_selection_timeout=default_selection_timeout,
+        default_unlearning_timeout=default_unlearning_timeout,
+        method_timeout_map=method_timeout_map,
+    )
     print(f"\n{'='*60}")
     print(f"  Running: {label}")
     print(f"  Strategies: {strategies}")
-    print(f"  Timeout: {timeout_s}s")
+    print(
+        "  Phase timeouts: "
+        f"selection={selection_timeout_s}s, "
+        f"unlearning={unlearning_timeout_s}s (no global timeout)"
+    )
     print(f"{'='*60}")
 
     # Set up environment for unbuffered output
@@ -576,6 +652,12 @@ def run_single_experiment(
 
     start = time.time()
     output_lines = []
+    state_lock = threading.Lock()
+    phase_state = {
+        "phase": None,
+        "strategy": None,
+        "phase_started_at": None,
+    }
 
     try:
         proc = subprocess.Popen(
@@ -592,37 +674,82 @@ def run_single_experiment(
         def read_output():
             for line in proc.stdout:
                 print(line, end='')  # Real-time print to terminal
-                output_lines.append(line)
+                now = time.time()
+                with state_lock:
+                    output_lines.append(line)
+                    next_phase, next_strategy = _update_phase_state(
+                        phase_state["phase"],
+                        phase_state["strategy"],
+                        line,
+                    )
+                    if next_phase != phase_state["phase"] or next_strategy != phase_state["strategy"]:
+                        if next_phase is None:
+                            phase_state["phase_started_at"] = None
+                        else:
+                            phase_state["phase_started_at"] = now
+                        phase_state["phase"] = next_phase
+                        phase_state["strategy"] = next_strategy
 
         output_thread = threading.Thread(target=read_output, daemon=True)
         output_thread.start()
 
-        # Wait for process with timeout
-        remaining = timeout_s - (time.time() - start)
-        if remaining <= 0:
-            proc.kill()
-            proc.wait()
-            print(f"  TIMEOUT (>{timeout_s}s)")
-            return None
+        timeout_info = None
+        while True:
+            if proc.poll() is not None:
+                break
+            now = time.time()
+            with state_lock:
+                phase = phase_state["phase"]
+                strategy_name = phase_state["strategy"]
+                phase_started_at = phase_state["phase_started_at"]
+            if phase in ("selection", "unlearning") and phase_started_at is not None:
+                phase_limit = selection_timeout_s if phase == "selection" else unlearning_timeout_s
+                phase_elapsed = now - phase_started_at
+                if phase_elapsed > phase_limit:
+                    timeout_info = {
+                        "phase": phase,
+                        "strategy": strategy_name or "unknown",
+                        "limit": phase_limit,
+                        "elapsed": phase_elapsed,
+                    }
+                    proc.kill()
+                    proc.wait()
+                    break
+            time.sleep(0.2)
 
-        try:
-            proc.wait(timeout=remaining)
-            elapsed = time.time() - start
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait()
-            print(f"  TIMEOUT (>{timeout_s}s)")
-            return None
-        finally:
-            output_thread.join(timeout=5)
+        elapsed = time.time() - start
+        output_thread.join(timeout=5)
+        with state_lock:
+            full_output = ''.join(output_lines)
 
-        full_output = ''.join(output_lines)
+        if timeout_info is not None:
+            timeout_phase = timeout_info["phase"].upper()
+            print(
+                f"  [WARN][TIMEOUT][{timeout_phase}] "
+                f"strategy={timeout_info['strategy']} "
+                f"elapsed={timeout_info['elapsed']:.1f}s "
+                f"limit={timeout_info['limit']}s"
+            )
+            err_path = save_path.replace(".json", "_error.log")
+            with open(err_path, "w", encoding="utf-8") as f:
+                f.write(
+                    "[TIMEOUT]\n"
+                    f"label={label}\n"
+                    f"phase={timeout_info['phase']}\n"
+                    f"strategy={timeout_info['strategy']}\n"
+                    f"elapsed={timeout_info['elapsed']:.3f}\n"
+                    f"limit={timeout_info['limit']}\n"
+                    "--- subprocess output ---\n"
+                )
+                f.write(full_output)
+            print(f"  Error log: {err_path}")
+            return None
 
         if proc.returncode != 0:
             print(f"  FAILED ({elapsed:.1f}s)")
             # Save error log
             err_path = save_path.replace(".json", "_error.log")
-            with open(err_path, "w") as f:
+            with open(err_path, "w", encoding="utf-8") as f:
                 f.write(full_output)
             print(f"  Error log: {err_path}")
             # Print last few lines of error
@@ -657,7 +784,16 @@ def run_single_experiment(
         return None
 
 
-def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False, timeout_map=None):
+def run_phase(
+    phase_config,
+    cuda,
+    output_base,
+    random_seed,
+    disable_cache=False,
+    default_selection_timeout=600,
+    default_unlearning_timeout=600,
+    method_timeout_map=None,
+):
     """Run all experiments in a phase."""
     phase_name = phase_config["name"]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -712,7 +848,9 @@ def run_phase(phase_config, cuda, output_base, random_seed, disable_cache=False,
                 output_dir,
                 random_seed,
                 disable_cache,
-                timeout_map,
+                default_selection_timeout,
+                default_unlearning_timeout,
+                method_timeout_map,
             )
             if result is not None:
                 results[key] = result
@@ -822,8 +960,12 @@ def main():
                         help="Comma-separated seeds, e.g. 2024,2025,2026")
     parser.add_argument("--no_cache", action="store_true",
                         help="Disable cache in demo_attack.py subprocess calls")
+    parser.add_argument("--selection_timeout", type=int, default=600,
+                        help="Per-strategy selection phase timeout in seconds")
+    parser.add_argument("--unlearning_timeout", type=int, default=600,
+                        help="Per-strategy unlearning phase timeout in seconds")
     parser.add_argument("--method_timeouts", type=str, default=None,
-                        help="Per-method timeout overrides, e.g. GraphEraser:1200,GIF:900")
+                        help="Per-method phase timeout overrides (applies to both phases), e.g. GraphEraser:900,GIF:700")
     parser.add_argument("--repair", action="store_true",
                         help="Auto repair mode: patch missing items in latest runs, create new run only for missing seeds")
     parser.add_argument("--repair_dir", type=str, default=None,
@@ -866,7 +1008,7 @@ def main():
     if args.seeds:
         seed_list = [int(s.strip()) for s in args.seeds.split(",") if s.strip()]
 
-    timeout_map = METHOD_TIMEOUTS.copy()
+    method_timeout_map = METHOD_TIMEOUTS.copy()
     if args.method_timeouts:
         for item in args.method_timeouts.split(","):
             item = item.strip()
@@ -876,7 +1018,7 @@ def main():
             method = method.strip()
             value = value.strip()
             try:
-                timeout_map[method] = int(value)
+                method_timeout_map[method] = int(value)
             except ValueError:
                 print(f"[WARN] Invalid timeout override ignored: {item}")
 
@@ -906,7 +1048,9 @@ def main():
             repair_dir=repair_dir,
             seed_list=seed_list,
             disable_cache=args.no_cache,
-            timeout_map=timeout_map,
+            default_selection_timeout=args.selection_timeout,
+            default_unlearning_timeout=args.unlearning_timeout,
+            method_timeout_map=method_timeout_map,
             repair_select=args.repair_select,
             repair_from=args.repair_from,
             repair_dry_run=args.repair_dry_run,
@@ -918,7 +1062,16 @@ def main():
 
         output_dir = os.path.join(args.output, f"phase_{phase_key.lower()}")
         for seed in seed_list:
-            run_phase(config, args.cuda, output_dir, seed, args.no_cache, timeout_map)
+            run_phase(
+                config,
+                args.cuda,
+                output_dir,
+                seed,
+                args.no_cache,
+                args.selection_timeout,
+                args.unlearning_timeout,
+                method_timeout_map,
+            )
 
 
 if __name__ == "__main__":

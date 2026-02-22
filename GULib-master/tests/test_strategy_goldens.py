@@ -20,6 +20,7 @@ from attack.attack_strategies import (
     RandomStrategy,
     TracInStrategy,
 )
+from attack.selection_cache import SelectionCache
 
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "strategies"
@@ -239,3 +240,26 @@ def test_attack_manager_random_matches_direct_and_cache_roundtrip(tmp_path):
     assert first.selected_nodes.tolist() == expected
     assert second.selected_nodes.tolist() == expected
     assert second.selected_nodes.tolist() == first.selected_nodes.tolist()
+
+
+def test_attack_manager_im_reuses_larger_selection_cache_for_smaller_k(tmp_path):
+    spec = _fixture_by_name("im_basic_k3")
+    data = _build_data(spec["graph"])
+    model = _build_model(spec.get("model"))
+    large_k = int(spec["k"])
+    small_k = large_k - 1
+
+    manager = AttackManager(
+        args=_base_args(),
+        pipeline=_FakePipeline(data, model),
+        cache_dir=str(tmp_path / "cache"),
+        use_cache=True,
+    )
+    manager.selection_cache = SelectionCache(str(tmp_path / "selection_cache"))
+
+    first = manager.run_attack("im", k=large_k, use_cache=True)
+    second = manager.run_attack("im", k=small_k, use_cache=True)
+
+    assert first.selection_cache_hit is False
+    assert second.selection_cache_hit is True
+    assert second.selected_nodes.tolist() == first.selected_nodes.tolist()[:small_k]

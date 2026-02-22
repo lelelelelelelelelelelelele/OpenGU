@@ -7,6 +7,46 @@ import numpy as np
 import torch
 import json
 
+# --- START: Early Argument Parsing ---
+# We must parse and remove our custom arguments before any main project imports
+# because main project config.py runs parameter_parser() at module level.
+class BenchArgs:
+    def __init__(self):
+        self.seed = 2024
+        self.resume = False
+        self.branch = "all"
+        self.dataset_name = "cora"
+        self.k = 135
+        
+global_bench_args = BenchArgs()
+
+original_argv = sys.argv.copy()
+sys.argv = [original_argv[0]] # Keep only the script name for parameter_parser
+
+i = 1
+while i < len(original_argv):
+    arg = original_argv[i]
+    if arg == "--seed" and i + 1 < len(original_argv):
+        global_bench_args.seed = int(original_argv[i + 1])
+        i += 2
+    elif arg == "--resume":
+        global_bench_args.resume = True
+        i += 1
+    elif arg == "--branch" and i + 1 < len(original_argv):
+        global_bench_args.branch = original_argv[i + 1]
+        i += 2
+    elif arg == "--dataset_name" and i + 1 < len(original_argv):
+        global_bench_args.dataset_name = original_argv[i + 1]
+        i += 2
+    elif arg == "--k" and i + 1 < len(original_argv):
+        global_bench_args.k = int(original_argv[i + 1])
+        i += 2
+    else:
+        # If it's something else, let parameter_parser handle it
+        sys.argv.append(arg)
+        i += 1
+# --- END: Early Argument Parsing ---
+
 # Add project root to path so we can import attack modules and config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
@@ -15,7 +55,7 @@ from utils.logger import create_logger
 from dataset.original_dataset import original_dataset
 from utils.dataset_utils import process_data
 
-from attack.attack_strategies.im_strategy import IMStrategy, _estimate_spread_numba, _estimate_spread_python, HAS_NUMBA
+from attack.attack_strategies.im_strategy import IMStrategy, _estimate_spread_numba, HAS_NUMBA
 
 # Check Numba availability once
 if HAS_NUMBA:
@@ -207,21 +247,10 @@ def run_v4(im_strategy, edge_index, num_nodes, k, candidate_set, B=5):
     return selected
 
 def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=2024, help="Random seed for the benchmark")
-    parser.add_argument("--resume", action="store_true", help="Resume from previous bench_results.json if it exists")
-    parser.add_argument("--branch", type=str, default="all", help="Comma separated list of branches to run (e.g. 'v0,v1,v3'), or 'all'")
-    
-    bench_args, unknown = parser.parse_known_args()
-    
-    # Hide ALL custom and unknown arguments from the main project's parameter_parser
-    # This forces parameter_parser to only parse the defaults without throwing unrecognized argument errors.
-    sys.argv = [sys.argv[0]]
-    
-    print(f"Loading Cora dataset via original_dataset (Seed: {bench_args.seed})...", flush=True)
+    bench_args = global_bench_args
+    print(f"Loading {bench_args.dataset_name} dataset via original_dataset (Seed: {bench_args.seed})...", flush=True)
     args = parameter_parser()
-    args['dataset_name'] = 'cora'
+    args['dataset_name'] = bench_args.dataset_name
     args['base_model'] = 'GCN' # Dummy required for logger
     args['random_seed'] = bench_args.seed
     
@@ -233,12 +262,12 @@ def main():
     num_nodes = data.num_nodes
     edge_index = data.edge_index
     
-    k = 135
+    k = bench_args.k
     prob = 0.1
     celf_mc = 100
     eval_mc = 1000
     
-    print(f"Dataset: Cora (Nodes: {num_nodes}, Edges: {edge_index.shape[1]})")
+    print(f"Dataset: {bench_args.dataset_name} (Nodes: {num_nodes}, Edges: {edge_index.shape[1]})")
     print(f"Target nodes k = {k}, prob p = {prob}, CELF MC = {celf_mc}, Eval MC = {eval_mc}")
     
     # Use training nodes as candidates (following IM strategy rules)
@@ -335,11 +364,15 @@ def main():
             overlap_pct = 100.0
             loss_pct = 0.0
         else:
-            intersection = len(set(sel).intersection(baseline_selected))
-            overlap_pct = (intersection / k) * 100.0
-            loss_pct = ((baseline_spread - spread) / baseline_spread) * 100.0
+            intersection = len(set(sel).intersection(baseline_selected)) if baseline_selected else 0
+            overlap_pct = (intersection / k) * 100.0 if k > 0 else 0.0
+            if baseline_spread > 0.0:
+                loss_pct = ((baseline_spread - spread) / baseline_spread) * 100.0
+            else:
+                loss_pct = float('nan') # Prevent ZeroDivisionError if V0 hasn't been run or spread is 0
             
-        print(f"| **{name}** | {time_sec:.2f}s | {len(sel)} | {intersection} | {overlap_pct:.1f}% | {spread:.2f} | {loss_pct:.2f}% |")
+        loss_str = f"{loss_pct:.2f}%" if not np.isnan(loss_pct) else "N/A"
+        print(f"| **{name}** | {time_sec:.2f}s | {len(sel)} | {intersection} | {overlap_pct:.1f}% | {spread:.2f} | {loss_str} |")
 
 if __name__ == "__main__":
     main()

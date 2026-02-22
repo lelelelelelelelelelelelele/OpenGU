@@ -23,7 +23,7 @@ fi
 
 # 参数配置
 # RATIOS 从大到小：利于 cache 复用（大 ratio 先跑，后续小 ratio 可复用部分 cache）
-METHODS="GIF,GNNDelete,GraphEraser,GUIDE"
+METHODS="GIF,GNNDelete" #,GraphEraser,GUIDE
 DATASETS="cora"
 BASE_MODEL="GCN"
 STRATEGIES="random,degree,pagerank,tracin,im,hybrid"
@@ -82,6 +82,7 @@ COMMON_ARGS=(
 )
 
 if [ "$REPAIR_MODE" -eq 1 ]; then
+    mkdir -p "$OUTPUT/phase_a"
     "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" --repair "${EXTRA_ARGS[@]}"
 else
     "$PYTHON_BIN" run_experiments.py "${COMMON_ARGS[@]}" "${EXTRA_ARGS[@]}"
