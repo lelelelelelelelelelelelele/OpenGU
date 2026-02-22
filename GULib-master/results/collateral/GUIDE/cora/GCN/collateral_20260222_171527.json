@@ -1,0 +1,27 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GUIDE",
+    "unlearn_ratio": 0.05,
+    "random_seed": 2024,
+    "strategies_requested": [
+      "random"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.7804428044280443,
+      "perf_retrain": 0.7029520295202952,
+      "perf_unlearn": 0.7730627306273062,
+      "drop_retrain": 0.07749077490774903,
+      "gap": -0.07011070110701101,
+      "gap_pct": -9.973753280839887,
+      "mean_pred_shift": 0.26926103234291077,
+      "max_pred_shift": 0.9993939399719238,
+      "fraction_flipped": 0.2848809063434601
+    }
+  ],
+  "timestamp": "2026-02-22T17:15:27.682763"
+}

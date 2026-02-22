@@ -359,7 +359,7 @@ def main():
         retain_mask[selected_nodes.long()] = False
 
         # 5. Compute metrics — ensure all models and data on same device
-        device = torch.device(f'cuda:{args["cuda"]}' if torch.cuda.is_available() else 'cpu')
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         model_before = model_before.to(device)
         model_unlearned = model_unlearned.to(device)
         model_retrained = model_retrained.to(device)
