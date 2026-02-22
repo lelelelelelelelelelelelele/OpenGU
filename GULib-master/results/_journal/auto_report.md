@@ -12267,3 +12267,843 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 异常与定位：无
 - 下一步建议：检查该方法在其他比例或数据集的趋势。
 
+### [2026-02-22 17:27:39] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 3.90% |    0.2456 |   24.74% |
+| degree   | -1.26% |    0.2860 |   28.49% |
+| pagerank | -4.83% |    0.2554 |   24.59% |
+| tracin   | -10.11% |    0.2585 |   27.38% |
+| im       | -7.85% |    0.2744 |   28.71% |
+| hybrid   | 4.20% |    0.2669 |   27.57% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260222_172739.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:34:52] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.07% |    0.2740 |   30.47% |
+| degree   | -6.83% |    0.2660 |   24.36% |
+| pagerank | 0.00% |    0.2385 |   24.59% |
+| tracin   | 0.50% |    0.2914 |   29.10% |
+| im       | 4.95% |    0.2454 |   24.27% |
+| hybrid   | 6.56% |    0.2672 |   26.44% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260222_173452.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:42:00] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.50% |    0.2504 |   23.80% |
+| degree   | -10.46% |    0.2792 |   29.56% |
+| pagerank | 5.22% |    0.2800 |   28.33% |
+| tracin   | 3.82% |    0.2893 |   26.98% |
+| im       | 8.82% |    0.2680 |   28.06% |
+| hybrid   | 11.06% |    0.2617 |   27.23% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260222_174200.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:49:15] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.21% |    0.2668 |   25.17% |
+| degree   | 1.16% |    0.2791 |   25.57% |
+| pagerank | -14.01% |    0.2479 |   26.92% |
+| tracin   | 6.97% |    0.2519 |   26.64% |
+| im       | -3.49% |    0.2269 |   22.26% |
+| hybrid   | 9.91% |    0.3136 |   33.33% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260222_174915.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:55:18] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -9.97% |    0.2693 |   28.49% |
+| degree   | -2.78% |    0.2993 |   31.16% |
+| pagerank | 1.72% |    0.2702 |   28.28% |
+| tracin   | 2.43% |    0.2553 |   25.85% |
+| im       | -1.77% |    0.2638 |   25.26% |
+| hybrid   | -5.69% |    0.2521 |   25.11% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260222_175518.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:55:44] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.66% |    0.0239 |    3.27% |
+| degree   | 0.61% |    0.0259 |    3.52% |
+| pagerank | 1.21% |    0.0248 |    3.56% |
+| tracin   | -2.74% |    0.0391 |    2.69% |
+| im       | -0.21% |    0.0255 |    3.21% |
+| hybrid   | -1.25% |    0.0300 |    4.09% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260222_175544.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:56:10] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0246 |    3.47% |
+| degree   | 0.41% |    0.0243 |    3.96% |
+| pagerank | 2.62% |    0.0243 |    2.92% |
+| tracin   | 0.41% |    0.0419 |    2.93% |
+| im       | -1.66% |    0.0253 |    3.41% |
+| hybrid   | -2.32% |    0.0301 |    4.53% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260222_175610.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:56:35] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0241 |    3.36% |
+| degree   | 0.00% |    0.0238 |    3.17% |
+| pagerank | 1.43% |    0.0237 |    3.32% |
+| tracin   | -0.82% |    0.0373 |    2.36% |
+| im       | 0.21% |    0.0259 |    3.65% |
+| hybrid   | -3.36% |    0.0286 |    3.77% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260222_175635.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:57:01] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.41% |    0.0249 |    3.92% |
+| degree   | 1.02% |    0.0269 |    3.80% |
+| pagerank | 1.21% |    0.0231 |    3.64% |
+| tracin   | -1.04% |    0.0382 |    2.44% |
+| im       | -1.65% |    0.0266 |    3.97% |
+| hybrid   | -1.24% |    0.0273 |    3.49% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260222_175701.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:57:27] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0242 |    3.13% |
+| degree   | 0.81% |    0.0233 |    3.45% |
+| pagerank | 0.61% |    0.0241 |    3.83% |
+| tracin   | -0.20% |    0.0363 |    2.40% |
+| im       | -1.02% |    0.0241 |    3.57% |
+| hybrid   | 0.61% |    0.0270 |    4.21% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260222_175727.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:57:57] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.21% |    0.2483 |    9.38% |
+| degree   | 4.87% |    0.1414 |    7.56% |
+| pagerank | 3.64% |    0.2257 |    8.93% |
+| tracin   | 2.19% |    0.0643 |    5.57% |
+| im       | 0.62% |    0.0556 |    6.25% |
+| hybrid   | 7.65% |    0.1221 |   12.06% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260222_175757.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:58:27] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 4.93% |    0.1543 |   12.78% |
+| degree   | 12.45% |    0.1957 |   14.65% |
+| pagerank | 6.05% |    0.1821 |    8.77% |
+| tracin   | 2.42% |    0.0978 |    5.97% |
+| im       | -0.62% |    0.0592 |    5.45% |
+| hybrid   | 1.83% |    0.0983 |    6.57% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260222_175827.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:58:58] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.26% |    0.1557 |    9.92% |
+| degree   | 4.07% |    0.1586 |    9.86% |
+| pagerank | 2.82% |    0.1911 |   10.51% |
+| tracin   | 2.00% |    0.0789 |    5.65% |
+| im       | -1.04% |    0.0549 |    4.81% |
+| hybrid   | -1.02% |    0.1513 |    7.70% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260222_175858.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:59:28] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.27% |    0.1732 |   11.36% |
+| degree   | 12.78% |    0.2043 |   14.10% |
+| pagerank | 11.38% |    0.2145 |   16.05% |
+| tracin   | 1.42% |    0.0760 |    6.65% |
+| im       | 0.83% |    0.0622 |    5.25% |
+| hybrid   | 5.06% |    0.1404 |    9.90% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260222_175928.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 17:59:58] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 3.05% |    0.2105 |    9.15% |
+| degree   | 13.70% |    0.1897 |   14.73% |
+| pagerank | 4.87% |    0.2038 |   10.12% |
+| tracin   | 2.04% |    0.1041 |    6.57% |
+| im       | -1.24% |    0.0621 |    4.97% |
+| hybrid   | 5.61% |    0.1002 |    9.98% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260222_175958.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:05:12] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -3.66% |    0.2897 |   28.50% |
+| degree   | 5.20% |    0.3084 |   30.18% |
+| pagerank | 0.92% |    0.2921 |   29.05% |
+| tracin   | 8.04% |    0.3007 |   28.70% |
+| im       | 3.82% |    0.3314 |   32.51% |
+| hybrid   | -2.95% |    0.2903 |   28.98% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260222_180512.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:10:30] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 4.34% |    0.3120 |   30.95% |
+| degree   | 5.42% |    0.2836 |   28.36% |
+| pagerank | -3.26% |    0.3045 |   31.11% |
+| tracin   | 0.89% |    0.2742 |   26.97% |
+| im       | -1.37% |    0.3162 |   31.50% |
+| hybrid   | 1.16% |    0.2851 |   28.66% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260222_181030.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:15:44] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.14% |    0.3321 |   33.54% |
+| degree   | 8.39% |    0.3485 |   34.30% |
+| pagerank | -0.44% |    0.2902 |   28.42% |
+| tracin   | -3.03% |    0.2830 |   26.13% |
+| im       | 1.82% |    0.2849 |   28.02% |
+| hybrid   | 8.46% |    0.2966 |   29.86% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260222_181544.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:20:58] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.47% |    0.2908 |   28.53% |
+| degree   | 2.38% |    0.2716 |   26.93% |
+| pagerank | -3.53% |    0.2840 |   28.74% |
+| tracin   | -13.33% |    0.2803 |   28.18% |
+| im       | 1.56% |    0.2924 |   28.50% |
+| hybrid   | -0.22% |    0.2578 |   24.41% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260222_182058.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:26:07] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.80% |    0.2691 |   26.10% |
+| degree   | 0.21% |    0.2612 |   24.67% |
+| pagerank | -5.69% |    0.3181 |   31.34% |
+| tracin   | -4.25% |    0.3136 |   31.50% |
+| im       | -0.46% |    0.3103 |   30.42% |
+| hybrid   | 2.57% |    0.2885 |   28.54% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260222_182607.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:26:43] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0304 |    2.91% |
+| degree   | 1.04% |    0.0300 |    2.92% |
+| pagerank | -1.25% |    0.0282 |    2.14% |
+| tracin   | -0.84% |    0.0317 |    2.26% |
+| im       | -1.06% |    0.0303 |    2.41% |
+| hybrid   | -1.48% |    0.0311 |    2.26% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260222_182643.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:27:18] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0297 |    2.52% |
+| degree   | 2.06% |    0.0275 |    1.99% |
+| pagerank | 1.85% |    0.0287 |    2.67% |
+| tracin   | -1.05% |    0.0388 |    3.00% |
+| im       | -0.63% |    0.0261 |    2.17% |
+| hybrid   | -1.05% |    0.0283 |    2.51% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260222_182718.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:27:53] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0271 |    2.14% |
+| degree   | 2.44% |    0.0270 |    1.94% |
+| pagerank | 0.83% |    0.0281 |    1.90% |
+| tracin   | -0.63% |    0.0318 |    2.07% |
+| im       | -2.76% |    0.0277 |    2.22% |
+| hybrid   | -1.05% |    0.0316 |    2.61% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260222_182753.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:28:27] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.52% |    0.0318 |    3.44% |
+| degree   | 2.05% |    0.0258 |    1.99% |
+| pagerank | 0.00% |    0.0265 |    2.53% |
+| tracin   | 0.00% |    0.0306 |    1.87% |
+| im       | -2.99% |    0.0309 |    2.56% |
+| hybrid   | 0.00% |    0.0283 |    2.22% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260222_182827.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:29:02] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0294 |    2.86% |
+| degree   | -1.26% |    0.0292 |    2.43% |
+| pagerank | 0.00% |    0.0264 |    2.38% |
+| tracin   | 0.00% |    0.0341 |    2.61% |
+| im       | -2.78% |    0.0310 |    2.66% |
+| hybrid   | -1.26% |    0.0315 |    2.90% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260222_182902.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:29:39] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 10.40% |    0.2899 |   12.82% |
+| degree   | 24.23% |    0.2854 |   27.42% |
+| pagerank | 30.72% |    0.3569 |   32.41% |
+| tracin   | 12.01% |    0.1830 |   16.20% |
+| im       | 11.70% |    0.2857 |   16.79% |
+| hybrid   | 11.72% |    0.1857 |   13.79% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260222_182939.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:30:15] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 26.39% |    0.2824 |   30.59% |
+| degree   | 9.73% |    0.1813 |   14.78% |
+| pagerank | 15.20% |    0.2693 |   17.88% |
+| tracin   | 8.75% |    0.1715 |   12.60% |
+| im       | 15.89% |    0.3300 |   20.43% |
+| hybrid   | 15.45% |    0.1992 |   17.48% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260222_183015.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:30:53] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 18.14% |    0.3347 |   24.04% |
+| degree   | 18.43% |    0.2458 |   22.65% |
+| pagerank | 11.80% |    0.2359 |   14.82% |
+| tracin   | 13.77% |    0.1768 |   15.46% |
+| im       | 3.95% |    0.2103 |    7.24% |
+| hybrid   | 14.70% |    0.2010 |   18.56% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260222_183053.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:31:29] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 7.74% |    0.1987 |   12.94% |
+| degree   | 17.78% |    0.2985 |   21.63% |
+| pagerank | 7.71% |    0.2141 |   11.47% |
+| tracin   | 9.85% |    0.1451 |   11.13% |
+| im       | 13.55% |    0.2509 |   20.78% |
+| hybrid   | 11.68% |    0.1579 |   13.69% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260222_183129.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:32:04] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 19.33% |    0.3283 |   21.90% |
+| degree   | 13.84% |    0.2589 |   16.63% |
+| pagerank | 12.66% |    0.2817 |   17.78% |
+| tracin   | 8.83% |    0.1489 |   13.84% |
+| im       | 19.87% |    0.2572 |   23.73% |
+| hybrid   | 15.48% |    0.2107 |   19.69% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260222_183204.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:37:59] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 5.53% |    0.2411 |   20.59% |
+| degree   | -7.83% |    0.2702 |   29.12% |
+| pagerank | -0.49% |    0.2617 |   25.46% |
+| tracin   | -3.20% |    0.2652 |   27.03% |
+| im       | -1.46% |    0.2559 |   24.22% |
+| hybrid   | 2.69% |    0.2452 |   22.99% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260222_183759.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:44:01] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.46% |    0.2528 |   26.56% |
+| degree   | 4.35% |    0.2471 |   25.77% |
+| pagerank | 2.27% |    0.2533 |   25.22% |
+| tracin   | 8.25% |    0.3247 |   32.64% |
+| im       | 6.38% |    0.3092 |   31.12% |
+| hybrid   | 9.95% |    0.2729 |   27.23% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260222_184401.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:49:58] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.72% |    0.2883 |   27.54% |
+| degree   | 3.27% |    0.2646 |   27.61% |
+| pagerank | -15.71% |    0.2772 |   28.23% |
+| tracin   | 3.23% |    0.2587 |   26.14% |
+| im       | 9.30% |    0.2734 |   25.70% |
+| hybrid   | -2.36% |    0.2792 |   28.26% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260222_184958.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 18:55:50] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.67% |    0.2709 |   27.00% |
+| degree   | 2.83% |    0.2732 |   25.04% |
+| pagerank | -4.69% |    0.3232 |   31.92% |
+| tracin   | -8.57% |    0.2693 |   27.77% |
+| im       | -3.07% |    0.2208 |   20.38% |
+| hybrid   | 1.48% |    0.2602 |   28.41% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260222_185550.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:01:17] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -4.46% |    0.2733 |   27.62% |
+| degree   | 1.96% |    0.2460 |   26.74% |
+| pagerank | -0.99% |    0.2416 |   24.30% |
+| tracin   | -1.00% |    0.2476 |   26.59% |
+| im       | 0.00% |    0.2648 |   24.96% |
+| hybrid   | 0.96% |    0.2667 |   27.33% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260222_190117.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:01:37] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.25% |    0.0262 |    3.43% |
+| tracin   | 0.00% |    0.0373 |    2.57% |
+| im       | 0.21% |    0.0258 |    3.57% |
+| hybrid   | -1.46% |    0.0294 |    3.69% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260222_190137.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:01:57] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0253 |    3.79% |
+| tracin   | -1.45% |    0.0363 |    2.61% |
+| im       | -1.23% |    0.0272 |    3.21% |
+| hybrid   | -0.83% |    0.0284 |    3.25% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260222_190157.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:02:17] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.22% |    0.0241 |    3.40% |
+| tracin   | -0.61% |    0.0382 |    2.24% |
+| im       | -1.46% |    0.0255 |    3.45% |
+| hybrid   | -5.08% |    0.0291 |    3.17% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260222_190217.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:02:37] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.50% |    0.0269 |    3.88% |
+| tracin   | -2.31% |    0.0401 |    2.48% |
+| im       | -0.83% |    0.0247 |    3.41% |
+| hybrid   | -0.41% |    0.0257 |    3.25% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260222_190237.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:02:57] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.83% |    0.0253 |    3.72% |
+| tracin   | -0.41% |    0.0362 |    2.32% |
+| im       | -1.65% |    0.0257 |    3.93% |
+| hybrid   | -2.51% |    0.0277 |    3.65% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260222_190257.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:03:18] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.45% |    0.0287 |    3.98% |
+| tracin   | 0.00% |    0.0441 |    3.05% |
+| im       | -1.04% |    0.0320 |    3.93% |
+| hybrid   | -2.28% |    0.0336 |    3.65% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260222_190318.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:03:40] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.20% |    0.0260 |    3.59% |
+| tracin   | -0.82% |    0.0376 |    2.77% |
+| im       | -2.70% |    0.0292 |    3.89% |
+| hybrid   | -0.41% |    0.0281 |    3.45% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260222_190340.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:04:00] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.23% |    0.0372 |    4.62% |
+| tracin   | 1.22% |    0.0489 |    3.65% |
+| im       | -0.83% |    0.0326 |    4.09% |
+| hybrid   | -1.67% |    0.0280 |    3.85% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260222_190400.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:04:22] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0308 |    4.16% |
+| tracin   | -2.30% |    0.0371 |    1.84% |
+| im       | -3.11% |    0.0382 |    4.37% |
+| hybrid   | -1.47% |    0.0309 |    3.09% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260222_190422.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:04:43] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0240 |    3.64% |
+| tracin   | -0.21% |    0.0473 |    3.17% |
+| im       | -0.21% |    0.0276 |    3.49% |
+| hybrid   | -2.09% |    0.0280 |    3.49% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260222_190443.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:05:09] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.83% |    0.0334 |    3.11% |
+| tracin   | -0.21% |    0.0365 |    2.02% |
+| im       | 0.42% |    0.0304 |    2.71% |
+| hybrid   | -0.21% |    0.0319 |    2.56% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260222_190509.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:05:35] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0280 |    2.76% |
+| tracin   | -2.78% |    0.0292 |    1.33% |
+| im       | -0.63% |    0.0283 |    2.36% |
+| hybrid   | 0.84% |    0.0268 |    2.12% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260222_190535.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:06:01] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.41% |    0.0270 |    2.04% |
+| tracin   | -2.77% |    0.0362 |    2.36% |
+| im       | 1.04% |    0.0339 |    2.81% |
+| hybrid   | 0.00% |    0.0319 |    2.41% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260222_190601.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:06:27] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0300 |    2.76% |
+| tracin   | 0.21% |    0.0334 |    2.17% |
+| im       | -1.48% |    0.0314 |    2.56% |
+| hybrid   | 0.21% |    0.0387 |    3.35% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260222_190627.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:06:53] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0308 |    2.08% |
+| tracin   | 0.21% |    0.0373 |    2.17% |
+| im       | -1.48% |    0.0263 |    2.12% |
+| hybrid   | 0.21% |    0.0321 |    2.95% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260222_190653.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:07:18] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.25% |    0.0867 |    4.18% |
+| tracin   | -0.84% |    0.0444 |    2.81% |
+| im       | 0.21% |    0.0647 |    4.48% |
+| hybrid   | -1.04% |    0.0637 |    3.84% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260222_190718.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:07:42] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0518 |    3.30% |
+| tracin   | 0.00% |    0.1012 |    3.79% |
+| im       | -0.63% |    0.0588 |    4.23% |
+| hybrid   | -0.84% |    0.0459 |    2.46% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260222_190742.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:08:07] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.08% |    0.0668 |    3.89% |
+| tracin   | 0.00% |    0.0791 |    3.94% |
+| im       | 1.47% |    0.0796 |    5.07% |
+| hybrid   | -0.42% |    0.0494 |    2.61% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260222_190807.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:08:31] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.46% |    0.0558 |    3.93% |
+| tracin   | 4.17% |    0.1050 |    4.63% |
+| im       | 0.64% |    0.0907 |    6.94% |
+| hybrid   | 2.08% |    0.0799 |    5.47% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260222_190831.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-22 19:08:56] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.66% |    0.0467 |    3.73% |
+| tracin   | 0.63% |    0.0649 |    2.90% |
+| im       | 2.31% |    0.0847 |    6.45% |
+| hybrid   | -1.06% |    0.0676 |    3.74% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260222_190856.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+

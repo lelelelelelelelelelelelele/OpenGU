@@ -1,0 +1,74 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "IDEA",
+    "unlearn_ratio": 0.05,
+    "random_seed": 42,
+    "strategies_requested": [
+      "random",
+      "tracin",
+      "im",
+      "hybrid"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.7342342342342343,
+      "perf_retrain": 0.7192192192192193,
+      "perf_unlearn": 0.7282282282282283,
+      "drop_retrain": 0.01501501501501501,
+      "gap": -0.009009009009009028,
+      "gap_pct": -1.2526096033402947,
+      "mean_pred_shift": 0.026196926832199097,
+      "max_pred_shift": 0.6664528846740723,
+      "fraction_flipped": 0.034292470663785934
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.7342342342342343,
+      "perf_retrain": 0.7282282282282283,
+      "perf_unlearn": 0.7282282282282283,
+      "drop_retrain": 0.006006006006005982,
+      "gap": 0.0,
+      "gap_pct": 0.0,
+      "mean_pred_shift": 0.0372941754758358,
+      "max_pred_shift": 0.7749202847480774,
+      "fraction_flipped": 0.025651302188634872
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.7402402402402404,
+      "perf_retrain": 0.7267267267267268,
+      "perf_unlearn": 0.7252252252252253,
+      "drop_retrain": 0.013513513513513598,
+      "gap": 0.0015015015015015232,
+      "gap_pct": 0.20661157024793683,
+      "mean_pred_shift": 0.025782067328691483,
+      "max_pred_shift": 0.523044764995575,
+      "fraction_flipped": 0.03567134216427803
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.7312312312312313,
+      "perf_retrain": 0.7222222222222222,
+      "perf_unlearn": 0.7327327327327328,
+      "drop_retrain": 0.009009009009009139,
+      "gap": -0.010510510510510551,
+      "gap_pct": -1.455301455301461,
+      "mean_pred_shift": 0.029424721375107765,
+      "max_pred_shift": 0.6684057712554932,
+      "fraction_flipped": 0.036873746663331985
+    }
+  ],
+  "timestamp": "2026-02-22T19:01:37.766742",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 4,
+    "completed_before": 0,
+    "executed_now": 4,
+    "missing_before": 4
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "GNNDelete",
+    "unlearn_ratio": 0.05,
+    "random_seed": 722,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im",
+      "hybrid"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.7282282282282283,
+      "perf_retrain": 0.7297297297297297,
+      "perf_unlearn": 0.7132132132132132,
+      "drop_retrain": -0.0015015015015014122,
+      "gap": 0.016516516516516533,
+      "gap_pct": 2.26337448559671,
+      "mean_pred_shift": 0.15574857592582703,
+      "max_pred_shift": 0.9141862988471985,
+      "fraction_flipped": 0.09917028993368149
+    },
+    {
+      "strategy": "degree",
+      "perf_before": 0.7432432432432431,
+      "perf_retrain": 0.7387387387387387,
+      "perf_unlearn": 0.7087087087087086,
+      "drop_retrain": 0.0045045045045043475,
+      "gap": 0.03003003003003013,
+      "gap_pct": 4.065040650406518,
+      "mean_pred_shift": 0.15855291485786438,
+      "max_pred_shift": 0.8620659708976746,
+      "fraction_flipped": 0.09861385822296143
+    },
+    {
+      "strategy": "pagerank",
+      "perf_before": 0.7402402402402404,
+      "perf_retrain": 0.7462462462462462,
+      "perf_unlearn": 0.7252252252252253,
+      "drop_retrain": -0.006006006006005871,
+      "gap": 0.02102102102102099,
+      "gap_pct": 2.8169014084507,
+      "mean_pred_shift": 0.19111931324005127,
+      "max_pred_shift": 0.9016999006271362,
+      "fraction_flipped": 0.10513833910226822
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.7297297297297297,
+      "perf_retrain": 0.7492492492492493,
+      "perf_unlearn": 0.7342342342342343,
+      "drop_retrain": -0.01951951951951958,
+      "gap": 0.01501501501501501,
+      "gap_pct": 2.0040080160320635,
+      "mean_pred_shift": 0.07887309044599533,
+      "max_pred_shift": 0.9216692447662354,
+      "fraction_flipped": 0.05651302635669708
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.7297297297297297,
+      "perf_retrain": 0.7192192192192193,
+      "perf_unlearn": 0.7267267267267268,
+      "drop_retrain": 0.01051051051051044,
+      "gap": -0.007507507507507505,
+      "gap_pct": -1.0438413361169097,
+      "mean_pred_shift": 0.05492553114891052,
+      "max_pred_shift": 0.9582229852676392,
+      "fraction_flipped": 0.0480961911380291
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.7327327327327328,
+      "perf_retrain": 0.7327327327327328,
+      "perf_unlearn": 0.7402402402402404,
+      "drop_retrain": 0.0,
+      "gap": -0.007507507507507616,
+      "gap_pct": -1.0245901639344408,
+      "mean_pred_shift": 0.1513284593820572,
+      "max_pred_shift": 0.8786781430244446,
+      "fraction_flipped": 0.07695391029119492
+    }
+  ],
+  "timestamp": "2026-02-22T17:58:58.710684",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 6,
+    "completed_before": 0,
+    "executed_now": 6,
+    "missing_before": 6
+  }
+}

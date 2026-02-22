@@ -5,14 +5,15 @@ import random
 import heapq
 import numpy as np
 import torch
+import json
+
+# Add project root to path so we can import attack modules and config
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from parameter_parser import parameter_parser
 from utils.logger import create_logger
 from dataset.original_dataset import original_dataset
 from utils.dataset_utils import process_data
-
-# Add project root to path so we can import attack modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from attack.attack_strategies.im_strategy import IMStrategy, _estimate_spread_numba, _estimate_spread_python, HAS_NUMBA
 
@@ -209,7 +210,14 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=2024, help="Random seed for the benchmark")
-    bench_args = parser.parse_args()
+    parser.add_argument("--resume", action="store_true", help="Resume from previous bench_results.json if it exists")
+    parser.add_argument("--branch", type=str, default="all", help="Comma separated list of branches to run (e.g. 'v0,v1,v3'), or 'all'")
+    
+    bench_args, unknown = parser.parse_known_args()
+    
+    # Hide ALL custom and unknown arguments from the main project's parameter_parser
+    # This forces parameter_parser to only parse the defaults without throwing unrecognized argument errors.
+    sys.argv = [sys.argv[0]]
     
     print(f"Loading Cora dataset via original_dataset (Seed: {bench_args.seed})...", flush=True)
     args = parameter_parser()
@@ -243,10 +251,25 @@ def main():
     })
     
     results = {}
+    cache_file = "experiments/im_benchmark/bench_results.json"
+    
+    if bench_args.resume and os.path.exists(cache_file):
+        print(f"Loading cached results from {cache_file}...", flush=True)
+        with open(cache_file, 'r', encoding='utf-8') as f:
+            results = json.load(f)
+            
     baseline_selected = set()
     baseline_spread = 0.0
     
+    if "V0: Baseline" in results:
+        baseline_selected = set(results["V0: Baseline"]['selected'])
+        baseline_spread = results["V0: Baseline"]['spread']
+    
     def measure_variant(name, func, *args):
+        if bench_args.resume and name in results:
+            print(f"Skipping {name} (Already in cache)", flush=True)
+            return results[name]
+            
         print(f"\n--- Running {name} ---", flush=True)
         start_t = time.time()
         selected = func(*args)
@@ -256,35 +279,46 @@ def main():
         print(f"Evaluating Final Spread ({eval_mc} MC simulations)...", flush=True)
         spread = evaluate_spread(edge_index, num_nodes, selected, prob, eval_mc)
         
-        return {
+        res_dict = {
             'time': elapsed,
             'selected': selected,
             'spread': spread
         }
+        
+        results[name] = res_dict
+        # Save cache immediately after each run
+        with open(cache_file, 'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+            
+        return res_dict
 
-    # Run variants
+    # Determine which branches to run
+    branches = [b.lower().strip() for b in bench_args.branch.split(',')]
+    run_all = 'all' in branches
+    
+    # Run variants based on filter
     
     # V0
-    v0_res = measure_variant("V0: Baseline", run_v0, im_strategy, edge_index, num_nodes, k, candidate_set)
-    baseline_selected = set(v0_res['selected'])
-    baseline_spread = v0_res['spread']
-    results["V0: Baseline"] = v0_res
+    if run_all or 'v0' in branches:
+        v0_res = measure_variant("V0: Baseline", run_v0, im_strategy, edge_index, num_nodes, k, candidate_set)
+        baseline_selected = set(v0_res['selected'])
+        baseline_spread = v0_res['spread']
     
     # V1
-    v1_res = measure_variant("V1: Fast-Hash", run_v1, im_strategy, edge_index, num_nodes, k, candidate_set)
-    results["V1: Fast-Hash"] = v1_res
+    if run_all or 'v1' in branches:
+        v1_res = measure_variant("V1: Fast-Hash", run_v1, im_strategy, edge_index, num_nodes, k, candidate_set)
     
     # V2
-    v2_res = measure_variant("V2: Top-K", run_v2, im_strategy, edge_index, num_nodes, k, candidate_set)
-    results["V2: Top-K"] = v2_res
+    if run_all or 'v2' in branches:
+        v2_res = measure_variant("V2: Top-K", run_v2, im_strategy, edge_index, num_nodes, k, candidate_set)
     
     # V3 (M=400)
-    v3_res = measure_variant("V3: Pruning (M=400)", run_v3, im_strategy, edge_index, num_nodes, k, candidate_set, 400)
-    results["V3: Pruning (M=400)"] = v3_res
+    if run_all or 'v3' in branches:
+        v3_res = measure_variant("V3: Pruning (M=400)", run_v3, im_strategy, edge_index, num_nodes, k, candidate_set, 400)
     
     # V4 (B=5)
-    v4_res = measure_variant("V4: Batch (B=5)", run_v4, im_strategy, edge_index, num_nodes, k, candidate_set, 5)
-    results["V4: Batch (B=5)"] = v4_res
+    if run_all or 'v4' in branches:
+        v4_res = measure_variant("V4: Batch (B=5)", run_v4, im_strategy, edge_index, num_nodes, k, candidate_set, 5)
     
     # Markdown Table Output
     print("\n\n# Benchmark Results\n")
