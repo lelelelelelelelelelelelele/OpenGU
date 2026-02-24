@@ -83,9 +83,14 @@ fi
 if [ "$RUN_COLLATERAL" -eq 1 ]; then
     echo ""
     echo "=== MG-3a Collateral Evaluation ==="
-    for METHOD in $(echo "$METHODS_IDEA" | tr ',' ' '); do
-        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
-            echo ">>> CollEval: $METHOD, seed: $SEED"
+    METHOD_LIST_A=($(echo "$METHODS_IDEA" | tr ',' ' '))
+    SEED_LIST_A=($(echo "$SEEDS" | tr ',' ' '))
+    TOTAL_COLLEVAL_A=$(( ${#METHOD_LIST_A[@]} * ${#SEED_LIST_A[@]} ))
+    COLLEVAL_IDX_A=0
+    for METHOD in "${METHOD_LIST_A[@]}"; do
+        for SEED in "${SEED_LIST_A[@]}"; do
+            COLLEVAL_IDX_A=$((COLLEVAL_IDX_A + 1))
+            echo ">>> [${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval: $METHOD, seed: $SEED"
             "$PYTHON_BIN" eval_collateral.py \
                 --dataset_name "$DATASETS" \
                 --base_model "$BASE_MODEL" \
@@ -94,7 +99,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                 --unlearn_ratio "$RATIOS" \
                 --random_seed "$SEED" \
                 $REPAIR_MODE_ARG
-            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+            echo ">>> [${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval complete: $METHOD, seed: $SEED"
         done
     done
 fi
@@ -126,9 +131,14 @@ fi
 if [ "$RUN_COLLATERAL" -eq 1 ]; then
     echo ""
     echo "=== MG-3b Collateral Evaluation ==="
-    for METHOD in $(echo "$METHODS_IDEA" | tr ',' ' '); do
-        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
-            echo ">>> CollEval: $METHOD, seed: $SEED"
+    METHOD_LIST_B=($(echo "$METHODS_IDEA" | tr ',' ' '))
+    SEED_LIST_B=($(echo "$SEEDS" | tr ',' ' '))
+    TOTAL_COLLEVAL_B=$(( ${#METHOD_LIST_B[@]} * ${#SEED_LIST_B[@]} ))
+    COLLEVAL_IDX_B=0
+    for METHOD in "${METHOD_LIST_B[@]}"; do
+        for SEED in "${SEED_LIST_B[@]}"; do
+            COLLEVAL_IDX_B=$((COLLEVAL_IDX_B + 1))
+            echo ">>> [${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval: $METHOD, seed: $SEED"
             "$PYTHON_BIN" eval_collateral.py \
                 --dataset_name "cora" \
                 --base_model "GAT" \
@@ -137,7 +147,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                 --unlearn_ratio "$RATIOS" \
                 --random_seed "$SEED" \
                 $REPAIR_MODE_ARG
-            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+            echo ">>> [${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval complete: $METHOD, seed: $SEED"
         done
     done
 fi

@@ -641,9 +641,14 @@ def _run_repair(
 
     if all_missing:
         print("[REPAIR] Running repair...")
-    for item in all_missing:
+    total_missing = len(all_missing)
+    for idx, item in enumerate(all_missing, start=1):
         run_stats = per_run[item["run_dir"]]
         run_dir = run_stats["run_dir"]
+        print(
+            f"[REPAIR][{idx}/{total_missing}] "
+            f"{item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']}"
+        )
         if run_stats["is_new"]:
             os.makedirs(run_dir, exist_ok=True)
         result = run_single_experiment(

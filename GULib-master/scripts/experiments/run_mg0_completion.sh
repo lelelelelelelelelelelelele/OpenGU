@@ -99,11 +99,17 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
     echo ""
     echo "=== Running Collateral Evaluation ==="
 
+    METHOD_LIST=($(echo "$METHODS" | tr ',' ' '))
+    SEED_LIST=($(echo "$SEEDS" | tr ',' ' '))
+    TOTAL_COLLEVAL=$(( ${#METHOD_LIST[@]} * ${#SEED_LIST[@]} ))
+    COLLEVAL_IDX=0
+
     # 对每个方法分别运行 collateral 评估
-    for METHOD in $(echo "$METHODS" | tr ',' ' '); do
-        for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+    for METHOD in "${METHOD_LIST[@]}"; do
+        for SEED in "${SEED_LIST[@]}"; do
+            COLLEVAL_IDX=$((COLLEVAL_IDX + 1))
             echo ""
-            echo ">>> CollEval: $METHOD, seed: $SEED"
+            echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval: $METHOD, seed: $SEED"
 
             "$PYTHON_BIN" eval_collateral.py \
                 --dataset_name "$DATASETS" \
@@ -114,7 +120,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                 --random_seed "$SEED" \
                 $REPAIR_MODE_ARG
 
-            echo ">>> CollEval complete: $METHOD, seed: $SEED"
+            echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval complete: $METHOD, seed: $SEED"
         done
     done
 

@@ -104,14 +104,20 @@ echo "Ratio sensitivity experiments complete!"
 if [ "$RUN_COLLATERAL" -eq 1 ]; then
     echo ""
     echo "=== Running Collateral Evaluation (for each ratio) ==="
+    RATIO_LIST=($(echo "$RATIOS" | tr ',' ' '))
+    METHOD_LIST=($(echo "$METHODS" | tr ',' ' '))
+    SEED_LIST=($(echo "$SEEDS" | tr ',' ' '))
+    TOTAL_COLLEVAL=$(( ${#RATIO_LIST[@]} * ${#METHOD_LIST[@]} * ${#SEED_LIST[@]} ))
+    COLLEVAL_IDX=0
 
-    for RATIO in $(echo "$RATIOS" | tr ',' ' '); do
+    for RATIO in "${RATIO_LIST[@]}"; do
         echo ""
         echo ">>> Collateral for ratio: $RATIO"
 
-        for METHOD in $(echo "$METHODS" | tr ',' ' '); do
-            for SEED in $(echo "$SEEDS" | tr ',' ' '); do
-                echo ">>> CollEval: $METHOD, seed: $SEED, ratio: $RATIO"
+        for METHOD in "${METHOD_LIST[@]}"; do
+            for SEED in "${SEED_LIST[@]}"; do
+                COLLEVAL_IDX=$((COLLEVAL_IDX + 1))
+                echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval: $METHOD, seed: $SEED, ratio: $RATIO"
 
                 "$PYTHON_BIN" eval_collateral.py \
                     --dataset_name "$DATASETS" \
@@ -122,7 +128,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                     --random_seed "$SEED" \
                     $REPAIR_MODE_ARG
 
-                echo ">>> CollEval complete: $METHOD, seed: $SEED"
+                echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval complete: $METHOD, seed: $SEED"
             done
         done
     done
