@@ -1,0 +1,74 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "IDEA",
+    "unlearn_ratio": 0.05,
+    "random_seed": 722,
+    "strategies_requested": [
+      "random",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.7342342342342343,
+      "perf_retrain": 0.7387387387387387,
+      "perf_unlearn": 0.7297297297297297,
+      "drop_retrain": -0.0045045045045044585,
+      "gap": 0.009009009009009028,
+      "gap_pct": 1.2195121951219539,
+      "mean_pred_shift": 0.0241460632532835,
+      "max_pred_shift": 0.7044721245765686,
+      "fraction_flipped": 0.0339786633849144
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.7372372372372372,
+      "perf_retrain": 0.7357357357357357,
+      "perf_unlearn": 0.7402402402402404,
+      "drop_retrain": 0.0015015015015015232,
+      "gap": -0.0045045045045046805,
+      "gap_pct": -0.6122448979592077,
+      "mean_pred_shift": 0.03821209818124771,
+      "max_pred_shift": 0.8474137783050537,
+      "fraction_flipped": 0.022444888949394226
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.7267267267267268,
+      "perf_retrain": 0.7087087087087086,
+      "perf_unlearn": 0.7447447447447447,
+      "drop_retrain": 0.018018018018018167,
+      "gap": -0.03603603603603611,
+      "gap_pct": -5.084745762711876,
+      "mean_pred_shift": 0.0290566124022007,
+      "max_pred_shift": 0.5830687880516052,
+      "fraction_flipped": 0.031663328409194946
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.7252252252252253,
+      "perf_retrain": 0.7207207207207207,
+      "perf_unlearn": 0.7312312312312313,
+      "drop_retrain": 0.0045045045045045695,
+      "gap": -0.010510510510510662,
+      "gap_pct": -1.4583333333333546,
+      "mean_pred_shift": 0.02546488493680954,
+      "max_pred_shift": 0.575514554977417,
+      "fraction_flipped": 0.034468937665224075
+    }
+  ],
+  "timestamp": "2026-02-24T18:57:26.137577",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 4,
+    "completed_before": 2,
+    "executed_now": 0,
+    "missing_before": 2
+  }
+}

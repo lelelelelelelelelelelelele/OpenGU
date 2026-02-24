@@ -1,0 +1,74 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GAT",
+    "unlearning_methods": "MEGU",
+    "unlearn_ratio": 0.05,
+    "random_seed": 722,
+    "strategies_requested": [
+      "random",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.8948339483394835,
+      "perf_retrain": 0.8856088560885609,
+      "perf_unlearn": 0.8671586715867159,
+      "drop_retrain": 0.009225092250922606,
+      "gap": 0.01845018450184499,
+      "gap_pct": 2.08333333333333,
+      "mean_pred_shift": 0.066765695810318,
+      "max_pred_shift": 0.796054482460022,
+      "fraction_flipped": 0.03885381296277046
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.8800738007380073,
+      "perf_retrain": 0.8653136531365314,
+      "perf_unlearn": 0.8653136531365314,
+      "drop_retrain": 0.014760147601475926,
+      "gap": 0.0,
+      "gap_pct": 0.0,
+      "mean_pred_shift": 0.07912136614322662,
+      "max_pred_shift": 0.7543022632598877,
+      "fraction_flipped": 0.039389465004205704
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.8874538745387455,
+      "perf_retrain": 0.8800738007380073,
+      "perf_unlearn": 0.8837638376383764,
+      "drop_retrain": 0.0073800738007381295,
+      "gap": -0.0036900369003690647,
+      "gap_pct": -0.4192872117400489,
+      "mean_pred_shift": 0.04940125346183777,
+      "max_pred_shift": 0.8011091947555542,
+      "fraction_flipped": 0.026095518842339516
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.8929889298892989,
+      "perf_retrain": 0.8800738007380073,
+      "perf_unlearn": 0.8671586715867159,
+      "drop_retrain": 0.01291512915129156,
+      "gap": 0.012915129151291449,
+      "gap_pct": 1.4675052410901395,
+      "mean_pred_shift": 0.07960047572851181,
+      "max_pred_shift": 0.8135952353477478,
+      "fraction_flipped": 0.05071393400430679
+    }
+  ],
+  "timestamp": "2026-02-24T18:59:46.670546",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 4,
+    "completed_before": 2,
+    "executed_now": 0,
+    "missing_before": 2
+  }
+}

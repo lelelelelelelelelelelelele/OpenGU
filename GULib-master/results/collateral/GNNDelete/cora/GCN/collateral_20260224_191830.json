@@ -1,0 +1,76 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GNNDelete",
+    "unlearn_ratio": 0.2,
+    "random_seed": 42,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.8856088560885609,
+      "perf_retrain": 0.8819188191881918,
+      "perf_unlearn": 0.7472324723247232,
+      "drop_retrain": 0.0036900369003690647,
+      "gap": 0.1346863468634686,
+      "gap_pct": 15.271966527196648,
+      "mean_pred_shift": 0.39762863516807556,
+      "max_pred_shift": 0.9126542210578918,
+      "fraction_flipped": 0.17848969995975494
+    },
+    {
+      "strategy": "degree",
+      "perf_before": 0.8874538745387455,
+      "perf_retrain": 0.8966789667896679,
+      "perf_unlearn": 0.7140221402214023,
+      "drop_retrain": -0.009225092250922384,
+      "gap": 0.18265682656826554,
+      "gap_pct": 20.370370370370356,
+      "mean_pred_shift": 0.41137242317199707,
+      "max_pred_shift": 0.9144290685653687,
+      "fraction_flipped": 0.19872167706489563
+    },
+    {
+      "strategy": "pagerank",
+      "perf_before": 0.8929889298892989,
+      "perf_retrain": 0.8948339483394835,
+      "perf_unlearn": 0.7656826568265682,
+      "drop_retrain": -0.0018450184501845879,
+      "gap": 0.12915129151291527,
+      "gap_pct": 14.432989690721662,
+      "mean_pred_shift": 0.4038606882095337,
+      "max_pred_shift": 0.9201115965843201,
+      "fraction_flipped": 0.1780346781015396
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.8819188191881918,
+      "perf_retrain": 0.7343173431734318,
+      "perf_unlearn": 0.6900369003690037,
+      "drop_retrain": 0.14760147601476004,
+      "gap": 0.04428044280442811,
+      "gap_pct": 6.030150753768853,
+      "mean_pred_shift": 0.19116567075252533,
+      "max_pred_shift": 0.8445835113525391,
+      "fraction_flipped": 0.06400000303983688
+    }
+  ],
+  "timestamp": "2026-02-24T19:18:30.304185",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 6,
+    "completed_before": 0,
+    "executed_now": 4,
+    "missing_before": 6
+  }
+}

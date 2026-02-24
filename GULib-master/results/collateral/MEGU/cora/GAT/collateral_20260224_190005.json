@@ -1,0 +1,74 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GAT",
+    "unlearning_methods": "MEGU",
+    "unlearn_ratio": 0.05,
+    "random_seed": 2024,
+    "strategies_requested": [
+      "random",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "perf_before": 0.8837638376383764,
+      "perf_retrain": 0.8892988929889298,
+      "perf_unlearn": 0.8745387453874539,
+      "drop_retrain": -0.0055350553505534306,
+      "gap": 0.014760147601475926,
+      "gap_pct": 1.6597510373443882,
+      "mean_pred_shift": 0.04671161621809006,
+      "max_pred_shift": 0.6133098602294922,
+      "fraction_flipped": 0.037306200712919235
+    },
+    {
+      "strategy": "tracin",
+      "perf_before": 0.8874538745387455,
+      "perf_retrain": 0.8745387453874539,
+      "perf_unlearn": 0.8690036900369004,
+      "drop_retrain": 0.01291512915129156,
+      "gap": 0.005535055350553542,
+      "gap_pct": 0.6329113924050673,
+      "mean_pred_shift": 0.06494328379631042,
+      "max_pred_shift": 0.8276599645614624,
+      "fraction_flipped": 0.02904972992837429
+    },
+    {
+      "strategy": "hybrid",
+      "perf_before": 0.8745387453874539,
+      "perf_retrain": 0.8671586715867159,
+      "perf_unlearn": 0.8763837638376384,
+      "drop_retrain": 0.0073800738007380184,
+      "gap": -0.009225092250922495,
+      "gap_pct": -1.063829787234041,
+      "mean_pred_shift": 0.0675845593214035,
+      "max_pred_shift": 0.7263680100440979,
+      "fraction_flipped": 0.037419989705085754
+    },
+    {
+      "strategy": "im",
+      "perf_before": 0.8837638376383764,
+      "perf_retrain": 0.8782287822878229,
+      "perf_unlearn": 0.8579335793357934,
+      "drop_retrain": 0.005535055350553542,
+      "gap": 0.020295202952029467,
+      "gap_pct": 2.310924369747893,
+      "mean_pred_shift": 0.08467796444892883,
+      "max_pred_shift": 0.8853882551193237,
+      "fraction_flipped": 0.06450024247169495
+    }
+  ],
+  "timestamp": "2026-02-24T19:00:05.200824",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 4,
+    "completed_before": 2,
+    "executed_now": 0,
+    "missing_before": 2
+  }
+}

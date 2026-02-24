@@ -1,0 +1,60 @@
+{
+  "cache_key": "5433802a5df2d2bf82eb64b8c1756b7b",
+  "cached_at": "2026-02-24T19:14:02.604481",
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearn_ratio": 0.01,
+    "seed": 2024,
+    "strategy_name": "im_v4",
+    "k": 27,
+    "is_transductive": true,
+    "is_balanced": false,
+    "train_ratio": 0.8,
+    "val_ratio": 0.0,
+    "test_ratio": 0.2,
+    "graph_fingerprint": "a3761845fa1231ca9ff4c4bfbb97fe89",
+    "strategy_params_fingerprint": "18d0db554fb07a4cf7f52ac500578bae"
+  },
+  "selection_result": {
+    "strategy_name": "im_v4",
+    "selected_nodes": [
+      1358,
+      306,
+      1072,
+      1623,
+      109,
+      1986,
+      1810,
+      1628,
+      2124,
+      1868,
+      2034,
+      1224,
+      1914,
+      952,
+      36,
+      1181,
+      2021,
+      743,
+      265,
+      494,
+      1370,
+      436,
+      1639,
+      1334,
+      911,
+      598,
+      1850
+    ],
+    "selection_time": 1.3335034847259521,
+    "selection_key": "5433802a5df2d2bf82eb64b8c1756b7b",
+    "created_at": "2026-02-24T19:14:02.604481",
+    "metadata": {
+      "dataset_name": "cora",
+      "base_model": "GCN",
+      "seed": 2024,
+      "graph_fingerprint": "a3761845fa1231ca9ff4c4bfbb97fe89"
+    }
+  }
+}

@@ -13286,3 +13286,2208 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - tracin: F1 Drop = -0.0830 (f1_before=0.7694, f1_after=0.8524, time=25.8s, cache=MISS, selection=6.5858s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 18:38] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - hybrid_v4: F1 Drop = -0.0414 (f1_before=0.7970, f1_after=0.8384, time=42.2s, cache=MISS, selection=7.2666s)
+  - tracin: F1 Drop = -0.0713 (f1_before=0.7657, f1_after=0.8370, time=37.7s, cache=MISS, selection=7.2103s)
+  - random: F1 Drop = -0.0757 (f1_before=0.7583, f1_after=0.8340, time=16.7s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000000s)
+  - im_v4: F1 Drop = -0.0757 (f1_before=0.7583, f1_after=0.8340, time=18.9s, cache=HIT(key=740523b0ca18872055b4007aaa0360f0), selection=1.1484s, reuse=0.001006s, speedup=1141.16x)
+  - pagerank: F1 Drop = -0.0979 (f1_before=0.7435, f1_after=0.8414, time=17.6s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.000990s, speedup=1039.19x)
+  - degree: F1 Drop = -0.1513 (f1_before=0.6661, f1_after=0.8174, time=17.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 18:38] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.1384 (f1_before=0.8893, f1_after=0.7509, time=1.4s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000992s, speedup=1139.31x)
+  - random: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=1.8s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1415.76x)
+  - tracin: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=8.9s, cache=MISS, selection=7.4003s)
+  - degree: F1 Drop = 0.0868 (f1_before=0.8875, f1_after=0.8007, time=1.4s, cache=MISS, selection=0.0240s)
+  - im_v4: F1 Drop = 0.0535 (f1_before=0.8856, f1_after=0.8321, time=3.2s, cache=MISS, selection=1.1590s)
+  - hybrid_v4: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=8.7s, cache=MISS, selection=7.1933s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 18:39] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0203 (f1_before=0.8911, f1_after=0.8708, time=8.4s, cache=MISS, selection=7.4577s)
+  - degree: F1 Drop = 0.0184 (f1_before=0.8911, f1_after=0.8727, time=1.0s, cache=MISS, selection=0.0190s)
+  - im_v4: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=1.2s, cache=HIT(key=f463fe7cbaf66d291a73c8fe5fd03102), selection=1.1590s, reuse=0.000000s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=1.3s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1415.76x)
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.2s, cache=MISS, selection=7.1508s)
+  - pagerank: F1 Drop = 0.0111 (f1_before=0.8893, f1_after=0.8782, time=0.9s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000990s, speedup=1141.62x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 18:40] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = -0.0295 (f1_before=0.8100, f1_after=0.8395, time=26.4s, cache=MISS, selection=6.7537s)
+  - random: F1 Drop = -0.0351 (f1_before=0.7915, f1_after=0.8266, time=19.9s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001000s, speedup=1428.50x)
+  - tracin: F1 Drop = -0.0351 (f1_before=0.7915, f1_after=0.8266, time=29.5s, cache=MISS, selection=7.2580s)
+  - degree: F1 Drop = -0.0406 (f1_before=0.8081, f1_after=0.8487, time=19.0s, cache=MISS, selection=0.0000s)
+  - im_v4: F1 Drop = -0.0443 (f1_before=0.7915, f1_after=0.8358, time=20.7s, cache=HIT(key=f463fe7cbaf66d291a73c8fe5fd03102), selection=1.1590s, reuse=0.001000s, speedup=1158.80x)
+  - pagerank: F1 Drop = -0.0701 (f1_before=0.7638, f1_after=0.8339, time=20.4s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000999s, speedup=1131.33x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 18:41] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = -0.0313 (f1_before=0.7841, f1_after=0.8154, time=18.8s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001000s, speedup=1428.50x)
+  - im_v4: F1 Drop = -0.0313 (f1_before=0.7841, f1_after=0.8154, time=17.9s, cache=HIT(key=f463fe7cbaf66d291a73c8fe5fd03102), selection=1.1590s, reuse=0.001005s, speedup=1153.23x)
+  - hybrid_v4: F1 Drop = -0.0409 (f1_before=0.7823, f1_after=0.8232, time=37.9s, cache=MISS, selection=7.7451s)
+  - tracin: F1 Drop = -0.0409 (f1_before=0.7823, f1_after=0.8232, time=38.8s, cache=MISS, selection=7.6158s)
+  - pagerank: F1 Drop = -0.0871 (f1_before=0.7528, f1_after=0.8399, time=19.1s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.001000s, speedup=1130.20x)
+  - degree: F1 Drop = -0.1183 (f1_before=0.7214, f1_after=0.8397, time=20.4s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-02-24 18:42:03] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 11.55% |    0.2948 |   15.41% |
+| degree   | 16.91% |    0.3529 |   21.58% |
+| pagerank | 16.26% |    0.3912 |   16.91% |
+| tracin   | 12.15% |    0.1614 |   14.52% |
+| im_v4    | 13.10% |    0.4088 |   16.79% |
+| hybrid_v4 | 14.67% |    0.1740 |   12.90% |
+| hybrid   | 12.03% |    0.1654 |   14.23% |
+| im       | 12.58% |    0.3255 |   18.17% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_184203.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:42:19] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 9.15% |    0.3025 |   12.15% |
+| degree   | 21.24% |    0.4312 |   25.67% |
+| pagerank | 9.26% |    0.3846 |   10.74% |
+| tracin   | 12.31% |    0.1300 |   11.96% |
+| im_v4    | 16.28% |    0.3719 |   21.12% |
+| hybrid_v4 | 12.50% |    0.2191 |   10.49% |
+| hybrid   | 13.04% |    0.1601 |   14.67% |
+| im       | 9.64% |    0.3355 |   13.39% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_184219.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:42:30] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 10.23% |    0.4413 |   12.82% |
+| degree   | 8.87% |    0.3422 |   10.74% |
+| pagerank | 10.27% |    0.4056 |   12.88% |
+| tracin   | 11.79% |    0.1670 |   14.82% |
+| hybrid   | 15.79% |    0.1763 |   17.97% |
+| im       | 7.31% |    0.2392 |   10.68% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_184230.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:42:40] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 5.64% |    0.3288 |    9.30% |
+| degree   | 20.62% |    0.3801 |   24.94% |
+| pagerank | 11.11% |    0.4064 |   15.26% |
+| tracin   | 14.16% |    0.1990 |   14.52% |
+| hybrid   | 11.97% |    0.1518 |   13.64% |
+| im       | 8.61% |    0.2443 |   12.95% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_184240.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:42:50] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 23.59% |    0.3606 |   26.98% |
+| degree   | 20.00% |    0.4053 |   26.35% |
+| pagerank | 10.47% |    0.4409 |   12.10% |
+| tracin   | 12.72% |    0.1582 |   12.36% |
+| hybrid   | 9.28% |    0.1547 |   12.16% |
+| im       | 23.19% |    0.4571 |   25.95% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_184250.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:43:04] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0130 |    1.07% |
+| degree   | 0.21% |    0.0141 |    1.17% |
+| pagerank | 0.41% |    0.0152 |    1.51% |
+| tracin   | -2.35% |    0.0151 |    0.79% |
+| im_v4    | 0.41% |    0.0165 |    1.18% |
+| hybrid_v4 | 0.21% |    0.0184 |    1.18% |
+| hybrid   | -0.84% |    0.0168 |    1.03% |
+| im       | -1.26% |    0.0152 |    1.23% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_184304.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:43:19] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0152 |    0.87% |
+| degree   | 1.03% |    0.0157 |    1.17% |
+| pagerank | 1.85% |    0.0145 |    0.73% |
+| tracin   | -1.91% |    0.0159 |    0.98% |
+| im_v4    | 0.00% |    0.0146 |    1.23% |
+| hybrid_v4 | 1.03% |    0.0169 |    1.43% |
+| hybrid   | -0.42% |    0.0172 |    1.03% |
+| im       | -1.89% |    0.0150 |    1.08% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_184319.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:43:29] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0126 |    1.26% |
+| degree   | 0.21% |    0.0159 |    1.51% |
+| pagerank | 0.21% |    0.0159 |    1.41% |
+| tracin   | -1.89% |    0.0160 |    1.18% |
+| hybrid   | -0.42% |    0.0167 |    0.94% |
+| im       | -1.05% |    0.0148 |    1.23% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_184329.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:43:39] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0131 |    0.83% |
+| degree   | 0.41% |    0.0180 |    1.31% |
+| pagerank | 1.44% |    0.0136 |    1.02% |
+| tracin   | -1.69% |    0.0166 |    1.08% |
+| hybrid   | -0.63% |    0.0176 |    1.23% |
+| im       | -1.91% |    0.0141 |    1.08% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_184339.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:43:49] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0150 |    0.97% |
+| degree   | 0.42% |    0.0159 |    1.56% |
+| pagerank | 1.23% |    0.0152 |    1.31% |
+| tracin   | -3.65% |    0.0160 |    1.38% |
+| hybrid   | -1.47% |    0.0160 |    0.94% |
+| im       | 1.03% |    0.0154 |    0.98% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_184349.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:45:24] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.2142 |   20.76% |
+| degree   | -2.93% |    0.2419 |   24.06% |
+| pagerank | 0.00% |    0.2671 |   26.48% |
+| tracin   | 4.54% |    0.2008 |   16.94% |
+| im_v4    | -1.65% |    0.2284 |   21.17% |
+| hybrid_v4 | -0.92% |    0.2355 |   22.99% |
+| hybrid   | -1.19% |    0.2309 |   21.57% |
+| im       | 2.53% |    0.1996 |   18.37% |
+- 日志路径：`results\collateral\GraphEraser\cora\GCN\collateral_20260224_184524.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:47:07] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -3.43% |    0.2590 |   26.53% |
+| degree   | -0.47% |    0.2086 |   19.54% |
+| pagerank | -6.40% |    0.2346 |   22.50% |
+| tracin   | 6.11% |    0.2176 |   20.24% |
+| im_v4    | 9.57% |    0.2354 |   22.11% |
+| hybrid_v4 | 3.15% |    0.2216 |   20.48% |
+| hybrid   | -0.71% |    0.2319 |   22.26% |
+| im       | 2.48% |    0.1778 |   16.74% |
+- 日志路径：`results\collateral\GraphEraser\cora\GCN\collateral_20260224_184707.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:47:17] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 6.64% |    0.2486 |   26.81% |
+| degree   | 1.67% |    0.1957 |   19.54% |
+| pagerank | 3.70% |    0.2369 |   23.52% |
+| tracin   | -6.18% |    0.2216 |   20.58% |
+| hybrid   | 1.13% |    0.2299 |   21.02% |
+| im       | 3.78% |    0.2762 |   27.92% |
+- 日志路径：`results\collateral\GraphEraser\cora\GCN\collateral_20260224_184717.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:47:28] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.61% |    0.2461 |   24.68% |
+| degree   | -1.84% |    0.2045 |   19.83% |
+| pagerank | 3.27% |    0.2797 |   26.92% |
+| tracin   | -0.71% |    0.2000 |   18.76% |
+| hybrid   | -1.17% |    0.2125 |   21.42% |
+| im       | -5.67% |    0.2192 |   21.86% |
+- 日志路径：`results\collateral\GraphEraser\cora\GCN\collateral_20260224_184728.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:47:38] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.47% |    0.2087 |   20.76% |
+| degree   | -0.24% |    0.2133 |   20.71% |
+| pagerank | 0.92% |    0.2276 |   21.91% |
+| tracin   | 0.98% |    0.2504 |   25.21% |
+| hybrid   | -6.24% |    0.2244 |   22.40% |
+| im       | -1.15% |    0.2159 |   21.37% |
+- 日志路径：`results\collateral\GraphEraser\cora\GCN\collateral_20260224_184738.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:49:36] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 3.90% |    0.2456 |   24.74% |
+| degree   | -1.26% |    0.2860 |   28.49% |
+| pagerank | -4.83% |    0.2554 |   24.59% |
+| tracin   | -10.11% |    0.2585 |   27.38% |
+| im_v4    | -2.76% |    0.2662 |   28.80% |
+| hybrid_v4 | 2.86% |    0.2687 |   28.31% |
+| hybrid   | 4.20% |    0.2669 |   27.57% |
+| im       | -7.85% |    0.2744 |   28.71% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260224_184936.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:51:32] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.07% |    0.2740 |   30.47% |
+| degree   | -6.83% |    0.2660 |   24.36% |
+| pagerank | 0.00% |    0.2385 |   24.59% |
+| tracin   | 0.50% |    0.2914 |   29.10% |
+| im_v4    | -1.67% |    0.2403 |   23.49% |
+| hybrid_v4 | -14.29% |    0.2683 |   28.46% |
+| hybrid   | 6.56% |    0.2672 |   26.44% |
+| im       | 4.95% |    0.2454 |   24.27% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260224_185132.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:51:42] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.50% |    0.2504 |   23.80% |
+| degree   | -10.46% |    0.2792 |   29.56% |
+| pagerank | 5.22% |    0.2800 |   28.33% |
+| tracin   | 3.82% |    0.2893 |   26.98% |
+| hybrid   | 11.06% |    0.2617 |   27.23% |
+| im       | 8.82% |    0.2680 |   28.06% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260224_185142.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:51:52] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.21% |    0.2668 |   25.17% |
+| degree   | 1.16% |    0.2791 |   25.57% |
+| pagerank | -14.01% |    0.2479 |   26.92% |
+| tracin   | 6.97% |    0.2519 |   26.64% |
+| hybrid   | 9.91% |    0.3136 |   33.33% |
+| im       | -3.49% |    0.2269 |   22.26% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260224_185152.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:02] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GUIDE, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -9.97% |    0.2693 |   28.49% |
+| degree   | -2.78% |    0.2993 |   31.16% |
+| pagerank | 1.72% |    0.2702 |   28.28% |
+| tracin   | 2.43% |    0.2553 |   25.85% |
+| hybrid   | -5.69% |    0.2521 |   25.11% |
+| im       | -1.77% |    0.2638 |   25.26% |
+- 日志路径：`results\collateral\GUIDE\cora\GCN\collateral_20260224_185202.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:13] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.66% |    0.0239 |    3.27% |
+| degree   | 0.61% |    0.0259 |    3.52% |
+| pagerank | 1.21% |    0.0248 |    3.56% |
+| tracin   | -2.74% |    0.0391 |    2.69% |
+| hybrid   | -1.25% |    0.0300 |    4.09% |
+| im       | -0.21% |    0.0255 |    3.21% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260224_185213.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:23] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0246 |    3.47% |
+| degree   | 0.41% |    0.0243 |    3.96% |
+| pagerank | 2.62% |    0.0243 |    2.92% |
+| tracin   | 0.41% |    0.0419 |    2.93% |
+| hybrid   | -2.32% |    0.0301 |    4.53% |
+| im       | -1.66% |    0.0253 |    3.41% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260224_185223.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:33] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0241 |    3.36% |
+| degree   | 0.00% |    0.0238 |    3.17% |
+| pagerank | 1.43% |    0.0237 |    3.32% |
+| tracin   | -0.82% |    0.0373 |    2.36% |
+| hybrid   | -3.36% |    0.0286 |    3.77% |
+| im       | 0.21% |    0.0259 |    3.65% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260224_185233.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:43] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.41% |    0.0249 |    3.92% |
+| degree   | 1.02% |    0.0269 |    3.80% |
+| pagerank | 1.21% |    0.0231 |    3.64% |
+| tracin   | -1.04% |    0.0382 |    2.44% |
+| hybrid   | -1.24% |    0.0273 |    3.49% |
+| im       | -1.65% |    0.0266 |    3.97% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260224_185243.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:52:52] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0242 |    3.13% |
+| degree   | 0.81% |    0.0233 |    3.45% |
+| pagerank | 0.61% |    0.0241 |    3.83% |
+| tracin   | -0.20% |    0.0363 |    2.40% |
+| hybrid   | 0.61% |    0.0270 |    4.21% |
+| im       | -1.02% |    0.0241 |    3.57% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260224_185252.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:02] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.21% |    0.2483 |    9.38% |
+| degree   | 4.87% |    0.1414 |    7.56% |
+| pagerank | 3.64% |    0.2257 |    8.93% |
+| tracin   | 2.19% |    0.0643 |    5.57% |
+| hybrid   | 7.65% |    0.1221 |   12.06% |
+| im       | 0.62% |    0.0556 |    6.25% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260224_185302.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:12] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 4.93% |    0.1543 |   12.78% |
+| degree   | 12.45% |    0.1957 |   14.65% |
+| pagerank | 6.05% |    0.1821 |    8.77% |
+| tracin   | 2.42% |    0.0978 |    5.97% |
+| hybrid   | 1.83% |    0.0983 |    6.57% |
+| im       | -0.62% |    0.0592 |    5.45% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260224_185312.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:22] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.26% |    0.1557 |    9.92% |
+| degree   | 4.07% |    0.1586 |    9.86% |
+| pagerank | 2.82% |    0.1911 |   10.51% |
+| tracin   | 2.00% |    0.0789 |    5.65% |
+| hybrid   | -1.02% |    0.1513 |    7.70% |
+| im       | -1.04% |    0.0549 |    4.81% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260224_185322.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:32] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.27% |    0.1732 |   11.36% |
+| degree   | 12.78% |    0.2043 |   14.10% |
+| pagerank | 11.38% |    0.2145 |   16.05% |
+| tracin   | 1.42% |    0.0760 |    6.65% |
+| hybrid   | 5.06% |    0.1404 |    9.90% |
+| im       | 0.83% |    0.0622 |    5.25% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260224_185332.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:42] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 3.05% |    0.2105 |    9.15% |
+| degree   | 13.70% |    0.1897 |   14.73% |
+| pagerank | 4.87% |    0.2038 |   10.12% |
+| tracin   | 2.04% |    0.1041 |    6.57% |
+| hybrid   | 5.61% |    0.1002 |    9.98% |
+| im       | -1.24% |    0.0621 |    4.97% |
+- 日志路径：`results\collateral\GNNDelete\citeseer\GCN\collateral_20260224_185342.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:53:51] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -3.66% |    0.2897 |   28.50% |
+| degree   | 5.20% |    0.3084 |   30.18% |
+| pagerank | 0.92% |    0.2921 |   29.05% |
+| tracin   | 8.04% |    0.3007 |   28.70% |
+| hybrid   | -2.95% |    0.2903 |   28.98% |
+| im       | 3.82% |    0.3314 |   32.51% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260224_185351.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:01] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 4.34% |    0.3120 |   30.95% |
+| degree   | 5.42% |    0.2836 |   28.36% |
+| pagerank | -3.26% |    0.3045 |   31.11% |
+| tracin   | 0.89% |    0.2742 |   26.97% |
+| hybrid   | 1.16% |    0.2851 |   28.66% |
+| im       | -1.37% |    0.3162 |   31.50% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260224_185401.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:11] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.14% |    0.3321 |   33.54% |
+| degree   | 8.39% |    0.3485 |   34.30% |
+| pagerank | -0.44% |    0.2902 |   28.42% |
+| tracin   | -3.03% |    0.2830 |   26.13% |
+| hybrid   | 8.46% |    0.2966 |   29.86% |
+| im       | 1.82% |    0.2849 |   28.02% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260224_185411.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:20] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.47% |    0.2908 |   28.53% |
+| degree   | 2.38% |    0.2716 |   26.93% |
+| pagerank | -3.53% |    0.2840 |   28.74% |
+| tracin   | -13.33% |    0.2803 |   28.18% |
+| hybrid   | -0.22% |    0.2578 |   24.41% |
+| im       | 1.56% |    0.2924 |   28.50% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260224_185420.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:30] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.80% |    0.2691 |   26.10% |
+| degree   | 0.21% |    0.2612 |   24.67% |
+| pagerank | -5.69% |    0.3181 |   31.34% |
+| tracin   | -4.25% |    0.3136 |   31.50% |
+| hybrid   | 2.57% |    0.2885 |   28.54% |
+| im       | -0.46% |    0.3103 |   30.42% |
+- 日志路径：`results\collateral\GraphEraser\citeseer\GCN\collateral_20260224_185430.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:41] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0304 |    2.91% |
+| degree   | 1.04% |    0.0300 |    2.92% |
+| pagerank | -1.25% |    0.0282 |    2.14% |
+| tracin   | -0.84% |    0.0317 |    2.26% |
+| hybrid   | -1.48% |    0.0311 |    2.26% |
+| im       | -1.06% |    0.0303 |    2.41% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260224_185441.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:54:50] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0297 |    2.52% |
+| degree   | 2.06% |    0.0275 |    1.99% |
+| pagerank | 1.85% |    0.0287 |    2.67% |
+| tracin   | -1.05% |    0.0388 |    3.00% |
+| hybrid   | -1.05% |    0.0283 |    2.51% |
+| im       | -0.63% |    0.0261 |    2.17% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260224_185450.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:00] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0271 |    2.14% |
+| degree   | 2.44% |    0.0270 |    1.94% |
+| pagerank | 0.83% |    0.0281 |    1.90% |
+| tracin   | -0.63% |    0.0318 |    2.07% |
+| hybrid   | -1.05% |    0.0316 |    2.61% |
+| im       | -2.76% |    0.0277 |    2.22% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260224_185500.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:09] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.52% |    0.0318 |    3.44% |
+| degree   | 2.05% |    0.0258 |    1.99% |
+| pagerank | 0.00% |    0.0265 |    2.53% |
+| tracin   | 0.00% |    0.0306 |    1.87% |
+| hybrid   | 0.00% |    0.0283 |    2.22% |
+| im       | -2.99% |    0.0309 |    2.56% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260224_185509.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:19] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0294 |    2.86% |
+| degree   | -1.26% |    0.0292 |    2.43% |
+| pagerank | 0.00% |    0.0264 |    2.38% |
+| tracin   | 0.00% |    0.0341 |    2.61% |
+| hybrid   | -1.26% |    0.0315 |    2.90% |
+| im       | -2.78% |    0.0310 |    2.66% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260224_185519.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:29] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 10.40% |    0.2899 |   12.82% |
+| degree   | 24.23% |    0.2854 |   27.42% |
+| pagerank | 30.72% |    0.3569 |   32.41% |
+| tracin   | 12.01% |    0.1830 |   16.20% |
+| hybrid   | 11.72% |    0.1857 |   13.79% |
+| im       | 11.70% |    0.2857 |   16.79% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260224_185529.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:38] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 26.39% |    0.2824 |   30.59% |
+| degree   | 9.73% |    0.1813 |   14.78% |
+| pagerank | 15.20% |    0.2693 |   17.88% |
+| tracin   | 8.75% |    0.1715 |   12.60% |
+| hybrid   | 15.45% |    0.1992 |   17.48% |
+| im       | 15.89% |    0.3300 |   20.43% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260224_185538.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:48] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 18.14% |    0.3347 |   24.04% |
+| degree   | 18.43% |    0.2458 |   22.65% |
+| pagerank | 11.80% |    0.2359 |   14.82% |
+| tracin   | 13.77% |    0.1768 |   15.46% |
+| hybrid   | 14.70% |    0.2010 |   18.56% |
+| im       | 3.95% |    0.2103 |    7.24% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260224_185548.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:55:58] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 7.74% |    0.1987 |   12.94% |
+| degree   | 17.78% |    0.2985 |   21.63% |
+| pagerank | 7.71% |    0.2141 |   11.47% |
+| tracin   | 9.85% |    0.1451 |   11.13% |
+| hybrid   | 11.68% |    0.1579 |   13.69% |
+| im       | 13.55% |    0.2509 |   20.78% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260224_185558.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:07] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 19.33% |    0.3283 |   21.90% |
+| degree   | 13.84% |    0.2589 |   16.63% |
+| pagerank | 12.66% |    0.2817 |   17.78% |
+| tracin   | 8.83% |    0.1489 |   13.84% |
+| hybrid   | 15.48% |    0.2107 |   19.69% |
+| im       | 19.87% |    0.2572 |   23.73% |
+- 日志路径：`results\collateral\GNNDelete\cora\GAT\collateral_20260224_185607.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:17] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 5.53% |    0.2411 |   20.59% |
+| degree   | -7.83% |    0.2702 |   29.12% |
+| pagerank | -0.49% |    0.2617 |   25.46% |
+| tracin   | -3.20% |    0.2652 |   27.03% |
+| hybrid   | 2.69% |    0.2452 |   22.99% |
+| im       | -1.46% |    0.2559 |   24.22% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260224_185617.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:28] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.46% |    0.2528 |   26.56% |
+| degree   | 4.35% |    0.2471 |   25.77% |
+| pagerank | 2.27% |    0.2533 |   25.22% |
+| tracin   | 8.25% |    0.3247 |   32.64% |
+| hybrid   | 9.95% |    0.2729 |   27.23% |
+| im       | 6.38% |    0.3092 |   31.12% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260224_185628.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:37] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.72% |    0.2883 |   27.54% |
+| degree   | 3.27% |    0.2646 |   27.61% |
+| pagerank | -15.71% |    0.2772 |   28.23% |
+| tracin   | 3.23% |    0.2587 |   26.14% |
+| hybrid   | -2.36% |    0.2792 |   28.26% |
+| im       | 9.30% |    0.2734 |   25.70% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260224_185637.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:47] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -7.67% |    0.2709 |   27.00% |
+| degree   | 2.83% |    0.2732 |   25.04% |
+| pagerank | -4.69% |    0.3232 |   31.92% |
+| tracin   | -8.57% |    0.2693 |   27.77% |
+| hybrid   | 1.48% |    0.2602 |   28.41% |
+| im       | -3.07% |    0.2208 |   20.38% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260224_185647.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:56:57] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GraphEraser, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -4.46% |    0.2733 |   27.62% |
+| degree   | 1.96% |    0.2460 |   26.74% |
+| pagerank | -0.99% |    0.2416 |   24.30% |
+| tracin   | -1.00% |    0.2476 |   26.59% |
+| hybrid   | 0.96% |    0.2667 |   27.33% |
+| im       | 0.00% |    0.2648 |   24.96% |
+- 日志路径：`results\collateral\GraphEraser\cora\GAT\collateral_20260224_185657.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:07] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.25% |    0.0262 |    3.43% |
+| tracin   | 0.00% |    0.0373 |    2.57% |
+| hybrid   | -1.46% |    0.0294 |    3.69% |
+| im       | 0.21% |    0.0258 |    3.57% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260224_185707.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:16] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0253 |    3.79% |
+| tracin   | -1.45% |    0.0363 |    2.61% |
+| hybrid   | -0.83% |    0.0284 |    3.25% |
+| im       | -1.23% |    0.0272 |    3.21% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260224_185716.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:26] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.22% |    0.0241 |    3.40% |
+| tracin   | -0.61% |    0.0382 |    2.24% |
+| hybrid   | -5.08% |    0.0291 |    3.17% |
+| im       | -1.46% |    0.0255 |    3.45% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260224_185726.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:35] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.50% |    0.0269 |    3.88% |
+| tracin   | -2.31% |    0.0401 |    2.48% |
+| hybrid   | -0.41% |    0.0257 |    3.25% |
+| im       | -0.83% |    0.0247 |    3.41% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260224_185735.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:45] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.83% |    0.0253 |    3.72% |
+| tracin   | -0.41% |    0.0362 |    2.32% |
+| hybrid   | -2.51% |    0.0277 |    3.65% |
+| im       | -1.65% |    0.0257 |    3.93% |
+- 日志路径：`results\collateral\IDEA\citeseer\GCN\collateral_20260224_185745.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:57:54] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.45% |    0.0287 |    3.98% |
+| tracin   | 0.00% |    0.0441 |    3.05% |
+| hybrid   | -2.28% |    0.0336 |    3.65% |
+| im       | -1.04% |    0.0320 |    3.93% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260224_185754.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:04] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.20% |    0.0260 |    3.59% |
+| tracin   | -0.82% |    0.0376 |    2.77% |
+| hybrid   | -0.41% |    0.0281 |    3.45% |
+| im       | -2.70% |    0.0292 |    3.89% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260224_185804.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:13] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.23% |    0.0372 |    4.62% |
+| tracin   | 1.22% |    0.0489 |    3.65% |
+| hybrid   | -1.67% |    0.0280 |    3.85% |
+| im       | -0.83% |    0.0326 |    4.09% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260224_185813.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:23] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.41% |    0.0308 |    4.16% |
+| tracin   | -2.30% |    0.0371 |    1.84% |
+| hybrid   | -1.47% |    0.0309 |    3.09% |
+| im       | -3.11% |    0.0382 |    4.37% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260224_185823.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:32] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0240 |    3.64% |
+| tracin   | -0.21% |    0.0473 |    3.17% |
+| hybrid   | -2.09% |    0.0280 |    3.49% |
+| im       | -0.21% |    0.0276 |    3.49% |
+- 日志路径：`results\collateral\MEGU\citeseer\GCN\collateral_20260224_185832.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:42] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.83% |    0.0334 |    3.11% |
+| tracin   | -0.21% |    0.0365 |    2.02% |
+| hybrid   | -0.21% |    0.0319 |    2.56% |
+| im       | 0.42% |    0.0304 |    2.71% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260224_185842.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:58:51] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0280 |    2.76% |
+| tracin   | -2.78% |    0.0292 |    1.33% |
+| hybrid   | 0.84% |    0.0268 |    2.12% |
+| im       | -0.63% |    0.0283 |    2.36% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260224_185851.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:00] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.41% |    0.0270 |    2.04% |
+| tracin   | -2.77% |    0.0362 |    2.36% |
+| hybrid   | 0.00% |    0.0319 |    2.41% |
+| im       | 1.04% |    0.0339 |    2.81% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260224_185900.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:09] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0300 |    2.76% |
+| tracin   | 0.21% |    0.0334 |    2.17% |
+| hybrid   | 0.21% |    0.0387 |    3.35% |
+| im       | -1.48% |    0.0314 |    2.56% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260224_185909.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:19] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=IDEA, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0308 |    2.08% |
+| tracin   | 0.21% |    0.0373 |    2.17% |
+| hybrid   | 0.21% |    0.0321 |    2.95% |
+| im       | -1.48% |    0.0263 |    2.12% |
+- 日志路径：`results\collateral\IDEA\cora\GAT\collateral_20260224_185919.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:28] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.25% |    0.0867 |    4.18% |
+| tracin   | -0.84% |    0.0444 |    2.81% |
+| hybrid   | -1.04% |    0.0637 |    3.84% |
+| im       | 0.21% |    0.0647 |    4.48% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260224_185928.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:37] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0518 |    3.30% |
+| tracin   | 0.00% |    0.1012 |    3.79% |
+| hybrid   | -0.84% |    0.0459 |    2.46% |
+| im       | -0.63% |    0.0588 |    4.23% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260224_185937.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:46] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 2.08% |    0.0668 |    3.89% |
+| tracin   | 0.00% |    0.0791 |    3.94% |
+| hybrid   | -0.42% |    0.0494 |    2.61% |
+| im       | 1.47% |    0.0796 |    5.07% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260224_185946.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 18:59:55] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.46% |    0.0558 |    3.93% |
+| tracin   | 4.17% |    0.1050 |    4.63% |
+| hybrid   | 2.08% |    0.0799 |    5.47% |
+| im       | 0.64% |    0.0907 |    6.94% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260224_185955.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:00:05] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=MEGU, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.66% |    0.0467 |    3.73% |
+| tracin   | 0.63% |    0.0649 |    2.90% |
+| hybrid   | -1.06% |    0.0676 |    3.74% |
+| im       | 2.31% |    0.0847 |    6.45% |
+- 日志路径：`results\collateral\MEGU\cora\GAT\collateral_20260224_190005.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-02-24 19:00] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=0.9s, cache=MISS, selection=0.0371s)
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.4s, cache=MISS, selection=0.0021s)
+  - im: F1 Drop = 0.0129 (f1_before=0.8838, f1_after=0.8708, time=4.5s, cache=MISS, selection=3.4510s)
+  - hybrid: F1 Drop = 0.0092 (f1_before=0.8856, f1_after=0.8764, time=7.4s, cache=MISS, selection=6.5194s)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8911, f1_after=0.8819, time=7.9s, cache=MISS, selection=7.0522s)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8856, f1_after=0.8801, time=0.9s, cache=MISS, selection=0.0375s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:00] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0517 (f1_before=0.8893, f1_after=0.8376, time=0.9s, cache=MISS, selection=0.0337s)
+  - degree: F1 Drop = 0.0443 (f1_before=0.8856, f1_after=0.8413, time=0.9s, cache=MISS, selection=0.0259s)
+  - im: F1 Drop = 0.0295 (f1_before=0.8838, f1_after=0.8542, time=3.5s, cache=MISS, selection=2.4161s)
+  - tracin: F1 Drop = 0.0239 (f1_before=0.8911, f1_after=0.8672, time=7.9s, cache=MISS, selection=6.9881s)
+  - hybrid: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=7.0s, cache=MISS, selection=6.0308s)
+  - random: F1 Drop = 0.0074 (f1_before=0.8838, f1_after=0.8764, time=1.4s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:01] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = 0.1384 (f1_before=0.8875, f1_after=0.7491, time=7.7s, cache=MISS, selection=6.4536s)
+  - im: F1 Drop = 0.1384 (f1_before=0.8838, f1_after=0.7454, time=1.7s, cache=HIT(key=6d5541cc84191181d48744e3ed2b2f97), selection=3.4510s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1347 (f1_before=0.8875, f1_after=0.7528, time=7.7s, cache=MISS, selection=6.4308s)
+  - random: F1 Drop = 0.0886 (f1_before=0.8838, f1_after=0.7952, time=1.7s, cache=HIT(key=a757644323a45a56d4a9c783658a49b1), selection=0.0021s, reuse=0.000505s, speedup=4.16x)
+  - pagerank: F1 Drop = 0.0831 (f1_before=0.8838, f1_after=0.8007, time=1.2s, cache=HIT(key=1a7db76cf77cdaf6326ffb96f8ec3fae), selection=0.0371s, reuse=0.001001s, speedup=37.06x)
+  - degree: F1 Drop = 0.0572 (f1_before=0.8875, f1_after=0.8303, time=1.2s, cache=MISS, selection=0.0221s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:01] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im', 'hybrid'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - degree: F1 Drop = 0.1845 (f1_before=0.8875, f1_after=0.7030, time=1.2s, cache=MISS, selection=0.0173s)
+  - hybrid: F1 Drop = 0.1827 (f1_before=0.8875, f1_after=0.7048, time=7.9s, cache=MISS, selection=6.5512s)
+  - random: F1 Drop = 0.1735 (f1_before=0.8838, f1_after=0.7103, time=1.6s, cache=HIT(key=1c9b036b19bf1a1f6759bd185b6437f0), selection=0.0000s, reuse=0.001007s, speedup=0.00x)
+  - tracin: F1 Drop = 0.1421 (f1_before=0.8875, f1_after=0.7454, time=7.2s, cache=MISS, selection=5.9993s)
+  - im: F1 Drop = 0.0996 (f1_before=0.8838, f1_after=0.7841, time=1.7s, cache=HIT(key=edda5179c9203a24e19527556d012fb1), selection=2.4161s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=1.2s, cache=HIT(key=4bbe9fbefd8b6a68460cd22cf0ceb1bc), selection=0.0337s, reuse=0.001394s, speedup=24.18x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:01] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0295 (f1_before=0.8911, f1_after=0.8616, time=7.4s, cache=MISS, selection=6.5627s)
+  - im_v4: F1 Drop = 0.0277 (f1_before=0.8856, f1_after=0.8579, time=2.4s, cache=MISS, selection=1.3163s)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8930, f1_after=0.8838, time=10.6s, cache=MISS, selection=9.4650s)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8911, f1_after=0.8856, time=1.3s, cache=MISS, selection=0.0228s)
+  - random: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=1.6s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = 0.0037 (f1_before=0.8893, f1_after=0.8856, time=1.3s, cache=MISS, selection=0.0514s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:02] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.0443 (f1_before=0.8893, f1_after=0.8450, time=1.5s, cache=MISS, selection=0.0620s)
+  - degree: F1 Drop = 0.0424 (f1_before=0.8911, f1_after=0.8487, time=1.6s, cache=MISS, selection=0.0161s)
+  - hybrid_v4: F1 Drop = 0.0277 (f1_before=0.8911, f1_after=0.8635, time=7.3s, cache=MISS, selection=6.4796s)
+  - tracin: F1 Drop = 0.0222 (f1_before=0.8930, f1_after=0.8708, time=11.7s, cache=MISS, selection=10.2990s)
+  - im_v4: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=2.2s, cache=MISS, selection=1.1178s)
+  - random: F1 Drop = 0.0184 (f1_before=0.8856, f1_after=0.8672, time=2.0s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:02] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0203 (f1_before=0.8911, f1_after=0.8708, time=8.4s, cache=MISS, selection=7.4577s)
+  - degree: F1 Drop = 0.0184 (f1_before=0.8911, f1_after=0.8727, time=1.0s, cache=MISS, selection=0.0190s)
+  - im_v4: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=1.2s, cache=HIT(key=f463fe7cbaf66d291a73c8fe5fd03102), selection=1.1590s, reuse=0.000000s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=1.3s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1415.76x)
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.2s, cache=MISS, selection=7.1508s)
+  - pagerank: F1 Drop = 0.0111 (f1_before=0.8893, f1_after=0.8782, time=0.9s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000990s, speedup=1141.62x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:02] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=212
+- 执行结果：
+  - tracin: F1 Drop = 0.0314 (f1_before=0.8930, f1_after=0.8616, time=7.3s, cache=MISS, selection=6.4607s)
+  - degree: F1 Drop = 0.0277 (f1_before=0.8911, f1_after=0.8635, time=0.9s, cache=MISS, selection=0.0186s)
+  - random: F1 Drop = 0.0258 (f1_before=0.8856, f1_after=0.8598, time=1.0s, cache=MISS, selection=0.0000s)
+  - hybrid_v4: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=7.3s, cache=MISS, selection=6.3585s)
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8856, f1_after=0.8616, time=2.2s, cache=MISS, selection=1.1795s)
+  - pagerank: F1 Drop = 0.0203 (f1_before=0.8893, f1_after=0.8690, time=0.9s, cache=MISS, selection=0.0354s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:03] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = 0.2196 (f1_before=0.8856, f1_after=0.6661, time=1.7s, cache=HIT(key=1d810907cd8c7466967959cb21f146b5), selection=0.0000s, reuse=0.001005s, speedup=0.00x)
+  - pagerank: F1 Drop = 0.1919 (f1_before=0.8893, f1_after=0.6974, time=1.3s, cache=HIT(key=fa19ad60fa4bf61df9908d55c0c6fc89), selection=0.0514s, reuse=0.001009s, speedup=50.96x)
+  - degree: F1 Drop = 0.1863 (f1_before=0.8875, f1_after=0.7011, time=1.4s, cache=MISS, selection=0.0208s)
+  - im_v4: F1 Drop = 0.1568 (f1_before=0.8875, f1_after=0.7306, time=1.4s, cache=HIT(key=263eadae777b04243379c4ff02bd82b6), selection=1.3163s, reuse=0.001011s, speedup=1302.10x)
+  - tracin: F1 Drop = 0.1402 (f1_before=0.8911, f1_after=0.7509, time=8.0s, cache=MISS, selection=6.5967s)
+  - hybrid_v4: F1 Drop = 0.1384 (f1_before=0.8875, f1_after=0.7491, time=8.1s, cache=MISS, selection=6.7627s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:03] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=212
+- 执行结果：
+  - im_v4: F1 Drop = 0.2140 (f1_before=0.8875, f1_after=0.6734, time=1.5s, cache=HIT(key=794252a7951690c58719693c9ccfd343), selection=1.1178s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1937 (f1_before=0.8875, f1_after=0.6937, time=8.2s, cache=MISS, selection=6.7828s)
+  - random: F1 Drop = 0.1531 (f1_before=0.8856, f1_after=0.7325, time=1.7s, cache=HIT(key=533362956bd3577f000098db04492e33), selection=0.0000s, reuse=0.000505s, speedup=0.00x)
+  - tracin: F1 Drop = 0.1365 (f1_before=0.8911, f1_after=0.7546, time=8.2s, cache=MISS, selection=6.8639s)
+  - pagerank: F1 Drop = 0.1218 (f1_before=0.8893, f1_after=0.7675, time=1.5s, cache=HIT(key=d56f457629e80b7a3fcb54f5790fced0), selection=0.0620s, reuse=0.001008s, speedup=61.53x)
+  - degree: F1 Drop = 0.0461 (f1_before=0.8875, f1_after=0.8413, time=1.4s, cache=MISS, selection=0.0219s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:03] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.1384 (f1_before=0.8893, f1_after=0.7509, time=1.4s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000992s, speedup=1139.31x)
+  - random: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=1.8s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001009s, speedup=1415.76x)
+  - tracin: F1 Drop = 0.1052 (f1_before=0.8856, f1_after=0.7804, time=8.9s, cache=MISS, selection=7.4003s)
+  - degree: F1 Drop = 0.0868 (f1_before=0.8875, f1_after=0.8007, time=1.4s, cache=MISS, selection=0.0240s)
+  - im_v4: F1 Drop = 0.0535 (f1_before=0.8856, f1_after=0.8321, time=3.2s, cache=MISS, selection=1.1590s)
+  - hybrid_v4: F1 Drop = 0.0462 (f1_before=0.8875, f1_after=0.8413, time=8.7s, cache=MISS, selection=7.1933s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:04] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.2140 (f1_before=0.8893, f1_after=0.6753, time=1.5s, cache=HIT(key=dc402c34530138d633ef0ba5eaca9799), selection=0.0354s, reuse=0.000000s)
+  - random: F1 Drop = 0.2048 (f1_before=0.8856, f1_after=0.6808, time=1.8s, cache=HIT(key=ca1543a92392821a4c84b2ad01eef934), selection=0.0000s, reuse=0.001076s, speedup=0.00x)
+  - hybrid_v4: F1 Drop = 0.1863 (f1_before=0.8875, f1_after=0.7011, time=8.0s, cache=MISS, selection=6.6344s)
+  - degree: F1 Drop = 0.1679 (f1_before=0.8875, f1_after=0.7196, time=1.4s, cache=MISS, selection=0.0218s)
+  - im_v4: F1 Drop = 0.1531 (f1_before=0.8875, f1_after=0.7343, time=1.4s, cache=HIT(key=5a5568eb54094fdd520355aac3f80220), selection=1.1795s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1494 (f1_before=0.8911, f1_after=0.7417, time=8.3s, cache=MISS, selection=6.8897s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:04] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=722
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0277 (f1_before=0.8893, f1_after=0.8616, time=7.6s, cache=MISS, selection=6.6321s)
+  - random: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=1.1s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=1.0s, cache=MISS, selection=0.0211s)
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=2.5s, cache=MISS, selection=1.5795s)
+  - tracin: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=7.8s, cache=MISS, selection=6.9486s)
+  - pagerank: F1 Drop = 0.0203 (f1_before=0.8819, f1_after=0.8616, time=0.9s, cache=MISS, selection=0.0375s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:05] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=722
+- 执行结果：
+  - pagerank: F1 Drop = 0.0517 (f1_before=0.8819, f1_after=0.8303, time=1.1s, cache=MISS, selection=0.0384s)
+  - degree: F1 Drop = 0.0387 (f1_before=0.8875, f1_after=0.8487, time=1.0s, cache=MISS, selection=0.0179s)
+  - im_v4: F1 Drop = 0.0332 (f1_before=0.8875, f1_after=0.8542, time=2.4s, cache=MISS, selection=1.3872s)
+  - hybrid_v4: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=7.4s, cache=MISS, selection=6.4566s)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=7.4s, cache=MISS, selection=6.5550s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8893, f1_after=0.8764, time=1.2s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:05] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=2.3s, cache=MISS, selection=1.1585s)
+  - hybrid_v4: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=7.9s, cache=MISS, selection=6.9587s)
+  - pagerank: F1 Drop = 0.0166 (f1_before=0.8819, f1_after=0.8653, time=1.0s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.000999s, speedup=1164.16x)
+  - random: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=1.2s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.001011s, speedup=1465.38x)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8893, f1_after=0.8727, time=9.8s, cache=MISS, selection=8.7071s)
+  - degree: F1 Drop = 0.0074 (f1_before=0.8875, f1_after=0.8801, time=1.0s, cache=MISS, selection=0.0209s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:06] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=722
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=7.4s, cache=MISS, selection=6.5258s)
+  - random: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=1.1s, cache=MISS, selection=0.0000s)
+  - im_v4: F1 Drop = 0.0203 (f1_before=0.8875, f1_after=0.8672, time=2.2s, cache=MISS, selection=1.2707s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=0.9s, cache=MISS, selection=0.0077s)
+  - pagerank: F1 Drop = 0.0185 (f1_before=0.8819, f1_after=0.8635, time=0.9s, cache=MISS, selection=0.0370s)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=7.8s, cache=MISS, selection=6.8896s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:06] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=722
+- 执行结果：
+  - tracin: F1 Drop = 0.2528 (f1_before=0.8856, f1_after=0.6328, time=8.6s, cache=MISS, selection=7.1172s)
+  - random: F1 Drop = 0.2140 (f1_before=0.8893, f1_after=0.6753, time=1.7s, cache=HIT(key=b9acb16e247b6b441f9b6952bc93820e), selection=0.0000s, reuse=0.000998s, speedup=0.00x)
+  - hybrid_v4: F1 Drop = 0.2030 (f1_before=0.8856, f1_after=0.6827, time=8.3s, cache=MISS, selection=6.9212s)
+  - degree: F1 Drop = 0.1771 (f1_before=0.8819, f1_after=0.7048, time=1.5s, cache=MISS, selection=0.0224s)
+  - pagerank: F1 Drop = 0.1642 (f1_before=0.8911, f1_after=0.7269, time=1.4s, cache=HIT(key=bd8c57118aba251f55487c5efeb47485), selection=0.0375s, reuse=0.000000s)
+  - im_v4: F1 Drop = 0.1402 (f1_before=0.8875, f1_after=0.7472, time=1.7s, cache=HIT(key=f726f6bf8378a93cea2f73f399abc87f), selection=1.5795s, reuse=0.000992s, speedup=1592.53x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:07] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=722
+- 执行结果：
+  - pagerank: F1 Drop = 0.1753 (f1_before=0.8911, f1_after=0.7159, time=1.4s, cache=HIT(key=4ccf5dcdaebabcff8e647009be07e2ab), selection=0.0384s, reuse=0.000000s)
+  - im_v4: F1 Drop = 0.1384 (f1_before=0.8875, f1_after=0.7491, time=1.5s, cache=HIT(key=82c59ca6e63931cb855dd667281b5325), selection=1.3872s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1273 (f1_before=0.8856, f1_after=0.7583, time=8.5s, cache=MISS, selection=6.9958s)
+  - hybrid_v4: F1 Drop = 0.1255 (f1_before=0.8856, f1_after=0.7601, time=8.5s, cache=MISS, selection=7.1493s)
+  - degree: F1 Drop = 0.0738 (f1_before=0.8819, f1_after=0.8081, time=1.5s, cache=MISS, selection=0.0235s)
+  - random: F1 Drop = 0.0443 (f1_before=0.8893, f1_after=0.8450, time=1.6s, cache=HIT(key=d1b7babe19dfd62ec895b73d0f91f6da), selection=0.0000s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:07] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - im_v4: F1 Drop = 0.2066 (f1_before=0.8893, f1_after=0.6827, time=1.7s, cache=HIT(key=5423bc484c31e81789207902b23485e5), selection=1.1585s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1458 (f1_before=0.8819, f1_after=0.7362, time=8.4s, cache=MISS, selection=6.9109s)
+  - pagerank: F1 Drop = 0.1088 (f1_before=0.8911, f1_after=0.7823, time=1.4s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0664 (f1_before=0.8819, f1_after=0.8155, time=1.4s, cache=MISS, selection=0.0230s)
+  - random: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=1.8s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.001000s, speedup=1481.50x)
+  - tracin: F1 Drop = 0.0554 (f1_before=0.8893, f1_after=0.8339, time=8.8s, cache=MISS, selection=7.2119s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:08] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = 0.2066 (f1_before=0.8893, f1_after=0.6827, time=1.7s, cache=HIT(key=9b3b8f4959771aa264b3c6b43d56a387), selection=0.0000s, reuse=0.001007s, speedup=0.00x)
+  - degree: F1 Drop = 0.1458 (f1_before=0.8819, f1_after=0.7362, time=1.6s, cache=MISS, selection=0.0257s)
+  - im_v4: F1 Drop = 0.1347 (f1_before=0.8875, f1_after=0.7528, time=1.6s, cache=HIT(key=0a9d0ea96464aaa3ed422d903706619d), selection=1.2707s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1347 (f1_before=0.8856, f1_after=0.7509, time=8.5s, cache=MISS, selection=7.0383s)
+  - hybrid_v4: F1 Drop = 0.1273 (f1_before=0.8856, f1_after=0.7583, time=8.4s, cache=MISS, selection=6.8783s)
+  - pagerank: F1 Drop = 0.1218 (f1_before=0.8911, f1_after=0.7694, time=1.5s, cache=HIT(key=de407d2938831d1453065608405d5816), selection=0.0370s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:08] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=1337
+- 执行结果：
+  - degree: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=0.9s, cache=MISS, selection=0.0143s)
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=2.6s, cache=MISS, selection=1.6695s)
+  - random: F1 Drop = 0.0240 (f1_before=0.8856, f1_after=0.8616, time=1.2s, cache=MISS, selection=0.0000s)
+  - hybrid_v4: F1 Drop = 0.0221 (f1_before=0.8911, f1_after=0.8690, time=7.7s, cache=MISS, selection=6.8378s)
+  - tracin: F1 Drop = 0.0203 (f1_before=0.8856, f1_after=0.8653, time=7.8s, cache=MISS, selection=6.9576s)
+  - pagerank: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=1.0s, cache=MISS, selection=0.0372s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:09] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=1337
+- 执行结果：
+  - pagerank: F1 Drop = 0.0443 (f1_before=0.8856, f1_after=0.8413, time=0.9s, cache=MISS, selection=0.0374s)
+  - degree: F1 Drop = 0.0424 (f1_before=0.8875, f1_after=0.8450, time=1.0s, cache=MISS, selection=0.0204s)
+  - hybrid_v4: F1 Drop = 0.0332 (f1_before=0.8911, f1_after=0.8579, time=7.6s, cache=MISS, selection=6.6871s)
+  - im_v4: F1 Drop = 0.0277 (f1_before=0.8875, f1_after=0.8598, time=2.5s, cache=MISS, selection=1.4792s)
+  - random: F1 Drop = 0.0185 (f1_before=0.8856, f1_after=0.8672, time=1.2s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.1s, cache=MISS, selection=7.0621s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:09] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0332 (f1_before=0.8875, f1_after=0.8542, time=7.6s, cache=MISS, selection=6.6651s)
+  - im_v4: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=2.5s, cache=MISS, selection=1.2346s)
+  - degree: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=1.1s, cache=MISS, selection=0.0220s)
+  - pagerank: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=1.0s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000000s)
+  - random: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=1.5s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=10.5s, cache=MISS, selection=9.4422s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:10] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=1337
+- 执行结果：
+  - degree: F1 Drop = 0.0332 (f1_before=0.8875, f1_after=0.8542, time=1.0s, cache=MISS, selection=0.0202s)
+  - im_v4: F1 Drop = 0.0332 (f1_before=0.8875, f1_after=0.8542, time=2.4s, cache=MISS, selection=1.4119s)
+  - hybrid_v4: F1 Drop = 0.0332 (f1_before=0.8911, f1_after=0.8579, time=7.9s, cache=MISS, selection=6.9522s)
+  - tracin: F1 Drop = 0.0277 (f1_before=0.8856, f1_after=0.8579, time=8.3s, cache=MISS, selection=7.2814s)
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8856, f1_after=0.8616, time=1.0s, cache=MISS, selection=0.0372s)
+  - random: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=1.2s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:10] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = 0.1568 (f1_before=0.8856, f1_after=0.7288, time=1.7s, cache=HIT(key=2ae100dd4d996360f4bc072310261266), selection=0.0000s, reuse=0.000000s)
+  - degree: F1 Drop = 0.1550 (f1_before=0.8856, f1_after=0.7306, time=1.5s, cache=MISS, selection=0.0214s)
+  - hybrid_v4: F1 Drop = 0.1531 (f1_before=0.8856, f1_after=0.7325, time=8.3s, cache=MISS, selection=6.7798s)
+  - im_v4: F1 Drop = 0.1402 (f1_before=0.8893, f1_after=0.7491, time=1.6s, cache=HIT(key=d7d789d871c34671a8c9f19848874a10), selection=1.6695s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1089 (f1_before=0.8893, f1_after=0.7804, time=8.3s, cache=MISS, selection=6.9206s)
+  - pagerank: F1 Drop = 0.1052 (f1_before=0.8893, f1_after=0.7841, time=1.5s, cache=HIT(key=07cc8a431bcd0294345eac8d7a67b433), selection=0.0372s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:11] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = 0.1919 (f1_before=0.8856, f1_after=0.6937, time=1.6s, cache=HIT(key=9a8452536333f0c203a3096ca82adf8c), selection=0.0000s, reuse=0.000988s, speedup=0.00x)
+  - im_v4: F1 Drop = 0.1845 (f1_before=0.8893, f1_after=0.7048, time=1.5s, cache=HIT(key=77c04540252e744c2025c1482fc67452), selection=1.4792s, reuse=0.000000s)
+  - degree: F1 Drop = 0.1476 (f1_before=0.8856, f1_after=0.7380, time=1.5s, cache=MISS, selection=0.0228s)
+  - hybrid_v4: F1 Drop = 0.1458 (f1_before=0.8856, f1_after=0.7399, time=8.5s, cache=MISS, selection=7.0622s)
+  - tracin: F1 Drop = 0.1292 (f1_before=0.8893, f1_after=0.7601, time=8.7s, cache=MISS, selection=7.2868s)
+  - pagerank: F1 Drop = 0.0701 (f1_before=0.8893, f1_after=0.8192, time=1.4s, cache=HIT(key=a067a666de6cc2d09a2a3b0449be087b), selection=0.0374s, reuse=0.001006s, speedup=37.22x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:11] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=1337
+- 执行结果：
+  - im_v4: F1 Drop = 0.1439 (f1_before=0.8856, f1_after=0.7417, time=1.7s, cache=HIT(key=7e8f5298922b5ed267f58a6c0b858475), selection=1.2346s, reuse=0.000515s, speedup=2395.09x)
+  - hybrid_v4: F1 Drop = 0.1365 (f1_before=0.8856, f1_after=0.7491, time=8.7s, cache=MISS, selection=7.2873s)
+  - degree: F1 Drop = 0.1236 (f1_before=0.8856, f1_after=0.7620, time=1.4s, cache=MISS, selection=0.0097s)
+  - pagerank: F1 Drop = 0.1125 (f1_before=0.8893, f1_after=0.7768, time=1.4s, cache=HIT(key=1830a6ec641cfd0a2ae2a8125a19880b), selection=1.2263s, reuse=0.000993s, speedup=1234.94x)
+  - random: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=2.0s, cache=HIT(key=3ba51faf54a244365c973259084dcbaa), selection=1.4135s, reuse=0.001000s, speedup=1413.50x)
+  - tracin: F1 Drop = 0.0738 (f1_before=0.8856, f1_after=0.8118, time=12.7s, cache=MISS, selection=10.8470s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:12] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = 0.1439 (f1_before=0.8856, f1_after=0.7417, time=1.6s, cache=HIT(key=174b7d507bb6c4d02892740217b03d92), selection=0.0000s, reuse=0.000000s)
+  - degree: F1 Drop = 0.1365 (f1_before=0.8856, f1_after=0.7491, time=1.4s, cache=MISS, selection=0.0219s)
+  - pagerank: F1 Drop = 0.1365 (f1_before=0.8893, f1_after=0.7528, time=1.4s, cache=HIT(key=8cd4fafc0efa2180d098fd91d7730a44), selection=0.0372s, reuse=0.000993s, speedup=37.49x)
+  - im_v4: F1 Drop = 0.1292 (f1_before=0.8893, f1_after=0.7601, time=1.4s, cache=HIT(key=dc539c6baa7f746b40854330fba45901), selection=1.4119s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1218 (f1_before=0.8893, f1_after=0.7675, time=8.4s, cache=MISS, selection=6.8961s)
+  - hybrid_v4: F1 Drop = 0.1199 (f1_before=0.8856, f1_after=0.7657, time=8.8s, cache=MISS, selection=7.4636s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:12] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=2024
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0369 (f1_before=0.8930, f1_after=0.8561, time=7.8s, cache=MISS, selection=6.8505s)
+  - degree: F1 Drop = 0.0277 (f1_before=0.8948, f1_after=0.8672, time=1.0s, cache=MISS, selection=0.0209s)
+  - pagerank: F1 Drop = 0.0277 (f1_before=0.8875, f1_after=0.8598, time=1.0s, cache=MISS, selection=0.0366s)
+  - tracin: F1 Drop = 0.0258 (f1_before=0.8875, f1_after=0.8616, time=8.0s, cache=MISS, selection=7.0408s)
+  - random: F1 Drop = 0.0258 (f1_before=0.8838, f1_after=0.8579, time=1.2s, cache=MISS, selection=0.0000s)
+  - im_v4: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=2.5s, cache=MISS, selection=1.5613s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:13] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = 0.0517 (f1_before=0.8875, f1_after=0.8358, time=1.0s, cache=MISS, selection=0.0395s)
+  - degree: F1 Drop = 0.0517 (f1_before=0.8948, f1_after=0.8432, time=0.9s, cache=MISS, selection=0.0231s)
+  - hybrid_v4: F1 Drop = 0.0369 (f1_before=0.8930, f1_after=0.8561, time=8.0s, cache=MISS, selection=7.0590s)
+  - im_v4: F1 Drop = 0.0332 (f1_before=0.8893, f1_after=0.8561, time=2.4s, cache=MISS, selection=1.3975s)
+  - tracin: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=7.7s, cache=MISS, selection=6.7693s)
+  - random: F1 Drop = 0.0148 (f1_before=0.8838, f1_after=0.8690, time=1.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:13] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0424 (f1_before=0.8948, f1_after=0.8524, time=7.9s, cache=MISS, selection=6.9457s)
+  - im_v4: F1 Drop = 0.0332 (f1_before=0.8838, f1_after=0.8506, time=2.5s, cache=MISS, selection=1.2120s)
+  - degree: F1 Drop = 0.0184 (f1_before=0.8948, f1_after=0.8764, time=1.0s, cache=MISS, selection=0.0220s)
+  - pagerank: F1 Drop = 0.0130 (f1_before=0.8875, f1_after=0.8745, time=1.0s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.000000s)
+  - random: F1 Drop = 0.0093 (f1_before=0.8838, f1_after=0.8745, time=1.2s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.001000s, speedup=17974.40x)
+  - tracin: F1 Drop = 0.0093 (f1_before=0.8838, f1_after=0.8745, time=9.3s, cache=MISS, selection=8.0623s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:14] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=2024
+- 执行结果：
+  - degree: F1 Drop = 0.0424 (f1_before=0.8948, f1_after=0.8524, time=1.0s, cache=MISS, selection=0.0205s)
+  - hybrid_v4: F1 Drop = 0.0369 (f1_before=0.8930, f1_after=0.8561, time=7.7s, cache=MISS, selection=6.6966s)
+  - im_v4: F1 Drop = 0.0369 (f1_before=0.8893, f1_after=0.8524, time=2.5s, cache=MISS, selection=1.3335s)
+  - pagerank: F1 Drop = 0.0351 (f1_before=0.8875, f1_after=0.8524, time=1.0s, cache=MISS, selection=0.0476s)
+  - tracin: F1 Drop = 0.0332 (f1_before=0.8875, f1_after=0.8542, time=7.6s, cache=MISS, selection=6.6812s)
+  - random: F1 Drop = 0.0332 (f1_before=0.8838, f1_after=0.8506, time=1.2s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:14] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = 0.2749 (f1_before=0.8893, f1_after=0.6144, time=1.5s, cache=HIT(key=3c5d8810e25224b397edb227df480a5f), selection=0.0366s, reuse=0.001504s, speedup=24.32x)
+  - degree: F1 Drop = 0.2657 (f1_before=0.8838, f1_after=0.6181, time=1.5s, cache=MISS, selection=0.0274s)
+  - random: F1 Drop = 0.2103 (f1_before=0.8838, f1_after=0.6734, time=1.8s, cache=HIT(key=9d887b431c47135c3c94032f43344ec8), selection=0.0000s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.2103 (f1_before=0.8838, f1_after=0.6734, time=8.5s, cache=MISS, selection=7.0209s)
+  - tracin: F1 Drop = 0.2048 (f1_before=0.8893, f1_after=0.6845, time=8.4s, cache=MISS, selection=6.9691s)
+  - im_v4: F1 Drop = 0.1863 (f1_before=0.8875, f1_after=0.7011, time=1.5s, cache=HIT(key=1dfe81eed602cc1715dfdedfcbdacc16), selection=1.5613s, reuse=0.001008s, speedup=1548.53x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:15] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=2024
+- 执行结果：
+  - im_v4: F1 Drop = 0.2232 (f1_before=0.8875, f1_after=0.6642, time=1.6s, cache=HIT(key=5c2dfa1a9feab9290d6d5218435ec77b), selection=1.3975s, reuse=0.000000s)
+  - random: F1 Drop = 0.1845 (f1_before=0.8838, f1_after=0.6993, time=1.7s, cache=HIT(key=4f1adbffbc248c38b2798945bd89d953), selection=0.0000s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1587 (f1_before=0.8838, f1_after=0.7251, time=8.4s, cache=MISS, selection=6.9156s)
+  - tracin: F1 Drop = 0.1402 (f1_before=0.8893, f1_after=0.7491, time=8.3s, cache=MISS, selection=6.9287s)
+  - pagerank: F1 Drop = 0.1107 (f1_before=0.8893, f1_after=0.7786, time=1.5s, cache=HIT(key=5d03f0eea0534330b96b4dbfcb83aa4f), selection=0.0395s, reuse=0.000992s, speedup=39.87x)
+  - degree: F1 Drop = 0.0738 (f1_before=0.8838, f1_after=0.8100, time=1.5s, cache=MISS, selection=0.0142s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:15] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.1716 (f1_before=0.8838, f1_after=0.7122, time=8.7s, cache=MISS, selection=7.2978s)
+  - im_v4: F1 Drop = 0.1439 (f1_before=0.8838, f1_after=0.7399, time=2.0s, cache=HIT(key=dbfcdcab5139986dbeb03e9abc67a84c), selection=1.2120s, reuse=0.000000s)
+  - random: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=1.7s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000999s, speedup=17992.39x)
+  - tracin: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=10.4s, cache=MISS, selection=8.7320s)
+  - degree: F1 Drop = 0.0535 (f1_before=0.8838, f1_after=0.8303, time=1.5s, cache=MISS, selection=0.0240s)
+  - pagerank: F1 Drop = 0.0535 (f1_before=0.8893, f1_after=0.8358, time=1.4s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.001010s, speedup=17990.10x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 19:16] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=2024
+- 执行结果：
+  - degree: F1 Drop = 0.1716 (f1_before=0.8838, f1_after=0.7122, time=1.5s, cache=MISS, selection=0.0277s)
+  - random: F1 Drop = 0.1439 (f1_before=0.8838, f1_after=0.7399, time=1.9s, cache=HIT(key=57ce503c1b7717807fbd2d2aa3d2914c), selection=0.0000s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1402 (f1_before=0.8838, f1_after=0.7435, time=8.5s, cache=MISS, selection=7.0216s)
+  - im_v4: F1 Drop = 0.1328 (f1_before=0.8875, f1_after=0.7546, time=1.5s, cache=HIT(key=5433802a5df2d2bf82eb64b8c1756b7b), selection=1.3335s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.1328 (f1_before=0.8893, f1_after=0.7565, time=1.5s, cache=HIT(key=dc250a74712d75cf977a30d23b86b45b), selection=0.0476s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.1292 (f1_before=0.8893, f1_after=0.7601, time=8.2s, cache=MISS, selection=6.7787s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-02-24 19:16:31] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.21% |    0.0192 |    1.14% |
+| degree   | 0.82% |    0.0215 |    1.74% |
+| pagerank | 0.82% |    0.0222 |    1.85% |
+| tracin   | -6.42% |    0.0342 |    1.54% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_191631.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:16:56] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.47% |    0.0212 |    1.04% |
+| degree   | 0.82% |    0.0237 |    1.86% |
+| pagerank | 0.82% |    0.0233 |    1.68% |
+| tracin   | -7.13% |    0.0364 |    1.97% |
+| im_v4    | -1.26% |    0.0245 |    1.54% |
+| hybrid_v4 | -3.64% |    0.0311 |    1.72% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_191656.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:17:19] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0211 |    1.56% |
+| degree   | 0.00% |    0.0234 |    1.69% |
+| pagerank | 0.82% |    0.0237 |    1.91% |
+| tracin   | -5.96% |    0.0385 |    1.29% |
+| im_v4    | 0.62% |    0.0258 |    1.54% |
+| hybrid_v4 | -4.32% |    0.0310 |    1.23% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_191719.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:17:44] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0211 |    1.74% |
+| degree   | 1.03% |    0.0212 |    1.57% |
+| pagerank | 0.62% |    0.0233 |    1.85% |
+| tracin   | -9.77% |    0.0378 |    1.72% |
+| im_v4    | -0.42% |    0.0229 |    1.60% |
+| hybrid_v4 | -1.05% |    0.0322 |    2.40% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_191744.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:18:07] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.48% |    0.0239 |    1.45% |
+| degree   | 0.82% |    0.0223 |    1.69% |
+| pagerank | 1.03% |    0.0245 |    1.85% |
+| tracin   | -8.05% |    0.0351 |    1.48% |
+| im_v4    | -1.26% |    0.0236 |    1.66% |
+| hybrid_v4 | -0.42% |    0.0307 |    1.85% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_191807.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:18:30] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 15.27% |    0.3976 |   17.85% |
+| degree   | 20.37% |    0.4114 |   19.87% |
+| pagerank | 14.43% |    0.4039 |   17.80% |
+| tracin   | 6.03% |    0.1912 |    6.40% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_191830.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:18:58] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 24.69% |    0.4597 |   27.26% |
+| degree   | 11.93% |    0.3686 |   13.77% |
+| pagerank | 19.34% |    0.3816 |   22.49% |
+| tracin   | -0.75% |    0.1201 |    2.89% |
+| im_v4    | 14.85% |    0.3931 |   18.09% |
+| hybrid_v4 | 19.39% |    0.2279 |   13.78% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_191858.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:19:26] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 5.64% |    0.3642 |   11.23% |
+| degree   | 22.06% |    0.3506 |   25.45% |
+| pagerank | 11.75% |    0.3931 |   12.54% |
+| tracin   | 7.12% |    0.0708 |    4.68% |
+| im_v4    | 11.62% |    0.3681 |   15.69% |
+| hybrid_v4 | 25.11% |    0.2859 |   19.45% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_191926.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:19:54] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 15.27% |    0.3667 |   19.97% |
+| degree   | 26.13% |    0.4687 |   28.36% |
+| pagerank | 3.34% |    0.3547 |    7.23% |
+| tracin   | 3.44% |    0.1113 |    3.26% |
+| im_v4    | 15.63% |    0.4208 |   18.34% |
+| hybrid_v4 | 25.05% |    0.2759 |   17.91% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_191954.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:20:22] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 18.64% |    0.4003 |   23.59% |
+| degree   | 27.48% |    0.4091 |   29.17% |
+| pagerank | 4.55% |    0.3749 |    6.24% |
+| tracin   | 8.12% |    0.0810 |    5.54% |
+| im_v4    | 20.00% |    0.4532 |   23.82% |
+| hybrid_v4 | 21.55% |    0.2587 |   13.35% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192022.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:20:41] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0153 |    1.08% |
+| degree   | 1.02% |    0.0176 |    1.28% |
+| pagerank | 1.43% |    0.0182 |    1.23% |
+| tracin   | -2.33% |    0.0281 |    1.16% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192041.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:21:10] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0159 |    1.33% |
+| degree   | 1.44% |    0.0164 |    1.13% |
+| pagerank | 1.23% |    0.0189 |    1.64% |
+| tracin   | -3.02% |    0.0286 |    1.32% |
+| im_v4    | 0.82% |    0.0170 |    1.21% |
+| hybrid_v4 | -0.63% |    0.0203 |    1.32% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192110.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:21:35] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0158 |    1.18% |
+| degree   | 1.02% |    0.0178 |    1.39% |
+| pagerank | 1.03% |    0.0189 |    1.39% |
+| tracin   | -2.78% |    0.0323 |    1.37% |
+| im_v4    | 1.03% |    0.0183 |    1.79% |
+| hybrid_v4 | -1.69% |    0.0264 |    1.58% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192135.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:21:59] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.26% |    0.0166 |    1.28% |
+| degree   | 1.03% |    0.0157 |    1.13% |
+| pagerank | 0.82% |    0.0177 |    1.59% |
+| tracin   | -3.22% |    0.0277 |    0.90% |
+| im_v4    | -0.21% |    0.0185 |    1.37% |
+| hybrid_v4 | -0.21% |    0.0220 |    1.48% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192159.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:22:23] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.47% |    0.0174 |    1.29% |
+| degree   | 1.24% |    0.0166 |    1.54% |
+| pagerank | 1.03% |    0.0187 |    1.69% |
+| tracin   | -3.42% |    0.0284 |    1.11% |
+| im_v4    | 0.41% |    0.0176 |    1.32% |
+| hybrid_v4 | -0.42% |    0.0206 |    1.64% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192223.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:22:45] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 13.10% |    0.3569 |   17.55% |
+| degree   | 7.41% |    0.3673 |   10.16% |
+| pagerank | 4.90% |    0.3829 |    6.88% |
+| tracin   | 11.66% |    0.1866 |   13.13% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192245.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:23:12] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 11.11% |    0.3418 |   14.21% |
+| degree   | 6.58% |    0.4321 |    7.23% |
+| pagerank | 17.83% |    0.3905 |   21.67% |
+| tracin   | 7.05% |    0.0943 |    7.49% |
+| im_v4    | 15.50% |    0.4043 |   19.04% |
+| hybrid_v4 | 21.06% |    0.1957 |   17.99% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192312.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:23:40] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 15.53% |    0.3685 |   17.38% |
+| degree   | 25.36% |    0.4402 |   28.42% |
+| pagerank | 13.32% |    0.3865 |   14.12% |
+| tracin   | 10.17% |    0.1271 |    9.18% |
+| im_v4    | 18.24% |    0.4349 |   19.04% |
+| hybrid_v4 | 14.98% |    0.2338 |   13.13% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192340.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:24:08] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 13.10% |    0.3321 |   16.91% |
+| degree   | 12.35% |    0.3679 |   14.62% |
+| pagerank | 18.56% |    0.4218 |   20.39% |
+| tracin   | 8.24% |    0.0785 |    4.43% |
+| im_v4    | 17.92% |    0.4353 |   23.63% |
+| hybrid_v4 | 10.48% |    0.1896 |    7.38% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192408.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:24:36] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 12.76% |    0.3594 |   18.48% |
+| degree   | 10.88% |    0.3666 |   14.01% |
+| pagerank | 7.00% |    0.4081 |   12.17% |
+| tracin   | 8.39% |    0.1182 |    6.80% |
+| im_v4    | 21.33% |    0.3711 |   24.53% |
+| hybrid_v4 | 16.38% |    0.1929 |   13.24% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192436.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:25:09] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0126 |    1.26% |
+| degree   | 0.21% |    0.0159 |    1.51% |
+| pagerank | 0.21% |    0.0159 |    1.41% |
+| tracin   | -1.89% |    0.0160 |    1.18% |
+| im_v4    | 0.83% |    0.0134 |    1.38% |
+| hybrid_v4 | 1.23% |    0.0193 |    1.48% |
+| hybrid   | -0.42% |    0.0167 |    0.94% |
+| im       | -1.05% |    0.0148 |    1.23% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192509.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:25:24] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0131 |    0.83% |
+| degree   | 0.41% |    0.0180 |    1.31% |
+| pagerank | 1.44% |    0.0136 |    1.02% |
+| tracin   | -1.69% |    0.0166 |    1.08% |
+| im_v4    | -0.63% |    0.0178 |    1.58% |
+| hybrid_v4 | 0.00% |    0.0169 |    1.18% |
+| hybrid   | -0.63% |    0.0176 |    1.23% |
+| im       | -1.91% |    0.0141 |    1.08% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192524.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:25:38] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0150 |    0.97% |
+| degree   | 0.42% |    0.0159 |    1.56% |
+| pagerank | 1.23% |    0.0152 |    1.31% |
+| tracin   | -3.65% |    0.0160 |    1.38% |
+| im_v4    | 0.62% |    0.0172 |    1.77% |
+| hybrid_v4 | -0.21% |    0.0174 |    1.28% |
+| hybrid   | -1.47% |    0.0160 |    0.94% |
+| im       | 1.03% |    0.0154 |    0.98% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192538.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:26:12] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 10.23% |    0.4413 |   12.82% |
+| degree   | 8.87% |    0.3422 |   10.74% |
+| pagerank | 10.27% |    0.4056 |   12.88% |
+| tracin   | 11.79% |    0.1670 |   14.82% |
+| im_v4    | 17.60% |    0.3673 |   23.19% |
+| hybrid_v4 | 13.54% |    0.2123 |   13.24% |
+| hybrid   | 15.79% |    0.1763 |   17.97% |
+| im       | 7.31% |    0.2392 |   10.68% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192612.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:26:27] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 5.64% |    0.3288 |    9.30% |
+| degree   | 20.62% |    0.3801 |   24.94% |
+| pagerank | 11.11% |    0.4064 |   15.26% |
+| tracin   | 14.16% |    0.1990 |   14.52% |
+| im_v4    | 26.32% |    0.3792 |   32.99% |
+| hybrid_v4 | 13.99% |    0.1748 |   12.75% |
+| hybrid   | 11.97% |    0.1518 |   13.64% |
+| im       | 8.61% |    0.2443 |   12.95% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192627.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:26:42] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 23.59% |    0.3606 |   26.98% |
+| degree   | 20.00% |    0.4053 |   26.35% |
+| pagerank | 10.47% |    0.4409 |   12.10% |
+| tracin   | 12.72% |    0.1582 |   12.36% |
+| im_v4    | 22.52% |    0.5310 |   26.59% |
+| hybrid_v4 | 11.04% |    0.1508 |   11.03% |
+| hybrid   | 9.28% |    0.1547 |   12.16% |
+| im       | 23.19% |    0.4571 |   25.95% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192642.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:27:01] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0113 |    1.12% |
+| degree   | -0.21% |    0.0142 |    1.35% |
+| pagerank | 2.07% |    0.0128 |    1.26% |
+| tracin   | 0.62% |    0.0181 |    1.17% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192701.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:27:24] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0110 |    1.26% |
+| degree   | -0.63% |    0.0139 |    1.17% |
+| pagerank | 0.21% |    0.0132 |    1.26% |
+| tracin   | -1.26% |    0.0154 |    0.94% |
+| im_v4    | -0.42% |    0.0149 |    1.45% |
+| hybrid_v4 | 0.83% |    0.0134 |    0.94% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192724.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:27:48] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.42% |    0.0120 |    1.07% |
+| degree   | -0.42% |    0.0131 |    1.03% |
+| pagerank | 0.41% |    0.0133 |    1.12% |
+| tracin   | -0.63% |    0.0164 |    0.79% |
+| im_v4    | 0.21% |    0.0127 |    1.17% |
+| hybrid_v4 | 0.62% |    0.0149 |    1.31% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192748.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:28:11] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0114 |    0.98% |
+| degree   | 0.83% |    0.0135 |    1.40% |
+| pagerank | 0.00% |    0.0117 |    0.84% |
+| tracin   | 0.21% |    0.0156 |    0.98% |
+| im_v4    | 0.41% |    0.0127 |    0.94% |
+| hybrid_v4 | 0.62% |    0.0165 |    1.08% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192811.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:28:34] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.84% |    0.0117 |    1.17% |
+| degree   | 0.21% |    0.0132 |    1.17% |
+| pagerank | 0.83% |    0.0143 |    1.17% |
+| tracin   | -1.26% |    0.0160 |    0.89% |
+| im_v4    | 1.44% |    0.0137 |    1.08% |
+| hybrid_v4 | 1.04% |    0.0148 |    1.08% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260224_192834.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:28:56] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 6.87% |    0.1983 |    9.15% |
+| degree   | 8.66% |    0.3462 |   11.99% |
+| pagerank | 16.01% |    0.3877 |   21.22% |
+| tracin   | 5.42% |    0.1274 |    8.65% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192856.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:29:23] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 9.36% |    0.2279 |   12.40% |
+| degree   | 14.43% |    0.3756 |   16.37% |
+| pagerank | 5.83% |    0.4849 |    9.79% |
+| tracin   | 12.71% |    0.1659 |   13.51% |
+| im_v4    | 18.67% |    0.3341 |   23.94% |
+| hybrid_v4 | 11.32% |    0.1621 |   13.51% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192923.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:29:50] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 8.94% |    0.1734 |    9.22% |
+| degree   | 23.96% |    0.5247 |   25.84% |
+| pagerank | 12.03% |    0.3793 |   18.61% |
+| tracin   | 10.40% |    0.1669 |   14.12% |
+| im_v4    | 22.61% |    0.3967 |   25.53% |
+| hybrid_v4 | 13.49% |    0.1654 |   14.87% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_192950.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:30:17] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 7.71% |    0.2137 |    8.86% |
+| degree   | 7.85% |    0.3800 |    9.28% |
+| pagerank | 15.03% |    0.3669 |   17.44% |
+| tracin   | 11.25% |    0.1458 |   12.86% |
+| im_v4    | 12.01% |    0.3388 |   15.19% |
+| hybrid_v4 | 11.69% |    0.1568 |   13.74% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_193017.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-24 19:30:45] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GNNDelete, ratio=0.01
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 3.53% |    0.1725 |    6.91% |
+| degree   | 18.49% |    0.3799 |   25.61% |
+| pagerank | 18.05% |    0.4117 |   24.81% |
+| tracin   | 3.75% |    0.0688 |    5.52% |
+| im_v4    | 20.00% |    0.4480 |   24.45% |
+| hybrid_v4 | 11.04% |    0.1314 |   12.86% |
+- 日志路径：`results\collateral\GNNDelete\cora\GCN\collateral_20260224_193045.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
