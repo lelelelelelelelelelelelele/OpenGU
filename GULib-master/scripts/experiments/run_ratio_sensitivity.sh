@@ -26,12 +26,12 @@ fi
 METHODS="GIF,GNNDelete" #,GraphEraser,GUIDE
 DATASETS="cora"
 BASE_MODEL="GCN"
-STRATEGIES="random,degree,pagerank,tracin,im,hybrid"
+STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
 RATIOS="0.20,0.10,0.05,0.01"
 SEEDS="42,212,722,1337,2024"
 CUDA=0
 OUTPUT="results/experiments/ratio_sensitivity"
-STRATEGY_PROFILE="classic"
+STRATEGY_PROFILE="im_v4"
 
 # 参数解析
 REPAIR_MODE=0
@@ -56,9 +56,7 @@ if [ "$REPAIR_MODE" -eq 1 ]; then
 fi
 
 if [ "$USE_IM_V4" -eq 1 ]; then
-    STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
-    OUTPUT="results/experiments/ratio_sensitivity_im_v4"
-    STRATEGY_PROFILE="im_v4"
+    echo "[Compat] --use_im_v4 is now the default strategy profile."
 fi
 
 echo "=============================================="

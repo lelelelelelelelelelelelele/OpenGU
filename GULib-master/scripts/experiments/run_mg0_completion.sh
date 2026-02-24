@@ -30,7 +30,7 @@ fi
 METHODS="GNNDelete,GIF,GraphEraser,GUIDE"
 DATASETS="cora"
 BASE_MODEL="GCN"
-STRATEGIES="random,degree,pagerank,tracin,im,hybrid"
+STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
 RATIOS="0.05"
 SEEDS="42,212,722,1337,2024"
 CUDA=0

@@ -1,7 +1,7 @@
 #!/bin/bash
 # MG-3: 扩展到 5 方法 (GIF, GNNDelete, GraphEraser, IDEA, MEGU)
 # 在 MG-1 (Citeseer) 和 MG-2 (GAT) 基础上增加 IDEA 和 MEGU
-# 只跑 4 策略 (random, tracin, im, hybrid) 做筛选
+# 只跑 4 策略 (random, tracin, im_v4, hybrid_v4) 做筛选
 
 set -e
 
@@ -57,7 +57,7 @@ cd "$REPO_ROOT"
 METHODS_IDEA="IDEA,MEGU"
 DATASETS="citeseer"
 BASE_MODEL="GCN"
-STRATEGIES="random,tracin,im,hybrid"
+STRATEGIES="random,tracin,im_v4,hybrid_v4"
 RATIOS="0.05"
 SEEDS="42,212,722,1337,2024"
 CUDA=0

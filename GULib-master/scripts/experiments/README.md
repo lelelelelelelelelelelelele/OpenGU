@@ -12,6 +12,7 @@
 | `run_mg3_extended.sh` | MG-3 扩展实验 (IDEA, MEGU) |
 | `run_all_generalization.sh` | 所有泛化实验汇总 |
 | `run_ratio_sensitivity.sh` | Ratio 敏感性实验（攻击强度曲线） |
+| `IM_V4_MIGRATION_NOTE.md` | IM/Hybrid 迁移到 IM_V4 的变更说明 |
 
 ## 使用方法
 
@@ -72,17 +73,25 @@ bash scripts/experiments/run_ratio_sensitivity.sh
 
 # 修复模式
 bash scripts/experiments/run_ratio_sensitivity.sh --repair
+
+# 兼容参数（当前为 no-op，保留旧命令不报错）
+bash scripts/experiments/run_ratio_sensitivity.sh --use_im_v4
 ```
 
 ### 参数配置
 
 - **RATIOS**: 0.01, 0.05, 0.10, 0.20
 - **SEEDS**: 42,212,722,1337,2024
-- **STRATEGIES**: random,degree,pagerank,tracin,im,hybrid
+- **STRATEGIES**: random,degree,pagerank,tracin,im_v4,hybrid_v4
 
 ### 输出
 
 结果保存至 `results/experiments/ratio_sensitivity/`
+
+## IM_V4 迁移说明
+
+MG0-MG3 与 Ratio 默认策略已切到 `im_v4/hybrid_v4`，并沿用原输出目录。  
+详细说明见 [IM_V4_MIGRATION_NOTE.md](./IM_V4_MIGRATION_NOTE.md)。
 
 ## 实验规模
 
