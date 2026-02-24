@@ -33,8 +33,14 @@
 
 ## 1B. 实验与结果（你要知道“跑出来什么”）
 
-* `../../experiments/im_benchmark/bench_results.json`（最高优先级）
+* `../../experiments/im_benchmark/results/bench_results.json`（最高优先级）
 * `../../experiments/im_benchmark/run_benchmark.py`（理解参数与设定）
+* `../../results/experiments/`（批量实验结果：mg0_completion、mg1_citeseer、mg2_gat、mg3_* 等）
+* `../../run_experiments.py`（批量实验入口，理解 Phase A/B/C 设计与参数）
+* `../../eval_collateral.py`（collateral damage 评估）
+* `../../eval_relative.py`（相对指标计算，vs k=5 random baseline）
+* `../../results/relative/`（相对指标缓存）
+* `../../results/collateral/`（collateral damage 结果）
 * `../../log/` 下与 benchmark 对应的日志（确认实际参数/seed/失败重试等）
 * `../../results/`（如有细粒度输出，用于补充）
 
@@ -42,7 +48,11 @@
 
 * `../../unlearning/`（核心 unlearning 逻辑）
 * `../../pipeline/`（工作流组织）
-* `../../attack/` 与 `../../eval_collateral.py`（攻击/评估机制）
+* `../../attack/`（攻击框架总目录）
+* `../../attack/attack_strategies/`（具体策略实现：tracin, im_v4, hybrid_v4, random, degree, pagerank）
+* `../../attack/pipeline_adapter.py`（AttackPipeline 适配器，包装 OpenGU pipeline 用于攻击）
+* `../../attack/result_cache.py` 与 `../../attack/selection_cache.py`（缓存机制）
+* `../../eval_collateral.py`（collateral damage 评估）
 * `../../dataset/` 与 `../../model/`（数据与模型配置）
 
 ## 1D. 写作输入（你要对照“我怎么写的/预期是什么”）
@@ -205,13 +215,4 @@
 
 现在开始：按第 1) 的读取顺序取证，然后按第 2)–6) 的结构输出。
 
-```
-
----
-
-### 你可以怎么用它（不需要我再问你问题）
-- 给 **5.3-codex**：它会更擅长把 JSON/日志/参数抽成表、整理字段映射、生成 figure plan。
-- 给 **5.2 Thinking**：它会更擅长把“理论预期 ↔ 证据”变成论文叙事、提出可检验替代解释、写 reviewer-proof 的 caveat。
-
-如果你想把它再“工程化”一档（比如强制输出一个 `analysis_notes.md`、自动生成结果表格 CSV、或者自动绘图脚本模板），我也可以给你加一个“交付物落盘”部分，但你现在要的是“指导读什么、怎么分析、怎么写”，这版已经把路线完全钉住了。
 ```
