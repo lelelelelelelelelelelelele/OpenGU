@@ -16,6 +16,9 @@ Usage:
 
     # Custom single run
     python run_experiments.py --methods GNNDelete,GIF --datasets cora --cuda 0
+
+    # Repair with strict validation (default): re-run mismatched/broken JSON
+    python run_experiments.py --phase A --repair --repair_validation strict
 """
 import os
 import sys
@@ -161,6 +164,58 @@ def _normalize_strategies(raw):
     return ",".join(values)
 
 
+def _normalize_strategy_set(raw):
+    normalized = _normalize_strategies(raw)
+    if not normalized:
+        return set()
+    return {_normalize_strategy_name(item) for item in normalized.split(",") if str(item).strip()}
+
+
+def _extract_result_strategy_set(result_json):
+    if not isinstance(result_json, dict):
+        return set()
+    results = result_json.get("results")
+    if not isinstance(results, dict):
+        return set()
+    return {_normalize_strategy_name(name) for name in results.keys()}
+
+
+def _validate_experiment_json(json_path, expected_strategies=None, validation_mode="strict"):
+    json_path = Path(json_path)
+    expected_set = set(expected_strategies or set())
+
+    if not json_path.exists():
+        return False, "missing_file", None
+
+    if validation_mode == "legacy_missing_only":
+        return True, "complete", _load_json_file(json_path)
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            parsed = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return False, "invalid_json", None
+
+    if not isinstance(parsed, dict):
+        return False, "missing_results", parsed
+
+    results = parsed.get("results")
+    if not isinstance(results, dict):
+        return False, "missing_results", parsed
+
+    result_strategy_set = _extract_result_strategy_set(parsed)
+    if expected_set and not expected_set.issubset(result_strategy_set):
+        return False, "strategy_mismatch", parsed
+
+    config = parsed.get("config")
+    if expected_set and isinstance(config, dict) and "strategies" in config:
+        config_strategy_set = _normalize_strategy_set(config.get("strategies"))
+        if config_strategy_set != expected_set:
+            return False, "strategy_mismatch", parsed
+
+    return True, "complete", parsed
+
+
 def _load_json_file(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -235,14 +290,16 @@ def _resolve_run_strategies(run_dir, fallback_strategies):
     return "random,degree,pagerank,tracin", "fallback_default"
 
 
-def _collect_result_map(expected_items):
+def _collect_result_map(expected_items, expected_strategies=None, validation_mode="strict"):
+    expected_set = set(expected_strategies or set())
     result_map = {}
     for item in expected_items:
-        json_path = Path(item["json_path"])
-        if not json_path.exists():
-            continue
-        data = _load_json_file(json_path)
-        if data is None:
+        is_complete, _, data = _validate_experiment_json(
+            item["json_path"],
+            expected_strategies=expected_set,
+            validation_mode=validation_mode,
+        )
+        if not is_complete or data is None:
             continue
         result_map[_result_key(item["method"], item["dataset"], item["model"], item["ratio"])] = data
     return result_map
@@ -284,9 +341,21 @@ def _build_grid_items(config, seed, run_dir):
     return items
 
 
-def _scan_missing_items_grid(run_dir, config, seed):
+def _scan_missing_items_grid(run_dir, config, seed, validation_mode="strict"):
     expected_items = _build_grid_items(config, seed, run_dir)
-    missing_items = [item for item in expected_items if not Path(item["json_path"]).exists()]
+    expected_strategies = _normalize_strategy_set(config.get("strategies"))
+    missing_items = []
+    for item in expected_items:
+        is_complete, reason, _ = _validate_experiment_json(
+            item["json_path"],
+            expected_strategies=expected_strategies,
+            validation_mode=validation_mode,
+        )
+        if is_complete:
+            continue
+        missing_item = item.copy()
+        missing_item["missing_reason"] = reason
+        missing_items.append(missing_item)
     return expected_items, missing_items
 
 
@@ -319,7 +388,9 @@ def _scan_missing_items_error_only(run_dir, seed):
         }
         expected_items.append(item)
         if not json_path.exists():
-            missing_items.append(item)
+            missing_item = item.copy()
+            missing_item["missing_reason"] = "missing_file"
+            missing_items.append(missing_item)
     return expected_items, missing_items
 
 
@@ -396,6 +467,8 @@ def _rebuild_summary_in_place(
     repair_meta,
     expected_items,
     resolved_strategies,
+    expected_strategies=None,
+    validation_mode="strict",
 ):
     run_dir = Path(run_dir)
     summary_path = run_dir / "_summary.json"
@@ -404,7 +477,11 @@ def _rebuild_summary_in_place(
     if isinstance(loaded, dict):
         old_summary = loaded
 
-    result_map = _collect_result_map(expected_items)
+    result_map = _collect_result_map(
+        expected_items,
+        expected_strategies=expected_strategies,
+        validation_mode=validation_mode,
+    )
 
     total = len(expected_items)
     completed = len(result_map)
@@ -452,17 +529,22 @@ def _run_repair(
     repair_select="latest_per_seed",
     repair_from="grid",
     repair_dry_run=False,
+    validation_mode="strict",
 ):
     targets = _resolve_repair_targets(repair_dir, seed_list, repair_select)
     if not targets:
         print("[REPAIR] No target run directories found.")
         return
 
-    print(f"[REPAIR] scan_dir={repair_dir} mode={repair_from} select={repair_select}")
+    print(
+        f"[REPAIR] scan_dir={repair_dir} mode={repair_from} "
+        f"select={repair_select} validation={validation_mode}"
+    )
     all_missing = []
     per_run = {}
     summary_only_runs = []
-    fallback_strategies = config.get("strategies", "")
+    target_strategies = _normalize_strategies(config.get("strategies")) or "random,degree,pagerank,tracin"
+    target_strategy_set = _normalize_strategy_set(target_strategies)
 
     for target in targets:
         run_dir = Path(target["run_dir"])
@@ -475,12 +557,21 @@ def _run_repair(
             effective_repair_from = "grid"
 
         if effective_repair_from == "grid":
-            expected_items, missing_items = _scan_missing_items_grid(run_dir, config, seed)
+            expected_items, missing_items = _scan_missing_items_grid(
+                run_dir,
+                config,
+                seed,
+                validation_mode=validation_mode,
+            )
         else:
             expected_items, missing_items = _scan_missing_items_error_only(run_dir, seed)
 
-        strategies, strategy_source = _resolve_run_strategies(run_dir, fallback_strategies)
-        existing_result_map = _collect_result_map(expected_items)
+        existing_strategies, existing_strategy_source = _resolve_run_strategies(run_dir, target_strategies)
+        existing_result_map = _collect_result_map(
+            expected_items,
+            expected_strategies=target_strategy_set,
+            validation_mode=validation_mode,
+        )
         total = len(expected_items)
         completed = len(existing_result_map)
         failed_count = max(total - completed, 0)
@@ -491,6 +582,10 @@ def _run_repair(
             failed=failed_count,
             result_keys=existing_result_map.keys(),
         )
+        missing_by_reason = {}
+        for missing_item in missing_items:
+            reason = missing_item.get("missing_reason", "unknown")
+            missing_by_reason[reason] = missing_by_reason.get(reason, 0) + 1
 
         per_run[run_key] = {
             "seed": seed,
@@ -503,15 +598,20 @@ def _run_repair(
             "failed_exec": 0,
             "summary_needs_rebuild": summary_needs_rebuild,
             "effective_repair_from": effective_repair_from,
-            "strategies": strategies,
-            "strategies_source": strategy_source,
+            "validation_mode": validation_mode,
+            "target_strategies": target_strategies,
+            "existing_strategies": existing_strategies,
+            "existing_strategies_source": existing_strategy_source,
+            "missing_by_reason": missing_by_reason,
         }
 
         state = "NEW_RUN" if is_new else "EXISTING_RUN"
         print(
             f"[REPAIR] {state} seed={seed} run={run_dir} "
             f"missing={len(missing_items)} "
-            f"strategies={strategies} source={strategy_source}"
+            f"existing_strategies={existing_strategies} source={existing_strategy_source} "
+            f"target_strategies(current_config)={target_strategies} "
+            f"missing_by_reason={missing_by_reason}"
         )
 
         if summary_needs_rebuild and not missing_items:
@@ -522,7 +622,10 @@ def _run_repair(
     if all_missing:
         print(f"[REPAIR] Found {len(all_missing)} missing experiments:")
         for item in all_missing:
-            print(f"[REPAIR]   {item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']} @ {item['run_dir']}")
+            print(
+                f"[REPAIR]   {item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']} "
+                f"@ {item['run_dir']} reason={item.get('missing_reason', 'unknown')}"
+            )
     else:
         print("[REPAIR] No missing experiments found")
 
@@ -547,7 +650,7 @@ def _run_repair(
             method=item["method"],
             dataset=item["dataset"],
             model=item["model"],
-            strategies=run_stats["strategies"],
+            strategies=run_stats["target_strategies"],
             ratio=item["ratio"],
             cuda=cuda,
             output_dir=str(run_dir),
@@ -576,8 +679,13 @@ def _run_repair(
             "success": stats["success"],
             "failed": stats["failed_exec"],
             "summary_only": stats["attempted"] == 0,
-            "strategies_source": stats["strategies_source"],
-            "strategies_used": stats["strategies"],
+            "validation_mode": stats["validation_mode"],
+            "target_strategies": stats["target_strategies"],
+            "existing_strategies_source": stats["existing_strategies_source"],
+            "existing_strategies": stats["existing_strategies"],
+            "missing_by_reason": stats["missing_by_reason"],
+            "strategies_source": stats["existing_strategies_source"],
+            "strategies_used": stats["target_strategies"],
         }
         summary = _rebuild_summary_in_place(
             run_dir=run_dir,
@@ -586,7 +694,9 @@ def _run_repair(
             disable_cache=disable_cache,
             repair_meta=repair_meta,
             expected_items=stats["expected_items"],
-            resolved_strategies=stats["strategies"],
+            resolved_strategies=stats["target_strategies"],
+            expected_strategies=target_strategy_set,
+            validation_mode=validation_mode,
         )
         print(
             f"[REPAIR] DONE run={run_dir} "
@@ -967,7 +1077,7 @@ def main():
     parser.add_argument("--method_timeouts", type=str, default=None,
                         help="Per-method phase timeout overrides (applies to both phases), e.g. GraphEraser:900,GIF:700")
     parser.add_argument("--repair", action="store_true",
-                        help="Auto repair mode: patch missing items in latest runs, create new run only for missing seeds")
+                        help="Auto repair mode: patch missing or invalid items in existing runs")
     parser.add_argument("--repair_dir", type=str, default=None,
                         help="Optional target run dir or parent dir. Defaults to <output>/phase_<phase>")
     parser.add_argument("--repair_select", type=str, choices=["latest_per_seed", "all_runs"],
@@ -978,6 +1088,16 @@ def main():
                         help="Repair source: missing grid items or error.log-only items")
     parser.add_argument("--repair_dry_run", action="store_true",
                         help="Show missing items in repair mode without executing experiments")
+    parser.add_argument(
+        "--repair_validation",
+        type=str,
+        choices=["strict", "legacy_missing_only"],
+        default="strict",
+        help=(
+            "Repair completion check mode: strict validates JSON/results/strategy match; "
+            "legacy_missing_only only checks file existence"
+        ),
+    )
 
     # Custom overrides
     parser.add_argument("--methods", type=str, default=None,
@@ -1054,6 +1174,7 @@ def main():
             repair_select=args.repair_select,
             repair_from=args.repair_from,
             repair_dry_run=args.repair_dry_run,
+            validation_mode=args.repair_validation,
         )
         return
 
