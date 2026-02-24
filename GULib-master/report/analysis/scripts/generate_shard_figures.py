@@ -5,6 +5,7 @@
 """
 
 import json
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,11 +13,18 @@ import numpy as np
 plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
 
+# 基于脚本路径定位数据与输出目录，避免依赖当前工作目录
+SCRIPT_DIR = Path(__file__).resolve().parent
+ANALYSIS_DIR = SCRIPT_DIR.parent
+DATA_DIR = ANALYSIS_DIR / "assets" / "data"
+FIGURE_DIR = ANALYSIS_DIR / "assets" / "figures"
+FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+
 # 加载数据
-with open('shard_effect_data.json') as f:
+with open(DATA_DIR / 'shard_effect_data.json', encoding='utf-8') as f:
     step0_data = json.load(f)
 
-with open('mg0_shard_effect_data.json') as f:
+with open(DATA_DIR / 'mg0_shard_effect_data.json', encoding='utf-8') as f:
     mg0_data = json.load(f)
 
 # 图1: Step0 baseline - 所有方法的 f1 变化
@@ -67,8 +75,9 @@ for bar, pct in zip(bars2, type_avg.values()):
              f'{pct:+.2f}%', va='center', fontsize=10, color='white', fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('shard_effect_overview.png', dpi=150, bbox_inches='tight')
-print('Saved: shard_effect_overview.png')
+overview_path = FIGURE_DIR / 'shard_effect_overview.png'
+plt.savefig(overview_path, dpi=150, bbox_inches='tight')
+print(f'Saved: {overview_path}')
 
 # 图2: 详细对比 - Shard-based 方法的所有策略
 fig2, ax = plt.subplots(figsize=(10, 6))
@@ -94,8 +103,9 @@ for bar, pct in zip(bars3, pct_vals):
             f'{pct:+.1f}%', ha='center', va='bottom', fontsize=8)
 
 plt.tight_layout()
-plt.savefig('shard_effect_detail.png', dpi=150, bbox_inches='tight')
-print('Saved: shard_effect_detail.png')
+detail_path = FIGURE_DIR / 'shard_effect_detail.png'
+plt.savefig(detail_path, dpi=150, bbox_inches='tight')
+print(f'Saved: {detail_path}')
 
 # 图3: 对比 Learning-based vs Shard-based
 fig3, ax = plt.subplots(figsize=(8, 5))
@@ -124,7 +134,8 @@ ax.scatter([2], [np.mean(shard_pcts)], color='red', s=100, zorder=5, marker='D')
 
 ax.legend()
 plt.tight_layout()
-plt.savefig('learning_vs_shard_boxplot.png', dpi=150, bbox_inches='tight')
-print('Saved: learning_vs_shard_boxplot.png')
+boxplot_path = FIGURE_DIR / 'learning_vs_shard_boxplot.png'
+plt.savefig(boxplot_path, dpi=150, bbox_inches='tight')
+print(f'Saved: {boxplot_path}')
 
 print('\n所有图表已生成!')

@@ -1,0 +1,34 @@
+{
+  "cache_key": "306fdfac99610a59",
+  "cached_at": "2026-02-25T02:44:43.386513",
+  "config": {
+    "methods": "GraphEraser",
+    "datasets": "cora",
+    "strategies": "im_v4",
+    "k": null,
+    "ratio": 0.05,
+    "baseline_dir": "results/experiments/mg0_completion/phase_a"
+  },
+  "results": [
+    {
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "strategy": "im_v4",
+      "baseline_strategy": "random",
+      "ratio": 0.05,
+      "baseline": {
+        "f1_after_mean": 0.8431857142857143,
+        "f1_after_std": 0.012107899259978844,
+        "n_samples": 7
+      },
+      "attack": {
+        "f1_after_mean": 0.81294,
+        "f1_after_std": 0.023374396248887354,
+        "n_samples": 5
+      },
+      "gap": -0.03024571428571432,
+      "relative_f1_drop": 0.03024571428571432,
+      "interpretation": "attack effective: F1 significantly lower than baseline"
+    }
+  ]
+}

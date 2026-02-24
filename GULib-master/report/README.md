@@ -6,24 +6,18 @@
 
 ```
 report/
-├── daily-log/              # 每日工作日志
-│   ├── 2026-02-16_log.md
-│   ├── 2026-02-17_log.md
-│   ├── 2026-02-18_log.md
-│   ├── 2026-02-19_log.md
-│   └── 2026-02-21_log.md
-├── meeting/               # 组会报告
-│   └── 2026-02-19_算力与数据集规模.md
-├── progress/              # 阶段报告
-│   └── 2026-02-19_checkpoint/
-│       ├── PROGRESS_REPORT.md
-│       ├── appendix_demo_output.txt
-│       ├── appendix_method_table.md
-│       └── figures/
-├── paper/                 # 论文内容
-│   ├── sections/          # 各章节（待添加）
-│   └── figures/           # 图表资源（待添加）
-└── README.md              # 本文档
+├── analysis/                  # 技术分析材料（统一入口）
+│   ├── reports/               # 自动生成报告
+│   ├── notes/                 # 人工分析/组会笔记
+│   ├── assets/
+│   │   ├── data/              # 图表输入数据（json）
+│   │   └── figures/           # 图表输出（png）
+│   ├── scripts/               # 分析脚本
+│   └── README.md              # analysis 子目录说明
+├── daily-log/                 # 每日工作日志
+├── progress/                  # 阶段报告
+├── paper/                     # 论文内容
+└── README.md                  # 本文档
 ```
 
 ## 参考资源
@@ -51,9 +45,13 @@ Step0 工具代码已统一到 `scripts/evaluation/`，入口为 `python -m scri
 
 ## 使用说明
 
-### 添加新的组会报告
+### 添加新的分析/组会笔记
 
-将组会报告复制到 `report/meeting/` 目录，命名格式：`YYYY-MM-DD_主题.md`
+将文档放到 `report/analysis/notes/`，命名格式：`YYYY-MM-DD_主题.md`
+
+### 添加新的自动分析报告
+
+自动生成脚本默认写入 `report/analysis/reports/`，命名格式：`YYYY-MM-DD_HHMMSS_{group}_analysis.md`
 
 ### 添加阶段报告
 
@@ -66,3 +64,4 @@ Step0 工具代码已统一到 `scripts/evaluation/`，入口为 `python -m scri
 ## 更新日志
 
 - 2026-02-22: 初始化 report 目录结构，移动 daily-log 和 checkpoint_report
+- 2026-02-25: `analysis` 目录重构为 `reports/notes/assets/scripts` 分层，统一分析材料组织

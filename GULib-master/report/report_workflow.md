@@ -106,7 +106,7 @@ report_workflow/
 
 ## 报告输出
 
-**位置：** `report/analysis/{timestamp}_{group}_analysis.md`
+**位置：** `report/analysis/reports/{timestamp}_{group}_analysis.md`
 
 **内容结构：**
 ```markdown
@@ -148,7 +148,7 @@ report_workflow/
 `config.yaml`:
 ```yaml
 report:
-  output_dir: "report/analysis"
+  output_dir: "report/analysis/reports"
   template: "technical_analysis.md"
 
 thresholds:
@@ -167,5 +167,5 @@ groups:
 
 1. **对比功能**：自动对比两个实验组的差异
 2. **图表生成**：自动生成热力图/柱状图
-3. **自动归档**：将生成的报告移动到 `report/analysis/`
+3. **自动归档**：将生成的报告移动到 `report/analysis/reports/`
 4. **邮件通知**：生成后自动发送邮件

@@ -17,7 +17,7 @@ from typing import Dict, List, Any
 import numpy as np
 
 # 配置
-REPORT_DIR = Path("report/analysis")
+REPORT_DIR = Path("report/analysis/reports")
 TEMPLATE_DIR = Path("report/templates")
 RESULTS_DIR = Path("results/experiments")
 
@@ -336,7 +336,7 @@ def _get_ineffective(aggregated: Dict) -> str:
 def save_report(group: str, content: str):
     """保存报告"""
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     filename = REPORT_DIR / f"{timestamp}_{group}_analysis.md"
 
     with open(filename, 'w', encoding='utf-8') as f:
