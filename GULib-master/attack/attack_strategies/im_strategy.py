@@ -33,7 +33,9 @@ if HAS_NUMBA:
     def _rand_float(state):
         """Return (new_state, uniform float in [0, 1))."""
         state, z = _splitmix64(state)
-        return state, (z >> np.uint64(11)) * np.float64(5.421010862427522e-20)
+        # Use 53 random bits to match float64 mantissa precision.
+        mantissa53 = z & np.uint64(0x1FFFFFFFFFFFFF)
+        return state, np.float64(mantissa53) * np.float64(1.1102230246251565e-16)
 
     @numba.njit(cache=True)
     def _simulate_spread_numba(indptr, indices, seed_array, prob, num_nodes,

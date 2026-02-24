@@ -1,11 +1,15 @@
 """Unit tests for IMStrategy, HybridStrategy, and registration."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 import torch
 import torch.nn as nn
 from torch_geometric.data import Data
 
+import attack.attack_strategies.im_strategy as im_strategy_module
 from attack.attack_strategies.im_strategy import IMStrategy, HAS_NUMBA
 from attack.attack_strategies.hybrid_strategy import HybridStrategy
 
@@ -232,6 +236,21 @@ requires_numba = pytest.mark.skipif(not HAS_NUMBA, reason="numba not installed")
 class TestIMAcceleration:
     """Tests for numba acceleration, CSR building, and candidate pruning."""
 
+    @requires_numba
+    def test_numba_rand_float_spans_unit_interval(self):
+        """Numba RNG helper should produce values across [0, 1), not a tiny subrange."""
+        from attack.attack_strategies.im_strategy import _rand_float
+
+        state = np.uint64(123456789)
+        values = []
+        for _ in range(4096):
+            state, r = _rand_float(state)
+            values.append(float(r))
+
+        assert all(0.0 <= v < 1.0 for v in values)
+        assert min(values) < 0.1
+        assert max(values) > 0.9
+
     def test_csr_structure(self):
         """CSR indptr/indices have correct shapes and values."""
         # Simple graph: 0->1, 0->2, 1->2
@@ -318,6 +337,32 @@ class TestIMAcceleration:
             data.edge_index, data.num_nodes, candidates
         )
         assert torch.equal(scores1, scores2)
+
+    @requires_numba
+    def test_numba_matches_python_on_im_fixture(self):
+        """Numba and Python paths should agree on the im_basic_k3 fixture."""
+        fixture_path = Path(__file__).parent / "fixtures" / "strategies" / "im_basic_k3.json"
+        spec = json.loads(fixture_path.read_text(encoding="utf-8"))
+        graph = spec["graph"]
+        data = Data(
+            num_nodes=int(graph["num_nodes"]),
+            x=torch.tensor(graph["x"], dtype=torch.float),
+            edge_index=torch.tensor(graph["edge_index"], dtype=torch.long),
+            y=torch.tensor(graph["y"], dtype=torch.long),
+            train_mask=torch.tensor(graph["train_mask"], dtype=torch.bool),
+        )
+
+        original_has_numba = im_strategy_module.HAS_NUMBA
+        try:
+            im_strategy_module.HAS_NUMBA = False
+            selected_python = IMStrategy(spec["args"]).select_nodes(data, model=None, k=int(spec["k"]))
+
+            im_strategy_module.HAS_NUMBA = True
+            selected_numba = IMStrategy(spec["args"]).select_nodes(data, model=None, k=int(spec["k"]))
+        finally:
+            im_strategy_module.HAS_NUMBA = original_has_numba
+
+        assert selected_numba.tolist() == selected_python.tolist()
 
     @requires_numba
     def test_numba_celf_output_shape(self):
