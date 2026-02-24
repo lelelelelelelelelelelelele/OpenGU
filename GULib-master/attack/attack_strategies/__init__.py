@@ -5,3 +5,5 @@ from .pagerank_strategy import PageRankStrategy
 from .tracin_strategy import TracInStrategy
 from .im_strategy import IMStrategy
 from .hybrid_strategy import HybridStrategy
+from .im_v4_strategy import IMV4Strategy
+from .hybrid_v4_strategy import HybridV4Strategy

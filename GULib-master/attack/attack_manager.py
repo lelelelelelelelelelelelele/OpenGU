@@ -28,6 +28,8 @@ from attack.attack_strategies import (
     TracInStrategy,
     IMStrategy,
     HybridStrategy,
+    IMV4Strategy,
+    HybridV4Strategy,
 )
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
@@ -63,8 +65,10 @@ class AttackManager:
         "tracin": TracInStrategy,
         "im": IMStrategy,
         "hybrid": HybridStrategy,
+        "im_v4": IMV4Strategy,
+        "hybrid_v4": HybridV4Strategy,
     }
-    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im"}
+    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "im_v4"}
     # Runtime k-subset reuse is safe only for deterministic ranking strategies.
     SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
 
@@ -154,6 +158,13 @@ class AttackManager:
                 "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
                 "mc_rounds": int(self.args.get("mc_rounds", 100)),
                 "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
+            }
+        elif strategy_name == "im_v4":
+            return {
+                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
+                "mc_rounds": int(self.args.get("mc_rounds", 100)),
+                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
+                "im_v4_batch_size": int(self.args.get("im_v4_batch_size", 5)),
             }
         elif strategy_name == "pagerank":
             return {

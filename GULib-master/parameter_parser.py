@@ -111,6 +111,15 @@ def parameter_parser():
     parser.add_argument('--proportion_unlearned_edges_num', type=float, default=1e-4)
     parser.add_argument('--unlearn_ratio', type=float, default=0.1)
     parser.add_argument('--unlearn_lr', type=float, default=0.01,help='used in GNNDelete and CEU')
+    # IM / IM_V4 strategy parameters
+    parser.add_argument('--propagation_prob', type=float, default=0.1,
+                        help='IC propagation probability for IM-based strategies')
+    parser.add_argument('--mc_rounds', type=int, default=100,
+                        help='Monte Carlo rounds for IM-based spread estimation')
+    parser.add_argument('--candidate_fraction', type=float, default=1.0,
+                        help='Fraction of IM candidates kept after degree pruning')
+    parser.add_argument('--im_v4_batch_size', type=int, default=5,
+                        help='Batch size B for IM_V4 Batch-CELF approximation')
 
 
 

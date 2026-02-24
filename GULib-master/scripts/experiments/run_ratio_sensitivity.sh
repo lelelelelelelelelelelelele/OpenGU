@@ -31,10 +31,12 @@ RATIOS="0.20,0.10,0.05,0.01"
 SEEDS="42,212,722,1337,2024"
 CUDA=0
 OUTPUT="results/experiments/ratio_sensitivity"
+STRATEGY_PROFILE="classic"
 
 # 参数解析
 REPAIR_MODE=0
 RUN_COLLATERAL=0
+USE_IM_V4=0
 REPAIR_MODE_ARG=""
 EXTRA_ARGS=()
 for arg in "$@"; do
@@ -42,6 +44,8 @@ for arg in "$@"; do
         REPAIR_MODE=1
     elif [ "$arg" = "--run_collateral" ]; then
         RUN_COLLATERAL=1
+    elif [ "$arg" = "--use_im_v4" ]; then
+        USE_IM_V4=1
     else
         EXTRA_ARGS+=("$arg")
     fi
@@ -51,11 +55,18 @@ if [ "$REPAIR_MODE" -eq 1 ]; then
     REPAIR_MODE_ARG="--repair"
 fi
 
+if [ "$USE_IM_V4" -eq 1 ]; then
+    STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
+    OUTPUT="results/experiments/ratio_sensitivity_im_v4"
+    STRATEGY_PROFILE="im_v4"
+fi
+
 echo "=============================================="
 echo "Ratio Sensitivity Experiments"
 echo "Dataset: $DATASETS / $BASE_MODEL"
 echo "Methods: $METHODS"
 echo "Strategies: $STRATEGIES"
+echo "Strategy Profile: $STRATEGY_PROFILE"
 echo "Ratios: $RATIOS"
 echo "Seeds: $SEEDS"
 echo "Output: $OUTPUT"

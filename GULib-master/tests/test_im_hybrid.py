@@ -11,7 +11,9 @@ from torch_geometric.data import Data
 
 import attack.attack_strategies.im_strategy as im_strategy_module
 from attack.attack_strategies.im_strategy import IMStrategy, HAS_NUMBA
+from attack.attack_strategies.im_v4_strategy import IMV4Strategy
 from attack.attack_strategies.hybrid_strategy import HybridStrategy
+from attack.attack_strategies.hybrid_v4_strategy import HybridV4Strategy
 
 
 def _make_dummy_data(num_nodes=100, num_features=16, num_edges=300):
@@ -116,6 +118,15 @@ class TestIMStrategy:
 
         assert selected[0] == naive_top1
 
+    def test_im_v4_output_shape(self):
+        """IMV4 返回恰好 k 个节点"""
+        data = _make_dummy_data()
+        strategy = IMV4Strategy(args={'mc_rounds': 10, 'im_v4_batch_size': 3})
+        k = 5
+        result = strategy.select_nodes(data, model=None, k=k)
+        assert result.shape == (k,)
+        assert len(result.unique()) == k
+
 
 # ---------------------------------------------------------------------------
 # TestHybridFusion (pure function tests, no model needed)
@@ -208,6 +219,16 @@ class TestHybridStrategy:
         result = strategy.select_nodes(data, model=model, k=k)
         assert (result >= 0).all() and (result < 50).all()
 
+    def test_hybrid_v4_output_shape(self):
+        """HybridV4 返回恰好 k 个节点"""
+        data = _make_dummy_data(num_nodes=50, num_features=16)
+        model = _make_dummy_model(num_features=16, num_classes=7)
+        strategy = HybridV4Strategy(args={'mc_rounds': 10, 'im_v4_batch_size': 3})
+        k = 5
+        result = strategy.select_nodes(data, model=model, k=k)
+        assert result.shape == (k,)
+        assert len(result.unique()) == k
+
 
 # ---------------------------------------------------------------------------
 # TestRegistration
@@ -221,10 +242,20 @@ class TestRegistration:
         from attack.attack_manager import AttackManager
         assert "hybrid" in AttackManager.BUILTIN_STRATEGIES
 
+    def test_im_v4_in_builtin(self):
+        from attack.attack_manager import AttackManager
+        assert "im_v4" in AttackManager.BUILTIN_STRATEGIES
+
+    def test_hybrid_v4_in_builtin(self):
+        from attack.attack_manager import AttackManager
+        assert "hybrid_v4" in AttackManager.BUILTIN_STRATEGIES
+
     def test_import_from_subpackage(self):
-        from attack.attack_strategies import IMStrategy, HybridStrategy
+        from attack.attack_strategies import IMStrategy, HybridStrategy, IMV4Strategy, HybridV4Strategy
         assert IMStrategy is not None
         assert HybridStrategy is not None
+        assert IMV4Strategy is not None
+        assert HybridV4Strategy is not None
 
 
 # ---------------------------------------------------------------------------

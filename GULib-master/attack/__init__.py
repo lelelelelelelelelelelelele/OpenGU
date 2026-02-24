@@ -2,7 +2,8 @@
 Attack module for adversarial attacks on GNN unlearning methods.
 
 This module provides:
-- Attack strategies for node selection (Random, Degree, PageRank, TracIn, IM, Hybrid)
+- Attack strategies for node selection
+  (Random, Degree, PageRank, TracIn, IM, Hybrid, IM_V4, Hybrid_V4)
 - AttackManager for coordinating experiments
 - AttackPipeline for encapsulating main.py logic
 - ResultCache for caching experiment results
@@ -34,6 +35,8 @@ from .attack_strategies import (
     TracInStrategy,
     IMStrategy,
     HybridStrategy,
+    IMV4Strategy,
+    HybridV4Strategy,
 )
 
 # Import evaluation functions
@@ -66,6 +69,8 @@ __all__ = [
     "TracInStrategy",
     "IMStrategy",
     "HybridStrategy",
+    "IMV4Strategy",
+    "HybridV4Strategy",
     # Evaluation
     "evaluate_f1_drop",
     "evaluate_mia_auc",

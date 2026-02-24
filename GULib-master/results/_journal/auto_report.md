@@ -13211,3 +13211,39 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - degree: F1 Drop = -0.1513 (f1_before=0.6661, f1_after=0.8174, time=27.1s, cache=MISS, selection=0.0000s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 15:37] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['im_v4', 'hybrid_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=42
+- 执行结果：
+  - im_v4: F1 Drop = 0.0129 (f1_before=0.8838, f1_after=0.8708, time=2.3s, cache=MISS, selection=1.0769s)
+  - hybrid_v4: F1 Drop = 0.0092 (f1_before=0.8856, f1_after=0.8764, time=6.6s, cache=MISS, selection=5.7954s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 15:38] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im_v4: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=2.9s, cache=MISS, selection=1.0844s)
+  - hybrid_v4: F1 Drop = 0.0627 (f1_before=0.8875, f1_after=0.8247, time=7.1s, cache=MISS, selection=5.8621s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 15:42] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['im', 'im_v4'], ratio=0.01
+- 配置：unlearn_ratio=0.01 (27 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.0129 (f1_before=0.8838, f1_after=0.8708, time=3.2s, cache=MISS, selection=1.8223s)
+  - im_v4: F1 Drop = 0.0092 (f1_before=0.8856, f1_after=0.8764, time=1.8s, cache=MISS, selection=0.9731s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-24 15:42] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im', 'im_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = 0.0683 (f1_before=0.8838, f1_after=0.8155, time=3.7s, cache=MISS, selection=1.9990s)
+  - im_v4: F1 Drop = 0.0627 (f1_before=0.8875, f1_after=0.8247, time=2.2s, cache=MISS, selection=0.9773s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
