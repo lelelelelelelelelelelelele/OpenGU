@@ -150,7 +150,9 @@ def run_v1(im_strategy, edge_index, num_nodes, k, candidate_set):
             else:
                 seed_arr = np.array(selected_set_list + [node], dtype=np.int32)
                 # --- V1 FastHash Optimization ---
-                base_seed = im_strategy.random_seed * 10000 + abs(hash(frozenset(selected_set_list + [node]))) % 10000
+                # Avoid expensive frozenset hash. Use a simple deterministic sum-based hash.
+                pseudo_hash = int(np.sum(seed_arr)) * 131 + len(seed_arr)
+                base_seed = im_strategy.random_seed * 10000 + (pseudo_hash % 10000)
                 new_spread = _estimate_spread_numba(
                     indptr, indices, seed_arr, prob, num_nodes, mc, base_seed
                 )
