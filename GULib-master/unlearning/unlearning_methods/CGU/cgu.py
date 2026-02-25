@@ -1489,7 +1489,12 @@ class cgu(IF_based_pipeline):
             self.logger.info('Val accuracy = %.4f' % lr_eval(self.w, self.X_val, self.y_val))
             self.logger.info('Test accuracy = %.4f' % lr_eval(self.w, self.X_test, self.y_test))
             if self.args["poison"] and self.args["unlearn_task"]=="edge":
-                self.poison_f1[self.run] = lr_eval(self.w, self.X_test, self.y_test)
+                pred = (self.X_test.mv(self.w) > 0).float()
+                # Assuming y_test is {-1, 1} or {0, 1}, we need to align the prediction
+                # In CGU binary prep, Y is 1 and -1.
+                y_true_bin = (self.y_test > 0).float()
+                test_f1 = f1_score(y_true_bin.cpu().numpy(), pred.cpu().numpy(), average="micro", zero_division=np.nan)
+                self.poison_f1[self.run] = test_f1
             
         # if self.args["unlearn_task"] == 'node' or self.args["unlearn_task"] == 'feature':
         #     if self.args["compare_guo"]:

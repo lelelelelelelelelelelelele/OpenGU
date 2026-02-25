@@ -12,3 +12,4 @@ GULib-master/log/GraphRevoker/cora/GCN/2024-12-11-18-48-01.log
 demo_output*.log
 results/demo_logs/
 results/cache/
+.agents

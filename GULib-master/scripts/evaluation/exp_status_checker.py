@@ -625,8 +625,8 @@ def aggregate_metrics(phase: str) -> Dict[str, Dict[str, any]]:
     {
         'f1_drop': {'GIF': '6.8%±0.5', 'GNNDelete': '17.2%±2.1', ...},
         'mia_auc': {'GIF': '0.60', 'GNNDelete': '0.86', ...},
-        'collateral': {'GIF': '✓', 'GNNDelete': '✗', ...},
-        'relative': {'GIF': '✓', 'GNNDelete': '-', ...},
+        'collateral': {'GIF': 'yes', 'GNNDelete': 'no', ...},
+        'relative': {'GIF': 'yes', 'GNNDelete': '-', ...},
     }
     """
     import numpy as np
@@ -642,6 +642,26 @@ def aggregate_metrics(phase: str) -> Dict[str, Dict[str, any]]:
 
     # Collect metrics by method
     method_metrics = {}
+
+    # First, scan collateral directory to find completed collateral evaluations
+    # Format: results/collateral/{method}/{dataset}/{model}/
+    collateral_base = Path('results/collateral')
+    for method in phase_config.methods:
+        # Check for collateral results for this method + dataset + model combination
+        method_collateral_dir = collateral_base / method / phase_config.dataset / phase_config.model
+        if method_collateral_dir.exists():
+            collateral_files = list(method_collateral_dir.glob('collateral_*.json'))
+            if collateral_files:
+                # Found collateral results for this method
+                for m in phase_config.methods:
+                    if m not in method_metrics:
+                        method_metrics[m] = {
+                            'f1_drops': [],
+                            'mia_aucs': [],
+                            'has_collateral': False,
+                            'has_relative': False,
+                        }
+                method_metrics[method]['has_collateral'] = True
 
     for seed_dir in phase_dir.iterdir():
         if not seed_dir.is_dir():
@@ -806,6 +826,7 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
     }
 
     updated_sections = []
+    updated_metrics = []  # Track sections with metrics updates
     today = datetime.now().strftime("%Y-%m-%d")
 
     # Process each phase with entries
@@ -814,6 +835,7 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
             continue
 
         section_header, section_name = phase_to_section[phase]
+        phase_config = PHASE_CONFIGS.get(phase)
         expected = expected_counts.get(phase, 0)
 
         # Calculate completion ratio
@@ -890,78 +912,80 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
             else:
                 new_bullet = old_bullet  # No change needed
 
+            # Always add/update evaluation metrics for completed sections
+            if checkbox == "- [x]":
+                # Get aggregated metrics for this phase
+                metrics_data = aggregate_metrics(phase)
+
+                if metrics_data and any(metrics_data.values()):
+                    # Get methods from config
+                    methods = phase_config.methods if phase_config else []
+
+                    # Build new format metrics summary (by metric type, not by method)
+                    metrics_lines = ["  - **评估汇总**："]
+
+                    # F1 Drop row
+                    f1_parts = []
+                    for m in methods:
+                        val = metrics_data.get('f1_drop', {}).get(m, '-')
+                        f1_parts.append(f"{m}={val}")
+                    if f1_parts:
+                        metrics_lines.append(f"    - **F1 Drop**: {', '.join(f1_parts)}")
+
+                    # MIA AUC row
+                    mia_parts = []
+                    for m in methods:
+                        val = metrics_data.get('mia_auc', {}).get(m, '-')
+                        mia_parts.append(f"{m}={val}")
+                    if mia_parts:
+                        metrics_lines.append(f"    - **MIA AUC**: {', '.join(mia_parts)}")
+
+                    # Collateral row
+                    col_parts = []
+                    for m in methods:
+                        val = metrics_data.get('collateral', {}).get(m, 'no')
+                        col_parts.append(f"{m}={val}")
+                    if col_parts:
+                        metrics_lines.append(f"    - **Collateral**: {', '.join(col_parts)}")
+
+                    # Relative row
+                    rel_parts = []
+                    for m in methods:
+                        val = metrics_data.get('relative', {}).get(m, '-')
+                        rel_parts.append(f"{m}={val}")
+                    if rel_parts:
+                        metrics_lines.append(f"    - **Relative**: {', '.join(rel_parts)}")
+
+                    metrics_summary = "\n".join(metrics_lines)
+
+                    # Check if "评估汇总" already exists, update or add
+                    if "**评估汇总**" in section_content:
+                        # Replace existing evaluation summary
+                        old_metrics_pattern = r'  - \*\*评估汇总\*\*：.*?(?=\n  - |\n\n|\Z)'
+                        section_content = re.sub(old_metrics_pattern, metrics_summary, section_content, flags=re.DOTALL)
+                    else:
+                        # Add after the bullet (at the end of section_content)
+                        # Find where to insert: after bullet content, before next sub-bullet or section end
+                        bullet_end_pattern = r'(- \[x\] `[^\n]+`[^\n]*)'
+                        bullet_match = re.search(bullet_end_pattern, section_content)
+                        if bullet_match:
+                            insert_pos = bullet_match.end()
+                            # Find next line that starts with "  - " or empty line
+                            rest_content = section_content[insert_pos:]
+                            next_bullet = re.search(r'\n  - ', rest_content)
+                            if next_bullet:
+                                insert_pos = insert_pos + next_bullet.start()
+                                section_content = section_content[:insert_pos] + "\n" + metrics_summary + section_content[insert_pos:]
+                            else:
+                                section_content = section_content + "\n" + metrics_summary
+
+                    # Update content with modified section_content
+                    content = content.replace(section_match.group(0), section_content)
+                    updated_metrics.append(section_name)
+
             if old_bullet != new_bullet:
                 content = content.replace(old_bullet, new_bullet, 1)
                 updated_sections.append(f"{section_name}: {count} runs")
-
-                # Add or update evaluation metrics summary (new format by metric type)
-                # Only add if section is marked complete
-                if checkbox == "- [x]" or checkbox == "- [ ]":
-                    # Get aggregated metrics for this phase
-                    metrics_data = aggregate_metrics(phase)
-
-                    if metrics_data and any(metrics_data.values()):
-                        # Get methods from config
-                        methods = phase_config.methods if phase_config else []
-
-                        # Build new format metrics summary (by metric type, not by method)
-                        metrics_lines = ["  - **评估汇总**："]
-
-                        # F1 Drop row
-                        f1_parts = []
-                        for m in methods:
-                            val = metrics_data.get('f1_drop', {}).get(m, '-')
-                            f1_parts.append(f"{m}={val}")
-                        if f1_parts:
-                            metrics_lines.append(f"    - **F1 Drop**: {', '.join(f1_parts)}")
-
-                        # MIA AUC row
-                        mia_parts = []
-                        for m in methods:
-                            val = metrics_data.get('mia_auc', {}).get(m, '-')
-                            mia_parts.append(f"{m}={val}")
-                        if mia_parts:
-                            metrics_lines.append(f"    - **MIA AUC**: {', '.join(mia_parts)}")
-
-                        # Collateral row
-                        col_parts = []
-                        for m in methods:
-                            val = metrics_data.get('collateral', {}).get(m, '✗')
-                            col_parts.append(f"{m}={val}")
-                        if col_parts:
-                            metrics_lines.append(f"    - **Collateral**: {', '.join(col_parts)}")
-
-                        # Relative row
-                        rel_parts = []
-                        for m in methods:
-                            val = metrics_data.get('relative', {}).get(m, '-')
-                            rel_parts.append(f"{m}={val}")
-                        if rel_parts:
-                            metrics_lines.append(f"    - **Relative**: {', '.join(rel_parts)}")
-
-                        metrics_summary = "\n".join(metrics_lines)
-
-                        # Check if "评估汇总" already exists, update or add
-                        if "**评估汇总**" in section_content:
-                            # Replace existing evaluation summary
-                            old_metrics_pattern = r'  - \*\*评估汇总\*\*：.*?(?=\n  - |\n\n|\Z)'
-                            content = re.sub(old_metrics_pattern, metrics_summary, content, flags=re.DOTALL)
-                        else:
-                            # Add after the bullet (at the end of section_content)
-                            # Find where to insert: after bullet content, before next sub-bullet or section end
-                            bullet_end_pattern = r'(- \[x\] `[^\n]+`[^\n]*)'
-                            bullet_match = re.search(bullet_end_pattern, section_content)
-                            if bullet_match:
-                                insert_pos = bullet_match.end()
-                                # Find next line that starts with "  - " or empty line
-                                rest_content = section_content[insert_pos:]
-                                next_bullet = re.search(r'\n  - ', rest_content)
-                                if next_bullet:
-                                    insert_pos = insert_pos + next_bullet.start()
-                                    new_section = section_content[:insert_pos] + "\n" + metrics_summary + section_content[insert_pos:]
-                                else:
-                                    new_section = section_content + "\n" + metrics_summary
-                                content = content.replace(section_content, new_section)
 
     # Handle P2-Ratio section 2.6 if needed (not in checklist yet)
     if "ratio_sensitivity" in phase_counts and "### 2.6" not in content:
@@ -986,16 +1010,19 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
             content = content[:insert_match.end()] + ratio_section + content[insert_match.end():]
             updated_sections.append("Ratio 敏感性 (new section added)")
 
-    if not updated_sections:
+    if not updated_sections and not updated_metrics:
         return True, "No sections needed updating."
+
+    # Combine both types of updates
+    all_updates = updated_sections + [f"{m}: metrics" for m in updated_metrics if m not in updated_sections]
 
     # Write back
     if dry_run:
-        return True, f"[DRY-RUN] Would update {len(updated_sections)} sections: {', '.join(updated_sections)}"
+        return True, f"[DRY-RUN] Would update {len(all_updates)} sections: {', '.join(all_updates)}"
     else:
         with open(checklist_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        return True, f"Updated {len(updated_sections)} sections: {', '.join(updated_sections)} (backup: {checklist_path}.bak)"
+        return True, f"Updated {len(all_updates)} sections: {', '.join(all_updates)} (backup: {checklist_path}.bak)"
 
 
 def main():

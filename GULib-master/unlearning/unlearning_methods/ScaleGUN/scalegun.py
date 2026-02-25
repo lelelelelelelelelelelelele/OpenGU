@@ -502,13 +502,20 @@ class scalegun(IF_based_pipeline):
         self.X_test = self.X_test.to(self.device)
         self.y_test = self.y_test.to(self.device)
         if self.args["train_mode"] == "ovr":
-            val_acc = ovr_lr_eval(self.w, self.X_val, self.y_val)[1]
-            test_acc = ovr_lr_eval(self.w, self.X_test, self.y_test)[1]
+            val_acc = ovr_lr_eval(self.w, self.X_val, self.y_val)[0].item()
+            test_acc = ovr_lr_eval(self.w, self.X_test, self.y_test)[0].item()
+            test_f1 = ovr_lr_eval(self.w, self.X_test, self.y_test)[1]
         else:
-            val_acc = lr_eval(self.w, self.X_val, self.y_val)
-            test_acc = lr_eval(self.w, self.X_test, self.y_test)
-        if self.args["poison"] and self.args["unlearn_task"]=="edge":
-            self.poison_f1[self.run] = test_acc
+            val_acc = lr_eval(self.w, self.X_val, self.y_val).item()
+            test_acc = lr_eval(self.w, self.X_test, self.y_test).item()
+            
+            # Compute F1 for binary classification
+            pred = (self.X_test.mm(self.w) > 0).float()
+            test_f1 = f1_score(self.y_test.cpu().numpy(), pred.cpu().numpy(), average="micro", zero_division=np.nan)
+
+        if self.args.get("poison", False) and self.args.get("unlearn_task") == "edge":
+            self.poison_f1[self.run] = test_f1
+            
         self.logger.info("Validation accuracy: %.4f" % val_acc)
         self.logger.info("Test accuracy: %.4f" % test_acc)
         self.update_cost = [self.prop_time,]

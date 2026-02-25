@@ -324,6 +324,8 @@ class guide(Shard_based_pipeline):
             if after_unlearning:
                 self.average_f1[self.run]  = test_f1macro
                 self.average_auc[self.run] = test_aucroc
+            else:
+                self.poison_f1[self.run]   = test_f1macro
         elif self.args["downstream_task"] == "edge":
             
             pos_edge_labels = torch.ones(self.data.test_edge_index.size(1),dtype=torch.float32)
@@ -332,11 +334,12 @@ class guide(Shard_based_pipeline):
             # edge_pred = weighted_pred
             target_labels = torch.cat((pos_edge_labels,neg_edge_labels))
             AUC_score = roc_auc_score(target_labels.cpu(), edge_pred.detach().cpu().numpy())
+            F1_score = f1_score(target_labels.cpu(), edge_pred.detach().cpu().numpy())
 
             if after_unlearning:
-                self.average_f1[self.run] = AUC_score
+                self.average_f1[self.run] = F1_score
             else:
-                self.poison_f1[self.run] = AUC_score
+                self.poison_f1[self.run] = F1_score
         
 
     def update_shard(self):

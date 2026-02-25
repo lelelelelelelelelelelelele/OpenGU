@@ -119,8 +119,8 @@ class ComparisonResult:
     def __post_init__(self):
         """Validate and sort results."""
         if self.results:
-            # Sort by f1_drop (descending)
-            self.results = sorted(self.results, key=lambda r: r.f1_drop, reverse=True)
+            # Sort by f1_drop (descending), putting None values last
+            self.results = sorted(self.results, key=lambda r: r.f1_drop if r.f1_drop is not None else -float('inf'), reverse=True)
 
     @property
     def best_strategy(self) -> Optional[str]:
@@ -153,7 +153,7 @@ class ComparisonResult:
         if baseline is None or target is None:
             return None
 
-        if baseline.f1_drop > 0:
+        if baseline.f1_drop is not None and target.f1_drop is not None and baseline.f1_drop > 0:
             return target.f1_drop / baseline.f1_drop
         return None
 
@@ -167,8 +167,8 @@ class ComparisonResult:
                 "ranking": [
                     {
                         "strategy": r.strategy_name,
-                        "f1_drop": round(r.f1_drop, 4),
-                        "f1_drop_ratio": round(r.f1_drop_ratio, 2),
+                        "f1_drop": round(r.f1_drop, 4) if r.f1_drop is not None else None,
+                        "f1_drop_ratio": round(r.f1_drop_ratio, 2) if r.f1_drop_ratio is not None else None,
                         "unlearn_time": round(r.unlearn_time, 4),
                     }
                     for r in self.results
@@ -212,8 +212,11 @@ class ComparisonResult:
                 improvement = self.get_relative_improvement(r.strategy_name, baseline.strategy_name)
                 if improvement:
                     vs_baseline = f"{improvement:.2f}x"
-
-            print(f"{i:<6}{r.strategy_name:<15}{r.f1_drop:<12.4f}{r.f1_drop_ratio:<12.2f}{r.unlearn_time:<12.2f}{vs_baseline:<12}")
+            
+            f1_drop_str = f"{r.f1_drop:<12.4f}" if r.f1_drop is not None else f"{'NA':<12}"
+            f1_drop_ratio_str = f"{r.f1_drop_ratio:<12.2f}" if r.f1_drop_ratio is not None else f"{'NA':<12}"
+            
+            print(f"{i:<6}{r.strategy_name:<15}{f1_drop_str}{f1_drop_ratio_str}{r.unlearn_time:<12.2f}{vs_baseline:<12}")
 
         print("=" * 60)
         print(f"Best Strategy: {self.best_strategy}")

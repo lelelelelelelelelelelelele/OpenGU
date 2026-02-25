@@ -56,6 +56,11 @@
 ### 2.1 MG-0 稳定性（非泛化，但必做）
 
 - [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 120 runs）
+  - **评估汇总**：
+    - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
+    - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
+    - **Collateral**: GIF=no, GNNDelete=no, GraphEraser=no, GUIDE=no
+    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
@@ -66,6 +71,11 @@
 ### 2.2 MG-1 最小跨数据集泛化
 
 - [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 90 runs）
+  - **评估汇总**：
+    - **F1 Drop**: GIF=2.6%+/-0.6, GNNDelete=-19.3%+/-1.7, GraphEraser=-8.8%+/-1.8
+    - **MIA AUC**: GIF=0.60, GNNDelete=-, GraphEraser=0.00
+    - **Collateral**: GIF=no, GNNDelete=no, GraphEraser=no
+    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
@@ -75,6 +85,11 @@
 ### 2.3 MG-2 最小跨模型泛化
 
 - [x] `Cora / GAT / ratio=0.05 / 5 seeds`（auto_discovered: 90 runs）
+  - **评估汇总**：
+    - **F1 Drop**: GIF=5.4%+/-1.1, GNNDelete=14.4%+/-5.1, GraphEraser=-7.9%+/-3.4
+    - **MIA AUC**: GIF=0.49, GNNDelete=0.68, GraphEraser=0.00
+    - **Collateral**: GIF=no, GNNDelete=no, GraphEraser=no
+    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral`
@@ -99,6 +114,11 @@
 ### 2.6 Ratio 敏感性（攻击强度曲线）
 
 - [x] `Cora / GCN / GIF / ratio=0.01,0.05,0.10,0.20 / 5 seeds`（auto_discovered: 240 runs）
+  - **评估汇总**：
+    - **F1 Drop**: GIF=2.4%+/-1.1, GNNDelete=13.8%+/-5.0
+    - **MIA AUC**: GIF=0.61, GNNDelete=0.71
+    - **Collateral**: GIF=no, GNNDelete=no
+    - **Relative**: GIF=yes, GNNDelete=yes
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`

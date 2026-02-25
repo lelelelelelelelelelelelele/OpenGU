@@ -17442,3 +17442,19 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 执行结果：
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 02:19] demo_attack.py - SGU 攻击实验
+- 任务：dataset=cora, model=SGC, method=SGU, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8782, time=1.5s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 02:29] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=SGC, method=GUIDE, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.0000 (f1_before=0.8031, f1_after=0.8031, time=19.9s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

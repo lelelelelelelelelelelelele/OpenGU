@@ -8,430 +8,162 @@
 
 ---
 
-## 方案：K=5 实验 + 相对指标计算
+## 方案：K=5 本底基准 + 相对指标计算
 
 ### 原理
 
 使用 k=5 作为基准（用户建议）：
 - k=0 不可行：GIF 类方法无变化，难以对比
 - k=1 太少：随机波动太大
-- k=5 合理：占比小（~1-2% on Cora），足以触发 unlearning 方法运行
+- k=5 合理：占比小（~1-2% on Cora），足以触发 unlearning 方法（如 GraphEraser）的一整套重训练流程，从而剥离出其固有的"环境本底值"（固有波动或保护效应），而不至于对图结构造成实质性破坏。
 
 计算公式：
 ```
-gap = f1_after(attack) - f1_after(baseline)
+baseline_f1_after = mean(f1_after(k=5, random)) across 5 seeds
+attack_f1_after = f1_after(ratio=0.05, attack_strategy)
 
-其中 baseline 是 k=5 random 策略，attack 是 k=5 的 im/tracin/hybrid 策略
-```
-
-### 执行步骤
-
-#### 步骤 1：运行 K=5 随机基准实验
-
-```bash
-# 对每个方法运行 k=5 random（5 个 seed）
-python demo_attack.py \
-    --dataset_name cora --base_model GCN \
-    --unlearning_methods GraphEraser \
-    --strategies random \
-    --k 5 \
-    --random_seed 2024
-
-# 重复 seed: 2025, 2026, 2027, 2028
-```
-
-结果保存到：`results/baseline/k5_random/GraphEraser/cora/`
-
-#### 步骤 2：运行 K=5 攻击策略实验
-
-```bash
-python demo_attack.py \
-    --dataset_name cora --base_model GCN \
-    --unlearning_methods GraphEraser \
-    --strategies im,tracin,hybrid \
-    --k 5 \
-    --random_seed 2024
-```
-
-结果保存到：`results/experiments/k5_attack/GraphEraser/cora/`
-
-#### 步骤 3：计算相对指标
-
-```bash
-python eval_relative.py \
-    --methods GraphEraser,GUIDE,GNNDelete \
-    --datasets cora \
-    --strategies im,tracin,hybrid \
-    --baseline_dir results/baseline/k5_random \
-    --attack_dir results/experiments/k5_attack \
-    --k 5 \
-    --force
+# 该差值反映了排除了方法固有机制影响后的真实攻击下降幅度
+relative_f1_drop = baseline_f1_after - attack_f1_after
 ```
 
 ---
 
-## 实验任务表
+## 三步执行流程
 
-### 实验 1：K=5 随机基准
+### 步骤 1：一键批量生成 K=5 本底数据（跨 Seed 平均）
 
-| Method | Seeds | K | 输出目录 |
-|--------|-------|---|----------|
-| GraphEraser | 5 | 5 | results/baseline/k5_random/GraphEraser/ |
-| GUIDE | 5 | 5 | results/baseline/k5_random/GUIDE/ |
-| GNNDelete | 5 | 5 | results/baseline/k5_random/GNNDelete/ |
-| GIF | 5 | 5 | results/baseline/k5_random/GIF/ |
+使用 `run_all_baselines.py` 一键批量运行所有 (Method × Dataset × Model × Seed) 的 K=5 random 基准实验，并自动计算跨 seed 的平均值：
 
-### 实验 2：K=5 攻击策略
+```bash
+python experiments/baseline_k5/run_all_baselines.py
+```
 
-| Method | Seeds | K | Strategies | 输出目录 |
-|--------|-------|---|------------|----------|
-| GraphEraser | 5 | 5 | im,tracin,hybrid | results/experiments/k5_attack/ |
-| GUIDE | 5 | 5 | im,tracin,hybrid | results/experiments/k5_attack/ |
-| GNNDelete | 5 | 5 | im,tracin,hybrid | results/experiments/k5_attack/ |
+该脚本会：
+1. 遍历所有配置组合（见下方矩阵表），逐个调用 `generate_baseline.py`
+2. 将每个 seed 的结果存入 `results/baseline/k5_random/{Method}/{Dataset}/{Model}/baseline_seed{X}_k5.json`
+3. 全部跑完后，**自动计算 5 个 seed 的 F1 均值**，写入 `baseline_averaged_k5.json` → 这才是后续评估使用的权威基准
+
+如果只需单个配置，可直接调用底层脚本：
+```bash
+python experiments/baseline_k5/generate_baseline.py \
+    --dataset_name cora \
+    --base_model GCN \
+    --unlearning_methods GraphEraser \
+    --random_seed 111 \
+    --baseline_k 5
+```
+
+### 步骤 2：运行相对指标评估
+
+使用 `eval_relative.py` 读取平均后的 K=5 本底缓存，与实际攻击结果 (`results/cache/`) 中的对应实验进行比对：
+
+```bash
+python experiments/baseline_k5/eval_relative.py \
+    --dataset_name cora \
+    --base_model GCN \
+    --unlearning_methods GraphEraser \
+    --strategies im_v4,tracin,hybrid_v4 \
+    --unlearn_ratio 0.05 \
+    --random_seed 42  # ← 这里的 seed 是攻击实验的 seed，和 baseline 的 seed 无关
+```
+
+支持 `--repair` 模式跳过已完成项，缺失数据会报出精确的缺失配置信息。
+
+### 步骤 3：批量评估（可选脚本化）
+
+在 shell 脚本中嵌套循环调用 `eval_relative.py`，类似 `run_mg3_extended.sh` 调用 `eval_collateral.py` 的方式：
+
+```bash
+METHODS="GNNDelete GIF GraphEraser GUIDE"
+DATASETS="cora citeseer"
+ATTACK_SEEDS="42 212 722 1337 2024"  # 主实验 seeds
+
+for METHOD in $METHODS; do
+    for DATASET in $DATASETS; do
+        for SEED in $ATTACK_SEEDS; do
+            python experiments/baseline_k5/eval_relative.py \
+                --dataset_name "$DATASET" \
+                --base_model GCN \
+                --unlearning_methods "$METHOD" \
+                --strategies im_v4,tracin,hybrid_v4 \
+                --unlearn_ratio 0.05 \
+                --random_seed "$SEED" \
+                --repair
+        done
+    done
+done
+```
+
+---
+
+## 实验配置矩阵
+
+### Seeds
+
+| 用途 | Seeds | 说明 |
+|------|-------|------|
+| **K=5 基准实验** | `111, 333, 555, 777, 999` | 独立种子，避免与攻击实验耦合 |
+| **攻击实验** | `42, 212, 722, 1337, 2024` | 主实验种子，eval_relative 逐个读取 |
+
+### K=5 随机基准（步骤 1 覆盖范围）
+
+| Method | Datasets | Model | Seeds | K | 输出目录 |
+|--------|----------|-------|-------|---|---------|
+| GNNDelete | cora, citeseer | GCN | 5 | 5 | `results/baseline/k5_random/{Method}/{Dataset}/GCN/` |
+| GIF | cora, citeseer | GCN | 5 | 5 | 同上 |
+| GraphEraser | cora, citeseer | GCN | 5 | 5 | 同上 |
+| GUIDE | cora, citeseer | GCN | 5 | 5 | 同上 |
+
+**总计：4 方法 × 2 数据集 × 5 seeds = 40 次生成运行**
+
+### 攻击实验对比（已有结果直接读取）
+
+| Method | Datasets | Ratio | Strategies | 来源 |
+|--------|----------|-------|------------|------|
+| GNNDelete | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
+| GIF | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
+| GraphEraser | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
+| GUIDE | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
 
 ---
 
 ## 关键文件
 
-- 单次实验入口：`demo_attack.py`
-- 相对指标计算：`eval_relative.py`（已实现）
-- 参数：`--k 5 --strategies random`
-- 结果存储：
-  - 基准：`results/baseline/k5_random/{method}/`
-  - 攻击：`results/experiments/k5_attack/{method}/`
-  - 相对指标：`results/relative/`
+| 脚本 | 用途 | 参数风格 |
+|------|------|---------|
+| `experiments/baseline_k5/run_all_baselines.py` | **一键批量**跑全量 K=5 + 自动平均 | 无参数，配置写在脚本头部 |
+| `experiments/baseline_k5/generate_baseline.py` | **单次**跑特定配置的 K=5 | `--dataset_name --base_model --unlearning_methods --random_seed --baseline_k` |
+| `experiments/baseline_k5/eval_relative.py` | 读取本底 + 攻击缓存，计算相对指标 | `--dataset_name --base_model --unlearning_methods --strategies --unlearn_ratio --random_seed --repair` |
 
----
-
-## 数据提取与计算方法
-
-### 从 Results 文件夹提取 f1_after
-
-实验结果保存在 JSON 文件中，可直接读取：
-
-```python
-import json
-import glob
-import os
-
-def extract_f1_from_results(results_dir, method, dataset, strategy, k):
-    """从 results 文件夹提取 f1_after 数据"""
-    pattern = f"{results_dir}/**/{method}_{dataset}_*_k{k}_*.json"
-    files = glob.glob(pattern, recursive=True)
-
-    f1_afters = []
-    for f in files:
-        with open(f, 'r') as fp:
-            data = json.load(fp)
-            # 查找对应 strategy 的结果
-            for entry in data.get('results', []):
-                if entry.get('strategy') == strategy:
-                    f1_afters.append(entry.get('f1_after'))
-
-    return f1_afters
-```
-
-### 从 Cache 文件夹提取 f1_after
-
-如果需要更底层的缓存数据：
-
-```python
-def extract_f1_from_cache(cache_dir, method, dataset):
-    """从 cache 文件夹提取 f1_after 数据"""
-    cache_file = f"{cache_dir}/{method}_{dataset}_cache.pkl"
-    # 读取缓存的 pipeline 结果
-    # 提取 f1_after 指标
-```
-
-### 计算 Relative F1 Drop
-
-```python
-def compute_relative_f1_drop(baseline_f1_afters, attack_f1_afters):
-    """
-    计算相对 F1 下降
-
-    Args:
-        baseline_f1_afters: 基准实验 (k=5, random) 的 f1_after 列表
-        attack_f1_afters: 攻击实验 (k=5, im/tracin/hybrid) 的 f1_after 列表
-
-    Returns:
-        gap: f1_after 差值
-        relative_f1_drop: 相对 F1 下降（正值表示攻击有效）
-    """
-    import numpy as np
-
-    baseline_f1_after = np.mean(baseline_f1_afters)
-    attack_f1_after = np.mean(attack_f1_afters)
-
-    gap = attack_f1_after - baseline_f1_after
-    relative_f1_drop = baseline_f1_after - attack_f1_after
-
-    return {
-        'baseline_f1_after': baseline_f1_after,
-        'attack_f1_after': attack_f1_after,
-        'gap': gap,                    # < 0 表示攻击有效
-        'relative_f1_drop': relative_f1_drop  # > 0 表示攻击有效
-    }
-```
-
-**解读**：
-- `gap < 0`：attack 的 f1_after 低于 baseline，攻击有效
-- `gap ≈ 0`：攻击效果被方法抵消
-- `gap > 0`：攻击反而让 F1 更高
-
-### 数据来源目录
-
-| 数据类型 | 路径 |
-|---------|------|
-| 实验结果 | `results/experiments/mg0_completion/phase_a/` |
-| 基准结果 | `results/baseline/k5_random/` |
-| Pipeline 缓存 | `results/cache/` |
-| 策略选择缓存 | `results/selection_cache/` |
-
----
-
-## 代码实现
-
-### eval_relative.py - 相对指标计算脚本
-
-新建脚本 `eval_relative.py`：
-
-```python
-"""
-eval_relative.py - Compute relative F1 metrics.
-
-Compares attack strategies against baseline (k=5 random) to isolate
-the true attack effect from method's inherent behavior.
-
-Usage:
-    python eval_relative.py \
-        --methods GraphEraser,GUIDE,GNNDelete \
-        --datasets cora \
-        --baseline_dir results/baseline/k5_random \
-        --attack_dir results/experiments/mg0_completion/phase_a \
-        --output_dir results/relative
-"""
-import os
-import sys
-import json
-import glob
-import argparse
-import numpy as np
-from pathlib import Path
-from datetime import datetime
-from collections import defaultdict
-
-def load_f1_results(results_dir, method, dataset, strategy=None, k=None):
-    """Load f1_after values from result JSON files."""
-    pattern = f"{results_dir}/**/{method}_{dataset}_*.json"
-
-    if strategy:
-        pattern = f"{results_dir}/**/{method}_{dataset}_*_{strategy}_*.json"
-    if k:
-        pattern = pattern.replace('.json', f'_k{k}.json')
-
-    files = glob.glob(pattern, recursive=True)
-
-    f1_afters = []
-    f1_befores = []
-    f1_drops = []
-    configs = []
-
-    for f in files:
-        try:
-            with open(f, 'r') as fp:
-                data = json.load(fp)
-
-            # 处理不同格式
-            if 'results' in data:
-                # 批量实验格式
-                for entry in data['results']:
-                    f1_afters.append(entry.get('f1_after'))
-                    f1_befores.append(entry.get('f1_before'))
-                    f1_drops.append(entry.get('f1_drop'))
-                    configs.append(entry.get('config', {}))
-            else:
-                # 单次实验格式
-                f1_afters.append(data.get('f1_after'))
-                f1_befores.append(data.get('f1_before'))
-                f1_drops.append(data.get('f1_drop'))
-                configs.append(data.get('config', {}))
-        except Exception as e:
-            print(f"Warning: Failed to load {f}: {e}")
-
-    return {
-        'f1_after': f1_afters,
-        'f1_before': f1_befores,
-        'f1_drop': f1_drops,
-        'configs': configs,
-        'n_samples': len(f1_afters)
-    }
-
-
-def compute_relative_metrics(baseline_data, attack_data):
-    """Compute relative F1 metrics."""
-    baseline_f1 = np.mean(baseline_data['f1_after'])
-    attack_f1 = np.mean(attack_data['f1_after'])
-
-    baseline_std = np.std(baseline_data['f1_after'])
-    attack_std = np.std(attack_data['f1_after'])
-
-    # Gap: attack vs baseline
-    gap = attack_f1 - baseline_f1
-
-    # Relative drop (positive = attack effective)
-    relative_f1_drop = -gap
-
-    return {
-        'baseline_f1_after': float(baseline_f1),
-        'baseline_std': float(baseline_std),
-        'attack_f1_after': float(attack_f1),
-        'attack_std': float(attack_std),
-        'gap': float(gap),
-        'relative_f1_drop': float(relative_f1_drop),
-        'baseline_n': baseline_data['n_samples'],
-        'attack_n': attack_data['n_samples']
-    }
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Compute relative F1 metrics')
-    parser.add_argument('--methods', type=str, default='GraphEraser,GUIDE,GNNDelete,GIF')
-    parser.add_argument('--datasets', type=str, default='cora')
-    parser.add_argument('--strategies', type=str, default='im,tracin,hybrid')
-    parser.add_argument('--baseline_dir', type=str, default='results/baseline/k5_random')
-    parser.add_argument('--attack_dir', type=str, default='results/experiments/mg0_completion/phase_a')
-    parser.add_argument('--output_dir', type=str, default='results/relative')
-    parser.add_argument('--k', type=int, default=5)
-    args = parser.parse_args()
-
-    methods = args.methods.split(',')
-    datasets = args.datasets.split(',')
-    strategies = args.strategies.split(',')
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    results = []
-
-    for method in methods:
-        for dataset in datasets:
-            # 加载 baseline (k=5, random)
-            baseline_data = load_f1_results(
-                args.baseline_dir, method, dataset,
-                strategy='random', k=args.k
-            )
-
-            if baseline_data['n_samples'] == 0:
-                print(f"Warning: No baseline found for {method}_{dataset}")
-                continue
-
-            for strategy in strategies:
-                # 加载 attack 结果
-                attack_data = load_f1_results(
-                    args.attack_dir, method, dataset,
-                    strategy=strategy, k=args.k
-                )
-
-                if attack_data['n_samples'] == 0:
-                    print(f"Warning: No attack result for {method}_{dataset}_{strategy}")
-                    continue
-
-                metrics = compute_relative_metrics(baseline_data, attack_data)
-                metrics.update({
-                    'method': method,
-                    'dataset': dataset,
-                    'strategy': strategy,
-                    'k': args.k,
-                    'timestamp': datetime.now().isoformat()
-                })
-
-                results.append(metrics)
-
-                print(f"{method} | {dataset} | {strategy}: "
-                      f"gap={metrics['gap']:.4f}, relative_drop={metrics['relative_f1_drop']:.4f}")
-
-    # 保存结果
-    output_file = f"{args.output_dir}/relative_f1_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    with open(output_file, 'w') as f:
-        json.dump({
-            'config': vars(args),
-            'results': results
-        }, f, indent=2)
-
-    print(f"\nResults saved to: {output_file}")
-
-    return results
-
-
-if __name__ == '__main__':
-    main()
-```
-
-### 输出格式
-
-运行后会生成 JSON 文件：
-
-```json
-{
-  "config": {
-    "methods": ["GraphEraser", "GUIDE"],
-    "datasets": ["cora"],
-    "strategies": ["im", "tracin"],
-    "k": 5
-  },
-  "results": [
-    {
-      "method": "GraphEraser",
-      "dataset": "cora",
-      "strategy": "im",
-      "baseline_f1_after": 0.84,
-      "attack_f1_after": 0.82,
-      "gap": -0.02,
-      "relative_f1_drop": 0.02,
-      "baseline_n": 5,
-      "attack_n": 5
-    }
-  ]
-}
-```
-
-### 输出目录
+### 结果存储结构
 
 ```
-results/relative/
-├── relative_f1_20260225_143022.json
-└── ...
+results/
+├── baseline/k5_random/          ← K=5 本底数据
+│   ├── GraphEraser/cora/GCN/
+│   │   ├── baseline_seed111_k5.json
+│   │   ├── baseline_seed333_k5.json
+│   │   ├── baseline_seed555_k5.json
+│   │   ├── baseline_seed777_k5.json
+│   │   ├── baseline_seed999_k5.json
+│   │   └── baseline_averaged_k5.json  ← eval_relative.py 读取的权威基准
+│   ├── GIF/cora/GCN/...
+│   └── ...
+├── cache/                        ← 攻击实验缓存（由 demo_attack.py 生成）
+└── relative/                     ← 相对指标输出
+    ├── GraphEraser/cora/GCN/
+    │   ├── relative_seed42_xxxx.json
+    │   └── ...
+    └── ...
 ```
 
 ---
 
-## 测试结果
+## 指标解读
 
-已测试 `eval_relative.py`，功能正常：
-
-```bash
-python eval_relative.py \
-    --methods GraphEraser,GUIDE,GNNDelete \
-    --datasets cora \
-    --strategies im_v4,tracin,hybrid_v4
-```
-
-**输出示例**：
-```
-[GraphEraser_cora] Random baseline: 7 samples, f1_after=0.8432
-  im_v4: gap=-0.0302, relative_f1_drop=0.0302 (attack effective)
-  tracin: gap=0.0000, relative_f1_drop=-0.0000 (no significant difference)
-  hybrid_v4: gap=-0.0255, relative_f1_drop=0.0255 (attack effective)
-
-[GUIDE_cora] Random baseline: 7 samples, f1_after=0.8258
-  im_v4: gap=0.0004, relative_f1_drop=-0.0004 (no significant difference)
-  ...
-
-[Cache] Saved: results/relative/relative_xxxx.json
-```
-
-**Cache 验证**：第二次运行相同参数时正确命中缓存。
-
-**注意事项**：
-- 策略名称使用 `im_v4` 而非 `im`（从 `_summary.json` 中读取）
-- 默认 ratio=0.05（可配置）
-- 支持 `--force` 强制重新计算
+| 指标 | 含义 | 解读 |
+|-----|------|------|
+| `baseline_f1_after` | K=5 random 的跨 seed 平均 F1 | 方法固有保护效应本底 |
+| `attack_f1_after` | 真实策略攻击后的 F1 | 攻击后实际表现 |
+| `gap` | `attack_f1 - baseline_f1` | < 0 = 攻击有效 |
+| `relative_f1_drop` | `baseline_f1 - attack_f1` | > 0 = 攻击在剔除系统因素后仍有破坏力 |
