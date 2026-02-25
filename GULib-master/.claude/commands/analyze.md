@@ -78,6 +78,110 @@
 | ...      | ...      | ...        | ...        | ...    | ...   | ...        | ...      |
 ```
 
+## 实现步骤
+
+### 1. 判断分析类型
+根据用户输入关键词判断分析类型：
+- 含 "relative" / "baseline" / "对比" → Relative 分析
+- 含 "collateral" / "副作用" / "gap" → Collateral 分析
+- 含 "dataset" / "跨数据集" → 跨数据集分析
+- 含 "method" / "跨方法" → 跨方法分析
+- 默认 → 策略对比分析
+
+### 2. Relative 分析实现
+```python
+def analyze_relative(method_filter=None, dataset_filter=None):
+    """读取 results/relative/*.json 并生成对比表。"""
+    import json
+    import glob
+
+    results = []
+    for cache_file in glob.glob("results/relative/*.json"):
+        with open(cache_file) as f:
+            data = json.load(f)
+            for r in data.get("results", []):
+                if method_filter and r["method"] != method_filter:
+                    continue
+                if dataset_filter and r["dataset"] != dataset_filter:
+                    continue
+                results.append(r)
+
+    # 按 relative_f1_drop 降序排列
+    results.sort(key=lambda x: x["relative_f1_drop"], reverse=True)
+    return results
+```
+
+**输出字段**：
+- `method`: 遗忘方法
+- `dataset`: 数据集
+- `strategy`: 攻击策略
+- `gap`: attack_f1 - baseline_f1（负值表示攻击有效）
+- `relative_f1_drop`: -gap（正值表示攻击有效）
+- `interpretation`: 人类可读的解释
+
+### 3. Collateral 分析实现
+```python
+def analyze_collateral(method_filter=None, dataset_filter=None, model_filter=None):
+    """读取 results/collateral/ 下的结果。"""
+    import json
+    from pathlib import Path
+
+    results = []
+    collateral_dir = Path("results/collateral")
+
+    for method_dir in collateral_dir.iterdir():
+        if not method_dir.is_dir():
+            continue
+        if method_filter and method_dir.name != method_filter:
+            continue
+
+        for dataset_dir in method_dir.iterdir():
+            if dataset_filter and dataset_dir.name != dataset_filter:
+                continue
+
+            for model_dir in dataset_dir.iterdir():
+                if model_filter and model_dir.name != model_filter:
+                    continue
+
+                # 读取最新的 collateral_*.json
+                json_files = sorted(model_dir.glob("collateral_*.json"))
+                if json_files:
+                    latest = json_files[-1]
+                    with open(latest) as f:
+                        data = json.load(f)
+                        for r in data.get("results", []):
+                            r["method"] = method_dir.name
+                            r["dataset"] = dataset_dir.name
+                            r["model"] = model_dir.name
+                            results.append(r)
+
+    return results
+```
+
+**输出字段**：
+- `strategy`: 攻击策略
+- `perf_before`: 遗忘前 F1
+- `perf_retrain`: 重训练 F1
+- `perf_unlearn`: 近似遗忘 F1
+- `gap`: perf_retrain - perf_unlearn
+- `gap_pct`: gap 百分比
+- `mean_pred_shift`: 留存节点预测概率平均偏移
+- `max_pred_shift`: 最大偏移
+- `fraction_flipped`: 预测翻转比例
+
+### 4. 筛选支持
+支持按以下维度筛选：
+- `--method GIF`: 只分析特定方法
+- `--dataset cora`: 只分析特定数据集
+- `--model GCN`: 只分析特定模型
+- `--strategy hybrid`: 只分析特定策略
+
+### 5. 高副作用配置识别
+在 Collateral 分析中，标记以下情况：
+- `gap > 0.02` 或 `gap_pct > 2%`: 高 retrain gap
+- `mean_pred_shift > 0.02`: 高预测偏移
+- `fraction_flipped > 0.01`: 高翻转比例
+
 ## 数据源路径
 
 | 用途 | 路径 |

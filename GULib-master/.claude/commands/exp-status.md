@@ -10,11 +10,12 @@
 /exp-status --phase mg1              # 只看 MG-1（跨数据集）
 /exp-status --phase mg2              # 只看 MG-2（跨模型）
 /exp-status --phase mg3              # 只看 MG-3（扩展方法）
+/exp-status --phase ratio            # 只看 P2-Ratio 敏感性实验
 /exp-status --method GIF             # 按方法筛选
 /exp-status --dataset cora           # 按数据集筛选
 /exp-status --detail                 # 显示缺失实验详情
-/exp-status --fill                   # 自动填补 checklist（交互式）
-/exp-status --fill --yes             # 自动填补 checklist（自动确认）
+/exp-status --fill                   # 自动填补清单（JSON + checklist 状态更新）
+/exp-status --fill --yes             # 自动填补（自动确认）
 /exp-status --fill --dry-run         # 只显示建议的修改，不实际写入
 ```
 
@@ -22,19 +23,24 @@
 
 ### 总体进度（默认）
 ```
-========== Experiment Progress ==========
-Phase       Total   Completed   Remaining   Progress
------------ ------- ----------- ----------- ----------
-MG-0        120     120         0           100%
-MG-1        90      90          0           100%
-MG-2        90      90          0           100%
-MG-3        80      80          0           100%
-P2-Ratio    120     0           120         0%
-P5-MIA      180     0           180         0%
------------ ------- ----------- ----------- ----------
-Total       680     470         210         69%
-==========================================
+=====================================================================================
+Phase              Total  Completed  Remaining   Progress   Legacy
+-------------------------------------------------------------------------------------
+MG-0                 120        120          0       100%     (16)
+MG-1                  90         90          0       100%        -
+MG-2                  90         90          0       100%        -
+MG-3-Citeseer         40         40          0       100%        -
+MG-3-GAT              40         40          0       100%        -
+-------------------------------------------------------------------------------------
+Total                380        380          0       100%     (16)
+=====================================================================================
+
+Note: Legacy = old strategy versions kept as cache (im/hybrid -> im_v4/hybrid_v4)
 ```
+
+**说明**:
+- **Total/Completed/Remaining/Progress**: 基于正式策略（v4版本）计算
+- **Legacy**: 括号内显示旧版本策略实验数量，作为cache保留但不计入完成度
 
 ### 详细模式（--detail）
 ```
@@ -51,22 +57,28 @@ MG-1: Missing 6 runs
 
 ### 填补模式（--fill）
 ```
-========== Checklist Gap Analysis ==========
+======================================================================
+CHECKLIST GAP ANALYSIS
+======================================================================
 
-[缺失 - 实际有但清单未记录]
-- MG-0: GUIDE/cora/GCN/seed=42/random (已自动添加)
-- MG-3: MEGU/citeseer/GCN/seed=2024/hybrid (已自动添加)
+[Missing in checklist - found 620 official experiments]
+  - mg0:GIF/cora/GCN/seed=42/degree/r0.05
+  - mg0:GIF/cora/GCN/seed=42/hybrid_v4/r0.05
+  ... and 617 more
 
-[额外 - 清单规划但未实际运行]
-- P2-Ratio: GIF/cora/GCN/ratio=0.10 (建议标记为待完成或跳过)
+[Legacy experiments (cache only) - 16 found]
+  (im/hybrid old versions kept as cache, not counted in checklist)
 
-[修改总结]
-已添加 2 条缺失记录到 checklist
-建议处理 1 条额外记录
-
-文件已更新: self/generalization_experiment_checklist.md
-==========================================
+[DRY-RUN] Would log 620 entries to results/experiments/auto_discovered.json
+         Would update checklist status (mark as [x] completed)
+======================================================================
 ```
+
+**说明**:
+- **Step 1**: 写入 `results/experiments/auto_discovered.json`（保留详细记录）
+- **Step 2**: 更新 `self/generalization_experiment_checklist.md` 完成状态
+- **official experiments**: 使用正式策略（v4版本）的实验
+- **legacy experiments**: 使用旧策略（im/hybrid）的实验，仅作为cache保留
 
 ## 实现逻辑
 
@@ -95,27 +107,57 @@ MG-1: Missing 6 runs
 
 ## 具体配置映射
 
-| Phase | 目录 | Methods | Dataset | Model | Seeds | Strategies | Total Runs |
-|-------|------|---------|---------|-------|-------|------------|------------|
-| MG-0 | `mg0_completion` | GIF,GNNDelete,GraphEraser,GUIDE | cora | GCN | 42,212,722,1337,2024 | random,degree,pagerank,tracin,im,hybrid | 4x6x5=120 |
-| MG-1 | `mg1_citeseer` | GIF,GNNDelete,GraphEraser | citeseer | GCN | 42,212,722,1337,2024 | random,degree,pagerank,tracin,im,hybrid | 3x6x5=90 |
-| MG-2 | `mg2_gat` | GIF,GNNDelete,GraphEraser | cora | GAT | 42,212,722,1337,2024 | random,degree,pagerank,tracin,im,hybrid | 3x6x5=90 |
-| MG-3 | `mg3_citeseer` | IDEA,MEGU | citeseer | GCN | 42,212,722,1337,2024 | random,tracin,im,hybrid | 2x4x5=40 |
-| MG-3 | `mg3_gat` | IDEA,MEGU | cora | GAT | 42,212,722,1337,2024 | random,tracin,im,hybrid | 2x4x5=40 |
+| Phase | 目录 | Methods | Dataset | Model | Seeds | **Strategies (正式)** | Legacy | Total Runs |
+|-------|------|---------|---------|-------|-------|----------------------|--------|------------|
+| MG-0 | `mg0_completion` | 4 | cora | GCN | 5 | random,degree,pagerank,tracin,**im_v4,hybrid_v4** | im,hybrid | 4x6x5=120 |
+| MG-1 | `mg1_citeseer` | 3 | citeseer | GCN | 5 | random,degree,pagerank,tracin,**im_v4,hybrid_v4** | im,hybrid | 3x6x5=90 |
+| MG-2 | `mg2_gat` | 3 | cora | GAT | 5 | random,degree,pagerank,tracin,**im_v4,hybrid_v4** | im,hybrid | 3x6x5=90 |
+| MG-3 | `mg3_citeseer` | 2 | citeseer | GCN | 5 | random,tracin,**im_v4,hybrid_v4** | im,hybrid | 2x4x5=40 |
+| MG-3 | `mg3_gat` | 2 | cora | GAT | 5 | random,tracin,**im_v4,hybrid_v4** | im,hybrid | 2x4x5=40 |
+| P2-Ratio | `ratio_sensitivity` | 2 | cora | GCN | 5 | random,degree,pagerank,tracin,**im_v4,hybrid_v4** | - | 2x6x4x5=240 |
+
+### P2-Ratio 说明
+- **目录**: `results/experiments/ratio_sensitivity/`
+- **Ratios**: 0.20, 0.10, 0.05, 0.01 (4个)
+- **配置**: 2 methods × 6 strategies × 4 ratios × 5 seeds = 240 experiments
+
+### 策略版本说明
+
+- **正式策略** (`strategies`): `im_v4`, `hybrid_v4` —— 用于最终报告
+- **Legacy策略** (`legacy_strategies`): `im`, `hybrid` —— 作为cache保留，不计入完成度
+- **进度计算**: 只基于正式策略 (v4版本)
+- **Legacy显示**: 进度表中 Legacy 列显示旧版本数量（如 `(16)` 表示有16个旧版本实验作为cache保留）
 
 ## Checklist 修改规则
 
-### 添加缺失实验（实际有但清单未记录）
-```markdown
-## 1. 已完成配置（基线与阶段结论）
+### 填补流程（--fill 执行两步）
 
-- [x] `Phase A`：`Cora / GCN / unlearn_ratio=0.05 / seed=2024`，`3 methods × 6 strategies`
-  - methods: `GIF, GNNDelete, GraphEraser`（已完成）
+**Step 1**: 写入 `auto_discovered.json`
+```json
+{
+  "last_updated": "2026-02-25T21:57:26",
+  "sources": {"mg0": 120, "mg1": 90, "ratio_sensitivity": 240},
+  "entries": [
+    {"phase": "mg0", "method": "GIF", "dataset": "cora", "model": "GCN", "seed": 42, "strategy": "degree", "ratio": 0.05, "discovered_at": "..."}
+  ]
+}
+```
+
+**Step 2**: 更新 checklist.md 完成状态
+- 将 `[ ]` 待完成更新为 `[x]` 已完成
+- 添加完成日期和 `（auto_discovered: N runs）` 引用
+- 若对应 Section 不存在（如 P2-Ratio），自动创建
+
+### 更新示例
+```markdown
+### 2.1 MG-0 稳定性（非泛化，但必做）
+
+- [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 120 runs）
+  - seeds: `42, 212, 722, 2024, 1337`
+  - methods: `GIF, GNNDelete, GraphEraser, GUIDE`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
-  - 输出：F1 Drop + 初步机制分组结论（Learning-based: IM最强, IF-based: Hybrid最强, Shard-based: 免疫）
-# [AUTO-FILLED] 以下记录由 /exp-status --fill 自动添加
-- [x] `MG-0`：`Cora / GCN / GUIDE / seed=42 / random`（自动识别）
-- [x] `MG-3`：`Citeseer / GCN / MEGU / seed=2024 / hybrid`（自动识别）
+  - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
+  - **状态**：✅ 完成 (2026-02-25)
 ```
 
 ### 处理额外实验（清单规划但未实际运行）
@@ -128,22 +170,51 @@ MG-1: Missing 6 runs
 
 ## 实现步骤
 
-1. 读取 checklist 文件，提取实验配置
-2. 扫描结果目录，统计实际完成的实验
-3. 对比期望与实际，计算完成率
-4. **填补模式**：
-   - 识别缺失实验（actual - expected）
-   - 识别额外实验（expected - actual）
-   - 根据用户选择更新 checklist
-   - 创建备份文件
-5. 根据 `--phase`/`--method`/`--dataset` 筛选显示
-6. `--detail` 模式下列出具体缺失配置
+1. 调用 `python scripts/evaluation/exp_status_checker.py` 执行实际检查
+2. 解析脚本输出并格式化显示给用户
+3. `--fill` 模式支持交互式确认
+
+## 执行逻辑
+
+当用户调用 `/exp-status` 时：
+
+```bash
+# 基础调用
+python scripts/evaluation/exp_status_checker.py
+
+# 带参数调用
+python scripts/evaluation/exp_status_checker.py --phase mg0 --detail
+python scripts/evaluation/exp_status_checker.py --fill --dry-run
+python scripts/evaluation/exp_status_checker.py --fill --yes
+```
+
+### 参数映射
+
+| 用户输入 | 脚本参数 |
+|----------|----------|
+| `--phase mg0` | `--phase mg0` |
+| `--phase mg1` | `--phase mg1` |
+| `--phase mg2` | `--phase mg2` |
+| `--phase mg3` | `--phase mg3` |
+| `--method GIF` | `--method GIF` |
+| `--dataset cora` | `--dataset cora` |
+| `--detail` | `--detail` |
+| `--fill` | `--fill` |
+| `--fill --yes` | `--fill --yes` |
+| `--fill --dry-run` | `--fill --dry-run` |
 
 ## 安全机制
 
 1. **备份**：修改 checklist 前自动创建 `.bak` 文件
-2. **Dry Run**：默认显示建议修改，不实际写入
-3. **交互确认**：`--fill` 无 `--yes` 时每条修改需用户确认
+2. **Dry Run**：`--fill --dry-run` 只显示建议修改，不实际写入
+3. **交互确认**：`--fill` 无 `--yes` 时需用户确认
 4. **标记来源**：自动添加的记录带有 `[AUTO-FILLED]` 标记
+
+## 脚本位置
+
+- **主脚本**: `scripts/evaluation/exp_status_checker.py`
+- **清单文件**: `self/generalization_experiment_checklist.md`
+- **结果目录**: `results/experiments/`
+- **自动记录**: `results/experiments/auto_discovered.json`
 
 用户输入: $ARGUMENTS

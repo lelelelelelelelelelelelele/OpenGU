@@ -131,4 +131,89 @@ Time:      12.3s (select) + 5.6s (unlearn)
 [✓] Logged to results/_journal/auto_report.md
 ```
 
+## 执行步骤
+
+### 1. 运行主实验
+```bash
+python demo_attack.py \
+    --dataset_name <dataset> \
+    --base_model <model> \
+    --unlearning_methods <method> \
+    --attack_strategies <strategy> \
+    --unlearn_ratio <ratio> \
+    --random_seed <seed>
+```
+
+### 2. 自动计算 Relative 指标
+实验成功后，自动调用：
+```bash
+python eval_relative.py \
+    --methods <method> \
+    --datasets <dataset> \
+    --strategies <strategy> \
+    --baseline_dir results/experiments/mg0_completion/phase_a \
+    --ratio <ratio>
+```
+- 从 `results/relative/*.json` 读取缓存结果
+- 提取 gap 和 relative_f1_drop
+
+### 3. 自动计算 Collateral 指标
+实验成功后，自动调用（使用 `--repair` 模式进行增量补全）：
+```bash
+python eval_collateral.py \
+    --dataset_name <dataset> \
+    --base_model <model> \
+    --unlearning_methods <method> \
+    --strategies <strategy> \
+    --unlearn_ratio <ratio> \
+    --repair
+```
+- 从缓存读取 selected_nodes
+- 计算 retrain gap 和 collateral damage
+- 结果保存到 `results/collateral/{method}/{dataset}/{model}/`
+- `--repair` 模式会扫描已有结果，跳过已计算的策略，只补全缺失的部分
+
+**注意**: 如需预览哪些策略会被补全而不实际执行，可使用 `--repair_dry_run`:
+```bash
+python eval_collateral.py ... --repair_dry_run
+```
+
+### 4. 整合结果并写入
+读取以上两个评估脚本的输出，整合到统一的 JSON 文件：
+```json
+{
+  "config": { ... },
+  "metrics": { ... },
+  "relative_metrics": { ... },
+  "collateral_metrics": { ... },
+  "selected_nodes": [ ... ]
+}
+```
+保存路径: `results/{strategy}/{method}/{dataset}/{model}/run_{timestamp}.json`
+
+### 5. 追加到 auto_report.md
+调用 `scripts/evaluation/reporting/writer.py::append_collateral_entry()` 追加记录。
+
+## 参数映射
+
+| 用户输入 | 主实验参数 | eval_relative 参数 | eval_collateral 参数 |
+|----------|-----------|-------------------|---------------------|
+| `dataset=cora` | `--dataset_name cora` | `--datasets cora` | `--dataset_name cora` |
+| `model=GCN` | `--base_model GCN` | (从 baseline_dir 推断) | `--base_model GCN` |
+| `method=GIF` | `--unlearning_methods GIF` | `--methods GIF` | `--unlearning_methods GIF` |
+| `strategy=hybrid` | `--attack_strategies hybrid` | `--strategies hybrid` | `--strategies hybrid` |
+| `ratio=0.05` | `--unlearn_ratio 0.05` | `--ratio 0.05` | `--unlearn_ratio 0.05` |
+| `seed=2024` | `--random_seed 2024` | (从 baseline_dir 推断) | (使用默认或推断) |
+
+## 文件位置
+
+| 用途 | 路径 |
+|------|------|
+| 主实验脚本 | `demo_attack.py` |
+| Relative 评估 | `eval_relative.py` |
+| Collateral 评估 | `eval_collateral.py` |
+| Relative 缓存 | `results/relative/*.json` |
+| Collateral 结果 | `results/collateral/{method}/{dataset}/{model}/*.json` |
+| 实验日志 | `results/_journal/auto_report.md` |
+
 用户输入: $ARGUMENTS

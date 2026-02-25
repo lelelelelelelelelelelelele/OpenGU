@@ -1,0 +1,6213 @@
+{
+  "last_updated": "2026-02-25T21:58:46.845948",
+  "sources": {
+    "mg0": 120,
+    "mg1": 90,
+    "mg2": 90,
+    "mg3_citeseer": 40,
+    "mg3_gat": 40,
+    "ratio_sensitivity": 240
+  },
+  "entries": [
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.844937"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg0",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg1",
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg2",
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_citeseer",
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "mg3_gat",
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 42,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.01,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.05,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    },
+    {
+      "phase": "ratio_sensitivity",
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-25T21:58:46.845948"
+    }
+  ]
+}

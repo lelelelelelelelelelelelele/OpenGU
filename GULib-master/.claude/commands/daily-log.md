@@ -59,6 +59,128 @@
    - 实验运行次数（按 method/strategy 分组）
    - **NEW**: Relative 指标统计（平均 improvement vs random）
    - **NEW**: Collateral 指标统计（平均 gap, pred_shift）
+
+## Relative/Collateral 指标统计实现
+
+### Relative 指标统计
+```python
+def compute_relative_stats(results_dir="results/relative"):
+    """计算 relative 指标统计数据。"""
+    import json
+    import glob
+    import numpy as np
+
+    stats = {
+        "by_method": {},
+        "by_strategy": {},
+        "overall": {"mean_improvement": 0, "count": 0}
+    }
+
+    improvements = []
+    for cache_file in glob.glob(f"{results_dir}/*.json"):
+        with open(cache_file) as f:
+            data = json.load(f)
+            for r in data.get("results", []):
+                improvement = r.get("relative_f1_drop", 0)
+                improvements.append(improvement)
+
+                method = r.get("method", "unknown")
+                strategy = r.get("strategy", "unknown")
+
+                if method not in stats["by_method"]:
+                    stats["by_method"][method] = []
+                stats["by_method"][method].append(improvement)
+
+                if strategy not in stats["by_strategy"]:
+                    stats["by_strategy"][strategy] = []
+                stats["by_strategy"][strategy].append(improvement)
+
+    if improvements:
+        stats["overall"]["mean_improvement"] = np.mean(improvements)
+        stats["overall"]["count"] = len(improvements)
+
+    return stats
+```
+
+### Collateral 指标统计
+```python
+def compute_collateral_stats(base_dir="results/collateral"):
+    """计算 collateral 指标统计数据。"""
+    import json
+    from pathlib import Path
+    import numpy as np
+
+    stats = {
+        "by_method": {},
+        "overall": {"mean_gap": 0, "mean_pred_shift": 0, "count": 0}
+    }
+
+    gaps = []
+    shifts = []
+
+    base_path = Path(base_dir)
+    if not base_path.exists():
+        return stats
+
+    for method_dir in base_path.iterdir():
+        if not method_dir.is_dir():
+            continue
+
+        method_gaps = []
+        method_shifts = []
+
+        for dataset_dir in method_dir.iterdir():
+            for model_dir in dataset_dir.iterdir():
+                json_files = list(model_dir.glob("collateral_*.json"))
+                if json_files:
+                    latest = max(json_files, key=lambda p: p.stat().st_mtime)
+                    with open(latest) as f:
+                        data = json.load(f)
+                        for r in data.get("results", []):
+                            gap = r.get("gap", 0)
+                            shift = r.get("mean_pred_shift", 0)
+                            gaps.append(gap)
+                            shifts.append(shift)
+                            method_gaps.append(gap)
+                            method_shifts.append(shift)
+
+        if method_gaps:
+            stats["by_method"][method_dir.name] = {
+                "mean_gap": np.mean(method_gaps),
+                "mean_pred_shift": np.mean(method_shifts),
+                "count": len(method_gaps)
+            }
+
+    if gaps:
+        stats["overall"]["mean_gap"] = np.mean(gaps)
+        stats["overall"]["mean_pred_shift"] = np.mean(shifts)
+        stats["overall"]["count"] = len(gaps)
+
+    return stats
+```
+
+### 日志输出格式
+```markdown
+### 📊 数据统计
+
+**实验运行统计**
+- 总运行次数: 45
+- 完成率: 85%
+- 按方法: GIF(15), GNNDelete(15), GraphEraser(15)
+
+**Relative 指标（vs Random Baseline）**
+- 平均改进: 0.0823 (8.23%)
+- 最佳方法: GNNDelete (mean=0.0956)
+- 最佳策略: im (mean=0.1123)
+
+**Collateral 损伤统计**
+- 平均 Retrain Gap: 0.0116 (1.16%)
+- 平均 Pred Shift: 0.0156
+- 按方法统计:
+  - GIF: gap=0.0023, shift=0.0089
+  - GNNDelete: gap=0.0201, shift=0.0213
+  - GraphEraser: gap=0.0087, shift=0.0123
+```
 6. 💡 经验总结
 7. 📝 待办事项
 8. 🔧 遗留问题
