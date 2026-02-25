@@ -83,14 +83,18 @@ Core stack: PyTorch + PyTorch Geometric 2.6.1 + torch_scatter + torch_sparse. Se
 
 ### Environment
 
-Use the **conda `gnn` environment** for all Python operations:
+Use the **conda `gnn` environment** for all Python operations.
+
+**In Claude Code's Bash tool, always use the full Python path** — `conda activate` does NOT work in non-interactive shells (git bash does not source conda's init script):
 
 ```bash
-# Activate before running any Python commands
-conda activate gnn
+# CORRECT: use full path directly
+H:/conda_package/envs/gnn/python.exe main.py ...
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
+H:/conda_package/envs/gnn/python.exe demo_attack.py ...
 
-# Or specify full path if needed
-H:\conda_package\envs\gnn\python.exe main.py ...
+# WRONG: conda not available in non-interactive bash
+conda activate gnn && python main.py  # ❌ conda: command not found
 ```
 
 The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, etc.).

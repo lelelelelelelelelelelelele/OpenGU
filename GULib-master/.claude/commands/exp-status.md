@@ -181,22 +181,25 @@ CHECKLIST GAP ANALYSIS
 
 ## 实现步骤
 
-1. 调用 `python scripts/evaluation/exp_status_checker.py` 执行实际检查
+1. 调用 `H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py` 执行实际检查
 2. 解析脚本输出并格式化显示给用户
 3. `--fill` 模式支持交互式确认
+
+> **注意**：必须使用完整 Python 路径，不得使用 `conda activate gnn && python`。
+> Claude Code 运行在非交互式 git bash 中，conda 未初始化，`conda` 命令不可用。
 
 ## 执行逻辑
 
 当用户调用 `/exp-status` 时：
 
 ```bash
-# 基础调用
-python scripts/evaluation/exp_status_checker.py
+# 基础调用（必须用完整路径）
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
 
 # 带参数调用
-python scripts/evaluation/exp_status_checker.py --phase mg0 --detail
-python scripts/evaluation/exp_status_checker.py --fill --dry-run
-python scripts/evaluation/exp_status_checker.py --fill --yes
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --phase mg0 --detail
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill --dry-run
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill --yes
 ```
 
 ### 参数映射
