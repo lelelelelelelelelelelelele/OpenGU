@@ -86,11 +86,12 @@
 
 ### Relative 指标（vs random baseline）
 ```bash
-python eval_relative.py \
-    --methods <method> \
-    --datasets <dataset> \
+H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
+    --unlearning_methods <method> \
+    --dataset_name <dataset> \
+    --base_model <model> \
     --strategies <strategy> \
-    --baseline_dir results/experiments/mg0_completion/phase_a
+    --unlearn_ratio <ratio>
 ```
 输出字段：
 - `gap`: attack_f1 - baseline_f1（负值表示攻击有效）
@@ -99,7 +100,7 @@ python eval_relative.py \
 
 ### Collateral 指标（retrain gap + 留存节点扰动）
 ```bash
-python eval_collateral.py \
+H:/conda_package/envs/gnn/python.exe eval_collateral.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \
@@ -133,9 +134,12 @@ Time:      12.3s (select) + 5.6s (unlearn)
 
 ## 执行步骤
 
+> **重要**：所有 Python 命令必须使用完整路径 `H:/conda_package/envs/gnn/python.exe`，
+> 不得使用 `conda activate gnn && python`（非交互式 bash 中 conda 不可用）。
+
 ### 1. 运行主实验
 ```bash
-python demo_attack.py \
+H:/conda_package/envs/gnn/python.exe demo_attack.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \
@@ -147,12 +151,13 @@ python demo_attack.py \
 ### 2. 自动计算 Relative 指标
 实验成功后，自动调用：
 ```bash
-python eval_relative.py \
-    --methods <method> \
-    --datasets <dataset> \
+H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
+    --unlearning_methods <method> \
+    --dataset_name <dataset> \
+    --base_model <model> \
     --strategies <strategy> \
-    --baseline_dir results/experiments/mg0_completion/phase_a \
-    --ratio <ratio>
+    --unlearn_ratio <ratio> \
+    --repair
 ```
 - 从 `results/relative/*.json` 读取缓存结果
 - 提取 gap 和 relative_f1_drop
@@ -160,7 +165,7 @@ python eval_relative.py \
 ### 3. 自动计算 Collateral 指标
 实验成功后，自动调用（使用 `--repair` 模式进行增量补全）：
 ```bash
-python eval_collateral.py \
+H:/conda_package/envs/gnn/python.exe eval_collateral.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \
@@ -198,19 +203,19 @@ python eval_collateral.py ... --repair_dry_run
 
 | 用户输入 | 主实验参数 | eval_relative 参数 | eval_collateral 参数 |
 |----------|-----------|-------------------|---------------------|
-| `dataset=cora` | `--dataset_name cora` | `--datasets cora` | `--dataset_name cora` |
-| `model=GCN` | `--base_model GCN` | (从 baseline_dir 推断) | `--base_model GCN` |
-| `method=GIF` | `--unlearning_methods GIF` | `--methods GIF` | `--unlearning_methods GIF` |
+| `dataset=cora` | `--dataset_name cora` | `--dataset_name cora` | `--dataset_name cora` |
+| `model=GCN` | `--base_model GCN` | `--base_model GCN` | `--base_model GCN` |
+| `method=GIF` | `--unlearning_methods GIF` | `--unlearning_methods GIF` | `--unlearning_methods GIF` |
 | `strategy=hybrid` | `--attack_strategies hybrid` | `--strategies hybrid` | `--strategies hybrid` |
-| `ratio=0.05` | `--unlearn_ratio 0.05` | `--ratio 0.05` | `--unlearn_ratio 0.05` |
-| `seed=2024` | `--random_seed 2024` | (从 baseline_dir 推断) | (使用默认或推断) |
+| `ratio=0.05` | `--unlearn_ratio 0.05` | `--unlearn_ratio 0.05` | `--unlearn_ratio 0.05` |
+| `seed=2024` | `--random_seed 2024` | `--random_seed 2024` | (使用默认或推断) |
 
 ## 文件位置
 
 | 用途 | 路径 |
 |------|------|
 | 主实验脚本 | `demo_attack.py` |
-| Relative 评估 | `eval_relative.py` |
+| Relative 评估 | `experiments/baseline_k5/eval_relative.py` |
 | Collateral 评估 | `eval_collateral.py` |
 | Relative 缓存 | `results/relative/*.json` |
 | Collateral 结果 | `results/collateral/{method}/{dataset}/{model}/*.json` |
