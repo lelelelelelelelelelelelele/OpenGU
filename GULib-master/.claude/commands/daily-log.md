@@ -56,6 +56,9 @@
 3. 🔑 关键决策（从当天 `auto_report.md` 中提取 DECISION 条目汇总）
 4. 🔍 关键发现
 5. 📊 数据统计
+   - 实验运行次数（按 method/strategy 分组）
+   - **NEW**: Relative 指标统计（平均 improvement vs random）
+   - **NEW**: Collateral 指标统计（平均 gap, pred_shift）
 6. 💡 经验总结
 7. 📝 待办事项
 8. 🔧 遗留问题

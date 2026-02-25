@@ -20,7 +20,21 @@
 输入含 "method" 或 "跨方法" 时触发。
 - 比较同一策略对不同遗忘方法的攻击效果
 
+### 4. 新增：Relative 对比分析
+输入含 "relative" 或 "对比 baseline" 时触发。
+- 读取 `results/relative/*.json`
+- 对比各策略 vs random 的 relative_f1_drop
+- 输出改进倍数排序
+
+### 5. 新增：Collateral 损伤分析
+输入含 "collateral" 或 "副作用" 时触发。
+- 读取 `results/collateral/` 下的结果
+- 比较不同方法的 gap 和 mean_pred_shift
+- 识别高副作用配置
+
 ## 输出格式
+
+### 标准分析表
 ```
 ## Analysis Report: [分析类型]
 
@@ -41,6 +55,37 @@
 ### Suggestions
 - [基于结果的下一步建议]
 ```
+
+### Relative 分析表
+```
+## Relative Analysis: vs Random Baseline
+
+| Method   | Strategy | Baseline F1 | Attack F1 | Gap     | Relative Drop | Interpretation          |
+|----------|----------|-------------|-----------|---------|---------------|-------------------------|
+| GNNDelete| im       | 0.8801      | 0.7523    | -0.1278 | 0.1278        | attack effective        |
+| GNNDelete| tracin   | 0.8801      | 0.7934    | -0.0867 | 0.0867        | attack effective        |
+| ...      | ...      | ...         | ...       | ...     | ...           | ...                     |
+```
+
+### Collateral 分析表
+```
+## Collateral Damage Analysis
+
+| Method   | Strategy | Retrain F1 | Unlearn F1 | Gap    | Gap%  | Pred Shift | Flipped  |
+|----------|----------|------------|------------|--------|-------|------------|----------|
+| GNNDelete| random   | 0.8764     | 0.8856     | -0.0092| -1.05%| 0.0130     | 1.07%    |
+| GNNDelete| tracin   | 0.8653     | 0.8856     | -0.0203| -2.35%| 0.0151     | 0.79%    |
+| ...      | ...      | ...        | ...        | ...    | ...   | ...        | ...      |
+```
+
+## 数据源路径
+
+| 用途 | 路径 |
+|------|------|
+| 实验结果 | `results/experiments/*/_summary.json` |
+| Relative 缓存 | `results/relative/*.json` |
+| Collateral 结果 | `results/collateral/{method}/{dataset}/{model}/*.json` |
+| 实验日志 | `results/_journal/auto_report.md` |
 
 ## 上下文
 - 结果目录: results/
