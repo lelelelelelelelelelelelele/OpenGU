@@ -17425,3 +17425,20 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 异常与定位：无
 - 下一步建议：检查该方法在其他比例或数据集的趋势。
 
+
+### [2026-02-26 01:20] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = -0.0295 (f1_before=0.8100, f1_after=0.8395, time=19.5s, cache=HIT(key=04ab2e538243fe11bbbdcdf0461f4bc3), selection=18.1700s, reuse=0.000000s)
+  - degree: F1 Drop = -0.0443 (f1_before=0.7970, f1_after=0.8413, time=20.0s, cache=MISS, selection=0.0000s)
+  - random: F1 Drop = -0.0683 (f1_before=0.7675, f1_after=0.8358, time=19.1s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000999s, speedup=17992.39x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 01:27] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random', 'degree', 'pagerank'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

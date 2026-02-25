@@ -617,6 +617,125 @@ def log_auto_discovered(gaps: GapAnalysis, dry_run: bool = True) -> Tuple[bool, 
         return True, f"Logged {len(new_entries)} entries to {json_path}"
 
 
+def aggregate_metrics(phase: str) -> Dict[str, Dict[str, any]]:
+    """
+    Aggregate metrics from _summary.json files for a phase.
+
+    Returns a dict mapping metric type to method-level values:
+    {
+        'f1_drop': {'GIF': '6.8%±0.5', 'GNNDelete': '17.2%±2.1', ...},
+        'mia_auc': {'GIF': '0.60', 'GNNDelete': '0.86', ...},
+        'collateral': {'GIF': '✓', 'GNNDelete': '✗', ...},
+        'relative': {'GIF': '✓', 'GNNDelete': '-', ...},
+    }
+    """
+    import numpy as np
+
+    base_path = Path('results/experiments')
+    phase_config = PHASE_CONFIGS.get(phase)
+    if not phase_config:
+        return {}
+
+    phase_dir = base_path / phase_config.dir_name / "phase_a"
+    if not phase_dir.exists():
+        return {}
+
+    # Collect metrics by method
+    method_metrics = {}
+
+    for seed_dir in phase_dir.iterdir():
+        if not seed_dir.is_dir():
+            continue
+
+        summary_file = seed_dir / "_summary.json"
+        if not summary_file.exists():
+            continue
+
+        try:
+            with open(summary_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            results = data.get('results', {})
+            for method_key, method_data in results.items():
+                # Extract method name (e.g., "GIF_cora_GCN_0.05" -> "GIF")
+                method_name = method_key.split('_')[0] if method_key else None
+                if not method_name or method_name not in phase_config.methods:
+                    continue
+
+                if method_name not in method_metrics:
+                    method_metrics[method_name] = {
+                        'f1_drops': [],
+                        'mia_aucs': [],
+                        'has_collateral': False,
+                        'has_relative': False,
+                    }
+
+                # Extract attack results - data is in method_data['results'][strategy]
+                strategy_results = method_data.get('results', {})
+                for strategy, strategy_data in strategy_results.items():
+                    if strategy == 'comparison' or not strategy:
+                        continue
+
+                    # F1 Drop - directly in strategy_data
+                    f1_drop = strategy_data.get('f1_drop')
+                    if f1_drop is not None:
+                        method_metrics[method_name]['f1_drops'].append(f1_drop)
+
+                    # MIA AUC - directly in strategy_data
+                    mia_auc = strategy_data.get('mia_auc')
+                    if mia_auc is not None:
+                        method_metrics[method_name]['mia_aucs'].append(mia_auc)
+
+                    # Collateral (retrain gap) - check for collateral_metrics
+                    if strategy_data.get('collateral_metrics'):
+                        method_metrics[method_name]['has_collateral'] = True
+
+                    # Relative - check for relative_improvements in comparison section
+                    # This is at method_data level, not strategy level
+
+                # Check for relative in comparison section
+                comparison = method_data.get('comparison', {})
+                if comparison:
+                    method_metrics[method_name]['has_relative'] = True
+
+        except (json.JSONDecodeError, IOError) as e:
+            continue
+
+    # Aggregate into final format
+    aggregated = {
+        'f1_drop': {},
+        'mia_auc': {},
+        'collateral': {},
+        'relative': {}
+    }
+
+    for method, metrics in method_metrics.items():
+        # F1 Drop: compute mean +/- std (convert to percentage)
+        f1_drops = metrics['f1_drops']
+        if f1_drops:
+            mean_val = np.mean(f1_drops) * 100  # Convert to percentage
+            std_val = np.std(f1_drops) * 100
+            aggregated['f1_drop'][method] = f"{mean_val:.1f}%+/-{std_val:.1f}"
+        else:
+            aggregated['f1_drop'][method] = "-"
+
+        # MIA AUC: compute mean
+        mia_aucs = metrics['mia_aucs']
+        if mia_aucs:
+            mean_auc = np.mean(mia_aucs)
+            aggregated['mia_auc'][method] = f"{mean_auc:.2f}"
+        else:
+            aggregated['mia_auc'][method] = "-"
+
+        # Collateral: check if available
+        aggregated['collateral'][method] = "yes" if metrics['has_collateral'] else "no"
+
+        # Relative: check if available
+        aggregated['relative'][method] = "yes" if metrics['has_relative'] else "-"
+
+    return aggregated
+
+
 def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[bool, str]:
     """
     Update checklist.md with completion status based on auto_discovered.json.
@@ -774,6 +893,75 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
             if old_bullet != new_bullet:
                 content = content.replace(old_bullet, new_bullet, 1)
                 updated_sections.append(f"{section_name}: {count} runs")
+
+                # Add or update evaluation metrics summary (new format by metric type)
+                # Only add if section is marked complete
+                if checkbox == "- [x]" or checkbox == "- [ ]":
+                    # Get aggregated metrics for this phase
+                    metrics_data = aggregate_metrics(phase)
+
+                    if metrics_data and any(metrics_data.values()):
+                        # Get methods from config
+                        methods = phase_config.methods if phase_config else []
+
+                        # Build new format metrics summary (by metric type, not by method)
+                        metrics_lines = ["  - **评估汇总**："]
+
+                        # F1 Drop row
+                        f1_parts = []
+                        for m in methods:
+                            val = metrics_data.get('f1_drop', {}).get(m, '-')
+                            f1_parts.append(f"{m}={val}")
+                        if f1_parts:
+                            metrics_lines.append(f"    - **F1 Drop**: {', '.join(f1_parts)}")
+
+                        # MIA AUC row
+                        mia_parts = []
+                        for m in methods:
+                            val = metrics_data.get('mia_auc', {}).get(m, '-')
+                            mia_parts.append(f"{m}={val}")
+                        if mia_parts:
+                            metrics_lines.append(f"    - **MIA AUC**: {', '.join(mia_parts)}")
+
+                        # Collateral row
+                        col_parts = []
+                        for m in methods:
+                            val = metrics_data.get('collateral', {}).get(m, '✗')
+                            col_parts.append(f"{m}={val}")
+                        if col_parts:
+                            metrics_lines.append(f"    - **Collateral**: {', '.join(col_parts)}")
+
+                        # Relative row
+                        rel_parts = []
+                        for m in methods:
+                            val = metrics_data.get('relative', {}).get(m, '-')
+                            rel_parts.append(f"{m}={val}")
+                        if rel_parts:
+                            metrics_lines.append(f"    - **Relative**: {', '.join(rel_parts)}")
+
+                        metrics_summary = "\n".join(metrics_lines)
+
+                        # Check if "评估汇总" already exists, update or add
+                        if "**评估汇总**" in section_content:
+                            # Replace existing evaluation summary
+                            old_metrics_pattern = r'  - \*\*评估汇总\*\*：.*?(?=\n  - |\n\n|\Z)'
+                            content = re.sub(old_metrics_pattern, metrics_summary, content, flags=re.DOTALL)
+                        else:
+                            # Add after the bullet (at the end of section_content)
+                            # Find where to insert: after bullet content, before next sub-bullet or section end
+                            bullet_end_pattern = r'(- \[x\] `[^\n]+`[^\n]*)'
+                            bullet_match = re.search(bullet_end_pattern, section_content)
+                            if bullet_match:
+                                insert_pos = bullet_match.end()
+                                # Find next line that starts with "  - " or empty line
+                                rest_content = section_content[insert_pos:]
+                                next_bullet = re.search(r'\n  - ', rest_content)
+                                if next_bullet:
+                                    insert_pos = insert_pos + next_bullet.start()
+                                    new_section = section_content[:insert_pos] + "\n" + metrics_summary + section_content[insert_pos:]
+                                else:
+                                    new_section = section_content + "\n" + metrics_summary
+                                content = content.replace(section_content, new_section)
 
     # Handle P2-Ratio section 2.6 if needed (not in checklist yet)
     if "ratio_sensitivity" in phase_counts and "### 2.6" not in content:

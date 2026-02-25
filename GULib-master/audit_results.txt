@@ -1,0 +1,22 @@
+Total log files checked: 246
+Total F1 evaluations checked: 22
+Found 12 fallback occurrences.
+
+Number of log files containing fallback hit: 2
+
+Fallback hits per Unlearning Method:
+ - 2026-02-19: 12 times
+
+--- Example Hits ---
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8838
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8948
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8875
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8875
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8893
+[2026-02-19_6strategies_cora_GCN_GIF.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.893
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.7675
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.797
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.81
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.786
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8026
+[2026-02-19_6strategies_cora_GCN_GraphEraser.log] Strategy: Unknown, poison_f1: 0.0, f1_before(fallback): 0.8007

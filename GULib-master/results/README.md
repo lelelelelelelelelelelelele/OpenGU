@@ -24,9 +24,6 @@ results/
 ├─ _journal/               # 自动研究日志（append-only）
 └─ _deprecated_tracin_bug/ # 历史问题留档（已废弃）
 
-# 已移至 report/ 目录
-# - checkpoint_report/ → report/progress/2026-02-19_checkpoint/
-```
 
 ## 3. 代码与产物边界
 

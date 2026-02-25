@@ -29,10 +29,10 @@ class AttackResult:
     """
     strategy_name: str
     selected_nodes: Tensor
-    f1_before: float
+    f1_before: Optional[float]
     f1_after: float
-    f1_drop: float = field(init=False)
-    f1_drop_ratio: float = field(init=False)
+    f1_drop: Optional[float] = field(init=False)
+    f1_drop_ratio: Optional[float] = field(init=False)
     unlearn_time: float
     total_time: float
     selection_time: Optional[float] = None
@@ -46,21 +46,25 @@ class AttackResult:
 
     def __post_init__(self):
         """Calculate derived metrics."""
-        self.f1_drop = self.f1_before - self.f1_after
-        if self.f1_before > 0:
-            self.f1_drop_ratio = (self.f1_drop / self.f1_before) * 100
+        if self.f1_before is not None:
+            self.f1_drop = self.f1_before - self.f1_after
+            if self.f1_before > 0:
+                self.f1_drop_ratio = (self.f1_drop / self.f1_before) * 100
+            else:
+                self.f1_drop_ratio = 0.0
         else:
-            self.f1_drop_ratio = 0.0
+            self.f1_drop = None
+            self.f1_drop_ratio = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
             "strategy_name": self.strategy_name,
             "selected_nodes": self.selected_nodes.cpu().tolist() if isinstance(self.selected_nodes, Tensor) else list(self.selected_nodes),
-            "f1_before": round(self.f1_before, 4),
+            "f1_before": round(self.f1_before, 4) if self.f1_before is not None else None,
             "f1_after": round(self.f1_after, 4),
-            "f1_drop": round(self.f1_drop, 4),
-            "f1_drop_ratio": round(self.f1_drop_ratio, 2),
+            "f1_drop": round(self.f1_drop, 4) if self.f1_drop is not None else None,
+            "f1_drop_ratio": round(self.f1_drop_ratio, 2) if self.f1_drop_ratio is not None else None,
             "unlearn_time": round(self.unlearn_time, 4),
             "total_time": round(self.total_time, 4),
             "selection_time": round(self.selection_time, 4) if self.selection_time is not None else None,

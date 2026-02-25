@@ -270,20 +270,20 @@ class AttackPipeline:
             f1_after = getattr(self.method, 'average_f1', [0])[0] if hasattr(self.method, 'average_f1') else 0
             mia_auc = getattr(self.method, 'average_auc', [None])[0] if hasattr(self.method, 'average_auc') else None
 
-            # Get pre-unlearning F1: use poison_f1 if available, otherwise evaluate trained model
+            # Get pre-unlearning F1: use poison_f1 if available, otherwise set to None
             f1_before_arr = getattr(self.method, 'poison_f1', None)
             if f1_before_arr is not None and f1_before_arr[0] > 0:
                 f1_before = float(f1_before_arr[0])
             else:
-                # Fallback: evaluate the model after run_exp (it's been trained+unlearned,
-                # so use a fresh evaluation as approximation, or use the training F1 from logs)
-                f1_before = self._evaluate_model()
+                # Removed fallback (self._evaluate_model()) because evaluating model post-run 
+                # yields invalid pre-unlearning baseline metrics.
+                f1_before = None
 
         except Exception as e:
             self.logger.error(f"Error during unlearning: {e}")
             import traceback
             traceback.print_exc()
-            f1_before = 0.0
+            f1_before = None
             f1_after = 0.0
             unlearn_time = time.time() - unlearn_start
             mia_auc = None
@@ -295,9 +295,17 @@ class AttackPipeline:
         if f1_after == 0:
             f1_after = self._evaluate_model()
 
-        self.logger.info(f"F1 before unlearning: {f1_before:.4f}")
-        self.logger.info(f"F1 after unlearning: {f1_after:.4f}")
-        self.logger.info(f"F1 drop: {f1_before - f1_after:.4f}")
+        if f1_before is not None:
+            f1_drop = f1_before - f1_after
+            self.logger.info(f"F1 before unlearning: {f1_before:.4f}")
+            self.logger.info(f"F1 after unlearning: {f1_after:.4f}")
+            self.logger.info(f"F1 drop: {f1_drop:.4f}")
+        else:
+            f1_drop = None
+            self.logger.info("F1 before unlearning: NA")
+            self.logger.info(f"F1 after unlearning: {f1_after:.4f}")
+            self.logger.info("F1 drop: NA")
+            
         self.logger.info(f"Unlearning took {unlearn_time:.2f}s")
 
         return {
@@ -305,7 +313,7 @@ class AttackPipeline:
             "selected_nodes": selected_nodes,
             "f1_before": f1_before,
             "f1_after": f1_after,
-            "f1_drop": f1_before - f1_after,
+            "f1_drop": f1_drop,
             "unlearn_time": unlearn_time,
             "selection_time": selection_time,
             "total_time": total_time,

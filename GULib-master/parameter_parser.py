@@ -121,8 +121,6 @@ def parameter_parser():
     parser.add_argument('--im_v4_batch_size', type=int, default=5,
                         help='Batch size B for IM_V4 Batch-CELF approximation')
 
-
-
     #GUIDE parameter
     parser.add_argument('--GUIDE_methods', type=str, default= "SR",choices=["Fast","SR"])
     parser.add_argument('--GUIDE_repair_methods', type=str, default= "MixUp",choices=["Zero", "Mirror", "MixUp", "NoneR"])
