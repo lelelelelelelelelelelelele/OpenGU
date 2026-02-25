@@ -52,7 +52,9 @@
       "Bash(python3 -c \"import json; d=json.load\\(open\\(''H:/project/OpenGU/GULib-master/results/experiments/mg0_completion/phase_a/20260221_182759_seed212/_summary.json''\\)\\); print\\(json.dumps\\(d.get\\(''repair_meta'',[]\\), indent=2\\)\\)\")",
       "Bash(git log 68b9d91..d0c578b --all --format=\"----%n%H%n%ai%n%s%n\" --stat)",
       "Bash(conda run:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(date:*)",
+      "Bash(head:*)"
     ]
   }
 }

@@ -36,11 +36,22 @@ Total                380        380          0       100%     (16)
 =====================================================================================
 
 Note: Legacy = old strategy versions kept as cache (im/hybrid -> im_v4/hybrid_v4)
+
+=====================================================================================
+Evaluation Coverage (Collateral / Relative)
+=====================================================================================
+
+  Gaps (1):
+  MG-0                    GUIDE/      cora/ GCN/r=0.05    relative=MISSING
+
+  Summary: 21 complete, 1 missing/incomplete
+=====================================================================================
 ```
 
 **说明**:
 - **Total/Completed/Remaining/Progress**: 基于正式策略（v4版本）计算
 - **Legacy**: 括号内显示旧版本策略实验数量，作为cache保留但不计入完成度
+- **Evaluation Coverage**: 自动扫描 `results/collateral/` 和 `results/relative/` 检测评估缺口
 
 ### 详细模式（--detail）
 ```

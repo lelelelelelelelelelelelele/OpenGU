@@ -2,6 +2,29 @@
 
 ---
 
+# ⭐ 投稿目标与领域定位
+
+**目标会议：ECCV（European Conference on Computer Vision）**
+
+本项目的核心研究对象是 **Graph Unlearning**（图遗忘），属于 GNN / graph learning 领域。由于 ECCV 是 CV 顶会，你在整个分析与写作过程中必须额外完成以下事项：
+
+1. **CV 关联性评估（必须产出）**：在取证路线图（第 2 节）和写作骨架（第 4 节）中，专门产出一个 **"CV-Relevance Analysis"** 小节，从以下角度评估本工作与 CV 领域的关联度：
+   * **应用场景关联**：Graph Unlearning 在视觉任务中的潜在应用（如：scene graph、skeleton-based action recognition、point cloud、visual relationship detection、image retrieval with GNN-based re-ranking 等）
+   * **方法论关联**：我们的 unlearning / attack 技术是否可推广到 CV 中常见的图结构数据（如 superpixel graph、3D mesh、知识图谱辅助的视觉推理）
+   * **隐私/安全关联**：Machine Unlearning 在 CV 数据隐私（如人脸删除、GDPR compliance in image datasets）中的对应问题，以及 graph unlearning 能提供的独特视角
+   * **Benchmark 关联**：是否有 CV 领域的 graph-structured benchmark（如 Visual Genome scene graph, PASCAL-Context superpixel graph）可以作为扩展实验
+
+2. **Framing 建议**：给出 2–3 种将本工作 frame 为 CV-relevant 的叙事策略，并评估每种策略的可行性与风险（如是否需要补实验、是否会被审稿人质疑 scope）。
+
+3. **ECCV 审稿标准对标**：在审稿人压力测试（第 5 节）中，额外加入 ECCV 特有的审稿关注点：
+   * novelty 是否对 CV 社区有足够贡献
+   * 是否有视觉任务上的实验/case study（哪怕是 proof-of-concept）
+   * 写作是否符合 CV 社区的 convention（如 qualitative results、可视化）
+
+> **最终判断**：你必须在取证路线图中给出一个明确的 **可行性评估**：以现有工作投 ECCV 是否合理？需要补哪些最小工作？如果不合理，建议投哪些更合适的 venue（如 NeurIPS, ICML, KDD, WWW, AAAI 等）。
+
+---
+
 # 0) 你的总体任务（你要交付什么）
 
 我已经完成文献整理与 related work 的框架（除非我显式要求，否则**不要扩展文献**、不要再做 arXiv 检索）。你需要做的是：
@@ -30,6 +53,7 @@
 * `../report_workflow.md`（若存在）
 * `../../todo.md`（若存在）
 * `../daily-log/` 下最近 2–3 天记录（若存在）
+* `../../self/paper_library_synthesis_2026-02-16.md` 为原始版本的综述，包含原始的核心要点，需要进行审阅和思考修正。
 
 ## 1B. 实验与结果（你要知道“跑出来什么”）
 
@@ -37,10 +61,12 @@
 * `../../experiments/im_benchmark/run_benchmark.py`（理解参数与设定）
 * `../../results/experiments/`（批量实验结果：mg0_completion、mg1_citeseer、mg2_gat、mg3_* 等）
 * `../../run_experiments.py`（批量实验入口，理解 Phase A/B/C 设计与参数）
-* `../../eval_collateral.py`（collateral damage 评估）
-* `../../eval_relative.py`（相对指标计算，vs k=5 random baseline）
+* `../../eval_collateral.py`（**核心：Collateral Damage/Retrain Gap 评估**）
+* `../../experiments/baseline_k5/generate_baseline.py` (K=5 random baseline 生成)
+* `../../experiments/baseline_k5/run_all_baselines.py` (Batch baseline 生成与聚合)
+* `../../experiments/baseline_k5/eval_relative.py`（**核心：相对指标计算**，vs k=5 random baseline）
 * `../../results/relative/`（相对指标缓存）
-* `../../results/collateral/`（collateral damage 结果）
+* `../../results/collateral/`（Collateral Damage 结果数据）
 * `../../log/` 下与 benchmark 对应的日志（确认实际参数/seed/失败重试等）
 * `../../results/`（如有细粒度输出，用于补充）
 
@@ -88,7 +114,7 @@
 
 ## 2.3 你将如何把证据变成论文文本（写作蓝图）
 
-* Results 叙事主线（utility–forgetting–efficiency–robustness/MIA）
+* Results 叙事主线（utility–forgetting–efficiency–**collateral damage (retrain gap)**–robustness/MIA）
 * 分节结构（3–6 个小节标题）
 * 每节需要哪些图/表（绑定字段）
 
@@ -203,6 +229,7 @@
 
 # 7) 工作纪律（硬约束）
 
+* **严禁包含 GUIDE 方法**：目前 `GUIDE` 的实验代码存在严重 Bug 且尚未修正，在所有分析、结果表述、图表展示与写作中，**必须完全忽略 GUIDE**，不要将其作为对比基线或分析对象。
 * 严禁 hallucination；没有证据就写 `[待补充]`
 * 不允许擅自扩展文献或引用不存在的论文
 * 所有数字与结论必须绑定：文件路径 + 字段名/函数名/日志片段

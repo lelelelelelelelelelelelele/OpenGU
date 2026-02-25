@@ -1056,6 +1056,151 @@ def update_checklist_status(checklist_path: str, dry_run: bool = True) -> Tuple[
         return True, f"Updated {len(all_updates)} sections: {', '.join(all_updates)} (backup: {checklist_path}.bak)"
 
 
+###############################################################################
+# Evaluation coverage scanning (collateral / relative)
+###############################################################################
+
+# Expected evaluation matrix: (method, dataset, model, ratio) combinations
+# that should have collateral and relative evaluations.
+EVAL_EXPECTED = {
+    # Matches actual experiment runs per phase (see PHASE_CONFIGS)
+    "mg0": {
+        "methods": ["GIF", "GNNDelete", "GraphEraser", "GUIDE"],
+        "dataset": "cora", "model": "GCN", "ratios": [0.05],
+    },
+    "mg1": {
+        "methods": ["GIF", "GNNDelete", "GraphEraser"],
+        "dataset": "citeseer", "model": "GCN", "ratios": [0.05],
+    },
+    "mg2": {
+        "methods": ["GIF", "GNNDelete", "GraphEraser"],
+        "dataset": "cora", "model": "GAT", "ratios": [0.05],
+    },
+    "mg3_citeseer": {
+        "methods": ["IDEA", "MEGU"],
+        "dataset": "citeseer", "model": "GCN", "ratios": [0.05],
+    },
+    "mg3_gat": {
+        "methods": ["IDEA", "MEGU"],
+        "dataset": "cora", "model": "GAT", "ratios": [0.05],
+    },
+    "ratio_sensitivity": {
+        "methods": ["GIF", "GNNDelete"],
+        "dataset": "cora", "model": "GCN", "ratios": [0.01, 0.05, 0.10, 0.20],
+    },
+}
+
+
+def _scan_collateral(base_dir: str = "results/collateral") -> dict:
+    """Scan collateral results and return {(method, dataset, model, ratio): set(strategies)}."""
+    base = Path(base_dir)
+    coverage = {}
+    if not base.exists():
+        return coverage
+    for fpath in base.rglob("collateral_*.json"):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            cfg = data.get("config", {})
+            key = (
+                cfg.get("unlearning_methods", ""),
+                cfg.get("dataset_name", ""),
+                cfg.get("base_model", ""),
+                round(float(cfg.get("unlearn_ratio", 0)), 4),
+            )
+            strats = set()
+            for r in data.get("results", []):
+                s = r.get("strategy", "")
+                if s:
+                    strats.add(s)
+            if key not in coverage:
+                coverage[key] = set()
+            coverage[key] |= strats
+        except Exception:
+            continue
+    return coverage
+
+
+def _scan_relative(base_dir: str = "results/relative") -> dict:
+    """Scan relative results and return {(method, dataset, model, ratio): n_seeds}."""
+    base = Path(base_dir)
+    coverage = {}
+    if not base.exists():
+        return coverage
+    for fpath in base.rglob("relative_*.json"):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            cfg = data.get("config", {})
+            key = (
+                cfg.get("unlearning_methods", ""),
+                cfg.get("dataset_name", ""),
+                cfg.get("base_model", ""),
+                round(float(cfg.get("unlearn_ratio", 0.05)), 4),
+            )
+            n_results = len(data.get("results", []))
+            if n_results > 0:
+                coverage[key] = coverage.get(key, 0) + 1
+        except Exception:
+            continue
+    return coverage
+
+
+def scan_eval_coverage() -> str:
+    """Scan collateral and relative results, return formatted report."""
+    collateral = _scan_collateral()
+    relative = _scan_relative()
+
+    lines = []
+    lines.append("")
+    lines.append("=" * 85)
+    lines.append("Evaluation Coverage (Collateral / Relative)")
+    lines.append("=" * 85)
+
+    gaps = []
+    ok_count = 0
+
+    for phase_key in ["mg0", "mg1", "mg2", "mg3_citeseer", "mg3_gat", "ratio_sensitivity"]:
+        cfg = EVAL_EXPECTED.get(phase_key)
+        if not cfg:
+            continue
+        for method in cfg["methods"]:
+            for ratio in cfg["ratios"]:
+                key = (method, cfg["dataset"], cfg["model"], ratio)
+
+                coll_strats = collateral.get(key, set())
+                # Filter to only v4 strategies for checking
+                has_collateral = len(coll_strats) > 0
+                rel_count = relative.get(key, 0)
+                has_relative = rel_count > 0
+
+                if has_collateral and has_relative:
+                    ok_count += 1
+                else:
+                    status_parts = []
+                    if not has_collateral:
+                        if coll_strats is not None and len(coll_strats) == 0 and key in collateral:
+                            status_parts.append("collateral=empty(0 strategies)")
+                        else:
+                            status_parts.append("collateral=MISSING")
+                    if not has_relative:
+                        status_parts.append("relative=MISSING")
+                    label = PHASE_CONFIGS.get(phase_key, PhaseConfig(phase_key, "", [], "", "", [], [])).name
+                    ratio_str = f"r={ratio}" if ratio != 0.05 else "r=0.05"
+                    gaps.append(f"  {label:<16} {method:>12}/{cfg['dataset']:>10}/{cfg['model']:>4}/{ratio_str:<8}  {', '.join(status_parts)}")
+
+    if gaps:
+        lines.append(f"\n  Gaps ({len(gaps)}):")
+        lines.extend(gaps)
+    else:
+        lines.append("\n  All evaluations complete!")
+
+    lines.append(f"\n  Summary: {ok_count} complete, {len(gaps)} missing/incomplete")
+    lines.append("=" * 85)
+
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Check experiment progress against checklist',
@@ -1130,6 +1275,9 @@ Examples:
 
     # Print progress table
     print("\n" + format_progress_table(reports))
+
+    # Print evaluation coverage
+    print(scan_eval_coverage())
 
     # Detailed output
     if args.detail or args.fill:

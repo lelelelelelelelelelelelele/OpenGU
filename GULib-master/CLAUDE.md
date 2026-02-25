@@ -134,6 +134,7 @@ attack/selection_cache.py       # SelectionCache: strategy-agnostic node selecti
 attack/attack_result.py         # AttackResult dataclass for structured results
 eval_collateral.py              # CLI script: runs retrain gap + collateral damage eval
                                 #   Usage: python eval_collateral.py --method GNNDelete --strategy tracin
+experiments/baseline_k5/eval_relative.py # CLI script: compute metrics relative to random baseline
 ```
 
 The three pipeline base classes (`Shard_based_pipeline`, `IF_based_pipeline`, `Learning_based_pipeline`) support a `train_only` flag (`args["train_only"] = True`) that skips the unlearning phase and returns only the trained model — used by `AttackPipeline.run_retrain()` for exact retrain-from-scratch.
