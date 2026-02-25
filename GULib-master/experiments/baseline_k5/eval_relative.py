@@ -89,6 +89,10 @@ def find_cache_entry_for_attack(cache: ResultCache, args: dict, strategy_name: s
     if not cache_dir.exists():
         return None
 
+    target_k = args.get('k')
+    best_match = None
+    best_k = None  # track k to prefer explicit-k entries over legacy (k=None)
+
     for fpath in cache_dir.glob('*.json'):
         try:
             with open(fpath, encoding='utf-8') as f:
@@ -101,18 +105,35 @@ def find_cache_entry_for_attack(cache: ResultCache, args: dict, strategy_name: s
                 cache_seed = int(cache_seed)
             except (TypeError, ValueError):
                 continue
-                
+
             if target_seed is not None and cache_seed != target_seed:
                 continue
-                
+
             if (str(c.get('dataset_name', '')) == target['dataset_name'] and
                 str(c.get('base_model', '')) == target['base_model'] and
                 str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
                 str(c.get('strategy_name', '')) == target['strategy_name'] and
                 abs(float(c.get('unlearn_ratio', -1)) - target_ratio) < 1e-6):
-                return data.get('result', {})
+                cache_k = c.get('k')
+
+                # If target_k is specified, require exact match
+                if target_k is not None:
+                    if cache_k is None or int(cache_k) != int(target_k):
+                        continue
+                    return data.get('result', {})
+
+                # No target_k: prefer entries with explicit k over legacy (k=None)
+                if best_match is None:
+                    best_match = data
+                    best_k = cache_k
+                elif cache_k is not None and best_k is None:
+                    best_match = data
+                    best_k = cache_k
         except Exception:
             continue
+
+    if best_match is not None:
+        return best_match.get('result', {})
     return None
 
 

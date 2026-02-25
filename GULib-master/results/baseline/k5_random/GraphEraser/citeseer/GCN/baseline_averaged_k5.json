@@ -1,0 +1,55 @@
+{
+  "f1_after": 0.7543543543543543,
+  "f1_after_std": 0.004204204204204157,
+  "f1_before": null,
+  "f1_drop": null,
+  "n_seeds": 5,
+  "seeds_used": [
+    111,
+    333,
+    555,
+    777,
+    999
+  ],
+  "per_seed_details": [
+    {
+      "seed": 111,
+      "f1_after": 0.7492492492492493,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 333,
+      "f1_after": 0.7492492492492493,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 555,
+      "f1_after": 0.7567567567567567,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 777,
+      "f1_after": 0.7582582582582582,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 999,
+      "f1_after": 0.7582582582582582,
+      "f1_before": null,
+      "f1_drop": null
+    }
+  ],
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "GraphEraser",
+    "k": 5,
+    "strategy": "random",
+    "averaged": true,
+    "timestamp": "2026-02-26T04:05:55.390789"
+  }
+}

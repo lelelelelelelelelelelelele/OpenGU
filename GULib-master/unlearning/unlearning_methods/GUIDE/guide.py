@@ -27,6 +27,23 @@ from task.edge_prediction import EdgePredictor
 from task import get_trainer
 from pipeline.Shard_based_pipeline import Shard_based_pipeline
 from torch_geometric.utils import negative_sampling
+
+
+def _resolve_guide_device(cuda_arg):
+    try:
+        cuda_index = int(cuda_arg)
+    except (TypeError, ValueError):
+        cuda_index = 0
+
+    if (
+        torch.cuda.is_available()
+        and cuda_index >= 0
+        and cuda_index < torch.cuda.device_count()
+    ):
+        return torch.device(f"cuda:{cuda_index}")
+    return torch.device("cpu")
+
+
 class guide(Shard_based_pipeline):
     """
     The `guide` class is a specialized implementation of the `Shard_based_pipeline` class designed for 
@@ -46,7 +63,7 @@ class guide(Shard_based_pipeline):
         self.logger = logger
         self.data = model_zoo.data
         self.num_classes = self.data.num_classes
-        self.device = torch.device('cuda:{}'.format(args["cuda"]) if torch.cuda.is_available() else 'cpu')
+        self.device = _resolve_guide_device(args.get("cuda", 0))
         self.pm_kernel = PyramidMatchVector()
         self.run = 0
         self.unlearning_number = args["num_unlearned_nodes"]

@@ -20,6 +20,7 @@ import numpy as np
 import torch
 import random
 from pathlib import Path
+from datetime import datetime
 
 # Extract custom args BEFORE parameter_parser (which rejects unknown args)
 _baseline_k = 5
@@ -107,7 +108,7 @@ def generate_baseline(args: dict, k: int):
             "seed": seed,
             "k": k,
             "strategy": "random",
-            "timestamp": getattr(datetime, "now", __import__("datetime").datetime.now)().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
     }
     

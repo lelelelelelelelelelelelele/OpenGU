@@ -125,6 +125,16 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
     if not cache_dir.exists():
         return None
 
+    # Determine target k: prefer explicit k from args, otherwise derive from ratio
+    target_k = args.get('k')
+    if target_k is None:
+        # k is typically ratio * num_nodes; not available here, so prefer
+        # entries with explicit k over legacy entries without k.
+        target_k = None
+
+    best_match = None
+    best_k = None  # track k to prefer explicit-k entries over k=MISSING
+
     for fpath in cache_dir.glob('*.json'):
         try:
             with open(fpath, encoding='utf-8') as f:
@@ -146,11 +156,29 @@ def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
                 str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
                 str(c.get('strategy_name', '')) == target['strategy_name'] and
                 abs(float(c.get('unlearn_ratio', -1)) - target_ratio) < 1e-6):
-                # Found match — build AttackResult
-                from attack.attack_result import AttackResult
-                return AttackResult.from_dict(data['result'])
+                cache_k = c.get('k')
+
+                # If target_k is specified, require exact match
+                if target_k is not None:
+                    if cache_k is None or int(cache_k) != int(target_k):
+                        continue
+                    from attack.attack_result import AttackResult
+                    return AttackResult.from_dict(data['result'])
+
+                # No target_k: prefer entries with explicit k over legacy (k=None)
+                if best_match is None:
+                    best_match = data
+                    best_k = cache_k
+                elif cache_k is not None and best_k is None:
+                    # Prefer explicit k over missing k
+                    best_match = data
+                    best_k = cache_k
         except (ValueError, KeyError, TypeError, _json.JSONDecodeError):
             continue
+
+    if best_match is not None:
+        from attack.attack_result import AttackResult
+        return AttackResult.from_dict(best_match['result'])
     return None
 
 

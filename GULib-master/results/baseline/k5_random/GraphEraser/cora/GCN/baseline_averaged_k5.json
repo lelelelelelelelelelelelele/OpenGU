@@ -1,0 +1,55 @@
+{
+  "f1_after": 0.8616236162361623,
+  "f1_after_std": 0.0069034269128670405,
+  "f1_before": null,
+  "f1_drop": null,
+  "n_seeds": 5,
+  "seeds_used": [
+    111,
+    333,
+    555,
+    777,
+    999
+  ],
+  "per_seed_details": [
+    {
+      "seed": 111,
+      "f1_after": 0.8634686346863468,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 333,
+      "f1_after": 0.8542435424354243,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 555,
+      "f1_after": 0.8726937269372693,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 777,
+      "f1_after": 0.8542435424354243,
+      "f1_before": null,
+      "f1_drop": null
+    },
+    {
+      "seed": 999,
+      "f1_after": 0.8634686346863468,
+      "f1_before": null,
+      "f1_drop": null
+    }
+  ],
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GraphEraser",
+    "k": 5,
+    "strategy": "random",
+    "averaged": true,
+    "timestamp": "2026-02-26T04:01:33.020868"
+  }
+}

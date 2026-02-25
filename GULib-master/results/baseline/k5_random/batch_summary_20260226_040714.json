@@ -1,0 +1,173 @@
+{
+  "config": {
+    "experiments": [
+      {
+        "dataset": "cora",
+        "model": "GCN",
+        "methods": [
+          "GIF",
+          "GNNDelete",
+          "GraphEraser",
+          "GUIDE"
+        ]
+      },
+      {
+        "dataset": "citeseer",
+        "model": "GCN",
+        "methods": [
+          "GIF",
+          "GNNDelete",
+          "GraphEraser"
+        ]
+      },
+      {
+        "dataset": "cora",
+        "model": "GAT",
+        "methods": [
+          "GIF",
+          "GNNDelete",
+          "GraphEraser"
+        ]
+      },
+      {
+        "dataset": "citeseer",
+        "model": "GCN",
+        "methods": [
+          "IDEA",
+          "MEGU"
+        ]
+      },
+      {
+        "dataset": "cora",
+        "model": "GAT",
+        "methods": [
+          "IDEA",
+          "MEGU"
+        ]
+      }
+    ],
+    "seeds": [
+      111,
+      333,
+      555,
+      777,
+      999
+    ],
+    "baseline_k": 5
+  },
+  "results": [
+    {
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GCN",
+      "seeds_ok": 0,
+      "seeds_total": 5,
+      "f1_after_avg": null
+    },
+    {
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GCN",
+      "seeds_ok": 0,
+      "seeds_total": 5,
+      "f1_after_avg": null
+    },
+    {
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GCN",
+      "seeds_ok": 0,
+      "seeds_total": 5,
+      "f1_after_avg": null
+    },
+    {
+      "method": "GUIDE",
+      "dataset": "cora",
+      "model": "GCN",
+      "seeds_ok": 0,
+      "seeds_total": 5,
+      "f1_after_avg": null
+    },
+    {
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seeds_ok": 2,
+      "seeds_total": 5,
+      "f1_after_avg": 0.7072072072072072
+    },
+    {
+      "method": "GNNDelete",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.1768768768768769
+    },
+    {
+      "method": "GraphEraser",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.7543543543543543
+    },
+    {
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.8531365313653136
+    },
+    {
+      "method": "GNNDelete",
+      "dataset": "cora",
+      "model": "GAT",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.15350553505535056
+    },
+    {
+      "method": "GraphEraser",
+      "dataset": "cora",
+      "model": "GAT",
+      "seeds_ok": 4,
+      "seeds_total": 5,
+      "f1_after_avg": 0.8547047970479704
+    },
+    {
+      "method": "IDEA",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.6966966966966968
+    },
+    {
+      "method": "MEGU",
+      "dataset": "citeseer",
+      "model": "GCN",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.718018018018018
+    },
+    {
+      "method": "IDEA",
+      "dataset": "cora",
+      "model": "GAT",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.8461254612546124
+    },
+    {
+      "method": "MEGU",
+      "dataset": "cora",
+      "model": "GAT",
+      "seeds_ok": 5,
+      "seeds_total": 5,
+      "f1_after_avg": 0.8749077490774908
+    }
+  ],
+  "timestamp": "2026-02-26T04:07:14.248830"
+}

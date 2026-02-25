@@ -1,0 +1,14 @@
+{
+  "f1_after": 0.16789667896678967,
+  "f1_before": null,
+  "f1_drop": null,
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GNNDelete",
+    "seed": 333,
+    "k": 5,
+    "strategy": "random",
+    "timestamp": "2026-02-26T03:56:02.223236"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "f1_after": 0.7582582582582582,
+  "f1_before": null,
+  "f1_drop": null,
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "GraphEraser",
+    "seed": 777,
+    "k": 5,
+    "strategy": "random",
+    "timestamp": "2026-02-26T03:51:35.408294"
+  }
+}
