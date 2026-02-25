@@ -1,0 +1,39 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GAT",
+    "unlearning_methods": "IDEA",
+    "unlearn_ratio": 0.05,
+    "random_seed": 2024,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "im_v4",
+      "tracin",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.8461254612546124,
+      "attack_f1_after": 0.8266,
+      "gap": -0.01952546125461241,
+      "relative_f1_drop": 0.01952546125461241
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.8461254612546124,
+      "attack_f1_after": 0.8487,
+      "gap": 0.0025745387453876,
+      "relative_f1_drop": -0.0025745387453876
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.8461254612546124,
+      "attack_f1_after": 0.8376,
+      "gap": -0.008525461254612399,
+      "relative_f1_drop": 0.008525461254612399
+    }
+  ],
+  "timestamp": "2026-02-26T04:29:05.245630"
+}

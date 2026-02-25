@@ -1,0 +1,39 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GraphEraser",
+    "unlearn_ratio": 0.05,
+    "random_seed": 722,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "im_v4",
+      "tracin",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.7989,
+      "gap": -0.0627236162361623,
+      "relative_f1_drop": 0.0627236162361623
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.8561,
+      "gap": -0.005523616236162376,
+      "relative_f1_drop": 0.005523616236162376
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.7952,
+      "gap": -0.06642361623616233,
+      "relative_f1_drop": 0.06642361623616233
+    }
+  ],
+  "timestamp": "2026-02-26T04:22:33.160502"
+}

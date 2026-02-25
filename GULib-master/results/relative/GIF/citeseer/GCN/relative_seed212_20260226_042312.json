@@ -1,0 +1,39 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.05,
+    "random_seed": 212,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "im_v4",
+      "tracin",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.709009009009009,
+      "attack_f1_after": 0.7102,
+      "gap": 0.0011909909909910699,
+      "relative_f1_drop": -0.0011909909909910699
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.709009009009009,
+      "attack_f1_after": 0.7042,
+      "gap": -0.0048090090090089355,
+      "relative_f1_drop": 0.0048090090090089355
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.709009009009009,
+      "attack_f1_after": 0.7027,
+      "gap": -0.006309009009008992,
+      "relative_f1_drop": 0.006309009009008992
+    }
+  ],
+  "timestamp": "2026-02-26T04:23:12.451976"
+}

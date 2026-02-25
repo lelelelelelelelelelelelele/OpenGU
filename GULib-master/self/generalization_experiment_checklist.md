@@ -38,6 +38,7 @@
 - [ ] **Cache 策略**：默认开启 cache（供 `eval_collateral.py` 读取 selected_nodes）
   - 检查点：仅在明确排查时使用 `--no_cache`
   - 检查点：`random/pagerank/im` 已启用跨方法选点复用（`results/selection_cache`）
+  - 备注（review dismiss 适用范围）：当前批次仅评估 `im_v4/hybrid_v4`，`eval_collateral` 的 cache 匹配包含 `strategy_name`，不会命中旧 `im/hybrid`（含 `k=MISSING`）条目；因此“按 k 匹配”问题对当前实验无影响。若后续恢复 `im/hybrid` 或混跑不同 `k`，需重新检查该项。
 - [ ] **自动报告**：`demo_attack.py` 与 `eval_collateral.py` 均能追加 `results/_journal/auto_report.md`
   - 检查点：`eval_collateral.py` 在无结果时写 `WARN`（不是 `OK`）
 - [ ] **复现实验设置**：同 seed 重跑结果应一致（允许极小浮动），不同 seed 有统计波动
@@ -60,13 +61,13 @@
     - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
     - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
-    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
+    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes, **GUIDE=❌ 缺失**
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 产出：`mean ± std`，确认结论不是 seed 偶然
   - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
-  - **状态**：✅ 完成 (2026-02-22)
+  - **状态**：✅ 实验完成 (2026-02-22) / ⚠️ Relative 评估缺 GUIDE
 
 ### 2.2 MG-1 最小跨数据集泛化
 
@@ -99,9 +100,15 @@
 ### 2.4 MG-3（可选）扩展到 5 方法
 
 - [x] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`
+  - **评估汇总**：
+    - **Collateral**: IDEA(citeseer)=yes, IDEA(cora/GAT)=yes, MEGU(citeseer)=yes, MEGU(cora/GAT)=yes
+    - **Relative**: IDEA(citeseer)=yes, IDEA(cora/GAT)=yes, MEGU(citeseer)=yes, MEGU(cora/GAT)=yes
   - methods: `GIF, GNNDelete, GraphEraser, IDEA, MEGU`
   - 建议先只跑 `random, tracin, im, hybrid` 四策略做筛选
   - **状态**：✅ 完成 (2026-02-22)
+  - 注：MG-1/MG-2 核心方法中，**GUIDE 缺 collateral 和 relative 评估**：
+    - ❌ GUIDE/citeseer/GCN/r=0.05 — collateral 缺失
+    - ❌ GUIDE/cora/GAT/r=0.05 — collateral 缺失
 
 ### 2.5 最小泛化通过标准
 
@@ -116,14 +123,48 @@
   - **评估汇总**：
     - **F1 Drop**: GIF=2.4%+/-1.1, GNNDelete=13.8%+/-5.0
     - **MIA AUC**: GIF=0.61, GNNDelete=0.71
-    - **Collateral**: GIF=yes, GNNDelete=yes
-    - **Relative**: GIF=yes, GNNDelete=yes
+    - **Collateral（按 ratio）**：
+      - r=0.01: GIF=yes, GNNDelete=yes
+      - r=0.05: GIF=yes, GNNDelete=yes
+      - r=0.10: GIF=yes, GNNDelete=yes
+      - r=0.20: GIF=yes, GNNDelete=yes
+    - **Relative（按 ratio）**：
+      - r=0.01: GIF=yes, GNNDelete=yes
+      - r=0.05: GIF=yes, GNNDelete=yes
+      - r=0.10: GIF=yes, GNNDelete=yes
+      - r=0.20: GIF=yes, GNNDelete=yes
+    - 注：checklist 只含 GIF/GNNDelete；GUIDE 和 GraphEraser 的 ratio 敏感性评估缺口见下
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - ratios: `0.01, 0.05, 0.10, 0.20`
   - 规模：`2 methods × 6 strategies × 4 ratios × 5 seeds = 240 runs`
   - **状态**：✅ 完成 (2026-02-25)
+  - **Ratio 评估缺口（非本批次范围，记录备查）**：
+    - ❌ GraphEraser/cora/GCN: r=0.01 collateral 缺失, r=0.10 collateral 空文件, r=0.20 collateral 缺失
+    - ❌ GUIDE/cora/GCN: r=0.01 collateral 缺失, r=0.10 collateral 空文件, r=0.20 collateral 缺失
+
+### 2.7 评估缺口汇总（2026-02-26 审计）
+
+> 实验（attack runs）全部 620/620 完成。以下是**评估**（collateral / relative）的缺口。
+
+| 缺口类型 | 配置 | 缺失评估 |
+|----------|------|---------|
+| Relative | GUIDE/cora/GCN/r=0.05 (MG-0) | ❌ relative 缺失 |
+| Collateral | GUIDE/citeseer/GCN/r=0.05 (MG-1) | ❌ collateral 缺失 |
+| Collateral | GUIDE/cora/GAT/r=0.05 (MG-2) | ❌ collateral 缺失 |
+| Collateral | GraphEraser/cora/GCN/r=0.01 (Ratio) | ❌ collateral 缺失 |
+| Collateral | GraphEraser/cora/GCN/r=0.10 (Ratio) | ⚠️ 空文件（0 strategies） |
+| Collateral | GraphEraser/cora/GCN/r=0.20 (Ratio) | ❌ collateral 缺失 |
+| Collateral | GUIDE/cora/GCN/r=0.01 (Ratio) | ❌ collateral 缺失 |
+| Collateral | GUIDE/cora/GCN/r=0.10 (Ratio) | ⚠️ 空文件（0 strategies） |
+| Collateral | GUIDE/cora/GCN/r=0.20 (Ratio) | ❌ collateral 缺失 |
+
+**已完成的评估（无缺口）**：
+- GIF: 全部 phase + 全部 ratio ✅
+- GNNDelete: 全部 phase + 全部 ratio ✅
+- GraphEraser: MG-0/1/2 的 r=0.05 ✅
+- IDEA/MEGU (MG-3): collateral + relative ✅
 
 ## 3. 全量泛化实验主清单（待做）
 
