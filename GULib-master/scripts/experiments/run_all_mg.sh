@@ -28,10 +28,10 @@ run_step() {
     local started_at
     started_at="$(date '+%Y-%m-%d %H:%M:%S')"
     echo ""
-    echo "[START ${idx}/${TOTAL_STEPS}] ${title} @ ${started_at}"
+    echo "[MG ${idx}/${TOTAL_STEPS}][START] ${title} @ ${started_at}"
     "$@"
     local elapsed=$((SECONDS - step_start))
-    echo "[DONE  ${idx}/${TOTAL_STEPS}] ${title} (elapsed: ${elapsed}s)"
+    echo "[MG ${idx}/${TOTAL_STEPS}][DONE ] ${title} (elapsed: ${elapsed}s)"
 }
 
 run_step 1 "MG-0 completion + collateral (repair)" \

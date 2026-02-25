@@ -646,7 +646,7 @@ def _run_repair(
         run_stats = per_run[item["run_dir"]]
         run_dir = run_stats["run_dir"]
         print(
-            f"[REPAIR][{idx}/{total_missing}] "
+            f"[EXP {idx}/{total_missing}][REPAIR] "
             f"{item['method']}/{item['dataset']}/{item['model']}/r={item['ratio']}/seed={item['seed']}"
         )
         if run_stats["is_new"]:
@@ -951,7 +951,9 @@ def run_phase(
     # Run experiments with progress bar
     with tqdm(total=len(exp_list), desc=phase_name, unit="exp",
               leave=True, ncols=80) as pbar:
-        for method, dataset, model, ratio in exp_list:
+        total_exp = len(exp_list)
+        for idx, (method, dataset, model, ratio) in enumerate(exp_list, start=1):
+            print(f"[EXP {idx}/{total_exp}] {method}/{dataset}/{model}/r={ratio}/seed={random_seed}")
             key = f"{method}_{dataset}_{model}_r{ratio}"
             result = run_single_experiment(
                 method,

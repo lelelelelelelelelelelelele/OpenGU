@@ -90,7 +90,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
     for METHOD in "${METHOD_LIST_A[@]}"; do
         for SEED in "${SEED_LIST_A[@]}"; do
             COLLEVAL_IDX_A=$((COLLEVAL_IDX_A + 1))
-            echo ">>> [${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval: $METHOD, seed: $SEED"
+            echo ">>> [EXP ${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval: $METHOD, seed: $SEED"
             "$PYTHON_BIN" eval_collateral.py \
                 --dataset_name "$DATASETS" \
                 --base_model "$BASE_MODEL" \
@@ -99,7 +99,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                 --unlearn_ratio "$RATIOS" \
                 --random_seed "$SEED" \
                 $REPAIR_MODE_ARG
-            echo ">>> [${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval complete: $METHOD, seed: $SEED"
+            echo ">>> [EXP ${COLLEVAL_IDX_A}/${TOTAL_COLLEVAL_A}] CollEval complete: $METHOD, seed: $SEED"
         done
     done
 fi
@@ -138,7 +138,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
     for METHOD in "${METHOD_LIST_B[@]}"; do
         for SEED in "${SEED_LIST_B[@]}"; do
             COLLEVAL_IDX_B=$((COLLEVAL_IDX_B + 1))
-            echo ">>> [${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval: $METHOD, seed: $SEED"
+            echo ">>> [EXP ${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval: $METHOD, seed: $SEED"
             "$PYTHON_BIN" eval_collateral.py \
                 --dataset_name "cora" \
                 --base_model "GAT" \
@@ -147,7 +147,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                 --unlearn_ratio "$RATIOS" \
                 --random_seed "$SEED" \
                 $REPAIR_MODE_ARG
-            echo ">>> [${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval complete: $METHOD, seed: $SEED"
+            echo ">>> [EXP ${COLLEVAL_IDX_B}/${TOTAL_COLLEVAL_B}] CollEval complete: $METHOD, seed: $SEED"
         done
     done
 fi

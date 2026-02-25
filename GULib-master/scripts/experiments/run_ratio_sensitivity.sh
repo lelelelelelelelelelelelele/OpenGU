@@ -117,7 +117,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
         for METHOD in "${METHOD_LIST[@]}"; do
             for SEED in "${SEED_LIST[@]}"; do
                 COLLEVAL_IDX=$((COLLEVAL_IDX + 1))
-                echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval: $METHOD, seed: $SEED, ratio: $RATIO"
+                echo ">>> [EXP ${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval: $METHOD, seed: $SEED, ratio: $RATIO"
 
                 "$PYTHON_BIN" eval_collateral.py \
                     --dataset_name "$DATASETS" \
@@ -128,7 +128,7 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
                     --random_seed "$SEED" \
                     $REPAIR_MODE_ARG
 
-                echo ">>> [${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval complete: $METHOD, seed: $SEED"
+                echo ">>> [EXP ${COLLEVAL_IDX}/${TOTAL_COLLEVAL}] CollEval complete: $METHOD, seed: $SEED"
             done
         done
     done
