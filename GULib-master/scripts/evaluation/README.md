@@ -41,3 +41,8 @@ New runner module entry points:
 - `python -m scripts.evaluation.runners.run_cross_dataset_resume`
 
 These runners now write outputs under `results/evaluation/step0`.
+
+## Paper Data Pipeline
+
+- `final_data_aggregator.py`: 从 `results/relative/`、`results/collateral/`、`results/experiments/` 三源聚合，输出 `results/evaluation/stats/final_paper_stats.csv`。
+- `gen_md_report_v2.py`: 读取 `final_paper_stats.csv`，生成论文表格到 `report/paper/sections/cross_seed_tables.md`。

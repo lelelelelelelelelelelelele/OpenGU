@@ -22,7 +22,7 @@
 
 ### 4. 新增：Relative 对比分析
 输入含 "relative" 或 "对比 baseline" 时触发。
-- 读取 `results/relative/*.json`
+- 读取 `results/relative/{Method}/{Dataset}/{Model}/*.json`
 - 对比各策略 vs random 的 relative_f1_drop
 - 输出改进倍数排序
 
@@ -91,12 +91,12 @@
 ### 2. Relative 分析实现
 ```python
 def analyze_relative(method_filter=None, dataset_filter=None):
-    """读取 results/relative/*.json 并生成对比表。"""
+    """读取 results/relative/{Method}/{Dataset}/{Model}/*.json 并生成对比表。"""
     import json
     import glob
 
     results = []
-    for cache_file in glob.glob("results/relative/*.json"):
+    for cache_file in glob.glob("results/relative/**/*.json", recursive=True):
         with open(cache_file) as f:
             data = json.load(f)
             for r in data.get("results", []):
@@ -187,7 +187,7 @@ def analyze_collateral(method_filter=None, dataset_filter=None, model_filter=Non
 | 用途 | 路径 |
 |------|------|
 | 实验结果 | `results/experiments/*/_summary.json` |
-| Relative 缓存 | `results/relative/*.json` |
+| Relative 缓存 | `results/relative/{Method}/{Dataset}/{Model}/*.json` |
 | Collateral 结果 | `results/collateral/{method}/{dataset}/{model}/*.json` |
 | 实验日志 | `results/_journal/auto_report.md` |
 

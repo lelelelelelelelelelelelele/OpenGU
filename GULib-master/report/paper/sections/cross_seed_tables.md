@@ -1,67 +1,103 @@
-# Cross-Seed Statistical Results Summary
+# Final Cross-Seed Statistical Results (Purified Metrics)
 
-> **Data Source**: `results/evaluation/stats/all_phases_stats.csv`
+> **Data Source**: `results/evaluation/stats/final_paper_stats.csv`
 
-> **Metrics**: F1 Drop (%) ± Std, p-value vs Random (Paired T-test)
+> **Metric Format**: **Rel_F1_Drop** (Retrain_Gap)
 
-> **Significance**: * p < 0.05, ** p < 0.01
+> **Relative F1 Drop (%)** = [k=5 Baseline F1] - [Attack F1]
 
-## Phase: MG0
+> **Retrain Gap (%)** = |Unlearn F1 - Retrain F1| (Mimicry Quality)
 
-| Method | random | degree | hybrid | hybrid_v4 | im | im_v4 | pagerank | tracin |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| GIF | 1.32 ± 0.50 | 1.32 ± 0.61 | 1.57 ± 0.09 | 2.47 ± 1.17 | 1.57 ± 0.65 | 2.18 ± 0.69 | 1.61 ± 0.53 | 1.32 ± 0.50 |
-| GNNDelete | 8.46 ± 1.77 | 7.54 ± 2.37 | 12.27 ± 2.31 | 11.25 ± 4.91 | 9.22 ± 5.17 | 12.32 ± 5.60 | 10.83 ± 2.64* | 8.46 ± 1.77 |
-| GUIDE | -6.56 ± 3.15 | -10.44 ± 3.76 | -10.71 ± 2.69 | -6.50 ± 3.25 | -11.88 ± 3.19 | -7.05 ± 3.33 | -8.70 ± 2.34 | -7.57 ± 3.56 |
-| GraphEraser | -6.17 ± 1.84 | -5.67 ± 2.18 | -3.96 ± 1.39 | -2.14 ± 3.22 | -5.44 ± 1.20 | -3.10 ± 2.39 | -6.59 ± 2.42 | -6.17 ± 1.84 |
+> **Significance**: * p < 0.05, ** p < 0.01 (One-sample T-test vs 0)
 
+## Setting: CITESEER / GCN (Ratio: 0.05)
 
-## Phase: MG1
-
-| Method | random | degree | hybrid_v4 | im_v4 | pagerank | tracin |
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GIF | 2.88 ± 0.56 | 2.73 ± 0.67 | 2.04 ± 0.51* | 2.43 ± 0.32 | 2.88 ± 0.56 | 2.46 ± 0.52 |
-| GNNDelete | -19.34 ± 1.70 | -19.34 ± 1.70 | -19.34 ± 1.70 | -19.34 ± 1.70 | -19.34 ± 1.70 | -19.34 ± 1.70 |
-| GraphEraser | -8.95 ± 1.04 | -8.58 ± 1.69 | -8.98 ± 1.19 | -9.22 ± 1.12 | -8.86 ± 2.98 | -8.25 ± 1.80 |
+| GIF | - | 0.36* (0.75) | 0.09 (0.69) | 0.09 (1.26) | - | - |
+| GNNDelete | 53.69** (1.86) | 53.69** (1.50) | 53.69** (0.63) | 53.69** (3.15) | 53.69** (7.06) | 53.69** (4.26) |
+| GraphEraser | - | 0.30 (3.78) | 0.36 (1.20) | -0.03 (2.07) | - | - |
+| IDEA | - | 0.84** (0.69) | 0.51 (0.78) | 0.27 (1.47) | - | - |
+| MEGU | - | 0.99** (0.66) | 0.06 (1.14) | -0.39 (1.14) | - | - |
 
 
-## Phase: MG2
+## Setting: CITESEER / GCN (Ratio: 0.1)
 
-| Method | random | degree | hybrid_v4 | im_v4 | pagerank | tracin |
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GIF | 4.72 ± 0.84 | 5.09 ± 1.10 | 5.83 ± 0.53 | 6.75 ± 0.55* | 4.61 ± 0.94 | 5.39 ± 1.01 |
-| GNNDelete | 9.52 ± 3.65 | 13.10 ± 3.13 | 19.78 ± 2.69** | 17.34 ± 2.70** | 13.06 ± 3.44 | 13.32 ± 6.37 |
-| GraphEraser | -9.52 ± 2.25 | -9.45 ± 1.68 | -4.46 ± 1.61** | -4.50 ± 2.99** | -9.52 ± 3.22 | -9.85 ± 2.36 |
+| GIF | 0.03 (1.05) | -0.03 (2.25) | 0.18* (0.15) | -0.18 (1.95) | 0.00 (0.45) | -0.06 (0.15) |
 
 
-## Phase: MG3_CITESEER
+## Setting: CITESEER / GCN (Ratio: 0.2)
 
-| Method | random | hybrid_v4 | im_v4 | tracin |
-| :--- | ---: | ---: | ---: | ---: |
-| IDEA | 4.41 ± 0.63 | 3.45 ± 0.54 | 4.08 ± 0.68 | 4.02 ± 0.58 |
-| MEGU | 2.25 ± 0.70 | 1.53 ± 0.53 | 1.41 ± 0.57** | 2.97 ± 0.40 |
-
-
-## Phase: MG3_GAT
-
-| Method | random | hybrid_v4 | im_v4 | tracin |
-| :--- | ---: | ---: | ---: | ---: |
-| IDEA | 5.13 ± 0.49 | 5.90 ± 0.67 | 6.46 ± 0.33* | 5.10 ± 1.18 |
-| MEGU | 1.18 ± 1.09 | 2.47 ± 0.91 | 1.14 ± 1.03 | 0.92 ± 0.82 |
-
-
-## Phase: RATIO_SENSITIVITY
-
-| Method | random | degree | hybrid_v4 | im_v4 | pagerank | tracin |
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GIF | 1.79 ± 0.77 | 2.56 ± 1.41* | 2.73 ± 0.79** | 2.64 ± 0.63** | 2.70 ± 1.43* | 1.87 ± 0.76 |
-| GNNDelete | 14.36 ± 5.63 | 12.52 ± 5.78 | 14.77 ± 4.02 | 14.84 ± 4.06 | 13.09 ± 5.16 | 12.97 ± 4.29 |
+| GIF | 0.03 (1.50) | -0.03 (7.66) | 0.18* (1.35) | -0.18 (3.75) | 0.00 (0.90) | -0.06 (0.45) |
 
 
-## Phase: P2_EXT
+## Setting: CITESEER / GIN (Ratio: 0.2)
 
-| Method | random | degree | hybrid_v4 | im_v4 | pagerank | tracin |
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GIF | 1.70 ± 0.71 | 3.06 ± 1.53* | 2.80 ± 0.60** | 2.77 ± 0.49* | 3.36 ± 1.64* | 1.81 ± 0.57 |
+| GIF | -0.67 (1.65) | 0.45 (9.01) | -0.97 (2.55) | -0.82 (4.50) | -1.20 (0.45) | -1.27 (0.90) |
+
+
+## Setting: CORA / GAT (Ratio: 0.05)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | - | 1.77** (0.44) | 3.54** (1.77) | 2.51** (0.85) | - | - |
+| GNNDelete | 9.04** (14.61) | 12.91* (9.08) | 16.94** (11.33) | 18.85** (12.18) | 12.44** (14.94) | 12.55** (13.95) |
+| GraphEraser | - | 0.26 (3.58) | 6.20** (3.21) | 5.16** (2.69) | - | - |
+| IDEA | - | 1.03 (1.07) | 2.55** (0.89) | 1.66** (0.26) | - | - |
+| MEGU | - | 0.41 (1.00) | 0.85 (0.92) | 1.44* (0.96) | - | - |
+
+
+## Setting: CORA / GAT (Ratio: 0.1)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | 1.85* (-) | 2.66** (2.21) | 3.32** (0.18) | 1.96* (0.92) | 6.24** (0.37) | 6.75** (1.11) |
+
+
+## Setting: CORA / GAT (Ratio: 0.2)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | 1.88* (1.29) | 2.55** (8.49) | 1.26 (0.55) | 1.88* (2.58) | 1.59* (0.55) | 1.59** (0.74) |
+
+
+## Setting: CORA / GCN (Ratio: 0.01)
+
+| Method | tracin | im_v4 | hybrid_v4 |
+| :--- | ---: | ---: | ---: |
+| GIF | 1.77** (0.70) | 2.14** (0.52) | 1.88** (0.74) |
+| GNNDelete | 13.51** (7.71) | 13.62** (16.86) | 15.06** (10.11) |
+
+
+## Setting: CORA / GCN (Ratio: 0.05)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | - | 0.70** (2.00) | 1.52** (1.24) | 1.41** (0.67) | - | - |
+| GNNDelete | - | 8.05** (10.96) | 12.47* (10.85) | 11.44* (10.92) | - | - |
+| GUIDE | -1.07 (7.01) | -1.94 (1.85) | -1.07 (1.29) | -1.94 (4.24) | 1.34 (2.03) | 1.50 (1.29) |
+| GraphEraser | - | 1.70* (2.95) | 4.87* (2.47) | 4.39* (1.62) | - | - |
+
+
+## Setting: CORA / GCN (Ratio: 0.1)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | 0.85** (0.48) | 1.00** (2.55) | 2.36** (0.55) | 1.88** (0.66) | 3.43** (1.03) | 4.17** (1.00) |
+| GNNDelete | - | 13.25** (7.70) | 17.17** (16.28) | 16.11** (12.82) | - | - |
+
+
+## Setting: CORA / GCN (Ratio: 0.2)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | 1.37** (0.70) | 0.85** (6.16) | 1.77** (0.63) | 1.66** (1.81) | 0.77* (0.63) | 1.14** (0.74) |
+| GNNDelete | - | 15.79* (3.14) | 14.40** (11.49) | 15.87** (18.63) | - | - |
 
 

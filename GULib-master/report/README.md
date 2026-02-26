@@ -36,9 +36,12 @@ report/
 | 目录 | 说明 |
 |------|------|
 | `step0_validation/` | Step0 历史只读结果 |
-| `evaluation/` | 新 Step0/attack 评估产物目录 |
+| `evaluation/` | 统一评估产物（step0/attack/stats） |
 | `experiments/` | 批量实验结果 (phase_a) |
+| `relative/` | 相对评估结果（相对 random baseline 的 F1 drop） |
 | `collateral/` | 附带损伤评估结果 |
+| `cache/` | ResultCache（按配置哈希缓存） |
+| `selection_cache/` | SelectionCache（选点缓存，跨方法复用） |
 | `checkpoint_report/` | 已移动至 `report/progress/` |
 
 Step0 工具代码已统一到 `scripts/evaluation/`，入口为 `python -m scripts.evaluation`。

@@ -6,6 +6,7 @@ This directory stores generated artifacts only.
 
 - `step0/`: Step0 outputs (logs, JSON summaries, plots, markdown reports).
 - `attack/`: attack chart input/output.
+- `stats/`: 聚合统计 CSV（`final_paper_stats.csv` 等，由 `scripts/evaluation/final_data_aggregator.py` 生成）。
 
 ## Note
 

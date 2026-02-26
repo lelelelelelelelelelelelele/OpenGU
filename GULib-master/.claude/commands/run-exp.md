@@ -159,7 +159,7 @@ H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
     --unlearn_ratio <ratio> \
     --repair
 ```
-- 从 `results/relative/*.json` 读取缓存结果
+- 从 `results/relative/{Method}/{Dataset}/{Model}/*.json` 读取缓存结果
 - 提取 gap 和 relative_f1_drop
 
 ### 3. 自动计算 Collateral 指标
@@ -217,7 +217,7 @@ python eval_collateral.py ... --repair_dry_run
 | 主实验脚本 | `demo_attack.py` |
 | Relative 评估 | `experiments/baseline_k5/eval_relative.py` |
 | Collateral 评估 | `eval_collateral.py` |
-| Relative 缓存 | `results/relative/*.json` |
+| Relative 缓存 | `results/relative/{Method}/{Dataset}/{Model}/*.json` |
 | Collateral 结果 | `results/collateral/{method}/{dataset}/{model}/*.json` |
 | 实验日志 | `results/_journal/auto_report.md` |
 

@@ -1,64 +1,64 @@
-# Visualization Plan for Adversarial GNN Unlearning Paper
+# Visualization Plan for Adversarial GNN Unlearning Paper (V2)
 
-This document outlines the systematic visualization of experiment results (620 runs, 5 seeds) to support the research claims.
+This document outlines the systematic visualization of experiment results, strictly adhering to the **Relative F1 Drop** definition (using k=5 random baseline) to isolate attack potency from unlearning method characteristics.
+
+## Core Metric Definition
+*   **Baseline F1**: $\overline{F1}_{after}(k=5, random)$ — Mean F1 after random unlearning of 5 nodes (across 5 independent seeds). This isolates the "intrinsic method effect" or "protection effect".
+*   **Relative F1 Drop**: $\Delta F1_{rel} = \overline{F1}_{after}(k=5, random) - F1_{after}(ratio=0.05, attack)$
+*   **Relative Gain**: $Gain = \frac{\Delta F1_{rel}(Attack) - \Delta F1_{rel}(Random\_Ratio)}{\Delta F1_{rel}(Random\_Ratio)}$ (Used for vulnerability comparison).
+
+---
 
 ## Summary Table of Charts
 
-| Chart ID | Target Section | Focus | Form | Key Metrics |
-| :--- | :--- | :--- | :--- | :--- |
-| **FIG-1** | Generalization | Cross-Dataset/Model Stability | Grouped Bar + Error | F1 Drop (%) |
-| **FIG-2** | Scaling | Ratio Sensitivity Curves | Line + Shaded Area | F1 Drop (%) |
-| **FIG-3** | Method Comparison | Performance on Modern Algorithms | Horiz. Relative Bar | Rel. Gain over Random |
-| **FIG-4** | Significance | P-value Heatmap | Heatmap | -log10(p) |
-| **FIG-5** | Trade-off | Success vs. Collateral Damage | Scatter Plot | F1 Drop vs. Gap |
+| Chart ID | Target Section | Focus | Form | Key Metrics | Methods |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **FIG-1** | Generalization | Cross-Dataset/Model Potency | Grouped Bar + Error | **Relative F1 Drop** | GIF, GDel, GEraser |
+| **FIG-2** | Scaling | Ratio Sensitivity | Line + Shaded Area | Relative F1 Drop | GIF, GDel |
+| **FIG-3** | **Spectrum** | **Universal Vulnerability** | **Stacked/Grouped Bar** | **Relative F1 Drop & Gain** | **All 5 Methods** |
+| **FIG-4** | Significance | Statistical Rigor | Heatmap | -log10(p-value) | All 5 Methods |
+| **FIG-5** | Collateral | Mimicry Quality | **Scatter Plot** | **Rel. F1 Drop vs. Gap** | All 5 Methods |
 
 ---
 
 ## Detailed Specifications
 
-### FIG-1: The "Generalization Matrix"
-*   **Purpose**: To prove the attack works reliably across different graph environments.
-*   **Config**:
-    *   **Phase**: MG-0, MG-1, MG-2
-    *   **Settings**: (Cora, GCN), (Citeseer, GCN), (Cora, GAT)
-    *   **Methods**: GIF, GNNDelete, GraphEraser
-    *   **Strategies**: `random` vs `hybrid_v4`
-*   **Narrative**: "Structural attacks consistently outperform random baselines across both dataset and model boundaries."
+### FIG-1: Generalization Potency (The "Clean" Drop)
+*   **Purpose**: To prove structured attacks cause real damage beyond method-inherent F1 fluctuations.
+*   **Metrics**: **Relative F1 Drop** (k=5 baseline).
+*   **Settings**: (Cora, GCN), (Citeseer, GCN), (Cora, GAT).
+*   **Logic**: By using the k=5 baseline, we show that even if GraphEraser has a "self-repair" effect (F1 up on random k=5), our Hybrid/IM strategies still force a significant *relative* drop.
 
-### FIG-2: Attack Scalability Curve
-*   **Purpose**: To show how the budget affects attack potency.
-*   **Config**:
-    *   **Phase**: ratio_sensitivity
-    *   **Ratios**: 0.01, 0.05, 0.10, 0.20
-    *   **Methods**: GIF, GNNDelete
-    *   **Strategies**: `random`, `degree`, `im_v4`, `hybrid_v4`
-*   **Narrative**: "The attack effectiveness exhibits a non-linear scaling with deletion budget, maintaining a significant gap even at 1% deletion."
+### FIG-2: Attack Scaling Efficiency
+*   **Purpose**: To define the "strength-vs-budget" curve.
+*   **Metrics**: Relative F1 Drop across ratios (0.01, 0.05, 0.10, 0.20).
+*   **Narrative**: Shows that the "Attack Gain" over the k=5 baseline increases as we select more critical nodes.
 
-### FIG-3: Generalization to Modern Algorithms
-*   **Purpose**: To show the attack is not overfitted to basic algorithms.
-*   **Config**:
-    *   **Phase**: MG-3 (Citeseer-GCN, Cora-GAT)
-    *   **Methods**: IDEA, MEGU, GIF (for reference)
-    *   **Metric**: Relative improvement: `(Hybrid - Random) / Random`
-*   **Narrative**: "Modern, state-of-the-art unlearning algorithms (IDEA, MEGU) remain vulnerable to structural influence-based attacks."
+### FIG-3: The Unlearning Vulnerability Spectrum (5-Method View)
+*   **Purpose**: The "Grand Summary" showing the attack's platform-agnostic nature.
+*   **Methods**: GIF, GNNDelete, GraphEraser, IDEA, MEGU.
+*   **Metric 1**: **Relative F1 Drop** (Absolute damage).
+*   **Metric 2**: **Relative Gain** (Vulnerability factor: how much worse is Hybrid than Random?).
+*   **Logic**: Demonstrates that IF-based (GIF, IDEA), Learning-based (GDel, MEGU), and Shard-based (GEraser) all possess structural vulnerabilities.
 
-### FIG-4: Statistical Significance Map
-*   **Purpose**: To provide rigorous evidence for the claims.
-*   **Config**:
-    *   **Data**: `all_phases_stats.csv`
-    *   **Y-Axis**: All (Method, Dataset, Model) pairs
-    *   **X-Axis**: Tracin, IM_v4, Hybrid_v4
-    *   **Cell Value**: -log10(p-value) vs. Random
-*   **Narrative**: "Most structured attacks achieve p < 0.05 across almost all tested configurations."
+### FIG-4: Statistical Significance Heatmap
+*   **Purpose**: Prove that findings are not due to seed-level noise.
+*   **Metric**: P-value (Paired T-test between `Hybrid_v4` and the **k=5 baseline**).
+*   **Logic**: Stronger evidence than comparing against ratio-matched random, as it proves the attack breaks the "equilibrium" of the unlearning method.
+
+### FIG-5: Attack Depth & Mimicry (Collateral Damage)
+*   **Purpose**: To prove the attack is "deeply structural" and mimics exact retraining.
+*   **X-Axis**: **Relative F1 Drop** (Attack Potency).
+*   **Y-Axis**: **Retrain Gap** (Mimicry error: $|F1_{unlearn} - F1_{retrain}|$).
+*   **Logic**: We want to show that Hybrid-selected nodes don't just "break" the model (high drop), they "unlearn" it (low gap to retrain). Points in the bottom-right represent "Perfect Adversarial Unlearning".
 
 ---
 
-## Integrity Check (Workflow Significance)
+## Integrity Check (Experimental Logic)
 
-1.  **MG-0 (Baseline)**: Established in FIG-1. Essential as the ground truth.
-2.  **MG-1/2 (Generalization)**: Consolidated in FIG-1. Proves the research isn't a "one-trick pony" on Cora.
-3.  **MG-3 (Neutrality)**: Visualized in FIG-3. Critical for peer-reviewed journals to show the attack doesn't just exploit "weak" baselines.
-4.  **Ratio Sensitivity**: Visualized in FIG-2. Shows the practical limits and budget efficiency of the attack.
-5.  **Multi-Seed Statistics**: Reflected in all error bars and p-value charts. Essential for scientific rigor.
+1.  **k=5 Baseline (Standardization)**: Every chart now uses this as the "zero point", ensuring fairness across methods with different inherent F1 behaviors.
+2.  **Relative F1 Drop (Purified Metric)**: Removes "protection effects" of Shard-based methods and "natural degradation" of Learning-based methods.
+3.  **MG-3 Integration (Modern Algorithms)**: FIG-3 and FIG-5 ensure that state-of-the-art methods (IDEA, MEGU) are held to the same standard as baselines.
+4.  **Mimicry Check (Collateral)**: FIG-5 connects "Attack Success" to "Structural Correctness", proving our attack strategy targets the core influence mechanism.
 
-**File Reference**: Data should be pulled from `results/evaluation/stats/all_phases_stats.csv`.
+**Data Reference**: `results/relative/` for Relative F1 Drop; `results/collateral/` for Retrain Gap; `results/evaluation/stats/` for aggregated means.
