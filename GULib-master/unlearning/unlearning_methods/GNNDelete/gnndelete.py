@@ -379,9 +379,11 @@ class gnndelete(Learning_based_pipeline):
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
         os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
-        df_size = int(self.data.num_nodes * self.args["proportion_unlearned_nodes"])
         path_un = unlearning_path + "_" + str(self.run) + ".txt"
         df_nodes = np.loadtxt(path_un, dtype=int)
+        if df_nodes.ndim == 0:
+            df_nodes = df_nodes.reshape(1)
+            
         self.unlearning_nodes = df_nodes
         df_nodes_set = set(df_nodes)
         all_exist = df_nodes_set.issubset(self.data.train_indices)
@@ -390,7 +392,12 @@ class gnndelete(Learning_based_pipeline):
 
         dr_mask_node = global_node_mask
         df_mask_node = ~global_node_mask
-        assert df_mask_node.sum() == df_size
+        
+        # Verify injected attack nodes match the final mask size
+        expected_df_size = len(df_nodes)
+        actual_df_size = df_mask_node.sum().item()
+        if actual_df_size != expected_df_size:
+            raise AssertionError(f"GNNDelete mask mismatch: injected {expected_df_size} nodes, but mask has {actual_df_size}. Possible duplicate or invalid node IDs.")
 
         # Delete edges associated with deleted nodes from training set
         res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]
@@ -735,10 +742,15 @@ class gnndelete(Learning_based_pipeline):
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
         os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
-        df_size = int(self.data.num_nodes * self.args["proportion_unlearned_nodes"])
         path_un = unlearning_path + "_" + str(self.run) + ".txt"
         df_nodes = np.loadtxt(path_un, dtype=int)
+        if df_nodes.ndim == 0:
+            df_nodes = np.array([df_nodes])
+        df_size = len(df_nodes)
         self.unlearning_nodes = df_nodes
+        
+        # Original logic: df_nodes_set = set(df_nodes)
+        # We keep the original validation logic but fix the size mismatch
         df_nodes_set = set(df_nodes)
         all_exist = df_nodes_set.issubset(self.data.train_indices)
         self.data.x[df_nodes] = 0

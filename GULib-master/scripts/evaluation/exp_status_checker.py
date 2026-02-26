@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import json
-import shutil
 import argparse
 import numpy as np
 from pathlib import Path
@@ -143,9 +142,12 @@ def scan_eval_coverage():
             try:
                 with open(f, 'r', encoding='utf-8') as f_in:
                     data = json.load(f_in)
+                    # Skip files with empty results
+                    if not data.get('results'):
+                        continue
                     cfg = data.get('config', {})
                     key = (cfg.get('unlearning_methods'), cfg.get('dataset_name'), cfg.get('base_model'), float(cfg.get('unlearn_ratio', 0.05)))
-                    
+
                     # Store unique seeds
                     seed = cfg.get('random_seed', cfg.get('seed'))
                     if seed is not None:
@@ -160,16 +162,19 @@ def scan_eval_coverage():
             try:
                 with open(f, 'r', encoding='utf-8') as f_in:
                     data = json.load(f_in)
+                    results = data.get('results', [])
+                    # Skip files with empty results
+                    if not results:
+                        continue
                     cfg = data.get('config', {})
                     key = (cfg.get('unlearning_methods'), cfg.get('dataset_name'), cfg.get('base_model'), float(cfg.get('unlearn_ratio', 0.05)))
-                    
+
                     # Priority 1: Config seed
                     root_seed = cfg.get('random_seed', cfg.get('seed'))
                     if root_seed is not None:
                         col_coverage[key].add(int(root_seed))
-                    
+
                     # Priority 2: Per-result seeds (merged storage mode)
-                    results = data.get('results', [])
                     for res in results:
                         if 'seed' in res:
                             col_coverage[key].add(int(res['seed']))
@@ -351,7 +356,7 @@ def analyze_gaps(official_found: Set[ExperimentKey]) -> dict:
 
 
 def handle_fill_mode(args):
-    """Handle --fill mode: update checklist with discovered experiments."""
+    """Handle --fill mode: scan, report gaps, write auto_discovered.json (no checklist modification)."""
     print("=" * 70)
     print("CHECKLIST GAP ANALYSIS")
     print("=" * 70)
@@ -409,88 +414,62 @@ def handle_fill_mode(args):
 
     updates_needed = [pk for pk, _ in final_updates]
 
+    # Enhanced MISMATCH details: show per-method breakdown
+    if updates_needed:
+        print(f"\n[MISMATCH Details]")
+        for pk, discovered_count in final_updates:
+            recorded = checklist_status.get(pk, {}).get('runs', 0)
+            section_id, section_name = PHASE_TO_SECTION.get(pk, (pk, pk))
+
+            # Per-method breakdown from discovered keys
+            phase_keys = [k for k in official_found if k.phase == pk]
+            method_counts = defaultdict(int)
+            for k in phase_keys:
+                method_counts[k.method] += 1
+
+            pcfg = PHASE_CONFIGS.get(pk)
+            if pcfg:
+                expected_per_method = pcfg.total_runs // len(pcfg.methods) if pcfg.methods else 0
+                missing_methods = []
+                for m in pcfg.methods:
+                    actual = method_counts.get(m, 0)
+                    if actual < expected_per_method:
+                        missing_methods.append(f"{m} ({actual}/{expected_per_method} runs)")
+                if missing_methods:
+                    print(f"  [MISMATCH] {pk}: discovered {discovered_count}, recorded {recorded}")
+                    print(f"    -> 缺失 methods: {', '.join(missing_methods)}")
+                    print(f"    -> 建议更新 checklist §{section_id}")
+                else:
+                    print(f"  [MISMATCH] {pk}: discovered {discovered_count}, recorded {recorded}")
+                    print(f"    -> 建议更新 checklist §{section_id}")
+
     # If no updates needed, exit
     if not updates_needed:
         print("\n[INFO] Checklist is up to date!")
-        return
 
-    # Step 4: Execute or dry-run
-    if args.dry_run:
-        print(f"\n[DRY-RUN] Would update checklist but no changes made.")
-        return
+    # Write auto_discovered.json
+    mismatches = []
+    for pk, discovered_count in final_updates:
+        recorded = checklist_status.get(pk, {}).get('runs', 0)
+        mismatches.append({
+            "phase": pk,
+            "discovered": discovered_count,
+            "recorded": recorded,
+            "delta": discovered_count - recorded,
+        })
 
-    if not args.fill_yes:
-        print(f"\n[CONFIRM] Apply these updates to checklist? [y/N]: ", end='')
-        response = input().strip().lower()
-        if response not in ['y', 'yes']:
-            print("[ABORTED] No changes made.")
-            return
-
-    # Step 5: Apply updates
-    checklist_path = Path("self/generalization_experiment_checklist.md")
-    backup_path = Path("self/generalization_experiment_checklist.md.bak")
-    shutil.copy2(checklist_path, backup_path)
-    print(f"\n[BACKUP] Created {backup_path}")
-
-    content = checklist_path.read_text(encoding='utf-8')
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    for pk in updates_needed:
-        count = source_counts.get(pk, 0)
-
-        if pk == 'mg0':
-            # Update run count for existing [x] entry (using Chinese brackets)
-            content = re.sub(
-                r'(- \[x\] `Cora / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
-                rf'\g<1>{count}\g<3>',
-                content
-            )
-
-        elif pk == 'mg1':
-            # Update run count
-            content = re.sub(
-                r'(- \[x\] `Citeseer / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
-                rf'\g<1>{count}\g<3>',
-                content
-            )
-
-        elif pk == 'mg2':
-            # Update run count
-            content = re.sub(
-                r'(- \[x\] `Cora / GAT / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
-                rf'\g<1>{count}\g<3>',
-                content
-            )
-
-        elif pk == 'ratio_sensitivity':
-            # Check if section exists with [ ]
-            if re.search(r'- \[ \] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`', content):
-                content = re.sub(
-                    r'- \[ \] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`',
-                    '- [x] `Cora / GCN / GIF / ratio=0.01,0.05,0.10,0.20 / 5 seeds`',
-                    content
-                )
-            elif 'Ratio 敏感性' not in content:
-                # Find position to insert (after MG-3 section)
-                insert_pos = content.find('### 2.7')
-                if insert_pos == -1:
-                    insert_pos = content.find('## 3.')
-                if insert_pos != -1:
-                    section_text = f'''### 2.6 Ratio 敏感性（攻击强度曲线）
-
-- [x] `Cora / GCN / GIF / ratio=0.01,0.05,0.10,0.20 / 5 seeds`（auto_discovered: {count} runs）
-  - **状态**：✅ 完成 ({today})
-  - seeds: `42, 212, 722, 2024, 1337`
-  - methods: `GIF, GNNDelete`
-  - strategies: `random, degree, pagerank, tracin, im, hybrid`
-  - ratios: `0.01, 0.05, 0.10, 0.20`
-  - 规模：`2 methods × 6 strategies × 4 ratios × 5 seeds = 240 runs`
-
-'''
-                    content = content[:insert_pos] + section_text + content[insert_pos:]
-
-    checklist_path.write_text(content, encoding='utf-8')
-    print(f"[DONE] Updated checklist with {len(updates_needed)} phase(s)")
+    output = {
+        "last_updated": datetime.now().isoformat(),
+        "sources": source_counts,
+        "total": total_discovered,
+        "checklist_status": {k: v for k, v in checklist_status.items()},
+        "mismatches": mismatches,
+    }
+    output_path = Path("results/experiments/auto_discovered.json")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+    print(f"\n[SAVED] {output_path}")
 
 
 def main():
@@ -500,13 +479,10 @@ def main():
     parser.add_argument('--method', help='Filter by method')
     parser.add_argument('--dataset', help='Filter by dataset')
     parser.add_argument('--detail', action='store_true', help='Show missing experiment details')
-    parser.add_argument('--fill', action='store_true', help='Update checklist with discovered experiments')
-    parser.add_argument('--fill-yes', action='store_true', help='Auto-confirm fill operations')
-    parser.add_argument('--dry-run', action='store_true', help='Show changes without writing')
+    parser.add_argument('--fill', action='store_true', help='Scan and report gaps, write auto_discovered.json (does NOT modify checklist)')
     args = parser.parse_args()
 
-    # Handle --fill and --dry-run
-    if args.fill or args.dry_run:
+    if args.fill:
         return handle_fill_mode(args)
 
     print(f"Scanning results with Sanity Checks...")

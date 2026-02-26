@@ -1,6 +1,6 @@
 # 实验进度查询
 
-查询当前实验完成情况，对比 checklist 与实际结果，支持自动填补清单。
+查询当前实验完成情况，对比 checklist 与实际结果。
 
 ## 用法
 
@@ -14,8 +14,7 @@
 /exp-status --method GIF             # 按方法筛选
 /exp-status --dataset cora           # 按数据集筛选
 /exp-status --detail                 # 显示缺失实验详情
-/exp-status --fill                   # 扫描并显示差异（需手动修改 checklist）
-/exp-status --fill --dry-run         # 只显示差异，不写入
+/exp-status --fill                   # 扫描差异 → 更新 auto_discovered.json → Claude 修改 checklist
 ```
 
 ## 输出格式
@@ -66,29 +65,37 @@ MG-1: Missing 6 runs
 ```
 
 ### 填补模式（--fill）
+
+**流程**:
+1. 脚本扫描 `results/experiments/` → 输出差异报告 + 更新 `results/experiments/auto_discovered.json`
+2. Claude 读取 `self/generalization_experiment_checklist.md`
+3. Claude 对比报告中的 MISMATCH，修改 checklist 对应条目
+4. Claude 展示修改内容给用户
+
 ```
 ======================================================================
 CHECKLIST GAP ANALYSIS
 ======================================================================
 
-[Missing in checklist - found 620 official experiments]
-  - mg0:GIF/cora/GCN/seed=42/degree/r0.05
-  - mg0:GIF/cora/GCN/seed=42/hybrid_v4/r0.05
-  ... and 617 more
+[Discovered experiments - 620 runs]
+  - mg0: 120 runs
+  - mg1: 90 runs
 
-[Legacy experiments (cache only) - 16 found]
-  (im/hybrid old versions kept as cache, not counted in checklist)
+[Current checklist status]
+  - mg0: [x] (120 runs recorded)
+  - mg1: [x] (90 runs recorded)
 
-[DRY-RUN] Would log 620 entries to results/experiments/auto_discovered.json
-         Would update checklist status (mark as [x] completed)
+[Gap Analysis]
+  - mg1: discovered 60, recorded 90 (MISMATCH!)
+
+[MISMATCH Details]
+  [MISMATCH] mg1: discovered 60, recorded 90
+    -> 缺失 methods: GNNDelete (0/30 runs)
+    -> 建议更新 checklist §2.2
+
+[SAVED] results/experiments/auto_discovered.json
 ======================================================================
 ```
-
-**说明**:
-- **Step 1**: 写入 `results/experiments/auto_discovered.json`（保留详细记录）
-- **Step 2**: 更新 `self/generalization_experiment_checklist.md` 完成状态
-- **official experiments**: 使用正式策略（v4版本）的实验
-- **legacy experiments**: 使用旧策略（im/hybrid）的实验，仅作为cache保留
 
 ## 实现逻辑
 
@@ -110,10 +117,8 @@ CHECKLIST GAP ANALYSIS
    - 标记高优先级缺失
 
 ### 4. 填补模式 (`--fill`)
-   - **缺失实验**：自动添加到 checklist 的"已完成配置"部分，标记为 `[x]`
-   - **额外实验**：提示用户选择标记为 `[ ]`（待完成）或 `[-]`（跳过）
-   - **写入文件**：更新 `self/generalization_experiment_checklist.md`
-   - **备份**：写入前自动创建 `.bak` 备份
+   - **Step 1**: 脚本写入 `auto_discovered.json` + 输出 MISMATCH 差异报告
+   - **Step 2**: Claude 读取 checklist，对比 MISMATCH，执行修改
 
 ## 具体配置映射
 
@@ -142,21 +147,21 @@ CHECKLIST GAP ANALYSIS
 
 ### 填补流程（--fill 执行两步）
 
-**Step 1**: 写入 `auto_discovered.json`
+**Step 1（脚本执行）**: 写入 `auto_discovered.json`
 ```json
 {
   "last_updated": "2026-02-25T21:57:26",
   "sources": {"mg0": 120, "mg1": 90, "ratio_sensitivity": 240},
-  "entries": [
-    {"phase": "mg0", "method": "GIF", "dataset": "cora", "model": "GCN", "seed": 42, "strategy": "degree", "ratio": 0.05, "discovered_at": "..."}
-  ]
+  "total": 450,
+  "checklist_status": {"mg0": {"marked": true, "runs": 120}},
+  "mismatches": [{"phase": "mg1", "discovered": 60, "recorded": 90, "delta": -30}]
 }
 ```
 
-**Step 2**: 更新 checklist.md 完成状态
+**Step 2（Claude 执行）**: 读取 checklist → 对比 MISMATCH → 修改 checklist
 - 将 `[ ]` 待完成更新为 `[x]` 已完成
-- 添加完成日期和 `（auto_discovered: N runs）` 引用
-- 若对应 Section 不存在（如 P2-Ratio），自动创建
+- 更新 `（auto_discovered: N runs）` 数值
+- 若对应 Section 不存在（如 P2-Ratio），手动创建
 
 ### 更新示例
 ```markdown
@@ -170,19 +175,11 @@ CHECKLIST GAP ANALYSIS
   - **状态**：✅ 完成 (2026-02-25)
 ```
 
-### 处理额外实验（清单规划但未实际运行）
-交互式询问用户：
-```
-发现以下实验在 checklist 中规划但未实际运行：
-1. P2-Ratio: GIF/cora/GCN/ratio=0.10
-   选择操作：[m]标记为待完成 [s]标记为跳过 [i]忽略 [a]全部标记为待完成
-```
-
 ## 实现步骤
 
 1. 调用 `H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py` 执行实际检查
 2. 解析脚本输出并格式化显示给用户
-3. `--fill` 模式支持交互式确认
+3. `--fill` 模式：脚本输出差异报告后，Claude 读取 checklist 执行修改
 
 > **注意**：必须使用完整 Python 路径，不得使用 `conda activate gnn && python`。
 > Claude Code 运行在非交互式 git bash 中，conda 未初始化，`conda` 命令不可用。
@@ -197,8 +194,7 @@ H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
 
 # 带参数调用
 H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --phase mg0 --detail
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill --dry-run
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill --yes
+H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill
 ```
 
 ### 参数映射
@@ -213,15 +209,6 @@ H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --
 | `--dataset cora` | `--dataset cora` |
 | `--detail` | `--detail` |
 | `--fill` | `--fill` |
-| `--fill --yes` | `--fill --fill-yes` |
-| `--fill --dry-run` | `--fill --dry-run` |
-
-## 安全机制
-
-1. **备份**：修改 checklist 前自动创建 `.bak` 文件
-2. **Dry Run**：`--fill --dry-run` 只显示建议修改，不实际写入
-3. **交互确认**：`--fill` 无 `--yes` 时需用户确认
-4. **标记来源**：自动添加的记录带有 `[AUTO-FILLED]` 标记
 
 ## 脚本位置
 

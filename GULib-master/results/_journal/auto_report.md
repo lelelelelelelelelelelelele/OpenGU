@@ -19510,3 +19510,16 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 异常与定位：无
 - 下一步建议：检查该方法在其他比例或数据集的趋势。
 
+
+### [2026-02-27 05:33] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=1.0s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.001005s, speedup=2.98x)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=0.6s, cache=MISS, selection=0.0315s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=0.6s, cache=HIT(key=6460c53b924fd6f49294630114f1e052), selection=0.0410s, reuse=0.000507s, speedup=80.94x)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=14.1s, cache=MISS, selection=13.4277s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=0.8s, cache=HIT(key=65ade5e1060d73c39cbec33df4fb2915), selection=1.1448s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=9.4s, cache=MISS, selection=8.7830s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
