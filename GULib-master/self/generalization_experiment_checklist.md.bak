@@ -61,7 +61,7 @@
     - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
     - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
-    - **Relative**: GIF=1.6%+/-1.0, GNNDelete=13.7%+/-4.0, GraphEraser=3.7%+/-2.5, GUIDE=-0.5%+/-1.4
+    - **Relative**: GIF=1.7%+/-1.1, GNNDelete=13.7%+/-4.0, GraphEraser=3.7%+/-2.5, GUIDE=-0.5%+/-1.4
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
@@ -90,7 +90,7 @@
     - **F1 Drop**: GIF=5.4%+/-1.1, GNNDelete=14.4%+/-5.1, GraphEraser=-7.9%+/-3.4
     - **MIA AUC**: GIF=0.49, GNNDelete=0.68, GraphEraser=0.00
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes
-    - **Relative**: GIF=2.6%+/-0.9, GNNDelete=-, GraphEraser=3.9%+/-2.9
+    - **Relative**: GIF=2.8%+/-1.9, GNNDelete=-, GraphEraser=3.9%+/-2.9
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral`
@@ -126,16 +126,13 @@
     - **F1 Drop**: GIF=2.4%+/-1.1, GNNDelete=13.8%+/-5.0
     - **MIA AUC**: GIF=0.61, GNNDelete=0.71
     - **Collateral**: GIF=yes, GNNDelete=yes
-    - **Relative**: GIF=1.6%+/-1.0, GNNDelete=13.7%+/-4.0
+    - **Relative**: GIF=1.7%+/-1.1, GNNDelete=13.7%+/-4.0
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - ratios: `0.01, 0.05, 0.10, 0.20`
   - 规模：`2 methods × 6 strategies × 4 ratios × 5 seeds = 240 runs`
   - **状态**：✅ 完成 (2026-02-25)
-  - **Ratio 评估缺口（非本批次范围，记录备查）**：
-    - ❌ GraphEraser/cora/GCN: r=0.01 collateral 缺失, r=0.10 collateral 空文件, r=0.20 collateral 缺失
-    - ❌ GUIDE/cora/GCN: r=0.01 collateral 缺失, r=0.10 collateral 空文件, r=0.20 collateral 缺失
 
 ### 2.7 评估缺口汇总（2026-02-26 审计）
 
@@ -144,14 +141,6 @@
 | 缺口类型 | 配置 | 缺失评估 |
 |----------|------|---------|
 | Relative | GUIDE/cora/GCN/r=0.05 (MG-0) | ❌ relative 缺失 |
-| Collateral | GUIDE/citeseer/GCN/r=0.05 (MG-1) | ❌ collateral 缺失 |
-| Collateral | GUIDE/cora/GAT/r=0.05 (MG-2) | ❌ collateral 缺失 |
-| Collateral | GraphEraser/cora/GCN/r=0.01 (Ratio) | ❌ collateral 缺失 |
-| Collateral | GraphEraser/cora/GCN/r=0.10 (Ratio) | ⚠️ 空文件（0 strategies） |
-| Collateral | GraphEraser/cora/GCN/r=0.20 (Ratio) | ❌ collateral 缺失 |
-| Collateral | GUIDE/cora/GCN/r=0.01 (Ratio) | ❌ collateral 缺失 |
-| Collateral | GUIDE/cora/GCN/r=0.10 (Ratio) | ⚠️ 空文件（0 strategies） |
-| Collateral | GUIDE/cora/GCN/r=0.20 (Ratio) | ❌ collateral 缺失 |
 
 **已完成的评估（无缺口）**：
 - GIF: 全部 phase + 全部 ratio ✅

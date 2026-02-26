@@ -18361,3 +18361,208 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=19.2s, cache=MISS, selection=17.9590s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 22:35] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8284, time=2.6s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8358, time=2.1s, cache=MISS, selection=0.0227s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8376, time=2.1s, cache=MISS, selection=0.0398s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8247, time=16.4s, cache=MISS, selection=14.2574s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8339, time=4.3s, cache=MISS, selection=1.7145s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8376, time=16.2s, cache=MISS, selection=14.0535s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-02-26 22:36:27] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.05% |    0.0163 |    1.34% |
+| degree   | 1.64% |    0.0161 |    0.97% |
+| pagerank | 1.43% |    0.0171 |    1.34% |
+| tracin   | -3.65% |    0.0297 |    1.16% |
+| im_v4    | 0.62% |    0.0174 |    1.00% |
+| hybrid_v4 | -0.63% |    0.0227 |    1.42% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260226_223627.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:36:51] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.33% |    0.0219 |    1.22% |
+| degree   | 0.41% |    0.0220 |    1.51% |
+| pagerank | 1.24% |    0.0246 |    1.68% |
+| tracin   | -7.81% |    0.0337 |    1.35% |
+| im_v4    | 0.62% |    0.0224 |    1.60% |
+| hybrid_v4 | -1.05% |    0.0313 |    2.09% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260226_223651.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:37:17] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0281 |    3.99% |
+| degree   | 0.41% |    0.0273 |    3.59% |
+| pagerank | 1.02% |    0.0288 |    3.39% |
+| tracin   | -4.67% |    0.0414 |    2.36% |
+| im_v4    | 0.61% |    0.0306 |    3.13% |
+| hybrid_v4 | -0.41% |    0.0338 |    3.74% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260226_223717.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:37:44] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.67% |    0.0368 |    4.67% |
+| degree   | 1.61% |    0.0316 |    3.98% |
+| pagerank | -1.88% |    0.0372 |    3.85% |
+| tracin   | -13.46% |    0.0522 |    2.91% |
+| im_v4    | -1.04% |    0.0349 |    4.21% |
+| hybrid_v4 | -5.90% |    0.0425 |    4.16% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260226_223744.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:38:25] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 0.00% |    0.0268 |    2.04% |
+| degree   | 0.42% |    0.0284 |    2.41% |
+| pagerank | -1.25% |    0.0311 |    3.08% |
+| tracin   | -2.56% |    0.0379 |    2.37% |
+| im_v4    | 0.21% |    0.0291 |    2.95% |
+| hybrid_v4 | -1.06% |    0.0340 |    2.90% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260226_223825.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:39:19] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.47% |    0.0324 |    2.75% |
+| degree   | 0.63% |    0.0335 |    1.98% |
+| pagerank | -0.84% |    0.0333 |    2.66% |
+| tracin   | -10.60% |    0.0437 |    2.46% |
+| im_v4    | -0.63% |    0.0340 |    2.83% |
+| hybrid_v4 | -2.98% |    0.0382 |    2.34% |
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260226_223919.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:40:16] eval_collateral.py
+- 任务：dataset=citeseer, model=GAT, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.06% |    0.0572 |    6.68% |
+| degree   | -1.42% |    0.0587 |    7.39% |
+| pagerank | -0.60% |    0.0590 |    6.82% |
+| tracin   | -2.49% |    0.0745 |    5.54% |
+| im_v4    | 0.00% |    0.0649 |    7.26% |
+| hybrid_v4 | -5.29% |    0.0704 |    6.48% |
+- 日志路径：`results\collateral\GIF\citeseer\GAT\collateral_20260226_224016.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:41:00] eval_collateral.py
+- 任务：dataset=citeseer, model=GAT, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.23% |    0.0656 |    8.73% |
+| degree   | -1.83% |    0.0633 |    7.59% |
+| pagerank | -0.20% |    0.0658 |    6.90% |
+| tracin   | -8.63% |    0.0860 |    6.26% |
+| im_v4    | -1.43% |    0.0607 |    5.96% |
+| hybrid_v4 | -6.41% |    0.0849 |    7.82% |
+- 日志路径：`results\collateral\GIF\citeseer\GAT\collateral_20260226_224100.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:41:28] eval_collateral.py
+- 任务：dataset=cora, model=GIN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0368 |    2.97% |
+| degree   | 0.21% |    0.0423 |    3.18% |
+| pagerank | 0.42% |    0.0346 |    2.67% |
+| tracin   | -1.27% |    0.0495 |    2.95% |
+| im_v4    | -0.42% |    0.0368 |    2.27% |
+| hybrid_v4 | -1.06% |    0.0454 |    3.64% |
+- 日志路径：`results\collateral\GIF\cora\GIN\collateral_20260226_224128.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:41:58] eval_collateral.py
+- 任务：dataset=cora, model=GIN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.90% |    0.0366 |    2.70% |
+| degree   | -2.34% |    0.0590 |    4.24% |
+| pagerank | 0.63% |    0.0548 |    4.10% |
+| tracin   | -2.83% |    0.0608 |    3.82% |
+| im_v4    | -0.42% |    0.0420 |    3.32% |
+| hybrid_v4 | -9.09% |    0.0799 |    5.17% |
+- 日志路径：`results\collateral\GIF\cora\GIN\collateral_20260226_224158.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:42:31] eval_collateral.py
+- 任务：dataset=citeseer, model=GIN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.43% |    0.0465 |    5.01% |
+| degree   | -1.02% |    0.0654 |    4.88% |
+| pagerank | -0.40% |    0.0602 |    4.35% |
+| tracin   | -5.06% |    0.0799 |    5.45% |
+| im_v4    | -1.62% |    0.0508 |    4.21% |
+| hybrid_v4 | -2.68% |    0.0821 |    5.15% |
+- 日志路径：`results\collateral\GIF\citeseer\GIN\collateral_20260226_224231.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 22:43:02] eval_collateral.py
+- 任务：dataset=citeseer, model=GIN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.25% |    0.0552 |    5.63% |
+| degree   | -0.61% |    0.0820 |    6.14% |
+| pagerank | -1.22% |    0.0799 |    6.76% |
+| tracin   | -13.64% |    0.1070 |    7.31% |
+| im_v4    | -3.57% |    0.0652 |    5.96% |
+| hybrid_v4 | -6.44% |    0.1114 |    7.16% |
+- 日志路径：`results\collateral\GIF\citeseer\GIN\collateral_20260226_224302.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+

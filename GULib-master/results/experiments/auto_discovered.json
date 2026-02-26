@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-02-26T21:18:31.278954",
+  "last_updated": "2026-02-26T23:28:11.912186",
   "sources": {
     "mg0": 120,
     "mg1": 90,
@@ -8,7 +8,7 @@
     "mg3_gat": 40,
     "ratio_sensitivity": 240,
     "_archive": 108,
-    "p2_ext": 168
+    "p2_ext": 360
   },
   "entries": [
     {
@@ -8970,6 +8970,1926 @@
       "strategy": "tracin",
       "ratio": 0.2,
       "discovered_at": "2026-02-26T21:18:31.278954"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "citeseer",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GAT",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 212,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 722,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 1337,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "degree",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "hybrid_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "im_v4",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "pagerank",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "random",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.1,
+      "discovered_at": "2026-02-26T23:28:11.912186"
+    },
+    {
+      "phase": "p2_ext",
+      "method": "GIF",
+      "dataset": "cora",
+      "model": "GIN",
+      "seed": 2024,
+      "strategy": "tracin",
+      "ratio": 0.2,
+      "discovered_at": "2026-02-26T23:28:11.912186"
     }
   ]
 }
