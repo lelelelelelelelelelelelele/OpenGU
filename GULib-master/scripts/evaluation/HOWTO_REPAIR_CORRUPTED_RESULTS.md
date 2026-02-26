@@ -123,9 +123,16 @@ python demo_attack.py --methods GNNDelete --datasets citeseer --base_model GCN -
 
 ## 第四步：修复下游衍生评估 (Relative & Collateral)
 
-主实验缓存生成后，衍生计算（例如 Relative Drop 和 Collateral Damage）往往也包含旧的错误缓存，需要重新通过 `--repair` 模式进行修复。这些脚本同样具备缓存判断能力。
+主实验缓存生成后，衍生计算（例如 Relative Drop 和 Collateral Damage）往往也包含旧的错误缓存。为了防止脚本因检测到已有结果而跳过，**必须先手动删除对应的衍生结果缓存**。
 
-执行针对性指令：
+**1. 清理衍生评估缓存：**
+```bash
+# 删除 Relative 和 Collateral 的旧结果文件 (以 GNNDelete_citeseer 为例)
+rm -f results/relative_eval/GNNDelete_citeseer*
+rm -f results/collateral_eval/GNNDelete_citeseer*
+```
+
+**2. 执行针对性修复指令：**
 ```bash
 # 修复 Relative (随机基线评估)
 python experiments/baseline_k5/eval_relative.py --unlearning_methods GNNDelete --dataset_name citeseer --base_model GCN --strategies random,degree,pagerank,tracin,im_v4,hybrid_v4 --unlearn_ratio 0.05 --random_seed 42,212,722,1337,2024 --repair

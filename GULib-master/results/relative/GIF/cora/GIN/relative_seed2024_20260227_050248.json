@@ -1,0 +1,63 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GIN",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.2,
+    "random_seed": 2024,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8192,
+      "gap": -0.017700369003689986,
+      "relative_f1_drop": 0.017700369003689986
+    },
+    {
+      "strategy": "degree",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8524,
+      "gap": 0.015499630996310021,
+      "relative_f1_drop": -0.015499630996310021
+    },
+    {
+      "strategy": "pagerank",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8229,
+      "gap": -0.01400036900369006,
+      "relative_f1_drop": 0.01400036900369006
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8376,
+      "gap": 0.0006996309963099856,
+      "relative_f1_drop": -0.0006996309963099856
+    },
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8542,
+      "gap": 0.017299630996309934,
+      "relative_f1_drop": -0.017299630996309934
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.845,
+      "gap": 0.008099630996309948,
+      "relative_f1_drop": -0.008099630996309948
+    }
+  ],
+  "timestamp": "2026-02-27T05:02:48.410901"
+}

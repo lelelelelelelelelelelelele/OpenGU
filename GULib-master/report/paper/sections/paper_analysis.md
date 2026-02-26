@@ -71,7 +71,30 @@
 
 ---
 
-## 3. Results + Analysis 可粘贴段落
+---
+
+## 3. 评估指标体系 (Metrics Framework)
+
+我们建立了一个五维度的评估体系，共包含 16 个核心指标，用以全面刻画攻击影响。
+
+| 维度 | 指标 | 定义与意义 | 核心公式 |
+| :--- | :--- | :--- | :--- |
+| **I. Utility (效用性能)** | `f1_drop` | 攻击后测试集 F1 绝对下降量 | $F1_{\text{before}} - F1_{\text{after}}$ |
+| | `relative_f1_drop` | 扣除随机删除影响后的纯攻击增益 | $F1_{\text{rand\_unlearn}} - F1_{\text{attack\_unlearn}}$ |
+| **II. Fidelity (近似保真度)** | `retrain_gap` (`gap`) | **核心指标**：衡量卸载算法带来的额外近似误差 | $F1_{\text{retrain}} - F1_{\text{unlearn}}$ |
+| | `drop_retrain` | 数据删除本身导致的信息损失 | $F1_{\text{before}} - F1_{\text{retrain}}$ |
+| **III. Collateral (附带损伤)** | `fraction_flipped` | 非目标节点预测结果翻转的比例 | $Retain\_Set: \text{count}(pred_{\Delta} \neq 0) / N$ |
+| | `mean_pred_shift` | 非目标节点预测概率的平均偏移量 | $Retain\_Set: \text{avg}(\|prob_{unl} - prob_{ret}\|)$ |
+| **IV. Privacy (隐私泄露)** | `mia_auc` | 成员推断攻击 AUC | $P(Member \| Preds)$ |
+| **V. Efficiency (效率开销)** | `unlearn_time` | 卸载算法本身执行时间 | - |
+| | `selection_time` | 攻击策略（如 IM）选择节点的时间 | - |
+
+> [!NOTE]
+> **Attribution Logic**: 我们的框架将总性能下降分解为：`Total Drop = Drop_retrain + Gap`。如果 `Gap >> Drop_retrain`（如 GNNDelete 所示），则证明崩溃源于卸载算法的**近似缺陷**而非节点本身的**任务重要性**。
+
+---
+
+## 4. Results + Analysis 可粘贴段落
 
 ### (1) Main Results Narrative
 
@@ -183,7 +206,7 @@
 
 ---
 
-## 4. 图表与写作骨架 (Figure/Table Plan + Paper Skeleton)
+## 5. 图表与写作骨架 (Figure/Table Plan + Paper Skeleton)
 
 ### Table 1: Cross-Family Attack Vulnerability Matrix
 
@@ -281,7 +304,7 @@
 
 ---
 
-## 5. 审稿人压力测试 (Reviewer Pressure Test)
+## 6. 审稿人压力测试 (Reviewer Pressure Test)
 
 ### 5.1 Internal Validity
 
@@ -302,18 +325,35 @@
 | Random baseline 鲁棒？ | k=5 多 seed 平均，消除单次波动 | ✅ |
 | Strategy 选择 budget 对齐？ | 所有策略选择相同数量节点 (k = ratio × num_nodes) | ✅ |
 
-### 5.3 Attack Protocol
+### 5.3 Threat Model & Attacker Knowledge
+
+We define the threat model along two dimensions: the attacker's overall capability (What they know) and the selection strategy's requirements (What they use).
+
+#### A. Attacker Capability (Context)
+- **White-box**: The attacker has full access to the target GNN's parameters and training data. This is our primary assumption for auditing the worst-case vulnerability.
+- **Gray-box**: The attacker has the graph data but no access to the target model parameters (may train a surrogate model).
+- **Black-box**: The attacker has only query access to the unlearned model's predictions.
+
+#### B. Strategy Knowledge (Requirement)
+- **Model-aware (White-box Strategy)**: 
+  - **TracIn**: Requires model gradients/parameters.
+  - **Hybrid**: Requires both gradients and graph topology.
+- **Model-agnostic (Black-box Strategy)**:
+  - **IM (Influence Maximization)**: Requires only graph topology (`edge_index`).
+  - **Structural Baselines**: Degree, PageRank, Random.
+
+> [!TIP]
+> IM as a "Black-box Strategy" is a significant finding: it demonstrates that an attacker can cause performance collapse in Learning-based GU methods using only structural information, without needing internal model access.
+
+#### C. MIA Audit (Privacy Leakage)
 
 | 检查项 | 现状 | 判定 |
 |--------|------|------|
 | MIA positive/negative control？ | MIA 代码存在 (`attack/MIA_attack.py`) 但未在当前分析中运行 | ❌ [待补充] |
-| Threat model 明确？ | 攻击者控制删除请求，观察 before/after 模型性能 | ⚠️ 需要形式化为 threat model table |
-| 攻击者知识假设？ | White-box: 攻击者有模型参数 + 训练数据（for TracIn/IM 评分） | ⚠️ 需要明确区分 white-box / gray-box 场景 |
-| 多种 attacker 知识？ | 仅 white-box | ❌ 缺 gray/black-box 对比 |
 
-**最小补方案**:
-1. 运行 `attack/MIA_attack.py` 在 GNNDelete + GIF（im_v4 策略 vs random 策略），获取 MIA AUC
-2. 撰写 threat model table: 明确 "attacker controls deletion requests for self-owned nodes" + "attacker has query access to model predictions before/after unlearning"
+**MIA 补充方案**:
+1. 运行 `attack/MIA_attack.py` 覆盖 GNNDelete + GIF（im_v4 策略 vs random 策略）。
+2. 获取 MIA AUC 指标，验证攻击是否在造成性能下降的同时增加了成员信息泄露。
 
 ### 5.4 Efficiency Claims
 
@@ -326,7 +366,7 @@
 
 ---
 
-## 6. CV-Relevance & ECCV 可行性评估
+## 7. CV-Relevance & ECCV 可行性评估
 
 ### CV-Relevance Analysis
 

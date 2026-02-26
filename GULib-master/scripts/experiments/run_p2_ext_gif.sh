@@ -172,14 +172,18 @@ if [ "$RUN_COLLATERAL" -eq 1 ]; then
     for MODEL in $(echo "$BASE_MODELS" | tr ',' ' '); do
         for DATASET in $(echo "$DATASETS" | tr ',' ' '); do
             for RATIO in $(echo "$RATIOS" | tr ',' ' '); do
-                echo ">>> CollEval: GIF / $DATASET / $MODEL / r=$RATIO"
+                for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+                    echo ">>> CollEval: GIF / $DATASET / $MODEL / r=$RATIO / seed=$SEED"
 
-                "$PYTHON_BIN" eval_collateral.py \
-                    --dataset_name "$DATASET" \
-                    --base_model "$MODEL" \
-                    --unlearning_methods "$METHODS" \
-                    --strategies "$STRATEGIES" \
-                    --unlearn_ratio "$RATIO"
+                    "$PYTHON_BIN" eval_collateral.py \
+                        --dataset_name "$DATASET" \
+                        --base_model "$MODEL" \
+                        --unlearning_methods "$METHODS" \
+                        --strategies "$STRATEGIES" \
+                        --unlearn_ratio "$RATIO" \
+                        --random_seed "$SEED" \
+                        $REPAIR_MODE_ARG
+                done
             done
         done
     done

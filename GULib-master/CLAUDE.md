@@ -107,6 +107,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - GraphRevoker reuses the `grapheraser` class in the method map
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
+- `scripts/evaluation/HOWTO_REPAIR_CORRUPTED_RESULTS.md`: Bug 修复后数据刷新指南
 
 ## Project Context (Attack Research)
 

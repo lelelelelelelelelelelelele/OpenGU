@@ -200,11 +200,23 @@ def scan_eval_coverage():
     print("="*85)
 
 from collections import defaultdict
+import glob
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--results-dir', default='results/experiments')
+    parser.add_argument('--phase', help='Filter by phase (mg0, mg1, mg2, mg3, ratio, p2_ext)')
+    parser.add_argument('--method', help='Filter by method')
+    parser.add_argument('--dataset', help='Filter by dataset')
+    parser.add_argument('--detail', action='store_true', help='Show missing experiment details')
+    parser.add_argument('--fill', action='store_true', help='Update checklist with discovered experiments')
+    parser.add_argument('--fill-yes', action='store_true', help='Auto-confirm fill operations')
+    parser.add_argument('--dry-run', action='store_true', help='Show changes without writing')
     args = parser.parse_args()
+
+    # Handle --fill and --dry-run
+    if args.fill or args.dry_run:
+        return handle_fill_mode(args)
 
     print(f"Scanning results with Sanity Checks...")
     official, _ = scan_actual_results(args.results_dir)

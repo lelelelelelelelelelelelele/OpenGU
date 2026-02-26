@@ -1,0 +1,63 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GAT",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.2,
+    "random_seed": 722,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7117,
+      "gap": 0.007796096096096106,
+      "relative_f1_drop": -0.007796096096096106
+    },
+    {
+      "strategy": "degree",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.6967,
+      "gap": -0.007203903903903908,
+      "relative_f1_drop": 0.007203903903903908
+    },
+    {
+      "strategy": "pagerank",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7282,
+      "gap": 0.024296096096096065,
+      "relative_f1_drop": -0.024296096096096065
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7132,
+      "gap": 0.009296096096096051,
+      "relative_f1_drop": -0.009296096096096051
+    },
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7042,
+      "gap": 0.0002960960960961545,
+      "relative_f1_drop": -0.0002960960960961545
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7237,
+      "gap": 0.019796096096096116,
+      "relative_f1_drop": -0.019796096096096116
+    }
+  ],
+  "timestamp": "2026-02-27T05:00:36.169941"
+}
