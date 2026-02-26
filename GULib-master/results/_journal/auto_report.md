@@ -19523,3 +19523,74 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.1877, time=9.4s, cache=MISS, selection=8.7830s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 05:47] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = 0.0000 (f1_before=0.8340, f1_after=0.8340, time=15.7s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.001001s, speedup=1465.61x)
+  - degree: F1 Drop = 0.0000 (f1_before=0.8174, f1_after=0.8174, time=18.2s, cache=MISS, selection=0.0018s)
+  - pagerank: F1 Drop = 0.0000 (f1_before=0.8414, f1_after=0.8414, time=19.1s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.000000s)
+  - tracin: F1 Drop = 0.0000 (f1_before=0.8331, f1_after=0.8331, time=40.5s, cache=MISS, selection=6.9341s)
+  - im_v4: F1 Drop = 0.0000 (f1_before=0.8246, f1_after=0.8246, time=31.0s, cache=HIT(key=740523b0ca18872055b4007aaa0360f0), selection=1.1484s, reuse=0.000511s, speedup=2248.76x)
+  - hybrid_v4: F1 Drop = 0.0000 (f1_before=0.8271, f1_after=0.8271, time=40.8s, cache=MISS, selection=7.5827s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 05:50] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = 0.0000 (f1_before=0.8154, f1_after=0.8154, time=18.3s, cache=HIT(key=2280f9dc6bf5490bdce17c4ed25761ae), selection=1.4285s, reuse=0.001000s, speedup=1428.60x)
+  - degree: F1 Drop = 0.0000 (f1_before=0.8397, f1_after=0.8397, time=19.6s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = 0.0000 (f1_before=0.8399, f1_after=0.8399, time=19.2s, cache=HIT(key=13614b1d971b5db3e4f11e9871486f11), selection=1.1302s, reuse=0.000992s, speedup=1139.79x)
+  - tracin: F1 Drop = 0.0000 (f1_before=0.8381, f1_after=0.8381, time=39.9s, cache=MISS, selection=8.1459s)
+  - im_v4: F1 Drop = 0.0000 (f1_before=0.8201, f1_after=0.8201, time=30.2s, cache=HIT(key=f463fe7cbaf66d291a73c8fe5fd03102), selection=1.1590s, reuse=0.001523s, speedup=760.74x)
+  - hybrid_v4: F1 Drop = 0.0000 (f1_before=0.8110, f1_after=0.8110, time=45.8s, cache=MISS, selection=8.1748s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 05:53] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = 0.0000 (f1_before=0.8189, f1_after=0.8189, time=21.4s, cache=HIT(key=e5961f35e36f2d13d1667111d4a66117), selection=1.4815s, reuse=0.002009s, speedup=737.55x)
+  - degree: F1 Drop = 0.0000 (f1_before=0.8273, f1_after=0.8273, time=18.7s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = 0.0000 (f1_before=0.8302, f1_after=0.8302, time=20.6s, cache=HIT(key=a976a80b9a50ff17f0557321602fdf0b), selection=1.1630s, reuse=0.001527s, speedup=761.83x)
+  - tracin: F1 Drop = 0.0000 (f1_before=0.8003, f1_after=0.8003, time=39.1s, cache=MISS, selection=9.2000s)
+  - im_v4: F1 Drop = 0.0000 (f1_before=0.8038, f1_after=0.8038, time=36.1s, cache=HIT(key=5423bc484c31e81789207902b23485e5), selection=1.1585s, reuse=0.000995s, speedup=1163.82x)
+  - hybrid_v4: F1 Drop = 0.0000 (f1_before=0.8343, f1_after=0.8343, time=40.2s, cache=MISS, selection=7.9118s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 06:12] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.6272 (f1_before=0.8303, f1_after=0.2030, time=17.9s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 06:30] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.6273 (f1_before=0.8303, f1_after=0.2030, time=17.9s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 06:30] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.7622 (f1_before=0.8303, f1_after=0.0680, time=20.0s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 06:32] demo_attack.py - GUIDE 攻击实验
+- 任务：dataset=cora, model=GCN, method=GUIDE, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = 0.7408 (f1_before=0.8303, f1_after=0.0895, time=14.8s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

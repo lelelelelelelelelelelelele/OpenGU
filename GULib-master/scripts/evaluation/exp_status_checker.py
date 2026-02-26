@@ -51,7 +51,7 @@ class PhaseConfig:
         return len(self.methods) * len(ds_list) * len(md_list) * len(self.seeds) * len(self.strategies) * num_ratios
 
 PHASE_CONFIGS = {
-    "mg0": PhaseConfig("MG-0", "mg0_completion", ["GIF", "GNNDelete", "GraphEraser", "GUIDE"], "cora", "GCN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
+    "mg0": PhaseConfig("MG-0", "mg0_completion", ["GIF", "GNNDelete", "GraphEraser"], "cora", "GCN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
     "mg1": PhaseConfig("MG-1", "mg1_citeseer", ["GIF", "GNNDelete", "GraphEraser"], "citeseer", "GCN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
     "mg2": PhaseConfig("MG-2", "mg2_gat", ["GIF", "GNNDelete", "GraphEraser"], "cora", "GAT", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
     "mg3_citeseer": PhaseConfig("MG-3-Citeseer", "mg3_citeseer", ["IDEA", "MEGU"], "citeseer", "GCN", [42, 212, 722, 1337, 2024], ["random", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),

@@ -22,7 +22,7 @@
 
 | Sh 文件 | 实验阶段 | Dataset | Model | Methods | Strategies | Seeds | 输出目录 |
 |---------|---------|---------|-------|---------|------------|-------|----------|
-| `scripts/experiments/run_mg0_completion.sh` | MG-0 稳定性 | cora | GCN | GIF,GNNDelete,GraphEraser,GUIDE | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg0_completion` |
+| `scripts/experiments/run_mg0_completion.sh` | MG-0 稳定性 | cora | GCN | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg0_completion` |
 | `scripts/experiments/run_mg1_citeseer.sh` | MG-1 跨数据集 | citeseer | GCN | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg1_citeseer` |
 | `scripts/experiments/run_mg2_gat.sh` | MG-2 跨模型 | cora | GAT | GIF,GNNDelete,GraphEraser | random,degree,pagerank,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg2_gat` |
 | `scripts/experiments/run_mg3_extended.sh` | MG-3 扩展方法 | citeseer(cora) | GCN(GAT) | IDEA,MEGU | random,tracin,im,hybrid | 42,212,722,1337,2024 | `results/experiments/mg3_citeseer`, `mg3_gat` |
@@ -46,28 +46,30 @@
 ## 2. 最小泛化阶段（推荐先做）
 
 > 目的：在可控算力下，先拿到”可发表级”的最小泛化证据。
-> 核心方法组（4 个）：
+> 核心方法组（3 个）：
 > - IF-based: `GIF`
 > - Learning-based: `GNNDelete`
-> - Shard-based: `GraphEraser`, `GUIDE`
+> - Shard-based: `GraphEraser`
 > 可选扩展组（+2 个）：`IDEA`（IF-based）, `MEGU`（Learning-based）。
+> ~~GUIDE~~：因 unlearning 评估 bug 排除（aggregate_shard_model 未正确加载 retrained 模型）。
 
 > 📋 **Sh 文件对应**：`scripts/experiments/run_mg0_completion.sh`, `scripts/experiments/run_mg1_citeseer.sh`, `scripts/experiments/run_mg2_gat.sh`, `scripts/experiments/run_mg3_extended.sh`
 
 ### 2.1 MG-0 稳定性（非泛化，但必做）
 
-- [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 152 runs）
+- [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 90 runs）
   - **评估汇总**：
-    - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
-    - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
-    - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
-    - **Relative**: GIF=1.7%+/-1.1, GNNDelete=13.7%+/-4.0, GraphEraser=3.7%+/-2.5, GUIDE=-0.5%+/-1.4
+    - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7
+    - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00
+    - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes
+    - **Relative**: GIF=1.7%+/-1.1, GNNDelete=13.7%+/-4.0, GraphEraser=3.7%+/-2.5
   - seeds: `42, 212, 722, 2024, 1337`
-  - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
+  - methods: `GIF, GNNDelete, GraphEraser`（1 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 产出：`mean ± std`，确认结论不是 seed 偶然
-  - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
-  - **状态**：✅ 实验完成 (2026-02-22) / ⚠️ Relative 评估缺 GUIDE
+  - 规模：`3 methods × 6 strategies × 5 seeds = 90 runs`
+  - **状态**：✅ 实验完成 (2026-02-22)
+  - **注**：GUIDE 因 unlearning 评估 bug（aggregate_shard_model 未加载 retrained 模型 + retrain 级联污染）排除，详见 guide.py git history
 
 ### 2.2 MG-1 最小跨数据集泛化
 
@@ -99,7 +101,7 @@
 
 ### 2.4 MG-3（可选）扩展到 5 方法
 
-- [x] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`
+- [x] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`（auto_discovered: 80 runs）
   - **评估汇总**：
     - **F1 Drop**: IDEA=5.6%+/-0.9, MEGU=1.4%+/-1.1
     - **MIA AUC**: IDEA=0.43, MEGU=0.00
@@ -108,10 +110,6 @@
   - methods: `GIF, GNNDelete, GraphEraser, IDEA, MEGU`
   - 建议先只跑 `random, tracin, im, hybrid` 四策略做筛选
   - **状态**：✅ 完成 (2026-02-22)
-  - 注：MG-1/MG-2 核心方法中，**GUIDE 缺 collateral 和 relative 评估**：
-    - ❌ GUIDE/citeseer/GCN/r=0.05 — collateral 缺失
-    - ❌ GUIDE/cora/GAT/r=0.05 — collateral 缺失
-
 ### 2.5 最小泛化通过标准
 
 - [ ] 在 `Citeseer/GCN` 与 `Cora/GAT` 上，三类方法（IF/Learning/Shard）仍保持机制差异趋势
@@ -136,13 +134,13 @@
 
 ### 2.7 评估缺口汇总（2026-02-26 审计）
 
-> 实验（attack runs）全部 620/620 完成。以下是**评估**（collateral / relative）的缺口。
+> GUIDE 已排除，实验范围调整为 590 runs。以下是**评估**（collateral / relative）的缺口。
 
 | 缺口类型 | 配置 | 缺失评估 |
 |----------|------|---------|
-| Relative | GUIDE/cora/GCN/r=0.05 (MG-0) | ❌ relative 缺失 |
+| （无缺口） | — | — |
 
-**已完成的评估（无缺口）**：
+**已完成的评估**：
 - GIF: 全部 phase + 全部 ratio ✅
 - GNNDelete: 全部 phase + 全部 ratio ✅
 - GraphEraser: MG-0/1/2 的 r=0.05 ✅
@@ -153,7 +151,7 @@
 ### 3.1 跨遗忘方法（同一数据集/模型）
 
 - [ ] 配置 `Cora / GCN / ratio=0.05 / >=5 seeds`，比较跨方法泛化
-  - methods: `GIF, GST, GUIDE, GNNDelete, MEGU`
+  - methods: `GIF, GST, GNNDelete, MEGU`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
 
@@ -198,11 +196,12 @@
 ## 4. 推荐执行顺序（按你当前结论风险）
 
 - [x] `P0`：`scripts/experiments/run_mg0_completion.sh` - 稳定性实验（5 seeds 验证结论不是 seed 偶然）
-  - sh 已配置：`--methods GIF,GNNDelete,GraphEraser,GUIDE --datasets cora --base_model GCN`
+  - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets cora --base_model GCN`
 - [x] `P1`：`scripts/experiments/run_mg1_citeseer.sh` - Citeseer / GCN 复现实验（优先验证当前机制分组是否泛化）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets citeseer --base_model GCN`
 - [ ] `P2`：做 `GIF` 在 `ratio=0.10/0.20`（排查”攻击幅度偏小”是否仅是低比例效应）
-- [ ] `P2-EXT`：GIF / cora,citeseer / GCN,GAT,GIN / r=0.10,0.20 / 5 seeds（扩展：360 runs）
+- [x] `P2-EXT`：GIF / cora,citeseer / GCN,GAT,GIN / r=0.10,0.20 / 5 seeds（auto_discovered: 360 runs）
+  - **状态**：✅ 完成 (2026-02-27)
 - [x] `P3`：`scripts/experiments/run_mg2_gat.sh` - 跨模型（`GAT`）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets cora --base_model GAT`
 - [x] `P4`：`scripts/experiments/run_mg3_extended.sh` - 扩展到 IDEA/MEGU

@@ -1,7 +1,7 @@
 {
-  "last_updated": "2026-02-27T05:44:16.734774",
+  "last_updated": "2026-02-27T06:36:12.461497",
   "sources": {
-    "mg0": 120,
+    "mg0": 90,
     "mg1": 60,
     "mg2": 90,
     "mg3_citeseer": 40,
@@ -11,11 +11,11 @@
     "p2_ext_GIN": 120,
     "ratio_sensitivity": 240
   },
-  "total": 950,
+  "total": 920,
   "checklist_status": {
     "mg0": {
       "marked": true,
-      "runs": 152
+      "runs": 90
     },
     "mg1": {
       "marked": true,
