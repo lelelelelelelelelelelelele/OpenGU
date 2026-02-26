@@ -54,7 +54,8 @@
       "Bash(conda run:*)",
       "Bash(cd:*)",
       "Bash(date:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(bash:*)"
     ]
   }
 }

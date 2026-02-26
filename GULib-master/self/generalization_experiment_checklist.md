@@ -61,7 +61,7 @@
     - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
     - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes, GUIDE=yes
-    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes, **GUIDE=❌ 缺失**
+    - **Relative**: GIF=1.6%+/-1.0, GNNDelete=13.7%+/-4.0, GraphEraser=3.7%+/-2.5, GUIDE=-0.5%+/-1.4
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete, GraphEraser, GUIDE`（2 Shard-based + 1 Learning-based + 1 IF-based）
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
@@ -76,7 +76,7 @@
     - **F1 Drop**: GIF=2.6%+/-0.6, GNNDelete=-19.3%+/-1.7, GraphEraser=-8.8%+/-1.8
     - **MIA AUC**: GIF=0.60, GNNDelete=-, GraphEraser=0.00
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes
-    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes
+    - **Relative**: GIF=0.0%+/-0.3, GNNDelete=-, GraphEraser=0.2%+/-0.7
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
@@ -90,7 +90,7 @@
     - **F1 Drop**: GIF=5.4%+/-1.1, GNNDelete=14.4%+/-5.1, GraphEraser=-7.9%+/-3.4
     - **MIA AUC**: GIF=0.49, GNNDelete=0.68, GraphEraser=0.00
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes
-    - **Relative**: GIF=yes, GNNDelete=yes, GraphEraser=yes
+    - **Relative**: GIF=2.6%+/-0.9, GNNDelete=-, GraphEraser=3.9%+/-2.9
   - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral`
@@ -101,8 +101,10 @@
 
 - [x] 在 MG-1 + MG-2 基础上增加 `IDEA` 与 `MEGU`
   - **评估汇总**：
-    - **Collateral**: IDEA(citeseer)=yes, IDEA(cora/GAT)=yes, MEGU(citeseer)=yes, MEGU(cora/GAT)=yes
-    - **Relative**: IDEA(citeseer)=yes, IDEA(cora/GAT)=yes, MEGU(citeseer)=yes, MEGU(cora/GAT)=yes
+    - **F1 Drop**: IDEA=5.6%+/-0.9, MEGU=1.4%+/-1.1
+    - **MIA AUC**: IDEA=0.43, MEGU=0.00
+    - **Collateral**: IDEA=yes, MEGU=yes
+    - **Relative**: IDEA=1.7%+/-1.0, MEGU=0.9%+/-0.8
   - methods: `GIF, GNNDelete, GraphEraser, IDEA, MEGU`
   - 建议先只跑 `random, tracin, im, hybrid` 四策略做筛选
   - **状态**：✅ 完成 (2026-02-22)
@@ -123,17 +125,8 @@
   - **评估汇总**：
     - **F1 Drop**: GIF=2.4%+/-1.1, GNNDelete=13.8%+/-5.0
     - **MIA AUC**: GIF=0.61, GNNDelete=0.71
-    - **Collateral（按 ratio）**：
-      - r=0.01: GIF=yes, GNNDelete=yes
-      - r=0.05: GIF=yes, GNNDelete=yes
-      - r=0.10: GIF=yes, GNNDelete=yes
-      - r=0.20: GIF=yes, GNNDelete=yes
-    - **Relative（按 ratio）**：
-      - r=0.01: GIF=yes, GNNDelete=yes
-      - r=0.05: GIF=yes, GNNDelete=yes
-      - r=0.10: GIF=yes, GNNDelete=yes
-      - r=0.20: GIF=yes, GNNDelete=yes
-    - 注：checklist 只含 GIF/GNNDelete；GUIDE 和 GraphEraser 的 ratio 敏感性评估缺口见下
+    - **Collateral**: GIF=yes, GNNDelete=yes
+    - **Relative**: GIF=1.6%+/-1.0, GNNDelete=13.7%+/-4.0
   - seeds: `42, 212, 722, 2024, 1337`
   - methods: `GIF, GNNDelete`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
@@ -220,6 +213,7 @@
 - [x] `P1`：`scripts/experiments/run_mg1_citeseer.sh` - Citeseer / GCN 复现实验（优先验证当前机制分组是否泛化）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets citeseer --base_model GCN`
 - [ ] `P2`：做 `GIF` 在 `ratio=0.10/0.20`（排查”攻击幅度偏小”是否仅是低比例效应）
+- [ ] `P2-EXT`：GIF / cora,citeseer / GCN,GAT,GIN / r=0.10,0.20 / 5 seeds（扩展：360 runs）
 - [x] `P3`：`scripts/experiments/run_mg2_gat.sh` - 跨模型（`GAT`）
   - sh 已配置：`--methods GIF,GNNDelete,GraphEraser --datasets cora --base_model GAT`
 - [x] `P4`：`scripts/experiments/run_mg3_extended.sh` - 扩展到 IDEA/MEGU

@@ -17458,3 +17458,503 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - random: F1 Drop = 0.0000 (f1_before=0.8031, f1_after=0.8031, time=19.9s, cache=MISS, selection=0.0000s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:21] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0517 (f1_before=0.8893, f1_after=0.8376, time=0.9s, cache=MISS, selection=0.0337s)
+  - degree: F1 Drop = 0.0443 (f1_before=0.8856, f1_after=0.8413, time=0.9s, cache=MISS, selection=0.0259s)
+  - im_v4: F1 Drop = 0.0369 (f1_before=0.8838, f1_after=0.8469, time=3.1s, cache=MISS, selection=1.4070s)
+  - tracin: F1 Drop = 0.0239 (f1_before=0.8911, f1_after=0.8672, time=7.9s, cache=MISS, selection=6.9881s)
+  - hybrid_v4: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=10.1s, cache=MISS, selection=8.9576s)
+  - random: F1 Drop = 0.0074 (f1_before=0.8838, f1_after=0.8764, time=1.4s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:21] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = 0.0240 (f1_before=0.8893, f1_after=0.8653, time=0.9s, cache=MISS, selection=0.0371s)
+  - im_v4: F1 Drop = 0.0222 (f1_before=0.8838, f1_after=0.8616, time=3.2s, cache=MISS, selection=1.6079s)
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.4s, cache=MISS, selection=0.0021s)
+  - hybrid_v4: F1 Drop = 0.0184 (f1_before=0.8856, f1_after=0.8672, time=10.0s, cache=MISS, selection=8.8491s)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8911, f1_after=0.8819, time=7.9s, cache=MISS, selection=7.0522s)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8856, f1_after=0.8801, time=0.9s, cache=MISS, selection=0.0375s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:23] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=2.1s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=1.6s, cache=MISS, selection=0.0343s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=1.5s, cache=MISS, selection=0.0745s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=17.4s, cache=MISS, selection=15.5374s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=3.1s, cache=MISS, selection=1.6882s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=22.0s, cache=MISS, selection=19.2925s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:24] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=2.8s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=2.6s, cache=MISS, selection=0.0288s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=2.5s, cache=MISS, selection=0.0435s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=28.4s, cache=MISS, selection=25.4033s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=4.7s, cache=MISS, selection=1.9907s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=29.4s, cache=MISS, selection=26.4150s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:25] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=212
+- 执行结果：
+  - pagerank: F1 Drop = 0.0443 (f1_before=0.8893, f1_after=0.8450, time=1.5s, cache=MISS, selection=0.0620s)
+  - degree: F1 Drop = 0.0424 (f1_before=0.8911, f1_after=0.8487, time=1.6s, cache=MISS, selection=0.0161s)
+  - hybrid_v4: F1 Drop = 0.0276 (f1_before=0.8911, f1_after=0.8635, time=7.3s, cache=MISS, selection=6.4796s)
+  - tracin: F1 Drop = 0.0222 (f1_before=0.8930, f1_after=0.8708, time=11.7s, cache=MISS, selection=10.2990s)
+  - im_v4: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=2.2s, cache=MISS, selection=1.1178s)
+  - random: F1 Drop = 0.0184 (f1_before=0.8856, f1_after=0.8672, time=2.0s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:25] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0295 (f1_before=0.8911, f1_after=0.8616, time=7.4s, cache=MISS, selection=6.5627s)
+  - im_v4: F1 Drop = 0.0277 (f1_before=0.8856, f1_after=0.8579, time=2.4s, cache=MISS, selection=1.3163s)
+  - tracin: F1 Drop = 0.0092 (f1_before=0.8930, f1_after=0.8838, time=10.6s, cache=MISS, selection=9.4650s)
+  - degree: F1 Drop = 0.0055 (f1_before=0.8911, f1_after=0.8856, time=1.3s, cache=MISS, selection=0.0228s)
+  - random: F1 Drop = 0.0037 (f1_before=0.8856, f1_after=0.8819, time=1.6s, cache=MISS, selection=0.0000s)
+  - pagerank: F1 Drop = 0.0037 (f1_before=0.8893, f1_after=0.8856, time=1.3s, cache=MISS, selection=0.0514s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:26] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=3.0s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=2.5s, cache=MISS, selection=0.0261s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7027, time=3.1s, cache=MISS, selection=0.0586s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=30.5s, cache=MISS, selection=27.0128s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=5.5s, cache=MISS, selection=1.8500s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=31.8s, cache=MISS, selection=27.8946s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:28] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=212
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=2.8s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=3.2s, cache=MISS, selection=0.0418s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7027, time=2.5s, cache=MISS, selection=0.0520s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=31.6s, cache=MISS, selection=27.7755s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=7.9s, cache=MISS, selection=2.9134s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=39.5s, cache=MISS, selection=35.7905s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:28] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=722
+- 执行结果：
+  - pagerank: F1 Drop = 0.0516 (f1_before=0.8819, f1_after=0.8303, time=1.1s, cache=MISS, selection=0.0384s)
+  - degree: F1 Drop = 0.0388 (f1_before=0.8875, f1_after=0.8487, time=1.0s, cache=MISS, selection=0.0179s)
+  - im_v4: F1 Drop = 0.0333 (f1_before=0.8875, f1_after=0.8542, time=2.4s, cache=MISS, selection=1.3872s)
+  - hybrid_v4: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=7.4s, cache=MISS, selection=6.4566s)
+  - tracin: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=7.4s, cache=MISS, selection=6.5550s)
+  - random: F1 Drop = 0.0129 (f1_before=0.8893, f1_after=0.8764, time=1.2s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:29] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=722
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0277 (f1_before=0.8893, f1_after=0.8616, time=7.6s, cache=MISS, selection=6.6321s)
+  - random: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=1.1s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=1.0s, cache=MISS, selection=0.0211s)
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=2.5s, cache=MISS, selection=1.5795s)
+  - tracin: F1 Drop = 0.0221 (f1_before=0.8856, f1_after=0.8635, time=7.8s, cache=MISS, selection=6.9486s)
+  - pagerank: F1 Drop = 0.0203 (f1_before=0.8819, f1_after=0.8616, time=0.9s, cache=MISS, selection=0.0375s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:30] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=3.4s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=2.5s, cache=MISS, selection=0.0692s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=2.9s, cache=MISS, selection=0.0486s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=30.6s, cache=MISS, selection=27.5766s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=4.7s, cache=MISS, selection=1.9139s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=30.0s, cache=MISS, selection=26.7357s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:32] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=722
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=3.3s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=2.6s, cache=MISS, selection=0.0454s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=2.7s, cache=MISS, selection=0.0493s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7072, time=31.0s, cache=MISS, selection=27.8461s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=5.5s, cache=MISS, selection=2.3637s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7132, time=30.3s, cache=MISS, selection=27.5173s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:32] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=1337
+- 执行结果：
+  - pagerank: F1 Drop = 0.0443 (f1_before=0.8856, f1_after=0.8413, time=0.9s, cache=MISS, selection=0.0374s)
+  - degree: F1 Drop = 0.0425 (f1_before=0.8875, f1_after=0.8450, time=1.0s, cache=MISS, selection=0.0204s)
+  - hybrid_v4: F1 Drop = 0.0332 (f1_before=0.8911, f1_after=0.8579, time=7.6s, cache=MISS, selection=6.6871s)
+  - im_v4: F1 Drop = 0.0277 (f1_before=0.8875, f1_after=0.8598, time=2.5s, cache=MISS, selection=1.4792s)
+  - random: F1 Drop = 0.0184 (f1_before=0.8856, f1_after=0.8672, time=1.2s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = 0.0129 (f1_before=0.8856, f1_after=0.8727, time=8.1s, cache=MISS, selection=7.0621s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:32] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = 0.0240 (f1_before=0.8856, f1_after=0.8616, time=1.2s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=0.9s, cache=MISS, selection=0.0143s)
+  - im_v4: F1 Drop = 0.0240 (f1_before=0.8875, f1_after=0.8635, time=2.6s, cache=MISS, selection=1.6695s)
+  - hybrid_v4: F1 Drop = 0.0221 (f1_before=0.8911, f1_after=0.8690, time=7.7s, cache=MISS, selection=6.8378s)
+  - tracin: F1 Drop = 0.0203 (f1_before=0.8856, f1_after=0.8653, time=7.8s, cache=MISS, selection=6.9576s)
+  - pagerank: F1 Drop = 0.0166 (f1_before=0.8856, f1_after=0.8690, time=1.0s, cache=MISS, selection=0.0372s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:33] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=2.5s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=2.5s, cache=MISS, selection=0.0239s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=2.3s, cache=MISS, selection=0.0380s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=26.2s, cache=MISS, selection=23.6793s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7042, time=3.6s, cache=MISS, selection=1.4707s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=25.7s, cache=MISS, selection=23.3488s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:35] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=1337
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=3.2s, cache=MISS, selection=0.0010s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=2.4s, cache=MISS, selection=0.0351s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=2.6s, cache=MISS, selection=0.0644s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=26.9s, cache=MISS, selection=24.3703s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7042, time=4.1s, cache=MISS, selection=1.7280s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=25.4s, cache=MISS, selection=23.0804s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:35] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=2024
+- 执行结果：
+  - pagerank: F1 Drop = 0.0517 (f1_before=0.8875, f1_after=0.8358, time=1.0s, cache=MISS, selection=0.0395s)
+  - degree: F1 Drop = 0.0516 (f1_before=0.8948, f1_after=0.8432, time=0.9s, cache=MISS, selection=0.0231s)
+  - hybrid_v4: F1 Drop = 0.0369 (f1_before=0.8930, f1_after=0.8561, time=8.0s, cache=MISS, selection=7.0590s)
+  - im_v4: F1 Drop = 0.0332 (f1_before=0.8893, f1_after=0.8561, time=2.4s, cache=MISS, selection=1.3975s)
+  - tracin: F1 Drop = 0.0185 (f1_before=0.8875, f1_after=0.8690, time=7.7s, cache=MISS, selection=6.7693s)
+  - random: F1 Drop = 0.0148 (f1_before=0.8838, f1_after=0.8690, time=1.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:35] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=2024
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0369 (f1_before=0.8930, f1_after=0.8561, time=7.8s, cache=MISS, selection=6.8505s)
+  - pagerank: F1 Drop = 0.0277 (f1_before=0.8875, f1_after=0.8598, time=1.0s, cache=MISS, selection=0.0366s)
+  - degree: F1 Drop = 0.0276 (f1_before=0.8948, f1_after=0.8672, time=1.0s, cache=MISS, selection=0.0209s)
+  - random: F1 Drop = 0.0259 (f1_before=0.8838, f1_after=0.8579, time=1.2s, cache=MISS, selection=0.0000s)
+  - tracin: F1 Drop = 0.0259 (f1_before=0.8875, f1_after=0.8616, time=8.0s, cache=MISS, selection=7.0408s)
+  - im_v4: F1 Drop = 0.0258 (f1_before=0.8893, f1_after=0.8635, time=2.5s, cache=MISS, selection=1.5613s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:36] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7162, time=2.6s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=2.2s, cache=MISS, selection=0.0226s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7147, time=2.2s, cache=MISS, selection=0.0353s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=26.1s, cache=MISS, selection=23.7608s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=3.6s, cache=MISS, selection=1.3625s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=26.7s, cache=MISS, selection=24.2573s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 18:38] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=2024
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7162, time=2.6s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=2.5s, cache=MISS, selection=0.0301s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7147, time=2.4s, cache=MISS, selection=0.0403s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=28.0s, cache=MISS, selection=25.5237s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7057, time=3.8s, cache=MISS, selection=1.4854s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=27.4s, cache=MISS, selection=24.9457s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-02-26 18:38:50] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.63% |    0.0185 |    1.29% |
+| degree   | 1.44% |    0.0169 |    1.44% |
+| pagerank | 1.23% |    0.0162 |    0.98% |
+| tracin   | -3.43% |    0.0285 |    1.11% |
+| im_v4    | 1.03% |    0.0171 |    1.27% |
+| hybrid_v4 | -0.63% |    0.0251 |    1.37% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260226_183850.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 18:39:18] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.48% |    0.0218 |    1.45% |
+| degree   | 1.03% |    0.0216 |    1.51% |
+| pagerank | 1.03% |    0.0220 |    1.73% |
+| tracin   | -6.43% |    0.0323 |    1.29% |
+| im_v4    | -0.63% |    0.0228 |    1.97% |
+| hybrid_v4 | -2.34% |    0.0318 |    1.60% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260226_183918.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 18:39:58] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -1.46% |    0.0263 |    3.15% |
+| degree   | 0.61% |    0.0303 |    3.30% |
+| pagerank | 0.20% |    0.0269 |    3.22% |
+| tracin   | -3.18% |    0.0435 |    2.58% |
+| im_v4    | 0.20% |    0.0320 |    4.34% |
+| hybrid_v4 | -2.73% |    0.0319 |    3.35% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260226_183958.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 18:40:37] eval_collateral.py
+- 任务：dataset=citeseer, model=GCN, method=GIF, ratio=0.2
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -2.10% |    0.0337 |    3.73% |
+| degree   | 1.22% |    0.0329 |    3.61% |
+| pagerank | -0.62% |    0.0364 |    4.09% |
+| tracin   | -11.70% |    0.0507 |    2.96% |
+| im_v4    | -1.88% |    0.0369 |    3.91% |
+| hybrid_v4 | -5.42% |    0.0428 |    3.81% |
+- 日志路径：`results\collateral\GIF\citeseer\GCN\collateral_20260226_184037.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+### [2026-02-26 18:40:49] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.1
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260226_184049.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:01] eval_collateral.py
+- 任务：dataset=cora, model=GAT, method=GIF, ratio=0.2
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\cora\GAT\collateral_20260226_184101.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:12] eval_collateral.py
+- 任务：dataset=citeseer, model=GAT, method=GIF, ratio=0.1
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\citeseer\GAT\collateral_20260226_184112.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:22] eval_collateral.py
+- 任务：dataset=citeseer, model=GAT, method=GIF, ratio=0.2
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\citeseer\GAT\collateral_20260226_184122.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:32] eval_collateral.py
+- 任务：dataset=cora, model=GIN, method=GIF, ratio=0.1
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\cora\GIN\collateral_20260226_184132.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:42] eval_collateral.py
+- 任务：dataset=cora, model=GIN, method=GIF, ratio=0.2
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\cora\GIN\collateral_20260226_184142.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:41:52] eval_collateral.py
+- 任务：dataset=citeseer, model=GIN, method=GIF, ratio=0.1
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\citeseer\GIN\collateral_20260226_184152.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+### [2026-02-26 18:42:02] eval_collateral.py
+- 任务：dataset=citeseer, model=GIN, method=GIF, ratio=0.2
+- 策略结果：
+（无策略结果）
+- 日志路径：`results\collateral\GIF\citeseer\GIN\collateral_20260226_184202.json`
+- 执行结果：WARN
+- 异常与定位：NO_CACHE_HIT: No matching cache entries found for the requested strategies/ratio/seed.
+- 下一步建议：先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。
+
+
+### [2026-02-26 21:06] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8210, time=7.6s, cache=MISS, selection=0.0037s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8100, time=7.4s, cache=MISS, selection=0.0364s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7970, time=7.9s, cache=MISS, selection=0.1039s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8284, time=49.8s, cache=MISS, selection=43.4967s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8118, time=9.2s, cache=MISS, selection=3.3401s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8395, time=53.8s, cache=MISS, selection=47.1387s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:09] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8247, time=8.1s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8542, time=7.0s, cache=MISS, selection=0.0877s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8432, time=6.5s, cache=MISS, selection=0.0835s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8339, time=57.1s, cache=MISS, selection=50.5264s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8284, time=13.1s, cache=MISS, selection=4.8804s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8395, time=71.0s, cache=MISS, selection=62.4679s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:12] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7012, time=8.2s, cache=MISS, selection=0.0010s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.6952, time=7.0s, cache=MISS, selection=0.0885s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.6967, time=8.4s, cache=MISS, selection=0.1192s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7207, time=70.7s, cache=MISS, selection=61.7368s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=10.0s, cache=MISS, selection=3.6566s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7087, time=39.2s, cache=MISS, selection=36.0493s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:14] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GAT, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=2.9s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.6952, time=3.1s, cache=MISS, selection=0.0334s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7012, time=3.8s, cache=MISS, selection=0.0502s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7147, time=39.9s, cache=MISS, selection=37.1661s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7117, time=5.3s, cache=MISS, selection=2.0285s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7147, time=75.3s, cache=MISS, selection=65.2458s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:15] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GIN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=11.8s, cache=MISS, selection=0.0010s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8118, time=6.7s, cache=MISS, selection=1.4644s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8155, time=5.3s, cache=MISS, selection=0.1630s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8542, time=35.7s, cache=MISS, selection=34.5532s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8395, time=4.1s, cache=MISS, selection=2.0339s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8321, time=11.1s, cache=MISS, selection=9.5902s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:15] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GIN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8284, time=1.4s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8506, time=1.2s, cache=MISS, selection=0.0259s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8469, time=1.2s, cache=MISS, selection=0.0445s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8506, time=7.6s, cache=MISS, selection=6.6558s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8395, time=2.8s, cache=MISS, selection=1.6796s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.8321, time=7.9s, cache=MISS, selection=6.7850s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:16] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GIN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (332 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=1.6s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7267, time=1.2s, cache=MISS, selection=0.0088s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7297, time=1.3s, cache=MISS, selection=0.0417s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7267, time=20.3s, cache=MISS, selection=18.6534s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7237, time=3.5s, cache=MISS, selection=1.8466s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7282, time=21.3s, cache=MISS, selection=20.0102s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-26 21:18] demo_attack.py - GIF 攻击实验
+- 任务：dataset=citeseer, model=GIN, method=GIF, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (665 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.7102, time=1.7s, cache=MISS, selection=0.0000s)
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.7267, time=1.3s, cache=MISS, selection=0.0096s)
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.7297, time=1.4s, cache=MISS, selection=0.0449s)
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7267, time=23.9s, cache=MISS, selection=22.1104s)
+  - im_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7237, time=3.7s, cache=MISS, selection=2.0464s)
+  - hybrid_v4: F1 Drop = NA (f1_before=NA, f1_after=0.7282, time=23.6s, cache=MISS, selection=21.5253s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

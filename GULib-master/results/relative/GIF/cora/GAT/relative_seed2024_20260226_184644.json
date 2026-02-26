@@ -1,0 +1,20 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GAT",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.2,
+    "random_seed": 2024,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [],
+  "timestamp": "2026-02-26T18:46:44.322278"
+}

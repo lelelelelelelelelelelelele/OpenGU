@@ -35,6 +35,7 @@
 | G7 | **缺 ablation**：IF vs IM vs Hybrid 的贡献分解 | "no ablation" | 已有数据覆盖 tracin/im_v4/hybrid_v4/random/degree/pagerank，汇总为 ablation 表 |
 | G8 | **GraphEraser k=5 relative 指标缺失或异常** | Shard 保护效应的相对量化不足 | 用 `eval_relative.py` 对 GraphEraser 跑完 5 seeds × 6 strategies |
 
+
 ### 2.3 写作蓝图 (Writing Blueprint)
 
 **Results 叙事主线：**
@@ -208,6 +209,8 @@
 **Conclusion**: Non-monotonic—maximal vulnerability at ratio=0.01–0.10, slight recovery at 0.20
 **Caption**: "GNNDelete's F1 drop as a function of deletion ratio on Cora/GCN. The non-monotonic pattern suggests saturation of the compensation mechanism."
 
+![Figure 1: GNNDelete's F1 Drop vs Ratio](h:/project/OpenGU/GULib-master/report/paper/figures/fig1_gnndelete_ratio.png)
+
 ### Figure 2: Shard Protection Effect Visualization
 
 **Data source**: `report/analysis/notes/2026-02-22_新发现_Shard保护效应与新指标.md` + Step0 baseline
@@ -215,13 +218,52 @@
 **Conclusion**: f1_after > f1_before consistently → deletion improves performance
 **Caption**: "The Shard Protection Effect: GraphEraser's F1 increases after node deletion across all attack strategies."
 
+![Figure 2: The Shard Protection Effect: GraphEraser](h:/project/OpenGU/GULib-master/report/paper/figures/fig2_grapheraser_shard.png)
+
 ### Table 3: Strategy Ablation (Relative F1 Drop vs k=5 Random Baseline)
 
-**Data source**: `results/relative/*/cora/GCN/relative_seed*_*.json`
-**Fields**: `relative_f1_drop` per (strategy, method)
-**Dimensions**: 3 strategies (im_v4, tracin, hybrid_v4) × methods that support relative eval
-**Conclusion**: Strategies differ primarily on GNNDelete; on GIF, all strategies ≈ random
-**[待补充]**: Aggregate across 5 seeds → mean ± std
+**Data source**: `results/relative/*/relative_seed*_*.json` (all datasets, models, ratio=0.05, N=5 seeds each)
+**Fields**: `relative_f1_drop` per (strategy, method, dataset, model)
+**Dimensions**: 3 strategies (im_v4, tracin, hybrid_v4) × 5 methods (GNNDelete, GIF, GraphEraser, IDEA, MEGU)
+**Conclusion**: GNNDelete is orders of magnitude more vulnerable than all other methods. IDEA and MEGU show near-zero drops (< 2%), similar to GIF. GraphEraser shows non-trivial but mixed drops.
+
+> [!NOTE]
+> GUIDE is **excluded** from all tables: OpenGU source-library bugs cause node-classification F1 to always return 0 ([`guide.py`](file:///h:/project/OpenGU/GULib-master/unlearning/unlearning_methods/GUIDE/guide.py)). All GUIDE data is invalid.
+
+| Method | Setting | Strategy | Relative F1 Drop (%) ± Std (N=5) |
+|--------|---------|----------|----------------------------------|
+| **GNNDelete** | Cora/GCN | hybrid_v4 | **11.44% ± 5.09%** |
+| **GNNDelete** | Cora/GCN | im_v4 | **12.47% ± 5.47%** |
+| **GNNDelete** | Cora/GCN | tracin | 8.05% ± 1.88% |
+| GIF | Cora/GCN | hybrid_v4 | 1.41% ± 0.97% |
+| GIF | Cora/GCN | im_v4 | 1.52% ± 0.71% |
+| GIF | Cora/GCN | tracin | 0.70% ± 0.56% |
+| GIF | Cora/GAT | hybrid_v4 | 2.51% ± 0.58% |
+| GIF | Cora/GAT | im_v4 | 3.54% ± 0.36% |
+| GIF | Cora/GAT | tracin | 1.77% ± 0.65% |
+| GraphEraser | Cora/GCN | hybrid_v4 | 4.39% ± 2.56% |
+| GraphEraser | Cora/GCN | im_v4 | 4.87% ± 2.34% |
+| GraphEraser | Cora/GCN | tracin | 1.70% ± 1.14% |
+| GraphEraser | Cora/GAT | hybrid_v4 | 5.16% ± 1.98% |
+| GraphEraser | Cora/GAT | im_v4 | 6.20% ± 0.55% |
+| GraphEraser | Cora/GAT | tracin | 0.26% ± 1.22% |
+| GraphEraser | Citeseer/GCN | hybrid_v4 | −0.03% ± 0.64% |
+| GraphEraser | Citeseer/GCN | im_v4 | 0.36% ± 0.58% |
+| GraphEraser | Citeseer/GCN | tracin | 0.30% ± 0.85% |
+| IDEA | Cora/GAT | hybrid_v4 | 1.66% ± 0.66% |
+| IDEA | Cora/GAT | im_v4 | 2.55% ± 0.49% |
+| IDEA | Cora/GAT | tracin | 1.03% ± 0.98% |
+| IDEA | Citeseer/GCN | hybrid_v4 | 0.27% ± 0.32% |
+| IDEA | Citeseer/GCN | im_v4 | 0.51% ± 0.57% |
+| IDEA | Citeseer/GCN | tracin | 0.84% ± 0.22% |
+| MEGU | Cora/GAT | hybrid_v4 | 1.44% ± 0.83% |
+| MEGU | Cora/GAT | im_v4 | 0.85% ± 0.85% |
+| MEGU | Cora/GAT | tracin | 0.41% ± 0.39% |
+| MEGU | Citeseer/GCN | hybrid_v4 | −0.39% ± 0.29% |
+| MEGU | Citeseer/GCN | im_v4 | 0.06% ± 0.38% |
+| MEGU | Citeseer/GCN | tracin | 0.99% ± 0.39% |
+
+![Figure 3: Relative F1 Drop Comparison (all methods, ratio=0.05)](h:/project/OpenGU/GULib-master/report/paper/figures/fig3_relative_f1_drop.png)
 
 ### Table 4: IM Node Selection Efficiency
 

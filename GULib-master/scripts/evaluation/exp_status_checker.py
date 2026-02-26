@@ -48,11 +48,15 @@ class PhaseConfig:
     seeds: List[int]
     strategies: List[str]  # 正式策略（报告用）
     legacy_strategies: List[str] = None  # 旧版策略（作为cache保留，不计入checklist）
+    ratios: List[str] = None  # unlearn ratios (optional)
 
     @property
     def total_runs(self) -> int:
         """正式实验总数（用于计算完成率）"""
-        return len(self.methods) * len(self.seeds) * len(self.strategies)
+        num_ratios = len(self.ratios) if self.ratios else 1
+        num_datasets = len(self.dataset.split(',')) if self.dataset else 1
+        num_models = len(self.model.split(',')) if self.model else 1
+        return len(self.methods) * num_datasets * num_models * len(self.seeds) * len(self.strategies) * num_ratios
 
     @property
     def all_strategies(self) -> List[str]:
@@ -123,6 +127,16 @@ PHASE_CONFIGS = {
         seeds=[42, 212, 722, 1337, 2024],
         strategies=["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"],
         # Ratios: 0.2, 0.1, 0.05, 0.01 - handled specially in scan
+    ),
+    "p2_ext": PhaseConfig(
+        name="P2-EXT",
+        dir_name="p2_ext_gif_GCN",  # Will match any p2_ext_gif_* directory
+        methods=["GIF"],
+        dataset="cora,citeseer",
+        model="GCN,GAT,GIN",
+        seeds=[42, 212, 722, 1337, 2024],
+        strategies=["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"],
+        ratios=["0.10", "0.20"],
     ),
 }
 
@@ -200,6 +214,7 @@ def parse_checklist(path: str) -> Dict[str, List[ExperimentKey]]:
 def scan_actual_results(base_dir: str) -> Tuple[Set[ExperimentKey], Set[ExperimentKey]]:
     """
     Scan results/experiments/ directory to find actual completed experiments.
+    Auto-discovers all subdirectories under results/experiments/.
 
     Returns:
         Tuple of (official_experiments, legacy_experiments)
@@ -213,8 +228,47 @@ def scan_actual_results(base_dir: str) -> Tuple[Set[ExperimentKey], Set[Experime
     if not base_path.exists():
         return official_found, legacy_found
 
-    for phase_key, phase_config in PHASE_CONFIGS.items():
-        phase_dir = base_path / phase_config.dir_name / "phase_a"
+    # Auto-discover all experiment directories
+    all_dirs = [d.name for d in base_path.iterdir() if d.is_dir()]
+    print(f"Auto-discovered experiment directories: {all_dirs}")
+
+    # Build a mapping from dir_name to phase_key for discovered directories
+    # Support prefix matching (e.g., p2_ext_gif_GCN matches p2_ext)
+    dir_to_phase = {}
+    for key, config in PHASE_CONFIGS.items():
+        dir_to_phase[config.dir_name] = key
+
+    for exp_dir in base_path.iterdir():
+        if not exp_dir.is_dir():
+            continue
+
+        dir_name = exp_dir.name
+        # Get phase_key from mapping (exact match or prefix match)
+        phase_key = dir_to_phase.get(dir_name)
+        if phase_key is None:
+            # Try prefix matching
+            for config_dir, pk in dir_to_phase.items():
+                if dir_name.startswith(config_dir) or config_dir.startswith(dir_name):
+                    phase_key = pk
+                    break
+        if phase_key is None:
+            phase_key = dir_name  # Use dir_name as phase_key
+
+        # Get phase_config if exists, otherwise use defaults
+        phase_config = PHASE_CONFIGS.get(phase_key, None)
+        if phase_config is None:
+            # Create default config for auto-discovered directories
+            phase_config = PhaseConfig(
+                name=dir_name,
+                dir_name=dir_name,
+                methods=[],  # Will be inferred from results
+                dataset="",
+                model="",
+                seeds=[42, 212, 722, 1337, 2024],
+                strategies=["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"],
+            )
+
+        phase_dir = exp_dir / "phase_a"
         if not phase_dir.exists():
             continue
 
@@ -276,10 +330,17 @@ def scan_actual_results(base_dir: str) -> Tuple[Set[ExperimentKey], Set[Experime
                             if strategy and strategy != 'comparison':
                                 strategy_lower = strategy.lower()
 
+                                # Normalize phase_key for matching (e.g., p2_ext_gif_GCN -> p2_ext)
+                                normalized_phase = phase_key
+                                for pk in PHASE_CONFIGS.keys():
+                                    if phase_key.startswith(pk) or pk.startswith(phase_key):
+                                        normalized_phase = pk
+                                        break
+
                                 # Create entry for each ratio
                                 for ratio in ratio_list:
                                     key = ExperimentKey(
-                                        phase=phase_key,
+                                        phase=normalized_phase,
                                         method=method,
                                         dataset=dataset,
                                         model=model,
@@ -397,7 +458,7 @@ def format_progress_table(reports: Dict[str, ProgressReport]) -> str:
     total_completed = 0
     total_legacy = 0
 
-    for phase_key in ["mg0", "mg1", "mg2", "mg3_citeseer", "mg3_gat", "ratio_sensitivity"]:
+    for phase_key in ["mg0", "mg1", "mg2", "mg3_citeseer", "mg3_gat", "ratio_sensitivity", "p2_ext"]:
         if phase_key in reports:
             r = reports[phase_key]
             legacy_str = f"({r.legacy_count})" if r.legacy_count > 0 else "-"
@@ -1215,7 +1276,7 @@ Examples:
     %(prog)s --fill --yes              # Log to auto_discovered.json
         """
     )
-    parser.add_argument('--phase', type=str, choices=['mg0', 'mg1', 'mg2', 'mg3', 'ratio'],
+    parser.add_argument('--phase', type=str, choices=['mg0', 'mg1', 'mg2', 'mg3', 'ratio', 'p2_ext'],
                        help='Show only specific phase')
     parser.add_argument('--method', type=str,
                        help='Filter by unlearning method')
@@ -1268,7 +1329,8 @@ Examples:
             'mg1': ['mg1'],
             'mg2': ['mg2'],
             'mg3': ['mg3_citeseer', 'mg3_gat'],
-            'ratio': ['ratio_sensitivity']
+            'ratio': ['ratio_sensitivity'],
+            'p2_ext': ['p2_ext']
         }
         valid_phases = phase_map.get(args.phase, [args.phase])
         reports = {k: v for k, v in reports.items() if k in valid_phases}
