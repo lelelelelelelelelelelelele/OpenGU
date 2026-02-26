@@ -14,9 +14,8 @@
 /exp-status --method GIF             # 按方法筛选
 /exp-status --dataset cora           # 按数据集筛选
 /exp-status --detail                 # 显示缺失实验详情
-/exp-status --fill                   # 自动填补清单（JSON + checklist 状态更新）
-/exp-status --fill --yes             # 自动填补（自动确认）
-/exp-status --fill --dry-run         # 只显示建议的修改，不实际写入
+/exp-status --fill                   # 扫描并显示差异（需手动修改 checklist）
+/exp-status --fill --dry-run         # 只显示差异，不写入
 ```
 
 ## 输出格式
@@ -214,7 +213,7 @@ H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --
 | `--dataset cora` | `--dataset cora` |
 | `--detail` | `--detail` |
 | `--fill` | `--fill` |
-| `--fill --yes` | `--fill --yes` |
+| `--fill --yes` | `--fill --fill-yes` |
 | `--fill --dry-run` | `--fill --dry-run` |
 
 ## 安全机制

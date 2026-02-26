@@ -56,7 +56,7 @@
 
 ### 2.1 MG-0 稳定性（非泛化，但必做）
 
-- [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 152 runs）
+- [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 120 runs）
   - **评估汇总**：
     - **F1 Drop**: GIF=1.6%+/-0.8, GNNDelete=9.7%+/-3.8, GraphEraser=-5.2%+/-2.7, GUIDE=-8.2%+/-3.6
     - **MIA AUC**: GIF=0.60, GNNDelete=0.64, GraphEraser=0.00, GUIDE=0.99
@@ -71,17 +71,17 @@
 
 ### 2.2 MG-1 最小跨数据集泛化
 
-- [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 60 runs）⚠️ GNNDelete 缺失
+- [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 90 runs）
   - **评估汇总**：
     - **F1 Drop**: GIF=2.6%+/-0.6, GNNDelete=-19.3%+/-1.7, GraphEraser=-8.8%+/-1.8
     - **MIA AUC**: GIF=0.60, GNNDelete=-, GraphEraser=0.00
     - **Collateral**: GIF=yes, GNNDelete=yes, GraphEraser=yes
     - **Relative**: GIF=0.0%+/-0.3, GNNDelete=-, GraphEraser=0.2%+/-0.7
-  - methods: `GIF, GraphEraser`（GNNDelete 缺失）
+  - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 指标：`F1 Drop, Gap, Collateral, Selection Time`
-  - 规模：`2 × 6 × 5 = 60 runs`
-  - **状态**：⚠️ 缺 GNNDelete (2026-02-27)
+  - 规模：`3 × 6 × 5 = 90 runs`
+  - **状态**：✅ 完成 (2026-02-22)
 
 ### 2.3 MG-2 最小跨模型泛化
 

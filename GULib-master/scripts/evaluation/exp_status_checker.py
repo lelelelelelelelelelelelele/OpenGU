@@ -202,6 +202,297 @@ def scan_eval_coverage():
 from collections import defaultdict
 import glob
 
+# Phase to checklist section mapping
+PHASE_TO_SECTION = {
+    "mg0": ("2.1", "MG-0 稳定性"),
+    "mg1": ("2.2", "MG-1 最小跨数据集泛化"),
+    "mg2": ("2.3", "MG-2 最小跨模型泛化"),
+    "mg3_citeseer": ("2.4", "MG-3（可选）扩展到 5 方法"),
+    "mg3_gat": ("2.4", "MG-3（可选）扩展到 5 方法"),
+    "ratio_sensitivity": ("2.6", "Ratio 敏感性（攻击强度曲线）"),
+    "p2_ext": ("P2-EXT", "P2-EXT 扩展实验"),
+}
+
+
+def load_checklist() -> dict:
+    """Parse checklist and extract completion status for each phase."""
+    checklist_path = Path("self/generalization_experiment_checklist.md")
+    if not checklist_path.exists():
+        return {}
+
+    content = checklist_path.read_text(encoding='utf-8')
+    status = {}
+
+    # Extract phase completion status from markdown (using Chinese brackets)
+    phase_patterns = [
+        (r'- \[x\] `Cora / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: (\d+) runs）', 'mg0'),
+        (r'- \[x\] `Citeseer / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: (\d+) runs）', 'mg1'),
+        (r'- \[x\] `Cora / GAT / ratio=0\.05 / 5 seeds`.*?（auto_discovered: (\d+) runs）', 'mg2'),
+    ]
+
+    for pattern, phase_key in phase_patterns:
+        match = re.search(pattern, content)
+        if match:
+            status[phase_key] = {
+                'marked': True,
+                'runs': int(match.group(1)) if match.group(1) else 0
+            }
+        else:
+            status[phase_key] = {'marked': False, 'runs': 0}
+
+    # Check for ratio sensitivity (using Chinese brackets)
+    if re.search(r'- \[x\] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`', content):
+        match = re.search(r'- \[x\] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`.*?（auto_discovered: (\d+) runs）', content)
+        if match:
+            status['ratio_sensitivity'] = {'marked': True, 'runs': int(match.group(1))}
+    else:
+        status['ratio_sensitivity'] = {'marked': False, 'runs': 0}
+
+    return status
+
+
+def get_discovered_runs() -> Tuple[Set[ExperimentKey], dict]:
+    """Load all discovered experiments from results/experiments/."""
+    official_found = set()
+    source_counts = {}
+
+    base_path = Path("results/experiments")
+    if not base_path.exists():
+        return official_found, source_counts
+
+    # Skip non-experiment directories
+    skip_dirs = {'_archive', '_tmp', '_tmp_timeout_test', 'auto_discovered.json'}
+
+    for exp_dir in base_path.iterdir():
+        if not exp_dir.is_dir():
+            continue
+        if exp_dir.name.startswith('_'):
+            continue
+        if exp_dir.name in skip_dirs:
+            continue
+
+        # Determine phase key from directory name
+        dir_name = exp_dir.name
+        phase_key = dir_name.replace("mg0_completion", "mg0")
+        phase_key = phase_key.replace("mg1_citeseer", "mg1")
+        phase_key = phase_key.replace("mg2_gat", "mg2")
+        phase_key = phase_key.replace("mg3_citeseer", "mg3_citeseer")
+        phase_key = phase_key.replace("mg3_gat", "mg3_gat")
+        phase_key = phase_key.replace("ratio_sensitivity", "ratio_sensitivity")
+        phase_key = phase_key.replace("p2_ext_gif", "p2_ext")
+
+        phase_dir = exp_dir / "phase_a"
+        if not phase_dir.exists():
+            continue
+
+        count = 0
+        for seed_dir in phase_dir.iterdir():
+            if not seed_dir.is_dir():
+                continue
+            seed_match = re.search(r'seed(\d+)', seed_dir.name)
+            if not seed_match:
+                continue
+            seed = int(seed_match.group(1))
+
+            summary_file = seed_dir / "_summary.json"
+            if not summary_file.exists():
+                continue
+
+            try:
+                with open(summary_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+
+                results = data.get('results', {})
+                dataset_name = data.get('config', {}).get('dataset_name', '').lower()
+
+                for m_key, m_data in results.items():
+                    if not check_f1_quality(m_data.get('results', {}), dataset_name):
+                        continue
+
+                    parts = m_key.split('_')
+                    if len(parts) >= 3:
+                        method, ds, model = parts[0], parts[1].lower(), parts[2].upper()
+                        ratio_list = [float(p[1:]) for p in parts[3:] if p.startswith('r')] or [0.05]
+
+                        for strategy in m_data.get('results', {}).keys():
+                            if not strategy or strategy == 'comparison':
+                                continue
+                            # Filter: only count v4 strategies (official)
+                            if strategy in ['im', 'hybrid']:  # Legacy strategies
+                                continue
+                            for ratio in ratio_list:
+                                key = ExperimentKey(phase_key, method, ds, model, seed, strategy.lower(), ratio)
+                                official_found.add(key)
+                                count += 1
+            except:
+                continue
+
+        source_counts[phase_key] = count
+
+    return official_found, source_counts
+
+
+def analyze_gaps(official_found: Set[ExperimentKey]) -> dict:
+    """Analyze gaps between discovered experiments and checklist."""
+    gaps = {}
+
+    for pk, pcfg in PHASE_CONFIGS.items():
+        phase_keys = [k for k in official_found if k.phase.startswith(pk) or (pk.startswith(k.phase) and pk != 'p2_ext')]
+        discovered_seeds = set(k.seed for k in phase_keys)
+
+        gaps[pk] = {
+            'total_expected': pcfg.total_runs,
+            'discovered': len(phase_keys),
+            'seeds_found': len(discovered_seeds),
+            'expected_seeds': len(pcfg.seeds),
+        }
+
+    return gaps
+
+
+def handle_fill_mode(args):
+    """Handle --fill mode: update checklist with discovered experiments."""
+    print("=" * 70)
+    print("CHECKLIST GAP ANALYSIS")
+    print("=" * 70)
+
+    # Step 1: Get discovered experiments
+    official_found, source_counts = get_discovered_runs()
+    total_discovered = sum(source_counts.values())
+
+    print(f"\n[Discovered experiments - {total_discovered} runs]")
+    for phase, count in sorted(source_counts.items()):
+        print(f"  - {phase}: {count} runs")
+
+    # Step 2: Load checklist status
+    checklist_status = load_checklist()
+
+    print(f"\n[Current checklist status]")
+    for phase in ['mg0', 'mg1', 'mg2', 'ratio_sensitivity']:
+        info = checklist_status.get(phase, {'marked': False, 'runs': 0})
+        status = "[x]" if info['marked'] else "[ ]"
+        print(f"  - {phase}: {status} ({info['runs']} runs recorded)")
+
+    # Step 3: Analyze gaps
+    gaps = analyze_gaps(official_found)
+
+    print(f"\n[Gap Analysis]")
+    updates_needed = []
+    for pk in ['mg0', 'mg1', 'mg2', 'ratio_sensitivity', 'p2_ext']:
+        discovered = source_counts.get(pk, 0)
+        recorded = checklist_status.get(pk, {}).get('runs', 0)
+        is_marked = checklist_status.get(pk, {}).get('marked', False)
+
+        if discovered > 0 and not is_marked:
+            print(f"  - {pk}: discovered {discovered}, NOT marked in checklist")
+            updates_needed.append(pk)
+        elif discovered > 0 and is_marked:
+            if recorded != discovered:
+                print(f"  - {pk}: discovered {discovered}, recorded {recorded} (MISMATCH!)")
+                updates_needed.append(pk)
+            else:
+                print(f"  - {pk}: discovered {discovered}, matches recorded")
+
+    print(f"\n[Proposed checklist updates]")
+    final_updates = []
+    for pk in updates_needed:
+        section_id, section_name = PHASE_TO_SECTION.get(pk, (pk, pk))
+        discovered = source_counts.get(pk, 0)
+        recorded = checklist_status.get(pk, {}).get('runs', 0)
+
+        # Only update if discovered >= recorded, or if currently unmarked
+        if discovered >= recorded:
+            print(f"  - {section_name}: would update to {discovered} runs")
+            final_updates.append((pk, discovered))
+        else:
+            print(f"  - {section_name}: WARNING - discovered {discovered} < recorded {recorded}, SKIPPING")
+
+    updates_needed = [pk for pk, _ in final_updates]
+
+    # If no updates needed, exit
+    if not updates_needed:
+        print("\n[INFO] Checklist is up to date!")
+        return
+
+    # Step 4: Execute or dry-run
+    if args.dry_run:
+        print(f"\n[DRY-RUN] Would update checklist but no changes made.")
+        return
+
+    if not args.fill_yes:
+        print(f"\n[CONFIRM] Apply these updates to checklist? [y/N]: ", end='')
+        response = input().strip().lower()
+        if response not in ['y', 'yes']:
+            print("[ABORTED] No changes made.")
+            return
+
+    # Step 5: Apply updates
+    checklist_path = Path("self/generalization_experiment_checklist.md")
+    backup_path = Path("self/generalization_experiment_checklist.md.bak")
+    shutil.copy2(checklist_path, backup_path)
+    print(f"\n[BACKUP] Created {backup_path}")
+
+    content = checklist_path.read_text(encoding='utf-8')
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    for pk in updates_needed:
+        count = source_counts.get(pk, 0)
+
+        if pk == 'mg0':
+            # Update run count for existing [x] entry (using Chinese brackets)
+            content = re.sub(
+                r'(- \[x\] `Cora / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
+                rf'\g<1>{count}\g<3>',
+                content
+            )
+
+        elif pk == 'mg1':
+            # Update run count
+            content = re.sub(
+                r'(- \[x\] `Citeseer / GCN / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
+                rf'\g<1>{count}\g<3>',
+                content
+            )
+
+        elif pk == 'mg2':
+            # Update run count
+            content = re.sub(
+                r'(- \[x\] `Cora / GAT / ratio=0\.05 / 5 seeds`.*?（auto_discovered: )(\d+)( runs）)',
+                rf'\g<1>{count}\g<3>',
+                content
+            )
+
+        elif pk == 'ratio_sensitivity':
+            # Check if section exists with [ ]
+            if re.search(r'- \[ \] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`', content):
+                content = re.sub(
+                    r'- \[ \] `Cora / GCN / GIF / ratio=0\.01,0\.05,0\.10,0\.20 / 5 seeds`',
+                    '- [x] `Cora / GCN / GIF / ratio=0.01,0.05,0.10,0.20 / 5 seeds`',
+                    content
+                )
+            elif 'Ratio 敏感性' not in content:
+                # Find position to insert (after MG-3 section)
+                insert_pos = content.find('### 2.7')
+                if insert_pos == -1:
+                    insert_pos = content.find('## 3.')
+                if insert_pos != -1:
+                    section_text = f'''### 2.6 Ratio 敏感性（攻击强度曲线）
+
+- [x] `Cora / GCN / GIF / ratio=0.01,0.05,0.10,0.20 / 5 seeds`（auto_discovered: {count} runs）
+  - **状态**：✅ 完成 ({today})
+  - seeds: `42, 212, 722, 2024, 1337`
+  - methods: `GIF, GNNDelete`
+  - strategies: `random, degree, pagerank, tracin, im, hybrid`
+  - ratios: `0.01, 0.05, 0.10, 0.20`
+  - 规模：`2 methods × 6 strategies × 4 ratios × 5 seeds = 240 runs`
+
+'''
+                    content = content[:insert_pos] + section_text + content[insert_pos:]
+
+    checklist_path.write_text(content, encoding='utf-8')
+    print(f"[DONE] Updated checklist with {len(updates_needed)} phase(s)")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--results-dir', default='results/experiments')
