@@ -10,6 +10,20 @@
 
 > **Significance**: * p < 0.05, ** p < 0.01 (One-sample T-test vs 0)
 
+## Setting: CITESEER / GAT (Ratio: 0.1)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | -0.78 (1.50) | -0.72 (1.80) | 0.00 (-) | -0.60 (3.75) | -0.54 (1.05) | -1.32 (0.45) |
+
+
+## Setting: CITESEER / GAT (Ratio: 0.2)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | -0.66** (0.90) | -0.48 (5.86) | -0.03 (1.05) | -0.90 (4.50) | -0.72 (1.35) | -1.56* (0.15) |
+
+
 ## Setting: CITESEER / GCN (Ratio: 0.05)
 
 | Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
@@ -33,6 +47,13 @@
 | Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
 | GIF | 0.03 (1.50) | -0.03 (7.66) | 0.18* (1.35) | -0.18 (3.75) | 0.00 (0.90) | -0.06 (0.45) |
+
+
+## Setting: CITESEER / GIN (Ratio: 0.1)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | -0.56 (1.05) | -0.36 (3.60) | -1.21 (1.20) | -1.26 (1.95) | -1.46 (0.75) | -1.61 (0.30) |
 
 
 ## Setting: CITESEER / GIN (Ratio: 0.2)
@@ -99,5 +120,19 @@
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
 | GIF | 1.37** (0.70) | 0.85** (6.16) | 1.77** (0.63) | 1.66** (1.81) | 0.77* (0.63) | 1.14** (0.74) |
 | GNNDelete | - | 15.79* (3.14) | 14.40** (11.49) | 15.87** (18.63) | - | - |
+
+
+## Setting: CORA / GIN (Ratio: 0.1)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | -0.30 (0.18) | -1.73* (1.11) | 1.25 (0.37) | 0.04 (0.92) | 2.47* (0.18) | 4.47* (0.37) |
+
+
+## Setting: CORA / GIN (Ratio: 0.2)
+
+| Method | random | tracin | im_v4 | hybrid_v4 | degree | pagerank |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GIF | 0.85* (1.66) | -0.11 (2.40) | 0.11 (0.37) | 0.04 (7.38) | -1.37 (2.03) | 0.63 (0.55) |
 
 

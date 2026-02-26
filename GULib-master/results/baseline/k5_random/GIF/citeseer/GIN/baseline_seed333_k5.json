@@ -1,0 +1,14 @@
+{
+  "f1_after": 0.7027027027027027,
+  "f1_before": null,
+  "f1_drop": null,
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GIN",
+    "unlearning_methods": "GIF",
+    "seed": 333,
+    "k": 5,
+    "strategy": "random",
+    "timestamp": "2026-02-27T03:12:31.190378"
+  }
+}

@@ -34,8 +34,10 @@ EXPERIMENTS = [
     ('citeseer', 'GCN', ['IDEA', 'MEGU']),
     # MG-3b: 扩展方法 — Cora / GAT / IDEA, MEGU
     ('cora',     'GAT', ['IDEA', 'MEGU']),
-    # MG-RS: Ratio 敏感性 — Cora / GCN / GIF, GNNDelete (ratio=0.01~0.20)
-    # baseline K=5 不受 ratio 影响，cora/GCN/GIF+GNNDelete 已被 MG-0 覆盖，无需重复
+    # P2-EXT: GIF Extension — GAT/GIN models across datasets
+    ('citeseer', 'GAT', ['GIF']),
+    ('cora',     'GIN', ['GIF']),
+    ('citeseer', 'GIN', ['GIF']),
 ]
 SEEDS = [111, 333, 555, 777, 999]  # Independent from main experiment seeds (42,212,722,1337,2024)
 BASELINE_K = 5

@@ -1,0 +1,71 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GIN",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.1,
+    "random_seed": 2024,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random",
+      "degree",
+      "pagerank",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8155,
+      "gap": -0.021400369003690023,
+      "relative_f1_drop": 0.021400369003690023
+    },
+    {
+      "strategy": "degree",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8137,
+      "gap": -0.023200369003690047,
+      "relative_f1_drop": 0.023200369003690047
+    },
+    {
+      "strategy": "pagerank",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.7749,
+      "gap": -0.06200036900368999,
+      "relative_f1_drop": 0.06200036900368999
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8579,
+      "gap": 0.02099963099630997,
+      "relative_f1_drop": -0.02099963099630997
+    },
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.8284,
+      "gap": -0.00850036900369,
+      "relative_f1_drop": 0.00850036900369
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.83690036900369,
+      "attack_f1_after": 0.845,
+      "gap": 0.008099630996309948,
+      "relative_f1_drop": -0.008099630996309948
+    }
+  ],
+  "timestamp": "2026-02-27T03:22:42.948859",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 6,
+    "completed_before": 0,
+    "executed_now": 6,
+    "missing_before": 6
+  }
+}

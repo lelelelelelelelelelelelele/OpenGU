@@ -1,0 +1,14 @@
+{
+  "f1_after": 0.8394833948339483,
+  "f1_before": null,
+  "f1_drop": null,
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GIN",
+    "unlearning_methods": "GIF",
+    "seed": 999,
+    "k": 5,
+    "strategy": "random",
+    "timestamp": "2026-02-27T03:11:57.388368"
+  }
+}
