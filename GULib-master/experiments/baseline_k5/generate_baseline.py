@@ -85,6 +85,18 @@ def generate_baseline(args: dict, k: int):
     # 2. Setup
     pipeline = AttackPipeline(args)
     strategy = RandomStrategy(args)
+
+    # CRITICAL: Sync proportion_unlearned_nodes with actual k / num_nodes.
+    # GNNDelete's delete_node() computes df_size = int(num_nodes * proportion_unlearned_nodes)
+    # and asserts df_mask_node.sum() == df_size.  If proportion_unlearned_nodes stays at the
+    # parameter_parser default (0.1), the assertion fails (5 != 270), the exception is caught
+    # silently by pipeline_adapter, and a garbage f1_after is returned.
+    # Also sync unlearn_ratio so _inject_unlearn_nodes writes the correct file path.
+    num_nodes = pipeline.data.num_nodes
+    ratio_for_k = k / num_nodes
+    args['proportion_unlearned_nodes'] = ratio_for_k
+    args['unlearn_ratio'] = ratio_for_k
+    print(f"[*] Synced proportion_unlearned_nodes = {ratio_for_k:.6f} (k={k}, num_nodes={num_nodes})")
     
     # 3. Execution
     print(f"[*] Executing random unlearning to extract inherent F1 metric...")
@@ -112,7 +124,16 @@ def generate_baseline(args: dict, k: int):
         }
     }
     
-    # 5. Saving
+    # 5. Sanity check — catch garbage results from silently swallowed exceptions
+    if f1_after is not None and f1_after < 0.3:
+        print(f"\n[CRITICAL WARNING] f1_after = {f1_after:.4f} is suspiciously low!")
+        print(f"  This may indicate GNNDelete's df_size assertion failed silently.")
+        print(f"  proportion_unlearned_nodes = {args.get('proportion_unlearned_nodes')}")
+        print(f"  k = {k}, expected df_size = {int(pipeline.data.num_nodes * args.get('proportion_unlearned_nodes', 0.1))}")
+        print(f"  NOT saving this result. Please investigate before re-running.")
+        return
+
+    # 6. Saving
     with open(cache_file, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
         

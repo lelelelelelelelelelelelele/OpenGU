@@ -1,7 +1,7 @@
 {
-  "f1_after": 0.1816816816816817,
-  "f1_before": null,
-  "f1_drop": null,
+  "f1_after": 0.7312312312312312,
+  "f1_before": 0.7342342342342343,
+  "f1_drop": 0.0030030030030030463,
   "config": {
     "dataset_name": "citeseer",
     "base_model": "GCN",
@@ -9,6 +9,6 @@
     "seed": 555,
     "k": 5,
     "strategy": "random",
-    "timestamp": "2026-02-26T03:48:29.794077"
+    "timestamp": "2026-02-26T06:30:17.209682"
   }
 }

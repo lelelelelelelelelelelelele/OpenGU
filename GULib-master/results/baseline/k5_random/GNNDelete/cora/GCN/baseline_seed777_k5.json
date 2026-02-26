@@ -1,7 +1,7 @@
 {
-  "f1_after": 0.11070110701107011,
-  "f1_before": null,
-  "f1_drop": null,
+  "f1_after": 0.8856088560885609,
+  "f1_before": 0.8874538745387455,
+  "f1_drop": 0.0018450184501845879,
   "config": {
     "dataset_name": "cora",
     "base_model": "GCN",
@@ -9,6 +9,6 @@
     "seed": 777,
     "k": 5,
     "strategy": "random",
-    "timestamp": "2026-02-26T03:56:39.518349"
+    "timestamp": "2026-02-26T06:26:48.416458"
   }
 }

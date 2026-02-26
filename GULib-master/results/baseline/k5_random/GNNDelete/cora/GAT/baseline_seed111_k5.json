@@ -1,7 +1,7 @@
 {
-  "f1_after": 0.22693726937269373,
-  "f1_before": null,
-  "f1_drop": null,
+  "f1_after": 0.8819188191881919,
+  "f1_before": 0.8837638376383764,
+  "f1_drop": 0.0018450184501844769,
   "config": {
     "dataset_name": "cora",
     "base_model": "GAT",
@@ -9,6 +9,6 @@
     "seed": 111,
     "k": 5,
     "strategy": "random",
-    "timestamp": "2026-02-26T03:54:08.700066"
+    "timestamp": "2026-02-26T06:27:34.536437"
   }
 }
