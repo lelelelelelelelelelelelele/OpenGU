@@ -1,0 +1,252 @@
+======================================================================
+Attack Demo - Adversarial Attacks on GNN Unlearning
+======================================================================
+
+Parsing arguments...
+Using CUDA device: 0
+
+Strategies to compare: ['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4']
+
+----------------------------------------------------------------------
+Initializing AttackManager...
+----------------------------------------------------------------------
+2026-02-26 21:48:40.751: my pid: 41228
+2026-02-26 21:48:40.753: {'Budget': 0.1,
+ 'GIF_exp': 'unlearning',
+ 'GIF_method': 'GIF',
+ 'GNN_layer': 3,
+ 'GPR': False,
+ 'GST_delta': 0.0001,
+ 'GUIDE_methods': 'SR',
+ 'GUIDE_repair_methods': 'MixUp',
+ 'J': 5,
+ 'L': 3,
+ 'M': 0.25,
+ 'Q': 4,
+ 'RW': 20,
+ 'XdegNorm': False,
+ 'Y_binary': '0',
+ 'add_self_loops': True,
+ 'aggregator': 'optimal',
+ 'alpha': 0.5,
+ 'alpha1': 0.8,
+ 'alpha2': 0.5,
+ 'analysis_path': 'analysis',
+ 'approx': 'cg',
+ 'axis_num': 1,
+ 'balance_train': False,
+ 'base_model': 'GAT',
+ 'batch_size': 64,
+ 'c': 0.5,
+ 'c1': 1.0,
+ 'cal_mem': False,
+ 'candidate_fraction': 1.0,
+ 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
+ 'compare_gnorm': False,
+ 'compare_guo': False,
+ 'compare_retrain': False,
+ 'cuda': 0,
+ 'damp': 0.0,
+ 'damping': 0.0,
+ 'dataset': 'null',
+ 'dataset_name': 'cora',
+ 'decay': 0.1,
+ 'del_only': False,
+ 'del_path_suffix': 'unlearning_data/',
+ 'del_postfix': '',
+ 'delta': 0.0001,
+ 'depth': 300,
+ 'df': 'out',
+ 'df_idx': 'none',
+ 'df_size': 0.5,
+ 'disp': 5,
+ 'display_step': 10,
+ 'downstream_task': 'node',
+ 'dropout_times': 2,
+ 'early_stop': True,
+ 'edge_idx_start': 0,
+ 'emb_dim': 32,
+ 'eps': 1.0,
+ 'eval_on_cpu': False,
+ 'exp': 'sequence',
+ 'featNorm': False,
+ 'feature': False,
+ 'feature_update': True,
+ 'file_name': 'unlearning_results',
+ 'fix_random_seed': False,
+ 'folds': 10,
+ 'gamma_2': 1.0,
+ 'gaussian_mean': 0.0,
+ 'gaussian_std': 0.0,
+ 'hidden': [],
+ 'hidden_dim': 64,
+ 'hop_neighbors': 20,
+ 'im_v4_batch_size': 5,
+ 'in_dim': 128,
+ 'is_balanced': False,
+ 'is_constrained': True,
+ 'is_gen_embedding': True,
+ 'is_partition': True,
+ 'is_prune': False,
+ 'is_split': True,
+ 'is_train_target_model': True,
+ 'is_transductive': True,
+ 'is_use_test_batch': False,
+ 'is_use_train_batch': False,
+ 'iteration': 100,
+ 'kappa': 0.01,
+ 'l': 0.25,
+ 'l2': 1e-05,
+ 'lam': 0.01,
+ 'lambda': 1.0,
+ 'lambda_edge_unlearn': 1.0,
+ 'loss_fct': 'mse_mean',
+ 'loss_type': 'both_layerwise',
+ 'lr': 0.005,
+ 'max_degree': False,
+ 'mc_rounds': 100,
+ 'neg_sample_random': 'non_connected',
+ 'no_retrain': True,
+ 'noise_mode': 'data',
+ 'noise_ratio': 0.1,
+ 'num_batch_removes': 5,
+ 'num_epochs': 100,
+ 'num_opt_samples': 1000,
+ 'num_removes': 10,
+ 'num_runs': 1,
+ 'num_shards': 10,
+ 'num_threads': 1,
+ 'num_unlearned_nodes': 270,
+ 'opt_decay': 0.0001,
+ 'opt_lr': 0.001,
+ 'opt_num_epochs': 20,
+ 'optimizer': 'Adam',
+ 'optuna': False,
+ 'out_dim': 64,
+ 'para1': 2.5,
+ 'para2': 0.01,
+ 'para3': 250,
+ 'para4': 0.1,
+ 'para5': 10,
+ 'parallel_unlearning': 1,
+ 'parameter_task': 'normal',
+ 'partition_method': 'lpa_base',
+ 'path': './data/ScaleGUN',
+ 'patience': 5,
+ 'poison': True,
+ 'ppr': False,
+ 'process': '',
+ 'prop_algo': 'MC',
+ 'prop_step': 3,
+ 'propagation_prob': 0.1,
+ 'proportion_unlearned_edges': 0.1,
+ 'proportion_unlearned_edges_num': 0.0001,
+ 'proportion_unlearned_nodes': 0.1,
+ 'r': 0.5,
+ 'random_seed': 722,
+ 'ratio_deleted_edges': 0,
+ 'regen_model': True,
+ 'removal_mode': 'node',
+ 'remove_guo': False,
+ 'repartition': False,
+ 'require_linear_span': True,
+ 'result_dir': './result/CGU',
+ 'retrain': False,
+ 'rm_disp_step': 1,
+ 'rmax': 0.0,
+ 'root_path': './',
+ 'scale': 1000000000,
+ 'seed': 722,
+ 'shard_size_delta': 0.005,
+ 'sparsity_ratio': 0.1,
+ 'std': 0.01,
+ 'terminate_delta': 0,
+ 'test_batch': 5,
+ 'test_batch_size': 64,
+ 'test_freq': 10,
+ 'test_ratio': 0.2,
+ 'train_batch': 10,
+ 'train_mode': 'ovr',
+ 'train_ratio': 0.8,
+ 'train_sep': False,
+ 'trials': 3,
+ 'unlearn_feature_partial_ratio': 0.5,
+ 'unlearn_lr': 0.01,
+ 'unlearn_ratio': 0.2,
+ 'unlearn_task': 'node',
+ 'unlearn_trainer': 'BaseTrainer',
+ 'unlearning_epochs': 50,
+ 'unlearning_methods': 'GIF',
+ 'unlearning_model': 'gnndelete_nodeemb',
+ 'use_adapt_gcs': False,
+ 'use_batch': False,
+ 'use_cross_entropy': False,
+ 'use_test_neighbors': True,
+ 'val_ratio': 0,
+ 'verbose': False,
+ 'wd': 0.0005,
+ 'weight_mode': 'test',
+ 'write': True,
+ 'x_iters': 3,
+ 'y_iters': 3}
+2026-02-26 21:48:40.754: Initializing AttackPipeline...
+2026-02-26 21:48:40.754: Data already saved! ./data/processed/transductive/cora0.8_0_0.2.pkl
+2026-02-26 21:48:40.754: load_saved_data ./data/processed/transductive/cora0.8_0_0.2.pkl
+2026-02-26 21:48:40.770: load_saved_data ./data/processed/transductive/cora0.8_0_0.2dataset.pkl
+./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.1_cora_0.txt
+2026-02-26 21:48:41.033: Model Summary:
+2026-02-26 21:48:41.033: Total Parameters: 92,373
+2026-02-26 21:48:41.033: Trainable Parameters: 92,373
+2026-02-26 21:48:41.033: Model Architecture:
+GATNet(
+  (convs): ModuleList(
+    (0): GATConv(1433, 8, heads=8)
+    (1): GATConv(64, 7, heads=1)
+  )
+)
+2026-02-26 21:48:41.033: Layer: convs.0.att_src | Size: torch.Size([1, 8, 8]) | Requires Grad: True
+2026-02-26 21:48:41.033: Layer: convs.0.att_dst | Size: torch.Size([1, 8, 8]) | Requires Grad: True
+2026-02-26 21:48:41.033: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
+2026-02-26 21:48:41.034: Layer: convs.0.lin.weight | Size: torch.Size([64, 1433]) | Requires Grad: True
+2026-02-26 21:48:41.034: Layer: convs.1.att_src | Size: torch.Size([1, 1, 7]) | Requires Grad: True
+2026-02-26 21:48:41.034: Layer: convs.1.att_dst | Size: torch.Size([1, 1, 7]) | Requires Grad: True
+2026-02-26 21:48:41.034: Layer: convs.1.bias | Size: torch.Size([7]) | Requires Grad: True
+2026-02-26 21:48:41.034: Layer: convs.1.lin.weight | Size: torch.Size([7, 64]) | Requires Grad: True
+2026-02-26 21:48:41.034: Model is in training mode: True
+2026-02-26 21:48:41.034: Model is on device: cuda:0
+2026-02-26 21:48:41.034: AttackPipeline initialized successfully.
+[AttackManager] Registered strategy: random
+[AttackManager] Registered strategy: degree
+[AttackManager] Registered strategy: pagerank
+[AttackManager] Registered strategy: tracin
+[AttackManager] Registered strategy: im
+[AttackManager] Registered strategy: hybrid
+[AttackManager] Registered strategy: im_v4
+[AttackManager] Registered strategy: hybrid_v4
+
+Dataset: cora
+Model: GAT
+Unlearning Method: GIF
+Number of nodes: 2708
+Nodes to unlearn (k): 541 (20.0%)
+
+======================================================================
+Running Strategy Comparison
+======================================================================
+
+[AttackManager] Comparing 6 strategies: ['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4']
+[AttackManager] Each strategy will select 541 nodes
+
+
+[AttackManager] Running attack with strategy: random
+[AttackManager] Selecting 541 nodes for unlearning
+[SelectionCache] MISS strategy=random selection_key=1eb6c2d407064247dd67d60b79b885b0
+2026-02-26 21:48:41.037: Running attack with strategy: RandomStrategy
+2026-02-26 21:48:41.037: Selecting 541 nodes for unlearning
+2026-02-26 21:48:41.038: Strategy selected nodes: [2305, 1489, 194, 2341, 2335, 2249, 1062, 1939, 1599, 2232]... (showing first 10)
+2026-02-26 21:48:41.038: Selection took 0.00s
+2026-02-26 21:48:41.042: Injected 541 nodes to unlearn at ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.2_cora_0.txt
+2026-02-26 21:48:41.042: target model: GAT
+2026-02-26 21:48:41.042: training target models, run 0
+
+BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]

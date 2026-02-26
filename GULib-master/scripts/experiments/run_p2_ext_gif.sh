@@ -40,7 +40,7 @@ for arg in "$@"; do
     fi
 done
 
-# Dry-run: 显示需要运行的实验配置（调用 run_experiments.py 的 repair_dry_run）
+# Dry-run: 显示需要运行的实验配置（调用 repair_dry_run）
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "=============================================="
     echo "DRY RUN - Checking missing experiments..."
@@ -48,26 +48,76 @@ if [ "$DRY_RUN" -eq 1 ]; then
 
     cd "$REPO_ROOT"
 
-    for MODEL in $(echo "$BASE_MODELS" | tr ',' ' '); do
+    # 1. Main experiments dry-run
+    if [ "$RUN_COLLATERAL" -eq 0 ] && [ "$RUN_RELATIVE" -eq 0 ]; then
+        for MODEL in $(echo "$BASE_MODELS" | tr ',' ' '); do
+            echo ""
+            echo "=== [EXP] Checking model: $MODEL ==="
+
+            COMMON_ARGS=(
+                --methods $METHODS \
+                --datasets $DATASETS \
+                --base_model $MODEL \
+                --strategies $STRATEGIES \
+                --ratios $RATIOS \
+                --seeds $SEEDS \
+                --cuda $CUDA \
+                --output results/experiments/p2_ext_gif_${MODEL}
+            )
+
+            "$PYTHON_BIN" run_experiments.py \
+                "${COMMON_ARGS[@]}" \
+                --repair \
+                --repair_dry_run
+        done
+    fi
+
+    # 2. Collateral dry-run
+    if [ "$RUN_COLLATERAL" -eq 1 ]; then
         echo ""
-        echo "=== Checking model: $MODEL ==="
+        echo "=== [COLLATERAL] Checking..."
 
-        COMMON_ARGS=(
-            --methods $METHODS \
-            --datasets $DATASETS \
-            --base_model $MODEL \
-            --strategies $STRATEGIES \
-            --ratios $RATIOS \
-            --seeds $SEEDS \
-            --cuda $CUDA \
-            --output results/experiments/p2_ext_gif_${MODEL}
-        )
+        for MODEL in $(echo "$BASE_MODELS" | tr ',' ' '); do
+            for DATASET in $(echo "$DATASETS" | tr ',' ' '); do
+                for RATIO in $(echo "$RATIOS" | tr ',' ' '); do
+                    echo "--- Checking: $METHODS / $DATASET / $MODEL / r=$RATIO ---"
 
-        "$PYTHON_BIN" run_experiments.py \
-            "${COMMON_ARGS[@]}" \
-            --repair \
-            --repair_dry_run
-    done
+                    "$PYTHON_BIN" eval_collateral.py \
+                        --dataset_name "$DATASET" \
+                        --base_model "$MODEL" \
+                        --unlearning_methods "$METHODS" \
+                        --strategies "$STRATEGIES" \
+                        --unlearn_ratio "$RATIO" \
+                        --repair_dry_run
+                done
+            done
+        done
+    fi
+
+    # 3. Relative dry-run
+    if [ "$RUN_RELATIVE" -eq 1 ]; then
+        echo ""
+        echo "=== [RELATIVE] Checking..."
+
+        for MODEL in $(echo "$BASE_MODELS" | tr ',' ' '); do
+            for DATASET in $(echo "$DATASETS" | tr ',' ' '); do
+                for RATIO in $(echo "$RATIOS" | tr ',' ' '); do
+                    for SEED in $(echo "$SEEDS" | tr ',' ' '); do
+                        echo "--- Checking: $METHODS / $DATASET / $MODEL / r=$RATIO / seed=$SEED ---"
+
+                        "$PYTHON_BIN" experiments/baseline_k5/eval_relative.py \
+                            --dataset_name "$DATASET" \
+                            --base_model "$MODEL" \
+                            --unlearning_methods "$METHODS" \
+                            --strategies "$STRATEGIES" \
+                            --unlearn_ratio "$RATIO" \
+                            --random_seed "$SEED" \
+                            --repair_dry_run
+                    done
+                done
+            done
+        done
+    fi
 
     echo ""
     echo "=============================================="
