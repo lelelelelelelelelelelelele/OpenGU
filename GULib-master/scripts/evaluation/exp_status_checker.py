@@ -57,8 +57,8 @@ PHASE_CONFIGS = {
     "mg2": PhaseConfig("MG-2", "mg2_gat", ["GIF", "GNNDelete", "GraphEraser"], "cora", "GAT", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
     "mg3_citeseer": PhaseConfig("MG-3-Citeseer", "mg3_citeseer", ["IDEA", "MEGU"], "citeseer", "GCN", [42, 212, 722, 1337, 2024], ["random", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
     "mg3_gat": PhaseConfig("MG-3-GAT", "mg3_gat", ["IDEA", "MEGU"], "cora", "GAT", [42, 212, 722, 1337, 2024], ["random", "tracin", "im_v4", "hybrid_v4"], ["im", "hybrid"]),
-    "ratio_sensitivity": PhaseConfig("P2-Ratio", "ratio_sensitivity", ["GIF", "GNNDelete"], "cora", "GCN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"]),
-    "p2_ext": PhaseConfig("P2-EXT", "p2_ext_gif_GCN", ["GIF"], "cora,citeseer", "GCN,GAT,GIN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ratios=["0.10", "0.20"])
+    "ratio_sensitivity": PhaseConfig("P2-Ratio", "ratio_sensitivity", ["GIF", "GNNDelete"], "cora", "GCN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ratios=["0.01", "0.05", "0.10", "0.20"]),
+    "p2_ext": PhaseConfig("P2-EXT", "p2_ext_gif", ["GIF"], "cora,citeseer", "GCN,GAT,GIN", [42, 212, 722, 1337, 2024], ["random", "degree", "pagerank", "tracin", "im_v4", "hybrid_v4"], ratios=["0.10", "0.20"])
 }
 
 def check_f1_quality(results_dict, dataset_name):
@@ -136,27 +136,43 @@ def scan_eval_coverage():
     Upgraded Coverage: Requires all 5 seeds to be present for 'complete'.
     """
     # 1. Scan relative
-    rel_coverage = defaultdict(int)
+    rel_coverage = defaultdict(set)
     rel_path = Path("results/relative")
     if rel_path.exists():
         for f in rel_path.rglob("relative_*.json"):
             try:
                 with open(f, 'r', encoding='utf-8') as f_in:
-                    cfg = json.load(f_in).get('config', {})
+                    data = json.load(f_in)
+                    cfg = data.get('config', {})
                     key = (cfg.get('unlearning_methods'), cfg.get('dataset_name'), cfg.get('base_model'), float(cfg.get('unlearn_ratio', 0.05)))
-                    rel_coverage[key] += 1
+                    
+                    # Store unique seeds
+                    seed = cfg.get('random_seed', cfg.get('seed'))
+                    if seed is not None:
+                        rel_coverage[key].add(int(seed))
             except: continue
 
     # 2. Scan collateral
-    col_coverage = defaultdict(int)
+    col_coverage = defaultdict(set)
     col_path = Path("results/collateral")
     if col_path.exists():
         for f in col_path.rglob("collateral_*.json"):
             try:
                 with open(f, 'r', encoding='utf-8') as f_in:
-                    cfg = json.load(f_in).get('config', {})
+                    data = json.load(f_in)
+                    cfg = data.get('config', {})
                     key = (cfg.get('unlearning_methods'), cfg.get('dataset_name'), cfg.get('base_model'), float(cfg.get('unlearn_ratio', 0.05)))
-                    col_coverage[key] += 1
+                    
+                    # Priority 1: Config seed
+                    root_seed = cfg.get('random_seed', cfg.get('seed'))
+                    if root_seed is not None:
+                        col_coverage[key].add(int(root_seed))
+                    
+                    # Priority 2: Per-result seeds (merged storage mode)
+                    results = data.get('results', [])
+                    for res in results:
+                        if 'seed' in res:
+                            col_coverage[key].add(int(res['seed']))
             except: continue
 
     print("\n" + "="*85)
@@ -172,11 +188,11 @@ def scan_eval_coverage():
                 for mod in md_list:
                     for r in ratios:
                         lookup_key = (m, d, mod, r)
-                        r_cnt = rel_coverage.get(lookup_key, 0)
-                        c_cnt = col_coverage.get(lookup_key, 0)
+                        r_cnt = len(rel_coverage.get(lookup_key, set()))
+                        c_cnt = len(col_coverage.get(lookup_key, set()))
                         
-                        r_status = f"{r_cnt}/5" if r_cnt < 5 else "✅ 5/5"
-                        c_status = f"{c_cnt}/5" if c_cnt < 5 else "✅ 5/5"
+                        r_status = f"{r_cnt}/5" if r_cnt < 5 else "5/5 OK"
+                        c_status = f"{c_cnt}/5" if c_cnt < 5 else "5/5 OK"
                         
                         if r_cnt < 5 or c_cnt < 5:
                             label = f"{m}/{d}/{mod}/r{r}"
