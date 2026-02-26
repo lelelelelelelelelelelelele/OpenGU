@@ -52,7 +52,7 @@ for bar, pct in zip(bars, pct_changes):
 method_types = {
     'Learning-based': ['GNNDelete'],
     'IF-based': ['GIF'],
-    'Shard-based': ['GraphEraser', 'GUIDE']
+    'Shard-based': ['GraphEraser']
 }
 
 # 计算每个类型的平均变化
@@ -79,10 +79,10 @@ overview_path = FIGURE_DIR / 'shard_effect_overview.png'
 plt.savefig(overview_path, dpi=150, bbox_inches='tight')
 print(f'Saved: {overview_path}')
 
-# 图2: 详细对比 - Shard-based 方法的所有策略
+# 图2: 详细对比 - GraphEraser 的所有策略
 fig2, ax = plt.subplots(figsize=(10, 6))
 
-shard_data = [d for d in mg0_data if d['method'] in ['GraphEraser', 'GUIDE']]
+shard_data = [d for d in mg0_data if d['method'] == 'GraphEraser']
 x = np.arange(len(shard_data))
 pct_vals = [d['pct_change'] for d in shard_data]
 labels = [f"{d['method']}_{d['strategy']}" for d in shard_data]
@@ -91,7 +91,7 @@ colors3 = ['orange' if p > 0 else 'green' for p in pct_vals]
 bars3 = ax.bar(x, pct_vals, color=colors3, alpha=0.7)
 
 ax.set_ylabel('F1 Change (%)')
-ax.set_title('Shard-based Methods: All Strategies Show Positive F1 Change!')
+ax.set_title('GraphEraser: F1 Change Across Strategies')
 ax.set_xticks(x)
 ax.set_xticklabels(labels, rotation=45, ha='right')
 ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
@@ -114,7 +114,7 @@ fig3, ax = plt.subplots(figsize=(8, 5))
 ln_data = [d for d in mg0_data if d['method'] == 'GNNDelete']
 ln_pct = [d['pct_change'] for d in ln_data]
 
-# Shard-based: GraphEraser + GUIDE
+# Shard-based: GraphEraser
 shard_pcts = [d['pct_change'] for d in shard_data]
 
 positions = [1, 2]
@@ -123,7 +123,7 @@ bp1 = ax.boxplot([ln_pct, shard_pcts], positions=positions, widths=0.6,
 bp1['boxes'][0].set_facecolor('lightblue')
 bp1['boxes'][1].set_facecolor('lightsalmon')
 
-ax.set_xticklabels(['Learning-based\n(GNNDelete)', 'Shard-based\n(GraphEraser+GUIDE)'])
+ax.set_xticklabels(['Learning-based\n(GNNDelete)', 'Shard-based\n(GraphEraser)'])
 ax.set_ylabel('F1 Change (%)')
 ax.set_title('Attack Effect: Learning-based vs Shard-based')
 ax.axhline(y=0, color='black', linestyle='--', linewidth=1, alpha=0.5)

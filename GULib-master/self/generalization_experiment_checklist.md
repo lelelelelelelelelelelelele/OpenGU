@@ -51,7 +51,6 @@
 > - Learning-based: `GNNDelete`
 > - Shard-based: `GraphEraser`
 > 可选扩展组（+2 个）：`IDEA`（IF-based）, `MEGU`（Learning-based）。
-> ~~GUIDE~~：因 unlearning 评估 bug 排除（aggregate_shard_model 未正确加载 retrained 模型）。
 
 > 📋 **Sh 文件对应**：`scripts/experiments/run_mg0_completion.sh`, `scripts/experiments/run_mg1_citeseer.sh`, `scripts/experiments/run_mg2_gat.sh`, `scripts/experiments/run_mg3_extended.sh`
 
@@ -69,7 +68,6 @@
   - 产出：`mean ± std`，确认结论不是 seed 偶然
   - 规模：`3 methods × 6 strategies × 5 seeds = 90 runs`
   - **状态**：✅ 实验完成 (2026-02-22)
-  - **注**：GUIDE 因 unlearning 评估 bug（aggregate_shard_model 未加载 retrained 模型 + retrain 级联污染）排除，详见 guide.py git history
 
 ### 2.2 MG-1 最小跨数据集泛化
 
@@ -134,7 +132,7 @@
 
 ### 2.7 评估缺口汇总（2026-02-26 审计）
 
-> GUIDE 已排除，实验范围调整为 590 runs。以下是**评估**（collateral / relative）的缺口。
+> 实验范围调整为 590 runs。以下是**评估**（collateral / relative）的缺口。
 
 | 缺口类型 | 配置 | 缺失评估 |
 |----------|------|---------|

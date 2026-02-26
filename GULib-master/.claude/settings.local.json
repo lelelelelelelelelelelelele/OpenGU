@@ -55,7 +55,8 @@
       "Bash(cd:*)",
       "Bash(date:*)",
       "Bash(head:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(mv:*)"
     ]
   }
 }

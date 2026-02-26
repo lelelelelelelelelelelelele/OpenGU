@@ -77,9 +77,8 @@ attack/
 |---|------|--------|------|---------|---------|------|
 | 1 | Random baseline | Cora | GCN | GIF | Random | 确认 pipeline 跑通，记录 F1 drop 基准 |
 | 2 | Random baseline | Cora | GCN | GST | Random | 同上 |
-| 3 | Random baseline | Cora | GCN | GUIDE | Random | 同上 |
-| 4 | Degree baseline | Cora | GCN | GIF, GST, GUIDE | Degree | 结构启发式对比 |
-| 5 | PageRank baseline | Cora | GCN | GIF, GST, GUIDE | PageRank | 结构启发式对比 |
+| 3 | Degree baseline | Cora | GCN | GIF, GST | Degree | 结构启发式对比 |
+| 4 | PageRank baseline | Cora | GCN | GIF, GST | PageRank | 结构启发式对比 |
 
 ### Phase 2: 核心攻击验证（Cora 快速迭代）
 
@@ -95,7 +94,7 @@ attack/
 
 | # | 实验 | 变量 | 固定条件 | 说明 |
 |---|------|------|---------|------|
-| 11 | 跨遗忘方法 | GIF, GST, GUIDE, GNNDelete, MEGU | Cora, GCN | 攻击对不同方法的效果 |
+| 11 | 跨遗忘方法 | GIF, GST, GNNDelete, MEGU | Cora, GCN | 攻击对不同方法的效果 |
 | 12 | 跨数据集 | Cora, Citeseer, PubMed, Physics | GCN, GIF | 数据集泛化性 |
 | 13 | 跨模型 | GCN, GAT, GIN | Cora, GIF | 模型泛化性 |
 | 14 | Unlearn ratio | 1%, 5%, 10%, 20% | Cora, GCN, GIF | 比例敏感性 |

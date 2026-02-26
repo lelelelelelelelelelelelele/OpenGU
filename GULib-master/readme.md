@@ -44,7 +44,7 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GNNDelete --unlearn_task node --downstream_task node --num_epochs 100 --batch_size 64
 ```
 
-Available methods: `GraphEraser`, `GUIDE`, `GNNDelete`, `CEU`, `GIF`, `SGU`, `CGU`, `GST`, `Projector`, `MEGU`, `GraphRevoker`, `UTU`, `GUKD`, `D2DGN`, `IDEA`, `ScaleGUN`
+Available methods: `GraphEraser`, `GNNDelete`, `CEU`, `GIF`, `SGU`, `CGU`, `GST`, `Projector`, `MEGU`, `GraphRevoker`, `UTU`, `GUKD`, `D2DGN`, `IDEA`, `ScaleGUN`
 
 ### 3. Change Base Model (`--base_model`)
 

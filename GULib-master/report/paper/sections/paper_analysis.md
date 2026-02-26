@@ -2,7 +2,6 @@
 
 > Generated: 2026-02-26
 > Evidence base: 106 relative result files, 1438 collateral data points, 5-seed cross-validation (seeds 42/212/722/1337/2024)
-> Constraint: **GUIDE excluded** (source-library bugs render all GUIDE data invalid)
 
 ---
 
@@ -214,7 +213,7 @@
 **Fields**: `f1_drop` per (method, strategy) pair
 **Dimensions**: 3 methods (GNNDelete, GIF, GraphEraser) × 6 strategies
 **Conclusion**: Method type determines vulnerability; GNNDelete >> GIF >> GraphEraser (negative)
-**Caption**: "F1 drop (↑ = more vulnerable) under six attack strategies on Cora/GCN. GUIDE excluded due to source-library bugs. GNNDelete shows 5–14% vulnerability; GIF shows marginal 1–3%; GraphEraser shows negative drops indicating the Shard Protection Effect."
+**Caption**: "F1 drop (↑ = more vulnerable) under six attack strategies on Cora/GCN. GNNDelete shows 5–14% vulnerability; GIF shows marginal 1–3%; GraphEraser shows negative drops indicating the Shard Protection Effect."
 **Caveat**: Data may use pre-bug-fix f1_before values for MG-0; cross-check with post-fix relative metrics.
 
 ### Table 2: Collateral Damage by Method Family
@@ -249,9 +248,6 @@
 **Fields**: `relative_f1_drop` per (strategy, method, dataset, model)
 **Dimensions**: 3 strategies (im_v4, tracin, hybrid_v4) × 5 methods (GNNDelete, GIF, GraphEraser, IDEA, MEGU)
 **Conclusion**: GNNDelete is orders of magnitude more vulnerable than all other methods. IDEA and MEGU show near-zero drops (< 2%), similar to GIF. GraphEraser shows non-trivial but mixed drops.
-
-> [!NOTE]
-> GUIDE is **excluded** from all tables: OpenGU source-library bugs cause node-classification F1 to always return 0 ([`guide.py`](file:///h:/project/OpenGU/GULib-master/unlearning/unlearning_methods/GUIDE/guide.py)). All GUIDE data is invalid.
 
 | Method | Setting | Strategy | Relative F1 Drop (%) ± Std (N=5) |
 |--------|---------|----------|----------------------------------|

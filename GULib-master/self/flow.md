@@ -526,11 +526,11 @@ def evaluate_collateral_damage(
 ```
 目的: 验证攻击跨遗忘方法的泛化性
 步骤:
-  对 [GIF, GST, GUIDE, GNNDelete, MEGU] 分别:
+  对 [GIF, GST, GNNDelete, MEGU] 分别:
     1. hybrid.select_nodes(k=50)
     2. 运行对应遗忘方法
     3. evaluate_f1_drop()
-预期: IF-based 方法 (GIF, GST) F1 drop 大于 Learning-based；Shard-based (GraphEraser, GUIDE) 攻击效果较弱
+预期: IF-based 方法 (GIF, GST) F1 drop 大于 Learning-based；Shard-based (GraphEraser) 攻击效果较弱
 ```
 
 ### 测试 4: Unlearn ratio 敏感性
@@ -633,7 +633,6 @@ eval_collateral.py
 |------|------|--------|---------------|------|
 | GraphEraser | GCN | Cora | 270 (默认) | 跑通 |
 | GIF | GCN | Cora | 270 | 跑通 |
-| GUIDE | GCN | Cora | 270 | 跑通 |
 | GST | GCN | Cora | 270 | 跑通 |
 | GNNDelete | GCN | Cora | 270 | 跑通 |
 | CEU | GCN | Cora | 270 | 跑通 |
@@ -736,7 +735,7 @@ results/step0_validation/
 
 - [x] 第一轮：15 个方法全部测试完毕，生成 round1_scan.md
 - [x] 至少 5 个方法标记为 ✅（如果少于 5 个，说明框架有系统性问题，需先修复）  → 11/15 通过
-- [ ] 重点方法 GIF, GST, GUIDE 必须 ✅（这三个是后续攻击的主要目标）  → GIF ✅, GUIDE ✅, GST ❌ (forward() API 不兼容，可修复)
+- [ ] 重点方法 GIF, GST 必须 ✅（这两个是后续攻击的主要目标）  → GIF ✅, GST ❌ (forward() API 不兼容，可修复)
 - [x] 第二轮：所有 ✅ 方法 × 5 unlearn_ratio 完成，生成 round2_detail.md  (注：发现 num_unlearned_nodes 被覆盖，改用 unlearn_ratio 测试)
 - [x] 识别出各方法的遗忘量上限（多少节点会 OOM 或数值不稳定）  → 见 method_compatibility.json
 - [x] 生成 method_compatibility.json
@@ -755,7 +754,7 @@ git commit -m "step-0: OpenGU framework validation, 15 methods × compatibility 
 
 | Step 0 发现 | 对后续的影响 |
 |------------|------------|
-| GIF/GST/GUIDE 全 ✅ | 后续正常执行 |
+| GIF/GST 全 ✅ | 后续正常执行 |
 | 某方法 ❌ | 从实验矩阵中移除该方法 |
 | 某方法在 1000 节点 OOM | 该方法的 unlearn_ratio 实验设上限 |
 | 某 model+method 不兼容 | 跨模型实验时避开该组合 |
@@ -1015,7 +1014,7 @@ git tag v0.3-experiments
 ### Step 9: 扩展实验（Phase 3-4）
 
 **验收条件**:
-- [x] 跨遗忘方法: hybrid × [GIF, GNNDelete, GraphEraser, GUIDE, IDEA, MEGU] (缺 GST)
+- [x] 跨遗忘方法: hybrid × [GIF, GNNDelete, GraphEraser, IDEA, MEGU] (缺 GST)
 - [x] 跨数据集: hybrid × GIF × [Cora, Citeseer] (缺 PubMed, Physics)
 - [x] 跨模型: hybrid × GIF × [GCN, GAT] (缺 GIN, SAGE)
 - [ ] Unlearn ratio 敏感性: [1%, 5%, 10%, 20%] 四组结果

@@ -175,7 +175,7 @@ def generate_suggestions(aggregated: Dict, problems: List[Dict]) -> List[Dict]:
 
     # 按方法类型分组
     learning_based = ["GIF", "GNNDelete"]
-    shard_based = ["GraphEraser", "GUIDE"]
+    shard_based = ["GraphEraser"]
 
     # 识别有效策略
     effective = {k: v for k, v in aggregated.items() if v["f1_drop_mean"] > 0.05}

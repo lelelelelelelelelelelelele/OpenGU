@@ -93,7 +93,7 @@ cat results/experiments/mg0_completion/phase_a/20260221_182253_seed42/_summary.j
 |------|------|----------|
 | **Learning-based** | GNNDelete | 对 IF/IM 策略敏感，IM 最有效 |
 | **IF-based** | GIF | 攻击效果较小（~1-3%） |
-| **Shard-based** | GraphEraser, GUIDE | 免疫/反效应，random 更有效 |
+| **Shard-based** | GraphEraser | 免疫/反效应，random 更有效 |
 
 ### 2.3 统计计算规则
 
@@ -124,7 +124,7 @@ cat results/experiments/mg0_completion/phase_a/20260221_182253_seed42/_summary.j
 - 所有策略效果都小（~1-3%）？
 - 可能是近似误差本身较小
 
-**Shard-based (GraphEraser, GUIDE)**：
+**Shard-based (GraphEraser)**：
 - 是否出现反效应？（f1_drop < 0）
 - random 是否优于 IF/IM 策略？（应该是）
 - 尝试选择 shard 边界节点能否打破免疫？

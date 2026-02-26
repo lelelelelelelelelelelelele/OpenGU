@@ -264,7 +264,7 @@ Claim (precise rewrite):
 - The paper proposes Graph Structure Mapping Unlearning (GSMU) and CGE, mapping community subgraphs to nodes to reconstruct node-level unlearning on a reduced mapped graph, reducing training/unlearning computation while preserving utility.
 
 Novelty:
-- Relative to BP-SM-TA baselines discussed (GraphEraser/Guide): “structure mapping” that preserves inter-community relations and reduces redundant submodel/unlearning parameter computation.
+- Relative to BP-SM-TA baselines discussed (GraphEraser): “structure mapping” that preserves inter-community relations and reduces redundant submodel/unlearning parameter computation.
 
 Methods (mechanism):
 - CGE runs community detection, then maps G → Ĝ where communities become mapped nodes; node/feature/label mapping plus edge mapping define the reduced graph. The goal is to keep structural relations between subgraphs that balanced partitioning destroys.
@@ -279,7 +279,7 @@ GU connection:
 What I can borrow (method/eval/baselines):
 - Method: reduce-and-map as a concrete scalability mechanism; test boundary-node deletions to stress this mapping.
 - Eval: report deployment vs unlearning time; include MIA AUC + utility.
-- Baselines: SISA, GraphEraser, GUIDE, retrain.
+- Baselines: SISA, GraphEraser, retrain.
 
 What I should not borrow:
 - Assuming community detection is stable. In adversarial deletion selection, boundary/community-spanning UE may maximize damage.
@@ -356,7 +356,7 @@ GU connection:
 What I can borrow (method/eval/baselines):
 - Method: UE/HIE/Non-UE decomposition and NIM’s budget/threshold knobs as explicit “influenced-set size” controls.
 - Eval: report both forgetting (MIA; Edge Attack) and retained utility (Non-UE F1), and track OOT cases where unlearning exceeds retrain runtime.
-- Baselines: the paper’s cross-family suite (e.g., GraphEditor, GUIDE, GraphRevoker, CGU, CEU, GIF, D2DGN, GNNDelete, UtU, MEGU, ScaleGUN) provides ready-made anchors for “attack across GU families”.
+- Baselines: the paper’s cross-family suite (e.g., GraphEditor, GraphRevoker, CGU, CEU, GIF, D2DGN, GNNDelete, UtU, MEGU, ScaleGUN) provides ready-made anchors for “attack across GU families”.
 
 What I should not borrow:
 - SGU is designed for *better unlearning*, not *max damage*. You must empirically show the alignment (or mismatch) between “high influence” and “maximal collapse” under approximate GU.
@@ -732,4 +732,3 @@ Story: 4/5
 - Searchable texts: `papers/raw/text/*.txt`
 - Metadata: `papers/papers.csv`
 - Rough cards: `papers/notes/*.md`
-

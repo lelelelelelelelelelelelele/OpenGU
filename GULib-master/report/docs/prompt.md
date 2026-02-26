@@ -42,7 +42,7 @@
 分类建议（但你可以按代码实际结构微调）：
 
 * shard/partition-based（GraphEraser / GraphRevoker）
-* influence-function / certified / approximation family（GIF / GUIDE / CEU / CGU / GST / IDEA / ScaleGUN 等）
+* influence-function / certified / approximation family（GIF / CEU / CGU / GST / IDEA / ScaleGUN 等）
 * learning-based / distillation-based（GNNDelete / MEGU / GUKD / D2DGN / SGU / UTU 等）
   （方法名单以仓库 `UnlearningManager` 映射为准。）
 
