@@ -452,7 +452,8 @@
         "model": "GCN",
         "unlearn_ratio": 0.5,
         "approx_nodes": 1354
-      }
+      },
+      "_legacy_note": "Pre-fix data: GNNDelete had assertion bug (duplicate node IDs) that caused some seeds to crash. Fixed in gnndelete.py 2026-02-27. Values here may include affected runs."
     },
     "SGU": {
       "0.005": {
@@ -1592,7 +1593,8 @@
         "model": "GCN",
         "unlearn_ratio": 0.5,
         "approx_nodes": 1664
-      }
+      },
+      "_legacy_note": "Pre-fix data: GNNDelete had assertion bug (duplicate node IDs) that caused some seeds to crash. Fixed in gnndelete.py 2026-02-27. Values here may include affected runs."
     },
     "SGU": {
       "0.005": {
@@ -2732,7 +2734,8 @@
         "model": "GCN",
         "unlearn_ratio": 0.5,
         "approx_nodes": 9858
-      }
+      },
+      "_legacy_note": "Pre-fix data: GNNDelete had assertion bug (duplicate node IDs) that caused some seeds to crash. Fixed in gnndelete.py 2026-02-27. Values here may include affected runs."
     },
     "SGU": {
       "0.005": {
@@ -3418,5 +3421,9 @@
         "approx_nodes": 9858
       }
     }
+  },
+  "_legacy_warning": {
+    "message": "This file contains pre-bugfix GNNDelete data. See CRITICAL_BUG_REPORT_20260227.md.",
+    "marked_at": "2026-02-27T07:44:58.984418"
   }
 }
