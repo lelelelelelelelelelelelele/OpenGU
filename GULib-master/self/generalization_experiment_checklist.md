@@ -71,7 +71,7 @@
 
 ### 2.2 MG-1 最小跨数据集泛化
 
-- [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 60 runs）⚠️ GNNDelete 缺失
+- [x] `Citeseer / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 90 runs）
   - **评估汇总**：
     - **F1 Drop**: GIF=2.6%+/-0.6, GNNDelete=-19.3%+/-1.7, GraphEraser=-8.8%+/-1.8
     - **MIA AUC**: GIF=0.60, GNNDelete=-, GraphEraser=0.00

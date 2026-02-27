@@ -56,7 +56,8 @@
       "Bash(date:*)",
       "Bash(head:*)",
       "Bash(bash:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(node:*)"
     ]
   }
 }

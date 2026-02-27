@@ -95,52 +95,38 @@ def plot_fig3():
         print("FIG-3 data empty, skipping")
         return
         
-    # Calculate Relative Gain: (Hybrid - Random_Ratio) / Random_Ratio
-    # IDEA and MEGU don't have 'random' strategy in this run. We need to handle that.
-    # Actually, they might not have 'hybrid_v4' either. Let's see what they have for IM.
-    # They have 'im_v4', 'degree', 'pagerank'. Let's use 'im_v4' for them if 'hybrid_v4' is missing.
-    
     pivot_df = df_f3.pivot_table(index='Method', columns='Strategy', values='Rel_F1_Drop_Mean').reset_index()
     
     # Ensure columns exist
-    for col in ['random', 'hybrid_v4', 'im_v4']:
+    strats = ['tracin', 'im_v4', 'hybrid_v4']
+    for col in strats:
         if col not in pivot_df.columns:
-            pivot_df[col] = np.nan
+            pivot_df[col] = 0.0
             
-    # Fill missing hybrid_v4 with im_v4 for IDEA/MEGU
-    pivot_df['attack'] = pivot_df['hybrid_v4'].fillna(pivot_df['im_v4'])
-    
-    # We need a baseline to calculate ratio. If random is missing, use an epsilon or don't plot gain for them
-    pivot_df['random'] = pivot_df['random'].fillna(0.001) # Avoid div by zero
-    
-    pivot_df['Gain'] = (pivot_df['attack'] - pivot_df['random']) / pivot_df['random']
-    
-    # For IDEA/MEGU, where random was missing/0, we shouldn't plot a misleading gain.
-    # Let's just set gain to NaN if random was missing or very small
-    pivot_df.loc[pivot_df['random'] == 0.001, 'Gain'] = np.nan
-    
     fig, ax1 = plt.subplots(figsize=(12, 6))
     
     x = np.arange(len(pivot_df['Method']))
-    width = 0.35
+    width = 0.25
     
-    # Plot bars
-    ax1.bar(x - width/2, pivot_df['random'], width, label='Random (5%)', color='lightgrey', edgecolor='black', hatch='/')
-    ax1.bar(x + width/2, pivot_df['attack'], width, label='Hybrid Attack (5%)', color='crimson', edgecolor='black')
+    # Plot multiple bars 
+    bars1 = ax1.bar(x - width, pivot_df['tracin'], width, label='TracIn (5%)', color='dodgerblue', edgecolor='black')
+    bars2 = ax1.bar(x, pivot_df['im_v4'], width, label='IM (5%)', color='darkorange', edgecolor='black')
+    bars3 = ax1.bar(x + width, pivot_df['hybrid_v4'], width, label='Hybrid Attack (5%)', color='crimson', edgecolor='black')
     
+    # Add value labels
+    ax1.bar_label(bars1, fmt='%.1f', padding=3, fontsize=9)
+    ax1.bar_label(bars2, fmt='%.1f', padding=3, fontsize=9)
+    ax1.bar_label(bars3, fmt='%.1f', padding=3, fontsize=9)
+
     ax1.set_xlabel('Unlearning Method', fontweight='bold')
     ax1.set_ylabel('Relative F1 Drop (%)', color='black', fontweight='bold')
-    ax1.set_ylim(0, max(pivot_df['attack'].max() * 1.2, 5))
-    ax1.set_title('FIG-3: Vulnerability Spectrum (Absolute Drop & V-Factor)')
+    
+    max_val = max(pivot_df['tracin'].max(), pivot_df['im_v4'].max(), pivot_df['hybrid_v4'].max())
+    ax1.set_ylim(0, max(max_val * 1.2, 5))
+    ax1.set_title('FIG-3: Universal Vulnerability Spectrum (Ratio=0.05)')
     ax1.set_xticks(x)
     ax1.set_xticklabels(pivot_df['Method'])
-    ax1.legend(loc='upper left')
-    
-    ax2 = ax1.twinx()
-    ax2.plot(x, pivot_df['Gain'], color='green', marker='D', linestyle='-', linewidth=2, markersize=8, label='Vulnerability Factor (Gain)')
-    ax2.set_ylabel('Vulnerability Factor (Gain Ratio)', color='green')
-    ax2.tick_params(axis='y', labelcolor='green')
-    ax2.legend(loc='upper right')
+    ax1.legend(loc='upper right', bbox_to_anchor=(1.0, 1.0))
     
     plt.tight_layout()
     plt.savefig('results/paper_figures/FIG-3_Spectrum.pdf', bbox_inches='tight')
