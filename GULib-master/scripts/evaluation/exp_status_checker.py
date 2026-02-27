@@ -130,10 +130,12 @@ def scan_actual_results(base_dir: str) -> Tuple[Set[ExperimentKey], Set[Experime
             except: continue
     return official_found, legacy_found
 
-def scan_eval_coverage():
+def scan_eval_coverage(args=None):
     """
     Upgraded Coverage: Requires all 5 seeds to be present for 'complete'.
     """
+    show_all = args.show_all if args and hasattr(args, 'show_all') else False
+
     # 1. Scan relative
     rel_coverage = defaultdict(set)
     rel_path = Path("results/relative")
@@ -198,8 +200,8 @@ def scan_eval_coverage():
                         
                         r_status = f"{r_cnt}/5" if r_cnt < 5 else "5/5 OK"
                         c_status = f"{c_cnt}/5" if c_cnt < 5 else "5/5 OK"
-                        
-                        if r_cnt < 5 or c_cnt < 5:
+
+                        if r_cnt < 5 or c_cnt < 5 or show_all:
                             label = f"{m}/{d}/{mod}/r{r}"
                             print(f"{label:<50} | {r_status:<12} | {c_status:<12}")
     print("="*85)
@@ -480,6 +482,7 @@ def main():
     parser.add_argument('--dataset', help='Filter by dataset')
     parser.add_argument('--detail', action='store_true', help='Show missing experiment details')
     parser.add_argument('--fill', action='store_true', help='Scan and report gaps, write auto_discovered.json (does NOT modify checklist)')
+    parser.add_argument('--show_all', action='store_true', help='Show all configs in coverage table (not just missing ones)')
     args = parser.parse_args()
 
     if args.fill:
@@ -497,7 +500,7 @@ def main():
         pct = (done/total*100) if total>0 else 0
         print(f"- {pcfg.name:<15}: {done}/{total} runs ({pct:.1f}%)")
 
-    scan_eval_coverage()
+    scan_eval_coverage(args)
 
 if __name__ == '__main__':
     main()

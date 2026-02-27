@@ -14,7 +14,7 @@ This document outlines the systematic visualization of experiment results, stric
 | Chart ID | Target Section | Focus | Form | Key Metrics | Methods |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **FIG-1** | Generalization | Cross-Dataset/Model Potency | Grouped Bar + Error | **Relative F1 Drop** | GIF, GDel, GEraser |
-| **FIG-2** | Scaling | Ratio Sensitivity | Line + Shaded Area | Relative F1 Drop | GIF, GDel |
+| **FIG-2** | Scaling | Ratio Sensitivity | Line + Shaded Area | Relative F1 Drop | GIF, GDel (All algorithmic strategies) |
 | **FIG-3** | **Spectrum** | **Universal Vulnerability** | **Stacked/Grouped Bar** | **Relative F1 Drop & Gain** | **All 5 Methods** |
 | **FIG-4** | Significance | Statistical Rigor | Heatmap | -log10(p-value) | All 5 Methods |
 | **FIG-5** | Collateral | Mimicry Quality | **Scatter Plot** | **Rel. F1 Drop vs. Gap** | All 5 Methods |
@@ -30,16 +30,17 @@ This document outlines the systematic visualization of experiment results, stric
 *   **Logic**: By using the k=5 baseline, we show that even if GraphEraser has a "self-repair" effect (F1 up on random k=5), our Hybrid/IM strategies still force a significant *relative* drop.
 
 ### FIG-2: Attack Scaling Efficiency
-*   **Purpose**: To define the "strength-vs-budget" curve.
+*   **Purpose**: To define the "strength-vs-budget" curve for different algorithmic selection strategies.
 *   **Metrics**: Relative F1 Drop across ratios (0.01, 0.05, 0.10, 0.20).
-*   **Narrative**: Shows that the "Attack Gain" over the k=5 baseline increases as we select more critical nodes.
+*   **Settings**: GIF and GNNDelete on Cora-GCN.
+*   **Logic**: Excludes the random baseline (to isolate algorithm efficacy) and compares `hybrid_v4`, `im_v4`, `tracin`, `pagerank`, and `degree` to show which algorithm scales damage most efficiently as budget increases.
 
 ### FIG-3: The Unlearning Vulnerability Spectrum (5-Method View)
 *   **Purpose**: The "Grand Summary" showing the attack's platform-agnostic nature.
-*   **Methods**: GIF, GNNDelete, GraphEraser, IDEA, MEGU.
+*   **Methods**: GIF, GNNDelete, GraphEraser (GCN); IDEA, MEGU (GAT). All at ratio 0.05.
 *   **Metric 1**: **Relative F1 Drop** (Absolute damage).
-*   **Metric 2**: **Relative Gain** (Vulnerability factor: how much worse is Hybrid than Random?).
-*   **Logic**: Demonstrates that IF-based (GIF, IDEA), Learning-based (GDel, MEGU), and Shard-based (GEraser) all possess structural vulnerabilities.
+*   **Metric 2**: **Relative Gain (V-Factor)**: Vulnerability factor showing how much worse Hybrid is than Random.
+*   **Logic**: Demonstrates that IF-based (GIF, IDEA), Learning-based (GDel, MEGU), and Shard-based (GEraser) all possess structural vulnerabilities. *(Note: V-Factor is omitted for IDEA/MEGU due to intentionally uncollected random baselines for those expensive runs).*
 
 ### FIG-4: Statistical Significance Heatmap
 *   **Purpose**: Prove that findings are not due to seed-level noise.

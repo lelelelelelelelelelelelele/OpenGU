@@ -1,0 +1,15 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GAT",
+    "unlearning_methods": "GNNDelete",
+    "unlearn_ratio": 0.05,
+    "random_seed": 212,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random"
+    ]
+  },
+  "results": [],
+  "timestamp": "2026-02-27T10:46:32.764361"
+}

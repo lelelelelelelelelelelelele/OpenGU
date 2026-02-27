@@ -1,0 +1,15 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GIN",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.05,
+    "random_seed": 42,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random"
+    ]
+  },
+  "results": [],
+  "timestamp": "2026-02-27T10:40:17.970982"
+}

@@ -1,0 +1,23 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GAT",
+    "unlearning_methods": "GIF",
+    "unlearn_ratio": 0.1,
+    "random_seed": 722,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "baseline_f1_after": 0.7039039039039039,
+      "attack_f1_after": 0.7162,
+      "gap": 0.012296096096096054,
+      "relative_f1_drop": -0.012296096096096054
+    }
+  ],
+  "timestamp": "2026-02-27T10:38:17.966931"
+}
