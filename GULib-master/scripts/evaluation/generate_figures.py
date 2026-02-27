@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import os
+import json
+import glob
+from scipy.stats import ttest_ind_from_stats, ttest_rel
 
 # Create output directory
 os.makedirs('results/paper_figures', exist_ok=True)
@@ -245,11 +248,121 @@ def plot_fig5():
     plt.close()
     print("FIG-5 generated.")
 
+# --- FIG-4a: Strategy vs. Random Paired T-test Heatmap ---
+def plot_fig4a():
+    """
+    For each (method, strategy) pair, run a paired t-test comparing strategy f1_drop
+    against random f1_drop across seeds (paired by seed within same JSON).
+    Plot -log10(p-value) as a heatmap.
+    """
+    # Define where to find raw JSONs for each method
+    method_json_patterns = {
+        'GIF':          'results/experiments/mg0_completion/phase_a/*/GIF_cora_GCN_r0.05_s*.json',
+        'GNNDelete':    'results/experiments/mg0_completion/phase_a/*/GNNDelete_cora_GCN_r0.05_s*.json',
+        'GraphEraser':  'results/experiments/mg0_completion/phase_a/*/GraphEraser_cora_GCN_r0.05_s*.json',
+        'IDEA':         'results/experiments/mg3_gat/phase_a/*/IDEA_cora_GAT_r0.05_s*.json',
+        'MEGU':         'results/experiments/mg3_gat/phase_a/*/MEGU_cora_GAT_r0.05_s*.json',
+    }
+    strategies = ['tracin', 'im_v4', 'hybrid_v4']
+    method_order = ['GIF', 'GNNDelete', 'GraphEraser', 'IDEA', 'MEGU']
+
+    # Collect paired (strategy, random) f1_drop per seed per method
+    # Structure: paired_data[method][strategy] = [(strat_f1drop, random_f1drop), ...]
+    paired_data = {}
+    for method, pattern in method_json_patterns.items():
+        files = sorted(glob.glob(pattern))
+        if not files:
+            print(f"  FIG-4a: No JSON files found for {method} with pattern {pattern}")
+            continue
+        paired_data[method] = {s: [] for s in strategies}
+        for fpath in files:
+            with open(fpath, 'r') as f:
+                data = json.load(f)
+            results = data.get('results', {})
+            r_val = results.get('random', {}).get('f1_drop')
+            if r_val is None:
+                continue
+            for strat in strategies:
+                s_val = results.get(strat, {}).get('f1_drop')
+                if s_val is not None:
+                    paired_data[method][strat].append((s_val, r_val))
+
+    # Compute paired t-test p-values
+    p_matrix = pd.DataFrame(index=method_order, columns=strategies, dtype=float)
+    for method in method_order:
+        if method not in paired_data:
+            continue
+        for strat in strategies:
+            pairs = paired_data[method][strat]
+            if len(pairs) < 2:
+                continue
+            strat_vals = np.array([p[0] for p in pairs])
+            random_vals = np.array([p[1] for p in pairs])
+            diffs = strat_vals - random_vals
+            # If all diffs are exactly 0, p-value is undefined (no variance); set to 1.0
+            if np.std(diffs, ddof=1) == 0:
+                p_matrix.loc[method, strat] = 1.0 if np.mean(diffs) == 0 else 0.0
+            else:
+                _, p_val = ttest_rel(strat_vals, random_vals)
+                p_matrix.loc[method, strat] = p_val
+
+    # Check we have data
+    if p_matrix.isna().all().all():
+        print("FIG-4a: No p-values computed, skipping.")
+        return
+
+    # Print summary
+    print("  FIG-4a p-value matrix:")
+    print(p_matrix.to_string())
+
+    # Compute -log10(p-value)
+    logp_matrix = -np.log10(p_matrix.astype(float).replace(0, 1e-10))
+    sig_threshold = -np.log10(0.05)  # ~1.301
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    # Pretty column labels
+    col_labels = {'tracin': 'TracIn', 'im_v4': 'IM', 'hybrid_v4': 'Hybrid'}
+    plot_df = logp_matrix.rename(columns=col_labels)
+
+    sns.heatmap(plot_df, annot=True, cmap="YlOrRd", fmt=".2f",
+                cbar_kws={'label': '$-\\log_{10}(p)$'}, ax=ax,
+                linewidths=0.5, linecolor='white')
+
+    # Add hatching to non-significant cells (p > 0.05)
+    for i in range(plot_df.shape[0]):
+        for j in range(plot_df.shape[1]):
+            val = plot_df.iloc[i, j]
+            if np.isnan(val) or val < sig_threshold:
+                ax.add_patch(plt.Rectangle((j, i), 1, 1, fill=False,
+                             edgecolor='gray', linewidth=2,
+                             hatch='///', zorder=3))
+
+    # Colorbar threshold line
+    cbar = ax.collections[0].colorbar
+    cbar.ax.axhline(y=sig_threshold, color='black', linewidth=2, linestyle='--')
+    cbar.ax.text(1.3, sig_threshold, ' p=0.05', va='center', ha='left',
+                 fontsize=9, fontweight='bold', color='black')
+
+    ax.set_title("FIG-4a: Strategy vs. Random (Paired T-test)\n"
+                 "Hatched cells: p > 0.05 (not significant)", fontsize=12)
+    ax.set_ylabel('Unlearning Method')
+    ax.set_xlabel('Attack Strategy')
+
+    plt.tight_layout()
+    plt.savefig('results/paper_figures/FIG-4a_Significance.pdf', bbox_inches='tight')
+    plt.savefig('results/paper_figures/FIG-4a_Significance.png', bbox_inches='tight', dpi=300)
+    plt.close()
+    print("FIG-4a generated.")
+
+
 if __name__ == '__main__':
     print("Generating all paper figures...")
     plot_fig1()
     plot_fig2()
     plot_fig3()
     plot_fig4()
+    plot_fig4a()
     plot_fig5()
     print("All done. Figures saved to results/paper_figures/")

@@ -17,6 +17,7 @@ Usage:
 import os
 import sys
 import json
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -135,7 +136,132 @@ def find_cache_entry_for_attack(cache, args: dict, strategy_name: str):
 
     if best_match is not None:
         return best_match.get('result', {})
+    summary_fallback = find_summary_entry_for_attack(args, strategy_name)
+    if summary_fallback is not None:
+        return summary_fallback
     return None
+
+
+_SUMMARY_INDEX_CACHE = None
+_SUMMARY_INDEX_MTIME = None
+
+
+def _normalize_strategy_name(name: str) -> str:
+    s = str(name or "").lower()
+    if s == "im":
+        return "im_v4"
+    if s == "hybrid":
+        return "hybrid_v4"
+    return s
+
+
+def _parse_seed_from_path(path: Path):
+    m = re.search(r"seed(\d+)", str(path))
+    if not m:
+        return None
+    try:
+        return int(m.group(1))
+    except (TypeError, ValueError):
+        return None
+
+
+def _build_summary_index():
+    """
+    Build an index from results/experiments/*/phase_a/*/_summary.json so
+    eval_relative can fall back when result cache entries are missing.
+    """
+    index = {}
+    summary_files = Path("./results/experiments").glob("*/phase_a/*/_summary.json")
+    for summary_path in summary_files:
+        try:
+            mtime = summary_path.stat().st_mtime
+            with open(summary_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except Exception:
+            continue
+
+        results = payload.get("results", {})
+        if not isinstance(results, dict):
+            continue
+
+        for _, method_block in results.items():
+            if not isinstance(method_block, dict):
+                continue
+
+            cfg = method_block.get("config", {})
+            if not isinstance(cfg, dict):
+                continue
+
+            dataset = str(cfg.get("dataset_name", "")).lower()
+            model = str(cfg.get("base_model", "")).upper()
+            method = str(cfg.get("unlearning_methods", ""))
+            try:
+                ratio = float(cfg.get("unlearn_ratio"))
+            except (TypeError, ValueError):
+                continue
+
+            seed = cfg.get("random_seed", cfg.get("seed"))
+            if seed is None:
+                seed = _parse_seed_from_path(summary_path)
+            try:
+                seed = int(seed)
+            except (TypeError, ValueError):
+                continue
+
+            strategy_results = method_block.get("results", {})
+            if not isinstance(strategy_results, dict):
+                continue
+
+            for strategy, strategy_result in strategy_results.items():
+                norm_strategy = _normalize_strategy_name(strategy)
+                if not norm_strategy or norm_strategy == "comparison":
+                    continue
+                if not isinstance(strategy_result, dict):
+                    continue
+                if strategy_result.get("f1_after") is None:
+                    continue
+
+                key = (dataset, model, method, ratio, seed, norm_strategy)
+                prev = index.get(key)
+                if prev is None or mtime > prev[0]:
+                    index[key] = (mtime, strategy_result)
+
+    # Strip mtimes after dedupe.
+    return {k: v[1] for k, v in index.items()}
+
+
+def _get_summary_index():
+    global _SUMMARY_INDEX_CACHE, _SUMMARY_INDEX_MTIME
+    summary_root = Path("./results/experiments")
+    try:
+        current_mtime = summary_root.stat().st_mtime if summary_root.exists() else None
+    except OSError:
+        current_mtime = None
+
+    if _SUMMARY_INDEX_CACHE is None or _SUMMARY_INDEX_MTIME != current_mtime:
+        _SUMMARY_INDEX_CACHE = _build_summary_index()
+        _SUMMARY_INDEX_MTIME = current_mtime
+    return _SUMMARY_INDEX_CACHE
+
+
+def find_summary_entry_for_attack(args: dict, strategy_name: str):
+    dataset = str(args.get("dataset_name", "")).lower()
+    model = str(args.get("base_model", "")).upper()
+    method = str(args.get("unlearning_methods", ""))
+    try:
+        ratio = float(args.get("unlearn_ratio", 0.05))
+    except (TypeError, ValueError):
+        return None
+
+    seed = args.get("random_seed", args.get("seed", 2024))
+    try:
+        seed = int(seed)
+    except (TypeError, ValueError):
+        return None
+
+    norm_strategy = _normalize_strategy_name(strategy_name)
+    index = _get_summary_index()
+    return index.get((dataset, model, method, ratio, seed, norm_strategy))
 
 
 def get_baseline_from_cache(args: dict, baseline_k: int) -> dict:

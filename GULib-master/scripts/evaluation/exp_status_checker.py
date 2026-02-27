@@ -10,7 +10,6 @@ import re
 import sys
 import json
 import argparse
-import numpy as np
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Set, Tuple, Optional, NamedTuple

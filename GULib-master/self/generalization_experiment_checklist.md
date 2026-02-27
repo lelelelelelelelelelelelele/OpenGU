@@ -9,7 +9,7 @@
 - `[ ]` 待完成
 - `⚠️` 有缺口但已产生部分结果
 
-## 2. 项目仪表盘（先看这里）
+## 2. 项目仪表盘
 
 ### 2.1 全局进度概览
 
@@ -17,7 +17,7 @@
 |------|---------|-------------|------|---------------|
 | Phase A / A+ 基线 | `Cora / GCN / ratio=0.05 / seed=2024` | 18+ | ✅ | 机制分组结论已形成；Retrain/Collateral 基础评估已跑通 |
 | MG-0 稳定性 | `Cora / GCN / 5 seeds` | 90 | ✅ (2026-02-22) | 结论非 seed 偶然 |
-| MG-1 跨数据集 | `Citeseer / GCN / 5 seeds` | 90 | ⚠️ (2026-02-27) | 缺 `GNNDelete` |
+| MG-1 跨数据集 | `Citeseer / GCN / 5 seeds` | 90 | ✅ (2026-02-27) | `GNNDelete` 已补齐（含 phase_a/collateral/relative） |
 | MG-2 跨模型 | `Cora / GAT / 5 seeds` | 90 | ✅ (2026-02-22) | 最小跨模型证据完成 |
 | MG-3 扩展方法 | `Citeseer(GCN)+Cora(GAT) / IDEA+MEGU` | 80 | ✅ (2026-02-22) | 5 方法扩展结果完成 |
 | Ratio 敏感性 | `Cora / GCN / ratio=0.01,0.05,0.10,0.20 / 5 seeds` | 240 | ✅ (2026-02-25) | 攻击强度曲线基础完成 |
@@ -25,7 +25,7 @@
 
 ### 2.2 当前优先待办（Top）
 
-- [ ] 补齐 **MG-1 的 `GNNDelete`**，使三类方法在 Citeseer 对齐
+- [x] 补齐 **MG-1 的 `GNNDelete`**，使三类方法在 Citeseer 对齐
 - [ ] 补齐 **P5：MIA + 统计检验图表**
 - [ ] 跑批前通过一次 **执行前门禁（第 3 节）**
 
@@ -54,7 +54,7 @@
 | 模块 | 配置 | 方法/策略 | 状态 |
 |------|------|-----------|------|
 | MG-0 稳定性 | `Cora / GCN / ratio=0.05 / 5 seeds` | `GIF,GNNDelete,GraphEraser` × `random,degree,pagerank,tracin,im,hybrid` | ✅ |
-| MG-1 跨数据集 | `Citeseer / GCN / ratio=0.05 / 5 seeds` | 同上 | ⚠️ 缺 `GNNDelete` |
+| MG-1 跨数据集 | `Citeseer / GCN / ratio=0.05 / 5 seeds` | 同上 | ✅ |
 | MG-2 跨模型 | `Cora / GAT / ratio=0.05 / 5 seeds` | 同上 | ✅ |
 | MG-3 扩展方法 | `Citeseer(GCN)+Cora(GAT)` | `IDEA,MEGU`（建议先 `random,tracin,im,hybrid`） | ✅ |
 
@@ -71,10 +71,10 @@
   - F1 Drop: GIF=`1.6%±0.8`, GNNDelete=`9.7%±3.8`, GraphEraser=`-5.2%±2.7`
   - MIA AUC: GIF=`0.60`, GNNDelete=`0.64`, GraphEraser=`0.00`
   - Relative: GIF=`1.7%±1.1`, GNNDelete=`13.7%±4.0`, GraphEraser=`3.7%±2.5`
-- MG-1（⚠️，2026-02-27）
-  - F1 Drop: GIF=`2.6%±0.6`, GNNDelete=`-19.3%±1.7`（缺失）, GraphEraser=`-8.8%±1.8`
-  - MIA AUC: GIF=`0.60`, GNNDelete=`-`, GraphEraser=`0.00`
-  - Relative: GIF=`0.0%±0.3`, GNNDelete=`-`, GraphEraser=`0.2%±0.7`
+- MG-1（✅，2026-02-27）
+  - F1 Drop: GIF=`2.6%±0.6`, GNNDelete=`-19.3%±1.7`, GraphEraser=`-8.8%±1.8`
+  - MIA AUC: GIF=`0.60`, GNNDelete=`0.00`, GraphEraser=`0.00`
+  - Relative: GIF=`0.0%±0.3`, GNNDelete=`已补齐（见 results/relative/GNNDelete/citeseer/GCN）`, GraphEraser=`0.2%±0.7`
 - MG-2（✅，2026-02-22）
   - F1 Drop: GIF=`5.4%±1.1`, GNNDelete=`14.4%±5.1`, GraphEraser=`-7.9%±3.4`
   - MIA AUC: GIF=`0.49`, GNNDelete=`0.68`, GraphEraser=`0.00`
