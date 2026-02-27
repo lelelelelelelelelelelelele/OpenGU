@@ -17,6 +17,7 @@ This document outlines the systematic visualization of experiment results, stric
 | **FIG-2** | Scaling | Ratio Sensitivity | Line + Shaded Area | Relative F1 Drop | GIF, GDel (All algorithmic strategies) |
 | **FIG-3** | **Spectrum** | **Universal Vulnerability** | **Stacked/Grouped Bar** | **Relative F1 Drop & Gain** | **All 5 Methods** |
 | **FIG-4** | Significance | Statistical Rigor | Heatmap | -log10(p-value) | All 5 Methods |
+| **FIG-4a** | Significance | Against Random | Heatmap | -log10(p-value) | All 5 Methods |
 | **FIG-5** | Collateral | Mimicry Quality | **Scatter Plot** | **Rel. F1 Drop vs. Gap** | All 5 Methods |
 
 ---
@@ -41,11 +42,22 @@ This document outlines the systematic visualization of experiment results, stric
 *   **Metric 1**: **Relative F1 Drop** (Absolute damage).
 *   **Metric 2**: **Relative Gain (V-Factor)**: Vulnerability factor showing how much worse Hybrid is than Random.
 *   **Logic**: Demonstrates that IF-based (GIF, IDEA), Learning-based (GDel, MEGU), and Shard-based (GEraser) all possess structural vulnerabilities. *(Note: V-Factor is omitted for IDEA/MEGU due to intentionally uncollected random baselines for those expensive runs).*
+*   **Improvements**:
+    *   Add error bars to represent the standard deviation (std) across different seeds.
+    *   Explicitly denote in the title or subtitle that the data pertains to Cora-GCN or other combinations.
 
 ### FIG-4: Statistical Significance Heatmap
 *   **Purpose**: Prove that findings are not due to seed-level noise.
 *   **Metric**: P-value (Paired T-test between `Hybrid_v4` and the **k=5 baseline**).
 *   **Logic**: Stronger evidence than comparing against ratio-matched random, as it proves the attack breaks the "equilibrium" of the unlearning method.
+*   **Improvements**:
+    *   Add a significance threshold line (e.g., $p=0.05$, marked as $-\log_{10}(0.05)$) to the colorbar.
+    *   Use hatching (e.g., crosshatch or gray out) to visually mark cells that are not statistically significant ($p > 0.05$, i.e., $-\log_{10}(p) < 1.3$).
+
+### FIG-4a: Strategy vs. Random (Welch's T-test)
+*   **Purpose**: Prove that structured attacks (Hybrid, IM, TracIn) are significantly more damaging than random deletion at the same budget.
+*   **Metric**: P-value calculated using Welch's T-test between the strategy's mean/std and the ratio-matched `random` mean/std.
+*   **Logic**: High absolute drop (FIG-1) and significance against baseline (FIG-4) could just mean "deleting many nodes hurts". FIG-4a isolates the **strategy's efficacy** by removing the "quantity" variable.
 
 ### FIG-5: Attack Depth & Mimicry (Collateral Damage)
 *   **Purpose**: To prove the attack is "deeply structural" and mimics exact retraining.

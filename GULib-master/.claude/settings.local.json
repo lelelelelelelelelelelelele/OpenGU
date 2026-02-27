@@ -57,7 +57,11 @@
       "Bash(head:*)",
       "Bash(bash:*)",
       "Bash(mv:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(wc:*)",
+      "Bash(PYTHONIOENCODING=utf-8 :/conda_package/envs/gnn/python.exe:*)"
     ]
   }
 }

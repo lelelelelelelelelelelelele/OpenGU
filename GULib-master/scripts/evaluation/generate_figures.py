@@ -95,23 +95,33 @@ def plot_fig3():
         print("FIG-3 data empty, skipping")
         return
         
-    pivot_df = df_f3.pivot_table(index='Method', columns='Strategy', values='Rel_F1_Drop_Mean').reset_index()
+    # Pivot for mean and std
+    pivot_mean = df_f3.pivot_table(index='Method', columns='Strategy', values='Rel_F1_Drop_Mean').reset_index()
+    pivot_std = df_f3.pivot_table(index='Method', columns='Strategy', values='Rel_F1_Drop_Std').reset_index()
     
     # Ensure columns exist
     strats = ['tracin', 'im_v4', 'hybrid_v4']
     for col in strats:
-        if col not in pivot_df.columns:
-            pivot_df[col] = 0.0
+        if col not in pivot_mean.columns:
+            pivot_mean[col] = 0.0
+        if col not in pivot_std.columns:
+            pivot_std[col] = 0.0
             
     fig, ax1 = plt.subplots(figsize=(12, 6))
     
-    x = np.arange(len(pivot_df['Method']))
+    x = np.arange(len(pivot_mean['Method']))
     width = 0.25
     
-    # Plot multiple bars 
-    bars1 = ax1.bar(x - width, pivot_df['tracin'], width, label='TracIn (5%)', color='dodgerblue', edgecolor='black')
-    bars2 = ax1.bar(x, pivot_df['im_v4'], width, label='IM (5%)', color='darkorange', edgecolor='black')
-    bars3 = ax1.bar(x + width, pivot_df['hybrid_v4'], width, label='Hybrid Attack (5%)', color='crimson', edgecolor='black')
+    # Plot bars with error bars (std across seeds)
+    bars1 = ax1.bar(x - width, pivot_mean['tracin'], width,
+                    yerr=pivot_std['tracin'], capsize=4,
+                    label='TracIn (5%)', color='dodgerblue', edgecolor='black')
+    bars2 = ax1.bar(x, pivot_mean['im_v4'], width,
+                    yerr=pivot_std['im_v4'], capsize=4,
+                    label='IM (5%)', color='darkorange', edgecolor='black')
+    bars3 = ax1.bar(x + width, pivot_mean['hybrid_v4'], width,
+                    yerr=pivot_std['hybrid_v4'], capsize=4,
+                    label='Hybrid Attack (5%)', color='crimson', edgecolor='black')
     
     # Add value labels
     ax1.bar_label(bars1, fmt='%.1f', padding=3, fontsize=9)
@@ -121,11 +131,14 @@ def plot_fig3():
     ax1.set_xlabel('Unlearning Method', fontweight='bold')
     ax1.set_ylabel('Relative F1 Drop (%)', color='black', fontweight='bold')
     
-    max_val = max(pivot_df['tracin'].max(), pivot_df['im_v4'].max(), pivot_df['hybrid_v4'].max())
-    ax1.set_ylim(0, max(max_val * 1.2, 5))
-    ax1.set_title('FIG-3: Universal Vulnerability Spectrum (Ratio=0.05)')
+    max_val = max(pivot_mean['tracin'].max(), pivot_mean['im_v4'].max(), pivot_mean['hybrid_v4'].max())
+    max_err = max(pivot_std['tracin'].max(), pivot_std['im_v4'].max(), pivot_std['hybrid_v4'].max())
+    ax1.set_ylim(0, max((max_val + max_err) * 1.2, 5))
+    ax1.set_title('FIG-3: Universal Vulnerability Spectrum (Ratio=0.05)\n'
+                  'GIF, GNNDelete, GraphEraser: Cora-GCN | IDEA, MEGU: Cora-GAT',
+                  fontsize=13)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(pivot_df['Method'])
+    ax1.set_xticklabels(pivot_mean['Method'])
     ax1.legend(loc='upper right', bbox_to_anchor=(1.0, 1.0))
     
     plt.tight_layout()
@@ -156,9 +169,30 @@ def plot_fig4():
     # Filter out 0 to avoid inf
     pivot_logp = -np.log10(pivot_p.replace(0, 1e-10))
     
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(pivot_logp, annot=True, cmap="YlOrRd", fmt=".2f", cbar_kws={'label': '-log10(p-value)'})
-    plt.title("FIG-4: Statistical Significance (-log10 P-Value against Baseline)")
+    # Significance threshold: -log10(0.05) ≈ 1.3010
+    sig_threshold = -np.log10(0.05)
+    
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(pivot_logp, annot=True, cmap="YlOrRd", fmt=".2f",
+                cbar_kws={'label': '-log10(p-value)'}, ax=ax)
+    
+    # Add hatching to non-significant cells (p > 0.05, i.e. -log10(p) < 1.3)
+    for i in range(pivot_logp.shape[0]):
+        for j in range(pivot_logp.shape[1]):
+            val = pivot_logp.iloc[i, j]
+            if not np.isnan(val) and val < sig_threshold:
+                ax.add_patch(plt.Rectangle((j, i), 1, 1, fill=False,
+                             edgecolor='gray', linewidth=2,
+                             hatch='///', zorder=3))
+    
+    # Draw a horizontal line on the colorbar at the significance threshold
+    cbar = ax.collections[0].colorbar
+    cbar.ax.axhline(y=sig_threshold, color='black', linewidth=2, linestyle='--')
+    cbar.ax.text(1.3, sig_threshold, ' p=0.05', va='center', ha='left',
+                 fontsize=9, fontweight='bold', color='black')
+    
+    ax.set_title("FIG-4: Statistical Significance (-log10 P-Value against Baseline)\n"
+                 "Hatched cells: p > 0.05 (not significant)", fontsize=12)
     plt.tight_layout()
     plt.savefig('results/paper_figures/FIG-4_Significance.pdf', bbox_inches='tight')
     plt.savefig('results/paper_figures/FIG-4_Significance.png', bbox_inches='tight', dpi=300)

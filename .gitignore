@@ -13,3 +13,4 @@ demo_output*.log
 results/demo_logs/
 results/cache/
 .agents
+**node_modules
