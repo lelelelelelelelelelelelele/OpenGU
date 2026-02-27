@@ -2,7 +2,7 @@
 
 ## Context
 
-**问题背景**：Shard-based 方法（GraphEraser、GUIDE）存在"保护效应"——即使随机删除节点，F1 也会提升。这导致无法区分攻击策略的真正效果与方法本身的"自我修复"效应。
+**问题背景**：Shard-based 方法（GraphEraser）存在"保护效应"——即使随机删除节点，F1 也会提升。这导致无法区分攻击策略的真正效果与方法本身的"自我修复"效应。
 
 **目标**：设计基准实验，排除 unlearning 方法本身对 F1 的影响，获得真实的攻击效果评估。
 
@@ -74,7 +74,7 @@ python experiments/baseline_k5/eval_relative.py \
 在 shell 脚本中嵌套循环调用 `eval_relative.py`，类似 `run_mg3_extended.sh` 调用 `eval_collateral.py` 的方式：
 
 ```bash
-METHODS="GNNDelete GIF GraphEraser GUIDE"
+METHODS="GNNDelete GIF GraphEraser"
 DATASETS="cora citeseer"
 ATTACK_SEEDS="42 212 722 1337 2024"  # 主实验 seeds
 
@@ -112,9 +112,7 @@ done
 | GNNDelete | cora, citeseer | GCN | 5 | 5 | `results/baseline/k5_random/{Method}/{Dataset}/GCN/` |
 | GIF | cora, citeseer | GCN | 5 | 5 | 同上 |
 | GraphEraser | cora, citeseer | GCN | 5 | 5 | 同上 |
-| GUIDE | cora, citeseer | GCN | 5 | 5 | 同上 |
-
-**总计：4 方法 × 2 数据集 × 5 seeds = 40 次生成运行**
+**总计：3 方法 × 2 数据集 × 5 seeds = 30 次生成运行**
 
 ### 攻击实验对比（已有结果直接读取）
 
@@ -123,7 +121,6 @@ done
 | GNNDelete | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
 | GIF | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
 | GraphEraser | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
-| GUIDE | cora, citeseer | 0.05 | im_v4, tracin, hybrid_v4 | `results/cache/` |
 
 ---
 

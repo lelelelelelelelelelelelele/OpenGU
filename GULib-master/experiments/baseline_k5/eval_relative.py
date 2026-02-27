@@ -17,8 +17,6 @@ Usage:
 import os
 import sys
 import json
-import numpy as np
-import torch
 from pathlib import Path
 from datetime import datetime
 
@@ -27,6 +25,7 @@ _strategies_str = 'im_v4,tracin,hybrid_v4'
 _baseline_k = 5
 _repair_mode = False
 _repair_dry_run = False
+_missing_only = False
 _raw_args = list(sys.argv[1:])
 _filtered_argv = []
 _i = 0
@@ -55,6 +54,11 @@ while _i < len(_raw_args):
     elif _arg == '--repair_dry_run':
         _repair_mode = True
         _repair_dry_run = True
+    elif _arg == '--missing_only':
+        # Convenience mode: only print missing entries, implies repair dry-run.
+        _missing_only = True
+        _repair_mode = True
+        _repair_dry_run = True
     else:
         _filtered_argv.append(_arg)
     _i += 1
@@ -65,12 +69,9 @@ if base_dir not in sys.path:
     sys.path.append(base_dir)
 
 from parameter_parser import parameter_parser
-from attack.pipeline_adapter import AttackPipeline
-from attack.attack_strategies import RandomStrategy
-from attack.result_cache import ResultCache
 
 
-def find_cache_entry_for_attack(cache: ResultCache, args: dict, strategy_name: str):
+def find_cache_entry_for_attack(cache, args: dict, strategy_name: str):
     import json as _json
     target = {
         'dataset_name': str(args.get('dataset_name', '')),
@@ -177,11 +178,21 @@ def get_baseline_from_cache(args: dict, baseline_k: int) -> dict:
     return None
 
 
-def _matches_relative_config(config: dict, args: dict, target_seed: int):
+def _matches_relative_config(config: dict, args: dict, target_seed: int, baseline_k: int):
     if str(config.get('dataset_name', '')) != str(args.get('dataset_name', '')): return False
     if str(config.get('base_model', '')) != str(args.get('base_model', '')): return False
     if str(config.get('unlearning_methods', '')) != str(args.get('unlearning_methods', '')): return False
     if abs(float(config.get('unlearn_ratio', -1)) - float(args.get('unlearn_ratio', 0.05))) > 1e-6: return False
+    cfg_baseline_k = config.get('baseline_k')
+    if cfg_baseline_k is not None:
+        try:
+            if int(cfg_baseline_k) != int(baseline_k):
+                return False
+        except (TypeError, ValueError):
+            return False
+    elif int(baseline_k) != 5:
+        # Legacy files may miss baseline_k; only allow them for default k=5.
+        return False
     
     cfg_seed = config.get('random_seed', config.get('seed'))
     if cfg_seed is None: return False
@@ -192,20 +203,22 @@ def _matches_relative_config(config: dict, args: dict, target_seed: int):
     return cfg_seed == target_seed
 
 
-def _scan_existing_relative(args: dict, target_seed: int):
+def _scan_existing_relative(args: dict, target_seed: int, baseline_k: int):
     out_dir = Path(f"./results/relative/{args['unlearning_methods']}/{args['dataset_name']}/{args['base_model']}")
     strategy_map = {}
     if not out_dir.exists():
         return strategy_map
         
-    for path in sorted(out_dir.glob("relative_seed*.json"), key=lambda p: p.stat().st_mtime):
+    # Narrow scan to the target seed first to avoid loading unrelated files.
+    seed_glob = f"relative_seed{target_seed}_*.json"
+    for path in sorted(out_dir.glob(seed_glob), key=lambda p: p.stat().st_mtime):
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         except Exception:
             continue
             
-        if not _matches_relative_config(data.get('config', {}), args, target_seed):
+        if not _matches_relative_config(data.get('config', {}), args, target_seed, baseline_k):
             continue
             
         for result in data.get('results', []):
@@ -229,10 +242,11 @@ def main():
         
     args['proportion_unlearned_nodes'] = args['unlearn_ratio']
     
-    print(f"Dataset: {args['dataset_name']}, Model: {args['base_model']}, Method: {args['unlearning_methods']}")
-    print(f"Seed: {args['random_seed']}, Unlearn Ratio: {args['unlearn_ratio']}, Baseline K: {_baseline_k}")
-    print(f"Strategies: {strategies}")
-    print("=" * 80)
+    if not _missing_only:
+        print(f"Dataset: {args['dataset_name']}, Model: {args['base_model']}, Method: {args['unlearning_methods']}")
+        print(f"Seed: {args['random_seed']}, Unlearn Ratio: {args['unlearn_ratio']}, Baseline K: {_baseline_k}")
+        print(f"Strategies: {strategies}")
+        print("=" * 80)
     
     target_seed = int(args.get('random_seed', 2024))
     
@@ -241,9 +255,18 @@ def main():
     completed_before = []
 
     if _repair_mode:
-        existing_results_by_strategy = _scan_existing_relative(args, target_seed)
+        existing_results_by_strategy = _scan_existing_relative(args, target_seed, _baseline_k)
         completed_before = [s for s in strategies if s in existing_results_by_strategy]
         strategies_to_run = [s for s in strategies if s not in existing_results_by_strategy]
+        if _missing_only:
+            if strategies_to_run:
+                print(
+                    f"[MISSING] method={args['unlearning_methods']} "
+                    f"dataset={args['dataset_name']} model={args['base_model']} "
+                    f"ratio={args['unlearn_ratio']} seed={target_seed} "
+                    f"strategies={','.join(strategies_to_run)}"
+                )
+            return
 
         print(
             f"[REPAIR] requested={len(strategies)} "
@@ -274,6 +297,7 @@ def main():
         
     print(f"\n[Baseline] {args['unlearning_methods']} Random K={_baseline_k} f1_after: {baseline_f1_after:.4f}\n")
     
+    from attack.result_cache import ResultCache
     cache = ResultCache(cache_dir="./results/cache")
     all_results = []
     

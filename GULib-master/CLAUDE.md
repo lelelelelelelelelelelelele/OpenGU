@@ -20,7 +20,7 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 # Key arguments (see parameter_parser.py for all 300+ options):
 #   --dataset_name: cora, citeseer, pubmed, CS, Physics, flickr, Photo, Computers, ogbn-arxiv, ...
 #   --base_model: GCN, GAT, GIN, SAGE, SGC, S2GC, SIGN, Cheb, APPNP, GCN2, GATv2, TAG, LightGCN, ...
-#   --unlearning_methods: GraphEraser, GIF, GUIDE, GNNDelete, CEU, CGU, SGU, GST, Projector, MEGU, UTU, GUKD, D2DGN, IDEA, ScaleGUN, GraphRevoker
+#   --unlearning_methods: GraphEraser, GIF, GNNDelete, CEU, CGU, SGU, GST, Projector, MEGU, UTU, GUKD, D2DGN, IDEA, ScaleGUN, GraphRevoker
 #   --unlearn_task: node, edge, feature
 #   --downstream_task: node, edge
 #   --is_transductive: True/False

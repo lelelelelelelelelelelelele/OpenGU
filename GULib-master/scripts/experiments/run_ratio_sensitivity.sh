@@ -23,7 +23,7 @@ fi
 
 # 参数配置
 # RATIOS 从大到小：利于 cache 复用（大 ratio 先跑，后续小 ratio 可复用部分 cache）
-METHODS="GIF,GNNDelete" #,GraphEraser,GUIDE
+METHODS="GIF,GNNDelete" #,GraphEraser
 DATASETS="cora"
 BASE_MODEL="GCN"
 STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
@@ -34,9 +34,9 @@ OUTPUT="results/experiments/ratio_sensitivity"
 STRATEGY_PROFILE="im_v4"
 
 # 参数解析
-REPAIR_MODE=0
+REPAIR_MODE=1
 RUN_COLLATERAL=0
-USE_IM_V4=0
+USE_IM_V4=1
 REPAIR_MODE_ARG=""
 EXTRA_ARGS=()
 for arg in "$@"; do

@@ -40,7 +40,7 @@ Evaluation Coverage (Collateral / Relative)
 =====================================================================================
 
   Gaps (1):
-  MG-0                    GUIDE/      cora/ GCN/r=0.05    relative=MISSING
+  MG-0                    GNNdelete/      cora/ GCN/r=0.05    relative=MISSING
 
   Summary: 21 complete, 1 missing/incomplete
 =====================================================================================
@@ -55,7 +55,7 @@ Evaluation Coverage (Collateral / Relative)
 ```
 MG-0: Citeseer / GCN (5 seeds x 6 strategies = 30 runs)
   Completed: 30/30
-  Methods: GIF, GNNDelete, GraphEraser, GUIDE
+  Methods: GIF, GNNDelete, GraphEraser
   Seeds: 42, 212, 722, 1337, 2024
 
 MG-1: Missing 6 runs
@@ -169,7 +169,7 @@ CHECKLIST GAP ANALYSIS
 
 - [x] `Cora / GCN / ratio=0.05 / 5 seeds`（auto_discovered: 120 runs）
   - seeds: `42, 212, 722, 2024, 1337`
-  - methods: `GIF, GNNDelete, GraphEraser, GUIDE`
+  - methods: `GIF, GNNDelete, GraphEraser`
   - strategies: `random, degree, pagerank, tracin, im, hybrid`
   - 规模：`4 methods × 6 strategies × 5 seeds = 120 runs`
   - **状态**：✅ 完成 (2026-02-25)

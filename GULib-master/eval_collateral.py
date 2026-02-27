@@ -20,8 +20,6 @@ IMPORTANT: Always pass --unlearn_ratio explicitly to match the cached attack res
 import os
 import sys
 import json
-import torch
-import numpy as np
 from pathlib import Path
 from datetime import datetime
 
@@ -60,12 +58,9 @@ if base_dir not in sys.path:
     sys.path.insert(0, base_dir)
 
 from parameter_parser import parameter_parser
-from attack.pipeline_adapter import AttackPipeline
-from attack.result_cache import ResultCache
-from attack.attack_eval import evaluate_retrain_gap, evaluate_collateral_damage
 
 
-def find_cache_entry(cache: ResultCache, args: dict, strategy_name: str):
+def find_cache_entry(cache, args: dict, strategy_name: str):
     """Find a cache entry by scanning all cache files and matching key fields.
 
     We scan rather than hash-lookup because the original cache entries may have
@@ -320,7 +315,34 @@ def main():
             print("[REPAIR] Dry-run mode enabled. No collateral evaluation executed.")
             return
 
-    # Initialize pipeline
+    # Delay heavy imports until we know we need to run
+    import torch
+    import numpy as np
+    from attack.pipeline_adapter import AttackPipeline
+    from attack.result_cache import ResultCache
+    from attack.attack_eval import evaluate_retrain_gap, evaluate_collateral_damage
+
+    # Pre-training `model_before` once
+    if strategies_to_run:
+        from model.model_zoo import model_zoo as mz
+        from unlearning_manager import UnlearningManager
+        print(f"\n[*] Pre-training 'model_before' once for all strategies...")
+        # Initialize pipeline just for original data
+        pipeline = AttackPipeline(args)
+        pipeline.args["train_only"] = True
+        pipeline.args["num_runs"] = 1
+        pipeline.model_zoo = mz(pipeline.args, pipeline.data)
+        pipeline.model = pipeline.model_zoo.model
+        pipeline.manager = UnlearningManager(
+            pipeline.args, pipeline.original_data, pipeline.data,
+            pipeline.logger, pipeline.model_zoo, pipeline.dataset
+        )
+        pipeline.method = pipeline.manager.get_method()
+        pipeline.method.run_exp()
+        model_before = pipeline._get_trained_model()
+        pipeline.args["train_only"] = False
+
+    # Initialize pipeline for main loop
     pipeline = AttackPipeline(args)
     cache = ResultCache(cache_dir="./results/cache")
 
@@ -361,22 +383,8 @@ def main():
 
         model_unlearned = pipeline._get_trained_model()
 
-        # Also get a "before" model — evaluate the model trained before unlearning
-        # For retrain_gap we need model_before; use poison_f1 as proxy or
-        # train a fresh model on full data
-        # For simplicity, we re-train on full data as model_before
-        pipeline.args["train_only"] = True
-        pipeline.args["num_runs"] = 1
-        pipeline.model_zoo = mz(pipeline.args, pipeline.data)
-        pipeline.model = pipeline.model_zoo.model
-        pipeline.manager = UnlearningManager(
-            pipeline.args, pipeline.original_data, pipeline.data,
-            pipeline.logger, pipeline.model_zoo, pipeline.dataset
-        )
-        pipeline.method = pipeline.manager.get_method()
-        pipeline.method.run_exp()
-        model_before = pipeline._get_trained_model()
-        pipeline.args["train_only"] = False
+        # We use the pre-trained `model_before` here instead of re-training
+        # (It is passed to evaluate_retrain_gap below)
 
         # 3. Retrain-from-scratch excluding selected_nodes
         model_retrained, f1_retrained = pipeline.run_retrain(selected_nodes)

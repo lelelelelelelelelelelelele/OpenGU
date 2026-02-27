@@ -1,0 +1,47 @@
+{
+  "config": {
+    "dataset_name": "citeseer",
+    "base_model": "GCN",
+    "unlearning_methods": "GNNDelete",
+    "unlearn_ratio": 0.05,
+    "random_seed": 212,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "im_v4",
+      "tracin",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.7183183183183183,
+      "attack_f1_after": 0.7207,
+      "gap": 0.0023816816816817354,
+      "relative_f1_drop": -0.0023816816816817354
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.7183183183183183,
+      "attack_f1_after": 0.7297,
+      "gap": 0.011381681681681743,
+      "relative_f1_drop": -0.011381681681681743
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.7183183183183183,
+      "attack_f1_after": 0.6982,
+      "gap": -0.02011831831831823,
+      "relative_f1_drop": 0.02011831831831823
+    }
+  ],
+  "timestamp": "2026-02-27T08:52:29.007720",
+  "repair_meta": {
+    "repair_mode": true,
+    "dry_run": false,
+    "requested": 3,
+    "completed_before": 0,
+    "executed_now": 3,
+    "missing_before": 3
+  }
+}

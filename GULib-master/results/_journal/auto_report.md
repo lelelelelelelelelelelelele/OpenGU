@@ -19659,3 +19659,49 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - im_v4: F1 Drop = -0.0030 (f1_before=0.7282, f1_after=0.7312, time=1.7s, cache=HIT(key=31e791c032f7a9bdea6a19ec247fa5f2), selection=1.3028s, reuse=0.001770s, speedup=736.16x)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 08:45] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im_v4', 'tracin', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=2024
+- 执行结果：
+  - im_v4: F1 Drop = 0.1863 (f1_before=0.8838, f1_after=0.6974, time=1.5s, cache=HIT(key=5c2dfa1a9feab9290d6d5218435ec77b), selection=1.3975s, reuse=0.000504s, speedup=2770.03x)
+  - hybrid_v4: F1 Drop = 0.1365 (f1_before=0.8893, f1_after=0.7528, time=8.0s, cache=MISS, selection=6.5083s)
+  - tracin: F1 Drop = 0.1199 (f1_before=0.8838, f1_after=0.7638, time=6.7s, cache=MISS, selection=5.6077s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 08:46] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['im_v4', 'tracin', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.1716 (f1_before=0.8838, f1_after=0.7122, time=7.6s, cache=MISS, selection=6.2240s)
+  - im_v4: F1 Drop = 0.1439 (f1_before=0.8838, f1_after=0.7399, time=1.7s, cache=HIT(key=1dfe81eed602cc1715dfdedfcbdacc16), selection=1.5613s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1328 (f1_before=0.8893, f1_after=0.7565, time=8.3s, cache=MISS, selection=7.0836s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 08:47] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.2
+- 配置：unlearn_ratio=0.2 (541 nodes), seed=2024
+- 执行结果：
+  - tracin: F1 Drop = 0.1716 (f1_before=0.8838, f1_after=0.7122, time=7.6s, cache=MISS, selection=6.2240s)
+  - degree: F1 Drop = 0.1716 (f1_before=0.8838, f1_after=0.7122, time=1.3s, cache=MISS, selection=0.0253s)
+  - random: F1 Drop = 0.1439 (f1_before=0.8838, f1_after=0.7399, time=1.6s, cache=HIT(key=9d887b431c47135c3c94032f43344ec8), selection=0.0000s, reuse=0.001505s, speedup=0.00x)
+  - im_v4: F1 Drop = 0.1439 (f1_before=0.8838, f1_after=0.7399, time=1.7s, cache=HIT(key=1dfe81eed602cc1715dfdedfcbdacc16), selection=1.5613s, reuse=0.000000s)
+  - pagerank: F1 Drop = 0.1328 (f1_before=0.8893, f1_after=0.7565, time=1.2s, cache=HIT(key=3c5d8810e25224b397edb227df480a5f), selection=0.0366s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1328 (f1_before=0.8893, f1_after=0.7565, time=8.3s, cache=MISS, selection=7.0836s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 08:47] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=cora, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=2024
+- 执行结果：
+  - im_v4: F1 Drop = 0.1864 (f1_before=0.8838, f1_after=0.6974, time=1.5s, cache=HIT(key=5c2dfa1a9feab9290d6d5218435ec77b), selection=1.3975s, reuse=0.000504s, speedup=2772.82x)
+  - random: F1 Drop = 0.1845 (f1_before=0.8838, f1_after=0.6993, time=1.5s, cache=HIT(key=4f1adbffbc248c38b2798945bd89d953), selection=0.0000s, reuse=0.000000s)
+  - hybrid_v4: F1 Drop = 0.1365 (f1_before=0.8893, f1_after=0.7528, time=8.0s, cache=MISS, selection=6.5083s)
+  - tracin: F1 Drop = 0.1200 (f1_before=0.8838, f1_after=0.7638, time=6.7s, cache=MISS, selection=5.6077s)
+  - pagerank: F1 Drop = 0.1107 (f1_before=0.8893, f1_after=0.7786, time=1.3s, cache=HIT(key=5d03f0eea0534330b96b4dbfcb83aa4f), selection=0.0395s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0738 (f1_before=0.8838, f1_after=0.8100, time=1.3s, cache=MISS, selection=0.0121s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。

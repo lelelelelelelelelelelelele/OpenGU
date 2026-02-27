@@ -24,8 +24,8 @@ from datetime import datetime
 # Each entry = (dataset, model, [methods])
 # ============================================================
 EXPERIMENTS = [
-    # MG-0: 稳定性 — Cora / GCN / 4 methods
-    ('cora',     'GCN', ['GIF', 'GNNDelete', 'GraphEraser', 'GUIDE']),
+    # MG-0: 稳定性 — Cora / GCN / 3 methods
+    ('cora',     'GCN', ['GIF', 'GNNDelete', 'GraphEraser']),
     # MG-1: 跨数据集 — Citeseer / GCN / 3 methods
     ('citeseer', 'GCN', ['GIF', 'GNNDelete', 'GraphEraser']),
     # MG-2: 跨模型 — Cora / GAT / 3 methods
