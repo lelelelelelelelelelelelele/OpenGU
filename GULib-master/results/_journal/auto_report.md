@@ -19594,3 +19594,68 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - random: F1 Drop = 0.7408 (f1_before=0.8303, f1_after=0.0895, time=14.8s, cache=HIT(key=200bb1c0e298b92995c86986ec80ed24), selection=17.9744s, reuse=0.000000s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 07:53] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = 0.0601 (f1_before=0.7327, f1_after=0.6727, time=10.3s, cache=MISS, selection=8.8921s)
+  - im_v4: F1 Drop = 0.0255 (f1_before=0.7297, f1_after=0.7042, time=1.5s, cache=HIT(key=65ade5e1060d73c39cbec33df4fb2915), selection=1.1448s, reuse=0.001512s, speedup=756.98x)
+  - degree: F1 Drop = 0.0180 (f1_before=0.7342, f1_after=0.7162, time=1.3s, cache=MISS, selection=0.0428s)
+  - hybrid_v4: F1 Drop = 0.0180 (f1_before=0.7372, f1_after=0.7192, time=9.3s, cache=MISS, selection=7.8777s)
+  - random: F1 Drop = 0.0135 (f1_before=0.7282, f1_after=0.7147, time=1.7s, cache=HIT(key=9d14b534bb024b25d6cfdcf99c4eca1e), selection=0.0030s, reuse=0.000687s, speedup=4.35x)
+  - pagerank: F1 Drop = -0.0015 (f1_before=0.7312, f1_after=0.7327, time=1.3s, cache=HIT(key=6460c53b924fd6f49294630114f1e052), selection=0.0410s, reuse=0.001008s, speedup=40.69x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 07:54] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=212
+- 执行结果：
+  - hybrid_v4: F1 Drop = 0.0315 (f1_before=0.7297, f1_after=0.6982, time=9.6s, cache=MISS, selection=8.3027s)
+  - pagerank: F1 Drop = 0.0255 (f1_before=0.7372, f1_after=0.7117, time=1.5s, cache=HIT(key=c7a9408a94ad210c6dbe7bccf7094cbb), selection=0.0537s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0210 (f1_before=0.7342, f1_after=0.7132, time=1.4s, cache=MISS, selection=0.0226s)
+  - im_v4: F1 Drop = 0.0120 (f1_before=0.7327, f1_after=0.7207, time=1.3s, cache=HIT(key=e79a1558d8dfa3f0f0ae82aaa4be8113), selection=1.1517s, reuse=0.001028s, speedup=1120.55x)
+  - random: F1 Drop = 0.0060 (f1_before=0.7327, f1_after=0.7267, time=1.8s, cache=HIT(key=dd631a6e85ab2aa173ab0bbb607ef87a), selection=0.0000s, reuse=0.001007s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0015 (f1_before=0.7312, f1_after=0.7297, time=9.7s, cache=MISS, selection=8.5396s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 07:54] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=722
+- 执行结果：
+  - im_v4: F1 Drop = 0.0330 (f1_before=0.7342, f1_after=0.7012, time=1.4s, cache=HIT(key=4e2707f39961df8ca8dd223f9c6198c6), selection=1.2392s, reuse=0.001686s, speedup=735.03x)
+  - hybrid_v4: F1 Drop = 0.0285 (f1_before=0.7342, f1_after=0.7057, time=10.9s, cache=MISS, selection=9.4432s)
+  - pagerank: F1 Drop = 0.0270 (f1_before=0.7327, f1_after=0.7057, time=1.4s, cache=HIT(key=18702d1c5f448d2a6c93e480a04345c9), selection=0.0350s, reuse=0.000000s)
+  - degree: F1 Drop = 0.0210 (f1_before=0.7267, f1_after=0.7057, time=1.5s, cache=MISS, selection=0.0375s)
+  - random: F1 Drop = 0.0195 (f1_before=0.7312, f1_after=0.7117, time=2.3s, cache=HIT(key=e544911d8ba5ec0776ded3460cf4d55b), selection=0.0000s, reuse=0.000997s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0105 (f1_before=0.7267, f1_after=0.7162, time=11.0s, cache=MISS, selection=9.2330s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 07:55] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=1337
+- 执行结果：
+  - pagerank: F1 Drop = 0.0435 (f1_before=0.7387, f1_after=0.6952, time=1.4s, cache=HIT(key=311949fc36049248e5e42350470311dc), selection=0.0370s, reuse=0.001005s, speedup=36.81x)
+  - degree: F1 Drop = 0.0195 (f1_before=0.7312, f1_after=0.7117, time=1.4s, cache=MISS, selection=0.0224s)
+  - hybrid_v4: F1 Drop = 0.0090 (f1_before=0.7312, f1_after=0.7222, time=11.3s, cache=MISS, selection=9.8784s)
+  - random: F1 Drop = 0.0075 (f1_before=0.7372, f1_after=0.7297, time=1.8s, cache=HIT(key=408a817782aab10ab0036de4f7d4e982), selection=0.0000s, reuse=0.000633s, speedup=0.00x)
+  - tracin: F1 Drop = 0.0045 (f1_before=0.7327, f1_after=0.7282, time=10.4s, cache=MISS, selection=8.9819s)
+  - im_v4: F1 Drop = 0.0030 (f1_before=0.7312, f1_after=0.7282, time=1.5s, cache=HIT(key=9862ac3675791ebeb8f958f67fb9ee42), selection=1.2410s, reuse=0.001002s, speedup=1238.75x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-02-27 07:56] demo_attack.py - GNNDelete 攻击实验
+- 任务：dataset=citeseer, model=GCN, method=GNNDelete, strategies=['random', 'degree', 'pagerank', 'tracin', 'im_v4', 'hybrid_v4'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (166 nodes), seed=2024
+- 执行结果：
+  - degree: F1 Drop = 0.0375 (f1_before=0.7387, f1_after=0.7012, time=1.6s, cache=MISS, selection=0.0223s)
+  - hybrid_v4: F1 Drop = 0.0285 (f1_before=0.7387, f1_after=0.7102, time=12.8s, cache=MISS, selection=10.8820s)
+  - tracin: F1 Drop = 0.0195 (f1_before=0.7342, f1_after=0.7147, time=11.1s, cache=MISS, selection=9.5357s)
+  - pagerank: F1 Drop = 0.0135 (f1_before=0.7312, f1_after=0.7177, time=1.5s, cache=HIT(key=756e60c61d74eba56d02877703f9f0ce), selection=0.0476s, reuse=0.000993s, speedup=47.94x)
+  - random: F1 Drop = 0.0045 (f1_before=0.7327, f1_after=0.7282, time=1.8s, cache=HIT(key=4d35f9ae318e1875cedb5797d953687e), selection=0.0000s, reuse=0.001050s, speedup=0.00x)
+  - im_v4: F1 Drop = -0.0030 (f1_before=0.7282, f1_after=0.7312, time=1.7s, cache=HIT(key=31e791c032f7a9bdea6a19ec247fa5f2), selection=1.3028s, reuse=0.001770s, speedup=736.16x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
