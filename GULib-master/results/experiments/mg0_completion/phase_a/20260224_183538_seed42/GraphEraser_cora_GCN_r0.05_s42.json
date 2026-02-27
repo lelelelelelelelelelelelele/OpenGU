@@ -1914,10 +1914,10 @@
         191,
         1396,
         548,
-        1338,
-        995,
         2102,
         2103,
+        995,
+        1338,
         127,
         306,
         1915,
@@ -1986,19 +1986,19 @@
         2096,
         1916
       ],
-      "f1_before": 0.7694,
-      "f1_after": 0.8524,
-      "f1_drop": -0.083,
-      "f1_drop_ratio": -10.79,
-      "unlearn_time": 8.4958,
-      "total_time": 25.7749,
-      "selection_time": 6.5858,
+      "f1_before": 0.7897,
+      "f1_after": 0.8487,
+      "f1_drop": -0.059,
+      "f1_drop_ratio": -7.47,
+      "unlearn_time": 16.3616,
+      "total_time": 51.2975,
+      "selection_time": 13.2008,
       "selection_reuse_time": null,
       "selection_cache_hit": false,
       "selection_cache_key": null,
       "selection_cache_source": null,
       "mia_auc": 0.0,
-      "run_timestamp": "2026-02-21T04:50:22.373751",
+      "run_timestamp": "2026-02-28T05:31:02.793159",
       "config": {
         "cuda": 0,
         "num_threads": 1,
@@ -2040,6 +2040,10 @@
         "proportion_unlearned_edges_num": 0.0001,
         "unlearn_ratio": 0.05,
         "unlearn_lr": 0.01,
+        "propagation_prob": 0.1,
+        "mc_rounds": 100,
+        "candidate_fraction": 1.0,
+        "im_v4_batch_size": 5,
         "GUIDE_methods": "SR",
         "GUIDE_repair_methods": "MixUp",
         "num_shards": 10,
@@ -2213,9 +2217,9 @@
       },
       {
         "strategy": "tracin",
-        "f1_drop": -0.083,
-        "f1_drop_ratio": -10.79,
-        "unlearn_time": 8.4958
+        "f1_drop": null,
+        "f1_drop_ratio": null,
+        "unlearn_time": 16.3616
       }
     ],
     "relative_improvements": {
@@ -2227,5 +2231,5 @@
       "tracin": 1.0
     }
   },
-  "timestamp": "2026-02-24T18:37:10.771923"
+  "timestamp": "2026-02-28T05:31:02.801664"
 }

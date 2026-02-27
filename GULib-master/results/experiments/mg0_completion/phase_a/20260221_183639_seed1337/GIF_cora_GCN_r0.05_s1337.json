@@ -18,7 +18,7 @@
     "val_ratio": 0,
     "test_ratio": 0.2,
     "exp": "sequence",
-    "unlearn_trainer": "BaseTrainer",
+    "unlearn_trainer": "GIFTrainer",
     "parameter_task": "normal",
     "downstream_task": "node",
     "unlearn_task": "node",
@@ -1965,8 +1965,8 @@
         1778,
         682,
         399,
-        1660,
         1291,
+        1660,
         491,
         1675,
         1420,
@@ -1986,19 +1986,19 @@
         460,
         41
       ],
-      "f1_before": 0.8856,
-      "f1_after": 0.8819,
-      "f1_drop": 0.0037,
-      "f1_drop_ratio": 0.42,
-      "unlearn_time": 0.3299,
-      "total_time": 10.4837,
-      "selection_time": 9.4422,
+      "f1_before": 0.8875,
+      "f1_after": 0.8395,
+      "f1_drop": 0.048,
+      "f1_drop_ratio": 5.41,
+      "unlearn_time": 0.3826,
+      "total_time": 10.37,
+      "selection_time": 9.12,
       "selection_reuse_time": null,
       "selection_cache_hit": false,
       "selection_cache_key": null,
       "selection_cache_source": null,
-      "mia_auc": 0.5932,
-      "run_timestamp": "2026-02-21T04:56:26.123299",
+      "mia_auc": 0.5961,
+      "run_timestamp": "2026-02-28T05:46:34.762918",
       "config": {
         "cuda": 0,
         "num_threads": 1,
@@ -2040,6 +2040,10 @@
         "proportion_unlearned_edges_num": 0.0001,
         "unlearn_ratio": 0.05,
         "unlearn_lr": 0.01,
+        "propagation_prob": 0.1,
+        "mc_rounds": 100,
+        "candidate_fraction": 1.0,
+        "im_v4_batch_size": 5,
         "GUIDE_methods": "SR",
         "GUIDE_repair_methods": "MixUp",
         "num_shards": 10,
@@ -2213,9 +2217,9 @@
       },
       {
         "strategy": "tracin",
-        "f1_drop": 0.0037,
-        "f1_drop_ratio": 0.42,
-        "unlearn_time": 0.3299
+        "f1_drop": null,
+        "f1_drop_ratio": null,
+        "unlearn_time": 0.3826
       }
     ],
     "relative_improvements": {
@@ -2227,5 +2231,5 @@
       "tracin": 1.0
     }
   },
-  "timestamp": "2026-02-25T02:30:26.436164"
+  "timestamp": "2026-02-28T05:46:34.768940"
 }

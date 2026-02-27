@@ -303,7 +303,8 @@ def plot_fig4a():
             if np.std(diffs, ddof=1) == 0:
                 p_matrix.loc[method, strat] = 1.0 if np.mean(diffs) == 0 else 0.0
             else:
-                _, p_val = ttest_rel(strat_vals, random_vals)
+                # One-sided test: H1: strategy f1_drop > random f1_drop
+                _, p_val = ttest_rel(strat_vals, random_vals, alternative='greater')
                 p_matrix.loc[method, strat] = p_val
 
     # Check we have data
@@ -345,7 +346,7 @@ def plot_fig4a():
     cbar.ax.text(1.3, sig_threshold, ' p=0.05', va='center', ha='left',
                  fontsize=9, fontweight='bold', color='black')
 
-    ax.set_title("FIG-4a: Strategy vs. Random (Paired T-test)\n"
+    ax.set_title("FIG-4a: Strategy vs. Random (One-sided Paired T-test)\n"
                  "Hatched cells: p > 0.05 (not significant)", fontsize=12)
     ax.set_ylabel('Unlearning Method')
     ax.set_xlabel('Attack Strategy')

@@ -330,8 +330,8 @@
       ],
       "f1_before": 0.7675,
       "f1_after": 0.7768,
-      "f1_drop": -0.0092,
-      "f1_drop_ratio": -1.2,
+      "f1_drop": -0.0093,
+      "f1_drop_ratio": -1.21,
       "unlearn_time": 9.6346,
       "total_time": 22.0758,
       "selection_time": 1.212,
@@ -1987,18 +1987,18 @@
         104
       ],
       "f1_before": 0.7675,
-      "f1_after": 0.8358,
-      "f1_drop": -0.0683,
-      "f1_drop_ratio": -8.9,
-      "unlearn_time": 8.4785,
-      "total_time": 28.6679,
-      "selection_time": 7.9055,
+      "f1_after": 0.8469,
+      "f1_drop": -0.0794,
+      "f1_drop_ratio": -10.35,
+      "unlearn_time": 10.8848,
+      "total_time": 33.5449,
+      "selection_time": 8.5576,
       "selection_reuse_time": null,
       "selection_cache_hit": false,
       "selection_cache_key": null,
       "selection_cache_source": null,
       "mia_auc": 0.0,
-      "run_timestamp": "2026-02-21T04:59:37.166714",
+      "run_timestamp": "2026-02-28T05:52:36.237913",
       "config": {
         "cuda": 0,
         "num_threads": 1,
@@ -2040,6 +2040,10 @@
         "proportion_unlearned_edges_num": 0.0001,
         "unlearn_ratio": 0.05,
         "unlearn_lr": 0.01,
+        "propagation_prob": 0.1,
+        "mc_rounds": 100,
+        "candidate_fraction": 1.0,
+        "im_v4_batch_size": 5,
         "GUIDE_methods": "SR",
         "GUIDE_repair_methods": "MixUp",
         "num_shards": 10,
@@ -2183,8 +2187,8 @@
     "ranking": [
       {
         "strategy": "im_v4",
-        "f1_drop": -0.0092,
-        "f1_drop_ratio": -1.2,
+        "f1_drop": -0.0093,
+        "f1_drop_ratio": -1.21,
         "unlearn_time": 9.6346
       },
       {
@@ -2213,9 +2217,9 @@
       },
       {
         "strategy": "tracin",
-        "f1_drop": -0.0683,
-        "f1_drop_ratio": -8.9,
-        "unlearn_time": 8.4785
+        "f1_drop": null,
+        "f1_drop_ratio": null,
+        "unlearn_time": 10.8848
       }
     ],
     "relative_improvements": {
@@ -2227,5 +2231,5 @@
       "tracin": 1.0
     }
   },
-  "timestamp": "2026-02-25T02:34:01.620007"
+  "timestamp": "2026-02-28T05:52:36.242918"
 }

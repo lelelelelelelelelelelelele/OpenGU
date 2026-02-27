@@ -1,0 +1,47 @@
+{
+  "config": {
+    "dataset_name": "cora",
+    "base_model": "GCN",
+    "unlearning_methods": "GraphEraser",
+    "unlearn_ratio": 0.05,
+    "random_seed": 2024,
+    "baseline_k": 5,
+    "strategies_requested": [
+      "random",
+      "tracin",
+      "im_v4",
+      "hybrid_v4"
+    ]
+  },
+  "results": [
+    {
+      "strategy": "random",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.8358,
+      "gap": -0.02582361623616236,
+      "relative_f1_drop": 0.02582361623616236
+    },
+    {
+      "strategy": "tracin",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.8469,
+      "gap": -0.014723616236162362,
+      "relative_f1_drop": 0.014723616236162362
+    },
+    {
+      "strategy": "im_v4",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.7768,
+      "gap": -0.0848236162361623,
+      "relative_f1_drop": 0.0848236162361623
+    },
+    {
+      "strategy": "hybrid_v4",
+      "baseline_f1_after": 0.8616236162361623,
+      "attack_f1_after": 0.8063,
+      "gap": -0.05532361623616233,
+      "relative_f1_drop": 0.05532361623616233
+    }
+  ],
+  "timestamp": "2026-02-28T06:21:08.238538"
+}

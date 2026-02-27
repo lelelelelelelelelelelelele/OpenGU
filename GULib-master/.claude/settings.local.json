@@ -62,7 +62,10 @@
       "Bash(pip install:*)",
       "Bash(wc:*)",
       "Bash(PYTHONIOENCODING=utf-8 :/conda_package/envs/gnn/python.exe:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(jq:*)",
+      "Bash(do echo:*)",
+      "Bash(do:*)"
     ]
   }
 }
