@@ -57,11 +57,11 @@ This document is submitted only as an MSc project report for course requirements
 
 ## List of Figures
 
-- Figure 1: Cross-family vulnerability spectrum
-- Figure 2: Attack scaling across deletion ratios
-- Figure 3: Relative vulnerability across unlearning families
-- Figure 4: Statistical significance heatmap
-- Figure 5: Collateral damage summary
+- Figure 1: Cross-dataset generalization potency
+- Figure 2: Supplementary ratio sensitivity for GIF and GNNDelete
+- Figure 3: Cross-family vulnerability spectrum at ratio = 0.05
+- Figure 4a: Statistical support against random deletion
+- Figure 4b: Effect size against random deletion
 
 ## List of Tables
 
@@ -254,6 +254,10 @@ These tasks were important because the quality of the final analysis depended no
 
 The main result of the project is that graph unlearning methods show very different levels of vulnerability depending on how the unlearning mechanism is constructed.
 
+![Figure 1: Cross-dataset generalization potency](../figures/paper_figures/FIG-1_Generalization.png)
+
+*Figure 1. Relative F1 drop across datasets and backbone settings at ratio = 0.05. The main comparison is that GNNDelete remains the most fragile representative across the tested settings, while GIF stays comparatively stable and GraphEraser remains more moderate or setting-dependent.*
+
 **Table 1: Cross-Family Attack Vulnerability Matrix on Cora/GCN (ratio = 0.05)**
 
 | Method | Family | Random | Degree | PageRank | TracIn | IM-v4 | Hybrid-v4 |
@@ -268,9 +272,13 @@ Positive values represent F1 degradation, while negative values indicate an impr
 
 The strongest failure mode was observed on GNNDelete. At ratio = 0.01 on Cora, the IM-v4 strategy produced a retrain gap of 21.53%, while 26.2% of non-target predictions changed. Exact retraining on the same deletion set showed only a very small performance decrease. This comparison indicates that the main source of the collapse is approximation error rather than the intrinsic importance of the removed nodes.
 
+![Figure 2: Supplementary ratio sensitivity for GIF and GNNDelete](../figures/paper_figures/FIG-2_Scaling.png)
+
+*Figure 2. Supplementary ratio-sensitivity view for GIF and GNNDelete on Cora/GCN using direct relative F1 drop. The random curve is kept as a reference, but the main reading task is how each method's attack strength changes as the deletion budget increases. This figure is included as supporting context rather than as the main cross-family evidence figure.*
+
 ## 6.3 Collateral Damage and Attribution
 
-Collateral-damage analysis was included to measure how much retained data was affected after unlearning.
+Collateral-damage analysis was used to assess how strongly each unlearning method perturbs the retained set. The main quantity is the retrain gap, defined as the difference between the attacked unlearning run and exact retraining on the same deletion set. Small gaps indicate that the method remains close to the ideal retrained model, whereas large positive gaps suggest additional approximation error beyond the intrinsic effect of deletion. We also report mean prediction shift and the fraction of retained nodes whose predicted label changed.
 
 **Table 2: Collateral Damage Metrics by Method Family**
 
@@ -282,7 +290,11 @@ Collateral-damage analysis was included to measure how much retained data was af
 | MEGU | -0.01% | 0.051 | 4.2% | 140 |
 | IDEA | -0.52% | 0.030 | 3.8% | 140 |
 
-These results support the interpretation that the most severe retained-data damage occurs in approximate methods whose update mechanism is less stable under strategically chosen deletions.
+Table 2 makes the main collateral pattern clear. GNNDelete exhibits the largest attack advantage overall, but this strength is usually accompanied by a much larger retrain gap, larger retained-node prediction shift, and the highest fraction flipped. Its attack success therefore often comes with substantial extra damage to the retained set rather than a clean approximation to exact retraining.
+
+IDEA and MEGU lie at the opposite end of the spectrum. Their average retrain gaps remain near zero or slightly negative, and their retained-node disruption metrics stay low, suggesting that these methods track exact retraining much more closely. The trade-off is that their attack advantage is far less pronounced than that of GNNDelete.
+
+GraphEraser is more mixed. Its average retrain gap remains small at the family level, but its prediction-shift statistics are noticeably larger than those of IDEA, MEGU, and GIF, indicating that some settings can still perturb retained predictions even when the headline utility gap appears modest. Taken together, these results suggest that collateral damage should be interpreted as a stability diagnostic: strong attack performance is most convincing when it does not simultaneously induce a large retrain gap on retained data.
 
 ## 6.4 Shard Protection Effect
 
@@ -290,9 +302,21 @@ GraphEraser behaved differently from the other methods. In the tested settings, 
 
 This effect does not mean that GraphEraser is universally robust in all circumstances. It means only that under the current datasets and experimental settings, adversarial deletion did not produce the same kind of utility collapse observed for GNNDelete.
 
-## 6.5 Strategy Comparison and Efficiency
+## 6.5 Strategy Comparison, Statistical Support, and Efficiency
 
-Relative F1 drop was used to compare attack strategies more fairly against a random baseline.
+Relative F1 drop was used to compare attack strategies more fairly against a random baseline. Figure 3 summarizes the main cross-family comparison at ratio = 0.05, while Figures 4a and 4b separate statistical support from effect size against random deletion.
+
+![Figure 3: Cross-family vulnerability spectrum at ratio = 0.05](../figures/paper_figures/FIG-3_Spectrum.png)
+
+*Figure 3. Ratio = 0.05 comparison across the five unlearning methods using the three main attack strategies. The report-level takeaway is the large gap between GNNDelete and the other families, with GraphEraser in the middle and IDEA/MEGU remaining comparatively low in absolute drop.*
+
+![Figure 4a: Statistical support against random deletion](../figures/paper_figures/FIG-4a_Significance.png)
+
+*Figure 4a. Support against random deletion shown as -log10(p) from paired strategy-versus-random comparisons. In this report, cells above the p < 0.10 threshold are treated as supportive evidence, while p < 0.05 marks stronger support. This figure answers how strongly the attack-over-random difference is supported.*
+
+![Figure 4b: Effect size against random deletion](../figures/paper_figures/FIG-4b_Effect.png)
+
+*Figure 4b. Companion effect-size heatmap for the same 5 x 3 method-strategy matrix. Cell values show the mean extra relative F1 drop beyond random deletion at the same budget, so this figure answers how large the structured-attack advantage is rather than how statistically supported it is.*
 
 **Table 3: Strategy Comparison Using Relative F1 Drop**
 
@@ -303,6 +327,8 @@ Relative F1 drop was used to compare attack strategies more fairly against a ran
 | GIF | Cora/GAT | 1.77% +/- 0.65% | 3.54% +/- 0.36% | 2.51% +/- 0.58% |
 | GraphEraser | Cora/GCN | 1.70% +/- 1.14% | 4.87% +/- 2.34% | 4.39% +/- 2.56% |
 | GraphEraser | Cora/GAT | 0.26% +/- 1.22% | 6.20% +/- 0.55% | 5.16% +/- 1.98% |
+
+Taken together, Figures 4a and 4b show that the same attack strategy can have different combinations of support and effect size across methods. For example, GNNDelete shows the largest attack-over-random effects, while IDEA and MEGU show much smaller gains even when some cells still cross the report's p < 0.10 support threshold.
 
 The main practical optimization in the project was IM-v4.
 
