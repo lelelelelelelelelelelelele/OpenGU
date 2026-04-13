@@ -27,7 +27,7 @@ fi
 # 需要运行 GraphEraser 和 GUIDE 在 seeds 42, 212, 722, 1337 上
 
 # 实验参数
-METHODS="GNNDelete,GIF,GraphEraser,GUIDE"
+METHODS="GNNDelete,GIF,GraphEraser"
 DATASETS="cora"
 BASE_MODEL="GCN"
 STRATEGIES="random,degree,pagerank,tracin,im_v4,hybrid_v4"
