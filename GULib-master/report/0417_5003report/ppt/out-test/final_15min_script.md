@@ -2,8 +2,8 @@
 
 - Audience: EE5003 course assessment / supervisor-style academic review
 - Language: English PPT + English script
-- Main timed deck: 13 slides
-- Estimated total speaking time: 14:25
+- Main timed deck: 14 slides
+- Estimated total speaking time: 14:55
 
 ## Slide 1: Title
 
@@ -55,17 +55,17 @@ Estimated Time: 1:15
 
 Key Lines:
 - The study covers learning-based, IF-based, and shard-based unlearning.
+- These families differ in mechanism, so family-level robustness may differ too.
 - The attacker controls only the deletion request.
-- Success is measured by extra damage over random deletion plus collateral effects.
 
 Speaker Notes:
-The evaluation spans several unlearning families. Learning-based unlearning is represented by GNNDelete. Influence-function-based unlearning is represented by GIF. The broader benchmark also includes IDEA, MEGU, and the shard-based GraphEraser. The threat model is deliberately practical. The attacker can choose which nodes to delete through the normal interface, but does not modify labels, features, optimizer settings, or hidden training code. This is not a poisoning attack. The attack succeeds if carefully chosen deletions create more retained-model degradation than random deletion at the same ratio. I also track collateral damage on retained nodes.
+The evaluation spans several unlearning families. Learning-based unlearning is represented by GNNDelete, which learns a direct unlearning correction. Influence-function-based unlearning is represented by GIF, which approximates deletion through local influence-style updates. The broader benchmark also includes IDEA, MEGU, and the shard-based GraphEraser, which partitions the graph and retrains affected shards. I make this distinction early because the mechanisms are genuinely different, so it would be surprising if they all inherited the same robustness behavior. The threat model is deliberately practical. The attacker can choose which nodes to delete through the normal interface, but does not modify labels, features, optimizer settings, or hidden training code. This is not a poisoning attack. I also track collateral damage on retained nodes.
 
 ## Slide 5: Attack Pipeline And Experimental Matrix
 
 Goal: Explain the workflow and experimental scope.
 
-Estimated Time: 1:30
+Estimated Time: 1:15
 
 Key Lines:
 - The pipeline is select nodes, unlearn, exact retrain, and compare.
@@ -73,13 +73,27 @@ Key Lines:
 - The final matrix covers 5 methods, 2 datasets, 3 backbones, 6 strategies, and 950 runs.
 
 Speaker Notes:
-The workflow has four steps. First, select deletion targets, either randomly or with a structured strategy such as TracIn, IM-v4, or Hybrid-v4. Second, apply the chosen graph unlearning method. Third, run an exact retrain control on the same deletion set. This shows what the post-deletion model should ideally look like without approximation error. Fourth, compare retained-model utility, retrain gap, and collateral effects. The completed evaluation covers five unlearning methods, two citation-graph datasets, three GNN backbones, six node-selection strategies, and 950 total runs.
+The workflow has four steps. First, select deletion targets, either randomly or with a structured strategy such as TracIn, IM-v4, or Hybrid-v4. Second, apply the chosen graph unlearning method. Third, run an exact retrain control on the same deletion set. This shows what the post-deletion model should ideally look like without approximation error. Fourth, compare the main outputs: relative F1 drop, retrain gap, collateral effects, and efficiency. The completed evaluation covers five unlearning methods, two citation-graph datasets, three GNN backbones, six node-selection strategies, and 950 total runs.
 
-## Slide 6: Metrics Framework
+## Slide 6: Attack Selection Logic
+
+Goal: Explain that structured attacks differ by selection logic, not only by name.
+
+Estimated Time: 0:45
+
+Key Lines:
+- TracIn or IF-style selection is model-aware.
+- IM-v4 is graph-structural and aims at spread or disruption.
+- Hybrid combines model-side influence with topology-side spread.
+
+Speaker Notes:
+Before defining the metrics, I want to clarify what the attack strategies are actually doing. These are not just arbitrary labels. TracIn, or more broadly IF-style logic, is model-aware: it tries to pick nodes with high training influence on the learned model. IM-v4 is graph-structural: it tries to pick nodes that maximize spread or disruption in the graph itself. Hybrid combines both signals. I put a small formula on the slide, but it is only there as shorthand intuition, not something I need the audience to parse line by line. So the benchmark is not only comparing heuristics; it is comparing attacker logics, including model-aware selection, graph-structural selection, and a hybrid of the two.
+
+## Slide 7: Metrics Framework
 
 Goal: Define the core metrics before the main results.
 
-Estimated Time: 1:05
+Estimated Time: 0:50
 
 Key Lines:
 - `relative_f1_drop = F1_after(k=5, random) - F1_after(attack)`.
@@ -89,11 +103,11 @@ Key Lines:
 Speaker Notes:
 Before showing the main results, I want to define the metrics clearly. The main utility metric is relative F1 drop, but the important design choice is the reference point. Instead of relying only on raw F1 before minus F1 after, I first trigger each method with a very small random deletion, k equals 5, and use that post-unlearning F1 as the baseline. This matters because shard-based methods such as GraphEraser can show method-induced score shifts after deletion, so raw drop alone can be misleading. Relative F1 drop therefore measures extra damage beyond that small-trigger baseline. To explain why a method degrades, I then use retrain gap and collateral metrics. Retrain gap compares approximate unlearning against exact retraining on the same deletion set, and collateral metrics track how much the retained nodes are disturbed.
 
-## Slide 7: Main Finding: Vulnerability Spectrum
+## Slide 8: Main Finding: Family Spectrum
 
 Goal: Present the main family-level result.
 
-Estimated Time: 1:40
+Estimated Time: 1:50
 
 Key Lines:
 - Relative F1 drop reveals a clear family-level vulnerability spectrum.
@@ -101,9 +115,9 @@ Key Lines:
 - GIF stays comparatively stable, while GraphEraser shows shard protection.
 
 Speaker Notes:
-This is the main result of the project. When I compare relative F1 drop across datasets and backbones at the same deletion ratio, I do not see one shared failure pattern. Instead, I see a clear vulnerability spectrum across graph unlearning families. GNNDelete is consistently the most fragile representative. GIF remains comparatively stable, with much smaller extra drops beyond the k equals 5 baseline. GraphEraser behaves qualitatively differently again: because raw utility change can be negative, the relative metric is the cleaner way to compare it against the other families. In the tested settings, GraphEraser shows a shard protection pattern rather than the expected collapse. So the broader takeaway is that robustness is mechanism-dependent, and the metric definition matters for reading that spectrum correctly.
+This is the main result of the project. When I compare relative F1 drop across datasets and backbones at the same deletion ratio, I do not see one shared failure pattern. Instead, I see a clear vulnerability spectrum across graph unlearning families. GNNDelete is consistently the most fragile representative. GIF remains comparatively stable, with much smaller extra drops beyond the k equals 5 baseline. GraphEraser behaves qualitatively differently again: because raw utility change can be negative, the relative metric is the cleaner way to compare it against the other families. In the tested settings, GraphEraser shows a shard protection pattern rather than the expected collapse. The companion strategy view leads to the same concentration pattern: the strongest extra damage still clusters on GNNDelete rather than spreading evenly across families. So the broader takeaway is that robustness is mechanism-dependent, and the metric definition matters for reading that spectrum correctly.
 
-## Slide 8: Ratio Sensitivity And Ablation
+## Slide 9: Ratio Sensitivity And Ablation
 
 Goal: Show how attack strength changes with deletion ratio.
 
@@ -117,7 +131,7 @@ Key Lines:
 Speaker Notes:
 To make the spectrum more concrete, I next use the ratio-sensitivity figure as an ablation-style view. The question here is not only which method is worse at one fixed budget, but how attack strength changes as the deletion ratio increases. GNNDelete already shows strong amplification even at a very small ratio, which means the vulnerability appears early rather than only under large deletion budgets. GIF remains much flatter across the same range. So this page supports the interpretation that the family difference is structural rather than a one-point artifact of the ratio chosen for the main comparison.
 
-## Slide 9: Attribution And Collateral Damage
+## Slide 10: Attribution And Collateral Damage
 
 Goal: Explain how the project separates attack success from approximation-induced spillover.
 
@@ -131,7 +145,7 @@ Key Lines:
 Speaker Notes:
 This slide summarizes the attribution logic. Relative F1 drop tells us whether a structured attack beats the k equals 5 method baseline, but it does not by itself explain why. That is why the exact retrain control is essential. It tells us what should happen on the same deletion set if approximation error were absent. The gap between approximate unlearning and exact retraining is the retrain gap, and that is the part we should attribute to the mechanism. I then use collateral metrics, such as prediction flips and mean prediction shift on retained nodes, to show how far the disturbance propagates beyond the requested deletions. So the three metrics answer three different questions: did the attack work, where did the error come from, and how far did it spread.
 
-## Slide 10: GraphEraser And Shard Protection
+## Slide 11: GraphEraser And Shard Protection
 
 Goal: Support the shard-protection reading with a concrete GraphEraser view.
 
@@ -145,21 +159,21 @@ Key Lines:
 Speaker Notes:
 GraphEraser behaves differently enough that it deserves its own evidence slide. Here I show the observed score shift for GraphEraser on Cora with a GCN backbone. The after-unlearning distribution moves upward across the tested attack strategies, which is why I said earlier that raw utility drop alone can be misleading for shard-based methods. A plausible explanation is that removing bridge or hub nodes changes the partition structure in a way that makes shard-local classification easier and reduces cross-shard interference. This is still a narrow claim. I am not saying GraphEraser is universally robust. I am saying that under the tested settings, the evidence is more consistent with a shard protection effect than with the collapse pattern seen in GNNDelete.
 
-## Slide 11: Attack Strength And Practicality
+## Slide 12: Statistical Support And Effect Size
 
-Goal: Show that structured attacks beat random deletion and are practical to run.
+Goal: Strengthen the main result with support and effect-size evidence.
 
-Estimated Time: 1:40
+Estimated Time: 1:10
 
 Key Lines:
-- Relative F1 drop is already defined, so this page focuses on strategy comparison and runtime.
-- The largest advantage appears on GNNDelete.
-- IM-v4 cuts selection time to 18.9 seconds with only 1.3% spread loss.
+- Figure 4a asks how strongly the attack-over-random gap is supported.
+- Figure 4b asks how large that extra damage is.
+- GNNDelete is strong on both support and effect size.
 
 Speaker Notes:
-Beyond the family comparison, I also wanted to know whether structured attacks are practical. Figure 3 now serves as a strategy-comparison page after the metric has already been defined. Again, the largest attack-over-random advantage appears on GNNDelete, while the other families remain more moderate. On the efficiency side, the key optimization is IM-v4. Compared with the baseline CELF-style selection, IM-v4 reduces selection time from 653 seconds to 18.9 seconds while losing only 1.3 percent in spread. That means adversarial node selection is not only possible in principle, but operationally feasible.
+I then strengthen the main result with statistical-support and effect-size evidence. Figure 4a asks how strongly the attack-over-random difference is supported, while Figure 4b asks how large that difference is once support is established. This matters because a visible pattern alone can still look thin if we do not show whether it is consistent. The key read is that GNNDelete is strong on both axes: it shows both clear support and large extra damage. The other families are more moderate, which is consistent with the main spectrum rather than a contradiction to it.
 
-## Slide 12: Limitations And Future Work
+## Slide 13: Limitations And Future Work
 
 Goal: Close the project honestly without making the deck sound unfinished.
 
@@ -173,7 +187,7 @@ Key Lines:
 Speaker Notes:
 This project has clear limitations, and I want to state them directly. The evidence is strong within the tested citation benchmarks and backbones, but it should not be treated as universal across all graph domains. The second limit is explanatory depth: GNNDelete is clearly fragile in these experiments, but the mechanism-level reason still needs more targeted ablation. At the same time, this is a completed MSc project, not a midstream progress report. The most credible future work is to validate the same pattern on larger graph benchmarks such as PubMed and to run more targeted ablations that explain when and why GNNDelete fails.
 
-## Slide 13: Takeaways
+## Slide 14: Takeaways
 
 Goal: Close the main story in three memorable points.
 
@@ -187,19 +201,19 @@ Key Lines:
 Speaker Notes:
 To conclude, this project shows that approximate graph unlearning can and should be stress-tested through adversarial deletion requests. The main result is a clear family-level vulnerability spectrum defined through relative F1 drop: GNNDelete is the most fragile case in the tested settings, GIF is comparatively stable, and GraphEraser exhibits a shard protection effect rather than collapse. Just as importantly, the project leaves behind a practical OpenGU-based audit workflow that can support future work from a completed course submission. Thank you, and I welcome your questions.
 
-## Slide 14: Backup Appendix
+## Slide 15: Backup Appendix
 
 Goal: Keep statistical-support figures available for Q&A.
 
 Estimated Time: 0:00
 
 Key Lines:
-- The appendix separates statistical support from effect size.
+- The appendix keeps the full strategy-spectrum figure available.
 - It is backup material, not part of the main timed flow.
-- Use it when asked about evidence beyond the primary spectrum figure.
+- Use it when asked about full method-by-strategy ranking.
 
 Speaker Notes:
-This backup slide is reserved for questions about significance and effect size. It separates how strongly the attack-over-random difference is supported from how large that difference is.
+This backup slide is reserved for questions about the full strategy-by-method ranking after the main story has already been told.
 
 ## Continuous Full Script
 
@@ -211,11 +225,13 @@ That leads to the main research question of the project: can malicious deletion 
 
 The evaluation covers several unlearning families. Learning-based unlearning is represented by GNNDelete. Influence-function-based unlearning is represented by GIF. The broader benchmark also includes IDEA, MEGU, and the shard-based GraphEraser. The threat model is deliberately practical and limited. The attacker can choose which nodes to delete through the normal deletion interface, but cannot poison labels, modify hidden hyperparameters, or change training code. So this is not a training-time attack. The attack succeeds if carefully chosen deletions produce more post-unlearning degradation than random deletion at the same ratio, especially when collateral effects also appear on retained nodes.
 
-The experimental workflow has four clear steps. First, select deletion targets, either randomly or with a structured strategy such as TracIn, IM-v4, or Hybrid-v4. Second, apply the graph unlearning method to that deletion set. Third, run an exact retrain control on the same deletion set. This exact retrain baseline is essential because it tells us what the post-deletion model should ideally look like if approximation error were not present. Finally, compare retained-model utility, retrain gap, and collateral changes. The completed matrix is fairly broad for a course project: five methods, two citation-graph datasets, three GNN backbones, six selection strategies, and in total 950 experiment runs.
+The experimental workflow has four clear steps. First, select deletion targets, either randomly or with a structured strategy such as TracIn, IM-v4, or Hybrid-v4. Second, apply the graph unlearning method to that deletion set. Third, run an exact retrain control on the same deletion set. This exact retrain baseline is essential because it tells us what the post-deletion model should ideally look like if approximation error were not present. Finally, compare the main outputs: relative F1 drop, retrain gap, collateral changes, and efficiency. The completed matrix is fairly broad for a course project: five methods, two citation-graph datasets, three GNN backbones, six selection strategies, and in total 950 experiment runs.
+
+Before defining the metrics, I also want to clarify what the attack strategies are actually doing. These are not just arbitrary labels. TracIn, or more broadly IF-style logic, is model-aware: it tries to pick nodes with high training influence on the learned model. IM-v4 is graph-structural: it tries to pick nodes that maximize spread or disruption in the graph itself. Hybrid combines both signals. I put a small formula on the slide, but it is only there as shorthand intuition, not something I need the audience to parse line by line. So the benchmark is not only comparing heuristics; it is comparing attacker logics, including model-aware selection, graph-structural selection, and a hybrid of the two.
 
 Before turning to the results, I want to define the metrics clearly. The main utility metric is relative F1 drop, but the important design choice is the reference point. Instead of relying only on raw F1 before minus F1 after, I first trigger each method with a very small random deletion, k equals 5, and use that post-unlearning F1 as the baseline. This matters because shard-based methods such as GraphEraser can show method-induced score shifts after deletion, so raw drop alone can be misleading. Relative F1 drop therefore measures extra damage beyond that small-trigger baseline. To explain where the degradation comes from, I then use retrain gap and collateral metrics. Retrain gap compares approximate unlearning against exact retraining on the same deletion set, and collateral metrics track how much the retained nodes are disturbed.
 
-Now I come to the central result. When I compare relative F1 drop across datasets and backbones at the same deletion ratio, I do not observe one shared failure pattern. Instead, I observe a clear vulnerability spectrum across graph unlearning families. GNNDelete is consistently the most fragile representative in the tested settings. GIF remains comparatively stable, with much smaller extra drops beyond the k equals 5 baseline. GraphEraser behaves differently again, and the relative metric is exactly what makes that comparison interpretable: in the tested settings, it shows a shard protection pattern rather than the expected collapse. So the core takeaway is that robustness in approximate graph unlearning is mechanism-dependent, and the metric definition matters for reading that spectrum correctly.
+Now I come to the central result. When I compare relative F1 drop across datasets and backbones at the same deletion ratio, I do not observe one shared failure pattern. Instead, I observe a clear vulnerability spectrum across graph unlearning families. GNNDelete is consistently the most fragile representative in the tested settings. GIF remains comparatively stable, with much smaller extra drops beyond the k equals 5 baseline. GraphEraser behaves differently again, and the relative metric is exactly what makes that comparison interpretable: in the tested settings, it shows a shard protection pattern rather than the expected collapse. The companion strategy view leads to the same concentration pattern: the strongest extra damage still clusters on GNNDelete rather than spreading evenly across families. So the core takeaway is that robustness in approximate graph unlearning is mechanism-dependent, and the metric definition matters for reading that spectrum correctly.
 
 To make that spectrum more concrete, I then use the ratio-sensitivity figure as an ablation-style view. The question here is how attack strength changes as the deletion ratio increases. GNNDelete already shows strong amplification even at a very small ratio, which means the vulnerability appears early rather than only under large deletion budgets. GIF remains much flatter across the same range. So this page supports the interpretation that the family difference is structural rather than a one-point artifact of the chosen ratio.
 
@@ -223,7 +239,7 @@ This is why attribution and collateral analysis are central rather than optional
 
 GraphEraser then requires a different interpretation because its behavior is counterintuitive. In the tested settings, deletion often improves downstream performance instead of reducing it. I describe this as a shard protection effect. The supporting slide shows the observed GraphEraser score shift on Cora with a GCN backbone, where the after-unlearning distribution moves upward across the tested strategies. That is why raw utility drop alone is not the right cross-family metric here. A plausible explanation is that removing bridge or hub nodes changes the partition structure in a way that makes shard-local classification easier and reduces cross-shard interference. At the same time, I want to be careful about the claim. This does not prove that GraphEraser is universally robust. The narrower claim is simply that, under the evaluated datasets and settings, the evidence is more consistent with a shard protection effect than with the collapse pattern seen in GNNDelete.
 
-Beyond the family-level result, I also wanted to know whether structured attacks are practical. Figure 3 now serves as a strategy-comparison page after the metric has already been defined. Again, the strongest extra drop beyond baseline appears on GNNDelete, while the other families remain more moderate. On the efficiency side, the most important optimization is IM-v4. Compared with the baseline CELF-style approach, IM-v4 reduces selection time from 653 seconds to 18.9 seconds while losing only 1.3 percent in spread. That is a meaningful result because it shows adversarial node selection is not just conceptually possible; it is operationally feasible.
+I then strengthen the main result with statistical-support and effect-size evidence. Figure 4a asks how strongly the attack-over-random difference is supported, while Figure 4b asks how large that difference is once support is established. This matters because a visible pattern alone can still look thin if we do not show whether it is consistent. The key read is that GNNDelete is strong on both axes: it shows both clear support and large extra damage. The other families are more moderate, which is consistent with the main spectrum rather than a contradiction to it.
 
 Of course, the project also has clear limits. The evidence is strong within the evaluated citation benchmarks and backbones, but the conclusions should not be treated as universal across every graph domain. Some mechanisms, especially GNNDelete, still deserve deeper mechanism-level ablation to explain exactly why the approximation fails so badly under adversarial deletion. This is still a completed MSc project rather than an unfinished progress report. The most credible future work is to extend the evaluation to larger datasets such as PubMed and run more targeted ablations on GNNDelete.
 
