@@ -72,3 +72,28 @@ test('build script rebalances slide 2 with dedicated layout geometry', () => {
   assert.match(generatorText, /cards:\{x:\.65,y:1\.48,w:2\.7,h:2\.48,gap:\.3\}/i, 'slide 2 cards should use the rebalanced row geometry');
   assert.match(generatorText, /callout:\{x:7\.18,y:4\.18,w:2\.12,h:\.82\}/i, 'slide 2 callout should be enlarged and aligned');
 });
+
+test('generated script explains the k=5 baseline design on the metrics framework page', () => {
+  cleanup();
+  execFileSync(process.execPath, [scriptPath, '--output-dir', outputDir], {
+    cwd: path.resolve(__dirname, '..', '..', '..'),
+    stdio: 'pipe',
+  });
+
+  const scriptText = fs.readFileSync(scriptMdPath, 'utf8');
+  assert.match(scriptText, /## Slide 6: Metrics Framework/);
+  assert.match(scriptText, /relative_f1_drop = F1_after\(k=5, random\) - F1_after\(attack\)/i);
+  assert.match(scriptText, /use a tiny random-trigger baseline/i);
+  assert.match(scriptText, /k equals 5, and use that post-unlearning F1 as the baseline/i);
+  assert.match(scriptText, /## Slide 8: Ratio Sensitivity And Ablation/);
+  assert.doesNotMatch(scriptText, /## Slide 6: What Was Built In OpenGU/);
+});
+
+test('generator source encodes the metrics-led results storyline', () => {
+  const generatorText = fs.readFileSync(scriptPath, 'utf8');
+
+  assert.match(generatorText, /Metrics Framework/i, 'generator should include the metrics page');
+  assert.match(generatorText, /relative_f1_drop = F1_after\(k=5, random\) - F1_after\(attack\)/i, 'generator should encode the k=5 baseline formula');
+  assert.match(generatorText, /tiny random-trigger baseline/i, 'generator should explain why the relative metric is needed');
+  assert.match(generatorText, /k=5 post-unlearning baseline is the cleaner cross-family lens/i, 'generator should defend the shard-based baseline design');
+});
