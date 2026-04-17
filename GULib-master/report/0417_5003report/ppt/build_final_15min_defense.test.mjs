@@ -88,7 +88,7 @@ test('build script adds an attack selection logic page between pipeline and metr
 
   assert.match(generatorText, /frame\(s,6,'Attack Selection Logic'\)/i, 'generator should insert the attack selection logic page');
   assert.match(generatorText, /TracIn \/ IF-style/i, 'selection logic page should explain model-aware selection');
-  assert.match(generatorText, /IM-v4','Graph-structural logic/i, 'selection logic page should explain graph-structural selection');
+  assert.match(generatorText, /IM','Graph-structural logic/i, 'selection logic page should explain graph-structural selection');
   assert.match(generatorText, /score\(v\) ≈ I_train\(v\)/i, 'selection logic page should include the IF shorthand formula');
   assert.match(generatorText, /score\(S\) = spread\(S\)/i, 'selection logic page should include the IM shorthand formula');
   assert.match(generatorText, /score\(v\) = α·z_IF\(v\) \+ \(1-α\)·z_IM\(v\)/i, 'selection logic page should include the hybrid shorthand formula');
@@ -106,6 +106,8 @@ test('generated script explains the k=5 baseline design on the metrics framework
   const scriptText = fs.readFileSync(scriptMdPath, 'utf8');
   assert.match(scriptText, /## Slide 6: Attack Selection Logic/);
   assert.match(scriptText, /## Slide 7: Metrics Framework/);
+  assert.match(scriptText, /Structured attacks include TracIn, IM, and Hybrid\./);
+  assert.doesNotMatch(scriptText, /IM-v4|Hybrid-v4/);
   assert.match(scriptText, /relative_f1_drop = F1_after\(k=5, random\) - F1_after\(attack\)/i);
   assert.match(scriptText, /use a tiny random-trigger baseline/i);
   assert.match(scriptText, /k equals 5, and use that post-unlearning F1 as the baseline/i);
@@ -124,4 +126,33 @@ test('generator source encodes the metrics-led results storyline', () => {
   assert.match(generatorText, /the k=5 relative baseline is the cleaner comparison lens/i, 'generator should defend the shard-based baseline design');
   assert.match(generatorText, /frame\(s,12,'Statistical Support And Effect Size'\)/i, 'generator should move figure 4 into the main body');
   assert.match(generatorText, /frame\(s,15,'Backup Appendix: Full Strategy Spectrum'\)/i, 'generator should move the full figure 3 view to the appendix');
+});
+
+test('generated pptx does not keep content-type overrides for missing parts', { concurrency: false }, () => {
+  const outputDir = makeOutputDir();
+  const pptxPath = path.join(outputDir, 'final_15min_defense.pptx');
+  const unpackDir = path.join(outputDir, 'unpacked');
+  const zipPath = path.join(outputDir, 'final_15min_defense.zip');
+
+  execFileSync(process.execPath, [scriptPath, '--output-dir', outputDir], {
+    cwd: path.resolve(__dirname, '..', '..', '..'),
+    stdio: 'pipe',
+  });
+
+  fs.copyFileSync(pptxPath, zipPath);
+  execFileSync('powershell', ['-NoProfile', '-Command', `Expand-Archive -LiteralPath '${zipPath}' -DestinationPath '${unpackDir}' -Force`], {
+    cwd: path.resolve(__dirname, '..', '..', '..'),
+    stdio: 'pipe',
+  });
+
+  const contentTypesPath = path.join(unpackDir, '[Content_Types].xml');
+  const xml = fs.readFileSync(contentTypesPath, 'utf8');
+  const overrides = [...xml.matchAll(/<Override PartName="([^"]+)" ContentType="([^"]+)"\/>/g)];
+  for (const [, partName] of overrides) {
+    const rel = partName.replace(/^\//, '').split('/').join(path.sep);
+    const fullPath = path.join(unpackDir, rel);
+    assert.equal(fs.existsSync(fullPath), true, `override should point to an existing part: ${partName}`);
+  }
+
+  fs.rmSync(outputDir, { recursive: true, force: true });
 });

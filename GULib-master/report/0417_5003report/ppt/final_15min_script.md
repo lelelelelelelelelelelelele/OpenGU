@@ -2,8 +2,8 @@
 
 - Audience: EE5003 course assessment / supervisor-style academic review
 - Language: English PPT + English script
-- Main timed deck: 14 slides
-- Estimated total speaking time: 14:55
+- Main timed deck: 15 slides
+- Estimated total speaking time: ~15:15
 
 ## Slide 1: Title
 
@@ -117,11 +117,25 @@ Key Lines:
 Speaker Notes:
 This is the main result of the project. When I compare relative F1 drop across datasets and backbones at the same deletion ratio, I do not see one shared failure pattern. Instead, I see a clear vulnerability spectrum across graph unlearning families. GNNDelete is consistently the most fragile representative. GIF remains comparatively stable, with much smaller extra drops beyond the k equals 5 baseline. GraphEraser behaves qualitatively differently again: because raw utility change can be negative, the relative metric is the cleaner way to compare it against the other families. In the tested settings, GraphEraser shows a shard protection pattern rather than the expected collapse. The companion strategy view leads to the same concentration pattern: the strongest extra damage still clusters on GNNDelete rather than spreading evenly across families. So the broader takeaway is that robustness is mechanism-dependent, and the metric definition matters for reading that spectrum correctly.
 
-## Slide 9: Ratio Sensitivity And Ablation
+## Slide 9: Main Finding: Strategy Spectrum
+
+Goal: Show the same concentration pattern from the attack-strategy dimension, immediately following the family view.
+
+Estimated Time: 0:35
+
+Key Lines:
+- This is the companion strategy view to the family spectrum on the previous slide.
+- The strongest extra damage still concentrates on GNNDelete rather than spreading evenly across families.
+- It confirms the main finding from a second angle.
+
+Speaker Notes:
+This is the companion strategy view to the family spectrum I just showed. Instead of grouping by method family, this figure groups by attack strategy. The same concentration pattern appears: the strongest extra damage still clusters on GNNDelete rather than spreading evenly across families. I will move through this quickly because it is supporting evidence for the same main point, but having it in the main deck makes the pattern more robust.
+
+## Slide 10: Ratio Sensitivity And Ablation
 
 Goal: Show how attack strength changes with deletion ratio.
 
-Estimated Time: 1:20
+Estimated Time: 1:15
 
 Key Lines:
 - The ratio figure works like an ablation on deletion budget.
@@ -131,7 +145,7 @@ Key Lines:
 Speaker Notes:
 To make the spectrum more concrete, I next use the ratio-sensitivity figure as an ablation-style view. The question here is not only which method is worse at one fixed budget, but how attack strength changes as the deletion ratio increases. GNNDelete already shows strong amplification even at a very small ratio, which means the vulnerability appears early rather than only under large deletion budgets. GIF remains much flatter across the same range. So this page supports the interpretation that the family difference is structural rather than a one-point artifact of the ratio chosen for the main comparison.
 
-## Slide 10: Attribution And Collateral Damage
+## Slide 11: Attribution And Collateral Damage
 
 Goal: Explain how the project separates attack success from approximation-induced spillover.
 
@@ -145,7 +159,7 @@ Key Lines:
 Speaker Notes:
 This slide summarizes the attribution logic. Relative F1 drop tells us whether a structured attack beats the k equals 5 method baseline, but it does not by itself explain why. That is why the exact retrain control is essential. It tells us what should happen on the same deletion set if approximation error were absent. The gap between approximate unlearning and exact retraining is the retrain gap, and that is the part we should attribute to the mechanism. I then use collateral metrics, such as prediction flips and mean prediction shift on retained nodes, to show how far the disturbance propagates beyond the requested deletions. So the three metrics answer three different questions: did the attack work, where did the error come from, and how far did it spread.
 
-## Slide 11: GraphEraser And Shard Protection
+## Slide 12: GraphEraser And Shard Protection
 
 Goal: Support the shard-protection reading with a concrete GraphEraser view.
 
@@ -159,7 +173,7 @@ Key Lines:
 Speaker Notes:
 GraphEraser behaves differently enough that it deserves its own evidence slide. Here I show the observed score shift for GraphEraser on Cora with a GCN backbone. The after-unlearning distribution moves upward across the tested attack strategies, which is why I said earlier that raw utility drop alone can be misleading for shard-based methods. A plausible explanation is that removing bridge or hub nodes changes the partition structure in a way that makes shard-local classification easier and reduces cross-shard interference. This is still a narrow claim. I am not saying GraphEraser is universally robust. I am saying that under the tested settings, the evidence is more consistent with a shard protection effect than with the collapse pattern seen in GNNDelete.
 
-## Slide 12: Statistical Support And Effect Size
+## Slide 13: Statistical Support And Effect Size
 
 Goal: Strengthen the main result with support and effect-size evidence.
 
@@ -173,7 +187,7 @@ Key Lines:
 Speaker Notes:
 I then strengthen the main result with statistical-support and effect-size evidence. Figure 4a asks how strongly the attack-over-random difference is supported, while Figure 4b asks how large that difference is once support is established. This matters because a visible pattern alone can still look thin if we do not show whether it is consistent. The key read is that GNNDelete is strong on both axes: it shows both clear support and large extra damage. The other families are more moderate, which is consistent with the main spectrum rather than a contradiction to it.
 
-## Slide 13: Limitations And Future Work
+## Slide 14: Limitations And Future Work
 
 Goal: Close the project honestly without making the deck sound unfinished.
 
@@ -187,7 +201,7 @@ Key Lines:
 Speaker Notes:
 This project has clear limitations, and I want to state them directly. The evidence is strong within the tested citation benchmarks and backbones, but it should not be treated as universal across all graph domains. The second limit is explanatory depth: GNNDelete is clearly fragile in these experiments, but the mechanism-level reason still needs more targeted ablation. At the same time, this is a completed MSc project, not a midstream progress report. The most credible future work is to validate the same pattern on larger graph benchmarks such as PubMed and to run more targeted ablations that explain when and why GNNDelete fails.
 
-## Slide 14: Takeaways
+## Slide 15: Takeaways
 
 Goal: Close the main story in three memorable points.
 
@@ -201,19 +215,7 @@ Key Lines:
 Speaker Notes:
 To conclude, this project shows that approximate graph unlearning can and should be stress-tested through adversarial deletion requests. The main result is a clear family-level vulnerability spectrum defined through relative F1 drop: GNNDelete is the most fragile case in the tested settings, GIF is comparatively stable, and GraphEraser exhibits a shard protection effect rather than collapse. Just as importantly, the project leaves behind a practical OpenGU-based audit workflow that can support future work from a completed course submission. Thank you, and I welcome your questions.
 
-## Slide 15: Backup Appendix
 
-Goal: Keep statistical-support figures available for Q&A.
-
-Estimated Time: 0:00
-
-Key Lines:
-- The appendix keeps the full strategy-spectrum figure available.
-- It is backup material, not part of the main timed flow.
-- Use it when asked about full method-by-strategy ranking.
-
-Speaker Notes:
-This backup slide is reserved for questions about the full strategy-by-method ranking after the main story has already been told.
 
 ## Continuous Full Script
 
