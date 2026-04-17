@@ -55,3 +55,20 @@ test('build script uses the approved navy-led palette instead of the old maroon-
   assert.match(generatorText, /16263F/i, 'new dark navy should be present');
   assert.match(generatorText, /A6404B/i, 'new red accent should be present');
 });
+
+test('build script uses Times New Roman throughout the deck typography', () => {
+  const generatorText = fs.readFileSync(scriptPath, 'utf8');
+
+  assert.match(generatorText, /Times New Roman/i, 'Times New Roman should be present');
+  assert.doesNotMatch(generatorText, /Georgia/i, 'legacy heading font should be removed');
+  assert.doesNotMatch(generatorText, /Calibri/i, 'legacy body font should be removed');
+});
+
+test('build script rebalances slide 2 with dedicated layout geometry', () => {
+  const generatorText = fs.readFileSync(scriptPath, 'utf8');
+
+  assert.match(generatorText, /const slide2=\{/i, 'slide 2 should use a dedicated layout object');
+  assert.match(generatorText, /headline:\{x:\.65,y:\.84,w:6,h:\.58,fontSize:17\.2\}/i, 'slide 2 headline geometry should be compressed');
+  assert.match(generatorText, /cards:\{x:\.65,y:1\.48,w:2\.7,h:2\.48,gap:\.3\}/i, 'slide 2 cards should use the rebalanced row geometry');
+  assert.match(generatorText, /callout:\{x:7\.18,y:4\.18,w:2\.12,h:\.82\}/i, 'slide 2 callout should be enlarged and aligned');
+});
