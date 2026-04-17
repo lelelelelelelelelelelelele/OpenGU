@@ -128,6 +128,27 @@ test('generator source encodes the metrics-led results storyline', () => {
   assert.match(generatorText, /frame\(s,15,'Backup Appendix: Full Strategy Spectrum'\)/i, 'generator should move the full figure 3 view to the appendix');
 });
 
+test('slide 11 includes a compact collateral evidence table to anchor the attribution logic', { concurrency: false }, () => {
+  const outputDir = makeOutputDir();
+  const scriptMdPath = path.join(outputDir, 'final_15min_script.md');
+  execFileSync(process.execPath, [scriptPath, '--output-dir', outputDir], {
+    cwd: path.resolve(__dirname, '..', '..', '..'),
+    stdio: 'pipe',
+  });
+
+  const generatorText = fs.readFileSync(scriptPath, 'utf8');
+  const scriptText = fs.readFileSync(scriptMdPath, 'utf8');
+
+  assert.match(generatorText, /Collateral evidence/i, 'slide 11 should add a small evidence-table header');
+  assert.match(generatorText, /Method\s*\|\s*Avg Gap\s*\|\s*Pred Shift \/ Flip/i, 'slide 11 should encode the evidence table columns');
+  assert.match(generatorText, /GNNDelete\s*\|\s*9\.74%\s*\|\s*0\.245 \/ 26\.2%/i, 'slide 11 should surface the GNNDelete collateral evidence row');
+
+  assert.match(scriptText, /small evidence table/i, 'speaker notes should acknowledge the new evidence table');
+  assert.match(scriptText, /GNNDelete also has the largest retrain gap and the strongest retained-node disturbance/i, 'speaker notes should explain how to read the table');
+
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
 test('generated pptx does not keep content-type overrides for missing parts', { concurrency: false }, () => {
   const outputDir = makeOutputDir();
   const pptxPath = path.join(outputDir, 'final_15min_defense.pptx');
