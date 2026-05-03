@@ -3,7 +3,7 @@
 > Status: active
 > Role: `self/` 主入口；定义 thesis 研究工作区的当前入口、文档权威性和阅读路径。
 > Use this when: 你要快速判断“现在该看什么”“哪些结论已经稳定”“方法论和阶段报告分别放在哪”。
-> See also: `thesis_transition_memo.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/0417_5003report/main_report/msc_project_report.md`
+> See also: `thesis_transition_memo.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/0417_5003report/main_report/msc_project_report.md`
 
 ## 1. Workspace Roles
 
@@ -23,7 +23,7 @@
 
 1. [thesis_transition_memo.md](thesis_transition_memo.md)
    当前 thesis 线的承上启下文档。说明已稳定结论、未解机制问题、可检验假说和双候选 proposed 方向。
-2. [../report/0417_5003report/main_report/msc_project_report.md](../report/0417_5003report/main_report/msc_project_report.md)
+2. [../report/progress/0417_5003report/main_report/msc_project_report.md](../report/progress/0417_5003report/main_report/msc_project_report.md)
    2026-04 的 EE5003 最终课程报告，代表已经封口的课程 deliverable。
 3. [../report/paper/stage_report_2026-02-27.md](../report/paper/stage_report_2026-02-27.md)
    2026-02 的阶段报告，代表中期实验与图表资产的里程碑。
@@ -69,9 +69,9 @@
 
 - [../report/paper/stage_report_2026-02-27.md](../report/paper/stage_report_2026-02-27.md)
   2026-02 阶段里程碑，总结 950 runs、图表资产和当时的下一步判断。
-- [../report/0417_5003report/main_report/msc_project_report.md](../report/0417_5003report/main_report/msc_project_report.md)
+- [../report/progress/0417_5003report/main_report/msc_project_report.md](../report/progress/0417_5003report/main_report/msc_project_report.md)
   2026-04 最终课程报告，是课程 deliverable 的正式终点。
-- [../report/0417_5003report/ppt/final_15min_script.md](../report/0417_5003report/ppt/final_15min_script.md)
+- [../report/progress/0417_5003report/ppt/final_15min_script.md](../report/progress/0417_5003report/ppt/final_15min_script.md)
   2026-04 最终答辩口径，代表 oral framing。
 - [../results/README.md](../results/README.md)
   结果目录说明。

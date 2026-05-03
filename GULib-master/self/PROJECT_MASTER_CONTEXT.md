@@ -3,7 +3,7 @@
 > Status: reference
 > Role: 项目总背景与早期统一口径文档；保留原始研究目标、攻击思路和实现概览。
 > Use this when: 你需要回看项目的原始 framing、方法族划分、攻击策略设计或 repo 层面的总背景。
-> Superseded by: `thesis_transition_memo.md` 用于当前 thesis 方向；课程结论以 `../report/0417_5003report/main_report/msc_project_report.md` 为准。
+> Superseded by: `thesis_transition_memo.md` 用于当前 thesis 方向；课程结论以 `../report/progress/0417_5003report/main_report/msc_project_report.md` 为准。
 > See also: `README.md`, `flow.md`, `../report/paper/stage_report_2026-02-27.md`
 
 ## 1. 项目概览 (Project Overview)
