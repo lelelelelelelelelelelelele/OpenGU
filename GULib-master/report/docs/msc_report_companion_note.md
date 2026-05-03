@@ -2,52 +2,62 @@
 
 ## Purpose
 
-This note accompanies `report/msc_progress_report_draft.md` and clarifies how the report should be positioned.
+This note defines how the MSc report should be positioned.
 
-The main Markdown report is intended to function as an MSc course project report. It should therefore remain in report style rather than dissertation style or research-paper style.
+The main Markdown report is a course project report. It should read as a completed report-style document, not as a dissertation chapter, not as a paper draft, and not as a progress memo.
+
+## Fixed Title Constraint
+
+The approved project title must remain the formal title of the report because this is an external course requirement.
+
+That title does not need to match the exact center of gravity of the report body line by line. The practical solution is:
+
+- keep the approved title on the cover page
+- use a subtitle to identify the concrete work reported here
+- let the body focus on the actual completed project content without repeatedly defending the title choice
 
 ## Scope Boundary
 
-The course report should describe:
+The course report should cover:
 
-- the project motivation
-- the implemented workflow
-- the completed experiments
-- the main findings
+- the motivation for the project
+- the concrete graph unlearning problem studied in this report
+- the implemented workflow and evaluation pipeline
+- the completed experiments and findings
 - the current limitations
-- realistic next steps
+- realistic next steps after the course submission
 
 The course report should not present itself as:
 
 - a thesis or dissertation
-- a research paper
-- a promise of unfinished future results
+- a research paper submission
+- a promise of results that have not yet been completed
 
-## How to Mention Later Paper-Oriented Work
+## Relation to Future Paper Work
 
-It is acceptable to state briefly in the main report that the completed project assets may support later follow-up work. However, the paper-oriented interpretation should remain secondary. The central role of the main report is to summarize completed MSc project work.
+It is acceptable for the report to state briefly that the current implementation and experimental assets may support later publication-oriented work.
 
-For that reason, the stronger positioning can stay in this companion note:
+However, that later possibility should remain secondary. The main report must still be centered on what has already been completed for the MSc project.
 
-The current project stage establishes an empirical and implementation foundation that may later be extended into publication-oriented work. Any such later extension is outside the scope of the present MSc report.
+The stronger paper-oriented framing should stay outside the main report's core voice:
+
+The current project stage establishes an empirical and implementation foundation that may later be extended into publication-oriented work. Any such extension is outside the scope of the present MSc report.
+
+## Writing Rule
+
+The main report should avoid sounding like an internal status update. In particular, it should avoid repeated wording such as:
+
+- `completed project work`
+- `current submission point`
+- `current report version`
+- `work completed up to the present report version`
+
+The preferred tone is that of a finished report describing the study, the method, the evidence, and the limits of the current submission.
 
 ## Migration Guidance
 
-For course submission:
-
-- export the main report to Word or PDF
-- include page numbering except on the cover page
-- ensure text remains searchable in the final file
-
 For later Overleaf migration:
 
-- keep the current section structure
-- map section titles to report-style LaTeX headings first
-- only later decide whether any material should be reorganized for a paper-style document
-
-## Manual Items Still Needed
-
-- replace the cover-page placeholders with actual student details
-- confirm the exact approved project title
-- confirm the exact MSc project type code
-- add page numbering at the export stage
+- keep the current report-style section structure first
+- migrate Markdown headings into report-style LaTeX headings before redesigning anything
+- postpone any paper-style restructuring until after the course-report version is stable

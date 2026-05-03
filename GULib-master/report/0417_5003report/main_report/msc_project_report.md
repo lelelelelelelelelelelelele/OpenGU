@@ -18,11 +18,11 @@
 
 ## Abstract
 
-This report summarizes the MSc project work completed on adversarial deletion attacks against approximate graph unlearning methods. The project investigates whether a malicious user can exploit the deletion interface of a graph unlearning system by selecting nodes whose removal maximizes approximation error and degrades retained-model utility.
+This report studies adversarial deletion attacks against approximate graph unlearning methods. The central question is whether a malicious user can exploit the deletion interface of a graph unlearning system by choosing nodes whose removal amplifies approximation error and degrades retained-model utility.
 
-The implemented framework extends the OpenGU benchmark with adversarial node-selection strategies, exact retrain controls, collateral-damage analysis, and experiment-management utilities. The completed study covers five graph unlearning methods, two citation-graph datasets, three GNN backbones, and six deletion-selection strategies. Up to the current submission point, the project has produced 950 experimental runs, five analysis figures, and a consolidated statistical summary table.
+The implemented framework extends the OpenGU benchmark with adversarial node-selection strategies, exact retrain controls, collateral-damage analysis, and experiment-management utilities. The reported evaluation covers five graph unlearning methods, two citation-graph datasets, three GNN backbones, and six deletion-selection strategies, producing 950 experimental runs, five main analysis figures, and a consolidated statistical summary table.
 
-The main outcome of the project is a clear vulnerability spectrum across graph unlearning families. Learning-based unlearning, represented by GNNDelete, is highly fragile under adversarial deletion. Influence-function-based unlearning, represented by GIF, is comparatively stable. Shard-based unlearning, represented by GraphEraser, exhibits a counterintuitive improvement under deletion in the tested settings, which is described in this report as a shard protection effect. Overall, the project establishes a working experimental basis for evaluating robustness in approximate graph unlearning systems.
+The main finding is a clear vulnerability spectrum across graph unlearning families. Learning-based unlearning, represented by GNNDelete, is highly fragile under adversarial deletion. Influence-function-based unlearning, represented by GIF, is comparatively stable. Shard-based unlearning, represented by GraphEraser, exhibits a counterintuitive improvement under deletion in the tested settings, described here as a shard protection effect. Overall, the study provides a structured experimental basis for evaluating robustness in approximate graph unlearning systems.
 
 ---
 
@@ -74,23 +74,29 @@ This document is submitted only as an MSc project report for course requirements
 
 # 1. Introduction
 
-## 1.1 Background
+## 1.1 Graph Neural Networks and Graph-Structured Learning
 
-Graph Neural Networks (GNNs) are widely used to model structured relational data. As such systems are deployed in privacy-sensitive settings, the ability to remove the influence of selected training data without full retraining has become increasingly important. This problem is generally referred to as graph unlearning.
+Graph Neural Networks (GNNs) are learning models designed for graph-structured data, in which objects are represented as nodes and their relations are represented as edges. In many practical applications, each node also carries feature vectors such as textual attributes, profile statistics, sensor values, or learned embeddings. GNNs are attractive in this setting because they do not treat samples as independent points. Instead, they aggregate information from neighboring nodes and use graph connectivity as part of the prediction process.
 
-Many graph unlearning methods are approximate rather than exact. They improve efficiency by updating only part of the model state, part of the graph structure, or part of the training process. However, these approximations may introduce residual error. This project focuses on whether such residual error can be deliberately amplified through adversarially chosen deletion requests.
+This message-passing behavior makes GNNs suitable for tasks such as node classification, link prediction, and graph classification. Citation graphs, social networks, recommendation systems, molecular graphs, and scene graphs can all be modeled in this way. At the same time, the same connectivity that gives GNNs their predictive strength also creates a challenge for data removal: one node can affect not only its own representation, but also the representations and predictions of many nearby nodes through repeated propagation.
 
-## 1.2 Project Motivation
+## 1.2 Why Graph Unlearning Matters
 
-Most prior work in graph unlearning emphasizes efficiency, privacy, or deletion fidelity. Comparatively less attention has been given to the robustness of approximate unlearning under strategic misuse. In a practical deployment, a malicious user may repeatedly submit deletion requests for accounts or nodes under their control. If the system processes such requests through approximate unlearning rather than full retraining, the deletion interface itself may become an attack surface.
+Machine unlearning refers to the ability to remove the influence of selected training data from a trained model after the model has already been built. In the graph setting, this becomes graph unlearning. The most direct solution is exact retraining: delete the requested nodes or edges, rebuild the training graph, and train the model again from scratch. Exact retraining is conceptually clean because it provides the gold-standard post-deletion model, but it is often too expensive to run whenever a deletion request arrives.
 
-This project was therefore motivated by the following question: can an attacker choose deletion targets that make approximate graph unlearning fail noticeably on the retained data?
+For that reason, many graph unlearning methods aim to approximate the effect of retraining while avoiding its full computational cost. This objective is practically important in privacy-sensitive settings, regulation-driven deletion requests, or any system that must support repeated post-training removal of user-related data. Graph data makes the problem more difficult than standard i.i.d. learning because deleting one node can alter neighborhood structure, message-passing paths, and label information for many retained nodes.
 
-## 1.3 Report Purpose
+## 1.3 Why Approximate Unlearning Creates Risk
 
-The purpose of this report is to document the MSc project as a course submission. It summarizes the completed implementation, experiment design, main findings, and current limitations of the work completed up to the present report version.
+Approximate graph unlearning methods improve efficiency by updating only part of the model state, only part of the graph structure, or only part of the optimization path. This efficiency gain is useful, but it introduces a fidelity question: how closely does the approximate unlearning result match exact retraining on the same deletion set? Any mismatch between the two can be viewed as approximation error.
 
-Within the broader approved project title on safety-behavior inheritance within a model family, this report focuses on approximate graph unlearning as a concrete case study for analyzing how model behavior can change or degrade under strategically chosen deletion requests.
+This report studies that approximation error from a robustness perspective. If some deletion requests create larger approximation error than others, then the deletion interface itself may become an attack surface. A malicious user who can choose which nodes to request for deletion may not need to poison training or directly tamper with model weights. Instead, the attacker may be able to induce retained-model damage simply by selecting deletion targets that are especially harmful for a given approximate unlearning mechanism.
+
+The motivating question of this project is therefore the following: can strategically selected deletion requests amplify approximation error enough to damage the retained model beyond the intrinsic effect of removing the requested data?
+
+## 1.4 Report Purpose
+
+This document is written as an MSc course project report. Its purpose is to present the implemented framework, experimental design, main empirical findings, and present limitations of the study. Within the broader approved project title on safety-behavior inheritance within a model family, the report focuses on adversarial deletion attacks on approximate graph unlearning as a concrete case study.
 
 ---
 
@@ -129,7 +135,7 @@ The project was designed around four practical objectives:
 
 ## 3.2 Scope of Completed Work
 
-The completed project work summarized in this report covers the following:
+The study summarized in this report covers the following:
 
 - Methods: GNNDelete, GIF, GraphEraser, IDEA, and MEGU
 - Datasets: Cora and Citeseer
@@ -139,7 +145,7 @@ The completed project work summarized in this report covers the following:
 
 ## 3.3 Out-of-Scope Items for This Report
 
-Some extensions remain outside the scope of the present report submission. These include broader dataset expansion, fuller privacy auditing, and publication-oriented expansion beyond the current course deliverable. These items are described later under `Limitations` and `Future Applications and Next Steps`.
+Some extensions remain outside the scope of this report. These include broader dataset expansion, fuller privacy auditing, and publication-oriented expansion beyond the current course deliverable. These items are described later under `Limitations` and `Future Applications and Next Steps`.
 
 ---
 
@@ -147,7 +153,16 @@ Some extensions remain outside the scope of the present report submission. These
 
 ## 4.1 Threat Model
 
-The attacker is assumed to control the deletion request set under a fixed budget. The attacker may know the graph structure and node features, but does not rely on full white-box access to all model internals. The attack objective is to maximize degradation on retained data after the target graph unlearning method processes the deletion request.
+The threat model assumes an attacker who can choose the deletion request set under a fixed budget. Let the deletion budget be `k`, where `k` nodes are selected from the graph and submitted to the target graph unlearning method. The attacker's goal is not merely to remove those nodes, but to maximize utility degradation on the retained data after unlearning has been performed.
+
+The primary evaluation setting in this report is graph-structural rather than fully white-box. The attacker is assumed to have access to the graph structure and node features, and some strategies may additionally exploit model-side information such as gradient trajectories. This distinction matters because the six implemented strategies do not require the same information:
+
+- `Random`, `Degree`, and `PageRank` rely on no model internals and serve as graph-structural or baseline strategies.
+- `IM-v4` relies mainly on graph topology and influence-spread estimation.
+- `TracIn` depends on gradient-based trajectory information and is therefore more model-aware.
+- `Hybrid-v4` combines graph-structural and model-aware signals.
+
+The attack objective is evaluated on the retained set rather than on the deleted nodes alone. A successful attack is one that causes the approximate unlearning method to produce noticeably worse retained-model behavior than would be expected from deleting the same nodes followed by exact retraining.
 
 ## 4.2 Attack Pipeline
 
@@ -158,13 +173,15 @@ The implemented pipeline follows four stages:
 3. Run the target graph unlearning method on the selected deletion set.
 4. Evaluate performance on the retained data and compare against exact retraining controls.
 
+Each stage serves a specific purpose. The initial training stage establishes the reference model before any deletion request is applied. The selection stage determines which nodes the attacker asks the system to remove. The unlearning stage applies an approximate graph unlearning method to process that request without full retraining. The final evaluation stage compares the attacked unlearning result against both the original model and an exact retrain control on the same deletion set, making it possible to separate deletion-induced information loss from approximation-induced error.
+
 The implementation is organized around reusable project components:
 
 - `AttackPipeline` in `attack/pipeline_adapter.py`
 - `ResultCache` in `attack/result_cache.py`
 - `SelectionCache` in `attack/selection_cache.py`
 
-These components were designed to support repeated experimentation, reproducibility, and reduced re-computation cost.
+These components were designed to support repeated experimentation, reproducibility, and reduced re-computation cost. In particular, the pipeline structure makes it possible to run the same deletion set through both approximate unlearning and exact retraining, which is essential for the attribution analysis used later in the report.
 
 ## 4.3 Node-Selection Strategies
 
@@ -179,22 +196,40 @@ Six node-selection strategies were used in the completed experiments:
 | IM-v4 | Influence maximization | Uses a batched CELF-style influence maximization procedure |
 | Hybrid-v4 | Hybrid strategy | Combines normalized TracIn and IM-v4 scores |
 
+The strategies play different conceptual roles. `Random` is the reference baseline: it answers what happens when deletion requests are unstructured and gives a point of comparison for attack-specific gains. `Degree` and `PageRank` are structural centrality heuristics. They are inexpensive to compute and are motivated by the intuition that high-connectivity or high-importance nodes may exert disproportionate influence on downstream predictions.
+
+`TracIn` is a gradient-based influence proxy. It uses training-trajectory information to identify nodes whose learning signal appears particularly consequential for the final model. Because it depends on model-side information, it is more informative about model-aware attackers than purely structural heuristics are.
+
+`IM-v4` is an influence-maximization strategy implemented with a batched CELF-style approximation. Its purpose is to search for deletion sets with strong structural spread while keeping runtime practical. `Hybrid-v4` combines normalized TracIn and IM-v4 signals, reflecting the intuition that influential deletion targets may be important both from the perspective of graph topology and from the perspective of training dynamics.
+
 Among these, IM-v4 is the main engineering optimization developed in the project. It reduced node-selection time from 653.0 seconds to 18.9 seconds with only 1.3% spread loss compared with the baseline CELF variant.
 
 ## 4.4 Evaluation Metrics
 
-The evaluation framework uses several groups of metrics:
+The evaluation framework uses several groups of metrics. These metrics are intended not only to measure attack success, but also to explain where the observed degradation comes from.
 
-- Utility metrics: `f1_drop`, `relative_f1_drop`
-- Fidelity metrics: `retrain_gap`, `drop_retrain`
-- Collateral-damage metrics: `fraction_flipped`, `mean_pred_shift`
-- Efficiency metrics: `selection_time`, `unlearn_time`
+- Utility metrics:
+  - `f1_drop = F1_before - F1_after`, the absolute drop in task performance after unlearning.
+  - `relative_f1_drop = F1_random_unlearn - F1_attack_unlearn`, the extra performance loss of a structured attack compared with a random deletion baseline at the same budget.
+- Fidelity metrics:
+  - `retrain_gap = F1_retrain - F1_unlearn`, the difference between exact retraining and approximate unlearning on the same deletion set.
+  - `drop_retrain = F1_before - F1_retrain`, the utility loss caused by deleting the selected data itself when exact retraining is used.
+- Collateral-damage metrics:
+  - `fraction_flipped`, the fraction of retained nodes whose predicted labels change after unlearning.
+  - `mean_pred_shift`, the average shift in retained-node prediction probabilities after unlearning.
+- Efficiency metrics:
+  - `selection_time`, the runtime needed to choose deletion targets.
+  - `unlearn_time`, the runtime needed to run the graph unlearning method itself.
 
-The most important attribution idea in this project is to compare approximate unlearning against exact retraining on the same deletion set. This makes it possible to separate damage caused by the deleted data itself from damage caused by approximation error.
+The most important attribution idea in this project is to compare approximate unlearning against exact retraining on the same deletion set. In simplified form, the observed total performance loss can be interpreted as:
+
+`total_drop = drop_retrain + retrain_gap`
+
+Under this interpretation, `drop_retrain` captures the effect of deleting the data itself, while `retrain_gap` captures the additional error introduced by the approximate unlearning mechanism. Large positive retrain gaps therefore indicate that the attack is exploiting approximation weakness rather than only removing intrinsically important nodes.
 
 ## 4.5 Experimental Matrix
 
-Experiments were organized into multiple phases for stability checking, cross-dataset comparison, cross-model validation, ratio sensitivity, and extended generalization testing.
+Experiments were organized into multiple phases so that the conclusions would not depend on a single dataset, backbone, seed, or deletion budget. The matrix is intended to check baseline stability, cross-dataset behavior, backbone sensitivity, ratio sensitivity, and broader generalization. Using standardized seeds and repeated configurations also helps distinguish persistent method-level behavior from single-run noise.
 
 | Phase | Objective | Dataset | Model | Scope |
 |-------|-----------|---------|-------|-------|
@@ -213,7 +248,7 @@ Standardized seeds were used to improve reproducibility: 42, 212, 722, 1337, and
 
 ## 5.1 Completed Project Assets
 
-By the current report version, the project has produced:
+The project produced the following assets for the reported evaluation:
 
 - 950 experimental runs across seven evaluation phases
 - 365 relative-evaluation JSON files
@@ -351,7 +386,7 @@ The combined evidence suggests that approximation quality should be treated as a
 
 # 7. Limitations
 
-The current project report has several clear limitations.
+This report has several clear limitations.
 
 1. The main evidence is concentrated on Cora and Citeseer. Larger datasets were not fully incorporated into the completed report.
 2. Membership inference analysis was not fully closed across all method-strategy combinations.
@@ -359,13 +394,13 @@ The current project report has several clear limitations.
 4. Some TracIn-related outputs required additional checking because missing values affected part of the result table generation.
 5. Although the project is motivated partly by broader graph applications, the completed report does not include dedicated computer-vision graph datasets.
 
-These limitations do not invalidate the completed findings, but they do narrow the scope of claims that should be made from the present report.
+These limitations do not invalidate the main findings, but they do narrow the scope of claims that should be made from this report.
 
 ---
 
 # 8. Future Applications and Next Steps
 
-The current MSc project report documents the completed course work. At the same time, the implementation and experiment assets produced here can support later continuation beyond the present submission.
+This report documents the completed course work. At the same time, the implementation and experiment assets produced here can support later continuation beyond the course submission.
 
 Potential next steps include:
 
@@ -375,7 +410,7 @@ Potential next steps include:
 4. validating whether the same vulnerability pattern appears in additional domains
 5. migrating the report structure and selected material into a later Overleaf or LaTeX workflow if further extension is pursued
 
-The present report therefore stands as a complete course submission, while also serving as a practical foundation for later follow-up work.
+The report therefore stands as a complete course submission while also serving as a practical foundation for later follow-up work.
 
 ---
 
