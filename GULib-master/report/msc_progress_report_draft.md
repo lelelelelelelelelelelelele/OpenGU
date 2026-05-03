@@ -1,5 +1,11 @@
 # MSc Project Report
 
+> Status: historical
+> Role: 旧版 MSc 报告草稿，保留课程报告重写过程中的中间状态。
+> Use this when: 你要追溯课程报告从 draft 走向 final 的重写痕迹。
+> Superseded by: `0417_5003report/main_report/msc_project_report.md`
+> See also: `docs/msc_report_rewrite_blueprint.md`, `0417_5003report/notes/msc_report_companion_note.md`
+
 ---
 
 ## Cover Page
