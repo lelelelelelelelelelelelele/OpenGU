@@ -8,6 +8,24 @@ GULib is a research framework built on top of **OpenGU** (Open Graph Unlearning)
 
 The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones via PyTorch Geometric.
 
+## ⚡ Start Here: Live Dashboard
+
+**Single source of truth for current experiment state, bugs, and findings:** `self/dashboard/`
+
+| File | Read when |
+|------|-----------|
+| `self/dashboard/EXPERIMENT_DASHBOARD.md` | Beginning every session — phase progress, coverage matrix, known issues, TODO |
+| `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
+| `self/dashboard/VALIDATION_LOG.md` | Need empirical evidence for a claim (append-only) |
+| `self/dashboard/CLAUDE.md` | First time entering the folder — rules & maintenance |
+
+**NEVER duplicate dashboard content into other docs.** Always link to the path. This avoids drift.
+
+**Cache directories also have CLAUDE.md** — read before touching:
+- `results/cache/CLAUDE.md` — hash-named ResultCache, do NOT rename
+- `results/selection_cache/CLAUDE.md` — hash-named SelectionCache, cross-method shared
+- `results/experiments/CLAUDE.md` — MG-0/1/2/3/p2/im_v4 子目录的真正含义对应表
+
 ## Running Experiments
 
 ```bash
@@ -109,11 +127,26 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
 - `scripts/evaluation/HOWTO_REPAIR_CORRUPTED_RESULTS.md`: Bug 修复后数据刷新指南
 
+### ⚠ Active Bugs (2026-05-03)
+
+Detailed status & fix plan in `self/dashboard/EXPERIMENT_DASHBOARD.md §3`. Quick summary:
+
+- **MIA AUC = 0.000** on MEGU / IDEA / GraphEraser-shard family — three places have MIA call commented out:
+  - `unlearning/unlearning_methods/MEGU/megu.py:140`
+  - `unlearning/unlearning_methods/IDEA/idea.py:107` (and surrounding attack block lines 88–114)
+  - `pipeline/Shard_based_pipeline.py:177`
+  - GIF / GNNDelete MIA work correctly (not affected). All affected `mia_auc=0.000` values in existing JSON are bug pollution, NOT real measurements.
+- **IM_v4 selector instability**: Jaccard ≈ 0.13 across 5 GU seeds — MC randomness not decoupled from training seed. Fix planned (Phase A.4).
+- **FIG-4b mixed configs**: GIF/GNNDelete/GraphEraser rows from cora/GCN, IDEA/MEGU rows from cora/GAT — see `scripts/evaluation/generate_figures.py:33-37`.
+
 ## Project Context (Attack Research)
 
 This project is developing **adversarial attacks on GNN unlearning**. The core idea: strategically select nodes for forced unlearning to cause performance collapse in approximate unlearning algorithms. See `self/` directory for detailed context:
 
-- `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology
+- **`self/dashboard/`**: live state — start here every session
+- `self/thesis_transition_memo.md`: thesis 战略层 + 4-day NeurIPS execution plan
+- `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology (frozen background)
+- `self/plan_flow_v2_delta.md`: 方法学/指标设计原典
 - `self/宏观plan.md`: Experiment plan, code modules to build, priority ordering
 - `self/flow.md`: Function-level design, input/output specs, test cases
 
