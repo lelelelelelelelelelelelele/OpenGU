@@ -98,16 +98,34 @@
 - 还是只是 proxy for "important node deletion"？
 - 这是 referee 必问问题
 
+**预先反驳证据**（已存在数据，paper 直接引用）：
+
+1. **跨 family selector 排序翻转**：GIF 上 TracIn (+4.2) >> IM (+1.0)；GNNDelete 上 IM (+6.8) >> TracIn (+3.8)。若 selector 只是 importance proxy，所有 family 排序应一致——不一致即证伪 proxy 假说。
+2. **PageRank ≠ IM ≠ TracIn 的效果差**：MG-0 cora/GCN/r=0.05 上 GNNDelete×PageRank=10.83，×IM_v4=12.32，×TracIn=8.46。**3 个 selector 同样在"选 k 个节点"，但效果差距明显且方向不一致**。
+3. **Jaccard 显示选点本质不同**：PageRank=1.0，IM_v4=0.13，TracIn=0.42——**物理上不是同一群节点**。
+4. **family-specific 响应**：IDEA/MEGU 对所有 selector 几乎免疫（§3.5），若 selector 只是 importance proxy，免疫就解释不了——必然涉及 mechanism。
+
+paper 里建议单列一节 "Are informed selectors just importance proxies?" 直接 preempt 这条 critique。
+
 ### 3.5 IDEA / MEGU 的 ~0 effect 该怎么解读？
+
+**默认立场（2026-05-04 决定）：B. Mechanism-incomparable**
 
 两个候选解释：
 
 - **A. 真鲁棒**：unlearning 机制对 adversarial deletion 抵抗强
-- **B. 不可比**：MEGU 保留 `x_unlearn` 节点特征只做参数微调；IDEA 的梯度型更新对节点选择不敏感——attack signals 在它们身上根本不适用
+- **B. 不可比（DEFAULT）**：MEGU 保留 `x_unlearn` 节点特征只做参数微调；IDEA 的梯度型更新对节点选择不敏感——attack signals 在它们身上根本不适用，**但这不等于"安全"，只等于"当前 selector 信号失效"**
 
-**这是论文级别的判定**，必须在主对比图的 framing 之前回答。如果是 B，FIG-4b 的整张表叙事都要修改：要么剔除两行，要么明确写"different mechanism, different vulnerability surface"。
+**为什么承诺 B 作为默认**：
 
-这些问题不能用事后解释来回答，必须改写成可检验命题（§4）。
+- A 等于承认攻击对 IDEA/MEGU 失败——立场被动
+- B 等于把 0 effect 转成 **mechanism finding**：paper 里写"We identify a class of GU methods (feature-retention, gradient-variant) whose architecture intrinsically dampens deletion-set-selection signals; future selectors must target their specific update rules"——立场主动，且有进一步 future work 钩子
+- B 的代价：要写一节解释 mechanism 为什么免疫；候选解释已在本节给出
+- A 不被否认，作为 supplementary audit：若 Phase B 有时间，对 IDEA/MEGU 跑额外 selector（如直接扰动 `x_unlearn` 或 gradient-objective-aware 选点）验证；若那也无效，A 才有支持
+
+**FIG-4b 的处置**：保留 5 行，但 IDEA/MEGU 那两行加阴影/标注 "mechanism-incomparable family"；caption 里明确说明。
+
+**这是 framing 决定**——数据本身（5 个 cell 接近 0）已经稳定，不是数据缺失。
 
 ## 4. Testable Hypotheses
 
@@ -207,6 +225,27 @@
 | MEGU | 未验证 | 若 OOM 则跳过 arxiv |
 
 **闸门规则**：任一 family 在 arxiv 上不可行，§3.5 IDEA/MEGU 的"mechanism-incomparable"框架可以直接覆盖它，论文中诚实标注"X family on arxiv is intractable, see Appendix"，而不是隐瞒。
+
+##### 5.3.2.1 Metrics 验证清单（每个 family 的 random 试跑必须全部 pass）
+
+> 跑通 ≠ 数据可用。修复了 MIA bug + 加了 hop-decay 之后，arxiv 是第一次新代码在大图上跑，每个 metric 都要 sanity check，否则铺全矩阵后才发现某个 metric 全是 NaN/0 就废了 24 小时。
+
+| 检查项 | 期望 | 失败处置 |
+|--------|------|---------|
+| `f1_before` | ∈ [0.55, 0.85]（arxiv 训练后合理范围） | 模型训练有问题，停 |
+| `f1_after < f1_before` | True | unlearn 没生效，查 path |
+| `mia_auc` | **不为 0.000，且 ∈ [0.3, 0.9]** | MIA bug 修复未覆盖该 family，回查 patch |
+| `mia_auc != NaN` | True | MIA evaluator 异常，看 log |
+| `retrain_gap` 字段存在 | True | 3-model 框架失败 |
+| `gap` 数值 | ∈ [-0.5, 0.5]（绝对值，arxiv 上可接受范围）| retrain 异常 |
+| `mean_pred_shift` | ∈ [0, 1] | collateral damage 计算异常 |
+| `fraction_flipped` | ∈ [0, 1] | 同上 |
+| `hop_decay` 字段存在（若 A.5 已应用）| 含 keys `{1, 2, 3, '>3'}` | hop-decay patch 未生效 |
+| `hop_decay[1] >= hop_decay[2] >= hop_decay[3]` | 大体单调（允许 ±0.02 抖动）| 衰减性质不成立，论文不能 claim "decay" |
+| `selection_time` (IM_v4) | < 30 min（candidate_fraction=0.1）| numba/candidate 配置失效，IM 退回纯 Python |
+| `unlearn_time` | < 1 hour（任一 family）| 大图上效率不可接受，需 ScaleGUN 或减规模 |
+
+**操作流程**：每个 family 的 1-seed random 跑完后，用 `scripts/dashboard/refresh.py`（或临时 1 行脚本）对照清单——**全 pass 才进 5.3.3 主矩阵**。
 
 #### 5.3.3 阶段 2B：arxiv 主矩阵（1.5 天）
 

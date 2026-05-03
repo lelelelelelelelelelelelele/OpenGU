@@ -147,4 +147,49 @@ grep -rn "average_auc\|mia_attack" unlearning/unlearning_methods/{MEGU,IDEA,Grap
 
 ## 2026-05-04 Session
 
-（待今天后续添加）
+### V-2026-05-04-01: §3.5 IDEA/MEGU 立场承诺为 B（mechanism-incomparable）
+
+**Decision**：默认承诺"B 不可比"作为论文叙事，而非"A 真鲁棒"
+
+**Reasons**：
+- A 等于承认攻击对 IDEA/MEGU 失败，立场被动
+- B 把 0 effect 转成 mechanism finding（"该类方法的设计天然免疫当前 selector 信号"），立场主动且有 future-work 钩子
+- A 不被否认，作为 supplementary audit；若 Phase B 时间允许，跑 IDEA/MEGU 专属 selector（直接扰动 x_unlearn 或 gradient-objective-aware）作 sanity
+
+**FIG-4b 处置**：保留 5 行，IDEA/MEGU 行加阴影/标注，caption 明确
+
+**详见**：`thesis_transition_memo.md §3.5`
+
+---
+
+### V-2026-05-04-02: §3.4 attack-as-importance-proxy 反驳证据已就位
+
+**问题**：referee 必问"informed selector 是不是只是 importance proxy"
+
+**已存数据可反驳**（无需新实验）：
+
+| 反驳点 | 数据 |
+|--------|------|
+| 跨 family selector 排序翻转 | GIF: TracIn>>IM；GNNDelete: IM>>TracIn |
+| PageRank ≠ IM ≠ TracIn 效果差 | GNNDelete: 10.83 vs 12.32 vs 8.46 (Rel_F1_Drop, MG-0) |
+| Jaccard 异 | PageRank=1.0 / IM=0.13 / TracIn=0.42 |
+| family-specific 免疫 | IDEA/MEGU 对所有 selector ~0 |
+
+**Paper 操作**：单列一节"Are informed selectors just importance proxies?"，依次列证据
+
+**详见**：`thesis_transition_memo.md §3.4` 预先反驳证据段
+
+---
+
+### V-2026-05-04-03: §5.3.2 arxiv 可行性闸增加 metrics 验证清单
+
+**问题**：可行性闸只验证"跑通"是不够的，arxiv 是修复 MIA bug + 加 hop-decay 后**新代码第一次大图运行**，必须验证所有 metric 产出合理值
+
+**12 项检查清单**详见 `thesis_transition_memo.md §5.3.2.1`，关键项：
+- mia_auc 不为 0.000 且 ∈ [0.3, 0.9]（验证 MIA fix 在 arxiv 上生效）
+- hop_decay 含完整 keys 且 1-hop ≥ 2-hop ≥ 3-hop（验证 hop-decay 实现且符合预期单调性）
+- selection_time (IM_v4) < 30 min（验证 candidate_fraction + numba 在大图上有效）
+
+**操作时机**：每个 family 的 1-seed random 跑完即对照清单，全 pass 才进主矩阵
+
+---
