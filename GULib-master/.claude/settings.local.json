@@ -65,7 +65,13 @@
       "Bash(git log:*)",
       "Bash(jq:*)",
       "Bash(do echo:*)",
-      "Bash(do:*)"
+      "Bash(do:*)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(git stash *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git reset *)"
     ]
   }
 }
