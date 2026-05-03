@@ -1,5 +1,10 @@
 # Paper Library Synthesis (Top-Conference Reviewer Mode)
 
+> Status: reference
+> Role: 文献综合与 reviewer-style 研究机会地图，提供 related work、threat model、gap analysis 和 paper positioning 素材。
+> Use this when: 你需要回查论文证据、研究机会、审稿风险或写作定位句。
+> See also: `thesis_transition_memo.md`, `plan_flow_v2_delta.md`, `../papers/overview.md`
+
 Scope: this document is grounded in the materials already in this repo:
 - Metadata: `papers/papers.csv`
 - Rough cards: `papers/notes/*.md` (abstract-level; sometimes generic)
