@@ -1,11 +1,17 @@
 # Flow：功能模块与测试设计
 
-> Status: reference
-> Role: 方法与实现流程主参考，覆盖策略函数、评估函数、攻击调度与端到端测试设计。
-> Use this when: 你要理解攻击框架的函数级结构、测试路径或指标实现位置。
-> See also: `plan_flow_v2_delta.md`, `PROJECT_MASTER_CONTEXT.md`, `../results/README.md`
+> Status: **historical / stale code refs** （2026-05-04 降级）
+> Role: 2026-02 阶段的方法与流程设计快照；架构调用流程仍可作为入门参考。
+> Use this when: 你要理解攻击框架的**整体结构**与设计意图。**不要相信本文中的函数名、文件路径或行号**——以代码 grep 为准。
+> See also: `plan_flow_v2_delta.md`（v2 指标 / 归因框架增量）, `dashboard/METRICS_CATALOG.md`（当前指标实测状态）, `../results/README.md`
 
-> **v2 增量补丁**：eval 指标、归因框架、指标命名等章节已有升级，见 [`plan_flow_v2_delta.md`](plan_flow_v2_delta.md)。本文件内容保持不变，增量变更记录于该文件。
+> ⚠ **已知漂移项**（不完全列举）：
+> - 入口名 `attack_main.py` 已不存在；当前入口是 `main.py` 与 `demo_attack.py`
+> - 旧 `compute_im_celf` / `im_strategy` 已被 `im_v4_strategy.py`（含 numba + candidate_fraction）替代
+> - `attack/attack_eval.py:92` 等行号一律不可信，请 grep
+> - v2 指标（Collateral Damage、Gap 统计显著性、3-model 归因）在本文件中**只有半成品**；权威定义在 `plan_flow_v2_delta.md` §3 与 `dashboard/METRICS_CATALOG.md`
+>
+> **NeurIPS 期间不修复本文件**——重写一个轻量 ARCHITECTURE_INDEX 是 NeurIPS 之后的事。
 
 本文档定义每个需要新增的函数、其输入输出规格、以及对应的测试方案。
 

@@ -54,12 +54,14 @@
   `self/` 总入口和导航。
 - `thesis_transition_memo.md`
   thesis 线的当前研究议程。
-- `flow.md`
-  方法与实现流程参考。
 - `plan_flow_v2_delta.md`
   v2 指标、归因框架和实验设计补丁层。
+- `dashboard/`（独立子目录）
+  实验状态、指标实测、bug、findings 的实时落点；当前 NeurIPS 4 天 push 的主操作面板。
 
 其余文件仍然保留，但默认不再与以上文档争夺“当前主文档”的位置。
+
+> 2026-05-04 降级：`flow.md` 从 Canonical 移出（函数名/路径/行号已漂移）；架构入门时仍可读，但权威定义请看 `plan_flow_v2_delta.md` 与 `dashboard/METRICS_CATALOG.md`。
 
 ## 5. External Anchors
 
@@ -81,7 +83,8 @@
 | `README.md` | active | `self/` 主入口 | 当前阅读入口 |
 | `thesis_transition_memo.md` | active | thesis 过渡文档 | 当前研究议程与假说 |
 | `PROJECT_MASTER_CONTEXT.md` | reference | 项目总背景与早期统一口径 | 仍有价值，但 thesis 当前方向以 `thesis_transition_memo.md` 为准 |
-| `flow.md` | reference | 方法与流程主参考 | 保留为实现/指标入口 |
+| `flow.md` | historical (stale code refs) | 2026-02 方法与流程设计快照 | **架构 OK，函数名/路径/行号已漂移**；以代码 grep 为准；v2 指标见 `plan_flow_v2_delta.md` |
+| `dashboard/` | active | 实验状态、指标、bug、findings 实时面板 | 当前 NeurIPS push 主操作面板，详见 `dashboard/CLAUDE.md` |
 | `plan_flow_v2_delta.md` | reference | v2 增量补丁 | 用于理解归因、collateral、统计检验升级 |
 | `generalization_experiment_checklist.md` | reference | 2026-02 实验覆盖与完成度仪表盘 | 绑定阶段证据，不是当前主计划 |
 | `experiment_params.md` | reference | 旧实验参数备忘 | 用于复现实验设定 |
