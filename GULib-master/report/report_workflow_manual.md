@@ -1,5 +1,10 @@
 # 实验报告生成工作流（手动分析版）
 
+> Status: reference
+> Role: 2026-02 阶段的手动分析指南，用于替代当时未完全稳定的自动工作流。
+> Use this when: 你要复查旧的分析步骤、结果位置或手动汇总口径。
+> See also: `report_workflow.md`, `../self/generalization_experiment_checklist.md`
+
 ## 概述
 
 本工作流用于从实验结果生成技术分析报告，包含：

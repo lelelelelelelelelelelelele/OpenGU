@@ -1,5 +1,10 @@
 # 泛化性实验执行清单（重构版）
 
+> Status: reference
+> Role: 2026-02 阶段的实验覆盖与完成度仪表盘，记录 MG-0~MG-3、ratio 敏感性与评估缺口。
+> Use this when: 你需要快速核对当时哪些泛化实验已经跑完、哪些指标已补齐、哪些脚本对应哪些输出目录。
+> See also: `analysis_phase_a.md`, `plan_flow_v2_delta.md`, `../report/paper/stage_report_2026-02-27.md`, `../results/experiments/`
+
 > 目标：把“已完成 + 待完成”的泛化实验配置集中到一个文件，便于逐项打勾推进。
 > 主要依据：`self/analysis_phase_a.md`、`self/flow.md`、`self/宏观plan.md`、`self/plan_flow_v2_delta.md`、`self/experiment_params.md`。
 

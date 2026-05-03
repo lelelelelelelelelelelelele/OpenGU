@@ -1,5 +1,10 @@
 # Flow：功能模块与测试设计
 
+> Status: reference
+> Role: 方法与实现流程主参考，覆盖策略函数、评估函数、攻击调度与端到端测试设计。
+> Use this when: 你要理解攻击框架的函数级结构、测试路径或指标实现位置。
+> See also: `plan_flow_v2_delta.md`, `PROJECT_MASTER_CONTEXT.md`, `../results/README.md`
+
 > **v2 增量补丁**：eval 指标、归因框架、指标命名等章节已有升级，见 [`plan_flow_v2_delta.md`](plan_flow_v2_delta.md)。本文件内容保持不变，增量变更记录于该文件。
 
 本文档定义每个需要新增的函数、其输入输出规格、以及对应的测试方案。

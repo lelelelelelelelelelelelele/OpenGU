@@ -1,5 +1,10 @@
 # 实验报告生成工作流
 
+> Status: reference
+> Role: 2026-02 阶段的自动分析工作流说明。
+> Use this when: 你要回看当时如何从实验结果生成技术分析报告，或理解 `report_workflow.py` 的设计意图。
+> See also: `report_workflow_manual.md`, `../self/README.md`
+
 ## 概述
 
 本工作流用于从实验结果自动生成技术分析报告，包含：
