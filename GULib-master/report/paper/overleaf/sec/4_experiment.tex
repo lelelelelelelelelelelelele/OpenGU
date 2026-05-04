@@ -1,0 +1,50 @@
+\section{Experimental Setup}
+\label{sec:experiment}
+
+\paragraph{Datasets and backbones.}
+We evaluate on three node-classification benchmarks:
+Cora (2,708 nodes / 5,429 edges, 7 classes),
+Citeseer (3,327 / 4,732, 6 classes),
+and ogbn-arxiv~\cite{hu2020open} (169,343 / 1.16M, 40 classes), spanning
+small to large-scale settings. We use two GNN backbones, GCN~\cite{kipf2017semi}
+(2 layers, hidden 64 on Cora/Citeseer; 3 layers, hidden 256 on
+ogbn-arxiv) and GAT~\cite{velickovic2018graph} (8 heads). All results
+report node classification F1 on standard held-out test splits.
+
+\paragraph{Unlearning methods.}
+We benchmark five representative methods covering the three mechanism
+families introduced in \S\ref{sec:related}:
+\textbf{GNNDelete}~\cite{cheng2023gnndelete} (learning-based, deletion-aware
+proximal objective);
+\textbf{GIF}~\cite{wu2023gif} (influence-function, single Newton step);
+\textbf{GraphEraser}~\cite{chen2022graph} (shard-based, partition-then-aggregate);
+\textbf{MEGU}~\cite{li2024towards} (feature-preserving, mutual-information
+constrained);
+\textbf{IDEA}~\cite{dong2024idea} (certified-gradient, with statistical
+removal guarantee).
+
+\paragraph{Attack budget and seeds.}
+We focus on the small-budget regime $r=0.05$ (5\% of training nodes) and
+report 5 seeds (\texttt{42, 212, 722, 1337, 2024}) on Cora, 3 seeds on
+ogbn-arxiv. The IM Monte-Carlo seed is fixed at \texttt{2024} across all GNN
+seeds (\S\ref{sec:strategies}); we verified Jaccard\,$=$\,1.0 between seeds
+in a controlled micro-test.
+
+\paragraph{Metrics and reporting.}
+We report (a)~paired effect: per-seed F1 difference between an attack
+strategy and the matched random baseline (random uses the same GNN seed); we
+report the paired mean, paired standard deviation, 95\% bootstrap CI, and
+$p$-value of a one-sided $t$-test against the null $\mu\le 0$;
+(b)~retrain gap, prediction shift, and hop-distance decay
+(\S\ref{sec:metrics});
+(c)~MIA AUC using the shadow-model attack of~\cite{olatunji2021membership}.
+
+\paragraph{Implementation.}
+All methods are implemented in PyTorch~\cite{paszke2019pytorch} +
+PyTorch~Geometric~\cite{fey2019fast}. Training uses Adam with
+learning rate $10^{-2}$, weight decay $5\times10^{-4}$, 100 epochs on
+Cora/Citeseer (200 on ogbn-arxiv). The IM selector uses our
+\textsc{batch-CELF} variant with candidate fraction 0.1 (top-degree pruning)
+and 50 Monte-Carlo rounds, achieving \interim{34$\times$} speed-up over
+brute-force CELF with $<2\%$ spread loss. Source code and configurations
+will be released upon acceptance.

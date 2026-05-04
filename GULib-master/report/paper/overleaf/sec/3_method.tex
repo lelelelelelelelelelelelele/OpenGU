@@ -1,0 +1,101 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Threat Model}
+\label{sec:threat-model}
+
+We consider a graph $G=(V,E,X)$ with node features $X\in\mathbb{R}^{|V|\times d}$,
+node labels $Y$, and a GNN classifier $f_\theta$ trained on training mask
+$\mathcal{D}_{\mathrm{tr}}\subset V$. A graph unlearning algorithm
+$\mathcal{U}(f_\theta,\mathcal{D}_{\mathrm{tr}},S)\to f_{\theta'}$ takes a
+deletion set $S\subset\mathcal{D}_{\mathrm{tr}}$ and returns an updated
+model approximating retrain-from-scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$.
+
+\paragraph{Attacker capabilities.}
+The attacker controls a deletion budget of $k=\lceil r\cdot|\mathcal{D}_{\mathrm{tr}}|\rceil$
+nodes, where $r$ is the deletion ratio (we focus on $r=0.05$). The attacker
+selects $S\subset\mathcal{D}_{\mathrm{tr}}$ subject to $|S|\le k$. We allow
+\emph{grey-box} access: the attacker can query node features, structure, and
+the trained model $f_\theta$, but does not modify training data or the
+algorithm $\mathcal{U}$. This corresponds to a coalition of users on a
+deletion-API platform who can collectively choose which records to forget.
+
+\paragraph{Attacker objective.}
+Let $L(f;V_{\mathrm{te}})$ be downstream test F1 on the held-out test set.
+The attacker maximizes the performance drop:
+\begin{equation}
+\label{eq:attacker-objective}
+S^* = \argmax_{S\subset\mathcal{D}_{\mathrm{tr}},\,|S|\le k}\;
+      L(f_\theta;V_{\mathrm{te}}) - L\bigl(\mathcal{U}(f_\theta,\mathcal{D}_{\mathrm{tr}},S);V_{\mathrm{te}}\bigr).
+\end{equation}
+Because $\mathcal{U}$ is approximate, the gap between $\mathcal{U}(f_\theta,\cdot,S)$
+and the exact retrain on $\mathcal{D}_{\mathrm{tr}}\setminus S$ is non-zero,
+and the attacker's task is to find $S$ that \emph{amplifies} this approximation
+error rather than merely removing useful data.
+
+\subsection{Selection Strategies}
+\label{sec:strategies}
+
+We instantiate six strategies for solving Eq.~\eqref{eq:attacker-objective}.
+
+\paragraph{Baselines.}
+\textsc{Random} draws $k$ nodes uniformly without replacement.
+\textsc{Degree} selects the top-$k$ by node degree (high-influence
+heuristic on graphs).
+\textsc{PageRank} selects the top-$k$ by personalized PageRank centrality.
+
+\paragraph{TracIn (pseudo-influence).}
+Following~\cite{pruthi2020estimating}, we compute an influence proxy by
+gradient inner-products between training and test losses:
+\begin{equation}
+\label{eq:tracin}
+\mathrm{TracIn}(v) = \sum_{c}\eta_c\,
+                     \langle\nabla_\theta\mathcal{L}(f_{\theta_c};v),\,
+                            \nabla_\theta\mathcal{L}(f_{\theta_c};V_{\mathrm{val}})\rangle,
+\end{equation}
+where $\theta_c$ are checkpoints across training and $\eta_c$ is the
+corresponding learning rate. Top-$k$ by $|\mathrm{TracIn}(v)|$.
+
+\paragraph{Influence Maximization (IM).}
+We treat the GNN's receptive field as a diffusion graph and select the
+$k$ nodes whose forced unlearning maximizes \emph{reachable} downstream-test
+disturbance, estimated via Monte-Carlo simulation under an
+independent-cascade model with edge-weight $p_{uv}=1/\deg(v)$. Following
+CELF++~\cite{goyal2011celf++} we use lazy submodular evaluation
+(\textsc{batch-CELF}, our v4 implementation, \S\ref{sec:experiment}). A
+key design choice: the Monte-Carlo random seed is \emph{decoupled} from the
+GNN training seed (\texttt{im\_selector\_seed=2024}) so that selection is
+deterministic across the 5 GNN seeds we evaluate.
+
+\paragraph{Hybrid IF+IM.}
+We rank candidates by $\alpha\cdot\widetilde{\mathrm{TracIn}}(v) + (1-\alpha)\cdot\widetilde{\mathrm{IM}}(v)$,
+where $\sim$ denotes min-max normalization and $\alpha=0.5$ unless stated.
+The intuition: TracIn captures \emph{model-loss sensitivity} (which nodes
+will hurt the trained model most) while IM captures \emph{structural
+spreadability} (which nodes will propagate the deletion broadest), and
+combining them targets nodes with both properties.
+
+\subsection{Evaluation Metrics}
+\label{sec:metrics}
+
+Beyond raw F1 drop, we report three metrics that distinguish targeted
+forgetting from \emph{collateral} disturbance.
+
+\paragraph{Retrain gap.} Let $f^{\mathrm{R}}$ be the model retrained from
+scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$ and
+$f^{\mathrm{U}}$ be the unlearned model. The retrain gap is
+$\mathrm{Gap}(S) = L(f^{\mathrm{R}};V_{\mathrm{te}}) - L(f^{\mathrm{U}};V_{\mathrm{te}})$.
+A large gap indicates that performance loss is due to approximation error,
+not data informativeness.
+
+\paragraph{Prediction shift.} The fraction of non-target nodes whose
+predicted label changes between $f_\theta$ and $f^{\mathrm{U}}$:
+$\mathrm{Shift}(S) = |V_{\mathrm{te}}\setminus S|^{-1}\sum_{v\in V_{\mathrm{te}}\setminus S}\mathbb{1}[f^{\mathrm{U}}(v)\neq f_\theta(v)]$.
+
+\paragraph{Hop-distance decay.}
+For each test node $v\notin S$, let $h(v)=\min_{u\in S}d_G(v,u)$ be the
+shortest-path distance to the nearest deleted node. We bin nodes into four
+buckets $h\in\{1,2,3,>3\}$ and report the change in F1 within each bucket.
+A method whose damage decays sharply with hop-distance localizes deletion;
+one whose damage stays uniform across buckets propagates approximation
+error globally.

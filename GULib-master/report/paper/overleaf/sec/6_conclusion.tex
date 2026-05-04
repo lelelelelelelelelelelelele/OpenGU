@@ -1,0 +1,50 @@
+\section{Discussion and Conclusion}
+\label{sec:conclusion}
+
+\paragraph{Summary.}
+We presented the first systematic adversarial audit of approximate graph
+unlearning. By treating deletion-set selection as the attacker's primary
+degree of freedom, we exposed a sharp \emph{vulnerability spectrum}
+governed by the unlearning algorithm's mechanism family. Learning-based
+GNNDelete collapses under tiny deletion budgets; influence-function GIF
+shows a small, Newton-step-bounded effect; shard-based GraphEraser
+exhibits a counterintuitive \emph{Shard Protection Effect}; and
+feature-preserving / certified families resist all six selectors we
+deployed.
+
+\paragraph{Limitations.}
+(i)~Our selectors target gradient or diffusion semantics; methods whose
+unlearning operator does not surface those signals (MEGU, IDEA) appear
+robust, but we frame this as a \emph{limitation of the current attacker
+class} rather than a security guarantee. A natural next step is to design
+selectors that exploit the specific algebraic structure of certified or
+mutual-information-based unlearners.
+(ii)~We focus on node-classification with the small-budget regime
+$r\le0.05$; behavior at large budgets, on edge/feature unlearning, or on
+heterogeneous graphs is left for future work.
+(iii)~Our experiments cover three datasets and two backbones; large-scale
+industrial deployments may exhibit additional phenomena (e.g., shard count
+sensitivity) that single-graph benchmarks cannot surface.
+
+\paragraph{Broader implications.}
+Our results argue that any future approximate GU method should report not
+only retrain-time speedup and random-deletion utility but also a
+worst-case adversarial-deletion bound. The diagnostic kit we
+introduce---paired effect, retrain gap, prediction shift, hop-distance
+decay---is independent of our specific selectors and can be reused with
+arbitrary attacks. We believe this aligns the GU community with the
+robustness-evaluation norms of adversarial machine learning more broadly.
+
+\paragraph{Future directions.}
+Three open problems stand out.
+(1)~\emph{Mechanism-aware selectors:} a selector that targets MEGU's
+MI-regularizer or IDEA's certification would test whether the
+mechanism-incomparable robustness we observe is a true property or a
+selector artifact.
+(2)~\emph{Defenses:} the Shard Protection Effect suggests that
+partition-based aggregation may be a principled defense; quantifying the
+privacy-vs-robustness trade-off of shard-based GU is the natural
+follow-up.
+(3)~\emph{Beyond utility:} our attacks target downstream F1; analogous
+attacks targeting privacy leakage (e.g., MIA AUC reduction \emph{after}
+unlearning) would close the threat-model loop.

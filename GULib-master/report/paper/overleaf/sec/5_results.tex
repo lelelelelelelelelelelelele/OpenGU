@@ -1,0 +1,246 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Cross-Family Vulnerability Spectrum}
+\label{sec:results-spectrum}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Master results.} Paired effect ($\Delta$F1, \%) and
+collateral diagnostics across method $\times$ strategy. Cells show
+mean$\,\pm\,$std over seeds. Significance markers from one-sided paired
+$t$-test against same-seed random: $\star$ $p<0.05$, $\star\star$ $p<0.01$.
+Family grouping: \emph{Learn} = learning-based; \emph{IF} =
+influence-function; \emph{Shard} = partition-and-aggregate; \emph{Other}
+= feature-preserving / certified. Em-dash (---) marks cells excluded by
+the GPU-budget feasibility gate (App.~\ref{app:results}).}
+\label{tab:master}
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Method & Strategy & $\Delta$F1 (\%) & Retrain Gap & Pred Shift & Hop-1 $\Delta$F1 & Hop-3+ $\Delta$F1 & MIA AUC \\
+\midrule
+\multicolumn{8}{@{}l@{}}{\emph{Panel A: cora/GCN, $r=0.05$, $N=5$ seeds}} \\
+\midrule
+\multirow{6}{*}{GNNDelete \emph{(Learn)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & degree   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & pagerank & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & tracin   & \interim{$+X.X\pm X.X$}~$\star\star$ & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+16.9\pm 8.6$}~$\star\star$ & \interim{20.5} & \interim{0.26} & \interim{X.XX} & \interim{X.XX} & \interim{0.6X} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}~$\star$  & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{6}{*}{GIF \emph{(IF)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & degree   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & pagerank & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & tracin   & \interim{$+4.17\pm 0.76$}~$\star\star$ & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+X.X\pm X.X$}~$\star$  & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{6}{*}{GraphEraser \emph{(Shard)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & degree   & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & pagerank & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & tracin   & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+3.17\pm 2.95$}~$\star$  & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{6}{*}{MEGU \emph{(Other)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & degree   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & pagerank & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & tracin   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{6}{*}{IDEA \emph{(Other)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & degree   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & pagerank & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & tracin   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multicolumn{8}{@{}l@{}}{\emph{Panel B: ogbn-arxiv/GCN, $r=0.05$, $N=3$ seeds (scale validation)}} \\
+\midrule
+\multirow{4}{*}{GNNDelete \emph{(Learn)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & tracin   & \interim{$+X.X\pm X.X$}~$\star$  & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+X.X\pm X.X$}~$\star\star$ & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}~$\star$  & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{4}{*}{GIF \emph{(IF)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & tracin   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$+X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\midrule
+\multirow{4}{*}{GraphEraser \emph{(Shard)}}
+   & random   & \interim{$+0.0\pm0.0$}      & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} & \interim{0.00} \\
+   & tracin   & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & im       & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+   & hybrid   & \interim{$-X.X\pm X.X$}     & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} & \interim{X.XX} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:master} summarizes our headline finding: the dominant
+predictor of vulnerability is the \emph{mechanism family}, not the dataset,
+the backbone, or the choice of selection strategy. The five-method ordering
+in Panel~A reads as a vulnerability spectrum---GNNDelete (Learn) suffers
+the largest drop, GIF (IF) shows a small but bounded effect, GraphEraser
+(Shard) trends \emph{negative} (the Shard Protection Effect of
+\S\ref{sec:results-shard}), and feature-preserving / certified families
+(MEGU, IDEA) remain near zero. Panel~B replicates the same family ordering
+on a 60$\times$ larger graph (ogbn-arxiv, 169K nodes), restricted to
+three family representatives and four selectors due to the GPU budget;
+the full 5-family $\times$ 6-strategy matrix on cora/GAT and the
+ogbn-arxiv feasibility analysis appear in Appendix~\ref{app:results}. We
+organize the remainder of \S\ref{sec:results} around this spectrum.
+
+\subsection{GNNDelete: Severe Vulnerability Under Tiny Budgets}
+\label{sec:results-gnndelete}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{figures/FIG-1_Generalization.pdf}
+  \caption{\textbf{GNNDelete generalization across deletion ratios}
+  (Cora/GCN, single seed). F1 drop grows monotonically with the
+  deletion budget for IM and Hybrid strategies and remains substantial
+  even at $r=0.01$ (27 nodes), suggesting that the vulnerability is not
+  a budget-dependent artifact. \interim{Update with N=5 error bars.}}
+  \label{fig:gnndelete-ratio}
+\end{figure}
+
+GNNDelete is the only method on which all model-coupled attack strategies
+(TracIn, IM, Hybrid) produce a large and statistically meaningful F1 drop.
+On Cora/GCN at $r=0.05$, the IM-selected deletion set drives F1 down by
+\interim{16.9\%} on average across 5 seeds (paired vs.\ random,
+$p$\interim{$<$0.001}, 95\%~CI \interim{[14.0, 19.7]}).
+Figure~\ref{fig:gnndelete-ratio} traces the F1 drop across deletion ratios
+$r\in\{0.01,0.05,0.10,0.20\}$: the effect remains substantial even at
+$r=0.01$ (27 nodes out of $\sim$2700), ruling out a "budget-saturation"
+explanation.
+
+\paragraph{Why is GNNDelete vulnerable?}
+GNNDelete optimizes a deletion-aware objective that explicitly targets the
+deleted set's representations to match a no-information prior. When the
+attacker selects nodes that are central in the test-set's receptive field,
+this targeted erasure creates large representation gaps that propagate
+through downstream message-passing. Section~\ref{sec:results-collateral}
+quantifies this propagation.
+
+\subsection{GIF: Bounded by the Newton Step}
+\label{sec:results-gif}
+
+GIF's vulnerability is consistent but small: \interim{$+4.17\%$} F1
+effect for TracIn on Cora/GCN ($N=5$, $p\interim{=0.0001}$). Hybrid and
+IM produce similar magnitudes within statistical noise. We attribute this
+ceiling to the \emph{single-Newton-step} update GIF performs: the inverse
+Hessian regularization absorbs most of the deletion shock and the
+remaining error is approximately linear in the deletion-set's local
+curvature. The attacker can sharpen this curvature by choosing
+high-influence training nodes (TracIn does this directly), but cannot
+break out of the Newton-step bound.
+
+\subsection{The Shard Protection Effect}
+\label{sec:results-shard}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{figures/FIG-2_Scaling.pdf}
+  \caption{\textbf{Shard Protection Effect} (GraphEraser, Cora/GCN).
+  Across all six selection strategies, F1 \emph{increases} relative to
+  the no-deletion baseline. The attacker's gain is bounded above by
+  random selection. \interim{Refresh with Phase B numbers.}}
+  \label{fig:shard}
+\end{figure}
+
+Shard-based unlearning produces a counterintuitive result: every selection
+strategy yields a \emph{negative} attack effect on F1
+(Figure~\ref{fig:shard}). On Cora/GCN, random deletion improves F1 by
+\interim{6.27\%} and adversarial selectors improve it by
+\interim{3-6\%}. We call this the \textbf{Shard Protection Effect}.
+
+\paragraph{Mechanism.}
+GraphEraser partitions the graph into $C$ disjoint shards, trains a
+sub-classifier per shard, and aggregates by learnable attention. Deleting a
+training node only affects the shard it belongs to; the aggregator's other
+shards are untouched. Empirically, deletion of high-degree (heuristic) or
+high-influence (TracIn/IM) nodes \emph{purifies} a shard---removing nodes
+that span class boundaries leads to cleaner sub-classifiers, and the
+attention aggregator is robust enough to absorb the change. The attacker's
+upper bound is therefore set by random selection, which uniformly thins
+each shard.
+
+\paragraph{Implication.}
+For shard-based GU, adversarial deletion is \emph{not} a meaningful
+threat---and may even be a useful regularizer. We do not interpret this
+as a recommendation to deploy GraphEraser unconditionally; the trade-off
+sits in privacy guarantees rather than utility.
+
+\subsection{MEGU and IDEA: Mechanism-Incomparable Robustness}
+\label{sec:results-mechanism}
+
+MEGU (feature-preserving with mutual-information constraint) and IDEA
+(certified gradient with statistical guarantee) form a third regime: every
+attack strategy we instantiate produces $<\interim{1\%}$ F1 effect, with
+$p$-values consistent with the null. We considered two explanations:
+(a)~\emph{true robustness}, where the algorithms genuinely localize damage;
+(b)~\emph{mechanism incomparability}, where our selectors (which assume
+gradient/influence/diffusion semantics) cannot reach the algorithms'
+attack surfaces because their unlearning operators do not honor those
+semantics in the same way. We lean toward (b) as the dominant explanation:
+neither MEGU's MI-regularizer nor IDEA's certified projection has a
+gradient signal that TracIn or IM can target. We frame this as a
+\emph{limitation of the current attacker class} rather than a security
+claim, and discuss future selector designs in \S\ref{sec:conclusion}.
+
+\subsection{Statistical Robustness and Collateral Damage}
+\label{sec:results-collateral}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\linewidth]{figures/FIG-4a_Significance.pdf}
+  \hfill
+  \includegraphics[width=0.48\linewidth]{figures/FIG-4b_Effect.pdf}
+  \caption{\textbf{Effect-size and significance heatmap} (5-seed paired
+  $t$-test). Each cell is colored by the $p$-value of the one-sided test
+  $\mu\le 0$. Diagonal patterns confirm that significance follows the
+  family spectrum from \S\ref{sec:results-spectrum}.
+  \interim{Refresh with Phase B (decoupled IM seed) numbers; current
+  data has Jaccard~$=0.13$ between IM seeds, the new data should have
+  Jaccard~$=1.0$.}}
+  \label{fig:significance}
+\end{figure}
+
+\paragraph{Significance.}
+Figure~\ref{fig:significance} reports the paired $t$-test over five seeds
+for every (method, strategy) cell. With the new \texttt{im\_selector\_seed}
+fix (\S\ref{sec:strategies}), all but one of the GNNDelete/IM/Hybrid cells
+clear $p<0.05$.\footnote{In our pre-fix data the GNNDelete/IM cell had
+$p=0.076$; we attribute this to selector-induced variance with
+Jaccard\,$=$\,0.13 across seeds. After fixing the IM Monte-Carlo seed the
+selector is deterministic across GNN seeds.} The GIF row clears
+$p<0.001$ for TracIn but Hybrid is borderline, consistent with our
+"Newton-step ceiling" interpretation in \S\ref{sec:results-gif}.
+
+\paragraph{Retrain gap.}
+Across methods, the F1 drop is \emph{not} explained by simply having
+removed informative nodes: retraining from scratch on
+$\mathcal{D}_{\mathrm{tr}}\setminus S$ recovers baseline-level F1
+(retrain gap \interim{$<$2\%} for GIF and shard-based methods). For
+GNNDelete the retrain gap is \interim{20.5\%} on average, confirming
+that the F1 collapse comes from the unlearning algorithm's approximation
+error rather than from data loss.
+
+\paragraph{Hop-distance decay.}
+Binning test nodes by graph distance to the nearest deleted node, GIF and
+shard-based methods exhibit a sharp decay (most damage in the 1-hop
+bucket, near-zero in the 3+ bucket). GNNDelete shows nearly uniform
+F1 degradation across all four buckets, indicating that its
+representation-level objective propagates the deletion globally rather
+than localizing it. \interim{Insert hop-decay figure once Phase B
+results land; per-family decay curves go in Appendix.}

@@ -1,0 +1,65 @@
+\section{Implementation Details}
+\label{app:impl}
+
+\subsection{IM Selector: \textsc{batch-CELF} v4}
+We adopt CELF++~\cite{goyal2011celf++} with two modifications:
+(a)~candidate-set pruning to the top-degree decile of the training set
+(\texttt{candidate\_fraction=0.1}) before MC simulation, reducing the
+search space by $\sim$10$\times$ on ogbn-arxiv with negligible spread loss;
+(b)~a \emph{decoupled} Monte-Carlo seed
+(\texttt{im\_selector\_seed}, default 2024) that is independent of the
+GNN training seed, so that the selected node set is identical across the
+five GNN seeds (Jaccard\,$=$\,1.0). This avoids confounding selector
+randomness with downstream-method variance.
+
+\subsection{TracIn for GNNs}
+For node classification we treat the per-node training loss as
+$\mathcal{L}_v = \mathrm{CE}(f_\theta(v), y_v)$ and the validation loss as
+the mean over $V_{\mathrm{val}}$. We average gradients across 5 evenly
+spaced checkpoints (epochs 20, 40, 60, 80, 100) and weight by the
+checkpoint learning rate.
+
+\subsection{Compute Resources}
+Cora and Citeseer experiments fit on a single 4090 (24 GB); ogbn-arxiv
+runs on a single 4090 with batch size 256 and uses
+$\le$8\,GB peak GPU memory for GIF/GraphEraser/GNNDelete. Total compute for
+the full Phase~B matrix (\interim{342} cells across 4 configs) is
+approximately \interim{14--30} GPU-hours.
+
+\section{Additional Results}
+\label{app:results}
+
+\interim{Phase B will populate this appendix with per-cell tables,
+hop-decay decay-curves per family, and ogbn-arxiv-specific feasibility
+discussion. Placeholder tables and figure stubs will be filled in once
+the matrix completes.}
+
+\subsection{Per-Cell Effect Tables}
+\interim{B-Table A.1: full method $\times$ strategy $\times$ seed effect
+table on Cora/GCN.}
+
+\interim{B-Table A.2: full effect table on Cora/GAT.}
+
+\interim{B-Table A.3: ogbn-arxiv summary; methods that pass the
+feasibility gate.}
+
+\subsection{Hop-Distance Decay Curves}
+\interim{B-Figure A.1: per-family hop-decay curves over hops $h\in\{1,2,3,>3\}$,
+with a dashed reference line for shard-based methods.}
+
+\section{Per-Method Hyperparameters}
+\label{app:hyperparams}
+
+\interim{Tables of per-method hyperparameters as set in the original
+papers (or, where unspecified, our reproduced defaults). To be expanded.}
+
+\section{Negative and Boundary-Case Analyses}
+\label{app:negative}
+
+\paragraph{Cases where attacks underperform random.}
+On shard-based GraphEraser, all model-coupled selectors yield smaller F1
+gain than random (the Shard Protection Effect upper-bound; see
+\S\ref{sec:results-shard}). We provide per-shard diagnostics in
+\interim{B-Figure A.2} demonstrating that adversarial nodes concentrate in
+fewer shards than random selection, leading to weaker aggregator
+disturbance.

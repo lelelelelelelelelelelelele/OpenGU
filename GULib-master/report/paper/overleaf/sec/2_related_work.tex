@@ -1,0 +1,46 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Approximate graph unlearning.}
+Existing GU methods fall into three mechanism families.
+\emph{Shard-based} methods partition the graph into disjoint subgraphs, train
+a sub-model per shard, and aggregate at inference;
+deletion only retrains the affected shard
+(GraphEraser~\cite{chen2022graph}, GUIDE, GraphRevoker).
+\emph{Influence-function} methods estimate the leave-one-out parameter
+delta in closed form and apply a single Newton or proximal step
+(GIF~\cite{wu2023gif}, CEU, CGU, GST).
+\emph{Learning-based} methods retrain selectively over a deletion-aware
+objective (GNNDelete~\cite{cheng2023gnndelete}, GUKD, Projector, MEGU,
+IDEA, ScaleGUN, D2DGN, SGU). All are evaluated under \emph{random} deletion
+sets; we are unaware of prior work that audits them under adversarial
+deletion-set selection.
+
+\paragraph{Adversarial machine unlearning.}
+The closest line of work studies poisoning of unlearning requests for
+\emph{tabular} models~\cite{marchant2022hard,di2022hidden}, where the attacker
+crafts samples or selects deletion sets to slow down or destabilize
+retraining. Camouflaged data poisoning~\cite{di2022hidden} demonstrates that
+hidden trigger injection can survive unlearning. None of these methods are
+directly applicable to graph data, where structural dependence between
+training points violates the i.i.d.\ assumptions underlying their analysis.
+Concurrent vision-domain work~\cite{huang2024exploring} probes unlearning of
+classifiers but does not consider graph structure.
+
+\paragraph{Influence functions and influence maximization on graphs.}
+Influence-function approximations for deep models~\cite{koh2017understanding}
+have been extended to GNNs (GIF~\cite{wu2023gif}, GST). TracIn~\cite{pruthi2020estimating}
+provides a checkpoint-based, gradient-only proxy that avoids the Hessian
+inversion cost. Influence maximization (IM) on networks is a classical
+problem~\cite{kempe2003maximizing}; CELF~\cite{leskovec2007cost} and
+CELF++~\cite{goyal2011celf++} are submodular acceleration heuristics. We
+adapt IM as an attack-side selector under independent-cascade simulation, with
+a decoupled Monte-Carlo seed (\S\ref{sec:method}) for cross-seed
+reproducibility.
+
+\paragraph{Membership inference and model auditing.}
+MIA against GNNs~\cite{olatunji2021membership,he2021stealing} provides
+a complementary privacy lens. Our framework reports per-method MIA AUC as
+a privacy-leakage diagnostic (\S\ref{sec:experiment}); the \emph{utility-collapse}
+attacks we study are orthogonal to MIA but share the threat model of an
+adversary with deletion-API access.
