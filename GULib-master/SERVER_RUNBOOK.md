@@ -25,10 +25,15 @@
 ### 1.1 初次创建会话
 
 ```bash
+# autodl 镜像没预装 tmux，第一次先装一下（root 默认，无需 sudo）
+which tmux || apt update && apt install -y tmux
+
 source /etc/network_turbo                  # 学术加速（每次 ssh 都要）
 tmux new -s phaseB
 # 进 tmux 后底栏出现绿条 [phaseB] 表示成功
 ```
+
+> apt 卡的话备选：`screen -S phaseB`（多数镜像预装），detach 是 `Ctrl-a d`，重连 `screen -r phaseB`。
 
 ### 1.2 关键操作
 
