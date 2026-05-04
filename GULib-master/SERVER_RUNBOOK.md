@@ -32,7 +32,6 @@ git checkout nips-prep
 ```bash
 cd ~/OpenGU         # 你之前 clone 的位置
 git fetch origin
-git checkout nips-prep
 git pull origin nips-prep
 git log --oneline -3
 # 应看到顶部是: 20264ec chore: relax numpy pin + document server install path
