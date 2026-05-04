@@ -20,6 +20,10 @@ results/selection_cache/*.json
 # Runtime logs (timestamped, large, regenerable)
 log/
 
+# Archives — paper template downloads, overleaf bundles, etc.
+*.zip
+*.tar.gz
+
 # Experiment outputs — untracked 2026-05-05 (1300+ files of pre-Phase-B,
 # bug-polluted data; Phase B regenerates clean data into results/runs/).
 # results/baseline/ retained as k=5 noise-floor reference (k=5 baseline is
