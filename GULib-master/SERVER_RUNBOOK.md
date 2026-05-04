@@ -1,106 +1,247 @@
-# 服务器执行手册（Phase B 全量重跑）
+# 服务器执行手册 v2 — Phase B 执行
 
-> 创建: 2026-05-04 · 目标: 在租用 GPU 服务器上跑完 Phase B（B.0 → B.4）
-> 本地分支: `nips-prep` @ `20264ec`
-> NeurIPS 截稿: 2026-05-07（剩 3 天）
+> 创建: 2026-05-04 · 更新: 2026-05-05
+> NeurIPS 截稿: 2026-05-07（剩 2 天）
+> 状态：env + clone ✅ 已完成 → 现在跑 Phase B
 
 ---
 
-## 0. 你有两条路把代码送上去（任选其一）
+## ✅ 已完成（简略）
 
-### 路 A：git pull（推荐）
+| 项 | 状态 |
+|---|---|
+| 代码 | `~/OpenGU/GULib-master` @ `nips-prep` |
+| Python / torch | 3.10 / 2.1.2+cu118 |
+| PyG / scatter / sparse | 2.6.1 / 2.1.2 / 0.6.18 |
+| GPU | NVIDIA RTX 4090, cuda True |
+| 缓存清理 | 全新 clone，无污染数据，**跳过** |
 
-前提：服务器已经 clone 过仓库 `https://github.com/lelelelelelelelelelelelele/OpenGU.git`，并且 checkout 到 `nips-prep` 分支。
+> 重新部署的话见 §A 附录。
 
-如果服务器是**全新机器**：
+---
+
+## 1. tmux 工作流（每次 ssh 后第一件事）⭐
+
+### 1.1 初次创建会话
+
 ```bash
-cd ~                # 或者你想放代码的地方
-git clone https://github.com/lelelelelelelelelelelelele/OpenGU.git
-cd OpenGU
-git checkout nips-prep
+source /etc/network_turbo                  # 学术加速（每次 ssh 都要）
+tmux new -s phaseB
+# 进 tmux 后底栏出现绿条 [phaseB] 表示成功
 ```
 
-> **autodl / 境内 GPU 服务器 GitHub 慢或超时？** 三种加速方案按顺序试：
->
-> 1. **autodl 学术加速**（首选）：clone 之前先 `source /etc/network_turbo` 启用代理；clone 完后 `unset http_proxy https_proxy` 关掉，避免实验阶段下数据集走代理
-> 2. **ghproxy 镜像**：`git clone https://ghproxy.com/https://github.com/lelelelelelelelelelelelele/OpenGU.git OpenGU`
-> 3. **shallow clone**（只拿最新 commit，省 history）：在原命令加 `--depth 1 -b nips-prep`
->
-> 全失败就走下面的"路 B"。
+### 1.2 关键操作
 
-如果服务器**已经有旧版**：
+| 动作 | 按键 | 说明 |
+|---|---|---|
+| **挂后台**（detach） | `Ctrl-b` 然后 `d` | VSCode 里先点一下 terminal 确保焦点 |
+| 关 SSH / 关电脑 | — | 服务器上 tmux 继续跑 |
+| **重新进会话** | `tmux attach -t phaseB` | 下次 ssh 进去后跑这个 |
+| 列出所有会话 | `tmux ls` | |
+| 在会话里开新 window | `Ctrl-b` 然后 `c` | 想并行跑监控时用 |
+| 切 window | `Ctrl-b` 然后 `n` (下一个) / `p` (上一个) | |
+| 关掉某个 window | `exit` 或 `Ctrl-d` | |
+
+### 1.3 VSCode 用户特殊提示
+
+VSCode 的 `Ctrl-B` 默认是侧边栏切换，会拦截 tmux prefix。**先用鼠标点一下 terminal**确保焦点在 terminal 再按 Ctrl-b。
+
+不想这样就改 prefix（在服务器一次性配置）：
 ```bash
-cd ~/OpenGU         # 你之前 clone 的位置
-git fetch origin
-git pull origin nips-prep
-git log --oneline -3
-# 应看到顶部是: 20264ec chore: relax numpy pin + document server install path
+cat > ~/.tmux.conf <<'EOF'
+set -g prefix C-a
+unbind C-b
+bind C-a send-prefix
+EOF
+tmux kill-server && tmux new -s phaseB
+```
+之后所有 `Ctrl-b` 改成 `Ctrl-a`。
+
+---
+
+## 2. Phase B 五步检查点（按顺序，B.1 后停一下）
+
+每步前都先确认：
+- 在 `~/OpenGU/GULib-master`
+- 在 tmux `phaseB` 会话里（底栏看到 `[phaseB]`）
+
+### B.0 · Sanity（~20 秒）
+
+```bash
+cd ~/OpenGU/GULib-master
+python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
 ```
 
-> ⚠ 本地 working tree 当前是干净的（git status 无输出），所以服务器 pull 下来就是最新。如果你之后又改了东西，**记得先在本地 commit + push**，不然服务器 pull 不到。
+**通过判据**：
+- 退出码 0
+- 屏幕看到 `wrote results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json`（4 个文件）
+- ⚠ `mia_auc` 字段是 **非 0 的小数**（应在 0.3–0.6 区间），不是 `0.000`
 
-### 路 B：直接上传压缩包（git pull 失败时的兜底）
+✅ 通过 → 进 B.1
+❌ `mia_auc: 0.000` 或其他错 → **停下问我**
 
-本地（PowerShell）：
-```powershell
-cd H:\project\OpenGU
-# 排除 cache / data / log，避免几十 GB 上传
-Compress-Archive -Path GULib-master,requirements.txt -DestinationPath OpenGU_nips-prep.zip -Force
-# 上传（替换 user@host:path 为你的服务器）
-scp OpenGU_nips-prep.zip user@host:~/
+### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
+
+```bash
+python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 ```
+
+5 cells（5 method × random × seed=42）。完成后人工对照 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 的 11 项 metric 闸：
+
+- F1_clean / F1_unlearn / F1_retrain 在 `[0.55, 0.85]` 范围
+- mia_auc 非 0、非 1
+- gap、collateral、hop_decay 4 桶都有数
+
+**fail 不要进 B.2**——B.2 是 12+ GPU-h，跑废了租金最痛。fail → `attack.json` + `_meta.json` 粘给我。
+
+✅ 通过 → 进 B.2
+
+### B.2 · arxiv 主矩阵（~12-30 GPU-h）💰 最贵
+
+**用 nohup 跑后台，断 SSH 不影响**：
+
+```bash
+mkdir -p logs
+nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
+    > logs/phase_b_arxiv.log 2>&1 &
+echo $! > logs/phase_b_arxiv.pid
+```
+
+36 cells = 3 method × 4 strategy × 3 seed。
+
+**监控**（在 tmux 别的 window 里）：
+```bash
+tail -f logs/phase_b_arxiv.log              # 实时日志
+ls results/runs/ogbn-arxiv_*/*/seed*/attack.json | wc -l    # 进度，最终 36
+```
+
+✅ 完成 → 进 B.3 / B.4
+
+### B.3 / B.4 · cora 全矩阵（各 ~75–90 min）
+
+**单卡**情况，B.2 跑完后串行：
+```bash
+python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+python experiments/run.py experiments/configs/phase_b_cora_gat.yaml
+```
+
+**双卡**情况（autodl 双卡实例），跟 B.2 并行：
+```bash
+# 新开一个 tmux window: Ctrl-b c
+CUDA_VISIBLE_DEVICES=1 nohup python experiments/run.py \
+    experiments/configs/phase_b_cora_gcn.yaml > logs/cora_gcn.log 2>&1 &
+```
+
+每个矩阵 150 cells，验证：
+```bash
+ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l    # 期望 150
+ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l    # 期望 150
+```
+
+---
+
+## 3. 数据回收（跑完之后）
 
 服务器：
 ```bash
-cd ~ && unzip -q OpenGU_nips-prep.zip -d OpenGU
-cd OpenGU
+cd ~/OpenGU/GULib-master
+tar czf phase_b_results.tar.gz results/runs/
+ls -lh phase_b_results.tar.gz       # 看大小，估计几十 MB ~ 几百 MB
 ```
 
-> 注意：路 B 上传的代码不是 git repo，`experiments/run.py` 里取 `git_sha` 会写 `"unknown"`——可接受但不便于回溯。优先选路 A。
+本地（PowerShell）：
+```powershell
+scp user@host:~/OpenGU/GULib-master/phase_b_results.tar.gz H:\project\OpenGU\GULib-master\
+cd H:\project\OpenGU\GULib-master
+tar xzf phase_b_results.tar.gz
+```
+
+回到本地告诉我 "phase B 数据回来了"，我跑 Phase C（重画 figure、Table 1 数字填入、abstract refresh）。
 
 ---
 
-## 1. 环境准备（首次部署，~10-20 分钟）
+## 4. 故障速查
 
-服务器栈：**Ubuntu 22.04 + Python 3.10 + PyTorch 2.1.2 + CUDA 11.8**（你租的实例预装的）。
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| `mia_auc: 0.000` 在 B.0 输出里 | bug 没修干净或缓存污染 | `rm -rf results/cache/*.json results/selection_cache/*.json`，再 `--force` 重跑 |
+| `ImportError: torch_scatter` | wheel mismatch | 用 `-f https://data.pyg.org/whl/torch-2.1.2+cu118.html` 重装 |
+| B.1 metric 闸不过 | 真 bug 或数据问题 | **停下**，把 `attack.json` + `_meta.json` 发我 |
+| SSH 断了 nohup 任务停了 | 没用 nohup | 必须用 §2 B.2 那种 `nohup ... &` 写法 |
+| tmux 找不到会话 | 实例重启 | 实例如果停过电，所有 tmux 会话都没了；重 `tmux new -s phaseB` |
+| 磁盘满 | results/runs 涨太快 | `du -sh results/*` 看哪个大；arxiv 结果可能 10+GB |
+| autodl 实例显示"运行中"但 ssh 不上 | 网络抽风 | 控制台"重启实例"，**注意会杀掉所有 tmux 会话** |
 
-> 如果租的镜像已经预装了 torch 2.1.2+cu118，**直接跳到第 1.2 步**装 PyG。先跑 1.0 自检确认。
+---
 
-### 1.0 先确认预装情况（10 秒）
+## 5. 一键脚本（懒人复制）
 
+**B.0 + B.1 一键串行**（首次跑这个，~1.5h）：
 ```bash
-python -c "import torch; print(torch.__version__, 'cuda:', torch.cuda.is_available(), torch.version.cuda)"
+cd ~/OpenGU/GULib-master && \
+python experiments/run.py experiments/configs/sanity_one_cell.yaml --force && \
+python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml && \
+echo "B.0 + B.1 完成，停下来人工看 11 项 metric 闸"
 ```
 
-期望输出 `2.1.2+cu118 cuda: True 11.8`（或类似）。如果已经满足就跳到 **1.2**。
-
-### 1.1 如果需要从零装 torch
-
+**B.2 后台启动 + PID 记录**：
 ```bash
-conda create -n gnn python=3.10 -y
-conda activate gnn
-
-pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 \
-    --index-url https://download.pytorch.org/whl/cu118
+mkdir -p logs && \
+nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
+    > logs/phase_b_arxiv.log 2>&1 & \
+echo $! > logs/phase_b_arxiv.pid && \
+echo "PID: $(cat logs/phase_b_arxiv.pid)，tail -f logs/phase_b_arxiv.log 监控"
 ```
 
-### 1.2 装 PyG 的 C++ wheels（必须匹配 torch 2.1.2 + cu118）
+---
+
+## A. 附录：首次部署（已完成，仅供参考）
+
+部署一台**新**服务器从零到现在状态的步骤。你这次已经走完了，重新部署或换机器再用。
+
+### A.1 拿代码
+
+```bash
+source /etc/network_turbo
+cd ~
+git clone https://github.com/lelelelelelelelelelelelele/OpenGU.git
+cd OpenGU
+git checkout nips-prep
+unset http_proxy https_proxy
+```
+
+GitHub 慢的 fallback：用 `https://ghproxy.com/` 前缀，或加 `--depth 1 -b nips-prep` shallow clone。
+
+### A.2 验环境
+
+autodl 的 PyTorch / 2.1.2 / 3.10 / cu118 镜像默认装好了 torch + torchvision。先跑：
+
+```bash
+python -c "import torch; print(torch.__version__, 'cuda:', torch.cuda.is_available())"
+```
+
+如果是 `2.1.2+cu118 cuda: True` 就跳到 A.3。否则按 A.4 从零装。
+
+### A.3 装 PyG + 项目依赖
 
 ```bash
 pip install torch_scatter==2.1.2 torch_sparse==0.6.18 \
     -f https://data.pyg.org/whl/torch-2.1.2+cu118.html
-```
-
-### 1.3 装其余依赖
-
-```bash
 cd ~/OpenGU
 pip install -r requirements.txt
 ```
 
-> torch / torch_scatter / torch_sparse 已装，pip 会跳过它们；只补装 numpy / pyg / scipy / ogb / pyyaml 等纯 Python 包。
+### A.4 从零装 torch（只有 A.2 失败才用）
 
-### 环境自检（30 秒）
+```bash
+conda create -n gnn python=3.10 -y
+conda activate gnn
+pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 \
+    --index-url https://download.pytorch.org/whl/cu118
+# 然后 A.3
+```
+
+### A.5 完整自检
 
 ```bash
 cd ~/OpenGU/GULib-master
@@ -112,165 +253,4 @@ print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N
 "
 ```
 
-期望输出包含 `cuda: True` 和你租的卡型号。**如果 cuda False，停下来排查驱动**——后续都跑不动。
-
----
-
-## 2. ⚠ 清理 bug 污染的旧 cache（首次 Phase B 跑之前必做一次）
-
-> 背景：Phase A.1/A.3/A.4 修了 MIA AUC=0 和 IM seed 不确定性两个 bug，但本地 `results/cache/` 和 `results/selection_cache/` 里仍存着 bug 修复**之前**生成的 stale 条目。如果不清，B.0/B.1 会被静默命中、读到 mia_auc=0 和 Jaccard=0.13 的废数据。
-
-服务器 `cd ~/OpenGU/GULib-master` 然后任选：
-
-**方案 A（推荐）：直接清空两个目录**
-```bash
-rm -rf results/cache/*.json
-rm -rf results/selection_cache/*.json
-```
-代价：第一次跑 IM/Hybrid 选择会额外花 ~500s（仅一次，之后命中新 cache）。
-
-**方案 B（更保险）：先备份再清**
-```bash
-mv results/cache results/cache.preB.bak
-mv results/selection_cache results/selection_cache.preB.bak
-mkdir -p results/cache results/selection_cache
-```
-跑完 Phase B 验证无误后再 `rm -rf *.bak`。
-
-> 注意：**不要**清 `results/runs/`、`results/experiments/`、`results/evaluation/`——那些是历史结果。
-
----
-
-## 3. Phase B 五步检查点（按顺序，停下来看 B.1 再放 B.2）
-
-每步前都先确认在 `~/OpenGU/GULib-master` 下，且 `gnn` env 激活。
-
-### B.0 · Sanity（~20 秒）
-
-```bash
-python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
-```
-
-通过判据：
-- 命令 0 退出码
-- 屏幕看到 `wrote results/runs/.../seed*/attack.json`（4 个文件齐全）
-- 没有 `mia_auc: 0.0` 这种异常（Phase A 已修，应是非零数）
-
-✅ 通过 → 进 B.1。失败 → 检查 env / cache，**不要往后跑**。
-
----
-
-### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
-
-```bash
-python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
-```
-
-5 cells × random × 1 seed。完成后**人工对照** `self/dashboard/EXPERIMENT_DASHBOARD.md` 的 `§5.3.2.1` 11 项 metric 闸：
-- F1_clean / F1_unlearn / F1_retrain 在合理范围
-- mia_auc 非 0、非 1
-- gap、collateral、hop_decay 4 桶都有数
-
-**这步 fail 了不要进 B.2**——B.2 是 12+ GPU-h，跑废了租金最痛。fail 的话先记下来问我。
-
-✅ 通过 → 进 B.2。
-
----
-
-### B.2 · arxiv 主矩阵（~12-30 GPU-h）💰 最贵的一步
-
-```bash
-nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
-    > logs/phase_b_arxiv.log 2>&1 &
-echo $! > logs/phase_b_arxiv.pid
-```
-
-36 cells = 3 method × 4 strategy × 3 seed。**用 nohup + 后台**，断开 SSH 不会中断。
-
-监控：
-```bash
-tail -f logs/phase_b_arxiv.log
-# 或看进度
-ls results/runs/ogbn-arxiv_*/*/seed*/attack.json | wc -l
-# 期望最终 36
-```
-
-✅ 完成 → 进 B.3/B.4（cora 矩阵）。
-
----
-
-### B.3 / B.4 · cora 全矩阵（各 ~75-90 min，可与 B.2 并行）
-
-如果服务器有**第二张卡**，开两个新 ssh tab 并行跑：
-
-```bash
-# tab 1：cora/GCN，cuda 1
-CUDA_VISIBLE_DEVICES=1 nohup python experiments/run.py \
-    experiments/configs/phase_b_cora_gcn.yaml \
-    > logs/phase_b_cora_gcn.log 2>&1 &
-
-# tab 2：cora/GAT，cuda 2（如果有第三张）
-CUDA_VISIBLE_DEVICES=2 nohup python experiments/run.py \
-    experiments/configs/phase_b_cora_gat.yaml \
-    > logs/phase_b_cora_gat.log 2>&1 &
-```
-
-只有 1 张卡就**等 B.2 跑完再跑 B.3，再跑 B.4**，串行：
-```bash
-python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
-python experiments/run.py experiments/configs/phase_b_cora_gat.yaml
-```
-
-每个矩阵 150 cells，完成后看：
-```bash
-ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l    # 期望 150
-ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l    # 期望 150
-```
-
----
-
-## 4. 数据回收（跑完之后把结果带回本地）
-
-服务器：
-```bash
-cd ~/OpenGU/GULib-master
-tar czf phase_b_results.tar.gz results/runs/
-ls -lh phase_b_results.tar.gz
-```
-
-本地（PowerShell）：
-```powershell
-scp user@host:~/OpenGU/GULib-master/phase_b_results.tar.gz H:\project\OpenGU\GULib-master\
-cd H:\project\OpenGU\GULib-master
-tar xzf phase_b_results.tar.gz
-```
-
-回到本地后告诉我 "phase B 数据回来了"，我跑 Phase C（重画 FIG-4b、hop-decay 曲线、abstract refresh）。
-
----
-
-## 5. 故障速查
-
-| 现象 | 原因 | 处理 |
-|------|------|------|
-| `cuda: False` 在自检里 | 驱动 / cu118 mismatch | `nvidia-smi` 看驱动；不行换 torch+cu 版本对齐 |
-| `ImportError: torch_scatter` | wheel 没匹配 torch 2.1.2+cu118 | 用 `-f https://data.pyg.org/whl/torch-2.1.2+cu118.html` 重装 |
-| `mia_auc: 0.0` 在 B.0 输出里 | 没清 cache | 回到第 2 节清 cache，再 `--force` 跑 B.0 |
-| B.1 某项 metric 闸不过 | 真 bug 或数据问题 | **停下**，把 `attack.json` + `_meta.json` 发我 |
-| 服务器 SSH 断了 | nohup 没用 | 用 `tmux` 或确保用了第 3 节 B.2 的 nohup 写法 |
-| 磁盘满 | results/runs 涨得快 | `du -sh results/*` 看哪个大；arxiv 可能要 10+GB |
-
----
-
-## 6. Quick reference（懒人复制）
-
-```bash
-# 一键自检 + B.0 + B.1（首次部署后跑这个）
-cd ~/OpenGU/GULib-master && \
-conda activate gnn && \
-python -c "import torch; assert torch.cuda.is_available()" && \
-rm -rf results/cache/*.json results/selection_cache/*.json && \
-python experiments/run.py experiments/configs/sanity_one_cell.yaml --force && \
-python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml && \
-echo "B.0 + B.1 完成，停下来人工看 11 项 metric 闸再决定要不要进 B.2"
-```
+期望全过且 `cuda: True`。
