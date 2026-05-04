@@ -151,6 +151,13 @@ def parameter_parser():
     parser.add_argument('--checkpoint_dir', type=str, default= './data/GNNDelete/checkpoint_node',help='checkpoint folder')
     parser.add_argument('--random_seed', type=int, default=2024,help='random seed')
     parser.add_argument('--hidden_dim', type=int, default=64,help='hidden dimension')
+    # GCN architecture knobs (added 2026-05-04 to support arxiv-scale runs).
+    # Default 2/64 preserves all existing cora/citeseer/cora-GAT results;
+    # arxiv yaml overrides to 3/256 per OGB convention.
+    parser.add_argument('--gcn_num_layers', type=int, default=2, help='GCN num layers (overrides hard-coded 2)')
+    parser.add_argument('--gcn_hidden', type=int, default=64, help='GCN hidden width (overrides hard-coded 64)')
+    parser.add_argument('--im_selector_seed', type=int, default=2024,
+                        help='Decoupled MC seed for IM selectors (A.4 fix). Independent of GU training seed.')
     parser.add_argument('--in_dim', type=int, default=128,help='input dimension')
     parser.add_argument('--out_dim', type=int, default=64,help='output dimension')
     parser.add_argument('--unlearning_model', type=str, default='gnndelete_nodeemb',help='unlearning method')

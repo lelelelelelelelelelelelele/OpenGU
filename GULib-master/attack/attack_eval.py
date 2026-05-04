@@ -9,8 +9,10 @@ All functions are pure (no dependency on config.py) and operate on
 torch models + PyG Data objects.
 """
 
-from typing import List
+from collections import deque
+from typing import List, Optional, Sequence
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from sklearn.metrics import f1_score, roc_auc_score
@@ -129,7 +131,45 @@ def evaluate_retrain_gap(model_before, model_unlearned, model_retrained, data, t
     }
 
 
-def evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_mask):
+def _bfs_hop_distance(edge_index, num_nodes: int, source_nodes: Sequence[int],
+                      max_hop: int) -> np.ndarray:
+    """BFS hop distance from any node in `source_nodes`.
+
+    Returns int32 array of length `num_nodes`; nodes farther than `max_hop`
+    (or unreachable) carry the sentinel `max_hop + 1`.
+    """
+    sentinel = np.int32(max_hop + 1)
+    dist = np.full(num_nodes, sentinel, dtype=np.int32)
+
+    src = edge_index[0].detach().cpu().numpy()
+    dst = edge_index[1].detach().cpu().numpy()
+    adj: List[List[int]] = [[] for _ in range(num_nodes)]
+    for s, d in zip(src, dst):
+        adj[int(s)].append(int(d))
+
+    queue: deque = deque()
+    for n in source_nodes:
+        n = int(n)
+        if 0 <= n < num_nodes and dist[n] != 0:
+            dist[n] = 0
+            queue.append(n)
+
+    while queue:
+        u = queue.popleft()
+        d_u = int(dist[u])
+        if d_u >= max_hop:
+            continue
+        for v in adj[u]:
+            if dist[v] > d_u + 1:
+                dist[v] = np.int32(d_u + 1)
+                queue.append(v)
+
+    return dist
+
+
+def evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_mask,
+                               unlearn_nodes: Optional[Sequence[int]] = None,
+                               max_hop: int = 3):
     """
     Measure prediction disturbance on retained nodes (inspired by UtU's Δp).
 
@@ -142,9 +182,17 @@ def evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_ma
         model_retrained: Model after exact retrain-from-scratch.
         data: PyG Data object.
         retain_mask: Boolean mask for retained nodes.
+        unlearn_nodes: Optional indices of nodes that were unlearned. When
+            provided, the result includes `hop_decay` keys with per-hop
+            fraction_flipped on retained nodes.
+        max_hop: Maximum hop distance to break out (default 3); a `gt{max_hop}_hop`
+            bucket aggregates the rest.
 
     Returns:
         dict with keys: mean_pred_shift, max_pred_shift, fraction_flipped
+        and (if unlearn_nodes given) hop_decay = {"1_hop_flip_rate", "1_hop_count",
+        "2_hop_flip_rate", "2_hop_count", ..., "gt{max_hop}_hop_flip_rate",
+        "gt{max_hop}_hop_count"}.
     """
     logits_retrained = _predict(model_retrained, data)
     logits_unlearned = _predict(model_unlearned, data)
@@ -160,15 +208,49 @@ def evaluate_collateral_damage(model_unlearned, model_retrained, data, retain_ma
     node_shift = shift[mask].max(dim=1).values
 
     # Fraction of retained nodes whose predicted class changed
-    pred_retrained = logits_retrained.argmax(dim=1).cpu()
-    pred_unlearned = logits_unlearned.argmax(dim=1).cpu()
-    flipped = (pred_retrained[mask] != pred_unlearned[mask]).float()
+    pred_retrained_full = logits_retrained.argmax(dim=1).cpu()
+    pred_unlearned_full = logits_unlearned.argmax(dim=1).cpu()
+    flipped_full = (pred_retrained_full != pred_unlearned_full)
+    flipped = flipped_full[mask].float()
 
-    return {
+    result = {
         "mean_pred_shift": float(node_shift.mean().item()) if node_shift.numel() > 0 else 0.0,
         "max_pred_shift": float(node_shift.max().item()) if node_shift.numel() > 0 else 0.0,
         "fraction_flipped": float(flipped.mean().item()) if flipped.numel() > 0 else 0.0,
     }
+
+    if unlearn_nodes is None:
+        return result
+
+    # A.5: hop-distance collateral decay
+    if isinstance(unlearn_nodes, torch.Tensor):
+        unlearn_seq = unlearn_nodes.detach().cpu().numpy().tolist()
+    else:
+        unlearn_seq = list(unlearn_nodes)
+
+    num_nodes = int(data.num_nodes)
+    hop_dist = _bfs_hop_distance(data.edge_index, num_nodes, unlearn_seq, max_hop)
+    retain_idx = mask.nonzero(as_tuple=False).squeeze(-1).numpy()
+    flipped_np = flipped_full.numpy()
+
+    hop_decay = {}
+    for h in range(1, max_hop + 1):
+        idx_h = retain_idx[hop_dist[retain_idx] == h]
+        n_h = int(idx_h.size)
+        hop_decay[f"{h}_hop_flip_rate"] = (
+            float(flipped_np[idx_h].mean()) if n_h > 0 else 0.0
+        )
+        hop_decay[f"{h}_hop_count"] = n_h
+
+    far_idx = retain_idx[hop_dist[retain_idx] > max_hop]
+    n_far = int(far_idx.size)
+    hop_decay[f"gt{max_hop}_hop_flip_rate"] = (
+        float(flipped_np[far_idx].mean()) if n_far > 0 else 0.0
+    )
+    hop_decay[f"gt{max_hop}_hop_count"] = n_far
+
+    result["hop_decay"] = hop_decay
+    return result
 
 
 def compute_gap_statistics(gaps):

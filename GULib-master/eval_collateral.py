@@ -27,8 +27,11 @@ from datetime import datetime
 # config.py (which calls parameter_parser() at import time and rejects
 # unknown args).
 _strategies_str = 'random,degree,pagerank,tracin,im,hybrid'
+# (above default already uses post-2026-05-04 names, no v4 suffix)
 _repair_mode = False
 _repair_dry_run = False
+_save_predictions = False
+_output_dir = None  # if set: write collateral.json + predictions.npz here, no timestamp suffix
 _raw_args = list(sys.argv[1:])
 _filtered_argv = []
 _i = 0
@@ -48,6 +51,22 @@ while _i < len(_raw_args):
     elif _arg == '--repair_dry_run':
         _repair_mode = True
         _repair_dry_run = True
+    elif _arg == '--save_predictions':
+        # Dump logits_{before,unlearned,retrained} per strategy as .npz next to JSON.
+        # Lets future forward-only metrics be added offline without re-running GU+retrain.
+        _save_predictions = True
+    elif _arg == '--output_dir':
+        # New runner mode: write collateral.json + predictions.npz directly under this dir
+        # with deterministic names (no timestamp suffix). Old default path layout is kept
+        # when --output_dir is not set, so legacy bash scripts are unaffected.
+        if _i + 1 < len(_raw_args):
+            _output_dir = _raw_args[_i + 1]
+            _i += 2
+            continue
+        _i += 1
+        continue
+    elif _arg.startswith('--output_dir='):
+        _output_dir = _arg.split('=', 1)[1]
     else:
         _filtered_argv.append(_arg)
     _i += 1
@@ -348,6 +367,10 @@ def main():
 
     # Storage for results
     all_results = []
+    # Per-strategy prediction snapshots (only populated when --save_predictions).
+    # Each entry: dict with keys logits_{before,unlearned,retrained}, retain_mask,
+    # selected_nodes — already as numpy arrays.
+    predictions_dump = []
 
     for strategy_name in strategies_to_run:
         print(f"\n--- Strategy: {strategy_name} ---")
@@ -405,7 +428,8 @@ def main():
             model_before, model_unlearned, model_retrained, data, test_mask
         )
         collateral_metrics = evaluate_collateral_damage(
-            model_unlearned, model_retrained, data, retain_mask
+            model_unlearned, model_retrained, data, retain_mask,
+            unlearn_nodes=selected_nodes,
         )
 
         result = {
@@ -414,6 +438,32 @@ def main():
             **collateral_metrics,
         }
         all_results.append(result)
+
+        if _save_predictions:
+            import numpy as _np
+
+            def _logits_np(_model, _data):
+                _model.eval()
+                with torch.no_grad():
+                    fwd = _model.forward
+                    if hasattr(fwd, '__code__') and 'edge_index' in fwd.__code__.co_varnames:
+                        out = _model(_data.x, _data.edge_index)
+                    else:
+                        out = _model(_data.x)
+                return out.detach().cpu().numpy()
+
+            predictions_dump.append({
+                "strategy": strategy_name,
+                "logits_before": _logits_np(model_before, data),
+                "logits_unlearned": _logits_np(model_unlearned, data),
+                "logits_retrained": _logits_np(model_retrained, data),
+                "retain_mask": retain_mask.detach().cpu().numpy().astype(bool),
+                "selected_nodes": (
+                    selected_nodes.detach().cpu().numpy()
+                    if isinstance(selected_nodes, torch.Tensor)
+                    else _np.asarray(selected_nodes)
+                ),
+            })
 
         print(f"  Gap: {gap_metrics['gap']:.4f} ({gap_metrics['gap_pct']:.2f}%)")
         print(f"  MeanShift: {collateral_metrics['mean_pred_shift']:.4f}, "
@@ -451,10 +501,16 @@ def main():
     print("=" * 90)
 
     # 7. Save results to JSON
-    out_dir = Path(f"./results/collateral/{args['unlearning_methods']}/{args['dataset_name']}/{args['base_model']}")
-    out_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = out_dir / f"collateral_{timestamp}.json"
+    if _output_dir is not None:
+        # Runner mode: deterministic, timestamp-free filenames in caller-controlled dir.
+        out_dir = Path(_output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / "collateral.json"
+    else:
+        out_dir = Path(f"./results/collateral/{args['unlearning_methods']}/{args['dataset_name']}/{args['base_model']}")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"collateral_{timestamp}.json"
     with open(out_path, 'w') as f:
         json.dump({
             "config": {
@@ -479,6 +535,37 @@ def main():
             } if _repair_mode else {}),
         }, f, indent=2)
     print(f"\nResults saved to: {out_path}")
+
+    # 7b. Save per-strategy predictions (forward-only metric cache, optional).
+    if _save_predictions and predictions_dump:
+        import numpy as _np
+        # One bundled .npz keyed by `{strategy}__{field}` → keeps per-cell file count low.
+        bundle = {}
+        labels = data.y.detach().cpu().numpy()
+        try:
+            train_mask_np = data.train_mask.detach().cpu().numpy().astype(bool)
+        except AttributeError:
+            train_mask_np = _np.zeros(int(data.num_nodes), dtype=bool)
+        try:
+            test_mask_np = data.test_mask.detach().cpu().numpy().astype(bool)
+        except AttributeError:
+            test_mask_np = _np.zeros(int(data.num_nodes), dtype=bool)
+        bundle["_meta__y"] = labels
+        bundle["_meta__train_mask"] = train_mask_np
+        bundle["_meta__test_mask"] = test_mask_np
+        bundle["_meta__num_nodes"] = _np.int64(int(data.num_nodes))
+        for entry in predictions_dump:
+            s = entry["strategy"]
+            bundle[f"{s}__logits_before"] = entry["logits_before"].astype(_np.float32)
+            bundle[f"{s}__logits_unlearned"] = entry["logits_unlearned"].astype(_np.float32)
+            bundle[f"{s}__logits_retrained"] = entry["logits_retrained"].astype(_np.float32)
+            bundle[f"{s}__retain_mask"] = entry["retain_mask"]
+            bundle[f"{s}__selected_nodes"] = entry["selected_nodes"].astype(_np.int64)
+        pred_name = "predictions.npz" if _output_dir is not None else f"predictions_{timestamp}.npz"
+        pred_path = out_dir / pred_name
+        _np.savez_compressed(pred_path, **bundle)
+        size_mb = pred_path.stat().st_size / (1024 * 1024)
+        print(f"Predictions cache: {pred_path}  ({size_mb:.1f} MB, {len(predictions_dump)} strategies)")
 
     # 8. Append to auto_report.md
     try:

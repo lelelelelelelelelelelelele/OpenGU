@@ -137,7 +137,11 @@ class IMStrategy(BaseStrategy):
         self.propagation_prob = args.get('propagation_prob', 0.1)
         self.mc_rounds = args.get('mc_rounds', 100)
         self.candidate_fraction = args.get('candidate_fraction', 1.0)
-        seed_value = args.get('random_seed', args.get('seed', 2024))
+        # A.4: IM selector MC seed is decoupled from GU training seed.
+        # Previously coupling caused Jaccard ~0.13 across 5 GU seeds (the
+        # selector "wandered" with the seed, so +6.8 effect contained MC noise).
+        # Default fixed value 2024; override only with `im_selector_seed`.
+        seed_value = args.get('im_selector_seed', 2024)
         try:
             self.random_seed = int(seed_value)
         except (TypeError, ValueError):

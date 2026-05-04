@@ -1,8 +1,8 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-03
+> Last updated: 2026-05-04
 > See rules: `CLAUDE.md`
-> NeurIPS deadline: 4 days from now (~2026-05-07)
+> NeurIPS deadline: 3 days from now (~2026-05-07)
 
 ---
 
@@ -11,24 +11,32 @@
 ### 4-Day NeurIPS Push
 
 ```
-[ ] Phase 0  FIG-4b 5-seed 稳定性确认（partial — see §3 below）
-[ ] Phase A  代码修复（必须在重跑之前完成）
-    [ ] A.1  MEGU MIA bug         — megu.py:140 取消注释
-    [ ] A.2  IDEA MIA bug         — idea.py:107 取消注释 + 验证 attack 块
-    [ ] A.3  GraphEraser MIA bug  — Shard_based_pipeline.py:177 取消注释
-    [ ] A.4  IM_v4 fixed MC seed  — 解耦 selector RNG 与 GU training seed
-    [ ] A.5  Hop-distance Collateral Decay  — 扩展 evaluate_collateral_damage
-[ ] Phase B  全量重跑（租 GPU）
-    [ ] B.1  cora/GCN MG-0 重跑（5 seed × 5 family × 6 strategy）
-    [ ] B.2  cora/GAT MG-3 重跑
-    [ ] B.3  arxiv 主矩阵（参考 thesis_transition_memo §5.3）
-    [ ] B.4  B2 sanity 单点（GNNDelete×TracIn ref-model）
+[x] Phase 0  FIG-4b 5-seed 稳定性诊断 — 2026-05-03 完成（结论见 §3.2 / §3.3，根因已定位为 Phase A.4）
+[x] Phase A  代码修复（必须在重跑之前完成）— 2026-05-04 完成 + sanity test pass
+    [x] A.1  MEGU MIA bug         — megu.py:140 已取消注释（sanity AUC=0.3701）
+    [x] A.2  IDEA MIA bug         — 误判，无需改动（V-2026-05-04-04 验证 ~0.55 非零）
+    [x] A.3  GraphEraser MIA bug  — Shard_based_pipeline.py:177 已修（sanity AUC=0.6040）
+    [x] A.4  IM fixed MC seed     — im_selector_seed=2024 默认，跨 GU seed Jaccard=1.0
+    [x] A.5  Hop-distance Collateral Decay  — evaluate_collateral_damage 已扩展（4 桶 1/2/3/>3）
+[x] (额外) v4 摘帽 + path/runner refactor — 2026-05-04（V-2026-05-04-06）
+    - registry: `im_v4`→`im`、`hybrid_v4`→`hybrid`，旧 CELF/coupled-RNG 类摘除
+    - 新路径：`results/runs/{cell}/{method}_{strategy}/seed{N}/{4 files}`
+    - 新 runner：`experiments/run.py` + 4 yaml configs（见 experiments/configs/README.md）
+[ ] Phase B  全量重跑（服务器侧，2026-05-05+）
+    [ ] B.0  服务器 env + sanity（`experiments/configs/sanity_one_cell.yaml --force`，~20s）
+    [ ] B.1  arxiv 可行性闸（`phase_b_arxiv_feasibility.yaml`，5 cells / ~1.5h，验 11 项 metric 闸 §5.3.2.1）
+    [ ] B.2  arxiv 主矩阵（`phase_b_arxiv.yaml`，36 cells / ~12 GPU-h）
+    [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，150 cells / ~75 min）
+    [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，150 cells / ~90 min）
 [ ] Phase C  分析 + paper writing
-    [ ] C.1  重画 FIG-4b（含 error bar + Jaccard 注释）
-    [ ] C.2  生成 hop-decay 衰减曲线图
-    [ ] C.3  写 §method 含 B1/B2 选择讨论
+    [ ] C.1  重画 FIG-4b（含 error bar + Jaccard 注释，新数据 Jaccard 应 = 1.0）
+    [ ] C.2  生成 hop-decay 衰减曲线图（按 family 分线，对照 GCN num_layers）
+    [ ] C.3  写 §method 含 B1/B2 选择讨论 + Shard Protection Effect 解读
     [ ] C.4  写 §limitation 含 MEGU/IDEA mechanism-incomparable framing
+    [ ] C.5  abstract refresh：跑完后用真实数字替换 abstract.md 的 interim 数（见 report/paper/review/abstract_review_2026-05-04.md）
 ```
+
+> **服务器侧执行入口**：`experiments/configs/README.md` 末尾的 checklist。所有 Phase B 任务都通过 `python experiments/run.py <yaml>` 启动。
 
 ---
 
@@ -50,28 +58,28 @@
 
 ### 2.2 Strategy 覆盖（横向）
 
-每个 (method, dataset, model) cell 应包含 6 个 strategy：random / degree / pagerank / tracin / im_v4 / hybrid_v4
+每个 (method, dataset, model) cell 应包含 6 个 strategy：random / degree / pagerank / tracin / **im** / **hybrid**
 
-抽查 cora/GCN/0.05/N=5：
+> 2026-05-04 起 `im_v4` / `hybrid_v4` 已**摘帽**为 `im` / `hybrid`（v4 batch-CELF + decoupled MC seed 是 canonical 实现）。下面"已有数据"的 cell 是 pre-2026-05-04 跑出来的，文件里 keys 仍是 `im_v4` / `hybrid_v4`——**Phase B 重跑后新数据全部用新 keys**，old + new 数据物理隔离（老在 `results/experiments/`，新在 `results/runs/`），不会混。
+
+抽查 cora/GCN/0.05/N=5（pre-Phase-B 旧数据）：
 - GIF：6/6 ✓
 - GNNDelete：6/6 ✓
 - GraphEraser：6/6 ✓
 
-注：旧版 `im` / `hybrid`（非 v4）只在部分 cell 存在，N=2-7 不等，**不进 paper**，仅历史保留。
-
 ---
 
-## 3. 关键已知问题（截至 2026-05-03）
+## 3. 关键已知问题（截至 2026-05-04）
 
-### 3.1 ⚠️ MIA AUC = 0.000 bug（Phase A.1-A.3）
+### 3.1 ✅ MIA AUC = 0.000 bug（Phase A.1-A.3）— 已修复
 
-| Family | 注释位置 | 状态 |
-|--------|---------|------|
-| MEGU | `unlearning/unlearning_methods/MEGU/megu.py:140` | 待修 |
-| IDEA | `unlearning/unlearning_methods/IDEA/idea.py:107`（含 line 88-114 的 attack 块）| 待修 |
-| GraphEraser（影响所有 shard-based）| `pipeline/Shard_based_pipeline.py:177` | 待修 |
+| Family | 位置 | 状态（2026-05-04） |
+|--------|------|--------|
+| MEGU | `unlearning/unlearning_methods/MEGU/megu.py:140` | ✅ 已取消注释，sanity AUC=0.3701 |
+| IDEA | `unlearning/unlearning_methods/IDEA/idea.py` | ✅ 误判：实测 mia_auc≈0.55 非零（V-2026-05-04-04） |
+| GraphEraser（影响所有 shard-based）| `pipeline/Shard_based_pipeline.py:177` | ✅ 已修，sanity AUC=0.6040 |
 
-GIF / GNNDelete 的 MIA 正常（继承 IF_based / Learning_based pipeline 调用未被注释）。详见 `VALIDATION_LOG.md` 2026-05-03 条目。
+GIF / GNNDelete 的 MIA 一直正常。**Phase B 重跑前需清理 results/cache + results/selection_cache 中受 bug 污染的旧条目**（cli: `--no_cache` 一次性强制刷新），否则会取到 mia_auc=0 的 stale 缓存。
 
 ### 3.2 ⚠️ FIG-4b 在 GNNDelete 上的统计稳定性问题
 
@@ -87,9 +95,11 @@ cora/GCN/r=0.05/N=5 的 paired effect size：
 
 **GNNDelete 整行 p > 0.05**——不能在当前 5 seed 下 claim "GNNDelete 显著 vulnerable"。详见 VALIDATION_LOG。
 
-### 3.3 ⚠️ IM_v4 selector 跨 seed Jaccard = 0.13
+### 3.3 ✅ IM_v4 selector 跨 seed Jaccard = 0.13 — A.4 已修复
 
-cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只有 ~17 个节点重合。**+6.8 effect 部分由"selector 自己抖"贡献，不是纯 surface variance**。Phase A.4 通过 fixed MC seed 解耦。
+cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只有 ~17 个节点重合。**+6.8 effect 部分由"selector 自己抖"贡献，不是纯 surface variance**。
+
+**修复（2026-05-04, A.4）**：`attack/attack_strategies/im_strategy.py` 改读 `args['im_selector_seed']`（默认 2024），不再 fallback 到 `random_seed`/`seed`。微测验证：seed=42 vs seed=1337 的 IM_v4 选出节点集 **完全相同**（Jaccard=1.0）。Phase B 重跑前需清空 `results/selection_cache/im_v4/`（旧条目按 GU seed 分桶，5 份非决定性数据）。
 
 | Strategy | Jaccard | 解读 |
 |----------|---------|------|
@@ -126,12 +136,27 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 
 ## 5. 当前 TODO 优先级（高 → 低）
 
-1. **今天**：建完本目录所有文件 + cache CLAUDE.md（进行中）
-2. **今晚**：写 Phase A.1-A.5 的 patch（不应用，等审查）
-3. **明天**：审 patch + 应用 + 本地 sanity test（cora/GCN 单 seed × 单 strategy 跑通）
-4. **第 2 天**：租 GPU + Phase B 全量重跑
-5. **第 3 天**：分析 + Phase C.1-C.2 出图
-6. **第 4 天**：写 paper + 收尾
+### 已完成 ✅
+1. **2026-05-03**：dashboard 目录骨架 + cache CLAUDE.md
+2. **2026-05-04 上午**：Phase A.1–A.5 patch + 本地 sanity 全 pass（V-2026-05-04-04）
+3. **2026-05-04 下午**：predictions.npz 缓存 + round-trip 验证（V-2026-05-04-05）
+4. **2026-05-04 晚**：path/runner refactor + v4 摘帽（V-2026-05-04-06）
+5. **2026-05-04 晚**：abstract 重写为 ECCV interim 版（report/paper/sections/abstract.md，review 笔记 review/abstract_review_2026-05-04.md）
+
+### 服务器侧（按顺序执行）
+1. **B.0** `git pull` → conda env → `python experiments/run.py experiments/configs/sanity_one_cell.yaml --force` —— 验证 env，~20s
+2. **B.1** `python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml` —— 5 family × random × 1 seed，对照 §5.3.2.1 的 11 项闸门
+3. **B.2** B.1 全 pass → `python experiments/run.py experiments/configs/phase_b_arxiv.yaml` —— 36 cells / ~12 GPU-h
+4. **B.3 / B.4** 并行（如有第二张卡）：cora/GCN + cora/GAT 全矩阵
+5. **Phase C** 数据回流 → 分析 + 出图 + paper（见 §1 Phase C 列表）
+
+### 关键数据交付节点（NeurIPS 2026-05-07）
+- 主 figure: FIG-4b 重画后入 paper §4
+- hop-decay 衰减曲线: §4 第二张图，按 family 分线
+- abstract refresh: 用真实数字替换 interim 数（abstract.md §status 已标 interim）
+
+### 不在 4 天窗口的（确认 out-of-scope）
+- 见 §4：vision-graph 实验（PASCAL-VOC/Kinetics/ShapeNet）、新 backbone、新 selector 设计、Physics 数据集
 
 ---
 

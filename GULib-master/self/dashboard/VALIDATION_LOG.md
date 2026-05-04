@@ -1,6 +1,6 @@
 # Validation Log
 
-> Last updated: 2026-05-03
+> Last updated: 2026-05-04
 > **Append-only**——禁止删改历史条目。错的条目不删，新条目标 SUPERSEDES + 解释
 > 用途：固化今天讨论 / 实测验证 / sanity check 的实证证据，避免 4 天 deadline 期间反复发现同一件事
 
@@ -191,5 +191,173 @@ grep -rn "average_auc\|mia_attack" unlearning/unlearning_methods/{MEGU,IDEA,Grap
 - selection_time (IM_v4) < 30 min（验证 candidate_fraction + numba 在大图上有效）
 
 **操作时机**：每个 family 的 1-seed random 跑完即对照清单，全 pass 才进主矩阵
+
+---
+
+### V-2026-05-04-04: Phase A.1–A.5 patch 应用 + sanity test 全部通过
+
+**Setting**：cora/GCN/r=0.05/seed=42，--no_cache 强制刷新
+
+**A.1 MEGU MIA fix**（`unlearning/unlearning_methods/MEGU/megu.py:140`）
+- 取消注释并加 `unlearn_task=='node' and downstream_task=='node'` 守卫
+- sanity：`Average AUC Score: 0.3701`（pre-fix 0.0）✅
+
+**A.2 IDEA MIA — dashboard 误判**：实测 IDEA 的 mia_auc 始终非零
+- 审 10 个 IDEA result JSON × 4 strategy × N seed → 40 条 mia_auc 值，全部 ∈ {0.4, 0.6}，**zero=0 nonzero=40 nan=0**
+- 机制：`idea.py:54-169` 整段 `run_exp` 注释，但 fall-through 到 `pipeline/IF_based_pipeline.py::run_exp:142` 的 `self.mia_attack()`，IDEA 又在 `idea.py:508` 重写了 `mia_attack`（功能完整）
+- **决定**：dashboard §3.1 + V-2026-05-03-05 关于 IDEA 的指控撤销（其它两条 MEGU/GraphEraser 仍成立）
+- **MEGU + GraphEraser → IDEA 列表受污染**：意味着 paper 不能再用 V-2026-05-03-05 的 "MEGU/IDEA/GraphEraser 整列 0 → 不可比" 框架，而应改为 "MEGU/GraphEraser 0 是 bug，IDEA 0.55 是真低敏感"
+
+**A.3 GraphEraser MIA fix**（`pipeline/Shard_based_pipeline.py:177`）
+- 取消注释 `self.attack_unlearning()` 并加 `unlearn_task=='node' and downstream_task=='node'` 守卫
+- sanity：`Average AUC Score: 0.6040`（pre-fix 0.0），MIA Progress 100% × 2（member + nonmember）✅
+- 同步影响 GUIDE / GraphRevoker（两者也有 `attack_unlearning` 实现，未来跑这俩 family 时自动生效）
+
+**A.4 IM_v4 fixed MC seed**（`attack/attack_strategies/im_strategy.py:140-148`）
+- 改读 `args['im_selector_seed']`（默认 2024），不再 fallback 到 `random_seed`/`seed`
+- 微测：cora，args_a={seed:42,...} vs args_b={seed:1337,...}，IMV4Strategy.select_nodes(k=20) 返回**完全相同**的节点列表（identical=True，Jaccard=1.0）
+- **缓存影响**：旧的 `results/selection_cache/im_v4/` 按 GU seed 分桶 5 份非决定性数据，Phase B 重跑前需清空（或保留作历史快照）
+
+**A.5 Hop-distance Collateral Decay**（`attack/attack_eval.py::evaluate_collateral_damage`）
+- 新增 `unlearn_nodes` + `max_hop` 可选参数；新增内部 `_bfs_hop_distance` 用 deque BFS（O(V+E)）
+- 返回字典加 `hop_decay` 子 dict，含 `1_hop_flip_rate / 1_hop_count ... gt3_hop_flip_rate / gt3_hop_count`
+- 同步更新 `eval_collateral.py:407` 传入 `unlearn_nodes=selected_nodes`
+- 18 个 attack_eval 单元测试全部通过（向后兼容，未传 unlearn_nodes 时不输出 hop_decay）
+- 端到端 sanity（cora，dummy model，3 个 unlearn 节点）：
+  ```
+  1_hop_count=6   1_hop_flip_rate=1.00
+  2_hop_count=25  2_hop_flip_rate=0.84
+  3_hop_count=145 3_hop_flip_rate=0.80
+  gt3_hop_count=2529 gt3_hop_flip_rate=0.83
+  sum=2705 = retain_count ✓
+  ```
+
+**Verification commands**（可重复）：
+```bash
+# A.4 micro-test
+H:/conda_package/envs/gnn/python.exe -c "from attack.attack_strategies.im_v4_strategy import IMV4Strategy; ..."
+
+# A.1/A.3 end-to-end
+H:/conda_package/envs/gnn/python.exe demo_attack.py --dataset_name cora --base_model GCN \
+  --unlearning_methods {MEGU,GraphEraser} --strategies random --unlearn_ratio 0.05 \
+  --seed 42 --no_cache --num_epochs 100 --batch_size 64
+
+# Unit tests
+H:/conda_package/envs/gnn/python.exe -m pytest tests/test_attack_eval.py -x -q
+```
+
+**下一步（Phase B 启动前）**：
+1. 清 `results/cache/` + `results/selection_cache/im_v4/` 中 mia_auc=0 / 旧 IM 抖动条目
+2. 决定 GPU 渠道（本地 / 租）
+3. 跑 cora/GCN/seed=42 单 cell × 6 strategy 作 Phase B 第一闸（验证 5 family × 6 strategy 全部产出 mia_auc ∈ [0.3,0.9]）
+
+---
+
+### V-2026-05-04-05: eval_collateral.py 加 `--save_predictions` 实现 metric 解耦缓存
+
+**Decision**：Phase B 全量重跑时启用 `--save_predictions`，让 forward-only metric 未来可离线重算
+
+**Rationale**：
+- 当前架构不持久化 model（state_dict 跨代码版本不可复用），新 metric 必须重跑整条 train+unlearn+retrain 链
+- 但 6 个 v2 metric + 8.4 Budget Efficiency 全部基于 forward predictions（softmax / argmax / 距离），不依赖 model gradients
+- 保存 `logits_{before, unlearned, retrained}` + `labels` + `train/test_mask` + `retain_mask` + `selected_nodes` 即可在离线脚本中复算所有现有 + 多数预期未来 metric
+- 相对存 model：(a) 大小小一个量级（cora 0.2MB/strategy vs ~3MB/state_dict），(b) 跨 PyTorch 版本无依赖，(c) 与代码改动解耦
+
+**实现**（`eval_collateral.py`）：
+- CLI `--save_predictions`（默认关，opt-in）
+- 落盘：`results/collateral/{Method}/{Dataset}/{Model}/predictions_{timestamp}.npz`
+- npz keys：`_meta__y / _meta__train_mask / _meta__test_mask / _meta__num_nodes` + 每个 strategy `{s}__logits_{before,unlearned,retrained} / {s}__retain_mask / {s}__selected_nodes`
+
+**Round-trip 验证**（cora/GCN/GIF/random/seed=42）：
+
+| 指标 | offline 重算 | JSON 内 | 匹配 |
+|------|-------------|---------|------|
+| gap | -0.0018 | -0.0018 | ✓ |
+| 1-hop count/flip_rate | 348 / 0.0172 | 348 / 0.0172 | ✓ |
+| 2-hop count/flip_rate | 895 / 0.0078 | 895 / 0.0078 | ✓ |
+| 3-hop count/flip_rate | 461 / 0.0065 | 461 / 0.0065 | ✓ |
+
+bit-identical。1-hop > 2-hop > 3-hop 单调衰减（GIF retain-set 对预测的扰动确实随 hop 距离衰减，与 §8.3 hop-decay 假说一致）。
+
+**预期容量**（Phase B 全跑）：
+- cora 单 cell（6 strategy）≈ 1.2MB
+- arxiv 单 cell（6 strategy）≈ 90MB（169K nodes × 40 classes × float32 × 6 strategy × 3 model × compress 0.5）
+- 全 Phase B：cora/GCN + cora/GAT + arxiv ≈ 50 cell × 6 strategy → cora 部分 ~60MB + arxiv 部分 ~5GB ≈ 5GB
+
+**离线重算示例**（用于未来加 metric）：
+```python
+bundle = np.load('predictions_*.npz')
+y = bundle['_meta__y']; tm = bundle['_meta__test_mask']
+for s in [...]:
+    lb = bundle[f'{s}__logits_before']; lu = bundle[f'{s}__logits_unlearned']
+    f1_drop = f1(y[tm], lb.argmax(1)[tm]) - f1(y[tm], lu.argmax(1)[tm])
+```
+
+---
+
+### V-2026-05-04-06: Path / runner refactor + v4 摘帽
+
+**Decision**：用户 2026-05-04 反馈现有 `results/experiments/{mgN}/phase_a/` 命名按 milestone 而非内容、`im_v4` 帽子已无意义、bash 脚本 + CLI 重复。**不迁老数据，新跑用新 runner**——服务器侧从 yaml 配置启动。
+
+**新路径方案** (`results/runs/`)：
+```
+results/runs/
+  cora_GCN_r0.05/                       # cell = (dataset, model, ratio) 三元组
+    GIF_random/                          # leaf = (method, strategy) 二元组（method+strategy 间用 _ 分）
+      seed42/
+        attack.json                      # L3 metric（demo_attack）
+        collateral.json                  # L3 metric（eval_collateral）
+        predictions.npz                  # L2 logits bundle（含 selected_nodes/retain_mask 完整快照）
+        _meta.json                       # audit：config snapshot + git_sha + hostname + timestamp
+```
+
+3 层深度（cell / leaf / seed），叶子内 4 个文件。glob 模式见 `experiments/configs/README.md`。
+
+**v4 摘帽**：
+- `attack/attack_manager.py::BUILTIN_STRATEGIES`：删 `"im": IMStrategy`、`"hybrid": HybridStrategy`、`"im_v4": IMV4Strategy`、`"hybrid_v4": HybridV4Strategy`，新建 `"im": IMV4Strategy` + `"hybrid": HybridV4Strategy`（v4 版变成 canonical 实现）
+- `REUSABLE_SELECTION_STRATEGIES`：去掉 `"im_v4"`，留 `{"random", "pagerank", "im"}`
+- `_strategy_params_for_cache`：合并 im / im_v4 分支，统一报 `im_batch_size`
+- 默认 `--strategies`：demo_attack 改为 `random,degree,pagerank,tracin,im,hybrid`，eval_collateral 同
+- 测试 `tests/test_im_hybrid.py` 36/36 通过；新增 `test_im_resolves_to_v4_implementation` / `test_v4_alias_no_longer_registered`
+- 老 cache + 老 JSON 里的 `im_v4` / `hybrid_v4` keys：服务器全新跑，物理隔离
+
+**GCN 参数化**（解决 arxiv f1>0.55 闸门）：
+- `parameter_parser.py` 加 `--gcn_num_layers`（默认 2）、`--gcn_hidden`（默认 64）
+- `model/base_gnn/gcn.py` 改读 args；`forward` / `forward_once` / `forward_once_unlearn` 全部循环化兼容多层
+- arxiv yaml `model_overrides.GCN: {gcn_num_layers: 3, gcn_hidden: 256}`，OGB benchmark 配置
+- cora/citeseer 默认 2/64 与 pre-patch bit-identical 验证：sanity GIF/random/seed=42 跑出 f1=0.88，与 2026-05-04 早期 sanity 相同 ✅
+
+**eval_collateral.py 加 `--output_dir`**：runner 模式下 collateral.json + predictions.npz 写到指定目录、无 timestamp 后缀；老的 `results/collateral/{Method}/{ds}/{model}/collateral_{ts}.json` 路径在 `--output_dir` 不传时保持不动。
+
+**experiments/run.py runner**：~200 行 subprocess 调度
+- 读 yaml → 展开 method × strategy × seed 三重循环
+- 每 cell 串接 demo_attack（写 attack.json）+ eval_collateral --save_predictions --output_dir（写 collateral.json + predictions.npz）+ runner 自己写 _meta.json
+- skip-if-exists：4 文件齐全则跳过；`--force` 强制重跑；`--dry_run` 列出会跑什么；`--limit N` 调试用
+- UTF-8 yaml load（Windows GBK 默认会挂中文注释）
+
+**Sanity test**（cora/GCN/GIF/random/seed=42，单 cell）：
+```
+=== Loaded sanity_one_cell.yaml ===
+  cell: cora_GCN_r0.05
+  total cells: 1
+  model_overrides: {'gcn_num_layers': 2, 'gcn_hidden': 64}
+[run] demo_attack GIF/random/seed42 → results\runs\cora_GCN_r0.05\GIF_random\seed42
+[run] eval_collateral GIF/random/seed42
+=== Summary === completed: 1, elapsed: 18.3s
+```
+
+文件落地：
+- `_meta.json`：config_name, git_sha=353fccb..., hostname=LELE-MSI ✅
+- `attack.json`：12.5KB，含 selected_nodes ✅
+- `collateral.json`：含 gap=-0.0018 + hop_decay 4 桶 keys ✅
+- `predictions.npz`：210KB，含 logits_{before,unlearned,retrained} + masks + selected_nodes ✅
+
+**三个 yaml 配置 dry-run 通过**：
+- `phase_b_cora_gcn.yaml`：5 method × 6 strategy × 5 seed = 150 cells
+- `phase_b_cora_gat.yaml`：同 150 cells
+- `phase_b_arxiv.yaml`：3 method × 4 strategy × 3 seed = 36 cells（OGB 3/256 GCN 配置）
+- `phase_b_arxiv_feasibility.yaml`：5 method × random × 1 seed = 5 cells（先跑这个闸）
+
+**下一步（服务器侧）**：见 `experiments/configs/README.md` 服务器 checklist。git push 后 ssh server → conda env → `python experiments/run.py ...`。
 
 ---

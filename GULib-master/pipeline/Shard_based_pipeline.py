@@ -174,7 +174,8 @@ class Shard_based_pipeline:
         self.args["exp"] = "attack_unlearning"
         self.generate_requests()
         self.unlearn()
-        # self.attack_unlearning()
+        if self.args.get("unlearn_task") == "node" and self.args.get("downstream_task") == "node":
+            self.attack_unlearning()
             
             
     def gen_train_graph(self):

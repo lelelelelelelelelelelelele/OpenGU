@@ -137,7 +137,8 @@ class megu(Learning_based_pipeline):
         elif self.args["unlearn_task"] == 'edge':
             self.neighbor_khop = self.temp_node
         self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
-        # self.average_auc[self.run] = self.mia_attack()
+        if self.args.get("unlearn_task") == "node" and self.args.get("downstream_task") == "node":
+            self.average_auc[self.run] = self.mia_attack()
         
 
     def get_softlabels(self):

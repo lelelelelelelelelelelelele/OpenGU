@@ -58,17 +58,19 @@ class AttackManager:
     """
 
     # Built-in strategy registry
+    # Note: "im" and "hybrid" are aliased to the v4 (batch-CELF + decoupled MC seed)
+    # implementations as of 2026-05-04. Old CELF / coupled-RNG classes (IMStrategy,
+    # HybridStrategy in *_strategy.py) remain in source as base classes only — not
+    # registered. Drop the v4 suffix everywhere downstream.
     BUILTIN_STRATEGIES = {
         "random": RandomStrategy,
         "degree": DegreeStrategy,
         "pagerank": PageRankStrategy,
         "tracin": TracInStrategy,
-        "im": IMStrategy,
-        "hybrid": HybridStrategy,
-        "im_v4": IMV4Strategy,
-        "hybrid_v4": HybridV4Strategy,
+        "im": IMV4Strategy,
+        "hybrid": HybridV4Strategy,
     }
-    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "im_v4"}
+    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im"}
     # Runtime k-subset reuse is safe only for deterministic ranking strategies.
     SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
 
@@ -154,17 +156,12 @@ class AttackManager:
 
     def _strategy_params_for_cache(self, strategy_name: str) -> Dict[str, Any]:
         if strategy_name == "im":
+            # im is the batch-CELF v4 implementation (the v4 suffix was dropped 2026-05-04)
             return {
                 "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
                 "mc_rounds": int(self.args.get("mc_rounds", 100)),
                 "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
-            }
-        elif strategy_name == "im_v4":
-            return {
-                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
-                "mc_rounds": int(self.args.get("mc_rounds", 100)),
-                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
-                "im_v4_batch_size": int(self.args.get("im_v4_batch_size", 5)),
+                "im_batch_size": int(self.args.get("im_v4_batch_size", 5)),
             }
         elif strategy_name == "pagerank":
             return {

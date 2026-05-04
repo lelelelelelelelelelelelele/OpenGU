@@ -1,0 +1,47 @@
+# Phase B — ogbn-arxiv main matrix (large-scale validation, ~5GB GPU disk)
+# Pre-flight: run `phase_b_arxiv_feasibility.yaml` first (1 seed × random) to
+# verify each family is tractable on arxiv before committing to the full matrix.
+# Output: results/runs/ogbn-arxiv_GCN_r0.05/{method}_{strategy}/seed{N}/...
+
+name: phase_b_arxiv
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+# Start with the 3 most likely-tractable families. IDEA/MEGU may OOM or
+# require special handling — gate them through the feasibility yaml first.
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - random
+  - tracin
+  - im
+  - hybrid
+
+seeds: [42, 212, 722]   # 3 seeds (vs 5 on cora) to keep GPU budget under ~30 hours
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200          # arxiv needs more epochs to converge
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  # IM scalability: candidate_fraction prunes top-degree nodes only (10% of train),
+  # mc_rounds reduced for speed. Tune up if the cell budget allows.
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+# OGB convention for arxiv: 3-layer GCN, hidden=256 (vs 2/64 on cora).
+# Without this override, default 2/64 underperforms the 5.3.2.1 f1>0.55 gate.
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

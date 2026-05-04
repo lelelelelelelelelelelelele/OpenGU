@@ -19965,3 +19965,73 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
   - hybrid_v4: F1 Drop = 0.0000 (f1_before=0.8359, f1_after=0.8359, time=42.2s, cache=MISS, selection=8.2428s)
 - 异常与定位：无
 - 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-05-04 12:02] demo_attack.py - MEGU 攻击实验
+- 任务：dataset=cora, model=GCN, method=MEGU, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8376, time=1.5s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-05-04 12:03] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=45.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-05-04 12:04] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=46.2s, cache=MISS, selection=0.0010s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-05-04 12:05] demo_attack.py - GraphEraser 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphEraser, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=49.3s, cache=MISS, selection=0.0010s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-04 14:01:32] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0128 |    0.92% |
+- 日志路径：`results\collateral\GIF\cora\GCN\collateral_20260504_140132.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-04 14:34] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8358, time=1.1s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+
+### [2026-05-04 14:39] demo_attack.py - GIF 攻击实验
+- 任务：dataset=cora, model=GCN, method=GIF, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = 0.0185 (f1_before=0.8838, f1_after=0.8653, time=1.1s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=1.4669s, reuse=0.000995s, speedup=1474.27x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-04 14:39:38] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | -0.21% |    0.0137 |    1.22% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GIF_random\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+

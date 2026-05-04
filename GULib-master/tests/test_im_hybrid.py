@@ -242,13 +242,22 @@ class TestRegistration:
         from attack.attack_manager import AttackManager
         assert "hybrid" in AttackManager.BUILTIN_STRATEGIES
 
-    def test_im_v4_in_builtin(self):
+    def test_im_resolves_to_v4_implementation(self):
+        # 2026-05-04: v4 suffix dropped — `im` now points to IMV4Strategy.
         from attack.attack_manager import AttackManager
-        assert "im_v4" in AttackManager.BUILTIN_STRATEGIES
+        from attack.attack_strategies.im_v4_strategy import IMV4Strategy
+        assert AttackManager.BUILTIN_STRATEGIES["im"] is IMV4Strategy
 
-    def test_hybrid_v4_in_builtin(self):
+    def test_hybrid_resolves_to_v4_implementation(self):
         from attack.attack_manager import AttackManager
-        assert "hybrid_v4" in AttackManager.BUILTIN_STRATEGIES
+        from attack.attack_strategies.hybrid_v4_strategy import HybridV4Strategy
+        assert AttackManager.BUILTIN_STRATEGIES["hybrid"] is HybridV4Strategy
+
+    def test_v4_alias_no_longer_registered(self):
+        # Old aliases removed; runs/cache are clean of the suffix going forward.
+        from attack.attack_manager import AttackManager
+        assert "im_v4" not in AttackManager.BUILTIN_STRATEGIES
+        assert "hybrid_v4" not in AttackManager.BUILTIN_STRATEGIES
 
     def test_import_from_subpackage(self):
         from attack.attack_strategies import IMStrategy, HybridStrategy, IMV4Strategy, HybridV4Strategy

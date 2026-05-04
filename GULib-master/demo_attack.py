@@ -23,7 +23,7 @@ import argparse
 def _extract_demo_args():
     """Extract demo-specific arguments from sys.argv before importing other modules."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--strategies", type=str, default="random,degree,pagerank,tracin")
+    parser.add_argument("--strategies", type=str, default="random,degree,pagerank,tracin,im,hybrid")
     parser.add_argument("--k", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--save_path", type=str, default=None)

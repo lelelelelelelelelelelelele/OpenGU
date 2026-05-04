@@ -1,0 +1,34 @@
+# Phase B 5.3.2 — arxiv feasibility gate
+# Goal: verify each family × random × seed=42 runs to completion on arxiv
+# without OOM, with f1_before > 0.55 (per thesis_transition_memo §5.3.2.1).
+# If any family fails, document and exclude from main matrix.
+
+name: phase_b_arxiv_feasibility
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - random          # cheapest selector for the gate
+
+seeds: [42]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256
