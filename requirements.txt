@@ -29,13 +29,13 @@ pyyaml==6.0.2
 deeprobust==0.2.11
 munkres==1.1.4
 cvxpy==1.5.2
-lightgbm==4.6.0           # used by attack/MIA shadow model
-numba==0.53.1             # JIT for selection strategies
-gensim==4.3.3             # Node2Vec / SkipGram embeddings used by partition_kmeans
-Cython==0.29.24           # build-time for some C extensions in the pipeline
+lightgbm>=4.0             # used by attack/MIA shadow model
+numba>=0.53,<0.60         # JIT for selection strategies (0.53 needs numpy<1.25; ours is >=1.24)
+gensim>=4.0               # Node2Vec / SkipGram embeddings used by partition_kmeans
+Cython>=0.29              # build-time for some C extensions in the pipeline
 
 # Graph partitioning (GraphEraser / GraphRevoker)
-pymetis==2023.1.1         # METIS Python bindings; needs `apt install libmetis-dev` on Ubuntu
+pymetis>=2023.1           # METIS Python bindings; needs `apt install libmetis-dev` on Ubuntu
 
 # GPU acceleration for shard partitioning (GraphEraser/GraphRevoker)
 # cupy is CUDA-version-pinned; install one of the wheels matching your torch CUDA:
@@ -46,6 +46,6 @@ pymetis==2023.1.1         # METIS Python bindings; needs `apt install libmetis-d
 # the partition modules unconditionally, so cupy must be importable at startup.
 
 # Profiling / debugging
-memory-profiler==0.61.0   # used by --cal_mem mode
+memory-profiler>=0.60     # used by --cal_mem mode
 ipdb==0.13.13
 tqdm==4.67.1
