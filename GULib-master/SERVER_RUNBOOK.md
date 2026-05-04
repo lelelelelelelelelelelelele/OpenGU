@@ -20,6 +20,14 @@ cd OpenGU
 git checkout nips-prep
 ```
 
+> **autodl / 境内 GPU 服务器 GitHub 慢或超时？** 三种加速方案按顺序试：
+>
+> 1. **autodl 学术加速**（首选）：clone 之前先 `source /etc/network_turbo` 启用代理；clone 完后 `unset http_proxy https_proxy` 关掉，避免实验阶段下数据集走代理
+> 2. **ghproxy 镜像**：`git clone https://ghproxy.com/https://github.com/lelelelelelelelelelelelele/OpenGU.git OpenGU`
+> 3. **shallow clone**（只拿最新 commit，省 history）：在原命令加 `--depth 1 -b nips-prep`
+>
+> 全失败就走下面的"路 B"。
+
 如果服务器**已经有旧版**：
 ```bash
 cd ~/OpenGU         # 你之前 clone 的位置
