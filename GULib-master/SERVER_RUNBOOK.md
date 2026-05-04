@@ -85,13 +85,17 @@ python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
 ✅ 通过 → 进 B.1
 ❌ `mia_auc: 0.000` 或其他错 → **停下问我**
 
-### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
+### B.1 · arxiv 可行性闸（~5 GPU-h）⚠ 关键检查点
 
 ```bash
 python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 ```
 
-5 cells（5 method × random × seed=42）。完成后人工对照 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 的 11 项 metric 闸：
+**v2 矩阵**：15 cells = 5 method × 3 strategy（random, tracin, im）× seed=42。`tracin` / `im` 加进来是为了在 B.2 之前提前检测 arxiv 大图上的模型耦合 / IM MC simulation 的 OOM 风险——这两个最容易出问题。
+
+> 已经跑过原始 5-cell 版本的话，runner 的 skip-if-exists 会自动跳过它们，只跑剩下 10 个 cell。
+
+完成后人工对照 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 的 11 项 metric 闸：
 
 - F1_clean / F1_unlearn / F1_retrain 在 `[0.55, 0.85]` 范围
 - mia_auc 非 0、非 1
@@ -181,7 +185,7 @@ tar xzf phase_b_results.tar.gz
 
 ## 5. 一键脚本（懒人复制）
 
-**B.0 + B.1 一键串行**（首次跑这个，~1.5h）：
+**B.0 + B.1 一键串行**（首次跑这个，~5h）：
 ```bash
 cd ~/OpenGU/GULib-master && \
 python experiments/run.py experiments/configs/sanity_one_cell.yaml --force && \

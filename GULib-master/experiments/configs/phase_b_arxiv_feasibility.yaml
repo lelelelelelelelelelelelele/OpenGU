@@ -1,7 +1,17 @@
-# Phase B 5.3.2 — arxiv feasibility gate
-# Goal: verify each family × random × seed=42 runs to completion on arxiv
-# without OOM, with f1_before > 0.55 (per thesis_transition_memo §5.3.2.1).
-# If any family fails, document and exclude from main matrix.
+# Phase B 5.3.2 — arxiv feasibility gate (v2, 2026-05-05)
+# Goal: verify each family × {random, tracin, im} × seed=42 runs to completion
+# on arxiv without OOM, with f1_before > 0.55 (per thesis_transition_memo
+# §5.3.2.1). If any family fails, document and exclude from main matrix.
+#
+# Why 3 strategies (not just random):
+#   - random/degree/pagerank are structural; if random runs, others run
+#   - tracin and im are model-coupled and most likely to OOM on the 169K-node
+#     arxiv graph (IM builds reachability + MC sim; tracin computes gradient
+#     inner products at full-graph scale)
+#   - including them here surfaces scale bugs BEFORE committing to the 12+
+#     GPU-hour B.2 main run
+#   - skip-if-exists in run.py means re-running this yaml after the original
+#     5 random cells will only execute the 10 new (tracin+im) cells
 
 name: phase_b_arxiv_feasibility
 dataset: ogbn-arxiv
@@ -16,7 +26,9 @@ methods:
   - GraphEraser
 
 strategies:
-  - random          # cheapest selector for the gate
+  - random          # structural baseline (smoke test)
+  - tracin          # model-coupled gradient — validates large-graph backward
+  - im              # MC + reachability — most likely OOM offender
 
 seeds: [42]
 
