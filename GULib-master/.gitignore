@@ -19,3 +19,14 @@ results/selection_cache/*.json
 
 # Runtime logs (timestamped, large, regenerable)
 log/
+
+# Experiment outputs — untracked 2026-05-05 (1300+ files of pre-Phase-B,
+# bug-polluted data; Phase B regenerates clean data into results/runs/).
+# results/baseline/ retained as k=5 noise-floor reference (k=5 baseline is
+# NOT replaceable by Phase B's r=0.05 random strategy).
+results/relative/
+results/experiments/
+results/collateral/
+results/step0_validation/
+results/runs/
+results/_deprecated_tracin_bug/

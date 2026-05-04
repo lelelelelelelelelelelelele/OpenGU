@@ -165,3 +165,50 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 - 每完成一个 checkbox：勾选 + 更新 Last updated 日期
 - 每发现新的 bug / 数据问题：加到 §3
 - 每改变 4 天计划：更新 §1 + §5
+
+---
+
+## 7. Historical Appendix — `results/experiments/` 子目录对应表
+
+> 迁入日期：2026-05-05（原文件 `results/experiments/CLAUDE.md` 在 1300+ 文件 untrack 时一并删除，但 mapping 表本身保留参考价值）。
+> 数据本身因 bug（MIA AUC=0、IM Jaccard=0.13）已不可信于 paper 引用；本表仅供历史溯源。
+
+### 7.1 子目录对应表（pre-Phase-B 命名）
+
+| 子目录 | 实验内容 | 数据集 | 模型 | 备注 |
+|--------|---------|-------|------|------|
+| `mg0_completion/` | 稳定性实验（同 dataset/model 多 seed） | cora | GCN | N=5 seeds, ratio=0.05, 5 family，FIG-4b 数据源（前 3 行）|
+| `mg1_citeseer/` | 跨数据集 | citeseer | GCN | 仅 GIF/GNNDelete/GraphEraser |
+| `mg2_gat/` | 跨 backbone（GCN → GAT）| cora | GAT | 仅 GIF（部分）|
+| `mg3_citeseer/` | 跨 dataset 扩展（含 IDEA/MEGU）| citeseer | GCN | IDEA/MEGU/GIF/GNNDelete/GraphEraser |
+| `mg3_gat/` | 跨 backbone 扩展（含 IDEA/MEGU）| cora | GAT | FIG-4b 数据源（后 2 行）|
+| `p2_ext_gif_GCN/` | GIF 在 GCN 上的 ratio 敏感性 | citeseer | GCN | 仅 GIF |
+| `p2_ext_gif_GAT/` | 同上 GAT | citeseer | GAT | 仅 GIF |
+| `p2_ext_gif_GIN/` | 同上 GIN | citeseer | GIN | 仅 GIF |
+| `im_v4_compare/` | IM_v4 vs 旧 IM 性能对比 | — | — | 方法学 ablation |
+| `im_v4_probe/` | IM_v4 算法内部 probe | — | — | debug 用 |
+| `ratio_sensitivity/` | ratio sweep | citeseer | GCN/GAT/GIN | 仅 GIF，ratio={0.05, 0.1, 0.2} |
+| `_archive/` | 归档（旧批次）| — | — | 只读 |
+| `_tmp_timeout_test/` | 临时调试输出 | — | — | 可删 |
+
+### 7.2 路径模板
+
+```
+results/experiments/<group>/phase_a/<YYYYMMDD_HHMMSS>_seed<seed>/<Method>_<dataset>_<model>_r<ratio>_s<seed>.json
+```
+
+### 7.3 已知 bug 影响（这些数据为何不可直接用于 paper）
+
+- 所有 `mg0/mg1/mg3` 的 IDEA/MEGU/GraphEraser 文件中的 `mia_auc` 字段为 0.000（代码 bug，已在 Phase A 修复）
+- 所有 IM/Hybrid 类 strategy 跨 GU seed Jaccard ≈ 0.13（IM Monte-Carlo seed 未独立，已在 Phase A.4 修复）
+- 详细 bug 定位与修复说明：§3.1 / §3.3
+
+### 7.4 Phase B 命名替代（新规则）
+
+旧 `results/experiments/<group>/...` 的批次概念被废弃。Phase B 起一律用 cell-leaf 三层路径：
+
+```
+results/runs/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{N}/{attack,collateral,predictions,_meta}
+```
+
+详见 `experiments/configs/README.md`。
