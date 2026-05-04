@@ -64,7 +64,7 @@ class PartitionConstrainedLPABase(Partition):
         self.logger = logger
 
     def partition(self):
-        adj_array = nx.linalg.adjacency_matrix(self.graph).toarray().astype(np.bool)
+        adj_array = nx.linalg.adjacency_matrix(self.graph).toarray().astype(bool)  # was np.bool
         node_threshold = math.ceil(self.graph.number_of_nodes() / self.args['num_shards'] + self.args['shard_size_delta'] * (self.graph.number_of_nodes()-self.graph.number_of_nodes() / self.args['num_shards']))
 
         self.logger.info(" #. nodes: %s. LPA shard threshold: %s." % (self.graph.number_of_nodes(), node_threshold))
