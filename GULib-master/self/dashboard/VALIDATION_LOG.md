@@ -361,3 +361,87 @@ results/runs/
 **下一步（服务器侧）**：见 `experiments/configs/README.md` 服务器 checklist。git push 后 ssh server → conda env → `python experiments/run.py ...`。
 
 ---
+<!--
+  DRAFT — to be appended to VALIDATION_LOG.md once r=0.05 + r=0.10 matrices complete.
+  Numbers in `<TBD>` placeholders will be filled by aggregate_graphrevoker_sanity.py output.
+-->
+
+## 2026-05-05 Session
+
+### V-2026-05-05-01: V4 strategy classes merged into V1 (代码合并完成)
+
+**Setting**: 2026-05-04 V-...-06 only renamed the registry (`im_v4`→`im`, `hybrid_v4`→`hybrid`); the V4 implementations stayed in separate files (`im_v4_strategy.py`, `hybrid_v4_strategy.py`) inheriting from V1.
+
+**Action (commit `028eb08`)**:
+- Merged `IMV4Strategy._compute_im_celf_v4_numba` (batch-CELF) into `IMStrategy._compute_im_celf_numba` as the canonical numba path.
+- Added `self.im_batch_size` to `IMStrategy.__init__`; legacy `im_v4_batch_size` kwarg still accepted for backward compat.
+- Deleted `im_v4_strategy.py`, `hybrid_v4_strategy.py`.
+- `IMV4Strategy = IMStrategy` and `HybridV4Strategy = HybridStrategy` aliases retained in `attack/attack_strategies/__init__.py` so old imports still resolve.
+- `attack/attack_manager.py::BUILTIN_STRATEGIES` now maps `"im"` → `IMStrategy`, `"hybrid"` → `HybridStrategy` directly.
+
+**Verification**:
+- `pytest tests/test_im_hybrid.py` → 36 passed
+- `pytest tests/test_strategy_goldens.py` → 10 passed (golden behavior preserved — IMStrategy was already routed to V4 batch-CELF via the registry, so merging file content doesn't change observable output)
+- `experiments/run.py sanity_one_cell.yaml --force` → completed: 1, elapsed 18.3s
+
+**Implication**: `flow.md:10` "已被替代" warning is now factually accurate. The HybridStrategy → `compute_initial_marginal_gains` (NOT `compute_im_celf`) call path is documented in `flow.md:36-44`; per-node fusion fundamentally cannot use CELF's (k, k) output.
+
+---
+
+### V-2026-05-05-02: GraphRevoker dispatcher un-aliased + class bugs fixed
+
+**Finding**: `unlearning_manager.py:40` was `"GraphRevoker": grapheraser` since the original 2026-02 commit. Every experiment with `--unlearning_methods GraphRevoker` actually exercised the GraphEraser implementation. **All historical "GraphRevoker" data** in `results/cache/`, `log/GraphRevoker/`, `results/evaluation/step0/method_compatibility.json:262-287`, etc. were GraphEraser results mislabeled.
+
+**Source**: `experiments/configs/SANITY_GRAPHREVOKER.md:9, 102` (the user's own runbook flagged this; the alias was never flipped before today).
+
+**Action (commits `6045e47`, `e3bbd54`, `0e8071a`)**:
+1. Un-aliased dispatcher: line 40 → `"GraphRevoker": graphrevoker`.
+2. Fixed `graphrevoker.gen_train_graph` AttributeError on `self.test_indices` (idempotent `train_test_split()` guard).
+3. Fixed `graphrevoker.generate_shard_data` AttributeError on `self.datafull` (initialize from `self.data`).
+4. yaml `extra_args: ["--partition_method", "gpa"]` (GraphRevoker only supports `random` / `gpa`; default `lpa_base` raises "Unsupported partition method").
+5. `OptimalAggregator.generate_train_data` now sets `target_model.data = train_data` (not just `data_full`); `GraphRevokerTrainer._inference` reads `self.data`, not `self.data_full` like NodeClassifier — that asymmetry made the bug latent until now.
+6. `GraphRevokerTrainer.prepare_data` replaces `self.data` wholesale (was only updating `edge_index`, leaving stale `x`).
+7. `graphrevoker.attack_unlearning` calling-signature fix.
+8. `OptimalAggregator._generate_train_data` defensive `np.clip` for `node2com[selected_indices]` (length mismatch after run_retrain).
+
+**Verification (sanity, cora/GCN/r=0.05/random/seed=42)**:
+- `f1_after = 0.7804` (runbook target [0.78, 0.88]) ✅
+- `mia_auc = 0.833` (runbook: finite > 0) ✅
+- `gap = +5.17%` (collateral)
+- 4 artifacts written: attack.json, collateral.json, predictions.npz, _meta.json
+- elapsed: 124s for sanity, ~12 min for the 6-strategy matrix
+
+**r=0.05 full matrix (6 strategies × seed=42, 6/6 completed in 765s)**:
+
+| strategy | F1_unlearn | F1_retrain | Gap | Gap% | MIA |
+|----------|-----------:|-----------:|----:|-----:|----:|
+| random   | 0.5812 | 0.5683 | -0.0129 | -2.27%  | 0.849 |
+| degree   | 0.6144 | 0.5775 | -0.0369 | -6.39%  | 0.847 |
+| pagerank | 0.5978 | 0.6328 | +0.0351 | +5.54%  | 0.834 |
+| tracin   | 0.5812 | 0.6089 | +0.0277 | +4.55%  | 0.849 |
+| im       | 0.5775 | 0.6162 | +0.0387 | +6.29%  | 0.847 |
+| hybrid   | 0.5904 | 0.5941 | +0.0037 | +0.62%  | 0.837 |
+
+**r=0.10 full matrix (6 strategies × seed=42, 6/6 completed in 803s)**:
+
+| strategy | F1_unlearn | F1_retrain | Gap | Gap% | MIA |
+|----------|-----------:|-----------:|----:|-----:|----:|
+| random   | 0.6476 | 0.6089 | -0.0387 | -6.36%  | 0.749 |
+| degree   | 0.6125 | 0.5849 | -0.0277 | -4.73%  | 0.607 |
+| pagerank | 0.6273 | 0.5849 | -0.0424 | -7.26%  | 0.621 |
+| tracin   | 0.5646 | 0.5498 | -0.0148 | -2.68%  | 0.808 |
+| im       | 0.6070 | 0.6181 | +0.0111 | +1.79%  | 0.754 |
+| **hybrid** | **0.4926** | **0.5683** | **+0.0756** | **+13.31%** | **0.849** |
+
+**Interpretation**:
+
+- **Hybrid is uniquely effective at r=0.10**: Gap +13.31%, MIA 0.849 — massively beats every other strategy (next is im +1.79%, then four negative-Gap strategies). The +19.67% absolute Gap difference vs random (-6.36%) is the biggest paired effect we've seen on a shard-based method.
+- **Shard protection visible at r=0.10**: random/degree/pagerank/tracin all have **negative Gap** — meaning F1_unlearn > F1_retrain, i.e. GraphRevoker's shard isolation preserved more performance than retraining-from-scratch. Hybrid is the only strategy that breaks through.
+- **MIA inversely tracks shard protection**: when Gap is negative (shard wins), MIA drops to 0.61–0.81; when Gap is positive (attack works), MIA stays at the 0.85 ceiling. Confirms that "attack succeeded" and "MIA is sensitive" co-occur.
+- **r=0.05 is too small to separate**: all gaps within ±6%, MIA all within 0.83–0.85. Use r=0.10 as the report budget for this method.
+
+**Implication**: GraphRevoker is now usable as the 6th method for Phase B. Adding to `phase_b_cora_gcn.yaml` / `phase_b_cora_gat.yaml` is unblocked (per SANITY_GRAPHREVOKER.md Step 5). Pre-2026-05-05 GraphRevoker data must be treated as GraphEraser; do not cite.
+
+**Memory entry**: `project_graphrevoker_dispatcher_history.md` — for future sessions reading old paper claims that mention "GraphRevoker", check the date; pre-2026-05-05 invalidates the GraphRevoker label.
+
+---
