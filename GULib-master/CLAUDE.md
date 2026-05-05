@@ -127,23 +127,42 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
 - `scripts/evaluation/HOWTO_REPAIR_CORRUPTED_RESULTS.md`: Bug 修复后数据刷新指南
 
-### ⚠ Active Bugs (2026-05-03)
+### ⚠ Active Bugs / Status (2026-05-05)
 
-Detailed status & fix plan in `self/dashboard/EXPERIMENT_DASHBOARD.md §3`. Quick summary:
+Detailed: `self/dashboard/EXPERIMENT_DASHBOARD.md §3` + `self/limitations.md` (paper §5 candidates).
 
-- **MIA AUC = 0.000** on MEGU / IDEA / GraphEraser-shard family — three places have MIA call commented out:
-  - `unlearning/unlearning_methods/MEGU/megu.py:140`
-  - `unlearning/unlearning_methods/IDEA/idea.py:107` (and surrounding attack block lines 88–114)
-  - `pipeline/Shard_based_pipeline.py:177`
-  - GIF / GNNDelete MIA work correctly (not affected). All affected `mia_auc=0.000` values in existing JSON are bug pollution, NOT real measurements.
-- **IM_v4 selector instability**: Jaccard ≈ 0.13 across 5 GU seeds — MC randomness not decoupled from training seed. Fix planned (Phase A.4).
-- **FIG-4b mixed configs**: GIF/GNNDelete/GraphEraser rows from cora/GCN, IDEA/MEGU rows from cora/GAT — see `scripts/evaluation/generate_figures.py:33-37`.
+- **arxiv collateral retrain OOM on 24GB GPU**: peak memory ~22 GB, 4090 边缘 OOM。3/5 B.1 cell（GIF/GNNDelete/IDEA random）缺 collateral.json，待 H800 80GB 上 5 min 补完。详见 `self/limitations.md` 隐含在 L2.
+- **TracIn G-matrix on arxiv = ~68 GB**: 必须 ≥80GB GPU（H800/A100 80GB）。L2 in `self/limitations.md`. Forward-once optimization (commit `6b7285b`) keeps memory the same, only halves time.
+- **IM CELF default params on arxiv = intractable**: yaml 默认未带 `candidate_fraction=0.1, mc_rounds=50` 时 step-1 要 9M MC BFS，10h+ 不出结果。修复后 ~3 min。L3 in limitations.md.
+- **GraphEraser LPA partition on arxiv slow but feasible**: 10 min/iter，但 `terminate_delta=0` 早停在 1-2 iter ≈ 10 min total。L1 (downgraded to ACCEPTED).
+- **MIA CPU-bound**: GraphEraser MIA 6 min × 2 rounds (positive + negative samples) per cell。GPU 这段 idle。L5.
+
+Resolved (2026-05-05):
+- IM_v4 selector instability — fixed, `im_selector_seed=2024` 固定，`attack_manager.py:_build_selection_config` 锚到 selector seed 而非训练 seed (commit `af1c8ba`)。
+- B.1 yaml 误把 selection 测试塞进 GU 稳定性测试 — 回滚到 random-only (commit `6b7285b`)。L4.
+- MIA AUC = 0.000 修复（earlier commits）— 现在 GIF/GNNDelete/MEGU/IDEA/GraphEraser 都返非零 AUC。
+
+### Phase B 工具集（2026-05-05 添加）
+
+| 脚本 | 用途 |
+|---|---|
+| `scripts/feasibility_selection_only.py` | 探针：`--candidate_subset_size N` 限流测内存/时间，外推全量需求 |
+| `scripts/prewarm_selection_cache.py` | 批量算 selection 写 `results/selection_cache/`，跨机器复用 |
+| `scripts/gate_runs.py` | 自动 pass/fail 判 yaml 矩阵：4 文件 + mia_auc + f1 范围 |
+| `scripts/diag_b1.sh` | 一键看 cell 输出列表 + log 错误尾（不在 git，需 cat 创建） |
+| `scripts/redo_collateral.sh` | 补 OOM 失败的 collateral cell（不在 git，需 cat 创建） |
+| `experiments/run.py` | 主 runner：吃 yaml，展开 (method,strategy,seed) 矩阵跑 demo_attack + eval_collateral |
+| `SERVER_RUNBOOK.md` | 双机执行手册（4090 cora + H800 arxiv） |
+| `self/attack_flow.md` | 一个 cell 时序拆解 + CPU/GPU 占用图 |
+| `self/limitations.md` | paper §5 candidates：实测瓶颈 + decision status |
 
 ## Project Context (Attack Research)
 
 This project is developing **adversarial attacks on GNN unlearning**. The core idea: strategically select nodes for forced unlearning to cause performance collapse in approximate unlearning algorithms. See `self/` directory for detailed context:
 
 - **`self/dashboard/`**: live state — start here every session
+- **`self/limitations.md`**: 实测瓶颈 + paper §5 candidates（2026-05-05 新增，每条带 evidence + decision status）
+- **`self/attack_flow.md`**: 一个 cell 时序图 + CPU/GPU 占用（2026-05-05 新增，调试卡死位置必看）
 - `self/thesis_transition_memo.md`: thesis 战略层 + 4-day NeurIPS execution plan
 - `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology (frozen background)
 - `self/plan_flow_v2_delta.md`: 方法学/指标设计原典

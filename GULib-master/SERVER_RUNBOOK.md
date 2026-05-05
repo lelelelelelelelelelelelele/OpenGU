@@ -1,22 +1,19 @@
-# 服务器执行手册 v2 — Phase B 执行
+# 服务器执行手册 v3 — 双机 Phase B 执行
 
-> 创建: 2026-05-04 · 更新: 2026-05-05
+> 创建: 2026-05-04 · 大改: 2026-05-05（双机版）
 > NeurIPS 截稿: 2026-05-07（剩 2 天）
-> 状态：env + clone ✅ 已完成 → 现在跑 Phase B
+> 当前状态：B.0 ✅ + B.1 attack ✅ + B.1.5 探针 ✅ → 待 H800 切换 → B.1 collateral 补 → B.2
 
 ---
 
-## ✅ 已完成（简略）
+## ✅ 已完成（环境层）
 
 | 项 | 状态 |
 |---|---|
-| 代码 | `~/OpenGU/GULib-master` @ `nips-prep` |
+| 代码 | `~/autodl-fs/OpenGU/GULib-master` @ `nips-prep` |
 | Python / torch | 3.10 / 2.1.2+cu118 |
 | PyG / scatter / sparse | 2.6.1 / 2.1.2 / 0.6.18 |
-| GPU | NVIDIA RTX 4090, cuda True |
-| 缓存清理 | 全新 clone，无污染数据，**跳过** |
-
-> 重新部署的话见 §A 附录。
+| 当前 GPU | RTX 4090 24GB（用于 cora 部分；arxiv 太小）|
 
 ---
 
@@ -24,15 +21,13 @@
 
 ### 0.1 ssh 进来后三连
 
-学术加速（pip/git 5-10x）+ cd 项目 + 进或建 tmux：
-
 ```bash
 source /etc/network_turbo
-cd ~/OpenGU/GULib-master
+cd ~/autodl-fs/OpenGU/GULib-master
 tmux attach -t phaseB || tmux new -s phaseB
 ```
 
-### 0.2 同步代码（每次本地 push 后）
+### 0.2 同步代码
 
 ```bash
 git pull --ff-only && git log --oneline -5
@@ -53,9 +48,9 @@ git pull --ff-only && git log --oneline -5
 
 ### 0.4 紧急停止跑飞的任务
 
-**前台任务**（在 tmux 里跑的）：按 `Ctrl+C` 一次；卡 numba/CUDA 不响应再 `Ctrl+\`（SIGQUIT 强退）。
+前台 tmux 任务：`Ctrl+C` → 不响应再 `Ctrl+\`。
 
-**后台 nohup 任务**：先找 PID 再 kill：
+后台 nohup：
 
 ```bash
 ps -ef | grep -E "run\.py|prewarm" | grep -v grep
@@ -63,21 +58,21 @@ kill <PID>
 kill -9 <PID>
 ```
 
-**一键全杀**（按命令模式匹配，谨慎）：
+按命令模式批杀：
 
 ```bash
 pkill -f "experiments/run.py"
 pkill -f "prewarm_selection_cache"
 ```
 
-**看 GPU 状态**：
+GPU 状态：
 
 ```bash
 nvidia-smi
 watch -n 2 nvidia-smi
 ```
 
-### 0.5 清缓存（污染或 key 变更后）
+### 0.5 清缓存
 
 只清 selection_cache（大多数情况这就够了）：
 
@@ -109,40 +104,129 @@ du -sh results/
 
 依次：实时日志 / 进度计数 / cache 命中数 / 磁盘剩余 / 实验产出占用。
 
----
-
-## 1. tmux 工作流（每次 ssh 后第一件事）⭐
-
-### 1.1 初次创建会话
+### 0.8 一键诊断 + gate
 
 ```bash
-# autodl 镜像没预装 tmux，第一次先装一下（root 默认，无需 sudo）
-which tmux || apt update && apt install -y tmux
-
-source /etc/network_turbo                  # 学术加速（每次 ssh 都要）
-tmux new -s phaseB
-# 进 tmux 后底栏出现绿条 [phaseB] 表示成功
+bash scripts/diag_b1.sh                              # 当前 cell 输出列表 + log 错误尾
+python scripts/gate_runs.py <yaml> [--f1-min N --f1-max M]   # 自动 pass/fail
 ```
 
-> apt 卡的话备选：`screen -S phaseB`（多数镜像预装），detach 是 `Ctrl-a d`，重连 `screen -r phaseB`。
+---
 
-### 1.2 关键操作
+## 1. 双机执行计划（核心架构）⭐
 
-| 动作 | 按键 | 说明 |
-|---|---|---|
-| **挂后台**（detach） | `Ctrl-b` 然后 `d` | VSCode 里先点一下 terminal 确保焦点 |
-| 关 SSH / 关电脑 | — | 服务器上 tmux 继续跑 |
-| **重新进会话** | `tmux attach -t phaseB` | 下次 ssh 进去后跑这个 |
-| 列出所有会话 | `tmux ls` | |
-| 在会话里开新 window | `Ctrl-b` 然后 `c` | 想并行跑监控时用 |
-| 切 window | `Ctrl-b` 然后 `n` (下一个) / `p` (上一个) | |
-| 关掉某个 window | `exit` 或 `Ctrl-d` | |
+**两台机器并行**，各跑各的数据集，互不冲突（不同 dataset → 不同 cache key、不同 results 目录）。
 
-### 1.3 VSCode 用户特殊提示
+### 1.1 分工
 
-VSCode 的 `Ctrl-B` 默认是侧边栏切换，会拦截 tmux prefix。**先用鼠标点一下 terminal**确保焦点在 terminal 再按 Ctrl-b。
+| 机器 | GPU | 显存 | 角色 | 跑的内容 | 估时 |
+|---|---|---|---|---|---|
+| **机器 A** | RTX 4090 | 24 GB | cora 数据集 | B.3 cora_GCN + B.4 cora_GAT（300 cell）| ~6-10h |
+| **机器 B** | H800 / A100 80G | 80 GB | arxiv 数据集 | B.1 collateral 补 + B.1.5 prewarm + B.2（36 cell）| ~25h |
 
-不想这样就改 prefix（在服务器一次性配置）：
+> 机器 A 是当前实例（4090，已经跑过 B.1 attack）。机器 B 用**保存镜像**克隆系统盘到新实例（不重装环境）。
+
+### 1.2 为什么必须两机
+
+arxiv 上：
+- TracIn G-matrix peak ~68 GB → **24GB 卡 OOM**
+- collateral retrain peak ~22 GB → **24GB 卡边缘 OOM**
+
+cora 上：
+- 全套都 < 4GB → 4090 完全够，且每 cell <1 min 用 H800 浪费
+
+### 1.3 数据合并
+
+各自写不同子目录，不冲突：
+- 机器 A 写 `results/runs/cora_GCN_r0.05/`、`cora_GAT_r0.05/`
+- 机器 B 写 `results/runs/ogbn-arxiv_GCN_r0.05/`
+
+跑完两边各 `tar` 一份 scp 回本地合并。
+
+---
+
+## 2. 进度快照（2026-05-05 23:00 更新）
+
+### B.0 sanity ✅
+
+```
+cora/GCN/GIF/random/seed42 — 20s 跑完
+attack.json + collateral.json + predictions.npz + _meta.json 四件齐
+mia_auc=0.592, f1_before=0.884
+```
+
+### B.1 attack 部分 ✅（5/5 cell 都有 attack.json）
+
+```
+results/runs/ogbn-arxiv_GCN_r0.05/
+  GIF_random/seed42/attack.json          (140K, 16:18)
+  GNNDelete_random/seed42/attack.json    (140K, 16:19)
+  IDEA_random/seed42/attack.json         (140K, 16:20)
+  GraphEraser_random/seed42/attack.json  (140K, 16:51)
+  MEGU_random/seed42/attack.json         (140K, 03:06，旧但有效)
+```
+
+attack 阶段（selection + unlearn + MIA）**全员通过**，5 个 method 在 169K 节点 arxiv 上都能跑完。
+
+### B.1 collateral 部分 ⚠（2/5，3 个 OOM 待 H800 上解决）
+
+```
+GraphEraser_random/seed42/collateral.json  (1K, 17:51 — 完整)
+MEGU_random/seed42/collateral.json         (1K, 03:07 — 旧但有效)
+GIF_random/seed42                          ❌ 缺（OOM during retrain）
+GNNDelete_random/seed42                    ❌ 缺（OOM during retrain）
+IDEA_random/seed42                         ❌ 缺（OOM during retrain）
+```
+
+OOM 错：`Tried to allocate 1.81 GiB on 23.52 GiB total`。retrain peak ~22 GB，4090 24GB 边缘失败。**待机器 B（H800 80GB）切换后 5 min 补完**，详见 §5.3。
+
+### B.1.5 探针 ✅（arxiv tracin 显存外推）
+
+```bash
+python scripts/feasibility_selection_only.py \
+    --dataset_name ogbn-arxiv --base_model GCN \
+    --gcn_num_layers 3 --gcn_hidden 256 \
+    --candidate_subset_size 1000 --strategies tracin
+```
+
+输出：
+
+```
+[init] num_nodes=169343  edges=2315598  train=135474  device=cuda
+[probe] subset=1000, ratio=0.0074, k=500
+tracin   0   36.07s   5931.7 MB peak   top-5: [29875, 110788, 108125, 128381, 106199]
+```
+
+**真实显存外推**（修正 probe 脚本里的线性外推 bug 后）：
+- per-grad 内存：~440 KB
+- forward 计算图常驻：~7-8 GB
+- 全量 N=135474：**~68 GB peak** → A100/H800 80GB 够用，**留 ~12 GB 缓冲**
+- 全量时间：**~81 min/cell** on 4090（H800 上估 ~50 min）
+
+> 探针脚本输出了 "OOM 785 GB" 的吓人数字，但那是把固定 forward 开销错误线性外推得到的。实际是 ~68 GB。
+
+### B.2 + B.3 + B.4 ⏳ 待启
+
+需要先切到 H800 + 补 collateral，详见 §4 / §5。
+
+---
+
+## 3. tmux 工作流（每次 ssh 后第一件事）
+
+### 3.1 初次创建会话
+
+```bash
+which tmux || apt update && apt install -y tmux
+source /etc/network_turbo
+tmux new -s phaseB
+```
+
+> apt 卡的话备选 `screen -S phaseB`，detach 是 `Ctrl-a d`。
+
+### 3.2 VSCode 用户特殊提示
+
+VSCode 的 `Ctrl-B` 默认是侧边栏切换，会拦截 tmux prefix。**先用鼠标点一下 terminal** 再按 Ctrl-b。或者一次性配置改 prefix：
+
 ```bash
 cat > ~/.tmux.conf <<'EOF'
 set -g prefix C-a
@@ -151,230 +235,287 @@ bind C-a send-prefix
 EOF
 tmux kill-server && tmux new -s phaseB
 ```
-之后所有 `Ctrl-b` 改成 `Ctrl-a`。
+
+### 3.3 history 调大（避免 OOM 时翻不到 traceback）
+
+```bash
+echo 'set -g history-limit 50000' >> ~/.tmux.conf
+tmux source-file ~/.tmux.conf
+```
 
 ---
 
-## 2. Phase B 五步检查点（按顺序，B.1 后停一下）
+## 4. 机器 A（4090）— cora workload
 
-每步前都先确认：
-- 在 `~/OpenGU/GULib-master`
-- 在 tmux `phaseB` 会话里（底栏看到 `[phaseB]`）
+当前实例已在跑/即将跑。
 
-### B.0 · Sanity（~20 秒）
+### 4.1 启 B.3 cora_GCN（150 cell, ~3-5h）
 
 ```bash
-python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
-python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml
+cd ~/autodl-fs/OpenGU/GULib-master
+git pull --ff-only
+
+# nohup 后台
+mkdir -p logs
+nohup python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml \
+    > logs/phase_b_cora_gcn_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/phase_b_cora_gcn.pid
+
+# detach 出 tmux
+# Ctrl-b d
 ```
 
-第二行 `gate_runs.py` 自动检 4 文件存在 + `mia_auc ∈ (0.001, 0.999)` + `f1_before` 落在 `[0, 1]`。退出码 0 = ✅ 进 B.1；退出码 1 = ❌ 停下问我（gate 会列出具体哪条没过）。
-
-### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
+### 4.2 监控
 
 ```bash
-python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
+tail -f logs/phase_b_cora_gcn_*.log
+ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l    # 期望 150
+ls results/runs/cora_GCN_r0.05/*/seed*/collateral.json | wc -l # 期望 150
 ```
 
-**v3 矩阵（2026-05-05 起）**：5 cells = 5 method × **random** × seed=42。**仅测 GU 管线稳定性**（base train → unlearn → retrain → MIA 在 169K 节点图上不挂）。策略可行性（tracin OOM 风险、IM MC 时间）独立测试，见下面 §B.1.5。
-
-> v2 (commit 81733b2) 把 tracin/im 也塞进来 × 5 method 是设计错误——selection 与 GU method 解耦（cross-method SelectionCache），tracin × 5 method 里有 4 个 cell 重复劳动。已在 commit 6b7285b 回滚。
-
-> 已跑过的 5 个 random cell 仍然有效，runner 的 skip-if-exists 会跳过；首次跑大约 1.5h。
-
-完成后跑 gate（自动检 5 cell × 11 项 = 55 项，~1 秒出结果）：
+### 4.3 跑完后 launch B.4 cora_GAT
 
 ```bash
+nohup python experiments/run.py experiments/configs/phase_b_cora_gat.yaml \
+    > logs/phase_b_cora_gat_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/phase_b_cora_gat.pid
+```
+
+### 4.4 跑完后 gate
+
+```bash
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gcn.yaml
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gat.yaml
+```
+
+期望 150/150 PASS 各自一份。
+
+### 4.5 数据打包
+
+```bash
+tar czf cora_results.tar.gz results/runs/cora_GCN_r0.05 results/runs/cora_GAT_r0.05
+```
+
+---
+
+## 5. 机器 B（H800 80GB）— arxiv workload
+
+### 5.1 镜像保存与切换（**必做**，省去重装环境）
+
+**当前 4090 实例**上：
+
+```
+autodl 控制台 → 实例 → 更多操作 → 保存镜像
+镜像名建议: gnn-pytorch-2.1-cu118-2026-05-05
+```
+
+保存耗时 10-30 min，~¥0.3-0.5/天存储费。期间可以正常跑 B.3。
+
+**创建 H800 新实例**：
+
+```
+autodl 控制台 → 创建实例 → 选 H800 80G
+镜像选: 我的镜像 → 选刚保存的
+GPU 数量: 1
+计费: 按量
+```
+
+> 不选 PRO 6000：那是 Blackwell sm_100，PyTorch 2.1+cu118 不支持。
+> 不选 vGPU/A6000：48GB 显存不够 tracin 的 ~68 GB 需求。
+
+### 5.2 H800 上首次连进去验证
+
+```bash
+ssh ...new-h800-instance
+source /etc/network_turbo
+cd ~/autodl-fs/OpenGU/GULib-master
+
+# 验证 GPU + env 都齐
+nvidia-smi                                  # 看到 H800 + 80GB
+python -c "import torch; print(torch.__version__, torch.cuda.is_available()); torch.zeros(1).cuda()"
+                                            # 应输出 'True' + 无 'no kernel image' 错
+git pull --ff-only && git log --oneline -3
+tmux new -s phaseB
+```
+
+### 5.3 补 B.1 三个 OOM 的 collateral（~5 min）
+
+cat 一个补数脚本进去（系统盘转过来后是不存在的，因为本地写过没 commit）：
+
+```bash
+cat > scripts/redo_collateral.sh << 'EOF'
+#!/bin/bash
+EXTRA="--num_epochs 200 --batch_size 256 --gcn_num_layers 3 --gcn_hidden 256"
+for method in GIF GNNDelete IDEA GraphEraser MEGU; do
+    out="results/runs/ogbn-arxiv_GCN_r0.05/${method}_random/seed42"
+    if [ -f "$out/collateral.json" ] && [ "$(du -k "$out/collateral.json" | cut -f1)" -gt 0 ]; then
+        echo "[skip] $method"
+        continue
+    fi
+    echo "[run] $method"
+    python eval_collateral.py \
+        --dataset_name ogbn-arxiv --base_model GCN \
+        --unlearning_methods $method --strategies random \
+        --unlearn_ratio 0.05 --random_seed 42 \
+        --cuda 0 --save_predictions \
+        --output_dir "$out" \
+        $EXTRA 2>&1 | tee -a /tmp/redo_collateral.log
+done
+EOF
+bash scripts/redo_collateral.sh
+```
+
+H800 80GB 上单 cell retrain ~30s × 3 = ~2 min 完事。
+
+### 5.4 验证 + gate B.1
+
+```bash
+bash scripts/diag_b1.sh
 python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml \
     --f1-min 0.55 --f1-max 0.85
 ```
 
-`--f1-min/--f1-max` 是 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 给 arxiv 设的范围。退出码 0 = ✅ 全部通过；退出码 1 = ❌ 停下问我（脚本会列出每个失败 cell 的具体原因，把那段输出粘给我即可）。
+期望：5/5 attack + 5/5 collateral + 5/5 predictions，gate exit 0。
 
-**fail 不要进 B.2** —— B.2 是 12+ GPU-h，跑废了租金最痛。
-
-✅ 通过 → 进 B.1.5（分卡）或直接 B.2（单卡）
-
-### B.1.5 · 分卡省钱：prewarm selection cache（可选，推荐）⭐ 新
-
-**适用场景**：B.1 通过、想跑 B.2，但 tracin 在 arxiv 上需要 ~150min/cell × 9 cell ≈ 22h 大卡。把 selection（贵卡需求）和 GU+retrain+MIA（4090 就够）拆到两台机器。
-
-**省的钱**：A100 80GB × 6h（仅 selection）+ 4090 × 11h（仅 GU）≈ $20 vs A100 全程 ≈ $42。
-
-#### 先决条件：清空旧 selection cache
-
-旧 cache 文件可能用了老的 key 方案（IM 在 2026-05-05 commit `af1c8ba` 前 key 含训练 seed），保留它们不会出错但占空间且容易混淆。**Phase B 开始前清一次**：
+### 5.5 探针验 H800 真实显存（~5 min，可选但建议）
 
 ```bash
-cd ~/OpenGU/GULib-master
-ls results/selection_cache/*.json 2>/dev/null | wc -l    # 看有多少
-find results/selection_cache -name '*.json' -delete       # 只删 json，保 CLAUDE.md
-ls results/selection_cache/                               # 验证只剩 CLAUDE.md
-```
-
-> ⚠ **不要**碰 `results/runs/`（B.1a 的 5 个 random cell 在里面）和 `data/processed/`（数据集 split 缓存，重生不必要）。
-
-#### Stage 1: 在 A100 80GB 上算 selection（~6h）
-
-```bash
-# 探针先确认 tracin 不会 OOM（~2 min）
 python scripts/feasibility_selection_only.py \
     --dataset_name ogbn-arxiv --base_model GCN \
     --gcn_num_layers 3 --gcn_hidden 256 \
     --candidate_subset_size 1000 --strategies tracin
-
-# 看输出 [extrapolation] 行的 mem_full(GB)：
-#   <22 → 4090 也够，跳过分卡，直接走 B.2 单卡
-#   22–44 → 租 A6000 48GB
-#   >44   → 租 A100 80GB ⭐ 当前估计就在这一档
-
-# 全量 prewarm（10 个独立 selection 计算，~6h）
-nohup python scripts/prewarm_selection_cache.py \
-    experiments/configs/phase_b_arxiv.yaml \
-    > logs/prewarm.log 2>&1 &
-echo $! > logs/prewarm.pid
-tail -f logs/prewarm.log     # 监控
-
-# 完成后打包（~5 MB tarball）
-tar czf selection_cache.tar.gz results/selection_cache/
-ls -lh selection_cache.tar.gz
 ```
 
-#### Stage 2: scp 到 4090
+看 peak_mem(MB)：在 4090 上 ~5.9 GB，H800 上数字应类似（机器无关）。外推 mem_full ~68 GB，<80 GB 的 H800 容量 → ✅ 安全。
 
-```bash
-# 在本地 PowerShell 中转
-scp a100-host:~/OpenGU/GULib-master/selection_cache.tar.gz .
-scp selection_cache.tar.gz 4090-host:~/OpenGU/GULib-master/
-
-# 或两台之间直传（autodl 实例间同区域）
-# 在 4090 上：scp a100-host:~/.../selection_cache.tar.gz .
-```
-
-#### Stage 3: 在 4090 上跑 GU（~11h，全 cache hit）
-
-```bash
-cd ~/OpenGU/GULib-master
-git pull                                    # 确保代码同步
-tar xzf selection_cache.tar.gz              # 解压 cache
-ls results/selection_cache/*.json | wc -l   # 看到 ~10 个文件就对
-
-# 跑 B.2 主矩阵 — selection 全部 HIT，只跑 GU + retrain + MIA
-nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
-    > logs/phase_b_arxiv.log 2>&1 &
-echo $! > logs/phase_b_arxiv.pid
-
-# 监控（应该看到大量 "[SelectionCache] HIT"，每个 selection 复用时间 < 1ms）
-grep -c "SelectionCache.*HIT" logs/phase_b_arxiv.log
-```
-
-✅ 进度满 36 cell → 进 B.3/B.4
-
----
-
-### B.2 · arxiv 主矩阵（~12-30 GPU-h）💰 最贵（如不分卡）
-
-**用 nohup 跑后台，断 SSH 不影响**：
+### 5.6 launch B.2（~22-25h）
 
 ```bash
 mkdir -p logs
 nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
-    > logs/phase_b_arxiv.log 2>&1 &
+    > logs/phase_b_arxiv_$(date +%Y%m%d_%H%M).log 2>&1 &
 echo $! > logs/phase_b_arxiv.pid
+echo "PID: $(cat logs/phase_b_arxiv.pid)"
+
+# Ctrl-b d detach 出 tmux
 ```
 
-36 cells = 3 method × 4 strategy × 3 seed。
+36 cell = 3 method × 4 strategy × 3 seed。预计：
+- 9 random cell × ~10 min = 1.5h
+- 9 im cell × ~3 min = 0.5h
+- 9 tracin cell × ~50 min = 7.5h
+- 9 hybrid cell × ~50 min = 7.5h
+- 加 GU+retrain+MIA per cell ~20 min × 36 = 12h
+- **总计 ~25-30h on H800 80GB**，¥6-13/h × 25h ≈ **¥150-325**
 
-**监控**（在 tmux 别的 window 里）：
+### 5.7 监控（detach 后或新窗格）
+
 ```bash
-tail -f logs/phase_b_arxiv.log              # 实时日志
-ls results/runs/ogbn-arxiv_*/*/seed*/attack.json | wc -l    # 进度，最终 36
+tail -f logs/phase_b_arxiv_*.log
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed*/attack.json | wc -l    # 期望 36
+grep -c "SelectionCache.*HIT" logs/phase_b_arxiv_*.log                # 看 cache 命中
+nvidia-smi                                                              # GPU 状态
 ```
 
-✅ 完成 → 进 B.3 / B.4
+### 5.8 跑完后 gate
 
-### B.3 / B.4 · cora 全矩阵（各 ~75–90 min）
-
-**单卡**情况，B.2 跑完后串行：
 ```bash
-python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
-python experiments/run.py experiments/configs/phase_b_cora_gat.yaml
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv.yaml --f1-min 0.55 --f1-max 0.85
 ```
 
-**双卡**情况（autodl 双卡实例），跟 B.2 并行：
-```bash
-# 新开一个 tmux window: Ctrl-b c
-CUDA_VISIBLE_DEVICES=1 nohup python experiments/run.py \
-    experiments/configs/phase_b_cora_gcn.yaml > logs/cora_gcn.log 2>&1 &
-```
+### 5.9 数据打包
 
-每个矩阵 150 cells，验证：
 ```bash
-ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l    # 期望 150
-ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l    # 期望 150
+tar czf arxiv_results.tar.gz results/runs/ogbn-arxiv_GCN_r0.05
 ```
 
 ---
 
-## 3. 数据回收（跑完之后）
+## 6. 数据回收（两机都跑完之后）
 
-服务器：
+机器 A 上：
+
 ```bash
-cd ~/OpenGU/GULib-master
-tar czf phase_b_results.tar.gz results/runs/
-ls -lh phase_b_results.tar.gz       # 看大小，估计几十 MB ~ 几百 MB
+cd ~/autodl-fs/OpenGU/GULib-master
+tar czf cora_results.tar.gz results/runs/cora_GCN_r0.05 results/runs/cora_GAT_r0.05
+ls -lh cora_results.tar.gz
 ```
 
-本地（PowerShell）：
+机器 B 上：
+
+```bash
+cd ~/autodl-fs/OpenGU/GULib-master
+tar czf arxiv_results.tar.gz results/runs/ogbn-arxiv_GCN_r0.05
+ls -lh arxiv_results.tar.gz
+```
+
+本地 PowerShell 拉两个 tarball：
+
 ```powershell
-scp user@host:~/OpenGU/GULib-master/phase_b_results.tar.gz H:\project\OpenGU\GULib-master\
+scp 4090-host:~/autodl-fs/OpenGU/GULib-master/cora_results.tar.gz H:\project\OpenGU\GULib-master\
+scp h800-host:~/autodl-fs/OpenGU/GULib-master/arxiv_results.tar.gz H:\project\OpenGU\GULib-master\
 cd H:\project\OpenGU\GULib-master
-tar xzf phase_b_results.tar.gz
+tar xzf cora_results.tar.gz
+tar xzf arxiv_results.tar.gz
 ```
 
-回到本地告诉我 "phase B 数据回来了"，我跑 Phase C（重画 figure、Table 1 数字填入、abstract refresh）。
+通知我"phase B 数据回来了" → Phase C（重画 figure、Table 1 数字、abstract refresh）。
 
 ---
 
-## 4. 故障速查
+## 7. 故障速查
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `mia_auc: 0.000` 在 B.0 输出里 | bug 没修干净或缓存污染 | `find results/cache results/selection_cache -name '*.json' -delete`，再 `--force` 重跑 |
-| 4090 跑 B.2 没看到 `[SelectionCache] HIT` | selection_cache.tar.gz 没解压或解压到错地方 | 在 GULib-master 根目录跑 `tar xzf selection_cache.tar.gz`，再 `ls results/selection_cache/*.json` 应有 ~10 个文件 |
-| `ImportError: torch_scatter` | wheel mismatch | 用 `-f https://data.pyg.org/whl/torch-2.1.2+cu118.html` 重装 |
-| B.1 metric 闸不过 | 真 bug 或数据问题 | **停下**，把 `attack.json` + `_meta.json` 发我 |
-| SSH 断了 nohup 任务停了 | 没用 nohup | 必须用 §2 B.2 那种 `nohup ... &` 写法 |
-| tmux 找不到会话 | 实例重启 | 实例如果停过电，所有 tmux 会话都没了；重 `tmux new -s phaseB` |
+| `Error during unlearning: CUDA out of memory` | retrain 显存不够（24GB 卡上 arxiv） | 切到 H800 80GB；或 `--gcn_hidden 128` 降配 |
+| `no kernel image is available for execution on the device` | GPU 架构 PyTorch 不支持（如 Blackwell + cu118） | 换 H800/A100 (sm_90)，或装 PyTorch 2.4+cu124 |
+| `ImportError: torch_scatter` | wheel mismatch | `pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.1.2+cu118.html` |
+| 4090 跑 B.2 没看到 `[SelectionCache] HIT` | cache 不在或解压到错地方 | 在 GULib-master 根目录 `tar xzf selection_cache.tar.gz` |
+| B.1 gate FAIL | 看具体哪 cell 哪条没过，按 OOM 处理或贴给我 | `python scripts/gate_runs.py xxx.yaml` 输出会列原因 |
+| SSH 断了任务停了 | 没用 nohup | 必须用 §5.6 那种 `nohup ... &` 写法 |
+| tmux 找不到会话 | 实例重启 | autodl 实例如果停过电，所有 tmux 会话都没了；重 `tmux new -s phaseB` |
 | 磁盘满 | results/runs 涨太快 | `du -sh results/*` 看哪个大；arxiv 结果可能 10+GB |
+| 翻不到 OOM 日志 | tmux 默认 history 2000 行 | §3.3 调到 50000；或后台用 `tee /tmp/log.txt` |
 | autodl 实例显示"运行中"但 ssh 不上 | 网络抽风 | 控制台"重启实例"，**注意会杀掉所有 tmux 会话** |
 
 ---
 
-## 5. 一键脚本（懒人复制）
+## 8. 一键脚本（懒人复制）
 
-**B.0 + B.1 一键串行**（首次跑这个，~5h）：
+### 8.1 机器 A：cora 全跑（B.3 + B.4 串行，~6-10h）
+
 ```bash
-cd ~/OpenGU/GULib-master && \
-python experiments/run.py experiments/configs/sanity_one_cell.yaml --force && \
-python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml && \
-echo "B.0 + B.1 完成，停下来人工看 11 项 metric 闸"
+cd ~/autodl-fs/OpenGU/GULib-master && \
+mkdir -p logs && \
+nohup bash -c '
+python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml && \
+python experiments/run.py experiments/configs/phase_b_cora_gat.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gcn.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gat.yaml
+' > logs/cora_full_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/cora_full.pid
 ```
 
-**B.2 后台启动 + PID 记录**：
+### 8.2 机器 B：B.1 补 + 探针 + B.2 一键串
+
 ```bash
+cd ~/autodl-fs/OpenGU/GULib-master && \
+git pull --ff-only && \
 mkdir -p logs && \
-nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
-    > logs/phase_b_arxiv.log 2>&1 & \
-echo $! > logs/phase_b_arxiv.pid && \
-echo "PID: $(cat logs/phase_b_arxiv.pid)，tail -f logs/phase_b_arxiv.log 监控"
+nohup bash -c '
+bash scripts/redo_collateral.sh && \
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml --f1-min 0.55 --f1-max 0.85 && \
+python experiments/run.py experiments/configs/phase_b_arxiv.yaml
+' > logs/h800_full_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/h800_full.pid
 ```
 
 ---
 
 ## A. 附录：首次部署（已完成，仅供参考）
 
-部署一台**新**服务器从零到现在状态的步骤。你这次已经走完了，重新部署或换机器再用。
+部署一台**新**服务器从零到现在状态的步骤。镜像方案下不再需要，但万一镜像丢了用得上。
 
 ### A.1 拿代码
 
@@ -404,7 +545,7 @@ python -c "import torch; print(torch.__version__, 'cuda:', torch.cuda.is_availab
 ```bash
 pip install torch_scatter==2.1.2 torch_sparse==0.6.18 \
     -f https://data.pyg.org/whl/torch-2.1.2+cu118.html
-cd ~/OpenGU
+cd ~/OpenGU/GULib-master
 pip install -r requirements.txt
 ```
 
