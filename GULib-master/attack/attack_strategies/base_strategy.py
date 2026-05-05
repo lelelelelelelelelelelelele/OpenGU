@@ -5,6 +5,12 @@ from torch_geometric.data import Data
 
 
 class BaseStrategy(ABC):
+    # Whether select_nodes needs the `model` argument to be a trained GNN
+    # rather than a random-init one. AttackPipeline reads this to decide
+    # whether to run base-model training before calling select_nodes.
+    # Subclasses that derive scores from gradients/logits override to True.
+    requires_trained_model = False
+
     def __init__(self, args: dict):
         self.args = args
 

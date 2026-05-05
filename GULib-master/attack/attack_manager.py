@@ -188,7 +188,17 @@ class AttackManager:
             # — not the training seed — lets cross-seed runs share a single
             # IM computation instead of recomputing identical results 3x.
             seed_for_key = int(self.args.get("im_selector_seed", 2024))
+        # Schema version distinguishes selection results by whether the
+        # base model was trained before strategy.select_nodes ran.
+        # v1 = pre-fix (TracIn/Hybrid scored on random-init weights).
+        # v2 = post-fix (AttackPipeline._ensure_base_model_trained).
+        # Random/Degree/PageRank/IM don't use the model, so their v2
+        # selections match v1 — but bumping uniformly is simpler than
+        # carving out per-strategy exceptions, and the prewarm cost on
+        # those strategies is negligible.
+        cache_schema = "v2"
         return {
+            "cache_schema": cache_schema,
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),
             "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),

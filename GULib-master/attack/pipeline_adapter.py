@@ -94,6 +94,13 @@ class AttackPipeline:
         self.manager = None
         self.method = None
 
+        # Snapshot of base-model state_dict for strategies that need a
+        # trained model. Populated lazily by _ensure_base_model_trained();
+        # restored before each model-dependent select_nodes call so the
+        # post-unlearning model state from the previous strategy doesn't
+        # leak into the next strategy's selection.
+        self._base_state_dict = None
+
         # Metrics storage
         self.f1_before = 0.0
         self.f1_after = 0.0
@@ -193,6 +200,24 @@ class AttackPipeline:
 
         path = f"{root_path}/data/unlearning_task/{split_type}/{balance_type}/unlearning_nodes_{self.args['unlearn_ratio']}_{self.args['dataset_name']}_{run_id}.txt"
 
+        # Sanity check: the path we write must match the one downstream
+        # unlearning methods read from `config.unlearning_path`. A mismatch
+        # means config.py was loaded with the wrong sys.argv (the demo_attack
+        # arg-stripping bug from before commit 66a90f8). Fail fast so a
+        # regression doesn't silently unlearn nodes from a stale file.
+        from config import unlearning_path as _config_unlearning_path
+        expected = f"{_config_unlearning_path}_{run_id}.txt"
+        if os.path.normpath(path) != os.path.normpath(expected):
+            raise AssertionError(
+                "AttackPipeline path mismatch:\n"
+                f"  inject  = {os.path.normpath(path)}\n"
+                f"  config  = {os.path.normpath(expected)}\n"
+                "config.unlearning_path was bound to different args than "
+                "self.args. Check that demo_attack.py / experiments/run.py "
+                "preserve dataset_name/unlearn_ratio/is_transductive/is_balanced "
+                "in sys.argv before any module imports config."
+            )
+
         # Ensure directory exists
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
@@ -200,6 +225,75 @@ class AttackPipeline:
         np.savetxt(path, nodes, fmt='%d')
 
         self.logger.info(f"Injected {len(nodes)} nodes to unlearn at {path}")
+
+    def _ensure_base_model_trained(self):
+        """
+        Train the base model on the full train set so that strategies
+        which derive scores from gradients/logits (TracIn, Hybrid) see
+        a TRAINED model rather than the random-init weights produced by
+        model_zoo.__init__.
+
+        First call: runs the unlearning method's own train_only path to
+        train in-place on self.model_zoo.model, then snapshots the
+        state_dict so subsequent strategies in the same pipeline can
+        restore the trained baseline (each method.run_exp() leaves the
+        model in a post-unlearning state, which is wrong for the next
+        strategy's selection).
+
+        Subsequent calls: load the snapshotted weights back into
+        self.model. No retraining.
+
+        Notes on Shard_based methods (GraphEraser/GUIDE/GraphRevoker):
+        their "trained model" is a shard-aggregated artifact stored to
+        disk; self.model_zoo.model isn't directly trained by run_exp.
+        We still snapshot whatever _get_trained_model returns; if that
+        falls back to the untrained model_zoo.model, the strategy
+        effectively sees random-init for shard methods. We log a warning
+        in that case but don't crash, since random/im/etc. don't care
+        and TracIn/Hybrid + Shard isn't a supported combo for B.1/B.2.
+        """
+        if self._base_state_dict is not None:
+            try:
+                self.model.load_state_dict(self._base_state_dict)
+                return
+            except Exception as exc:
+                self.logger.warning(
+                    f"Failed to restore base model snapshot ({exc}); "
+                    "re-training from scratch."
+                )
+                self._base_state_dict = None
+
+        self.logger.info(
+            "Training base model for selection (requires_trained_model strategy)..."
+        )
+        prev_train_only = self.args.get("train_only", False)
+        prev_num_runs = self.args.get("num_runs", 1)
+
+        try:
+            self.args["train_only"] = True
+            self.args["num_runs"] = 1
+            self.method = self.manager.get_method()
+            self.method.run_exp()
+        finally:
+            self.args["train_only"] = prev_train_only
+            self.args["num_runs"] = prev_num_runs
+
+        trained = self._get_trained_model()
+        # Point self.model at the trained module so select_nodes uses it
+        self.model = trained
+
+        try:
+            self._base_state_dict = {
+                k: v.detach().clone() for k, v in trained.state_dict().items()
+            }
+            f1 = self._evaluate_model(trained)
+            self.logger.info(f"Base model trained (F1={f1:.4f}); state_dict snapshot taken.")
+        except Exception as exc:
+            self.logger.warning(
+                f"Could not snapshot base model state_dict ({exc}). "
+                "Subsequent strategies will retrain instead of restoring."
+            )
+            self._base_state_dict = None
 
     def run_with_strategy(self, strategy: BaseStrategy, k: int, run_id: int = 0) -> Dict[str, Any]:
         """
@@ -216,6 +310,12 @@ class AttackPipeline:
         strategy_label = strategy.__class__.__name__
         self.logger.info(f"Running attack with strategy: {strategy_label}")
         self.logger.info(f"Selecting {k} nodes for unlearning")
+
+        # Train base model in-place if the strategy needs trained weights.
+        # Without this, gradient-based strategies (TracIn/Hybrid) compute
+        # scores on random-init weights — see commit message.
+        if getattr(strategy, "requires_trained_model", False):
+            self._ensure_base_model_trained()
 
         start_time = time.time()  # Start timing before selection
         selection_start = time.time()

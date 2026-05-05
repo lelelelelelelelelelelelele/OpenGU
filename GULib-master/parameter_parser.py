@@ -97,6 +97,10 @@ def parameter_parser():
     parser.add_argument('--opt_decay', type=float, default=0.0001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
     parser.add_argument('--std', type=float, default=1e-2, help='standard deviation for objective perturbation for GST and CGU')
     parser.add_argument('--alpha', type=float, default=0.5,help='alpha in loss function for GNNDelete and CGU')
+    parser.add_argument('--hybrid_alpha', type=float, default=None,
+                        help='Hybrid attack fusion alpha: weight on IF score, (1-α) on IM score. '
+                             'Decoupled from --alpha (which is GNNDelete/CGU loss coefficient). '
+                             'When unset, falls back to --alpha for backward compat.')
     parser.add_argument('--optimizer', type=str, default='Adam', help='Choice of optimizer. [LBFGS/Adam] for GST and CGU')
     parser.add_argument('--lam', type=float, default=1e-2, help='L2 regularization for GST and CGU')
     parser.add_argument('--eps', type=float, default=1.0, help='Eps coefficient for certified removal for GST and CGU')
