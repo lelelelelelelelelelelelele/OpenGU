@@ -178,6 +178,34 @@ Commit `6b7285b` 回滚 B.1 到 random-only。新增 `scripts/feasibility_select
 
 ---
 
+## L5. MIA 阶段 CPU-bound，GPU 闲置
+
+**Status**: `ACCEPTED` — 设计层面无法 deadline 内优化
+**Discovered**: 2026-05-05 跑 B.1 GraphEraser 时观察 CPU 1000% / GPU ~0%
+**Severity**: 低 — 不影响正确性，只影响硬件选型
+
+### Evidence
+
+`attack/Attack_methods/GraphEraser_MIA.py:447-462` 的 MIA 循环每个 iter (~3.6s)：
+1. 磁盘 I/O：load community + 10 个 shard model 权重
+2. CPU：repartition shard data per unlearned target
+3. GPU：每 shard 一次小 forward（毫秒级）
+
+实测 cora/arxiv 上 GPU 利用率 < 5%，CPU 跑满 1000% (10 核)。
+
+### Implications
+
+- **租 GPU 实例时优先看 CPU 核数 + RAM**，不是只看 GPU 显存
+- B.1.5 分卡工作流中，MIA 在 4090 stage 完成；只要 4090 实例 CPU ≥ 8 核就够
+- 36-cell B.2 总 MIA 耗时 ~3.6h，包在 ~11h Stage 2 预算内
+
+### 不修复的理由
+
+修复路径已知（cache shard model loads + parallelize across unlearned_indices），
+但是 OpenGU 原代码的 attack 实现，改动会动到 paper baseline。NeurIPS 后做 follow-up。
+
+---
+
 ## 待观察 / 推测但未实测
 
 下列是怀疑但尚未实测，**不要直接写进 paper**：
