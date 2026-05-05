@@ -148,6 +148,9 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "--unlearn_ratio", str(cfg["ratio"]),
             "--random_seed", str(seed),
             "--output_dir", str(out_dir),
+            "--num_epochs", str(defaults.get("num_epochs", 100)),
+            "--batch_size", str(defaults.get("batch_size", 64)),
+            "--cuda", str(defaults.get("cuda", 0)),
         ]
         if defaults.get("save_predictions", True):
             cmd2.append("--save_predictions")
