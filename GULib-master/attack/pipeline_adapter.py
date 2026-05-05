@@ -31,8 +31,26 @@ if base_dir not in sys.path:
 # stays inside the methods that use it.
 from utils.logger import create_logger
 from utils.utils import calc_f1
-from config import unlearning_path
 from attack.attack_strategies import BaseStrategy
+
+model_zoo = None
+UnlearningManager = None
+
+
+def _load_model_zoo():
+    global model_zoo
+    if model_zoo is None:
+        from model.model_zoo import model_zoo as _model_zoo
+        model_zoo = _model_zoo
+    return model_zoo
+
+
+def _load_unlearning_manager():
+    global UnlearningManager
+    if UnlearningManager is None:
+        from unlearning_manager import UnlearningManager as _UnlearningManager
+        UnlearningManager = _UnlearningManager
+    return UnlearningManager
 
 
 class AttackPipeline:
@@ -88,8 +106,8 @@ class AttackPipeline:
         # Lazy imports — see top-of-file note on the import cycle
         from dataset.original_dataset import original_dataset
         from utils.dataset_utils import process_data
-        from model.model_zoo import model_zoo
-        from unlearning_manager import UnlearningManager
+        model_zoo_cls = _load_model_zoo()
+        unlearning_manager_cls = _load_unlearning_manager()
 
         self.logger.info("Initializing AttackPipeline...")
 
@@ -99,14 +117,14 @@ class AttackPipeline:
         self.data = process_data(self.logger, self.data, self.args)
 
         # Initialize model
-        self.model_zoo = model_zoo(self.args, self.data)
+        self.model_zoo = model_zoo_cls(self.args, self.data)
         self.model = self.model_zoo.model
 
         if self.args["base_model"] not in ["GST", "Projector"]:
             self.logger.log_model_info(self.model)
 
         # Initialize unlearning manager
-        self.manager = UnlearningManager(
+        self.manager = unlearning_manager_cls(
             self.args, self.original_data, self.data,
             self.logger, self.model_zoo, self.dataset
         )
@@ -371,14 +389,14 @@ class AttackPipeline:
         self.data.train_mask[node_idx] = False
 
         # 3. Reinitialize model + method with train_only (lazy imports — see top-of-file note)
-        from model.model_zoo import model_zoo
-        from unlearning_manager import UnlearningManager
+        model_zoo_cls = _load_model_zoo()
+        unlearning_manager_cls = _load_unlearning_manager()
         self.args["train_only"] = True
         self.args["num_runs"] = 1
-        self.model_zoo = model_zoo(self.args, self.data)
+        self.model_zoo = model_zoo_cls(self.args, self.data)
         self.model = self.model_zoo.model
 
-        self.manager = UnlearningManager(
+        self.manager = unlearning_manager_cls(
             self.args, self.original_data, self.data,
             self.logger, self.model_zoo, self.dataset
         )

@@ -8,6 +8,35 @@ class BaseStrategy(ABC):
     def __init__(self, args: dict):
         self.args = args
 
+    def candidate_nodes(self, data: Data, device=None) -> Tensor:
+        """Return nodes eligible for unlearning; train_mask wins when present."""
+        train_mask = getattr(data, "train_mask", None)
+        if train_mask is not None:
+            if train_mask.dim() > 1:
+                train_mask = train_mask.squeeze(-1)
+            candidates = train_mask.nonzero(as_tuple=False).view(-1).long()
+            if candidates.numel() > 0:
+                return candidates.to(device) if device is not None else candidates
+
+        train_indices = getattr(data, "train_indices", None)
+        if train_indices is not None:
+            candidates = torch.as_tensor(train_indices, dtype=torch.long)
+            if candidates.numel() > 0:
+                return candidates.to(device) if device is not None else candidates
+
+        return torch.arange(data.num_nodes, dtype=torch.long, device=device)
+
+    @staticmethod
+    def _validate_k(k: int, candidates: Tensor) -> int:
+        k = int(k)
+        if k < 0:
+            raise ValueError(f"k must be non-negative, got {k}")
+        if k > int(candidates.numel()):
+            raise ValueError(
+                f"k={k} exceeds available candidate nodes ({int(candidates.numel())})"
+            )
+        return k
+
     @abstractmethod
     def select_nodes(
         self,
@@ -35,5 +64,5 @@ class BaseStrategy(ABC):
         ratio: float,
     ) -> Tensor:
         """按比例选择节点。ratio ∈ (0, 1)。"""
-        k = int(data.num_nodes * ratio)
+        k = int(self.candidate_nodes(data).numel() * ratio)
         return self.select_nodes(data, model, k)

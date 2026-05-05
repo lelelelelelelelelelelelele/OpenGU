@@ -196,9 +196,10 @@
       false
     ]
   },
+  "assert_subset_of_train_mask": true,
   "expected_selected_nodes": [
-    10,
-    11,
-    8
+    12,
+    9,
+    4
   ]
 }

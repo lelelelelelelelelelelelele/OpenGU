@@ -79,6 +79,25 @@ if base_dir not in sys.path:
 from parameter_parser import parameter_parser
 
 
+def _seed_everything(seed_value):
+    """Set random seeds for collateral evaluation and retrain reproducibility."""
+    import random
+    import numpy as np
+    import torch
+
+    seed_value = int(seed_value)
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    torch.manual_seed(seed_value)
+    os.environ['PYTHONHASHSEED'] = str(seed_value)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed_value)
+        torch.cuda.manual_seed_all(seed_value)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+
 def find_cache_entry(cache, args: dict, strategy_name: str):
     """Find a cache entry by scanning all cache files and matching key fields.
 
@@ -302,6 +321,8 @@ def main():
     # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
     # df_size assertion passes (it uses proportion_unlearned_nodes, not unlearn_ratio)
     args['proportion_unlearned_nodes'] = args['unlearn_ratio']
+    seed_value = args.get('random_seed', args.get('seed', 2024))
+    _seed_everything(seed_value)
 
     print(f"Dataset: {args['dataset_name']}, Model: {args['base_model']}, "
           f"Method: {args['unlearning_methods']}")
