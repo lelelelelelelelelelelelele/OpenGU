@@ -94,12 +94,23 @@ class AttackPipeline:
         self.manager = None
         self.method = None
 
-        # Snapshot of base-model state_dict for strategies that need a
-        # trained model. Populated lazily by _ensure_base_model_trained();
-        # restored before each model-dependent select_nodes call so the
-        # post-unlearning model state from the previous strategy doesn't
-        # leak into the next strategy's selection.
-        self._base_state_dict = None
+        # State_dict snapshots used to keep training reproducible across
+        # strategies in compare_strategies(). Without these, every
+        # method.run_exp() trains in-place on whatever weights the previous
+        # strategy left behind (post-unlearn), so strategy ordering would
+        # affect f1_after / collateral.
+        #   _random_init_state_dict: snapshotted at _setup, restored before
+        #       every method.run_exp() (both in _ensure_base_model_trained
+        #       for the train-for-selection step, and in
+        #       _run_unlearning_with_selected_nodes for the actual
+        #       train+unlearn run). Ensures every training run starts from
+        #       the SAME clean random init.
+        #   _trained_state_dict: snapshotted on the first
+        #       _ensure_base_model_trained call. Subsequent calls restore
+        #       this for select_nodes, so the "base model" used by all
+        #       requires_trained_model strategies is bit-identical.
+        self._random_init_state_dict = None
+        self._trained_state_dict = None
 
         # Metrics storage
         self.f1_before = 0.0
@@ -130,6 +141,21 @@ class AttackPipeline:
         if self.args["base_model"] not in ["GST", "Projector"]:
             self.logger.log_model_info(self.model)
 
+        # Snapshot the random-init weights BEFORE any training happens.
+        # _restore_random_init() reloads this before every method.run_exp()
+        # so each strategy's training run starts from the same clean state
+        # rather than from whatever the previous strategy left behind.
+        try:
+            self._random_init_state_dict = {
+                k: v.detach().clone() for k, v in self.model.state_dict().items()
+            }
+        except Exception as exc:
+            self.logger.warning(
+                f"Could not snapshot random-init state_dict ({exc}); "
+                "strategy ordering may affect downstream metrics."
+            )
+            self._random_init_state_dict = None
+
         # Initialize unlearning manager
         self.manager = unlearning_manager_cls(
             self.args, self.original_data, self.data,
@@ -138,6 +164,23 @@ class AttackPipeline:
         self.method = self.manager.get_method()
 
         self.logger.info("AttackPipeline initialized successfully.")
+
+    def _restore_random_init(self):
+        """Reset self.model to the random-init weights snapshotted at _setup.
+
+        Called before every method.run_exp() so training runs are independent
+        of which strategy ran previously. No-op if the snapshot was not taken
+        (e.g., model lacks a standard state_dict — GST/Projector edge case).
+        """
+        if self._random_init_state_dict is None:
+            return
+        try:
+            self.model.load_state_dict(self._random_init_state_dict)
+        except Exception as exc:
+            self.logger.warning(
+                f"_restore_random_init failed ({exc}); training will proceed "
+                "from whatever state self.model is currently in."
+            )
 
     def _evaluate_model(self, model=None) -> float:
         """
@@ -229,19 +272,18 @@ class AttackPipeline:
     def _ensure_base_model_trained(self):
         """
         Train the base model on the full train set so that strategies
-        which derive scores from gradients/logits (TracIn, Hybrid) see
-        a TRAINED model rather than the random-init weights produced by
+        which derive scores from gradients/logits (TracIn, Hybrid) see a
+        TRAINED model rather than the random-init weights produced by
         model_zoo.__init__.
 
-        First call: runs the unlearning method's own train_only path to
-        train in-place on self.model_zoo.model, then snapshots the
-        state_dict so subsequent strategies in the same pipeline can
-        restore the trained baseline (each method.run_exp() leaves the
-        model in a post-unlearning state, which is wrong for the next
-        strategy's selection).
+        First call: restores random-init weights (so this training runs on
+        a clean starting point — see _restore_random_init for why), runs
+        the unlearning method's train_only path, then snapshots the
+        resulting trained state_dict.
 
-        Subsequent calls: load the snapshotted weights back into
-        self.model. No retraining.
+        Subsequent calls: load the trained snapshot directly. No
+        retraining, no dependence on whatever the previous strategy left
+        behind in self.model_zoo.model.
 
         Notes on Shard_based methods (GraphEraser/GUIDE/GraphRevoker):
         their "trained model" is a shard-aggregated artifact stored to
@@ -252,16 +294,16 @@ class AttackPipeline:
         in that case but don't crash, since random/im/etc. don't care
         and TracIn/Hybrid + Shard isn't a supported combo for B.1/B.2.
         """
-        if self._base_state_dict is not None:
+        if self._trained_state_dict is not None:
             try:
-                self.model.load_state_dict(self._base_state_dict)
+                self.model.load_state_dict(self._trained_state_dict)
                 return
             except Exception as exc:
                 self.logger.warning(
-                    f"Failed to restore base model snapshot ({exc}); "
+                    f"Failed to restore trained-model snapshot ({exc}); "
                     "re-training from scratch."
                 )
-                self._base_state_dict = None
+                self._trained_state_dict = None
 
         self.logger.info(
             "Training base model for selection (requires_trained_model strategy)..."
@@ -270,6 +312,10 @@ class AttackPipeline:
         prev_num_runs = self.args.get("num_runs", 1)
 
         try:
+            # Reset to clean random-init so the training trajectory is
+            # independent of any previous strategy's run_exp side effects.
+            self._restore_random_init()
+
             self.args["train_only"] = True
             self.args["num_runs"] = 1
             self.method = self.manager.get_method()
@@ -283,17 +329,17 @@ class AttackPipeline:
         self.model = trained
 
         try:
-            self._base_state_dict = {
+            self._trained_state_dict = {
                 k: v.detach().clone() for k, v in trained.state_dict().items()
             }
             f1 = self._evaluate_model(trained)
-            self.logger.info(f"Base model trained (F1={f1:.4f}); state_dict snapshot taken.")
+            self.logger.info(f"Base model trained (F1={f1:.4f}); trained state_dict snapshot taken.")
         except Exception as exc:
             self.logger.warning(
-                f"Could not snapshot base model state_dict ({exc}). "
+                f"Could not snapshot trained state_dict ({exc}). "
                 "Subsequent strategies will retrain instead of restoring."
             )
-            self._base_state_dict = None
+            self._trained_state_dict = None
 
     def run_with_strategy(self, strategy: BaseStrategy, k: int, run_id: int = 0) -> Dict[str, Any]:
         """
@@ -380,7 +426,15 @@ class AttackPipeline:
         # Step 1: Inject selected nodes
         self._inject_unlearn_nodes(selected_nodes, run_id)
 
-        # Step 2: Run unlearning experiment (trains model + unlearns)
+        # Step 2: Reset model to random init so this run_exp's
+        # train_original_model phase trains from a clean state. Without
+        # this, training starts from whatever the previous strategy left
+        # behind (post-unlearn weights, or trained-snapshot from
+        # _ensure_base_model_trained), and f1_after / mia_auc end up
+        # depending on strategy ordering.
+        self._restore_random_init()
+
+        # Step 3: Run unlearning experiment (trains model + unlearns)
         # Reset the method to pick up the new unlearning nodes
         self.method = self.manager.get_method()
 

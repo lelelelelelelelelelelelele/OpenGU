@@ -135,10 +135,6 @@ class TracInStrategy(BaseStrategy):
         """
         return {
             "namespace": "if",
-            # v2 = base model is trained before gradient computation.
-            # v1 (no field) was a bug where strategy ran on random-init weights;
-            # bumping the schema invalidates those cache files automatically.
-            "cache_schema": "v2",
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),
             "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),

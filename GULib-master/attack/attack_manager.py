@@ -164,6 +164,10 @@ class AttackManager:
         return self._graph_fingerprint
 
     def _strategy_params_for_cache(self, strategy_name: str) -> Dict[str, Any]:
+        # Each strategy's cache key must include EVERY arg that meaningfully
+        # changes the selected nodes, otherwise SelectionCache silently
+        # cross-contaminates between two configurations sharing the static
+        # fields (dataset/seed/k/...) but differing in strategy hyperparam.
         if strategy_name == "im":
             # im is the batch-CELF v4 implementation (the v4 suffix was dropped 2026-05-04)
             return {
@@ -175,6 +179,29 @@ class AttackManager:
         elif strategy_name == "pagerank":
             return {
                 "pagerank_alpha": float(self.args.get("pagerank_alpha", 0.85)),
+            }
+        elif strategy_name == "tracin":
+            # loss_type changes per-node loss → changes gradients → changes
+            # selection. base_model is already in the main selection_config.
+            return {
+                "loss_type": str(self.args.get("loss", "cross_entropy")),
+            }
+        elif strategy_name == "hybrid":
+            # Hybrid fuses TracIn + IM, so its cache key must include EVERY
+            # knob from both branches plus the fusion params. Without these
+            # two Hybrid runs differing only in alpha / fusion_method /
+            # candidate_fraction would collide on the same cache entry.
+            hybrid_alpha = self.args.get("hybrid_alpha")
+            if hybrid_alpha is None:
+                hybrid_alpha = self.args.get("alpha", 0.5)
+            return {
+                "fusion_method": str(self.args.get("fusion_method", "rank")),
+                "hybrid_alpha": float(hybrid_alpha),
+                "loss_type": str(self.args.get("loss", "cross_entropy")),
+                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
+                "mc_rounds": int(self.args.get("mc_rounds", 100)),
+                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
+                "im_batch_size": int(self.args.get("im_v4_batch_size", 5)),
             }
         return {}
 
@@ -188,17 +215,7 @@ class AttackManager:
             # — not the training seed — lets cross-seed runs share a single
             # IM computation instead of recomputing identical results 3x.
             seed_for_key = int(self.args.get("im_selector_seed", 2024))
-        # Schema version distinguishes selection results by whether the
-        # base model was trained before strategy.select_nodes ran.
-        # v1 = pre-fix (TracIn/Hybrid scored on random-init weights).
-        # v2 = post-fix (AttackPipeline._ensure_base_model_trained).
-        # Random/Degree/PageRank/IM don't use the model, so their v2
-        # selections match v1 — but bumping uniformly is simpler than
-        # carving out per-strategy exceptions, and the prewarm cost on
-        # those strategies is negligible.
-        cache_schema = "v2"
         return {
-            "cache_schema": cache_schema,
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),
             "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
