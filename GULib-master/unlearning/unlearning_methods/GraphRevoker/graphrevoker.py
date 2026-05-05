@@ -557,7 +557,7 @@ class graphrevoker(Shard_based_pipeline):
             return
         if self.args["unlearn_task"] == "node":
             self.logger.info("start cal AUC")
-            self.attack_graph_unlearning(self.average_auc)
+            self.attack_graph_unlearning()
             
     def unlearn(self):
         self.update_shard()

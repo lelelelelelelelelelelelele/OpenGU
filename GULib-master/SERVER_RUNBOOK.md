@@ -431,6 +431,122 @@ tar czf arxiv_results.tar.gz results/runs/ogbn-arxiv_GCN_r0.05
 
 ---
 
+## 5A. 机器 B 替代路径 — H20 异区 fresh-clone（无镜像可用）
+
+### 5A.1 何时走这条
+
+当 §5.1 的"镜像复用"方案不可用时：
+- H20 等机器在 autodl 不同区，autodl-fs 不互通，没法从 4090 把 B.1 attack 数据搬过来
+- 或者代码大重构后，4090 上的旧 B.1 attack 数据已 stale（pre-refactor），不能与新代码混用
+
+H20 显存 96GB > 80GB（H800），TracIn G-matrix 68GB peak 仍宽松；算力约 H800 的 1/3，B.2 总耗预估从 H800 ~25h 拉到 H20 ~38-40h。
+
+### 5A.2 装环境（~10-15 min on H20）
+
+```bash
+source /etc/network_turbo
+cd ~
+git clone -b nips-prep https://github.com/lelelelelelelelelelelelele/OpenGU.git
+cd OpenGU
+pip install torch_scatter==2.1.2 torch_sparse==0.6.18 \
+    -f https://data.pyg.org/whl/torch-2.1.2+cu118.html
+pip install -r requirements.txt
+
+cd GULib-master
+python -c "
+import torch, torch_geometric, ogb, yaml
+print('torch:', torch.__version__, '| cuda:', torch.cuda.is_available())
+print('GPU:', torch.cuda.get_device_name(0), '| capability:', torch.cuda.get_device_capability(0))
+torch.zeros(1).cuda(); print('cuda alloc ok')
+"
+
+which tmux || apt update && apt install -y tmux
+tmux new -s phaseB
+```
+
+> 默认 autodl PyTorch 镜像若不是 `2.1.x+cu118` 而是 `2.3.x+cu121`，把 torch_scatter / torch_sparse 的 wheel URL 换成 `https://data.pyg.org/whl/torch-2.3.0+cu121.html`。
+
+### 5A.3 B.0 烟测（~20s on H20）
+
+跑一次最小 cell（cora/GIF/random/seed=42）确认 refactor 后的 attack pipeline 在 H20 上端到端通：
+
+```bash
+python experiments/run.py experiments/configs/sanity_one_cell.yaml 2>&1 | tee /tmp/b0.log
+
+ls -la results/runs/cora_GCN_r0.05/GIF_random/seed42/
+
+python -c "
+import json
+a = json.load(open('results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json'))
+r = a['results']['random']
+print(f'f1_before={r.get(\"f1_before\")}  mia_auc={r.get(\"mia_auc\")}  time={r.get(\"total_time\"):.1f}s')
+
+c = json.load(open('results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json'))
+cr = c['results'][0]
+print(f'perf_before={cr.get(\"perf_before\")}  perf_retrain={cr.get(\"perf_retrain\")}  gap={cr.get(\"gap\")}')
+"
+```
+
+PASS 判据（4 条都满足才算过）：
+- 4 件齐：`attack.json` / `collateral.json` / `predictions.npz` / `_meta.json`
+- `f1_before ∈ [0.75, 0.95]`（cora GIF 不难）
+- `mia_auc ∈ (0.001, 0.999)`（不是 0 / 1）
+- `gap` 数值非 None / NaN，总耗 < 60s
+
+不过就停下查环境/refactor，不要继续 B.1。
+
+### 5A.4 B.1 nohup launch（~75-120 min on H20，5 cell）
+
+`phase_b_arxiv_feasibility.yaml` = 5 GU method × random × seed=42，在 arxiv 上的 random baseline。**注意：本路径下不存在"补 collateral"概念**——所有 5 个 cell 都从零跑（attack + collateral 一并出）。
+
+```bash
+mkdir -p logs
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml \
+    > logs/phase_b1_arxiv_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/phase_b1_arxiv.pid
+echo "PID: $(cat logs/phase_b1_arxiv.pid)"
+
+sleep 15
+ps -p $(cat logs/phase_b1_arxiv.pid) -o pid,etime,cmd
+tail -30 logs/phase_b1_arxiv_*.log
+nvidia-smi | head -12
+
+# Ctrl-b d  detach
+```
+
+### 5A.5 监控 + gate B.1
+
+```bash
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed42/attack.json | wc -l       # 渐增 → 5
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed42/collateral.json | wc -l   # 渐增 → 5
+tail -50 logs/phase_b1_arxiv_*.log
+
+# 5/5 都有后过 gate
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml \
+    --f1-min 0.55 --f1-max 0.85
+```
+
+`exit 0` = 通过 → 接 §5.6 launch B.2，或者跑 hybrid alpha sweep（用新加的 ScoreCache infra，见 `attack/score_cache.py` 和 `scripts/sweep_hybrid_alpha.py`）。
+
+### 5A.6 红线
+
+| 现象 | 含义 | 处理 |
+|---|---|---|
+| B.0 ImportError / `no kernel image` | env 没装对 / cu118 wheel 不认 H20 sm_90 | 贴 traceback；wheel 切到 cu121 版（见 §5A.2 备注） |
+| B.0 `mia_auc=0.0` 或 `=1.0` | 老 bug 复发或 cache 污染 | 清缓存：`find results/cache results/selection_cache results/score_cache -name '*.json' -delete -o -name '*.npz' -delete`，再跑 |
+| B.0 `f1_before < 0.5` | refactor 改坏了 cora 训练路径 | 贴 b0.log 全文 |
+| B.1 OOM on H20 96GB | 不该发生 | 查 hidden=256 / num_layers=3 是否被覆盖；贴 traceback |
+| B.1 全 5 cell `mia_auc` 同值 | dispatcher / cache key bug | 跑 `python scripts/diag_mia_dup.py` |
+| `git pull --ff-only` 在重新 ssh 后报 conflict | 4090 / 本地推了新代码，H20 上之前手动 patch 过 | `git stash` 后再 pull，再决定 stash drop / pop |
+
+### 5A.7 之后接什么
+
+- **B.2（36 cell, ~38-40h on H20）**：见 §5.6
+- **Hybrid alpha sweep**：见 `scripts/sweep_hybrid_alpha.py`，第一次跑 arxiv 时建 IF/IM ScoreCache（~50-100 min），之后每个 alpha 秒回
+- **B.4 cora_GAT**：H20 不该跑 cora（屠龙刀杀鸡），让 4090 跑（§4.3）
+
+---
+
 ## 6. 数据回收（两机都跑完之后）
 
 机器 A 上：
