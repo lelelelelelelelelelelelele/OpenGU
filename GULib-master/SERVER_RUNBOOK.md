@@ -2,7 +2,23 @@
 
 > 创建: 2026-05-04 · 大改: 2026-05-05（双机版）
 > NeurIPS 截稿: 2026-05-07（剩 2 天）
-> 当前状态：B.0 ✅ + B.1 attack ✅ + B.1.5 探针 ✅ → 待 H800 切换 → B.1 collateral 补 → B.2
+
+---
+
+## 🗂 Phase → 章节索引（找命令直接跳这里）
+
+| Phase | 内容 | 跑哪台 | 章节 | 估时 |
+|---|---|---|---|---|
+| **B.0** | cora/GIF/random sanity（最小 cell 烟测，4 件齐 + gate） | 任意 | **§B.0** ⭐ | ~20s |
+| **B.1** | arxiv 5 GU method × random × seed42（feasibility / 5-method random baseline） | 机器 B | §5.3 (有镜像) / §5A.4 (fresh clone) | ~75-120 min |
+| **B.2** | arxiv 3 method × 4 strategy × 3 seed 全矩阵（核心数据） | 机器 B | §5.6 / §5A.7 | ~22-40h |
+| **B.3** | cora_GCN 5 method × 6 strategy × 5 seed | 机器 A | §4.1 | ~3-5h |
+| **B.4** | cora_GAT 同上 | 机器 A | §4.3 | ~3-5h |
+| 装环境 | 全新 H20/H800 fresh clone | 任意 | §A 附录 / §5A.2 | ~10-15 min |
+| 调试 | nohup 全 fail / 找不到 traceback | — | **§0.9** ⭐ | — |
+| 故障速查 | 错信息 → 处理 | — | §7 | — |
+
+> "B.0 ⭐" 是新提到的顶层节，下面就是；以前埋在 §5A.3，user 反馈太难找。
 
 ---
 
@@ -269,6 +285,38 @@ tmux source-file ~/.tmux.conf
 
 ---
 
+## B.0 烟测（任意 GPU，~20s，每次大跑前先做）⭐
+
+cora/GCN/GIF/random/seed=42 的最小 cell。验三件事：
+1. attack pipeline 端到端通（base train → unlearn → MIA → 4 件输出齐）
+2. 当前环境的 PyG / cuda / dataloader 没崩
+3. ScoreCache / SelectionCache / ResultCache 三个 cache 的写盘正常
+
+**~20s on cora, ~¥0**。任何 refactor 改完 / 装新机器 / 换 GPU 都先跑这一步，再决定上 B.1 / B.2。
+
+```bash
+# 跑 B.0
+python experiments/run.py experiments/configs/sanity_one_cell.yaml 2>&1 | tee /tmp/b0.log
+ls -la results/runs/cora_GCN_r0.05/GIF_random/seed42/
+
+# gate（自动 PASS/FAIL，exit 0 = 通过）
+python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml --f1-min 0.7
+```
+
+`gate_runs.py` 检查（脚本 docstring 是真源）：
+- 4 件齐：`attack.json` / `collateral.json` / `predictions.npz` / `_meta.json`
+- `attack.json[results][strategy].mia_auc` ∈ `(0.001, 0.999)`
+- `collateral.json[results][0].perf_before` ∈ `[--f1-min, --f1-max]`（base train 真 F1，跨 node/edge 任务都填）
+- `collateral.json[results][0].gap` 是有限数；`hop_decay` 是 dict
+
+> `attack.json[results][strategy].f1_before` **node task 下恒为 None**（`pipeline_adapter.py:285` 的 `poison_f1` 只 edge task 路径填）。`gate_runs.py` 已经改成不依赖这个字段——别自己写 inline `python -c` 去读 `f1_before`，会被这个坑掉。
+>
+> `gap = perf_retrain - perf_unlearn`，cora 小图上 unlearn ≈ retrain 时四位小数会 round 到 0.0；`is_finite_number(0.0)=True`，照样过 gate。
+
+**FAIL 处理**：gate 会列每条失败原因。先看 §0.9 前台单 cell 调试拿真 traceback，再决定改代码还是清缓存（§0.5）。**FAIL 不要继续上 B.1 / B.2**——保证 ~¥0 失败比 ~¥100 失败强。
+
+---
+
 ## 4. 机器 A（4090）— cora workload
 
 当前实例已在跑/即将跑。
@@ -490,30 +538,11 @@ tmux new -s phaseB
 
 > 默认 autodl PyTorch 镜像若不是 `2.1.x+cu118` 而是 `2.3.x+cu121`，把 torch_scatter / torch_sparse 的 wheel URL 换成 `https://data.pyg.org/whl/torch-2.3.0+cu121.html`。
 
-### 5A.3 B.0 烟测（~20s on H20）
+### 5A.3 B.0 烟测
 
-跑一次最小 cell（cora/GIF/random/seed=42）确认 refactor 后的 attack pipeline 在 H20 上端到端通，然后**直接用 `gate_runs.py` 判 PASS/FAIL**——不要自己写 inline 脚本读字段，schema 会变：
+→ 见顶层 **§B.0 烟测**（任意 GPU 通用，跟 H20 无关，提到顶层方便查）。
 
-```bash
-python experiments/run.py experiments/configs/sanity_one_cell.yaml 2>&1 | tee /tmp/b0.log
-ls -la results/runs/cora_GCN_r0.05/GIF_random/seed42/
-
-# 自动判 PASS/FAIL，exit 0 = 全部检查通过
-python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml --f1-min 0.7
-```
-
-`gate_runs.py` 检查项（见脚本 docstring）：
-- 4 件齐：`attack.json` / `collateral.json` / `predictions.npz` / `_meta.json`
-- `attack.json[results][strategy].mia_auc` ∈ `(0.001, 0.999)`（attack 端到端有效）
-- `collateral.json[results][0].perf_before` ∈ `[--f1-min, --f1-max]`（base train 真 F1，跨 node/edge 任务都填）
-- `collateral.json[results][0].gap` 是有限数
-- `collateral.json[results][0].hop_decay` 是 dict
-
-> `attack.json[results][strategy].f1_before` **node task 下恒为 None**（`pipeline_adapter.py:285` 的 `poison_f1` 只 edge 任务填）。`gate_runs.py` 已经改成不依赖这个字段。
->
-> `gap = perf_retrain - perf_unlearn`，cora 小图上 unlearn ≈ retrain 时四位小数会 round 到 0.0，is_finite_number(0.0)=True，照样过 gate。
-
-`gate_runs.py` exit 1 就停下贴输出（它会列每条失败原因），不要继续 B.1。
+跑通 B.0（gate exit 0）才往下走 §5A.4。FAIL 不继续。
 
 ### 5A.4 B.1 nohup launch（~75-120 min on H20，5 cell）
 
