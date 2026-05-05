@@ -3,48 +3,81 @@
 
 \paragraph{Datasets and backbones.}
 We evaluate on three node-classification benchmarks:
-Cora (2,708 nodes / 5,429 edges, 7 classes),
-Citeseer (3,327 / 4,732, 6 classes),
-and ogbn-arxiv~\cite{hu2020open} (169,343 / 1.16M, 40 classes), spanning
-small to large-scale settings. We use two GNN backbones, GCN~\cite{kipf2017semi}
+Cora (2{,}708 nodes / 5{,}429 edges, 7 classes),
+Citeseer (3{,}327 / 4{,}732, 6 classes), and
+ogbn-arxiv~\cite{hu2020open} (169{,}343 / 1.16M, 40 classes), spanning
+small to large scale. We use two GNN backbones: GCN~\cite{kipf2017semi}
 (2 layers, hidden 64 on Cora/Citeseer; 3 layers, hidden 256 on
 ogbn-arxiv) and GAT~\cite{velickovic2018graph} (8 heads). All results
 report node classification F1 on standard held-out test splits.
 
 \paragraph{Unlearning methods.}
-We benchmark five representative methods covering the three mechanism
-families introduced in \S\ref{sec:related}:
-\textbf{GNNDelete}~\cite{cheng2023gnndelete} (learning-based, deletion-aware
-proximal objective);
-\textbf{GIF}~\cite{wu2023gif} (influence-function, single Newton step);
-\textbf{GraphEraser}~\cite{chen2022graph} (shard-based, partition-then-aggregate);
-\textbf{MEGU}~\cite{li2024towards} (feature-preserving, mutual-information
-constrained);
-\textbf{IDEA}~\cite{dong2024idea} (certified-gradient, with statistical
-removal guarantee).
+We benchmark \textbf{six} representative methods covering three of the
+four upstream OpenGU categories with \emph{intra-family pairs} in each
+covered category:
+\textbf{Partition-based:} \textbf{GraphEraser}~\cite{chen2022graph}
+(canonical) + \textbf{GraphRevoker} (efficient partial retraining---both
+legitimate partition methods, neither pre-labeled outlier).
+\textbf{IF-based:} \textbf{GIF}~\cite{wu2023gif} (canonical, single Newton
+step) + \textbf{IDEA}~\cite{dong2024idea} (certified-gradient, predicted
+intra-family outlier).
+\textbf{Learning-based:} \textbf{GNNDelete}~\cite{cheng2023gnndelete}
+(canonical, deletion-aware proximal objective) +
+\textbf{MEGU}~\cite{li2024towards} (mutual-evolution, predicted
+intra-family outlier).
+The fourth OpenGU category (Others: UtU, Projector at deployment time) is
+out of scope; GST and GUKD are listed as future-work 3rd members and
+fallbacks for the feasibility gate (\S\ref{sec:limitations}).
 
 \paragraph{Attack budget and seeds.}
-We focus on the small-budget regime $r=0.05$ (5\% of training nodes) and
-report 5 seeds (\texttt{42, 212, 722, 1337, 2024}) on Cora, 3 seeds on
-ogbn-arxiv. The IM Monte-Carlo seed is fixed at \texttt{2024} across all GNN
-seeds (\S\ref{sec:strategies}); we verified Jaccard\,$=$\,1.0 between seeds
-in a controlled micro-test.
+The main matrix uses small-budget regime $r=0.05$ (5\% of training
+nodes), with 5 seeds (\texttt{42, 212, 722, 1337, 2024}) on
+Cora/Citeseer and 3 seeds on ogbn-arxiv (compute budget; see
+\S\ref{sec:setup-arxiv}). The IM Monte-Carlo seed is fixed at
+\texttt{2024} across all GNN seeds (\S\ref{sec:strategies}); we verified
+selector Jaccard $=1.0$ between seeds in a controlled micro-test
+(\S\ref{app:imseed}). The deletion-ratio sweep
+$r\in\{0.01,0.05,0.10,0.20\}$ on Cora/GCN appears in
+Appendix~\ref{app:ratio}.
 
-\paragraph{Metrics and reporting.}
-We report (a)~paired effect: per-seed F1 difference between an attack
-strategy and the matched random baseline (random uses the same GNN seed); we
-report the paired mean, paired standard deviation, 95\% bootstrap CI, and
-$p$-value of a one-sided $t$-test against the null $\mu\le 0$;
+\paragraph{Reporting protocol.}
+Following the decomposition in \S\ref{sec:diagnostics}, we report
+(a)~\emph{paired effect}---per-seed F1 difference between an attack
+strategy and the matched random baseline (random uses the same GNN
+seed)---with paired mean, paired standard deviation, 95\% bootstrap CI,
+and a one-sided $t$-test against the null $\mu\le 0$;
 (b)~retrain gap, prediction shift, and hop-distance decay
-(\S\ref{sec:metrics});
-(c)~MIA AUC using the shadow-model attack of~\cite{olatunji2021membership}.
+(\S\ref{sec:diagnostics});
+(c)~MIA AUC using the shadow-model attack
+of~\cite{olatunji2021membership}.
+The architectural term $\Delta F_{\text{arch}}(k)$ is reported separately
+as a per-method bar chart in \S\ref{sec:results-shard}.
 
 \paragraph{Implementation.}
 All methods are implemented in PyTorch~\cite{paszke2019pytorch} +
-PyTorch~Geometric~\cite{fey2019fast}. Training uses Adam with
-learning rate $10^{-2}$, weight decay $5\times10^{-4}$, 100 epochs on
+PyTorch~Geometric~\cite{fey2019fast}. Training uses Adam with learning
+rate $10^{-2}$, weight decay $5\times10^{-4}$, 100 epochs on
 Cora/Citeseer (200 on ogbn-arxiv). The IM selector uses our
-\textsc{batch-CELF} variant with candidate fraction 0.1 (top-degree pruning)
-and 50 Monte-Carlo rounds, achieving \interim{34$\times$} speed-up over
-brute-force CELF with $<2\%$ spread loss. Source code and configurations
-will be released upon acceptance.
+\textsc{batch-CELF} variant with candidate fraction 0.1 (top-degree
+pruning) and 50 Monte-Carlo rounds, achieving \interim{34$\times$}
+speed-up over brute-force CELF with $<2\%$ spread loss
+(\S\ref{app:imhp}). Source code and configurations will be released upon
+acceptance.
+
+\subsection{Scaling to ogbn-arxiv}
+\label{sec:setup-arxiv}
+
+ogbn-arxiv (169K nodes) requires three deviations from the
+small-graph protocol. (i)~\textbf{3 seeds, not 5}---the per-cell
+GPU-h cost is roughly $30\times$ the Cora cost; we report per-cell paired
+CI widths to make the resulting reduction in statistical power explicit.
+(ii)~\textbf{TracIn G-matrix at 169K nodes} requires either chunked
+gradient accumulation or a candidate-subsampling probe; we use chunked
+accumulation on an 80~GB GPU. The Physics dataset's higher feature
+dimension was found infeasible with the same protocol and is out of
+scope (\S\ref{sec:limitations}). (iii)~\textbf{IM candidate-fraction at
+scale} is held at 0.1 to keep batch-CELF tractable; this cuts the
+candidate set from $\sim$90K to $\sim$9K and is validated at small scale
+in \S\ref{app:imhp}. (iv)~The arxiv GCN uses 3 layers / hidden 256;
+hop-decay buckets in \S\ref{sec:results-hop} are reported relative to
+the GCN's effective receptive field rather than absolute hop count.

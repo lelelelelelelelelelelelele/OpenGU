@@ -1,6 +1,6 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-04
+> Last updated: 2026-05-05
 > See rules: `CLAUDE.md`
 > NeurIPS deadline: 3 days from now (~2026-05-07)
 
@@ -35,6 +35,7 @@
     [ ] C.3  写 §method 含 B1/B2 选择讨论 + Shard Protection Effect 解读
     [ ] C.4  写 §limitation 含 MEGU/IDEA mechanism-incomparable framing
     [ ] C.5  abstract refresh：跑完后用真实数字替换 abstract.md 的 interim 数（见 report/paper/review/abstract_review_2026-05-04.md）
+    [ ] C.6  *(低优先级 / 提交后)* surrogate transferability sanity — cora/GCN/GNNDelete/TracIn，shadow=独立训的 GCN（5 seed），单 cell ~2h 4090。验证 §3.1 access spectrum 的 L2-direct → L2-surrogate 上界论述；若 transferability ≥60% 则把 §6.3 L4 升级为"surrogate 攻击力 ≈ direct × 0.X"
 ```
 
 > **服务器侧执行入口**：`experiments/configs/README.md` 末尾的 checklist。所有 Phase B 任务都通过 `python experiments/run.py <yaml>` 启动。

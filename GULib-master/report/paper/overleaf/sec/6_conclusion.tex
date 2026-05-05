@@ -1,50 +1,128 @@
 \section{Discussion and Conclusion}
 \label{sec:conclusion}
 
-\paragraph{Summary.}
-We presented the first systematic adversarial audit of approximate graph
-unlearning. By treating deletion-set selection as the attacker's primary
-degree of freedom, we exposed a sharp \emph{vulnerability spectrum}
-governed by the unlearning algorithm's mechanism family. Learning-based
-GNNDelete collapses under tiny deletion budgets; influence-function GIF
-shows a small, Newton-step-bounded effect; shard-based GraphEraser
-exhibits a counterintuitive \emph{Shard Protection Effect}; and
-feature-preserving / certified families resist all six selectors we
-deployed.
+\subsection{Summary}
+We presented the first systematic adversarial audit of approximate
+graph unlearning. By treating deletion-set selection as the attacker's
+primary degree of freedom, we exposed a 2D \emph{Vulnerability
+Fingerprint} on which mechanism family is the dominant predictor and
+within-family mechanism choice is a strong modulator. Learning-based
+GNNDelete collapses under tiny deletion budgets; IF-based GIF shows a
+small, Newton-step-bounded effect; the Partition pair (GraphEraser,
+GraphRevoker) exhibits a counterintuitive \emph{Shard Protection
+Effect}, formally an architectural F1-shift term that no selector can
+amplify; and within-family outliers MEGU (Learning-based) and IDEA
+(IF-based) resist all six selectors despite belonging to vulnerable
+parent categories.
 
-\paragraph{Limitations.}
-(i)~Our selectors target gradient or diffusion semantics; methods whose
-unlearning operator does not surface those signals (MEGU, IDEA) appear
-robust, but we frame this as a \emph{limitation of the current attacker
-class} rather than a security guarantee. A natural next step is to design
-selectors that exploit the specific algebraic structure of certified or
-mutual-information-based unlearners.
-(ii)~We focus on node-classification with the small-budget regime
-$r\le0.05$; behavior at large budgets, on edge/feature unlearning, or on
-heterogeneous graphs is left for future work.
-(iii)~Our experiments cover three datasets and two backbones; large-scale
-industrial deployments may exhibit additional phenomena (e.g., shard count
-sensitivity) that single-graph benchmarks cannot surface.
+\subsection{Intra-Family Outliers as Within-Family Heterogeneity}
+\label{sec:disc-outliers}
 
-\paragraph{Broader implications.}
-Our results argue that any future approximate GU method should report not
-only retrain-time speedup and random-deletion utility but also a
+MEGU and IDEA are not a separate ``robust family''---they belong to
+\emph{different} parent categories under the OpenGU taxonomy
+(Learning-based and IF-based respectively). What unifies them is
+geometric: both sit far from their parent-category centroids in the
+Vulnerability Fingerprint, near the origin.
+The mechanism reading is that mutual-evolution (MEGU) and
+certified-gradient (IDEA) are \emph{intra-category alternatives} whose
+specific design decouples from the loss-gradient signal that TracIn and
+IM exploit, even though their family-mates GNNDelete and GIF do not
+exhibit this decoupling.
+
+We frame this as an honest joint statement: it is partly a robustness
+property of the specific design and partly an evaluation gap of the
+current attacker class. A natural next step is to design selectors
+that target the specific algebraic structure of MI-regularised or
+certified-gradient unlearners; whether GUKD (Learning, distillation) or
+CGU (IF, certified) also sit at the origin would test whether the
+within-family decoupling we observe is a meta-property orthogonal to
+the official taxonomy.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\textbf{L1.} GraphEraser's shard-count is partially swept (\S\ref{app:shard});
+exhaustive ablation is left to future work.
+\textbf{L2.} ogbn-arxiv runs use 3 seeds rather than 5; we report
+per-cell paired CI widths to make the resulting power tradeoff explicit.
+\textbf{L3.} TracIn's $G$-matrix does not scale to feature dimension
+$\gtrsim 8$K (Physics dataset out of scope); the chunked accumulation
+that fits ogbn-arxiv on an 80~GB GPU does not generalise.
+\textbf{L4.} The L2 numbers reported in \S\ref{sec:results-fingerprint}
+are L2-\textsc{direct} (production weights known), an \emph{upper
+bound} on the realistic L2-\textsc{surrogate} attacker who trains a
+shadow model from the public protocol and transfers the deletion set
+(Table~\ref{tab:access}). The transferability gap between the two is
+selector- and architecture-dependent; we do not characterise it
+quantitatively in this work and leave the surrogate sweep as future
+work. White-box (L3) attackers who modify training data or the
+unlearning algorithm itself remain out of scope.
+\textbf{L5.} The deletion-ratio sweep (\S\ref{app:ratio}) characterises
+budget elasticity on Cora/GCN at $r\in\{0.01,0.05,0.10,0.20\}$; the
+arxiv ratio sweep is left to future work.
+\textbf{L6.} We cover three of four OpenGU categories with intra-family
+pairs in each; the ``Others'' category (UtU, Projector at deployment
+time) and 3rd-member within-family extensions (e.g., GST as 3rd IF,
+GUKD as 3rd Learning) are listed as future work.
+\textbf{L7 (visualization scope).} The experimental design spans seven
+axes (method, dataset, backbone, strategy, seed, ratio, hybrid mixing
+$\alpha$), well beyond what any single visualisation can render
+honestly. We report results via section-conditional slicing---fixing a
+subset of axes per claim and varying only the axes germane to that
+claim---rather than a unified low-dimensional projection. Cross-cell
+generalisations rely on inductive consistency across tested slices,
+not on Cartesian-complete coverage. Untested combinations---notably
+citeseer/GAT, arxiv/GAT, the joint $\alpha\times r$ grid, and strategy
+sweeps at non-default ratios---are explicitly out of scope. We chose
+this conditioning approach over dimensionality reduction (PCA, UMAP) to
+preserve the physical meaning of the fingerprint axes, at the cost of
+requiring readers to integrate across multiple figures.
+
+\subsection{Broader Impact}
+\label{sec:broader}
+
+Our results argue that any future approximate GU method should report
+not only retrain-time speedup and random-deletion utility but also a
 worst-case adversarial-deletion bound. The diagnostic kit we
-introduce---paired effect, retrain gap, prediction shift, hop-distance
-decay---is independent of our specific selectors and can be reused with
-arbitrary attacks. We believe this aligns the GU community with the
-robustness-evaluation norms of adversarial machine learning more broadly.
+introduce---$\Delta F$-decomposition, retrain gap, prediction shift,
+hop-distance decay---is independent of our specific selectors and can
+be reused with arbitrary attacks. We believe this aligns the GU
+community with the robustness-evaluation norms of adversarial machine
+learning more broadly.
 
-\paragraph{Future directions.}
-Three open problems stand out.
+\paragraph{What the realistic threat looks like.}
+A coalition-of-users on a deletion-API platform reaches the L1 tier of
+Table~\ref{tab:access} for free---public graph, reconstructed training
+mask, no model access required. Our IM-axis numbers therefore describe
+a threat that is \emph{always available}, not a hypothetical
+permission level. The L2-direct TracIn numbers we report further serve
+as upper bounds on what such a coalition can reach by training a
+shadow model on the (commonly disclosed) training protocol, with the
+transferability gap setting the actual realised harm. The most
+operationally important takeaway is therefore the IM-axis position of
+each method: GNNDelete already collapses at L1, where the access
+barrier is zero.
+
+The Shard Protection Effect is dual-use: the same architectural
+property that bounds an adversary's utility-collapse could also mask
+malicious unlearning requests issued under ordinary deletion-API
+traffic. We therefore frame Shard Protection as a defensive
+\emph{insight}, not a deployment recommendation, and direct
+deletion-API platform operators to the responsible-disclosure note in
+the supplementary material. We do not release attack-tuned model
+checkpoints, only the methodology and code.
+
+\subsection{Future Directions}
+Three problems stand out.
 (1)~\emph{Mechanism-aware selectors:} a selector that targets MEGU's
-MI-regularizer or IDEA's certification would test whether the
-mechanism-incomparable robustness we observe is a true property or a
-selector artifact.
+mutual-evolution objective or IDEA's certified projection would test
+whether the within-family outlier behavior we observe is a true
+property or a selector artifact.
 (2)~\emph{Defenses:} the Shard Protection Effect suggests that
-partition-based aggregation may be a principled defense; quantifying the
-privacy-vs-robustness trade-off of shard-based GU is the natural
-follow-up.
+partition-based aggregation may be a principled defense; quantifying
+the privacy-vs-robustness trade-off of shard-based GU is the natural
+follow-up, with the MIA decoupling of \S\ref{sec:results-mia} as a
+starting point.
 (3)~\emph{Beyond utility:} our attacks target downstream F1; analogous
-attacks targeting privacy leakage (e.g., MIA AUC reduction \emph{after}
-unlearning) would close the threat-model loop.
+attacks targeting privacy leakage (e.g., MIA AUC reduction
+\emph{after} unlearning) would close the threat-model loop.

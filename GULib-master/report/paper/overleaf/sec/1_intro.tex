@@ -2,8 +2,8 @@
 \label{sec:intro}
 
 Machine unlearning is no longer optional. Privacy regulations
-(GDPR Art.\ 17, CCPA \S1798.105, EU AI Act) grant data subjects the right to
-request removal of their data from trained models, and graph learning
+(GDPR Art.\ 17, CCPA \S1798.105, EU AI Act) grant data subjects the right
+to request removal of their data from trained models, and graph learning
 systems---recommendation, fraud detection, citation analysis,
 knowledge-graph-augmented retrieval---are squarely in scope.
 The naive solution is retrain-from-scratch, but for production GNNs over
@@ -15,54 +15,75 @@ gradient-, influence-, or partition-based local updates.
 This trade-off is justified under the implicit assumption that deletion
 requests are \emph{benign}---i.e., independent of the model. In adversarial
 settings this assumption fails. An adversary who controls even a small
-fraction of deletion requests (e.g., a coalition of users on a platform that
-honors deletion-by-API) can choose \emph{which} data to forcibly remove.
-We show that this single degree of freedom---selecting the deletion set---is
-sufficient to collapse the utility of widely-deployed approximate GU methods.
+fraction of deletion requests (e.g., a coalition of users on a platform
+that honors deletion-by-API) can choose \emph{which} data to forcibly
+remove. We show that this single degree of freedom---selecting the
+deletion set---is sufficient to collapse the utility of widely-deployed
+approximate GU methods, while leaving a second class of methods
+\emph{within the same families} effectively untouched.
 
 \paragraph{This paper.}
-We conduct the first systematic adversarial audit of approximate GU, treating
-deletion-set selection as the attacker's strategy and post-unlearning
-downstream F1 as the victim's utility. Our contributions are:
+We conduct the first systematic adversarial audit of approximate GU,
+treating deletion-set selection as the attacker's strategy and
+post-unlearning downstream F1 as the victim's utility. To audit each
+mechanism family fairly, we test \textbf{intra-family pairs} drawn from the
+upstream OpenGU 4-category taxonomy: a canonical method and a method
+predicted to be either convergent or an outlier. Our contributions are:
 
 \begin{itemize}[leftmargin=1.2em,topsep=2pt,itemsep=2pt]
-  \item \textbf{Threat model and attack framework} (\S\ref{sec:method}).
-        We formalize \emph{adversarial deletion attacks} on GU and instantiate
-        six selection strategies, including a TracIn-based pseudo-influence
-        score, a CELF-style influence-maximization (IM) strategy, and a hybrid
-        IF+IM combination.
-  \item \textbf{Cross-family vulnerability spectrum} (\S\ref{sec:results}).
-        We benchmark five representative GU methods spanning three mechanism
-        families on Cora, Citeseer, and ogbn-arxiv with GCN/GAT backbones, and
-        show that vulnerability is governed by the \emph{algorithm family},
-        not by any specific implementation choice.
+  \item \textbf{Threat model and four-tier access spectrum}
+        (\S\ref{sec:method}). We formalize \emph{adversarial deletion
+        attacks} on GU and refine the usual black/grey/white distinction
+        into four tiers keyed on \emph{resource cost}: deletion API only
+        (L0), structural-only (L1, free under coalition-of-users),
+        model-coupled with production weights (L2-direct, the upper
+        bound), and model-coupled via shadow-model surrogate
+        (L2-surrogate, the realistic threat). We instantiate six
+        selection strategies---a TracIn pseudo-IF score (L2-direct),
+        a CELF-style influence-maximization (IM) selector (L1,
+        model-free), and a hybrid IF$+$IM combination whose mixing
+        parameter $\alpha$ defines the basis axes of our headline figure.
+  \item \textbf{Vulnerability Fingerprint} (\S\ref{sec:results}). We
+        introduce a 2D mechanism decomposition---attack effects projected
+        on the IM and TracIn axes---and benchmark six GU methods covering
+        three OpenGU categories (Partition, IF, Learning) on Cora,
+        Citeseer, and ogbn-arxiv with GCN/GAT backbones. The fingerprint
+        reveals that vulnerability is governed by the \emph{algorithm
+        family}, modulated by within-family mechanism choice.
+  \item \textbf{Collateral diagnostics with $\Delta F$ decomposition.} We
+        introduce $\Delta F_{\text{total}}=\Delta F_{\text{arch}}+\Delta
+        F_{\text{attack}}$, an explicit separation of attack-specific
+        signal from the architectural F1 shift induced by deleting
+        \emph{any} small set, and complementary metrics: retrain gap,
+        prediction shift, and a novel \emph{hop-distance decay} statistic
+        that traces how unlearning propagates through the GNN's receptive
+        field.
   \item \textbf{Shard Protection Effect.} We document and explain a
-        counterintuitive phenomenon: shard-based unlearning
-        (GraphEraser~\cite{chen2022graph}) is not merely robust but
-        \emph{benefits} from deletion---random and adversarial deletion both
-        improve downstream F1, with the attacker's gain bounded above by
-        random selection.
-  \item \textbf{Collateral damage diagnostics.} We introduce three metrics
-        that decouple targeted forgetting from collateral disturbance:
-        retrain gap, prediction shift, and a novel \emph{hop-distance decay}
-        statistic that traces how unlearning propagates through the GNN's
-        receptive field.
-  \item \textbf{Mechanism-incomparable robustness.} We identify two GU
-        families (feature-preserving MEGU~\cite{li2024towards}, certified
-        IDEA~\cite{dong2024idea}) on which all six attack strategies---
-        including model-coupled influence functions---fail to produce a
-        meaningful effect, and explain why current selectors cannot exploit
-        them.
+        counterintuitive phenomenon: shard-based unlearning (GraphEraser,
+        GraphRevoker) is not merely robust but \emph{benefits} from
+        deletion---random and adversarial deletion both improve downstream
+        F1, with the attacker's gain bounded above by random selection.
+        The decomposition above lets us attribute this cleanly to
+        $\Delta F_{\text{arch}}<0$, not to attack-specific signal.
+  \item \textbf{Intra-family outliers.} We identify two methods---MEGU
+        (Learning-based, mutual-evolution) and IDEA (IF-based,
+        certified-gradient)---on which all six attack strategies including
+        model-coupled influence functions fail to produce a meaningful
+        effect, even though their family-mates (GNNDelete, GIF) are
+        clearly vulnerable. We frame this as within-family heterogeneity
+        rather than family-level robustness, and discuss the implication
+        that current selectors are decoupled from the algebraic
+        structures of certified or mutual-information-based unlearners.
 \end{itemize}
 
 \paragraph{Why this matters now.}
-Three factors converge. First, GU is moving from research code to production:
-the past two years have seen at least five competitive approximate methods
-benchmarked on
+Three factors converge. First, GU is moving from research code to
+production: the past two years have seen at least five competitive
+approximate methods benchmarked on
 ogbn-scale~\cite{wu2023gif,cheng2023gnndelete,dong2024idea,li2024towards,zhang2024towards}.
-Second, regulators are mandating deletion APIs at the same time. Third, the
-GNN community has not yet stress-tested these methods against
+Second, regulators are mandating deletion APIs at the same time. Third,
+the GNN community has not yet stress-tested these methods against
 \emph{adversarial} deletion---only random or uniform settings. Our work
 closes that gap and provides a principled diagnostic kit
-(\S\ref{sec:method}) that any future GU paper can use to report vulnerability
-upper-bounds alongside efficiency.
+(\S\ref{sec:method}) that any future GU paper can use to report
+vulnerability upper-bounds alongside efficiency.

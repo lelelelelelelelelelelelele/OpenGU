@@ -1,50 +1,118 @@
-\section{Method}
+\section{Attack Framework}
 \label{sec:method}
 
-\subsection{Threat Model}
+\subsection{Threat Model and Access Spectrum}
 \label{sec:threat-model}
 
-We consider a graph $G=(V,E,X)$ with node features $X\in\mathbb{R}^{|V|\times d}$,
-node labels $Y$, and a GNN classifier $f_\theta$ trained on training mask
+We consider a graph $G=(V,E,X)$ with node features
+$X\in\mathbb{R}^{|V|\times d}$, node labels $Y$, and a GNN classifier
+$f_\theta$ trained on training mask
 $\mathcal{D}_{\mathrm{tr}}\subset V$. A graph unlearning algorithm
 $\mathcal{U}(f_\theta,\mathcal{D}_{\mathrm{tr}},S)\to f_{\theta'}$ takes a
 deletion set $S\subset\mathcal{D}_{\mathrm{tr}}$ and returns an updated
-model approximating retrain-from-scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$.
+model approximating retrain-from-scratch on
+$\mathcal{D}_{\mathrm{tr}}\setminus S$.
 
 \paragraph{Attacker capabilities.}
-The attacker controls a deletion budget of $k=\lceil r\cdot|\mathcal{D}_{\mathrm{tr}}|\rceil$
-nodes, where $r$ is the deletion ratio (we focus on $r=0.05$). The attacker
-selects $S\subset\mathcal{D}_{\mathrm{tr}}$ subject to $|S|\le k$. We allow
-\emph{grey-box} access: the attacker can query node features, structure, and
-the trained model $f_\theta$, but does not modify training data or the
-algorithm $\mathcal{U}$. This corresponds to a coalition of users on a
-deletion-API platform who can collectively choose which records to forget.
+The attacker controls a deletion budget of
+$k=\lceil r\cdot|\mathcal{D}_{\mathrm{tr}}|\rceil$ nodes, where $r$ is the
+deletion ratio (we focus on $r=0.05$; \S\ref{app:ratio} reports the sweep).
+The attacker selects $S\subset\mathcal{D}_{\mathrm{tr}}$ subject to
+$|S|\le k$. Realistic deletion-API platforms motivate a
+\emph{coalition-of-users} threat model: the attacker is a set of users who
+jointly choose which records to forget. We do not assume the attacker can
+modify training data or the unlearning algorithm itself.
+
+\paragraph{Access spectrum.}
+Selectors differ substantially in what information they need, and a
+two-tier black/grey/white split obscures this. We use a finer, four-tier
+spectrum (Table~\ref{tab:access}) keyed on \emph{resource cost}, not on
+``which API endpoint is exposed''. Two observations sharpen the
+realistic-threat reading:
+
+\textit{(i)~Training-mask reconstruction is free.} Because
+unlearning operates on training data, any user issuing a deletion
+request necessarily knows that her own data is in
+$\mathcal{D}_{\mathrm{tr}}$. A coalition of users joins these
+memberships and reconstructs (most of) the training mask at cost $0$.
+Combined with the public graph $G$, this gives the attacker the
+\emph{structural-only} (L1) tier essentially for free.
+
+\textit{(ii)~Model access is replaceable by surrogate training.} The
+TracIn-style signals do not require the production model itself: an
+attacker who knows the (commonly disclosed) training protocol can
+train her own \emph{shadow model} on the reconstructed mask, run TracIn
+on the shadow, and transfer the resulting deletion set
+(see~\cite{papernot2017practical,demontis2019adversarial} for the
+analogous pattern in adversarial examples). This converts
+``model-coupled (L2) access'' from a permission question to a
+\emph{GPU-hour} question. We split L2 accordingly:
+L2-\textsc{direct} (production weights leaked, what we report) is an
+\emph{upper bound} on L2-\textsc{surrogate} (shadow-model attack, the
+realistic threat); the gap between the two is the cross-model
+transferability of the selector and is left as future work
+(\S\ref{sec:limitations}). White-box (L3) attackers who modify training
+data or the unlearning algorithm are out of scope as they do not
+correspond to a deletion-API threat.
+
+\begin{table}[h]
+\centering
+\small
+\caption{\textbf{Four-tier access spectrum for selection strategies.}
+Cost is the resource an attacker spends \emph{after} obtaining a
+deletion API. Coalition-of-users on a deletion-API platform plausibly
+reaches L1 at cost $0$ and L2-\textsc{surrogate} at cost equal to one
+shadow-model training run.}
+\label{tab:access}
+\begin{tabular}{@{}lllc@{}}
+\toprule
+Tier & Information available & Cost & Strategies \\
+\midrule
+L0 \emph{(deletion API only)}      & request $S\subset\mathcal{D}_{\mathrm{tr}}$              & $0$               & \textsc{Random} \\
+L1 \emph{(structural)}             & + public $G=(V,E)$, training mask                          & $0$ (coalition)   & \textsc{Degree}, \textsc{PageRank}, \textsc{IM} \\
+L2-\textsc{direct} \emph{(model)}  & + production $f_\theta$, gradients, checkpoints           & internal leak     & \textsc{TracIn}, \textsc{Hybrid} \emph{(upper bound)} \\
+L2-\textsc{surrogate}              & + train shadow $\hat f_{\hat\theta}$ from public protocol & GPU-h             & \textsc{TracIn}, \textsc{Hybrid} \emph{(realistic)} \\
+L3 \emph{(white-box)}              & + modify training data / algorithm                        & internal access   & \emph{out of scope} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two tiers we report on the fingerprint axes (\S\ref{sec:results-fingerprint})
+are L1 (the IM axis) and L2-\textsc{direct} (the TracIn axis); the
+L2-\textsc{surrogate} reading is bounded above by the L2-\textsc{direct}
+numbers we report.
 
 \paragraph{Attacker objective.}
-Let $L(f;V_{\mathrm{te}})$ be downstream test F1 on the held-out test set.
-The attacker maximizes the performance drop:
+Let $L(f;V_{\mathrm{te}})$ be downstream test F1 on the held-out test
+set. The attacker maximizes the performance drop:
 \begin{equation}
 \label{eq:attacker-objective}
 S^* = \argmax_{S\subset\mathcal{D}_{\mathrm{tr}},\,|S|\le k}\;
-      L(f_\theta;V_{\mathrm{te}}) - L\bigl(\mathcal{U}(f_\theta,\mathcal{D}_{\mathrm{tr}},S);V_{\mathrm{te}}\bigr).
+      L(f_\theta;V_{\mathrm{te}})
+      - L\bigl(\mathcal{U}(f_\theta,\mathcal{D}_{\mathrm{tr}},S);V_{\mathrm{te}}\bigr).
 \end{equation}
-Because $\mathcal{U}$ is approximate, the gap between $\mathcal{U}(f_\theta,\cdot,S)$
-and the exact retrain on $\mathcal{D}_{\mathrm{tr}}\setminus S$ is non-zero,
-and the attacker's task is to find $S$ that \emph{amplifies} this approximation
-error rather than merely removing useful data.
+Because $\mathcal{U}$ is approximate, the gap between
+$\mathcal{U}(f_\theta,\cdot,S)$ and the exact retrain on
+$\mathcal{D}_{\mathrm{tr}}\setminus S$ is non-zero, and the attacker's
+task is to find $S$ that \emph{amplifies} this approximation error rather
+than merely removing useful data.
 
 \subsection{Selection Strategies}
 \label{sec:strategies}
 
-We instantiate six strategies for solving Eq.~\eqref{eq:attacker-objective}.
+We instantiate six strategies, tagged with their access tier from
+Table~\ref{tab:access}.
 
-\paragraph{Baselines.}
-\textsc{Random} draws $k$ nodes uniformly without replacement.
-\textsc{Degree} selects the top-$k$ by node degree (high-influence
-heuristic on graphs).
-\textsc{PageRank} selects the top-$k$ by personalized PageRank centrality.
+\paragraph{L0 / L1 baselines.}
+\textsc{Random} (L0) draws $k$ nodes uniformly without replacement.
+\textsc{Degree} (L1) selects the top-$k$ by node degree.
+\textsc{PageRank} (L1) selects the top-$k$ by personalized PageRank
+centrality. \textsc{Random} is also the \emph{architectural-baseline
+probe} for the $\Delta F_{\text{arch}}$ term of
+\S\ref{sec:diagnostics}; the structural baselines provide an L1
+reference floor.
 
-\paragraph{TracIn (pseudo-influence).}
+\paragraph{TracIn (pseudo-influence, L2-direct or L2-surrogate).}
 Following~\cite{pruthi2020estimating}, we compute an influence proxy by
 gradient inner-products between training and test losses:
 \begin{equation}
@@ -54,48 +122,120 @@ gradient inner-products between training and test losses:
                             \nabla_\theta\mathcal{L}(f_{\theta_c};V_{\mathrm{val}})\rangle,
 \end{equation}
 where $\theta_c$ are checkpoints across training and $\eta_c$ is the
-corresponding learning rate. Top-$k$ by $|\mathrm{TracIn}(v)|$.
+corresponding learning rate. Top-$k$ by $|\mathrm{TracIn}(v)|$. We run
+TracIn on $f_\theta$ directly (L2-\textsc{direct}); the shadow-model
+variant (L2-\textsc{surrogate}) is left for future work.
 
-\paragraph{Influence Maximization (IM).}
-We treat the GNN's receptive field as a diffusion graph and select the
-$k$ nodes whose forced unlearning maximizes \emph{reachable} downstream-test
+\paragraph{Influence Maximization (IM, L1).}
+We treat the GNN's receptive field as a diffusion graph and select the $k$
+nodes whose forced unlearning maximizes \emph{reachable} downstream-test
 disturbance, estimated via Monte-Carlo simulation under an
 independent-cascade model with edge-weight $p_{uv}=1/\deg(v)$. Following
 CELF++~\cite{goyal2011celf++} we use lazy submodular evaluation
-(\textsc{batch-CELF}, our v4 implementation, \S\ref{sec:experiment}). A
-key design choice: the Monte-Carlo random seed is \emph{decoupled} from the
-GNN training seed (\texttt{im\_selector\_seed=2024}) so that selection is
-deterministic across the 5 GNN seeds we evaluate.
+(\textsc{batch-CELF}, our v4 implementation, \S\ref{sec:experiment}).
+Crucially, IM is \emph{model-free}: the IC simulation depends only on
+$G$ and degree, so IM sits at L1 alongside \textsc{Degree} and
+\textsc{PageRank} despite its computational sophistication. The
+Monte-Carlo random seed is \emph{decoupled} from the GNN training seed
+(\texttt{im\_selector\_seed=2024}) so that selection is deterministic
+across the GNN seeds we evaluate (selector-Jaccard $=$ 1.0 across
+seeds; \S\ref{app:imseed}).
 
-\paragraph{Hybrid IF+IM.}
-We rank candidates by $\alpha\cdot\widetilde{\mathrm{TracIn}}(v) + (1-\alpha)\cdot\widetilde{\mathrm{IM}}(v)$,
-where $\sim$ denotes min-max normalization and $\alpha=0.5$ unless stated.
-The intuition: TracIn captures \emph{model-loss sensitivity} (which nodes
-will hurt the trained model most) while IM captures \emph{structural
-spreadability} (which nodes will propagate the deletion broadest), and
-combining them targets nodes with both properties.
+\paragraph{Hybrid IF$+$IM (L2, bottlenecked by TracIn).}
+We rank candidates by
+\begin{equation}
+\label{eq:hybrid}
+\mathrm{Score}_\alpha(v)
+ = \alpha\,\widetilde{\mathrm{TracIn}}(v) + (1-\alpha)\,\widetilde{\mathrm{IM}}(v),
+\end{equation}
+where $\sim$ denotes min-max normalization. \textbf{We treat $\alpha$ as a
+mixing parameter, not a hyperparameter.} The endpoints $\alpha=1$
+(TracIn-only, gradient-signal axis) and $\alpha=0$ (IM-only,
+structural-spread axis) define the basis axes of the
+\emph{Vulnerability Fingerprint} of \S\ref{sec:results-fingerprint}; the
+interior $\alpha\in(0,1)$ traces the path between fingerprint endpoints,
+and its curve $f(\alpha)$ is the \emph{synergy diagnostic} reported in
+\S\ref{app:alpha}. We use $\alpha=0.5$ in the main matrix; the full sweep
+is in Appendix~\ref{app:alpha}.
 
-\subsection{Evaluation Metrics}
-\label{sec:metrics}
+\subsection{Collateral Diagnostics}
+\label{sec:diagnostics}
 
-Beyond raw F1 drop, we report three metrics that distinguish targeted
-forgetting from \emph{collateral} disturbance.
+We position the diagnostics below as a paper contribution rather than
+standard evaluation: F1 drop alone conflates targeted forgetting with
+approximation-error spillover, and conflates attack-specific signal with
+the architectural F1 shift caused by deleting any small set.
+
+\paragraph{F1-shift decomposition.}
+For any deletion set $S$ of size $k$, write
+\begin{equation}
+\label{eq:fshift}
+\Delta F_{\text{total}}(S)
+ \;=\; \Delta F_{\text{arch}}(k) \;+\; \Delta F_{\text{attack}}(S),
+\end{equation}
+where
+$\Delta F_{\text{total}}(S) = F_1(\mathcal{U}(f_\theta,\cdot,S);V_{\text{te}})
+- F_1(f_\theta;V_{\text{te}})$ is the observed F1 shift after
+attack-driven unlearning;
+$\Delta F_{\text{arch}}(k)
+= \mathbb{E}_{R\sim\mathrm{Unif}(\mathcal{D}_{\text{tr}},k)}[\Delta F_{\text{total}}(R)]$
+is the \emph{architectural} term, the expected F1 shift when any
+uniformly-random set of size $k$ is unlearned (method-specific,
+seed-stable in expectation); and $\Delta F_{\text{attack}}(S)
+= \Delta F_{\text{total}}(S) - \Delta F_{\text{arch}}(k)$ is the
+\emph{attack-specific} term, estimated as the paired effect (strategy F1
+minus same-seed random F1). The decomposition surfaces two distinct
+findings:
+$\Delta F_{\text{arch}}$ varies across methods even at zero attack
+signal---most methods yield $\approx 0$, but \emph{partition methods
+exhibit $\Delta F_{\text{arch}}<0$} (Shard Protection,
+\S\ref{sec:results-shard});
+$\Delta F_{\text{attack}}$ is what our attack toolkit induces above the
+architectural baseline, and is the quantity plotted in the
+Vulnerability Fingerprint of \S\ref{sec:results-fingerprint}.
+Reporting both terms separately is what allows us to attribute Shard
+Protection cleanly to the architectural term, not to the attack.
 
 \paragraph{Retrain gap.} Let $f^{\mathrm{R}}$ be the model retrained from
-scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$ and
-$f^{\mathrm{U}}$ be the unlearned model. The retrain gap is
+scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$ and $f^{\mathrm{U}}$ be
+the unlearned model. The retrain gap is
 $\mathrm{Gap}(S) = L(f^{\mathrm{R}};V_{\mathrm{te}}) - L(f^{\mathrm{U}};V_{\mathrm{te}})$.
-A large gap indicates that performance loss is due to approximation error,
-not data informativeness.
+A large gap indicates that performance loss is due to approximation
+error, not data informativeness.
 
 \paragraph{Prediction shift.} The fraction of non-target nodes whose
 predicted label changes between $f_\theta$ and $f^{\mathrm{U}}$:
-$\mathrm{Shift}(S) = |V_{\mathrm{te}}\setminus S|^{-1}\sum_{v\in V_{\mathrm{te}}\setminus S}\mathbb{1}[f^{\mathrm{U}}(v)\neq f_\theta(v)]$.
+$\mathrm{Shift}(S) = |V_{\mathrm{te}}\setminus S|^{-1}
+\sum_{v\in V_{\mathrm{te}}\setminus S}
+\mathbb{1}[f^{\mathrm{U}}(v)\neq f_\theta(v)]$.
 
 \paragraph{Hop-distance decay.}
-For each test node $v\notin S$, let $h(v)=\min_{u\in S}d_G(v,u)$ be the
-shortest-path distance to the nearest deleted node. We bin nodes into four
-buckets $h\in\{1,2,3,>3\}$ and report the change in F1 within each bucket.
-A method whose damage decays sharply with hop-distance localizes deletion;
-one whose damage stays uniform across buckets propagates approximation
-error globally.
+For each retained node $v\notin S$, let $h(v)=\min_{u\in S}d_G(v,u)$
+be the shortest-path graph distance to the nearest deleted node. We
+report \emph{flip rate per hop bucket}: the fraction of nodes in each
+bucket whose predicted class differs between the unlearned model
+$f^{\mathrm{U}}$ and the exact-retrain model $f^{\mathrm{R}}$ on
+$\mathcal{D}_{\mathrm{tr}}\setminus S$:
+\begin{equation}
+\label{eq:hopflip}
+\mathrm{Flip}(h) = \frac{1}{|B_h|}\sum_{v\in B_h}\mathbb{1}\bigl[f^{\mathrm{U}}(v)\neq f^{\mathrm{R}}(v)\bigr],
+\qquad
+B_h = \{v\notin S : h(v)\in\text{bucket } h\}.
+\end{equation}
+The retrain model serves as the oracle, so $\mathrm{Flip}(h)$ isolates
+the unlearning algorithm's \emph{approximation drift} from any
+data-loss effect (a node where retrain itself errs does not count
+unless the unlearned model differs from retrain). To make the buckets
+comparable across backbones, we bin by the GCN's effective receptive
+field rather than absolute hop count: \textbf{within-RF}
+($h\le L$), \textbf{boundary} ($h=L+1$), and \textbf{outside-RF}
+($h>L+1$), where $L$ is the number of message-passing layers. A method
+whose flip rate decays sharply outside the receptive field
+\emph{localizes} deletion (typical of partition and Newton-step
+methods); one whose flip rate stays uniform across buckets
+\emph{propagates} approximation error beyond the GCN's nominal range
+(typical of objective-perturbation methods, \S\ref{sec:results-hop}).
+This composition---paired-vs-retrain reporting plus hop-distance
+stratification---is, to our knowledge, not in prior GU evaluation; we
+treat it as a reporting protocol rather than a novel statistic, since
+both components are individually standard.
