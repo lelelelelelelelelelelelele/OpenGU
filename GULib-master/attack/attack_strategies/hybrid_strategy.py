@@ -48,10 +48,10 @@ class HybridStrategy(BaseStrategy):
 
         candidate_list = candidates.tolist()
 
-        # Compute IF scores via TracIn
-        if_scores = self.tracin._compute_tracin_scores(model, data, candidates)
+        # Compute IF scores via TracIn (cache-aware: re-runs only on miss).
+        if_scores = self.tracin.compute_scores(model, data, candidates)
 
-        # Compute IM scores (initial marginal gains)
+        # Compute IM scores via initial marginal gains (cache-aware: pure topology).
         im_scores = self.im.compute_initial_marginal_gains(
             data.edge_index, data.num_nodes, candidate_list
         )

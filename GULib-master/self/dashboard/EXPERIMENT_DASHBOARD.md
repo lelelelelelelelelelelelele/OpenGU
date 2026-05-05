@@ -19,7 +19,8 @@
     [x] A.4  IM fixed MC seed     — im_selector_seed=2024 默认，跨 GU seed Jaccard=1.0
     [x] A.5  Hop-distance Collateral Decay  — evaluate_collateral_damage 已扩展（4 桶 1/2/3/>3）
 [x] (额外) v4 摘帽 + path/runner refactor — 2026-05-04（V-2026-05-04-06）
-    - registry: `im_v4`→`im`、`hybrid_v4`→`hybrid`，旧 CELF/coupled-RNG 类摘除
+    - registry: `im_v4`→`im`、`hybrid_v4`→`hybrid` — 当时只是 dispatcher 层重命名
+    - **2026-05-05 完成代码合并**：`im_v4_strategy.py` / `hybrid_v4_strategy.py` 文件删除，batch-CELF + `im_batch_size`（兼容 legacy `im_v4_batch_size`）合并进 `im_strategy.py::_compute_im_celf_numba`；`IMV4Strategy` / `HybridV4Strategy` 退化成 `attack_strategies/__init__.py` 的别名
     - 新路径：`results/runs/{cell}/{method}_{strategy}/seed{N}/{4 files}`
     - 新 runner：`experiments/run.py` + 4 yaml configs（见 experiments/configs/README.md）
 [ ] Phase B  全量重跑（服务器侧，2026-05-05+）

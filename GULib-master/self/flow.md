@@ -7,7 +7,7 @@
 
 > ⚠ **已知漂移项**（不完全列举）：
 > - 入口名 `attack_main.py` 已不存在；当前入口是 `main.py` 与 `demo_attack.py`
-> - 旧 `compute_im_celf` / `im_strategy` 已被 `im_v4_strategy.py`（含 numba + candidate_fraction）替代
+> - 2026-05-05 V4 合并：`im_v4_strategy.py` / `hybrid_v4_strategy.py` 文件已删除；其 batch-CELF + decoupled-MC-seed 实现被合并进 `im_strategy.py::_compute_im_celf_numba`，由 `self.im_batch_size`（CLI 兼容旧名 `im_v4_batch_size`）控制。`IMV4Strategy` / `HybridV4Strategy` 仅保留为 `attack/attack_strategies/__init__.py` 里的别名（`= IMStrategy` / `= HybridStrategy`）以兼容旧 import
 > - `attack/attack_eval.py:92` 等行号一律不可信，请 grep
 > - v2 指标（Collateral Damage、Gap 统计显著性、3-model 归因）在本文件中**只有半成品**；权威定义在 `plan_flow_v2_delta.md` §3 与 `dashboard/METRICS_CATALOG.md`
 >
@@ -34,9 +34,14 @@ attack_main.py / main.py
   │       ├── [PageRank]→ compute_pagerank() → topk
   │       ├── [TracIn]  → compute_tracin_scores() → topk
   │       ├── [IM]      → compute_im_celf() → greedy topk
-  │       └── [Hybrid]  → compute_tracin_scores()
-  │                       + compute_im_celf()
+  │       └── [Hybrid]  → compute_tracin_scores()                  # [N] IF
+  │                       + compute_initial_marginal_gains()         # [N] single-seed spread
   │                       → fuse_scores() → topk
+  │                       (note: hybrid does NOT call compute_im_celf;
+  │                        per-node fusion needs an [N] vector, but CELF
+  │                        only outputs k selected nodes + their conditional
+  │                        marginal gains. compute_initial_marginal_gains
+  │                        is the [N] primitive shared with CELF's step 1.)
   │
   ├── 4. 执行遗忘: unlearning_method.run_exp(unlearn_nodes=selected)
   │
@@ -325,7 +330,7 @@ class BaseStrategy(ABC):
 | `PageRankStrategy` | `compute_pagerank()` → `torch.topk()` |
 | `TracInStrategy` | `compute_tracin_scores()` → `torch.topk()` |
 | `IMStrategy` | `compute_im_celf()` → 返回贪心选中列表 |
-| `HybridStrategy` | `compute_tracin_scores()` + `compute_im_celf()` → `fuse_scores()` → `torch.topk()` |
+| `HybridStrategy` | `compute_tracin_scores()` + `compute_initial_marginal_gains()` → `fuse_scores()` → `torch.topk()` (per-node fusion requires [N] vectors; CELF's (k,k) output is incompatible with per-node fuse) |
 
 ---
 

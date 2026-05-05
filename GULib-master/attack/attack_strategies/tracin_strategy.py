@@ -4,6 +4,7 @@ from torch import Tensor
 from torch_geometric.data import Data
 
 from .base_strategy import BaseStrategy
+from ..score_cache import ScoreCache, graph_fingerprint
 
 
 class TracInStrategy(BaseStrategy):
@@ -33,6 +34,11 @@ class TracInStrategy(BaseStrategy):
         super().__init__(args)
         self.loss_type = args.get('loss', 'cross_entropy')
         self.device = args.get('device', torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        self.enable_score_cache = bool(args.get('enable_score_cache', True))
+        self._score_cache = (
+            ScoreCache(namespace='if', cache_dir=args.get('score_cache_dir', './results/score_cache'))
+            if self.enable_score_cache else None
+        )
 
     def select_nodes(
         self,
@@ -61,8 +67,8 @@ class TracInStrategy(BaseStrategy):
         else:
             candidates = torch.arange(data.num_nodes, device=self.device)
 
-        # Compute TracIn scores
-        scores = self._compute_tracin_scores(model, data, candidates)
+        # Compute TracIn scores (cached if enabled)
+        scores = self.compute_scores(model, data, candidates)
 
         # Select top-k nodes with highest scores
         _, topk_indices = torch.topk(scores, k)
@@ -71,6 +77,74 @@ class TracInStrategy(BaseStrategy):
         selected_nodes = candidates[topk_indices]
 
         return selected_nodes.cpu()
+
+    def compute_scores(
+        self,
+        model: torch.nn.Module,
+        data: Data,
+        candidates: Tensor,
+    ) -> Tensor:
+        """Public, cache-aware wrapper around _compute_tracin_scores.
+
+        HybridStrategy calls this directly so the IF branch can be reused
+        across alpha values without recomputing the gradient matrix.
+
+        Returns scores in the same order as `candidates` (length M).
+        """
+        if self._score_cache is None:
+            return self._compute_tracin_scores(model, data, candidates)
+
+        cfg = self._build_cache_config(model, data, candidates)
+        hit, key = self._score_cache.get(cfg)
+        if hit is not None:
+            cands_np = candidates.detach().cpu().numpy().astype('int64', copy=False)
+            if hit.candidates.shape == cands_np.shape and (hit.candidates == cands_np).all():
+                print(f"[ScoreCache] HIT  if  key={key} n={hit.scores.shape[0]} src={hit.source}")
+                return torch.from_numpy(hit.scores).to(self.device)
+            print(f"[ScoreCache] STALE if key={key} (candidate mismatch) — recomputing")
+
+        print(f"[ScoreCache] MISS if  key={key} — computing TracIn scores...")
+        scores = self._compute_tracin_scores(model, data, candidates)
+
+        cands_np = candidates.detach().cpu().numpy().astype('int64', copy=False)
+        scores_np = scores.detach().cpu().numpy().astype('float32', copy=False)
+        path = self._score_cache.save(cands_np, scores_np, cfg)
+        print(f"[ScoreCache] SAVE if  key={key} -> {path}")
+        return scores
+
+    def _build_cache_config(
+        self,
+        model: torch.nn.Module,
+        data: Data,
+        candidates: Tensor,
+    ) -> dict:
+        """Cache key for IF scores.
+
+        Intentionally does NOT include the model state hash — empirically,
+        re-training under the same (dataset, model, seed, ratio) config
+        produces tiny weight drift due to non-deterministic CUDA/cuDNN ops,
+        which would make the cache miss across every process invocation.
+        Since the cache is used to share TracIn rankings (not bit-exact
+        scores) between Hybrid alpha-sweeps and across cells with the same
+        training config, the static config fields are the right key.
+
+        If the user needs a fresh recompute, they can delete the cache file
+        or pass enable_score_cache=False.
+        """
+        return {
+            "namespace": "if",
+            "dataset_name": str(self.args.get("dataset_name", "")),
+            "base_model": str(self.args.get("base_model", "")),
+            "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
+            "seed": int(self.args.get("seed", 0) or 0),
+            "loss_type": self.loss_type,
+            "is_transductive": bool(self.args.get("is_transductive", True)),
+            "is_balanced": bool(self.args.get("is_balanced", False)),
+            "unlearning_methods": str(self.args.get("unlearning_methods", "")),
+            "graph_fingerprint": graph_fingerprint(
+                data.edge_index, data.num_nodes, candidates
+            ),
+        }
 
     def _compute_tracin_scores(
         self,

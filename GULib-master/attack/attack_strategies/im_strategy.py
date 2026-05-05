@@ -6,6 +6,7 @@ from torch import Tensor
 from torch_geometric.data import Data
 
 from .base_strategy import BaseStrategy
+from ..score_cache import ScoreCache, graph_fingerprint
 
 # Numba import guard
 try:
@@ -147,6 +148,23 @@ class IMStrategy(BaseStrategy):
         except (TypeError, ValueError):
             self.random_seed = 2024
 
+        # Batch-CELF batch size (was IMV4Strategy's im_v4_batch_size; merged
+        # into IMStrategy on 2026-05-05). The numba CELF path consumes
+        # `self.im_batch_size` candidates per round (1 = classic CELF,
+        # higher = batched approximation that trades some spread for speed).
+        # Read both the new and legacy keys for backward compat with old yamls.
+        batch_size = args.get('im_batch_size', args.get('im_v4_batch_size', 5))
+        try:
+            self.im_batch_size = max(int(batch_size), 1)
+        except (TypeError, ValueError):
+            self.im_batch_size = 5
+
+        self.enable_score_cache = bool(args.get('enable_score_cache', True))
+        self._score_cache = (
+            ScoreCache(namespace='im', cache_dir=args.get('score_cache_dir', './results/score_cache'))
+            if self.enable_score_cache else None
+        )
+
     def select_nodes(
         self,
         data: Data,
@@ -191,7 +209,13 @@ class IMStrategy(BaseStrategy):
             return self._compute_im_celf_python(edge_index, num_nodes, k, candidate_set)
 
     def _compute_im_celf_python(self, edge_index, num_nodes, k, candidate_set):
-        """Pure Python CELF implementation (fallback)."""
+        """Pure Python CELF implementation (fallback).
+
+        Step 1 (initial spreads) is computed inline rather than via
+        compute_initial_marginal_gains so the global random.random() state
+        flows continuously into step 2+, preserving the bit-exact original
+        RNG behavior captured by the golden fixtures.
+        """
         random.seed(self.random_seed)
         adj = self._build_adjacency_python(edge_index, num_nodes)
         prob = self.propagation_prob
@@ -228,12 +252,23 @@ class IMStrategy(BaseStrategy):
         return selected, torch.tensor(scores)
 
     def _compute_im_celf_numba(self, edge_index, num_nodes, k, candidate_set):
-        """Numba-accelerated CELF implementation."""
+        """Numba-accelerated batch-CELF implementation.
+
+        Merged from former IMV4Strategy on 2026-05-05. Batch-CELF accepts the
+        validated best candidate per round, then greedily consumes the next
+        ``self.im_batch_size - 1`` heap candidates in the same round. With
+        ``im_batch_size=1`` this reduces to classical CELF; higher values
+        trade a small amount of spread for fewer recomputations.
+        """
         indptr, indices = self._build_adjacency_csr(edge_index, num_nodes)
         prob = self.propagation_prob
         mc = self.mc_rounds
+        batch = self.im_batch_size
 
-        # Step 1: Compute initial marginal gains for all candidates
+        # Step 1: Compute initial marginal gains for all candidates.
+        # Inlined (rather than via compute_initial_marginal_gains) to avoid
+        # cache-induced divergence — the numba step 2+ has its own deterministic
+        # seeding so this is purely a "don't disturb golden fixtures" call.
         heap = []
         for node in candidate_set:
             seed_arr = np.array([node], dtype=np.int32)
@@ -246,25 +281,43 @@ class IMStrategy(BaseStrategy):
         selected_set_list = []
         scores = []
         current_spread = 0.0
+        round_idx = 0
 
-        for i in range(k):
+        while len(selected) < k and heap:
+            batch_size = min(batch, k - len(selected))
+
             while True:
                 neg_gain, last_updated, node = heapq.heappop(heap)
 
-                if last_updated == i:
+                if last_updated == round_idx:
+                    gain = float(-neg_gain)
                     selected.append(node)
                     selected_set_list.append(node)
-                    scores.append(-neg_gain)
-                    current_spread += (-neg_gain)
+                    scores.append(gain)
+                    current_spread += gain
+
+                    popped_count = 1
+                    while popped_count < batch_size and heap:
+                        next_neg_gain, _, next_node = heapq.heappop(heap)
+                        next_gain = float(-next_neg_gain)
+                        selected.append(next_node)
+                        selected_set_list.append(next_node)
+                        scores.append(next_gain)
+                        current_spread += next_gain
+                        popped_count += 1
                     break
-                else:
-                    seed_arr = np.array(selected_set_list + [node], dtype=np.int32)
-                    base_seed = self.random_seed * 10000 + int(np.sum(np.sort(seed_arr))) % 10000
-                    new_spread = _estimate_spread_numba(
-                        indptr, indices, seed_arr, prob, num_nodes, mc, base_seed
-                    )
-                    marginal = new_spread - current_spread
-                    heapq.heappush(heap, (-marginal, i, node))
+
+                seed_arr = np.array(selected_set_list + [node], dtype=np.int32)
+                # Deterministic cheap hash for seed synthesis (avoid Python hash randomization).
+                pseudo_hash = int(np.sum(seed_arr)) * 131 + int(seed_arr.shape[0])
+                base_seed = self.random_seed * 10000 + (pseudo_hash % 10000)
+                new_spread = _estimate_spread_numba(
+                    indptr, indices, seed_arr, prob, num_nodes, mc, base_seed
+                )
+                marginal = new_spread - current_spread
+                heapq.heappush(heap, (-marginal, round_idx, node))
+
+            round_idx += 1
 
         return selected, torch.tensor(scores)
 
@@ -272,7 +325,9 @@ class IMStrategy(BaseStrategy):
         """
         Compute single-node spread for each candidate (CELF step 1 only).
 
-        This is used by HybridStrategy to get IM scores without running full CELF.
+        This is used by HybridStrategy to get IM scores without running full CELF,
+        and by full-CELF as the first step. Cached via ScoreCache (NPZ) when
+        enabled — pure topology, so cache is shared across methods, seeds, and k.
 
         Args:
             edge_index: [2, E] edge index tensor
@@ -280,12 +335,43 @@ class IMStrategy(BaseStrategy):
             candidate_set: List of candidate node indices
 
         Returns:
-            scores: [len(candidate_set)] tensor of spread scores
+            scores: [len(candidate_set)] tensor of spread scores, in the same
+                    order as candidate_set
         """
+        if self._score_cache is not None:
+            cfg = self._build_cache_config(edge_index, num_nodes, candidate_set)
+            hit, key = self._score_cache.get(cfg)
+            if hit is not None:
+                cand_np = np.asarray(candidate_set, dtype=np.int64)
+                if hit.candidates.shape == cand_np.shape and (hit.candidates == cand_np).all():
+                    print(f"[ScoreCache] HIT  im  key={key} n={hit.scores.shape[0]} src={hit.source}")
+                    return torch.from_numpy(hit.scores)
+                print(f"[ScoreCache] STALE im key={key} (candidate mismatch) — recomputing")
+            print(f"[ScoreCache] MISS im  key={key} — computing spread for {len(candidate_set)} candidates...")
+
         if HAS_NUMBA:
-            return self._compute_initial_gains_numba(edge_index, num_nodes, candidate_set)
+            scores = self._compute_initial_gains_numba(edge_index, num_nodes, candidate_set)
         else:
-            return self._compute_initial_gains_python(edge_index, num_nodes, candidate_set)
+            scores = self._compute_initial_gains_python(edge_index, num_nodes, candidate_set)
+
+        if self._score_cache is not None:
+            cand_np = np.asarray(candidate_set, dtype=np.int64)
+            scores_np = scores.detach().cpu().numpy().astype(np.float32, copy=False)
+            path = self._score_cache.save(cand_np, scores_np, cfg)
+            print(f"[ScoreCache] SAVE im  key={key} -> {path}")
+
+        return scores
+
+    def _build_cache_config(self, edge_index, num_nodes, candidate_set):
+        """IM cache key — pure topology, no model state. Shared across methods/seeds."""
+        return {
+            "namespace": "im",
+            "propagation_prob": float(self.propagation_prob),
+            "mc_rounds": int(self.mc_rounds),
+            "candidate_fraction": float(self.candidate_fraction),
+            "im_selector_seed": int(self.random_seed),
+            "graph_fingerprint": graph_fingerprint(edge_index, num_nodes, candidate_set),
+        }
 
     def _compute_initial_gains_python(self, edge_index, num_nodes, candidate_set):
         """Pure Python initial gains computation (fallback)."""

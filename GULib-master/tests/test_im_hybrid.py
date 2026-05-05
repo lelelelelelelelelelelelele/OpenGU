@@ -11,9 +11,14 @@ from torch_geometric.data import Data
 
 import attack.attack_strategies.im_strategy as im_strategy_module
 from attack.attack_strategies.im_strategy import IMStrategy, HAS_NUMBA
-from attack.attack_strategies.im_v4_strategy import IMV4Strategy
 from attack.attack_strategies.hybrid_strategy import HybridStrategy
-from attack.attack_strategies.hybrid_v4_strategy import HybridV4Strategy
+
+# IMV4Strategy / HybridV4Strategy were merged into IMStrategy / HybridStrategy
+# on 2026-05-05. The names below exist as aliases in attack_strategies/__init__.py
+# (`IMV4Strategy = IMStrategy`, `HybridV4Strategy = HybridStrategy`) so old
+# imports keep working. We import via that alias path here to assert the
+# alias is wired correctly.
+from attack.attack_strategies import IMV4Strategy, HybridV4Strategy
 
 
 def _make_dummy_data(num_nodes=100, num_features=16, num_edges=300):
@@ -119,13 +124,23 @@ class TestIMStrategy:
         assert selected[0] == naive_top1
 
     def test_im_v4_output_shape(self):
-        """IMV4 返回恰好 k 个节点"""
+        """IMV4Strategy alias resolves to IMStrategy and produces k nodes.
+
+        Post-merge (2026-05-05) IMV4Strategy is an alias for IMStrategy.
+        Both `im_v4_batch_size` (legacy) and `im_batch_size` should work.
+        """
         data = _make_dummy_data()
+        # Legacy kwarg name still accepted for backward compat.
         strategy = IMV4Strategy(args={'mc_rounds': 10, 'im_v4_batch_size': 3})
+        assert strategy.im_batch_size == 3, "legacy im_v4_batch_size should map to im_batch_size"
         k = 5
         result = strategy.select_nodes(data, model=None, k=k)
         assert result.shape == (k,)
         assert len(result.unique()) == k
+
+        # New kwarg name also works.
+        strategy2 = IMStrategy(args={'mc_rounds': 10, 'im_batch_size': 3})
+        assert strategy2.im_batch_size == 3
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +235,10 @@ class TestHybridStrategy:
         assert (result >= 0).all() and (result < 50).all()
 
     def test_hybrid_v4_output_shape(self):
-        """HybridV4 返回恰好 k 个节点"""
+        """HybridV4Strategy alias resolves to HybridStrategy and produces k nodes.
+
+        Post-merge (2026-05-05) HybridV4Strategy is an alias for HybridStrategy.
+        """
         data = _make_dummy_data(num_nodes=50, num_features=16)
         model = _make_dummy_model(num_features=16, num_classes=7)
         strategy = HybridV4Strategy(args={'mc_rounds': 10, 'im_v4_batch_size': 3})
@@ -242,16 +260,18 @@ class TestRegistration:
         from attack.attack_manager import AttackManager
         assert "hybrid" in AttackManager.BUILTIN_STRATEGIES
 
-    def test_im_resolves_to_v4_implementation(self):
-        # 2026-05-04: v4 suffix dropped — `im` now points to IMV4Strategy.
+    def test_im_resolves_to_canonical_implementation(self):
+        # 2026-05-05: V4 merged into IMStrategy. Registry now points to
+        # IMStrategy directly (which contains the batch-CELF numba path).
         from attack.attack_manager import AttackManager
-        from attack.attack_strategies.im_v4_strategy import IMV4Strategy
-        assert AttackManager.BUILTIN_STRATEGIES["im"] is IMV4Strategy
+        assert AttackManager.BUILTIN_STRATEGIES["im"] is IMStrategy
+        # Backward-compat alias still resolves to the same class.
+        assert IMV4Strategy is IMStrategy
 
-    def test_hybrid_resolves_to_v4_implementation(self):
+    def test_hybrid_resolves_to_canonical_implementation(self):
         from attack.attack_manager import AttackManager
-        from attack.attack_strategies.hybrid_v4_strategy import HybridV4Strategy
-        assert AttackManager.BUILTIN_STRATEGIES["hybrid"] is HybridV4Strategy
+        assert AttackManager.BUILTIN_STRATEGIES["hybrid"] is HybridStrategy
+        assert HybridV4Strategy is HybridStrategy
 
     def test_v4_alias_no_longer_registered(self):
         # Old aliases removed; runs/cache are clean of the suffix going forward.

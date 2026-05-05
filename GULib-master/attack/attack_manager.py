@@ -28,8 +28,6 @@ from attack.attack_strategies import (
     TracInStrategy,
     IMStrategy,
     HybridStrategy,
-    IMV4Strategy,
-    HybridV4Strategy,
 )
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
@@ -58,17 +56,20 @@ class AttackManager:
     """
 
     # Built-in strategy registry
-    # Note: "im" and "hybrid" are aliased to the v4 (batch-CELF + decoupled MC seed)
-    # implementations as of 2026-05-04. Old CELF / coupled-RNG classes (IMStrategy,
-    # HybridStrategy in *_strategy.py) remain in source as base classes only — not
-    # registered. Drop the v4 suffix everywhere downstream.
+    # Note: as of 2026-05-05 the V4 classes (IMV4Strategy, HybridV4Strategy)
+    # were merged into IMStrategy / HybridStrategy. Batch-CELF is now the
+    # canonical numba path inside IMStrategy, gated by `im_batch_size`
+    # (legacy `im_v4_batch_size` still accepted). Backward-compat aliases
+    # `IMV4Strategy = IMStrategy` and `HybridV4Strategy = HybridStrategy`
+    # are kept in `attack_strategies/__init__.py` so external imports of
+    # the old names still resolve.
     BUILTIN_STRATEGIES = {
         "random": RandomStrategy,
         "degree": DegreeStrategy,
         "pagerank": PageRankStrategy,
         "tracin": TracInStrategy,
-        "im": IMV4Strategy,
-        "hybrid": HybridV4Strategy,
+        "im": IMStrategy,
+        "hybrid": HybridStrategy,
     }
     # Strategies whose selection result is uniquely determined by the cache
     # key (dataset + base_model + seed + strategy_params + graph_fingerprint
