@@ -100,6 +100,20 @@ class graphrevoker(Shard_based_pipeline):
 
 
     def gen_train_graph(self):
+        # Shard_based_pipeline.exp_partition() jumps straight to gen_train_graph
+        # without calling train_test_split(), so self.{train,val,test}_indices
+        # would not exist. Initialize them here from self.data (set upstream by
+        # process_data). Idempotent — re-calling train_test_split just re-wraps
+        # the same numpy arrays.
+        if not hasattr(self, 'test_indices'):
+            self.train_test_split()
+        # Likewise, self.datafull (referenced by generate_shard_data and the
+        # legacy attack_unlearning helpers) was originally set by the
+        # commented-out GraphRevoker-local run_exp; the inherited
+        # Shard_based_pipeline.run_exp doesn't set it. Use self.data — both
+        # refer to the same clone of model_zoo.data in this dispatcher path.
+        if not hasattr(self, 'datafull'):
+            self.datafull = self.data
         # Decouple train test edges. Edges between train and validation are preserved.
         self.data.edge_index_train = utils.filter_test_edges(self.data.edge_index.detach().cpu().numpy(), self.test_indices)
         # self.data.edge_index_train = self.data.edge_index

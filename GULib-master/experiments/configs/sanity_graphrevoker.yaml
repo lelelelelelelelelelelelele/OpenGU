@@ -15,6 +15,10 @@ defaults:
   num_epochs: 100
   batch_size: 64
   cuda: 0
+# GraphRevoker only supports partition_method ∈ {random, gpa}; default
+# `lpa_base` (used by GraphEraser) raises "Unsupported partition method".
+# `gpa` is the GraphRevoker-canonical Graph-Partition-Aware algorithm.
+extra_args: ["--partition_method", "gpa"]
 model_overrides:
   GCN:
     gcn_num_layers: 2
