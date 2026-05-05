@@ -1,0 +1,40 @@
+# Phase B — ogbn-arxiv IM-only slice (interim, runs while Blocker 1 is being fixed)
+# Derived from phase_b_arxiv.yaml. IM is topology-based and does NOT depend on
+# trained model (im_strategy.py:123-124), so it is safe to run before the
+# pipeline_adapter.py untrained-model fix lands. tracin/hybrid removed; random
+# kept as paired baseline at the same budget.
+# Output: results/runs/ogbn-arxiv_GCN_r0.05/{method}_{strategy}/seed{N}/...
+
+name: phase_b_arxiv_im_only
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - im
+
+seeds: [42, 212, 722]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256
