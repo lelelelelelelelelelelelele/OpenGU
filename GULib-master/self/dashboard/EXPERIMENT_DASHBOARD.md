@@ -124,9 +124,9 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 
 可能解释 A：真鲁棒；B：mechanism-incomparable（特征保留 / 梯度型独立）。详见 thesis_transition_memo §3.5。
 
-### 3.6 ✅ Phase B 污染 bug 集（RESOLVED 2026-05-06，commits `66a90f8` + `13f1e89`）
+### 3.6 ✅ Phase B 污染 bug 集（RESOLVED 2026-05-06，commits `66a90f8` + `13f1e89` + `ddb7109`）
 
-5 条同期发现的 attack pipeline 正确性问题，都在 `fix/blocker-1-train-before-select` branch 上修完。**Phase B 既有所有 attack.json/collateral.json 数据全部判定为不可信**，需在新 binary 下重跑。详见 V-2026-05-06-01 / V-2026-05-06-02。
+5 条第一轮 + 3 条二次 audit 共 8 条 attack pipeline 正确性问题，都在 `fix/blocker-1-train-before-select` branch 上修完。**Phase B 既有所有 attack.json/collateral.json 数据全部判定为不可信**，用户已清盘 `results/runs/` + 三个 cache 目录，下一次 B.0 sanity 是第一次干净数据。详见 V-2026-05-06-01 / V-2026-05-06-02。
 
 | Bug | 影响 | 状态 |
 |---|---|---|
@@ -135,6 +135,9 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 | **TracIn / Hybrid 在 random-init 模型上算梯度** — `AttackPipeline._setup` 只构造 model_zoo（随机初始化），训练在 `method.run_exp()` 里发生，时序晚于 `strategy.select_nodes`。pre-fix 的 IF 分数实际是结构-特征-范数代理，不是训练影响力 | ✅ `BaseStrategy.requires_trained_model` 标志位；`AttackPipeline._ensure_base_model_trained()` 用 `train_only=True` 训完 + state_dict snapshot；`run_with_strategy` hook 在 select_nodes 前调用；ScoreCache 和 SelectionCache 都加 `cache_schema: "v2"` 自动作废旧 entry |
 | **eval_collateral.py 缺 seed_everything** — retrain 不可复现；`predictions.npz::logits_retrained` 同 seed 跑两次得到不同 logits | ✅ 加 `_seed_everything(seed_value)` 在 args sync 之后调 |
 | **demo_attack 没同步 `proportion_unlearned_nodes`** — 默认 0.1 vs `unlearn_ratio` 0.05，导致 GIF_logger_name / df_size 计算 / cache key 在 demo_attack 与 eval_collateral 之间不一致 | ✅ 在 args dict 和 sys.argv 注入两处都同步 |
+| **SelectionCache 对 Hybrid/TracIn 漏 hyperparam** — `_strategy_params_for_cache` 对它俩 fallthrough 到 `{}`，`fingerprint = sha256("{}")` 常数；两次 hybrid 实验只差 alpha/candidate_fraction/fusion_method/loss_type 时 cache key 完全相同，第二次 HIT 拿到第一次的 selected_nodes，`strategy.select_nodes` 根本不执行 | ✅ ddb7109：加 tracin/hybrid 分支返回完整 hyperparam dict |
+| **ResultCache CACHE_KEY_FIELDS 漏架构/loss 系数** — 缺 gcn_num_layers/gcn_hidden（arxiv 3/256 vs cora 2/64 同 base_model 时碰撞）、alpha（GNNDelete/CGU loss 系数直接进 f1_after）、hybrid_alpha | ✅ ddb7109：加 4 个字段 |
+| **跨 strategy 训练状态污染** — `compare_strategies` 内所有 strategy 共享 `model_zoo.model`；第 1 个 strategy 跑完后是 post-unlearn 状态，第 2 个 strategy 的 `train_original_model` 在污染权重上 fine-tune；cell 内 strategy 顺序影响 f1_after | ✅ ddb7109：`_setup` snapshot random_init state_dict；新增 `_restore_random_init`；hook 在 `_ensure_base_model_trained` 训练前 + `_run_unlearning_with_selected_nodes::method.run_exp()` 前 |
 
 **附带修复**：
 - HybridStrategy 之前绕过 `compute_im_celf` 直接调 `compute_initial_marginal_gains`，不应用 `candidate_fraction` pruning → 改为对 IF/IM 共享候选集统一 prune

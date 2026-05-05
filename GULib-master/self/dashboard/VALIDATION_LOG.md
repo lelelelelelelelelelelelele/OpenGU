@@ -522,3 +522,83 @@ Average AUC Score: 0.5718                                                       
 
 ---
 
+### V-2026-05-06-02: Second-pass audit — cache key collisions + per-strategy training state pollution (RESOLVED)
+
+**Background**：用户要求继续 review previous Opus 4.6 写的 attack pipeline 代码，找 codex 那一轮没碰过的角落。三方向并行：`attack_eval.py` 指标正确性、`experiments/run.py` argv 转发、`attack/result_cache.py` + `selection_cache.py` + `score_cache.py` key 完整度。共找 23 条 finding，5 条 critical/high 已验证为真 bug。挑了三条最致命的入 commit `ddb7109`，其余 medium/low 留 follow-up。同会话内用户清盘 `results/runs/`、`results/cache/*.json`、`results/score_cache/`、`results/selection_cache/*.json`，所以这一轮**不再加 cache_schema 版本 sentinel**，纯靠 key 字段差异让旧 hash 自然失效（实际旧 hash 已被 rm 掉）。
+
+**Bug A: SelectionCache 对 Hybrid / TracIn 漏 hyperparam — Critical**
+- `attack/attack_manager.py::_strategy_params_for_cache:166-179` 之前只对 `"im"` / `"pagerank"` 返回非空 dict，`"tracin"` / `"hybrid"` fallthrough 到 `{}` → `strategy_params_fingerprint = sha256("{}") = "44136fa3..."` 常数
+- **后果**：两个 hybrid 实验只差 `hybrid_alpha` (or `candidate_fraction`, or `fusion_method`, or `loss_type`) 时算出的 cache key 相同 → 第二次 `selection_cache.get(config)` HIT 第一次的 `selected_nodes` → `strategy.select_nodes` **根本不执行** → 第二次实验复用第一次的选点。两次 attack.json 的 `selected_nodes` 字段会一字不差。A.3 alpha sweep 直接报废。
+- **Fix**：`_strategy_params_for_cache` 加 `tracin` 分支返回 `{loss_type}`，加 `hybrid` 分支返回 `{fusion_method, hybrid_alpha (alpha fallback), loss_type, propagation_prob, mc_rounds, candidate_fraction, im_batch_size}`。Hybrid 把 IM 内部参数也带进 key，因为 candidate_fraction < 1.0 时 Hybrid 的 candidate set 会被 IM 的度数 prune 改写，TracIn 和 IM 的 score 都依赖这个 set。
+
+**Bug B: ResultCache CACHE_KEY_FIELDS 漏架构/loss 系数 — High**
+- `attack/result_cache.py::CACHE_KEY_FIELDS` 之前是 `(dataset_name, base_model, unlearning_methods, unlearn_ratio, k, random_seed, seed, strategy_name, unlearn_task, downstream_task, is_transductive, is_balanced)`
+- **缺**：`gcn_num_layers`、`gcn_hidden`（arxiv 3/256 vs cora 2/64 同 dataset/base_model 时碰撞）、`alpha`（GNNDelete/CGU loss 系数直接进 f1_after）、`hybrid_alpha`（Hybrid fusion ω 改 selected_nodes → 间接改 attack 结果）
+- **Fix**：CACHE_KEY_FIELDS 加这 4 项
+
+**Bug C: 跨 strategy 的训练状态污染（pre-existing，比 random-init 还隐蔽）— High**
+- `compare_strategies(['random','tracin','hybrid'])` 顺序：所有 strategy 共享同一个 `model_zoo.model` nn.Module；`method.run_exp()` 在它上面 in-place 训练
+- 第 1 个 strategy 跑完后 `model_zoo.model` 是 post-unlearn 状态。第 2 个 strategy 的 `train_original_model` 不是从 random init "train from scratch"，而是在 post-unlearn 权重上 "fine-tune"
+- 后果：cell 内 strategy 的 `f1_after` 取决于**之前哪些 strategy 跑过、什么顺序**——同 yaml 调换 strategies 列表顺序数字会变
+- 13f1e89 的 `_ensure_base_model_trained` 用 trained-snapshot 给 `select_nodes` 看到一致的 base model，但**实际 unlearning run 还是 fine-tune**——只解决一半
+- **Fix**：在 `_setup` 末尾对 `model_zoo.model` 取 random-init 时的 state_dict 做 `_random_init_state_dict` snapshot；新增 `_restore_random_init()`；在两处 hook 它：
+  - `_ensure_base_model_trained` 训练前：保证 train_only run 起点干净
+  - `_run_unlearning_with_selected_nodes` `method.run_exp()` 前：保证实际 unlearning 实验 train phase 起点干净
+- 把原来 `_base_state_dict`（snapshot 训练后权重）改名 `_trained_state_dict`，语义更清楚。`run_retrain` 不动——它本来就 recreate model_zoo，等价于 reset
+
+**实测验证**（cora/GIF/random+tracin+hybrid/seed=42）：
+```
+[strategy random]
+  SelectionCache MISS  selection_key=8bee9e8e... (新 key，旧 9b8ed42f 不再匹配)
+  Injected 108 nodes
+  Epoch 030 F1=0.8856                       ← train from random_init
+  F1 after unlearning: 0.8819
+
+[strategy tracin]
+  SelectionCache MISS  selection_key=df722027... (key 含 loss_type, base_model trained)
+  "Training base model for selection..."    ← _ensure_base_model_trained 第一次调
+  Base model trained (F1=0.8838); trained state_dict snapshot taken
+  ScoreCache MISS if  → compute TracIn scores
+  Injected 108 nodes
+  Epoch 030 ...                             ← train from random_init (restored)
+  F1 after unlearning: 0.8875
+
+[strategy hybrid]
+  SelectionCache MISS  selection_key=35fa892c... (key 含 fusion_method/hybrid_alpha/...)
+  (no "Training base model..." log         ← _trained_state_dict already exists, restored)
+  ScoreCache HIT  if  → reuse TracIn scores  ← graph_fingerprint 一致（cf=1.0 同候选集）
+  Injected 108 nodes
+  Epoch 030 ...                             ← train from random_init (restored)
+  F1 after unlearning: 0.8948
+```
+三个 strategy 的 unlearning 训练阶段都从同一个 random_init 出发；trained snapshot 跨 strategy 复用；ScoreCache 在 candidate_fraction=1.0 时 Hybrid 复用 TracIn 的 IF 计算，candidate_fraction<1.0 时则因为 candidate set 变 → graph_fingerprint 变 → 重新计算。
+
+**测试**：`pytest tests/ --ignore=tests/test_report_figure_refresh.py` → 185 passed。
+
+**Cache schema sentinel 决策**：commit `13f1e89` 当时给 `tracin_strategy._build_cache_config` 和 `attack_manager._build_selection_config` 都加了 `cache_schema: "v2"` 字段用来作废旧 random-init 时代缓存。**用户清盘后**这个 sentinel 没存在意义，反而让 key 模板变脏，本次 commit 一并回退。新 key 由实质 hyperparam 字段差异自然区分。
+
+**剩余 audit 发现（未修，medium/low priority）**：
+| Finding | 严重度 | 是否修 | 理由 |
+|---|---|---|---|
+| `experiments/run.py` 不显式转发 `--hybrid_alpha`/`--is_transductive`/`--is_balanced`/`--im_selector_seed` | Medium | 暂不 | 当前 yaml 都用默认值，不影响 B.0/B.1/B.2；A.3 alpha sweep 启动前需配合 `cell_dir` 后缀一起改（spec 已记录） |
+| `selection_cache.save` / `result_cache.save` / `score_cache.save` 都是非 atomic write（直接 write_text / open(w) / np.savez） | Medium | 暂不 | 单机 sequential runner 不撞，prewarm + 主 runner 并跑才有风险 |
+| `tests/test_attack_eval.py::TestEvaluateMiaAuc` 用 random model，AUC 在 0.5 附近，只 assert `0<=AUC<=1` | Medium | 暂不 | 测试 gap，可补 synthetic-confident-on-members 单测 |
+| `attack_eval.py` `f1_drop_pct` 用 `f1_before` 分母，`gap_pct` 用 `perf_retrain` 分母 | Low | 不修 | 设计选择，不是 bug。paper §metric 注一句即可 |
+| `attack_eval.py::evaluate_f1_drop` 在 test_mask 全空时会 raise | Low | 不修 | cora/citeseer/arxiv test_mask 都有节点，实际不可达 |
+| `selection_cache.get_smallest_superset` 假设 `selected_nodes` 已按 score 降序 | Low | 不修 | 实现确实如此，docstring 加 contract 即可 |
+
+**Branch 状态**: `fix/blocker-1-train-before-select` 现有 4 个 fix commit + 1 个 dashboard commit
+- `66a90f8` codex 4 fix
+- `13f1e89` random-init TracIn / Hybrid candidate_fraction / hybrid_alpha 字段 / path-consistency assert
+- `215f66b` dashboard V-2026-05-06-01 + §3.6
+- `ddb7109` 本次 cache key + train state isolation
+- `<本 commit>` dashboard V-2026-05-06-02
+
+**对 Phase B 重跑的影响**：用户已清 cache + runs，下一次 B.0 sanity 跑出来的数据**第一次干净**：
+- 每个 cell × strategy 的 unlearning 实验都从同一个 random init 出发（cell 内 strategy 顺序对 metric 0 影响）
+- Hybrid 在不同 alpha / candidate_fraction 下不会再误命中前一次 cache
+- arxiv 3/256 不会再误命中 cora 2/64 ResultCache
+- TracIn 在 cross_entropy vs mse loss_type 下不会再误命中
+
+---
+
