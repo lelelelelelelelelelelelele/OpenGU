@@ -113,6 +113,28 @@ bash scripts/diag_b1.sh                              # 当前 cell 输出列表 
 python scripts/gate_runs.py <yaml> [--f1-min N --f1-max M]   # 自动 pass/fail
 ```
 
+### 0.9 前台单 cell 调试（nohup 全失败时第一件事）
+
+`run.py` 用 `subprocess.run` 跑 demo_attack / eval_collateral，stdout/stderr 透传到父进程。但 nohup 把父进程 stdout/stderr 写文件时若子进程 import 阶段就 segfault / argparse error / `os._exit()`，错误可能被 buffer 吞掉看不全。**整 yaml 5/5 `failed_attack` + `elapsed: <30s` = 子进程根本没启动到 GPU 阶段**——这时跳过 nohup，前台跑一个 cell 看真实 traceback。
+
+```bash
+# A. 用 run.py 的 --limit 1，路径与 B.1 完全一致（含 collateral）
+python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml --limit 1
+
+# B. 或者直接调 demo_attack（最薄一层，便于把 args 一一对照 yaml）
+python demo_attack.py \
+    --dataset_name ogbn-arxiv --base_model GCN \
+    --unlearning_methods GIF --strategies random \
+    --unlearn_ratio 0.05 --seed 42 \
+    --num_epochs 200 --batch_size 256 --cuda 0 \
+    --gcn_num_layers 3 --gcn_hidden 256 \
+    --save_path /tmp/test_attack.json
+```
+
+A 优先（暴露的 bug 跟 nohup 路径完全一致）；A 起不来就退到 B（绕开 run.py 包装）。
+
+修好之后再回到 nohup 全跑——别在前台跑 5 cell 把人锁住，shell 一断又要重来。
+
 ---
 
 ## 1. 双机执行计划（核心架构）⭐
@@ -582,6 +604,7 @@ tar xzf arxiv_results.tar.gz
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `mia_auc: 0.000` 在 B.0 输出里 | bug 没修干净或缓存污染 | `find results/cache results/selection_cache -name '*.json' -delete`，再 `--force` 重跑 |
+| nohup 里 `failed_attack: N` + `elapsed: <30s`（全部 cell 立刻挂） | 子进程 import / argparse / 早期 segfault；nohup buffer 吞了 traceback | 跳到 §0.9 前台单 cell 跑，让 traceback 直出 terminal |
 | `Error during unlearning: CUDA out of memory` | retrain 显存不够（24GB 卡上 arxiv） | 切到 H800 80GB；或 `--gcn_hidden 128` 降配 |
 | `no kernel image is available for execution on the device` | GPU 架构 PyTorch 不支持（如 Blackwell + cu118） | 换 H800/A100 (sm_90)，或装 PyTorch 2.4+cu124 |
 | `ImportError: torch_scatter` | wheel mismatch | `pip install torch_scatter==2.1.2 -f https://data.pyg.org/whl/torch-2.1.2+cu118.html` |
