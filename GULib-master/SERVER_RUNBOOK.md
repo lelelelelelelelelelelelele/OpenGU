@@ -93,7 +93,11 @@ find results/cache results/selection_cache -name '*.json' -delete
 
 > 不要碰：`results/runs/`（实验输出）、`data/processed/`（数据集 split）。
 
-### 0.6 监控正在跑的任务
+### 0.6 看一个 cell 卡哪了
+
+各阶段 CPU/GPU 占用 + 已知瓶颈位置：见 `self/attack_flow.md`。判别"卡死还是慢"必看。
+
+### 0.7 监控正在跑的任务
 
 ```bash
 tail -f logs/phase_b_arxiv.log
