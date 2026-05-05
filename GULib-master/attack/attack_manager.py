@@ -70,7 +70,15 @@ class AttackManager:
         "im": IMV4Strategy,
         "hybrid": HybridV4Strategy,
     }
-    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im"}
+    # Strategies whose selection result is uniquely determined by the cache
+    # key (dataset + base_model + seed + strategy_params + graph_fingerprint
+    # + k). tracin/hybrid added 2026-05-05 to enable cross-machine prewarm
+    # workflow (compute selection on a big GPU, transfer cache JSON to a
+    # cheap GPU for the GU pass). Assumes training hyperparameters
+    # (num_epochs, lr, dropout, etc.) are constant across runs of the same
+    # config — true within a single yaml config; document if you change
+    # those between machines.
+    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "tracin", "hybrid"}
     # Runtime k-subset reuse is safe only for deterministic ranking strategies.
     SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
 
