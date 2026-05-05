@@ -105,7 +105,84 @@ python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 
 ✅ 通过 → 进 B.2
 
-### B.2 · arxiv 主矩阵（~12-30 GPU-h）💰 最贵
+### B.1.5 · 分卡省钱：prewarm selection cache（可选，推荐）⭐ 新
+
+**适用场景**：B.1 通过、想跑 B.2，但 tracin 在 arxiv 上需要 ~150min/cell × 9 cell ≈ 22h 大卡。把 selection（贵卡需求）和 GU+retrain+MIA（4090 就够）拆到两台机器。
+
+**省的钱**：A100 80GB × 6h（仅 selection）+ 4090 × 11h（仅 GU）≈ $20 vs A100 全程 ≈ $42。
+
+#### 先决条件：清空旧 selection cache
+
+旧 cache 文件可能用了老的 key 方案（IM 在 2026-05-05 commit `af1c8ba` 前 key 含训练 seed），保留它们不会出错但占空间且容易混淆。**Phase B 开始前清一次**：
+
+```bash
+cd ~/OpenGU/GULib-master
+ls results/selection_cache/*.json 2>/dev/null | wc -l    # 看有多少
+find results/selection_cache -name '*.json' -delete       # 只删 json，保 CLAUDE.md
+ls results/selection_cache/                               # 验证只剩 CLAUDE.md
+```
+
+> ⚠ **不要**碰 `results/runs/`（B.1a 的 5 个 random cell 在里面）和 `data/processed/`（数据集 split 缓存，重生不必要）。
+
+#### Stage 1: 在 A100 80GB 上算 selection（~6h）
+
+```bash
+# 探针先确认 tracin 不会 OOM（~2 min）
+python scripts/feasibility_selection_only.py \
+    --dataset_name ogbn-arxiv --base_model GCN \
+    --gcn_num_layers 3 --gcn_hidden 256 \
+    --candidate_subset_size 1000 --strategies tracin
+
+# 看输出 [extrapolation] 行的 mem_full(GB)：
+#   <22 → 4090 也够，跳过分卡，直接走 B.2 单卡
+#   22–44 → 租 A6000 48GB
+#   >44   → 租 A100 80GB ⭐ 当前估计就在这一档
+
+# 全量 prewarm（10 个独立 selection 计算，~6h）
+nohup python scripts/prewarm_selection_cache.py \
+    experiments/configs/phase_b_arxiv.yaml \
+    > logs/prewarm.log 2>&1 &
+echo $! > logs/prewarm.pid
+tail -f logs/prewarm.log     # 监控
+
+# 完成后打包（~5 MB tarball）
+tar czf selection_cache.tar.gz results/selection_cache/
+ls -lh selection_cache.tar.gz
+```
+
+#### Stage 2: scp 到 4090
+
+```bash
+# 在本地 PowerShell 中转
+scp a100-host:~/OpenGU/GULib-master/selection_cache.tar.gz .
+scp selection_cache.tar.gz 4090-host:~/OpenGU/GULib-master/
+
+# 或两台之间直传（autodl 实例间同区域）
+# 在 4090 上：scp a100-host:~/.../selection_cache.tar.gz .
+```
+
+#### Stage 3: 在 4090 上跑 GU（~11h，全 cache hit）
+
+```bash
+cd ~/OpenGU/GULib-master
+git pull                                    # 确保代码同步
+tar xzf selection_cache.tar.gz              # 解压 cache
+ls results/selection_cache/*.json | wc -l   # 看到 ~10 个文件就对
+
+# 跑 B.2 主矩阵 — selection 全部 HIT，只跑 GU + retrain + MIA
+nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
+    > logs/phase_b_arxiv.log 2>&1 &
+echo $! > logs/phase_b_arxiv.pid
+
+# 监控（应该看到大量 "[SelectionCache] HIT"，每个 selection 复用时间 < 1ms）
+grep -c "SelectionCache.*HIT" logs/phase_b_arxiv.log
+```
+
+✅ 进度满 36 cell → 进 B.3/B.4
+
+---
+
+### B.2 · arxiv 主矩阵（~12-30 GPU-h）💰 最贵（如不分卡）
 
 **用 nohup 跑后台，断 SSH 不影响**：
 
@@ -173,7 +250,8 @@ tar xzf phase_b_results.tar.gz
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| `mia_auc: 0.000` 在 B.0 输出里 | bug 没修干净或缓存污染 | `rm -rf results/cache/*.json results/selection_cache/*.json`，再 `--force` 重跑 |
+| `mia_auc: 0.000` 在 B.0 输出里 | bug 没修干净或缓存污染 | `find results/cache results/selection_cache -name '*.json' -delete`，再 `--force` 重跑 |
+| 4090 跑 B.2 没看到 `[SelectionCache] HIT` | selection_cache.tar.gz 没解压或解压到错地方 | 在 GULib-master 根目录跑 `tar xzf selection_cache.tar.gz`，再 `ls results/selection_cache/*.json` 应有 ~10 个文件 |
 | `ImportError: torch_scatter` | wheel mismatch | 用 `-f https://data.pyg.org/whl/torch-2.1.2+cu118.html` 重装 |
 | B.1 metric 闸不过 | 真 bug 或数据问题 | **停下**，把 `attack.json` + `_meta.json` 发我 |
 | SSH 断了 nohup 任务停了 | 没用 nohup | 必须用 §2 B.2 那种 `nohup ... &` 写法 |
