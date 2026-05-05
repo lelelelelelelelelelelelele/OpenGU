@@ -37,7 +37,7 @@ method_map = {
     "GST": gst,
     "Projector": projector,
     "MEGU": megu,
-    "GraphRevoker": grapheraser,
+    "GraphRevoker": graphrevoker,
     "UTU": utu,
     "GUKD": gukd,
     "D2DGN": d2dgn,
