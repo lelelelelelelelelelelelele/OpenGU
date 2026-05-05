@@ -8,38 +8,28 @@ is, we show, \emph{adversarially exploitable} by an attacker who controls
 the deletion set.
 
 We present, to our knowledge, the first systematic adversarial audit of
-approximate GU. The attacker selects a small set of nodes to forcibly
-unlearn---via influence-maximization, pseudo-influence functions, or hybrid
-strategies---aiming to amplify approximation error and collapse downstream
-utility. We evaluate \textbf{six} representative methods covering three of
-the four upstream OpenGU categories with \emph{intra-family pairs} in each:
-Partition-based (GraphEraser, GraphRevoker), Influence-Function-based
-(GIF, IDEA), and Learning-based (GNNDelete, MEGU). Experiments span Cora,
-Citeseer, and ogbn-arxiv (169K nodes) with GCN and GAT backbones.
+approximate GU. The attacker chooses a small deletion set---using
+influence maximization, pseudo-influence functions, or their hybrid---to
+amplify approximation error. We evaluate \textbf{six} methods covering
+three OpenGU categories with intra-family pairs: Partition-based
+(GraphEraser, GraphRevoker), Influence-Function-based (GIF, IDEA), and
+Learning-based (GNNDelete, MEGU), across Cora, Citeseer, and ogbn-arxiv
+(169K nodes) with GCN/GAT backbones.
 
-Our findings reveal a stark \textbf{Vulnerability Fingerprint}---a 2D
-geometry whose axes are the structural-spread (IM) and gradient-signal
-(TracIn) attack-specific F1 effects:
-(i)~Learning-based \textbf{GNNDelete} collapses by an average of
-\interim{16\%} F1 with peaks above \interim{27\%} under a deletion budget
-below 5\% of training nodes;
-(ii)~IF-based \textbf{GIF} shows a small but statistically significant
-vulnerability (paired effect $\approx$\interim{+4\%} F1,
-$p$\interim{$<$0.001}) bounded by its Newton-step approximation;
-(iii)~the Partition family exhibits a counterintuitive \textbf{Shard
-Protection Effect}---random and adversarial deletion both \emph{improve}
-downstream F1 by \interim{3--6\%}, formally an \emph{architectural}
-F1-shift term $\Delta F_{\text{arch}}<0$ that no selector can amplify;
-(iv)~the \textbf{intra-family outliers} MEGU (Learning-based,
-mutual-evolution) and IDEA (IF-based, certified-gradient) exhibit null
-effect ($<$\interim{1\%} F1 difference) despite belonging to vulnerable
-parent categories, revealing within-family heterogeneity that current
-gradient/diffusion-based selectors cannot exploit.
+Our \textbf{Vulnerability Fingerprint} projects each method onto two
+attack-specific F1 axes: structural spread (IM) and gradient signal
+(TracIn). It separates three regimes. \textbf{GNNDelete} suffers the
+largest collapse (\interim{16\%} average F1, peaks above
+\interim{27\%}); \textbf{GIF} shows a smaller but significant
+TracIn-aligned effect (paired effect $\approx$\interim{+4\%} F1,
+$p$\interim{$<$0.001}); and the Partition pair shows no attack-specific
+amplification, instead exhibiting a \textbf{Shard Protection Effect} in
+which deletion improves F1 by \interim{3--6\%}. MEGU and IDEA remain near
+the origin ($<$\interim{1\%} F1), exposing strong within-family
+heterogeneity.
 
-We further introduce a \textbf{collateral diagnostics} suite---an explicit
-$\Delta F_{\text{total}}=\Delta F_{\text{arch}}+\Delta F_{\text{attack}}$
-decomposition, retrain gap, prediction shift, and a novel
-\textbf{hop-distance decay} metric quantifying disturbance propagation
-through the GNN's receptive field---providing a principled audit kit for
-any future approximate-GU deployment.
+We further introduce a compact diagnostics suite---$\Delta
+F_{\text{total}}=\Delta F_{\text{arch}}+\Delta F_{\text{attack}}$,
+retrain gap, prediction shift, and hop-distance decay---for separating
+data-loss effects from approximation drift in future GU audits.
 \end{abstract}
