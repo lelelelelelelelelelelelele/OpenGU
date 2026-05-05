@@ -1,6 +1,6 @@
 # Validation Log
 
-> Last updated: 2026-05-04
+> Last updated: 2026-05-06
 > **Append-only**——禁止删改历史条目。错的条目不删，新条目标 SUPERSEDES + 解释
 > 用途：固化今天讨论 / 实测验证 / sanity check 的实证证据，避免 4 天 deadline 期间反复发现同一件事
 
@@ -445,3 +445,80 @@ results/runs/
 **Memory entry**: `project_graphrevoker_dispatcher_history.md` — for future sessions reading old paper claims that mention "GraphRevoker", check the date; pre-2026-05-05 invalidates the GraphRevoker label.
 
 ---
+
+## 2026-05-06 Session
+
+### V-2026-05-06-01: Phase B attack pipeline 5-bug correctness audit (RESOLVED)
+
+**Background**：在审 codex 写的 `fix/phase-b-blockers` 时连续发现 5 条 attack pipeline 正确性问题，全部影响 Phase B 既有 attack.json / collateral.json 的可信度。同会话内修完，分两个 commit：`66a90f8`（codex 4 条）+ `13f1e89`（我补的 train-before-select + Hybrid 修复）。
+
+**Bug list & evidence chain**：
+
+1. **`config.unlearning_path` 路径错位**（最致命）
+   - **Trigger**：`demo_attack.py:43` `parse_known_args` 之后 `sys.argv = [argv[0]] + remaining_args`，把 `--dataset_name --base_model --unlearning_methods --unlearn_ratio --proportion_unlearned_nodes --num_epochs --batch_size --random_seed` 都剥光
+   - **Cascade**：`from attack import AttackManager` → `attack/pipeline_adapter.py:34 from config import unlearning_path` → `config.py:2 args = parameter_parser()` 此时 sys.argv 已空 → 烘出默认 `cora/0.1/transductive/imbalanced` 路径
+   - **Read 路径**：SGU/IDEA/GUIDE/GST/CGU/ScaleGUN/GUKD/GraphEraser_MIA/GUIDE_MIA + `utils/dataset_utils.py:12` 都 `from config import unlearning_path`，import 时拿到上面那个错误 string
+   - **Write 路径**：`AttackPipeline._inject_unlearn_nodes:201` 自己用 `self.args` 拼路径，写到正确 (arxiv/0.05) 路径
+   - **结果**：方法读不到 inject 的文件，可能 fallback 到磁盘上残留的 `unlearning_nodes_0.1_cora_*.txt`（来自旧 cora 实验），静默 unlearn 来自不同 dataset 的节点 ID
+   - **Fix**：`demo_attack.py:48-60` 把 shared args 回注 sys.argv；`pipeline_adapter.py:201` 加 `assert path == config.unlearning_path + run_id`
+
+2. **Random/Degree/PageRank 不限 train_mask**
+   - `random_strategy.py:17 torch.randperm(data.num_nodes)`、degree/pagerank 同样 `torch.topk(scores, k)` 在全图
+   - cora train ~140/2708 ≈ 5%，所以 ≥94% 概率选到 val/test
+   - **Fix**：`BaseStrategy.candidate_nodes` helper（train_mask → train_indices → arange fallback），三策略全部走它；测试 fixture 加 `assert_subset_of_train_mask: true` 校验
+
+3. **TracIn / Hybrid 在 random-init 模型上算梯度**
+   - **Trigger**：`AttackPipeline._setup:120` 只 `model_zoo(args, data)`（构造，权重随机），训练在 `method.run_exp()` 里发生
+   - **Order**：`pipeline_adapter.run_with_strategy:229` `strategy.select_nodes(data, self.model, k)` ← 用 random-init；`run_with_selected_nodes` 里才 `method.run_exp()` 训练
+   - **Math**：random-init 下 `out[i] = A·X·W_random` 强烈依赖度数 + 邻域特征，gradient 退化为 structural-feature-norm 代理
+   - **Implication**：所有 Phase B TracIn/Hybrid 数字看似工作（F1 drop / collateral 都动），实际测的是结构启发，不是 IF；论文不能 claim "IF-guided"
+   - **Fix**：`BaseStrategy.requires_trained_model` 标志位；`AttackPipeline._ensure_base_model_trained()` 用 `args["train_only"]=True` 跑 `method.run_exp()` 训练 + state_dict snapshot 跨 strategy 复用；`run_with_strategy` hook
+   - **Cache schema bump**：`tracin_strategy._build_cache_config` 和 `attack_manager._build_selection_config` 都加 `cache_schema: "v2"`，旧 random-init 时代缓存自动作废
+
+4. **eval_collateral.py 缺 seed**
+   - `eval_collateral.py:287 main()` 全文没有 `seed_everything / random.seed / np.random.seed / torch.manual_seed`
+   - retrain 不可复现：`predictions.npz::logits_retrained` 同 seed 跑两次得到不同 logits
+   - **Fix**：加 `_seed_everything(seed_value)` 在 `args['proportion_unlearned_nodes']` sync 之后调
+
+5. **demo_attack 没同步 `proportion_unlearned_nodes`**
+   - parameter_parser 默认 0.1 vs `unlearn_ratio` 0.05；`config.py:45 GIF_logger_name` 用 `proportion_unlearned_nodes`，cache key、df_size 计算、log 路径全错
+   - eval_collateral.py 已经在 line 304 同步，demo_attack 没有
+   - **Fix**：args dict 和 sys.argv 注入两处都同步
+
+**附带 fix**（不是同源 bug 但顺手处理）：
+- `HybridStrategy.select_nodes` 之前绕过 `compute_im_celf` 直接调 `compute_initial_marginal_gains`，**不应用 `candidate_fraction` pruning** → 改为对 IF/IM 共享候选集统一 prune（`hybrid_strategy.py:54-65`）
+- `--alpha` 字段同时是 GNNDelete/CGU loss alpha 和 Hybrid fusion ω → A.3 alpha sweep 不能直接用这个字段；新加 `--hybrid_alpha`，向后兼容 fallback 到 `alpha`（`parameter_parser.py:99-103`、`hybrid_strategy.py:35-39`）
+
+**端到端验证**（cora/GCN/GIF/random+tracin/seed=42，cli `H:/conda_package/envs/gnn/python.exe demo_attack.py ...`）：
+```
+Training base model for selection (requires_trained_model strategy)...
+Epoch: 030 | F1 Score: 0.8838 | Loss: 0.2661
+Base model trained (F1=0.8838); state_dict snapshot taken.
+[ScoreCache] MISS if  key=9e1f5b8... — computing TracIn scores...   ← v2 schema 触发新 key
+Strategy selected nodes: [1017, 1924, 1065, 1274, ...]
+Injected 108 nodes to unlearn at ./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.05_cora_0.txt
+                                                                                ↑ assert 通过：path 与 config.unlearning_path 一致
+F1 after unlearning: 0.8875
+Average AUC Score: 0.5718                                                       ← MIA 非零
+```
+
+**测试**：`pytest tests/ --ignore=tests/test_report_figure_refresh.py` → **185 passed**（FIG-2 测试需要磁盘上 Phase B 数据，pre-existing fail，与本次改动无关）。
+
+**对 Phase B 数据的影响**：
+| 数据类型 | 状态 |
+|---|---|
+| `results/runs/**/attack.json` (TracIn / Hybrid cells) | ❌ 测的是 random-init 代理 |
+| `results/runs/**/attack.json` (Random / Degree / PageRank cells) | ❌ 跨 train_mask，预算未匹配 |
+| `results/runs/**/attack.json` (IM cells) | ✅ 不依赖模型，候选集本就限 train_mask |
+| `results/runs/**/collateral.json::retrain_gap` | ⚠️ 单次有效但跨 seed 不可复现 |
+| `results/runs/**/predictions.npz::logits_before/unlearned` | ✅ 来自 ResultCache，非 retrain，不受 seed bug 影响 |
+| `results/runs/**/predictions.npz::logits_retrained` | ⚠️ 不可复现 |
+| `results/baseline/k5_random/**` | ✅ 不受影响 |
+| `results/score_cache/`、`results/selection_cache/` | ✅ 现在只剩 v2 entry（旧 entry 在 2026-05-05 untrack 时一并删除） |
+
+**重跑计划**：见 EXPERIMENT_DASHBOARD §3.6 + §5。B.0 sanity 验 v2 binary，再依次 B.1 → B.2 → B.3 / B.4。
+
+**Branch**: `fix/blocker-1-train-before-select`，commits `66a90f8` + `13f1e89`，145 行 attack/ + 49 行 demo_attack + 21 行 eval_collateral + 4 行 parameter_parser，diff `git diff main..HEAD --stat`。
+
+---
+

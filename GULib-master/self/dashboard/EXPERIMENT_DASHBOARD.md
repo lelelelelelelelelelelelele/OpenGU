@@ -1,8 +1,8 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-05
+> Last updated: 2026-05-06
 > See rules: `CLAUDE.md`
-> NeurIPS deadline: 3 days from now (~2026-05-07)
+> NeurIPS deadline: 1 day from now (~2026-05-07)
 
 ---
 
@@ -71,7 +71,7 @@
 
 ---
 
-## 3. 关键已知问题（截至 2026-05-04）
+## 3. 关键已知问题（截至 2026-05-06）
 
 ### 3.1 ✅ MIA AUC = 0.000 bug（Phase A.1-A.3）— 已修复
 
@@ -123,6 +123,30 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 ### 3.5 IDEA / MEGU 整行 effect 接近 0
 
 可能解释 A：真鲁棒；B：mechanism-incomparable（特征保留 / 梯度型独立）。详见 thesis_transition_memo §3.5。
+
+### 3.6 ✅ Phase B 污染 bug 集（RESOLVED 2026-05-06，commits `66a90f8` + `13f1e89`）
+
+5 条同期发现的 attack pipeline 正确性问题，都在 `fix/blocker-1-train-before-select` branch 上修完。**Phase B 既有所有 attack.json/collateral.json 数据全部判定为不可信**，需在新 binary 下重跑。详见 V-2026-05-06-01 / V-2026-05-06-02。
+
+| Bug | 影响 | 状态 |
+|---|---|---|
+| **demo_attack 剥离 sys.argv 后 config.py 烘出默认 cora/0.1 路径** — `_inject_unlearn_nodes` 写到正确 (arxiv/0.05) 路径，但 SGU/GIF/GNNDelete/GUIDE/CGU/IDEA 通过 `from config import unlearning_path` 读到错误 (cora/0.1) 路径，可能静默 unlearn 来自旧 cora 文件的节点 ID | ✅ demo_attack.py 把 shared args 回注 sys.argv；pipeline_adapter 加 `assert path == config.unlearning_path + run_id` 兜底 |
+| **Random/Degree/PageRank baseline 不限 train_mask** — `data.num_nodes` 全图 topk，TracIn/IM/Hybrid 只取 train。Baselines 不是 budget-matched random，"TracIn beats random" 比较污染 | ✅ `BaseStrategy.candidate_nodes` helper（train_mask → train_indices → arange fallback）三策略全用 |
+| **TracIn / Hybrid 在 random-init 模型上算梯度** — `AttackPipeline._setup` 只构造 model_zoo（随机初始化），训练在 `method.run_exp()` 里发生，时序晚于 `strategy.select_nodes`。pre-fix 的 IF 分数实际是结构-特征-范数代理，不是训练影响力 | ✅ `BaseStrategy.requires_trained_model` 标志位；`AttackPipeline._ensure_base_model_trained()` 用 `train_only=True` 训完 + state_dict snapshot；`run_with_strategy` hook 在 select_nodes 前调用；ScoreCache 和 SelectionCache 都加 `cache_schema: "v2"` 自动作废旧 entry |
+| **eval_collateral.py 缺 seed_everything** — retrain 不可复现；`predictions.npz::logits_retrained` 同 seed 跑两次得到不同 logits | ✅ 加 `_seed_everything(seed_value)` 在 args sync 之后调 |
+| **demo_attack 没同步 `proportion_unlearned_nodes`** — 默认 0.1 vs `unlearn_ratio` 0.05，导致 GIF_logger_name / df_size 计算 / cache key 在 demo_attack 与 eval_collateral 之间不一致 | ✅ 在 args dict 和 sys.argv 注入两处都同步 |
+
+**附带修复**：
+- HybridStrategy 之前绕过 `compute_im_celf` 直接调 `compute_initial_marginal_gains`，不应用 `candidate_fraction` pruning → 改为对 IF/IM 共享候选集统一 prune
+- `--alpha` 字段同时是 GNNDelete/CGU loss alpha 和 Hybrid fusion ω → 加 `--hybrid_alpha`，向后兼容 fallback 到 `alpha`
+
+**对既有数据的影响**：
+- 所有 `results/runs/**/attack.json` 中 TracIn/Hybrid cell：测的是 random-init 代理，**叙事不能写"IF-guided"**，需重跑
+- 所有 `results/runs/**/attack.json` 中 random/degree/pagerank cell：选点跨 train_mask，预算未匹配，需重跑
+- 所有 `results/runs/**/collateral.json` 的 retrain_gap：单次有效但跨 seed 不可复现
+- IM-only / k=5 noise floor / 旧 `results/baseline/k5_random/`：**不受影响**
+
+**重跑策略**：B.0 sanity → 用 v2 binary 重跑全 B.1（cora 5 method × 6 strategy × 5 seed ≈ 150 cell, ~1h cora 4090；arxiv 子集后做）。
 
 ---
 
