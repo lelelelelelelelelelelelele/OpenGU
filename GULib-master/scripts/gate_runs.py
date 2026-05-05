@@ -20,10 +20,17 @@ Exit codes:
 
 Checks per cell:
     - 4 files present: attack.json, collateral.json, predictions.npz, _meta.json
-    - attack.json: results[strategy].{f1_before, mia_auc} present and finite
+    - attack.json: results[strategy].mia_auc present and finite
     - mia_auc not collapsed: 0.001 < mia_auc < 0.999
-    - f1_before in [--f1-min, --f1-max] (default [0.0, 1.0])
-    - collateral.json: results[0].{gap, hop_decay} present
+    - collateral.json: results[0].{perf_before, gap, hop_decay} present
+    - perf_before in [--f1-min, --f1-max] (default [0.0, 1.0])
+
+Note: we read pre-unlearn F1 from collateral.json (`perf_before`), not from
+attack.json (`f1_before`). The attack.json field is sourced from
+self.method.poison_f1 (pipeline_adapter.py:285) which is only populated on
+the edge-task code path; node-task cells (the sanity_one_cell.yaml default
+and all phase_b_*.yaml configs) intentionally leave it None. perf_before
+is filled from the same trained-model evaluation regardless of task.
 """
 from __future__ import annotations
 
@@ -75,12 +82,7 @@ def check_cell(leaf: Path, strategy: str, f1_min: float, f1_max: float) -> List[
             if not isinstance(res, dict):
                 reasons.append(f"attack.json missing results[{strategy!r}]")
             else:
-                f1b = res.get("f1_before")
                 mia = res.get("mia_auc")
-                if not is_finite_number(f1b):
-                    reasons.append(f"f1_before not finite: {f1b!r}")
-                elif not (f1_min <= f1b <= f1_max):
-                    reasons.append(f"f1_before={f1b:.4f} outside [{f1_min}, {f1_max}]")
                 if not is_finite_number(mia):
                     reasons.append(f"mia_auc not finite: {mia!r}")
                 elif not (0.001 < mia < 0.999):
@@ -98,6 +100,11 @@ def check_cell(leaf: Path, strategy: str, f1_min: float, f1_max: float) -> List[
                 reasons.append("collateral.json results[] empty")
             else:
                 row = results[0]
+                pb = row.get("perf_before")
+                if not is_finite_number(pb):
+                    reasons.append(f"perf_before not finite: {pb!r}")
+                elif not (f1_min <= pb <= f1_max):
+                    reasons.append(f"perf_before={pb:.4f} outside [{f1_min}, {f1_max}]")
                 if not is_finite_number(row.get("gap")):
                     reasons.append(f"collateral.gap not finite: {row.get('gap')!r}")
                 if not isinstance(row.get("hop_decay"), dict):

@@ -470,35 +470,28 @@ tmux new -s phaseB
 
 ### 5A.3 B.0 烟测（~20s on H20）
 
-跑一次最小 cell（cora/GIF/random/seed=42）确认 refactor 后的 attack pipeline 在 H20 上端到端通：
+跑一次最小 cell（cora/GIF/random/seed=42）确认 refactor 后的 attack pipeline 在 H20 上端到端通，然后**直接用 `gate_runs.py` 判 PASS/FAIL**——不要自己写 inline 脚本读字段，schema 会变：
 
 ```bash
 python experiments/run.py experiments/configs/sanity_one_cell.yaml 2>&1 | tee /tmp/b0.log
-
 ls -la results/runs/cora_GCN_r0.05/GIF_random/seed42/
 
-python -c "
-import json
-a = json.load(open('results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json'))
-r = a['results']['random']
-print(f'f1_before={r.get(\"f1_before\")}  mia_auc={r.get(\"mia_auc\")}  time={r.get(\"total_time\"):.1f}s')
-
-c = json.load(open('results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json'))
-cr = c['results'][0]
-print(f'perf_before={cr.get(\"perf_before\")}  perf_retrain={cr.get(\"perf_retrain\")}  gap={cr.get(\"gap\")}')
-"
+# 自动判 PASS/FAIL，exit 0 = 全部检查通过
+python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml --f1-min 0.7
 ```
 
-PASS 判据（每条都满足才算过）：
+`gate_runs.py` 检查项（见脚本 docstring）：
 - 4 件齐：`attack.json` / `collateral.json` / `predictions.npz` / `_meta.json`
-- `perf_before ∈ [0.75, 0.95]`（取自 collateral.json — 这是 base train 后的真 F1；`f1_before` 在 attack.json 里 **node task 设计上恒为 None**，因为 `pipeline_adapter.py:285` 的 `poison_f1` 只在 edge task 路径设置，不要拿这个判 PASS）
-- `perf_retrain ∈ [0.75, 0.95]`（retrain 收敛）
-- `mia_auc ∈ (0.001, 0.999)`（不是 0 / 1，attack 端到端有效）
-- 总耗 < 60s（attack.json 的 `total_time` 不含 base train，cora 上~1s 正常；整个 cell wall-time 用 `time` 包脚本自己量）
+- `attack.json[results][strategy].mia_auc` ∈ `(0.001, 0.999)`（attack 端到端有效）
+- `collateral.json[results][0].perf_before` ∈ `[--f1-min, --f1-max]`（base train 真 F1，跨 node/edge 任务都填）
+- `collateral.json[results][0].gap` 是有限数
+- `collateral.json[results][0].hop_decay` 是 dict
 
-> `gap` 字段不强求非 0：`gap = perf_retrain - perf_unlearn`，cora 小图上 unlearn ≈ retrain 时四位小数会 round 到 0.0，不是 bug。
+> `attack.json[results][strategy].f1_before` **node task 下恒为 None**（`pipeline_adapter.py:285` 的 `poison_f1` 只 edge 任务填）。`gate_runs.py` 已经改成不依赖这个字段。
+>
+> `gap = perf_retrain - perf_unlearn`，cora 小图上 unlearn ≈ retrain 时四位小数会 round 到 0.0，is_finite_number(0.0)=True，照样过 gate。
 
-不过就停下查环境/refactor，不要继续 B.1。
+`gate_runs.py` exit 1 就停下贴输出（它会列每条失败原因），不要继续 B.1。
 
 ### 5A.4 B.1 nohup launch（~75-120 min on H20，5 cell）
 
