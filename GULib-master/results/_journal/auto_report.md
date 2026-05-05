@@ -20035,3 +20035,231 @@ Rank  Strategy   F1 Drop   Ratio(%)   vs Random
 - 异常与定位：无
 - 下一步建议：检查该方法在其他比例或数据集的趋势。
 
+
+### [2026-05-05 18:37] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['random'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=50.2s, cache=HIT(key=7371f3a57bd0ed670d90c6bebb239b85), selection=0.0001s, reuse=0.001004s, speedup=0.10x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 18:38:49] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 4.75% |    0.2011 |   19.35% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_random\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:18] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['degree'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=47.4s, cache=MISS, selection=0.0000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:19:20] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| degree   | -4.49% |    0.2080 |   20.37% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_degree\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:20] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['pagerank'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=45.6s, cache=HIT(key=80f00b75404756a7f9995bc18b86fade), selection=1.0288s, reuse=0.001000s, speedup=1029.12x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:21:33] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| pagerank | 5.16% |    0.2565 |   25.07% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_pagerank\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:22] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['tracin'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=52.8s, cache=HIT(key=920f03fe959d00dbaae05989a9c1b716), selection=1.9460s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:24:01] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| tracin   | 0.93% |    0.1890 |   16.45% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_tracin\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:25] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['im'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=54.6s, cache=HIT(key=310d9201bb9f40d667923688d6bad803), selection=0.9286s, reuse=0.001004s, speedup=924.52x)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:26:32] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| im       | -5.57% |    0.2138 |   21.86% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_im\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:27] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['hybrid'], ratio=0.05
+- 配置：unlearn_ratio=0.05 (135 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=58.4s, cache=MISS, selection=2.2455s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:29:03] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.05
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| hybrid   | 0.71% |    0.2115 |   21.07% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.05\GraphRevoker_hybrid\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:30] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['random'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - random: F1 Drop = NA (f1_before=NA, f1_after=0.8413, time=57.9s, cache=HIT(key=1c9b036b19bf1a1f6759bd185b6437f0), selection=0.0000s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:31:38] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| random   | 1.65% |    0.2351 |   22.52% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_random\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:32] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['degree'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - degree: F1 Drop = NA (f1_before=NA, f1_after=0.8469, time=50.3s, cache=MISS, selection=0.0035s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:33:58] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| degree   | -4.81% |    0.2533 |   24.51% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_degree\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:34] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['pagerank'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - pagerank: F1 Drop = NA (f1_before=NA, f1_after=0.8487, time=50.2s, cache=HIT(key=4bbe9fbefd8b6a68460cd22cf0ceb1bc), selection=0.0337s, reuse=0.000000s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:36:25] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| pagerank | 7.89% |    0.2825 |   29.12% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_pagerank\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:37] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['tracin'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - tracin: F1 Drop = NA (f1_before=NA, f1_after=0.7841, time=58.4s, cache=MISS, selection=1.9532s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:38:53] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| tracin   | 6.79% |    0.2279 |   21.73% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_tracin\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:39] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['im'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - im: F1 Drop = NA (f1_before=NA, f1_after=0.8506, time=55.4s, cache=MISS, selection=1.1190s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:41:25] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| im       | 12.07% |    0.2817 |   28.27% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_im\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+
+
+### [2026-05-05 19:42] demo_attack.py - GraphRevoker 攻击实验
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, strategies=['hybrid'], ratio=0.1
+- 配置：unlearn_ratio=0.1 (270 nodes), seed=42
+- 执行结果：
+  - hybrid: F1 Drop = NA (f1_before=NA, f1_after=0.8137, time=54.8s, cache=MISS, selection=2.2323s)
+- 异常与定位：无
+- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。
+### [2026-05-05 19:43:49] eval_collateral.py
+- 任务：dataset=cora, model=GCN, method=GraphRevoker, ratio=0.1
+- 策略结果：
+| Strategy | Gap% | MeanShift | Flipped% |
+|----------|------|-----------|----------|
+| hybrid   | 12.59% |    0.2506 |   24.05% |
+- 日志路径：`H:\project\OpenGU\GULib-master\results\runs\cora_GCN_r0.1\GraphRevoker_hybrid\seed42\collateral.json`
+- 执行结果：OK
+- 异常与定位：无
+- 下一步建议：检查该方法在其他比例或数据集的趋势。
+

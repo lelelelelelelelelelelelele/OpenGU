@@ -58,6 +58,7 @@ Each `outline/*.md` has the same shape:
   - IF-based: **GIF** (canonical) + **IDEA** (predicted intra-family outlier)
   - Learning-based: **GNNDelete** (canonical) + **MEGU** (predicted intra-family outlier)
 - **Three pair signatures**: convergent (Partition pair predicted) vs outlier (IF, Learning predicted) — contrast across signatures is a headline insight
+- **F1 shift decomposition** $\Delta F_{\text{total}} = \Delta F_{\text{arch}} + \Delta F_{\text{attack}}$: Shard Protection lives in the **architectural term** (k=5 baseline already captures it; not an attack-specific finding); fingerprint plots the **attack term** only. Decomposition formalized in §3.3, separated reporting in §5.1 (attack term) + §5.3 (arch term bar chart).
 - **Backup / contingency** (deprioritized; 2→3 marginal value < 1→2): GST (3rd IF), GUKD (3rd Learning) — listed as future work or fallback if GraphRevoker fails sanity
 - **Canonical cell** for §5.1 headline figure: cora/GCN/r=0.05
 - **§A.5 ratio sweep added** — must-have
