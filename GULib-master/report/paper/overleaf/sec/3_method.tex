@@ -74,7 +74,7 @@ Because $\mathcal{U}$ is approximate, the gap between
 $\mathcal{U}(f_\theta,\cdot,S)$ and the exact retrain on
 $\mathcal{D}_{\mathrm{tr}}\setminus S$ is non-zero, and the attacker's
 task is to find $S$ that \emph{amplifies} this approximation error rather
-than merely removing useful data.
+than merely removing useful data. Note that while the true objective is over $V_{\mathrm{te}}$, a realistic attacker uses a publicly available validation set $V_{\mathrm{val}}$ as a proxy to craft the attack, as seen in our TracIn selector.
 
 \subsection{Selection Strategies}
 \label{sec:strategies}
@@ -86,7 +86,7 @@ Table~\ref{tab:access}.
 \textsc{Random} (L0) draws $k$ nodes uniformly without replacement.
 \textsc{Degree} (L1) selects the top-$k$ by node degree.
 \textsc{PageRank} (L1) selects the top-$k$ by personalized PageRank
-centrality. \textsc{Random} is also the \emph{architectural-baseline
+centrality~\cite{page1999pagerank}. \textsc{Random} is also the \emph{architectural-baseline
 probe} for the $\Delta F_{\text{arch}}$ term of
 \S\ref{sec:diagnostics}; the structural baselines provide an L1
 reference floor.
@@ -100,8 +100,10 @@ gradient inner-products between training and test losses:
                      \langle\nabla_\theta\mathcal{L}(f_{\theta_c};v),\,
                             \nabla_\theta\mathcal{L}(f_{\theta_c};V_{\mathrm{val}})\rangle,
 \end{equation}
-where $\theta_c$ are checkpoints across training and $\eta_c$ is the
-corresponding learning rate. Top-$k$ by $|\mathrm{TracIn}(v)|$. We run
+where $\theta_c$ are checkpoints sampled periodically across training and 
+$\eta_c$ is the learning rate at that checkpoint. By linearly accumulating 
+these dot products, TracIn provides a first-order approximation of how 
+much removing $v$ would alter the loss on $V_{\mathrm{val}}$. Top-$k$ by $|\mathrm{TracIn}(v)|$. We run
 TracIn on $f_\theta$ directly (L2-\textsc{direct}); the shadow-model
 variant (L2-\textsc{surrogate}) is left for future work.
 
@@ -131,9 +133,14 @@ where $\sim$ denotes min-max normalization. \textbf{We treat $\alpha$ as a
 mixing parameter, not a hyperparameter.} The endpoints $\alpha=1$
 (TracIn-only, gradient-signal axis) and $\alpha=0$ (IM-only,
 structural-spread axis) define the basis axes of the
-\emph{Vulnerability Fingerprint}; the interior curve is reported as an
-$\alpha$-sweep in Appendix~\ref{app:alpha}. We use $\alpha=0.5$ in the
-main matrix.
+\emph{Vulnerability Fingerprint}. While linearly combining structural and 
+gradient-based scores is a heuristic rather than a unified theoretical 
+measure, it operates similarly to a coordinate system blending two 
+orthogonal vulnerability signals. This practical fusion removes the blind 
+spots of relying on a single metric, effectively exposing methods that may 
+be robust to one axis but vulnerable to the combined effect. The interior 
+curve is reported as an $\alpha$-sweep in Appendix~\ref{app:alpha}. We use 
+$\alpha=0.5$ in the main matrix.
 
 \subsection{Collateral Diagnostics}
 \label{sec:diagnostics}
@@ -149,18 +156,18 @@ For any deletion set $S$ of size $k$, write
  \;=\; \Delta F_{\text{arch}}(k) \;+\; \Delta F_{\text{attack}}(S),
 \end{equation}
 where
-$\Delta F_{\text{total}}(S) = F_1(\mathcal{U}(f_\theta,\cdot,S);V_{\text{te}})
-- F_1(f_\theta;V_{\text{te}})$ is the observed F1 shift after
-attack-driven unlearning;
+$\Delta F_{\text{total}}(S) = F_1(f_\theta;V_{\text{te}}) - F_1(\mathcal{U}(f_\theta,\cdot,S);V_{\text{te}})$
+is the observed F1 \emph{drop} after attack-driven unlearning (such that 
+a positive value indicates successful degradation);
 $\Delta F_{\text{arch}}(k)
 = \mathbb{E}_{R\sim\mathrm{Unif}(\mathcal{D}_{\text{tr}},k)}[\Delta F_{\text{total}}(R)]$
-is the expected F1 shift under a uniformly-random deletion set of size
+is the expected F1 drop under a uniformly-random deletion set of size
 $k$; and $\Delta F_{\text{attack}}(S)
 = \Delta F_{\text{total}}(S) - \Delta F_{\text{arch}}(k)$ is estimated
 as the paired effect against the same-seed random baseline. We plot
 $\Delta F_{\text{attack}}$ in the fingerprint and reserve
 $\Delta F_{\text{arch}}$ for architectural effects such as Shard
-Protection (\S\ref{sec:results-shard}).
+Protection (\S\ref{sec:results-shard}), which may manifest as a negative drop (i.e., a performance gain).
 
 \paragraph{Retrain gap.} Let $f^{\mathrm{R}}$ be the model retrained from
 scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$ and $f^{\mathrm{U}}$ be

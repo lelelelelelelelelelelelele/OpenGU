@@ -1,9 +1,9 @@
 \section{Introduction}
 \label{sec:intro}
 
-Machine unlearning is no longer optional. Privacy regulations
-(GDPR Art.\ 17, CCPA \S1798.105, EU AI Act) grant data subjects the right
-to request removal of their data from trained models, and graph learning
+Machine unlearning is no longer optional. Privacy regulations~\cite{gdpr2016,ccpa2018} grant data subjects the
+right to request removal of their data from trained models (GDPR
+Art.\ 17, CCPA \S1798.105), and graph learning
 systems---recommendation, fraud detection, citation analysis,
 knowledge-graph-augmented retrieval---are squarely in scope. The naive
 solution is retrain-from-scratch, but for production GNNs this is often
@@ -13,12 +13,21 @@ trade exact removal for large speedups via gradient-, influence-, or
 partition-based updates.
 
 This trade-off is justified under the implicit assumption that deletion
-requests are \emph{benign}. In adversarial settings this assumption fails:
-a coalition of users on a deletion-by-API platform can choose
-\emph{which} records to forget. We show that this single degree of
-freedom---deletion-set selection---can collapse some approximate GU
-methods while leaving others, even within the same OpenGU families,
-effectively untouched.
+requests are \emph{benign}. In adversarial settings, this assumption 
+critically fails: a coalition of users on a compliance-driven platform 
+can selectively choose \emph{which} records to forget via legitimate APIs.
+
+We reveal that this single degree of freedom---deletion-set selection---uncovers 
+a deeply fragmented, yet highly predictable, security landscape in approximate GU. 
+Rather than a random assortment of weaknesses, we expose a clear \textbf{Design-Vulnerability Pattern}: 
+an algorithm's susceptibility is strictly governed by its underlying unlearning mechanics. 
+On one extreme, \emph{Learning-based} methods (e.g., GNNDelete) suffer a domino-like utility 
+collapse (dropping up to \interim{16\%} in absolute F1), as their coupled loss objectives 
+fail to contain structural cascading errors. \emph{Influence-based} methods are precision-targeted 
+by gradient-aligned attacks. On the other extreme, \emph{Partition-based} methods exhibit a natural 
+physical isolation, demonstrating \emph{architectural immunity} (Shard Protection). 
+This predictable vulnerability dictates that exposing a deletion API without understanding 
+these underlying architectural flaws risks the API being \emph{weaponized} to silently dismantle model utility.
 
 \paragraph{This paper.}
 We conduct the first systematic adversarial audit of approximate GU,
@@ -45,5 +54,6 @@ OpenGU taxonomy. Our contributions are:
 \paragraph{Why this matters now.}
 GU is moving toward deletion APIs just as approximate methods are being
 benchmarked at ogbn scale. Existing evaluations mostly assume random
-deletion. Our audit adds the missing worst-case deletion-set view and a
-diagnostic protocol for reporting vulnerability alongside efficiency.
+deletion, creating a false sense of security. Our audit introduces the 
+missing worst-case view and a diagnostic protocol for reporting vulnerability 
+alongside efficiency, fundamentally shifting the paradigm from ``how fast can we forget?'' to ``how safely can we expose the forget API?''

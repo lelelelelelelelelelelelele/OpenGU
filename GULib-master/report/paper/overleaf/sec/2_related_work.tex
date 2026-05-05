@@ -5,7 +5,9 @@
 We adopt the upstream \emph{OpenGU} 4-category taxonomy. \emph{Partition-based}
 methods partition the graph into disjoint shards, train a sub-model per
 shard, and aggregate at inference; deletion only retrains the affected
-shard (GraphEraser~\cite{chen2022graph}, GUIDE, GraphRevoker).
+shard (GraphEraser~\cite{chen2022graph}, GUIDE, GraphRevoker), echoing
+the SISA~\cite{bourtoule2021machine} sharded-retraining design from
+non-graph unlearning.
 \emph{Influence-Function-based} methods estimate the leave-one-out parameter
 delta in closed form and apply a single Newton or proximal step
 (GIF~\cite{wu2023gif}, CEU, CGU, GST, IDEA~\cite{dong2024idea}---certified

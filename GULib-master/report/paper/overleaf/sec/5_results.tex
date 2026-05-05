@@ -43,8 +43,13 @@ consistent with a Newton-step ceiling. \textbf{GraphEraser} and
 \textbf{GraphRevoker} remain near the origin with non-positive attack
 coordinates, while \textbf{MEGU} and \textbf{IDEA} stay close to zero
 ($<\interim{1\%}$ on both axes) despite belonging to vulnerable parent
-families. This is the main within-family heterogeneity result; a 1D
-projection is provided in Appendix~\ref{app:results-1d}.
+families. This reveals a distinct \textbf{Family Pattern}: Learning-based 
+methods are susceptible to severe, systemic global collapse (albeit with 
+strong internal heterogeneity); IF-based methods (like GIF) are most 
+vulnerable when attacked directly on their native gradient-signal axis; 
+and Partition-based methods rely on physical sub-graph isolation for 
+natural immunity against global interference (yielding Shard Protection). 
+A 1D projection is provided in Appendix~\ref{app:results-1d}.
 
 \subsection{Scaling Validation on ogbn-arxiv}
 \label{sec:results-scaling}

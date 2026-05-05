@@ -32,6 +32,10 @@
 | **B.2** | arxiv 3 method × 4 strategy × 3 seed = 36 cell（核心数据） | B | ~25-30h | `phase_b_arxiv.yaml` |
 | **B.3** | cora_GCN 5 method × 6 strategy × 5 seed = 150 cell | A | ~3-5h | `phase_b_cora_gcn.yaml` |
 | **B.4** | cora_GAT 同上 = 150 cell | A | ~3-5h | `phase_b_cora_gat.yaml` |
+| **A.5-1** | cora/GCN ratio sweep r ∈ {0.01, 0.10, 0.20}，6 method × 3 strategy × 5 seed = 270 cell（必跑） | A | ~3-5h | `A5_ratio_*.yaml` |
+| **A.5-2** | citeseer/GCN 两端 r ∈ {0.05, 0.20}，6 method × 3 strategy × 5 seed = 180 cell（**条件跑**） | A | ~1h | `A5_citeseer_r0.05.yaml`, `A5_citeseer_r0.20.yaml` |
+| **A.6** | cora/GIN backbone ablation r=0.05，5 method × 3 strategy × 5 seed = 75 cell（**条件跑**） | A | ~1h | `A6_cora_gin_r0.05.yaml` |
+| **A.7** | Cross-arch surrogate transferability（GCN↔GAT，仅 tracin/hybrid，复用 sister cell 选点）；**spec only，实现待定** | A | ~30min（实现后） | `A7_xfer_*.yaml` (TBD) |
 | Prewarm（可选） | 跨 cell 共享 IF/IM 选择，B.2 前跑节省 alpha-sweep | B | ~50-100 min | — |
 
 ### 1.2 时长 & 显存参考（看这张表决定"是否合理"）
@@ -53,7 +57,7 @@
 
 | 机器 | GPU | 角色 | 跑 |
 |---|---|---|---|
-| **A** | RTX 4090 24GB | cora workload | B.0 + B.3 + B.4（300 cell） |
+| **A** | RTX 4090 24GB | cora workload | B.0 + B.3 + B.4 + A.5-1 (+ A.5-2 / A.6 / A.7 if 富余)（300 + 270 + 条件 180 + 条件 75 + 条件 ~50） |
 | **B** | H800 / H20 / A100 ≥80GB | arxiv workload | B.0 + B.1 + B.2（41 cell） |
 
 不冲突：各自写 `results/runs/{dataset}_*` 不同子目录。跑完 §6 各 tar 一份 scp 回本地合并。
@@ -177,7 +181,7 @@ python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml -
 
 **前置**：B.0 PASS + B.1 PASS（5/5 attack + 5/5 collateral + gate exit 0）。
 
-可选 prewarm（见 §3.6）：如果要做 hybrid alpha-sweep 或同 (method, strategy) 跨 seed 复用 selection，先跑 prewarm 把 IF/IM 算好缓存，B.2 里 9 个 hybrid cell 后续 alpha 秒回。**仅跑 1 套 alpha 不需要 prewarm**。
+可选 prewarm（见 §3.9）：如果要做 hybrid alpha-sweep 或同 (method, strategy) 跨 seed 复用 selection，先跑 prewarm 把 IF/IM 算好缓存，B.2 里 9 个 hybrid cell 后续 alpha 秒回。**仅跑 1 套 alpha 不需要 prewarm**。
 
 ```bash
 mkdir -p logs
@@ -259,7 +263,240 @@ ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l   # → 150
 ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l   # → 150
 ```
 
-### 3.6 Prewarm — 何时跑（可选，机 B）
+### 3.6 A.5 — Ratio Ablation（机 A，分两阶段）
+
+**何时跑**：B.3 (cora_GCN main matrix) 完成后。给 paper §A.5 提供 deletion-ratio elasticity 切片。
+**为何分阶段**：deadline 紧；先 cora 取最小可发表切片，citeseer 留作富余时的 reviewer 对冲（防"single-dataset elasticity"质疑）。
+**Spec**：`experiments/configs/A5_README.md`（已存在，含 ratio 网格 + caveat）。
+
+#### Phase 1 — cora/GCN 全 sweep（必跑，~3-5h，270 cell）
+
+r ∈ {0.01, 0.05, 0.10, 0.20}。**r=0.05 直接复用 B.3 主矩阵 cell（不重跑）**，新增 r ∈ {0.01, 0.10, 0.20} = 3 ratio × 6 method × 3 strategy（random/im/tracin）× 5 seed = 270 cell。
+
+⚠ **r=0.20 在 GraphEraser/GraphRevoker 上可能因 shard 失衡崩**（A5_README §Caveats）。先单 cell 烟测：
+
+```bash
+python experiments/run.py experiments/configs/A5_ratio_0.20.yaml --limit 1 \
+    2>&1 | tee /tmp/a5_r020_smoke.log
+```
+
+崩了 → yaml 删掉 GraphEraser/GraphRevoker 那两行，paper §A.5 caveat 写"shard 系在 r=0.20 budget 下崩，drop"。烟测 PASS 后串行三 ratio：
+
+```bash
+cd ~/autodl-fs/OpenGU/GULib-master && git pull --ff-only && mkdir -p logs
+nohup bash -c '
+python experiments/run.py experiments/configs/A5_ratio_0.01.yaml && \
+python experiments/run.py experiments/configs/A5_ratio_0.10.yaml && \
+python experiments/run.py experiments/configs/A5_ratio_0.20.yaml
+' > logs/A5_cora_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/A5_cora.pid
+# Ctrl-b d
+```
+
+监控：
+
+```bash
+tail -f logs/A5_cora_*.log
+ls results/runs/cora_GCN_r0.01/*/seed*/attack.json | wc -l   # → 90
+ls results/runs/cora_GCN_r0.10/*/seed*/attack.json | wc -l   # → 90
+ls results/runs/cora_GCN_r0.20/*/seed*/attack.json | wc -l   # → 90
+```
+
+#### Phase 2 — citeseer 两端（条件跑，~1h，180 cell）
+
+**触发条件**：Phase 1 完成 + paper deadline 富余 ≥1h。**不满足就跳过**，§A.5 写"single-dataset elasticity; multi-dataset 留 future work"——这是 §limitation 不是致命缺陷。
+
+**最小切片**：citeseer/GCN × r ∈ {0.05, 0.20}（只取曲线两端验形状一致）× 6 method × 3 strategy × 5 seed = 180 cell。
+
+**前置**：yaml 已建好（与 cora 配置一致，仅换 `dataset` + `ratio`）：
+- `experiments/configs/A5_citeseer_r0.05.yaml`
+- `experiments/configs/A5_citeseer_r0.20.yaml`
+
+如 Phase 1 r=0.20 烟测删了 shard 系（GraphEraser/GraphRevoker），citeseer r=0.20 yaml 同步删。
+
+```bash
+nohup bash -c '
+python experiments/run.py experiments/configs/A5_citeseer_r0.05.yaml && \
+python experiments/run.py experiments/configs/A5_citeseer_r0.20.yaml
+' > logs/A5_citeseer_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/A5_citeseer.pid
+```
+
+监控：
+
+```bash
+ls results/runs/citeseer_GCN_r0.05/*/seed*/attack.json | wc -l   # → 90
+ls results/runs/citeseer_GCN_r0.20/*/seed*/attack.json | wc -l   # → 90
+```
+
+#### 数据回收（合到 §6 流程）
+
+A.5 输出在 `results/runs/cora_GCN_r{0.01,0.10,0.20}/` 和 `results/runs/citeseer_GCN_r{0.05,0.20}/`，§6 的机器 A tar 命令需相应扩展（见 §6 修订）。
+
+---
+
+### 3.7 A.6 — Backbone Ablation（机 A，**条件跑**，~1h）
+
+**何时跑**：B.3/B.4 + A.5-1 完成后，若 paper deadline 富余 ≥1h。
+**目的**：reviewer 对冲——证攻击不挑 message-passing aggregator（GCN mean / GAT attention 之外，GIN 用 sum）。
+**最小切片**：cora/GIN × r=0.05 × 5 method × 3 strategy（random/im/tracin）× 5 seed = 75 cell。
+
+**前置**：yaml 已建好 `experiments/configs/A6_cora_gin_r0.05.yaml`。如需扩 SAGE，复制改 `base_model: SAGE` 即可（model_zoo 已注册，无需额外参数）。
+
+```bash
+cd ~/autodl-fs/OpenGU/GULib-master && git pull --ff-only && mkdir -p logs
+
+# 单 cell 烟测（GIN 在 cora 上没跑过，先验环境）
+python experiments/run.py experiments/configs/A6_cora_gin_r0.05.yaml --limit 1 \
+    2>&1 | tee /tmp/a6_gin_smoke.log
+
+# 烟测 PASS 后全量
+nohup python experiments/run.py experiments/configs/A6_cora_gin_r0.05.yaml \
+    > logs/A6_cora_gin_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/A6_cora_gin.pid
+# Ctrl-b d
+```
+
+监控：
+
+```bash
+ls results/runs/cora_GIN_r0.05/*/seed*/attack.json | wc -l   # → 75
+```
+
+**跳过的写法**：paper §A.6 写 "Backbone ablation (GIN/SAGE) deferred; main results on GCN + GAT cover mean-aggregator and attention-aggregator paradigms"——这是 §limitation 措辞，不致命。
+
+#### 数据回收（合到 §6）
+
+`results/runs/cora_GIN_r0.05/`，§6 机 A tar 命令需追加（已在 §6 备注列出）。
+
+---
+
+### 3.8 A.7 — Cross-arch Surrogate Transferability（**设计稿，实现待定**）
+
+> 状态：spec only。代码未写，yaml 未建。下面是设计书面化，时间富余再实现。
+> 设计动机：见与 reviewer 对话——TracIn/Hybrid 是 model-coupled 唯一两条策略，"换架构是不是天然防御"是 reviewer 必问；同时若转移率高，threat model 升级到"无需白盒访问受害者"，contribution 更硬。
+
+#### 3.8.1 设计目标
+
+复用已跑出来的 sister cell（如 `cora_GCN_r0.05/{method}_tracin/seed42/`）里的 `selected_nodes`，**跳过昂贵的 selection 步骤**，把这些节点注入到不同 backbone 的 pipeline 跑 unlearn + retrain，得到 cross-arch effect。
+
+约束：
+- **必须同 dataset、同 ratio、同 seed**——node id 跨 dataset 无意义；同 seed 保证 GU 训练划分一致，差异只来自 backbone
+- 仅对 `requires_trained_model=True` 的策略有意义（tracin、hybrid）
+- 4 件输出文件命名加后缀 `_xfromGCN` / `_xfromGAT` 与 native cell 物理隔离
+
+#### 3.8.2 Yaml schema 草稿
+
+```yaml
+# experiments/configs/A7_xfer_GCN_to_GAT.yaml
+name: A7_xfer_GCN_to_GAT
+dataset: cora
+ratio: 0.05
+
+# 受害者 backbone（实际跑 unlearn + retrain 的）
+target_base_model: GAT
+
+# 攻击者代理 backbone（提供 selected_nodes 的 sister cell）
+source_base_model: GCN
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - tracin
+  - hybrid    # 视 source cell 是否有 hybrid 数据决定
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+```
+
+对称 yaml `A7_xfer_GAT_to_GCN.yaml` 把 source / target 反过来即可。
+
+#### 3.8.3 Runner 草稿（`experiments/run_transfer.py`，~80 行）
+
+伪代码：
+
+```python
+# 1. 读 yaml + 展开 (method, strategy, seed) 矩阵
+for method, strategy, seed in expand_matrix(cfg):
+    # 2. 读 sister cell 的 attack.json 拿 selected_nodes
+    src_path = f"results/runs/{cfg['dataset']}_{cfg['source_base_model']}_r{cfg['ratio']}/" \
+               f"{method}_{strategy}/seed{seed}/attack.json"
+    src_data = json.load(open(src_path))
+    selected_nodes = src_data["results"][strategy]["selected_nodes"]   # List[int]
+
+    # 3. 调 demo_attack 的"借选点"模式（见 3.8.4 demo_attack 改动）
+    out_dir = f"results/runs/{cfg['dataset']}_{cfg['target_base_model']}_r{cfg['ratio']}/" \
+              f"{method}_{strategy}_xfrom_{cfg['source_base_model']}/seed{seed}/"
+    subprocess.run([py, "demo_attack.py",
+                    "--dataset_name", cfg["dataset"],
+                    "--base_model", cfg["target_base_model"],
+                    "--unlearning_methods", method,
+                    "--strategies", strategy,
+                    "--unlearn_ratio", str(cfg["ratio"]),
+                    "--seed", str(seed),
+                    "--selected_nodes_file", src_path,        # NEW
+                    "--strategy_label_suffix", f"_xfrom_{cfg['source_base_model']}",  # NEW
+                    "--save_path", out_dir + "attack.json",
+                    ...])
+    # 4. eval_collateral 同样跑（不需要改，selected_nodes 已注入磁盘文件）
+```
+
+skip-if-exists、git_sha audit、`_meta.json` 都复用 `run.py` 的工具函数（重构成 `experiments/_runner_lib.py` 共享）。
+
+#### 3.8.4 demo_attack.py 需加的两个 flag
+
+| flag | 行为 |
+|---|---|
+| `--selected_nodes_file <path>` | 读 path 里 `results[<strategy>][selected_nodes]`，绕过 `manager.compare_strategies` 内部的 `strategy.select_nodes`，直接调 `pipeline.run_with_selected_nodes(...)`。`pipeline_adapter.py:336` 已现成支持 |
+| `--strategy_label_suffix <str>` | 写 attack.json 时给 strategy_name 加后缀（如 `tracin_xfrom_GCN`），保证下游 metric aggregator 能区分 native vs cross-arch |
+
+实现量：~30 行 python 改 demo_attack.py + ~80 行新 `run_transfer.py` + 2 yaml + 一份 sanity 烟测。**估 1.5-2h 实现 + 30min 烟测**。
+
+#### 3.8.5 Sanity 检查（实现后必跑）
+
+```bash
+# A7-0: 借自己的选点跑自己（应得到与 native cell 完全一致的结果，验证 plumbing）
+python experiments/run_transfer.py experiments/configs/A7_xfer_self_GCN.yaml --limit 1
+# 输出应满足：mia_auc / f1_after / gap 与 cora_GCN_r0.05/GIF_tracin/seed42 native 相同
+```
+
+#### 3.8.6 跑（实现 + sanity PASS 后）
+
+```bash
+nohup bash -c '
+python experiments/run_transfer.py experiments/configs/A7_xfer_GCN_to_GAT.yaml && \
+python experiments/run_transfer.py experiments/configs/A7_xfer_GAT_to_GCN.yaml
+' > logs/A7_xfer_$(date +%Y%m%d_%H%M).log 2>&1 &
+```
+
+成本：5 method × 2 strategy × 5 seed × 2 方向 = 100 cell，但 **selection 全 cache hit（直接从 sister cell 复制 selected_nodes，0s）**，只跑 unlearn + retrain ≈ 单 cell 30s × 100 ≈ ~50min。
+
+#### 3.8.7 不实现的兜底（paper 里写法）
+
+§A.7 future work 一段：
+
+> "Our threat model assumes the attacker has white-box access to the victim's model architecture and weights for gradient-based strategies (TracIn, Hybrid). A natural defense is architecture obfuscation: if the attacker's surrogate is structurally different from the victim, transferability may degrade. We leave a systematic cross-architecture transferability study to future work."
+
+reviewer 戳就是 §limitation，不致命。
+
+#### 数据回收
+
+新增子目录 `results/runs/{dataset}_{target_arch}_r{ratio}/{method}_{strategy}_xfrom_{source_arch}/`，§6 tar 命令需追加（已在 §6 备注列出）。
+
+---
+
+### 3.9 Prewarm — 何时跑（可选，机 B）
 
 `scripts/prewarm_selection_cache.py` 把跨 cell 共享的 selection 提前算到 `results/selection_cache/` 和 `results/score_cache/`。
 
@@ -416,7 +653,17 @@ pkill -f "experiments/run.py"
 
 ```bash
 cd ~/autodl-fs/OpenGU/GULib-master
-tar czf cora_results.tar.gz results/runs/cora_GCN_r0.05 results/runs/cora_GAT_r0.05
+# B.3/B.4 主矩阵 + A.5 Phase 1 (cora ratio sweep)
+tar czf cora_results.tar.gz \
+    results/runs/cora_GCN_r0.05 results/runs/cora_GAT_r0.05 \
+    results/runs/cora_GCN_r0.01 results/runs/cora_GCN_r0.10 results/runs/cora_GCN_r0.20
+# 若 A.5 Phase 2 也跑了，追加 citeseer：
+# tar czf cora_results.tar.gz ... results/runs/citeseer_GCN_r0.05 results/runs/citeseer_GCN_r0.20
+# 若 A.6 backbone ablation 也跑了，追加 GIN：
+# tar czf cora_results.tar.gz ... results/runs/cora_GIN_r0.05
+# 若 A.7 cross-arch transferability 实现并跑了：
+# tar czf cora_results.tar.gz ... results/runs/cora_GAT_r0.05/*_xfrom_GCN \
+#                                  results/runs/cora_GCN_r0.05/*_xfrom_GAT
 ls -lh cora_results.tar.gz
 ```
 
