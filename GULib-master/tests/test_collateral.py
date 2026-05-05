@@ -2,6 +2,7 @@
 
 import importlib.util
 import os
+import random
 import sys
 import tempfile
 import torch
@@ -482,3 +483,26 @@ class TestFindCacheEntry:
             matched = find_cache_entry(cache, args, "random")
             assert matched is not None
             assert matched.selected_nodes.tolist() == [4, 5, 6]
+
+
+class TestEvalCollateralSeed:
+    def test_seed_everything_makes_random_streams_reproducible(self):
+        from eval_collateral import _seed_everything
+
+        _seed_everything(123)
+        first = (
+            random.random(),
+            np.random.rand(),
+            torch.rand(3),
+        )
+
+        _seed_everything(123)
+        second = (
+            random.random(),
+            np.random.rand(),
+            torch.rand(3),
+        )
+
+        assert first[0] == second[0]
+        assert first[1] == second[1]
+        assert torch.equal(first[2], second[2])

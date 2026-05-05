@@ -14,6 +14,24 @@ def _make_dummy_data(num_nodes=100, num_features=16, num_edges=300):
     return Data(x=x, edge_index=edge_index, y=y)
 
 
+def _make_train_masked_star():
+    """A tiny graph where node 9 is important but not in train_mask."""
+    x = torch.randn(10, 16)
+    y = torch.randint(0, 7, (10,))
+    train_mask = torch.zeros(10, dtype=torch.bool)
+    train_mask[:5] = True
+    edge_index = torch.tensor([
+        [9, 9, 9, 9, 9, 0, 1, 2, 3, 4],
+        [0, 1, 2, 3, 4, 1, 2, 3, 4, 0],
+    ])
+    return Data(x=x, edge_index=edge_index, y=y, train_mask=train_mask)
+
+
+def _assert_selected_from_train_mask(data, result):
+    train_nodes = set(data.train_mask.nonzero(as_tuple=False).view(-1).tolist())
+    assert set(result.tolist()).issubset(train_nodes)
+
+
 class TestRandomStrategy:
     def test_output_shape(self):
         """返回恰好 k 个节点"""
@@ -47,6 +65,24 @@ class TestRandomStrategy:
         result = strategy.select_nodes_by_ratio(data, model=None, ratio=ratio)
         expected_k = int(200 * ratio)
         assert result.shape == (expected_k,)
+
+    def test_selects_only_train_nodes_when_train_mask_present(self):
+        """Random baseline should match unlearning request semantics: train nodes only."""
+        data = _make_train_masked_star()
+        strategy = RandomStrategy(args={})
+        torch.manual_seed(0)
+
+        result = strategy.select_nodes(data, model=None, k=5)
+
+        _assert_selected_from_train_mask(data, result)
+
+    def test_ratio_uses_train_mask_count_when_present(self):
+        data = _make_train_masked_star()
+        strategy = RandomStrategy(args={})
+
+        result = strategy.select_nodes_by_ratio(data, model=None, ratio=0.4)
+
+        assert result.shape == (2,)
 
 
 class TestDegreeStrategy:
@@ -110,6 +146,14 @@ class TestDegreeStrategy:
         assert 0 in result
         assert all(r in [0, 1, 2] for r in result.tolist())
 
+    def test_selects_only_train_nodes_when_train_mask_present(self):
+        data = _make_train_masked_star()
+        strategy = DegreeStrategy(args={})
+
+        result = strategy.select_nodes(data, model=None, k=3)
+
+        _assert_selected_from_train_mask(data, result)
+
 
 class TestPageRankStrategy:
     def test_output_shape(self):
@@ -153,6 +197,14 @@ class TestPageRankStrategy:
         result1 = strategy.select_nodes(data, model=None, k=k)
         result2 = strategy.select_nodes(data, model=None, k=k)
         assert torch.equal(result1, result2)
+
+    def test_selects_only_train_nodes_when_train_mask_present(self):
+        data = _make_train_masked_star()
+        strategy = PageRankStrategy(args={})
+
+        result = strategy.select_nodes(data, model=None, k=3)
+
+        _assert_selected_from_train_mask(data, result)
 
 
 class TestTracInStrategy:

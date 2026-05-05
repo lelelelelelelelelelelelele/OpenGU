@@ -10,6 +10,7 @@ import pytest
 import torch
 import tempfile
 import subprocess
+import json
 from pathlib import Path
 
 # Add parent directory to path
@@ -139,6 +140,60 @@ class TestDemoConfiguration:
             assert True
         except SyntaxError as e:
             pytest.fail(f"Syntax error in demo_attack.py: {e}")
+
+    def test_demo_preserves_common_args_for_config_import(self):
+        """demo_attack must not let config.py parse default dataset/method/ratio."""
+        code = r"""
+import json
+import sys
+import demo_attack
+import config
+payload = {
+    "argv": sys.argv[1:],
+    "dataset_name": config.args["dataset_name"],
+    "base_model": config.args["base_model"],
+    "unlearning_methods": config.args["unlearning_methods"],
+    "unlearn_ratio": config.args["unlearn_ratio"],
+    "proportion_unlearned_nodes": config.args["proportion_unlearned_nodes"],
+    "random_seed": config.args["random_seed"],
+    "unlearning_path": config.unlearning_path,
+}
+print(json.dumps(payload, sort_keys=True))
+"""
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                code,
+                "--dataset_name",
+                "ogbn-arxiv",
+                "--base_model",
+                "GCN",
+                "--unlearning_methods",
+                "GIF",
+                "--unlearn_ratio",
+                "0.05",
+                "--seed",
+                "42",
+                "--strategies",
+                "random",
+                "--no_cache",
+            ],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        payload = json.loads(completed.stdout.strip().splitlines()[-1])
+
+        assert payload["dataset_name"] == "ogbn-arxiv"
+        assert payload["base_model"] == "GCN"
+        assert payload["unlearning_methods"] == "GIF"
+        assert payload["unlearn_ratio"] == 0.05
+        assert payload["proportion_unlearned_nodes"] == 0.05
+        assert payload["random_seed"] == 42
+        assert "unlearning_nodes_0.05_ogbn-arxiv" in payload["unlearning_path"]
+        assert "--strategies" not in payload["argv"]
 
 
 class TestResultStructure:
