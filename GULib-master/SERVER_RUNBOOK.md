@@ -24,10 +24,12 @@
 
 ### 0.1 ssh 进来后三连
 
+学术加速（pip/git 5-10x）+ cd 项目 + 进或建 tmux：
+
 ```bash
-source /etc/network_turbo                 # 学术加速（每次都要，pip/git 走它快 5-10x）
-cd ~/OpenGU/GULib-master                  # 项目根
-tmux attach -t phaseB || tmux new -s phaseB   # 进或建 tmux
+source /etc/network_turbo
+cd ~/OpenGU/GULib-master
+tmux attach -t phaseB || tmux new -s phaseB
 ```
 
 ### 0.2 同步代码（每次本地 push 后）
@@ -51,45 +53,57 @@ git pull --ff-only && git log --oneline -5
 
 ### 0.4 紧急停止跑飞的任务
 
+**前台任务**（在 tmux 里跑的）：按 `Ctrl+C` 一次；卡 numba/CUDA 不响应再 `Ctrl+\`（SIGQUIT 强退）。
+
+**后台 nohup 任务**：先找 PID 再 kill：
+
 ```bash
-# 在 tmux 里跑的前台任务：直接按 Ctrl+C 一次（一两秒不响应再按一次）
-# 卡死在 numba/CUDA 不响应：Ctrl+\ 发 SIGQUIT 强退
+ps -ef | grep -E "run\.py|prewarm" | grep -v grep
+kill <PID>
+kill -9 <PID>
+```
 
-# 后台 nohup 任务（B.2 用的那种）
-ps -ef | grep -E "run\.py|prewarm" | grep -v grep   # 找 PID
-kill <PID>                                # SIGTERM 优雅退
-kill -9 <PID>                             # 不响应再来 SIGKILL
+**一键全杀**（按命令模式匹配，谨慎）：
 
-# 一键全杀（项目所有 python 进程，谨慎用）
+```bash
 pkill -f "experiments/run.py"
 pkill -f "prewarm_selection_cache"
+```
 
-# 看 GPU 还在不在跑
-nvidia-smi                                # 关心 GPU 利用率 + 进程 PID
-watch -n 2 nvidia-smi                     # 每 2 秒刷新
+**看 GPU 状态**：
+
+```bash
+nvidia-smi
+watch -n 2 nvidia-smi
 ```
 
 ### 0.5 清缓存（污染或 key 变更后）
 
+只清 selection_cache（大多数情况这就够了）：
+
 ```bash
-# 只清 selection_cache（大多数情况这就够了）
 find results/selection_cache -name '*.json' -delete
-
-# 全清（B.0 sanity 出 mia_auc=0 时用）
-find results/cache results/selection_cache -name '*.json' -delete
-
-# 不要碰：results/runs/（实验输出）、data/processed/（数据集 split）
 ```
+
+全清（B.0 sanity 出 `mia_auc=0` 时用）：
+
+```bash
+find results/cache results/selection_cache -name '*.json' -delete
+```
+
+> 不要碰：`results/runs/`（实验输出）、`data/processed/`（数据集 split）。
 
 ### 0.6 监控正在跑的任务
 
 ```bash
-tail -f logs/phase_b_arxiv.log                              # 实时日志
-ls results/runs/ogbn-arxiv_*/*/seed*/attack.json | wc -l    # 进度计数
-grep -c "SelectionCache.*HIT" logs/phase_b_arxiv.log        # 看 cache 命中数
-df -h ~                                                      # 看磁盘还剩多少
-du -sh results/                                              # 看实验产出多大
+tail -f logs/phase_b_arxiv.log
+ls results/runs/ogbn-arxiv_*/*/seed*/attack.json | wc -l
+grep -c "SelectionCache.*HIT" logs/phase_b_arxiv.log
+df -h ~
+du -sh results/
 ```
+
+依次：实时日志 / 进度计数 / cache 命中数 / 磁盘剩余 / 实验产出占用。
 
 ---
 
