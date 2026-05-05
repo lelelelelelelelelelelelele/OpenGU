@@ -206,6 +206,71 @@ Commit `6b7285b` 回滚 B.1 到 random-only。新增 `scripts/feasibility_select
 
 ---
 
+## L6. Hybrid 的 IM 分支没有 submodular diversity
+
+**Status**: `ACCEPTED` — paper §5 limitation candidate，NeurIPS 后再修
+**Discovered**: 2026-05-05 review hybrid_strategy.py + cora top-3 比对
+**Severity**: 中 — alpha-sweep 在 IM 端的有效性受限，但不影响整体方法学
+
+### Evidence
+
+`attack/attack_strategies/hybrid_strategy.py:55` 用 `compute_initial_marginal_gains`
+拿 N 维 σ({v}) 做 IM 那一支的分数，然后跟 IF 加权一次性 topk：
+
+```python
+im_scores = self.im.compute_initial_marginal_gains(...)  # σ({v}) for each v
+fused = α * normalize(if_scores) + (1-α) * normalize(im_scores)
+_, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重估
+```
+
+**与 IM strategy 对比**：IM strategy (`compute_im_celf`) 用 σ({v}) 初始化堆，
+然后做 CELF lazy step 2+ 的 marginal 重估，submodularity 保住。Hybrid 把
+σ({v}) 当最终评分用，submodularity 丢了。
+
+**实证（cora SGC，r=0.05，top-3）**：
+
+| strategy | top-3 selected |
+|---|---|
+| degree | [1358, 306, 1701] |
+| im (with CELF) | [1358, 306, 1072] |
+| pagerank | [1358, 1701, 1986] |
+
+- IM (with CELF) vs degree: top-2 完全一致（σ({v}) 跟 degree 高相关）
+- 但 IM Gap = -5.57% vs degree Gap = -4.49% on r=0.05 → 有差，IM 不完全等价 degree
+- Hybrid 在 α=0 corner 的输出会更靠近 σ({v}) topk（不是 CELF 完整选择），
+  退化向 degree-like 的方向比 IM strategy 更严重
+
+### Implications
+
+- Hybrid alpha sweep 在 IM 端的有效"diversity"被压制
+- 已知修法两条，**都不完美**：
+  - **(A) hop-decay 近似**：选完 v 把 r-hop 邻居 IM 分打折扣。便宜但启发式
+    （`decay∈{0.3,0.5,0.7}` × `hop∈{1,2}` 是新超参；衰减常数无原则依据）
+  - **(B) K'-superset CELF**：先跑真 CELF 选 5k diverse pool，
+    pool 内按 fused 分重排选 k。理论干净但 α=1 corner 不再恢复纯 TracIn
+- 严格 CELF（每步重跑 MC 算 σ(S∪{v})-σ(S)）在 arxiv k=200 上 10+ 小时，不可行
+
+### 不修的理由（NeurIPS 时间窗）
+
+1. 改了会动 hybrid 输出分布，所有 hybrid cell 要重跑（B.2 / B.3 至少 +6 小时）
+2. (A) hop-decay 的衰减系数没有理论依据，引入超参反而更难辩护
+3. (B) 破坏 α=1 corner 的可解释性
+4. 当前 hybrid 已经有 "IF + topology prior" 的可解释性，paper 立得住
+5. (A)/(B) 的系统对比可作为 future work 章节的 follow-up
+
+### Talking points (advisor / reviewer)
+
+- "Hybrid's IM branch uses single-node spread σ({v}) as a per-candidate score
+  for fusion with IF. This loses submodularity — the topology score
+  effectively reduces to a degree-correlated prior at the top-k."
+- "We acknowledge a CELF-aware fusion variant (greedy with submodular discount)
+  could improve diversity, but the standard CELF inner loop is incompatible
+  with our per-candidate fusion budget, and known approximations
+  (hop-decay, K'-superset rerank) introduce hyperparameters or break α=1
+  recovery. We leave a principled fix to future work."
+
+---
+
 ## 待观察 / 推测但未实测
 
 下列是怀疑但尚未实测，**不要直接写进 paper**：
