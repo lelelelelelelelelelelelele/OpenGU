@@ -1,0 +1,21 @@
+# Sanity: GraphRevoker on cora/GCN, all 6 strategies @ r=0.10, single seed.
+# Goal: verify GraphRevoker scales across ratios + strategies.
+# Companion to sanity_graphrevoker_r05_full.yaml (r=0.05).
+name: sanity_graphrevoker_r10_full
+dataset: cora
+base_model: GCN
+ratio: 0.10
+methods: [GraphRevoker]
+strategies: [random, degree, pagerank, tracin, im, hybrid]
+seeds: [42]
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64
