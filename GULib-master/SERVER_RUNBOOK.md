@@ -160,17 +160,11 @@ tmux kill-server && tmux new -s phaseB
 ### B.0 · Sanity（~20 秒）
 
 ```bash
-cd ~/OpenGU/GULib-master
 python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
+python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml
 ```
 
-**通过判据**：
-- 退出码 0
-- 屏幕看到 `wrote results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json`（4 个文件）
-- ⚠ `mia_auc` 字段是 **非 0 的小数**（应在 0.3–0.6 区间），不是 `0.000`
-
-✅ 通过 → 进 B.1
-❌ `mia_auc: 0.000` 或其他错 → **停下问我**
+第二行 `gate_runs.py` 自动检 4 文件存在 + `mia_auc ∈ (0.001, 0.999)` + `f1_before` 落在 `[0, 1]`。退出码 0 = ✅ 进 B.1；退出码 1 = ❌ 停下问我（gate 会列出具体哪条没过）。
 
 ### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
 
@@ -184,13 +178,16 @@ python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 
 > 已跑过的 5 个 random cell 仍然有效，runner 的 skip-if-exists 会跳过；首次跑大约 1.5h。
 
-完成后人工对照 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 的 11 项 metric 闸：
+完成后跑 gate（自动检 5 cell × 11 项 = 55 项，~1 秒出结果）：
 
-- F1_clean / F1_unlearn / F1_retrain 在 `[0.55, 0.85]` 范围
-- mia_auc 非 0、非 1
-- gap、collateral、hop_decay 4 桶都有数
+```bash
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml \
+    --f1-min 0.55 --f1-max 0.85
+```
 
-**fail 不要进 B.2**——B.2 是 12+ GPU-h，跑废了租金最痛。fail → `attack.json` + `_meta.json` 粘给我。
+`--f1-min/--f1-max` 是 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 给 arxiv 设的范围。退出码 0 = ✅ 全部通过；退出码 1 = ❌ 停下问我（脚本会列出每个失败 cell 的具体原因，把那段输出粘给我即可）。
+
+**fail 不要进 B.2** —— B.2 是 12+ GPU-h，跑废了租金最痛。
 
 ✅ 通过 → 进 B.1.5（分卡）或直接 B.2（单卡）
 
