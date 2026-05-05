@@ -20,11 +20,16 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if base_dir not in sys.path:
     sys.path.append(base_dir)
 
-from model.model_zoo import model_zoo
-from dataset.original_dataset import original_dataset
+# NOTE: heavy imports (`model.model_zoo`, `unlearning_manager`, etc.) are
+# intentionally deferred to call sites below. attack/__init__.py eagerly
+# imports this module via attack_manager, and main.py's first import is
+# `model.model_zoo` — pulling those back here at module level closes the
+# cycle (model_zoo → unlearning → CEU → attack → attack_manager →
+# pipeline_adapter → model_zoo / unlearning_manager) before the upstream
+# modules finish initializing. Lightweight stdlib/utility imports stay at
+# top level; anything that transits through `unlearning.*` or `model.*`
+# stays inside the methods that use it.
 from utils.logger import create_logger
-from utils.dataset_utils import process_data, save_data
-from unlearning_manager import UnlearningManager
 from utils.utils import calc_f1
 from config import unlearning_path
 from attack.attack_strategies import BaseStrategy
@@ -80,6 +85,12 @@ class AttackPipeline:
 
     def _setup(self):
         """Initialize data, model, and unlearning method."""
+        # Lazy imports — see top-of-file note on the import cycle
+        from dataset.original_dataset import original_dataset
+        from utils.dataset_utils import process_data
+        from model.model_zoo import model_zoo
+        from unlearning_manager import UnlearningManager
+
         self.logger.info("Initializing AttackPipeline...")
 
         # Load data
@@ -359,7 +370,9 @@ class AttackPipeline:
         node_idx = selected_nodes.long()
         self.data.train_mask[node_idx] = False
 
-        # 3. Reinitialize model + method with train_only
+        # 3. Reinitialize model + method with train_only (lazy imports — see top-of-file note)
+        from model.model_zoo import model_zoo
+        from unlearning_manager import UnlearningManager
         self.args["train_only"] = True
         self.args["num_runs"] = 1
         self.model_zoo = model_zoo(self.args, self.data)
