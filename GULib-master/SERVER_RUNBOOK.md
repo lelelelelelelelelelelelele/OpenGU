@@ -25,6 +25,8 @@
 source /etc/network_turbo
 cd ~/autodl-fs/OpenGU/GULib-master
 tmux attach -t phaseB || tmux new -s phaseB
+unset http_proxy && unset https_proxy
+
 ```
 
 ### 0.2 同步代码
@@ -487,11 +489,14 @@ print(f'perf_before={cr.get(\"perf_before\")}  perf_retrain={cr.get(\"perf_retra
 "
 ```
 
-PASS 判据（4 条都满足才算过）：
+PASS 判据（每条都满足才算过）：
 - 4 件齐：`attack.json` / `collateral.json` / `predictions.npz` / `_meta.json`
-- `f1_before ∈ [0.75, 0.95]`（cora GIF 不难）
-- `mia_auc ∈ (0.001, 0.999)`（不是 0 / 1）
-- `gap` 数值非 None / NaN，总耗 < 60s
+- `perf_before ∈ [0.75, 0.95]`（取自 collateral.json — 这是 base train 后的真 F1；`f1_before` 在 attack.json 里 **node task 设计上恒为 None**，因为 `pipeline_adapter.py:285` 的 `poison_f1` 只在 edge task 路径设置，不要拿这个判 PASS）
+- `perf_retrain ∈ [0.75, 0.95]`（retrain 收敛）
+- `mia_auc ∈ (0.001, 0.999)`（不是 0 / 1，attack 端到端有效）
+- 总耗 < 60s（attack.json 的 `total_time` 不含 base train，cora 上~1s 正常；整个 cell wall-time 用 `time` 包脚本自己量）
+
+> `gap` 字段不强求非 0：`gap = perf_retrain - perf_unlearn`，cora 小图上 unlearn ≈ retrain 时四位小数会 round 到 0.0，不是 bug。
 
 不过就停下查环境/refactor，不要继续 B.1。
 
