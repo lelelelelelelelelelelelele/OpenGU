@@ -85,15 +85,17 @@ python experiments/run.py experiments/configs/sanity_one_cell.yaml --force
 ✅ 通过 → 进 B.1
 ❌ `mia_auc: 0.000` 或其他错 → **停下问我**
 
-### B.1 · arxiv 可行性闸（~5 GPU-h）⚠ 关键检查点
+### B.1 · arxiv 可行性闸（~1.5 GPU-h）⚠ 关键检查点
 
 ```bash
 python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 ```
 
-**v2 矩阵**：15 cells = 5 method × 3 strategy（random, tracin, im）× seed=42。`tracin` / `im` 加进来是为了在 B.2 之前提前检测 arxiv 大图上的模型耦合 / IM MC simulation 的 OOM 风险——这两个最容易出问题。
+**v3 矩阵（2026-05-05 起）**：5 cells = 5 method × **random** × seed=42。**仅测 GU 管线稳定性**（base train → unlearn → retrain → MIA 在 169K 节点图上不挂）。策略可行性（tracin OOM 风险、IM MC 时间）独立测试，见下面 §B.1.5。
 
-> 已经跑过原始 5-cell 版本的话，runner 的 skip-if-exists 会自动跳过它们，只跑剩下 10 个 cell。
+> v2 (commit 81733b2) 把 tracin/im 也塞进来 × 5 method 是设计错误——selection 与 GU method 解耦（cross-method SelectionCache），tracin × 5 method 里有 4 个 cell 重复劳动。已在 commit 6b7285b 回滚。
+
+> 已跑过的 5 个 random cell 仍然有效，runner 的 skip-if-exists 会跳过；首次跑大约 1.5h。
 
 完成后人工对照 `self/dashboard/EXPERIMENT_DASHBOARD.md §5.3.2.1` 的 11 项 metric 闸：
 
@@ -103,7 +105,7 @@ python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml
 
 **fail 不要进 B.2**——B.2 是 12+ GPU-h，跑废了租金最痛。fail → `attack.json` + `_meta.json` 粘给我。
 
-✅ 通过 → 进 B.2
+✅ 通过 → 进 B.1.5（分卡）或直接 B.2（单卡）
 
 ### B.1.5 · 分卡省钱：prewarm selection cache（可选，推荐）⭐ 新
 
