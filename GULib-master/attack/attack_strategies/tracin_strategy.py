@@ -94,11 +94,27 @@ class TracInStrategy(BaseStrategy):
         Returns:
             scores: [num_candidates] tensor of TracIn scores
         """
-        # Pre-compute gradients for all candidates and stack into matrix
+        # Single full-graph forward; reused across every per-candidate backward
+        # via retain_graph=True. Previously the forward was repeated inside the
+        # candidate loop (90K times on arxiv), which dominated runtime.
+        if hasattr(model, 'forward') and 'edge_index' in model.forward.__code__.co_varnames:
+            out = model(data.x, data.edge_index)
+        else:
+            out = model(data.x)
+
+        params = [p for p in model.parameters() if p.requires_grad]
+        n_cand = candidates.shape[0]
+
         grads = []
-        for node in candidates:
-            grad = self._compute_node_gradient(model, data, node)
-            grads.append(grad)
+        for i, node in enumerate(candidates):
+            node_idx = node.item() if isinstance(node, Tensor) else node
+            loss = self._compute_node_loss(out, data.y, node_idx)
+            # Final iteration releases the graph; earlier iterations retain it
+            retain = (i < n_cand - 1)
+            grad_tuple = torch.autograd.grad(
+                loss, params, retain_graph=retain, create_graph=False
+            )
+            grads.append(torch.cat([g.flatten() for g in grad_tuple]))
 
         # G: [N, d] matrix of per-node gradients
         G = torch.stack(grads)  # [num_candidates, num_params]
@@ -109,46 +125,6 @@ class TracInStrategy(BaseStrategy):
         scores = -(G @ col_sum)  # [num_candidates]
 
         return scores
-
-    def _compute_node_gradient(
-        self,
-        model: torch.nn.Module,
-        data: Data,
-        node: int,
-    ) -> Tensor:
-        """
-        Compute gradient of loss for a single node.
-
-        Args:
-            model: Trained GNN model
-            data: PyG Data object
-            node: Node index
-
-        Returns:
-            grad: Flattened gradient tensor
-        """
-        model.zero_grad()
-
-        # Forward pass
-        if hasattr(model, 'forward') and 'edge_index' in model.forward.__code__.co_varnames:
-            out = model(data.x, data.edge_index)
-        else:
-            out = model(data.x)
-
-        # Compute loss for the single node
-        node_idx = node.item() if isinstance(node, Tensor) else node
-        loss = self._compute_node_loss(out, data.y, node_idx)
-
-        # Backward pass
-        loss.backward()
-
-        # Collect gradients
-        grads = []
-        for param in model.parameters():
-            if param.grad is not None:
-                grads.append(param.grad.flatten())
-
-        return torch.cat(grads) if grads else torch.tensor([], device=self.device)
 
     def _compute_node_loss(
         self,

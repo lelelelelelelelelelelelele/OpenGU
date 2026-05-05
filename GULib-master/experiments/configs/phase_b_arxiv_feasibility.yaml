@@ -1,17 +1,18 @@
-# Phase B 5.3.2 — arxiv feasibility gate (v2, 2026-05-05)
-# Goal: verify each family × {random, tracin, im} × seed=42 runs to completion
-# on arxiv without OOM, with f1_before > 0.55 (per thesis_transition_memo
-# §5.3.2.1). If any family fails, document and exclude from main matrix.
+# Phase B 5.3.2 — arxiv feasibility gate (v3, 2026-05-05)
+# Goal: verify each GU family × random × seed=42 runs end-to-end on arxiv
+# (base train → unlearn → retrain → MIA) without OOM, with f1_before > 0.55
+# per thesis_transition_memo §5.3.2.1. Failure here excludes the family from
+# the main matrix.
 #
-# Why 3 strategies (not just random):
-#   - random/degree/pagerank are structural; if random runs, others run
-#   - tracin and im are model-coupled and most likely to OOM on the 169K-node
-#     arxiv graph (IM builds reachability + MC sim; tracin computes gradient
-#     inner products at full-graph scale)
-#   - including them here surfaces scale bugs BEFORE committing to the 12+
-#     GPU-hour B.2 main run
-#   - skip-if-exists in run.py means re-running this yaml after the original
-#     5 random cells will only execute the 10 new (tracin+im) cells
+# Scope discipline (v3 reverts v2's mistake):
+#   - This yaml validates GU PIPELINE STABILITY only — random is sufficient
+#     because selection is decoupled from the GU method (SelectionCache is
+#     cross-method). Bundling tracin/im here would re-test the same GU
+#     pipeline 3× per family with no added information about the GU itself.
+#   - STRATEGY scalability (tracin OOM risk, IM CELF time) is validated
+#     separately — once, with no GU — via:
+#         scripts/feasibility_selection_only.py
+#     Run that probe on arxiv before B.2 to confirm the right GPU is rented.
 
 name: phase_b_arxiv_feasibility
 dataset: ogbn-arxiv
@@ -26,9 +27,7 @@ methods:
   - GraphEraser
 
 strategies:
-  - random          # structural baseline (smoke test)
-  - tracin          # model-coupled gradient — validates large-graph backward
-  - im              # MC + reachability — most likely OOM offender
+  - random          # cheapest selector for the gate; GU stability only
 
 seeds: [42]
 
@@ -40,6 +39,8 @@ defaults:
   batch_size: 256
   cuda: 0
 
+# OGB convention for arxiv: 3-layer GCN, hidden=256 (vs 2/64 on cora).
+# Without this override, default 2/64 underperforms the 5.3.2.1 f1>0.55 gate.
 model_overrides:
   GCN:
     gcn_num_layers: 3

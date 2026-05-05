@@ -172,11 +172,18 @@ class AttackManager:
     def _build_selection_config(self, strategy_name: str, k: int) -> Dict[str, Any]:
         strategy_params = self._strategy_params_for_cache(strategy_name)
         strategy_params_fingerprint = self._stable_hash(strategy_params)
+        seed_for_key = self._seed_value()
+        if strategy_name == "im":
+            # IM uses a fixed im_selector_seed (default 2024, A.4-decoupled
+            # from training seed). Anchoring the cache key to im_selector_seed
+            # — not the training seed — lets cross-seed runs share a single
+            # IM computation instead of recomputing identical results 3x.
+            seed_for_key = int(self.args.get("im_selector_seed", 2024))
         return {
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),
             "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
-            "seed": self._seed_value(),
+            "seed": seed_for_key,
             "strategy_name": strategy_name,
             "k": int(k),
             "is_transductive": bool(self.args.get("is_transductive", True)),
