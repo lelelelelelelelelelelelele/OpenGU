@@ -33,10 +33,7 @@ tmux attach -t phaseB || tmux new -s phaseB   # 进或建 tmux
 ### 0.2 同步代码（每次本地 push 后）
 
 ```bash
-git fetch origin                          # 看远端有啥
-git status                                # 看本地有没改动
-git pull --ff-only                        # 拉最新（拒绝 merge，干净）
-git log --oneline -5                      # 确认拿到了
+git pull --ff-only && git log --oneline -5
 ```
 
 ### 0.3 tmux 速记
