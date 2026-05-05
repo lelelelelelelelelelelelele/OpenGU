@@ -1,0 +1,35 @@
+# Appendix A.5 — ratio sweep, r=0.10 slice
+# See A5_README.md for design.
+
+name: A5_ratio_0.10
+dataset: cora
+base_model: GCN
+ratio: 0.10
+
+methods:
+  - GraphEraser
+  - GraphRevoker
+  - GIF
+  - IDEA
+  - GNNDelete
+  - MEGU
+
+strategies:
+  - random
+  - im
+  - tracin
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64

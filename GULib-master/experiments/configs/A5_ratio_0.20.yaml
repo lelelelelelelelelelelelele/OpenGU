@@ -1,0 +1,39 @@
+# Appendix A.5 — ratio sweep, r=0.20 slice
+# See A5_README.md for design.
+#
+# CAUTION: r=0.20 may break shard imbalance for small graphs / high shard counts.
+# Inspect logs and drop offending (method, strategy) cells from the appendix
+# rather than hide. Sanity-check GraphEraser at r=0.20 on a single seed first.
+
+name: A5_ratio_0.20
+dataset: cora
+base_model: GCN
+ratio: 0.20
+
+methods:
+  - GraphEraser
+  - GraphRevoker
+  - GIF
+  - IDEA
+  - GNNDelete
+  - MEGU
+
+strategies:
+  - random
+  - im
+  - tracin
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64
