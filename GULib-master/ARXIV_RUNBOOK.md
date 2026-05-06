@@ -30,38 +30,53 @@
 > 前提：已经 `git checkout <release-branch> && git pull`
 > 当前 ratio = **0.01**（1%, k≈1355）；CELF 标准工作区 + im_batch_size=1 (classic CELF)
 
-### ⚡ 懒人路径：单 A800 一键部署（smoke gate → T1 → 自动关机）
+### ⚡ 懒人路径：`run_arxiv.sh` 一键部署（smoke gate → T1 → 自动关机）
 
-只想跑出来不操心进度的话，**直接用这个**：
+**单脚本，两种 MODE**。在 GULib-master 目录里跑（脚本用相对路径，前提是你已 cd 到这里）：
 
 ```bash
 ssh <a800-host>
-cd /root/autodl-fs/OpenGU/GULib-master   # 你实际路径，autodl 上多半是 /autodl-fs/data/OpenGU/GULib-master
+cd ~/autodl-fs/OpenGU/GULib-master    # 你实际路径
 git fetch origin && git checkout release/phase-b-fixes && git pull
-nohup bash run_arxiv_t1.sh > /dev/null 2>&1 &
-disown
-exit   # ssh 安全断开，机器自己跑
+
+# 先 dry-run 验证 smoke 启动正常（前台跑，看到 STAGE A + base train 就 Ctrl+C）
+SKIP_SHUTDOWN=1 bash run_arxiv.sh
+
+# 正式跑（二选一）：
+# A. 只 prewarm TracIn cache，~4h，跑完关机（晚上用）
+nohup MODE=prewarm bash run_arxiv.sh > /dev/null 2>&1 &
+
+# B. 跑 smoke + T1 全套，~7h，跑完关机（白天用，要先有 prewarm cache）
+nohup bash run_arxiv.sh > /dev/null 2>&1 &     # MODE=full 是默认
+
+disown && exit   # ssh 安全断开
 ```
 
-脚本行为：
-1. 跑 `phase_b_arxiv_tracin_smoke.yaml`（GIF/tracin/seed42 单 cell, 限时 3h）
-2. smoke 失败 / 超时 / 4 个产物文件不齐 → 立即 `/usr/bin/shutdown`
-3. smoke 通过 → 跑 `phase_b_arxiv_T1_seed42.yaml`（18 cell 主矩阵）
-4. T1 跑完（不管成败）→ `/usr/bin/shutdown`
+| MODE | 跑什么 | 时长 | 行为 |
+|---|---|---|---|
+| `prewarm` | TracIn selection × 3 method（不做 GU/MIA/retrain）| ~4h | 写 `results/score_cache/if/` × 3，关机 |
+| `full`（默认）| smoke (1 cell) + T1 (18 cell) | ~7h | smoke 失败立即关机；通过则跑 T1 后关机 |
 
 调参（可选环境变量）：
-- `PROJECT_DIR=/autodl-fs/data/OpenGU/GULib-master`（路径不一样时必传）
 - `SMOKE_TIMEOUT=4h`（默认 3h，预期 ~90 min）
+- `PREWARM_TIMEOUT=6h`（默认 6h）
 - `SKIP_SHUTDOWN=1`（调试不关机）
+- `NUMBA_NUM_THREADS=18`（默认 `$(nproc)`，container quota 可能限到 4-8）
 
 回来看结果：
 ```bash
-cd <project>; ls -lt run_arxiv_t1_*.log | head -1   # 找最新 log
-tail -100 <log>                                       # 看 ALL DONE 行
-ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json | wc -l  # 18 个 cell
+cd ~/autodl-fs/OpenGU/GULib-master
+ls -lt run_arxiv_*.log | head -1                                         # 最新 log
+tail -100 <log>                                                          # 看 ALL DONE 行
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json | wc -l        # 期望 18
+ls results/score_cache/if/*.npz | wc -l                                  # 期望 3
 ```
 
-⚠ **首次部署前先 `SKIP_SHUTDOWN=1 bash run_arxiv_t1.sh` 在便宜实例上验一遍**——确认 PROJECT_DIR 路径对、shutdown 命令在你这台 autodl 实例确实生效。
+⚠ **首次部署前必跑 dry-run**（`SKIP_SHUTDOWN=1 bash run_arxiv.sh`，前台跑），确认：
+- 进入 STAGE A 看到 `[run] demo_attack GIF/tracin/seed42 → ...`
+- 看到 base training 进度条
+- 没有 `error: unrecognized arguments` 之类的 yaml/CLI flag 不对的报错
+- 验证后 Ctrl+C 停掉，再 `nohup ... &` 正式跑
 
 不放心一键脚本的话用下面的分阶段命令：
 
