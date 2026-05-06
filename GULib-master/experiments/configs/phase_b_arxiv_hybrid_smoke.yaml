@@ -1,0 +1,59 @@
+# Phase B — single-cell smoke test for Hybrid (TracIn + IM fusion) on arxiv.
+# Runs ONE cell (GIF, hybrid, seed=42) end-to-end. Complementary to
+# phase_b_arxiv_tracin_smoke.yaml — same shape, different strategy.
+#
+# What this validates:
+#   - Hybrid calls TracIn.compute_scores → triggers chunked path (if not cached)
+#   - Hybrid calls IM.compute_initial_marginal_gains → hits ScoreCache
+#     (only if you've prewarmed IM on a CPU instance; otherwise computes
+#     single-node spreads inline, takes ~10-15 min on arxiv)
+#   - Fusion → topk → injects → GIF unlearning → MIA → retrain
+#
+# Expected runtime on A800 80GB:
+#   - WITHOUT prewarmed IM cache:   ~95-100 min (TracIn 76 min + IM 10-15 min + GU/MIA/retrain ~17 min)
+#   - WITH prewarmed IM cache:      ~85-90 min (only TracIn computes; IM step1 hits cache)
+#   - WITH both TracIn + IM cached: ~17 min   (just GU + MIA + retrain)
+#
+# Watch for in stdout (in this order):
+#   [TracIn] G matrix ~57.0 GB > 4.0 GB threshold → chunked path
+#   [ScoreCache] HIT  if  key=...   ← if previous TracIn smoke ran already
+#   [ScoreCache] HIT  im  key=...   ← if CPU instance prewarmed im namespace
+#   [Hybrid] alpha=0.5 fusion=rank
+#   ... GU + MIA + retrain ...
+
+name: phase_b_arxiv_hybrid_smoke
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF        # same method as tracin smoke for direct comparison
+
+strategies:
+  - hybrid     # only this — needs both TracIn and IM internally
+
+seeds: [42]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+  # Hybrid fusion params (defaults are reasonable; override for ablation)
+  - --hybrid_alpha
+  - "0.5"
+  - --fusion_method
+  - "rank"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256
