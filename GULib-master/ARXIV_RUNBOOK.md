@@ -25,6 +25,101 @@
 
 ---
 
+## Quick Reference — 你只想 copy-paste 命令的话看这里
+
+> 前提：已经 `git checkout release/phase-b-fixes && git pull`
+
+### 0. CPU 实例（机 A'，~¥0.5-1/h）— prewarm IM
+
+```bash
+export NUMBA_NUM_THREADS=32
+
+# 跑 IM 完整 CELF，写到 results/score_cache/im_celf/<key>.npz
+python scripts/prewarm_selection_cache.py \
+    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
+    --strategies im
+
+# 打包传输给 GPU 实例
+tar czf im_celf_cache.tar.gz results/score_cache/im_celf/
+scp im_celf_cache.tar.gz <a800-host>:~/autodl-fs/OpenGU/GULib-master/
+```
+
+预期：5-10 min 出 cache（~30s 如果 1% ratio）。
+
+### 1. A800 实例（机 B）— 解 cache + 烟囱
+
+```bash
+tar xzf im_celf_cache.tar.gz   # 解到 results/score_cache/im_celf/
+```
+
+#### 1a. TracIn 单 cell 烟囱（验 chunked TracIn）
+
+```bash
+python experiments/run.py \
+    experiments/configs/phase_b_arxiv_tracin_smoke.yaml
+```
+
+预期 **~90 min**。必看 `[TracIn] G matrix ... → chunked path`。
+
+#### 1b. Hybrid 单 cell 烟囱（验 TracIn + IM cache 联动）
+
+```bash
+python experiments/run.py \
+    experiments/configs/phase_b_arxiv_hybrid_smoke.yaml
+```
+
+预期 **~17 min**（如果 1a TracIn cache + IM prewarm cache 都有）/ **~95 min**（cache 都没）。
+必看 `[ScoreCache] HIT  im  key=...`（im 命中=机 A' prewarm 成功传过来）。
+
+### 2. A800 实例 — 主矩阵（T1 必跑，T2/T3 条件跑）
+
+```bash
+# T1 (12 cell, seed=42, ~10-11h)
+python experiments/run.py \
+    experiments/configs/phase_b_arxiv_T1_seed42.yaml
+
+# T2 (条件跑, seed=212)
+python experiments/run.py \
+    experiments/configs/phase_b_arxiv_T2_seed212.yaml
+
+# T3 (条件跑, seed=722)
+python experiments/run.py \
+    experiments/configs/phase_b_arxiv_T3_seed722.yaml
+```
+
+### Cache 共享矩阵（一次跑出来后哪些 cell 受益）
+
+| Cache 路径 | 写入触发 | 受益的 cell |
+|---|---|---|
+| `results/score_cache/if/<key>.npz` | TracIn 在某 method 第一次跑 | 同 method × {tracin, hybrid} 后续 cell |
+| `results/score_cache/im/<key>.npz` | Hybrid 第一次调 IM step1 | 全 18 cell × {hybrid}（跨 method、跨 GU seed）|
+| **`results/score_cache/im_celf/<key>.npz`** | IM 完整 CELF 第一次跑（机 A' prewarm 或机 B 第一次 IM cell）| **全 18 cell × {im}（跨 method、跨 GU seed）** |
+| `results/cache/<key>.json` | 任何 cell 完整跑完 | 完全相同配置的重跑 |
+
+### 失败兜底命令
+
+```bash
+# 检查 4 个产物文件齐全
+ls results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/
+# 应有: attack.json collateral.json predictions.npz _meta.json
+
+# 看 attack.json 的关键数字
+python -c "
+import json
+d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/attack.json'))
+for r in d.get('results', []):
+    print(r.get('strategy'), 'f1_drop=', r.get('f1_drop'), 'mia_auc=', r.get('mia_auc'))
+"
+
+# 验证 chunked path 触发
+grep "chunked path" logs/*.log | tail -1
+
+# 验证 cache 命中
+grep "HIT  im_celf\|HIT  if\|HIT  im " logs/*.log | head -10
+```
+
+---
+
 ## 1. 硬件规划
 
 ### 1.1 GPU 实例（机 B，跑 B.2 主矩阵）
