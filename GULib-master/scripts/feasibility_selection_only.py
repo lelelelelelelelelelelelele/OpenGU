@@ -83,6 +83,20 @@ from parameter_parser import parameter_parser  # noqa: E402
 from attack import AttackManager  # noqa: E402
 
 
+def _candidate_node_count(data) -> int:
+    train_mask = getattr(data, "train_mask", None)
+    if train_mask is not None:
+        if train_mask.dim() > 1:
+            train_mask = train_mask.squeeze(-1)
+        return int(train_mask.nonzero(as_tuple=False).view(-1).numel())
+
+    train_indices = getattr(data, "train_indices", None)
+    if train_indices is not None:
+        return int(len(train_indices))
+
+    return int(data.num_nodes)
+
+
 def _seed_everything(seed: int):
     import random
     import numpy as np
@@ -117,6 +131,10 @@ def main():
     args["random_seed"] = _demo_args.seed
     args["seed"] = _demo_args.seed
     args["cuda"] = _demo_args.cuda
+    # This script is a probe, not a cache producer. Keeping ScoreCache off
+    # prevents candidate-subset or random-init probes from contaminating the
+    # real TracIn/Hybrid score cache used by experiments/run.py.
+    args["enable_score_cache"] = False
 
     _seed_everything(_demo_args.seed)
 
@@ -127,9 +145,9 @@ def main():
     print(f"\nDataset: {args['dataset_name']}  Model: {args['base_model']}  "
           f"Seed: {args['seed']}  Strategies: {strategies}")
 
-    # AttackManager init: loads data + trains base model. The trained model
-    # is what model-coupled strategies (tracin, hybrid) consume.
-    print("\n[init] Building AttackManager (loads data, trains base model)...")
+    # AttackManager init loads data/model. Trained-model selectors are trained
+    # explicitly below, matching AttackPipeline.run_with_strategy().
+    print("\n[init] Building AttackManager (loads data/model)...")
     t_init0 = time.perf_counter()
     manager = AttackManager(args, use_cache=not _demo_args.no_cache)
     t_init1 = time.perf_counter()
@@ -138,6 +156,22 @@ def main():
     model = manager.model
     device = manager.device
 
+    trained_model_strategies = [
+        name for name in strategies
+        if name in manager._strategies
+        and getattr(manager._strategies[name], "requires_trained_model", False)
+    ]
+    if trained_model_strategies:
+        method = str(args.get("unlearning_methods", ""))
+        if method in AttackManager.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE:
+            raise SystemExit(
+                "[FATAL] feasibility_selection_only cannot probe trained-model "
+                f"selectors from shard/SISA method {method}. Use GIF or "
+                "GNNDelete as --unlearning_methods for selector feasibility."
+            )
+        manager.pipeline._ensure_base_model_trained()
+        model = manager.pipeline.model
+
     print(f"[init] num_nodes={data.num_nodes}  num_edges={data.edge_index.size(1)}  "
           f"train_size={int(data.train_mask.sum().item()) if hasattr(data, 'train_mask') else 'N/A'}  "
           f"init_time={t_init1 - t_init0:.1f}s  device={device}")
@@ -145,7 +179,7 @@ def main():
     if _demo_args.k is not None:
         k = _demo_args.k
     else:
-        k = int(data.num_nodes * args["unlearn_ratio"])
+        k = int(_candidate_node_count(data) * args["unlearn_ratio"])
     print(f"[init] k={k}  ({args['unlearn_ratio'] * 100:.1f}% of num_nodes)")
 
     # Probe-mode: shrink train_mask uniformly to make a cheap measurement

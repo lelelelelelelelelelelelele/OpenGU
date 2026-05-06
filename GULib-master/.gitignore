@@ -44,3 +44,6 @@ results/hybrid_alpha_sweep/
 # Archived snapshots (2026-05-06: Phase B Blocker-1/2 污染 + pre-Phase-B
 # legacy 全部 move 进 _archive_YYYYMMDD/ 不删；保险起见落盘)
 results/_archive_*/
+
+AGENTS.md
+GEMINI.md

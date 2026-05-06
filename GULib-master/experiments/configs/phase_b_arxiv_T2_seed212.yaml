@@ -1,0 +1,44 @@
+# Phase B — ogbn-arxiv main matrix, Tier 2 (seed=212; stretch goal)
+# Run only if T1 (seed=42) finishes with compute budget remaining.
+# Adds n=2 statistical power to the arxiv column.
+#
+# Cost: ~7-8h on H800. Same as T1 — ScoreCache IF key includes `seed`
+# (`tracin_strategy.py:_build_cache_config`), so T1's IF cache does NOT
+# carry over. Splitting tiers only buys a clean stopping point, not speedup.
+
+name: phase_b_arxiv_T2_seed212
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - random
+  - tracin
+  - im
+  - hybrid
+
+seeds: [212]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

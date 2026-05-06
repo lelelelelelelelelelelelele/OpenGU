@@ -26,7 +26,11 @@
 [ ] Phase B  全量重跑（服务器侧，2026-05-05+）
     [ ] B.0  服务器 env + sanity（`experiments/configs/sanity_one_cell.yaml --force`，~20s）
     [ ] B.1  arxiv 可行性闸（`phase_b_arxiv_feasibility.yaml`，5 cells / ~1.5h，验 11 项 metric 闸 §5.3.2.1）
-    [ ] B.2  arxiv 主矩阵（`phase_b_arxiv.yaml`，36 cells / ~12 GPU-h）
+    [ ] B.2-T1  arxiv 主矩阵 seed=42（`phase_b_arxiv_T1_seed42.yaml`，12 cells / ~6-8h，**必跑**）
+    [ ] B.2-T2  arxiv 主矩阵 seed=212（`phase_b_arxiv_T2_seed212.yaml`，12 cells / ~7-8h，条件跑）
+    [ ] B.2-T3  arxiv 主矩阵 seed=722（`phase_b_arxiv_T3_seed722.yaml`，12 cells / ~7-8h，条件跑）
+        # 2026-05-06: 原 phase_b_arxiv.yaml 单 yaml ~21-24h 压 deadline 太紧；拆三段 deadline 到了 kill，已完成 cell 受 fingerprint 保护
+        # 注：tier split 不省时间——ScoreCache IF key 含 seed (`tracin_strategy.py:136-149`)，每 tier 独立 ~7-8h
     [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，150 cells / ~75 min）
     [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，150 cells / ~90 min）
 [ ] Phase C  分析 + paper writing
@@ -175,7 +179,8 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 ### 服务器侧（按顺序执行）
 1. **B.0** `git pull` → conda env → `python experiments/run.py experiments/configs/sanity_one_cell.yaml --force` —— 验证 env，~20s
 2. **B.1** `python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml` —— 5 family × random × 1 seed，对照 §5.3.2.1 的 11 项闸门
-3. **B.2** B.1 全 pass → `python experiments/run.py experiments/configs/phase_b_arxiv.yaml` —— 36 cells / ~12 GPU-h
+3. **B.2-T1** B.1 全 pass → `python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml` —— 12 cells / ~7-8h（必跑，arxiv 列 n=1 骨架）
+3a. **B.2-T2 / T3** deadline 富余则串：T2 (`phase_b_arxiv_T2_seed212.yaml`) → T3 (`phase_b_arxiv_T3_seed722.yaml`)，各 ~7-8h（不复用 T1 的 IF cache，per-seed 全价）。一键串见 SERVER_RUNBOOK §3.4.4 / §A.3
 4. **B.3 / B.4** 并行（如有第二张卡）：cora/GCN + cora/GAT 全矩阵
 5. **Phase C** 数据回流 → 分析 + 出图 + paper（见 §1 Phase C 列表）
 

@@ -1,0 +1,42 @@
+# Phase B — ogbn-arxiv main matrix, Tier 3 (seed=722; stretch goal)
+# Run only if T1 + T2 finish with compute budget remaining.
+# Brings the arxiv column to n=3, matching the original phase_b_arxiv.yaml plan.
+#
+# Cost: ~7-8h on H800. Same as T1/T2 — IF cache is per-seed, no carry-over.
+
+name: phase_b_arxiv_T3_seed722
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - random
+  - tracin
+  - im
+  - hybrid
+
+seeds: [722]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

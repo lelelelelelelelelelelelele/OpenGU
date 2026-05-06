@@ -1,0 +1,53 @@
+# Phase B — ogbn-arxiv main matrix, Tier 1 (seed=42 only)
+# Goal: get one full (method × strategy) coverage on arxiv before the
+# NeurIPS deadline. T2 / T3 add seeds 212 / 722 if compute remains.
+# Output: results/runs/ogbn-arxiv_GCN_r0.05/{method}_{strategy}/seed42/...
+#
+# Pre-flight: phase_b_arxiv_feasibility.yaml must PASS first.
+#
+# Tier rationale (2026-05-06):
+#   - Original phase_b_arxiv.yaml has 3 seeds × 36 cells ≈ 16-22h on H800.
+#   - With <24h to deadline, single-seed is the safe floor that still produces
+#     a complete Table 1 column. T2/T3 are stretch goals, not gating.
+#   - ScoreCache IF key includes `seed` and `unlearning_methods`
+#     (`tracin_strategy.py:_build_cache_config:136-149`), so T2/T3 do NOT
+#     reuse T1's IF computation across seeds — each tier independently
+#     pays ~7-8h. Splitting only buys a clean stopping point at deadline,
+#     not cumulative speedup.
+
+name: phase_b_arxiv_T1_seed42
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - random
+  - tracin     # must precede hybrid so hybrid hits ScoreCache
+  - im
+  - hybrid
+
+seeds: [42]    # T1 = single seed; T2/T3 yaml extend to 212 / 722
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

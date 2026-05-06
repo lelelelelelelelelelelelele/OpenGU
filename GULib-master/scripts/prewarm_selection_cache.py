@@ -58,6 +58,20 @@ from attack import AttackManager  # noqa: E402
 from attack.selection_cache import SelectionResult  # noqa: E402
 
 
+def _candidate_node_count(data) -> int:
+    train_mask = getattr(data, "train_mask", None)
+    if train_mask is not None:
+        if train_mask.dim() > 1:
+            train_mask = train_mask.squeeze(-1)
+        return int(train_mask.nonzero(as_tuple=False).view(-1).numel())
+
+    train_indices = getattr(data, "train_indices", None)
+    if train_indices is not None:
+        return int(len(train_indices))
+
+    return int(data.num_nodes)
+
+
 def _seed_everything(seed: int):
     import random
     import numpy as np
@@ -121,10 +135,25 @@ def _prewarm_seed(cfg, seed, strategies, force=False):
     print(f"[prewarm] AttackManager init (data + base train) in {t_init:.1f}s")
 
     data, model = manager.data, manager.model
-    k = int(data.num_nodes * args["unlearn_ratio"])
+    k = int(_candidate_node_count(data) * args["unlearn_ratio"])
 
     available = manager.list_strategies()
     reusable = AttackManager.REUSABLE_SELECTION_STRATEGIES
+    trained_model_strategies = [
+        name for name in strategies
+        if name in available and getattr(manager._strategies[name], "requires_trained_model", False)
+    ]
+    if trained_model_strategies:
+        method = str(args.get("unlearning_methods", ""))
+        if method in AttackManager.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE:
+            raise SystemExit(
+                "[FATAL] prewarm_selection_cache cannot compute trained-model "
+                f"selectors from shard/SISA method {method}. Put a canonical "
+                "full-model method (GIF or GNNDelete) first in the yaml, or "
+                "use experiments/run.py top-to-bottom."
+            )
+        manager.pipeline._ensure_base_model_trained()
+        model = manager.pipeline.model
 
     summary = []
     for name in strategies:

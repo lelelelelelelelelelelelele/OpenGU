@@ -25,12 +25,13 @@ Checks per cell:
     - collateral.json: results[0].{perf_before, gap, hop_decay} present
     - perf_before in [--f1-min, --f1-max] (default [0.0, 1.0])
 
-Note: we read pre-unlearn F1 from collateral.json (`perf_before`), not from
-attack.json (`f1_before`). The attack.json field is sourced from
-self.method.poison_f1 (pipeline_adapter.py:285) which is only populated on
-the edge-task code path; node-task cells (the sanity_one_cell.yaml default
-and all phase_b_*.yaml configs) intentionally leave it None. perf_before
-is filled from the same trained-model evaluation regardless of task.
+Note: we read the gate's F1 sanity value from collateral.json (`perf_before`),
+not from attack.json (`f1_before`). The attack.json field is sourced from
+self.method.poison_f1 and node-task cells often leave it None. `perf_before`
+is the current method's train_only before model; for shard/SISA methods this
+is not guaranteed to be a method-agnostic vanilla base-model F1. See
+self/dashboard/METRIC_FIELD_SEMANTICS.md before using before-fields in paper
+tables.
 """
 from __future__ import annotations
 

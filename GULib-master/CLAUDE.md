@@ -16,6 +16,7 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 |------|-----------|
 | `self/dashboard/EXPERIMENT_DASHBOARD.md` | Beginning every session — phase progress, coverage matrix, known issues, TODO |
 | `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
+| `self/dashboard/METRIC_FIELD_SEMANTICS.md` | Before using `f1_before`, `perf_before`, or `logits_before` |
 | `self/dashboard/VALIDATION_LOG.md` | Need empirical evidence for a claim (append-only) |
 | `self/dashboard/CLAUDE.md` | First time entering the folder — rules & maintenance |
 
@@ -143,8 +144,8 @@ Resolved (2026-05-05):
 
 | 脚本 | 用途 |
 |---|---|
-| `scripts/feasibility_selection_only.py` | 探针：`--candidate_subset_size N` 限流测内存/时间，外推全量需求 |
-| `scripts/prewarm_selection_cache.py` | 批量算 selection 写 `results/selection_cache/`，跨机器复用 |
+| `scripts/feasibility_selection_only.py` | 探针：`--candidate_subset_size N` 限流测内存/时间；ScoreCache 强制关闭，避免污染正式 TracIn/Hybrid cache |
+| `scripts/prewarm_selection_cache.py` | 批量算 selection 写 cache；TracIn/Hybrid 必须用 GIF/GNNDelete canonical selector path，shard/SISA method 会 fail fast |
 | `scripts/gate_runs.py` | 自动 pass/fail 判 yaml 矩阵：4 文件 + mia_auc + f1 范围 |
 | `scripts/diag_b1.sh` | 一键看 cell 输出列表 + log 错误尾（不在 git，需 cat 创建） |
 | `scripts/redo_collateral.sh` | 补 OOM 失败的 collateral cell（不在 git，需 cat 创建） |

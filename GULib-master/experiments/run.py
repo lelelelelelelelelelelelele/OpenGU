@@ -12,8 +12,14 @@ output redirected to the canonical `results/runs/` layout:
         predictions.npz      # logits_{before,unlearned,retrained} + masks (forward-only metric cache)
         _meta.json           # config snapshot + git_sha + timestamp + hostname
 
-Skip-if-exists by default: if all 4 files exist, the cell is skipped. Use
---force to re-run.
+Skip-if-complete by default. A cell is "complete" iff:
+    1. All 4 files exist (attack.json, collateral.json, predictions.npz, _meta.json)
+    2. Each file parses (no truncation from interrupted runs)
+    3. _meta.json contains config_fingerprint matching the current yaml + matrix coords
+
+Cells that fail (2) — corrupt — or (3) — stale — are silently re-run.
+Cells written before fingerprinting (legacy) print a warning and skip; pass
+--force or `rm -rf` the cell to regenerate them. Use --force to re-run any cell.
 
 Usage:
     python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
@@ -44,6 +50,7 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import socket
@@ -52,7 +59,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import yaml
@@ -86,9 +93,101 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
     return REPO_ROOT / "results" / "runs" / cell / leaf / f"seed{seed}"
 
 
-def is_complete(d: Path) -> bool:
-    expected = ["attack.json", "collateral.json", "predictions.npz", "_meta.json"]
-    return all((d / f).exists() for f in expected)
+# Bump when the set of fields hashed in _content_fingerprint changes,
+# so old fingerprints stop matching and force a clean re-run.
+_FINGERPRINT_VERSION = "v1"
+
+
+def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> str:
+    """Stable hash of every cfg field that meaningfully changes a cell's outputs.
+
+    Excludes `cuda` (different GPU = same outputs modulo fp determinism) so
+    swapping devices doesn't trigger spurious re-runs.
+    """
+    defaults = dict(cfg.get("defaults", {}) or {})
+    defaults.pop("cuda", None)
+    payload = {
+        "_v": _FINGERPRINT_VERSION,
+        "dataset": cfg["dataset"],
+        "base_model": cfg["base_model"],
+        "ratio": cfg["ratio"],
+        "method": method,
+        "strategy": strategy,
+        "seed": seed,
+        "defaults": defaults,
+        "extra_args": list(cfg.get("extra_args", []) or []),
+        "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
+    }
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _check_json(path: Path) -> Optional[str]:
+    if not path.exists():
+        return f"missing {path.name}"
+    try:
+        text = path.read_text(encoding="utf-8")
+        if not text.strip():
+            return f"empty {path.name}"
+        data = json.loads(text)
+        if not isinstance(data, dict) or not data:
+            return f"empty-dict {path.name}"
+    except (OSError, ValueError, json.JSONDecodeError) as e:
+        return f"corrupt {path.name}: {type(e).__name__}"
+    return None
+
+
+def _check_npz(path: Path) -> Optional[str]:
+    if not path.exists():
+        return f"missing {path.name}"
+    try:
+        import numpy as np
+        with np.load(path) as z:
+            if not z.files:
+                return f"empty-npz {path.name}"
+    except Exception as e:
+        return f"corrupt {path.name}: {type(e).__name__}"
+    return None
+
+
+def cell_status(d: Path, expected_fp: str, want_collateral: bool) -> Tuple[str, str]:
+    """Classify a cell directory.
+
+    Returns (kind, reason). kind ∈ {complete, incomplete, corrupt, stale, legacy}.
+        complete   — all files valid, fingerprint matches → skip
+        incomplete — file(s) missing → re-run
+        corrupt    — file present but unparseable / truncated → re-run
+        stale      — fingerprint mismatch (config or fix changed) → re-run
+        legacy     — _meta.json has no config_fingerprint (pre-2026-05-06 cell)
+                     → skip with warning; user must --force to regenerate
+    """
+    if not d.exists():
+        return "incomplete", "dir missing"
+
+    required_jsons = ["attack.json", "_meta.json"]
+    if want_collateral:
+        required_jsons.append("collateral.json")
+    for name in required_jsons:
+        r = _check_json(d / name)
+        if r is not None:
+            return ("incomplete" if r.startswith("missing") else "corrupt"), r
+
+    if want_collateral:
+        r = _check_npz(d / "predictions.npz")
+        if r is not None:
+            return ("incomplete" if r.startswith("missing") else "corrupt"), r
+
+    try:
+        meta = json.loads((d / "_meta.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as e:
+        return "corrupt", f"meta parse: {type(e).__name__}"
+
+    actual_fp = meta.get("config_fingerprint")
+    if actual_fp is None:
+        return "legacy", "no config_fingerprint (pre-2026-05-06 cell)"
+    if actual_fp != expected_fp:
+        return "stale", f"fingerprint {actual_fp} != {expected_fp}"
+    return "complete", ""
 
 
 def model_overrides(cfg: Dict[str, Any]) -> List[str]:
@@ -103,8 +202,26 @@ def model_overrides(cfg: Dict[str, Any]) -> List[str]:
 def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
              *, force: bool, dry_run: bool) -> str:
     out_dir = cell_dir(cfg, method, strategy, seed)
-    if not force and is_complete(out_dir):
-        return "skipped"
+    expected_fp = _content_fingerprint(cfg, method, strategy, seed)
+    want_collateral = bool((cfg.get("defaults") or {}).get("run_collateral", True))
+    status, reason = cell_status(out_dir, expected_fp, want_collateral)
+
+    if not force:
+        if status == "complete":
+            return "skipped"
+        if status == "legacy":
+            print(
+                f"[run] LEGACY {out_dir.relative_to(REPO_ROOT)} — "
+                f"no fingerprint; skipping. Pass --force or rm to regenerate."
+            )
+            return "skipped_legacy"
+        if status in ("corrupt", "stale"):
+            print(
+                f"[run] {status.upper()} {out_dir.relative_to(REPO_ROOT)}: {reason} "
+                f"— regenerating"
+            )
+        # status == "incomplete" silently falls through (first run / partial dir)
+
     if dry_run:
         return "would_run"
 
@@ -161,7 +278,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             print(f"[FAIL] eval_collateral rc={rc} for {out_dir}", file=sys.stderr)
             return "failed_collateral"
 
-    # 3) _meta.json — audit trail
+    # 3) _meta.json — audit trail + skip-decision fingerprint
     meta = {
         "config_name": cfg.get("name", "unnamed"),
         "config": {k: v for k, v in cfg.items() if k != "_source_path"},
@@ -172,6 +289,8 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "git_sha": _git_sha(),
         "hostname": socket.gethostname(),
         "python": py,
+        "config_fingerprint": expected_fp,
+        "fingerprint_version": _FINGERPRINT_VERSION,
     }
     (out_dir / "_meta.json").write_text(json.dumps(meta, indent=2))
     return "completed"
@@ -213,8 +332,8 @@ def main():
     if cfg.get("model_overrides", {}).get(cfg["base_model"]):
         print(f"  model_overrides: {cfg['model_overrides'][cfg['base_model']]}")
 
-    counters: Dict[str, int] = {"completed": 0, "skipped": 0, "would_run": 0,
-                                 "failed_attack": 0, "failed_collateral": 0}
+    counters: Dict[str, int] = {"completed": 0, "skipped": 0, "skipped_legacy": 0,
+                                 "would_run": 0, "failed_attack": 0, "failed_collateral": 0}
     t0 = time.time()
     for idx, (method, strategy, seed) in enumerate(expand_matrix(cfg)):
         if args.limit is not None and idx >= args.limit:

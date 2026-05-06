@@ -1,4 +1,14 @@
 # Phase B — ogbn-arxiv main matrix (large-scale validation, ~5GB GPU disk)
+#
+# ⚠ DEPRECATED FOR NEURIPS-2026 RUN (2026-05-06): this yaml schedules all 3
+# seeds in one go (~16-22h on H800). For the deadline-constrained Phase B,
+# use the tier-split versions instead and run T1/T2/T3 sequentially:
+#     phase_b_arxiv_T1_seed42.yaml     (necessary, ~7-8h)
+#     phase_b_arxiv_T2_seed212.yaml    (stretch, ~7-8h)
+#     phase_b_arxiv_T3_seed722.yaml    (stretch, ~7-8h)
+# Kept here as the post-deadline / reproduction yaml — running it produces
+# identical fingerprints to T1+T2+T3 combined.
+#
 # Pre-flight: run `phase_b_arxiv_feasibility.yaml` first (1 seed × random) to
 # verify each family is tractable on arxiv before committing to the full matrix.
 # Output: results/runs/ogbn-arxiv_GCN_r0.05/{method}_{strategy}/seed{N}/...

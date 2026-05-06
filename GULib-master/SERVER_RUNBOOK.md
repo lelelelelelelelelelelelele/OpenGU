@@ -13,7 +13,7 @@
 | 刚 ssh 进任意一台 | §2 |
 | 要烟测一下环境 | §3.1 (B.0) |
 | 4090 实例上要启 cora 大跑 | §3.5 (机器 A) |
-| 80GB 实例上要启 arxiv 大跑 | §3.3 → §3.4 (机器 B) |
+| 80GB 实例上要启 arxiv 大跑 | §3.3 → §3.4 (机器 B；T1 必跑、T2/T3 deadline 富余才跑) |
 | 全新 H800/H20，没有镜像 | §4 (fresh-clone) → 然后 §3 |
 | nohup 跑了几秒就 fail / 5 cell 全挂 | §5.1 ⭐ |
 | OOM / cache 错 / 各种红字 | §5 |
@@ -29,7 +29,9 @@
 |---|---|---|---|---|
 | **B.0** | sanity 烟测：cora + GIF + random + seed42 | 任意 | ~20s | `sanity_one_cell.yaml` |
 | **B.1** | arxiv 5 GU method × random × seed42（feasibility baseline） | B | ~75-120 min | `phase_b_arxiv_feasibility.yaml` |
-| **B.2** | arxiv 3 method × 4 strategy × 3 seed = 36 cell（核心数据） | B | ~25-30h | `phase_b_arxiv.yaml` |
+| **B.2-T1** | arxiv 3 method × 4 strategy × **seed=42** = 12 cell（**必跑**，paper Table 1 的 arxiv 列骨架） | B | ~6-8h | `phase_b_arxiv_T1_seed42.yaml` |
+| **B.2-T2** | arxiv 同上 + **seed=212** = 12 cell（条件跑，给 n=2 误差棒） | B | ~7-8h | `phase_b_arxiv_T2_seed212.yaml` |
+| **B.2-T3** | arxiv 同上 + **seed=722** = 12 cell（条件跑，n=3） | B | ~7-8h | `phase_b_arxiv_T3_seed722.yaml` |
 | **B.3** | cora_GCN 5 method × 6 strategy × 5 seed = 150 cell | A | ~3-5h | `phase_b_cora_gcn.yaml` |
 | **B.4** | cora_GAT 同上 = 150 cell | A | ~3-5h | `phase_b_cora_gat.yaml` |
 | **A.5-1** | cora/GCN ratio sweep r ∈ {0.01, 0.10, 0.20}，6 method × 3 strategy × 5 seed = 270 cell（必跑） | A | ~3-5h | `A5_ratio_*.yaml` |
@@ -58,7 +60,7 @@
 | 机器 | GPU | 角色 | 跑 |
 |---|---|---|---|
 | **A** | RTX 4090 24GB | cora workload | B.0 + B.3 + B.4 + A.5-1 (+ A.5-2 / A.6 / A.7 if 富余)（300 + 270 + 条件 180 + 条件 75 + 条件 ~50） |
-| **B** | H800 / H20 / A100 ≥80GB | arxiv workload | B.0 + B.1 + B.2（41 cell） |
+| **B** | H800 / H20 / A100 ≥80GB | arxiv workload | B.0 + B.1 + **B.2-T1（必跑，12 cell ~6-8h）** + B.2-T2 + B.2-T3（条件跑） |
 
 不冲突：各自写 `results/runs/{dataset}_*` 不同子目录。跑完 §6 各 tar 一份 scp 回本地合并。
 
@@ -97,7 +99,7 @@ git pull --ff-only && git log --oneline -3
 
 > 全部 phase 都遵循同一个回路：**`yaml → run.py → gate_runs.py`**。
 > `run.py` 吃 yaml 展开 (method, strategy, seed) 矩阵，每 cell 跑 `demo_attack` + `eval_collateral`，写四件 (`attack.json`, `collateral.json`, `predictions.npz`, `_meta.json`) 到 `results/runs/{cell}/seed{N}/`。
-> `gate_runs.py` 自动 PASS/FAIL：4 件齐 + `mia_auc∈(0.001, 0.999)` + `f1_before∈[min,max]` + `gap` 是有限数。
+> `gate_runs.py` 自动 PASS/FAIL：4 件齐 + `mia_auc∈(0.001, 0.999)` + `collateral.perf_before∈[min,max]` + `gap` 是有限数。
 
 ### 3.1 B.0 — 烟测（任意机，~20s，每次大跑前必跑）
 
@@ -109,7 +111,7 @@ python scripts/gate_runs.py experiments/configs/sanity_one_cell.yaml --f1-min 0.
 
 `gate exit 0` = 通过。FAIL → §5.1，**不要继续上 B.1+**。
 
-> 关于 `gate_runs.py`：node task 下 `attack.json[results][strategy].f1_before` 恒为 `None`（`pipeline_adapter.py:285` 只 edge task 才填），gate 已绕开这个字段。别自己 inline `python -c` 读 `f1_before`。
+> 关于 `gate_runs.py`：node task 下 `attack.json[results][strategy].f1_before` 常为 `None`（它来自 method `poison_f1`），gate 已绕开这个字段。`collateral.perf_before` 也只是当前 method 的 train-only before；对 GraphEraser/GraphRevoker 可能是 SISA/shard before。字段口径见 `self/dashboard/METRIC_FIELD_SEMANTICS.md`。
 
 ### 3.2 现在跑到哪了 — 实时计数
 
@@ -121,7 +123,13 @@ ls results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json 2>/dev/null && echo 
 ls results/runs/ogbn-arxiv_GCN_r0.05/*_random/seed42/attack.json     2>/dev/null | wc -l
 ls results/runs/ogbn-arxiv_GCN_r0.05/*_random/seed42/collateral.json 2>/dev/null | wc -l
 
-# B.2（期望 36 = 3 method × 4 strategy × 3 seed）
+# B.2-T1（期望 12 = 3 method × 4 strategy × seed42）
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed42/attack.json | wc -l
+# B.2-T2（条件跑后期望 +12，seed=212）
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed212/attack.json | wc -l
+# B.2-T3（条件跑后期望 +12，seed=722）
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed722/attack.json | wc -l
+# 总览（任意 seed）
 ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed*/attack.json | wc -l
 
 # B.3 / B.4（各期望 150）
@@ -177,53 +185,110 @@ python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml -
 >
 > **如果是 fresh-clone**（机器 B 上之前没跑过 attack）：上面 nohup 全跑，attack + collateral 一起出。两条路径**不要混用**——pre-refactor 的 attack 数据跟新代码混会污染。
 
-### 3.4 B.2 — arxiv 全矩阵（机 B，~25-30h）
+### 3.4 B.2 — arxiv 主矩阵（机 B，分级跑 T1 必跑 → T2/T3 条件跑）
 
 **前置**：B.0 PASS + B.1 PASS（5/5 attack + 5/5 collateral + gate exit 0）。
 
-可选 prewarm（见 §3.9）：如果要做 hybrid alpha-sweep 或同 (method, strategy) 跨 seed 复用 selection，先跑 prewarm 把 IF/IM 算好缓存，B.2 里 9 个 hybrid cell 后续 alpha 秒回。**仅跑 1 套 alpha 不需要 prewarm**。
+> 2026-05-06 决策：原 `phase_b_arxiv.yaml`（3 seed × 36 cell ≈ 21-24h on H800，每 seed 独立算 IF）压不进 ~24h deadline。拆成 T1/T2/T3 三个单 seed yaml，**串行执行，到 deadline 直接 kill**。已完成的 cell 都是 fingerprint-stamped 的（见 `experiments/run.py`），重跑安全。
+>
+> **Tier split 不省时间**——ScoreCache IF key 含 `seed`，T1 的 IF 分跨 seed 不命中。每 tier 独立 ~7-8h。意义在于"deadline 时永远有完整 n=1 / n=2 落盘"，而不是"后跑得越快"。
+>
+> 论文 fallback：T1 完成 = arxiv 列 n=1（无误差棒，cora n=5 做统计锚），T2 完成 = n=2（最低可见 spread），T3 完成 = n=3。
+
+#### 3.4.1 T1（必跑，~6-8h，12 cell, seed=42）
+
+paper Table 1 的 arxiv 列骨架。**这一段没跑完整个 arxiv 列就缺**。
 
 ```bash
 mkdir -p logs
-nohup python experiments/run.py experiments/configs/phase_b_arxiv.yaml \
-    > logs/phase_b_arxiv_$(date +%Y%m%d_%H%M).log 2>&1 &
-echo $! > logs/phase_b_arxiv.pid
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml \
+    > logs/phase_b_arxiv_T1_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/phase_b_arxiv_T1.pid
 # Ctrl-b d
 ```
 
-**或者交互式（tmux 前台 + tee）**：
+或交互式：
 
 ```bash
 mkdir -p logs
-LOG=logs/phase_b_arxiv_$(date +%Y%m%d_%H%M).log
-python -u experiments/run.py experiments/configs/phase_b_arxiv.yaml 2>&1 | tee "$LOG"
-# 中途要走：Ctrl-b d
+LOG=logs/phase_b_arxiv_T1_$(date +%Y%m%d_%H%M).log
+python -u experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml 2>&1 | tee "$LOG"
 ```
 
-B.2 ~25h，但 cell-level checkpoint + ScoreCache 都在 autodl-fs 持久盘，tmux 或实例真挂了也最多丢 1 个 mid-flight cell，重跑同 yaml 自动跳过完成的。任选。
+T1 预算（H800 80GB，12 cell）：
+- 3 random × 10 min = 0.5h
+- 3 im × 3 min = ~10 min
+- 3 tracin × ~50 min = 2.5h（首次填 ScoreCache）
+- 3 hybrid × ~5 min = ~15 min（命中 tracin 的 ScoreCache + im 的 SelectionCache）
+- GU+retrain+MIA per cell ~20 min × 12 = 4h
+- **total ~7-8h**，¥50-100
 
-预算（H800 80GB，36 cell）：
-- 9 random × 10 min = 1.5h
-- 9 im × 3 min = 0.5h
-- 9 tracin × 50 min = 7.5h（首次填 ScoreCache，同一 (dataset,model,seed,ratio) 第二次秒回）
-- 9 hybrid × 50 min = 7.5h（命中 IF/IM cache 则 < 1 min）
-- 加 GU+retrain+MIA per cell ~20 min × 36 = 12h
-- **total ~25-30h**，¥6-13/h × 25h ≈ **¥150-325**
-
-监控：
+T1 跑完 gate：
 
 ```bash
-tail -f logs/phase_b_arxiv_*.log
-ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed*/attack.json | wc -l   # 渐增 → 36
-grep -c "ScoreCache.*HIT\|SelectionCache.*HIT" logs/phase_b_arxiv_*.log
-nvidia-smi
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T1_seed42.yaml --f1-min 0.55 --f1-max 0.85
 ```
+
+T1 PASS → §3.4.2 T2；FAIL → §5.
+
+#### 3.4.2 T2（条件跑，仅在 T1 完成且 deadline 富余 ≥6h 时启）
+
+```bash
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml \
+    > logs/phase_b_arxiv_T2_$(date +%Y%m%d_%H%M).log 2>&1 &
+```
+
+T2 预算 **~7-8h**，**和 T1 同价**——`tracin_strategy.py:_build_cache_config` 的 IF cache key 含 `seed`，T1 的 IF 分跨 seed 不命中。分级 split 只是 deadline 安全停点，不省时间。
 
 跑完 gate：
 
 ```bash
-python scripts/gate_runs.py experiments/configs/phase_b_arxiv.yaml --f1-min 0.55 --f1-max 0.85
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T2_seed212.yaml --f1-min 0.55 --f1-max 0.85
 ```
+
+#### 3.4.3 T3（条件跑，仅在 T2 完成且 deadline 富余 ≥5h 时启）
+
+```bash
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml \
+    > logs/phase_b_arxiv_T3_$(date +%Y%m%d_%H%M).log 2>&1 &
+```
+
+预算 **~7-8h**（同 T1/T2，无跨 seed 复用）。跑完 gate 同 §3.4.2。
+
+#### 3.4.4 一键串（T1 必跑 + T2/T3 富余跑）
+
+把三段 yaml 串成一条 nohup —— deadline 到时 `kill` 整条，已完成的 cell 都已落盘，没完成的下次 `--force` 再续：
+
+```bash
+nohup bash -c '
+python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T1_seed42.yaml --f1-min 0.55 --f1-max 0.85 && \
+python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T2_seed212.yaml --f1-min 0.55 --f1-max 0.85 && \
+python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml
+' > logs/h800_b2_chain_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/h800_b2_chain.pid
+# Ctrl-b d
+```
+
+`&&` 链断点保护：T1 gate FAIL 不会浪费 GPU 跑 T2/T3。
+
+#### 3.4.5 监控
+
+```bash
+tail -f logs/phase_b_arxiv_T*_*.log
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed42/attack.json  | wc -l   # T1 进度，→ 12
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed212/attack.json | wc -l   # T2，→ 12
+ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed722/attack.json | wc -l   # T3，→ 12
+grep -c "ScoreCache.*HIT\|SelectionCache.*HIT" logs/phase_b_arxiv_T*_*.log
+nvidia-smi
+```
+
+#### 3.4.6 deadline 临近怎么办
+
+到 deadline 还在 T2 / T3 中途：直接 `kill $(cat logs/h800_b2_chain.pid)`。**已写盘的 cell 不会被破坏**（`run.py` 写文件是分步原子操作，`_meta.json` 最后写；中断 cell 会被 `cell_status` 判为 `incomplete` 或 `corrupt`，下次 run 自动跳过 / 续跑）。
+
+paper 写法对应 §3.4 的 fallback 表：T1=n=1、T1+T2=n=2、全完=n=3。
 
 ### 3.5 B.3 + B.4 — cora（机 A，串行 ~6-10h）
 
@@ -498,7 +563,7 @@ reviewer 戳就是 §limitation，不致命。
 
 ### 3.9 Prewarm — 何时跑（可选，机 B）
 
-`scripts/prewarm_selection_cache.py` 把跨 cell 共享的 selection 提前算到 `results/selection_cache/` 和 `results/score_cache/`。
+`scripts/prewarm_selection_cache.py` 把跨 cell 共享的 selection 提前算到 `results/selection_cache/` 和 `results/score_cache/`。2026-05-06 审核后要求：TracIn/Hybrid prewarm 必须通过 GIF/GNNDelete 这类 canonical full-model method 训练 selector；脚本已在 shard/SISA method 上 fail fast。
 
 **何时值得跑**：
 - 计划做 hybrid alpha-sweep（5+ alpha 值同一 (dataset, model, seed, ratio)）→ 跑一次 prewarm，sweep 阶段每 alpha < 1 min
@@ -509,11 +574,9 @@ reviewer 戳就是 §limitation，不致命。
 如果要跑：
 
 ```bash
-python scripts/prewarm_selection_cache.py \
-    --dataset_name ogbn-arxiv --base_model GCN \
-    --strategies tracin,im --seeds 42,123,2024 \
-    --unlearn_ratio 0.05
-# 之后再跑 §3.4 的 B.2 全矩阵，hybrid cell 会命中
+python scripts/prewarm_selection_cache.py experiments/configs/phase_b_arxiv_T1_seed42.yaml \
+    --strategies tracin,im
+# 之后再跑 §3.4 的 B.2/T1 全矩阵，GraphEraser 的 tracin/hybrid cell 必须命中 SelectionCache
 ```
 
 ScoreCache key 故意不含 model_fingerprint（`tracin_strategy.py:115-133` 的 docstring 写了 why：跨进程 cuDNN 1e-5 权重漂移会让 fingerprint 失效，丢命中率 → 改用 (dataset, model, seed, ratio) 静态 key）。
@@ -729,17 +792,23 @@ python scripts/feasibility_selection_only.py \
 
 输出 peak_mem(MB)。subset=1000 时 ~5.9 GB，外推全量 N=135474 → ~68 GB peak（**注意：脚本默认线性外推会输出 "OOM 785 GB" 之类吓人数字，那是 forward 固定开销被错误线性外推；真值 ~68 GB**）。
 
-### A.3 机器 B 一键串：B.1 补 + 探针 + B.2
+### A.3 机器 B 一键串：B.1 补 + B.2 T1→T2→T3
 
 ```bash
 cd ~/autodl-fs/OpenGU/GULib-master && git pull --ff-only && mkdir -p logs
 nohup bash -c '
 bash scripts/redo_collateral.sh && \
 python scripts/gate_runs.py experiments/configs/phase_b_arxiv_feasibility.yaml --f1-min 0.55 --f1-max 0.85 && \
-python experiments/run.py experiments/configs/phase_b_arxiv.yaml
+python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T1_seed42.yaml --f1-min 0.55 --f1-max 0.85 && \
+python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml && \
+python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T2_seed212.yaml --f1-min 0.55 --f1-max 0.85 && \
+python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml
 ' > logs/h800_full_$(date +%Y%m%d_%H%M).log 2>&1 &
 echo $! > logs/h800_full.pid
 ```
+
+deadline 到时 `kill $(cat logs/h800_full.pid)` —— 已落盘 cell 不损，未完成的下次 `run.py` 续跑（fingerprint 保护）。
 
 ### A.4 监控命令汇总
 

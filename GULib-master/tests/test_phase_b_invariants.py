@@ -25,6 +25,8 @@ import torch.nn.functional as F
 from torch_geometric.data import Data
 
 from attack.attack_manager import AttackManager
+from attack.attack_result import AttackResult
+from attack.selection_cache import SelectionCache, SelectionResult
 from attack.attack_strategies import (
     DegreeStrategy,
     PageRankStrategy,
@@ -50,6 +52,37 @@ class _StubManager:
         self.args = args
         self.data = data
         self._graph_fingerprint = None
+
+
+class _FakePipeline:
+    def __init__(self, data):
+        self.data = data
+        self.model = nn.Linear(data.num_features, int(data.y.max().item()) + 1)
+        self.called_run_with_strategy = False
+        self.called_run_with_selected_nodes = False
+
+    def run_with_strategy(self, strategy, k):
+        self.called_run_with_strategy = True
+        return {
+            "selected_nodes": torch.arange(k),
+            "f1_before": None,
+            "f1_after": 0.0,
+            "unlearn_time": 0.0,
+            "selection_time": 0.0,
+            "mia_auc": None,
+        }
+
+    def run_with_selected_nodes(self, **kwargs):
+        self.called_run_with_selected_nodes = True
+        selected_nodes = kwargs["selected_nodes"]
+        return {
+            "selected_nodes": selected_nodes,
+            "f1_before": None,
+            "f1_after": 0.2,
+            "unlearn_time": 0.0,
+            "selection_time": kwargs.get("selection_time", 0.0),
+            "mia_auc": 0.5,
+        }
 
 
 def _baseline_args(**overrides) -> Dict[str, Any]:
@@ -250,6 +283,111 @@ def test_tracin_strategy_requires_trained_model_flag():
     assert HybridStrategy.requires_trained_model is True
 
 
+def test_shard_method_tracin_cache_miss_fails_fast(tmp_path):
+    """GraphEraser/GUIDE/GraphRevoker train_only is shard/SISA training, not
+    the canonical vanilla base model used for TracIn/Hybrid selection.
+
+    Therefore a cache miss for a trained-model selector under a shard method
+    must fail fast instead of silently selecting from the method-specific SISA
+    model.
+    """
+    data = _make_train_mask_data()
+    pipeline = _FakePipeline(data)
+    manager = AttackManager(
+        args=_baseline_args(unlearning_methods="GraphEraser"),
+        pipeline=pipeline,
+        cache_dir=str(tmp_path / "result_cache"),
+        use_cache=True,
+    )
+    manager.selection_cache = SelectionCache(str(tmp_path / "selection_cache"))
+
+    with pytest.raises(RuntimeError, match="SelectionCache miss.*GraphEraser.*tracin"):
+        manager.run_attack("tracin", k=3, use_cache=True)
+
+    assert pipeline.called_run_with_strategy is False
+
+
+def test_shard_method_tracin_result_cache_cannot_bypass_selector_guard(tmp_path):
+    """A stale ResultCache entry must not bypass the shard-method selector
+    guard. Otherwise an old GraphEraser/TracIn result produced from the SISA
+    selector path would keep replaying forever.
+    """
+    data = _make_train_mask_data()
+    pipeline = _FakePipeline(data)
+    args = _baseline_args(unlearning_methods="GraphEraser")
+    manager = AttackManager(
+        args=args,
+        pipeline=pipeline,
+        cache_dir=str(tmp_path / "result_cache"),
+        use_cache=True,
+    )
+    manager.selection_cache = SelectionCache(str(tmp_path / "selection_cache"))
+
+    config = manager._build_config("tracin", 3)
+    stale = AttackResult(
+        strategy_name="tracin",
+        selected_nodes=torch.tensor([0, 1, 2]),
+        f1_before=None,
+        f1_after=0.1,
+        unlearn_time=0.0,
+        total_time=0.0,
+        selection_time=0.0,
+        mia_auc=0.5,
+        config=config,
+    )
+    manager.cache.save(stale, config)
+
+    with pytest.raises(RuntimeError, match="SelectionCache miss.*GraphEraser.*tracin"):
+        manager.run_attack("tracin", k=3, use_cache=True)
+
+
+@pytest.mark.xfail(
+    strict=False,
+    reason=(
+        "Documents an open design question, not a regression. AttackManager.run_attack "
+        "gates BOTH ResultCache read AND write behind use_result_cache, so shard×tracin/"
+        "hybrid never touches ResultCache even on a SelectionCache hit. Body is also "
+        "an incomplete TODO (broken SelectionResult import). Drop the xfail and finish "
+        "the test if/when we decide eval_collateral must read selected_nodes from "
+        "ResultCache instead of attack.json."
+    ),
+)
+def test_shard_method_tracin_selection_cache_hit_writes_fresh_result_cache(tmp_path):
+    """After the SelectionCache guard passes, the fresh result should still be
+    written to ResultCache because eval_collateral reads selected_nodes from
+    that cache.
+    """
+    data = _make_train_mask_data()
+    pipeline = _FakePipeline(data)
+    args = _baseline_args(unlearning_methods="GraphEraser")
+    manager = AttackManager(
+        args=args,
+        pipeline=pipeline,
+        cache_dir=str(tmp_path / "result_cache"),
+        use_cache=True,
+    )
+    manager.selection_cache = SelectionCache(str(tmp_path / "selection_cache"))
+
+    selection_config = manager._build_selection_config("tracin", 3)
+    manager.selection_cache.save(
+        result=SelectionResult(
+            strategy_name="tracin",
+            selected_nodes=[0, 1, 2],
+            selection_time=12.0,
+            selection_key="",
+        ),
+        config=selection_config,
+    )
+
+    result = manager.run_attack("tracin", k=3, use_cache=True)
+    cached = manager.cache.get(manager._build_config("tracin", 3))
+
+    assert pipeline.called_run_with_selected_nodes is True
+    assert result.selected_nodes.tolist() == [0, 1, 2]
+    assert cached is not None
+    assert cached.selected_nodes.tolist() == [0, 1, 2]
+
+
 # ----------------------------------------------------------------------
 # 4. Cache-key isolation: differing hyperparams ⇒ differing keys
 # ----------------------------------------------------------------------
@@ -261,8 +399,11 @@ def test_tracin_strategy_requires_trained_model_flag():
         ("hybrid", "hybrid_alpha"),
         ("hybrid", "fusion_method"),
         ("hybrid", "candidate_fraction"),
+        ("hybrid", "im_selector_seed"),
+        ("hybrid", "im_batch_size"),
         ("im", "candidate_fraction"),
         ("im", "mc_rounds"),
+        ("im", "im_batch_size"),
         ("tracin", "loss"),
         ("pagerank", "pagerank_alpha"),
     ],
@@ -280,6 +421,8 @@ def test_cache_key_isolation_across_hyperparams(strategy_name, knob):
         "hybrid_alpha": (0.3, 0.7),
         "fusion_method": ("rank", "linear"),
         "candidate_fraction": (1.0, 0.1),
+        "im_selector_seed": (2024, 2025),
+        "im_batch_size": (1, 8),
         "mc_rounds": (50, 100),
         "loss": ("cross_entropy", "mse"),
         "pagerank_alpha": (0.85, 0.15),

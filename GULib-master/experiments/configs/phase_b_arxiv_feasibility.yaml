@@ -1,6 +1,6 @@
 # Phase B 5.3.2 — arxiv feasibility gate (v3, 2026-05-05)
 # Goal: verify each GU family × random × seed=42 runs end-to-end on arxiv
-# (base train → unlearn → retrain → MIA) without OOM, with f1_before > 0.55
+# (base train → unlearn → retrain → MIA) without OOM, with collateral.perf_before > 0.55
 # per thesis_transition_memo §5.3.2.1. Failure here excludes the family from
 # the main matrix.
 #
