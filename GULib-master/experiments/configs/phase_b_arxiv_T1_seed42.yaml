@@ -39,6 +39,8 @@ methods:
 
 strategies:
   - random
+  - degree     # topology-only, CPU-prewarmable, cross-method+cross-seed cache
+  - pagerank   # topology-only, CPU-prewarmable, cross-method+cross-seed cache
   - tracin     # must precede hybrid so hybrid hits ScoreCache
   - im
   - hybrid

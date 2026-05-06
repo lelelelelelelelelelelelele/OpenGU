@@ -9,7 +9,7 @@
 name: phase_b_arxiv_T2_seed212
 dataset: ogbn-arxiv
 base_model: GCN
-ratio: 0.05
+ratio: 0.01    # 1% — matches T1 (2026-05-07); see dashboard §3.3.1
 
 methods:
   - GIF
@@ -18,7 +18,9 @@ methods:
 
 strategies:
   - random
-  - tracin
+  - degree     # topology-only, CPU-prewarmable, cross-method+cross-seed cache
+  - pagerank   # topology-only, CPU-prewarmable, cross-method+cross-seed cache
+  - tracin     # must precede hybrid so hybrid hits ScoreCache
   - im
   - hybrid
 
@@ -37,6 +39,8 @@ extra_args:
   - "0.1"
   - --mc_rounds
   - "50"
+  - --im_batch_size
+  - "1"          # classic CELF at k≈1355
 
 model_overrides:
   GCN:

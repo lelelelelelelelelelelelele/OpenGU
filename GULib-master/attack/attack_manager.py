@@ -79,7 +79,7 @@ class AttackManager:
     # (num_epochs, lr, dropout, etc.) are constant across runs of the same
     # config — true within a single yaml config; document if you change
     # those between machines.
-    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "tracin", "hybrid"}
+    REUSABLE_SELECTION_STRATEGIES = {"random", "degree", "pagerank", "im", "tracin", "hybrid"}
     # Runtime k-subset reuse is safe only for deterministic ranking strategies.
     SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
     # Shard/SISA methods do not expose the canonical vanilla base model through

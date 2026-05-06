@@ -79,7 +79,7 @@ tar czf tracin_if_cache.tar.gz \
 
 预期：~7.5h 单机（6 × 75 min）。**如果 6 method 都跑出来，stage 2 的 tracin 部分全 cache hit。**
 
-### Stage 1b — CPU prewarm IM（并行 1a，1 method 即覆盖全部）
+### Stage 1b — CPU prewarm IM + degree + pagerank（并行 1a，全 topology-only）
 
 ```bash
 # CPU 32 核实例（autodl 通用计算型）
@@ -87,55 +87,75 @@ cd ~/autodl-fs/OpenGU/GULib-master
 git fetch origin && git checkout <release-branch> && git pull
 export NUMBA_NUM_THREADS=32
 
-# IM 是 cross-method，跑 methods[0] 即覆盖所有 18 cell
+# 三个 topology-only strategy 一并 prewarm（全跨 method+跨 GU seed 共享 cache）
+# - degree:   ~50ms（一次 sort）
+# - pagerank: ~几秒（power iteration on 1.3M edges）
+# - im:       ~30s-3min（CELF + 32 核 prange MC）
 python scripts/prewarm_selection_cache.py \
     experiments/configs/phase_b_arxiv_T1_seed42.yaml \
-    --strategies im
+    --strategies im,degree,pagerank
 
 # 必看 stdout：
-#   [plan] strategies=['im']  methods=['GIF']  (method-loop OFF, topology-only)
+#   [plan] strategies=['im','degree','pagerank']  methods=['GIF']  (method-loop OFF, topology-only)
 #   [ScoreCache] MISS im_celf  key=<...>
-#   [ScoreCache] SAVE im_celf  key=<...>  -> ./results/score_cache/im_celf/<key>.npz
+#   [ScoreCache] SAVE im_celf  key=<...>
+#   [save] degree     time=0.05s   -> results/selection_cache/<key>.json
+#   [save] pagerank   time=2.34s   -> results/selection_cache/<key>.json
+#   [save] im         time=Xs       -> results/selection_cache/<key>.json
 #
-# 打包
-tar czf im_celf_cache.tar.gz \
+# 打包（包含 score_cache + selection_cache 两个目录）
+tar czf topology_cache.tar.gz \
     results/score_cache/im_celf/ \
     results/selection_cache/
 ```
 
-预期：~30s-3min（k=1355 + 32 核 prange）。
+预期：~3-5 min 全部完成（degree/pagerank 加上去 < 30s 增量）。
 
 ### Stage 1.5 — 汇总两机产物到 A800
 
 ```bash
 # 在 A800 上
-scp <cpu-host>:~/autodl-fs/OpenGU/GULib-master/im_celf_cache.tar.gz .
-tar xzf im_celf_cache.tar.gz       # 把 im_celf cache 合到 A800
+scp <cpu-host>:~/autodl-fs/OpenGU/GULib-master/topology_cache.tar.gz .
+tar xzf topology_cache.tar.gz       # im_celf + selection_cache 解到 A800
 # (tracin_if_cache 已经在 A800 上不用 transfer)
 
 # 验证 cache 齐全
-ls results/score_cache/if/         # 应有 6 个 npz（每 method 1 个）
-ls results/score_cache/im_celf/    # 应有 1 个 npz
-ls results/selection_cache/        # 应有若干 json
+ls results/score_cache/if/         # Stage 1a 写的 — 应有 N_method 个 npz
+ls results/score_cache/im_celf/    # Stage 1b 写的 — 应有 1 个 npz
+ls results/selection_cache/        # 两边产物合并 — 应有若干 json
+                                   #   topology-only (degree/pagerank/im): 各 1 个
+                                   #   tracin: 每 method 1 个
+                                   #   random: 每 seed 1 个
 ```
 
 ### Stage 2 — A800 跑 T1 主矩阵（selection 全 cache hit）
+
+T1 现在是 **18 cell**（3 method × **6 strategy** × 1 seed）：
+random / **degree** / **pagerank** / tracin / im / hybrid
 
 ```bash
 python experiments/run.py \
     experiments/configs/phase_b_arxiv_T1_seed42.yaml
 
-# 必看每 cell 开头：
-#   [SelectionCache] HIT strategy=tracin  selection_key=<...>   ← Stage 1a 产物
-#   [SelectionCache] HIT strategy=im      selection_key=<...>   ← Stage 1b 产物
+# 必看每 cell 开头（按 strategy 分）：
+#   degree   / pagerank / im:  HIT 来自 Stage 1b（CPU prewarm，跨 method/seed）
+#   tracin   / hybrid:         HIT 来自 Stage 1a（A800 prewarm，per method/seed）
+#   random:                     HIT 或现算（很快，<1s）
 # 每 cell 直接进入 GU + MIA + retrain，跳过 selection 阶段
 
-# T2/T3 条件跑（注意：tracin per-seed 实算，要 +Stage 1a 重跑 seed=212/722）
+# T2/T3 条件跑（tracin per-seed 实算，要 +Stage 1a 用 T2/T3 yaml 重跑）
+# topology-only strategies (degree/pagerank/im) cache 跨 seed 共享，T1 写的 Stage 1b
+# 产物对 T2/T3 全部命中，不用重跑 Stage 1b
 python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml
 python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml
 ```
 
-预期：T1 ~2.5-3h（每 cell ~14 min × 12 cell + cell 间 overhead）。
+预期：T1 ~4-4.5h（每 cell ~14 min × 18 cell + cell 间 overhead）。
+比 4 strategy 多 ~1.4h，但拿到 6 strategy 完整对比矩阵。
+
+> **paper 价值**：cora 上既有结果"degree 比 TracIn IF 还好"是个被审稿人会盯的现象。
+> arxiv 加上 degree/pagerank baseline 让你直接回答："我们在更大的图上是否还成立"。
+> 不加的话表里只有 random 一个 trivial baseline，TracIn/IM/Hybrid 的优势就没参照系。
 
 ### 烟囱测试（先单 cell 验通再启 stage 1）
 
