@@ -129,15 +129,20 @@ class GraphRevokerTrainer(BaseTrainer):
         """
         data_full = input_data.clone()
         data = input_data.clone()
-        
+
         data.edge_index = data.edge_index_train
-        
+
         data.edge_index_train = None
         data_full.edge_index_train = None
 
-        self.data.edge_index = input_data.edge_index_train
+        # 2026-05-05 fix: previously this only reassigned `self.data.edge_index`
+        # while leaving `self.data.x` at whatever was attached during __init__
+        # (typically the full original graph). When a smaller / unlearned shard
+        # was passed in, _inference would then forward (full_x, shard_edge_index)
+        # and crash because edge_index references node IDs > x.shape[0]. Replace
+        # self.data wholesale so x, y, masks, and edge_index are mutually consistent.
+        self.data = data
         self.data.train_edge_index = input_data.edge_index_train
-        self.data.edge_index_train = None
         self.data_full = data_full
 
         

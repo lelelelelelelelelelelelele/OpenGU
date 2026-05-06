@@ -1,330 +1,0 @@
-2026-02-17 15:29:44.320: my pid: 2168
-2026-02-17 15:29:44.322: {'Budget': 0.1,
- 'GIF_exp': 'unlearning',
- 'GIF_method': 'GIF',
- 'GNN_layer': 3,
- 'GPR': False,
- 'GST_delta': 0.0001,
- 'GUIDE_methods': 'SR',
- 'GUIDE_repair_methods': 'MixUp',
- 'J': 5,
- 'L': 3,
- 'M': 0.25,
- 'Q': 4,
- 'RW': 20,
- 'XdegNorm': False,
- 'Y_binary': '0',
- 'add_self_loops': True,
- 'aggregator': 'optimal',
- 'alpha': 0.5,
- 'alpha1': 0.8,
- 'alpha2': 0.5,
- 'analysis_path': 'analysis',
- 'approx': 'cg',
- 'axis_num': 1,
- 'balance_train': False,
- 'base_model': 'GCN',
- 'batch_size': 1024,
- 'c': 0.5,
- 'c1': 1.0,
- 'cal_mem': False,
- 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
- 'compare_gnorm': False,
- 'compare_guo': False,
- 'compare_retrain': False,
- 'cuda': 0,
- 'damp': 0.0,
- 'damping': 0.0,
- 'dataset': 'null',
- 'dataset_name': 'pubmed',
- 'decay': 0.1,
- 'del_only': False,
- 'del_path_suffix': 'unlearning_data/',
- 'del_postfix': '',
- 'delta': 0.0001,
- 'depth': 300,
- 'df': 'out',
- 'df_idx': 'none',
- 'df_size': 0.5,
- 'disp': 5,
- 'display_step': 10,
- 'downstream_task': 'node',
- 'dropout_times': 2,
- 'early_stop': True,
- 'edge_idx_start': 0,
- 'emb_dim': 32,
- 'eps': 1.0,
- 'eval_on_cpu': False,
- 'exp': 'sequence',
- 'featNorm': False,
- 'feature': False,
- 'feature_update': True,
- 'file_name': 'unlearning_results',
- 'fix_random_seed': False,
- 'folds': 10,
- 'gamma_2': 1.0,
- 'gaussian_mean': 0.0,
- 'gaussian_std': 0.0,
- 'hidden': [],
- 'hidden_dim': 64,
- 'hop_neighbors': 20,
- 'in_dim': 128,
- 'is_balanced': False,
- 'is_constrained': True,
- 'is_gen_embedding': True,
- 'is_partition': True,
- 'is_prune': False,
- 'is_split': True,
- 'is_train_target_model': True,
- 'is_transductive': True,
- 'is_use_test_batch': False,
- 'is_use_train_batch': False,
- 'iteration': 100,
- 'kappa': 0.01,
- 'l': 0.25,
- 'l2': 1e-05,
- 'lam': 0.01,
- 'lambda': 1.0,
- 'lambda_edge_unlearn': 1.0,
- 'loss_fct': 'mse_mean',
- 'loss_type': 'both_layerwise',
- 'lr': 0.005,
- 'max_degree': False,
- 'neg_sample_random': 'non_connected',
- 'no_retrain': True,
- 'noise_mode': 'data',
- 'noise_ratio': 0.1,
- 'num_batch_removes': 5,
- 'num_epochs': 100,
- 'num_opt_samples': 1000,
- 'num_removes': 10,
- 'num_runs': 1,
- 'num_shards': 10,
- 'num_threads': 1,
- 'num_unlearned_nodes': 270,
- 'opt_decay': 0.0001,
- 'opt_lr': 0.001,
- 'opt_num_epochs': 20,
- 'optimizer': 'Adam',
- 'optuna': False,
- 'out_dim': 64,
- 'para1': 2.5,
- 'para2': 0.01,
- 'para3': 250,
- 'para4': 0.1,
- 'para5': 10,
- 'parallel_unlearning': 1,
- 'parameter_task': 'normal',
- 'partition_method': 'lpa_base',
- 'path': './data/ScaleGUN',
- 'patience': 5,
- 'poison': True,
- 'ppr': False,
- 'process': '',
- 'prop_algo': 'MC',
- 'prop_step': 3,
- 'proportion_unlearned_edges': 0.1,
- 'proportion_unlearned_edges_num': 0.0001,
- 'proportion_unlearned_nodes': 0.05,
- 'r': 0.5,
- 'random_seed': 2024,
- 'ratio_deleted_edges': 0,
- 'regen_model': True,
- 'removal_mode': 'node',
- 'remove_guo': False,
- 'repartition': False,
- 'require_linear_span': True,
- 'result_dir': './result/CGU',
- 'retrain': False,
- 'rm_disp_step': 1,
- 'rmax': 0.0,
- 'root_path': './',
- 'scale': 1000000000,
- 'shard_size_delta': 0.005,
- 'sparsity_ratio': 0.1,
- 'std': 0.01,
- 'terminate_delta': 0,
- 'test_batch': 5,
- 'test_batch_size': 64,
- 'test_freq': 10,
- 'test_ratio': 0.2,
- 'train_batch': 10,
- 'train_mode': 'ovr',
- 'train_ratio': 0.8,
- 'train_sep': False,
- 'trials': 3,
- 'unlearn_feature_partial_ratio': 0.5,
- 'unlearn_lr': 0.01,
- 'unlearn_ratio': 0.05,
- 'unlearn_task': 'node',
- 'unlearn_trainer': 'BaseTrainer',
- 'unlearning_epochs': 50,
- 'unlearning_methods': 'GNNDelete',
- 'unlearning_model': 'gnndelete_nodeemb',
- 'use_adapt_gcs': False,
- 'use_batch': False,
- 'use_cross_entropy': False,
- 'use_test_neighbors': True,
- 'val_ratio': 0,
- 'verbose': False,
- 'wd': 0.0005,
- 'weight_mode': 'test',
- 'write': True,
- 'x_iters': 3,
- 'y_iters': 3}
-2026-02-17 15:29:44.330: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-17 15:29:44.330: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-17 15:29:44.358: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
-./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.05_pubmed_0.txt
-2026-02-17 15:29:44.550: Model Summary:
-2026-02-17 15:29:44.550: Total Parameters: 32,259
-2026-02-17 15:29:44.550: Trainable Parameters: 32,259
-2026-02-17 15:29:44.550: Model Architecture:
-GCNNet(
-  (convs): ModuleList(
-    (0): GCNConv(500, 64)
-    (1): GCNConv(64, 3)
-  )
-)
-2026-02-17 15:29:44.550: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-17 15:29:44.550: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
-2026-02-17 15:29:44.550: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
-2026-02-17 15:29:44.550: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
-2026-02-17 15:29:44.550: Model is in training mode: True
-2026-02-17 15:29:44.550: Model is on device: cuda:0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:21,  4.52epoch/s]2026-02-17 15:29:44.973: Epoch: 010 | F1 Score: 0.6121 | Loss: 0.9497
-BaseTraining:  13%|█▎        | 13/100 [00:00<00:01, 48.88epoch/s]2026-02-17 15:29:45.087: Epoch: 020 | F1 Score: 0.7972 | Loss: 0.7811
-BaseTraining:  22%|██▏       | 22/100 [00:00<00:01, 61.94epoch/s]2026-02-17 15:29:45.188: Epoch: 030 | F1 Score: 0.8256 | Loss: 0.6297
-BaseTraining:  33%|███▎      | 33/100 [00:00<00:00, 76.69epoch/s]2026-02-17 15:29:45.305: Epoch: 040 | F1 Score: 0.8380 | Loss: 0.5215
-BaseTraining:  42%|████▏     | 42/100 [00:00<00:00, 77.79epoch/s]2026-02-17 15:29:45.412: Epoch: 050 | F1 Score: 0.8431 | Loss: 0.4612
-BaseTraining:  51%|█████     | 51/100 [00:00<00:00, 81.39epoch/s]2026-02-17 15:29:45.535: Epoch: 060 | F1 Score: 0.8499 | Loss: 0.4293
-BaseTraining:  60%|██████    | 60/100 [00:00<00:00, 80.03epoch/s]2026-02-17 15:29:45.638: Epoch: 070 | F1 Score: 0.8534 | Loss: 0.4041
-BaseTraining:  70%|███████   | 70/100 [00:00<00:00, 84.91epoch/s]2026-02-17 15:29:45.738: Epoch: 080 | F1 Score: 0.8578 | Loss: 0.3879
-BaseTraining:  81%|████████  | 81/100 [00:01<00:00, 90.81epoch/s]2026-02-17 15:29:45.839: Epoch: 090 | F1 Score: 0.8605 | Loss: 0.3733
-BaseTraining:  91%|█████████ | 91/100 [00:01<00:00, 92.20epoch/s]2026-02-17 15:29:45.945: Epoch: 100 | F1 Score: 0.8628 | Loss: 0.3669
-BaseTraining: 100%|██████████| 100/100 [00:01<00:00, 78.27epoch/s]2026-02-17 15:29:45.945: Average training time per epoch: 0.0077s
-
-parameters_to_optimize ['deletion1.deletion_weight', 'deletion2.deletion_weight']
-Unlerning:   0%|          | 0/50 [00:00<?, ?it/s]                                                 Unlerning:   0%|          | 0/50 [00:00<?, ?it/s]Epoch:    0 | train_loss: 5.2032 | loss_r: 5.7525 | loss_l: 4.6539 | train_time: 0.0009
-2026-02-17 15:29:46.279: time:0.0004657459259033203
-                                                 Unlerning:   0%|          | 0/50 [00:00<?, ?it/s]Epoch:    1 | train_loss: 5.1316 | loss_r: 5.6927 | loss_l: 4.5704 | train_time: 0.0013
-2026-02-17 15:29:46.298: time:0.0006445908546447754
-                                                 Unlerning:   0%|          | 0/50 [00:00<?, ?it/s]Epoch:    2 | train_loss: 5.0235 | loss_r: 5.5947 | loss_l: 4.4524 | train_time: 0.0017
-2026-02-17 15:29:46.318: time:0.0008354878425598144
-                                                 Unlerning:   0%|          | 0/50 [00:00<?, ?it/s]Epoch:    3 | train_loss: 4.8050 | loss_r: 5.3688 | loss_l: 4.2412 | train_time: 0.0020
-2026-02-17 15:29:46.335: time:0.0010017681121826172
-Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    4 | train_loss: 4.5583 | loss_r: 5.1439 | loss_l: 3.9728 | train_time: 0.0024
-2026-02-17 15:29:46.356: time:0.0012065935134887695
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    5 | train_loss: 4.4063 | loss_r: 5.1093 | loss_l: 3.7033 | train_time: 0.0029
-2026-02-17 15:29:46.381: time:0.0014368867874145507
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    6 | train_loss: 4.4497 | loss_r: 5.4344 | loss_l: 3.4649 | train_time: 0.0032
-2026-02-17 15:29:46.399: time:0.001607506275177002
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    7 | train_loss: 4.6483 | loss_r: 6.0116 | loss_l: 3.2850 | train_time: 0.0036
-2026-02-17 15:29:46.417: time:0.0017809319496154786
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    8 | train_loss: 4.7267 | loss_r: 6.2547 | loss_l: 3.1987 | train_time: 0.0039
-2026-02-17 15:29:46.433: time:0.0019409942626953125
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Epoch:    9 | train_loss: 4.6135 | loss_r: 6.0321 | loss_l: 3.1949 | train_time: 0.0042
-2026-02-17 15:29:46.449: time:0.0020950722694396975
-                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]                                                         Unlerning:   8%|▊         | 4/50 [00:00<00:01, 39.15it/s]Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]epoch:    9 | train_loss: 4.6135 | loss_r: 6.0321 | loss_l: 3.1949 | train_time: 0.0042
-val_loss: 0.9321 | val_dt_acc: 0.4584 | val_dt_f1: 0.4584 | epoch:    9
-Save best checkpoint at epoch 0009. Valid loss = 0.9321
-Epoch:   10 | train_loss: 4.4574 | loss_r: 5.6645 | loss_l: 3.2504 | train_time: 0.0045
-2026-02-17 15:29:46.483: time:0.002263951301574707
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   11 | train_loss: 4.3581 | loss_r: 5.3688 | loss_l: 3.3474 | train_time: 0.0048
-2026-02-17 15:29:46.496: time:0.0023858332633972168
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   12 | train_loss: 4.3381 | loss_r: 5.2134 | loss_l: 3.4628 | train_time: 0.0050
-2026-02-17 15:29:46.510: time:0.0025093221664428712
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   13 | train_loss: 4.3741 | loss_r: 5.1757 | loss_l: 3.5724 | train_time: 0.0053
-2026-02-17 15:29:46.526: time:0.002669651508331299
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   14 | train_loss: 4.4305 | loss_r: 5.2032 | loss_l: 3.6578 | train_time: 0.0056
-2026-02-17 15:29:46.538: time:0.002794787883758545
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   15 | train_loss: 4.4789 | loss_r: 5.2499 | loss_l: 3.7078 | train_time: 0.0058
-2026-02-17 15:29:46.550: time:0.002914149761199951
-                                                          Unlerning:  20%|██        | 10/50 [00:00<00:00, 43.33it/s]Epoch:   16 | train_loss: 4.5018 | loss_r: 5.2862 | loss_l: 3.7173 | train_time: 0.0062
-2026-02-17 15:29:46.568: time:0.00308351993560791
-Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]Epoch:   17 | train_loss: 4.4914 | loss_r: 5.2980 | loss_l: 3.6848 | train_time: 0.0065
-2026-02-17 15:29:46.583: time:0.003234443664550781
-                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]Epoch:   18 | train_loss: 4.4475 | loss_r: 5.2837 | loss_l: 3.6112 | train_time: 0.0068
-2026-02-17 15:29:46.599: time:0.0033876562118530275
-                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]Epoch:   19 | train_loss: 4.3764 | loss_r: 5.2536 | loss_l: 3.4991 | train_time: 0.0071
-2026-02-17 15:29:46.615: time:0.0035381174087524415
-                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]epoch:   19 | train_loss: 4.3764 | loss_r: 5.2536 | loss_l: 3.4991 | train_time: 0.0071
-val_loss: 0.8362 | val_dt_acc: 0.6511 | val_dt_f1: 0.6511 | epoch:   19
-Save best checkpoint at epoch 0019. Valid loss = 0.8362
-Epoch:   20 | train_loss: 4.2916 | loss_r: 5.2291 | loss_l: 3.3542 | train_time: 0.0073
-2026-02-17 15:29:46.639: time:0.003663330078125
-                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]Epoch:   21 | train_loss: 4.2142 | loss_r: 5.2424 | loss_l: 3.1860 | train_time: 0.0076
-2026-02-17 15:29:46.653: time:0.003793773651123047
-                                                          Unlerning:  34%|███▍      | 17/50 [00:00<00:00, 53.92it/s]Epoch:   22 | train_loss: 4.1689 | loss_r: 5.3302 | loss_l: 3.0076 | train_time: 0.0080
-2026-02-17 15:29:46.674: time:0.004008297920227051
-Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   23 | train_loss: 4.1756 | loss_r: 5.5160 | loss_l: 2.8352 | train_time: 0.0084
-2026-02-17 15:29:46.694: time:0.004193515777587891
-                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   24 | train_loss: 4.2329 | loss_r: 5.7797 | loss_l: 2.6861 | train_time: 0.0087
-2026-02-17 15:29:46.710: time:0.004354298114776611
-                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   25 | train_loss: 4.3043 | loss_r: 6.0337 | loss_l: 2.5749 | train_time: 0.0090
-2026-02-17 15:29:46.730: time:0.004515047073364258
-                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   26 | train_loss: 4.3328 | loss_r: 6.1537 | loss_l: 2.5119 | train_time: 0.0094
-2026-02-17 15:29:46.749: time:0.004704174995422364
-                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   27 | train_loss: 4.2898 | loss_r: 6.0768 | loss_l: 2.5028 | train_time: 0.0098
-2026-02-17 15:29:46.769: time:0.004883491992950439
-                                                          Unlerning:  46%|████▌     | 23/50 [00:00<00:00, 54.93it/s]Epoch:   28 | train_loss: 4.2056 | loss_r: 5.8595 | loss_l: 2.5517 | train_time: 0.0102
-2026-02-17 15:29:46.791: time:0.005093860626220703
-Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]Epoch:   29 | train_loss: 4.1485 | loss_r: 5.6377 | loss_l: 2.6592 | train_time: 0.0105
-2026-02-17 15:29:46.806: time:0.005245888233184814
-                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]epoch:   29 | train_loss: 4.1485 | loss_r: 5.6377 | loss_l: 2.6592 | train_time: 0.0105
-val_loss: 0.7129 | val_dt_acc: 0.7809 | val_dt_f1: 0.7809 | epoch:   29
-Save best checkpoint at epoch 0029. Valid loss = 0.7129
-Epoch:   30 | train_loss: 4.1663 | loss_r: 5.5191 | loss_l: 2.8135 | train_time: 0.0108
-2026-02-17 15:29:46.843: time:0.005405888557434082
-                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]Epoch:   31 | train_loss: 4.2542 | loss_r: 5.5249 | loss_l: 2.9835 | train_time: 0.0111
-2026-02-17 15:29:46.859: time:0.005560970306396485
-                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]Epoch:   32 | train_loss: 4.3517 | loss_r: 5.5857 | loss_l: 3.1177 | train_time: 0.0114
-2026-02-17 15:29:46.874: time:0.005701470375061035
-                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]Epoch:   33 | train_loss: 4.3851 | loss_r: 5.6002 | loss_l: 3.1700 | train_time: 0.0117
-2026-02-17 15:29:46.889: time:0.005846731662750244
-                                                          Unlerning:  58%|█████▊    | 29/50 [00:00<00:00, 53.66it/s]Epoch:   34 | train_loss: 4.3279 | loss_r: 5.5305 | loss_l: 3.1252 | train_time: 0.0120
-2026-02-17 15:29:46.902: time:0.005982058048248291
-Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   35 | train_loss: 4.2114 | loss_r: 5.4263 | loss_l: 2.9966 | train_time: 0.0122
-2026-02-17 15:29:46.916: time:0.0061074399948120115
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   36 | train_loss: 4.1053 | loss_r: 5.3948 | loss_l: 2.8158 | train_time: 0.0125
-2026-02-17 15:29:46.929: time:0.006231374740600586
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   37 | train_loss: 4.0885 | loss_r: 5.5514 | loss_l: 2.6256 | train_time: 0.0127
-2026-02-17 15:29:46.941: time:0.006356594562530518
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   38 | train_loss: 4.1982 | loss_r: 5.9189 | loss_l: 2.4776 | train_time: 0.0130
-2026-02-17 15:29:46.958: time:0.006517097949981689
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   39 | train_loss: 4.3508 | loss_r: 6.2918 | loss_l: 2.4097 | train_time: 0.0133
-2026-02-17 15:29:46.970: time:0.006632301807403564
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]epoch:   39 | train_loss: 4.3508 | loss_r: 6.2918 | loss_l: 2.4097 | train_time: 0.0133
-val_loss: 0.7627 | val_dt_acc: 0.7612 | val_dt_f1: 0.7612 | epoch:   39
-Epoch:   40 | train_loss: 4.4112 | loss_r: 6.4094 | loss_l: 2.4130 | train_time: 0.0136
-2026-02-17 15:29:46.997: time:0.006791048049926758
-                                                          Unlerning:  70%|███████   | 35/50 [00:00<00:00, 53.70it/s]Epoch:   41 | train_loss: 4.3488 | loss_r: 6.2336 | loss_l: 2.4641 | train_time: 0.0139
-2026-02-17 15:29:47.010: time:0.006925492286682129
-Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   42 | train_loss: 4.2282 | loss_r: 5.8984 | loss_l: 2.5581 | train_time: 0.0141
-2026-02-17 15:29:47.024: time:0.007060065269470215
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   43 | train_loss: 4.1316 | loss_r: 5.5671 | loss_l: 2.6962 | train_time: 0.0144
-2026-02-17 15:29:47.037: time:0.007180941104888916
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   44 | train_loss: 4.1022 | loss_r: 5.3326 | loss_l: 2.8718 | train_time: 0.0147
-2026-02-17 15:29:47.052: time:0.007332713603973389
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   45 | train_loss: 4.1353 | loss_r: 5.2154 | loss_l: 3.0551 | train_time: 0.0150
-2026-02-17 15:29:47.067: time:0.007485449314117432
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   46 | train_loss: 4.2007 | loss_r: 5.1898 | loss_l: 3.2117 | train_time: 0.0153
-2026-02-17 15:29:47.081: time:0.007625970840454101
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   47 | train_loss: 4.2676 | loss_r: 5.2115 | loss_l: 3.3237 | train_time: 0.0155
-2026-02-17 15:29:47.093: time:0.00773904800415039
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   48 | train_loss: 4.3132 | loss_r: 5.2436 | loss_l: 3.3829 | train_time: 0.0157
-2026-02-17 15:29:47.106: time:0.007856414318084717
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Epoch:   49 | train_loss: 4.3267 | loss_r: 5.2647 | loss_l: 3.3887 | train_time: 0.0160
-2026-02-17 15:29:47.118: time:0.00797863006591797
-                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]                                                          Unlerning:  84%|████████▍ | 42/50 [00:00<00:00, 57.27it/s]Unlerning: 100%|██████████| 50/50 [00:00<00:00, 60.70it/s]Unlerning: 100%|██████████| 50/50 [00:00<00:00, 55.80it/s]epoch:   49 | train_loss: 4.3267 | loss_r: 5.2647 | loss_l: 3.3887 | train_time: 0.0160
-val_loss: 0.8179 | val_dt_acc: 0.6957 | val_dt_f1: 0.6957 | epoch:   49
-2026-02-17 15:29:47.147: loss:0.7129390239715576  ,dt_acc:0.7809330628803245 ,recall:0.7809330628803245  ,dt_f1:0.7809330628803245  ,test_log:{'test_loss': 0.7129390239715576, 'test_dt_acc': 0.7809330628803245, 'test_dt_f1': 0.7809330628803245}  
-2026-02-17 15:29:47.158: Loss: 0.7129 | Accuracy: 0.7809 | Recall: 0.7809 | F1 Score: 0.7809
-2026-02-17 15:29:51.575: [34mPerformance Metrics:
- - Poison F1 Score: 0.0000 ± 0.0000
- - Unlearn F1 Score: 0.7809 ± 0.0000
- - Average AUC Score: 0.5314 ± 0.0000
- - Average Training Time: 0.0000 ± 0.0000
- - Average Sampling Time: 0.0000 ± 0.0000 seconds
- - Average Unlearning Time: 0.9794 ± 0.0000 seconds[0m
-

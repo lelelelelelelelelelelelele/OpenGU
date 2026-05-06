@@ -3,7 +3,7 @@
 > Status: reference
 > Role: 项目总背景与早期统一口径文档；保留原始研究目标、攻击思路和实现概览。
 > Use this when: 你需要回看项目的原始 framing、方法族划分、攻击策略设计或 repo 层面的总背景。
-> Superseded by: `thesis_transition_memo.md` 用于当前 thesis 方向；课程结论以 `../report/0417_5003report/main_report/msc_project_report.md` 为准。
+> Superseded by: `thesis_transition_memo.md` 用于当前 thesis 方向；课程结论以 `../report/progress/0417_5003report/main_report/msc_project_report.md` 为准。
 > See also: `README.md`, `flow.md`, `../report/paper/stage_report_2026-02-27.md`
 
 ## 1. 项目概览 (Project Overview)
@@ -38,10 +38,10 @@
 单一指标存在局限性，提出了 **IF-IM 混合选择策略**：
 1.  **Influence Function (IF)**: 捕捉 **"Feature-Model Interaction"**。衡量节点特征对模型参数 $\theta$ 的敏感度。
     *   实现：**TracIn** (gray-box IF proxy) → `attack/attack_strategies/tracin_strategy.py`
-2.  **Influence Maximization (IM)**: 捕捉 **"Structure Propagation"**。衡量节点在图拓扑中的传播能力（CELF 算法优化）。
-    *   实现：**IM v4** (CELF-optimized) → `attack/attack_strategies/im_v4_strategy.py`
+2.  **Influence Maximization (IM)**: 捕捉 **"Structure Propagation"**。衡量节点在图拓扑中的传播能力（batch-CELF 算法优化）。
+    *   实现：**IMStrategy** (batch-CELF) → `attack/attack_strategies/im_strategy.py` （V4 已于 2026-05-05 合并进 IMStrategy；旧 `im_v4_strategy.py` 已删除，名字保留为别名）
 3.  **融合公式**: $Score(v) = \alpha \cdot \text{Norm}(IF(v)) + \beta \cdot \text{Norm}(IM(v))$
-    *   实现：**Hybrid v4** (IF-IM fusion) → `attack/attack_strategies/hybrid_v4_strategy.py`
+    *   实现：**HybridStrategy** (IF-IM fusion) → `attack/attack_strategies/hybrid_strategy.py` （V4 同样合并；融合调用 `compute_initial_marginal_gains` 而非 CELF —— 详见 `flow.md:36-44`）
 
 ### 2.4 现实挑战与解决方案 (From White-box to Gray-box)
 *   **挑战**: 原始 IF 计算需要 $H^{-1}$ (Hessian 逆) 和完整模型参数 $\theta$，属于强白盒攻击，且计算昂贵。
@@ -108,10 +108,10 @@
 | Degree | Baseline | `degree_strategy.py` |
 | PageRank | Baseline | `pagerank_strategy.py` |
 | TracIn | Core (IF proxy) | `tracin_strategy.py` |
-| IM v4 | Core (CELF) | `im_v4_strategy.py` |
-| Hybrid v4 | Core (IF-IM fusion) | `hybrid_v4_strategy.py` |
+| IM | Core (batch-CELF) | `im_strategy.py` |
+| Hybrid | Core (IF-IM fusion) | `hybrid_strategy.py` |
 
-另有早期版本 `im_strategy.py` 和 `hybrid_strategy.py` 保留在代码中。
+V4 文件 (`im_v4_strategy.py`, `hybrid_v4_strategy.py`) 已于 2026-05-05 合并进上述 V1 文件并删除；`IMV4Strategy` / `HybridV4Strategy` 仅作为 import 兼容别名保留。
 
 ### 5.4 实验矩阵设计
 

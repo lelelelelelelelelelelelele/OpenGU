@@ -28,8 +28,6 @@ from attack.attack_strategies import (
     TracInStrategy,
     IMStrategy,
     HybridStrategy,
-    IMV4Strategy,
-    HybridV4Strategy,
 )
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
@@ -58,6 +56,13 @@ class AttackManager:
     """
 
     # Built-in strategy registry
+    # Note: as of 2026-05-05 the V4 classes (IMV4Strategy, HybridV4Strategy)
+    # were merged into IMStrategy / HybridStrategy. Batch-CELF is now the
+    # canonical numba path inside IMStrategy, gated by `im_batch_size`
+    # (legacy `im_v4_batch_size` still accepted). Backward-compat aliases
+    # `IMV4Strategy = IMStrategy` and `HybridV4Strategy = HybridStrategy`
+    # are kept in `attack_strategies/__init__.py` so external imports of
+    # the old names still resolve.
     BUILTIN_STRATEGIES = {
         "random": RandomStrategy,
         "degree": DegreeStrategy,
@@ -65,12 +70,23 @@ class AttackManager:
         "tracin": TracInStrategy,
         "im": IMStrategy,
         "hybrid": HybridStrategy,
-        "im_v4": IMV4Strategy,
-        "hybrid_v4": HybridV4Strategy,
     }
-    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "im_v4"}
+    # Strategies whose selection result is uniquely determined by the cache
+    # key (dataset + base_model + seed + strategy_params + graph_fingerprint
+    # + k). tracin/hybrid added 2026-05-05 to enable cross-machine prewarm
+    # workflow (compute selection on a big GPU, transfer cache JSON to a
+    # cheap GPU for the GU pass). Assumes training hyperparameters
+    # (num_epochs, lr, dropout, etc.) are constant across runs of the same
+    # config — true within a single yaml config; document if you change
+    # those between machines.
+    REUSABLE_SELECTION_STRATEGIES = {"random", "pagerank", "im", "tracin", "hybrid"}
     # Runtime k-subset reuse is safe only for deterministic ranking strategies.
     SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
+    # Shard/SISA methods do not expose the canonical vanilla base model through
+    # train_only. TracIn/Hybrid selection for these methods is only safe when it
+    # reuses a method-agnostic SelectionCache entry computed by a canonical
+    # full-model method earlier in the matrix.
+    SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE = {"GraphEraser", "GUIDE", "GraphRevoker"}
 
     def __init__(
         self,
@@ -153,33 +169,64 @@ class AttackManager:
         return self._graph_fingerprint
 
     def _strategy_params_for_cache(self, strategy_name: str) -> Dict[str, Any]:
+        # Each strategy's cache key must include EVERY arg that meaningfully
+        # changes the selected nodes, otherwise SelectionCache silently
+        # cross-contaminates between two configurations sharing the static
+        # fields (dataset/seed/k/...) but differing in strategy hyperparam.
+        im_batch_size = int(self.args.get("im_batch_size", self.args.get("im_v4_batch_size", 5)))
         if strategy_name == "im":
+            # im is the batch-CELF v4 implementation (the v4 suffix was dropped 2026-05-04)
             return {
                 "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
                 "mc_rounds": int(self.args.get("mc_rounds", 100)),
                 "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
-            }
-        elif strategy_name == "im_v4":
-            return {
-                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
-                "mc_rounds": int(self.args.get("mc_rounds", 100)),
-                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
-                "im_v4_batch_size": int(self.args.get("im_v4_batch_size", 5)),
+                "im_batch_size": im_batch_size,
             }
         elif strategy_name == "pagerank":
             return {
                 "pagerank_alpha": float(self.args.get("pagerank_alpha", 0.85)),
+            }
+        elif strategy_name == "tracin":
+            # loss_type changes per-node loss → changes gradients → changes
+            # selection. base_model is already in the main selection_config.
+            return {
+                "loss_type": str(self.args.get("loss", "cross_entropy")),
+            }
+        elif strategy_name == "hybrid":
+            # Hybrid fuses TracIn + IM, so its cache key must include EVERY
+            # knob from both branches plus the fusion params. Without these
+            # two Hybrid runs differing only in alpha / fusion_method /
+            # candidate_fraction would collide on the same cache entry.
+            hybrid_alpha = self.args.get("hybrid_alpha")
+            if hybrid_alpha is None:
+                hybrid_alpha = self.args.get("alpha", 0.5)
+            return {
+                "fusion_method": str(self.args.get("fusion_method", "rank")),
+                "hybrid_alpha": float(hybrid_alpha),
+                "loss_type": str(self.args.get("loss", "cross_entropy")),
+                "propagation_prob": float(self.args.get("propagation_prob", 0.1)),
+                "mc_rounds": int(self.args.get("mc_rounds", 100)),
+                "candidate_fraction": float(self.args.get("candidate_fraction", 1.0)),
+                "im_batch_size": im_batch_size,
+                "im_selector_seed": int(self.args.get("im_selector_seed", 2024)),
             }
         return {}
 
     def _build_selection_config(self, strategy_name: str, k: int) -> Dict[str, Any]:
         strategy_params = self._strategy_params_for_cache(strategy_name)
         strategy_params_fingerprint = self._stable_hash(strategy_params)
+        seed_for_key = self._seed_value()
+        if strategy_name == "im":
+            # IM uses a fixed im_selector_seed (default 2024, A.4-decoupled
+            # from training seed). Anchoring the cache key to im_selector_seed
+            # — not the training seed — lets cross-seed runs share a single
+            # IM computation instead of recomputing identical results 3x.
+            seed_for_key = int(self.args.get("im_selector_seed", 2024))
         return {
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),
             "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
-            "seed": self._seed_value(),
+            "seed": seed_for_key,
             "strategy_name": strategy_name,
             "k": int(k),
             "is_transductive": bool(self.args.get("is_transductive", True)),
@@ -201,6 +248,25 @@ class AttackManager:
             except (TypeError, ValueError):
                 return False
         return True
+
+    def _needs_canonical_selector_cache(self, strategy_name: str, strategy: BaseStrategy) -> bool:
+        method = str(self.args.get("unlearning_methods", ""))
+        return (
+            method in self.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE
+            and getattr(strategy, "requires_trained_model", False)
+            and strategy_name in self.REUSABLE_SELECTION_STRATEGIES
+        )
+
+    def _raise_canonical_selector_cache_miss(self, strategy_name: str):
+        method = str(self.args.get("unlearning_methods", ""))
+        raise RuntimeError(
+            "SelectionCache miss for trained-model selector "
+            f"{method}/{strategy_name}. Shard/SISA train_only is not the "
+            "canonical vanilla base model for TracIn/Hybrid selection. "
+            "Run a canonical full-model method (e.g. GIF or GNNDelete) for "
+            "this dataset/model/seed/strategy first, or prewarm the "
+            "SelectionCache from that path."
+        )
 
     def _register_builtin_strategies(self):
         """Register all built-in strategies."""
@@ -354,6 +420,8 @@ class AttackManager:
                     "[SelectionCache] MISS "
                     f"strategy={strategy_name} selection_key={selection_cache_key}"
                 )
+                if self._needs_canonical_selector_cache(strategy_name, strategy):
+                    self._raise_canonical_selector_cache_miss(strategy_name)
                 result_dict = self.pipeline.run_with_strategy(strategy, k)
                 selection_time_value = float(result_dict.get("selection_time", 0.0))
                 print(
@@ -376,6 +444,8 @@ class AttackManager:
                 cache_path = self.selection_cache.save(to_cache, selection_config)
                 print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
         else:
+            if self._needs_canonical_selector_cache(strategy_name, strategy):
+                self._raise_canonical_selector_cache_miss(strategy_name)
             result_dict = self.pipeline.run_with_strategy(strategy, k)
             selection_time_value = float(result_dict.get("selection_time", 0.0))
 

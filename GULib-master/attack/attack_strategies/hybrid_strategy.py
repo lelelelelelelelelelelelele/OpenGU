@@ -17,14 +17,28 @@ class HybridStrategy(BaseStrategy):
 
     Parameters (via args dict):
         fusion_method: 'rank' (default) or 'linear'
-        alpha: Weight for IF scores; (1-alpha) for IM scores (default: 0.5)
-        + all TracIn and IM parameters
+        hybrid_alpha: Weight for IF scores in fusion; (1-α) for IM scores
+            (default: 0.5). Falls back to legacy `alpha` only if `hybrid_alpha`
+            is not set, but `alpha` is also used by GNNDelete/CGU as a loss
+            coefficient — sweeping fusion α with the legacy field would also
+            sweep the unlearning loss, so use `hybrid_alpha` for new runs.
+        candidate_fraction: shared with IM. If <1.0, the candidate pool is
+            pruned by degree before computing IF/IM scores, so the fusion
+            uses the SAME pruned set IM-only would use.
     """
+
+    requires_trained_model = True
 
     def __init__(self, args: dict):
         super().__init__(args)
         self.fusion_method = args.get('fusion_method', 'rank')
-        self.alpha = args.get('alpha', 0.5)
+        # `hybrid_alpha` overrides legacy `alpha`. We only fall through to
+        # `alpha` (default 0.5) when `hybrid_alpha` is missing, to avoid
+        # silent collision with GNNDelete/CGU loss-alpha sweeps.
+        hybrid_alpha = args.get('hybrid_alpha')
+        if hybrid_alpha is None:
+            hybrid_alpha = args.get('alpha', 0.5)
+        self.alpha = float(hybrid_alpha)
         self.tracin = TracInStrategy(args)
         self.im = IMStrategy(args)
 
@@ -40,18 +54,25 @@ class HybridStrategy(BaseStrategy):
         model.to(device)
         data = data.to(device)
 
-        # Determine candidates (same logic as TracIn)
-        if hasattr(data, 'train_mask') and data.train_mask is not None:
-            candidates = data.train_mask.nonzero(as_tuple=False).squeeze(-1).to(device)
-        else:
-            candidates = torch.arange(data.num_nodes, device=device)
+        # Shared candidate set so IF and IM scores have aligned shapes.
+        candidates = self.candidate_nodes(data, device=device)
+        k = self._validate_k(k, candidates)
 
+        # Apply IM's degree-based pruning to the shared candidate set when
+        # candidate_fraction < 1.0. Both IF and IM then operate on the
+        # pruned set, keeping fusion well-defined.
         candidate_list = candidates.tolist()
+        if self.im.candidate_fraction < 1.0 and len(candidate_list) > k:
+            candidate_list = self.im._prune_candidates_by_degree(
+                data.edge_index, data.num_nodes, candidate_list,
+                self.im.candidate_fraction, k,
+            )
+            candidates = torch.tensor(candidate_list, dtype=torch.long, device=device)
 
-        # Compute IF scores via TracIn
-        if_scores = self.tracin._compute_tracin_scores(model, data, candidates)
+        # Compute IF scores via TracIn (cache-aware: re-runs only on miss).
+        if_scores = self.tracin.compute_scores(model, data, candidates)
 
-        # Compute IM scores (initial marginal gains)
+        # Compute IM scores via initial marginal gains (cache-aware: pure topology).
         im_scores = self.im.compute_initial_marginal_gains(
             data.edge_index, data.num_nodes, candidate_list
         )

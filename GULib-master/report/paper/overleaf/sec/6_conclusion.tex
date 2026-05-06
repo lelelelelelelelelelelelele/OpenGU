@@ -1,0 +1,79 @@
+\section{Discussion and Conclusion}
+\label{sec:conclusion}
+
+\subsection{Summary}
+We presented a systematic adversarial audit of approximate graph
+unlearning. Deletion-set selection alone exposes a 2D
+\emph{Vulnerability Fingerprint}: GNNDelete is highly vulnerable, GIF is
+weakly TracIn-aligned, the Partition pair exhibits Shard Protection, and
+MEGU/IDEA remain near the origin despite belonging to vulnerable parent
+families.
+
+\subsection{Interpreting Null Effects}
+\label{sec:disc-outliers}
+
+MEGU and IDEA should not be read as a new ``robust family'': they belong
+to different OpenGU categories. Their shared property is geometric and
+diagnostic---both decouple from the IM/TracIn selector signals tested
+here. This is partly evidence of method-specific robustness and partly a
+gap in the current attacker class. Mechanism-aware selectors targeting
+mutual-evolution or certified-gradient objectives are the natural next
+test.
+
+\subsection{Discussion: Lessons for Secure GU Design}
+\label{sec:discussion-design}
+
+The observed family patterns offer actionable lessons for designing next-generation approximate GU methods that are both fast and secure. 
+First, \textbf{Structural Isolation:} The Shard Protection effect shows that physical partitioning provides a natural firewall against cascading failure. Future learning-based or IF-based methods could adopt hybrid architectures where gradient updates are confined by soft structural boundaries. 
+Second, \textbf{Gradient Regularization:} Methods sensitive on the TracIn axis (like GIF) highlight the risk of relying purely on unconstrained gradient similarity. Incorporating adversarial regularization during the approximation step—essentially making the unlearning step minimax robust to the worst-case deletion batch—could flatten this vulnerability. 
+Ultimately, our fingerprint shows that efficiency (speedup) and utility retention under random deletion no longer suffice as the sole evaluation criteria; worst-case auditing must become standard practice.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\textbf{L1.} Shard-count coverage is partial (\S\ref{app:shard}); a
+full partition-design sweep is future work.
+\textbf{L2.} ogbn-arxiv uses 3 seeds rather than 5; we report CI widths
+to make the power tradeoff explicit.
+\textbf{L3.} TracIn's $G$-matrix does not scale to very high feature
+dimension (Physics is out of scope).
+\textbf{L4.} Our L2 axis reports L2-\textsc{direct} as an upper bound on
+the L2-\textsc{surrogate} variant available to a coalition that trains
+its own shadow model. Standard adversarial-transferability
+work~\cite{papernot2017practical,demontis2019adversarial} suggests this
+upper bound is rigorous in the worst case, but cross-architecture
+transfer on graphs is not quantified here and is left to future work
+(see also \S\ref{sec:future}).
+\textbf{L5.} Ratio sweeps are small-graph only
+($r\in\{0.01,0.05,0.10,0.20\}$ on Cora/GCN).
+\textbf{L6.} We cover three of four OpenGU categories; ``Others'' and
+third members within each family are deferred.
+\textbf{L7.} The design spans seven axes, so we use claim-conditioned
+slices rather than a Cartesian-complete grid; untested combinations are
+reported as out of scope in Appendix~\ref{app:results}.
+
+\subsection{Broader Impact}
+\label{sec:broader}
+
+Approximate GU papers should report not only random-deletion utility and
+runtime, but also adversarial-deletion bounds. The diagnostic kit here
+($\Delta F$ decomposition, retrain gap, prediction shift, hop-distance
+decay, and MIA) can be reused with stronger selectors.
+
+A coalition-of-users can reach the L1 structural tier at zero additional
+model-access cost; L2-\textsc{direct} should be read as an upper bound on
+what a shadow-model attacker may realize after transfer. Shard Protection
+is therefore a defensive insight rather than a deployment guarantee: it
+limits utility collapse, but it does not by itself address privacy
+leakage.
+
+\subsection{Future Directions}
+\label{sec:future}
+Four problems remain: mechanism-aware selectors for MEGU/IDEA-like
+objectives; defenses that quantify the privacy--robustness tradeoff of
+partition-based GU (a natural baseline being a deletion-budget cap that
+falls back to exact retraining once a coalition exceeds threshold);
+cross-architecture surrogate transferability of model-coupled selectors,
+which would tighten the L2-\textsc{direct}/\textsc{surrogate} gap of L4;
+and attacks whose objective is privacy leakage rather than downstream
+F1.

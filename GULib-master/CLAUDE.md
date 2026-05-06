@@ -16,6 +16,7 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 |------|-----------|
 | `self/dashboard/EXPERIMENT_DASHBOARD.md` | Beginning every session — phase progress, coverage matrix, known issues, TODO |
 | `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
+| `self/dashboard/METRIC_FIELD_SEMANTICS.md` | Before using `f1_before`, `perf_before`, or `logits_before` |
 | `self/dashboard/VALIDATION_LOG.md` | Need empirical evidence for a claim (append-only) |
 | `self/dashboard/CLAUDE.md` | First time entering the folder — rules & maintenance |
 
@@ -43,12 +44,9 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 #   --downstream_task: node, edge
 #   --is_transductive: True/False
 #   --is_balanced: True/False
-# 运行实验脚本
-./scripts/experiments/run_mg0_completion.sh   # MG-0 稳定性实验补全
-./scripts/experiments/run_mg1_citeseer.sh      # MG-1 Citeseer 数据集实验
-./scripts/experiments/run_mg2_gat.sh           # MG-2 GAT 模型实验
-./scripts/experiments/run_mg3_extended.sh      # MG-3 扩展实验
-./scripts/experiments/run_all_generalization.sh  # 全量泛化实验
+# Phase B canonical runner (yaml-driven; supersedes the legacy run_mg*.sh scripts removed 2026-05-06)
+H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05    # pass/fail check
 ```
 
 No formal test suite exists. Validation is experiment-driven; results are logged to `log/{method}/{dataset}/{model}/`.
@@ -125,25 +123,44 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - GraphRevoker reuses the `grapheraser` class in the method map
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
-- `scripts/evaluation/HOWTO_REPAIR_CORRUPTED_RESULTS.md`: Bug 修复后数据刷新指南
+- Bug 修复后数据刷新：Phase B 没有"修补"流程，重跑 `experiments/run.py <yaml>` 即可（旧的 HOWTO_REPAIR_CORRUPTED_RESULTS.md 描述的是 pre-Phase-B 流程，已删除 2026-05-06）
 
-### ⚠ Active Bugs (2026-05-03)
+### ⚠ Active Bugs / Status (2026-05-05)
 
-Detailed status & fix plan in `self/dashboard/EXPERIMENT_DASHBOARD.md §3`. Quick summary:
+Detailed: `self/dashboard/EXPERIMENT_DASHBOARD.md §3` + `self/limitations.md` (paper §5 candidates).
 
-- **MIA AUC = 0.000** on MEGU / IDEA / GraphEraser-shard family — three places have MIA call commented out:
-  - `unlearning/unlearning_methods/MEGU/megu.py:140`
-  - `unlearning/unlearning_methods/IDEA/idea.py:107` (and surrounding attack block lines 88–114)
-  - `pipeline/Shard_based_pipeline.py:177`
-  - GIF / GNNDelete MIA work correctly (not affected). All affected `mia_auc=0.000` values in existing JSON are bug pollution, NOT real measurements.
-- **IM_v4 selector instability**: Jaccard ≈ 0.13 across 5 GU seeds — MC randomness not decoupled from training seed. Fix planned (Phase A.4).
-- **FIG-4b mixed configs**: GIF/GNNDelete/GraphEraser rows from cora/GCN, IDEA/MEGU rows from cora/GAT — see `scripts/evaluation/generate_figures.py:33-37`.
+- **arxiv collateral retrain OOM on 24GB GPU**: peak memory ~22 GB, 4090 边缘 OOM。3/5 B.1 cell（GIF/GNNDelete/IDEA random）缺 collateral.json，待 H800 80GB 上 5 min 补完。详见 `self/limitations.md` 隐含在 L2.
+- **TracIn G-matrix on arxiv = ~68 GB**: 必须 ≥80GB GPU（H800/A100 80GB）。L2 in `self/limitations.md`. Forward-once optimization (commit `6b7285b`) keeps memory the same, only halves time.
+- **IM CELF default params on arxiv = intractable**: yaml 默认未带 `candidate_fraction=0.1, mc_rounds=50` 时 step-1 要 9M MC BFS，10h+ 不出结果。修复后 ~3 min。L3 in limitations.md.
+- **GraphEraser LPA partition on arxiv slow but feasible**: 10 min/iter，但 `terminate_delta=0` 早停在 1-2 iter ≈ 10 min total。L1 (downgraded to ACCEPTED).
+- **MIA CPU-bound**: GraphEraser MIA 6 min × 2 rounds (positive + negative samples) per cell。GPU 这段 idle。L5.
+
+Resolved (2026-05-05):
+- IM_v4 selector instability — fixed, `im_selector_seed=2024` 固定，`attack_manager.py:_build_selection_config` 锚到 selector seed 而非训练 seed (commit `af1c8ba`)。
+- B.1 yaml 误把 selection 测试塞进 GU 稳定性测试 — 回滚到 random-only (commit `6b7285b`)。L4.
+- MIA AUC = 0.000 修复（earlier commits）— 现在 GIF/GNNDelete/MEGU/IDEA/GraphEraser 都返非零 AUC。
+
+### Phase B 工具集（2026-05-05 添加）
+
+| 脚本 | 用途 |
+|---|---|
+| `scripts/feasibility_selection_only.py` | 探针：`--candidate_subset_size N` 限流测内存/时间；ScoreCache 强制关闭，避免污染正式 TracIn/Hybrid cache |
+| `scripts/prewarm_selection_cache.py` | 批量算 selection 写 cache；TracIn/Hybrid 必须用 GIF/GNNDelete canonical selector path，shard/SISA method 会 fail fast |
+| `scripts/gate_runs.py` | 自动 pass/fail 判 yaml 矩阵：4 文件 + mia_auc + f1 范围 |
+| `scripts/diag_b1.sh` | 一键看 cell 输出列表 + log 错误尾（不在 git，需 cat 创建） |
+| `scripts/redo_collateral.sh` | 补 OOM 失败的 collateral cell（不在 git，需 cat 创建） |
+| `experiments/run.py` | 主 runner：吃 yaml，展开 (method,strategy,seed) 矩阵跑 demo_attack + eval_collateral |
+| `SERVER_RUNBOOK.md` | 双机执行手册（4090 cora + H800 arxiv） |
+| `self/attack_flow.md` | 一个 cell 时序拆解 + CPU/GPU 占用图 |
+| `self/limitations.md` | paper §5 candidates：实测瓶颈 + decision status |
 
 ## Project Context (Attack Research)
 
 This project is developing **adversarial attacks on GNN unlearning**. The core idea: strategically select nodes for forced unlearning to cause performance collapse in approximate unlearning algorithms. See `self/` directory for detailed context:
 
 - **`self/dashboard/`**: live state — start here every session
+- **`self/limitations.md`**: 实测瓶颈 + paper §5 candidates（2026-05-05 新增，每条带 evidence + decision status）
+- **`self/attack_flow.md`**: 一个 cell 时序图 + CPU/GPU 占用（2026-05-05 新增，调试卡死位置必看）
 - `self/thesis_transition_memo.md`: thesis 战略层 + 4-day NeurIPS execution plan
 - `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology (frozen background)
 - `self/plan_flow_v2_delta.md`: 方法学/指标设计原典
@@ -179,19 +196,37 @@ The three pipeline base classes (`Shard_based_pipeline`, `IF_based_pipeline`, `L
 
 ### Result Storage Convention
 
-Experiment results go to `results/{attack_strategy}/{unlearning_method}/{dataset}/{model}/run_{timestamp}.json`. Each JSON contains `config` (parameters), `metrics` (F1 drop, MIA AUC, timing), and `selected_nodes`. The original framework logs remain at `log/`.
+**Phase B onwards (canonical layout, 2026-05-04+)**: every cell writes to
+```
+results/runs/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{N}/
+  attack.json           # F1 drop, MIA AUC, selected_nodes (L3)
+  collateral.json       # retrain gap, prediction shift, hop-decay (L3)
+  predictions.npz       # logits_{before, unlearned, retrained} (L2)
+  _meta.json            # config + git_sha + timestamp (audit)
+```
+Driven by `experiments/run.py <yaml>`; configs in `experiments/configs/`.
+See `experiments/configs/README.md` for the 3-layer artifact decoupling.
 
-Collateral damage evaluation results go to `results/collateral/{unlearning_method}/{dataset}/{model}/` containing retrain gap and collateral damage metrics.
+**Two distinct baselines — do not confuse**:
 
-Additional results directories:
-- `results/experiments/`: Batch experiment results (contains `phase_a` subdirectory)
-- `results/relative/`: Relative evaluation results — F1 drop relative to random baseline (generated by `experiments/baseline_k5/eval_relative.py`)
-- `results/evaluation/`: Unified evaluation outputs — `step0/`, `attack/`, `stats/`
-- `results/evaluation/stats/`: Aggregated CSV for paper (`final_paper_stats.csv`, generated by `scripts/evaluation/final_data_aggregator.py`)
-- `results/step0_validation/`: Initial validation results (legacy read-only)
-- `report/progress/2026-02-19_checkpoint/`: Checkpoint reports
+| Baseline | Where | Generated by | What it measures |
+|----------|-------|-------------|------------------|
+| **k=5 noise floor** | `results/baseline/k5_random/{method}/{dataset}/{model}/baseline_seed*_k5.json` | `experiments/baseline_k5/generate_baseline.py` (`--baseline_k 5`) | F1 shift from deleting **5 random nodes** — i.e., the inherent jiggle the unlearning method introduces with negligible deletion. **Not a budget-matched baseline.** |
+| **Budget-matched random** (Phase B) | `results/runs/{cell}/{method}_random/seed*/attack.json` | `experiments/run.py` (random is one strategy in the matrix) | F1 drop from deleting **r·\|V_train\| random nodes** at the same budget as the attack. Used for **paired** effect = Δ vs same-seed random. |
 
-Data pipeline (experiments → paper tables): see `results/README.md` §9.
+These are **complementary, not redundant**. Phase B's random can power
+paired t-tests for "did the attack beat random at the same budget?"; k=5
+is the method-level noise floor used as a reference line in figures or to
+subtract a method's intrinsic shift before comparing across families.
+`results/baseline/` is retained even after the 2026-05-05 untrack pass.
+
+**Other persistent paths**:
+- `results/evaluation/stats/`: paper-input CSV (`final_paper_stats.csv`, generated by `scripts/evaluation/final_data_aggregator.py`)
+- `results/paper_figures/`: 5 figure PDFs/PNGs for paper
+- `results/_journal/auto_report.md`: append-only research journal
+- `results/cache/`, `results/selection_cache/`: hash-named caches (per-dir CLAUDE.md; only the .md is tracked)
+
+**Untracked since 2026-05-05** (~1300 files of pre-Phase-B bug-polluted data; `.gitignore`'d, Phase B regenerates clean): `results/relative/`, `results/experiments/`, `results/collateral/`, `results/step0_validation/`, `results/runs/` (only output dir, ignored), `results/_deprecated_tracin_bug/`. Historical mapping table preserved at `self/dashboard/EXPERIMENT_DASHBOARD.md §7`.
 
 ### Document Workflow
 

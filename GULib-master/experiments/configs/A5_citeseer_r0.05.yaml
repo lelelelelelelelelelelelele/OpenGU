@@ -1,0 +1,36 @@
+# Appendix A.5 — citeseer ratio sweep, r=0.05 (low end)
+# Phase 2 of A.5 ratio ablation: multi-dataset elasticity check.
+# See A5_README.md for design.
+
+name: A5_citeseer_r0.05
+dataset: citeseer
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GraphEraser
+  - GraphRevoker
+  - GIF
+  - IDEA
+  - GNNDelete
+  - MEGU
+
+strategies:
+  - random
+  - im
+  - tracin
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64

@@ -1,0 +1,47 @@
+# Phase B 5.3.2 — arxiv feasibility gate (v3, 2026-05-05)
+# Goal: verify each GU family × random × seed=42 runs end-to-end on arxiv
+# (base train → unlearn → retrain → MIA) without OOM, with collateral.perf_before > 0.55
+# per thesis_transition_memo §5.3.2.1. Failure here excludes the family from
+# the main matrix.
+#
+# Scope discipline (v3 reverts v2's mistake):
+#   - This yaml validates GU PIPELINE STABILITY only — random is sufficient
+#     because selection is decoupled from the GU method (SelectionCache is
+#     cross-method). Bundling tracin/im here would re-test the same GU
+#     pipeline 3× per family with no added information about the GU itself.
+#   - STRATEGY scalability (tracin OOM risk, IM CELF time) is validated
+#     separately — once, with no GU — via:
+#         scripts/feasibility_selection_only.py
+#     Run that probe on arxiv before B.2 to confirm the right GPU is rented.
+
+name: phase_b_arxiv_feasibility
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - random          # cheapest selector for the gate; GU stability only
+
+seeds: [42]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+# OGB convention for arxiv: 3-layer GCN, hidden=256 (vs 2/64 on cora).
+# Without this override, default 2/64 underperforms the 5.3.2.1 f1>0.55 gate.
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

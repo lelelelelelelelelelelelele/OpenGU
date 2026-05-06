@@ -1,0 +1,30 @@
+# Sanity: single cell GraphRevoker/random/seed=42 on cora/GCN.
+# Used as feasibility gate before promoting GraphRevoker into Phase B 6-method matrix.
+# See SANITY_GRAPHREVOKER.md for run guide and pass/fail criteria.
+name: sanity_graphrevoker
+dataset: cora
+base_model: GCN
+ratio: 0.05
+methods: [GraphRevoker]
+strategies: [random]
+seeds: [42]
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+# GraphRevoker only supports partition_method ∈ {random, gpa}; default
+# `lpa_base` (used by GraphEraser) raises "Unsupported partition method".
+# `gpa` is the GraphRevoker-canonical Graph-Partition-Aware algorithm.
+extra_args: ["--partition_method", "gpa"]
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64
+# GraphRevoker-specific defaults are wired in parameter_parser.py:
+#   --num_opt_samples 1000   (parameter_parser.py:144)
+#   --is_use_train_batch False  (parameter_parser.py:272)
+#   --is_use_test_batch False   (parameter_parser.py:273)
+# No need to override unless cora-2708 nodes warrants num_opt_samples < 1000.

@@ -1,18 +1,51 @@
-numpy==1.21.6
+# OpenGU / GULib runtime dependencies
+#
+# torch is NOT pinned here because it must be installed against a specific CUDA
+# version via the PyTorch index URL. See `GULib-master/SERVER_RUNBOOK.md` §A
+# for the server install sequence. Known-good combos:
+#   Local:   Python 3.8.20 / torch 2.2.1+cu121 / torch_geometric 2.6.1
+#   Server:  Python 3.10   / torch 2.1.2+cu118 / torch_geometric 2.6.1
+#
+# torch_scatter / torch_sparse must match torch+CUDA version (use the wheel
+# index https://data.pyg.org/whl/torch-<ver>+<cu>.html).
+#
+# Audited 2026-05-05: 7 deps were missing from the original upstream OpenGU
+# requirements (cupy / pymetis / memory-profiler / numba / gensim / lightgbm /
+# Cython). All confirmed real runtime deps via codebase grep + local env scan.
+
+# Core numerical / GNN stack
+numpy>=1.24,<2.0          # Py 3.10 needs >= 1.22; numpy 2.0 has breaking changes
 torch_scatter==2.1.2
 torch_sparse==0.6.18
 torch_geometric==2.6.1
 scipy==1.10.1
 matplotlib==3.7.5
 scikit-learn==1.3.2
+seaborn==0.13.2
 ogb==1.3.6
 pyyaml==6.0.2
+
+# Optimization / classical ML utilities
 deeprobust==0.2.11
-seaborn==0.13.2
 munkres==1.1.4
 cvxpy==1.5.2
-# pymetis==2023.1.1
+lightgbm>=4.0             # used by attack/MIA shadow model
+numba>=0.53,<0.60         # JIT for selection strategies (0.53 needs numpy<1.25; ours is >=1.24)
+gensim>=4.0               # Node2Vec / SkipGram embeddings used by partition_kmeans
+Cython>=0.29              # build-time for some C extensions in the pipeline
+
+# Graph partitioning (GraphEraser / GraphRevoker)
+pymetis>=2023.1           # METIS Python bindings; needs `apt install libmetis-dev` on Ubuntu
+
+# GPU acceleration for shard partitioning (GraphEraser/GraphRevoker)
+# cupy is CUDA-version-pinned; install one of the wheels matching your torch CUDA:
+#   cu118 servers:  pip install cupy-cuda11x
+#   cu121 servers:  pip install cupy-cuda12x
+# Functionally optional (we don't strictly need it; .get() conversions are
+# commented out in constrained_kmeans.py), but unlearning_manager.py imports
+# the partition modules unconditionally, so cupy must be importable at startup.
+
+# Profiling / debugging
+memory-profiler>=0.60     # used by --cal_mem mode
 ipdb==0.13.13
 tqdm==4.67.1
-
-# pip install memory-profiler

@@ -1,10 +1,37 @@
+"""Pre-Phase-B paper-stats aggregator. NEEDS REWRITE before Phase B use.
+
+Reads from `results/relative/`, `results/collateral/`, `results/experiments/`
+— all three were declared bug-polluted on 2026-05-05 and are now gitignored.
+On a fresh checkout these dirs are empty, and on legacy machines they hold
+data from runs that have since been audited as wrong (see
+self/dashboard/EXPERIMENT_DASHBOARD.md §3.6 for the 8 attack-pipeline bugs
+fixed 2026-05-06 that invalidate everything written before that date).
+
+Phase B output lives at:
+    results/runs/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{N}/
+        {attack.json, collateral.json, predictions.npz, _meta.json}
+
+A Phase B port should walk that tree, not the three legacy ones below.
+Until rewritten, running this script will silently produce empty/stale CSVs.
+Guard added 2026-05-06.
+"""
 import os
+import sys
 import json
 import pandas as pd
 import numpy as np
 from scipy import stats
 from pathlib import Path
 import re
+
+if __name__ == "__main__" and not os.environ.get("ALLOW_LEGACY_AGGREGATOR"):
+    sys.stderr.write(
+        "[final_data_aggregator] refusing to run: reads pre-Phase-B dirs that\n"
+        "are now gitignored as bug-polluted. Set ALLOW_LEGACY_AGGREGATOR=1 to\n"
+        "force-run on a machine that still has the legacy data, or rewrite\n"
+        "this aggregator to walk results/runs/{cell}/{method_strategy}/seed*/.\n"
+    )
+    sys.exit(2)
 
 def extract_seed_from_filename(filename):
     match = re.search(r'seed(\d+)', filename)

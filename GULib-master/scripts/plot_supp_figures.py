@@ -1,9 +1,22 @@
+"""⚠ 2026-05-06: STALE — reads `results/relative/` and `results/collateral/`,
+both gitignored as pre-Phase-B bug-polluted. Same status as
+plot_paper_figures.py; rewrite to walk results/runs/ before use.
+"""
 import os
+import sys
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import defaultdict
+
+if __name__ == "__main__" and not os.environ.get("ALLOW_LEGACY_PLOT"):
+    sys.stderr.write(
+        "[plot_supp_figures] refusing to run: reads results/relative/ and\n"
+        "results/collateral/, gitignored as bug-polluted. Set ALLOW_LEGACY_PLOT=1\n"
+        "to force-run on a machine that still has the legacy data.\n"
+    )
+    sys.exit(2)
 
 sns.set_theme(style="whitegrid", palette="muted")
 plt.rcParams.update({'font.size': 14, 'axes.labelsize': 16, 'axes.titlesize': 18})

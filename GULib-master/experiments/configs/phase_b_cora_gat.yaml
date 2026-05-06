@@ -1,0 +1,33 @@
+# Phase B — cora/GAT main matrix
+# Phase B canonical (replaces the legacy MG-2/MG-3 GAT shell runners, removed 2026-05-06)
+# Output: results/runs/cora_GAT_r0.05/{method}_{strategy}/seed{N}/...
+
+name: phase_b_cora_gat
+dataset: cora
+base_model: GAT
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - random
+  - degree
+  - pagerank
+  - tracin
+  - im
+  - hybrid
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0

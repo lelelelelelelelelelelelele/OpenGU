@@ -97,6 +97,10 @@ def parameter_parser():
     parser.add_argument('--opt_decay', type=float, default=0.0001,help = "used for GraphEraser aggregating,GST and Projector and CGU")
     parser.add_argument('--std', type=float, default=1e-2, help='standard deviation for objective perturbation for GST and CGU')
     parser.add_argument('--alpha', type=float, default=0.5,help='alpha in loss function for GNNDelete and CGU')
+    parser.add_argument('--hybrid_alpha', type=float, default=None,
+                        help='Hybrid attack fusion alpha: weight on IF score, (1-α) on IM score. '
+                             'Decoupled from --alpha (which is GNNDelete/CGU loss coefficient). '
+                             'When unset, falls back to --alpha for backward compat.')
     parser.add_argument('--optimizer', type=str, default='Adam', help='Choice of optimizer. [LBFGS/Adam] for GST and CGU')
     parser.add_argument('--lam', type=float, default=1e-2, help='L2 regularization for GST and CGU')
     parser.add_argument('--eps', type=float, default=1.0, help='Eps coefficient for certified removal for GST and CGU')
@@ -151,6 +155,13 @@ def parameter_parser():
     parser.add_argument('--checkpoint_dir', type=str, default= './data/GNNDelete/checkpoint_node',help='checkpoint folder')
     parser.add_argument('--random_seed', type=int, default=2024,help='random seed')
     parser.add_argument('--hidden_dim', type=int, default=64,help='hidden dimension')
+    # GCN architecture knobs (added 2026-05-04 to support arxiv-scale runs).
+    # Default 2/64 preserves all existing cora/citeseer/cora-GAT results;
+    # arxiv yaml overrides to 3/256 per OGB convention.
+    parser.add_argument('--gcn_num_layers', type=int, default=2, help='GCN num layers (overrides hard-coded 2)')
+    parser.add_argument('--gcn_hidden', type=int, default=64, help='GCN hidden width (overrides hard-coded 64)')
+    parser.add_argument('--im_selector_seed', type=int, default=2024,
+                        help='Decoupled MC seed for IM selectors (A.4 fix). Independent of GU training seed.')
     parser.add_argument('--in_dim', type=int, default=128,help='input dimension')
     parser.add_argument('--out_dim', type=int, default=64,help='output dimension')
     parser.add_argument('--unlearning_model', type=str, default='gnndelete_nodeemb',help='unlearning method')

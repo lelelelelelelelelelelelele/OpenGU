@@ -20,14 +20,19 @@ import argparse
 
 # IMPORTANT: Parse and clean sys.argv BEFORE importing any module that might
 # trigger config.py (which calls parameter_parser() at import time)
+def _add_cli_arg(argv, name, value):
+    argv.extend([name, str(value)])
+
+
 def _extract_demo_args():
     """Extract demo-specific arguments from sys.argv before importing other modules."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--strategies", type=str, default="random,degree,pagerank,tracin")
+    parser.add_argument("--strategies", type=str, default="random,degree,pagerank,tracin,im,hybrid")
     parser.add_argument("--k", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--save_path", type=str, default=None)
-    parser.add_argument("--seed", type=int, default=2024)
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--random_seed", type=int, default=None)
     # Also include common args that parameter_parser needs
     parser.add_argument("--dataset_name", type=str, default="cora")
     parser.add_argument("--base_model", type=str, default="SGC")
@@ -38,9 +43,25 @@ def _extract_demo_args():
     parser.add_argument("--batch_size", type=int, default=64)
 
     demo_args, remaining_args = parser.parse_known_args()
+    if demo_args.seed is None:
+        demo_args.seed = demo_args.random_seed if demo_args.random_seed is not None else 2024
 
-    # Reconstruct sys.argv without demo-specific args that parameter_parser doesn't know
-    sys.argv = [sys.argv[0]] + remaining_args
+    # Reconstruct sys.argv without demo-only args, while preserving the shared
+    # args that config.py/parameter_parser.py must see during import-time parse.
+    shared_args = list(remaining_args)
+    for name, value in (
+        ("--cuda", demo_args.cuda),
+        ("--dataset_name", demo_args.dataset_name),
+        ("--base_model", demo_args.base_model),
+        ("--unlearning_methods", demo_args.unlearning_methods),
+        ("--unlearn_ratio", demo_args.unlearn_ratio),
+        ("--proportion_unlearned_nodes", demo_args.unlearn_ratio),
+        ("--num_epochs", demo_args.num_epochs),
+        ("--batch_size", demo_args.batch_size),
+        ("--random_seed", demo_args.seed),
+    ):
+        _add_cli_arg(shared_args, name, value)
+    sys.argv = [sys.argv[0]] + shared_args
 
     return demo_args
 
@@ -76,6 +97,20 @@ def seed_everything(seed_value):
         torch.backends.cudnn.benchmark = False
 
 
+def _candidate_node_count(data):
+    train_mask = getattr(data, "train_mask", None)
+    if train_mask is not None:
+        if train_mask.dim() > 1:
+            train_mask = train_mask.squeeze(-1)
+        return int(train_mask.nonzero(as_tuple=False).view(-1).numel())
+
+    train_indices = getattr(data, "train_indices", None)
+    if train_indices is not None:
+        return int(len(train_indices))
+
+    return int(data.num_nodes)
+
+
 def main():
     """Main demo function."""
     # Demo args were already extracted at module import time
@@ -90,13 +125,13 @@ def main():
 
     args = parameter_parser()
 
-    # Override with demo arguments (parameter_parser may have used defaults
-    # since _extract_demo_args consumed shared args from sys.argv)
+    # Keep the runtime args aligned with the sanitized argv used by config.py.
     args['cuda'] = demo_args.cuda
     args['dataset_name'] = demo_args.dataset_name
     args['base_model'] = demo_args.base_model
     args['unlearning_methods'] = demo_args.unlearning_methods
     args['unlearn_ratio'] = demo_args.unlearn_ratio
+    args['proportion_unlearned_nodes'] = demo_args.unlearn_ratio
     args['num_epochs'] = demo_args.num_epochs
     args['batch_size'] = demo_args.batch_size
     args['random_seed'] = demo_args.seed
@@ -142,7 +177,7 @@ def main():
     if demo_args.k is not None:
         k = demo_args.k
     else:
-        k = int(manager.data.num_nodes * args.get('unlearn_ratio', 0.05))
+        k = int(_candidate_node_count(manager.data) * args.get('unlearn_ratio', 0.05))
 
     print(f"Nodes to unlearn (k): {k} ({args.get('unlearn_ratio', 0.05)*100:.1f}%)")
 

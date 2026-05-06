@@ -3,7 +3,7 @@
 > Status: reference
 > Role: `flow.md` 与 `宏观plan.md` 的 v2 补丁层，集中记录归因框架、collateral damage、Gap 显著性和实验设计升级。
 > Use this when: 你需要查当前项目最关键的方法学升级，尤其是 attribution 和多指标评估。
-> See also: `flow.md`, `宏观plan.md`, `thesis_transition_memo.md`, `../report/0417_5003report/main_report/msc_project_report.md`
+> See also: `flow.md`, `宏观plan.md`, `thesis_transition_memo.md`, `../report/progress/0417_5003report/main_report/msc_project_report.md`
 
 > 本文件是 `flow.md` + `宏观plan.md` 的增量补充（v2 delta）。
 > 创建于 2026-02-19，记录 Step 7 (eval 模块) 设计讨论中产生的新论点、新设计和新指标。

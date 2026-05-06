@@ -1,0 +1,171 @@
+\section{Results}
+\label{sec:results}
+
+We report five claim-conditioned slices: the 2D \emph{Vulnerability
+Fingerprint}; its scale check on ogbn-arxiv; the architectural
+\emph{Shard Protection Effect}; collateral damage via significance,
+retrain gap, and hop-distance decay; and an MIA audit.
+
+\subsection{Vulnerability Fingerprint}
+\label{sec:results-fingerprint}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.78\linewidth]{figures/FIG-3_Spectrum.pdf}
+  \caption{\textbf{Vulnerability Fingerprint} on the canonical cell
+  (Cora/GCN/$r{=}0.05$, 5 seeds). Each point is a method-level cluster
+  centre with a 1$\sigma$ ellipse over seeds; axes are the
+  attack-specific F1 effects $\Delta F^{\text{attack}}_{\mathrm{IM}}$
+  (structural-spread, $\alpha{=}0$) and
+  $\Delta F^{\text{attack}}_{\mathrm{TracIn}}$ (gradient-signal,
+  $\alpha{=}1$). Marker shape distinguishes pair members within each
+  OpenGU category; chords visualise within-pair distance.
+  \interim{Refresh with Phase~B numbers; current placeholder uses
+  pre-Phase-B coordinates.}}
+  \label{fig:fingerprint}
+\end{figure}
+
+The fingerprint plots the paired attack effect against the same-seed
+random baseline, so its axes separate attack-specific signal from the
+architectural term reported in \S\ref{sec:results-shard}. Because IM is
+an L1 structural selector and TracIn is an L2-\textsc{direct}
+model-coupled selector (Table~\ref{tab:access}), the plot also gives a
+threat summary: the IM coordinate is a low-access floor, while the
+TracIn coordinate is an upper bound on surrogate-model attacks.
+
+Figure~\ref{fig:fingerprint} shows three regimes. \textbf{GNNDelete}
+sits in the high-vulnerability quadrant
+(\interim{$\Delta F^{\mathrm{attack}}_{\mathrm{IM}}{=}+16.9$},
+\interim{$\Delta F^{\mathrm{attack}}_{\mathrm{TracIn}}{=}+X.X$};
+$p$\interim{$<$0.001}, $N{=}5$). \textbf{GIF} is smaller and
+TracIn-aligned (\interim{$+4.17\pm 0.76$}, $p$\interim{$=$0.0001}),
+consistent with a Newton-step ceiling. \textbf{GraphEraser} and
+\textbf{GraphRevoker} remain near the origin with non-positive attack
+coordinates, while \textbf{MEGU} and \textbf{IDEA} stay close to zero
+($<\interim{1\%}$ on both axes) despite belonging to vulnerable parent
+families. This reveals a distinct \textbf{Family Pattern}: Learning-based 
+methods are susceptible to severe, systemic global collapse (albeit with 
+strong internal heterogeneity); IF-based methods (like GIF) are most 
+vulnerable when attacked directly on their native gradient-signal axis; 
+and Partition-based methods rely on physical sub-graph isolation for 
+natural immunity against global interference (yielding Shard Protection). 
+A 1D projection is provided in Appendix~\ref{app:results-1d}.
+
+\subsection{Scaling Validation on ogbn-arxiv}
+\label{sec:results-scaling}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.84\linewidth]{figures/FIG-1_Generalization.pdf}
+  \caption{\textbf{Scale check of the fingerprint geometry.}
+  Same 2D coordinate per method across Cora, Citeseer, and ogbn-arxiv
+  (GCN backbone, $r{=}0.05$). \interim{Phase~B.2 numbers pending; arxiv
+  markers are placeholders.}}
+  \label{fig:scaling}
+\end{figure}
+
+We use ogbn-arxiv as a scale check rather than a fully Cartesian sweep:
+3 seeds, GCN, and the feasible selector subset described in
+\S\ref{sec:setup-arxiv}. The final Phase~B.2 refresh will report whether
+the Cora fingerprint ordering survives at 169K nodes, with reduced-power
+CI widths in Appendix~\ref{app:results}.
+
+\subsection{The Shard Protection Effect}
+\label{sec:results-shard}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{figures/FIG-2_Scaling.pdf}
+  \caption{\textbf{Architectural F1 shift $\Delta F_{\text{arch}}$ per
+  method} (Cora/GCN, $r{=}0.05$). Bars below zero mark Shard
+  Protection: the Partition pair's downstream F1 \emph{increases} when
+  any small random set is unlearned. The fingerprint in
+  \S\ref{sec:results-fingerprint} reports the orthogonal
+  $\Delta F_{\text{attack}}$ term.
+  \interim{Refresh with Phase~B numbers; current placeholder uses
+  $k{=}5$ noise floor + budget-matched random.}}
+  \label{fig:shard-protection}
+\end{figure}
+
+For the Partition family, the architectural term is negative:
+$\Delta F_{\text{arch}}<0$, meaning random deletion at $r=0.05$
+\emph{improves} F1 by \interim{$3$--$6\%$}. We call this
+\textbf{Shard Protection}. Crucially, it is not an attack effect:
+GraphEraser and GraphRevoker have $\Delta F_{\text{attack}}\approx 0$
+in Figure~\ref{fig:fingerprint}, so adversarial selectors do not amplify
+the gain beyond the random-deletion baseline.
+
+The mechanism hypothesis is that partition aggregation localizes
+unlearning to the affected shard while the remaining shard ensemble
+absorbs the perturbation. We leave shard-purity and shard-count evidence
+to Appendix~\ref{app:shard}; the main-text claim is the decomposition:
+Shard Protection belongs to $\Delta F_{\text{arch}}$, not to the
+attacker.
+
+\subsection{Collateral Damage and Hop-Distance Decay}
+\label{sec:results-hop}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\linewidth]{figures/FIG-4a_Significance.pdf}
+  \hfill
+  \includegraphics[width=0.48\linewidth]{figures/FIG-4b_Effect.pdf}
+  \caption{\textbf{Effect-size and significance heatmap} (5-seed paired
+  $t$-test, Cora/GCN, $r{=}0.05$). Each cell is colored by the $p$-value
+  of the one-sided test $\mu\le 0$. \interim{Refresh with Phase~B
+  (decoupled IM seed) numbers; pre-fix data had Jaccard $=0.13$ between
+  IM seeds.}}
+  \label{fig:significance}
+\end{figure}
+
+Figure~\ref{fig:significance} tests the paired effect over seeds. With
+the \texttt{im\_selector\_seed} fix (\S\ref{app:imseed}), all but
+\interim{one} GNNDelete IM/Hybrid cells clear $p<0.05$; GIF is
+significant for TracIn but weaker for Hybrid; MEGU and IDEA show no
+significant cell across the six strategies.
+
+The retrain gap verifies that utility loss is not merely data loss:
+retraining on $\mathcal{D}_{\mathrm{tr}}\setminus S$ recovers
+baseline-level F1 for GIF and the partition pair (gap
+\interim{$<$2\%}), whereas GNNDelete shows a much larger gap
+(\interim{20.5\%}), implicating approximation error.
+
+Hop-distance decay localizes this drift. On Cora/GCN ($L=2$), GIF and
+the partition pair concentrate flips within the receptive field, while
+GNNDelete remains closer to uniform across RF-relative buckets. MEGU and
+IDEA stay near zero, matching their fingerprint positions. Per-family
+curves and the raw 4-bucket breakdown are reported in
+Appendix~\ref{app:results}.
+
+\subsection{MIA Audit: Privacy and Utility Decouple}
+\label{sec:results-mia}
+
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{MIA AUC vs.\ paired F1 effect.} Privacy axis (MIA AUC
+post-unlearning, shadow-model attack~\cite{olatunji2021membership}) and
+utility axis ($\Delta F^{\text{attack}}$) decouple. Cora/GCN,
+$r{=}0.05$, 5 seeds, post bug-fix. \interim{Refresh with Phase~B
+values.}}
+\label{tab:mia}
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Family & Method & MIA AUC & $\Delta F^{\text{attack}}_{\mathrm{IM}}$ (\%) & Reading \\
+\midrule
+Partition & GraphEraser  & \interim{0.60} & \interim{$+0.0$}     & non-private, robust utility \\
+Partition & GraphRevoker & \interim{0.6X} & \interim{$+0.0$}     & non-private, robust utility \\
+IF        & GIF          & \interim{0.5X} & \interim{$+X.X$}     & weak privacy, weak attack \\
+IF        & IDEA         & \interim{0.55} & \interim{$+0.X$}     & weak privacy, null attack \\
+Learning  & GNNDelete    & \interim{0.6X} & \interim{$+16.9$}    & weak privacy, severe attack \\
+Learning  & MEGU         & \interim{0.37} & \interim{$+0.X$}     & strong privacy, null attack \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MIA AUC is not a proxy for utility vulnerability. MEGU combines near-null
+F1 attack effect with lower membership leakage (AUC
+\interim{$\approx 0.37$}); the partition pair resists F1 collapse but
+retains weak-to-moderate leakage (AUC \interim{$\approx 0.60$}); and
+GNNDelete is weak on both axes. We therefore treat MIA as a complementary
+diagnostic, not as evidence for or against the F1 attack.

@@ -14,4 +14,7 @@ class RandomStrategy(BaseStrategy):
         model: torch.nn.Module,
         k: int,
     ) -> Tensor:
-        return torch.randperm(data.num_nodes)[:k]
+        candidates = self.candidate_nodes(data)
+        k = self._validate_k(k, candidates)
+        perm = torch.randperm(candidates.numel(), device=candidates.device)[:k]
+        return candidates[perm].cpu()

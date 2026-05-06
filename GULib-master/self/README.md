@@ -3,7 +3,7 @@
 > Status: active
 > Role: `self/` 主入口；定义 thesis 研究工作区的当前入口、文档权威性和阅读路径。
 > Use this when: 你要快速判断“现在该看什么”“哪些结论已经稳定”“方法论和阶段报告分别放在哪”。
-> See also: `thesis_transition_memo.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/0417_5003report/main_report/msc_project_report.md`
+> See also: `thesis_transition_memo.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/0417_5003report/main_report/msc_project_report.md`
 
 ## 1. Workspace Roles
 
@@ -23,7 +23,7 @@
 
 1. [thesis_transition_memo.md](thesis_transition_memo.md)
    当前 thesis 线的承上启下文档。说明已稳定结论、未解机制问题、可检验假说和双候选 proposed 方向。
-2. [../report/0417_5003report/main_report/msc_project_report.md](../report/0417_5003report/main_report/msc_project_report.md)
+2. [../report/progress/0417_5003report/main_report/msc_project_report.md](../report/progress/0417_5003report/main_report/msc_project_report.md)
    2026-04 的 EE5003 最终课程报告，代表已经封口的课程 deliverable。
 3. [../report/paper/stage_report_2026-02-27.md](../report/paper/stage_report_2026-02-27.md)
    2026-02 的阶段报告，代表中期实验与图表资产的里程碑。
@@ -54,12 +54,14 @@
   `self/` 总入口和导航。
 - `thesis_transition_memo.md`
   thesis 线的当前研究议程。
-- `flow.md`
-  方法与实现流程参考。
 - `plan_flow_v2_delta.md`
   v2 指标、归因框架和实验设计补丁层。
+- `dashboard/`（独立子目录）
+  实验状态、指标实测、bug、findings 的实时落点；当前 NeurIPS 4 天 push 的主操作面板。
 
 其余文件仍然保留，但默认不再与以上文档争夺“当前主文档”的位置。
+
+> 2026-05-04 降级：`flow.md` 从 Canonical 移出（函数名/路径/行号已漂移）；架构入门时仍可读，但权威定义请看 `plan_flow_v2_delta.md` 与 `dashboard/METRICS_CATALOG.md`。
 
 ## 5. External Anchors
 
@@ -67,9 +69,9 @@
 
 - [../report/paper/stage_report_2026-02-27.md](../report/paper/stage_report_2026-02-27.md)
   2026-02 阶段里程碑，总结 950 runs、图表资产和当时的下一步判断。
-- [../report/0417_5003report/main_report/msc_project_report.md](../report/0417_5003report/main_report/msc_project_report.md)
+- [../report/progress/0417_5003report/main_report/msc_project_report.md](../report/progress/0417_5003report/main_report/msc_project_report.md)
   2026-04 最终课程报告，是课程 deliverable 的正式终点。
-- [../report/0417_5003report/ppt/final_15min_script.md](../report/0417_5003report/ppt/final_15min_script.md)
+- [../report/progress/0417_5003report/ppt/final_15min_script.md](../report/progress/0417_5003report/ppt/final_15min_script.md)
   2026-04 最终答辩口径，代表 oral framing。
 - [../results/README.md](../results/README.md)
   结果目录说明。
@@ -81,7 +83,8 @@
 | `README.md` | active | `self/` 主入口 | 当前阅读入口 |
 | `thesis_transition_memo.md` | active | thesis 过渡文档 | 当前研究议程与假说 |
 | `PROJECT_MASTER_CONTEXT.md` | reference | 项目总背景与早期统一口径 | 仍有价值，但 thesis 当前方向以 `thesis_transition_memo.md` 为准 |
-| `flow.md` | reference | 方法与流程主参考 | 保留为实现/指标入口 |
+| `flow.md` | historical (stale code refs) | 2026-02 方法与流程设计快照 | **架构 OK，函数名/路径/行号已漂移**；以代码 grep 为准；v2 指标见 `plan_flow_v2_delta.md` |
+| `dashboard/` | active | 实验状态、指标、bug、findings 实时面板 | 当前 NeurIPS push 主操作面板，详见 `dashboard/CLAUDE.md` |
 | `plan_flow_v2_delta.md` | reference | v2 增量补丁 | 用于理解归因、collateral、统计检验升级 |
 | `generalization_experiment_checklist.md` | reference | 2026-02 实验覆盖与完成度仪表盘 | 绑定阶段证据，不是当前主计划 |
 | `experiment_params.md` | reference | 旧实验参数备忘 | 用于复现实验设定 |

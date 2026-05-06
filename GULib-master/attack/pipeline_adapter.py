@@ -20,14 +20,37 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if base_dir not in sys.path:
     sys.path.append(base_dir)
 
-from model.model_zoo import model_zoo
-from dataset.original_dataset import original_dataset
+# NOTE: heavy imports (`model.model_zoo`, `unlearning_manager`, etc.) are
+# intentionally deferred to call sites below. attack/__init__.py eagerly
+# imports this module via attack_manager, and main.py's first import is
+# `model.model_zoo` — pulling those back here at module level closes the
+# cycle (model_zoo → unlearning → CEU → attack → attack_manager →
+# pipeline_adapter → model_zoo / unlearning_manager) before the upstream
+# modules finish initializing. Lightweight stdlib/utility imports stay at
+# top level; anything that transits through `unlearning.*` or `model.*`
+# stays inside the methods that use it.
 from utils.logger import create_logger
-from utils.dataset_utils import process_data, save_data
-from unlearning_manager import UnlearningManager
 from utils.utils import calc_f1
-from config import unlearning_path
 from attack.attack_strategies import BaseStrategy
+
+model_zoo = None
+UnlearningManager = None
+
+
+def _load_model_zoo():
+    global model_zoo
+    if model_zoo is None:
+        from model.model_zoo import model_zoo as _model_zoo
+        model_zoo = _model_zoo
+    return model_zoo
+
+
+def _load_unlearning_manager():
+    global UnlearningManager
+    if UnlearningManager is None:
+        from unlearning_manager import UnlearningManager as _UnlearningManager
+        UnlearningManager = _UnlearningManager
+    return UnlearningManager
 
 
 class AttackPipeline:
@@ -71,6 +94,24 @@ class AttackPipeline:
         self.manager = None
         self.method = None
 
+        # State_dict snapshots used to keep training reproducible across
+        # strategies in compare_strategies(). Without these, every
+        # method.run_exp() trains in-place on whatever weights the previous
+        # strategy left behind (post-unlearn), so strategy ordering would
+        # affect f1_after / collateral.
+        #   _random_init_state_dict: snapshotted at _setup, restored before
+        #       every method.run_exp() (both in _ensure_base_model_trained
+        #       for the train-for-selection step, and in
+        #       _run_unlearning_with_selected_nodes for the actual
+        #       train+unlearn run). Ensures every training run starts from
+        #       the SAME clean random init.
+        #   _trained_state_dict: snapshotted on the first
+        #       _ensure_base_model_trained call. Subsequent calls restore
+        #       this for select_nodes, so the "base model" used by all
+        #       requires_trained_model strategies is bit-identical.
+        self._random_init_state_dict = None
+        self._trained_state_dict = None
+
         # Metrics storage
         self.f1_before = 0.0
         self.f1_after = 0.0
@@ -80,6 +121,12 @@ class AttackPipeline:
 
     def _setup(self):
         """Initialize data, model, and unlearning method."""
+        # Lazy imports — see top-of-file note on the import cycle
+        from dataset.original_dataset import original_dataset
+        from utils.dataset_utils import process_data
+        model_zoo_cls = _load_model_zoo()
+        unlearning_manager_cls = _load_unlearning_manager()
+
         self.logger.info("Initializing AttackPipeline...")
 
         # Load data
@@ -88,20 +135,52 @@ class AttackPipeline:
         self.data = process_data(self.logger, self.data, self.args)
 
         # Initialize model
-        self.model_zoo = model_zoo(self.args, self.data)
+        self.model_zoo = model_zoo_cls(self.args, self.data)
         self.model = self.model_zoo.model
 
         if self.args["base_model"] not in ["GST", "Projector"]:
             self.logger.log_model_info(self.model)
 
+        # Snapshot the random-init weights BEFORE any training happens.
+        # _restore_random_init() reloads this before every method.run_exp()
+        # so each strategy's training run starts from the same clean state
+        # rather than from whatever the previous strategy left behind.
+        try:
+            self._random_init_state_dict = {
+                k: v.detach().clone() for k, v in self.model.state_dict().items()
+            }
+        except Exception as exc:
+            self.logger.warning(
+                f"Could not snapshot random-init state_dict ({exc}); "
+                "strategy ordering may affect downstream metrics."
+            )
+            self._random_init_state_dict = None
+
         # Initialize unlearning manager
-        self.manager = UnlearningManager(
+        self.manager = unlearning_manager_cls(
             self.args, self.original_data, self.data,
             self.logger, self.model_zoo, self.dataset
         )
         self.method = self.manager.get_method()
 
         self.logger.info("AttackPipeline initialized successfully.")
+
+    def _restore_random_init(self):
+        """Reset self.model to the random-init weights snapshotted at _setup.
+
+        Called before every method.run_exp() so training runs are independent
+        of which strategy ran previously. No-op if the snapshot was not taken
+        (e.g., model lacks a standard state_dict — GST/Projector edge case).
+        """
+        if self._random_init_state_dict is None:
+            return
+        try:
+            self.model.load_state_dict(self._random_init_state_dict)
+        except Exception as exc:
+            self.logger.warning(
+                f"_restore_random_init failed ({exc}); training will proceed "
+                "from whatever state self.model is currently in."
+            )
 
     def _evaluate_model(self, model=None) -> float:
         """
@@ -164,6 +243,24 @@ class AttackPipeline:
 
         path = f"{root_path}/data/unlearning_task/{split_type}/{balance_type}/unlearning_nodes_{self.args['unlearn_ratio']}_{self.args['dataset_name']}_{run_id}.txt"
 
+        # Sanity check: the path we write must match the one downstream
+        # unlearning methods read from `config.unlearning_path`. A mismatch
+        # means config.py was loaded with the wrong sys.argv (the demo_attack
+        # arg-stripping bug from before commit 66a90f8). Fail fast so a
+        # regression doesn't silently unlearn nodes from a stale file.
+        from config import unlearning_path as _config_unlearning_path
+        expected = f"{_config_unlearning_path}_{run_id}.txt"
+        if os.path.normpath(path) != os.path.normpath(expected):
+            raise AssertionError(
+                "AttackPipeline path mismatch:\n"
+                f"  inject  = {os.path.normpath(path)}\n"
+                f"  config  = {os.path.normpath(expected)}\n"
+                "config.unlearning_path was bound to different args than "
+                "self.args. Check that demo_attack.py / experiments/run.py "
+                "preserve dataset_name/unlearn_ratio/is_transductive/is_balanced "
+                "in sys.argv before any module imports config."
+            )
+
         # Ensure directory exists
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
@@ -171,6 +268,78 @@ class AttackPipeline:
         np.savetxt(path, nodes, fmt='%d')
 
         self.logger.info(f"Injected {len(nodes)} nodes to unlearn at {path}")
+
+    def _ensure_base_model_trained(self):
+        """
+        Train the base model on the full train set so that strategies
+        which derive scores from gradients/logits (TracIn, Hybrid) see a
+        TRAINED model rather than the random-init weights produced by
+        model_zoo.__init__.
+
+        First call: restores random-init weights (so this training runs on
+        a clean starting point — see _restore_random_init for why), runs
+        the unlearning method's train_only path, then snapshots the
+        resulting trained state_dict.
+
+        Subsequent calls: load the trained snapshot directly. No
+        retraining, no dependence on whatever the previous strategy left
+        behind in self.model_zoo.model.
+
+        Notes on Shard_based methods (GraphEraser/GUIDE/GraphRevoker):
+        their "trained model" is a shard-aggregated artifact stored to
+        disk; self.model_zoo.model isn't directly trained by run_exp.
+        We still snapshot whatever _get_trained_model returns; if that
+        falls back to the untrained model_zoo.model, the strategy
+        effectively sees random-init for shard methods. We log a warning
+        in that case but don't crash, since random/im/etc. don't care
+        and TracIn/Hybrid + Shard isn't a supported combo for B.1/B.2.
+        """
+        if self._trained_state_dict is not None:
+            try:
+                self.model.load_state_dict(self._trained_state_dict)
+                return
+            except Exception as exc:
+                self.logger.warning(
+                    f"Failed to restore trained-model snapshot ({exc}); "
+                    "re-training from scratch."
+                )
+                self._trained_state_dict = None
+
+        self.logger.info(
+            "Training base model for selection (requires_trained_model strategy)..."
+        )
+        prev_train_only = self.args.get("train_only", False)
+        prev_num_runs = self.args.get("num_runs", 1)
+
+        try:
+            # Reset to clean random-init so the training trajectory is
+            # independent of any previous strategy's run_exp side effects.
+            self._restore_random_init()
+
+            self.args["train_only"] = True
+            self.args["num_runs"] = 1
+            self.method = self.manager.get_method()
+            self.method.run_exp()
+        finally:
+            self.args["train_only"] = prev_train_only
+            self.args["num_runs"] = prev_num_runs
+
+        trained = self._get_trained_model()
+        # Point self.model at the trained module so select_nodes uses it
+        self.model = trained
+
+        try:
+            self._trained_state_dict = {
+                k: v.detach().clone() for k, v in trained.state_dict().items()
+            }
+            f1 = self._evaluate_model(trained)
+            self.logger.info(f"Base model trained (F1={f1:.4f}); trained state_dict snapshot taken.")
+        except Exception as exc:
+            self.logger.warning(
+                f"Could not snapshot trained state_dict ({exc}). "
+                "Subsequent strategies will retrain instead of restoring."
+            )
+            self._trained_state_dict = None
 
     def run_with_strategy(self, strategy: BaseStrategy, k: int, run_id: int = 0) -> Dict[str, Any]:
         """
@@ -187,6 +356,12 @@ class AttackPipeline:
         strategy_label = strategy.__class__.__name__
         self.logger.info(f"Running attack with strategy: {strategy_label}")
         self.logger.info(f"Selecting {k} nodes for unlearning")
+
+        # Train base model in-place if the strategy needs trained weights.
+        # Without this, gradient-based strategies (TracIn/Hybrid) compute
+        # scores on random-init weights — see commit message.
+        if getattr(strategy, "requires_trained_model", False):
+            self._ensure_base_model_trained()
 
         start_time = time.time()  # Start timing before selection
         selection_start = time.time()
@@ -251,7 +426,15 @@ class AttackPipeline:
         # Step 1: Inject selected nodes
         self._inject_unlearn_nodes(selected_nodes, run_id)
 
-        # Step 2: Run unlearning experiment (trains model + unlearns)
+        # Step 2: Reset model to random init so this run_exp's
+        # train_original_model phase trains from a clean state. Without
+        # this, training starts from whatever the previous strategy left
+        # behind (post-unlearn weights, or trained-snapshot from
+        # _ensure_base_model_trained), and f1_after / mia_auc end up
+        # depending on strategy ordering.
+        self._restore_random_init()
+
+        # Step 3: Run unlearning experiment (trains model + unlearns)
         # Reset the method to pick up the new unlearning nodes
         self.method = self.manager.get_method()
 
@@ -359,13 +542,15 @@ class AttackPipeline:
         node_idx = selected_nodes.long()
         self.data.train_mask[node_idx] = False
 
-        # 3. Reinitialize model + method with train_only
+        # 3. Reinitialize model + method with train_only (lazy imports — see top-of-file note)
+        model_zoo_cls = _load_model_zoo()
+        unlearning_manager_cls = _load_unlearning_manager()
         self.args["train_only"] = True
         self.args["num_runs"] = 1
-        self.model_zoo = model_zoo(self.args, self.data)
+        self.model_zoo = model_zoo_cls(self.args, self.data)
         self.model = self.model_zoo.model
 
-        self.manager = UnlearningManager(
+        self.manager = unlearning_manager_cls(
             self.args, self.original_data, self.data,
             self.logger, self.model_zoo, self.dataset
         )

@@ -31,6 +31,8 @@ class PageRankStrategy(BaseStrategy):
 
         # 转换为 tensor 并按分数排序
         scores = torch.tensor([pr_scores[i] for i in range(data.num_nodes)], dtype=torch.float)
-        _, topk_indices = torch.topk(scores, k)
+        candidates = self.candidate_nodes(data).cpu()
+        k = self._validate_k(k, candidates)
+        _, topk_indices = torch.topk(scores[candidates], k)
 
-        return topk_indices
+        return candidates[topk_indices]

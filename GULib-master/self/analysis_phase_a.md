@@ -3,7 +3,7 @@
 > Status: historical
 > Role: 2026-02 早期单配置分析 memo，记录 Phase A 上对 attack strategy 与 GU mechanism 关系的第一轮解释。
 > Use this when: 你要追溯早期机制直觉、GraphEraser 保护效应最初是如何被观察和叙述的。
-> Superseded by: 阶段总结见 `../report/paper/stage_report_2026-02-27.md`；课程结论见 `../report/0417_5003report/main_report/msc_project_report.md`；当前 thesis 收束见 `thesis_transition_memo.md`。
+> Superseded by: 阶段总结见 `../report/paper/stage_report_2026-02-27.md`；课程结论见 `../report/progress/0417_5003report/main_report/msc_project_report.md`；当前 thesis 收束见 `thesis_transition_memo.md`。
 > See also: `generalization_experiment_checklist.md`, `PROJECT_MASTER_CONTEXT.md`
 
 > 日期：2026-02-20

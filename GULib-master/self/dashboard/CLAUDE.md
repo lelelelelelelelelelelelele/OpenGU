@@ -26,7 +26,7 @@
 | `self/thesis_transition_memo.md` | thesis 战略层；执行细节链接到本目录 |
 | `self/plan_flow_v2_delta.md` | 设计原典；本目录的 METRICS_CATALOG 是它的"实测投影" |
 | `self/PROJECT_MASTER_CONTEXT.md` | 早期背景，已冻结；不再受本目录影响 |
-| `report/0417_5003report/` | 课程报告快照，已冻结 |
+| `report/progress/0417_5003report/` | 课程报告快照，已冻结 |
 | `results/_journal/auto_report.md` | 自动实验日志（pipeline 写入）；本目录的 VALIDATION_LOG 是**人/AI 验证类**的对位 |
 
 ## 何时不要用本目录

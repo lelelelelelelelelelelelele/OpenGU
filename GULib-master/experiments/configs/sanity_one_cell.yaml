@@ -1,0 +1,20 @@
+# Sanity: single cell GIF/random/seed=42 on cora/GCN. Used to verify
+# experiments/run.py end-to-end after path/v4/runner refactor (2026-05-04).
+name: sanity_one_cell
+dataset: cora
+base_model: GCN
+ratio: 0.05
+methods: [GIF]
+strategies: [random]
+seeds: [42]
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64

@@ -1,225 +1,0 @@
-2026-02-17 15:31:50.876: my pid: 36000
-2026-02-17 15:31:50.879: {'Budget': 0.1,
- 'GIF_exp': 'unlearning',
- 'GIF_method': 'GIF',
- 'GNN_layer': 3,
- 'GPR': False,
- 'GST_delta': 0.0001,
- 'GUIDE_methods': 'SR',
- 'GUIDE_repair_methods': 'MixUp',
- 'J': 5,
- 'L': 3,
- 'M': 0.25,
- 'Q': 4,
- 'RW': 20,
- 'XdegNorm': False,
- 'Y_binary': '0',
- 'add_self_loops': True,
- 'aggregator': 'optimal',
- 'alpha': 0.5,
- 'alpha1': 0.8,
- 'alpha2': 0.5,
- 'analysis_path': 'analysis',
- 'approx': 'cg',
- 'axis_num': 1,
- 'balance_train': False,
- 'base_model': 'GCN',
- 'batch_size': 1024,
- 'c': 0.5,
- 'c1': 1.0,
- 'cal_mem': False,
- 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
- 'compare_gnorm': False,
- 'compare_guo': False,
- 'compare_retrain': False,
- 'cuda': 0,
- 'damp': 0.0,
- 'damping': 0.0,
- 'dataset': 'null',
- 'dataset_name': 'pubmed',
- 'decay': 0.1,
- 'del_only': False,
- 'del_path_suffix': 'unlearning_data/',
- 'del_postfix': '',
- 'delta': 0.0001,
- 'depth': 300,
- 'df': 'out',
- 'df_idx': 'none',
- 'df_size': 0.5,
- 'disp': 5,
- 'display_step': 10,
- 'downstream_task': 'node',
- 'dropout_times': 2,
- 'early_stop': True,
- 'edge_idx_start': 0,
- 'emb_dim': 32,
- 'eps': 1.0,
- 'eval_on_cpu': False,
- 'exp': 'sequence',
- 'featNorm': False,
- 'feature': False,
- 'feature_update': True,
- 'file_name': 'unlearning_results',
- 'fix_random_seed': False,
- 'folds': 10,
- 'gamma_2': 1.0,
- 'gaussian_mean': 0.0,
- 'gaussian_std': 0.0,
- 'hidden': [],
- 'hidden_dim': 64,
- 'hop_neighbors': 20,
- 'in_dim': 128,
- 'is_balanced': False,
- 'is_constrained': True,
- 'is_gen_embedding': True,
- 'is_partition': True,
- 'is_prune': False,
- 'is_split': True,
- 'is_train_target_model': True,
- 'is_transductive': True,
- 'is_use_test_batch': False,
- 'is_use_train_batch': False,
- 'iteration': 100,
- 'kappa': 0.01,
- 'l': 0.25,
- 'l2': 1e-05,
- 'lam': 0.01,
- 'lambda': 1.0,
- 'lambda_edge_unlearn': 1.0,
- 'loss_fct': 'mse_mean',
- 'loss_type': 'both_layerwise',
- 'lr': 0.005,
- 'max_degree': False,
- 'neg_sample_random': 'non_connected',
- 'no_retrain': True,
- 'noise_mode': 'data',
- 'noise_ratio': 0.1,
- 'num_batch_removes': 5,
- 'num_epochs': 100,
- 'num_opt_samples': 1000,
- 'num_removes': 10,
- 'num_runs': 1,
- 'num_shards': 10,
- 'num_threads': 1,
- 'num_unlearned_nodes': 270,
- 'opt_decay': 0.0001,
- 'opt_lr': 0.001,
- 'opt_num_epochs': 20,
- 'optimizer': 'Adam',
- 'optuna': False,
- 'out_dim': 64,
- 'para1': 2.5,
- 'para2': 0.01,
- 'para3': 250,
- 'para4': 0.1,
- 'para5': 10,
- 'parallel_unlearning': 1,
- 'parameter_task': 'normal',
- 'partition_method': 'lpa_base',
- 'path': './data/ScaleGUN',
- 'patience': 5,
- 'poison': True,
- 'ppr': False,
- 'process': '',
- 'prop_algo': 'MC',
- 'prop_step': 3,
- 'proportion_unlearned_edges': 0.1,
- 'proportion_unlearned_edges_num': 0.0001,
- 'proportion_unlearned_nodes': 0.01,
- 'r': 0.5,
- 'random_seed': 2024,
- 'ratio_deleted_edges': 0,
- 'regen_model': True,
- 'removal_mode': 'node',
- 'remove_guo': False,
- 'repartition': False,
- 'require_linear_span': True,
- 'result_dir': './result/CGU',
- 'retrain': False,
- 'rm_disp_step': 1,
- 'rmax': 0.0,
- 'root_path': './',
- 'scale': 1000000000,
- 'shard_size_delta': 0.005,
- 'sparsity_ratio': 0.1,
- 'std': 0.01,
- 'terminate_delta': 0,
- 'test_batch': 5,
- 'test_batch_size': 64,
- 'test_freq': 10,
- 'test_ratio': 0.2,
- 'train_batch': 10,
- 'train_mode': 'ovr',
- 'train_ratio': 0.8,
- 'train_sep': False,
- 'trials': 3,
- 'unlearn_feature_partial_ratio': 0.5,
- 'unlearn_lr': 0.01,
- 'unlearn_ratio': 0.01,
- 'unlearn_task': 'node',
- 'unlearn_trainer': 'BaseTrainer',
- 'unlearning_epochs': 50,
- 'unlearning_methods': 'GUKD',
- 'unlearning_model': 'gnndelete_nodeemb',
- 'use_adapt_gcs': False,
- 'use_batch': False,
- 'use_cross_entropy': False,
- 'use_test_neighbors': True,
- 'val_ratio': 0,
- 'verbose': False,
- 'wd': 0.0005,
- 'weight_mode': 'test',
- 'write': True,
- 'x_iters': 3,
- 'y_iters': 3}
-2026-02-17 15:31:50.888: Data already saved! ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-17 15:31:50.888: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2.pkl
-2026-02-17 15:31:50.922: load_saved_data ./data/processed/transductive/pubmed0.8_0_0.2dataset.pkl
-./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.01_pubmed_0.txt
-2026-02-17 15:31:51.197: Model Summary:
-2026-02-17 15:31:51.197: Total Parameters: 32,259
-2026-02-17 15:31:51.198: Trainable Parameters: 32,259
-2026-02-17 15:31:51.198: Model Architecture:
-GCNNet(
-  (convs): ModuleList(
-    (0): GCNConv(500, 64)
-    (1): GCNConv(64, 3)
-  )
-)
-2026-02-17 15:31:51.198: Layer: convs.0.bias | Size: torch.Size([64]) | Requires Grad: True
-2026-02-17 15:31:51.198: Layer: convs.0.lin.weight | Size: torch.Size([64, 500]) | Requires Grad: True
-2026-02-17 15:31:51.198: Layer: convs.1.bias | Size: torch.Size([3]) | Requires Grad: True
-2026-02-17 15:31:51.198: Layer: convs.1.lin.weight | Size: torch.Size([3, 64]) | Requires Grad: True
-2026-02-17 15:31:51.198: Model is in training mode: True
-2026-02-17 15:31:51.198: Model is on device: cuda:0
-BaseTraining:   0%|          | 0/100 [00:00<?, ?epoch/s]BaseTraining:   1%|          | 1/100 [00:00<00:30,  3.22epoch/s]BaseTraining:   4%|▍         | 4/100 [00:00<00:08, 11.02epoch/s]BaseTraining:   7%|▋         | 7/100 [00:00<00:06, 15.13epoch/s]2026-02-17 15:31:52.063: Epoch: 010 | F1 Score: 0.7477 | Loss: 0.8799
-BaseTraining:  10%|█         | 10/100 [00:00<00:06, 14.88epoch/s]BaseTraining:  13%|█▎        | 13/100 [00:00<00:04, 17.64epoch/s]BaseTraining:  16%|█▌        | 16/100 [00:01<00:04, 18.65epoch/s]BaseTraining:  19%|█▉        | 19/100 [00:01<00:04, 19.59epoch/s]2026-02-17 15:31:52.574: Epoch: 020 | F1 Score: 0.7994 | Loss: 0.7022
-BaseTraining:  22%|██▏       | 22/100 [00:01<00:04, 18.23epoch/s]BaseTraining:  25%|██▌       | 25/100 [00:01<00:03, 19.06epoch/s]BaseTraining:  28%|██▊       | 28/100 [00:01<00:03, 19.93epoch/s]2026-02-17 15:31:53.085: Epoch: 030 | F1 Score: 0.8266 | Loss: 0.6342
-BaseTraining:  31%|███       | 31/100 [00:01<00:03, 18.50epoch/s]BaseTraining:  34%|███▍      | 34/100 [00:01<00:03, 19.21epoch/s]BaseTraining:  37%|███▋      | 37/100 [00:02<00:03, 20.04epoch/s]2026-02-17 15:31:53.598: Epoch: 040 | F1 Score: 0.8319 | Loss: 0.5915
-BaseTraining:  40%|████      | 40/100 [00:02<00:03, 18.11epoch/s]BaseTraining:  43%|████▎     | 43/100 [00:02<00:02, 19.58epoch/s]BaseTraining:  46%|████▌     | 46/100 [00:02<00:02, 20.28epoch/s]BaseTraining:  49%|████▉     | 49/100 [00:02<00:02, 20.87epoch/s]2026-02-17 15:31:54.098: Epoch: 050 | F1 Score: 0.8392 | Loss: 0.5479
-BaseTraining:  52%|█████▏    | 52/100 [00:02<00:02, 19.24epoch/s]BaseTraining:  55%|█████▌    | 55/100 [00:03<00:02, 20.13epoch/s]BaseTraining:  58%|█████▊    | 58/100 [00:03<00:01, 21.19epoch/s]2026-02-17 15:31:54.592: Epoch: 060 | F1 Score: 0.8509 | Loss: 0.5077
-BaseTraining:  61%|██████    | 61/100 [00:03<00:02, 18.95epoch/s]BaseTraining:  64%|██████▍   | 64/100 [00:03<00:01, 19.63epoch/s]BaseTraining:  67%|██████▋   | 67/100 [00:03<00:01, 20.54epoch/s]2026-02-17 15:31:55.094: Epoch: 070 | F1 Score: 0.8631 | Loss: 0.4749
-BaseTraining:  70%|███████   | 70/100 [00:03<00:01, 18.74epoch/s]BaseTraining:  73%|███████▎  | 73/100 [00:03<00:01, 20.26epoch/s]BaseTraining:  76%|███████▌  | 76/100 [00:04<00:01, 21.09epoch/s]BaseTraining:  79%|███████▉  | 79/100 [00:04<00:00, 21.47epoch/s]2026-02-17 15:31:55.589: Epoch: 080 | F1 Score: 0.8689 | Loss: 0.4491
-BaseTraining:  82%|████████▏ | 82/100 [00:04<00:00, 19.25epoch/s]BaseTraining:  85%|████████▌ | 85/100 [00:04<00:00, 20.11epoch/s]BaseTraining:  88%|████████▊ | 88/100 [00:04<00:00, 20.97epoch/s]2026-02-17 15:31:56.086: Epoch: 090 | F1 Score: 0.8745 | Loss: 0.4210
-BaseTraining:  91%|█████████ | 91/100 [00:04<00:00, 19.27epoch/s]BaseTraining:  94%|█████████▍| 94/100 [00:04<00:00, 20.23epoch/s]BaseTraining:  97%|█████████▋| 97/100 [00:05<00:00, 21.05epoch/s]2026-02-17 15:31:56.580: Epoch: 100 | F1 Score: 0.8798 | Loss: 0.4039
-BaseTraining: 100%|██████████| 100/100 [00:05<00:00, 18.71epoch/s]BaseTraining: 100%|██████████| 100/100 [00:05<00:00, 18.92epoch/s]2026-02-17 15:31:56.580: Average training time per epoch: 0.0462s
-
-GUKD_Training:   0%|          | 0/100 [00:00<?, ?epoch/s]2026-02-17 15:31:56.858: Epoch: 010 | F1 Score: 0.7145 | Loss: 0.9641
-GUKD_Training:  10%|█         | 10/100 [00:00<00:01, 69.00epoch/s]2026-02-17 15:31:56.970: Epoch: 020 | F1 Score: 0.7969 | Loss: 0.7829
-GUKD_Training:  20%|██        | 20/100 [00:00<00:01, 79.74epoch/s]2026-02-17 15:31:57.076: Epoch: 030 | F1 Score: 0.8185 | Loss: 0.6349
-GUKD_Training:  30%|███       | 30/100 [00:00<00:00, 85.50epoch/s]2026-02-17 15:31:57.179: Epoch: 040 | F1 Score: 0.8370 | Loss: 0.5495
-GUKD_Training:  40%|████      | 40/100 [00:00<00:00, 90.07epoch/s]2026-02-17 15:31:57.285: Epoch: 050 | F1 Score: 0.8425 | Loss: 0.5095
-GUKD_Training:  50%|█████     | 50/100 [00:00<00:00, 91.44epoch/s]2026-02-17 15:31:57.400: Epoch: 060 | F1 Score: 0.8489 | Loss: 0.4872
-GUKD_Training:  60%|██████    | 60/100 [00:00<00:00, 89.97epoch/s]2026-02-17 15:31:57.531: Epoch: 070 | F1 Score: 0.8524 | Loss: 0.4746
-GUKD_Training:  70%|███████   | 70/100 [00:00<00:00, 84.95epoch/s]2026-02-17 15:31:57.653: Epoch: 080 | F1 Score: 0.8567 | Loss: 0.4682
-GUKD_Training:  80%|████████  | 80/100 [00:00<00:00, 83.95epoch/s]2026-02-17 15:31:57.779: Epoch: 090 | F1 Score: 0.8603 | Loss: 0.4591
-GUKD_Training:  90%|█████████ | 90/100 [00:01<00:00, 82.39epoch/s]2026-02-17 15:31:57.908: Epoch: 100 | F1 Score: 0.8631 | Loss: 0.4547
-GUKD_Training: 100%|██████████| 100/100 [00:01<00:00, 80.88epoch/s]GUKD_Training: 100%|██████████| 100/100 [00:01<00:00, 83.62epoch/s]2026-02-17 15:31:57.909: Average training time per epoch: 0.6306s
-2026-02-17 15:31:57.909: [34mPerformance Metrics:
- - Poison F1 Score: 0.0000 ± 0.0000
- - Unlearn F1 Score: 0.8631 ± 0.0000
- - Average AUC Score: 0.0000 ± 0.0000
- - Average Training Time: 5.3812 ± 0.0000
- - Average Sampling Time: 0.0000 ± 0.0000 seconds
- - Average Unlearning Time: 0.6306 ± 0.0000 seconds[0m
-

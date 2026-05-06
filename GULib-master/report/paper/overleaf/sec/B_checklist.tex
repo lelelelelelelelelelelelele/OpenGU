@@ -1,0 +1,86 @@
+% NeurIPS 2025 Paper Checklist (REQUIRED, NOT COUNTED IN PAGE LIMIT)
+% Edit answers (Yes/No/NA) and justifications as the paper evolves.
+
+\begin{enumerate}
+
+\item {\bf Claims}
+    \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: The abstract summarizes the threat model, Vulnerability Fingerprint, and collateral diagnostics; the introduction (\S\ref{sec:intro}) maps these contributions to the paper sections.
+
+\item {\bf Limitations}
+    \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: \S\ref{sec:limitations} discusses shard-count coverage, 3-seed arxiv power, TracIn scaling, L2-direct vs.\ surrogate scope, small-graph ratio sweeps, category coverage, and claim-conditioned slicing.
+
+\item {\bf Theory assumptions and proofs}
+    \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
+    \item[] Answer: \answerNA{}
+    \item[] Justification: This paper is empirical; we do not present formal theorems.
+
+\item {\bf Experimental result reproducibility}
+    \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: \S\ref{sec:experiment} specifies datasets, backbones, hyperparameters, seeds, and budget for all 6 methods; Appendix~\ref{app:impl} details the IM and TracIn implementations; Appendices~\ref{app:imseed}--\ref{app:ratio} contain ablations (IM seed, shard count, $\alpha$-sweep, IM hyperparameters, ratio sweep). Code release is committed (\S\ref{sec:experiment}).
+
+\item {\bf Open access to data and code}
+    \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: All datasets are public benchmarks; we will release the attack framework as a PyTorch + PyG package upon acceptance, with anonymized supplementary code at submission.
+
+\item {\bf Experimental setting/details}
+    \item[] Question: Does the paper specify all the training and test details necessary to understand the results?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: \S\ref{sec:experiment} and Appendix~\ref{app:hyperparams} together specify training, attack, and evaluation hyperparameters.
+
+\item {\bf Experiment statistical significance}
+    \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: All paired-effect results (\S\ref{sec:results}) report mean, paired standard deviation, 95\% bootstrap CI, and one-sided $t$-test $p$-value over 5 seeds (3 on ogbn-arxiv, with per-cell CI widths reported to make the power tradeoff explicit, \S\ref{sec:setup-arxiv}).
+
+\item {\bf Experiments compute resources}
+    \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources needed to reproduce the experiments?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: Appendix~\ref{app:impl} reports GPU type, memory, and total compute hours.
+
+\item {\bf Code of ethics}
+    \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: This work studies attacks on a defensive technology (machine unlearning) under a clearly scoped threat model. We do not introduce new datasets or models that pose a high misuse risk, and our framework helps the community surface vulnerabilities before deployment.
+
+\item {\bf Broader impacts}
+    \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: Discussed in \S\ref{sec:broader}: positive impact via robustness norms in GU evaluation; negative consideration of attack-replication risk addressed through framing the work as a diagnostic kit and not releasing pretrained adversarial selectors. The dual-use framing of the Shard Protection Effect is also addressed in \S\ref{sec:broader}.
+
+\item {\bf Safeguards}
+    \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse?
+    \item[] Answer: \answerNA{}
+    \item[] Justification: We do not release pretrained models or harmful datasets. Our attack code targets benchmark datasets only.
+
+\item {\bf Licenses for existing assets}
+    \item[] Question: Are the creators or original owners of assets used in the paper properly credited and the license and terms of use explicitly mentioned and properly respected?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: All six benchmarked GU methods, the three datasets, and the GNN backbones are cited at first use; we use them as released by their authors under their respective licenses.
+
+\item {\bf New assets}
+    \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
+    \item[] Answer: \answerYes{}
+    \item[] Justification: Our attack framework will be released with documentation (README, configuration YAMLs, and per-strategy implementation notes) included in the supplementary material.
+
+\item {\bf Crowdsourcing and research with human subjects}
+    \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation?
+    \item[] Answer: \answerNA{}
+    \item[] Justification: This paper does not involve human subjects.
+
+\item {\bf Institutional review board (IRB) approvals or equivalent for research with human subjects}
+    \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether IRB approvals were obtained?
+    \item[] Answer: \answerNA{}
+    \item[] Justification: This paper does not involve human subjects.
+
+\item {\bf Declaration of LLM usage}
+    \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research?
+    \item[] Answer: \answerNA{}
+    \item[] Justification: LLMs were not used as a core methodology component. Any use was limited to writing/editing.
+
+\end{enumerate}

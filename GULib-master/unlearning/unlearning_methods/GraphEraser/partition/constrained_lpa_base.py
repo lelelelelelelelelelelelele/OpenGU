@@ -173,7 +173,7 @@ if __name__ == '__main__':
     adj = np.array([[0, 1, 1],
                     [1, 0, 1],
                     [1, 1, 0]],
-                   dtype=np.bool)
+                   dtype=bool)  # was np.bool (deprecated in numpy>=1.20, removed in 1.24)
 
     num_communities = 2
     node_threshold = 3

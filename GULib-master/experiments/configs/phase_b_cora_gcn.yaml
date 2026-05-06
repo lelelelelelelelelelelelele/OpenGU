@@ -1,0 +1,40 @@
+# Phase B — cora/GCN main matrix
+# Phase B canonical (replaces the legacy MG-0 shell runner, removed 2026-05-06)
+# Output: results/runs/cora_GCN_r0.05/{method}_{strategy}/seed{N}/{attack,collateral,predictions,_meta}
+
+name: phase_b_cora_gcn
+dataset: cora
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - random
+  - degree
+  - pagerank
+  - tracin
+  - im
+  - hybrid
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true     # always save logits.npz so future metrics decouple
+  run_collateral: true       # also run eval_collateral for gap + collateral + hop_decay
+  no_cache: false            # use ResultCache + SelectionCache (deterministic post-A.4)
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+# Per-base_model overrides become extra CLI flags. cora/GCN keeps the
+# canonical 2-layer / 64-hidden so all existing baselines remain comparable.
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64

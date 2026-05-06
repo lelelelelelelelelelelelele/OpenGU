@@ -30,7 +30,9 @@ class ResultCache:
         ...     cache.save(result, config)
     """
 
-    # Configuration fields that determine cache identity
+    # Configuration fields that determine cache identity. Any arg that
+    # meaningfully changes f1_after / mia_auc must be here, otherwise two
+    # configurations differing only in that arg silently collide.
     CACHE_KEY_FIELDS = [
         'dataset_name',
         'base_model',
@@ -44,6 +46,14 @@ class ResultCache:
         'downstream_task',
         'is_transductive',
         'is_balanced',
+        # GCN over-parameterization (cora=2/64, arxiv=3/256). Without
+        # these, an arxiv 3/256 cache entry would collide with a future
+        # 4/256 ablation under the same (dataset, model) tuple.
+        'gcn_num_layers',
+        'gcn_hidden',
+        # Per-method loss / fusion coefficients
+        'alpha',          # GNNDelete / CGU loss coeff
+        'hybrid_alpha',   # Hybrid fusion weight (decoupled from alpha 2026-05-06)
     ]
     LEGACY_CACHE_KEY_FIELDS = [
         'dataset_name',

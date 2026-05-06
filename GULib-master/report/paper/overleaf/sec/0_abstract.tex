@@ -1,0 +1,36 @@
+\begin{abstract}
+Machine unlearning---removing specific data from trained models without full
+retraining---is increasingly mandated by privacy regulation and routinely
+deployed in graph learning systems where deletion requests target individual
+nodes or edges. \emph{Approximate} graph unlearning (GU) methods trade exact
+removal for orders-of-magnitude speedup, but the resulting approximation gap
+is, we show, \emph{adversarially exploitable} by an attacker who controls
+the deletion set.
+
+We present, to our knowledge, the first systematic adversarial audit of
+approximate GU. The attacker chooses a small deletion set---using
+influence maximization, pseudo-influence functions, or their hybrid---to
+amplify approximation error. We evaluate \textbf{six} methods covering
+three OpenGU categories with intra-family pairs: Partition-based
+(GraphEraser, GraphRevoker), Influence-Function-based (GIF, IDEA), and
+Learning-based (GNNDelete, MEGU), across Cora, Citeseer, and ogbn-arxiv
+(169K nodes) with GCN/GAT backbones. This audit reveals extreme 
+heterogeneity in vulnerability profiles across methods.
+
+Our \textbf{Vulnerability Fingerprint} projects each method onto two
+attack-specific F1 axes: structural spread (IM) and gradient signal
+(TracIn). It separates three regimes. \textbf{GNNDelete} suffers the
+largest collapse (\interim{16\%} average F1, peaks above
+\interim{27\%}); \textbf{GIF} shows a smaller but significant
+TracIn-aligned effect (paired effect $\approx$\interim{+4\%} F1,
+$p$\interim{$<$0.001}); and the Partition pair shows no attack-specific
+amplification, instead exhibiting a \textbf{Shard Protection Effect} in
+which deletion improves F1 by \interim{3--6\%}. MEGU and IDEA remain near
+the origin ($<$\interim{1\%} F1), exposing strong within-family
+heterogeneity.
+
+We further introduce a compact diagnostics suite---$\Delta
+F_{\text{total}}=\Delta F_{\text{arch}}+\Delta F_{\text{attack}}$,
+retrain gap, prediction shift, and hop-distance decay---for separating
+data-loss effects from approximation drift in future GU audits.
+\end{abstract}

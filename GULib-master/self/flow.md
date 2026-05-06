@@ -1,11 +1,17 @@
 # Flow：功能模块与测试设计
 
-> Status: reference
-> Role: 方法与实现流程主参考，覆盖策略函数、评估函数、攻击调度与端到端测试设计。
-> Use this when: 你要理解攻击框架的函数级结构、测试路径或指标实现位置。
-> See also: `plan_flow_v2_delta.md`, `PROJECT_MASTER_CONTEXT.md`, `../results/README.md`
+> Status: **historical / stale code refs** （2026-05-04 降级）
+> Role: 2026-02 阶段的方法与流程设计快照；架构调用流程仍可作为入门参考。
+> Use this when: 你要理解攻击框架的**整体结构**与设计意图。**不要相信本文中的函数名、文件路径或行号**——以代码 grep 为准。
+> See also: `plan_flow_v2_delta.md`（v2 指标 / 归因框架增量）, `dashboard/METRICS_CATALOG.md`（当前指标实测状态）, `../results/README.md`
 
-> **v2 增量补丁**：eval 指标、归因框架、指标命名等章节已有升级，见 [`plan_flow_v2_delta.md`](plan_flow_v2_delta.md)。本文件内容保持不变，增量变更记录于该文件。
+> ⚠ **已知漂移项**（不完全列举）：
+> - 入口名 `attack_main.py` 已不存在；当前入口是 `main.py` 与 `demo_attack.py`
+> - 2026-05-05 V4 合并：`im_v4_strategy.py` / `hybrid_v4_strategy.py` 文件已删除；其 batch-CELF + decoupled-MC-seed 实现被合并进 `im_strategy.py::_compute_im_celf_numba`，由 `self.im_batch_size`（CLI 兼容旧名 `im_v4_batch_size`）控制。`IMV4Strategy` / `HybridV4Strategy` 仅保留为 `attack/attack_strategies/__init__.py` 里的别名（`= IMStrategy` / `= HybridStrategy`）以兼容旧 import
+> - `attack/attack_eval.py:92` 等行号一律不可信，请 grep
+> - v2 指标（Collateral Damage、Gap 统计显著性、3-model 归因）在本文件中**只有半成品**；权威定义在 `plan_flow_v2_delta.md` §3 与 `dashboard/METRICS_CATALOG.md`
+>
+> **NeurIPS 期间不修复本文件**——重写一个轻量 ARCHITECTURE_INDEX 是 NeurIPS 之后的事。
 
 本文档定义每个需要新增的函数、其输入输出规格、以及对应的测试方案。
 
@@ -28,9 +34,14 @@ attack_main.py / main.py
   │       ├── [PageRank]→ compute_pagerank() → topk
   │       ├── [TracIn]  → compute_tracin_scores() → topk
   │       ├── [IM]      → compute_im_celf() → greedy topk
-  │       └── [Hybrid]  → compute_tracin_scores()
-  │                       + compute_im_celf()
+  │       └── [Hybrid]  → compute_tracin_scores()                  # [N] IF
+  │                       + compute_initial_marginal_gains()         # [N] single-seed spread
   │                       → fuse_scores() → topk
+  │                       (note: hybrid does NOT call compute_im_celf;
+  │                        per-node fusion needs an [N] vector, but CELF
+  │                        only outputs k selected nodes + their conditional
+  │                        marginal gains. compute_initial_marginal_gains
+  │                        is the [N] primitive shared with CELF's step 1.)
   │
   ├── 4. 执行遗忘: unlearning_method.run_exp(unlearn_nodes=selected)
   │
@@ -319,7 +330,7 @@ class BaseStrategy(ABC):
 | `PageRankStrategy` | `compute_pagerank()` → `torch.topk()` |
 | `TracInStrategy` | `compute_tracin_scores()` → `torch.topk()` |
 | `IMStrategy` | `compute_im_celf()` → 返回贪心选中列表 |
-| `HybridStrategy` | `compute_tracin_scores()` + `compute_im_celf()` → `fuse_scores()` → `torch.topk()` |
+| `HybridStrategy` | `compute_tracin_scores()` + `compute_initial_marginal_gains()` → `fuse_scores()` → `torch.topk()` (per-node fusion requires [N] vectors; CELF's (k,k) output is incompatible with per-node fuse) |
 
 ---
 

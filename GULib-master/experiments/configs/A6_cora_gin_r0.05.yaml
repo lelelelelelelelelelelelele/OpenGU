@@ -1,0 +1,31 @@
+# Appendix A.6 — backbone ablation, cora/GIN/r=0.05
+# Optional: defends against reviewer "only GCN/GAT covered" critique.
+# Uses 3-strategy subset (random/im/tracin) — same family coverage as A.5.
+# 5 method × 3 strategy × 5 seed = 75 cell, ~1h on 4090.
+
+name: A6_cora_gin_r0.05
+dataset: cora
+base_model: GIN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - random
+  - im
+  - tracin
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0

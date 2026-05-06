@@ -6,11 +6,11 @@
 > Last revised: 2026-05-03（合并 from_experiments_to_mechanisms 草稿的有价值增量；该草稿已删除。同日二次修订：用户确认可昼夜无休 + 租 GPU 跑 ogbn-arxiv 扩展，§5 执行计划重写）
 >
 > **状态/进度/bug/finding 的实时数据 → `self/dashboard/`**（本文件保留战略层；执行细节落到 dashboard 不再回写到本文件）
-> See also: `README.md`, `PROJECT_MASTER_CONTEXT.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/0417_5003report/main_report/msc_project_report.md`
+> See also: `README.md`, `PROJECT_MASTER_CONTEXT.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/0417_5003report/main_report/msc_project_report.md`
 
 ## 1. Purpose
 
-2026-04 的 `report/0417_5003report/` 已经完成 EE5003 课程报告线，后续不再把 thesis 的开放问题继续混入该 deliverable。
+2026-04 的 `report/progress/0417_5003report/` 已经完成 EE5003 课程报告线，后续不再把 thesis 的开放问题继续混入该 deliverable。
 
 这份 memo 的作用是：
 
@@ -34,12 +34,12 @@
 稳定落点：
 
 - `../report/paper/stage_report_2026-02-27.md`
-- `../report/0417_5003report/main_report/msc_project_report.md`
-- `../report/0417_5003report/ppt/final_15min_script.md`
+- `../report/progress/0417_5003report/main_report/msc_project_report.md`
+- `../report/progress/0417_5003report/ppt/final_15min_script.md`
 
 ### 2.2 FIG-4b Effect Size 数据快照
 
-来自 `../report/0417_5003report/main_report/msc_project_report.md` 的 family × strategy effect size（相对 k=5 random baseline）：
+来自 `../report/progress/0417_5003report/main_report/msc_project_report.md` 的 family × strategy effect size（相对 k=5 random baseline）：
 
 | Family | TracIn | IM | Hybrid |
 |--------|--------|-----|--------|
@@ -98,16 +98,34 @@
 - 还是只是 proxy for "important node deletion"？
 - 这是 referee 必问问题
 
+**预先反驳证据**（已存在数据，paper 直接引用）：
+
+1. **跨 family selector 排序翻转**：GIF 上 TracIn (+4.2) >> IM (+1.0)；GNNDelete 上 IM (+6.8) >> TracIn (+3.8)。若 selector 只是 importance proxy，所有 family 排序应一致——不一致即证伪 proxy 假说。
+2. **PageRank ≠ IM ≠ TracIn 的效果差**：MG-0 cora/GCN/r=0.05 上 GNNDelete×PageRank=10.83，×IM_v4=12.32，×TracIn=8.46。**3 个 selector 同样在"选 k 个节点"，但效果差距明显且方向不一致**。
+3. **Jaccard 显示选点本质不同**：PageRank=1.0，IM_v4=0.13，TracIn=0.42——**物理上不是同一群节点**。
+4. **family-specific 响应**：IDEA/MEGU 对所有 selector 几乎免疫（§3.5），若 selector 只是 importance proxy，免疫就解释不了——必然涉及 mechanism。
+
+paper 里建议单列一节 "Are informed selectors just importance proxies?" 直接 preempt 这条 critique。
+
 ### 3.5 IDEA / MEGU 的 ~0 effect 该怎么解读？
+
+**默认立场（2026-05-04 决定）：B. Mechanism-incomparable**
 
 两个候选解释：
 
 - **A. 真鲁棒**：unlearning 机制对 adversarial deletion 抵抗强
-- **B. 不可比**：MEGU 保留 `x_unlearn` 节点特征只做参数微调；IDEA 的梯度型更新对节点选择不敏感——attack signals 在它们身上根本不适用
+- **B. 不可比（DEFAULT）**：MEGU 保留 `x_unlearn` 节点特征只做参数微调；IDEA 的梯度型更新对节点选择不敏感——attack signals 在它们身上根本不适用，**但这不等于"安全"，只等于"当前 selector 信号失效"**
 
-**这是论文级别的判定**，必须在主对比图的 framing 之前回答。如果是 B，FIG-4b 的整张表叙事都要修改：要么剔除两行，要么明确写"different mechanism, different vulnerability surface"。
+**为什么承诺 B 作为默认**：
 
-这些问题不能用事后解释来回答，必须改写成可检验命题（§4）。
+- A 等于承认攻击对 IDEA/MEGU 失败——立场被动
+- B 等于把 0 effect 转成 **mechanism finding**：paper 里写"We identify a class of GU methods (feature-retention, gradient-variant) whose architecture intrinsically dampens deletion-set-selection signals; future selectors must target their specific update rules"——立场主动，且有进一步 future work 钩子
+- B 的代价：要写一节解释 mechanism 为什么免疫；候选解释已在本节给出
+- A 不被否认，作为 supplementary audit：若 Phase B 有时间，对 IDEA/MEGU 跑额外 selector（如直接扰动 `x_unlearn` 或 gradient-objective-aware 选点）验证；若那也无效，A 才有支持
+
+**FIG-4b 的处置**：保留 5 行，但 IDEA/MEGU 那两行加阴影/标注 "mechanism-incomparable family"；caption 里明确说明。
+
+**这是 framing 决定**——数据本身（5 个 cell 接近 0）已经稳定，不是数据缺失。
 
 ## 4. Testable Hypotheses
 
@@ -160,6 +178,11 @@
 
 > 用户决策（2026-05-03）：可昼夜无休，并租用算力卡跑 ogbn-arxiv 扩展。新实验回到 scope。
 > 4 天 ≈ 80 工时，按下面 5 阶段排布。每阶段独立可中止——如果上游结论不成立，下游不要硬跑。
+>
+> **🚨 操作层入口（2026-05-04 后）已迁移**：本节是战略层，**不要按本节命令直接跑**。
+> 服务器侧执行：`experiments/configs/README.md` + 4 个 yaml（sanity / arxiv_feasibility / arxiv / cora_gcn / cora_gat）。
+> 当前实时进度 + 未完成 checkbox：`self/dashboard/EXPERIMENT_DASHBOARD.md §1 + §5`。
+> 老的 `im_v4`/`hybrid_v4` 命名 2026-05-04 已统一摘帽为 `im`/`hybrid`，本节里残留的 `im_v4` 字样请按新名理解。
 
 ### 5.1 Phase 0：FIG-4b 稳定性确认（必须，半天）
 
@@ -208,13 +231,34 @@
 
 **闸门规则**：任一 family 在 arxiv 上不可行，§3.5 IDEA/MEGU 的"mechanism-incomparable"框架可以直接覆盖它，论文中诚实标注"X family on arxiv is intractable, see Appendix"，而不是隐瞒。
 
+##### 5.3.2.1 Metrics 验证清单（每个 family 的 random 试跑必须全部 pass）
+
+> 跑通 ≠ 数据可用。修复了 MIA bug + 加了 hop-decay 之后，arxiv 是第一次新代码在大图上跑，每个 metric 都要 sanity check，否则铺全矩阵后才发现某个 metric 全是 NaN/0 就废了 24 小时。
+
+| 检查项 | 期望 | 失败处置 |
+|--------|------|---------|
+| `f1_before` | ∈ [0.55, 0.85]（arxiv 训练后合理范围） | 模型训练有问题，停 |
+| `f1_after < f1_before` | True | unlearn 没生效，查 path |
+| `mia_auc` | **不为 0.000，且 ∈ [0.3, 0.9]** | MIA bug 修复未覆盖该 family，回查 patch |
+| `mia_auc != NaN` | True | MIA evaluator 异常，看 log |
+| `retrain_gap` 字段存在 | True | 3-model 框架失败 |
+| `gap` 数值 | ∈ [-0.5, 0.5]（绝对值，arxiv 上可接受范围）| retrain 异常 |
+| `mean_pred_shift` | ∈ [0, 1] | collateral damage 计算异常 |
+| `fraction_flipped` | ∈ [0, 1] | 同上 |
+| `hop_decay` 字段存在（若 A.5 已应用）| 含 keys `{1, 2, 3, '>3'}` | hop-decay patch 未生效 |
+| `hop_decay[1] >= hop_decay[2] >= hop_decay[3]` | 大体单调（允许 ±0.02 抖动）| 衰减性质不成立，论文不能 claim "decay" |
+| `selection_time` (IM_v4) | < 30 min（candidate_fraction=0.1）| numba/candidate 配置失效，IM 退回纯 Python |
+| `unlearn_time` | < 1 hour（任一 family）| 大图上效率不可接受，需 ScaleGUN 或减规模 |
+
+**操作流程**：每个 family 的 1-seed random 跑完后，用 `scripts/dashboard/refresh.py`（或临时 1 行脚本）对照清单——**全 pass 才进 5.3.3 主矩阵**。
+
 #### 5.3.3 阶段 2B：arxiv 主矩阵（1.5 天）
 
-通过 2A 的 family × {random, tracin, im_v4, hybrid_v4} × 3 seeds：
+通过 2A 的 family × {random, tracin, im, hybrid} × 3 seeds：
 
-- **必须使用 `im_v4_strategy`**（已含 numba + candidate_fraction），不要用旧 `im_strategy`
+- 2026-05-05 合并：V4 batch-CELF 已并入 `im_strategy.py::_compute_im_celf_numba`，`IMStrategy` / `HybridStrategy` 即 canonical 实现；`IMV4Strategy` / `HybridV4Strategy` 仅作 import 兼容别名
 - `candidate_fraction=0.1`（10K 候选 ≈ Cora 规模），先跑通再考虑加大
-- 若 hybrid_v4 在 arxiv 上不稳定，退回到只报 random/tracin/im_v4
+- 若 hybrid 在 arxiv 上不稳定，退回到只报 random/tracin/im
 
 **预期产出**：5 family × 4 strategy × 3 seed = 60 runs。在 4090 上单 run ≈ 15–30 min（GU + retrain），总时长 ~15–30 GPU-hours，可控。
 
@@ -322,7 +366,7 @@
   保存 2026-02 阶段实验覆盖与完成度。
 - `../report/paper/stage_report_2026-02-27.md`
   对应中期阶段的阶段报告。
-- `../report/0417_5003report/main_report/msc_project_report.md`
+- `../report/progress/0417_5003report/main_report/msc_project_report.md`
   对应已经完成的课程报告，FIG-4b 数据来源。
 
 这份 memo 不替代这些文档，而是给出一个当前 thesis 线的解释与收束入口。

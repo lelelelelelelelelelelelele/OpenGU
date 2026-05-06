@@ -51,7 +51,19 @@ class OptimalAggregator:
             selected_indices = np.random.choice(np.arange(len(train_indices)), size=int(len(train_indices)), replace=False)
 
         train_indices = train_indices[selected_indices]
-        self.node2com = node2com[selected_indices]
+        # Defensive: node2com (loaded from the partition snapshot) and
+        # train_indices (loaded from the train/test split) can fall out of
+        # alignment when run_retrain shrinks the train set after unlearning.
+        # node2com is unused by OptimalAggregator (only ContrastiveAggregator
+        # consumes self.node2com), so a length mismatch should not fail this
+        # path. Mask out-of-range indices to a safe sentinel; downstream code
+        # that genuinely needs node2com (contrastive_aggregator) will still
+        # raise visibly if it walks past the array.
+        if len(selected_indices) and selected_indices.max() >= len(node2com):
+            safe_idx = np.clip(selected_indices, 0, len(node2com) - 1)
+            self.node2com = node2com[safe_idx]
+        else:
+            self.node2com = node2com[selected_indices]
 
         train_indices = np.sort(train_indices)
         self.logger.info("Using %s samples for optimization" % (int(train_indices.shape[0])))
@@ -72,15 +84,25 @@ class OptimalAggregator:
     def generate_train_data(self):
         train_data= self._generate_train_data()
 
+        # Save original target_model.data to restore after the loop. We need
+        # to point .data at train_data because GraphRevokerTrainer._inference
+        # reads self.data.x / self.data.edge_index (NOT self.data_full like
+        # NodeClassifier._inference does — that asymmetry between the two
+        # trainers is what made this bug latent until 2026-05-05).
+        original_data = getattr(self.target_model, 'data', None)
         for shard in range(self.num_shards):
-            # Inference on the selected nodes
-            # train_data = T.ToSparseTensor()(train_data)
-            self.target_model.data_full = train_data
+            self.target_model.data = train_data
+            self.target_model.data_full = train_data  # set both for safety
             if self.args['is_use_test_batch']:
                 self.target_model.gen_test_loader()
             dataset_utils.load_target_model(self.logger,self.args,self.run, self.target_model, shard)
 
             self.posteriors[shard] = self.target_model._inference()[0].to(self.device)
+
+        # Restore original data so subsequent code paths (e.g. unlearn-time
+        # aggregator re-runs) see what they expect.
+        if original_data is not None:
+            self.target_model.data = original_data
             #self.posteriors[shard] = self.target_model.posterior().to(self.device)
         
 

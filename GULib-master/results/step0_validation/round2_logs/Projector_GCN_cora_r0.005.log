@@ -1,213 +1,0 @@
-2026-02-16 05:41:08.586: my pid: 50892
-2026-02-16 05:41:08.589: {'Budget': 0.1,
- 'GIF_exp': 'unlearning',
- 'GIF_method': 'GIF',
- 'GNN_layer': 3,
- 'GPR': False,
- 'GST_delta': 0.0001,
- 'GUIDE_methods': 'SR',
- 'GUIDE_repair_methods': 'MixUp',
- 'J': 5,
- 'L': 3,
- 'M': 0.25,
- 'Q': 4,
- 'RW': 20,
- 'XdegNorm': False,
- 'Y_binary': '0',
- 'add_self_loops': True,
- 'aggregator': 'optimal',
- 'alpha': 0.5,
- 'alpha1': 0.8,
- 'alpha2': 0.5,
- 'analysis_path': 'analysis',
- 'approx': 'cg',
- 'axis_num': 1,
- 'balance_train': False,
- 'base_model': 'GCN',
- 'batch_size': 1024,
- 'c': 0.5,
- 'c1': 1.0,
- 'cal_mem': False,
- 'checkpoint_dir': './data/GNNDelete/checkpoint_node',
- 'compare_gnorm': False,
- 'compare_guo': False,
- 'compare_retrain': False,
- 'cuda': 0,
- 'damp': 0.0,
- 'damping': 0.0,
- 'dataset': 'null',
- 'dataset_name': 'cora',
- 'decay': 0.1,
- 'del_only': False,
- 'del_path_suffix': 'unlearning_data/',
- 'del_postfix': '',
- 'delta': 0.0001,
- 'depth': 300,
- 'df': 'out',
- 'df_idx': 'none',
- 'df_size': 0.5,
- 'disp': 5,
- 'display_step': 10,
- 'downstream_task': 'node',
- 'dropout_times': 2,
- 'early_stop': True,
- 'edge_idx_start': 0,
- 'emb_dim': 32,
- 'eps': 1.0,
- 'eval_on_cpu': False,
- 'exp': 'sequence',
- 'featNorm': False,
- 'feature': False,
- 'feature_update': True,
- 'file_name': 'unlearning_results',
- 'fix_random_seed': False,
- 'folds': 10,
- 'gamma_2': 1.0,
- 'gaussian_mean': 0.0,
- 'gaussian_std': 0.0,
- 'hidden': [],
- 'hidden_dim': 64,
- 'hop_neighbors': 20,
- 'in_dim': 128,
- 'is_balanced': False,
- 'is_constrained': True,
- 'is_gen_embedding': True,
- 'is_partition': True,
- 'is_prune': False,
- 'is_split': True,
- 'is_train_target_model': True,
- 'is_transductive': True,
- 'is_use_test_batch': False,
- 'is_use_train_batch': False,
- 'iteration': 100,
- 'kappa': 0.01,
- 'l': 0.25,
- 'l2': 1e-05,
- 'lam': 0.01,
- 'lambda': 1.0,
- 'lambda_edge_unlearn': 1.0,
- 'loss_fct': 'mse_mean',
- 'loss_type': 'both_layerwise',
- 'lr': 0.005,
- 'max_degree': False,
- 'neg_sample_random': 'non_connected',
- 'no_retrain': True,
- 'noise_mode': 'data',
- 'noise_ratio': 0.1,
- 'num_batch_removes': 5,
- 'num_epochs': 100,
- 'num_opt_samples': 1000,
- 'num_removes': 10,
- 'num_runs': 1,
- 'num_shards': 10,
- 'num_threads': 1,
- 'num_unlearned_nodes': 270,
- 'opt_decay': 0.0001,
- 'opt_lr': 0.001,
- 'opt_num_epochs': 20,
- 'optimizer': 'Adam',
- 'optuna': False,
- 'out_dim': 64,
- 'para1': 2.5,
- 'para2': 0.01,
- 'para3': 250,
- 'para4': 0.1,
- 'para5': 10,
- 'parallel_unlearning': 1,
- 'parameter_task': 'normal',
- 'partition_method': 'lpa_base',
- 'path': './data/ScaleGUN',
- 'patience': 5,
- 'poison': True,
- 'ppr': False,
- 'process': '',
- 'prop_algo': 'MC',
- 'prop_step': 3,
- 'proportion_unlearned_edges': 0.1,
- 'proportion_unlearned_edges_num': 0.0001,
- 'proportion_unlearned_nodes': 0.005,
- 'r': 0.5,
- 'random_seed': 2024,
- 'ratio_deleted_edges': 0,
- 'regen_model': True,
- 'removal_mode': 'node',
- 'remove_guo': False,
- 'repartition': False,
- 'require_linear_span': True,
- 'result_dir': './result/CGU',
- 'retrain': False,
- 'rm_disp_step': 1,
- 'rmax': 0.0,
- 'root_path': './',
- 'scale': 1000000000,
- 'shard_size_delta': 0.005,
- 'sparsity_ratio': 0.1,
- 'std': 0.01,
- 'terminate_delta': 0,
- 'test_batch': 5,
- 'test_batch_size': 64,
- 'test_freq': 10,
- 'test_ratio': 0.2,
- 'train_batch': 10,
- 'train_mode': 'ovr',
- 'train_ratio': 0.8,
- 'train_sep': False,
- 'trials': 3,
- 'unlearn_feature_partial_ratio': 0.5,
- 'unlearn_lr': 0.01,
- 'unlearn_ratio': 0.005,
- 'unlearn_task': 'node',
- 'unlearn_trainer': 'BaseTrainer',
- 'unlearning_epochs': 50,
- 'unlearning_methods': 'Projector',
- 'unlearning_model': 'gnndelete_nodeemb',
- 'use_adapt_gcs': False,
- 'use_batch': False,
- 'use_cross_entropy': False,
- 'use_test_neighbors': True,
- 'val_ratio': 0,
- 'verbose': False,
- 'wd': 0.0005,
- 'weight_mode': 'test',
- 'write': True,
- 'x_iters': 3,
- 'y_iters': 3}
-2026-02-16 05:41:08.595: Data already saved! ./data/processed/transductive/cora0.8_0_0.2.pkl
-2026-02-16 05:41:08.595: load_saved_data ./data/processed/transductive/cora0.8_0_0.2.pkl
-2026-02-16 05:41:08.606: load_saved_data ./data/processed/transductive/cora0.8_0_0.2dataset.pkl
-./data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.005_cora_0.txt
-2026-02-16 05:41:08.631: Model Summary:
-2026-02-16 05:41:08.631: Total Parameters: 46,080
-2026-02-16 05:41:08.631: Trainable Parameters: 46,080
-2026-02-16 05:41:08.631: Model Architecture:
-Pro_GNN()
-2026-02-16 05:41:08.631: Layer: W | Size: torch.Size([5760, 8]) | Requires Grad: True
-2026-02-16 05:41:08.632: Model is in training mode: True
-2026-02-16 05:41:08.632: Model is on device: cpu
-  0%|          | 0/100 [00:00<?, ?it/s]  1%|          | 1/100 [00:01<02:05,  1.26s/it]  2%|¨‡         | 2/100 [00:02<01:40,  1.03s/it]  3%|¨†         | 3/100 [00:02<01:31,  1.06it/s]  4%|¨…         | 4/100 [00:03<01:29,  1.07it/s]  5%|¨„         | 5/100 [00:04<01:25,  1.11it/s]  6%|¨„         | 6/100 [00:05<01:23,  1.13it/s]  7%|¨ƒ         | 7/100 [00:06<01:22,  1.13it/s]  8%|¨‚         | 8/100 [00:07<01:23,  1.10it/s]2026-02-16 05:41:17.160: Epoch: 9, Train: 0.5212, Test: 0.5387
-  9%|¨         | 9/100 [00:08<01:24,  1.08it/s] 10%|¨€         | 10/100 [00:09<01:24,  1.07it/s] 11%|¨€         | 11/100 [00:10<01:23,  1.07it/s] 12%|¨€¨‡        | 12/100 [00:11<01:22,  1.06it/s] 13%|¨€¨†        | 13/100 [00:12<01:21,  1.07it/s] 14%|¨€¨…        | 14/100 [00:13<01:20,  1.07it/s] 15%|¨€¨„        | 15/100 [00:14<01:20,  1.06it/s] 16%|¨€¨„        | 16/100 [00:15<01:21,  1.03it/s] 17%|¨€¨ƒ        | 17/100 [00:16<01:20,  1.03it/s] 18%|¨€¨‚        | 18/100 [00:17<01:19,  1.03it/s]2026-02-16 05:41:26.844: Epoch: 19, Train: 0.6431, Test: 0.6365
- 19%|¨€¨        | 19/100 [00:18<01:20,  1.01it/s] 20%|¨€¨€        | 20/100 [00:19<01:19,  1.01it/s] 21%|¨€¨€        | 21/100 [00:20<01:18,  1.00it/s] 22%|¨€¨€¨‡       | 22/100 [00:21<01:17,  1.00it/s] 23%|¨€¨€¨†       | 23/100 [00:22<01:16,  1.00it/s] 24%|¨€¨€¨…       | 24/100 [00:23<01:15,  1.01it/s] 25%|¨€¨€¨„       | 25/100 [00:24<01:14,  1.01it/s] 26%|¨€¨€¨„       | 26/100 [00:24<01:12,  1.02it/s] 27%|¨€¨€¨ƒ       | 27/100 [00:25<01:10,  1.04it/s] 28%|¨€¨€¨‚       | 28/100 [00:26<01:08,  1.05it/s]2026-02-16 05:41:36.557: Epoch: 29, Train: 0.7331, Test: 0.7103
- 29%|¨€¨€¨       | 29/100 [00:27<01:07,  1.05it/s] 30%|¨€¨€¨€       | 30/100 [00:28<01:07,  1.04it/s] 31%|¨€¨€¨€       | 31/100 [00:29<01:06,  1.03it/s] 32%|¨€¨€¨€¨‡      | 32/100 [00:30<01:06,  1.03it/s] 33%|¨€¨€¨€¨†      | 33/100 [00:31<01:07,  1.00s/it] 34%|¨€¨€¨€¨…      | 34/100 [00:32<01:05,  1.01it/s] 35%|¨€¨€¨€¨„      | 35/100 [00:33<01:04,  1.01it/s] 36%|¨€¨€¨€¨„      | 36/100 [00:34<01:03,  1.01it/s] 37%|¨€¨€¨€¨ƒ      | 37/100 [00:35<01:02,  1.01it/s] 38%|¨€¨€¨€¨‚      | 38/100 [00:36<01:01,  1.01it/s]2026-02-16 05:41:46.595: Epoch: 39, Train: 0.7839, Test: 0.7601
- 39%|¨€¨€¨€¨      | 39/100 [00:37<01:02,  1.02s/it] 40%|¨€¨€¨€¨€      | 40/100 [00:38<01:03,  1.05s/it] 41%|¨€¨€¨€¨€      | 41/100 [00:40<01:04,  1.09s/it] 42%|¨€¨€¨€¨€¨‡     | 42/100 [00:41<01:04,  1.11s/it] 43%|¨€¨€¨€¨€¨†     | 43/100 [00:42<01:02,  1.10s/it] 44%|¨€¨€¨€¨€¨…     | 44/100 [00:43<01:00,  1.08s/it] 45%|¨€¨€¨€¨€¨„     | 45/100 [00:44<00:58,  1.06s/it] 46%|¨€¨€¨€¨€¨„     | 46/100 [00:45<00:56,  1.04s/it] 47%|¨€¨€¨€¨€¨ƒ     | 47/100 [00:46<00:54,  1.03s/it] 48%|¨€¨€¨€¨€¨‚     | 48/100 [00:47<00:53,  1.03s/it]2026-02-16 05:41:57.193: Epoch: 49, Train: 0.8107, Test: 0.7952
- 49%|¨€¨€¨€¨€¨     | 49/100 [00:48<00:51,  1.02s/it] 50%|¨€¨€¨€¨€¨€     | 50/100 [00:49<00:50,  1.01s/it] 51%|¨€¨€¨€¨€¨€     | 51/100 [00:50<00:50,  1.02s/it] 52%|¨€¨€¨€¨€¨€¨‡    | 52/100 [00:51<00:49,  1.04s/it] 53%|¨€¨€¨€¨€¨€¨†    | 53/100 [00:52<00:48,  1.03s/it] 54%|¨€¨€¨€¨€¨€¨…    | 54/100 [00:53<00:47,  1.03s/it] 55%|¨€¨€¨€¨€¨€¨„    | 55/100 [00:54<00:45,  1.02s/it] 56%|¨€¨€¨€¨€¨€¨„    | 56/100 [00:55<00:44,  1.02s/it] 57%|¨€¨€¨€¨€¨€¨ƒ    | 57/100 [00:56<00:43,  1.01s/it] 58%|¨€¨€¨€¨€¨€¨‚    | 58/100 [00:57<00:41,  1.01it/s]2026-02-16 05:42:07.283: Epoch: 59, Train: 0.8278, Test: 0.8229
- 59%|¨€¨€¨€¨€¨€¨    | 59/100 [00:58<00:40,  1.01it/s] 60%|¨€¨€¨€¨€¨€¨€    | 60/100 [00:59<00:39,  1.00it/s] 61%|¨€¨€¨€¨€¨€¨€    | 61/100 [01:00<00:38,  1.01it/s] 62%|¨€¨€¨€¨€¨€¨€¨‡   | 62/100 [01:01<00:37,  1.00it/s] 63%|¨€¨€¨€¨€¨€¨€¨†   | 63/100 [01:02<00:36,  1.00it/s] 64%|¨€¨€¨€¨€¨€¨€¨…   | 64/100 [01:03<00:36,  1.02s/it] 65%|¨€¨€¨€¨€¨€¨€¨„   | 65/100 [01:04<00:35,  1.00s/it] 66%|¨€¨€¨€¨€¨€¨€¨„   | 66/100 [01:05<00:33,  1.01it/s] 67%|¨€¨€¨€¨€¨€¨€¨ƒ   | 67/100 [01:06<00:32,  1.01it/s] 68%|¨€¨€¨€¨€¨€¨€¨‚   | 68/100 [01:07<00:31,  1.02it/s]2026-02-16 05:42:17.228: Epoch: 69, Train: 0.8384, Test: 0.8450
- 69%|¨€¨€¨€¨€¨€¨€¨   | 69/100 [01:08<00:30,  1.02it/s] 70%|¨€¨€¨€¨€¨€¨€¨€   | 70/100 [01:09<00:29,  1.01it/s] 71%|¨€¨€¨€¨€¨€¨€¨€   | 71/100 [01:10<00:29,  1.00s/it] 72%|¨€¨€¨€¨€¨€¨€¨€¨‡  | 72/100 [01:11<00:28,  1.03s/it] 73%|¨€¨€¨€¨€¨€¨€¨€¨†  | 73/100 [01:12<00:27,  1.02s/it] 74%|¨€¨€¨€¨€¨€¨€¨€¨…  | 74/100 [01:13<00:26,  1.00s/it] 75%|¨€¨€¨€¨€¨€¨€¨€¨„  | 75/100 [01:14<00:24,  1.01it/s] 76%|¨€¨€¨€¨€¨€¨€¨€¨„  | 76/100 [01:15<00:23,  1.01it/s] 77%|¨€¨€¨€¨€¨€¨€¨€¨ƒ  | 77/100 [01:16<00:22,  1.02it/s] 78%|¨€¨€¨€¨€¨€¨€¨€¨‚  | 78/100 [01:17<00:21,  1.01it/s]2026-02-16 05:42:27.296: Epoch: 79, Train: 0.8472, Test: 0.8469
- 79%|¨€¨€¨€¨€¨€¨€¨€¨  | 79/100 [01:18<00:21,  1.01s/it] 80%|¨€¨€¨€¨€¨€¨€¨€¨€  | 80/100 [01:19<00:20,  1.02s/it] 81%|¨€¨€¨€¨€¨€¨€¨€¨€  | 81/100 [01:20<00:19,  1.02s/it] 82%|¨€¨€¨€¨€¨€¨€¨€¨€¨‡ | 82/100 [01:21<00:18,  1.02s/it] 83%|¨€¨€¨€¨€¨€¨€¨€¨€¨† | 83/100 [01:22<00:16,  1.00it/s] 84%|¨€¨€¨€¨€¨€¨€¨€¨€¨… | 84/100 [01:23<00:16,  1.01s/it] 85%|¨€¨€¨€¨€¨€¨€¨€¨€¨„ | 85/100 [01:24<00:14,  1.01it/s] 86%|¨€¨€¨€¨€¨€¨€¨€¨€¨„ | 86/100 [01:25<00:13,  1.02it/s] 87%|¨€¨€¨€¨€¨€¨€¨€¨€¨ƒ | 87/100 [01:26<00:12,  1.03it/s] 88%|¨€¨€¨€¨€¨€¨€¨€¨€¨‚ | 88/100 [01:27<00:11,  1.01it/s]2026-02-16 05:42:37.267: Epoch: 89, Train: 0.8541, Test: 0.8561
- 89%|¨€¨€¨€¨€¨€¨€¨€¨€¨ | 89/100 [01:28<00:10,  1.00it/s] 90%|¨€¨€¨€¨€¨€¨€¨€¨€¨€ | 90/100 [01:29<00:09,  1.01it/s] 91%|¨€¨€¨€¨€¨€¨€¨€¨€¨€ | 91/100 [01:30<00:08,  1.01it/s] 92%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨‡| 92/100 [01:31<00:08,  1.02s/it] 93%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨†| 93/100 [01:32<00:07,  1.01s/it] 94%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨…| 94/100 [01:33<00:06,  1.01s/it] 95%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨„| 95/100 [01:34<00:04,  1.01it/s] 96%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨„| 96/100 [01:35<00:03,  1.01it/s] 97%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨ƒ| 97/100 [01:36<00:02,  1.02it/s] 98%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨‚| 98/100 [01:37<00:01,  1.01it/s]2026-02-16 05:42:47.330: Epoch: 99, Train: 0.8596, Test: 0.8616
- 99%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨| 99/100 [01:38<00:01,  1.02s/it]100%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨€| 100/100 [01:39<00:00,  1.05s/it]100%|¨€¨€¨€¨€¨€¨€¨€¨€¨€¨€| 100/100 [01:39<00:00,  1.00it/s]train model time 99.79665470123291
-Direct predict >>> Train: 0.8564, Test: 0.8598
-Label reuse >>> Train: 0.8587, Test: 0.8487
->>> Number of nodes are predicted as the last category 0
-extra_channel_norm_before 0.10946974903345108 extra_channel_norm_after 0.0
-Unlearning step 1 >>>
-2026-02-16 05:42:51.348: Total time:1.958655834197998
-Direct predict >>> Train: 0.8569, Test: 0.8616
-Label reuse >>> Train: 0.8587, Test: 0.8487
->>> Number of nodes are predicted as the last category 0
-2026-02-16 05:42:52.497: [34mPerformance Metrics:
- - Average Direct F1 Score: 0.8616 ¡À 0.0000
- - Average Reuse F1 Score: 0.8487 ¡À 0.0000
- - Average AUC Score: 0.0000 ¡À 0.0000
- - Average Unlearning Time: 1.9587 ¡À 0.0000 seconds
-[0m
-
