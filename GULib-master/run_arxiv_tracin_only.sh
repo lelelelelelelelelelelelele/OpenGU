@@ -25,7 +25,8 @@ set -u
 
 PROJECT_DIR="${PROJECT_DIR:-/autodl-fs/data/OpenGU/GULib-master}"
 PREWARM_TIMEOUT="${PREWARM_TIMEOUT:-6h}"
-NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-18}"
+# Auto-detect cores; fall back to 18 if nproc unavailable
+NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(nproc 2>/dev/null || echo 18)}"
 BRANCH="${BRANCH:-release/phase-b-fixes}"
 SKIP_SHUTDOWN="${SKIP_SHUTDOWN:-0}"
 

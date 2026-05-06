@@ -26,9 +26,10 @@
 
 set -u   # 未定义变量报错；不用 set -e（要保留 status 流程）
 
-PROJECT_DIR="${PROJECT_DIR:-/root/autodl-fs/OpenGU/GULib-master}"
+PROJECT_DIR="${PROJECT_DIR:-/autodl-fs/data/OpenGU/GULib-master}"
 SMOKE_TIMEOUT="${SMOKE_TIMEOUT:-3h}"
-NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-14}"
+# Auto-detect cores; fall back to 18 if nproc unavailable
+NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(nproc 2>/dev/null || echo 18)}"
 BRANCH="${BRANCH:-release/phase-b-fixes}"
 SKIP_SHUTDOWN="${SKIP_SHUTDOWN:-0}"
 
