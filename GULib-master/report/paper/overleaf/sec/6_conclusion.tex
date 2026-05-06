@@ -51,6 +51,9 @@ third members within each family are deferred.
 \textbf{L7.} The design spans seven axes, so we use claim-conditioned
 slices rather than a Cartesian-complete grid; untested combinations are
 reported as out of scope in Appendix~\ref{app:results}.
+\textbf{L8.} The reported update-detection AUC is a posterior-shift
+deletion-membership audit, not a full shadow-model MIA; scaling standard
+shadow-model MIA across all GU families is left to future work.
 
 \subsection{Broader Impact}
 \label{sec:broader}
@@ -58,14 +61,14 @@ reported as out of scope in Appendix~\ref{app:results}.
 Approximate GU papers should report not only random-deletion utility and
 runtime, but also adversarial-deletion bounds. The diagnostic kit here
 ($\Delta F$ decomposition, retrain gap, prediction shift, hop-distance
-decay, and MIA) can be reused with stronger selectors.
+decay, and update-detection AUC) can be reused with stronger selectors.
 
 A coalition-of-users can reach the L1 structural tier at zero additional
 model-access cost; L2-\textsc{direct} should be read as an upper bound on
 what a shadow-model attacker may realize after transfer. Shard Protection
 is therefore a defensive insight rather than a deployment guarantee: it
 limits utility collapse, but it does not by itself address privacy
-leakage.
+objectives.
 
 \subsection{Future Directions}
 \label{sec:future}
@@ -75,5 +78,5 @@ partition-based GU (a natural baseline being a deletion-budget cap that
 falls back to exact retraining once a coalition exceeds threshold);
 cross-architecture surrogate transferability of model-coupled selectors,
 which would tighten the L2-\textsc{direct}/\textsc{surrogate} gap of L4;
-and attacks whose objective is privacy leakage rather than downstream
-F1.
+and attacks whose objective is privacy leakage or deletion visibility
+rather than downstream F1.

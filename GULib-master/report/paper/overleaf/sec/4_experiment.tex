@@ -50,9 +50,11 @@ seed)---with paired mean, paired standard deviation, 95\% bootstrap CI,
 and a one-sided $t$-test against the null $\mu\le 0$;
 (b)~retrain gap, prediction shift, and hop-distance decay
 (\S\ref{sec:diagnostics});
-(c)~MIA AUC using the shadow-model attack
-of~\cite{olatunji2021membership}, which adapts the shadow-model
-methodology of Shokri et al.~\cite{shokri2017membership} to GNNs.
+(c)~update-detection AUC, a posterior-shift deletion-membership audit
+inherited from the OpenGU evaluation protocol: positives are nodes
+requested for unlearning, negatives are held-out test nodes, and the
+attack score is the $L_2$ shift in posterior outputs before versus after
+unlearning, evaluated by ROC-AUC.
 The architectural term $\Delta F_{\text{arch}}(k)$ is reported separately
 as a per-method bar chart in \S\ref{sec:results-shard}.
 

@@ -91,24 +91,24 @@ Total = Drop_retrain + Gap
 
 ### v2 完整指标集（最小指标集，6 类）
 
-> 来源：`paper_library_synthesis` Thread D + Reviewer Checklist #5 的核心结论——仅靠 MIA AUC 无法全面评估攻击效果（GraphToxin 的批评）。以下 6 类指标构成 v2 的**最小指标集**，论文实验必须全部覆盖，不可仅报告子集。
+> 来源：`paper_library_synthesis` Thread D + Reviewer Checklist #5 的核心结论——仅靠单一隐私 AUC 无法全面评估攻击效果（GraphToxin 的批评，原文措辞 "rely solely on MIA AUC"）。以下 6 类指标构成 v2 的**最小指标集**，论文实验必须全部覆盖，不可仅报告子集。本工程实测的隐私侧 metric 为 **update-detection AUC**（posterior-shift deletion-membership audit），并非标准 shadow-model MIA——见 §2 行 + `self/paper_todo.md` §Decision。
 
 | # | 指标类别 | 核心量 | 含义 | 实现位置 |
 |---|---------|--------|------|---------|
 | 1 | **F1 Drop** | `f1_before - f1_after` | 攻击导致的直接性能下降 | `attack_eval.py::evaluate_f1_drop()` |
-| 2 | **MIA AUC** | ROC-AUC | 隐私泄漏信号（MIA 成功率） | `attack_eval.py::evaluate_mia()` |
+| 2 | **Update-Detection AUC** (legacy: MIA AUC) | ROC-AUC | unlearning update-detection audit：positives = 被删节点，negatives = held-out test 节点，score = unlearn 前 vs 后 posterior 的 L2 距离 | `attack_eval.py::evaluate_mia_auc()`；JSON 字段 `mia_auc` |
 | 3 | **Selection Time** | 秒 | 攻击策略的计算开销 | `attack_manager.py` 计时 |
 | 4 | **Approximation Gap** | `Perf_retrain - Perf_unlearn` | 单次运行的近似遗忘额外损失（over-forgetting）及 3-model 归因分解 | `attack_eval.py::evaluate_retrain_gap()`（单 run） |
 | 5 | **Collateral Damage** | `mean_pred_shift`, `fraction_flipped` | 保留节点上 unlearn vs retrain 的预测差异（隔离近似误差的波及效应） | `attack_eval.py::evaluate_collateral_damage()` |
 | 6 | **Gap 统计显著性** | t-test p-value, 95% CI | 多 seed（≥5）聚合：Gap 是否显著大于 0 的假设检验 | `attack_eval.py::compute_gap_statistics()`（跨 run 汇总） |
 
-> **设计原则**：指标 1-2 衡量攻击效果，指标 3 衡量攻击可行性，指标 4-6 提供归因证据。缺少任一类都会被 reviewer 质疑（参见 synthesis Reviewer Checklist #5："multi-metric leakage — don't rely solely on MIA AUC"）。
+> **设计原则**：指标 1-2 衡量攻击效果，指标 3 衡量攻击可行性，指标 4-6 提供归因证据。缺少任一类都会被 reviewer 质疑（参见 synthesis Reviewer Checklist #5："multi-metric leakage — don't rely solely on MIA AUC"——原文针对 shadow-model MIA，这里同等适用于本文的 update-detection AUC：单一隐私 AUC 不充分，必须搭配 utility / locality / fidelity 指标）。
 >
 > **#4 vs #6 分工**：#4 = 单 run 归因分解（`evaluate_retrain_gap()` 返回单次 Gap 值及 3-model 分解），#6 = 跨 run 假设检验（`compute_gap_statistics()` 聚合多 seed 的 Gap 值做 t-test）。两者输入输出不同，不重叠。
 
 ---
 
-**v1 指标（4 个）**：F1 Drop, MIA AUC, Selection Time, Retrain Gap
+**v1 指标（4 个）**：F1 Drop, Update-Detection AUC（legacy: MIA AUC）, Selection Time, Retrain Gap
 
 **v2 新增（2 个）**：
 
@@ -239,7 +239,7 @@ Phase 2 消融实验须覆盖以下维度，构成完整消融矩阵：
 | 攻击者能力 | 自有节点注入（inject） / 任意节点选择（select） | select（攻击者可提交删除请求指定任意自有节点） |
 | 信息获取 | white-box / gray-box（可查询模型） / black-box（仅观察输出） | gray-box（可获取模型预测概率，用于 TracIn/MIA） |
 | 删除请求渠道 | 法规驱动（GDPR）/ 平台自助 / API | 法规驱动（合理性：用户可依据 GDPR 请求删除自己的数据） |
-| 攻击者目标 | 模型性能下降 / 隐私泄漏 / 两者兼顾 | 两者兼顾（F1 Drop + MIA AUC 同时评估） |
+| 攻击者目标 | 模型性能下降 / 隐私泄漏 / 两者兼顾 | 两者兼顾（F1 Drop + Update-Detection AUC 同时评估；后者非标准 shadow-model MIA） |
 
 > **注意**：上表中"本文设定"列为初始设定，Phase 2 实验中可能根据结果调整。最终版本以论文 §3 Threat Model 为准。
 
@@ -295,7 +295,7 @@ Phase 2 消融实验须覆盖以下维度，构成完整消融矩阵：
 
 | 维度 | v2 指标 | 覆盖程度 | v3 候选补充 |
 |------|---------|----------|------------|
-| **Efficacy** (模型是否真正遗忘) | MIA AUC (confidence-based) | 部分 — 仅用 max softmax，未检查遗忘节点的具体预测行为 | Forgotten Node Accuracy (#8.2) |
+| **Efficacy** (模型是否真正遗忘) | Update-Detection AUC (legacy: MIA AUC) | 部分 — 该 metric 是 posterior-shift deletion-membership audit（非标准 shadow-model MIA），未直接检查遗忘节点的具体预测行为 | Forgotten Node Accuracy (#8.2) |
 | **Utility** (保留数据性能) | F1 Drop | ✓ 充分 | — |
 | **Locality** (影响范围控制) | Collateral Damage (pred_shift, fraction_flipped) | 全局聚合 — 未考虑图距离的空间衰减 | Hop-distance Decay (#8.3) |
 | **Fidelity** (与 retrain 接近度) | Retrain Gap, Gap Statistics | ✓ 充分 | — |
@@ -304,7 +304,7 @@ Phase 2 消融实验须覆盖以下维度，构成完整消融矩阵：
 
 ### 8.2 Forgotten Node Accuracy（Efficacy 补充）
 
-**问题**：MIA AUC 衡量的是隐私泄漏，但没有直接回答"模型是否还记得被删节点"。
+**问题**：Update-Detection AUC（legacy: MIA AUC）衡量的是"unlearning 更新可被检测的程度"，但没有直接回答"模型是否还记得被删节点"。即便升级为标准 shadow-model MIA，单一 membership signal 也不充分。
 
 **定义**：
 
@@ -324,7 +324,7 @@ FNA = Accuracy(model_unlearned, data, unlearn_mask)
 
 **论文价值**：中等。补全 efficacy 维度的直觉性指标，但多数 GNN unlearning 论文不报告此指标（它们通常假设遗忘有效，关注的是 utility preservation）。对于攻击论文，展示"攻击选点使得遗忘更不彻底"可以是一个附加论点。
 
-**决策条件**：若 MIA AUC 在实验中区分度不够（多数方法 AUC ≈ 0.5），则实现此指标作为替代 efficacy 度量。
+**决策条件**：若 Update-Detection AUC 在实验中区分度不够（多数方法 AUC ≈ 0.5），则实现此指标作为替代 efficacy 度量。
 
 ### 8.3 Hop-distance Collateral Decay（Locality 补充，GNN 特有）
 
@@ -400,7 +400,7 @@ KS_pagerank = KS_test(pagerank[attack_nodes], pagerank[random_nodes])
 | 优先级 | 指标 | 触发条件 | 工作量 |
 |--------|------|----------|--------|
 | ★★★ | Hop-distance Decay (#8.3) | 需要 GNN-specific 贡献点 | 中 |
-| ★★☆ | Forgotten Node Accuracy (#8.2) | MIA AUC 区分度不够 | 极低 |
+| ★★☆ | Forgotten Node Accuracy (#8.2) | Update-Detection AUC 区分度不够 | 极低 |
 | ★★☆ | Budget Efficiency (#8.4) | Phase C 完成后自动可得 | 极低 |
 | ★☆☆ | Stealthiness (#8.5) | Reviewer 质疑隐蔽性 | 低 |
 

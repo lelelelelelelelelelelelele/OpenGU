@@ -1,12 +1,12 @@
 # Paper TODO
 
-> Last updated: 2026-05-06
+> Last updated: 2026-05-07
 
 ## Correct privacy-audit terminology
 
 ### Status
 
-Open. The experiments can stay as-is, but the paper wording must be corrected before submission.
+Done (2026-05-07). Paper text (`report/paper/overleaf/sec/{1,2,4,5,6,B}*.tex` + `report/paper/outline/02,04,05_4,05_5,06_3,06*.md`) updated; `self/` and `self/dashboard/` docs synced same day. The Issue / Decision / Required edits / Files-to-revisit blocks below are preserved verbatim as the audit trail for why the change was made — do not delete.
 
 ### Issue
 

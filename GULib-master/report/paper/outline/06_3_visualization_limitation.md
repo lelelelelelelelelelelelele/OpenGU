@@ -30,7 +30,7 @@ Rather than projecting to a low-dim space, we **condition on different axes in d
 | §5.1 main fingerprint | dataset=cora, backbone=GCN, r=0.05 | 6 methods × 5 seeds | family cluster geometry (canonical cell) |
 | §5.2 scaling | backbone=GCN, r=0.05 | dataset ∈ {cora, citeseer, arxiv} | fingerprint scale-invariance |
 | §A backbone robustness (small-multiples) | dataset=cora, r=0.05 | backbone ∈ {GCN, GAT} | fingerprint backbone-invariance |
-| §5.3 / §5.4 / §5.5 | strategy collapsed to paired-effect summary | method × dataset × backbone | per-axis single-claim (Shard Protection / hop-decay / MIA) |
+| §5.3 / §5.4 / §5.5 | strategy collapsed to paired-effect summary | method × dataset × backbone | per-axis single-claim (Shard Protection / hop-decay / update-detection) |
 | §A.3 α-sweep | dataset=cora, r=0.05 | method × backbone × α | synergy / redundancy diagnostic |
 | §A.5 ratio sweep | dataset=cora, backbone=GCN, α ∈ {0, 1} | method × strategy × r | per-family budget elasticity |
 

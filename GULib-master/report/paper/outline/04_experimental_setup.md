@@ -16,7 +16,7 @@
   - **Backup / contingency** (3rd-member 2→3 candidates, deprioritized — marginal value < 1→2 pairing): GST (3rd IF), GUKD (3rd Learning). Add only if cycles permit or if GraphRevoker fails feasibility.
   Family selection rationale: with GraphRevoker re-wired, **all 3 covered categories have intra-family pairs (n=2)**, enabling consistent intra-family coherence testing across Partition / IF / Learning (§5.1). Partition pair is canonical+canonical (both legit partition methods, neither pre-labeled outlier); IF and Learning pairs are canonical+predicted-outlier.
 - **4.3 Attack budget and seeds** — main matrix r=0.05, 5 seeds Cora/Citeseer (42, 212, 722, 1337, 2024), 3 seeds ogbn-arxiv. IM selector seed fixed at 2024. Ratio sweep r ∈ {0.01, 0.05, 0.10, 0.20} on cora/GCN reported in §A.5.
-- **4.4 Reporting protocol** — paired effect (per-seed F1 difference vs matched random), 95% bootstrap CI, one-sided t-test against $\mu \le 0$. MIA via shadow-model.
+- **4.4 Reporting protocol** — paired effect (per-seed F1 difference vs matched random), 95% bootstrap CI, one-sided t-test against $\mu \le 0$. Update-detection AUC: positives are requested-for-unlearning nodes, negatives are held-out test nodes, score is before-vs-after posterior $L_2$ shift, metric is ROC-AUC.
 - **4.5 Implementation** — PyTorch + PyG, Adam (lr 1e-2, wd 5e-4), 100 epochs Cora/Citeseer (200 arxiv). batch-CELF candidate-fraction 0.1, 50 MC rounds, 34× speedup over brute CELF.
 - **4.6 Scaling to ogbn-arxiv** *(NEW)*:
   - Why 3 seeds not 5 (GPU-h budget; brief power note)

@@ -49,9 +49,12 @@ Vulnerability Fingerprint.
 
 \paragraph{Membership inference and model auditing.}
 MIA against GNNs~\cite{olatunji2021membership,he2021stealing} provides a
-complementary privacy lens. Our framework reports per-method MIA AUC as a
-privacy-leakage diagnostic (\S\ref{sec:results-mia}); the
-utility-collapse attacks we study are orthogonal to MIA but share the
-threat model of an adversary with deletion-API access, and the two
-diagnostics decouple in our results---some methods leak membership while
-resisting F1 attack, and vice versa.
+related privacy-audit lens. The metric we report in
+\S\ref{sec:results-mia}, however, is not a Shokri/Olatunji-style
+shadow-model MIA. It is a method-native update-detection AUC inherited
+from the OpenGU evaluation protocol: a posterior-shift
+deletion-membership audit that scores whether requested-for-unlearning
+nodes are more visible than held-out test nodes after an update. The
+utility-collapse attacks we study are orthogonal to this audit but share
+the deletion-API setting, and the two diagnostics decouple in our
+results.

@@ -15,7 +15,7 @@
 
 ## Content
 
-- Per-method collateral table (retrain gap, prediction shift, MIA AUC)
+- Per-method collateral table (retrain gap, prediction shift, update-detection AUC)
 - **Hop-decay curve figure** (FIG-2): per-family lines, bucket on x-axis, F1 change on y-axis. Compare to GCN num-layers (2 vs 3 on arxiv).
 - Discussion: which family-strategy combinations propagate vs localize; ties to whether the attack exploits the *mechanism* or just the *data*
 

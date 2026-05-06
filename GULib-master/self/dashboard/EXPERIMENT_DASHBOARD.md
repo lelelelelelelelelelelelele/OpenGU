@@ -1,8 +1,8 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-06
+> Last updated: 2026-05-07
 > See rules: `CLAUDE.md`
-> NeurIPS deadline: 1 day from now (~2026-05-07)
+> NeurIPS deadline: today (~2026-05-07)
 
 ---
 
@@ -78,6 +78,8 @@
 ## 3. 关键已知问题（截至 2026-05-06）
 
 ### 3.1 ✅ MIA AUC = 0.000 bug（Phase A.1-A.3）— 已修复
+
+> Note (2026-05-07): paper-side metric 现命名为 **update-detection AUC**（首次出现可写 "posterior-shift deletion-membership audit"，详见 `METRICS_CATALOG §2`）。本节标题与 code field `mia_auc` / log 中 "MIA AUC" / sanity-check 命令保留 legacy 命名以便溯源。
 
 | Family | 位置 | 状态（2026-05-04） |
 |--------|------|--------|
@@ -207,6 +209,7 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 
 > 迁入日期：2026-05-05（原文件 `results/experiments/CLAUDE.md` 在 1300+ 文件 untrack 时一并删除，但 mapping 表本身保留参考价值）。
 > 数据本身因 bug（MIA AUC=0、IM Jaccard=0.13）已不可信于 paper 引用；本表仅供历史溯源。
+> Note (2026-05-07): "MIA AUC" 是 legacy 名，paper 现称 **update-detection AUC**（详见 `METRICS_CATALOG §2`）；historical bug 名保留以匹配旧 log/JSON。
 
 ### 7.1 子目录对应表（pre-Phase-B 命名）
 

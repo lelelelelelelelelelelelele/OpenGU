@@ -422,6 +422,8 @@ def evaluate_f1_drop(
 
 ### 5.2 `evaluate_mia_auc(model, data, member_mask, non_member_mask) -> float`
 
+> *Paper 报道为 **update-detection AUC**（首次出现："a posterior-shift deletion-membership audit"）。函数名与 JSON 字段 `mia_auc` 出于向后兼容保留 legacy 命名。该 metric **不是**标准 shadow-model MIA。详见 `self/dashboard/METRICS_CATALOG.md §2`。*
+
 ```python
 def evaluate_mia_auc(
     model: torch.nn.Module,
@@ -430,10 +432,10 @@ def evaluate_mia_auc(
     non_member_mask: Tensor
 ) -> float:
     """
-    简易 MIA 评估：用模型输出 confidence 做 membership 判断。
+    Update-detection AUC（legacy 名 "MIA AUC"）：用模型输出 confidence 做 deletion-membership 判断。
 
     Returns:
-        auc: MIA AUC score (0.5 = 无信息泄露)
+        auc: Update-Detection AUC score (0.5 = update 不可探测)
     """
 ```
 

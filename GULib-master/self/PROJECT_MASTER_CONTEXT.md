@@ -95,7 +95,7 @@
 ### 5.2 核心指标 (Metrics)
 *   **F1 Score Drop**: Node Classification F1 下降幅度（vs 未遗忘基线）。
 *   **Relative F1 Drop**: 相对于 k=5 random baseline 的归一化下降（由 `eval_relative.py` 计算）。
-*   **MIA AUC**: Membership Inference Attack AUC（隐私泄露程度）。
+*   **Update-Detection AUC** (legacy field `mia_auc`): posterior-shift deletion-membership audit；positives = 被删节点，negatives = held-out test 节点，score = unlearn 前 vs 后 posterior 的 L2 距离。**不是**标准 shadow-model MIA。
 *   **Retrain Gap**: 近似遗忘与精确重训练之间的性能差距。
 *   **Collateral Damage**: 攻击对非目标节点的波及影响。
 *   **Efficiency**: 节点选择算法的时间复杂度。

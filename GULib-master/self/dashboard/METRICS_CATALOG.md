@@ -1,6 +1,6 @@
 # Metrics Catalog
 
-> Last updated: 2026-05-06
+> Last updated: 2026-05-07
 > Source of definitions: `self/plan_flow_v2_delta.md` §3
 > 实测状态字段每次重跑后更新
 > Field semantics: read `self/dashboard/METRIC_FIELD_SEMANTICS.md` before using any `*_before` value.
@@ -18,19 +18,24 @@
 - **Phase B 主用法**：用 `relative_f1_drop = baseline_f1_after(k=5 random) - attack_f1_after`，不依赖 `f1_before`
 - **bug/口径状态**：字段名有历史歧义；详见 `METRIC_FIELD_SEMANTICS.md`
 
-### 2. MIA AUC ⚠️
+### 2. Update-Detection AUC ⚠️ (legacy field: `mia_auc`)
 
-- **核心量**：confidence-based ROC-AUC（max softmax）
-- **实现**：`attack/attack_eval.py::evaluate_mia_auc()` (line 72)
-- **存储**：JSON 每个 strategy 的 `mia_auc` 字段
-- **覆盖**：
+- **协议（posterior-shift deletion-membership audit）**：
+  - **positives**：被请求 unlearn 的节点（deleted set）
+  - **negatives**：held-out test 节点
+  - **score**：unlearn 前 vs unlearn 后模型 posterior 输出的 L2 距离
+  - **metric**：上述 score 的 ROC-AUC
+- **scope note**：这**不是**标准的 Shokri/Olatunji shadow-model membership inference attack。它直接审计"一次 unlearning 更新是否暴露了被删除集合"，更贴合 deletion-selection / graph-unlearning threat model。详见 `self/paper_todo.md` §Decision。Paper 主术语：**update-detection AUC**；首次出现可写 "a posterior-shift deletion-membership audit"。
+- **实现**：`attack/attack_eval.py::evaluate_mia_auc()` (line 72)；运行期 `attack.json::mia_auc` 由 `attack/pipeline_adapter.py` 从各方法的 `average_auc` 取值（GIF/GNNDelete/MEGU/IDEA 单模 forward；GraphEraser/GraphRevoker 走 shard ensemble），function 与字段名出于向后兼容**保留 legacy 命名**。
+- **存储**：JSON 每个 strategy 的 `mia_auc` 字段（field name unchanged）
+- **覆盖**（数值为历史 pre-Phase-B 数据，下次 Phase B 重跑后刷新）：
   - GIF: 0.585–0.640 ✅
-  - GNNDelete: 0.409–0.543 ⚠（≈ 0.5，攻击信号弱）
-  - **GraphEraser: 0.000 ❌ bug**
-  - IDEA: 0.308–0.509 ⚠（攻击信号弱）
-  - **MEGU: 0.000 ❌ bug**
-- **bug 位置**：见 `EXPERIMENT_DASHBOARD.md §3.1`
-- **paper 用法**：secondary metric，appendix。详见 thesis_transition_memo §3.5 framing
+  - GNNDelete: 0.409–0.543 ⚠（≈ 0.5，update-detection 信号弱）
+  - **GraphEraser: 0.000 ❌ bug**（已修，见 §3.1）
+  - IDEA: 0.308–0.509 ⚠（update-detection 信号弱）
+  - **MEGU: 0.000 ❌ bug**（已修，见 §3.1）
+- **bug 位置**：见 `EXPERIMENT_DASHBOARD.md §3.1`（历史标题保留 "MIA AUC = 0.000 bug"）
+- **paper 用法**：secondary metric，appendix。详见 thesis_transition_memo §3.5 framing。**避免**写"GraphEraser 比单模方法更/不更隐私"这种跨 family 校准比较——本指标实现成本不同，跨 family 不可直接比较。
 
 ### 3. Selection Time ✅
 

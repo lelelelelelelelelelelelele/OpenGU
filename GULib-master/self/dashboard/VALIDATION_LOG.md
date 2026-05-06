@@ -1,6 +1,6 @@
 # Validation Log
 
-> Last updated: 2026-05-06
+> Last updated: 2026-05-07
 > **Append-only**——禁止删改历史条目。错的条目不删，新条目标 SUPERSEDES + 解释
 > 用途：固化今天讨论 / 实测验证 / sanity check 的实证证据，避免 4 天 deadline 期间反复发现同一件事
 
@@ -677,6 +677,55 @@ cache-write 闸门补上后，原本"eval_collateral cache hit + 重跑 run_exp 
 
 - 上游根因（GNNDelete checkpoint 维度不匹配）当前靠 yaml `model_overrides` 兜底，更彻底的修法是把 `gcn_hidden`/`gcn_num_layers` 纳入 checkpoint 文件名 hash —— 不阻塞 4 天 deadline，记入待办。
 - 回归测试（mock 一个会 raise 的 method，assert `failed=True` + cache 没被写）—— 列在 §5 TODO，B.0/B.1 跑完后补。
+
+---
+
+## 2026-05-07 Session
+
+### V-2026-05-07-01: Reporting terminology — "update-detection AUC" supersedes "MIA AUC"
+
+**Setting**：审 `report/paper/overleaf/sec/4_experiment.tex` + `5_results.tex` 时确认，`attack.json::mia_auc` 在 active node-unlearning 路径上**不是** Shokri/Olatunji 标准 shadow-model membership inference attack，而是各 OpenGU 方法的 **posterior-shift deletion-membership audit**：
+
+- positives: 被请求 unlearn 的节点
+- negatives: held-out test 节点
+- score: unlearn 前 vs 后模型 posterior 输出的 L2 距离
+- metric: 上述 score 的 ROC-AUC
+
+实现路径：`attack/pipeline_adapter.py` 读 `self.method.average_auc`；GIF/GNNDelete/MEGU/IDEA 单模 forward；GraphEraser/GraphRevoker 走 shard ensemble。`attack/MIA_attack.py` 中确实有 shadow-model 助手，但**当前 Phase B reporting 路径未调用**。
+
+**Decision**：
+
+- **Paper 主术语**：update-detection AUC；首次出现可写 "a posterior-shift deletion-membership audit"。可选同义：deletion-detection AUC / unlearning verification risk。
+- **保留**：JSON 字段 `mia_auc`、function `evaluate_mia_auc()`、`attack/Attack_methods/*_MIA.py` 文件名、log 行 "Average AUC Score" 等所有 code-side identifier。
+- **保留**：本日志早期条目（V-2026-05-03-05、V-2026-05-04-04 中 "MIA AUC = 0.000 是代码 bug"、A.1/A.2/A.3 patch 描述等）—— append-only 规则，历史词汇不改。
+- **保留**：`EXPERIMENT_DASHBOARD §3.1` 标题 "MIA AUC = 0.000 bug"，加注一行说明现在 paper 用 update-detection 术语。
+- **不做**：rename code field、改 cache 文件、改 attack/MIA_attack.py 模块名。
+
+**已更新**（同日）：
+
+| 文件 | 改动 |
+|---|---|
+| `self/dashboard/METRICS_CATALOG.md` §2 | 重命名小节为 "Update-Detection AUC ⚠️ (legacy field: `mia_auc`)"，补 positives/negatives/score/metric 协议，加 scope note "not standard shadow-model MIA" |
+| `self/plan_flow_v2_delta.md` | §3 v2 metric 表 row 2 + §3.1/8.1/8.2/8.6 efficacy critique 段、threat-model 表 row "攻击者目标"、v1 4 指标列表统一改名 |
+| `self/PROJECT_MASTER_CONTEXT.md` | §5.2 metric 列表条 |
+| `self/宏观plan.md` | `attack_eval.py` 描述、Step 17 表行、§5 评估指标表 row |
+| `self/dashboard/EXPERIMENT_DASHBOARD.md` §3.1 / §7 | 标题保留 + 加注 "paper 现称 update-detection AUC" |
+| `self/paper_todo.md` | Status: Open → Done(2026-05-07) |
+| `self/attack_flow.md` | ⑦ 节点标签 + busy/free 表 + 瓶颈表 |
+| `self/thesis_transition_memo.md` §5.3.2.1 | 检查表 row "MIA bug 修复未覆盖该 family" → "update-detection 路径未生效（legacy "MIA bug"）" |
+| `self/limitations.md` | 待观察清单 row "MIA shadow models 在 arxiv 上的耗时" |
+| `self/generalization_experiment_checklist.md` | §7.6 + §8 P5 forward-looking 清单（保留 `<details>` 内历史 batch 数据） |
+| `self/flow.md` §5.2 | 加 italic 注解；docstring 文本（保留函数名） |
+
+**Cross-ref**：`self/paper_todo.md` Issue/Decision 块（保留为 audit trail）；`METRICS_CATALOG §2`。
+
+**已显式不动**（justification）：
+
+- `self/paper_library_synthesis_2026-02-16.md` — 是其他论文的文献综述，shadow-model MIA 是被综述对象的真实方法，改了反而失真。
+- `self/GU代码综述_2026-02-16.md` — 描述 `attack/MIA_attack.py` 真实 shadow-model 模块（与 active Phase B 路径并存但未被调用）。
+- `report/paper/overleaf/`、`report/paper/outline/` — 用户声明已自行更新。
+- `report/daily-log/`、`report/report_workflow*.md` — 历史记录或描述 JSON 字段名。
+- 代码、JSON、cache、experiment configs。
 
 ---
 

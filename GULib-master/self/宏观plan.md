@@ -71,7 +71,7 @@ attack/
 | `im_strategy.py` | 基于 CELF 贪心算法做 Influence Maximization，选 top-k |
 | `hybrid_strategy.py` | 融合 IF score 和 IM score，支持 linear / rank-based fusion |
 | `attack_manager.py` | 类似 `UnlearningManager`，通过字符串映射实例化策略类 |
-| `attack_eval.py` | 封装 F1 drop、MIA AUC、与 retrain 对比等评估逻辑 |
+| `attack_eval.py` | 封装 F1 drop、Update-Detection AUC（legacy: MIA AUC）、与 retrain 对比等评估逻辑 |
 
 ---
 
@@ -111,7 +111,7 @@ attack/
 | # | 实验 | 说明 |
 |---|------|------|
 | 16 | GraphEraser 抗攻击 | Shard-based 方法抗攻击能力（预期强于 IF-based） |
-| 17 | MIA 评估 | 攻击后模型 MIA AUC |
+| 17 | Update-detection 评估 | 攻击后模型 Update-Detection AUC（legacy field: `mia_auc`；非标准 shadow-model MIA） |
 
 ---
 
@@ -120,7 +120,7 @@ attack/
 | 指标 | 含义 | 预期 |
 |------|------|------|
 | F1 Drop (%) | 遗忘后 vs 遗忘前在 $D_{test}$ 上的 F1 变化 | 攻击策略 >> Random |
-| MIA AUC | 成员推断攻击 AUC | 偏离 0.5 表示信息残留/泄露 |
+| Update-Detection AUC（legacy: MIA AUC） | 单次 unlearning 更新被外部观察者复原的难度（posterior-shift deletion-membership audit；非 shadow-model MIA） | 偏离 0.5 表示更新可探测；不应解读为标准 membership leakage |
 | Selection Time (s) | 节点选择算法耗时 | TracIn < 原始 IF |
 | Retrain Gap | 攻击后 F1 - Retrain 后 F1 | 正值越大 → 近似误差越大 |
 

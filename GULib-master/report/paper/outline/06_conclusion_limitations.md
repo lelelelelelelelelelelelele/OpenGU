@@ -43,4 +43,4 @@ Mirror §1 contribution list with realized findings (paired effect numbers, fing
 ## Cross-refs
 
 - ← §5.1 (origin cluster = mechanism-incomparable)
-- ← §5.5 (privacy axis decoupling complements null F1 effect)
+- ← §5.5 (deletion-visibility axis decoupling complements null F1 effect)

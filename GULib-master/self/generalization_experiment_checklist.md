@@ -139,10 +139,10 @@
 
 ### 7.6 MIA 与多指标完整性
 
-- [ ] 每个主配置补齐 `MIA AUC`
+- [ ] 每个主配置补齐 `Update-Detection AUC`（legacy: MIA AUC；JSON 字段 `mia_auc`）
 - [ ] 每个主配置至少报告 6 类最小指标：
   - `F1 Drop`
-  - `MIA AUC`
+  - `Update-Detection AUC`（legacy: MIA AUC）
   - `Selection Time`
   - `Approximation Gap`
   - `Collateral Damage`
@@ -156,7 +156,7 @@
 - [x] `P2-EXT`：`GIF / cora,citeseer / GCN,GAT,GIN / r=0.10,0.20 / 5 seeds`
 - [x] `P3`：`scripts/experiments/run_mg2_gat.sh`（跨模型）
 - [x] `P4`：`scripts/experiments/run_mg3_extended.sh`（扩展方法）
-- [ ] `P5`：补齐 `MIA` 与完整统计检验图表
+- [ ] `P5`：补齐 `Update-Detection AUC`（legacy: MIA）与完整统计检验图表
 
 ## 9. 脚本与输出目录对照
 

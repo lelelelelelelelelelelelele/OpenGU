@@ -4,7 +4,7 @@
 We report five claim-conditioned slices: the 2D \emph{Vulnerability
 Fingerprint}; its scale check on ogbn-arxiv; the architectural
 \emph{Shard Protection Effect}; collateral damage via significance,
-retrain gap, and hop-distance decay; and an MIA audit.
+retrain gap, and hop-distance decay; and an update-detection audit.
 
 \subsection{Vulnerability Fingerprint}
 \label{sec:results-fingerprint}
@@ -137,35 +137,36 @@ IDEA stay near zero, matching their fingerprint positions. Per-family
 curves and the raw 4-bucket breakdown are reported in
 Appendix~\ref{app:results}.
 
-\subsection{MIA Audit: Privacy and Utility Decouple}
+\subsection{Update-Detection Audit: Deletion Visibility and Utility Decouple}
 \label{sec:results-mia}
 
 \begin{table}[t]
 \centering
 \small
-\caption{\textbf{MIA AUC vs.\ paired F1 effect.} Privacy axis (MIA AUC
-post-unlearning, shadow-model attack~\cite{olatunji2021membership}) and
+\caption{\textbf{Update-detection AUC vs.\ paired F1 effect.}
+Deletion-visibility axis (posterior-shift AUC post-unlearning) and
 utility axis ($\Delta F^{\text{attack}}$) decouple. Cora/GCN,
-$r{=}0.05$, 5 seeds, post bug-fix. \interim{Refresh with Phase~B
-values.}}
+$r{=}0.05$, 5 seeds, post bug-fix. The AUC is stored in the legacy
+\texttt{mia\_auc} field. \interim{Refresh with Phase~B values.}}
 \label{tab:mia}
 \begin{tabular}{@{}lllrr@{}}
 \toprule
-Family & Method & MIA AUC & $\Delta F^{\text{attack}}_{\mathrm{IM}}$ (\%) & Reading \\
+Family & Method & Update AUC & $\Delta F^{\text{attack}}_{\mathrm{IM}}$ (\%) & Reading \\
 \midrule
-Partition & GraphEraser  & \interim{0.60} & \interim{$+0.0$}     & non-private, robust utility \\
-Partition & GraphRevoker & \interim{0.6X} & \interim{$+0.0$}     & non-private, robust utility \\
-IF        & GIF          & \interim{0.5X} & \interim{$+X.X$}     & weak privacy, weak attack \\
-IF        & IDEA         & \interim{0.55} & \interim{$+0.X$}     & weak privacy, null attack \\
-Learning  & GNNDelete    & \interim{0.6X} & \interim{$+16.9$}    & weak privacy, severe attack \\
-Learning  & MEGU         & \interim{0.37} & \interim{$+0.X$}     & strong privacy, null attack \\
+Partition & GraphEraser  & \interim{0.60} & \interim{$+0.0$}     & higher visibility, robust utility \\
+Partition & GraphRevoker & \interim{0.6X} & \interim{$+0.0$}     & higher visibility, robust utility \\
+IF        & GIF          & \interim{0.5X} & \interim{$+X.X$}     & near-random visibility, weak attack \\
+IF        & IDEA         & \interim{0.55} & \interim{$+0.X$}     & moderate visibility, null attack \\
+Learning  & GNNDelete    & \interim{0.6X} & \interim{$+16.9$}    & higher visibility, severe attack \\
+Learning  & MEGU         & \interim{0.37} & \interim{$+0.X$}     & lower visibility, null attack \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-MIA AUC is not a proxy for utility vulnerability. MEGU combines near-null
-F1 attack effect with lower membership leakage (AUC
+Update-detection AUC is not a proxy for utility vulnerability. MEGU
+combines near-null F1 attack effect with lower deletion visibility (AUC
 \interim{$\approx 0.37$}); the partition pair resists F1 collapse but
-retains weak-to-moderate leakage (AUC \interim{$\approx 0.60$}); and
-GNNDelete is weak on both axes. We therefore treat MIA as a complementary
-diagnostic, not as evidence for or against the F1 attack.
+shows higher update visibility (AUC \interim{$\approx 0.60$}); and
+GNNDelete is exposed on both axes. We therefore treat this audit as a
+complementary diagnostic, not as a calibrated cross-family privacy
+ranking or as evidence for or against the F1 attack.

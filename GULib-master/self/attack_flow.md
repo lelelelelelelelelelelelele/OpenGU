@@ -36,11 +36,11 @@
       │
       ├─ ⑥ F1 measurement                   GPU       <1 s（一次 forward）
       │
-      └─ ⑦ MIA AUC                          
+      └─ ⑦ Update-Detection AUC (legacy: MIA AUC)
             ├─ positive samples loop        CPU 🐌    ⚠ 6 min（100 iter × 3.6s）
             │                                          GPU < 5%
             └─ negative samples loop        CPU 🐌    ⚠ 6 min（100 iter × 3.6s）
-                                                      → MIA 总 ~12 min
+                                                      → update-detection 总 ~12 min
 
 [eval_collateral.py 一个 cell]
       │
@@ -72,10 +72,10 @@
 | ③ selection (tracin) | ~150 min | 80%+ 🔥 | 划算 |
 | ⑤b GraphEraser LPA | ~10 min | <5% 🐌 | **空转** |
 | ⑤b shard train | ~1 min | 70%+ 🔥 | 划算 |
-| ⑦ MIA × 2 | ~12 min | <5% 🐌 | **空转**，CPU 10 核满 |
+| ⑦ Update-detection × 2 (legacy: MIA) | ~12 min | <5% 🐌 | **空转**，CPU 10 核满 |
 | ⑧ retrain | ~30 s | 90%+ 🔥 | 划算 |
 
-**约 12-15% 时间 GPU 空转**（MIA + LPA），按 B.2 总 ~22h 估算 ~$8 浪费在闲置上。
+**约 12-15% 时间 GPU 空转**（update-detection + LPA），按 B.2 总 ~22h 估算 ~$8 浪费在闲置上。
 拆分到便宜机器的工程成本 > 节省，**接受浪费换稳定**。
 
 ## 已经撞到的瓶颈一览（cross-link 到 limitations.md）
@@ -84,6 +84,6 @@
 |---|---|---|---|
 | IM CELF 卡 10h+ | ③ IM | yaml 加 `candidate_fraction=0.1, mc_rounds=50` | L3 |
 | LPA 单 iter 10min | ⑤b GraphEraser | terminate_delta 早停救场 | L1 |
-| MIA CPU-bound | ⑦ | 接受，租 ≥8 核实例 | L5 |
+| Update-detection CPU-bound（legacy: MIA） | ⑦ | 接受，租 ≥8 核实例 | L5 |
 | TracIn G-matrix 40GB | ③ tracin | 升级到 A100 80GB | L2 |
 | Retrain 22GB peak | ⑧ collateral | 升级到 A100 80GB / A6000 48GB | （隐含 in L2） |
