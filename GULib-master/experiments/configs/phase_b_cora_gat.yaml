@@ -13,6 +13,7 @@ methods:
   - MEGU
   - IDEA
   - GraphEraser
+  - GraphRevoker
 
 strategies:
   - random
@@ -31,3 +32,7 @@ defaults:
   num_epochs: 100
   batch_size: 64
   cuda: 0
+
+method_overrides:
+  GraphRevoker:
+    extra_args: ["--partition_method", "gpa"]

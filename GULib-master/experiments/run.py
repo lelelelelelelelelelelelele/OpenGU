@@ -42,6 +42,9 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
         batch_size: <int>             # default 64
         cuda: <int>                   # default 0
     extra_args: [<str>, ...]          # passed verbatim to demo_attack and eval_collateral
+    method_overrides:                 # injected only for matching method
+        GraphRevoker:
+            extra_args: ["--partition_method", "gpa"]
     model_overrides:                  # injected as extra_args; per-model knobs
         GCN:
             gcn_num_layers: 3
@@ -108,6 +111,12 @@ def _hybrid_alpha_from_cfg(cfg: Dict[str, Any]) -> Optional[float]:
     return None
 
 
+def method_overrides(cfg: Dict[str, Any], method: str) -> List[str]:
+    """Extract method-specific extra CLI args as a flat list."""
+    override = (cfg.get("method_overrides", {}) or {}).get(method, {}) or {}
+    return list(override.get("extra_args", []) or [])
+
+
 def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path:
     cell = f"{cfg['dataset']}_{cfg['base_model']}_r{cfg['ratio']}"
     leaf = f"{method}_{strategy}"
@@ -135,6 +144,7 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
     """
     defaults = dict(cfg.get("defaults", {}) or {})
     defaults.pop("cuda", None)
+    method_extra = method_overrides(cfg, method)
     payload = {
         "_v": _FINGERPRINT_VERSION,
         "dataset": cfg["dataset"],
@@ -147,6 +157,8 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
         "extra_args": list(cfg.get("extra_args", []) or []),
         "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
     }
+    if method_extra:
+        payload["method_overrides"] = method_extra
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
@@ -258,6 +270,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     py = _python_bin()
     defaults = cfg.get("defaults", {}) or {}
     extra = list(cfg.get("extra_args", []) or [])
+    extra += method_overrides(cfg, method)
     extra += model_overrides(cfg)
     # A3: if yaml uses top-level `hybrid_alpha:` and didn't already inject
     # --hybrid_alpha via extra_args, plumb it through so demo_attack and

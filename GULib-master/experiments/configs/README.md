@@ -36,8 +36,8 @@ paper tables.
 | File | Cell | Cells × Time |
 |---|---|---|
 | `sanity_one_cell.yaml` | 1×1×1 | ~20s — for verifying environment after refactor |
-| `phase_b_cora_gcn.yaml` | 5 method × 6 strategy × 5 seed = 150 cells | ~75 min on a single 4090 |
-| `phase_b_cora_gat.yaml` | same matrix on GAT | ~90 min |
+| `phase_b_cora_gcn.yaml` | 6 method × 6 strategy × 5 seed = 180 cells (adds GraphRevoker) | ~90 min on a single 4090; if 5-method cells already exist, only GraphRevoker is new |
+| `phase_b_cora_gat.yaml` | same matrix on GAT = 180 cells | ~110 min |
 | `phase_b_arxiv_feasibility.yaml` | 5 method × random × 1 seed = 5 cells | gate before main matrix |
 | `phase_b_arxiv_T1_seed42.yaml` | 3 method × 4 strategy × seed=42 = 12 cells | ~7-8h on H800 (necessary) |
 | `phase_b_arxiv_T2_seed212.yaml` | same matrix, seed=212 = 12 cells | ~7-8h (stretch; n=2) |

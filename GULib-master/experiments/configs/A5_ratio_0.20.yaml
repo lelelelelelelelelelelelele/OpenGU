@@ -37,3 +37,7 @@ model_overrides:
   GCN:
     gcn_num_layers: 2
     gcn_hidden: 64
+
+method_overrides:
+  GraphRevoker:
+    extra_args: ["--partition_method", "gpa"]

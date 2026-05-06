@@ -31,8 +31,8 @@
     [ ] B.2-T3  arxiv 主矩阵 seed=722（`phase_b_arxiv_T3_seed722.yaml`，12 cells / ~7-8h，条件跑）
         # 2026-05-06: 原 phase_b_arxiv.yaml 单 yaml ~21-24h 压 deadline 太紧；拆三段 deadline 到了 kill，已完成 cell 受 fingerprint 保护
         # 注：tier split 不省时间——ScoreCache IF key 含 seed (`tracin_strategy.py:136-149`)，每 tier 独立 ~7-8h
-    [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，150 cells / ~75 min）
-    [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，150 cells / ~90 min）
+    [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，180 cells / ~90 min；旧 5 method 完成时只补 GraphRevoker）
+    [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，180 cells / ~110 min）
 [ ] Phase C  分析 + paper writing
     [ ] C.1  重画 FIG-4b（含 error bar + Jaccard 注释，新数据 Jaccard 应 = 1.0）
     [ ] C.2  生成 hop-decay 衰减曲线图（按 family 分线，对照 GCN num_layers）

@@ -306,6 +306,39 @@ def test_shard_method_tracin_cache_miss_fails_fast(tmp_path):
     assert pipeline.called_run_with_strategy is False
 
 
+def test_run_config_method_overrides_fingerprint_only_target_method():
+    """Method-specific runner args must only invalidate that method's cells.
+
+    GraphRevoker needs --partition_method gpa, but adding it globally would
+    stale every GraphEraser/GIF/etc. Phase B cell. The runner fingerprint must
+    include the override for GraphRevoker while leaving other method cells
+    unchanged.
+    """
+    from experiments.run import _content_fingerprint
+
+    base_cfg = {
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "defaults": {"run_collateral": True, "cuda": 0, "num_epochs": 100},
+        "extra_args": [],
+        "model_overrides": {"GCN": {"gcn_num_layers": 2, "gcn_hidden": 64}},
+    }
+    cfg_with_override = {
+        **base_cfg,
+        "method_overrides": {
+            "GraphRevoker": {"extra_args": ["--partition_method", "gpa"]}
+        },
+    }
+
+    assert _content_fingerprint(
+        cfg_with_override, "GraphRevoker", "random", 42
+    ) != _content_fingerprint(base_cfg, "GraphRevoker", "random", 42)
+    assert _content_fingerprint(
+        cfg_with_override, "GIF", "random", 42
+    ) == _content_fingerprint(base_cfg, "GIF", "random", 42)
+
+
 # ----------------------------------------------------------------------
 # 3b. A3 alpha sweep — cell_dir disambiguates non-default hybrid_alpha
 # ----------------------------------------------------------------------

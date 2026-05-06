@@ -32,8 +32,8 @@
 | **B.2-T1** | arxiv 3 method × 4 strategy × **seed=42** = 12 cell（**必跑**，paper Table 1 的 arxiv 列骨架） | B | ~6-8h | `phase_b_arxiv_T1_seed42.yaml` |
 | **B.2-T2** | arxiv 同上 + **seed=212** = 12 cell（条件跑，给 n=2 误差棒） | B | ~7-8h | `phase_b_arxiv_T2_seed212.yaml` |
 | **B.2-T3** | arxiv 同上 + **seed=722** = 12 cell（条件跑，n=3） | B | ~7-8h | `phase_b_arxiv_T3_seed722.yaml` |
-| **B.3** | cora_GCN 5 method × 6 strategy × 5 seed = 150 cell | A | ~3-5h | `phase_b_cora_gcn.yaml` |
-| **B.4** | cora_GAT 同上 = 150 cell | A | ~3-5h | `phase_b_cora_gat.yaml` |
+| **B.3** | cora_GCN 6 method × 6 strategy × 5 seed = 180 cell（含 GraphRevoker；旧 5 method 已完成时只补 GraphRevoker） | A | ~4-6h | `phase_b_cora_gcn.yaml` |
+| **B.4** | cora_GAT 同上 = 180 cell | A | ~4-6h | `phase_b_cora_gat.yaml` |
 | **A.5-1** | cora/GCN ratio sweep r ∈ {0.01, 0.10, 0.20}，6 method × 3 strategy × 5 seed = 270 cell（必跑） | A | ~3-5h | `A5_ratio_*.yaml` |
 | **A.5-2** | citeseer/GCN 两端 r ∈ {0.05, 0.20}，6 method × 3 strategy × 5 seed = 180 cell（**条件跑**） | A | ~1h | `A5_citeseer_r0.05.yaml`, `A5_citeseer_r0.20.yaml` |
 | **A.6** | cora/GIN backbone ablation r=0.05，5 method × 3 strategy × 5 seed = 75 cell（**条件跑**） | A | ~1h | `A6_cora_gin_r0.05.yaml` |
@@ -60,7 +60,7 @@
 
 | 机器 | GPU | 角色 | 跑 |
 |---|---|---|---|
-| **A** | RTX 4090 24GB | cora workload | B.0 + B.3 + B.4 + A.5-1 (+ A.5-2 / A.6 / A.7 if 富余)（300 + 270 + 条件 180 + 条件 75 + 条件 ~50） |
+| **A** | RTX 4090 24GB | cora workload | B.0 + B.3 + B.4 + A.5-1 (+ A.5-2 / A.6 / A.7 if 富余)（360 + 270 + 条件 180 + 条件 75 + 条件 ~50） |
 | **B** | H800 / H20 / A100 ≥80GB | arxiv workload | B.0 + B.1 + **B.2-T1（必跑，12 cell ~6-8h）** + B.2-T2 + B.2-T3（条件跑） |
 
 不冲突：各自写 `results/runs/{dataset}_*` 不同子目录。跑完 §6 各 tar 一份 scp 回本地合并。
@@ -133,7 +133,7 @@ ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed722/attack.json | wc -l
 # 总览（任意 seed）
 ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed*/attack.json | wc -l
 
-# B.3 / B.4（各期望 150）
+# B.3 / B.4（各期望 180）
 ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l
 ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l
 ```
@@ -291,7 +291,7 @@ nvidia-smi
 
 paper 写法对应 §3.4 的 fallback 表：T1=n=1、T1+T2=n=2、全完=n=3。
 
-### 3.5 B.3 + B.4 — cora（机 A，串行 ~6-10h）
+### 3.5 B.3 + B.4 — cora（机 A，串行 ~7-12h；如旧 5 method 已完成则只补 GraphRevoker）
 
 ```bash
 cd ~/autodl-fs/OpenGU/GULib-master && git pull --ff-only && mkdir -p logs
@@ -325,9 +325,15 @@ cora 全跑 ~6-10h，想盯实时输出选这条；checkpoint 同样在持久盘
 
 ```bash
 tail -f logs/cora_full_*.log
-ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l   # → 150
-ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l   # → 150
+ls results/runs/cora_GCN_r0.05/*/seed*/attack.json | wc -l   # → 180
+ls results/runs/cora_GAT_r0.05/*/seed*/attack.json | wc -l   # → 180
 ```
+
+GraphRevoker 说明：B.3/B.4 yaml 通过 `method_overrides` 只给 GraphRevoker 注入
+`--partition_method gpa`；GIF/GNNDelete/MEGU/IDEA/GraphEraser 的 fingerprint 不受
+新增方法影响，已完成 cell 会继续 skip。GraphRevoker 的 TracIn/Hybrid 必须命中
+已有 SelectionCache（通常由先前 5-method 主矩阵中的 GIF/GNNDelete 产生）；若缺
+cache，runner 会 fail fast，而不是用 GraphRevoker 的 shard/SISA train_only 模型算梯度。
 
 ### 3.6 A.5 — Ratio Ablation（机 A，分两阶段）
 
