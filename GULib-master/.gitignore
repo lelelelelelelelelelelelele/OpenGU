@@ -24,10 +24,16 @@ results/score_cache/**/*.npz
 
 # Runtime logs (timestamped, large, regenerable)
 log/
+logs/
 
-# Archives — paper template downloads, overleaf bundles, etc.
+# Archives — paper template downloads, overleaf bundles, scp 回收 tar 等
 *.zip
+*.tar
 *.tar.gz
+*.md5
+
+# Migration interim aggregator outputs（MIGRATION_RUNBOOK.md §6.1）
+results/_phase_b_*.csv
 
 # NeurIPS template unzip dir (redundant with zip, regeneratable)
 report/paper/NeurIPS_2025_template/
