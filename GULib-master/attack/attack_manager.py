@@ -212,6 +212,13 @@ class AttackManager:
             }
         return {}
 
+    # Strategies whose selection is a deterministic function of graph topology
+    # + their own hyperparams (no dependence on the GNN model or training seed).
+    # Their SelectionCache key is anchored to a constant so cross-seed runs
+    # share the cache instead of recomputing identical results.
+    TOPOLOGY_ONLY_STRATEGIES = frozenset({"degree", "pagerank"})
+    TOPOLOGY_ONLY_SEED_ANCHOR = 0
+
     def _build_selection_config(self, strategy_name: str, k: int) -> Dict[str, Any]:
         strategy_params = self._strategy_params_for_cache(strategy_name)
         strategy_params_fingerprint = self._stable_hash(strategy_params)
@@ -222,6 +229,14 @@ class AttackManager:
             # — not the training seed — lets cross-seed runs share a single
             # IM computation instead of recomputing identical results 3x.
             seed_for_key = int(self.args.get("im_selector_seed", 2024))
+        elif strategy_name in self.TOPOLOGY_ONLY_STRATEGIES:
+            # degree / pagerank are pure topology + per-strategy hyperparams
+            # (already in strategy_params_fingerprint). They have no random
+            # state and don't read the GNN model, so the training seed is
+            # irrelevant to their selection. Anchor to a constant so all
+            # 3 GU seeds × 6 methods × {degree,pagerank} = 36 cells share
+            # a single 50-ms computation per (dataset, k).
+            seed_for_key = self.TOPOLOGY_ONLY_SEED_ANCHOR
         return {
             "dataset_name": str(self.args.get("dataset_name", "")),
             "base_model": str(self.args.get("base_model", "")),

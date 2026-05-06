@@ -1,7 +1,18 @@
 # 服务器执行手册 v4 — Phase B 双机执行
 
-> v4 重写: 2026-05-06。原 v3 740 行散在 §5 / §5A / §0.9，本版按"先看什么 → 跑什么 → 出问题怎么办"线性整理。
+> v4 重写: 2026-05-06。v4.1 (2026-05-07)：arxiv 专属步骤拆出到 `ARXIV_RUNBOOK.md`，本手册留 cora + universal 步骤。
 > NeurIPS 截稿: 2026-05-07。
+
+---
+
+## ⚠ 2026-05-07 重要变更：arxiv 拆分到独立 runbook
+
+**arxiv 一族（B.1 + B.2-T1/T2/T3）请直接看 `ARXIV_RUNBOOK.md`**——含：
+- 三个新 fix 的部署（chunked TracIn / IM cross-cell cache / topology seed anchor）
+- 双机解耦工作流（CPU 跑 IM prewarm + A800 跑 GPU 主矩阵）
+- 修订后的时长 + 成本预算（10-11h vs 之前 21-24h）
+
+本手册下面 §3.3 / §3.4 的 arxiv 流程是**历史版本**（2026-05-06 写的），仍可参考但**不再是首选**。新流程见 `ARXIV_RUNBOOK.md`。
 
 ---
 
@@ -9,14 +20,15 @@
 
 | 我现在的状态 | 跳到 |
 |---|---|
+| **跑 arxiv（任何阶段）** | **`ARXIV_RUNBOOK.md`**（2026-05-07 起新流程）|
 | 第一次进这个 runbook | §1 + §2 + §3 |
 | 刚 ssh 进任意一台 | §2 |
 | 要烟测一下环境 | §3.1 (B.0) |
 | 4090 实例上要启 cora 大跑 | §3.5 (机器 A) |
-| 80GB 实例上要启 arxiv 大跑 | §3.3 → §3.4 (机器 B；T1 必跑、T2/T3 deadline 富余才跑) |
+| 80GB 实例上要启 arxiv 大跑 | **`ARXIV_RUNBOOK.md` §3-§4**（不再是本手册 §3.3-§3.4）|
 | 全新 H800/H20，没有镜像 | §4 (fresh-clone) → 然后 §3 |
 | nohup 跑了几秒就 fail / 5 cell 全挂 | §5.1 ⭐ |
-| OOM / cache 错 / 各种红字 | §5 |
+| OOM / cache 错 / 各种红字 | §5（cora）/ `ARXIV_RUNBOOK.md §7`（arxiv-specific）|
 | 两机都跑完，要回收数据 | §6 |
 
 ---

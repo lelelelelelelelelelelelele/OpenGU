@@ -1,8 +1,31 @@
 # results/score_cache/ — npz-backed score caches
 
 > Created: 2026-05-07
+> Last updated: 2026-05-07 (added topology-only sharing rules for degree/pagerank/im)
 > Maintained by: `attack/score_cache.py` (the `ScoreCache` class)
 > Upper rules: `self/dashboard/CLAUDE.md`
+
+## Strategy taxonomy (cache implications)
+
+| Class | Strategies | Cache shared across method? | Cache shared across GU seed? |
+|---|---|---|---|
+| **Topology-only** | `degree`, `pagerank`, `im` | ✅ | ✅ |
+| **Random** | `random` | ✅ (no model dep) | ❌ (seed picks the sample) |
+| **Model-dependent** | `tracin`, `hybrid` (IF branch) | depends on cache layer¹ | ❌ |
+
+¹ TracIn has two cache layers with different keys:
+   - `if/` (per-candidate scores): includes `unlearning_methods` + GU seed (conservative)
+   - SelectionCache for tracin (top-k list at AttackManager): cross-method, per-seed
+   The two layers were designed independently; SelectionCache assumes "same
+   (dataset, base_model, seed) → same trained base model regardless of method
+   wrapper", while ScoreCache is more conservative.
+
+The wiring lives in `attack/attack_manager.py::_build_selection_config`:
+   - `TOPOLOGY_ONLY_STRATEGIES = {"degree", "pagerank"}` → seed anchored to
+     constant 0 in cache key (verified by
+     `scripts/test_topology_strategy_cache_keys.py`)
+   - `im` → seed anchored to `im_selector_seed` (default 2024, Phase A.4)
+   - others → use training seed
 
 ## Purpose
 
