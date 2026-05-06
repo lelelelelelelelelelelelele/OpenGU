@@ -12,6 +12,7 @@
 | 我现在的状态 | 跳到 |
 |---|---|
 | 第一次进这个 runbook | §1 + §2 |
+| **cora 已 ship 回本地，发现 GIF/IDEA collateral 失真，要 server 侧 redo** | **§0.5（IF-family fix 重跑工作流）** |
 | 机 A 喊"cora 跑完了"（先到） | §2 → §3（出货检查 → 第一波回收） |
 | cora 落本地了，想先看图但 arxiv 还没到 | §4（中场分析，仅 cora） |
 | 机 B 喊"arxiv 跑完了"（后到，可能只 T1 / T1+T2 / 全 T1+T2+T3） | §2 → §5（出货检查 → 第二波回收） |
@@ -26,6 +27,101 @@
 3. **predictions.npz 不传**——2026-05-07 grep 确认：本仓库**没有任何分析代码读 npz 内容**（plot 脚本 / aggregator 全只读 json）。npz 只被 `experiments/run.py` / `gate_runs.py` / `inspect_run.py` 用作 4 件齐的存在性 check，那三个本地都不跑。**服务器侧 gate PASS 之后，本地完全跳过 npz**——cora ~省 0.5 GB，arxiv ~省 6-10 GB。
 4. **先到先分析**——cora 落地立即跑 §4 出 cora-only 草图，避免 arxiv 卡 deadline 时全图缺。
 5. **服务器侧产物是金本位**——本地是只读视图。万一本地损坏（tar 解错 / 误删），删掉对应 `results/runs/{机器}/` 子树重 scp 即可。
+
+---
+
+## 0.5 IF-family fix 重跑工作流（适用：commit `d674f62` 落到服务器之后，cora 已 ship 但 GIF/IDEA collateral 失真）
+
+> 触发条件：cora ship 回本地、`scripts/aggregate_phase_b.py` 跑完发现 `GIF.perf_unlearn ≡ IDEA.perf_unlearn` bit-identical（30/30 GCN，20/30 GAT），证实 IF-family collateral 走了 stale baseline。修复 commit `d674f62 fix(IF-family): write params_esti back to target_model in approxi()` 已合入 `release/phase-b-fixes`。
+>
+> 影响范围：**仅 collateral 端**——`collateral.json.{perf_unlearn, gap, hop_decay, pred_shift}` + `predictions.npz.logits_unlearned` 失真，`attack.json.{f1_after, mia_auc, selected_nodes}` 全可信，**不需要重跑 demo_attack**。
+>
+> 受影响方法：**仅 GIF + IDEA**。MEGU/GNNDelete 用 in-place 写回，shard 系（GraphEraser/GraphRevoker）路径独立——经验证 0 bit-collision，**不受影响**。
+
+### 0.5.1 服务器侧 4 步重跑（4090，约 2-3h）
+
+```bash
+ssh <4090-host>
+source /etc/network_turbo
+cd ~/autodl-fs/OpenGU/GULib-master
+tmux attach -t phaseB || tmux new -s phaseB
+
+# 步骤 1：拉 fix + redo 脚本
+git fetch origin
+git checkout release/phase-b-fixes
+git pull --ff-only origin release/phase-b-fixes
+# 验证 fix 在
+git log --oneline -3
+# 应看到（顺序可能不同）：
+#   68c8eb4 feat(redo): scripts/cleanup_if_family_collateral.py
+#   025c2dc feat(phase-b): cora migration tooling
+#   d674f62 fix(IF-family): write params_esti back to target_model in approxi()
+
+# 步骤 2：dry-run 看要删哪些（240 文件 = 120 cell × {collateral.json, predictions.npz}）
+python scripts/cleanup_if_family_collateral.py --dry_run
+# 期望末尾：
+#   cells seen (dir exists)       : 120 / 120
+#   files deleted                 : 240    （服务器上 npz 都在，所以 240）
+
+# 步骤 3：实删 + 跑 canonical runner（demo_attack hit ResultCache，eval_collateral 用 patched approxi 重写）
+python scripts/cleanup_if_family_collateral.py
+python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+python experiments/run.py experiments/configs/phase_b_cora_gat.yaml
+
+# run.py 行为：
+#   - 60 个 incomplete cell（GIF/IDEA × 6 strat × 5 seed）→ 重跑
+#   - 120 个 complete cell（GNNDelete/MEGU/GraphEraser/GraphRevoker × …）→ skip
+#   - 每 cell：demo_attack ~10s（cache hit）+ eval_collateral ~30-90s
+
+# 步骤 4：gate + 验收 spot-check
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gcn.yaml
+python scripts/gate_runs.py experiments/configs/phase_b_cora_gat.yaml
+
+# spot-check fix 真生效（修前 GIF≡IDEA bit-identical，修后应不同）
+python -c "
+import json
+g = json.load(open('results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json'))['results'][0]
+i = json.load(open('results/runs/cora_GCN_r0.05/IDEA_random/seed42/collateral.json'))['results'][0]
+print(f'GIF  perf_unlearn={g[\"perf_unlearn\"]}')
+print(f'IDEA perf_unlearn={i[\"perf_unlearn\"]}')
+print(f'BUG STILL PRESENT' if abs(g['perf_unlearn']-i['perf_unlearn']) < 1e-9 else 'FIX WORKS')
+"
+# 期望输出末行：FIX WORKS
+```
+
+### 0.5.2 重新 ship + 重跑本地分析
+
+服务器侧 redo 跑完后，**完全跟 §3 一样 ship**——脚本只 tar `*.json` + `_meta.json`，新 collateral 自动包进去，老 npz 一起重写：
+
+```bash
+# 服务器侧
+bash scripts/ship_results.sh cora     # 出 cora_results_<timestamp>.tar.gz
+
+# 本地：MIGRATION_RUNBOOK §3.3-§3.4 老路子，但要先清理旧版本（避免新老混落）
+cd H:\project\OpenGU\GULib-master
+Remove-Item -Recurse -Force results\runs\4090\cora_GCN_r0.05
+Remove-Item -Recurse -Force results\runs\4090\cora_GAT_r0.05
+
+scp <user>@<4090-host>:~/autodl-fs/OpenGU/GULib-master/cora_results_*.tar.gz .
+tar xzf cora_results_*.tar.gz -C results/runs/4090 --strip-components=2
+
+# 重跑分析（产物自动覆盖）
+H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py 4090
+H:/conda_package/envs/gnn/python.exe scripts/plot_phase_b_cora.py
+H:/conda_package/envs/gnn/python.exe scripts/build_paper_table1.py
+```
+
+### 0.5.3 验收：fig5 retrain gap 应该有变化
+
+修前的 fig5（`results/paper_figures/fig5_retrain_gap.pdf`）：GIF/IDEA 的 gap 几乎是 0（被 stale baseline mask 掉），GNNDelete 是 outlier ~10-16%。
+
+修后预期：GIF/IDEA 的 gap 不再贴 0（小但非零），但 GNNDelete 仍然是显著最高的——**paper 主结论"GNNDelete 是最不像 retrain 的方法"不变**。
+
+如果修后 GIF/IDEA 仍 0：fix 没生效，回 §0.5.1 步骤 4 的 spot-check 重新查。
+
+### 0.5.4 备选路径（不推荐除非赶时间）
+
+`scripts/redo_collateral_if_family.py` 是另一条路：直接调 `eval_collateral.py --output_dir`，绕过 `experiments/run.py` 的 demo_attack 步骤。省 30-40 min（每 cell 少一次 demo_attack subprocess 启动），但偏离 canonical pipeline，`_meta.json` 需脚本自己 refresh `git_sha`。**默认走 §0.5.1 的 cleanup + run.py 主路**。
 
 ---
 
