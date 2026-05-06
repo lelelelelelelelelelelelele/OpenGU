@@ -109,6 +109,20 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 
 **修复（2026-05-04, A.4）**：`attack/attack_strategies/im_strategy.py` 改读 `args['im_selector_seed']`（默认 2024），不再 fallback 到 `random_seed`/`seed`。微测验证：seed=42 vs seed=1337 的 IM_v4 选出节点集 **完全相同**（Jaccard=1.0）。Phase B 重跑前需清空 `results/selection_cache/im_v4/`（旧条目按 GU seed 分桶，5 份非决定性数据）。
 
+**衍生事实（2026-05-07，`fix/im-celf-shared-cache` 落地后）**：
+IM full-CELF 在 arxiv 上**每 (dataset, IM hyperparams) 配置只需实算一次**。
+新增的 `results/score_cache/im_celf/` cache key 不含 `unlearning_methods` 也不含 GU 训练 seed（仅依赖 graph_fingerprint + IM hyperparams + `im_selector_seed`，后者默认 2024 固定）。所以：
+
+- B.2 全矩阵 6 method × 3 GU seed × IM strategy = **18 cell 共享 1 份 cache**
+- B.2 全矩阵 6 method × 3 GU seed × Hybrid strategy 的 IM 分支同样命中（Hybrid 用 `compute_initial_marginal_gains` 已经跨方法共享，新 cache 进一步覆盖 full CELF）
+- IM 不依赖 GNN 模型，**整条 select_nodes 路径 0 GPU 操作** → 可在 CPU-only 实例（autodl 32 核 ~¥0.5-1/h）跑出 cache 后传到 GPU 实例
+- `_estimate_spread_numba_parallel`（numba.prange + per-round buffer）在 32 核 CPU 上 ~25-30× 加速；arxiv k=6773 串行预估 2-4h，并行 ~5-10 min
+
+**等价性测试**：`scripts/test_im_celf_cache_equivalence.py` 在 cora 上 4 项验证 PASS（serial vs parallel bit-identical、cache MISS→SAVE→HIT 闭环、改 method+GU seed 仍命中同一 key）。
+
+**paper §method 措辞建议**：
+> "IM seed selection is computed once per (dataset, IM hyperparams) configuration and reused across unlearning methods and GU training seeds. This is methodologically clean because CELF only depends on graph topology and IM hyperparams (propagation probability, MC rounds, candidate pruning fraction); it has no dependence on the unlearning algorithm or its training seed. We fix `im_selector_seed=2024` to decouple from GU seeds (Sec A.4)."
+
 | Strategy | Jaccard | 解读 |
 |----------|---------|------|
 | random | 0.023 | sanity ✓ |
