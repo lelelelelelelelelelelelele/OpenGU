@@ -219,6 +219,22 @@ def main():
     if demo_args.save_path:
         print(f"Results saved to: {demo_args.save_path}")
 
+    # Detect per-strategy failures and surface them via non-zero rc.
+    # Without this, run.py's `failed_attack` gate is never tripped: a
+    # strategy whose unlearning crashed inside pipeline_adapter's except
+    # block returns a placeholder AttackResult with failed=True, which
+    # leaks into attack.json as a NA row but lets demo_attack exit 0.
+    # That, combined with the post-2026-05-06 cache-write guard preventing
+    # eval_collateral from re-discovering the same crash, would let cells
+    # falsely complete. Surface the failure here so run.py reports
+    # failed_attack and skips _meta.json.
+    failed_runs = [r for r in comparison.results if getattr(r, "failed", False)]
+    if failed_runs:
+        print("\n[Demo] Strategy failures detected:")
+        for r in failed_runs:
+            print(f"  - {r.strategy_name}: {r.failure_reason or 'unknown'}")
+        sys.exit(1)
+
     # Write to auto_report.md
     try:
         from scripts.evaluation.reporting.writer import append_attack_result

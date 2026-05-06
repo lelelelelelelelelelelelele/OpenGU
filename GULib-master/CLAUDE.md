@@ -124,6 +124,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
 - Bug 修复后数据刷新：Phase B 没有"修补"流程，重跑 `experiments/run.py <yaml>` 即可（旧的 HOWTO_REPAIR_CORRUPTED_RESULTS.md 描述的是 pre-Phase-B 流程，已删除 2026-05-06）
+- **改 GNN 架构维度必清方法目录**："架构"指 `gcn_hidden` / `gcn_num_layers` —— 这俩改了 state_dict tensor shape 会变。GNNDelete / UTU checkpoint 路径（`data/{Method}/checkpoint_node/{dataset}/{base_model}/original/{seed}/`）只带 dataset+base_model+seed，**不带架构维度**，所以 yaml 加 `model_overrides: {gcn_hidden: 256}` 或改 `--gcn_num_layers 3` 跟之前跑过的不一样时，必须先 `rm -rf data/GNNDelete/ data/UTU/`，否则旧 checkpoint 触发 state_dict 维度不匹配 RuntimeError（2026-05-06 B.1 GNNDelete crash 真实根因）。GraphEraser/GraphRevoker 文件名带 `partition_method/num_shards` 但同样不带架构，规则同。**不属于"改架构"、可以放心改的**：加新 method（每个 method 自己的 `data/<Method>/` 独立目录）、改 strategy / seed / dataset / base_model（路径已带）、改 lr / num_epochs / batch_size / unlearn_ratio / alpha / hybrid_alpha / fusion_method / candidate_fraction（不改 tensor shape，只影响数值）。ResultCache 的 `CACHE_KEY_FIELDS` 已包含 `gcn_hidden`/`gcn_num_layers`，所以 yaml override 后 cache 不会 collide，但**方法自己的磁盘 checkpoint 仍会**。
 
 ### ⚠ Active Bugs / Status (2026-05-05)
 

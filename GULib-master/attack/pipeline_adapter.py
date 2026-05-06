@@ -441,6 +441,8 @@ class AttackPipeline:
         unlearn_start = time.time()
 
         # Run the unlearning experiment
+        failed = False
+        failure_reason = None
         try:
             # Run a single iteration
             self.args["num_runs"] = 1
@@ -458,7 +460,7 @@ class AttackPipeline:
             if f1_before_arr is not None and f1_before_arr[0] > 0:
                 f1_before = float(f1_before_arr[0])
             else:
-                # Removed fallback (self._evaluate_model()) because evaluating model post-run 
+                # Removed fallback (self._evaluate_model()) because evaluating model post-run
                 # yields invalid pre-unlearning baseline metrics.
                 f1_before = None
 
@@ -466,6 +468,8 @@ class AttackPipeline:
             self.logger.error(f"Error during unlearning: {e}")
             import traceback
             traceback.print_exc()
+            failed = True
+            failure_reason = f"{type(e).__name__}: {e}"
             f1_before = None
             f1_after = 0.0
             unlearn_time = time.time() - unlearn_start
@@ -501,6 +505,8 @@ class AttackPipeline:
             "selection_time": selection_time,
             "total_time": total_time,
             "mia_auc": mia_auc,
+            "failed": failed,
+            "failure_reason": failure_reason,
         }
 
     def _get_trained_model(self):

@@ -128,9 +128,9 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 
 可能解释 A：真鲁棒；B：mechanism-incomparable（特征保留 / 梯度型独立）。详见 thesis_transition_memo §3.5。
 
-### 3.6 ✅ Phase B 污染 bug 集（RESOLVED 2026-05-06，commits `66a90f8` + `13f1e89` + `ddb7109`）
+### 3.6 ✅ Phase B 污染 bug 集（RESOLVED 2026-05-06，commits `66a90f8` + `13f1e89` + `ddb7109` + 第 9 条 pending commit）
 
-5 条第一轮 + 3 条二次 audit 共 8 条 attack pipeline 正确性问题，都在 `fix/blocker-1-train-before-select` branch 上修完。**Phase B 既有所有 attack.json/collateral.json 数据全部判定为不可信**，用户已清盘 `results/runs/` + 三个 cache 目录，下一次 B.0 sanity 是第一次干净数据。详见 V-2026-05-06-01 / V-2026-05-06-02。
+5 条第一轮 + 3 条二次 audit + 1 条 B.1 arxiv 实跑发现 = 9 条 attack pipeline 正确性问题，都在 `fix/blocker-1-train-before-select` branch 上修完。**Phase B 既有所有 attack.json/collateral.json 数据全部判定为不可信**，用户已清盘 `results/runs/` + 三个 cache 目录，下一次 B.0 sanity 是第一次干净数据。详见 V-2026-05-06-01 / V-2026-05-06-02 / V-2026-05-06-03。
 
 | Bug | 影响 | 状态 |
 |---|---|---|
@@ -142,6 +142,7 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 | **SelectionCache 对 Hybrid/TracIn 漏 hyperparam** — `_strategy_params_for_cache` 对它俩 fallthrough 到 `{}`，`fingerprint = sha256("{}")` 常数；两次 hybrid 实验只差 alpha/candidate_fraction/fusion_method/loss_type 时 cache key 完全相同，第二次 HIT 拿到第一次的 selected_nodes，`strategy.select_nodes` 根本不执行 | ✅ ddb7109：加 tracin/hybrid 分支返回完整 hyperparam dict |
 | **ResultCache CACHE_KEY_FIELDS 漏架构/loss 系数** — 缺 gcn_num_layers/gcn_hidden（arxiv 3/256 vs cora 2/64 同 base_model 时碰撞）、alpha（GNNDelete/CGU loss 系数直接进 f1_after）、hybrid_alpha | ✅ ddb7109：加 4 个字段 |
 | **跨 strategy 训练状态污染** — `compare_strategies` 内所有 strategy 共享 `model_zoo.model`；第 1 个 strategy 跑完后是 post-unlearn 状态，第 2 个 strategy 的 `train_original_model` 在污染权重上 fine-tune；cell 内 strategy 顺序影响 f1_after | ✅ ddb7109：`_setup` snapshot random_init state_dict；新增 `_restore_random_init`；hook 在 `_ensure_base_model_trained` 训练前 + `_run_unlearning_with_selected_nodes::method.run_exp()` 前 |
+| **失败 unlearning 结果写入 ResultCache 污染下次 hit + cache-skip 引发 detection chain 失效** — `pipeline_adapter.run_with_selected_nodes` except 块 swallow 异常后伪造 `f1_before=None, f1_after=0.0` 但无 failure flag；`attack_manager` 无脑 `cache.save`；下次 run 立即 cache hit 返回坏结果，unlearning 根本没重跑（B.1 arxiv GNNDelete 实测：cache key `f29ac5e85baed066` 存了 `f1_drop=NA`）。**关键陷阱 1**：不能用 `f1_before is None` 当 failure 指标，正常 GraphEraser 路径也会 `f1_before=None`。**关键陷阱 2**：单纯阻止失败 cache 写会破坏既有 detection chain——eval_collateral 原本靠 cache hit 拿 selected_nodes 后重跑 run_exp 复现 crash → rc≠0 → run.py 报 failed_collateral，cache 没了反而 SKIP 走过场写假 _meta.json | ✅ 多层防御：(1) pipeline_adapter except 块 `failed=True/failure_reason=...`；(2) AttackResult 加 `failed`+`failure_reason` 字段（带 default 兼容旧 JSON），`to_dict` 序列化进 attack.json；(3) attack_manager 失败时 skip cache.save 但仍构造 AttackResult；(4) demo_attack 末尾扫 `comparison.results`，发现 `failed=True` → `sys.exit(1)`；(5) eval_collateral runner mode (`_output_dir`) 下 cache miss → `sys.exit(1)` 兜底。**三层 cache 在 unlearning 失败时**：ScoreCache + SelectionCache 保留（昂贵 selection 不白做），ResultCache skip（避免污染）。已有脏 entry 需手动 rm |
 
 **附带修复**：
 - HybridStrategy 之前绕过 `compute_im_celf` 直接调 `compute_initial_marginal_gains`，不应用 `candidate_fraction` pruning → 改为对 IF/IM 共享候选集统一 prune
@@ -153,7 +154,7 @@ cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只
 - 所有 `results/runs/**/collateral.json` 的 retrain_gap：单次有效但跨 seed 不可复现
 - IM-only / k=5 noise floor / 旧 `results/baseline/k5_random/`：**不受影响**
 
-**重跑策略**：B.0 sanity → 用 v2 binary 重跑全 B.1（cora 5 method × 6 strategy × 5 seed ≈ 150 cell, ~1h cora 4090；arxiv 子集后做）。
+**重跑策略**：B.0 sanity → 用 v2 binary 重跑全 B.1（cora 6 method × 6 strategy × 5 seed ≈ 180 cell, ~1.5h cora 4090；arxiv 子集后做）。
 
 ---
 

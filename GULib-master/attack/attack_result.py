@@ -43,6 +43,14 @@ class AttackResult:
     mia_auc: Optional[float] = None
     run_timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     config: Optional[Dict[str, Any]] = None
+    # Failure marker (added 2026-05-06). True when unlearning crashed inside
+    # pipeline_adapter.run_with_selected_nodes' except block. demo_attack uses
+    # this to set non-zero rc so run.py reports failed_attack and skips
+    # _meta.json. Default False keeps backward-compat with existing on-disk
+    # JSON cache entries (ResultCache only writes failed=False entries; this
+    # field exists so it can flow through compare_strategies → attack.json).
+    failed: bool = False
+    failure_reason: Optional[str] = None
 
     def __post_init__(self):
         """Calculate derived metrics."""
@@ -75,6 +83,8 @@ class AttackResult:
             "mia_auc": round(self.mia_auc, 4) if self.mia_auc is not None else None,
             "run_timestamp": self.run_timestamp,
             "config": self.config or {},
+            "failed": self.failed,
+            "failure_reason": self.failure_reason,
         }
 
     def to_json(self, indent: int = 2) -> str:

@@ -469,12 +469,19 @@ class AttackManager:
             selection_cache_source=selection_cache_source,
             mia_auc=result_dict.get("mia_auc"),
             config=config,
+            failed=bool(result_dict.get("failed", False)),
+            failure_reason=result_dict.get("failure_reason"),
         )
 
         # Store and cache result
         self.results[strategy_name] = result
 
-        if use_cache and self.cache:
+        if result_dict.get("failed"):
+            print(
+                f"[Cache] Skip save: unlearning failed "
+                f"(reason: {result_dict.get('failure_reason')})"
+            )
+        elif use_cache and self.cache:
             self.cache.save(result, config)
 
         return result

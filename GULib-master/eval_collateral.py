@@ -399,6 +399,19 @@ def main():
         # 1. Read selected_nodes from cache
         cached = find_cache_entry(cache, args, strategy_name)
         if cached is None:
+            if _output_dir is not None:
+                # Runner mode (called by experiments/run.py): demo_attack just ran
+                # for this exact (method, strategy, seed). A cache miss means
+                # demo_attack's unlearning failed AND the cache-write guard
+                # (attack_manager.py post-2026-05-06) blocked the dirty entry.
+                # Abort with non-zero rc so run.py reports failed_collateral
+                # and skips _meta.json — preventing the cell from being
+                # falsely marked complete.
+                print(
+                    f"  [ERROR] No cache entry for strategy={strategy_name} in runner mode. "
+                    f"demo_attack likely failed; aborting to avoid false-complete cell."
+                )
+                sys.exit(1)
             print(f"  [SKIP] No cache entry for strategy={strategy_name}")
             continue
 

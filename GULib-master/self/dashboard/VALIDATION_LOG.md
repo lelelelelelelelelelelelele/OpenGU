@@ -602,3 +602,81 @@ Average AUC Score: 0.5718                                                       
 
 ---
 
+### V-2026-05-06-03: ResultCache 失败结果污染 — unlearning crash 后伪装 hit (RESOLVED)
+
+**Setting**：B.1 ogbn-arxiv/GCN/r=0.05 GNNDelete cell 实跑触发。第一次 run（`phase_b1_arxiv_20260506_1813.log` 18:16）GCNDelete 加载 state_dict 抛 `RuntimeError(Error(s) in loading state_dict for GCNDelete)` —— `./data/GNNDelete/checkpoint_node/` 残留的旧 checkpoint 维度不匹配（旧 `gcn_hidden=64`，新 yaml 要 `gcn_hidden=256`）。用户加 `model_overrides: {gcn_hidden:256, gcn_num_layers:3}` 重跑，期望 cell 重做。
+
+**Symptom**：第二次 demo_attack 在 22:19 立即 cache hit：
+
+```
+[Cache] Hit for key: f29ac5e85baed066
+[Cache] Cached at: 2026-05-06T18:16:24.519287    ← 第一次 crash 时刻
+1     random         NA          NA          21.59
+```
+
+`f1_drop=NA` 写入 `attack.json`，unlearning 根本没重跑。但日志同段后续显示 GNNDelete 在 22:19:35 起又跑了 200 epoch + 50 epoch unlearning（这是 `eval_collateral.py` 独立调用 `pipeline.method.run_exp()` 跑出来的，跟 demo_attack 的 cache hit 无关）—— 误导性强。
+
+**Root cause**：`attack/pipeline_adapter.py:465-471`
+
+```python
+except Exception as e:
+    self.logger.error(f"Error during unlearning: {e}")
+    import traceback
+    traceback.print_exc()
+    f1_before = None
+    f1_after = 0.0
+    unlearn_time = time.time() - unlearn_start
+    mia_auc = None
+```
+
+异常被 swallow 后伪造 placeholder 返回，**无任何 failure flag**。`attack/attack_manager.py:478` 无脑 `cache.save(result, config)`，下次 `cache.get` 返回的 AttackResult 跟"成功但方法没暴露 `poison_f1` 字段"路径（如 GraphEraser 的 `f1_before=None`）在结构上**完全无法区分**。
+
+**Trap explored**：曾考虑在 `cache.get` / `cache.save` 端检查 `result.f1_before is None` 当作 failure 指标。**错的**——GraphEraser 正常成功路径就有 `f1_before=None`（pipeline_adapter.py:458 `poison_f1[0] > 0` 不成立 → fallback `None`），那样会把合法 cache 一并干掉。failure 必须在 except 块**抓到异常的瞬间**显式打标，不能事后从 metric 反推。
+
+**Fix**：
+
+1. `attack/pipeline_adapter.py`：try 块前 `failed=False, failure_reason=None`；except 块 `failed=True; failure_reason=f"{type(e).__name__}: {e}"`；result_dict 多带这两个字段（`run_with_strategy` 委托给 `run_with_selected_nodes`，自动继承）。
+2. `attack/attack_manager.py:474-483`：`cache.save` 前判断 `result_dict.get("failed")`，True 则 skip + print 原因，False 走原 elif `cache.save(result, config)`。
+3. **read path 完全不动**——AttackResult schema 不变，磁盘上现有 cache JSON 100% backward-compatible，GraphEraser/MEGU/IDEA 等正常 `f1_before=None` 的 entry 不受任何影响。
+
+**Impact on existing data**：
+
+- `results/cache/f29ac5e85baed066.json` 是已存在的脏 entry，新代码不会自动清理（避免任何误判风险），用户手动 `rm` 一次即可。
+- selection_cache / score_cache 不受影响：selection 在 unlearning crash 之前完成，缓存的 selected_nodes / scores 都是有效的。
+
+**Failure detection chain — 多层防御重新搭建**：
+
+cache-write 闸门补上后，原本"eval_collateral cache hit + 重跑 run_exp 自动 crash"的隐式 detection chain 失效（cache 没了→eval_collateral SKIP→空 collateral.json rc=0→cell 假装完成）。需要换一条**显式失败传播链**：
+
+1. `attack/pipeline_adapter.py`: try 块前 `failed=False/None`；except 块 `failed=True; failure_reason=f"{type(e).__name__}: {e}"`。result_dict 多带这两字段（已有）。
+2. `attack/attack_result.py`: `AttackResult` schema 新增 `failed: bool = False` + `failure_reason: Optional[str] = None`（带 default 兼容旧 cache JSON）；`to_dict` 序列化二字段进 `attack.json`，让外部消费者（gate_runs / 调试）能看到失败状态。
+3. `attack/attack_manager.py:474-485`: cache write 闸门（`result_dict["failed"]=True` 不写 ResultCache）；构造 AttackResult 时把 failed/failure_reason 一路传过去。
+4. `demo_attack.py:218-232`: comparison 完成后扫 `comparison.results`，存在 `failed=True` 的 strategy → 打印失败列表 + `sys.exit(1)` → run.py 立即报 `failed_attack` → 不写 `_meta.json` → 下次 re-run 不被 skip-check 骗到。
+5. `eval_collateral.py:401-414`（防御性兜底）：runner mode 下 cache miss → `sys.exit(1)`。在 #1-#4 链路通的情况下用不到，但 demo_attack 万一 swallow 失败也能截。standalone 用法不变。
+
+**三层 cache 在 unlearning 失败时的行为对照**：
+
+| Cache | 触发时机 | 失败时 | 设计意图 |
+|---|---|---|---|
+| `ScoreCache` (TracIn/IM 分数) | strategy.select_nodes() 内部 | ✅ 保留 | selection 在 unlearning 之前就已完成；昂贵计算（TracIn 50-90 min on arxiv）不该因 unlearning crash 白做 |
+| `SelectionCache` (selected_nodes) | run_with_strategy 返回后，`attack_manager.py:444` | ✅ 保留 | 同上理由 |
+| `ResultCache` (AttackResult) | 跑完 unlearning 后，`attack_manager.py:483` | ❌ skip | 含 f1_after/mia_auc 等 unlearning 阶段才能定的 metric，失败时这些都是 placeholder |
+
+**eval_collateral 同构审计**：除上述 runner-mode 兜底外，本身不写 ResultCache（只 `find_cache_entry` 读 selected_nodes）；`collateral.json` 的 `json.dump` 在 strategy loop 之外，中途 crash 不会写半截；跨 strategy 状态在 `eval_collateral.py:419-425` 每个 iteration 重新实例化时已隔离。
+
+**上游根因（CLAUDE.md 已记 important note）**：今天 GNNDelete crash 的真实根因是 `data/GNNDelete/checkpoint_node/` 路径不带 `gcn_hidden`/`gcn_num_layers`，yaml `model_overrides` 改架构后旧 checkpoint 触发 state_dict 维度不匹配。UTU 同病。GraphEraser/GraphRevoker 文件名带 `partition_method/num_shards` 但同样不带架构。临时缓解：改架构必先 `rm -rf data/<Method>/`。彻底修法（把架构 hash 加进 checkpoint 文件名）不阻塞 4 天 deadline，记入 §5 TODO follow-up。
+
+**Verification（pending）**：服务器跑通后确认
+
+1. 删 `results/cache/f29ac5e85baed066.json` + `results/runs/ogbn-arxiv_GCN_r0.05/GNNDelete_random/seed42/_meta.json`
+2. `python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml` 重跑
+3. GNNDelete cell 应实际跑完 unlearning + collateral，attack.json 的 `f1_drop` 不再是 NA
+4. 即使再次 crash，也不会产生新的脏 cache entry（`[Cache] Skip save: unlearning failed (reason: ...)` 出现在 stdout）
+
+**未做的 follow-up**：
+
+- 上游根因（GNNDelete checkpoint 维度不匹配）当前靠 yaml `model_overrides` 兜底，更彻底的修法是把 `gcn_hidden`/`gcn_num_layers` 纳入 checkpoint 文件名 hash —— 不阻塞 4 天 deadline，记入待办。
+- 回归测试（mock 一个会 raise 的 method，assert `failed=True` + cache 没被写）—— 列在 §5 TODO，B.0/B.1 跑完后补。
+
+---
+
