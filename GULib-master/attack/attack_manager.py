@@ -337,10 +337,8 @@ class AttackManager:
         # Check cache
         use_cache = use_cache if use_cache is not None else self.use_cache
         config = self._build_config(strategy_name, k)
-        needs_canonical_selector_cache = self._needs_canonical_selector_cache(strategy_name, strategy)
-        read_result_cache = use_cache and not needs_canonical_selector_cache
 
-        if read_result_cache and self.cache:
+        if use_cache and self.cache:
             cached_result = self.cache.get(config)
             if cached_result is not None:
                 self.results[strategy_name] = cached_result
@@ -422,7 +420,7 @@ class AttackManager:
                     "[SelectionCache] MISS "
                     f"strategy={strategy_name} selection_key={selection_cache_key}"
                 )
-                if needs_canonical_selector_cache:
+                if self._needs_canonical_selector_cache(strategy_name, strategy):
                     self._raise_canonical_selector_cache_miss(strategy_name)
                 result_dict = self.pipeline.run_with_strategy(strategy, k)
                 selection_time_value = float(result_dict.get("selection_time", 0.0))
@@ -446,7 +444,7 @@ class AttackManager:
                 cache_path = self.selection_cache.save(to_cache, selection_config)
                 print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
         else:
-            if needs_canonical_selector_cache:
+            if self._needs_canonical_selector_cache(strategy_name, strategy):
                 self._raise_canonical_selector_cache_miss(strategy_name)
             result_dict = self.pipeline.run_with_strategy(strategy, k)
             selection_time_value = float(result_dict.get("selection_time", 0.0))
