@@ -62,7 +62,8 @@ class GCNDelete(GCNNet):
             num_layers = int(args.get('gcn_num_layers', 2))
         super().__init__(args,in_channels, out_channels, num_layers=num_layers)
         self.args = args
-        self.deletion1 = DeletionLayer(args['hidden_dim'], mask_1hop)
+        hidden_channels = int(args.get('gcn_hidden', args.get('hidden_dim', 64)))
+        self.deletion1 = DeletionLayer(hidden_channels, mask_1hop)
         self.deletion2 = DeletionLayer(args['out_dim'], mask_2hop)
 
         self.convs[0].requires_grad = False

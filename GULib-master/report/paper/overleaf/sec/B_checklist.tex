@@ -1,4 +1,4 @@
-% NeurIPS 2025 Paper Checklist (REQUIRED, NOT COUNTED IN PAGE LIMIT)
+% NeurIPS 2026 Paper Checklist (REQUIRED, NOT COUNTED IN PAGE LIMIT)
 % Edit answers (Yes/No/NA) and justifications as the paper evolves.
 
 \begin{enumerate}
@@ -11,7 +11,7 @@
 \item {\bf Limitations}
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
-    \item[] Justification: \S\ref{sec:limitations} discusses shard-count coverage, 3-seed arxiv power, TracIn scaling, L2-direct vs.\ surrogate scope, small-graph ratio sweeps, category coverage, and claim-conditioned slicing.
+    \item[] Justification: \S\ref{sec:limitations} enumerates seven limitations (L1--L7), including shard-count coverage, statistical-power trade-offs on ogbn-arxiv, TracIn scalability bounds, and scope boundaries such as claim-conditioned slicing and L2-direct vs.\ surrogate gaps.
 
 \item {\bf Theory assumptions and proofs}
     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
@@ -80,7 +80,7 @@
 
 \item {\bf Declaration of LLM usage}
     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research?
-    \item[] Answer: \answerNA{}
-    \item[] Justification: LLMs were not used as a core methodology component. Any use was limited to writing/editing.
+    \item[] Answer: \answerYes{}
+    \item[] Justification: LLMs were used for writing assistance, grammatical editing, and LaTeX formatting only; they were not used as a core methodology component.
 
 \end{enumerate}

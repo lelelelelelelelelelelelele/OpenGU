@@ -2,7 +2,7 @@
 
 > Created 2026-05-04. NeurIPS 2026 `.sty` file is not yet released as of this
 > date; the 2025 `.sty` is shipped here. When 2026 official files appear,
-> drop them into this directory and update `\usepackage{neurips_2025}` →
+> drop them into this directory and update `\usepackage{neurips_2026}` →
 > `\usepackage{neurips_2026}` in `main.tex`. Macros are stable year-over-year.
 
 ## Files
@@ -10,7 +10,7 @@
 ```
 overleaf/
 ├── main.tex                  # entry point
-├── neurips_2025.sty          # NeurIPS style (replace with 2026 when out)
+├── neurips_2026.sty          # NeurIPS 2026 style
 ├── references.bib            # citation skeleton
 ├── README.md                 # this file
 ├── sec/
