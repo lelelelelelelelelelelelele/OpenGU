@@ -34,22 +34,26 @@
 
 ```
 Stage 1（并行）:
-  机 A800（GPU）─→ prewarm tracin × 6 method  ~7-8h
-                   写：results/score_cache/if/<key>.npz × 6
-                       results/selection_cache/<key>.json × 6 method
+  机 A800（GPU）─→ prewarm tracin × 3 method (T1: GIF/GNNDelete/GraphEraser)
+                                              ~3.5-4h（3 × 75 min）
+                   写：results/score_cache/if/<key>.npz × 3
+                       results/selection_cache/<key>.json × 3 method
 
-  机 CPU 32 核 ─→ prewarm im                  ~30s-3min
+  机 CPU 32 核 ─→ prewarm im+degree+pagerank   ~3-5 min
                    写：results/score_cache/im_celf/<key>.npz × 1
-                       results/selection_cache/<key>.json × 1
+                       results/selection_cache/<key>.json × 3 (跨 method/seed 共享)
 
            ╲────────────────╱
                   ▼
        两机产物 tar + scp 到一处
 
 Stage 2（单机）:
-  机 A800 ─→ 跑 T1 主矩阵                     ~3h
+  机 A800 ─→ 跑 T1 主矩阵 (18 cell, 6 strategy) ~4-4.5h
             （selection 全 cache hit，只 GU+MIA+retrain）
             写：results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/{4 files}
+
+T1 单 seed 总时间 ≈ max(Stage 1a, Stage 1b) + Stage 2 ≈ 4h + 4.2h = ~8h
+T2/T3 各自重复（tracin per-seed cache，topology cache 跨 seed 共享）→ 各 ~8h
 ```
 
 ### Stage 1a — A800 prewarm TracIn（6 method 全打）
@@ -77,7 +81,9 @@ tar czf tracin_if_cache.tar.gz \
     results/selection_cache/
 ```
 
-预期：~7.5h 单机（6 × 75 min）。**如果 6 method 都跑出来，stage 2 的 tracin 部分全 cache hit。**
+预期：~3.5-4h（T1 yaml 含 3 method × 75 min/method）。**3 method 都跑出来后，Stage 2 的 tracin 和 hybrid 在每 method 上都 cache hit。**
+
+（如果 yaml 含更多 method，按 N_method × 75 min 线性外推；method-loop 自动覆盖）
 
 ### Stage 1b — CPU prewarm IM + degree + pagerank（并行 1a，全 topology-only）
 
