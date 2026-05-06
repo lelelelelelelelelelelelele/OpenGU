@@ -1,0 +1,49 @@
+# Phase B — single-cell smoke test for chunked TracIn on ogbn-arxiv.
+# Validates that branch fix/tracin-chunked-arxiv (commit 194f549) works
+# end-to-end before committing to the full 12-cell T1 matrix.
+#
+# Expected runtime on A800 80GB: ~85-92 min wall clock
+#   - base train       ~30s
+#   - TracIn chunked   ~70-78 min  (GPU peak ~5 GB; CPU peak ~60 GB)
+#   - GIF unlearn      ~1 min
+#   - MIA              ~12 min  (CPU-bound)
+#   - retrain          ~30-60s  (GPU peak ~22 GB)
+#
+# Watch for in stdout:
+#   [TracIn] G matrix ~57.0 GB > 4.0 GB threshold → chunked path (chunk_size=1000, CPU offload)
+#   [ScoreCache] SAVE if  key=... -> ./results/score_cache/if/<key>.npz
+#
+# After success: results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/{attack,collateral,predictions,_meta}.json
+# ScoreCache populated for any future (GIF, ogbn-arxiv, GCN, r=0.05, seed=42) TracIn calls.
+
+name: phase_b_arxiv_tracin_smoke
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF        # fastest unlearn; cleanest test of the TracIn fix end-to-end
+
+strategies:
+  - tracin     # only this — IM still broken, run separately later
+
+seeds: [42]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256
