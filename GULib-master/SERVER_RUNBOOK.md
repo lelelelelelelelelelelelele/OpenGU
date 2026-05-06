@@ -37,6 +37,7 @@
 | **A.5-1** | cora/GCN ratio sweep r ∈ {0.01, 0.10, 0.20}，6 method × 3 strategy × 5 seed = 270 cell（必跑） | A | ~3-5h | `A5_ratio_*.yaml` |
 | **A.5-2** | citeseer/GCN 两端 r ∈ {0.05, 0.20}，6 method × 3 strategy × 5 seed = 180 cell（**条件跑**） | A | ~1h | `A5_citeseer_r0.05.yaml`, `A5_citeseer_r0.20.yaml` |
 | **A.6** | cora/GIN backbone ablation r=0.05，5 method × 3 strategy × 5 seed = 75 cell（**条件跑**） | A | ~1h | `A6_cora_gin_r0.05.yaml` |
+| **A.3** | Alpha sweep（hybrid_alpha ∈ {0.00, 0.25, 0.75, 1.00}，0.50 复用主矩阵），cora/GCN + cora/GAT × 5 method × 5 seed = 200 cell（**条件跑**） | A | ~60-80 min | `A3_cora_{GCN,GAT}_alpha{0.00,0.25,0.75,1.00}.yaml` (8 yaml) |
 | **A.7** | Cross-arch surrogate transferability（GCN↔GAT，仅 tracin/hybrid，复用 sister cell 选点）；**spec only，实现待定** | A | ~30min（实现后） | `A7_xfer_*.yaml` (TBD) |
 | Prewarm（可选） | 跨 cell 共享 IF/IM 选择，B.2 前跑节省 alpha-sweep | B | ~50-100 min | — |
 
@@ -433,6 +434,48 @@ ls results/runs/cora_GIN_r0.05/*/seed*/attack.json | wc -l   # → 75
 #### 数据回收（合到 §6）
 
 `results/runs/cora_GIN_r0.05/`，§6 机 A tar 命令需追加（已在 §6 备注列出）。
+
+---
+
+### 3.7b A.3 — Alpha Sweep（机 A，**条件跑**，~60-80 min）
+
+**何时跑**：B.3/B.4 (cora 主矩阵) 完成后，paper deadline 富余 ≥1h。
+**目的**：扫 hybrid_alpha ∈ {0.00, 0.25, 0.75, 1.00} 看 IF/IM 融合权重的曲线形状。0.50 在主矩阵已有，自动跳过。
+**Spec**：`experiments/configs/A3_alpha_sweep_SPEC.md`（standing; 2026-05-06 实现完成）
+
+**前置**：B.3 + B.4 PASS。`feat/a3-alpha-sweep` merge 进 main 之后，老 ResultCache 全失效（key 加了 5 个字段），不要在 B.x 跑中途 pull。
+
+```bash
+cd ~/autodl-fs/OpenGU/GULib-master && git pull --ff-only && mkdir -p logs
+
+# 8 yaml 串行（4 alpha × 2 backbone）。每 yaml 25 cell，每 cell ~30s
+nohup bash -c '
+for yaml in experiments/configs/A3_cora_GCN_alpha0.00.yaml \
+            experiments/configs/A3_cora_GCN_alpha0.25.yaml \
+            experiments/configs/A3_cora_GCN_alpha0.75.yaml \
+            experiments/configs/A3_cora_GCN_alpha1.00.yaml \
+            experiments/configs/A3_cora_GAT_alpha0.00.yaml \
+            experiments/configs/A3_cora_GAT_alpha0.25.yaml \
+            experiments/configs/A3_cora_GAT_alpha0.75.yaml \
+            experiments/configs/A3_cora_GAT_alpha1.00.yaml; do
+    python experiments/run.py "$yaml"
+done
+' > logs/A3_alpha_$(date +%Y%m%d_%H%M).log 2>&1 &
+echo $! > logs/A3_alpha.pid
+```
+
+监控：
+
+```bash
+ls results/runs/cora_GCN_r0.05/*_hybrid_alpha*/seed*/attack.json | wc -l   # → 100 (5 method × 4 alpha × 5 seed)
+ls results/runs/cora_GAT_r0.05/*_hybrid_alpha*/seed*/attack.json | wc -l   # → 100
+```
+
+**跳过的写法**：paper §A.3 写 "Alpha sweep deferred; main matrix's hybrid (alpha=0.5) is reported. The fusion-weight elasticity is left to future work."
+
+#### 数据回收（合到 §6）
+
+`results/runs/cora_GCN_r0.05/*_hybrid_alpha*/` + `results/runs/cora_GAT_r0.05/*_hybrid_alpha*/`。§6 机 A tar 默认 glob 已经覆盖（基于 `cora_*_r0.05/` 全包），无需追加。
 
 ---
 

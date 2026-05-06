@@ -307,6 +307,58 @@ def test_shard_method_tracin_cache_miss_fails_fast(tmp_path):
 
 
 # ----------------------------------------------------------------------
+# 3b. A3 alpha sweep — cell_dir disambiguates non-default hybrid_alpha
+# ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "strategy,alpha_source,alpha_value,expect_suffix",
+    [
+        ("hybrid", None, None, False),                      # no alpha set → bare leaf
+        ("hybrid", "top", 0.5, False),                      # default alpha → bare leaf
+        ("hybrid", "top", 0.25, True),                      # non-default top-level → suffix
+        ("hybrid", "top", 0.75, True),
+        ("hybrid", "extra", 0.25, True),                    # via extra_args
+        ("hybrid", "extra", 0.5, False),                    # default via extra_args
+        ("random", "top", 0.25, False),                     # non-hybrid ignores alpha
+        ("tracin", "top", 0.25, False),
+    ],
+)
+def test_cell_dir_disambiguates_hybrid_alpha(strategy, alpha_source, alpha_value, expect_suffix):
+    """A3 alpha sweep: two hybrid runs at different alphas must NOT share
+    a cell directory (would overwrite each other's attack.json). Default
+    alpha=0.5 stays under the bare leaf so it shares with the main matrix.
+    """
+    from experiments.run import cell_dir
+
+    cfg = {"dataset": "cora", "base_model": "GCN", "ratio": 0.05}
+    if alpha_source == "top":
+        cfg["hybrid_alpha"] = alpha_value
+    elif alpha_source == "extra":
+        cfg["extra_args"] = ["--hybrid_alpha", str(alpha_value)]
+
+    leaf = cell_dir(cfg, "GIF", strategy, 42).parent.name
+
+    if expect_suffix:
+        assert leaf == f"GIF_hybrid_alpha{alpha_value:.2f}", leaf
+    else:
+        assert leaf == f"GIF_{strategy}", leaf
+
+
+def test_cell_dir_alpha_top_level_and_extra_args_agree():
+    """If both top-level and extra_args carry hybrid_alpha at the SAME value,
+    cell_dir picks one consistently (top-level wins)."""
+    from experiments.run import cell_dir
+
+    cfg = {
+        "dataset": "cora", "base_model": "GCN", "ratio": 0.05,
+        "hybrid_alpha": 0.25,
+        "extra_args": ["--hybrid_alpha", "0.25"],
+    }
+    assert cell_dir(cfg, "GIF", "hybrid", 42).parent.name == "GIF_hybrid_alpha0.25"
+
+
+# ----------------------------------------------------------------------
 # 4. Cache-key isolation: differing hyperparams ⇒ differing keys
 # ----------------------------------------------------------------------
 
@@ -356,6 +408,47 @@ def test_cache_key_isolation_across_hyperparams(strategy_name, knob):
     assert p_a != p_b, (
         f"{strategy_name} cache key ignores `{knob}`: "
         f"{val_a!r} and {val_b!r} produced identical params."
+    )
+
+
+# ----------------------------------------------------------------------
+# 4b. ResultCache key isolation — A3 alpha sweep adds 5 fields
+# ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "knob,val_a,val_b",
+    [
+        ("hybrid_alpha", 0.25, 0.75),
+        ("alpha", 0.1, 0.9),
+        ("fusion_method", "rank", "linear"),
+        ("candidate_fraction", 1.0, 0.1),
+        ("mc_rounds", 50, 100),
+        ("im_batch_size", 1, 8),
+        ("im_selector_seed", 2024, 2025),
+    ],
+)
+def test_result_cache_key_isolation_for_a3_fields(knob, val_a, val_b):
+    """Bug we're protecting against: A3 alpha sweep would silently return
+    a stale ResultCache entry from a different (alpha, fusion_method, IM
+    knob) configuration because those fields used to be missing from
+    `ResultCache.CACHE_KEY_FIELDS`.
+
+    Property: each of the 7 A3-relevant knobs must change the ResultCache
+    key when toggled.
+    """
+    from attack.result_cache import ResultCache
+
+    cache = ResultCache.__new__(ResultCache)  # bypass __init__ (no disk)
+    cfg_a = {"dataset_name": "cora", "base_model": "GCN", "k": 5, knob: val_a}
+    cfg_b = {"dataset_name": "cora", "base_model": "GCN", "k": 5, knob: val_b}
+
+    key_a = cache._hash_fields(cfg_a, ResultCache.CACHE_KEY_FIELDS)
+    key_b = cache._hash_fields(cfg_b, ResultCache.CACHE_KEY_FIELDS)
+
+    assert key_a != key_b, (
+        f"ResultCache key collides on `{knob}` ({val_a!r} vs {val_b!r}): "
+        f"alpha-sweep / fusion-sweep / IM-knob ablation would replay stale results."
     )
 
 
