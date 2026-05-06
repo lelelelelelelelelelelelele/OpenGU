@@ -49,12 +49,15 @@
 |---|---|---|---|---|---|
 | cora | 任意 | <1 min | <1 min | <4 GB | cora 全套都不挑卡 |
 | arxiv | random | ~10 min | ~10 min | ~8 GB | selection 0.002s，瓶颈在 GU+retrain |
-| arxiv | im (CELF) | ~3 min | ~3 min | ~8 GB | yaml 必须带 `candidate_fraction=0.1, mc_rounds=50` |
+| arxiv | **im (CELF)** | **~4-10h（默认参数）** ⚠ | 同 | ~4 GB（纯 CPU） | 见下面 ⚠ IM 段 |
+| arxiv | im (batch=100, 推荐) | ~30-60 min | 同 | ~4 GB | yaml 加 `--im_batch_size 100`，≤1% spread quality 损失 |
 | arxiv | **tracin** | **~50-90 min** | ~81 min（已测） | **~68 GB** | **24GB 卡 OOM**；候选 = 全 train ~90K，逐节点 backward |
 | arxiv | hybrid | ~50-90 min（首次） | ~81 min（首次） | ~68 GB | IF + IM 共用 ScoreCache，第二次同 (dataset, model, seed, ratio) 几秒回 |
 | arxiv | retrain（collateral） | ~30s | ~22 GB peak | — | 24GB 卡边缘 OOM，必须走 80GB |
 
 ⚠ **TracIn 1.5h 是正常的**。`tracin_strategy.py:_compute_tracin_scores` 里候选数 = `train_mask` ≈ 90K，每个节点一次 backward retain_graph。Forward-once 优化（commit `6b7285b`）只把时间砍半（~3h → ~1.5h），mem 没变。要再压：yaml 加 `candidate_fraction=0.1` 限流（10× 加速，但改语义，论文要写）。
+
+⚠ **IM CELF 在 arxiv 上是 CPU-bound 小时级，不是 3 分钟**（之前条目错，2026-05-07 修正）。原因：`im_strategy.py:_compute_im_celf_numba` 主循环每轮重估 marginal gain 时对 `selected ∪ {node}` 整个 seed 集合做 `mc_rounds=50` 次 IC BFS；当 `len(selected)` 长到 ~k/2（arxiv k≈4500-7000，中段有 ~2000-3000 seeds）时，单次 spread 的 BFS 已覆盖图 ~50%（~80K 节点 × avg degree 14 ≈ 1.1M edge ops），50 MC × 数小时累积。Step 1 的 initial gains（~9K 候选 × single-seed spread）只 1-5 秒，不是瓶颈。**Full CELF 结果不进 ScoreCache**（cache 只挂在 `compute_initial_marginal_gains`，给 Hybrid 用），所以每个 (dataset, seed) 第一次跑都吃满价，T1/T2/T3 跨 seed 不复用。**实战推荐**：yaml 加 `--im_batch_size 100`（默认 5），主循环轮数 ÷ 20，30-60 min 完事；literature (Goyal et al. 2011 SIGKDD) 标准做法，spread quality 损失 < 1%，paper 一行 "batch-greedy CELF, batch size 100" 即可。**不要 kill 已跑的进程**——CELF 没中途 checkpoint，kill 全丢；要么等完，要么 kill + 改 batch=100 重跑。
 
 ### 1.3 双机分工 & 数据合并
 
