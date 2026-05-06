@@ -18,6 +18,9 @@
 #   smoke 失败/超时 → 立即关机不跑 T1。完了关机。
 
 set -u
+# 让 python subprocess 不 block-buffer，每行立即写盘
+export PYTHONUNBUFFERED=1
+
 MODE="${MODE:-full}"
 BRANCH="${BRANCH:-release/phase-b-fixes}"
 NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(nproc 2>/dev/null || echo 18)}"
@@ -32,7 +35,12 @@ do_shutdown() {
         echo "[shutdown] SKIP_SHUTDOWN=1，不关机（exit ${1:-0}）"
         exit "${1:-0}"
     fi
+    echo "[shutdown] flushing buffers + calling /usr/bin/shutdown ..."
+    # 强制 flush：sync 把 page cache 落盘 + 给 shell 几秒写完最后几行
+    sync
+    sleep 3
     /usr/bin/shutdown
+    sleep 60   # 等 shutdown 命令真的关机；防止 process 还活着继续抓 prompt
     exit "${1:-0}"
 }
 
