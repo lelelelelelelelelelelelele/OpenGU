@@ -1,6 +1,6 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-07
+> Last updated: 2026-05-07 (§3.3 衍生事实 + IM cross-cell cache 行为)
 > See rules: `CLAUDE.md`
 > NeurIPS deadline: today (~2026-05-07)
 
