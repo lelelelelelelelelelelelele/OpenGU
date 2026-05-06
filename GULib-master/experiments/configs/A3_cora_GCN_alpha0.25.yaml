@@ -24,12 +24,12 @@ ratio: 0.05
 hybrid_alpha: 0.25
 
 methods:
+  # Aligned with phase_b_cora_gcn.yaml — same 5 GU families.
   - GIF
   - GNNDelete
-  - GraphEraser
   - MEGU
   - IDEA
-  - UTU
+  - GraphEraser
 
 strategies:
   - hybrid    # alpha sweep is hybrid-only

@@ -1,0 +1,38 @@
+# A3 alpha sweep — cora/GCN, hybrid_alpha=0.75 (single point of the sweep).
+#
+# See A3_cora_GCN_alpha0.25.yaml for the full pattern explanation.
+# Default 0.50 reuses main matrix's hybrid cell automatically (do not create
+# A3_*alpha0.50.yaml — would collide with the main matrix output dir).
+#
+# Output paths:
+#   results/runs/cora_GCN_r0.05/{method}_hybrid_alpha0.75/seed{N}/{4 files}
+
+name: A3_cora_GCN_alpha0.75
+dataset: cora
+base_model: GCN
+ratio: 0.05
+
+# Top-level hybrid_alpha: run.py auto-injects --hybrid_alpha to demo_attack +
+# eval_collateral, AND uses it in cell_dir to route outputs per alpha.
+hybrid_alpha: 0.75
+
+methods:
+  # Aligned with phase_b_cora_gcn.yaml — same 5 GU families.
+  - GIF
+  - GNNDelete
+  - MEGU
+  - IDEA
+  - GraphEraser
+
+strategies:
+  - hybrid    # alpha sweep is hybrid-only
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
