@@ -18,7 +18,19 @@
 name: phase_b_arxiv_T1_seed42
 dataset: ogbn-arxiv
 base_model: GCN
-ratio: 0.05
+# ratio=0.01 (k≈1355 train nodes): chosen 2026-05-07 over 0.05.
+# Rationale (see self/dashboard/EXPERIMENT_DASHBOARD.md §3.3.1):
+#   - At 5% (k≈6773), CELF lazy-greedy degenerates due to vanishing
+#     marginal gains; ran >1.5h on H20 in B.2-T1 first attempt (log file
+#     phase_b_arxiv_T1_20260506_2232.log) without completing.
+#   - At 1%, CELF stays in its standard operating regime, k=1355 falls
+#     within IM literature benchmark range, and the budget is closer to
+#     realistic deletion-request volume (GDPR/CCPA scale).
+#   - im_batch_size=1 (classic CELF, Leskovec 2007) replaces the previous
+#     batch=5 approximation since at this k the strict lazy-validation
+#     path completes in ~10-15 min single-core (or ~30s with 32-core
+#     numba.prange via `im_parallel_mc=True` default).
+ratio: 0.01
 
 methods:
   - GIF
@@ -46,6 +58,8 @@ extra_args:
   - "0.1"
   - --mc_rounds
   - "50"
+  - --im_batch_size
+  - "1"          # classic CELF (no batch approximation) at k≈1355
 
 model_overrides:
   GCN:

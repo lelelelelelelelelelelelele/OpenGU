@@ -27,64 +27,128 @@
 
 ## Quick Reference — 你只想 copy-paste 命令的话看这里
 
-> 前提：已经 `git checkout release/phase-b-fixes && git pull`
+> 前提：已经 `git checkout <release-branch> && git pull`
+> 当前 ratio = **0.01**（1%, k≈1355）；CELF 标准工作区 + im_batch_size=1 (classic CELF)
 
-### 0. CPU 实例（机 A'，~¥0.5-1/h）— prewarm IM
+### 工作流概览：3 stage，2 机并行 → 1 机收尾
+
+```
+Stage 1（并行）:
+  机 A800（GPU）─→ prewarm tracin × 6 method  ~7-8h
+                   写：results/score_cache/if/<key>.npz × 6
+                       results/selection_cache/<key>.json × 6 method
+
+  机 CPU 32 核 ─→ prewarm im                  ~30s-3min
+                   写：results/score_cache/im_celf/<key>.npz × 1
+                       results/selection_cache/<key>.json × 1
+
+           ╲────────────────╱
+                  ▼
+       两机产物 tar + scp 到一处
+
+Stage 2（单机）:
+  机 A800 ─→ 跑 T1 主矩阵                     ~3h
+            （selection 全 cache hit，只 GU+MIA+retrain）
+            写：results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/{4 files}
+```
+
+### Stage 1a — A800 prewarm TracIn（6 method 全打）
 
 ```bash
+# A800 实例
+cd ~/autodl-fs/OpenGU/GULib-master
+git fetch origin && git checkout <release-branch> && git pull
+
+# prewarm 自动 loop over 6 method（要 chunked TracIn 的 fix 在分支上）
+python scripts/prewarm_selection_cache.py \
+    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
+    --strategies tracin
+
+# 必看 stdout：
+#   [plan] strategies=['tracin']  methods=['GIF','GNNDelete','GraphEraser']
+#   [TracIn] G matrix ~5.7 GB > 4.0 GB threshold → chunked path
+#   ... ~75 min ...
+#   [ScoreCache] SAVE if  key=<...>  -> ./results/score_cache/if/<key>.npz   ← method 1
+#   ... ~75 min × 5 more methods ...
+#
+# 打包
+tar czf tracin_if_cache.tar.gz \
+    results/score_cache/if/ \
+    results/selection_cache/
+```
+
+预期：~7.5h 单机（6 × 75 min）。**如果 6 method 都跑出来，stage 2 的 tracin 部分全 cache hit。**
+
+### Stage 1b — CPU prewarm IM（并行 1a，1 method 即覆盖全部）
+
+```bash
+# CPU 32 核实例（autodl 通用计算型）
+cd ~/autodl-fs/OpenGU/GULib-master
+git fetch origin && git checkout <release-branch> && git pull
 export NUMBA_NUM_THREADS=32
 
-# 跑 IM 完整 CELF，写到 results/score_cache/im_celf/<key>.npz
+# IM 是 cross-method，跑 methods[0] 即覆盖所有 18 cell
 python scripts/prewarm_selection_cache.py \
     experiments/configs/phase_b_arxiv_T1_seed42.yaml \
     --strategies im
 
-# 打包传输给 GPU 实例
-tar czf im_celf_cache.tar.gz results/score_cache/im_celf/
-scp im_celf_cache.tar.gz <a800-host>:~/autodl-fs/OpenGU/GULib-master/
+# 必看 stdout：
+#   [plan] strategies=['im']  methods=['GIF']  (method-loop OFF, topology-only)
+#   [ScoreCache] MISS im_celf  key=<...>
+#   [ScoreCache] SAVE im_celf  key=<...>  -> ./results/score_cache/im_celf/<key>.npz
+#
+# 打包
+tar czf im_celf_cache.tar.gz \
+    results/score_cache/im_celf/ \
+    results/selection_cache/
 ```
 
-预期：5-10 min 出 cache（~30s 如果 1% ratio）。
+预期：~30s-3min（k=1355 + 32 核 prange）。
 
-### 1. A800 实例（机 B）— 解 cache + 烟囱
+### Stage 1.5 — 汇总两机产物到 A800
 
 ```bash
-tar xzf im_celf_cache.tar.gz   # 解到 results/score_cache/im_celf/
+# 在 A800 上
+scp <cpu-host>:~/autodl-fs/OpenGU/GULib-master/im_celf_cache.tar.gz .
+tar xzf im_celf_cache.tar.gz       # 把 im_celf cache 合到 A800
+# (tracin_if_cache 已经在 A800 上不用 transfer)
+
+# 验证 cache 齐全
+ls results/score_cache/if/         # 应有 6 个 npz（每 method 1 个）
+ls results/score_cache/im_celf/    # 应有 1 个 npz
+ls results/selection_cache/        # 应有若干 json
 ```
 
-#### 1a. TracIn 单 cell 烟囱（验 chunked TracIn）
+### Stage 2 — A800 跑 T1 主矩阵（selection 全 cache hit）
 
 ```bash
-python experiments/run.py \
-    experiments/configs/phase_b_arxiv_tracin_smoke.yaml
-```
-
-预期 **~90 min**。必看 `[TracIn] G matrix ... → chunked path`。
-
-#### 1b. Hybrid 单 cell 烟囱（验 TracIn + IM cache 联动）
-
-```bash
-python experiments/run.py \
-    experiments/configs/phase_b_arxiv_hybrid_smoke.yaml
-```
-
-预期 **~17 min**（如果 1a TracIn cache + IM prewarm cache 都有）/ **~95 min**（cache 都没）。
-必看 `[ScoreCache] HIT  im  key=...`（im 命中=机 A' prewarm 成功传过来）。
-
-### 2. A800 实例 — 主矩阵（T1 必跑，T2/T3 条件跑）
-
-```bash
-# T1 (12 cell, seed=42, ~10-11h)
 python experiments/run.py \
     experiments/configs/phase_b_arxiv_T1_seed42.yaml
 
-# T2 (条件跑, seed=212)
-python experiments/run.py \
-    experiments/configs/phase_b_arxiv_T2_seed212.yaml
+# 必看每 cell 开头：
+#   [SelectionCache] HIT strategy=tracin  selection_key=<...>   ← Stage 1a 产物
+#   [SelectionCache] HIT strategy=im      selection_key=<...>   ← Stage 1b 产物
+# 每 cell 直接进入 GU + MIA + retrain，跳过 selection 阶段
 
-# T3 (条件跑, seed=722)
-python experiments/run.py \
-    experiments/configs/phase_b_arxiv_T3_seed722.yaml
+# T2/T3 条件跑（注意：tracin per-seed 实算，要 +Stage 1a 重跑 seed=212/722）
+python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml
+python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml
+```
+
+预期：T1 ~2.5-3h（每 cell ~14 min × 12 cell + cell 间 overhead）。
+
+### 烟囱测试（先单 cell 验通再启 stage 1）
+
+如果你想先不跑全 6 method 看是否 work：
+
+```bash
+# A800 上（要有 IM cache 才能 hybrid smoke 全 hit）
+python experiments/run.py experiments/configs/phase_b_arxiv_tracin_smoke.yaml
+# ↑ 这个不依赖 IM cache，~90 min 端到端验证 chunked TracIn
+
+python experiments/run.py experiments/configs/phase_b_arxiv_hybrid_smoke.yaml
+# ↑ 验 TracIn + IM cache 联动；如果 1a 写过 if cache + 1b 传过 im_celf cache，
+#    应该 ~17 min（selection 全 hit），否则 ~95 min（IM step1 + TracIn 都现算）
 ```
 
 ### Cache 共享矩阵（一次跑出来后哪些 cell 受益）
@@ -100,13 +164,13 @@ python experiments/run.py \
 
 ```bash
 # 检查 4 个产物文件齐全
-ls results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/
+ls results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
 # 应有: attack.json collateral.json predictions.npz _meta.json
 
 # 看 attack.json 的关键数字
 python -c "
 import json
-d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/attack.json'))
+d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/attack.json'))
 for r in d.get('results', []):
     print(r.get('strategy'), 'f1_drop=', r.get('f1_drop'), 'mia_auc=', r.get('mia_auc'))
 "
@@ -288,7 +352,7 @@ python experiments/run.py experiments/configs/phase_b_arxiv_tracin_smoke.yaml \
 
 **~90 min 后产物**：
 ```
-results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/
+results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
 ├── attack.json
 ├── collateral.json
 ├── predictions.npz
@@ -396,10 +460,10 @@ T+91:00  GPU ~5 GB（cell 结束，准备下一个）
 
 ```bash
 # T1 已完成 cell 数（应在 0-12 之间增长）
-ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed42/attack.json 2>/dev/null | wc -l
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json 2>/dev/null | wc -l
 
 # 总览（含 T2/T3）
-ls results/runs/ogbn-arxiv_GCN_r0.05/*/seed*/attack.json 2>/dev/null | wc -l
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed*/attack.json 2>/dev/null | wc -l
 ```
 
 ### 6.3 Cache 命中率 sanity
@@ -477,7 +541,7 @@ results/
 ├── selection_cache/                            ← AttackManager-level 顶层 selection
 │   └── *.json                                  ← 每个 (method, strategy, seed) 一份
 │
-├── runs/ogbn-arxiv_GCN_r0.05/                  ← cell 产物
+├── runs/ogbn-arxiv_GCN_r0.01/                  ← cell 产物
 │   ├── GIF_tracin/seed42/{attack,collateral,predictions,_meta}.json/.npz
 │   ├── GIF_im/seed42/...
 │   ├── GIF_hybrid/seed42/...
@@ -519,13 +583,13 @@ cache 跨方法共享的实证：B.2-T1 跑完时
 
 ```bash
 # 1) cell 4 文件齐全
-ls results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/
+ls results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
 # 应该 4 个：attack.json collateral.json predictions.npz _meta.json
 
 # 2) attack.json 数字合理
 python -c "
 import json
-d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/attack.json'))
+d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/attack.json'))
 for r in d.get('results', []):
     print(r.get('strategy'), 'f1_drop=', r.get('f1_drop'), 'mia_auc=', r.get('mia_auc'))
 "

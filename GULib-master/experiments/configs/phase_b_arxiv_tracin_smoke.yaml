@@ -19,13 +19,13 @@
 name: phase_b_arxiv_tracin_smoke
 dataset: ogbn-arxiv
 base_model: GCN
-ratio: 0.05
+ratio: 0.01    # 1% — matches T1 yaml (2026-05-07); rationale in dashboard §3.3.1
 
 methods:
   - GIF        # fastest unlearn; cleanest test of the TracIn fix end-to-end
 
 strategies:
-  - tracin     # only this — IM still broken, run separately later
+  - tracin     # only this — IM is prewarmed separately on CPU instance
 
 seeds: [42]
 
@@ -42,6 +42,8 @@ extra_args:
   - "0.1"
   - --mc_rounds
   - "50"
+  - --im_batch_size
+  - "1"
 
 model_overrides:
   GCN:

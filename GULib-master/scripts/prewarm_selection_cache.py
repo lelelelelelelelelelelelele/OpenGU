@@ -85,16 +85,26 @@ def _seed_everything(seed: int):
     os.environ["PYTHONHASHSEED"] = str(seed)
 
 
-def _build_args(cfg, seed):
-    """Reconstruct CLI args for parameter_parser using the yaml config."""
+def _build_args(cfg, seed, method=None):
+    """Reconstruct CLI args for parameter_parser using the yaml config.
+
+    `method` selects the unlearning_methods value for this prewarm pass.
+    Defaults to cfg["methods"][0] for backward compatibility — but callers
+    that prewarm method-dependent strategies (tracin, hybrid) MUST iterate
+    over cfg["methods"] and pass each method explicitly so per-method
+    ScoreCache entries (`if/<key>.npz`) get written for every method.
+    """
     defaults = cfg.get("defaults", {}) or {}
     extra = list(cfg.get("extra_args", []) or [])
     overrides = (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {}
 
+    if method is None:
+        method = cfg["methods"][0]
+
     cli = [
         "--dataset_name", str(cfg["dataset"]),
         "--base_model", str(cfg["base_model"]),
-        "--unlearning_methods", str(cfg["methods"][0]),  # any method; selection independent
+        "--unlearning_methods", str(method),
         "--unlearn_ratio", str(cfg["ratio"]),
         "--cuda", str(_args.cuda),
         "--num_epochs", str(defaults.get("num_epochs", 100)),
@@ -108,7 +118,7 @@ def _build_args(cfg, seed):
     args = parameter_parser()
     args["dataset_name"] = str(cfg["dataset"])
     args["base_model"] = str(cfg["base_model"])
-    args["unlearning_methods"] = str(cfg["methods"][0])
+    args["unlearning_methods"] = str(method)
     args["unlearn_ratio"] = float(cfg["ratio"])
     args["num_epochs"] = int(defaults.get("num_epochs", 100))
     args["batch_size"] = int(defaults.get("batch_size", 64))
@@ -118,14 +128,21 @@ def _build_args(cfg, seed):
     return args
 
 
-def _prewarm_seed(cfg, seed, strategies, force=False):
-    """Init AttackManager once for this seed; cache every requested strategy."""
+def _prewarm_seed(cfg, seed, strategies, method, force=False):
+    """Init AttackManager once for (this seed, this method); cache every requested strategy.
+
+    `method` is the unlearning_methods to instantiate AttackManager with.
+    For topology-only strategies (im, degree, pagerank, random) the choice
+    of method does not affect the cache key, so a single method covers all.
+    For per-method strategies (tracin, hybrid), the caller must invoke this
+    once per method to populate per-method ScoreCache entries.
+    """
     print("\n" + "=" * 70)
-    print(f"[prewarm] seed={seed}  strategies={strategies}")
+    print(f"[prewarm] seed={seed}  method={method}  strategies={strategies}")
     print("=" * 70)
 
     _seed_everything(seed)
-    args = _build_args(cfg, seed)
+    args = _build_args(cfg, seed, method)
     if torch.cuda.is_available():
         torch.cuda.set_device(args["cuda"])
 
@@ -219,17 +236,30 @@ def main():
     else:
         seeds = [int(s) for s in yaml_seeds]
 
+    # Method-dependent strategies (tracin, hybrid) need per-method prewarm
+    # because their ScoreCache key includes unlearning_methods. Topology-only
+    # strategies (im, degree, pagerank) and random use method-agnostic cache
+    # keys, so a single method run is enough — no point looping methods.
+    METHOD_DEPENDENT_STRATEGIES = {"tracin", "hybrid"}
+    yaml_methods = list(cfg.get("methods", []) or [])
+    if not yaml_methods:
+        raise SystemExit("[FATAL] yaml has no `methods` field")
+    needs_method_loop = any(s in METHOD_DEPENDENT_STRATEGIES for s in strategies)
+    methods = yaml_methods if needs_method_loop else [yaml_methods[0]]
+
     print(f"[plan] yaml={_args.yaml_path}  dataset={cfg['dataset']}  "
           f"model={cfg['base_model']}  ratio={cfg['ratio']}")
-    print(f"[plan] strategies={strategies}  seeds={seeds}  force={_args.force}")
-    print(f"[plan] total cache entries to ensure: ~{len(strategies) * len(seeds)} "
-          f"(some may collapse via IM seed-decoupling)")
+    print(f"[plan] strategies={strategies}  seeds={seeds}  methods={methods}  force={_args.force}")
+    print(f"[plan] total prewarm passes: {len(strategies) * len(seeds) * len(methods)} "
+          f"(method-loop {'ON' if needs_method_loop else 'OFF'}; "
+          f"topology-only strategies will hit cache after the first pass)")
 
     all_summary = []
     t_global = time.perf_counter()
     for seed in seeds:
-        s = _prewarm_seed(cfg, seed, strategies, force=_args.force)
-        all_summary.extend([(seed, *row) for row in s])
+        for method in methods:
+            s = _prewarm_seed(cfg, seed, strategies, method, force=_args.force)
+            all_summary.extend([(seed, *row) for row in s])
     t_total = time.perf_counter() - t_global
 
     print("\n" + "=" * 70)

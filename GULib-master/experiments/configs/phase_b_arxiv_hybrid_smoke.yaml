@@ -24,7 +24,7 @@
 name: phase_b_arxiv_hybrid_smoke
 dataset: ogbn-arxiv
 base_model: GCN
-ratio: 0.05
+ratio: 0.01    # 1% — matches T1 yaml (2026-05-07); rationale in dashboard §3.3.1
 
 methods:
   - GIF        # same method as tracin smoke for direct comparison
@@ -47,6 +47,8 @@ extra_args:
   - "0.1"
   - --mc_rounds
   - "50"
+  - --im_batch_size
+  - "1"
   # Hybrid fusion params (defaults are reasonable; override for ablation)
   - --hybrid_alpha
   - "0.5"
