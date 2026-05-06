@@ -604,8 +604,11 @@ ssh ...new-instance
 source /etc/network_turbo
 cd ~
 
-git clone -b nips-prep https://github.com/lelelelelelelelelelelelele/OpenGU.git
+# Phase B 已 merge 进 main（2026-05-06，commit b3181db）。直接 clone main，
+# 不要再用旧的 -b nips-prep（origin/nips-prep 停在 pre-Phase-B 状态）。
+git clone https://github.com/lelelelelelelelelelelelele/OpenGU.git
 cd OpenGU/GULib-master
+git log --oneline -3   # 期望看到 b3181db Merge branch 'fix/blocker-1-train-before-select'
 
 # autodl PyTorch 镜像默认 2.1.2+cu118，先验
 python -c "import torch; print(torch.__version__, 'cuda:', torch.cuda.is_available())"
