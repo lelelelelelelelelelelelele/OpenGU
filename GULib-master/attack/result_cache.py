@@ -54,6 +54,14 @@ class ResultCache:
         # Per-method loss / fusion coefficients
         'alpha',          # GNNDelete / CGU loss coeff
         'hybrid_alpha',   # Hybrid fusion weight (decoupled from alpha 2026-05-06)
+        # Hybrid / IM hyperparameters (added 2026-05-06 for A3 alpha-sweep
+        # readiness — without these, sweeping fusion_method or any IM knob
+        # would collide on the same ResultCache entry).
+        'fusion_method',          # Hybrid: "rank" / "linear" fusion
+        'candidate_fraction',     # IM/Hybrid: top-fraction CELF pruning
+        'mc_rounds',              # IM/Hybrid: MC rounds for IC simulation
+        'im_batch_size',          # IM/Hybrid: batch-CELF batch size
+        'im_selector_seed',       # IM/Hybrid: decoupled selector RNG seed
     ]
     LEGACY_CACHE_KEY_FIELDS = [
         'dataset_name',

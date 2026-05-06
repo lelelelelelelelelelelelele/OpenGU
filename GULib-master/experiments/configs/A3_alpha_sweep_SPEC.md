@@ -1,17 +1,16 @@
-# Appendix A.3 — Alpha Sweep (SPEC, runner extension required)
+# Appendix A.3 — Alpha Sweep (implemented 2026-05-06)
 
-## Why this is a spec, not a runnable yaml
+## Status: runnable
 
-`experiments/run.py` keys cell output paths on `(dataset, base_model, ratio, method, strategy, seed)`. The Hybrid strategy's `alpha` parameter is read inside `attack/attack_strategies/hybrid_strategy.py` from `args["alpha"]`, but `run.py` never passes alpha through, and the cell directory does not encode alpha. **Two hybrid runs at different alphas would overwrite each other's `attack.json`.**
+Runner extension landed in `feat/a3-alpha-sweep` branch:
 
-This file documents the alpha-sweep design and what `run.py` needs in order to run it. Until the runner extension lands, **do not create A3_*.yaml files** that look runnable but quietly collide.
+- **`run.py::cell_dir`** suffixes hybrid leaves with `_alpha{x.xx}` when an explicit non-default `hybrid_alpha` is set (top-level cfg field or `--hybrid_alpha` in `extra_args`). Default 0.5 stays under bare `_hybrid` so it shares with main matrix.
+- **`run.py::run_cell`** auto-injects `--hybrid_alpha <value>` from top-level `hybrid_alpha:` into both demo_attack and eval_collateral commands.
+- **`attack/result_cache.py::CACHE_KEY_FIELDS`** now includes `fusion_method`, `candidate_fraction`, `mc_rounds`, `im_batch_size`, `im_selector_seed` (in addition to pre-existing `alpha`, `hybrid_alpha`). Sweeping any of these no longer hits stale entries.
+- **`tests/test_phase_b_invariants.py`** locks in cell_dir disambiguation (8 parametrized cases) and ResultCache key isolation (7 fields).
+- **Schema**: yaml uses `hybrid_alpha: <float>` as a top-level field. Per-alpha yaml is the recommended pattern (one yaml per alpha point); `expand_matrix` was deliberately not extended to keep the change minimal.
 
-## Required runner change (estimated 30-60 min)
-
-1. **`run.py::run_cell`**: when `strategy == "hybrid"` and `cfg` carries `alpha`, append `--alpha <value>` to both `cmd1` (demo_attack) and `cmd2` (eval_collateral).
-2. **`run.py::cell_dir`**: when alpha is set and not 0.5 (default), suffix the strategy name in the path: `hybrid_alpha{alpha:.2f}` instead of `hybrid`. Example: `cora_GCN_r0.05/gnndelete_hybrid_alpha0.25/seed42/`.
-3. **`demo_attack.py` / `eval_collateral.py`**: confirm both accept `--alpha <float>` and propagate it into `args["alpha"]` for the Hybrid strategy.
-4. **`expand_matrix`**: optionally expand alpha-grid into the iteration; for now an outer loop that generates one yaml per alpha is fine.
+`experiments/configs/A3_cora_GCN_alpha0.25.yaml` is a worked example. To run the full sweep, copy it 4× per backbone, changing the `name:` and `hybrid_alpha:` fields only.
 
 ## Design (once runner supports it)
 

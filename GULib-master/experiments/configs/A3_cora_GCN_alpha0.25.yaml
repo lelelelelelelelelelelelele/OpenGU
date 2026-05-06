@@ -1,0 +1,45 @@
+# A3 alpha sweep — cora/GCN, hybrid_alpha=0.25 (single point of the sweep).
+#
+# Pattern: copy this file once per non-default alpha you want to sweep
+# (0.00, 0.25, 0.75, 1.00). Edit only the `name:` and `hybrid_alpha:` fields.
+# Default alpha=0.5 is already covered by the main matrix yaml
+# `phase_b_cora_gcn.yaml`; do NOT also create A3_*alpha0.50.yaml — it would
+# write to the same cell directory (`{method}_hybrid/seedN/`) as main matrix.
+#
+# Output paths (handled by experiments/run.py::cell_dir A3 logic):
+#   results/runs/cora_GCN_r0.05/{method}_hybrid_alpha0.25/seed{N}/{4 files}
+#
+# Wall-clock estimate per yaml on a single 4090:
+#   6 method × 5 seed × ~30 s/cell ≈ 15 min for cora/GCN.
+#   Sweep cost (4 non-default alphas) ≈ 60 min cora/GCN, ~80 min cora/GAT.
+
+name: A3_cora_GCN_alpha0.25
+dataset: cora
+base_model: GCN
+ratio: 0.05
+
+# Top-level hybrid_alpha — run.py auto-injects this as `--hybrid_alpha 0.25`
+# to demo_attack and eval_collateral, AND uses it in cell_dir to route the
+# output to a per-alpha subdirectory.
+hybrid_alpha: 0.25
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+  - MEGU
+  - IDEA
+  - UTU
+
+strategies:
+  - hybrid    # alpha sweep is hybrid-only
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0

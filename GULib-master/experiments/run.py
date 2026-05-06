@@ -87,9 +87,38 @@ def _python_bin() -> str:
     return os.environ.get("PYTHON_BIN", sys.executable)
 
 
+def _hybrid_alpha_from_cfg(cfg: Dict[str, Any]) -> Optional[float]:
+    """Extract hybrid_alpha from cfg if explicitly set.
+
+    Reads top-level `hybrid_alpha:` first, then falls back to scanning
+    `extra_args` for `--hybrid_alpha <val>`. Returns None if absent.
+    """
+    if "hybrid_alpha" in cfg:
+        try:
+            return float(cfg["hybrid_alpha"])
+        except (TypeError, ValueError):
+            return None
+    extras = cfg.get("extra_args", []) or []
+    for i, tok in enumerate(extras):
+        if tok == "--hybrid_alpha" and i + 1 < len(extras):
+            try:
+                return float(extras[i + 1])
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
 def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path:
     cell = f"{cfg['dataset']}_{cfg['base_model']}_r{cfg['ratio']}"
     leaf = f"{method}_{strategy}"
+    # A3 alpha sweep: when an explicit non-default hybrid_alpha is set,
+    # suffix the leaf so different alphas don't overwrite each other's
+    # attack.json. Default alpha=0.5 stays under the bare "hybrid" leaf
+    # so it can share data with the main matrix's hybrid cells.
+    if strategy == "hybrid":
+        alpha = _hybrid_alpha_from_cfg(cfg)
+        if alpha is not None and abs(alpha - 0.5) > 1e-9:
+            leaf = f"{method}_{strategy}_alpha{alpha:.2f}"
     return REPO_ROOT / "results" / "runs" / cell / leaf / f"seed{seed}"
 
 
@@ -230,6 +259,13 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     defaults = cfg.get("defaults", {}) or {}
     extra = list(cfg.get("extra_args", []) or [])
     extra += model_overrides(cfg)
+    # A3: if yaml uses top-level `hybrid_alpha:` and didn't already inject
+    # --hybrid_alpha via extra_args, plumb it through so demo_attack and
+    # eval_collateral see the right fusion weight at runtime.
+    if strategy == "hybrid" and "hybrid_alpha" in cfg and not any(
+        tok == "--hybrid_alpha" for tok in extra
+    ):
+        extra += ["--hybrid_alpha", str(cfg["hybrid_alpha"])]
 
     # 1) demo_attack: writes attack.json
     cmd1 = [
