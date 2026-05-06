@@ -1,5 +1,5 @@
 # Phase B — cora/GAT main matrix
-# Replaces scripts/experiments/run_mg2_gat.sh + run_mg3_extended.sh
+# Phase B canonical (replaces the legacy MG-2/MG-3 GAT shell runners, removed 2026-05-06)
 # Output: results/runs/cora_GAT_r0.05/{method}_{strategy}/seed{N}/...
 
 name: phase_b_cora_gat

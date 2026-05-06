@@ -1,10 +1,25 @@
+"""⚠ 2026-05-06: STALE — reads `results/relative/`, gitignored as
+bug-polluted (post-2026-05-05). Will produce empty/wrong figures on a
+fresh checkout. Phase B paper figures must be re-derived from
+`results/runs/{cell}/{method}_{strategy}/seed{N}/{attack,collateral}.json`;
+A3/A5 specs in `experiments/configs/` mark this rewrite as TBD.
+"""
 import os
+import sys
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+
+if __name__ == "__main__" and not os.environ.get("ALLOW_LEGACY_PLOT"):
+    sys.stderr.write(
+        "[plot_paper_figures] refusing to run: reads results/relative/ which\n"
+        "is gitignored as pre-Phase-B bug-polluted. Set ALLOW_LEGACY_PLOT=1\n"
+        "to force-run on a machine that still has the legacy data.\n"
+    )
+    sys.exit(2)
 
 # Setup plotting style
 sns.set_theme(style="whitegrid", palette="muted")

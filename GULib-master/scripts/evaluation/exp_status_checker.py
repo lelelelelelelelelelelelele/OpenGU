@@ -4,6 +4,13 @@ exp_status_checker.py - Check experiment progress against checklist with sanity 
 Upgraded: 2026-02-27
 - Added strict seed counting (N=5)
 - Added quality filtering (detects silent fallbacks/identical F1)
+
+⚠ 2026-05-06: STALE for Phase B. Walks `results/relative/`,
+`results/collateral/`, `results/experiments/` — all three are gitignored
+post-2026-05-05 as bug-polluted, so this checker will report 0 progress
+on a fresh checkout. For Phase B progress use `scripts/gate_runs.py
+results/runs/<cell>` instead, which is the canonical pass/fail gate
+(4 files + mia_auc + f1 range).
 """
 import os
 import re

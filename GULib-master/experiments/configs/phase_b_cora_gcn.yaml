@@ -1,5 +1,5 @@
 # Phase B — cora/GCN main matrix
-# Replaces scripts/experiments/run_mg0_completion.sh
+# Phase B canonical (replaces the legacy MG-0 shell runner, removed 2026-05-06)
 # Output: results/runs/cora_GCN_r0.05/{method}_{strategy}/seed{N}/{attack,collateral,predictions,_meta}
 
 name: phase_b_cora_gcn

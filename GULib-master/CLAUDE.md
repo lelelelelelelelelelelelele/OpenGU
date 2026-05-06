@@ -43,12 +43,9 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 #   --downstream_task: node, edge
 #   --is_transductive: True/False
 #   --is_balanced: True/False
-# 运行实验脚本
-./scripts/experiments/run_mg0_completion.sh   # MG-0 稳定性实验补全
-./scripts/experiments/run_mg1_citeseer.sh      # MG-1 Citeseer 数据集实验
-./scripts/experiments/run_mg2_gat.sh           # MG-2 GAT 模型实验
-./scripts/experiments/run_mg3_extended.sh      # MG-3 扩展实验
-./scripts/experiments/run_all_generalization.sh  # 全量泛化实验
+# Phase B canonical runner (yaml-driven; supersedes the legacy run_mg*.sh scripts removed 2026-05-06)
+H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05    # pass/fail check
 ```
 
 No formal test suite exists. Validation is experiment-driven; results are logged to `log/{method}/{dataset}/{model}/`.
@@ -125,7 +122,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - GraphRevoker reuses the `grapheraser` class in the method map
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
-- `scripts/evaluation/HOWTO_REPAIR_CORRUPTED_RESULTS.md`: Bug 修复后数据刷新指南
+- Bug 修复后数据刷新：Phase B 没有"修补"流程，重跑 `experiments/run.py <yaml>` 即可（旧的 HOWTO_REPAIR_CORRUPTED_RESULTS.md 描述的是 pre-Phase-B 流程，已删除 2026-05-06）
 
 ### ⚠ Active Bugs / Status (2026-05-05)
 
