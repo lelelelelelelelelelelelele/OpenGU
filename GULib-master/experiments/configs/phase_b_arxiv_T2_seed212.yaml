@@ -39,7 +39,7 @@ extra_args:
   - "0.1"
   - --mc_rounds
   - "50"
-  - --im_batch_size
+  - --im_v4_batch_size
   - "1"          # classic CELF at k≈1355
 
 model_overrides:
