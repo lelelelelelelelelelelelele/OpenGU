@@ -25,10 +25,10 @@ intra-family outlier).
 (canonical, deletion-aware proximal objective) +
 \textbf{MEGU}~\cite{li2024towards} (mutual-evolution, predicted
 intra-family outlier).
-Other methods such as UtU and Projector are not evaluated since they 
-primarily intervene during deployment or rely on architectural adaptations 
-rather than direct parameter updates, placing them outside our 
-parameter-update auditing framework. GST and GUKD are listed as future-work 3rd members and
+Other methods in the upstream ``Others'' category, such as UtU and
+Projector, are not evaluated because their deployment-time or projection
+interfaces do not fit the parameter-update audit used for the six-method
+main matrix. GST and GUKD are listed as future-work 3rd members and
 fallbacks for the feasibility gate (\S\ref{sec:limitations}).
 
 \paragraph{Attack budget and seeds.}
@@ -62,8 +62,8 @@ as a per-method bar chart in \S\ref{sec:results-shard}.
 All methods are implemented in PyTorch~\cite{paszke2019pytorch} +
 PyTorch~Geometric~\cite{fey2019fast}. Training uses
 Adam~\cite{kingma2015adam} with learning rate $10^{-2}$, weight decay
-$5\times10^{-4}$, 100 epochs on Cora/Citeseer (200 on ogbn-arxiv). The IM selector uses our
-\textsc{batch-CELF} variant with candidate fraction 0.1 (top-degree
+$5\times10^{-4}$, 100 epochs on Cora/Citeseer (200 on ogbn-arxiv). The IM selector uses a
+batched CELF variant with candidate fraction 0.1 (top-degree
 pruning) and 50 Monte-Carlo rounds, achieving ${\sim}10\times$
 speed-up over brute-force CELF with $<2\%$ spread loss
 (\S\ref{app:imhp}). Source code and configurations will be released upon
@@ -81,7 +81,7 @@ gradient accumulation or a candidate-subsampling probe; we use chunked
 accumulation on an 80~GB GPU. The Physics dataset's higher feature
 dimension was found infeasible with the same protocol and is out of
 scope (\S\ref{sec:limitations}). (iii)~\textbf{IM candidate-fraction at
-scale} is held at 0.1 to keep batch-CELF tractable; this cuts the
+scale} is held at 0.1 to keep batched CELF tractable; this cuts the
 candidate set from $\sim$90K to $\sim$9K and is validated at small scale
 in \S\ref{app:imhp}. (iv)~The arxiv GCN uses 3 layers / hidden 256;
 hop-decay buckets in \S\ref{sec:results-hop} are reported relative to

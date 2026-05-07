@@ -1,60 +1,52 @@
 \section{Related Work}
 \label{sec:related}
 
-\paragraph{Approximate graph unlearning.}
-We adopt the upstream \emph{OpenGU} 4-category taxonomy. \emph{Partition-based}
-methods partition the graph into disjoint shards, train a sub-model per
-shard, and aggregate at inference; deletion only retrains the affected
-shard (GraphEraser~\cite{chen2022graph}, GUIDE, GraphRevoker), echoing
-the SISA~\cite{bourtoule2021machine} sharded-retraining design from
-non-graph unlearning.
-\emph{Influence-Function-based} methods estimate the leave-one-out parameter
-delta in closed form and apply a single Newton or proximal step
-(GIF~\cite{wu2023gif}, CEU, CGU, GST, IDEA~\cite{dong2024idea}---certified
-variant). \emph{Learning-based} methods retrain selectively over a
-deletion-aware objective (GNNDelete~\cite{cheng2023gnndelete}, GUKD,
-Projector, MEGU~\cite{li2024towards}---mutual-evolution variant, ScaleGUN,
-D2DGN, SGU). A fourth ``Others'' category (UtU, Projector at deployment
-time) is outside our scope. All methods above are evaluated under
-\emph{random} deletion sets in the literature; we are unaware of prior
-work that audits them under adversarial deletion-set selection. Our
-\emph{intra-family pairing} design---one canonical method plus one
-predicted-outlier per category---tests within-family vulnerability
-heterogeneity, which the existing literature has not surfaced.
+\paragraph{Graph unlearning and approximate updates.}
+Graph unlearning asks for an already-trained GNN to remove the effect of
+specified nodes, edges, or features without retraining from scratch.
+Existing methods are commonly organized by the mechanism used to
+approximate this update. \emph{Partition-based} methods follow the
+SISA~\cite{bourtoule2021machine} idea: split the graph into shards, train
+sub-models, and retrain only the affected shard after a deletion request
+(e.g., GraphEraser~\cite{chen2022graph} and GraphRevoker).
+\emph{Influence-function-based} methods estimate the parameter change
+induced by deletion and apply a closed-form or proximal update
+(e.g., GIF~\cite{wu2023gif}, CEU, CGU, GST, and certified variants such
+as IDEA~\cite{dong2024idea}). \emph{Learning-based} methods instead train
+deletion-aware objectives or auxiliary update modules
+(e.g., GNNDelete~\cite{cheng2023gnndelete}, MEGU~\cite{li2024towards},
+GUKD, D2DGN, and SGU). Projection- or deployment-time methods such as
+Projector and UtU form a separate category and are not evaluated in this
+paper. Existing evaluations of these methods largely use random or
+protocol-driven deletion requests; our work treats the deletion set
+itself as an adversarial choice and tests whether vulnerability is
+structured by the underlying unlearning mechanism.
 
-\paragraph{Adversarial machine unlearning.}
-The closest line of work studies poisoning of unlearning requests for
-\emph{tabular} models~\cite{marchant2022hard,di2022hidden}, where the
-attacker crafts samples or selects deletion sets to slow down or
-destabilize retraining. Camouflaged data
-poisoning~\cite{di2022hidden} demonstrates that hidden trigger injection
-can survive unlearning. None of these methods are directly applicable to
-graph data, where structural dependence between training points violates
-the i.i.d.\ assumptions underlying their analysis. Concurrent vision-domain
-work~\cite{huang2024exploring} probes unlearning of classifiers but does
-not consider graph structure.
+\paragraph{Adversarial deletion requests and unlearning red-teaming.}
+Prior attacks on machine unlearning primarily study poisoning or
+camouflaged requests in non-graph settings~\cite{marchant2022hard,di2022hidden},
+where the attacker crafts samples or chooses deletions to slow down,
+destabilize, or survive the unlearning procedure. Related red-team
+evaluations of removal and safety mechanisms in vision models ask whether
+nominally removed concepts can be recovered or bypassed~\cite{huang2024exploring}.
+These lines motivate a broader view of unlearning as an exposed safety
+surface. Graph unlearning adds a distinct failure mode: deleting one node
+changes not only one training example but also the message-passing context
+of its neighbors. As a result, legal deletion requests can have
+non-local effects, and the central question becomes which deletion sets
+amplify approximation error beyond the utility loss caused by data removal
+alone.
 
-\paragraph{Influence functions and influence maximization on graphs.}
-Influence-function approximations for deep
-models~\cite{koh2017understanding} have been extended to GNNs
-(GIF~\cite{wu2023gif}, GST). TracIn~\cite{pruthi2020estimating} provides a
-checkpoint-based, gradient-only proxy that avoids the Hessian inversion
-cost. Influence maximization (IM) on networks is a classical
-problem~\cite{kempe2003maximizing}; CELF~\cite{leskovec2007cost} and
-CELF++~\cite{goyal2011celf++} are submodular acceleration heuristics. We
-adapt IM as an attack-side selector under independent-cascade simulation,
-with a decoupled Monte-Carlo seed (\S\ref{sec:method}) for cross-seed
-reproducibility, and treat the IM/TracIn pair as the basis axes of our
-Vulnerability Fingerprint.
-
-\paragraph{Membership inference and model auditing.}
-MIA against GNNs~\cite{olatunji2021membership,he2021stealing} provides a
-related privacy-audit lens. The metric we report in
-\S\ref{sec:results-mia}, however, is not a Shokri/Olatunji-style
-shadow-model MIA. It is a method-native update-detection AUC inherited
-from the OpenGU evaluation protocol: a posterior-shift
-deletion-membership audit that scores whether requested-for-unlearning
-nodes are more visible than held-out test nodes after an update. The
-utility-collapse attacks we study are orthogonal to this audit but share
-the deletion-API setting, and the two diagnostics decouple in our
-results.
+\paragraph{Influence and diffusion primitives for deletion selection.}
+Influence functions were originally introduced to estimate how individual
+training examples affect model predictions~\cite{koh2017understanding}.
+Graph unlearning methods such as GIF~\cite{wu2023gif} adapt this idea to
+fast deletion updates, while TracIn~\cite{pruthi2020estimating} provides a
+checkpoint-based influence proxy that avoids explicit Hessian inversion.
+In parallel, influence maximization studies how to choose seed nodes that
+maximize spread over a network~\cite{kempe2003maximizing}; CELF and
+CELF++ accelerate the classical greedy objective~\cite{leskovec2007cost,goyal2011celf++}.
+We use these two traditions only as selection primitives: influence scores
+capture gradient-aligned sensitivity, while diffusion-style scores capture
+structural spread. The access tiers, concrete scoring rules, and hybrid
+selector are defined in \S\ref{sec:method}.

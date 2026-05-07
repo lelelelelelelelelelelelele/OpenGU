@@ -112,8 +112,8 @@ We treat the GNN's receptive field as a diffusion graph and select the $k$
 nodes whose forced unlearning maximizes \emph{reachable} downstream-test
 disturbance, estimated via Monte-Carlo simulation under an
 independent-cascade model with edge-weight $p_{uv}=1/\deg(v)$. Following
-CELF++~\cite{goyal2011celf++} we use lazy submodular evaluation
-(\textsc{batch-CELF}, our v4 implementation, \S\ref{sec:experiment}).
+CELF++~\cite{goyal2011celf++} we use a batched lazy-greedy
+implementation (\S\ref{app:impl}).
 Crucially, IM is \emph{model-free}: the IC simulation depends only on
 $G$ and degree, so IM sits at L1 alongside \textsc{Degree} and
 \textsc{PageRank} despite its computational sophistication. The

@@ -1,7 +1,28 @@
 \section{Implementation Details}
 \label{app:impl}
 
-\subsection{IM Selector: \textsc{batch-CELF} v4}
+\subsection{GNN Message Passing Primer}
+\label{app:gnn-primer}
+For completeness, we recall the message-passing form used by the GNN
+backbones in this paper. Let $h_v^{(0)}=x_v$ be the feature vector of
+node $v$. An $L$-layer GNN updates node representations by aggregating
+messages from the graph neighborhood,
+\begin{equation}
+h_v^{(\ell+1)}
+= \phi_\ell\!\left(h_v^{(\ell)},
+  \operatorname{AGG}_{u\in\mathcal{N}(v)}
+  \psi_\ell(h_v^{(\ell)},h_u^{(\ell)},e_{uv})\right),
+\qquad \ell=0,\ldots,L-1,
+\end{equation}
+and predicts from $h_v^{(L)}$. Thus a deletion request is not an
+i.i.d.\ sample removal: deleting a node removes its own training loss
+and changes the message-passing context of retained neighbors. Exact
+retraining can re-optimize under this modified graph, while approximate
+unlearning must update from the original parameters. This is why our
+diagnostics separate the effect of data removal from approximation drift
+and report hop-distance decay relative to the GNN receptive field.
+
+\subsection{IM Selector: Batched CELF}
 We adopt CELF++~\cite{goyal2011celf++} with two modifications:
 (a)~candidate-set pruning to the top-degree decile of the training set
 (\texttt{candidate\_fraction=0.1}) before MC simulation, reducing the
