@@ -56,3 +56,10 @@ results/_archive_*/
 
 AGENTS.md
 GEMINI.md
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out

@@ -4,6 +4,7 @@
 # 用法：
 #   bash run_arxiv.sh                    # MODE=full（默认）：smoke + T1，~7h
 #   MODE=prewarm bash run_arxiv.sh       # 只跑 TracIn prewarm 写 cache，~4h
+#   MODE=im_only bash run_arxiv.sh       # 只跑 IM-only @ r=0.01（4090 友好），~30 min
 #   后台跑：nohup bash run_arxiv.sh > /dev/null 2>&1 & disown
 #   调试：SKIP_SHUTDOWN=1 bash run_arxiv.sh
 #
@@ -19,6 +20,11 @@
 #   STAGE A: smoke (phase_b_arxiv_tracin_smoke.yaml, 1 cell, 限 SMOKE_TIMEOUT)
 #   STAGE B: smoke 通过才进 T1 (phase_b_arxiv_T1_seed42.yaml, 18 cell)
 #   smoke 失败/超时 → 立即关机不跑 T1。完了关机。
+#
+# MODE=im_only
+#   跑 phase_b_arxiv_im_only_r01.yaml (3 method × 3 seed = 9 cell)
+#   IM 是 numba CPU bound + topology-only，base/unlearn 用 GPU
+#   预算 IM_TIMEOUT（默认 2h）。完了关机。
 
 set -u
 # 让 python subprocess 不 block-buffer，每行立即写盘
@@ -28,6 +34,7 @@ MODE="${MODE:-full}"
 NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(nproc 2>/dev/null || echo 18)}"
 SMOKE_TIMEOUT="${SMOKE_TIMEOUT:-3h}"
 PREWARM_TIMEOUT="${PREWARM_TIMEOUT:-6h}"
+IM_TIMEOUT="${IM_TIMEOUT:-2h}"
 SKIP_SHUTDOWN="${SKIP_SHUTDOWN:-0}"
 
 LOG="logs/run_arxiv_${MODE}_$(date +%Y%m%d_%H%M%S).log"
@@ -73,6 +80,16 @@ do_shutdown() {
             echo "exit=$status   IF cache=$n_if (expected 3)"
             ;;
 
+        im_only)
+            echo "=== IM-ONLY r=0.01 (3 method × 3 seed = 9 cells, budget=$IM_TIMEOUT) ==="
+            timeout "$IM_TIMEOUT" python experiments/run.py \
+                experiments/configs/phase_b_arxiv_im_only_r01.yaml
+            status=$?
+            cells=$(ls results/runs/ogbn-arxiv_GCN_r0.01/*_im/seed*/attack.json 2>/dev/null | wc -l)
+            echo ""
+            echo "IM_ONLY exit=$status   cells_complete=$cells/9"
+            ;;
+
         full)
             echo "=== STAGE A: smoke (budget=$SMOKE_TIMEOUT) ==="
             timeout "$SMOKE_TIMEOUT" python experiments/run.py \
@@ -102,7 +119,7 @@ do_shutdown() {
             ;;
 
         *)
-            echo "FATAL: unknown MODE=$MODE (use 'prewarm' or 'full')"
+            echo "FATAL: unknown MODE=$MODE (use 'prewarm', 'full', or 'im_only')"
             do_shutdown 1
             ;;
     esac
