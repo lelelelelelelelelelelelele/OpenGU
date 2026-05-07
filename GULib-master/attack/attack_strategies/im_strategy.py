@@ -1,5 +1,6 @@
 import random
 import heapq
+import time
 import numpy as np
 import torch
 from torch import Tensor
@@ -378,14 +379,24 @@ class IMStrategy(BaseStrategy):
             edge_index, num_nodes, candidate_set
         ).tolist()
         heap = []
-        for node, spread in zip(candidate_set, init_scores):
+        cand_list = list(candidate_set)
+        n_cand = len(cand_list)
+        t_step1_start = time.time()
+        for idx, (node, spread) in enumerate(zip(cand_list, init_scores)):
             heapq.heappush(heap, (-spread, 0, node))
+            if (idx + 1) % max(1, n_cand // 20) == 0 or idx == n_cand - 1:
+                elapsed = time.time() - t_step1_start
+                pct = 100.0 * (idx + 1) / n_cand
+                est_total = elapsed / (pct / 100.0) if pct > 0 else 0
+                print(f"[IM-PROGRESS] Step1 {idx+1}/{n_cand} ({pct:.1f}%)  "
+                      f"elapsed={elapsed:.1f}s  est_total={est_total:.1f}s", flush=True)
 
         selected = []
         selected_set_list = []
         scores = []
         current_spread = 0.0
         round_idx = 0
+        t_step2_start = time.time()
 
         while len(selected) < k and heap:
             batch_size = min(batch, k - len(selected))
@@ -422,6 +433,13 @@ class IMStrategy(BaseStrategy):
                 heapq.heappush(heap, (-marginal, round_idx, node))
 
             round_idx += 1
+            if round_idx % max(1, k // 20) == 0 or len(selected) >= k:
+                elapsed = time.time() - t_step2_start
+                pct = 100.0 * round_idx / k if k > 0 else 0
+                est_total = elapsed / (pct / 100.0) if pct > 0 else 0
+                print(f"[IM-PROGRESS] Step2 round {round_idx}/{k} ({pct:.1f}%)  "
+                      f"selected={len(selected)}  elapsed={elapsed:.1f}s  "
+                      f"est_total={est_total:.1f}s", flush=True)
 
         return selected, torch.tensor(scores)
 
