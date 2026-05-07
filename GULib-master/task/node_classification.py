@@ -808,6 +808,8 @@ class NodeClassifier:
         return diff
 
     def save_model(self, save_path,model_dict=None):
+        import os
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path,mode='w') as file:
             if model_dict is not None:
                 self.logger.info('saving best model {}'.format(save_path))

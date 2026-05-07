@@ -30,7 +30,7 @@ SMOKE_TIMEOUT="${SMOKE_TIMEOUT:-3h}"
 PREWARM_TIMEOUT="${PREWARM_TIMEOUT:-6h}"
 SKIP_SHUTDOWN="${SKIP_SHUTDOWN:-0}"
 
-LOG="run_arxiv_${MODE}_$(date +%Y%m%d_%H%M%S).log"
+LOG="logs/run_arxiv_${MODE}_$(date +%Y%m%d_%H%M%S).log"
 
 do_shutdown() {
     if [ "$SKIP_SHUTDOWN" = "1" ]; then
