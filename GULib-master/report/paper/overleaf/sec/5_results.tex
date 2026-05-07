@@ -21,11 +21,10 @@ $\blacklozenge\!=\!p{<}.01$,
 $\bullet\!=\!p{<}.05$ (one-sided paired $t$-test
 vs.\ same-seed random); blank cell means n.s.
 \textbf{Bold} marks the strongest attack per row.
-$\Delta F_{\mathrm{arch}}$ is the F1 drop after deleting just five
+$\Delta F_{\mathrm{noise}}$ is the F1 drop after deleting just five
 random nodes ($\sim 0.18\%$ of $V_{\mathrm{train}}$), isolating the
-architectural shift the unlearning algorithm itself induces with
-near-zero volume contribution. \emph{Negative} indicates
-\emph{Shard Protection} (F1 actually rises). The five attack
+near-zero-volume response of the unlearning algorithm. \emph{Negative}
+indicates \emph{Shard Protection} (F1 actually rises). The five attack
 columns---Degree (DG), PageRank (PR), IM, Hybrid (HY), TracIn
 (TC)---report paired $\Delta F^{\mathrm{attack}}$ in F1 percentage
 points (mean over 5 seeds). The volume-driven comparison against
@@ -49,7 +48,7 @@ attack and AUC columns are unaffected (see Limitations).}
 \label{tab:benchmark}
 \begin{tabular}{@{}llcrrrrrrrcl@{}}
 \toprule
-Family & Method & Bkb & $\Delta F_{\mathrm{arch}}$ & \multicolumn{5}{c}{Paired $\Delta F^{\mathrm{attack}}$ (\% pts)} & Gap & AUC & Verdict \\
+Family & Method & Bkb & $\Delta F_{\mathrm{noise}}$ & \multicolumn{5}{c}{Paired $\Delta F^{\mathrm{attack}}$ (\% pts)} & Gap & AUC & Verdict \\
 \cmidrule(lr){5-9}
        &        &     & (\%) & DG & PR & IM & HY & TC & (\%) & & \\
 \midrule
@@ -82,7 +81,7 @@ in any cell except GraphRevoker$\times$GAT (Hybrid$\,/\,$TracIn,
 $\bullet\,p{<}.05$). \emph{(ii)} The bolded \textsc{Degree} (DG)
 column dominates almost every non-partition row, never
 \textsc{TracIn}, inverting the conventional access-tier hierarchy
-(L1 structural attackers beat L2-\textsc{direct} gradient attackers). \emph{(iii)} $\Delta F_{\mathrm{arch}}$
+(L1 structural attackers beat L2-\textsc{direct} gradient attackers). \emph{(iii)} $\Delta F_{\mathrm{noise}}$
 sorts the families clean: \emph{strongly negative} for the partition
 pair ($-9.6$ to $-19.3$), confirming Shard Protection is built into
 the architecture and not a side-effect of deletion volume; \emph{near
@@ -119,7 +118,7 @@ The remaining subsections diagnose each pattern separately.
 
 The fingerprint plots the paired attack effect against the same-seed
 random baseline, so its axes separate attack-specific signal from the
-architectural term reported in \S\ref{sec:results-shard}. Because IM is
+near-zero-volume noise floor reported in \S\ref{sec:results-shard}. Because IM is
 an L1 structural selector and TracIn is an L2-\textsc{direct}
 model-coupled selector (Table~\ref{tab:access}), the plot also gives a
 threat summary: the IM coordinate is a low-access floor, while the
@@ -245,46 +244,54 @@ CI widths in Appendix~\ref{app:results}.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{figures/FIG-2_Scaling.pdf}
-  \caption{\textbf{Random-deletion F1 drop at $r{=}5\%$ per method}
-  (Cora/GCN). Bars below zero mark Shard Protection: the Partition
-  pair's downstream F1 \emph{increases} when any small random set is
-  unlearned. This budget-matched random baseline differs from the
-  intrinsic $\Delta F_{\mathrm{arch}}$ at $k{=}5$ in
-  Table~\ref{tab:benchmark}; the difference is the volume contribution
-  (negligible for partition; dominant for GNNDelete). Bars show mean
-  over 5 seeds with $1\sigma$ error.}
+  \caption{\textbf{$k{=}5$ noise floor
+  $\Delta F_{\mathrm{noise}}$} per (method, backbone) on
+  Cora. Each bar is $F_1^{\mathrm{before}} - F_1^{\mathrm{k=5\,random}}$
+  in F1 percentage points (mean over 5 seeds, $1\sigma$ error). Bars
+  below zero mark \textbf{Shard Protection}: the Partition pair's
+  downstream F1 actually \emph{rises} when even five random nodes are
+  unlearned, with GraphRevoker reaching $-19.3\%$ (GCN) and $-16.9\%$
+  (GAT). Non-partition methods all stay near zero
+  ($-2.2$ to $+2.2$), confirming that the near-zero-volume method response
+  of approximate unlearning is small at near-zero deletion volume; the
+  budget-induced drops at $r{=}5\%$ ($+10\%$ to $+13\%$ for GNNDelete)
+  are reported in Table~\ref{tab:benchmark} via paired $\Delta F^{\mathrm{attack}}$.}
   \label{fig:shard-protection}
 \end{figure}
 
-For the Partition family, $\Delta F_{\mathrm{arch}}$ at $k{=}5$ is
-already strongly negative ($-9.6\%$ for GraphEraser/GCN to $-19.3\%$
-for GraphRevoker/GCN; Table~\ref{tab:benchmark}); the same effect
-\emph{persists} at the attack budget ($-5.8\%$ to $-14.6\%$;
-Fig.~\ref{fig:shard-protection}). Crucially, the architectural shift
-is most extreme at near-zero deletion volume and \emph{attenuates}
-slightly with budget---random deletion does not "happen to hit lucky
-shards" at higher volume; rather, partition aggregation makes any
-disturbance, however small, beneficial in expectation. We call this
-\textbf{Shard Protection}, and it is not an attack effect: GraphEraser
-and GraphRevoker have $\Delta F^{\text{attack}}{\approx}\,0$ in
+For the Partition family, $\Delta F_{\mathrm{noise}}$ at $k{=}5$
+(Fig.~\ref{fig:shard-protection}, Table~\ref{tab:benchmark}) is
+strongly negative across both backbones ($-9.6\%$ for
+GraphEraser/GCN; $-19.3\%$ for GraphRevoker/GCN; $-11.9\%$ and
+$-16.9\%$ on GAT). The same negative trend persists at the attack
+budget---budget-matched random deletion at $r{=}5\%$ still raises F1
+by $5.8$--$14.6\%$ on the partition pair, an attenuated but consistent
+signal. Crucially the protective shift is most extreme at
+near-zero deletion volume: random deletion does not "happen to hit
+lucky shards" at larger volume; rather, partition aggregation makes
+any disturbance, however small, beneficial in expectation. We call
+this \textbf{Shard Protection}, and it is not an attack effect:
+GraphEraser and GraphRevoker have
+$\Delta F^{\text{attack}}{\approx}\,0$ in
 Figure~\ref{fig:fingerprint}, so adversarial selectors do not amplify
 the gain beyond the random-deletion baseline (one backbone-conditional
 exception, GraphRevoker$\times$GAT$\times$\textsc{Hybrid}, is
 discussed in \S\ref{sec:results-fingerprint}).
 
-By contrast, GNNDelete shows a near-zero $\Delta F_{\mathrm{arch}}$
-at $k{=}5$ ($-2.2\%$ on GCN, $+1.4\%$ on GAT) but a large positive
-drop at $r{=}5\%$ ($+10.4\%$ and $+13.0\%$): the entire utility loss
-is volume-driven, not architectural. The IF-based methods, IDEA, and
-MEGU stay near zero on both quantities, indicating neither family
-imposes a measurable architectural cost at this scale.
+By contrast, GNNDelete shows a near-zero
+$\Delta F_{\mathrm{noise}}$ at $k{=}5$ ($-2.2\%$ on GCN, $+1.4\%$ on
+GAT) but absolute random-deletion drop at $r{=}5\%$ jumps to
+$+10.4\%$ and $+13.0\%$: the entire utility loss is volume-driven,
+not architectural. The IF-based methods, IDEA, and MEGU stay near
+zero on $\Delta F_{\mathrm{noise}}$, indicating neither family imposes
+a measurable architectural cost at this scale.
 
 The mechanism hypothesis for Shard Protection is that partition
 aggregation localizes unlearning to the affected shard while the
 remaining shard ensemble absorbs the perturbation. We leave
 shard-purity and shard-count evidence to Appendix~\ref{app:shard};
-the main-text claim is that Shard Protection belongs to
-$\Delta F_{\mathrm{arch}}$, persists across deletion volumes, and is
+the main-text claim is that Shard Protection appears already in
+$\Delta F_{\mathrm{noise}}$, persists across deletion volumes, and is
 not amplified by sophisticated selectors.
 
 \subsection{Collateral Damage and Hop-Distance Decay}

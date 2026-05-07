@@ -86,10 +86,11 @@ Table~\ref{tab:access}.
 \textsc{Random} (L0) draws $k$ nodes uniformly without replacement.
 \textsc{Degree} (L1) selects the top-$k$ by node degree.
 \textsc{PageRank} (L1) selects the top-$k$ by personalized PageRank
-centrality~\cite{page1999pagerank}. \textsc{Random} is also the \emph{architectural-baseline
-probe} for the $\Delta F_{\text{arch}}$ term of
-\S\ref{sec:diagnostics}; the structural baselines provide an L1
-reference floor.
+centrality~\cite{page1999pagerank}. \textsc{Random} plays two roles in
+our diagnostics: a tiny $k{=}5$ draw estimates the near-zero-volume
+noise floor, while a budget-matched draw at ratio $r$ is the baseline
+for attack-specific paired effects. The structural baselines provide an
+L1 reference floor.
 
 \paragraph{TracIn (pseudo-influence, L2-direct or L2-surrogate).}
 Following~\cite{pruthi2020estimating}, we compute an influence proxy by
@@ -149,25 +150,32 @@ F1 drop alone conflates data removal, approximation drift, and
 attack-specific signal. We therefore report the following diagnostics.
 
 \paragraph{F1-shift decomposition.}
-For any deletion set $S$ of size $k$, write
+For any deletion set $S$ of size $k$, define
+$\Delta F_{\text{total}}(S) = F_1(f_\theta;V_{\text{te}}) - F_1(\mathcal{U}(f_\theta,\cdot,S);V_{\text{te}})$
+as the observed F1 \emph{drop} after attack-driven unlearning (such that
+a positive value indicates successful degradation). We then separate two
+random baselines:
+\begin{align}
+\Delta F_{\text{noise}}
+&= \mathbb{E}_{R_5\sim\mathrm{Unif}(\mathcal{D}_{\text{tr}},5)}
+   [\Delta F_{\text{total}}(R_5)], \\
+\Delta F_{\text{rand}}(r)
+&= \mathbb{E}_{R_r\sim\mathrm{Unif}(\mathcal{D}_{\text{tr}},\lceil r|\mathcal{D}_{\text{tr}}|\rceil)}
+   [\Delta F_{\text{total}}(R_r)].
+\end{align}
+$\Delta F_{\text{noise}}$ is a near-zero-volume noise floor: it measures
+the intrinsic response of an unlearning method when only five random
+training nodes are removed. This is the quantity used to diagnose Shard
+Protection (\S\ref{sec:results-shard}), and it may be negative if F1
+improves. For an attack set $S$ at ratio $r$, the attack-specific effect
+is
 \begin{equation}
 \label{eq:fshift}
-\Delta F_{\text{total}}(S)
- \;=\; \Delta F_{\text{arch}}(k) \;+\; \Delta F_{\text{attack}}(S),
+\Delta F_{\text{attack}}(S)
+= \Delta F_{\text{total}}(S)-\Delta F_{\text{rand}}(r),
 \end{equation}
-where
-$\Delta F_{\text{total}}(S) = F_1(f_\theta;V_{\text{te}}) - F_1(\mathcal{U}(f_\theta,\cdot,S);V_{\text{te}})$
-is the observed F1 \emph{drop} after attack-driven unlearning (such that 
-a positive value indicates successful degradation);
-$\Delta F_{\text{arch}}(k)
-= \mathbb{E}_{R\sim\mathrm{Unif}(\mathcal{D}_{\text{tr}},k)}[\Delta F_{\text{total}}(R)]$
-is the expected F1 drop under a uniformly-random deletion set of size
-$k$; and $\Delta F_{\text{attack}}(S)
-= \Delta F_{\text{total}}(S) - \Delta F_{\text{arch}}(k)$ is estimated
-as the paired effect against the same-seed random baseline. We plot
-$\Delta F_{\text{attack}}$ in the fingerprint and reserve
-$\Delta F_{\text{arch}}$ for architectural effects such as Shard
-Protection (\S\ref{sec:results-shard}), which may manifest as a negative drop (i.e., a performance gain).
+estimated as the same-seed paired difference against the budget-matched
+random baseline. We plot $\Delta F_{\text{attack}}$ in the fingerprint.
 
 \paragraph{Retrain gap.} Let $f^{\mathrm{R}}$ be the model retrained from
 scratch on $\mathcal{D}_{\mathrm{tr}}\setminus S$ and $f^{\mathrm{U}}$ be

@@ -56,11 +56,10 @@ OpenGU taxonomy. Our contributions are:
         within $11/12$ method$\times$backbone cells, framing the
         observed selector ordering as an objective-mismatch artefact
         and motivating attack-aware selectors as future work.
-  \item \textbf{Collateral diagnostics.} We separate architectural F1
-        shift from attack-specific signal via $\Delta F_{\text{total}} =
-        \Delta F_{\text{arch}}+\Delta F_{\text{attack}}$, and complement
-        it with retrain gap, prediction shift, hop-distance decay, and
-        update-detection AUC.
+  \item \textbf{Collateral diagnostics.} We separate the $k{=}5$ noise
+        floor, budget-matched random deletion, and attack-specific paired
+        signal, and complement them with retrain gap, prediction shift,
+        hop-distance decay, and update-detection AUC.
   \item \textbf{Defense narrative.} \emph{Shard Protection}---the
         architectural immunity of the partition pair to every selector
         and every budget tested---refines when partition-based GU

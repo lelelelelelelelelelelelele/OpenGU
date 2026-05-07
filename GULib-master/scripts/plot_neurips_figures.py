@@ -6,6 +6,7 @@ It reads ONLY two inputs and writes 6 PDFs to the Overleaf figures dir:
     Inputs
     ------
     results/_phase_b_aggregate.csv             (360 rows, all cells, 2 backbones)
+    results/baseline/k5_random/                (used by FIG-2 noise floor)
     data/processed/transductive/cora0.8_0_0.2.pkl
         (used only by FIG-5 to look up node degrees in Cora; if missing,
          falls back to torch_geometric.datasets.Planetoid which downloads.)
@@ -13,7 +14,7 @@ It reads ONLY two inputs and writes 6 PDFs to the Overleaf figures dir:
     Outputs (under --out, default report/paper/overleaf/figures/)
     -------
     FIG-1_Generalization.pdf    fingerprint geometry across Cora/GCN + GAT
-    FIG-2_Scaling.pdf           random-deletion F1 drop at r=5% per method
+    FIG-2_Scaling.pdf           k=5 noise floor per method
     FIG-3_Spectrum.pdf          vulnerability fingerprint on Cora/GCN
     FIG-4a_Significance.pdf     -log10(p) heatmap (Cora/GCN)
     FIG-4b_Effect.pdf           paired effect-size heatmap (Cora/GCN)
@@ -322,25 +323,40 @@ def fig1_generalization(df: pd.DataFrame, out: Path) -> None:
 
 
 def fig2_arch(df: pd.DataFrame, out: Path) -> None:
-    """FIG-2: random-deletion F1 drop at r=5% per (method, backbone).
+    """FIG-2: ΔF_noise (k=5 noise floor) per (method, backbone).
 
-    NOTE on naming: we report this as "ΔF_arch at r=5%" in §5.4 prose,
-    distinct from the master scorecard's ΔF_arch which is measured at
-    k=5. See caption in 5_results.tex.
+    The F1 shift induced by deleting just 5 random nodes (~0.18% of
+    train) isolates the unlearning algorithm's near-zero-volume response.
+    Bar height = F1_before - F1_k=5,
+    in F1 percentage points; negative means F1 actually rises (Shard
+    Protection). F1_before is read from the Phase B aggregate (random
+    strategy's f1_after + f1_drop in any seed); F1_k=5 is the average
+    over 5 seeds in results/baseline/k5_random/.
     """
+    k5_root = REPO_ROOT / "results" / "baseline" / "k5_random"
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    cells = [("cora_GCN_r0.05", "Cora·GCN"),
-             ("cora_GAT_r0.05", "Cora·GAT")]
+    cells = [("cora_GCN_r0.05", "GCN", "Cora·GCN"),
+             ("cora_GAT_r0.05", "GAT", "Cora·GAT")]
     bar_w = 0.38
     x = np.arange(len(METHODS))
-    for i, (cell, label) in enumerate(cells):
+    for i, (cell, bk, label) in enumerate(cells):
         means, stds = [], []
         for m in METHODS:
-            sub = df[(df["cell"] == cell)
-                     & (df["method"] == m)
-                     & (df["strategy"] == "random")]["f1_drop"]
-            means.append(sub.mean() * 100.0)
-            stds.append(sub.std(ddof=1) * 100.0 if len(sub) > 1 else 0.0)
+            # F1_before from Phase B (random row's f1_after + f1_drop, both per-seed)
+            sub_rand = df[(df["cell"] == cell)
+                          & (df["method"] == m)
+                          & (df["strategy"] == "random")]
+            f1_before = (sub_rand["f1_after"] + sub_rand["f1_drop"]).mean()
+            # F1_k=5 from baseline_averaged_k5.json
+            avg_path = k5_root / m / "cora" / bk / "baseline_averaged_k5.json"
+            if not avg_path.exists():
+                means.append(np.nan); stds.append(0.0)
+                continue
+            j = json.loads(avg_path.read_text(encoding="utf-8"))
+            f1_k5 = j["f1_after"]
+            f1_k5_std = j.get("f1_after_std", 0.0)
+            means.append((f1_before - f1_k5) * 100.0)
+            stds.append(f1_k5_std * 100.0)
         offset = (i - 0.5) * bar_w
         colors = [FAMILY_COLOR[FAMILY[m]] for m in METHODS]
         edge = "black" if i == 0 else "#444"
@@ -350,8 +366,8 @@ def fig2_arch(df: pd.DataFrame, out: Path) -> None:
     ax.axhline(0, color="black", lw=0.8)
     ax.set_xticks(x)
     ax.set_xticklabels(METHODS, rotation=20, ha="right")
-    ax.set_ylabel(r"random-deletion F1 drop at $r{=}5\%$  (% pts)")
-    ax.set_title(r"Architectural F1 shift at attack budget  (negative ${=}$ Shard Protection)")
+    ax.set_ylabel(r"$\Delta F_{\mathrm{noise}}$ at $k{=}5$  (\% pts)")
+    ax.set_title(r"$k{=}5$ noise floor  (negative ${=}$ Shard Protection)")
     family_handles = [
         plt.Rectangle((0, 0), 1, 1, facecolor=FAMILY_COLOR[f],
                       edgecolor="black", label=f)
