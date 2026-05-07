@@ -1,11 +1,14 @@
 #!/bin/bash
-# arxiv 部署脚本（用相对路径；前提：你已 cd 到 GULib-master 目录）
+# arxiv 部署脚本（前提：你已 cd 到 GULib-master 且自行 fetch/checkout 到目标版本）
 #
 # 用法：
 #   bash run_arxiv.sh                    # MODE=full（默认）：smoke + T1，~7h
 #   MODE=prewarm bash run_arxiv.sh       # 只跑 TracIn prewarm 写 cache，~4h
 #   后台跑：nohup bash run_arxiv.sh > /dev/null 2>&1 & disown
 #   调试：SKIP_SHUTDOWN=1 bash run_arxiv.sh
+#
+# 脚本不做 git fetch/checkout/pull——你应该先手动同步到目标 commit 再跑这个。
+# log 头会打印 Branch + Commit 留审计痕迹。
 #
 # MODE=prewarm
 #   只跑 prewarm_selection_cache.py --strategies tracin × 3 method
@@ -22,7 +25,6 @@ set -u
 export PYTHONUNBUFFERED=1
 
 MODE="${MODE:-full}"
-BRANCH="${BRANCH:-release/phase-b-fixes}"
 NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(nproc 2>/dev/null || echo 18)}"
 SMOKE_TIMEOUT="${SMOKE_TIMEOUT:-3h}"
 PREWARM_TIMEOUT="${PREWARM_TIMEOUT:-6h}"
@@ -47,20 +49,14 @@ do_shutdown() {
 {
     echo "===== ARXIV DEPLOY  MODE=$MODE  $(date) ====="
     echo "PWD:               $(pwd)"
-    echo "BRANCH:            $BRANCH"
     echo "NUMBA_NUM_THREADS: $NUMBA_NUM_THREADS"
     echo "LOG:               $LOG"
     echo ""
 
-    # Sync (相对路径；前提你在 GULib-master 目录里)
-    # 全部 warn-and-continue：网络 / 已在分支 / 本地有未提交都不致命，
-    # 用当前 working tree 的代码继续跑。Branch + Commit 两行打印让你
-    # 在 log 里能看到真实跑的是什么版本。
-    git fetch origin                          || echo "[warn] git fetch failed (network?), 用本地 HEAD"
-    git checkout "$BRANCH" 2>/dev/null        || echo "[warn] git checkout '$BRANCH' failed, 留在 $(git branch --show-current)"
-    git pull --ff-only origin "$BRANCH"       || echo "[warn] pull --ff-only failed, 用本地 HEAD"
-    echo "Branch: $(git branch --show-current)"
-    echo "Commit: $(git log -1 --oneline)"
+    # 不做 git 操作。前提：你跑这个脚本前已自己 fetch/checkout 到目标版本。
+    # 打印 branch/commit 让 log 留下"实际跑的什么版本"的审计痕迹。
+    echo "Branch: $(git branch --show-current 2>/dev/null || echo '?')"
+    echo "Commit: $(git log -1 --oneline 2>/dev/null || echo '?')"
     echo ""
 
     export NUMBA_NUM_THREADS=$NUMBA_NUM_THREADS
