@@ -53,9 +53,13 @@ do_shutdown() {
     echo ""
 
     # Sync (相对路径；前提你在 GULib-master 目录里)
-    git fetch origin                          || { echo "FATAL git fetch"; do_shutdown 1; }
-    git checkout "$BRANCH"                    || { echo "FATAL git checkout"; do_shutdown 1; }
-    git pull --ff-only origin "$BRANCH"       || echo "[warn] pull --ff-only failed, 用 HEAD"
+    # 全部 warn-and-continue：网络 / 已在分支 / 本地有未提交都不致命，
+    # 用当前 working tree 的代码继续跑。Branch + Commit 两行打印让你
+    # 在 log 里能看到真实跑的是什么版本。
+    git fetch origin                          || echo "[warn] git fetch failed (network?), 用本地 HEAD"
+    git checkout "$BRANCH" 2>/dev/null        || echo "[warn] git checkout '$BRANCH' failed, 留在 $(git branch --show-current)"
+    git pull --ff-only origin "$BRANCH"       || echo "[warn] pull --ff-only failed, 用本地 HEAD"
+    echo "Branch: $(git branch --show-current)"
     echo "Commit: $(git log -1 --oneline)"
     echo ""
 
