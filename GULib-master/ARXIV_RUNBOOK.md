@@ -1,8 +1,8 @@
 # ARXIV_RUNBOOK — ogbn-arxiv Phase B 专属执行手册
 
 > Created: 2026-05-07
-> Last updated: 2026-05-07
-> Scope: ogbn-arxiv 一族（Phase B.1 / B.2-T1/T2/T3）
+> Last updated: 2026-05-07（重写，对齐当前 yaml 实际配置）
+> Scope: ogbn-arxiv 一族（Phase B.1 / B.2-T1/T2/T3 + IM-only slice）
 > 上层手册：`SERVER_RUNBOOK.md`（cora、universal 步骤）
 
 ## 0. TL;DR — arxiv 跟 cora 不一样的地方
@@ -13,657 +13,417 @@
 | 总节点 | 2,708 | **169,343** |
 | 边 | 10K | **1.3M** |
 | GCN 参数 | 92K | **109K (3 层 / 256 hidden)** |
-| TracIn G 矩阵 | 800 MB（dense 直接跑）| **55 GB（必须走 chunked）** |
-| 单 GPU cell 时长 | ~2 min | **~50-90 min** |
-| 推荐硬件 | RTX 4090 24GB | **A800 80GB + CPU 32 核** |
-| 推荐流程 | 单机一把跑 | **2 机解耦：CPU 算 IM → GPU 跑主矩阵** |
+| TracIn G 矩阵 | 800 MB（dense 直接跑）| **55-68 GB（必须走 chunked）** |
+| 单 GPU cell 时长 | ~2 min | **~50-90 min（含 retrain）** |
+| 推荐硬件 | RTX 4090 24GB | **A800/H800 80GB**（retrain 22GB peak，4090 边缘 OOM）|
+| 推荐流程 | 单机一把跑 | **按 strategy 类型解耦**：IM-only 可 4090；TracIn/Hybrid 上 80GB |
 
 **核心 fix（部署前提）**：分支 `release/phase-b-fixes` 必须 pull
-- chunked TracIn（commit `194f549`）— 解决 OOM
-- IM CELF cross-cell cache（commit `3f4d557`）— 解决"每个 cell 重跑 2-4h IM"
-- topology-only seed anchoring（commit pending）— degree/pagerank 共享 cache
+- chunked TracIn — 解决 G 矩阵 OOM
+- IM CELF cross-cell cache（im_selector_seed=2024 anchored）— 解决"每个 cell 重跑 IM"
+- topology-only seed anchoring — degree/pagerank 跨 method/seed 共享 cache
+- prewarm cache-check before FATAL — shard 方法可命中 GIF/GNNDelete 写的 SelectionCache（commit 待 push）
 
 ---
 
-## Quick Reference — 你只想 copy-paste 命令的话看这里
+## 1. 当前 yaml 矩阵（事实表，所有数字基于此）
 
-> 前提：已经 `git checkout <release-branch> && git pull`
-> 当前 ratio = **0.01**（1%, k≈1355）；CELF 标准工作区 + im_batch_size=1 (classic CELF)
+| yaml | dataset | model | ratio | methods | strategies | seeds | cell 数 |
+|---|---|---|---|---|---|---|---|
+| `phase_b_arxiv_T1_seed42.yaml` | ogbn-arxiv | GCN | 0.01 | GIF, GNNDelete, GraphEraser | random, degree, pagerank, tracin, im, hybrid | [42] | **18** (3×6×1) |
+| `phase_b_arxiv_T2_seed212.yaml` | 同 | 同 | 0.01 | 同 | 同 | [212] | 18 |
+| `phase_b_arxiv_T3_seed722.yaml` | 同 | 同 | 0.01 | 同 | 同 | [722] | 18 |
+| `phase_b_arxiv_im_only_r01.yaml` | 同 | 同 | 0.01 | 同 | **im 只** | [42, 212, 722] | **9** (3×1×3) |
+| `phase_b_arxiv_im_only.yaml` | 同 | 同 | **0.05** | 同 | im 只 | [42, 212, 722] | 9 |
+| `phase_b_arxiv_tracin_smoke.yaml` | 同 | 同 | 0.01 | GIF | tracin | [42] | 1 |
+| `phase_b_arxiv_hybrid_smoke.yaml` | 同 | 同 | 0.01 | GIF | hybrid | [42] | 1 |
 
-### ⚡ 懒人路径：`run_arxiv.sh` 一键部署（smoke gate → T1 → 自动关机）
+`extra_args` 关键参数（所有 arxiv yaml 共用）：
+- `--candidate_fraction 0.1`（IM 只看 train_node 度数 top-10%，约 13.5K 候选）
+- `--mc_rounds 50`（IM 每候选 MC 模拟次数）
+- `--im_v4_batch_size 1`（classic CELF lazy greedy；k≈1355 不要用 batch 近似）
 
-**单脚本，两种 MODE**。在 GULib-master 目录里跑（脚本用相对路径，前提是你已 cd 到这里）：
+`k`（被攻击的节点数）= `train_nodes × ratio` = 135474 × 0.01 ≈ **1355**
+
+---
+
+## 2. Quick Reference — copy-paste 命令
+
+> 前提：已经 `git checkout release/phase-b-fixes && git pull`
+
+### 2.1 `run_arxiv.sh` 一键部署（3 种 MODE）
 
 ```bash
-ssh <a800-host>
-cd ~/autodl-fs/OpenGU/GULib-master    # 你实际路径
+ssh <gpu-host>
+cd ~/autodl-fs/OpenGU/GULib-master
 git fetch origin && git checkout release/phase-b-fixes && git pull
 
-# 先 dry-run 验证 smoke 启动正常（前台跑，看到 STAGE A + base train 就 Ctrl+C）
+# 先 dry-run（前台跑 STAGE A 看到 base train 进度条就 Ctrl+C）
 SKIP_SHUTDOWN=1 bash run_arxiv.sh
 
-# 正式跑（二选一）：
-# A. 只 prewarm TracIn cache，~4h，跑完关机（晚上用）
-nohup MODE=prewarm bash run_arxiv.sh > /dev/null 2>&1 &
+# 正式跑（三选一）：
+nohup MODE=prewarm bash run_arxiv.sh > /dev/null 2>&1 &     # A. TracIn cache prewarm，~4h
+nohup MODE=im_only bash run_arxiv.sh > /dev/null 2>&1 &     # B. IM-only @ r=0.01，~30 min
+nohup bash run_arxiv.sh > /dev/null 2>&1 &                  # C. smoke + T1 全套，~7-11h（默认 full）
 
-# B. 跑 smoke + T1 全套，~7h，跑完关机（白天用，要先有 prewarm cache）
-nohup bash run_arxiv.sh > /dev/null 2>&1 &     # MODE=full 是默认
-
-disown && exit   # ssh 安全断开
+disown && exit
 ```
 
-| MODE | 跑什么 | 时长 | 行为 |
-|---|---|---|---|
-| `prewarm` | TracIn selection × 3 method（不做 GU/MIA/retrain）| ~4h | 写 `results/score_cache/if/` × 3，关机 |
-| `full`（默认）| smoke (1 cell) + T1 (18 cell) | ~7h | smoke 失败立即关机；通过则跑 T1 后关机 |
+| MODE | yaml | 跑啥 | cell 数 | 时长 | 关机 |
+|---|---|---|---|---|---|
+| `prewarm` | T1 | TracIn selection prewarm | 1（GIF 实算）+ 2 hit | ~1.5h | ✅ |
+| `im_only` | im_only_r01 | 3 method × 3 seed × IM | 9 | ~30 min | ✅ |
+| `full`（默认）| smoke → T1 | smoke 1 cell + T1 18 cell | 1 + 18 | ~10-11h | ✅ |
 
-调参（可选环境变量）：
-- `SMOKE_TIMEOUT=4h`（默认 3h，预期 ~90 min）
-- `PREWARM_TIMEOUT=6h`（默认 6h）
-- `SKIP_SHUTDOWN=1`（调试不关机）
-- `NUMBA_NUM_THREADS=18`（默认 `$(nproc)`，container quota 可能限到 4-8）
+可调环境变量：`SMOKE_TIMEOUT=4h`、`PREWARM_TIMEOUT=6h`、`IM_TIMEOUT=2h`、`SKIP_SHUTDOWN=1`、`NUMBA_NUM_THREADS=18`
 
-回来看结果：
-```bash
-cd ~/autodl-fs/OpenGU/GULib-master
-ls -lt run_arxiv_*.log | head -1                                         # 最新 log
-tail -100 <log>                                                          # 看 ALL DONE 行
-ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json | wc -l        # 期望 18
-ls results/score_cache/if/*.npz | wc -l                                  # 期望 3
-```
-
-⚠ **首次部署前必跑 dry-run**（`SKIP_SHUTDOWN=1 bash run_arxiv.sh`，前台跑），确认：
-- 进入 STAGE A 看到 `[run] demo_attack GIF/tracin/seed42 → ...`
-- 看到 base training 进度条
-- 没有 `error: unrecognized arguments` 之类的 yaml/CLI flag 不对的报错
-- 验证后 Ctrl+C 停掉，再 `nohup ... &` 正式跑
-
-不放心一键脚本的话用下面的分阶段命令：
-
----
-
-
-### 工作流概览：3 stage，2 机并行 → 1 机收尾
-
-```
-Stage 1（并行）:
-  机 A800（GPU）─→ prewarm tracin × 3 method (T1: GIF/GNNDelete/GraphEraser)
-                                              ~3.5-4h（3 × 75 min）
-                   写：results/score_cache/if/<key>.npz × 3
-                       results/selection_cache/<key>.json × 3 method
-
-  机 CPU 32 核 ─→ prewarm im+degree+pagerank   ~3-5 min
-                   写：results/score_cache/im_celf/<key>.npz × 1
-                       results/selection_cache/<key>.json × 3 (跨 method/seed 共享)
-
-           ╲────────────────╱
-                  ▼
-       两机产物 tar + scp 到一处
-
-Stage 2（单机）:
-  机 A800 ─→ 跑 T1 主矩阵 (18 cell, 6 strategy) ~4-4.5h
-            （selection 全 cache hit，只 GU+MIA+retrain）
-            写：results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/{4 files}
-
-T1 单 seed 总时间 ≈ max(Stage 1a, Stage 1b) + Stage 2 ≈ 4h + 4.2h = ~8h
-T2/T3 各自重复（tracin per-seed cache，topology cache 跨 seed 共享）→ 各 ~8h
-```
-
-### Stage 1a — A800 prewarm TracIn（6 method 全打）
+### 2.2 直接 python（不要关机时用）
 
 ```bash
-# A800 实例
-cd ~/autodl-fs/OpenGU/GULib-master
-git fetch origin && git checkout <release-branch> && git pull
-
-# prewarm 自动 loop over 6 method（要 chunked TracIn 的 fix 在分支上）
-python scripts/prewarm_selection_cache.py \
-    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
-    --strategies tracin
-
-# 必看 stdout：
-#   [plan] strategies=['tracin']  methods=['GIF','GNNDelete','GraphEraser']
-#   [TracIn] G matrix ~5.7 GB > 4.0 GB threshold → chunked path
-#   ... ~75 min ...
-#   [ScoreCache] SAVE if  key=<...>  -> ./results/score_cache/if/<key>.npz   ← method 1
-#   ... ~75 min × 5 more methods ...
-#
-# 打包
-tar czf tracin_if_cache.tar.gz \
-    results/score_cache/if/ \
-    results/selection_cache/
+H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml
+H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_im_only_r01.yaml
+H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/ogbn-arxiv_GCN_r0.01    # pass/fail
 ```
 
-预期：~3.5-4h（T1 yaml 含 3 method × 75 min/method）。**3 method 都跑出来后，Stage 2 的 tracin 和 hybrid 在每 method 上都 cache hit。**
-
-（如果 yaml 含更多 method，按 N_method × 75 min 线性外推；method-loop 自动覆盖）
-
-### Stage 1b — CPU prewarm IM + degree + pagerank（并行 1a，全 topology-only）
+### 2.3 跑完检查
 
 ```bash
-# CPU 32 核实例（autodl 通用计算型）
-cd ~/autodl-fs/OpenGU/GULib-master
-git fetch origin && git checkout <release-branch> && git pull
-export NUMBA_NUM_THREADS=32
-
-# 三个 topology-only strategy 一并 prewarm（全跨 method+跨 GU seed 共享 cache）
-# - degree:   ~50ms（一次 sort）
-# - pagerank: ~几秒（power iteration on 1.3M edges）
-# - im:       ~30s-3min（CELF + 32 核 prange MC）
-python scripts/prewarm_selection_cache.py \
-    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
-    --strategies im,degree,pagerank
-
-# 必看 stdout：
-#   [plan] strategies=['im','degree','pagerank']  methods=['GIF']  (method-loop OFF, topology-only)
-#   [ScoreCache] MISS im_celf  key=<...>
-#   [ScoreCache] SAVE im_celf  key=<...>
-#   [save] degree     time=0.05s   -> results/selection_cache/<key>.json
-#   [save] pagerank   time=2.34s   -> results/selection_cache/<key>.json
-#   [save] im         time=Xs       -> results/selection_cache/<key>.json
-#
-# 打包（包含 score_cache + selection_cache 两个目录）
-tar czf topology_cache.tar.gz \
-    results/score_cache/im_celf/ \
-    results/selection_cache/
-```
-
-预期：~3-5 min 全部完成（degree/pagerank 加上去 < 30s 增量）。
-
-### Stage 1.5 — 汇总两机产物到 A800
-
-```bash
-# 在 A800 上
-scp <cpu-host>:~/autodl-fs/OpenGU/GULib-master/topology_cache.tar.gz .
-tar xzf topology_cache.tar.gz       # im_celf + selection_cache 解到 A800
-# (tracin_if_cache 已经在 A800 上不用 transfer)
-
-# 验证 cache 齐全
-ls results/score_cache/if/         # Stage 1a 写的 — 应有 N_method 个 npz
-ls results/score_cache/im_celf/    # Stage 1b 写的 — 应有 1 个 npz
-ls results/selection_cache/        # 两边产物合并 — 应有若干 json
-                                   #   topology-only (degree/pagerank/im): 各 1 个
-                                   #   tracin: 每 method 1 个
-                                   #   random: 每 seed 1 个
-```
-
-### Stage 2 — A800 跑 T1 主矩阵（selection 全 cache hit）
-
-T1 现在是 **18 cell**（3 method × **6 strategy** × 1 seed）：
-random / **degree** / **pagerank** / tracin / im / hybrid
-
-```bash
-python experiments/run.py \
-    experiments/configs/phase_b_arxiv_T1_seed42.yaml
-
-# 必看每 cell 开头（按 strategy 分）：
-#   degree   / pagerank / im:  HIT 来自 Stage 1b（CPU prewarm，跨 method/seed）
-#   tracin   / hybrid:         HIT 来自 Stage 1a（A800 prewarm，per method/seed）
-#   random:                     HIT 或现算（很快，<1s）
-# 每 cell 直接进入 GU + MIA + retrain，跳过 selection 阶段
-
-# T2/T3 条件跑（tracin per-seed 实算，要 +Stage 1a 用 T2/T3 yaml 重跑）
-# topology-only strategies (degree/pagerank/im) cache 跨 seed 共享，T1 写的 Stage 1b
-# 产物对 T2/T3 全部命中，不用重跑 Stage 1b
-python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml
-python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml
-```
-
-预期：T1 ~4-4.5h（每 cell ~14 min × 18 cell + cell 间 overhead）。
-比 4 strategy 多 ~1.4h，但拿到 6 strategy 完整对比矩阵。
-
-> **paper 价值**：cora 上既有结果"degree 比 TracIn IF 还好"是个被审稿人会盯的现象。
-> arxiv 加上 degree/pagerank baseline 让你直接回答："我们在更大的图上是否还成立"。
-> 不加的话表里只有 random 一个 trivial baseline，TracIn/IM/Hybrid 的优势就没参照系。
-
-### 烟囱测试（先单 cell 验通再启 stage 1）
-
-如果你想先不跑全 6 method 看是否 work：
-
-```bash
-# A800 上（要有 IM cache 才能 hybrid smoke 全 hit）
-python experiments/run.py experiments/configs/phase_b_arxiv_tracin_smoke.yaml
-# ↑ 这个不依赖 IM cache，~90 min 端到端验证 chunked TracIn
-
-python experiments/run.py experiments/configs/phase_b_arxiv_hybrid_smoke.yaml
-# ↑ 验 TracIn + IM cache 联动；如果 1a 写过 if cache + 1b 传过 im_celf cache，
-#    应该 ~17 min（selection 全 hit），否则 ~95 min（IM step1 + TracIn 都现算）
-```
-
-### Cache 共享矩阵（一次跑出来后哪些 cell 受益）
-
-| Cache 路径 | 写入触发 | 受益的 cell |
-|---|---|---|
-| `results/score_cache/if/<key>.npz` | TracIn 在某 method 第一次跑 | 同 method × {tracin, hybrid} 后续 cell |
-| `results/score_cache/im/<key>.npz` | Hybrid 第一次调 IM step1 | 全 18 cell × {hybrid}（跨 method、跨 GU seed）|
-| **`results/score_cache/im_celf/<key>.npz`** | IM 完整 CELF 第一次跑（机 A' prewarm 或机 B 第一次 IM cell）| **全 18 cell × {im}（跨 method、跨 GU seed）** |
-| `results/cache/<key>.json` | 任何 cell 完整跑完 | 完全相同配置的重跑 |
-
-### 失败兜底命令
-
-```bash
-# 检查 4 个产物文件齐全
-ls results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
-# 应有: attack.json collateral.json predictions.npz _meta.json
-
-# 看 attack.json 的关键数字
-python -c "
-import json
-d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/attack.json'))
-for r in d.get('results', []):
-    print(r.get('strategy'), 'f1_drop=', r.get('f1_drop'), 'mia_auc=', r.get('mia_auc'))
-"
-
-# 验证 chunked path 触发
-grep "chunked path" logs/*.log | tail -1
-
-# 验证 cache 命中
-grep "HIT  im_celf\|HIT  if\|HIT  im " logs/*.log | head -10
+ls -lt logs/run_arxiv_*.log | head -1
+tail -100 <log>                                                       # 看 ALL DONE 行 + cells_complete=N/M
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json | wc -l     # T1 期望 18
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed*/attack.json | wc -l      # T1+T2+T3 期望 54
+ls results/runs/ogbn-arxiv_GCN_r0.01/*_im/seed*/attack.json | wc -l   # im_only 期望 9
+ls results/score_cache/if/*.npz | wc -l                               # 见 §4.2 真实期望
 ```
 
 ---
 
-## 1. 硬件规划
+## 3. 硬件规划
 
-### 1.1 GPU 实例（机 B，跑 B.2 主矩阵）
+### 3.1 Stage 选择硬件对照
 
 | 阶段 | peak GPU mem | 4090 24GB | **A800 80GB** | H20 95GB |
 |---|---|---|---|---|
 | Base train | <2 GB | ✅ | ✅ | ✅ |
-| **TracIn chunked** | **~5 GB** | ✅ | ✅（58 GB 余量）| ✅ |
-| Random / IM | <2 GB | ✅ | ✅ | ✅ |
+| **TracIn chunked** | **~5 GB** | ✅ | ✅ | ✅ |
+| IM (numba CPU bound) | <2 GB | ✅ | ✅ | ✅ |
+| Hybrid (TracIn + IM) | ~5 GB | ✅ | ✅ | ✅ |
 | Unlearn | <5 GB | ✅ | ✅ | ✅ |
 | MIA | <1 GB（CPU-bound）| ✅ | ✅ | ✅ |
-| **Collateral retrain** | **~22 GB** | ⚠ 边缘 OOM | ✅（58 GB 余量）| ✅ |
+| **Collateral retrain** | **~22 GB** | ⚠ **边缘 OOM**（B.1 实测 3/5 cell OOM） | ✅ | ✅ |
 
-**推荐：A800 80GB**。retrain 22GB 是真红线（pre-fix 实测 3/5 cell OOM 在 4090 上）。
-**不推荐：4090**（retrain 边缘风险）。
-**不推荐：H20**（per `SERVER_RUNBOOK.md:648` 实测 H800 1/3 算力 → B.2 拉到 38-40h）。
+**推荐**：
+- IM-only / smoke / 不带 collateral 的探针 → 4090 OK
+- T1/T2/T3 含 collateral retrain → A800/H800 80GB
+- ❌ 不推荐 H20（实测 H800 1/3 算力，T1 拉到 ~30h）
 
-### 1.2 CPU 实例（机 A'，跑 IM prewarm）
+### 3.2 IM 算法本身的硬件特性
 
-| 资源 | 需求 | autodl 32 核实例典型 |
-|---|---|---|
-| CPU | numba prange MC 并行 | 32 核 Xeon Gold/Platinum |
-| RAM | adj + 32 thread state ~5 GB | 60 GB（典型）|
-| 磁盘 | cache + repo ~2 GB | 50 GB+ |
-| GPU | **不需要** | 0 |
-| CUDA | **不需要** | 任意 |
-
-**典型机型**：autodl 通用计算型 32 核 Xeon Platinum，~¥0.5-1/h。
-
-### 1.3 双机分工（推荐）
-
-```
-机 A' (CPU 32 核, ~¥0.5-1/h)
-    └─ Stage 1: IM prewarm   ~5-10 min
-                                    │
-                                    ▼
-                        scp im_celf_cache.tar.gz
-                                    │
-                                    ▼
-机 B  (A800 80GB, ~¥4-5/h)
-    └─ Stage 2: B.2 主矩阵   ~10-12h（含全 cell 缓存命中）
-```
-
-**为什么这样拆**：
-- IM 是纯 CPU（select_nodes 不碰 GPU），跑在 GPU 上是浪费
-- IM 需要 1 次实算 × 18 cell 共享（cross-method/seed）
-- TracIn 必须 GPU（autograd），但 chunked 后只占 5GB 显存
-- retrain 必须 GPU，22GB peak
+`im_strategy.py` 是纯 numba JIT（`numba.prange` + `@njit`），**不走 GPU**：
+- IM-only 在 4090 上：**host CPU** 跑 IM 选点；**GPU** 跑 base train + unlearn + MIA
+- CPU-only 机器也能跑 IM-only？❌ 不行 —— yaml 流程含 base train + unlearn，需要 GPU
+- 只想 prewarm IM cache 一份给 GPU 用？走 `prewarm_selection_cache.py --strategies im`，CPU 实例足够（见 §5）
 
 ---
 
-## 2. 代码前置（两机都要做一次）
+## 4. 工作流（按场景）
+
+### 4.1 场景 A：单机 4090 跑 IM-only（你今晚的方案）
+
+CPU 满了，把 IM 这片单独切到 4090：
 
 ```bash
-# 1) 拉分支（一次性）
-cd ~/autodl-fs/OpenGU/GULib-master  # 你实际项目路径
-git fetch origin
-git checkout release/phase-b-fixes
-git pull
-
-# 2) 验证分支正确（应看到三个关键 commit）
-git log --oneline -5
-# 期望前三行包含：
-#   bde2a2e docs(dashboard): bump Last updated...
-#   3055979 merge fix/im-celf-shared-cache...
-#   2e52160 merge fix/tracin-chunked-arxiv...
-
-# 3) sanity（cora，本地 ~30s 验环境，不算 GPU 时间）
-python experiments/run.py experiments/configs/sanity_one_cell.yaml
-```
-
----
-
-## 3. Stage 1 — CPU 实例上 prewarm IM
-
-### 3.1 启动
-
-```bash
-ssh <cpu-host>
+# 4090 host
+ssh <4090-host>
 cd ~/autodl-fs/OpenGU/GULib-master
-
-# 强制 numba 用全 32 核（默认会但稳妥起见显式设）
-export NUMBA_NUM_THREADS=32
-
-# 进 tmux 防 ssh 断
-tmux new -s im_prewarm
-
-# Prewarm。这一次的输出会写到 results/score_cache/im_celf/<key>.npz
-python scripts/prewarm_selection_cache.py \
-    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
-    --strategies im 2>&1 | tee logs/im_prewarm_$(date +%Y%m%d_%H%M).log
-
-# Ctrl-b d  detach，回来 tmux attach -t im_prewarm
+git pull
+NUMBA_NUM_THREADS=8 nohup MODE=im_only bash run_arxiv.sh > /dev/null 2>&1 &
+disown
 ```
 
-### 3.2 必看的 stdout 信号
+注意 `phase_b_arxiv_im_only_r01.yaml` 已设 `run_collateral: false`（避开 4090 22GB OOM）。retrain gap 留给后续 80GB GPU 补。
 
-```
-[必须看到] [ScoreCache] MISS im_celf  key=<32 hex> — running full CELF on 13547 candidates...
-[~5-10 min 后] [ScoreCache] SAVE im_celf  key=<32 hex> -> ./results/score_cache/im_celf/<key>.npz
-```
+预期产物：9 个 `attack.json` + `predictions.npz` + `_meta.json`（无 `collateral.json`）。
 
-> 如果看到 `[ScoreCache] HIT` —— 之前可能跑过 prewarm，cache 已有。直接跳到 §3.3 打包。
-
-### 3.3 打包传输
-
-```bash
-# 打包
-tar czf im_celf_cache.tar.gz results/score_cache/im_celf/
-ls -lh im_celf_cache.tar.gz   # 应该几 MB（npz 压缩后很小）
-
-# 传给机 B
-scp im_celf_cache.tar.gz <a800-host>:~/autodl-fs/OpenGU/GULib-master/
-
-# 释放 CPU 实例（不再需要）
-exit
-```
-
-### 3.4 时间 + 成本
-
-| 步骤 | 时长 | 成本（autodl ~¥0.8/h）|
-|---|---|---|
-| 实例启动 + git pull | 2 min | ¥0.03 |
-| numba JIT 编译 | 30 s | ¥0.01 |
-| IM CELF 实算（k=6773）| 5-10 min | ¥0.07-0.13 |
-| tar + scp | 30 s | ¥0.01 |
-| **总计** | **~10-15 min** | **~¥0.15** |
-
----
-
-## 4. Stage 2 — A800 上跑 B.2 主矩阵
-
-### 4.1 解 cache + 启动
+### 4.2 场景 B：单机 80GB GPU 跑 T1/T2/T3 完整矩阵
 
 ```bash
 ssh <a800-host>
 cd ~/autodl-fs/OpenGU/GULib-master
-git pull   # 确保最新
+git pull
 
-# 解 IM cache（机 A' 传过来的）
-tar xzf im_celf_cache.tar.gz
-ls results/score_cache/im_celf/   # 应看到 .npz + .json
+# 先 smoke 一遍（1 cell, ~90 min）
+nohup bash run_arxiv.sh > /dev/null 2>&1 &     # MODE=full：smoke + T1
 
-# 进 tmux
-tmux new -s phaseB
+# T2/T3 串行（T1 完成后手动启）
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml > logs/t2_$(date +%s).log 2>&1 &
+nohup python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml > logs/t3_$(date +%s).log 2>&1 &
 ```
 
-### 4.2 烟囱测（首次必跑，~90 min）
+### 4.3 场景 C：双机分工（CPU prewarm IM + GPU 跑主矩阵）
 
-先跑单 cell 验证 chunked TracIn + IM cache 命中：
+如果 IM 选点想在便宜 CPU 实例上提前算好，再传给 GPU：
 
+**机 CPU**（autodl 32 核 ~¥0.5-1/h，~5 min）：
 ```bash
-python experiments/run.py experiments/configs/phase_b_arxiv_tracin_smoke.yaml \
-    2>&1 | tee logs/tracin_smoke_$(date +%Y%m%d_%H%M).log
+ssh <cpu-host>
+cd ~/autodl-fs/OpenGU/GULib-master
+git pull
+export NUMBA_NUM_THREADS=32
+python scripts/prewarm_selection_cache.py \
+    experiments/configs/phase_b_arxiv_T1_seed42.yaml \
+    --strategies im,degree,pagerank
+tar czf topology_cache.tar.gz results/score_cache/im_celf/ results/selection_cache/
+scp topology_cache.tar.gz <gpu-host>:~/autodl-fs/OpenGU/GULib-master/
 ```
 
-**T+2 min 必看**：
-```
-[TracIn] G matrix ~57.0 GB > 4.0 GB threshold → chunked path (chunk_size=1000, CPU offload)
-```
-
-**T+76-80 min 必看**：
-```
-[ScoreCache] SAVE if  key=<...> -> ./results/score_cache/if/<key>.npz
-```
-
-**~90 min 后产物**：
-```
-results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
-├── attack.json
-├── collateral.json
-├── predictions.npz
-└── _meta.json
-```
-
-### 4.3 主矩阵 T1（必跑，12 cell）
-
-烟囱测 PASS 后跑：
-
+**机 GPU**：
 ```bash
-python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml \
-    2>&1 | tee logs/t1_seed42_$(date +%Y%m%d_%H%M).log
+tar xzf topology_cache.tar.gz
+nohup bash run_arxiv.sh > /dev/null 2>&1 &
 ```
 
-**预期 cache 行为**（每个 cell 都应该看到）：
-```
-# 第一次遇到某 method 的 tracin cell
-[TracIn] G matrix ... → chunked path
-[ScoreCache] MISS if  key=...
-[ScoreCache] SAVE if  key=...
-
-# 同 method 的 hybrid 相关 cell
-[ScoreCache] HIT  if  key=...   ← TracIn IF 命中
-[ScoreCache] HIT  im  key=...   ← Hybrid IM step1 命中
-
-# 任何 IM 直接 cell
-[ScoreCache] HIT  im_celf  key=...   ← 全部命中（来自机 A' prewarm）
-```
-
-### 4.4 T2 / T3（条件跑，deadline 富余时）
-
-```bash
-# T2 (seed=212) 仅在 T1 完成 + deadline 富余 ≥6h 时启
-python experiments/run.py experiments/configs/phase_b_arxiv_T2_seed212.yaml ...
-
-# T3 (seed=722) 同上
-python experiments/run.py experiments/configs/phase_b_arxiv_T3_seed722.yaml ...
-```
-
-**重要事实**：T2/T3 期间 IM cache 全部 HIT（im_selector_seed=2024 跨 GU seed 共享）。
-TracIn cache **每个 seed 独立 ~7-8h**（key 含 GU seed）。
+**为什么 IM 拆出来跑划算**：IM 不走 GPU，跑在 80GB 卡上的 host CPU 是浪费贵实例时间。CPU 实例 ¥0.15 vs A800 ¥0.5/cell IM 选点。
 
 ---
 
-## 5. 时间 + 成本预算
+## 5. Cache 行为（实测，非推算）
 
-### 5.1 修订后的 T1 预算（A800 80GB，含三个 fix 后）
+### 5.1 SelectionCache（顶层选点结果）
 
-| 阶段 | 单 cell | 12 cell | 备注 |
-|---|---|---|---|
-| Base train | 30 s | 6 min | |
-| TracIn selection | 76 min | 76 min × 6 method = ~7.5 h | 同 method 跨 strategy 命中 |
-| IM selection | **~0 s（cache hit）** | **~0 s × 18** | ✅ prewarm 之后全免费 |
-| Hybrid IF 部分 | cache hit | 0 | TracIn 同 method 复用 |
-| Hybrid IM 部分 | cache hit | 0 | im namespace 跨方法共享 |
-| GU + MIA + retrain | ~14 min | ~3 h | |
-| **T1 总计** | | **~10-11 h** | |
+`attack_manager.py:_build_selection_config:240-254` —— key 字段：
+```
+dataset_name, base_model, unlearn_ratio, seed, strategy_name, k,
+is_transductive, is_balanced, train_ratio, val_ratio, test_ratio,
+graph_fingerprint, strategy_params_fingerprint
+```
 
-> **跟 pre-fix 对比**：原 SERVER_RUNBOOK.md 估 21-24h。三个 fix 砍到 ~10-11h（缩 1/2）。
+**关键：key 里没有 `unlearning_methods`**（只有 `seed`，且对 IM/topology-only 还有 anchor 替换）：
 
-### 5.2 完整成本（T1 only，必跑）
+| strategy | seed_for_key | 跨 method 共享？ | 跨 GU seed 共享？ | 文件数（T1）|
+|---|---|---|---|---|
+| `random` | GU seed | ✅ | ❌ | 1（per seed）|
+| `degree` | TOPOLOGY_ONLY_SEED_ANCHOR | ✅ | ✅ | **1**（全局）|
+| `pagerank` | 同上 | ✅ | ✅ | **1**（全局）|
+| `im` | im_selector_seed=2024 | ✅ | ✅ | **1**（全局）|
+| `tracin` | GU seed | ✅ | ❌ | 1（per seed）|
+| `hybrid` | GU seed | ✅ | ❌ | 1（per seed，含 alpha 进 fingerprint）|
 
-| 项 | 成本 |
-|---|---|
-| CPU 实例 stage 1（10-15 min × ¥0.8/h）| ¥0.15 |
-| A800 stage 2（10-11h × ¥4-5/h）| ¥45-55 |
-| **T1 总成本** | **~¥45-55** |
+T1（seed=42）SelectionCache 文件期望：
+- 1 random + 1 degree + 1 pagerank + 1 im + 1 tracin + 1 hybrid = **6 个 .json**
 
-### 5.3 T1 + T2 + T3 总成本（如果都跑）
+T1+T2+T3 累计：
+- topology-only (degree/pagerank/im) = 3 个（跨 seed 共享）
+- random/tracin/hybrid = 3 seed × 3 strategy = 9 个
+- = **12 个 .json**
 
-| 项 | 成本 |
-|---|---|
-| CPU stage 1 (单次)| ¥0.15 |
-| A800 stage 2 (3 个 seed × ~10h)| ¥130-160 |
-| **三 seed 总成本** | **~¥130-160** |
+### 5.2 ScoreCache (TracIn IF, `score_cache/if/`)
+
+`tracin_strategy.py:_build_cache_config:136-148` —— key 含 `unlearning_methods` + `seed`。
+
+**但实际上**：GIF 第一个跑时算 IF + 写 ScoreCache + 写 SelectionCache。后续 GNNDelete/GraphEraser 在 **SelectionCache 层就 hit**（method-agnostic key），**不会进 ScoreCache 路径**，**不会再写 IF 文件**。
+
+T1 IF 文件实测期望 = **1 个**（仅第一个跑的 method 写）
+T1+T2+T3 IF 文件实测期望 = **3 个**（每 seed 一个）
+
+⚠ `prewarm_selection_cache.py` 的 `expected 3` 是过度估计 —— 假设每 method 都要写 IF。实测只 1 个就够。
+
+⚠ 历史残留：你机器上 `score_cache/if/` 可能有 11+ 个 .npz —— 来自 r=0.05 / 其他 seed / pre-Phase-B 的旧 schema。**不影响新跑**，要清的话每 .json sidecar 里有该 cache 的 (ratio, seed, method) 标签。
+
+### 5.3 ScoreCache (IM CELF, `score_cache/im_celf/`)
+
+IM CELF 完整 spread 计算的中间结果。key 为 `(dataset, num_nodes, k, candidate_fraction, mc_rounds, propagation_prob, im_selector_seed)`，**完全不含 method/GU seed**。
+
+T1 期望 = **1 个**（首个 IM cell 写，后 17 cell 全 hit）
+T1+T2+T3 期望 = **1 个**（im_selector_seed=2024 跨所有 seed 共享）
+
+### 5.4 ResultCache (`results/cache/`)
+
+完整 cell 输出的 hash-named 缓存。key 含所有训练/攻击/评估超参（含 `gcn_hidden`、`gcn_num_layers`），见 `results/cache/CLAUDE.md`。完全相同配置重跑会全 hit。
 
 ---
 
 ## 6. Cell 内监控
 
-### 6.1 GPU + CPU 双窗监控
-
-另开 tmux 窗口：
+### 6.1 GPU + CPU 双窗
 
 ```bash
 watch -n 5 'echo "=== GPU ==="; \
             nvidia-smi --query-gpu=memory.used,memory.total,utilization.gpu --format=csv; \
-            echo; echo "=== CPU ==="; \
-            free -h | head -2'
+            echo; echo "=== CPU ==="; free -h | head -2'
 ```
 
-**预期内存爬升曲线**（一个 cell）：
+**预期内存爬升曲线**（一个含 retrain 的 cell）：
 ```
 T+0:00   GPU ~2 GB（base model 训练）
-T+0:30   GPU ~3-5 GB 稳定（TracIn chunked）
-                CPU available 从 200+ GB 缓慢降到 ~140 GB（55GB G 矩阵在 CPU）
-T+76:00  GPU ~3 GB（TracIn 结束，pass 2）
+T+0:30   GPU ~3-5 GB（TracIn chunked，G 矩阵在 CPU side）
+T+76:00  GPU ~3 GB（TracIn 结束）
 T+78:00  GPU ~5 GB（unlearn）
-T+90:00  GPU ~22 GB（retrain）
-T+91:00  GPU ~5 GB（cell 结束，准备下一个）
+T+90:00  GPU ~22 GB（collateral retrain ← 4090 这里 OOM）
+T+91:00  GPU ~5 GB（cell 收尾）
 ```
 
-### 6.2 进度计数（任何机器）
-
-```bash
-# T1 已完成 cell 数（应在 0-12 之间增长）
-ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json 2>/dev/null | wc -l
-
-# 总览（含 T2/T3）
-ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed*/attack.json 2>/dev/null | wc -l
+IM-only cell（无 retrain）：
+```
+T+0:00   GPU ~2 GB（base train）
+T+0:30   CPU 8 核 100%（IM CELF lazy greedy）
+T+3:00   GPU ~5 GB（unlearn）
+T+5:00   GPU ~1 GB（MIA, CPU bound）
+T+8:00   完成
 ```
 
-### 6.3 Cache 命中率 sanity
+### 6.2 进度计数
 
 ```bash
-# IM cache 命中数（T1 应有 8 次：4 method × 2 strategy{im,hybrid}）
-grep -c "HIT  im_celf" logs/t1_*.log
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed42/attack.json 2>/dev/null | wc -l       # T1: 18
+ls results/runs/ogbn-arxiv_GCN_r0.01/*/seed*/attack.json 2>/dev/null | wc -l        # T1+T2+T3: 54
+ls results/runs/ogbn-arxiv_GCN_r0.01/*_im/seed*/attack.json 2>/dev/null | wc -l     # im_only: 9
+```
 
-# TracIn cache miss 数（T1 应有 6 次：每 method 算一次 selection）
-grep -c "MISS if " logs/t1_*.log
+### 6.3 Cache 命中率 sanity（T1 跑完）
 
-# Chunked path 触发数（T1 应有 6 次，对应 TracIn miss）
-grep -c "chunked path" logs/t1_*.log
+```bash
+# IM cache hit 数（T1 应有 5 次：18 cell 里有 6 个 im+hybrid，第 1 个写 → 后 5 个 hit）
+grep -c "HIT  im_celf\|hit ] im\|hit ] hybrid" logs/run_arxiv_full_*.log
+
+# TracIn cache hit 数（T1 应有 5 次：6 个 tracin/hybrid cell，第 1 个写 → 后 5 个 hit selection）
+grep -c "HIT  if\|hit ] tracin\|hit ] hybrid" logs/run_arxiv_full_*.log
+
+# Chunked path 触发数（T1 应有 1 次：仅首个真算 IF 的 cell）
+grep -c "chunked path" logs/run_arxiv_full_*.log
 ```
 
 ---
 
-## 7. 故障处理（arxiv-specific）
+## 7. 故障处理
 
-### 7.1 TracIn 仍然 OOM（不应该但万一）
+### 7.1 TracIn 仍然 OOM（不应该）
 
 ```
 torch.cuda.OutOfMemoryError: Tried to allocate XX.XX GiB ...
 ```
+1. grep `[TracIn] G matrix` 看是否走 chunked path
+2. yaml 加 `tracin_chunk_size: 500`（默认 1000）
+3. `nvidia-smi` 看是否别的进程占了
 
-**第一时间检查**：
-1. 是否走了 chunked path？grep `[TracIn] G matrix` 看分支判断
-2. `chunk_size=1000` 够小吗？yaml 加 `tracin_chunk_size: 500` 砍半
-3. 别的 GPU 进程占用了？`nvidia-smi`
-
-### 7.2 IM cache 没命中（应该 HIT 但显示 MISS）
+### 7.2 collateral retrain 在 4090 OOM
 
 ```
-[ScoreCache] MISS im_celf  key=<...>
+torch.cuda.OutOfMemoryError ... while training ...
 ```
+- 预期内：4090 24GB 跑 22GB peak retrain 边缘 OOM
+- 解：yaml 设 `run_collateral: false`，retrain 留给 80GB GPU 补
+- 或：`PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb=128` 减碎片
 
-**可能原因**：
-1. CPU 实例 prewarm 用了不同的 IM hyperparams（mc_rounds、prop、fraction、batch、selector_seed 任一不同 → key 不同）
-2. tar 解错位置：cache 应该在 `results/score_cache/im_celf/`，不是 `results/score_cache/`
-3. 文件权限问题：`chmod -R u+rwX results/score_cache/`
+### 7.3 IM cache MISS（应该 HIT 却显示 MISS）
 
-**调试**：
+```
+[ScoreCache] MISS im_celf  key=<hash>
+```
+1. CPU 实例 prewarm 用的 IM hyperparams 跟主跑不一致（candidate_fraction / mc_rounds / propagation_prob / im_v4_batch_size / im_selector_seed 任一不同 → key 不同）
+2. tar 解错位置：cache 应该在 `results/score_cache/im_celf/`，不要解到 `results/score_cache/`
+3. 文件权限：`chmod -R u+rwX results/score_cache/`
+
+调试：
 ```bash
 ls results/score_cache/im_celf/
-# 看 .json sidecar 内容（key 对应的 config）
-cat results/score_cache/im_celf/<key>.json | python -m json.tool
+cat results/score_cache/im_celf/<key>.json | python -m json.tool   # 看 key 对应的 config
 ```
 
-### 7.3 retrain 22GB 在 A800 上还是 OOM（极不可能但万一）
+### 7.4 prewarm script 对 GraphEraser 报 FATAL
 
-A800 80GB 跑 22GB peak retrain 应该有 58GB 余量。如果 OOM 说明：
-1. 同实例有别的进程在占 GPU（不应该但 autodl 实例共享 docker 时会）
-2. PyTorch allocator 碎片严重：设 `PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb=128`
+```
+[FATAL] prewarm_selection_cache cannot compute trained-model selectors
+        from shard/SISA method GraphEraser
+```
 
-### 7.4 单 cell 跑超过 2 小时
+**原因**：旧版 prewarm 在 cache 查询前就 FATAL，无视 GIF/GNNDelete 已写好的 SelectionCache。
 
-可能挂在了：
-- TracIn pass 1 backprop 慢（应 ~1 min/1000 candidates）
-- MIA CPU-bound 真的慢（cell 100 iter × 3.6s × 2 round = 12 min 是正常）
-- IM cache miss 后跑全 CELF（不应该，但如果 prewarm 配置不一致就会发生）
+**fix（commit 待 push）**：cache 查询挪到 FATAL 前。修后 GraphEraser 在 GIF/GNNDelete 已 prewarm 过的前提下全 hit，不再 FATAL。
 
-`tail -f logs/<cell>.log` 看具体卡哪里。
+**临时解法**：把 GraphEraser 从 prewarm yaml 拿掉，跑 `experiments/run.py <主 yaml>` 时它走 attack_manager 正常路径，自动 hit GIF 写的 SelectionCache。
+
+### 7.5 单 cell 跑超过 2 小时
+
+可能挂在：
+- TracIn pass-1 backprop 慢（应 ~1 min/1000 candidates，arxiv ~13 min for k=1355）
+- MIA CPU-bound（cell 100 iter × 3.6s × 2 round = 12 min 是正常）
+- IM cache miss 后跑全 CELF（不应该；如果 prewarm 配置不一致就会发生 → §7.3）
+
+`tail -f logs/<cell>.log` 看具体卡哪。
 
 ---
 
-## 8. 文件结构地图（arxiv 跑完之后）
+## 8. 时间 + 成本预算
+
+### 8.1 T1 单 seed（A800 80GB，所有 fix 已合）
+
+| 阶段 | 单 cell | 18 cell（T1）| 备注 |
+|---|---|---|---|
+| Base train | 30 s | 9 min | 每 cell 重训 |
+| TracIn selection | 76 min | **76 min**（仅首个 method × strategy 实算）| 后续 SelectionCache hit |
+| IM selection | 3 min | **3 min**（仅首个 cell 实算）| 后 17 cell hit |
+| Hybrid IF/IM 部分 | cache hit | 0 | 完全复用 §5.1/5.2 |
+| GU + MIA | ~12 min | ~3.6 h | per cell |
+| Collateral retrain | ~5 min | ~1.5 h | per cell |
+| **T1 总计** | | **~7-9 h** | |
+
+### 8.2 IM-only（4090 / r=0.01 / 9 cell / 无 collateral）
+
+| 阶段 | 9 cell |
+|---|---|
+| Base train | ~5 min |
+| IM selection（首次） | ~3 min |
+| IM cache hit × 8 | <1 s |
+| Unlearn | ~9 min |
+| MIA | ~12 min |
+| **总计** | **~30-40 min** |
+
+### 8.3 完整成本（autodl 价目，参考）
+
+| 项 | 成本 |
+|---|---|
+| CPU prewarm（场景 C, 5 min × ¥0.8/h）| ¥0.07 |
+| IM-only（4090, 30 min × ¥1-2/h）| ¥0.5-1 |
+| T1 单 seed（A800, ~8h × ¥4-5/h）| ¥32-40 |
+| T1+T2+T3 三 seed | ¥96-120 |
+
+---
+
+## 9. 文件结构地图（arxiv 跑完之后）
 
 ```
 results/
 ├── score_cache/                                ← 跨 cell 共享的 score 缓存
-│   ├── if/<key>.npz                            ← TracIn 6 个 method 各 1 份
-│   ├── im/<key>.npz                            ← IM step-1 spread，跨方法共享
-│   └── im_celf/<key>.npz                       ← IM 完整 CELF，跨方法+跨 GU seed 共享
+│   ├── if/<key>.npz                            ← TracIn IF：1 个/seed（实测）
+│   ├── im/<key>.npz                            ← Hybrid IM step-1，跨方法共享
+│   └── im_celf/<key>.npz                       ← IM 完整 CELF：1 个全局
 │
-├── selection_cache/                            ← AttackManager-level 顶层 selection
-│   └── *.json                                  ← 每个 (method, strategy, seed) 一份
+├── selection_cache/                            ← AttackManager-level 顶层选点
+│   └── *.json                                  ← T1: 6 个 / T1+T2+T3: 12 个（见 §5.1）
 │
 ├── runs/ogbn-arxiv_GCN_r0.01/                  ← cell 产物
-│   ├── GIF_tracin/seed42/{attack,collateral,predictions,_meta}.json/.npz
-│   ├── GIF_im/seed42/...
-│   ├── GIF_hybrid/seed42/...
-│   ├── GNNDelete_tracin/seed42/...
-│   └── ... (12 dirs for T1)
+│   ├── GIF_random/seed42/{attack,collateral,predictions,_meta}.json/.npz
+│   ├── GIF_degree/seed42/...
+│   ├── ... (T1: 18 dirs / T1+T2+T3: 54 dirs / im_only: 9 dirs)
+│   └── GraphEraser_hybrid/seed722/...
+│
+├── cache/                                      ← cell-level ResultCache
+│   └── *.json                                  ← hash-named, 见 results/cache/CLAUDE.md
 │
 └── _journal/auto_report.md                     ← 自动追加的实验日志
 ```
-
-cache 跨方法共享的实证：B.2-T1 跑完时
-- `score_cache/im_celf/`: 应该只有 **1** 个 .npz（所有 18 cell 共享）
-- `score_cache/im/`: 应该只有 **1** 个 .npz（Hybrid step-1 跨方法共享）
-- `score_cache/if/`: 应该有 **6** 个 .npz（每 method 1 份）
-
----
-
-## 9. 与 SERVER_RUNBOOK.md 的关系
-
-**这本手册替代** SERVER_RUNBOOK.md 的：
-- §1.2 时长表（arxiv 那行）
-- §3.3 B.1 arxiv random baseline
-- §3.4 B.2 arxiv 主矩阵
-- 附录 A.2 显存外推探针
-- 附录 A.3 机 B 一键串
-
-**仍然查 SERVER_RUNBOOK.md**：
-- §1.1 Phase 表（顶层概览）
-- §2 ssh + tmux 标准流程
-- §3.5+ cora B.3/B.4 流程
-- §4 fresh-clone bootstrap
-- §5 universal 故障处理
-- §6 数据回收与合并
 
 ---
 
 ## 10. 验证 deployment 是否成功（30 秒检查清单）
 
-机 B 上跑完 T1 第一个 cell 后：
+跑完 T1 第一个 cell 后：
 
 ```bash
-# 1) cell 4 文件齐全
+# 1) cell 4 文件齐全（im_only 模式无 collateral.json）
 ls results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/
-# 应该 4 个：attack.json collateral.json predictions.npz _meta.json
+# 期望: attack.json collateral.json predictions.npz _meta.json
 
 # 2) attack.json 数字合理
 python -c "
@@ -672,16 +432,34 @@ d = json.load(open('results/runs/ogbn-arxiv_GCN_r0.01/GIF_tracin/seed42/attack.j
 for r in d.get('results', []):
     print(r.get('strategy'), 'f1_drop=', r.get('f1_drop'), 'mia_auc=', r.get('mia_auc'))
 "
-# 期望：tracin f1_drop > random f1_drop（攻击有效）
-#       mia_auc > 0.5（不是 bug）
+# 期望：tracin f1_drop > random f1_drop（攻击有效）；mia_auc > 0.5（不是 bug）
 
 # 3) cache 落盘
-ls results/score_cache/if/   # 应有 .npz + .json
-ls results/score_cache/im_celf/   # 应有从机 A' scp 过来的 + .json
+ls results/score_cache/if/        # 至少 1 个 .npz
+ls results/score_cache/im_celf/   # 至少 1 个 .npz
+ls results/selection_cache/       # 至少 6 个 .json
 
-# 4) chunked path 触发记录
+# 4) chunked TracIn 触发
 grep "chunked path" logs/*.log | head -1
-# 期望：[TracIn] G matrix ~57.0 GB > 4.0 GB threshold → chunked path
+# 期望：[TracIn] G matrix ~XX.X GB > 4.0 GB threshold → chunked path
 ```
 
-四项都过 = arxiv 部署成功，可以放手让 T1 跑完。
+四项过 = arxiv 部署成功。
+
+---
+
+## 11. 与 SERVER_RUNBOOK.md 的关系
+
+**这本手册替代** SERVER_RUNBOOK.md 的：
+- arxiv 时长表
+- B.1 / B.2 arxiv 流程
+- 显存外推探针
+- arxiv 一键串
+
+**仍然查 SERVER_RUNBOOK.md**：
+- Phase 表（顶层概览）
+- ssh + tmux 标准流程
+- cora B.3/B.4 流程
+- fresh-clone bootstrap
+- universal 故障处理
+- 数据回收与合并

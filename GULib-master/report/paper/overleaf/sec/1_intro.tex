@@ -30,26 +30,42 @@ This predictable vulnerability dictates that exposing a deletion API without und
 these underlying architectural flaws risks the API being \emph{weaponized} to silently dismantle model utility.
 
 \paragraph{This paper.}
-We conduct the first systematic adversarial audit of approximate GU,
-treating deletion-set selection as the attack and post-unlearning F1 as
-victim utility. To separate family-level trends from method-specific
+We conduct the first systematic adversarial audit of approximate GU
+under a deletion-API threat model with a calibrated four-tier access
+spectrum (L0 / L1-structural / L2-\textsc{direct} /
+L2-\textsc{surrogate}; see Table~\ref{tab:access}), treating
+deletion-set selection as the attack and post-unlearning F1 as victim
+utility. To separate family-level trends from method-specific
 behavior, we test \textbf{intra-family pairs} drawn from the upstream
 OpenGU taxonomy. Our contributions are:
 
 \begin{itemize}[leftmargin=1.2em,topsep=2pt,itemsep=2pt]
   \item \textbf{Threat model and selectors.} We formalize adversarial
-        deletion attacks and organize six selectors by access cost:
-        deletion-only, structural, model-coupled, and surrogate-model
-        tiers.
+        deletion attacks and organize six selectors along a calibrated
+        four-tier access spectrum (L0 deletion-only / L1 structural
+        / L2-\textsc{direct} / L2-\textsc{surrogate}) keyed on
+        resource cost, not on assumed sophistication.
   \item \textbf{Vulnerability Fingerprint.} We project attack-specific F1
         effects onto structural-spread (IM) and gradient-signal (TracIn)
         axes across six GU methods, revealing family-level regimes and
         strong within-family outliers.
+  \item \textbf{Alignment mechanism.} We surface a structural
+        alignment regularity (\S\ref{sec:results-alignment}): mean
+        degree of the selected set predicts paired F1 effect across
+        $n{=}300$ tuples (Pearson $r{=}0.24$, $p{<}10^{-4}$) and
+        within $11/12$ method$\times$backbone cells, framing the
+        observed selector ordering as an objective-mismatch artefact
+        and motivating attack-aware selectors as future work.
   \item \textbf{Collateral diagnostics.} We separate architectural F1
         shift from attack-specific signal via $\Delta F_{\text{total}} =
         \Delta F_{\text{arch}}+\Delta F_{\text{attack}}$, and complement
         it with retrain gap, prediction shift, hop-distance decay, and
         update-detection AUC.
+  \item \textbf{Defense narrative.} \emph{Shard Protection}---the
+        architectural immunity of the partition pair to every selector
+        and every budget tested---refines when partition-based GU
+        functions as a defense, and the GraphRevoker$\times$GAT
+        TracIn breakthrough delineates its boundary.
 \end{itemize}
 
 \paragraph{Why this matters now.}

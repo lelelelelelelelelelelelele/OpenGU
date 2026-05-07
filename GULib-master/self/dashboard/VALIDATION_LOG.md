@@ -729,3 +729,63 @@ cache-write 闸门补上后，原本"eval_collateral cache hit + 重跑 run_exp 
 
 ---
 
+### V-2026-05-07-02: Structural-alignment correlation + k=5 vs r=5% architectural decomposition
+
+**Date**: 2026-05-07
+**Source**: Independent reproduction from `results/_phase_b_aggregate.csv` + `results/baseline/k5_random/*/baseline_averaged_k5.json`; integrated into paper as Table~\ref{tab:benchmark} (master scorecard) and §5.2 alignment subsection.
+
+**Two findings, both stand on independent data paths.**
+
+**(A) Selection-degree predicts paired F1 effect.**
+For each (method, strategy, backbone, seed) tuple ($n{=}300$ non-random) we read `selected_nodes` from `attack.json` and compute $\bar{d}$, the mean Cora-graph degree of the selected set; pair with same-seed `f1_drop` minus same-seed random `f1_drop`.
+
+| Statistic | Value |
+|---|---|
+| Pearson $r$ | $0.239$ ($p=2.8\times 10^{-5}$) |
+| Spearman $\rho$ | $0.341$ ($p=1.4\times 10^{-9}$) |
+| Strategy mean $\bar{d}$ → paired effect | Degree 18.69 / +2.04% > PageRank 18.49 / +1.54% > IM 13.09 / +0.88% > Hybrid 6.47 / +0.42% > **TracIn 3.94 / +0.02% ≈ Random 3.88** (graph mean 3.90) |
+| Cell-level positive correlations | **11/12** (cora $\times$ {GCN, GAT}, 6 methods) |
+| Cells with $r>0.9$, $p<0.05$ | GIF/GCN ($r{=}0.97$), GNNDelete/GCN ($0.99$), MEGU/GCN ($0.94$), IDEA/GAT ($0.97$) |
+| Lone negative-correlation cell | GraphRevoker$\times$GAT ($r=-0.78$) — coincides with the only TracIn-significant paired effect ($+3.58\%$, $p{=}0.018$); the alignment hypothesis predicts when sophisticated selectors should win |
+
+This **fully reproduces the numbers** committed on the unmerged `paper/alignment-experiment` branch (commit `565aaf6`). The pivot session computed these inline; we re-ran independently and matched at six significant figures.
+
+**(B) k=5 vs r=5% as two baselines for $\Delta F_{\mathrm{arch}}$.**
+
+Two distinct architectural baselines, complementary not redundant:
+
+| Baseline | Formula | Captures |
+|---|---|---|
+| $\Delta F_{\mathrm{arch}}^{(k=5)}$ | $F_1^{\text{before}} - F_1^{\text{k=5 random}}$ | Method's intrinsic shift at near-zero deletion volume; isolates architecture from budget |
+| $\Delta F_{\mathrm{arch}}^{(r=5\%)}$ | $F_1^{\text{before}} - F_1^{\text{r=5\% random}}$ (current paper baseline) | What random deletion at the attack budget produces; volume + architecture mixed |
+
+The difference $\Delta F_{\mathrm{arch}}^{(r=5\%)} - \Delta F_{\mathrm{arch}}^{(k=5)}$ is the **volume contribution**. Three family patterns become legible:
+
+| Family / cell | $\Delta F_{\mathrm{arch}}^{(k=5)}$ | $\Delta F_{\mathrm{arch}}^{(r=5\%)}$ | Volume effect | Pattern |
+|---|---|---|---|---|
+| GIF/GCN | $-1.4\%$ | $+2.3\%$ | $+3.7\%$ | small intrinsic, mild volume |
+| GIF/GAT | $+1.5\%$ | $+5.1\%$ | $+3.6\%$ | same |
+| GNNDelete/GCN | $-2.2\%$ | $+10.4\%$ | $+12.6\%$ | **almost all volume** |
+| GNNDelete/GAT | $+1.4\%$ | $+13.0\%$ | $+11.6\%$ | same |
+| GraphEraser/GCN | $-9.6\%$ | $-5.8\%$ | $+3.8\%$ | **Shard Protection at $k=5$ already**, volume slightly attenuates |
+| GraphEraser/GAT | $-11.9\%$ | $-9.0\%$ | $+2.8\%$ | same |
+| IDEA/GAT | $+2.2\%$ | $+4.8\%$ | $+2.6\%$ | mild |
+| MEGU/GAT | $-0.7\%$ | $+2.1\%$ | $+2.8\%$ | mild |
+
+**Interpretation**:
+- *Learning-based*: GNNDelete intrinsic shift $\approx 0$, $\Delta F_{\mathrm{arch}}^{(r=5\%)}$ is essentially pure volume effect — Learning-based collapse is **budget-driven, not architectural**.
+- *Partition-based*: GraphEraser already shows $-10\%$ improvement at $k=5$ — Shard Protection is **architectural, not a "deleting more happens to hit lucky shards" artefact**. (k=5 actually shows a *larger* improvement than r=5%, suggesting partition aggregation benefits saturate at small deletion volumes.)
+- *IF/Mild Learning* (GIF, IDEA, MEGU): both baselines small — neither family has a strong architectural signature; their attack vulnerability sits in $\Delta F^{\mathrm{attack}}$ paired effect, not in $\Delta F_{\mathrm{arch}}$.
+
+**Data gaps (k=5 partial coverage)**:
+- GraphRevoker entirely missing (k=5 batch ran before 2026-05-05 dispatcher fix; GraphRevoker was aliased to GraphEraser at that time).
+- IDEA/cora/GCN, MEGU/cora/GCN missing (original k=5 batch only ran them on GAT).
+- → 5 of 12 cells need fill-in. Generator: `experiments/baseline_k5/fill_missing_cora.py` (idempotent; re-uses existing `generate_baseline.py`; ~15 min on 4090). After fill, master scorecard's "Noise (k=5)" column gains 5 more values.
+
+**Decomposition framing correction**:
+The decomposition is **always two terms** (`drop_strat = ΔF_arch + ΔF^attack`); the user-facing question is which baseline defines $\Delta F_{\mathrm{arch}}$. The earlier framing of "three terms ($\Delta F_{\mathrm{noise}} + \Delta F_{\mathrm{volume}} + \Delta F_{\mathrm{attack}}$)" was a misdescription — paired-$t$ uses budget-matched random regardless, and k=5 is reported alongside as an independent architectural anchor, not a third decomposition term.
+
+**Cross-ref**: paper Table~\ref{tab:benchmark}, §\ref{sec:results-alignment}, FIG-5_Alignment.pdf; `experiments/baseline_k5/fill_missing_cora.py`.
+
+---
+

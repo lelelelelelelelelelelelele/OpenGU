@@ -63,3 +63,7 @@ GEMINI.md
 *.bbl
 *.blg
 *.out
+
+# k=5 noise floor — paper just consumes the *_averaged_k5.json,
+# tracking the per-seed JSONs is repo bloat. Existing tracked entries stay.
+results/baseline/

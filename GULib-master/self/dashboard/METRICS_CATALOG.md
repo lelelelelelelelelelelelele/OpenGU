@@ -1,6 +1,6 @@
 # Metrics Catalog
 
-> Last updated: 2026-05-07
+> Last updated: 2026-05-07 (rev: ΔF_arch dual-baseline section added)
 > Source of definitions: `self/plan_flow_v2_delta.md` §3
 > 实测状态字段每次重跑后更新
 > Field semantics: read `self/dashboard/METRIC_FIELD_SEMANTICS.md` before using any `*_before` value.
@@ -80,16 +80,52 @@
 
 ---
 
-## "两个 Rel 指标"的关键区分
+## 三种 baseline / 两条独立分解（v2.1，2026-05-07 起 paper 实采）
 
-> 这是历史上最常被混淆的一点，记入此处避免再次踩坑
+> 历史上最常被混淆的一点。Phase B 起 paper 同时报两条**互不重叠**的分解，分别回答不同问题。
 
-| 指标 | 公式 | 出处 | 含义 |
-|------|------|------|------|
-| **`Rel_F1_Drop_Mean`**（CSV 主列）| `baseline_f1_after(k=5 random) − attack_f1_after` | `experiments/baseline_k5/eval_relative.py:447` | "比只删 5 个随机节点的 baseline 多掉多少 F1" — 包含 k 增大本身的代价 |
-| **FIG-4b effect**（heatmap 数字）| `mean_seeds(strategy_drop − random_drop)`（同一 k 配对）| `scripts/evaluation/generate_figures.py:185` | "在同样 k 下，比 random 多杀多少" — 减去 k 增大的混淆 |
+### Baseline 选择表
 
-两者对同一 cell 数值差异可达 9-10 percentage points。**论文 main result 用 FIG-4b effect**，因为它回答的是"informed selector 比 random 强多少"这个 referee 真正会问的问题。
+| Baseline | 公式（drop = $F_1^{\text{before}}{-}F_1^{\text{after}}$） | 出处 / 字段 | 含义 |
+|---|---|---|---|
+| **k=5 noise floor** | $F_1^{\text{before}} - F_1^{\text{k=5 random}}$ | `results/baseline/k5_random/{Method}/{ds}/{bk}/baseline_averaged_k5.json::f1_after` | 删 5 个节点（≈ 0.18% on Cora）下方法的 intrinsic 架构成本；几乎无 volume 效应 |
+| **r=budget random** | $F_1^{\text{before}} - F_1^{\text{r·N random}}$ | `_phase_b_aggregate.csv::f1_drop`（strategy='random' 行）| 攻击 budget 下随机基线；包含 architecture + volume |
+| **paired vs random** | $\text{drop}_{\text{strat}} - \text{drop}_{\text{r=budget random}}$ | `(strategy 行) − (random 行)` 同 seed 配对，inline pivot | "informed selector 比 random 多杀多少" — 减去 k 增大的混淆，paired-$t$ 主用 |
+
+### 两条互不重叠的分解（two complementary 2-term decompositions）
+
+```
+分解 A（攻击是否超出 random）：
+    drop_strat = drop_random_budget + ΔF^attack_paired
+                 ────────────────────  ────────────────
+                 architectural@budget   attack-vs-random@budget   ← paired-t 用这个
+```
+
+```
+分解 B（架构 vs volume）：
+    drop_random_budget = drop_at_k=5 + ΔF_volume
+                         ─────────────  ────────────
+                         intrinsic       budget contribution      ← Shard Protection / collapse-mode 故事用这个
+```
+
+→ **总不是"三项分解"**。每条独立的 2-term decomposition 都成立；master scorecard `Table~\ref{tab:benchmark}` 同时用上 k=5（Noise 列）和 r=budget（ΔF_arch 列），分别支撑分解 B 的两端。
+
+### 三 family 在分解 B 下的特征模式（实测 Cora，r=0.05）
+
+| Family | $k=5$ noise | $r=5\%$ random | 模式 |
+|---|---|---|---|
+| Learning（GNNDelete）| ${\sim}0$ | $+10\%{-}13\%$ | **collapse 全部来自 volume**，架构本身没成本 |
+| Partition（GraphEraser）| $-10\%{-}{-}12\%$ | $-6\%{-}{-}9\%$ | **Shard Protection 在 k=5 就启动**，volume 反而稍微攻坚 |
+| IF / Mild Learning（GIF/IDEA/MEGU）| ${\sim}0$ | $+2\%{-}5\%$ | 架构和 volume 都小，attack 信号在 paired ΔF^attack 列 |
+
+### v2.1 之前的"两个 Rel 指标"（保留 audit trail）
+
+下面这两个早期定义已经被上面的三 baseline 设计取代。代码字段保留向后兼容：
+
+| 历史指标 | 公式 | 出处 | 当前状态 |
+|---|---|---|---|
+| `Rel_F1_Drop_Mean`（CSV 主列）| `baseline_f1_after(k=5 random) − attack_f1_after` | `experiments/baseline_k5/eval_relative.py:447` | **Phase B paper 不再用**——它把 architecture+volume+attack 全混在一起 |
+| FIG-4b effect | `mean_seeds(strategy_drop − random_drop)` | `scripts/evaluation/generate_figures.py:185` | 等价于"paired vs random"（上表第三行）；**Phase B 仍用**，只是表头改 paired ΔF^attack |
 
 ---
 

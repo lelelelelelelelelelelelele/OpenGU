@@ -1,10 +1,88 @@
 \section{Results}
 \label{sec:results}
 
-We report five claim-conditioned slices: the 2D \emph{Vulnerability
-Fingerprint}; its scale check on ogbn-arxiv; the architectural
-\emph{Shard Protection Effect}; collateral damage via significance,
-retrain gap, and hop-distance decay; and an update-detection audit.
+We report six claim-conditioned slices: the headline
+\emph{Attack-Defense Benchmark} (Table~\ref{tab:benchmark}), the 2D
+\emph{Vulnerability Fingerprint}, its scale check on ogbn-arxiv, the
+\emph{Structural Alignment} mechanism (\S\ref{sec:results-alignment}),
+the architectural \emph{Shard Protection Effect}, collateral damage
+via significance, retrain gap, and hop-distance decay, and an
+update-detection audit.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{\textbf{Attack-Defense Scorecard} on Cora, $r{=}0.05$, $N{=}5$
+seeds, both GCN and GAT backbones. Per (method, backbone) row:
+$\Delta F_{\mathrm{arch}}$ is the F1 drop on random deletion
+(\emph{negative $=$ Shard Protection}); \emph{Best attack} reports the
+strongest paired $\Delta F^{\mathrm{attack}}$ (\% pts vs same-seed
+random) across the five attack selectors --- Degree (DG), PageRank
+(PR), IM, Hybrid (HY), TracIn (TC) --- with one-sided paired $t$-test
+significance ($^{*}p{<}.05$, $^{**}p{<}.01$, $^{***}p{<}.001$);
+\emph{Sig/5} counts how many of the five attack columns clear
+$p{<}.05$; \emph{Gap} is the mean retrain gap
+($\mathrm{perf}_{\mathrm{unlearn}}-\mathrm{perf}_{\mathrm{retrain}}$,
+\%) under attack strategies; \emph{Hop$_1$} is the mean 1-hop flip
+rate (\%) under attack strategies; \emph{AUC} is the posterior-shift
+update-detection AUC averaged across all six selectors.
+$^{\dagger}$~GraphRevoker$\times$GAT is the single backbone-conditional
+cell where TracIn yields a significant paired effect
+($+3.58\%$, $p{=}0.018$; see \S\ref{sec:results-alignment}).
+$^{\ddagger}$~For GIF and IDEA, the Gap and Hop$_1$ columns are
+computed against the IF-family pre-fix unlearn state and are
+lower-bound estimates; F1 attack and AUC columns are unaffected
+(see Limitations).}
+\label{tab:benchmark}
+\begin{tabular}{@{}llcrlcrrcl@{}}
+\toprule
+Family & Method & Bkb & $\Delta F_{\mathrm{arch}}$ & Best attack & Sig & Gap & Hop$_{1}$ & AUC & Verdict \\
+       &        &     & (\%)                       & (\% pts, strat) & /5 & (\%) & (\%) & & \\
+\midrule
+\multirow{4}{*}{Partition}
+ & \multirow{2}{*}{GraphEraser}  & GCN & $-5.8$  & $+0.4$\,(PR)                       & 0 & $+1.8$  & $29.0$ & $0.72$ & Immune \\
+ &                               & GAT & $-9.0$  & $+0.7$\,(TC)                       & 0 & $+1.8$  & $32.7$ & $0.55$ & Immune \\
+ & \multirow{2}{*}{GraphRevoker} & GCN & $-14.3$ & $+1.5$\,(PR)                       & 0 & $-0.4$  & $29.9$ & $0.81$ & Immune \\
+ &                               & GAT & $-14.6$ & $+3.6^{*}$\,(HY)$^{\dagger}$       & 2 & $-1.2$  & $37.9$ & $0.79$ & Conditional$^{\dagger}$ \\
+\midrule
+\multirow{4}{*}{IF-based}
+ & \multirow{2}{*}{GIF$^{\ddagger}$}  & GCN & $+2.3$ & $+2.1^{***}$\,(DG)             & 3 & $-0.4$  & $2.9$  & $0.65$ & Structural \\
+ &                                    & GAT & $+5.1$ & $+3.0^{*}$\,(DG)               & 4 & $-0.6$  & $4.7$  & $0.40$ & Structural \\
+ & \multirow{2}{*}{IDEA$^{\ddagger}$} & GCN & $+4.0$ & $+1.3^{**}$\,(DG)              & 1 & $-0.4$  & $2.9$  & $0.51$ & Mild \\
+ &                                    & GAT & $+4.8$ & $+3.3^{***}$\,(DG)             & 2 & $-0.5$  & $4.8$  & $0.44$ & Structural \\
+\midrule
+\multirow{4}{*}{Learning}
+ & \multirow{2}{*}{GNNDelete}    & GCN & $+10.4$ & $+6.0$\,(DG)                       & 0 & $+11.0$ & $35.5$ & $0.67$ & Unstable \\
+ &                               & GAT & $+13.0$ & $+1.6$\,(DG)                       & 0 & $+11.8$ & $35.1$ & $0.62$ & Unstable \\
+ & \multirow{2}{*}{MEGU}         & GCN & $+1.7$  & $+1.7^{***}$\,(DG)                 & 4 & $-0.0$  & $2.7$  & $0.50$ & Uniform \\
+ &                               & GAT & $+2.1$  & $+1.3^{**}$\,(DG)                  & 2 & $+0.2$  & $7.7$  & $0.57$ & Uniform \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading guide.}
+Table~\ref{tab:benchmark} consolidates the audit's main result across
+both backbones. Five patterns are visible at a glance: \emph{(i)} the
+partition family is attack-immune --- no strategy clears $p{<}.05$
+on five of six (method, backbone) cells, with the lone exception
+GraphRevoker$\times$GAT (TracIn / Hybrid breakthrough). \emph{(ii)}
+\emph{Best attack} is \textsc{Degree} in 8 of 12 cells and never
+\textsc{TracIn} on the non-partition methods, inverting the
+conventional access-tier hierarchy. \emph{(iii)} The Verdict column
+splits cleanly along family lines: \emph{Immune} for partition
+(except one Conditional cell), \emph{Structural} or \emph{Mild} for
+IF-based, and an asymmetric pair within Learning---GNNDelete posts
+the largest mean magnitudes ($+6.0\%$/$+11.0\%$ retrain gap) but
+$\sigma{=}7$--$10\%$ prevents conventional significance, while MEGU
+clears $p{<}.001$ on four of five attack columns yet stays
+small-scale. \emph{(iv)} GNNDelete is the unique
+approximation-error outlier, with retrain gap an order of magnitude
+larger than every other method (${\approx}11\%$ vs.\ ${<}2\%$).
+\emph{(v)} Update AUC and F1 attack effect decouple: MEGU and IDEA
+sit near AUC$\,{=}\,0.50$ regardless of attack scale, while
+GraphRevoker reaches AUC${\,=\,}0.81$ despite immune utility. The
+remaining subsections diagnose each pattern separately.
 
 \subsection{Vulnerability Fingerprint}
 \label{sec:results-fingerprint}
@@ -44,16 +122,87 @@ is smaller and \emph{degree-aligned} rather than TracIn-aligned
 ${-}0.37\pm 0.60\%$, n.s.), consistent with structural-redundancy
 amplification rather than a pure Newton-step signal.
 \textbf{GraphEraser} and \textbf{GraphRevoker} remain near the origin
-with attack coordinates within $\pm 1.5\%$, while \textbf{MEGU} and
-\textbf{IDEA} likewise stay near the origin ($<1.5\%$ on the IM and
-TracIn axes) despite belonging to ostensibly vulnerable parent
-families. This reveals a distinct \textbf{Family Pattern}: Learning-based 
-methods are susceptible to severe, systemic global collapse (albeit with 
-strong internal heterogeneity); IF-based methods (like GIF) are most 
-vulnerable when attacked directly on their native gradient-signal axis; 
-and Partition-based methods rely on physical sub-graph isolation for 
-natural immunity against global interference (yielding Shard Protection). 
-A 1D projection is provided in Appendix~\ref{app:results-1d}.
+with attack coordinates within $\pm 1.5\%$, with one
+backbone-conditional anomaly: GraphRevoker$\times$GAT$\times$TracIn
+yields a significant paired effect ($+3.58\%$, $p{=}0.018$), the only
+cell where TracIn measurably exceeds the random baseline.
+\textbf{MEGU} and \textbf{IDEA} likewise stay near the origin
+($<1.5\%$ on the IM and TracIn axes) despite belonging to ostensibly
+vulnerable parent families. This reveals a distinct \textbf{Family
+Pattern}: Learning-based methods are susceptible to severe, systemic
+global collapse (albeit with strong internal heterogeneity); IF-based
+methods (like GIF) are most vulnerable when attacked directly on their
+native gradient-signal axis; and Partition-based methods rely on
+physical sub-graph isolation for natural immunity against global
+interference (yielding Shard Protection). A 1D projection is provided
+in Appendix~\ref{app:results-1d}.
+
+\subsection{Structural Alignment Predicts Attack Success}
+\label{sec:results-alignment}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.96\linewidth]{figures/FIG-5_Alignment.pdf}
+  \caption{\textbf{Structural alignment of a selector predicts its
+  attack effect.} (a) Each translucent dot is one
+  (method, strategy, backbone, seed) tuple ($n{=}300$, excluding
+  random); opaque markers with error bars show strategy means.
+  Selectors order along $\bar{d}$, the mean degree of selected nodes;
+  strategies that pick higher-degree nodes deliver larger paired
+  effects. (b) Strategy-level mean paired effects, annotated with
+  $\bar{d}$. \textsc{TracIn} picks nodes of degree comparable to
+  \textsc{Random} ($\bar{d}\!\approx\!3.9$, vs.\ graph mean $3.9$) and
+  yields near-zero attack effect.}
+  \label{fig:alignment}
+\end{figure}
+
+The fingerprint pattern in \S\ref{sec:results-fingerprint} raises an
+immediate question: \emph{why} do gradient- and propagation-based
+selectors fail relative to the simplest structural baseline?
+Figure~\ref{fig:alignment} provides empirical traction. For each
+(method, strategy, backbone, seed) tuple we record $\bar{d}$, the mean
+degree of the selected nodes, and its same-seed paired F1 effect
+against random.
+
+\paragraph{Selection-degree predicts effect.}
+Across $n{=}300$ non-random tuples, $\bar{d}$ correlates with the
+paired F1 effect at Pearson $r{=}0.24$ (Spearman $\rho{=}0.34$,
+$p{<}10^{-4}$). Strategy-level means are monotonic in $\bar{d}$:
+\textsc{Degree} ($\bar{d}{=}18.7$, paired $+2.04\%$) $>$
+\textsc{PageRank} ($18.5$, $+1.54\%$) $>$
+\textsc{IM} ($13.1$, $+0.88\%$) $>$
+\textsc{Hybrid} ($6.5$, $+0.42\%$) $>$
+\textsc{TracIn} ($3.9$, $+0.02\%$). \textsc{TracIn}'s selected-node
+degree is statistically indistinguishable from \textsc{Random}'s
+($\bar{d}{=}3.94$ vs.\ $3.88$; graph mean is $3.90$): the gradient
+signal produces selections of average degree, not high-leverage
+structural targets.
+
+\paragraph{Cell-level confirmation and the one exception.}
+Within each (method, backbone) cell, the strategy-level correlation
+between $\bar{d}$ and paired effect is positive in \textbf{11 of 12
+cells}, with $r{>}0.9$ and $p{<}0.05$ on GIF$\times$GCN ($r{=}0.97$),
+GNNDelete$\times$GCN ($0.99$), MEGU$\times$GCN ($0.94$), and
+IDEA$\times$GAT ($0.97$). The lone negative-correlation cell---%
+GraphRevoker$\times$GAT ($r{=}-0.78$)---is precisely the one cell
+where TracIn yields a significant paired effect ($+3.58\%$,
+$p{=}0.018$). The alignment hypothesis is internally consistent: it
+predicts that sophisticated selectors win exactly when structural
+alignment ceases to predict attack success.
+
+\paragraph{Mechanism: objective misalignment.}
+We frame this empirical regularity as an \emph{objective-misalignment
+hypothesis}. TracIn optimizes per-sample influence on test loss;
+IM-CELF optimizes propagation spread under independent-cascade
+dynamics. Neither aligns with the true attack target---the
+conditioning of the unlearning approximation operator $\mathcal{U}$
+(Hessian conditioning for IF-based methods, mask-network optimization
+stability for learning-based ones). The selectors that work do so by
+accident: high-degree training nodes happen to maximally disrupt
+$\mathcal{U}$'s implicit assumptions. We treat the
+GraphRevoker$\times$GAT co-occurrence as a mechanism wedge rather
+than a closed proof, and defer attack-aware selectors that directly
+target $\mathcal{U}$'s approximation error to future work.
 
 \subsection{Scaling Validation on ogbn-arxiv}
 \label{sec:results-scaling}

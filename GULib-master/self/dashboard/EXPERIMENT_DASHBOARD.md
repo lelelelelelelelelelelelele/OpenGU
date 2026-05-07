@@ -1,6 +1,6 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-07 (§3.3 衍生事实 + IM cross-cell cache 行为 + arxiv k 选择 tradeoff)
+> Last updated: 2026-05-07 (§3.3 衍生事实 + IM cross-cell cache 行为 + arxiv k 选择 tradeoff + master scorecard / k=5 dual-baseline)
 > See rules: `CLAUDE.md`
 > NeurIPS deadline: today (~2026-05-07)
 
@@ -33,12 +33,15 @@
         # 注：tier split 不省时间——ScoreCache IF key 含 seed (`tracin_strategy.py:136-149`)，每 tier 独立 ~7-8h
     [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，180 cells / ~90 min；旧 5 method 完成时只补 GraphRevoker）
     [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，180 cells / ~110 min）
-[ ] Phase C  分析 + paper writing
-    [ ] C.1  重画 FIG-4b（含 error bar + Jaccard 注释，新数据 Jaccard 应 = 1.0）
-    [ ] C.2  生成 hop-decay 衰减曲线图（按 family 分线，对照 GCN num_layers）
-    [ ] C.3  写 §method 含 B1/B2 选择讨论 + Shard Protection Effect 解读
-    [ ] C.4  写 §limitation 含 MEGU/IDEA mechanism-incomparable framing
-    [ ] C.5  abstract refresh：跑完后用真实数字替换 abstract.md 的 interim 数（见 report/paper/review/abstract_review_2026-05-04.md）
+[x] Phase C  分析 + paper writing（2026-05-07 完成主体）
+    [x] C.1  paper 5 figure 重画完毕（FIG-1/2/3/4a/4b 全部从 _phase_b_aggregate.csv 重生成）
+    [x] C.2  hop-decay 数字进 master scorecard Hop₁ 列；曲线图作为 supplementary
+    [x] C.3  §5 含 Shard Protection 解读 + §5.2 alignment subsection
+    [x] C.4  abstract / §5 / appendix 共 57 个 \interim{} 全部填实数（V-2026-05-07-02）
+    [x] C.5  §5 master scorecard `Table~\ref{tab:benchmark}`：12 行（6 method × 2 backbone）× 6 metric (ΔF_arch, Best attack, Sig/5, Gap, Hop₁, AUC) + Verdict
+    [ ] C.5b 加 "Noise (k=5)" 列到 master scorecard——需先补 4 个缺数据 cell（GraphRevoker × {GCN,GAT}, IDEA/MEGU × GCN）
+        Generator: `experiments/baseline_k5/fill_missing_cora.py`（idempotent，~15 min on 4090）
+        缺因：k=5 batch 在 2026-05-05 GraphRevoker dispatcher fix 之前生成；IDEA/MEGU 当时只跑 GAT
     [ ] C.6  *(低优先级 / 提交后)* surrogate transferability sanity — cora/GCN/GNNDelete/TracIn，shadow=独立训的 GCN（5 seed），单 cell ~2h 4090。验证 §3.1 access spectrum 的 L2-direct → L2-surrogate 上界论述；若 transferability ≥60% 则把 §6.3 L4 升级为"surrogate 攻击力 ≈ direct × 0.X"
 ```
 
