@@ -156,21 +156,13 @@ def _prewarm_seed(cfg, seed, strategies, method, force=False):
 
     available = manager.list_strategies()
     reusable = AttackManager.REUSABLE_SELECTION_STRATEGIES
-    trained_model_strategies = [
+    trained_model_strategies = {
         name for name in strategies
         if name in available and getattr(manager._strategies[name], "requires_trained_model", False)
-    ]
-    if trained_model_strategies:
-        method = str(args.get("unlearning_methods", ""))
-        if method in AttackManager.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE:
-            raise SystemExit(
-                "[FATAL] prewarm_selection_cache cannot compute trained-model "
-                f"selectors from shard/SISA method {method}. Put a canonical "
-                "full-model method (GIF or GNNDelete) first in the yaml, or "
-                "use experiments/run.py top-to-bottom."
-            )
-        manager.pipeline._ensure_base_model_trained()
-        model = manager.pipeline.model
+    }
+    method_name = str(args.get("unlearning_methods", ""))
+    is_shard_method = method_name in AttackManager.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE
+    base_model_ensured = False  # lazy: only train when a cache MISS actually requires it
 
     summary = []
     for name in strategies:
@@ -185,9 +177,32 @@ def _prewarm_seed(cfg, seed, strategies, method, force=False):
         selection_config = manager._build_selection_config(name, k)
         cached, key, source = manager.selection_cache.get(selection_config)
         if cached is not None and not force:
+            # SelectionCache key for tracin is method-agnostic, so a shard
+            # method (GraphEraser) can legitimately hit a cache written by
+            # an earlier GIF/GNNDelete prewarm pass — accept it.
             print(f"[hit ] {name} key={key}  source={source}")
             summary.append((name, "hit", 0.0, key))
             continue
+
+        # Cache MISS — we'd actually need to compute. Now (and only now) refuse
+        # if this is a shard/SISA method asked to compute a trained-model
+        # selector: it has no canonical full-graph model to differentiate on.
+        if name in trained_model_strategies and is_shard_method:
+            raise SystemExit(
+                f"[FATAL] prewarm_selection_cache: SelectionCache MISS for "
+                f"strategy={name} method={method_name} key={key}, and "
+                f"{method_name} is a shard/SISA method that cannot compute "
+                "trained-model selectors. Put a canonical full-model method "
+                "(GIF or GNNDelete) first in the yaml so it writes the cache, "
+                "then this shard method will hit it. Or use experiments/run.py "
+                "top-to-bottom."
+            )
+
+        # Lazy: train base model only on the first real compute.
+        if name in trained_model_strategies and not base_model_ensured:
+            manager.pipeline._ensure_base_model_trained()
+            model = manager.pipeline.model
+            base_model_ensured = True
 
         strat = manager._strategies[name]
         if torch.cuda.is_available():
