@@ -7,11 +7,11 @@ base_model: GCN
 ratio: 0.01
 
 methods:
+  - GIF
+  - GNNDelete
   - GraphEraser
   - GraphRevoker      # gate-pending
-  - GIF
   - IDEA
-  - GNNDelete
   - MEGU
 
 strategies:
