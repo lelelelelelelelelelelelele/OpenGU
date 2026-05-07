@@ -367,16 +367,18 @@ class IMStrategy(BaseStrategy):
         mc = self.mc_rounds
         batch = self.im_batch_size
 
-        # Step 1: Compute initial marginal gains for all candidates.
-        # Inlined (rather than via compute_initial_marginal_gains) to avoid
-        # cache-induced divergence — the numba step 2+ has its own deterministic
-        # seeding so this is purely a "don't disturb golden fixtures" call.
+        # Step 1: Compute initial marginal gains for all candidates via the
+        # shared `im` ScoreCache namespace. Per-node base_seed is fully
+        # determined by (random_seed, node), so this is bit-identical to the
+        # former inline loop — but now prewarming IM also warms Hybrid (and
+        # vice versa), since both consume the same single-node spread vector.
+        # (The Python fallback below stays inline because it depends on
+        # random.random() global state flowing into step 2+.)
+        init_scores = self.compute_initial_marginal_gains(
+            edge_index, num_nodes, candidate_set
+        ).tolist()
         heap = []
-        for node in candidate_set:
-            seed_arr = np.array([node], dtype=np.int32)
-            base_seed = self.random_seed * 10000 + node % 10000
-            spread = self._spread_fn(indptr, indices, seed_arr, prob,
-                                     num_nodes, mc, base_seed)
+        for node, spread in zip(candidate_set, init_scores):
             heapq.heappush(heap, (-spread, 0, node))
 
         selected = []
