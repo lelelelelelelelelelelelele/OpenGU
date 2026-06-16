@@ -87,6 +87,8 @@
 | `dashboard/` | active | 实验状态、指标、bug、findings 实时面板 | 当前 NeurIPS push 主操作面板，详见 `dashboard/CLAUDE.md` |
 | `plan_flow_v2_delta.md` | reference | v2 增量补丁 | 用于理解归因、collateral、统计检验升级 |
 | `generalization_experiment_checklist.md` | reference | 2026-02 实验覆盖与完成度仪表盘 | 绑定阶段证据，不是当前主计划 |
+| `idea_cross_arch_consensus.md` | idea / future-work | 跨架构共识作为可信信号验证原则 | 2026-06-15 从 Obsidian 迁入；含项目落点评估，与 §5.2 alignment + reframe 同向 |
+| `research_path_degree_severity_decomposition.md` | active research path | degree 最严重→重要性×脆弱性分解→GU 安全指数 | 2026-06-15 与学长讨论；gap 列已部分验证；§5.2 之后的二级结论候选 |
 | `experiment_params.md` | reference | 旧实验参数备忘 | 用于复现实验设定 |
 | `analysis_phase_a.md` | historical | 早期单阶段分析 memo | 可追溯早期 mechanism intuition |
 | `宏观plan.md` | historical | 早期长期规划 | 反映项目起始设计，不代表当前 thesis 议程 |

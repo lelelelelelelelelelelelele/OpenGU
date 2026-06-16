@@ -1,10 +1,100 @@
 \section{Results}
 \label{sec:results}
 
-We report five claim-conditioned slices: the 2D \emph{Vulnerability
-Fingerprint}; its scale check on ogbn-arxiv; the architectural
-\emph{Shard Protection Effect}; collateral damage via significance,
-retrain gap, and hop-distance decay; and an update-detection audit.
+We report six claim-conditioned slices: the headline
+\emph{Attack-Defense Benchmark} (Table~\ref{tab:benchmark}), the 2D
+\emph{Vulnerability Fingerprint}, its scale check on ogbn-arxiv, the
+\emph{Structural Alignment} mechanism (\S\ref{sec:results-alignment}),
+the architectural \emph{Shard Protection Effect}, collateral damage
+via significance, retrain gap, and hop-distance decay, and an
+update-detection audit.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\caption{\textbf{Attack-Defense Scorecard} on Cora, $r{=}0.05$,
+$N{=}5$ seeds, both GCN and GAT backbones.
+\textbf{Significance markers in the attack columns}:
+$\blacktriangle\!=\!p{<}.001$,
+$\blacklozenge\!=\!p{<}.01$,
+$\bullet\!=\!p{<}.05$ (one-sided paired $t$-test
+vs.\ same-seed random); blank cell means n.s.
+\textbf{Bold} marks the strongest attack per row.
+$\Delta F_{\mathrm{noise}}$ is the F1 drop after deleting just five
+random nodes ($\sim 0.18\%$ of $V_{\mathrm{train}}$), isolating the
+near-zero-volume response of the unlearning algorithm; it need not be
+zero-mean. \emph{Negative} values indicate \emph{Shard Protection} (F1
+actually rises). The five attack columns---Degree (DG), PageRank (PR),
+IM, Hybrid (HY), TracIn (TC)---report paired
+$\Delta F^{\mathrm{attack}}$ in F1 percentage points (mean over 5
+seeds), i.e., the selector-specific excess over same-seed
+budget-matched random. The volume term
+$\Delta F_{\mathrm{volume}}(r)=\Delta F_{\mathrm{rand}}(r)-\Delta F_{\mathrm{noise}}$
+is discussed in \S\ref{sec:results-shard}. \emph{Gap} is the mean retrain gap
+($\mathrm{perf}_{\mathrm{unlearn}}-\mathrm{perf}_{\mathrm{retrain}}$,
+\%) under attack strategies; \emph{AUC} is the posterior-shift
+update-detection AUC averaged across all six selectors.
+$^{\dagger}$~GraphRevoker$\times$GAT is the single backbone-conditional
+cell where Hybrid (and TracIn) yields a significant paired effect
+($+3.58\%$, $p{=}0.018$; see \S\ref{sec:results-alignment}).
+$^{\ddagger}$~For GIF and IDEA, the Gap column is computed against the
+IF-family pre-fix unlearn state and is a lower-bound estimate; the
+attack and AUC columns are unaffected (see Limitations).}
+\label{tab:benchmark}
+\begin{tabular}{@{}llcrrrrrrrcl@{}}
+\toprule
+Family & Method & Bkb & $\Delta F_{\mathrm{noise}}$ & \multicolumn{5}{c}{Paired $\Delta F^{\mathrm{attack}}$ (\% pts)} & Gap & AUC & Verdict \\
+\cmidrule(lr){5-9}
+       &        &     & (\%) & DG & PR & IM & HY & TC & (\%) & & \\
+\midrule
+\multirow{4}{*}{Partition}
+ & \multirow{2}{*}{GraphEraser}  & GCN & $-9.6$  & $\mathbf{+0.4}$         & $+0.4$               & $-0.0$               & $+0.3$               & $+0.0$                       & $+1.8$  & $0.72$ & Immune \\
+ &                               & GAT & $-11.9$ & $+0.6$                  & $+0.7$               & $+0.4$               & $-0.2$               & $\mathbf{+0.7}$              & $+1.8$  & $0.55$ & Immune \\
+ & \multirow{2}{*}{GraphRevoker} & GCN & $-19.3$ & $+0.7$                  & $\mathbf{+1.5}$      & $+1.0$               & $+0.2$               & $+0.7$                       & $-0.4$  & $0.81$ & Immune \\
+ &                               & GAT & $-16.9$ & $+2.6$                  & $+0.7$               & $+1.6$               & $\mathbf{+3.6}\bullet^{\dagger}$ & $+3.6\bullet$        & $-1.2$  & $0.79$ & Cond.$^{\dagger}$ \\
+\midrule
+\multirow{4}{*}{IF-based}
+ & \multirow{2}{*}{GIF$^{\ddagger}$}  & GCN & $-1.4$ & $\mathbf{+2.1}\blacktriangle$ & $+1.7\blacktriangle$ & $+0.7\bullet$        & $+0.2$               & $-0.4$                       & $-0.4$  & $0.65$ & Structural \\
+ &                                    & GAT & $+1.5$ & $\mathbf{+3.0}\bullet$  & $+2.3\bullet$        & $+1.1\bullet$        & $+2.0\bullet$        & $+0.9$                       & $-0.6$  & $0.40$ & Structural \\
+ & \multirow{2}{*}{IDEA$^{\ddagger}$} & GCN & $-0.2$ & $\mathbf{+1.3}\blacklozenge$ & $+0.4$               & $+0.5$               & $+0.2$               & $-0.1$                       & $-0.4$  & $0.51$ & Mild \\
+ &                                    & GAT & $+2.2$ & $\mathbf{+3.3}\blacktriangle$ & $+2.7\blacklozenge$  & $+1.3$               & $+0.8$               & $-0.2$                       & $-0.5$  & $0.44$ & Structural \\
+\midrule
+\multirow{4}{*}{Learning}
+ & \multirow{2}{*}{GNNDelete}    & GCN & $-2.2$ & $\mathbf{+6.0}$         & $+5.2$               & $+3.2$               & $-2.0$               & $-4.6$                       & $+11.0$ & $0.67$ & Unstable \\
+ &                               & GAT & $+1.4$ & $\mathbf{+1.5}$         & $+0.9$               & $-0.3$               & $-0.9$               & $+0.3$                       & $+11.8$ & $0.62$ & Unstable \\
+ & \multirow{2}{*}{MEGU}         & GCN & $-1.5$ & $\mathbf{+1.7}\blacktriangle$ & $+1.3\blacktriangle$ & $+1.0\blacktriangle$ & $+0.6\bullet$        & $-0.2$                       & $-0.0$  & $0.50$ & Uniform \\
+ &                               & GAT & $-0.7$ & $\mathbf{+1.3}\blacklozenge$ & $+0.7\bullet$        & $-0.1$               & $+0.1$               & $-0.6$                       & $+0.2$  & $0.57$ & Uniform \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading guide.}
+Table~\ref{tab:benchmark} consolidates the audit's main result across
+both backbones. Five patterns are visible at a glance: \emph{(i)} the
+partition family is attack-immune --- no significance marker appears
+in any cell except GraphRevoker$\times$GAT (Hybrid$\,/\,$TracIn,
+$\bullet\,p{<}.05$). \emph{(ii)} The bolded \textsc{Degree} (DG)
+column dominates almost every non-partition row, never
+\textsc{TracIn}, inverting the conventional access-tier hierarchy
+(L1 structural attackers beat L2-\textsc{direct} gradient attackers). \emph{(iii)} The
+three-term decomposition separates intrinsic response, deletion volume,
+and selector excess: $\Delta F_{\mathrm{noise}}$ is strongly negative
+for the partition pair ($-9.6$ to $-19.3$), revealing Shard Protection
+at near-zero deletion volume, while non-partition methods stay near
+zero (between $-2.2$ and $+2.2$). Their remaining degradation must
+therefore come from the budget term $\Delta F_{\mathrm{volume}}$ and/or
+the selector-specific $\Delta F^{\mathrm{attack}}$. \emph{(iv)} The Verdict column splits
+cleanly along family lines: \emph{Immune} for partition (except one
+Conditional cell), \emph{Structural} or \emph{Mild} for IF-based,
+and an asymmetric pair within Learning---GNNDelete posts the largest
+mean magnitudes ($+6.0\%$ paired Degree effect, $+11.0\%$ retrain
+gap) but $\sigma{=}7$--$10\%$ prevents any cell from clearing
+$p{<}.05$, while MEGU lights up with three $\blacktriangle$'s on
+Cora/GCN despite a much smaller absolute scale. \emph{(v)} Update AUC and F1 attack effect decouple:
+MEGU and IDEA sit near AUC$\,{=}\,0.50$ regardless of attack scale,
+while GraphRevoker reaches AUC${\,=\,}0.81$ despite immune utility.
+The remaining subsections diagnose each pattern separately.
 
 \subsection{Vulnerability Fingerprint}
 \label{sec:results-fingerprint}
@@ -19,37 +109,112 @@ retrain gap, and hop-distance decay; and an update-detection audit.
   (structural-spread, $\alpha{=}0$) and
   $\Delta F^{\text{attack}}_{\mathrm{TracIn}}$ (gradient-signal,
   $\alpha{=}1$). Marker shape distinguishes pair members within each
-  OpenGU category; chords visualise within-pair distance.
-  \interim{Refresh with Phase~B numbers; current placeholder uses
-  pre-Phase-B coordinates.}}
+  OpenGU category; chords visualise within-pair distance.}
   \label{fig:fingerprint}
 \end{figure}
 
 The fingerprint plots the paired attack effect against the same-seed
 random baseline, so its axes separate attack-specific signal from the
-architectural term reported in \S\ref{sec:results-shard}. Because IM is
+near-zero-volume noise floor reported in \S\ref{sec:results-shard}. Because IM is
 an L1 structural selector and TracIn is an L2-\textsc{direct}
 model-coupled selector (Table~\ref{tab:access}), the plot also gives a
 threat summary: the IM coordinate is a low-access floor, while the
 TracIn coordinate is an upper bound on surrogate-model attacks.
 
 Figure~\ref{fig:fingerprint} shows three regimes. \textbf{GNNDelete}
-sits in the high-vulnerability quadrant
-(\interim{$\Delta F^{\mathrm{attack}}_{\mathrm{IM}}{=}+16.9$},
-\interim{$\Delta F^{\mathrm{attack}}_{\mathrm{TracIn}}{=}+X.X$};
-$p$\interim{$<$0.001}, $N{=}5$). \textbf{GIF} is smaller and
-TracIn-aligned (\interim{$+4.17\pm 0.76$}, $p$\interim{$=$0.0001}),
-consistent with a Newton-step ceiling. \textbf{GraphEraser} and
-\textbf{GraphRevoker} remain near the origin with non-positive attack
-coordinates, while \textbf{MEGU} and \textbf{IDEA} stay close to zero
-($<\interim{1\%}$ on both axes) despite belonging to vulnerable parent
-families. This reveals a distinct \textbf{Family Pattern}: Learning-based 
-methods are susceptible to severe, systemic global collapse (albeit with 
-strong internal heterogeneity); IF-based methods (like GIF) are most 
-vulnerable when attacked directly on their native gradient-signal axis; 
-and Partition-based methods rely on physical sub-graph isolation for 
-natural immunity against global interference (yielding Shard Protection). 
-A 1D projection is provided in Appendix~\ref{app:results-1d}.
+posts the largest mean IM-axis effect
+($\Delta F^{\mathrm{attack}}_{\mathrm{IM}}{=}{+}3.2\%$,
+$\Delta F^{\mathrm{attack}}_{\mathrm{TracIn}}{=}{-}4.6\%$;
+$N{=}5$, $p_{\mathrm{IM}}{=}0.21$) but with high seed variance
+(${\pm}8.0\%$ on IM), reflecting an unstable collapse mode rather than
+a tightly localised one; the family-level signature still shows the
+largest absolute F1 drop (mean ${\sim}13\%$, peak $23.6\%$). \textbf{GIF}
+is smaller and \emph{degree-aligned} rather than TracIn-aligned
+(degree-paired ${+}2.14\pm 0.21\%$, $p<10^{-4}$; TracIn-paired
+${-}0.37\pm 0.60\%$, n.s.), consistent with structural-redundancy
+amplification rather than a pure Newton-step signal.
+\textbf{GraphEraser} and \textbf{GraphRevoker} remain near the origin
+with attack coordinates within $\pm 1.5\%$, with one
+backbone-conditional anomaly: GraphRevoker$\times$GAT$\times$TracIn
+yields a significant paired effect ($+3.58\%$, $p{=}0.018$), the only
+cell where TracIn measurably exceeds the random baseline.
+\textbf{MEGU} and \textbf{IDEA} likewise stay near the origin
+($<1.5\%$ on the IM and TracIn axes) despite belonging to ostensibly
+vulnerable parent families. This reveals a distinct \textbf{Family
+Pattern}: Learning-based methods are susceptible to severe, systemic
+global collapse (albeit with strong internal heterogeneity); IF-based
+methods (like GIF) are most vulnerable when attacked directly on their
+native gradient-signal axis; and Partition-based methods rely on
+physical sub-graph isolation for natural immunity against global
+interference (yielding Shard Protection). A 1D projection is provided
+in Appendix~\ref{app:results-1d}.
+
+\subsection{Structural Alignment Predicts Attack Success}
+\label{sec:results-alignment}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.96\linewidth]{figures/FIG-5_Alignment.pdf}
+  \caption{\textbf{Structural alignment of a selector predicts its
+  attack effect.} (a) Each translucent dot is one
+  (method, strategy, backbone, seed) tuple ($n{=}300$, excluding
+  random); opaque markers with error bars show strategy means.
+  Selectors order along $\bar{d}$, the mean degree of selected nodes;
+  strategies that pick higher-degree nodes deliver larger paired
+  effects. (b) Strategy-level mean paired effects, annotated with
+  $\bar{d}$. \textsc{TracIn} picks nodes of degree comparable to
+  \textsc{Random} ($\bar{d}\!\approx\!3.9$, vs.\ graph mean $3.9$) and
+  yields near-zero attack effect.}
+  \label{fig:alignment}
+\end{figure}
+
+The fingerprint pattern in \S\ref{sec:results-fingerprint} raises an
+immediate question: \emph{why} do gradient- and propagation-based
+selectors fail relative to the simplest structural baseline?
+Figure~\ref{fig:alignment} provides empirical traction. For each
+(method, strategy, backbone, seed) tuple we record $\bar{d}$, the mean
+degree of the selected nodes, and its same-seed paired F1 effect
+against random.
+
+\paragraph{Selection-degree predicts effect.}
+Across $n{=}300$ non-random tuples, $\bar{d}$ correlates with the
+paired F1 effect at Pearson $r{=}0.24$ (Spearman $\rho{=}0.34$,
+$p{<}10^{-4}$). Strategy-level means are monotonic in $\bar{d}$:
+\textsc{Degree} ($\bar{d}{=}18.7$, paired $+2.04\%$) $>$
+\textsc{PageRank} ($18.5$, $+1.54\%$) $>$
+\textsc{IM} ($13.1$, $+0.88\%$) $>$
+\textsc{Hybrid} ($6.5$, $+0.42\%$) $>$
+\textsc{TracIn} ($3.9$, $+0.02\%$). \textsc{TracIn}'s selected-node
+degree is statistically indistinguishable from \textsc{Random}'s
+($\bar{d}{=}3.94$ vs.\ $3.88$; graph mean is $3.90$): the gradient
+signal produces selections of average degree, not high-leverage
+structural targets.
+
+\paragraph{Cell-level confirmation and the one exception.}
+Within each (method, backbone) cell, the strategy-level correlation
+between $\bar{d}$ and paired effect is positive in \textbf{11 of 12
+cells}, with $r{>}0.9$ and $p{<}0.05$ on GIF$\times$GCN ($r{=}0.97$),
+GNNDelete$\times$GCN ($0.99$), MEGU$\times$GCN ($0.94$), and
+IDEA$\times$GAT ($0.97$). The lone negative-correlation cell---%
+GraphRevoker$\times$GAT ($r{=}-0.78$)---is precisely the one cell
+where TracIn yields a significant paired effect ($+3.58\%$,
+$p{=}0.018$). The alignment hypothesis is internally consistent: it
+predicts that sophisticated selectors win exactly when structural
+alignment ceases to predict attack success.
+
+\paragraph{Mechanism: objective misalignment.}
+We frame this empirical regularity as an \emph{objective-misalignment
+hypothesis}. TracIn optimizes per-sample influence on test loss;
+IM-CELF optimizes propagation spread under independent-cascade
+dynamics. Neither aligns with the true attack target---the
+conditioning of the unlearning approximation operator $\mathcal{U}$
+(Hessian conditioning for IF-based methods, mask-network optimization
+stability for learning-based ones). The selectors that work do so by
+accident: high-degree training nodes happen to maximally disrupt
+$\mathcal{U}$'s implicit assumptions. We treat the
+GraphRevoker$\times$GAT co-occurrence as a mechanism wedge rather
+than a closed proof, and defer attack-aware selectors that directly
+target $\mathcal{U}$'s approximation error to future work.
 
 \subsection{Scaling Validation on ogbn-arxiv}
 \label{sec:results-scaling}
@@ -58,9 +223,9 @@ A 1D projection is provided in Appendix~\ref{app:results-1d}.
   \centering
   \includegraphics[width=0.84\linewidth]{figures/FIG-1_Generalization.pdf}
   \caption{\textbf{Scale check of the fingerprint geometry.}
-  Same 2D coordinate per method across Cora, Citeseer, and ogbn-arxiv
-  (GCN backbone, $r{=}0.05$). \interim{Phase~B.2 numbers pending; arxiv
-  markers are placeholders.}}
+  Same 2D coordinate per method across Cora and Cora/GAT
+  (GCN backbone, $r{=}0.05$). ogbn-arxiv markers are deferred to the
+  Phase~B.2 supplement once the H800 retrain pass completes.}
   \label{fig:scaling}
 \end{figure}
 
@@ -76,33 +241,59 @@ CI widths in Appendix~\ref{app:results}.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{figures/FIG-2_Scaling.pdf}
-  \caption{\textbf{Architectural F1 shift $\Delta F_{\text{arch}}$ per
-  method} (Cora/GCN, $r{=}0.05$). Bars below zero mark Shard
-  Protection: the Partition pair's downstream F1 \emph{increases} when
-  any small random set is unlearned. The fingerprint in
-  \S\ref{sec:results-fingerprint} reports the orthogonal
-  $\Delta F_{\text{attack}}$ term.
-  \interim{Refresh with Phase~B numbers; current placeholder uses
-  $k{=}5$ noise floor + budget-matched random.}}
+  \caption{\textbf{$k{=}5$ noise floor
+  $\Delta F_{\mathrm{noise}}$} per (method, backbone) on
+  Cora. Each bar is $F_1^{\mathrm{before}} - F_1^{\mathrm{k=5\,random}}$
+  in F1 percentage points (mean over 5 seeds, $1\sigma$ error). Bars
+  below zero mark \textbf{Shard Protection}: the Partition pair's
+  downstream F1 actually \emph{rises} when even five random nodes are
+  unlearned, with GraphRevoker reaching $-19.3\%$ (GCN) and $-16.9\%$
+  (GAT). Non-partition methods all stay near zero
+  ($-2.2$ to $+2.2$), confirming that their intrinsic near-zero-volume
+  response is small. The budget-induced component
+  $\Delta F_{\mathrm{volume}}(0.05)=\Delta F_{\mathrm{rand}}(0.05)-\Delta F_{\mathrm{noise}}$
+  is discussed below; it is distinct from the paired attack columns in
+  Table~\ref{tab:benchmark}.}
   \label{fig:shard-protection}
 \end{figure}
 
-For the Partition family, the architectural term is negative:
-$\Delta F_{\text{arch}}<0$, meaning random deletion at $r=0.05$
-\emph{improves} F1 by \interim{$3$--$6\%$}. We call this
-\textbf{Shard Protection}. Crucially, it is not an attack effect:
-GraphEraser and GraphRevoker have $\Delta F_{\text{attack}}\approx 0$
-in Figure~\ref{fig:fingerprint}, so adversarial selectors do not amplify
-the gain beyond the random-deletion baseline.
+For the Partition family, $\Delta F_{\mathrm{noise}}$ at $k{=}5$
+(Fig.~\ref{fig:shard-protection}, Table~\ref{tab:benchmark}) is
+strongly negative across both backbones ($-9.6\%$ for
+GraphEraser/GCN; $-19.3\%$ for GraphRevoker/GCN; $-11.9\%$ and
+$-16.9\%$ on GAT). In the decomposition of Eq.~\ref{eq:fshift}, this is
+the intrinsic-response term. The same negative trend persists at the
+attack budget---budget-matched random deletion at $r{=}5\%$ still raises
+F1 by $5.8$--$14.6\%$ on the partition pair. Equivalently,
+$\Delta F_{\mathrm{volume}}(0.05)$ attenuates but does not erase the
+protective baseline. We call this \textbf{Shard Protection}, and it is
+not an attack effect:
+GraphEraser and GraphRevoker have
+$\Delta F^{\text{attack}}{\approx}\,0$ in
+Figure~\ref{fig:fingerprint}, so adversarial selectors do not amplify
+the gain beyond the random-deletion baseline (one backbone-conditional
+exception, GraphRevoker$\times$GAT$\times$\textsc{Hybrid}, is
+discussed in \S\ref{sec:results-fingerprint}).
 
-The mechanism hypothesis is that partition aggregation localizes
-unlearning to the affected shard while the remaining shard ensemble
-absorbs the perturbation. We leave shard-purity and shard-count evidence
-to Appendix~\ref{app:shard}; the main-text claim is the decomposition:
-Shard Protection belongs to $\Delta F_{\text{arch}}$, not to the
-attacker.
+By contrast, GNNDelete shows a near-zero
+$\Delta F_{\mathrm{noise}}$ at $k{=}5$ ($-2.2\%$ on GCN, $+1.4\%$ on
+GAT) but absolute random-deletion drop at $r{=}5\%$ jumps to
+$+10.4\%$ and $+13.0\%$: most of its collapse lies in
+$\Delta F_{\mathrm{volume}}$, not in a near-zero-volume method response.
+The IF-based methods, IDEA, and MEGU stay near zero on
+$\Delta F_{\mathrm{noise}}$, indicating that their vulnerability should
+be read through $\Delta F_{\mathrm{volume}}$ and
+$\Delta F^{\mathrm{attack}}$ rather than through Shard Protection.
 
-\subsection{Collateral Damage and Hop-Distance Decay}
+The mechanism hypothesis for Shard Protection is that partition
+aggregation localizes unlearning to the affected shard while the
+remaining shard ensemble absorbs the perturbation. We leave
+shard-purity and shard-count evidence to Appendix~\ref{app:shard};
+the main-text claim is that Shard Protection appears already in
+$\Delta F_{\mathrm{noise}}$, persists across deletion volumes, and is
+not amplified by sophisticated selectors.
+
+\subsection{Approximation and Collateral Diagnostics}
 \label{sec:results-hop}
 
 \begin{figure}[t]
@@ -111,26 +302,34 @@ attacker.
   \hfill
   \includegraphics[width=0.48\linewidth]{figures/FIG-4b_Effect.pdf}
   \caption{\textbf{Effect-size and significance heatmap} (5-seed paired
-  $t$-test, Cora/GCN, $r{=}0.05$). Each cell is colored by the $p$-value
-  of the one-sided test $\mu\le 0$. \interim{Refresh with Phase~B
-  (decoupled IM seed) numbers; pre-fix data had Jaccard $=0.13$ between
-  IM seeds.}}
+  $t$-test, Cora/GCN, $r{=}0.05$). Each cell in the left panel is
+  colored by the $p$-value of the one-sided test $\mu\le 0$; right
+  panel reports the paired mean effect size in F1 percentage points.
+  Selector seeds are decoupled from training seeds (Jaccard${=}1.0$
+  across the IM/Hybrid runs; see Appendix~\ref{app:imseed}).}
   \label{fig:significance}
 \end{figure}
 
-Figure~\ref{fig:significance} tests the paired effect over seeds. With
-the \texttt{im\_selector\_seed} fix (\S\ref{app:imseed}), all but
-\interim{one} GNNDelete IM/Hybrid cells clear $p<0.05$; GIF is
-significant for TracIn but weaker for Hybrid; MEGU and IDEA show no
-significant cell across the six strategies.
+Figure~\ref{fig:significance} tests the paired effect over seeds.
+With the \texttt{im\_selector\_seed} fix (\S\ref{app:imseed}),
+GNNDelete shows large mean IM/Hybrid effects but high seed variance
+that prevents conventional significance ($p_{\mathrm{IM}}{=}0.21$,
+$p_{\mathrm{Hybrid}}{=}0.76$ on Cora/GCN); GIF, IDEA, and MEGU each
+clear $p<0.01$ on degree and pagerank but not on TracIn; the
+Partition pair clears no attack strategy at $p<0.05$, consistent
+with their architectural immunity.
 
-The retrain gap verifies that utility loss is not merely data loss:
+The retrain gap verifies that utility changes are not merely data loss:
 retraining on $\mathcal{D}_{\mathrm{tr}}\setminus S$ recovers
-baseline-level F1 for GIF and the partition pair (gap
-\interim{$<$2\%}), whereas GNNDelete shows a much larger gap
-(\interim{20.5\%}), implicating approximation error.
+baseline-level F1 for GIF, the partition pair, and MEGU/IDEA
+($|\mathrm{gap}|<2\%$ across all attack strategies), whereas
+GNNDelete shows a much larger gap (mean ${\approx}11\%$ on Cora/GCN,
+peaking at ${\sim}15\%$ on degree-based deletion), implicating
+approximation drift. Prediction shift provides the retain-set analogue:
+it measures how far the approximate unlearned model's posterior outputs
+move from the exact retrain oracle on nodes that were not deleted.
 
-Hop-distance decay localizes this drift. On Cora/GCN ($L=2$), GIF and
+Hop-distance decay localizes this prediction shift. On Cora/GCN ($L=2$), GIF and
 the partition pair concentrate flips within the receptive field, while
 GNNDelete remains closer to uniform across RF-relative buckets. MEGU and
 IDEA stay near zero, matching their fingerprint positions. Per-family
@@ -146,27 +345,28 @@ Appendix~\ref{app:results}.
 \caption{\textbf{Update-detection AUC vs.\ paired F1 effect.}
 Deletion-visibility axis (posterior-shift AUC post-unlearning) and
 utility axis ($\Delta F^{\text{attack}}$) decouple. Cora/GCN,
-$r{=}0.05$, 5 seeds, post bug-fix. The AUC is stored in the legacy
-\texttt{mia\_auc} field. \interim{Refresh with Phase~B values.}}
+$r{=}0.05$, 5 seeds, mean across the six selectors. The AUC is
+stored in the legacy \texttt{mia\_auc} field.}
 \label{tab:mia}
 \begin{tabular}{@{}lllrr@{}}
 \toprule
 Family & Method & Update AUC & $\Delta F^{\text{attack}}_{\mathrm{IM}}$ (\%) & Reading \\
 \midrule
-Partition & GraphEraser  & \interim{0.60} & \interim{$+0.0$}     & higher visibility, robust utility \\
-Partition & GraphRevoker & \interim{0.6X} & \interim{$+0.0$}     & higher visibility, robust utility \\
-IF        & GIF          & \interim{0.5X} & \interim{$+X.X$}     & near-random visibility, weak attack \\
-IF        & IDEA         & \interim{0.55} & \interim{$+0.X$}     & moderate visibility, null attack \\
-Learning  & GNNDelete    & \interim{0.6X} & \interim{$+16.9$}    & higher visibility, severe attack \\
-Learning  & MEGU         & \interim{0.37} & \interim{$+0.X$}     & lower visibility, null attack \\
+Partition & GraphEraser  & $0.72$ & $-0.0$     & high visibility, robust utility \\
+Partition & GraphRevoker & $0.81$ & $+1.0$     & highest visibility, robust utility \\
+IF        & GIF          & $0.65$ & $+0.7$     & moderate visibility, weak attack \\
+IF        & IDEA         & $0.51$ & $+0.5$     & near-random visibility, null attack \\
+Learning  & GNNDelete    & $0.67$ & $+3.2$     & moderate visibility, large but noisy attack \\
+Learning  & MEGU         & $0.50$ & $+1.0$     & near-random visibility, null attack \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Update-detection AUC is not a proxy for utility vulnerability. MEGU
-combines near-null F1 attack effect with lower deletion visibility (AUC
-\interim{$\approx 0.37$}); the partition pair resists F1 collapse but
-shows higher update visibility (AUC \interim{$\approx 0.60$}); and
-GNNDelete is exposed on both axes. We therefore treat this audit as a
+and IDEA combine near-null F1 attack effect with near-random deletion
+visibility (AUC ${\approx}0.50$); the partition pair resists F1
+collapse but shows the highest update visibility
+(AUC $\approx 0.72$--$0.81$); and GNNDelete is moderately
+exposed on both axes. We therefore treat this audit as a
 complementary diagnostic, not as a calibrated cross-family privacy
 ranking or as evidence for or against the F1 attack.

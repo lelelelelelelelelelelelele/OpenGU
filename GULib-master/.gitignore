@@ -34,6 +34,9 @@ logs/
 
 # Migration interim aggregator outputs（MIGRATION_RUNBOOK.md §6.1）
 results/_phase_b_*.csv
+# Exception: the canonical aggregate is paper-essential (drives all 6 figures
+# in scripts/plot_neurips_figures.py + master scorecard). 160 KB, worth tracking.
+!results/_phase_b_aggregate.csv
 
 # NeurIPS template unzip dir (redundant with zip, regeneratable)
 report/paper/NeurIPS_2025_template/
@@ -56,3 +59,14 @@ results/_archive_*/
 
 AGENTS.md
 GEMINI.md
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+
+# k=5 noise floor — paper just consumes the *_averaged_k5.json,
+# tracking the per-seed JSONs is repo bloat. Existing tracked entries stay.
+results/baseline/

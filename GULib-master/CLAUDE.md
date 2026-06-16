@@ -14,7 +14,8 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 
 | File | Read when |
 |------|-----------|
-| `self/dashboard/EXPERIMENT_DASHBOARD.md` | Beginning every session — phase progress, coverage matrix, known issues, TODO |
+| `self/dashboard/PROGRESS.md` | **Beginning every session (2026-06+)** — current-phase hub: state snapshot, TODO framework, open decision, link index |
+| `self/dashboard/EXPERIMENT_DASHBOARD.md` | ⚠️ FROZEN 2026-05-07 — historical coverage matrix + bug archive only (Phase B "[ ]" is long done) |
 | `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
 | `self/dashboard/METRIC_FIELD_SEMANTICS.md` | Before using `f1_before`, `perf_before`, or `logits_before` |
 | `self/dashboard/VALIDATION_LOG.md` | Need empirical evidence for a claim (append-only) |

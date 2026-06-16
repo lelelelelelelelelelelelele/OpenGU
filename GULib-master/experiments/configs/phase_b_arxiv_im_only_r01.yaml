@@ -1,0 +1,42 @@
+# Phase B — ogbn-arxiv IM-only slice at ratio=0.01 (CPU-friendly)
+# Mirror of phase_b_arxiv_im_only.yaml at the canonical r=0.01 budget used
+# by T1/T2/T3 (see phase_b_arxiv_T1_seed42.yaml header for ratio rationale).
+# IM is topology-only (im_strategy.py:123-124), so no trained-model selector
+# prewarm is required and CPU-only execution is fine.
+# Output: results/runs/ogbn-arxiv_GCN_r0.01/{method}_{strategy}/seed{N}/...
+
+name: phase_b_arxiv_im_only_r01
+dataset: ogbn-arxiv
+base_model: GCN
+ratio: 0.01
+
+methods:
+  - GIF
+  - GNNDelete
+  - GraphEraser
+
+strategies:
+  - im
+
+seeds: [42, 212, 722]
+
+defaults:
+  save_predictions: true
+  run_collateral: false   # 4090 上 ~22GB 边缘 OOM，retrain gap 留给 H800 补
+  no_cache: false
+  num_epochs: 200
+  batch_size: 256
+  cuda: 0
+
+extra_args:
+  - --candidate_fraction
+  - "0.1"
+  - --mc_rounds
+  - "50"
+  - --im_v4_batch_size
+  - "1"          # classic CELF (no batch approximation) at k≈1355
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 3
+    gcn_hidden: 256

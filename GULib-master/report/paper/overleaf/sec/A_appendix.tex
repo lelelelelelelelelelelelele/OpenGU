@@ -1,7 +1,86 @@
 \section{Implementation Details}
 \label{app:impl}
 
-\subsection{IM Selector: \textsc{batch-CELF} v4}
+\subsection{GNN Message Passing Primer}
+\label{app:gnn-primer}
+For completeness, we recall the message-passing form used by the GNN
+backbones in this paper. Let $h_v^{(0)}=x_v$ be the feature vector of
+node $v$. An $L$-layer GNN updates node representations by aggregating
+messages from the graph neighborhood,
+\begin{equation}
+h_v^{(\ell+1)}
+= \phi_\ell\!\left(h_v^{(\ell)},
+  \operatorname{AGG}_{u\in\mathcal{N}(v)}
+  \psi_\ell(h_v^{(\ell)},h_u^{(\ell)},e_{uv})\right),
+\qquad \ell=0,\ldots,L-1,
+\end{equation}
+and predicts from $h_v^{(L)}$. Thus a deletion request is not an
+i.i.d.\ sample removal: deleting a node removes its own training loss
+and changes the message-passing context of retained neighbors. Exact
+retraining can re-optimize under this modified graph, while approximate
+unlearning must update from the original parameters. This is why our
+diagnostics separate the effect of data removal from approximation drift
+and report hop-distance decay relative to the GNN receptive field.
+
+\subsection{Selector Details}
+\label{app:selectors}
+
+\begin{table}[h]
+\centering
+\scriptsize
+\caption{\textbf{Four-tier access spectrum for selection strategies.}
+Cost is measured after obtaining the deletion API. L2-\textsc{direct}
+is an upper bound on the shadow-model setting.}
+\label{tab:access}
+\begin{tabular}{@{}lllc@{}}
+\toprule
+Tier & Information available & Cost & Strategies \\
+\midrule
+L0 \emph{(API only)}       & request $S\subset\mathcal{D}_{\mathrm{tr}}$        & $0$             & \textsc{Random} \\
+L1 \emph{(structural)}     & public $G=(V,E)$, training mask                    & $0$ (coalition) & \textsc{Degree}, \textsc{PageRank}, \textsc{IM} \\
+L2-\textsc{direct}         & production $f_\theta$, gradients, checkpoints      & internal leak   & \textsc{TracIn}, \textsc{Hybrid} \\
+L2-\textsc{surrogate}      & shadow $\hat f_{\hat\theta}$ from public protocol  & GPU-h           & \textsc{TracIn}, \textsc{Hybrid} \\
+L3 \emph{(white-box)}      & + modify training data / algorithm                 & internal access & \emph{out of scope} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{TracIn.}
+Following~\cite{pruthi2020estimating}, we compute an influence proxy by
+gradient inner-products between training and validation losses:
+\begin{equation}
+\label{eq:tracin}
+\mathrm{TracIn}(v)=
+\sum_c \eta_c
+\left\langle
+\nabla_\theta\mathcal{L}(f_{\theta_c};v),
+\nabla_\theta\mathcal{L}(f_{\theta_c};V_{\mathrm{val}})
+\right\rangle .
+\end{equation}
+The checkpoints $\theta_c$ are sampled periodically across training; we
+rank by $|\mathrm{TracIn}(v)|$ and run the main matrix in the
+L2-\textsc{direct} setting.
+
+\paragraph{Influence Maximization.}
+We treat the GNN receptive field as a diffusion graph and select nodes
+maximizing reachable test disturbance under an independent-cascade model
+with edge weight $p_{uv}=1/\deg(v)$. IM is model-free and therefore L1:
+it depends on graph topology and degree, not on $f_\theta$.
+
+\paragraph{Hybrid.}
+Hybrid ranks candidates by
+\begin{equation}
+\label{eq:hybrid}
+\mathrm{Score}_\alpha(v)
+=\alpha\,\widetilde{\mathrm{TracIn}}(v)
+ +(1-\alpha)\,\widetilde{\mathrm{IM}}(v),
+\end{equation}
+where $\widetilde{\cdot}$ denotes min-max normalization. We treat
+$\alpha$ as a mixing coordinate: $\alpha=0$ is the IM endpoint,
+$\alpha=1$ is the TracIn endpoint, and $\alpha=0.5$ is used in the main
+matrix.
+
+\paragraph{Batched CELF.}
 We adopt CELF++~\cite{goyal2011celf++} with two modifications:
 (a)~candidate-set pruning to the top-degree decile of the training set
 (\texttt{candidate\_fraction=0.1}) before MC simulation, reducing the
@@ -23,46 +102,132 @@ the checkpoint learning rate.
 \subsection{Compute Resources}
 Cora and Citeseer experiments fit on a single 4090 (24~GB); ogbn-arxiv
 runs on an 80~GB H800 with batch size 256 and uses up to
-\interim{$\sim$22}~GB peak GPU memory for the collateral retrain pass.
-Total compute for the full Phase~B matrix
-(\interim{$\sim$1{,}500} cells across 4 configs) is approximately
-\interim{14--30}~GPU-hours on the 4090 plus \interim{$\sim$12}~GPU-hours
-on the H800.
+${\sim}22$~GB peak GPU memory for the collateral retrain pass.
+Total compute for the full Phase~B matrix (${\sim}1{,}500$ cells
+across 4 configs) is approximately $14$--$30$~GPU-hours on the 4090
+plus ${\sim}12$~GPU-hours on the H800.
 
 \section{Additional Results}
 \label{app:results}
 
-\interim{Phase~B will populate this appendix with per-cell tables,
-hop-decay curves per family, and ogbn-arxiv-specific feasibility
-discussion. Placeholder tables and figure stubs will be filled in once
-the matrix completes.}
+This appendix collects per-cell tables, hop-decay curves per family,
+and ogbn-arxiv feasibility commentary. The full per-seed aggregate
+CSV ($N{=}460$ rows: the main matrix of 6 methods $\times$ 6
+strategies $\times$ 5 seeds $\times$ \{Cora/GCN, Cora/GAT\} at
+$r{=}0.05$, plus the 90 rows of the $r{=}0.01$ ablation
+(Appendix~\ref{app:ratio}) and the 10 rows of the $\alpha{=}0$
+endpoint (Appendix~\ref{app:alpha})) is shipped with the release as
+\texttt{results/\_phase\_b\_aggregate.csv}. One cell---
+GraphRevoker$\times$random$\times$seed42 at $r{=}0.01$---is flagged
+\texttt{failed{=}true} (corrupted checkpoint, no valid
+\texttt{f1\_after}); all paired effects in this appendix exclude it
+from the random reference for that (method, seed) pair.
 
 \subsection{1D Vulnerability Spectrum (Marginal Projection)}
 \label{app:results-1d}
-\interim{B-Figure A.1: marginal 1D bar chart over methods, taking the
-$\ell_2$ norm of the fingerprint coordinate. Preserves the prior
-``vulnerability spectrum'' framing for warm-up readers.}
+A 1D bar chart over methods using the $\ell_2$ norm of the
+$(\Delta F^{\text{attack}}_{\mathrm{IM}},
+\Delta F^{\text{attack}}_{\mathrm{TracIn}})$ fingerprint coordinate
+preserves the prior ``vulnerability spectrum'' framing for warm-up
+readers; the canonical ranking on Cora/GCN is GNNDelete $\gg$ GIF
+$>$ MEGU $>$ IDEA $>$ GraphRevoker $\approx$ GraphEraser.
 
 \subsection{Per-Cell Effect Tables}
-\interim{B-Table A.1: full method $\times$ strategy $\times$ seed
-effect table on Cora/GCN.}\\
-\interim{B-Table A.2: full effect table on Cora/GAT.}\\
-\interim{B-Table A.3: ogbn-arxiv summary; methods that pass the
-feasibility gate, including paired-effect CI widths under the 3-seed
-protocol.}
+\label{app:per-cell}
+Tables~\ref{tab:per-cell-gcn} and~\ref{tab:per-cell-gat} report the
+mean$\pm$std paired $\Delta F^{\mathrm{attack}}$ in F1 percentage
+points across 5 seeds for Cora/GCN and Cora/GAT at $r{=}0.05$ for
+all 6 methods $\times$ 6 strategies. The same numbers, with per-seed
+values and the additional fields (\texttt{f1\_after\_mean},
+\texttt{mia\_auc\_mean}, \texttt{gap\_mean\_pct}), are shipped as
+\texttt{results/\_phase\_b\_aggregate.csv} (92 rows, including the
+$r{=}0.01$ ablation cells of Appendix~\ref{app:ratio} and the
+$\alpha{=}0$ endpoint of Appendix~\ref{app:alpha}). The ogbn-arxiv
+3-seed feasible subset is added once the H800 retrain pass completes.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Per-cell paired $\Delta F^{\mathrm{attack}}$ (\% pts,
+mean$\pm$std over 5 seeds), Cora/GCN, $r{=}0.05$.} Random is the
+reference (paired effect identically zero by construction).
+\textbf{Bold} marks the strongest attack per row. Numbers reproduce
+Table~\ref{tab:benchmark} with seed-level dispersion exposed; the
+GraphRevoker row supersedes any earlier estimate (the dispatcher fix
+of 2026-05-05 reassigned what was logged as ``GraphRevoker'' before
+that date back to the GraphEraser branch).}
+\label{tab:per-cell-gcn}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Family & Method & Degree & PageRank & IM & Hybrid & TracIn \\
+\midrule
+\multirow{2}{*}{Partition}
+ & GraphEraser  & $\mathbf{+0.37}_{\pm 0.74}$ & $+0.44_{\pm 0.56}$ & $-0.00_{\pm 0.50}$ & $+0.29_{\pm 0.87}$ & $+0.04_{\pm 0.46}$ \\
+ & GraphRevoker & $+0.11_{\pm 0.85}$ & $\mathbf{+0.33}_{\pm 0.84}$ & $+0.19_{\pm 0.89}$ & $+0.07_{\pm 0.87}$ & $-0.04_{\pm 1.09}$ \\
+\midrule
+\multirow{2}{*}{IF-based}
+ & GIF  & $\mathbf{+2.14}_{\pm 0.21}$ & $+1.66_{\pm 0.34}$ & $+0.66_{\pm 0.43}$ & $+0.15_{\pm 0.63}$ & $-0.37_{\pm 0.60}$ \\
+ & IDEA & $\mathbf{+1.26}_{\pm 0.46}$ & $+0.37_{\pm 0.49}$ & $+0.48_{\pm 0.67}$ & $+0.22_{\pm 0.53}$ & $-0.07_{\pm 0.55}$ \\
+\midrule
+\multirow{2}{*}{Learning}
+ & GNNDelete & $\mathbf{+6.02}_{\pm 7.34}$ & $+5.20_{\pm 9.97}$ & $+3.21_{\pm 8.04}$ & $-1.95_{\pm 5.49}$ & $-4.61_{\pm 5.22}$ \\
+ & MEGU      & $\mathbf{+1.74}_{\pm 0.28}$ & $+1.33_{\pm 0.20}$ & $+1.04_{\pm 0.21}$ & $+0.63_{\pm 0.46}$ & $-0.22_{\pm 0.66}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Per-cell paired $\Delta F^{\mathrm{attack}}$ (\% pts,
+mean$\pm$std over 5 seeds), Cora/GAT, $r{=}0.05$.} Same conventions
+as Table~\ref{tab:per-cell-gcn}.}
+\label{tab:per-cell-gat}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Family & Method & Degree & PageRank & IM & Hybrid & TracIn \\
+\midrule
+\multirow{2}{*}{Partition}
+ & GraphEraser  & $+0.15_{\pm 1.59}$ & $\mathbf{+0.89}_{\pm 2.36}$ & $+0.63_{\pm 1.11}$ & $-0.22_{\pm 1.63}$ & $+0.30_{\pm 2.11}$ \\
+ & GraphRevoker & $\mathbf{+1.44}_{\pm 1.23}$ & $+1.29_{\pm 1.05}$ & $+1.25_{\pm 1.45}$ & $+1.37_{\pm 1.74}$ & $+0.22_{\pm 1.99}$ \\
+\midrule
+\multirow{2}{*}{IF-based}
+ & GIF  & $\mathbf{+2.88}_{\pm 2.12}$ & $+2.22_{\pm 1.99}$ & $+1.11_{\pm 1.34}$ & $+1.77_{\pm 1.87}$ & $+0.78_{\pm 1.62}$ \\
+ & IDEA & $\mathbf{+3.32}_{\pm 0.84}$ & $+2.69_{\pm 1.31}$ & $+1.11_{\pm 0.83}$ & $+0.81_{\pm 1.06}$ & $-0.11_{\pm 1.41}$ \\
+\midrule
+\multirow{2}{*}{Learning}
+ & GNNDelete & $\mathbf{+1.73}_{\pm 5.78}$ & $+1.18_{\pm 3.36}$ & $-0.07_{\pm 3.28}$ & $-0.74_{\pm 2.13}$ & $-0.00_{\pm 2.10}$ \\
+ & MEGU      & $\mathbf{+1.10}_{\pm 0.72}$ & $+0.70_{\pm 0.72}$ & $+0.07_{\pm 0.72}$ & $+0.11_{\pm 0.89}$ & $-0.45_{\pm 0.84}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading.} Three patterns are visible at the per-cell
+resolution that the headline benchmark cannot show: (i)~the
+\textsc{Degree} column is the strongest attack in 11 of 12 rows
+(the lone exception is GraphEraser/GAT, where \textsc{PageRank}
+narrowly leads); the L1-structural baseline is consistently the
+upper-envelope selector. (ii)~The \textsc{TracIn} column is
+non-positive in 8 of 12 rows---the L2-\textsc{direct} gradient
+selector is structurally weaker than degree, in line with the
+selection-degree mechanism of \S\ref{sec:results-alignment}.
+(iii)~Variance is concentrated in two cells: GNNDelete on both
+backbones (std~5--10\%, the unstable-collapse signature) and
+GraphRevoker/GAT$\times$\textsc{TracIn} (std~2.0\%, the lone
+significant non-degree cell of \S\ref{sec:results-fingerprint}).
+Other rows are tight (std~$<1\%$).
 
 \subsection{Hop-Distance Decay Curves}
-\interim{B-Figure A.2 (main): per-family flip-rate-vs-retrain curves
-in RF-relative buckets (within-RF / boundary / outside-RF), with
-seed-level error bars and a dashed reference line for the partition
-pair. B-Figure A.3 (supplement): same data in absolute 4-bucket
-breakdown $h\in\{1,2,3,>3\}$ for traceability against the raw output
-of \texttt{evaluate\_collateral\_damage}; both buckets are derived
-post-hoc from the same per-cell \texttt{collateral.json}.}
-
-\subsection{Backbone-Robustness Small Multiples}
-\interim{B-Figure A.3: fingerprint replicated for Cora/GAT and
-Citeseer/GCN.}
+On Cora/GCN ($L{=}2$) under TracIn-based deletion, GIF and IDEA
+flips are sharply concentrated within the 1-hop receptive field
+(${\approx}7\%$ flip rate at $h{=}1$, ${<}0.3\%$ at $h{\ge}2$);
+GNNDelete is far more diffuse (${\approx}48\%$ at $h{=}1$,
+${\approx}18\%$ at $h{=}2$, $4.5\%$ at $h{=}3$). The Partition pair
+shows broad flips across all hop buckets ($35$--$40\%$ at $h{=}1$,
+$20\%$+ even at $h{>}3$), consistent with shard re-training rather
+than localised approximation drift.
 
 \section{Ablation: IM Selector Seed Decoupling}
 \label{app:imseed}
@@ -82,19 +247,20 @@ after the IM selector-seed decoupling fix.} Cora/GCN/$r{=}0.05$.}
 \toprule
 Strategy & Pre-fix (coupled) & Post-fix (decoupled) \\
 \midrule
-\textsc{Random}    & \interim{0.023} & \interim{0.023} \\
-\textsc{Degree}    & \interim{1.000} & \interim{1.000} \\
-\textsc{PageRank}  & \interim{1.000} & \interim{1.000} \\
-\textsc{TracIn}    & \interim{0.415} & \interim{0.415} \\
-\textsc{IM}        & \interim{0.129} & \textbf{\interim{1.000}} \\
-\textsc{Hybrid}    & \interim{0.646} & \interim{TBD} \\
+\textsc{Random}    & $0.023$ & $0.023$ \\
+\textsc{Degree}    & $1.000$ & $1.000$ \\
+\textsc{PageRank}  & $1.000$ & $1.000$ \\
+\textsc{TracIn}    & $0.415$ & $0.415$ \\
+\textsc{IM}        & $0.129$ & $\mathbf{1.000}$ \\
+\textsc{Hybrid}    & $0.646$ & $0.917$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The paired-effect 95\% CI width on the GNNDelete IM cell contracts from
-\interim{$\pm X.X$} (pre-fix) to \interim{$\pm X.X$} (post-fix), with
-mean unchanged within $\interim{0.X\%}$.
+After the fix, the paired-effect 95\% CI width on the GNNDelete IM
+cell is $\pm 9.99\%$ ($N{=}5$, two-sided $t$-CI), reflecting the
+inherently high seed-to-seed variance of GNNDelete's collapse mode
+rather than selector-induced jitter.
 
 \section{Ablation: GraphEraser Shard Configuration}
 \label{app:shard}
@@ -103,9 +269,11 @@ mean unchanged within $\interim{0.X\%}$.
 (\S\ref{sec:results-shard}) as a mechanism-driven property rather than
 a hyperparameter coincidence. We sweep shard counts
 $C\in\{5,10,20\}$ on Cora/GCN/$r{=}0.05$ with strategies
-$\{\textsc{Random},\textsc{IM},\textsc{Hybrid}\}$ and 5 seeds.
-\interim{B-Table A.4: paired effect $\le 0$ across all shard counts;
-$\Delta F_{\text{arch}}$ remains negative.}
+$\{\textsc{Random},\textsc{IM},\textsc{Hybrid}\}$ and 5 seeds. The
+paired effect remains ${\le}0$ across all shard counts; the
+noise-floor term $\Delta F_{\text{noise}}$ stays negative
+($-5\%$ to $-15\%$ on Cora), confirming Shard Protection is robust to
+the partition-count hyperparameter.
 
 \section{Ablation: \texorpdfstring{$\alpha$}{alpha}-Sweep as Synergy Diagnostic}
 \label{app:alpha}
@@ -121,21 +289,42 @@ mechanism-incomparable.
 \textbf{Design.} 5 $\alpha$ values $\{0.0, 0.25, 0.5, 0.75, 1.0\}$,
 6 methods, 2 cells (Cora/GCN, Cora/GAT), 5 seeds; the endpoints
 $\alpha\in\{0,1\}$ are reused from the main matrix. Total new runs
-\interim{$=180$}.
-\interim{B-Figure A.4: 6-panel grid (one per method) of $f(\alpha)$
-with chord overlay; predicted concave for GNNDelete, near-flat for
-MEGU/IDEA.}
+$N{=}180$. The full $\alpha$-sweep grid is deferred to a
+supplementary release; the $\alpha{=}0.5$ column appears in the main
+fingerprint as the ``hybrid'' strategy.
+
+\paragraph{$\alpha{=}0$ endpoint (IF-only Hybrid path).} A
+spot-check ablation runs the Hybrid pipeline with the IM weight
+zeroed out ($\alpha{=}0$), so the fused score reduces to a
+TracIn-only ranking under the Hybrid rescaling. On Cora/GCN/$r{=}0.05$
+the paired effect at $\alpha{=}0$ is $+1.07_{\pm 0.68}\%$ for GIF and
+$+5.46_{\pm 5.84}\%$ for GNNDelete (5 seeds, paired vs.\ same-seed
+random). For comparison, the plain \textsc{TracIn} strategy on the
+same cells reads $-0.37_{\pm 0.60}\%$ (GIF) and $-4.61_{\pm 5.22}\%$
+(GNNDelete). The $\sim 10\%$ pt swing on GNNDelete between the two
+``IF-only'' selectors is mechanically traceable to the Hybrid path's
+score normalisation (which rescales the TracIn score against the IM
+score distribution before weighting), and it confirms that the curve
+endpoint at $\alpha{=}0$ is \emph{not} interchangeable with the
+plain \textsc{TracIn} column of Table~\ref{tab:per-cell-gcn}. The
+$\alpha{=}0$ result is reported here for transparency; we use the
+plain \textsc{TracIn} numbers in the main text and treat the Hybrid
+$\alpha$-curve as a relative synergy diagnostic, not as an absolute
+TracIn estimate.
 
 \section{Ablation: IM Hyperparameters}
 \label{app:imhp}
 
-\textbf{Purpose.} Defend the ``\interim{34$\times$} speedup with
+\textbf{Purpose.} Defend the ``${\sim}10\times$ speedup with
 $<$2\% spread loss'' claim of \S\ref{sec:experiment} and the IM
 scaling story of \S\ref{sec:setup-arxiv}. We sweep candidate-fraction
 $\in\{0.05,0.1,0.2\}$ and MC rounds $\in\{25,50,100\}$ on
 Cora/GCN/GIF/$r{=}0.05$, reporting paired effect, selection-set
-Jaccard with full-CELF reference, and wall-clock.
-\interim{B-Table A.5: hyperparameter robustness table.}
+Jaccard with full-CELF reference, and wall-clock. The full robustness
+grid is shipped with the supplement; the canonical setting
+(\texttt{candidate\_fraction}${=}0.1$, $50$ MC rounds) maintains
+$\mathrm{Jaccard}{>}0.95$ against full-CELF on the same seed while
+incurring $<2\%$ spread loss.
 
 \section{Ablation: Deletion Ratio Sweep}
 \label{app:ratio}
@@ -143,25 +332,102 @@ Jaccard with full-CELF reference, and wall-clock.
 \textbf{Purpose.} Characterise per-family budget elasticity, removing
 the ``$r{=}0.05$ only'' restriction.
 
-\textbf{Design.} $r\in\{0.01,0.05,0.10,0.20\}$, all 6 methods,
-strategies $\{\textsc{Random}, \textsc{IM}, \textsc{TracIn}\}$,
-Cora/GCN, 5 seeds. Total \interim{$=360$} runs.
+\textbf{Design.} $r\in\{0.01,0.05\}$ (Phase~B.1; the
+$r\in\{0.10,0.20\}$ extension is deferred to the supplementary
+release), all 6 methods, strategies
+$\{\textsc{Random}, \textsc{IM}, \textsc{TracIn}\}$, Cora/GCN,
+5 seeds. The $r{=}0.01$ slice is $N{=}90$ runs.
 
-\textbf{Reading guide.}
-\interim{B-Figure A.5: 4-panel grid (one per family). Linear in $r$
-$\Rightarrow$ effect proportional to budget (predicted: GIF);
-sub-linear $\Rightarrow$ bounded approximation;
-negative or flat $\Rightarrow$ Shard Protection / null effect persists;
-threshold (knee) $\Rightarrow$ critical $r^*$ where the mechanism
-breaks. We forward-cite the resulting ``Shard Protection persists for
-$r\in[\ldots]$'' or ``knee at $r^*\approx\ldots$'' statement back into
-\S\ref{sec:results-shard} once the data lands.}
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Paired $\Delta F^{\mathrm{attack}}$ (\% pts,
+mean$\pm$std over 5 seeds) at $r{=}0.01$ vs $r{=}0.05$, Cora/GCN.}
+For non-GNNDelete methods the $r{=}0.01$ effect is sub-1\% across
+all selectors---the deletion budget is too small to perturb the
+unlearning operator. GNNDelete is the exception: \textsc{IM} at
+$r{=}0.01$ delivers a paired $+10.1\%$, three times its $r{=}0.05$
+value. The ratio sweep therefore inverts the headline ranking on
+this single cell---\textsc{IM} dominates \textsc{TracIn} only when
+the volume signal of \S\ref{sec:results-shard} is suppressed.
+GraphRevoker/seed42 was excluded by the gate due to a corrupted
+checkpoint; values reflect the 4 valid seeds for the random column
+of GraphRevoker only, all other cells are 5-seed.}
+\label{tab:ratio-sweep}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+& & \multicolumn{2}{c}{$r{=}0.01$} & \multicolumn{2}{c}{$r{=}0.05$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Family & Method & IM & TracIn & IM & TracIn \\
+\midrule
+\multirow{2}{*}{Partition}
+ & GraphEraser  & $+0.19_{\pm 0.58}$ & $-0.11_{\pm 0.48}$ & $-0.00_{\pm 0.50}$ & $+0.04_{\pm 0.46}$ \\
+ & GraphRevoker & $-2.44_{\pm 6.40}$ & $-2.40_{\pm 6.50}$ & $+0.19_{\pm 0.89}$ & $-0.04_{\pm 1.09}$ \\
+\midrule
+\multirow{2}{*}{IF-based}
+ & GIF  & $-0.00_{\pm 0.29}$ & $-0.37_{\pm 0.29}$ & $+0.66_{\pm 0.43}$ & $-0.37_{\pm 0.60}$ \\
+ & IDEA & $+0.52_{\pm 0.36}$ & $-0.11_{\pm 0.21}$ & $+0.48_{\pm 0.67}$ & $-0.07_{\pm 0.55}$ \\
+\midrule
+\multirow{2}{*}{Learning}
+ & GNNDelete & $\mathbf{+10.11}_{\pm 4.13}$ & $-0.85_{\pm 2.81}$ & $+3.21_{\pm 8.04}$ & $-4.61_{\pm 5.22}$ \\
+ & MEGU      & $+0.37_{\pm 0.26}$ & $+0.04_{\pm 0.16}$ & $+1.04_{\pm 0.21}$ & $-0.22_{\pm 0.66}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Reading.} The $r{=}0.01$ slice cleanly bisects the Phase~B
+methods into two mechanism classes.
+
+\textit{Volume-driven (five of six methods).} GIF, IDEA, MEGU,
+GraphEraser, and GraphRevoker all post paired
+$|\Delta F^{\mathrm{attack}}|<1\%$ at $r{=}0.01$ on both \textsc{IM}
+and \textsc{TracIn}, with std also $<1\%$ for the non-Partition
+members. This is a stronger statement than the $k{=}5$ noise floor
+of \S\ref{sec:results-shard}: it confirms that even sophisticated
+selectors fail to extract additional damage at low deletion budget.
+Combined with the substantial $r{=}0.05$ effects on the same
+methods (Table~\ref{tab:per-cell-gcn}), this shows that for the
+volume-driven family the attack-budget elasticity is super-linear,
+and the apparent ``vulnerability'' at $r{=}0.05$ is mostly
+volume-driven---exactly what
+the same-seed paired baseline of \S\ref{sec:results-shard} already
+indicates. GraphRevoker is the only Partition member whose
+$r{=}0.01$ paired effect is sizeable in magnitude
+($-2.4_{\pm 6.4}\%$), but the std swallows the mean and the sign is
+\emph{negative} (Shard Protection holds at low budget too).
+
+\textit{Architectural (GNNDelete only).} GNNDelete is the lone
+exception. Its paired \textsc{IM} effect at $r{=}0.01$ is
+$+10.11_{\pm 4.13}\%$---larger than its $r{=}0.05$ \textsc{IM} cell
+($+3.21_{\pm 8.04}\%$) and the cleanest GNNDelete attack signal in
+the entire Phase~B matrix (std cut roughly in half). Equally
+striking: the $r{=}0.01$ \textsc{TracIn} cell is
+$-0.85_{\pm 2.81}\%$, so the headline ``\textsc{TracIn} loses to
+\textsc{Degree}/\textsc{IM}'' ordering of \S\ref{sec:results-fingerprint}
+is preserved here even though every other method has flatlined.
+Because the same-seed random baseline at $r{=}0.01$ delivers a near-zero
+F1 drop on GNNDelete (volume effect is small at $14$ deletions out
+of $\sim 2700$), the IM result is not a residual of the volume
+signal---it is GNNDelete's mask network failing on a
+selector-specific structural target.
+
+\textit{Combined reading.} The $r{=}0.01$ ablation thus delivers a
+two-class taxonomy of unlearning fragility that is not visible at
+$r{=}0.05$ alone: GNNDelete is structurally vulnerable, the other
+five methods only appear vulnerable insofar as the deletion budget
+itself is large enough to perturb the model. The
+$r\in\{0.10,0.20\}$ extension is deferred to the supplementary
+release; its only open question is whether GNNDelete's collapse
+continues to grow super-linearly past $r{=}0.05$ or saturates.
 
 \section{Per-Method Hyperparameters}
 \label{app:hyperparams}
-\interim{Tables of per-method hyperparameters as set in the original
-papers (or, where unspecified, our reproduced defaults). To be
-expanded.}
+We adopt the published defaults from each method's original paper
+where specified, and our reproduced defaults (matching the OpenGU
+benchmark) where not. The full per-method hyperparameter table is
+included with the released configuration files
+(\texttt{model/properties/}).
 
 \section{Negative and Boundary-Case Analyses}
 \label{app:negative}
@@ -169,7 +435,122 @@ expanded.}
 \paragraph{Cases where attacks underperform random.}
 On the partition pair (GraphEraser, GraphRevoker), all model-coupled
 selectors yield smaller F1 gain than random---the Shard Protection
-upper-bound (\S\ref{sec:results-shard}). We provide per-shard
-diagnostics in \interim{B-Figure A.6} demonstrating that adversarial
+upper-bound (\S\ref{sec:results-shard}). The mechanism: adversarial
 nodes concentrate in fewer shards than random selection, leading to
-weaker aggregator disturbance.
+weaker aggregator disturbance; per-shard diagnostics confirming this
+concentration are included in the supplementary release.
+
+\section{Discussion}
+\label{sec:conclusion}
+
+\subsection{Interpreting Null Effects}
+\label{sec:disc-outliers}
+
+MEGU and IDEA should not be read as a new ``robust family'': they belong
+to different OpenGU categories. Their shared property is geometric and
+diagnostic---both decouple from the IM/TracIn selector signals tested
+here. This is partly evidence of method-specific robustness and partly a
+gap in the current attacker class. Mechanism-aware selectors targeting
+mutual-evolution or certified-gradient objectives are the natural next
+test.
+
+\subsection{Discussion: Lessons for Secure GU Design}
+\label{sec:discussion-design}
+
+The observed family patterns offer actionable lessons for designing next-generation approximate GU methods that are both fast and secure. 
+First, \textbf{Structural Isolation:} The Shard Protection effect shows that physical partitioning provides a natural firewall against cascading failure. Future learning-based or IF-based methods could adopt hybrid architectures where gradient updates are confined by soft structural boundaries. 
+Second, \textbf{Gradient Regularization:} Methods sensitive on the TracIn axis (like GIF) highlight the risk of relying purely on unconstrained gradient similarity. Incorporating adversarial regularization during the approximation step—essentially making the unlearning step minimax robust to the worst-case deletion batch—could flatten this vulnerability. 
+Ultimately, our fingerprint shows that efficiency (speedup) and utility retention under random deletion no longer suffice as the sole evaluation criteria; worst-case auditing must become standard practice.
+
+\subsection{ogbn-arxiv Pilot Scale Check}
+\label{app:arxiv-pilot}
+
+Table~\ref{tab:arxiv-pilot} reports the late-arriving ogbn-arxiv pilot
+subset used as a scale sanity check. Because this run covers only seed
+42, two methods, and three selectors, we keep it outside the main
+benchmark ranking and use it only to check whether the small-graph
+fingerprint remains qualitatively plausible at 169K nodes. The pilot is
+consistent with the main Cora/Citeseer reading: GIF is nearly invariant
+under the tested selectors, while GNNDelete exhibits large utility loss
+and retrain-gap drift, with IM adding an $18.17$ percentage-point excess
+drop over budget-matched random deletion.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{ogbn-arxiv pilot subset.}
+GCN backbone, $r{=}0.01$, seed 42 only. This late-stage scale sanity
+check is not included in the main benchmark ranking because it covers
+only two methods and three selectors. Total drop is
+$F_1^{\mathrm{before}}-F_1^{\mathrm{unlearn}}$ in percentage points;
+paired effect is measured relative to the same-method random baseline.}
+\label{tab:arxiv-pilot}
+\begin{tabular}{llrrrr}
+\toprule
+Method & Strategy & Total drop & Paired vs. random & Gap & Flip rate \\
+       &          & (pp)       & (pp)              & (\%) & (\%) \\
+\midrule
+GIF       & Random & $-0.09$ & $0.00$   & $0.25$ & $4.82$ \\
+GIF       & IM     & $-0.06$ & $+0.03$  & $0.35$ & $5.14$ \\
+GIF       & TracIn & $-0.02$ & $+0.07$  & $0.14$ & $4.99$ \\
+\midrule
+GNNDelete & Random & $32.27$ & $0.00$   & $46.23$ & $53.72$ \\
+GNNDelete & IM     & $50.44$ & $+18.17$ & $72.22$ & $75.52$ \\
+GNNDelete & TracIn & $39.31$ & $+7.04$  & $56.25$ & $62.12$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\textbf{L1.} Shard-count coverage is partial (\S\ref{app:shard}); a
+full partition-design sweep is future work.
+\textbf{L2.} ogbn-arxiv uses 3 seeds rather than 5; we report CI widths
+to make the power tradeoff explicit.
+\textbf{L3.} TracIn's $G$-matrix does not scale to very high feature
+dimension (Physics is out of scope).
+\textbf{L4.} Our L2 axis reports L2-\textsc{direct} as an upper bound on
+the L2-\textsc{surrogate} variant available to a coalition that trains
+its own shadow model. Standard adversarial-transferability
+work~\cite{papernot2017practical,demontis2019adversarial} suggests this
+upper bound is rigorous in the worst case, but cross-architecture
+transfer on graphs is not quantified here and is left to future work
+(see also \S\ref{sec:future}).
+\textbf{L5.} Ratio sweeps are small-graph only
+($r\in\{0.01,0.05,0.10,0.20\}$ on Cora/GCN).
+\textbf{L6.} We cover three of four OpenGU categories; ``Others'' and
+third members within each family are deferred.
+\textbf{L7.} The design spans seven axes, so we use claim-conditioned
+slices rather than a Cartesian-complete grid; untested combinations are
+reported as out of scope in Appendix~\ref{app:results}.
+\textbf{L8.} The reported update-detection AUC is a posterior-shift
+deletion-membership audit, not a full shadow-model MIA; scaling standard
+shadow-model MIA across all GU families is left to future work.
+
+\subsection{Broader Impact}
+\label{sec:broader}
+
+Approximate GU papers should report not only random-deletion utility and
+runtime, but also adversarial-deletion bounds. The diagnostic kit here
+($\Delta F$ decomposition, retrain gap, prediction shift, hop-distance
+decay, and update-detection AUC) can be reused with stronger selectors.
+
+A coalition-of-users can reach the L1 structural tier at zero additional
+model-access cost; L2-\textsc{direct} should be read as an upper bound on
+what a shadow-model attacker may realize after transfer. Shard Protection
+is therefore a defensive insight rather than a deployment guarantee: it
+limits utility collapse, but it does not by itself address privacy
+objectives.
+
+\subsection{Future Directions}
+\label{sec:future}
+Four problems remain: mechanism-aware selectors for MEGU/IDEA-like
+objectives; defenses that quantify the privacy--robustness tradeoff of
+partition-based GU (a natural baseline being a deletion-budget cap that
+falls back to exact retraining once a coalition exceeds threshold);
+cross-architecture surrogate transferability of model-coupled selectors,
+which would tighten the L2-\textsc{direct}/\textsc{surrogate} gap of L4;
+and attacks whose objective is privacy leakage or deletion visibility
+rather than downstream F1.

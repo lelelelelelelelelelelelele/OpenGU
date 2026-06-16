@@ -1,6 +1,8 @@
 # Experiment Dashboard
 
-> Last updated: 2026-05-07
+> ⚠️ **FROZEN 2026-05-07（NeurIPS push 结束）。当前状态以 [`PROGRESS.md`](PROGRESS.md) 为准。**
+> 本文件保留作 **历史覆盖矩阵 + bug 档案**；§1 的 Phase B "[ ]" 早已完成（cora 满矩阵），勿据此判断现状。
+> Last updated: 2026-05-07 (§3.3 衍生事实 + IM cross-cell cache 行为 + arxiv k 选择 tradeoff + master scorecard / k=5 dual-baseline)
 > See rules: `CLAUDE.md`
 > NeurIPS deadline: today (~2026-05-07)
 
@@ -33,12 +35,15 @@
         # 注：tier split 不省时间——ScoreCache IF key 含 seed (`tracin_strategy.py:136-149`)，每 tier 独立 ~7-8h
     [ ] B.3  cora/GCN 全矩阵（`phase_b_cora_gcn.yaml`，180 cells / ~90 min；旧 5 method 完成时只补 GraphRevoker）
     [ ] B.4  cora/GAT 全矩阵（`phase_b_cora_gat.yaml`，180 cells / ~110 min）
-[ ] Phase C  分析 + paper writing
-    [ ] C.1  重画 FIG-4b（含 error bar + Jaccard 注释，新数据 Jaccard 应 = 1.0）
-    [ ] C.2  生成 hop-decay 衰减曲线图（按 family 分线，对照 GCN num_layers）
-    [ ] C.3  写 §method 含 B1/B2 选择讨论 + Shard Protection Effect 解读
-    [ ] C.4  写 §limitation 含 MEGU/IDEA mechanism-incomparable framing
-    [ ] C.5  abstract refresh：跑完后用真实数字替换 abstract.md 的 interim 数（见 report/paper/review/abstract_review_2026-05-04.md）
+[x] Phase C  分析 + paper writing（2026-05-07 完成主体）
+    [x] C.1  paper 5 figure 重画完毕（FIG-1/2/3/4a/4b 全部从 _phase_b_aggregate.csv 重生成）
+    [x] C.2  hop-decay 数字进 master scorecard Hop₁ 列；曲线图作为 supplementary
+    [x] C.3  §5 含 Shard Protection 解读 + §5.2 alignment subsection
+    [x] C.4  abstract / §5 / appendix 共 57 个 \interim{} 全部填实数（V-2026-05-07-02）
+    [x] C.5  §5 master scorecard `Table~\ref{tab:benchmark}`：12 行（6 method × 2 backbone）× 6 metric (ΔF_arch, Best attack, Sig/5, Gap, Hop₁, AUC) + Verdict
+    [ ] C.5b 加 "Noise (k=5)" 列到 master scorecard——需先补 4 个缺数据 cell（GraphRevoker × {GCN,GAT}, IDEA/MEGU × GCN）
+        Generator: `experiments/baseline_k5/fill_missing_cora.py`（idempotent，~15 min on 4090）
+        缺因：k=5 batch 在 2026-05-05 GraphRevoker dispatcher fix 之前生成；IDEA/MEGU 当时只跑 GAT
     [ ] C.6  *(低优先级 / 提交后)* surrogate transferability sanity — cora/GCN/GNNDelete/TracIn，shadow=独立训的 GCN（5 seed），单 cell ~2h 4090。验证 §3.1 access spectrum 的 L2-direct → L2-surrogate 上界论述；若 transferability ≥60% 则把 §6.3 L4 升级为"surrogate 攻击力 ≈ direct × 0.X"
 ```
 
@@ -108,6 +113,52 @@ cora/GCN/r=0.05/N=5 的 paired effect size：
 cora/GCN/r=0.05 上 IM_v4 在 5 个 seed 选出的 top-135 节点之间平均只有 ~17 个节点重合。**+6.8 effect 部分由"selector 自己抖"贡献，不是纯 surface variance**。
 
 **修复（2026-05-04, A.4）**：`attack/attack_strategies/im_strategy.py` 改读 `args['im_selector_seed']`（默认 2024），不再 fallback 到 `random_seed`/`seed`。微测验证：seed=42 vs seed=1337 的 IM_v4 选出节点集 **完全相同**（Jaccard=1.0）。Phase B 重跑前需清空 `results/selection_cache/im_v4/`（旧条目按 GU seed 分桶，5 份非决定性数据）。
+
+**衍生事实（2026-05-07，`fix/im-celf-shared-cache` 落地后）**：
+IM full-CELF 在 arxiv 上**每 (dataset, IM hyperparams) 配置只需实算一次**。
+新增的 `results/score_cache/im_celf/` cache key 不含 `unlearning_methods` 也不含 GU 训练 seed（仅依赖 graph_fingerprint + IM hyperparams + `im_selector_seed`，后者默认 2024 固定）。所以：
+
+- B.2 全矩阵 6 method × 3 GU seed × IM strategy = **18 cell 共享 1 份 cache**
+- B.2 全矩阵 6 method × 3 GU seed × Hybrid strategy 的 IM 分支同样命中（Hybrid 用 `compute_initial_marginal_gains` 已经跨方法共享，新 cache 进一步覆盖 full CELF）
+- IM 不依赖 GNN 模型，**整条 select_nodes 路径 0 GPU 操作** → 可在 CPU-only 实例（autodl 32 核 ~¥0.5-1/h）跑出 cache 后传到 GPU 实例
+- `_estimate_spread_numba_parallel`（numba.prange + per-round buffer）在 32 核 CPU 上 ~25-30× 加速；arxiv k=6773 串行预估 2-4h，并行 ~5-10 min
+
+**等价性测试**：`scripts/test_im_celf_cache_equivalence.py` 在 cora 上 4 项验证 PASS（serial vs parallel bit-identical、cache MISS→SAVE→HIT 闭环、改 method+GU seed 仍命中同一 key）。
+
+**paper §method 措辞建议**：
+> "IM seed selection is computed once per (dataset, IM hyperparams) configuration and reused across unlearning methods and GU training seeds. This is methodologically clean because CELF only depends on graph topology and IM hyperparams (propagation probability, MC rounds, candidate pruning fraction); it has no dependence on the unlearning algorithm or its training seed. We fix `im_selector_seed=2024` to decouple from GU seeds (Sec A.4)."
+
+### 3.3.1 arxiv unlearn_ratio 取值 tradeoff（pending decision，2026-05-07）
+
+| 项 | 5%（当前 yaml）| **1%（候选）** | 0.5% |
+|---|---|---|---|
+| k（arxiv train=135K）| 6,773 | **1,355** | 677 |
+| CELF 轮数（batch=5）| 1,355 | 271 | 135 |
+| 单核 numba 估时 | 2-4 h | **10-15 min** | ~3 min |
+| 32-core prange 估时 | 5-10 min | **~30 s** | <10 s |
+| CELF lazy upper-bound 有效性 | 弱（k 大 → submod gap 小 → heap top 反复 stale → 退化成 plain greedy）| **强（标准 CELF 工作区间）** | 强 |
+| 真实 deletion budget 量级 | 半个 retrain，不真实 | **千级 bulk deletion，符合 GDPR/CCPA 量级** | 单数百，常见 |
+| IM 文献 benchmark k 范围 | 异常值（>>200）| 落在常见范围（10-2K）| 落在常见范围 |
+| 跨 strategy 区分度 | 差（k 大 → random 也能让模型崩）| **好** | 好 |
+| **batch_size hack 是否必要** | 必要（否则 1355 轮 × 严格 validate 太慢） | **不必要 → 可回 batch=1 classic CELF** | 不必要 |
+
+**诚实 caveat（用户 2026-05-07 提的）**：
+> "对于 IM 的 score 没有区别"。换句话说，5% → 1% 是**纯粹的 budget 缩减**，不是"更聪明的 IM"。每个候选节点的 marginal-gain 序列没变，只是截断点变早。**这只是工程加速 + threat-model 对齐，不是算法改进**。paper 里不应该 claim "我们提出的更好的 IM 变体"——而是 "我们在 arxiv 上选择更现实的 budget 量级"。
+
+**如果决定切 1%**，对应改动是**最小化的**：
+1. yaml 三处：`phase_b_arxiv_T1/T2/T3_seed*.yaml` + `phase_b_arxiv_tracin_smoke.yaml` + `phase_b_arxiv_feasibility.yaml` 把 `ratio: 0.05` → `ratio: 0.01`
+2. yaml 同时把 `im_batch_size: 5` → `im_batch_size: 1`（回 classic CELF，无 approximation 包袱）
+3. paper §method 加一句 cross-dataset ratio 解释（不是问题，是设计选择）
+4. cora 全部不动（cora 5% = 7 nodes，CELF 飞快）
+
+**衍生收益**：
+- IM CPU prewarm 时间：~30 s（32 核）vs 5-10 min @ 5%
+- T1 总耗：~9-10 h vs ~10-11 h @ 5%
+- paper 方法学不再需要 "approximate batch-CELF" caveat
+
+**不切的话**：3 个 fix 已经让 5% 在 deadline 内可行（IM 1 次 2-4h × 18 cell 摊销 + parallel 32 核砍到 5-10 min），**工程上 5% 不再是阻塞**，但 lazy-greedy 退化的方法学包袱还在。
+
+**决策状态**：等用户确认。决定后改动只在 yaml 层（3-5 个文件），不动代码。
 
 | Strategy | Jaccard | 解读 |
 |----------|---------|------|

@@ -798,6 +798,17 @@ class gif(IF_based_pipeline):
         params_esti   = [p1 + p2 for p1, p2 in zip(params_change, model_params)]
 
         test_F1 = self.target_model.eval_unlearn(params_esti)
+
+        # Write params_esti back into target_model.model so downstream consumers
+        # (eval_collateral perf_unlearn / hop_decay / predictions.npz) see the
+        # actual post-unlearn weights instead of the stale baseline. Without this
+        # AttackPipeline._get_trained_model returns the originally-trained model
+        # for IF-family methods, identical across GIF/IDEA, masking the unlearn.
+        with torch.no_grad():
+            trainable_params = [p for p in self.target_model.model.parameters() if p.requires_grad]
+            for p, new_p in zip(trainable_params, params_esti):
+                p.data.copy_(new_p.detach().to(p.device))
+
         return time.time() - start_time, test_F1
 
     def hvps(self, grad_all, model_params, h_estimate):

@@ -249,6 +249,24 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
   - **(B) K'-superset CELF**：先跑真 CELF 选 5k diverse pool，
     pool 内按 fused 分重排选 k。理论干净但 α=1 corner 不再恢复纯 TracIn
 - 严格 CELF（每步重跑 MC 算 σ(S∪{v})-σ(S)）在 arxiv k=200 上 10+ 小时，不可行
+- **(C) RR-IF-Hybrid（2026-05-07 用户提出，建议作为 ICLR-tier follow-up paper）**
+  统一 IM-only 和 Hybrid 到 IMM 框架，IF 作为 set-cover greedy 的 bicriteria 项。
+  ```
+  for i = 1..k:
+    for v ∈ candidates \ S:
+      cov_gain(v) = |{R ∈ uncovered : v ∈ R}| / θ × n        # IM 边贡献（submodular）
+      score(v)    = α · norm(s_IF(v)) ⊕ (1-α) · norm(cov_gain(v))   # ⊕ ∈ {max, +}
+    v* = argmax score; S ∪= {v*}; cover RR-sets via v*
+  ```
+  优势对比 (A)(B):
+  - **0 新增超参**（仅 α，已有）
+  - **α=0 退化到纯 IMM**（保留 1-1/e OPT 保证）
+  - **α=1 退化到 "TracIn-prior + RR-cover tiebreaker"**（弱化但有意义，非破坏）
+  - **submodular 由 cov_gain 严格保证**（不是 hop-decay 启发式）
+  - **比 CELF 全 step2 还快**（IMM near-linear in n+m）
+  - **统一接口**：IM-only 和 Hybrid 共享同一份 RR-set cache（跟 im_celf cache 设计一脉相承）
+  Open design：⊕ 用 max 还是 weighted sum 是 contribution 的一部分（paper ablation 测两种）。
+  Implementation 工作量：~2-3 天（含 RR-set 生成、bicriteria set-cover greedy、等价测试）。
 
 ### 不修的理由（NeurIPS 时间窗）
 
@@ -268,6 +286,81 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
   with our per-candidate fusion budget, and known approximations
   (hop-decay, K'-superset rerank) introduce hyperparameters or break α=1
   recovery. We leave a principled fix to future work."
+
+---
+
+## L7. k=5 noise floor 部分缺失（5/12 cell）
+
+**Status**: `OPEN` — 补数据脚本就绪，未跑
+**Discovered**: 2026-05-07 引入 master scorecard 双 baseline (k=5 / r=5%) 时
+**Severity**: 低-中 — 不影响 ΔF^attack 主结论；只是 master scorecard 的 "Noise (k=5)" 列在 5/12 cell 标 "—"
+
+### Evidence
+
+`results/baseline/k5_random/` 下方法目录覆盖：
+
+| Method | cora/GCN | cora/GAT |
+|---|---|---|
+| GIF / GNNDelete / GraphEraser | ✅ | ✅ |
+| GraphRevoker | ❌ | ❌ |
+| IDEA | ❌ | ✅ |
+| MEGU | ❌ | ✅ |
+
+### 缺因
+
+- **GraphRevoker**：原 k=5 batch (`results/baseline/k5_random/batch_summary_20260226_*.json`) 在 2026-05-05 GraphRevoker dispatcher fix 之前生成，当时 GraphRevoker 别名到 GraphEraser；fix 后未回填。
+- **IDEA / MEGU × cora/GCN**：原 k=5 batch 的 EXPERIMENTS 列表（`experiments/baseline_k5/run_all_baselines.py:26-41`）只在 `cora/GAT` 包含 IDEA/MEGU。
+
+### Decision
+
+- `OPEN`：补数据脚本就绪 `experiments/baseline_k5/fill_missing_cora.py`，4 (method, backbone) × 5 seed = 20 run，~15 min on 4090，idempotent；已加 `--unlearn_ratio` / `--proportion_unlearned_nodes` / GraphRevoker `--partition_method gpa` 等修正
+- 跑完后 master scorecard `Table~\ref{tab:benchmark}` 的 "Noise (k=5)" 列 12/12 全填
+- 跑完前主表可继续用 r=5% random 作为 budget-matched baseline；$\Delta F_{\text{noise}}$ 的 k=5 列缺失 cell 标 "—"
+
+### 影响 paper 主线？
+
+**否**。两个 baseline complementary not redundant（详 `METRICS_CATALOG.md` §三种 baseline）：
+- 分解 A `drop = drop_random@5% + ΔF^attack_paired` —— paired-$t$ 在用，不缺数据
+- 分解 B `drop_random@5% = drop@k=5 + ΔF_volume` —— Shard Protection / collapse-mode 故事在用，缺的 5 cell 全在 IDEA/MEGU/GraphRevoker，不阻塞投稿
+
+---
+
+## L8. Hop-distance decay (collateral) IF-family 数值 bug-affected
+
+**Status**: `OPEN` — 修复已知，未跑（同 IF-family params_esti write-back fix 路径）
+**Discovered**: 2026-05-07 整理 master scorecard 时
+**Severity**: 中 — 影响 GIF/IDEA 两个 method 的 hop-decay 数字 in §A.4 prose；不影响 attack ΔF^attack / Update AUC / Selection alignment
+
+### Evidence
+
+`hop_*_flip_rate` 字段定义为 `fraction_flipped(model_unlearned, model_retrained, nodes_at_hop)`。
+GIF/IDEA 的 `model_unlearned` 由于 `approxi()` 没把 `params_esti` 写回 `target_model.model.parameters()`（commit `d674f62` fix 没在 4090 当前 cell 真正生效，详见 V-2026-05-07 早期讨论 + tarball replace 那段），所以 GIF/IDEA 的 `hop_*` 实际算的是 `(原 trained model) vs retrain`，**不是** `(post-unlearn model) vs retrain`。
+
+实测对照（Cora/GCN, attack strategies 平均, h=1 flip rate）：
+
+| Method | reported h=1 flip | 解读 |
+|---|---|---|
+| GIF | 2.9% | GIF.model_unlearned ≈ original — flip 是"原 vs retrain" |
+| IDEA | 2.9% | bit-identical with GIF — 同 bug 签名 |
+| MEGU | 2.7% | clean (MEGU 不在 bug 路径上) |
+| GNNDelete | 35.5% | clean |
+| GraphEraser | 29.0% | clean (shard rebalance) |
+| GraphRevoker | 29.9% | clean |
+
+### Decision
+
+`OPEN`：master scorecard 早期版有 Hop₁ 列，**当前版本已删** 避免误导。§A.4 appendix 散文里的 GIF/IDEA "7%" 数字带 `^{\ddagger}` 标注或者直接改成 "(IF-family bug-affected; pending re-run)"。
+
+### 修复路径
+
+1. 服务器上清 `__pycache__/*.pyc`（autodl 容器旧 .pyc 让 d674f62 patch 不生效）
+2. `python scripts/redo_collateral_if_family.py experiments/configs/phase_b_cora_{gcn,gat}.yaml` 重跑 GIF + IDEA × 6 strategy × 5 seed × 2 backbone = 120 cell collateral
+3. 重生 `_phase_b_aggregate.csv`、master scorecard 重生（hop_decay 行的 GIF/IDEA 会更新）
+4. NeurIPS 投稿前来不及，标 `^{\ddagger}` 处理；rebuttal / camera-ready 阶段补完
+
+### 影响 paper 主线
+
+主表 / 主图所有 hop-decay 数字目前在 §A.4 散文，主表已删 Hop₁ 列。**主线 figure / table 不受影响**，只是 §A.4 的两行 GIF/IDEA 数字下界。
 
 ---
 
