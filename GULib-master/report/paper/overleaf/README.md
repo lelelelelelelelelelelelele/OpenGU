@@ -65,12 +65,12 @@ data. After Phase B:
 
 | Section | Numbers to refresh | Source after Phase B |
 |---|---|---|
-| Abstract (`0_abstract.tex`) | F1 collapse %, paired effect, $p$-value, Shard Protection % | aggregate `results/runs/cora_GCN_r0.05/*/seed*/attack.json` |
-| **Table 1 Panel A** (`5_results.tex`) | 30 cells × 6 metrics on cora/GCN | `results/runs/cora_GCN_r0.05/{method}_{strategy}/seed*/attack.json` + `collateral.json` |
+| Abstract (`0_abstract.tex`) | F1 collapse %, paired effect, $p$-value, Shard Protection % | `results/baseline/k5_random/` for $\Delta F_{\text{noise}}$ + aggregate `results/runs/cora_GCN_r0.05/*/seed*/attack.json` for budget-matched effects |
+| **Table 1 Panel A** (`5_results.tex`) | scorecard metrics on cora/GCN + cora/GAT | `results/baseline/k5_random/` for $\Delta F_{\text{noise}}$ + `results/runs/cora_*_r0.05/{method}_{strategy}/seed*/attack.json` + `collateral.json` |
 | **Table 1 Panel B** | 12 cells × 6 metrics on ogbn-arxiv | `results/runs/ogbn-arxiv_GCN_r0.05/{method}_{strategy}/seed*/*.json` |
 | Results §5.2 GNNDelete narrative | mean F1 drop, CI | `results/runs/cora_GCN_r0.05/GNNDelete_im/seed*/attack.json` |
 | Results §5.3 GIF narrative | TracIn paired effect | `results/runs/cora_GCN_r0.05/GIF_tracin/seed*/attack.json` |
-| Results §5.4 Shard narrative | F1 gain ranges | `results/runs/cora_GCN_r0.05/GraphEraser_*/seed*/attack.json` |
+| Results §5.4 Shard narrative | k=5 noise floor + r=5% persistence | `results/baseline/k5_random/` + `results/runs/cora_*_r0.05/{GraphEraser,GraphRevoker}_random/seed*/attack.json` |
 | Results §5.6 Significance | $p$-value matrix, Jaccard note | recompute from per-seed effects |
 | Results §5.6 Retrain gap, Hop decay | per-method gap, decay buckets | `results/runs/*/collateral.json` |
 | Appendix A.1 | speedup multiplier | `experiments/im_benchmark/results/bench_results.json` |

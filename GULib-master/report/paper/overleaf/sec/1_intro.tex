@@ -1,65 +1,50 @@
 \section{Introduction}
 \label{sec:intro}
 
-Machine unlearning is no longer optional. Privacy regulations~\cite{gdpr2016,ccpa2018} grant data subjects the
-right to request removal of their data from trained models (GDPR
-Art.\ 17, CCPA \S1798.105), and graph learning
-systems---recommendation, fraud detection, citation analysis,
-knowledge-graph-augmented retrieval---are squarely in scope. The naive
-solution is retrain-from-scratch, but for production GNNs this is often
-prohibitive. \emph{Approximate graph unlearning} (GU)
-methods~\cite{chen2022graph,wu2023gif,cheng2023gnndelete,li2024towards,dong2024idea,zhang2024towards}
-trade exact removal for large speedups via gradient-, influence-, or
+Machine unlearning is no longer optional. Privacy regulations
+~\cite{gdpr2016,ccpa2018} grant data subjects removal rights, and graph
+learning systems--recommendation, fraud detection, citation analysis, and
+knowledge-graph retrieval--are squarely in scope. Retraining from scratch
+is often prohibitive for production GNNs, so approximate graph unlearning
+(GU) methods~\cite{chen2022graph,wu2023gif,cheng2023gnndelete,li2024towards,dong2024idea,zhang2024towards}
+trade exact removal for speed via gradient-, influence-, or
 partition-based updates.
 
-This trade-off is justified under the implicit assumption that deletion
-requests are \emph{benign}. In adversarial settings, this assumption 
-critically fails: a coalition of users on a compliance-driven platform 
-can selectively choose \emph{which} records to forget via legitimate APIs.
-
-We reveal that this single degree of freedom---deletion-set selection---uncovers 
-a deeply fragmented, yet highly predictable, security landscape in approximate GU. 
-Rather than a random assortment of weaknesses, we expose a clear \textbf{Design-Vulnerability Pattern}: 
-an algorithm's susceptibility is strictly governed by its underlying unlearning mechanics. 
-On one extreme, \emph{Learning-based} methods (e.g., GNNDelete) suffer a domino-like utility 
-collapse (dropping up to $24\%$ in absolute F1 on degree-based deletion), as their coupled loss objectives
-fail to contain structural cascading errors. \emph{Influence-based} methods are precision-targeted 
-by gradient-aligned attacks. On the other extreme, \emph{Partition-based} methods exhibit a natural 
-physical isolation, demonstrating \emph{architectural immunity} (Shard Protection). 
-This predictable vulnerability dictates that exposing a deletion API without understanding 
-these underlying architectural flaws risks the API being \emph{weaponized} to silently dismantle model utility.
+This trade-off usually assumes benign deletion requests. We show that
+the assumption fails once a coalition can choose \emph{which} records to
+forget through legitimate APIs. This single degree of freedom exposes a
+predictable \textbf{Design-Vulnerability Pattern}: learning-based methods
+such as GNNDelete can suffer domino-like F1 collapse (up to $24\%$
+absolute drop under degree deletion), influence-based methods are
+targeted by gradient-aligned selectors, and partition-based methods show
+architectural isolation through Shard Protection. Deletion APIs can
+therefore be weaponized unless approximate GU is audited under
+worst-case deletion sets.
 
 \paragraph{This paper.}
 We conduct the first systematic adversarial audit of approximate GU
-under a deletion-API threat model with a calibrated four-tier access
-spectrum (L0 / L1-structural / L2-\textsc{direct} /
-L2-\textsc{surrogate}; see Table~\ref{tab:access}), treating
-deletion-set selection as the attack and post-unlearning F1 as victim
-utility. To separate family-level trends from method-specific
-behavior, we test \textbf{intra-family pairs} drawn from the upstream
-OpenGU taxonomy. Our contributions are:
+under a deletion-API threat model with a calibrated access spectrum
+(L0 / L1-structural / L2-\textsc{direct} / L2-\textsc{surrogate};
+Table~\ref{tab:access}), treating deletion-set selection as the attack
+and post-unlearning F1 as victim utility. To separate family-level trends
+from method-specific behavior, we test \textbf{intra-family pairs} drawn
+from the upstream OpenGU taxonomy. Our contributions are:
 
 \begin{itemize}[leftmargin=1.2em,topsep=2pt,itemsep=2pt]
   \item \textbf{Threat model and selectors.} We formalize adversarial
-        deletion attacks and organize six selectors along a calibrated
-        four-tier access spectrum (L0 deletion-only / L1 structural
-        / L2-\textsc{direct} / L2-\textsc{surrogate}) keyed on
-        resource cost, not on assumed sophistication.
+        deletion attacks and organize six selectors along a four-tier
+        access spectrum keyed on resource cost.
   \item \textbf{Vulnerability Fingerprint.} We project attack-specific F1
         effects onto structural-spread (IM) and gradient-signal (TracIn)
         axes across six GU methods, revealing family-level regimes and
         strong within-family outliers.
-  \item \textbf{Alignment mechanism.} We surface a structural
-        alignment regularity (\S\ref{sec:results-alignment}): mean
-        degree of the selected set predicts paired F1 effect across
-        $n{=}300$ tuples (Pearson $r{=}0.24$, $p{<}10^{-4}$) and
-        within $11/12$ method$\times$backbone cells, framing the
-        observed selector ordering as an objective-mismatch artefact
-        and motivating attack-aware selectors as future work.
-  \item \textbf{Collateral diagnostics.} We separate the $k{=}5$ noise
-        floor, budget-matched random deletion, and attack-specific paired
-        signal, and complement them with retrain gap, prediction shift,
-        hop-distance decay, and update-detection AUC.
+  \item \textbf{Alignment and diagnostics.} Mean selected-set degree
+        predicts paired F1 effect across $n{=}300$ tuples (Pearson
+        $r{=}0.24$, $p{<}10^{-4}$) and within $11/12$
+        method$\times$backbone cells; our collateral suite separates the
+        $k{=}5$ noise floor, volume effect, attack-specific signal,
+        retrain gap, prediction shift, hop decay, and update-detection
+        AUC.
   \item \textbf{Defense narrative.} \emph{Shard Protection}---the
         architectural immunity of the partition pair to every selector
         and every budget tested---refines when partition-based GU
@@ -67,9 +52,3 @@ OpenGU taxonomy. Our contributions are:
         TracIn breakthrough delineates its boundary.
 \end{itemize}
 
-\paragraph{Why this matters now.}
-GU is moving toward deletion APIs just as approximate methods are being
-benchmarked at ogbn scale. Existing evaluations mostly assume random
-deletion, creating a false sense of security. Our audit introduces the 
-missing worst-case view and a diagnostic protocol for reporting vulnerability 
-alongside efficiency, fundamentally shifting the paradigm from ``how fast can we forget?'' to ``how safely can we expose the forget API?''

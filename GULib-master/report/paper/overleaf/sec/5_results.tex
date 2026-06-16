@@ -23,19 +23,15 @@ vs.\ same-seed random); blank cell means n.s.
 \textbf{Bold} marks the strongest attack per row.
 $\Delta F_{\mathrm{noise}}$ is the F1 drop after deleting just five
 random nodes ($\sim 0.18\%$ of $V_{\mathrm{train}}$), isolating the
-near-zero-volume response of the unlearning algorithm. \emph{Negative}
-indicates \emph{Shard Protection} (F1 actually rises). The five attack
-columns---Degree (DG), PageRank (PR), IM, Hybrid (HY), TracIn
-(TC)---report paired $\Delta F^{\mathrm{attack}}$ in F1 percentage
-points (mean over 5 seeds). The volume-driven comparison against
-$r{=}5\%$ random deletion is reported in \S\ref{sec:results-shard}.
-\emph{Best attack} reports the strongest paired
-$\Delta F^{\mathrm{attack}}$ (\% pts vs same-seed random) across the
-five attack selectors --- Degree (DG), PageRank (PR), IM, Hybrid (HY),
-TracIn (TC) --- with one-sided paired $t$-test significance
-($^{*}p{<}.05$, $^{**}p{<}.01$, $^{***}p{<}.001$); \emph{Sig/5} counts
-how many of the five attack columns clear $p{<}.05$; \emph{Gap} is the
-mean retrain gap
+near-zero-volume response of the unlearning algorithm; it need not be
+zero-mean. \emph{Negative} values indicate \emph{Shard Protection} (F1
+actually rises). The five attack columns---Degree (DG), PageRank (PR),
+IM, Hybrid (HY), TracIn (TC)---report paired
+$\Delta F^{\mathrm{attack}}$ in F1 percentage points (mean over 5
+seeds), i.e., the selector-specific excess over same-seed
+budget-matched random. The volume term
+$\Delta F_{\mathrm{volume}}(r)=\Delta F_{\mathrm{rand}}(r)-\Delta F_{\mathrm{noise}}$
+is discussed in \S\ref{sec:results-shard}. \emph{Gap} is the mean retrain gap
 ($\mathrm{perf}_{\mathrm{unlearn}}-\mathrm{perf}_{\mathrm{retrain}}$,
 \%) under attack strategies; \emph{AUC} is the posterior-shift
 update-detection AUC averaged across all six selectors.
@@ -81,13 +77,14 @@ in any cell except GraphRevoker$\times$GAT (Hybrid$\,/\,$TracIn,
 $\bullet\,p{<}.05$). \emph{(ii)} The bolded \textsc{Degree} (DG)
 column dominates almost every non-partition row, never
 \textsc{TracIn}, inverting the conventional access-tier hierarchy
-(L1 structural attackers beat L2-\textsc{direct} gradient attackers). \emph{(iii)} $\Delta F_{\mathrm{noise}}$
-sorts the families clean: \emph{strongly negative} for the partition
-pair ($-9.6$ to $-19.3$), confirming Shard Protection is built into
-the architecture and not a side-effect of deletion volume; \emph{near
-zero} for Learning-based and IF-based methods (between $-2.2$ and
-$+2.2$), implying their utility loss is volume-driven rather than an
-intrinsic algorithmic cost. \emph{(iv)} The Verdict column splits
+(L1 structural attackers beat L2-\textsc{direct} gradient attackers). \emph{(iii)} The
+three-term decomposition separates intrinsic response, deletion volume,
+and selector excess: $\Delta F_{\mathrm{noise}}$ is strongly negative
+for the partition pair ($-9.6$ to $-19.3$), revealing Shard Protection
+at near-zero deletion volume, while non-partition methods stay near
+zero (between $-2.2$ and $+2.2$). Their remaining degradation must
+therefore come from the budget term $\Delta F_{\mathrm{volume}}$ and/or
+the selector-specific $\Delta F^{\mathrm{attack}}$. \emph{(iv)} The Verdict column splits
 cleanly along family lines: \emph{Immune} for partition (except one
 Conditional cell), \emph{Structural} or \emph{Mild} for IF-based,
 and an asymmetric pair within Learning---GNNDelete posts the largest
@@ -252,10 +249,11 @@ CI widths in Appendix~\ref{app:results}.
   downstream F1 actually \emph{rises} when even five random nodes are
   unlearned, with GraphRevoker reaching $-19.3\%$ (GCN) and $-16.9\%$
   (GAT). Non-partition methods all stay near zero
-  ($-2.2$ to $+2.2$), confirming that the near-zero-volume method response
-  of approximate unlearning is small at near-zero deletion volume; the
-  budget-induced drops at $r{=}5\%$ ($+10\%$ to $+13\%$ for GNNDelete)
-  are reported in Table~\ref{tab:benchmark} via paired $\Delta F^{\mathrm{attack}}$.}
+  ($-2.2$ to $+2.2$), confirming that their intrinsic near-zero-volume
+  response is small. The budget-induced component
+  $\Delta F_{\mathrm{volume}}(0.05)=\Delta F_{\mathrm{rand}}(0.05)-\Delta F_{\mathrm{noise}}$
+  is discussed below; it is distinct from the paired attack columns in
+  Table~\ref{tab:benchmark}.}
   \label{fig:shard-protection}
 \end{figure}
 
@@ -263,14 +261,13 @@ For the Partition family, $\Delta F_{\mathrm{noise}}$ at $k{=}5$
 (Fig.~\ref{fig:shard-protection}, Table~\ref{tab:benchmark}) is
 strongly negative across both backbones ($-9.6\%$ for
 GraphEraser/GCN; $-19.3\%$ for GraphRevoker/GCN; $-11.9\%$ and
-$-16.9\%$ on GAT). The same negative trend persists at the attack
-budget---budget-matched random deletion at $r{=}5\%$ still raises F1
-by $5.8$--$14.6\%$ on the partition pair, an attenuated but consistent
-signal. Crucially the protective shift is most extreme at
-near-zero deletion volume: random deletion does not "happen to hit
-lucky shards" at larger volume; rather, partition aggregation makes
-any disturbance, however small, beneficial in expectation. We call
-this \textbf{Shard Protection}, and it is not an attack effect:
+$-16.9\%$ on GAT). In the decomposition of Eq.~\ref{eq:fshift}, this is
+the intrinsic-response term. The same negative trend persists at the
+attack budget---budget-matched random deletion at $r{=}5\%$ still raises
+F1 by $5.8$--$14.6\%$ on the partition pair. Equivalently,
+$\Delta F_{\mathrm{volume}}(0.05)$ attenuates but does not erase the
+protective baseline. We call this \textbf{Shard Protection}, and it is
+not an attack effect:
 GraphEraser and GraphRevoker have
 $\Delta F^{\text{attack}}{\approx}\,0$ in
 Figure~\ref{fig:fingerprint}, so adversarial selectors do not amplify
@@ -281,10 +278,12 @@ discussed in \S\ref{sec:results-fingerprint}).
 By contrast, GNNDelete shows a near-zero
 $\Delta F_{\mathrm{noise}}$ at $k{=}5$ ($-2.2\%$ on GCN, $+1.4\%$ on
 GAT) but absolute random-deletion drop at $r{=}5\%$ jumps to
-$+10.4\%$ and $+13.0\%$: the entire utility loss is volume-driven,
-not architectural. The IF-based methods, IDEA, and MEGU stay near
-zero on $\Delta F_{\mathrm{noise}}$, indicating neither family imposes
-a measurable architectural cost at this scale.
+$+10.4\%$ and $+13.0\%$: most of its collapse lies in
+$\Delta F_{\mathrm{volume}}$, not in a near-zero-volume method response.
+The IF-based methods, IDEA, and MEGU stay near zero on
+$\Delta F_{\mathrm{noise}}$, indicating that their vulnerability should
+be read through $\Delta F_{\mathrm{volume}}$ and
+$\Delta F^{\mathrm{attack}}$ rather than through Shard Protection.
 
 The mechanism hypothesis for Shard Protection is that partition
 aggregation localizes unlearning to the affected shard while the
@@ -294,7 +293,7 @@ the main-text claim is that Shard Protection appears already in
 $\Delta F_{\mathrm{noise}}$, persists across deletion volumes, and is
 not amplified by sophisticated selectors.
 
-\subsection{Collateral Damage and Hop-Distance Decay}
+\subsection{Approximation and Collateral Diagnostics}
 \label{sec:results-hop}
 
 \begin{figure}[t]
@@ -320,15 +319,17 @@ clear $p<0.01$ on degree and pagerank but not on TracIn; the
 Partition pair clears no attack strategy at $p<0.05$, consistent
 with their architectural immunity.
 
-The retrain gap verifies that utility loss is not merely data loss:
+The retrain gap verifies that utility changes are not merely data loss:
 retraining on $\mathcal{D}_{\mathrm{tr}}\setminus S$ recovers
 baseline-level F1 for GIF, the partition pair, and MEGU/IDEA
 ($|\mathrm{gap}|<2\%$ across all attack strategies), whereas
 GNNDelete shows a much larger gap (mean ${\approx}11\%$ on Cora/GCN,
 peaking at ${\sim}15\%$ on degree-based deletion), implicating
-approximation error.
+approximation drift. Prediction shift provides the retain-set analogue:
+it measures how far the approximate unlearned model's posterior outputs
+move from the exact retrain oracle on nodes that were not deleted.
 
-Hop-distance decay localizes this drift. On Cora/GCN ($L=2$), GIF and
+Hop-distance decay localizes this prediction shift. On Cora/GCN ($L=2$), GIF and
 the partition pair concentrate flips within the receptive field, while
 GNNDelete remains closer to uniform across RF-relative buckets. MEGU and
 IDEA stay near zero, matching their fingerprint positions. Per-family

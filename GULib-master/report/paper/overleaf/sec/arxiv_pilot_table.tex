@@ -1,0 +1,26 @@
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{ogbn-arxiv pilot subset.}
+GCN backbone, $r{=}0.01$, seed 42 only. This late-stage scale sanity
+check is not included in the main benchmark ranking because it covers
+only two methods and three selectors. Total drop is
+$F_1^{\mathrm{before}}-F_1^{\mathrm{unlearn}}$ in percentage points;
+paired effect is measured relative to the same-method random baseline.}
+\label{tab:arxiv-pilot}
+\begin{tabular}{llrrrr}
+\toprule
+Method & Strategy & Total drop & Paired vs. random & Gap & Flip rate \\
+       &          & (pp)       & (pp)              & (\%) & (\%) \\
+\midrule
+GIF       & Random & $-0.09$ & $0.00$   & $0.25$ & $4.82$ \\
+GIF       & IM     & $-0.06$ & $+0.03$  & $0.35$ & $5.14$ \\
+GIF       & TracIn & $-0.02$ & $+0.07$  & $0.14$ & $4.99$ \\
+\midrule
+GNNDelete & Random & $32.27$ & $0.00$   & $46.23$ & $53.72$ \\
+GNNDelete & IM     & $50.44$ & $+18.17$ & $72.22$ & $75.52$ \\
+GNNDelete & TracIn & $39.31$ & $+7.04$  & $56.25$ & $62.12$ \\
+\bottomrule
+\end{tabular}
+\end{table}

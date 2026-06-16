@@ -44,10 +44,14 @@ Appendix~\ref{app:ratio}.
 
 \paragraph{Reporting protocol.}
 Following the decomposition in \S\ref{sec:diagnostics}, we report
-(a)~\emph{paired effect}---per-seed F1 difference between an attack
+(a)~the $k{=}5$ noise floor $\Delta F_{\text{noise}}$, the
+budget-induced term
+$\Delta F_{\text{volume}}(r)=\Delta F_{\text{rand}}(r)-\Delta F_{\text{noise}}$,
+and the paired attack effect---per-seed F1 difference between an attack
 strategy and the matched random baseline (random uses the same GNN
-seed)---with paired mean, paired standard deviation, 95\% bootstrap CI,
-and a one-sided $t$-test against the null $\mu\le 0$;
+seed). For attack effects, we report paired mean, paired standard
+deviation, 95\% bootstrap CI, and a one-sided $t$-test against the null
+$\mu\le 0$;
 (b)~retrain gap, prediction shift, and hop-distance decay
 (\S\ref{sec:diagnostics});
 (c)~update-detection AUC, a posterior-shift deletion-membership audit
@@ -55,8 +59,9 @@ inherited from the OpenGU evaluation protocol: positives are nodes
 requested for unlearning, negatives are held-out test nodes, and the
 attack score is the $L_2$ shift in posterior outputs before versus after
 unlearning, evaluated by ROC-AUC.
-The $k{=}5$ noise floor $\Delta F_{\text{noise}}$ is reported separately
-as a per-method bar chart in \S\ref{sec:results-shard}.
+The $k{=}5$ noise floor $\Delta F_{\text{noise}}$ is reported as a
+per-method bar chart in \S\ref{sec:results-shard}; the fingerprint plots
+only $\Delta F_{\text{attack}}$.
 
 \paragraph{Implementation.}
 All methods are implemented in PyTorch~\cite{paszke2019pytorch} +

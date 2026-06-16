@@ -23,7 +23,7 @@
 2. **Hybrid Score 的理论融合质疑**：公式 (3) 中将来自梯度空间 ($\text{TracIn}$) 和图结构空间 ($\text{IM}$) 两种物理意义完全不同且可能不满足均匀分布的值直接做 min-max 并线性叠加（$\alpha=0.5$）。审稿人会质疑这种融合的理论根基。建议：补充说明这虽然是一种 heuristic（启发式手段），但由于解除了单一指标的盲区（实验部分可佐证），在工程上是实用且有效的。
 
 ### 5. 结构合理性
-1. **Shard Protection 的突兀出现**：Abstract 中抛出了 Shard Protection Effect 这个亮点，但在引言和方法论（尤其 Section 3的流程中）没有任何前情提要，直到 5.3 才解释。建议：在 3.3 Collateral Diagnostics 介绍 $\Delta F_{\text{arch}}$ 的理论分解时，就用半句话预告这可能包含正向的架构性免疫效应，使前后的起承转合更加平顺。
+1. **Shard Protection 的突兀出现**：Abstract 中抛出了 Shard Protection Effect 这个亮点，但在引言和方法论（尤其 Section 3的流程中）没有任何前情提要，直到 5.3 才解释。建议：在 3.3 Collateral Diagnostics 介绍 $\Delta F_{\text{noise}}$（k=5 noise floor）与 $\Delta F_{\text{rand}}(r)$（budget-matched random）时，就用半句话预告 $\Delta F_{\text{noise}}$ 可能包含正向的架构性免疫效应，使前后的起承转合更加平顺。
 
 ### 6. 理论严谨性
 1. **Hop-distance 衰减的量化不足**：5.4 节关于 Hop-Distance Decay 的分析是非常棒的诊断工具，但目前的描述偏向于看图说话（“remains closer to uniform”）。建议引入一个小小的标量统计量（例如空间衰减系数或者跨梯度的 KL 散度）去严谨地证明 GNNDelete 是全局崩溃，而 GIF 是局部衰减。
