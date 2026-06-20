@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progress</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2a313c;
+    --text:#e6edf3; --muted:#8b949e; --accent:#6ea8fe; --track:#21262d;
+    --ok:#3fb950; --warn:#d29922; --blocked:#f85149; --paused:#8b949e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",
+      "PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.86em;
+    background:var(--panel2);border:1px solid var(--border);border-radius:5px;
+    padding:1px 5px;color:#c9d1d9}
+  .ref{border-bottom:1px dotted var(--muted);color:var(--muted);cursor:help}
+  strong{color:#fff;font-weight:650}
+
+  header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  h1#h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
+  #meta{color:var(--muted);font-size:12.5px;margin-top:4px}
+  .grow{flex:1 1 240px;min-width:240px}
+
+  .ring{--pct:0;width:118px;height:118px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--track) 0);
+    display:grid;place-items:center;
+    box-shadow:0 0 0 1px var(--border) inset}
+  .ring-hole{width:90px;height:90px;border-radius:50%;background:var(--panel);
+    display:grid;place-items:center;text-align:center}
+  .ring-num{font-size:25px;font-weight:750;font-variant-numeric:tabular-nums}
+  .ring-lbl{font-size:11px;color:var(--muted)}
+  #overall-sub{font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center}
+
+  .banner{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);
+    border-radius:8px;padding:12px 16px;margin:18px 0 26px;font-size:14px;color:#cdd6e0}
+
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+    margin:30px 0 14px;font-weight:650}
+
+  .snap{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:9px;
+    padding:13px 15px;border-top:2px solid var(--paused)}
+  .card.ok{border-top-color:var(--ok)} .card.warn{border-top-color:var(--warn)}
+  .card.blocked{border-top-color:var(--blocked)} .card.paused{border-top-color:var(--paused)}
+  .card-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--paused);flex:0 0 auto}
+  .card.ok .dot{background:var(--ok)} .card.warn .dot{background:var(--warn)}
+  .card.blocked .dot{background:var(--blocked)} .card.paused .dot{background:var(--paused)}
+  .dim{font-weight:650;font-size:14px}
+  .card .status{font-size:13px;margin-bottom:6px;color:#dbe3ec}
+  .card .why{font-size:12px;color:var(--muted)}
+
+  .filters{display:flex;gap:8px;align-items:center;margin:30px 0 14px}
+  .filters .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+    font-weight:650;margin-right:4px}
+  .filters button{background:var(--panel);color:var(--muted);border:1px solid var(--border);
+    border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font:inherit;
+    font-weight:600}
+  .filters button:hover{color:var(--text);border-color:var(--muted)}
+  .filters button.active{background:var(--accent);color:#04101f;border-color:var(--accent)}
+
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:860px){.board{grid-template-columns:1fr}}
+  .col{background:var(--panel);border:1px solid var(--border);border-radius:11px;
+    padding:15px 15px 6px;align-self:start}
+  .col-title{font-size:14px;font-weight:650;margin-bottom:9px}
+  .tier{display:inline-block;background:var(--panel2);border:1px solid var(--border);
+    border-radius:6px;padding:1px 7px;font-size:12px;font-weight:750;color:var(--accent);
+    margin-right:6px}
+  .col-prog{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .col-prog span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;
+    white-space:nowrap}
+  .bar{flex:1;height:6px;background:var(--track);border-radius:99px;overflow:hidden}
+  .bar > span{display:block;height:100%;background:var(--accent);border-radius:99px}
+
+  .item{display:flex;gap:9px;align-items:flex-start;padding:8px 2px;
+    border-top:1px solid var(--border);font-size:13.5px}
+  .item:first-child{border-top:none}
+  .box{flex:0 0 auto;width:17px;height:17px;border-radius:5px;border:1.5px solid var(--muted);
+    display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:2px;line-height:1}
+  .item.done .box{background:var(--ok);border-color:var(--ok);font-weight:800}
+  .item .txt{flex:1}
+  .item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#475061}
+  .badge{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--warn);
+    border:1px solid var(--warn);border-radius:5px;padding:1px 5px;margin-top:1px;
+    white-space:nowrap;letter-spacing:.03em}
+
+  body.f-todo .item.done{display:none}
+  body.f-blocked .item:not(.blocked){display:none}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:16px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;
+    vertical-align:middle}
+  footer{margin-top:40px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);
+    padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="grow">
+      <h1 id="h1"></h1>
+      <div id="meta"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center">
+      <div class="ring" id="ring"><div class="ring-hole">
+        <div class="ring-num" id="ring-num"></div><div class="ring-lbl">total</div>
+      </div></div>
+      <div id="overall-sub"></div>
+    </div>
+  </header>
+
+  <div class="banner" id="oneliner"></div>
+
+  <h2>State snapshot &mdash; §1</h2>
+  <div class="snap" id="snapshot"></div>
+  <div class="legend">
+    <span><i style="background:var(--ok)"></i>on track</span>
+    <span><i style="background:var(--warn)"></i>partial</span>
+    <span><i style="background:var(--blocked)"></i>blocked</span>
+    <span><i style="background:var(--paused)"></i>paused</span>
+  </div>
+
+  <div class="filters">
+    <span class="lbl">TODO &mdash; §3</span>
+    <button class="active" data-f="all">all</button>
+    <button data-f="todo">open only</button>
+    <button data-f="blocked">★ env-blocked</button>
+  </div>
+  <div class="board" id="board"></div>
+
+  <footer>
+    Derived snapshot of <code>self/dashboard/PROGRESS.md</code> &mdash; regenerate with
+    <code>python scripts/dashboard/refresh.py</code>. Single source of truth stays the markdown.
+  </footer>
+</div>
+
+<script>
+const DATA = {"h1": "PROGRESS — Resume Phase（2026-06 →）", "last_updated": "2026-06-20", "generated": "2026-06-20 19:15", "oneLiner": "数据回来了、<strong>cora 跑得很全<\/strong>（GCN+GAT 满 6×6×5），但回流数据<strong>证伪了 paper 原核心贡献<\/strong>（informed selector 打不过 degree）→ 需要 reframe。环境已厘清（H→E 已重指、本地 CPU 分析就绪、GPU 封存在 AutoDL 镜像 <code>gnn_20<\/code>；本地 GPU 因 5070/sm_120 不可用），一个月整合工作未提交。<strong>大方向（rebuttal vs 重投）待定<\/strong>。", "snapshot": [{"dim": "数据", "cls": "ok", "status": "cora 全+双备份 / arxiv 6-cell pilot（已核实）", "why": "cora 460（<code>ablating/<\/code> 460 + <code>4090/<\/code> 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——<strong>服务器权威 journal 核实只完成 6、全在本地、nothing stranded<\/strong>；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑。<code>predictions.npz<\/code> 按设计不回传（非丢，MIGRATION §1.2）"}, {"dim": "环境", "cls": "warn", "status": "本地分析就绪 / 本地 GPU 不可用", "why": "H→E 已重指（2026-06-20，109 处/28 文件）；conda <code>gnn<\/code> 解释器活在 <code>E:/conda_package/envs/gnn/python.exe<\/code>（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。<strong>本地 GPU 死<\/strong>：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90，CUDA kernel 实测全崩；Py3.8 装不到支持 sm_120 的 torch，<strong>照 requirements.txt 重建救不了<\/strong>。GPU 环境<strong>封存在 AutoDL 镜像 <code>gnn_20<\/code>(5-07)<\/strong>，随起随用 → 本地只做非实验"}, {"dim": "数据安全", "cls": "ok", "status": "已多处备份", "why": "服务器有完整原件；本地已备份到 <code>D:\\backups\\OpenGU_GULib\\2026-06-15\\<\/code> + <code>F:\\…<\/code>（2482 文件校验通过）"}, {"dim": "代码", "cls": "warn", "status": "改动未提交", "why": "5/7 后改动很少、可修复；改过 7 个 paper 章节 + CSV + 图，未跟踪 <code>test1.py<\/code>/<code>arxiv_pilot_table.tex<\/code>；canonical 分支 <code>release/phase-b-fixes<\/code>"}, {"dim": "L8 修复", "cls": "ok", "status": "代码已修 / 🔴 数据仍坏", "why": "写回逻辑 <code>d674f62<\/code> 已在 HEAD（与 <code>949d0f8<\/code> 逐字相同，<strong>不用合分支<\/strong>）；数据坏是服务器 <strong>stale <code>.pyc<\/code><\/strong>（run 的 <code>git_sha=78872fc<\/code> 已含修复但跑了旧字节码）→ 只需清缓存重跑"}, {"dim": "paper", "cls": "warn", "status": "已填实但有硬伤", "why": "0 个 <code>\\interim<\/code>、图已重生、§5.2 已转 objective-misalignment；但 4 处数字 data 撑不住（见 §2）"}, {"dim": "大方向", "cls": "paused", "status": "待定", "why": "用户选了\"先保住现状\"。我的建议=重投+reframe（理由见 §4）"}], "tiers": [{"id": "P0", "title": "防灾 / 现在可做（多数不需环境）", "items": [{"done": true, "blocked": false, "text": "备份回流数据到 D:/F:（2026-06-15）"}, {"done": false, "blocked": false, "text": "<strong>大方向决策<\/strong>：rebuttal vs 重投（卡所有 P2）→ §4"}, {"done": false, "blocked": false, "text": "提交这一个月工作到 <code>release/phase-b-fixes<\/code>（用户暂缓 commit，待确认）"}, {"done": false, "blocked": false, "text": "把 arxiv pilot JSON 纳入版本控制 / 并进 CSV（同上待确认）"}, {"done": false, "blocked": false, "text": "<strong>给硬伤数字加 caveat<\/strong>：§A.4 hop(C3)、GNNDelete n.s.(C2)、ΔF_noise(C4)、<code>A_appendix<\/code> 460/92 笔误 —— *纯 paper 编辑，不需环境* → 对照 <span class=\"ref\" title=\"PAPER_LIABILITIES_MAP.md\"><code>self/dashboard/PAPER_LIABILITIES_MAP.md<\/code><\/span> 逐条修改。"}], "done": 1, "total": 5}, {"id": "P1", "title": "投稿前必补（★=被环境重建阻塞）", "items": [{"done": false, "blocked": false, "text": "<strong>重建 conda <code>gnn<\/code><\/strong>（E: 盘 / <code>../requirements.txt<\/code>）+ 把 <code>H:<\/code>→<code>E:<\/code> 重指 —— <strong>解锁项<\/strong>"}, {"done": false, "blocked": false, "text": "<strong>论文融合（核心写作，可先起不等环境）<\/strong>：把分散的论文素材合并成<strong>一份连贯、打磨的稿<\/strong>。现状=多版并存：① Overleaf 云端版（最新，但<strong>很仓促<\/strong>，需重写打磨而非照搬；每节都比本地新、abstract 已被注释掉=正在重写）② 本地/main 里的旧版（落后云端，2026-06-16 对比确认）③ reframe 框架（<code>565aaf6<\/code> 蓝本 + 强版机制 §7）④ C1-C6 修正。<strong>融合 = 以云端为基底 + 并入 reframe + 落实 C1-C6 + 清掉已弃用分歧<\/strong>（如 <code>arxiv_pilot_table.tex<\/code> 云端已不用）。prose 可先搭骨架不依赖环境；最终数字等 P1 数据修好回填。"}, {"done": false, "blocked": true, "text": "<strong>L8 redo<\/strong>：清 <code>.pyc<\/code> + <code>python scripts/cleanup_if_family_collateral.py<\/code> + 重跑 cora GCN/GAT collateral（<strong>代码不用改<\/strong>；三个 cache 别动）→ 干净 GIF/IDEA gap+hop。关 C3"}, {"done": false, "blocked": true, "text": "把 4 个 hop 列灌进 <code>_phase_b_aggregate.csv<\/code>（扩 aggregator 读 <code>collateral.json::hop_decay<\/code>）。关 C3"}, {"done": false, "blocked": true, "text": "修 ΔF_noise <code>f1_before<\/code> null（重跑 k=5 或注明 anchor）。关 C4"}, {"done": false, "blocked": false, "text": "收敛 figure 生成器分叉（<code>test1.py<\/code> vs <code>scripts/plot_neurips_figures.py<\/code>），删一个重生 6 图"}, {"done": false, "blocked": true, "text": "<strong>GraphRevoker 决策（C5）<\/strong>：(a) 修 <code>e3bbd54<\/code> 标的聚合器 bug（<code>opt_dataset.py:17<\/code> IndexError）→ 整 method 重跑（perf_before 现 0.50-0.58 退化）；或 (b) paper 撤掉 GraphRevoker，报 5 个干净 method + 删 §5.2 GR×GAT 反例。<strong>先定 (a)/(b)<\/strong>。附带：1 个 cell 的损坏分片 checkpoint transient（<code>torch.load: not a ZIP archive<\/code>，删 <code>data/GraphRevoker/cora/<\/code> 损坏 .pt + 重跑即可）随 (a) 一起解"}, {"done": false, "blocked": false, "text": "术语审计 \"MIA\" → \"update-detection AUC\"（纯写作）"}], "done": 0, "total": 8}, {"id": "P2", "title": "加强（新实验=重投实质，全被环境阻塞）", "items": [{"done": false, "blocked": true, "text": "<strong>degree 分解 + 安全指数<\/strong>二级结论（用已有数据 + L8 干净后）→ <code>research_path_degree_severity_decomposition.md<\/code>"}, {"done": false, "blocked": true, "text": "GNNDelete 加 seed（n.s.→显著）或 reframe 成 budget/volume 驱动。关 C2"}, {"done": false, "blocked": true, "text": "arxiv 全矩阵（≥3 seed、6 method）。关\"scalability 只是 pilot\""}, {"done": false, "blocked": true, "text": "<strong>跑干净 citeseer（性价比最高）<\/strong>：yaml 现成 <code>A5_citeseer_r0.05.yaml<\/code>(+r0.20)，6 method×{random,im,tracin}×5 seed=180 cell，~1h。关\"单数据集\"风险。⚠️ 2 月的 citeseer(MG-1/MG-3,在 <code>results/_archive_20260506/<\/code>)是 <strong>pre-Phase-B 污染数据,不能引<\/strong>；当前 <code>0_abstract.tex<\/code> 写\"Cora, Citeseer, ogbn-arxiv\"是 over-claim（citeseer 还没干净版）——要么跑 A5_citeseer，要么 abstract 改成 Cora+arxiv（565aaf6 已是后者）"}, {"done": false, "blocked": true, "text": "跨架构共识：加 1 个<strong>非-MP<\/strong> backbone（Cheb/APPNP）→ <code>idea_cross_arch_consensus.md<\/code>"}, {"done": false, "blocked": true, "text": "IDEA/MEGU 定向 selector 审计（它们对 degree 有响应，\"鲁棒\"框架是错的）"}], "done": 0, "total": 6}], "overall": {"done": 1, "total": 19}};
+const $ = (s, r=document) => r.querySelector(s);
+function elem(tag, cls, htmlStr){const e=document.createElement(tag);
+  if(cls)e.className=cls; if(htmlStr!=null)e.innerHTML=htmlStr; return e;}
+function bar(pct){return '<div class="bar"><span style="width:'+pct+'%"></span></div>';}
+function esc(s){const d=document.createElement('div'); d.textContent=s; return d.innerHTML;}
+
+function render(){
+  $('#h1').textContent = DATA.h1;
+  $('#meta').textContent = 'source updated ' + DATA.last_updated +
+    '  ·  snapshot generated ' + DATA.generated;
+  $('#oneliner').innerHTML = DATA.oneLiner;
+
+  const o = DATA.overall, pct = o.total ? Math.round(o.done/o.total*100) : 0;
+  $('#ring').style.setProperty('--pct', pct);
+  $('#ring-num').textContent = pct + '%';
+  $('#overall-sub').textContent = o.done + '/' + o.total + ' tasks done';
+
+  const grid = $('#snapshot'); grid.innerHTML = '';
+  DATA.snapshot.forEach(r=>{
+    grid.appendChild(elem('div','card '+r.cls,
+      '<div class="card-head"><span class="dot"></span><span class="dim">'+esc(r.dim)+'</span></div>'+
+      '<div class="status">'+r.status+'</div><div class="why">'+r.why+'</div>'));
+  });
+
+  const board = $('#board'); board.innerHTML = '';
+  DATA.tiers.forEach(t=>{
+    const p = t.total ? Math.round(t.done/t.total*100) : 0;
+    const col = elem('div','col',
+      '<div class="col-title"><span class="tier">'+esc(t.id)+'</span>'+esc(t.title)+'</div>'+
+      '<div class="col-prog"><span>'+t.done+'/'+t.total+'</span>'+bar(p)+'</div>');
+    const list = elem('div','list');
+    t.items.forEach(it=>{
+      list.appendChild(elem('div','item'+(it.done?' done':'')+(it.blocked?' blocked':''),
+        '<span class="box">'+(it.done?'✓':'')+'</span>'+
+        '<span class="txt">'+it.text+'</span>'+
+        (it.blocked?'<span class="badge">★ env</span>':'')));
+    });
+    col.appendChild(list);
+    board.appendChild(col);
+  });
+}
+
+document.querySelectorAll('.filters button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.body.classList.remove('f-todo','f-blocked');
+    const f = b.dataset.f;
+    if(f==='todo') document.body.classList.add('f-todo');
+    if(f==='blocked') document.body.classList.add('f-blocked');
+    document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+render();
+</script>
+</body>
+</html>
