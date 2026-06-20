@@ -14,8 +14,8 @@ Runs on cora by default (~135 train nodes, both paths complete in seconds).
 The chunk_size of 50 forces multiple chunks, exercising the streaming logic.
 
 Usage:
-    H:/conda_package/envs/gnn/python.exe scripts/test_tracin_chunked_equivalence.py
-    H:/conda_package/envs/gnn/python.exe scripts/test_tracin_chunked_equivalence.py \
+    E:/conda_package/envs/gnn/python.exe scripts/test_tracin_chunked_equivalence.py
+    E:/conda_package/envs/gnn/python.exe scripts/test_tracin_chunked_equivalence.py \
         --dataset_name citeseer --base_model GCN
 """
 import argparse

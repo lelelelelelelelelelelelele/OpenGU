@@ -52,7 +52,7 @@ Each `outline/*.md` has the same shape:
 
 ## Locked decisions (2026-05-05, revised after upstream OpenGU README check + +1 Partition pair)
 
-- **Family taxonomy**: aligned with **upstream OpenGU 4-category taxonomy** (Partition / IF / Learning / Others) — `H:/project/OpenGU/README.md`. Paper covers 3 of 4 categories with intra-family pair in each; "Others" deferred.
+- **Family taxonomy**: aligned with **upstream OpenGU 4-category taxonomy** (Partition / IF / Learning / Others) — `E:/project/OpenGU/README.md`. Paper covers 3 of 4 categories with intra-family pair in each; "Others" deferred.
 - **Methods = 6, all 3 covered categories have n=2 intra-family pairs**:
   - Partition-based: **GraphEraser** + **GraphRevoker** *(GraphRevoker pending feasibility gate — un-alias `unlearning_manager.py:40` + sanity test in separate local session)*
   - IF-based: **GIF** (canonical) + **IDEA** (predicted intra-family outlier)

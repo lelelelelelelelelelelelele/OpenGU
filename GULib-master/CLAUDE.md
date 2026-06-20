@@ -46,8 +46,8 @@ python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_method
 #   --is_transductive: True/False
 #   --is_balanced: True/False
 # Phase B canonical runner (yaml-driven; supersedes the legacy run_mg*.sh scripts removed 2026-05-06)
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
-H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05    # pass/fail check
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+E:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05    # pass/fail check
 ```
 
 No formal test suite exists. Validation is experiment-driven; results are logged to `log/{method}/{dataset}/{model}/`.
@@ -106,9 +106,9 @@ Use the **conda `gnn` environment** for all Python operations.
 
 ```bash
 # CORRECT: use full path directly
-H:/conda_package/envs/gnn/python.exe main.py ...
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
-H:/conda_package/envs/gnn/python.exe demo_attack.py ...
+E:/conda_package/envs/gnn/python.exe main.py ...
+E:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
+E:/conda_package/envs/gnn/python.exe demo_attack.py ...
 
 # WRONG: conda not available in non-interactive bash
 conda activate gnn && python main.py  # ❌ conda: command not found

@@ -5,7 +5,7 @@ parameters reflect params_esti (i.e., the fix took effect and downstream
 _get_trained_model() / collateral.perf_unlearn will see post-unlearn weights).
 
 Run:
-    H:/conda_package/envs/gnn/python.exe scripts/verify_if_writeback_patch.py
+    E:/conda_package/envs/gnn/python.exe scripts/verify_if_writeback_patch.py
 
 Exit codes: 0 = OK, 1 = patch missing or write-back not visible.
 """

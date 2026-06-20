@@ -808,9 +808,9 @@ ls -lh arxiv_results.tar.gz
 本地 PowerShell：
 
 ```powershell
-scp 4090-host:~/autodl-fs/OpenGU/GULib-master/cora_results.tar.gz H:\project\OpenGU\GULib-master\
-scp h800-host:~/autodl-fs/OpenGU/GULib-master/arxiv_results.tar.gz H:\project\OpenGU\GULib-master\
-cd H:\project\OpenGU\GULib-master
+scp 4090-host:~/autodl-fs/OpenGU/GULib-master/cora_results.tar.gz E:\project\OpenGU\GULib-master\
+scp h800-host:~/autodl-fs/OpenGU/GULib-master/arxiv_results.tar.gz E:\project\OpenGU\GULib-master\
+cd E:\project\OpenGU\GULib-master
 tar xzf cora_results.tar.gz
 tar xzf arxiv_results.tar.gz
 ```

@@ -86,7 +86,7 @@
 
 ### Relative 指标（vs random baseline）
 ```bash
-H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
+E:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
     --unlearning_methods <method> \
     --dataset_name <dataset> \
     --base_model <model> \
@@ -100,7 +100,7 @@ H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
 
 ### Collateral 指标（retrain gap + 留存节点扰动）
 ```bash
-H:/conda_package/envs/gnn/python.exe eval_collateral.py \
+E:/conda_package/envs/gnn/python.exe eval_collateral.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \
@@ -134,12 +134,12 @@ Time:      12.3s (select) + 5.6s (unlearn)
 
 ## 执行步骤
 
-> **重要**：所有 Python 命令必须使用完整路径 `H:/conda_package/envs/gnn/python.exe`，
+> **重要**：所有 Python 命令必须使用完整路径 `E:/conda_package/envs/gnn/python.exe`，
 > 不得使用 `conda activate gnn && python`（非交互式 bash 中 conda 不可用）。
 
 ### 1. 运行主实验
 ```bash
-H:/conda_package/envs/gnn/python.exe demo_attack.py \
+E:/conda_package/envs/gnn/python.exe demo_attack.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \
@@ -151,7 +151,7 @@ H:/conda_package/envs/gnn/python.exe demo_attack.py \
 ### 2. 自动计算 Relative 指标
 实验成功后，自动调用：
 ```bash
-H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
+E:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
     --unlearning_methods <method> \
     --dataset_name <dataset> \
     --base_model <model> \
@@ -165,7 +165,7 @@ H:/conda_package/envs/gnn/python.exe experiments/baseline_k5/eval_relative.py \
 ### 3. 自动计算 Collateral 指标
 实验成功后，自动调用（使用 `--repair` 模式进行增量补全）：
 ```bash
-H:/conda_package/envs/gnn/python.exe eval_collateral.py \
+E:/conda_package/envs/gnn/python.exe eval_collateral.py \
     --dataset_name <dataset> \
     --base_model <model> \
     --unlearning_methods <method> \

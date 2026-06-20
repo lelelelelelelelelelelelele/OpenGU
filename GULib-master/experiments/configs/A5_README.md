@@ -19,9 +19,9 @@ Strategies skipped here:
 ## Run order
 
 ```bash
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.01.yaml
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.10.yaml
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.20.yaml
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.01.yaml
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.10.yaml
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/A5_ratio_0.20.yaml
 ```
 
 Run **after** `phase_b_cora_gcn.yaml` (main matrix) so the r=0.05 cells in cache are reusable for the elasticity plot.

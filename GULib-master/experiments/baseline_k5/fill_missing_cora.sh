@@ -14,7 +14,7 @@
 #
 # Override python binary if needed:
 #   PYTHON=python3 bash experiments/baseline_k5/fill_missing_cora.sh
-#   PYTHON=H:/conda_package/envs/gnn/python.exe bash experiments/baseline_k5/fill_missing_cora.sh
+#   PYTHON=E:/conda_package/envs/gnn/python.exe bash experiments/baseline_k5/fill_missing_cora.sh
 #
 # Exit codes: 0 = all per-seed runs OK; non-zero = at least one cell failed.
 
@@ -35,9 +35,9 @@ resolve_python() {
     for cand in \
         "python" \
         "python3" \
-        "H:/conda_package/envs/gnn/python.exe" \
-        "/h/conda_package/envs/gnn/python.exe" \
-        "/H/conda_package/envs/gnn/python.exe" \
+        "E:/conda_package/envs/gnn/python.exe" \
+        "/e/conda_package/envs/gnn/python.exe" \
+        "/E/conda_package/envs/gnn/python.exe" \
         "/c/conda_package/envs/gnn/python.exe" \
         "C:/ProgramData/Anaconda3/envs/gnn/python.exe" \
         "/c/ProgramData/Anaconda3/envs/gnn/python.exe" \
@@ -54,7 +54,7 @@ resolve_python() {
     for a in "${attempts[@]}"; do echo "  - $a" >&2; done
     echo "DIAG: bash PATH = $PATH" >&2
     echo "DIAG: try one of:" >&2
-    echo "      PYTHON=H:/conda_package/envs/gnn/python.exe bash $0" >&2
+    echo "      PYTHON=E:/conda_package/envs/gnn/python.exe bash $0" >&2
     echo "      PYTHON=python bash $0    # if 'python' resolves in your shell" >&2
     return 1
 }

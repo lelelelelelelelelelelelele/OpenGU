@@ -5,7 +5,7 @@ import os
 
 for ratio_dir in ["cora_GCN_r0.05", "cora_GCN_r0.1"]:
     print(f"\n=== {ratio_dir} ===")
-    for d in sorted(glob.glob(f"H:/project/OpenGU/GULib-master/results/runs/{ratio_dir}/GraphRevoker_*/seed42")):
+    for d in sorted(glob.glob(f"E:/project/OpenGU/GULib-master/results/runs/{ratio_dir}/GraphRevoker_*/seed42")):
         d = d.replace("\\", "/")
         strat = os.path.basename(os.path.dirname(d)).split("GraphRevoker_", 1)[1]
         a = json.load(open(d + "/attack.json"))

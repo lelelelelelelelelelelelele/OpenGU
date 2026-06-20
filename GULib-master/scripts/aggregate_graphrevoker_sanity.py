@@ -4,7 +4,7 @@ import glob
 import os
 import sys
 
-ROOT = "H:/project/OpenGU/GULib-master/results/runs"
+ROOT = "E:/project/OpenGU/GULib-master/results/runs"
 RATIOS = ["0.05", "0.1"]
 
 def collect(ratio):

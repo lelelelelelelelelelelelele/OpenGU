@@ -177,7 +177,7 @@ CHECKLIST GAP ANALYSIS
 
 ## 实现步骤
 
-1. 调用 `H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py` 执行实际检查
+1. 调用 `E:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py` 执行实际检查
 2. 解析脚本输出并格式化显示给用户
 3. `--fill` 模式：脚本输出差异报告后，Claude 读取 checklist 执行修改
 
@@ -190,11 +190,11 @@ CHECKLIST GAP ANALYSIS
 
 ```bash
 # 基础调用（必须用完整路径）
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
+E:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py
 
 # 带参数调用
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --phase mg0 --detail
-H:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill
+E:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --phase mg0 --detail
+E:/conda_package/envs/gnn/python.exe scripts/evaluation/exp_status_checker.py --fill
 ```
 
 ### 参数映射

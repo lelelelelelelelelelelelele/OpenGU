@@ -13,7 +13,7 @@ This is a tiny test on cora — no model training, no actual selection;
 just constructs AttackManager and inspects _build_selection_config keys.
 
 Usage:
-    H:/conda_package/envs/gnn/python.exe scripts/test_topology_strategy_cache_keys.py
+    E:/conda_package/envs/gnn/python.exe scripts/test_topology_strategy_cache_keys.py
 """
 import argparse
 import os
