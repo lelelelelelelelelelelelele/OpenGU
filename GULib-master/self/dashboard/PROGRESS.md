@@ -1,6 +1,6 @@
 # PROGRESS — Resume Phase（2026-06 →）
 
-> Last updated: 2026-06-15
+> Last updated: 2026-06-20
 > Role: **当前阶段的操作中枢**。休整一个月后回流数据 → reframe + rebuttal/重投准备。
 > 与 `EXPERIMENT_DASHBOARD.md` 的关系：那份**冻结在 2026-05-07**（围绕已结束的 NeurIPS 4 天 push），现降级为"历史覆盖矩阵 + bug 档案"；**当前状态以本文件为准**。
 > 维护规则：本文件只放 **状态 / 原因 / 勾选 / 链接**，不复制其他文档内容（遵守 `CLAUDE.md` 的 no-duplication 铁律）。每改一项勾选就更新 Last updated。
@@ -9,7 +9,7 @@
 
 ## 0. 一句话现状
 
-数据回来了、**cora 跑得很全**（GCN+GAT 满 6×6×5），但回流数据**证伪了 paper 原核心贡献**（informed selector 打不过 degree）→ 需要 reframe。环境待重建（盘迁成 E:，可恢复），一个月整合工作未提交。**大方向（rebuttal vs 重投）待定**。
+数据回来了、**cora 跑得很全**（GCN+GAT 满 6×6×5），但回流数据**证伪了 paper 原核心贡献**（informed selector 打不过 degree）→ 需要 reframe。环境已厘清（H→E 已重指、本地 CPU 分析就绪、GPU 封存在 AutoDL 镜像 `gnn_20`；本地 GPU 因 5070/sm_120 不可用），一个月整合工作未提交。**大方向（rebuttal vs 重投）待定**。
 
 ---
 
@@ -17,8 +17,8 @@
 
 | 维度 | 状态 | 原因 / 细节 | 权威出处 |
 |---|---|---|---|
-| **数据** | 🟡 cora 满，arxiv 仅 pilot | cora_GCN/GAT_r0.05 满矩阵 + r0.01 切片 + α=0 ablation = 460 行 1 failed；arxiv = GIF+GNNDelete×3 selector，仅 seed42，不在主 CSV | 记忆 `project-state-resume-2026-06`；`results/_phase_b_aggregate.csv` |
-| **环境** | 🔴 待重建（可恢复） | 换电脑、硬盘迁过来现为 **E: 盘**，conda `gnn` 的旧 `H:` 路径失效；本地暂时跑不了，需从 `../requirements.txt` 重建 + 把 CLAUDE.md/yaml 里 `H:`→`E:` | 同上 |
+| **数据** | 🟢 cora 全+双备份 / arxiv 6-cell pilot（已核实） | cora 460（`ablating/` 460 + `4090/` 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——**服务器权威 journal 核实只完成 6、全在本地、nothing stranded**；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑。`predictions.npz` 按设计不回传（非丢，MIGRATION §1.2）| server journal 存档 `results/_journal/archive/`；`_phase_b_aggregate.csv` |
+| **环境** | 🟡 本地分析就绪 / 本地 GPU 不可用 | H→E 已重指（2026-06-20，109 处/28 文件）；conda `gnn` 解释器活在 `E:/conda_package/envs/gnn/python.exe`（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。**本地 GPU 死**：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90，CUDA kernel 实测全崩；Py3.8 装不到支持 sm_120 的 torch，**照 requirements.txt 重建救不了**。GPU 环境**封存在 AutoDL 镜像 `gnn_20`(5-07)**，随起随用 → 本地只做非实验 | 本 session 实测 + 记忆 `project_stack_reproducibility_constraint` |
 | **数据安全** | 🟢 已多处备份 | 服务器有完整原件；本地已备份到 `D:\backups\OpenGU_GULib\2026-06-15\` + `F:\…`（2482 文件校验通过） | 备份 MANIFEST |
 | **代码** | 🟡 改动未提交 | 5/7 后改动很少、可修复；改过 7 个 paper 章节 + CSV + 图，未跟踪 `test1.py`/`arxiv_pilot_table.tex`；canonical 分支 `release/phase-b-fixes` | — |
 | **L8 修复** | 🟢 代码已修 / 🔴 数据仍坏 | 写回逻辑 `d674f62` 已在 HEAD（与 `949d0f8` 逐字相同，**不用合分支**）；数据坏是服务器 **stale `.pyc`**（run 的 `git_sha=78872fc` 已含修复但跑了旧字节码）→ 只需清缓存重跑 | `limitations.md` L8 |
@@ -46,10 +46,11 @@
 - [ ] **大方向决策**：rebuttal vs 重投（卡所有 P2）→ §4
 - [ ] 提交这一个月工作到 `release/phase-b-fixes`（用户暂缓 commit，待确认）
 - [ ] 把 arxiv pilot JSON 纳入版本控制 / 并进 CSV（同上待确认）
-- [ ] 给硬伤数字加 caveat：§A.4 hop(C3)、GNNDelete n.s.(C2)、ΔF_noise(C4)、`A_appendix` 460/92 笔误 —— *纯 paper 编辑，不需环境*
+- [ ] **给硬伤数字加 caveat**：§A.4 hop(C3)、GNNDelete n.s.(C2)、ΔF_noise(C4)、`A_appendix` 460/92 笔误 —— *纯 paper 编辑，不需环境* → 对照 [`self/dashboard/PAPER_LIABILITIES_MAP.md`](PAPER_LIABILITIES_MAP.md) 逐条修改。
 
 ### P1 — 投稿前必补（★=被环境重建阻塞）
 - [ ] **重建 conda `gnn`**（E: 盘 / `../requirements.txt`）+ 把 `H:`→`E:` 重指 —— **解锁项**
+- [ ] **论文融合（核心写作，可先起不等环境）**：把分散的论文素材合并成**一份连贯、打磨的稿**。现状=多版并存：① Overleaf 云端版（最新，但**很仓促**，需重写打磨而非照搬；每节都比本地新、abstract 已被注释掉=正在重写）② 本地/main 里的旧版（落后云端，2026-06-16 对比确认）③ reframe 框架（`565aaf6` 蓝本 + 强版机制 §7）④ C1-C6 修正。**融合 = 以云端为基底 + 并入 reframe + 落实 C1-C6 + 清掉已弃用分歧**（如 `arxiv_pilot_table.tex` 云端已不用）。prose 可先搭骨架不依赖环境；最终数字等 P1 数据修好回填。
 - [ ] ★ **L8 redo**：清 `.pyc` + `python scripts/cleanup_if_family_collateral.py` + 重跑 cora GCN/GAT collateral（**代码不用改**；三个 cache 别动）→ 干净 GIF/IDEA gap+hop。关 C3
 - [ ] ★ 把 4 个 hop 列灌进 `_phase_b_aggregate.csv`（扩 aggregator 读 `collateral.json::hop_decay`）。关 C3
 - [ ] ★ 修 ΔF_noise `f1_before` null（重跑 k=5 或注明 anchor）。关 C4
@@ -78,7 +79,7 @@
 
 - 现状/环境/数据：记忆 `project-state-resume-2026-06`
 - 贡献证伪 + reframe：记忆 `paper-contribution-falsified`、`self/research_path_degree_severity_decomposition.md`
-- paper 硬伤：记忆 `paper-correctness-liabilities`、`self/limitations.md`（L1-L8）
+- paper 硬伤：记忆 `paper-correctness-liabilities`、[`self/dashboard/PAPER_LIABILITIES_MAP.md`](PAPER_LIABILITIES_MAP.md)、`self/limitations.md`（L1-L8）
 - 跨架构 idea：`self/idea_cross_arch_consensus.md`
 - **进展库（Obsidian vault，往回看）**：`report/progress/_Home.md`（MOC 入口）→ 内含 [[Macro-Timeline]] 宏观 + [[2026-05_NeurIPS-Push]] 冲刺汇报 + [[Milestones]] + [[Findings-and-Decisions]]
 - 历史覆盖矩阵 + bug 档案：`self/dashboard/EXPERIMENT_DASHBOARD.md`（冻结 2026-05-07）
@@ -89,4 +90,6 @@
 
 ## 6. Changelog
 
+- **2026-06-20（晚）环境/数据收口**：H→E 全仓重指（109 处/28 文件 + git-bash 残留 + settings 清死权限）；冒烟测试定位**本地 GPU 因 RTX 5070(sm_120) 不可用**、GPU 环境封存在 AutoDL 镜像 `gnn_20`；数据盘点—cora 全双备份、**arxiv=6-cell pilot 经服务器权威 journal 核实无遗漏**、`predictions.npz` 按设计不回传；完整 server journal 冻结存档 `results/_journal/archive/`；新增 `scripts/dashboard/refresh.py`→`self/dashboard/progress.html` 进度看板。
+- **2026-06-20** 重验证 CSV：strategy 排序、hop 列全空、GraphRevoker perf_before 退化确认；新增 `PAPER_LIABILITIES_MAP.md` 把 C1–C9 硬伤映射到 overleaf 文件/行号。
 - **2026-06-15** 建档。整合 status survey 结论：cora 满矩阵确认、C1 selector 倒置、L8 code-fixed/data-stale 定位、degree 分解路径、跨架构 idea、环境/数据更正。大方向待定。
