@@ -49,3 +49,13 @@ Draft RW sentence:
 ## Queued to add (say the word — I have the metadata)
 - Marchant, Rubinstein, Alfeld 2022, *Hard to Forget: Poisoning Attacks on Certified Machine Unlearning*, AAAI. (non-graph ancestor of Zhang)
 - Chen et al. 2021, *When Machine Unlearning Jeopardizes Privacy*, CCS. (before/after-unlearning MIA — ancestor of the audit/MIA angle)
+
+---
+
+## Selection-concordance study (2026-06-27) → `concordance/report.html`
+
+Training-free set-overlap (Jaccard@k) of selector outputs across 5 datasets (GCN, r=0.05).
+- **IM ≠ degree** on every dataset (0.03–0.19, mean 0.10) — the "IM degenerates to degree" worry is **false at the set level** (single-node spread ~ degree, but the CELF *combination* diverges).
+- **degree ≈ pagerank** but dataset-varying (0.50–0.83).
+- **TracIn ⟂ degree & IM** (cora 0.02–0.03) → influence targets different nodes; degree wins anyway ⇒ volume-driven.
+- **GIF-as-scorer**: implemented (LiSSA `s=H⁻¹∇L_test`, then `⟨s,∇ℓ_v⟩`); inconclusive — on-disk cora model is a 34%-acc GNNDelete variant; needs a real trained base GCN. See [[related-work-zhang-chen-2026]] and `concordance/HANDOFF.md`.
