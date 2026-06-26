@@ -1,0 +1,9 @@
+{
+  "model_note": "GNNDelete 3-layer cora checkpoint loaded as plain GCN (train_acc=0.34, test_acc=0.34); feasibility only, NOT the canonical 2-layer base model",
+  "k": 108,
+  "gif_tracin": 0.113,
+  "gif_degree": 0.091,
+  "gif_im": 0.075,
+  "tracin_degree_samemodel": 0.263,
+  "note": "Efficient IF scorer: s=H^{-1} grad(L_test) via 100-step LiSSA (damp=0.01, scale=25), infl(v)=<s, grad(loss_v)>. GIF vs TracIn-self computed on the SAME loaded model (clean internal validity check); degree/IM are topology (model-independent). Directional \u2014 see model_note."
+}
