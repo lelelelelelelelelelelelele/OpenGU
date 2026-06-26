@@ -59,7 +59,9 @@ def inline_md(s: str) -> str:
         % (html.escape(m.group(2), quote=True), m.group(1)),
         s,
     )
-    s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)   # bold
+    s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)   # bold (before italic)
+    s = re.sub(r"~~([^~]+)~~", r"<del>\1</del>", s)             # strikethrough
+    s = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", s)               # italic (after bold)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)             # inline code
     return s.strip()
 
@@ -67,6 +69,8 @@ def inline_md(s: str) -> str:
 def strip_md(s: str) -> str:
     """Plain-text version: drop bold/code/link markup, keep the words."""
     s = re.sub(r"\*\*([^*]+)\*\*", r"\1", s)
+    s = re.sub(r"~~([^~]+)~~", r"\1", s)
+    s = re.sub(r"\*([^*]+)\*", r"\1", s)
     s = re.sub(r"`([^`]+)`", r"\1", s)
     s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
     return s.strip()
@@ -182,6 +186,8 @@ TEMPLATE = r'''<!doctype html>
     padding:1px 5px;color:#c9d1d9}
   .ref{border-bottom:1px dotted var(--muted);color:var(--muted);cursor:help}
   strong{color:#fff;font-weight:650}
+  em{font-style:italic;color:#cdd6e0}
+  del{color:var(--muted);text-decoration:line-through;text-decoration-color:#5a6473}
 
   header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
   h1#h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
