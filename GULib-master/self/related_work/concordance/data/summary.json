@@ -1,0 +1,81 @@
+{
+  "datasets": {
+    "citeseer": {
+      "k": 133,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im"
+      ],
+      "degree_pagerank": 0.503,
+      "im_degree": 0.177,
+      "im_pagerank": 0.157,
+      "tracin_degree": null,
+      "tracin_im": null,
+      "hybrid_tracin": null,
+      "gif_tracin": null,
+      "gif_degree": null
+    },
+    "cora": {
+      "k": 108,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im",
+        "tracin",
+        "hybrid"
+      ],
+      "degree_pagerank": 0.831,
+      "im_degree": 0.187,
+      "im_pagerank": 0.2,
+      "tracin_degree": 0.024,
+      "tracin_im": 0.029,
+      "hybrid_tracin": 0.155,
+      "gif_tracin": null,
+      "gif_degree": null
+    },
+    "Photo": {
+      "k": 306,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im"
+      ],
+      "degree_pagerank": 0.611,
+      "im_degree": 0.046,
+      "im_pagerank": 0.044,
+      "tracin_degree": null,
+      "tracin_im": null,
+      "hybrid_tracin": null,
+      "gif_tracin": null,
+      "gif_degree": null
+    },
+    "pubmed": {
+      "k": 788,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im"
+      ],
+      "degree_pagerank": 0.568,
+      "im_degree": 0.061,
+      "im_pagerank": 0.063,
+      "tracin_degree": null,
+      "tracin_im": null,
+      "hybrid_tracin": null,
+      "gif_tracin": null,
+      "gif_degree": null
+    }
+  },
+  "highlights": {
+    "degree_pagerank_mean": 0.628,
+    "im_degree_mean": 0.118,
+    "tracin_degree_mean": 0.024,
+    "tracin_im_mean": 0.029,
+    "n_datasets": 4
+  }
+}
