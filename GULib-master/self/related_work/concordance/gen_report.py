@@ -88,14 +88,23 @@ def main():
     gif_section = ""
     if gif:
         gif_section = f"""
-        <h2>GIF-as-scorer (real influence) — cora</h2>
-        <p>{gif.get('note','')}</p>
+        <h2>GIF-as-scorer (real influence) — cora (feasibility)</h2>
+        <p class="warn"><strong>Implemented and demonstrated end-to-end, but INCONCLUSIVE.</strong>
+        The efficient IF scorer runs (s=H⁻¹∇L_test via LiSSA, then ⟨s,∇ℓ_v⟩ per candidate), but the
+        only trained cora model on disk — a GNNDelete 3-layer checkpoint — loads into a plain GCN at
+        just <strong>{gif.get('model_note','').split('train_acc=')[-1][:4] if 'train_acc=' in gif.get('model_note','') else '?'} train accuracy</strong>
+        (its deletion-operator forward differs from a plain GCN). Influence computed on a barely-fit
+        model is not a valid surrogate for influence on a well-trained one, so the GIF↔TracIn number
+        below is <em>directional code-validation only, not the validity claim</em>. The clean run needs a
+        properly trained base GCN (AutoDL / un-gated train).</p>
         <table class="kv">
-          <tr><td>GIF ↔ TracIn</td><td>{gif.get('gif_tracin')}</td></tr>
+          <tr><td>GIF ↔ TracIn-self</td><td>{gif.get('gif_tracin')}</td></tr>
           <tr><td>GIF ↔ degree</td><td>{gif.get('gif_degree')}</td></tr>
           <tr><td>GIF ↔ IM</td><td>{gif.get('gif_im')}</td></tr>
+          <tr><td>TracIn-self ↔ degree (same model)</td><td>{gif.get('tracin_degree_samemodel')}</td></tr>
           <tr><td>model</td><td>{gif.get('model_note','')}</td></tr>
         </table>
+        <p>{gif.get('note','')}</p>
         """
     else:
         gif_section = """

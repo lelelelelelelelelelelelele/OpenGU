@@ -17,6 +17,23 @@
       "gif_tracin": null,
       "gif_degree": null
     },
+    "Computers": {
+      "k": 550,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im"
+      ],
+      "degree_pagerank": 0.599,
+      "im_degree": 0.03,
+      "im_pagerank": 0.028,
+      "tracin_degree": null,
+      "tracin_im": null,
+      "hybrid_tracin": null,
+      "gif_tracin": null,
+      "gif_degree": null
+    },
     "cora": {
       "k": 108,
       "strategies": [
@@ -72,10 +89,10 @@
     }
   },
   "highlights": {
-    "degree_pagerank_mean": 0.628,
-    "im_degree_mean": 0.118,
+    "degree_pagerank_mean": 0.622,
+    "im_degree_mean": 0.1,
     "tracin_degree_mean": 0.024,
     "tracin_im_mean": 0.029,
-    "n_datasets": 4
+    "n_datasets": 5
   }
 }
