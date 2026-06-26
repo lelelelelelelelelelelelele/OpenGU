@@ -53,6 +53,23 @@
       "gif_tracin": null,
       "gif_degree": null
     },
+    "CS": {
+      "k": 733,
+      "strategies": [
+        "random",
+        "degree",
+        "pagerank",
+        "im"
+      ],
+      "degree_pagerank": 0.705,
+      "im_degree": 0.032,
+      "im_pagerank": 0.031,
+      "tracin_degree": null,
+      "tracin_im": null,
+      "hybrid_tracin": null,
+      "gif_tracin": null,
+      "gif_degree": null
+    },
     "Photo": {
       "k": 306,
       "strategies": [
@@ -89,10 +106,10 @@
     }
   },
   "highlights": {
-    "degree_pagerank_mean": 0.622,
-    "im_degree_mean": 0.1,
+    "degree_pagerank_mean": 0.636,
+    "im_degree_mean": 0.089,
     "tracin_degree_mean": 0.024,
     "tracin_im_mean": 0.029,
-    "n_datasets": 5
+    "n_datasets": 6
   }
 }

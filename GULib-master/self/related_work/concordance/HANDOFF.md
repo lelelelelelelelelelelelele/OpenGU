@@ -11,15 +11,14 @@ degree? is TracIn just degree? is my cheap TracIn ≈ real GIF?).
 
 ## Results (GCN, r=0.05, seed 2024, k=r·|V_train|)
 
-| pair | cora | citeseer | pubmed | Photo | Computers | mean |
-|---|---|---|---|---|---|---|
-| degree ↔ pagerank | 0.831 | 0.503 | 0.568 | 0.611 | 0.599 | **0.62** |
-| IM ↔ degree | 0.187 | 0.177 | 0.061 | 0.046 | 0.030 | **0.10** |
-| IM ↔ pagerank | 0.200 | 0.157 | 0.063 | 0.044 | 0.028 | 0.10 |
-| TracIn ↔ degree | 0.024 | — | — | — | — | (cora only) |
-| TracIn ↔ IM | 0.029 | — | — | — | — | (cora only) |
+| pair | cora | citeseer | pubmed | Photo | Computers | CS | mean |
+|---|---|---|---|---|---|---|---|
+| degree ↔ pagerank | 0.831 | 0.503 | 0.568 | 0.611 | 0.599 | 0.705 | **0.64** |
+| IM ↔ degree | 0.187 | 0.177 | 0.061 | 0.046 | 0.030 | 0.032 | **0.09** |
+| TracIn ↔ degree | 0.024 | — | — | — | — | — | (cora only) |
+| TracIn ↔ IM | 0.029 | — | — | — | — | — | (cora only) |
 
-(CS pending — large; folds in when its background run finishes.)
+(All 6 datasets done. Larger/denser graphs make IM *more* distinct from degree — Computers/CS/Photo ≈ 0.03–0.05.)
 
 ### Findings
 1. **IM does NOT degenerate to degree** — distinct on every dataset (0.03–0.19), most distinct on
