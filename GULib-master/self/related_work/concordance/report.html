@@ -80,13 +80,13 @@ Green = redundant (same nodes); orange = distinct. "—" = selector needs a trai
         <strong>GIF</strong> = the real graph influence function (s = H⁻¹∇L<sub>test</sub> via LiSSA, then
         infl(v)=⟨s,∇ℓ<sub>v</sub>⟩); <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree/IM are topology.</p>
         <table>
-        <thead><tr><th class="pair">pair</th><th>cora<span class="kk">F1=0.8893</span></th><th>citeseer<span class="kk">F1=0.7312</span></th></tr></thead>
+        <thead><tr><th class="pair">pair</th><th>cora<span class="kk">F1=0.8893</span></th><th>citeseer<span class="kk">F1=0.7312</span></th><th>pubmed<span class="kk">F1=0.8633</span></th></tr></thead>
         <tbody>
-        <tr><th class="pair">GIF ↔ TracIn (cross)<span class="note">deployed strategy — is it ≈ real IF?</span></th><td style="background:hsl(31,70%,88%)">0.263</td><td style="background:hsl(5,70%,88%)">0.047</td></tr>
-        <tr><th class="pair">GIF ↔ TracIn-self ‖∇ℓ‖<span class="note">the self-influence variant</span></th><td style="background:hsl(35,70%,88%)">0.293</td><td style="background:hsl(40,70%,88%)">0.337</td></tr>
-        <tr><th class="pair">GIF ↔ degree<span class="note">real IF vs structural volume</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(4,70%,88%)">0.039</td></tr>
-        <tr><th class="pair">GIF ↔ IM<span class="note"></span></th><td style="background:hsl(3,70%,88%)">0.033</td><td style="background:hsl(2,70%,88%)">0.019</td></tr>
-        <tr><th class="pair">TracIn ↔ degree<span class="note"></span></th><td style="background:hsl(2,70%,88%)">0.019</td><td style="background:hsl(2,70%,88%)">0.023</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn (cross)<span class="note">deployed strategy — is it ≈ real IF?</span></th><td style="background:hsl(31,70%,88%)">0.263</td><td style="background:hsl(5,70%,88%)">0.047</td><td style="background:hsl(0,70%,88%)">0.003</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn-self ‖∇ℓ‖<span class="note">the self-influence variant</span></th><td style="background:hsl(35,70%,88%)">0.293</td><td style="background:hsl(40,70%,88%)">0.337</td><td style="background:hsl(24,70%,88%)">0.207</td></tr>
+        <tr><th class="pair">GIF ↔ degree<span class="note">real IF vs structural volume</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(4,70%,88%)">0.039</td><td style="background:hsl(5,70%,88%)">0.042</td></tr>
+        <tr><th class="pair">GIF ↔ IM<span class="note"></span></th><td style="background:hsl(3,70%,88%)">0.033</td><td style="background:hsl(2,70%,88%)">0.019</td><td style="background:hsl(2,70%,88%)">0.023</td></tr>
+        <tr><th class="pair">TracIn ↔ degree<span class="note"></span></th><td style="background:hsl(2,70%,88%)">0.019</td><td style="background:hsl(2,70%,88%)">0.023</td><td style="background:hsl(3,70%,88%)">0.029</td></tr>
         </tbody>
         </table>
         <p><strong>Reading.</strong> (1) The <strong>deployed TracIn-cross is a weak GIF surrogate</strong>

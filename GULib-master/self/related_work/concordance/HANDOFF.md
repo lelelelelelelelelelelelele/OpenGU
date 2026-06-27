@@ -37,11 +37,13 @@ degree? is TracIn just degree? is my cheap TracIn ≈ real GIF?).
 OK'd training for the concordance study), then computes TracIn (cross) + real GIF (s=H⁻¹∇L_test via LiSSA)
 on the **same** trained model.
 
-| pair | cora (F1=0.89) | citeseer (F1=0.73) | pubmed |
+| pair | cora (F1=0.89) | citeseer (F1=0.73) | pubmed (F1=0.86) |
 |---|---|---|---|
-| GIF ↔ TracIn (cross, deployed) | 0.263 | 0.047 | (bg) |
-| GIF ↔ TracIn-self ‖∇ℓ‖ | 0.293 | 0.337 | (bg) |
-| GIF ↔ degree | 0.024 | 0.039 | (bg) |
+| GIF ↔ TracIn (cross, deployed) | 0.263 | 0.047 | **0.003** |
+| GIF ↔ TracIn-self ‖∇ℓ‖ | 0.293 | 0.337 | 0.207 |
+| GIF ↔ degree | 0.024 | 0.039 | 0.042 |
+
+(cross-form GIF surrogacy degrades with graph size — 0.26→0.05→0.003; self-influence holds 0.21–0.34; GIF⟂degree everywhere.)
 
 1. **Deployed cross-form TracIn is a weak GIF surrogate** (0.05–0.26): cross ≈ ⟨∇ℓ_v, Σ∇ℓ⟩, Σ∇ℓ≈0 near
    convergence → noisy. **Self-influence ‖∇ℓ‖ aligns ~7× better** (0.29–0.34) but still ~0.3 (H⁻¹ reorders).
