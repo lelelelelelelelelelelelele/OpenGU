@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 """
-refresh.py - generate a self-contained progress dashboard from PROGRESS.md.
+refresh.py - generate a self-contained progress dashboard from WORKPLAN.md.
 
-Reads  self/dashboard/PROGRESS.md  (the single source of truth; this script
+Reads  self/dashboard/WORKPLAN.md  (the single source of truth; this script
 never edits it) and emits  self/dashboard/progress.html  -- ONE self-contained
 file: no build step, no server, no framework, no external assets. Double-click
 to open, works over file://.
 
-The HTML is a *derived snapshot*. Re-run this script after editing PROGRESS.md
-to regenerate it. Per self/dashboard/CLAUDE.md rule 2 (no-duplication), the
-dashboard is never a second source of truth -- PROGRESS.md is. Nothing here
-writes back into the markdown.
+The HTML is a *derived snapshot*. Re-run this script after editing WORKPLAN.md
+to regenerate it (a git pre-commit hook does this automatically when WORKPLAN.md
+is staged). Per self/dashboard/CLAUDE.md the dashboard is never a second source
+of truth -- WORKPLAN.md is. Nothing here writes back into the markdown.
 
-What it parses out of PROGRESS.md:
+What it parses out of WORKPLAN.md:
   * H1 title + "Last updated" line
-  * Section 0 one-liner status (header banner)
-  * Section 1 state-snapshot table  -> status cards, colored by emoji
-  * Section 3 TODO framework         -> P0/P1/P2 kanban with progress bars
+  * Section 0 one-liner status            -> header banner
+  * Section 1 state-snapshot table         -> status cards, colored by emoji
+  * Sections "实验 / Ablation / 写作 / 画图" -> 4-stage kanban with progress bars
+    (each is a markdown table; ID=col 0, task=col 1, status symbol=last col)
 
 Usage:
     python scripts/dashboard/refresh.py
@@ -36,7 +37,7 @@ import sys
 import webbrowser
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-SRC = ROOT / "self" / "dashboard" / "PROGRESS.md"
+SRC = ROOT / "self" / "dashboard" / "WORKPLAN.md"
 OUT = ROOT / "self" / "dashboard" / "progress.html"
 
 # leading emoji in the §1 status column -> (css class, fallback label)
@@ -44,15 +45,22 @@ STATUS_EMOJI = [
     ("\U0001F7E2", "ok",      "on track"),  # green
     ("\U0001F7E1", "warn",    "partial"),   # yellow
     ("\U0001F534", "blocked", "blocked"),   # red
-    ("⏸️", "paused", "paused"),   # pause (with variation selector)
-    ("⏸",      "paused", "paused"),    # pause (bare)
+    ("⏸️", "paused", "paused"),
+    ("⏸",      "paused", "paused"),
+]
+
+# §5-§8 stage sections, matched by keyword in the H2 header.
+STAGES = [
+    ("实验", "实验"),
+    ("ablation", "Ablation"),
+    ("写作", "写作"),
+    ("画图", "画图"),
 ]
 
 
 def inline_md(s: str) -> str:
     """Escape text, then render a safe subset of inline markdown to HTML."""
     s = html.escape(s, quote=False)
-    # [text](target) -> a non-navigating ref chip (avoids file:// breakage)
     s = re.sub(
         r"\[([^\]]+)\]\(([^)]+)\)",
         lambda m: '<span class="ref" title="%s">%s</span>'
@@ -78,10 +86,18 @@ def strip_md(s: str) -> str:
 
 def section_body(md: str, num: int) -> str:
     """Body of '## {num}. ...' up to the next '## ' heading (or EOF)."""
-    m = re.search(
-        r"^##\s+%d\.\s.*?$(.*?)(?=^##\s|\Z)" % num, md, re.M | re.S
-    )
+    m = re.search(r"^##\s+%d\.\s.*?$(.*?)(?=^##\s|\Z)" % num, md, re.M | re.S)
     return m.group(1).strip() if m else ""
+
+
+def h2_section(md: str, keyword: str) -> str:
+    """Body of the first H2 whose header text contains `keyword` (case-insensitive)."""
+    m = re.search(r"^##\s+.*%s.*$" % re.escape(keyword), md, re.M | re.I)
+    if not m:
+        return ""
+    start = m.end()
+    nxt = re.search(r"^##\s", md[start:], re.M)
+    return md[start: start + nxt.start()] if nxt else md[start:]
 
 
 def clean_para(body: str) -> str:
@@ -115,50 +131,73 @@ def parse_snapshot(body: str):
     return rows
 
 
-TIER_RE = re.compile(r"^###\s+(P\d)\s*(?:[—–-]\s*(.*))?$")
-ITEM_RE = re.compile(r"^\s*-\s*\[([ xX])\]\s*(.*\S)\s*$")
+SEP_RE = re.compile(r"^:?-{2,}:?$")
 
 
-def parse_todo(body: str):
-    """Parse §3 into tiers, each with checkbox items + progress counts."""
-    tiers, cur = [], None
+def parse_stage_items(body: str):
+    """Parse a stage markdown table -> task items (ID, task html, state, blocked)."""
+    items = []
     for ln in body.splitlines():
-        mh = TIER_RE.match(ln.strip())
-        if mh:
-            cur = {"id": mh.group(1),
-                   "title": strip_md((mh.group(2) or "").strip()),
-                   "items": []}
-            tiers.append(cur)
+        s = ln.strip()
+        if not s.startswith("|"):
             continue
-        mi = ITEM_RE.match(ln)
-        if mi and cur is not None:
-            raw = mi.group(2)
-            cur["items"].append({
-                "done": mi.group(1).lower() == "x",
-                "blocked": "★" in raw,            # the ★ env-blocked marker
-                "text": inline_md(raw.replace("★", "").strip()),
-            })
-    for t in tiers:
-        t["done"] = sum(1 for i in t["items"] if i["done"])
-        t["total"] = len(t["items"])
-    return tiers
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        nonempty = [c for c in cells if c]
+        if nonempty and all(SEP_RE.match(c) for c in nonempty):
+            continue                              # separator row
+        if not cells or cells[0] in ("ID", "id"):
+            continue                              # header row
+        if len(cells) < 2:
+            continue
+        idraw, taskraw, statusraw = cells[0], cells[1], cells[-1]
+        if "✅" in statusraw:
+            state = "done"
+        elif "◐" in statusraw:
+            state = "wip"
+        else:
+            state = "todo"
+        sub = statusraw
+        for ch in ("☐", "◐", "✅", "★"):
+            sub = sub.replace(ch, "")
+        items.append({
+            "id": strip_md(idraw.replace("★", "").strip()),
+            "task": inline_md(taskraw),
+            "state": state,
+            "blocked": "★" in s,
+            "label": inline_md(sub.strip()) if sub.strip() else "",
+        })
+    return items
+
+
+def build_stages(md: str):
+    stages = []
+    for kw, label in STAGES:
+        items = parse_stage_items(h2_section(md, kw))
+        stages.append({
+            "label": label,
+            "items": items,
+            "done": sum(1 for i in items if i["state"] == "done"),
+            "wip": sum(1 for i in items if i["state"] == "wip"),
+            "total": len(items),
+        })
+    return stages
 
 
 def build_data(md: str) -> dict:
-    h1 = (re.search(r"^#\s+(.*)$", md, re.M) or [None, "Progress"])
-    h1 = h1[1].strip() if isinstance(h1, list) else h1.group(1).strip()
+    h1 = re.search(r"^#\s+(.*)$", md, re.M)
     lu = re.search(r"Last updated:\s*([0-9-]+)", md)
-    tiers = parse_todo(section_body(md, 3))
-    done = sum(t["done"] for t in tiers)
-    total = sum(t["total"] for t in tiers)
+    stages = build_stages(md)
+    done = sum(s["done"] for s in stages)
+    wip = sum(s["wip"] for s in stages)
+    total = sum(s["total"] for s in stages)
     return {
-        "h1": h1,
+        "h1": h1.group(1).strip() if h1 else "Progress",
         "last_updated": lu.group(1) if lu else "?",
         "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         "oneLiner": clean_para(section_body(md, 0)),
         "snapshot": parse_snapshot(section_body(md, 1)),
-        "tiers": tiers,
-        "overall": {"done": done, "total": total},
+        "stages": stages,
+        "overall": {"done": done, "wip": wip, "total": total},
     }
 
 
@@ -180,7 +219,7 @@ TEMPLATE = r'''<!doctype html>
       "PingFang SC","Microsoft YaHei",sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:var(--accent)}
-  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+  .wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px}
   code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.86em;
     background:var(--panel2);border:1px solid var(--border);border-radius:5px;
     padding:1px 5px;color:#c9d1d9}
@@ -190,19 +229,18 @@ TEMPLATE = r'''<!doctype html>
   del{color:var(--muted);text-decoration:line-through;text-decoration-color:#5a6473}
 
   header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-  h1#h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
+  h1#h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.2px}
   #meta{color:var(--muted);font-size:12.5px;margin-top:4px}
   .grow{flex:1 1 240px;min-width:240px}
 
   .ring{--pct:0;width:118px;height:118px;border-radius:50%;flex:0 0 auto;
     background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--track) 0);
-    display:grid;place-items:center;
-    box-shadow:0 0 0 1px var(--border) inset}
+    display:grid;place-items:center;box-shadow:0 0 0 1px var(--border) inset}
   .ring-hole{width:90px;height:90px;border-radius:50%;background:var(--panel);
     display:grid;place-items:center;text-align:center}
   .ring-num{font-size:25px;font-weight:750;font-variant-numeric:tabular-nums}
   .ring-lbl{font-size:11px;color:var(--muted)}
-  #overall-sub{font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center}
+  #overall-sub{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
 
   .banner{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);
     border-radius:8px;padding:12px 16px;margin:18px 0 26px;font-size:14px;color:#cdd6e0}
@@ -227,33 +265,32 @@ TEMPLATE = r'''<!doctype html>
   .filters .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
     font-weight:650;margin-right:4px}
   .filters button{background:var(--panel);color:var(--muted);border:1px solid var(--border);
-    border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font:inherit;
-    font-weight:600}
+    border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font:inherit;font-weight:600}
   .filters button:hover{color:var(--text);border-color:var(--muted)}
   .filters button.active{background:var(--accent);color:#04101f;border-color:var(--accent)}
 
-  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  @media(max-width:860px){.board{grid-template-columns:1fr}}
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px;align-items:start}
   .col{background:var(--panel);border:1px solid var(--border);border-radius:11px;
     padding:15px 15px 6px;align-self:start}
   .col-title{font-size:14px;font-weight:650;margin-bottom:9px}
-  .tier{display:inline-block;background:var(--panel2);border:1px solid var(--border);
-    border-radius:6px;padding:1px 7px;font-size:12px;font-weight:750;color:var(--accent);
-    margin-right:6px}
   .col-prog{display:flex;align-items:center;gap:9px;margin-bottom:12px}
-  .col-prog span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;
-    white-space:nowrap}
+  .col-prog span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
   .bar{flex:1;height:6px;background:var(--track);border-radius:99px;overflow:hidden}
   .bar > span{display:block;height:100%;background:var(--accent);border-radius:99px}
 
-  .item{display:flex;gap:9px;align-items:flex-start;padding:8px 2px;
+  .item{display:flex;gap:9px;align-items:flex-start;padding:9px 2px;
     border-top:1px solid var(--border);font-size:13.5px}
   .item:first-child{border-top:none}
-  .box{flex:0 0 auto;width:17px;height:17px;border-radius:5px;border:1.5px solid var(--muted);
-    display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:2px;line-height:1}
+  .box{flex:0 0 auto;width:18px;height:18px;border-radius:5px;border:1.5px solid var(--muted);
+    display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:1px;line-height:1}
   .item.done .box{background:var(--ok);border-color:var(--ok);font-weight:800}
+  .item.wip .box{background:var(--accent);border-color:var(--accent);font-weight:800}
   .item .txt{flex:1}
+  .tid{color:var(--accent);font-weight:750;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+  .item.wip .tid{color:var(--accent)}
+  .sub{color:var(--muted);font-size:11.5px;white-space:nowrap}
   .item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#475061}
+  .item.done .tid{color:var(--muted)}
   .badge{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--warn);
     border:1px solid var(--warn);border-radius:5px;padding:1px 5px;margin-top:1px;
     white-space:nowrap;letter-spacing:.03em}
@@ -262,10 +299,8 @@ TEMPLATE = r'''<!doctype html>
   body.f-blocked .item:not(.blocked){display:none}
 
   .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:16px}
-  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;
-    vertical-align:middle}
-  footer{margin-top:40px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);
-    padding-top:14px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  footer{margin-top:40px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);padding-top:14px}
 </style>
 </head>
 <body>
@@ -277,7 +312,7 @@ TEMPLATE = r'''<!doctype html>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center">
       <div class="ring" id="ring"><div class="ring-hole">
-        <div class="ring-num" id="ring-num"></div><div class="ring-lbl">total</div>
+        <div class="ring-num" id="ring-num"></div><div class="ring-lbl">done</div>
       </div></div>
       <div id="overall-sub"></div>
     </div>
@@ -295,16 +330,17 @@ TEMPLATE = r'''<!doctype html>
   </div>
 
   <div class="filters">
-    <span class="lbl">TODO &mdash; §3</span>
+    <span class="lbl">TODO &mdash; 阶段计划</span>
     <button class="active" data-f="all">all</button>
     <button data-f="todo">open only</button>
-    <button data-f="blocked">★ env-blocked</button>
+    <button data-f="blocked">★ GPU-blocked</button>
   </div>
   <div class="board" id="board"></div>
 
   <footer>
-    Derived snapshot of <code>self/dashboard/PROGRESS.md</code> &mdash; regenerate with
-    <code>python scripts/dashboard/refresh.py</code>. Single source of truth stays the markdown.
+    Derived snapshot of <code>self/dashboard/WORKPLAN.md</code> &mdash; regenerate with
+    <code>python scripts/dashboard/refresh.py</code> (auto on commit via pre-commit hook).
+    Single source of truth stays the markdown.
   </footer>
 </div>
 
@@ -325,7 +361,8 @@ function render(){
   const o = DATA.overall, pct = o.total ? Math.round(o.done/o.total*100) : 0;
   $('#ring').style.setProperty('--pct', pct);
   $('#ring-num').textContent = pct + '%';
-  $('#overall-sub').textContent = o.done + '/' + o.total + ' tasks done';
+  $('#overall-sub').textContent = o.done + '/' + o.total + ' done' +
+    (o.wip ? '  ·  ' + o.wip + ' in progress' : '');
 
   const grid = $('#snapshot'); grid.innerHTML = '';
   DATA.snapshot.forEach(r=>{
@@ -335,17 +372,22 @@ function render(){
   });
 
   const board = $('#board'); board.innerHTML = '';
-  DATA.tiers.forEach(t=>{
-    const p = t.total ? Math.round(t.done/t.total*100) : 0;
+  DATA.stages.forEach(st=>{
+    const p = st.total ? Math.round(st.done/st.total*100) : 0;
+    const prog = st.done + '/' + st.total + (st.wip ? '  ·  ' + st.wip + '◐' : '');
     const col = elem('div','col',
-      '<div class="col-title"><span class="tier">'+esc(t.id)+'</span>'+esc(t.title)+'</div>'+
-      '<div class="col-prog"><span>'+t.done+'/'+t.total+'</span>'+bar(p)+'</div>');
+      '<div class="col-title">'+esc(st.label)+'</div>'+
+      '<div class="col-prog"><span>'+prog+'</span>'+bar(p)+'</div>');
     const list = elem('div','list');
-    t.items.forEach(it=>{
-      list.appendChild(elem('div','item'+(it.done?' done':'')+(it.blocked?' blocked':''),
-        '<span class="box">'+(it.done?'✓':'')+'</span>'+
-        '<span class="txt">'+it.text+'</span>'+
-        (it.blocked?'<span class="badge">★ env</span>':'')));
+    st.items.forEach(it=>{
+      const cls = 'item'+(it.state==='done'?' done':'')+(it.state==='wip'?' wip':'')+
+        (it.blocked?' blocked':'');
+      const mark = it.state==='done'?'✓':(it.state==='wip'?'◐':'');
+      list.appendChild(elem('div',cls,
+        '<span class="box">'+mark+'</span>'+
+        '<span class="txt"><span class="tid">'+esc(it.id)+'</span> '+it.task+
+        (it.label?' <span class="sub">'+it.label+'</span>':'')+'</span>'+
+        (it.blocked?'<span class="badge">★ GPU</span>':'')));
     });
     col.appendChild(list);
     board.appendChild(col);
@@ -370,7 +412,7 @@ render();
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="Generate progress.html from PROGRESS.md")
+    ap = argparse.ArgumentParser(description="Generate progress.html from WORKPLAN.md")
     ap.add_argument("--open", action="store_true", help="open the result in a browser")
     args = ap.parse_args(argv)
 
@@ -386,9 +428,9 @@ def main(argv=None) -> int:
     o = data["overall"]
     print("wrote %s" % OUT)
     print("  snapshot rows: %d" % len(data["snapshot"]))
-    print("  tiers: %s" % ", ".join(
-        "%s %d/%d" % (t["id"], t["done"], t["total"]) for t in data["tiers"]))
-    print("  overall: %d/%d done" % (o["done"], o["total"]))
+    print("  stages: %s" % ", ".join(
+        "%s %d/%d" % (s["label"], s["done"], s["total"]) for s in data["stages"]))
+    print("  overall: %d/%d done, %d in progress" % (o["done"], o["total"], o["wip"]))
 
     if args.open:
         webbrowser.open(OUT.as_uri())

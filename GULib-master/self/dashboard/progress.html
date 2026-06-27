@@ -16,7 +16,7 @@
       "PingFang SC","Microsoft YaHei",sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:var(--accent)}
-  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+  .wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px}
   code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.86em;
     background:var(--panel2);border:1px solid var(--border);border-radius:5px;
     padding:1px 5px;color:#c9d1d9}
@@ -26,19 +26,18 @@
   del{color:var(--muted);text-decoration:line-through;text-decoration-color:#5a6473}
 
   header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-  h1#h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
+  h1#h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.2px}
   #meta{color:var(--muted);font-size:12.5px;margin-top:4px}
   .grow{flex:1 1 240px;min-width:240px}
 
   .ring{--pct:0;width:118px;height:118px;border-radius:50%;flex:0 0 auto;
     background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--track) 0);
-    display:grid;place-items:center;
-    box-shadow:0 0 0 1px var(--border) inset}
+    display:grid;place-items:center;box-shadow:0 0 0 1px var(--border) inset}
   .ring-hole{width:90px;height:90px;border-radius:50%;background:var(--panel);
     display:grid;place-items:center;text-align:center}
   .ring-num{font-size:25px;font-weight:750;font-variant-numeric:tabular-nums}
   .ring-lbl{font-size:11px;color:var(--muted)}
-  #overall-sub{font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center}
+  #overall-sub{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
 
   .banner{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);
     border-radius:8px;padding:12px 16px;margin:18px 0 26px;font-size:14px;color:#cdd6e0}
@@ -63,33 +62,32 @@
   .filters .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
     font-weight:650;margin-right:4px}
   .filters button{background:var(--panel);color:var(--muted);border:1px solid var(--border);
-    border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font:inherit;
-    font-weight:600}
+    border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font:inherit;font-weight:600}
   .filters button:hover{color:var(--text);border-color:var(--muted)}
   .filters button.active{background:var(--accent);color:#04101f;border-color:var(--accent)}
 
-  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  @media(max-width:860px){.board{grid-template-columns:1fr}}
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:16px;align-items:start}
   .col{background:var(--panel);border:1px solid var(--border);border-radius:11px;
     padding:15px 15px 6px;align-self:start}
   .col-title{font-size:14px;font-weight:650;margin-bottom:9px}
-  .tier{display:inline-block;background:var(--panel2);border:1px solid var(--border);
-    border-radius:6px;padding:1px 7px;font-size:12px;font-weight:750;color:var(--accent);
-    margin-right:6px}
   .col-prog{display:flex;align-items:center;gap:9px;margin-bottom:12px}
-  .col-prog span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;
-    white-space:nowrap}
+  .col-prog span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
   .bar{flex:1;height:6px;background:var(--track);border-radius:99px;overflow:hidden}
   .bar > span{display:block;height:100%;background:var(--accent);border-radius:99px}
 
-  .item{display:flex;gap:9px;align-items:flex-start;padding:8px 2px;
+  .item{display:flex;gap:9px;align-items:flex-start;padding:9px 2px;
     border-top:1px solid var(--border);font-size:13.5px}
   .item:first-child{border-top:none}
-  .box{flex:0 0 auto;width:17px;height:17px;border-radius:5px;border:1.5px solid var(--muted);
-    display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:2px;line-height:1}
+  .box{flex:0 0 auto;width:18px;height:18px;border-radius:5px;border:1.5px solid var(--muted);
+    display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:1px;line-height:1}
   .item.done .box{background:var(--ok);border-color:var(--ok);font-weight:800}
+  .item.wip .box{background:var(--accent);border-color:var(--accent);font-weight:800}
   .item .txt{flex:1}
+  .tid{color:var(--accent);font-weight:750;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+  .item.wip .tid{color:var(--accent)}
+  .sub{color:var(--muted);font-size:11.5px;white-space:nowrap}
   .item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#475061}
+  .item.done .tid{color:var(--muted)}
   .badge{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--warn);
     border:1px solid var(--warn);border-radius:5px;padding:1px 5px;margin-top:1px;
     white-space:nowrap;letter-spacing:.03em}
@@ -98,10 +96,8 @@
   body.f-blocked .item:not(.blocked){display:none}
 
   .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:16px}
-  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;
-    vertical-align:middle}
-  footer{margin-top:40px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);
-    padding-top:14px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  footer{margin-top:40px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);padding-top:14px}
 </style>
 </head>
 <body>
@@ -113,7 +109,7 @@
     </div>
     <div style="display:flex;flex-direction:column;align-items:center">
       <div class="ring" id="ring"><div class="ring-hole">
-        <div class="ring-num" id="ring-num"></div><div class="ring-lbl">total</div>
+        <div class="ring-num" id="ring-num"></div><div class="ring-lbl">done</div>
       </div></div>
       <div id="overall-sub"></div>
     </div>
@@ -131,21 +127,22 @@
   </div>
 
   <div class="filters">
-    <span class="lbl">TODO &mdash; §3</span>
+    <span class="lbl">TODO &mdash; 阶段计划</span>
     <button class="active" data-f="all">all</button>
     <button data-f="todo">open only</button>
-    <button data-f="blocked">★ env-blocked</button>
+    <button data-f="blocked">★ GPU-blocked</button>
   </div>
   <div class="board" id="board"></div>
 
   <footer>
-    Derived snapshot of <code>self/dashboard/PROGRESS.md</code> &mdash; regenerate with
-    <code>python scripts/dashboard/refresh.py</code>. Single source of truth stays the markdown.
+    Derived snapshot of <code>self/dashboard/WORKPLAN.md</code> &mdash; regenerate with
+    <code>python scripts/dashboard/refresh.py</code> (auto on commit via pre-commit hook).
+    Single source of truth stays the markdown.
   </footer>
 </div>
 
 <script>
-const DATA = {"h1": "PROGRESS — Resume Phase（2026-06 →）", "last_updated": "2026-06-20", "generated": "2026-06-27 04:27", "oneLiner": "已投 NeurIPS、在等审稿、<strong>rebuttal 还远 = 完善期<\/strong>。回流数据 <code>degree ≥ IM/IF<\/code>（raw-F1 和 retrain gap 都是）——但<strong>这没证伪贡献<\/strong>：投出去的 thesis 本就是 <em>systematic audit + extreme heterogeneity + fingerprint<\/em>，不是\"IM/IF 最强\"。这轮的活 = <strong>thesis 内<\/strong>把主指标 raw-F1 换成 <strong>retrain gap<\/strong>（它把异质性讲得最干净：GNNDelete 崩 16%、partition/IF 鲁棒）、IM/IF 降为诊断轴——<strong>不重写故事<\/strong>（那是重投 / <code>565aaf6<\/code> 的事）。环境已厘清（H→E 已重指、本地 CPU 就绪、GPU 走 AutoDL 镜像 <code>gnn_20<\/code>、<strong>可随时租服务器<\/strong>）。", "snapshot": [{"dim": "数据", "cls": "ok", "status": "cora 全+双备份 / arxiv 6-cell pilot（已核实）", "why": "cora 460（<code>ablating/<\/code> 460 + <code>4090/<\/code> 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——<strong>服务器权威 journal 核实只完成 6、全在本地、nothing stranded<\/strong>；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑。<code>predictions.npz<\/code> 按设计不回传（非丢，MIGRATION §1.2）"}, {"dim": "环境", "cls": "warn", "status": "本地分析就绪 / 本地 GPU 不可用", "why": "H→E 已重指（2026-06-20，109 处/28 文件）；conda <code>gnn<\/code> 解释器活在 <code>E:/conda_package/envs/gnn/python.exe<\/code>（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。<strong>本地 GPU 死<\/strong>：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90，CUDA kernel 实测全崩；Py3.8 装不到支持 sm_120 的 torch，<strong>照 requirements.txt 重建救不了<\/strong>。GPU 环境<strong>封存在 AutoDL 镜像 <code>gnn_20<\/code>(5-07)<\/strong>，随起随用、可随时租 → 本地只做非实验"}, {"dim": "数据安全", "cls": "ok", "status": "已多处备份", "why": "服务器有完整原件；本地已备份到 <code>D:\\backups\\OpenGU_GULib\\2026-06-15\\<\/code> + <code>F:\\…<\/code>（2482 文件校验通过）"}, {"dim": "代码", "cls": "warn", "status": "改动未提交", "why": "5/7 后改动很少、可修复；改过 7 个 paper 章节 + CSV + 图，未跟踪 <code>test1.py<\/code>/<code>arxiv_pilot_table.tex<\/code>；canonical 分支 <code>release/phase-b-fixes<\/code>"}, {"dim": "L8 修复", "cls": "ok", "status": "代码已修 / 🔴 数据仍坏", "why": "写回逻辑 <code>d674f62<\/code> 已在 HEAD（与 <code>949d0f8<\/code> 逐字相同，<strong>不用合分支<\/strong>）；数据坏是服务器 <strong>stale <code>.pyc<\/code><\/strong>（run 的 <code>git_sha=78872fc<\/code> 已含修复但跑了旧字节码）→ 只需清缓存重跑"}, {"dim": "paper", "cls": "warn", "status": "thesis 站得住 / 有 rebuttal 硬伤", "why": "投出去的 contribution = audit + 异质性 + fingerprint，<strong>未被 degree 证伪<\/strong>（见 §2 C1）。这轮 = 换主指标 retrain gap + 压异质性，thesis 内不改写。两道 rebuttal 必答题：① vs degree baseline ② citeseer/arxiv scope over-claim（L6/L7，需租服务器补）。另 §2 数字硬伤待 caveat"}, {"dim": "大方向", "cls": "warn", "status": "已厘清", "why": "<strong>不是\"rebuttal vs 重投\"二选一<\/strong>：已投 NeurIPS → 这轮先<strong>备 rebuttal<\/strong>（thesis 内，见 §4）；若不中再<strong>重投+reframe<\/strong>（<code>565aaf6<\/code>）。两条线分开，别在 rebuttal 里改 thesis"}], "tiers": [{"id": "P0", "title": "现在可做（纯写作 / 整理，不需服务器）", "items": [{"done": true, "blocked": false, "text": "备份回流数据到 D:/F:（2026-06-15）"}, {"done": true, "blocked": false, "text": "提交环境/数据/看板工作（2026-06-20，3 commit；<code>release/phase-b-fixes<\/code> 更早的写作改动仍待确认提交）"}, {"done": false, "blocked": false, "text": "<strong>指标切换（这轮核心）<\/strong>：主指标 raw-F1 → <strong>retrain gap<\/strong>，头条压 <em>extreme heterogeneity<\/em>（GNNDelete 崩 16% / partition·IF 鲁棒），IM/IF 降为 fingerprint 诊断轴 —— 纯写作，见 §2 C1 / §4"}, {"done": false, "blocked": false, "text": "<strong>备两道 rebuttal 必答题<\/strong>：① vs degree baseline ② citeseer/arxiv scope over-claim（话术见 §4）"}, {"done": false, "blocked": false, "text": "<strong>给硬伤数字加 caveat<\/strong>：§A.4 hop(C3)、GNNDelete n.s.(C2)、ΔF_noise(C4)、<code>A_appendix<\/code> 460/92 笔误 → 对照 <span class=\"ref\" title=\"PAPER_LIABILITIES_MAP.md\"><code>PAPER_LIABILITIES_MAP.md<\/code><\/span> 逐条"}, {"done": false, "blocked": false, "text": "<strong>paper 整理 / 融合 + 重查表格（清单#2）<\/strong>：多版收敛成一份连贯稿——云端最新但仓促(打磨非照搬)/本地旧版/reframe 框架(<code>565aaf6<\/code>+强版机制 §7)/C1–C6；融合=云端为基底+并入 reframe+落 C1–C6+清弃用(如 <code>arxiv_pilot_table.tex<\/code>)；逐表 check。prose 可先搭骨架，数字等 P1 修好回填"}, {"done": false, "blocked": false, "text": "术语审计 \"MIA\" → \"update-detection AUC\"（纯写作）"}, {"done": false, "blocked": false, "text": "<strong>review collection（清单#4）<\/strong>：汇总评审/导师/AI 给过的修改意见（起点 <code>report/advisor_report_2026-06-16.html<\/code>）"}, {"done": false, "blocked": false, "text": "<strong>读未读论文（清单#8）<\/strong>：GraphRevoker / MEGU / UTU 等 —— 备 related work + 反防审稿人引用"}, {"done": false, "blocked": false, "text": "<strong>方法 / pipeline 示意图（清单#9）<\/strong>：画一张步骤图 / 机制图（≠ 下面 P1 的结果图）"}, {"done": false, "blocked": false, "text": "<strong>Supplementary 整理（清单#10）<\/strong>：appendix（hop §A.4 / 460 行说明 / 诊断 suite 定义）成形"}, {"done": false, "blocked": false, "text": "把 arxiv pilot JSON 纳入版本控制 / 并进 CSV（待确认）"}], "done": 2, "total": 12}, {"id": "P1", "title": "需租服务器（rebuttal 补证；GPU 走 AutoDL 镜像 gnn_20，可随时租）", "items": [{"done": true, "blocked": false, "text": "<del>重建 conda <code>gnn<\/code> + H→E 重指<\/del> → <strong>已完成 2026-06-20<\/strong>（解释器活在 E:；CPU 可跑；GPU 用镜像）"}, {"done": false, "blocked": true, "text": "<strong>跑干净 citeseer（最高优先 = 堵 scope 漏洞 / 必答题②）<\/strong>：<code>A5_citeseer_r0.05.yaml<\/code>，6 method×{random,im,tracin}×5 seed≈180 cell，~1h。关 L6。⚠️ 2 月 citeseer 在 <code>_archive_20260506/<\/code> 是污染数据，不能引"}, {"done": false, "blocked": true, "text": "<strong>L8 redo<\/strong>：清 <code>.pyc<\/code> + 重跑 cora GCN/GAT collateral（代码不用改；三 cache 别动）→ 干净 GIF/IDEA gap+hop。关 C3；<strong>且是唯一能验出 IM/IF 在 IF 家族有无真 niche 的实验<\/strong>（现 GIF/IDEA gap≈0 且被 L8 污染）"}, {"done": false, "blocked": true, "text": "把 4 个 hop 列灌进 <code>_phase_b_aggregate.csv<\/code>（扩 aggregator 读 <code>collateral.json::hop_decay<\/code>）。关 C3"}, {"done": false, "blocked": true, "text": "修 ΔF_noise <code>f1_before<\/code> null（重跑 k=5 或注明 anchor）。关 C4"}, {"done": false, "blocked": true, "text": "<strong>GraphRevoker 修复（C5 / 清单#1，决策已定 2026-06-27 = 修，不 drop / 不 caveat）<\/strong>：修聚合器 bug（<code>opt_dataset.py:17<\/code> IndexError，<code>e3bbd54<\/code> 未完成）→ 清损坏 <code>data/GraphRevoker/cora/<\/code> .pt → 整 method 重跑（perf_before 现 0.50-0.58 退化）。重跑前 §5.2 GR×GAT wedge 标 <em>pending re-run<\/em>、不下机制结论；方法保留在 6-method audit 内"}, {"done": false, "blocked": true, "text": "<strong>arxiv 补量 + ssh 结果整理/review（清单#6）<\/strong>：补 T2/T3 seed 或 6 method，关\"scalability 只是 pilot\"。服务器结果整理本 session 已起头（journal 归档 + 数据盘点）"}, {"done": false, "blocked": false, "text": "收敛 figure 生成器分叉（<code>test1.py<\/code> vs <code>scripts/plot_neurips_figures.py<\/code>），删一个重生结果图"}], "done": 1, "total": 8}, {"id": "P2", "title": "加分 / option（非必需）", "items": [{"done": false, "blocked": false, "text": "<strong>新 backbone table / 跨架构共识（清单#3 + #7 a.6 cross）<\/strong>：加 1 个<strong>非-MP<\/strong> backbone（Cheb/APPNP）→ <code>idea_cross_arch_consensus.md<\/code>"}, {"done": false, "blocked": false, "text": "<strong>RR-set IM 对比（清单#5，option）<\/strong>：逆-MC / RIS 式 IM vs 现 CELF。⚠️ 既然 IM 整体打不过 degree，换哪种 IM 价值有限，优先级低"}, {"done": false, "blocked": false, "text": "degree 分解 + 安全指数（用已有数据 + L8 干净后）→ <code>research_path_degree_severity_decomposition.md<\/code>"}, {"done": false, "blocked": false, "text": "GNNDelete 加 seed（n.s.→显著）或 reframe 成 volume 驱动。关 C2"}, {"done": false, "blocked": false, "text": "IDEA/MEGU 定向 selector 审计"}], "done": 0, "total": 5}], "overall": {"done": 3, "total": 25}};
+const DATA = {"h1": "WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）", "last_updated": "2026-06-27", "generated": "2026-06-27 15:29", "oneLiner": "已投 NeurIPS、在等审稿、<strong>rebuttal 还远 = 完善期<\/strong>。回流数据 <code>degree ≥ IM/IF<\/code>（raw-F1 和 retrain gap 都是）——但<strong>这没证伪贡献<\/strong>：投出去的 thesis 本就是 <em>systematic audit + extreme heterogeneity + fingerprint<\/em>，不是\"IM/IF 最强\"。这轮的活 = <strong>thesis 内<\/strong>把主指标 raw-F1 换成 <strong>retrain gap<\/strong>（它把异质性讲得最干净：GNNDelete 崩 16%、partition/IF 鲁棒）、IM/IF 降为诊断轴——<strong>不重写故事<\/strong>（那是重投 / <code>565aaf6<\/code> 的事）。环境已厘清（H→E 已重指、本地 CPU 就绪、GPU 走 AutoDL 镜像 <code>gnn_20<\/code>、<strong>可随时租服务器<\/strong>）。", "snapshot": [{"dim": "数据", "cls": "ok", "status": "cora 全+双备份 / arxiv 6-cell pilot（已核实）", "why": "cora 460（<code>ablating/<\/code> 460 + <code>4090/<\/code> 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——<strong>服务器权威 journal 核实只完成 6、全在本地、nothing stranded<\/strong>；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑"}, {"dim": "环境", "cls": "warn", "status": "本地分析就绪 / 本地 GPU 不可用", "why": "H→E 已重指；conda <code>gnn<\/code> 在 <code>E:/conda_package/envs/gnn/python.exe<\/code>（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。<strong>本地 GPU 死<\/strong>：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90 → CUDA kernel 全崩；按 requirements.txt 重建救不了。GPU 环境<strong>封存在 AutoDL 镜像 <code>gnn_20<\/code><\/strong>，随起随用、可随时租 → 本地只做非实验"}, {"dim": "数据安全", "cls": "ok", "status": "已多处备份", "why": "服务器有完整原件；本地备份 <code>D:\\backups\\OpenGU_GULib\\2026-06-15\\<\/code> + <code>F:\\…<\/code>（2482 文件校验通过）"}, {"dim": "代码", "cls": "warn", "status": "dashboard 已提交 / paper 改动待提交", "why": "看板 + WORKPLAN + inventory 已提交（<code>44f7988<\/code>）；paper 7 章节 + CSV + 图改动仍在工作树，未跟踪 <code>test1.py<\/code>/<code>arxiv_pilot_table.tex<\/code>；canonical 分支 <code>release/phase-b-fixes<\/code>"}, {"dim": "L8 修复", "cls": "ok", "status": "代码已修 / 🔴 数据仍坏", "why": "写回逻辑 <code>d674f62<\/code> 已在 HEAD（<strong>不用合分支<\/strong>）；数据坏是服务器 <strong>stale <code>.pyc<\/code><\/strong> → 只需清缓存重跑（见 E2）"}, {"dim": "paper", "cls": "warn", "status": "thesis 站得住 / 有 rebuttal 硬伤", "why": "contribution = audit + 异质性 + fingerprint，<strong>未被 degree 证伪<\/strong>（§2 C1）。这轮 = 换主指标 retrain gap + 压异质性，thesis 内不改写。两道必答题：① vs degree ② citeseer/arxiv scope（L6/L7，需租服务器补）。§2 数字硬伤待 caveat"}, {"dim": "大方向", "cls": "warn", "status": "已厘清", "why": "<strong>不是\"rebuttal vs 重投\"二选一<\/strong>：先备 rebuttal（thesis 内，§3）；不中再重投+reframe（<code>565aaf6<\/code>）。别在 rebuttal 里改 thesis"}], "stages": [{"label": "实验", "items": [{"id": "E1", "task": "<strong>跑干净 citeseer<\/strong>（堵 scope 漏洞，最高优先）", "state": "todo", "blocked": true, "label": "0/90"}, {"id": "E2", "task": "<strong>L8 redo<\/strong>：清 <code>__pycache__/*.pyc<\/code> + 重跑 GIF/IDEA collateral（代码已修 <code>d674f62<\/code>，三 cache 别动）", "state": "todo", "blocked": true, "label": ""}, {"id": "E3", "task": "<strong>修 ΔF_noise anchor<\/strong>：重跑 k=5 把 <code>f1_before<\/code> 持久化（或注明 anchor 缺失）", "state": "todo", "blocked": true, "label": ""}, {"id": "E4", "task": "<strong>GraphRevoker 修复<\/strong>（决策已定 = <strong>修，不 drop / 不 caveat<\/strong>）：修聚合器 <code>opt_dataset.py:17<\/code> IndexError（<code>e3bbd54<\/code> 未完成）→ 清损坏 <code>data/GraphRevoker/cora/<\/code> .pt → 整 method 重跑", "state": "todo", "blocked": true, "label": ""}, {"id": "E5", "task": "<strong>arxiv 补量<\/strong>：补 T2/T3 seed 或扩 6 method，关\"只是 pilot\"", "state": "wip", "blocked": true, "label": "T1 6/18"}, {"id": "E6", "task": "<strong>hop 列灌进 aggregate CSV<\/strong>：扩 aggregator 读 <code>collateral.json::hop_decay<\/code>（<strong>依赖 E2<\/strong>）", "state": "todo", "blocked": true, "label": "0/460"}], "done": 0, "wip": 1, "total": 6}, {"label": "Ablation", "items": [{"id": "A3", "task": "<strong>alpha-sweep<\/strong>：hybrid_alpha {0,.25,.5,.75,1}×{GCN,GAT}×cora r0.05", "state": "todo", "blocked": true, "label": "0/200"}, {"id": "A5", "task": "<strong>ratio-sweep<\/strong>：r∈{0.01,0.10,0.20} cora GCN（+citeseer 见 E1）", "state": "wip", "blocked": true, "label": "90/450"}, {"id": "A6", "task": "<strong>新 backbone / 跨架构共识<\/strong>：GIN 已有 config；加 1 个<strong>非-MP<\/strong>(Cheb/APPNP)", "state": "todo", "blocked": true, "label": "0/75"}, {"id": "A7", "task": "<strong>GNNDelete +seed<\/strong>（n.s.→显著）或 reframe 成 volume-driven", "state": "todo", "blocked": true, "label": ""}, {"id": "A8", "task": "<strong>RR-set IM / RR-IF-Hybrid<\/strong>（统一 IMM 框架，IF 作 bicriteria）", "state": "todo", "blocked": false, "label": "option"}], "done": 0, "wip": 1, "total": 5}, {"label": "写作", "items": [{"id": "W1", "task": "<strong>指标切换（本轮核心）<\/strong>：主指标 raw-F1 → <strong>retrain gap<\/strong>；头条压 <em>extreme heterogeneity<\/em>（GNNDelete 崩~16% / partition·IF 鲁棒）；IM/IF 降为 fingerprint 诊断轴", "state": "todo", "blocked": false, "label": "纯 prose"}, {"id": "W2", "task": "<strong>两道 rebuttal 必答题<\/strong>：① vs degree —\"approximation-gap 上 degree/IM 都强，contribution 是异质性、非某 selector 最强\"；② citeseer/arxiv scope", "state": "todo", "blocked": false, "label": ""}, {"id": "W3", "task": "<strong>硬伤逐条 caveat<\/strong>（对照 <code>PAPER_LIABILITIES_MAP.md<\/code> overleaf 行号）", "state": "todo", "blocked": false, "label": ""}, {"id": "W4", "task": "<strong>paper 整理/融合 + 重查表格<\/strong>：多版收敛（云端基底 + 并入 reframe 框架 + 落 C1–C6 + 清弃用如 <code>arxiv_pilot_table.tex<\/code>），逐表 check", "state": "todo", "blocked": false, "label": ""}, {"id": "W5", "task": "<strong>术语审计<\/strong> \"MIA\" → \"update-detection AUC\"（全文）", "state": "todo", "blocked": false, "label": "纯 prose"}, {"id": "W6", "task": "<strong>review collection<\/strong>：汇总 评审/导师/AI 修改意见（起点 <code>report/advisor_report_2026-06-16.html<\/code>）", "state": "todo", "blocked": false, "label": ""}, {"id": "W7", "task": "<strong>读未读论文<\/strong>：GraphRevoker / MEGU / UTU 等 → related work + 反防审稿人引用", "state": "todo", "blocked": false, "label": ""}, {"id": "W8", "task": "<strong>Supplementary 整理<\/strong>：appendix（hop §A.4 / 460 行说明 / 诊断 suite 定义）成形", "state": "todo", "blocked": false, "label": ""}], "done": 0, "wip": 0, "total": 8}, {"label": "画图", "items": [{"id": "F1", "task": "<strong>方法 / pipeline 示意图<\/strong>：一张步骤图 / 机制图（≠ 结果图）", "state": "todo", "blocked": false, "label": ""}, {"id": "F2", "task": "<strong>收敛图生成器分叉<\/strong>：<code>test1.py<\/code> vs <code>scripts/plot_neurips_figures.py<\/code>，删一个、重生结果图", "state": "todo", "blocked": false, "label": ""}, {"id": "F3", "task": "<strong>Supp 图<\/strong>：A3 alpha-synergy 图 + A5 ratio-elasticity 图；hop-decay 图重生", "state": "todo", "blocked": false, "label": ""}], "done": 0, "wip": 0, "total": 3}], "overall": {"done": 0, "wip": 2, "total": 22}};
 const $ = (s, r=document) => r.querySelector(s);
 function elem(tag, cls, htmlStr){const e=document.createElement(tag);
   if(cls)e.className=cls; if(htmlStr!=null)e.innerHTML=htmlStr; return e;}
@@ -161,7 +158,8 @@ function render(){
   const o = DATA.overall, pct = o.total ? Math.round(o.done/o.total*100) : 0;
   $('#ring').style.setProperty('--pct', pct);
   $('#ring-num').textContent = pct + '%';
-  $('#overall-sub').textContent = o.done + '/' + o.total + ' tasks done';
+  $('#overall-sub').textContent = o.done + '/' + o.total + ' done' +
+    (o.wip ? '  ·  ' + o.wip + ' in progress' : '');
 
   const grid = $('#snapshot'); grid.innerHTML = '';
   DATA.snapshot.forEach(r=>{
@@ -171,17 +169,22 @@ function render(){
   });
 
   const board = $('#board'); board.innerHTML = '';
-  DATA.tiers.forEach(t=>{
-    const p = t.total ? Math.round(t.done/t.total*100) : 0;
+  DATA.stages.forEach(st=>{
+    const p = st.total ? Math.round(st.done/st.total*100) : 0;
+    const prog = st.done + '/' + st.total + (st.wip ? '  ·  ' + st.wip + '◐' : '');
     const col = elem('div','col',
-      '<div class="col-title"><span class="tier">'+esc(t.id)+'</span>'+esc(t.title)+'</div>'+
-      '<div class="col-prog"><span>'+t.done+'/'+t.total+'</span>'+bar(p)+'</div>');
+      '<div class="col-title">'+esc(st.label)+'</div>'+
+      '<div class="col-prog"><span>'+prog+'</span>'+bar(p)+'</div>');
     const list = elem('div','list');
-    t.items.forEach(it=>{
-      list.appendChild(elem('div','item'+(it.done?' done':'')+(it.blocked?' blocked':''),
-        '<span class="box">'+(it.done?'✓':'')+'</span>'+
-        '<span class="txt">'+it.text+'</span>'+
-        (it.blocked?'<span class="badge">★ env</span>':'')));
+    st.items.forEach(it=>{
+      const cls = 'item'+(it.state==='done'?' done':'')+(it.state==='wip'?' wip':'')+
+        (it.blocked?' blocked':'');
+      const mark = it.state==='done'?'✓':(it.state==='wip'?'◐':'');
+      list.appendChild(elem('div',cls,
+        '<span class="box">'+mark+'</span>'+
+        '<span class="txt"><span class="tid">'+esc(it.id)+'</span> '+it.task+
+        (it.label?' <span class="sub">'+it.label+'</span>':'')+'</span>'+
+        (it.blocked?'<span class="badge">★ GPU</span>':'')));
     });
     col.appendChild(list);
     board.appendChild(col);

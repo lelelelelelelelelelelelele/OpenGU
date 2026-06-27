@@ -14,7 +14,8 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 
 | File | Read when |
 |------|-----------|
-| `self/dashboard/PROGRESS.md` | **Beginning every session (2026-06+)** — current-phase hub: state snapshot, TODO framework, open decision, link index |
+| `self/dashboard/WORKPLAN.md` | **Beginning every session (2026-06-27+)** — single operational hub: state snapshot + 硬伤 C1–C5 + 实验/ablation/写作/画图 four-stage task plan + link index. Generates `progress.html`. (Supersedes `PROGRESS.md`, now a redirect pointer.) |
+| `self/dashboard/progress.html` | Visual kanban of WORKPLAN.md (derived snapshot — never hand-edit; regen via `scripts/dashboard/refresh.py`) |
 | `self/dashboard/EXPERIMENT_DASHBOARD.md` | ⚠️ FROZEN 2026-05-07 — historical coverage matrix + bug archive only (Phase B "[ ]" is long done) |
 | `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
 | `self/dashboard/METRIC_FIELD_SEMANTICS.md` | Before using `f1_before`, `perf_before`, or `logits_before` |
