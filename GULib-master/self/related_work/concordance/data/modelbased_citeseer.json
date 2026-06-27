@@ -1,0 +1,22 @@
+{
+  "dataset": "citeseer",
+  "base_model": "GCN",
+  "k": 133,
+  "test_f1": 0.7312,
+  "lissa": {
+    "iter": 100,
+    "scale": 25.0,
+    "damp": 0.01,
+    "s_norm": 0.8833
+  },
+  "jaccard": {
+    "gif_tracin": 0.047,
+    "gif_tracinself": 0.337,
+    "gif_degree": 0.039,
+    "gif_im": 0.019,
+    "tracin_degree": 0.023,
+    "tracin_im": 0.035,
+    "tracin_pagerank": 0.031
+  },
+  "note": "GIF (s=H^-1 grad L_test, LiSSA) vs TracIn (cross-influence) on the SAME trained base GCN. degree/im/pagerank are topology."
+}

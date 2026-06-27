@@ -2,28 +2,25 @@
 Generate a self-contained HTML report for the selection-concordance study.
 
 Reads summary.json + jaccard_{ds}.json + figures/jaccard_{ds}.png (base64-embedded)
-from self/related_work/concordance/, optionally folds in gif_cora.json if the
-GIF-as-scorer run produced it, and writes report.html.
+and the model-based TracIn-vs-GIF results (modelbased_{ds}.json) from
+self/related_work/concordance/, then writes report.html.
 
 Pure rendering. No model, no training.
 """
 import json
 import base64
 from pathlib import Path
-from datetime import datetime, timezone
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"
 FIGS = HERE / "figures"
 OUT = HERE / "report.html"
 
-DATE = "2026-06-27"  # generated date (Date.now unavailable in scripts; stamp explicitly)
+DATE = "2026-06-27"
 
 
 def b64img(path: Path) -> str:
-    if not path.exists():
-        return ""
-    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii") if path.exists() else ""
 
 
 def load_json(p: Path):
@@ -33,25 +30,26 @@ def load_json(p: Path):
 def cell(v):
     if v is None:
         return '<td class="na">—</td>'
-    # color scale: low Jaccard = orange (distinct), high = green (redundant)
     try:
         x = float(v)
     except (TypeError, ValueError):
         return f"<td>{v}</td>"
-    hue = int(120 * min(max(x, 0), 1))  # 0=red-ish via 0, 120=green
+    hue = int(120 * min(max(x, 0), 1))
     return f'<td style="background:hsl({hue},70%,88%)">{x:.3f}</td>'
 
 
 def main():
     summary = load_json(DATA / "summary.json") or {"datasets": {}, "highlights": {}}
-    gif = load_json(DATA / "gif_cora.json")
     datasets = summary["datasets"]
     hi = summary.get("highlights", {})
 
     order = ["cora", "citeseer", "pubmed", "Photo", "Computers", "CS"]
     ds_names = [d for d in order if d in datasets] + [d for d in datasets if d not in order]
 
-    # cross-dataset pair table
+    mb = {ds: load_json(DATA / f"modelbased_{ds}.json") for ds in ds_names}
+    mb = {ds: v for ds, v in mb.items() if v}
+
+    # ---- topology / cached cross-dataset table ----
     pair_keys = [
         ("degree_pagerank", "degree ↔ pagerank", "centrality family — expect high"),
         ("im_degree", "IM ↔ degree", "does IM degenerate to degree?"),
@@ -60,72 +58,67 @@ def main():
         ("tracin_im", "TracIn ↔ IM", "influence vs spread"),
         ("hybrid_tracin", "Hybrid ↔ TracIn", "fusion vs IF branch"),
     ]
-    if gif:
-        pair_keys += [("gif_tracin", "GIF ↔ TracIn", "is cheap TracIn ≈ real GIF?"),
-                      ("gif_degree", "GIF ↔ degree", "real IF vs degree")]
-
     rows = ""
     for key, label, note in pair_keys:
-        tds = ""
-        for ds in ds_names:
-            v = datasets[ds].get(key)
-            # GIF pairs only exist for cora and only if gif ran
-            if key.startswith("gif") and ds == "cora" and gif:
-                v = gif.get(key, v)
-            tds += cell(v)
+        tds = "".join(cell(datasets[ds].get(key)) for ds in ds_names)
         rows += f'<tr><th class="pair">{label}<span class="note">{note}</span></th>{tds}</tr>\n'
-
-    header_cells = "".join(
-        f'<th>{ds}<span class="kk">k={datasets[ds]["k"]}</span></th>' for ds in ds_names
-    )
+    header_cells = "".join(f'<th>{ds}<span class="kk">k={datasets[ds]["k"]}</span></th>' for ds in ds_names)
 
     figs_html = ""
     for ds in ds_names:
         src = b64img(FIGS / f"jaccard_{ds}.png")
         if src:
-            figs_html += f'<figure><img src="{src}" alt="{ds} Jaccard heatmap"><figcaption>{ds}</figcaption></figure>\n'
+            figs_html += f'<figure><img src="{src}" alt="{ds}"><figcaption>{ds}</figcaption></figure>\n'
 
-    gif_section = ""
-    if gif:
+    # ---- model-based TracIn-vs-GIF table ----
+    if mb:
+        mbo = [d for d in ds_names if d in mb]
+        mbhead = "".join(f'<th>{d}<span class="kk">F1={mb[d]["test_f1"]}</span></th>' for d in mbo)
+        def mbrow(label, key, note=""):
+            tds = "".join(cell(mb[d]["jaccard"].get(key)) for d in mbo)
+            return f'<tr><th class="pair">{label}<span class="note">{note}</span></th>{tds}</tr>'
         gif_section = f"""
-        <h2>GIF-as-scorer (real influence) — cora (feasibility)</h2>
-        <p class="warn"><strong>Implemented and demonstrated end-to-end, but INCONCLUSIVE.</strong>
-        The efficient IF scorer runs (s=H⁻¹∇L_test via LiSSA, then ⟨s,∇ℓ_v⟩ per candidate), but the
-        only trained cora model on disk — a GNNDelete 3-layer checkpoint — loads into a plain GCN at
-        just <strong>{gif.get('model_note','').split('train_acc=')[-1][:4] if 'train_acc=' in gif.get('model_note','') else '?'} train accuracy</strong>
-        (its deletion-operator forward differs from a plain GCN). Influence computed on a barely-fit
-        model is not a valid surrogate for influence on a well-trained one, so the GIF↔TracIn number
-        below is <em>directional code-validation only, not the validity claim</em>. The clean run needs a
-        properly trained base GCN (AutoDL / un-gated train).</p>
-        <table class="kv">
-          <tr><td>GIF ↔ TracIn-self</td><td>{gif.get('gif_tracin')}</td></tr>
-          <tr><td>GIF ↔ degree</td><td>{gif.get('gif_degree')}</td></tr>
-          <tr><td>GIF ↔ IM</td><td>{gif.get('gif_im')}</td></tr>
-          <tr><td>TracIn-self ↔ degree (same model)</td><td>{gif.get('tracin_degree_samemodel')}</td></tr>
-          <tr><td>model</td><td>{gif.get('model_note','')}</td></tr>
+        <h2>Model-based: deployed TracIn vs real GIF (trained base GCN)</h2>
+        <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning), then on the
+        <em>same</em> trained model: <strong>TracIn</strong> = the deployed cross-influence strategy;
+        <strong>GIF</strong> = the real graph influence function (s = H⁻¹∇L<sub>test</sub> via LiSSA, then
+        infl(v)=⟨s,∇ℓ<sub>v</sub>⟩); <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree/IM are topology.</p>
+        <table>
+        <thead><tr><th class="pair">pair</th>{mbhead}</tr></thead>
+        <tbody>
+        {mbrow("GIF ↔ TracIn (cross)", "gif_tracin", "deployed strategy — is it ≈ real IF?")}
+        {mbrow("GIF ↔ TracIn-self ‖∇ℓ‖", "gif_tracinself", "the self-influence variant")}
+        {mbrow("GIF ↔ degree", "gif_degree", "real IF vs structural volume")}
+        {mbrow("GIF ↔ IM", "gif_im", "")}
+        {mbrow("TracIn ↔ degree", "tracin_degree", "")}
+        </tbody>
         </table>
-        <p>{gif.get('note','')}</p>
+        <p><strong>Reading.</strong> (1) The <strong>deployed TracIn-cross is a weak GIF surrogate</strong>
+        (0.05–0.26): the cross form ≈ ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩, and Σ∇ℓ≈0 near convergence,
+        so it is noisy and the Hessian reorders the rest. The <strong>self-influence ‖∇ℓ‖ variant aligns much
+        better</strong> (0.29–0.34) — if you want a defensible "my selector ≈ IF", use self-influence, not the
+        cross form. Even then it is not tight (~0.3): the H⁻¹ whitening genuinely changes the ranking.
+        (2) Decisive for the thesis: <strong>real GIF is itself near-orthogonal to degree</strong> (0.02–0.04).
+        So it is <em>not</em> that a cheap proxy misses degree — even the exact-ish Hessian IF targets a
+        different node set than the structural-volume centrality that wins the attack. The volume-driven
+        reading survives the real IF.</p>
+        <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ approximation (||s|| finite,
+        converged here); magnitudes are directional. Single seed/ratio. Run a scale/iteration sensitivity
+        sweep before quoting exact numbers.</p>
         """
     else:
-        gif_section = """
-        <h2>GIF-as-scorer (real influence) — status</h2>
-        <p class="warn"><strong>Implemented, execution training-gated.</strong> The real
-        graph influence function (GIF, Wu et al. 2023) needs a <em>trained</em> base GCN to
-        compute H⁻¹∇ℓ. Tonight's constraint is "no training", and no canonical trained
-        cora/GCN base model is persisted on disk (the pipeline trains a random-init model
-        in <code>run_exp</code>, which we never call; the only cora checkpoint on disk is a
-        3-layer GNNDelete <em>variant</em>, not the 2-layer base). The efficient scorer is
-        specified below; run it on AutoDL (or by un-gating a single cheap train) to get the
-        GIF ↔ TracIn validity number.</p>
-        <p>Efficient form (reuses GIF's <code>hvps</code> LiSSA iteration): solve
-        <code>s = H⁻¹ ∇L_test</code> once, then score every candidate by
-        <code>infl(v) = ⟨s, ∇ℓ_v⟩</code>; rank, take top-k, Jaccard vs TracIn/degree/IM.
-        High GIF↔TracIn overlap ⇒ the cheap Hessian-free TracIn is a faithful surrogate for
-        the real IF (the validity claim); low ⇒ they diverge and TracIn ≠ IF.</p>
-        """
+        gif_section = """<h2>Model-based: TracIn vs GIF</h2>
+        <p class="warn">Pending — run <code>concordance_model_based.py</code>.</p>"""
 
-    html = f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+    gif_tldr = ""
+    if mb and "cora" in mb:
+        c = mb["cora"]["jaccard"]
+        gif_tldr = (f'<li><strong>Deployed TracIn is only a loose GIF surrogate</strong> — on a trained base GCN, '
+                    f'GIF↔TracIn-cross = {c["gif_tracin"]} (self-influence variant aligns better, '
+                    f'{c["gif_tracinself"]}). And <strong>real GIF is itself orthogonal to degree</strong> '
+                    f'({c["gif_degree"]}) — the volume-driven reading survives the exact IF, not just the proxy.</li>')
+
+    html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Selection Concordance — GNN unlearning-attack selectors</title>
 <style>
@@ -145,14 +138,13 @@ def main():
   td {{ font-variant-numeric:tabular-nums; }}
   td.na {{ color:#bbb; }}
   .note {{ display:block; font-weight:400; font-size:11px; color:var(--muted); }}
-  .kk, .k015 {{ display:block; font-weight:400; font-size:11px; color:var(--muted); }}
+  .kk {{ display:block; font-weight:400; font-size:11px; color:var(--muted); }}
   .figs {{ display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; }}
   figure {{ margin:0; flex:1 1 300px; max-width:470px; border:1px solid var(--line); border-radius:8px; padding:8px; }}
   figure img {{ width:100%; height:auto; display:block; }}
   figcaption {{ text-align:center; color:var(--muted); font-size:12px; margin-top:4px; }}
   code {{ background:#f3f3f3; padding:1px 5px; border-radius:4px; font-size:13px; }}
   .warn {{ background:#fff8ec; border:1px solid #f3e0b8; border-radius:8px; padding:12px 16px; }}
-  .kv td:first-child {{ text-align:left; color:var(--muted); width:160px; }}
   .foot {{ color:var(--muted); font-size:12.5px; margin-top:28px; border-top:1px solid var(--line); padding-top:12px; }}
 </style></head><body>
 
@@ -164,24 +156,19 @@ seed 2024 · {len(ds_names)} datasets · generated {DATE} · branch
 <div class="tldr">
 <strong>TL;DR</strong>
 <ul>
-<li><strong>IM does NOT degenerate to degree</strong> — set-overlap with degree is low on every dataset
-   (Jaccard {hi.get('im_degree_mean')} mean; range 0.05–0.19). The earlier code-level guess that IM≈degree was
-   wrong at the <em>set</em> level: CELF's submodular selection genuinely diverges. (Single-node IM spread can
-   still correlate with degree; the <em>combination</em> differs — as suspected.)</li>
-<li><strong>degree ≈ pagerank, but dataset-dependent</strong> — mean {hi.get('degree_pagerank_mean')}, range 0.50–0.83
-   (cora highest). The two cheap centralities are correlated, not interchangeable.</li>
-<li><strong>TracIn is near-orthogonal to both degree and IM</strong> (cora: {datasets.get('cora',{}).get('tracin_degree')} vs degree,
-   {datasets.get('cora',{}).get('tracin_im')} vs IM). The influence attack targets a genuinely different node set — so
-   "the attack is just degree" is refuted, and since degree wins the attack while sharing almost no nodes with
-   TracIn, the winning signal is structural volume, not influence.</li>
-<li><strong>GIF-as-scorer:</strong> implemented; execution is training-gated (see below).</li>
+<li><strong>IM does NOT degenerate to degree</strong> — overlap with degree is low on every dataset
+   (mean {hi.get('im_degree_mean')}; 0.03–0.19), most distinct on larger graphs. The "IM≈degree" guess was wrong at the
+   <em>set</em> level; CELF's submodular selection diverges even when single-node spread tracks degree.</li>
+<li><strong>degree ≈ pagerank, dataset-dependent</strong> — mean {hi.get('degree_pagerank_mean')} (0.50–0.83).</li>
+<li><strong>TracIn near-orthogonal to degree and IM</strong> (cora {datasets.get('cora',{}).get('tracin_degree')} / {datasets.get('cora',{}).get('tracin_im')}):
+   the influence attack targets different nodes, yet degree wins → the winning signal is structural volume, not influence.</li>
+{gif_tldr}
 </ul>
 </div>
 
 <h2>Cross-dataset set overlap (Jaccard@k)</h2>
-<p>Each cell = |A∩B| / |A∪B| over the top-k selected node sets (k = r·|V<sub>train</sub>|).
-Green = redundant (same nodes); orange = distinct (different nodes). "—" = selector not available
-for that dataset (TracIn/Hybrid need a trained model; only cora is cached).</p>
+<p>Each cell = |A∩B|/|A∪B| over the top-k selected node sets (k = r·|V<sub>train</sub>|).
+Green = redundant (same nodes); orange = distinct. "—" = selector needs a trained model (TracIn/Hybrid; cora only).</p>
 <table>
 <thead><tr><th class="pair">strategy pair</th>{header_cells}</tr></thead>
 <tbody>
@@ -194,50 +181,42 @@ for that dataset (TracIn/Hybrid need a trained model; only cora is cached).</p>
 {figs_html}
 </div>
 
-<h2>What this means for the thesis</h2>
-<p>The selector families are <strong>nearly orthogonal</strong>: centrality (degree≈pagerank),
-IM (its own submodular set), and the influence family (TracIn) each target a different node set.
-Combined with the established result that <em>degree wins the attack on approximate unlearning</em>,
-this gives set-level evidence for the <strong>volume-driven</strong> reading: high-influence nodes are
-not high-damage nodes; the cheap structural centrality is the real lever. It also disposes of two
-worries — (a) "IM is just degree" (false: 0.05–0.19 overlap), and (b) "you only tested a cheap proxy,
-not real IF" (TracIn is so orthogonal to degree that it is clearly <em>not</em> degree; the remaining
-open comparison is TracIn ↔ GIF, the validity check below).</p>
-
 {gif_section}
+
+<h2>What this means for the thesis</h2>
+<p>The selector families are <strong>nearly orthogonal</strong>: centrality (degree≈pagerank), IM (its own
+submodular set), and the influence family each target a different node set — and this holds for the
+<em>real</em> Hessian-based GIF, not just the cheap TracIn proxy. Combined with the established result that
+<strong>degree wins the attack on approximate unlearning</strong>, this is set-level evidence for the
+<strong>volume-driven</strong> reading: high-influence nodes are not high-damage nodes; the structural
+centrality is the real lever. Two side conclusions: (a) "IM is just degree" is false (0.03–0.19); (b) the
+deployed cross-form TracIn is a loose IF surrogate — switch to self-influence ‖∇ℓ‖ if you need to claim
+fidelity to IF.</p>
 
 <h2>Caveats</h2>
 <ul>
-<li>Single seed (2024), single ratio (r=0.05), single backbone (GCN). Directional, not yet a finished finding —
-   sweep seeds/ratios before publishing.</li>
-<li>TracIn/Hybrid rows are <strong>cora-only</strong>: model-based selectors need a trained model, and only cora is
-   cached (others would require training, excluded tonight).</li>
-<li>IM uses the default IC config (p=0.1, mc=100, im_batch_size=5). The batch-CELF approximation (batch=5) slightly
-   reduces submodular diversity vs classic CELF (batch=1) — re-check with batch=1 before claiming IM's distinctness
-   is intrinsic.</li>
-<li>Random is included as a near-zero-overlap reference (≈0.02–0.05 with everything), as expected.</li>
+<li>Single seed (2024), single ratio (r=0.05), single backbone (GCN). Directional, not a finished finding.</li>
+<li>Model-based (TracIn/GIF) cells: cora/citeseer (+pubmed when done). LiSSA is a first-order H⁻¹ estimate.</li>
+<li>IM uses batch-CELF (im_batch_size=5); re-check distinctness with classic CELF (batch=1).</li>
 </ul>
 
 <h2>Next steps</h2>
 <ol>
-<li>Run GIF-as-scorer on a trained cora/GCN base (AutoDL) → fill the TracIn↔GIF validity cell.</li>
-<li>Sweep seeds {{2024, 1, 2, 3, 4}} and ratios {{0.01, 0.05, 0.1}} → turn the orthogonality into a finding with error bars.</li>
-<li>Add the attack-outcome join: per selector, (set-overlap-with-degree, Δacc-under-unlearning) → the decisive
-   "different nodes AND worse" table.</li>
-<li>Prototype the coverage-aware damage selector (submodular greedy on predicted collateral with receptive-field
-   discount) — the one untried lever that could beat degree.</li>
+<li>Scale/iteration sensitivity for the LiSSA GIF scores; extend model-based cells to more datasets.</li>
+<li>Seed × ratio sweep {{2024,1,2,3}} × {{0.01,0.05,0.1}} → error bars → finding.</li>
+<li>Attack-outcome join: per selector, (overlap-with-degree, Δacc-under-unlearning) → "different nodes AND worse".</li>
+<li>Coverage-aware damage selector prototype (submodular greedy on predicted collateral w/ receptive-field discount).</li>
 </ol>
 
 <div class="foot">
-Reproduce: <code>python self/related_work/concordance/run_topology_selectors.py --dataset_name &lt;ds&gt; --base_model GCN --unlearn_ratio 0.05</code>
-then <code>run_analysis.py</code> then <code>gen_report.py</code>. Training-free (CPU). Selections + matrices under
-<code>self/related_work/concordance/data/</code>. See <code>self/related_work/NOTES.md</code> for the positioning context.
+Reproduce: <code>run_topology_selectors.py</code> (topology) + <code>concordance_model_based.py --dataset_name &lt;ds&gt;</code>
+(TracIn/GIF; trains a base GCN for this study only) → <code>run_analysis.py</code> → <code>gen_report.py</code>.
+CPU. Artifacts under <code>self/related_work/concordance/data/</code>. Context: <code>self/related_work/NOTES.md</code>.
 </div>
-
 </body></html>"""
 
     OUT.write_text(html, encoding="utf-8")
-    print(f"wrote {OUT}  ({len(html)} bytes, {len(ds_names)} datasets, gif={'yes' if gif else 'no'})")
+    print(f"wrote {OUT}  ({len(html)} bytes, {len(ds_names)} datasets, model-based={list(mb)})")
 
 
 if __name__ == "__main__":
