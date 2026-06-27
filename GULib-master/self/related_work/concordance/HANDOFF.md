@@ -32,13 +32,25 @@ degree? is TracIn just degree? is my cheap TracIn ≈ real GIF?).
    attack while sharing ~no nodes with TracIn, the winning signal is **structural volume, not influence**
    (set-level support for the volume-driven reading).
 
-## GIF-as-scorer — implemented, INCONCLUSIVE
-`gif_scorer.py` implements the efficient IF form (s = H⁻¹∇L_test via 100-step LiSSA reusing GIF's HVP
-pattern, then infl(v)=⟨s,∇ℓ_v⟩). It **runs end-to-end**. BUT: the only trained cora model on disk is a
-GNNDelete 3-layer checkpoint that loads to **~34% accuracy** as a plain GCN (its deletion-operator
-forward ≠ plain GCN). Influence on a barely-fit model is not a valid surrogate, so GIF↔TracIn=0.11 is
-**code-validation only, not the validity claim**. → The clean GIF↔TracIn run needs a properly trained
-base GCN (AutoDL, or un-gate one cheap cora/GCN train).
+## Real GIF vs TracIn (RESOLVED — authorised base-GCN train)
+`concordance_model_based.py` trains a proper base GCN per dataset (`train_only`, **no unlearning** — you
+OK'd training for the concordance study), then computes TracIn (cross) + real GIF (s=H⁻¹∇L_test via LiSSA)
+on the **same** trained model.
+
+| pair | cora (F1=0.89) | citeseer (F1=0.73) | pubmed |
+|---|---|---|---|
+| GIF ↔ TracIn (cross, deployed) | 0.263 | 0.047 | (bg) |
+| GIF ↔ TracIn-self ‖∇ℓ‖ | 0.293 | 0.337 | (bg) |
+| GIF ↔ degree | 0.024 | 0.039 | (bg) |
+
+1. **Deployed cross-form TracIn is a weak GIF surrogate** (0.05–0.26): cross ≈ ⟨∇ℓ_v, Σ∇ℓ⟩, Σ∇ℓ≈0 near
+   convergence → noisy. **Self-influence ‖∇ℓ‖ aligns ~7× better** (0.29–0.34) but still ~0.3 (H⁻¹ reorders).
+   → if you want "my selector ≈ IF", use self-influence, not the cross form; even then it's loose.
+2. **Real GIF is itself near-orthogonal to degree** (0.02–0.04) → not "cheap proxy misses degree"; the
+   exact-ish Hessian IF also targets different nodes than degree. **Volume-driven survives the real IF.**
+
+(`gif_scorer.py`, the 34%-acc GNNDelete-checkpoint feasibility hack, is superseded and removed.)
+LiSSA is first-order — run a scale/iteration sensitivity sweep before quoting exact magnitudes.
 
 ## Caveats
 - Single seed, single ratio (0.05), single backbone (GCN). Directional, not yet a finished finding.
@@ -47,8 +59,7 @@ base GCN (AutoDL, or un-gate one cheap cora/GCN train).
   (batch=1). Re-check IM distinctness with batch=1 before claiming it's intrinsic.
 
 ## Next steps (priority order)
-1. **GIF↔TracIn validity** on a real trained base GCN (un-gate one cora/GCN train, or AutoDL). The
-   scorer is ready; just point it at a good checkpoint.
+1. **LiSSA sensitivity** (scale/iter) for the GIF scores + extend model-based cells to Photo/Computers/CS.
 2. **Seed × ratio sweep** {2024,1,2,3} × {0.01,0.05,0.1} → error bars → finding.
 3. **Attack-outcome join**: per selector, (overlap-with-degree, Δacc-under-unlearning) → the decisive
    "different nodes AND worse" table that nails the volume-driven claim.
@@ -57,10 +68,10 @@ base GCN (AutoDL, or un-gate one cheap cora/GCN train).
 
 ## Files (all under `self/related_work/concordance/`)
 - `run_topology_selectors.py` — training-free selection runner (degree/pagerank/im/random).
+- `concordance_model_based.py` — trains a base GCN (this study only) → TracIn + real GIF on the same model.
 - `run_analysis.py` — Jaccard matrices + heatmaps + summary.
-- `gif_scorer.py` — GIF/IF-as-scorer (LiSSA).
 - `gen_report.py` → `report.html` — the deliverable.
-- `data/*.json` — per-dataset selections + jaccard matrices + summary + gif_cora.
+- `data/*.json` — selections, jaccard matrices, summary, modelbased_{ds} (TracIn/GIF).
 - `figures/jaccard_*.png` — heatmaps.
 
 ## Reproduce
