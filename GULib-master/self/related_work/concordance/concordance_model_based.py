@@ -69,11 +69,20 @@ from attack.attack_strategies import TracInStrategy
 
 
 def jac(A, B):
+    if not A or not B:
+        return None
     A, B = set(int(x) for x in A), set(int(x) for x in B)
     return round(len(A & B) / len(A | B), 3) if (A | B) else None
 
 
+def seed_everything(s):
+    import random
+    random.seed(s); np.random.seed(s); torch.manual_seed(s)
+    os.environ["PYTHONHASHSEED"] = str(s)
+
+
 def main():
+    seed_everything(LOCAL.seed)   # deterministic base-model training across runs
     args = parameter_parser()
     for k, v in {"dataset_name": LOCAL.dataset_name, "base_model": LOCAL.base_model,
                  "unlearning_methods": "GIF", "unlearn_ratio": LOCAL.unlearn_ratio,
@@ -107,12 +116,12 @@ def main():
     k = max(int(len(cand_ids) * LOCAL.unlearn_ratio), 1)
     print(f"[mb] candidates={len(cand_ids)} k={k}")
 
-    # --- TracIn (user's strategy, same model, cache OFF) ---
-    ts = TracInStrategy({**args, "enable_score_cache": False})
-    tracin_scores = ts._compute_tracin_scores(model, data, cand.to(dev))
-    tracin_top = [cand_ids[i] for i in torch.topk(tracin_scores, k).indices.tolist()]
-
-    # --- GIF/IF: s = H^{-1} grad(L_test) via LiSSA, then <s, grad(loss_v)> ---
+    # TracIn (deployed cross), proper TracIn, GIF and self-influence are ALL
+    # computed incrementally in the per-candidate loop below, in O(d) memory —
+    # no dense [N x d] G matrix, so no OOM on the larger graphs. The deployed
+    # cross score -(G @ G^T 1)_i = -<grad_i, sum_j grad_j> only needs the single
+    # vector col_sum = sum_j grad_j, obtained as grad of the sum-reduction loss
+    # over candidates (one backward) — bit-identical ranking to the strategy.
     params = [p for p in model.parameters() if p.requires_grad]
 
     def fwd():
@@ -127,6 +136,15 @@ def main():
     out_h = fwd()
     L_train = F.cross_entropy(out_h[tm], data.y[tm], reduction="mean")
     grad_train = torch.autograd.grad(L_train, params, create_graph=True)
+
+    # col_sum = sum_j grad(loss_j) over candidates = grad of sum-reduction loss.
+    # This is the deployed cross-TracIn reference vector; ~0 at convergence.
+    cand_dev = cand.to(dev)
+    out_c = fwd()
+    L_cand_sum = F.cross_entropy(out_c[cand_dev], data.y[cand_dev], reduction="sum")
+    col_sum = [g.detach() for g in torch.autograd.grad(L_cand_sum, params)]
+    col_flat = torch.cat([c.reshape(-1) for c in col_sum])
+    print(f"[mb] ||col_sum (sum_j grad_j)||={col_flat.norm().item():.4g}  ||grad(L_test)||={torch.cat([vi.reshape(-1) for vi in v]).norm().item():.4g}")
 
     def hvp(vec):
         dot = sum((g * w).sum() for g, w in zip(grad_train, vec))
@@ -146,6 +164,7 @@ def main():
     gif_scores = torch.empty(n)
     tracin_self = torch.empty(n)
     tracin_proper = torch.empty(n)   # <grad(loss_v), grad(L_test)> : proper Hessian-free IF
+    tracin_cross = torch.empty(n)    # <grad(loss_v), sum_j grad_j> : deployed cross score (raw)
     for idx, node in enumerate(cand_ids):
         lv = F.cross_entropy(out_g[node:node + 1], data.y[node:node + 1])
         gv = torch.autograd.grad(lv, params, retain_graph=(idx < n - 1))
@@ -153,9 +172,12 @@ def main():
         gif_scores[idx] = torch.dot(s_flat, gflat).item()
         tracin_self[idx] = gflat.norm().item()
         tracin_proper[idx] = torch.dot(v_flat, gflat).item()
+        tracin_cross[idx] = torch.dot(col_flat, gflat).item()
     gif_top = [cand_ids[i] for i in torch.topk(gif_scores, k).indices.tolist()]
     tself_top = [cand_ids[i] for i in torch.topk(tracin_self, k).indices.tolist()]
     tproper_top = [cand_ids[i] for i in torch.topk(tracin_proper, k).indices.tolist()]
+    # deployed strategy ranks by scores = -(G@col_sum) = -tracin_cross -> topk
+    tracin_top = [cand_ids[i] for i in torch.topk(-tracin_cross, k).indices.tolist()]
 
     # --- topology reference sets ---
     topo = json.loads((DATA / f"{LOCAL.dataset_name}_{LOCAL.base_model}_r{LOCAL.unlearn_ratio}_seed{LOCAL.seed}.json").read_text(encoding="utf-8"))

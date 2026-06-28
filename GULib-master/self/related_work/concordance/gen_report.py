@@ -78,33 +78,39 @@ def main():
             tds = "".join(cell(mb[d]["jaccard"].get(key)) for d in mbo)
             return f'<tr><th class="pair">{label}<span class="note">{note}</span></th>{tds}</tr>'
         gif_section = f"""
-        <h2>Model-based: deployed TracIn vs real GIF (trained base GCN)</h2>
-        <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning), then on the
-        <em>same</em> trained model: <strong>TracIn</strong> = the deployed cross-influence strategy;
-        <strong>GIF</strong> = the real graph influence function (s = H⁻¹∇L<sub>test</sub> via LiSSA, then
-        infl(v)=⟨s,∇ℓ<sub>v</sub>⟩); <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree/IM are topology.</p>
+        <h2>Model-based: a cheap, scalable IF surrogate that actually tracks GIF</h2>
+        <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning; seeded, deterministic),
+        then on the <em>same</em> trained model: <strong>GIF</strong> = the real graph influence function
+        (s = H⁻¹∇L<sub>test</sub> via LiSSA, then infl(v)=⟨s,∇ℓ<sub>v</sub>⟩);
+        <strong>TracIn-proper</strong> = ⟨∇ℓ<sub>v</sub>, ∇L<sub>test</sub>⟩ (Hessian-free, the FIX);
+        <strong>TracIn-cross</strong> = the deployed strategy ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩;
+        <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree is topology.</p>
         <table>
         <thead><tr><th class="pair">pair</th>{mbhead}</tr></thead>
         <tbody>
-        {mbrow("GIF ↔ TracIn (cross)", "gif_tracin", "deployed strategy — is it ≈ real IF?")}
-        {mbrow("GIF ↔ TracIn-self ‖∇ℓ‖", "gif_tracinself", "the self-influence variant")}
+        {mbrow("GIF ↔ TracIn-proper ⟨∇ℓ,∇L_test⟩ (FIX)", "gif_tracinproper", "cheap + faithful")}
+        {mbrow("GIF ↔ TracIn-cross (deployed)", "gif_tracin", "the strategy as shipped")}
+        {mbrow("GIF ↔ TracIn-self ‖∇ℓ‖", "gif_tracinself", "self-influence variant")}
         {mbrow("GIF ↔ degree", "gif_degree", "real IF vs structural volume")}
-        {mbrow("GIF ↔ IM", "gif_im", "")}
-        {mbrow("TracIn ↔ degree", "tracin_degree", "")}
+        {mbrow("TracIn-proper ↔ degree", "tracinproper_degree", "fixed IF vs degree")}
         </tbody>
         </table>
-        <p><strong>Reading.</strong> (1) The <strong>deployed TracIn-cross is a weak GIF surrogate</strong>
-        (0.05–0.26): the cross form ≈ ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩, and Σ∇ℓ≈0 near convergence,
-        so it is noisy and the Hessian reorders the rest. The <strong>self-influence ‖∇ℓ‖ variant aligns much
-        better</strong> (0.29–0.34) — if you want a defensible "my selector ≈ IF", use self-influence, not the
-        cross form. Even then it is not tight (~0.3): the H⁻¹ whitening genuinely changes the ranking.
-        (2) Decisive for the thesis: <strong>real GIF is itself near-orthogonal to degree</strong> (0.02–0.04).
-        So it is <em>not</em> that a cheap proxy misses degree — even the exact-ish Hessian IF targets a
-        different node set than the structural-volume centrality that wins the attack. The volume-driven
-        reading survives the real IF.</p>
-        <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ approximation (||s|| finite,
-        converged here); magnitudes are directional. Single seed/ratio. Run a scale/iteration sensitivity
-        sweep before quoting exact numbers.</p>
+        <p><strong>Reading.</strong> (1) <strong>The cheap fix works: proper TracIn ≈ GIF at 0.65–0.74</strong>
+        — same cost as the deployed strategy (pure gradient inner products, no Hessian, scales to arxiv), but it
+        contracts each node gradient with <em>∇L<sub>test</sub></em> instead of the training-gradient sum. The
+        residual ~0.25–0.35 gap to GIF is the honest H⁻¹ whitening (Hessian-free ceiling).
+        (2) <strong>The deployed cross-form is a poor surrogate (0.10–0.14, ~2× the random floor)</strong>.
+        <span class="warn" style="display:inline">Correction to an earlier claim:</span> this is <em>not</em>
+        because Σ<sub>j</sub>∇ℓ<sub>j</sub>≈0 at convergence — measured ‖Σ∇ℓ‖ is large (69 / 68 / 255 on
+        cora/citeseer/pubmed), ≈ the L2-regularisation residual (∝ θ). The cross-form simply contracts with the
+        <em>wrong direction</em> (aggregate-training/regularisation, not test descent), so it ranks by the wrong
+        criterion. (3) <strong>Both GIF and the fixed TracIn are ⟂ degree</strong> (0.02–0.05): even the correct
+        influence selector targets a different node set than the structural-volume centrality that wins — the
+        volume-driven reading survives the real IF.</p>
+        <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ estimate (‖s‖ finite). Seeded /
+        deterministic. Single ratio. A scale/iteration sensitivity sweep is still advisable before quoting exact
+        magnitudes. Contracting with ∇L<sub>test</sub> uses test labels — in an attack threat model use a held-out
+        val/query set or pseudo-labels instead (same math).</p>
         """
     else:
         gif_section = """<h2>Model-based: TracIn vs GIF</h2>
@@ -113,10 +119,10 @@ def main():
     gif_tldr = ""
     if mb and "cora" in mb:
         c = mb["cora"]["jaccard"]
-        gif_tldr = (f'<li><strong>Deployed TracIn is only a loose GIF surrogate</strong> — on a trained base GCN, '
-                    f'GIF↔TracIn-cross = {c["gif_tracin"]} (self-influence variant aligns better, '
-                    f'{c["gif_tracinself"]}). And <strong>real GIF is itself orthogonal to degree</strong> '
-                    f'({c["gif_degree"]}) — the volume-driven reading survives the exact IF, not just the proxy.</li>')
+        gif_tldr = (f'<li><strong>A cheap fix recovers IF fidelity</strong>: the deployed cross-TracIn matches real '
+                    f'GIF at only {c["gif_tracin"]}, but <strong>proper TracIn ⟨∇ℓ,∇L_test⟩ (same cost, no Hessian) '
+                    f'hits {c["gif_tracinproper"]}</strong>. Both the fixed TracIn and GIF stay ⟂ degree '
+                    f'({c["gif_degree"]}) — volume-driven survives the real IF.</li>')
 
     html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

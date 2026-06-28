@@ -32,26 +32,31 @@ degree? is TracIn just degree? is my cheap TracIn ≈ real GIF?).
    attack while sharing ~no nodes with TracIn, the winning signal is **structural volume, not influence**
    (set-level support for the volume-driven reading).
 
-## Real GIF vs TracIn (RESOLVED — authorised base-GCN train)
+## Real GIF vs TracIn (RESOLVED — authorised base-GCN train, seeded)
 `concordance_model_based.py` trains a proper base GCN per dataset (`train_only`, **no unlearning** — you
-OK'd training for the concordance study), then computes TracIn (cross) + real GIF (s=H⁻¹∇L_test via LiSSA)
-on the **same** trained model.
+OK'd training for the concordance study), seeded/deterministic, then on the **same** trained model computes:
+real GIF (s=H⁻¹∇L_test via LiSSA), proper TracIn ⟨∇ℓ_v,∇L_test⟩, deployed cross-TracIn ⟨∇ℓ_v,Σ∇ℓ⟩, self ‖∇ℓ‖.
 
-| pair | cora (F1=0.89) | citeseer (F1=0.73) | pubmed (F1=0.86) |
+| pair | cora (F1=.88) | citeseer (F1=.73) | pubmed (F1=.86) |
 |---|---|---|---|
-| GIF ↔ TracIn (cross, deployed) | 0.263 | 0.047 | **0.003** |
-| GIF ↔ TracIn-self ‖∇ℓ‖ | 0.293 | 0.337 | 0.207 |
-| GIF ↔ degree | 0.024 | 0.039 | 0.042 |
+| GIF ↔ **TracIn-proper** ⟨∇ℓ,∇L_test⟩ (FIX) | **0.742** | **0.727** | **0.647** |
+| GIF ↔ TracIn-cross (deployed) | 0.113 | 0.142 | 0.098 |
+| GIF ↔ TracIn-self ‖∇ℓ‖ | 0.249 | 0.298 | 0.133 |
+| GIF ↔ degree | 0.024 | 0.051 | 0.041 |
+| TracIn-proper ↔ degree | 0.024 | 0.043 | 0.045 |
 
-(cross-form GIF surrogacy degrades with graph size — 0.26→0.05→0.003; self-influence holds 0.21–0.34; GIF⟂degree everywhere.)
+1. **The cheap fix recovers IF fidelity.** Proper TracIn (contract with ∇L_test, *Hessian-free*, same cost as
+   the deployed strategy, scales to arxiv) ≈ GIF at **0.65–0.74**. The residual ~0.25–0.35 gap is the honest
+   H⁻¹ whitening (Hessian-free ceiling). The deployed cross-form sits at **0.10–0.14** (~2× the random floor).
+2. **⚠ Mechanism correction.** An earlier claim that "Σ∇ℓ≈0 at convergence → noise" was WRONG: measured ‖Σ∇ℓ‖
+   is large (69 / 68 / 255), ≈ the L2-reg residual (∝ θ). The cross-form just contracts with the **wrong
+   direction** (aggregate-training/regularisation, not test descent) → ranks by the wrong criterion.
+3. **Real GIF and the fixed TracIn are both ⟂ degree** (0.02–0.05) → even the correct influence selector targets
+   different nodes than degree. **Volume-driven survives the real IF.**
 
-1. **Deployed cross-form TracIn is a weak GIF surrogate** (0.05–0.26): cross ≈ ⟨∇ℓ_v, Σ∇ℓ⟩, Σ∇ℓ≈0 near
-   convergence → noisy. **Self-influence ‖∇ℓ‖ aligns ~7× better** (0.29–0.34) but still ~0.3 (H⁻¹ reorders).
-   → if you want "my selector ≈ IF", use self-influence, not the cross form; even then it's loose.
-2. **Real GIF is itself near-orthogonal to degree** (0.02–0.04) → not "cheap proxy misses degree"; the
-   exact-ish Hessian IF also targets different nodes than degree. **Volume-driven survives the real IF.**
-
-(`gif_scorer.py`, the 34%-acc GNNDelete-checkpoint feasibility hack, is superseded and removed.)
+→ Production recommendation: replace the deployed cross-TracIn with proper TracIn (≈5-line change: contract
+∇L_val/query, not Σ∇ℓ). Affects only TracIn + Hybrid; re-run just those cells if you want corrected attack
+numbers. (`gif_scorer.py`, the 34%-acc GNNDelete-checkpoint feasibility hack, is superseded and removed.)
 LiSSA is first-order — run a scale/iteration sensitivity sweep before quoting exact magnitudes.
 
 ## Caveats

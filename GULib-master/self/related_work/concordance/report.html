@@ -42,7 +42,7 @@ seed 2024 · 6 datasets · generated 2026-06-27 · branch
 <li><strong>degree ≈ pagerank, dataset-dependent</strong> — mean 0.636 (0.50–0.83).</li>
 <li><strong>TracIn near-orthogonal to degree and IM</strong> (cora 0.024 / 0.029):
    the influence attack targets different nodes, yet degree wins → the winning signal is structural volume, not influence.</li>
-<li><strong>Deployed TracIn is only a loose GIF surrogate</strong> — on a trained base GCN, GIF↔TracIn-cross = 0.263 (self-influence variant aligns better, 0.293). And <strong>real GIF is itself orthogonal to degree</strong> (0.024) — the volume-driven reading survives the exact IF, not just the proxy.</li>
+<li><strong>A cheap fix recovers IF fidelity</strong>: the deployed cross-TracIn matches real GIF at only 0.113, but <strong>proper TracIn ⟨∇ℓ,∇L_test⟩ (same cost, no Hessian) hits 0.742</strong>. Both the fixed TracIn and GIF stay ⟂ degree (0.024) — volume-driven survives the real IF.</li>
 </ul>
 </div>
 
@@ -74,33 +74,39 @@ Green = redundant (same nodes); orange = distinct. "—" = selector needs a trai
 </div>
 
 
-        <h2>Model-based: deployed TracIn vs real GIF (trained base GCN)</h2>
-        <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning), then on the
-        <em>same</em> trained model: <strong>TracIn</strong> = the deployed cross-influence strategy;
-        <strong>GIF</strong> = the real graph influence function (s = H⁻¹∇L<sub>test</sub> via LiSSA, then
-        infl(v)=⟨s,∇ℓ<sub>v</sub>⟩); <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree/IM are topology.</p>
+        <h2>Model-based: a cheap, scalable IF surrogate that actually tracks GIF</h2>
+        <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning; seeded, deterministic),
+        then on the <em>same</em> trained model: <strong>GIF</strong> = the real graph influence function
+        (s = H⁻¹∇L<sub>test</sub> via LiSSA, then infl(v)=⟨s,∇ℓ<sub>v</sub>⟩);
+        <strong>TracIn-proper</strong> = ⟨∇ℓ<sub>v</sub>, ∇L<sub>test</sub>⟩ (Hessian-free, the FIX);
+        <strong>TracIn-cross</strong> = the deployed strategy ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩;
+        <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree is topology.</p>
         <table>
-        <thead><tr><th class="pair">pair</th><th>cora<span class="kk">F1=0.8893</span></th><th>citeseer<span class="kk">F1=0.7312</span></th><th>pubmed<span class="kk">F1=0.8633</span></th></tr></thead>
+        <thead><tr><th class="pair">pair</th><th>cora<span class="kk">F1=0.8819</span></th><th>citeseer<span class="kk">F1=0.7327</span></th><th>pubmed<span class="kk">F1=0.8633</span></th></tr></thead>
         <tbody>
-        <tr><th class="pair">GIF ↔ TracIn (cross)<span class="note">deployed strategy — is it ≈ real IF?</span></th><td style="background:hsl(31,70%,88%)">0.263</td><td style="background:hsl(5,70%,88%)">0.047</td><td style="background:hsl(0,70%,88%)">0.003</td></tr>
-        <tr><th class="pair">GIF ↔ TracIn-self ‖∇ℓ‖<span class="note">the self-influence variant</span></th><td style="background:hsl(35,70%,88%)">0.293</td><td style="background:hsl(40,70%,88%)">0.337</td><td style="background:hsl(24,70%,88%)">0.207</td></tr>
-        <tr><th class="pair">GIF ↔ degree<span class="note">real IF vs structural volume</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(4,70%,88%)">0.039</td><td style="background:hsl(5,70%,88%)">0.042</td></tr>
-        <tr><th class="pair">GIF ↔ IM<span class="note"></span></th><td style="background:hsl(3,70%,88%)">0.033</td><td style="background:hsl(2,70%,88%)">0.019</td><td style="background:hsl(2,70%,88%)">0.023</td></tr>
-        <tr><th class="pair">TracIn ↔ degree<span class="note"></span></th><td style="background:hsl(2,70%,88%)">0.019</td><td style="background:hsl(2,70%,88%)">0.023</td><td style="background:hsl(3,70%,88%)">0.029</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn-proper ⟨∇ℓ,∇L_test⟩ (FIX)<span class="note">cheap + faithful</span></th><td style="background:hsl(89,70%,88%)">0.742</td><td style="background:hsl(87,70%,88%)">0.727</td><td style="background:hsl(77,70%,88%)">0.647</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn-cross (deployed)<span class="note">the strategy as shipped</span></th><td style="background:hsl(13,70%,88%)">0.113</td><td style="background:hsl(17,70%,88%)">0.142</td><td style="background:hsl(11,70%,88%)">0.098</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn-self ‖∇ℓ‖<span class="note">self-influence variant</span></th><td style="background:hsl(29,70%,88%)">0.249</td><td style="background:hsl(35,70%,88%)">0.298</td><td style="background:hsl(15,70%,88%)">0.133</td></tr>
+        <tr><th class="pair">GIF ↔ degree<span class="note">real IF vs structural volume</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(6,70%,88%)">0.051</td><td style="background:hsl(4,70%,88%)">0.041</td></tr>
+        <tr><th class="pair">TracIn-proper ↔ degree<span class="note">fixed IF vs degree</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(5,70%,88%)">0.043</td><td style="background:hsl(5,70%,88%)">0.045</td></tr>
         </tbody>
         </table>
-        <p><strong>Reading.</strong> (1) The <strong>deployed TracIn-cross is a weak GIF surrogate</strong>
-        (0.05–0.26): the cross form ≈ ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩, and Σ∇ℓ≈0 near convergence,
-        so it is noisy and the Hessian reorders the rest. The <strong>self-influence ‖∇ℓ‖ variant aligns much
-        better</strong> (0.29–0.34) — if you want a defensible "my selector ≈ IF", use self-influence, not the
-        cross form. Even then it is not tight (~0.3): the H⁻¹ whitening genuinely changes the ranking.
-        (2) Decisive for the thesis: <strong>real GIF is itself near-orthogonal to degree</strong> (0.02–0.04).
-        So it is <em>not</em> that a cheap proxy misses degree — even the exact-ish Hessian IF targets a
-        different node set than the structural-volume centrality that wins the attack. The volume-driven
-        reading survives the real IF.</p>
-        <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ approximation (||s|| finite,
-        converged here); magnitudes are directional. Single seed/ratio. Run a scale/iteration sensitivity
-        sweep before quoting exact numbers.</p>
+        <p><strong>Reading.</strong> (1) <strong>The cheap fix works: proper TracIn ≈ GIF at 0.65–0.74</strong>
+        — same cost as the deployed strategy (pure gradient inner products, no Hessian, scales to arxiv), but it
+        contracts each node gradient with <em>∇L<sub>test</sub></em> instead of the training-gradient sum. The
+        residual ~0.25–0.35 gap to GIF is the honest H⁻¹ whitening (Hessian-free ceiling).
+        (2) <strong>The deployed cross-form is a poor surrogate (0.10–0.14, ~2× the random floor)</strong>.
+        <span class="warn" style="display:inline">Correction to an earlier claim:</span> this is <em>not</em>
+        because Σ<sub>j</sub>∇ℓ<sub>j</sub>≈0 at convergence — measured ‖Σ∇ℓ‖ is large (69 / 68 / 255 on
+        cora/citeseer/pubmed), ≈ the L2-regularisation residual (∝ θ). The cross-form simply contracts with the
+        <em>wrong direction</em> (aggregate-training/regularisation, not test descent), so it ranks by the wrong
+        criterion. (3) <strong>Both GIF and the fixed TracIn are ⟂ degree</strong> (0.02–0.05): even the correct
+        influence selector targets a different node set than the structural-volume centrality that wins — the
+        volume-driven reading survives the real IF.</p>
+        <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ estimate (‖s‖ finite). Seeded /
+        deterministic. Single ratio. A scale/iteration sensitivity sweep is still advisable before quoting exact
+        magnitudes. Contracting with ∇L<sub>test</sub> uses test labels — in an attack threat model use a held-out
+        val/query set or pseudo-labels instead (same math).</p>
         
 
 <h2>What this means for the thesis</h2>
