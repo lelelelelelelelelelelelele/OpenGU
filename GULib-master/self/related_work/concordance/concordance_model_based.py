@@ -142,16 +142,20 @@ def main():
 
     out_g = fwd()
     n = len(cand_ids)
+    v_flat = torch.cat([vi.reshape(-1) for vi in v])   # grad(L_test) — proper TracIn reference
     gif_scores = torch.empty(n)
     tracin_self = torch.empty(n)
+    tracin_proper = torch.empty(n)   # <grad(loss_v), grad(L_test)> : proper Hessian-free IF
     for idx, node in enumerate(cand_ids):
         lv = F.cross_entropy(out_g[node:node + 1], data.y[node:node + 1])
         gv = torch.autograd.grad(lv, params, retain_graph=(idx < n - 1))
         gflat = torch.cat([g.reshape(-1) for g in gv])
         gif_scores[idx] = torch.dot(s_flat, gflat).item()
         tracin_self[idx] = gflat.norm().item()
+        tracin_proper[idx] = torch.dot(v_flat, gflat).item()
     gif_top = [cand_ids[i] for i in torch.topk(gif_scores, k).indices.tolist()]
     tself_top = [cand_ids[i] for i in torch.topk(tracin_self, k).indices.tolist()]
+    tproper_top = [cand_ids[i] for i in torch.topk(tracin_proper, k).indices.tolist()]
 
     # --- topology reference sets ---
     topo = json.loads((DATA / f"{LOCAL.dataset_name}_{LOCAL.base_model}_r{LOCAL.unlearn_ratio}_seed{LOCAL.seed}.json").read_text(encoding="utf-8"))
@@ -165,15 +169,18 @@ def main():
         "lissa": {"iter": LOCAL.lissa_iter, "scale": LOCAL.lissa_scale, "damp": LOCAL.lissa_damp,
                   "s_norm": round(float(s_flat.norm().item()), 4)},
         "jaccard": {
-            "gif_tracin": jac(gif_top, tracin_top),          # <-- the validity number
+            "gif_tracin": jac(gif_top, tracin_top),          # deployed cross-form vs GIF
+            "gif_tracinproper": jac(gif_top, tproper_top),   # <-- proper Hessian-free TracIn vs GIF
             "gif_tracinself": jac(gif_top, tself_top),
             "gif_degree": jac(gif_top, deg),
             "gif_im": jac(gif_top, im),
+            "tracinproper_tracin": jac(tproper_top, tracin_top),   # proper vs deployed cross
+            "tracinproper_degree": jac(tproper_top, deg),
             "tracin_degree": jac(tracin_top, deg),
             "tracin_im": jac(tracin_top, im),
             "tracin_pagerank": jac(tracin_top, pr),
         },
-        "note": "GIF (s=H^-1 grad L_test, LiSSA) vs TracIn (cross-influence) on the SAME trained base GCN. degree/im/pagerank are topology.",
+        "note": "GIF (s=H^-1 grad L_test, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with sum_j grad_j ~= 0 at convergence]. tracinproper=<grad_v, grad L_test> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology.",
     }
     (DATA / f"modelbased_{LOCAL.dataset_name}.json").write_text(json.dumps(res, indent=2), encoding="utf-8")
     print(json.dumps(res, indent=2))

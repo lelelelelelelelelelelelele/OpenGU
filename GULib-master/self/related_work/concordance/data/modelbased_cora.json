@@ -2,21 +2,24 @@
   "dataset": "cora",
   "base_model": "GCN",
   "k": 108,
-  "test_f1": 0.8893,
+  "test_f1": 0.8875,
   "lissa": {
     "iter": 100,
     "scale": 25.0,
     "damp": 0.01,
-    "s_norm": 0.2812
+    "s_norm": 0.2894
   },
   "jaccard": {
-    "gif_tracin": 0.263,
+    "gif_tracin": 0.029,
+    "gif_tracinproper": 0.785,
     "gif_tracinself": 0.293,
-    "gif_degree": 0.024,
+    "gif_degree": 0.014,
     "gif_im": 0.033,
-    "tracin_degree": 0.019,
-    "tracin_im": 0.024,
-    "tracin_pagerank": 0.024
+    "tracinproper_tracin": 0.033,
+    "tracinproper_degree": 0.019,
+    "tracin_degree": 0.038,
+    "tracin_im": 0.043,
+    "tracin_pagerank": 0.038
   },
-  "note": "GIF (s=H^-1 grad L_test, LiSSA) vs TracIn (cross-influence) on the SAME trained base GCN. degree/im/pagerank are topology."
+  "note": "GIF (s=H^-1 grad L_test, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with sum_j grad_j ~= 0 at convergence]. tracinproper=<grad_v, grad L_test> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology."
 }
