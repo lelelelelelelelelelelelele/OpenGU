@@ -1,4 +1,110 @@
-<!DOCTYPE html>
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Generate self/dashboard/config_inventory.html (coverage-heatmap view) from
+self/dashboard/config_inventory.csv.
+
+Single source of truth = the CSV. Every roll-up (per-category bar, per-track
+summary, by-dataset, overall %, done/partial/not-started counts) is DERIVED in
+the page's JS from the injected config list — so to refresh progress you only
+ever edit ONE thing: the `done` column of the CSV. Then:
+
+    E:/conda_package/envs/gnn/python.exe scripts/dashboard/gen_config_inventory.py
+
+CSV columns (header order):
+    file,name,cat,dataset,model,ratio,hybrid_alpha,n_methods,n_strategies,
+    n_seeds,n_cells,done,src,methods,strategies,seeds
+
+`cat` long names are mapped to short block keys (CORA/ARXIV/A3/A5/A6/SANITY).
+"""
+import csv
+import datetime
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve()
+# scripts/dashboard/gen_config_inventory.py -> repo root is two parents up
+ROOT = HERE.parents[2]
+CSV_PATH = ROOT / "self" / "dashboard" / "config_inventory.csv"
+OUT_PATH = ROOT / "self" / "dashboard" / "config_inventory.html"
+
+CAT_MAP = {
+    "main-matrix (cora)": "CORA",
+    "main-matrix (arxiv)": "ARXIV",
+    "ablation A3 (alpha)": "A3",
+    "ablation A5 (ratio/dataset)": "A5",
+    "ablation A6 (backbone)": "A6",
+    "sanity": "SANITY",
+}
+
+
+def js_str(s: str) -> str:
+    s = "" if s is None else str(s)
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def js_int(s: str) -> str:
+    s = (s or "").strip()
+    return str(int(float(s))) if s not in ("", "None") else "0"
+
+
+def build_configs_array(rows):
+    lines = []
+    for r in rows:
+        cat_raw = (r.get("cat") or "").strip()
+        catkey = CAT_MAP.get(cat_raw)
+        if catkey is None:
+            raise SystemExit(f"[gen] unknown cat value: {cat_raw!r} (row {r.get('file')})")
+        alpha = (r.get("hybrid_alpha") or "").strip()
+        alpha_js = ('"%.2f"' % float(alpha)) if alpha not in ("", "None") else "null"
+        obj = (
+            "  {file:%s, name:%s, cat:%s, ds:%s, model:%s, ratio:%s, alpha:%s, "
+            "nm:%s,ns:%s,nse:%s, total:%s, done:%s, src:%s, methods:%s, strategies:%s, seeds:%s},"
+            % (
+                js_str(r["file"]), js_str(r["name"]), js_str(catkey), js_str(r["dataset"]),
+                js_str(r["model"]), js_str(r["ratio"]), alpha_js,
+                js_int(r["n_methods"]), js_int(r["n_strategies"]), js_int(r["n_seeds"]),
+                js_int(r["n_cells"]), js_int(r["done"]), js_str(r["src"]),
+                js_str(r["methods"]), js_str(r["strategies"]), js_str(r["seeds"]),
+            )
+        )
+        lines.append(obj)
+    return "\n".join(lines)
+
+
+def main():
+    if not CSV_PATH.exists():
+        raise SystemExit(f"[gen] CSV not found: {CSV_PATH}")
+    with CSV_PATH.open(encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows:
+        raise SystemExit("[gen] CSV has no data rows")
+
+    configs_js = build_configs_array(rows)
+    today = datetime.date.today().isoformat()
+    nconfigs = len(rows)
+
+    # quick console summary (sanity for the operator)
+    done = sum(int(float(r["done"] or 0)) for r in rows)
+    total = sum(int(float(r["n_cells"] or 0)) for r in rows)
+    print(f"[gen] {nconfigs} configs · {done}/{total} cells done · -> {OUT_PATH.relative_to(ROOT)}")
+
+    html = (
+        TEMPLATE
+        .replace("/*__CONFIGS__*/", configs_js)
+        .replace("__GENERATED_DATE__", today)
+        .replace("__NCONFIGS__", str(nconfigs))
+    )
+    OUT_PATH.write_text(html, encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# TEMPLATE — coverage-heatmap page. The CONFIGS array is injected; everything
+# else (blocks, summary, percentages, status counts) is derived in JS so a
+# single edit to the CSV propagates everywhere. Do not use str.format on this
+# (it contains literal { } from CSS/JS); only the explicit .replace() tokens
+# above are substituted.
+# ---------------------------------------------------------------------------
+TEMPLATE = r"""<!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -248,7 +354,7 @@
 <header class="titlebar">
   <div>
     <h1>Experiment Config Inventory <span class="tag">Coverage Heatmap</span></h1>
-    <div class="sub">29 configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated 2026-06-29</div>
+    <div class="sub">__NCONFIGS__ configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated __GENERATED_DATE__</div>
   </div>
 </header>
 
@@ -316,35 +422,7 @@
 
 /* ---- authoritative data (config granularity only; injected from CSV) ---- */
 const CONFIGS = [
-  {file:"A3_cora_GAT_alpha0.00.yaml", name:"A3_cora_GAT_alpha0.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GAT_alpha0.25.yaml", name:"A3_cora_GAT_alpha0.25", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GAT_alpha0.75.yaml", name:"A3_cora_GAT_alpha0.75", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GAT_alpha1.00.yaml", name:"A3_cora_GAT_alpha1.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GCN_alpha0.00.yaml", name:"A3_cora_GCN_alpha0.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GCN_alpha0.25.yaml", name:"A3_cora_GCN_alpha0.25", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GCN_alpha0.75.yaml", name:"A3_cora_GCN_alpha0.75", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A3_cora_GCN_alpha1.00.yaml", name:"A3_cora_GCN_alpha1.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"A5_citeseer_r0.05.yaml", name:"A5_citeseer_r0.05", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"A5_citeseer_r0.20.yaml", name:"A5_citeseer_r0.20", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"A5_ratio_0.01.yaml", name:"A5_ratio_0.01", cat:"A5", ds:"cora", model:"GCN", ratio:"0.01", alpha:null, nm:6,ns:3,nse:5, total:90, done:90, src:"csv", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"A5_ratio_0.10.yaml", name:"A5_ratio_0.10", cat:"A5", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"A5_ratio_0.20.yaml", name:"A5_ratio_0.20", cat:"A5", ds:"cora", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"A6_cora_gin_r0.05.yaml", name:"A6_cora_gin_r0.05", cat:"A6", ds:"cora", model:"GIN", ratio:"0.05", alpha:null, nm:5,ns:3,nse:5, total:75, done:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024"},
-  {file:"phase_b_arxiv.yaml", name:"phase_b_arxiv", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:4,nse:3, total:36, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|tracin|im|hybrid", seeds:"42|212|722"},
-  {file:"phase_b_arxiv_T1_seed42.yaml", name:"phase_b_arxiv_T1_seed42", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:6, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42"},
-  {file:"phase_b_arxiv_T2_seed212.yaml", name:"phase_b_arxiv_T2_seed212", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"212"},
-  {file:"phase_b_arxiv_T3_seed722.yaml", name:"phase_b_arxiv_T3_seed722", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"722"},
-  {file:"phase_b_arxiv_feasibility.yaml", name:"phase_b_arxiv_feasibility", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:5,ns:1,nse:1, total:5, done:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random", seeds:"42"},
-  {file:"phase_b_arxiv_hybrid_smoke.yaml", name:"phase_b_arxiv_hybrid_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, src:"disk", methods:"GIF", strategies:"hybrid", seeds:"42"},
-  {file:"phase_b_arxiv_im_only.yaml", name:"phase_b_arxiv_im_only", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:1,nse:3, total:9, done:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722"},
-  {file:"phase_b_arxiv_im_only_r01.yaml", name:"phase_b_arxiv_im_only_r01", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:1,nse:3, total:9, done:2, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722"},
-  {file:"phase_b_arxiv_tracin_smoke.yaml", name:"phase_b_arxiv_tracin_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, src:"disk", methods:"GIF", strategies:"tracin", seeds:"42"},
-  {file:"phase_b_cora_gat.yaml", name:"phase_b_cora_gat", cat:"CORA", ds:"cora", model:"GAT", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"phase_b_cora_gcn.yaml", name:"phase_b_cora_gcn", cat:"CORA", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024"},
-  {file:"sanity_graphrevoker.yaml", name:"sanity_graphrevoker", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, src:"csv", methods:"GraphRevoker", strategies:"random", seeds:"42"},
-  {file:"sanity_graphrevoker_r05_full.yaml", name:"sanity_graphrevoker_r05_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, src:"csv", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42"},
-  {file:"sanity_graphrevoker_r10_full.yaml", name:"sanity_graphrevoker_r10_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:1,ns:6,nse:1, total:6, done:0, src:"disk", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42"},
-  {file:"sanity_one_cell.yaml", name:"sanity_one_cell", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, src:"csv", methods:"GIF", strategies:"random", seeds:"42"},
+/*__CONFIGS__*/
 ];
 
 /* ---- block metadata: order + labels only; numbers are DERIVED ---- */
@@ -574,3 +652,8 @@ document.querySelectorAll("#provSeg button").forEach(btn => {
 </script>
 </body>
 </html>
+"""
+
+
+if __name__ == "__main__":
+    sys.exit(main())
