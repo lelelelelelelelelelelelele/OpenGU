@@ -78,6 +78,7 @@ LiSSA is first-order — run a scale/iteration sensitivity sweep before quoting 
 - `concordance_model_based.py` — trains a base GCN (this study only) → TracIn + real GIF on the same model.
 - `run_analysis.py` — Jaccard matrices + heatmaps + summary.
 - `gen_report.py` → `report.html` — the deliverable.
+- `FINDING_tracin_misspecification.md` — standalone chapter on the deployed-TracIn bug + the fix (thesis-ready).
 - `data/*.json` — selections, jaccard matrices, summary, modelbased_{ds} (TracIn/GIF).
 - `figures/jaccard_*.png` — heatmaps.
 
