@@ -98,7 +98,9 @@ idea 的**前提 #1（架构要真不同，别全是 MP）**不是泛泛之谈�
 
 ## 4. 定位与建议
 
-- **定位**：**future-work / 强化项**，与 `limitations.md` L6（RR-IF-Hybrid follow-up）同 tier。**不是**当前 paper 的新 pivot——当前 paper 已有 within-backbone 的 alignment 故事，再塞一个"cross-backbone consensus method"会冲淡主线。
+> **2026-06-28 决策(已定)**：当前 paper **只用 GCN + GAT 两个 MP backbone,不跑非-MP(A6 降 future-work)**。理由:(a) GNN 主流就是 MP,覆盖实际架构已够;(b) Cheb/APPNP 在 PyG 里也是 `MessagePassing` 子类、"非-MP"标签本身就松,真·非-MP 其实是 graph transformer,为它折腾性价比低;(c) 代价在措辞不在实验——只要 claim 收到 "across two message-passing backbones",并在 limitations 主动认"两者同属 MP 家族、跨家族泛化留 future work",刀就提前接住了。**红线**:别写 "model-agnostic / 架构无关 / 内在" 这种大词却只测 GCN+GAT。**若日后要补**(reviewer 点名 / 下篇当卖点):走**窄探针**——只挑一个最想守的结论、cora×1 新 backbone×(degree vs 1 informed)×≥3 seed,**seed 不能砍**,**别均匀撒矩阵**(撒薄了每个 under-powered、横着也聚合不了,比不跑还亏)。详见 WORKPLAN A6 行。
+
+- **定位**：**future-work / 强化项**,与 `limitations.md` L6（RR-IF-Hybrid follow-up）同 tier。**不是**当前 paper 的新 pivot——当前 paper 已有 within-backbone 的 alignment 故事，再塞一个"cross-backbone consensus method"会冲淡主线。
 - **当前 paper 能用的（低成本，0 新实验）**：用已有 GCN+GAT 数据，明确写一句"per-method 漏洞排序 / selection-degree 斜率跨两个 backbone 一致"，把现有的跨 backbone 一致性**显式说成 robustness 证据**；同时在 limitations 里**主动承认 caveat #1**（两 backbone 均 MP），把刀提前接住。
 - **下一篇 / rebuttal 加实验能用的**：加 `Cheb`/`APPNP` 这个非-MP backbone（cora 一套满矩阵 ~90 min，**但被环境重建阻塞**，见 `project-state-resume-2026-06`），把跨架构论述做实，并把"consensus-as-filter"作为方法贡献。
 - **不要**把 Zotero `WCZND3U3` 当同类方法引（原笔记已自警）。

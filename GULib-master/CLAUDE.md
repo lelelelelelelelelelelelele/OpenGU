@@ -20,6 +20,7 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 | `self/dashboard/METRICS_CATALOG.md` | Working with metrics (F1, MIA, Retrain Gap, Collateral, Hop-decay) |
 | `self/dashboard/METRIC_FIELD_SEMANTICS.md` | Before using `f1_before`, `perf_before`, or `logits_before` |
 | `self/dashboard/VALIDATION_LOG.md` | Need empirical evidence for a claim (append-only) |
+| `self/dashboard/PAPER_LIABILITIES_MAP.md` | Mapping paper 硬伤 L1–L9 → overleaf 行号 (when editing the paper to close a caveat) |
 | `self/dashboard/CLAUDE.md` | First time entering the folder — rules & maintenance |
 
 **NEVER duplicate dashboard content into other docs.** Always link to the path. This avoids drift.
@@ -128,11 +129,17 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - Bug 修复后数据刷新：Phase B 没有"修补"流程，重跑 `experiments/run.py <yaml>` 即可（旧的 HOWTO_REPAIR_CORRUPTED_RESULTS.md 描述的是 pre-Phase-B 流程，已删除 2026-05-06）
 - **改 GNN 架构维度必清方法目录**："架构"指 `gcn_hidden` / `gcn_num_layers` —— 这俩改了 state_dict tensor shape 会变。GNNDelete / UTU checkpoint 路径（`data/{Method}/checkpoint_node/{dataset}/{base_model}/original/{seed}/`）只带 dataset+base_model+seed，**不带架构维度**，所以 yaml 加 `model_overrides: {gcn_hidden: 256}` 或改 `--gcn_num_layers 3` 跟之前跑过的不一样时，必须先 `rm -rf data/GNNDelete/ data/UTU/`，否则旧 checkpoint 触发 state_dict 维度不匹配 RuntimeError（2026-05-06 B.1 GNNDelete crash 真实根因）。GraphEraser/GraphRevoker 文件名带 `partition_method/num_shards` 但同样不带架构，规则同。**不属于"改架构"、可以放心改的**：加新 method（每个 method 自己的 `data/<Method>/` 独立目录）、改 strategy / seed / dataset / base_model（路径已带）、改 lr / num_epochs / batch_size / unlearn_ratio / alpha / hybrid_alpha / fusion_method / candidate_fraction（不改 tensor shape，只影响数值）。ResultCache 的 `CACHE_KEY_FIELDS` 已包含 `gcn_hidden`/`gcn_num_layers`，所以 yaml override 后 cache 不会 collide，但**方法自己的磁盘 checkpoint 仍会**。
 
-### ⚠ Active Bugs / Status (2026-05-05)
+### ⚠ Status & Engineering Bottlenecks
 
-Detailed: `self/dashboard/EXPERIMENT_DASHBOARD.md §3` + `self/limitations.md` (paper §5 candidates).
+**Current research status / 硬伤 C1–C5 → `self/dashboard/WORKPLAN.md` §0–§3** (single hub, 2026-06-27+). Do not read the dated list below for *current* state — it has drifted.
 
-- **arxiv collateral retrain OOM on 24GB GPU**: peak memory ~22 GB, 4090 边缘 OOM。3/5 B.1 cell（GIF/GNNDelete/IDEA random）缺 collateral.json，待 H800 80GB 上 5 min 补完。详见 `self/limitations.md` 隐含在 L2.
+**Project phase (2026-06)**: NeurIPS paper **submitted, awaiting review** — this is the rebuttal-prep / 完善期, no longer a deadline crunch. thesis 锁死 = *systematic audit + extreme heterogeneity + Vulnerability Fingerprint* (reframe to "结构杠杆主轴" `565aaf6` is held for re-submission only). Active branch: `research/selection-concordance-2026-06-27`.
+
+**Local GPU is dead — GPU experiments are remote-only**: this machine's RTX 5070 is sm_120 (Blackwell); the pinned torch 2.2.1+cu121 only ships kernels to sm_90, so every CUDA kernel crashes and rebuilding per requirements.txt does not fix it. **All GPU runs go to the AutoDL image `gnn_20`** (rentable on demand); local conda `gnn` (`E:/conda_package/envs/gnn/python.exe`) is **CPU/analysis only**. Do not mix new-stack and old-stack results in one matrix.
+
+The engineering/hardware bottlenecks below (recorded 2026-05-05) are still accurate as scale/hardware facts; full list + decision status in `self/limitations.md` (L1–L8), historical bug archive in `EXPERIMENT_DASHBOARD.md §3`:
+
+- **arxiv collateral retrain OOM on 24GB GPU**: peak memory ~22 GB, 4090 边缘 OOM。3/5 B.1 cell（GIF/GNNDelete/IDEA random）缺 collateral.json，待 ≥80GB GPU 上 5 min 补完。详见 `self/limitations.md` 隐含在 L2.
 - **TracIn G-matrix on arxiv = ~68 GB**: 必须 ≥80GB GPU（H800/A100 80GB）。L2 in `self/limitations.md`. Forward-once optimization (commit `6b7285b`) keeps memory the same, only halves time.
 - **IM CELF default params on arxiv = intractable**: yaml 默认未带 `candidate_fraction=0.1, mc_rounds=50` 时 step-1 要 9M MC BFS，10h+ 不出结果。修复后 ~3 min。L3 in limitations.md.
 - **GraphEraser LPA partition on arxiv slow but feasible**: 10 min/iter，但 `terminate_delta=0` 早停在 1-2 iter ≈ 10 min total。L1 (downgraded to ACCEPTED).
@@ -162,9 +169,10 @@ Resolved (2026-05-05):
 This project is developing **adversarial attacks on GNN unlearning**. The core idea: strategically select nodes for forced unlearning to cause performance collapse in approximate unlearning algorithms. See `self/` directory for detailed context:
 
 - **`self/dashboard/`**: live state — start here every session
-- **`self/limitations.md`**: 实测瓶颈 + paper §5 candidates（2026-05-05 新增，每条带 evidence + decision status）
-- **`self/attack_flow.md`**: 一个 cell 时序图 + CPU/GPU 占用（2026-05-05 新增，调试卡死位置必看）
-- `self/thesis_transition_memo.md`: thesis 战略层 + 4-day NeurIPS execution plan
+- **`self/related_work/`**: citation library (`refs.bib` + `NOTES.md`) and **`concordance/`** — the selection-concordance study driving the current branch. Asks: do degree / PageRank / IM / TracIn / GIF select the *same* nodes? Jaccard@k across 6 datasets (training-free) + real GIF-vs-TracIn on a trained base GCN. Deliverable `concordance/report.html`; entry point `concordance/HANDOFF.md`. Findings: IM ≠ degree at the **set** level (most distinct on larger graphs), TracIn ⟂ degree & IM (set-level support for the volume-driven reading), and the cheap Hessian-free "proper TracIn" ≈ real GIF (0.65–0.74) while the deployed cross-TracIn is degenerate (~0.10–0.14).
+- **`self/limitations.md`**: 实测瓶颈 + paper §5 candidates（每条带 evidence + decision status；L1–L8）
+- **`self/attack_flow.md`**: 一个 cell 时序图 + CPU/GPU 占用（调试卡死位置必看）
+- `self/thesis_transition_memo.md`: thesis 战略层（含早期 NeurIPS 执行计划，phase 现已是 submitted/rebuttal-prep）
 - `self/PROJECT_MASTER_CONTEXT.md`: Research background, hypothesis, methodology (frozen background)
 - `self/plan_flow_v2_delta.md`: 方法学/指标设计原典
 - `self/宏观plan.md`: Experiment plan, code modules to build, priority ordering
