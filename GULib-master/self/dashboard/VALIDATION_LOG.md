@@ -789,3 +789,72 @@ The decomposition is **always two terms** (`drop_strat = ΔF_arch + ΔF^attack`)
 
 ---
 
+
+## 2026-06-30 Session
+
+### V-2026-06-30-01: config_inventory 仪表盘验收 —— done 口径 vs 真实源对账（F4）
+
+**Setting**：F4 把 `config_inventory.html` 重设计为 coverage-heatmap + CSV 生成器后做验收。逐项对账看板 `done` 与真实源（cora ← `results/_phase_b_aggregate.csv` 460 行；arxiv ← `results/runs/ogbn-arxiv_GCN_r0.01/` 磁盘）。完整报告见 `CONFIG_INVENTORY_ACCEPTANCE.md`。
+
+**对账结果（headline 全部对得上源，无虚报）**：
+- `cora_GAT_r0.05` = 180 行（纯 6 strategy） ✓ = 看板 phase_b_cora_gat 180/180
+- `cora_GCN_r0.05` = **190 行** = 180 主矩阵 + 10 `hybrid_alpha0.00` ✓（看板把 180 归主矩阵，10 归 A3——归属正确）
+- `cora_GCN_r0.01` = 90 行 ✓ = A5_ratio_0.01 90/90
+- arxiv 磁盘 = 6 个 distinct cell（GIF/GNNDelete × random/im/tracin, seed42） ✓ = 看板 T1_seed42 6/18；im_only_r01 2/9、tracin_smoke 1/1 为与 T1 重叠的 per-config 计数（distinct=6，跨 config 计 9，与"1214 上界、config 重叠"口径一致）
+
+**两项遗留 done 口径问题（非虚报，待拍板）**：
+
+| ID | 现象 | Source | 解读 / 建议 |
+|----|------|--------|------------|
+| **F-1** | 看板 A3 = **0/200**，但 aggregate 实有 **10 个** A3 α=0.00 (cora_GCN) 结果：`strategy=hybrid_alpha0.00`, method∈{GIF,GNNDelete}, 全 5 seed，带真实 f1_after | `_phase_b_aggregate.csv` cell=cora_GCN_r0.05 | alias 视角→0；字面视角→`A3_cora_GCN_alpha0.00`=10/25 partial、A3=10/200。**推荐**：CSV 把该 config done 改 10，dedup 注点明其余 α-endpoint 仍按复用 |
+| **F-2** | `A5_ratio_0.01` 90/90 含 **1 行 `failed=True`**（GraphRevoker/random/seed42, f1=0.583） | 同上 cell=cora_GCN_r0.01 | "done"=行存在≠成功；即已知 GraphRevoker 退化（见 `project_graphrevoker_dispatcher_history` / WORKPLAN E4 修+重跑）。**建议**：脚注披露，不改 90；随 E4 重跑彻底刷新 |
+
+**Implication**：两项都不影响 cora 主矩阵 360 与 arxiv pilot 的真实性；F-1 会改变"A3 缺啥"的判断（A3 非完全未跑）。F4 验收 = **通过(conditional)**。
+
+**Cross-ref**：`CONFIG_INVENTORY_ACCEPTANCE.md`、WORKPLAN F4 / §10 changelog 2026-06-30、`scripts/dashboard/gen_config_inventory.py`。
+---
+
+### V-2026-06-30-02: config_inventory semantic correction after user review
+
+**Decision applied**: split the dashboard's previous single `done` reading into produced/usable/rerun semantics.
+
+**Changes locked**:
+- `A3_cora_GCN_alpha0.00` = `10/25` produced + usable, sourced from 10 real `hybrid_alpha0.00` aggregate rows (GIF and GNNDelete x 5 seeds).
+- `phase_b_cora_gcn` and `phase_b_cora_gat` = `180/180` produced, `150/180` usable, `30` GraphRevoker cells pending E4 rerun.
+- `A5_ratio_0.01` = `90/90` produced, `75/90` usable, `15` GraphRevoker cells pending E4 rerun; warning explicitly includes the 1 failed `GraphRevoker/random/seed42` cell.
+- Dashboard block order now follows execution order rather than only category order: Cora main matrix -> A5 -> arxiv remote queue -> A3 -> A6 -> sanity.
+
+**Regression test**: `tests/test_config_inventory_dashboard.py`.
+
+---
+
+## 2026-07-01 Session
+
+### V-2026-07-01-01: config_inventory story layer + IF-concordance refresh semantics
+
+**Decision applied**: each experiment group now carries an advisor-facing story block with fixed fields: Question, Setup, Why, Current read, and Next decision. The story is generator metadata, not CSV data, so the numeric inventory remains separated from narrative framing.
+
+**IF-concordance implication applied**: the selection-concordance study showed deployed cross-TracIn has low overlap with real GIF / proper TracIn, while proper TracIn recovers IF fidelity. Therefore produced TracIn/Hybrid cells are no longer counted as clean usable evidence until refreshed with proper-TracIn semantics.
+
+**Dashboard semantic changes**:
+- `phase_b_cora_gcn` and `phase_b_cora_gat`: `180/180` produced, `100/180` usable, `80` rerun pending (GraphRevoker 30 + non-GraphRevoker TracIn/Hybrid 50).
+- `A5_ratio_0.01`: `90/90` produced, `50/90` usable, `40` rerun pending (GraphRevoker 15 + non-GraphRevoker TracIn 25).
+- `phase_b_arxiv_T1_seed42`: `6/18` produced, `4/18` usable, `2` TracIn pilot cells pending refresh.
+- `phase_b_arxiv_tracin_smoke`: `1/1` produced, `0/1` usable, `1` rerun pending.
+- Overall inventory now reports `477/1214` produced, `274/1214` usable, and `203` rerun pending.
+
+**Regression test**: `tests/test_config_inventory_dashboard.py`.
+
+---
+
+### V-2026-07-01-02: experiment table rerun-basis clarification
+
+**Decision applied**: rerun/refresh status is now displayed by cause, not as a single GraphRevoker-only label. The experiment table distinguishes:
+- GraphRevoker repair / full-method rerun.
+- proper-TracIn refresh for every paper-facing old TracIn/Hybrid evidence row.
+
+**No numeric count changed**: overall inventory remains `477/1214` produced, `274/1214` usable, and `203` rerun/refresh pending. The Cora main matrices remain `80` rerun each (`30` GraphRevoker + `50` non-GraphRevoker TracIn/Hybrid); A5 r0.01 remains `40` rerun (`15` GraphRevoker + `25` TracIn).
+
+**Files updated**: `config_inventory.html`, `scripts/dashboard/gen_config_inventory.py`, and `report/progress/2026-07-01_advisor-report/current-status-report.html`.
+
+**Regression test**: `tests/test_config_inventory_dashboard.py`.

@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-06-27
+> Last updated: 2026-06-28
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -36,7 +36,7 @@
 1. **C1 — 指标选错，非贡献被证伪**：`degree ≥ IM/IF` 在 **raw-F1**（degree +1.85 > im +1.19 > tracin −0.31）**和 retrain gap**（全局 degree .0286 > im .0233；逐方法只有 GNNDelete 有真 gap、degree .158 第一、IF 家族≈0）**都成立**。但 thesis 本是 *audit + 异质性*，不是"IM/IF 最强" → **degree 赢不证伪它**。rebuttal 内：换主指标 retrain gap、异质性当头条、IM/IF 降诊断轴；TracIn 最弱本身是 finding。唯一可能翻盘的 IM/IF niche：GIF/IDEA gap 现≈0 且 L8 污染 → **E2** 是唯一能验出真 niche 的实验。→ 记忆 `paper-contribution-falsified`。
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
-4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**，"F1 反升"暂不可复现 → E3/W3-L4。
+4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**（**设计如此、非缺同步**；只有 GNNDelete 的方法自吐 before）→ before 锚点用主矩阵 `perf_before` 本地 join 重算（**E3**，不需服务器）/W3-L4。
 5. **C5 — GraphRevoker 整 method 退化**：`perf_before` 所有 cell 退化（0.50–0.58，vs 其它 0.77–0.87），根因 `e3bbd54` 未修完聚合器 bug（`opt_dataset.py:17` IndexError）。**决策已定（2026-06-27）：修聚合器 + 整 method 重跑（E4），不 drop、不 caveat**——不报、也不洗坏数据；重跑前 §5.2 GR×GAT wedge 标 *pending re-run*、不下机制结论，方法保留在 6-method audit。→ 记忆 `project_graphrevoker_dispatcher_history`、`feedback-fix-dont-drop-broken-data`。
 
 ---
@@ -47,6 +47,8 @@
 
 - **这轮 rebuttal（thesis 锁死，不改框架）**：换主指标 raw-F1 → **retrain gap**；头条压 **extreme heterogeneity**（GNNDelete 崩 16% / partition·IF 鲁棒）；IM/IF 降为 **fingerprint 诊断轴**；备两道必答题（① vs degree ② citeseer/arxiv scope）。
 - **下一站（仅当不中 → 重投）**：才做"结构杠杆主轴、influence 失配"叙事转换（`565aaf6` 蓝本 + 强版机制 §7）。**这轮做它 = 自投降。**
+
+> ⚠ **开放问题（2026-06-28）**：核心若**只剩 fingerprint** 会不会太轻？fingerprint 比旧 IF/IM 框架清晰，但作为**唯一**贡献偏描述性。强化核心 = reframe（结构杠杆，`565aaf6`）= **重投动作**；引用/对照方法与 GIF（影响函数）相关，可作强化抓手。**待定**：rebuttal 维持「audit + 异质性为实体、fingerprint 为框架」，还是认账偏轻 → 重投强化。**AI review（`文档规划/AI审稿_2026-06-28.md`）独立印证**：5→6 分条件之一就是"加更强的 mechanism-aware selector 或证明当前 selector 覆盖性"——正是此处的核心补强。
 
 ---
 
@@ -60,26 +62,26 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
                                                  └─► 唯一能验 IM/IF 在 IF 家族有无真 niche
 
 ★ E1 citeseer clean ─► W2-② scope 必答题 / W3-L6 scope 改写
-★ E3 ΔF_noise k=5 anchor ─► W3-L4 anchor footnote
+E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─► W3-L4 anchor footnote
 
 写作主线（多数纯 prose，现在就能做）：W1 指标切换 ─► W2 两道必答题 ─► W3 逐条 caveat ─► W4 融合
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
 
-**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → 租服务器跑 E1/E2/E3/E4(含 GraphRevoker 修复) → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
+**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → 租服务器跑 E1/E2/E4(含 GraphRevoker 修复) + 本地算 E3 → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
 
 ---
 
-## 5. 实验（主矩阵补证 / 关硬伤）★ 全部需 GPU
+## 5. 实验（主矩阵补证 / 关硬伤）—— 多数 ★需 GPU（E3 例外：本地重算）
 
 > 目标：把 paper 已写但磁盘撑不住的数字补干净。**不是新故事，是给 thesis 补证。** 进度数字源 = `config_inventory.html`。
 
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
-| **E1** ★ | **跑干净 citeseer**（堵 scope 漏洞，最高优先） | `A5_citeseer_r0.05.yaml` | 6×3×5=90 cell, ~1h | L6 / C-scope | ☐ 0/90 |
+| **E4** ★ | **GraphRevoker 修复 ← 先做（每方法有效数据 = audit 底座）**（决策 = 修，不 drop/不 caveat）：修聚合器 `opt_dataset.py:17`（**源于 OpenGU 上游、长期未改好**）→ 清损坏 `data/GraphRevoker/cora/` .pt → 整 method 重跑，**争取交叉验证**确认修对 | `phase_b_cora_{gcn,gat}.yaml` + 聚合器修复 | 整 method 重跑 | C5 / L5 | ☐ |
+| **E1** ★ | **跑干净 citeseer**（堵 scope 漏洞） | `A5_citeseer_r0.05.yaml` | 6×3×5=90 cell, ~1h | L6 / C-scope | ☐ 0/90 |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
-| **E3** ★ | **修 ΔF_noise anchor**：重跑 k=5 把 `f1_before` 持久化（或注明 anchor 缺失） | `experiments/baseline_k5/fill_missing_cora.py` | 4×5=20 run, ~15min | C4 / L4 | ☐ |
-| **E4** ★ | **GraphRevoker 修复**（决策已定 = **修，不 drop / 不 caveat**）：修聚合器 `opt_dataset.py:17` IndexError（`e3bbd54` 未完成）→ 清损坏 `data/GraphRevoker/cora/` .pt → 整 method 重跑 | `phase_b_cora_{gcn,gat}.yaml` + 聚合器修复 | 整 method 重跑 | C5 / L5 | ☐ |
+| **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
 
@@ -95,9 +97,10 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 |---|---|---|---|---|---|
 | **A3** ★ | **alpha-sweep**：hybrid_alpha {0,.25,.5,.75,1}×{GCN,GAT}×cora r0.05 | `A3_cora_{GCN,GAT}_alpha{0.00,0.25,0.75,1.00}.yaml` | 有效新增 ~180 cell（α=0≡im, α=1≡tracin） | **gate**：主矩阵 fingerprint 出来后，若 MEGU/IDEA 有非平凡坐标才值得跑。⚠ IM 整体打不过 degree → 价值有限 | ☐ 0/200 |
 | **A5** ★ | **ratio-sweep**：r∈{0.01,0.10,0.20} cora GCN（+citeseer 见 E1） | `A5_ratio_{0.01,0.10,0.20}.yaml` | 90 cell/ratio | r0.01 **已完成**；r0.10/0.20 待跑。⚠ r0.20 可能崩 GraphEraser（空 shard），先 sanity | ◐ 90/450 |
-| **A6** ★ | **新 backbone / 跨架构共识**：GIN 已有 config；加 1 个**非-MP**(Cheb/APPNP) | `A6_cora_gin_r0.05.yaml` + 新建 | 75 cell/backbone | → `idea_cross_arch_consensus.md`。P2 加分 | ☐ 0/75 |
+| **A6** | **新 backbone / 跨架构共识** — **2026-06-28 决策：不跑，降 future-work**。只用现有 GCN+GAT 两个 MP backbone；claim **收到 "across two message-passing backbones"**，limitations 主动认"两者同属 MP 家族，谱方法/graph-transformer 跨家族泛化留 future work"。要补也只在 reviewer 点名 / 下篇当卖点时，按**窄探针**(cora×1 新 backbone×degree-vs-1-informed×≥3 seed)，**别均匀撒** | (不跑) | — | → `idea_cross_arch_consensus.md` §4 | ✅ 决策：scope-to-MP |
 | **A7** ★ | **GNNDelete +seed**（n.s.→显著）或 reframe 成 volume-driven | 扩 `phase_b_cora_*` seeds | +N seed | 关 C2（n=5 sd≫mean）。P2 | ☐ |
 | **A8** | **RR-set IM / RR-IF-Hybrid**（统一 IMM 框架，IF 作 bicriteria） | 新算法 | ~2-3 天实现 | limitations L6-(C)，**ICLR-tier follow-up**；rebuttal 不做 | ☐ option |
+| **A9** ★ | **加新 GU 方法（拓宽 audit 广度）**：现 6 method，考虑再纳 1–2 个新方法 → audit 更扎实（呼应"fingerprint 偏轻"的担忧） | 新 method 接入 | 视方法 | 拓 audit | ☐ option |
 
 **Aggregator 待建**：`scripts/plot_supp_figures.py::plot_alpha_synergy`（A3）、`::plot_ratio_elasticity`（A5）—— 见 F3。
 
@@ -106,6 +109,7 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 ## 7. 写作（thesis 锁死，框架内）
 
 > 目标：把 thesis 讲法对齐到现有数据。多数**纯 prose、现在就能做**；少数等阶段实验回填。
+> **打底**：per-method 优劣（audit 主表）是论文的基础结果——先立住，再谈 selector / 异质性。
 
 | ID | 任务 | 关 | 依赖 | 状态 |
 |---|---|---|---|---|
@@ -114,12 +118,13 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 | **W3** | **硬伤逐条 caveat**（对照 `PAPER_LIABILITIES_MAP.md` overleaf 行号） | L1–L9 / C2–C4 | 见下 | ☐ |
 | **W4** | **paper 整理/融合 + 重查表格**：多版收敛（云端基底 + 并入 reframe 框架 + 落 C1–C6 + 清弃用如 `arxiv_pilot_table.tex`），逐表 check | — | W1–W3 | ☐ |
 | **W5** | **术语审计** "MIA" → "update-detection AUC"（全文） | — | — | ☐ 纯 prose |
-| **W6** | **review collection**：汇总 评审/导师/AI 修改意见（起点 `report/advisor_report_2026-06-16.html`） | — | — | ☐ |
+| **W6** | **review collection**：汇总 评审/导师/AI 意见，建一个 **reviewer意见文件区**（放 OB/Obsidian 最好）。已有 `report/advisor_report_2026-06-16.html` + AI review `文档规划/AI审稿_2026-06-28.md`（**5/10 weak reject**；三痛点已映射到 E1·E5 / W1·W3 / C2·A7） | — | — | ☐ |
 | **W7** | **读未读论文**：GraphRevoker / MEGU / UTU 等 → related work + 反防审稿人引用 | — | — | ☐ |
 | **W8** | **Supplementary 整理**：appendix（hop §A.4 / 460 行说明 / 诊断 suite 定义）成形 | L8 / C3 | A.4 待 E2 | ☐ |
+| **W9** | **AI 辅助数据分析**：让 AI 过一遍结果矩阵，挖异质性/反例/可写点（喂 `_phase_b_aggregate.csv` + collateral） | — | — | ☐ |
 
 **W3 拆解（按能否现在做）**：
-- **现在就能改（纯 prose）**：`L1` abstract selector reframe（列全 6 selector、degree/PageRank 主导、IM/IF 标 objective-misaligned）· `L2` GNNDelete n.s. 对冲· `L7` arxiv pilot scope· `L8` 460/92 笔误· `L9` verdict label 加"描述性非统计证明"一句。
+- **现在就能改（纯 prose）**：`L1` abstract selector reframe（列全 6 selector、degree/PageRank 主导、IM/IF 标 objective-misaligned）· `L2` GNNDelete n.s. 对冲· `L7` arxiv pilot scope· `L8` 460/92 笔误· `L9` verdict label 加"描述性非统计证明"一句· **清掉"Phase B.2 refresh / await H800 retrain"等未完成/延期语句**（AI review 头号痛点：暴露"关键实验没跑完"）· 弱化"architectural immunity / Shard Protection / strictly governed"等过满措辞（review 痛点②）。
 - **等实验回填**：`L3` hop caveat ←**E2**· `L4` ΔF_noise anchor footnote ←**E3**· `L5` §5.2 wedge（重跑前标 *pending*、不下结论）←**E4** 修复后回填真数据· `L6` citeseer scope ←**E1**。
 
 ---
@@ -131,12 +136,14 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 | **F1** | **方法 / pipeline 示意图**：一张步骤图 / 机制图（≠ 结果图） | 独立 | ☐ |
 | **F2** | **收敛图生成器分叉**：`test1.py` vs `scripts/plot_neurips_figures.py`，删一个、重生结果图 | 独立 | ☐ |
 | **F3** | **Supp 图**：A3 alpha-synergy 图 + A5 ratio-elasticity 图；hop-decay 图重生 | A3 / A5 / E2 | ☐ |
+| **F4** | **exp 看板改进**：`config_inventory` 现在仍不够清晰，迭代成"一眼看懂跑了啥 / 缺啥" | 独立 | ✅ 验收通过(conditional)，见 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)（重设计为 heatmap + CSV 生成器；遗留 F-1 A3 口径 / F-2 失败 cell 披露 待拍板） |
 
 ---
 
 ## 9. 链接索引
 
-- 配置矩阵监督：[`config_inventory.html`](config_inventory.html) · 数据 [`config_inventory.csv`](config_inventory.csv)
+- **全项目文档地图**：`../../文档规划/_文档地图.md`（MOC + 零散 md 归集处）
+- 配置矩阵监督：[`config_inventory.html`](config_inventory.html) · 数据 [`config_inventory.csv`](config_inventory.csv) · 生成器 [`scripts/dashboard/gen_config_inventory.py`](../../scripts/dashboard/gen_config_inventory.py)（改 CSV `done` 后重跑即刷新）· 验收 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)
 - 硬伤映射：[`PAPER_LIABILITIES_MAP.md`](PAPER_LIABILITIES_MAP.md)（L1–L9 + overleaf 行号）
 - 实测瓶颈：[`self/limitations.md`](../limitations.md)（L1–L8）
 - ablation 设计原典：`experiments/configs/A3_alpha_sweep_SPEC.md` · `A5_README.md` · `SANITY_GRAPHREVOKER.md`
@@ -151,3 +158,8 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 
 - **2026-06-27** 建档（实验/ablation/写作/画图 四阶段，收敛 PROGRESS §2/§3 + limitations + PAPER_LIABILITIES_MAP + 配置矩阵）；配套 `config_inventory.{csv,html}` 监督看板。
 - **2026-06-27（晚）** E4 决策定为 **修 + 重跑**（不 drop / 不 caveat）；并 **升级为唯一操作中枢**：折入 PROGRESS §0/§1/§2/§4（现状/快照/硬伤/方向），`refresh.py` 重指到本文件生成 `progress.html`（看板列改为四阶段），`PROGRESS.md` 退成指针。
+- **2026-06-28** E3 从 ★GPU 降级为**本地重算**：核实 k=5 baseline `f1_before=null` 是设计如此（非缺同步），before 锚点在主矩阵 `perf_before`/`_phase_b_aggregate.csv` 已有 → 离线 join 或 reframe，不需服务器。
+- **2026-06-30** **F4 完成 + 验收**：`config_inventory` 重设计为 coverage-heatmap（分类 block + A3 α-grid + 红/黄/绿 fill）、全派生（消除 3 处硬编码）、配 CSV→HTML 生成器 `gen_config_inventory.py`（一处改 `done` 全盘联动，实测回填闭环）。验收报告 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)：功能 + 数据真实性全过（headline 对得上 `_phase_b_aggregate.csv` / 磁盘）；遗留 **F-1**（A3 实有 10 个 α=0.00 alias 结果、看板报 0）/ **F-2**（A5_ratio_0.01 90/90 含 1 个已知 GraphRevoker 失败 cell）两项 done 口径待拍板（见 VALIDATION_LOG V-2026-06-30-01）。
+- **2026-06-28** 并入 `p.md` 笔记：E4 提到第一（audit 底座 + OpenGU 上游老 bug + 争取交叉验证）；W6 加 reviewer意见文件区(OB)；新增 W9(AI 数据分析)/F4(exp 看板改进)/A9(加新方法)；§3 记下"fingerprint 是否偏轻"开放问题；§7 加"per-method 优劣打底"。
+- **2026-06-28** 接入 AI review `文档规划/AI审稿_2026-06-28.md`（5/10 weak reject，**非官方审稿** → 现状仍完善期）→ W6；三痛点（scope 没跑完 / 叙述过满 / 统计偏弱）对应 E1·E5 / W1·W3 / C2·A7（均已在计划内）；W3 加"清未完成语句"；§3 fingerprint 偏轻被 review 印证。
+- **2026-06-28** 建 `文档规划/` 文件区（零散 md 的家 + `_文档地图.md` 全项目分类 MOC）；根目录两份零散 md（规划手记、AI 审稿）归入并加 frontmatter；`daily-log` / `progress` 不动、只索引。

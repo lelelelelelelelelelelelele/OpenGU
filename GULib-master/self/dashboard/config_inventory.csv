@@ -1,30 +1,30 @@
-﻿file,name,cat,dataset,model,ratio,hybrid_alpha,n_methods,n_strategies,n_seeds,n_cells,done,src,methods,strategies,seeds
-A3_cora_GAT_alpha0.00.yaml,A3_cora_GAT_alpha0.00,ablation A3 (alpha),cora,GAT,0.05,0.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GAT_alpha0.25.yaml,A3_cora_GAT_alpha0.25,ablation A3 (alpha),cora,GAT,0.05,0.25,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GAT_alpha0.75.yaml,A3_cora_GAT_alpha0.75,ablation A3 (alpha),cora,GAT,0.05,0.75,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GAT_alpha1.00.yaml,A3_cora_GAT_alpha1.00,ablation A3 (alpha),cora,GAT,0.05,1.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GCN_alpha0.00.yaml,A3_cora_GCN_alpha0.00,ablation A3 (alpha),cora,GCN,0.05,0.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GCN_alpha0.25.yaml,A3_cora_GCN_alpha0.25,ablation A3 (alpha),cora,GCN,0.05,0.25,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GCN_alpha0.75.yaml,A3_cora_GCN_alpha0.75,ablation A3 (alpha),cora,GCN,0.05,0.75,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A3_cora_GCN_alpha1.00.yaml,A3_cora_GCN_alpha1.00,ablation A3 (alpha),cora,GCN,0.05,1.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024
-A5_citeseer_r0.05.yaml,A5_citeseer_r0.05,ablation A5 (ratio/dataset),citeseer,GCN,0.05,,6,3,5,90,0,disk,GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU,random|im|tracin,42|212|722|1337|2024
-A5_citeseer_r0.20.yaml,A5_citeseer_r0.20,ablation A5 (ratio/dataset),citeseer,GCN,0.2,,6,3,5,90,0,disk,GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU,random|im|tracin,42|212|722|1337|2024
-A5_ratio_0.01.yaml,A5_ratio_0.01,ablation A5 (ratio/dataset),cora,GCN,0.01,,6,3,5,90,90,csv,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024
-A5_ratio_0.10.yaml,A5_ratio_0.10,ablation A5 (ratio/dataset),cora,GCN,0.1,,6,3,5,90,0,disk,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024
-A5_ratio_0.20.yaml,A5_ratio_0.20,ablation A5 (ratio/dataset),cora,GCN,0.2,,6,3,5,90,0,disk,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024
-A6_cora_gin_r0.05.yaml,A6_cora_gin_r0.05,ablation A6 (backbone),cora,GIN,0.05,,5,3,5,75,0,disk,GIF|GNNDelete|MEGU|IDEA|GraphEraser,random|im|tracin,42|212|722|1337|2024
-phase_b_arxiv.yaml,phase_b_arxiv,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,3,4,3,36,0,disk,GIF|GNNDelete|GraphEraser,random|tracin|im|hybrid,42|212|722
-phase_b_arxiv_T1_seed42.yaml,phase_b_arxiv_T1_seed42,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,6,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,42
-phase_b_arxiv_T2_seed212.yaml,phase_b_arxiv_T2_seed212,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,0,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,212
-phase_b_arxiv_T3_seed722.yaml,phase_b_arxiv_T3_seed722,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,0,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,722
-phase_b_arxiv_feasibility.yaml,phase_b_arxiv_feasibility,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,5,1,1,5,0,disk,GIF|GNNDelete|MEGU|IDEA|GraphEraser,random,42
-phase_b_arxiv_hybrid_smoke.yaml,phase_b_arxiv_hybrid_smoke,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,1,1,1,1,0,disk,GIF,hybrid,42
-phase_b_arxiv_im_only.yaml,phase_b_arxiv_im_only,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,3,1,3,9,0,disk,GIF|GNNDelete|GraphEraser,im,42|212|722
-phase_b_arxiv_im_only_r01.yaml,phase_b_arxiv_im_only_r01,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,1,3,9,2,disk,GIF|GNNDelete|GraphEraser,im,42|212|722
-phase_b_arxiv_tracin_smoke.yaml,phase_b_arxiv_tracin_smoke,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,1,1,1,1,1,disk,GIF,tracin,42
-phase_b_cora_gat.yaml,phase_b_cora_gat,main-matrix (cora),cora,GAT,0.05,,6,6,5,180,180,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42|212|722|1337|2024
-phase_b_cora_gcn.yaml,phase_b_cora_gcn,main-matrix (cora),cora,GCN,0.05,,6,6,5,180,180,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42|212|722|1337|2024
-sanity_graphrevoker.yaml,sanity_graphrevoker,sanity,cora,GCN,0.05,,1,1,1,1,1,csv,GraphRevoker,random,42
-sanity_graphrevoker_r05_full.yaml,sanity_graphrevoker_r05_full,sanity,cora,GCN,0.05,,1,6,1,6,6,csv,GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42
-sanity_graphrevoker_r10_full.yaml,sanity_graphrevoker_r10_full,sanity,cora,GCN,0.1,,1,6,1,6,0,disk,GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42
-sanity_one_cell.yaml,sanity_one_cell,sanity,cora,GCN,0.05,,1,1,1,1,1,csv,GIF,random,42
+file,name,cat,dataset,model,ratio,hybrid_alpha,n_methods,n_strategies,n_seeds,n_cells,done,src,methods,strategies,seeds,valid,rerun,warning
+A3_cora_GAT_alpha0.00.yaml,A3_cora_GAT_alpha0.00,ablation A3 (alpha),cora,GAT,0.05,0.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GAT_alpha0.25.yaml,A3_cora_GAT_alpha0.25,ablation A3 (alpha),cora,GAT,0.05,0.25,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GAT_alpha0.75.yaml,A3_cora_GAT_alpha0.75,ablation A3 (alpha),cora,GAT,0.05,0.75,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GAT_alpha1.00.yaml,A3_cora_GAT_alpha1.00,ablation A3 (alpha),cora,GAT,0.05,1.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GCN_alpha0.00.yaml,A3_cora_GCN_alpha0.00,ablation A3 (alpha),cora,GCN,0.05,0.0,5,1,5,25,10,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,10,0,10 aggregate rows from hybrid_alpha0.00 (GIF and GNNDelete x 5 seeds); remaining A3 methods pending.
+A3_cora_GCN_alpha0.25.yaml,A3_cora_GCN_alpha0.25,ablation A3 (alpha),cora,GCN,0.05,0.25,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GCN_alpha0.75.yaml,A3_cora_GCN_alpha0.75,ablation A3 (alpha),cora,GCN,0.05,0.75,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A3_cora_GCN_alpha1.00.yaml,A3_cora_GCN_alpha1.00,ablation A3 (alpha),cora,GCN,0.05,1.0,5,1,5,25,0,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser,hybrid,42|212|722|1337|2024,,,
+A5_citeseer_r0.05.yaml,A5_citeseer_r0.05,ablation A5 (ratio/dataset),citeseer,GCN,0.05,,6,3,5,90,0,disk,GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU,random|im|tracin,42|212|722|1337|2024,,,
+A5_citeseer_r0.20.yaml,A5_citeseer_r0.20,ablation A5 (ratio/dataset),citeseer,GCN,0.2,,6,3,5,90,0,disk,GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU,random|im|tracin,42|212|722|1337|2024,,,
+A5_ratio_0.01.yaml,A5_ratio_0.01,ablation A5 (ratio/dataset),cora,GCN,0.01,,6,3,5,90,90,csv,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024,50,40,GraphRevoker 15 produced cells require E4 rerun; non-GraphRevoker TracIn cells require proper-TracIn refresh after IF-concordance; includes 1 failed GraphRevoker/random/seed42 cell.
+A5_ratio_0.10.yaml,A5_ratio_0.10,ablation A5 (ratio/dataset),cora,GCN,0.1,,6,3,5,90,0,disk,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024,,,
+A5_ratio_0.20.yaml,A5_ratio_0.20,ablation A5 (ratio/dataset),cora,GCN,0.2,,6,3,5,90,0,disk,GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU,random|im|tracin,42|212|722|1337|2024,,,
+A6_cora_gin_r0.05.yaml,A6_cora_gin_r0.05,ablation A6 (backbone),cora,GIN,0.05,,5,3,5,75,0,disk,GIF|GNNDelete|MEGU|IDEA|GraphEraser,random|im|tracin,42|212|722|1337|2024,,,
+phase_b_cora_gat.yaml,phase_b_cora_gat,main-matrix (cora),cora,GAT,0.05,,6,6,5,180,180,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42|212|722|1337|2024,100,80,GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance.
+phase_b_cora_gcn.yaml,phase_b_cora_gcn,main-matrix (cora),cora,GCN,0.05,,6,6,5,180,180,csv,GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42|212|722|1337|2024,100,80,GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance.
+phase_b_arxiv.yaml,phase_b_arxiv,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,3,4,3,36,0,disk,GIF|GNNDelete|GraphEraser,random|tracin|im|hybrid,42|212|722,,,
+phase_b_arxiv_T1_seed42.yaml,phase_b_arxiv_T1_seed42,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,6,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,42,4,2,Produced TracIn pilot cells require proper-TracIn refresh after IF-concordance.
+phase_b_arxiv_T2_seed212.yaml,phase_b_arxiv_T2_seed212,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,0,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,212,,,
+phase_b_arxiv_T3_seed722.yaml,phase_b_arxiv_T3_seed722,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,6,1,18,0,disk,GIF|GNNDelete|GraphEraser,random|degree|pagerank|tracin|im|hybrid,722,,,
+phase_b_arxiv_feasibility.yaml,phase_b_arxiv_feasibility,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,5,1,1,5,0,disk,GIF|GNNDelete|MEGU|IDEA|GraphEraser,random,42,,,
+phase_b_arxiv_hybrid_smoke.yaml,phase_b_arxiv_hybrid_smoke,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,1,1,1,1,0,disk,GIF,hybrid,42,,,
+phase_b_arxiv_im_only.yaml,phase_b_arxiv_im_only,main-matrix (arxiv),ogbn-arxiv,GCN,0.05,,3,1,3,9,0,disk,GIF|GNNDelete|GraphEraser,im,42|212|722,,,
+phase_b_arxiv_im_only_r01.yaml,phase_b_arxiv_im_only_r01,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,3,1,3,9,2,disk,GIF|GNNDelete|GraphEraser,im,42|212|722,,,
+phase_b_arxiv_tracin_smoke.yaml,phase_b_arxiv_tracin_smoke,main-matrix (arxiv),ogbn-arxiv,GCN,0.01,,1,1,1,1,1,disk,GIF,tracin,42,0,1,Produced TracIn smoke cell requires proper-TracIn refresh after IF-concordance.
+sanity_graphrevoker.yaml,sanity_graphrevoker,sanity,cora,GCN,0.05,,1,1,1,1,1,csv,GraphRevoker,random,42,,,
+sanity_graphrevoker_r05_full.yaml,sanity_graphrevoker_r05_full,sanity,cora,GCN,0.05,,1,6,1,6,6,csv,GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42,,,
+sanity_graphrevoker_r10_full.yaml,sanity_graphrevoker_r10_full,sanity,cora,GCN,0.1,,1,6,1,6,0,disk,GraphRevoker,random|degree|pagerank|tracin|im|hybrid,42,,,
+sanity_one_cell.yaml,sanity_one_cell,sanity,cora,GCN,0.05,,1,1,1,1,1,csv,GIF,random,42,,,

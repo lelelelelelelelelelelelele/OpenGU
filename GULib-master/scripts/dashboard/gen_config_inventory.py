@@ -12,7 +12,11 @@ ever edit ONE thing: the `done` column of the CSV. Then:
 
 CSV columns (header order):
     file,name,cat,dataset,model,ratio,hybrid_alpha,n_methods,n_strategies,
-    n_seeds,n_cells,done,src,methods,strategies,seeds
+    n_seeds,n_cells,done,src,methods,strategies,seeds,valid,rerun,warning
+
+`done` means an output row/artifact exists. `valid` means it is currently
+usable for paper-facing conclusions. `rerun` marks produced cells that must be
+rerun before they should count as clean evidence (for example GraphRevoker E4).
 
 `cat` long names are mapped to short block keys (CORA/ARXIV/A3/A5/A6/SANITY).
 """
@@ -36,6 +40,53 @@ CAT_MAP = {
     "sanity": "SANITY",
 }
 
+STORY_FIELDS = ("Question", "Setup", "Why", "Current read", "Next decision")
+
+GROUP_STORY = {
+    "CORA": {
+        "Question": "What is the core vulnerability fingerprint across methods and selectors?",
+        "Setup": "Cora, GCN/GAT, r=0.05, 6 GU methods, 6 selectors, 5 seeds.",
+        "Why": "This is the audit backbone: it gives the advisor a per-method comparison before we argue about mechanisms.",
+        "Current read": "Produced data exists, but GraphRevoker needs repair and IF-concordance shows every paper-facing old TracIn/Hybrid row needs a proper-TracIn refresh.",
+        "Next decision": "Run GraphRevoker repair and refresh all paper-facing TracIn/Hybrid evidence before treating the Cora matrix as clean.",
+    },
+    "A5": {
+        "Question": "Does the story survive budget and dataset changes?",
+        "Setup": "Ratio sweep on Cora/GCN plus Citeseer scope cells.",
+        "Why": "It separates a one-budget anecdote from a stable vulnerability pattern and supports advisor questions about scope.",
+        "Current read": "r=0.01 is produced, but GraphRevoker and every paper-facing old TracIn row are not clean under the repair/IF-concordance semantics.",
+        "Next decision": "Use r=0.01 as a partial anchor; run r=0.10/r=0.20 and Citeseer after the clean-selector path is settled.",
+    },
+    "ARXIV": {
+        "Question": "Can the finding scale beyond small citation graphs?",
+        "Setup": "ogbn-arxiv, GCN, mostly r=0.01 pilot cells plus planned r=0.05 queue.",
+        "Why": "This answers the advisor's scale concern, but it is remote-GPU work rather than a local analysis task.",
+        "Current read": "Only a pilot exists; produced TracIn pilot/smoke cells also need proper-TracIn refresh after IF-concordance before becoming paper evidence.",
+        "Next decision": "Rent the remote GPU when ready and rerun the pilot/queue with the corrected selector semantics.",
+    },
+    "A3": {
+        "Question": "Is IF/IM fusion adding mechanism value or just interpolating two axes?",
+        "Setup": "Hybrid alpha sweep over Cora, GCN/GAT, r=0.05.",
+        "Why": "This connects the selector story to the fingerprint story: alpha is a diagnostic axis, not the main contribution.",
+        "Current read": "The alpha=0.00 GCN corner has 10 produced cells; the rest is still pending.",
+        "Next decision": "Run only if the refreshed main matrix shows that an alpha curve is worth explaining to the advisor.",
+    },
+    "A6": {
+        "Question": "Should we broaden beyond two message-passing backbones?",
+        "Setup": "Deferred GIN exploratory cells on Cora.",
+        "Why": "It is useful for future work, but it risks diluting the rebuttal-prep story.",
+        "Current read": "Not started by design; current claim should stay scoped to GCN/GAT-style message passing.",
+        "Next decision": "Keep deferred unless advisor explicitly asks for cross-architecture evidence.",
+    },
+    "SANITY": {
+        "Question": "Are repair paths and one-cell checks behaving before larger reruns?",
+        "Setup": "Small GraphRevoker and GIF diagnostic configs.",
+        "Why": "These cells are guardrails; they prevent full-matrix reruns from hiding a broken method path.",
+        "Current read": "Useful as diagnostics, not paper evidence.",
+        "Next decision": "Run/update sanity cells before each expensive repair batch.",
+    },
+}
+
 
 def js_str(s: str) -> str:
     s = "" if s is None else str(s)
@@ -47,6 +98,19 @@ def js_int(s: str) -> str:
     return str(int(float(s))) if s not in ("", "None") else "0"
 
 
+def build_story_meta_js():
+    lines = ["const STORY_META = {"]
+    for key, story in GROUP_STORY.items():
+        lines.append(f"  {key}: {{")
+        for field in STORY_FIELDS:
+            if field not in story:
+                raise SystemExit(f"[gen] missing story field {field!r} for {key}")
+            lines.append(f"    {js_str(field)}:{js_str(story[field])},")
+        lines.append("  },")
+    lines.append("};")
+    return "\n".join(lines)
+
+
 def build_configs_array(rows):
     lines = []
     for r in rows:
@@ -56,15 +120,20 @@ def build_configs_array(rows):
             raise SystemExit(f"[gen] unknown cat value: {cat_raw!r} (row {r.get('file')})")
         alpha = (r.get("hybrid_alpha") or "").strip()
         alpha_js = ('"%.2f"' % float(alpha)) if alpha not in ("", "None") else "null"
+        done = js_int(r["done"])
+        valid = js_int(r.get("valid") or r["done"])
+        rerun = js_int(r.get("rerun") or "0")
         obj = (
             "  {file:%s, name:%s, cat:%s, ds:%s, model:%s, ratio:%s, alpha:%s, "
-            "nm:%s,ns:%s,nse:%s, total:%s, done:%s, src:%s, methods:%s, strategies:%s, seeds:%s},"
+            "nm:%s,ns:%s,nse:%s, total:%s, done:%s, valid:%s, rerun:%s, "
+            "src:%s, methods:%s, strategies:%s, seeds:%s, warning:%s},"
             % (
                 js_str(r["file"]), js_str(r["name"]), js_str(catkey), js_str(r["dataset"]),
                 js_str(r["model"]), js_str(r["ratio"]), alpha_js,
                 js_int(r["n_methods"]), js_int(r["n_strategies"]), js_int(r["n_seeds"]),
-                js_int(r["n_cells"]), js_int(r["done"]), js_str(r["src"]),
+                js_int(r["n_cells"]), done, valid, rerun, js_str(r["src"]),
                 js_str(r["methods"]), js_str(r["strategies"]), js_str(r["seeds"]),
+                js_str(r.get("warning", "")),
             )
         )
         lines.append(obj)
@@ -80,17 +149,25 @@ def main():
         raise SystemExit("[gen] CSV has no data rows")
 
     configs_js = build_configs_array(rows)
+    story_js = build_story_meta_js()
     today = datetime.date.today().isoformat()
     nconfigs = len(rows)
 
     # quick console summary (sanity for the operator)
     done = sum(int(float(r["done"] or 0)) for r in rows)
+    valid = sum(int(float((r.get("valid") or r["done"] or 0))) for r in rows)
+    rerun = sum(int(float(r.get("rerun") or 0)) for r in rows)
     total = sum(int(float(r["n_cells"] or 0)) for r in rows)
-    print(f"[gen] {nconfigs} configs · {done}/{total} cells done · -> {OUT_PATH.relative_to(ROOT)}")
+    print(
+        f"[gen] {nconfigs} configs | {done}/{total} produced | "
+        f"{valid}/{total} usable | {rerun} rerun"
+    )
+    print(f"[gen] wrote {OUT_PATH.relative_to(ROOT)}")
 
     html = (
         TEMPLATE
         .replace("/*__CONFIGS__*/", configs_js)
+        .replace("/*__STORY_META__*/", story_js)
         .replace("__GENERATED_DATE__", today)
         .replace("__NCONFIGS__", str(nconfigs))
     )
@@ -248,6 +325,24 @@ TEMPLATE = r"""<!DOCTYPE html>
     font-size:10px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted);
     margin:6px 0 7px; font-family:ui-monospace,Consolas,monospace;
   }
+  .story{
+    display:grid; grid-template-columns:minmax(160px,.75fr) minmax(260px,1.25fr) minmax(260px,1.2fr);
+    gap:10px; margin:0 0 12px; padding:11px 12px;
+    background:#111722; border:1px solid #263445; border-radius:8px;
+  }
+  @media(max-width:950px){ .story{grid-template-columns:1fr;} }
+  .story .cell{
+    min-width:0; border-left:2px solid #30445d; padding-left:9px;
+  }
+  .story .label{
+    font-size:9px; letter-spacing:.55px; text-transform:uppercase;
+    color:#7f8da0; font-family:ui-monospace,Consolas,monospace; margin-bottom:3px;
+  }
+  .story .text{font-size:11.3px; color:#c7d0da; line-height:1.42;}
+  .story .cell.focus{border-color:var(--accent);}
+  .story .cell.focus .text{color:#dbe7f5;}
+  .story .cell.warn{border-color:var(--warn);}
+  .story .cell.warn .text{color:#e3d38f;}
   .grid{
     display:grid; gap:11px;
     grid-template-columns:repeat(auto-fill, minmax(218px,1fr));
@@ -295,6 +390,12 @@ TEMPLATE = r"""<!DOCTYPE html>
   .tile.tile-status-partial .frac .p{color:var(--warn);}
   .tile.tile-status-blocked .frac .d{color:#e6edf3;}
   .tile.tile-status-blocked .frac .p{color:var(--blocked);}
+  .tile .usable{
+    position:relative; z-index:1; margin:-3px 0 8px;
+    font-size:10.5px; color:var(--muted); font-family:ui-monospace,Consolas,monospace;
+  }
+  .tile .usable b{color:var(--text); font-weight:650;}
+  .tile .usable .rerun{color:var(--warn);}
 
   .tile .fillbar{height:6px; border-radius:4px; background:var(--track); overflow:hidden; margin-bottom:10px; position:relative; z-index:1;}
   .tile .fillbar i{display:block; height:100%; background:var(--status);}
@@ -307,6 +408,19 @@ TEMPLATE = r"""<!DOCTYPE html>
   }
   .chip.ds{color:#aaccff; border-color:#2c4a78;}
   .chip.shape{color:var(--muted);}
+  .chip.warn{color:#e8d98e; border-color:#6b5515; background:#2b240f;}
+  .warnline{
+    position:relative; z-index:1; margin-top:9px; padding:7px 8px;
+    border:1px solid #5b4614; border-radius:7px; background:#231d0d;
+    color:#d7c778; font-size:10px; line-height:1.4;
+  }
+  .repair-line{
+    position:relative; z-index:1; display:flex; justify-content:space-between; gap:8px;
+    margin:7px 0 0; padding:5px 7px; border-radius:6px;
+    background:#2a210c; border:1px solid #604914;
+    font-size:10px; color:#d7c778; font-family:ui-monospace,Consolas,monospace;
+  }
+  .repair-line b{color:#f0d36a; font-weight:700;}
 
   /* provenance corner badge */
   .tile .prov{
@@ -388,7 +502,7 @@ TEMPLATE = r"""<!DOCTYPE html>
   <div class="prov"><span class="dot prov-csv">C</span> <span>csv — from <code style="font-family:ui-monospace,Consolas,monospace;">_phase_b_aggregate.csv</code></span></div>
   <div class="prov"><span class="dot prov-disk">D</span> <span>disk — scanned from <code style="font-family:ui-monospace,Consolas,monospace;">results/runs/</code></span></div>
   <span style="color:#4a525e;">|</span>
-  <div class="item" style="color:#71798a;">tile fill = done/total at <b style="color:#9aa4b0;">config granularity</b> (no per-cell state)</div>
+  <div class="item" style="color:#71798a;">tile fill = usable/total; headline count = produced artifacts</div>
 </div>
 
 <!-- ============ HEATMAP BLOCKS ============ -->
@@ -425,6 +539,9 @@ const CONFIGS = [
 /*__CONFIGS__*/
 ];
 
+/* ---- advisor-facing story layer (not CSV data) ---- */
+/*__STORY_META__*/
+
 /* ---- block metadata: order + labels only; numbers are DERIVED ---- */
 const BLOCK_META = [
   {key:"CORA",   title:"main-matrix · cora",          slabel:"main · cora",       sub:"production",            track:"prod",     alphaGrid:false},
@@ -439,6 +556,17 @@ const TRACK_META = [
   {key:"ablation", label:"Ablations"},
   {key:"sanity",   label:"Sanity"},
 ];
+const EXEC_ORDER = ["CORA","A5","ARXIV","A3","A6","SANITY"];
+const EXEC_LABELS = {
+  CORA:  {title:"1. main-matrix / cora",         sub:"produced; GraphRevoker repair + TracIn/Hybrid refresh pending"},
+  A5:    {title:"2. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
+  ARXIV: {title:"3. arxiv pilot / remote queue", sub:"GPU-bound"},
+  A3:    {title:"4. A3 alpha",                   sub:"2 model x 4 alpha grid"},
+  A6:    {title:"5. A6 backbone",                sub:"deferred / future-work"},
+  SANITY:{title:"6. sanity",                     sub:"diagnostic"},
+};
+BLOCK_META.sort((a,b) => EXEC_ORDER.indexOf(a.key) - EXEC_ORDER.indexOf(b.key));
+BLOCK_META.forEach(b => Object.assign(b, EXEC_LABELS[b.key] || {}));
 const CAT_TRACK = {};
 BLOCK_META.forEach(b => { CAT_TRACK[b.key] = b.track; });
 
@@ -447,56 +575,70 @@ const A3_MODELS = ["GAT","GCN"];
 
 /* ---- derivation helpers ---- */
 function statusOf(c){
-  if(c.done >= c.total) return "ok";
+  if(c.valid >= c.total) return "ok";
   if(c.done <= 0) return "blocked";
   return "partial";
 }
 function pct(d,t){ return t ? (100*d/t) : 0; }
 function fmtPct(d,t){ const p = pct(d,t); return (p===100?"100":(p===0?"0":p.toFixed(p<10?1:0)))+"%"; }
-function agg(cs){ return {done:cs.reduce((a,c)=>a+c.done,0), total:cs.reduce((a,c)=>a+c.total,0), n:cs.length}; }
+function agg(cs){
+  return {
+    done:cs.reduce((a,c)=>a+c.done,0),
+    valid:cs.reduce((a,c)=>a+c.valid,0),
+    rerun:cs.reduce((a,c)=>a+c.rerun,0),
+    total:cs.reduce((a,c)=>a+c.total,0),
+    n:cs.length
+  };
+}
 function statusColor(d,t){ return d>=t ? "var(--ok)" : (d<=0 ? "var(--blocked)" : "var(--warn)"); }
 
 /* ---- summary strip (fully derived) ---- */
-function rollrow(label, d, t){
+function rollrow(label, a){
+  const d = a.valid, t = a.total;
   const w = pct(d,t);
+  const suffix = a.done !== a.valid ? ` prod ${a.done}` : "";
+  const rerun = a.rerun ? ` rerun ${a.rerun}` : "";
   return `<div class="rollrow"><span class="lbl">${label}</span>`
        + `<span class="mini"><i style="width:${w}%; background:${statusColor(d,t)};"></i></span>`
-       + `<span class="val num"><b>${d}</b>/${t}</span></div>`;
+       + `<span class="val num"><b>${d}</b>/${t}${suffix}${rerun}</span></div>`;
 }
 function renderSummary(){
   const all = agg(CONFIGS);
-  const opct = pct(all.done, all.total);
-  const opctLabel = all.total ? (100*all.done/all.total).toFixed(1)+"%" : "0%";
+  const opct = pct(all.valid, all.total);
+  const rerunPct = pct(all.rerun, all.total);
+  const outstandingPct = Math.max(0, 100 - opct - rerunPct);
+  const opctLabel = all.total ? (100*all.valid/all.total).toFixed(1)+"%" : "0%";
 
   let trackRows = "";
   for(const tm of TRACK_META){
     const a = agg(CONFIGS.filter(c => CAT_TRACK[c.cat] === tm.key));
-    trackRows += rollrow(`${tm.label} (${a.n})`, a.done, a.total);
+    trackRows += rollrow(`${tm.label} (${a.n})`, a);
   }
   let catRows = "";
   for(const b of BLOCK_META){
     const a = agg(CONFIGS.filter(c => c.cat === b.key));
-    catRows += rollrow(b.slabel, a.done, a.total);
+    catRows += rollrow(b.slabel, a);
   }
   const dsMap = {};
   CONFIGS.forEach(c => { (dsMap[c.ds] = dsMap[c.ds] || []).push(c); });
   const dsKeys = Object.keys(dsMap).sort((x,y) => agg(dsMap[y]).total - agg(dsMap[x]).total);
   let dsRows = "";
-  for(const k of dsKeys){ const a = agg(dsMap[k]); dsRows += rollrow(k, a.done, a.total); }
+  for(const k of dsKeys){ const a = agg(dsMap[k]); dsRows += rollrow(k, a); }
 
   let nd=0, np=0, nb=0;
   CONFIGS.forEach(c => { const s = statusOf(c); if(s==="ok") nd++; else if(s==="blocked") nb++; else np++; });
 
   document.getElementById("summary").innerHTML = `
   <div class="card">
-    <h3>Overall <span class="pct">${opctLabel}</span></h3>
+    <h3>Usable coverage <span class="pct">${opctLabel}</span></h3>
     <div class="global">
-      <div class="big num">${all.done}<small>&thinsp;/&thinsp;${all.total}</small></div>
-      <div class="delta num">${all.total-all.done} cells outstanding</div>
+      <div class="big num">${all.valid}<small>&thinsp;/&thinsp;${all.total}</small></div>
+      <div class="delta num">${all.done} produced · ${all.rerun} rerun pending</div>
     </div>
-    <div class="gbar" title="${all.done} done of ${all.total} configured">
+    <div class="gbar" title="${all.valid} usable, ${all.rerun} rerun pending, ${all.done} produced of ${all.total} configured">
       <i style="width:${opct}%; background:var(--ok);"></i>
-      <i style="width:${100-opct}%; background:var(--blocked-dim);"></i>
+      <i style="width:${rerunPct}%; background:var(--warn);"></i>
+      <i style="width:${outstandingPct}%; background:var(--blocked-dim);"></i>
     </div>
     <div style="height:11px;"></div>
     ${trackRows}
@@ -530,21 +672,32 @@ function renderSummary(){
 /* ---- one tile ---- */
 function tileHTML(c){
   const s = statusOf(c);
-  const p = pct(c.done, c.total);
+  const p = pct(c.valid, c.total);
   const provLetter = c.src==="csv" ? "C" : "D";
   const provClass  = c.src==="csv" ? "prov-csv" : "prov-disk";
+  const rerunChip = c.rerun ? `<span class="chip warn">rerun ${c.rerun}</span>` : "";
+  const rerunBasis = (() => {
+    if(!c.rerun) return "";
+    const basis = [];
+    if(/GraphRevoker/i.test(c.warning)) basis.push("GraphRevoker repair");
+    if(/proper-TracIn|TracIn\/Hybrid|TracIn/i.test(c.warning)) basis.push("proper-TracIn refresh");
+    return basis.length ? basis.join(" + ") : "rerun pending";
+  })();
+  const repairLine = c.rerun ? `<div class="repair-line"><span>rerun basis</span><b>${rerunBasis}</b></div>` : "";
+  const warningLine = c.warning ? `<div class="warnline">${c.warning}</div>` : "";
   const shape = `${c.nm}m×${c.ns}s×${c.nse}seed`;
   const alphaChip = c.alpha!==null ? `<span class="chip">α=${c.alpha}</span>` : "";
   return `
-  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-total="${c.total}">
+  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-valid="${c.valid}" data-rerun="${c.rerun}" data-total="${c.total}">
     <div class="wash" style="height:${Math.max(p,3)}%;"></div>
     <div class="prov ${provClass}" title="src = ${c.src}">${provLetter}</div>
     <div class="tname">${c.name}</div>
     <div class="frac">
       <span class="d num">${c.done}</span><span class="t num">/ ${c.total}</span>
-      <span class="p num">${fmtPct(c.done,c.total)}</span>
+      <span class="p num">${fmtPct(c.done,c.total)} produced</span>
     </div>
-    <div class="fillbar" title="${c.done}/${c.total} cells">
+    <div class="usable">usable <b>${c.valid}/${c.total}</b> (${fmtPct(c.valid,c.total)})${c.rerun ? ` · <span class="rerun">${c.rerun} rerun</span>` : ""}</div>
+    <div class="fillbar" title="${c.valid}/${c.total} usable; ${c.done}/${c.total} produced">
       <i style="width:${p}%;"></i>
     </div>
     <div class="chips">
@@ -552,16 +705,35 @@ function tileHTML(c){
       <span class="chip">${c.model}</span>
       <span class="chip">r${c.ratio}</span>
       ${alphaChip}
+      ${rerunChip}
       <span class="chip shape">${shape}</span>
     </div>
+    ${repairLine}
+    ${warningLine}
     <div class="detail">
       <div class="row"><span class="k">methods</span><span class="v">${c.methods.replace(/\|/g,' · ')}</span></div>
       <div class="row"><span class="k">strat</span><span class="v acc">${c.strategies.replace(/\|/g,' · ')}</span></div>
       <div class="row"><span class="k">seeds</span><span class="v">${c.seeds.replace(/\|/g,' · ')}</span></div>
-      <div class="row"><span class="k">shape</span><span class="v">${shape} = ${c.total} cells · ${c.done} done</span></div>
+      <div class="row"><span class="k">shape</span><span class="v">${shape} = ${c.total} cells | ${c.done} produced | ${c.valid} usable | ${c.rerun} rerun</span></div>
+      ${c.warning ? `<div class="row"><span class="k">warn</span><span class="v">${c.warning}</span></div>` : ""}
       <div class="row"><span class="k">src</span><span class="v">${c.src} &nbsp;·&nbsp; ${c.file}</span></div>
     </div>
   </div>`;
+}
+
+function storyHTML(key){
+  const s = STORY_META[key];
+  if(!s) return "";
+  const cells = [
+    ["Question", s["Question"], "focus"],
+    ["Setup", s["Setup"], ""],
+    ["Why", s["Why"], ""],
+    ["Current read", s["Current read"], "warn"],
+    ["Next decision", s["Next decision"], "focus"],
+  ];
+  return `<div class="story">` + cells.map(([label,text,klass]) =>
+    `<div class="cell ${klass}"><div class="label">${label}</div><div class="text">${text}</div></div>`
+  ).join("") + `</div>`;
 }
 
 /* ---- render board ---- */
@@ -571,15 +743,16 @@ function render(){
   for(const b of BLOCK_META){
     const cs = CONFIGS.filter(c => c.cat === b.key);
     const a = agg(cs);
-    const p = pct(a.done, a.total);
+    const p = pct(a.valid, a.total);
     html += `<section class="block" data-block="${b.key}">
       <div class="block-head">
         <span class="name">${b.title}</span>
         <span class="badge"><b class="num">${cs.length}</b> config${cs.length===1?'':'s'}</span>
         ${b.sub?`<span class="badge">${b.sub}</span>`:""}
-        <span class="blockbar"><i style="width:${p}%; background:${statusColor(a.done,a.total)};"></i></span>
-        <span class="blockpct"><b class="num">${a.done}</b>/<span class="num">${a.total}</span> · ${fmtPct(a.done,a.total)}</span>
+        <span class="blockbar"><i style="width:${p}%; background:${statusColor(a.valid,a.total)};"></i></span>
+        <span class="blockpct"><b class="num">${a.valid}</b>/<span class="num">${a.total}</span> usable · ${a.done} produced · ${a.rerun} rerun</span>
       </div>`;
+    html += storyHTML(b.key);
 
     if(b.alphaGrid){
       // A3: 2 model rows x 4 alpha cols, labelled
