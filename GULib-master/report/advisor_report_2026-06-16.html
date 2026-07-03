@@ -28,6 +28,13 @@
   .tldr{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--indigo);
     border-radius:12px; padding:18px 22px; margin:20px 0 8px}
   .tldr b{color:var(--indigo)}
+  .status-note{background:#fff; border:1px solid #dbe1ff; border-left:4px solid var(--teal);
+    border-radius:12px; padding:14px 18px; margin:18px 0 8px; color:#33415c; font-size:13.5px}
+  .status-note b{color:var(--teal)}
+  .status-note a{color:var(--indigo); font-weight:700; text-decoration:none; border-bottom:1px solid #cfd6ff}
+  .status-note .links{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+  .status-note .links a{display:inline-flex; align-items:center; padding:3px 9px; border:1px solid #dbe1ff;
+    border-radius:999px; background:var(--indigo-soft); font-size:12px}
 
   section{background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:22px 24px; margin:18px 0; box-shadow:0 1px 2px rgba(16,24,40,.03)}
@@ -139,6 +146,17 @@
       <span class="badge"><span class="dot s"></span>方向待定</span>
     </div>
   </header>
+
+  <div class="status-note">
+    <b>2026-07-01 状态提示：</b>本页是 2026-06-16 的诊断快照，不是当前执行口径。
+    当前版本已经把路线收窄为 rebuttal-prep + 证据链修复：GraphRevoker = 修后重跑，
+    paper-facing 旧 TracIn/Hybrid = proper-TracIn refresh，实验进度按 produced / usable / rerun 拆账。
+    <div class="links">
+      <a href="progress/2026-07-01_advisor-report/current-status-report.html">当前 07-01 导师汇报</a>
+      <a href="../self/dashboard/config_inventory.html">实验配置账本</a>
+      <a href="../self/dashboard/WORKPLAN.md">WORKPLAN</a>
+    </div>
+  </div>
 
   <div class="tldr">
     <b>一句话：</b>数据回来后发现，原本"我们设计的高端 selector (影响函数 / 影响力最大化) 优于简单基线"在小图上不成立——

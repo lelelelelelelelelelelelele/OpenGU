@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>导师汇报大纲 - 当前现状、问题发现与待补实验</title>
+  <style>
+    :root {
+      --paper: #fbfaf6;
+      --ink: #20272b;
+      --muted: #687278;
+      --line: #d8d2c5;
+      --panel: #ffffff;
+      --green: #1f7464;
+      --green-soft: #dfede7;
+      --amber: #b67a1f;
+      --amber-soft: #f4e7cb;
+      --red: #a44338;
+      --red-soft: #f0ddd8;
+      --blue: #376f94;
+      --blue-soft: #dfeaf0;
+      --slate: #3e4a50;
+      --shadow: 0 18px 45px rgba(32, 39, 43, 0.10);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(32, 39, 43, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(32, 39, 43, 0.025) 1px, transparent 1px),
+        var(--paper);
+      background-size: 30px 30px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+      line-height: 1.62;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(55, 111, 148, 0.35);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 44px));
+      margin: 0 auto;
+      padding: 38px 0 58px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+      gap: 26px;
+      align-items: stretch;
+      padding-bottom: 28px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    h1, h2, h3 {
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.08;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 28px;
+      line-height: 1.18;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.24;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .lead {
+      margin: 22px 0 0;
+      max-width: 770px;
+      color: #30383d;
+      font-size: 19px;
+    }
+
+    .brief-card {
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .brief-card dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      row-gap: 12px;
+      column-gap: 14px;
+      font-size: 14px;
+    }
+
+    .brief-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .brief-card dd {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--green);
+      border-radius: var(--radius);
+    }
+
+    .metric.warn {
+      border-top-color: var(--amber);
+    }
+
+    .metric.danger {
+      border-top-color: var(--red);
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", Georgia, serif;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    main {
+      display: grid;
+      gap: 24px;
+    }
+
+    section {
+      padding: 26px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-tag {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      color: var(--muted);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .card.green {
+      background: var(--green-soft);
+      border-color: rgba(31, 116, 100, 0.35);
+    }
+
+    .card.amber {
+      background: var(--amber-soft);
+      border-color: rgba(182, 122, 31, 0.35);
+    }
+
+    .card.red {
+      background: var(--red-soft);
+      border-color: rgba(164, 67, 56, 0.35);
+    }
+
+    .card.blue {
+      background: var(--blue-soft);
+      border-color: rgba(55, 111, 148, 0.32);
+    }
+
+    .compact-list {
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .compact-list li {
+      position: relative;
+      padding-left: 16px;
+    }
+
+    .compact-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.74em;
+      width: 6px;
+      height: 6px;
+      background: var(--slate);
+      border-radius: 50%;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .step .label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 58px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: var(--radius);
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .step .body {
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: #fff;
+      background: var(--ink);
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #eef1ee;
+      color: var(--slate);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tag.red {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .tag.amber {
+      background: var(--amber-soft);
+      color: #8b5a13;
+    }
+
+    .tag.green {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .callout {
+      padding: 18px 20px;
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: 8px 8px 0 rgba(32, 39, 43, 0.12);
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        width: min(100% - 28px, 1180px);
+        padding-top: 24px;
+      }
+
+      header,
+      .metric-strip,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-tag {
+        display: inline-flex;
+        margin-top: 10px;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <p class="kicker">Advisor Report Outline</p>
+        <h1>当前现状、问题发现与待补实验</h1>
+        <p class="lead">
+          这版汇报聚焦一个问题：在现有结果已经回流的前提下，还需要额外补哪些证据，才能让论文以
+          <strong>systematic audit + extreme heterogeneity + vulnerability fingerprint</strong>
+          的主线站稳。
+        </p>
+      </div>
+      <aside class="brief-card">
+        <dl>
+          <dt>对象</dt>
+          <dd>导师阶段汇报</dd>
+          <dt>口径</dt>
+          <dd>大纲先行，数据作为支撑</dd>
+          <dt>重点</dt>
+          <dd>TracIn 问题发现 + 待补实验</dd>
+          <dt>最后</dt>
+          <dd>相近论文 novelty 风险请老师判断</dd>
+        </dl>
+      </aside>
+    </header>
+
+    <div class="metric-strip">
+      <div class="metric">
+        <strong>477</strong>
+        <span>produced cells / 1214 total</span>
+      </div>
+      <div class="metric warn">
+        <strong>274</strong>
+        <span>usable cells after data-truth split</span>
+      </div>
+      <div class="metric danger">
+        <strong>203</strong>
+        <span>rerun or refresh pending</span>
+      </div>
+      <div class="metric warn">
+        <strong>2</strong>
+        <span>novelty-related prior papers to ask about</span>
+      </div>
+    </div>
+
+    <main>
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>1. 汇报目标</h2>
+            <p class="note">先把老师带到“还要补什么”这个问题上，而不是陷入每个 cell 的细节。</p>
+          </div>
+          <span class="section-tag">Opening</span>
+        </div>
+        <div class="callout">
+          <p>
+            我现在想确认的不是“当前结果能不能解释所有现象”，而是：
+            <strong>哪些实验必须补，哪些结果可以 caveat，哪些风险会影响论文定位或 rebuttal 准备。</strong>
+          </p>
+        </div>
+        <div class="grid-3" style="margin-top: 14px;">
+          <div class="card green">
+            <h3>保留主线</h3>
+            <p>短期不大改 thesis，继续按 systematic audit、heterogeneity、fingerprint 来讲。</p>
+          </div>
+          <div class="card amber">
+            <h3>修证据链</h3>
+            <p>把 produced 与 usable 分开，优先修会进入论文证据的结果。</p>
+          </div>
+          <div class="card red">
+            <h3>避免过度声称</h3>
+            <p>不再把 IM/TracIn/Hybrid 说成整体最强攻击，degree/PageRank 的强结果要正面讲。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>2. 当前 framing</h2>
+            <p class="note">从 selector-centered 叙事转成 audit-centered 叙事。</p>
+          </div>
+          <span class="section-tag">Thesis</span>
+        </div>
+        <div class="grid-2">
+          <div class="card red">
+            <h3>不建议继续主打</h3>
+            <p>“IM/TracIn/Hybrid 能系统性打穿 GU，且优于 baseline”。</p>
+            <ul class="compact-list">
+              <li>当前干净数据里 degree/PageRank 经常更强。</li>
+              <li>TracIn 平均效果偏弱，部分结果需要 proper-TracIn refresh。</li>
+              <li>如果继续按这个故事讲，老师和 reviewer 都容易抓住反例。</li>
+            </ul>
+          </div>
+          <div class="card green">
+            <h3>建议稳定主线</h3>
+            <p>“我们系统审计 approximate graph unlearning 在 adversarial deletion requests 下的脆弱性。”</p>
+            <ul class="compact-list">
+              <li>核心贡献是多方法、多策略、多指标的 audit。</li>
+              <li>核心现象是 family-level heterogeneity 和 vulnerability fingerprint。</li>
+              <li>degree/PageRank 的胜出不是失败，而是结构杠杆的重要发现。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>3. 实验设置</h2>
+            <p class="note">这部分给老师快速建立实验矩阵和当前口径。</p>
+          </div>
+          <span class="section-tag">Setup</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>设置</th>
+              <th>汇报口径</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GU 方法</td>
+              <td>GIF、GNNDelete、MEGU、IDEA、GraphEraser、GraphRevoker</td>
+              <td>GraphRevoker 当前需修复后重跑，修复前不作为机制结论。</td>
+            </tr>
+            <tr>
+              <td>选择策略</td>
+              <td>random、degree、pagerank、TracIn、IM、hybrid</td>
+              <td>degree/PageRank 是重要结构 baseline，不是陪跑 baseline。</td>
+            </tr>
+            <tr>
+              <td>主矩阵</td>
+              <td>Cora，GCN/GAT，r=0.05，5 seeds</td>
+              <td>两套主矩阵都 produced，但 clean usable 需要扣除 GraphRevoker 和旧 TracIn/Hybrid。</td>
+            </tr>
+            <tr>
+              <td>扩展</td>
+              <td>Cora r=0.01 已有；Citeseer、arxiv T2/T3、ratio/alpha sweep 待补</td>
+              <td>优先按 rebuttal 风险排序，不盲目扩矩阵。</td>
+            </tr>
+            <tr>
+              <td>指标</td>
+              <td>F1 decomposition、paired attack effect、retrain gap、update-detection AUC、collateral shift、hop-decay、alignment</td>
+              <td>retrain gap 更适合作为主指标，F1 attack effect 和 selector 排序作为诊断。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>4. 当前已能讲的发现</h2>
+            <p class="note">这部分强调可靠发现，避免提前消耗还没修干净的数据。</p>
+          </div>
+          <span class="section-tag">Findings</span>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>结构杠杆很强</h3>
+            <p>degree/PageRank 在多个场景中强于 IM/TracIn/Hybrid，说明 deletion damage 很大程度来自结构中心性和 volume，而不是单纯 influence signal。</p>
+          </div>
+          <div class="card">
+            <h3>异质性是主结果</h3>
+            <p>不同 GU family 对同一类 deletion request 的响应差异明显。GNNDelete 的 retrain gap 是突出 outlier，partition/IF/learning-based 呈现不同 failure mode。</p>
+          </div>
+          <div class="card">
+            <h3>fingerprint 仍然成立</h3>
+            <p>即使 informed selectors 不整体胜出，各方法在 random、degree、IM、TracIn 等轴上的响应形状仍能作为 vulnerability fingerprint。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>5. 新增问题发现：TracIn 口径不干净</h2>
+            <p class="note">把 concordance 报告作为发现，而不是只说成 bug。</p>
+          </div>
+          <span class="section-tag">TracIn</span>
+        </div>
+        <div class="grid-2">
+          <div class="card amber">
+            <h3>发现</h3>
+            <p>
+              selection-concordance 结果显示，旧 deployed TracIn/Hybrid 与 real GIF 的重合度很低；
+              proper TracIn 与 real GIF 的重合度明显更高。
+            </p>
+            <ul class="compact-list">
+              <li>deployed cross-TracIn vs GIF：约 0.10 到 0.14。</li>
+              <li>proper TracIn vs GIF：约 0.65 到 0.74。</li>
+              <li>这说明旧实现方向不是干净的 IF proxy。</li>
+            </ul>
+          </div>
+          <div class="card blue">
+            <h3>处理</h3>
+            <p>
+              不把它包装成单纯工程事故，而是作为机制诊断发现：不同 influence proxy 的语义会影响 selector 证据链。
+            </p>
+            <ul class="compact-list">
+              <li>所有 paper-facing 的旧 TracIn/Hybrid 结果需要 proper-TracIn refresh。</li>
+              <li>旧结果只算 produced，不算 clean usable evidence。</li>
+              <li>刷新后再判断 TracIn 是否仍弱于 degree。</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note" style="margin-top: 12px;">
+          参考：<a href="../../../self/related_work/concordance/HANDOFF.md">concordance/HANDOFF.md</a>
+          和 <a href="../../../self/related_work/concordance/report.html">concordance/report.html</a>。
+        </p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>6. 还需要额外做什么</h2>
+            <p class="note">给老师看的任务排序。重点是“哪些是阻塞证据链的”，不是完整愿望清单。</p>
+          </div>
+          <span class="section-tag">Todo</span>
+        </div>
+        <div class="timeline">
+          <div class="step">
+            <div class="label">P0</div>
+            <div class="body">
+              <h3>GraphRevoker 修复 + 重跑</h3>
+              <p>修聚合器问题并重跑 Cora GCN/GAT 中 GraphRevoker 的相关 cells。修复前不使用 GraphRevoker 作为机制 wedge。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="label">P0</div>
+            <div class="body">
+              <h3>proper-TracIn refresh</h3>
+              <p>刷新主矩阵、A5 r0.01、arxiv pilot/smoke 中所有 paper-facing 的旧 TracIn/Hybrid 结果。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="label">P1</div>
+            <div class="body">
+              <h3>IF-family collateral 重算</h3>
+              <p>清理 stale <code>__pycache__</code> 后重跑 GIF/IDEA collateral，修复 hop-distance decay 的证据链。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="label">P1</div>
+            <div class="body">
+              <h3>clean Citeseer + k=5 anchor</h3>
+              <p>跑 clean Citeseer 以支撑 dataset scope；补 k=5 noise floor 缺失 anchor，避免 F1 decomposition 被质疑不可复现。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="label">P2</div>
+            <div class="body">
+              <h3>扩展实验视资源决定</h3>
+              <p>arxiv T2/T3、r=0.10/0.20 ratio sweep、A3 alpha sweep。除非老师认为 rebuttal 必须，否则不抢在 P0/P1 前面。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>7. 需要老师拍板的问题</h2>
+            <p class="note">这部分可以作为汇报结束前的明确提问。</p>
+          </div>
+          <span class="section-tag">Questions</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>问题</th>
+              <th>建议默认方案</th>
+              <th>为什么需要老师判断</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>主线是否收缩为 audit + heterogeneity + fingerprint？</td>
+              <td><span class="tag green">建议保留</span> 不短期大改成 structural-leverage paper。</td>
+              <td>NeurIPS 已提交，rebuttal-prep 阶段大改 thesis 风险高。</td>
+            </tr>
+            <tr>
+              <td>GraphRevoker 是修后保留，还是主文降级？</td>
+              <td><span class="tag amber">建议修后保留</span>，但修复前不下机制结论。</td>
+              <td>它影响 6-method audit 的完整性，也影响 reviewer 对覆盖度的判断。</td>
+            </tr>
+            <tr>
+              <td>Citeseer 和 arxiv scope 怎么写？</td>
+              <td><span class="tag amber">建议如实写</span>：Citeseer 待 clean run，arxiv 先称 pilot。</td>
+              <td>scope 夸大会被 reviewer 直接抓住。</td>
+            </tr>
+            <tr>
+              <td>TracIn 问题是否作为发现写入？</td>
+              <td><span class="tag green">建议写入</span>，并补 proper-TracIn refresh。</td>
+              <td>这能把“实现口径问题”转成 influence proxy 语义诊断。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>8. 最后一部分：两篇相近论文是否影响 novelty</h2>
+            <p class="note">按你的要求放到最后，用来请老师判断 related work 风险。</p>
+          </div>
+          <span class="section-tag">Novelty Risk</span>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Chen et al. 2022</h3>
+            <p><strong>Characterizing the Influence of Graph Elements</strong></p>
+            <ul class="compact-list">
+              <li>相近点：用 influence function 选择高影响节点/边，删除后观察图模型性能下降。</li>
+              <li>区别：它使用 exact retrain 和 SGC，不研究 approximate graph unlearning，也不比较 GU family 的失败模式。</li>
+              <li>对我们可能的影响：会削弱“influence-based deletion selection 本身”的 novelty，但可以作为 foil 强调我们的 unlearning setting。</li>
+              <li>要问老师：是否需要补一个 exact retrain vs approximate unlearning 的对照，来锁住差异？</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Zhang et al. 2026</h3>
+            <p><strong>Attack by Unlearning</strong></p>
+            <ul class="compact-list">
+              <li>相近点：把 unlearning request 当作攻击通道。</li>
+              <li>区别：它是先注入 dirty-label nodes，再请求删除来触发 payload；我们是不注入新节点，只选择已有节点做 budget-matched audit。</li>
+              <li>对我们可能的影响：会要求我们更明确 threat model，避免被看成同一类 poisoning/injection attack。</li>
+              <li>要问老师：是否需要在 related work 中主动承认 concurrent work，并强调 existing-node deletion selection audit 的定位？</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note" style="margin-top: 12px;">
+          参考：<a href="../../../self/related_work/NOTES.md">self/related_work/NOTES.md</a>
+          和 <a href="../../../self/related_work/refs.bib">refs.bib</a>。
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Source context: <a href="../../../self/dashboard/WORKPLAN.md">WORKPLAN.md</a>,
+        <a href="../../advisor_report_2026-06-16.html">advisor_report_2026-06-16.html</a>,
+        <a href="../../../self/dashboard/config_inventory.html">config_inventory.html</a>,
+        <a href="../../../self/dashboard/config_inventory.csv">config_inventory.csv</a>,
+        <a href="../../../self/dashboard/VALIDATION_LOG.md">VALIDATION_LOG.md</a>.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

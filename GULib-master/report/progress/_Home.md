@@ -1,48 +1,49 @@
 ---
-tags: [progress/moc, status/active]
-type: MOC
+tags: [report/progress, status/active]
+type: report-index
 created: 2026-06-15
-updated: 2026-06-15
+updated: 2026-07-01
 ---
 
-# 🏠 Progress Vault — Home
+# Progress Reports
 
-> 这是一个 **活的 Obsidian 式进展库**：按粒度分区记录"项目干了什么 / 现在在哪 / 接下来做什么"。
-> **vault 根 = `report/progress/`**。库内笔记用 `[[wikilink]]` 互引；指向库外文件（`self/`、`report/daily-log/`）用相对 markdown 链接并标「外部」。
-> 在 Obsidian 里把 `report/progress/` 作为 vault 打开即可（graph view 看 `#progress/*` tag 分层）。
+`report/progress/` is a chronological archive of progress reports, checkpoints,
+and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 
-## 🔴 现在 / Now（每次先看这里）
+- Current operational truth: [WORKPLAN.md](../../self/dashboard/WORKPLAN.md)
+- Project document map / Obsidian-style planning hub: [文档规划/_文档地图.md](../../文档规划/_文档地图.md)
+- Daily logs: [report/daily-log/](../daily-log/)
 
-- **全面诊断（先读这个）** → [[2026-06_resume-diagnosis]]：原贡献证伪 + 5 类硬伤（C1-C6）+ 诚实版 paper 长啥样 + 路线
-- **当前状态 + TODO + 大方向决策** → [PROGRESS（外部·操作中枢）](../../self/dashboard/PROGRESS.md)
-- 一句话：cora 满矩阵数据回流，但 **C1 证伪原贡献**（degree 打败 IF selector）→ 需 reframe；环境待重建；大方向（rebuttal vs 重投）**待定**。详见 [[Findings-and-Decisions]]。
+## Read First
 
-## 🗺️ 按粒度分区（区分开）
+| Need | Open |
+|---|---|
+| Current experiment state and next actions | [WORKPLAN.md](../../self/dashboard/WORKPLAN.md) |
+| Cell-level produced / usable / rerun ledger | [config_inventory.html](../../self/dashboard/config_inventory.html) |
+| Advisor-facing progress narrative | [current-status-report.html](2026-07-01_advisor-report/current-status-report.html) |
+| Historical advisor/review diagnostic source | [advisor_report_2026-06-16.html](../advisor_report_2026-06-16.html) |
+| Historical NeurIPS push summary | [2026-05_NeurIPS-Push.md](2026-07-01_advisor-report/2026-05_NeurIPS-Push.md) |
+| Project-wide document navigation | [文档规划/_文档地图.md](../../文档规划/_文档地图.md) |
 
-| 粒度 | 笔记 | 管什么 |
-|---|---|---|
-| **当前状态** | [PROGRESS（外部）](../../self/dashboard/PROGRESS.md) | 现在在哪、待办、决策（操作中枢，会动） |
-| **宏观时间线** | [[Macro-Timeline]] | 项目启动→5.7 一页纸主线（冻结） |
-| **阶段汇报** | [[2026-05_NeurIPS-Push]] | 单段冲刺的详细汇报（5/3-7） |
-| **里程碑/检查点** | [[Milestones]] | 02-19 / 02-22 checkpoint、0417 课程报告、daily-log 索引 |
-| **发现与决策** | [[Findings-and-Decisions]] | C1-C4、limitations L1-L8、研究路径、idea（会动） |
-| **每日日志** | [daily-log（外部）](../daily-log/) | /daily-log 生成的逐日记录（原地不动） |
-| **历史档案** | [EXPERIMENT_DASHBOARD（外部·FROZEN）](../../self/dashboard/EXPERIMENT_DASHBOARD.md) | 详细覆盖矩阵 + bug 档案 |
+## Chronological Index
 
-## 🟢 活的：怎么往里加东西
+| Date | Entry | Function | Status |
+|---|---|---|---|
+| 2026-02-19 | [2026-02-19_checkpoint/](2026-02-19_checkpoint/) | Early Phase A checkpoint: report, method table, figures | frozen |
+| 2026-02-22 | [2026-02-22_checkpoint/](2026-02-22_checkpoint/) | MG checkpoint: report, appendix, figures | frozen |
+| 2026-04-17 | [2026-04-17_EE5003-report/](2026-04-17_EE5003-report/) | EE5003 course report and defense package | frozen |
+| 2026-05-07 | [2026-05_NeurIPS-Push.md](2026-07-01_advisor-report/2026-05_NeurIPS-Push.md) | NeurIPS push retrospective, filed under the 2026-07-01 checkpoint bundle | frozen |
+| 2026-06-16 | [advisor_report_2026-06-16.html](../advisor_report_2026-06-16.html) | Advisor/review diagnostic snapshot; now points forward to the 2026-07-01 current report and dashboard ledger | historical source |
+| 2026-06-16 | [2026-06_resume-diagnosis.md](2026-07-01_advisor-report/2026-06_resume-diagnosis.md) | Resume diagnosis after data return and audit, filed under the 2026-07-01 checkpoint bundle | frozen source |
+| 2026-07-01 | [2026-07-01_advisor-report/](2026-07-01_advisor-report/) | Advisor checkpoint bundle with current-status HTML report and 05/06 source snapshots | ready |
 
-- **加一段新阶段汇报**：复制 [[Phase-Report]] 模板 → 存到 `phases/YYYY-MM_主题.md`，填 frontmatter（`status: active`），在本表加一行。
-- **加每日日志**：照常 `/daily-log`（仍写到 `report/daily-log/`），重大日子在 [[Milestones]] 里补一行索引。
-- **加发现/决策**：写进 [[Findings-and-Decisions]]，并在对应权威文档（`self/limitations.md` / 研究路径）落正文，这里只放索引+一句话。
-- **大方向定了**：更新外部 PROGRESS.md §4 + 本页「现在/Now」。
-- **bug 修了 / 数据重跑了**：更新 PROGRESS.md 的勾选；阶段笔记冻结不改（标 `status: frozen`），新进展开新笔记。
+## New Report Convention
 
-## 📐 约定
+Use this directory only for report-like deliverables: advisor updates, stage
+reports, checkpoint bundles, and presentation packages.
 
-- 一条笔记一个粒度，**不复制**别处内容——只放摘要 + 链接（继承项目 no-duplication 铁律）。
-- frontmatter 必带 `tags` + `status`（`active` / `frozen`）+ `created`。
-- 冻结的笔记（已发生、不再改）标 `status: frozen`；会动的（状态/发现/决策）标 `status: active`。
-
-## 🔖 标签速查
-
-`#progress/moc` `#progress/timeline` `#progress/phase` `#progress/milestone` `#progress/findings` · `#status/active` `#status/frozen`
+- If the report has assets, create `YYYY-MM-DD_short-topic/` with a `README.md`
+  or main report file inside.
+- If it is a single markdown report, use `YYYY-MM-DD_short-topic.md`.
+- Put planning maps, loose notes, and cross-document indexes in `文档规划/`, not here.
+- Put current task state, experiment status, and validation claims in `self/dashboard/`.
