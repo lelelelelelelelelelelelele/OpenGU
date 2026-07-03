@@ -21,5 +21,5 @@
     "tracin_im": 0.029,
     "tracin_pagerank": 0.024
   },
-  "note": "GIF (s=H^-1 grad L_test, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with sum_j grad_j ~= 0 at convergence]. tracinproper=<grad_v, grad L_test> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology."
+  "note": "GIF (s=H^-1 grad L_E, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with -sum_j grad_j, a regularization/parameter direction under L2 stationarity]. tracinproper=<grad_v, grad L_E> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology. E is the target evaluation/query set, not the deletion candidate pool."
 }

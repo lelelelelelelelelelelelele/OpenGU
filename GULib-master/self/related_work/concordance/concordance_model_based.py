@@ -9,7 +9,7 @@ independent of the GU attack matrix). We:
   2. On that SAME trained model, compute:
        - TracIn cross-influence ranking (the user's actual strategy), cache OFF
          so it is bit-on-this-model.
-       - GIF/IF ranking via s = H^{-1} grad(L_test) (LiSSA, GIF's HVP) then
+       - GIF/IF ranking via s = H^{-1} grad(L_E) (LiSSA, GIF's HVP) then
          infl(v) = <s, grad(loss_v)>.
        - TracIn self-influence ||grad(loss_v)|| for reference.
   3. Jaccard@k vs degree / IM / pagerank (topology sets from the *_GCN_*.json).
@@ -131,20 +131,21 @@ def main():
             return model(data.x)
 
     out_t = fwd()
-    L_test = F.cross_entropy(out_t[test_m], data.y[test_m], reduction="mean")
-    v = [g.detach() for g in torch.autograd.grad(L_test, params)]
+    L_eval = F.cross_entropy(out_t[test_m], data.y[test_m], reduction="mean")
+    v = [g.detach() for g in torch.autograd.grad(L_eval, params)]
     out_h = fwd()
     L_train = F.cross_entropy(out_h[tm], data.y[tm], reduction="mean")
     grad_train = torch.autograd.grad(L_train, params, create_graph=True)
 
     # col_sum = sum_j grad(loss_j) over candidates = grad of sum-reduction loss.
-    # This is the deployed cross-TracIn reference vector; ~0 at convergence.
+    # The deployed score uses -col_sum as its reference direction. Under L2
+    # stationarity col_sum is not near zero; it is approximately -|T| lambda theta.
     cand_dev = cand.to(dev)
     out_c = fwd()
     L_cand_sum = F.cross_entropy(out_c[cand_dev], data.y[cand_dev], reduction="sum")
     col_sum = [g.detach() for g in torch.autograd.grad(L_cand_sum, params)]
     col_flat = torch.cat([c.reshape(-1) for c in col_sum])
-    print(f"[mb] ||col_sum (sum_j grad_j)||={col_flat.norm().item():.4g}  ||grad(L_test)||={torch.cat([vi.reshape(-1) for vi in v]).norm().item():.4g}")
+    print(f"[mb] ||col_sum (sum_j grad_j)||={col_flat.norm().item():.4g}  ||grad(L_E)||={torch.cat([vi.reshape(-1) for vi in v]).norm().item():.4g}")
 
     def hvp(vec):
         dot = sum((g * w).sum() for g, w in zip(grad_train, vec))
@@ -160,10 +161,10 @@ def main():
 
     out_g = fwd()
     n = len(cand_ids)
-    v_flat = torch.cat([vi.reshape(-1) for vi in v])   # grad(L_test) — proper TracIn reference
+    v_flat = torch.cat([vi.reshape(-1) for vi in v])   # grad(L_E) — proper TracIn reference
     gif_scores = torch.empty(n)
     tracin_self = torch.empty(n)
-    tracin_proper = torch.empty(n)   # <grad(loss_v), grad(L_test)> : proper Hessian-free IF
+    tracin_proper = torch.empty(n)   # <grad(loss_v), grad(L_E)> : proper Hessian-free IF
     tracin_cross = torch.empty(n)    # <grad(loss_v), sum_j grad_j> : deployed cross score (raw)
     for idx, node in enumerate(cand_ids):
         lv = F.cross_entropy(out_g[node:node + 1], data.y[node:node + 1])
@@ -202,7 +203,7 @@ def main():
             "tracin_im": jac(tracin_top, im),
             "tracin_pagerank": jac(tracin_top, pr),
         },
-        "note": "GIF (s=H^-1 grad L_test, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with sum_j grad_j ~= 0 at convergence]. tracinproper=<grad_v, grad L_test> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology.",
+        "note": "GIF (s=H^-1 grad L_E, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with -sum_j grad_j, a regularization/parameter direction under L2 stationarity]. tracinproper=<grad_v, grad L_E> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology. E is the target evaluation/query set, not the deletion candidate pool.",
     }
     (DATA / f"modelbased_{LOCAL.dataset_name}.json").write_text(json.dumps(res, indent=2), encoding="utf-8")
     print(json.dumps(res, indent=2))

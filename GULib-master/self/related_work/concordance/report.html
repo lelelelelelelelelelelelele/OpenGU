@@ -42,7 +42,7 @@ seed 2024 · 6 datasets · generated 2026-06-27 · branch
 <li><strong>degree ≈ pagerank, dataset-dependent</strong> — mean 0.636 (0.50–0.83).</li>
 <li><strong>TracIn near-orthogonal to degree and IM</strong> (cora 0.024 / 0.029):
    the influence attack targets different nodes, yet degree wins → the winning signal is structural volume, not influence.</li>
-<li><strong>A cheap fix recovers IF fidelity</strong>: the deployed cross-TracIn matches real GIF at only 0.113, but <strong>proper TracIn ⟨∇ℓ,∇L_test⟩ (same cost, no Hessian) hits 0.742</strong>. Both the fixed TracIn and GIF stay ⟂ degree (0.024) — volume-driven survives the real IF.</li>
+<li><strong>A cheap fix recovers IF fidelity</strong>: the deployed cross-TracIn matches real GIF at only 0.113, but <strong>proper TracIn ⟨∇ℓ,∇L_E⟩ (same cost, no Hessian) hits 0.742</strong>. Both the fixed TracIn and GIF stay ⟂ degree (0.024) — volume-driven survives the real IF.</li>
 </ul>
 </div>
 
@@ -77,14 +77,27 @@ Green = redundant (same nodes); orange = distinct. "—" = selector needs a trai
         <h2>Model-based: a cheap, scalable IF surrogate that actually tracks GIF</h2>
         <p>One authorised base-GCN train per dataset (<code>train_only</code>, no unlearning; seeded, deterministic),
         then on the <em>same</em> trained model: <strong>GIF</strong> = the real graph influence function
-        (s = H⁻¹∇L<sub>test</sub> via LiSSA, then infl(v)=⟨s,∇ℓ<sub>v</sub>⟩);
-        <strong>TracIn-proper</strong> = ⟨∇ℓ<sub>v</sub>, ∇L<sub>test</sub>⟩ (Hessian-free, the FIX);
-        <strong>TracIn-cross</strong> = the deployed strategy ⟨∇ℓ<sub>v</sub>, Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩;
-        <strong>TracIn-self</strong> = ‖∇ℓ<sub>v</sub>‖. degree is topology.</p>
+        (s = H⁻¹∇L<sub>E</sub> via LiSSA, then infl(v)=⟨s,∇ℓ<sub>v</sub>⟩);
+        <strong>TracIn-proper</strong> = ⟨∇ℓ<sub>v</sub>, ∇L<sub>E</sub>⟩ (Hessian-free, the FIX);
+        <strong>TracIn-cross</strong> = the deployed strategy ⟨∇ℓ<sub>v</sub>, -Σ<sub>j</sub>∇ℓ<sub>j</sub>⟩;
+        <strong>TracIn-self</strong> = ⟨∇ℓ<sub>v</sub>,∇ℓ<sub>v</sub>⟩. degree is topology.</p>
+        <p><strong>Projection view.</strong> The deletion candidates still come from the training/candidate set
+        <code>T</code>. The held-out/query set <code>E</code> is not selected or deleted; it only defines the target
+        loss whose change we want to predict. In this diagnostic run <code>E</code> is the test split so we can compare
+        against GIF. In an attack threat model it should be a validation/query set or pseudo-labeled probe set.</p>
+        <table>
+        <thead><tr><th class="pair">selector</th><th>reference direction u in score(v)=⟨∇ℓ<sub>v</sub>,u⟩</th></tr></thead>
+        <tbody>
+        <tr><th class="pair">deployed cross-TracIn</th><td>-Σ<sub>j∈T</sub>∇ℓ<sub>j</sub> ≈ |T|λθ under L2 stationarity</td></tr>
+        <tr><th class="pair">proper TracIn</th><td>∇L<sub>E</sub>, the held-out/query loss sensitivity direction</td></tr>
+        <tr><th class="pair">GIF</th><td>H⁻¹∇L<sub>E</sub>, the curvature-preconditioned held-out/query direction</td></tr>
+        <tr><th class="pair">self-influence</th><td>∇ℓ<sub>v</sub>, a candidate-dependent own-gradient direction</td></tr>
+        </tbody>
+        </table>
         <table>
         <thead><tr><th class="pair">pair</th><th>cora<span class="kk">F1=0.8819</span></th><th>citeseer<span class="kk">F1=0.7327</span></th><th>pubmed<span class="kk">F1=0.8633</span></th></tr></thead>
         <tbody>
-        <tr><th class="pair">GIF ↔ TracIn-proper ⟨∇ℓ,∇L_test⟩ (FIX)<span class="note">cheap + faithful</span></th><td style="background:hsl(89,70%,88%)">0.742</td><td style="background:hsl(87,70%,88%)">0.727</td><td style="background:hsl(77,70%,88%)">0.647</td></tr>
+        <tr><th class="pair">GIF ↔ TracIn-proper ⟨∇ℓ,∇L_E⟩ (FIX)<span class="note">cheap + faithful</span></th><td style="background:hsl(89,70%,88%)">0.742</td><td style="background:hsl(87,70%,88%)">0.727</td><td style="background:hsl(77,70%,88%)">0.647</td></tr>
         <tr><th class="pair">GIF ↔ TracIn-cross (deployed)<span class="note">the strategy as shipped</span></th><td style="background:hsl(13,70%,88%)">0.113</td><td style="background:hsl(17,70%,88%)">0.142</td><td style="background:hsl(11,70%,88%)">0.098</td></tr>
         <tr><th class="pair">GIF ↔ TracIn-self ‖∇ℓ‖<span class="note">self-influence variant</span></th><td style="background:hsl(29,70%,88%)">0.249</td><td style="background:hsl(35,70%,88%)">0.298</td><td style="background:hsl(15,70%,88%)">0.133</td></tr>
         <tr><th class="pair">GIF ↔ degree<span class="note">real IF vs structural volume</span></th><td style="background:hsl(2,70%,88%)">0.024</td><td style="background:hsl(6,70%,88%)">0.051</td><td style="background:hsl(4,70%,88%)">0.041</td></tr>
@@ -93,19 +106,21 @@ Green = redundant (same nodes); orange = distinct. "—" = selector needs a trai
         </table>
         <p><strong>Reading.</strong> (1) <strong>The cheap fix works: proper TracIn ≈ GIF at 0.65–0.74</strong>
         — same cost as the deployed strategy (pure gradient inner products, no Hessian, scales to arxiv), but it
-        contracts each node gradient with <em>∇L<sub>test</sub></em> instead of the training-gradient sum. The
+        contracts each node gradient with <em>∇L<sub>E</sub></em> instead of the training-gradient residual. The
         residual ~0.25–0.35 gap to GIF is the honest H⁻¹ whitening (Hessian-free ceiling).
         (2) <strong>The deployed cross-form is a poor surrogate (0.10–0.14, ~2× the random floor)</strong>.
         <span class="warn" style="display:inline">Correction to an earlier claim:</span> this is <em>not</em>
         because Σ<sub>j</sub>∇ℓ<sub>j</sub>≈0 at convergence — measured ‖Σ∇ℓ‖ is large (69 / 68 / 255 on
-        cora/citeseer/pubmed), ≈ the L2-regularisation residual (∝ θ). The cross-form simply contracts with the
-        <em>wrong direction</em> (aggregate-training/regularisation, not test descent), so it ranks by the wrong
+        cora/citeseer/pubmed), ≈ the L2-regularisation residual. Because the deployed score has a negative sign,
+        its reference direction is approximately +|T|λθ. The cross-form simply contracts with the
+        <em>wrong direction</em> (parameter/regularisation, not held-out loss sensitivity), so it ranks by the wrong
         criterion. (3) <strong>Both GIF and the fixed TracIn are ⟂ degree</strong> (0.02–0.05): even the correct
         influence selector targets a different node set than the structural-volume centrality that wins — the
         volume-driven reading survives the real IF.</p>
         <p class="warn"><strong>Caveat.</strong> LiSSA is a first-order H⁻¹ estimate (‖s‖ finite). Seeded /
         deterministic. Single ratio. A scale/iteration sensitivity sweep is still advisable before quoting exact
-        magnitudes. Contracting with ∇L<sub>test</sub> uses test labels — in an attack threat model use a held-out
+        magnitudes. Contracting with true test labels is only for this diagnostic comparison — in an attack threat
+        model use a held-out
         val/query set or pseudo-labels instead (same math).</p>
         
 
