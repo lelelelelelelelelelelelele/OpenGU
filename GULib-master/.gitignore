@@ -74,3 +74,6 @@ results/baseline/
 # Device-local syncmate identity/state. This is intentionally different on
 # each machine and must not be committed.
 .syncmate/
+
+# Local agent/task planning scratch state.
+.planning/
