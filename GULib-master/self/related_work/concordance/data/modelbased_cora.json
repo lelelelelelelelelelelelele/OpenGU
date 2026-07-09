@@ -1,0 +1,25 @@
+{
+  "dataset": "cora",
+  "base_model": "GCN",
+  "k": 108,
+  "test_f1": 0.8819,
+  "lissa": {
+    "iter": 100,
+    "scale": 25.0,
+    "damp": 0.01,
+    "s_norm": 0.3027
+  },
+  "jaccard": {
+    "gif_tracin": 0.113,
+    "gif_tracinproper": 0.742,
+    "gif_tracinself": 0.249,
+    "gif_degree": 0.024,
+    "gif_im": 0.029,
+    "tracinproper_tracin": 0.149,
+    "tracinproper_degree": 0.024,
+    "tracin_degree": 0.019,
+    "tracin_im": 0.029,
+    "tracin_pagerank": 0.024
+  },
+  "note": "GIF (s=H^-1 grad L_E, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with -sum_j grad_j, a regularization/parameter direction under L2 stationarity]. tracinproper=<grad_v, grad L_E> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology. E is the target evaluation/query set, not the deletion candidate pool."
+}

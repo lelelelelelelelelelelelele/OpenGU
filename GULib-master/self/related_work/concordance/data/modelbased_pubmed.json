@@ -1,0 +1,25 @@
+{
+  "dataset": "pubmed",
+  "base_model": "GCN",
+  "k": 788,
+  "test_f1": 0.8633,
+  "lissa": {
+    "iter": 100,
+    "scale": 25.0,
+    "damp": 0.01,
+    "s_norm": 0.0261
+  },
+  "jaccard": {
+    "gif_tracin": 0.098,
+    "gif_tracinproper": 0.647,
+    "gif_tracinself": 0.133,
+    "gif_degree": 0.041,
+    "gif_im": 0.029,
+    "tracinproper_tracin": 0.238,
+    "tracinproper_degree": 0.045,
+    "tracin_degree": 0.038,
+    "tracin_im": 0.021,
+    "tracin_pagerank": 0.038
+  },
+  "note": "GIF (s=H^-1 grad L_E, LiSSA). tracin=deployed cross-influence -(G@G^T 1) [contracts with -sum_j grad_j, a regularization/parameter direction under L2 stationarity]. tracinproper=<grad_v, grad L_E> [proper Hessian-free IF]. Same trained base GCN; degree/im/pagerank topology. E is the target evaluation/query set, not the deletion candidate pool."
+}

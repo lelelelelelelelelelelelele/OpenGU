@@ -196,7 +196,7 @@ elif self.args["poison"] and self.args["unlearn_task"] == "edge":
 
 ```bash
 conda activate gnn
-cd H:/project/OpenGU/GULib-master
+cd E:/project/OpenGU/GULib-master
 
 # GUIDE 验证（已修复）
 python demo_attack.py --dataset cora --model GCN --method GUIDE --strategies random --ratio 0.05

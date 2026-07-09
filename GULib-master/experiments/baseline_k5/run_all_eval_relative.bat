@@ -2,7 +2,7 @@
 REM ============================================================
 REM  run_all_eval_relative.bat
 REM  Batch eval_relative.py for MG-0 ~ MG-3 + Ratio Sensitivity
-REM  Run from: h:\project\OpenGU\GULib-master
+REM  Run from: e:\project\OpenGU\GULib-master
 REM
 REM  Usage:
 REM    run_all_eval_relative.bat              # Run all
@@ -11,7 +11,7 @@ REM    run_all_eval_relative.bat --repair_dry_run  # Show what's missing
 REM    run_all_eval_relative.bat --missing_only    # Print missing only
 REM ============================================================
 
-set PYTHON=h:\conda_package\envs\gnn\python.exe
+set PYTHON=e:\conda_package\envs\gnn\python.exe
 set SCRIPT=experiments/baseline_k5/eval_relative.py
 set STRATEGIES=im_v4,tracin,hybrid_v4
 set SEEDS=42 212 722 1337 2024

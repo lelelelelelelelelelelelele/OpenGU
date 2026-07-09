@@ -231,7 +231,7 @@
 **Conclusion**: Non-monotonic—maximal vulnerability at ratio=0.01–0.10, slight recovery at 0.20
 **Caption**: "GNNDelete's F1 drop as a function of deletion ratio on Cora/GCN. The non-monotonic pattern suggests saturation of the compensation mechanism."
 
-![Figure 1: GNNDelete's F1 Drop vs Ratio](h:/project/OpenGU/GULib-master/report/paper/figures/fig1_gnndelete_ratio.png)
+![Figure 1: GNNDelete's F1 Drop vs Ratio](e:/project/OpenGU/GULib-master/report/paper/figures/fig1_gnndelete_ratio.png)
 
 ### Figure 2: Shard Protection Effect Visualization
 
@@ -240,7 +240,7 @@
 **Conclusion**: f1_after > f1_before consistently → deletion improves performance
 **Caption**: "The Shard Protection Effect: GraphEraser's F1 increases after node deletion across all attack strategies."
 
-![Figure 2: The Shard Protection Effect: GraphEraser](h:/project/OpenGU/GULib-master/report/paper/figures/fig2_grapheraser_shard.png)
+![Figure 2: The Shard Protection Effect: GraphEraser](e:/project/OpenGU/GULib-master/report/paper/figures/fig2_grapheraser_shard.png)
 
 ### Table 3: Strategy Ablation (Relative F1 Drop vs k=5 Random Baseline)
 
@@ -282,7 +282,7 @@
 | MEGU | Citeseer/GCN | im_v4 | 0.06% ± 0.38% |
 | MEGU | Citeseer/GCN | tracin | 0.99% ± 0.39% |
 
-![Figure 3: Relative F1 Drop Comparison (all methods, ratio=0.05)](h:/project/OpenGU/GULib-master/report/paper/figures/fig3_relative_f1_drop.png)
+![Figure 3: Relative F1 Drop Comparison (all methods, ratio=0.05)](e:/project/OpenGU/GULib-master/report/paper/figures/fig3_relative_f1_drop.png)
 
 ### Table 4: IM Node Selection Efficiency
 

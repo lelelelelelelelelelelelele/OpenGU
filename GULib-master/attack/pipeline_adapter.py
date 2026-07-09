@@ -10,6 +10,7 @@ This module provides a reusable pipeline that:
 import os
 import sys
 import time
+import copy
 import torch
 import numpy as np
 from typing import Optional, Dict, Any, List, Tuple
@@ -35,6 +36,117 @@ from attack.attack_strategies import BaseStrategy
 
 model_zoo = None
 UnlearningManager = None
+
+
+class _GraphRevokerEnsembleModel(torch.nn.Module):
+    """Forward-compatible wrapper for GraphRevoker shard ensembles.
+
+    GraphRevoker does not leave behind a single trained global model. It saves
+    one model per shard plus an optimal aggregation weight vector. The generic
+    collateral path expects a torch module, so this wrapper presents the saved
+    shard ensemble as a normal model by averaging shard logits with the saved
+    GraphRevoker weights.
+    """
+
+    def __init__(
+        self,
+        args: Dict[str, Any],
+        template_model: torch.nn.Module,
+        *,
+        run: int = 0,
+        affected_shards: Optional[List[int]] = None,
+    ):
+        super().__init__()
+        self.args = dict(args)
+        self.run = int(run)
+        self.num_shards = int(self.args.get("num_shards", 1))
+        self.affected_shards = set(int(s) for s in (affected_shards or []))
+
+        self.shard_models = torch.nn.ModuleList()
+        for shard in range(self.num_shards):
+            shard_model = copy.deepcopy(template_model)
+            state_path = self._target_model_path(shard)
+            state = torch.load(state_path, map_location="cpu")
+            shard_model.load_state_dict(state)
+            self.shard_models.append(shard_model)
+
+        weights = self._load_weights()
+        self.register_buffer("weights", weights.float())
+
+    def _base_name(self) -> str:
+        return "_".join(
+            (
+                str(self.args["base_model"]),
+                str(self.args.get("partition_method", "gpa")),
+                str(self.args.get("num_shards", self.num_shards)),
+                str(self.args.get("shard_size_delta", 0.005)),
+                str(self.args.get("ratio_deleted_edges", 0)),
+            )
+        )
+
+    def _target_model_path(self, shard: int) -> str:
+        prefix = os.path.join(
+            ".",
+            "data",
+            str(self.args["unlearning_methods"]),
+            str(self.args["dataset_name"]),
+            self._base_name(),
+        )
+        if shard in self.affected_shards:
+            num_unlearned = self.args.get("num_unlearned_nodes")
+            if num_unlearned is None:
+                raise RuntimeError(
+                    "GraphRevoker unlearned ensemble needs num_unlearned_nodes "
+                    "to locate affected shard checkpoints."
+                )
+            path = f"{prefix}_{shard}_{self.run}_{num_unlearned}_unlearned"
+        else:
+            path = f"{prefix}_{shard}_{self.run}"
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"GraphRevoker shard checkpoint not found: {path}")
+        return path
+
+    def _weight_path(self) -> str:
+        return os.path.join(
+            ".",
+            "data",
+            str(self.args["unlearning_methods"]),
+            "analysis_data",
+            "optimal",
+            str(self.args["dataset_name"]),
+            f"{self._base_name()}_{self.run}",
+        )
+
+    def _load_weights(self) -> torch.Tensor:
+        path = self._weight_path()
+        if os.path.exists(path):
+            weights = torch.load(path, map_location="cpu").detach().float()
+        else:
+            weights = torch.full((self.num_shards,), 1.0 / self.num_shards)
+        if weights.numel() != self.num_shards:
+            raise RuntimeError(
+                f"GraphRevoker optimal weights length {weights.numel()} "
+                f"!= num_shards {self.num_shards}: {path}"
+            )
+        total = weights.sum()
+        if not torch.isfinite(total) or total.item() <= 0:
+            weights = torch.full((self.num_shards,), 1.0 / self.num_shards)
+        else:
+            weights = weights / total
+        return weights
+
+    def forward(self, x, edge_index=None, *args, **kwargs):
+        logits = None
+        for shard, model in enumerate(self.shard_models):
+            if edge_index is None:
+                out = model(x)
+            else:
+                out = model(x, edge_index)
+            if isinstance(out, tuple):
+                out = out[0]
+            weighted = out * self.weights[shard].to(out.device)
+            logits = weighted if logits is None else logits + weighted
+        return logits
 
 
 def _load_model_zoo():
@@ -518,6 +630,9 @@ class AttackPipeline:
         - Shard_based: aggregated model accessed via disk; use self.method.model_zoo.model
         """
         method = self.method
+        if self.args.get("unlearning_methods") == "GraphRevoker":
+            return self._build_graphrevoker_ensemble_model(method)
+
         # IF_based and Learning_based pipelines
         if hasattr(method, 'target_model') and method.target_model is not None:
             if hasattr(method.target_model, 'model'):
@@ -527,6 +642,23 @@ class AttackPipeline:
             return method.model_zoo.model
         # Fallback
         return self.model
+
+    def _build_graphrevoker_ensemble_model(self, method):
+        if not hasattr(method, "target_model") or method.target_model is None:
+            raise RuntimeError("GraphRevoker method has no target_model to clone.")
+        if not hasattr(method.target_model, "model"):
+            raise RuntimeError("GraphRevoker target_model has no .model.")
+
+        affected_shards = None
+        if self.args.get("exp") == "attack_unlearning":
+            affected_shards = getattr(method, "affected_shard", None)
+
+        return _GraphRevokerEnsembleModel(
+            self.args,
+            method.target_model.model,
+            run=int(getattr(method, "run", 0)),
+            affected_shards=affected_shards,
+        )
 
     def run_retrain(self, selected_nodes: Tensor) -> Tuple[Any, float]:
         """

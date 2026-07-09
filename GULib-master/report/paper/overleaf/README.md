@@ -35,7 +35,7 @@ overleaf/
 
 1. Zip this entire directory:
    ```powershell
-   cd H:\project\OpenGU\GULib-master\report\paper
+   cd E:\project\OpenGU\GULib-master\report\paper
    Compress-Archive -Path overleaf\* -DestinationPath overleaf_v0.zip -Force
    ```
 2. Overleaf → **New Project** → **Upload Project** → drop in `overleaf_v0.zip`.

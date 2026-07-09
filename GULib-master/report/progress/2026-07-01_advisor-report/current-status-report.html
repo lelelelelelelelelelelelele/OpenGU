@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026-07-01 导师汇报 - 当前状态</title>
+  <style>
+    :root {
+      --paper: #fbfaf5;
+      --ink: #1e2428;
+      --muted: #687078;
+      --line: #d8d3c7;
+      --green: #16735f;
+      --green-soft: #dcece6;
+      --red: #a33c36;
+      --red-soft: #f1ded9;
+      --amber: #bd8427;
+      --amber-soft: #f4ead4;
+      --blue: #356f98;
+      --blue-soft: #dfeaf0;
+      --panel: #ffffff;
+      --shadow: 0 18px 40px rgba(30, 36, 40, 0.10);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(30, 36, 40, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(30, 36, 40, 0.025) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+      line-height: 1.62;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(53, 111, 152, 0.35);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 44px));
+      margin: 0 auto;
+      padding: 38px 0 58px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 28px;
+      align-items: stretch;
+      padding-bottom: 26px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 820px;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 68px);
+      line-height: 1.06;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 28px;
+      line-height: 1.18;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.24;
+    }
+
+    .lead {
+      margin: 22px 0 0;
+      max-width: 760px;
+      color: #30383d;
+      font-size: 19px;
+    }
+
+    .brief-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .brief-card dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      row-gap: 12px;
+      column-gap: 14px;
+      font-size: 14px;
+    }
+
+    .brief-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .brief-card dd {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 30px;
+      line-height: 1;
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", Georgia, serif;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric.good {
+      border-top: 5px solid var(--green);
+    }
+
+    .metric.warn {
+      border-top: 5px solid var(--amber);
+    }
+
+    .metric.danger {
+      border-top: 5px solid var(--red);
+    }
+
+    main {
+      display: grid;
+      gap: 24px;
+    }
+
+    section {
+      padding: 26px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+    }
+
+    .section-tag {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .story-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .story-card:nth-child(1) {
+      border-top: 4px solid var(--blue);
+    }
+
+    .story-card:nth-child(2) {
+      border-top: 4px solid var(--amber);
+    }
+
+    .story-card:nth-child(3) {
+      border-top: 4px solid var(--green);
+    }
+
+    .story-card p {
+      margin: 0;
+      color: #384147;
+    }
+
+    .ledger {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: var(--radius);
+    }
+
+    .ledger th, .ledger td {
+      padding: 12px 11px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .ledger th {
+      background: #f0eee5;
+      color: #343b40;
+      font-weight: 900;
+    }
+
+    .ledger td.num {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .pill {
+      display: inline-block;
+      min-width: 58px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-align: center;
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pill.good {
+      color: #0c5948;
+      background: var(--green-soft);
+    }
+
+    .pill.warn {
+      color: #8a5d12;
+      background: var(--amber-soft);
+    }
+
+    .pill.bad {
+      color: #82302c;
+      background: var(--red-soft);
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 16px;
+    }
+
+    .callout {
+      padding: 18px;
+      border-left: 6px solid var(--green);
+      background: var(--green-soft);
+      border-radius: var(--radius);
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .callout p {
+      margin: 0;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .timebox {
+      position: relative;
+      padding: 18px 18px 18px 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .timebox::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: var(--blue);
+      border-radius: var(--radius) 0 0 var(--radius);
+    }
+
+    .timebox:nth-child(2)::before {
+      background: var(--amber);
+    }
+
+    .timebox:nth-child(3)::before {
+      background: var(--green);
+    }
+
+    .timebox .date {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+
+    .priority {
+      display: grid;
+      grid-template-columns: 84px 1fr 1.2fr;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .priority div {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .priority div:nth-last-child(-n+3) {
+      border-bottom: 0;
+    }
+
+    .priority .head {
+      background: #f0eee5;
+      font-weight: 900;
+    }
+
+    .priority .p0 {
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .priority .p1 {
+      color: var(--amber);
+      font-weight: 900;
+    }
+
+    .priority .p2 {
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .source-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .source-list li {
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 920px) {
+      header,
+      .story-grid,
+      .decision-grid,
+      .timeline,
+      .status-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .priority {
+        grid-template-columns: 1fr;
+      }
+
+      .priority .head {
+        display: none;
+      }
+
+      .priority div {
+        border-bottom: 0;
+      }
+
+      .priority div:nth-child(3n+1) {
+        border-top: 1px solid var(--line);
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      section, .metric, .brief-card, .story-card, .timebox {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <p class="kicker">Advisor Briefing / 2026-07-01</p>
+        <h1>当前状态汇报：从投稿冲刺到数据真值复盘</h1>
+        <p class="lead">
+          这份汇报把 2026-05 的 NeurIPS push、2026-06 的复盘诊断和当前 dashboard
+          的 produced / usable / rerun 口径合成一页可讲的当前状态。
+        </p>
+      </div>
+      <aside class="brief-card" aria-label="report metadata">
+        <dl>
+          <dt>定位</dt>
+          <dd>导师汇报 / checkpoint bundle</dd>
+          <dt>主线</dt>
+          <dd>systematic audit + heterogeneity + fingerprint</dd>
+          <dt>状态</dt>
+          <dd>NeurIPS submitted, rebuttal-prep</dd>
+          <dt>下一步</dt>
+          <dd>GraphRevoker repair + proper-TracIn refresh</dd>
+        </dl>
+      </aside>
+    </header>
+
+    <div class="status-strip" aria-label="headline metrics">
+      <div class="metric good">
+        <strong>477</strong>
+        <span>produced cells / 1214 total</span>
+      </div>
+      <div class="metric warn">
+        <strong>274</strong>
+        <span>usable cells after data-truth split</span>
+      </div>
+      <div class="metric danger">
+        <strong>203</strong>
+        <span>cells marked rerun / refresh</span>
+      </div>
+      <div class="metric warn">
+        <strong>2</strong>
+        <span>blocking semantics: GraphRevoker + TracIn path</span>
+      </div>
+    </div>
+
+    <main>
+      <section>
+        <div class="section-head">
+          <h2>1. 今天要讲的结论</h2>
+          <span class="section-tag">Thesis</span>
+        </div>
+        <div class="callout">
+          <p>
+            现在不要讲成“某个 informed selector 最强”。更稳的口径是：
+            我们完成了一个可审计的 GU 删除攻击实验系统，发现不同 GU 方法、
+            selector 和 budget 呈现强烈异质性；selector 失配本身也是
+            Vulnerability Fingerprint 的一部分。
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>2. 三段故事线</h2>
+          <span class="section-tag">Narrative</span>
+        </div>
+        <div class="story-grid">
+          <article class="story-card">
+            <h3>5 月：先让系统可信</h3>
+            <p>
+              NeurIPS push 的核心不是单个结果，而是修复 pipeline 风险：
+              train-before-select、cache key、失败结果污染、seed/path 一致性、
+              canonical runner 和 gate。没有这一步，后面重跑只会制造更多脏数据。
+            </p>
+          </article>
+          <article class="story-card">
+            <h3>6 月：数据复盘改写重心</h3>
+            <p>
+              干净数据显示，degree/PageRank 在不少场景下强于 TracIn/IM/Hybrid。
+              原 selector-centered 叙事不稳，需要降级为诊断轴，而不是主贡献。
+            </p>
+          </article>
+          <article class="story-card">
+            <h3>7 月：把证据链清干净</h3>
+            <p>
+              现在的问题不是有没有数据，而是哪些可作为论文证据。
+              dashboard 已经拆出 produced、usable、rerun，下一步按这个账本清理。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>3. 数据账本</h2>
+          <span class="section-tag">Produced vs Usable</span>
+        </div>
+        <table class="ledger">
+          <thead>
+            <tr>
+              <th>范围</th>
+              <th>Produced</th>
+              <th>Usable</th>
+              <th>GraphRevoker repair</th>
+              <th>proper-TracIn refresh</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>全部配置</td>
+              <td class="num">477 / 1214</td>
+              <td><span class="pill warn">274</span></td>
+              <td><span class="pill bad">affected</span></td>
+              <td><span class="pill bad">paper-facing</span></td>
+              <td>当前总账：203 cells 标为 rerun/refresh；所有进入论文证据的旧 TracIn/Hybrid 都要刷新。</td>
+            </tr>
+            <tr>
+              <td>Cora GCN 主矩阵</td>
+              <td class="num">180 / 180</td>
+              <td><span class="pill warn">100</span></td>
+              <td><span class="pill bad">30</span></td>
+              <td><span class="pill bad">50</span></td>
+              <td>80 rerun：GraphRevoker 全 strategy + 非 GraphRevoker 的 TracIn/Hybrid。</td>
+            </tr>
+            <tr>
+              <td>Cora GAT 主矩阵</td>
+              <td class="num">180 / 180</td>
+              <td><span class="pill warn">100</span></td>
+              <td><span class="pill bad">30</span></td>
+              <td><span class="pill bad">50</span></td>
+              <td>同 GCN；180/180 只表示 produced，不表示 clean evidence。</td>
+            </tr>
+            <tr>
+              <td>A5 Cora r0.01</td>
+              <td class="num">90 / 90</td>
+              <td><span class="pill warn">50</span></td>
+              <td><span class="pill bad">15</span></td>
+              <td><span class="pill bad">25</span></td>
+              <td>40 rerun；含 1 个已知 GraphRevoker failed cell。done 表示存在，不表示成功。</td>
+            </tr>
+            <tr>
+              <td>A3 GCN alpha=0.00</td>
+              <td class="num">10 / 25</td>
+              <td><span class="pill good">10</span></td>
+              <td><span class="pill good">0</span></td>
+              <td><span class="pill good">0</span></td>
+              <td>不是 0；来自 hybrid_alpha0.00 alias，GIF/GNNDelete 各 5 seed。</td>
+            </tr>
+            <tr>
+              <td>arxiv T1 seed42 pilot</td>
+              <td class="num">6 / 18</td>
+              <td><span class="pill good">4</span></td>
+              <td><span class="pill good">0</span></td>
+              <td><span class="pill warn">2</span></td>
+              <td>TracIn pilot 需要 proper-TracIn refresh；当前只算 produced，不算 clean evidence。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>4. 关键判断</h2>
+          <span class="section-tag">Decisions</span>
+        </div>
+        <div class="decision-grid">
+          <div class="callout warning">
+            <h3>Rebuttal-prep 不大幅换 thesis</h3>
+            <p>
+              当前是已提交、等 review。短期内不把论文改成另一篇；
+              主 thesis 收束为 audit、heterogeneity、fingerprint。
+              更激进的 reframe 留给不中后的重投版本。
+            </p>
+          </div>
+          <div class="callout danger">
+            <h3>GraphRevoker 要修，不要悄悄丢</h3>
+            <p>
+              GraphRevoker 是 6-method audit 的一部分。现有退化数字不能当结论，
+              也不应轻描淡写写成 caveat；应修聚合器/实现问题后按 method 重跑。
+            </p>
+          </div>
+          <div class="callout warning">
+            <h3>IF-concordance 改变“剩余实验”的读法</h3>
+            <p>
+              重合度实验说明 deployed TracIn/Hybrid 路径不干净。
+              主矩阵、A5 r0.01 和 arxiv pilot 中的 TracIn 相关结果要 refresh。
+            </p>
+          </div>
+          <div class="callout">
+            <h3>dashboard 是当前证据入口</h3>
+            <p>
+              以后向外汇报实验进度时，优先引用 config inventory 的
+              produced / usable / rerun，而不是旧的 done-only 口径。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>5. 下一轮执行顺序</h2>
+          <span class="section-tag">Run Plan</span>
+        </div>
+        <div class="priority" role="table" aria-label="run order">
+          <div class="head">优先级</div>
+          <div class="head">任务</div>
+          <div class="head">原因</div>
+          <div class="p0">P0</div>
+          <div>GraphRevoker 修复 + Cora GCN/GAT GraphRevoker 重跑</div>
+          <div>决定 6-method audit 是否完整。</div>
+          <div class="p0">P0</div>
+          <div>proper-TracIn refresh：所有 paper-facing 旧 TracIn/Hybrid</div>
+          <div>IF-concordance 已经证明旧路径不够干净；主矩阵、A5 r0.01、arxiv pilot/smoke 都受影响。</div>
+          <div class="p1">P1</div>
+          <div>A5 r0.01 TracIn refresh + GraphRevoker 回填</div>
+          <div>ratio-sweep 的已跑部分需要变成 usable。</div>
+          <div class="p1">P1</div>
+          <div>Citeseer clean run</div>
+          <div>回答 scope 不足问题。</div>
+          <div class="p1">P1</div>
+          <div>arxiv T2/T3 或更完整 arxiv pilot</div>
+          <div>回答 scale/scope 问题，需要远程 GPU。</div>
+          <div class="p2">P2</div>
+          <div>L8 collateral / hop-decay 重算</div>
+          <div>修复 supplementary 和 caveat 数字。</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>6. 时间线定位</h2>
+          <span class="section-tag">Checkpoint</span>
+        </div>
+        <div class="timeline">
+          <article class="timebox">
+            <div class="date">2026-05</div>
+            <h3>NeurIPS push</h3>
+            <p>工程可信化、runner/gate/cache、Cora 主矩阵和 arxiv pilot 回流。</p>
+          </article>
+          <article class="timebox">
+            <div class="date">2026-06</div>
+            <h3>Resume diagnosis</h3>
+            <p>复盘发现 selector-centered 叙事风险，明确 C1-C5 与 scope 风险。</p>
+          </article>
+          <article class="timebox">
+            <div class="date">2026-07-01</div>
+            <h3>Advisor report</h3>
+            <p>把历史来源归档到本 checkpoint，并给出当前可讲的 evidence plan。</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>7. 来源文件</h2>
+          <span class="section-tag">Sources</span>
+        </div>
+        <ul class="source-list">
+          <li><a href="../../advisor_report_2026-06-16.html">advisor_report_2026-06-16.html</a></li>
+          <li><a href="2026-05_NeurIPS-Push.md">2026-05_NeurIPS-Push.md</a></li>
+          <li><a href="2026-06_resume-diagnosis.md">2026-06_resume-diagnosis.md</a></li>
+          <li><a href="../../../self/dashboard/WORKPLAN.md">WORKPLAN.md</a></li>
+          <li><a href="../../../self/dashboard/config_inventory.html">config_inventory.html</a></li>
+          <li><a href="../../../self/dashboard/config_inventory.csv">config_inventory.csv</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      Generated as a static, self-contained HTML report in
+      <code>report/progress/2026-07-01_advisor-report/</code>.
+    </footer>
+  </div>
+</body>
+</html>

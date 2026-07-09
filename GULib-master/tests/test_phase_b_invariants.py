@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 from typing import Any, Dict
 
@@ -337,6 +338,42 @@ def test_run_config_method_overrides_fingerprint_only_target_method():
     assert _content_fingerprint(
         cfg_with_override, "GIF", "random", 42
     ) == _content_fingerprint(base_cfg, "GIF", "random", 42)
+
+
+def test_graphrevoker_get_trained_model_uses_ensemble_wrapper():
+    """GraphRevoker must not expose a single shard model as the trained model.
+
+    Collateral metrics call AttackPipeline._get_trained_model() and then run a
+    normal forward pass on full-graph data. Returning method.target_model.model
+    for GraphRevoker evaluates just the last shard model on the full graph,
+    which depresses perf_before and perf_unlearn.
+    """
+    from attack.pipeline_adapter import AttackPipeline
+
+    pipe = object.__new__(AttackPipeline)
+    pipe.args = {"unlearning_methods": "GraphRevoker"}
+    pipe.method = SimpleNamespace(
+        target_model=SimpleNamespace(model=object()),
+    )
+    sentinel = object()
+    pipe._build_graphrevoker_ensemble_model = lambda method: sentinel
+
+    assert pipe._get_trained_model() is sentinel
+
+
+def test_grapheraser_get_trained_model_behavior_is_unchanged():
+    """The GraphRevoker fix must not change GraphEraser extraction semantics."""
+    from attack.pipeline_adapter import AttackPipeline
+
+    pipe = object.__new__(AttackPipeline)
+    pipe.args = {"unlearning_methods": "GraphEraser"}
+    model = object()
+    pipe.method = SimpleNamespace(
+        target_model=SimpleNamespace(model=model),
+        model_zoo=SimpleNamespace(model=object()),
+    )
+
+    assert pipe._get_trained_model() is model
 
 
 # ----------------------------------------------------------------------

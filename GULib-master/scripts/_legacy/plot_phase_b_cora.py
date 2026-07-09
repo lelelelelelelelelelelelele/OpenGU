@@ -11,7 +11,7 @@ and writes the cora-portion of the paper figure inventory:
     fig5_retrain_gap.pdf / .png  -- collateral retrain gap per method × strategy
 
 Run:
-    H:/conda_package/envs/gnn/python.exe scripts/plot_phase_b_cora.py
+    E:/conda_package/envs/gnn/python.exe scripts/plot_phase_b_cora.py
 """
 from __future__ import annotations
 

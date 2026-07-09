@@ -80,9 +80,9 @@ disown && exit
 ### 2.2 直接 python（不要关机时用）
 
 ```bash
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_im_only_r01.yaml
-H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/ogbn-arxiv_GCN_r0.01    # pass/fail
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_arxiv_im_only_r01.yaml
+E:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/ogbn-arxiv_GCN_r0.01    # pass/fail
 ```
 
 ### 2.3 跑完检查

@@ -3,7 +3,7 @@
 > Status: active
 > Role: `report/` 目录说明；定义阶段性汇报、课程报告和答辩材料的存放边界。
 > Use this when: 你要找某个阶段性的报告、演示稿、progress report 或分析性 writeup。
-> See also: `../self/README.md`, `../results/README.md`, `0417_5003report/main_report/msc_project_report.md`
+> See also: `../self/README.md`, `../results/README.md`, `progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
 
 本目录用于组织**阶段性**研究输出，包括每日工作日志、组会报告、阶段报告、课程报告、答辩材料和阶段分析写作。
 
@@ -13,7 +13,8 @@
 
 ```
 report/
-├── 0417_5003report/          # 2026-04 EE5003 最终课程报告与答辩材料
+├── advisor_report_2026-06-16.html # 06-16 导师/评审诊断快照，保留原位并指向 07-01 当前口径
+├── progress/2026-04-17_EE5003-report/  # 2026-04 EE5003 最终课程报告与答辩材料
 ├── analysis/                  # 技术分析材料（统一入口）
 │   ├── reports/               # 自动生成报告
 │   ├── notes/                 # 人工分析/组会笔记
@@ -37,6 +38,14 @@ report/
 | `self/` | 长期研究控制中心：方法论、研究逻辑、假说、thesis 方向 |
 | `report/` | 阶段性输出：progress report、课程报告、答辩材料、组会笔记 |
 | `results/` | 证据产物：实验结果、relative/collateral 结果、缓存与统计表 |
+
+当前导师汇报入口：
+
+| 文件 | 说明 |
+|------|------|
+| `advisor_report_2026-06-16.html` | 06-16 历史诊断快照，保留原判断并指向 07-01 当前口径 |
+| `progress/2026-07-01_advisor-report/current-status-report.html` | 当前导师汇报主版本，联动 `WORKPLAN` 和 `config_inventory` |
+| `progress/2026-07-01_advisor-report/advisor-outline-report.html` | 现场讨论/提问版大纲 |
 
 如果你要找项目核心背景与规划信息，优先从 `self/` 开始：
 

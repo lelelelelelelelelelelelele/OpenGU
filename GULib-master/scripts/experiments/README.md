@@ -12,10 +12,10 @@
 
 ```bash
 # 单 yaml — 展开 (method × strategy × seed) 矩阵
-H:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
+E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
 
 # 跑完用 gate 判 pass/fail（4 文件 + mia_auc + f1 范围）
-H:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05
+E:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_r0.05
 ```
 
 可用 yaml：见 `experiments/configs/`。

@@ -25,7 +25,7 @@ if __name__ == "__main__" and not os.environ.get("ALLOW_LEGACY_PLOT"):
 sns.set_theme(style="whitegrid", palette="muted")
 plt.rcParams.update({'font.size': 14, 'axes.labelsize': 16, 'axes.titlesize': 18})
 
-FIG_DIR = 'h:/project/OpenGU/GULib-master/report/paper/figures/'
+FIG_DIR = 'e:/project/OpenGU/GULib-master/report/paper/figures/'
 os.makedirs(FIG_DIR, exist_ok=True)
 
 def generate_figure_1_gnndelete_ratio():
@@ -124,7 +124,7 @@ def generate_figure_3_relative_metrics():
     Figure 3: Relative Metrics across Method Families (Table 3 visual)
     Requires parsing results from relative evaluation. Includes all methods available at ratio 0.05.
     """
-    base_dir = 'h:/project/OpenGU/GULib-master/results/relative'
+    base_dir = 'e:/project/OpenGU/GULib-master/results/relative'
     aggregated = defaultdict(list)
     
     for root, _, files in os.walk(base_dir):

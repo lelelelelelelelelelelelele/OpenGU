@@ -1,0 +1,23 @@
+#!/bin/sh
+# pre-commit hook — auto-regenerate self/dashboard/progress.html from WORKPLAN.md.
+#
+# WORKPLAN.md is the single source of truth; progress.html is a derived snapshot.
+# This TRACKED copy is canonical (git hooks live in .git/hooks and are NOT
+# version-controlled). To ACTIVATE, install it once from the repo root
+# (the directory that contains GULib-master/):
+#
+#     cp GULib-master/scripts/dashboard/pre-commit.hook .git/hooks/pre-commit
+#     chmod +x .git/hooks/pre-commit
+#
+# After that, any commit that stages WORKPLAN.md auto-regenerates + re-stages
+# progress.html. Until installed, regenerate manually:
+#     python GULib-master/scripts/dashboard/refresh.py
+#
+if git diff --cached --name-only | grep -q 'GULib-master/self/dashboard/WORKPLAN\.md'; then
+  PY="E:/conda_package/envs/gnn/python.exe"
+  if [ ! -f "$PY" ]; then PY="python"; fi
+  echo "[pre-commit] WORKPLAN.md changed -> regenerating progress.html"
+  "$PY" GULib-master/scripts/dashboard/refresh.py || echo "[pre-commit] refresh failed; board may be stale"
+  git add GULib-master/self/dashboard/progress.html
+fi
+exit 0

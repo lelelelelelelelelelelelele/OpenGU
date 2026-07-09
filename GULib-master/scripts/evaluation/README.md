@@ -28,7 +28,7 @@
 ## CLI 入口（仍存活，但所指向的 Step0 流程已是 pre-Phase-B 历史）
 
 ```bash
-H:/conda_package/envs/gnn/python.exe -m scripts.evaluation --help
+E:/conda_package/envs/gnn/python.exe -m scripts.evaluation --help
 ```
 
 `extract / plot / report / all` 子命令本身是好的，但默认输入路径

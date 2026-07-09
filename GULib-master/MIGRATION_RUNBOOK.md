@@ -98,7 +98,7 @@ print(f'BUG STILL PRESENT' if abs(g['perf_unlearn']-i['perf_unlearn']) < 1e-9 el
 bash scripts/ship_results.sh cora     # 出 cora_results_<timestamp>.tar.gz
 
 # 本地：MIGRATION_RUNBOOK §3.3-§3.4 老路子，但要先清理旧版本（避免新老混落）
-cd H:\project\OpenGU\GULib-master
+cd E:\project\OpenGU\GULib-master
 Remove-Item -Recurse -Force results\runs\4090\cora_GCN_r0.05
 Remove-Item -Recurse -Force results\runs\4090\cora_GAT_r0.05
 
@@ -106,9 +106,9 @@ scp <user>@<4090-host>:~/autodl-fs/OpenGU/GULib-master/cora_results_*.tar.gz .
 tar xzf cora_results_*.tar.gz -C results/runs/4090 --strip-components=2
 
 # 重跑分析（产物自动覆盖）
-H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py 4090
-H:/conda_package/envs/gnn/python.exe scripts/plot_phase_b_cora.py
-H:/conda_package/envs/gnn/python.exe scripts/build_paper_table1.py
+E:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py 4090
+E:/conda_package/envs/gnn/python.exe scripts/plot_phase_b_cora.py
+E:/conda_package/envs/gnn/python.exe scripts/build_paper_table1.py
 ```
 
 ### 0.5.3 验收：fig5 retrain gap 应该有变化
@@ -309,7 +309,7 @@ md5sum cora_results_*.tar.gz | tee /tmp/cora.md5
 ### 3.3 scp 拉回本地（PowerShell）
 
 ```powershell
-cd H:\project\OpenGU\GULib-master
+cd E:\project\OpenGU\GULib-master
 
 # 拉 tar
 scp <user>@<4090-host>:~/autodl-fs/OpenGU/GULib-master/cora_results_*.tar.gz .
@@ -328,7 +328,7 @@ Get-Content cora.md5
 tar 内是 `results/runs/cora_*_r0.05/...` 相对路径。用 `--strip-components=2 -C results/runs/4090` 把 `results/runs/` 两层去掉，直接落进机器目录：
 
 ```powershell
-cd H:\project\OpenGU\GULib-master
+cd E:\project\OpenGU\GULib-master
 tar xzf cora_results_*.tar.gz -C results/runs/4090 --strip-components=2
 
 # 计数（每张 cora 矩阵期望 180）
@@ -343,7 +343,7 @@ tar xzf cora_results_*.tar.gz -C results/runs/4090 --strip-components=2
 随机抽几个 cell 看 `_meta.json` 的 `hostname` / `git_sha` 是否一致，确认都是同一次 B.3+B.4 跑出来的：
 
 ```powershell
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import json, pathlib, collections
 shas = collections.Counter()
 hosts = collections.Counter()
@@ -369,7 +369,7 @@ print('hosts:', hosts.most_common(3))
 
 ```powershell
 # 跨 cell 看 mia_auc 分布是否合理（别全是 0.5 或 0.99）
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import json, pathlib, statistics
 ps = list(pathlib.Path('results/runs/4090/cora_GCN_r0.05').glob('*/seed*/attack.json'))
 aucs = []
@@ -390,7 +390,7 @@ print(f'cora_GCN: n={len(aucs)}, median={statistics.median(aucs):.3f}, range=[{m
 
 ```powershell
 # 临时 aggregator：walk results/runs/4090/ 拼 DataFrame
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import json, pathlib, pandas as pd
 rows = []
 for p in pathlib.Path('results/runs/4090').glob('cora_*_r0.05/*/seed*/attack.json'):
@@ -467,7 +467,7 @@ md5sum arxiv_results_*.tar.gz | tee /tmp/arxiv.md5
 ### 5.4 scp 拉回本地
 
 ```powershell
-cd H:\project\OpenGU\GULib-master
+cd E:\project\OpenGU\GULib-master
 scp <user>@<h800-host>:~/autodl-fs/OpenGU/GULib-master/arxiv_results_*.tar.gz .
 scp <user>@<h800-host>:/tmp/arxiv.md5 .
 
@@ -478,7 +478,7 @@ Get-Content arxiv.md5
 ### 5.5 解包到 `results/runs/h20/`
 
 ```powershell
-cd H:\project\OpenGU\GULib-master
+cd E:\project\OpenGU\GULib-master
 tar xzf arxiv_results_*.tar.gz -C results/runs/h20 --strip-components=2
 
 # 计数（看 tier 落了哪些；T1=12 / T1+T2=24 / 全=36）
@@ -509,7 +509,7 @@ scp 拉回，解到 `results/runs/h20/`（同样 `--strip-components=2`），与
 ### 6.1 全量 ad-hoc aggregator（Phase B port 没写之前的临时方案）
 
 ```powershell
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import json, pathlib, pandas as pd
 rows = []
 # walk 两台机的 results/runs/{4090,h20}/{cell}/...
@@ -549,9 +549,9 @@ print(df.groupby(['machine','cell','method','strategy_full'])['mia_auc']
 
 ```powershell
 # 主图（5 张 PDF/PNG → results/paper_figures/）
-H:/conda_package/envs/gnn/python.exe scripts/plot_paper_figures.py
+E:/conda_package/envs/gnn/python.exe scripts/plot_paper_figures.py
 # 补充图
-H:/conda_package/envs/gnn/python.exe scripts/plot_supp_figures.py
+E:/conda_package/envs/gnn/python.exe scripts/plot_supp_figures.py
 ```
 
 > ⚠ `plot_paper_figures.py` 内部如果还指向 `results/relative/` 等已废弃路径就会空跑——出空图时跑 `Get-Content scripts/plot_paper_figures.py | Select-String "results/"` 看它读哪。
@@ -580,7 +580,7 @@ scp -P 22022 ...
 # 2) 走 rsync（断点续传）—— autodl 容器多数装了 rsync
 rsync -avzP --partial \
     <user>@<host>:~/autodl-fs/OpenGU/GULib-master/cora_results_*.tar.gz \
-    H:/project/OpenGU/GULib-master/
+    E:/project/OpenGU/GULib-master/
 
 # 3) 大文件拆 tar：split + 多次 scp
 # 服务器侧
@@ -593,7 +593,7 @@ cmd /c "copy /b arxiv_results.tar.part-* arxiv_results.tar"
 
 ```powershell
 # 看哪台机缺多少
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import pathlib
 for machine in ['4090', 'h20']:
     base = pathlib.Path(f'results/runs/{machine}')
@@ -613,7 +613,7 @@ for machine in ['4090', 'h20']:
 每台机理论上一个 commit、一个 hostname。多个 sha 不致命但要心里有数：
 
 ```powershell
-H:/conda_package/envs/gnn/python.exe -c "
+E:/conda_package/envs/gnn/python.exe -c "
 import json, pathlib, collections
 for machine in ['4090', 'h20']:
     base = pathlib.Path(f'results/runs/{machine}')
@@ -727,7 +727,7 @@ param(
   [Parameter(Mandatory)] $RemoteHost,
   $User = 'root'
 )
-Set-Location H:\project\OpenGU\GULib-master
+Set-Location E:\project\OpenGU\GULib-master
 
 $pattern = if ($What -eq 'cora') { 'cora_results_*.tar.gz' } else { 'arxiv_results_*.tar.gz' }
 $machine = if ($What -eq 'cora') { '4090' } else { 'h20' }
@@ -834,11 +834,11 @@ if len(df):
 
 ```powershell
 # 全量
-H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py
+E:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py
 # 只 cora（中场）
-H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py 4090
+E:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py 4090
 # 只 arxiv
-H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py h20
+E:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py h20
 ```
 
 ---
@@ -848,9 +848,9 @@ H:/conda_package/envs/gnn/python.exe scripts/aggregate_phase_b.py h20
 | 角色 | 路径 |
 |---|---|
 | 服务器源（A=4090 / B=h20 共用 schema） | `~/autodl-fs/OpenGU/GULib-master/results/runs/{cell}/...` |
-| 本地落点（机 A） | `H:\project\OpenGU\GULib-master\results\runs\4090\{cell}\...` |
-| 本地落点（机 B） | `H:\project\OpenGU\GULib-master\results\runs\h20\{cell}\...` |
-| 本地 conda Python | `H:/conda_package/envs/gnn/python.exe` |
+| 本地落点（机 A） | `E:\project\OpenGU\GULib-master\results\runs\4090\{cell}\...` |
+| 本地落点（机 B） | `E:\project\OpenGU\GULib-master\results\runs\h20\{cell}\...` |
+| 本地 conda Python | `E:/conda_package/envs/gnn/python.exe` |
 | 临时 CSV | `results/_phase_b_aggregate.csv`（aggregator 输出） |
 | 论文图 | `results/paper_figures/`（plot_paper_figures.py 输出） |
 | 论文章节 | `report/paper/overleaf/sec/` |

@@ -21,11 +21,11 @@ if __name__ == "__main__" and not os.environ.get("ALLOW_LEGACY_PLOT"):
 sns.set_theme(style="whitegrid", palette="muted")
 plt.rcParams.update({'font.size': 14, 'axes.labelsize': 16, 'axes.titlesize': 18})
 
-FIG_DIR = 'h:/project/OpenGU/GULib-master/report/paper/figures/'
+FIG_DIR = 'e:/project/OpenGU/GULib-master/report/paper/figures/'
 os.makedirs(FIG_DIR, exist_ok=True)
 
 def extract_and_plot_other_methods_ratio():
-    base_dir = 'h:/project/OpenGU/GULib-master/results/relative'
+    base_dir = 'e:/project/OpenGU/GULib-master/results/relative'
     aggregated = defaultdict(list)
     
     # We mainly have ratio=0.05 for most methods in relative, except GIF where ratio experiments were run recently.

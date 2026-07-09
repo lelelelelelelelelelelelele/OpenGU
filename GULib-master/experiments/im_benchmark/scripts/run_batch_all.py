@@ -5,7 +5,7 @@ import json
 datasets = ["citeseer", "cora"]
 seeds = [2024]
 k_values = [50, 135]
-python_path = r"H:\conda_package\envs\gnn\python.exe"
+python_path = r"E:\conda_package\envs\gnn\python.exe"
 bench_script = r"experiments\im_benchmark\run_benchmark.py"
 res_file = "experiments/im_benchmark/bench_results.json"
 summary_file = "experiments/im_benchmark/multi_v1_v3_summary.md"

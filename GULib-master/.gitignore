@@ -70,3 +70,10 @@ GEMINI.md
 # k=5 noise floor — paper just consumes the *_averaged_k5.json,
 # tracking the per-seed JSONs is repo bloat. Existing tracked entries stay.
 results/baseline/
+
+# Device-local syncmate identity/state. This is intentionally different on
+# each machine and must not be committed.
+.syncmate/
+
+# Local agent/task planning scratch state.
+.planning/

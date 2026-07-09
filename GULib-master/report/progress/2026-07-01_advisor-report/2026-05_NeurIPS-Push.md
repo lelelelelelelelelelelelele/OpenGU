@@ -12,7 +12,7 @@ up: "[[_Home]]"
 > 工作日期范围: 2026-05-03 ~ 2026-05-07（5 天，127 commit）
 > 生成时间: 2026-06-15（回顾性汇报）
 > 范围: 休整前最后一段冲刺——从"答辩材料 + 知识库"到"代码硬化 + 服务器重跑 + paper 填实"的 NeurIPS 投稿 push。
-> 配对: 全项目时间线 → [[Macro-Timeline]]；当前操作中枢 → [PROGRESS（外部）](../../../self/dashboard/PROGRESS.md)。
+> 配对: 当前 0701 汇报 → [current-status-report.html](current-status-report.html)；当前操作中枢 → [PROGRESS（外部）](../../../self/dashboard/PROGRESS.md)。
 > ⚠️ 本段结论（脆弱性指纹 / IF-IM selector 是核心贡献）已被 2026-06 数据复查的 **C1 部分推翻**，见末尾「衔接」。
 
 ---

@@ -6,11 +6,11 @@
 > Last revised: 2026-05-03（合并 from_experiments_to_mechanisms 草稿的有价值增量；该草稿已删除。同日二次修订：用户确认可昼夜无休 + 租 GPU 跑 ogbn-arxiv 扩展，§5 执行计划重写）
 >
 > **状态/进度/bug/finding 的实时数据 → `self/dashboard/`**（本文件保留战略层；执行细节落到 dashboard 不再回写到本文件）
-> See also: `README.md`, `PROJECT_MASTER_CONTEXT.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/0417_5003report/main_report/msc_project_report.md`
+> See also: `README.md`, `PROJECT_MASTER_CONTEXT.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
 
 ## 1. Purpose
 
-2026-04 的 `report/progress/0417_5003report/` 已经完成 EE5003 课程报告线，后续不再把 thesis 的开放问题继续混入该 deliverable。
+2026-04 的 `report/progress/2026-04-17_EE5003-report/` 已经完成 EE5003 课程报告线，后续不再把 thesis 的开放问题继续混入该 deliverable。
 
 这份 memo 的作用是：
 
@@ -34,12 +34,12 @@
 稳定落点：
 
 - `../report/paper/stage_report_2026-02-27.md`
-- `../report/progress/0417_5003report/main_report/msc_project_report.md`
-- `../report/progress/0417_5003report/ppt/final_15min_script.md`
+- `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
+- `../report/progress/2026-04-17_EE5003-report/ppt/final_15min_script.md`
 
 ### 2.2 FIG-4b Effect Size 数据快照
 
-来自 `../report/progress/0417_5003report/main_report/msc_project_report.md` 的 family × strategy effect size（相对 k=5 random baseline）：
+来自 `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md` 的 family × strategy effect size（相对 k=5 random baseline）：
 
 | Family | TracIn | IM | Hybrid |
 |--------|--------|-----|--------|
@@ -366,7 +366,7 @@ paper 里建议单列一节 "Are informed selectors just importance proxies?" �
   保存 2026-02 阶段实验覆盖与完成度。
 - `../report/paper/stage_report_2026-02-27.md`
   对应中期阶段的阶段报告。
-- `../report/progress/0417_5003report/main_report/msc_project_report.md`
+- `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
   对应已经完成的课程报告，FIG-4b 数据来源。
 
 这份 memo 不替代这些文档，而是给出一个当前 thesis 线的解释与收束入口。

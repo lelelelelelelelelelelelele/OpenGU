@@ -13,7 +13,7 @@ Runs on cora (~135 train nodes), small enough that both parallel and
 serial paths complete in seconds.
 
 Usage:
-    H:/conda_package/envs/gnn/python.exe scripts/test_im_celf_cache_equivalence.py
+    E:/conda_package/envs/gnn/python.exe scripts/test_im_celf_cache_equivalence.py
 """
 import argparse
 import os
