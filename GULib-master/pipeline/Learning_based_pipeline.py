@@ -106,7 +106,7 @@ class Learning_based_pipeline:
                 continue
             self.unlearning_request()
             self.unlearn()
-            if self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node" and False:
+            if self.args.get("run_mia", False) and self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node":
                 self.mia_attack()
             # elif self.args["unlearn_task"]=="edge":
             #     self.mia_attack_edge()
