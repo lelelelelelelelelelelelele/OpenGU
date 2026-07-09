@@ -9,6 +9,7 @@ GULib-master/log/GraphRevoker/cora/GCN/2024-12-11-18-48-01.log
 # **/papers
 *.pdf
 **/skills
+**/.obsidian/
 demo_output*.log
 results/demo_logs/
 results/cache/

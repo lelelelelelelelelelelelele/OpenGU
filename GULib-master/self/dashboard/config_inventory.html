@@ -285,7 +285,7 @@
 <header class="titlebar">
   <div>
     <h1>Experiment Config Inventory <span class="tag">Coverage Heatmap</span></h1>
-    <div class="sub">29 configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated 2026-07-01</div>
+    <div class="sub">32 configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated 2026-07-09</div>
   </div>
 </header>
 
@@ -367,8 +367,8 @@ const CONFIGS = [
   {file:"A5_ratio_0.10.yaml", name:"A5_ratio_0.10", cat:"A5", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
   {file:"A5_ratio_0.20.yaml", name:"A5_ratio_0.20", cat:"A5", ds:"cora", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
   {file:"A6_cora_gin_r0.05.yaml", name:"A6_cora_gin_r0.05", cat:"A6", ds:"cora", model:"GIN", ratio:"0.05", alpha:null, nm:5,ns:3,nse:5, total:75, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"phase_b_cora_gat.yaml", name:"phase_b_cora_gat", cat:"CORA", ds:"cora", model:"GAT", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance."},
-  {file:"phase_b_cora_gcn.yaml", name:"phase_b_cora_gcn", cat:"CORA", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance."},
+  {file:"phase_b_cora_gat.yaml", name:"phase_b_cora_gat", cat:"CORA", ds:"cora", model:"GAT", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance. Local analysis bundle is already under results/runs/4090; predictions.npz is intentionally not transferred."},
+  {file:"phase_b_cora_gcn.yaml", name:"phase_b_cora_gcn", cat:"CORA", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance. Local analysis bundle is already under results/runs/4090; predictions.npz is intentionally not transferred."},
   {file:"phase_b_arxiv.yaml", name:"phase_b_arxiv", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:4,nse:3, total:36, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|tracin|im|hybrid", seeds:"42|212|722", warning:""},
   {file:"phase_b_arxiv_T1_seed42.yaml", name:"phase_b_arxiv_T1_seed42", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:6, valid:4, rerun:2, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:"Produced TracIn pilot cells require proper-TracIn refresh after IF-concordance."},
   {file:"phase_b_arxiv_T2_seed212.yaml", name:"phase_b_arxiv_T2_seed212", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"212", warning:""},
@@ -378,6 +378,9 @@ const CONFIGS = [
   {file:"phase_b_arxiv_im_only.yaml", name:"phase_b_arxiv_im_only", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:1,nse:3, total:9, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
   {file:"phase_b_arxiv_im_only_r01.yaml", name:"phase_b_arxiv_im_only_r01", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:1,nse:3, total:9, done:2, valid:2, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
   {file:"phase_b_arxiv_tracin_smoke.yaml", name:"phase_b_arxiv_tracin_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:0, rerun:1, src:"disk", methods:"GIF", strategies:"tracin", seeds:"42", warning:"Produced TracIn smoke cell requires proper-TracIn refresh after IF-concordance."},
+  {file:"self/related_work/concordance/run_topology_selectors.py", name:"concordance_topology_overlap", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:6, rerun:0, src:"disk", methods:"concordance", strategies:"random|degree|pagerank|im|tracin|hybrid", seeds:"2024", warning:"Top-k selector overlap produced for 6 datasets; TracIn/Hybrid overlap is Cora-only in this topology pass."},
+  {file:"self/related_work/concordance/concordance_model_based.py", name:"concordance_if_validity_gif_tracin", cat:"SUPP", ds:"cora|citeseer|pubmed", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:3,nse:1, total:3, done:3, valid:3, rerun:0, src:"disk", methods:"concordance", strategies:"gif|proper_tracin|deployed_tracin", seeds:"2024", warning:"Proper TracIn aligns with GIF on 3 datasets; run LiSSA sensitivity before quoting exact GIF magnitudes."},
+  {file:"self/related_work/concordance/report.html", name:"concordance_overlap_damage_join", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, valid:0, rerun:0, src:"disk", methods:"proper_tracin_rerun", strategies:"overlap_vs_damage", seeds:"TBD", warning:"Pending after proper-TracIn/Hybrid attack reruns: join selector overlap with attack outcome."},
   {file:"sanity_graphrevoker.yaml", name:"sanity_graphrevoker", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:1, rerun:0, src:"csv", methods:"GraphRevoker", strategies:"random", seeds:"42", warning:""},
   {file:"sanity_graphrevoker_r05_full.yaml", name:"sanity_graphrevoker_r05_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:6, rerun:0, src:"csv", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:""},
   {file:"sanity_graphrevoker_r10_full.yaml", name:"sanity_graphrevoker_r10_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:1,ns:6,nse:1, total:6, done:0, valid:0, rerun:0, src:"disk", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:""},
@@ -407,6 +410,13 @@ const STORY_META = {
     "Current read":"Only a pilot exists; produced TracIn pilot/smoke cells also need proper-TracIn refresh after IF-concordance before becoming paper evidence.",
     "Next decision":"Rent the remote GPU when ready and rerun the pilot/queue with the corrected selector semantics.",
   },
+  SUPP: {
+    "Question":"Are selector and approximation signals actually distinct and valid?",
+    "Setup":"Concordance/top-k overlap across 6 datasets plus model-based GIF vs TracIn checks on Cora/Citeseer/Pubmed.",
+    "Why":"This is the evidence layer behind the selector story: it tests whether IM is just degree, whether proper TracIn tracks real GIF, and whether deployed TracIn/Hybrid need refresh.",
+    "Current read":"Topology overlap is produced for 6/6 datasets; model-based GIF/proper-TracIn overlap is produced for 3/3 datasets. Exact GIF magnitudes still need LiSSA sensitivity before strong quoting.",
+    "Next decision":"Keep this as a supplementary validity panel and join overlap with attack outcomes after proper-TracIn/Hybrid reruns.",
+  },
   A3: {
     "Question":"Is IF/IM fusion adding mechanism value or just interpolating two axes?",
     "Setup":"Hybrid alpha sweep over Cora, GCN/GAT, r=0.05.",
@@ -432,6 +442,7 @@ const STORY_META = {
 
 /* ---- block metadata: order + labels only; numbers are DERIVED ---- */
 const BLOCK_META = [
+  {key:"SUPP",   title:"supplementary / overlap-validity", slabel:"supp overlap", sub:"selector + IF validity", track:"supp",     alphaGrid:false},
   {key:"CORA",   title:"main-matrix · cora",          slabel:"main · cora",       sub:"production",            track:"prod",     alphaGrid:false},
   {key:"ARXIV",  title:"main-matrix · arxiv",         slabel:"main · arxiv",      sub:"production · GPU-bound", track:"prod",     alphaGrid:false},
   {key:"A3",     title:"ablation A3 · alpha",         slabel:"A3 alpha",          sub:"2 model × 4 α grid",    track:"ablation", alphaGrid:true},
@@ -441,17 +452,19 @@ const BLOCK_META = [
 ];
 const TRACK_META = [
   {key:"prod",     label:"Production main"},
+  {key:"supp",     label:"Supplementary validity"},
   {key:"ablation", label:"Ablations"},
   {key:"sanity",   label:"Sanity"},
 ];
-const EXEC_ORDER = ["CORA","A5","ARXIV","A3","A6","SANITY"];
+const EXEC_ORDER = ["CORA","SUPP","A5","ARXIV","A3","A6","SANITY"];
 const EXEC_LABELS = {
   CORA:  {title:"1. main-matrix / cora",         sub:"produced; GraphRevoker repair + TracIn/Hybrid refresh pending"},
-  A5:    {title:"2. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
-  ARXIV: {title:"3. arxiv pilot / remote queue", sub:"GPU-bound"},
-  A3:    {title:"4. A3 alpha",                   sub:"2 model x 4 alpha grid"},
-  A6:    {title:"5. A6 backbone",                sub:"deferred / future-work"},
-  SANITY:{title:"6. sanity",                     sub:"diagnostic"},
+  SUPP:  {title:"2. supplementary / overlap-validity", sub:"selector concordance + GIF/TracIn validity"},
+  A5:    {title:"3. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
+  ARXIV: {title:"4. arxiv pilot / remote queue", sub:"GPU-bound"},
+  A3:    {title:"5. A3 alpha",                   sub:"2 model x 4 alpha grid"},
+  A6:    {title:"6. A6 backbone",                sub:"deferred / future-work"},
+  SANITY:{title:"7. sanity",                     sub:"diagnostic"},
 };
 BLOCK_META.sort((a,b) => EXEC_ORDER.indexOf(a.key) - EXEC_ORDER.indexOf(b.key));
 BLOCK_META.forEach(b => Object.assign(b, EXEC_LABELS[b.key] || {}));

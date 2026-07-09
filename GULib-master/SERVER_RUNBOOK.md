@@ -90,6 +90,20 @@
 
 ## 2. 每次 ssh 都做的三步
 
+当前 4090 AutoDL 实例已在本机配置 SSH alias：
+
+```bash
+ssh autodl-opengu
+```
+
+直连恢复命令：
+
+```bash
+ssh -p 22652 root@connect.bjb1.seetacloud.com
+```
+
+免密登录依赖本机 `C:\Users\ADMIN\.ssh\id_rsa.pub` 已加入 AutoDL 控制台密钥。仓库文档不记录密码；如果实例重建或端口变化，更新本机 `C:\Users\ADMIN\.ssh\config` 的 `Host autodl-opengu`。
+
 ```bash
 # 1) 进实例
 source /etc/network_turbo
@@ -102,6 +116,58 @@ tmux attach -t phaseB || tmux new -s phaseB
 unset http_proxy https_proxy
 git pull --ff-only && git log --oneline -3
 ```
+
+### 2.1 4090 AutoDL 环境约定（2026-07-09 复核）
+
+当前 4090 小数据集实例的实际项目路径是：
+
+```bash
+cd /autodl-fs/data/OpenGU/GULib-master
+```
+
+Git 仓库顶层在上一层：
+
+```bash
+git -C /autodl-fs/data/OpenGU status -sb
+```
+
+实例有 conda，但非交互 SSH 默认 `PATH` 里没有 `conda` / `python`。实施时二选一：
+
+```bash
+# 方式 A：显式使用解释器，最稳
+PY=/root/miniconda3/bin/python
+$PY experiments/run.py experiments/configs/phase_b_cora_gcn.yaml --dry_run --limit 1
+
+# 方式 B：进入交互 shell 后挂 conda base
+source /root/miniconda3/etc/profile.d/conda.sh
+conda activate base
+python -V
+```
+
+已验证环境：
+
+| 项 | 值 |
+|---|---|
+| conda | `/root/miniconda3`，只有 `base` 环境 |
+| Python | `3.10.8` |
+| torch | `2.1.2+cu118` |
+| CUDA | `torch.cuda.is_available() == True` |
+| GPU | `NVIDIA GeForce RTX 4090`，24564 MiB |
+| PyG | `torch_geometric 2.6.1` |
+| 缺省不装 | `dgl`；当前实验代码未 import，可忽略 |
+
+每次正式跑前先做这组烟测：
+
+```bash
+PY=/root/miniconda3/bin/python
+nvidia-smi --query-gpu=name,memory.total,memory.used,utilization.gpu --format=csv
+$PY -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+$PY experiments/run.py experiments/configs/phase_b_cora_gcn.yaml --dry_run --limit 1
+$PY scripts/gate_runs.py experiments/configs/phase_b_cora_gcn.yaml
+$PY scripts/gate_runs.py experiments/configs/phase_b_cora_gat.yaml
+```
+
+2026-07-09 复核结果：Cora GCN / GAT gate 都是 `180/180 cells PASSED`。因此 main-matrix / cora 的下一步不是“检查环境是否能跑”，而是只对受 GraphRevoker、TracIn/Hybrid 口径影响的 cell 做语义刷新。
 
 > **VSCode 用户**：`Ctrl-b` 被侧边栏拦截。先鼠标点 terminal 再按；或一次性把 prefix 改成 `Ctrl-a`：
 > ```bash

@@ -18,7 +18,7 @@ CSV columns (header order):
 usable for paper-facing conclusions. `rerun` marks produced cells that must be
 rerun before they should count as clean evidence (for example GraphRevoker E4).
 
-`cat` long names are mapped to short block keys (CORA/ARXIV/A3/A5/A6/SANITY).
+`cat` long names are mapped to short block keys (CORA/ARXIV/SUPP/A3/A5/A6/SANITY).
 """
 import csv
 import datetime
@@ -37,6 +37,7 @@ CAT_MAP = {
     "ablation A3 (alpha)": "A3",
     "ablation A5 (ratio/dataset)": "A5",
     "ablation A6 (backbone)": "A6",
+    "supplementary overlap/validity": "SUPP",
     "sanity": "SANITY",
 }
 
@@ -63,6 +64,13 @@ GROUP_STORY = {
         "Why": "This answers the advisor's scale concern, but it is remote-GPU work rather than a local analysis task.",
         "Current read": "Only a pilot exists; produced TracIn pilot/smoke cells also need proper-TracIn refresh after IF-concordance before becoming paper evidence.",
         "Next decision": "Rent the remote GPU when ready and rerun the pilot/queue with the corrected selector semantics.",
+    },
+    "SUPP": {
+        "Question": "Are selector and approximation signals actually distinct and valid?",
+        "Setup": "Concordance/top-k overlap across 6 datasets plus model-based GIF vs TracIn checks on Cora/Citeseer/Pubmed.",
+        "Why": "This is the evidence layer behind the selector story: it tests whether IM is just degree, whether proper TracIn tracks real GIF, and whether deployed TracIn/Hybrid need refresh.",
+        "Current read": "Topology overlap is produced for 6/6 datasets; model-based GIF/proper-TracIn overlap is produced for 3/3 datasets. Exact GIF magnitudes still need LiSSA sensitivity before strong quoting.",
+        "Next decision": "Keep this as a supplementary validity panel and join overlap with attack outcomes after proper-TracIn/Hybrid reruns.",
     },
     "A3": {
         "Question": "Is IF/IM fusion adding mechanism value or just interpolating two axes?",
@@ -544,6 +552,7 @@ const CONFIGS = [
 
 /* ---- block metadata: order + labels only; numbers are DERIVED ---- */
 const BLOCK_META = [
+  {key:"SUPP",   title:"supplementary / overlap-validity", slabel:"supp overlap", sub:"selector + IF validity", track:"supp",     alphaGrid:false},
   {key:"CORA",   title:"main-matrix · cora",          slabel:"main · cora",       sub:"production",            track:"prod",     alphaGrid:false},
   {key:"ARXIV",  title:"main-matrix · arxiv",         slabel:"main · arxiv",      sub:"production · GPU-bound", track:"prod",     alphaGrid:false},
   {key:"A3",     title:"ablation A3 · alpha",         slabel:"A3 alpha",          sub:"2 model × 4 α grid",    track:"ablation", alphaGrid:true},
@@ -553,17 +562,19 @@ const BLOCK_META = [
 ];
 const TRACK_META = [
   {key:"prod",     label:"Production main"},
+  {key:"supp",     label:"Supplementary validity"},
   {key:"ablation", label:"Ablations"},
   {key:"sanity",   label:"Sanity"},
 ];
-const EXEC_ORDER = ["CORA","A5","ARXIV","A3","A6","SANITY"];
+const EXEC_ORDER = ["CORA","SUPP","A5","ARXIV","A3","A6","SANITY"];
 const EXEC_LABELS = {
   CORA:  {title:"1. main-matrix / cora",         sub:"produced; GraphRevoker repair + TracIn/Hybrid refresh pending"},
-  A5:    {title:"2. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
-  ARXIV: {title:"3. arxiv pilot / remote queue", sub:"GPU-bound"},
-  A3:    {title:"4. A3 alpha",                   sub:"2 model x 4 alpha grid"},
-  A6:    {title:"5. A6 backbone",                sub:"deferred / future-work"},
-  SANITY:{title:"6. sanity",                     sub:"diagnostic"},
+  SUPP:  {title:"2. supplementary / overlap-validity", sub:"selector concordance + GIF/TracIn validity"},
+  A5:    {title:"3. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
+  ARXIV: {title:"4. arxiv pilot / remote queue", sub:"GPU-bound"},
+  A3:    {title:"5. A3 alpha",                   sub:"2 model x 4 alpha grid"},
+  A6:    {title:"6. A6 backbone",                sub:"deferred / future-work"},
+  SANITY:{title:"7. sanity",                     sub:"diagnostic"},
 };
 BLOCK_META.sort((a,b) => EXEC_ORDER.indexOf(a.key) - EXEC_ORDER.indexOf(b.key));
 BLOCK_META.forEach(b => Object.assign(b, EXEC_LABELS[b.key] || {}));
