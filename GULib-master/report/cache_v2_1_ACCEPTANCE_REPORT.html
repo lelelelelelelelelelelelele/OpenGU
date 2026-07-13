@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cache V2.1 验收报告</title>
+<style>
+:root{--bg:#08111f;--panel:#101d30;--panel2:#15243a;--text:#eaf1fb;--muted:#9fb0c8;--line:#2b405d;--cyan:#55d7d2;--gold:#f6c85f;--green:#65d49a;--red:#ff8d8d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#07101d,#0a1525 52%,#08111f);color:var(--text);font:15px/1.68 Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:46px 0 90px}.eyebrow{color:var(--cyan);font-weight:800;letter-spacing:.12em;text-transform:uppercase}.hero{padding:34px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 90% 0,rgba(85,215,210,.15),transparent 34%),rgba(16,29,48,.92);box-shadow:0 28px 80px rgba(0,0,0,.28)}
+h1{margin:8px 0 10px;font-size:40px;line-height:1.15;letter-spacing:-.03em}h2{margin:48px 0 16px;padding-top:10px;border-top:1px solid var(--line);font-size:26px}h3{color:var(--cyan);margin:28px 0 10px}.sub{color:var(--muted);max-width:850px}.verdict{display:inline-flex;align-items:center;gap:9px;margin-top:16px;padding:9px 14px;border-radius:999px;background:rgba(101,212,154,.12);color:#9af0be;border:1px solid rgba(101,212,154,.4);font-weight:800}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 18px var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.metric,.card{padding:18px;border:1px solid var(--line);border-radius:13px;background:rgba(16,29,48,.8)}.metric b{display:block;color:#fff;font-size:27px}.metric span{color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card h3{margin-top:0}.flow{display:grid;grid-template-columns:repeat(7,auto);align-items:center;gap:10px;margin:22px 0;padding:20px;border:1px solid var(--line);border-radius:14px;background:#071321}.node{padding:12px 14px;border:1px solid #32627a;border-radius:10px;background:#102a3c;text-align:center;font-weight:750}.arrow{color:var(--gold);font-size:20px}
+table{width:100%;border-collapse:collapse;margin:16px 0 26px;background:rgba(16,29,48,.75)}th{background:#172a43;color:#fff;text-align:left}th,td{padding:10px 12px;border:1px solid var(--line);vertical-align:top}tr:nth-child(even) td{background:rgba(21,36,58,.45)}code{color:#b9fff4;background:#11243a;padding:.12em .38em;border-radius:5px}pre{overflow:auto;padding:17px;border:1px solid var(--line);border-radius:11px;background:#06101d;color:#d6e7fb}ul,ol{padding-left:22px}li,p{color:#d7e1ef}.ok{color:#9af0be}.warn{color:#ffe09a}.risk{border-left:4px solid var(--gold);padding:12px 16px;background:rgba(246,200,95,.08)}.hash{word-break:break-all}.foot{margin-top:48px;color:var(--muted);font-size:12px}
+@media(max-width:800px){h1{font-size:31px}.metrics,.grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}}@media(max-width:520px){.metrics,.grid{grid-template-columns:1fr}.hero{padding:23px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div class="eyebrow">Cache V2.1 · Acceptance Report</div>
+  <h1>只读索引 + 机器契约</h1>
+  <p class="sub">2026-07-13 · 本报告与 <code>docs/cache_v2_1_ACCEPTANCE_REPORT.md</code> 同源。V2.1 只建立 metadata/index 基础设施，不接 runner、不迁移 payload、不修改 Legacy Cache。</p>
+  <div class="verdict"><span class="dot"></span>验收通过，带 V2.2 gates</div>
+</section>
+
+<section class="metrics">
+  <div class="metric"><b>41 / 41</b><span>Cache V2.1 新测试</span></div>
+  <div class="metric"><b>77 / 77</b><span>既有相关测试</span></div>
+  <div class="metric"><b>2521</b><span>真实 dry-run 物理文件</span></div>
+  <div class="metric"><b>0</b><span>真实目录写入</span></div>
+</section>
+
+<h2>1. 结论与边界</h2>
+<div class="grid">
+  <div class="card"><h3>完成</h3><ul><li>四类 Artifact 的机器契约</li><li>稳定 Recipe identity 与 versioned header</li><li>SQLite schema v1 与事务访问</li><li>只读 Legacy 扫描、冲突与异常报告</li><li>exact-only 查询解释 CLI</li></ul></div>
+  <div class="card"><h3>没有越界</h3><ul><li>未接入 runner / demo / collateral evaluator</li><li>未迁移或写入大型 payload</li><li>未建立 V2 ResultCache、RunCache 或 checkpoint Cache</li><li>未实现 compatible/prefix、GC、retire 或 repair</li><li>未修改、移动、删除任何 Legacy 文件</li></ul></div>
+</div>
+
+<div class="flow" aria-label="Cache V2 四类 Artifact 流程">
+  <div class="node">Score</div><div class="arrow">→</div><div class="node">Selection</div><div class="arrow">→</div><div class="node">Prediction</div><div class="arrow">→</div><div class="node">Evaluation</div>
+</div>
+<p>V2 一级 Artifact 只允许以上四类。Experiment 只是 consumer；YAML、<code>config_name</code>、experiment/batch/run identity 不属于 Artifact identity。ResultCache 只作为 Legacy source 索引。</p>
+
+<h2>2. 实现面</h2>
+<table>
+<thead><tr><th>组件</th><th>职责</th></tr></thead>
+<tbody>
+<tr><td><code>cache_v2/canonical.py</code></td><td>稳定 canonical JSON、SHA-256、ownership/control 字段递归拒绝</td></tr>
+<tr><td><code>cache_v2/contracts.py</code></td><td>Artifact、Recipe、header、producer、dependency、consumer、Legacy 与 conflict 模型</td></tr>
+<tr><td><code>cache_v2/paths.py</code></td><td>Windows/Unix 路径规范化，明确 relative/absolute source path</td></tr>
+<tr><td><code>cache_v2/schema.py</code></td><td>schema version 1、六张表、DDL fingerprint</td></tr>
+<tr><td><code>cache_v2/index.py</code></td><td>初始化、只读查询、事务、唯一正式 Artifact、幂等、conflict、DAG 与 refs</td></tr>
+<tr><td><code>cache_v2/resolver.py</code></td><td>正式与 Legacy exact candidate、状态、冲突和祖先健康解释</td></tr>
+<tr><td><code>cache_v2/legacy.py</code></td><td>零写扫描、坏文件续扫、排除规则、冲突/duplicate 聚合、显式 apply</td></tr>
+<tr><td><code>scripts/cachectl.py</code></td><td>最小独立 CLI；不导入旧 runner/config</td></tr>
+<tr><td><code>tests/test_cache_v2.py</code></td><td>契约、SQLite、Legacy、路径、CLI 与零写测试</td></tr>
+</tbody>
+</table>
+<p class="risk"><strong>包位置说明：</strong>实现采用顶层 <code>cache_v2/</code>。当前 <code>attack/__init__.py</code> 会连带导入严格解析 argv 的实验配置；放入 <code>attack/cache_v2/</code> 会破坏独立 CLI。该选择保持 runner 和旧查询路径零改动。</p>
+
+<h2>3. 机器契约</h2>
+<div class="grid">
+  <div class="card"><h3>Recipe</h3><p>dict key 排序无关；list/tuple 保序；float 使用有限十六进制形式；Path 带 kind；Enum 使用 module + qualname + value；Unicode NFC。NaN/Infinity、set、非字符串 key、未知类型与实验 ownership 字段拒绝。</p></div>
+  <div class="card"><h3>Header 与 producer</h3><p><code>ArtifactHeader v1</code> 只含 metadata，不含 payload。Producer 同时支持 semantic version 与 source fingerprint；正式 <code>valid</code> Artifact 至少具备一种 producer identity 且必须 verified。</p></div>
+  <div class="card"><h3>状态</h3><p>Artifact：valid / degraded / invalid / corrupt / missing / retired / unknown / conflict。Verification 独立为 verified / degraded / invalid / corrupt / missing / unknown。</p></div>
+  <div class="card"><h3>冲突</h3><p>同 Recipe + 同 content 幂等；不同 content 要求 baseline，进入 conflict/quarantine 记录，原正式 Artifact 不覆盖，Resolver fail closed。</p></div>
+</div>
+
+<h2>4. SQLite DDL</h2>
+<p>Schema version <code>1</code>；DDL fingerprint：</p>
+<pre class="hash">55dd8184c6e1b16778ae60f713e40ee8f33c7876b33115f263df20a223897608</pre>
+<table>
+<thead><tr><th>表</th><th>关键约束</th></tr></thead>
+<tbody>
+<tr><td><code>schema_meta</code></td><td>version、fingerprint、created_at；与 <code>PRAGMA user_version</code> 三重核对</td></tr>
+<tr><td><code>artifacts</code></td><td><code>UNIQUE(artifact_type, recipe_hash)</code>；小型 Recipe/header JSON；无 payload</td></tr>
+<tr><td><code>dependencies</code></td><td>parent/child 双索引、外键限制、访问层拒绝 DAG cycle</td></tr>
+<tr><td><code>consumer_refs</code></td><td>Artifact 与 consumer 两侧索引</td></tr>
+<tr><td><code>legacy_sources</code></td><td>raw/semantic hash、候选 identity、verification；<code>artifact_id</code> 可空</td></tr>
+<tr><td><code>artifact_conflicts</code></td><td>baseline 与 observed content hash；可选 Artifact/Legacy/quarantine 关联</td></tr>
+</tbody>
+</table>
+<p>数据库缺失、损坏、版本/DDL 不符、row/header 不自洽或事务异常时一律 fail closed。SQLite 不存大型 JSON/NPZ；<code>index.jsonl</code> 在 V2.1 暂缓。</p>
+
+<h2>5. 真实 Legacy dry-run</h2>
+<pre>python scripts/cachectl.py legacy index --root results --dry-run</pre>
+<table>
+<thead><tr><th>项目</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>物理文件 / 逻辑 source</td><td>2521 / 2508</td></tr>
+<tr><td>Legacy kind</td><td>Result 8；Selection 9；Score 13；run attack/collateral/meta 各 826</td></tr>
+<tr><td>候选类型</td><td>Score 13；Selection 835；Evaluation 826；未归类 834</td></tr>
+<tr><td>建议状态</td><td>degraded 1673；invalid 1；unknown 834</td></tr>
+<tr><td>conflict / duplicate group</td><td>1 / 1</td></tr>
+<tr><td>默认排除路径</td><td>2</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>主要异常</th><th>数量</th></tr></thead>
+<tbody>
+<tr><td>dangling selection ref</td><td>706</td></tr>
+<tr><td>缺 graph fingerprint</td><td>826</td></tr>
+<tr><td>缺 run component（当前 leaf 缺 predictions.npz）</td><td>826</td></tr>
+<tr><td>Recipe 不完整</td><td>1652</td></tr>
+<tr><td>producer version 缺失 / 自报失败</td><td>22 / 1</td></tr>
+<tr><td>Recipe content conflict / 同 content duplicate</td><td>1 / 1</td></tr>
+</tbody>
+</table>
+
+<h3>零写证明</h3>
+<table>
+<thead><tr><th>快照</th><th>文件</th><th>bytes</th><th>aggregate</th></tr></thead>
+<tbody>
+<tr><td>扫描前</td><td>2521</td><td>12,644,658</td><td class="hash"><code>3e4fb7eb2129c69705cea626bf8ca70e2f3275fbf00ef478f6b883558e0e2b90</code></td></tr>
+<tr><td>扫描后</td><td>2521</td><td>12,644,658</td><td class="hash"><code>3e4fb7eb2129c69705cea626bf8ca70e2f3275fbf00ef478f6b883558e0e2b90</code></td></tr>
+</tbody>
+</table>
+<p class="ok">逐文件 path + size + mtime + SHA-256 manifest 完全相等；CLI <code>writes=[]</code>；<code>results/cache_v2/</code> 与 index.sqlite 均未创建。</p>
+<p>Indexer source state hash：<code class="hash">e4ebda14085a0c251c5d25b9cf1ea87a4eba9fa37bfb29ab45174b80f07b42a7</code></p>
+
+<h2>6. CLI 与验证</h2>
+<pre>python scripts/cachectl.py legacy index --root results --dry-run
+python scripts/cachectl.py legacy index --root results --apply
+
+python scripts/cachectl.py artifact status &lt;artifact_id&gt;
+python scripts/cachectl.py artifact parents &lt;artifact_id&gt;
+python scripts/cachectl.py artifact children &lt;artifact_id&gt;
+python scripts/cachectl.py artifact consumers &lt;artifact_id&gt;
+
+python scripts/cachectl.py resolve explain --type selection --recipe &lt;recipe.json&gt;</pre>
+<p><code>resolve explain</code> 只做 exact lookup；展示正式候选、Legacy candidate、status、verification、conflict、parent dependency 问题与 miss reasons，不计算、不 promotion、不写 Artifact。</p>
+<table>
+<thead><tr><th>命令</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td><code>pytest tests/test_cache_v2.py -q</code></td><td class="ok">41 passed</td></tr>
+<tr><td><code>pytest tests/test_score_cache.py tests/test_attack_manager.py tests/test_phase_b_invariants.py -q</code></td><td class="ok">77 passed</td></tr>
+</tbody>
+</table>
+<p>仅出现 <code>llvmlite/pkg_resources</code> 弃用警告，不属于本次回归。</p>
+
+<h2>7. V2.2 gates</h2>
+<ol>
+  <li>评审并冻结 Score/Selection 最小 Recipe 与 Legacy promotion policy。</li>
+  <li>决定 header carrier 与 semantic directory，并验证 payload/header 可重建 index。</li>
+  <li>人工裁决唯一 conflict；Resolver 不得猜测。</li>
+  <li><code>unknown/degraded</code> source 的 provenance 未补齐前不得 promotion。</li>
+  <li>先在隔离 index 完成 Score/Selection canary，再讨论主查询路径。</li>
+  <li>runner 接入另立变更，继续保持 Legacy 只读并提供旧路径回归证据。</li>
+</ol>
+<p class="risk"><strong>仍未完成：</strong>真实 Legacy <code>--apply</code>、正式 payload/header store、promotion、compatible/prefix、runner 接入、repair、retire、GC 与任何 payload 迁移。这些都不是 V2.1 的隐含完成项。</p>
+
+<p class="foot">Editable source: docs/cache_v2_1_ACCEPTANCE_REPORT.md · Static report: report/cache_v2_1_ACCEPTANCE_REPORT.html</p>
+</main>
+</body>
+</html>

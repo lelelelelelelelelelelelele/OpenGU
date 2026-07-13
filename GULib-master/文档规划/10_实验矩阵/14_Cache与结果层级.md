@@ -66,6 +66,10 @@ results/runs/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{N}/
 
 详细流程见 [[13_重跑与缓存修复Runbook]]。
 
+如果问题不是单次 rerun，而是 `ResultCache` / `SelectionCache` / `selected_nodes` source of truth 的架构治理，见 [[19_Cache架构重设计与迁移方案]]。
+
+边界不要混用：本页记录现有 Legacy 层级与故障处置；V2 架构落地和迁移默认只读 Legacy，不把“修复某次坏 cache”扩大成批量迁移或清理。
+
 ---
 
 ## 4. 判定表

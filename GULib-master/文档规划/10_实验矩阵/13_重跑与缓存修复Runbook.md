@@ -14,8 +14,11 @@ tags: [runbook, cache, rerun, graphrevoker, tracin]
 
 - cache / result 分层：[[14_Cache与结果层级]]
 - 正式运行入口、yaml、`.sh` 包装：[[15_实验运行入口与脚本]]
+- cache 架构重设计与 selected_nodes 迁移：[[19_Cache架构重设计与迁移方案]]
 
 > 核心规则：先判定故障属于 **method 线** 还是 **selector 线**。不要一上来全删 cache。
+>
+> 本页的删除/清理步骤只适用于已明确诊断的 Legacy 运行事故，并且必须按具体路径执行；[[19_Cache架构重设计与迁移方案]] 的 V2 迁移阶段始终把 Legacy Cache 当作只读 source，不改名、不编辑、不移动、不删除。
 
 ---
 
