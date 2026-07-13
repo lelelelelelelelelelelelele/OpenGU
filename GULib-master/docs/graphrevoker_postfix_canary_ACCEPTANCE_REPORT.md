@@ -156,4 +156,3 @@ tests/test_config_inventory_dashboard.py
 4. Hybrid 与 TracIn 继续排除，除非另开 selector gate；
 5. Cache V2 runner 接入是独立架构 gate：不得把 scratch hit 当作 V2，不得在 V2 查询异常时静默回退 Legacy；
 6. 在 runner V2 gate、迁移覆盖率和回滚窗口通过前，Legacy 继续只读，不能归档或删除。
-
