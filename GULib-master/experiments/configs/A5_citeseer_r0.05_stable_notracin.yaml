@@ -1,0 +1,44 @@
+# E1 clean Citeseer stable-method matrix.
+#
+# Scope locked 2026-07-14:
+#   - TracIn and Hybrid are excluded by design.
+#   - GraphRevoker is excluded here and must pass its own post-fix canary.
+#   - This config is safe only in an isolated checkout. The current runner
+#     still uses checkout-local Legacy-format Result/Selection/Score caches
+#     to hand selected nodes to eval_collateral.py; those scratch files are
+#     not Cache V2 hit evidence and must never be merged into active Legacy.
+
+name: A5_citeseer_r0.05_stable_notracin
+dataset: citeseer
+base_model: GCN
+ratio: 0.05
+
+# Put full-model methods before the shard method so method-agnostic selection
+# is materialized by a canonical full-model path before GraphEraser consumes it.
+methods:
+  - GIF
+  - IDEA
+  - GNNDelete
+  - MEGU
+  - GraphEraser
+
+strategies:
+  - random
+  - im
+
+seeds: [42, 212, 722, 1337, 2024]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  # Required by the current runner/eval hand-off. Only use this config in a
+  # fresh isolated checkout whose results tree is disposable scratch state.
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64
