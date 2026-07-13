@@ -1,0 +1,126 @@
+"""Cache V2.1 machine contracts.
+
+This package is deliberately independent of the eager-importing ``attack``
+package so ``scripts/cachectl.py`` can parse its own CLI arguments safely.
+Importing :mod:`cache_v2` performs no filesystem or database operations.
+"""
+
+from .canonical import (
+    FORBIDDEN_RECIPE_FIELDS,
+    canonical_bytes,
+    canonical_json,
+    canonical_sha256,
+    canonicalize,
+    find_forbidden_recipe_fields,
+    reject_forbidden_recipe_fields,
+    sha256_bytes,
+)
+from .contracts import (
+    ARTIFACT_ID_PREFIXES,
+    HEADER_VERSION,
+    RECIPE_VERSION,
+    ArtifactConflictRecord,
+    ArtifactHeader,
+    ArtifactRecipe,
+    ArtifactStatus,
+    ArtifactType,
+    ConsumerRef,
+    DependencyRecord,
+    LegacySourceRecord,
+    PathKind,
+    ProducerVersion,
+    RegisterOutcome,
+    RegistrationResult,
+    VerificationStatus,
+    build_artifact_id,
+    utc_now_iso,
+    validate_artifact_id,
+    validate_sha256,
+)
+from .errors import (
+    ArtifactNotFoundError,
+    CacheIndexError,
+    CacheV2Error,
+    CanonicalizationError,
+    ContractValidationError,
+    DependencyCycleError,
+    ForbiddenRecipeFieldError,
+    HashValidationError,
+    IndexNotFoundError,
+    LegacySourceChangedError,
+    PathValidationError,
+    SchemaVersionError,
+)
+from .paths import (
+    is_explicit_absolute_path,
+    normalize_absolute_source_path,
+    normalize_recipe_path,
+    normalize_relative_path,
+    normalize_semantic_path,
+    normalize_source_path,
+)
+from .index import CacheIndex, CacheIndexBatch
+from .legacy import Anomaly, LegacyIndexer, ScanReport
+from .resolver import ArtifactResolver, ResolveExplanation, explain_exact
+from .schema import SCHEMA_VERSION
+
+
+__version__ = "2.1.0"
+
+__all__ = [
+    "ARTIFACT_ID_PREFIXES",
+    "FORBIDDEN_RECIPE_FIELDS",
+    "HEADER_VERSION",
+    "RECIPE_VERSION",
+    "SCHEMA_VERSION",
+    "ArtifactConflictRecord",
+    "ArtifactHeader",
+    "ArtifactNotFoundError",
+    "ArtifactRecipe",
+    "ArtifactResolver",
+    "ArtifactStatus",
+    "ArtifactType",
+    "CacheIndex",
+    "CacheIndexBatch",
+    "CacheIndexError",
+    "CacheV2Error",
+    "CanonicalizationError",
+    "ConsumerRef",
+    "ContractValidationError",
+    "DependencyCycleError",
+    "DependencyRecord",
+    "ForbiddenRecipeFieldError",
+    "HashValidationError",
+    "IndexNotFoundError",
+    "LegacyIndexer",
+    "LegacySourceChangedError",
+    "LegacySourceRecord",
+    "PathKind",
+    "PathValidationError",
+    "ProducerVersion",
+    "RegisterOutcome",
+    "RegistrationResult",
+    "ResolveExplanation",
+    "ScanReport",
+    "SchemaVersionError",
+    "VerificationStatus",
+    "build_artifact_id",
+    "canonical_bytes",
+    "canonical_json",
+    "canonical_sha256",
+    "canonicalize",
+    "explain_exact",
+    "find_forbidden_recipe_fields",
+    "is_explicit_absolute_path",
+    "normalize_absolute_source_path",
+    "normalize_recipe_path",
+    "normalize_relative_path",
+    "normalize_semantic_path",
+    "normalize_source_path",
+    "reject_forbidden_recipe_fields",
+    "sha256_bytes",
+    "utc_now_iso",
+    "validate_artifact_id",
+    "validate_sha256",
+    "Anomaly",
+]
