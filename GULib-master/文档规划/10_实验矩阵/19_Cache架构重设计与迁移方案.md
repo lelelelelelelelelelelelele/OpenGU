@@ -1,7 +1,7 @@
 ---
 title: Cache V2 架构与 Legacy 迁移方案
 created: 2026-07-10
-updated: 2026-07-13
+updated: 2026-07-14
 type: cache-architecture-design
 status: v2.1-readonly-index-implemented
 tags: [cache, artifact, dependency-dag, migration, prediction, evaluation]
@@ -41,6 +41,7 @@ EvaluationCache
 6. **V2 不设模型 checkpoint 型 RunCache。** GU 与 retrain 临时执行，缓存统一的三套 logits；checkpoint 仍可由个别方法自行保留，但不进入 V2 核心契约。
 7. **AUC、F1、Gap、collateral 都属于 Evaluation。** Prediction 保存原始观测，指标定义以后可以换版本并离线重算。
 8. **上游 Artifact 真正有 bug 时，下游真实消费者失效；删除下游、修改实验、删除 YAML 都不能伤害共享上游。**
+9. **SSH 真机索引验收只是 V2.1 门槛，不是 Legacy 删除授权。** 新计算写 V2、新旧结果对照、runner canary、Legacy 冻结与最终归档/删除必须按 §11.1 的六阶段 gate 逐项通过。
 
 本 Markdown 仍是架构语义 source of truth；同名 HTML 只是浏览器导读版。V2.1 的可执行契约以 `cache_v2/contracts.py`、`cache_v2/schema.py` 与对应测试为实现层 source of truth，二者若有偏差必须 fail closed 并回写本页。
 
@@ -798,6 +799,8 @@ cell_compute_time =
 
 ## 11. Legacy 迁移方案
 
+下面的 Phase 0–6 是技术工作分解；是否允许切换或删除，以 §11.1 的六阶段验收门为准。任何单次 SSH 验收都不得跨过中间 gate。
+
 ### Phase 0：冻结与盘点
 
 - 旧 `results/cache`、`selection_cache`、`score_cache` 只读；
@@ -821,7 +824,7 @@ python scripts/cachectl.py legacy index --root results --dry-run
 - 同 Recipe 内容冲突；
 - `verified / degraded / invalid / unknown` 建议状态。
 
-远端旧快照中的 783 个 ResultCache JSON 只在建库时扫描一次，后续查询走 SQLite。
+远端旧快照中的 783 个 ResultCache JSON 只在建库时扫描一次；V2.1 `cachectl`/Resolver 的 metadata 查询走 SQLite，runner 与现有 Cache 查询路径仍未接入。
 
 V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这是本地证据，不覆盖 §1.3 的远端历史快照：
 
@@ -836,6 +839,20 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | 主要异常 | dangling selection ref 706；缺 graph fingerprint 826；缺 run component 826；Recipe 不完整 1652 |
 
 夹心快照覆盖每个 active Legacy 文件的相对路径、大小、mtime 与 SHA-256：扫描前后均为 2521 文件、12,644,658 bytes，aggregate 均为 `3e4fb7eb2129c69705cea626bf8ca70e2f3275fbf00ef478f6b883558e0e2b90`。命令报告 `writes=[]`，真实 `results/cache_v2/index.sqlite` 不存在。
+
+2026-07-14 从 SSH 隔离代码检出 `9b90ad4` 运行 `cachectl`，并把远端真实目录 `/autodl-fs/data/OpenGU/GULib-master/results` 作为 `--root` 完成 Gate 1；真实主 checkout 的 branch/HEAD 全程未切换。这次证据仅验收 **V2.1 Legacy 只读索引**，不表示真实 Selection payload cold/warm hit 已测：
+
+| 项目 | SSH Gate 1 实测 |
+|---|---:|
+| dry-run 物理文件 / 逻辑 Legacy source | 4113 / 4076 |
+| dry-run 写入 | 0；不创建 `results/cache_v2` 或 SQLite |
+| Legacy 夹心快照 | `file_states` 集合、每项 SHA-256 与 mtime 扫描前后完全不变 |
+| 显式 `--apply` 唯一新增文件 | `results/cache_v2/index.sqlite` |
+| SQLite 内容 | `legacy_sources=4076`；`artifact_conflicts=5`；正式 `artifacts=0` |
+| 数据库验证 | integrity、schema version 与 DDL fingerprint 核对通过 |
+| 远端测试 | `tests/test_cache_v2.py` 41 passed；SQLite、schema 与路径人工故障注入均 fail closed |
+
+本次 `--apply` 只建立 Legacy source 索引，没有 promotion、没有正式 Artifact、没有 payload 写入，也没有修改 runner 或 Legacy 查询路径。远端 active inventory 比 2026-07-13 本地快照多 1592 个物理文件和 1568 个逻辑 source；两边的“物理数−逻辑数”分别为 37 和 13，来自 ScoreCache JSON sidecar 与 NPZ payload 两个物理文件合并为一个逻辑 source，不是扫描丢文件。
 
 ### Phase 2：抢救 Score 与 Selection
 
@@ -871,13 +888,29 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 
 ### Phase 6：退役 Legacy ResultCache
 
-满足以下 gate 后删除 Legacy ResultCache：
+本段只是技术候选步骤，不是删除授权。只有 §11.1 Gate 1–6 全部通过并对删除范围单独审批后，才可以删除 Legacy ResultCache：
 
 - selected nodes 已完成双 hash 抢救；
 - Prediction 注册与 bug gate 完成；
 - 关键 Evaluation 离线回算通过；
 - Resolver 不再读取 ResultCache 作为阶段中转；
-- 冻结备份和删除清单已生成。
+- 迁移覆盖率、`consumer_refs`、新旧结果一致性已验收；
+- 冻结备份、回滚窗口和删除清单已生成。
+
+### 11.1 六阶段验收门（2026-07-14 锁定）
+
+| Gate | 必须证据 | 当前状态 |
+|---|---|---|
+| 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
+| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | 未通过 |
+| 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | 未通过 |
+| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **硬阻塞**：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程 |
+| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | 未通过 |
+| 6. 归档或删除 Legacy | 迁移覆盖率、`consumer_refs`、结果一致性、回滚备份全部通过，并对物理范围单独审批 | 未通过 |
+
+Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。
+
+这也意味着：2026-07-14 尚未完成真实 Selection payload 的 cold miss → warm hit、producer 哨兵与 payload mtime 验证；该证据属于 Gate 2/4 前的隔离 canary，不得用 Gate 1 的 SQLite 命中解释替代。
 
 ---
 
@@ -956,9 +989,10 @@ GCN selection → GIN target
 - [x] 实现默认零写 dry-run 的 Legacy indexer；archive/deprecated/backup/`cache_v2` 默认排除，坏单文件不中断全扫描。
 - [x] ResultCache 只登记为 Legacy source；provenance 不足只给 `unknown/degraded`，没有 promotion 成正式 Artifact。
 - [x] 实现 artifact `status / parents / children / consumers` 与 exact-only `resolve explain`。
-- [x] 临时 fixture 可建库、查询 dependency/consumer、验证 idempotent/conflict；真实目录 dry-run 完成且 hash/mtime 不变。
-- [x] `tests/test_cache_v2.py` 41 passed；既有相关测试 77 passed。
-- [x] 未修改 runner、现有 Cache 查询路径或任何 Legacy 文件；真实 Legacy 目录未执行 `--apply`。
+- [x] 临时 fixture 可建库、查询 dependency/consumer、验证 idempotent/conflict；本地与 SSH 真实目录 dry-run 均完成且 hash/mtime 不变。
+- [x] 本地 `tests/test_cache_v2.py` 41 passed、既有相关测试 77 passed；远端 `9b90ad4` 上 41 passed，SQLite/schema/路径人工故障注入均 fail closed。
+- [x] SSH 真实目录 `--apply` 验收完成：唯一新增文件为 `results/cache_v2/index.sqlite`，其中 `legacy_sources=4076`、`artifact_conflicts=5`、正式 `artifacts=0`。
+- [x] 未修改 runner、现有 Cache 查询路径或任何 Legacy 文件；真实 Selection payload hit、promotion 与 Legacy 退役仍未进入 V2.1。
 
 实现包使用顶层 `cache_v2/`，而非建议的 `attack/cache_v2/`：当前 `attack/__init__.py` 会连带导入严格解析 CLI argv 的实验配置，放在其下会让独立 `cachectl legacy ...` 在进入子命令前失败。该选择保持 runner 与旧查询路径零改动。
 
