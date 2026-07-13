@@ -44,7 +44,7 @@ def test_recipe_uses_only_artifact_inputs_and_is_order_stable():
     assert reordered.graph_fingerprint == first.graph_fingerprint
     assert reordered.candidate_set_hash == first.candidate_set_hash
 
-    recipe = canary.build_selection_recipe(first, 2, _parameters(), "python")
+    recipe = canary.build_selection_recipe(first, 2, _parameters(), has_numba=True)
     changed_envelope = canary.build_request_envelope(
         "renamed-config", "elsewhere/renamed.yaml", "different-exp", 0.5
     )
@@ -69,8 +69,41 @@ def test_recipe_uses_only_artifact_inputs_and_is_order_stable():
     assert "model" not in recipe.fields
 
     # Request-envelope labels cannot change Artifact identity.
-    rebuilt = canary.build_selection_recipe(first, 2, _parameters(), "python")
+    rebuilt = canary.build_selection_recipe(first, 2, _parameters(), has_numba=True)
     assert rebuilt.recipe_hash == recipe.recipe_hash
+
+
+def test_python_fallback_has_a_distinct_algorithm_and_ignores_unused_batch_size():
+    inputs = _inputs()
+    first = _parameters()
+    second = canary.ImParameters(
+        propagation_prob=first.propagation_prob,
+        mc_rounds=first.mc_rounds,
+        candidate_fraction=first.candidate_fraction,
+        im_selector_seed=first.im_selector_seed,
+        im_batch_size=99,
+        parallel_mc=first.parallel_mc,
+    )
+
+    python_first = canary.build_selection_recipe(
+        inputs, 2, first, has_numba=False
+    )
+    python_second = canary.build_selection_recipe(
+        inputs, 2, second, has_numba=False
+    )
+    numba = canary.build_selection_recipe(inputs, 2, first, has_numba=True)
+
+    assert python_first.recipe_hash == python_second.recipe_hash
+    assert "im_batch_size" not in python_first.fields["im_parameters"]
+    assert (
+        python_first.fields["selector_algorithm_version"]
+        == canary.PYTHON_SELECTOR_ALGORITHM_VERSION
+    )
+    assert numba.recipe_hash != python_first.recipe_hash
+    assert (
+        numba.fields["selector_algorithm_version"]
+        == canary.NUMBA_SELECTOR_ALGORITHM_VERSION
+    )
 
 
 def test_seed42_split_matches_opengu_80_0_20_without_global_rng_side_effect():
@@ -113,7 +146,7 @@ def test_cold_then_warm_use_independent_store_instances_and_preserve_payload(
 ):
     inputs = _inputs()
     parameters = _parameters()
-    recipe = canary.build_selection_recipe(inputs, 2, parameters, "fixture")
+    recipe = canary.build_selection_recipe(inputs, 2, parameters, has_numba=True)
     producer_version = ProducerVersion(
         semantic_version="fixture-v1", source_fingerprint="fixture-source"
     )

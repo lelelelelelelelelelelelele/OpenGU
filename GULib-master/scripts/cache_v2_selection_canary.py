@@ -60,7 +60,8 @@ TRAIN_RATIO = 0.8
 VAL_RATIO = 0.0
 TEST_RATIO = 0.2
 NODE_ID_SPACE = "planetoid-global-node-index-v1"
-SELECTOR_ALGORITHM_VERSION = "opengu-im-batch-celf-canary-v1"
+NUMBA_SELECTOR_ALGORITHM_VERSION = "opengu-im-batch-celf-numba-canary-v1"
+PYTHON_SELECTOR_ALGORITHM_VERSION = "opengu-im-classic-celf-python-canary-v1"
 GRAPH_FINGERPRINT_VERSION = 1
 PRODUCER_SEMANTIC_VERSION = "opengu-im-selection-canary-v1"
 
@@ -207,11 +208,21 @@ def implementation_backend(has_numba: bool, parallel_mc: bool) -> str:
     return "numba-parallel" if parallel_mc else "numba-serial"
 
 
+def selector_algorithm_version(has_numba: bool) -> str:
+    """Name the semantic algorithm variant, not the execution backend."""
+
+    return (
+        NUMBA_SELECTOR_ALGORITHM_VERSION
+        if has_numba
+        else PYTHON_SELECTOR_ALGORITHM_VERSION
+    )
+
+
 def build_selection_recipe(
     inputs: SelectionInputs,
     k: int,
     parameters: ImParameters,
-    backend: str,
+    has_numba: bool,
 ) -> ArtifactRecipe:
     """Project only Artifact-producing inputs into a minimal Recipe."""
 
@@ -219,22 +230,25 @@ def build_selection_recipe(
         raise ContractValidationError("k must be a positive integer")
     if k > len(inputs.candidate_nodes):
         raise ContractValidationError("k exceeds the candidate count")
+    im_parameters = {
+        "propagation_prob": float(parameters.propagation_prob),
+        "mc_rounds": int(parameters.mc_rounds),
+        "candidate_fraction": float(parameters.candidate_fraction),
+        "im_selector_seed": int(parameters.im_selector_seed),
+    }
+    # The Python fallback runs classic CELF and does not consume batch size.
+    # Only the Numba batch-CELF Recipe may therefore depend on this field.
+    if has_numba:
+        im_parameters["im_batch_size"] = int(parameters.im_batch_size)
     return ArtifactRecipe(
         {
             "graph_fingerprint": inputs.graph_fingerprint,
             "candidate_set_hash": inputs.candidate_set_hash,
             "node_id_space": NODE_ID_SPACE,
             "selector": "im",
-            "selector_algorithm_version": SELECTOR_ALGORITHM_VERSION,
+            "selector_algorithm_version": selector_algorithm_version(has_numba),
             "k": k,
-            "im_parameters": {
-                "propagation_prob": float(parameters.propagation_prob),
-                "mc_rounds": int(parameters.mc_rounds),
-                "candidate_fraction": float(parameters.candidate_fraction),
-                "im_selector_seed": int(parameters.im_selector_seed),
-                "im_batch_size": int(parameters.im_batch_size),
-                "execution_backend": str(backend),
-            },
+            "im_parameters": im_parameters,
         }
     )
 
@@ -493,6 +507,7 @@ def result_document(
     selection_ratio: Optional[float],
     parameters: ImParameters,
     backend: str,
+    algorithm_version: str,
     producer_version: ProducerVersion,
     dataset_load_seconds: float,
     resolve_seconds: float,
@@ -545,7 +560,7 @@ def result_document(
         "candidate_count": len(inputs.candidate_nodes),
         "k": k,
         "selection_ratio": selection_ratio,
-        "selector_algorithm_version": SELECTOR_ALGORITHM_VERSION,
+        "selector_algorithm_version": algorithm_version,
         "execution_backend": backend,
         "im_parameters": {
             "propagation_prob": float(parameters.propagation_prob),
@@ -636,7 +651,8 @@ def execute(args: argparse.Namespace) -> Dict[str, Any]:
         k = args.k
 
     backend = implementation_backend(has_numba, parameters.parallel_mc)
-    recipe = build_selection_recipe(inputs, k, parameters, backend)
+    algorithm_version = selector_algorithm_version(has_numba)
+    recipe = build_selection_recipe(inputs, k, parameters, has_numba)
     envelope = build_request_envelope(
         args.config_name, args.yaml_path, args.experiment_id, ratio
     )
@@ -671,6 +687,7 @@ def execute(args: argparse.Namespace) -> Dict[str, Any]:
         ratio,
         parameters,
         backend,
+        algorithm_version,
         producer_version,
         dataset_load_seconds,
         resolve_seconds,
