@@ -81,7 +81,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
 | **E4** ★ | **GraphRevoker 修复 ← 先做（每方法有效数据 = audit 底座）**（决策 = 修，不 drop/不 caveat）：修聚合器 `opt_dataset.py:17`（**源于 OpenGU 上游、长期未改好**）→ 清损坏 `data/GraphRevoker/cora/` .pt → 整 method 重跑，**争取交叉验证**确认修对 | `phase_b_cora_{gcn,gat}.yaml` + 聚合器修复 | 整 method 重跑 | C5 / L5 | ☐ |
-| **E1** ★ | **跑干净 citeseer**（堵 scope 漏洞） | `A5_citeseer_r0.05.yaml` | 6×3×5=90 cell, ~1h | L6 / C-scope | ☐ 0/90 |
+| **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
 | **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
@@ -168,3 +168,4 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **2026-06-28** 建 `文档规划/` 文件区（零散 md 的家 + `_文档地图.md` 全项目分类 MOC）；根目录两份零散 md（规划手记、AI 审稿）归入并加 frontmatter；`daily-log` / `progress` 不动、只索引。
 - **2026-07-12** 新增 E7 `L2-surrogate transfer sanity`：把旧 C.6 拆成 C.6a same-architecture surrogate（GCN→GCN）与 C.6b cross-backbone surrogate（GCN→GAT/GIN）；要求 Cache V2 显式区分 `selector_model_id` / `target_model_id`，并以 proper TracIn、5 seeds、retrain-gap transfer ratio 为执行口径。
 - **2026-07-14** 同步 Git 与 E7 gate：代码基线记录为 `main` / `origin/main`=`3f631fb`，当前在 `codex/opengu-worktree-recovery-20260714` 收口多 session dirty tree；E7 统一为 Cache V2 real-hit + versioned `proper-tracin-v1` gate 后的 C.6a/C.6b umbrella，Legacy IF / Selection Cache 保持只读，V2 换版只建新 Recipe、明确退役才显式 retire。
+- **2026-07-14** E1 stable scope 真机验收：Citeseer/GCN/r=0.05，GIF/IDEA/GNNDelete/MEGU/GraphEraser × random/IM × 5 seeds = **50/50 accepted**；runner rc=0、机器验收 0 errors、active Legacy path/size/mtime/SHA-256 聚合 hash 不变。该完成项不包含 TracIn/Hybrid/GraphRevoker，scratch Legacy-format cache 命中不记作 V2 runner hit；GraphRevoker 继续走 E4 独立 gate。
