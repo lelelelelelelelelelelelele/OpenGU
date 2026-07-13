@@ -1,7 +1,7 @@
 ---
 title: TODO 台账
 created: 2026-07-09
-updated: 2026-07-09
+updated: 2026-07-14
 type: todo-ledger
 source:
   - ../规划手记.md
@@ -13,6 +13,9 @@ tags: [todo, workplan, opengu]
 # TODO 台账
 
 这个台账把 `规划手记`、AI 审稿、WORKPLAN 里的散点任务统一到一个 OB 入口。执行状态以 [WORKPLAN.md](../../self/dashboard/WORKPLAN.md) 为准；这里负责分区、解释和链接。
+
+> [!note] 论文阅读状态
+> W7 的跨项目阅读状态统一维护在 Learning vault 的 [全局论文阅读台账](obsidian://open?vault=Learning&file=10%20Topics%2F%E7%A0%94%E7%A9%B6%E9%98%85%E8%AF%BB%E7%B3%BB%E7%BB%9F%2F00%20%E5%85%A8%E5%B1%80%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E5%8F%B0%E8%B4%A6)；本页保留 OpenGU 为什么要读以及项目任务入口。
 
 ---
 
@@ -26,7 +29,7 @@ tags: [todo, workplan, opengu]
 | E3 | 本地算 k=5 noise anchor | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
 | E5 | arxiv 补量，避免只剩 pilot 口径 | [[10_实验矩阵/10_实验-框架总览]] | ◐ | AI 审稿痛点：scope |
 | E6 | hop_decay 列灌进 aggregate CSV | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
-| E7 | TracIn / Hybrid proper-TracIn refresh：修公式、清 IF/selection cache、重跑受影响 cells | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | ☐ | concordance finding |
+| E7 | C.6 surrogate-transfer umbrella（严格门控）：Cache V2 Selection Artifact cold/warm exact hit + versioned `proper-tracin-v1` 通过后，先 C.6a GCN→GCN，再 C.6b GCN→GAT/GIN；比较 target-direct TracIn / same-seed random / degree，主指标为 retrain-gap transfer ratio，辅以 selection Jaccard。Legacy IF / Selection Cache 只读；换版建新 V2 Recipe，旧 V2 Artifact 仅在明确退役时显式 retire | [[10_实验矩阵/19_Cache架构重设计与迁移方案]] / [[10_实验矩阵/12_近似策略重合度实验]] | ☐ blocked by Cache V2 real-hit + proper-TracIn gate | WORKPLAN §5 |
 
 ---
 
@@ -84,4 +87,4 @@ tags: [todo, workplan, opengu]
 | ID | TODO | 放在哪个板块 | 状态 | 来源 |
 |---|---|---|---|---|
 | F4.1 | config_inventory 增加 supplementary overlap/validity 面板块，纳入 selector 重叠度和 GIF/TracIn 近似有效性实验 | [[10_实验矩阵/10_实验-框架总览]] / [config_inventory.html](../../self/dashboard/config_inventory.html) | 已完成 | 当前同步 |
-| E8 | overlap-vs-damage join：proper-TracIn/Hybrid rerun 后，把 selector overlap 与 attack outcome 连接 | [[10_实验矩阵/12_近似策略重合度实验]] | 待 rerun 后做 | concordance next step |
+| E8 | overlap-vs-damage join：versioned V2 proper-TracIn / Hybrid Artifact 与 E7 C.6a/C.6b 结果就绪后，把 selector overlap 与 attack outcome 连接 | [[10_实验矩阵/12_近似策略重合度实验]] | 待 gate / rerun 后做 | concordance next step |
