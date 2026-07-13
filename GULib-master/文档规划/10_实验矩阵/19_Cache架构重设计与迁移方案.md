@@ -840,7 +840,7 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 
 夹心快照覆盖每个 active Legacy 文件的相对路径、大小、mtime 与 SHA-256：扫描前后均为 2521 文件、12,644,658 bytes，aggregate 均为 `3e4fb7eb2129c69705cea626bf8ca70e2f3275fbf00ef478f6b883558e0e2b90`。命令报告 `writes=[]`，真实 `results/cache_v2/index.sqlite` 不存在。
 
-2026-07-14 从 SSH 隔离代码检出 `9b90ad4` 运行 `cachectl`，并把远端真实目录 `/autodl-fs/data/OpenGU/GULib-master/results` 作为 `--root` 完成 Gate 1；真实主 checkout 的 branch/HEAD 全程未切换。这次证据仅验收 **V2.1 Legacy 只读索引**，不表示真实 Selection payload cold/warm hit 已测：
+2026-07-14 从 SSH 隔离代码检出 `9b90ad4` 运行 `cachectl`，并把远端真实目录 `/autodl-fs/data/OpenGU/GULib-master/results` 作为 `--root` 完成 Gate 1；真实主 checkout 的 branch/HEAD 全程未切换。Gate 1 证据本身只验收 **V2.1 Legacy 只读索引**，不把后续独立 Selection canary 的 payload cold/warm 结果混入本表：
 
 | 项目 | SSH Gate 1 实测 |
 |---|---:|
@@ -902,7 +902,7 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | Gate | 必须证据 | 当前状态 |
 |---|---|---|
 | 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
-| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | 未通过 |
+| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **未通过；isolated Selection canary 已通过**（2026-07-14，`83842e6`），runner、Prediction/Evaluation 与 conflict resolution 尚未接入 |
 | 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | 未通过 |
 | 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **硬阻塞**：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程 |
 | 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | 未通过 |
@@ -910,7 +910,7 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 
 Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。
 
-这也意味着：2026-07-14 尚未完成真实 Selection payload 的 cold miss → warm hit、producer 哨兵与 payload mtime 验证；该证据属于 Gate 2/4 前的隔离 canary，不得用 Gate 1 的 SQLite 命中解释替代。
+2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-`k` miss 与篡改拒绝验证；详见 [Cache V2 Citeseer Selection Canary 真机验收报告](../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md)。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 **Gate 2 与 Gate 4 状态均不变**，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。
 
 ---
 

@@ -836,7 +836,7 @@ S1 被确认由 selector bug 产生
 </tbody>
 </table>
 <p>夹心快照覆盖每个 active Legacy 文件的相对路径、大小、mtime 与 SHA-256：扫描前后均为 2521 文件、12,644,658 bytes，aggregate 均为 <code>3e4fb7eb2129c69705cea626bf8ca70e2f3275fbf00ef478f6b883558e0e2b90</code>。命令报告 <code>writes=[]</code>，真实 <code>results/cache_v2/index.sqlite</code> 不存在。</p>
-<p>2026-07-14 从 SSH 隔离代码检出 <code>9b90ad4</code> 运行 <code>cachectl</code>，并把远端真实目录 <code>/autodl-fs/data/OpenGU/GULib-master/results</code> 作为 <code>--root</code> 完成 Gate 1；真实主 checkout 的 branch/HEAD 全程未切换。这次证据仅验收 <strong>V2.1 Legacy 只读索引</strong>，不表示真实 Selection payload cold/warm hit 已测：</p>
+<p>2026-07-14 从 SSH 隔离代码检出 <code>9b90ad4</code> 运行 <code>cachectl</code>，并把远端真实目录 <code>/autodl-fs/data/OpenGU/GULib-master/results</code> 作为 <code>--root</code> 完成 Gate 1；真实主 checkout 的 branch/HEAD 全程未切换。Gate 1 证据本身只验收 <strong>V2.1 Legacy 只读索引</strong>，不把后续独立 Selection canary 的 payload cold/warm 结果混入本表：</p>
 <table>
 <thead><tr><th>项目</th><th>SSH Gate 1 实测</th></tr></thead>
 <tbody>
@@ -896,7 +896,7 @@ S1 被确认由 selector bug 产生
 <thead><tr><th>Gate</th><th>必须证据</th><th>当前状态</th></tr></thead>
 <tbody>
 <tr><td>1. SSH 真机验收 V2.1</td><td>dry-run 零写入；Legacy hash/mtime 不变；<code>--apply</code> 只写 <code>results/cache_v2/index.sqlite</code>；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释</td><td><strong>已通过</strong>（2026-07-14，<code>9b90ad4</code>）</td></tr>
-<tr><td>2. 新计算只写 V2</td><td>不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution</td><td>未通过</td></tr>
+<tr><td>2. 新计算只写 V2</td><td>不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution</td><td><strong>未通过；isolated Selection canary 已通过</strong>（2026-07-14，<code>83842e6</code>），runner、Prediction/Evaluation 与 conflict resolution 尚未接入</td></tr>
 <tr><td>3. 新旧结果对照</td><td>抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同</td><td>未通过</td></tr>
 <tr><td>4. runner 切换 V2</td><td>先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy</td><td><strong>硬阻塞</strong>：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程</td></tr>
 <tr><td>5. Legacy 冻结</td><td>完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact</td><td>未通过</td></tr>
@@ -904,7 +904,7 @@ S1 被确认由 selector bug 产生
 </tbody>
 </table>
 <p>Gate 必须按顺序推进。<strong>Gate 1 的一次真机通过绝不授权 Legacy 删除。</strong> Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。</p>
-<p>2026-07-14 尚未完成真实 Selection payload 的 cold miss → warm hit、producer 哨兵与 payload mtime 验证；该证据属于 Gate 2/4 前的隔离 canary，不得用 Gate 1 的 SQLite 命中解释替代。</p>
+<p>2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-<code>k</code> miss 与篡改拒绝验证；详见 <a href="../../report/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.html">Cache V2 Citeseer Selection Canary 真机验收报告</a>。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 <strong>Gate 2 与 Gate 4 状态均不变</strong>，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。</p>
 <hr />
 <h2 id="section-49">12. GraphRevoker 当前最小闭环</h2>
 <p>在 V2 主路径落地前：</p>
