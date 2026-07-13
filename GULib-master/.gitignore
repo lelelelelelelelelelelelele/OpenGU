@@ -22,6 +22,13 @@ results/selection_cache/*.json
 results/score_cache/**/*.json
 results/score_cache/**/*.npz
 
+# Cache V2 runtime index. Keep future payload/header paths visible so an
+# unexpected V2.1 write cannot be hidden by a broad results/cache_v2 rule.
+results/cache_v2/index.sqlite
+results/cache_v2/index.sqlite-journal
+results/cache_v2/index.sqlite-wal
+results/cache_v2/index.sqlite-shm
+
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
