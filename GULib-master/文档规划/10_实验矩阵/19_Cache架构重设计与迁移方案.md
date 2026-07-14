@@ -916,7 +916,7 @@ Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy �
 
 同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict，但 **Gate 3 明确保持未通过**。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
 
-同日继续注册 random、degree、PageRank 三个直接产生 SelectionArtifact 的 producer，并在真实 Cora 图上完成 exact canary：2 methods × 3 strategies × 3 seeds 共 18 个 consumer 请求去重为 5 个 Recipe（random 按 3 个 seed 各一份，degree/PageRank 各一份跨 seed 共享），cold 全部创建后，独立 warm 进程与另一 YAML 名/路径均返回相同 Artifact ID/content hash，且 `producer_called=false`。Random 使用显式 Recipe seed 与隔离 Torch RNG；Degree Recipe 不含实验 seed；PageRank 只额外包含 `pagerank_alpha`。Legacy 三目录聚合 hash 前后均为 `6d7752d1...`；本机没有该 graph/split identity 的精确 Legacy source，因此对照状态为 `missing`，不伪造等价或 conflict。详见 [Cache V2 Simple Selection Producers 验收报告](../../docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md)。这完成了 producer registry 的该项 checklist，但没有改变 Gate 2/3/4 的整体状态。
+同日继续注册 random、degree、PageRank 三个直接产生 SelectionArtifact 的 producer，并在真实 Cora 图上完成本机与 SSH exact canary：2 methods × 3 strategies × 3 seeds 共 18 个 consumer 请求去重为 5 个 Recipe（random 按 3 个 seed 各一份，degree/PageRank 各一份跨 seed 共享），cold 全部创建后，独立 warm 进程与另一 YAML 名/路径均返回相同 Artifact ID/content hash，且 `producer_called=false`；改变 ratio/k 的 plan 则 5/5 `no_exact_candidate`、零 producer、零写入。Random 使用显式 Recipe seed 与隔离 Torch RNG；PageRank 只额外包含 `pagerank_alpha`。首次 SSH 重放真实暴露 Degree v1 的 `torch.topk` 平分边界跨环境不稳定：同 Recipe `fd84330c...` 在本机/SSH 得到不同 content，且节点集合不同。V2 没有覆盖旧 Artifact，而是将 Degree 算法升级为“度降序、node id 升序”的 v2 全序，生成新 Recipe `5bc434cd...`；全新本机/SSH store 随后均得到 Artifact `sel_5bc434cd_7e66e515` 与 content `7e66e515...`。SSH Legacy 三目录 784/111/75 个文件的聚合 hash 前后均为 `b7488cb1...`；Random 三个 Legacy 对照为 `content_mismatch`，Degree/PageRank 为 `missing`，均不参与 V2 resolve。详见 [Cache V2 Simple Selection Producers 验收报告](../../docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md)。这完成了 producer registry 与 simple selector 真机确定性验收，但没有改变 Gate 2/3/4 的整体状态。
 
 ---
 
@@ -1010,7 +1010,7 @@ GCN selection → GIN target
 - [x] 建立 YAML request → 最小 Recipe 投影；`config_name`、YAML path、GU method 与实验 seed 不进入 IM Selection identity，多 consumer 先按 Recipe 去重。
 - [x] 注册 IM producer；TracIn/Hybrid 在 Score/model provenance 就绪前结构化跳过，并保留同一 registry 扩展点。
 - [x] 建立 ordered/set 双 hash 与只读 Legacy 对照；真实 arxiv 对照已 fail closed 暴露 mismatch，没有伪造等价。
-- [x] 注册 random / degree / PageRank producer；真实 Cora cold/warm、producer 哨兵、跨 YAML exact hit、Random RNG 隔离与 Legacy 只读均已验证。
+- [x] 注册 random / degree / PageRank producer；真实 Cora 本机/SSH cold/warm、producer 哨兵、跨 YAML exact hit、changed-k miss、Random RNG 隔离、Degree v2 可移植 tie-break 与 Legacy 只读均已验证。
 - [ ] `demo_attack`、`eval_collateral` 接受 selection artifact reference；本阶段仍未修改 runner 或现有查询路径。
 - [ ] 建 ranking/prefix compatible lookup；当前只允许 `(artifact_type, recipe_hash)` exact hit。
 

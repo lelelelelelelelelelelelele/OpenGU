@@ -48,17 +48,17 @@
   <header>
     <div class="eyebrow">Cache V2 · real Cora · 2026-07-14</div>
     <h1>Simple Selection Producers 验收</h1>
-    <p class="lede">Random、Degree、PageRank 已进入与 IM 相同的 exact-only SelectionArtifact registry。真实 Cora cold/warm、producer trap、跨 YAML命中与 Legacy只读全部通过；runner与整体 Gate 2仍未切换。</p>
+    <p class="lede">Random、Degree、PageRank 已进入与 IM 相同的 exact-only SelectionArtifact registry，并通过本机与 SSH 真实 Cora cold/warm。首次真机重放暴露了 Degree 的跨环境 tie 风险；V2 已用新 Recipe 和确定性全序修复并复验。</p>
     <div class="cards">
-      <div class="card ok"><strong>三类 producer：通过</strong><span>真实 strategy实现，不是测试替身。</span></div>
+      <div class="card ok"><strong>三类 producer：通过</strong><span>Degree 已定义可移植 tie-break。</span></div>
       <div class="card ok"><strong>Exact warm hit：通过</strong><span>5/5 hit，5/5 producer未调用。</span></div>
       <div class="card warn"><strong>整体 Gate 2：未通过</strong><span>Score、conflict resolution、runner、Prediction/Evaluation待完成。</span></div>
     </div>
     <div class="metrics">
       <div class="card"><div class="value">18 → 5</div><div class="label">consumer requests → Recipes</div></div>
-      <div class="card"><div class="value">0.815s</div><div class="label">cold + immediate verification</div></div>
-      <div class="card"><div class="value">0.729s</div><div class="label">independent warm process</div></div>
-      <div class="card"><div class="value">155</div><div class="label">tests passed, zero regression</div></div>
+      <div class="card"><div class="value">3.556s</div><div class="label">SSH cold + verification</div></div>
+      <div class="card"><div class="value">2.435s</div><div class="label">SSH independent warm</div></div>
+      <div class="card"><div class="value">156</div><div class="label">local and SSH tests passed</div></div>
     </div>
   </header>
 
@@ -68,9 +68,10 @@
     <tr><td>Recipe identity</td><td class="pass">通过</td><td>Random按 seed；Degree/PageRank跨 seed；YAML/method/model request不进入 identity</td></tr>
     <tr><td>cold → warm</td><td class="pass">通过</td><td>cold 5/5创建；warm 5/5 <code>hit=true, producer_called=false</code></td></tr>
     <tr><td>跨 YAML</td><td class="pass">通过</td><td>改变 path 与 <code>config_name</code> 后命中同一 Artifact/content</td></tr>
+    <tr><td>跨环境确定性</td><td class="pass">修复后通过</td><td>Degree v2 在本机/SSH 的 Recipe、Artifact ID与 content完全一致</td></tr>
     <tr><td>Random RNG</td><td class="pass">通过</td><td>显式 seed + forked Torch RNG；调用方 RNG state不变</td></tr>
     <tr><td>Legacy只读</td><td class="pass">通过</td><td>46个 Legacy文件聚合 hash前后相同</td></tr>
-    <tr><td>Legacy等价</td><td class="pending">无 exact候选</td><td>状态 <code>missing</code>；未伪造 match/conflict</td></tr>
+    <tr><td>Legacy等价</td><td class="pending">未通过/无候选</td><td>Random为 <code>content_mismatch</code>；Degree/PageRank为 <code>missing</code></td></tr>
     <tr><td>runner</td><td class="pending">未实施</td><td>runner与旧 Cache查询路径未修改</td></tr>
   </tbody></table>
 
@@ -89,29 +90,39 @@
     <tr><td>PageRank</td><td><code>pagerank_parameters.alpha</code></td><td>同 topology/candidates/alpha/k，跨实验 seed</td></tr>
   </tbody></table>
 
+  <div class="callout"><strong>Degree v2 契约：</strong>V2 producer 按 <code>(-degree, node_id)</code> 排成全序，不再把 <code>torch.topk</code> 未定义的平分顺序当成 Artifact 语义。Legacy strategy 与 runner 均未修改。</div>
+
   <h2>真实 Cora cold / warm</h2>
   <table><tbody>
     <tr><th>graph</th><td>Cora，2708 nodes</td><th>candidates / k</th><td>2166 / 108</td></tr>
     <tr><th>split</th><td>80/0/20，seed 42</td><th>experiment seeds</th><td>42 / 212 / 722</td></tr>
-    <tr><th>cold</th><td>0.815264 s，5/5 created</td><th>warm</th><td>0.729433 s，5/5 hit</td></tr>
-    <tr><th>changed-YAML warm</th><td>0.676380 s，5/5 hit</td><th>producer calls</th><td>0</td></tr>
+    <tr><th>SSH cold</th><td>3.556464 s，5/5 created</td><th>SSH warm</th><td>2.435275 s，5/5 hit</td></tr>
+    <tr><th>changed-YAML warm</th><td>5/5同 ID/content/mtime</td><th>changed-k plan</th><td>5/5 miss，0 producer，0 writes</td></tr>
   </tbody></table>
 
   <table><thead><tr><th>Selector</th><th>Artifact ID</th><th>Recipe</th><th>Content</th></tr></thead><tbody>
     <tr><td>Random 42</td><td><code>sel_6d58bd8e_bffcb733</code></td><td><code>6d58bd8e…</code></td><td><code>bffcb733…</code></td></tr>
     <tr><td>Random 212</td><td><code>sel_de12ce98_f0fd1126</code></td><td><code>de12ce98…</code></td><td><code>f0fd1126…</code></td></tr>
     <tr><td>Random 722</td><td><code>sel_e7221569_e5a94190</code></td><td><code>e7221569…</code></td><td><code>e5a94190…</code></td></tr>
-    <tr><td>Degree</td><td><code>sel_fd84330c_b5583d1a</code></td><td><code>fd84330c…</code></td><td><code>b5583d1a…</code></td></tr>
+    <tr><td>Degree</td><td><code>sel_5bc434cd_7e66e515</code></td><td><code>5bc434cd…</code></td><td><code>7e66e515…</code></td></tr>
     <tr><td>PageRank</td><td><code>sel_512a1616_982b6e54</code></td><td><code>512a1616…</code></td><td><code>982b6e54…</code></td></tr>
   </tbody></table>
 
+  <h2>真机发现并关闭的风险</h2>
+  <div class="cards">
+    <div class="card warn"><strong>v1：同 Recipe 异 content</strong><span><code>fd84330c…</code> 在本机为 <code>b5583d1a…</code>，SSH为 <code>4673b877…</code>；集合也不同。</span></div>
+    <div class="card ok"><strong>v2：两端一致</strong><span>新 Recipe <code>5bc434cd…</code>，两端均为 content <code>7e66e515…</code>。</span></div>
+    <div class="card ok"><strong>失败证据保留</strong><span>旧 SSH v1 store未覆盖或删除；新验证使用全新 store。</span></div>
+  </div>
+  <p>SSH正式 store：<code>/autodl-fs/data/cache-v2-materializer/simple-eb7c2d8-cora</code>；证据：<code>/autodl-fs/data/opengu-experiment-evidence/cache-v2-simple-eb7c2d8</code>。SQLite integrity为 <code>ok</code>，5 artifacts、0 conflicts。</p>
+
   <h2>Legacy与测试</h2>
-  <div class="callout"><strong>Legacy没有参与 resolve。</strong> before/after hash均为 <code>6d7752d1cd154fe6894624529a2aa7cc57404b55c9c6d250b5f6c2885cc6c19e</code>。当前 exact graph/split source不存在，所以结论是 <code>missing</code>，不是 content mismatch。</div>
+  <div class="callout"><strong>Legacy没有参与 resolve。</strong> SSH before/after hash均为 <code>b7488cb14f32e9482fd268f31bada5bca3561e81f953db4ed1f117ff32e98ffa</code>。Random对照为 <code>content_mismatch</code>，Degree/PageRank为 <code>missing</code>；这些只读状态均不升级为正式 V2 conflict。</div>
   <table><tbody>
-    <tr><th>Legacy文件</th><td>Result 9；Selection 10；Score 27</td></tr>
-    <tr><th>Cache V2 tests</th><td><code>78 passed in 2.50s</code></td></tr>
-    <tr><th>Legacy/runner regression</th><td><code>77 passed in 0.49s</code></td></tr>
-    <tr><th>总计</th><td><strong>155 passed</strong></td></tr>
+    <tr><th>SSH Legacy文件</th><td>Result 784；Selection 111；Score 75</td></tr>
+    <tr><th>真实 Cora source</th><td><code>1dcbb6be…d6e4</code>，size/mtime不变</td></tr>
+    <tr><th>本机测试</th><td><code>156 passed in 3.09s</code></td></tr>
+    <tr><th>SSH测试</th><td><code>156 passed in 30.63s</code>；仅既有 TBB/Numba warning</td></tr>
   </tbody></table>
 
   <h2>复现入口</h2>
@@ -132,7 +143,7 @@
     <li>runner、Prediction/Evaluation没有接入；查询失败也未设计 Legacy回退。</li>
     <li>既有 ogbn-arxiv IM Legacy mismatch仍使 Gate 3关闭。</li>
   </ul>
-  <p>下一步先提交并在 SSH隔离 store重放本 canary；随后补 IM ScoreArtifact与可审计 conflict resolution，之后才讨论 runner canary。</p>
+  <p>SSH隔离重放已经完成。下一步补 IM ScoreArtifact与可审计 conflict resolution，之后才讨论 runner canary；既有 IM/Random Legacy mismatch未解释前，Gate 3保持关闭。</p>
 
   <footer>Editable source: <a href="../docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md">docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md</a></footer>
 </main></body></html>
