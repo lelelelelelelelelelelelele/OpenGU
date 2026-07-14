@@ -902,8 +902,8 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | Gate | 必须证据 | 当前状态 |
 |---|---|---|
 | 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
-| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **未通过；isolated Selection canary 已通过**（2026-07-14，`83842e6`），runner、Prediction/Evaluation 与 conflict resolution 尚未接入 |
-| 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | 未通过 |
+| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **未通过；Selection exact-only materializer 已通过单路真实计算/命中**（2026-07-14，`b10f672`），Score、runner、Prediction/Evaluation 与 conflict resolution 尚未接入 |
+| 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | **未通过；ogbn-arxiv IM 暴露 Legacy content mismatch**（同 seed / k / 参数与同剪枝后 pool，但 ordered/set 均不一致） |
 | 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **硬阻塞**：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程 |
 | 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | 未通过 |
 | 6. 归档或删除 Legacy | 迁移覆盖率、`consumer_refs`、结果一致性、回滚备份全部通过，并对物理范围单独审批 | 未通过 |
@@ -911,6 +911,10 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。
 
 2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-`k` miss 与篡改拒绝验证；详见 [Cache V2 Citeseer Selection Canary 真机验收报告](../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md)。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 **Gate 2 与 Gate 4 状态均不变**，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。
+
+同日，`b10f672` 把 canary 收敛为独立 `cachectl selection plan/materialize` 主入口，并在 SSH 隔离 checkout 对真实 `ogbn-arxiv`、IM、`k=1354` 完成 cold 计算（13,583.91 s）→ 另一 YAML 的 warm exact hit（0.341 s）。warm 启用 fail-if-called 哨兵，仍返回同一 Artifact / Recipe / content hash，payload mtime 不变；9 个 cold consumer 请求去重为一个 Recipe，TracIn/Hybrid 以 `producer_not_registered` 结构化跳过。该结果验收了 **V2 exact Cache 契约**，没有接 runner。
+
+同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict，但 **Gate 3 明确保持未通过**。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
 
 ---
 
@@ -998,12 +1002,15 @@ GCN selection → GIN target
 
 ### V2.2 Score / Selection 主路径
 
-- gate：先评审 Legacy promotion policy、header carrier 与 semantic directory；冲突或 provenance 缺口未清零的 source 不得 promotion；
-- 注册现有 ScoreCache；
-- 建 SelectionArtifact Store；
-- demo_attack、eval_collateral 接受 selection artifact reference；
-- 建 ranking/prefix compatible lookup；
-- 建 ordered/set 双 hash 校验。
+- [ ] gate：完成 Legacy promotion policy 与可审计 conflict resolution；provenance 缺口未清零的 source 不得 promotion。
+- [ ] 将 IM 初始 spread / CELF ranking 落成正式 ScoreArtifact；当前大图 cold 仍因禁用 Legacy ScoreCache 承担完整 Step 1 成本。
+- [x] 建立 versioned SelectionArtifact payload/header Store、SQLite exact resolve、完整性校验与 fail-if-called producer 哨兵。
+- [x] 建立 YAML request → 最小 Recipe 投影；`config_name`、YAML path、GU method 与实验 seed 不进入 IM Selection identity，多 consumer 先按 Recipe 去重。
+- [x] 注册 IM producer；TracIn/Hybrid 在 Score/model provenance 就绪前结构化跳过，并保留同一 registry 扩展点。
+- [x] 建立 ordered/set 双 hash 与只读 Legacy 对照；真实 arxiv 对照已 fail closed 暴露 mismatch，没有伪造等价。
+- [ ] 注册 random / degree / PageRank producer；当前 warm YAML 中它们与 TracIn/Hybrid 一样不执行。
+- [ ] `demo_attack`、`eval_collateral` 接受 selection artifact reference；本阶段仍未修改 runner 或现有查询路径。
+- [ ] 建 ranking/prefix compatible lookup；当前只允许 `(artifact_type, recipe_hash)` exact hit。
 
 ### V2.3 Prediction / Evaluation 主路径
 
