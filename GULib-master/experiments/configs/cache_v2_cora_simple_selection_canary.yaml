@@ -1,0 +1,31 @@
+# Cache V2 exact SelectionArtifact canary request.
+#
+# This file is intended for:
+#   python scripts/cachectl.py selection plan/materialize ...
+# It does not switch experiments/run.py to V2 and does not alter Legacy caches.
+name: cache_v2_cora_simple_selection_canary
+dataset: cora
+base_model: GCN
+ratio: 0.05
+
+methods:
+  - GIF
+  - GraphRevoker
+
+strategies:
+  - random
+  - degree
+  - pagerank
+
+seeds:
+  - 42
+  - 212
+  - 722
+
+defaults:
+  is_transductive: true
+  is_balanced: false
+  train_ratio: 0.8
+  val_ratio: 0.0
+  test_ratio: 0.2
+  pagerank_alpha: 0.85

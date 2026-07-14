@@ -896,7 +896,7 @@ S1 被确认由 selector bug 产生
 <thead><tr><th>Gate</th><th>必须证据</th><th>当前状态</th></tr></thead>
 <tbody>
 <tr><td>1. SSH 真机验收 V2.1</td><td>dry-run 零写入；Legacy hash/mtime 不变；<code>--apply</code> 只写 <code>results/cache_v2/index.sqlite</code>；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释</td><td><strong>已通过</strong>（2026-07-14，<code>9b90ad4</code>）</td></tr>
-<tr><td>2. 新计算只写 V2</td><td>不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution</td><td><strong>未通过；Selection exact-only materializer 已通过单路真实计算/命中</strong>（2026-07-14，<code>b10f672</code>），Score、runner、Prediction/Evaluation 与 conflict resolution 尚未接入</td></tr>
+<tr><td>2. 新计算只写 V2</td><td>不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution</td><td><strong>未通过；Selection exact-only materializer 已通过 IM、random、degree、PageRank 的真实计算/命中</strong>（2026-07-14），Score、runner、Prediction/Evaluation 与 conflict resolution 尚未接入</td></tr>
 <tr><td>3. 新旧结果对照</td><td>抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同</td><td><strong>未通过；ogbn-arxiv IM 暴露 Legacy content mismatch</strong>（同 seed / k / 参数与同剪枝后 pool，但 ordered/set 均不一致）</td></tr>
 <tr><td>4. runner 切换 V2</td><td>先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy</td><td><strong>硬阻塞</strong>：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程</td></tr>
 <tr><td>5. Legacy 冻结</td><td>完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact</td><td>未通过</td></tr>
@@ -907,6 +907,7 @@ S1 被确认由 selector bug 产生
 <p>2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-<code>k</code> miss 与篡改拒绝验证；详见 <a href="../../report/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.html">Cache V2 Citeseer Selection Canary 真机验收报告</a>。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 <strong>Gate 2 与 Gate 4 状态均不变</strong>，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。</p>
 <p>同日，<code>b10f672</code> 把 canary 收敛为独立 <code>cachectl selection plan/materialize</code> 主入口，并在 SSH 隔离 checkout 对真实 <code>ogbn-arxiv</code>、IM、<code>k=1354</code> 完成 cold 计算（13,583.91 s）→ 另一 YAML 的 warm exact hit（0.341 s）。warm 启用 fail-if-called 哨兵，仍返回同一 Artifact / Recipe / content hash，payload mtime 不变；9 个 cold consumer 请求去重为一个 Recipe，TracIn/Hybrid 以 <code>producer_not_registered</code> 结构化跳过。该结果验收了 <strong>V2 exact Cache 契约</strong>，没有接 runner。</p>
 <p>同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 <code>7237f1cd80d5d4eadd5c6d33484b9e47</code>，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict，但 <strong>Gate 3 明确保持未通过</strong>。详见 <a href="../../report/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.html">Cache V2 IM Selection Materializer 真机验收报告</a>。</p>
+<p>同日继续注册 random、degree、PageRank 三个直接产生 SelectionArtifact 的 producer，并在真实 Cora 图上完成 exact canary：2 methods × 3 strategies × 3 seeds 共 18 个 consumer 请求去重为 5 个 Recipe（random 按 3 个 seed 各一份，degree/PageRank 各一份跨 seed 共享），cold 全部创建后，独立 warm 进程与另一 YAML 名/路径均返回相同 Artifact ID/content hash，且 <code>producer_called=false</code>。Random 使用显式 Recipe seed 与隔离 Torch RNG；Degree Recipe 不含实验 seed；PageRank 只额外包含 <code>pagerank_alpha</code>。Legacy 三目录聚合 hash 前后均为 <code>6d7752d1...</code>；本机没有该 graph/split identity 的精确 Legacy source，因此对照状态为 <code>missing</code>，不伪造等价或 conflict。详见 <a href="../../report/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.html">Cache V2 Simple Selection Producers 验收报告</a>。这完成了 producer registry 的该项 checklist，但没有改变 Gate 2/3/4 的整体状态。</p>
 <hr />
 <h2 id="section-49">12. GraphRevoker 当前最小闭环</h2>
 <p>在 V2 主路径落地前：</p>
@@ -1031,7 +1032,7 @@ GCN selection → GIN target
 <li>[x] 建立 YAML request → 最小 Recipe 投影；<code>config_name</code>、YAML path、GU method 与实验 seed 不进入 IM Selection identity，多 consumer 先按 Recipe 去重。</li>
 <li>[x] 注册 IM producer；TracIn/Hybrid 在 Score/model provenance 就绪前结构化跳过，并保留同一 registry 扩展点。</li>
 <li>[x] 建立 ordered/set 双 hash 与只读 Legacy 对照；真实 arxiv 对照已 fail closed 暴露 mismatch，没有伪造等价。</li>
-<li>[ ] 注册 random / degree / PageRank producer；当前 warm YAML 中它们与 TracIn/Hybrid 一样不执行。</li>
+<li>[x] 注册 random / degree / PageRank producer；真实 Cora cold/warm、producer 哨兵、跨 YAML exact hit、Random RNG 隔离与 Legacy 只读均已验证。</li>
 <li>[ ] <code>demo_attack</code>、<code>eval_collateral</code> 接受 selection artifact reference；本阶段仍未修改 runner 或现有查询路径。</li>
 <li>[ ] 建 ranking/prefix compatible lookup；当前只允许 <code>(artifact_type, recipe_hash)</code> exact hit。</li>
 </ul>

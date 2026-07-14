@@ -24,6 +24,35 @@ class FakeImStrategy:
         return selected, torch.ones(k, dtype=torch.float32)
 
 
+class FakeRandomStrategy:
+    def __init__(self, args):
+        assert args == {}
+
+    def select_nodes(self, data, model, k):
+        del model
+        candidates = data.train_indices
+        return candidates[torch.randperm(candidates.numel())[:k]]
+
+
+class FakeDegreeStrategy:
+    def __init__(self, args):
+        assert args == {}
+
+    def select_nodes(self, data, model, k):
+        del model
+        return data.train_indices.flip(0)[:k]
+
+
+class FakePageRankStrategy:
+    def __init__(self, args):
+        self.alpha = float(args["pagerank_alpha"])
+
+    def select_nodes(self, data, model, k):
+        del model
+        candidates = data.train_indices
+        return candidates[torch.argsort(candidates.float() * self.alpha, descending=True)[:k]]
+
+
 def _write_config(tmp_path, strategies=None, seeds=None, methods=None):
     path = tmp_path / "request.yaml"
     path.write_text(
@@ -88,6 +117,19 @@ def fake_materializer(monkeypatch):
         materializer,
         "load_im_strategy",
         lambda: (FakeImStrategy, True, Path(materializer.__file__).resolve()),
+    )
+    simple_classes = {
+        "random": FakeRandomStrategy,
+        "degree": FakeDegreeStrategy,
+        "pagerank": FakePageRankStrategy,
+    }
+    monkeypatch.setattr(
+        materializer,
+        "load_simple_strategy",
+        lambda strategy: (
+            simple_classes[strategy],
+            Path(materializer.__file__).resolve(),
+        ),
     )
     return inputs
 
@@ -157,6 +199,196 @@ def test_selection_plan_is_zero_write_for_store_and_legacy(
     assert not store_root.exists()
     assert _file_state(legacy_file) == legacy_before
     assert FakeImStrategy.calls == 0
+
+
+def test_plan_registers_simple_producers_with_minimal_identity_and_seed_scope(
+    tmp_path, fake_materializer
+):
+    config = _write_config(
+        tmp_path,
+        strategies=["random", "degree", "pagerank"],
+        seeds=[42, 212],
+    )
+    dataset_root, legacy_root = _prepare_roots(tmp_path)
+
+    plan = materializer.prepare_selection_plan(config, dataset_root, legacy_root)
+    document = plan.to_dict()
+
+    assert document["registered_producers"] == ["degree", "im", "pagerank", "random"]
+    assert document["total_consumer_requests"] == 12
+    assert document["supported_consumer_requests"] == 12
+    assert document["unique_artifact_recipes"] == 4
+    assert document["deduplicated_requests"] == 8
+    assert document["skipped"] == []
+
+    random_jobs = [job for job in plan.jobs if job.strategy == "random"]
+    degree_job = next(job for job in plan.jobs if job.strategy == "degree")
+    pagerank_job = next(job for job in plan.jobs if job.strategy == "pagerank")
+    assert {job.recipe.fields["random_parameters"]["seed"] for job in random_jobs} == {
+        42,
+        212,
+    }
+    assert all(job.consumer_requests == 2 for job in random_jobs)
+    assert degree_job.consumer_requests == 4
+    assert pagerank_job.consumer_requests == 4
+    assert "random_parameters" not in degree_job.recipe.fields
+    assert degree_job.recipe.fields["selector_algorithm_version"] == (
+        materializer.DEGREE_ALGORITHM_VERSION
+    )
+    assert pagerank_job.recipe.fields["pagerank_parameters"] == {"alpha": 0.85}
+
+    for job in plan.jobs:
+        serialized = json.dumps(job.recipe.to_dict(), sort_keys=True)
+        for forbidden in ("fixture_request", "request.yaml", "base_model", "GCN", "GIF", "IDEA"):
+            assert forbidden not in serialized
+
+    torch.manual_seed(991)
+    rng_before = torch.get_rng_state().clone()
+    first = random_jobs[0].producer()
+    rng_after = torch.get_rng_state().clone()
+    second = random_jobs[0].producer()
+    assert first == second
+    assert torch.equal(rng_before, rng_after)
+    assert torch.equal(rng_before, torch.get_rng_state())
+    assert random_jobs[0].recipe.recipe_hash != random_jobs[1].recipe.recipe_hash
+    assert materializer.build_pagerank_recipe(
+        fake_materializer, 2, 0.85
+    ).recipe_hash != materializer.build_pagerank_recipe(
+        fake_materializer, 2, 0.9
+    ).recipe_hash
+
+
+def test_simple_producers_cold_warm_and_read_only_legacy_comparison(
+    tmp_path, fake_materializer
+):
+    config = _write_config(
+        tmp_path,
+        strategies=["random", "degree", "pagerank"],
+        seeds=[42, 212],
+        methods=["GIF"],
+    )
+    dataset_root, legacy_root = _prepare_roots(tmp_path)
+    store_root = (tmp_path / "v2-store").resolve()
+    plan = materializer.prepare_selection_plan(config, dataset_root, legacy_root)
+    legacy_states = {}
+    for position, job in enumerate(plan.jobs):
+        selected_nodes = list(job.producer())
+        legacy_file = legacy_root / "selection_cache" / "legacy-{0}.json".format(
+            position
+        )
+        legacy_file.write_text(
+            json.dumps(
+                {
+                    "cache_key": "legacy-{0}".format(position),
+                    "config": {
+                        "dataset_name": "cora",
+                        "base_model": "GCN",
+                        "unlearn_ratio": 0.5,
+                        "seed": job.legacy_seed,
+                        "strategy_name": job.strategy,
+                        "k": job.k,
+                        "graph_fingerprint": job.inputs.legacy_graph_fingerprint,
+                        "strategy_params_fingerprint": materializer._stable_hash32(
+                            job.legacy_strategy_parameters
+                        ),
+                    },
+                    "selection_result": {
+                        "strategy_name": job.strategy,
+                        "selected_nodes": selected_nodes,
+                    },
+                },
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        legacy_states[legacy_file] = _file_state(legacy_file)
+
+    cold = materializer.materialize_selection(
+        config,
+        dataset_root,
+        store_root,
+        legacy_root,
+        verify=True,
+        compare_legacy=True,
+    )
+    assert len(cold["results"]) == 4
+    assert all(not item["hit"] for item in cold["results"])
+    assert all(item["producer_called"] for item in cold["results"])
+    assert all(item["verification"]["hit"] for item in cold["results"])
+    assert all(
+        item["legacy_comparison"]["status"] == "exact_order_match"
+        for item in cold["results"]
+    )
+    first_ids = {item["recipe_hash"]: item["artifact_id"] for item in cold["results"]}
+    first_mtimes = {
+        item["recipe_hash"]: Path(item["payload_path"]).stat().st_mtime_ns
+        for item in cold["results"]
+    }
+
+    warm = materializer.materialize_selection(
+        config,
+        dataset_root,
+        store_root,
+        legacy_root,
+        fail_if_producer_called=True,
+        compare_legacy=True,
+    )
+    assert len(warm["results"]) == 4
+    assert all(item["hit"] for item in warm["results"])
+    assert all(not item["producer_called"] for item in warm["results"])
+    assert {
+        item["recipe_hash"]: item["artifact_id"] for item in warm["results"]
+    } == first_ids
+    assert all(
+        Path(item["payload_path"]).stat().st_mtime_ns
+        == first_mtimes[item["recipe_hash"]]
+        for item in warm["results"]
+    )
+    assert all(_file_state(path) == state for path, state in legacy_states.items())
+
+
+def test_authoritative_simple_strategy_classes_materialize_fixture_graph(
+    tmp_path, monkeypatch
+):
+    inputs = _fixture_inputs()
+    monkeypatch.setattr(
+        materializer,
+        "load_selection_inputs",
+        lambda dataset_name, dataset_root, split_seed, train_ratio: inputs,
+    )
+    config = _write_config(
+        tmp_path,
+        strategies=["random", "degree", "pagerank"],
+        seeds=[42],
+        methods=["GIF"],
+    )
+    dataset_root, legacy_root = _prepare_roots(tmp_path)
+    store_root = (tmp_path / "actual-strategy-store").resolve()
+
+    cold = materializer.materialize_selection(
+        config,
+        dataset_root,
+        store_root,
+        legacy_root,
+        verify=True,
+        include_nodes=True,
+    )
+    assert {item["strategy"] for item in cold["results"]} == {
+        "random",
+        "degree",
+        "pagerank",
+    }
+    assert all(item["selected_node_count"] == 2 for item in cold["results"])
+    assert all(item["verification"]["producer_called"] is False for item in cold["results"])
+
+    warm = materializer.materialize_selection(
+        config,
+        dataset_root,
+        store_root,
+        legacy_root,
+        fail_if_producer_called=True,
+    )
+    assert all(item["hit"] and not item["producer_called"] for item in warm["results"])
 
 
 def test_processed_planetoid_loader_is_read_only_and_does_not_nest_root(tmp_path):

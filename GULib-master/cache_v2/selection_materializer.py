@@ -5,8 +5,8 @@ module projects the YAML onto the minimal inputs consumed by a registered
 Selection producer, resolves ``(artifact_type, recipe_hash)`` directly through
 the SQLite index, and calls the producer only on a clean exact miss.
 
-Only the topology-only IM producer is registered initially.  TracIn and
-Hybrid are represented as structured skips until their model/Score provenance
+Random, Degree, PageRank, and topology-only IM producers are registered.
+TracIn and Hybrid remain structured skips until their model/Score provenance
 contracts are ready; adding them later is a registry extension rather than a
 new lookup path.
 """
@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 import numpy as np
 import torch
 import yaml
+from torch_geometric.data import Data
 
 from .canonical import sha256_bytes
 from .contracts import ArtifactRecipe, ArtifactType, ProducerVersion
@@ -47,6 +48,12 @@ NODE_ID_SPACE = "pyg-global-node-index-v1"
 IM_NUMBA_ALGORITHM_VERSION = "opengu-im-batch-celf-numba-v1"
 IM_PYTHON_ALGORITHM_VERSION = "opengu-im-classic-celf-python-v1"
 IM_PRODUCER_SEMANTIC_VERSION = "opengu-im-selection-v1"
+RANDOM_ALGORITHM_VERSION = "opengu-random-torch-randperm-v1"
+DEGREE_ALGORITHM_VERSION = "opengu-degree-source-topk-v1"
+PAGERANK_ALGORITHM_VERSION = "opengu-pagerank-undirected-networkx-topk-v1"
+RANDOM_PRODUCER_SEMANTIC_VERSION = "opengu-random-selection-v1"
+DEGREE_PRODUCER_SEMANTIC_VERSION = "opengu-degree-selection-v1"
+PAGERANK_PRODUCER_SEMANTIC_VERSION = "opengu-pagerank-selection-v1"
 PLANETOID_DATASETS = frozenset(("cora", "citeseer", "pubmed"))
 OGB_NODE_DATASETS = frozenset(("ogbn-arxiv", "ogbn-products"))
 FUTURE_PRODUCERS = frozenset(("tracin", "hybrid"))
@@ -400,6 +407,66 @@ def build_im_recipe(
     )
 
 
+def _validate_selection_k(inputs: SelectionInputs, k: int) -> None:
+    if isinstance(k, bool) or not isinstance(k, int) or k <= 0:
+        raise ContractValidationError("k must be a positive integer")
+    if k > len(inputs.candidate_nodes):
+        raise ContractValidationError("k exceeds the candidate count")
+
+
+def build_random_recipe(
+    inputs: SelectionInputs, k: int, random_seed: int
+) -> ArtifactRecipe:
+    _validate_selection_k(inputs, k)
+    if isinstance(random_seed, bool) or not isinstance(random_seed, int):
+        raise ContractValidationError("random seed must be an integer")
+    return ArtifactRecipe(
+        {
+            "graph_fingerprint": inputs.graph_fingerprint,
+            "candidate_set_hash": inputs.candidate_set_hash,
+            "node_id_space": NODE_ID_SPACE,
+            "selector": "random",
+            "selector_algorithm_version": RANDOM_ALGORITHM_VERSION,
+            "k": k,
+            "random_parameters": {"seed": random_seed},
+        }
+    )
+
+
+def build_degree_recipe(inputs: SelectionInputs, k: int) -> ArtifactRecipe:
+    _validate_selection_k(inputs, k)
+    return ArtifactRecipe(
+        {
+            "graph_fingerprint": inputs.graph_fingerprint,
+            "candidate_set_hash": inputs.candidate_set_hash,
+            "node_id_space": NODE_ID_SPACE,
+            "selector": "degree",
+            "selector_algorithm_version": DEGREE_ALGORITHM_VERSION,
+            "k": k,
+        }
+    )
+
+
+def build_pagerank_recipe(
+    inputs: SelectionInputs, k: int, pagerank_alpha: float
+) -> ArtifactRecipe:
+    _validate_selection_k(inputs, k)
+    alpha = float(pagerank_alpha)
+    if not math.isfinite(alpha) or not 0.0 <= alpha <= 1.0:
+        raise ContractValidationError("pagerank_alpha must be finite and in [0, 1]")
+    return ArtifactRecipe(
+        {
+            "graph_fingerprint": inputs.graph_fingerprint,
+            "candidate_set_hash": inputs.candidate_set_hash,
+            "node_id_space": NODE_ID_SPACE,
+            "selector": "pagerank",
+            "selector_algorithm_version": PAGERANK_ALGORITHM_VERSION,
+            "k": k,
+            "pagerank_parameters": {"alpha": alpha},
+        }
+    )
+
+
 @contextmanager
 def _sanitized_framework_argv() -> Iterable[None]:
     original = sys.argv
@@ -416,6 +483,35 @@ def load_im_strategy() -> Tuple[Type[Any], bool, Path]:
 
     source = Path(__file__).resolve().parents[1] / "attack" / "attack_strategies" / "im_strategy.py"
     return IMStrategy, bool(HAS_NUMBA), source
+
+
+def load_simple_strategy(strategy_name: str) -> Tuple[Type[Any], Path]:
+    with _sanitized_framework_argv():
+        if strategy_name == "random":
+            from attack.attack_strategies.random_strategy import RandomStrategy
+
+            strategy_class = RandomStrategy
+        elif strategy_name == "degree":
+            from attack.attack_strategies.degree_strategy import DegreeStrategy
+
+            strategy_class = DegreeStrategy
+        elif strategy_name == "pagerank":
+            from attack.attack_strategies.pagerank_strategy import PageRankStrategy
+
+            strategy_class = PageRankStrategy
+        else:
+            raise ContractValidationError(
+                "no simple Selection producer is registered for {0}".format(
+                    strategy_name
+                )
+            )
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "attack"
+        / "attack_strategies"
+        / "{0}_strategy.py".format(strategy_name)
+    )
+    return strategy_class, source
 
 
 def build_im_producer(
@@ -452,12 +548,60 @@ def build_im_producer(
     return produce
 
 
-def producer_source_fingerprint(strategy_source: Path) -> str:
+def build_simple_producer(
+    inputs: SelectionInputs,
+    k: int,
+    strategy_class: Type[Any],
+    strategy_args: Mapping[str, Any],
+    *,
+    random_seed: Optional[int] = None,
+) -> Callable[[], Sequence[int]]:
+    _validate_selection_k(inputs, k)
+    strategy = strategy_class(dict(strategy_args))
+    data = Data(
+        edge_index=inputs.edge_index.clone(),
+        num_nodes=inputs.num_nodes,
+        train_indices=torch.tensor(inputs.candidate_nodes, dtype=torch.long),
+    )
+    model = torch.nn.Identity()
+
+    def select() -> Sequence[int]:
+        selected = strategy.select_nodes(data, model, k)
+        return [int(node) for node in torch.as_tensor(selected).view(-1).tolist()]
+
+    if random_seed is None:
+        return select
+
+    def produce_random() -> Sequence[int]:
+        # RandomStrategy consumes the process-global Torch generator.  Fork it
+        # so an explicit Recipe seed is sufficient and caller RNG state is not
+        # consumed or mutated by materialization.
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(random_seed)
+            return select()
+
+    return produce_random
+
+
+def producer_source_fingerprint(
+    strategy_source: Path, strategy_name: str = "im"
+) -> str:
     digest = hashlib.sha256()
-    for label, path in (
+    sources = [
         (b"selection-materializer\x00", Path(__file__)),
-        (b"im-strategy\x00", strategy_source),
-    ):
+        ((strategy_name + "-strategy\x00").encode("utf-8"), strategy_source),
+    ]
+    if strategy_name in ("random", "degree", "pagerank"):
+        sources.append(
+            (
+                b"base-strategy\x00",
+                Path(__file__).resolve().parents[1]
+                / "attack"
+                / "attack_strategies"
+                / "base_strategy.py",
+            )
+        )
+    for label, path in sources:
         digest.update(label)
         digest.update(path.read_bytes())
     return digest.hexdigest()
@@ -467,13 +611,19 @@ def _stable_hash32(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(_plain_json_bytes(dict(value))).hexdigest()[:32]
 
 
-def _legacy_im_parameter_fingerprint(parameters: ImParameters) -> str:
+def _legacy_im_parameter_fingerprint(parameters: Any) -> str:
+    if isinstance(parameters, ImParameters):
+        values = parameters.to_dict()
+    elif isinstance(parameters, Mapping):
+        values = parameters
+    else:
+        raise ContractValidationError("IM parameters must be a mapping")
     return _stable_hash32(
         {
-            "propagation_prob": float(parameters.propagation_prob),
-            "mc_rounds": int(parameters.mc_rounds),
-            "candidate_fraction": float(parameters.candidate_fraction),
-            "im_batch_size": int(parameters.im_batch_size),
+            "propagation_prob": float(values["propagation_prob"]),
+            "mc_rounds": int(values["mc_rounds"]),
+            "candidate_fraction": float(values["candidate_fraction"]),
+            "im_batch_size": int(values["im_batch_size"]),
         }
     )
 
@@ -552,6 +702,7 @@ class SelectionRequest:
     train_ratio: float
     val_ratio: float
     test_ratio: float
+    pagerank_alpha: float
     im_parameters: ImParameters
 
 
@@ -592,6 +743,13 @@ def load_selection_request(config_path: Any, split_seed: Optional[int] = None) -
     if not math.isclose(train_ratio + val_ratio + test_ratio, 1.0, abs_tol=1e-9):
         raise ContractValidationError("train/val/test ratios must sum to 1")
     chosen_split_seed = seeds[0] if split_seed is None else int(split_seed)
+    pagerank_alpha = float(
+        _config_arg(config, extra, ("pagerank_alpha",), 0.85)
+    )
+    if not math.isfinite(pagerank_alpha) or not 0.0 <= pagerank_alpha <= 1.0:
+        raise ContractValidationError(
+            "pagerank_alpha must be finite and in [0, 1]"
+        )
     parameters = ImParameters(
         propagation_prob=float(
             _config_arg(config, extra, ("propagation_prob",), 0.1)
@@ -624,6 +782,7 @@ def load_selection_request(config_path: Any, split_seed: Optional[int] = None) -
         train_ratio=train_ratio,
         val_ratio=val_ratio,
         test_ratio=test_ratio,
+        pagerank_alpha=pagerank_alpha,
         im_parameters=parameters,
     )
 
@@ -635,7 +794,9 @@ class PreparedSelectionJob:
     inputs: SelectionInputs
     producer: Callable[[], Sequence[int]]
     producer_version: ProducerVersion
-    parameters: ImParameters
+    parameters: Mapping[str, Any]
+    legacy_seed: int
+    legacy_strategy_parameters: Mapping[str, Any]
     k: int
     execution_backend: str
     algorithm_version: str
@@ -656,6 +817,7 @@ class PreparedSelectionJob:
             "legacy_graph_fingerprint": self.inputs.legacy_graph_fingerprint,
             "execution_backend": self.execution_backend,
             "algorithm_version": self.algorithm_version,
+            "parameters": dict(self.parameters),
             "producer_version": self.producer_version.to_dict(),
             "consumer_requests": self.consumer_requests,
             "request_envelope": dict(self.request_envelope),
@@ -703,17 +865,18 @@ class PreparedSelectionPlan:
 
 
 ProducerBuilder = Callable[
-    [SelectionRequest, SelectionInputs, Type[Any], bool, Path], PreparedSelectionJob
+    [SelectionRequest, SelectionInputs, Type[Any], bool, Path],
+    Tuple[PreparedSelectionJob, ...],
 ]
 
 
-def _prepare_im_job(
+def _prepare_im_jobs(
     request: SelectionRequest,
     inputs: SelectionInputs,
     strategy_class: Type[Any],
     has_numba: bool,
     strategy_source: Path,
-) -> PreparedSelectionJob:
+) -> Tuple[PreparedSelectionJob, ...]:
     k = max(1, int(len(inputs.candidate_nodes) * request.ratio))
     recipe = build_im_recipe(inputs, k, request.im_parameters, has_numba)
     producer = build_im_producer(inputs, k, request.im_parameters, strategy_class)
@@ -736,24 +899,171 @@ def _prepare_im_job(
         "selection_ratio": request.ratio,
         "split_seed": request.split_seed,
     }
-    return PreparedSelectionJob(
-        strategy="im",
-        recipe=recipe,
-        inputs=inputs,
-        producer=producer,
-        producer_version=producer_version,
-        parameters=request.im_parameters,
-        k=k,
-        execution_backend=implementation_backend(
-            has_numba, request.im_parameters.parallel_mc
+    return (
+        PreparedSelectionJob(
+            strategy="im",
+            recipe=recipe,
+            inputs=inputs,
+            producer=producer,
+            producer_version=producer_version,
+            parameters=request.im_parameters.to_dict(),
+            legacy_seed=request.im_parameters.im_selector_seed,
+            legacy_strategy_parameters={
+                "propagation_prob": float(request.im_parameters.propagation_prob),
+                "mc_rounds": int(request.im_parameters.mc_rounds),
+                "candidate_fraction": float(request.im_parameters.candidate_fraction),
+                "im_batch_size": int(request.im_parameters.im_batch_size),
+            },
+            k=k,
+            execution_backend=implementation_backend(
+                has_numba, request.im_parameters.parallel_mc
+            ),
+            algorithm_version=im_algorithm_version(has_numba),
+            consumer_requests=consumer_requests,
+            request_envelope=envelope,
         ),
-        algorithm_version=im_algorithm_version(has_numba),
-        consumer_requests=consumer_requests,
-        request_envelope=envelope,
     )
 
 
-PRODUCER_REGISTRY: Dict[str, ProducerBuilder] = {"im": _prepare_im_job}
+def _simple_request_envelope(
+    request: SelectionRequest, experiment_seeds: Sequence[int]
+) -> Dict[str, Any]:
+    return {
+        "config_name": request.config_name,
+        "yaml_path": str(request.config_path),
+        "dataset_request": request.dataset,
+        "base_model_request": request.base_model,
+        "method_requests": list(request.methods),
+        "experiment_seeds": [int(seed) for seed in experiment_seeds],
+        "selection_ratio": request.ratio,
+        "split_seed": request.split_seed,
+    }
+
+
+def _prepare_random_jobs(
+    request: SelectionRequest,
+    inputs: SelectionInputs,
+    strategy_class: Type[Any],
+    has_numba: bool,
+    strategy_source: Path,
+) -> Tuple[PreparedSelectionJob, ...]:
+    del has_numba
+    k = max(1, int(len(inputs.candidate_nodes) * request.ratio))
+    strategy_requests = sum(1 for name in request.strategies if name == "random")
+    producer_version = ProducerVersion(
+        semantic_version=RANDOM_PRODUCER_SEMANTIC_VERSION,
+        source_fingerprint=producer_source_fingerprint(strategy_source, "random"),
+    )
+    jobs: List[PreparedSelectionJob] = []
+    for seed in dict.fromkeys(request.seeds):
+        seed_requests = sum(1 for value in request.seeds if value == seed)
+        jobs.append(
+            PreparedSelectionJob(
+                strategy="random",
+                recipe=build_random_recipe(inputs, k, seed),
+                inputs=inputs,
+                producer=build_simple_producer(
+                    inputs, k, strategy_class, {}, random_seed=seed
+                ),
+                producer_version=producer_version,
+                parameters={"seed": seed},
+                legacy_seed=seed,
+                legacy_strategy_parameters={},
+                k=k,
+                execution_backend="torch-cpu",
+                algorithm_version=RANDOM_ALGORITHM_VERSION,
+                consumer_requests=(
+                    len(request.methods) * strategy_requests * seed_requests
+                ),
+                request_envelope=_simple_request_envelope(request, (seed,)),
+            )
+        )
+    return tuple(jobs)
+
+
+def _prepare_degree_jobs(
+    request: SelectionRequest,
+    inputs: SelectionInputs,
+    strategy_class: Type[Any],
+    has_numba: bool,
+    strategy_source: Path,
+) -> Tuple[PreparedSelectionJob, ...]:
+    del has_numba
+    k = max(1, int(len(inputs.candidate_nodes) * request.ratio))
+    return (
+        PreparedSelectionJob(
+            strategy="degree",
+            recipe=build_degree_recipe(inputs, k),
+            inputs=inputs,
+            producer=build_simple_producer(inputs, k, strategy_class, {}),
+            producer_version=ProducerVersion(
+                semantic_version=DEGREE_PRODUCER_SEMANTIC_VERSION,
+                source_fingerprint=producer_source_fingerprint(
+                    strategy_source, "degree"
+                ),
+            ),
+            parameters={},
+            legacy_seed=0,
+            legacy_strategy_parameters={},
+            k=k,
+            execution_backend="torch-cpu",
+            algorithm_version=DEGREE_ALGORITHM_VERSION,
+            consumer_requests=(
+                len(request.methods)
+                * len(request.seeds)
+                * sum(1 for name in request.strategies if name == "degree")
+            ),
+            request_envelope=_simple_request_envelope(request, request.seeds),
+        ),
+    )
+
+
+def _prepare_pagerank_jobs(
+    request: SelectionRequest,
+    inputs: SelectionInputs,
+    strategy_class: Type[Any],
+    has_numba: bool,
+    strategy_source: Path,
+) -> Tuple[PreparedSelectionJob, ...]:
+    del has_numba
+    k = max(1, int(len(inputs.candidate_nodes) * request.ratio))
+    parameters = {"pagerank_alpha": float(request.pagerank_alpha)}
+    return (
+        PreparedSelectionJob(
+            strategy="pagerank",
+            recipe=build_pagerank_recipe(inputs, k, request.pagerank_alpha),
+            inputs=inputs,
+            producer=build_simple_producer(
+                inputs, k, strategy_class, parameters
+            ),
+            producer_version=ProducerVersion(
+                semantic_version=PAGERANK_PRODUCER_SEMANTIC_VERSION,
+                source_fingerprint=producer_source_fingerprint(
+                    strategy_source, "pagerank"
+                ),
+            ),
+            parameters=parameters,
+            legacy_seed=0,
+            legacy_strategy_parameters=parameters,
+            k=k,
+            execution_backend="networkx-cpu",
+            algorithm_version=PAGERANK_ALGORITHM_VERSION,
+            consumer_requests=(
+                len(request.methods)
+                * len(request.seeds)
+                * sum(1 for name in request.strategies if name == "pagerank")
+            ),
+            request_envelope=_simple_request_envelope(request, request.seeds),
+        ),
+    )
+
+
+PRODUCER_REGISTRY: Dict[str, ProducerBuilder] = {
+    "random": _prepare_random_jobs,
+    "degree": _prepare_degree_jobs,
+    "pagerank": _prepare_pagerank_jobs,
+    "im": _prepare_im_jobs,
+}
 
 
 def prepare_selection_plan(
@@ -794,10 +1104,15 @@ def prepare_selection_plan(
         inputs = load_selection_inputs(
             request.dataset, root, request.split_seed, request.train_ratio
         )
-        strategy_class, has_numba, source = load_im_strategy()
     jobs: List[PreparedSelectionJob] = []
     for strategy in supported:
-        jobs.append(
+        with redirect_stdout(sys.stderr):
+            if strategy == "im":
+                strategy_class, has_numba, source = load_im_strategy()
+            else:
+                strategy_class, source = load_simple_strategy(strategy)
+                has_numba = False
+        jobs.extend(
             PRODUCER_REGISTRY[strategy](
                 request, inputs, strategy_class, has_numba, source
             )
@@ -897,7 +1212,7 @@ def compare_legacy_selection(
     selected_nodes: Sequence[int],
     legacy_results_root: Path,
 ) -> Dict[str, Any]:
-    expected_param_fingerprint = _legacy_im_parameter_fingerprint(job.parameters)
+    expected_param_fingerprint = _stable_hash32(job.legacy_strategy_parameters)
     matches: List[Dict[str, Any]] = []
     anomalies: List[Dict[str, str]] = []
     selection_root = legacy_results_root / "selection_cache"
@@ -920,7 +1235,7 @@ def compare_legacy_selection(
                 )
                 identity_matches = (
                     ratio_matches
-                    and int(config.get("seed")) == job.parameters.im_selector_seed
+                    and int(config.get("seed")) == job.legacy_seed
                     and int(config.get("k")) == job.k
                     and str(config.get("graph_fingerprint"))
                     == job.inputs.legacy_graph_fingerprint
@@ -988,7 +1303,8 @@ def compare_legacy_selection(
         "status": status,
         "authoritative": False,
         "used_for_resolution": False,
-        "same_selector_seed": job.parameters.im_selector_seed,
+        "expected_legacy_seed": job.legacy_seed,
+        "same_selector_seed": job.legacy_seed,
         "expected_legacy_graph_fingerprint": job.inputs.legacy_graph_fingerprint,
         "expected_legacy_parameter_fingerprint": expected_param_fingerprint,
         "v2_ordered_nodes_hash": v2_ordered_hash,
