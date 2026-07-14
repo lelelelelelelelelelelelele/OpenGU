@@ -62,6 +62,6 @@ status: accepted-read-only-smoke
 - 本 smoke 不写 Cache、results 或远端实验文件。
 - 本 smoke 不比较 Legacy Selection 与 V2 Selection，也不要求两者节点完全相同。
 - 本 smoke 不证明 Score、Prediction、Evaluation 已成为正式 V2 Artifact。
-- 本 smoke 不改变 runner 尚未接入 V2、conflict resolution 尚未完成的总体状态。
+- 本 smoke 本身不证明 runner 或 conflict resolution；后续实现与 Gate 4–6 状态由 `cache_v2_cutover_archive_readiness_ACCEPTANCE_REPORT` 单独验收。
 
 因此，下游指标一致性可以保留为轻量 smoke，而不应成为 Selection Cache 迁移的主要阻塞门槛。

@@ -904,9 +904,9 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
 | 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **Selection cutover 范围已通过**：IM、random、degree、PageRank 使用 versioned payload/header；conflict resolution 为 write-once sidecar，保留 SQLite row、marker 与 quarantine。Score/Prediction/Evaluation 一级 Artifact 仍属后续范围 |
 | 3. 版本化 V2 与有界下游 smoke | V2 producer 的 Recipe/版本明确；同版本 cold/warm 与跨进程确定性通过；Legacy exact replay 降为迁移诊断；Prediction/Evaluation 只做有明确容差的小样本 smoke | **已通过当前 Selection 范围**：四类 producer exact canary 已通过；Legacy IM/Random mismatch 保留为非权威诊断；单 cell 9 项 Prediction→Evaluation 指标在 `1e-6` 内 |
-| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **实现与 fixture/CPU canary 已通过，SSH 部署验收待补**：preflight 显式传递 Artifact ID；attack/collateral 共用同一 verified Selection；TracIn/Hybrid 和任意查询异常直接失败 |
-| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | **机制与 fixture 已通过，active 4090 apply 待补**：write-once marker；既有 payload 可读；目录创建/save/invalidate/clear 全部拒绝 |
-| 6. 归档准备 / 物理归档或删除 | 先产出逐文件 hash、consumer refs、V2/conflict 状态和回滚 manifest；物理移动/删除必须另行审批 | **归档准备实现与 fixture 已通过，active 4090 manifest 待补；物理归档/删除未授权** |
+| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **当前 Selection cutover 范围已通过**：active 4090 cold/warm 得到 `sel_5bc434cd_7e66e515`；runner preflight `writes=0`、`would_run=1`；attack/collateral 共用同一 verified Artifact ID；本轮按边界未启动 GU/GPU |
+| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | **已通过并在 active 4090 生效**：970 files / 9,271,720 bytes 原位可读；write-once marker；受控 ResultCache 写探针以 `LegacyCacheFrozenError` 失败，文件数 784→784 |
+| 6. 归档准备 / 物理归档或删除 | 先产出逐文件 hash、consumer refs、V2/conflict 状态和回滚 manifest；物理移动/删除必须另行审批 | **归档准备完成**：逐文件 manifest、consumer refs、V2/conflict 与回滚锚点已生成；70 条代码/配置引用仍存在，因此 `legacy_delete_ready=false`；物理移动/删除未授权 |
 
 Gate 仍按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 的 conflict 硬门槛现由显式 `keep_existing` 授权满足：默认 unresolved；resolution record 绑定 conflict fingerprint、正式 Artifact、actor、reason 与 UTC 时间；原 conflict row、durable marker 和 quarantine 不改写；新 conflict 会重新阻塞。Legacy-only conflict 没有正式 verified Artifact，因此不能使用 `keep_existing`。
 
@@ -1055,6 +1055,20 @@ python scripts/cachectl.py resolve explain --type selection --recipe recipe.json
 python scripts/cachectl.py artifact parents sel_xxx
 python scripts/cachectl.py artifact children sel_xxx
 python scripts/cachectl.py artifact consumers sel_xxx
+
+# 查看 / dry-run / 显式冻结 Legacy 三棵 cache；冻结后仍可读
+python scripts/cachectl.py legacy freeze-status --root results
+python scripts/cachectl.py legacy freeze --root results --actor NAME --reason REASON
+python scripts/cachectl.py legacy freeze --root results --actor NAME --reason REASON --apply
+
+# 只生成归档准备计划；--apply 也只写 manifest，不移动或删除 Legacy
+python scripts/cachectl.py legacy archive-plan --root results --source-root . --output EVIDENCE.json
+python scripts/cachectl.py legacy archive-plan --root results --source-root . --output EVIDENCE.json --apply
+
+# 显式查看 / write-once 授权一个 formal V2 conflict
+python scripts/cachectl.py conflict status conf_xxx
+python scripts/cachectl.py conflict resolve conf_xxx --actor NAME --reason REASON
+python scripts/cachectl.py conflict resolve conf_xxx --actor NAME --reason REASON --apply
 ~~~
 
 V2.2+ 设计占位，V2.1 未实现：
