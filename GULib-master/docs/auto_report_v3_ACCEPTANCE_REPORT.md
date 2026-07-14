@@ -4,119 +4,105 @@
 >
 > Branch: `codex/autoreport-v3-20260714`
 >
-> Source baseline: `648a6f1` on `codex/citeseer-e1-graphrevoker-20260714`
+> Validation scope: local CPU/fixture tests; SSH final deployment is deferred because the server is offline
 >
-> Verdict: **PASS WITH KNOWN BASELINE GAP**
+> Verdict: **LOCAL PASS — REMOTE REFRESH PENDING**
 
-## Verdict
+## Outcome
 
-AutoReport V3 is implemented and deployed to the active 4090 checkout. The former server `auto_report.md` was renamed byte-for-byte into an archive, its five server-only tail entries were inventoried, and the live `auto_report.md` / `.html` names now hold a bounded view rebuilt from the append-only V3 event stream plus a curated baseline.
+AutoReport V3 now separates the append-only machine audit from the bounded human progress view. The old fixed “下一步建议” text is retired; the frozen 4090 journal remains historical evidence, while the new `auto_report.md` and `auto_report.html` are rebuildable views over V3 JSONL plus a small curated baseline.
 
-The 2,015 fixed “下一步建议” lines were not migrated. Legacy writer APIs remain importable only for explicit fixture/export paths; the three old evaluation runners now write V3 events.
+This local completion pass closes the gaps found after the earlier cutover:
 
-One unrelated baseline gap remains: three `tests/test_collateral.py::TestGetTrainedModel` tests use an `AttackPipeline` stub without `args`. The implementation file is unchanged from the requested base, so this work did not repair that separate issue.
+- repeated standalone SelectionCache/ResultCache reuse is compressed by Cache/Recipe/Artifact/config identity instead of growing with every new `run_id`;
+- runner-managed attempts keep their own stage history, so retry evidence is not removed by cache-noise compression;
+- runner and child processes share a canonical normalized identity envelope; `cell_id` must match it;
+- append recomputes event identity, validates the existing stream, and fails closed without modifying a corrupt JSONL;
+- append and Markdown/HTML refresh are serialized, preventing an older concurrent projection from overwriting a newer one;
+- the human Cache column now distinguishes authoritative Cache V2 hits from Legacy/non-authoritative hits and shows source, lookup policy, Recipe hash or Legacy key.
 
 ## Acceptance summary
 
 | Evidence | Result |
 |---|---:|
-| Focused AutoReport tests, local | **16 passed** |
-| Focused AutoReport tests, active 4090 | **16 passed** |
-| Selected local regressions | **206 passed** |
-| Known unrelated collateral baseline | **3 deselected** in scoped run |
-| Server legacy archive | **980,451 bytes / 19,020 lines / 2,015 entries / 0 decisions** |
-| Server archive SHA-256 | `0273a88a0d56952c232fc1b5165ad5bbab66a1940ba6ceae01def784fa817d3b` |
-| Server summary rebuild | **0 warnings; MD/HTML hashes stable** |
-| Runner dry-run | **1 would_run; report hashes unchanged; no JSONL created** |
-| Changes/deletions under server caches or runs | **0** |
-| GPU executions / TracIn changes | **0 / 0** |
+| Focused `tests/test_auto_report_v3.py` | **29 passed** |
+| Related attack/runner/evaluation/collateral suite | **117 passed, 3 known baseline tests deselected** |
+| AutoReport plus relevant Cache V2 regression suite | **205 passed, 3 known baseline tests deselected** |
+| Python compilation | **passed** |
+| Existing-stream corruption test | **fail-closed; bytes unchanged** |
+| Post-build event tamper test | **rejected before append** |
+| Current local status rebuild | **0 events, 0 warnings; Markdown + HTML regenerated** |
+| GPU executions / TracIn algorithm changes | **0 / 0** |
+| SSH activity in this completion pass | **0** |
 
-## Deployed layout
+The three deselected tests are the unchanged `tests/test_collateral.py::TestGetTrainedModel` stubs that construct `AttackPipeline` without `args`. Running them still produces the same baseline `AttributeError`; this AutoReport change does not modify `attack/pipeline_adapter.py`.
 
-```text
-runner + attack + collateral producers
-                │ stage/state/cache/error facts
-                ▼
-auto_report.events.jsonl              append-only audit authority
-                │
-                ├──────────────┐
-                ▼              ▼
-auto_report.md          auto_report.html       bounded, rebuildable views
-                ▲              ▲
-                └──── baseline ┘
+## Append and compression policy
 
-archive/auto_report_2026-05-06_to_2026-07-10_active4090.md
-                └─ frozen v1/v2 source; never rewritten
-```
-
-Server deployment root: `/autodl-fs/data/OpenGU/GULib-master`.
-
-The archive remains untracked user data on the server. The tracked `auto_report_baseline.json` stores its verified size, line/entry counts, checksum, and the disposition of useful tail content. Missing local copies are allowed; when the archive exists beside the baseline, its checksum and line count are verified during rebuild.
-
-## Server-content triage
-
-The active server journal was compared with the earlier 2,010-entry snapshot. Exactly five entries were server-only:
-
-| Server-only content | Disposition |
+| Situation | Audit behavior |
 |---|---|
-| GraphRevoker random attack, `f1_after=0.7140`, Legacy `cache=HIT` | Archive-only: `f1_before=NA` and HIT provenance is insufficient for a V3 current fact |
-| GraphRevoker random collateral, gap `-1.54%`, mean shift `0.0361`, flipped `2.96%` | Recorded in baseline as historical tail evidence; not a completed V3 cell |
-| GraphEraser random collateral probe ×2, identical gap `11.81%` | Duplicate temporary probe; not promoted |
-| GraphEraser degree collateral probe, gap `11.81%` | Temporary probe; not promoted |
+| Real runner attempt begins | append `run.started`; retries also append `run.retrying` with `retry_of` and incremented `attempt` |
+| Selection, attack, or collateral reaches a first terminal state | append the terminal stage event |
+| Runner and child report the same run/stage/state | retain one event by the shared transition identity |
+| Standalone stage is wholly served by the same SelectionCache/ResultCache entry | append one semantic cache-reuse event; suppress unchanged repeats |
+| Runner attempt reuses Cache but still performs downstream work | retain the per-attempt stage event |
+| Complete cell is repeatedly encountered | append one `run.skipped` per unchanged config/Artifact identity |
+| Dry-run, internal probes, fixed suggestions | append nothing |
+| Existing JSONL has malformed or unverifiable content | refuse append; do not rewrite, truncate, or repair automatically |
 
-The old file contained 1,040 cache-check suggestions and 975 trend-check suggestions. All remain intact in the archive and are absent from the new live report.
+## Cache meaning in the human view
+
+A HIT is no longer displayed as a bare `cache=HIT`. The projection includes:
+
+- Cache type: `selection`, `result`, `score`, `artifact`, or `run_artifact`;
+- authority: `authoritative` for verified formal artifacts, otherwise `legacy/non-authoritative`;
+- hit source and lookup policy;
+- formal Recipe hash or Legacy cache key;
+- write outcome in the machine event.
+
+A whole ResultCache hit does not replay the historical `selection_cache_hit` stored inside the cached `AttackResult` as a current SelectionCache hit.
+
+## Historical content retained without log noise
+
+The verified server archive remains the 19,020-line / 2,015-entry file with SHA-256 `0273a88a0d56952c232fc1b5165ad5bbab66a1940ba6ceae01def784fa817d3b`. It is not rewritten into V3 events.
+
+The bounded baseline now carries only useful, explicitly scoped facts:
+
+- the 4090 cutover integrity anchor;
+- the verified six-cell Phase B arxiv pilot: GIF/GNNDelete × random/tracin/im, seed 42, ratio 0.01;
+- the GraphRevoker server-tail attack/collateral evidence, marked archive-only because the old HIT provenance is incomplete;
+- the duplicate GraphEraser temporary probes, marked non-promoted;
+- retirement of all 2,015 fixed next-step suggestions.
+
+The six-cell pilot is a historical summary, not a fabricated V3 completion state and not a claim that the arxiv matrix is complete.
 
 ## Implemented checklist
 
-- [x] Append-only V3 JSONL schema with stable `cell_id`, per-attempt `run_id`, `git_sha`, and config fingerprint.
-- [x] `selection`, `attack`, `collateral`, and `run` stages with started/completed/failed/skipped/retrying states.
-- [x] Typed Cache observations: type, outcome, Recipe/Legacy key, Artifact/source, lookup policy, authority, write outcome, and miss reason.
-- [x] Whole ResultCache hits no longer replay an old SelectionCache HIT.
-- [x] Exact transition dedup and unchanged skip/HIT compression without rewriting prior lines.
-- [x] Selection-only, attack-only, collateral, complete/cached, running, and failed projections.
-- [x] Active server legacy journal archived with before/after checksum equality.
-- [x] Five server-only entries classified; duplicate probes and ambiguous Legacy HIT not promoted.
-- [x] New `auto_report.md` and `.html` deployed and rebuilt on the active 4090 checkout.
-- [x] Automatic next-step prose retired.
-- [x] Default legacy Markdown writing disabled; explicit fixture/export compatibility retained.
-- [x] Old evaluation runners migrated to V3 events.
-- [x] v1/v2 reader compatibility retained against frozen archives.
-- [x] A6 user config, caches, score/selection caches, runs, and current E4 fresh checkout left untouched.
-- [ ] GPU experiment execution — deliberately not done.
+- [x] Append-only machine event schema with stable cell/run identity, git SHA, and config fingerprint.
+- [x] Selection, attack, collateral, and run stages with partial completion and failure/retry states.
+- [x] Explicit Cache type, Recipe/Legacy key, Artifact/source, authority, policy, and write outcome.
+- [x] Standalone repeated Cache reuse compression without erasing runner retry history.
+- [x] Existing-stream fail-closed append and post-build tamper detection.
+- [x] Canonical identity propagation from runner to child producers.
+- [x] Bounded Markdown and HTML current-state views.
+- [x] v1/v2 Markdown reader compatibility without migration or history rewrite.
+- [x] Fixed automatic suggestions retired from new reports.
+- [x] Useful historical content organized into a curated baseline instead of copied wholesale.
+- [x] Local fixture, integration, Cache V2 regression, compilation, and report-parity validation.
+- [ ] Final server fast-forward/rebuild verification — deferred until SSH is reopened.
+- [ ] GPU experiment execution — deliberately not part of reporting acceptance.
 
-## Validation evidence
+## Boundaries and known gaps
 
-| Validation | Result |
-|---|---|
-| `tests/test_auto_report_v3.py` locally | 16 passed |
-| Same focused suite on active 4090 | 16 passed |
-| AutoReport + AttackManager + Phase B invariants | 75 passed |
-| Evaluation CLI + demo + repair/timeout runners | 36 passed |
-| Cache V2 core/materializer/canary/store | 79 passed |
-| Collateral excluding unchanged stub gap | 16 passed, 3 deselected |
-| Selected regression total | 206 passed |
-| Python compilation of changed reporting/runners | passed locally and on server reporting modules |
-| Local runner dry-run | `would_run=1`; report hashes stable; event stream absent |
-| Server summary rebuild | parse warnings `0`; MD/HTML hashes unchanged; event stream absent |
-| Server archive integrity | checksum, 980,451 bytes, 19,020 lines, and 2,015 headings verified |
-| `git diff --check` | passed |
+1. This pass did not connect to the server and did not modify remote user data, caches, runs, or the archived journal.
+2. The append path currently validates/deduplicates by scanning JSONL. A read-only derived index may be added later if V3 volume becomes large; it must not replace JSONL as audit authority.
+3. Three unrelated collateral stub tests remain a known baseline gap.
+4. Final remote deployment and regeneration of the live views remain pending while SSH is closed.
 
-## Files and boundaries
+## Primary files
 
-Primary additions/changes include:
-
-- `scripts/evaluation/reporting/events.py`, `summary.py`, `baseline.py`, `reader.py`, and `writer.py`
-- `scripts/evaluation/runners/run_cross_dataset_resume.py`, `run_ratio05.py`, and `run_round2.py`
+- `scripts/evaluation/reporting/events.py`, `writer.py`, `summary.py`, `reader.py`, and `baseline.py`
 - `demo_attack.py`, `eval_collateral.py`, and `experiments/run.py`
-- `results/_journal/auto_report.md`, `auto_report.html`, `auto_report_baseline.json`, `RULES.md`, and `archive/README.md`
-- `tests/test_auto_report_v3.py` and fixtures
-
-The server archive itself is intentionally not committed. It stays at:
-
-`/autodl-fs/data/OpenGU/GULib-master/results/_journal/archive/auto_report_2026-05-06_to_2026-07-10_active4090.md`
-
-## Known gaps
-
-1. Three pre-existing collateral stub tests remain outside this change.
-2. Event rebuild/dedup scans the JSONL stream. A read-only derived index may be added if the machine stream later becomes large.
-3. No GPU experiment was run as part of reporting acceptance; current E4 work continued in its separate fresh checkout.
+- `results/_journal/RULES.md`, `auto_report_baseline.json`, `auto_report.md`, and `auto_report.html`
+- `tests/test_auto_report_v3.py` and `tests/fixtures/auto_report/`
+- `docs/auto_report_v3_DESIGN.md`

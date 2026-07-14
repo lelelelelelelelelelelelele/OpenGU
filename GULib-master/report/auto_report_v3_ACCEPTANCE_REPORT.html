@@ -6,76 +6,88 @@
   <title>AutoReport V3 Acceptance Report</title>
   <style>
     :root{color-scheme:dark;--bg:#080d19;--panel:#111a2c;--panel2:#16233a;--line:#283854;--text:#e9eef8;--muted:#9aaccc;--green:#6ee7b7;--amber:#fbbf24;--blue:#93c5fd}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#17213c 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,Segoe UI,sans-serif}main{max-width:1240px;margin:auto;padding:42px 30px 70px}h1{font-size:38px;margin:0 0 8px}h2{margin:36px 0 14px;font-size:23px}p{max-width:1040px}code{color:#c4b5fd}.eyebrow{color:var(--blue);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:700}.meta,.muted{color:var(--muted)}.verdict{display:inline-flex;margin:16px 0 12px;padding:10px 14px;border:1px solid #3b5f57;background:#0d2825;border-radius:999px;color:var(--green);font-weight:800}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:24px 0}.card{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;min-height:110px}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;font-size:27px;margin-top:8px;color:var(--green)}.card.warn strong{color:var(--amber)}.flow{display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr;align-items:center;gap:10px;margin:20px 0}.node{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:center}.arrow{color:var(--blue);text-align:center;font-size:26px}.callout{border-left:4px solid var(--amber);background:#261f0d;padding:14px 16px;border-radius:0 10px 10px 0;color:#f8e4ae}.table{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:760px;background:var(--panel)}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#17233a;color:#c8d5ec}tr:last-child td{border-bottom:0}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;padding:0;list-style:none}.checklist li{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}.done:before{content:"✓";color:var(--green);font-weight:900;margin-right:9px}.open:before{content:"○";color:var(--amber);font-weight:900;margin-right:9px}footer{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.checklist{grid-template-columns:1fr}}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#17213c 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,Segoe UI,sans-serif}main{max-width:1240px;margin:auto;padding:42px 30px 70px}h1{font-size:38px;margin:0 0 8px}h2{margin:36px 0 14px;font-size:23px}p{max-width:1060px}code{color:#c4b5fd}.eyebrow{color:var(--blue);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:700}.meta,.muted{color:var(--muted)}.verdict{display:inline-flex;margin:16px 0 12px;padding:10px 14px;border:1px solid #66551d;background:#2a220d;border-radius:999px;color:var(--amber);font-weight:800}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:24px 0}.card{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;min-height:110px}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;font-size:27px;margin-top:8px;color:var(--green)}.card.warn strong{color:var(--amber)}.flow{display:grid;grid-template-columns:1fr 54px 1fr 54px 1fr;align-items:center;gap:10px;margin:20px 0}.node{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:center}.arrow{color:var(--blue);text-align:center;font-size:26px}.callout{border-left:4px solid var(--amber);background:#261f0d;padding:14px 16px;border-radius:0 10px 10px 0;color:#f8e4ae}.table{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:760px;background:var(--panel)}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#17233a;color:#c8d5ec}tr:last-child td{border-bottom:0}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;padding:0;list-style:none}.checklist li{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}.done:before{content:"✓";color:var(--green);font-weight:900;margin-right:9px}.open:before{content:"○";color:var(--amber);font-weight:900;margin-right:9px}footer{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.checklist{grid-template-columns:1fr}}
   </style>
 </head>
 <body><main>
-  <div class="eyebrow">OpenGU · Acceptance · 2026-07-14</div>
+  <div class="eyebrow">OpenGU · Local acceptance · 2026-07-14</div>
   <h1>AutoReport V3</h1>
-  <p class="meta">Branch <code>codex/autoreport-v3-20260714</code> · source baseline <code>648a6f1</code></p>
-  <div class="verdict">PASS WITH KNOWN BASELINE GAP</div>
-  <p>AutoReport V3 is deployed to the active 4090 checkout. The 19,020-line server journal was frozen byte-for-byte, five server-only tail entries were classified, and the live Markdown/HTML names now expose a bounded view over append-only V3 events plus a curated baseline.</p>
+  <p class="meta">Branch <code>codex/autoreport-v3-20260714</code> · local CPU/fixture scope · SSH offline</p>
+  <div class="verdict">LOCAL PASS — REMOTE REFRESH PENDING</div>
+  <p>The append-only machine audit is now separate from the bounded human progress view. Fixed next-step prose is retired, useful history is curated into a small baseline, and the final local pass closes repeat-HIT compression, identity consistency, and audit-integrity gaps.</p>
 
   <div class="cards">
-    <div class="card"><span>Focused tests</span><strong>16 + 16</strong><span>local + active 4090</span></div>
-    <div class="card"><span>Selected regressions</span><strong>206 passed</strong></div>
-    <div class="card"><span>Server archive</span><strong>2,015 entries</strong><span>19,020 lines · 0 decisions</span></div>
-    <div class="card warn"><span>Known unrelated baseline</span><strong>3 tests</strong><span>deselected in scoped run</span></div>
+    <div class="card"><span>Focused AutoReport tests</span><strong>29 passed</strong></div>
+    <div class="card"><span>Broad relevant local suite</span><strong>205 passed</strong></div>
+    <div class="card"><span>Frozen archive</span><strong>2,015 entries</strong><span>19,020 lines · 0 decisions</span></div>
+    <div class="card warn"><span>Known unrelated baseline</span><strong>3 tests</strong><span>deselected; unchanged stub gap</span></div>
   </div>
 
-  <div class="callout">Archive SHA-256: <code>0273a88a0d56952c232fc1b5165ad5bbab66a1940ba6ceae01def784fa817d3b</code>. Before/after size, line count, heading count, and checksum matched. The archive remains untracked server user data.</div>
+  <div class="callout">This completion pass made zero SSH connections. Final server fast-forward and live-view rebuild remain intentionally pending until SSH is reopened.</div>
 
-  <h2>Deployed layout</h2>
+  <h2>Data flow</h2>
   <div class="flow">
-    <div class="node"><strong>Runner + producers</strong><br><span class="muted">stage · state · cache · error</span></div>
+    <div class="node"><strong>Runner + stage producers</strong><br><span class="muted">canonical cell/run identity</span></div>
     <div class="arrow">→</div>
     <div class="node"><strong>auto_report.events.jsonl</strong><br><span class="muted">append-only audit authority</span></div>
     <div class="arrow">→</div>
-    <div class="node"><strong>auto_report.md + .html</strong><br><span class="muted">bounded view + legacy baseline</span></div>
+    <div class="node"><strong>auto_report.md + .html</strong><br><span class="muted">bounded rebuildable view</span></div>
   </div>
 
-  <h2>Server-content triage</h2>
-  <div class="table"><table><thead><tr><th>Server-only content</th><th>Disposition</th></tr></thead><tbody>
-    <tr><td>GraphRevoker random attack; <code>f1_after=0.7140</code>; Legacy HIT</td><td>Archive-only: <code>f1_before=NA</code> and HIT provenance is incomplete</td></tr>
-    <tr><td>GraphRevoker random collateral; gap -1.54%, shift 0.0361, flipped 2.96%</td><td>Historical baseline evidence; not a V3 complete cell</td></tr>
-    <tr><td>GraphEraser random temporary probe ×2; identical gap 11.81%</td><td>Duplicate; not promoted</td></tr>
-    <tr><td>GraphEraser degree temporary probe; gap 11.81%</td><td>Temporary probe; not promoted</td></tr>
+  <h2>What changed in the completion pass</h2>
+  <div class="table"><table><thead><tr><th>Gap</th><th>Accepted behavior</th></tr></thead><tbody>
+    <tr><td>Repeated standalone SelectionCache/ResultCache HITs used a new <code>run_id</code> and kept growing</td><td>Semantic cache-reuse dedup uses Cache/Recipe/Artifact/config identity; unchanged reuse is recorded once</td></tr>
+    <tr><td>Compression could hide meaningful retries</td><td>Runner-managed attempts retain their stage events and retry chain</td></tr>
+    <tr><td>Runner and child events could share <code>cell_id</code> but disagree on identity</td><td>Runner propagates a normalized identity envelope; mismatches are rejected</td></tr>
+    <tr><td>Append trusted malformed or post-build-mutated input</td><td>Existing stream and event identity are revalidated; corruption fails closed with bytes unchanged</td></tr>
+    <tr><td>Human Cache summary was too terse</td><td>HIT shows authority, source/Artifact, lookup policy, and Recipe hash or Legacy key</td></tr>
   </tbody></table></div>
-  <p>The old journal contained 1,040 cache-check suggestions and 975 trend-check suggestions. All 2,015 entries remain in the archive and none are copied into the new live report.</p>
 
-  <h2>Acceptance summary</h2>
-  <div class="table"><table><thead><tr><th>Evidence</th><th>Result</th></tr></thead><tbody>
-    <tr><td>Focused AutoReport tests</td><td><strong>16 local + 16 active 4090</strong></td></tr>
-    <tr><td>Selected attack, runner, evaluation, collateral, and Cache V2 regressions</td><td><strong>206 passed</strong></td></tr>
-    <tr><td>Server archive</td><td>980,451 bytes · 19,020 lines · 2,015 entries · 0 decisions</td></tr>
-    <tr><td>Server summary rebuild</td><td>0 warnings · Markdown/HTML hashes stable · no empty JSONL created</td></tr>
-    <tr><td>Local dry-run</td><td>1 would_run · report hashes stable · no JSONL created</td></tr>
-    <tr><td>Server cache/run mutations</td><td>0</td></tr>
-    <tr><td>GPU executions / TracIn changes</td><td>0 / 0</td></tr>
+  <h2>Append policy</h2>
+  <div class="table"><table><thead><tr><th>Situation</th><th>Audit behavior</th></tr></thead><tbody>
+    <tr><td>Real runner attempt / retry</td><td>Append <code>run.started</code>; retry also records <code>run.retrying</code>, <code>retry_of</code>, and attempt</td></tr>
+    <tr><td>First terminal selection/attack/collateral state</td><td>Append the stage event</td></tr>
+    <tr><td>Runner and child report the same run/stage/state</td><td>Retain one shared transition</td></tr>
+    <tr><td>Standalone stage wholly served by the same Cache entry</td><td>Append once; suppress unchanged repeats</td></tr>
+    <tr><td>Complete cell encountered repeatedly</td><td>Append one skip per unchanged config/Artifact identity</td></tr>
+    <tr><td>Dry-run, internal probes, fixed suggestions</td><td>Append nothing</td></tr>
+    <tr><td>Malformed or unverifiable existing JSONL</td><td>Refuse append; no automatic repair, truncation, or rewrite</td></tr>
+  </tbody></table></div>
+
+  <h2>Historical content retained without noise</h2>
+  <p>The frozen 4090 archive remains 19,020 lines / 2,015 entries with SHA-256 <code>0273a88a0d56952c232fc1b5165ad5bbab66a1940ba6ceae01def784fa817d3b</code>. It is not converted into V3 events.</p>
+  <div class="table"><table><thead><tr><th>Curated baseline item</th><th>Boundary</th></tr></thead><tbody>
+    <tr><td>4090 cutover integrity anchor</td><td>Historical evidence only</td></tr>
+    <tr><td>Verified six-cell Phase B arxiv pilot: GIF/GNNDelete × random/tracin/im, seed 42, ratio 0.01</td><td>Historical summary; not a V3 completion state and not a complete arxiv matrix</td></tr>
+    <tr><td>GraphRevoker server-tail attack/collateral</td><td>Archive-only because the old bare HIT lacks complete provenance</td></tr>
+    <tr><td>Duplicate temporary GraphEraser probes</td><td>Not promoted</td></tr>
+    <tr><td>All 2,015 fixed next-step suggestions</td><td>Retired from new views; preserved only in the archive</td></tr>
+  </tbody></table></div>
+
+  <h2>Validation</h2>
+  <div class="table"><table><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody>
+    <tr><td><code>tests/test_auto_report_v3.py</code></td><td><strong>29 passed</strong></td></tr>
+    <tr><td>AttackManager, Phase B invariants, evaluation CLI, repair/timeout runners, collateral</td><td><strong>117 passed, 3 known baseline tests deselected</strong></td></tr>
+    <tr><td>AutoReport plus relevant Cache V2 regressions</td><td><strong>205 passed, 3 known baseline tests deselected</strong></td></tr>
+    <tr><td>Corrupt-stream append</td><td>Rejected; source bytes unchanged</td></tr>
+    <tr><td>Post-build event mutation</td><td>Rejected by dedup/event identity recomputation</td></tr>
+    <tr><td>Compilation</td><td>Passed for reporting modules, runner, demo attack, and collateral</td></tr>
+    <tr><td>Local status rebuild</td><td>0 events · 0 warnings · Markdown/HTML regenerated</td></tr>
+    <tr><td>GPU / TracIn algorithm / SSH</td><td>0 / 0 / 0</td></tr>
   </tbody></table></div>
 
   <h2>Implemented scope</h2>
   <ul class="checklist">
-    <li class="done">Append-only V3 event contract</li><li class="done">Stable cell_id and run_id</li>
-    <li class="done">Stage and state transitions</li><li class="done">Typed Cache provenance</li>
-    <li class="done">ResultCache vs SelectionCache truth</li><li class="done">Repeated HIT/skip dedup</li>
-    <li class="done">Active 4090 journal archived</li><li class="done">Five server-only entries classified</li>
-    <li class="done">Bounded MD + HTML deployed</li><li class="done">Fixed next-step prose retired</li>
-    <li class="done">Default legacy writing disabled</li><li class="done">Old evaluation runners moved to V3</li>
-    <li class="done">A6 config and cache/run data preserved</li><li class="open">GPU experiment execution</li>
+    <li class="done">Append-only V3 machine schema</li><li class="done">Stable cell/run/config/git identity</li>
+    <li class="done">Selection, attack, collateral, run stages</li><li class="done">Partial, failed, and retry states</li>
+    <li class="done">Typed authoritative vs Legacy Cache provenance</li><li class="done">Standalone repeated HIT compression</li>
+    <li class="done">Runner retry history preserved</li><li class="done">Corrupt-stream fail-closed append</li>
+    <li class="done">Bounded Markdown + HTML views</li><li class="done">v1/v2 read compatibility</li>
+    <li class="done">Fixed suggestions retired</li><li class="done">Useful historical baseline organized</li>
+    <li class="open">Final server refresh</li><li class="open">GPU execution (out of scope)</li>
   </ul>
 
-  <h2>Validation</h2>
-  <div class="table"><table><thead><tr><th>Suite/check</th><th>Result</th></tr></thead><tbody>
-    <tr><td><code>tests/test_auto_report_v3.py</code></td><td>16 passed locally; 16 passed on server</td></tr>
-    <tr><td>AutoReport + AttackManager + Phase B</td><td>75 passed</td></tr>
-    <tr><td>Evaluation CLI + demo + repair/timeout</td><td>36 passed</td></tr>
-    <tr><td>Cache V2 core/materializer/canary/store</td><td>79 passed</td></tr>
-    <tr><td>Collateral excluding unchanged stub gap</td><td>16 passed, 3 deselected</td></tr>
-    <tr><td>Compilation, HTML/JSON parse, diff checks</td><td>passed</td></tr>
-  </tbody></table></div>
-
   <h2>Known gaps</h2>
-  <ol><li>Three pre-existing collateral stub tests remain outside this change.</li><li>JSONL rebuild/dedup is a linear scan; a read-only derived index may be useful later.</li><li>No GPU experiment was run; current E4 work continued in its separate fresh checkout.</li></ol>
-  <footer>Source report: <code>docs/auto_report_v3_ACCEPTANCE_REPORT.md</code> · Design: <code>docs/auto_report_v3_DESIGN.md</code></footer>
+  <ol><li>Final server deployment/rebuild is deferred while SSH is closed.</li><li>Three pre-existing collateral stub tests remain outside this change.</li><li>JSONL validation/dedup is currently a linear scan; any future derived index must remain rebuildable and read-only relative to the audit authority.</li></ol>
+  <footer>Source of truth: <code>docs/auto_report_v3_ACCEPTANCE_REPORT.md</code> · Design: <code>docs/auto_report_v3_DESIGN.md</code></footer>
 </main></body></html>

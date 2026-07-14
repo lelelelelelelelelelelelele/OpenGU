@@ -73,6 +73,7 @@ from scripts.evaluation.reporting.events import (
     ENV_CELL_ID,
     ENV_CONFIG_FINGERPRINT,
     ENV_GIT_SHA,
+    ENV_IDENTITY_JSON,
     ENV_RUN_ID,
     artifact_ref,
     cache_observation,
@@ -572,6 +573,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         ENV_ATTEMPT: str(attempt),
         ENV_CONFIG_FINGERPRINT: expected_fp,
         ENV_GIT_SHA: git_sha,
+        ENV_IDENTITY_JSON: json.dumps(identity, sort_keys=True, separators=(",", ":")),
         "OPENGU_AUTOREPORT_EVENT_PATH": str(report_event_path),
     })
     py = _python_bin()
@@ -627,6 +629,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             metrics={
                 "selected_node_count": selection_artifact["selected_node_count"]
             },
+            metadata={"stage_execution": "cache_reuse"},
             event_path=report_event_path,
         )
     _record_autoreport_event(

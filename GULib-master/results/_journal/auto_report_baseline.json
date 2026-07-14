@@ -33,6 +33,13 @@
       "boundary": "旧 attack 的 f1_before=NA 且 cache=HIT 含义不完整；仅作历史证据，不宣称当前 V3 cell complete。"
     },
     {
+      "id": "phase-b-arxiv-pilot",
+      "status": "historical-verified",
+      "title": "Phase B arxiv pilot",
+      "fact": "旧服务器日志与本地结果交叉核实出 6 个完成 cell：GIF/GNNDelete × random/tracin/im，seed=42，ratio=0.01；两处空目录没有完成记录。",
+      "boundary": "这是冻结历史的去噪摘要，不回填为 V3 事件，也不代表 arxiv 矩阵已经补齐。"
+    },
+    {
       "id": "server-tail-grapheraser-probes",
       "status": "duplicate-probe",
       "title": "2026-07-10 GraphEraser probes",

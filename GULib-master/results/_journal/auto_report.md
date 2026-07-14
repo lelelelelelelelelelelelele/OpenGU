@@ -20,6 +20,7 @@ The former live Markdown journal was frozen byte-for-byte. The items below are a
 |---|---|---|---|
 | archived | 4090 live journal cutover | 服务器旧日志覆盖 2026-05-06 至 2026-07-10，共 19,020 行、2,015 条；其中 2,015 条都带固定下一步建议，DECISION 条目为 0。 | 原文件只允许整体归档；不清洗、不压缩、不回填成 V3 当前完成状态。 |
 | archive-only | 2026-07-10 GraphRevoker tail | 相对旧 server snapshot 新增 1 条 random attack 与 1 条 collateral：f1_after=0.7140，collateral gap=-1.54%，mean shift=0.0361，flipped=2.96%。 | 旧 attack 的 f1_before=NA 且 cache=HIT 含义不完整；仅作历史证据，不宣称当前 V3 cell complete。 |
+| historical-verified | Phase B arxiv pilot | 旧服务器日志与本地结果交叉核实出 6 个完成 cell：GIF/GNNDelete × random/tracin/im，seed=42，ratio=0.01；两处空目录没有完成记录。 | 这是冻结历史的去噪摘要，不回填为 V3 事件，也不代表 arxiv 矩阵已经补齐。 |
 | duplicate-probe | 2026-07-10 GraphEraser probes | 新增 3 条临时 collateral probe：random 两次结果完全重复（gap=11.81%），degree 一次（gap=11.81%），路径位于 results/_tmp 或 /tmp。 | 重复 probe 不进入当前进度表，也不提升为新的实验结论。 |
 | retired | 固定“下一步建议” | 1,040 条 cache 检查建议与 975 条趋势检查建议不迁入新 AutoReport；V3 只呈现阶段、状态、Cache 来源、错误和重试事实。 | 旧建议原文只保留在服务器 archive 中。 |
 

@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import warnings
@@ -10,7 +11,9 @@ from .events import (
     ENV_CELL_ID,
     ENV_CONFIG_FINGERPRINT,
     ENV_GIT_SHA,
+    ENV_IDENTITY_JSON,
     ENV_RUN_ID,
+    EventValidationError,
     artifact_ref,
     cache_observation,
     current_git_sha,
@@ -18,6 +21,7 @@ from .events import (
     make_cell_id,
     make_config_fingerprint,
     new_run_id,
+    normalize_identity,
     record_event,
     refresh_status_views,
 )
@@ -287,10 +291,35 @@ def _attempt_from_env() -> int:
         return 1
 
 
+def _identity_from_runtime(identity: Mapping[str, Any], single_cell: bool) -> Dict[str, Any]:
+    local_identity = normalize_identity(identity)
+    raw_identity = os.environ.get(ENV_IDENTITY_JSON) if single_cell else None
+    if not raw_identity:
+        return local_identity
+    try:
+        value = json.loads(raw_identity)
+    except json.JSONDecodeError as exc:
+        raise EventValidationError("invalid runner identity envelope: {0}".format(exc.msg))
+    if not isinstance(value, Mapping):
+        raise EventValidationError("runner identity envelope must be an object")
+    return normalize_identity(value)
+
+
+def _stage_execution_metadata(execution: str) -> Dict[str, Any]:
+    metadata = {"stage_execution": execution}
+    if execution == "cache_reuse" and not os.environ.get(ENV_RUN_ID):
+        metadata["dedup_scope"] = "semantic_cache_reuse"
+    return metadata
+
+
 def _runtime_context(identity: Mapping[str, Any], config_payload: Mapping[str, Any], single_cell: bool):
     derived_cell_id = make_cell_id(identity)
     cell_id = os.environ.get(ENV_CELL_ID) if single_cell else None
     cell_id = cell_id or derived_cell_id
+    if cell_id != derived_cell_id:
+        raise EventValidationError(
+            "runner cell_id does not match the propagated normalized identity"
+        )
     run_id = os.environ.get(ENV_RUN_ID) or new_run_id(cell_id)
     config_fingerprint = os.environ.get(ENV_CONFIG_FINGERPRINT) or make_config_fingerprint(
         config_payload
@@ -328,6 +357,7 @@ def record_evaluation_result(
         "seed": None,
         "k": None,
     }
+    identity = _identity_from_runtime(identity, True)
     payload = {"identity": identity, "producer": script}
     cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
         identity, payload, True
@@ -543,6 +573,7 @@ def record_attack_results(
             "seed": int(seed),
             "k": int(k),
         }
+        identity = _identity_from_runtime(identity, len(strategies) == 1)
         config_payload = {
             "identity": identity,
             "strategies_requested": list(strategies),
@@ -581,6 +612,7 @@ def record_attack_results(
             "seed": int(seed),
             "k": int(k),
         }
+        identity = _identity_from_runtime(identity, single_cell)
         config_payload = {
             "identity": identity,
             "strategies_requested": list(strategies),
@@ -595,6 +627,9 @@ def record_attack_results(
         # current selection HIT.
         result_cache_hit = getattr(result, "result_cache_hit", None)
         if result_cache_hit is not True:
+            selection_observation = _selection_cache_observation(
+                result, strategy=strategy, k=k, cache_enabled=cache_enabled
+            )
             selection_result = record_event(
                 identity=identity,
                 stage="selection",
@@ -605,16 +640,17 @@ def record_attack_results(
                 cell_id=cell_id,
                 run_id=run_id,
                 attempt=attempt,
-                cache=[
-                    _selection_cache_observation(
-                        result, strategy=strategy, k=k, cache_enabled=cache_enabled
-                    )
-                ],
+                cache=[selection_observation],
                 metrics={
                     "selection_time_s": getattr(result, "selection_time", None),
                     "selection_reuse_time_s": getattr(result, "selection_reuse_time", None),
                     "selected_node_count": _selected_node_count(result),
                 },
+                metadata=_stage_execution_metadata(
+                    "cache_reuse"
+                    if selection_observation["outcome"] == "hit"
+                    else "computed"
+                ),
                 event_path=event_path,
                 refresh=False,
             )
@@ -625,6 +661,9 @@ def record_attack_results(
             attack_artifacts.append(artifact_ref(path=save_path, artifact_type="evaluation"))
         failed = bool(getattr(result, "failed", False))
         failure_reason = getattr(result, "failure_reason", None)
+        result_observation = _result_cache_observation(
+            result, strategy=strategy, k=k, cache_enabled=cache_enabled
+        )
         attack_result = record_event(
             identity=identity,
             stage="attack",
@@ -635,7 +674,7 @@ def record_attack_results(
             cell_id=cell_id,
             run_id=run_id,
             attempt=attempt,
-            cache=[_result_cache_observation(result, strategy=strategy, k=k, cache_enabled=cache_enabled)],
+            cache=[result_observation],
             artifacts=attack_artifacts,
             metrics={
                 "f1_before": getattr(result, "f1_before", None),
@@ -653,6 +692,9 @@ def record_attack_results(
                 }
                 if failed
                 else None
+            ),
+            metadata=_stage_execution_metadata(
+                "cache_reuse" if result_observation["outcome"] == "hit" else "computed"
             ),
             event_path=event_path,
             refresh=False,
@@ -744,6 +786,7 @@ def record_collateral_results(
             "seed": seed,
             "k": None,
         }
+        identity = _identity_from_runtime(identity, single_cell)
         payload = {"identity": identity, "output_path": output_path}
         cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
             identity, payload, single_cell
@@ -789,6 +832,7 @@ def record_collateral_results(
             "seed": seed,
             "k": None,
         }
+        identity = _identity_from_runtime(identity, single_cell)
         payload = {"identity": identity, "output_path": output_path}
         cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
             identity, payload, single_cell
@@ -812,6 +856,7 @@ def record_collateral_results(
                 "max_pred_shift": result.get("max_pred_shift"),
                 "fraction_flipped": result.get("fraction_flipped"),
             },
+            metadata=_stage_execution_metadata("computed"),
             event_path=event_path,
             refresh=False,
         )

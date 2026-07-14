@@ -125,6 +125,7 @@ N 为当天第几次会话（从 1 开始）。
 
 - `cell_id`：由 dataset/model/method/strategy/ratio/seed/k 等矩阵坐标稳定生成；不随时间或重试改变。
 - `run_id`：一次真实执行尝试的 ID；runner 通过环境变量传给 attack/collateral 子进程，因此同一次分阶段执行共享一个 `run_id`。
+- runner 同时传播规范化 identity envelope；子进程的 identity 与 `cell_id` 不一致时拒绝追加，不能只靠外部传入的 `cell_id` 掩盖坐标差异。
 - `config_fingerprint` 与 `git_sha` 必须独立记录；cell 坐标相同不代表配置或代码相同。
 - 阶段：`selection` / `attack` / `collateral` / `run`。
 - 状态：`started` / `completed` / `failed` / `skipped` / `retrying`。
@@ -153,6 +154,9 @@ ResultCache 整体命中时，历史 `AttackResult` 内保存的 `selection_cach
 | dry-run | 否 |
 | 同一 run/stage/state 的重复 producer 回报 | 否：按稳定 dedup key 抑制 |
 | 未变化的完整 cell 被反复 skip / Cache hit | 只记录一次；Artifact/Recipe/config 改变后才新增 |
+| standalone producer 的 selection/result 阶段完全由相同 Cache 复用满足 | 只记录一次语义 Cache reuse；runner 管理的真实 retry 仍逐 attempt 保留阶段事件 |
 | 内部逐文件 Cache probe、固定“下一步建议”、重复 HIT 文本 | 否 |
+
+追加前必须重新校验现有 JSONL、重算 event/dedup identity；发现坏行、被篡改事件或 identity/cell 不一致时 fail-closed，原文件保持不变。追加与 Markdown/HTML 视图刷新在同一锁内串行化。
 
 主 `demo_attack.py`、`eval_collateral.py`、`experiments/run.py` 只使用 V3 事件。旧 `append_report_entry` / `append_attack_result` / `append_collateral_entry` 已废弃：不传显式 `report_path` 会拒绝写入，避免覆盖新的 `auto_report.md`；显式 fixture/export 路径仍可用于兼容测试，且不再自动生成“下一步建议”。兼容 reader 仍解析 v1 实验条目、v2 session/decision 和 v3 JSONL，读取不触发历史迁移。

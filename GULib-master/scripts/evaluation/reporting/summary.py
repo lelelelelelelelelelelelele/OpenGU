@@ -93,8 +93,33 @@ def _cache_summary(events: Sequence[Mapping[str, Any]]) -> str:
             outcome = observation.get("outcome", "unknown")
             source = observation.get("hit_source")
             text = "{0}:{1}".format(cache_type, outcome)
-            if outcome == "hit" and source:
-                text += "@{0}".format(Path(str(source)).name or source)
+            if outcome == "hit":
+                authority = observation.get("authoritative")
+                if authority is True:
+                    text += "[authoritative]"
+                elif authority is False:
+                    text += "[legacy/non-authoritative]"
+                else:
+                    text += "[authority-unknown]"
+                artifact = observation.get("artifact") or {}
+                artifact_id = artifact.get("artifact_id")
+                if artifact_id:
+                    text += "@{0}".format(artifact_id)
+                elif source:
+                    text += "@{0}".format(Path(str(source)).name or source)
+                policy = observation.get("lookup_policy")
+                if policy:
+                    text += " via {0}".format(policy)
+                recipe_hash = observation.get("recipe_hash") or artifact.get("recipe_hash")
+                if recipe_hash:
+                    text += " recipe={0}".format(str(recipe_hash)[:12])
+                else:
+                    recipe = observation.get("recipe") or {}
+                    legacy_key = recipe.get("legacy_cache_key")
+                    if legacy_key:
+                        text += " legacy_key={0}".format(str(legacy_key)[:12])
+            elif outcome == "miss" and observation.get("miss_reason"):
+                text += " ({0})".format(observation.get("miss_reason"))
             parts.append(text)
         return ", ".join(parts)
     return "-"

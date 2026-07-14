@@ -42,10 +42,15 @@ ENV_RUN_ID = "OPENGU_AUTOREPORT_RUN_ID"
 ENV_ATTEMPT = "OPENGU_AUTOREPORT_ATTEMPT"
 ENV_CONFIG_FINGERPRINT = "OPENGU_AUTOREPORT_CONFIG_FINGERPRINT"
 ENV_GIT_SHA = "OPENGU_AUTOREPORT_GIT_SHA"
+ENV_IDENTITY_JSON = "OPENGU_AUTOREPORT_IDENTITY_JSON"
 
 
 class EventValidationError(ValueError):
     """Raised when an AutoReport event violates the V3 contract."""
+
+
+class EventStreamCorruptionError(RuntimeError):
+    """Raised when an existing audit stream cannot be trusted for append."""
 
 
 @dataclass(frozen=True)
@@ -178,6 +183,12 @@ def cache_observation(
         raise EventValidationError("unknown cache write outcome: {0}".format(write_outcome))
     if outcome == "hit" and not hit_source:
         raise EventValidationError("cache hit requires hit_source")
+    if outcome == "hit" and not lookup_policy:
+        raise EventValidationError("cache hit requires lookup_policy")
+    if outcome == "hit" and not isinstance(authoritative, bool):
+        raise EventValidationError("cache hit requires explicit authoritative=true/false")
+    if outcome == "hit" and recipe is None and not recipe_hash:
+        raise EventValidationError("cache hit requires recipe or recipe_hash")
     return {
         "type": cache_type,
         "outcome": outcome,
@@ -228,12 +239,18 @@ def _dedup_payload(event: Mapping[str, Any]) -> Dict[str, Any]:
         "state": event["state"],
         "config_fingerprint": event["config_fingerprint"],
     }
-    if event["state"] == "skipped":
+    semantic_cache_reuse = (
+        (event.get("metadata") or {}).get("dedup_scope") == "semantic_cache_reuse"
+    )
+    if event["state"] == "skipped" or semantic_cache_reuse:
         # Repeated complete-cell/cache skips stay quiet until the cache/artifact
-        # identity changes, even though each CLI invocation gets a new run_id.
+        # identity changes. Standalone producers may opt cache-only terminal
+        # stages into the same semantic compression without hiding real runner
+        # attempts, which retain their per-run transition history.
         payload["cache"] = event.get("cache") or []
         payload["artifacts"] = event.get("artifacts") or []
         payload["reason"] = (event.get("metadata") or {}).get("reason")
+        payload["dedup_scope"] = (event.get("metadata") or {}).get("dedup_scope")
     else:
         payload["run_id"] = event["run_id"]
         payload["attempt"] = event["attempt"]
@@ -247,17 +264,39 @@ def _validate_event(event: Mapping[str, Any]) -> None:
         raise EventValidationError("invalid stage: {0}".format(event.get("stage")))
     if event.get("state") not in STATES:
         raise EventValidationError("invalid state: {0}".format(event.get("state")))
-    if event.get("state") == "failed" and not event.get("error"):
-        raise EventValidationError("failed event requires error details")
+    if event.get("event_type") != "{0}.{1}".format(event.get("stage"), event.get("state")):
+        raise EventValidationError("event_type does not match stage/state")
+    if not isinstance(event.get("attempt"), int) or int(event["attempt"]) < 1:
+        raise EventValidationError("attempt must be a positive integer")
+    if event.get("state") == "failed":
+        error = event.get("error")
+        if not isinstance(error, Mapping) or not error.get("type") or not error.get("message"):
+            raise EventValidationError("failed event requires error.type and error.message")
+    if event.get("state") == "retrying":
+        retry = event.get("retry")
+        if (
+            not isinstance(retry, Mapping)
+            or event["attempt"] < 2
+            or retry.get("attempt") != event.get("attempt")
+            or not str(retry.get("retry_of") or "").startswith("run_")
+        ):
+            raise EventValidationError(
+                "retrying event requires attempt>=2 and a matching retry.retry_of run_id"
+            )
     if not str(event.get("cell_id", "")).startswith("cell_"):
         raise EventValidationError("invalid cell_id")
     if not str(event.get("run_id", "")).startswith("run_"):
         raise EventValidationError("invalid run_id")
-    if not isinstance(event.get("attempt"), int) or int(event["attempt"]) < 1:
-        raise EventValidationError("attempt must be a positive integer")
-    normalize_identity(event.get("identity") or {})
+    identity = normalize_identity(event.get("identity") or {})
+    if event.get("cell_id") != make_cell_id(identity):
+        raise EventValidationError("cell_id does not match normalized identity")
     if not event.get("config_fingerprint"):
         raise EventValidationError("config_fingerprint is required")
+    if not event.get("git_sha"):
+        raise EventValidationError("git_sha is required")
+    producer = event.get("producer")
+    if not isinstance(producer, Mapping) or not producer.get("script"):
+        raise EventValidationError("producer.script is required")
     for observation in event.get("cache") or []:
         cache_observation(
             cache_type=observation.get("type"),
@@ -271,6 +310,12 @@ def _validate_event(event: Mapping[str, Any]) -> None:
             write_outcome=observation.get("write_outcome", "unknown"),
             miss_reason=observation.get("miss_reason"),
         )
+    expected_dedup_key = "dedup_" + _digest(_dedup_payload(event), length=32)
+    if event.get("dedup_key") != expected_dedup_key:
+        raise EventValidationError("dedup_key does not match event content")
+    expected_event_id = "evt_" + _digest({"dedup_key": expected_dedup_key}, length=24)
+    if event.get("event_id") != expected_event_id:
+        raise EventValidationError("event_id does not match dedup_key")
 
 
 def build_event(
@@ -389,7 +434,18 @@ def append_event(
     path.parent.mkdir(parents=True, exist_ok=True)
     written = False
     with _exclusive_lock(path):
-        existing, _warnings = read_event_stream(path)
+        existing, stream_warnings = read_event_stream(path)
+        integrity_errors = []
+        for index, existing_event in enumerate(existing, 1):
+            try:
+                _validate_event(existing_event)
+            except EventValidationError as exc:
+                integrity_errors.append("event {0}: {1}".format(index, exc))
+        if stream_warnings or integrity_errors:
+            details = "; ".join((stream_warnings + integrity_errors)[:5])
+            raise EventStreamCorruptionError(
+                "refusing to append to an untrusted AutoReport stream: {0}".format(details)
+            )
         if not any(item.get("dedup_key") == event_value["dedup_key"] for item in existing):
             _check_transition_conflict(existing, event_value)
             prefix = ""
@@ -404,13 +460,13 @@ def append_event(
                 file_obj.flush()
                 os.fsync(file_obj.fileno())
             written = True
-
-    if refresh:
-        refresh_status_views(
-            event_path=path,
-            status_md_path=status_md_path,
-            status_html_path=status_html_path,
-        )
+        if refresh:
+            refresh_status_views(
+                event_path=path,
+                status_md_path=status_md_path,
+                status_html_path=status_html_path,
+                acquire_lock=False,
+            )
     return AppendResult(
         event_id=str(event_value["event_id"]),
         dedup_key=str(event_value["dedup_key"]),
@@ -500,6 +556,7 @@ def refresh_status_views(
     status_md_path: Optional[os.PathLike] = None,
     status_html_path: Optional[os.PathLike] = None,
     max_cells: int = 200,
+    acquire_lock: bool = True,
 ) -> Tuple[str, str]:
     # Local import avoids a module cycle: summary reads the event stream.
     from .summary import write_status_views
@@ -510,9 +567,16 @@ def refresh_status_views(
     if status_html_path is None and not os.environ.get(ENV_STATUS_HTML_PATH):
         status_html_path = resolved_event_path.parent / "auto_report.html"
     md_path, html_path = status_paths_from_env(status_md_path, status_html_path)
-    return write_status_views(
-        event_path=resolved_event_path,
-        markdown_path=md_path,
-        html_path=html_path,
-        max_cells=max_cells,
-    )
+    def _write() -> Tuple[str, str]:
+        return write_status_views(
+            event_path=resolved_event_path,
+            markdown_path=md_path,
+            html_path=html_path,
+            max_cells=max_cells,
+        )
+
+    if not acquire_lock:
+        return _write()
+    resolved_event_path.parent.mkdir(parents=True, exist_ok=True)
+    with _exclusive_lock(resolved_event_path):
+        return _write()
