@@ -37,7 +37,7 @@
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
 4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**（**设计如此、非缺同步**；只有 GNNDelete 的方法自吐 before）→ before 锚点用主矩阵 `perf_before` 本地 join 重算（**E3**，不需服务器）/W3-L4。
-5. **C5 — GraphRevoker 整 method 退化**：`perf_before` 所有 cell 退化（0.50–0.58，vs 其它 0.77–0.87），根因 `e3bbd54` 未修完聚合器 bug（`opt_dataset.py:17` IndexError）。**决策已定（2026-06-27）：修聚合器 + 整 method 重跑（E4），不 drop、不 caveat**——不报、也不洗坏数据；重跑前 §5.2 GR×GAT wedge 标 *pending re-run*、不下机制结论，方法保留在 6-method audit。→ 记忆 `project_graphrevoker_dispatcher_history`、`feedback-fix-dont-drop-broken-data`。
+5. **C5 — GraphRevoker 历史矩阵退化（✅ 已修复并重跑）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续把新矩阵作为 GraphRevoker 权威证据，不再把“代码仍未修好”或“正式实验必须隔离”当默认前提。→ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`；完整多 seed 验收待补同口径报告。
 
 ---
 
@@ -55,8 +55,8 @@
 ## 4. 排序 / 依赖（章法 —— 先看这张，别乱序开工）
 
 ```
-E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server）──► §5.2 GR×GAT wedge
-   决策已定 = 修，不 drop / 不 caveat；方法保留在 6-method audit，重跑前 wedge 标 pending、不下机制结论
+E4 GraphRevoker 修复 + 整 method 重跑（✅ GCN/GAT 四策略五 seed，40/40）──► §5.2 GR×GAT wedge
+   修复已验收；旧坏数据仍禁引，新 40-cell 矩阵作为权威证据
 
 ★ E2 L8 redo（清 .pyc 重跑 GIF/IDEA collateral）─► E6 hop 灌 CSV ─► W3-L3 hop caveat / F3 hop 图
                                                  └─► 唯一能验 IM/IF 在 IF 家族有无真 niche
@@ -70,7 +70,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
 
-**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → 租服务器跑 E1/E2/E4(含 GraphRevoker 修复) + 本地算 E3 → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
+**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ 本地算 E3 → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
 
 ---
 
@@ -78,9 +78,17 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 > 目标：把 paper 已写但磁盘撑不住的数字补干净。**不是新故事，是给 thesis 补证。** 进度数字源 = `config_inventory.html`。
 
+### 正式实验运行位置（2026-07-14 锁定）
+
+- **默认正式 lane = 已对齐、已完成预期 Git 清理的 SSH active checkout。**“正式实验”与“隔离 worktree”是两个不同维度；不能因为某次验收使用 fresh checkout，就推导以后正式实验都必须隔离。
+- 只有出现明确边界时才建隔离 worktree：并发分支、尚未解决的 tracked/运行态污染、未接收修复的验证，或 `experiments/run.py --dry_run` 已证明存在结果/cache identity 冲突。
+- 判断前必须查 active 的 `git status --short --branch`、`git worktree list` 和 runner fingerprint 分类。ignored 历史结果本身不等于误判；若目标 cells 全部显示 `would_run`，不得再以“可能误跳过”为由强制隔离。
+- 正式性的判据是固定源码/配置 provenance、每格四件套、质量 gate 和日志。用同一 full config/fingerprint 跑出的 1-cell gate 是正式矩阵的一部分，扩展时应 skip 而不是覆盖。
+- **A5 当前决定**：active 上五段 dry-run 为 `50 + 20 + 80 + 20 + 20 = 190/190 would_run`，不存在旧结果误跳过；完成 active 剩余 Git hygiene 后直接走 active formal lane。此前误建且 0 产物的 A5 worktree 不作为执行路径。
+
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
-| **E4** ★ | **GraphRevoker 修复 ← 先做（每方法有效数据 = audit 底座）**（决策 = 修，不 drop/不 caveat）：修正 aggregator / shard-ensemble collateral 路径 → seed42 四策略 canary → 整 method 多 seed 重跑，**争取交叉验证**确认修对 | `sanity_graphrevoker_r05_notracin.yaml` → `phase_b_cora_{gcn,gat}.yaml` | seed42 random/degree/pagerank/IM 已验收；完整多 seed 待跑 | C5 / L5 | ◐ **seed42 canary accepted**（runner rc=0；机器验收 0 errors；见 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
+| **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0；seed42 报告见 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
 | **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
 | **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
@@ -99,7 +107,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 | ID | 任务 | config | 规模 | gate / 备注 | 状态 |
 |---|---|---|---|---|---|
 | **A3** ★ | **alpha-sweep**：hybrid_alpha {0,.25,.5,.75,1}×{GCN,GAT}×cora r0.05 | `A3_cora_{GCN,GAT}_alpha{0.00,0.25,0.75,1.00}.yaml` | 有效新增 ~180 cell（α=0≡im, α=1≡tracin） | **gate**：主矩阵 fingerprint 出来后，若 MEGU/IDEA 有非平凡坐标才值得跑。⚠ IM 整体打不过 degree → 价值有限 | ☐ 0/200 |
-| **A5** ★ | **ratio-sweep**：r∈{0.01,0.10,0.20} cora GCN（+citeseer 见 E1） | `A5_ratio_{0.01,0.10,0.20}.yaml` | 90 cell/ratio | r0.01 **已完成**；r0.10/0.20 待跑。⚠ r0.20 可能崩 GraphEraser（空 shard），先 sanity | ◐ 90/450 |
+| **A5** ★ | **ratio-sweep**：cora r∈{0.01,0.10,0.20} + citeseer r∈{0.05,0.20} 四稳定策略补量（**active formal lane**；dry-run=`190/190 would_run`） | `A5_ratio_{0.01,0.10,0.20}.yaml`；`A5_citeseer_r{0.05,0.20}.yaml` | cora 90 cell/ratio；citeseer 缺失 190 cells | 不因 ignored 历史结果隔离。r0.20 的 GraphRevoker/GraphEraser 仍先做同配置 1-cell gate | ◐ cora r0.01=90；Citeseer E1=50 accepted；四策略 190 待跑（active） |
 | **A6** | **新 backbone / 跨架构共识** — **2026-06-28 决策：不跑，降 future-work**。只用现有 GCN+GAT 两个 MP backbone；claim **收到 "across two message-passing backbones"**，limitations 主动认"两者同属 MP 家族，谱方法/graph-transformer 跨家族泛化留 future work"。要补也只在 reviewer 点名 / 下篇当卖点时，按**窄探针**(cora×1 新 backbone×degree-vs-1-informed×≥3 seed)，**别均匀撒** | (不跑) | — | → `idea_cross_arch_consensus.md` §4 | ✅ 决策：scope-to-MP |
 | **A7** ★ | **GNNDelete +seed**（n.s.→显著）或 reframe 成 volume-driven | 扩 `phase_b_cora_*` seeds | +N seed | 关 C2（n=5 sd≫mean）。P2 | ☐ |
 | **A8** | **RR-set IM / RR-IF-Hybrid**（统一 IMM 框架，IF 作 bicriteria） | 新算法 | ~2-3 天实现 | limitations L6-(C)，**ICLR-tier follow-up**；rebuttal 不做 | ☐ option |
