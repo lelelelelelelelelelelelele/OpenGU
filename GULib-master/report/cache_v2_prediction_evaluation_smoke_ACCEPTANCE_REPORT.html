@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache V2 Prediction → Evaluation 单 Cell Smoke</title>
+  <style>
+    :root{--ink:#172033;--muted:#5d687a;--line:#dce3ec;--ok:#16794a;--soft:#f5f7fb;--warn:#fff8e8}
+    *{box-sizing:border-box}body{margin:0;background:#eef2f7;color:var(--ink);font:15px/1.6 system-ui,"Microsoft YaHei",sans-serif}
+    main{max-width:1040px;margin:36px auto;padding:36px 42px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 36px #21304e14}
+    h1{margin:0 0 6px;font-size:30px}h2{margin:30px 0 12px;font-size:20px}.meta,footer{color:var(--muted)}
+    .verdict{margin:22px 0;padding:18px 20px;border-left:5px solid var(--ok);background:#effaf4;border-radius:10px}.verdict strong{color:var(--ok);font-size:19px}
+    .boundary{padding:14px 16px;background:var(--warn);border:1px solid #efdba7;border-radius:10px}
+    table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-variant-numeric:tabular-nums}th,td{padding:9px 11px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft)}td.num{text-align:right}.ok{color:var(--ok);font-weight:700}
+    code{padding:.12em .35em;background:var(--soft);border-radius:5px;overflow-wrap:anywhere}footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+  </style>
+</head>
+<body><main>
+  <h1>Prediction → Evaluation 单 Cell Smoke</h1>
+  <p class="meta">Cache V2 migration support check · 2026-07-14 · read-only</p>
+  <section class="verdict"><strong>通过</strong><p>远端 <code>cora / GAT / GraphRevoker / im / seed42</code> 的 9 个可复算指标全部在 absolute tolerance <code>1e-6</code> 内。8 项逐值一致，最大误差为 <code>1.1920928955078125e-7</code>。</p></section>
+  <p class="boundary"><strong>边界：</strong>这是轻量 Prediction→Evaluation 自洽性检查，不是 Cache V2 runner 验收，也不要求新版 Selection producer 精确复制 provenance 不完整的 Legacy 节点序列。</p>
+
+  <h2>验证范围</h2>
+  <table>
+    <tr><th>远端 checkout</th><td><code>/autodl-fs/data/opengu-experiments/e4-graphrevoker-multiseed-648a6f1-20260714/GULib-master</code></td></tr>
+    <tr><th>Cell</th><td><code>results/runs/cora_GAT_r0.05/GraphRevoker_im/seed42</code></td></tr>
+    <tr><th>Producer commit</th><td><code>648a6f10dae167fa238427427cbf7c1f660b4e57</code></td></tr>
+    <tr><th>Prediction / Selection</th><td>2708 × 7 float32 logits；108 ordered nodes</td></tr>
+    <tr><th>执行边界</th><td>CPU only；无 GPU；无 Cache/results 写入</td></tr>
+  </table>
+
+  <h2>指标复算</h2>
+  <table>
+    <thead><tr><th>指标</th><th>报告值</th><th>复算值</th><th>绝对差</th></tr></thead>
+    <tbody>
+      <tr><td>perf_before</td><td class="num">0.6051660516605166</td><td class="num">0.6051660516605166</td><td class="num">0</td></tr>
+      <tr><td>perf_unlearn</td><td class="num">0.6383763837638377</td><td class="num">0.6383763837638377</td><td class="num">0</td></tr>
+      <tr><td>perf_retrain</td><td class="num">0.6180811808118081</td><td class="num">0.6180811808118081</td><td class="num">0</td></tr>
+      <tr><td>drop_retrain</td><td class="num">-0.012915129151291449</td><td class="num">-0.012915129151291449</td><td class="num">0</td></tr>
+      <tr><td>gap</td><td class="num">-0.02029520295202958</td><td class="num">-0.02029520295202958</td><td class="num">0</td></tr>
+      <tr><td>gap_pct</td><td class="num">-3.2835820895522483</td><td class="num">-3.2835820895522483</td><td class="num">0</td></tr>
+      <tr><td>mean_pred_shift</td><td class="num">0.1041107252240181</td><td class="num">0.1041107252240181</td><td class="num">0</td></tr>
+      <tr><td>max_pred_shift</td><td class="num">0.6046002507209778</td><td class="num">0.6046003699302673</td><td class="num">1.1920929e-7</td></tr>
+      <tr><td>fraction_flipped</td><td class="num">0.13848397135734558</td><td class="num">0.13848397135734558</td><td class="num">0</td></tr>
+    </tbody>
+  </table>
+
+  <h2>结构与只读检查</h2>
+  <table>
+    <tr><td>三组 logits 全部 finite</td><td class="ok">通过</td></tr>
+    <tr><td>NPZ selected nodes 与 attack.json 有序序列一致</td><td class="ok">通过</td></tr>
+    <tr><td>retain mask = train mask − selected nodes</td><td class="ok">通过</td></tr>
+    <tr><td>9 个指标均在 <code>1e-6</code> 容差内</td><td class="ok">通过</td></tr>
+    <tr><td>源文件 size、mtime、SHA-256 前后不变</td><td class="ok">通过</td></tr>
+  </table>
+
+  <h2>解释</h2>
+  <p>该结果支持把下游一致性保留为低成本 smoke。Selection Cache 的主门槛仍是 Recipe、producer version、稳定 hit、payload 完整性和 fail-closed。它不证明 Score、Prediction、Evaluation 已成为正式 V2 Artifact。</p>
+  <footer>Editable source: <code>docs/cache_v2_prediction_evaluation_smoke_ACCEPTANCE_REPORT.md</code></footer>
+</main></body></html>

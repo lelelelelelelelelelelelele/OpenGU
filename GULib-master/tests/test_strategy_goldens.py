@@ -242,6 +242,40 @@ def test_attack_manager_random_matches_direct_and_cache_roundtrip(tmp_path):
     assert second.selected_nodes.tolist() == first.selected_nodes.tolist()
 
 
+def test_attack_manager_external_v2_selection_bypasses_all_legacy_caches(tmp_path):
+    spec = _fixture_by_name("random_basic_k3")
+    data = _build_data(spec["graph"])
+    pipeline = _FakePipeline(data, model=None)
+    manager = AttackManager(
+        args=_base_args(),
+        pipeline=pipeline,
+        cache_dir=str(tmp_path / "legacy-result-cache"),
+        use_cache=False,
+    )
+    nodes = torch.tensor(spec["expected_selected_nodes"], dtype=torch.long)
+    provenance = {
+        "artifact_id": "sel_12345678_90abcdef",
+        "recipe_hash": "a" * 64,
+        "content_hash": "b" * 64,
+        "source_file": str(tmp_path / "store" / "payload.json"),
+        "hit_source": "cache_v2:sel_12345678_90abcdef",
+        "lookup_policy": "cache_v2_exact_artifact_id",
+        "authoritative": True,
+    }
+
+    result = manager.run_attack_with_selected_nodes(
+        "random", nodes, selection_provenance=provenance
+    )
+
+    assert result.selected_nodes.tolist() == nodes.tolist()
+    assert result.selection_artifact_id == provenance["artifact_id"]
+    assert result.selection_authoritative is True
+    assert result.result_cache_hit is None
+    assert manager.cache is None
+    assert manager.selection_cache is None
+    assert not (tmp_path / "legacy-result-cache").exists()
+
+
 def test_attack_manager_im_reuses_larger_selection_cache_for_smaller_k(tmp_path):
     spec = _fixture_by_name("im_basic_k3")
     data = _build_data(spec["graph"])

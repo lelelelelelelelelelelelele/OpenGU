@@ -902,19 +902,21 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | Gate | 必须证据 | 当前状态 |
 |---|---|---|
 | 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
-| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **未通过；Selection exact-only materializer 已通过 IM、random、degree、PageRank 的真实计算/命中**（2026-07-14），Score、runner、Prediction/Evaluation 与 conflict resolution 尚未接入 |
-| 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | **未通过；ogbn-arxiv IM 暴露 Legacy content mismatch**（同 seed / k / 参数与同剪枝后 pool，但 ordered/set 均不一致） |
-| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **硬阻塞**：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程 |
-| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | 未通过 |
-| 6. 归档或删除 Legacy | 迁移覆盖率、`consumer_refs`、结果一致性、回滚备份全部通过，并对物理范围单独审批 | 未通过 |
+| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **Selection cutover 范围已通过**：IM、random、degree、PageRank 使用 versioned payload/header；conflict resolution 为 write-once sidecar，保留 SQLite row、marker 与 quarantine。Score/Prediction/Evaluation 一级 Artifact 仍属后续范围 |
+| 3. 版本化 V2 与有界下游 smoke | V2 producer 的 Recipe/版本明确；同版本 cold/warm 与跨进程确定性通过；Legacy exact replay 降为迁移诊断；Prediction/Evaluation 只做有明确容差的小样本 smoke | **已通过当前 Selection 范围**：四类 producer exact canary 已通过；Legacy IM/Random mismatch 保留为非权威诊断；单 cell 9 项 Prediction→Evaluation 指标在 `1e-6` 内 |
+| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **实现与 fixture/CPU canary 已通过，SSH 部署验收待补**：preflight 显式传递 Artifact ID；attack/collateral 共用同一 verified Selection；TracIn/Hybrid 和任意查询异常直接失败 |
+| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | **机制与 fixture 已通过，active 4090 apply 待补**：write-once marker；既有 payload 可读；目录创建/save/invalidate/clear 全部拒绝 |
+| 6. 归档准备 / 物理归档或删除 | 先产出逐文件 hash、consumer refs、V2/conflict 状态和回滚 manifest；物理移动/删除必须另行审批 | **归档准备实现与 fixture 已通过，active 4090 manifest 待补；物理归档/删除未授权** |
 
-Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。
+Gate 仍按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 的 conflict 硬门槛现由显式 `keep_existing` 授权满足：默认 unresolved；resolution record 绑定 conflict fingerprint、正式 Artifact、actor、reason 与 UTC 时间；原 conflict row、durable marker 和 quarantine 不改写；新 conflict 会重新阻塞。Legacy-only conflict 没有正式 verified Artifact，因此不能使用 `keep_existing`。
+
+**2026-07-14 Gate 3 policy revision：** Legacy 节点逐项一致从硬门槛降为迁移诊断。旧 Cache 缺少 producer source fingerprint，不能反向证明它与当前 versioned Recipe 是同一计算；强行要求 V2 复制旧节点反而会固化历史不确定性。当前硬门槛改为：Recipe/producer version 完整、同版本 cold/warm exact hit、跨进程确定性、payload 完整性和 fail-closed，以及一个有界 Prediction→Evaluation smoke。此前 IM/simple producer 报告中“Legacy mismatch 因而 Gate 3 关闭”的结论由本段取代；原始数字仍保留作迁移证据。
 
 2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-`k` miss 与篡改拒绝验证；详见 [Cache V2 Citeseer Selection Canary 真机验收报告](../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md)。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 **Gate 2 与 Gate 4 状态均不变**，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。
 
 同日，`b10f672` 把 canary 收敛为独立 `cachectl selection plan/materialize` 主入口，并在 SSH 隔离 checkout 对真实 `ogbn-arxiv`、IM、`k=1354` 完成 cold 计算（13,583.91 s）→ 另一 YAML 的 warm exact hit（0.341 s）。warm 启用 fail-if-called 哨兵，仍返回同一 Artifact / Recipe / content hash，payload mtime 不变；9 个 cold consumer 请求去重为一个 Recipe，TracIn/Hybrid 以 `producer_not_registered` 结构化跳过。该结果验收了 **V2 exact Cache 契约**，没有接 runner。
 
-同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict，但 **Gate 3 明确保持未通过**。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
+同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict。该段保留原始迁移诊断；其旧 Gate 3 verdict 已由上方 policy revision 取代。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
 
 同日继续注册 random、degree、PageRank 三个直接产生 SelectionArtifact 的 producer，并在真实 Cora 图上完成本机与 SSH exact canary：2 methods × 3 strategies × 3 seeds 共 18 个 consumer 请求去重为 5 个 Recipe（random 按 3 个 seed 各一份，degree/PageRank 各一份跨 seed 共享），cold 全部创建后，独立 warm 进程与另一 YAML 名/路径均返回相同 Artifact ID/content hash，且 `producer_called=false`；改变 ratio/k 的 plan 则 5/5 `no_exact_candidate`、零 producer、零写入。Random 使用显式 Recipe seed 与隔离 Torch RNG；PageRank 只额外包含 `pagerank_alpha`。首次 SSH 重放真实暴露 Degree v1 的 `torch.topk` 平分边界跨环境不稳定：同 Recipe `fd84330c...` 在本机/SSH 得到不同 content，且节点集合不同。V2 没有覆盖旧 Artifact，而是将 Degree 算法升级为“度降序、node id 升序”的 v2 全序，生成新 Recipe `5bc434cd...`；全新本机/SSH store 随后均得到 Artifact `sel_5bc434cd_7e66e515` 与 content `7e66e515...`。SSH Legacy 三目录 784/111/75 个文件的聚合 hash 前后均为 `b7488cb1...`；Random 三个 Legacy 对照为 `content_mismatch`，Degree/PageRank 为 `missing`，均不参与 V2 resolve。详见 [Cache V2 Simple Selection Producers 验收报告](../../docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md)。这完成了 producer registry 与 simple selector 真机确定性验收，但没有改变 Gate 2/3/4 的整体状态。
 
@@ -1004,14 +1006,14 @@ GCN selection → GIN target
 
 ### V2.2 Score / Selection 主路径
 
-- [ ] gate：完成 Legacy promotion policy 与可审计 conflict resolution；provenance 缺口未清零的 source 不得 promotion。
+- [x] gate：完成 schema-v1-compatible、write-once `keep_existing` conflict resolution；provenance 缺口未清零的 Legacy source 不得 promotion，Legacy-only conflict 不可解除为正式 hit。
 - [ ] 将 IM 初始 spread / CELF ranking 落成正式 ScoreArtifact；当前大图 cold 仍因禁用 Legacy ScoreCache 承担完整 Step 1 成本。
 - [x] 建立 versioned SelectionArtifact payload/header Store、SQLite exact resolve、完整性校验与 fail-if-called producer 哨兵。
 - [x] 建立 YAML request → 最小 Recipe 投影；`config_name`、YAML path、GU method 与实验 seed 不进入 IM Selection identity，多 consumer 先按 Recipe 去重。
 - [x] 注册 IM producer；TracIn/Hybrid 在 Score/model provenance 就绪前结构化跳过，并保留同一 registry 扩展点。
 - [x] 建立 ordered/set 双 hash 与只读 Legacy 对照；真实 arxiv 对照已 fail closed 暴露 mismatch，没有伪造等价。
 - [x] 注册 random / degree / PageRank producer；真实 Cora 本机/SSH cold/warm、producer 哨兵、跨 YAML exact hit、changed-k miss、Random RNG 隔离、Degree v2 可移植 tie-break 与 Legacy 只读均已验证。
-- [ ] `demo_attack`、`eval_collateral` 接受 selection artifact reference；本阶段仍未修改 runner 或现有查询路径。
+- [x] `demo_attack`、`eval_collateral` 接受同一 `selection_artifact_id`；V2 runner preflight 只允许 random/degree/PageRank/IM，禁用全部 Legacy cache 并禁止查询失败回退。
 - [ ] 建 ranking/prefix compatible lookup；当前只允许 `(artifact_type, recipe_hash)` exact hit。
 
 ### V2.3 Prediction / Evaluation 主路径

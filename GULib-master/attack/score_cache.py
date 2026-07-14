@@ -24,6 +24,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
+from cache_v2.legacy_freeze import assert_legacy_cache_writable
+
 
 @dataclass
 class ScoreResult:
@@ -42,8 +44,11 @@ class ScoreCache:
 
     def __init__(self, namespace: str, cache_dir: str = "./results/score_cache"):
         self.namespace = namespace
-        self.dir = Path(cache_dir) / namespace
-        self.dir.mkdir(parents=True, exist_ok=True)
+        cache_root = Path(cache_dir)
+        self.dir = cache_root / namespace
+        if not self.dir.is_dir():
+            assert_legacy_cache_writable(cache_root)
+            self.dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _stable_json(config: Dict[str, Any]) -> str:
@@ -82,6 +87,7 @@ class ScoreCache:
         config: Dict[str, Any],
     ) -> str:
         """Persist scores. Returns path."""
+        assert_legacy_cache_writable(self.dir)
         key = self.build_key(config)
         path = self._path(key)
         meta_path = self._meta_path(key)

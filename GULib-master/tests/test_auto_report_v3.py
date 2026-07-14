@@ -336,6 +336,48 @@ def test_result_and_selection_misses_are_one_terminal_event_each(tmp_path, monke
     ]
 
 
+def test_v2_selection_hit_is_authoritative_and_identifies_artifact(tmp_path, monkeypatch):
+    event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    result = SimpleNamespace(
+        strategy_name="degree",
+        selected_nodes=[1, 2],
+        selection_cache_hit=True,
+        selection_cache_source="v2/payload.json",
+        selection_cache_lookup_mode="cache_v2_exact_artifact_id",
+        selection_artifact_id="sel_12345678_90abcdef",
+        selection_recipe_hash="a" * 64,
+        selection_content_hash="b" * 64,
+        selection_authoritative=True,
+        selection_time=0.0,
+        selection_reuse_time=0.001,
+        result_cache_hit=None,
+        f1_before=0.9,
+        f1_after=0.8,
+        f1_drop=0.1,
+        unlearn_time=1.0,
+        total_time=2.0,
+        mia_auc=0.55,
+    )
+    record_attack_results(
+        method="GIF",
+        dataset="cora",
+        model="GCN",
+        strategies=["degree"],
+        unlearn_ratio=0.05,
+        k=2,
+        seed=42,
+        results=[result],
+        event_path=str(event_path),
+        cache_enabled=False,
+    )
+    events, _warnings = read_event_stream(event_path)
+    selection = events[0]["cache"][0]
+    assert selection["type"] == "selection"
+    assert selection["outcome"] == "hit"
+    assert selection["authoritative"] is True
+    assert selection["artifact"]["artifact_id"] == result.selection_artifact_id
+
+
 def test_failed_attack_result_is_a_failed_terminal_event(tmp_path, monkeypatch):
     event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
     result = SimpleNamespace(
@@ -515,3 +557,117 @@ def test_runner_dry_run_emits_no_audit_event(tmp_path, monkeypatch):
     }
     assert runner.run_cell(cfg, "GIF", "degree", 42, force=False, dry_run=True) == "would_run"
     assert not event_path.exists()
+
+
+def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_path, monkeypatch):
+    event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    out_dir = tmp_path / "cell"
+    monkeypatch.setattr(runner, "cell_dir", lambda *_args, **_kwargs: out_dir)
+    monkeypatch.setattr(runner, "_git_sha", lambda: "abc123")
+    cfg = {
+        "name": "fixture-v2",
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "defaults": {"run_collateral": False},
+        "cache_v2": {"mode": "selection", "store_root": "v2-store"},
+    }
+    selection = {
+        "store_root": str(tmp_path / "v2-store"),
+        "artifact_id": "sel_12345678_90abcdef",
+        "artifact_type": "selection",
+        "recipe_hash": "a" * 64,
+        "content_hash": "b" * 64,
+        "source_file": str(tmp_path / "v2-store" / "payload.json"),
+        "hit_source": "cache_v2:sel_12345678_90abcdef",
+        "lookup_policy": "cache_v2_exact_artifact_id",
+        "authoritative": True,
+        "write_outcome": "reused",
+        "strategy": "degree",
+        "k": 2,
+        "selected_node_count": 2,
+    }
+    commands = []
+
+    def fake_run(command, cwd, env):
+        commands.append(command)
+        Path(command[command.index("--save_path") + 1]).write_text("{}", encoding="utf-8")
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+    assert runner.run_cell(
+        cfg,
+        "GIF",
+        "degree",
+        42,
+        force=False,
+        dry_run=False,
+        selection_artifact=selection,
+    ) == "completed"
+    command = commands[0]
+    assert "--no_cache" in command
+    assert command[command.index("--selection_artifact_id") + 1] == selection["artifact_id"]
+    assert command[command.index("--cache_v2_store_root") + 1] == selection["store_root"]
+    events, warnings = read_event_stream(event_path)
+    assert warnings == []
+    selection_event = next(event for event in events if event["stage"] == "selection")
+    observation = selection_event["cache"][0]
+    assert observation["authoritative"] is True
+    assert observation["artifact"]["artifact_id"] == selection["artifact_id"]
+    meta = json.loads((out_dir / "_meta.json").read_text(encoding="utf-8"))
+    assert meta["selection_artifact"]["artifact_id"] == selection["artifact_id"]
+
+
+def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(tmp_path, monkeypatch):
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    config_path = tmp_path / "fixture.yaml"
+    config_path.write_text("fixture", encoding="utf-8")
+    cfg = {
+        "_source_path": str(config_path),
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42, 212],
+        "cache_v2": {"mode": "selection", "store_root": "v2-store"},
+    }
+    document = {
+        "mode": "materialize",
+        "writes": [],
+        "plan": {
+            "skipped": [],
+            "jobs": [{
+                "strategy": "degree",
+                "recipe_hash": "a" * 64,
+                "k": 2,
+                "request_envelope": {"experiment_seeds": [42, 212]},
+            }],
+        },
+        "results": [{
+            "recipe_hash": "a" * 64,
+            "artifact_id": "sel_12345678_90abcdef",
+            "content_hash": "b" * 64,
+            "payload_path": str(tmp_path / "v2-store" / "payload.json"),
+            "selected_node_count": 2,
+            "hit": True,
+        }],
+    }
+    import cache_v2.selection_materializer as materializer
+
+    monkeypatch.setattr(materializer, "materialize_selection", lambda **_kwargs: document)
+    mapping, observed = runner.prepare_cache_v2_selection(cfg, dry_run=False)
+    assert observed is document
+    assert set(mapping) == {("degree", 42), ("degree", 212)}
+    assert len({item["artifact_id"] for item in mapping.values()}) == 1
+
+    bad = dict(cfg)
+    bad["strategies"] = ["tracin"]
+    with pytest.raises(ValueError, match="no producer"):
+        runner.prepare_cache_v2_selection(bad, dry_run=False)

@@ -62,7 +62,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 _MODULE_REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_MODULE_REPO_ROOT) not in sys.path:
@@ -199,7 +199,7 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
 
 # Bump when the set of fields hashed in _content_fingerprint changes,
 # so old fingerprints stop matching and force a clean re-run.
-_FINGERPRINT_VERSION = "v1"
+_FINGERPRINT_VERSION = "v2-cache-selection"
 
 
 def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> str:
@@ -222,6 +222,7 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
         "defaults": defaults,
         "extra_args": list(cfg.get("extra_args", []) or []),
         "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
+        "cache_v2": cfg.get("cache_v2"),
     }
     if method_extra:
         payload["method_overrides"] = method_extra
@@ -306,8 +307,138 @@ def model_overrides(cfg: Dict[str, Any]) -> List[str]:
     return out
 
 
+CACHE_V2_RUNNER_STRATEGIES = frozenset({"random", "degree", "pagerank", "im"})
+
+
+def _repo_path(value: Any) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path.resolve()
+
+
+def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    raw = cfg.get("cache_v2")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or raw.get("mode") != "selection":
+        raise ValueError("cache_v2.mode must be 'selection'")
+    unsupported = sorted(set(cfg.get("strategies") or []) - CACHE_V2_RUNNER_STRATEGIES)
+    if unsupported:
+        raise ValueError(
+            "Cache V2 runner has no producer for: {0}".format(",".join(unsupported))
+        )
+    return {
+        "mode": "selection",
+        "store_root": _repo_path(raw.get("store_root", "results/cache_v2")),
+        "dataset_root": _repo_path(raw.get("dataset_root", "data/raw")),
+        "legacy_results_root": _repo_path(
+            raw.get("legacy_results_root", "results")
+        ),
+        "allow_download": bool(raw.get("allow_download", False)),
+    }
+
+
+def prepare_cache_v2_selection(
+    cfg: Dict[str, Any], *, dry_run: bool
+) -> Tuple[Dict[Tuple[str, int], Dict[str, Any]], Dict[str, Any]]:
+    settings = cache_v2_settings(cfg)
+    if settings is None:
+        return {}, {}
+    config_path = cfg.get("_source_path")
+    if not config_path:
+        raise ValueError("Cache V2 runner requires cfg._source_path")
+    from cache_v2.selection_materializer import materialize_selection, plan_selection
+
+    common = {
+        "config_path": _repo_path(config_path),
+        "dataset_root": settings["dataset_root"],
+        "store_root": settings["store_root"],
+        "legacy_results_root": settings["legacy_results_root"],
+        "allow_download": settings["allow_download"],
+    }
+    if dry_run:
+        document = plan_selection(**common)
+    else:
+        document = materialize_selection(
+            **common,
+            verify=True,
+            fail_if_producer_called=False,
+            compare_legacy=False,
+            include_nodes=False,
+        )
+    plan = document.get("plan") or {}
+    skipped = plan.get("skipped") or []
+    if skipped:
+        names = sorted({str(item.get("strategy")) for item in skipped})
+        raise ValueError(
+            "Cache V2 Selection plan is incomplete: {0}".format(",".join(names))
+        )
+    if dry_run:
+        return {}, document
+
+    jobs = {item["recipe_hash"]: item for item in plan.get("jobs") or []}
+    results = {item["recipe_hash"]: item for item in document.get("results") or []}
+    if not jobs or set(jobs) != set(results):
+        raise ValueError("Cache V2 materialization did not cover every planned Recipe")
+    mapping: Dict[Tuple[str, int], Dict[str, Any]] = {}
+    for recipe_hash, job in jobs.items():
+        result = results[recipe_hash]
+        artifact = {
+            "store_root": str(settings["store_root"]),
+            "artifact_id": result["artifact_id"],
+            "artifact_type": "selection",
+            "recipe_hash": recipe_hash,
+            "content_hash": result["content_hash"],
+            "source_file": result["payload_path"],
+            "hit_source": "cache_v2:{0}".format(result["artifact_id"]),
+            "lookup_policy": "cache_v2_exact_artifact_id",
+            "authoritative": True,
+            "write_outcome": "reused" if result.get("hit") else "saved",
+            "strategy": job["strategy"],
+            "k": int(job["k"]),
+            "selected_node_count": int(result["selected_node_count"]),
+        }
+        seeds = (job.get("request_envelope") or {}).get("experiment_seeds") or []
+        for seed in seeds:
+            key = (str(job["strategy"]), int(seed))
+            if key in mapping and mapping[key]["artifact_id"] != artifact["artifact_id"]:
+                raise ValueError("Cache V2 consumer mapping is ambiguous: {0}".format(key))
+            mapping[key] = dict(artifact)
+    expected = {
+        (str(strategy), int(seed))
+        for strategy in cfg["strategies"]
+        for seed in cfg["seeds"]
+    }
+    if set(mapping) != expected:
+        missing = sorted(expected - set(mapping))
+        raise ValueError("Cache V2 consumer mapping is incomplete: {0}".format(missing))
+    return mapping, document
+
+
+def _selection_cache_observation(artifact: Mapping[str, Any]) -> Dict[str, Any]:
+    return cache_observation(
+        cache_type="selection",
+        outcome="hit",
+        recipe={"strategy": artifact["strategy"], "k": int(artifact["k"])},
+        recipe_hash=artifact["recipe_hash"],
+        artifact=artifact_ref(
+            path=artifact["source_file"],
+            artifact_id=artifact["artifact_id"],
+            artifact_type="selection",
+            recipe_hash=artifact["recipe_hash"],
+            content_hash=artifact["content_hash"],
+        ),
+        hit_source=artifact["hit_source"],
+        lookup_policy=artifact["lookup_policy"],
+        authoritative=True,
+        write_outcome=artifact["write_outcome"],
+    )
+
+
 def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
-             *, force: bool, dry_run: bool) -> str:
+             *, force: bool, dry_run: bool,
+             selection_artifact: Optional[Mapping[str, Any]] = None) -> str:
     out_dir = cell_dir(cfg, method, strategy, seed)
     expected_fp = _content_fingerprint(cfg, method, strategy, seed)
     want_collateral = bool((cfg.get("defaults") or {}).get("run_collateral", True))
@@ -316,6 +447,9 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     cell_id = make_cell_id(identity)
     git_sha = _git_sha()
     report_event_path = event_path_from_env()
+    v2_mode = cache_v2_settings(cfg) is not None
+    if v2_mode and not dry_run and selection_artifact is None:
+        raise ValueError("Cache V2 runner cell has no Selection Artifact")
 
     if not force:
         if status == "complete":
@@ -410,7 +544,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             metadata={"reason": reason or "retry after failed run"},
             event_path=report_event_path,
         )
-    expected_stages = ["attack"] + (["collateral"] if want_collateral else [])
+    expected_stages = (["selection"] if v2_mode else []) + ["attack"] + (["collateral"] if want_collateral else [])
     _record_autoreport_event(
         identity=identity,
         stage="run",
@@ -469,8 +603,32 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     ]
     if defaults.get("no_cache", False):
         cmd1.append("--no_cache")
+    if v2_mode:
+        if "--no_cache" not in cmd1:
+            cmd1.append("--no_cache")
+        cmd1 += [
+            "--cache_v2_store_root", str(selection_artifact["store_root"]),
+            "--selection_artifact_id", str(selection_artifact["artifact_id"]),
+        ]
     cmd1 += extra
     print(f"\n[run] demo_attack {method}/{strategy}/seed{seed} → {out_dir.relative_to(REPO_ROOT)}")
+    if v2_mode:
+        _record_autoreport_event(
+            identity=identity,
+            stage="selection",
+            state="completed",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            cache=[_selection_cache_observation(selection_artifact)],
+            metrics={
+                "selected_node_count": selection_artifact["selected_node_count"]
+            },
+            event_path=report_event_path,
+        )
     _record_autoreport_event(
         identity=identity,
         stage="attack",
@@ -560,6 +718,11 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         ]
         if defaults.get("save_predictions", True):
             cmd2.append("--save_predictions")
+        if v2_mode:
+            cmd2 += [
+                "--cache_v2_store_root", str(selection_artifact["store_root"]),
+                "--selection_artifact_id", str(selection_artifact["artifact_id"]),
+            ]
         cmd2 += extra
         print(f"[run] eval_collateral {method}/{strategy}/seed{seed}")
         _record_autoreport_event(
@@ -622,14 +785,18 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             cell_id=cell_id,
             run_id=run_id,
             attempt=attempt,
-            cache=[cache_observation(
-                cache_type="result",
-                outcome="unknown",
-                recipe={"strategy": strategy},
-                lookup_policy="producer_not_observed",
-                authoritative=False,
-                write_outcome="reused",
-            )],
+            cache=(
+                [_selection_cache_observation(selection_artifact)]
+                if v2_mode
+                else [cache_observation(
+                    cache_type="result",
+                    outcome="unknown",
+                    recipe={"strategy": strategy},
+                    lookup_policy="producer_not_observed",
+                    authoritative=False,
+                    write_outcome="reused",
+                )]
+            ),
             artifacts=[artifact_ref(path=str(out_dir / "collateral.json"), artifact_type="evaluation")],
             event_path=report_event_path,
         )
@@ -647,6 +814,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "python": py,
         "config_fingerprint": expected_fp,
         "fingerprint_version": _FINGERPRINT_VERSION,
+        "selection_artifact": dict(selection_artifact) if v2_mode else None,
     }
     (out_dir / "_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     _record_autoreport_event(
@@ -696,12 +864,20 @@ def main():
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    selection_map, selection_document = prepare_cache_v2_selection(
+        cfg, dry_run=args.dry_run
+    )
     print(f"=== Loaded {args.config.name} ===")
     print(f"  cell: {cfg['dataset']}_{cfg['base_model']}_r{cfg['ratio']}")
     print(f"  methods × strategies × seeds = {len(cfg['methods'])} × {len(cfg['strategies'])} × {len(cfg['seeds'])}")
     print(f"  total cells: {len(cfg['methods']) * len(cfg['strategies']) * len(cfg['seeds'])}")
     if cfg.get("model_overrides", {}).get(cfg["base_model"]):
         print(f"  model_overrides: {cfg['model_overrides'][cfg['base_model']]}")
+    if cfg.get("cache_v2"):
+        print(
+            "  cache_v2: selection "
+            f"({selection_document.get('mode')}, writes={len(selection_document.get('writes') or [])})"
+        )
 
     counters: Dict[str, int] = {"completed": 0, "skipped": 0, "skipped_legacy": 0,
                                  "would_run": 0, "failed_attack": 0, "failed_collateral": 0}
@@ -709,8 +885,15 @@ def main():
     for idx, (method, strategy, seed) in enumerate(expand_matrix(cfg)):
         if args.limit is not None and idx >= args.limit:
             break
-        status = run_cell(cfg, method, strategy, seed,
-                          force=args.force, dry_run=args.dry_run)
+        status = run_cell(
+            cfg,
+            method,
+            strategy,
+            seed,
+            force=args.force,
+            dry_run=args.dry_run,
+            selection_artifact=selection_map.get((str(strategy), int(seed))),
+        )
         counters[status] = counters.get(status, 0) + 1
 
     elapsed = time.time() - t0

@@ -32,6 +32,8 @@ _repair_mode = False
 _repair_dry_run = False
 _save_predictions = False
 _output_dir = None  # if set: write collateral.json + predictions.npz here, no timestamp suffix
+_cache_v2_store_root = None
+_selection_artifact_id = None
 _raw_args = list(sys.argv[1:])
 _filtered_argv = []
 _i = 0
@@ -67,10 +69,33 @@ while _i < len(_raw_args):
         continue
     elif _arg.startswith('--output_dir='):
         _output_dir = _arg.split('=', 1)[1]
+    elif _arg == '--cache_v2_store_root':
+        if _i + 1 < len(_raw_args):
+            _cache_v2_store_root = _raw_args[_i + 1]
+            _i += 2
+            continue
+        _i += 1
+        continue
+    elif _arg.startswith('--cache_v2_store_root='):
+        _cache_v2_store_root = _arg.split('=', 1)[1]
+    elif _arg == '--selection_artifact_id':
+        if _i + 1 < len(_raw_args):
+            _selection_artifact_id = _raw_args[_i + 1]
+            _i += 2
+            continue
+        _i += 1
+        continue
+    elif _arg.startswith('--selection_artifact_id='):
+        _selection_artifact_id = _arg.split('=', 1)[1]
     else:
         _filtered_argv.append(_arg)
     _i += 1
 sys.argv = [sys.argv[0]] + _filtered_argv
+
+if bool(_cache_v2_store_root) != bool(_selection_artifact_id):
+    raise SystemExit(
+        "--cache_v2_store_root and --selection_artifact_id must be provided together"
+    )
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 if base_dir not in sys.path:
@@ -296,6 +321,16 @@ def _target_seed(args):
         return None
 
 
+def _candidate_nodes(data):
+    import numpy as np
+
+    train_mask = getattr(data, 'train_mask', None)
+    if train_mask is not None:
+        nodes = train_mask.nonzero(as_tuple=False).squeeze(-1).cpu().numpy()
+        return nodes.astype(np.int64, copy=False)
+    return np.arange(int(data.num_nodes), dtype=np.int64)
+
+
 def _matches_collateral_config(config: dict, args: dict):
     if not isinstance(config, dict):
         return False
@@ -359,6 +394,14 @@ def _scan_existing_collateral(args: dict):
 
 def main():
     strategies = _normalize_strategies(_strategies_str.split(','))
+    v2_selection = bool(_selection_artifact_id)
+    if v2_selection:
+        if _repair_mode:
+            raise SystemExit("Cache V2 Selection mode does not support Legacy repair mode")
+        if len(strategies) != 1 or strategies[0] not in {"random", "degree", "pagerank", "im"}:
+            raise SystemExit(
+                "Cache V2 Selection mode requires one supported strategy: random, degree, pagerank, or im"
+            )
 
     # Parse CLI args (inherits all main.py args via parameter_parser)
     args = parameter_parser()
@@ -375,6 +418,8 @@ def main():
     # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
     # df_size assertion passes (it uses proportion_unlearned_nodes, not unlearn_ratio)
     args['proportion_unlearned_nodes'] = args['unlearn_ratio']
+    if v2_selection:
+        args['enable_score_cache'] = False
     seed_value = args.get('random_seed', args.get('seed', 2024))
     _seed_everything(seed_value)
 
@@ -438,7 +483,7 @@ def main():
 
     # Initialize pipeline for main loop
     pipeline = AttackPipeline(args)
-    cache = ResultCache(cache_dir="./results/cache")
+    cache = None if v2_selection else ResultCache(cache_dir="./results/cache")
 
     # Storage for results
     all_results = []
@@ -452,11 +497,30 @@ def main():
         print(f"\n--- Strategy: {strategy_name} ---")
 
         # 1. Read selected_nodes from cache
-        cached, cache_info = find_cache_entry(
-            cache, args, strategy_name, with_provenance=True
-        )
+        if v2_selection:
+            from cache_v2.runtime import load_selection_artifact
+
+            target_k = max(
+                1,
+                int(len(_candidate_nodes(pipeline.data)) * float(args['unlearn_ratio'])),
+            )
+            loaded = load_selection_artifact(
+                str(Path(_cache_v2_store_root).resolve()),
+                _selection_artifact_id,
+                num_nodes=int(pipeline.data.num_nodes),
+                candidate_nodes=_candidate_nodes(pipeline.data),
+                expected_selector=strategy_name,
+                expected_k=target_k,
+            )
+            selected_nodes = torch.tensor(loaded.selected_nodes, dtype=torch.long)
+            cache_info = dict(loaded.provenance(str(Path(_cache_v2_store_root).resolve())))
+            cached = None
+        else:
+            cached, cache_info = find_cache_entry(
+                cache, args, strategy_name, with_provenance=True
+            )
         cache_provenance[strategy_name] = cache_info
-        if cached is None:
+        if not v2_selection and cached is None:
             if _output_dir is not None:
                 # Runner mode (called by experiments/run.py): demo_attack just ran
                 # for this exact (method, strategy, seed). A cache miss means
@@ -473,10 +537,14 @@ def main():
             print(f"  [SKIP] No cache entry for strategy={strategy_name}")
             continue
 
-        selected_nodes = cached.selected_nodes
-        if isinstance(selected_nodes, list):
-            selected_nodes = torch.tensor(selected_nodes)
-        print(f"  Loaded {len(selected_nodes)} selected nodes from cache")
+        if not v2_selection:
+            selected_nodes = cached.selected_nodes
+            if isinstance(selected_nodes, list):
+                selected_nodes = torch.tensor(selected_nodes)
+        print(
+            f"  Loaded {len(selected_nodes)} selected nodes from "
+            f"{'Cache V2 Artifact' if v2_selection else 'Legacy cache'}"
+        )
 
         # 2. Inject nodes and run unlearning to get model_unlearned
         pipeline._inject_unlearn_nodes(selected_nodes, run_id=0)
@@ -612,6 +680,7 @@ def main():
                 "unlearn_ratio": args['unlearn_ratio'],
                 "random_seed": args.get('random_seed', args.get('seed')),
                 "strategies_requested": strategies,
+                "selection_artifact_id": _selection_artifact_id,
             },
             "results": final_results,
             "timestamp": datetime.now().isoformat(),

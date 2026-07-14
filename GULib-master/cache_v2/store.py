@@ -32,10 +32,16 @@ from .contracts import (
     validate_artifact_id,
     validate_sha256,
 )
-from .errors import CacheV2Error, ContractValidationError, PathValidationError
+from .errors import (
+    ArtifactStoreError,
+    CacheResolutionError,
+    ContractValidationError,
+    PathValidationError,
+)
 from .index import CacheIndex
 from .paths import normalize_relative_path, normalize_semantic_path
 from .resolver import ArtifactResolver, ResolveExplanation
+from .conflict_resolution import ConflictResolutionLedger
 
 
 SELECTION_PAYLOAD_VERSION = 1
@@ -43,16 +49,8 @@ SELECTION_PAYLOAD_SCHEMA = "cache_v2.selection"
 CONFLICT_MARKER_VERSION = 1
 
 
-class ArtifactStoreError(CacheV2Error):
-    """Base error for an opt-in payload-store operation."""
-
-
 class ArtifactIntegrityError(ArtifactStoreError):
     """An indexed payload or sidecar failed closed verification."""
-
-
-class CacheResolutionError(ArtifactStoreError):
-    """An exact lookup was unsafe to resolve or compute automatically."""
 
 
 class ProducerCalledError(ArtifactStoreError):
@@ -850,7 +848,26 @@ class ArtifactStore:
 
     def _assert_no_conflict_marker(self, recipe: ArtifactRecipe) -> None:
         marker = self._inspect_conflict_marker(recipe)
-        if marker is not None:
+        if marker is None:
+            return
+        conflicts = self.index.conflicts(
+            artifact_type=ArtifactType.SELECTION, recipe_hash=recipe.recipe_hash
+        )
+        if not conflicts:
+            raise CacheResolutionError(
+                "durable conflict marker has no indexed conflict and blocks exact Selection hit"
+            )
+        resolved, unresolved = ConflictResolutionLedger(self.index).classify(conflicts)
+        marker_match = any(
+            item["conflict"].get("existing_artifact_id")
+            == marker["existing_artifact_id"]
+            and item["conflict"].get("existing_content_hash")
+            == marker["existing_content_hash"]
+            and item["conflict"].get("observed_content_hash")
+            == marker["observed_content_hash"]
+            for item in resolved
+        )
+        if unresolved or not marker_match:
             raise CacheResolutionError(
                 "durable conflict marker blocks exact Selection hit for Recipe {0}".format(
                     recipe.recipe_hash
@@ -1312,6 +1329,61 @@ class ArtifactStore:
                 candidate_nodes=candidates,
                 miss_reasons=explanation.miss_reasons,
             )
+
+    def load_read_only(
+        self,
+        recipe: ArtifactRecipe,
+        num_nodes: int,
+        *,
+        candidate_nodes: Sequence[int],
+        artifact_id: Optional[str] = None,
+    ) -> StoreResult:
+        """Verify an immutable exact hit without creating a coordination lock.
+
+        Runtime consumers already know the formal Artifact ID.  They do not
+        compute, register, quarantine, or mutate payloads, so an on-disk writer
+        lock would add an unnecessary cache write.  A second exact resolution
+        after the payload read closes the conflict/status race fail-closed.
+        """
+
+        self._ensure_initialized()
+        if not isinstance(recipe, ArtifactRecipe):
+            raise ContractValidationError("recipe must be ArtifactRecipe")
+        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
+        self._assert_no_conflict_marker(recipe)
+        before = ArtifactResolver(self.index).explain_exact(
+            ArtifactType.SELECTION, recipe
+        )
+        if not before.hit or before.exact_candidate is None:
+            raise CacheResolutionError(
+                "exact Selection Artifact is not resolvable: {0}".format(
+                    ",".join(before.miss_reasons)
+                )
+            )
+        if artifact_id is not None and before.exact_candidate.get("artifact_id") != artifact_id:
+            raise CacheResolutionError(
+                "exact Selection Artifact ID does not match requested Artifact"
+            )
+        result = self._load_candidate(
+            before.exact_candidate,
+            recipe,
+            num_nodes,
+            candidate_nodes=candidates,
+            miss_reasons=before.miss_reasons,
+        )
+        self._assert_no_conflict_marker(recipe)
+        after = ArtifactResolver(self.index).explain_exact(
+            ArtifactType.SELECTION, recipe
+        )
+        if (
+            not after.hit
+            or after.exact_candidate is None
+            or after.exact_candidate.get("artifact_id") != result.artifact_id
+        ):
+            raise CacheResolutionError(
+                "exact Selection resolution changed during read"
+            )
+        return result
 
     def get_or_compute(
         self,

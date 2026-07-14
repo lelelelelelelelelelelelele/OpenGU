@@ -416,6 +416,32 @@ def _selected_node_count(result) -> Optional[int]:
 
 
 def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled: bool):
+    artifact_id = getattr(result, "selection_artifact_id", None)
+    if artifact_id:
+        source = getattr(result, "selection_cache_source", None)
+        recipe_hash = getattr(result, "selection_recipe_hash", None)
+        content_hash = getattr(result, "selection_content_hash", None)
+        lookup_mode = (
+            getattr(result, "selection_cache_lookup_mode", None)
+            or "cache_v2_exact_artifact_id"
+        )
+        return cache_observation(
+            cache_type="selection",
+            outcome="hit",
+            recipe={"strategy": strategy, "k": int(k)},
+            recipe_hash=recipe_hash,
+            artifact=artifact_ref(
+                path=source,
+                artifact_id=str(artifact_id),
+                artifact_type="selection",
+                recipe_hash=recipe_hash,
+                content_hash=content_hash,
+            ),
+            hit_source="cache_v2:{0}".format(artifact_id),
+            lookup_policy=lookup_mode,
+            authoritative=True,
+            write_outcome="reused",
+        )
     cache_hit = getattr(result, "selection_cache_hit", None)
     source = getattr(result, "selection_cache_source", None)
     cache_key = getattr(result, "selection_cache_key", None)
@@ -641,6 +667,27 @@ def record_attack_results(
 
 def _collateral_cache_observation(strategy: str, provenance: Optional[Mapping[str, Any]]):
     info = dict(provenance or {})
+    artifact_id = info.get("artifact_id")
+    if artifact_id:
+        source = info.get("source_file")
+        return cache_observation(
+            cache_type="selection",
+            outcome=str(info.get("outcome") or "hit"),
+            recipe=dict(info.get("recipe") or {"strategy": strategy}),
+            recipe_hash=info.get("recipe_hash"),
+            artifact=artifact_ref(
+                path=source,
+                artifact_id=str(artifact_id),
+                artifact_type="selection",
+                recipe_hash=info.get("recipe_hash"),
+                content_hash=info.get("content_hash"),
+            ),
+            hit_source=info.get("hit_source") or "cache_v2:{0}".format(artifact_id),
+            lookup_policy=info.get("lookup_policy") or "cache_v2_exact_artifact_id",
+            authoritative=info.get("authoritative") is True,
+            write_outcome=info.get("write_outcome") or "reused",
+            miss_reason=info.get("miss_reason"),
+        )
     outcome = str(info.get("outcome") or "unknown")
     source = info.get("source_file")
     cache_key = info.get("cache_key")
