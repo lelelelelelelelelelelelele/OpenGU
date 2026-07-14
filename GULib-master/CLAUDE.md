@@ -32,6 +32,14 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 
 ## Running Experiments
 
+### Formal Remote Execution Lane
+
+- The default lane for formal GPU experiments is the **aligned, intentionally clean SSH active checkout**. A formal run does not require a separate worktree merely because it is formal.
+- Use an isolated worktree only when there is a concrete boundary that requires it: concurrent branch work, unresolved tracked/operational contamination, validation of an unaccepted fix, or a demonstrated result/cache identity collision.
+- Before claiming isolation is necessary, inspect `git status --short --branch`, `git worktree list`, and the canonical runner's `--dry_run` classification. Historical ignored results alone are not evidence of a collision when the fingerprinted runner reports the intended cells as `would_run`.
+- Formality comes from accepted source/config provenance, complete four-file cell artifacts, gates, and recorded logs—not from the checkout directory. A one-cell gate run made with the same full config/fingerprint remains part of the formal matrix and is skipped, not overwritten, during expansion.
+- Current experiment placement and any explicit exception are recorded in `self/dashboard/WORKPLAN.md`; do not infer an isolation requirement from an older acceptance report that happened to use a fresh checkout.
+
 ```bash
 # Basic experiment (from GULib-master directory)
 python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GraphEraser --unlearn_task node --downstream_task node --num_epochs 100 --batch_size 64
