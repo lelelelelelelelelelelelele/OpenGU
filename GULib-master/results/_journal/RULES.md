@@ -109,3 +109,47 @@ N 为当天第几次会话（从 1 开始）。
 - 异常与定位：TIMEOUT: Timeout after 1200s
 - 下一步建议：提高超时阈值或先降低比例后再重试。
 ```
+
+---
+
+## v3 扩展：机器事件与有限状态视图（2026-07-14 起）
+
+- 历史文件 `auto_report.md` 保持 v1/v2、append-only，不迁移、不重写。
+- 新机器事件写入 `auto_report.events.jsonl`：一行一个 JSON 对象，`schema_version=3`，只追加。
+- 人看当前进度使用可重建的 `auto_report_status.md` / `auto_report_status.html`；这两个文件是有上限的派生视图，不是审计原件，可以从 JSONL 重建。
+
+### 身份与阶段
+
+- `cell_id`：由 dataset/model/method/strategy/ratio/seed/k 等矩阵坐标稳定生成；不随时间或重试改变。
+- `run_id`：一次真实执行尝试的 ID；runner 通过环境变量传给 attack/collateral 子进程，因此同一次分阶段执行共享一个 `run_id`。
+- `config_fingerprint` 与 `git_sha` 必须独立记录；cell 坐标相同不代表配置或代码相同。
+- 阶段：`selection` / `attack` / `collateral` / `run`。
+- 状态：`started` / `completed` / `failed` / `skipped` / `retrying`。
+- 允许阶段性终点：selection-only、attack-only、collateral、complete、failed；不能因为 collateral 尚未执行就伪报 complete。
+
+### Cache 语义
+
+每个 Cache observation 必须说明：
+
+- `type`：`selection`、`result`、`score`、`artifact` 或 `run_artifact`；禁止只写泛化的 `cache=HIT`。
+- `outcome`：`hit` / `miss` / `bypass` / `unknown`。
+- `recipe` / `recipe_hash`：已知多少写多少；Legacy cache key 只能作为 Legacy recipe 字段，不能伪装成 Cache V2 Recipe hash。
+- `artifact`：已知的 path / Artifact ID / content hash；Legacy 来源必须标 `authoritative=false`。
+- `hit_source` 与 `lookup_policy`：HIT 必填来源，说明是 SelectionCache、ResultCache、完整 run artifacts 还是 exact resolver。
+- `write_outcome`：`saved` / `reused` / `not_written` / `unknown`。
+
+ResultCache 整体命中时，历史 `AttackResult` 内保存的 `selection_cache_hit` 只是原始运行事实，不能在本次运行中再次表达成 selection HIT。
+
+### 何时追加
+
+| 场景 | 是否追加 |
+|---|---|
+| 真实 compute/retry 开始 | 是：`started` / `retrying` |
+| 阶段首次到达 terminal state | 是：`completed` / `failed` / `skipped` |
+| 错误、return code、retry_of/attempt 变化 | 是 |
+| dry-run | 否 |
+| 同一 run/stage/state 的重复 producer 回报 | 否：按稳定 dedup key 抑制 |
+| 未变化的完整 cell 被反复 skip / Cache hit | 只记录一次；Artifact/Recipe/config 改变后才新增 |
+| 内部逐文件 Cache probe、固定“下一步建议”、重复 HIT 文本 | 否 |
+
+旧 `append_report_entry` / `append_attack_result` / `append_collateral_entry` API 保留给 v1 调用方；主 `demo_attack.py`、`eval_collateral.py`、`experiments/run.py` 使用 v3 事件。兼容 reader 同时解析 v1 实验条目、v2 session/decision 和 v3 JSONL，读取不触发历史迁移。

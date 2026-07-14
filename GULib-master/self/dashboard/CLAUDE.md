@@ -1,6 +1,7 @@
 # self/dashboard/ — Single Source of Truth
 
 > Created: 2026-05-03
+> Last updated: 2026-07-14
 > Role: 实验状态、metrics、bug、findings 的**唯一权威落点**。其他文档（thesis_transition_memo、PROJECT_MASTER_CONTEXT 等）应**链接到此**，不应复制内容。
 
 ## 文件分工
@@ -30,7 +31,7 @@
 | `self/plan_flow_v2_delta.md` | 设计原典；本目录的 METRICS_CATALOG 是它的"实测投影" |
 | `self/PROJECT_MASTER_CONTEXT.md` | 早期背景，已冻结；不再受本目录影响 |
 | `report/progress/2026-04-17_EE5003-report/` | 课程报告快照，已冻结 |
-| `results/_journal/auto_report.md` | 自动实验日志（pipeline 写入）；本目录的 VALIDATION_LOG 是**人/AI 验证类**的对位 |
+| `results/_journal/auto_report.md` / `auto_report.events.jsonl` | v1/v2 历史日志 + V3 pipeline 事件；扫当前 cell/stage 进度应看派生的 `auto_report_status.html`，不要通读无限日志；本目录的 VALIDATION_LOG 是**人/AI 验证类**的对位 |
 
 ## 何时不要用本目录
 
