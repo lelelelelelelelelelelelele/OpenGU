@@ -49,10 +49,10 @@ IM_NUMBA_ALGORITHM_VERSION = "opengu-im-batch-celf-numba-v1"
 IM_PYTHON_ALGORITHM_VERSION = "opengu-im-classic-celf-python-v1"
 IM_PRODUCER_SEMANTIC_VERSION = "opengu-im-selection-v1"
 RANDOM_ALGORITHM_VERSION = "opengu-random-torch-randperm-v1"
-DEGREE_ALGORITHM_VERSION = "opengu-degree-source-topk-v1"
+DEGREE_ALGORITHM_VERSION = "opengu-degree-desc-node-id-asc-v2"
 PAGERANK_ALGORITHM_VERSION = "opengu-pagerank-undirected-networkx-topk-v1"
 RANDOM_PRODUCER_SEMANTIC_VERSION = "opengu-random-selection-v1"
-DEGREE_PRODUCER_SEMANTIC_VERSION = "opengu-degree-selection-v1"
+DEGREE_PRODUCER_SEMANTIC_VERSION = "opengu-degree-selection-v2"
 PAGERANK_PRODUCER_SEMANTIC_VERSION = "opengu-pagerank-selection-v1"
 PLANETOID_DATASETS = frozenset(("cora", "citeseer", "pubmed"))
 OGB_NODE_DATASETS = frozenset(("ogbn-arxiv", "ogbn-products"))
@@ -583,6 +583,35 @@ def build_simple_producer(
     return produce_random
 
 
+def build_degree_producer(
+    inputs: SelectionInputs,
+    k: int,
+) -> Callable[[], Sequence[int]]:
+    """Build a cross-environment deterministic Degree producer.
+
+    Legacy ``DegreeStrategy`` delegates tie handling to ``torch.topk``.  The
+    selected set at the k boundary can therefore differ between Torch builds
+    when several candidates have the same degree.  A V2 Recipe cannot permit
+    that ambiguity, so its producer defines the total order explicitly:
+    degree descending, then global node id ascending.
+    """
+
+    _validate_selection_k(inputs, k)
+    degrees = torch.bincount(
+        inputs.edge_index[0], minlength=inputs.num_nodes
+    ).tolist()
+    ranked = sorted(
+        inputs.candidate_nodes,
+        key=lambda node: (-int(degrees[node]), int(node)),
+    )
+    selected = tuple(int(node) for node in ranked[:k])
+
+    def produce() -> Sequence[int]:
+        return selected
+
+    return produce
+
+
 def producer_source_fingerprint(
     strategy_source: Path, strategy_name: str = "im"
 ) -> str:
@@ -988,14 +1017,17 @@ def _prepare_degree_jobs(
     has_numba: bool,
     strategy_source: Path,
 ) -> Tuple[PreparedSelectionJob, ...]:
-    del has_numba
+    # The V2 adapter intentionally does not call Legacy DegreeStrategy:
+    # torch.topk has no portable tie-order contract.  Keep loading its source
+    # only as producer provenance; the formal V2 order is implemented above.
+    del has_numba, strategy_class
     k = max(1, int(len(inputs.candidate_nodes) * request.ratio))
     return (
         PreparedSelectionJob(
             strategy="degree",
             recipe=build_degree_recipe(inputs, k),
             inputs=inputs,
-            producer=build_simple_producer(inputs, k, strategy_class, {}),
+            producer=build_degree_producer(inputs, k),
             producer_version=ProducerVersion(
                 semantic_version=DEGREE_PRODUCER_SEMANTIC_VERSION,
                 source_fingerprint=producer_source_fingerprint(

@@ -258,6 +258,19 @@ def test_plan_registers_simple_producers_with_minimal_identity_and_seed_scope(
     ).recipe_hash
 
 
+def test_degree_producer_has_explicit_portable_tie_break():
+    inputs = _fixture_inputs()
+
+    producer = materializer.build_degree_producer(inputs, 2)
+
+    # Nodes 1, 2, and 3 all have degree 2.  The k-boundary is resolved by the
+    # documented global node-id ascending order, independent of torch.topk.
+    assert producer() == (1, 2)
+    assert producer() == (1, 2)
+    assert materializer.DEGREE_ALGORITHM_VERSION.endswith("node-id-asc-v2")
+    assert materializer.DEGREE_PRODUCER_SEMANTIC_VERSION.endswith("selection-v2")
+
+
 def test_simple_producers_cold_warm_and_read_only_legacy_comparison(
     tmp_path, fake_materializer
 ):
