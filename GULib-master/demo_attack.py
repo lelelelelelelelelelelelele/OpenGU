@@ -219,26 +219,12 @@ def main():
     if demo_args.save_path:
         print(f"Results saved to: {demo_args.save_path}")
 
-    # Detect per-strategy failures and surface them via non-zero rc.
-    # Without this, run.py's `failed_attack` gate is never tripped: a
-    # strategy whose unlearning crashed inside pipeline_adapter's except
-    # block returns a placeholder AttackResult with failed=True, which
-    # leaks into attack.json as a NA row but lets demo_attack exit 0.
-    # That, combined with the post-2026-05-06 cache-write guard preventing
-    # eval_collateral from re-discovering the same crash, would let cells
-    # falsely complete. Surface the failure here so run.py reports
-    # failed_attack and skips _meta.json.
-    failed_runs = [r for r in comparison.results if getattr(r, "failed", False)]
-    if failed_runs:
-        print("\n[Demo] Strategy failures detected:")
-        for r in failed_runs:
-            print(f"  - {r.strategy_name}: {r.failure_reason or 'unknown'}")
-        sys.exit(1)
-
-    # Write to auto_report.md
+    # Write structured AutoReport V3 events. The historical auto_report.md
+    # remains available to legacy callers but this high-volume path no longer
+    # appends a duplicate Markdown block per producer.
     try:
-        from scripts.evaluation.reporting.writer import append_attack_result
-        report_path = append_attack_result(
+        from scripts.evaluation.reporting.writer import record_attack_results
+        report_path = record_attack_results(
             method=args['unlearning_methods'],
             dataset=args['dataset_name'],
             model=args['base_model'],
@@ -247,10 +233,22 @@ def main():
             k=k,
             seed=demo_args.seed,
             results=comparison.results,
+            save_path=demo_args.save_path,
+            cache_enabled=not demo_args.no_cache,
         )
-        print(f"[Report] Results appended to {report_path}")
+        print(f"[AutoReport V3] Events recorded in {report_path}")
     except Exception as e:
-        print(f"[Report] Warning: Could not write to auto_report.md: {e}")
+        print(f"[AutoReport V3] Warning: Could not write events: {e}")
+
+    # Detect per-strategy failures and surface them via non-zero rc after the
+    # failed terminal event has been recorded. Without this, run.py's
+    # `failed_attack` gate is never tripped and the cell can falsely complete.
+    failed_runs = [r for r in comparison.results if getattr(r, "failed", False)]
+    if failed_runs:
+        print("\n[Demo] Strategy failures detected:")
+        for r in failed_runs:
+            print(f"  - {r.strategy_name}: {r.failure_reason or 'unknown'}")
+        sys.exit(1)
 
     return comparison
 

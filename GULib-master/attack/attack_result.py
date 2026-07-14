@@ -40,6 +40,12 @@ class AttackResult:
     selection_cache_hit: Optional[bool] = None
     selection_cache_key: Optional[str] = None
     selection_cache_source: Optional[str] = None
+    selection_cache_lookup_mode: Optional[str] = None
+    selection_cache_source_k: Optional[int] = None
+    result_cache_hit: Optional[bool] = None
+    result_cache_key: Optional[str] = None
+    result_cache_source: Optional[str] = None
+    result_cache_lookup_mode: Optional[str] = None
     mia_auc: Optional[float] = None
     run_timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     config: Optional[Dict[str, Any]] = None
@@ -80,6 +86,12 @@ class AttackResult:
             "selection_cache_hit": self.selection_cache_hit,
             "selection_cache_key": self.selection_cache_key,
             "selection_cache_source": self.selection_cache_source,
+            "selection_cache_lookup_mode": self.selection_cache_lookup_mode,
+            "selection_cache_source_k": self.selection_cache_source_k,
+            "result_cache_hit": self.result_cache_hit,
+            "result_cache_key": self.result_cache_key,
+            "result_cache_source": self.result_cache_source,
+            "result_cache_lookup_mode": self.result_cache_lookup_mode,
             "mia_auc": round(self.mia_auc, 4) if self.mia_auc is not None else None,
             "run_timestamp": self.run_timestamp,
             "config": self.config or {},

@@ -176,9 +176,20 @@ class ResultCache:
         Returns:
             AttackResult if cache hit, None otherwise
         """
-        cache_keys = self._resolve_cache_keys(config)
+        result, _provenance = self.get_with_provenance(config)
+        return result
 
-        for cache_key in cache_keys:
+    def get_with_provenance(self, config: Dict[str, Any]):
+        """Return ``(result, provenance)`` without changing cache semantics.
+
+        ``get`` remains backward-compatible.  AutoReport uses this explicit
+        observation to distinguish a whole ResultCache hit from a historical
+        SelectionCache hit stored inside the cached ``AttackResult``.
+        """
+        cache_keys = self._resolve_cache_keys(config)
+        primary_key = cache_keys[0] if cache_keys else None
+
+        for index, cache_key in enumerate(cache_keys):
             cache_path = self._get_cache_path(cache_key)
             if not self._is_cache_valid(cache_path):
                 continue
@@ -192,12 +203,22 @@ class ResultCache:
                 result = AttackResult.from_dict(cache_data['result'])
                 print(f"[Cache] Hit for key: {cache_key}")
                 print(f"[Cache] Cached at: {cache_data.get('cached_at', 'unknown')}")
-                return result
+                return result, {
+                    "cache_key": cache_key,
+                    "source_file": str(cache_path),
+                    "lookup_policy": "legacy_primary_hash" if index == 0 else "legacy_fallback_hash",
+                    "cached_at": cache_data.get('cached_at'),
+                }
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 print(f"[Cache] Error reading cache: {e}")
                 continue
 
-        return None
+        return None, {
+            "cache_key": primary_key,
+            "source_file": None,
+            "lookup_policy": "legacy_hash_or_fallback",
+            "cached_at": None,
+        }
 
     def save(self, result: AttackResult, config: Dict[str, Any]):
         """
@@ -221,6 +242,7 @@ class ResultCache:
             json.dump(cache_data, f, indent=2)
 
         print(f"[Cache] Saved result to: {cache_path}")
+        return str(cache_path)
 
     def invalidate(self, config: Dict[str, Any]) -> bool:
         """

@@ -354,8 +354,16 @@ class AttackManager:
         config = self._build_config(strategy_name, k)
 
         if use_cache and self.cache:
-            cached_result = self.cache.get(config)
+            if hasattr(self.cache, "get_with_provenance"):
+                cached_result, cache_provenance = self.cache.get_with_provenance(config)
+            else:
+                cached_result = self.cache.get(config)
+                cache_provenance = {}
             if cached_result is not None:
+                cached_result.result_cache_hit = True
+                cached_result.result_cache_key = cache_provenance.get("cache_key")
+                cached_result.result_cache_source = cache_provenance.get("source_file")
+                cached_result.result_cache_lookup_mode = cache_provenance.get("lookup_policy")
                 self.results[strategy_name] = cached_result
                 return cached_result
 
@@ -457,6 +465,7 @@ class AttackManager:
                     },
                 )
                 cache_path = self.selection_cache.save(to_cache, selection_config)
+                selection_cache_source = cache_path
                 print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
         else:
             if self._needs_canonical_selector_cache(strategy_name, strategy):
@@ -482,6 +491,9 @@ class AttackManager:
             selection_cache_hit=selection_cache_hit,
             selection_cache_key=selection_cache_key,
             selection_cache_source=selection_cache_source,
+            selection_cache_lookup_mode=selection_cache_lookup_mode,
+            selection_cache_source_k=selection_cache_source_k,
+            result_cache_hit=False if use_cache and self.cache else None,
             mia_auc=result_dict.get("mia_auc"),
             config=config,
             failed=bool(result_dict.get("failed", False)),
@@ -497,7 +509,10 @@ class AttackManager:
                 f"(reason: {result_dict.get('failure_reason')})"
             )
         elif use_cache and self.cache:
-            self.cache.save(result, config)
+            result_cache_path = self.cache.save(result, config)
+            result.result_cache_key = Path(result_cache_path).stem
+            result.result_cache_source = result_cache_path
+            result.result_cache_lookup_mode = "legacy_primary_hash"
 
         return result
 
