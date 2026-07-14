@@ -9,7 +9,10 @@ import torch
 from attack.attack_result import AttackResult
 from attack.result_cache import ResultCache
 
+from scripts.evaluation.reporting.baseline import read_baseline
 from scripts.evaluation.reporting.events import (
+    DEFAULT_STATUS_HTML_PATH,
+    DEFAULT_STATUS_MD_PATH,
     ENV_EVENT_PATH,
     ENV_STATUS_HTML_PATH,
     ENV_STATUS_MD_PATH,
@@ -23,11 +26,13 @@ from scripts.evaluation.reporting.events import (
     read_event_stream,
 )
 from scripts.evaluation.reporting.reader import parse_legacy_markdown
-from scripts.evaluation.reporting.summary import build_status_rows
+from scripts.evaluation.reporting.summary import build_status_rows, write_status_views
 from scripts.evaluation.reporting.writer import (
+    LegacyReportWriteDisabledError,
     append_report_entry,
     record_attack_results,
     record_collateral_results,
+    record_evaluation_result,
 )
 
 
@@ -48,8 +53,8 @@ def _identity(strategy="degree"):
 
 def _paths(tmp_path, monkeypatch):
     event_path = tmp_path / "auto_report.events.jsonl"
-    markdown_path = tmp_path / "auto_report_status.md"
-    html_path = tmp_path / "auto_report_status.html"
+    markdown_path = tmp_path / "auto_report.md"
+    html_path = tmp_path / "auto_report.html"
     monkeypatch.setenv(ENV_EVENT_PATH, str(event_path))
     monkeypatch.setenv(ENV_STATUS_MD_PATH, str(markdown_path))
     monkeypatch.setenv(ENV_STATUS_HTML_PATH, str(html_path))
@@ -169,20 +174,87 @@ def test_legacy_v1_v2_fixture_is_parsed_without_migration():
 
 def test_legacy_v1_writer_api_remains_available(tmp_path):
     report_path = tmp_path / "legacy.md"
-    append_report_entry(
-        script="fixture.py",
-        dataset="cora",
-        model="GCN",
-        method="GIF",
-        ratio="0.05",
-        status="OK",
-        log_file="fixture.log",
-        report_path=str(report_path),
-    )
+    with pytest.warns(DeprecationWarning):
+        append_report_entry(
+            script="fixture.py",
+            dataset="cora",
+            model="GCN",
+            method="GIF",
+            ratio="0.05",
+            status="OK",
+            log_file="fixture.log",
+            report_path=str(report_path),
+        )
     records, warnings = parse_legacy_markdown(report_path)
     assert warnings == []
     assert len(records) == 1
     assert records[0]["kind"] == "experiment"
+    assert "下一步建议" not in report_path.read_text(encoding="utf-8")
+
+
+def test_legacy_writer_cannot_append_to_live_auto_report_by_default():
+    with pytest.raises(LegacyReportWriteDisabledError):
+        append_report_entry(
+            script="fixture.py",
+            dataset="cora",
+            model="GCN",
+            method="GIF",
+            ratio="0.05",
+            status="OK",
+            log_file="fixture.log",
+        )
+
+
+def test_production_baseline_matches_frozen_archive():
+    baseline_path = Path(__file__).parents[1] / "results" / "_journal" / "auto_report_baseline.json"
+    baseline, warnings = read_baseline(baseline_path)
+    assert warnings == []
+    assert baseline["archive"]["lines"] == 19020
+    assert baseline["archive"]["legacy_entries"] == 2015
+    assert baseline["archive"]["decision_entries"] == 0
+    assert baseline["policy"]["fixed_next_step"] == "retired"
+    assert any(item["status"] == "duplicate-probe" for item in baseline["items"])
+
+
+def test_new_auto_report_names_and_baseline_projection(tmp_path):
+    assert DEFAULT_STATUS_MD_PATH.name == "auto_report.md"
+    assert DEFAULT_STATUS_HTML_PATH.name == "auto_report.html"
+    event_path = tmp_path / "auto_report.events.jsonl"
+    markdown_path = tmp_path / "auto_report.md"
+    html_path = tmp_path / "auto_report.html"
+    baseline_path = Path(__file__).parents[1] / "results" / "_journal" / "auto_report_baseline.json"
+    write_status_views(
+        event_path=event_path,
+        markdown_path=markdown_path,
+        html_path=html_path,
+        baseline_path=baseline_path,
+    )
+    markdown = markdown_path.read_text(encoding="utf-8")
+    browser = html_path.read_text(encoding="utf-8")
+    assert "## Legacy baseline" in markdown
+    assert "No V3 events yet" in markdown
+    assert "Fixed next-step prose is retired" in browser
+
+
+def test_legacy_evaluation_runner_uses_v3_skip_dedup(tmp_path, monkeypatch):
+    event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    kwargs = {
+        "script": "run_ratio05.py",
+        "dataset": "cora",
+        "model": "GCN",
+        "method": "GIF",
+        "ratio": "0.05",
+        "status": "SKIP",
+        "log_file": "strict-ok.log",
+        "event_path": str(event_path),
+    }
+    record_evaluation_result(**kwargs)
+    record_evaluation_result(**kwargs)
+    events, warnings = read_event_stream(event_path)
+    assert warnings == []
+    assert len(events) == 1
+    assert events[0]["event_type"] == "run.skipped"
+    assert events[0]["cache"][0]["type"] == "run_artifact"
 
 
 def test_result_cache_hit_is_not_replayed_as_current_selection_hit(tmp_path, monkeypatch):

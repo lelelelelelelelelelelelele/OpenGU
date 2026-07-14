@@ -219,9 +219,8 @@ def main():
     if demo_args.save_path:
         print(f"Results saved to: {demo_args.save_path}")
 
-    # Write structured AutoReport V3 events. The historical auto_report.md
-    # remains available to legacy callers but this high-volume path no longer
-    # appends a duplicate Markdown block per producer.
+    # Write structured AutoReport V3 events. Historical Markdown is frozen in
+    # results/_journal/archive; auto_report.md is now a bounded generated view.
     try:
         from scripts.evaluation.reporting.writer import record_attack_results
         report_path = record_attack_results(

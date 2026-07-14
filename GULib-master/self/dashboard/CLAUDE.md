@@ -31,7 +31,7 @@
 | `self/plan_flow_v2_delta.md` | 设计原典；本目录的 METRICS_CATALOG 是它的"实测投影" |
 | `self/PROJECT_MASTER_CONTEXT.md` | 早期背景，已冻结；不再受本目录影响 |
 | `report/progress/2026-04-17_EE5003-report/` | 课程报告快照，已冻结 |
-| `results/_journal/auto_report.md` / `auto_report.events.jsonl` | v1/v2 历史日志 + V3 pipeline 事件；扫当前 cell/stage 进度应看派生的 `auto_report_status.html`，不要通读无限日志；本目录的 VALIDATION_LOG 是**人/AI 验证类**的对位 |
+| `results/_journal/auto_report.md` / `.html` / `auto_report.events.jsonl` | `auto_report.md/.html` 是有限当前视图，JSONL 是 append-only V3 审计；v1/v2 原文在 `results/_journal/archive/`，baseline 只携带仍有用的事实和失效边界；本目录的 VALIDATION_LOG 是**人/AI 验证类**的对位 |
 
 ## 何时不要用本目录
 

@@ -1,7 +1,9 @@
-# 自动汇报规则（LLM v1）
+# 自动汇报规则
+
+> v1/v2 已于 2026-07-14 退役。以下模板仅用于解释 archive；新运行只写 V3 事件。
 
 - `report_style_version = v1`
-- 生效文件：`results/_journal/auto_report.md`
+- 历史文件：`results/_journal/archive/auto_report_*.md`
 - 写入策略：仅追加（append-only），不回写历史记录。
 
 ## 固定段落模板（必须）
@@ -23,7 +25,7 @@
 - `X`：任务失败（返回码异常或运行错误）。
 - `TIMEOUT`：超时中断。
 
-## 默认下一步建议（无显式 `next_step` 时）
+## 历史默认下一步建议（已废弃）
 
 - `OK`：检查该方法在其他比例或数据集的趋势。
 - `SKIP`：继续执行下一个未完成配置。
@@ -50,11 +52,11 @@
 ## v2 扩展：决策条目（2026-02-17 起生效）
 
 - `report_style_version = v2`
-- 生效文件不变：`results/_journal/auto_report.md`
+- 历史文件仍位于 `results/_journal/archive/auto_report_*.md`
 
 ### 会话分隔符
 
-每次新会话开始时，在 auto_report.md 追加：
+历史写法是在旧 auto_report.md 追加：
 
 ```
 ---
@@ -112,11 +114,12 @@ N 为当天第几次会话（从 1 开始）。
 
 ---
 
-## v3 扩展：机器事件与有限状态视图（2026-07-14 起）
+## v3：机器事件、历史 baseline 与有限状态视图（2026-07-14 起）
 
-- 历史文件 `auto_report.md` 保持 v1/v2、append-only，不迁移、不重写。
+- 4090 active checkout 的旧 live `auto_report.md` 整体、逐字节归档为 `archive/auto_report_2026-05-06_to_2026-07-10_active4090.md`；不清洗、不截断、不把旧记录回填成 V3 事件。
 - 新机器事件写入 `auto_report.events.jsonl`：一行一个 JSON 对象，`schema_version=3`，只追加。
-- 人看当前进度使用可重建的 `auto_report_status.md` / `auto_report_status.html`；这两个文件是有上限的派生视图，不是审计原件，可以从 JSONL 重建。
+- `auto_report_baseline.json` 只整理旧日志里仍需保留的事实、失效边界和来源校验，不宣称这些 cell 是当前 V3 完成态。
+- 人看当前进度使用可重建的 `auto_report.md` / `auto_report.html`；这两个文件是有上限的派生视图，不是审计原件，可以从 JSONL + baseline 重建。
 
 ### 身份与阶段
 
@@ -152,4 +155,4 @@ ResultCache 整体命中时，历史 `AttackResult` 内保存的 `selection_cach
 | 未变化的完整 cell 被反复 skip / Cache hit | 只记录一次；Artifact/Recipe/config 改变后才新增 |
 | 内部逐文件 Cache probe、固定“下一步建议”、重复 HIT 文本 | 否 |
 
-旧 `append_report_entry` / `append_attack_result` / `append_collateral_entry` API 保留给 v1 调用方；主 `demo_attack.py`、`eval_collateral.py`、`experiments/run.py` 使用 v3 事件。兼容 reader 同时解析 v1 实验条目、v2 session/decision 和 v3 JSONL，读取不触发历史迁移。
+主 `demo_attack.py`、`eval_collateral.py`、`experiments/run.py` 只使用 V3 事件。旧 `append_report_entry` / `append_attack_result` / `append_collateral_entry` 已废弃：不传显式 `report_path` 会拒绝写入，避免覆盖新的 `auto_report.md`；显式 fixture/export 路径仍可用于兼容测试，且不再自动生成“下一步建议”。兼容 reader 仍解析 v1 实验条目、v2 session/decision 和 v3 JSONL，读取不触发历史迁移。

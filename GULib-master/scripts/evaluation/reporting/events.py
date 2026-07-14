@@ -1,8 +1,8 @@
 """Append-only AutoReport V3 machine events.
 
-The historical ``auto_report.md`` remains the v1/v2 Markdown journal.  V3 uses
-a sidecar JSONL stream so accepted events are never rewritten while a separate
-status projection can be rebuilt at any time.
+V1/v2 Markdown is frozen under ``results/_journal/archive``. V3 uses a JSONL
+audit stream while the live ``auto_report.md`` / ``auto_report.html`` pair is a
+bounded projection that can be rebuilt at any time.
 """
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_EVENT_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.events.jsonl"
-DEFAULT_STATUS_MD_PATH = REPO_ROOT / "results" / "_journal" / "auto_report_status.md"
-DEFAULT_STATUS_HTML_PATH = REPO_ROOT / "results" / "_journal" / "auto_report_status.html"
+DEFAULT_STATUS_MD_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.md"
+DEFAULT_STATUS_HTML_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.html"
 
 EVENT_SCHEMA = "opengu.autoreport.event"
 EVENT_SCHEMA_VERSION = 3
@@ -506,9 +506,9 @@ def refresh_status_views(
 
     resolved_event_path = event_path_from_env(event_path)
     if status_md_path is None and not os.environ.get(ENV_STATUS_MD_PATH):
-        status_md_path = resolved_event_path.parent / "auto_report_status.md"
+        status_md_path = resolved_event_path.parent / "auto_report.md"
     if status_html_path is None and not os.environ.get(ENV_STATUS_HTML_PATH):
-        status_html_path = resolved_event_path.parent / "auto_report_status.html"
+        status_html_path = resolved_event_path.parent / "auto_report.html"
     md_path, html_path = status_paths_from_env(status_md_path, status_html_path)
     return write_status_views(
         event_path=resolved_event_path,

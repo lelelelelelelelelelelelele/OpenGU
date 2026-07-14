@@ -11,9 +11,9 @@
 
 | 模块 | 用途 |
 |---|---|
-| `scripts.evaluation.reporting.events` + `writer` | `demo_attack.py` / `eval_collateral.py` / `experiments/run.py` 写 append-only `auto_report.events.jsonl`；旧 Markdown API 继续兼容 v1 调用方 |
-| `scripts.evaluation.reporting.summary` | 从 V3 JSONL 重建有上限的 `auto_report_status.md` + `.html` 当前状态视图 |
-| `scripts.evaluation.reporting.reader` | 只读解析历史 v1/v2 Markdown 与 V3 JSONL，不迁移历史 |
+| `scripts.evaluation.reporting.events` + `writer` | `demo_attack.py` / `eval_collateral.py` / `experiments/run.py` 写 append-only `auto_report.events.jsonl`；旧 Markdown writer 默认写入已禁用 |
+| `scripts.evaluation.reporting.summary` | 从 V3 JSONL + `auto_report_baseline.json` 重建有上限的 `auto_report.md` + `.html` 当前状态视图 |
+| `scripts.evaluation.reporting.reader` / `baseline` | 只读解析 archive 中的 v1/v2 Markdown、V3 JSONL 与 legacy baseline，不迁移历史 |
 | `scripts.evaluation.metrics.*` | 测试间复用的指标计算（`tests/test_attack_charts.py` 在用） |
 | `scripts.evaluation.plotting.*` | Step0 老图复用（`tests/test_step0_extractor.py`） |
 | `gen_md_report_v2.py` | 读 `results/evaluation/stats/final_paper_stats.csv` 出论文表格到 `report/paper/sections/cross_seed_tables.md`（CLAUDE.md 引用） |

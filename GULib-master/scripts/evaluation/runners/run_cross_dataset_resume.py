@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from .log_resume import parse_log_quality, should_skip
-from ..reporting.writer import append_report_entry
+from ..reporting.writer import record_evaluation_result
 
 DATASETS = ["cora", "citeseer", "pubmed"]
 METHODS = [
@@ -207,7 +207,7 @@ def main() -> None:
                 result["approx_nodes"] = approx_nodes(dataset, ratio)
                 all_results[dataset][method][ratio] = result
 
-                append_report_entry(
+                record_evaluation_result(
                     script=SCRIPT_NAME,
                     dataset=dataset,
                     model="GCN",
