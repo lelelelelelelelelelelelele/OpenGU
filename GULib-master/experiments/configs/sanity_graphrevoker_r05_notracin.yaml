@@ -1,0 +1,28 @@
+# GraphRevoker post-fix canary on cora/GCN at r=0.05.
+#
+# Scope for the 2026-07-14 verification gate:
+#   - include random, degree, pagerank, and IM;
+#   - exclude TracIn and Hybrid by explicit user decision;
+#   - use only an isolated scratch checkout because the current runner still
+#     writes Legacy-format Result/Selection/Score caches.
+name: sanity_graphrevoker_r05_notracin
+dataset: cora
+base_model: GCN
+ratio: 0.05
+methods: [GraphRevoker]
+strategies: [random, degree, pagerank, im]
+seeds: [42]
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: false
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+# GraphRevoker only supports partition_method in {random, gpa}; GPA is the
+# method-canonical graph-partition-aware path used by the existing sanity gate.
+extra_args: ["--partition_method", "gpa"]
+model_overrides:
+  GCN:
+    gcn_num_layers: 2
+    gcn_hidden: 64

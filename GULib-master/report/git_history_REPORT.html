@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenGU/GULib Git History Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #d9dde3;
+      --band: #f5f7fa;
+      --accent: #126e82;
+      --accent-soft: #e7f3f5;
+      --warn: #8a5a00;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: #ffffff;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin-top: 34px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 21px;
+    }
+    h3 {
+      margin-top: 26px;
+      font-size: 17px;
+    }
+    p {
+      margin: 10px 0;
+    }
+    code {
+      font-family: Consolas, "SFMono-Regular", monospace;
+      background: #f1f3f4;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .meta {
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .verdict {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 14px 18px;
+      margin: 20px 0 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 22px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: var(--band);
+      text-align: left;
+    }
+    td.num {
+      text-align: right;
+      white-space: nowrap;
+    }
+    ul, ol {
+      padding-left: 22px;
+    }
+    .note {
+      color: var(--warn);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>OpenGU/GULib Git History Report</h1>
+  <p class="meta">Generated: 2026-07-10 · Scope: repository snapshot <code>GULib-master</code> · branch <code>main</code> at <code>3f631fb</code> · collected from the Windows research checkout</p>
+
+  <section class="verdict">
+    <strong>Verdict.</strong> This repository has two lives. The first is the upstream OpenGU framework history through <code>upstream/main</code> at <code>475e045</code>. The second is the local GULib research fork: from 2026-02 onward it becomes an attack-research workspace, then a Phase B / paper-production system, then a rebuttal-prep and concordance-analysis workspace.
+  </section>
+
+  <h2>Snapshot</h2>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>All reachable commits</td><td class="num">425</td></tr>
+    <tr><td>Commits on <code>main</code></td><td class="num">405</td></tr>
+    <tr><td>Merge-base with upstream</td><td><code>475e045</code> (<code>Update dataset_utils.py</code>, 2025-07-12, bwfan-bit)</td></tr>
+    <tr><td><code>main</code> ahead / behind upstream</td><td class="num">268 / 0</td></tr>
+    <tr><td>Diff from upstream</td><td>828 files, 226,563 insertions, 1,191 deletions</td></tr>
+    <tr><td>Current release relation</td><td><code>main</code> is 32 commits ahead of <code>origin/release/phase-b-fixes</code>; release has no unmerged commits</td></tr>
+  </table>
+
+  <h2>Commit Rhythm</h2>
+  <table>
+    <tr><th>Month</th><th>Commits</th><th>Reading</th></tr>
+    <tr><td>2024-12</td><td class="num">105</td><td>Upstream import and early OpenGU shaping</td></tr>
+    <tr><td>2025-01 to 2025-07</td><td class="num">32</td><td>Upstream maintenance / low-velocity framework work</td></tr>
+    <tr><td>2026-02</td><td class="num">99</td><td>Attack framework and Phase A exploration</td></tr>
+    <tr><td>2026-04</td><td class="num">13</td><td>Report/deck packaging and figure refresh</td></tr>
+    <tr><td>2026-05</td><td class="num">139</td><td>Phase B, bug audit, arxiv scale, paper push</td></tr>
+    <tr><td>2026-06</td><td class="num">27</td><td>Resume diagnosis, dashboard consolidation, clean data merge</td></tr>
+    <tr><td>2026-07</td><td class="num">10</td><td>Concordance merge, doc-map sync, local planning hygiene</td></tr>
+  </table>
+
+  <h2>Development Phases</h2>
+  <h3>1. Upstream OpenGU Baseline: 2024-12 to 2025-07</h3>
+  <p>The root history starts with upstream-style commits from Frank and bwfan-bit: initial upload, README/docs edits, ReadTheDocs material, and periodic merges from <code>bwfan-bit/OpenGU</code>. Treat commits up to <code>475e045</code> as the framework base. They explain architecture, not the later attack-research agenda.</p>
+
+  <h3>2. Attack-Research Fork and Phase A: 2026-02</h3>
+  <p>The research fork begins with commits such as <code>4e8e671</code> and then builds strategy abstractions, random / degree / PageRank baselines, TracIn, IM/CELF, hybrid IF-IM, result caches, selection caches, collateral evaluation, and early tests. This phase is exploratory and bug-discovery-heavy.</p>
+
+  <h3>3. Report and Defense Packaging: 2026-04 to early 2026-05</h3>
+  <p>The April line turns evidence into report and deck material: MSc report draft, figure refresh, Overleaf bundle, defense deck structure, and report archive organization. This is artifact production more than core algorithm change.</p>
+
+  <h3>4. Phase B and Paper Push: 2026-05</h3>
+  <p>May is the dense hardening phase: 139 commits around cache correctness, seed semantics, failed-run pollution, train-before-select bugs, arxiv-scale TracIn/IM, YAML-driven experiment matrices, pass/fail gates, paper figures, and Overleaf sections. The repository becomes an auditable experiment pipeline.</p>
+
+  <h3>5. Resume, Dashboard, and Operational Hub: 2026-06</h3>
+  <p>The merge <code>5428bae</code> brings <code>release/phase-b-fixes</code> into <code>main</code>. Later commits consolidate live state into <code>self/dashboard/WORKPLAN.md</code>, generate <code>progress.html</code>, add config inventory, and distinguish current operational truth from historical dashboards.</p>
+
+  <h3>6. Concordance, Rebuttal Prep, and Sync Tooling: 2026-06-27 to 2026-07-10</h3>
+  <p>The branch <code>research/selection-concordance-2026-06-27</code> is now merged into <code>main</code>. Its theme is mechanism clarification: topology-selector overlap, Jaccard@k reports, GIF vs TracIn, proper Hessian-free TracIn, and the finding that deployed cross-form TracIn is degenerate. SyncMate and doc-map synchronization join this line as operational support.</p>
+
+  <h2>Branch Topology</h2>
+  <table>
+    <tr><th>Branch / ref</th><th>Status</th></tr>
+    <tr><td><code>main</code></td><td>Current branch, equals <code>origin/main</code>, at <code>3f631fb</code></td></tr>
+    <tr><td><code>release/phase-b-fixes</code></td><td>Merged into <code>main</code>; no unmerged commits remain on the release ref</td></tr>
+    <tr><td><code>research/selection-concordance-2026-06-27</code></td><td>Merged into <code>main</code> via <code>3f631fb</code></td></tr>
+    <tr><td><code>paper/alignment-experiment</code></td><td>Side branch at <code>565aaf6</code>; not an ancestor of <code>main</code></td></tr>
+    <tr><td><code>backup/*</code></td><td>Historical safety snapshots, not the current working line</td></tr>
+    <tr><td><code>upstream/main</code></td><td>Framework baseline at <code>475e045</code></td></tr>
+  </table>
+
+  <h2>Hot Areas</h2>
+  <ul>
+    <li><code>attack/</code>: selection strategies, attack manager, pipeline adapter, result cache, selection cache, score cache.</li>
+    <li><code>experiments/</code>: Phase B YAML matrix, baseline k=5 framework, arxiv configs, IF/IM benchmarks.</li>
+    <li><code>scripts/</code>: evaluation, figures, gates, cache tools, arxiv deployment, SyncMate.</li>
+    <li><code>self/</code>: project memory, dashboard, metrics catalog, validation log, limitations, concordance study.</li>
+    <li><code>report/</code> and <code>results/</code>: paper/report artifacts, archived progress snapshots, Phase B aggregate data, figure outputs.</li>
+    <li><code>tests/</code>: regression tests around strategies, cache behavior, collateral evaluation, Phase B invariants, SyncMate.</li>
+  </ul>
+
+  <h2>How To Read This Repo Now</h2>
+  <ol>
+    <li>Start with <code>CLAUDE.md</code> for project context and operational warnings.</li>
+    <li>Use <code>self/dashboard/WORKPLAN.md</code> for current state, not old progress files.</li>
+    <li>Use <code>self/dashboard/VALIDATION_LOG.md</code> and <code>self/limitations.md</code> for evidence-backed claims and known gaps.</li>
+    <li>Treat <code>self/related_work/concordance/</code> as the current mechanism-clarification layer.</li>
+    <li>Treat <code>report/progress/</code> and older report directories as historical snapshots.</li>
+    <li>Treat hash-keyed caches as generated stores; do not rename or hand-edit them.</li>
+  </ol>
+
+  <h2>Practical Takeaways</h2>
+  <p>The repo's development history is evidence-driven and corrective: many major commits exist because a measurement, cache, seed, or mechanism assumption was found unsafe. The most important transition is 2026-05, when Phase B hardening turns exploratory scripts into an auditable experiment pipeline. The next major transition is 2026-06-27 onward, when dashboard and concordance work clarify what claims are still live and what mechanisms can be defended.</p>
+  <p class="note">Future work should stay narrow and evidence-preserving: update source docs, regenerate derived reports, and keep cache/result semantics explicit.</p>
+</main>
+</body>
+</html>

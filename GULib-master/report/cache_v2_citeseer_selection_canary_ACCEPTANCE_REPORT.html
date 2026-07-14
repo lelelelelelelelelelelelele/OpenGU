@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cache V2 Citeseer Selection Canary 真机验收报告</title>
+<style>
+:root{--bg:#07101d;--panel:#101d30;--panel2:#15243a;--text:#eaf1fb;--muted:#9fb0c8;--line:#2b405d;--cyan:#55d7d2;--gold:#f6c85f;--green:#65d49a;--red:#ff8d8d;--blue:#78aef8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 88% 0,rgba(85,215,210,.1),transparent 25%),linear-gradient(135deg,#06101c,#0a1525 54%,#07101d);color:var(--text);font:15px/1.68 Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{width:min(1160px,calc(100% - 36px));margin:0 auto;padding:46px 0 86px}.hero{padding:34px;border:1px solid var(--line);border-radius:20px;background:radial-gradient(circle at 92% 0,rgba(85,215,210,.16),transparent 34%),rgba(16,29,48,.94);box-shadow:0 28px 80px rgba(0,0,0,.3)}
+.eyebrow{color:var(--cyan);font-weight:800;letter-spacing:.12em;text-transform:uppercase}h1{margin:8px 0 10px;font-size:39px;line-height:1.15;letter-spacing:-.03em}h2{margin:46px 0 16px;padding-top:10px;border-top:1px solid var(--line);font-size:25px}h3{color:var(--cyan);margin:27px 0 10px}.sub,.small{color:var(--muted)}.small{font-size:13px}.verdict{display:inline-flex;align-items:center;gap:9px;margin-top:15px;padding:9px 14px;border-radius:999px;background:rgba(101,212,154,.12);color:#9af0be;border:1px solid rgba(101,212,154,.4);font-weight:800}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 18px var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.metric,.card{padding:18px;border:1px solid var(--line);border-radius:13px;background:rgba(16,29,48,.82)}.metric b{display:block;color:#fff;font-size:27px}.metric span{color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card h3{margin-top:0}.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;margin:22px 0}.node{padding:16px;border:1px solid #32627a;border-radius:11px;background:#102a3c;text-align:center;font-weight:750}.node.oknode{border-color:rgba(101,212,154,.65);background:rgba(101,212,154,.1)}.arrow{color:var(--gold);font-size:22px}
+table{width:100%;border-collapse:collapse;margin:15px 0 25px;background:rgba(16,29,48,.76)}th{background:#172a43;color:#fff;text-align:left}th,td{padding:10px 12px;border:1px solid var(--line);vertical-align:top}tr:nth-child(even) td{background:rgba(21,36,58,.45)}code{color:#b9fff4;background:#11243a;padding:.12em .38em;border-radius:5px}pre{overflow:auto;padding:17px;border:1px solid var(--line);border-radius:11px;background:#06101d;color:#d6e7fb;white-space:pre-wrap}p,li{color:#d7e1ef}.ok{color:#9af0be}.warn{color:#ffe09a}.hash{word-break:break-all}.boundary{border-left:4px solid var(--red);padding:13px 16px;background:rgba(255,141,141,.08)}.note{border-left:4px solid var(--gold);padding:12px 16px;background:rgba(246,200,95,.08)}.proof{border-left:4px solid var(--green);padding:12px 16px;background:rgba(101,212,154,.08)}.foot{margin-top:48px;color:var(--muted);font-size:12px}
+@media(max-width:820px){h1{font-size:31px}.metrics,.grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}}@media(max-width:540px){.metrics,.grid{grid-template-columns:1fr}.hero{padding:23px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div class="eyebrow">Cache V2 · Real-data Selection Canary · 2026-07-14</div>
+  <h1>Citeseer 冷 miss → 暖 exact hit</h1>
+  <p class="sub">真实 Planetoid Citeseer · 项目现有 IM producer · fresh checkout <code>83842e6</code> · 隔离 V2 store</p>
+  <div class="verdict"><span class="dot"></span>Selection canary 验收通过</div>
+  <p class="boundary"><strong>边界：</strong>这不是完整架构 Gate 2，也不是 runner 切换。它只证明隔离 V2 store 中的真实 Selection cold/warm 路径；Prediction、Evaluation、正式 E1 与 conflict resolution 尚未验收，Legacy 不得冻结、迁移或删除。</p>
+</section>
+
+<section class="metrics">
+  <div class="metric"><b>133</b><span>有序 selected nodes</span></div>
+  <div class="metric"><b>1</b><span>正式 Selection Artifact</span></div>
+  <div class="metric"><b>236.48×</b><span>resolve 阶段加速</span></div>
+  <div class="metric"><b>0</b><span>Artifact conflicts</span></div>
+</section>
+
+<h2>1. 验收判定</h2>
+<table>
+<thead><tr><th>验收面</th><th>结果</th><th>核心证据</th></tr></thead>
+<tbody>
+<tr><td>真实 workload</td><td class="ok">通过</td><td>Citeseer 3327 nodes；seed 42 的 80/0/20 split；2661 candidates；IM 选 133 nodes</td></tr>
+<tr><td>cold</td><td class="ok">通过</td><td><code>hit=false</code>，<code>producer_called=true</code>，producer 总调用数 1</td></tr>
+<tr><td>warm</td><td class="ok">通过</td><td><code>hit=true</code>，<code>producer_called=false</code>，producer 总调用数仍为 1</td></tr>
+<tr><td>identity 解耦</td><td class="ok">通过</td><td>config、YAML、experiment ID 全部改名后仍命中同一 Recipe/Artifact</td></tr>
+<tr><td>fail closed</td><td class="ok">通过</td><td><code>k=134</code> 必须 miss；篡改副本 payload 必须触发 <code>ArtifactIntegrityError</code></td></tr>
+<tr><td>Legacy 只读</td><td class="ok">通过</td><td>三个 Legacy Cache 树的 path/size/mtime/SHA-256 聚合状态前后相同</td></tr>
+<tr><td>测试</td><td class="ok">通过</td><td>本地 147 passed；远端 70 passed；机器汇总 16/16 checks true</td></tr>
+</tbody>
+</table>
+
+<div class="flow" aria-label="cold warm evidence flow">
+  <div class="node">Cold<br><code>no_exact_candidate</code></div><div class="arrow">→</div>
+  <div class="node oknode">IM 只执行 1 次<br>写入 V2 Artifact</div><div class="arrow">→</div>
+  <div class="node oknode">Warm exact hit<br>producer 哨兵未触发</div>
+</div>
+
+<h2>2. 数据集选择与实验边界</h2>
+<p>仓库已有 <code>experiments/configs/A5_citeseer_r0.05.yaml</code>，WORKPLAN 将其列为尚无 clean Phase-B 结果的 Citeseer 集合。Citeseer 并非历史上从未触碰：旧 archive 有 Phase-B 前污染数据；但 active ResultCache JSON 为 0/783、SelectionCache JSON 为 0/110、ScoreCache sidecar JSON 为 0/37，<code>results/runs</code> 中 Citeseer 路径也为 0。因此当前没有可引用的 clean Phase-B end-to-end 结果。</p>
+<div class="grid">
+  <div class="card"><h3>本次纳入</h3><p>真实 Citeseer graph、OpenGU seed-42 candidate split、IM Selection producer、V2 payload/header/index、cold/warm 与两组负向校验。</p></div>
+  <div class="card"><h3>本次未纳入</h3><p>TracIn、Hybrid、GraphRevoker、GU/retrain、Prediction、Evaluation、正式 E1 以及任何 runner 改动。未纳入不等于失败。</p></div>
+</div>
+<p class="note">没有新增可执行 clean runner YAML。现有 runner 仍会读写 Legacy Cache，直接跑 A5 会越过阶段门；A5 名称在本次只属于 request envelope，不属于 Artifact identity。</p>
+
+<h2>3. 被测版本与隔离路径</h2>
+<table>
+<tbody>
+<tr><th>Git branch / commit</th><td><code>codex/citeseer-v2-canary-20260714</code><br><code class="hash">83842e6dfb39b36e20725ea632913c5b8c2b8e5f</code></td></tr>
+<tr><th>fresh code checkout</th><td><code>/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master</code></td></tr>
+<tr><th>run / data / store</th><td><code>/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2</code><br><code>…/dataset</code><br><code>…/store</code></td></tr>
+<tr><th>Legacy snapshot root</th><td><code>/autodl-fs/data/OpenGU/GULib-master/results</code></td></tr>
+<tr><th>软件</th><td>torch <code>2.1.2+cu118</code>；PyG <code>2.6.1</code>；Numba <code>0.65.1</code></td></tr>
+<tr><th>设备边界</th><td>RTX 4090 24GB 可用；该 Selection canary 为 CPU/Numba workload，未跑 GPU GU 实验</td></tr>
+</tbody>
+</table>
+<p>远端原有 dirty checkout 未切 branch、未暂存、未清理，也没有执行 canary。fresh clone、dataset 与 V2 store 全部使用隔离绝对路径，程序拒绝 store/dataset 落入 Legacy <code>results</code> 树。</p>
+
+<h2>4. Recipe 与真实输入</h2>
+<table>
+<thead><tr><th>字段</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>graph fingerprint</td><td class="hash"><code>eedd2c0c5748d3818076bf700673781c5079052122988c2df10ab9b9e11c5fc9</code></td></tr>
+<tr><td>candidate set</td><td>2661 nodes；hash <code class="hash">ada531f36ff1aeddcb8c60658b845d00ec3c3be3ac73f606ad98829c706a450b</code></td></tr>
+<tr><td>split</td><td>OpenGU transductive randperm；seed 42；80/0/20</td></tr>
+<tr><td>selector / algorithm</td><td>IM / <code>opengu-im-batch-celf-numba-canary-v1</code></td></tr>
+<tr><td>参数</td><td>propagation 0.1；100 MC rounds；candidate fraction 1.0；selector seed 2024；batch size 5</td></tr>
+<tr><td>budget</td><td>ratio 0.05；<code>k=133</code></td></tr>
+</tbody>
+</table>
+<p>Recipe 只包含真正改变产物的 graph/candidate identity、node ID space、selector/algorithm version、<code>k</code> 与 IM 参数。dataset 名、model 名、YAML、config、experiment ID 与展示用 ratio 不进入 identity。两个 Legacy IM ScoreCache 层显式关闭。</p>
+
+<h2>5. Cold / warm 核心证据</h2>
+<table>
+<thead><tr><th>字段</th><th>cold</th><th>warm</th></tr></thead>
+<tbody>
+<tr><td><code>hit</code></td><td><code>false</code></td><td class="ok"><code>true</code></td></tr>
+<tr><td><code>producer_called</code></td><td><code>true</code></td><td class="ok"><code>false</code></td></tr>
+<tr><td>producer call count</td><td>1</td><td>1</td></tr>
+<tr><td>resolve time</td><td>34.769674 s</td><td>0.147032 s</td></tr>
+<tr><td>end-to-end time</td><td>55.117240 s</td><td>2.954911 s</td></tr>
+<tr><td>miss reasons</td><td><code>no_exact_candidate</code></td><td>empty</td></tr>
+</tbody>
+</table>
+<p class="proof"><strong>为什么这是真命中：</strong>warm 是第二个独立进程，并启用 fail-if-called producer 哨兵。若 resolver 重新执行 IM，命令会失败；实际 warm 正常返回，持久化 producer counter 仍为 1。</p>
+
+<table>
+<thead><tr><th>稳定字段</th><th>cold 与 warm 的共同值</th></tr></thead>
+<tbody>
+<tr><td>Artifact ID</td><td><code>sel_82ce3701_c25a3ec2</code></td></tr>
+<tr><td>Recipe hash</td><td class="hash"><code>82ce3701ea07851534a0b77a615472d25f7af649a3d88f0c0751e34fb6783a02</code></td></tr>
+<tr><td>content / payload SHA-256</td><td class="hash"><code>c25a3ec2d9e44806fbe98444eadacb974b11bbceea78d595bfb0b42524ed0597</code></td></tr>
+<tr><td>ordered nodes hash</td><td class="hash"><code>8876e4f21b49bac3e04a94e3e0fd2ee44c8e462d99cb9d0a671d2f21f706950b</code></td></tr>
+<tr><td>payload</td><td>133 ordered nodes；1097 bytes；mtime ns <code>1783973809373716696</code>，warm 后不变</td></tr>
+</tbody>
+</table>
+<p>resolve 加速 <strong>236.48×</strong>，端到端加速 <strong>18.65×</strong>。warm 仍需约 2.95 秒，因为新进程会重新加载并 fingerprint 真实输入，但不会执行 IM producer。</p>
+
+<h2>6. Experiment 标签与 identity 解耦</h2>
+<table>
+<thead><tr><th>request envelope</th><th>cold</th><th>warm</th></tr></thead>
+<tbody>
+<tr><td><code>config_name</code></td><td><code>A5_citeseer_r0.05</code></td><td><code>renamed-config</code></td></tr>
+<tr><td>YAML path</td><td><code>experiments/configs/A5_citeseer_r0.05.yaml</code></td><td><code>elsewhere/renamed.yaml</code></td></tr>
+<tr><td>experiment ID</td><td><code>cache-v2-citeseer-cold</code></td><td><code>cache-v2-citeseer-warm-different-request</code></td></tr>
+</tbody>
+</table>
+<p>三个实验层标签全部改变，但 Recipe hash、Artifact ID 和 content hash 不变，warm 仍 exact hit。这验证了 Experiment 只是消费者，不拥有 Cache。</p>
+
+<h2>7. 负向测试与 fail closed</h2>
+<table>
+<thead><tr><th>case</th><th>已观察结果</th><th>正式 store</th></tr></thead>
+<tbody>
+<tr><td><code>k=134</code></td><td>新 Recipe <code>13a5182c…</code> 无候选，触发 <code>ProducerCalledError</code> 哨兵，exit 2</td><td>Artifact=1；producer count=1</td></tr>
+<tr><td>tampered copy</td><td>副本 payload 追加字节后触发 <code>ArtifactIntegrityError</code>，exit 2</td><td>原正式 store 未改</td></tr>
+</tbody>
+</table>
+<p>changed-<code>k</code> 证明不同 Recipe 不会误命中；tamper 证明损坏 payload 不会静默变成 hit。篡改仅发生在隔离副本。</p>
+
+<h2>8. SQLite 与 Legacy 不变量</h2>
+<div class="grid">
+  <div class="card"><h3>V2 Store</h3><p><code>integrity_check=ok</code><br>schema/user version = 1<br>Artifact = 1（<code>valid/verified</code>）<br>dependency / consumer / Legacy source = 0 / 0 / 0<br>conflict = 0</p><p class="small hash">DDL fingerprint<br><code>55dd8184c6e1b16778ae60f713e40ee8f33c7876b33115f263df20a223897608</code></p></div>
+  <div class="card"><h3>Legacy 只读</h3><p>cold/warm 前后四次完整快照聚合 hash 相同；旧 dirty checkout 的 status 文件前后 SHA-256 相同。</p><p class="small hash">Legacy state hash<br><code>b7488cb14f32e9482fd268f31bada5bca3561e81f953db4ed1f117ff32e98ffa</code></p></div>
+</div>
+<p class="small">Legacy 物理文件计数：ResultCache 784、SelectionCache 111、ScoreCache 75。计数含各目录 <code>CLAUDE.md</code>，Score JSON/NPZ 分开计数，不能与 Gate 1 逻辑 source 数直接比较。</p>
+
+<h2>9. 测试、复现与机器证据</h2>
+<table>
+<thead><tr><th>位置</th><th>范围</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>本地 gnn env</td><td>canary + store + contract + ScoreCache + AttackManager + Phase-B invariants</td><td class="ok">147 passed in 2.35s</td></tr>
+<tr><td>远端 fresh checkout</td><td>canary + ArtifactStore + Cache V2 contract</td><td class="ok">70 passed in 2.33s</td></tr>
+</tbody>
+</table>
+<pre>E:/conda_package/envs/gnn/python.exe -m pytest \
+  tests/test_cache_v2_selection_canary.py tests/test_cache_v2_store.py \
+  tests/test_cache_v2.py tests/test_score_cache.py \
+  tests/test_attack_manager.py tests/test_phase_b_invariants.py -q</pre>
+<pre>PY=/root/miniconda3/bin/python
+CODE=/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master
+RUN=/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2
+LEGACY=/autodl-fs/data/OpenGU/GULib-master/results
+
+cd "$CODE"
+$PY scripts/cache_v2_selection_canary.py cold \
+  --store-root "$RUN/store" --dataset-root "$RUN/dataset" \
+  --legacy-results-root "$LEGACY" --allow-download \
+  --selection-ratio 0.05 --config-name A5_citeseer_r0.05 \
+  --yaml-path experiments/configs/A5_citeseer_r0.05.yaml \
+  --experiment-id cache-v2-citeseer-cold
+
+$PY scripts/cache_v2_selection_canary.py warm \
+  --store-root "$RUN/store" --dataset-root "$RUN/dataset" \
+  --legacy-results-root "$LEGACY" --selection-ratio 0.05 \
+  --config-name renamed-config --yaml-path elsewhere/renamed.yaml \
+  --experiment-id cache-v2-citeseer-warm-different-request</pre>
+<p>机器汇总：<code>/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/evidence/gate2_acceptance.json</code>，16/16 checks true，<code>accepted=true</code>。</p>
+<table>
+<thead><tr><th>证据</th><th>SHA-256</th></tr></thead>
+<tbody>
+<tr><td><code>gate2_acceptance.json</code></td><td class="hash"><code>a67f52c82854c22f085d84b8e47a6801c0ef25d6209a4f28922f431d9e67b113</code></td></tr>
+<tr><td><code>cold.json</code></td><td class="hash"><code>a0f967dca62a1fd477f13dc7c83ef8d734366f4b3587f6617f60457b4704f703</code></td></tr>
+<tr><td><code>warm.json</code></td><td class="hash"><code>ea816383a5c42ff99463062316a77a9cf0cd80d7b988bfbe9744b150bf2e4cd7</code></td></tr>
+<tr><td><code>index.sqlite</code></td><td class="hash"><code>ee9f2534c248e5f2c9f1215d24f5a5c3c21bbbe1c1bc66ea8d2f0900f1b25199</code></td></tr>
+<tr><td><code>payload.json</code></td><td class="hash"><code>c25a3ec2d9e44806fbe98444eadacb974b11bbceea78d595bfb0b42524ed0597</code></td></tr>
+<tr><td><code>header.json</code></td><td class="hash"><code>e98c0884ccadda2af7e4409c9990c12d61bd962c50da155ecca99a050c117081</code></td></tr>
+</tbody>
+</table>
+<p><code>evidence_sha256.txt</code> 覆盖 evidence、正式 store 与 tamper-store 的全部 28 个文件（manifest 自身除外），已经由 <code>sha256sum -c</code> 核验通过；manifest SHA-256 为 <code class="hash">d6a6d378dda6478a0c56404e44bf6fe9d3d43f545d0d3b7ad7ac9fd6e8bd19ce</code>。本地测试只有既有 llvmlite/pkg_resources deprecation warnings，无失败。</p>
+
+<h2>10. 下一阶段门</h2>
+<ol>
+  <li>把 versioned header/payload store 从隔离 canary 收敛为正式 Selection producer 契约。</li>
+  <li>实现可审计 conflict resolution，而不只有 conflict fail-closed。</li>
+  <li>为 Prediction 与 Evaluation 补齐 V2-only 写入和一致性验证。</li>
+  <li>runner canary 显式使用 V2，查询异常禁止静默回退 Legacy。</li>
+  <li>之后再派生 Citeseer clean E1：先 seed 42 小矩阵，再扩 5 seeds；继续排除 TracIn/Hybrid，GraphRevoker 等先修问题关闭后再纳入。</li>
+</ol>
+<p class="boundary"><strong>当前仍禁止：</strong>把现有 runner 的 Legacy 命中冒充 V2 命中；运行跨过阶段门的正式 E1；冻结、归档或删除任何 Legacy Cache。</p>
+
+<p class="foot">Editable source: docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md · Static report: report/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.html</p>
+</main>
+</body>
+</html>

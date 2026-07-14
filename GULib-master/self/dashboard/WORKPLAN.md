@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-06-28
+> Last updated: 2026-07-14
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -24,7 +24,7 @@
 | **数据** | 🟢 cora 全+双备份 / arxiv 6-cell pilot（已核实） | cora 460（`ablating/` 460 + `4090/` 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——**服务器权威 journal 核实只完成 6、全在本地、nothing stranded**；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑 | server journal 存档 `results/_journal/archive/`；`_phase_b_aggregate.csv` |
 | **环境** | 🟡 本地分析就绪 / 本地 GPU 不可用 | H→E 已重指；conda `gnn` 在 `E:/conda_package/envs/gnn/python.exe`（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。**本地 GPU 死**：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90 → CUDA kernel 全崩；按 requirements.txt 重建救不了。GPU 环境**封存在 AutoDL 镜像 `gnn_20`**，随起随用、可随时租 → 本地只做非实验 | 本 session 实测 + 记忆 `project_stack_reproducibility_constraint` |
 | **数据安全** | 🟢 已多处备份 | 服务器有完整原件；本地备份 `D:\backups\OpenGU_GULib\2026-06-15\` + `F:\…`（2482 文件校验通过） | 备份 MANIFEST |
-| **代码** | 🟡 dashboard 已提交 / paper 改动待提交 | 看板 + WORKPLAN + inventory 已提交（`44f7988`）；paper 7 章节 + CSV + 图改动仍在工作树，未跟踪 `test1.py`/`arxiv_pilot_table.tex`；canonical 分支 `release/phase-b-fixes` | git |
+| **代码** | 🟡 多 session dirty tree 收口中 | `main` / `origin/main` 基线同为 `3f631fb`；当前分支 `codex/opengu-worktree-recovery-20260714` 正按 session / 主题整理既有 dirty tree，尚未声称全部提交或推送 | git |
 | **L8 修复** | 🟢 代码已修 / 🔴 数据仍坏 | 写回逻辑 `d674f62` 已在 HEAD（**不用合分支**）；数据坏是服务器 **stale `.pyc`** → 只需清缓存重跑（见 E2） | `limitations.md` L8 |
 | **paper** | 🟡 thesis 站得住 / 有 rebuttal 硬伤 | contribution = audit + 异质性 + fingerprint，**未被 degree 证伪**（§2 C1）。这轮 = 换主指标 retrain gap + 压异质性，thesis 内不改写。两道必答题：① vs degree ② citeseer/arxiv scope（L6/L7，需租服务器补）。§2 数字硬伤待 caveat | 记忆 `paper-correctness-liabilities`；§2/§3 |
 | **大方向** | 🟡 已厘清 | **不是"rebuttal vs 重投"二选一**：先备 rebuttal（thesis 内，§3）；不中再重投+reframe（`565aaf6`）。别在 rebuttal 里改 thesis | §3 |
@@ -64,6 +64,8 @@ E4 GraphRevoker 修复（修聚合器 bug + 整 method 重跑，★ code+server�
 ★ E1 citeseer clean ─► W2-② scope 必答题 / W3-L6 scope 改写
 E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─► W3-L4 anchor footnote
 
+Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe gate ─► E7 umbrella ─► C.6a 同架构 surrogate ─► C.6b 跨 backbone surrogate
+
 写作主线（多数纯 prose，现在就能做）：W1 指标切换 ─► W2 两道必答题 ─► W3 逐条 caveat ─► W4 融合
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
@@ -78,14 +80,15 @@ E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─�
 
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
-| **E4** ★ | **GraphRevoker 修复 ← 先做（每方法有效数据 = audit 底座）**（决策 = 修，不 drop/不 caveat）：修聚合器 `opt_dataset.py:17`（**源于 OpenGU 上游、长期未改好**）→ 清损坏 `data/GraphRevoker/cora/` .pt → 整 method 重跑，**争取交叉验证**确认修对 | `phase_b_cora_{gcn,gat}.yaml` + 聚合器修复 | 整 method 重跑 | C5 / L5 | ☐ |
-| **E1** ★ | **跑干净 citeseer**（堵 scope 漏洞） | `A5_citeseer_r0.05.yaml` | 6×3×5=90 cell, ~1h | L6 / C-scope | ☐ 0/90 |
+| **E4** ★ | **GraphRevoker 修复 ← 先做（每方法有效数据 = audit 底座）**（决策 = 修，不 drop/不 caveat）：修正 aggregator / shard-ensemble collateral 路径 → seed42 四策略 canary → 整 method 多 seed 重跑，**争取交叉验证**确认修对 | `sanity_graphrevoker_r05_notracin.yaml` → `phase_b_cora_{gcn,gat}.yaml` | seed42 random/degree/pagerank/IM 已验收；完整多 seed 待跑 | C5 / L5 | ◐ **seed42 canary accepted**（runner rc=0；机器验收 0 errors；见 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
+| **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
 | **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
+| **E7** ★ | **C.6 surrogate-transfer umbrella（严格门控）**：Cache V2 Selection Artifact 真实命中且 `proper-tracin-v1` versioned recipe 通过 gate 后，先做 **C.6a** 独立训练 GCN surrogate 选点 → GCN target GNNDelete，再做 **C.6b** GCN surrogate 选点 → GAT / GIN target GNNDelete。比较 target-direct TracIn、same-seed random、degree；主指标 = retrain gap transfer ratio，辅以 selection Jaccard。术语定为 query-free surrogate / 灰盒迁移，不写成纯黑盒 | 待建 `C6a_same_arch_surrogate.yaml`、`C6b_cross_backbone_surrogate.yaml`；gate = Cache V2 cold/warm exact hit + `proper-tracin-v1` recipe；显式记录 selection artifact ref，且 `selector_model_id != target_model_id` | C.6a 5 cell + C.6b 10 cell；5 seeds；若 transfer ratio ≥60% 再扩反向组合或第二个 GU family | L2-direct → L2-surrogate / threat-model realism | ☐ umbrella 已定；blocked by Cache V2 real-hit + proper-TracIn gate |
 
-**坑提醒**：E1 的 2 月 citeseer 数据在 `_archive_20260506/` 是**污染数据，不能引**；改 GNN 架构维度才需清 `data/{Method}/`，E1–E6 不改架构故不用清。
+**坑提醒**：E1 的 2 月 citeseer 数据在 `_archive_20260506/` 是**污染数据，不能引**；改 GNN 架构维度才需清 `data/{Method}/`，E1–E6 不改架构故不用清。E7 禁止通过“清 IF / selection cache”切换算法口径：Legacy IF / Selection Cache 全程只读；算法换版创建带显式 algorithm / producer version 的新 V2 Recipe，旧 V2 Artifact 不删除、不覆盖，只有明确退役时才显式 retire。先锁定 `proper-tracin-v1`（旧口径仅可标成 `deployed-cross-tracin-legacy`），再运行 C.6a/C.6b。
 
 ---
 
@@ -163,3 +166,7 @@ E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─�
 - **2026-06-28** 并入 `p.md` 笔记：E4 提到第一（audit 底座 + OpenGU 上游老 bug + 争取交叉验证）；W6 加 reviewer意见文件区(OB)；新增 W9(AI 数据分析)/F4(exp 看板改进)/A9(加新方法)；§3 记下"fingerprint 是否偏轻"开放问题；§7 加"per-method 优劣打底"。
 - **2026-06-28** 接入 AI review `文档规划/AI审稿_2026-06-28.md`（5/10 weak reject，**非官方审稿** → 现状仍完善期）→ W6；三痛点（scope 没跑完 / 叙述过满 / 统计偏弱）对应 E1·E5 / W1·W3 / C2·A7（均已在计划内）；W3 加"清未完成语句"；§3 fingerprint 偏轻被 review 印证。
 - **2026-06-28** 建 `文档规划/` 文件区（零散 md 的家 + `_文档地图.md` 全项目分类 MOC）；根目录两份零散 md（规划手记、AI 审稿）归入并加 frontmatter；`daily-log` / `progress` 不动、只索引。
+- **2026-07-12** 新增 E7 `L2-surrogate transfer sanity`：把旧 C.6 拆成 C.6a same-architecture surrogate（GCN→GCN）与 C.6b cross-backbone surrogate（GCN→GAT/GIN）；要求 Cache V2 显式区分 `selector_model_id` / `target_model_id`，并以 proper TracIn、5 seeds、retrain-gap transfer ratio 为执行口径。
+- **2026-07-14** 同步 Git 与 E7 gate：代码基线记录为 `main` / `origin/main`=`3f631fb`，当前在 `codex/opengu-worktree-recovery-20260714` 收口多 session dirty tree；E7 统一为 Cache V2 real-hit + versioned `proper-tracin-v1` gate 后的 C.6a/C.6b umbrella，Legacy IF / Selection Cache 保持只读，V2 换版只建新 Recipe、明确退役才显式 retire。
+- **2026-07-14** E1 stable scope 真机验收：Citeseer/GCN/r=0.05，GIF/IDEA/GNNDelete/MEGU/GraphEraser × random/IM × 5 seeds = **50/50 accepted**；runner rc=0、机器验收 0 errors、active Legacy path/size/mtime/SHA-256 聚合 hash 不变。该完成项不包含 TracIn/Hybrid/GraphRevoker，scratch Legacy-format cache 命中不记作 V2 runner hit；GraphRevoker 继续走 E4 独立 gate。
+- **2026-07-14** E4 seed42 post-fix canary：Cora/GCN/r=0.05 的 GraphRevoker random/degree/pagerank/IM **4/4 accepted**，runner rc=0、机器验收 0 errors；10+10 shard checkpoints 与聚合权重有效，NPZ 复算 collateral 一致，旧单 shard 0.50–0.58 regression 已关闭。当前提交的独立 Cache V2 Citeseer Selection recheck 也完成 cold miss → warm exact hit；两条证据分开，E4 多 seed 和 runner V2 接入仍 pending，Hybrid/TracIn 未执行。

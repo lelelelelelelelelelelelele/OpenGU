@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenGU Git 全面一致性审计与安全对齐报告</title>
+  <style>
+    :root{--bg:#09111f;--panel:#101b2d;--panel2:#14223a;--line:#29405f;--text:#e8eef8;--muted:#9fb0c8;--ok:#56d6a9;--warn:#ffcc66;--risk:#ff7c8d;--accent:#73a7ff}
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(160deg,#08101d,#0c1729 55%,#09111f);color:var(--text);font:15px/1.65 Inter,Segoe UI,Arial,sans-serif}
+    main{max-width:1180px;margin:auto;padding:42px 24px 70px} h1{font-size:34px;line-height:1.2;margin:0 0 12px} h2{margin:36px 0 14px;font-size:22px;border-bottom:1px solid var(--line);padding-bottom:8px} h3{font-size:17px;margin:24px 0 8px} p{margin:8px 0;color:#dbe5f3} code{color:#c9dcff;background:#0a1424;border:1px solid #223754;border-radius:5px;padding:1px 5px} .meta{color:var(--muted);margin-bottom:24px}.hero,.card{background:rgba(16,27,45,.92);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 18px 45px rgba(0,0,0,.22)}
+    .verdict{font-size:20px;color:var(--ok);font-weight:700}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px}.metric b{display:block;font-size:24px;color:#fff}.metric span{color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin:12px 0 20px;background:rgba(16,27,45,.78);font-size:13.5px} th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top;text-align:left}th{background:#172943;color:#cfe0ff}tr:nth-child(even) td{background:rgba(20,34,58,.45)}
+    ul,ol{padding-left:24px}li{margin:5px 0}.ok{color:var(--ok)}.warn{color:var(--warn)}.risk{color:var(--risk)}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--muted);margin:2px}.note{border-left:4px solid var(--accent);padding:10px 14px;background:#101d32;color:#cbd9ed}.footer{margin-top:44px;color:var(--muted);font-size:13px}
+    @media(max-width:800px){.grid{grid-template-columns:1fr}main{padding:26px 14px}table{display:block;overflow:auto}h1{font-size:28px}}
+  </style>
+</head>
+<body><main>
+  <h1>OpenGU Git 全面一致性审计与安全对齐报告</h1>
+  <div class="meta">2026-07-14 · Git root <code>E:/project/OpenGU</code> · 源码基线 <code>d38df143</code></div>
+  <section class="hero">
+    <div class="verdict">主工作线已经一致；不应移动实验快照或清理用户数据。</div>
+    <p>Local current、GitHub feature、SSH active 与 primary SSH isolated 均指向 <code>d38df143</code>。Local / origin main 均为 <code>3f631fb</code>，是 feature 的直接祖先。</p>
+    <div class="grid"><div class="metric"><b>23</b><span>feature 相对 main 的线性提交</span></div><div class="metric"><b>8</b><span>SSH 相关 Git checkouts</span></div><div class="metric"><b>8,862 / 10.02 GB</b><span>本地 ignored 状态，禁止 broad add</span></div></div>
+    <span class="tag">No main merge</span><span class="tag">No reset/clean</span><span class="tag">No result cleanup</span><span class="tag">No TracIn change</span>
+  </section>
+
+  <h2>五个目标面的冻结状态</h2>
+  <table><thead><tr><th>目标面</th><th>Branch / ref</th><th>HEAD</th><th>Dirty</th><th>未合并工作</th></tr></thead><tbody>
+    <tr><td>Local current</td><td><code>codex/citeseer-e1-graphrevoker-20260714</code></td><td><code>d38df143</code></td><td class="ok">普通 clean</td><td>相对 main 多 23 commits</td></tr>
+    <tr><td>Local main</td><td><code>main</code></td><td><code>3f631fb</code></td><td>未 checkout</td><td>比 feature 少 23 commits；与 origin/main 一致</td></tr>
+    <tr><td>GitHub origin</td><td>main / feature</td><td><code>3f631fb</code> / <code>d38df143</code></td><td>不适用</td><td class="warn">feature 尚未进入 main</td></tr>
+    <tr><td>SSH active</td><td>feature</td><td><code>d38df143</code></td><td class="warn">journal、A6、_backups、SQLite</td><td>backup <code>39d284d</code> + 3 stashes</td></tr>
+    <tr><td>SSH primary isolated</td><td>feature</td><td><code>d38df143</code></td><td class="ok">普通 clean</td><td>无未 push commit</td></tr>
+  </tbody></table>
+
+  <h2>Local / origin</h2>
+  <div class="card"><h3>Worktrees</h3><ul><li><code>E:/project/OpenGU</code>：feature <code>d38df143</code> 源码基线，clean。</li><li><code>.../worktrees/92ea/OpenGU</code>：AutoReport V3 branch；12 tracked modified + 10 untracked，属于活跃 implementation session。</li><li><code>.../worktrees/ab43/OpenGU</code>：detached <code>07d635e</code>；1 个 untracked TracIn contract-only Markdown。</li></ul>
+  <h3>Feature stack</h3><p><code>main...feature = 0 / 23</code>。23 个提交已按 Git/Cache V2、Citeseer V2、E1/GraphRevoker、materializer/producers 与验收报告语义组织。相对 main 共 51 files、18,939 insertions、39 deletions；没有 results/cache/runs payload。</p></div>
+
+  <h3>并发 session 最终冻结</h3>
+  <table><thead><tr><th>Session</th><th>Dirty 规模</th><th>语义边界</th><th>决定</th></tr></thead><tbody>
+    <tr><td>AutoReport V3</td><td>12 modified；10 untracked；tracked diff 891 insertions / 43 deletions</td><td>reporting core、runner/attack/result integration、tests/fixtures、design + 3 planning files；无结果 payload</td><td>原 session 分批提交；planning 不入 Git</td></tr>
+    <tr><td>TracIn V2 contract report</td><td>1 untracked Markdown，20,616 B；HTML pair 缺失</td><td><code>KEEP UNSTABLE / CONTRACT ONLY</code>；无 producer、算法或 GPU 变更</td><td>原 session 补 HTML 后纯文档提交</td></tr>
+  </tbody></table>
+
+  <h3>本地但不在任何 origin ref 的提交</h3>
+  <table><thead><tr><th>Commit</th><th>内容</th><th>决定</th></tr></thead><tbody>
+    <tr><td><code>39d284d</code></td><td>旧 4090 IM / IF pipeline + 运维脚本恢复点</td><td>保留，不 push/merge</td></tr>
+    <tr><td><code>92a28b6</code></td><td>IF-family collateral cleanup 脚本</td><td>保留；禁止结果清理</td></tr>
+    <tr><td><code>565aaf6</code></td><td>paper alignment framing + FIG-5</td><td>保留为重投稿候选线</td></tr>
+  </tbody></table>
+  <p>另保留 3 个旧 stash。最新 Codex tree snapshot 与 <code>d38df143</code> 完全一致；51 个 reflog-excluded commits 中 31 个为 stash 内部对象，未做 GC 或 ref 清理。</p>
+
+  <h2>产物分层</h2>
+  <table><thead><tr><th>类别</th><th>文件数</th><th>大小</th><th>Git 决策</th></tr></thead><tbody>
+    <tr><td>实验数据 / cache / logs</td><td>7,973</td><td>约 9.89 GB</td><td class="risk">永不 broad add</td></tr>
+    <tr><td>paper / report build</td><td>132</td><td>约 79.7 MB</td><td>只提交明确源文档/最终静态报告</td></tr>
+    <tr><td>依赖</td><td>353</td><td>约 7.0 MB</td><td>不提交</td></tr>
+    <tr><td>session planning</td><td>65</td><td>约 1.2 MB</td><td>不提交</td></tr>
+    <tr><td>compiled Python</td><td>284</td><td>约 4.0 MB</td><td>不提交</td></tr>
+  </tbody></table>
+  <p class="note">排除生成区后，没有发现被 ignore 的新算法 Python、shell 或 YAML 源码。SQLite 与 runs 已被精确 ignore。</p>
+
+  <h2>SSH active 保护对象</h2>
+  <table><thead><tr><th>对象</th><th>状态</th><th>大小</th><th>SHA-256</th></tr></thead><tbody>
+    <tr><td>auto_report.md</td><td>tracked modified</td><td>980,451 B</td><td><code>0273a88a…817d3b</code></td></tr>
+    <tr><td>A6 YAML</td><td>untracked</td><td>433 B</td><td><code>5f7c4186…ba7edf</code></td></tr>
+    <tr><td>index.sqlite</td><td>ignored</td><td>11,177,984 B</td><td><code>1260d2f2…f3c86e</code></td></tr>
+    <tr><td>../_backups</td><td>repo-wide untracked</td><td>约 249 KB</td><td>目录保持原状</td></tr>
+  </tbody></table>
+  <p>3 个 preservation stash 均含 A6 + journal 快照。审计时无 live runner，但这不构成任何清理授权。</p>
+
+  <h2>SSH 全部 checkout</h2>
+  <table><thead><tr><th>Checkout</th><th>HEAD</th><th>Behind d38</th><th>Dirty / data</th><th>决定</th></tr></thead><tbody>
+    <tr><td>active OpenGU</td><td><code>d38df143</code></td><td>0</td><td>保护 dirty；628 MB results</td><td>保持</td></tr>
+    <tr><td>Citeseer E1</td><td><code>aad4e99</code></td><td>9</td><td>journal；14 MB</td><td>保持 pin</td></tr>
+    <tr><td>GraphRevoker</td><td><code>93095d9</code> detached</td><td>7</td><td>journal；2.9 MB</td><td>保持 pin</td></tr>
+    <tr><td>IM materializer</td><td><code>b10f672</code></td><td>4</td><td>普通 clean</td><td>保持 pin</td></tr>
+    <tr><td>Simple producers</td><td><code>d38df143</code></td><td>0</td><td>普通 clean</td><td>primary isolated</td></tr>
+    <tr><td>Gate1</td><td><code>9b90ad4</code></td><td>15</td><td>普通 clean</td><td>保持 pin</td></tr>
+    <tr><td>Citeseer V2</td><td><code>83842e6</code></td><td>11</td><td>普通 clean</td><td>保持 pin</td></tr>
+    <tr><td>Legacy nips</td><td><code>073457f</code></td><td>133</td><td>journal + PID/log；223 MB</td><td class="risk">禁止 clean/pull/prune</td></tr>
+  </tbody></table>
+  <p>所有 HEAD 都是 <code>d38df143</code> 的祖先。旧 clone 的 stale/local-path origin 不代表 GitHub 未 push；GitHub 当前 heads 以本轮 <code>ls-remote</code> 为准。</p>
+
+  <h2>建议顺序与风险门</h2>
+  <ol><li>保持现有 feature stack，不 rewrite/squash。</li><li>AutoReport V3 依次提交 reporting core、integrations、tests/fixtures、设计与 MD/HTML 报告；planning 不入 Git。</li><li><span class="warn">用户确认后</span>将 feature 以 <code>--ff-only</code> 纳入 main；本轮停在门前。</li><li>main 更新后再整合 AutoReport V3。</li><li>TracIn contract-only Markdown 先补 HTML pair，再作纯文档提交；不得借此改算法。</li><li>历史恢复 commits/stashes 不合并；实验 checkouts 保持被测 SHA。</li></ol>
+  <p class="note">本轮只执行了 GitHub heads 核验、本地无 prune fetch、只读状态/引用/哈希审计和双格式报告。未合并 main，未 push 历史提交，未 reset/clean/stash/drop/prune/GC，未修改算法或实验数据。</p>
+
+  <div class="footer">源码证据冻结于 d38df143；并发 worktree 状态冻结于 2026-07-14 17:27 CST 左右。报告 publication commits 只改本 MD/HTML 对，不改变算法与实验源码。</div>
+</main></body></html>

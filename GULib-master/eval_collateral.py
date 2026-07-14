@@ -98,7 +98,7 @@ def _seed_everything(seed_value):
         torch.backends.cudnn.benchmark = False
 
 
-def find_cache_entry(cache, args: dict, strategy_name: str):
+def find_cache_entry(cache, args: dict, strategy_name: str, with_provenance: bool = False):
     """Find a cache entry by scanning all cache files and matching key fields.
 
     We scan rather than hash-lookup because the original cache entries may have
@@ -146,17 +146,54 @@ def find_cache_entry(cache, args: dict, strategy_name: str):
         if isinstance(value, (str, int, float, bool, type(None))):
             lookup_config[key] = value
 
+    def _return(result, provenance):
+        return (result, provenance) if with_provenance else result
+
+    def _miss(reason):
+        return _return(None, {
+            "outcome": "miss",
+            "cache_key": None,
+            "source_file": None,
+            "lookup_policy": "legacy_hash_or_scan",
+            "recipe": lookup_config,
+            "miss_reason": reason,
+        })
+
     if hasattr(cache, 'get'):
         cached = cache.get(lookup_config)
         if cached is not None:
-            return cached
+            cache_key = None
+            source_file = None
+            lookup_policy = "legacy_hash_or_fallback"
+            resolve_keys = getattr(cache, '_resolve_cache_keys', None)
+            cache_path = getattr(cache, '_get_cache_path', None)
+            is_valid = getattr(cache, '_is_cache_valid', None)
+            if callable(resolve_keys) and callable(cache_path):
+                for index, candidate_key in enumerate(resolve_keys(lookup_config)):
+                    candidate_path = cache_path(candidate_key)
+                    valid = is_valid(candidate_path) if callable(is_valid) else candidate_path.exists()
+                    if valid:
+                        cache_key = candidate_key
+                        source_file = str(candidate_path)
+                        lookup_policy = (
+                            "legacy_primary_hash" if index == 0 else "legacy_fallback_hash"
+                        )
+                        break
+            return _return(cached, {
+                "outcome": "hit",
+                "cache_key": cache_key,
+                "source_file": source_file,
+                "lookup_policy": lookup_policy,
+                "recipe": lookup_config,
+                "miss_reason": None,
+            })
 
     cache_dir_value = getattr(cache, 'cache_dir', None)
     if not isinstance(cache_dir_value, (str, os.PathLike, Path)):
-        return None
+        return _miss("ResultCache directory is unavailable")
     cache_dir = Path(cache_dir_value)
     if not cache_dir.exists():
-        return None
+        return _miss("ResultCache directory does not exist")
 
     # Determine target k: prefer explicit k from args, otherwise derive from ratio
     target_k = args.get('k')
@@ -167,6 +204,7 @@ def find_cache_entry(cache, args: dict, strategy_name: str):
 
     best_match = None
     best_k = None  # track k to prefer explicit-k entries over k=MISSING
+    best_path = None
 
     for fpath in cache_dir.glob('*.json'):
         try:
@@ -196,23 +234,39 @@ def find_cache_entry(cache, args: dict, strategy_name: str):
                     if cache_k is None or int(cache_k) != int(target_k):
                         continue
                     from attack.attack_result import AttackResult
-                    return AttackResult.from_dict(data['result'])
+                    return _return(AttackResult.from_dict(data['result']), {
+                        "outcome": "hit",
+                        "cache_key": data.get('cache_key') or fpath.stem,
+                        "source_file": str(fpath),
+                        "lookup_policy": "legacy_scan_exact_k",
+                        "recipe": lookup_config,
+                        "miss_reason": None,
+                    })
 
                 # No target_k: prefer entries with explicit k over legacy (k=None)
                 if best_match is None:
                     best_match = data
+                    best_path = fpath
                     best_k = cache_k
                 elif cache_k is not None and best_k is None:
                     # Prefer explicit k over missing k
                     best_match = data
+                    best_path = fpath
                     best_k = cache_k
         except (ValueError, KeyError, TypeError, _json.JSONDecodeError):
             continue
 
     if best_match is not None:
         from attack.attack_result import AttackResult
-        return AttackResult.from_dict(best_match['result'])
-    return None
+        return _return(AttackResult.from_dict(best_match['result']), {
+            "outcome": "hit",
+            "cache_key": best_match.get('cache_key') or best_path.stem,
+            "source_file": str(best_path),
+            "lookup_policy": "legacy_scan_best_k",
+            "recipe": lookup_config,
+            "miss_reason": None,
+        })
+    return _miss("no matching ResultCache entry")
 
 
 def _normalize_strategies(strategies):
@@ -388,6 +442,7 @@ def main():
 
     # Storage for results
     all_results = []
+    cache_provenance = {}
     # Per-strategy prediction snapshots (only populated when --save_predictions).
     # Each entry: dict with keys logits_{before,unlearned,retrained}, retain_mask,
     # selected_nodes — already as numpy arrays.
@@ -397,7 +452,10 @@ def main():
         print(f"\n--- Strategy: {strategy_name} ---")
 
         # 1. Read selected_nodes from cache
-        cached = find_cache_entry(cache, args, strategy_name)
+        cached, cache_info = find_cache_entry(
+            cache, args, strategy_name, with_provenance=True
+        )
+        cache_provenance[strategy_name] = cache_info
         if cached is None:
             if _output_dir is not None:
                 # Runner mode (called by experiments/run.py): demo_attack just ran
@@ -601,33 +659,34 @@ def main():
         size_mb = pred_path.stat().st_size / (1024 * 1024)
         print(f"Predictions cache: {pred_path}  ({size_mb:.1f} MB, {len(predictions_dump)} strategies)")
 
-    # 8. Append to auto_report.md
+    # 8. Record structured V3 events. The historical Markdown journal remains
+    # append-only but is no longer duplicated by this high-volume producer.
     try:
-        from scripts.evaluation.reporting.writer import append_collateral_entry
-        report_results = final_results if _repair_mode else all_results
-        status = "OK" if report_results else "WARN"
+        from scripts.evaluation.reporting.writer import record_collateral_results
+        # In repair mode, only newly executed strategies are new audit facts;
+        # merged historical rows stay in collateral.json but are not replayed.
+        report_results = all_results
         error_type = None
         error_msg = None
-        next_step = None
         if not report_results:
             error_type = "NO_CACHE_HIT"
             error_msg = "No matching cache entries found for the requested strategies/ratio/seed."
-            next_step = "先运行 demo_attack.py 生成对应 seed/ratio 的缓存，再重跑 eval_collateral.py。"
-        append_collateral_entry(
+        report_path = record_collateral_results(
             dataset=args['dataset_name'],
             model=args['base_model'],
             method=args['unlearning_methods'],
-            ratio=str(args['unlearn_ratio']),
+            ratio=args['unlearn_ratio'],
+            seed=_target_seed(args),
             results=report_results,
-            log_file=str(out_path),
-            status=status,
+            output_path=str(out_path),
+            cache_provenance=cache_provenance,
+            requested_strategies=strategies_to_run,
             error_type=error_type,
             error_msg=error_msg,
-            next_step=next_step,
         )
-        print("Report entry appended to auto_report.md")
+        print(f"[AutoReport V3] Events recorded in {report_path}")
     except Exception as e:
-        print(f"[WARN] Could not append to auto_report.md: {e}")
+        print(f"[WARN] Could not write AutoReport V3 events: {e}")
 
 
 if __name__ == '__main__':
