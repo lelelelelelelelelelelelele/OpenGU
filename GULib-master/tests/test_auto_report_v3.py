@@ -671,3 +671,25 @@ def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(
     bad["strategies"] = ["tracin"]
     with pytest.raises(ValueError, match="no producer"):
         runner.prepare_cache_v2_selection(bad, dry_run=False)
+
+
+def test_runner_fingerprint_includes_effective_v2_dataset_root(tmp_path):
+    runner = _load_experiment_runner()
+    cfg = {
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "cache_v2": {
+            "mode": "selection",
+            "dataset_root": str(tmp_path / "data-a"),
+        },
+    }
+    changed = dict(cfg)
+    changed["cache_v2"] = dict(cfg["cache_v2"])
+    changed["cache_v2"]["dataset_root"] = str(tmp_path / "data-b")
+    assert runner._content_fingerprint(cfg, "GIF", "degree", 42) != runner._content_fingerprint(
+        changed, "GIF", "degree", 42
+    )

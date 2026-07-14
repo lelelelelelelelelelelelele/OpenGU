@@ -861,9 +861,20 @@ def main():
     ap.add_argument("--force", action="store_true", help="re-run even if outputs exist")
     ap.add_argument("--dry_run", action="store_true", help="report what would run, no execution")
     ap.add_argument("--limit", type=int, default=None, help="cap number of cells (debug)")
+    ap.add_argument(
+        "--cache-v2-dataset-root",
+        type=Path,
+        default=None,
+        help="machine-local processed dataset root for an explicit cache_v2 config",
+    )
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    if args.cache_v2_dataset_root is not None:
+        if not isinstance(cfg.get("cache_v2"), dict):
+            raise SystemExit("--cache-v2-dataset-root requires cache_v2.mode=selection")
+        cfg["cache_v2"] = dict(cfg["cache_v2"])
+        cfg["cache_v2"]["dataset_root"] = str(args.cache_v2_dataset_root)
     selection_map, selection_document = prepare_cache_v2_selection(
         cfg, dry_run=args.dry_run
     )
