@@ -64,6 +64,25 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+_MODULE_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_MODULE_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MODULE_REPO_ROOT))
+
+from scripts.evaluation.reporting.events import (
+    ENV_ATTEMPT,
+    ENV_CELL_ID,
+    ENV_CONFIG_FINGERPRINT,
+    ENV_GIT_SHA,
+    ENV_RUN_ID,
+    artifact_ref,
+    cache_observation,
+    event_path_from_env,
+    make_cell_id,
+    new_run_id,
+    prior_attempt_context,
+    record_event,
+)
+
 try:
     import yaml
 except ImportError:
@@ -71,7 +90,54 @@ except ImportError:
     raise
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = _MODULE_REPO_ROOT
+
+
+def _report_identity(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Dict[str, Any]:
+    return {
+        "dataset": cfg["dataset"],
+        "model": cfg["base_model"],
+        "method": method,
+        "strategy": strategy,
+        "ratio": cfg["ratio"],
+        "seed": int(seed),
+        "k": None,
+    }
+
+
+def _existing_artifact_refs(out_dir: Path) -> List[Dict[str, Any]]:
+    refs = []
+    for name, artifact_type in (
+        ("attack.json", "evaluation"),
+        ("collateral.json", "evaluation"),
+        ("predictions.npz", "prediction"),
+        ("_meta.json", "artifact"),
+    ):
+        path = out_dir / name
+        if path.exists():
+            stat = path.stat()
+            content_hash = None
+            # JSON/meta leaves are small enough to hash on a skip check. Large
+            # prediction bundles use size+mtime as a cheap change detector.
+            if path.suffix == ".json":
+                content_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            refs.append(artifact_ref(
+                path=str(path),
+                artifact_type=artifact_type,
+                content_hash=content_hash,
+                size_bytes=stat.st_size,
+                mtime_ns=stat.st_mtime_ns,
+            ))
+    return refs
+
+
+def _record_autoreport_event(**kwargs):
+    """Keep audit failures visible without discarding completed experiments."""
+    try:
+        return record_event(**kwargs)
+    except Exception as exc:
+        print("[AutoReport V3] warning: {0}".format(exc), file=sys.stderr)
+        return None
 
 
 def _git_sha() -> str:
@@ -246,15 +312,69 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     expected_fp = _content_fingerprint(cfg, method, strategy, seed)
     want_collateral = bool((cfg.get("defaults") or {}).get("run_collateral", True))
     status, reason = cell_status(out_dir, expected_fp, want_collateral)
+    identity = _report_identity(cfg, method, strategy, seed)
+    cell_id = make_cell_id(identity)
+    git_sha = _git_sha()
+    report_event_path = event_path_from_env()
 
     if not force:
         if status == "complete":
+            if not dry_run:
+                _record_autoreport_event(
+                    identity=identity,
+                    stage="run",
+                    state="skipped",
+                    producer="experiments/run.py",
+                    config_fingerprint=expected_fp,
+                    git_sha=git_sha,
+                    cell_id=cell_id,
+                    run_id=new_run_id(cell_id),
+                    attempt=1,
+                    cache=[cache_observation(
+                        cache_type="run_artifact",
+                        outcome="hit",
+                        recipe={"config_fingerprint": expected_fp},
+                        artifact=artifact_ref(path=str(out_dir), artifact_type="artifact"),
+                        hit_source=str(out_dir),
+                        lookup_policy="complete_files_and_fingerprint",
+                        authoritative=True,
+                        write_outcome="reused",
+                    )],
+                    artifacts=_existing_artifact_refs(out_dir),
+                    metadata={"reason": "complete cell already materialized"},
+                    event_path=report_event_path,
+                )
             return "skipped"
         if status == "legacy":
             print(
                 f"[run] LEGACY {out_dir.relative_to(REPO_ROOT)} — "
                 f"no fingerprint; skipping. Pass --force or rm to regenerate."
             )
+            if not dry_run:
+                _record_autoreport_event(
+                    identity=identity,
+                    stage="run",
+                    state="skipped",
+                    producer="experiments/run.py",
+                    config_fingerprint=expected_fp,
+                    git_sha=git_sha,
+                    cell_id=cell_id,
+                    run_id=new_run_id(cell_id),
+                    attempt=1,
+                    cache=[cache_observation(
+                        cache_type="run_artifact",
+                        outcome="hit",
+                        recipe={"config_fingerprint": None},
+                        artifact=artifact_ref(path=str(out_dir), artifact_type="artifact"),
+                        hit_source=str(out_dir),
+                        lookup_policy="legacy_files_without_fingerprint",
+                        authoritative=False,
+                        write_outcome="reused",
+                    )],
+                    artifacts=_existing_artifact_refs(out_dir),
+                    metadata={"reason": "legacy cell skipped: {0}".format(reason)},
+                    event_path=report_event_path,
+                )
             return "skipped_legacy"
         if status in ("corrupt", "stale"):
             print(
@@ -267,6 +387,59 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         return "would_run"
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    attempt, prior_failed_run_id = prior_attempt_context(
+        cell_id, expected_fp, event_path=report_event_path
+    )
+    run_id = new_run_id(cell_id)
+    retry = {
+        "attempt": attempt,
+        "retry_of": prior_failed_run_id,
+    }
+    if prior_failed_run_id:
+        _record_autoreport_event(
+            identity=identity,
+            stage="run",
+            state="retrying",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            retry=retry,
+            metadata={"reason": reason or "retry after failed run"},
+            event_path=report_event_path,
+        )
+    expected_stages = ["attack"] + (["collateral"] if want_collateral else [])
+    _record_autoreport_event(
+        identity=identity,
+        stage="run",
+        state="started",
+        producer="experiments/run.py",
+        config_fingerprint=expected_fp,
+        git_sha=git_sha,
+        cell_id=cell_id,
+        run_id=run_id,
+        attempt=attempt,
+        retry=retry,
+        metadata={
+            "expected_stages": expected_stages,
+            "pre_run_cell_status": status,
+            "reason": reason,
+            "forced": bool(force),
+        },
+        event_path=report_event_path,
+    )
+
+    child_env = os.environ.copy()
+    child_env.update({
+        ENV_CELL_ID: cell_id,
+        ENV_RUN_ID: run_id,
+        ENV_ATTEMPT: str(attempt),
+        ENV_CONFIG_FINGERPRINT: expected_fp,
+        ENV_GIT_SHA: git_sha,
+        "OPENGU_AUTOREPORT_EVENT_PATH": str(report_event_path),
+    })
     py = _python_bin()
     defaults = cfg.get("defaults", {}) or {}
     extra = list(cfg.get("extra_args", []) or [])
@@ -298,10 +471,77 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         cmd1.append("--no_cache")
     cmd1 += extra
     print(f"\n[run] demo_attack {method}/{strategy}/seed{seed} → {out_dir.relative_to(REPO_ROOT)}")
-    rc = subprocess.run(cmd1, cwd=str(REPO_ROOT)).returncode
+    _record_autoreport_event(
+        identity=identity,
+        stage="attack",
+        state="started",
+        producer="experiments/run.py",
+        config_fingerprint=expected_fp,
+        git_sha=git_sha,
+        cell_id=cell_id,
+        run_id=run_id,
+        attempt=attempt,
+        event_path=report_event_path,
+    )
+    rc = subprocess.run(cmd1, cwd=str(REPO_ROOT), env=child_env).returncode
     if rc != 0:
         print(f"[FAIL] demo_attack rc={rc} for {out_dir}", file=sys.stderr)
+        error = {
+            "type": "SUBPROCESS_EXIT",
+            "message": "demo_attack.py exited with rc={0}".format(rc),
+            "returncode": rc,
+            "retryable": True,
+        }
+        _record_autoreport_event(
+            identity=identity,
+            stage="attack",
+            state="failed",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            error=error,
+            retry=retry,
+            event_path=report_event_path,
+        )
+        _record_autoreport_event(
+            identity=identity,
+            stage="run",
+            state="failed",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            error=error,
+            retry=retry,
+            event_path=report_event_path,
+        )
         return "failed_attack"
+    _record_autoreport_event(
+        identity=identity,
+        stage="attack",
+        state="completed",
+        producer="experiments/run.py",
+        config_fingerprint=expected_fp,
+        git_sha=git_sha,
+        cell_id=cell_id,
+        run_id=run_id,
+        attempt=attempt,
+        cache=[cache_observation(
+            cache_type="result",
+            outcome="unknown",
+            recipe={"strategy": strategy},
+            lookup_policy="producer_not_observed",
+            authoritative=False,
+            write_outcome="saved" if (out_dir / "attack.json").exists() else "unknown",
+        )],
+        artifacts=[artifact_ref(path=str(out_dir / "attack.json"), artifact_type="evaluation")],
+        event_path=report_event_path,
+    )
 
     # 2) eval_collateral: writes collateral.json + predictions.npz
     if defaults.get("run_collateral", True):
@@ -322,10 +562,77 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             cmd2.append("--save_predictions")
         cmd2 += extra
         print(f"[run] eval_collateral {method}/{strategy}/seed{seed}")
-        rc = subprocess.run(cmd2, cwd=str(REPO_ROOT)).returncode
+        _record_autoreport_event(
+            identity=identity,
+            stage="collateral",
+            state="started",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            event_path=report_event_path,
+        )
+        rc = subprocess.run(cmd2, cwd=str(REPO_ROOT), env=child_env).returncode
         if rc != 0:
             print(f"[FAIL] eval_collateral rc={rc} for {out_dir}", file=sys.stderr)
+            error = {
+                "type": "SUBPROCESS_EXIT",
+                "message": "eval_collateral.py exited with rc={0}".format(rc),
+                "returncode": rc,
+                "retryable": True,
+            }
+            _record_autoreport_event(
+                identity=identity,
+                stage="collateral",
+                state="failed",
+                producer="experiments/run.py",
+                config_fingerprint=expected_fp,
+                git_sha=git_sha,
+                cell_id=cell_id,
+                run_id=run_id,
+                attempt=attempt,
+                error=error,
+                retry=retry,
+                event_path=report_event_path,
+            )
+            _record_autoreport_event(
+                identity=identity,
+                stage="run",
+                state="failed",
+                producer="experiments/run.py",
+                config_fingerprint=expected_fp,
+                git_sha=git_sha,
+                cell_id=cell_id,
+                run_id=run_id,
+                attempt=attempt,
+                error=error,
+                retry=retry,
+                event_path=report_event_path,
+            )
             return "failed_collateral"
+        _record_autoreport_event(
+            identity=identity,
+            stage="collateral",
+            state="completed",
+            producer="experiments/run.py",
+            config_fingerprint=expected_fp,
+            git_sha=git_sha,
+            cell_id=cell_id,
+            run_id=run_id,
+            attempt=attempt,
+            cache=[cache_observation(
+                cache_type="result",
+                outcome="unknown",
+                recipe={"strategy": strategy},
+                lookup_policy="producer_not_observed",
+                authoritative=False,
+                write_outcome="reused",
+            )],
+            artifacts=[artifact_ref(path=str(out_dir / "collateral.json"), artifact_type="evaluation")],
+            event_path=report_event_path,
+        )
 
     # 3) _meta.json — audit trail + skip-decision fingerprint
     meta = {
@@ -335,13 +642,28 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "strategy": strategy,
         "seed": seed,
         "timestamp": datetime.now().isoformat(),
-        "git_sha": _git_sha(),
+        "git_sha": git_sha,
         "hostname": socket.gethostname(),
         "python": py,
         "config_fingerprint": expected_fp,
         "fingerprint_version": _FINGERPRINT_VERSION,
     }
-    (out_dir / "_meta.json").write_text(json.dumps(meta, indent=2))
+    (out_dir / "_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    _record_autoreport_event(
+        identity=identity,
+        stage="run",
+        state="completed",
+        producer="experiments/run.py",
+        config_fingerprint=expected_fp,
+        git_sha=git_sha,
+        cell_id=cell_id,
+        run_id=run_id,
+        attempt=attempt,
+        artifacts=_existing_artifact_refs(out_dir),
+        retry=retry,
+        metadata={"expected_stages": expected_stages},
+        event_path=report_event_path,
+    )
     return "completed"
 
 

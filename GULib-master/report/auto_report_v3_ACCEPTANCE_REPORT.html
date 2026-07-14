@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoReport V3 Acceptance Report</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080d19; --panel:#111a2c; --panel2:#16233a; --line:#283854; --text:#e9eef8; --muted:#9aaccc; --green:#6ee7b7; --amber:#fbbf24; --blue:#93c5fd; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 80% 0,#17213c 0,transparent 35%),var(--bg); color:var(--text); font:15px/1.55 Inter,ui-sans-serif,system-ui,Segoe UI,sans-serif; }
+    main { max-width:1240px; margin:auto; padding:42px 30px 70px; }
+    h1 { font-size:38px; margin:0 0 8px; letter-spacing:-.03em; }
+    h2 { margin:38px 0 14px; font-size:23px; } h3 { margin:24px 0 10px; }
+    p { max-width:1000px; } code { color:#c4b5fd; } a { color:var(--blue); }
+    .eyebrow { color:var(--blue); text-transform:uppercase; letter-spacing:.14em; font-size:12px; font-weight:700; }
+    .meta,.muted { color:var(--muted); }
+    .verdict { display:inline-flex; align-items:center; gap:10px; margin:16px 0 12px; padding:10px 14px; border:1px solid #3b5f57; background:#0d2825; border-radius:999px; color:var(--green); font-weight:800; }
+    .verdict:before { content:""; width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 18px var(--green); }
+    .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:24px 0; }
+    .card { background:linear-gradient(145deg,var(--panel2),var(--panel)); border:1px solid var(--line); border-radius:14px; padding:18px; min-height:112px; }
+    .card span { display:block; color:var(--muted); font-size:13px; } .card strong { display:block; font-size:28px; margin-top:8px; color:var(--green); } .card.warn strong { color:var(--amber); }
+    .flow { display:grid; grid-template-columns:1fr 70px 1fr 70px 1fr; align-items:center; gap:10px; margin:20px 0; }
+    .node { padding:18px; border:1px solid var(--line); border-radius:12px; background:var(--panel); text-align:center; } .arrow { color:var(--blue); text-align:center; font-size:26px; }
+    .callout { border-left:4px solid var(--amber); background:#261f0d; padding:14px 16px; border-radius:0 10px 10px 0; color:#f8e4ae; }
+    .table { overflow:auto; border:1px solid var(--line); border-radius:12px; }
+    table { width:100%; border-collapse:collapse; min-width:760px; background:var(--panel); } th,td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { background:#17233a; color:#c8d5ec; } tr:last-child td { border-bottom:0; }
+    .checklist { display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; padding:0; list-style:none; } .checklist li { padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--panel); }
+    .checklist .done:before { content:"✓"; color:var(--green); font-weight:900; margin-right:9px; } .checklist .open:before { content:"○"; color:var(--amber); font-weight:900; margin-right:9px; }
+    footer { margin-top:42px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); }
+    @media(max-width:900px){ .cards{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.checklist{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">OpenGU · Acceptance · 2026-07-14</div>
+  <h1>AutoReport V3</h1>
+  <p class="meta">Branch <code>codex/autoreport-v3-20260714</code> · Base <code>d38df14</code></p>
+  <div class="verdict">PASS WITH KNOWN BASELINE GAP</div>
+  <p>The scoped redesign is implemented and locally accepted: append-only machine events, stable cell/run identity, explicit stages, typed Cache provenance, semantic deduplication, errors/retries, and bounded Markdown/HTML current-state views. Historical v1/v2 Markdown remains untouched and readable.</p>
+
+  <div class="cards">
+    <div class="card"><span>Focused V3 tests</span><strong>12 passed</strong></div>
+    <div class="card"><span>Selected regression tests</span><strong>202 passed</strong></div>
+    <div class="card"><span>Large legacy read</span><strong>2,010 entries</strong><span>18,968 lines · 0 warnings</span></div>
+    <div class="card warn"><span>Known unrelated baseline</span><strong>3 tests</strong><span>unchanged implementation blob</span></div>
+  </div>
+
+  <div class="callout">The three failing <code>TestGetTrainedModel</code> tests use an <code>AttackPipeline</code> stub without <code>args</code>. <code>attack/pipeline_adapter.py</code> is byte-identical to the requested base (<code>c3416918…</code>); this change neither introduced nor repaired that gap.</div>
+
+  <h2>Architecture</h2>
+  <div class="flow">
+    <div class="node"><strong>Runner + producers</strong><br><span class="muted">shared cell_id / run_id<br>selection · attack · collateral</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>auto_report.events.jsonl</strong><br><span class="muted">append-only audit source</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>Bounded status</strong><br><span class="muted">Markdown + HTML<br>200 latest cells by default</span></div>
+  </div>
+  <p>The old <code>auto_report.md</code> stays a separate v1/v2 historical source. The compatibility reader parses it without migration; the current-state pages are derived and can be rebuilt or replaced atomically.</p>
+
+  <h2>Acceptance summary</h2>
+  <div class="table"><table>
+    <thead><tr><th>Evidence</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>AutoReport V3 focused tests</td><td><strong>12 passed</strong></td></tr>
+      <tr><td>Selected attack, runner, evaluation, collateral, and Cache V2 regressions</td><td><strong>202 passed</strong></td></tr>
+      <tr><td>Known unrelated baseline tests</td><td>3 failed when included; 3 deselected in the clean scoped run</td></tr>
+      <tr><td>Large local v1 archive compatibility</td><td>997,027 bytes · 18,968 lines · 2,010 entries · 0 warnings</td></tr>
+      <tr><td>Runner dry-run</td><td>1 would_run · 0 event/status files created</td></tr>
+      <tr><td>Historical journal/cache/run mutations</td><td>0</td></tr>
+      <tr><td>GPU executions / TracIn changes</td><td>0 / 0</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Implemented scope</h2>
+  <ul class="checklist">
+    <li class="done">Append-only V3 JSONL contract</li>
+    <li class="done">Stable cell_id and cross-stage run_id</li>
+    <li class="done">git SHA and config fingerprint</li>
+    <li class="done">Selection / attack / collateral / run stages</li>
+    <li class="done">Started / completed / failed / skipped / retrying</li>
+    <li class="done">Selection-only, attack-only, complete, and failed projections</li>
+    <li class="done">Typed Cache / Recipe / Artifact / hit source</li>
+    <li class="done">Separate SelectionCache and ResultCache truth</li>
+    <li class="done">Repeated HIT/skip and terminal dedup</li>
+    <li class="done">Dry-run zero append</li>
+    <li class="done">v1/v2 reader and old writer API compatibility</li>
+    <li class="done">Fixture-first partial/retry/failure coverage</li>
+    <li class="open">Remote dirty journal exercised in place</li>
+    <li class="open">GPU experiment execution</li>
+  </ul>
+
+  <h2>Cache hit meaning</h2>
+  <div class="table"><table>
+    <thead><tr><th>Case</th><th>V3 expression</th></tr></thead>
+    <tbody>
+      <tr><td>SelectionCache reuse</td><td><code>type=selection, outcome=hit</code>, source/key, lookup mode, Legacy authority false</td></tr>
+      <tr><td>Selection miss then compute</td><td>One <code>selection.completed</code> with miss plus write outcome</td></tr>
+      <tr><td>Whole ResultCache reuse</td><td><code>type=result, outcome=hit</code>; no replayed current selection HIT</td></tr>
+      <tr><td>Collateral transport lookup</td><td>ResultCache hash/scan policy and exact source when known</td></tr>
+      <tr><td>Complete run directory</td><td><code>type=run_artifact, outcome=hit</code>, authoritative skip gate</td></tr>
+      <tr><td>Disabled / unknown</td><td><code>bypass</code> / <code>unknown</code>; authority is never invented</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Append and noise policy</h2>
+  <p>The stream appends real starts, first terminal transitions, retries, errors, and the first unchanged complete-cell skip. It omits dry-runs, internal cache probes, fixed next-step prose, duplicate runner/child terminals, and repeated unchanged HIT/skip observations. Dedup never rewrites an accepted line.</p>
+
+  <h2>Validation</h2>
+  <div class="table"><table>
+    <thead><tr><th>Suite/check</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>tests/test_auto_report_v3.py</code></td><td>12 passed</td></tr>
+      <tr><td>AutoReport + AttackManager + Phase B invariants</td><td>71 passed</td></tr>
+      <tr><td>Evaluation CLI + demo + repair/timeout runners</td><td>36 passed</td></tr>
+      <tr><td>Cache V2 core/materializer/canary/store</td><td>79 passed</td></tr>
+      <tr><td>Collateral excluding unchanged stub gap</td><td>16 passed, 3 deselected</td></tr>
+      <tr><td>Changed Python compilation</td><td>passed</td></tr>
+      <tr><td>Runner dry-run zero-write check</td><td>passed</td></tr>
+      <tr><td><code>git diff --check</code></td><td>passed</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Known gaps</h2>
+  <p class="muted">Source-ref note: the requested branch advanced after worktree creation from the opening snapshot <code>d38df14</code> to <code>648a6f1</code> through two documentation-only Git consistency reports. They do not overlap this implementation and were not imported.</p>
+  <ol>
+    <li>V3 was not deployed against the remote dirty journal; the local 18,968-line archive supplied compatibility evidence.</li>
+    <li>Rebuild/dedup scans the JSONL stream. A future read-only derived index may be useful if the machine stream grows very large.</li>
+    <li>Explicit legacy v1 API callers remain verbose by design; the main runner/attack/collateral path no longer uses them.</li>
+    <li>Three pre-existing collateral stub tests remain outside this change.</li>
+  </ol>
+
+  <footer>Source report: <code>docs/auto_report_v3_ACCEPTANCE_REPORT.md</code> · Design: <code>docs/auto_report_v3_DESIGN.md</code></footer>
+</main>
+</body>
+</html>
