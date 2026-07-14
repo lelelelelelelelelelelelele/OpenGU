@@ -416,7 +416,11 @@ class _CreatedFile:
 
 
 class ArtifactStore:
-    """Absolute-root, exact-only Selection ArtifactStore for isolated canaries."""
+    """Absolute-root, exact-only Selection ArtifactStore.
+
+    Normal resolution never scans payload directories and never falls back to
+    Legacy caches.  Canary and materializer CLIs share this same store API.
+    """
 
     def __init__(
         self,

@@ -28,6 +28,9 @@ from cache_v2.legacy import LegacyIndexer  # noqa: E402
 
 
 DEFAULT_DB = REPO_ROOT / "results" / "cache_v2" / "index.sqlite"
+DEFAULT_STORE_ROOT = REPO_ROOT / "results" / "cache_v2"
+DEFAULT_DATASET_ROOT = REPO_ROOT / "data" / "raw"
+DEFAULT_LEGACY_RESULTS_ROOT = REPO_ROOT / "results"
 
 
 def _json_ready(value: Any) -> Any:
@@ -301,10 +304,89 @@ def _cmd_resolve_explain(args: argparse.Namespace) -> int:
     return 0
 
 
+def _selection_paths(args: argparse.Namespace) -> Dict[str, Path]:
+    return {
+        "config_path": _resolve_repo_path(args.config),
+        "dataset_root": _resolve_repo_path(args.dataset_root),
+        "store_root": _resolve_repo_path(args.store_root),
+        "legacy_results_root": _resolve_repo_path(args.legacy_results_root),
+    }
+
+
+def _cmd_selection_plan(args: argparse.Namespace) -> int:
+    from cache_v2.selection_materializer import plan_selection
+
+    paths = _selection_paths(args)
+    document = plan_selection(
+        paths["config_path"],
+        paths["dataset_root"],
+        paths["store_root"],
+        paths["legacy_results_root"],
+        allow_download=bool(args.allow_download),
+        split_seed=args.split_seed,
+    )
+    _emit(document)
+    return 0
+
+
+def _cmd_selection_materialize(args: argparse.Namespace) -> int:
+    if not args.apply:
+        return _error(
+            "apply_required",
+            "selection materialize is write-capable; pass --apply explicitly",
+        )
+    from cache_v2.selection_materializer import materialize_selection
+
+    paths = _selection_paths(args)
+    document = materialize_selection(
+        paths["config_path"],
+        paths["dataset_root"],
+        paths["store_root"],
+        paths["legacy_results_root"],
+        allow_download=bool(args.allow_download),
+        split_seed=args.split_seed,
+        verify=bool(args.verify),
+        fail_if_producer_called=bool(args.fail_if_producer_called),
+        compare_legacy=bool(args.compare_legacy),
+        include_nodes=bool(args.include_nodes),
+    )
+    _emit(document)
+    return 0
+
+
+def _add_selection_common_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", required=True, help="experiment YAML request envelope")
+    parser.add_argument(
+        "--dataset-root",
+        default=str(DEFAULT_DATASET_ROOT),
+        help="repo-anchored or absolute PyG/OGB dataset root",
+    )
+    parser.add_argument(
+        "--store-root",
+        default=str(DEFAULT_STORE_ROOT),
+        help="repo-anchored or absolute V2 ArtifactStore root",
+    )
+    parser.add_argument(
+        "--legacy-results-root",
+        default=str(DEFAULT_LEGACY_RESULTS_ROOT),
+        help="read-only Legacy results root used for invariants/comparison",
+    )
+    parser.add_argument(
+        "--allow-download",
+        action="store_true",
+        help="explicitly allow the dataset adapter to download/process missing data",
+    )
+    parser.add_argument(
+        "--split-seed",
+        type=int,
+        help="override the default OpenGU split seed (first YAML seed)",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python scripts/cachectl.py",
-        description="Read-only Cache V2.1 index and legacy inspection CLI",
+        description="Cache V2 exact index, inspection, and opt-in Selection materialization CLI",
     )
     top = parser.add_subparsers(dest="command", required=True)
 
@@ -364,6 +446,49 @@ def build_parser() -> argparse.ArgumentParser:
     explain.add_argument("--recipe", required=True)
     explain.add_argument("--db", default=str(DEFAULT_DB))
     explain.set_defaults(handler=_cmd_resolve_explain)
+
+    selection = top.add_parser(
+        "selection", help="plan or explicitly materialize exact Selection Artifacts"
+    )
+    selection_sub = selection.add_subparsers(
+        dest="selection_command", required=True
+    )
+    selection_plan = selection_sub.add_parser(
+        "plan", help="compile YAML to unique exact Recipes without store writes"
+    )
+    _add_selection_common_arguments(selection_plan)
+    selection_plan.set_defaults(handler=_cmd_selection_plan)
+
+    selection_materialize = selection_sub.add_parser(
+        "materialize", help="compute misses and write only to the V2 ArtifactStore"
+    )
+    _add_selection_common_arguments(selection_materialize)
+    selection_materialize.add_argument(
+        "--apply",
+        action="store_true",
+        help="required acknowledgement for V2 store writes",
+    )
+    selection_materialize.add_argument(
+        "--verify",
+        action="store_true",
+        help="perform an independent warm exact hit with a fail-if-called producer sentinel",
+    )
+    selection_materialize.add_argument(
+        "--fail-if-producer-called",
+        action="store_true",
+        help="warm-only mode: fail closed instead of computing an exact miss",
+    )
+    selection_materialize.add_argument(
+        "--compare-legacy",
+        action="store_true",
+        help="compare same-seed Legacy nodes read-only; never use them for resolution",
+    )
+    selection_materialize.add_argument(
+        "--include-nodes",
+        action="store_true",
+        help="include ordered selected nodes in JSON output",
+    )
+    selection_materialize.set_defaults(handler=_cmd_selection_materialize)
     return parser
 
 
