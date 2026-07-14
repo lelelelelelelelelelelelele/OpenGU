@@ -25,6 +25,10 @@ The framework integrates 16 GU algorithms, 37 datasets, and 13+ GNN backbones vi
 
 **NEVER duplicate dashboard content into other docs.** Always link to the path. This avoids drift.
 
+## Git Workflow
+
+Repository Git rules are defined in `AGENTS.md` and explained with executable PowerShell examples in `docs/GIT_WORKFLOW.md`. Every coherent improvement starts from an explicit parent branch and is accepted back into that parent with `git merge --no-ff`; routine synchronization uses `git pull --ff-only`. Never infer the current working line from a dated sentence in this file—check `git branch --show-current` and `git worktree list`.
+
 **Cache directories also have CLAUDE.md** — read before touching:
 - `results/cache/CLAUDE.md` — hash-named ResultCache, do NOT rename
 - `results/selection_cache/CLAUDE.md` — hash-named SelectionCache, cross-method shared

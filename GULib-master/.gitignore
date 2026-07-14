@@ -64,7 +64,6 @@ results/hybrid_alpha_sweep/
 # legacy 全部 move 进 _archive_YYYYMMDD/ 不删；保险起见落盘)
 results/_archive_*/
 
-AGENTS.md
 GEMINI.md
 
 # LaTeX build artifacts
