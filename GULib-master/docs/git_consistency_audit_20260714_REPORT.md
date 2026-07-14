@@ -12,7 +12,7 @@
 
 - local current、GitHub feature、SSH active、primary SSH isolated 的源码均为 `d38df143`。
 - local `main` 与 GitHub `main` 均为 `3f631fb`，是 feature 的直接祖先；冻结时 feature 比 main 多 23 个提交，main 没有反向独有提交。
-- 本地 3 个 worktree 没有遗失的未提交源码。AutoReport V3 worktree 只有 3 个未跟踪 planning 文件，属于正在进行的另一 session。
+- 最终复核捕捉到两个并发 session：AutoReport V3 worktree 已产生未提交源码/测试/文档；detached worktree 新增一份 TracIn V2 contract-only Markdown。它们均已识别并保持原样，没有被本轮暂存或覆盖。
 - 发现 3 个没有出现在任何 origin ref 的历史本地提交，但它们分别是旧 4090 backup、结果清理脚本、重投稿 paper framing；都不应在本轮自动 push/merge。
 - SSH active 的 journal、A6 YAML、Cache V2 SQLite、`../_backups` 全部保留。没有执行 stash、checkout、clean、reset、GC、prune 或结果清理。
 - 其余 7 个 SSH checkout 中，6 个是按被测 SHA 固定的可复现实验快照，1 个是旧 dirty `nips-prep` checkout；它们都在 `d38df143` 的祖先链上，不是新的未 push 源码。
@@ -37,8 +37,19 @@ Primary isolated 路径：`/autodl-fs/data/opengu-experiments/cache-v2-simple-f1
 | Worktree | 状态 | 结论 |
 |---|---|---|
 | `E:/project/OpenGU` | feature `d38df143`，clean | 当前主工作树，与 origin feature 一致 |
-| `C:/Users/ADMIN/.codex/worktrees/92ea/OpenGU` | `codex/autoreport-v3-20260714@d38df143`；3 个未跟踪 planning Markdown | 活跃 AutoReport V3 session；不删除、不代提交 |
-| `C:/Users/ADMIN/.codex/worktrees/ab43/OpenGU` | detached `d38df143`，clean | 无遗留 dirty；保持 detached，避免干扰未知 session |
+| `C:/Users/ADMIN/.codex/worktrees/92ea/OpenGU` | `codex/autoreport-v3-20260714@d38df143`；12 tracked modified + 10 untracked | 活跃 AutoReport V3 implementation；不切基线、不删除、不代提交 |
+| `C:/Users/ADMIN/.codex/worktrees/ab43/OpenGU` | detached `07d635e`；1 个 untracked TracIn 研究报告 | contract-only 文档 session；不修改、不补提交 |
+
+### 3.1.1 并发 session 最终冻结
+
+AutoReport V3 在本轮最终复核时已经从 planning 进入实现：
+
+- tracked diff：12 files，891 insertions / 43 deletions，`git diff --check` 通过；
+- untracked：3 个 reporting modules、1 个 test、2 个 fixtures、1 个 design doc，以及 3 个 planning 文件；
+- 代码路径集中在 `scripts/evaluation/reporting/`、`experiments/run.py`、attack/result integration 与 tests，没有 results/cache/runs payload；
+- branch 仍为 `d38df143`，没有本地独有 commit；相对报告发布后的 feature 只落后 documentation-only commit。
+
+Detached worktree 的 `docs/tracin_v2_unstable_RESEARCH_REPORT.md` 为 20,616 bytes，明确标记 `KEEP UNSTABLE / CONTRACT ONLY`，没有实现或注册 TracIn producer，也没有运行 GPU；当前尚缺约定的 HTML 对应版本。它不是算法 dirty，但仍应由原 session 完成配对与提交。
 
 ### 3.2 Feature stack
 
@@ -118,11 +129,12 @@ SSH active 的 remote-tracking refs 还残留 GitHub 已删除的旧 branches。
 ## 7. 建议的 commit / branch / merge 顺序
 
 1. **保持现有 feature stack 不改写。** 23 个提交已经语义化，且 origin、local current、SSH active、primary isolated 的源码一致。
-2. **让 AutoReport V3 在独立 branch 完成。** 建议先提交 schema/writer/runner/tests，再提交设计文档与一致的 MD/HTML 验收报告；根级 planning 文件不进入 Git。
+2. **让 AutoReport V3 在独立 branch 完成。** 当前 dirty 建议依次提交：event/reader/writer/summary core；runner + attack/result integrations；tests/fixtures；设计文档与一致的 MD/HTML 验收报告。根级 planning 文件不进入 Git。
 3. **经用户确认后，把 feature fast-forward 到 main。** 当前 main 没有独有提交，技术上可 `--ff-only`；这一步会改变 `main`，本轮故意停在门前。
 4. **main 更新后再整合 AutoReport V3。** 它以 `d38df143` 为基线，可在完成测试后作为后续独立 PR/merge。
 5. **历史恢复线不合并。** `39d284d`、`92a28b6`、`565aaf6` 和旧 stashes 继续作为显式恢复点；若未来要发布，必须逐条重新审查，而非批量 push。
-6. **实验 checkout 保持 pin。** 只有 active/primary isolated 跟随当前工作线；E1、GraphRevoker、Gate1、Citeseer V2、IM materializer 和 legacy nips checkout 继续固定被测 SHA。
+6. **TracIn contract-only 报告单独收口。** 先由原 session 补齐 HTML pair 并自审引用，再作为纯文档提交；不得借此注册 producer 或修改算法。
+7. **实验 checkout 保持 pin。** 只有 active/primary isolated 跟随当前工作线；E1、GraphRevoker、Gate1、Citeseer V2、IM materializer 和 legacy nips checkout 继续固定被测 SHA。
 
 ## 8. 本轮已执行 / 明确未执行
 
@@ -147,3 +159,4 @@ SSH active 的 remote-tracking refs 还残留 GitHub 已删除的旧 branches。
 - GitHub heads 以 2026-07-14 本轮 `ls-remote` 为准；SSH clone 的 stale remote-tracking refs 不视为 GitHub 当前状态。
 - 报告冻结的是审计文档发布前的源码状态 `d38df143`。若本报告随后作为 documentation-only commit 发布，最终 feature HEAD 会前进一格，但 `cache_v2/`、`attack/`、`experiments/` 与算法源码仍保持 `d38df143` 内容。
 - 没有 live runner 只代表审计时刻，不授权删除旧结果或 PID/log。
+- 并发 worktree 状态冻结于 2026-07-14 17:27 CST 左右；它们之后继续变化不代表本报告遗漏，而是活跃 session 的后续工作。

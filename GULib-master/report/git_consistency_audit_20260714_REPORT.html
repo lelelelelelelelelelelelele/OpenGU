@@ -34,8 +34,14 @@
   </tbody></table>
 
   <h2>Local / origin</h2>
-  <div class="card"><h3>Worktrees</h3><ul><li><code>E:/project/OpenGU</code>：feature <code>d38df143</code>，clean。</li><li><code>.../worktrees/92ea/OpenGU</code>：AutoReport V3 branch；只有 3 个未跟踪 planning Markdown，属于活跃 session。</li><li><code>.../worktrees/ab43/OpenGU</code>：detached <code>d38df143</code>，clean。</li></ul>
+  <div class="card"><h3>Worktrees</h3><ul><li><code>E:/project/OpenGU</code>：feature <code>d38df143</code> 源码基线，clean。</li><li><code>.../worktrees/92ea/OpenGU</code>：AutoReport V3 branch；12 tracked modified + 10 untracked，属于活跃 implementation session。</li><li><code>.../worktrees/ab43/OpenGU</code>：detached <code>07d635e</code>；1 个 untracked TracIn contract-only Markdown。</li></ul>
   <h3>Feature stack</h3><p><code>main...feature = 0 / 23</code>。23 个提交已按 Git/Cache V2、Citeseer V2、E1/GraphRevoker、materializer/producers 与验收报告语义组织。相对 main 共 51 files、18,939 insertions、39 deletions；没有 results/cache/runs payload。</p></div>
+
+  <h3>并发 session 最终冻结</h3>
+  <table><thead><tr><th>Session</th><th>Dirty 规模</th><th>语义边界</th><th>决定</th></tr></thead><tbody>
+    <tr><td>AutoReport V3</td><td>12 modified；10 untracked；tracked diff 891 insertions / 43 deletions</td><td>reporting core、runner/attack/result integration、tests/fixtures、design + 3 planning files；无结果 payload</td><td>原 session 分批提交；planning 不入 Git</td></tr>
+    <tr><td>TracIn V2 contract report</td><td>1 untracked Markdown，20,616 B；HTML pair 缺失</td><td><code>KEEP UNSTABLE / CONTRACT ONLY</code>；无 producer、算法或 GPU 变更</td><td>原 session 补 HTML 后纯文档提交</td></tr>
+  </tbody></table>
 
   <h3>本地但不在任何 origin ref 的提交</h3>
   <table><thead><tr><th>Commit</th><th>内容</th><th>决定</th></tr></thead><tbody>
@@ -78,8 +84,8 @@
   <p>所有 HEAD 都是 <code>d38df143</code> 的祖先。旧 clone 的 stale/local-path origin 不代表 GitHub 未 push；GitHub 当前 heads 以本轮 <code>ls-remote</code> 为准。</p>
 
   <h2>建议顺序与风险门</h2>
-  <ol><li>保持现有 feature stack，不 rewrite/squash。</li><li>AutoReport V3 在独立 branch 完成 code/tests，再提交设计与 MD/HTML 报告；planning 不入 Git。</li><li><span class="warn">用户确认后</span>将 feature 以 <code>--ff-only</code> 纳入 main；本轮停在门前。</li><li>main 更新后再整合 AutoReport V3。</li><li>历史恢复 commits/stashes 不合并；实验 checkouts 保持被测 SHA。</li></ol>
+  <ol><li>保持现有 feature stack，不 rewrite/squash。</li><li>AutoReport V3 依次提交 reporting core、integrations、tests/fixtures、设计与 MD/HTML 报告；planning 不入 Git。</li><li><span class="warn">用户确认后</span>将 feature 以 <code>--ff-only</code> 纳入 main；本轮停在门前。</li><li>main 更新后再整合 AutoReport V3。</li><li>TracIn contract-only Markdown 先补 HTML pair，再作纯文档提交；不得借此改算法。</li><li>历史恢复 commits/stashes 不合并；实验 checkouts 保持被测 SHA。</li></ol>
   <p class="note">本轮只执行了 GitHub heads 核验、本地无 prune fetch、只读状态/引用/哈希审计和双格式报告。未合并 main，未 push 历史提交，未 reset/clean/stash/drop/prune/GC，未修改算法或实验数据。</p>
 
-  <div class="footer">证据冻结于报告发布前的源码 HEAD d38df143。若本报告作为 documentation-only commit 发布，feature HEAD 将前进一格，但算法与实验源码仍保持 d38df143 内容。</div>
+  <div class="footer">源码证据冻结于 d38df143；并发 worktree 状态冻结于 2026-07-14 17:27 CST 左右。报告 publication commits 只改本 MD/HTML 对，不改变算法与实验源码。</div>
 </main></body></html>
