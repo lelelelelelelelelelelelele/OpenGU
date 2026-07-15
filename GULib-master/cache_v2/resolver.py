@@ -16,6 +16,7 @@ from .contracts import (
     VerificationStatus,
 )
 from .index import CacheIndex
+from .conflict_resolution import ConflictResolutionLedger
 
 
 @dataclass(frozen=True)
@@ -26,6 +27,7 @@ class ResolveExplanation:
     status: Optional[ArtifactStatus]
     verification_status: Optional[VerificationStatus]
     conflicts: Tuple[Dict[str, Any], ...]
+    resolved_conflicts: Tuple[Dict[str, Any], ...]
     legacy_exact_candidates: Tuple[Dict[str, Any], ...]
     dependency_issues: Tuple[Dict[str, Any], ...]
     hit: bool
@@ -44,12 +46,22 @@ class ResolveExplanation:
             else self.verification_status.value,
             "conflicts": list(self.conflicts),
             "conflict_count": len(self.conflicts),
+            "resolved_conflicts": list(self.resolved_conflicts),
+            "resolved_conflict_count": len(self.resolved_conflicts),
             "legacy_exact_candidates": list(self.legacy_exact_candidates),
             "legacy_exact_candidate_count": len(self.legacy_exact_candidates),
             "dependency_issues": list(self.dependency_issues),
             "hit": self.hit,
             "miss_reasons": list(self.miss_reasons),
         }
+
+    @property
+    def conflict_count(self) -> int:
+        return len(self.conflicts)
+
+    @property
+    def resolved_conflict_count(self) -> int:
+        return len(self.resolved_conflicts)
 
 
 class ArtifactResolver:
@@ -59,6 +71,7 @@ class ArtifactResolver:
         if not isinstance(index, CacheIndex):
             raise TypeError("ArtifactResolver requires CacheIndex")
         self.index = index
+        self.resolutions = ConflictResolutionLedger(index)
 
     def explain_exact(
         self,
@@ -70,9 +83,10 @@ class ArtifactResolver:
             recipe if isinstance(recipe, ArtifactRecipe) else ArtifactRecipe(recipe)
         )
         candidate = self.index.find_artifact(type_value, recipe_value.recipe_hash)
-        conflicts: List[Dict[str, Any]] = self.index.conflicts(
+        all_conflicts: List[Dict[str, Any]] = self.index.conflicts(
             artifact_type=type_value, recipe_hash=recipe_value.recipe_hash
         )
+        resolved_conflicts, conflicts = self.resolutions.classify(all_conflicts)
         legacy_candidates: List[Dict[str, Any]] = self.index.legacy_sources(
             artifact_type=type_value, recipe_hash=recipe_value.recipe_hash
         )
@@ -145,6 +159,7 @@ class ArtifactResolver:
             status=status,
             verification_status=verification,
             conflicts=tuple(conflicts),
+            resolved_conflicts=tuple(resolved_conflicts),
             legacy_exact_candidates=tuple(legacy_candidates),
             dependency_issues=tuple(dependency_issues),
             hit=hit,
@@ -181,10 +196,11 @@ class ArtifactResolver:
                     reasons.append(
                         "verification_{0}".format(parent_verification.value)
                     )
-                parent_conflicts = self.index.conflicts(
+                parent_conflicts_all = self.index.conflicts(
                     artifact_type=parent["artifact_type"],
                     recipe_hash=parent["recipe_hash"],
                 )
+                _, parent_conflicts = self.resolutions.classify(parent_conflicts_all)
                 if parent_conflicts:
                     reasons.append("conflict_present")
                 if reasons:

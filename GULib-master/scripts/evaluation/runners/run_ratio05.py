@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from .log_resume import parse_log_quality, should_skip
-from ..reporting.writer import append_report_entry
+from ..reporting.writer import record_evaluation_result
 
 METHODS = [
     "GIF",
@@ -181,7 +181,7 @@ def main() -> None:
         result["approx_nodes"] = APPROX_NODES
         results[method] = result
 
-        append_report_entry(
+        record_evaluation_result(
             script=SCRIPT_NAME,
             dataset="cora",
             model="GCN",

@@ -17,6 +17,7 @@ Example usage:
 import os
 import sys
 import argparse
+import time
 
 # IMPORTANT: Parse and clean sys.argv BEFORE importing any module that might
 # trigger config.py (which calls parameter_parser() at import time)
@@ -33,6 +34,8 @@ def _extract_demo_args():
     parser.add_argument("--save_path", type=str, default=None)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--random_seed", type=int, default=None)
+    parser.add_argument("--cache_v2_store_root", type=str, default=None)
+    parser.add_argument("--selection_artifact_id", type=str, default=None)
     # Also include common args that parameter_parser needs
     parser.add_argument("--dataset_name", type=str, default="cora")
     parser.add_argument("--base_model", type=str, default="SGC")
@@ -45,6 +48,10 @@ def _extract_demo_args():
     demo_args, remaining_args = parser.parse_known_args()
     if demo_args.seed is None:
         demo_args.seed = demo_args.random_seed if demo_args.random_seed is not None else 2024
+    if bool(demo_args.cache_v2_store_root) != bool(demo_args.selection_artifact_id):
+        parser.error(
+            "--cache_v2_store_root and --selection_artifact_id must be provided together"
+        )
 
     # Reconstruct sys.argv without demo-only args, while preserving the shared
     # args that config.py/parameter_parser.py must see during import-time parse.
@@ -136,6 +143,11 @@ def main():
     args['batch_size'] = demo_args.batch_size
     args['random_seed'] = demo_args.seed
     args['seed'] = demo_args.seed
+    v2_selection = bool(demo_args.selection_artifact_id)
+    if v2_selection:
+        # Strategy construction happens in AttackManager.__init__. Disable the
+        # eager Legacy ScoreCache constructors before that point.
+        args['enable_score_cache'] = False
 
     # Set random seed
     seed_everything(demo_args.seed)
@@ -150,6 +162,15 @@ def main():
 
     # Parse strategies
     strategies = [s.strip() for s in demo_args.strategies.split(',')]
+    if v2_selection:
+        if len(strategies) != 1:
+            print("Cache V2 runner mode requires exactly one strategy")
+            sys.exit(1)
+        if strategies[0] not in {"random", "degree", "pagerank", "im"}:
+            print(
+                "Cache V2 runner mode supports only random, degree, pagerank, or im"
+            )
+            sys.exit(1)
     print(f"\nStrategies to compare: {strategies}")
 
     # Create AttackManager
@@ -160,7 +181,7 @@ def main():
     try:
         manager = AttackManager(
             args,
-            use_cache=not demo_args.no_cache,
+            use_cache=False if v2_selection else not demo_args.no_cache,
         )
     except Exception as e:
         print(f"\nError initializing AttackManager: {e}")
@@ -178,6 +199,8 @@ def main():
         k = demo_args.k
     else:
         k = int(_candidate_node_count(manager.data) * args.get('unlearn_ratio', 0.05))
+        if v2_selection:
+            k = max(1, k)
 
     print(f"Nodes to unlearn (k): {k} ({args.get('unlearn_ratio', 0.05)*100:.1f}%)")
 
@@ -200,11 +223,38 @@ def main():
     print("=" * 70)
 
     try:
-        comparison = manager.compare_strategies(
-            strategy_names=strategies,
-            k=k,
-            save_path=demo_args.save_path,
-        )
+        if v2_selection:
+            from cache_v2.runtime import load_selection_artifact
+
+            load_started = time.perf_counter()
+            loaded = load_selection_artifact(
+                os.path.abspath(demo_args.cache_v2_store_root),
+                demo_args.selection_artifact_id,
+                num_nodes=int(manager.data.num_nodes),
+                candidate_nodes=manager._candidate_nodes(),
+                expected_selector=strategies[0],
+                expected_k=k,
+            )
+            reuse_seconds = time.perf_counter() - load_started
+            result = manager.run_attack_with_selected_nodes(
+                strategies[0],
+                loaded.selected_nodes,
+                selection_provenance=dict(
+                    loaded.provenance(os.path.abspath(demo_args.cache_v2_store_root))
+                ),
+                selection_time=0.0,
+                selection_reuse_time=reuse_seconds,
+            )
+            comparison = ComparisonResult(results=[result], config=args)
+            if demo_args.save_path:
+                comparison.save(demo_args.save_path)
+            comparison.print_summary()
+        else:
+            comparison = manager.compare_strategies(
+                strategy_names=strategies,
+                k=k,
+                save_path=demo_args.save_path,
+            )
     except Exception as e:
         print(f"\nError running comparison: {e}")
         import traceback
@@ -219,9 +269,8 @@ def main():
     if demo_args.save_path:
         print(f"Results saved to: {demo_args.save_path}")
 
-    # Write structured AutoReport V3 events. The historical auto_report.md
-    # remains available to legacy callers but this high-volume path no longer
-    # appends a duplicate Markdown block per producer.
+    # Write structured AutoReport V3 events. Historical Markdown is frozen in
+    # results/_journal/archive; auto_report.md is now a bounded generated view.
     try:
         from scripts.evaluation.reporting.writer import record_attack_results
         report_path = record_attack_results(
@@ -239,6 +288,10 @@ def main():
         print(f"[AutoReport V3] Events recorded in {report_path}")
     except Exception as e:
         print(f"[AutoReport V3] Warning: Could not write events: {e}")
+
+    if not comparison.results:
+        print("\n[Demo] No attack result was produced.")
+        sys.exit(1)
 
     # Detect per-strategy failures and surface them via non-zero rc after the
     # failed terminal event has been recorded. Without this, run.py's

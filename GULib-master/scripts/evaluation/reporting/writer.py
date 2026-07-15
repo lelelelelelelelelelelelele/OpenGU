@@ -1,5 +1,7 @@
+import json
 import math
 import os
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
@@ -9,7 +11,9 @@ from .events import (
     ENV_CELL_ID,
     ENV_CONFIG_FINGERPRINT,
     ENV_GIT_SHA,
+    ENV_IDENTITY_JSON,
     ENV_RUN_ID,
+    EventValidationError,
     artifact_ref,
     cache_observation,
     current_git_sha,
@@ -17,13 +21,13 @@ from .events import (
     make_cell_id,
     make_config_fingerprint,
     new_run_id,
+    normalize_identity,
     record_event,
     refresh_status_views,
 )
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_REPORT_PATH = REPO_ROOT / "results" / "_journal" / "auto_report.md"
 REPORT_STYLE_VERSION = "v1"
 STATUS_SET = {"OK", "X", "TIMEOUT", "WARN", "SKIP"}
 REPORT_HEADER = (
@@ -38,8 +42,26 @@ ENTRY_TEMPLATE = (
     "- 执行结果：{status} | f1_before={f1_before} | f1_after={f1_after} | auc={auc} | "
     "unlearn_time={unlearn_time} | wall_time={wall_time}s\n"
     "- 异常与定位：{error_summary}\n"
-    "- 下一步建议：{next_step}\n\n"
+    "{next_step_line}\n"
 )
+
+
+class LegacyReportWriteDisabledError(RuntimeError):
+    """Raised when retired v1 writers are called without an explicit fixture path."""
+
+
+def _legacy_report_path(report_path: Optional[str]) -> Path:
+    if not report_path:
+        raise LegacyReportWriteDisabledError(
+            "The default v1 Markdown writer is retired. Use AutoReport V3 events, "
+            "or pass report_path explicitly for a compatibility fixture/export."
+        )
+    warnings.warn(
+        "AutoReport v1 Markdown writers are deprecated; use V3 events.",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+    return Path(report_path).resolve()
 
 
 def _fmt_metric(value: Optional[float], digits: int = 4) -> str:
@@ -52,16 +74,6 @@ def _fmt_metric(value: Optional[float], digits: int = 4) -> str:
     if math.isnan(as_float):
         return "NaN"
     return f"{as_float:.{digits}f}"
-
-
-def _default_next_step(status: str) -> str:
-    if status == "SKIP":
-        return "继续执行下一个未完成配置。"
-    if status == "OK":
-        return "检查该方法在其他比例或数据集的趋势。"
-    if status == "TIMEOUT":
-        return "提高超时阈值或先降低比例后再重试。"
-    return "打开日志定位根因并重跑该配置。"
 
 
 def _normalize_status(status: str) -> Tuple[str, Optional[str]]:
@@ -87,7 +99,7 @@ COLLATERAL_TEMPLATE = (
     "- 日志路径：`{log_file}`\n"
     "- 执行结果：{status}\n"
     "- 异常与定位：{error_summary}\n"
-    "- 下一步建议：{next_step}\n\n"
+    "{next_step_line}\n"
 )
 
 
@@ -120,7 +132,7 @@ def append_collateral_entry(
     next_step: Optional[str] = None,
     report_path: Optional[str] = None,
 ) -> str:
-    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path = _legacy_report_path(report_path)
     final_report_path.parent.mkdir(parents=True, exist_ok=True)
     if not final_report_path.exists():
         final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
@@ -134,7 +146,6 @@ def append_collateral_entry(
         final_error_type = final_error_type or "INVALID_STATUS"
         final_error_msg = f"{prefix} {final_error_msg}" if final_error_msg else prefix
 
-    suggestion = next_step or _default_next_step(normalized_status)
     strategy_table = _build_strategy_table(results) if results else "（无策略结果）"
     entry = COLLATERAL_TEMPLATE.format(
         timestamp=now,
@@ -146,7 +157,7 @@ def append_collateral_entry(
         log_file=log_file,
         status=normalized_status,
         error_summary=_compose_error_summary(final_error_type, final_error_msg),
-        next_step=suggestion,
+        next_step_line="- 下一步建议：{0}".format(next_step) if next_step else "",
     )
     with final_report_path.open("a", encoding="utf-8") as file_obj:
         file_obj.write(entry)
@@ -171,7 +182,7 @@ def append_report_entry(
     next_step: Optional[str] = None,
     report_path: Optional[str] = None,
 ) -> str:
-    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path = _legacy_report_path(report_path)
     final_report_path.parent.mkdir(parents=True, exist_ok=True)
     if not final_report_path.exists():
         final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
@@ -185,7 +196,6 @@ def append_report_entry(
         final_error_type = final_error_type or "INVALID_STATUS"
         final_error_msg = f"{prefix} {final_error_msg}" if final_error_msg else prefix
 
-    suggestion = next_step or _default_next_step(normalized_status)
     entry = ENTRY_TEMPLATE.format(
         timestamp=now,
         script=script,
@@ -201,7 +211,7 @@ def append_report_entry(
         unlearn_time=_fmt_metric(unlearn_time),
         wall_time=_fmt_metric(time_s, digits=2),
         error_summary=_compose_error_summary(final_error_type, final_error_msg),
-        next_step=suggestion,
+        next_step_line="- 下一步建议：{0}".format(next_step) if next_step else "",
     )
     with final_report_path.open("a", encoding="utf-8") as file_obj:
         file_obj.write(entry)
@@ -219,7 +229,7 @@ def append_attack_result(
     results,
     report_path: Optional[str] = None,
 ) -> str:
-    final_report_path = Path(report_path).resolve() if report_path else DEFAULT_REPORT_PATH
+    final_report_path = _legacy_report_path(report_path)
     final_report_path.parent.mkdir(parents=True, exist_ok=True)
     if not final_report_path.exists():
         final_report_path.write_text(REPORT_HEADER, encoding="utf-8")
@@ -262,7 +272,7 @@ def append_attack_result(
             f"time={_fmt_metric(total_time, digits=1)}s, {', '.join(cache_parts)})"
         )
     lines.append("- 异常与定位：无")
-    lines.append("- 下一步建议：检查 cache 是否正确写入，继续其他策略或数据集。\n")
+    lines.append("")
 
     with final_report_path.open("a", encoding="utf-8") as file_obj:
         file_obj.write("\n".join(lines))
@@ -281,16 +291,142 @@ def _attempt_from_env() -> int:
         return 1
 
 
+def _identity_from_runtime(identity: Mapping[str, Any], single_cell: bool) -> Dict[str, Any]:
+    local_identity = normalize_identity(identity)
+    raw_identity = os.environ.get(ENV_IDENTITY_JSON) if single_cell else None
+    if not raw_identity:
+        return local_identity
+    try:
+        value = json.loads(raw_identity)
+    except json.JSONDecodeError as exc:
+        raise EventValidationError("invalid runner identity envelope: {0}".format(exc.msg))
+    if not isinstance(value, Mapping):
+        raise EventValidationError("runner identity envelope must be an object")
+    return normalize_identity(value)
+
+
+def _stage_execution_metadata(execution: str) -> Dict[str, Any]:
+    metadata = {"stage_execution": execution}
+    if execution == "cache_reuse" and not os.environ.get(ENV_RUN_ID):
+        metadata["dedup_scope"] = "semantic_cache_reuse"
+    return metadata
+
+
 def _runtime_context(identity: Mapping[str, Any], config_payload: Mapping[str, Any], single_cell: bool):
     derived_cell_id = make_cell_id(identity)
     cell_id = os.environ.get(ENV_CELL_ID) if single_cell else None
     cell_id = cell_id or derived_cell_id
+    if cell_id != derived_cell_id:
+        raise EventValidationError(
+            "runner cell_id does not match the propagated normalized identity"
+        )
     run_id = os.environ.get(ENV_RUN_ID) or new_run_id(cell_id)
     config_fingerprint = os.environ.get(ENV_CONFIG_FINGERPRINT) or make_config_fingerprint(
         config_payload
     )
     git_sha = os.environ.get(ENV_GIT_SHA) or current_git_sha()
     return cell_id, run_id, config_fingerprint, git_sha, _attempt_from_env()
+
+
+def record_evaluation_result(
+    *,
+    script: str,
+    dataset: str,
+    model: str,
+    method: str,
+    ratio: str,
+    status: str,
+    log_file: str,
+    f1_before: Optional[float] = None,
+    f1_after: Optional[float] = None,
+    unlearn_time: Optional[float] = None,
+    auc: Optional[float] = None,
+    time_s: Optional[float] = None,
+    error_type: Optional[str] = None,
+    error_msg: Optional[str] = None,
+    event_path: Optional[str] = None,
+) -> str:
+    """Record old evaluation-runner results as V3 facts, without prose advice."""
+    normalized_status, invalid_status = _normalize_status(status)
+    identity = {
+        "dataset": dataset,
+        "model": model,
+        "method": method,
+        "strategy": None,
+        "ratio": ratio,
+        "seed": None,
+        "k": None,
+    }
+    identity = _identity_from_runtime(identity, True)
+    payload = {"identity": identity, "producer": script}
+    cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
+        identity, payload, True
+    )
+    state = {
+        "OK": "completed",
+        "SKIP": "skipped",
+        "X": "failed",
+        "TIMEOUT": "failed",
+        "WARN": "completed",
+    }[normalized_status]
+    artifacts = []
+    log_artifact = _artifact_from_path(log_file, "log")
+    if log_artifact:
+        artifacts.append(log_artifact)
+    cache_values = []
+    if normalized_status == "SKIP":
+        hit_source = log_file or "legacy_strict_ok_log"
+        cache_values.append(
+            cache_observation(
+                cache_type="run_artifact",
+                outcome="hit",
+                recipe={"legacy_gate": "strict_ok_log"},
+                artifact=log_artifact,
+                hit_source=hit_source,
+                lookup_policy="legacy_strict_ok_log",
+                authoritative=False,
+                write_outcome="reused",
+            )
+        )
+    error = None
+    if state == "failed":
+        error = {
+            "type": error_type or normalized_status,
+            "message": error_msg or "Legacy evaluation runner failed.",
+            "retryable": True,
+        }
+    metadata = {
+        "legacy_status": normalized_status,
+        "reason": "strict OK legacy log exists" if normalized_status == "SKIP" else None,
+    }
+    if invalid_status:
+        metadata["invalid_status_input"] = invalid_status
+    if normalized_status == "WARN" and (error_type or error_msg):
+        metadata["warning"] = _compose_error_summary(error_type, error_msg)
+    record_event(
+        identity=identity,
+        stage="run",
+        state=state,
+        producer=script,
+        config_fingerprint=config_fingerprint,
+        git_sha=git_sha,
+        cell_id=cell_id,
+        run_id=run_id,
+        attempt=attempt,
+        cache=cache_values,
+        artifacts=artifacts,
+        metrics={
+            "f1_before": f1_before,
+            "f1_after": f1_after,
+            "unlearn_time": unlearn_time,
+            "auc": auc,
+            "wall_time_s": time_s,
+        },
+        error=error,
+        metadata=metadata,
+        event_path=event_path,
+    )
+    return str(event_path_from_env(event_path))
 
 
 def _artifact_from_path(path: Optional[str], artifact_type: str) -> Optional[Dict[str, Any]]:
@@ -310,6 +446,32 @@ def _selected_node_count(result) -> Optional[int]:
 
 
 def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled: bool):
+    artifact_id = getattr(result, "selection_artifact_id", None)
+    if artifact_id:
+        source = getattr(result, "selection_cache_source", None)
+        recipe_hash = getattr(result, "selection_recipe_hash", None)
+        content_hash = getattr(result, "selection_content_hash", None)
+        lookup_mode = (
+            getattr(result, "selection_cache_lookup_mode", None)
+            or "cache_v2_exact_artifact_id"
+        )
+        return cache_observation(
+            cache_type="selection",
+            outcome="hit",
+            recipe={"strategy": strategy, "k": int(k)},
+            recipe_hash=recipe_hash,
+            artifact=artifact_ref(
+                path=source,
+                artifact_id=str(artifact_id),
+                artifact_type="selection",
+                recipe_hash=recipe_hash,
+                content_hash=content_hash,
+            ),
+            hit_source="cache_v2:{0}".format(artifact_id),
+            lookup_policy=lookup_mode,
+            authoritative=True,
+            write_outcome="reused",
+        )
     cache_hit = getattr(result, "selection_cache_hit", None)
     source = getattr(result, "selection_cache_source", None)
     cache_key = getattr(result, "selection_cache_key", None)
@@ -411,6 +573,7 @@ def record_attack_results(
             "seed": int(seed),
             "k": int(k),
         }
+        identity = _identity_from_runtime(identity, len(strategies) == 1)
         config_payload = {
             "identity": identity,
             "strategies_requested": list(strategies),
@@ -449,6 +612,7 @@ def record_attack_results(
             "seed": int(seed),
             "k": int(k),
         }
+        identity = _identity_from_runtime(identity, single_cell)
         config_payload = {
             "identity": identity,
             "strategies_requested": list(strategies),
@@ -463,6 +627,9 @@ def record_attack_results(
         # current selection HIT.
         result_cache_hit = getattr(result, "result_cache_hit", None)
         if result_cache_hit is not True:
+            selection_observation = _selection_cache_observation(
+                result, strategy=strategy, k=k, cache_enabled=cache_enabled
+            )
             selection_result = record_event(
                 identity=identity,
                 stage="selection",
@@ -473,16 +640,17 @@ def record_attack_results(
                 cell_id=cell_id,
                 run_id=run_id,
                 attempt=attempt,
-                cache=[
-                    _selection_cache_observation(
-                        result, strategy=strategy, k=k, cache_enabled=cache_enabled
-                    )
-                ],
+                cache=[selection_observation],
                 metrics={
                     "selection_time_s": getattr(result, "selection_time", None),
                     "selection_reuse_time_s": getattr(result, "selection_reuse_time", None),
                     "selected_node_count": _selected_node_count(result),
                 },
+                metadata=_stage_execution_metadata(
+                    "cache_reuse"
+                    if selection_observation["outcome"] == "hit"
+                    else "computed"
+                ),
                 event_path=event_path,
                 refresh=False,
             )
@@ -493,6 +661,9 @@ def record_attack_results(
             attack_artifacts.append(artifact_ref(path=save_path, artifact_type="evaluation"))
         failed = bool(getattr(result, "failed", False))
         failure_reason = getattr(result, "failure_reason", None)
+        result_observation = _result_cache_observation(
+            result, strategy=strategy, k=k, cache_enabled=cache_enabled
+        )
         attack_result = record_event(
             identity=identity,
             stage="attack",
@@ -503,7 +674,7 @@ def record_attack_results(
             cell_id=cell_id,
             run_id=run_id,
             attempt=attempt,
-            cache=[_result_cache_observation(result, strategy=strategy, k=k, cache_enabled=cache_enabled)],
+            cache=[result_observation],
             artifacts=attack_artifacts,
             metrics={
                 "f1_before": getattr(result, "f1_before", None),
@@ -522,6 +693,9 @@ def record_attack_results(
                 if failed
                 else None
             ),
+            metadata=_stage_execution_metadata(
+                "cache_reuse" if result_observation["outcome"] == "hit" else "computed"
+            ),
             event_path=event_path,
             refresh=False,
         )
@@ -535,6 +709,27 @@ def record_attack_results(
 
 def _collateral_cache_observation(strategy: str, provenance: Optional[Mapping[str, Any]]):
     info = dict(provenance or {})
+    artifact_id = info.get("artifact_id")
+    if artifact_id:
+        source = info.get("source_file")
+        return cache_observation(
+            cache_type="selection",
+            outcome=str(info.get("outcome") or "hit"),
+            recipe=dict(info.get("recipe") or {"strategy": strategy}),
+            recipe_hash=info.get("recipe_hash"),
+            artifact=artifact_ref(
+                path=source,
+                artifact_id=str(artifact_id),
+                artifact_type="selection",
+                recipe_hash=info.get("recipe_hash"),
+                content_hash=info.get("content_hash"),
+            ),
+            hit_source=info.get("hit_source") or "cache_v2:{0}".format(artifact_id),
+            lookup_policy=info.get("lookup_policy") or "cache_v2_exact_artifact_id",
+            authoritative=info.get("authoritative") is True,
+            write_outcome=info.get("write_outcome") or "reused",
+            miss_reason=info.get("miss_reason"),
+        )
     outcome = str(info.get("outcome") or "unknown")
     source = info.get("source_file")
     cache_key = info.get("cache_key")
@@ -591,6 +786,7 @@ def record_collateral_results(
             "seed": seed,
             "k": None,
         }
+        identity = _identity_from_runtime(identity, single_cell)
         payload = {"identity": identity, "output_path": output_path}
         cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
             identity, payload, single_cell
@@ -636,6 +832,7 @@ def record_collateral_results(
             "seed": seed,
             "k": None,
         }
+        identity = _identity_from_runtime(identity, single_cell)
         payload = {"identity": identity, "output_path": output_path}
         cell_id, run_id, config_fingerprint, git_sha, attempt = _runtime_context(
             identity, payload, single_cell
@@ -659,6 +856,7 @@ def record_collateral_results(
                 "max_pred_shift": result.get("max_pred_shift"),
                 "fraction_flipped": result.get("fraction_flipped"),
             },
+            metadata=_stage_execution_metadata("computed"),
             event_path=event_path,
             refresh=False,
         )

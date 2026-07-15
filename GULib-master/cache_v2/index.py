@@ -573,6 +573,18 @@ class CacheIndex:
     ) -> List[Dict[str, Any]]:
         return self.conflicts(artifact_type, recipe_hash, artifact_id)
 
+    def get_conflict(self, conflict_id: str) -> Dict[str, Any]:
+        with self._read_connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM artifact_conflicts WHERE conflict_id = ?",
+                (conflict_id,),
+            ).fetchone()
+        if row is None:
+            raise ArtifactNotFoundError(
+                "Artifact conflict not found: {0}".format(conflict_id)
+            )
+        return _json_record(row)
+
     def explain_exact(
         self,
         artifact_type: Union[ArtifactType, str],

@@ -10,6 +10,14 @@ class CacheV2Error(Exception):
     """Base class for all explicit Cache V2 failures."""
 
 
+class ArtifactStoreError(CacheV2Error):
+    """Base error for an opt-in payload-store operation."""
+
+
+class CacheResolutionError(ArtifactStoreError):
+    """An exact lookup was unsafe to resolve or compute automatically."""
+
+
 class ContractValidationError(CacheV2Error, ValueError):
     """A machine-contract value is malformed or internally inconsistent."""
 

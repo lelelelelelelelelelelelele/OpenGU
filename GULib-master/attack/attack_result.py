@@ -42,6 +42,10 @@ class AttackResult:
     selection_cache_source: Optional[str] = None
     selection_cache_lookup_mode: Optional[str] = None
     selection_cache_source_k: Optional[int] = None
+    selection_artifact_id: Optional[str] = None
+    selection_recipe_hash: Optional[str] = None
+    selection_content_hash: Optional[str] = None
+    selection_authoritative: Optional[bool] = None
     result_cache_hit: Optional[bool] = None
     result_cache_key: Optional[str] = None
     result_cache_source: Optional[str] = None
@@ -88,6 +92,10 @@ class AttackResult:
             "selection_cache_source": self.selection_cache_source,
             "selection_cache_lookup_mode": self.selection_cache_lookup_mode,
             "selection_cache_source_k": self.selection_cache_source_k,
+            "selection_artifact_id": self.selection_artifact_id,
+            "selection_recipe_hash": self.selection_recipe_hash,
+            "selection_content_hash": self.selection_content_hash,
+            "selection_authoritative": self.selection_authoritative,
             "result_cache_hit": self.result_cache_hit,
             "result_cache_key": self.result_cache_key,
             "result_cache_source": self.result_cache_source,

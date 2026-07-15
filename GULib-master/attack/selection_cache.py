@@ -13,6 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from cache_v2.legacy_freeze import assert_legacy_cache_writable
+
 
 @dataclass
 class SelectionResult:
@@ -58,7 +60,9 @@ class SelectionCache:
 
     def __init__(self, cache_dir: str = "./results/selection_cache"):
         self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        if not self.cache_dir.is_dir():
+            assert_legacy_cache_writable(self.cache_dir)
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _stable_json(config: Dict[str, Any]) -> str:
@@ -99,6 +103,7 @@ class SelectionCache:
             return None, cache_key, None
 
     def save(self, result: SelectionResult, config: Dict[str, Any]) -> str:
+        assert_legacy_cache_writable(self.cache_dir)
         cache_key = self.build_selection_key(config)
         cache_path = self._cache_path(cache_key)
         payload = {

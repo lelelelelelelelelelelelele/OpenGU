@@ -187,6 +187,81 @@ def _cmd_artifact_relation(args: argparse.Namespace, relation: str) -> int:
     return 0
 
 
+def _cmd_legacy_freeze(args: argparse.Namespace) -> int:
+    from cache_v2.legacy_freeze import plan_or_freeze_legacy_caches
+
+    result = plan_or_freeze_legacy_caches(
+        _resolve_repo_path(args.root),
+        actor=args.actor,
+        reason=args.reason,
+        apply=bool(args.apply),
+    )
+    _emit(result)
+    return 0
+
+
+def _cmd_legacy_freeze_status(args: argparse.Namespace) -> int:
+    from cache_v2.legacy_freeze import freeze_marker_path, read_freeze_marker
+
+    root = _resolve_repo_path(args.root)
+    marker = read_freeze_marker(root)
+    _emit(
+        {
+            "ok": True,
+            "state": "frozen" if marker is not None else "unfrozen",
+            "marker_path": str(freeze_marker_path(root)),
+            "marker": marker,
+            "writes": [],
+        }
+    )
+    return 0
+
+
+def _cmd_legacy_archive_plan(args: argparse.Namespace) -> int:
+    from cache_v2.archive_readiness import publish_archive_readiness_manifest
+
+    result = publish_archive_readiness_manifest(
+        _resolve_repo_path(args.root),
+        _resolve_repo_path(args.source_root),
+        _resolve_repo_path(args.output),
+        apply=bool(args.apply),
+    )
+    _emit(result)
+    return 0
+
+
+def _cmd_conflict_status(args: argparse.Namespace) -> int:
+    from cache_v2.conflict_resolution import ConflictResolutionLedger
+
+    index = _open_existing_index(args.db)
+    conflict = index.get_conflict(args.conflict_id)
+    resolution = ConflictResolutionLedger(index).load(conflict)
+    _emit(
+        {
+            "ok": True,
+            "conflict": conflict,
+            "resolution": None if resolution is None else resolution.to_dict(),
+            "state": "resolved" if resolution is not None else "unresolved",
+            "writes": [],
+        }
+    )
+    return 0
+
+
+def _cmd_conflict_resolve(args: argparse.Namespace) -> int:
+    from cache_v2.conflict_resolution import ConflictResolutionLedger
+
+    index = _open_existing_index(args.db)
+    result = ConflictResolutionLedger(index).keep_existing(
+        args.conflict_id,
+        actor=args.actor,
+        reason=args.reason,
+        apply=bool(args.apply),
+    )
+    _emit({"ok": True, **result})
+    return 0
+
+
 def _load_recipe(path_value: Any) -> ArtifactRecipe:
     path = _resolve_repo_path(path_value)
     try:
@@ -412,6 +487,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     legacy_index.set_defaults(handler=_cmd_legacy_index)
 
+    legacy_freeze = legacy_sub.add_parser(
+        "freeze", help="plan or publish a write-once Legacy cache freeze"
+    )
+    legacy_freeze.add_argument("--root", default="results")
+    legacy_freeze.add_argument("--actor", required=True)
+    legacy_freeze.add_argument("--reason", required=True)
+    legacy_freeze.add_argument(
+        "--apply", action="store_true", help="publish the write-once marker"
+    )
+    legacy_freeze.set_defaults(handler=_cmd_legacy_freeze)
+
+    legacy_status = legacy_sub.add_parser(
+        "freeze-status", help="read the Legacy cache freeze marker"
+    )
+    legacy_status.add_argument("--root", default="results")
+    legacy_status.set_defaults(handler=_cmd_legacy_freeze_status)
+
+    legacy_archive = legacy_sub.add_parser(
+        "archive-plan",
+        help="inventory hashes, consumers, V2 coverage, and rollback without moving Legacy",
+    )
+    legacy_archive.add_argument("--root", default="results")
+    legacy_archive.add_argument("--source-root", default=".")
+    legacy_archive.add_argument("--output", required=True)
+    legacy_archive.add_argument(
+        "--apply", action="store_true", help="publish one write-once JSON manifest"
+    )
+    legacy_archive.set_defaults(handler=_cmd_legacy_archive_plan)
+
     artifact = top.add_parser("artifact", help="query indexed Artifact metadata")
     artifact_sub = artifact.add_subparsers(dest="artifact_command", required=True)
     for name, help_text in (
@@ -431,6 +535,32 @@ def build_parser() -> argparse.ArgumentParser:
                     name
                 )
             )
+
+    conflict = top.add_parser(
+        "conflict", help="inspect or explicitly authorize an immutable conflict"
+    )
+    conflict_sub = conflict.add_subparsers(dest="conflict_command", required=True)
+    conflict_status = conflict_sub.add_parser(
+        "status", help="show the immutable observation and optional authorization"
+    )
+    conflict_status.add_argument("conflict_id")
+    conflict_status.add_argument("--db", default=str(DEFAULT_DB))
+    conflict_status.set_defaults(handler=_cmd_conflict_status)
+
+    conflict_resolve = conflict_sub.add_parser(
+        "resolve", help="plan or write-once authorize the formal existing Artifact"
+    )
+    conflict_resolve.add_argument("conflict_id")
+    conflict_resolve.add_argument(
+        "--action", choices=["keep_existing"], default="keep_existing"
+    )
+    conflict_resolve.add_argument("--actor", required=True)
+    conflict_resolve.add_argument("--reason", required=True)
+    conflict_resolve.add_argument("--db", default=str(DEFAULT_DB))
+    conflict_resolve.add_argument(
+        "--apply", action="store_true", help="publish the write-once authorization"
+    )
+    conflict_resolve.set_defaults(handler=_cmd_conflict_resolve)
 
     resolve = top.add_parser("resolve", help="explain exact Cache resolution")
     resolve_sub = resolve.add_subparsers(dest="resolve_command", required=True)

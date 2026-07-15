@@ -1,0 +1,22 @@
+name: cache_v2_cora_degree_canary
+dataset: cora
+base_model: GCN
+ratio: 0.05
+methods: [GIF]
+strategies: [degree]
+seeds: [42]
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: true
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+cache_v2:
+  mode: selection
+  store_root: results/cache_v2
+  dataset_root: data/raw
+  legacy_results_root: results
+  allow_download: false

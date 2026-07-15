@@ -1,0 +1,57 @@
+{
+  "schema": "opengu.autoreport.baseline",
+  "schema_version": 1,
+  "created_at": "2026-07-14",
+  "archive": {
+    "path": "archive/auto_report_2026-05-06_to_2026-07-10_active4090.md",
+    "sha256": "0273a88a0d56952c232fc1b5165ad5bbab66a1940ba6ceae01def784fa817d3b",
+    "bytes": 980451,
+    "lines": 19020,
+    "legacy_entries": 2015,
+    "decision_entries": 0,
+    "required_local": false,
+    "verified_on": "/autodl-fs/data/OpenGU/GULib-master"
+  },
+  "policy": {
+    "carry_forward": "Server-only tail entries are inventoried, not backfilled as V3 execution events.",
+    "fixed_next_step": "retired",
+    "legacy_writer": "explicit_path_only"
+  },
+  "items": [
+    {
+      "id": "active-4090-cutover",
+      "status": "archived",
+      "title": "4090 live journal cutover",
+      "fact": "服务器旧日志覆盖 2026-05-06 至 2026-07-10，共 19,020 行、2,015 条；其中 2,015 条都带固定下一步建议，DECISION 条目为 0。",
+      "boundary": "原文件只允许整体归档；不清洗、不压缩、不回填成 V3 当前完成状态。"
+    },
+    {
+      "id": "server-tail-graphrevoker",
+      "status": "archive-only",
+      "title": "2026-07-10 GraphRevoker tail",
+      "fact": "相对旧 server snapshot 新增 1 条 random attack 与 1 条 collateral：f1_after=0.7140，collateral gap=-1.54%，mean shift=0.0361，flipped=2.96%。",
+      "boundary": "旧 attack 的 f1_before=NA 且 cache=HIT 含义不完整；仅作历史证据，不宣称当前 V3 cell complete。"
+    },
+    {
+      "id": "phase-b-arxiv-pilot",
+      "status": "historical-verified",
+      "title": "Phase B arxiv pilot",
+      "fact": "旧服务器日志与本地结果交叉核实出 6 个完成 cell：GIF/GNNDelete × random/tracin/im，seed=42，ratio=0.01；两处空目录没有完成记录。",
+      "boundary": "这是冻结历史的去噪摘要，不回填为 V3 事件，也不代表 arxiv 矩阵已经补齐。"
+    },
+    {
+      "id": "server-tail-grapheraser-probes",
+      "status": "duplicate-probe",
+      "title": "2026-07-10 GraphEraser probes",
+      "fact": "新增 3 条临时 collateral probe：random 两次结果完全重复（gap=11.81%），degree 一次（gap=11.81%），路径位于 results/_tmp 或 /tmp。",
+      "boundary": "重复 probe 不进入当前进度表，也不提升为新的实验结论。"
+    },
+    {
+      "id": "fixed-next-step-retired",
+      "status": "retired",
+      "title": "固定“下一步建议”",
+      "fact": "1,040 条 cache 检查建议与 975 条趋势检查建议不迁入新 AutoReport；V3 只呈现阶段、状态、Cache 来源、错误和重试事实。",
+      "boundary": "旧建议原文只保留在服务器 archive 中。"
+    }
+  ]
+}

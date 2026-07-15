@@ -516,6 +516,96 @@ class AttackManager:
 
         return result
 
+    def run_attack_with_selected_nodes(
+        self,
+        strategy_name: str,
+        selected_nodes: Any,
+        *,
+        selection_provenance: Dict[str, Any],
+        selection_time: float = 0.0,
+        selection_reuse_time: Optional[float] = None,
+    ) -> AttackResult:
+        """Run unlearning from a verified external Selection Artifact.
+
+        This path never queries or writes ResultCache, SelectionCache, or
+        ScoreCache.  The caller must provide authoritative Artifact
+        provenance; missing fields fail before the unlearning pipeline runs.
+        """
+
+        if self.get_strategy(strategy_name) is None:
+            raise ValueError(
+                f"Strategy '{strategy_name}' not found. Registered: {self.list_strategies()}"
+            )
+        required = {
+            "artifact_id",
+            "recipe_hash",
+            "content_hash",
+            "source_file",
+            "hit_source",
+            "lookup_policy",
+            "authoritative",
+        }
+        missing = sorted(key for key in required if selection_provenance.get(key) is None)
+        if missing:
+            raise ValueError(
+                "Selection Artifact provenance is missing: {0}".format(",".join(missing))
+            )
+        if selection_provenance.get("authoritative") is not True:
+            raise ValueError("Selection Artifact provenance must be authoritative")
+        nodes = torch.as_tensor(selected_nodes, dtype=torch.long).view(-1).cpu()
+        if nodes.numel() <= 0:
+            raise ValueError("Selection Artifact must contain at least one node")
+        if nodes.unique().numel() != nodes.numel():
+            raise ValueError("Selection Artifact contains duplicate nodes")
+        candidates = set(int(node) for node in self._candidate_nodes().tolist())
+        invalid = [int(node) for node in nodes.tolist() if int(node) not in candidates]
+        if invalid:
+            raise ValueError(
+                "Selection Artifact contains nodes outside the candidate set: {0}".format(
+                    invalid
+                )
+            )
+
+        print(
+            "[CacheV2] HIT "
+            f"strategy={strategy_name} artifact_id={selection_provenance['artifact_id']} "
+            f"lookup={selection_provenance['lookup_policy']}"
+        )
+        started = time.time()
+        result_dict = self.pipeline.run_with_selected_nodes(
+            strategy_name=strategy_name,
+            selected_nodes=nodes,
+            selection_time=float(selection_time),
+        )
+        total_time = time.time() - started
+        config = self._build_config(strategy_name, int(nodes.numel()))
+        result = AttackResult(
+            strategy_name=strategy_name,
+            selected_nodes=result_dict["selected_nodes"],
+            f1_before=result_dict["f1_before"],
+            f1_after=result_dict["f1_after"],
+            unlearn_time=result_dict["unlearn_time"],
+            total_time=total_time,
+            selection_time=float(selection_time),
+            selection_reuse_time=selection_reuse_time,
+            selection_cache_hit=True,
+            selection_cache_key=str(selection_provenance["artifact_id"]),
+            selection_cache_source=str(selection_provenance["source_file"]),
+            selection_cache_lookup_mode=str(selection_provenance["lookup_policy"]),
+            selection_cache_source_k=None,
+            selection_artifact_id=str(selection_provenance["artifact_id"]),
+            selection_recipe_hash=str(selection_provenance["recipe_hash"]),
+            selection_content_hash=str(selection_provenance["content_hash"]),
+            selection_authoritative=True,
+            result_cache_hit=None,
+            mia_auc=result_dict.get("mia_auc"),
+            config=config,
+            failed=bool(result_dict.get("failed", False)),
+            failure_reason=result_dict.get("failure_reason"),
+        )
+        self.results[strategy_name] = result
+        return result
+
     def compare_strategies(
         self,
         strategy_names: Optional[List[str]] = None,

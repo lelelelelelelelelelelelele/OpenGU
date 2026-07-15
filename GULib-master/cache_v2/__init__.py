@@ -39,7 +39,9 @@ from .contracts import (
 )
 from .errors import (
     ArtifactNotFoundError,
+    ArtifactStoreError,
     CacheIndexError,
+    CacheResolutionError,
     CacheV2Error,
     CanonicalizationError,
     ContractValidationError,
@@ -62,7 +64,13 @@ from .paths import (
 from .index import CacheIndex, CacheIndexBatch
 from .legacy import Anomaly, LegacyIndexer, ScanReport
 from .resolver import ArtifactResolver, ResolveExplanation, explain_exact
+from .conflict_resolution import (
+    ConflictResolutionLedger,
+    ConflictResolutionRecord,
+)
 from .schema import SCHEMA_VERSION
+from .runtime import LoadedSelectionArtifact, load_selection_artifact
+from .legacy_freeze import LegacyCacheFrozenError
 
 
 __version__ = "2.1.0"
@@ -78,11 +86,15 @@ __all__ = [
     "ArtifactNotFoundError",
     "ArtifactRecipe",
     "ArtifactResolver",
+    "ArtifactStoreError",
+    "ConflictResolutionLedger",
+    "ConflictResolutionRecord",
     "ArtifactStatus",
     "ArtifactType",
     "CacheIndex",
     "CacheIndexBatch",
     "CacheIndexError",
+    "CacheResolutionError",
     "CacheV2Error",
     "CanonicalizationError",
     "ConsumerRef",
@@ -95,6 +107,8 @@ __all__ = [
     "LegacyIndexer",
     "LegacySourceChangedError",
     "LegacySourceRecord",
+    "LegacyCacheFrozenError",
+    "LoadedSelectionArtifact",
     "PathKind",
     "PathValidationError",
     "ProducerVersion",
@@ -112,6 +126,7 @@ __all__ = [
     "explain_exact",
     "find_forbidden_recipe_fields",
     "is_explicit_absolute_path",
+    "load_selection_artifact",
     "normalize_absolute_source_path",
     "normalize_recipe_path",
     "normalize_relative_path",

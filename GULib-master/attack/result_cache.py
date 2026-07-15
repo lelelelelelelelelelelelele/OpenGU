@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from attack.attack_result import AttackResult, ComparisonResult
+from cache_v2.legacy_freeze import assert_legacy_cache_writable
 
 
 class ResultCache:
@@ -85,7 +86,9 @@ class ResultCache:
             max_age_days: Maximum age of cache entries in days (0 = no limit)
         """
         self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        if not self.cache_dir.is_dir():
+            assert_legacy_cache_writable(self.cache_dir)
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_age_days = max_age_days
 
     @staticmethod
@@ -228,6 +231,7 @@ class ResultCache:
             result: AttackResult to cache
             config: Experiment configuration dictionary
         """
+        assert_legacy_cache_writable(self.cache_dir)
         cache_key = self._generate_cache_key(config)
         cache_path = self._get_cache_path(cache_key)
 
@@ -254,6 +258,7 @@ class ResultCache:
         Returns:
             True if entry was found and removed, False otherwise
         """
+        assert_legacy_cache_writable(self.cache_dir)
         cache_keys = self._resolve_cache_keys(config)
 
         removed = False
@@ -268,6 +273,7 @@ class ResultCache:
 
     def clear_all(self):
         """Clear all cache entries."""
+        assert_legacy_cache_writable(self.cache_dir)
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
         print(f"[Cache] Cleared all entries from {self.cache_dir}")
