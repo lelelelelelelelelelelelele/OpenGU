@@ -33,6 +33,7 @@ if base_dir not in sys.path:
 from utils.logger import create_logger
 from utils.utils import calc_f1
 from attack.attack_strategies import BaseStrategy
+from utils.metric_policy import update_detection_auc_result_value
 
 model_zoo = None
 UnlearningManager = None
@@ -566,6 +567,7 @@ class AttackPipeline:
             unlearn_time = getattr(self.method, 'avg_unlearning_time', [0])[0] if hasattr(self.method, 'avg_unlearning_time') else 0
             f1_after = getattr(self.method, 'average_f1', [0])[0] if hasattr(self.method, 'average_f1') else 0
             mia_auc = getattr(self.method, 'average_auc', [None])[0] if hasattr(self.method, 'average_auc') else None
+            mia_auc = update_detection_auc_result_value(self.args, mia_auc)
 
             # Get pre-unlearning F1: use poison_f1 if available, otherwise set to None
             f1_before_arr = getattr(self.method, 'poison_f1', None)

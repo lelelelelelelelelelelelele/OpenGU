@@ -24,6 +24,7 @@ from config import BLUE_COLOR,RESET_COLOR
 from task import get_trainer
 from task.edge_prediction import EdgePredictor
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
+from utils.metric_policy import update_detection_auc_enabled
 
 class gnndelete(Learning_based_pipeline):
     """
@@ -560,6 +561,10 @@ class gnndelete(Learning_based_pipeline):
         # self.logger.info(
             # 'Original Model Unlearning : F1_score = {}  Accuracy = {}  Recall = {}'.format(F1_score, Accuracy, Recall))
 
+        if not update_detection_auc_enabled(self.args):
+            self.average_auc[self.run] = np.nan
+            return
+
         ###MIA
 
         member_indices = np.asarray(df_nodes, dtype=int).reshape(-1)
@@ -872,6 +877,10 @@ class gnndelete(Learning_based_pipeline):
             )
         )
         self.average_f1[self.run] = dt_acc
+        if not update_detection_auc_enabled(self.args):
+            self.average_auc[self.run] = np.nan
+            return
+
         member_indices = np.asarray(df_nodes, dtype=int).reshape(-1)
         nonmember_indices = np.asarray(self.data.test_indices, dtype=int).reshape(-1)
         effective_n = min(member_indices.size, nonmember_indices.size)

@@ -152,8 +152,8 @@ class gif(IF_based_pipeline):
         # self.logger.info("f1_score of GIF: avg=%s, std=%s" % (f1_score_unlearning_avg, f1_score_unlearning_std))
         # self.logger.info("GIF unlearing time: avg=%s seconds" % np.average(unlearning_time_avg))
         self.average_f1[self.run] = f1_score_unlearning_avg
-        if self.args["unlearn_task"]=="node" and self.args["downstream_task"]=="node":
-            self.mia_attack()
+        # Update-detection AUC is owned by IF_based_pipeline.run_exp so the
+        # shared metric policy is applied once (the old path computed it twice).
         # elif self.args["unlearn_task"]=="edge":
         #     self.mia_attack_edge()
         self.avg_unlearning_time[self.run] = unlearning_time_avg

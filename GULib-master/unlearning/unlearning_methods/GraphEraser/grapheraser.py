@@ -18,6 +18,7 @@ from attack.Attack_methods.GraphEraser_MIA import GraphEraser_Attack
 from task.edge_prediction import EdgePredictor
 from collections import defaultdict
 from task import get_trainer
+from utils.metric_policy import update_detection_auc_enabled
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 
@@ -350,9 +351,11 @@ class grapheraser(Shard_based_pipeline):
         """
         if self.args["downstream_task"] == "graph":
             return
-        if self.args["unlearn_task"] == "node":
+        if update_detection_auc_enabled(self.args) and self.args["unlearn_task"] == "node":
             self.logger.info("start cal AUC")
             self.attack_graph_unlearning(self.average_auc)
+        else:
+            self.average_auc[self.run] = np.nan
             
         
     #############

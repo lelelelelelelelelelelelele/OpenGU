@@ -20,8 +20,8 @@ Exit codes:
 
 Checks per cell:
     - 4 files present: attack.json, collateral.json, predictions.npz, _meta.json
-    - attack.json: results[strategy].mia_auc present and finite
-    - mia_auc not collapsed: 0.001 < mia_auc < 0.999
+    - AUC enabled: attack.json results[strategy].mia_auc is finite and not collapsed
+    - AUC disabled: attack.json results[strategy].mia_auc is explicitly null
     - collateral.json: results[0].{perf_before, gap, hop_decay} present
     - perf_before in [--f1-min, --f1-max] (default [0.0, 1.0])
 
@@ -61,7 +61,14 @@ def is_finite_number(x) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
-def check_cell(leaf: Path, strategy: str, f1_min: float, f1_max: float) -> List[str]:
+def check_cell(
+    leaf: Path,
+    strategy: str,
+    f1_min: float,
+    f1_max: float,
+    *,
+    require_update_detection_auc: bool = True,
+) -> List[str]:
     """Return list of failure reasons; empty list = pass."""
     reasons = []
 
@@ -84,10 +91,13 @@ def check_cell(leaf: Path, strategy: str, f1_min: float, f1_max: float) -> List[
                 reasons.append(f"attack.json missing results[{strategy!r}]")
             else:
                 mia = res.get("mia_auc")
-                if not is_finite_number(mia):
-                    reasons.append(f"mia_auc not finite: {mia!r}")
-                elif not (0.001 < mia < 0.999):
-                    reasons.append(f"mia_auc collapsed: {mia:.4f} (expected (0.001, 0.999))")
+                if require_update_detection_auc:
+                    if not is_finite_number(mia):
+                        reasons.append(f"mia_auc not finite: {mia!r}")
+                    elif not (0.001 < mia < 0.999):
+                        reasons.append(f"mia_auc collapsed: {mia:.4f} (expected (0.001, 0.999))")
+                elif mia is not None:
+                    reasons.append(f"mia_auc must be null when disabled: {mia!r}")
 
     collat_fp = leaf / "collateral.json"
     if collat_fp.is_file():
@@ -135,6 +145,14 @@ def main():
             sys.exit(2)
 
     repo_root = Path(__file__).resolve().parent.parent
+    defaults = cfg.get("defaults", {}) or {}
+    run_update_detection_auc = defaults.get("run_update_detection_auc", True)
+    if not isinstance(run_update_detection_auc, bool):
+        print(
+            "[FATAL] defaults.run_update_detection_auc must be a YAML boolean",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
     cells: List[Tuple[str, str, int, Path]] = []
     for method in cfg["methods"]:
@@ -143,13 +161,20 @@ def main():
                 cells.append((method, strategy, int(seed),
                               cell_path(repo_root, cfg, method, strategy, int(seed))))
 
+    auc_policy = "required" if run_update_detection_auc else "disabled"
     print(f"[gate] yaml={yaml_path.name}  cells={len(cells)}  "
-          f"f1 range=[{args.f1_min}, {args.f1_max}]  mia range=(0.001, 0.999)")
+          f"f1 range=[{args.f1_min}, {args.f1_max}]  update-detection AUC={auc_policy}")
     print("-" * 72)
 
     failed = []
     for method, strategy, seed, leaf in cells:
-        reasons = check_cell(leaf, strategy, args.f1_min, args.f1_max)
+        reasons = check_cell(
+            leaf,
+            strategy,
+            args.f1_min,
+            args.f1_max,
+            require_update_detection_auc=run_update_detection_auc,
+        )
         tag = f"{method}/{strategy}/seed{seed}"
         if reasons:
             failed.append((tag, reasons))

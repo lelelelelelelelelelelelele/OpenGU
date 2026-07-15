@@ -36,6 +36,7 @@ seeds: [42, 212, 722]   # 3 seeds (vs 5 on cora) to keep GPU budget under ~30 ho
 defaults:
   save_predictions: true
   run_collateral: true
+  run_update_detection_auc: false  # large dataset: optional AUC is not part of this run
   no_cache: false
   num_epochs: 200          # arxiv needs more epochs to converge
   batch_size: 256

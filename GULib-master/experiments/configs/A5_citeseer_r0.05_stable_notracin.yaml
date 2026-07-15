@@ -31,6 +31,7 @@ seeds: [42, 212, 722, 1337, 2024]
 defaults:
   save_predictions: true
   run_collateral: true
+  run_update_detection_auc: true  # small dataset: keep optional posterior-change AUC
   # Required by the current runner/eval hand-off. Only use this config in a
   # fresh isolated checkout whose results tree is disposable scratch state.
   no_cache: false
