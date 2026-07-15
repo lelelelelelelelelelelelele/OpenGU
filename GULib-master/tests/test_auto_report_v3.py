@@ -1067,7 +1067,7 @@ def test_runner_fingerprint_includes_effective_v2_dataset_root(tmp_path):
     )
 
 
-def test_acceptance_markdown_and_html_agree_on_local_verdict_and_counts():
+def test_acceptance_markdown_and_html_agree_on_architecture_contract_and_counts():
     root = Path(__file__).parents[1]
     markdown = (root / "docs" / "auto_report_v3_ACCEPTANCE_REPORT.md").read_text(
         encoding="utf-8"
@@ -1076,11 +1076,19 @@ def test_acceptance_markdown_and_html_agree_on_local_verdict_and_counts():
         encoding="utf-8"
     )
     for expected in (
-        "LOCAL PASS",
-        "REMOTE REFRESH PENDING",
-        "29 passed",
-        "117 passed",
-        "205 passed",
+        "events.jsonl",
+        "INVALID_ATTACK_ARTIFACT",
+        "run.started",
+        "attack.failed",
+        "run.failed",
+        "cell_id",
+        "run_id",
+        "attempt",
+        "config_fingerprint",
+        "git_sha",
+        "32 passed",
+        "233 passed",
+        "16 events",
         "19,020",
         "2,015",
     ):
