@@ -1,6 +1,6 @@
 # Metrics Catalog
 
-> Last updated: 2026-05-07 (rev: paper-aligned three-term F1 decomposition — ΔF_noise / ΔF_volume / ΔF_attack)
+> Last updated: 2026-07-16 (rev: explicit small/large dataset policy for optional update-detection AUC)
 > Source of definitions: `self/plan_flow_v2_delta.md` §3 (formal) + `report/paper/overleaf/sec/3_method.tex` (paper-canonical)
 > 实测状态字段每次重跑后更新
 > Field semantics: read `self/dashboard/METRIC_FIELD_SEMANTICS.md` before using any `*_before` value.
@@ -39,8 +39,11 @@ drop_total(S) = ΔF_noise + ΔF_volume(r) + ΔF_attack(S)
   - **score**：unlearn 前 vs unlearn 后模型 posterior 输出的 L2 距离
   - **metric**：上述 score 的 ROC-AUC
 - **scope note**：这**不是**标准的 Shokri/Olatunji shadow-model membership inference attack。它直接审计"一次 unlearning 更新是否暴露了被删除集合"，更贴合 deletion-selection / graph-unlearning threat model。详见 `self/paper_todo.md` §Decision。Paper 主术语：**update-detection AUC**；首次出现可写 "a posterior-shift deletion-membership audit"。
-- **实现**：`attack/attack_eval.py::evaluate_mia_auc()` (line 72)；运行期 `attack.json::mia_auc` 由 `attack/pipeline_adapter.py` 从各方法的 `average_auc` 取值（GIF/GNNDelete/MEGU/IDEA 单模 forward；GraphEraser/GraphRevoker 走 shard ensemble），function 与字段名出于向后兼容**保留 legacy 命名**。
-- **存储**：JSON 每个 strategy 的 `mia_auc` 字段（field name unchanged）
+- **实现**：`attack/attack_eval.py::evaluate_mia_auc()` (line 72)；运行期 `attack.json::mia_auc` 由 `attack/pipeline_adapter.py` 从各方法的 `average_auc` 取值（GIF/GNNDelete/MEGU/IDEA 单模 forward；GraphEraser/GraphRevoker 走 shard ensemble），function 与字段名出于向后兼容**保留 legacy 命名**。统一开关为 `defaults.run_update_detection_auc`。
+- **数据集策略（2026-07-16）**：这是 secondary metric。Cora/Citeseer 等小图 YAML 显式 `true`；ogbn-arxiv 等大图 YAML 显式 `false`。策略由 YAML 指定，不按 dataset 名称硬编码；无该字段的旧配置默认 `true`。
+- **存储**：JSON 每个 strategy 保留 `mia_auc` 字段。启用时为有限数；关闭时必须为 `null`，同时 `_meta.json::metric_policy.update_detection_auc.status = disabled_by_config`。`null` 表示“按配置未运行”，不是 0，也不是实验失败。
+- **完成门**：`scripts/gate_runs.py` 仅在开关开启时要求 `0.001 < mia_auc < 0.999`；关闭时要求 `null`。因此大数据集可以在没有该 secondary metric 的情况下形成完整 cell。
+- **Cache 边界**：开关不进入 Score/Selection identity；当前完整 run fingerprint 包含它，防止开/关结果目录混用。V2.3 接入后 AUC 属于可选、versioned EvaluationArtifact，不应迫使上游 Score/Selection/Prediction 重算。
 - **覆盖**（Phase B post-fix 实测，Cora 主矩阵，5 seeds × 6 strategies 平均）：
   - GraphEraser: GCN 0.72 / GAT 0.55 ✅
   - GraphRevoker: GCN 0.81 / GAT 0.79 ✅（最高 update-detection 信号）
