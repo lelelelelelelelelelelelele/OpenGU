@@ -405,17 +405,36 @@ def _exclusive_lock(path: Path, timeout_s: float = 10.0, stale_after_s: float = 
 def _check_transition_conflict(events: Iterable[Mapping[str, Any]], event: Mapping[str, Any]) -> None:
     if event["state"] not in TERMINAL_STATES:
         return
-    for existing in events:
+    same_run = [
+        existing
+        for existing in events
+        if existing.get("cell_id") == event["cell_id"]
+        and existing.get("run_id") == event["run_id"]
+    ]
+    for existing in same_run:
         if (
-            existing.get("cell_id") == event["cell_id"]
-            and existing.get("run_id") == event["run_id"]
-            and existing.get("stage") == event["stage"]
+            existing.get("stage") == event["stage"]
             and existing.get("state") in TERMINAL_STATES
             and existing.get("state") != event["state"]
         ):
             raise EventValidationError(
                 "conflicting terminal transition for {0}/{1}: {2} -> {3}".format(
                     event["run_id"], event["stage"], existing.get("state"), event["state"]
+                )
+            )
+    if event["stage"] == "run" and event["state"] in {"completed", "skipped"}:
+        failed_stage = next(
+            (
+                existing.get("stage")
+                for existing in same_run
+                if existing.get("stage") != "run" and existing.get("state") == "failed"
+            ),
+            None,
+        )
+        if failed_stage is not None:
+            raise EventValidationError(
+                "cannot mark run {0} {1} after {2}.failed".format(
+                    event["run_id"], event["state"], failed_stage
                 )
             )
 

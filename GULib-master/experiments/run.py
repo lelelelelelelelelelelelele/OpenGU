@@ -246,6 +246,26 @@ def _check_json(path: Path) -> Optional[str]:
     return None
 
 
+def _check_attack_json(path: Path, expected_strategy: Optional[str] = None) -> Optional[str]:
+    error = _check_json(path)
+    if error is not None:
+        return error
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return f"corrupt {path.name}: {type(exc).__name__}"
+    results = data.get("results")
+    if not isinstance(results, dict) or not results:
+        return f"no-results {path.name}"
+    if expected_strategy is not None:
+        result = results.get(expected_strategy)
+        if not isinstance(result, dict):
+            return f"missing-strategy {expected_strategy} in {path.name}"
+        if result.get("failed") is True:
+            return f"failed-strategy {expected_strategy} in {path.name}"
+    return None
+
+
 def _check_npz(path: Path) -> Optional[str]:
     if not path.exists():
         return f"missing {path.name}"
@@ -259,7 +279,12 @@ def _check_npz(path: Path) -> Optional[str]:
     return None
 
 
-def cell_status(d: Path, expected_fp: str, want_collateral: bool) -> Tuple[str, str]:
+def cell_status(
+    d: Path,
+    expected_fp: str,
+    want_collateral: bool,
+    expected_strategy: Optional[str] = None,
+) -> Tuple[str, str]:
     """Classify a cell directory.
 
     Returns (kind, reason). kind ∈ {complete, incomplete, corrupt, stale, legacy}.
@@ -273,7 +298,14 @@ def cell_status(d: Path, expected_fp: str, want_collateral: bool) -> Tuple[str, 
     if not d.exists():
         return "incomplete", "dir missing"
 
-    required_jsons = ["attack.json", "_meta.json"]
+    attack_error = _check_attack_json(d / "attack.json", expected_strategy)
+    if attack_error is not None:
+        return (
+            "incomplete" if attack_error.startswith("missing") else "corrupt",
+            attack_error,
+        )
+
+    required_jsons = ["_meta.json"]
     if want_collateral:
         required_jsons.append("collateral.json")
     for name in required_jsons:
@@ -443,7 +475,9 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     out_dir = cell_dir(cfg, method, strategy, seed)
     expected_fp = _content_fingerprint(cfg, method, strategy, seed)
     want_collateral = bool((cfg.get("defaults") or {}).get("run_collateral", True))
-    status, reason = cell_status(out_dir, expected_fp, want_collateral)
+    status, reason = cell_status(
+        out_dir, expected_fp, want_collateral, expected_strategy=strategy
+    )
     identity = _report_identity(cfg, method, strategy, seed)
     cell_id = make_cell_id(identity)
     git_sha = _git_sha()
@@ -645,6 +679,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         event_path=report_event_path,
     )
     rc = subprocess.run(cmd1, cwd=str(REPO_ROOT), env=child_env).returncode
+    error = None
     if rc != 0:
         print(f"[FAIL] demo_attack rc={rc} for {out_dir}", file=sys.stderr)
         error = {
@@ -653,6 +688,19 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "returncode": rc,
             "retryable": True,
         }
+    else:
+        artifact_error = _check_attack_json(out_dir / "attack.json", strategy)
+        if artifact_error is not None:
+            print(
+                f"[FAIL] invalid attack artifact for {out_dir}: {artifact_error}",
+                file=sys.stderr,
+            )
+            error = {
+                "type": "INVALID_ATTACK_ARTIFACT",
+                "message": artifact_error,
+                "retryable": True,
+            }
+    if error is not None:
         _record_autoreport_event(
             identity=identity,
             stage="attack",

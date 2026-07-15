@@ -47,17 +47,17 @@ def _latest_run_events(events: Sequence[Mapping[str, Any]]) -> List[Mapping[str,
 def _derive_state(events: Sequence[Mapping[str, Any]]) -> str:
     latest = list(events)
     for event in reversed(latest):
-        if event.get("stage") == "run" and event.get("state") == "failed":
-            return "failed"
+        if event.get("state") == "failed":
+            if event.get("stage") == "run":
+                return "failed"
+            return "failed:{0}".format(event.get("stage"))
+    for event in reversed(latest):
         if event.get("stage") == "run" and event.get("state") == "completed":
             return "complete"
         if event.get("stage") == "run" and event.get("state") == "skipped":
             reason = str((event.get("metadata") or {}).get("reason") or "")
             return "legacy-skip" if "legacy" in reason.lower() else "complete (cached)"
 
-    for event in reversed(latest):
-        if event.get("state") == "failed":
-            return "failed:{0}".format(event.get("stage"))
     for stage, label in (
         ("collateral", "collateral"),
         ("attack", "attack-only"),
