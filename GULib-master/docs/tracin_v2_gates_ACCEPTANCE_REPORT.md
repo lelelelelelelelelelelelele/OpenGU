@@ -68,6 +68,82 @@ PyG 2.6.1):
 80 passed in 2.58s
 ```
 
+## Score definitions used in this report
+
+Let `T` be the deletion-candidate/training set and `E` be the disjoint
+evaluation target set. In this gate, `E` is the 500-node Planetoid validation
+split, not a set of nodes eligible for deletion. Define
+
+```math
+g_v(\theta)=\nabla_\theta \ell_v(\theta),\qquad
+g_E(\theta)=\nabla_\theta L_E(\theta),\qquad
+L_E(\theta)=\frac{1}{|E|}\sum_{e\in E}\ell_e(\theta).
+```
+
+### eval-IF reference
+
+At the final trained state `theta_star`, the target-aware influence reference
+used by the matrix is
+
+```math
+s_{\mathrm{IF}}(v)
+=g_v(\theta_\star)^\top
+H_T(\theta_\star)^{-1}g_E(\theta_\star),
+\qquad
+H_T(\theta_\star)=\nabla_\theta^2 L_T(\theta_\star).
+```
+
+Higher positive values mean that removing `v` is predicted to increase the
+loss on `E`. The implementation does not form or invert `H_T`. It uses the
+50-step deterministic LiSSA/Neumann recursion
+
+```math
+h_0=g_E,\qquad
+h_{r+1}=g_E+(1-d)h_r-\frac{H_T h_r}{s},\qquad
+\widehat{H_T^{-1}g_E}=\frac{h_R}{s},
+```
+
+with scale `s=25`, damp `d=0.01`, and the full public training-mask mean
+cross-entropy Hessian. Optimizer regularization is not included in this
+reference Hessian, so this remains a deterministic diagnostic approximation,
+not an exact inverse-Hessian computation.
+
+### TracIn V2 primary score
+
+The V2 score replaces the one-point curvature correction with an explicit
+training-trajectory sum:
+
+```math
+s_{\mathrm{V2}}(v)
+=\sum_{c\in\mathcal C} w_c\,
+g_v(\theta_c)^\top g_E(\theta_c),
+\qquad
+\mathcal C=\{1,10,25,50,100\},\qquad
+w_c=\eta_c.
+```
+
+Here `theta_c` is the post-epoch checkpoint and `eta_c` is the learning rate
+used by the optimizer update that produced it. Thus eval-IF is a final-state,
+curvature-aware reference, while V2 is a multi-checkpoint, Hessian-free
+trajectory score. Because the matrix trains with Adam, using scalar `eta_c`
+does not reconstruct Adam's parameter-wise preconditioned update; the report
+therefore labels this lane `adam_lr_weighted_gradient_heuristic`.
+
+For contrast, the two other report columns use
+
+```math
+s_{\mathrm{single}}(v)=g_v(\theta_\star)^\top g_E(\theta_\star),
+\qquad
+s_{\mathrm{legacy}}(v)=-g_v(\theta_\star)^\top
+\sum_{u\in T}g_u(\theta_\star).
+```
+
+Consequently, `PubMed/GAT: 0.762 / [4,4,1]` means: across all candidate nodes,
+the three-seed **mean Spearman rank correlation** between `s_V2` and `s_IF` is
+`0.762`; after taking the highest-scoring seven nodes, the two methods share
+`4`, `4`, and `1` nodes for seeds `[2024, 7, 42]`. It is not model accuracy and
+it is not downstream graph-unlearning damage.
+
 ## G2: Cora all-parameter Adam compatibility gate
 
 Setting:

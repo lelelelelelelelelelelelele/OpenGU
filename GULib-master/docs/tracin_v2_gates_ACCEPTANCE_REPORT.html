@@ -42,6 +42,29 @@
   <pre>Local:  80 passed in 2.05s  (Torch 2.2.1, PyG 2.6.1)
 Remote: 80 passed in 2.58s  (Torch 2.1.2, PyG 2.6.1)</pre>
 
+  <h2>Score definitions used in this report</h2>
+  <p>Let <code>T</code> be the deletion-candidate/training set and <code>E</code> the disjoint evaluation target set. Here <code>E</code> is the 500-node Planetoid validation split, not a set of nodes eligible for deletion.</p>
+  <pre>g_v(theta) = grad_theta loss_v(theta)
+g_E(theta) = grad_theta L_E(theta)
+L_E(theta) = (1 / |E|) sum_{e in E} loss_e(theta)</pre>
+
+  <h3>eval-IF reference</h3>
+  <pre>s_IF(v) = g_v(theta*)^T H_T(theta*)^{-1} g_E(theta*)
+H_T(theta*) = grad_theta^2 L_T(theta*)</pre>
+  <p>Higher positive values predict that removing <code>v</code> increases loss on <code>E</code>. The implementation approximates the inverse-Hessian vector with a 50-step deterministic LiSSA/Neumann recursion:</p>
+  <pre>h_0 = g_E
+h_(r+1) = g_E + (1-d) h_r - H_T h_r / s
+estimated H_T^{-1} g_E = h_R / s</pre>
+  <p>Scale <code>s=25</code>, damp <code>d=0.01</code>; <code>H_T</code> comes from full public-training-mask mean cross-entropy without optimizer regularization. This is a deterministic diagnostic approximation, not an exact matrix inverse.</p>
+
+  <h3>TracIn V2 primary score</h3>
+  <pre>s_V2(v) = sum_{c in C} w_c g_v(theta_c)^T g_E(theta_c)
+C = {1,10,25,50,100}; w_c = eta_c</pre>
+  <p><code>theta_c</code> is the post-epoch checkpoint and <code>eta_c</code> the learning rate of the update that produced it. eval-IF is final-state and curvature-aware; V2 is multi-checkpoint and Hessian-free. Since Adam has parameter-wise preconditioning, scalar LR weighting is explicitly labeled <code>adam_lr_weighted_gradient_heuristic</code>.</p>
+  <pre>s_single(v) = g_v(theta*)^T g_E(theta*)
+s_legacy(v) = -g_v(theta*)^T sum_{u in T} g_u(theta*)</pre>
+  <p><strong>Reading PubMed/GAT 0.762 / [4,4,1]:</strong> <code>0.762</code> is the three-seed mean Spearman rank correlation between V2 and eval-IF over all candidates. Their Top-7 sets share 4, 4, and 1 nodes for seeds [2024,7,42]. It is neither model accuracy nor downstream graph-unlearning damage.</p>
+
   <h2>Cora all-parameter Adam compatibility gate</h2>
   <p>Cora public split; T=140, validation E=500, k=7, hidden=16, Adam 100 epochs, LR milestones [50,80] with gamma 0.5, checkpoints [1,10,25,50,100], all trainable parameters, 50-step deterministic Neumann IF reference. Test accuracy: <strong>0.8110</strong>.</p>
   <table><tr><th>Pair</th><th>Spearman</th><th>Kendall</th><th>Jaccard@7</th><th>Reading</th></tr>
