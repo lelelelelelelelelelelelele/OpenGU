@@ -57,6 +57,11 @@ python scripts/syncmate/syncmate.py runbook [node_id ...]
 python scripts/syncmate/syncmate.py overview
 python scripts/syncmate/syncmate.py lifecycle
 python scripts/syncmate/syncmate.py smoke
+python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke
+python scripts/syncmate/syncmate.py runner-queue contract --json
+python scripts/syncmate/syncmate.py runner-queue validate --write
+python scripts/syncmate/syncmate.py runner-queue run --once
+python scripts/syncmate/syncmate.py runner-queue dashboard
 python scripts/syncmate/syncmate.py setup-plan
 python scripts/syncmate/syncmate.py init-device --role collector
 python scripts/syncmate/syncmate.py add-peer <node_id> --ssh <ssh_alias> --repo-path <remote_repo>
@@ -1097,6 +1102,71 @@ not require a configured peer and never compares or writes the local landing.
 Without `--write` it is zero-write; with `--write` it only saves
 `.syncmate/last_bundle_inspect_<node_id>.json` so the inspection becomes part
 of the local status trail before import.
+
+## Runner Queue: Safe Local Smoke Work
+
+The optional runner queue is a small local protocol for a runner to claim one
+safe maintenance check. It is deliberately not an experiment launcher, daemon,
+or remote-control channel. Jobs are YAML documents in the ignored
+`.syncmate/runner_queue/inbox/` directory and move atomically through:
+
+```text
+inbox -> running -> done | failed | blocked
+```
+
+The sole v1 recipe is allowlisted `smoke`, which runs SyncMate's existing
+temporary local smoke check. It cannot accept shell fragments, arbitrary Python
+arguments, training configurations, cache operations, or experiment payloads.
+Therefore SyncMate remains the collector/verifier/gate; this queue does not
+change experiment, cache, or artifact semantics.
+
+On a checkout configured with `role: runner` or `role: runner+collector`:
+
+```bash
+# Producer: creates .syncmate/runner_queue/inbox/<id>.yaml and a receipt.
+python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke --requested-by operator
+
+# Any device: inspect the protocol without running work; --write refreshes the manifest.
+python scripts/syncmate/syncmate.py runner-queue validate --write
+python scripts/syncmate/syncmate.py runner-queue status --json
+
+# Runner only: exactly one job. --once is mandatory; there is no continuous mode.
+python scripts/syncmate/syncmate.py runner-queue run --once --json
+
+# Writes a static, browser-readable queue page from the same manifest.
+python scripts/syncmate/syncmate.py runner-queue dashboard
+```
+
+Each job requires `protocol: syncmate-runner-queue/v1`, `version: 1`, a safe
+ID matching its filename, an ISO timestamp, and the allowlisted recipe. Invalid
+inbox YAML is moved to `blocked` with a structured reason. Claim/start/finish
+timestamps live in `receipts/<id>.json`; command outcome and bounded output
+live in `results/<id>.json`; `manifest.json` is the current structured state;
+and `status.html` is the matching static frontend. All stay untracked beneath
+`.syncmate/`.
+
+### SyncMate / OpenGU Integration Boundary
+
+Runner Queue and SyncMate intentionally live together: Queue owns local job
+lifecycle and allowlisted execution, while SyncMate remains the collector,
+checksum verifier, trusted-index writer, and acceptance gate. OpenGU is an
+optional client of that boundary, not another queue owner.
+
+Use the read-only, machine-readable contract before adding an adapter:
+
+```bash
+python scripts/syncmate/syncmate.py runner-queue contract --json
+# Optional local copy for a handoff; does not alter jobs.
+python scripts/syncmate/syncmate.py runner-queue contract --write
+```
+
+OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
+results. It must not move files between queue states, add command/argument/path
+fields to job YAML, invalidate caches, or treat queue completion as trusted
+experiment evidence. Any future OpenGU recipe is a reviewed code-level
+allowlist addition with a frozen input schema and dedicated tests—not a YAML
+switch. The ready-to-use integration prompt is
+[`OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md`](OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md).
 
 ## Local Status Page
 

@@ -7050,3 +7050,128 @@ def test_write_dashboard_can_skip_checklist_but_keep_runbook(tmp_path, monkeypat
     assert (sync_dir / "action_plan.json").is_file()
     assert (sync_dir / "action_plan.md").is_file()
     assert not (sync_dir / "checklist.md").exists()
+
+
+def test_runner_queue_submit_validates_and_writes_static_dashboard(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    config_path = sync_dir / "device.yaml"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
+    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
+
+    sm.write_device_config(config_path, sm.build_device_config("runner-a", "runner", str(repo)))
+
+    assert sm.main([
+        "--config", str(config_path), "runner-queue", "submit", "--job-id", "smoke-001",
+        "--recipe", "smoke", "--requested-by", "operator", "--json",
+    ]) == 0
+    submitted = json.loads(capsys.readouterr().out)
+    assert submitted["path"] == ".syncmate/runner_queue/inbox/smoke-001.yaml"
+    assert (sync_dir / "runner_queue" / "receipts" / "smoke-001.json").is_file()
+
+    assert sm.main(["--config", str(config_path), "runner-queue", "validate", "--write", "--json"]) == 0
+    validated = json.loads(capsys.readouterr().out)
+    assert validated["validation"]["valid"] is True
+    assert validated["counts"]["inbox"] == 1
+    assert (sync_dir / "runner_queue" / "manifest.json").is_file()
+
+    assert sm.main(["--config", str(config_path), "runner-queue", "dashboard", "--json"]) == 0
+    dashboard = json.loads(capsys.readouterr().out)
+    html = (sync_dir / "runner_queue" / "status.html").read_text(encoding="utf-8")
+    assert dashboard["dashboard"] == ".syncmate/runner_queue/status.html"
+    assert "SyncMate <span>Runner Queue</span>" in html
+    assert "smoke-001" in html
+    assert "Inbox → running → done | failed | blocked" in html
+    assert ":root{" in html
+    assert ":root{{" not in html
+
+
+def test_runner_queue_run_once_claims_only_allowlisted_smoke_job(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
+    sm.runner_queue_submit("smoke-001", "smoke")
+    calls = []
+
+    class Completed:
+        returncode = 0
+        stdout = '{"passed": true, "mode": "smoke"}'
+        stderr = ""
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        return Completed()
+
+    monkeypatch.setattr(sm.subprocess, "run", fake_run)
+    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+
+    assert result["status"] == "done"
+    assert result["job_id"] == "smoke-001"
+    assert calls[0][0][1:] == ["scripts/syncmate/syncmate.py", "smoke", "--json"]
+    assert "shell" not in calls[0][1]
+    assert (sync_dir / "runner_queue" / "done" / "smoke-001.yaml").is_file()
+    outcome = json.loads((sync_dir / "runner_queue" / "results" / "smoke-001.json").read_text(encoding="utf-8"))
+    assert outcome["recipe_passed"] is True
+    assert outcome["command"][1:] == ["scripts/syncmate/syncmate.py", "smoke", "--json"]
+
+
+def test_runner_queue_blocks_invalid_yaml_and_never_executes_it(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
+    bad = sync_dir / "runner_queue" / "inbox" / "unsafe.yaml"
+    _write(bad, b"protocol: syncmate-runner-queue/v1\nversion: 1\nid: unsafe\nrecipe: shell\ncreated_at: 2026-07-14T12:00:00\ncommand: rm -rf /\n")
+    calls = []
+    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
+
+    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+
+    assert result["status"] == "blocked"
+    assert not calls
+    assert (sync_dir / "runner_queue" / "blocked" / "unsafe.yaml").is_file()
+    outcome = json.loads((sync_dir / "runner_queue" / "results" / "unsafe.json").read_text(encoding="utf-8"))
+    assert outcome["status"] == "blocked"
+    assert "unsupported job fields: command" in outcome["reason"]
+
+
+def test_runner_queue_refuses_to_run_on_collector_only_device(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    sm.runner_queue_submit("smoke-001", "smoke")
+
+    result = sm.runner_queue_run_once({"role": "collector", "device_id": "laptop"})
+
+    assert result["status"] == "blocked"
+    assert (sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml").is_file()
+
+
+def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+
+    assert sm.main(["runner-queue", "contract", "--json"]) == 0
+    contract = json.loads(capsys.readouterr().out)
+
+    assert not sync_dir.exists()
+    assert contract["protocol"] == "syncmate-runner-queue/v1"
+    assert contract["job_schema"]["additional_fields"] is False
+    assert contract["execution"]["allowlisted_recipes"] == ["smoke"]
+    assert contract["state_machine"]["owner"] == "Only runner-queue run --once may claim or transition a job."
+    assert "bypassing SyncMate collection, checksum verification, or gate evidence" in contract["integration"]["forbidden"]
+
+    assert sm.main(["runner-queue", "contract", "--write", "--json"]) == 0
+    written = json.loads(capsys.readouterr().out)
+    saved = json.loads((sync_dir / "runner_queue" / "contract.json").read_text(encoding="utf-8"))
+
+    assert written["contract_path"] == ".syncmate/runner_queue/contract.json"
+    assert saved["integration"]["opengu"].startswith("May submit or observe")
