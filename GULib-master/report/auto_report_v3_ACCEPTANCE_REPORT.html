@@ -64,6 +64,22 @@
     .diagram { overflow:auto; padding:12px; border:1px solid #26364e; border-radius:12px; background:#020617; }
     .diagram svg { display:block; min-width:980px; width:100%; height:auto; font-family:"JetBrains Mono","Microsoft YaHei",sans-serif; }
     .caption { margin:11px 3px 0; color:var(--muted); font-size:11px; }
+    .record-compare { display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); gap:14px; margin-top:14px; }
+    .record-card { display:flex; flex-direction:column; min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#060d1a; }
+    .record-card.old { border-top:2px solid var(--rose); }
+    .record-card.new { border-top:2px solid var(--emerald); }
+    .record-head { display:flex; align-items:center; gap:10px; padding:13px 15px; border-bottom:1px solid #223049; background:rgba(15,23,42,.86); }
+    .record-head strong { color:#e2e8f0; font-size:12px; }
+    .record-badge { padding:3px 7px; border-radius:999px; font-size:9px; font-weight:700; letter-spacing:.08em; }
+    .record-badge.old { color:#fecdd3; border:1px solid rgba(251,113,133,.42); background:rgba(136,19,55,.25); }
+    .record-badge.new { color:#a7f3d0; border:1px solid rgba(52,211,153,.42); background:rgba(6,78,59,.30); }
+    .record-card pre { flex:1; min-height:330px; margin:0; padding:16px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:#cbd5e1; background:#020617; font:500 10.5px/1.66 "JetBrains Mono","Microsoft YaHei",monospace; }
+    .record-card.old pre { color:#fecdd3; }
+    .record-card.new pre { color:#d1fae5; }
+    .record-card pre code { padding:0; color:inherit; background:none; }
+    .record-read { margin:0; padding:13px 15px; border-top:1px solid #223049; color:#9fb0c5; font-size:11px; line-height:1.65; }
+    .record-read strong { color:#e2e8f0; }
+    .record-note { margin:14px 0 0; padding:13px 15px; border-left:3px solid var(--violet); border-radius:0 8px 8px 0; color:#c4b5fd; background:rgba(76,29,149,.18); font-size:11px; }
     .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .card { padding:18px; border:1px solid var(--line); border-radius:11px; background:rgba(2,6,23,.48); }
     .card h3 { margin:0 0 8px; }
@@ -94,7 +110,7 @@
     .verdict { margin-top:22px; padding:27px; border:1px solid rgba(52,211,153,.48); border-radius:14px; background:linear-gradient(135deg,rgba(6,78,59,.32),rgba(15,23,42,.92)); }
     .verdict p { margin:8px 0 0; color:#d1fae5; font-size:16px; }
     .footer { padding:26px 4px 0; color:#64748b; font-size:10px; text-align:center; }
-    @media(max-width:900px) { .summary-grid,.two-col,.sequence { grid-template-columns:1fr 1fr; } .step:nth-child(2):after { display:none; } }
+    @media(max-width:900px) { .summary-grid,.two-col,.sequence { grid-template-columns:1fr 1fr; } .record-compare { grid-template-columns:1fr; } .record-card pre { min-height:0; } .step:nth-child(2):after { display:none; } }
     @media(max-width:620px) { .container{width:min(100% - 18px,1240px)} .hero{padding:34px 22px 28px} .section{padding:20px 15px} .summary-grid,.two-col,.sequence{grid-template-columns:1fr} .step:after{display:none} .toolbar-actions{position:absolute;right:0;top:40px;flex-direction:column} }
     @media print { .toolbar { display:none!important; } body{background:#020617!important;-webkit-print-color-adjust:exact;print-color-adjust:exact} .section{break-inside:avoid} }
   </style>
@@ -226,6 +242,49 @@
         </svg>
       </div>
       <p class="caption">图 1 · 旧架构把事实和页面耦合；V3 将 producer、事件存储、状态投影和 legacy 边界分开。</p>
+
+      <h3>同一个失败，文本到底差在哪</h3>
+      <p class="sub">说明性实例：结构来自真实 pre-V3 模板与 V3 事件合同；场景为 cora / GCN / GIF / degree 的 attack 产物缺失或为空。时间、ID 和长哈希已缩写，V3 只展示关键字段。</p>
+      <div class="record-compare">
+        <article class="record-card old">
+          <div class="record-head"><span class="record-badge old">OLD · MARKDOWN</span><strong>一段文字直接给脚本下结论</strong></div>
+          <pre><code>### [2026-07-15 10:42:10] demo_attack.py
+- 任务：dataset=cora, model=GCN,
+  method=GIF, ratio=0.05
+- 日志路径：`log/...`
+- 执行结果：X | f1_before=NA |
+  f1_after=NA | auc=NA |
+  unlearn_time=NA | wall_time=42.18s
+- 异常与定位：INVALID_ATTACK_ARTIFACT:
+  attack result missing or empty
+- 下一步建议：
+  打开日志定位根因并重跑该配置。</code></pre>
+          <p class="record-read"><strong>读得到：</strong>这个脚本报错。<br><strong>读不到：</strong>第几次 attempt、属于哪个 run、collateral 是否已停止、后面会不会又出现一段 <code>OK</code>。</p>
+        </article>
+        <article class="record-card new">
+          <div class="record-head"><span class="record-badge new">V3 · EVENT STREAM</span><strong>同一 run 的 typed 阶段事实</strong></div>
+          <pre><code>{"event_type":"run.started",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "identity":{"dataset":"cora","model":"GCN",
+   "method":"GIF","strategy":"degree",
+   "ratio":"0.05","seed":42},
+ "config_fingerprint":"…","git_sha":"…"}
+
+{"event_type":"attack.failed",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "error":{"type":"INVALID_ATTACK_ARTIFACT",
+   "message":"attack result missing or empty"}}
+
+{"event_type":"run.failed",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "error":{"type":"INVALID_ATTACK_ARTIFACT"}}</code></pre>
+          <p class="record-read"><strong>能验证：</strong>三条事实属于同一 run / attempt；失败发生在 attack；<code>run.failed</code> 收口；没有 collateral event，也没有 <code>run.completed</code>。</p>
+        </article>
+      </div>
+      <p class="record-note"><strong>变化不是“Markdown 换成 JSON”：</strong>旧版留下一个脚本结论；V3 留下可关联、可拒绝矛盾终态、可重新投影的运行证据。</p>
     </section>
 
     <section class="section" id="changes">

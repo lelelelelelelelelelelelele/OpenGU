@@ -77,6 +77,40 @@ flowchart LR
 - **MD/HTML 只是可丢弃、可重建的阅读视图**；
 - **旧历史只读，不被重写成看似精确的新事件**。
 
+### 同一个失败，旧版与 V3 文本长什么样
+
+> 说明性实例：结构取自真实 pre-V3 `ENTRY_TEMPLATE` 与 V3 `build_event()` 合同；场景是 `cora / GCN / GIF / degree` 的 attack 产物缺失或为空。时间、ID 与长哈希为便于阅读而缩写，V3 只摘录关键字段，不冒充远端原始 JSONL 的逐字副本。
+
+#### 旧版：一段 Markdown 直接给出脚本结论
+
+```text
+### [2026-07-15 10:42:10] demo_attack.py
+- 任务：dataset=cora, model=GCN, method=GIF, ratio=0.05
+- 日志路径：`log/...`
+- 执行结果：X | f1_before=NA | f1_after=NA | auc=NA | unlearn_time=NA | wall_time=42.18s
+- 异常与定位：INVALID_ATTACK_ARTIFACT: attack result missing or empty
+- 下一步建议：打开日志定位根因并重跑该配置。
+```
+
+这段文字能说明 `demo_attack.py` 报错，却不能回答：这是同一 cell 的第几次 attempt、属于哪一个 run、collateral 是否已被阻止，以及后续另一段 `OK` 会不会又把整次运行看成成功。
+
+#### V3：同一 run 的阶段事实形成可验证状态链
+
+```jsonl
+{"event_type":"run.started","cell_id":"cell_…","run_id":"run_…","attempt":3,"identity":{"dataset":"cora","model":"GCN","method":"GIF","strategy":"degree","ratio":"0.05","seed":42},"config_fingerprint":"…","git_sha":"…"}
+{"event_type":"attack.failed","cell_id":"cell_…","run_id":"run_…","attempt":3,"error":{"type":"INVALID_ATTACK_ARTIFACT","message":"attack result missing or empty"}}
+{"event_type":"run.failed","cell_id":"cell_…","run_id":"run_…","attempt":3,"error":{"type":"INVALID_ATTACK_ARTIFACT"}}
+```
+
+这里能够验证：三条事实属于同一 `run_id / attempt`；失败发生在 attack；`run.failed` 收口整次尝试；流中没有 collateral 事件，也没有 `run.completed`。页面只是把这条状态链投影成人类可读结论。
+
+| 人真正想问的问题 | 旧版文本 | V3 事件流 |
+|---|---|---|
+| 这是哪一次执行？ | 只能看时间和任务文字 | `cell_id + run_id + attempt` |
+| 具体失败在哪？ | 从错误摘要猜测 | typed `attack.failed` |
+| 失败后还能否写成功？ | 没有共同终态约束 | `run.failed` + terminal guard |
+| collateral 是否执行？ | 继续搜索后续段落 | 检查同 run 是否存在 collateral event |
+
 ## 3. 七项关键改进
 
 ### 3.1 将“实验坐标”与“执行尝试”分开
