@@ -33,6 +33,7 @@ from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
 from attack.result_cache import ResultCache, LogBasedCache
 from attack.selection_cache import SelectionCache, SelectionResult
+from utils.metric_policy import update_detection_auc_result_value
 
 
 class AttackManager:
@@ -360,6 +361,9 @@ class AttackManager:
                 cached_result = self.cache.get(config)
                 cache_provenance = {}
             if cached_result is not None:
+                cached_result.mia_auc = update_detection_auc_result_value(
+                    self.args, cached_result.mia_auc
+                )
                 cached_result.result_cache_hit = True
                 cached_result.result_cache_key = cache_provenance.get("cache_key")
                 cached_result.result_cache_source = cache_provenance.get("source_file")

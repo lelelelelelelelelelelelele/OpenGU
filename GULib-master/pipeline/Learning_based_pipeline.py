@@ -1,6 +1,7 @@
 import numpy as np
 # from memory_profiler import profile
 import torch
+from utils.metric_policy import update_detection_auc_enabled
 BLUE_COLOR = "\033[34m"
 RESET_COLOR = "\033[0m"
 class Learning_based_pipeline:
@@ -106,8 +107,10 @@ class Learning_based_pipeline:
                 continue
             self.unlearning_request()
             self.unlearn()
-            if self.args.get("run_mia", False) and self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node":
+            if update_detection_auc_enabled(self.args) and self.args.get("run_mia", False) and self.args["downstream_task"] == "node" and self.args["unlearn_task"]=="node":
                 self.mia_attack()
+            elif not update_detection_auc_enabled(self.args):
+                self.average_auc[self.run] = np.nan
             # elif self.args["unlearn_task"]=="edge":
             #     self.mia_attack_edge()
         self.logger.info(

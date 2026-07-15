@@ -13,6 +13,7 @@ from unlearning.unlearning_methods.GraphRevoker.lib_aggregator.aggregator import
 from config import BLUE_COLOR,RESET_COLOR
 from task.GraphRevokerTrainer import GraphRevokerTrainer
 from pipeline.Shard_based_pipeline import Shard_based_pipeline
+from utils.metric_policy import update_detection_auc_enabled
 class graphrevoker(Shard_based_pipeline):
     """
     The GraphRevoker class implements a pipeline for graph unlearning methods within a sharded architecture.
@@ -555,9 +556,11 @@ class graphrevoker(Shard_based_pipeline):
     def attack_unlearning(self):
         if self.args["downstream_task"] == "graph":
             return
-        if self.args["unlearn_task"] == "node":
+        if update_detection_auc_enabled(self.args) and self.args["unlearn_task"] == "node":
             self.logger.info("start cal AUC")
             self.attack_graph_unlearning()
+        else:
+            self.average_auc[self.run] = np.nan
             
     def unlearn(self):
         self.update_shard()

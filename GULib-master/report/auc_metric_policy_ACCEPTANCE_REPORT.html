@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Update-Detection AUC 数据集策略验收报告</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d31;--panel2:#172641;--text:#e8eef8;--muted:#9fb0c8;--line:#2b4161;--ok:#4ade80;--accent:#60a5fa;--warn:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#08101d,#101c30 55%,#0b1423);color:var(--text);font:15px/1.65 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:52px 28px 80px}h1{font-size:38px;line-height:1.2;margin:8px 0 12px}h2{margin-top:42px;padding-bottom:8px;border-bottom:1px solid var(--line)}p,li{color:#cbd7e8}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.12em}.verdict{margin:28px 0;padding:24px;border:1px solid #266340;background:linear-gradient(135deg,rgba(34,197,94,.14),rgba(20,35,57,.9));border-radius:16px}.verdict strong{color:var(--ok);font-size:20px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:rgba(18,29,49,.9);border:1px solid var(--line);border-radius:14px;padding:18px}.card b{color:#fff}table{width:100%;border-collapse:collapse;background:rgba(18,29,49,.82);border-radius:12px;overflow:hidden}th,td{padding:11px 13px;border:1px solid var(--line);vertical-align:top}th{text-align:left;background:#172a48;color:#fff}code{color:#bfdbfe}pre{padding:18px;background:#07101d;border:1px solid var(--line);border-radius:12px;overflow:auto;color:#dbeafe}.ok{color:var(--ok)}.warn{color:var(--warn)}.foot{margin-top:44px;color:var(--muted);font-size:13px}@media(max-width:760px){main{padding:28px 16px}.grid{grid-template-columns:1fr}h1{font-size:30px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">LOCAL CPU ACCEPTANCE · 2026-07-16</div>
+<h1>Update-Detection AUC 数据集策略</h1>
+<p>小数据集保留 secondary AUC，大数据集通过 YAML 明确关闭；关闭不是 0，也不是失败。</p>
+<section class="verdict"><strong>验收通过</strong><br>40 个相关 CPU 回归测试通过，改动文件 compileall 通过。所有 arxiv phase 配置关闭 AUC，Cora/Citeseer 主配置显式开启。</section>
+
+<h2>核心结果</h2>
+<div class="grid">
+<div class="card"><b>执行</b><p><code>false</code> 会在 method posterior/query 之前停止，不只是在报告层隐藏数值。</p></div>
+<div class="card"><b>输出</b><p><code>attack.json::mia_auc = null</code>，并由 <code>_meta.json</code> 记录 <code>disabled_by_config</code>。</p></div>
+<div class="card"><b>Gate</b><p>开启时检查有限且不塌缩；关闭时要求字段为 <code>null</code>。</p></div>
+<div class="card"><b>Cache</b><p>Score/Selection identity 不变；完整 run fingerprint 包含开关，开关两种结果不会混用。</p></div>
+</div>
+
+<h2>YAML 契约</h2>
+<pre><code>defaults:
+  run_update_detection_auc: true   # Cora / Citeseer
+
+defaults:
+  run_update_detection_auc: false  # ogbn-arxiv</code></pre>
+<p>字段必须是 YAML boolean。旧配置缺省时保持 <code>true</code>；代码不按数据集名称或规模自动猜测。</p>
+
+<h2>方法覆盖</h2>
+<table><thead><tr><th>方法族</th><th>处理</th></tr></thead><tbody>
+<tr><td>GIF / IDEA</td><td>IF base pipeline 统一 guard；GIF 移除原先的重复 AUC 调用</td></tr>
+<tr><td>GNNDelete</td><td>node/feature 内联 posterior 路径前提前返回</td></tr>
+<tr><td>MEGU</td><td>直接 MIA 路径前统一 guard</td></tr>
+<tr><td>GraphEraser / GraphRevoker</td><td>逐 shard query attack 前统一 guard</td></tr>
+</tbody></table>
+
+<h2>Cache 边界</h2>
+<table><thead><tr><th>对象</th><th>随开关分叉？</th><th>结论</th></tr></thead><tbody>
+<tr><td>TracIn / IM Score</td><td>否</td><td>selector 计算不受 AUC 影响</td></tr>
+<tr><td>Selection</td><td>否</td><td>selected nodes 可继续复用</td></tr>
+<tr><td>Prediction</td><td>否</td><td>设计上同一观测服务多个 Evaluation</td></tr>
+<tr><td>AUC Evaluation</td><td>是</td><td>启用时才请求，并由 metric recipe/version 定义</td></tr>
+<tr><td>当前完整 run</td><td>是</td><td>cell fingerprint 防止开/关产物冒充</td></tr>
+</tbody></table>
+<p>Legacy ResultCache key 不扩展。旧完整结果命中时，输出层会按当前 policy 将 AUC 归一为 <code>null</code>；这与其待退役方向一致。</p>
+
+<h2>验证</h2>
+<pre><code>pytest tests/test_update_detection_auc_policy.py
+       tests/test_attack_manager.py
+       tests/test_legacy_cache_freeze.py
+       tests/test_cache_v2_selection_canary.py
+       tests/test_cache_v2_runtime.py -q
+
+40 passed in 0.39s</code></pre>
+<p class="ok">策略 helper、gate 两种模式、全部 arxiv YAML、cell fingerprint、Legacy freeze 与 V2 selection/runtime 回归均通过。</p>
+
+<h2>没有越界声称的部分</h2>
+<ul>
+<li>独立 AUC EvaluationCache 仍属于 V2.3，当前没有伪称完成。</li>
+<li>GraphEraser/GraphRevoker 的逐 shard query posterior 尚未统一成可由全图 logits 严格复现的协议。</li>
+<li>本轮是本地 CPU 验收，尚未运行大图 GPU canary。</li>
+</ul>
+<p class="warn">投入正式大图批跑前，建议只做一格 GPU canary：确认日志未进入 AUC 路径，并核对 JSON null 与 metadata disabled 状态。</p>
+
+<div class="foot">Markdown source of truth: docs/auc_metric_policy_ACCEPTANCE_REPORT.md</div>
+</main></body></html>

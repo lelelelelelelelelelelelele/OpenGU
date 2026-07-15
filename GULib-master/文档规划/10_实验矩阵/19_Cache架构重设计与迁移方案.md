@@ -1,7 +1,7 @@
 ---
 title: Cache V2 架构与 Legacy 迁移方案
 created: 2026-07-10
-updated: 2026-07-14
+updated: 2026-07-16
 type: cache-architecture-design
 status: v2.1-readonly-index-implemented
 tags: [cache, artifact, dependency-dag, migration, prediction, evaluation]
@@ -766,6 +766,38 @@ PredictionArtifact 已保存三套 logits、`y`、mask 和 selected nodes，因�
 - 不同 deterministic negative sampling policy。
 
 每种定义产生独立 EvaluationArtifact。旧 `mia_auc` 只作为 legacy derived value，不迁移为权威 V2 指标。
+
+#### 10.1.1 当前运行策略：小图计算，大图关闭（2026-07-16 已实施）
+
+YAML 使用唯一正式字段：
+
+~~~yaml
+defaults:
+  run_update_detection_auc: true   # Cora / Citeseer 等小图
+  # run_update_detection_auc: false  # ogbn-arxiv 等大图
+~~~
+
+锁定以下语义：
+
+| 层 | 开关是否进入 identity | 原因 |
+|---|---|---|
+| ScoreArtifact | 否 | AUC 不改变 TracIn / IM 分数 |
+| SelectionArtifact | 否 | AUC 不改变 selected nodes |
+| PredictionArtifact | 否 | 同一标准化预测观测可供多个 Evaluation 复用 |
+| AUC EvaluationArtifact | 是，以“是否请求 + metric recipe/version”表达 | 只有启用时才请求或生成该指标 |
+| 当前 `results/runs` cell fingerprint | 是 | 防止启用/关闭 AUC 的完整 run 目录互相冒充完成 |
+
+当前实现已经完成：
+
+- `experiments/run.py` 将开关同时传给 `demo_attack.py` 与 `eval_collateral.py`；
+- GIF / IDEA 所在 IF pipeline、GNNDelete、MEGU、GraphEraser、GraphRevoker 都在昂贵 posterior/AUC 路径前判断该开关；
+- 关闭时 `attack.json::mia_auc` 明确写 `null`，`_meta.json::metric_policy.update_detection_auc.status` 写 `disabled_by_config`；
+- `scripts/gate_runs.py` 只在启用时要求有限且不塌缩的 AUC；关闭时反而要求该字段为 `null`；
+- 所有 `phase_b_arxiv*.yaml` 显式关闭，Cora/Citeseer 主配置显式开启；没有按 dataset 名称硬编码。
+
+需要区分“已实施的运行开关”和“尚未完成的独立 EvaluationCache”：当前 V2 主路径只保证上游 Score/Selection 不因该开关分叉，并在现有 runner 中真正停止 AUC 计算；等 V2.3 Prediction/Evaluation 主路径接入后，`false` 的等价语义是 Resolver 根本不请求 AUC EvaluationArtifact。小图现有各方法 AUC 协议仍是 method-specific legacy producer；尤其 GraphEraser/GraphRevoker 的逐 shard query posterior 不能未经协议选择就宣称可由统一全图 logits 严格复现。
+
+Legacy ResultCache 的 key 不补入该字段：它已进入退役路线，迁移只读/冻结边界优先于继续扩展旧 identity。过渡期若命中旧完整 Result，输出层会按当前 policy 把 AUC 归一为 `null`；新 runner 的 cell fingerprint 与 V2 Artifact 边界负责防混。
 
 ### 10.2 时间只记录原始计算成本
 

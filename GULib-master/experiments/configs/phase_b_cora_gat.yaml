@@ -28,6 +28,7 @@ seeds: [42, 212, 722, 1337, 2024]
 defaults:
   save_predictions: true
   run_collateral: true
+  run_update_detection_auc: true  # small dataset: keep optional posterior-change AUC
   no_cache: false
   num_epochs: 100
   batch_size: 64
