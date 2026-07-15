@@ -16,6 +16,7 @@ import hashlib
 import html
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -61,6 +62,13 @@ LOG_ERROR_KEYWORDS = (
     "killed",
     "failed",
 )
+QUEUE_PROTOCOL = "syncmate-runner-queue/v1"
+QUEUE_STATES = ("inbox", "running", "done", "failed", "blocked")
+QUEUE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,80}$")
+QUEUE_ALLOWED_RECIPES = ("smoke",)
+QUEUE_ALLOWED_JOB_FIELDS = {
+    "protocol", "version", "id", "recipe", "created_at", "requested_by", "note",
+}
 
 
 def artifact_index_file() -> Path:
@@ -13816,6 +13824,512 @@ def smoke_payload(args: argparse.Namespace) -> Dict[str, Any]:
     return data
 
 
+def runner_queue_root() -> Path:
+    return SYNC_DIR / "runner_queue"
+
+
+def runner_queue_state_dir(state: str) -> Path:
+    if state not in QUEUE_STATES:
+        raise ValueError(f"unknown runner queue state: {state}")
+    return runner_queue_root() / state
+
+
+def runner_queue_receipts_dir() -> Path:
+    return runner_queue_root() / "receipts"
+
+
+def runner_queue_results_dir() -> Path:
+    return runner_queue_root() / "results"
+
+
+def runner_queue_manifest_file() -> Path:
+    return runner_queue_root() / "manifest.json"
+
+
+def runner_queue_status_file() -> Path:
+    return runner_queue_root() / "status.html"
+
+
+def runner_queue_contract_file() -> Path:
+    return runner_queue_root() / "contract.json"
+
+
+def runner_queue_contract_payload() -> Dict[str, Any]:
+    """Return the stable external boundary for optional queue integrations.
+
+    This is deliberately data-only: callers can discover the protocol without
+    creating a queue directory or changing runner state.
+    """
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "version": 1,
+        "job_schema": {
+            "required": ["protocol", "version", "id", "recipe", "created_at"],
+            "optional": ["requested_by", "note"],
+            "additional_fields": False,
+            "id_pattern": QUEUE_ID_RE.pattern,
+            "file_name": "<id>.yaml",
+        },
+        "state_machine": {
+            "states": list(QUEUE_STATES),
+            "transitions": {
+                "submit": ["inbox"],
+                "claim": ["inbox", "running"],
+                "complete": ["running", "done"],
+                "fail": ["running", "failed"],
+                "block": ["inbox", "blocked"],
+            },
+            "owner": "Only runner-queue run --once may claim or transition a job.",
+        },
+        "execution": {
+            "mode": "single-shot",
+            "required_flag": "--once",
+            "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
+            "recipe_inputs": "Jobs select only a recipe id; they cannot provide commands, arguments, paths, or cache operations.",
+        },
+        "evidence": {
+            "job": "inbox|running|done|failed|blocked/<id>.yaml",
+            "receipt": "receipts/<id>.json",
+            "result": "results/<id>.json",
+            "manifest": "manifest.json",
+            "dashboard": "status.html",
+        },
+        "integration": {
+            "syncmate": "Keeps collector, checksum verifier, trusted-index, and acceptance-gate authority.",
+            "opengu": "May submit or observe declared jobs through this contract; it must not directly mutate queue state or treat a queue result as trusted experiment evidence.",
+            "forbidden": [
+                "arbitrary shell or Python command fields in job YAML",
+                "direct writes to running, done, failed, or blocked",
+                "cache deletion, cache invalidation, or result-schema changes through the queue",
+                "bypassing SyncMate collection, checksum verification, or gate evidence",
+            ],
+            "extension_rule": "Adding an OpenGU recipe is a reviewed code change to the static allowlist, with a frozen input schema and dedicated tests; it is not a job-YAML feature flag.",
+        },
+    }
+
+
+def ensure_runner_queue_dirs() -> None:
+    for state in QUEUE_STATES:
+        runner_queue_state_dir(state).mkdir(parents=True, exist_ok=True)
+    runner_queue_receipts_dir().mkdir(parents=True, exist_ok=True)
+    runner_queue_results_dir().mkdir(parents=True, exist_ok=True)
+
+
+def runner_queue_safe_id(value: Any) -> bool:
+    return isinstance(value, str) and bool(QUEUE_ID_RE.fullmatch(value))
+
+
+def runner_queue_default_id() -> str:
+    return "smoke-" + _dt.datetime.now().strftime("%Y%m%d%H%M%S%f")
+
+
+def runner_queue_rel(path: Path) -> str:
+    return rel(path)
+
+
+def write_runner_queue_json(path: Path, data: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def write_runner_queue_yaml(path: Path, data: Dict[str, Any]) -> None:
+    if yaml is None:
+        raise SystemExit("PyYAML is required. Use the project gnn environment or install pyyaml.")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=False), encoding="utf-8")
+
+
+def runner_queue_job_path(state: str, job_id: str) -> Path:
+    if not runner_queue_safe_id(job_id):
+        raise ValueError(f"unsafe runner queue job id: {job_id!r}")
+    return runner_queue_state_dir(state) / f"{job_id}.yaml"
+
+
+def runner_queue_read_job(path: Path, state: str) -> Dict[str, Any]:
+    entry: Dict[str, Any] = {
+        "path": runner_queue_rel(path), "state": state, "valid": False, "errors": [],
+    }
+    try:
+        if yaml is None:
+            raise ValueError("PyYAML is unavailable")
+        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        entry["errors"].append(f"invalid YAML: {type(exc).__name__}: {exc}")
+        entry["id"] = path.stem
+        return entry
+    if not isinstance(raw, dict):
+        entry["errors"].append("job must be a YAML mapping")
+        entry["id"] = path.stem
+        return entry
+    entry["job"] = raw
+    job_id = raw.get("id")
+    entry["id"] = job_id if isinstance(job_id, str) else path.stem
+    unknown = sorted(set(raw) - QUEUE_ALLOWED_JOB_FIELDS)
+    if unknown:
+        entry["errors"].append("unsupported job fields: " + ", ".join(unknown))
+    if raw.get("protocol") != QUEUE_PROTOCOL:
+        entry["errors"].append(f"protocol must be {QUEUE_PROTOCOL!r}")
+    if raw.get("version") != 1:
+        entry["errors"].append("version must be 1")
+    if not runner_queue_safe_id(job_id):
+        entry["errors"].append("id must match [A-Za-z0-9][A-Za-z0-9_.-]{0,80}")
+    elif path.name != f"{job_id}.yaml":
+        entry["errors"].append("file name must match job id")
+    if raw.get("recipe") not in QUEUE_ALLOWED_RECIPES:
+        entry["errors"].append("recipe is not allowlisted")
+    if not isinstance(raw.get("created_at"), str) or parse_iso_time(raw.get("created_at")) is None:
+        entry["errors"].append("created_at must be an ISO-8601 timestamp")
+    for field in ("requested_by", "note"):
+        if field in raw and (not isinstance(raw[field], str) or len(raw[field]) > 500):
+            entry["errors"].append(f"{field} must be a short string")
+    entry["recipe"] = raw.get("recipe")
+    entry["created_at"] = raw.get("created_at")
+    entry["valid"] = not entry["errors"]
+    return entry
+
+
+def runner_queue_receipt_path(job_id: str) -> Path:
+    return runner_queue_receipts_dir() / f"{job_id}.json"
+
+
+def runner_queue_result_path(job_id: str) -> Path:
+    return runner_queue_results_dir() / f"{job_id}.json"
+
+
+def runner_queue_load_json(path: Path) -> Dict[str, Any]:
+    value = load_optional_json(path)
+    return value if isinstance(value, dict) else {}
+
+
+def runner_queue_write_receipt(job_id: str, **updates: Any) -> Dict[str, Any]:
+    prior = runner_queue_load_json(runner_queue_receipt_path(job_id))
+    prior.update(updates)
+    prior.setdefault("protocol", QUEUE_PROTOCOL)
+    prior.setdefault("job_id", job_id)
+    prior["updated_at"] = now_iso()
+    write_runner_queue_json(runner_queue_receipt_path(job_id), prior)
+    return prior
+
+
+def runner_queue_job_summary(entry: Dict[str, Any]) -> Dict[str, Any]:
+    job_id = str(entry.get("id") or "unknown")
+    receipt = runner_queue_load_json(runner_queue_receipt_path(job_id))
+    result = runner_queue_load_json(runner_queue_result_path(job_id))
+    return {
+        "id": job_id,
+        "state": entry.get("state"),
+        "recipe": entry.get("recipe"),
+        "created_at": entry.get("created_at"),
+        "valid": bool(entry.get("valid")),
+        "errors": entry.get("errors") or [],
+        "path": entry.get("path"),
+        "receipt": {
+            key: receipt.get(key) for key in ("state", "submitted_at", "claimed_at", "started_at", "finished_at", "blocked_at", "runner_id")
+            if receipt.get(key) is not None
+        },
+        "result": {
+            key: result.get(key) for key in ("status", "exit_code", "reason", "finished_at", "recipe_passed")
+            if result.get(key) is not None
+        },
+    }
+
+
+def runner_queue_payload() -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    entries: List[Dict[str, Any]] = []
+    errors: List[str] = []
+    for state in QUEUE_STATES:
+        directory = runner_queue_state_dir(state)
+        for path in sorted(directory.iterdir()):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() != ".yaml":
+                errors.append(f"unexpected file in {state}: {runner_queue_rel(path)}")
+                continue
+            entries.append(runner_queue_read_job(path, state))
+    ids: Dict[str, List[str]] = defaultdict(list)
+    for entry in entries:
+        if runner_queue_safe_id(entry.get("id")):
+            ids[str(entry["id"])].append(str(entry.get("state")))
+    for job_id, states in sorted(ids.items()):
+        if len(states) > 1:
+            errors.append(f"job id appears in multiple states: {job_id} ({', '.join(states)})")
+    jobs = [runner_queue_job_summary(entry) for entry in entries]
+    jobs.sort(key=lambda item: (QUEUE_STATES.index(str(item["state"])), str(item["id"])))
+    counts = {state: sum(1 for job in jobs if job["state"] == state) for state in QUEUE_STATES}
+    invalid = [job for job in jobs if not job["valid"]]
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "generated_at": now_iso(),
+        "paths": {
+            "root": runner_queue_rel(runner_queue_root()),
+            "manifest": runner_queue_rel(runner_queue_manifest_file()),
+            "status": runner_queue_rel(runner_queue_status_file()),
+            "receipts": runner_queue_rel(runner_queue_receipts_dir()),
+            "results": runner_queue_rel(runner_queue_results_dir()),
+        },
+        "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
+        "counts": counts,
+        "jobs": jobs,
+        "validation": {"valid": not errors and not invalid, "errors": errors, "invalid_jobs": len(invalid)},
+    }
+
+
+def write_runner_queue_manifest(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    data = payload or runner_queue_payload()
+    data["manifest_path"] = runner_queue_rel(runner_queue_manifest_file())
+    write_runner_queue_json(runner_queue_manifest_file(), data)
+    return data
+
+
+def render_runner_queue_status(payload: Dict[str, Any]) -> str:
+    counts = payload.get("counts") or {}
+    jobs = payload.get("jobs") or []
+    validation = payload.get("validation") or {}
+    cards = "".join(
+        f'<section class="card {state}"><span>{html.escape(state)}</span><strong>{int(counts.get(state, 0))}</strong></section>'
+        for state in QUEUE_STATES
+    )
+    rows = []
+    for job in jobs:
+        result = job.get("result") or {}
+        reason = result.get("reason") or "; ".join(job.get("errors") or []) or "—"
+        rows.append(
+            "<tr>"
+            f'<td><code>{html.escape(str(job.get("id") or "—"))}</code></td>'
+            f'<td><span class="pill {html.escape(str(job.get("state") or "unknown"))}">{html.escape(str(job.get("state") or "unknown"))}</span></td>'
+            f'<td>{html.escape(str(job.get("recipe") or "—"))}</td>'
+            f'<td>{html.escape(str(job.get("created_at") or "—"))}</td>'
+            f'<td>{html.escape(str(result.get("exit_code", "—")))}</td>'
+            f'<td>{html.escape(str(reason))}</td></tr>'
+        )
+    table = "\n".join(rows) or '<tr><td colspan="6" class="empty">No jobs yet. Submit an allowlisted smoke job to begin.</td></tr>'
+    validation_text = "Protocol valid" if validation.get("valid") else "Protocol needs attention"
+    errors = "".join(f"<li>{html.escape(str(error))}</li>" for error in validation.get("errors") or [])
+    generated_at = html.escape(str(payload.get("generated_at") or "—"))
+    health_class = "ok" if validation.get("valid") else "warn"
+    errors_block = "<ul>" + errors + "</ul>" if errors else ""
+    template = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SyncMate Runner Queue</title><style>
+:root{{color-scheme:dark;--bg:#0b1020;--panel:#141b31;--line:#2c385b;--text:#eef3ff;--muted:#9ba8c7;--blue:#69a7ff;--green:#53d39a;--amber:#f4bd63;--red:#ff7884;--purple:#aa8cff}}
+*{{box-sizing:border-box}}body{{margin:0;background:radial-gradient(circle at 20% -10%,#213565,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 Inter,Segoe UI,Arial,sans-serif}}main{{max-width:1250px;margin:auto;padding:42px 24px 64px}}header{{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:28px}}h1{{margin:0;font-size:32px;letter-spacing:-.03em}}h1 span{{color:var(--blue)}}.sub{{color:var(--muted);margin:7px 0 0}}.stamp{{text-align:right;color:var(--muted);font-size:13px}}.grid{{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:22px 0}}.card{{background:linear-gradient(145deg,#18233f,#121a2e);border:1px solid var(--line);border-radius:14px;padding:16px}.card span{{display:block;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.1em}}.card strong{{font-size:30px}}.card.done strong{{color:var(--green)}}.card.failed strong{{color:var(--red)}}.card.blocked strong{{color:var(--amber)}}.panel{{background:rgba(20,27,49,.88);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:18px}}.panel h2{{font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line)}}.ok,.warn{{padding:12px 18px;font-weight:600}}.ok{{color:var(--green)}}.warn{{color:var(--amber)}}ul{{margin:0 18px 16px;color:var(--muted)}}table{{width:100%;border-collapse:collapse;min-width:850px}}.table-wrap{{overflow:auto}}th,td{{padding:13px 16px;text-align:left;border-bottom:1px solid #263252;vertical-align:top}}th{{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}}code{{color:#c8dcff;font-family:ui-monospace,Consolas,monospace}}.pill{{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;background:#2b3658}}.pill.done{{background:#174635;color:#9bf0c4}}.pill.failed{{background:#5a2732;color:#ffb3bd}}.pill.blocked{{background:#62491d;color:#ffe0a0}}.pill.running{{background:#283d70;color:#bfd3ff}}.empty{{color:var(--muted);text-align:center;padding:28px}}.contract{{color:var(--muted);padding:0 18px 18px}}@media(max-width:760px){{header{{display:block}}.stamp{{text-align:left;margin-top:12px}}.grid{{grid-template-columns:repeat(2,1fr)}}}}
+</style></head><body><main><header><div><h1>SyncMate <span>Runner Queue</span></h1><p class="sub">Local, allowlisted work protocol. SyncMate remains collector, verifier, and gate.</p></div><div class="stamp">Generated __GENERATED_AT__<br>Recipe allowlist: <code>smoke</code></div></header>
+<div class="grid">__CARDS__</div><section class="panel"><h2>Protocol health</h2><div class="__HEALTH_CLASS__">__VALIDATION_TEXT__</div>__ERRORS_BLOCK__<p class="contract">Inbox → running → done | failed | blocked. The runner accepts only <code>smoke</code>, which is SyncMate’s temporary local smoke check; it cannot run experiment commands or alter cache semantics.</p></section>
+<section class="panel"><h2>Jobs</h2><div class="table-wrap"><table><thead><tr><th>Job</th><th>State</th><th>Recipe</th><th>Created</th><th>Exit</th><th>Result / reason</th></tr></thead><tbody>__TABLE__</tbody></table></div></section>
+</main></body></html>"""
+    template = template.replace("{{", "{").replace("}}", "}")
+    return (template.replace("__GENERATED_AT__", generated_at)
+            .replace("__CARDS__", cards)
+            .replace("__HEALTH_CLASS__", health_class)
+            .replace("__VALIDATION_TEXT__", html.escape(validation_text))
+            .replace("__ERRORS_BLOCK__", errors_block)
+            .replace("__TABLE__", table))
+
+
+def write_runner_queue_status(payload: Optional[Dict[str, Any]] = None) -> Path:
+    data = payload or runner_queue_payload()
+    out = runner_queue_status_file()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_runner_queue_status(data), encoding="utf-8")
+    return out
+
+
+def runner_queue_unique_destination(state: str, job_id: str) -> Path:
+    destination = runner_queue_job_path(state, job_id)
+    if not destination.exists():
+        return destination
+    return runner_queue_job_path(state, f"{job_id[:60].rstrip('.-')}-{_dt.datetime.now().strftime('%H%M%S%f')}")
+
+
+def runner_queue_block_invalid(path: Path, entry: Dict[str, Any]) -> Dict[str, Any]:
+    raw_id = entry.get("id")
+    job_id = str(raw_id) if runner_queue_safe_id(raw_id) else f"invalid-{safe_file_stem(path.stem)[:60]}"
+    destination = runner_queue_unique_destination("blocked", job_id)
+    result_id = destination.stem
+    path.replace(destination)
+    reason = "; ".join(entry.get("errors") or ["invalid runner queue job"])
+    runner_queue_write_receipt(result_id, state="blocked", blocked_at=now_iso(), reason=reason)
+    result = {"protocol": QUEUE_PROTOCOL, "job_id": result_id, "status": "blocked", "reason": reason, "finished_at": now_iso()}
+    write_runner_queue_json(runner_queue_result_path(result_id), result)
+    return {"job_id": result_id, "state": "blocked", "reason": reason, "path": runner_queue_rel(destination)}
+
+
+def runner_queue_output_text(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value or "")
+
+
+def runner_queue_recipe_command(recipe: str) -> Tuple[List[str], int]:
+    if recipe == "smoke":
+        return [sys.executable, "scripts/syncmate/syncmate.py", "smoke", "--json"], 180
+    raise ValueError(f"recipe {recipe!r} is not allowlisted")
+
+
+def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str] = None, note: Optional[str] = None) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    if not runner_queue_safe_id(job_id):
+        raise SystemExit("job id must match [A-Za-z0-9][A-Za-z0-9_.-]{0,80}")
+    if recipe not in QUEUE_ALLOWED_RECIPES:
+        raise SystemExit("recipe is not allowlisted")
+    if requested_by is not None and (not isinstance(requested_by, str) or len(requested_by) > 500):
+        raise SystemExit("requested_by must be a short string")
+    if note is not None and (not isinstance(note, str) or len(note) > 500):
+        raise SystemExit("note must be a short string")
+    for state in QUEUE_STATES:
+        if runner_queue_job_path(state, job_id).exists():
+            raise SystemExit(f"job id already exists in {state}: {job_id}")
+    job = {"protocol": QUEUE_PROTOCOL, "version": 1, "id": job_id, "recipe": recipe, "created_at": now_iso()}
+    if requested_by:
+        job["requested_by"] = requested_by
+    if note:
+        job["note"] = note
+    path = runner_queue_job_path("inbox", job_id)
+    write_runner_queue_yaml(path, job)
+    runner_queue_write_receipt(job_id, state="inbox", submitted_at=job["created_at"])
+    payload = write_runner_queue_manifest()
+    return {"submitted": True, "job": job, "path": runner_queue_rel(path), "manifest": payload["manifest_path"]}
+
+
+def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    role = config.get("role")
+    if role not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["runner-queue run requires device role runner or runner+collector"], "processed": False}
+    inbox = sorted(runner_queue_state_dir("inbox").glob("*.yaml"))
+    if not inbox:
+        return {"status": "idle", "processed": False}
+    source = inbox[0]
+    entry = runner_queue_read_job(source, "inbox")
+    if not entry["valid"]:
+        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
+    job = entry["job"]
+    job_id = str(job["id"])
+    running_path = runner_queue_job_path("running", job_id)
+    if running_path.exists():
+        entry["errors"].append("job id already exists in running; refusing to overwrite")
+        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
+    try:
+        source.replace(running_path)
+    except FileNotFoundError:
+        return {"status": "contended", "processed": False, "errors": ["job was claimed by another runner"]}
+    runner_queue_write_receipt(job_id, state="running", claimed_at=now_iso(), started_at=now_iso(), runner_id=config.get("device_id"))
+    command, timeout = runner_queue_recipe_command(str(job["recipe"]))
+    try:
+        completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout, check=False)
+        stdout = runner_queue_output_text(completed.stdout)[-16000:]
+        stderr = runner_queue_output_text(completed.stderr)[-16000:]
+        recipe_data = None
+        try:
+            recipe_data = json.loads(stdout)
+        except json.JSONDecodeError:
+            pass
+        succeeded = completed.returncode == 0 and (not isinstance(recipe_data, dict) or recipe_data.get("passed") is not False)
+        state = "done" if succeeded else "failed"
+        reason = None if succeeded else f"recipe exited with code {completed.returncode}"
+        result = {
+            "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
+            "exit_code": completed.returncode, "finished_at": now_iso(), "command": command,
+            "recipe_passed": recipe_data.get("passed") if isinstance(recipe_data, dict) else None,
+            "stdout": stdout, "stderr": stderr, "reason": reason,
+        }
+    except subprocess.TimeoutExpired as exc:
+        state = "failed"
+        result = {
+            "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
+            "exit_code": None, "finished_at": now_iso(), "command": command, "recipe_passed": False,
+            "stdout": runner_queue_output_text(exc.stdout)[-16000:], "stderr": runner_queue_output_text(exc.stderr)[-16000:],
+            "reason": f"recipe timed out after {timeout}s",
+        }
+    destination = runner_queue_job_path(state, job_id)
+    running_path.replace(destination)
+    write_runner_queue_json(runner_queue_result_path(job_id), result)
+    runner_queue_write_receipt(job_id, state=state, finished_at=result["finished_at"], exit_code=result["exit_code"])
+    return {"status": state, "processed": True, "job_id": job_id, "result": result, "path": runner_queue_rel(destination)}
+
+
+def cmd_runner_queue_submit(args: argparse.Namespace) -> int:
+    data = runner_queue_submit(args.job_id or runner_queue_default_id(), args.recipe, requested_by=args.requested_by, note=args.note)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"queued {data['job']['id']} ({data['job']['recipe']}) -> {data['path']}")
+    return 0
+
+
+def cmd_runner_queue_contract(args: argparse.Namespace) -> int:
+    data = runner_queue_contract_payload()
+    if args.write:
+        ensure_runner_queue_dirs()
+        data["contract_path"] = runner_queue_rel(runner_queue_contract_file())
+        write_runner_queue_json(runner_queue_contract_file(), data)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue contract: {data['protocol']}")
+        print("  states: " + " -> ".join(QUEUE_STATES))
+        print("  recipes: " + ", ".join(QUEUE_ALLOWED_RECIPES))
+        print("  owner: runner-queue run --once")
+        if data.get("contract_path"):
+            print(f"  written: {data['contract_path']}")
+    return 0
+
+
+def cmd_runner_queue_validate(args: argparse.Namespace) -> int:
+    data = runner_queue_payload()
+    if args.write:
+        data = write_runner_queue_manifest(data)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue: {'valid' if data['validation']['valid'] else 'invalid'}")
+        print("  " + " ".join(f"{state}={data['counts'][state]}" for state in QUEUE_STATES))
+        for error in data['validation']['errors']:
+            print(f"  error: {error}")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_status(args: argparse.Namespace) -> int:
+    data = runner_queue_payload()
+    if args.json:
+        print_json(data)
+    else:
+        print("runner queue: " + " ".join(f"{state}={data['counts'][state]}" for state in QUEUE_STATES))
+        for job in data["jobs"]:
+            print(f"  {job['state']:7} {job['id']} ({job.get('recipe') or 'invalid'})")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_dashboard(args: argparse.Namespace) -> int:
+    data = write_runner_queue_manifest()
+    out = write_runner_queue_status(data)
+    if args.open:
+        webbrowser.open(out.resolve().as_uri())
+    response = {"dashboard": runner_queue_rel(out), "manifest": data["manifest_path"], "counts": data["counts"], "validation": data["validation"]}
+    if args.json:
+        print_json(response)
+    else:
+        print(f"runner queue dashboard: {response['dashboard']}")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_run(args: argparse.Namespace) -> int:
+    config, _warnings = load_device(args.config)
+    data = runner_queue_run_once(config)
+    payload = write_runner_queue_manifest()
+    data["manifest"] = payload["manifest_path"]
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue run: {data['status']}")
+        if data.get("job_id"):
+            print(f"  job: {data['job_id']}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("done", "idle") else 1
+
+
 def cmd_smoke(args: argparse.Namespace) -> int:
     data = smoke_payload(args)
     if args.json:
@@ -13958,6 +14472,49 @@ def build_parser() -> argparse.ArgumentParser:
     p_smoke.add_argument("--workdir", type=Path,
                          help="parent directory for a kept smoke workspace")
     p_smoke.set_defaults(func=cmd_smoke)
+
+    p_runner_queue = sub.add_parser(
+        "runner-queue",
+        help="local YAML inbox for allowlisted runner smoke checks; never runs experiments",
+    )
+    runner_queue_sub = p_runner_queue.add_subparsers(dest="runner_queue_command", required=True)
+    p_queue_submit = runner_queue_sub.add_parser("submit", help="write one allowlisted YAML job into the local inbox")
+    p_queue_submit.add_argument("--recipe", choices=QUEUE_ALLOWED_RECIPES, default="smoke",
+                                help="allowlisted recipe (default: smoke)")
+    p_queue_submit.add_argument("--job-id", help="optional stable job id; default is generated")
+    p_queue_submit.add_argument("--requested-by", help="short local requester label recorded in the job")
+    p_queue_submit.add_argument("--note", help="short local note recorded in the job")
+    p_queue_submit.add_argument("--json", action="store_true")
+    p_queue_submit.set_defaults(func=cmd_runner_queue_submit)
+
+    p_queue_contract = runner_queue_sub.add_parser(
+        "contract",
+        help="print the stable read-only boundary for SyncMate/OpenGU integration",
+    )
+    p_queue_contract.add_argument("--write", action="store_true",
+                                  help="also write .syncmate/runner_queue/contract.json")
+    p_queue_contract.add_argument("--json", action="store_true")
+    p_queue_contract.set_defaults(func=cmd_runner_queue_contract)
+
+    p_queue_validate = runner_queue_sub.add_parser("validate", help="validate YAML queue protocol and state exclusivity")
+    p_queue_validate.add_argument("--write", action="store_true", help="also write .syncmate/runner_queue/manifest.json")
+    p_queue_validate.add_argument("--json", action="store_true")
+    p_queue_validate.set_defaults(func=cmd_runner_queue_validate)
+
+    p_queue_status = runner_queue_sub.add_parser("status", help="read queue state without executing jobs")
+    p_queue_status.add_argument("--json", action="store_true")
+    p_queue_status.set_defaults(func=cmd_runner_queue_status)
+
+    p_queue_dashboard = runner_queue_sub.add_parser("dashboard", help="write static .syncmate/runner_queue/status.html")
+    p_queue_dashboard.add_argument("--open", action="store_true", help="open the generated static status page")
+    p_queue_dashboard.add_argument("--json", action="store_true")
+    p_queue_dashboard.set_defaults(func=cmd_runner_queue_dashboard)
+
+    p_queue_run = runner_queue_sub.add_parser("run", help="claim and run exactly one allowlisted inbox job")
+    p_queue_run.add_argument("--once", action="store_true", required=True,
+                             help="required: process at most one job; SyncMate is not a daemon")
+    p_queue_run.add_argument("--json", action="store_true")
+    p_queue_run.set_defaults(func=cmd_runner_queue_run)
 
     p_init = sub.add_parser("init-device", help="create the untracked device-local setup file")
     p_init.add_argument("--device-id", default=default_device_id(),
