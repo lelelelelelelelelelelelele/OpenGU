@@ -1,72 +1,506 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AutoReport V3 Acceptance Report</title>
+  <title>AutoReport V3 改进汇报</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
   <style>
-    :root{color-scheme:dark;--bg:#08101c;--panel:#111d30;--panel2:#172943;--line:#2a405f;--text:#eef4ff;--muted:#9eb1cc;--green:#65e6b4;--amber:#f7c65d;--blue:#89c4ff;--red:#ff8f9c}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0,#1c3155 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.58 Inter,system-ui,Segoe UI,sans-serif}main{max-width:1240px;margin:auto;padding:42px 30px 72px}h1{font-size:40px;margin:0 0 8px}h2{margin:36px 0 14px;font-size:23px}p{max-width:1080px}code{color:#c9bcff}.eyebrow{color:var(--blue);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}.meta,.muted{color:var(--muted)}.verdict{display:inline-flex;margin:16px 0 12px;padding:10px 15px;border:1px solid #27654f;background:#12382f;border-radius:999px;color:var(--green);font-weight:850}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:24px 0}.card{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;min-height:112px}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;font-size:27px;margin-top:8px;color:var(--green)}.card.warn strong{color:var(--amber)}.callout{border-left:4px solid var(--green);background:#102d28;padding:14px 16px;border-radius:0 10px 10px 0}.risk{border-left-color:var(--amber);background:#2a2312}.table{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:760px;background:var(--panel)}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#182944;color:#d4e1f4}tr:last-child td{border-bottom:0}.ok{color:var(--green);font-weight:800}.failed{color:var(--red);font-weight:800}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;padding:0;list-style:none}.checklist li{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:9px}footer{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}.checklist{grid-template-columns:1fr}}
+    :root {
+      --bg:#020617; --panel:#0f172a; --panel2:#111c31; --line:#26344b;
+      --text:#e5edf7; --muted:#94a3b8; --cyan:#22d3ee; --emerald:#34d399;
+      --violet:#a78bfa; --amber:#fbbf24; --rose:#fb7185; --orange:#fb923c;
+      --slate:#64748b; --white:#f8fafc;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; color:var(--text); background-color:var(--bg);
+      background-image:linear-gradient(rgba(30,41,59,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(30,41,59,.22) 1px,transparent 1px);
+      background-size:40px 40px;
+      font-family:"JetBrains Mono","Microsoft YaHei",system-ui,sans-serif;
+      line-height:1.72;
+    }
+    a { color:var(--cyan); text-decoration:none; }
+    code { color:#c4b5fd; background:rgba(76,29,149,.28); padding:.12rem .34rem; border-radius:4px; }
+    .container { width:min(1240px,calc(100% - 34px)); margin:0 auto; padding:26px 0 64px; }
+    .hero {
+      position:relative; overflow:hidden; padding:42px 44px 36px; border:1px solid #1f334f;
+      border-radius:18px; background:linear-gradient(135deg,rgba(8,51,68,.72),rgba(15,23,42,.94) 48%,rgba(76,29,149,.34));
+      box-shadow:0 24px 80px rgba(0,0,0,.35);
+    }
+    .hero:after { content:""; position:absolute; width:390px; height:390px; right:-160px; top:-210px; border-radius:50%; background:rgba(34,211,238,.10); filter:blur(8px); }
+    .eyebrow { display:flex; align-items:center; gap:10px; color:var(--cyan); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+    .pulse { width:9px; height:9px; border-radius:50%; background:var(--emerald); box-shadow:0 0 0 7px rgba(52,211,153,.10); animation:pulse 2.4s infinite; }
+    @keyframes pulse { 50% { box-shadow:0 0 0 13px rgba(52,211,153,0); } }
+    h1 { margin:18px 0 12px; color:var(--white); font-size:clamp(32px,5vw,58px); line-height:1.12; letter-spacing:-.045em; }
+    .lead { max-width:940px; margin:0; color:#cbd5e1; font-size:clamp(15px,2vw,20px); }
+    .thesis { margin-top:25px; padding:17px 20px; border-left:3px solid var(--cyan); background:rgba(2,6,23,.48); border-radius:0 9px 9px 0; color:#ecfeff; }
+    .scope { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .tag { padding:6px 10px; border:1px solid #334155; border-radius:999px; color:#cbd5e1; background:rgba(15,23,42,.7); font-size:11px; }
+    .tag.good { border-color:rgba(52,211,153,.45); color:#a7f3d0; }
+    .tag.out { border-color:rgba(251,113,133,.35); color:#fecdd3; }
+    .toolbar { position:absolute; z-index:3; top:20px; right:20px; display:flex; align-items:center; gap:7px; }
+    .toolbar-actions { display:none; gap:7px; }
+    .toolbar.open .toolbar-actions { display:flex; }
+    .toolbar button { border:1px solid #334155; color:#dbeafe; background:rgba(15,23,42,.92); padding:7px 10px; border-radius:7px; cursor:pointer; font:600 11px "JetBrains Mono"; }
+    .toolbar button:hover { border-color:var(--cyan); color:var(--cyan); }
+    .toolbar-toggle { width:34px; font-size:16px!important; padding:5px!important; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin:18px 0 30px; }
+    .metric { min-height:126px; padding:19px; border:1px solid var(--line); border-radius:12px; background:rgba(15,23,42,.84); }
+    .metric .k { color:var(--muted); font-size:10px; letter-spacing:.10em; text-transform:uppercase; }
+    .metric .v { display:block; margin:8px 0 5px; color:var(--white); font-size:20px; font-weight:700; }
+    .metric p { margin:0; color:var(--muted); font-size:12px; line-height:1.55; }
+    .section { margin-top:22px; padding:28px; border:1px solid var(--line); border-radius:15px; background:rgba(15,23,42,.88); box-shadow:0 16px 48px rgba(0,0,0,.18); }
+    .section-head { display:flex; gap:13px; align-items:flex-start; margin-bottom:20px; }
+    .num { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:8px; color:var(--bg); background:var(--cyan); font-weight:800; }
+    h2 { margin:0; color:var(--white); font-size:23px; letter-spacing:-.02em; }
+    h3 { color:#dbeafe; margin:27px 0 10px; font-size:16px; }
+    .sub { margin:4px 0 0; color:var(--muted); font-size:13px; }
+    .diagram { overflow:auto; padding:12px; border:1px solid #26364e; border-radius:12px; background:#020617; }
+    .diagram svg { display:block; min-width:980px; width:100%; height:auto; font-family:"JetBrains Mono","Microsoft YaHei",sans-serif; }
+    .caption { margin:11px 3px 0; color:var(--muted); font-size:11px; }
+    .record-compare { display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); gap:14px; margin-top:14px; }
+    .record-card { display:flex; flex-direction:column; min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#060d1a; }
+    .record-card.old { border-top:2px solid var(--rose); }
+    .record-card.new { border-top:2px solid var(--emerald); }
+    .record-head { display:flex; align-items:center; gap:10px; padding:13px 15px; border-bottom:1px solid #223049; background:rgba(15,23,42,.86); }
+    .record-head strong { color:#e2e8f0; font-size:12px; }
+    .record-badge { padding:3px 7px; border-radius:999px; font-size:9px; font-weight:700; letter-spacing:.08em; }
+    .record-badge.old { color:#fecdd3; border:1px solid rgba(251,113,133,.42); background:rgba(136,19,55,.25); }
+    .record-badge.new { color:#a7f3d0; border:1px solid rgba(52,211,153,.42); background:rgba(6,78,59,.30); }
+    .record-card pre { flex:1; min-height:330px; margin:0; padding:16px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:#cbd5e1; background:#020617; font:500 10.5px/1.66 "JetBrains Mono","Microsoft YaHei",monospace; }
+    .record-card.old pre { color:#fecdd3; }
+    .record-card.new pre { color:#d1fae5; }
+    .record-card pre code { padding:0; color:inherit; background:none; }
+    .record-read { margin:0; padding:13px 15px; border-top:1px solid #223049; color:#9fb0c5; font-size:11px; line-height:1.65; }
+    .record-read strong { color:#e2e8f0; }
+    .record-note { margin:14px 0 0; padding:13px 15px; border-left:3px solid var(--violet); border-radius:0 8px 8px 0; color:#c4b5fd; background:rgba(76,29,149,.18); font-size:11px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .card { padding:18px; border:1px solid var(--line); border-radius:11px; background:rgba(2,6,23,.48); }
+    .card h3 { margin:0 0 8px; }
+    .card p,.card li { color:#bac7d8; font-size:12px; }
+    .card ul { margin:8px 0 0; padding-left:19px; }
+    .accent-cyan { border-top:2px solid var(--cyan); }
+    .accent-rose { border-top:2px solid var(--rose); }
+    .accent-emerald { border-top:2px solid var(--emerald); }
+    .accent-violet { border-top:2px solid var(--violet); }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:10px; }
+    table { width:100%; min-width:760px; border-collapse:collapse; font-size:12px; background:rgba(2,6,23,.40); }
+    th { position:sticky; top:0; text-align:left; color:#dbeafe; background:#111c31; }
+    th,td { padding:12px 13px; border-bottom:1px solid #223049; vertical-align:top; }
+    tr:last-child td { border-bottom:0; }
+    td { color:#b9c6d7; }
+    .pill { display:inline-block; padding:3px 7px; border-radius:999px; font-size:10px; white-space:nowrap; }
+    .p-green { color:#a7f3d0; border:1px solid rgba(52,211,153,.38); background:rgba(6,78,59,.34); }
+    .p-rose { color:#fecdd3; border:1px solid rgba(251,113,133,.38); background:rgba(136,19,55,.25); }
+    .p-amber { color:#fde68a; border:1px solid rgba(251,191,36,.38); background:rgba(120,53,15,.25); }
+    .callout { margin:18px 0; padding:18px 20px; border:1px solid rgba(251,113,133,.38); border-radius:11px; background:linear-gradient(90deg,rgba(136,19,55,.25),rgba(15,23,42,.65)); }
+    .callout strong { color:#fecdd3; }
+    .sequence { display:grid; grid-template-columns:repeat(4,1fr); gap:11px; margin:17px 0; }
+    .step { position:relative; padding:15px; border:1px solid #334155; border-radius:10px; background:#0b1425; }
+    .step:after { content:"→"; position:absolute; right:-12px; top:39%; color:var(--slate); font-size:18px; }
+    .step:last-child:after { display:none; }
+    .step b { display:block; color:var(--cyan); margin-bottom:6px; font-size:12px; }
+    .step span { color:var(--muted); font-size:11px; }
+    .verdict { margin-top:22px; padding:27px; border:1px solid rgba(52,211,153,.48); border-radius:14px; background:linear-gradient(135deg,rgba(6,78,59,.32),rgba(15,23,42,.92)); }
+    .verdict p { margin:8px 0 0; color:#d1fae5; font-size:16px; }
+    .footer { padding:26px 4px 0; color:#64748b; font-size:10px; text-align:center; }
+    @media(max-width:900px) { .summary-grid,.two-col,.sequence { grid-template-columns:1fr 1fr; } .record-compare { grid-template-columns:1fr; } .record-card pre { min-height:0; } .step:nth-child(2):after { display:none; } }
+    @media(max-width:620px) { .container{width:min(100% - 18px,1240px)} .hero{padding:34px 22px 28px} .section{padding:20px 15px} .summary-grid,.two-col,.sequence{grid-template-columns:1fr} .step:after{display:none} .toolbar-actions{position:absolute;right:0;top:40px;flex-direction:column} }
+    @media print { .toolbar { display:none!important; } body{background:#020617!important;-webkit-print-color-adjust:exact;print-color-adjust:exact} .section{break-inside:avoid} }
   </style>
 </head>
-<body><main>
-  <div class="eyebrow">OpenGU · Remote acceptance · 2026-07-15</div>
-  <h1>AutoReport V3</h1>
-  <p class="meta">Branch <code>codex/autoreport-v3-20260714</code> · accepted tip <code>ef1def3</code> · active 4090 checkout</p>
-  <div class="verdict">PASS — REMOTE DEPLOYED, TERMINAL CONSISTENCY VERIFIED</div>
-  <p>AutoReport V3 is active on the server. Its append-only machine stream, bounded human views, retry chain, Cache provenance, and legacy archive boundary passed local regression and a real failure-path probe.</p>
+<body>
+  <div class="container" id="report-container">
+    <header class="hero">
+      <div class="toolbar">
+        <div class="toolbar-actions">
+          <button onclick="copyAsImage()">复制 PNG</button>
+          <button onclick="downloadPNG()">下载 PNG</button>
+          <button onclick="downloadPDF()">导出 PDF</button>
+        </div>
+        <button class="toolbar-toggle" aria-label="导出菜单" onclick="this.parentElement.classList.toggle('open')">⋮</button>
+      </div>
+      <div class="eyebrow"><span class="pulse"></span>AutoReport update · 2026-07-15</div>
+      <h1>AutoReport V3<br>改进汇报</h1>
+      <p class="lead">这份报告只回答一件事：我把原来的 AutoReport 改成了什么架构，以及正常、失败、重试、Cache、Legacy 和坏日志等情境分别在哪里分叉。</p>
+      <div class="thesis"><strong>核心演化：</strong>多个脚本直接追加 Markdown → 统一身份的阶段事件 → 可信 append-only 审计流 → 可重建状态视图。</div>
+      <div class="scope">
+        <span class="tag good">IN · AutoReport architecture</span>
+        <span class="tag good">IN · scenario branches</span>
+        <span class="tag good">IN · design guarantees</span>
+        <span class="tag out">OUT · research findings</span>
+        <span class="tag out">OUT · AutoReport page design</span>
+        <span class="tag out">OUT · experiment planning</span>
+      </div>
+    </header>
 
-  <div class="cards">
-    <div class="card"><span>Focused tests, local + remote</span><strong>32 + 32</strong></div>
-    <div class="card"><span>Distinct local regression union</span><strong>233 passed</strong><span>3 known baseline tests deselected</span></div>
-    <div class="card"><span>Live V3 stream</span><strong>16 events</strong><span>0 parse warnings</span></div>
-    <div class="card warn"><span>Latest live attempt</span><strong>failed</strong><span>correct fail-fast; no false completion</span></div>
+    <div class="summary-grid">
+      <div class="metric"><span class="k">Authority</span><span class="v">Markdown → JSONL</span><p>阅读页面不再充当机器审计原件。</p></div>
+      <div class="metric"><span class="k">State</span><span class="v">标签 → 状态机</span><p>selection / attack / collateral / run 分阶段收敛。</p></div>
+      <div class="metric"><span class="k">Identity</span><span class="v">row → cell/run</span><p>区分实验坐标、真实 attempt、配置与代码。</p></div>
+      <div class="metric"><span class="k">Failure policy</span><span class="v">best effort → closed</span><p>矛盾终态、坏流与身份冲突均拒绝继续。</p></div>
+    </div>
+
+    <section class="section" id="architecture">
+      <div class="section-head"><span class="num">1</span><div><h2>原架构与新架构</h2><p class="sub">变化的重点不是文件格式，而是事实、状态、历史与展示的职责拆分。</p></div></div>
+      <div class="diagram">
+        <svg viewBox="0 0 1180 610" role="img" aria-label="AutoReport 旧架构与 V3 架构对比">
+          <defs>
+            <pattern id="grid1" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#1e293b" stroke-width=".6"/></pattern>
+            <marker id="arr1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+            <marker id="arrC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#22d3ee"/></marker>
+            <marker id="arrE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+            <marker id="arrV" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#a78bfa"/></marker>
+            <marker id="arrA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24"/></marker>
+          </defs>
+          <rect width="1180" height="610" fill="#020617"/><rect width="1180" height="610" fill="url(#grid1)"/>
+          <rect x="620" y="86" width="545" height="224" rx="12" fill="#07111f" stroke="#1e3a5f"/>
+          <rect x="620" y="332" width="545" height="180" rx="12" fill="#07111f" stroke="#24324a"/>
+
+          <!-- arrows first -->
+          <g fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arr1)">
+            <path d="M170 170 C245 170 250 270 330 270"/><path d="M170 270H330"/><path d="M170 370 C245 370 250 270 330 270"/>
+            <path d="M425 310V410"/>
+          </g>
+          <path d="M765 210H805" fill="none" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrC)"/>
+          <path d="M950 210H990" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrE)"/>
+          <path d="M1067 290V320H910V370" fill="none" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrV)"/>
+          <path d="M785 427H835" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrA)"/>
+          <path d="M985 427H1035" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrE)"/>
+
+          <text x="50" y="53" fill="#fb7185" font-size="20" font-weight="700">原来 · direct Markdown append</text>
+          <text x="625" y="53" fill="#34d399" font-size="20" font-weight="700">现在 · event audit + state projection</text>
+          <line x1="590" y1="76" x2="590" y2="565" stroke="#334155" stroke-dasharray="7 7"/>
+
+          <g>
+            <rect x="55" y="130" width="115" height="76" rx="8" fill="#0f172a"/><rect x="55" y="130" width="115" height="76" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="112" y="160" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">run.py</text><text x="112" y="182" fill="#94a3b8" font-size="9" text-anchor="middle">独立写入</text>
+            <rect x="55" y="230" width="115" height="76" rx="8" fill="#0f172a"/><rect x="55" y="230" width="115" height="76" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="112" y="260" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">demo_attack</text><text x="112" y="282" fill="#94a3b8" font-size="9" text-anchor="middle">独立写入</text>
+            <rect x="55" y="330" width="115" height="76" rx="8" fill="#0f172a"/><rect x="55" y="330" width="115" height="76" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="112" y="360" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">collateral</text><text x="112" y="382" fill="#94a3b8" font-size="9" text-anchor="middle">独立写入</text>
+
+            <rect x="330" y="215" width="190" height="110" rx="9" fill="#0f172a"/><rect x="330" y="215" width="190" height="110" rx="9" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.8"/>
+            <text x="425" y="252" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">Markdown writer</text><text x="425" y="278" fill="#fecdd3" font-size="9" text-anchor="middle">flat status + text template</text><text x="425" y="298" fill="#94a3b8" font-size="8" text-anchor="middle">无 shared run identity</text>
+            <rect x="330" y="410" width="190" height="105" rx="9" fill="#0f172a"/><rect x="330" y="410" width="190" height="105" rx="9" fill="rgba(136,19,55,.35)" stroke="#fb7185" stroke-width="1.8"/>
+            <text x="425" y="447" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">auto_report.md</text><text x="425" y="474" fill="#fecdd3" font-size="9" text-anchor="middle">事实 + 历史 + 状态 + 页面</text><text x="425" y="494" fill="#94a3b8" font-size="8" text-anchor="middle">单文件承担四种职责</text>
+          </g>
+
+          <g>
+            <text x="640" y="112" fill="#67e8f9" font-size="9" font-weight="700" letter-spacing="1.5">01 · AUDIT PIPELINE</text>
+            <text x="640" y="354" fill="#c4b5fd" font-size="9" font-weight="700" letter-spacing="1.5">02 · PROJECTION PIPELINE</text>
+
+            <rect x="640" y="130" width="125" height="160" rx="10" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="702" y="154" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Producers</text>
+            <text x="702" y="168" fill="#67e8f9" font-size="7" text-anchor="middle">emit stage facts</text>
+            <rect x="652" y="178" width="101" height="27" rx="5" fill="#082f49"/><text x="702" y="196" fill="#e0f2fe" font-size="8.5" text-anchor="middle">run.py · attempt</text>
+            <rect x="652" y="213" width="101" height="27" rx="5" fill="#082f49"/><text x="702" y="231" fill="#e0f2fe" font-size="8.5" text-anchor="middle">attack · stage</text>
+            <rect x="652" y="248" width="101" height="27" rx="5" fill="#082f49"/><text x="702" y="266" fill="#e0f2fe" font-size="8.5" text-anchor="middle">collateral · stage</text>
+
+            <rect x="805" y="130" width="145" height="160" rx="10" fill="#0f172a" stroke="#34d399" stroke-width="1.8"/>
+            <text x="877" y="154" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Event admission</text>
+            <text x="877" y="168" fill="#6ee7b7" font-size="7" text-anchor="middle">one guarded write path</text>
+            <rect x="817" y="178" width="121" height="20" rx="4" fill="#064e3b"/><text x="877" y="192" fill="#d1fae5" font-size="7.5" text-anchor="middle">schema + identity</text>
+            <rect x="817" y="203" width="121" height="20" rx="4" fill="#064e3b"/><text x="877" y="217" fill="#d1fae5" font-size="7.5" text-anchor="middle">semantic dedup</text>
+            <rect x="817" y="228" width="121" height="20" rx="4" fill="#064e3b"/><text x="877" y="242" fill="#d1fae5" font-size="7.5" text-anchor="middle">terminal guard</text>
+            <rect x="817" y="253" width="121" height="20" rx="4" fill="#064e3b"/><text x="877" y="267" fill="#d1fae5" font-size="7.5" text-anchor="middle">lock · fail-closed</text>
+
+            <rect x="990" y="130" width="155" height="160" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-width="1.8"/>
+            <text x="1067" y="157" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">events.jsonl</text>
+            <text x="1067" y="177" fill="#ddd6fe" font-size="8" text-anchor="middle">AUDIT AUTHORITY</text>
+            <line x1="1008" y1="192" x2="1127" y2="192" stroke="#4c1d95"/>
+            <text x="1067" y="216" fill="#c4b5fd" font-size="8" text-anchor="middle">typed transitions</text>
+            <text x="1067" y="238" fill="#c4b5fd" font-size="8" text-anchor="middle">append-only history</text>
+            <rect x="1010" y="252" width="115" height="23" rx="11" fill="#2e1065"/><text x="1067" y="267" fill="#ede9fe" font-size="7.5" font-weight="700" text-anchor="middle">SOURCE OF TRUTH</text>
+
+            <rect x="640" y="370" width="145" height="115" rx="10" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="6 4"/>
+            <text x="712" y="399" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Frozen archive</text>
+            <text x="712" y="420" fill="#fde68a" font-size="8" text-anchor="middle">+ curated baseline</text>
+            <rect x="654" y="443" width="117" height="23" rx="11" fill="#451a03"/><text x="712" y="458" fill="#fef3c7" font-size="7.5" text-anchor="middle">read-only legacy input</text>
+
+            <rect x="835" y="370" width="150" height="115" rx="10" fill="#0f172a" stroke="#34d399" stroke-width="1.8"/>
+            <text x="910" y="399" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">State projector</text>
+            <text x="910" y="420" fill="#a7f3d0" font-size="8" text-anchor="middle">derive, never invent</text>
+            <rect x="849" y="443" width="58" height="23" rx="11" fill="#064e3b"/><text x="878" y="458" fill="#d1fae5" font-size="7" text-anchor="middle">failure-first</text>
+            <rect x="913" y="443" width="58" height="23" rx="11" fill="#064e3b"/><text x="942" y="458" fill="#d1fae5" font-size="7" text-anchor="middle">bounded</text>
+
+            <rect x="1035" y="370" width="110" height="115" rx="10" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="1090" y="399" fill="#fff" font-size="10.5" font-weight="700" text-anchor="middle">Human views</text>
+            <text x="1090" y="420" fill="#67e8f9" font-size="7.5" text-anchor="middle">derived only</text>
+            <rect x="1046" y="443" width="39" height="25" rx="5" fill="#082f49"/><text x="1065" y="460" fill="#e0f2fe" font-size="8" font-weight="700" text-anchor="middle">MD</text>
+            <rect x="1095" y="443" width="39" height="25" rx="5" fill="#082f49"/><text x="1114" y="460" fill="#e0f2fe" font-size="8" font-weight="700" text-anchor="middle">HTML</text>
+          </g>
+
+          <rect x="52" y="550" width="468" height="36" rx="6" fill="rgba(136,19,55,.18)" stroke="#fb7185"/><text x="286" y="573" fill="#fecdd3" font-size="10" text-anchor="middle">问题：任何一段“成功文字”都可能被误读为整次运行成功</text>
+          <rect x="625" y="550" width="535" height="36" rx="6" fill="rgba(6,78,59,.18)" stroke="#34d399"/><text x="892" y="573" fill="#a7f3d0" font-size="10" text-anchor="middle">结果：事实可审计、状态可推导、页面可重建、矛盾终态不可接受</text>
+        </svg>
+      </div>
+      <p class="caption">图 1 · 旧架构把事实和页面耦合；V3 将 producer、事件存储、状态投影和 legacy 边界分开。</p>
+
+      <h3>同一个失败，文本到底差在哪</h3>
+      <p class="sub">说明性实例：结构来自真实 pre-V3 模板与 V3 事件合同；场景为 cora / GCN / GIF / degree 的 attack 产物缺失或为空。时间、ID 和长哈希已缩写，V3 只展示关键字段。</p>
+      <div class="record-compare">
+        <article class="record-card old">
+          <div class="record-head"><span class="record-badge old">OLD · MARKDOWN</span><strong>一段文字直接给脚本下结论</strong></div>
+          <pre><code>### [2026-07-15 10:42:10] demo_attack.py
+- 任务：dataset=cora, model=GCN,
+  method=GIF, ratio=0.05
+- 日志路径：`log/...`
+- 执行结果：X | f1_before=NA |
+  f1_after=NA | auc=NA |
+  unlearn_time=NA | wall_time=42.18s
+- 异常与定位：INVALID_ATTACK_ARTIFACT:
+  attack result missing or empty
+- 下一步建议：
+  打开日志定位根因并重跑该配置。</code></pre>
+          <p class="record-read"><strong>读得到：</strong>这个脚本报错。<br><strong>读不到：</strong>第几次 attempt、属于哪个 run、collateral 是否已停止、后面会不会又出现一段 <code>OK</code>。</p>
+        </article>
+        <article class="record-card new">
+          <div class="record-head"><span class="record-badge new">V3 · EVENT STREAM</span><strong>同一 run 的 typed 阶段事实</strong></div>
+          <pre><code>{"event_type":"run.started",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "identity":{"dataset":"cora","model":"GCN",
+   "method":"GIF","strategy":"degree",
+   "ratio":"0.05","seed":42},
+ "config_fingerprint":"…","git_sha":"…"}
+
+{"event_type":"attack.failed",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "error":{"type":"INVALID_ATTACK_ARTIFACT",
+   "message":"attack result missing or empty"}}
+
+{"event_type":"run.failed",
+ "cell_id":"cell_…","run_id":"run_…",
+ "attempt":3,
+ "error":{"type":"INVALID_ATTACK_ARTIFACT"}}</code></pre>
+          <p class="record-read"><strong>能验证：</strong>三条事实属于同一 run / attempt；失败发生在 attack；<code>run.failed</code> 收口；没有 collateral event，也没有 <code>run.completed</code>。</p>
+        </article>
+      </div>
+      <p class="record-note"><strong>变化不是“Markdown 换成 JSON”：</strong>旧版留下一个脚本结论；V3 留下可关联、可拒绝矛盾终态、可重新投影的运行证据。</p>
+    </section>
+
+    <section class="section" id="changes">
+      <div class="section-head"><span class="num">2</span><div><h2>我做的七项关键改进</h2><p class="sub">每项改动都对应旧系统的一类结构性歧义。</p></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>原问题</th><th>架构决策</th><th>得到的能力</th></tr></thead>
+        <tbody>
+          <tr><td>实验坐标与执行次数混在文字里</td><td><code>cell_id</code> 与 <code>run_id/attempt</code> 分离，配置与代码单独 fingerprint</td><td>能区分重试、重跑和实验定义变化</td></tr>
+          <tr><td>平面 <code>OK/X</code> 无法描述部分完成</td><td>selection / attack / collateral / run 状态机</td><td>知道具体停在哪个阶段</td></tr>
+          <tr><td><code>Cache HIT</code> 语义模糊</td><td>类型、来源、Recipe、Artifact、authority、write outcome</td><td>Cache 事实可追溯，不夸大历史复用</td></tr>
+          <tr><td>retry 与重复条目无法关联</td><td>新 run、递增 attempt、<code>retry_of</code>、稳定 dedup</td><td>保留失败历史，同时压缩真正重复</td></tr>
+          <tr><td>并发 writer 可能互相覆盖视图</td><td>append 与 refresh 共用排他锁</td><td>投影不会倒退到旧事件</td></tr>
+          <tr><td>旧日志无法满足新 schema</td><td>逐字节冻结 archive + curated baseline</td><td>保留历史但不制造 V3 完成态</td></tr>
+          <tr><td>Markdown 既是数据又是页面</td><td>JSONL 权威 + projector + bounded MD/HTML</td><td>页面可重建，审计事实不依赖页面</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="two-col" style="margin-top:14px">
+        <article class="card accent-cyan"><h3>身份模型</h3><ul><li><code>cell_id</code>：稳定实验坐标</li><li><code>run_id</code>：一次真实执行</li><li><code>attempt/retry_of</code>：失败链路</li><li><code>config_fingerprint/git_sha</code>：运行语义与代码来源</li></ul></article>
+        <article class="card accent-violet"><h3>Cache 真值规则</h3><p>ResultCache 整体命中时，只报告本次 result reuse；不会把缓存对象中的历史 SelectionCache HIT 重放成本次 selection 事实。</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="branches">
+      <div class="section-head"><span class="num">3</span><div><h2>不同情境下，系统在哪里分叉</h2><p class="sub">控制流先判断“是否应执行”，再进入 attempt 状态机；任何失败分支都不能回流到 completed。</p></div></div>
+      <div class="diagram">
+        <svg viewBox="0 0 1180 1060" role="img" aria-label="AutoReport V3 情境分叉图">
+          <defs>
+            <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#1e293b" stroke-width=".6"/></pattern>
+            <marker id="arr2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#64748b"/></marker>
+            <marker id="arrG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#34d399"/></marker>
+            <marker id="arrR" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fb7185"/></marker>
+            <marker id="arrP" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#a78bfa"/></marker>
+          </defs>
+          <rect width="1180" height="1060" fill="#020617"/><rect width="1180" height="1060" fill="url(#grid2)"/>
+
+          <!-- connections -->
+          <g fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arr2)">
+            <path d="M590 80V125"/><path d="M590 195V245"/>
+            <path d="M510 160H300"/><path d="M510 280H300"/>
+            <path d="M590 315V360"/><path d="M590 430V485"/>
+            <path d="M590 555V610"/><path d="M590 680V725"/>
+            <path d="M590 795V840"/><path d="M510 875H300"/>
+            <path d="M590 910V950"/><path d="M500 985H300"/>
+          </g>
+          <path d="M680 395H920" fill="none" stroke="#fb7185" stroke-width="1.8" stroke-dasharray="7 5" marker-end="url(#arrR)"/>
+          <path d="M680 645H800V592H920" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-dasharray="7 5" marker-end="url(#arrP)"/>
+          <path d="M670 760H920" fill="none" stroke="#fb7185" stroke-width="2.5" marker-end="url(#arrR)"/>
+          <path d="M680 985 C790 985 815 850 920 815" fill="none" stroke="#fb7185" stroke-width="2.5" marker-end="url(#arrR)"/>
+          <path d="M590 195V245" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrG)"/>
+          <path d="M590 795V840" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrG)"/>
+
+          <!-- main spine -->
+          <rect x="500" y="30" width="180" height="50" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.7"/><text x="590" y="60" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">runner receives cell</text>
+          <polygon points="590,125 670,160 590,195 510,160" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.7"/><text x="590" y="165" fill="#fde68a" font-size="10" font-weight="700" text-anchor="middle">dry-run?</text>
+          <rect x="110" y="125" width="190" height="70" rx="8" fill="#0f172a" stroke="#94a3b8"/><text x="205" y="155" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">would_run</text><text x="205" y="178" fill="#94a3b8" font-size="8" text-anchor="middle">不写任何事件</text>
+          <text x="395" y="150" fill="#94a3b8" font-size="8">YES</text><text x="604" y="222" fill="#a7f3d0" font-size="8">NO</text>
+
+          <polygon points="590,245 670,280 590,315 510,280" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.7"/><text x="590" y="275" fill="#fde68a" font-size="9" font-weight="700" text-anchor="middle">complete / legacy?</text><text x="590" y="292" fill="#fde68a" font-size="8" text-anchor="middle">fingerprint + artifacts</text>
+          <rect x="110" y="245" width="190" height="70" rx="8" fill="#0f172a" stroke="#a78bfa"/><text x="205" y="275" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">run.skipped</text><text x="205" y="298" fill="#ddd6fe" font-size="8" text-anchor="middle">authority / legacy 明确标注</text>
+          <text x="395" y="270" fill="#94a3b8" font-size="8">YES</text><text x="604" y="340" fill="#94a3b8" font-size="8">NO</text>
+
+          <rect x="500" y="360" width="180" height="70" rx="8" fill="#0f172a" stroke="#fb923c" stroke-width="1.7"/><text x="590" y="388" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">attempt context</text><text x="590" y="410" fill="#fed7aa" font-size="8" text-anchor="middle">new run_id · retry? attempt+1 + retry_of</text>
+          <rect x="500" y="485" width="180" height="70" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.7"/><text x="590" y="514" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">run.started</text><text x="590" y="537" fill="#a5f3fc" font-size="8" text-anchor="middle">identity envelope propagated</text>
+          <rect x="500" y="610" width="180" height="70" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.7"/><text x="590" y="638" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">selection → attack</text><text x="590" y="660" fill="#a7f3d0" font-size="8" text-anchor="middle">computed / typed Cache reuse</text>
+
+          <polygon points="590,725 670,760 590,795 510,760" fill="rgba(120,53,15,.35)" stroke="#fbbf24" stroke-width="1.7"/><text x="590" y="755" fill="#fde68a" font-size="9" font-weight="700" text-anchor="middle">attack valid?</text><text x="590" y="772" fill="#fde68a" font-size="8" text-anchor="middle">rc + artifact semantics</text>
+          <polygon points="590,840 670,875 590,910 510,875" fill="rgba(6,78,59,.38)" stroke="#34d399" stroke-width="1.7"/><text x="590" y="870" fill="#a7f3d0" font-size="9" font-weight="700" text-anchor="middle">collateral required?</text><text x="590" y="887" fill="#a7f3d0" font-size="8" text-anchor="middle">expected stages from config</text>
+
+          <rect x="110" y="840" width="190" height="70" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.8"/><text x="205" y="870" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">run.completed</text><text x="205" y="893" fill="#a7f3d0" font-size="8" text-anchor="middle">attack-only is expected</text>
+          <rect x="500" y="950" width="180" height="70" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.7"/><text x="590" y="978" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">collateral stage</text><text x="590" y="1000" fill="#a7f3d0" font-size="8" text-anchor="middle">started → completed / failed</text>
+          <rect x="110" y="950" width="190" height="70" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="1.8"/><text x="205" y="980" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">run.completed</text><text x="205" y="1003" fill="#a7f3d0" font-size="8" text-anchor="middle">collateral completed</text>
+
+          <rect x="920" y="725" width="210" height="115" rx="9" fill="#0f172a" stroke="#fb7185" stroke-width="1.8"/><text x="1025" y="758" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">run.failed</text><text x="1025" y="783" fill="#fecdd3" font-size="8" text-anchor="middle">attack / collateral failure</text><text x="1025" y="805" fill="#fecdd3" font-size="8" text-anchor="middle">STOP · no later completed</text>
+
+          <rect x="920" y="350" width="210" height="145" rx="9" fill="rgba(136,19,55,.18)" stroke="#fb7185" stroke-dasharray="6 4"/>
+          <text x="1025" y="380" fill="#fecdd3" font-size="9" font-weight="700" text-anchor="middle">Cross-cutting append guard</text><text x="1025" y="410" fill="#94a3b8" font-size="8" text-anchor="middle">identity mismatch</text><text x="1025" y="432" fill="#94a3b8" font-size="8" text-anchor="middle">corrupt / tampered stream</text><text x="1025" y="454" fill="#94a3b8" font-size="8" text-anchor="middle">terminal conflict</text><text x="1025" y="477" fill="#fecdd3" font-size="8" text-anchor="middle">→ fail-closed · no append</text>
+          <rect x="920" y="520" width="210" height="145" rx="9" fill="rgba(76,29,149,.18)" stroke="#a78bfa" stroke-dasharray="6 4"/>
+          <text x="1025" y="550" fill="#ddd6fe" font-size="9" font-weight="700" text-anchor="middle">Cache truth guard</text><text x="1025" y="580" fill="#c4b5fd" font-size="8" text-anchor="middle">Selection Artifact → authoritative reuse</text><text x="1025" y="610" fill="#c4b5fd" font-size="8" text-anchor="middle">ResultCache HIT → result fact only</text><text x="1025" y="638" fill="#94a3b8" font-size="8" text-anchor="middle">never replay historical selection HIT</text>
+          <text x="700" y="750" fill="#fecdd3" font-size="8">NO</text><text x="605" y="820" fill="#a7f3d0" font-size="8">YES</text><text x="395" y="865" fill="#a7f3d0" font-size="8">NO</text><text x="605" y="935" fill="#a7f3d0" font-size="8">YES</text><text x="395" y="975" fill="#a7f3d0" font-size="8">SUCCESS</text><text x="780" y="940" fill="#fecdd3" font-size="8">FAIL</text>
+        </svg>
+      </div>
+      <p class="caption">图 2 · 灰色分支为不执行/复用，红色分支统一收敛到 failed，绿色分支只有在所有期望阶段成功后才到 completed。</p>
+
+      <div class="table-wrap" style="margin-top:16px"><table>
+        <thead><tr><th>情境</th><th>分叉点</th><th>系统行为</th><th>禁止行为</th></tr></thead>
+        <tbody>
+          <tr><td>dry-run</td><td>runner 入口</td><td>返回 <code>would_run</code></td><td>写入事件</td></tr>
+          <tr><td>完整 cell 未变化</td><td>fingerprint + artifacts</td><td>一次权威 <code>run.skipped</code></td><td>重复刷屏</td></tr>
+          <tr><td>Legacy 无 fingerprint</td><td>legacy 判定</td><td>non-authoritative skip</td><td>提升为 V3 complete</td></tr>
+          <tr><td>失败后重试</td><td>prior attempt</td><td>新 run + attempt+1 + retry_of</td><td>覆盖第一次失败</td></tr>
+          <tr><td>attack rc 非零或 artifact 语义无效</td><td>attack gate</td><td><code>attack.failed + run.failed</code></td><td>进入 collateral</td></tr>
+          <tr><td>collateral 失败</td><td>collateral gate</td><td><code>collateral.failed + run.failed</code></td><td><code>run.completed</code></td></tr>
+          <tr><td>终态冲突</td><td>transition guard</td><td>拒绝追加</td><td>同 run 既 failed 又 completed</td></tr>
+          <tr><td>JSONL 损坏/篡改/身份冲突</td><td>append validation</td><td>fail-closed，历史不变</td><td>带病继续写入</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="probe">
+      <div class="section-head"><span class="num">4</span><div><h2>真实探针暴露并修掉的终态漏洞</h2><p class="sub">这是本次改进最重要的闭环：事件系统不只记录事实，还必须拒绝互相矛盾的事实。</p></div></div>
+      <div class="callout"><strong>旧矛盾序列：</strong>producer 已写 <code>attack.failed</code>，但因为返回码仍为 0，runner 继续 collateral，最后又写出 <code>run.completed</code>。</div>
+      <div class="sequence">
+        <div class="step"><b>1 · Producer</b><span>无结果或 strategy failed 时，记录失败后非零退出。</span></div>
+        <div class="step"><b>2 · Runner</b><span>检查 rc，也检查 attack.json 是否非空、含目标 strategy 且未失败。</span></div>
+        <div class="step"><b>3 · Event store</b><span>非 run 阶段失败后，拒绝 completed / skipped 终态。</span></div>
+        <div class="step"><b>4 · Projector</b><span>对历史矛盾流采用 failure-first，保留原字节但显示 failed。</span></div>
+      </div>
+      <div class="two-col">
+        <article class="card accent-rose"><h3>修复前</h3><p><code>attack.failed → collateral → run.completed</code></p><p>问题不是页面显示错误，而是 orchestration、事件合同和投影规则没有共同守住终态。</p></article>
+        <article class="card accent-emerald"><h3>修复后 · attempt 3</h3><p><code>attack.failed → run.failed → STOP</code></p><p>Legacy Cache freeze 再次导致无 attack result；没有 collateral，没有 false completion。</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="guarantees">
+      <div class="section-head"><span class="num">5</span><div><h2>现在成立的设计保证</h2><p class="sub">这些是架构承诺；测试数字只在下一节证明它们。</p></div></div>
+      <div class="two-col">
+        <article class="card accent-cyan"><h3>身份与重试</h3><ul><li>同一 cell 的 attempts 可区分</li><li>retry 显式链接上次失败</li><li>配置与代码来源独立记录</li></ul></article>
+        <article class="card accent-rose"><h3>终态一致性</h3><ul><li>阶段失败不能伪装成整次成功</li><li>冲突 terminal transition 被拒绝</li><li>历史矛盾在投影时失败优先</li></ul></article>
+        <article class="card accent-violet"><h3>审计与 Cache 真值</h3><ul><li>JSONL 是唯一机器权威</li><li>Cache 来源、Recipe、Artifact 可追溯</li><li>Legacy 永远标注 non-authoritative</li></ul></article>
+        <article class="card accent-emerald"><h3>恢复与并发</h3><ul><li>MD/HTML 可从事实重建</li><li>坏流 fail-closed</li><li>append 与 refresh 锁内串行</li></ul></article>
+      </div>
+    </section>
+
+    <section class="section" id="scope">
+      <div class="section-head"><span class="num">6</span><div><h2>边界与实现落点</h2><p class="sub">这次只改 AutoReport 的事实、状态和投影链路。</p></div></div>
+      <div class="two-col">
+        <article class="card accent-emerald"><h3>本次确实完成</h3><ul><li>事件 schema、identity、dedup、lock</li><li>runner 阶段编排与 artifact semantic gate</li><li>typed Cache provenance</li><li>frozen archive + curated baseline</li><li>failure-first bounded projection</li></ul></article>
+        <article class="card accent-rose"><h3>本次明确没有做</h3><ul><li>没有改变 TracIn/GIF/IM 算法</li><li>没有把 sanity 失败提升为研究证据</li><li>没有重写旧历史</li><li>没有把整条 Cache V2 开发线算作 AutoReport</li><li>没有把页面美化当成架构主体</li></ul></article>
+      </div>
+      <div class="table-wrap" style="margin-top:14px"><table>
+        <thead><tr><th>责任</th><th>实现</th></tr></thead>
+        <tbody>
+          <tr><td>schema / identity / dedup / lock / terminal guard</td><td><code>scripts/evaluation/reporting/events.py</code></td></tr>
+          <tr><td>producer adapters / Cache provenance / legacy writer freeze</td><td><code>scripts/evaluation/reporting/writer.py</code></td></tr>
+          <tr><td>状态推导和 bounded views</td><td><code>scripts/evaluation/reporting/summary.py</code></td></tr>
+          <tr><td>attempt owner 与阶段 gate</td><td><code>experiments/run.py</code></td></tr>
+          <tr><td>attack / collateral producer 终态</td><td><code>demo_attack.py</code> · <code>eval_collateral.py</code></td></tr>
+          <tr><td>合同与历史边界</td><td><code>docs/auto_report_v3_DESIGN.md</code> · <code>results/_journal/RULES.md</code></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="evidence">
+      <div class="section-head"><span class="num">7</span><div><h2>保证证据 · 附带</h2><p class="sub">测试不是主叙事；这里只说明上述架构承诺已经被执行路径覆盖。</p></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>架构承诺</th><th>证据</th></tr></thead>
+        <tbody>
+          <tr><td>event / identity / dedup / retry / Cache / projector</td><td><span class="pill p-green">本地专项 32 passed</span></td></tr>
+          <tr><td>与 runner / attack / collateral / Cache V2 协同</td><td><span class="pill p-green">联合回归 233 passed</span> <span class="pill p-amber">3 baseline stubs deselected</span></td></tr>
+          <tr><td>部署环境一致</td><td><span class="pill p-green">远端专项 32 passed</span></td></tr>
+          <tr><td>真实失败闭环</td><td>attempt 3：failed，且没有 collateral / false completion</td></tr>
+          <tr><td>append / projection 完整性</td><td>远端 16 events · 0 parse warnings</td></tr>
+          <tr><td>legacy 不变性</td><td>19,020 lines · 2,015 entries · SHA-256 preserved</td></tr>
+        </tbody>
+      </table></div>
+      <h3>主要实现提交</h3>
+      <div class="sequence">
+        <div class="step"><b>c576b30</b><span>V3 event core</span></div>
+        <div class="step"><b>0d5f7d6</b><span>runtime provenance</span></div>
+        <div class="step"><b>ba80175 / fa67c13</b><span>cutover + Cache semantics</span></div>
+        <div class="step"><b>e0c9f0c</b><span>terminal consistency</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="limits">
+      <div class="section-head"><span class="num">8</span><div><h2>已知边界</h2><p class="sub">这些不推翻本次架构结论，但属于后续演进需要继续守住的约束。</p></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>边界</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>append 前仍线性扫描并验证 JSONL；未来索引必须能从 JSONL 重建。</td></tr>
+          <tr><td>2</td><td>pre-fix 的矛盾 attempt 保留为不可变审计证据；projector 显示 failed，attempt 3 提供运行修正。</td></tr>
+          <tr><td>3</td><td>standalone producer 与 runner-managed attempt 的语义压缩规则必须持续区分。</td></tr>
+          <tr><td>4</td><td>AutoReport 保证事实与状态正确，不保证某个具体实验一定成功。</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <div class="verdict">
+      <div class="eyebrow"><span class="pulse"></span>Architecture outcome</div>
+      <p><strong>我完成的不是报告模板美化，而是职责拆分：</strong>AutoReport 已从“把运行文本追加到 Markdown”，演化为“带统一身份、阶段状态机、Cache provenance、终态约束和可重建视图的实验审计系统”。</p>
+    </div>
+    <div class="footer">AutoReport V3 improvement report · Source of truth: docs/auto_report_v3_ACCEPTANCE_REPORT.md · Runtime accepted tip: ef1def3</div>
   </div>
 
-  <div class="callout">Attempt 3 stopped after attack failure in 8.2 seconds. It produced no collateral event and no <code>run.completed</code>, proving the corrected terminal contract on the deployed server.</div>
-
-  <h2>Why the final fix was needed</h2>
-  <div class="table"><table><thead><tr><th>Observed gap</th><th>Accepted correction</th></tr></thead><tbody>
-    <tr><td>An empty attack result could be followed by collateral and a false run completion</td><td><code>demo_attack.py</code> exits nonzero and the runner validates the semantic contents of <code>attack.json</code> before collateral</td></tr>
-    <tr><td>A run could attempt completion after a failed stage</td><td>The event layer rejects <code>run.completed</code> / <code>run.skipped</code> after stage failure</td></tr>
-    <tr><td>An already-recorded contradictory sequence projected as complete</td><td>Failure now takes precedence in the bounded status view while JSONL remains immutable</td></tr>
-    <tr><td>Retries needed durable linkage</td><td>Attempts retain <code>retry_of</code>, incremented attempt, and per-stage history</td></tr>
-  </tbody></table></div>
-
-  <h2>Live probe evidence</h2>
-  <p>The probe used <code>sanity_one_cell.yaml</code> for Cora/GCN/GIF/random/seed42. The previous leaf was backed up under <code>/autodl-fs/data/OpenGU/_backups/autoreport_sanity_before_fa67c13_20260715</code>.</p>
-  <div class="table"><table><thead><tr><th>Attempt</th><th>Observation</th><th>Recorded outcome</th></tr></thead><tbody>
-    <tr><td>1</td><td>Attack subprocess returned nonzero</td><td class="failed">attack.failed + run.failed</td></tr>
-    <tr><td>2</td><td>Pre-fix empty attack result continued into collateral</td><td>Exposed the final terminal-consistency gap; retained as immutable audit evidence</td></tr>
-    <tr><td>3</td><td>Post-fix Legacy Cache freeze prevented a result</td><td class="ok">Correct fail-fast: attack.failed + run.failed; no collateral; no completion</td></tr>
-  </tbody></table></div>
-  <div class="callout risk">Legacy Cache freeze is intentional Cache V2 policy. The accepted reporting behavior is to record this failure accurately, not to relabel the failed experiment as successful.</div>
-
-  <h2>Validation</h2>
-  <div class="table"><table><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody>
-    <tr><td><code>tests/test_auto_report_v3.py</code>, local</td><td class="ok">32 passed</td></tr>
-    <tr><td>Runner, attack, evaluation, demo, collateral, Cache V2, and legacy-freeze union</td><td class="ok">233 passed, 3 known baseline tests deselected</td></tr>
-    <tr><td><code>tests/test_auto_report_v3.py</code>, remote</td><td class="ok">32 passed</td></tr>
-    <tr><td>Compilation and <code>git diff --check</code></td><td class="ok">passed</td></tr>
-    <tr><td>Pre-fix stream rebuilt by corrected projector</td><td>11 events, 0 warnings; false complete became <code>failed:attack</code></td></tr>
-    <tr><td>Post-fix live stream</td><td>16 events, 0 warnings; latest state <code>failed</code>, attempt 3</td></tr>
-    <tr><td>Frozen archive</td><td>980,451 bytes · 19,020 lines · 2,015 entries · SHA-256 preserved</td></tr>
-  </tbody></table></div>
-
-  <h2>Machine, human, and historical surfaces</h2>
-  <ul class="checklist">
-    <li><code>auto_report.events.jsonl</code> remains audit authority</li><li>Markdown and HTML remain bounded rebuildable views</li>
-    <li>Stage failures dominate false historical completion</li><li>Existing contradictory bytes are preserved, not rewritten</li>
-    <li>Cache type, authority, source, policy, and Recipe/Legacy key are visible</li><li>Whole ResultCache hits do not replay historical selection hits</li>
-    <li>Frozen v1/v2 archive retains verified integrity</li><li>Fixed next-step suggestions remain retired</li>
-  </ul>
-
-  <h2>Known boundaries</h2>
-  <ol>
-    <li>JSONL validation and dedup currently scan the stream; any future index must be read-only and rebuildable.</li>
-    <li>The pre-fix contradictory attempt remains immutable audit evidence and is superseded operationally by attempt 3.</li>
-    <li>Three unrelated collateral stub tests remain a known baseline gap.</li>
-    <li>The failed GIF sanity cell is reporting evidence, not promoted research evidence.</li>
-  </ol>
-  <footer>Source of truth: <code>docs/auto_report_v3_ACCEPTANCE_REPORT.md</code> · Design: <code>docs/auto_report_v3_DESIGN.md</code></footer>
-</main></body></html>
+  <script>
+    async function captureReport() {
+      const el = document.getElementById('report-container');
+      const rect = el.getBoundingClientRect();
+      return html2canvas(document.body, {
+        x: Math.max(0, rect.left + window.scrollX - 32),
+        y: Math.max(0, rect.top + window.scrollY - 32),
+        width: rect.width + 64,
+        height: rect.height + 64,
+        scale: 2,
+        backgroundColor: '#020617',
+        useCORS: true,
+        ignoreElements: node => node.classList && node.classList.contains('toolbar')
+      });
+    }
+    async function copyAsImage() {
+      const canvas = await captureReport();
+      canvas.toBlob(async blob => { await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]); }, 'image/png');
+    }
+    async function downloadPNG() {
+      const canvas = await captureReport();
+      const a = document.createElement('a'); a.download = 'autoreport-v3-improvement-report.png'; a.href = canvas.toDataURL('image/png'); a.click();
+    }
+    async function downloadPDF() {
+      const canvas = await captureReport();
+      const { jsPDF } = window.jspdf;
+      const landscape = canvas.width > canvas.height;
+      const pdf = new jsPDF({orientation: landscape ? 'landscape' : 'portrait', unit: 'px', format: [canvas.width, canvas.height]});
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('autoreport-v3-improvement-report.pdf');
+    }
+  </script>
+</body>
+</html>
