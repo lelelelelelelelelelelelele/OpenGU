@@ -152,6 +152,70 @@ def test_exact_transition_and_repeated_skip_are_deduplicated(tmp_path, monkeypat
     assert "Events parsed: 3" in html_path.read_text(encoding="utf-8")
 
 
+def test_run_cannot_complete_after_a_failed_stage(tmp_path, monkeypatch):
+    event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    identity = _identity()
+    cell_id = make_cell_id(identity)
+    run_id = new_run_id(cell_id)
+    failed = build_event(
+        identity=identity,
+        stage="attack",
+        state="failed",
+        producer="test",
+        config_fingerprint="fp-a",
+        git_sha="abc",
+        cell_id=cell_id,
+        run_id=run_id,
+        error={"type": "fixture", "message": "boom", "retryable": True},
+    )
+    append_event(failed, event_path=event_path)
+    completed = build_event(
+        identity=identity,
+        stage="run",
+        state="completed",
+        producer="test",
+        config_fingerprint="fp-a",
+        git_sha="abc",
+        cell_id=cell_id,
+        run_id=run_id,
+    )
+    with pytest.raises(EventValidationError, match="after attack.failed"):
+        append_event(completed, event_path=event_path)
+    events, warnings = read_event_stream(event_path)
+    assert warnings == []
+    assert [event["event_type"] for event in events] == ["attack.failed"]
+
+
+def test_failed_stage_dominates_inconsistent_historical_run_completion():
+    identity = _identity()
+    cell_id = make_cell_id(identity)
+    run_id = new_run_id(cell_id)
+    failed = build_event(
+        identity=identity,
+        stage="attack",
+        state="failed",
+        producer="test",
+        config_fingerprint="fp-a",
+        git_sha="abc",
+        cell_id=cell_id,
+        run_id=run_id,
+        error={"type": "fixture", "message": "boom", "retryable": True},
+    )
+    completed = build_event(
+        identity=identity,
+        stage="run",
+        state="completed",
+        producer="legacy-test",
+        config_fingerprint="fp-a",
+        git_sha="abc",
+        cell_id=cell_id,
+        run_id=run_id,
+    )
+    rows, total = build_status_rows([failed, completed])
+    assert total == 1
+    assert rows[0]["state"] == "failed:attack"
+
+
 def test_repeated_result_cache_hit_is_compressed_across_new_run_ids(tmp_path, monkeypatch):
     event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
     result = SimpleNamespace(
@@ -777,7 +841,10 @@ def test_runner_records_shared_run_id_and_retry(tmp_path, monkeypatch):
         calls["count"] += 1
         if calls["count"] == 1:
             return SimpleNamespace(returncode=7)
-        Path(command[command.index("--save_path") + 1]).write_text("{}", encoding="utf-8")
+        Path(command[command.index("--save_path") + 1]).write_text(
+            json.dumps({"results": {"degree": {"failed": False}}}),
+            encoding="utf-8",
+        )
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(runner.subprocess, "run", fake_run)
@@ -796,6 +863,45 @@ def test_runner_records_shared_run_id_and_retry(tmp_path, monkeypatch):
         if event["attempt"] == 2
     )
     assert events[-1]["event_type"] == "run.completed"
+
+
+def test_runner_rejects_empty_attack_payload_before_collateral(tmp_path, monkeypatch):
+    event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    out_dir = tmp_path / "cell"
+    monkeypatch.setattr(runner, "cell_dir", lambda *_args, **_kwargs: out_dir)
+    monkeypatch.setattr(runner, "_git_sha", lambda: "abc123")
+    cfg = {
+        "name": "fixture-empty-attack",
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "defaults": {"run_collateral": True},
+    }
+    calls = []
+
+    def fake_run(command, cwd, env):
+        calls.append(command)
+        Path(command[command.index("--save_path") + 1]).write_text(
+            json.dumps({"results": {}}), encoding="utf-8"
+        )
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+    assert runner.run_cell(
+        cfg, "GIF", "degree", 42, force=False, dry_run=False
+    ) == "failed_attack"
+    assert len(calls) == 1
+    events, warnings = read_event_stream(event_path)
+    assert warnings == []
+    assert events[-1]["event_type"] == "run.failed"
+    assert events[-1]["error"]["type"] == "INVALID_ATTACK_ARTIFACT"
+    assert not any(event["stage"] == "collateral" for event in events)
+    assert not any(event["event_type"] == "run.completed" for event in events)
 
 
 def test_runner_dry_run_emits_no_audit_event(tmp_path, monkeypatch):
@@ -857,7 +963,10 @@ def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_pat
     def fake_run(command, cwd, env):
         commands.append(command)
         child_envs.append(env)
-        Path(command[command.index("--save_path") + 1]).write_text("{}", encoding="utf-8")
+        Path(command[command.index("--save_path") + 1]).write_text(
+            json.dumps({"results": {"degree": {"failed": False}}}),
+            encoding="utf-8",
+        )
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(runner.subprocess, "run", fake_run)

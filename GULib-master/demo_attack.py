@@ -289,6 +289,10 @@ def main():
     except Exception as e:
         print(f"[AutoReport V3] Warning: Could not write events: {e}")
 
+    if not comparison.results:
+        print("\n[Demo] No attack result was produced.")
+        sys.exit(1)
+
     # Detect per-strategy failures and surface them via non-zero rc after the
     # failed terminal event has been recorded. Without this, run.py's
     # `failed_attack` gate is never tripped and the cell can falsely complete.
