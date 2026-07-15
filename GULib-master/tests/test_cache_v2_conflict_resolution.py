@@ -59,16 +59,16 @@ def _store(tmp_path):
 
 
 def _create_formal_conflict(store, recipe):
-    original = store.get_or_compute(
+    original = store.store_selection(
         recipe,
-        lambda: [1, 2],
+        [1, 2],
         num_nodes=5,
         candidate_nodes=CANDIDATES,
     )
     with pytest.raises(ArtifactConflictError) as caught:
-        store.observe_recomputation(
+        store.store_selection(
             recipe,
-            lambda: [1, 3],
+            [1, 3],
             num_nodes=5,
             candidate_nodes=CANDIDATES,
         )
@@ -137,12 +137,8 @@ def test_keep_existing_resolution_is_dry_run_then_write_once_and_reenables_hit(t
     assert resolved.resolved_conflict_count == 1
     assert resolved.resolved_conflicts[0]["resolution"]["action"] == "keep_existing"
 
-    hit = store.get_or_compute(
-        recipe,
-        lambda: (_ for _ in ()).throw(AssertionError("producer was called")),
-        num_nodes=5,
-        candidate_nodes=CANDIDATES,
-        fail_if_called=True,
+    hit = store.load_read_only(
+        recipe, 5, candidate_nodes=CANDIDATES, artifact_id=original.artifact_id
     )
     assert hit.hit is True
     assert hit.artifact_id == original.artifact_id
@@ -182,9 +178,9 @@ def test_new_conflict_after_resolution_blocks_again(tmp_path):
     ).hit is True
 
     with pytest.raises(ArtifactConflictError) as caught:
-        store.observe_recomputation(
+        store.store_selection(
             recipe,
-            lambda: [2, 3],
+            [2, 3],
             num_nodes=5,
             candidate_nodes=CANDIDATES,
         )

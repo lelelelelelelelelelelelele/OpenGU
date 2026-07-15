@@ -922,9 +922,9 @@ def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(
             "hit": True,
         }],
     }
-    import cache_v2.selection_materializer as materializer
+    import experiments.selection_producer as producer
 
-    monkeypatch.setattr(materializer, "materialize_selection", lambda **_kwargs: document)
+    monkeypatch.setattr(producer, "materialize_selection", lambda **_kwargs: document)
     mapping, observed = runner.prepare_cache_v2_selection(cfg, dry_run=False)
     assert observed is document
     assert set(mapping) == {("degree", 42), ("degree", 212)}
@@ -936,7 +936,7 @@ def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(
         runner.prepare_cache_v2_selection(bad, dry_run=False)
 
 
-def test_runner_fingerprint_includes_effective_v2_dataset_root(tmp_path):
+def test_runner_fingerprint_includes_effective_v2_store_root(tmp_path):
     runner = _load_experiment_runner()
     cfg = {
         "dataset": "cora",
@@ -947,12 +947,12 @@ def test_runner_fingerprint_includes_effective_v2_dataset_root(tmp_path):
         "seeds": [42],
         "cache_v2": {
             "mode": "selection",
-            "dataset_root": str(tmp_path / "data-a"),
+            "store_root": str(tmp_path / "cache-a"),
         },
     }
     changed = dict(cfg)
     changed["cache_v2"] = dict(cfg["cache_v2"])
-    changed["cache_v2"]["dataset_root"] = str(tmp_path / "data-b")
+    changed["cache_v2"]["store_root"] = str(tmp_path / "cache-b")
     assert runner._content_fingerprint(cfg, "GIF", "degree", 42) != runner._content_fingerprint(
         changed, "GIF", "degree", 42
     )

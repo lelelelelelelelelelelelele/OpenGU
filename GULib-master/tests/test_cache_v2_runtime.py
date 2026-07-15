@@ -37,8 +37,8 @@ def _fixture(tmp_path):
             "k": 2,
         }
     )
-    result = store.get_or_compute(
-        recipe, lambda: [4, 2], num_nodes=5, candidate_nodes=CANDIDATES
+    result = store.store_selection(
+        recipe, [4, 2], num_nodes=5, candidate_nodes=CANDIDATES
     )
     return root, result
 

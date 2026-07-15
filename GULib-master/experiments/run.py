@@ -324,6 +324,18 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return None
     if not isinstance(raw, dict) or raw.get("mode") != "selection":
         raise ValueError("cache_v2.mode must be 'selection'")
+    removed = sorted(set(raw).intersection({"dataset_root", "allow_download"}))
+    if removed:
+        raise ValueError(
+            "Cache V2 dataset options were removed; {0} belongs to the OpenGU "
+            "dataset/experiment layer".format(",".join("cache_v2." + key for key in removed))
+        )
+    allowed = {"mode", "store_root", "legacy_results_root"}
+    unknown = sorted(set(raw).difference(allowed))
+    if unknown:
+        raise ValueError(
+            "unknown cache_v2 option(s): {0}".format(",".join(unknown))
+        )
     unsupported = sorted(set(cfg.get("strategies") or []) - CACHE_V2_RUNNER_STRATEGIES)
     if unsupported:
         raise ValueError(
@@ -332,11 +344,9 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     return {
         "mode": "selection",
         "store_root": _repo_path(raw.get("store_root", "results/cache_v2")),
-        "dataset_root": _repo_path(raw.get("dataset_root", "data/raw")),
         "legacy_results_root": _repo_path(
             raw.get("legacy_results_root", "results")
         ),
-        "allow_download": bool(raw.get("allow_download", False)),
     }
 
 
@@ -346,17 +356,13 @@ def prepare_cache_v2_selection(
     settings = cache_v2_settings(cfg)
     if settings is None:
         return {}, {}
-    config_path = cfg.get("_source_path")
-    if not config_path:
-        raise ValueError("Cache V2 runner requires cfg._source_path")
-    from cache_v2.selection_materializer import materialize_selection, plan_selection
+    from experiments.selection_producer import materialize_selection, plan_selection
 
     common = {
-        "config_path": _repo_path(config_path),
-        "dataset_root": settings["dataset_root"],
+        "config_source": cfg,
+        "processed_root": REPO_ROOT / "data" / "processed",
         "store_root": settings["store_root"],
         "legacy_results_root": settings["legacy_results_root"],
-        "allow_download": settings["allow_download"],
     }
     if dry_run:
         document = plan_selection(**common)
@@ -864,20 +870,9 @@ def main():
     ap.add_argument("--force", action="store_true", help="re-run even if outputs exist")
     ap.add_argument("--dry_run", action="store_true", help="report what would run, no execution")
     ap.add_argument("--limit", type=int, default=None, help="cap number of cells (debug)")
-    ap.add_argument(
-        "--cache-v2-dataset-root",
-        type=Path,
-        default=None,
-        help="machine-local processed dataset root for an explicit cache_v2 config",
-    )
     args = ap.parse_args()
 
     cfg = load_config(args.config)
-    if args.cache_v2_dataset_root is not None:
-        if not isinstance(cfg.get("cache_v2"), dict):
-            raise SystemExit("--cache-v2-dataset-root requires cache_v2.mode=selection")
-        cfg["cache_v2"] = dict(cfg["cache_v2"])
-        cfg["cache_v2"]["dataset_root"] = str(args.cache_v2_dataset_root)
     selection_map, selection_document = prepare_cache_v2_selection(
         cfg, dry_run=args.dry_run
     )
