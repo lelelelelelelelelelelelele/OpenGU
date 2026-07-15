@@ -12,7 +12,7 @@ parent: codex/docs-framework-briefing-20260714
 
 **CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE.**
 
-The isolated multi-checkpoint scorer, Recipe identity, 12-run Planetoid
+The isolated multi-checkpoint scorer, Recipe identity, 18-run Planetoid
 cross-dataset/cross-model selector matrix, same-machine repeat, and reduced
 cross-machine selector gate work. The legacy TracIn strategy, Hybrid, default
 runner, and all Legacy caches were left untouched.
@@ -47,7 +47,7 @@ cache roots is rejected.
 |---|---|---|
 | G0 formula fixture | PASS | Two-checkpoint eval/self hand calculation; single-checkpoint collapse; legacy sign; deterministic ties |
 | G1 Recipe identity | PARTIAL PASS | Semantic mutations miss and strict hashes/manifests fail closed; formal ScoreArtifact/store/conflict gate remains absent |
-| G2 Planetoid selector | PROTOTYPE PASS WITH VARIANCE | 4 configurations x 3 seeds completed; PubMed seed sensitivity is explicit |
+| G2 Planetoid selector | PROTOTYPE PASS WITH VARIANCE | 3 datasets x 2 backbones x 3 seeds completed; PubMed/GAT sensitivity is explicit |
 | G3 Legacy replay/isolation | PARTIAL PASS | Legacy formula replayed; no Legacy import/cache access; formal before/after store snapshot gate remains absent |
 | G4 cross-machine | REDUCED PASS | `last_layer`, local CPU vs remote CPU; distinct Recipe, stable ranking/top-k |
 | G5 Hybrid | NOT RUN | No V2 ScoreArtifact parent yet |
@@ -58,7 +58,7 @@ cache roots is rejected.
 Local (`torch 2.2.1+cu121`, PyG 2.6.1):
 
 ```text
-80 passed in 2.04s
+80 passed in 2.05s
 ```
 
 Remote `autodl-opengu` isolated sibling worktree (`torch 2.1.2+cu118`,
@@ -107,8 +107,8 @@ correlated but cannot substitute for the full trajectory.
 The expanded matrix fixes the selector budget at `k=7` and keeps the remaining
 profile constant: Adam heuristic, 100 epochs, LR milestones `[50, 80]`, checkpoints
 `[1, 10, 25, 50, 100]`, validation `E`, all trainable parameters, 50-step
-deterministic Neumann IF reference, and seeds `{2024, 7, 42}`. It contains
-`Cora/GCN`, `CiteSeer/GCN`, `PubMed/GCN`, and `Cora/GAT`: 12 retained
+deterministic Neumann IF reference, and seeds `{2024, 7, 42}`. It contains the
+full Cartesian matrix `{Cora, CiteSeer, PubMed} x {GCN, GAT}`: 18 retained
 diagnostic runs in total. These are still not formal ScoreArtifacts.
 
 The bracketed values below are the number of common nodes out of the two
@@ -120,24 +120,28 @@ Top-7 lists for seeds `[2024, 7, 42]`.
 | CiteSeer / GCN | 0.692 | 0.970 / `[6,5,5]` | 0.950 / `[6,5,4]` | 0.204 / `[0,1,4]` |
 | PubMed / GCN | 0.773 | 0.924 / `[5,3,5]` | 0.908 / `[5,3,5]` | 0.073 / `[3,3,0]` |
 | Cora / GAT | 0.821 | 0.855 / `[6,7,5]` | 0.825 / `[6,7,5]` | 0.111 / `[0,0,0]` |
+| CiteSeer / GAT | 0.700 | 0.966 / `[6,7,5]` | 0.962 / `[6,6,5]` | 0.175 / `[0,0,0]` |
+| PubMed / GAT | 0.777 | 0.733 / `[5,3,1]` | 0.762 / `[4,4,1]` | -0.083 / `[0,2,3]` |
 
 This broadens, but also narrows, the claim:
 
-- compute is not the limiting factor at this scale: the 12 runs used 207.0
-  aggregate CPU-seconds, with individual measured compute times of 9.0--25.7
+- compute is feasible but architecture/data dependent: the 18 runs used 602.9
+  aggregate CPU-seconds, with individual measured compute times of 9.0--67.9
   seconds, excluding one-time dataset downloads;
-- final-only and V2 rankings are strongly correlated in every configuration
-  mean (`0.855--0.970`), but exact selections still change;
-- V2 is usually close to the eval-IF reference (`0.825--0.950` configuration
-  mean Spearman), but this is not uniform. The lowest full-ranking correlation
-  is Cora/GAT seed 7 at `0.709`, even though its final Top-7 is identical;
+- final-only and V2 rankings are strongly correlated in five configuration
+  means, while PubMed/GAT is lower and seed-sensitive (`0.967`, `0.667`,
+  `0.565` across its seeds);
+- V2 is usually close to the eval-IF reference (`0.762--0.962` configuration
+  mean Spearman), but this is not uniform. PubMed/GAT falls from `0.970` at
+  seed 2024 to `0.722` and `0.592`; its common Top-7 counts are `[4,4,1]`;
 - the deployed legacy direction is inconsistent across data/seeds. Its
   occasional overlap on CiteSeer/PubMed does not make it a stable substitute
   for the explicit-`E`, multi-checkpoint scorer.
 
 Therefore the expanded evidence supports `promising target alignment with a
-seed/backbone-sensitivity warning`, not a universal superiority claim. It
-still does not measure downstream graph-unlearning damage.
+clear dataset x backbone interaction`, not a universal superiority claim.
+Cora and CiteSeer support the GAT extension; PubMed/GAT is the explicit warning
+case. The matrix still does not measure downstream graph-unlearning damage.
 
 ## SGD semantic lane
 
@@ -206,6 +210,12 @@ Expanded fixed-`k=7` matrix:
 | `tracin_v2_matrix_k7_pubmed_gcn.json` | `19b7ca072e972a69e2246ebdd07e5bf385a15b4a35024bb0f62fd2f93d9f08dd` |
 | `tracin_v2_matrix_k7_pubmed_gcn_seed7.json` | `49fc32a091cad388d6d8788d2176d03b6efe137bbf040c7fe6cbe12fd7a16519` |
 | `tracin_v2_matrix_k7_pubmed_gcn_seed42.json` | `c61a1325b462bb0680ca6f8c9dcf6143012999a224680841af4893297c06aa4f` |
+| `tracin_v2_matrix_k7_citeseer_gat.json` | `e15b857de4165810511bf3bfcfe6a7c1ba0d10629f6888dd9d168bd9adf05bc6` |
+| `tracin_v2_matrix_k7_citeseer_gat_seed7.json` | `1ade4a467db9805560f056a0bf7ad1076b591f1483050b6c4cbea10b85900a12` |
+| `tracin_v2_matrix_k7_citeseer_gat_seed42.json` | `4d8e0ff1a5f9a5f63e1850c1bafc61bcaa524be19c122ae1e4e67ddae9661c87` |
+| `tracin_v2_matrix_k7_pubmed_gat.json` | `562b9c906038a855782ee3915405c385dae85c1c2c3c428b99a9d58dc24eb66c` |
+| `tracin_v2_matrix_k7_pubmed_gat_seed7.json` | `5a3858f58ad87536404b8dc4c3a28b5528a03faa3bb573e8539ff46de48766d4` |
+| `tracin_v2_matrix_k7_pubmed_gat_seed42.json` | `9a0a3ac10aa2d9a56988bcea944d4e7b7c7d7ed65069f5de9de71186c393b4a2` |
 
 ## Promotion blockers
 
