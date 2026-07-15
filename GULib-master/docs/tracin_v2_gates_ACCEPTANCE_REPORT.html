@@ -20,35 +20,48 @@
   <h1>TracIn V2 UNSTABLE Gates</h1>
   <div class="meta">Acceptance report · 2026-07-15 · branch <code>codex/experiment-tracin-v2-gates-20260715</code></div>
   <div class="decision"><strong>CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE.</strong><br>
-    The isolated scorer, Recipe identity, Cora diagnostic, repeatability, and reduced cross-machine gate work. Formal ScoreArtifact storage, Hybrid, and GU canary remain absent.</div>
+    The isolated scorer, Recipe identity, 12-run Planetoid cross-dataset/cross-model matrix, repeatability, and reduced cross-machine gate work. Formal ScoreArtifact storage, Hybrid, and GU canary remain absent.</div>
 
   <h2>Implemented lane</h2>
   <ul><li>Pure multi-checkpoint eval/self scoring, legacy replay, finite checks, stable ties.</li>
   <li>UNSTABLE Recipe covering data, T/E, model/checkpoints, parameter schema, optimizer/loss, seeds, numerics, and graph semantics.</li>
-  <li>Public-split Cora gate with post-epoch states and the LR of the preceding update.</li>
+  <li>Public-split Cora/CiteSeer/PubMed gate with GCN/GAT, post-epoch states, and the LR of the preceding update.</li>
   <li>No attack-runner or producer registration; known Legacy cache output roots are rejected.</li></ul>
 
   <h2>Gate status</h2>
   <table><tr><th>Gate</th><th>Status</th><th>Evidence</th></tr>
   <tr><td>G0 formula</td><td class="pass">PASS</td><td>Hand calculation, collapse, sign, stable ties</td></tr>
   <tr><td>G1 Recipe/Artifact</td><td class="partial">PARTIAL</td><td>Recipe mutation and strict manifest pass; formal ScoreArtifact/store absent</td></tr>
-  <tr><td>G2 Cora selector</td><td class="pass">PROTOTYPE PASS</td><td>Local SGD semantic and Adam compatibility lanes</td></tr>
+  <tr><td>G2 Planetoid selector</td><td class="partial">PASS WITH VARIANCE</td><td>4 configurations x 3 seeds; PubMed seed sensitivity is explicit</td></tr>
   <tr><td>G3 Legacy isolation</td><td class="partial">PARTIAL</td><td>No Legacy imports/access; formal directory snapshot gate absent</td></tr>
   <tr><td>G4 cross-machine</td><td class="pass">REDUCED PASS</td><td>Last-layer CPU profile, distinct Recipe, stable ranks/top-k</td></tr>
   <tr><td>G5 Hybrid</td><td class="no">NOT RUN</td><td>No V2 ScoreArtifact parent</td></tr>
   <tr><td>G6 GU canary</td><td class="no">NOT RUN</td><td>Runner integration intentionally absent</td></tr></table>
 
   <h2>Tests</h2>
-  <pre>Local:  75 passed in 2.09s  (Torch 2.2.1, PyG 2.6.1)
-Remote: 75 passed in 2.77s  (Torch 2.1.2, PyG 2.6.1)</pre>
+  <pre>Local:  80 passed in 2.04s  (Torch 2.2.1, PyG 2.6.1)
+Remote: 80 passed in 2.58s  (Torch 2.1.2, PyG 2.6.1)</pre>
 
   <h2>Cora all-parameter Adam compatibility gate</h2>
-  <p>Cora public split; T=140, validation E=500, k=7, hidden=16, Adam 100 epochs, checkpoints [1,10,25,50,100], all trainable parameters, 50-step deterministic Neumann IF reference. Test accuracy: <strong>0.8110</strong>.</p>
+  <p>Cora public split; T=140, validation E=500, k=7, hidden=16, Adam 100 epochs, LR milestones [50,80] with gamma 0.5, checkpoints [1,10,25,50,100], all trainable parameters, 50-step deterministic Neumann IF reference. Test accuracy: <strong>0.8110</strong>.</p>
   <table><tr><th>Pair</th><th>Spearman</th><th>Kendall</th><th>Jaccard@7</th><th>Reading</th></tr>
   <tr><td>deployed cross-final vs V2</td><td>0.2130</td><td>0.1457</td><td>0.0000</td><td>Legacy residual selects a different set</td></tr>
   <tr><td>single-final eval vs V2</td><td>0.9699</td><td>0.8608</td><td>0.5556</td><td>Strong rank agreement; trajectory changes 2/7 nodes</td></tr>
   <tr><td>V2 vs eval-IF reference</td><td>0.9107</td><td>0.7609</td><td>0.5556</td><td>Same target-aware axis, not identical</td></tr></table>
   <p class="note">This standalone public-split gate is not directly comparable with historical OpenGU overlap 0.7419. The report records <code>historical_overlap_comparable=false</code>.</p>
+
+  <h2>Cross-dataset and cross-model matrix</h2>
+  <p>Fixed profile: k=7, Adam heuristic, 100 epochs, LR milestones [50,80] with gamma 0.5, checkpoints [1,10,25,50,100], validation E, all trainable parameters, 50-step deterministic Neumann IF reference, and seeds {2024,7,42}. Brackets show common nodes out of two Top-7 lists in that seed order.</p>
+  <table><tr><th>Configuration</th><th>Mean test accuracy</th><th>single-final vs V2<br>mean Spearman / common@7</th><th>V2 vs eval-IF<br>mean Spearman / common@7</th><th>legacy vs V2<br>mean Spearman / common@7</th></tr>
+  <tr><td>Cora / GCN</td><td>0.797</td><td>0.961 / [5,6,5]</td><td>0.877 / [5,6,5]</td><td>-0.119 / [0,0,0]</td></tr>
+  <tr><td>CiteSeer / GCN</td><td>0.692</td><td>0.970 / [6,5,5]</td><td>0.950 / [6,5,4]</td><td>0.204 / [0,1,4]</td></tr>
+  <tr><td>PubMed / GCN</td><td>0.773</td><td>0.924 / [5,3,5]</td><td>0.908 / [5,3,5]</td><td>0.073 / [3,3,0]</td></tr>
+  <tr><td>Cora / GAT</td><td>0.821</td><td>0.855 / [6,7,5]</td><td>0.825 / [6,7,5]</td><td>0.111 / [0,0,0]</td></tr></table>
+  <ul><li>Compute is not limiting here: 207.0 aggregate CPU-seconds; 9.0--25.7 seconds per retained run, excluding one-time downloads.</li>
+  <li>Final-only and V2 have strong configuration-mean rank agreement (0.855--0.970), but exact Top-7 selections still change.</li>
+  <li>V2 is usually close to eval-IF (configuration means 0.825--0.950), but not uniformly: the lowest full-ranking correlation is Cora/GAT seed 7 at 0.709, even though its Top-7 is identical.</li>
+  <li>The deployed legacy direction is inconsistent across data and seeds; occasional overlap does not make it a stable substitute for explicit-E multi-checkpoint scoring.</li></ul>
+  <p><strong>Reading:</strong> promising target alignment with a seed/backbone-sensitivity warning, not universal superiority. Downstream graph-unlearning damage is still unmeasured.</p>
 
   <h2>Determinism and cross-machine behavior</h2>
   <p>Two full local runs had identical Recipe, checkpoint hashes, every score, every ordered top-k, and accuracy. Only elapsed time differed.</p>

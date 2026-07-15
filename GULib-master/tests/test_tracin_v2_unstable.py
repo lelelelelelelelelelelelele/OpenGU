@@ -11,6 +11,11 @@ from experiments.tracin_v2.core import (
     tracin_cp_self_scores,
 )
 from experiments.tracin_v2.recipe import build_unstable_recipe
+from experiments.tracin_v2.run_planetoid_gate import (
+    build_model,
+    canonical_dataset_name,
+    parameter_schema_hash,
+)
 
 
 def test_two_checkpoint_eval_and_self_scores_match_hand_calculation():
@@ -128,6 +133,33 @@ def test_invalid_inputs_fail_closed():
         stable_topk([1.5, 2], torch.ones(2), 1)
     with pytest.raises(ValueError):
         tracin_cp_eval_scores([matrix], [torch.ones(3)], [-0.1])
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [("cora", "Cora"), ("CiteSeer", "CiteSeer"), ("PUBMED", "PubMed")],
+)
+def test_planetoid_dataset_names_are_canonical(raw, expected):
+    assert canonical_dataset_name(raw) == expected
+
+
+@pytest.mark.parametrize("architecture", ["gcn", "gat"])
+def test_planetoid_gate_models_share_output_and_last_layer_contract(architecture):
+    model = build_model(
+        architecture,
+        in_channels=3,
+        hidden_channels=4,
+        out_channels=2,
+        dropout=0.0,
+        gat_heads=2,
+    )
+    x = torch.tensor(
+        [[1.0, 0.0, 0.5], [0.0, 1.0, 0.5], [1.0, 1.0, 0.0]]
+    )
+    edge_index = torch.tensor([[0, 1, 2, 0], [1, 2, 0, 2]])
+
+    assert model(x, edge_index).shape == (3, 2)
+    assert len(parameter_schema_hash(model, "last_layer")) == 64
 
 
 def test_checkpoint_manifest_order_and_identity_are_semantic():
