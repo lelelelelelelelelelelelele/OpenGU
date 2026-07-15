@@ -28,6 +28,7 @@ seeds: [42, 212, 722, 1337, 2024]
 defaults:
   save_predictions: true     # always save logits.npz so future metrics decouple
   run_collateral: true       # also run eval_collateral for gap + collateral + hop_decay
+  run_update_detection_auc: true  # small dataset: keep optional posterior-change AUC
   no_cache: false            # use ResultCache + SelectionCache (deterministic post-A.4)
   num_epochs: 100
   batch_size: 64

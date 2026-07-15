@@ -37,6 +37,7 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
     defaults:
         save_predictions: <bool>      # default true
         run_collateral: <bool>        # default true
+        run_update_detection_auc: <bool>  # default true; false skips optional AUC
         no_cache: <bool>              # default false (use cache)
         num_epochs: <int>             # default 100
         batch_size: <int>             # default 64
@@ -612,6 +613,9 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     })
     py = _python_bin()
     defaults = cfg.get("defaults", {}) or {}
+    run_update_detection_auc = defaults.get("run_update_detection_auc", True)
+    if not isinstance(run_update_detection_auc, bool):
+        raise ValueError("defaults.run_update_detection_auc must be a YAML boolean")
     extra = list(cfg.get("extra_args", []) or [])
     extra += method_overrides(cfg, method)
     extra += model_overrides(cfg)
@@ -636,6 +640,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "--num_epochs", str(defaults.get("num_epochs", 100)),
         "--batch_size", str(defaults.get("batch_size", 64)),
         "--cuda", str(defaults.get("cuda", 0)),
+        "--run_update_detection_auc", str(run_update_detection_auc),
     ]
     if defaults.get("no_cache", False):
         cmd1.append("--no_cache")
@@ -766,6 +771,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "--num_epochs", str(defaults.get("num_epochs", 100)),
             "--batch_size", str(defaults.get("batch_size", 64)),
             "--cuda", str(defaults.get("cuda", 0)),
+            "--run_update_detection_auc", str(run_update_detection_auc),
         ]
         if defaults.get("save_predictions", True):
             cmd2.append("--save_predictions")
@@ -866,6 +872,12 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "config_fingerprint": expected_fp,
         "fingerprint_version": _FINGERPRINT_VERSION,
         "selection_artifact": dict(selection_artifact) if v2_mode else None,
+        "metric_policy": {
+            "update_detection_auc": {
+                "enabled": run_update_detection_auc,
+                "status": "computed" if run_update_detection_auc else "disabled_by_config",
+            }
+        },
     }
     (out_dir / "_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     _record_autoreport_event(

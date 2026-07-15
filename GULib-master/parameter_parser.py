@@ -63,6 +63,12 @@ def parameter_parser():
                                                     "IMDB-MULTI"])
     parser.add_argument('--is_transductive', type=str2bool, default=True, help = "Task is transductive or inductive")
     parser.add_argument('--cal_mem', type=str2bool, default=False, help = "run exp to calculate memory")
+    parser.add_argument(
+        '--run_update_detection_auc',
+        type=str2bool,
+        default=True,
+        help='Compute posterior-change membership AUC; disable for large-dataset runs.',
+    )
     # parser.add_argument('--inductive', type=str, default='normal', choices=['cluster-gcn', 'graphsaint', 'normal'])
     parser.add_argument('--is_balanced' ,type = str2bool,default=False,help="dataset is split with balanced classes" )
     parser.add_argument('--use_batch', type=str2bool, default=False, help="train model with minibatch")

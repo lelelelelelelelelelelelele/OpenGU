@@ -18,6 +18,7 @@ from torch_geometric.utils import negative_sampling
 from sklearn.metrics import f1_score,roc_auc_score
 from attack.MIA_attack import train_attack_model,train_shadow_model,generate_shadow_model_output,evaluate_attack_model,GCNShadowModel,AttackModel
 from pipeline.Learning_based_pipeline import Learning_based_pipeline
+from utils.metric_policy import update_detection_auc_enabled
 
 class GATE(torch.nn.Module):
     def __init__(self, dim):
@@ -137,8 +138,10 @@ class megu(Learning_based_pipeline):
         elif self.args["unlearn_task"] == 'edge':
             self.neighbor_khop = self.temp_node
         self.avg_unlearning_time[self.run], self.average_f1[self.run] = self.target_model.megu_unlearning(self.temp_node,self.neighbor_khop)
-        if self.args.get("unlearn_task") == "node" and self.args.get("downstream_task") == "node":
+        if update_detection_auc_enabled(self.args) and self.args.get("unlearn_task") == "node" and self.args.get("downstream_task") == "node":
             self.average_auc[self.run] = self.mia_attack()
+        else:
+            self.average_auc[self.run] = np.nan
         
 
     def get_softlabels(self):
