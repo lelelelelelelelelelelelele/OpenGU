@@ -119,7 +119,7 @@ RUNNER_RECIPE_DEFINITIONS = {
     "opengu-cache-v2-gate4-v1": {
         "id": "opengu-cache-v2-gate4-v1",
         "argv": (
-            "{python}", "scripts/cache_v2_gate4_canary.py", "--json",
+            "{python}", "-m", "scripts.cache_v2_gate4_canary", "--json",
         ),
         "config_path": "experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
         "config_sha256": "7797f3b574982fb7230c755dc8b3d4e6c3049b5486068b32f18e5dbfd357c721",

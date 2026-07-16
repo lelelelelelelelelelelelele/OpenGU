@@ -7403,7 +7403,8 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
 
     assert definition["argv"] == [
         "{python}",
-        "scripts/cache_v2_gate4_canary.py",
+        "-m",
+        "scripts.cache_v2_gate4_canary",
         "--json",
     ]
     assert definition["expected_git_sha"] == sm.GATE4_RECIPE_BASE_SHA
