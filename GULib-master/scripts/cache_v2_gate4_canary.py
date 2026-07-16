@@ -60,6 +60,7 @@ PROTECTED_ROOTS = {
     "canonical_cora": CANONICAL_CORA_PATH,
     "canonical_cora_dataset": CANONICAL_CORA_DATASET_PATH,
     "standard_gate4_log": CANONICAL_REPO_ROOT / "log" / "GIF" / "cora" / "GCN",
+    "worktree_gate4_log": REPO_ROOT / "log" / "GIF" / "cora" / "GCN",
 }
 
 
