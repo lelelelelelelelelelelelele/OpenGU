@@ -95,12 +95,34 @@ def test_gate4_selection_commands_are_fixed_and_download_free():
     cold = list(gate4._selection_canary_args("cold", gate4.STORE_ROOT))
     warm = list(gate4._selection_canary_args("warm", gate4.STORE_ROOT))
 
-    assert cold[2] == "cold"
-    assert warm[2] == "warm"
+    assert cold[:4] == [
+        sys.executable,
+        "-m",
+        "scripts.cache_v2_selection_canary",
+        "cold",
+    ]
+    assert warm[:4] == [
+        sys.executable,
+        "-m",
+        "scripts.cache_v2_selection_canary",
+        "warm",
+    ]
     assert "--processed-root" in cold
     assert str(gate4.CANONICAL_PROCESSED_ROOT) in cold
     assert "--allow-download" not in cold
     assert "--dataset-root" not in cold
+
+    env = os.environ.copy()
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    completed = subprocess.run(
+        [sys.executable, "-m", "scripts.cache_v2_selection_canary", "--help"],
+        cwd=gate4.REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
 
 
 def test_gate4_wrapper_is_directly_executable_from_repo_root():

@@ -179,7 +179,8 @@ def _run(
 def _selection_canary_args(mode: str, store_root: Path) -> Sequence[str]:
     return (
         sys.executable,
-        "scripts/cache_v2_selection_canary.py",
+        "-m",
+        "scripts.cache_v2_selection_canary",
         mode,
         "--store-root",
         str(store_root),
