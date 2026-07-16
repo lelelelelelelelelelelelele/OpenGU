@@ -35,6 +35,7 @@ EVIDENCE_ROOT = Path(
     "/autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4"
 )
 STORE_ROOT = EVIDENCE_ROOT / "store"
+RUNTIME_ROOT = EVIDENCE_ROOT / "runtime"
 RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_gate4__"
 LEGACY_INVARIANT_ROOT = EVIDENCE_ROOT / "legacy-empty"
 AUTOREPORT_ROOT = EVIDENCE_ROOT / "autoreport"
@@ -46,6 +47,9 @@ CANONICAL_PROCESSED_ROOT = CANONICAL_REPO_ROOT / "data" / "processed"
 CANONICAL_CORA_PATH = (
     CANONICAL_PROCESSED_ROOT / "transductive" / "cora0.8_0_0.2.pkl"
 )
+CANONICAL_CORA_DATASET_PATH = (
+    CANONICAL_PROCESSED_ROOT / "transductive" / "cora0.8_0_0.2dataset.pkl"
+)
 ACTIVE_RESULTS_ROOT = CANONICAL_REPO_ROOT / "results"
 PROTECTED_ROOTS = {
     "result_cache": ACTIVE_RESULTS_ROOT / "cache",
@@ -53,6 +57,9 @@ PROTECTED_ROOTS = {
     "score_cache": ACTIVE_RESULTS_ROOT / "score_cache",
     "active_cache_v2": ACTIVE_RESULTS_ROOT / "cache_v2",
     "journal_archive": ACTIVE_RESULTS_ROOT / "_journal",
+    "canonical_cora": CANONICAL_CORA_PATH,
+    "canonical_cora_dataset": CANONICAL_CORA_DATASET_PATH,
+    "standard_gate4_log": CANONICAL_REPO_ROOT / "log" / "GIF" / "cora" / "GCN",
 }
 
 
@@ -67,6 +74,14 @@ def _sha256_file(path: Path) -> str:
 def _tree_digest(root: Path) -> Dict[str, Any]:
     if not root.exists():
         return {"exists": False, "file_count": 0, "size_bytes": 0, "sha256": None}
+    if root.is_file():
+        stat = root.stat()
+        return {
+            "exists": True,
+            "file_count": 1,
+            "size_bytes": stat.st_size,
+            "sha256": _sha256_file(root),
+        }
     digest = hashlib.sha256()
     count = 0
     size = 0
@@ -95,6 +110,10 @@ def _protected_snapshot() -> Dict[str, Any]:
     }
 
 
+def _portable_path(path: Path) -> str:
+    return path.as_posix()
+
+
 def _config() -> Dict[str, Any]:
     value = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -106,7 +125,8 @@ def _config() -> Dict[str, Any]:
         "methods": ["GIF"],
         "strategies": ["degree"],
         "seeds": [42],
-        "processed_root": str(CANONICAL_PROCESSED_ROOT),
+        "processed_root": _portable_path(CANONICAL_PROCESSED_ROOT),
+        "runtime_root": _portable_path(RUNTIME_ROOT),
         "run_root": "results/runs/__syncmate_gate4__",
     }
     for name, observed in expected.items():
@@ -119,9 +139,9 @@ def _config() -> Dict[str, Any]:
     cache = value.get("cache_v2")
     if not isinstance(cache, Mapping):
         raise RuntimeError("Gate 4 config cache_v2 block is missing")
-    if cache.get("store_root") != str(STORE_ROOT):
+    if cache.get("store_root") != _portable_path(STORE_ROOT):
         raise RuntimeError("Gate 4 store root is not isolated")
-    if cache.get("legacy_results_root") != str(LEGACY_INVARIANT_ROOT):
+    if cache.get("legacy_results_root") != _portable_path(LEGACY_INVARIANT_ROOT):
         raise RuntimeError("Gate 4 Legacy invariant root is not isolated")
     for forbidden in ("dataset_root", "allow_download", "processed_root"):
         if forbidden in cache:
@@ -342,8 +362,17 @@ def _integrity_probe(
 
 def run_gate4_canary() -> Dict[str, Any]:
     _config()
-    if not CANONICAL_CORA_PATH.is_file():
-        raise RuntimeError("canonical Cora processed pickle is missing")
+    missing_canonical = [
+        path
+        for path in (CANONICAL_CORA_PATH, CANONICAL_CORA_DATASET_PATH)
+        if not path.is_file()
+    ]
+    if missing_canonical:
+        raise RuntimeError(
+            "canonical Cora processed artifacts are missing: {0}".format(
+                ", ".join(str(path) for path in missing_canonical)
+            )
+        )
     if EVIDENCE_ROOT.exists():
         raise RuntimeError(
             "Gate 4 evidence root already exists; cold canary refuses reuse"

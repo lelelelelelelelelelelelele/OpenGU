@@ -78,13 +78,23 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = (
 )
 GATE4_RECIPE_BASE_SHA = "dbe79efd8fd70a9a455a8055a6627bd0bd95ed0e"
 GATE4_RECIPE_ALLOWED_DELTA = (
+    "GULib-master/attack/pipeline_adapter.py",
+    "GULib-master/config.py",
+    "GULib-master/dataset/original_dataset.py",
     "GULib-master/experiments/run.py",
     "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+    "GULib-master/experiments/processed_provider.py",
+    "GULib-master/parameter_parser.py",
     "GULib-master/scripts/cache_v2_gate4_canary.py",
     "GULib-master/scripts/syncmate/syncmate.py",
     "GULib-master/tests/test_auto_report_v3.py",
     "GULib-master/tests/test_cache_v2_gate4_canary.py",
+    "GULib-master/tests/test_demo.py",
+    "GULib-master/tests/test_experiment_processed_provider.py",
+    "GULib-master/tests/test_phase_b_invariants.py",
     "GULib-master/tests/test_syncmate.py",
+    "GULib-master/utils/dataset_utils.py",
+    "GULib-master/utils/logger.py",
 )
 RUNNER_RECIPE_DEFINITIONS = {
     "smoke": {
@@ -122,7 +132,7 @@ RUNNER_RECIPE_DEFINITIONS = {
             "{python}", "-m", "scripts.cache_v2_gate4_canary", "--json",
         ),
         "config_path": "experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
-        "config_sha256": "7797f3b574982fb7230c755dc8b3d4e6c3049b5486068b32f18e5dbfd357c721",
+        "config_sha256": "45f587853aee6a91e85efd82ee40350435969a7b51b9539062762ae06b875980",
         "expected_git_sha": GATE4_RECIPE_BASE_SHA,
         "allowed_git_delta_paths": GATE4_RECIPE_ALLOWED_DELTA,
         "timeout_seconds": 3600,

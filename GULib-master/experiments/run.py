@@ -41,6 +41,8 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
         num_epochs: <int>             # default 100
         batch_size: <int>             # default 64
         cuda: <int>                   # default 0
+    processed_root: <path>             # canonical OpenGU processed pickles
+    runtime_root: <path>               # mutable GU logs/checkpoints/tasks
     extra_args: [<str>, ...]          # passed verbatim to demo_attack and eval_collateral
     method_overrides:                 # injected only for matching method
         GraphRevoker:
@@ -105,6 +107,12 @@ def experiment_processed_root(cfg: Mapping[str, Any]) -> Path:
     """Return the experiment-owned canonical processed-data root."""
 
     return _repo_path(cfg.get("processed_root", REPO_ROOT / "data" / "processed"))
+
+
+def experiment_runtime_root(cfg: Mapping[str, Any]) -> Path:
+    """Return the experiment-owned root for mutable GU runtime state."""
+
+    return _repo_path(cfg.get("runtime_root", REPO_ROOT))
 
 
 def experiment_run_root(cfg: Mapping[str, Any]) -> Path:
@@ -213,6 +221,23 @@ def method_overrides(cfg: Dict[str, Any], method: str) -> List[str]:
     return list(override.get("extra_args", []) or [])
 
 
+def validate_experiment_owned_extra_args(extra: List[str]) -> None:
+    """Reject duplicate roots that would diverge from the runner fingerprint."""
+
+    owned = ("--processed_root", "--runtime_root")
+    duplicates = sorted({
+        flag
+        for token in extra
+        for flag in owned
+        if token == flag or token.startswith(flag + "=")
+    })
+    if duplicates:
+        raise ValueError(
+            "experiment-owned roots must be top-level config fields, not "
+            "extra_args: {0}".format(",".join(duplicates))
+        )
+
+
 def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path:
     cell = f"{cfg['dataset']}_{cfg['base_model']}_r{cfg['ratio']}"
     leaf = f"{method}_{strategy}"
@@ -254,6 +279,7 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
         "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
         "cache_v2": cfg.get("cache_v2"),
         "processed_root": str(experiment_processed_root(cfg)),
+        "runtime_root": str(experiment_runtime_root(cfg)),
     }
     if method_extra:
         payload["method_overrides"] = method_extra
@@ -610,6 +636,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     extra = list(cfg.get("extra_args", []) or [])
     extra += method_overrides(cfg, method)
     extra += model_overrides(cfg)
+    validate_experiment_owned_extra_args(extra)
     # A3: if yaml uses top-level `hybrid_alpha:` and didn't already inject
     # --hybrid_alpha via extra_args, plumb it through so demo_attack and
     # eval_collateral see the right fusion weight at runtime.
@@ -617,6 +644,10 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         tok == "--hybrid_alpha" for tok in extra
     ):
         extra += ["--hybrid_alpha", str(cfg["hybrid_alpha"])]
+    experiment_roots = [
+        "--processed_root", str(experiment_processed_root(cfg)),
+        "--runtime_root", str(experiment_runtime_root(cfg)),
+    ]
 
     # 1) demo_attack: writes attack.json
     cmd1 = [
@@ -631,7 +662,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "--num_epochs", str(defaults.get("num_epochs", 100)),
         "--batch_size", str(defaults.get("batch_size", 64)),
         "--cuda", str(defaults.get("cuda", 0)),
-    ]
+    ] + experiment_roots
     if defaults.get("no_cache", False):
         cmd1.append("--no_cache")
     if v2_mode:
@@ -747,7 +778,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "--num_epochs", str(defaults.get("num_epochs", 100)),
             "--batch_size", str(defaults.get("batch_size", 64)),
             "--cuda", str(defaults.get("cuda", 0)),
-        ]
+        ] + experiment_roots
         if defaults.get("save_predictions", True):
             cmd2.append("--save_predictions")
         if v2_mode:

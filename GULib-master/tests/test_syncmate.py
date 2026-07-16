@@ -7409,7 +7409,7 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
     ]
     assert definition["expected_git_sha"] == sm.GATE4_RECIPE_BASE_SHA
     assert definition["config_sha256"] == (
-        "7797f3b574982fb7230c755dc8b3d4e6c3049b5486068b32f18e5dbfd357c721"
+        "45f587853aee6a91e85efd82ee40350435969a7b51b9539062762ae06b875980"
     )
     assert definition["timeout_seconds"] == sm.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
     assert definition["collector_acceptance"] is True
@@ -7423,13 +7423,23 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
 
 def test_gate4_runner_recipe_uses_exact_scoped_git_delta(monkeypatch):
     changed = [
+        "GULib-master/attack/pipeline_adapter.py",
+        "GULib-master/config.py",
+        "GULib-master/dataset/original_dataset.py",
         "GULib-master/experiments/run.py",
         "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+        "GULib-master/experiments/processed_provider.py",
+        "GULib-master/parameter_parser.py",
         "GULib-master/scripts/cache_v2_gate4_canary.py",
         "GULib-master/scripts/syncmate/syncmate.py",
         "GULib-master/tests/test_auto_report_v3.py",
         "GULib-master/tests/test_cache_v2_gate4_canary.py",
+        "GULib-master/tests/test_demo.py",
+        "GULib-master/tests/test_experiment_processed_provider.py",
+        "GULib-master/tests/test_phase_b_invariants.py",
         "GULib-master/tests/test_syncmate.py",
+        "GULib-master/utils/dataset_utils.py",
+        "GULib-master/utils/logger.py",
     ]
     monkeypatch.setattr(sm, "run_git", lambda args: "f" * 40)
 

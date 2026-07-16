@@ -38,7 +38,10 @@ def test_gate4_config_is_one_cell_and_dataset_owned_by_experiment_layer():
     assert config["methods"] == ["GIF"]
     assert config["strategies"] == ["degree"]
     assert config["seeds"] == [42]
-    assert config["processed_root"] == str(gate4.CANONICAL_PROCESSED_ROOT)
+    assert config["processed_root"] == gate4._portable_path(
+        gate4.CANONICAL_PROCESSED_ROOT
+    )
+    assert config["runtime_root"] == gate4._portable_path(gate4.RUNTIME_ROOT)
     assert config["run_root"] == "results/runs/__syncmate_gate4__"
     assert gate4.RUN_ROOT == (
         gate4.REPO_ROOT / "results" / "runs" / "__syncmate_gate4__"
@@ -47,6 +50,7 @@ def test_gate4_config_is_one_cell_and_dataset_owned_by_experiment_layer():
     assert config["defaults"]["num_epochs"] == 5
     assert config["defaults"]["no_cache"] is True
     assert set(config["cache_v2"]) == {"mode", "store_root", "legacy_results_root"}
+    assert "--root_path" not in config["extra_args"]
 
 
 def test_gate4_wrapper_has_no_dataset_framework_or_download_imports():
