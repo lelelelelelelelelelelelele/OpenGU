@@ -13,6 +13,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Mapping, Sequence
 
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import numpy as np
 import torch
 import yaml
@@ -23,8 +28,6 @@ from scripts.evaluation.reporting.summary import (
     write_status_views,
 )
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = (
     REPO_ROOT / "experiments" / "configs" / "cache_v2_gate4_cora_degree_canary.yaml"
 )

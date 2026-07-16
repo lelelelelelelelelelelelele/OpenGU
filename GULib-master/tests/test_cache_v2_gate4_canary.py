@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import ast
+import os
+from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -97,3 +101,19 @@ def test_gate4_selection_commands_are_fixed_and_download_free():
     assert str(gate4.CANONICAL_PROCESSED_ROOT) in cold
     assert "--allow-download" not in cold
     assert "--dataset-root" not in cold
+
+
+def test_gate4_wrapper_is_directly_executable_from_repo_root():
+    env = os.environ.copy()
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    completed = subprocess.run(
+        [sys.executable, str(Path(gate4.__file__)), "--help"],
+        cwd=gate4.REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "fixed, isolated Cache V2 Gate 4" in completed.stdout
