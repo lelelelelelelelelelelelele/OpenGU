@@ -6058,6 +6058,60 @@ def test_acceptance_cli_can_write_machine_readable_verdict(tmp_path, monkeypatch
     assert saved["ready"] is True
 
 
+def test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    remote_leaf = "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42"
+    local_leaf = (
+        "results/runs/__syncmate_gate4_autodl__/__syncmate_gate4__/"
+        "cora_GCN_r0.05/GIF_degree/seed42"
+    )
+    payloads = {
+        "attack.json": json.dumps({
+            "results": {"degree": {"f1_after": 0.45, "mia_auc": 0.54}},
+        }).encode(),
+        "collateral.json": json.dumps({
+            "results": [{"strategy": "degree", "perf_before": 0.47}],
+        }).encode(),
+        "_meta.json": json.dumps({"git_sha": "e6091f9"}).encode(),
+    }
+    items = []
+    for name, payload in payloads.items():
+        local_path = f"{local_leaf}/{name}"
+        _write(repo / local_path, payload)
+        items.append({
+            "source_node": "autodl-gate4",
+            "remote_path": f"{remote_leaf}/{name}",
+            "local_path": local_path,
+            "sha256": _sha(payload),
+        })
+    index = {
+        "version": 0,
+        "peers": {
+            "autodl-gate4": {
+                "node_id": "autodl-gate4",
+                "landing": "results/runs/__syncmate_gate4_autodl__",
+                "artifact_policy": {"include": list(payloads)},
+                "summary": {"indexed": len(items)},
+                "items": items,
+            },
+        },
+    }
+
+    result = sm.results_payload_from_index(index)
+
+    assert result["summary"]["rows"] == 1
+    row = result["rows"][0]
+    assert row["cell"] == "cora_GCN_r0.05"
+    assert row["dataset"] == "cora"
+    assert row["base_model"] == "GCN"
+    assert row["ratio"] == "0.05"
+    assert row["method"] == "GIF"
+    assert row["strategy"] == "degree"
+    assert row["seed"] == "seed42"
+
+
 def test_next_steps_payload_can_require_saved_preflight(monkeypatch):
     monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
     snapshot = {
@@ -6731,6 +6785,42 @@ def test_doctor_reports_diff_errors_missing_and_conflicts():
     assert sm.status_label(snapshot, diagnostics) == "attention"
 
 
+def test_doctor_newer_clean_verify_supersedes_planning_diff_missing():
+    snapshot = {
+        "device": {"id": "local", "role": "collector", "peers": ["gpu4090"], "setup_warnings": []},
+        "git": {"dirty": False, "status_short": []},
+        "results": {"nodes": {"local": {"issues": []}}, "total_leaves": 1},
+        "remote_status": {},
+        "diff_reports": {
+            "gpu4090": {
+                "generated_at": "2026-07-01T11:10:00",
+                "report_path": ".syncmate/last_diff_gpu4090.json",
+                "errors": [],
+                "missing": [{"path": "results/runs/cell/method/seed/attack.json"}],
+                "conflicts": [],
+                "summary": {"missing": 1, "conflicts": 0},
+            },
+        },
+        "collect_reports": {},
+        "verify_reports": {
+            "gpu4090": {
+                "generated_at": "2026-07-01T11:20:00",
+                "errors": [],
+                "summary": {
+                    "status": "verified",
+                    "missing": 0,
+                    "conflicts": 0,
+                    "verified_current": 1,
+                },
+            },
+        },
+    }
+
+    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+
+    assert "diff-missing" not in {item["code"] for item in diagnostics}
+
+
 def test_doctor_reports_verify_errors_missing_and_conflicts():
     snapshot = {
         "device": {"id": "local", "role": "collector", "peers": ["gpu4090"], "setup_warnings": []},
@@ -7122,10 +7212,12 @@ def test_runner_queue_submit_validates_and_writes_static_dashboard(tmp_path, mon
 
     assert sm.main([
         "--config", str(config_path), "runner-queue", "submit", "--job-id", "smoke-001",
-        "--recipe", "smoke", "--requested-by", "operator", "--json",
+        "--recipe", "smoke", "--requested-by", "operator",
+        "--expected-git-sha", "a" * 40, "--json",
     ]) == 0
     submitted = json.loads(capsys.readouterr().out)
     assert submitted["path"] == ".syncmate/runner_queue/inbox/smoke-001.yaml"
+    assert submitted["job"]["expected_git_sha"] == "a" * 40
     assert (sync_dir / "runner_queue" / "receipts" / "smoke-001.json").is_file()
 
     assert sm.main(["--config", str(config_path), "runner-queue", "validate", "--write", "--json"]) == 0
@@ -7223,6 +7315,8 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert not sync_dir.exists()
     assert contract["protocol"] == "syncmate-runner-queue/v1"
     assert contract["job_schema"]["additional_fields"] is False
+    assert "expected_git_sha" in contract["job_schema"]["optional"]
+    assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
     assert contract["execution"]["allowlisted_recipes"] == [
         "smoke",
         "opengu-preflight-v1",
@@ -7298,6 +7392,35 @@ def test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution(tmp
     assert result["recipe_binding"]["observed"]["git_sha"] == "other"
 
 
+def test_runner_queue_blocks_exact_job_git_mismatch_before_execution(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    sm.runner_queue_submit("smoke-001", "smoke", expected_git_sha="a" * 40)
+    binding = {
+        "ready": True,
+        "errors": [],
+        "observed": {"git_sha": "b" * 40},
+        "recipe": {"id": "smoke"},
+    }
+    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: binding)
+    calls = []
+    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+
+    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+
+    assert outcome["status"] == "blocked"
+    assert not calls
+    result = json.loads(
+        (sync_dir / "runner_queue" / "results" / "smoke-001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert result["recipe_binding"]["job_expected_git_sha"] == "a" * 40
+    assert result["recipe_binding"]["job_exact_git_match"] is False
+
+
 def test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
@@ -7336,6 +7459,29 @@ def test_runner_agent_refuses_stale_running_without_automatic_retry(tmp_path, mo
     assert (sync_dir / "runner_queue" / "running" / "smoke-001.yaml").exists()
 
 
+def test_runner_agent_inspect_distinguishes_active_and_orphaned_running(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    sm.runner_queue_submit("smoke-001", "smoke")
+    (sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml").replace(
+        sync_dir / "runner_queue" / "running" / "smoke-001.yaml"
+    )
+
+    orphaned = sm.runner_agent_inspect_payload()
+    assert orphaned["active_running"] is False
+    assert orphaned["stale_running"] is True
+
+    sm.runner_agent_acquire_lock("runner-a")
+    try:
+        active = sm.runner_agent_inspect_payload()
+        assert active["active_running"] is True
+        assert active["stale_running"] is False
+    finally:
+        sm.runner_agent_release_lock()
+
+
 def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config = sm.build_device_config("collector-a", "collector", str(repo))
@@ -7352,6 +7498,64 @@ def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(t
 
     assert outcome["status"] == "blocked"
     assert not called
+
+
+def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    config = sm.build_device_config("collector-a", "collector", str(repo))
+    sm.add_peer_to_device(
+        config,
+        "runner-a",
+        sm.build_peer_config(
+            "runner",
+            None,
+            str(repo / "runner"),
+            "results/runs/runner-a",
+            ["results/runs"],
+            transport="local",
+        ),
+    )
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    monkeypatch.setattr(
+        sm,
+        "preflight_payload",
+        lambda *args, **kwargs: {
+            "status": "ready",
+            "summary": {"ready": 1, "blocked": 0},
+        },
+    )
+    monkeypatch.setattr(sm, "maybe_write_preflight_report", lambda *args, **kwargs: None)
+    calls = []
+
+    def invoke(_peer, arguments, **_kwargs):
+        calls.append(arguments)
+        if arguments == ["self", "--json"]:
+            return {
+                "ok": True,
+                "payload": {"git": {"sha": "c" * 40, "dirty": False}},
+                "errors": [],
+            }
+        return {"ok": True, "payload": {"submitted": True}, "errors": []}
+
+    monkeypatch.setattr(sm, "runner_agent_peer_invoke", invoke)
+
+    outcome = sm.runner_agent_dispatch_payload(
+        config,
+        [],
+        config_path=repo / ".syncmate" / "device.yaml",
+        node_id="runner-a",
+        job_id="gate4-001",
+        recipe="opengu-cache-v2-gate4-v1",
+        requested_by="operator",
+        note="exact pin",
+    )
+
+    assert outcome["status"] == "submitted"
+    assert outcome["expected_git_sha"] == "c" * 40
+    assert calls[0] == ["self", "--json"]
+    assert "--expected-git-sha" in calls[1]
+    assert calls[1][calls[1].index("--expected-git-sha") + 1] == "c" * 40
 
 
 def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch):

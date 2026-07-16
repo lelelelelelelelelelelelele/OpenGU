@@ -149,6 +149,7 @@ RUNNER_RECIPE_DEFINITIONS = {
 QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
 QUEUE_ALLOWED_JOB_FIELDS = {
     "protocol", "version", "id", "recipe", "created_at", "requested_by", "note",
+    "expected_git_sha",
 }
 
 
@@ -282,6 +283,18 @@ def report_age_hours(generated_at: Any, now_value: Optional[str] = None) -> Opti
 def is_report_stale(generated_at: Any, *, stale_hours: int = REPORT_STALE_HOURS) -> bool:
     age = report_age_hours(generated_at)
     return age is None or age > stale_hours
+
+
+def report_is_at_least_as_new(candidate: Any, reference: Any) -> bool:
+    candidate_ts = parse_iso_time(candidate)
+    reference_ts = parse_iso_time(reference)
+    if candidate_ts is None or reference_ts is None:
+        return False
+    if candidate_ts.tzinfo is not None and reference_ts.tzinfo is None:
+        reference_ts = reference_ts.replace(tzinfo=candidate_ts.tzinfo)
+    if candidate_ts.tzinfo is None and reference_ts.tzinfo is not None:
+        candidate_ts = candidate_ts.replace(tzinfo=reference_ts.tzinfo)
+    return candidate_ts >= reference_ts
 
 
 def format_age(generated_at: Any) -> str:
@@ -634,6 +647,23 @@ def classify_repo_leaf_path(local_path: Any) -> Tuple[str, str, str, str, str]:
     if len(rel_parts) >= 4:
         return first, rel_parts[1], rel_parts[2], rel_parts[3], "node"
     return first, "unknown", rel_parts[-2], rel_parts[-1], "unknown"
+
+
+def classify_indexed_leaf_path(
+    local_path: Any,
+    remote_path: Any,
+) -> Tuple[str, str, str, str, str]:
+    local = classify_repo_leaf_path(local_path)
+    remote = classify_repo_leaf_path(remote_path)
+    if local[4] in ("unknown", "short") and remote[4] not in ("unknown", "short"):
+        return remote
+    # A collector landing can wrap a remote node namespace:
+    # results/runs/<landing>/<remote-node>/<cell>/<method>/<seed>.
+    # In that case the local generic parser mistakes <remote-node> for <cell>,
+    # while the original remote path still carries the formal cell identity.
+    if "_r" in remote[1] and "_r" not in local[1]:
+        return remote
+    return local if local_path else remote
 
 
 def artifact_leaf_dirs(results_runs: Optional[Path] = None,
@@ -1076,8 +1106,12 @@ def inventory_from_index(index: Optional[Dict[str, Any]] = None,
                 "missing": [],
                 "complete": False,
             })
-            if local_path:
-                _node, cell, method_strategy, seed, layout = classify_repo_leaf_path(local_path)
+            remote_path = item.get("remote_path") or item.get("path")
+            if local_path or remote_path:
+                _node, cell, method_strategy, seed, layout = classify_indexed_leaf_path(
+                    local_path,
+                    remote_path,
+                )
                 leaf.update({
                     "cell": cell,
                     "method_strategy": method_strategy,
@@ -1228,8 +1262,11 @@ def export_payload_from_index(index: Optional[Dict[str, Any]] = None,
                 "source_report": peer_entry.get("source_report"),
                 "updated_at": peer_entry.get("updated_at"),
             })
-            if local_path:
-                _node, cell, method_strategy, seed, layout = classify_repo_leaf_path(local_path)
+            if local_path or remote_path:
+                _node, cell, method_strategy, seed, layout = classify_indexed_leaf_path(
+                    local_path,
+                    remote_path,
+                )
                 leaf.update({
                     "cell": cell,
                     "method_strategy": method_strategy,
@@ -3716,7 +3753,19 @@ def diagnostics_for_snapshot(snapshot: Dict[str, Any]) -> List[Dict[str, Any]]:
         summary = report.get("summary") or {}
         missing_count = summary.get("missing", len(report.get("missing") or []))
         conflict_count = summary.get("conflicts", len(report.get("conflicts") or []))
-        if missing_count:
+        verify_report = verify_reports.get(peer) or {}
+        verify_summary = verify_report.get("summary") or {}
+        clean_newer_verify = bool(
+            report_is_at_least_as_new(
+                verify_report.get("generated_at"),
+                report.get("generated_at"),
+            )
+            and not (verify_report.get("errors") or [])
+            and verify_summary.get("status") == "verified"
+            and not int(verify_summary.get("missing") or 0)
+            and not int(verify_summary.get("conflicts") or 0)
+        )
+        if missing_count and not clean_newer_verify:
             action = (
                 f"Run {import_bundle_command(report, peer)} to extract and verify missing selected artifacts from the copied bundle."
                 if is_bundle_plan else
@@ -3729,7 +3778,7 @@ def diagnostics_for_snapshot(snapshot: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "message": f"{peer} diff found {missing_count} remote artifact file(s) not present locally.",
                 "action": action,
             })
-        if conflict_count:
+        if conflict_count and not clean_newer_verify:
             action = (
                 f"Review conflicts in {report.get('report_path')} before using "
                 f"{import_bundle_command(report, peer, overwrite=True)}."
@@ -14305,9 +14354,10 @@ def runner_queue_contract_payload() -> Dict[str, Any]:
         "version": 1,
         "job_schema": {
             "required": ["protocol", "version", "id", "recipe", "created_at"],
-            "optional": ["requested_by", "note"],
+            "optional": ["requested_by", "note", "expected_git_sha"],
             "additional_fields": False,
             "id_pattern": QUEUE_ID_RE.pattern,
+            "expected_git_sha_pattern": "[0-9a-fA-F]{40}",
             "file_name": "<id>.yaml",
         },
         "state_machine": {
@@ -14326,7 +14376,10 @@ def runner_queue_contract_payload() -> Dict[str, Any]:
             "single_shot_flag": "--once",
             "agent_limit": "one exclusive local lock and one concurrent job",
             "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
-            "recipe_inputs": "Jobs select only a recipe id; they cannot provide commands, arguments, paths, or cache operations.",
+            "recipe_inputs": (
+                "Jobs select a recipe id and may bind one exact controller-observed Git SHA; "
+                "they cannot provide commands, arguments, paths, or cache operations."
+            ),
         },
         "evidence": {
             "job": "inbox|running|done|failed|blocked/<id>.yaml",
@@ -14358,6 +14411,10 @@ def ensure_runner_queue_dirs() -> None:
 
 def runner_queue_safe_id(value: Any) -> bool:
     return isinstance(value, str) and bool(QUEUE_ID_RE.fullmatch(value))
+
+
+def runner_queue_safe_git_sha(value: Any) -> bool:
+    return isinstance(value, str) and bool(re.fullmatch(r"[0-9a-fA-F]{40}", value))
 
 
 def runner_queue_default_id() -> str:
@@ -14423,8 +14480,11 @@ def runner_queue_read_job(path: Path, state: str) -> Dict[str, Any]:
     for field in ("requested_by", "note"):
         if field in raw and (not isinstance(raw[field], str) or len(raw[field]) > 500):
             entry["errors"].append(f"{field} must be a short string")
+    if "expected_git_sha" in raw and not runner_queue_safe_git_sha(raw["expected_git_sha"]):
+        entry["errors"].append("expected_git_sha must be a full 40-character hexadecimal Git SHA")
     entry["recipe"] = raw.get("recipe")
     entry["created_at"] = raw.get("created_at")
+    entry["expected_git_sha"] = raw.get("expected_git_sha")
     entry["valid"] = not entry["errors"]
     return entry
 
@@ -14461,6 +14521,7 @@ def runner_queue_job_summary(entry: Dict[str, Any]) -> Dict[str, Any]:
         "state": entry.get("state"),
         "recipe": entry.get("recipe"),
         "created_at": entry.get("created_at"),
+        "expected_git_sha": entry.get("expected_git_sha"),
         "valid": bool(entry.get("valid")),
         "errors": entry.get("errors") or [],
         "path": entry.get("path"),
@@ -14621,7 +14682,14 @@ def runner_queue_recipe_command(recipe: str) -> Tuple[List[str], int]:
     return runner_recipe_command(definition), int(definition["timeout_seconds"])
 
 
-def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str] = None, note: Optional[str] = None) -> Dict[str, Any]:
+def runner_queue_submit(
+    job_id: str,
+    recipe: str,
+    *,
+    requested_by: Optional[str] = None,
+    note: Optional[str] = None,
+    expected_git_sha: Optional[str] = None,
+) -> Dict[str, Any]:
     ensure_runner_queue_dirs()
     if not runner_queue_safe_id(job_id):
         raise SystemExit("job id must match [A-Za-z0-9][A-Za-z0-9_.-]{0,80}")
@@ -14631,6 +14699,8 @@ def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str]
         raise SystemExit("requested_by must be a short string")
     if note is not None and (not isinstance(note, str) or len(note) > 500):
         raise SystemExit("note must be a short string")
+    if expected_git_sha is not None and not runner_queue_safe_git_sha(expected_git_sha):
+        raise SystemExit("expected_git_sha must be a full 40-character hexadecimal Git SHA")
     existing = runner_queue_existing_paths(job_id)
     if existing:
         raise SystemExit(f"job id is already reserved by queue evidence: {existing}")
@@ -14639,6 +14709,8 @@ def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str]
         job["requested_by"] = requested_by
     if note:
         job["note"] = note
+    if expected_git_sha:
+        job["expected_git_sha"] = expected_git_sha.lower()
     path = runner_queue_job_path("inbox", job_id)
     write_runner_queue_yaml(path, job)
     runner_queue_write_receipt(job_id, state="inbox", submitted_at=job["created_at"])
@@ -14671,6 +14743,17 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
     job = entry["job"]
     job_id = str(job["id"])
     binding = runner_recipe_binding(str(job["recipe"]))
+    expected_git_sha = job.get("expected_git_sha")
+    observed_git_sha = (binding.get("observed") or {}).get("git_sha")
+    binding["job_expected_git_sha"] = expected_git_sha
+    binding["job_exact_git_match"] = (
+        observed_git_sha == expected_git_sha if expected_git_sha else None
+    )
+    if expected_git_sha and observed_git_sha != expected_git_sha:
+        binding.setdefault("errors", []).append(
+            "runner checkout does not match the exact Git SHA bound in the job envelope"
+        )
+        binding["ready"] = False
     if not binding["ready"]:
         entry["errors"].extend(binding["errors"])
         return {
@@ -14738,7 +14821,13 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def cmd_runner_queue_submit(args: argparse.Namespace) -> int:
-    data = runner_queue_submit(args.job_id or runner_queue_default_id(), args.recipe, requested_by=args.requested_by, note=args.note)
+    data = runner_queue_submit(
+        args.job_id or runner_queue_default_id(),
+        args.recipe,
+        requested_by=args.requested_by,
+        note=args.note,
+        expected_git_sha=args.expected_git_sha,
+    )
     if args.json:
         print_json(data)
     else:
@@ -14874,6 +14963,8 @@ def runner_agent_serve(config: Dict[str, Any], *, poll_seconds: float, max_jobs:
 def runner_agent_inspect_payload() -> Dict[str, Any]:
     queue = runner_queue_payload()
     lock = runner_agent_lock_dir()
+    running_count = int(queue["counts"].get("running", 0) or 0)
+    lock_present = lock.exists()
     recovery_entries: List[Dict[str, Any]] = []
     if runner_agent_recovery_file().is_file():
         for line in runner_agent_recovery_file().read_text(encoding="utf-8").splitlines()[-20:]:
@@ -14886,9 +14977,10 @@ def runner_agent_inspect_payload() -> Dict[str, Any]:
     return {
         "protocol": QUEUE_PROTOCOL,
         "generated_at": now_iso(),
-        "lock": {"present": lock.exists(), "owner": runner_queue_load_json(lock / "owner.json") if lock.exists() else {}},
+        "lock": {"present": lock_present, "owner": runner_queue_load_json(lock / "owner.json") if lock_present else {}},
         "queue": queue,
-        "stale_running": queue["counts"].get("running", 0) > 0,
+        "active_running": running_count > 0 and lock_present,
+        "stale_running": running_count > 0 and not lock_present,
         "recovery_events": recovery_entries,
     }
 
@@ -14951,7 +15043,10 @@ def cmd_runner_agent_inspect(args: argparse.Namespace) -> int:
     if args.json:
         print_json(data)
     else:
-        print(f"runner agent: lock={'present' if data['lock']['present'] else 'clear'} stale_running={data['stale_running']}")
+        print(
+            f"runner agent: lock={'present' if data['lock']['present'] else 'clear'} "
+            f"active_running={data['active_running']} stale_running={data['stale_running']}"
+        )
     return 0 if data["queue"]["validation"]["valid"] else 1
 
 
@@ -15032,17 +15127,42 @@ def runner_agent_dispatch_payload(device: Dict[str, Any], warnings: List[str], *
         return {"status": "blocked", "errors": ["runner peer is unknown"], "preflight": preflight}
     if peer.get("role", "runner") not in ("runner", "runner+collector"):
         return {"status": "blocked", "errors": ["dispatch target must be a runner or runner+collector peer"], "preflight": preflight}
+    identity = runner_agent_peer_invoke(peer, ["self", "--json"])
+    identity_git = (identity.get("payload") or {}).get("git") or {}
+    exact_git_sha = identity_git.get("sha")
+    if (
+        not identity.get("ok")
+        or not runner_queue_safe_git_sha(exact_git_sha)
+        or identity_git.get("dirty")
+    ):
+        return {
+            "status": "blocked",
+            "errors": ["dispatch requires a clean runner checkout with a full exact Git SHA"],
+            "preflight": preflight,
+            "runner_identity": identity,
+        }
     result = runner_agent_peer_invoke(
         peer,
         ["runner-queue", "submit", "--job-id", job_id, "--recipe", recipe,
          "--requested-by", requested_by or str(device.get("device_id") or "syncmate-controller"),
-         "--note", note or "controller-dispatch", "--json"],
+         "--note", note or "controller-dispatch",
+         "--expected-git-sha", exact_git_sha,
+         "--json"],
     )
     if not result.get("ok"):
         return {"status": "blocked", "errors": result.get("errors") or ["runner submit failed"],
                 "preflight": preflight, "peer_command": result}
-    return {"status": "submitted", "job_id": job_id, "recipe": recipe, "node_id": node_id,
-            "preflight": preflight, "peer_command": result, "submission": result.get("payload")}
+    return {
+        "status": "submitted",
+        "job_id": job_id,
+        "recipe": recipe,
+        "node_id": node_id,
+        "expected_git_sha": exact_git_sha,
+        "preflight": preflight,
+        "runner_identity": identity,
+        "peer_command": result,
+        "submission": result.get("payload"),
+    }
 
 
 def runner_agent_watch_payload(device: Dict[str, Any], *, node_id: str, job_id: str, poll_seconds: float,
@@ -15346,6 +15466,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_queue_submit.add_argument("--job-id", help="optional stable job id; default is generated")
     p_queue_submit.add_argument("--requested-by", help="short local requester label recorded in the job")
     p_queue_submit.add_argument("--note", help="short local note recorded in the job")
+    p_queue_submit.add_argument(
+        "--expected-git-sha",
+        help="optional exact 40-character runner Git SHA; execution blocks if HEAD differs",
+    )
     p_queue_submit.add_argument("--json", action="store_true")
     p_queue_submit.set_defaults(func=cmd_runner_queue_submit)
 
