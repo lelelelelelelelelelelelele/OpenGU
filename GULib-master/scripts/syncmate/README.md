@@ -1,7 +1,8 @@
 # Syncmate
 
-Syncmate is a tiny companion protocol for this repo. It is not a daemon and it
-does not try to turn the project into a distributed system. Its job is to give
+Syncmate is a tiny companion protocol for this repo. It does not try to turn
+the project into a distributed system; its optional runner-agent is a bounded
+single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
@@ -1103,22 +1104,29 @@ Without `--write` it is zero-write; with `--write` it only saves
 `.syncmate/last_bundle_inspect_<node_id>.json` so the inspection becomes part
 of the local status trail before import.
 
-## Runner Queue: Safe Local Smoke Work
+## Runner Queue: Bounded Runner Agent
 
-The optional runner queue is a small local protocol for a runner to claim one
-safe maintenance check. It is deliberately not an experiment launcher, daemon,
-or remote-control channel. Jobs are YAML documents in the ignored
-`.syncmate/runner_queue/inbox/` directory and move atomically through:
+The optional queue is a small data-only protocol, with a bounded local runner
+agent. It is not an experiment launcher, general scheduler, distributed system,
+or remote shell. Jobs are YAML documents in ignored
+`.syncmate/runner_queue/inbox/` and move atomically through:
 
 ```text
 inbox -> running -> done | failed | blocked
 ```
 
-The sole v1 recipe is allowlisted `smoke`, which runs SyncMate's existing
-temporary local smoke check. It cannot accept shell fragments, arbitrary Python
-arguments, training configurations, cache operations, or experiment payloads.
-Therefore SyncMate remains the collector/verifier/gate; this queue does not
-change experiment, cache, or artifact semantics.
+Jobs select only a static recipe id. They cannot accept shell fragments,
+arguments, paths, configurations, environment values, cache operations, or
+expressions. Each code-defined recipe freezes its exact argv, fixed config path
+and SHA-256, expected OpenGU baseline/check-out policy, timeout, expected raw
+artifact paths, success predicate, and whether controller acceptance is
+eligible. Binding mismatch becomes `blocked` with expected/observed evidence.
+
+The safe `smoke` recipe remains a temporary local SyncMate smoke check. The
+first handoff-capable recipe, `opengu-preflight-v1`, binds the existing Phase B
+config but writes clearly marked synthetic no-GPU preflight artifacts only; it
+does not call `experiments/run.py`, conduct training, alter cache semantics, or
+claim experiment results.
 
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
@@ -1130,27 +1138,35 @@ python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke --request
 python scripts/syncmate/syncmate.py runner-queue validate --write
 python scripts/syncmate/syncmate.py runner-queue status --json
 
-# Runner only: exactly one job. --once is mandatory; there is no continuous mode.
+# Runner only: exactly one job.
 python scripts/syncmate/syncmate.py runner-queue run --once --json
+
+# Runner only: supervised bounded poller, one exclusive lock and one job at a time.
+python scripts/syncmate/syncmate.py runner-agent serve --poll-seconds 5
+python scripts/syncmate/syncmate.py runner-agent inspect --json
+# Stale work is never retried automatically; inspect first, then explicitly audit recovery.
+python scripts/syncmate/syncmate.py runner-agent recover --block-running --job-id <id> --confirm
 
 # Writes a static, browser-readable queue page from the same manifest.
 python scripts/syncmate/syncmate.py runner-queue dashboard
 ```
 
-Each job requires `protocol: syncmate-runner-queue/v1`, `version: 1`, a safe
-ID matching its filename, an ISO timestamp, and the allowlisted recipe. Invalid
-inbox YAML is moved to `blocked` with a structured reason. Claim/start/finish
-timestamps live in `receipts/<id>.json`; command outcome and bounded output
-live in `results/<id>.json`; `manifest.json` is the current structured state;
-and `status.html` is the matching static frontend. All stay untracked beneath
+Each job requires `protocol: syncmate-runner-queue/v1`, `version: 1`, a safe ID
+matching its filename, an ISO timestamp, and an allowlisted recipe. Invalid,
+duplicate, mismatched, or stale work blocks rather than overwriting evidence.
+Claim/start/finish timestamps and binding observations live in
+`receipts/<id>.json`; command outcome and bounded output live in
+`results/<id>.json`; `manifest.json` is the current structured state; and
+`status.html` is the matching static frontend. All stay untracked beneath
 `.syncmate/`.
 
 ### SyncMate / OpenGU Integration Boundary
 
 Runner Queue and SyncMate intentionally live together: Queue owns local job
-lifecycle and allowlisted execution, while SyncMate remains the collector,
-checksum verifier, trusted-index writer, and acceptance gate. OpenGU is an
-optional client of that boundary, not another queue owner.
+lifecycle and declared execution; the bounded agent can poll only its local
+inbox. SyncMate remains the controller, collector, checksum verifier,
+trusted-index writer, and acceptance gate. OpenGU is an optional client of that
+boundary, not another queue owner.
 
 Use the read-only, machine-readable contract before adding an adapter:
 
@@ -1159,6 +1175,19 @@ python scripts/syncmate/syncmate.py runner-queue contract --json
 # Optional local copy for a handoff; does not alter jobs.
 python scripts/syncmate/syncmate.py runner-queue contract --write
 ```
+
+From a collector, use only a configured runner peer and the fixed controller
+bridge:
+
+```bash
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
+```
+
+Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
+only validated job id, static recipe, requester, and note. `--wait` observes a
+terminal result; only `done` for an acceptance-eligible recipe invokes the
+normal SyncMate `sync` collection/verification/gate chain. `failed`, `blocked`,
+timeout, checksum mismatch, or gate failure never becomes acceptance.
 
 OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path

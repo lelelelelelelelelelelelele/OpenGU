@@ -19,10 +19,12 @@ import os
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import webbrowser
 import zipfile
 from collections import Counter, defaultdict
@@ -65,7 +67,47 @@ LOG_ERROR_KEYWORDS = (
 QUEUE_PROTOCOL = "syncmate-runner-queue/v1"
 QUEUE_STATES = ("inbox", "running", "done", "failed", "blocked")
 QUEUE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,80}$")
-QUEUE_ALLOWED_RECIPES = ("smoke",)
+RUNNER_AGENT_MIN_POLL_SECONDS = 1.0
+RUNNER_AGENT_MAX_POLL_SECONDS = 60.0
+RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 3600
+RUNNER_RECIPE_BASE_SHA = "a177e2c3bdf2a5a152c0e7be9fa5385c9b462b2a"
+RUNNER_RECIPE_ALLOWED_TOOL_DELTA = (
+    "GULib-master/scripts/syncmate/",
+    "GULib-master/tests/test_syncmate.py",
+    "GULib-master/docs/syncmate_bounded_runner_agent_ACCEPTANCE_REPORT.",
+)
+RUNNER_RECIPE_DEFINITIONS = {
+    "smoke": {
+        "id": "smoke",
+        "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),
+        "config_path": "scripts/syncmate/setup.example.yaml",
+        "config_sha256": "34f0ad2d462d6575a285760ddfd45f17f01672c1342881a7719b27ed8efafa56",
+        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "timeout_seconds": 180,
+        "expected_artifact_paths": (),
+        "success_predicate": "json.passed == true",
+        "collector_acceptance": False,
+    },
+    "opengu-preflight-v1": {
+        "id": "opengu-preflight-v1",
+        "argv": (
+            "{python}", "scripts/syncmate/syncmate.py", "runner-preflight",
+            "--recipe", "opengu-preflight-v1", "--json",
+        ),
+        "config_path": "experiments/configs/phase_b_cora_gcn.yaml",
+        "config_sha256": "8c31c6c05aa3737cab457a0ae0a6937d4c99c30499b5f54b620c500a0c967c2e",
+        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "timeout_seconds": 180,
+        "expected_artifact_paths": (
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/attack.json",
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/collateral.json",
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/_meta.json",
+        ),
+        "success_predicate": "json.passed == true and generated_artifacts == expected_artifact_paths",
+        "collector_acceptance": True,
+    },
+}
+QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
 QUEUE_ALLOWED_JOB_FIELDS = {
     "protocol", "version", "id", "recipe", "created_at", "requested_by", "note",
 }
@@ -13824,6 +13866,88 @@ def smoke_payload(args: argparse.Namespace) -> Dict[str, Any]:
     return data
 
 
+def runner_preflight_leaf() -> Path:
+    """Return the deliberately isolated no-GPU runner-agent evidence leaf."""
+    return RESULTS_RUNS / "__syncmate_preflight__" / "opengu_preflight" / "seed0"
+
+
+def runner_preflight_payload(recipe: str) -> Dict[str, Any]:
+    """Create only schema-valid, clearly marked preflight evidence.
+
+    This is intentionally *not* an OpenGU experiment invocation.  It binds the
+    declared experiment configuration and proves the controller's normal
+    collection/verification path without consuming a GPU or changing cache
+    semantics.
+    """
+    if recipe != "opengu-preflight-v1":
+        return {"passed": False, "recipe": recipe, "errors": ["unsupported runner preflight recipe"]}
+    binding = runner_recipe_binding(recipe)
+    if not binding.get("ready"):
+        return {"passed": False, "recipe": recipe, "binding": binding, "errors": binding.get("errors") or []}
+    leaf = runner_preflight_leaf()
+    expected = list((runner_recipe_definition(recipe) or {}).get("expected_artifact_paths") or [])
+    existing = [path for path in expected if (REPO_ROOT / path).exists()]
+    if existing:
+        return {
+            "passed": False,
+            "recipe": recipe,
+            "binding": binding,
+            "generated_artifacts": [],
+            "errors": ["preflight evidence already exists; no artifact was overwritten: " + ", ".join(existing)],
+        }
+    try:
+        git_sha = run_git(["rev-parse", "HEAD"]) or "unknown"
+    except Exception:
+        git_sha = "unknown"
+    attack = {
+        "results": {
+            "opengu_preflight": {
+                "f1_after": 1.0,
+                "mia_auc": 0.5,
+                "unlearn_time": 0.0,
+                "selection_time": 0.0,
+                "selected_nodes": [],
+            }
+        }
+    }
+    collateral = {"results": [{"strategy": "opengu_preflight", "perf_before": 1.0, "gap": 0.0, "prediction_shift": 0.0}]}
+    meta = {
+        "git_sha": git_sha,
+        "hostname": socket.gethostname(),
+        "timestamp": now_iso(),
+        "syncmate_runner_preflight": True,
+        "recipe": recipe,
+        "config_path": binding["expected"]["config_path"],
+        "config_sha256": binding["expected"]["config_sha256"],
+        "note": "Synthetic bounded-runner evidence only; no OpenGU experiment or cache operation was run.",
+    }
+    write_json_artifact(leaf / "attack.json", attack)
+    write_json_artifact(leaf / "collateral.json", collateral)
+    write_json_artifact(leaf / "_meta.json", meta)
+    generated = [rel(leaf / name) for name in ("attack.json", "collateral.json", "_meta.json")]
+    passed = generated == expected
+    return {
+        "passed": passed,
+        "recipe": recipe,
+        "binding": binding,
+        "generated_artifacts": generated,
+        "errors": [] if passed else ["generated artifact paths did not match the immutable recipe declaration"],
+    }
+
+
+def cmd_runner_preflight(args: argparse.Namespace) -> int:
+    data = runner_preflight_payload(args.recipe)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner preflight: {'passed' if data.get('passed') else 'failed'}")
+        for path in data.get("generated_artifacts") or []:
+            print(f"  artifact: {path}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data.get("passed") else 1
+
+
 def runner_queue_root() -> Path:
     return SYNC_DIR / "runner_queue"
 
@@ -13854,6 +13978,152 @@ def runner_queue_contract_file() -> Path:
     return runner_queue_root() / "contract.json"
 
 
+def runner_agent_lock_dir() -> Path:
+    return runner_queue_root() / "agent.lock"
+
+
+def runner_agent_recovery_file() -> Path:
+    return runner_queue_root() / "recovery.jsonl"
+
+
+def runner_recipe_definition(recipe: str) -> Dict[str, Any]:
+    definition = RUNNER_RECIPE_DEFINITIONS.get(recipe)
+    if not definition:
+        raise ValueError(f"recipe {recipe!r} is not allowlisted")
+    return json.loads(json.dumps(definition))
+
+
+def runner_recipe_command(definition: Dict[str, Any]) -> List[str]:
+    return [sys.executable if value == "{python}" else str(value) for value in definition["argv"]]
+
+
+def runner_recipe_git_binding(expected_sha: str) -> Dict[str, Any]:
+    observed_sha = run_git(["rev-parse", "HEAD"])
+    data: Dict[str, Any] = {
+        "expected_git_sha": expected_sha,
+        "observed_git_sha": observed_sha,
+        "mode": "exact" if observed_sha == expected_sha else "tooling-delta",
+        "ok": observed_sha == expected_sha,
+        "changed_paths": [],
+        "errors": [],
+    }
+    if data["ok"]:
+        return data
+    try:
+        ancestor = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "merge-base", "--is-ancestor", expected_sha, observed_sha],
+            check=False,
+            capture_output=True,
+        ).returncode == 0
+        changed = subprocess.check_output(
+            ["git", "-C", str(REPO_ROOT), "diff", "--name-only", f"{expected_sha}..{observed_sha}"],
+            stderr=subprocess.DEVNULL,
+        ).decode("utf-8", errors="replace").splitlines()
+    except Exception as exc:
+        data["errors"].append(f"could not verify Git binding: {type(exc).__name__}: {exc}")
+        return data
+    data["changed_paths"] = changed
+    disallowed = [
+        path for path in changed
+        if not any(path == allowed or path.startswith(allowed) for allowed in RUNNER_RECIPE_ALLOWED_TOOL_DELTA)
+    ]
+    if not ancestor:
+        data["errors"].append("expected OpenGU baseline is not an ancestor of the runner checkout")
+    if disallowed:
+        data["errors"].append("runner checkout contains non-tooling commits after the expected baseline: " + ", ".join(disallowed))
+    data["ok"] = ancestor and not disallowed
+    return data
+
+
+def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
+    definition = runner_recipe_definition(recipe)
+    config_rel = str(definition["config_path"])
+    config_path = safe_repo_path(config_rel)
+    errors: List[str] = []
+    observed_config_sha = None
+    if config_path is None or not config_path.is_file():
+        errors.append(f"fixed recipe config is missing or unsafe: {config_rel}")
+    else:
+        observed_config_sha = sha256_file(config_path)
+        if observed_config_sha != definition["config_sha256"]:
+            errors.append("fixed recipe config SHA-256 differs from recipe metadata")
+    git = runner_recipe_git_binding(str(definition["expected_git_sha"]))
+    errors.extend(git.get("errors") or [])
+    return {
+        "recipe": definition,
+        "expected": {
+            "git_sha": definition["expected_git_sha"],
+            "config_path": config_rel,
+            "config_sha256": definition["config_sha256"],
+            "timeout_seconds": definition["timeout_seconds"],
+            "artifact_paths": definition["expected_artifact_paths"],
+            "collector_acceptance": definition["collector_acceptance"],
+        },
+        "observed": {
+            "git_sha": git.get("observed_git_sha"),
+            "config_sha256": observed_config_sha,
+            "git_binding_mode": git.get("mode"),
+            "git_changed_paths": git.get("changed_paths") or [],
+        },
+        "git": git,
+        "ready": not errors,
+        "errors": errors,
+    }
+
+
+def runner_queue_existing_paths(job_id: str) -> Dict[str, str]:
+    paths = {
+        state: runner_queue_job_path(state, job_id)
+        for state in QUEUE_STATES
+        if runner_queue_job_path(state, job_id).exists()
+    }
+    if runner_queue_result_path(job_id).exists():
+        paths["result"] = runner_queue_result_path(job_id)
+    return {key: runner_queue_rel(path) for key, path in paths.items()}
+
+
+def runner_queue_duplicate_errors(payload: Dict[str, Any]) -> List[str]:
+    return [
+        str(error) for error in ((payload.get("validation") or {}).get("errors") or [])
+        if str(error).startswith("job id appears in multiple states:")
+    ]
+
+
+def runner_agent_acquire_lock(device_id: str) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    lock = runner_agent_lock_dir()
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        owner = runner_queue_load_json(lock / "owner.json")
+        raise RuntimeError(f"runner agent lock already exists: {runner_queue_rel(lock)} owner={owner or 'unknown'}")
+    owner = {
+        "protocol": QUEUE_PROTOCOL,
+        "device_id": device_id,
+        "pid": os.getpid(),
+        "acquired_at": now_iso(),
+    }
+    write_runner_queue_json(lock / "owner.json", owner)
+    return owner
+
+
+def runner_agent_release_lock() -> None:
+    lock = runner_agent_lock_dir()
+    if not lock.exists():
+        return
+    owner = lock / "owner.json"
+    if owner.exists():
+        owner.unlink()
+    lock.rmdir()
+
+
+def runner_agent_append_recovery(event: Dict[str, Any]) -> None:
+    ensure_runner_queue_dirs()
+    data = {"generated_at": now_iso(), **event}
+    with runner_agent_recovery_file().open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(data, ensure_ascii=False) + "\n")
+
+
 def runner_queue_contract_payload() -> Dict[str, Any]:
     """Return the stable external boundary for optional queue integrations.
 
@@ -13879,11 +14149,12 @@ def runner_queue_contract_payload() -> Dict[str, Any]:
                 "fail": ["running", "failed"],
                 "block": ["inbox", "blocked"],
             },
-            "owner": "Only runner-queue run --once may claim or transition a job.",
+            "owner": "Only runner-queue run --once or runner-agent serve may claim or transition a job.",
         },
         "execution": {
-            "mode": "single-shot",
-            "required_flag": "--once",
+            "mode": "single-shot or bounded runner-agent serve",
+            "single_shot_flag": "--once",
+            "agent_limit": "one exclusive local lock and one concurrent job",
             "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
             "recipe_inputs": "Jobs select only a recipe id; they cannot provide commands, arguments, paths, or cache operations.",
         },
@@ -14137,20 +14408,34 @@ def write_runner_queue_status(payload: Optional[Dict[str, Any]] = None) -> Path:
 
 def runner_queue_unique_destination(state: str, job_id: str) -> Path:
     destination = runner_queue_job_path(state, job_id)
-    if not destination.exists():
+    if not destination.exists() and not runner_queue_result_path(job_id).exists():
         return destination
-    return runner_queue_job_path(state, f"{job_id[:60].rstrip('.-')}-{_dt.datetime.now().strftime('%H%M%S%f')}")
+    candidate_id = f"{job_id[:60].rstrip('.-')}-{_dt.datetime.now().strftime('%H%M%S%f')}"
+    return runner_queue_job_path(state, candidate_id)
 
 
-def runner_queue_block_invalid(path: Path, entry: Dict[str, Any]) -> Dict[str, Any]:
+def runner_queue_block_invalid(path: Path, entry: Dict[str, Any], *, binding: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     raw_id = entry.get("id")
     job_id = str(raw_id) if runner_queue_safe_id(raw_id) else f"invalid-{safe_file_stem(path.stem)[:60]}"
     destination = runner_queue_unique_destination("blocked", job_id)
     result_id = destination.stem
     path.replace(destination)
     reason = "; ".join(entry.get("errors") or ["invalid runner queue job"])
-    runner_queue_write_receipt(result_id, state="blocked", blocked_at=now_iso(), reason=reason)
-    result = {"protocol": QUEUE_PROTOCOL, "job_id": result_id, "status": "blocked", "reason": reason, "finished_at": now_iso()}
+    runner_queue_write_receipt(
+        result_id,
+        state="blocked",
+        blocked_at=now_iso(),
+        reason=reason,
+        recipe_binding=binding,
+    )
+    result = {
+        "protocol": QUEUE_PROTOCOL,
+        "job_id": result_id,
+        "status": "blocked",
+        "reason": reason,
+        "finished_at": now_iso(),
+        "recipe_binding": binding,
+    }
     write_runner_queue_json(runner_queue_result_path(result_id), result)
     return {"job_id": result_id, "state": "blocked", "reason": reason, "path": runner_queue_rel(destination)}
 
@@ -14162,9 +14447,8 @@ def runner_queue_output_text(value: Any) -> str:
 
 
 def runner_queue_recipe_command(recipe: str) -> Tuple[List[str], int]:
-    if recipe == "smoke":
-        return [sys.executable, "scripts/syncmate/syncmate.py", "smoke", "--json"], 180
-    raise ValueError(f"recipe {recipe!r} is not allowlisted")
+    definition = runner_recipe_definition(recipe)
+    return runner_recipe_command(definition), int(definition["timeout_seconds"])
 
 
 def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str] = None, note: Optional[str] = None) -> Dict[str, Any]:
@@ -14177,9 +14461,9 @@ def runner_queue_submit(job_id: str, recipe: str, *, requested_by: Optional[str]
         raise SystemExit("requested_by must be a short string")
     if note is not None and (not isinstance(note, str) or len(note) > 500):
         raise SystemExit("note must be a short string")
-    for state in QUEUE_STATES:
-        if runner_queue_job_path(state, job_id).exists():
-            raise SystemExit(f"job id already exists in {state}: {job_id}")
+    existing = runner_queue_existing_paths(job_id)
+    if existing:
+        raise SystemExit(f"job id is already reserved by queue evidence: {existing}")
     job = {"protocol": QUEUE_PROTOCOL, "version": 1, "id": job_id, "recipe": recipe, "created_at": now_iso()}
     if requested_by:
         job["requested_by"] = requested_by
@@ -14197,6 +14481,16 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
     role = config.get("role")
     if role not in ("runner", "runner+collector"):
         return {"status": "blocked", "errors": ["runner-queue run requires device role runner or runner+collector"], "processed": False}
+    queue = runner_queue_payload()
+    duplicates = runner_queue_duplicate_errors(queue)
+    if duplicates:
+        return {"status": "blocked", "processed": False, "errors": duplicates}
+    if queue["counts"]["running"]:
+        return {
+            "status": "blocked",
+            "processed": False,
+            "errors": ["a running job requires explicit manual recovery; automatic retry is disabled"],
+        }
     inbox = sorted(runner_queue_state_dir("inbox").glob("*.yaml"))
     if not inbox:
         return {"status": "idle", "processed": False}
@@ -14206,15 +14500,30 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
     job = entry["job"]
     job_id = str(job["id"])
+    binding = runner_recipe_binding(str(job["recipe"]))
+    if not binding["ready"]:
+        entry["errors"].extend(binding["errors"])
+        return {
+            "status": "blocked",
+            "processed": True,
+            "blocked": runner_queue_block_invalid(source, entry, binding=binding),
+        }
     running_path = runner_queue_job_path("running", job_id)
     if running_path.exists():
         entry["errors"].append("job id already exists in running; refusing to overwrite")
-        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
+        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry, binding=binding)}
     try:
         source.replace(running_path)
     except FileNotFoundError:
         return {"status": "contended", "processed": False, "errors": ["job was claimed by another runner"]}
-    runner_queue_write_receipt(job_id, state="running", claimed_at=now_iso(), started_at=now_iso(), runner_id=config.get("device_id"))
+    runner_queue_write_receipt(
+        job_id,
+        state="running",
+        claimed_at=now_iso(),
+        started_at=now_iso(),
+        runner_id=config.get("device_id"),
+        recipe_binding=binding,
+    )
     command, timeout = runner_queue_recipe_command(str(job["recipe"]))
     try:
         completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout, check=False)
@@ -14232,7 +14541,7 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
             "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
             "exit_code": completed.returncode, "finished_at": now_iso(), "command": command,
             "recipe_passed": recipe_data.get("passed") if isinstance(recipe_data, dict) else None,
-            "stdout": stdout, "stderr": stderr, "reason": reason,
+            "stdout": stdout, "stderr": stderr, "reason": reason, "recipe_binding": binding,
         }
     except subprocess.TimeoutExpired as exc:
         state = "failed"
@@ -14240,7 +14549,16 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
             "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
             "exit_code": None, "finished_at": now_iso(), "command": command, "recipe_passed": False,
             "stdout": runner_queue_output_text(exc.stdout)[-16000:], "stderr": runner_queue_output_text(exc.stderr)[-16000:],
-            "reason": f"recipe timed out after {timeout}s",
+            "reason": f"recipe timed out after {timeout}s", "recipe_binding": binding,
+        }
+    conflicting = runner_queue_existing_paths(job_id)
+    conflicting.pop("running", None)
+    if conflicting:
+        return {
+            "status": "conflict",
+            "processed": True,
+            "job_id": job_id,
+            "errors": ["terminal transition refused; duplicate queue evidence exists: " + json.dumps(conflicting)],
         }
     destination = runner_queue_job_path(state, job_id)
     running_path.replace(destination)
@@ -14328,6 +14646,326 @@ def cmd_runner_queue_run(args: argparse.Namespace) -> int:
         for error in data.get("errors") or []:
             print(f"  error: {error}")
     return 0 if data["status"] in ("done", "idle") else 1
+
+
+def runner_agent_validate_poll_seconds(value: float) -> float:
+    if value < RUNNER_AGENT_MIN_POLL_SECONDS or value > RUNNER_AGENT_MAX_POLL_SECONDS:
+        raise ValueError(
+            f"poll seconds must be between {RUNNER_AGENT_MIN_POLL_SECONDS:g} and {RUNNER_AGENT_MAX_POLL_SECONDS:g}"
+        )
+    return value
+
+
+def runner_agent_serve(config: Dict[str, Any], *, poll_seconds: float, max_jobs: Optional[int] = None,
+                       max_idle_polls: Optional[int] = None) -> Dict[str, Any]:
+    """Run the deliberately small, exclusive runner-agent loop.
+
+    The loop executes at most one queue job at a time and stops on any blocked,
+    failed, stale, or conflicted state.  It never retries a running job.
+    """
+    poll_seconds = runner_agent_validate_poll_seconds(float(poll_seconds))
+    if config.get("role") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["runner-agent serve requires device role runner or runner+collector"], "processed": 0}
+    if max_jobs is not None and max_jobs < 1:
+        return {"status": "blocked", "errors": ["max_jobs must be at least 1"], "processed": 0}
+    if max_idle_polls is not None and max_idle_polls < 0:
+        return {"status": "blocked", "errors": ["max_idle_polls cannot be negative"], "processed": 0}
+    try:
+        owner = runner_agent_acquire_lock(str(config.get("device_id") or "unknown-runner"))
+    except RuntimeError as exc:
+        return {"status": "locked", "errors": [str(exc)], "processed": 0}
+    processed = 0
+    idle_polls = 0
+    events: List[Dict[str, Any]] = []
+    try:
+        while True:
+            outcome = runner_queue_run_once(config)
+            events.append({key: value for key, value in outcome.items() if key != "result"})
+            status = str(outcome.get("status"))
+            if status == "done":
+                processed += 1
+                if max_jobs is not None and processed >= max_jobs:
+                    return {"status": "completed", "processed": processed, "owner": owner, "events": events}
+                time.sleep(poll_seconds)
+                continue
+            if status == "idle":
+                idle_polls += 1
+                if max_idle_polls is not None and idle_polls >= max_idle_polls:
+                    return {"status": "idle", "processed": processed, "owner": owner, "events": events}
+                time.sleep(poll_seconds)
+                continue
+            # A failed recipe is terminal evidence, not a prompt to retry.
+            return {"status": status, "processed": processed, "owner": owner, "events": events,
+                    "errors": outcome.get("errors") or []}
+    finally:
+        runner_agent_release_lock()
+
+
+def runner_agent_inspect_payload() -> Dict[str, Any]:
+    queue = runner_queue_payload()
+    lock = runner_agent_lock_dir()
+    recovery_entries: List[Dict[str, Any]] = []
+    if runner_agent_recovery_file().is_file():
+        for line in runner_agent_recovery_file().read_text(encoding="utf-8").splitlines()[-20:]:
+            try:
+                value = json.loads(line)
+                if isinstance(value, dict):
+                    recovery_entries.append(value)
+            except json.JSONDecodeError:
+                recovery_entries.append({"invalid_line": line[:300]})
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "generated_at": now_iso(),
+        "lock": {"present": lock.exists(), "owner": runner_queue_load_json(lock / "owner.json") if lock.exists() else {}},
+        "queue": queue,
+        "stale_running": queue["counts"].get("running", 0) > 0,
+        "recovery_events": recovery_entries,
+    }
+
+
+def runner_agent_recover(*, job_id: Optional[str], clear_lock: bool, block_running: bool, confirm: bool) -> Dict[str, Any]:
+    """Perform one explicit, append-only recovery operation after inspection."""
+    if not confirm:
+        return {"status": "blocked", "errors": ["recovery requires --confirm after runner-agent inspect"]}
+    if int(bool(clear_lock)) + int(bool(block_running)) != 1:
+        return {"status": "blocked", "errors": ["choose exactly one of --clear-lock or --block-running"]}
+    if clear_lock:
+        lock = runner_agent_lock_dir()
+        if not lock.exists():
+            return {"status": "idle", "action": "clear-lock", "errors": ["no agent lock exists"]}
+        owner = runner_queue_load_json(lock / "owner.json")
+        runner_agent_release_lock()
+        event = {"action": "clear-lock", "owner": owner, "reason": "explicit operator recovery"}
+        runner_agent_append_recovery(event)
+        return {"status": "recovered", **event}
+    if not job_id or not runner_queue_safe_id(job_id):
+        return {"status": "blocked", "errors": ["--block-running requires a safe --job-id"]}
+    if runner_agent_lock_dir().exists():
+        return {"status": "blocked", "errors": ["refusing recovery while an agent lock exists; inspect and clear it explicitly first"]}
+    source = runner_queue_job_path("running", job_id)
+    if not source.exists():
+        return {"status": "blocked", "errors": ["no matching running job exists"]}
+    conflicts = runner_queue_existing_paths(job_id)
+    conflicts.pop("running", None)
+    if conflicts:
+        return {"status": "blocked", "errors": ["refusing recovery because terminal evidence already exists: " + json.dumps(conflicts)]}
+    entry = runner_queue_read_job(source, "running")
+    destination = runner_queue_job_path("blocked", job_id)
+    source.replace(destination)
+    reason = "explicit operator recovery blocked a stale running job; retry requires a new job id"
+    runner_queue_write_receipt(job_id, state="blocked", blocked_at=now_iso(), reason=reason, recovery=True)
+    write_runner_queue_json(runner_queue_result_path(job_id), {
+        "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": entry.get("recipe"), "status": "blocked",
+        "finished_at": now_iso(), "reason": reason, "recovery": True,
+    })
+    event = {"action": "block-running", "job_id": job_id, "reason": reason}
+    runner_agent_append_recovery(event)
+    return {"status": "recovered", **event, "path": runner_queue_rel(destination)}
+
+
+def cmd_runner_agent_serve(args: argparse.Namespace) -> int:
+    config, _warnings = load_device(args.config)
+    data = runner_agent_serve(config, poll_seconds=args.poll_seconds, max_jobs=args.max_jobs,
+                              max_idle_polls=args.max_idle_polls)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner agent: {data['status']} processed={data.get('processed', 0)}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("completed", "idle") else 1
+
+
+def cmd_runner_agent_inspect(args: argparse.Namespace) -> int:
+    data = runner_agent_inspect_payload()
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner agent: lock={'present' if data['lock']['present'] else 'clear'} stale_running={data['stale_running']}")
+    return 0 if data["queue"]["validation"]["valid"] else 1
+
+
+def cmd_runner_agent_recover(args: argparse.Namespace) -> int:
+    data = runner_agent_recover(job_id=args.job_id, clear_lock=args.clear_lock,
+                                block_running=args.block_running, confirm=args.confirm)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner agent recovery: {data['status']}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("recovered", "idle") else 1
+
+
+def runner_agent_peer_invoke(peer: Dict[str, Any], arguments: List[str], *, timeout: int = 60) -> Dict[str, Any]:
+    """Invoke one fixed SyncMate CLI on a configured runner peer.
+
+    `arguments` is built internally from validated schema values only; it is
+    never accepted as a user-provided remote command string.
+    """
+    repo_path = str(peer.get("repo_path") or "")
+    if not repo_path:
+        return {"ok": False, "errors": ["configured runner peer has no repo_path"]}
+    if peer_uses_local_transport(peer):
+        command = [sys.executable, "scripts/syncmate/syncmate.py", *arguments]
+        completed = subprocess.run(command, cwd=resolve_local_repo_root(repo_path), capture_output=True, text=True,
+                                   timeout=timeout, check=False)
+    else:
+        ssh = transport_ssh_value(peer)
+        if not ssh:
+            return {"ok": False, "errors": ["configured SSH runner peer has no ssh target"]}
+        remote = "cd " + shell_quote(repo_path) + " && " + " ".join(
+            shell_quote(part) for part in ["python", "scripts/syncmate/syncmate.py", *arguments]
+        )
+        command = ["ssh", ssh, remote]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+    stdout = runner_queue_output_text(completed.stdout)[-16000:]
+    stderr = runner_queue_output_text(completed.stderr)[-16000:]
+    payload: Dict[str, Any] = {}
+    try:
+        raw = json.loads(stdout)
+        if isinstance(raw, dict):
+            payload = raw
+    except json.JSONDecodeError:
+        pass
+    return {
+        "ok": completed.returncode == 0 and bool(payload),
+        "returncode": completed.returncode,
+        "command": command,
+        "stdout": stdout,
+        "stderr": stderr,
+        "payload": payload,
+        "errors": [] if completed.returncode == 0 else [f"runner peer command exited {completed.returncode}"],
+    }
+
+
+def runner_agent_dispatch_payload(device: Dict[str, Any], warnings: List[str], *, config_path: Path,
+                                  node_id: str, job_id: str, recipe: str, requested_by: Optional[str],
+                                  note: Optional[str]) -> Dict[str, Any]:
+    """Controller-side guarded enqueue; this does not run an experiment."""
+    if recipe not in QUEUE_ALLOWED_RECIPES:
+        return {"status": "blocked", "errors": ["recipe is not allowlisted"]}
+    if not runner_queue_safe_id(job_id):
+        return {"status": "blocked", "errors": ["job id is unsafe"]}
+    if requested_by is not None and (not isinstance(requested_by, str) or len(requested_by) > 500):
+        return {"status": "blocked", "errors": ["requested_by must be a short string"]}
+    if note is not None and (not isinstance(note, str) or len(note) > 500):
+        return {"status": "blocked", "errors": ["note must be a short string"]}
+    preflight = preflight_payload(device, warnings, config_path=config_path, node_ids=[node_id], require_sync_targets=True)
+    maybe_write_preflight_report(preflight, save=True)
+    if preflight.get("status") == "blocked":
+        return {"status": "blocked", "errors": ["controller preflight blocked dispatch"], "preflight": preflight}
+    peers = device.get("peers") if isinstance(device.get("peers"), dict) else {}
+    peer = peers.get(node_id)
+    if not isinstance(peer, dict):
+        return {"status": "blocked", "errors": ["runner peer is unknown"], "preflight": preflight}
+    if peer.get("role", "runner") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["dispatch target must be a runner or runner+collector peer"], "preflight": preflight}
+    result = runner_agent_peer_invoke(
+        peer,
+        ["runner-queue", "submit", "--job-id", job_id, "--recipe", recipe,
+         "--requested-by", requested_by or str(device.get("device_id") or "syncmate-controller"),
+         "--note", note or "controller-dispatch", "--json"],
+    )
+    if not result.get("ok"):
+        return {"status": "blocked", "errors": result.get("errors") or ["runner submit failed"],
+                "preflight": preflight, "peer_command": result}
+    return {"status": "submitted", "job_id": job_id, "recipe": recipe, "node_id": node_id,
+            "preflight": preflight, "peer_command": result, "submission": result.get("payload")}
+
+
+def runner_agent_watch_payload(device: Dict[str, Any], *, node_id: str, job_id: str, poll_seconds: float,
+                               timeout_seconds: int) -> Dict[str, Any]:
+    poll_seconds = runner_agent_validate_poll_seconds(float(poll_seconds))
+    if timeout_seconds < 1 or timeout_seconds > RUNNER_AGENT_MAX_TIMEOUT_SECONDS:
+        return {"status": "blocked", "errors": [f"timeout seconds must be between 1 and {RUNNER_AGENT_MAX_TIMEOUT_SECONDS}"]}
+    peers = device.get("peers") if isinstance(device.get("peers"), dict) else {}
+    peer = peers.get(node_id)
+    if not isinstance(peer, dict) or peer.get("role", "runner") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["watch target must be a configured runner peer"]}
+    started = time.monotonic()
+    observations: List[Dict[str, Any]] = []
+    while True:
+        response = runner_agent_peer_invoke(peer, ["runner-queue", "status", "--json"])
+        observations.append({key: value for key, value in response.items() if key not in ("stdout", "stderr")})
+        if not response.get("ok"):
+            return {"status": "blocked", "errors": response.get("errors") or ["could not read runner queue"],
+                    "observations": observations}
+        jobs = (response.get("payload") or {}).get("jobs") or []
+        matched = [job for job in jobs if job.get("id") == job_id]
+        if matched and matched[0].get("state") in ("done", "failed", "blocked"):
+            job = matched[0]
+            state = str(job["state"])
+            return {"status": state, "job": job, "observations": observations}
+        if time.monotonic() - started >= timeout_seconds:
+            return {"status": "timeout", "errors": ["watch timed out; no retry or acceptance was attempted"],
+                    "observations": observations}
+        time.sleep(poll_seconds)
+
+
+def runner_agent_collect_and_gate(config_path: Path, node_id: str) -> Dict[str, Any]:
+    """Run the existing collector command only after the runner reaches done."""
+    command = [sys.executable, "scripts/syncmate/syncmate.py"]
+    if config_path != DEFAULT_DEVICE_FILE:
+        command.extend(["--config", str(config_path)])
+    command.extend(["sync", node_id, "--json"])
+    completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+                               check=False)
+    stdout = runner_queue_output_text(completed.stdout)[-16000:]
+    stderr = runner_queue_output_text(completed.stderr)[-16000:]
+    payload: Dict[str, Any] = {}
+    try:
+        raw = json.loads(stdout)
+        if isinstance(raw, dict):
+            payload = raw
+    except json.JSONDecodeError:
+        pass
+    gate_passed = bool((payload.get("gate") or {}).get("passed"))
+    return {"ok": completed.returncode == 0 and gate_passed, "returncode": completed.returncode,
+            "gate_passed": gate_passed, "command": command, "payload": payload,
+            "stdout": stdout, "stderr": stderr,
+            "errors": [] if completed.returncode == 0 and gate_passed else ["collector verification or acceptance gate failed"]}
+
+
+def cmd_runner_agent_dispatch(args: argparse.Namespace) -> int:
+    device, warnings = load_device(args.config)
+    job_id = args.job_id or runner_queue_default_id()
+    data = runner_agent_dispatch_payload(device, warnings, config_path=args.config, node_id=args.node_id,
+                                         job_id=job_id, recipe=args.recipe, requested_by=args.requested_by, note=args.note)
+    if data.get("status") == "submitted" and args.wait:
+        watched = runner_agent_watch_payload(device, node_id=args.node_id, job_id=job_id,
+                                             poll_seconds=args.poll_seconds, timeout_seconds=args.timeout_seconds)
+        data["watch"] = watched
+        if watched.get("status") == "done":
+            definition = runner_recipe_definition(args.recipe)
+            if definition.get("collector_acceptance"):
+                data["acceptance"] = runner_agent_collect_and_gate(args.config, args.node_id)
+                if not data["acceptance"].get("ok"):
+                    data["status"] = "blocked"
+                else:
+                    data["status"] = "accepted"
+            else:
+                data["status"] = "done-not-eligible"
+        else:
+            data["status"] = str(watched.get("status"))
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner dispatch: {data.get('status')} job={job_id}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data.get("status") in ("submitted", "accepted", "done-not-eligible") else 1
+
+
+def cmd_runner_agent_watch(args: argparse.Namespace) -> int:
+    device, _warnings = load_device(args.config)
+    data = runner_agent_watch_payload(device, node_id=args.node_id, job_id=args.job_id,
+                                      poll_seconds=args.poll_seconds, timeout_seconds=args.timeout_seconds)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner watch: {data['status']}")
+    return 0 if data["status"] == "done" else 1
 
 
 def cmd_smoke(args: argparse.Namespace) -> int:
@@ -14473,6 +15111,59 @@ def build_parser() -> argparse.ArgumentParser:
                          help="parent directory for a kept smoke workspace")
     p_smoke.set_defaults(func=cmd_smoke)
 
+    p_runner_preflight = sub.add_parser(
+        "runner-preflight",
+        help="write only isolated, no-GPU bounded-runner evidence for a declared recipe",
+    )
+    p_runner_preflight.add_argument("--recipe", choices=("opengu-preflight-v1",), required=True)
+    p_runner_preflight.add_argument("--json", action="store_true")
+    p_runner_preflight.set_defaults(func=cmd_runner_preflight)
+
+    p_runner_agent = sub.add_parser(
+        "runner-agent",
+        help="bounded local runner agent: one lock, one queue job, declared recipes only",
+    )
+    runner_agent_sub = p_runner_agent.add_subparsers(dest="runner_agent_command", required=True)
+    p_agent_serve = runner_agent_sub.add_parser("serve", help="poll the local inbox under one exclusive lock")
+    p_agent_serve.add_argument("--poll-seconds", type=float, default=5.0,
+                               help="bounded poll interval, 1 to 60 seconds (default: 5)")
+    p_agent_serve.add_argument("--max-jobs", type=int,
+                               help="optional bounded job count; useful for supervised runs/tests")
+    p_agent_serve.add_argument("--max-idle-polls", type=int,
+                               help="optional bounded idle polls; useful for supervised runs/tests")
+    p_agent_serve.add_argument("--json", action="store_true")
+    p_agent_serve.set_defaults(func=cmd_runner_agent_serve)
+    p_agent_inspect = runner_agent_sub.add_parser("inspect", help="read lock, queue, stale state, and recovery audit")
+    p_agent_inspect.add_argument("--json", action="store_true")
+    p_agent_inspect.set_defaults(func=cmd_runner_agent_inspect)
+    p_agent_recover = runner_agent_sub.add_parser("recover", help="explicitly recover a stale lock or running job")
+    p_agent_recover.add_argument("--clear-lock", action="store_true", help="remove an inspected stale agent lock")
+    p_agent_recover.add_argument("--block-running", action="store_true", help="move one stale running job to blocked")
+    p_agent_recover.add_argument("--job-id", help="required with --block-running")
+    p_agent_recover.add_argument("--confirm", action="store_true", help="required acknowledgement after inspect")
+    p_agent_recover.add_argument("--json", action="store_true")
+    p_agent_recover.set_defaults(func=cmd_runner_agent_recover)
+    p_agent_dispatch = runner_agent_sub.add_parser(
+        "dispatch", help="collector-side guarded submission to one configured runner peer",
+    )
+    p_agent_dispatch.add_argument("node_id", help="configured runner peer id")
+    p_agent_dispatch.add_argument("--recipe", choices=QUEUE_ALLOWED_RECIPES, required=True)
+    p_agent_dispatch.add_argument("--job-id", help="stable unique job id; default is generated")
+    p_agent_dispatch.add_argument("--requested-by", help="short requester label recorded remotely")
+    p_agent_dispatch.add_argument("--note", help="short immutable submission note")
+    p_agent_dispatch.add_argument("--wait", action="store_true", help="watch terminal state and then run normal collector verification")
+    p_agent_dispatch.add_argument("--poll-seconds", type=float, default=5.0)
+    p_agent_dispatch.add_argument("--timeout-seconds", type=int, default=300)
+    p_agent_dispatch.add_argument("--json", action="store_true")
+    p_agent_dispatch.set_defaults(func=cmd_runner_agent_dispatch)
+    p_agent_watch = runner_agent_sub.add_parser("watch", help="watch one remote job without dispatching or accepting it")
+    p_agent_watch.add_argument("node_id", help="configured runner peer id")
+    p_agent_watch.add_argument("--job-id", required=True)
+    p_agent_watch.add_argument("--poll-seconds", type=float, default=5.0)
+    p_agent_watch.add_argument("--timeout-seconds", type=int, default=300)
+    p_agent_watch.add_argument("--json", action="store_true")
+    p_agent_watch.set_defaults(func=cmd_runner_agent_watch)
+
     p_runner_queue = sub.add_parser(
         "runner-queue",
         help="local YAML inbox for allowlisted runner smoke checks; never runs experiments",
@@ -14512,7 +15203,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_queue_run = runner_queue_sub.add_parser("run", help="claim and run exactly one allowlisted inbox job")
     p_queue_run.add_argument("--once", action="store_true", required=True,
-                             help="required: process at most one job; SyncMate is not a daemon")
+                             help="required: process at most one job; use runner-agent serve for bounded polling")
     p_queue_run.add_argument("--json", action="store_true")
     p_queue_run.set_defaults(func=cmd_runner_queue_run)
 

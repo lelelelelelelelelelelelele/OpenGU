@@ -12,7 +12,7 @@ cache, result schema, or queue protocol until the integration plan is accepted.
 
 1. `CLAUDE.md` and the nearest subtree instructions.
 2. `scripts/syncmate/CLAUDE.md` and `scripts/syncmate/README.md`, especially
-   **Runner Queue: Safe Local Smoke Work** and **SyncMate / OpenGU Integration
+   **Runner Queue: Bounded Runner Agent** and **SyncMate / OpenGU Integration
    Boundary**.
 3. Run this read-only command and treat its JSON as the protocol contract:
 
@@ -27,7 +27,7 @@ cache, result schema, or queue protocol until the integration plan is accepted.
 
 ```text
 OpenGU adapter: proposes/submits declared work and reads queue evidence
-Runner Queue: owns inbox -> running -> done | failed | blocked transitions
+Runner Queue + bounded runner-agent: owns inbox -> running -> done | failed | blocked transitions
 SyncMate: owns collection, checksum verification, trusted index, and acceptance gate
 ```
 
@@ -43,9 +43,16 @@ normal SyncMate collection and verification path.
   `command`, `args`, shell, Python-expression, path, cache, or environment
   fields in a job.
 - OpenGU must never move a job between `inbox`, `running`, `done`, `failed`, or
-  `blocked`. Only `runner-queue run --once` claims and transitions work.
-- Do not make Runner Queue a daemon, scheduler, distributed system, or a
-  replacement for SyncMate.
+  `blocked`. Only `runner-queue run --once` or the bounded local
+  `runner-agent serve` claims and transitions work.
+- The runner agent may poll a local inbox under one exclusive lock and run one
+  job at a time. Do not turn it into a scheduler, remote shell, multi-runner
+  coordinator, distributed system, or a replacement for SyncMate.
+- A controller may dispatch only through `runner-agent dispatch <configured-runner>`;
+  its remote invocation is limited to validated job id, declared recipe,
+  requester, and note. Do not add arbitrary remote CLI fragments.
+- A running job is never auto-retried. Inspect first and use audited explicit
+  recovery; every retry gets a new job id.
 - Do not change training semantics, `experiments/run.py`, result schemas,
   cache invalidation, or `results/runs/` merely to make queue integration easy.
 - Never treat a `done` receipt/result as enough to update paper tables or
