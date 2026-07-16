@@ -351,6 +351,7 @@ def build_selection_job(
     inputs: SelectionInputs,
     producer: Callable[[], Sequence[int]],
     *,
+    source_score_artifact_id: Optional[str] = None,
     consumer_requests: int = 1,
     request_envelope: Optional[Mapping[str, Any]] = None,
     legacy_seed: Optional[int] = None,
@@ -373,6 +374,7 @@ def build_selection_job(
         producer_version=inputs.producer_version,
         algorithm_version=inputs.algorithm_version,
         parameters=inputs.parameters,
+        source_score_artifact_id=source_score_artifact_id,
     )
     return PreparedSelectionJob(
         inputs=inputs,
