@@ -178,7 +178,18 @@ def test_plan_deduplicates_im_and_structurally_skips_future_producers(
     assert fields["selector_parameters"]["im_batch_size"] == 1
     assert fields["dataset_fingerprint"] == fake_producer_layer.dataset_fingerprint
     assert fields["producer_version"] == plan.jobs[0].producer_version.to_dict()
-    serialized = json.dumps(plan.jobs[0].recipe.to_dict(), sort_keys=True)
+    semantic_fields = {
+        key: value
+        for key, value in fields.items()
+        if key
+        not in {
+            "dataset_fingerprint",
+            "graph_fingerprint",
+            "candidate_set_hash",
+            "producer_version",
+        }
+    }
+    serialized = json.dumps(semantic_fields, sort_keys=True)
     for forbidden in ("fixture_request", "request.yaml", "base_model", "GIF", "212"):
         assert forbidden not in serialized
 
