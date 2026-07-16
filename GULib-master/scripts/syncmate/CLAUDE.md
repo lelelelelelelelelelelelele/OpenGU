@@ -38,6 +38,8 @@ this file is the maintainer-facing guardrail for AI agents.
   `_meta.json`. `predictions.npz` is intentionally not included by default.
 - `.syncmate/device.yaml` is the only intentional per-device setup difference
   and must remain untracked.
+- SSH peers may declare `python_executable`; all generated and executed remote
+  SyncMate commands must use it instead of assuming the login-shell `PATH`.
 - `.syncmate/action_plan.*`, `workflow.json`, `automation_core.json`,
   `automation_core.md`,
   `acceptance.json`, `runbook.md`, `checklist.md`, `brief.md`, and

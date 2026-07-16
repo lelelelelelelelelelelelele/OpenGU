@@ -375,6 +375,22 @@ def transport_ssh_value(peer: Optional[Dict[str, Any]]) -> str:
     return str((peer or {}).get("ssh") or "")
 
 
+def peer_python_executable(peer: Optional[Dict[str, Any]]) -> str:
+    value = (peer or {}).get("python_executable")
+    if value is None:
+        return "python"
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit("peer python_executable must be a non-empty string")
+    return value.strip()
+
+
+def peer_python_kwargs(peer: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    python_executable = peer_python_executable(peer)
+    if python_executable == "python":
+        return {}
+    return {"python_executable": python_executable}
+
+
 def is_local_transport_ref(value: Any) -> bool:
     return str(value or "") == LOCAL_SSH_SENTINEL
 
@@ -2174,20 +2190,34 @@ def syncmate_command_prefix(config_path: Optional[Path] = None) -> List[Any]:
     return parts
 
 
-def remote_status_command(repo_path: str) -> str:
+def remote_status_command(repo_path: str, python_executable: str = "python") -> str:
     return (
         f"cd {shell_quote(repo_path)} && "
-        "python scripts/syncmate/syncmate.py status --json --no-write-state"
+        + command_line([
+            python_executable,
+            "scripts/syncmate/syncmate.py",
+            "status",
+            "--json",
+            "--no-write-state",
+        ])
     )
 
 
 def remote_manifest_command(repo_path: str, roots: List[str],
-                            artifact_names: Optional[Tuple[str, ...]] = None) -> str:
-    roots_args = " ".join(shell_quote(root) for root in roots)
-    include_args = " ".join(shell_quote(name) for name in (artifact_names or ARTIFACT_NAMES))
+                            artifact_names: Optional[Tuple[str, ...]] = None,
+                            python_executable: str = "python") -> str:
     return (
         f"cd {shell_quote(repo_path)} && "
-        f"python scripts/syncmate/syncmate.py manifest --json --roots {roots_args} --include {include_args}"
+        + command_line([
+            python_executable,
+            "scripts/syncmate/syncmate.py",
+            "manifest",
+            "--json",
+            "--roots",
+            *roots,
+            "--include",
+            *(artifact_names or ARTIFACT_NAMES),
+        ])
     )
 
 
@@ -2196,9 +2226,10 @@ def remote_tar_command(repo_path: str) -> str:
 
 
 def runner_init_command(repo_path: str, node_id: str, role: str,
-                        collector_id: Any, artifact_names: Tuple[str, ...]) -> str:
+                        collector_id: Any, artifact_names: Tuple[str, ...],
+                        python_executable: str = "python") -> str:
     parts = [
-        "python",
+        python_executable,
         "scripts/syncmate/syncmate.py",
         "init-device",
         "--device-id",
@@ -2418,7 +2449,8 @@ def write_device_config(path: Path, config: Dict[str, Any], *, force: bool = Fal
 def build_peer_config(role: str, ssh: Optional[str], repo_path: str, landing: str,
                       result_roots: List[str],
                       artifact_policy: Optional[Dict[str, Any]] = None,
-                      transport: str = "ssh") -> Dict[str, Any]:
+                      transport: str = "ssh",
+                      python_executable: Optional[str] = None) -> Dict[str, Any]:
     if role not in ROLE_CHOICES:
         raise ValueError(f"role must be one of: {', '.join(ROLE_CHOICES)}")
     mode = normalize_transport(transport)
@@ -2434,6 +2466,10 @@ def build_peer_config(role: str, ssh: Optional[str], repo_path: str, landing: st
         data["ssh"] = ssh
     elif mode == "local":
         data["ssh"] = "local"
+    if python_executable is not None:
+        if not isinstance(python_executable, str) or not python_executable.strip():
+            raise ValueError("python_executable must be a non-empty string")
+        data["python_executable"] = python_executable.strip()
     if artifact_policy:
         data["artifact_policy"] = artifact_policy
     return data
@@ -2472,6 +2508,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
                        peer_id: Optional[str] = None,
                        peer_ssh: Optional[str] = None,
                        peer_repo_path: Optional[str] = None,
+                       peer_python_executable: Optional[str] = None,
                        peer_local: bool = False,
                        landing: Optional[str] = None,
                        result_roots: Optional[List[str]] = None,
@@ -2487,6 +2524,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
     peer_transport = "local" if peer_local else "ssh"
     runner_ssh = None if peer_local else peer_ssh or "<ssh_alias>"
     runner_repo = peer_repo_path or ("<local_runner_repo_path>" if peer_local else "<remote_repo_path>")
+    runner_python = peer_python_executable or "python"
     roots = result_roots or ["results/runs"]
     local_landing = landing or f"results/runs/{runner_id}"
     collector_hint = collector_id or local_device_id
@@ -2522,7 +2560,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
     if "collector" in role:
         if not peer_local:
             runner_init_parts = [
-                "python", "scripts/syncmate/syncmate.py", "init-device",
+                runner_python, "scripts/syncmate/syncmate.py", "init-device",
                 "--device-id", runner_id,
                 "--role", "runner",
                 "--repo-path", runner_repo,
@@ -2547,6 +2585,8 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
             add_peer_parts.insert(len(base_cmd) + 2, "--local")
         else:
             add_peer_parts[len(base_cmd) + 2:len(base_cmd) + 2] = ["--ssh", runner_ssh]
+            if runner_python != "python":
+                add_peer_parts.extend(["--python-executable", runner_python])
         for root in roots:
             add_peer_parts.extend(["--result-root", root])
         add_peer_parts.extend(["--artifact-include", *artifact_names])
@@ -2638,6 +2678,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
             "peer_transport": peer_transport,
             "peer_ssh": runner_ssh,
             "peer_repo_path": runner_repo,
+            "peer_python_executable": runner_python,
             "landing": local_landing,
             "result_roots": roots,
             "artifact_policy": artifact_policy_payload(artifact_names),
@@ -2825,6 +2866,17 @@ def peer_config_diagnostics(device: Dict[str, Any]) -> List[Dict[str, Any]]:
                     "action": f"Run add-peer {node} --force with repo path and {'--local' if transport == 'local' else 'ssh'}.",
                 })
 
+        python_executable = peer.get("python_executable")
+        if python_executable is not None and (
+                not isinstance(python_executable, str) or not python_executable.strip()):
+            diagnostics.append({
+                "severity": "error",
+                "code": "peer-python-invalid",
+                "node": node,
+                "message": f"Peer {node} python_executable must be a non-empty string.",
+                "action": f"Run add-peer {node} --force with --python-executable <remote-python>.",
+            })
+
         role = peer.get("role", "runner")
         if role not in ROLE_CHOICES:
             diagnostics.append({
@@ -2954,6 +3006,17 @@ def preflight_peer_payload(device: Dict[str, Any], node_id: str, peer: Any,
         ))
     ssh = peer.get("ssh")
     repo_path = peer.get("repo_path")
+    try:
+        python_executable = peer_python_executable(peer)
+    except SystemExit as exc:
+        python_executable = "python"
+        checks.append(preflight_check(
+            "error",
+            "peer-python-invalid",
+            f"Peer {node_id} python_executable is invalid: {exc}.",
+            action=f"Run add-peer {node_id} --force with --python-executable <remote-python>.",
+            node=node_id,
+        ))
     landing = peer.get("landing") or f"results/runs/{node_id}"
     roots = peer.get("result_roots") or ["results/runs"]
     artifact_names: Tuple[str, ...] = ()
@@ -3064,6 +3127,7 @@ def preflight_peer_payload(device: Dict[str, Any], node_id: str, peer: Any,
         "transport": transport,
         "ssh": ssh,
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "landing": landing,
         "local_landing": rel(REPO_ROOT / landing) if is_safe_repo_relative_path(landing) else landing,
         "result_roots": roots,
@@ -4434,6 +4498,7 @@ def cmd_add_peer(args: argparse.Namespace) -> int:
         result_roots=args.result_roots or ["results/runs"],
         artifact_policy=artifact_policy,
         transport=transport,
+        python_executable=args.python_executable,
     )
     add_peer_to_device(device, args.node_id, peer, force=args.force)
     write_device_config(args.config, device, force=True)
@@ -4454,6 +4519,8 @@ def cmd_add_peer(args: argparse.Namespace) -> int:
     print(f"  transport: {transport}")
     if peer.get("ssh"):
         print(f"  ssh: {peer.get('ssh')}")
+    if peer.get("python_executable"):
+        print(f"  python: {peer.get('python_executable')}")
     print(f"  repo: {args.repo_path}")
     print(f"  landing: {landing}")
     print(f"  result roots: {', '.join(peer['result_roots'])}")
@@ -4477,6 +4544,7 @@ def cmd_setup_plan(args: argparse.Namespace) -> int:
         peer_id=args.peer_id,
         peer_ssh=args.peer_ssh,
         peer_repo_path=args.peer_repo_path,
+        peer_python_executable=args.peer_python_executable,
         peer_local=args.peer_local,
         landing=args.landing,
         result_roots=args.result_roots,
@@ -11556,8 +11624,14 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
     roots = peer.get("result_roots") or ["results/runs"]
     landing = peer.get("landing") or f"results/runs/{node_id}"
     artifact_names = artifact_names_for_peer(device, peer)
-    remote_status_cmd = remote_status_command(repo_path)
-    remote_manifest_cmd = remote_manifest_command(repo_path, roots, artifact_names)
+    python_executable = peer_python_executable(peer)
+    remote_status_cmd = remote_status_command(repo_path, python_executable)
+    remote_manifest_cmd = remote_manifest_command(
+        repo_path,
+        roots,
+        artifact_names,
+        python_executable,
+    )
     local_mode = peer_uses_local_transport(peer)
     remote_init_cmd = runner_init_command(
         repo_path,
@@ -11565,6 +11639,7 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
         peer.get("role", "runner"),
         device.get("device_id"),
         artifact_names,
+        python_executable,
     )
     return {
         "generated_at": now_iso(),
@@ -11580,6 +11655,7 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
             "transport": peer_transport(peer),
             "ssh": peer.get("ssh"),
             "repo_path": repo_path,
+            "python_executable": python_executable,
             "result_roots": roots,
             "landing": landing,
         },
@@ -11631,12 +11707,12 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
             },
             "remote_agent": {
                 "init_device": remote_init_cmd,
-                "self": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py self",
-                "progress_json": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py progress --json",
+                "self": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'self'])}",
+                "progress_json": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'progress', '--json'])}",
                 "status_json": remote_status_cmd,
                 "manifest_json": remote_manifest_cmd,
-                "publish": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py publish --write",
-                "bundle": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py bundle",
+                "publish": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'publish', '--write'])}",
+                "bundle": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'bundle'])}",
             },
             "ssh": {
                 "status_json": (
@@ -11871,23 +11947,32 @@ def cmd_remote_status(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
-    remote_cmd = remote_status_command(repo_path)
+    remote_cmd = remote_status_command(repo_path, python_executable)
     local_mode = peer_uses_local_transport(peer)
     data = {
         "node_id": args.node_id,
         "mode": "apply" if args.apply else "plan-only",
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "command": (
             f"python scripts/syncmate/syncmate.py remote-status {args.node_id} --apply"
             if local_mode else f'ssh {ssh} "{remote_cmd}"'
         ),
     }
     if args.apply:
-        result = apply_remote_status(args.node_id, ssh, repo_path, save=not args.no_save)
+        result = apply_remote_status(
+            args.node_id,
+            ssh,
+            repo_path,
+            save=not args.no_save,
+            **python_kwargs,
+        )
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11914,6 +11999,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
@@ -11928,6 +12015,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
         "artifact_policy": artifact_policy_payload(artifact_names),
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "result_roots": roots,
         "landing": landing,
         "commands": {
@@ -11942,7 +12030,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
     }
     if args.diff:
         result = diff_collect(args.node_id, ssh, repo_path, roots, landing,
-                              artifact_names=artifact_names, save=not args.no_save)
+                              artifact_names=artifact_names, save=not args.no_save,
+                              **python_kwargs)
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11951,7 +12040,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
 
     if args.apply:
         result = apply_collect(args.node_id, ssh, repo_path, roots, landing,
-                               artifact_names=artifact_names, overwrite=args.overwrite, save=not args.no_save)
+                               artifact_names=artifact_names, overwrite=args.overwrite,
+                               save=not args.no_save, **python_kwargs)
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11982,6 +12072,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
@@ -11995,6 +12087,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
         "artifact_policy": artifact_policy_payload(artifact_names),
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "result_roots": roots,
         "landing": landing,
         "commands": {
@@ -12008,7 +12101,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
     }
     if args.apply:
         result = verify_collect(args.node_id, ssh, repo_path, roots, landing,
-                                artifact_names=artifact_names, save=not args.no_save)
+                                artifact_names=artifact_names, save=not args.no_save,
+                                **python_kwargs)
         failures = verify_result_failures(result)
         if args.json:
             print_json(result)
@@ -12097,17 +12191,19 @@ def refresh_peer(node_id: str, peer: Dict[str, Any], *,
     roots = peer.get("result_roots") or ["results/runs"]
     landing = peer.get("landing") or f"results/runs/{node_id}"
     names = artifact_names or ARTIFACT_NAMES
-    remote = apply_remote_status(node_id, ssh, repo_path, save=save)
+    python_kwargs = peer_python_kwargs(peer)
+    remote = apply_remote_status(node_id, ssh, repo_path, save=save, **python_kwargs)
     diff = diff_collect(node_id, ssh, repo_path, roots, landing,
-                        artifact_names=names, save=save)
+                        artifact_names=names, save=save, **python_kwargs)
     collect = None
     if apply:
         collect = apply_collect(node_id, ssh, repo_path, roots, landing,
-                                artifact_names=names, overwrite=overwrite, save=save)
+                                artifact_names=names, overwrite=overwrite, save=save,
+                                **python_kwargs)
     verify_report = None
     if verify:
         verify_report = verify_collect(node_id, ssh, repo_path, roots, landing,
-                                       artifact_names=names, save=save)
+                                       artifact_names=names, save=save, **python_kwargs)
 
     errors = []
     for item in (remote, diff, collect):
@@ -12955,22 +13051,24 @@ def local_status_snapshot(repo_path: str) -> Dict[str, Any]:
 
 
 def remote_manifest(ssh: str, repo_path: str, roots: List[str],
-                    artifact_names: Optional[Tuple[str, ...]] = None) -> Dict[str, Any]:
+                    artifact_names: Optional[Tuple[str, ...]] = None,
+                    python_executable: str = "python") -> Dict[str, Any]:
     if is_local_transport_ref(ssh):
         return manifest_for_roots(
             roots,
             artifact_names,
             repo_root=resolve_local_repo_root(repo_path),
         )
-    cmd = remote_manifest_command(repo_path, roots, artifact_names)
+    cmd = remote_manifest_command(repo_path, roots, artifact_names, python_executable)
     out = subprocess.check_output(["ssh", ssh, cmd], stderr=subprocess.STDOUT)
     return json.loads(out.decode("utf-8", errors="replace"))
 
 
-def remote_status_snapshot(ssh: str, repo_path: str) -> Dict[str, Any]:
+def remote_status_snapshot(ssh: str, repo_path: str,
+                           python_executable: str = "python") -> Dict[str, Any]:
     if is_local_transport_ref(ssh):
         return local_status_snapshot(repo_path)
-    cmd = remote_status_command(repo_path)
+    cmd = remote_status_command(repo_path, python_executable)
     out = subprocess.check_output(["ssh", ssh, cmd], stderr=subprocess.STDOUT)
     return json.loads(out.decode("utf-8", errors="replace"))
 
@@ -12989,9 +13087,15 @@ def remote_status_failure(node_id: str, error: Exception) -> Dict[str, Any]:
     }
 
 
-def apply_remote_status(node_id: str, ssh: str, repo_path: str, *, save: bool = True) -> Dict[str, Any]:
+def apply_remote_status(node_id: str, ssh: str, repo_path: str, *,
+                        python_executable: str = "python",
+                        save: bool = True) -> Dict[str, Any]:
     try:
-        snapshot = remote_status_snapshot(ssh, repo_path)
+        snapshot = (
+            remote_status_snapshot(ssh, repo_path)
+            if python_executable == "python"
+            else remote_status_snapshot(ssh, repo_path, python_executable)
+        )
     except Exception as e:
         result = remote_status_failure(node_id, e)
         if save:
@@ -13160,10 +13264,15 @@ def update_artifact_index(node_id: str, landing: str, report: Dict[str, Any],
 
 
 def collect_diff_payload(node_id: str, ssh: str, repo_path: str, roots: List[str],
-                         landing: str, artifact_names: Optional[Tuple[str, ...]] = None
+                         landing: str, artifact_names: Optional[Tuple[str, ...]] = None,
+                         python_executable: str = "python"
                          ) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     names = artifact_names or ARTIFACT_NAMES
-    manifest = remote_manifest(ssh, repo_path, roots, names)
+    manifest = (
+        remote_manifest(ssh, repo_path, roots, names)
+        if python_executable == "python"
+        else remote_manifest(ssh, repo_path, roots, names, python_executable)
+    )
     missing, same, conflicts = compare_manifest(landing, manifest)
     items = manifest.get("items", [])
     remote_inventory = manifest.get("inventory") or manifest_inventory_from_items(items, names)
@@ -13214,10 +13323,11 @@ def remote_manifest_failure(node_id: str, error: Exception) -> Dict[str, Any]:
 
 def diff_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                  landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                 python_executable: str = "python",
                  save: bool = True) -> Dict[str, Any]:
     try:
         payload, _missing, _same, _conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "diff", "landing": landing}
@@ -13231,10 +13341,11 @@ def diff_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
 
 def verify_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                    landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                   python_executable: str = "python",
                    save: bool = True) -> Dict[str, Any]:
     try:
         payload, missing, same, conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "verify", "landing": landing}
@@ -13332,12 +13443,13 @@ def fetch_items(ssh: str, repo_path: str, items: List[Dict[str, Any]], landing: 
 
 def apply_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                   landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                  python_executable: str = "python",
                   overwrite: bool = False, save: bool = True) -> Dict[str, Any]:
     errors: List[str] = []
     ensure_sync_dir()
     try:
         report, missing, same, conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "apply", "landing": landing}
@@ -14814,8 +14926,9 @@ def runner_agent_peer_invoke(peer: Dict[str, Any], arguments: List[str], *, time
         ssh = transport_ssh_value(peer)
         if not ssh:
             return {"ok": False, "errors": ["configured SSH runner peer has no ssh target"]}
+        python_executable = peer_python_executable(peer)
         remote = "cd " + shell_quote(repo_path) + " && " + " ".join(
-            shell_quote(part) for part in ["python", "scripts/syncmate/syncmate.py", *arguments]
+            shell_quote(part) for part in [python_executable, "scripts/syncmate/syncmate.py", *arguments]
         )
         command = ["ssh", ssh, remote]
         completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
@@ -15231,6 +15344,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_add.add_argument("--local", action="store_true",
                        help="use a local filesystem repo-path instead of SSH")
     p_add.add_argument("--repo-path", required=True, help="repo path on the peer")
+    p_add.add_argument("--python-executable",
+                       help="Python executable on an SSH peer (default: python)")
     p_add.add_argument("--role", choices=ROLE_CHOICES, default="runner",
                        help="peer role (default: runner)")
     p_add.add_argument("--landing",
@@ -15263,6 +15378,8 @@ def build_parser() -> argparse.ArgumentParser:
                          help="generate local-transport peer commands instead of SSH commands")
     p_setup.add_argument("--peer-repo-path",
                          help="repo path on the runner peer")
+    p_setup.add_argument("--peer-python-executable",
+                         help="Python executable on the runner peer (default: python)")
     p_setup.add_argument("--landing",
                          help="collector landing path for this peer")
     p_setup.add_argument("--result-root", dest="result_roots", action="append",

@@ -387,6 +387,7 @@ Add runner peers from the collector:
 python scripts/syncmate/syncmate.py add-peer gpu4090 \
   --ssh autodl-4090 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
+  --python-executable /root/miniconda3/bin/python \
   --result-root results/runs/cora_GCN_r0.05 \
   --result-root results/runs/cora_GAT_r0.05 \
   --artifact-include attack.json collateral.json _meta.json
@@ -394,6 +395,7 @@ python scripts/syncmate/syncmate.py add-peer gpu4090 \
 python scripts/syncmate/syncmate.py add-peer h800 \
   --ssh autodl-h800 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
+  --python-executable /root/miniconda3/bin/python \
   --result-root results/runs/ogbn-arxiv_GCN_r0.01 \
   --artifact-include attack.json collateral.json _meta.json predictions.npz
 ```
@@ -418,6 +420,9 @@ or reconnecting a server.
 `add-peer` requires the local role to be `collector` or `runner+collector`.
 Existing peer entries are protected unless `--force` is explicit. The default
 landing path is `results/runs/<node_id>`.
+For non-interactive SSH sessions, set `python_executable` to the peer's exact
+environment interpreter; remote status, manifest, queue dispatch, and generated
+handoff commands use that value instead of assuming `python` is on `PATH`.
 Landing paths and result roots should be repo-relative paths without `..`;
 `doctor` flags unsafe or duplicate peer landings before any transfer runs.
 

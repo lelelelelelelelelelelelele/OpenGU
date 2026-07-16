@@ -85,6 +85,58 @@ def test_remote_status_and_manifest_use_quoted_commands(monkeypatch):
     assert calls[0][1] == subprocess.STDOUT
 
 
+def test_remote_status_and_manifest_use_configured_python_executable(monkeypatch):
+    calls = []
+
+    def fake_check_output(cmd, stderr=None):
+        calls.append(cmd)
+        if "manifest" in cmd[2]:
+            return b'{"items": [], "count": 0}'
+        return b'{"device": {"id": "remote"}}'
+
+    monkeypatch.setattr(sm.subprocess, "check_output", fake_check_output)
+
+    python_executable = "/root/miniconda3/bin/python"
+    sm.remote_status_snapshot("ssh-host", "/repo", python_executable)
+    sm.remote_manifest(
+        "ssh-host",
+        "/repo",
+        ["results/runs"],
+        ("attack.json",),
+        python_executable,
+    )
+
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py status" in calls[0][2]
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py manifest" in calls[1][2]
+
+
+def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "repo"
+    config_path = repo / ".syncmate" / "device.yaml"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+
+    config = sm.build_device_config("local", "collector", str(repo))
+    peer = sm.build_peer_config(
+        "runner",
+        "ssh-gpu",
+        "/remote/repo",
+        "results/runs/gpu4090",
+        ["results/runs"],
+        python_executable="/root/miniconda3/bin/python",
+    )
+    sm.add_peer_to_device(config, "gpu4090", peer)
+    sm.write_device_config(config_path, config)
+
+    assert sm.main([
+        "--config", str(config_path),
+        "remote-status", "gpu4090", "--json",
+    ]) == 0
+    out = json.loads(capsys.readouterr().out)
+
+    assert out["python_executable"] == "/root/miniconda3/bin/python"
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py status" in out["command"]
+
+
 def test_scan_results_classifies_node_bare_and_nested_layouts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     runs = repo / "results" / "runs"
@@ -1299,6 +1351,7 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
         "add-peer", "gpu4090",
         "--ssh", "autodl-4090",
         "--repo-path", "~/autodl-fs/OpenGU/GULib-master",
+        "--python-executable", "/root/miniconda3/bin/python",
         "--result-root", "results/runs/cora_GCN_r0.05",
         "--result-root", "results/runs/cora_GAT_r0.05",
     ]) == 0
@@ -1309,6 +1362,7 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
     assert warnings == []
     assert peer["role"] == "runner"
     assert peer["ssh"] == "autodl-4090"
+    assert peer["python_executable"] == "/root/miniconda3/bin/python"
     assert peer["landing"] == "results/runs/gpu4090"
     assert peer["result_roots"] == [
         "results/runs/cora_GCN_r0.05",
@@ -1427,6 +1481,7 @@ def test_setup_plan_guides_missing_collector_and_peer_config(tmp_path, monkeypat
         "--peer-id", "gpu4090",
         "--peer-ssh", "autodl-4090",
         "--peer-repo-path", "/remote/repo",
+        "--peer-python-executable", "/root/miniconda3/bin/python",
         "--result-root", "results/runs/cora_GCN_r0.05",
         "--json",
     ]) == 0
@@ -1440,6 +1495,8 @@ def test_setup_plan_guides_missing_collector_and_peer_config(tmp_path, monkeypat
     assert actions["add-peer"]["status"] == "needed"
     assert "init-device --device-id local --role collector" in actions["init-current"]["command"]
     assert "add-peer gpu4090 --ssh autodl-4090 --repo-path /remote/repo" in actions["add-peer"]["command"]
+    assert "--python-executable /root/miniconda3/bin/python" in actions["add-peer"]["command"]
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py init-device" in actions["init-runner"]["command"]
     assert "sync gpu4090 --dry-run" in actions["sync-dry-run"]["command"]
 
 
@@ -7291,6 +7348,33 @@ def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(t
 
     assert outcome["status"] == "blocked"
     assert not called
+
+
+def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch):
+    calls = []
+
+    class Completed:
+        returncode = 0
+        stdout = '{"submitted": true}'
+        stderr = ""
+
+    monkeypatch.setattr(sm.subprocess, "run", lambda command, **kwargs: calls.append(command) or Completed())
+    peer = {
+        "role": "runner",
+        "transport": "ssh",
+        "ssh": "autodl-opengu",
+        "repo_path": "/autodl-fs/data/OpenGU/GULib-master",
+        "python_executable": "/root/miniconda3/bin/python",
+    }
+
+    result = sm.runner_agent_peer_invoke(
+        peer,
+        ["runner-queue", "status", "--json"],
+    )
+
+    assert result["ok"] is True
+    assert calls[0][:2] == ["ssh", "autodl-opengu"]
+    assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py runner-queue status --json" in calls[0][2]
 
 
 def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeypatch):
