@@ -41,6 +41,12 @@ class FakeDegreeStrategy:
     def __init__(self, args):
         assert args == {}
 
+    def select_nodes(self, data, model, k):
+        del model
+        degrees = torch.bincount(data.edge_index[0], minlength=data.num_nodes)
+        candidates = data.train_indices
+        return candidates[torch.topk(degrees[candidates], k).indices]
+
 
 class FakePageRankStrategy:
     def __init__(self, args):
@@ -255,12 +261,40 @@ def test_plan_registers_simple_producers_with_minimal_identity_and_seed_scope(
     assert degree_job.recipe.recipe_hash != pagerank_job.recipe.recipe_hash
 
 
-def test_degree_producer_has_explicit_portable_tie_break():
-    inputs = _fixture_inputs()
-    producer = producer_module.build_degree_producer(inputs, 2)
-    assert producer() == (1, 2)
-    assert producer() == (1, 2)
-    assert producer_module.DEGREE_ALGORITHM_VERSION.endswith("node-id-asc-v2")
+def test_degree_producer_preserves_legacy_torch_topk_tie_semantics():
+    degree_values = [
+        0, 1, 3, 1, 2, 1, 4, 3, 4, 3, 1,
+        2, 4, 1, 4, 4, 1, 4, 0, 2, 4, 2,
+        2, 2, 4, 1, 2, 2, 2, 0, 4, 3, 4,
+    ]
+    num_nodes = 40
+    sources = []
+    targets = []
+    for node, count in enumerate(degree_values):
+        for offset in range(count):
+            sources.append(node)
+            targets.append(33 + offset)
+    data = Data(
+        x=torch.zeros((num_nodes, 1), dtype=torch.float32),
+        y=torch.zeros(num_nodes, dtype=torch.long),
+        edge_index=torch.tensor([sources, targets], dtype=torch.long),
+        num_nodes=num_nodes,
+        train_mask=torch.tensor([True] * len(degree_values) + [False] * 7),
+    )
+    inputs = input_module.make_dataset_selection_inputs(
+        data, dataset_name="tie-rich"
+    )
+    strategy_class, _ = producer_module.load_simple_strategy("degree")
+    direct = tuple(
+        producer_module.build_simple_producer(
+            inputs, 1, strategy_class, {}
+        )()
+    )
+    producer = producer_module.build_degree_producer(inputs, 1)
+
+    assert tuple(producer()) == direct
+    assert tuple(producer()) == direct
+    assert producer_module.DEGREE_ALGORITHM_VERSION.endswith("torch-topk-v1")
 
 
 def test_simple_producers_cold_warm_and_read_only_legacy_comparison(
