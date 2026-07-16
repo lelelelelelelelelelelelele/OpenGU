@@ -7223,7 +7223,11 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert not sync_dir.exists()
     assert contract["protocol"] == "syncmate-runner-queue/v1"
     assert contract["job_schema"]["additional_fields"] is False
-    assert contract["execution"]["allowlisted_recipes"] == ["smoke", "opengu-preflight-v1"]
+    assert contract["execution"]["allowlisted_recipes"] == [
+        "smoke",
+        "opengu-preflight-v1",
+        "opengu-cache-v2-gate4-v1",
+    ]
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
     assert "bypassing SyncMate collection, checksum verification, or gate evidence" in contract["integration"]["forbidden"]
@@ -7391,3 +7395,80 @@ def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeyp
 
     assert outcome["ok"] is False
     assert outcome["gate_passed"] is False
+
+
+def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
+    definition = sm.runner_recipe_definition("opengu-cache-v2-gate4-v1")
+
+    assert definition["argv"] == [
+        "{python}",
+        "scripts/cache_v2_gate4_canary.py",
+        "--json",
+    ]
+    assert definition["expected_git_sha"] == sm.GATE4_RECIPE_BASE_SHA
+    assert definition["config_sha256"] == (
+        "7797f3b574982fb7230c755dc8b3d4e6c3049b5486068b32f18e5dbfd357c721"
+    )
+    assert definition["timeout_seconds"] == sm.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
+    assert definition["collector_acceptance"] is True
+    assert len(definition["expected_artifact_paths"]) == 4
+    assert all(
+        path.startswith("results/runs/__syncmate_gate4__/")
+        for path in definition["expected_artifact_paths"]
+    )
+    assert "predictions.npz" in definition["expected_artifact_paths"][2]
+
+
+def test_gate4_runner_recipe_uses_exact_scoped_git_delta(monkeypatch):
+    changed = [
+        "GULib-master/experiments/run.py",
+        "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+        "GULib-master/scripts/cache_v2_gate4_canary.py",
+        "GULib-master/scripts/syncmate/syncmate.py",
+        "GULib-master/tests/test_auto_report_v3.py",
+        "GULib-master/tests/test_cache_v2_gate4_canary.py",
+        "GULib-master/tests/test_syncmate.py",
+    ]
+    monkeypatch.setattr(sm, "run_git", lambda args: "f" * 40)
+
+    class Ancestor:
+        returncode = 0
+
+    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Ancestor())
+    monkeypatch.setattr(
+        sm.subprocess,
+        "check_output",
+        lambda *args, **kwargs: ("\n".join(changed) + "\n").encode(),
+    )
+
+    binding = sm.runner_recipe_git_binding(
+        sm.GATE4_RECIPE_BASE_SHA,
+        sm.GATE4_RECIPE_ALLOWED_DELTA,
+    )
+
+    assert binding["ok"] is True
+    assert binding["mode"] == "tooling-delta"
+    assert binding["changed_paths"] == changed
+
+    changed.append("GULib-master/cache_v2/store.py")
+    rejected = sm.runner_recipe_git_binding(
+        sm.GATE4_RECIPE_BASE_SHA,
+        sm.GATE4_RECIPE_ALLOWED_DELTA,
+    )
+    assert rejected["ok"] is False
+    assert "non-tooling commits" in rejected["errors"][0]
+
+
+def test_runner_delta_file_allowlist_does_not_accept_prefix_collisions():
+    assert sm._runner_delta_path_allowed(
+        "GULib-master/experiments/run.py",
+        ("GULib-master/experiments/run.py",),
+    )
+    assert not sm._runner_delta_path_allowed(
+        "GULib-master/experiments/run.py.backup",
+        ("GULib-master/experiments/run.py",),
+    )
+    assert sm._runner_delta_path_allowed(
+        "GULib-master/scripts/syncmate/helper.py",
+        ("GULib-master/scripts/syncmate/",),
+    )

@@ -936,6 +936,69 @@ def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(
         runner.prepare_cache_v2_selection(bad, dry_run=False)
 
 
+def test_runner_keeps_dataset_and_run_roots_in_the_experiment_layer(
+    tmp_path, monkeypatch
+):
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    processed_root = (tmp_path / "canonical-data" / "processed").resolve()
+    run_root = (tmp_path / "isolated-runs").resolve()
+    cfg = {
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "processed_root": str(processed_root),
+        "run_root": str(run_root),
+        "cache_v2": {
+            "mode": "selection",
+            "store_root": str(tmp_path / "v2-store"),
+            "legacy_results_root": str(tmp_path / "legacy-results"),
+        },
+    }
+    assert runner.experiment_processed_root(cfg) == processed_root
+    assert runner.cell_dir(cfg, "GIF", "degree", 42) == (
+        run_root / "cora_GCN_r0.05" / "GIF_degree" / "seed42"
+    )
+    assert runner._display_path(run_root).endswith("isolated-runs")
+
+    captured = {}
+    document = {
+        "mode": "materialize",
+        "writes": [],
+        "plan": {
+            "skipped": [],
+            "jobs": [{
+                "strategy": "degree",
+                "recipe_hash": "a" * 64,
+                "k": 2,
+                "request_envelope": {"experiment_seeds": [42]},
+            }],
+        },
+        "results": [{
+            "recipe_hash": "a" * 64,
+            "artifact_id": "sel_12345678_90abcdef",
+            "content_hash": "b" * 64,
+            "payload_path": str(tmp_path / "v2-store" / "payload.json"),
+            "selected_node_count": 2,
+            "hit": True,
+        }],
+    }
+    import experiments.selection_producer as producer
+
+    def fake_materialize(**kwargs):
+        captured.update(kwargs)
+        return document
+
+    monkeypatch.setattr(producer, "materialize_selection", fake_materialize)
+    runner.prepare_cache_v2_selection(cfg, dry_run=False)
+    assert captured["processed_root"] == processed_root
+    assert "processed_root" not in captured["config_source"]["cache_v2"]
+    assert "dataset_root" not in captured["config_source"]["cache_v2"]
+
+
 def test_runner_fingerprint_includes_effective_v2_store_root(tmp_path):
     runner = _load_experiment_runner()
     cfg = {

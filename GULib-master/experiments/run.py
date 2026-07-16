@@ -94,6 +94,35 @@ except ImportError:
 REPO_ROOT = _MODULE_REPO_ROOT
 
 
+def _repo_path(value: Any) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path.resolve()
+
+
+def experiment_processed_root(cfg: Mapping[str, Any]) -> Path:
+    """Return the experiment-owned canonical processed-data root."""
+
+    return _repo_path(cfg.get("processed_root", REPO_ROOT / "data" / "processed"))
+
+
+def experiment_run_root(cfg: Mapping[str, Any]) -> Path:
+    """Return the explicit experiment output root for runner leaves."""
+
+    return _repo_path(cfg.get("run_root", REPO_ROOT / "results" / "runs"))
+
+
+def _display_path(path: Path) -> str:
+    """Render repository-local paths compactly and isolated paths absolutely."""
+
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        return str(resolved)
+
+
 def _report_identity(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Dict[str, Any]:
     return {
         "dataset": cfg["dataset"],
@@ -195,7 +224,7 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
         alpha = _hybrid_alpha_from_cfg(cfg)
         if alpha is not None and abs(alpha - 0.5) > 1e-9:
             leaf = f"{method}_{strategy}_alpha{alpha:.2f}"
-    return REPO_ROOT / "results" / "runs" / cell / leaf / f"seed{seed}"
+    return experiment_run_root(cfg) / cell / leaf / f"seed{seed}"
 
 
 # Bump when the set of fields hashed in _content_fingerprint changes,
@@ -224,6 +253,7 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
         "extra_args": list(cfg.get("extra_args", []) or []),
         "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
         "cache_v2": cfg.get("cache_v2"),
+        "processed_root": str(experiment_processed_root(cfg)),
     }
     if method_extra:
         payload["method_overrides"] = method_extra
@@ -311,13 +341,6 @@ def model_overrides(cfg: Dict[str, Any]) -> List[str]:
 CACHE_V2_RUNNER_STRATEGIES = frozenset({"random", "degree", "pagerank", "im"})
 
 
-def _repo_path(value: Any) -> Path:
-    path = Path(value).expanduser()
-    if not path.is_absolute():
-        path = REPO_ROOT / path
-    return path.resolve()
-
-
 def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     raw = cfg.get("cache_v2")
     if raw is None:
@@ -360,7 +383,7 @@ def prepare_cache_v2_selection(
 
     common = {
         "config_source": cfg,
-        "processed_root": REPO_ROOT / "data" / "processed",
+        "processed_root": experiment_processed_root(cfg),
         "store_root": settings["store_root"],
         "legacy_results_root": settings["legacy_results_root"],
     }
@@ -488,7 +511,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             return "skipped"
         if status == "legacy":
             print(
-                f"[run] LEGACY {out_dir.relative_to(REPO_ROOT)} — "
+                f"[run] LEGACY {_display_path(out_dir)} — "
                 f"no fingerprint; skipping. Pass --force or rm to regenerate."
             )
             if not dry_run:
@@ -519,7 +542,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             return "skipped_legacy"
         if status in ("corrupt", "stale"):
             print(
-                f"[run] {status.upper()} {out_dir.relative_to(REPO_ROOT)}: {reason} "
+                f"[run] {status.upper()} {_display_path(out_dir)}: {reason} "
                 f"— regenerating"
             )
         # status == "incomplete" silently falls through (first run / partial dir)
@@ -619,7 +642,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "--selection_artifact_id", str(selection_artifact["artifact_id"]),
         ]
     cmd1 += extra
-    print(f"\n[run] demo_attack {method}/{strategy}/seed{seed} → {out_dir.relative_to(REPO_ROOT)}")
+    print(f"\n[run] demo_attack {method}/{strategy}/seed{seed} → {_display_path(out_dir)}")
     if v2_mode:
         _record_autoreport_event(
             identity=identity,

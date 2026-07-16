@@ -76,6 +76,16 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = (
     "GULib-master/tests/test_syncmate.py",
     "GULib-master/docs/syncmate_bounded_runner_agent_ACCEPTANCE_REPORT.",
 )
+GATE4_RECIPE_BASE_SHA = "dbe79efd8fd70a9a455a8055a6627bd0bd95ed0e"
+GATE4_RECIPE_ALLOWED_DELTA = (
+    "GULib-master/experiments/run.py",
+    "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+    "GULib-master/scripts/cache_v2_gate4_canary.py",
+    "GULib-master/scripts/syncmate/syncmate.py",
+    "GULib-master/tests/test_auto_report_v3.py",
+    "GULib-master/tests/test_cache_v2_gate4_canary.py",
+    "GULib-master/tests/test_syncmate.py",
+)
 RUNNER_RECIPE_DEFINITIONS = {
     "smoke": {
         "id": "smoke",
@@ -104,6 +114,25 @@ RUNNER_RECIPE_DEFINITIONS = {
             "results/runs/__syncmate_preflight__/opengu_preflight/seed0/_meta.json",
         ),
         "success_predicate": "json.passed == true and generated_artifacts == expected_artifact_paths",
+        "collector_acceptance": True,
+    },
+    "opengu-cache-v2-gate4-v1": {
+        "id": "opengu-cache-v2-gate4-v1",
+        "argv": (
+            "{python}", "scripts/cache_v2_gate4_canary.py", "--json",
+        ),
+        "config_path": "experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+        "config_sha256": "7797f3b574982fb7230c755dc8b3d4e6c3049b5486068b32f18e5dbfd357c721",
+        "expected_git_sha": GATE4_RECIPE_BASE_SHA,
+        "allowed_git_delta_paths": GATE4_RECIPE_ALLOWED_DELTA,
+        "timeout_seconds": 3600,
+        "expected_artifact_paths": (
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/attack.json",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/collateral.json",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/predictions.npz",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/_meta.json",
+        ),
+        "success_predicate": "json.passed == true and collector gate passes for the exact result leaf",
         "collector_acceptance": True,
     },
 }
@@ -14109,7 +14138,17 @@ def runner_recipe_command(definition: Dict[str, Any]) -> List[str]:
     return [sys.executable if value == "{python}" else str(value) for value in definition["argv"]]
 
 
-def runner_recipe_git_binding(expected_sha: str) -> Dict[str, Any]:
+def _runner_delta_path_allowed(path: str, allowed_paths: Tuple[str, ...]) -> bool:
+    return any(
+        path.startswith(allowed) if allowed.endswith("/") else path == allowed
+        for allowed in allowed_paths
+    )
+
+
+def runner_recipe_git_binding(
+    expected_sha: str,
+    allowed_delta_paths: Optional[Tuple[str, ...]] = None,
+) -> Dict[str, Any]:
     observed_sha = run_git(["rev-parse", "HEAD"])
     data: Dict[str, Any] = {
         "expected_git_sha": expected_sha,
@@ -14135,9 +14174,14 @@ def runner_recipe_git_binding(expected_sha: str) -> Dict[str, Any]:
         data["errors"].append(f"could not verify Git binding: {type(exc).__name__}: {exc}")
         return data
     data["changed_paths"] = changed
+    allowed_paths = (
+        tuple(allowed_delta_paths)
+        if allowed_delta_paths is not None
+        else RUNNER_RECIPE_ALLOWED_TOOL_DELTA
+    )
     disallowed = [
         path for path in changed
-        if not any(path == allowed or path.startswith(allowed) for allowed in RUNNER_RECIPE_ALLOWED_TOOL_DELTA)
+        if not _runner_delta_path_allowed(path, allowed_paths)
     ]
     if not ancestor:
         data["errors"].append("expected OpenGU baseline is not an ancestor of the runner checkout")
@@ -14159,7 +14203,11 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
         observed_config_sha = sha256_file(config_path)
         if observed_config_sha != definition["config_sha256"]:
             errors.append("fixed recipe config SHA-256 differs from recipe metadata")
-    git = runner_recipe_git_binding(str(definition["expected_git_sha"]))
+    allowed_delta_paths = definition.get("allowed_git_delta_paths")
+    git = runner_recipe_git_binding(
+        str(definition["expected_git_sha"]),
+        tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
+    )
     errors.extend(git.get("errors") or [])
     return {
         "recipe": definition,
