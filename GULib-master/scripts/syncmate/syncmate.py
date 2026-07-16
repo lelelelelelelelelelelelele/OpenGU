@@ -14975,7 +14975,7 @@ def runner_agent_peer_invoke(peer: Dict[str, Any], arguments: List[str], *, time
         if not ssh:
             return {"ok": False, "errors": ["configured SSH runner peer has no ssh target"]}
         python_executable = peer_python_executable(peer)
-        remote = "cd " + shell_quote(repo_path) + " && " + " ".join(
+        remote = "cd " + shell_quote(repo_path) + " && PYTHONDONTWRITEBYTECODE=1 " + " ".join(
             shell_quote(part) for part in [python_executable, "scripts/syncmate/syncmate.py", *arguments]
         )
         command = ["ssh", ssh, remote]

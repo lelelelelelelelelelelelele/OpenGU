@@ -7378,6 +7378,7 @@ def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch)
 
     assert result["ok"] is True
     assert calls[0][:2] == ["ssh", "autodl-opengu"]
+    assert "&& PYTHONDONTWRITEBYTECODE=1 " in calls[0][2]
     assert "/root/miniconda3/bin/python scripts/syncmate/syncmate.py runner-queue status --json" in calls[0][2]
 
 
