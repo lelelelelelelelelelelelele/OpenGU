@@ -36,6 +36,7 @@ from .contracts import (
 from .errors import (
     ArtifactStoreError,
     CacheResolutionError,
+    CacheV2Error,
     ContractValidationError,
     PathValidationError,
 )

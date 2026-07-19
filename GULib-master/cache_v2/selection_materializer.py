@@ -17,6 +17,7 @@ from .contracts import (
     ArtifactRecipe,
     ArtifactType,
     ProducerVersion,
+    validate_artifact_id,
     validate_sha256,
 )
 from .errors import CacheResolutionError, ContractValidationError
@@ -62,6 +63,7 @@ def build_selection_recipe(
     producer_version: ProducerVersion,
     algorithm_version: str,
     parameters: Mapping[str, Any],
+    source_score_artifact_id: Optional[str] = None,
 ) -> ArtifactRecipe:
     """Build the V2 boundary Recipe from upstream SelectionInputs identity."""
 
@@ -75,31 +77,39 @@ def build_selection_recipe(
         raise ContractValidationError("k exceeds candidate_count")
     if not isinstance(parameters, Mapping):
         raise ContractValidationError("selector_parameters must be a mapping")
-    return ArtifactRecipe(
-        {
-            "selection_recipe_contract": SELECTION_RECIPE_CONTRACT,
-            "dataset_fingerprint": validate_sha256(
-                dataset_fingerprint, "dataset_fingerprint"
-            ),
-            "graph_fingerprint": validate_sha256(
-                graph_fingerprint, "graph_fingerprint"
-            ),
-            "candidate_set_hash": validate_sha256(
-                candidate_set_hash, "candidate_set_hash"
-            ),
-            "num_nodes": num_nodes,
-            "candidate_count": candidate_count,
-            "node_id_space": _required_text(node_id_space, "node_id_space"),
-            "selector": _required_text(strategy, "strategy").lower(),
-            "selector_seed": seed,
-            "selector_algorithm_version": _required_text(
-                algorithm_version, "algorithm_version"
-            ),
-            "producer_version": dict(_producer_mapping(producer_version)),
-            "k": k,
-            "selector_parameters": dict(parameters),
-        }
-    )
+    fields = {
+        "selection_recipe_contract": SELECTION_RECIPE_CONTRACT,
+        "dataset_fingerprint": validate_sha256(
+            dataset_fingerprint, "dataset_fingerprint"
+        ),
+        "graph_fingerprint": validate_sha256(
+            graph_fingerprint, "graph_fingerprint"
+        ),
+        "candidate_set_hash": validate_sha256(
+            candidate_set_hash, "candidate_set_hash"
+        ),
+        "num_nodes": num_nodes,
+        "candidate_count": candidate_count,
+        "node_id_space": _required_text(node_id_space, "node_id_space"),
+        "selector": _required_text(strategy, "strategy").lower(),
+        "selector_seed": seed,
+        "selector_algorithm_version": _required_text(
+            algorithm_version, "algorithm_version"
+        ),
+        "producer_version": dict(_producer_mapping(producer_version)),
+        "k": k,
+        "selector_parameters": dict(parameters),
+    }
+    if source_score_artifact_id is not None:
+        source_score = validate_artifact_id(
+            source_score_artifact_id, "source_score_artifact_id"
+        )
+        if not source_score.startswith("score_"):
+            raise ContractValidationError(
+                "source_score_artifact_id must identify a Score Artifact"
+            )
+        fields["source_score_artifact_id"] = source_score
+    return ArtifactRecipe(fields)
 
 
 @dataclass(frozen=True)
@@ -165,6 +175,15 @@ class SelectionArtifactRequest:
             raise ContractValidationError(
                 "Recipe producer_version does not match Artifact producer_version"
             )
+        source_score = fields.get("source_score_artifact_id")
+        if source_score is not None:
+            source_score = validate_artifact_id(
+                source_score, "Recipe source_score_artifact_id"
+            )
+            if not source_score.startswith("score_"):
+                raise ContractValidationError(
+                    "Recipe source_score_artifact_id must identify a Score Artifact"
+                )
         if recipe_num_nodes != self.num_nodes:
             raise ContractValidationError(
                 "Selection request num_nodes does not match Recipe num_nodes"

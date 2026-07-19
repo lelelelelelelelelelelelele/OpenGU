@@ -150,6 +150,45 @@ def test_recipe_binds_dataset_candidates_strategy_seed_k_and_producer_version():
     assert changed_job.recipe.recipe_hash != job.recipe.recipe_hash
 
 
+def test_selection_recipe_can_bind_an_explicit_source_score_artifact():
+    from cache_v2.selection_materializer import (
+        SelectionArtifactRequest,
+        build_selection_recipe,
+    )
+
+    inputs = _selection_inputs()
+    common = {
+        "dataset_fingerprint": inputs.dataset.dataset_fingerprint,
+        "graph_fingerprint": inputs.dataset.graph_fingerprint,
+        "candidate_set_hash": inputs.dataset.candidate_set_hash,
+        "num_nodes": inputs.dataset.num_nodes,
+        "candidate_count": inputs.dataset.candidate_count,
+        "node_id_space": inputs.dataset.node_id_space,
+        "strategy": inputs.strategy,
+        "seed": inputs.seed,
+        "k": inputs.k,
+        "producer_version": inputs.producer_version,
+        "algorithm_version": inputs.algorithm_version,
+        "parameters": inputs.parameters,
+    }
+    recipe = build_selection_recipe(
+        **common,
+        source_score_artifact_id="score_11111111_22222222",
+    )
+
+    assert (
+        recipe.fields["source_score_artifact_id"]
+        == "score_11111111_22222222"
+    )
+    SelectionArtifactRequest.from_recipe(recipe, inputs.producer_version)
+
+    with pytest.raises(ContractValidationError, match="Score Artifact"):
+        build_selection_recipe(
+            **common,
+            source_score_artifact_id="sel_11111111_22222222",
+        )
+
+
 def test_cache_hit_does_not_call_dataset_provider_or_selection_producer(
     tmp_path, monkeypatch
 ):

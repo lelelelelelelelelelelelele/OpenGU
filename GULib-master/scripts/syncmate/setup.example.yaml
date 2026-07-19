@@ -15,6 +15,8 @@ peers:
     transport: ssh
     ssh: autodl-4090
     repo_path: ~/autodl-fs/OpenGU/GULib-master
+    # Non-interactive SSH may not expose the intended environment on PATH.
+    python_executable: /root/miniconda3/bin/python
     landing: results/runs/gpu4090
     result_roots:
       - results/runs/cora_GCN_r0.05
@@ -25,6 +27,7 @@ peers:
     transport: ssh
     ssh: autodl-h800
     repo_path: ~/autodl-fs/OpenGU/GULib-master
+    python_executable: /root/miniconda3/bin/python
     landing: results/runs/h800
     result_roots:
       - results/runs/ogbn-arxiv_GCN_r0.01

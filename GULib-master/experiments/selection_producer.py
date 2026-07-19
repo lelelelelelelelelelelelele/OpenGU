@@ -49,10 +49,10 @@ IM_NUMBA_ALGORITHM_VERSION = "opengu-im-batch-celf-numba-v1"
 IM_PYTHON_ALGORITHM_VERSION = "opengu-im-classic-celf-python-v1"
 IM_PRODUCER_SEMANTIC_VERSION = "opengu-im-selection-v2"
 RANDOM_ALGORITHM_VERSION = "opengu-random-torch-randperm-v1"
-DEGREE_ALGORITHM_VERSION = "opengu-degree-desc-node-id-asc-v2"
+DEGREE_ALGORITHM_VERSION = "opengu-degree-torch-topk-v1"
 PAGERANK_ALGORITHM_VERSION = "opengu-pagerank-undirected-networkx-topk-v1"
 RANDOM_PRODUCER_SEMANTIC_VERSION = "opengu-random-selection-v2"
-DEGREE_PRODUCER_SEMANTIC_VERSION = "opengu-degree-selection-v3"
+DEGREE_PRODUCER_SEMANTIC_VERSION = "opengu-degree-selection-v4"
 PAGERANK_PRODUCER_SEMANTIC_VERSION = "opengu-pagerank-selection-v2"
 FUTURE_PRODUCERS = frozenset(("tracin", "hybrid"))
 
@@ -351,6 +351,7 @@ def build_selection_job(
     inputs: SelectionInputs,
     producer: Callable[[], Sequence[int]],
     *,
+    source_score_artifact_id: Optional[str] = None,
     consumer_requests: int = 1,
     request_envelope: Optional[Mapping[str, Any]] = None,
     legacy_seed: Optional[int] = None,
@@ -373,6 +374,7 @@ def build_selection_job(
         producer_version=inputs.producer_version,
         algorithm_version=inputs.algorithm_version,
         parameters=inputs.parameters,
+        source_score_artifact_id=source_score_artifact_id,
     )
     return PreparedSelectionJob(
         inputs=inputs,
@@ -595,17 +597,13 @@ def build_simple_producer(
 
 
 def build_degree_producer(
-    dataset: DatasetSelectionInputs, k: int
+    dataset: DatasetSelectionInputs,
+    k: int,
+    strategy_class: Optional[Type[Any]] = None,
 ) -> Callable[[], Sequence[int]]:
-    degrees = torch.bincount(
-        dataset.edge_index[0], minlength=dataset.num_nodes
-    ).tolist()
-    ranked = sorted(
-        dataset.candidate_nodes,
-        key=lambda node: (-int(degrees[node]), int(node)),
-    )
-    selected = tuple(int(node) for node in ranked[:k])
-    return lambda: selected
+    if strategy_class is None:
+        strategy_class, _ = load_simple_strategy("degree")
+    return build_simple_producer(dataset, k, strategy_class, {})
 
 
 def _require_list(config: Mapping[str, Any], key: str) -> Tuple[Any, ...]:
@@ -880,7 +878,7 @@ def _prepare_jobs_for_strategy(
         parameters=parameters,
     )
     producer = (
-        build_degree_producer(dataset, k)
+        build_degree_producer(dataset, k, strategy_class)
         if strategy == "degree"
         else build_simple_producer(dataset, k, strategy_class, parameters)
     )

@@ -545,6 +545,7 @@ def _config_with_args(monkeypatch):
             "--unlearning_methods", str(args_overrides.get("unlearning_methods", "GIF")),
             "--is_transductive", str(args_overrides.get("is_transductive", True)),
             "--is_balanced", str(args_overrides.get("is_balanced", False)),
+            "--runtime_root", str(args_overrides.get("runtime_root", ".")),
         ]
         sys.argv = argv
         return importlib.reload(_config)
@@ -584,12 +585,13 @@ def test_inject_path_matches_config_unlearning_path(
         "unlearn_ratio": 0.05,
         "is_transductive": is_trans,
         "is_balanced": is_bal,
+        "runtime_root": "./isolated-runtime",
     }
     config_module = _config_with_args(args)
 
     run_id = 0
     inject_path = (
-        f"./data/unlearning_task/{split}/{bal}/"
+        f"{args['runtime_root']}/data/unlearning_task/{split}/{bal}/"
         f"unlearning_nodes_{args['unlearn_ratio']}_{args['dataset_name']}_{run_id}.txt"
     )
     config_path = f"{config_module.unlearning_path}_{run_id}.txt"
