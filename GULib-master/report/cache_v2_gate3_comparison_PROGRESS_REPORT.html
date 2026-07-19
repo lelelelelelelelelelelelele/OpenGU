@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache V2 Gate 3 四 Artifact 对照进度</title>
+  <style>
+    :root{--bg:#09111f;--panel:#111c2f;--panel2:#17263d;--text:#e8eef8;--muted:#9fb0c8;--line:#2a3d59;--ok:#4bd6a0;--warn:#ffca68;--bad:#ff7f87;--accent:#79a8ff;--code:#08101c}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,#17345f 0,transparent 32%),var(--bg);color:var(--text);font:15px/1.65 Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+    main{width:min(1160px,calc(100% - 32px));margin:auto;padding:44px 0 72px}header,table,.card,.callout{border:1px solid var(--line);background:var(--panel)}header{padding:30px;border-radius:20px}
+    h1{margin:8px 0 10px;font-size:clamp(30px,4vw,46px);line-height:1.15}h2{margin:38px 0 14px;font-size:24px}p{margin:9px 0}.eyebrow{color:var(--accent);letter-spacing:.13em;text-transform:uppercase;font-size:12px;font-weight:700}.lede{max-width:940px;color:var(--muted);font-size:17px}
+    .cards,.metrics{display:grid;gap:14px;margin-top:20px}.cards{grid-template-columns:repeat(3,1fr)}.metrics{grid-template-columns:repeat(4,1fr)}.card{padding:17px;border-radius:14px}.card strong{display:block;font-size:17px}.card span,.muted,.label{color:var(--muted)}
+    .ok{border-color:rgba(75,214,160,.55)}.warn{border-color:rgba(255,202,104,.55)}.pass{color:var(--ok)}.pending{color:var(--warn)}.failed{color:var(--bad)}.value{font:700 24px/1.2 ui-monospace,Consolas,monospace}.label{font-size:13px}
+    table{width:100%;border-collapse:collapse;margin:14px 0 24px}th,td{padding:11px 12px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--panel2);color:#cfdbef}code{padding:.12em .38em;border-radius:5px;background:var(--code);color:#c9d8ff}pre{overflow:auto;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--code);color:#cfdaed}.callout{padding:16px 18px;border-left:4px solid var(--warn);border-radius:0 10px 10px 0}footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted)}a{color:#9dbdff}
+    @media(max-width:820px){.cards,.metrics{grid-template-columns:1fr 1fr}}@media(max-width:520px){.cards,.metrics{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+  <header>
+    <div class="eyebrow">OpenGU · Cache V2 · Gate 3 · 2026-07-16</div>
+    <h1>四 Artifact 对照进度</h1>
+    <p class="lede"><strong class="pass">COMPARISON HARNESS ACCEPTED；</strong><strong class="failed">GATE 3 仍未通过。</strong>四类型只读比较政策、显式容差、canonical machine report 和 fail-closed 回归已完成；本机缺真实 Prediction payload，且已知 IM Selection 仍 mismatch，不能勾选总 Gate。</p>
+    <div class="cards">
+      <div class="card ok"><strong>Harness：完成</strong><span>Score / Selection / Prediction / Evaluation 全覆盖。</span></div>
+      <div class="card ok"><strong>Legacy：只读</strong><span>三目录前后 aggregate hash 完全一致。</span></div>
+      <div class="card warn"><strong>Gate 3：Open</strong><span>缺真实四类型 sample；IM ordered sequence 已知失败。</span></div>
+    </div>
+    <div class="metrics">
+      <div class="card"><div class="value">8</div><div class="label">focused passed</div></div>
+      <div class="card"><div class="value">145</div><div class="label">scope passed</div></div>
+      <div class="card"><div class="value">527</div><div class="label">wide CPU passed</div></div>
+      <div class="card"><div class="value">0.859890</div><div class="label">known IM Jaccard, still fail</div></div>
+    </div>
+  </header>
+
+  <h2>对照政策</h2>
+  <table><thead><tr><th>Artifact</th><th>Exact</th><th>Float tolerance</th><th>关键失败</th></tr></thead><tbody>
+    <tr><td>Score</td><td>graph/candidate/node-space、ordered ranking、score presence</td><td>score values</td><td>ranking 顺序、presence、provenance</td></tr>
+    <tr><td>Selection</td><td>identity + ordered selected nodes</td><td>无</td><td>同 set 不同 order 仍失败</td></tr>
+    <tr><td>Prediction</td><td>identity、y、masks、nodes、class order</td><td>3 组 logits</td><td>shape/context/mask/provenance</td></tr>
+    <tr><td>Evaluation</td><td>identity、metric key set</td><td>每个 scalar metric</td><td>version/key/non-finite</td></tr>
+  </tbody></table>
+  <div class="callout"><strong>Gate 规则：</strong>policy 必须在机器报告中显式记录。文件 hash 可以不同，但 Selection order 不允许容差；缺 provenance 不是“unknown pass”，而是 failure。</div>
+
+  <h2>已知 IM 失败</h2>
+  <table><tbody>
+    <tr><th>Selection size</th><td>Legacy 1354 / V2 1354</td></tr>
+    <tr><th>Intersection</th><td>1252</td></tr>
+    <tr><th>Unique</th><td>Legacy-only 102 / V2-only 102</td></tr>
+    <tr><th>Jaccard</th><td>0.859890</td></tr>
+    <tr><th>Verdict</th><td class="failed">failed；不以高相似度替代 ordered exact</td></tr>
+  </tbody></table>
+
+  <h2>标准 Legacy 只读快照</h2>
+  <table><thead><tr><th>Root</th><th>Files</th><th>Bytes</th><th>State hash</th></tr></thead><tbody>
+    <tr><td><code>score_cache</code></td><td>27</td><td>703,623</td><td><code>12a4d74d…d663a</code></td></tr>
+    <tr><td><code>selection_cache</code></td><td>10</td><td>22,663</td><td><code>acb9839f…f8cc</code></td></tr>
+    <tr><td><code>runs</code></td><td>2,482</td><td>12,230,923</td><td><code>d7a97b63…8913</code></td></tr>
+    <tr><td>combined</td><td>2,519</td><td>12,957,209</td><td><code>e49d9595…a832</code> 前后相同</td></tr>
+  </tbody></table>
+  <p><code>runs</code> 有 826 组 attack/collateral，但没有 <code>predictions.npz</code>。JSON 指标不能反向伪装成正式 Prediction payload。</p>
+
+  <h2>实现与测试</h2>
+  <table><thead><tr><th>文件</th><th>职责</th></tr></thead><tbody>
+    <tr><td><code>experiments/artifact_comparison.py</code></td><td>normalized reference、explicit policy、four comparers、canonical report。</td></tr>
+    <tr><td><code>tests/test_cache_v2_gate3_comparison.py</code></td><td>tolerance、order、known IM mismatch、missing provenance、metric keys、non-finite、immutability、Cache boundary。</td></tr>
+  </tbody></table>
+  <pre>focused: 8 passed in 0.05s<br>Cache V2 + staged runner + AutoReport: 145 passed in 4.62s<br>wide CPU: 527 passed, 3 deselected in 18.39s</pre>
+
+  <h2>完成与未完成</h2>
+  <table><thead><tr><th>状态</th><th>事项</th></tr></thead><tbody>
+    <tr><td class="pass">完成</td><td>四类型 compare harness、machine report、known mismatch regression、CPU 回归、Legacy snapshot、成对报告。</td></tr>
+    <tr><td class="pending">未完成</td><td>provenance 完整的真实四 Artifact old/new sample；全部 sampled Selection ordered exact；Gate 3 overall pass。</td></tr>
+    <tr><td class="pending">后续 Gate</td><td>Gate 4 真实 runner/GPU canary；本分支没有运行 GPU/SSH。</td></tr>
+  </tbody></table>
+
+  <footer>Markdown source of truth: <a href="../docs/cache_v2_gate3_comparison_PROGRESS_REPORT.md">docs/cache_v2_gate3_comparison_PROGRESS_REPORT.md</a> · Design: <a href="../docs/cache_v2_gate3_comparison_harness_DESIGN.md">docs/cache_v2_gate3_comparison_harness_DESIGN.md</a></footer>
+</main></body>
+</html>

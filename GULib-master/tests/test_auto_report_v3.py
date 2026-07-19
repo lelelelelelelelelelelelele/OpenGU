@@ -874,6 +874,10 @@ def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_pat
     assert "--no_cache" in command
     assert command[command.index("--selection_artifact_id") + 1] == selection["artifact_id"]
     assert command[command.index("--cache_v2_store_root") + 1] == selection["store_root"]
+    assert command[command.index("--processed_root") + 1] == str(
+        (tmp_path / "data" / "processed").resolve()
+    )
+    assert command[command.index("--runtime_root") + 1] == str(tmp_path.resolve())
     propagated_identity = json.loads(child_envs[0][ENV_IDENTITY_JSON])
     assert make_cell_id(propagated_identity) == child_envs[0]["OPENGU_AUTOREPORT_CELL_ID"]
     events, warnings = read_event_stream(event_path)
@@ -884,6 +888,58 @@ def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_pat
     assert observation["artifact"]["artifact_id"] == selection["artifact_id"]
     meta = json.loads((out_dir / "_meta.json").read_text(encoding="utf-8"))
     assert meta["selection_artifact"]["artifact_id"] == selection["artifact_id"]
+
+
+def test_runner_passes_experiment_roots_to_attack_and_collateral(tmp_path, monkeypatch):
+    _event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    out_dir = tmp_path / "cell"
+    monkeypatch.setattr(runner, "cell_dir", lambda *_args, **_kwargs: out_dir)
+    monkeypatch.setattr(runner, "_git_sha", lambda: "abc123")
+    processed_root = (tmp_path / "canonical" / "processed").resolve()
+    runtime_root = (tmp_path / "runtime").resolve()
+    cfg = {
+        "name": "fixture-roots",
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "processed_root": str(processed_root),
+        "runtime_root": str(runtime_root),
+        "defaults": {"run_collateral": True},
+    }
+    commands = []
+
+    def fake_run(command, cwd, env):
+        commands.append(command)
+        if "--save_path" in command:
+            Path(command[command.index("--save_path") + 1]).write_text(
+                "{}", encoding="utf-8"
+            )
+        if "--output_dir" in command:
+            output = Path(command[command.index("--output_dir") + 1])
+            output.mkdir(parents=True, exist_ok=True)
+            (output / "collateral.json").write_text("{}", encoding="utf-8")
+            (output / "predictions.npz").write_bytes(b"fixture")
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+
+    assert runner.run_cell(
+        cfg,
+        "GIF",
+        "degree",
+        42,
+        force=False,
+        dry_run=False,
+    ) == "completed"
+    assert len(commands) == 2
+    for command in commands:
+        assert command[command.index("--processed_root") + 1] == str(processed_root)
+        assert command[command.index("--runtime_root") + 1] == str(runtime_root)
 
 
 def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(tmp_path, monkeypatch):
@@ -936,6 +992,72 @@ def test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported(
         runner.prepare_cache_v2_selection(bad, dry_run=False)
 
 
+def test_runner_keeps_dataset_and_run_roots_in_the_experiment_layer(
+    tmp_path, monkeypatch
+):
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    processed_root = (tmp_path / "canonical-data" / "processed").resolve()
+    runtime_root = (tmp_path / "isolated-runtime").resolve()
+    run_root = (tmp_path / "isolated-runs").resolve()
+    cfg = {
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "processed_root": str(processed_root),
+        "runtime_root": str(runtime_root),
+        "run_root": str(run_root),
+        "cache_v2": {
+            "mode": "selection",
+            "store_root": str(tmp_path / "v2-store"),
+            "legacy_results_root": str(tmp_path / "legacy-results"),
+        },
+    }
+    assert runner.experiment_processed_root(cfg) == processed_root
+    assert runner.experiment_runtime_root(cfg) == runtime_root
+    assert runner.cell_dir(cfg, "GIF", "degree", 42) == (
+        run_root / "cora_GCN_r0.05" / "GIF_degree" / "seed42"
+    )
+    assert runner._display_path(run_root).endswith("isolated-runs")
+
+    captured = {}
+    document = {
+        "mode": "materialize",
+        "writes": [],
+        "plan": {
+            "skipped": [],
+            "jobs": [{
+                "strategy": "degree",
+                "recipe_hash": "a" * 64,
+                "k": 2,
+                "request_envelope": {"experiment_seeds": [42]},
+            }],
+        },
+        "results": [{
+            "recipe_hash": "a" * 64,
+            "artifact_id": "sel_12345678_90abcdef",
+            "content_hash": "b" * 64,
+            "payload_path": str(tmp_path / "v2-store" / "payload.json"),
+            "selected_node_count": 2,
+            "hit": True,
+        }],
+    }
+    import experiments.selection_producer as producer
+
+    def fake_materialize(**kwargs):
+        captured.update(kwargs)
+        return document
+
+    monkeypatch.setattr(producer, "materialize_selection", fake_materialize)
+    runner.prepare_cache_v2_selection(cfg, dry_run=False)
+    assert captured["processed_root"] == processed_root
+    assert "processed_root" not in captured["config_source"]["cache_v2"]
+    assert "dataset_root" not in captured["config_source"]["cache_v2"]
+
+
 def test_runner_fingerprint_includes_effective_v2_store_root(tmp_path):
     runner = _load_experiment_runner()
     cfg = {
@@ -956,6 +1078,39 @@ def test_runner_fingerprint_includes_effective_v2_store_root(tmp_path):
     assert runner._content_fingerprint(cfg, "GIF", "degree", 42) != runner._content_fingerprint(
         changed, "GIF", "degree", 42
     )
+
+
+def test_runner_fingerprint_includes_experiment_runtime_root(tmp_path):
+    runner = _load_experiment_runner()
+    cfg = {
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GIF"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "runtime_root": str(tmp_path / "runtime-a"),
+    }
+    changed = dict(cfg)
+    changed["runtime_root"] = str(tmp_path / "runtime-b")
+
+    assert runner._content_fingerprint(
+        cfg, "GIF", "degree", 42
+    ) != runner._content_fingerprint(changed, "GIF", "degree", 42)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        ["--processed_root", "/other/processed"],
+        ["--runtime_root=/other/runtime"],
+    ],
+)
+def test_runner_rejects_experiment_root_overrides_in_extra_args(extra):
+    runner = _load_experiment_runner()
+
+    with pytest.raises(ValueError, match="must be top-level"):
+        runner.validate_experiment_owned_extra_args(extra)
 
 
 def test_acceptance_markdown_and_html_agree_on_local_verdict_and_counts():

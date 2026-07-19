@@ -6,12 +6,23 @@ this file is the maintainer-facing guardrail for AI agents.
 
 ## Boundaries
 
-- SyncMate is a companion protocol, not a daemon and not a distributed system.
+- SyncMate is a companion protocol, not a distributed system. Its optional
+  `runner-agent serve` is a bounded single-runner poller (one local lock, one
+  concurrent job), not a general scheduler or remote shell.
 - Do not change experiment semantics, training code, or result schemas while
   working in this folder unless the user explicitly asks for that.
 - Tracked project files should stay identical across devices. Device-specific
   identity and generated sync evidence belong under untracked `.syncmate/`.
 - Runner nodes do not communicate with each other. Collectors pull from runners.
+- Keep `runner-queue` YAML schema v1 data-only. Recipes are reviewed static
+  code metadata that bind argv, config SHA-256, checkout policy, timeout,
+  expected evidence paths, and acceptance eligibility. Never add command,
+  argument, path, environment, cache, or expression fields to jobs.
+- A `done` queue result is execution evidence only. Only the controller's
+  normal collect -> SHA-256 verify -> trusted index/results -> gate sequence
+  can accept evidence. Failed/blocked/stale jobs never enter that sequence.
+- Never auto-retry `running` jobs. Use `runner-agent inspect`, then an explicit
+  audited `runner-agent recover`; a retry always receives a new job id.
 - Raw artifacts live under `results/runs/`; trusted state is derived only after
   checksum verification into `.syncmate/artifact_index.json`.
 - OpenGU-specific cache/result invalidation guidance lives in
@@ -27,6 +38,8 @@ this file is the maintainer-facing guardrail for AI agents.
   `_meta.json`. `predictions.npz` is intentionally not included by default.
 - `.syncmate/device.yaml` is the only intentional per-device setup difference
   and must remain untracked.
+- SSH peers may declare `python_executable`; all generated and executed remote
+  SyncMate commands must use it instead of assuming the login-shell `PATH`.
 - `.syncmate/action_plan.*`, `workflow.json`, `automation_core.json`,
   `automation_core.md`,
   `acceptance.json`, `runbook.md`, `checklist.md`, `brief.md`, and
