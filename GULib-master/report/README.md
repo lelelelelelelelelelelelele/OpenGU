@@ -14,6 +14,7 @@
 ```
 report/
 ├── advisor_report_2026-06-16.html # 06-16 导师/评审诊断快照，保留原位并指向 07-01 当前口径
+├── progress/2026-07-14_project-framework-briefing/ # 完整实验框架学长汇报（Markdown + 长条 HTML）
 ├── progress/2026-04-17_EE5003-report/  # 2026-04 EE5003 最终课程报告与答辩材料
 ├── analysis/                  # 技术分析材料（统一入口）
 │   ├── reports/               # 自动生成报告
@@ -46,6 +47,13 @@ report/
 | `advisor_report_2026-06-16.html` | 06-16 历史诊断快照，保留原判断并指向 07-01 当前口径 |
 | `progress/2026-07-01_advisor-report/current-status-report.html` | 当前导师汇报主版本，联动 `WORKPLAN` 和 `config_inventory` |
 | `progress/2026-07-01_advisor-report/advisor-outline-report.html` | 现场讨论/提问版大纲 |
+
+当前实验框架讨论入口：
+
+| 文件 | 说明 |
+|------|------|
+| `progress/2026-07-14_project-framework-briefing/REPORT.md` | 可编辑源稿；setup 为主体，results 后置 |
+| `progress/2026-07-14_project-framework-briefing/REPORT.html` | 可直接浏览的长条研究 briefing |
 
 如果你要找项目核心背景与规划信息，优先从 `self/` 开始：
 
@@ -97,3 +105,4 @@ Step0 工具代码已统一到 `scripts/evaluation/`，入口为 `python -m scri
 - 2026-02-22: 初始化 report 目录结构，移动 daily-log 和 checkpoint_report
 - 2026-02-25: `analysis` 目录重构为 `reports/notes/assets/scripts` 分层，统一分析材料组织
 - 2026-04-17: 明确 `report/` 为阶段性输出空间，长期研究入口迁移到 `self/`
+- 2026-07-14: 新增完整实验框架 briefing，OB 保存讲述大纲，`report/progress/` 保存 Markdown + HTML 快照

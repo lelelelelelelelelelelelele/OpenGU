@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="OpenGU / GULib 实验框架汇报：完整 experiment setup、三层 threat model、后置证据样例与 ongoing next steps。">
+  <title>OpenGU / GULib · 实验框架汇报</title>
+  <style>
+    :root {
+      --ink: #172026;
+      --ink-soft: #48545c;
+      --muted: #708087;
+      --paper: #f3efe5;
+      --paper-2: #fbf8f1;
+      --rail: #12191d;
+      --rail-2: #1a2429;
+      --line: #d8d0c0;
+      --line-dark: rgba(255, 255, 255, .12);
+      --coral: #e96545;
+      --coral-soft: #f6d4c9;
+      --teal: #177f78;
+      --teal-soft: #c9e7df;
+      --gold: #b47a18;
+      --gold-soft: #f0dfb8;
+      --blue: #315f83;
+      --blue-soft: #d8e5ee;
+      --danger: #a43e35;
+      --shadow: 0 18px 55px rgba(17, 25, 29, .12);
+      --radius: 18px;
+      --serif: "Source Han Serif SC", "Noto Serif CJK SC", "STSong", "SimSun", Georgia, serif;
+      --sans: "Microsoft YaHei UI", "PingFang SC", "Hiragino Sans GB", Candara, sans-serif;
+      --mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 28px; }
+    body {
+      margin: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 82% 2%, rgba(233,101,69,.12), transparent 30rem),
+        linear-gradient(90deg, var(--rail) 0, var(--rail) 292px, var(--paper) 292px, var(--paper) 100%);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--coral);
+      outline-offset: 3px;
+    }
+
+    .reading-progress {
+      position: fixed;
+      z-index: 50;
+      inset: 0 auto auto 0;
+      width: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--coral), #f4b65f, var(--teal));
+      box-shadow: 0 0 14px rgba(233,101,69,.55);
+    }
+
+    .rail {
+      position: fixed;
+      z-index: 20;
+      inset: 0 auto 0 0;
+      width: 292px;
+      padding: 34px 28px 26px;
+      color: #eef1ed;
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(155deg, #172126 0%, #10171a 72%);
+      background-size: 24px 24px, 24px 24px, auto;
+      border-right: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .rail-mark {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 13px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .rail-mark .sigil {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--coral);
+      font: 700 13px/1 var(--mono);
+      letter-spacing: -.08em;
+      box-shadow: inset 0 0 0 5px rgba(233,101,69,.08);
+    }
+    .rail-mark strong {
+      display: block;
+      font: 700 13px/1.25 "Bahnschrift", var(--sans);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .rail-mark small {
+      display: block;
+      margin-top: 6px;
+      color: #91a0a7;
+      font-size: 11px;
+      letter-spacing: .08em;
+    }
+
+    .rail .eyebrow {
+      margin: 0 0 11px;
+      color: #88989f;
+      font: 700 10px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .17em;
+      text-transform: uppercase;
+    }
+
+    nav { margin-bottom: 28px; }
+    nav a {
+      position: relative;
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 9px;
+      align-items: baseline;
+      padding: 8px 0;
+      color: #aeb9bd;
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.35;
+      transition: color .2s ease, transform .2s ease;
+    }
+    nav a::before {
+      content: attr(data-n);
+      color: #607078;
+      font: 700 10px/1 var(--mono);
+      transition: color .2s ease;
+    }
+    nav a:hover, nav a.active { color: #fff; transform: translateX(4px); }
+    nav a.active::before { color: var(--coral); }
+    nav a.active::after {
+      content: "";
+      position: absolute;
+      left: -28px;
+      top: 10px;
+      width: 3px;
+      height: 20px;
+      background: var(--coral);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .rail-meta {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--line-dark);
+      color: #8f9da3;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+    .rail-meta strong { color: #d5dcde; font-weight: 650; }
+    .rail-meta code { color: #eaa68f; font-family: var(--mono); }
+
+    main {
+      width: min(1120px, calc(100vw - 340px));
+      min-width: 0;
+      margin-left: 292px;
+      padding: 48px 44px 90px;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 680px;
+      padding: 72px 70px 55px;
+      overflow: hidden;
+      color: #fff;
+      background:
+        linear-gradient(120deg, rgba(13,20,24,.95), rgba(25,36,42,.88)),
+        radial-gradient(circle at 80% 20%, rgba(233,101,69,.42), transparent 34rem);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      opacity: .48;
+      background:
+        linear-gradient(115deg, transparent 0 59%, rgba(255,255,255,.07) 59.2% 59.7%, transparent 60%),
+        radial-gradient(circle at 84% 29%, transparent 0 97px, rgba(255,255,255,.13) 98px 99px, transparent 100px),
+        radial-gradient(circle at 84% 29%, transparent 0 165px, rgba(233,101,69,.36) 166px 168px, transparent 169px);
+    }
+    .hero::after {
+      content: "AUDIT / ATTRIBUTION / EVIDENCE";
+      position: absolute;
+      right: -112px;
+      bottom: 110px;
+      transform: rotate(-90deg);
+      color: rgba(255,255,255,.08);
+      font: 700 12px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .42em;
+    }
+    .hero-kicker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 35px;
+      color: #bcc8cb;
+      font: 700 11px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .17em;
+      text-transform: uppercase;
+    }
+    .hero-kicker span {
+      width: 42px;
+      height: 2px;
+      background: var(--coral);
+    }
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font: 700 clamp(42px, 6.4vw, 82px)/1.02 var(--serif);
+      letter-spacing: -.055em;
+    }
+    h1 em { color: #f08a69; font-style: normal; }
+    .hero-lede {
+      max-width: 760px;
+      margin: 34px 0 0;
+      color: #d4dcde;
+      font-size: 18px;
+      line-height: 1.75;
+    }
+    .hero-rule {
+      width: 100%;
+      height: 1px;
+      margin: 48px 0 30px;
+      background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,.04));
+    }
+    .hero-status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .hero-status div {
+      min-height: 92px;
+      padding: 16px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-status b {
+      display: block;
+      margin-bottom: 7px;
+      color: #fff;
+      font: 700 12px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .12em;
+    }
+    .hero-status small { color: #9faeb3; font-size: 11px; line-height: 1.45; }
+
+    .section {
+      position: relative;
+      margin-top: 34px;
+      padding: 58px 62px 62px;
+      background: rgba(251,248,241,.88);
+      border: 1px solid rgba(164,147,119,.24);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 40px rgba(38,44,46,.07);
+    }
+    .section::before {
+      content: attr(data-section);
+      position: absolute;
+      right: 28px;
+      top: 22px;
+      color: rgba(23,32,38,.065);
+      font: 800 66px/1 "Bahnschrift", var(--sans);
+      letter-spacing: -.05em;
+    }
+    .section-head {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 22px;
+      align-items: start;
+      margin-bottom: 36px;
+    }
+    .section-label {
+      padding-top: 8px;
+      color: var(--coral);
+      font: 800 11px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .17em;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin: 0;
+      max-width: 780px;
+      font: 700 clamp(30px, 4.3vw, 50px)/1.1 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .section-deck {
+      max-width: 800px;
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+      font-size: 17px;
+    }
+    h3 {
+      margin: 44px 0 18px;
+      font: 700 25px/1.25 var(--serif);
+      letter-spacing: -.02em;
+    }
+    h4 {
+      margin: 26px 0 10px;
+      color: var(--ink);
+      font: 750 14px/1.3 "Bahnschrift", var(--sans);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    p { margin: 0 0 17px; }
+    strong { font-weight: 750; }
+    code {
+      padding: .12em .36em;
+      color: #88412d;
+      background: #efe1d7;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: .87em;
+    }
+
+    .question {
+      margin: 30px 0;
+      padding: 28px 32px;
+      color: #fff;
+      background: var(--rail-2);
+      border-left: 5px solid var(--coral);
+      border-radius: 3px 14px 14px 3px;
+      font: 600 21px/1.6 var(--serif);
+      box-shadow: 0 12px 26px rgba(17,25,29,.13);
+    }
+
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .card {
+      padding: 22px;
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .card .index {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 23px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: 50%;
+      font: 700 11px/1 var(--mono);
+    }
+    .card h3 { margin: 0 0 10px; font-size: 20px; }
+    .card p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+
+    .object-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .object {
+      position: relative;
+      min-height: 230px;
+      padding: 28px;
+      overflow: hidden;
+      border-radius: 15px;
+    }
+    .object.method { color: #fff; background: #223138; }
+    .object.selector { background: var(--teal-soft); border: 1px solid #a2d2c8; }
+    .object::after {
+      content: attr(data-letter);
+      position: absolute;
+      right: 13px;
+      bottom: -30px;
+      opacity: .08;
+      font: 800 150px/1 var(--serif);
+    }
+    .object .label {
+      display: block;
+      margin-bottom: 33px;
+      font: 800 10px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .7;
+    }
+    .object h3 { margin: 0 0 12px; font-size: 27px; }
+    .object p { position: relative; z-index: 1; margin-bottom: 16px; font-size: 14px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font: 700 10px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .04em;
+    }
+    .method .chip { background: rgba(255,255,255,.09); color: #e7eded; }
+    .selector .chip { background: rgba(23,127,120,.1); color: #0d655f; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin: 28px 0 8px;
+    }
+    .flow-step {
+      position: relative;
+      min-height: 142px;
+      padding: 17px 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .flow-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      z-index: 2;
+      right: -16px;
+      top: 54px;
+      width: 22px;
+      color: var(--coral);
+      background: var(--paper-2);
+      text-align: center;
+      font: 800 18px/1 var(--sans);
+    }
+    .flow-step b { display: block; margin-bottom: 16px; color: var(--coral); font: 800 10px/1 var(--mono); }
+    .flow-step strong { display: block; margin-bottom: 8px; font: 700 15px/1.25 var(--serif); }
+    .flow-step small { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .matrix-item {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 16px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .matrix-item b { color: var(--teal); font: 800 12px/1.25 "Bahnschrift", var(--sans); letter-spacing: .08em; }
+    .matrix-item strong { display: block; margin-bottom: 5px; font-size: 14px; }
+    .matrix-item p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .equation {
+      margin: 28px 0;
+      padding: 28px 34px;
+      background: #e6e1d7;
+      border: 1px solid #cfc5b3;
+      border-radius: 14px;
+    }
+    .equation pre {
+      margin: 0;
+      overflow-x: auto;
+      color: #203138;
+      font: 700 17px/1.8 var(--mono);
+      white-space: pre-wrap;
+    }
+    .equation span { color: var(--coral); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 22px 0;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 650px; }
+    th, td {
+      padding: 14px 15px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid #e4ddd0;
+      font-size: 13px;
+    }
+    th {
+      color: #5d6b71;
+      background: #eee9de;
+      font: 800 10px/1.3 "Bahnschrift", var(--sans);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #fffaf1; }
+    .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .hot { color: var(--danger); font-weight: 800; }
+    .good { color: var(--teal); font-weight: 800; }
+
+    .spectrum {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 11px;
+      margin: 25px 0;
+    }
+    .spectrum-item {
+      position: relative;
+      min-height: 245px;
+      padding: 22px 19px;
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    .spectrum-item::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: currentColor;
+    }
+    .spectrum-item:nth-child(1) { color: #226d66; background: #dbece5; }
+    .spectrum-item:nth-child(2) { color: #9b4d36; background: #f1ddd4; }
+    .spectrum-item:nth-child(3) { color: #315f83; background: #dce7ef; }
+    .spectrum-item:nth-child(4) { color: #8b681a; background: #eee4c9; }
+    .spectrum-item .level { display: block; margin-bottom: 28px; font: 800 10px/1 var(--mono); letter-spacing: .08em; }
+    .spectrum-item h3 { margin: 0 0 11px; color: var(--ink); font-size: 19px; }
+    .spectrum-item p { color: #45535a; font-size: 12px; }
+    .spectrum-item ul { margin: 14px 0 0; padding-left: 18px; color: #45535a; font-size: 11px; }
+
+    .setup-companion {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+      gap: 28px;
+      margin: 4px 0 38px;
+      padding: 30px;
+      overflow: hidden;
+      color: #eef3f1;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.035), transparent 48%),
+        linear-gradient(145deg, #162126, #213238);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+    }
+    .setup-companion::after {
+      content: "MATRIX / COVERAGE";
+      position: absolute;
+      right: -65px;
+      bottom: 28px;
+      transform: rotate(-90deg);
+      color: rgba(255,255,255,.055);
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .3em;
+    }
+    .setup-companion .companion-kicker {
+      display: block;
+      margin-bottom: 14px;
+      color: #f08a69;
+      font: 800 10px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .setup-companion h3 { margin: 0 0 10px; color: #fff; font-size: 25px; }
+    .setup-companion p { margin: 0; max-width: 590px; color: #bdc9cc; font-size: 13px; }
+    .companion-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 21px;
+      padding: 10px 14px;
+      color: #172026;
+      background: #f08a69;
+      border-radius: 8px;
+      font: 800 11px/1 var(--mono);
+      text-decoration: none;
+      transition: transform .18s ease, background .18s ease;
+    }
+    .companion-link:hover { transform: translateY(-2px); background: #f5a188; }
+    .companion-map { display: grid; align-content: center; gap: 9px; }
+    .companion-row {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      padding: 11px 13px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 9px;
+    }
+    .companion-row b { color: #8fd2c7; font: 800 9px/1.45 var(--mono); letter-spacing: .08em; }
+    .companion-row span { color: #d5dddf; font-size: 11px; line-height: 1.45; }
+
+    .audit-stack { margin: 6px 0 38px; }
+    .audit-stack > p { max-width: 850px; color: var(--ink-soft); }
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      margin-top: 19px;
+    }
+    .audit-card {
+      --tone: var(--teal);
+      position: relative;
+      min-height: 218px;
+      padding: 22px;
+      overflow: hidden;
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+    .audit-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--tone);
+    }
+    .audit-card.validity { --tone: var(--teal); }
+    .audit-card.core { --tone: var(--coral); background: linear-gradient(140deg, #fff 55%, var(--coral-soft)); }
+    .audit-card.scale { --tone: var(--blue); }
+    .audit-card.mechanism { --tone: var(--gold); }
+    .audit-card.scope { --tone: #5b6f8d; }
+    .audit-card.guard { --tone: var(--ink); grid-column: 1 / -1; min-height: 0; }
+    .audit-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+    .audit-code { color: var(--tone); font: 800 11px/1 var(--mono); letter-spacing: .07em; }
+    .audit-role {
+      padding: 5px 7px;
+      color: #fff;
+      background: var(--tone);
+      border-radius: 5px;
+      font: 800 8px/1 var(--mono);
+      letter-spacing: .12em;
+    }
+    .audit-card h4 { margin: 0 0 8px; font-family: var(--serif); font-size: 20px; line-height: 1.3; }
+    .audit-card > p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.68; }
+    .audit-readout {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 13px;
+      border-top: 1px solid var(--line);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+    .audit-readout b { color: var(--tone); font-family: var(--mono); letter-spacing: .04em; }
+    .audit-readout span { color: var(--ink-soft); }
+    .audit-chain {
+      margin-top: 16px;
+      padding: 17px 19px;
+      color: #e8eeee;
+      background: var(--ink);
+      border-radius: 10px;
+      font: 700 11px/1.75 var(--mono);
+      text-align: center;
+    }
+    .audit-chain em { color: #f08a69; font-style: normal; }
+
+    .capability-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .capability {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+    }
+    .capability .cap-icon {
+      display: grid;
+      place-items: center;
+      width: 39px;
+      height: 39px;
+      margin-bottom: 19px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: 9px;
+      font: 800 11px/1 var(--mono);
+    }
+    .capability h3 { margin: 0 0 9px; font-size: 20px; }
+    .capability ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 13px; }
+
+    .status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .status-card {
+      padding: 22px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .status-card .status {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font: 800 9px/1 "Bahnschrift", var(--sans);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .status.accept .status { color: #0e665e; background: var(--teal-soft); }
+    .status.partial .status { color: #845c12; background: var(--gold-soft); }
+    .status-card h3 { margin: 0 0 9px; font-size: 20px; }
+    .status-card p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+
+    .lane-list { display: grid; gap: 14px; }
+    .lane {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    .lane .lane-n {
+      color: var(--coral);
+      font: 800 30px/1 var(--serif);
+    }
+    .lane h3 { margin: 0 0 8px; font-size: 21px; }
+    .lane p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .lane .gate {
+      padding: 12px 14px;
+      color: #5a4a35;
+      background: #f1e7d4;
+      border-radius: 9px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .todo-board { display: grid; grid-template-columns: .82fr 1.18fr; gap: 16px; }
+    .done-stack, .todo-stack {
+      padding: 24px;
+      border-radius: 14px;
+    }
+    .done-stack { color: #e9f1ef; background: #1d4542; }
+    .todo-stack { background: #eee7db; border: 1px solid #d6c9b5; }
+    .done-stack h3, .todo-stack h3 { margin: 0 0 20px; font-size: 22px; }
+    .check-item {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      gap: 11px;
+      padding: 13px 0;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .todo-stack .check-item { border-top-color: #d8cdbd; }
+    .check-item:first-of-type { border-top: 0; }
+    .check-item .dot {
+      display: grid;
+      place-items: center;
+      width: 21px;
+      height: 21px;
+      margin-top: 2px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font: 800 10px/1 var(--mono);
+    }
+    .check-item b { display: block; margin-bottom: 4px; font-size: 13px; }
+    .check-item small { display: block; opacity: .76; font-size: 11px; line-height: 1.45; }
+
+    .result-callouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .result-callout {
+      min-height: 190px;
+      padding: 24px;
+      background: #1c282d;
+      color: #fff;
+      border-radius: 14px;
+    }
+    .result-callout .big {
+      display: block;
+      margin-bottom: 14px;
+      color: #f08a69;
+      font: 800 38px/1 var(--mono);
+      letter-spacing: -.05em;
+    }
+    .result-callout b { display: block; margin-bottom: 8px; font-size: 13px; }
+    .result-callout p { margin: 0; color: #aab8bd; font-size: 11px; }
+
+    .boundary {
+      margin: 25px 0;
+      padding: 20px 22px;
+      color: #6e382c;
+      background: var(--coral-soft);
+      border: 1px solid #e9b8a8;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .boundary b { color: #7d2e20; }
+
+    .source-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .source-link {
+      display: block;
+      padding: 16px 18px;
+      text-decoration: none;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .source-link:hover {
+      transform: translateY(-2px);
+      border-color: #c59b7d;
+      box-shadow: 0 8px 18px rgba(31,40,44,.08);
+    }
+    .source-link b { display: block; margin-bottom: 5px; font-size: 13px; }
+    .source-link small { display: block; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+
+    details {
+      margin: 18px 0;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    summary {
+      padding: 17px 20px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+    details > div { padding: 0 20px 18px; color: var(--ink-soft); font-size: 13px; }
+
+    .freeze-note {
+      margin-top: 34px;
+      padding: 45px 48px;
+      color: #dce4e5;
+      background: var(--rail);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .freeze-note h2 { color: #fff; font-size: 35px; }
+    .freeze-note p { max-width: 780px; color: #9eacb1; }
+    .freeze-note strong { color: #f08a69; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      padding: 28px 5px 0;
+      color: #746f67;
+      font-size: 11px;
+    }
+
+    @media (max-width: 1050px) {
+      body { background: var(--paper); }
+      .rail {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        height: auto;
+        padding: 13px 18px;
+        display: block;
+        overflow: hidden;
+      }
+      .rail-mark { display: none; }
+      .rail .eyebrow, .rail-meta { display: none; }
+      nav { display: flex; gap: 18px; margin: 0; overflow-x: auto; scrollbar-width: none; }
+      nav a { flex: 0 0 auto; grid-template-columns: auto 1fr; padding: 7px 0; }
+      nav a.active::after { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 2px; }
+      main { width: 100%; margin: 0; padding: 24px; }
+      .hero { min-height: auto; }
+      .flow { grid-template-columns: repeat(3, 1fr); }
+      .flow-step:nth-child(3)::after { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      main { padding: 14px; }
+      .hero, .section { padding: 36px 25px; border-radius: 15px; }
+      h1, h2, h3, .hero-kicker, .hero-lede { overflow-wrap: anywhere; }
+      .hero-status, .cards, .matrix, .capability-grid, .status-grid, .audit-grid,
+      .result-callouts, .source-list, .object-pair, .todo-board { grid-template-columns: 1fr; }
+      .setup-companion { grid-template-columns: 1fr; padding: 25px; }
+      .audit-card.guard { grid-column: auto; }
+      .section-head { grid-template-columns: 1fr; gap: 8px; }
+      .section::before { font-size: 45px; }
+      .flow { grid-template-columns: 1fr 1fr; }
+      .flow-step:nth-child(2n)::after { display: none; }
+      .spectrum { grid-template-columns: 1fr 1fr; }
+      .lane { grid-template-columns: 48px 1fr; }
+      .lane .gate { grid-column: 2; }
+      .result-callout { min-height: auto; }
+      footer { display: block; }
+    }
+
+    @media (max-width: 470px) {
+      .rail { padding-inline: 14px; }
+      main { padding: 12px; }
+      .hero, .section { padding: 30px 22px; }
+      h1 { font-size: 34px; line-height: 1.08; letter-spacing: -.035em; }
+      .hero-kicker { align-items: flex-start; gap: 9px; font-size: 10px; line-height: 1.25; }
+      .hero-kicker span { flex: 0 0 30px; margin-top: 5px; }
+      .hero-lede { font-size: 15px; }
+      .flow, .spectrum { grid-template-columns: 1fr; }
+      .flow-step::after { display: none !important; }
+      .matrix-item { grid-template-columns: 1fr; gap: 5px; }
+    }
+
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .reading-progress, .rail { display: none; }
+      main { width: 100%; margin: 0; padding: 0; }
+      .hero, .section, .freeze-note { box-shadow: none; break-inside: avoid; }
+      .hero { min-height: auto; border-radius: 0; }
+      .section { margin-top: 15px; padding: 35px; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <aside class="rail" aria-label="报告导航">
+    <div class="rail-mark">
+      <div class="sigil">GU</div>
+      <div><strong>OpenGU / GULib</strong><small>Experiment framework briefing</small></div>
+    </div>
+    <p class="eyebrow">Contents · 2026.07.14</p>
+    <nav>
+      <a href="#top" data-n="00">封面与摘要</a>
+      <a href="#why" data-n="01">为什么做</a>
+      <a href="#framework" data-n="02">完整实验框架</a>
+      <a href="#access" data-n="03">Threat model</a>
+      <a href="#built" data-n="04">Experiment setup</a>
+      <a href="#results" data-n="05">Results snapshot</a>
+      <a href="#todo" data-n="06">Next steps</a>
+      <a href="#sources" data-n="07">权威来源</a>
+    </nav>
+    <div class="rail-meta">
+      <strong>Snapshot</strong><br>
+      Setup = main narrative<br>
+      Results = scoped examples<br>
+      Workplan = ongoing only<br><br>
+      Source: <code>REPORT.md</code>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero" id="top">
+      <div class="hero-kicker"><span></span>Progress briefing · framework before results</div>
+      <h1>把删除请求当作<em>攻击面</em>：一套可证伪的 GNN Unlearning 审计框架</h1>
+      <p class="hero-lede">这次汇报以 experiment setup 为主轴：如何定义一个 cell，如何组织 method × selector × scope × metric，如何用 random 与 exact retrain 建立对照，以及如何把一次运行变成可复核证据。</p>
+      <div class="hero-rule"></div>
+      <div class="hero-status" aria-label="内容状态">
+        <div><b>QUESTION</b><small>删除请求是否可以成为 approximate unlearning 的攻击面？</small></div>
+        <div><b>SETUP</b><small>对象、cell、矩阵轴、对照和证据层构成汇报主体。</small></div>
+        <div><b>EVIDENCE</b><small>Results 后置，只展示有范围边界的证据样例。</small></div>
+        <div><b>ONGOING</b><small>Cache、TracIn、surrogate 只在最后的 Next steps 出现。</small></div>
+      </div>
+    </header>
+
+    <section class="section" id="why" data-section="01">
+      <div class="section-head">
+        <div class="section-label">Problem</div>
+        <div><h2>为什么做：删除请求不是天然无害的输入</h2><p class="section-deck">Graph unlearning 关注如何忘记指定数据；本项目额外审计谁来指定、指定哪些数据，以及 approximate unlearning 是否会放大这次删除的损失。</p></div>
+      </div>
+      <div class="question">如果 deletion set 由攻击者在固定预算下策略性选择，近似遗忘是否会产生比 exact retrain 更大的额外损失？</div>
+      <div class="cards">
+        <article class="card"><span class="index">01</span><h3>效应</h3><p>哪些 deletion sets 会让模型性能下降？结构中心性、传播覆盖和模型 sensitivity 是否指向同一批节点？</p></article>
+        <article class="card"><span class="index">02</span><h3>归因</h3><p>下降来自删除集本身，还是 approximate unlearning 相对 exact retrain 的额外误差？</p></article>
+        <article class="card"><span class="index">03</span><h3>机制</h3><p>不同 GU family、selector 信号和访问权限为什么呈现不同的 vulnerability fingerprint？</p></article>
+      </div>
+      <div class="boundary"><b>本次口径：</b>目标不是证明 IF / IM 永远最强，而是希望通过一套能被反例推翻、能区分失效来源的 systematic audit，寻找不同 selector 与 GU family 响应背后的可解释性。</div>
+    </section>
+
+    <section class="section" id="framework" data-section="02">
+      <div class="section-head">
+        <div class="section-label">Setup</div>
+        <div><h2>完整实验框架：对象解耦、矩阵展开、exact retrain 归因</h2><p class="section-deck">这是汇报主体。结果会变，框架回答的问题不应跟着每个 cell 摇摆。</p></div>
+      </div>
+
+      <h3>2.1 两类对象必须解耦</h3>
+      <div class="object-pair">
+        <article class="object method" data-letter="M"><span class="label">Execution object</span><h3>GU Method</h3><p>收到 deletion set 之后，怎样更新、分片、近似或重训练模型。</p><div class="chips"><span class="chip">GIF</span><span class="chip">GNNDelete</span><span class="chip">MEGU</span><span class="chip">IDEA</span><span class="chip">GraphEraser</span><span class="chip">GraphRevoker</span></div></article>
+        <article class="object selector" data-letter="S"><span class="label">Request object</span><h3>Deletion Selector</h3><p>固定删除预算下，怎样选择进入 request 的有序节点集合。</p><div class="chips"><span class="chip">random</span><span class="chip">degree</span><span class="chip">PageRank</span><span class="chip">IM</span><span class="chip">TracIn</span><span class="chip">Hybrid</span></div></article>
+      </div>
+
+      <h3>2.2 一次 cell 的完整执行链</h3>
+      <div class="flow" aria-label="实验执行流程">
+        <div class="flow-step"><b>01</b><strong>Train</strong><small>训练 base GNN，固定 split、seed 和 model identity。</small></div>
+        <div class="flow-step"><b>02</b><strong>Select</strong><small>在 train candidate pool 中产生有序删除集合 T。</small></div>
+        <div class="flow-step"><b>03</b><strong>Unlearn</strong><small>目标 GU method 接收相同 T 执行删除。</small></div>
+        <div class="flow-step"><b>04</b><strong>Retrain</strong><small>移除 T 后从头训练，作为 exact reference。</small></div>
+        <div class="flow-step"><b>05</b><strong>Evaluate</strong><small>比较 utility、gap、collateral 和 detectability。</small></div>
+        <div class="flow-step"><b>06</b><strong>Prove</strong><small>保存 prediction、metadata、recipe 与 acceptance。</small></div>
+      </div>
+
+      <h3>2.3 四条矩阵轴</h3>
+      <div class="matrix">
+        <div class="matrix-item"><b>METHOD</b><div><strong>不同 GU family 如何失效？</strong><p>influence / learning / partition-shard 不是同一种近似。</p></div></div>
+        <div class="matrix-item"><b>SELECTOR</b><div><strong>攻击信号来自哪里？</strong><p>random、结构 volume、propagation、model sensitivity、fused proxy。</p></div></div>
+        <div class="matrix-item"><b>SCOPE</b><div><strong>现象能外推多远？</strong><p>dataset × backbone × ratio × seed 决定 claim 边界。</p></div></div>
+        <div class="matrix-item"><b>METRIC</b><div><strong>“失效”究竟指什么？</strong><p>F1、retrain gap、collateral、update-detection AUC、效率。</p></div></div>
+      </div>
+
+      <h3>2.4 归因公式：Total 不是全部漏洞</h3>
+      <div class="equation"><pre>Total = Drop_retrain + <span>Gap</span>
+      = (Perf_before - Perf_retrain)
+      + (Perf_retrain - Perf_unlearn)</pre></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>分量</th><th>定义</th><th>研究角色</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Drop_retrain</strong></td><td>Exact retrain 也会出现的下降</td><td>Deletion set 本身的难度与应有损失</td></tr>
+            <tr><td><strong>Gap</strong></td><td>Perf_retrain − Perf_unlearn</td><td>Approximate unlearning 的额外损失 / over-forgetting</td></tr>
+            <tr><td><strong>Total</strong></td><td>Perf_before − Perf_unlearn</td><td>表面总下降；单独使用无法做机制归因</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.5 指标各司其职</h3>
+      <div class="table-wrap"><table><thead><tr><th>指标</th><th>回答什么</th><th>边界</th></tr></thead><tbody>
+        <tr><td>Raw / paired F1</td><td>模型性能是否变化</td><td>会混入 deletion set 本身损失</td></tr>
+        <tr><td><strong>Retrain gap</strong></td><td>近似遗忘是否额外过度遗忘</td><td>当前主归因指标</td></tr>
+        <tr><td>Collateral / prediction flip</td><td>保留节点受到多大波及</td><td>必须和 exact retrain 对照</td></tr>
+        <tr><td>Update-detection AUC</td><td>一次更新是否暴露被删集合</td><td>不是标准 shadow-model MIA</td></tr>
+        <tr><td>Selection / end-to-end time</td><td>攻击各阶段资源代价</td><td>selector 与 MIA / retrain 成本分开</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="section" id="access" data-section="03">
+      <div class="section-head">
+        <div class="section-label">Threat</div>
+        <div><h2>Threat model：三层 selector 权限 + 一个共同前提</h2><p class="section-deck">层级描述如何构造 deletion set；zero-query / output-query 作为反馈维度另记。</p></div>
+      </div>
+      <div class="spectrum">
+        <article class="spectrum-item"><span class="level">L0 · MODEL-FREE</span><h3>Structural</h3><p>degree / PageRank / IM</p><ul><li>需要图结构</li><li>不训练 selector model</li><li>不查询 target 输出</li></ul></article>
+        <article class="spectrum-item"><span class="level">L1 · TARGET-MODEL BLACK-BOX</span><h3>Surrogate transfer</h3><p>surrogate proper-TracIn · target-model black-box transfer</p><ul><li>独立训练 surrogate</li><li>不访问 target 内部</li><li>query-free transfer</li></ul></article>
+        <article class="spectrum-item"><span class="level">L2 · WHITE-BOX</span><h3>Direct reference</h3><p>direct TracIn / GIF</p><ul><li>需要 target checkpoint</li><li>需要梯度或 Hessian 近似</li><li>作为高权限 reference</li></ul></article>
+      </div>
+      <div class="boundary"><b>共同攻击能力：</b>攻击者控制 eligible deletion candidates，并能提交删除请求。黑盒攻击者不执行遗忘；target system 在收到请求后执行 unlearning。</div>
+    </section>
+
+    <section class="section" id="built" data-section="04">
+      <div class="section-head">
+        <div class="section-label">Audit map</div>
+        <div><h2>Experiment setup：七个实验块如何组成可解释证据</h2><p class="section-deck">先说明七块分别检测什么，再固定 cell 坐标、对照组、证据层和矩阵读法。</p></div>
+      </div>
+
+      <aside class="setup-companion" aria-label="完整实验矩阵前端">
+        <div>
+          <span class="companion-kicker">Companion surface · full experiment map</span>
+          <h3>第四章负责解释；实验前端负责展开全量版图</h3>
+          <p>本章逐项解释前端七个实验块各自检测什么，并给出 cell、对照、证据层和 fingerprint 的阅读方法。全部配置、coverage heatmap、produced / usable / rerun 与 provenance 继续由 Experiment Config Inventory 动态展示；汇报不复制其中的实时数字。</p>
+          <a class="companion-link" href="../../../self/dashboard/config_inventory.html">打开完整实验矩阵 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="companion-map" aria-label="报告与实验前端的职责映射">
+          <div class="companion-row"><b>REPORT §4</b><span>7 audit roles · cell controls · evidence layers · fingerprint</span></div>
+          <div class="companion-row"><b>INVENTORY</b><span>7 config blocks · scope · methods · strategies · seeds</span></div>
+          <div class="companion-row"><b>LIVE STATE</b><span>produced / usable / rerun · csv / disk provenance</span></div>
+        </div>
+      </aside>
+
+      <div class="audit-stack">
+        <h3>4.1 七个实验块，对应七个检测问题</h3>
+        <p>它们不是单纯的配置分类，也不是七组同等优先级的结果。完整框架先检查 selector 信号是否成立，再刻画核心脆弱性，随后检查机制、scope 与规模外推；sanity 则负责阻止执行错误混进研究结论。</p>
+        <div class="audit-grid" aria-label="七个实验块与检测目标">
+          <article class="audit-card validity">
+            <div class="audit-top"><span class="audit-code">01 / SUPP</span><span class="audit-role">VALIDITY</span></div>
+            <h4>Selector 信号真的不同吗？</h4>
+            <p>检测 IM 是否只是 degree、proper TracIn 是否接近 GIF，以及 deployed TracIn 是否需要刷新。先确定“选点信号是什么”，才能解释后面的攻击差异。</p>
+            <div class="audit-readout"><b>关键对照</b><span>Top-k overlap；GIF / proper / deployed TracIn；必要时 LiSSA sensitivity</span></div>
+          </article>
+
+          <article class="audit-card core">
+            <div class="audit-top"><span class="audit-code">02 / CORA</span><span class="audit-role">CORE</span></div>
+            <h4>核心 vulnerability fingerprint 是什么？</h4>
+            <p>在统一主矩阵中检测不同 GU family 的异质响应，以及不同 deletion signal 是否触发不同脆弱性。</p>
+            <div class="audit-readout"><b>关键对照</b><span>同 scope / ratio / seed；budget-matched random；exact retrain</span></div>
+          </article>
+
+          <article class="audit-card scale">
+            <div class="audit-top"><span class="audit-code">03 / ARXIV</span><span class="audit-role">SCALE</span></div>
+            <h4>小图规律能扩展到大图吗？</h4>
+            <p>检测 Cora 等小型 citation graph 上的响应形状是否能跨 graph scale 保持，而不是 small-graph artifact 或计算路径特例。</p>
+            <div class="audit-readout"><b>关键对照</b><span>保持 selector 语义、指标与基线一致，只放大 graph scale</span></div>
+          </article>
+
+          <article class="audit-card mechanism">
+            <div class="audit-top"><span class="audit-code">04 / A3</span><span class="audit-role">MECHANISM</span></div>
+            <h4>IF–IM 融合有独立机制吗？</h4>
+            <p>检测 Hybrid 是产生互补信息，还是只在 IF 与 IM 两个端点之间做数值插值；alpha 是诊断轴，不是默认主贡献。</p>
+            <div class="audit-readout"><b>关键对照</b><span>固定 scope，比较 α=0、中间值与 α=1 的响应曲线</span></div>
+          </article>
+
+          <article class="audit-card scope">
+            <div class="audit-top"><span class="audit-code">05 / A5</span><span class="audit-role">ROBUSTNESS</span></div>
+            <h4>结论只属于一个预算或数据集吗？</h4>
+            <p>通过 ratio sweep 与 dataset transfer 检测现象是否只是 one-budget、one-dataset anecdote。</p>
+            <div class="audit-readout"><b>关键对照</b><span>改变 ratio / dataset，其余 cell 坐标尽量固定</span></div>
+          </article>
+
+          <article class="audit-card scope">
+            <div class="audit-top"><span class="audit-code">06 / A6</span><span class="audit-role">BACKBONE</span></div>
+            <h4>结论依赖某个 GNN backbone 吗？</h4>
+            <p>检测响应是否由 GCN / GAT / GIN 等架构归纳偏置驱动；未运行时保持 deferred，并明确外推边界。</p>
+            <div class="audit-readout"><b>关键对照</b><span>只改变 backbone，固定 dataset、ratio、method、selector 与 seed</span></div>
+          </article>
+
+          <article class="audit-card guard">
+            <div class="audit-top"><span class="audit-code">07 / SANITY</span><span class="audit-role">GUARDRAIL</span></div>
+            <h4>实验路径本身有没有坏？</h4>
+            <p>在最小闭环里检查 runner、GU method、selector、cache 和 artifact completeness。它只负责拦截工程错误，不能被升级成 paper evidence。</p>
+            <div class="audit-readout"><b>关键对照</b><span>单 cell、已知期望、完整 artifact 与 acceptance gate</span></div>
+          </article>
+        </div>
+        <div class="audit-chain"><em>SUPP</em> signal validity → <em>CORA</em> core fingerprint → <em>ARXIV + A5 + A6</em> generality → <em>A3</em> mechanism · guarded by <em>SANITY</em></div>
+      </div>
+
+      <h3>4.2 一个 cell 的坐标</h3>
+      <div class="equation"><pre>cell = (dataset, backbone, ratio)
+     × GU method × selector × seed</pre></div>
+      <div class="capability-grid">
+        <article class="capability"><span class="cap-icon">SC</span><h3>Scope</h3><ul><li>Dataset / backbone / ratio</li><li>控制图规模、归纳偏置和删除预算</li><li>决定结论能够外推多远</li></ul></article>
+        <article class="capability"><span class="cap-icon">GU</span><h3>GU method</h3><ul><li>控制 approximate unlearning 机制</li><li>比较不同 family 的响应形状</li><li>读取 family-level heterogeneity</li></ul></article>
+        <article class="capability"><span class="cap-icon">T</span><h3>Selector</h3><ul><li>固定预算下构造有序删除集合</li><li>区分结构、传播和模型信号</li><li>读取 attack-signal sensitivity</li></ul></article>
+        <article class="capability"><span class="cap-icon">S</span><h3>Seed</h3><ul><li>覆盖训练、划分与选择随机性</li><li>报告均值、方差和方向稳定性</li><li>防止单 seed 升级成机制结论</li></ul></article>
+      </div>
+
+      <h3>4.3 一个结论需要哪些对照</h3>
+      <div class="table-wrap"><table><thead><tr><th>对照</th><th>作用</th><th>不可替代的原因</th></tr></thead><tbody>
+        <tr><td><strong>Budget-matched random</strong></td><td>同预算、同 seed 的 paired baseline</td><td>判断策略性选点是否优于随机删除</td></tr>
+        <tr><td><strong>Exact retrain without T</strong></td><td>删除同一集合后的金标准</td><td>分开删除集损失与近似算法额外误差</td></tr>
+        <tr><td><strong>Multi-seed repetition</strong></td><td>估计均值、方差与方向稳定性</td><td>阻止单 seed 现象升级为机制结论</td></tr>
+        <tr><td><strong>Noise anchor</strong>（可选）</td><td>估计极小删除的固有波动</td><td>只作参考线，不替代 budget-matched random</td></tr>
+      </tbody></table></div>
+
+      <h3>4.4 证据产物分层</h3>
+      <div class="matrix">
+        <div class="matrix-item"><b>L1 · SELECT</b><div><strong>有序 selected_nodes + selector 配置</strong><p>删除集合由什么信号、预算和候选池生成。</p></div></div>
+        <div class="matrix-item"><b>L2 · PREDICT</b><div><strong>Before / unlearned / retrained logits</strong><p>三个模型状态能否复算并在同一节点空间对齐。</p></div></div>
+        <div class="matrix-item"><b>L3 · EVAL</b><div><strong>F1 / gap / collateral / detection</strong><p>失效是性能下降、近似误差还是副作用。</p></div></div>
+        <div class="matrix-item"><b>AUDIT</b><div><strong>Config / git SHA / seed / scope</strong><p>结果来自哪套代码、实验身份与验收边界。</p></div></div>
+      </div>
+
+      <h3>4.5 从矩阵读出 Vulnerability Fingerprint</h3>
+      <div class="table-wrap"><table><thead><tr><th>固定什么</th><th>改变什么</th><th>读出的框架信号</th></tr></thead><tbody>
+        <tr><td>Selector、scope</td><td>GU method</td><td>Family-level heterogeneity</td></tr>
+        <tr><td>GU method、scope</td><td>Selector</td><td>Attack-signal sensitivity</td></tr>
+        <tr><td>Method、selector</td><td>Dataset / backbone / ratio</td><td>Scope 与 generality</td></tr>
+        <tr><td>同一 cell</td><td>Metric / baseline</td><td>Failure source 与结论强度</td></tr>
+      </tbody></table></div>
+
+      <div class="boundary"><b>Setup 边界：</b>Runner、exact retrain、paired random 和基础 artifact 构成执行面；Cache V2、proper TracIn refresh 与 surrogate transfer 是后续改进，不用于定义 setup。</div>
+    </section>
+
+    <section class="section" id="results" data-section="05">
+      <div class="section-head">
+        <div class="section-label">Evidence</div>
+        <div><h2>Results Snapshot：setup 能产出什么证据</h2><p class="section-deck">只选两个带明确 scope 的样例，展示矩阵与对照如何工作，不把结果表变成汇报主轴。</p></div>
+      </div>
+      <div class="result-callouts">
+        <div class="result-callout"><span class="big">50/50</span><b>Citeseer stable cells accepted</b><p>5 methods × random/IM × 5 seeds；不含 TracIn、Hybrid、GraphRevoker。</p></div>
+        <div class="result-callout"><span class="big">0.7419</span><b>proper TracIn ↔ eval-IF</b><p>Cora/GCN Jaccard@108；Hessian-free proper path 与曲率修正 IF 选集接近。</p></div>
+        <div class="result-callout"><span class="big">0.1134</span><b>legacy cross ↔ eval-IF</b><p>同一 diagnostic；旧方向并非干净 eval-impact surrogate。</p></div>
+      </div>
+
+      <h3>5.1 Citeseer accepted scope</h3>
+      <div class="table-wrap"><table><thead><tr><th>方法</th><th>Random gap</th><th>IM gap</th><th>边界内读法</th></tr></thead><tbody>
+        <tr><td>GIF</td><td class="num">+0.0018</td><td class="num">−0.0018</td><td>接近当前 noise floor</td></tr>
+        <tr><td>IDEA</td><td class="num">+0.0018</td><td class="num">−0.0018</td><td>接近当前 noise floor</td></tr>
+        <tr><td>MEGU</td><td class="num">+0.0021</td><td class="num">−0.0015</td><td>接近当前 noise floor</td></tr>
+        <tr><td>GNNDelete</td><td class="num">+0.0120</td><td class="num hot">+0.0462</td><td>IM 在该 accepted scope 放大 approximation gap</td></tr>
+        <tr><td>GraphEraser</td><td class="num">−0.0006</td><td class="num">−0.0072</td><td>Method-specific shard/SISA before，不能混读 vanilla GCN</td></tr>
+      </tbody></table></div>
+      <div class="boundary"><b>范围：</b>Citeseer / GCN / r=0.05 的稳定方法范围；不能扩写成完整 selector 排名，也不包含 TracIn、Hybrid、GraphRevoker。</div>
+
+      <h3>5.2 Selector validity diagnostic</h3>
+      <div class="table-wrap"><table><thead><tr><th>比较</th><th>Jaccard@108</th><th>解释</th></tr></thead><tbody>
+        <tr><td>proper TracIn vs eval-IF/GIF</td><td class="num good">0.7419</td><td>Proper Hessian-free path 与 eval-IF 有较强选集一致性</td></tr>
+        <tr><td>deployed cross-TracIn vs eval-IF/GIF</td><td class="num hot">0.1134</td><td>Legacy 方向不是干净 eval-impact surrogate</td></tr>
+        <tr><td>degree vs PageRank</td><td class="num">0.8305</td><td>Structural centrality selector 高度相近</td></tr>
+        <tr><td>degree vs IM</td><td class="num">0.1868</td><td>IM 不是 degree 的同义替代</td></tr>
+      </tbody></table></div>
+      <div class="boundary"><b>范围：</b>这是 selector-only validity，不等于 attack outcome；proper-TracIn rerun 完成后才做 overlap-vs-damage join。</div>
+    </section>
+
+    <section class="section" id="todo" data-section="06">
+      <div class="section-head">
+        <div class="section-label">Ongoing</div>
+        <div><h2>Next steps：动态改进只在这里出现</h2><p class="section-deck">这些工作提升 evidence、semantics、threat realism 与 coverage，但不反向定义 experiment setup。</p></div>
+      </div>
+      <div class="lane-list">
+        <article class="lane"><div class="lane-n">01</div><div><h3>Cache / artifact provenance</h3><p>让 selection、prediction、evaluation 的 recipe、依赖与版本可追踪。</p></div><div class="gate"><b>Ongoing output</b><br>Cache V2 runner real-hit；查询异常不静默回退 Legacy。</div></article>
+        <article class="lane"><div class="lane-n">02</div><div><h3>proper TracIn refresh</h3><p>把 legacy training-residual direction 与 eval-impact sensitivity 分开。</p></div><div class="gate"><b>Ongoing output</b><br>Versioned <code>proper-tracin-v1</code>；legacy artifact 只读。</div></article>
+        <article class="lane"><div class="lane-n">03</div><div><h3>Surrogate black-box transfer</h3><p>检查 selector signal 能否脱离 direct target access。</p></div><div class="gate"><b>Ongoing output</b><br>先 GCN→GCN，再 GCN→GAT/GIN；报告 transfer ratio 与 Jaccard。</div></article>
+        <article class="lane"><div class="lane-n">04</div><div><h3>Coverage / evidence closure</h3><p>关闭 method、scope 和 metric 缺口，不制造新的主故事。</p></div><div class="gate"><b>Ongoing output</b><br>GraphRevoker 多 seed、IF collateral、noise anchor、arxiv 与 hop 聚合。</div></article>
+      </div>
+      <div class="equation"><pre>Cache V2 real-hit + proper-tracin-v1
+                  ↓
+     same-architecture transfer
+                  ↓
+       cross-backbone transfer</pre></div>
+      <div class="boundary"><b>状态纪律：</b>四条 lane 均为 ongoing。实时依赖与完成度只链接 WORKPLAN，不在汇报中复制 P0 / P1 台账。</div>
+    </section>
+
+    <section class="section" id="sources" data-section="07">
+      <div class="section-head">
+        <div class="section-label">Sources</div>
+        <div><h2>权威来源：报告是快照，不是新的事实中心</h2><p class="section-deck">点击本地链接可回到当前状态、定义、架构与验收证据。</p></div>
+      </div>
+      <div class="source-list">
+        <a class="source-link" href="../../../文档规划/10_实验矩阵/10_实验-框架总览.md"><b>实验-框架总览</b><small>文档规划/10_实验矩阵/10_实验-框架总览.md</small></a>
+        <a class="source-link" href="../../../文档规划/20_研究框架/20_方法与策略框架.md"><b>方法与策略框架</b><small>文档规划/20_研究框架/20_方法与策略框架.md</small></a>
+        <a class="source-link" href="../../../experiments/configs/README.md"><b>Cell 与 artifact 分层</b><small>experiments/configs/README.md</small></a>
+        <a class="source-link" href="../../../self/dashboard/WORKPLAN.md"><b>Ongoing WORKPLAN</b><small>仅用于 Next steps 的实时依赖</small></a>
+        <a class="source-link" href="../../../文档规划/20_研究框架/21_TracIn变体与GIF关系.md"><b>TracIn / GIF 公式边界</b><small>文档规划/20_研究框架/21_TracIn变体与GIF关系.md</small></a>
+        <a class="source-link" href="../../../文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md"><b>Cache V2 架构方案</b><small>文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md</small></a>
+        <a class="source-link" href="../../../docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md"><b>Citeseer E1 验收</b><small>docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md</small></a>
+        <a class="source-link" href="../../../docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md"><b>GraphRevoker canary 验收</b><small>docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md</small></a>
+        <a class="source-link" href="../../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md"><b>Cache V2 Selection 验收</b><small>docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md</small></a>
+        <a class="source-link" href="../../../self/related_work/concordance/data/ifdiag_cora_GCN_r0.05_seed2024.json"><b>IF selector diagnostic</b><small>self/related_work/concordance/data/ifdiag_cora_GCN_r0.05_seed2024.json</small></a>
+        <a class="source-link" href="REPORT.md"><b>本报告 Markdown 源稿</b><small>REPORT.md</small></a>
+      </div>
+    </section>
+
+    <section class="freeze-note" aria-label="冻结规则">
+      <h2>冻结规则</h2>
+      <p>本报告冻结于 <strong>2026-07-14</strong>。新实验默认进入下一次 checkpoint，不反向拖动本次汇报；未通过 gate 的内容只能出现在 Next steps / ongoing，不能升级为结果结论，也不能反向定义 setup。</p>
+    </section>
+
+    <footer>
+      <span>OpenGU / GULib · Experiment Framework Briefing</span>
+      <span>Editable source: REPORT.md · Generated presentation: REPORT.html</span>
+    </footer>
+  </main>
+
+  <script>
+    const progress = document.querySelector('.reading-progress');
+    const navLinks = [...document.querySelectorAll('nav a')];
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+    function updateProgress() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const ratio = max > 0 ? scrollY / max : 0;
+      progress.style.width = `${Math.min(1, Math.max(0, ratio)) * 100}%`;
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${visible.target.id}`));
+    }, { rootMargin: '-18% 0px -65% 0px', threshold: [0, .15, .4] });
+
+    sections.forEach(section => observer.observe(section));
+    addEventListener('scroll', updateProgress, { passive: true });
+    addEventListener('resize', updateProgress);
+    updateProgress();
+  </script>
+</body>
+</html>
