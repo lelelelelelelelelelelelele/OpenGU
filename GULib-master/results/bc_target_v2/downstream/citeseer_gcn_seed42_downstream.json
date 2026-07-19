@@ -1,0 +1,3100 @@
+{
+  "base_model": {
+    "metrics": {
+      "test_accuracy": 0.7120000123977661,
+      "test_loss": 1.0834307670593262,
+      "train_accuracy": 0.9750000238418579,
+      "train_loss": 0.40775877237319946,
+      "validation_accuracy": 0.7200000286102295,
+      "validation_loss": 1.1017698049545288
+    },
+    "state_hash": "aeb6f1001867f979af0d36794fc8f0e0b41ed2fdb403291b399a46792d5b1d60",
+    "training": {
+      "final_train_loss": 0.4722948968410492,
+      "optimizer": "adam",
+      "training_seconds": 6.1998256000000005
+    }
+  },
+  "budgets": [
+    3,
+    7,
+    14
+  ],
+  "cache_hit": false,
+  "dataset": "CiteSeer",
+  "environment": {
+    "executable": "E:\\conda_package\\envs\\gnn\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.8.20",
+    "torch": "2.2.1+cu121",
+    "torch_geometric": "2.6.1"
+  },
+  "methods": [
+    "a_grad_norm",
+    "b_param_hutch",
+    "b_param_lissa",
+    "degree",
+    "gt_full",
+    "gt_simple",
+    "legacy",
+    "p_graph",
+    "p_point",
+    "p_simple",
+    "r_point",
+    "random",
+    "tracin_cp_graph_3",
+    "tracin_cp_graph_6",
+    "tracin_cp_point_3",
+    "tracin_cp_point_6",
+    "tracin_cp_simple_3",
+    "tracin_cp_simple_6"
+  ],
+  "per_candidate_exact_retrain_performed": false,
+  "recipe": {
+    "budgets": [
+      3,
+      7,
+      14
+    ],
+    "dataset": "CiteSeer",
+    "deletion": {
+      "graph": "remove_all_incident_edges",
+      "per_candidate_exact_retrain": false,
+      "set_level_retrain_once": true,
+      "train_mask": "selected_false"
+    },
+    "evaluation": {
+      "accuracy": "node_classification_accuracy",
+      "loss": "mean_cross_entropy",
+      "target": "validation_mask",
+      "utility": "test_mask"
+    },
+    "methods": [
+      "a_grad_norm",
+      "b_param_hutch",
+      "b_param_lissa",
+      "degree",
+      "gt_full",
+      "gt_simple",
+      "legacy",
+      "p_graph",
+      "p_point",
+      "p_simple",
+      "r_point",
+      "random",
+      "tracin_cp_graph_3",
+      "tracin_cp_graph_6",
+      "tracin_cp_point_3",
+      "tracin_cp_point_6",
+      "tracin_cp_simple_3",
+      "tracin_cp_simple_6"
+    ],
+    "producer": "4d092f903b0348094356784ffd835fbecaacd0c67cb7534cbb5d8f2215c16465",
+    "schema": "bc_target_v2.downstream_recipe",
+    "seed": 42,
+    "selection_artifact_id": "score_5f4c4971_a329f277",
+    "selection_candidate_hash": "059c21a8fd4375c2338a74f32397ff51912dcbed24320d206571d6d13143fd82",
+    "selection_content_hash": "a329f27733b57328396945ea153e5a72907c810538f33d7e60e0560049ae565f",
+    "training": {
+      "architecture": "GateGCN",
+      "dropout": 0.5,
+      "epochs": 200,
+      "gamma": 0.5,
+      "hidden_channels": 16,
+      "lr": 0.01,
+      "milestones": [
+        100,
+        150
+      ],
+      "num_threads": 1,
+      "optimizer": "adam",
+      "seed": 42,
+      "weight_decay": 0.0005
+    },
+    "version": 1
+  },
+  "recipe_hash": "0785a332cc5a7509637ade6a859693cdb0937f6a4d821ed37a952fe4712514ba",
+  "result_count": 54,
+  "results": [
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7039999961853027,
+          "test_loss": 1.0902888774871826,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.37550100684165955,
+          "validation_accuracy": 0.7139999866485596,
+          "validation_loss": 1.1103683710098267
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "bef5f10fd4a555c096a45005a0a1e94dec9f3cc37bb7653ef08ff4e219352508",
+        "training": {
+          "final_train_loss": 0.44485780596733093,
+          "optimizer": "adam",
+          "training_seconds": 6.0907666
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.008000016212463379,
+        "test_loss_increase": 0.006858110427856445,
+        "validation_accuracy_drop": 0.006000041961669922,
+        "validation_loss_increase": 0.008598566055297852
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        61,
+        96
+      ],
+      "selected_set": [
+        43,
+        61,
+        96
+      ],
+      "selected_set_hash": "1b7edefba6c9401cb07de003d6e2ec96b1f3e49785d44737a8e6e480b346241e"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9016,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6980000138282776,
+          "test_loss": 1.0848835706710815,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.34350231289863586,
+          "validation_accuracy": 0.7039999961853027,
+          "validation_loss": 1.1091043949127197
+        },
+        "removed_directed_edges": 88,
+        "state_hash": "3dcfb940b8491497cf38e2d5a31f3716ca728fca536febfc2b361f35537db268",
+        "training": {
+          "final_train_loss": 0.4090993404388428,
+          "optimizer": "adam",
+          "training_seconds": 6.085543500000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.013999998569488525,
+        "test_loss_increase": 0.001452803611755371,
+        "validation_accuracy_drop": 0.016000032424926758,
+        "validation_loss_increase": 0.007334589958190918
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        61,
+        96,
+        95,
+        12,
+        99,
+        113
+      ],
+      "selected_set": [
+        12,
+        43,
+        61,
+        95,
+        96,
+        99,
+        113
+      ],
+      "selected_set_hash": "ef6e2f416aa029bd092ab48781b7de909b760644c4ee1d02f0d01afb576a64cb"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8958,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7170000076293945,
+          "test_loss": 1.09711492061615,
+          "train_accuracy": 1.0,
+          "train_loss": 0.333515465259552,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.1125410795211792
+        },
+        "removed_directed_edges": 146,
+        "state_hash": "21335b371cd48b045615ac293163f7c8facfa327da2ccbdc54e510415614b9cf",
+        "training": {
+          "final_train_loss": 0.4082839787006378,
+          "optimizer": "adam",
+          "training_seconds": 6.549227500000001
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.02499997615814209,
+        "test_accuracy_drop": -0.004999995231628418,
+        "test_loss_increase": 0.01368415355682373,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.01077127456665039
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        61,
+        96,
+        95,
+        12,
+        99,
+        113,
+        119,
+        118,
+        28,
+        110,
+        107,
+        69,
+        55
+      ],
+      "selected_set": [
+        12,
+        28,
+        43,
+        55,
+        61,
+        69,
+        95,
+        96,
+        99,
+        107,
+        110,
+        113,
+        118,
+        119
+      ],
+      "selected_set_hash": "d2166bd379af345aec49acb4568132ad2c9073bf9cae141e6004c132031bb0ee"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9076,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.699999988079071,
+          "test_loss": 1.0827350616455078,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.37452027201652527,
+          "validation_accuracy": 0.7139999866485596,
+          "validation_loss": 1.1020294427871704
+        },
+        "removed_directed_edges": 28,
+        "state_hash": "2483c2cb8aea91cbc274bf3e6a7a66b4e6ba34f40e3d42c2a860cd1edc428cb3",
+        "training": {
+          "final_train_loss": 0.44354239106178284,
+          "optimizer": "adam",
+          "training_seconds": 6.191240199999999
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.012000024318695068,
+        "test_loss_increase": -0.0006957054138183594,
+        "validation_accuracy_drop": 0.006000041961669922,
+        "validation_loss_increase": 0.00025963783264160156
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        113
+      ],
+      "selected_set": [
+        61,
+        96,
+        113
+      ],
+      "selected_set_hash": "c1df41cb31d5544b313f1ef207acb458b5ec16bbb6af47990c2be005b60e39be"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9050,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7099999785423279,
+          "test_loss": 1.0983308553695679,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.36395108699798584,
+          "validation_accuracy": 0.7279999852180481,
+          "validation_loss": 1.105170726776123
+        },
+        "removed_directed_edges": 54,
+        "state_hash": "a1a829117c1e28859e03d1813569052d2794f6a3a7be78c1de29934686aa8c44",
+        "training": {
+          "final_train_loss": 0.4343065917491913,
+          "optimizer": "adam",
+          "training_seconds": 6.2272747999999964
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.0020000338554382324,
+        "test_loss_increase": 0.0149000883102417,
+        "validation_accuracy_drop": -0.007999956607818604,
+        "validation_loss_increase": 0.0034009218215942383
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        113,
+        118,
+        119,
+        110,
+        107
+      ],
+      "selected_set": [
+        61,
+        96,
+        107,
+        110,
+        113,
+        118,
+        119
+      ],
+      "selected_set_hash": "d010175a79804566cbccca6e30ea4059376a889a20055d4de006607125a9a504"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8964,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7110000252723694,
+          "test_loss": 1.0899258852005005,
+          "train_accuracy": 1.0,
+          "train_loss": 0.3070948123931885,
+          "validation_accuracy": 0.7200000286102295,
+          "validation_loss": 1.0906026363372803
+        },
+        "removed_directed_edges": 140,
+        "state_hash": "141a1fbd816b4a99c04f11608158ad003005705c0d8278e981e44db69404ae84",
+        "training": {
+          "final_train_loss": 0.38874050974845886,
+          "optimizer": "adam",
+          "training_seconds": 6.260893499999995
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.02499997615814209,
+        "test_accuracy_drop": 0.0009999871253967285,
+        "test_loss_increase": 0.006495118141174316,
+        "validation_accuracy_drop": 0.0,
+        "validation_loss_increase": -0.011167168617248535
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        113,
+        118,
+        119,
+        110,
+        107,
+        95,
+        43,
+        12,
+        28,
+        8,
+        99,
+        90
+      ],
+      "selected_set": [
+        8,
+        12,
+        28,
+        43,
+        61,
+        90,
+        95,
+        96,
+        99,
+        107,
+        110,
+        113,
+        118,
+        119
+      ],
+      "selected_set_hash": "62a2e9f3317adc82386a68de2d9260aa27c36d58a692a8cc6e9cfaf1750e8a31"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7039999961853027,
+          "test_loss": 1.0902888774871826,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.37550100684165955,
+          "validation_accuracy": 0.7139999866485596,
+          "validation_loss": 1.1103683710098267
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "bef5f10fd4a555c096a45005a0a1e94dec9f3cc37bb7653ef08ff4e219352508",
+        "training": {
+          "final_train_loss": 0.44485780596733093,
+          "optimizer": "adam",
+          "training_seconds": 6.0907666
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.008000016212463379,
+        "test_loss_increase": 0.006858110427856445,
+        "validation_accuracy_drop": 0.006000041961669922,
+        "validation_loss_increase": 0.008598566055297852
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        43,
+        96
+      ],
+      "selected_set": [
+        43,
+        61,
+        96
+      ],
+      "selected_set_hash": "1b7edefba6c9401cb07de003d6e2ec96b1f3e49785d44737a8e6e480b346241e"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9016,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7039999961853027,
+          "test_loss": 1.0938800573349,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.3591889441013336,
+          "validation_accuracy": 0.7099999785423279,
+          "validation_loss": 1.1125718355178833
+        },
+        "removed_directed_edges": 88,
+        "state_hash": "6adddab1c7e4e1d91c14ddcca118709c25d2baffcab53f3d4b0fe9786f8433f9",
+        "training": {
+          "final_train_loss": 0.42128974199295044,
+          "optimizer": "adam",
+          "training_seconds": 6.528232499999994
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.008000016212463379,
+        "test_loss_increase": 0.01044929027557373,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.010802030563354492
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        43,
+        96,
+        95,
+        118,
+        113,
+        12
+      ],
+      "selected_set": [
+        12,
+        43,
+        61,
+        95,
+        96,
+        113,
+        118
+      ],
+      "selected_set_hash": "b09abfd39a9d6ef89d1e489853165f1d6edddde524e3d3bd6bce15d4714385f6"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8964,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7110000252723694,
+          "test_loss": 1.0899258852005005,
+          "train_accuracy": 1.0,
+          "train_loss": 0.3070948123931885,
+          "validation_accuracy": 0.7200000286102295,
+          "validation_loss": 1.0906026363372803
+        },
+        "removed_directed_edges": 140,
+        "state_hash": "141a1fbd816b4a99c04f11608158ad003005705c0d8278e981e44db69404ae84",
+        "training": {
+          "final_train_loss": 0.38874050974845886,
+          "optimizer": "adam",
+          "training_seconds": 6.260893499999995
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.02499997615814209,
+        "test_accuracy_drop": 0.0009999871253967285,
+        "test_loss_increase": 0.006495118141174316,
+        "validation_accuracy_drop": 0.0,
+        "validation_loss_increase": -0.011167168617248535
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        43,
+        96,
+        95,
+        118,
+        113,
+        12,
+        28,
+        99,
+        90,
+        119,
+        107,
+        110,
+        8
+      ],
+      "selected_set": [
+        8,
+        12,
+        28,
+        43,
+        61,
+        90,
+        95,
+        96,
+        99,
+        107,
+        110,
+        113,
+        118,
+        119
+      ],
+      "selected_set_hash": "62a2e9f3317adc82386a68de2d9260aa27c36d58a692a8cc6e9cfaf1750e8a31"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9020,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7039999961853027,
+          "test_loss": 1.1142871379852295,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.41093116998672485,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.1353929042816162
+        },
+        "removed_directed_edges": 84,
+        "state_hash": "e16b31b2c9ec4f9dd99a823b3d21a0bf9e63047138c8d4004a32cccb66afa814",
+        "training": {
+          "final_train_loss": 0.48862317204475403,
+          "optimizer": "adam",
+          "training_seconds": 6.390530600000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.008000016212463379,
+        "test_loss_increase": 0.03085637092590332,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.0336230993270874
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        83,
+        16,
+        12
+      ],
+      "selected_set": [
+        12,
+        16,
+        83
+      ],
+      "selected_set_hash": "18da69ebc23d9c84dcce3ff9a8b11e52b2d5f846efecdd74a0a2f7ab0afb3585"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8938,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7009999752044678,
+          "test_loss": 1.1315044164657593,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.3987772464752197,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.152246117591858
+        },
+        "removed_directed_edges": 166,
+        "state_hash": "bb1770d2dc451798a4b912fd1808c0ad466319d7b97f71a828804d2fe4edbc29",
+        "training": {
+          "final_train_loss": 0.4763716161251068,
+          "optimizer": "adam",
+          "training_seconds": 6.4072987000000055
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.01100003719329834,
+        "test_loss_increase": 0.048073649406433105,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.0504763126373291
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        83,
+        16,
+        12,
+        28,
+        27,
+        43,
+        98
+      ],
+      "selected_set": [
+        12,
+        16,
+        27,
+        28,
+        43,
+        83,
+        98
+      ],
+      "selected_set_hash": "7b5f7cd0efbae073d22a85c559c7c1a05194f7b0c3f2ab7b40ca7fe4b9dd304b"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8844,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6830000281333923,
+          "test_loss": 1.20111083984375,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.4132997393608093,
+          "validation_accuracy": 0.6959999799728394,
+          "validation_loss": 1.2249308824539185
+        },
+        "removed_directed_edges": 260,
+        "state_hash": "8ce4dec5219e8bda3ded8e0858c4a6f3d84e6c8d19e16c79f4767f7db127df58",
+        "training": {
+          "final_train_loss": 0.48830220103263855,
+          "optimizer": "adam",
+          "training_seconds": 6.3513591000000105
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.02899998426437378,
+        "test_loss_increase": 0.11768007278442383,
+        "validation_accuracy_drop": 0.024000048637390137,
+        "validation_loss_increase": 0.12316107749938965
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        83,
+        16,
+        12,
+        28,
+        27,
+        43,
+        98,
+        51,
+        59,
+        70,
+        101,
+        49,
+        61,
+        76
+      ],
+      "selected_set": [
+        12,
+        16,
+        27,
+        28,
+        43,
+        49,
+        51,
+        59,
+        61,
+        70,
+        76,
+        83,
+        98,
+        101
+      ],
+      "selected_set_hash": "eb54c211e779f2c3a2e5c34883d5b79bb0daabd770bb8429c0f8a4c1f8b82e8c"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9086,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.699999988079071,
+          "test_loss": 1.09213387966156,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.3959297835826874,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1166142225265503
+        },
+        "removed_directed_edges": 18,
+        "state_hash": "26a1b140d7ab33b342e5d652598afb62aea706f56bc36ef3f2d774474c033aee",
+        "training": {
+          "final_train_loss": 0.4609461724758148,
+          "optimizer": "adam",
+          "training_seconds": 6.282694199999995
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.012000024318695068,
+        "test_loss_increase": 0.008703112602233887,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.014844417572021484
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108
+      ],
+      "selected_set": [
+        41,
+        96,
+        108
+      ],
+      "selected_set_hash": "cf083a5decb38d2ff6af038cbf0a3b2755a226b17ac9199d18050bab07e2aed1"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9066,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6940000057220459,
+          "test_loss": 1.1131097078323364,
+          "train_accuracy": 0.9734513163566589,
+          "train_loss": 0.3853823244571686,
+          "validation_accuracy": 0.699999988079071,
+          "validation_loss": 1.1383472681045532
+        },
+        "removed_directed_edges": 38,
+        "state_hash": "6052575b0066bb46e0dcc754b90eefb3b4de38cadf9cbbc5b6229f898b47e55c",
+        "training": {
+          "final_train_loss": 0.4495128393173218,
+          "optimizer": "adam",
+          "training_seconds": 6.149513900000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0015487074851989746,
+        "test_accuracy_drop": 0.018000006675720215,
+        "test_loss_increase": 0.029678940773010254,
+        "validation_accuracy_drop": 0.020000040531158447,
+        "validation_loss_increase": 0.036577463150024414
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108,
+        95,
+        0,
+        4,
+        94
+      ],
+      "selected_set": [
+        0,
+        4,
+        41,
+        94,
+        95,
+        96,
+        108
+      ],
+      "selected_set_hash": "31348a258d9f92f3b0a2c6ff7cbbac0ef79128e9b0da0bf19fdce0e913ea124c"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9032,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7070000171661377,
+          "test_loss": 1.1195355653762817,
+          "train_accuracy": 0.9716981053352356,
+          "train_loss": 0.3953411877155304,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.1487399339675903
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "7057b643c35ce633777dcba65786ac357cdf897d580d718680e4e143fae0e6d1",
+        "training": {
+          "final_train_loss": 0.46559032797813416,
+          "optimizer": "adam",
+          "training_seconds": 6.1919611
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0033019185066223145,
+        "test_accuracy_drop": 0.004999995231628418,
+        "test_loss_increase": 0.036104798316955566,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.04697012901306152
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108,
+        95,
+        0,
+        4,
+        94,
+        9,
+        15,
+        51,
+        24,
+        74,
+        90,
+        115
+      ],
+      "selected_set": [
+        0,
+        4,
+        9,
+        15,
+        24,
+        41,
+        51,
+        74,
+        90,
+        94,
+        95,
+        96,
+        108,
+        115
+      ],
+      "selected_set_hash": "e830971031de1eec0de198171268da843f4606eedbb2d527d63280ba2d9ddfd3"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9042,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7149999737739563,
+          "test_loss": 1.0984866619110107,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.4064392149448395,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1189268827438354
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "fb0a7d5cea1d84eb30604a8f5f7c6107d8f87691b00def0a95c8c75ddf05b2ac",
+        "training": {
+          "final_train_loss": 0.4771183431148529,
+          "optimizer": "adam",
+          "training_seconds": 6.099747399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": -0.0029999613761901855,
+        "test_loss_increase": 0.01505589485168457,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.01715707778930664
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16
+      ],
+      "selected_set": [
+        16,
+        43,
+        59
+      ],
+      "selected_set_hash": "3d2e257ddf13e1f1f39ad27431e7904eae0329ce1bcb996f3bcaf4546fa61041"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8998,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6930000185966492,
+          "test_loss": 1.1330851316452026,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3977506756782532,
+          "validation_accuracy": 0.6859999895095825,
+          "validation_loss": 1.169562816619873
+        },
+        "removed_directed_edges": 106,
+        "state_hash": "803bd800bf10a9efbb9e990fcbae9976538b5969bc1f431310173fffbc95920f",
+        "training": {
+          "final_train_loss": 0.4643534719944,
+          "optimizer": "adam",
+          "training_seconds": 6.104396999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.018999993801116943,
+        "test_loss_increase": 0.049654364585876465,
+        "validation_accuracy_drop": 0.03400003910064697,
+        "validation_loss_increase": 0.06779301166534424
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29
+      ],
+      "selected_set": [
+        16,
+        27,
+        29,
+        30,
+        43,
+        51,
+        59
+      ],
+      "selected_set_hash": "6ed7e71952875bde641f555685ad7830538eb0379886cb08c9d7bbc85c4e1745"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8908,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6570000052452087,
+          "test_loss": 1.1758644580841064,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.37816011905670166,
+          "validation_accuracy": 0.6399999856948853,
+          "validation_loss": 1.213223934173584
+        },
+        "removed_directed_edges": 196,
+        "state_hash": "1aebd422d9c000aad4d43fc451ba1dc1ef6002f54521baec5737b53c92c54153",
+        "training": {
+          "final_train_loss": 0.4476751387119293,
+          "optimizer": "adam",
+          "training_seconds": 6.104782900000004
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.05500000715255737,
+        "test_loss_increase": 0.09243369102478027,
+        "validation_accuracy_drop": 0.08000004291534424,
+        "validation_loss_increase": 0.11145412921905518
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29,
+        106,
+        12,
+        113,
+        98,
+        31,
+        1,
+        49
+      ],
+      "selected_set": [
+        1,
+        12,
+        16,
+        27,
+        29,
+        30,
+        31,
+        43,
+        49,
+        51,
+        59,
+        98,
+        106,
+        113
+      ],
+      "selected_set_hash": "4b3ad08e145d9ed7eedbc420c26d4741ddfcc8e649d44c7690cb88e227bb9f01"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7089999914169312,
+          "test_loss": 1.0850962400436401,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.3782898485660553,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1073172092437744
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "1ae00f1ccc23fcd0ad8b45dfd98f1c0e3bc211ab67d6a0484d1070d2c874ee55",
+        "training": {
+          "final_train_loss": 0.4397786557674408,
+          "optimizer": "adam",
+          "training_seconds": 6.299669499999993
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.003000020980834961,
+        "test_loss_increase": 0.0016654729843139648,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.0055474042892456055
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        43,
+        95
+      ],
+      "selected_set": [
+        43,
+        95,
+        96
+      ],
+      "selected_set_hash": "d273e3820b954b7805240b166b44f09d0576619f78f12502d29fb28959df24bc"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8998,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6869999766349792,
+          "test_loss": 1.1079466342926025,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3632754981517792,
+          "validation_accuracy": 0.6819999814033508,
+          "validation_loss": 1.1386867761611938
+        },
+        "removed_directed_edges": 106,
+        "state_hash": "29908f658449300bc293abe6f28d522680bb11662cdf8ceb8b93ab2b62241ec3",
+        "training": {
+          "final_train_loss": 0.42679569125175476,
+          "optimizer": "adam",
+          "training_seconds": 6.223100600000009
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.025000035762786865,
+        "test_loss_increase": 0.024515867233276367,
+        "validation_accuracy_drop": 0.03800004720687866,
+        "validation_loss_increase": 0.03691697120666504
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        43,
+        95,
+        28,
+        99,
+        83,
+        41
+      ],
+      "selected_set": [
+        28,
+        41,
+        43,
+        83,
+        95,
+        96,
+        99
+      ],
+      "selected_set_hash": "bc0ac078cf63b274635d0d5a4790a2297f10ce3760e9a46a94667d0584990c15"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8948,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6330000162124634,
+          "test_loss": 1.177323818206787,
+          "train_accuracy": 0.9811320900917053,
+          "train_loss": 0.3721170127391815,
+          "validation_accuracy": 0.6299999952316284,
+          "validation_loss": 1.209165334701538
+        },
+        "removed_directed_edges": 156,
+        "state_hash": "979d9bdc6eee4cf3bca4354c12f1ccf4b7902d25ad69a1da4df44c966442884d",
+        "training": {
+          "final_train_loss": 0.4415152072906494,
+          "optimizer": "adam",
+          "training_seconds": 6.111306099999993
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.006132066249847412,
+        "test_accuracy_drop": 0.07899999618530273,
+        "test_loss_increase": 0.09389305114746094,
+        "validation_accuracy_drop": 0.09000003337860107,
+        "validation_loss_increase": 0.10739552974700928
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        43,
+        95,
+        28,
+        99,
+        83,
+        41,
+        1,
+        55,
+        81,
+        104,
+        90,
+        32,
+        13
+      ],
+      "selected_set": [
+        1,
+        13,
+        28,
+        32,
+        41,
+        43,
+        55,
+        81,
+        83,
+        90,
+        95,
+        96,
+        99,
+        104
+      ],
+      "selected_set_hash": "faef3a30d37cdbf4a8bed3305448c55d9702c45caa59ef7936595c1e8499a39a"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9086,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.699999988079071,
+          "test_loss": 1.09213387966156,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.3959297835826874,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1166142225265503
+        },
+        "removed_directed_edges": 18,
+        "state_hash": "26a1b140d7ab33b342e5d652598afb62aea706f56bc36ef3f2d774474c033aee",
+        "training": {
+          "final_train_loss": 0.4609461724758148,
+          "optimizer": "adam",
+          "training_seconds": 6.282694199999995
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.012000024318695068,
+        "test_loss_increase": 0.008703112602233887,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.014844417572021484
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108
+      ],
+      "selected_set": [
+        41,
+        96,
+        108
+      ],
+      "selected_set_hash": "cf083a5decb38d2ff6af038cbf0a3b2755a226b17ac9199d18050bab07e2aed1"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9066,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6940000057220459,
+          "test_loss": 1.1131097078323364,
+          "train_accuracy": 0.9734513163566589,
+          "train_loss": 0.3853823244571686,
+          "validation_accuracy": 0.699999988079071,
+          "validation_loss": 1.1383472681045532
+        },
+        "removed_directed_edges": 38,
+        "state_hash": "6052575b0066bb46e0dcc754b90eefb3b4de38cadf9cbbc5b6229f898b47e55c",
+        "training": {
+          "final_train_loss": 0.4495128393173218,
+          "optimizer": "adam",
+          "training_seconds": 6.149513900000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0015487074851989746,
+        "test_accuracy_drop": 0.018000006675720215,
+        "test_loss_increase": 0.029678940773010254,
+        "validation_accuracy_drop": 0.020000040531158447,
+        "validation_loss_increase": 0.036577463150024414
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108,
+        0,
+        95,
+        4,
+        94
+      ],
+      "selected_set": [
+        0,
+        4,
+        41,
+        94,
+        95,
+        96,
+        108
+      ],
+      "selected_set_hash": "31348a258d9f92f3b0a2c6ff7cbbac0ef79128e9b0da0bf19fdce0e913ea124c"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9044,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.703000009059906,
+          "test_loss": 1.1199299097061157,
+          "train_accuracy": 0.9716981053352356,
+          "train_loss": 0.3891656696796417,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.147577166557312
+        },
+        "removed_directed_edges": 60,
+        "state_hash": "3fa818fe9bf6fc4c00696d498956d37bbb7f24d5a034e2ff1b1af174ba55ba63",
+        "training": {
+          "final_train_loss": 0.46208474040031433,
+          "optimizer": "adam",
+          "training_seconds": 6.596804299999988
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0033019185066223145,
+        "test_accuracy_drop": 0.009000003337860107,
+        "test_loss_increase": 0.03649914264678955,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.0458073616027832
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        41,
+        96,
+        108,
+        0,
+        95,
+        4,
+        94,
+        15,
+        32,
+        24,
+        115,
+        9,
+        74,
+        90
+      ],
+      "selected_set": [
+        0,
+        4,
+        9,
+        15,
+        24,
+        32,
+        41,
+        74,
+        90,
+        94,
+        95,
+        96,
+        108,
+        115
+      ],
+      "selected_set_hash": "894d83a59698da2a4956420414c27a08d33d65edefd014e0354894bbf41f2f79"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9060,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7020000219345093,
+          "test_loss": 1.0966237783432007,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.3780190050601959,
+          "validation_accuracy": 0.7039999961853027,
+          "validation_loss": 1.1199809312820435
+        },
+        "removed_directed_edges": 44,
+        "state_hash": "ed6d7cb3b35d4c7119e612ab121bdf82059354563d57388ddedc87f579335004",
+        "training": {
+          "final_train_loss": 0.4501914083957672,
+          "optimizer": "adam",
+          "training_seconds": 6.144335900000016
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.013193011283874512,
+        "validation_accuracy_drop": 0.016000032424926758,
+        "validation_loss_increase": 0.01821112632751465
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        12,
+        61
+      ],
+      "selected_set": [
+        12,
+        61,
+        96
+      ],
+      "selected_set_hash": "abf42e4702469c61a9c5820ae9976de2bdea30722b377923b156d887876e1af7"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9024,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6940000057220459,
+          "test_loss": 1.1199066638946533,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.36084702610969543,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.1436070203781128
+        },
+        "removed_directed_edges": 80,
+        "state_hash": "ba9867e9390e90fce6cb105b2522860c93bc42bcca4e9e0f9325586f7bba261a",
+        "training": {
+          "final_train_loss": 0.43442994356155396,
+          "optimizer": "adam",
+          "training_seconds": 6.420711599999976
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.018000006675720215,
+        "test_loss_increase": 0.03647589683532715,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.041837215423583984
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        12,
+        61,
+        8,
+        32,
+        98,
+        31
+      ],
+      "selected_set": [
+        8,
+        12,
+        31,
+        32,
+        61,
+        96,
+        98
+      ],
+      "selected_set_hash": "3bc25334c540fedbd48d6d2c5f8c688924e2b9af1a9978ee50e9091795723475"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8986,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6150000095367432,
+          "test_loss": 1.2394633293151855,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.3729708790779114,
+          "validation_accuracy": 0.6359999775886536,
+          "validation_loss": 1.252248764038086
+        },
+        "removed_directed_edges": 118,
+        "state_hash": "ff8258117df84afb15bfc6afba25c96a605cb1d0c0c7b6ffe747f5eb4557712d",
+        "training": {
+          "final_train_loss": 0.4473901391029358,
+          "optimizer": "adam",
+          "training_seconds": 6.178997900000013
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.09700000286102295,
+        "test_loss_increase": 0.15603256225585938,
+        "validation_accuracy_drop": 0.08400005102157593,
+        "validation_loss_increase": 0.15047895908355713
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        12,
+        61,
+        8,
+        32,
+        98,
+        31,
+        25,
+        60,
+        100,
+        50,
+        39,
+        49,
+        38
+      ],
+      "selected_set": [
+        8,
+        12,
+        25,
+        31,
+        32,
+        38,
+        39,
+        49,
+        50,
+        60,
+        61,
+        96,
+        98,
+        100
+      ],
+      "selected_set_hash": "c20be660dd79005b5f9f10d3e9b49a9fc24e0bd716ae35b7df187e5649d267a5"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9042,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7149999737739563,
+          "test_loss": 1.0984866619110107,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.4064392149448395,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1189268827438354
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "fb0a7d5cea1d84eb30604a8f5f7c6107d8f87691b00def0a95c8c75ddf05b2ac",
+        "training": {
+          "final_train_loss": 0.4771183431148529,
+          "optimizer": "adam",
+          "training_seconds": 6.099747399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": -0.0029999613761901855,
+        "test_loss_increase": 0.01505589485168457,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.01715707778930664
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16
+      ],
+      "selected_set": [
+        16,
+        43,
+        59
+      ],
+      "selected_set_hash": "3d2e257ddf13e1f1f39ad27431e7904eae0329ce1bcb996f3bcaf4546fa61041"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8998,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6930000185966492,
+          "test_loss": 1.1330851316452026,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3977506756782532,
+          "validation_accuracy": 0.6859999895095825,
+          "validation_loss": 1.169562816619873
+        },
+        "removed_directed_edges": 106,
+        "state_hash": "803bd800bf10a9efbb9e990fcbae9976538b5969bc1f431310173fffbc95920f",
+        "training": {
+          "final_train_loss": 0.4643534719944,
+          "optimizer": "adam",
+          "training_seconds": 6.104396999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.018999993801116943,
+        "test_loss_increase": 0.049654364585876465,
+        "validation_accuracy_drop": 0.03400003910064697,
+        "validation_loss_increase": 0.06779301166534424
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29
+      ],
+      "selected_set": [
+        16,
+        27,
+        29,
+        30,
+        43,
+        51,
+        59
+      ],
+      "selected_set_hash": "6ed7e71952875bde641f555685ad7830538eb0379886cb08c9d7bbc85c4e1745"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8908,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6570000052452087,
+          "test_loss": 1.1758644580841064,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.37816011905670166,
+          "validation_accuracy": 0.6399999856948853,
+          "validation_loss": 1.213223934173584
+        },
+        "removed_directed_edges": 196,
+        "state_hash": "1aebd422d9c000aad4d43fc451ba1dc1ef6002f54521baec5737b53c92c54153",
+        "training": {
+          "final_train_loss": 0.4476751387119293,
+          "optimizer": "adam",
+          "training_seconds": 6.104782900000004
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.05500000715255737,
+        "test_loss_increase": 0.09243369102478027,
+        "validation_accuracy_drop": 0.08000004291534424,
+        "validation_loss_increase": 0.11145412921905518
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29,
+        106,
+        98,
+        113,
+        12,
+        31,
+        49,
+        1
+      ],
+      "selected_set": [
+        1,
+        12,
+        16,
+        27,
+        29,
+        30,
+        31,
+        43,
+        49,
+        51,
+        59,
+        98,
+        106,
+        113
+      ],
+      "selected_set_hash": "4b3ad08e145d9ed7eedbc420c26d4741ddfcc8e649d44c7690cb88e227bb9f01"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9060,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7020000219345093,
+          "test_loss": 1.0966237783432007,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.3780190050601959,
+          "validation_accuracy": 0.7039999961853027,
+          "validation_loss": 1.1199809312820435
+        },
+        "removed_directed_edges": 44,
+        "state_hash": "ed6d7cb3b35d4c7119e612ab121bdf82059354563d57388ddedc87f579335004",
+        "training": {
+          "final_train_loss": 0.4501914083957672,
+          "optimizer": "adam",
+          "training_seconds": 6.144335900000016
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.013193011283874512,
+        "validation_accuracy_drop": 0.016000032424926758,
+        "validation_loss_increase": 0.01821112632751465
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        12,
+        96,
+        61
+      ],
+      "selected_set": [
+        12,
+        61,
+        96
+      ],
+      "selected_set_hash": "abf42e4702469c61a9c5820ae9976de2bdea30722b377923b156d887876e1af7"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9016,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6940000057220459,
+          "test_loss": 1.11670982837677,
+          "train_accuracy": 0.991150438785553,
+          "train_loss": 0.3571445643901825,
+          "validation_accuracy": 0.7059999704360962,
+          "validation_loss": 1.139249563217163
+        },
+        "removed_directed_edges": 88,
+        "state_hash": "4beb79b046ba7b2e6894a4d7140e4cb7d4e38ebbe2070ea73927e9feda9ee7c3",
+        "training": {
+          "final_train_loss": 0.4296925365924835,
+          "optimizer": "adam",
+          "training_seconds": 6.147851900000006
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.01615041494369507,
+        "test_accuracy_drop": 0.018000006675720215,
+        "test_loss_increase": 0.03327906131744385,
+        "validation_accuracy_drop": 0.0140000581741333,
+        "validation_loss_increase": 0.03747975826263428
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        12,
+        96,
+        61,
+        8,
+        95,
+        31,
+        98
+      ],
+      "selected_set": [
+        8,
+        12,
+        31,
+        61,
+        95,
+        96,
+        98
+      ],
+      "selected_set_hash": "0c26280cfbd4be6ffdeec0568eadfee7703b935fbcba20db1029d8d29d0a53da"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8986,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6819999814033508,
+          "test_loss": 1.1633362770080566,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.34190502762794495,
+          "validation_accuracy": 0.6660000085830688,
+          "validation_loss": 1.2108948230743408
+        },
+        "removed_directed_edges": 118,
+        "state_hash": "d2455f2f8fc96edd6f3c398a9bb4c9f4584311b2bbb85668629a10daff1fc094",
+        "training": {
+          "final_train_loss": 0.420227587223053,
+          "optimizer": "adam",
+          "training_seconds": 6.155273899999997
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.030000030994415283,
+        "test_loss_increase": 0.07990550994873047,
+        "validation_accuracy_drop": 0.054000020027160645,
+        "validation_loss_increase": 0.10912501811981201
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        12,
+        96,
+        61,
+        8,
+        95,
+        31,
+        98,
+        25,
+        60,
+        79,
+        100,
+        48,
+        69,
+        32
+      ],
+      "selected_set": [
+        8,
+        12,
+        25,
+        31,
+        32,
+        48,
+        60,
+        61,
+        69,
+        79,
+        95,
+        96,
+        98,
+        100
+      ],
+      "selected_set_hash": "3a96f94b70deff623207757879e6a2785defce4f2a95bdb7d76d9a612d1b7d60"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9096,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7059999704360962,
+          "test_loss": 1.0902332067489624,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.39927107095718384,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1082704067230225
+        },
+        "removed_directed_edges": 8,
+        "state_hash": "3c3dfe75aef72fd966b96e70a638229d7bf45437f9480381521f4b3df9d5303f",
+        "training": {
+          "final_train_loss": 0.4604204297065735,
+          "optimizer": "adam",
+          "training_seconds": 6.266612900000013
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.006000041961669922,
+        "test_loss_increase": 0.0068024396896362305,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.006500601768493652
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        72,
+        56,
+        67
+      ],
+      "selected_set": [
+        56,
+        67,
+        72
+      ],
+      "selected_set_hash": "9ff3c492546f8484e4aa2e546315e57f83308cc43b33de670663a5161b7419ad"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9072,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.703000009059906,
+          "test_loss": 1.0975309610366821,
+          "train_accuracy": 0.9734513163566589,
+          "train_loss": 0.40723586082458496,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1174472570419312
+        },
+        "removed_directed_edges": 32,
+        "state_hash": "e7fdc445c8a313527a2aabdae290cacc8a081cc779f8b3f30b00fe04c9560f31",
+        "training": {
+          "final_train_loss": 0.47892022132873535,
+          "optimizer": "adam",
+          "training_seconds": 6.186950500000023
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0015487074851989746,
+        "test_accuracy_drop": 0.009000003337860107,
+        "test_loss_increase": 0.014100193977355957,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.015677452087402344
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        72,
+        56,
+        67,
+        58,
+        80,
+        3,
+        44
+      ],
+      "selected_set": [
+        3,
+        44,
+        56,
+        58,
+        67,
+        72,
+        80
+      ],
+      "selected_set_hash": "a3f5c895324cacd8f3265f5d8b28ad546a531b57689682dedcf85651f7c3e9e0"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9024,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6930000185966492,
+          "test_loss": 1.1323425769805908,
+          "train_accuracy": 0.9716981053352356,
+          "train_loss": 0.42108428478240967,
+          "validation_accuracy": 0.7039999961853027,
+          "validation_loss": 1.1608896255493164
+        },
+        "removed_directed_edges": 80,
+        "state_hash": "b0a076ba8e972c1561d24b3a71d7080ac332a73b9980f54fe7c551ca4b823541",
+        "training": {
+          "final_train_loss": 0.47947436571121216,
+          "optimizer": "adam",
+          "training_seconds": 6.328127899999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0033019185066223145,
+        "test_accuracy_drop": 0.018999993801116943,
+        "test_loss_increase": 0.04891180992126465,
+        "validation_accuracy_drop": 0.016000032424926758,
+        "validation_loss_increase": 0.0591198205947876
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        72,
+        56,
+        67,
+        58,
+        80,
+        3,
+        44,
+        1,
+        70,
+        30,
+        6,
+        29,
+        13,
+        26
+      ],
+      "selected_set": [
+        1,
+        3,
+        6,
+        13,
+        26,
+        29,
+        30,
+        44,
+        56,
+        58,
+        67,
+        70,
+        72,
+        80
+      ],
+      "selected_set_hash": "131a99e02b516f9eba64dab78daceab9503bda3cea9b94e16675d07b54fc57d1"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9088,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.703000009059906,
+          "test_loss": 1.095617413520813,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.3953701853752136,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1195076704025269
+        },
+        "removed_directed_edges": 16,
+        "state_hash": "81f5e329a8d6e2f43a02d0913db75d739da1e190ce45c42aa31aeebbbfce3d47",
+        "training": {
+          "final_train_loss": 0.4635959565639496,
+          "optimizer": "adam",
+          "training_seconds": 6.08395729999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.009000003337860107,
+        "test_loss_increase": 0.012186646461486816,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.017737865447998047
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        0,
+        96,
+        41
+      ],
+      "selected_set": [
+        0,
+        41,
+        96
+      ],
+      "selected_set_hash": "8983f25ccdd51c1992ff143e94a17c857c82ae56c8bd0a9787728a60dc9c0674"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6740000247955322,
+          "test_loss": 1.1564358472824097,
+          "train_accuracy": 0.9734513163566589,
+          "train_loss": 0.3977264165878296,
+          "validation_accuracy": 0.6880000233650208,
+          "validation_loss": 1.1688061952590942
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "f1648cb44b6021839ededde91c29082167937c91b1ed908934feefa93444a66a",
+        "training": {
+          "final_train_loss": 0.46612846851348877,
+          "optimizer": "adam",
+          "training_seconds": 6.1767790000000105
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0015487074851989746,
+        "test_accuracy_drop": 0.03799998760223389,
+        "test_loss_increase": 0.0730050802230835,
+        "validation_accuracy_drop": 0.03200000524520874,
+        "validation_loss_increase": 0.06703639030456543
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        0,
+        96,
+        41,
+        15,
+        66,
+        61,
+        94
+      ],
+      "selected_set": [
+        0,
+        15,
+        41,
+        61,
+        66,
+        94,
+        96
+      ],
+      "selected_set_hash": "7c6b8e369e85726aad0ff9dbdcc2524b25887660248b1f8f29e7dad311ca3cac"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9000,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6650000214576721,
+          "test_loss": 1.1912741661071777,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.3894439935684204,
+          "validation_accuracy": 0.6660000085830688,
+          "validation_loss": 1.2228494882583618
+        },
+        "removed_directed_edges": 104,
+        "state_hash": "f210c25bc98147bd8390457280c3f1c7672a6d4b0f290db4db6b014d5017dcad",
+        "training": {
+          "final_train_loss": 0.47068583965301514,
+          "optimizer": "adam",
+          "training_seconds": 6.2712693
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.046999990940093994,
+        "test_loss_increase": 0.10784339904785156,
+        "validation_accuracy_drop": 0.054000020027160645,
+        "validation_loss_increase": 0.12107968330383301
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        0,
+        96,
+        41,
+        15,
+        66,
+        61,
+        94,
+        4,
+        32,
+        79,
+        12,
+        47,
+        51,
+        92
+      ],
+      "selected_set": [
+        0,
+        4,
+        12,
+        15,
+        32,
+        41,
+        47,
+        51,
+        61,
+        66,
+        79,
+        92,
+        94,
+        96
+      ],
+      "selected_set_hash": "797fedc623ff1dd5966c2ec195256108f4c2712e66f5461da004bb2f1ca755e0"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9092,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7009999752044678,
+          "test_loss": 1.0956999063491821,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.39275696873664856,
+          "validation_accuracy": 0.7059999704360962,
+          "validation_loss": 1.1187227964401245
+        },
+        "removed_directed_edges": 12,
+        "state_hash": "73ce40fc726303cf456292f99b8848646e7c30fa1b722211e14c9450308f8c46",
+        "training": {
+          "final_train_loss": 0.4579628109931946,
+          "optimizer": "adam",
+          "training_seconds": 6.215651099999974
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.01100003719329834,
+        "test_loss_increase": 0.012269139289855957,
+        "validation_accuracy_drop": 0.0140000581741333,
+        "validation_loss_increase": 0.016952991485595703
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        0,
+        15
+      ],
+      "selected_set": [
+        0,
+        15,
+        96
+      ],
+      "selected_set_hash": "d50b2b3cac20f85e246463775a3bf500f78b88a3ce6708b1359375a217aff450"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9076,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6830000281333923,
+          "test_loss": 1.1255698204040527,
+          "train_accuracy": 0.9734513163566589,
+          "train_loss": 0.3884074091911316,
+          "validation_accuracy": 0.6899999976158142,
+          "validation_loss": 1.1476937532424927
+        },
+        "removed_directed_edges": 28,
+        "state_hash": "434d0c1a16aa282753af72f6d1233f2b73ffda60172c8988e14627e25a4c4801",
+        "training": {
+          "final_train_loss": 0.4499361217021942,
+          "optimizer": "adam",
+          "training_seconds": 6.234641400000015
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0015487074851989746,
+        "test_accuracy_drop": 0.02899998426437378,
+        "test_loss_increase": 0.04213905334472656,
+        "validation_accuracy_drop": 0.030000030994415283,
+        "validation_loss_increase": 0.04592394828796387
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        0,
+        15,
+        41,
+        6,
+        4,
+        66
+      ],
+      "selected_set": [
+        0,
+        4,
+        6,
+        15,
+        41,
+        66,
+        96
+      ],
+      "selected_set_hash": "d00e47d5bca1ab817ac01a9dc25424c85190e65492db9e17bd8c69ecdd68ad10"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9012,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6309999823570251,
+          "test_loss": 1.2123717069625854,
+          "train_accuracy": 0.9811320900917053,
+          "train_loss": 0.38687777519226074,
+          "validation_accuracy": 0.6499999761581421,
+          "validation_loss": 1.2279125452041626
+        },
+        "removed_directed_edges": 92,
+        "state_hash": "15c4bc881b84ecfee1d0cc11cbce82bba53ee38f8925845a8d94c8bbfdcafa73",
+        "training": {
+          "final_train_loss": 0.462521493434906,
+          "optimizer": "adam",
+          "training_seconds": 6.265689100000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.006132066249847412,
+        "test_accuracy_drop": 0.08100003004074097,
+        "test_loss_increase": 0.12894093990325928,
+        "validation_accuracy_drop": 0.0700000524520874,
+        "validation_loss_increase": 0.1261427402496338
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        96,
+        0,
+        15,
+        41,
+        6,
+        4,
+        66,
+        61,
+        32,
+        94,
+        12,
+        51,
+        23,
+        67
+      ],
+      "selected_set": [
+        0,
+        4,
+        6,
+        12,
+        15,
+        23,
+        32,
+        41,
+        51,
+        61,
+        66,
+        67,
+        94,
+        96
+      ],
+      "selected_set_hash": "1fe9254e756c60a11b7377365b37d90c45273e9e36b1c1ce8f7e5a5498568190"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7009999752044678,
+          "test_loss": 1.1030548810958862,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.3861813247203827,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1236251592636108
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "5819241fe08588c80dd971b7e8e5f86a31df56ccb6b1eb41b4b984352305e327",
+        "training": {
+          "final_train_loss": 0.4569857716560364,
+          "optimizer": "adam",
+          "training_seconds": 6.724088999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.01100003719329834,
+        "test_loss_increase": 0.01962411403656006,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.02185535430908203
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98
+      ],
+      "selected_set": [
+        61,
+        96,
+        98
+      ],
+      "selected_set_hash": "0683575579517c81b633b5b86e662dd103bbcb2c7151c52d8e455ba1458760cc"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8974,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6859999895095825,
+          "test_loss": 1.1435762643814087,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.37602075934410095,
+          "validation_accuracy": 0.7020000219345093,
+          "validation_loss": 1.1609690189361572
+        },
+        "removed_directed_edges": 130,
+        "state_hash": "226166a5b63dae69441a7f1fa8f8fc3f07386f3d27202a4de3c11a8720bce7ba",
+        "training": {
+          "final_train_loss": 0.45651599764823914,
+          "optimizer": "adam",
+          "training_seconds": 7.380952200000024
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.026000022888183594,
+        "test_loss_increase": 0.06014549732208252,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.05919921398162842
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98,
+        83,
+        12,
+        49,
+        28
+      ],
+      "selected_set": [
+        12,
+        28,
+        49,
+        61,
+        83,
+        96,
+        98
+      ],
+      "selected_set_hash": "306715182eb1ea335976bd2e7dc2152ed2c114ef8705e366f052b6096fab77eb"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8946,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.628000020980835,
+          "test_loss": 1.2228251695632935,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.3759000897407532,
+          "validation_accuracy": 0.6399999856948853,
+          "validation_loss": 1.238539457321167
+        },
+        "removed_directed_edges": 158,
+        "state_hash": "b19f7fff60436502c98fc5e3f2cf53f543a0d367e1fcd82d4afa3b73f546734c",
+        "training": {
+          "final_train_loss": 0.4624904692173004,
+          "optimizer": "adam",
+          "training_seconds": 7.98569759999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.08399999141693115,
+        "test_loss_increase": 0.13939440250396729,
+        "validation_accuracy_drop": 0.08000004291534424,
+        "validation_loss_increase": 0.13676965236663818
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98,
+        83,
+        12,
+        49,
+        28,
+        8,
+        39,
+        47,
+        50,
+        6,
+        15,
+        23
+      ],
+      "selected_set": [
+        6,
+        8,
+        12,
+        15,
+        23,
+        28,
+        39,
+        47,
+        49,
+        50,
+        61,
+        83,
+        96,
+        98
+      ],
+      "selected_set_hash": "5077437eb57d62b51e36b814dd4c782a369b806fa7e76bd01de8d0959fe4e709"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9064,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7009999752044678,
+          "test_loss": 1.1030548810958862,
+          "train_accuracy": 0.9743589758872986,
+          "train_loss": 0.3861813247203827,
+          "validation_accuracy": 0.7120000123977661,
+          "validation_loss": 1.1236251592636108
+        },
+        "removed_directed_edges": 40,
+        "state_hash": "5819241fe08588c80dd971b7e8e5f86a31df56ccb6b1eb41b4b984352305e327",
+        "training": {
+          "final_train_loss": 0.4569857716560364,
+          "optimizer": "adam",
+          "training_seconds": 6.724088999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0006410479545593262,
+        "test_accuracy_drop": 0.01100003719329834,
+        "test_loss_increase": 0.01962411403656006,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.02185535430908203
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98
+      ],
+      "selected_set": [
+        61,
+        96,
+        98
+      ],
+      "selected_set_hash": "0683575579517c81b633b5b86e662dd103bbcb2c7151c52d8e455ba1458760cc"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8992,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6859999895095825,
+          "test_loss": 1.13877272605896,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3748522698879242,
+          "validation_accuracy": 0.6980000138282776,
+          "validation_loss": 1.1526942253112793
+        },
+        "removed_directed_edges": 112,
+        "state_hash": "552e6da06a943525ff699b6153ab6ada22f8450e19f5e59ef0a3484d005c63a8",
+        "training": {
+          "final_train_loss": 0.4516419470310211,
+          "optimizer": "adam",
+          "training_seconds": 7.066684999999978
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.026000022888183594,
+        "test_loss_increase": 0.05534195899963379,
+        "validation_accuracy_drop": 0.022000014781951904,
+        "validation_loss_increase": 0.05092442035675049
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98,
+        83,
+        12,
+        49,
+        8
+      ],
+      "selected_set": [
+        8,
+        12,
+        49,
+        61,
+        83,
+        96,
+        98
+      ],
+      "selected_set_hash": "22a2b3d56f95d253d94a2d56c1436f23ed12b342a0208f5e6b9b4d4b212499b5"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8948,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.5879999995231628,
+          "test_loss": 1.2584328651428223,
+          "train_accuracy": 0.9811320900917053,
+          "train_loss": 0.3747335970401764,
+          "validation_accuracy": 0.621999979019165,
+          "validation_loss": 1.264761209487915
+        },
+        "removed_directed_edges": 156,
+        "state_hash": "d7426254c99d77140d741fdc71156814df842f864cd6bd566162fd5a1c789dba",
+        "training": {
+          "final_train_loss": 0.45635467767715454,
+          "optimizer": "adam",
+          "training_seconds": 7.452151100000009
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.006132066249847412,
+        "test_accuracy_drop": 0.12400001287460327,
+        "test_loss_increase": 0.1750020980834961,
+        "validation_accuracy_drop": 0.09800004959106445,
+        "validation_loss_increase": 0.16299140453338623
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        61,
+        96,
+        98,
+        83,
+        12,
+        49,
+        8,
+        28,
+        15,
+        39,
+        32,
+        50,
+        66,
+        6
+      ],
+      "selected_set": [
+        6,
+        8,
+        12,
+        15,
+        28,
+        32,
+        39,
+        49,
+        50,
+        61,
+        66,
+        83,
+        96,
+        98
+      ],
+      "selected_set_hash": "c6bd0d3cfebe2b9c5d32945e1a27590ed397ea50091a60ddb92401325afc0afe"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9042,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7149999737739563,
+          "test_loss": 1.0984866619110107,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.4064392149448395,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1189268827438354
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "fb0a7d5cea1d84eb30604a8f5f7c6107d8f87691b00def0a95c8c75ddf05b2ac",
+        "training": {
+          "final_train_loss": 0.4771183431148529,
+          "optimizer": "adam",
+          "training_seconds": 6.099747399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": -0.0029999613761901855,
+        "test_loss_increase": 0.01505589485168457,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.01715707778930664
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16
+      ],
+      "selected_set": [
+        16,
+        43,
+        59
+      ],
+      "selected_set_hash": "3d2e257ddf13e1f1f39ad27431e7904eae0329ce1bcb996f3bcaf4546fa61041"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8998,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6930000185966492,
+          "test_loss": 1.1330851316452026,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3977506756782532,
+          "validation_accuracy": 0.6859999895095825,
+          "validation_loss": 1.169562816619873
+        },
+        "removed_directed_edges": 106,
+        "state_hash": "803bd800bf10a9efbb9e990fcbae9976538b5969bc1f431310173fffbc95920f",
+        "training": {
+          "final_train_loss": 0.4643534719944,
+          "optimizer": "adam",
+          "training_seconds": 6.104396999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.018999993801116943,
+        "test_loss_increase": 0.049654364585876465,
+        "validation_accuracy_drop": 0.03400003910064697,
+        "validation_loss_increase": 0.06779301166534424
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29
+      ],
+      "selected_set": [
+        16,
+        27,
+        29,
+        30,
+        43,
+        51,
+        59
+      ],
+      "selected_set_hash": "6ed7e71952875bde641f555685ad7830538eb0379886cb08c9d7bbc85c4e1745"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8906,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6690000295639038,
+          "test_loss": 1.18349289894104,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.3951217234134674,
+          "validation_accuracy": 0.6700000166893005,
+          "validation_loss": 1.2199970483779907
+        },
+        "removed_directed_edges": 198,
+        "state_hash": "c8009eab9117480a5d8d829ca701591ac789d348a7bc35d1cc5fc66a97153df7",
+        "training": {
+          "final_train_loss": 0.4707781672477722,
+          "optimizer": "adam",
+          "training_seconds": 7.37673030000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.042999982833862305,
+        "test_loss_increase": 0.10006213188171387,
+        "validation_accuracy_drop": 0.050000011920928955,
+        "validation_loss_increase": 0.11822724342346191
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29,
+        98,
+        83,
+        31,
+        92,
+        106,
+        18,
+        49
+      ],
+      "selected_set": [
+        16,
+        18,
+        27,
+        29,
+        30,
+        31,
+        43,
+        49,
+        51,
+        59,
+        83,
+        92,
+        98,
+        106
+      ],
+      "selected_set_hash": "562beb6eda3dedcaf63b4820b89d48292a8104641c652b48fa4fc418e23ab30b"
+    },
+    {
+      "budget": 3,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 9042,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.7149999737739563,
+          "test_loss": 1.0984866619110107,
+          "train_accuracy": 0.9829059839248657,
+          "train_loss": 0.4064392149448395,
+          "validation_accuracy": 0.7080000042915344,
+          "validation_loss": 1.1189268827438354
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "fb0a7d5cea1d84eb30604a8f5f7c6107d8f87691b00def0a95c8c75ddf05b2ac",
+        "training": {
+          "final_train_loss": 0.4771183431148529,
+          "optimizer": "adam",
+          "training_seconds": 6.099747399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007905960083007812,
+        "test_accuracy_drop": -0.0029999613761901855,
+        "test_loss_increase": 0.01505589485168457,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.01715707778930664
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16
+      ],
+      "selected_set": [
+        16,
+        43,
+        59
+      ],
+      "selected_set_hash": "3d2e257ddf13e1f1f39ad27431e7904eae0329ce1bcb996f3bcaf4546fa61041"
+    },
+    {
+      "budget": 7,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8998,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6930000185966492,
+          "test_loss": 1.1330851316452026,
+          "train_accuracy": 0.982300877571106,
+          "train_loss": 0.3977506756782532,
+          "validation_accuracy": 0.6859999895095825,
+          "validation_loss": 1.169562816619873
+        },
+        "removed_directed_edges": 106,
+        "state_hash": "803bd800bf10a9efbb9e990fcbae9976538b5969bc1f431310173fffbc95920f",
+        "training": {
+          "final_train_loss": 0.4643534719944,
+          "optimizer": "adam",
+          "training_seconds": 6.104396999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007300853729248047,
+        "test_accuracy_drop": 0.018999993801116943,
+        "test_loss_increase": 0.049654364585876465,
+        "validation_accuracy_drop": 0.03400003910064697,
+        "validation_loss_increase": 0.06779301166534424
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29
+      ],
+      "selected_set": [
+        16,
+        27,
+        29,
+        30,
+        43,
+        51,
+        59
+      ],
+      "selected_set_hash": "6ed7e71952875bde641f555685ad7830538eb0379886cb08c9d7bbc85c4e1745"
+    },
+    {
+      "budget": 14,
+      "dataset": "CiteSeer",
+      "deleted_model": {
+        "edge_count_after": 8906,
+        "edge_count_before": 9104,
+        "metrics": {
+          "test_accuracy": 0.6690000295639038,
+          "test_loss": 1.18349289894104,
+          "train_accuracy": 0.9905660152435303,
+          "train_loss": 0.3951217234134674,
+          "validation_accuracy": 0.6700000166893005,
+          "validation_loss": 1.2199970483779907
+        },
+        "removed_directed_edges": 198,
+        "state_hash": "c8009eab9117480a5d8d829ca701591ac789d348a7bc35d1cc5fc66a97153df7",
+        "training": {
+          "final_train_loss": 0.4707781672477722,
+          "optimizer": "adam",
+          "training_seconds": 7.37673030000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.015565991401672363,
+        "test_accuracy_drop": 0.042999982833862305,
+        "test_loss_increase": 0.10006213188171387,
+        "validation_accuracy_drop": 0.050000011920928955,
+        "validation_loss_increase": 0.11822724342346191
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        43,
+        59,
+        16,
+        27,
+        51,
+        30,
+        29,
+        98,
+        83,
+        31,
+        106,
+        92,
+        18,
+        49
+      ],
+      "selected_set": [
+        16,
+        18,
+        27,
+        29,
+        30,
+        31,
+        43,
+        49,
+        51,
+        59,
+        83,
+        92,
+        98,
+        106
+      ],
+      "selected_set_hash": "562beb6eda3dedcaf63b4820b89d48292a8104641c652b48fa4fc418e23ab30b"
+    }
+  ],
+  "runtime": {
+    "total_seconds": 263.9657655
+  },
+  "schema": "bc_target_v2.downstream_summary",
+  "seed": 42,
+  "selection_artifact_id": "score_5f4c4971_a329f277",
+  "selection_content_hash": "a329f27733b57328396945ea153e5a72907c810538f33d7e60e0560049ae565f",
+  "selection_summary": "C:\\Users\\ADMIN\\.codex\\worktrees\\if-target-comparison-plan\\OpenGU\\GULib-master\\results\\bc_target_v2\\selection\\citeseer_gcn_seed42_selection.json",
+  "unique_selected_sets_trained": 40,
+  "version": 1
+}

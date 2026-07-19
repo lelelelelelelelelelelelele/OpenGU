@@ -1,0 +1,3100 @@
+{
+  "base_model": {
+    "metrics": {
+      "test_accuracy": 0.777999997138977,
+      "test_loss": 0.6090371608734131,
+      "train_accuracy": 0.9833333492279053,
+      "train_loss": 0.1814771294593811,
+      "validation_accuracy": 0.7979999780654907,
+      "validation_loss": 0.5933154821395874
+    },
+    "state_hash": "4b87f1f1de8ab811fc598a793846269d9ba6c6e3e2d3ad881cc4a51feae3fe38",
+    "training": {
+      "final_train_loss": 0.2532322108745575,
+      "optimizer": "adam",
+      "training_seconds": 9.804024
+    }
+  },
+  "budgets": [
+    3,
+    7,
+    14
+  ],
+  "cache_hit": false,
+  "dataset": "PubMed",
+  "environment": {
+    "executable": "E:\\conda_package\\envs\\gnn\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.8.20",
+    "torch": "2.2.1+cu121",
+    "torch_geometric": "2.6.1"
+  },
+  "methods": [
+    "a_grad_norm",
+    "b_param_hutch",
+    "b_param_lissa",
+    "degree",
+    "gt_full",
+    "gt_simple",
+    "legacy",
+    "p_graph",
+    "p_point",
+    "p_simple",
+    "r_point",
+    "random",
+    "tracin_cp_graph_3",
+    "tracin_cp_graph_6",
+    "tracin_cp_point_3",
+    "tracin_cp_point_6",
+    "tracin_cp_simple_3",
+    "tracin_cp_simple_6"
+  ],
+  "per_candidate_exact_retrain_performed": false,
+  "recipe": {
+    "budgets": [
+      3,
+      7,
+      14
+    ],
+    "dataset": "PubMed",
+    "deletion": {
+      "graph": "remove_all_incident_edges",
+      "per_candidate_exact_retrain": false,
+      "set_level_retrain_once": true,
+      "train_mask": "selected_false"
+    },
+    "evaluation": {
+      "accuracy": "node_classification_accuracy",
+      "loss": "mean_cross_entropy",
+      "target": "validation_mask",
+      "utility": "test_mask"
+    },
+    "methods": [
+      "a_grad_norm",
+      "b_param_hutch",
+      "b_param_lissa",
+      "degree",
+      "gt_full",
+      "gt_simple",
+      "legacy",
+      "p_graph",
+      "p_point",
+      "p_simple",
+      "r_point",
+      "random",
+      "tracin_cp_graph_3",
+      "tracin_cp_graph_6",
+      "tracin_cp_point_3",
+      "tracin_cp_point_6",
+      "tracin_cp_simple_3",
+      "tracin_cp_simple_6"
+    ],
+    "producer": "4d092f903b0348094356784ffd835fbecaacd0c67cb7534cbb5d8f2215c16465",
+    "schema": "bc_target_v2.downstream_recipe",
+    "seed": 42,
+    "selection_artifact_id": "score_8b3257d6_c87fd4da",
+    "selection_candidate_hash": "365699d9168f49161ae958cbe070e1a2713fc395fe4fae89d3a0700d06a24d78",
+    "selection_content_hash": "c87fd4daeecc080d4fe8f89dddfc65ca9ddc2e721ca04b8d970a18d8e56f876e",
+    "training": {
+      "architecture": "GateGCN",
+      "dropout": 0.5,
+      "epochs": 200,
+      "gamma": 0.5,
+      "hidden_channels": 16,
+      "lr": 0.01,
+      "milestones": [
+        100,
+        150
+      ],
+      "num_threads": 1,
+      "optimizer": "adam",
+      "seed": 42,
+      "weight_decay": 0.0005
+    },
+    "version": 1
+  },
+  "recipe_hash": "d1b308b5d9f194aca1919d69de8fdaaa8afdff7fe44d8f58ee23eb2d77989101",
+  "result_count": 54,
+  "results": [
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88556,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7839999794960022,
+          "test_loss": 0.607403576374054,
+          "train_accuracy": 1.0,
+          "train_loss": 0.14552754163742065,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.5850552320480347
+        },
+        "removed_directed_edges": 92,
+        "state_hash": "41bff6941d468ca33daa713bd5b9221ae2da09b19d212045ec92619b2745f24a",
+        "training": {
+          "final_train_loss": 0.21856741607189178,
+          "optimizer": "adam",
+          "training_seconds": 9.888951299999999
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.0059999823570251465,
+        "test_loss_increase": -0.0016335844993591309,
+        "validation_accuracy_drop": 0.0059999823570251465,
+        "validation_loss_increase": -0.008260250091552734
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        10
+      ],
+      "selected_set": [
+        6,
+        10,
+        48
+      ],
+      "selected_set_hash": "6f6e442d8e62885480a30869c5c1c810243349f1dc4b9e65803242b59bed2ffe"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88514,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7680000066757202,
+          "test_loss": 0.6132832765579224,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1265152245759964,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.5838792324066162
+        },
+        "removed_directed_edges": 134,
+        "state_hash": "f2d313c380c07f3bece3e25252b9baf92893daa03d9e714ff841491a4142ec67",
+        "training": {
+          "final_train_loss": 0.1942683905363083,
+          "optimizer": "adam",
+          "training_seconds": 8.637179600000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.004246115684509277,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": -0.009436249732971191
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        10,
+        52,
+        17,
+        46,
+        59
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        46,
+        48,
+        52,
+        59
+      ],
+      "selected_set_hash": "42c7be2723e6b638c9fa4dcc31bd9383707b048b7833abd958f895d6ea3a59ea"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88454,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.781000018119812,
+          "test_loss": 0.6205741167068481,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1160813421010971,
+          "validation_accuracy": 0.8040000200271606,
+          "validation_loss": 0.5834811329841614
+        },
+        "removed_directed_edges": 194,
+        "state_hash": "80e9e80834c1ed889ab4c64192ab797936039ec0c8d5484310bdd8f5f06fd56c",
+        "training": {
+          "final_train_loss": 0.1877281218767166,
+          "optimizer": "adam",
+          "training_seconds": 8.3828654
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.003000020980834961,
+        "test_loss_increase": 0.011536955833435059,
+        "validation_accuracy_drop": -0.006000041961669922,
+        "validation_loss_increase": -0.009834349155426025
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        10,
+        52,
+        17,
+        46,
+        59,
+        7,
+        56,
+        19,
+        44,
+        39,
+        30,
+        4
+      ],
+      "selected_set": [
+        4,
+        6,
+        7,
+        10,
+        17,
+        19,
+        30,
+        39,
+        44,
+        46,
+        48,
+        52,
+        56,
+        59
+      ],
+      "selected_set_hash": "e16d566b659d5e3e1434ee4c10827547780e564708fc3e913ad86721f5deba87"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88566,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7839999794960022,
+          "test_loss": 0.5949350595474243,
+          "train_accuracy": 1.0,
+          "train_loss": 0.14723578095436096,
+          "validation_accuracy": 0.8040000200271606,
+          "validation_loss": 0.5777035355567932
+        },
+        "removed_directed_edges": 82,
+        "state_hash": "99fb36868aa45fb7b3dded6a87a39f2649480b2db76219b5edd2bc000d1bf058",
+        "training": {
+          "final_train_loss": 0.20779851078987122,
+          "optimizer": "adam",
+          "training_seconds": 8.9295257
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.0059999823570251465,
+        "test_loss_increase": -0.01410210132598877,
+        "validation_accuracy_drop": -0.006000041961669922,
+        "validation_loss_increase": -0.01561194658279419
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52
+      ],
+      "selected_set": [
+        6,
+        48,
+        52
+      ],
+      "selected_set_hash": "7df028c4484d65c9a9c5774ff340f5cd8a3aee70c83370bd967593afbfc9f760"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88524,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7799999713897705,
+          "test_loss": 0.6025242209434509,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1266203224658966,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.5693883895874023
+        },
+        "removed_directed_edges": 124,
+        "state_hash": "f5c63e42ecd8e8d60a4b179f1aa1751cc87f6c15ad7a618f2882ed47a2827dbb",
+        "training": {
+          "final_train_loss": 0.19424690306186676,
+          "optimizer": "adam",
+          "training_seconds": 8.941178800000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.001999974250793457,
+        "test_loss_increase": -0.006512939929962158,
+        "validation_accuracy_drop": 0.0059999823570251465,
+        "validation_loss_increase": -0.02392709255218506
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52,
+        4,
+        10,
+        59,
+        46
+      ],
+      "selected_set": [
+        4,
+        6,
+        10,
+        46,
+        48,
+        52,
+        59
+      ],
+      "selected_set_hash": "752ec70f9d38545485c6f3211d7692e151cc249d82b94d14098ac13eae38695c"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88468,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7509999871253967,
+          "test_loss": 0.639718770980835,
+          "train_accuracy": 1.0,
+          "train_loss": 0.11448881030082703,
+          "validation_accuracy": 0.777999997138977,
+          "validation_loss": 0.5998353362083435
+        },
+        "removed_directed_edges": 180,
+        "state_hash": "9e6d48aa557b306037f91d95128bcb1a099512eae1c1d23be14834ae52d6b8ba",
+        "training": {
+          "final_train_loss": 0.18997547030448914,
+          "optimizer": "adam",
+          "training_seconds": 8.809874299999997
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.027000010013580322,
+        "test_loss_increase": 0.030681610107421875,
+        "validation_accuracy_drop": 0.019999980926513672,
+        "validation_loss_increase": 0.0065198540687561035
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52,
+        4,
+        10,
+        59,
+        46,
+        56,
+        7,
+        30,
+        44,
+        17,
+        37,
+        33
+      ],
+      "selected_set": [
+        4,
+        6,
+        7,
+        10,
+        17,
+        30,
+        33,
+        37,
+        44,
+        46,
+        48,
+        52,
+        56,
+        59
+      ],
+      "selected_set_hash": "6ddecd3439c4c735f736d7bb2421ad3862819e4077f8ab4c585d70217a5e1ae9"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88566,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7839999794960022,
+          "test_loss": 0.5949350595474243,
+          "train_accuracy": 1.0,
+          "train_loss": 0.14723578095436096,
+          "validation_accuracy": 0.8040000200271606,
+          "validation_loss": 0.5777035355567932
+        },
+        "removed_directed_edges": 82,
+        "state_hash": "99fb36868aa45fb7b3dded6a87a39f2649480b2db76219b5edd2bc000d1bf058",
+        "training": {
+          "final_train_loss": 0.20779851078987122,
+          "optimizer": "adam",
+          "training_seconds": 8.9295257
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.0059999823570251465,
+        "test_loss_increase": -0.01410210132598877,
+        "validation_accuracy_drop": -0.006000041961669922,
+        "validation_loss_increase": -0.01561194658279419
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52
+      ],
+      "selected_set": [
+        6,
+        48,
+        52
+      ],
+      "selected_set_hash": "7df028c4484d65c9a9c5774ff340f5cd8a3aee70c83370bd967593afbfc9f760"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88514,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7680000066757202,
+          "test_loss": 0.6132832765579224,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1265152245759964,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.5838792324066162
+        },
+        "removed_directed_edges": 134,
+        "state_hash": "f2d313c380c07f3bece3e25252b9baf92893daa03d9e714ff841491a4142ec67",
+        "training": {
+          "final_train_loss": 0.1942683905363083,
+          "optimizer": "adam",
+          "training_seconds": 8.637179600000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.004246115684509277,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": -0.009436249732971191
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52,
+        10,
+        59,
+        46,
+        17
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        46,
+        48,
+        52,
+        59
+      ],
+      "selected_set_hash": "42c7be2723e6b638c9fa4dcc31bd9383707b048b7833abd958f895d6ea3a59ea"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88450,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7739999890327454,
+          "test_loss": 0.6222358345985413,
+          "train_accuracy": 1.0,
+          "train_loss": 0.11813659965991974,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.5884349942207336
+        },
+        "removed_directed_edges": 198,
+        "state_hash": "f99ebf4e0f8c63375652d6d754b0e901ff7c620fd4cb16d750546ae73730a23a",
+        "training": {
+          "final_train_loss": 0.18449337780475616,
+          "optimizer": "adam",
+          "training_seconds": 8.682495500000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.0040000081062316895,
+        "test_loss_increase": 0.013198673725128174,
+        "validation_accuracy_drop": 0.0059999823570251465,
+        "validation_loss_increase": -0.00488048791885376
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        48,
+        6,
+        52,
+        10,
+        59,
+        46,
+        17,
+        56,
+        7,
+        4,
+        19,
+        44,
+        39,
+        2
+      ],
+      "selected_set": [
+        2,
+        4,
+        6,
+        7,
+        10,
+        17,
+        19,
+        39,
+        44,
+        46,
+        48,
+        52,
+        56,
+        59
+      ],
+      "selected_set_hash": "18803f2775627af483dbf729cc30c1b31078605d0a97c1edd3ce7f66c95bfe23"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88484,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.777999997138977,
+          "test_loss": 0.6048982739448547,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1631115972995758,
+          "validation_accuracy": 0.8019999861717224,
+          "validation_loss": 0.5851730704307556
+        },
+        "removed_directed_edges": 164,
+        "state_hash": "326d4ee12658984702321e7454387a135df845e6ee4496a3c7083be7128ae5af",
+        "training": {
+          "final_train_loss": 0.22577303647994995,
+          "optimizer": "adam",
+          "training_seconds": 8.766909100000007
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.0,
+        "test_loss_increase": -0.00413888692855835,
+        "validation_accuracy_drop": -0.0040000081062316895,
+        "validation_loss_increase": -0.008142411708831787
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        47,
+        16,
+        6
+      ],
+      "selected_set": [
+        6,
+        16,
+        47
+      ],
+      "selected_set_hash": "7402d4215a081f271cbbb3dceac96e7454c33de7e877d8cbc35bf7d5d196b459"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88358,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7789999842643738,
+          "test_loss": 0.6082965731620789,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15170709788799286,
+          "validation_accuracy": 0.8080000281333923,
+          "validation_loss": 0.5803766846656799
+        },
+        "removed_directed_edges": 290,
+        "state_hash": "e272c6d36c7b362db869c9d161843aac97cdec110d4d30b6eeff722e7363425d",
+        "training": {
+          "final_train_loss": 0.2173207849264145,
+          "optimizer": "adam",
+          "training_seconds": 8.9373894
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.0009999871253967285,
+        "test_loss_increase": -0.0007405877113342285,
+        "validation_accuracy_drop": -0.010000050067901611,
+        "validation_loss_increase": -0.01293879747390747
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        47,
+        16,
+        6,
+        48,
+        7,
+        35,
+        46
+      ],
+      "selected_set": [
+        6,
+        7,
+        16,
+        35,
+        46,
+        47,
+        48
+      ],
+      "selected_set_hash": "b4a8e8195f4343deca5e8ed79ecf7673cd22d263637367b45ad29756a059d99e"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88246,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7699999809265137,
+          "test_loss": 0.6241866946220398,
+          "train_accuracy": 1.0,
+          "train_loss": 0.13776914775371552,
+          "validation_accuracy": 0.8059999942779541,
+          "validation_loss": 0.5834448933601379
+        },
+        "removed_directed_edges": 402,
+        "state_hash": "01dc29189cc54992f7a674c7f565bb310bd274a43c6ff5b664c452a95b364f11",
+        "training": {
+          "final_train_loss": 0.2165326178073883,
+          "optimizer": "adam",
+          "training_seconds": 7.899491300000008
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.008000016212463379,
+        "test_loss_increase": 0.015149533748626709,
+        "validation_accuracy_drop": -0.008000016212463379,
+        "validation_loss_increase": -0.009870588779449463
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        47,
+        16,
+        6,
+        48,
+        7,
+        35,
+        46,
+        12,
+        9,
+        18,
+        19,
+        40,
+        58,
+        10
+      ],
+      "selected_set": [
+        6,
+        7,
+        9,
+        10,
+        12,
+        16,
+        18,
+        19,
+        35,
+        40,
+        46,
+        47,
+        48,
+        58
+      ],
+      "selected_set_hash": "3922efd544eea33d42e0af1a5f4f9dca3329ba1c762130125fd5a44ed4ee669a"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88586,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7749999761581421,
+          "test_loss": 0.6192200779914856,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17118385434150696,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.596301794052124
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "0337e82ade43b44a0fdac59c42c50108e83c0f168e6c09c24106785815760ca1",
+        "training": {
+          "final_train_loss": 0.24085202813148499,
+          "optimizer": "adam",
+          "training_seconds": 8.190263900000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.003000020980834961,
+        "test_loss_increase": 0.01018291711807251,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": 0.002986311912536621
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54
+      ],
+      "selected_set": [
+        2,
+        6,
+        54
+      ],
+      "selected_set_hash": "c4464ccebc71e65748de2bc373f72202e2475731fb2bdca5397a67bf2ce9e207"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88564,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7789999842643738,
+          "test_loss": 0.6065805554389954,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1508467197418213,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.5854842066764832
+        },
+        "removed_directed_edges": 84,
+        "state_hash": "90525c88555ea2a206604a0666d3a4a670dede7adbedb06c2f0270904c62f0bd",
+        "training": {
+          "final_train_loss": 0.19170337915420532,
+          "optimizer": "adam",
+          "training_seconds": 7.707338699999994
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.0009999871253967285,
+        "test_loss_increase": -0.0024566054344177246,
+        "validation_accuracy_drop": 0.011999964714050293,
+        "validation_loss_increase": -0.007831275463104248
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54,
+        52,
+        50,
+        53,
+        40
+      ],
+      "selected_set": [
+        2,
+        6,
+        40,
+        50,
+        52,
+        53,
+        54
+      ],
+      "selected_set_hash": "75120a2b6246bf6ab87eee10fef57240cccb73dea1eb637abcebdead1dafa031"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88472,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7519999742507935,
+          "test_loss": 0.6301079988479614,
+          "train_accuracy": 1.0,
+          "train_loss": 0.11813531816005707,
+          "validation_accuracy": 0.765999972820282,
+          "validation_loss": 0.6170569062232971
+        },
+        "removed_directed_edges": 176,
+        "state_hash": "75ccc73fc0d2c1317ac797714f0075751bbe53eca9b6e8462ab0637412327f60",
+        "training": {
+          "final_train_loss": 0.1652037352323532,
+          "optimizer": "adam",
+          "training_seconds": 7.835919500000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.026000022888183594,
+        "test_loss_increase": 0.02107083797454834,
+        "validation_accuracy_drop": 0.03200000524520874,
+        "validation_loss_increase": 0.023741424083709717
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54,
+        52,
+        50,
+        53,
+        40,
+        48,
+        59,
+        35,
+        39,
+        49,
+        41,
+        31
+      ],
+      "selected_set": [
+        2,
+        6,
+        31,
+        35,
+        39,
+        40,
+        41,
+        48,
+        49,
+        50,
+        52,
+        53,
+        54,
+        59
+      ],
+      "selected_set_hash": "61092cdb5ee75e59ee193804930a263e5263f329b3eb7917e50f4347d1dc493e"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88506,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7850000262260437,
+          "test_loss": 0.6066603660583496,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16269046068191528,
+          "validation_accuracy": 0.800000011920929,
+          "validation_loss": 0.5885926485061646
+        },
+        "removed_directed_edges": 142,
+        "state_hash": "8880d3d7dc8a187e6d57e469191cd6c8d07210ce3afaffc368b860276264e491",
+        "training": {
+          "final_train_loss": 0.234342560172081,
+          "optimizer": "adam",
+          "training_seconds": 7.6817113000000035
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.00700002908706665,
+        "test_loss_increase": -0.0023767948150634766,
+        "validation_accuracy_drop": -0.0020000338554382324,
+        "validation_loss_increase": -0.0047228336334228516
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47
+      ],
+      "selected_set": [
+        6,
+        47,
+        48
+      ],
+      "selected_set_hash": "71b4e4bb8427dbec1f57ffb7c181df6880fcda34ef8dac1d1a794a5aac9776fc"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88396,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7929999828338623,
+          "test_loss": 0.5941399931907654,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1539619266986847,
+          "validation_accuracy": 0.8100000023841858,
+          "validation_loss": 0.5816702842712402
+        },
+        "removed_directed_edges": 252,
+        "state_hash": "38d13526dad683ffef862001325bc9ebbd58b7827e83d4c0c06f961e75ce07b7",
+        "training": {
+          "final_train_loss": 0.22248104214668274,
+          "optimizer": "adam",
+          "training_seconds": 7.949190700000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.014999985694885254,
+        "test_loss_increase": -0.014897167682647705,
+        "validation_accuracy_drop": -0.012000024318695068,
+        "validation_loss_increase": -0.011645197868347168
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47,
+        35,
+        16,
+        19,
+        13
+      ],
+      "selected_set": [
+        6,
+        13,
+        16,
+        19,
+        35,
+        47,
+        48
+      ],
+      "selected_set_hash": "a02acc0a95884fadd48c61c3cc4c710fe167aad21f232b2454a73b2c4ef4f4e2"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88314,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7710000276565552,
+          "test_loss": 0.6287288665771484,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16546662151813507,
+          "validation_accuracy": 0.7940000295639038,
+          "validation_loss": 0.6143001317977905
+        },
+        "removed_directed_edges": 334,
+        "state_hash": "9a3eaa75daceb3c6ee7c0a2a8ddfe677f3a0ad58c7e8583b8e72d3bafa7eca9e",
+        "training": {
+          "final_train_loss": 0.23744624853134155,
+          "optimizer": "adam",
+          "training_seconds": 7.944863700000013
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.006999969482421875,
+        "test_loss_increase": 0.01969170570373535,
+        "validation_accuracy_drop": 0.003999948501586914,
+        "validation_loss_increase": 0.020984649658203125
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47,
+        35,
+        16,
+        19,
+        13,
+        46,
+        24,
+        23,
+        57,
+        5,
+        34,
+        7
+      ],
+      "selected_set": [
+        5,
+        6,
+        7,
+        13,
+        16,
+        19,
+        23,
+        24,
+        34,
+        35,
+        46,
+        47,
+        48,
+        57
+      ],
+      "selected_set_hash": "af0cf6827af0abdf07dfed8b3bec14a875fabdd1516f93a1d40e45bd6d63bca6"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88548,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.765999972820282,
+          "test_loss": 0.6483051180839539,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1730121374130249,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.6109865307807922
+        },
+        "removed_directed_edges": 100,
+        "state_hash": "758fc825edda97315d1f7e64e0392a384254563467b6dd0fc98c2ad2d7d3257c",
+        "training": {
+          "final_train_loss": 0.2436417043209076,
+          "optimizer": "adam",
+          "training_seconds": 8.068672599999985
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.012000024318695068,
+        "test_loss_increase": 0.03926795721054077,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": 0.017671048641204834
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        46,
+        7,
+        6
+      ],
+      "selected_set": [
+        6,
+        7,
+        46
+      ],
+      "selected_set_hash": "ede0dfc33c7b1e8cee4dc9e3c12f10eec01bebe495ca1b02ba52cc434ae71ab9"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88524,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7400000095367432,
+          "test_loss": 0.6675191521644592,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16317635774612427,
+          "validation_accuracy": 0.7620000243186951,
+          "validation_loss": 0.6272926926612854
+        },
+        "removed_directed_edges": 124,
+        "state_hash": "ea832e88f166097acaa509e19d018e51bcfcdee9e8564b47ebdec83a98a848f7",
+        "training": {
+          "final_train_loss": 0.23317265510559082,
+          "optimizer": "adam",
+          "training_seconds": 8.033754500000015
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.03799998760223389,
+        "test_loss_increase": 0.05848199129104614,
+        "validation_accuracy_drop": 0.035999953746795654,
+        "validation_loss_increase": 0.033977210521698
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        46,
+        7,
+        6,
+        18,
+        4,
+        45,
+        29
+      ],
+      "selected_set": [
+        4,
+        6,
+        7,
+        18,
+        29,
+        45,
+        46
+      ],
+      "selected_set_hash": "0a67b2062c1f3a619c4676289619d8e61f02e1a43d9bf733b03c03d98dbbf410"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88496,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.5590000152587891,
+          "test_loss": 0.8909595012664795,
+          "train_accuracy": 1.0,
+          "train_loss": 0.13976159691810608,
+          "validation_accuracy": 0.6100000143051147,
+          "validation_loss": 0.8295950293540955
+        },
+        "removed_directed_edges": 152,
+        "state_hash": "702f5523988f65f6443487718bfc4f132bcb415372cf6e1873de6948191b5d13",
+        "training": {
+          "final_train_loss": 0.19539646804332733,
+          "optimizer": "adam",
+          "training_seconds": 7.77789820000001
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.218999981880188,
+        "test_loss_increase": 0.2819223403930664,
+        "validation_accuracy_drop": 0.18799996376037598,
+        "validation_loss_increase": 0.23627954721450806
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        46,
+        7,
+        6,
+        18,
+        4,
+        45,
+        29,
+        37,
+        41,
+        33,
+        30,
+        44,
+        36,
+        0
+      ],
+      "selected_set": [
+        0,
+        4,
+        6,
+        7,
+        18,
+        29,
+        30,
+        33,
+        36,
+        37,
+        41,
+        44,
+        45,
+        46
+      ],
+      "selected_set_hash": "346c0cc8c06f54159f74f76914cc1ad41e2d17d7d355b798f6e2a6fdd97836d1"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88586,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7749999761581421,
+          "test_loss": 0.6192200779914856,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17118385434150696,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.596301794052124
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "0337e82ade43b44a0fdac59c42c50108e83c0f168e6c09c24106785815760ca1",
+        "training": {
+          "final_train_loss": 0.24085202813148499,
+          "optimizer": "adam",
+          "training_seconds": 8.190263900000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.003000020980834961,
+        "test_loss_increase": 0.01018291711807251,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": 0.002986311912536621
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54
+      ],
+      "selected_set": [
+        2,
+        6,
+        54
+      ],
+      "selected_set_hash": "c4464ccebc71e65748de2bc373f72202e2475731fb2bdca5397a67bf2ce9e207"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88574,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7879999876022339,
+          "test_loss": 0.5996134877204895,
+          "train_accuracy": 1.0,
+          "train_loss": 0.13760621845722198,
+          "validation_accuracy": 0.7820000052452087,
+          "validation_loss": 0.5809659957885742
+        },
+        "removed_directed_edges": 74,
+        "state_hash": "af750c1bfdc8eb9153dd68d2647043ffde69a6d3dc3468b8c99d325be541239c",
+        "training": {
+          "final_train_loss": 0.1738997995853424,
+          "optimizer": "adam",
+          "training_seconds": 8.027057200000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.009999990463256836,
+        "test_loss_increase": -0.009423673152923584,
+        "validation_accuracy_drop": 0.015999972820281982,
+        "validation_loss_increase": -0.012349486351013184
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54,
+        52,
+        50,
+        53,
+        59
+      ],
+      "selected_set": [
+        2,
+        6,
+        50,
+        52,
+        53,
+        54,
+        59
+      ],
+      "selected_set_hash": "be4d97247fd6bcc799a3d4b5229bac791d6863d3636d18472efae72587283b5d"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88478,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.75,
+          "test_loss": 0.6329773664474487,
+          "train_accuracy": 1.0,
+          "train_loss": 0.12181751430034637,
+          "validation_accuracy": 0.7699999809265137,
+          "validation_loss": 0.6196303963661194
+        },
+        "removed_directed_edges": 170,
+        "state_hash": "11a7e9ac3d37a46b490e9ed9ab8763c8270326c55936b4917254e0cd195debb4",
+        "training": {
+          "final_train_loss": 0.16808411478996277,
+          "optimizer": "adam",
+          "training_seconds": 7.951711700000004
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.02799999713897705,
+        "test_loss_increase": 0.023940205574035645,
+        "validation_accuracy_drop": 0.02799999713897705,
+        "validation_loss_increase": 0.026314914226531982
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        2,
+        54,
+        52,
+        50,
+        53,
+        59,
+        40,
+        48,
+        35,
+        39,
+        31,
+        25,
+        49
+      ],
+      "selected_set": [
+        2,
+        6,
+        25,
+        31,
+        35,
+        39,
+        40,
+        48,
+        49,
+        50,
+        52,
+        53,
+        54,
+        59
+      ],
+      "selected_set_hash": "69ad7cc3d25c90801ee41ccb08341ad1d84b82e825d637d3f1be1f62a3c9e3f5"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88576,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7680000066757202,
+          "test_loss": 0.6393864154815674,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16578209400177002,
+          "validation_accuracy": 0.7879999876022339,
+          "validation_loss": 0.6137094497680664
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "fa2faa83a7e2c887af777e2d70aef503c4e3a6e6f54ec9d2e0ca019a76ddce81",
+        "training": {
+          "final_train_loss": 0.2452639490365982,
+          "optimizer": "adam",
+          "training_seconds": 8.361773499999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.030349254608154297,
+        "validation_accuracy_drop": 0.009999990463256836,
+        "validation_loss_increase": 0.020393967628479004
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19
+      ],
+      "selected_set": [
+        6,
+        10,
+        19
+      ],
+      "selected_set_hash": "19b77e7fbc00ef363f9f286a31f0106eb49a66ff3a32fad2f06a05c6a9582469"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88556,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7300000190734863,
+          "test_loss": 0.725178062915802,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1620100885629654,
+          "validation_accuracy": 0.7260000109672546,
+          "validation_loss": 0.6966244578361511
+        },
+        "removed_directed_edges": 92,
+        "state_hash": "5c06c42fe1e53dc311956fac1135375e4ad8119d9ee547c093ef41ec5d67695f",
+        "training": {
+          "final_train_loss": 0.23373812437057495,
+          "optimizer": "adam",
+          "training_seconds": 7.633627999999987
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.04799997806549072,
+        "test_loss_increase": 0.11614090204238892,
+        "validation_accuracy_drop": 0.07199996709823608,
+        "validation_loss_increase": 0.10330897569656372
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19,
+        17,
+        39,
+        22,
+        28
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        19,
+        22,
+        28,
+        39
+      ],
+      "selected_set_hash": "196748fd78e75d4b083c6b894806f57e653cc50069c0a40c343bedb20642f015"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88484,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.6050000190734863,
+          "test_loss": 0.9694017171859741,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16768021881580353,
+          "validation_accuracy": 0.6179999709129333,
+          "validation_loss": 0.9190773963928223
+        },
+        "removed_directed_edges": 164,
+        "state_hash": "7c5605b571f128d0ab7636b8313eaf5940d2926a75a9fb06c1f5a16d2cf7152f",
+        "training": {
+          "final_train_loss": 0.21331803500652313,
+          "optimizer": "adam",
+          "training_seconds": 7.896819800000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.17299997806549072,
+        "test_loss_increase": 0.36036455631256104,
+        "validation_accuracy_drop": 0.18000000715255737,
+        "validation_loss_increase": 0.32576191425323486
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19,
+        17,
+        39,
+        22,
+        28,
+        26,
+        27,
+        46,
+        5,
+        14,
+        24,
+        12
+      ],
+      "selected_set": [
+        5,
+        6,
+        10,
+        12,
+        14,
+        17,
+        19,
+        22,
+        24,
+        26,
+        27,
+        28,
+        39,
+        46
+      ],
+      "selected_set_hash": "23bdfc48b0cdf3a19417a8fcba41d28e2bc8908471bfb6ad84a56132b6a2bb05"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88506,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7850000262260437,
+          "test_loss": 0.6066603660583496,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16269046068191528,
+          "validation_accuracy": 0.800000011920929,
+          "validation_loss": 0.5885926485061646
+        },
+        "removed_directed_edges": 142,
+        "state_hash": "8880d3d7dc8a187e6d57e469191cd6c8d07210ce3afaffc368b860276264e491",
+        "training": {
+          "final_train_loss": 0.234342560172081,
+          "optimizer": "adam",
+          "training_seconds": 7.6817113000000035
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.00700002908706665,
+        "test_loss_increase": -0.0023767948150634766,
+        "validation_accuracy_drop": -0.0020000338554382324,
+        "validation_loss_increase": -0.0047228336334228516
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47
+      ],
+      "selected_set": [
+        6,
+        47,
+        48
+      ],
+      "selected_set_hash": "71b4e4bb8427dbec1f57ffb7c181df6880fcda34ef8dac1d1a794a5aac9776fc"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88396,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7929999828338623,
+          "test_loss": 0.5941399931907654,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1539619266986847,
+          "validation_accuracy": 0.8100000023841858,
+          "validation_loss": 0.5816702842712402
+        },
+        "removed_directed_edges": 252,
+        "state_hash": "38d13526dad683ffef862001325bc9ebbd58b7827e83d4c0c06f961e75ce07b7",
+        "training": {
+          "final_train_loss": 0.22248104214668274,
+          "optimizer": "adam",
+          "training_seconds": 7.949190700000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.014999985694885254,
+        "test_loss_increase": -0.014897167682647705,
+        "validation_accuracy_drop": -0.012000024318695068,
+        "validation_loss_increase": -0.011645197868347168
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47,
+        16,
+        35,
+        19,
+        13
+      ],
+      "selected_set": [
+        6,
+        13,
+        16,
+        19,
+        35,
+        47,
+        48
+      ],
+      "selected_set_hash": "a02acc0a95884fadd48c61c3cc4c710fe167aad21f232b2454a73b2c4ef4f4e2"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88342,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.777999997138977,
+          "test_loss": 0.6250683069229126,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16197262704372406,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.615443766117096
+        },
+        "removed_directed_edges": 306,
+        "state_hash": "55f478dd15bbdcaf672808a33867e5cf70dd3cc4c2a8b4a78e58aea31df8896e",
+        "training": {
+          "final_train_loss": 0.23492716252803802,
+          "optimizer": "adam",
+          "training_seconds": 7.864263700000009
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.0,
+        "test_loss_increase": 0.01603114604949951,
+        "validation_accuracy_drop": 0.013999998569488525,
+        "validation_loss_increase": 0.022128283977508545
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        47,
+        16,
+        35,
+        19,
+        13,
+        23,
+        24,
+        57,
+        46,
+        5,
+        34,
+        2
+      ],
+      "selected_set": [
+        2,
+        5,
+        6,
+        13,
+        16,
+        19,
+        23,
+        24,
+        34,
+        35,
+        46,
+        47,
+        48,
+        57
+      ],
+      "selected_set_hash": "4f04f3999b6229212873e261677f09557b8bb174c98dd223ca320c9bb851ecda"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88576,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7680000066757202,
+          "test_loss": 0.6393864154815674,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16578209400177002,
+          "validation_accuracy": 0.7879999876022339,
+          "validation_loss": 0.6137094497680664
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "fa2faa83a7e2c887af777e2d70aef503c4e3a6e6f54ec9d2e0ca019a76ddce81",
+        "training": {
+          "final_train_loss": 0.2452639490365982,
+          "optimizer": "adam",
+          "training_seconds": 8.361773499999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.009999990463256836,
+        "test_loss_increase": 0.030349254608154297,
+        "validation_accuracy_drop": 0.009999990463256836,
+        "validation_loss_increase": 0.020393967628479004
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19
+      ],
+      "selected_set": [
+        6,
+        10,
+        19
+      ],
+      "selected_set_hash": "19b77e7fbc00ef363f9f286a31f0106eb49a66ff3a32fad2f06a05c6a9582469"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88536,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7379999756813049,
+          "test_loss": 0.7023565173149109,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15571315586566925,
+          "validation_accuracy": 0.7559999823570251,
+          "validation_loss": 0.6647167801856995
+        },
+        "removed_directed_edges": 112,
+        "state_hash": "0149b0e7cace95767d7011fbfd4336991da2693cfc048dd1c9da79cf391ebe84",
+        "training": {
+          "final_train_loss": 0.22662989795207977,
+          "optimizer": "adam",
+          "training_seconds": 7.999871899999988
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.04000002145767212,
+        "test_loss_increase": 0.0933193564414978,
+        "validation_accuracy_drop": 0.041999995708465576,
+        "validation_loss_increase": 0.07140129804611206
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19,
+        17,
+        39,
+        46,
+        22
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        19,
+        22,
+        39,
+        46
+      ],
+      "selected_set_hash": "6ac21fecd5260146661aece7824a04cfaf69172de57a7862da9bf3e5c91f5822"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88484,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.6050000190734863,
+          "test_loss": 0.9694017171859741,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16768021881580353,
+          "validation_accuracy": 0.6179999709129333,
+          "validation_loss": 0.9190773963928223
+        },
+        "removed_directed_edges": 164,
+        "state_hash": "7c5605b571f128d0ab7636b8313eaf5940d2926a75a9fb06c1f5a16d2cf7152f",
+        "training": {
+          "final_train_loss": 0.21331803500652313,
+          "optimizer": "adam",
+          "training_seconds": 7.896819800000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.17299997806549072,
+        "test_loss_increase": 0.36036455631256104,
+        "validation_accuracy_drop": 0.18000000715255737,
+        "validation_loss_increase": 0.32576191425323486
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        10,
+        19,
+        17,
+        39,
+        46,
+        22,
+        26,
+        28,
+        27,
+        14,
+        5,
+        24,
+        12
+      ],
+      "selected_set": [
+        5,
+        6,
+        10,
+        12,
+        14,
+        17,
+        19,
+        22,
+        24,
+        26,
+        27,
+        28,
+        39,
+        46
+      ],
+      "selected_set_hash": "23bdfc48b0cdf3a19417a8fcba41d28e2bc8908471bfb6ad84a56132b6a2bb05"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88630,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7879999876022339,
+          "test_loss": 0.6001376509666443,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17256444692611694,
+          "validation_accuracy": 0.8119999766349792,
+          "validation_loss": 0.5877724885940552
+        },
+        "removed_directed_edges": 18,
+        "state_hash": "028162d1657e1773870bebce1fc44d18e982435a30ae225cb54638bb3af5f523",
+        "training": {
+          "final_train_loss": 0.24583597481250763,
+          "optimizer": "adam",
+          "training_seconds": 7.627668900000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.009999990463256836,
+        "test_loss_increase": -0.008899509906768799,
+        "validation_accuracy_drop": -0.013999998569488525,
+        "validation_loss_increase": -0.0055429935455322266
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        56,
+        58,
+        3
+      ],
+      "selected_set": [
+        3,
+        56,
+        58
+      ],
+      "selected_set_hash": "ac30c5bd1f5437c91548e95314ad6aeda9fe050b6441009dc2dfac44c04ace23"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88576,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7580000162124634,
+          "test_loss": 0.6385225653648376,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16082531213760376,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.609230637550354
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "dffc18c501f5fd02ee19bfebb5cf2d681ab360528fce250d0c00fda74fed6109",
+        "training": {
+          "final_train_loss": 0.241856649518013,
+          "optimizer": "adam",
+          "training_seconds": 7.893281899999977
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.019999980926513672,
+        "test_loss_increase": 0.02948540449142456,
+        "validation_accuracy_drop": 0.011999964714050293,
+        "validation_loss_increase": 0.0159151554107666
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        56,
+        58,
+        3,
+        44,
+        1,
+        30,
+        6
+      ],
+      "selected_set": [
+        1,
+        3,
+        6,
+        30,
+        44,
+        56,
+        58
+      ],
+      "selected_set_hash": "89629bfc4b1927c2fee703b059a923f22d4e6762a4bb2d412b39c63201c6045a"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88548,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7009999752044678,
+          "test_loss": 0.6774030923843384,
+          "train_accuracy": 1.0,
+          "train_loss": 0.138414666056633,
+          "validation_accuracy": 0.7419999837875366,
+          "validation_loss": 0.6374046802520752
+        },
+        "removed_directed_edges": 100,
+        "state_hash": "19063c1455b7daefc02626bec6ff6897335d30507768a011885c991ce2e7e0fa",
+        "training": {
+          "final_train_loss": 0.20658130943775177,
+          "optimizer": "adam",
+          "training_seconds": 7.765233999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.07700002193450928,
+        "test_loss_increase": 0.06836593151092529,
+        "validation_accuracy_drop": 0.0559999942779541,
+        "validation_loss_increase": 0.04408919811248779
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        56,
+        58,
+        3,
+        44,
+        1,
+        30,
+        6,
+        29,
+        13,
+        26,
+        57,
+        37,
+        36,
+        45
+      ],
+      "selected_set": [
+        1,
+        3,
+        6,
+        13,
+        26,
+        29,
+        30,
+        36,
+        37,
+        44,
+        45,
+        56,
+        57,
+        58
+      ],
+      "selected_set_hash": "9327570583f41f140f331c772345fd7f6fe6b1e44ad305d4aafcb572a4cec305"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88580,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7630000114440918,
+          "test_loss": 0.6458604335784912,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17078128457069397,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.6109314560890198
+        },
+        "removed_directed_edges": 68,
+        "state_hash": "e06f353ba5f8239faf45dfe256dd719e63da31864dbf6d46659a0b056eb8b02a",
+        "training": {
+          "final_train_loss": 0.24457070231437683,
+          "optimizer": "adam",
+          "training_seconds": 9.08101000000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.014999985694885254,
+        "test_loss_increase": 0.036823272705078125,
+        "validation_accuracy_drop": 0.013999998569488525,
+        "validation_loss_increase": 0.017615973949432373
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        39
+      ],
+      "selected_set": [
+        6,
+        39,
+        46
+      ],
+      "selected_set_hash": "371b61d92ce4d16103bcfa7f8e317b87b8532dd73d187e00c01277d5e8ea53b4"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88556,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.734000027179718,
+          "test_loss": 0.692538321018219,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1642989218235016,
+          "validation_accuracy": 0.7360000014305115,
+          "validation_loss": 0.6572514176368713
+        },
+        "removed_directed_edges": 92,
+        "state_hash": "1c7177df32caf8c8d35cf5ea02d091aec0e8aaeabc5efcfbcc241b96e8edea80",
+        "training": {
+          "final_train_loss": 0.2387767881155014,
+          "optimizer": "adam",
+          "training_seconds": 9.484680200000014
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.04399996995925903,
+        "test_loss_increase": 0.08350116014480591,
+        "validation_accuracy_drop": 0.06199997663497925,
+        "validation_loss_increase": 0.06393593549728394
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        39,
+        18,
+        14,
+        28,
+        22
+      ],
+      "selected_set": [
+        6,
+        14,
+        18,
+        22,
+        28,
+        39,
+        46
+      ],
+      "selected_set_hash": "03ad1b2343edc9fe1af8c77b65437123f442fb4d0559ddbfc04e4bd6af338a9d"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88518,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.6940000057220459,
+          "test_loss": 0.7935731410980225,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15989996492862701,
+          "validation_accuracy": 0.722000002861023,
+          "validation_loss": 0.7456925511360168
+        },
+        "removed_directed_edges": 130,
+        "state_hash": "c532f1b3626f84ca1101f5a7e286e285ab7b6583bba857a179bab991072deeb3",
+        "training": {
+          "final_train_loss": 0.23829646408557892,
+          "optimizer": "adam",
+          "training_seconds": 7.944218700000022
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.08399999141693115,
+        "test_loss_increase": 0.18453598022460938,
+        "validation_accuracy_drop": 0.07599997520446777,
+        "validation_loss_increase": 0.15237706899642944
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        39,
+        18,
+        14,
+        28,
+        22,
+        3,
+        31,
+        41,
+        13,
+        45,
+        19,
+        27
+      ],
+      "selected_set": [
+        3,
+        6,
+        13,
+        14,
+        18,
+        19,
+        22,
+        27,
+        28,
+        31,
+        39,
+        41,
+        45,
+        46
+      ],
+      "selected_set_hash": "ad2b21f99d520e22e7728611db8f0590217491a3fda337d532736367036d5122"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88580,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7630000114440918,
+          "test_loss": 0.6458604335784912,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17078128457069397,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.6109314560890198
+        },
+        "removed_directed_edges": 68,
+        "state_hash": "e06f353ba5f8239faf45dfe256dd719e63da31864dbf6d46659a0b056eb8b02a",
+        "training": {
+          "final_train_loss": 0.24457070231437683,
+          "optimizer": "adam",
+          "training_seconds": 9.08101000000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.014999985694885254,
+        "test_loss_increase": 0.036823272705078125,
+        "validation_accuracy_drop": 0.013999998569488525,
+        "validation_loss_increase": 0.017615973949432373
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        39,
+        46
+      ],
+      "selected_set": [
+        6,
+        39,
+        46
+      ],
+      "selected_set_hash": "371b61d92ce4d16103bcfa7f8e317b87b8532dd73d187e00c01277d5e8ea53b4"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88556,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7459999918937683,
+          "test_loss": 0.675969123840332,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16398626565933228,
+          "validation_accuracy": 0.7559999823570251,
+          "validation_loss": 0.6418765783309937
+        },
+        "removed_directed_edges": 92,
+        "state_hash": "f76310fea82b5e46344cc2607895954afddacc1c696df78b0ad79d80b5f100c0",
+        "training": {
+          "final_train_loss": 0.23510532081127167,
+          "optimizer": "adam",
+          "training_seconds": 8.745994800000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.03200000524520874,
+        "test_loss_increase": 0.06693196296691895,
+        "validation_accuracy_drop": 0.041999995708465576,
+        "validation_loss_increase": 0.04856109619140625
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        39,
+        46,
+        18,
+        14,
+        22,
+        32
+      ],
+      "selected_set": [
+        6,
+        14,
+        18,
+        22,
+        32,
+        39,
+        46
+      ],
+      "selected_set_hash": "02f765b15bbcb7975a576e34acfb16e6d030eeeb285ca6bd16019930bce46420"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88526,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7139999866485596,
+          "test_loss": 0.7067994475364685,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1572052389383316,
+          "validation_accuracy": 0.7419999837875366,
+          "validation_loss": 0.668483555316925
+        },
+        "removed_directed_edges": 122,
+        "state_hash": "48d8c99186ed5a5c482eecda26a455b868ae3264e540a59290a605a94f44c858",
+        "training": {
+          "final_train_loss": 0.21012839674949646,
+          "optimizer": "adam",
+          "training_seconds": 7.652235700000006
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.06400001049041748,
+        "test_loss_increase": 0.09776228666305542,
+        "validation_accuracy_drop": 0.0559999942779541,
+        "validation_loss_increase": 0.07516807317733765
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        39,
+        46,
+        18,
+        14,
+        22,
+        32,
+        28,
+        31,
+        3,
+        41,
+        20,
+        24,
+        2
+      ],
+      "selected_set": [
+        2,
+        3,
+        6,
+        14,
+        18,
+        20,
+        22,
+        24,
+        28,
+        31,
+        32,
+        39,
+        41,
+        46
+      ],
+      "selected_set_hash": "109c732dd2166dd9ba3c72bd360dfed287edb5e7872b0aae311095b2900980e7"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88566,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7639999985694885,
+          "test_loss": 0.6462851166725159,
+          "train_accuracy": 1.0,
+          "train_loss": 0.17433753609657288,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.6129441261291504
+        },
+        "removed_directed_edges": 82,
+        "state_hash": "91489b38e40342ce800f9c6b86712b650e477cdf34aba743cd5542c21a912a99",
+        "training": {
+          "final_train_loss": 0.24791184067726135,
+          "optimizer": "adam",
+          "training_seconds": 8.119683899999984
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.013999998569488525,
+        "test_loss_increase": 0.03724795579910278,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": 0.01962864398956299
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        19
+      ],
+      "selected_set": [
+        6,
+        19,
+        46
+      ],
+      "selected_set_hash": "d21a1db379ea06a829dfa407e705d7d68c6469ea8728d3d4e96339454e39d4b9"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88534,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7360000014305115,
+          "test_loss": 0.6890628933906555,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15871082246303558,
+          "validation_accuracy": 0.7680000066757202,
+          "validation_loss": 0.6507948637008667
+        },
+        "removed_directed_edges": 114,
+        "state_hash": "ac1828f6a99a3ecd5f93597c46a5ba86a710ecaf80c51a53f240dacca72516e6",
+        "training": {
+          "final_train_loss": 0.23822402954101562,
+          "optimizer": "adam",
+          "training_seconds": 8.040894900000012
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.041999995708465576,
+        "test_loss_increase": 0.08002573251724243,
+        "validation_accuracy_drop": 0.029999971389770508,
+        "validation_loss_increase": 0.0574793815612793
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        19,
+        17,
+        27,
+        39,
+        10
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        19,
+        27,
+        39,
+        46
+      ],
+      "selected_set_hash": "8bf9ef3e5712d1b9d85395d6ca9637f804f530508699a4341573a9fc8b98acbb"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88490,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.6119999885559082,
+          "test_loss": 0.9971481561660767,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16859208047389984,
+          "validation_accuracy": 0.6240000128746033,
+          "validation_loss": 0.949429452419281
+        },
+        "removed_directed_edges": 158,
+        "state_hash": "c07b7dc720ebf593c366ee901ef1a4b1575909e7ff90fc9566519608d83abe9e",
+        "training": {
+          "final_train_loss": 0.21384499967098236,
+          "optimizer": "adam",
+          "training_seconds": 7.733253399999967
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.16600000858306885,
+        "test_loss_increase": 0.3881109952926636,
+        "validation_accuracy_drop": 0.17399996519088745,
+        "validation_loss_increase": 0.3561139702796936
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        46,
+        19,
+        17,
+        27,
+        39,
+        10,
+        26,
+        28,
+        12,
+        22,
+        5,
+        14,
+        20
+      ],
+      "selected_set": [
+        5,
+        6,
+        10,
+        12,
+        14,
+        17,
+        19,
+        20,
+        22,
+        26,
+        27,
+        28,
+        39,
+        46
+      ],
+      "selected_set_hash": "c977e082b0a8035ca5c3a058b63f818009c641bb003c233fe69e6c9f883b38c2"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88576,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7689999938011169,
+          "test_loss": 0.6450496912002563,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1733265519142151,
+          "validation_accuracy": 0.7879999876022339,
+          "validation_loss": 0.6255126595497131
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "7e9955f9860958587a4b58b9acaf26a7d6b3f6b13ae7cf028c46429017b6a476",
+        "training": {
+          "final_train_loss": 0.24808217585086823,
+          "optimizer": "adam",
+          "training_seconds": 7.873586899999964
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.009000003337860107,
+        "test_loss_increase": 0.03601253032684326,
+        "validation_accuracy_drop": 0.009999990463256836,
+        "validation_loss_increase": 0.03219717741012573
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        17,
+        19
+      ],
+      "selected_set": [
+        6,
+        17,
+        19
+      ],
+      "selected_set_hash": "2705dbe47c9ccb732067ff1bc112b265b5e82d325de4562e662b46115d66e5b1"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88530,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7350000143051147,
+          "test_loss": 0.7002440690994263,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15890905261039734,
+          "validation_accuracy": 0.7519999742507935,
+          "validation_loss": 0.6690199375152588
+        },
+        "removed_directed_edges": 118,
+        "state_hash": "dd867800d0ded1b4a6250bb0062387b7accd38219ba64562303372dc991f1160",
+        "training": {
+          "final_train_loss": 0.23482957482337952,
+          "optimizer": "adam",
+          "training_seconds": 7.808364200000028
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.042999982833862305,
+        "test_loss_increase": 0.09120690822601318,
+        "validation_accuracy_drop": 0.046000003814697266,
+        "validation_loss_increase": 0.07570445537567139
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        17,
+        19,
+        26,
+        10,
+        39,
+        46
+      ],
+      "selected_set": [
+        6,
+        10,
+        17,
+        19,
+        26,
+        39,
+        46
+      ],
+      "selected_set_hash": "1bf0105c2e64c72c6be2eece787aeb4f8adb152480d4eff7110593365e5b1064"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88490,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.6119999885559082,
+          "test_loss": 0.9971481561660767,
+          "train_accuracy": 1.0,
+          "train_loss": 0.16859208047389984,
+          "validation_accuracy": 0.6240000128746033,
+          "validation_loss": 0.949429452419281
+        },
+        "removed_directed_edges": 158,
+        "state_hash": "c07b7dc720ebf593c366ee901ef1a4b1575909e7ff90fc9566519608d83abe9e",
+        "training": {
+          "final_train_loss": 0.21384499967098236,
+          "optimizer": "adam",
+          "training_seconds": 7.733253399999967
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.16600000858306885,
+        "test_loss_increase": 0.3881109952926636,
+        "validation_accuracy_drop": 0.17399996519088745,
+        "validation_loss_increase": 0.3561139702796936
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        17,
+        19,
+        26,
+        10,
+        39,
+        46,
+        27,
+        12,
+        28,
+        22,
+        5,
+        20,
+        14
+      ],
+      "selected_set": [
+        5,
+        6,
+        10,
+        12,
+        14,
+        17,
+        19,
+        20,
+        22,
+        26,
+        27,
+        28,
+        39,
+        46
+      ],
+      "selected_set_hash": "c977e082b0a8035ca5c3a058b63f818009c641bb003c233fe69e6c9f883b38c2"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88546,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7760000228881836,
+          "test_loss": 0.6087973117828369,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15554864704608917,
+          "validation_accuracy": 0.7960000038146973,
+          "validation_loss": 0.5818860530853271
+        },
+        "removed_directed_edges": 102,
+        "state_hash": "f1c181595c24cf4f916233771114a73aec9a6605ca80bfe6c12b1d8bda003b0e",
+        "training": {
+          "final_train_loss": 0.22189068794250488,
+          "optimizer": "adam",
+          "training_seconds": 7.630382399999974
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.001999974250793457,
+        "test_loss_increase": -0.00023984909057617188,
+        "validation_accuracy_drop": 0.001999974250793457,
+        "validation_loss_increase": -0.011429429054260254
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46
+      ],
+      "selected_set": [
+        6,
+        46,
+        48
+      ],
+      "selected_set_hash": "9d21421136898adaa3af1108ef55b309dac6e1588181faa625788babc55f19fc"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88436,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.781000018119812,
+          "test_loss": 0.6176409125328064,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1566721349954605,
+          "validation_accuracy": 0.8080000281333923,
+          "validation_loss": 0.5892205238342285
+        },
+        "removed_directed_edges": 212,
+        "state_hash": "86469c19f12cfaf308d7481f8d4d0d4e693c83c3c69aa6ebeb615735ebe10522",
+        "training": {
+          "final_train_loss": 0.22205112874507904,
+          "optimizer": "adam",
+          "training_seconds": 7.822121799999991
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.003000020980834961,
+        "test_loss_increase": 0.00860375165939331,
+        "validation_accuracy_drop": -0.010000050067901611,
+        "validation_loss_increase": -0.004094958305358887
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46,
+        7,
+        13,
+        16,
+        19
+      ],
+      "selected_set": [
+        6,
+        7,
+        13,
+        16,
+        19,
+        46,
+        48
+      ],
+      "selected_set_hash": "a2bb80f9b346465d69058786a5f56206730539f75d008a7e69d3202a33933d95"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88398,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7570000290870667,
+          "test_loss": 0.6618460416793823,
+          "train_accuracy": 1.0,
+          "train_loss": 0.14656458795070648,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.6297102570533752
+        },
+        "removed_directed_edges": 250,
+        "state_hash": "709bebeec950c9876ae1bcb0b158e0fcf3a2523b749726f40789390ab57594fd",
+        "training": {
+          "final_train_loss": 0.21480274200439453,
+          "optimizer": "adam",
+          "training_seconds": 7.66750159999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.05280888080596924,
+        "validation_accuracy_drop": 0.011999964714050293,
+        "validation_loss_increase": 0.03639477491378784
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46,
+        7,
+        13,
+        16,
+        19,
+        24,
+        41,
+        0,
+        23,
+        5,
+        37,
+        29
+      ],
+      "selected_set": [
+        0,
+        5,
+        6,
+        7,
+        13,
+        16,
+        19,
+        23,
+        24,
+        29,
+        37,
+        41,
+        46,
+        48
+      ],
+      "selected_set_hash": "b70d373682f2d8e5b288a65161507df1d3599f930d6509741e2c854963ec8ab8"
+    },
+    {
+      "budget": 3,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88546,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7760000228881836,
+          "test_loss": 0.6087973117828369,
+          "train_accuracy": 1.0,
+          "train_loss": 0.15554864704608917,
+          "validation_accuracy": 0.7960000038146973,
+          "validation_loss": 0.5818860530853271
+        },
+        "removed_directed_edges": 102,
+        "state_hash": "f1c181595c24cf4f916233771114a73aec9a6605ca80bfe6c12b1d8bda003b0e",
+        "training": {
+          "final_train_loss": 0.22189068794250488,
+          "optimizer": "adam",
+          "training_seconds": 7.630382399999974
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.001999974250793457,
+        "test_loss_increase": -0.00023984909057617188,
+        "validation_accuracy_drop": 0.001999974250793457,
+        "validation_loss_increase": -0.011429429054260254
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46
+      ],
+      "selected_set": [
+        6,
+        46,
+        48
+      ],
+      "selected_set_hash": "9d21421136898adaa3af1108ef55b309dac6e1588181faa625788babc55f19fc"
+    },
+    {
+      "budget": 7,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88436,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.781000018119812,
+          "test_loss": 0.6176409125328064,
+          "train_accuracy": 1.0,
+          "train_loss": 0.1566721349954605,
+          "validation_accuracy": 0.8080000281333923,
+          "validation_loss": 0.5892205238342285
+        },
+        "removed_directed_edges": 212,
+        "state_hash": "86469c19f12cfaf308d7481f8d4d0d4e693c83c3c69aa6ebeb615735ebe10522",
+        "training": {
+          "final_train_loss": 0.22205112874507904,
+          "optimizer": "adam",
+          "training_seconds": 7.822121799999991
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": -0.003000020980834961,
+        "test_loss_increase": 0.00860375165939331,
+        "validation_accuracy_drop": -0.010000050067901611,
+        "validation_loss_increase": -0.004094958305358887
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46,
+        13,
+        19,
+        16,
+        7
+      ],
+      "selected_set": [
+        6,
+        7,
+        13,
+        16,
+        19,
+        46,
+        48
+      ],
+      "selected_set_hash": "a2bb80f9b346465d69058786a5f56206730539f75d008a7e69d3202a33933d95"
+    },
+    {
+      "budget": 14,
+      "dataset": "PubMed",
+      "deleted_model": {
+        "edge_count_after": 88382,
+        "edge_count_before": 88648,
+        "metrics": {
+          "test_accuracy": 0.7620000243186951,
+          "test_loss": 0.6682513356208801,
+          "train_accuracy": 1.0,
+          "train_loss": 0.166777104139328,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.6323593258857727
+        },
+        "removed_directed_edges": 266,
+        "state_hash": "65eefe9cbed313948164a045bfa6fd6ca5862cbb75dc2b22e828fea55f5e83a6",
+        "training": {
+          "final_train_loss": 0.22385449707508087,
+          "optimizer": "adam",
+          "training_seconds": 7.930889400000012
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.016666650772094727,
+        "test_accuracy_drop": 0.015999972820281982,
+        "test_loss_increase": 0.05921417474746704,
+        "validation_accuracy_drop": 0.007999956607818604,
+        "validation_loss_increase": 0.0390438437461853
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": false,
+      "seed": 42,
+      "selected_rank_order": [
+        6,
+        48,
+        46,
+        13,
+        19,
+        16,
+        7,
+        24,
+        41,
+        23,
+        5,
+        0,
+        37,
+        12
+      ],
+      "selected_set": [
+        0,
+        5,
+        6,
+        7,
+        12,
+        13,
+        16,
+        19,
+        23,
+        24,
+        37,
+        41,
+        46,
+        48
+      ],
+      "selected_set_hash": "425cd1755450024d07102bb00dcd565aa41b0b4dad63445c0a8587640dc1a829"
+    }
+  ],
+  "runtime": {
+    "total_seconds": 363.0795553
+  },
+  "schema": "bc_target_v2.downstream_summary",
+  "seed": 42,
+  "selection_artifact_id": "score_8b3257d6_c87fd4da",
+  "selection_content_hash": "c87fd4daeecc080d4fe8f89dddfc65ca9ddc2e721ca04b8d970a18d8e56f876e",
+  "selection_summary": "C:\\Users\\ADMIN\\.codex\\worktrees\\if-target-comparison-plan\\OpenGU\\GULib-master\\results\\bc_target_v2\\selection\\pubmed_gcn_seed42_selection.json",
+  "unique_selected_sets_trained": 43,
+  "version": 1
+}
