@@ -23,8 +23,8 @@ tags: [todo, workplan, opengu]
 
 | ID | TODO | 放在哪个板块 | 状态 | 来源 |
 |---|---|---|---|---|
-| E4 | GraphRevoker 先做：修 OpenGU 上游聚合器 bug，清损坏数据，整 method 重跑，并争取交叉验证 | [[10_实验矩阵/10_实验-框架总览]] | ☐ | 规划手记 / WORKPLAN §5 |
-| E1 | 跑干净 Citeseer，堵 scope 漏洞 | [[10_实验矩阵/10_实验-框架总览]] | ☐ | AI 审稿痛点：实验完成度 |
+| E4 | GraphRevoker 先做：修 OpenGU 上游聚合器 bug，清损坏数据，整 method 重跑，并争取交叉验证 | [[10_实验矩阵/10_实验-框架总览]] | ◐ seed42 四策略 canary accepted；完整多 seed E4 pending | 规划手记 / WORKPLAN §5 |
+| E1 | 跑干净 Citeseer，堵 scope 漏洞 | [[10_实验矩阵/10_实验-框架总览]] | ✅ stable scope 50/50 accepted | AI 审稿痛点：实验完成度 |
 | E2 | L8 redo：清 `.pyc` 后重跑 GIF/IDEA collateral | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
 | E3 | 本地算 k=5 noise anchor | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
 | E5 | arxiv 补量，避免只剩 pilot 口径 | [[10_实验矩阵/10_实验-框架总览]] | ◐ | AI 审稿痛点：scope |

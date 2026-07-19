@@ -32,6 +32,7 @@ results/cache_v2/index.sqlite-shm
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
+report/daily-log/
 
 # Archives — paper template downloads, overleaf bundles, scp 回收 tar 等
 *.zip

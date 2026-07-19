@@ -1,202 +1,65 @@
-# 生成每日工作日志
+# 每日工作日志
 
-当用户输入 `/daily-log` 或明确要求生成工作日志时，自动生成今日工作总结。
+当用户输入 `/daily-log`、`/daily-log YYYY-MM-DD`、`/daily-log pause [原因]`、`/daily-log resume`，或明确要求生成、暂停、恢复工作日志时，按本规范执行。
 
-## 功能说明
+生成的 Markdown 日志和本地控制状态均位于 `report/daily-log/`，该目录已被 Git 忽略。
 
-生成markdown格式的工作日志，记录：
-- 任务概览与完成情况
-- 关键发现与技术洞察
-- 实验数据与代码变更统计
-- 遗留问题与明日计划
-- 成本统计（如果使用了API）
+## 暂停与恢复
 
-## 使用方式
+使用 `report/daily-log/.daily-log-state.json` 保存本地状态；文件不存在时视为 active。
 
-```bash
-# 生成今日日志（默认）
-/daily-log
+- `/daily-log pause [原因]`：写入或更新 `status: "paused"`、本地暂停时间、可选原因和最近成功日志路径。不要生成 Markdown 日志，也不要推进汇总起点。
+- `/daily-log resume`：改为 `status: "active"`，记录恢复时间，并保留最近成功日志路径。除非用户明确要求立即补写，否则等待下一次汇总时再覆盖暂停期间。
+- 遇到 paused 状态时，退出而不生成 Markdown 日志、也不改变最近成功日志。
+- 状态文件损坏时，不生成日志或推进起点；先报告问题，等待明确修复。
 
-# 生成指定日期的汇总日志（包含上次日志后到指定日期的所有内容）
-/daily-log 2026-02-18
-```
+## 汇总范围
 
-或者用户说：
-- "生成今天的工作日志"
-- "总结一下今天的工作"
-- "写一份今日报告"
-- "生成18号的日志，把17号以来的内容都包含进去"
+1. 接受可选结束日期 `YYYY-MM-DD`。
+2. 如果由每天 06:00 的定时任务触发，结算前一个工作日：文件名用昨天日期，证据覆盖到当天 05:59:59，并在日志头记录完整覆盖范围。
+3. 手动无参数调用时，保留原工作日规则：本地时间 >= 06:00 使用今天，否则使用昨天。
+4. 查找最近成功的 `report/daily-log/YYYY-MM-DD_log.md`。从它记录的覆盖范围结束后开始；旧日志没有该字段时，从其文件名日期的下一天开始。
+5. 指定日期时，从最近成功日志后的第一天汇总至指定日期。没有历史日志时，只说明可获得的证据范围，不声称覆盖不可访问的历史。
+6. 没有新证据、待办或遗留项状态也没有变化时，不写空日志，也不推进汇总起点；下一份成功日志必须从同一锚点继续。
 
-## 日期范围逻辑
+## 证据与待办
 
-1. **无参数**：
-   - 默认进度从上一份 daily log 之后开始统计。
-   - 先计算“工作日期”：
-     - 当前本地时间 >= 06:00：工作日期 = 今天
-     - 当前本地时间 < 06:00：工作日期 = 昨天（按加班归属前一天）
-   - 文件名使用“工作日期”，不是系统当前自然日。
-2. **有日期参数**（如 `2026-02-18`）：
-   - 查找 `report/daily-log/` 目录下最新的已有日志文件（如 `2026-02-16_log.md`）
-   - 生成 **(最新日志日期+1天)** 到 **指定日期** 期间的所有内容汇总
-   - 所有内容合并输出到 **指定日期** 的日志文件中
-   - 例如：最新日志是 `2026-02-16`，用户输入 `/daily-log 2026-02-18`，则将17号和18号两天的内容合并生成到 `2026-02-18_log.md`
+- 当前对话仅作辅助线索；事实应由工作区证据支撑，包括 Git status/diff/log、变更文件、实验日志、结果产物和相关笔记。
+- 读取上一份日志的“待办事项”和“遗留问题”，基于当前证据将每项标为已完成、进行中、阻塞、失效或未变化；未完成项必须继承，不能静默丢弃。
+- 从当天 `auto_report.md` 提取 `DECISION` 条目；优先使用存在的 `results/_journal/` 当前 journal 产物。
+- 仅在结果产物支持时统计 method/strategy 运行次数。若存在 `results/relative/` JSON，按 method 和 strategy 统计 `relative_f1_drop`；若存在 `results/collateral/` JSON，按 method 统计 `gap` 与 `mean_pred_shift`。有等价字段时优先读取 `results/runs/`。
+- 不得编造指标、完成率、代码行数、成本或 API 使用量。数据不可得时标为“未记录”，并简要说明缺少的来源。
 
 ## 输出格式
 
-**文件名**: `YYYY-MM-DD_log.md`
-**位置**: `report/daily-log/` 目录
-**日期显示**:
-- 日志头部需显示 `工作日期: YYYY-MM-DD`
-- 日志头部需显示 `生成时间: YYYY-MM-DD HH:mm`（本地时间）
-- 若无参数且当前时间 < 06:00，则“工作日期”显示为前一天日期
+写入 `report/daily-log/YYYY-MM-DD_log.md`。日志头必须包含：
 
-**内容结构**:
+- `工作日期: YYYY-MM-DD`
+- `覆盖范围: <start> 至 <end>`
+- `生成时间: YYYY-MM-DD HH:mm`（本地时间）
+
+正文始终保留以下栏目；无内容时写“无”或“未记录”：
+
 1. 📋 任务概览
 2. ✅ 已完成工作
-3. 🔑 关键决策（从当天 `auto_report.md` 中提取 DECISION 条目汇总）
+3. 🔑 关键决策
 4. 🔍 关键发现
 5. 📊 数据统计
-   - 实验运行次数（按 method/strategy 分组）
-   - **NEW**: Relative 指标统计（平均 improvement vs random）
-   - **NEW**: Collateral 指标统计（平均 gap, pred_shift）
-
-## Relative/Collateral 指标统计实现
-
-### Relative 指标统计
-```python
-def compute_relative_stats(results_dir="results/relative"):
-    """计算 relative 指标统计数据。"""
-    import json
-    import glob
-    import numpy as np
-
-    stats = {
-        "by_method": {},
-        "by_strategy": {},
-        "overall": {"mean_improvement": 0, "count": 0}
-    }
-
-    improvements = []
-    for cache_file in glob.glob(f"{results_dir}/*.json"):
-        with open(cache_file) as f:
-            data = json.load(f)
-            for r in data.get("results", []):
-                improvement = r.get("relative_f1_drop", 0)
-                improvements.append(improvement)
-
-                method = r.get("method", "unknown")
-                strategy = r.get("strategy", "unknown")
-
-                if method not in stats["by_method"]:
-                    stats["by_method"][method] = []
-                stats["by_method"][method].append(improvement)
-
-                if strategy not in stats["by_strategy"]:
-                    stats["by_strategy"][strategy] = []
-                stats["by_strategy"][strategy].append(improvement)
-
-    if improvements:
-        stats["overall"]["mean_improvement"] = np.mean(improvements)
-        stats["overall"]["count"] = len(improvements)
-
-    return stats
-```
-
-### Collateral 指标统计
-```python
-def compute_collateral_stats(base_dir="results/collateral"):
-    """计算 collateral 指标统计数据。"""
-    import json
-    from pathlib import Path
-    import numpy as np
-
-    stats = {
-        "by_method": {},
-        "overall": {"mean_gap": 0, "mean_pred_shift": 0, "count": 0}
-    }
-
-    gaps = []
-    shifts = []
-
-    base_path = Path(base_dir)
-    if not base_path.exists():
-        return stats
-
-    for method_dir in base_path.iterdir():
-        if not method_dir.is_dir():
-            continue
-
-        method_gaps = []
-        method_shifts = []
-
-        for dataset_dir in method_dir.iterdir():
-            for model_dir in dataset_dir.iterdir():
-                json_files = list(model_dir.glob("collateral_*.json"))
-                if json_files:
-                    latest = max(json_files, key=lambda p: p.stat().st_mtime)
-                    with open(latest) as f:
-                        data = json.load(f)
-                        for r in data.get("results", []):
-                            gap = r.get("gap", 0)
-                            shift = r.get("mean_pred_shift", 0)
-                            gaps.append(gap)
-                            shifts.append(shift)
-                            method_gaps.append(gap)
-                            method_shifts.append(shift)
-
-        if method_gaps:
-            stats["by_method"][method_dir.name] = {
-                "mean_gap": np.mean(method_gaps),
-                "mean_pred_shift": np.mean(method_shifts),
-                "count": len(method_gaps)
-            }
-
-    if gaps:
-        stats["overall"]["mean_gap"] = np.mean(gaps)
-        stats["overall"]["mean_pred_shift"] = np.mean(shifts)
-        stats["overall"]["count"] = len(gaps)
-
-    return stats
-```
-
-### 日志输出格式
-```markdown
-### 📊 数据统计
-
-**实验运行统计**
-- 总运行次数: 45
-- 完成率: 85%
-- 按方法: GIF(15), GNNDelete(15), GraphEraser(15)
-
-**Relative 指标（vs Random Baseline）**
-- 平均改进: 0.0823 (8.23%)
-- 最佳方法: GNNDelete (mean=0.0956)
-- 最佳策略: im (mean=0.1123)
-
-**Collateral 损伤统计**
-- 平均 Retrain Gap: 0.0116 (1.16%)
-- 平均 Pred Shift: 0.0156
-- 按方法统计:
-  - GIF: gap=0.0023, shift=0.0089
-  - GNNDelete: gap=0.0201, shift=0.0213
-  - GraphEraser: gap=0.0087, shift=0.0123
-```
 6. 💡 经验总结
 7. 📝 待办事项
 8. 🔧 遗留问题
 9. 📚 文档产出
 10. 🎯 成果总结
-11. 💰 成本统计（如有）
+11. 💰 成本统计
 12. 📅 下次工作预告
 
-## 注意事项
+在“🎯 成果总结”内必须额外写两行：
 
-- 自动推断今日日期（YYYY-MM-DD格式）
-- 涵盖完整对话中的所有工作
-- 突出关键技术发现和研究洞察
-- 记录具体数据（实验次数、代码行数、API成本等）
-- 提供可操作的明日计划
+- **主里程碑：** 写明本工作窗口关闭的项目 gate；若没有，则写“未关闭”并指明下一个 gate。
+- **底座/风险消除：** 写明完成的底座或风险消除工作，并明确它尚未关闭的主里程碑；不得把该里程碑写成已完成。
 
-## 示例
+数据统计必须区分相对 Random Baseline 的改进与 collateral 影响（Retrain Gap、prediction shift），不得合成一个分数。
 
-详见: `report/daily-log/2026-02-16_log.md`
+成功写入后，更新 `.daily-log-state.json`：记录 `status: "active"`、最近成功日志路径和覆盖范围结束时间。完成前复核暂停状态、文件名、范围、12 个栏目、“成果总结”的两行状态，以及每个数值主张的来源。
+
+本命令只定义 Claude 的日志行为，不创建定时器；外部 06:00 调度可直接调用 `/daily-log`。
