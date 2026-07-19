@@ -40,7 +40,7 @@
             ├─ positive samples loop        CPU 🐌    ⚠ 6 min（100 iter × 3.6s）
             │                                          GPU < 5%
             └─ negative samples loop        CPU 🐌    ⚠ 6 min（100 iter × 3.6s）
-                                                      → update-detection 总 ~12 min
+                                                      → update-detection 总 ~12 min0
 
 [eval_collateral.py 一个 cell]
       │

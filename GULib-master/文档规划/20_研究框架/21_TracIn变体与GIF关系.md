@@ -9,7 +9,151 @@ tags: [tracin, gif, influence, concordance, human-readable]
 
 这页只解决一个问题：
 
-> 我们说 TracIn、proper TracIn、GIF、self-influence、parameter-change IF 时，到底在算什么？它们为什么会选出不同节点？
+> 我们说原始 TracIn、single-final proxy、旧 deployed TracIn、GIF、self-influence、parameter-change IF 时，到底在算什么？它们为什么会选出不同节点？
+
+## 先读：那段故事——C 是问题，GIF 和 TracIn 是两条解法
+
+先不要背方法名。把已经训练好的模型想成一块停在山谷里的大石头。
+
+现在我们考虑删除一个训练节点 `v`。
+
+### 第一幕：节点给模型一个“推力”
+
+节点自己的梯度是：
+
+```text
+g_v = grad loss_v
+```
+
+它表示节点 `v` 在参数空间里施加的原始推力。`||g_v||` 只回答：
+
+> 这个节点推得猛不猛？
+
+这就是 A。它还没考虑地形，也没考虑最后想伤害谁。
+
+### 第二幕：地形决定石头实际怎么移动
+
+同样大小的力，推在陡峭方向和推在平坦方向，石头移动距离不同。训练损失的 Hessian `H` 就是局部地形；`H^-1` 把原始推力变成参数的实际近似位移：
+
+```text
+Delta theta_v ~= - H^-1 g_v
+```
+
+`||H^-1 g_v||` 回答：
+
+> 删除这个节点后，模型参数会移动多远？
+
+这就是 B。它已经知道模型怎么动，但仍不知道这次移动有没有伤到我们关心的任务。
+
+### 第三幕：移动很大，不等于伤到了目标
+
+我们再拿一个 validation/query set `E`，它的梯度 `g_E = grad L_E` 表示：参数往哪个方向移动会改变 `E` 上的 loss。
+
+于是 C 问的是：
+
+```text
+参数因删除 v 而移动
+        与
+E 的坏方向
+是否对齐？
+```
+
+完整的局部 IF 写成：
+
+```text
+score_C(v) = <g_v, H^-1 g_E>
+```
+
+所以：
+
+```text
+A：推力大不大？
+B：石头实际移动多远？
+C：这次移动有没有朝着伤害 E 的方向？
+```
+
+你现在已经理解的 C 是“问题本身”：**从训练候选 `T` 中，找出删除后最可能伤害目标 `E` 的节点。** GIF/IF 和 TracIn 不是新的 C；它们是回答 C 的两条不同路线。
+
+### 路线一：IF / GIF-inspired reference——在终点看局部地形
+
+它站在最终模型 `theta*` 附近，用 Hessian 看局部地形：
+
+```text
+<g_v(theta*), H^-1 g_E(theta*)>
+```
+
+优点是把曲率算进来了；缺点是 inverse-Hessian/HVP 昂贵，而且它是终点附近的局部近似。
+
+本项目 concordance 表里的 “GIF” 更准确地说是 **eval-target IF/GIF-inspired reference**。它是 selector 诊断参照，不等于完整的 OpenGU GIF unlearning 算法。
+
+### 路线二：原始 TracIn——不看 Hessian，回放整段训练电影
+
+原始 TracIn 的思路不是只看最终模型，而是在多个训练 checkpoint 上反复看 `v` 与目标 `E` 的梯度是否同向，再按学习率累计：
+
+```text
+TracInCP(v -> E)
+  = sum_c w_c <g_v(theta_c), g_E(theta_c)>
+```
+
+其中 `theta_c` 是第 `c` 个 checkpoint，`w_c` 通常与该步 learning rate 对应。
+
+直觉是：
+
+> IF 拍一张终点的“地形 CT”；TracIn 回放整段训练录像。
+
+两者都可以回答 C，但近似方式不同：IF 用终点曲率；TracIn 用训练轨迹，避开 `H^-1`。
+
+### 仓库旧方法：拿错了指南针
+
+当前 deployed `TracInStrategy` 只看最终模型，而且参考方向不是 `g_E`：
+
+```text
+score_old(v) = <g_v(theta*), - sum_{j in T} g_j(theta*)>
+```
+
+它实际在问：
+
+> 节点 `v` 的梯度是否与最终训练梯度残差 / 正则方向对齐？
+
+所以它不是“文件坏了”，也不是随机数；它是在认真回答另一个问题。它与 C/GIF 的 top-k 重合低，不能说明 TracIn 思想失败，只说明旧实现没有对准 `E`，也没有实现原论文的多-checkpoint 轨迹。
+
+### 现在拟议的方法：指南针对准 E，并恢复训练轨迹
+
+2026-07-14 的 TracIn V2 设计把目标改为：
+
+```text
+score_new(v) = sum_c w_c <g_v(theta_c), g_E(theta_c)>
+```
+
+也就是论文对齐的 eval-target TracInCP 候选。它与旧版有两个根本变化：
+
+1. 参考方向从 `-sum_T g_j` 改成明确的 `g_E`；
+2. 从单一最终模型改成多个 checkpoint 的累计。
+
+但状态必须写清：**V2 目前只有 UNSTABLE contract 和 gate 设计，尚未实现、未接默认 runner、也没有跑正式实验。**
+
+历史上已经算过的：
+
+```text
+<g_v(theta*), g_E(theta*)>
+```
+
+只应叫 **single-final-checkpoint eval-gradient proxy**。它证明“把指南针对准 E”后与 IF/GIF reference 更接近，但它仍不是完整原始 TracInCP，也不能拿现有 `0.65–0.74` 重合度当 V2 验收结果。
+
+### 四个名字一口气说清
+
+| 名字 | 它在做什么 | 当前状态 |
+|---|---|---|
+| OpenGU GIF unlearning | 收到删除请求后，用删除对象及受影响邻域的梯度差，经 `H^-1` 近似更新参数 | 已有 GU 方法；它是 updater，不是选点公式 |
+| eval-target IF/GIF-inspired reference | 删除前用 `<g_v, H^-1 g_E>` 给候选节点排序 | 小图 selector 诊断参照，不是完整 GIF |
+| 原始 TracInCP | 多 checkpoint 累加 `w_c<g_v(theta_c),g_E(theta_c)>` | 论文定义；当前 deployed 未实现 |
+| 仓库旧 TracIn | 最终点计算 `<g_v,-sum_T g_j>` | legacy selector；目标错位但并非随机 |
+| single-final eval proxy | 最终点计算 `<g_v,g_E>` | 有历史诊断证据；是 ablation，不是完整 TracInCP |
+| TracIn V2 | 多 checkpoint、明确 `E`、权重/符号/缓存身份均进入 Recipe | UNSTABLE contract only，未实现 |
+
+最短记忆版：
+
+> C 是“想伤害谁”；IF/GIF-inspired reference 用终点地形回答；原始 TracIn 用训练录像回答；旧仓库方法看的是训练残差；V2 才计划把“目标 E + 多 checkpoint”一起补回来。
 
 这里不复制所有实验产物。权威数字和脚本仍在 repo：
 
@@ -54,7 +198,7 @@ score(v) = <g_v, u>
 - `v` 是候选删除节点；
 - `g_v = grad loss_v` 是这个候选节点自己的训练损失梯度；
 - `u` 是参考方向；
-- 不同 TracIn / GIF 的区别，主要就在 `u` 是什么。
+- 对单个 checkpoint 的投影类 score，核心区别在 `u` 是什么；原始 TracIn 还多了 checkpoint 集与权重累计这一层。
 
 所以真正要问的不是“这是不是 TracIn”，而是：
 
@@ -159,12 +303,12 @@ score_cross(v) = <g_v, - sum_{j in T} g_j>
 
 ---
 
-### 3.2 proper TracIn：Hessian-free 的 eval-impact proxy
+### 3.2 single-final-checkpoint eval-gradient proxy：先把指南针对准 E
 
-proper TracIn 的分数是：
+历史诊断里曾把下面这个分数叫 `proper TracIn`：
 
 ```text
-score_proper(v) = <g_v, grad L_E>
+score_final_eval(v) = <g_v(theta*), grad L_E(theta*)>
 ```
 
 其中：
@@ -179,13 +323,21 @@ L_E = sum_{e in E} loss_e
 
 直觉上，如果 `g_v` 和 `grad L_E` 对齐，说明这个训练点和 E 上的 loss 方向关系更强。删除这个点时，E 上的 loss 可能更受影响。
 
-它叫 Hessian-free，是因为它没有乘 `H^-1`。它只做梯度内积，所以成本和旧 deployed TracIn 基本同阶。
+它是 Hessian-free 的 final-model proxy：没有乘 `H^-1`，成本和旧 deployed TracIn 基本同阶。它比旧方法干净，因为 reference 已从训练残差改成明确的 `E`。
+
+但 2026-07-14 审计后，不能再把它直接称为论文对齐的 `proper TracIn`。原始 TracInCP 需要多个 checkpoint 与对应权重：
+
+```text
+score_TracInCP(v) = sum_c w_c <g_v(theta_c), grad L_E(theta_c)>
+```
+
+所以 single-final proxy 是一个有用的 diagnostic / ablation；它不是完整 TracInCP。
 
 ---
 
-### 3.3 GIF / real influence：proper TracIn 加上曲率修正
+### 3.3 eval-target IF / GIF-inspired reference：在最终点加曲率修正
 
-GIF 的 eval-impact 形式可以写成：
+用于 selector concordance 的 eval-impact IF 参照可以写成：
 
 ```text
 score_GIF(v) = <g_v, H^-1 grad L_E>
@@ -195,27 +347,55 @@ score_GIF(v) = <g_v, H^-1 grad L_E>
 
 > 考虑训练 loss 曲率以后，这个候选节点对 E 的 loss 影响有多大？
 
-和 proper TracIn 比，它们关心的是同一个目标 `E`，但 GIF 多了一个 `H^-1`：
+和 single-final eval proxy 比，它们关心的是同一个目标 `E`，但 IF reference 多了一个 `H^-1`：
 
 ```text
-proper TracIn:  u = grad L_E
-GIF:            u = H^-1 grad L_E
+single-final eval proxy:  u = grad L_E
+IF/GIF-inspired reference: u = H^-1 grad L_E
 ```
 
 所以可以这样理解：
 
-> proper TracIn 是不看地形坡度修正的方向；GIF 是经过 Hessian 曲率预条件化后的方向。
+> single-final eval proxy 不做地形修正；IF/GIF-inspired reference 使用 Hessian 对目标方向做局部曲率修正。
 
-如果 proper TracIn 和 GIF 高重合，说明 Hessian-free proxy 对这个 eval-impact 目标是有用的。它不是完全等价，因为 `H^-1` 会改变方向，但它们至少在问同一个问题。
+如果两者高重合，说明这个 single-final Hessian-free proxy 对 eval-impact 目标有诊断价值。它不是完全等价，因为 `H^-1` 会改变方向；更不能据此宣称多-checkpoint TracInCP 已经通过验证。
+
+这里还有一个命名边界：`<g_v,H^-1 grad L_E>` 是通用 eval-target influence-function 投影。它只借用了 GIF/IF 的曲率思想，**不是 OpenGU 完整 GIF unlearning 算法的候选 selector**。
+
+### 3.4 OpenGU GIF：删除请求到来后的模型更新器
+
+OpenGU 的 GIF unlearning 路径不是先遍历所有候选 `v` 并对 `E` 打分。它在删除集合已经确定后，构造原图与删后图的局部 loss 梯度差：
+
+```text
+q_delete = grad loss_affected_before - grad loss_affected_after
+Delta theta_GIF ~= H_train^-1 q_delete
+```
+
+其中 Hessian/HVP 来自整体训练 loss，右端向量来自被删对象及受影响邻域的图损失变化；真实 test set 只用于最后评估，不参与 GIF 参数更新。
+
+因此要分清：
+
+```text
+selector：删除前决定“删谁”
+updater：收到删除请求后决定“模型怎么改”
+```
+
+本页的 IF/GIF-inspired reference 属于前者；OpenGU GIF 属于后者。
 
 ---
 
-### 3.4 self-influence / grad-norm：training-objective magnitude
+### 3.5 self-influence / grad-norm：training-objective magnitude
 
 self-influence 常写成：
 
 ```text
 score_self(v) = <g_v, g_v> = ||g_v||^2
+```
+
+这里同样要区分：上式是 final-checkpoint grad-norm proxy；原始 TracInCP 的 self-influence 应跨 checkpoint 累加：
+
+```text
+score_TracInCP_self(v) = sum_c w_c ||g_v(theta_c)||^2
 ```
 
 它问的是：
@@ -224,13 +404,13 @@ score_self(v) = <g_v, g_v> = ||g_v||^2
 
 它没有一个固定的 `u`。每个候选节点都拿自己和自己比。
 
-所以 self-influence 不能简单当成 proper TracIn 或 GIF 的替代品。它更接近“这个点自己的训练 loss 梯度是不是很大”，而不是“它对某个 held-out/query loss 方向影响大不大”。
+所以 self-influence 不能简单当成 eval-target TracIn 或 IF reference 的替代品。它更接近“这个点自己的训练 loss 梯度是不是很大”，而不是“它对某个 held-out/query loss 方向影响大不大”。
 
 它也不等于 parameter-change IF。parameter-change IF 还要看 `H^-1` 曲率修正。
 
 ---
 
-### 3.5 parameter-change IF：model editing 意义上的“参数影响大”
+### 3.6 parameter-change IF：model editing 意义上的“参数影响大”
 
 如果你的本意是：
 
@@ -247,7 +427,7 @@ score_param(v) = ||H^-1 g_v||
 
 > 如果只删除这个训练点，近似更新方向会不会很大？
 
-这个目标不需要 `E`，所以它不是 test-set influence。它也不是 proper TracIn / GIF 那条 eval-impact 线。它是另一组：parameter-change IF。
+这个目标不需要 `E`，所以它不是 test-set influence。它也不是 eval-target TracIn / IF reference 那条 eval-impact 线。它是另一组：parameter-change IF。
 
 实际计算上，逐候选点精确求 `H^-1 g_v` 很贵。这次诊断用 Hutchinson shared probes 估计 `||H^-1 g_v||`，目的是先看 selector 集合会不会和 `||g_v||`、eval-impact IF、degree、IM 混在一起。
 
@@ -257,9 +437,11 @@ score_param(v) = ||H^-1 g_v||
 
 | 名称 | 分数 | 参考方向 `u` | 它真正问的问题 | 和 GIF 的关系 |
 |---|---|---|---|---|
-| deployed cross-TracIn | `<g_v, -sum_T g_j>` | 训练梯度残差 / 正则方向 | 这个点是否沿参数残差方向 | 目标错位，重合低 |
-| proper TracIn | `<g_v, grad L_E>` | evaluation/query loss 梯度 | 这个点是否影响 E 的 loss | 和 GIF 同目标，少 `H^-1` |
-| GIF | `<g_v, H^-1 grad L_E>` | 曲率修正后的 E 梯度 | 考虑 Hessian 后影响 E 的 loss | 小图 gold/reference |
+| deployed cross-TracIn | `<g_v(theta*), -sum_T g_j(theta*)>` | 最终训练梯度残差 / 正则方向 | 这个点是否沿参数残差方向 | 目标错位，重合低 |
+| single-final eval proxy | `<g_v(theta*), grad L_E(theta*)>` | 最终点的 evaluation/query loss 梯度 | 最终模型上，这个点是否与 E 的 loss 同向 | 和 IF reference 同目标，少 `H^-1`；不是完整 TracInCP |
+| 原始 TracInCP / V2 候选 | `sum_c w_c<g_v(theta_c),grad L_E(theta_c)>` | 训练轨迹各 checkpoint 上的 E 梯度 | 训练过程中累计对 E 的 loss reduction 有何贡献 | 论文对齐路线；V2 尚未实现 |
+| eval-target IF/GIF-inspired reference | `<g_v(theta*), H^-1 grad L_E(theta*)>` | 曲率修正后的 E 梯度 | 最终点局部曲率下影响 E 的 loss | 小图 selector diagnostic reference |
+| OpenGU GIF unlearning | `H_train^-1 q_delete` | 删除对象与受影响邻域造成的梯度差 | 收到删除请求后如何更新模型 | updater，不是候选 selector |
 | self-influence / grad-norm | `<g_v, g_v>` 或 `||g_v||` | 候选点自己的梯度 | 这个点自身训练梯度大不大 | 不是固定 E 目标 |
 | parameter-change IF | `||H^-1 g_v||` | 不是投影到固定 `u`，而是删除点的 IF 更新范数 | 删除这个点会不会让参数移动很大 | 不是 eval-impact GIF，但同属 IF/model-editing 线 |
 
@@ -271,17 +453,17 @@ score_param(v) = ||H^-1 g_v||
 
 | pair | cora | citeseer | pubmed | 读法 |
 |---|---:|---:|---:|---|
-| GIF vs proper TracIn | 0.742 | 0.727 | 0.647 | 高重合：proper TracIn 是 reasonable Hessian-free eval-impact proxy |
-| GIF vs deployed cross-TracIn | 0.113 | 0.142 | 0.098 | 低重合：旧实现没有对准 eval-impact IF |
-| GIF vs self-influence | 0.249 | 0.298 | 0.133 | 中间：梯度范数有信号，但不是同一目标 |
-| GIF vs degree | 0.024 | 0.051 | 0.041 | 几乎正交：真实 IF 也不是 degree |
-| proper TracIn vs degree | 0.024 | 0.043 | 0.045 | proper TracIn 也不是结构中心性 |
+| IF/GIF-inspired reference vs single-final eval proxy | 0.742 | 0.727 | 0.647 | 高重合：最终点 Hessian-free eval proxy 有诊断价值；尚未验证 TracInCP |
+| IF/GIF-inspired reference vs deployed cross-TracIn | 0.113 | 0.142 | 0.098 | 低重合：旧实现没有对准 eval-impact IF |
+| IF/GIF-inspired reference vs self-influence | 0.249 | 0.298 | 0.133 | 中间：梯度范数有信号，但不是同一目标 |
+| IF/GIF-inspired reference vs degree | 0.024 | 0.051 | 0.041 | 几乎正交：局部 IF signal 也不是 degree |
+| single-final eval proxy vs degree | 0.024 | 0.043 | 0.045 | final eval-gradient signal 也不是结构中心性 |
 
 这里最重要的不是背数字，而是理解结论：
 
-1. **proper TracIn 和 GIF 靠得近**，因为它们都关心 `E` 上的 loss sensitivity。
+1. **single-final eval proxy 和 IF/GIF-inspired reference 靠得近**，因为它们都关心最终点 `E` 上的 loss sensitivity；这不能外推为 TracInCP 已验证。
 2. **deployed cross-TracIn 和 GIF 离得远**，因为旧实现用的是 training residual / regularization direction。
-3. **GIF / proper TracIn 和 degree 都离得远**，说明 influence signal 和 structural-volume signal 不是同一批节点。
+3. **IF reference / single-final eval proxy 和 degree 都离得远**，说明这批 influence signal 和 structural-volume signal 不是同一批节点。
 
 这也是为什么“degree 强”这个发现仍然重要：如果 correct influence selector 仍然和 degree 几乎正交，那么 degree 的强不是因为它偷偷近似了 GIF，而是因为 approximate unlearning 里结构 volume 可能是另一条更致命的攻击信号。
 
@@ -291,7 +473,7 @@ score_param(v) = ||H^-1 g_v||
 |---|---:|---|
 | `||H^-1 g_v||` vs `||g_v||` | 0.8462 | parameter-change IF 和 grad-norm 在 Cora/GCN 上很接近 |
 | `||H^-1 g_v||` vs eval-impact GIF | 0.2343 | 参数扰动大不等于 eval/generalization 影响大 |
-| proper TracIn vs eval-impact GIF | 0.7419 | Hessian-free eval-impact proxy 仍然靠谱 |
+| single-final eval proxy vs eval-impact IF reference | 0.7419 | 最终点 Hessian-free eval proxy 有诊断价值；不是 TracInCP gate |
 | deployed cross-TracIn vs eval-impact GIF | 0.1134 | 旧实现仍然没对准 eval-impact |
 | `||H^-1 g_v||` vs degree / IM | 0.0385 / 0.0435 | parameter-change IF 也不是 topology selector |
 
@@ -335,8 +517,8 @@ sum_j g_j 不是 0；
 | 旧 TracIn attack outcome 代表 proper IF selector | 不稳，应该 refresh 或改名 |
 | Hybrid 结果完全干净 | 不稳，因为 Hybrid 复用了 TracIn 分支 |
 | random / degree / pagerank / IM 结果 | 不受这个 TracIn 定义问题影响 |
-| degree / structural-volume 是独立强信号 | 仍然有支撑，因为 GIF / proper TracIn 都和 degree 低重合 |
-| influence-based selector 一定弱于 degree | 不能现在写死，要等 proper TracIn / Hybrid rerun 后再判断 |
+| degree / structural-volume 是独立强信号 | 仍然有阶段支撑，因为 IF reference / single-final eval proxy 都和 degree 低重合 |
+| influence-based selector 一定弱于 degree | 不能现在写死，要等 TracIn V2 gates 与后续 Hybrid rerun 后再判断 |
 | parameter-change IF 和 eval-impact IF 是同一个 selector | 不能这么说；Cora/GCN 上二者 Jaccard 只有 0.2343 |
 
 一句安全口径：
@@ -384,11 +566,11 @@ TracIn/GIF 这组工作是在把 model influence 这条线清理干净。degree/
 
 1. `T` 和 `E` 分别是什么？为什么 E 不是 deletion candidate pool？
 2. deployed cross-TracIn 的 `u` 是什么？为什么它不是 `grad L_E`？
-3. proper TracIn 和 GIF 的唯一核心差别是什么？
+3. single-final eval proxy、原始 TracInCP 与 IF/GIF-inspired reference 各自用了什么信息？
 4. `||g_v||` 和 `||H^-1 g_v||` 概念上为什么不是同一组？为什么 Cora/GCN 上又会高重合？
-5. self-influence 为什么不能简单叫 proper TracIn？
-6. GIF vs proper TracIn 高重合说明什么？不能说明什么？
-7. GIF / proper TracIn vs degree 低重合，对 structural-volume claim 有什么意义？
+5. final-checkpoint `||g_v||^2` 与 TracInCP self-influence 为什么不能混名？
+6. IF reference vs single-final eval proxy 高重合说明什么？为什么不能说 TracInCP 已通过？
+7. IF reference / single-final eval proxy vs degree 低重合，对 structural-volume claim 有什么意义？
 8. 为什么旧 TracIn / Hybrid 结果需要 refresh，但 random / degree / pagerank / IM 不需要？
 
 ---
@@ -398,16 +580,16 @@ TracIn/GIF 这组工作是在把 model influence 这条线清理干净。degree/
 研究上下一步不是“再堆一个表”，而是把这条链闭合：
 
 ```text
-定义干净的 selector
-  -> 看它和 GIF / degree / IM 的重合度
-  -> 用 proper TracIn / Hybrid rerun attack outcome
+实现并通过 TracIn V2 的公式、Recipe、Cora 与跨机器 gates
+  -> 看 TracInCP 和 IF reference / degree / IM 的重合度
+  -> 用通过 gate 的 TracIn V2 / Hybrid rerun attack outcome
   -> 连接 overlap-with-degree 与 attack damage
   -> 判断 structural-volume 是否真的比 influence 更能解释脆弱性
 ```
 
 目前已经比较稳的是：
 
-- proper TracIn 是 eval-impact GIF 的便宜近似；
-- deployed cross-TracIn 不是；
+- single-final eval proxy 在历史诊断里接近 eval-impact IF reference，但完整 TracInCP 尚未验证；
+- deployed cross-TracIn 既不是该 proxy，也不是原始 TracInCP；
 - correct influence selector 和 degree 仍然选不同节点；
 - 所以不能用旧 TracIn outcome 给 IF 线下最终结论，但可以继续推进“结构 volume 与 influence 是不同轴”的论证。
