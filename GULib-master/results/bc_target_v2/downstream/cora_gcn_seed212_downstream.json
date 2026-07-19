@@ -1,0 +1,3100 @@
+{
+  "base_model": {
+    "metrics": {
+      "test_accuracy": 0.8169999718666077,
+      "test_loss": 0.8669143915176392,
+      "train_accuracy": 0.9928571581840515,
+      "train_loss": 0.33789536356925964,
+      "validation_accuracy": 0.7940000295639038,
+      "validation_loss": 0.905750572681427
+    },
+    "state_hash": "6ad332d91b2d6d8f82f20abb58cd791278f8836e2d66456ad0c58752fc39f03f",
+    "training": {
+      "final_train_loss": 0.4338250160217285,
+      "optimizer": "adam",
+      "training_seconds": 2.3718686
+    }
+  },
+  "budgets": [
+    3,
+    7,
+    14
+  ],
+  "cache_hit": false,
+  "dataset": "Cora",
+  "environment": {
+    "executable": "E:\\conda_package\\envs\\gnn\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.8.20",
+    "torch": "2.2.1+cu121",
+    "torch_geometric": "2.6.1"
+  },
+  "methods": [
+    "a_grad_norm",
+    "b_param_hutch",
+    "b_param_lissa",
+    "degree",
+    "gt_full",
+    "gt_simple",
+    "legacy",
+    "p_graph",
+    "p_point",
+    "p_simple",
+    "r_point",
+    "random",
+    "tracin_cp_graph_3",
+    "tracin_cp_graph_6",
+    "tracin_cp_point_3",
+    "tracin_cp_point_6",
+    "tracin_cp_simple_3",
+    "tracin_cp_simple_6"
+  ],
+  "per_candidate_exact_retrain_performed": false,
+  "recipe": {
+    "budgets": [
+      3,
+      7,
+      14
+    ],
+    "dataset": "Cora",
+    "deletion": {
+      "graph": "remove_all_incident_edges",
+      "per_candidate_exact_retrain": false,
+      "set_level_retrain_once": true,
+      "train_mask": "selected_false"
+    },
+    "evaluation": {
+      "accuracy": "node_classification_accuracy",
+      "loss": "mean_cross_entropy",
+      "target": "validation_mask",
+      "utility": "test_mask"
+    },
+    "methods": [
+      "a_grad_norm",
+      "b_param_hutch",
+      "b_param_lissa",
+      "degree",
+      "gt_full",
+      "gt_simple",
+      "legacy",
+      "p_graph",
+      "p_point",
+      "p_simple",
+      "r_point",
+      "random",
+      "tracin_cp_graph_3",
+      "tracin_cp_graph_6",
+      "tracin_cp_point_3",
+      "tracin_cp_point_6",
+      "tracin_cp_simple_3",
+      "tracin_cp_simple_6"
+    ],
+    "producer": "4d092f903b0348094356784ffd835fbecaacd0c67cb7534cbb5d8f2215c16465",
+    "schema": "bc_target_v2.downstream_recipe",
+    "seed": 212,
+    "selection_artifact_id": "score_46167175_175575a6",
+    "selection_candidate_hash": "2a66f259f18067d4f884d0dcaa432b61c57f9f19b94f5b4f5e93698ef8f61679",
+    "selection_content_hash": "175575a67966077658f75f1de70046ed030b96b2eb9d5a5f61c5901e31248895",
+    "training": {
+      "architecture": "GateGCN",
+      "dropout": 0.5,
+      "epochs": 200,
+      "gamma": 0.5,
+      "hidden_channels": 16,
+      "lr": 0.01,
+      "milestones": [
+        100,
+        150
+      ],
+      "num_threads": 1,
+      "optimizer": "adam",
+      "seed": 212,
+      "weight_decay": 0.0005
+    },
+    "version": 1
+  },
+  "recipe_hash": "bf274221dd505768e252aec93144f7badd79e8ba521e5bfe2bd631dab83c3319",
+  "result_count": 54,
+  "results": [
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10510,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8050000071525574,
+          "test_loss": 0.889195442199707,
+          "train_accuracy": 1.0,
+          "train_loss": 0.31784310936927795,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9242740869522095
+        },
+        "removed_directed_edges": 46,
+        "state_hash": "32a3e694157adbe01f186d67de656eed2036d4eb97c52b82f568ef8f0391f5ff",
+        "training": {
+          "final_train_loss": 0.4138202965259552,
+          "optimizer": "adam",
+          "training_seconds": 3.2738661000000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.011999964714050293,
+        "test_loss_increase": 0.02228105068206787,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.01852351427078247
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        48,
+        60
+      ],
+      "selected_set": [
+        48,
+        55,
+        60
+      ],
+      "selected_set_hash": "2171f4384a01793aeb0da3d617c61a9b6a960211c04b1bb8d26c4d619d7bd65f"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10470,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7960000038146973,
+          "test_loss": 0.8858259916305542,
+          "train_accuracy": 1.0,
+          "train_loss": 0.28883716464042664,
+          "validation_accuracy": 0.777999997138977,
+          "validation_loss": 0.921563982963562
+        },
+        "removed_directed_edges": 86,
+        "state_hash": "faad747624445bed2657ab247f06e9f7f94350521fd463ea4e6c9aacb0e5d4b1",
+        "training": {
+          "final_train_loss": 0.387521356344223,
+          "optimizer": "adam",
+          "training_seconds": 2.760957600000001
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.01891160011291504,
+        "validation_accuracy_drop": 0.016000032424926758,
+        "validation_loss_increase": 0.01581341028213501
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        48,
+        60,
+        79,
+        76,
+        32,
+        94
+      ],
+      "selected_set": [
+        32,
+        48,
+        55,
+        60,
+        76,
+        79,
+        94
+      ],
+      "selected_set_hash": "034e245f70d723ef0165e04130cd3078d8874f1e52650de46ec0bb2a51224c7d"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10330,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7940000295639038,
+          "test_loss": 0.9128612279891968,
+          "train_accuracy": 1.0,
+          "train_loss": 0.27956077456474304,
+          "validation_accuracy": 0.7879999876022339,
+          "validation_loss": 0.951460063457489
+        },
+        "removed_directed_edges": 226,
+        "state_hash": "6999479a27a426ab332957e537eaf3b3e068b4119b1b35eb67f54a54c92d3645",
+        "training": {
+          "final_train_loss": 0.3793782889842987,
+          "optimizer": "adam",
+          "training_seconds": 2.9729486000000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.022999942302703857,
+        "test_loss_increase": 0.04594683647155762,
+        "validation_accuracy_drop": 0.006000041961669922,
+        "validation_loss_increase": 0.04570949077606201
+      },
+      "family": "A",
+      "method": "a_grad_norm",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        48,
+        60,
+        79,
+        76,
+        32,
+        94,
+        69,
+        88,
+        86,
+        37,
+        118,
+        57,
+        49
+      ],
+      "selected_set": [
+        32,
+        37,
+        48,
+        49,
+        55,
+        57,
+        60,
+        69,
+        76,
+        79,
+        86,
+        88,
+        94,
+        118
+      ],
+      "selected_set_hash": "b97480b6034955b0845f5c93721fd4522f6a3d8cdce01cc5a4e7af611d38e73d"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10480,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8100000023841858,
+          "test_loss": 0.8732773065567017,
+          "train_accuracy": 1.0,
+          "train_loss": 0.32120195031166077,
+          "validation_accuracy": 0.7979999780654907,
+          "validation_loss": 0.9042667746543884
+        },
+        "removed_directed_edges": 76,
+        "state_hash": "91f5e96c4cd2ad0f1ce765f34cba5328107f8742c19c7aaec4af8bb94557a3f4",
+        "training": {
+          "final_train_loss": 0.40716201066970825,
+          "optimizer": "adam",
+          "training_seconds": 2.979513100000002
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.006999969482421875,
+        "test_loss_increase": 0.0063629150390625,
+        "validation_accuracy_drop": -0.003999948501586914,
+        "validation_loss_increase": -0.0014837980270385742
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        118
+      ],
+      "selected_set": [
+        55,
+        69,
+        118
+      ],
+      "selected_set_hash": "280501f7ceab34a7d7140dab0bfea2a433518f6c4f0cbee52719b1de8bef6647"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10442,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8050000071525574,
+          "test_loss": 0.8785514235496521,
+          "train_accuracy": 1.0,
+          "train_loss": 0.30275827646255493,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.9126878380775452
+        },
+        "removed_directed_edges": 114,
+        "state_hash": "794dc802a9e3c0e3074bb5cefed4cd6152e3ffc7368efe5a0f87643510117066",
+        "training": {
+          "final_train_loss": 0.39639243483543396,
+          "optimizer": "adam",
+          "training_seconds": 2.7881054000000027
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.011999964714050293,
+        "test_loss_increase": 0.01163703203201294,
+        "validation_accuracy_drop": 0.0020000338554382324,
+        "validation_loss_increase": 0.006937265396118164
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        118,
+        94,
+        76,
+        37,
+        21
+      ],
+      "selected_set": [
+        21,
+        37,
+        55,
+        69,
+        76,
+        94,
+        118
+      ],
+      "selected_set_hash": "284c5225df5aa56723e5b28d3e29040acb1a08c975f3ae6a8b90c564821d9839"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10320,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7990000247955322,
+          "test_loss": 0.9027273654937744,
+          "train_accuracy": 1.0,
+          "train_loss": 0.2735374867916107,
+          "validation_accuracy": 0.7739999890327454,
+          "validation_loss": 0.941119372844696
+        },
+        "removed_directed_edges": 236,
+        "state_hash": "b3b5ff68fa079b8629d406e868e73a1dddf83067489c4f8740c07a4983e0b581",
+        "training": {
+          "final_train_loss": 0.36871108412742615,
+          "optimizer": "adam",
+          "training_seconds": 2.8167721000000014
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.01799994707107544,
+        "test_loss_increase": 0.035812973976135254,
+        "validation_accuracy_drop": 0.020000040531158447,
+        "validation_loss_increase": 0.03536880016326904
+      },
+      "family": "B",
+      "method": "b_param_hutch",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        118,
+        94,
+        76,
+        37,
+        21,
+        32,
+        120,
+        48,
+        86,
+        88,
+        130,
+        49
+      ],
+      "selected_set": [
+        21,
+        32,
+        37,
+        48,
+        49,
+        55,
+        69,
+        76,
+        86,
+        88,
+        94,
+        118,
+        120,
+        130
+      ],
+      "selected_set_hash": "3bd141b7f9b0142d6afdb44cf695ef7e8ede81ab6f7418327ca61c20da70721d"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10512,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8109999895095825,
+          "test_loss": 0.8684198260307312,
+          "train_accuracy": 1.0,
+          "train_loss": 0.3169533312320709,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9108206629753113
+        },
+        "removed_directed_edges": 44,
+        "state_hash": "9c7f4831e6ac9505536170889cc0592e32258e778412ad7083631deec1472273",
+        "training": {
+          "final_train_loss": 0.40647804737091064,
+          "optimizer": "adam",
+          "training_seconds": 2.5781488999999986
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.0059999823570251465,
+        "test_loss_increase": 0.001505434513092041,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.005070090293884277
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        76
+      ],
+      "selected_set": [
+        55,
+        69,
+        76
+      ],
+      "selected_set_hash": "c6562fb14b06cee00c87cc4021b73d32d1de9f258e7bf6a4f88b47b0c0f5ce50"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10440,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7860000133514404,
+          "test_loss": 0.9032474756240845,
+          "train_accuracy": 1.0,
+          "train_loss": 0.3010193407535553,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.9399178624153137
+        },
+        "removed_directed_edges": 116,
+        "state_hash": "a816da1da4af42348fd5058e06b8675c1600c27cbe41a6eb3ebe13afe20eefca",
+        "training": {
+          "final_train_loss": 0.38879096508026123,
+          "optimizer": "adam",
+          "training_seconds": 2.3255782000000025
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.030999958515167236,
+        "test_loss_increase": 0.03633308410644531,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.03416728973388672
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        76,
+        118,
+        48,
+        37,
+        120
+      ],
+      "selected_set": [
+        37,
+        48,
+        55,
+        69,
+        76,
+        118,
+        120
+      ],
+      "selected_set_hash": "54950e8e0b8a83b3f1f3322a89d6217cdb5b58346c6229d3755df8d963a7470d"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10324,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7960000038146973,
+          "test_loss": 0.9191777110099792,
+          "train_accuracy": 1.0,
+          "train_loss": 0.2824993431568146,
+          "validation_accuracy": 0.7820000052452087,
+          "validation_loss": 0.9584243893623352
+        },
+        "removed_directed_edges": 232,
+        "state_hash": "2b5bcf159ed81aea00811f17abf3f95c3b3eb9e8dc2cc19871c41d10c068dd3e",
+        "training": {
+          "final_train_loss": 0.3817426860332489,
+          "optimizer": "adam",
+          "training_seconds": 2.5283526999999992
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.05226331949234009,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.0526738166809082
+      },
+      "family": "B",
+      "method": "b_param_lissa",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        55,
+        69,
+        76,
+        118,
+        48,
+        37,
+        120,
+        32,
+        94,
+        86,
+        60,
+        79,
+        88,
+        57
+      ],
+      "selected_set": [
+        32,
+        37,
+        48,
+        55,
+        57,
+        60,
+        69,
+        76,
+        79,
+        86,
+        88,
+        94,
+        118,
+        120
+      ],
+      "selected_set_hash": "14455ea5a6bb0e090dac0828b06b445e9ca40d32f070b47e73db3ebdd9660cea"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10378,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8130000233650208,
+          "test_loss": 0.8729293346405029,
+          "train_accuracy": 1.0,
+          "train_loss": 0.33304092288017273,
+          "validation_accuracy": 0.7979999780654907,
+          "validation_loss": 0.9073980450630188
+        },
+        "removed_directed_edges": 178,
+        "state_hash": "84ea24ab5a70b67bf2252c7e91545688a1c782f21fe4defe0b17ecb5ef5c9184",
+        "training": {
+          "final_train_loss": 0.4250740110874176,
+          "optimizer": "adam",
+          "training_seconds": 2.7304027999999967
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.003999948501586914,
+        "test_loss_increase": 0.0060149431228637695,
+        "validation_accuracy_drop": -0.003999948501586914,
+        "validation_loss_increase": 0.0016474723815917969
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        88,
+        109,
+        95
+      ],
+      "selected_set": [
+        88,
+        95,
+        109
+      ],
+      "selected_set_hash": "13419180f8293e7974ad2bb3ae26c9bf121765b0c9ca3abc7a601e4d83047146"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10270,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8080000281333923,
+          "test_loss": 0.8940572738647461,
+          "train_accuracy": 1.0,
+          "train_loss": 0.34345272183418274,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.9253119230270386
+        },
+        "removed_directed_edges": 286,
+        "state_hash": "6cbff6a67e46922094fbd784161aa91e7d1a1584546ca42b37f66626806910f1",
+        "training": {
+          "final_train_loss": 0.44424745440483093,
+          "optimizer": "adam",
+          "training_seconds": 2.420615699999999
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.008999943733215332,
+        "test_loss_increase": 0.027142882347106934,
+        "validation_accuracy_drop": 0.0040000081062316895,
+        "validation_loss_increase": 0.019561350345611572
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        88,
+        109,
+        95,
+        118,
+        55,
+        73,
+        94
+      ],
+      "selected_set": [
+        55,
+        73,
+        88,
+        94,
+        95,
+        109,
+        118
+      ],
+      "selected_set_hash": "ef9734b7202dac14f26e301c55074f0412e08dbef17de8505f0202dd1026400b"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10140,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7960000038146973,
+          "test_loss": 0.9154551029205322,
+          "train_accuracy": 1.0,
+          "train_loss": 0.32430630922317505,
+          "validation_accuracy": 0.7680000066757202,
+          "validation_loss": 0.9457612633705139
+        },
+        "removed_directed_edges": 416,
+        "state_hash": "5670934caca84b9b6c3bd817caba3b441df2288b26ed3af204c24eb371946243",
+        "training": {
+          "final_train_loss": 0.41780316829681396,
+          "optimizer": "adam",
+          "training_seconds": 2.660528300000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.048540711402893066,
+        "validation_accuracy_drop": 0.026000022888183594,
+        "validation_loss_increase": 0.040010690689086914
+      },
+      "family": "control",
+      "method": "degree",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        88,
+        109,
+        95,
+        118,
+        55,
+        73,
+        94,
+        59,
+        65,
+        89,
+        33,
+        48,
+        74,
+        133
+      ],
+      "selected_set": [
+        33,
+        48,
+        55,
+        59,
+        65,
+        73,
+        74,
+        88,
+        89,
+        94,
+        95,
+        109,
+        118,
+        133
+      ],
+      "selected_set_hash": "ce191956e6bb477febbc19a2167cfb8b2c90dc40196356165dd48c8fbee14d0b"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10478,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8159999847412109,
+          "test_loss": 0.8643847107887268,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33921879529953003,
+          "validation_accuracy": 0.7960000038146973,
+          "validation_loss": 0.9001123309135437
+        },
+        "removed_directed_edges": 78,
+        "state_hash": "fc942b122f741e272d0c2cb45f0154f0d92afa6ca2f44008dc73492915de8ccf",
+        "training": {
+          "final_train_loss": 0.4365832805633545,
+          "optimizer": "adam",
+          "training_seconds": 2.5380164000000036
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.0009999871253967285,
+        "test_loss_increase": -0.0025296807289123535,
+        "validation_accuracy_drop": -0.001999974250793457,
+        "validation_loss_increase": -0.005638241767883301
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54
+      ],
+      "selected_set": [
+        18,
+        54,
+        109
+      ],
+      "selected_set_hash": "3c1550ff5b54368d3e1c86335d00e01457d148770f29ea127637c55f2c069d04"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10452,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.796999990940094,
+          "test_loss": 0.894525408744812,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3250972032546997,
+          "validation_accuracy": 0.7720000147819519,
+          "validation_loss": 0.9420677423477173
+        },
+        "removed_directed_edges": 104,
+        "state_hash": "8c4b13806a1b9dbf802c6abafc2194e3d05f2e8decc386374c43b63fd77841cb",
+        "training": {
+          "final_train_loss": 0.42497166991233826,
+          "optimizer": "adam",
+          "training_seconds": 2.4036238999999995
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.019999980926513672,
+        "test_loss_increase": 0.02761101722717285,
+        "validation_accuracy_drop": 0.022000014781951904,
+        "validation_loss_increase": 0.03631716966629028
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54,
+        4,
+        8,
+        93,
+        57
+      ],
+      "selected_set": [
+        4,
+        8,
+        18,
+        54,
+        57,
+        93,
+        109
+      ],
+      "selected_set_hash": "5eb31369f1fd47a0bf47815860548101eed13c9e9c5bad2203a119b18144fa02"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10356,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7879999876022339,
+          "test_loss": 0.908319890499115,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.33071574568748474,
+          "validation_accuracy": 0.7639999985694885,
+          "validation_loss": 0.9528281092643738
+        },
+        "removed_directed_edges": 200,
+        "state_hash": "a9e13e269170938d870e50d33afa62261019f08a8bc16e3b4529dacff97d4774",
+        "training": {
+          "final_train_loss": 0.43774425983428955,
+          "optimizer": "adam",
+          "training_seconds": 2.6217663999999985
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.02899998426437378,
+        "test_loss_increase": 0.04140549898147583,
+        "validation_accuracy_drop": 0.030000030994415283,
+        "validation_loss_increase": 0.04707753658294678
+      },
+      "family": "C-GIF",
+      "method": "gt_full",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54,
+        4,
+        8,
+        93,
+        57,
+        52,
+        2,
+        104,
+        14,
+        95,
+        97,
+        111
+      ],
+      "selected_set": [
+        2,
+        4,
+        8,
+        14,
+        18,
+        52,
+        54,
+        57,
+        93,
+        95,
+        97,
+        104,
+        109,
+        111
+      ],
+      "selected_set_hash": "9d71daa248388b402b1934edb8c33b8aa91d5fe65e13bf4596d7b88be826f231"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10526,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.800000011920929,
+          "test_loss": 0.8970035910606384,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33391985297203064,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9367499351501465
+        },
+        "removed_directed_edges": 30,
+        "state_hash": "b0950c2ef5013f5561c1963a69aa4475707306204f54ffabd21e1abedf5786a9",
+        "training": {
+          "final_train_loss": 0.4328131675720215,
+          "optimizer": "adam",
+          "training_seconds": 2.484963399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.01699995994567871,
+        "test_loss_increase": 0.030089199542999268,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.030999362468719482
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45
+      ],
+      "selected_set": [
+        13,
+        24,
+        45
+      ],
+      "selected_set_hash": "efe8955264ec30aba687f300931a444fbe558a728e084efa15d2a0d26dd8ee8d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10496,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8009999990463257,
+          "test_loss": 0.9088069200515747,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3271009922027588,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.9519703984260559
+        },
+        "removed_directed_edges": 60,
+        "state_hash": "c385ea12df65a8bba083215ca3970b003e726ac6e6605c91fc9705d407dc5c5a",
+        "training": {
+          "final_train_loss": 0.42262548208236694,
+          "optimizer": "adam",
+          "training_seconds": 2.4812379999999976
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.015999972820281982,
+        "test_loss_increase": 0.04189252853393555,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.046219825744628906
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        2,
+        71,
+        27,
+        68
+      ],
+      "selected_set": [
+        2,
+        13,
+        24,
+        27,
+        45,
+        68,
+        71
+      ],
+      "selected_set_hash": "42a302745b5a1c4109d35cac44a5cd42388f42a5a84803dfc5db0b1572e551f2"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10420,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.753000020980835,
+          "test_loss": 0.9832572340965271,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.3035043776035309,
+          "validation_accuracy": 0.7400000095367432,
+          "validation_loss": 1.0318955183029175
+        },
+        "removed_directed_edges": 136,
+        "state_hash": "17fa569e7e8a9ce080763cd552f9bf58d60041e84498f74baf00309d074b1eac",
+        "training": {
+          "final_train_loss": 0.4098242521286011,
+          "optimizer": "adam",
+          "training_seconds": 2.3584514
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.0639999508857727,
+        "test_loss_increase": 0.11634284257888794,
+        "validation_accuracy_drop": 0.054000020027160645,
+        "validation_loss_increase": 0.12614494562149048
+      },
+      "family": "C-IF",
+      "method": "gt_simple",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        2,
+        71,
+        27,
+        68,
+        14,
+        49,
+        86,
+        48,
+        40,
+        94,
+        15
+      ],
+      "selected_set": [
+        2,
+        13,
+        14,
+        15,
+        24,
+        27,
+        40,
+        45,
+        48,
+        49,
+        68,
+        71,
+        86,
+        94
+      ],
+      "selected_set_hash": "e8101be42ccc76935a3e6113175f1bc1d58a7b6aec40d4739ed239e3abfa1b66"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10482,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8190000057220459,
+          "test_loss": 0.8646121621131897,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.32807669043540955,
+          "validation_accuracy": 0.7979999780654907,
+          "validation_loss": 0.8967846035957336
+        },
+        "removed_directed_edges": 74,
+        "state_hash": "48b24707ffe3fbc2133a88ca770f666fdd70d14fea49414a25495e7b3bef0152",
+        "training": {
+          "final_train_loss": 0.42076143622398376,
+          "optimizer": "adam",
+          "training_seconds": 2.378896900000001
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": -0.0020000338554382324,
+        "test_loss_increase": -0.002302229404449463,
+        "validation_accuracy_drop": -0.003999948501586914,
+        "validation_loss_increase": -0.00896596908569336
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        69,
+        94,
+        118
+      ],
+      "selected_set": [
+        69,
+        94,
+        118
+      ],
+      "selected_set_hash": "8523f3d49635c1db86704d0e98fe70e3f2331ab309febc14ad4553c1b58dfddc"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10430,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7910000085830688,
+          "test_loss": 0.8834165930747986,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.30750173330307007,
+          "validation_accuracy": 0.7879999876022339,
+          "validation_loss": 0.9050369262695312
+        },
+        "removed_directed_edges": 126,
+        "state_hash": "fbcd9efd6bc01117ed9c72b0209876db1866bf8f672dbe89d342de7d07e93e99",
+        "training": {
+          "final_train_loss": 0.39157530665397644,
+          "optimizer": "adam",
+          "training_seconds": 2.614403000000003
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.02599996328353882,
+        "test_loss_increase": 0.016502201557159424,
+        "validation_accuracy_drop": 0.006000041961669922,
+        "validation_loss_increase": -0.000713646411895752
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        69,
+        94,
+        118,
+        71,
+        116,
+        48,
+        73
+      ],
+      "selected_set": [
+        48,
+        69,
+        71,
+        73,
+        94,
+        116,
+        118
+      ],
+      "selected_set_hash": "7774f857ffd5b7d8c41aeb9454ca392446f74e0c5ea4e4edceb8ef0b4a0cd5aa"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10370,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7760000228881836,
+          "test_loss": 0.9054622650146484,
+          "train_accuracy": 1.0,
+          "train_loss": 0.29504212737083435,
+          "validation_accuracy": 0.7620000243186951,
+          "validation_loss": 0.9362525343894958
+        },
+        "removed_directed_edges": 186,
+        "state_hash": "c5504fabb552827488caf2b304f0aeadb76c631257b6cf8fde86b52903ea8bf0",
+        "training": {
+          "final_train_loss": 0.3753017485141754,
+          "optimizer": "adam",
+          "training_seconds": 2.530339100000006
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": -0.007142841815948486,
+        "test_accuracy_drop": 0.04099994897842407,
+        "test_loss_increase": 0.03854787349700928,
+        "validation_accuracy_drop": 0.03200000524520874,
+        "validation_loss_increase": 0.030501961708068848
+      },
+      "family": "legacy",
+      "method": "legacy",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        69,
+        94,
+        118,
+        71,
+        116,
+        48,
+        73,
+        101,
+        65,
+        110,
+        83,
+        5,
+        90,
+        68
+      ],
+      "selected_set": [
+        5,
+        48,
+        65,
+        68,
+        69,
+        71,
+        73,
+        83,
+        90,
+        94,
+        101,
+        110,
+        116,
+        118
+      ],
+      "selected_set_hash": "45c53544525b21433e85fdea505699d6f7970febe5f2a6b797055c85c3aea914"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10478,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8159999847412109,
+          "test_loss": 0.8643847107887268,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33921879529953003,
+          "validation_accuracy": 0.7960000038146973,
+          "validation_loss": 0.9001123309135437
+        },
+        "removed_directed_edges": 78,
+        "state_hash": "fc942b122f741e272d0c2cb45f0154f0d92afa6ca2f44008dc73492915de8ccf",
+        "training": {
+          "final_train_loss": 0.4365832805633545,
+          "optimizer": "adam",
+          "training_seconds": 2.5380164000000036
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.0009999871253967285,
+        "test_loss_increase": -0.0025296807289123535,
+        "validation_accuracy_drop": -0.001999974250793457,
+        "validation_loss_increase": -0.005638241767883301
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54
+      ],
+      "selected_set": [
+        18,
+        54,
+        109
+      ],
+      "selected_set_hash": "3c1550ff5b54368d3e1c86335d00e01457d148770f29ea127637c55f2c069d04"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10444,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7990000247955322,
+          "test_loss": 0.8875771164894104,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.33217209577560425,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.9274004697799683
+        },
+        "removed_directed_edges": 112,
+        "state_hash": "8980b13cde7be7605eaae7f4f839a53ed501bc45ad8de9bdf81818cab8a2a89f",
+        "training": {
+          "final_train_loss": 0.4325423240661621,
+          "optimizer": "adam",
+          "training_seconds": 2.6704395000000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.01799994707107544,
+        "test_loss_increase": 0.02066272497177124,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.02164989709854126
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54,
+        4,
+        93,
+        8,
+        52
+      ],
+      "selected_set": [
+        4,
+        8,
+        18,
+        52,
+        54,
+        93,
+        109
+      ],
+      "selected_set_hash": "d2014ea8337e5f7d5ff0ec68038a6a4dd037e8e059f8682780b6fb09af411279"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10356,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7829999923706055,
+          "test_loss": 0.9149842262268066,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.32678481936454773,
+          "validation_accuracy": 0.7599999904632568,
+          "validation_loss": 0.9586236476898193
+        },
+        "removed_directed_edges": 200,
+        "state_hash": "410fb5679b158712de072cca66b6b519aada3f2c3efe4ceb69d32206122d999c",
+        "training": {
+          "final_train_loss": 0.43200474977493286,
+          "optimizer": "adam",
+          "training_seconds": 2.3970370999999986
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.0339999794960022,
+        "test_loss_increase": 0.04806983470916748,
+        "validation_accuracy_drop": 0.03400003910064697,
+        "validation_loss_increase": 0.052873075008392334
+      },
+      "family": "C-GIF",
+      "method": "p_graph",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        109,
+        18,
+        54,
+        4,
+        93,
+        8,
+        52,
+        57,
+        2,
+        14,
+        104,
+        95,
+        84,
+        78
+      ],
+      "selected_set": [
+        2,
+        4,
+        8,
+        14,
+        18,
+        52,
+        54,
+        57,
+        78,
+        84,
+        93,
+        95,
+        104,
+        109
+      ],
+      "selected_set_hash": "87c73230bea356c043500191c1546cefd3b05a8241beeaa146a4472c3b7ae4a3"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10532,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7940000295639038,
+          "test_loss": 0.9014318585395813,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.32153791189193726,
+          "validation_accuracy": 0.7820000052452087,
+          "validation_loss": 0.9333099126815796
+        },
+        "removed_directed_edges": 24,
+        "state_hash": "f78fbbffe04eb5e3d44e481d0100c75d1d66e1717b8f77c6b9dcc3ac27611341",
+        "training": {
+          "final_train_loss": 0.42173266410827637,
+          "optimizer": "adam",
+          "training_seconds": 2.382054300000007
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.022999942302703857,
+        "test_loss_increase": 0.03451746702194214,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.027559340000152588
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48
+      ],
+      "selected_set": [
+        21,
+        48,
+        57
+      ],
+      "selected_set_hash": "a3640541dbf42d0cafe069c18d39fdf26e64d6df5489d9357d1623e0d2123a73"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10490,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7609999775886536,
+          "test_loss": 0.9783781170845032,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.31157416105270386,
+          "validation_accuracy": 0.75,
+          "validation_loss": 0.9998900294303894
+        },
+        "removed_directed_edges": 66,
+        "state_hash": "5a7cc4097a169980a9b0e40def82744142195092853542d1f335cb6e66e56e57",
+        "training": {
+          "final_train_loss": 0.40629908442497253,
+          "optimizer": "adam",
+          "training_seconds": 2.4221535000000074
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.0559999942779541,
+        "test_loss_increase": 0.11146372556686401,
+        "validation_accuracy_drop": 0.04400002956390381,
+        "validation_loss_increase": 0.0941394567489624
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48,
+        27,
+        30,
+        51,
+        4
+      ],
+      "selected_set": [
+        4,
+        21,
+        27,
+        30,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "68cf2377fbf774a56d560cbdef62766b999116d6017ebbd166500ba1f2333de4"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10436,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.597000002861023,
+          "test_loss": 1.2864352464675903,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.2833746671676636,
+          "validation_accuracy": 0.5960000157356262,
+          "validation_loss": 1.301939845085144
+        },
+        "removed_directed_edges": 120,
+        "state_hash": "62db66f650a1bb7c2055bb91c9e6880543593cf11a5d911cd3ceb905e885df05",
+        "training": {
+          "final_train_loss": 0.3814718425273895,
+          "optimizer": "adam",
+          "training_seconds": 2.302186700000007
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.21999996900558472,
+        "test_loss_increase": 0.41952085494995117,
+        "validation_accuracy_drop": 0.1980000138282776,
+        "validation_loss_increase": 0.39618927240371704
+      },
+      "family": "C-point",
+      "method": "p_point",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48,
+        27,
+        30,
+        51,
+        4,
+        14,
+        25,
+        45,
+        8,
+        15,
+        13,
+        40
+      ],
+      "selected_set": [
+        4,
+        8,
+        13,
+        14,
+        15,
+        21,
+        25,
+        27,
+        30,
+        40,
+        45,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "6280b02f6a210c600f445b10de794f3e317651823f2d10d024f80e411e7d9133"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10526,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.800000011920929,
+          "test_loss": 0.8970035910606384,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33391985297203064,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9367499351501465
+        },
+        "removed_directed_edges": 30,
+        "state_hash": "b0950c2ef5013f5561c1963a69aa4475707306204f54ffabd21e1abedf5786a9",
+        "training": {
+          "final_train_loss": 0.4328131675720215,
+          "optimizer": "adam",
+          "training_seconds": 2.484963399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.01699995994567871,
+        "test_loss_increase": 0.030089199542999268,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.030999362468719482
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45
+      ],
+      "selected_set": [
+        13,
+        24,
+        45
+      ],
+      "selected_set_hash": "efe8955264ec30aba687f300931a444fbe558a728e084efa15d2a0d26dd8ee8d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10496,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8009999990463257,
+          "test_loss": 0.9088069200515747,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3271009922027588,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.9519703984260559
+        },
+        "removed_directed_edges": 60,
+        "state_hash": "c385ea12df65a8bba083215ca3970b003e726ac6e6605c91fc9705d407dc5c5a",
+        "training": {
+          "final_train_loss": 0.42262548208236694,
+          "optimizer": "adam",
+          "training_seconds": 2.4812379999999976
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.015999972820281982,
+        "test_loss_increase": 0.04189252853393555,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.046219825744628906
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        2,
+        68,
+        71,
+        27
+      ],
+      "selected_set": [
+        2,
+        13,
+        24,
+        27,
+        45,
+        68,
+        71
+      ],
+      "selected_set_hash": "42a302745b5a1c4109d35cac44a5cd42388f42a5a84803dfc5db0b1572e551f2"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10420,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.753000020980835,
+          "test_loss": 0.9832572340965271,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.3035043776035309,
+          "validation_accuracy": 0.7400000095367432,
+          "validation_loss": 1.0318955183029175
+        },
+        "removed_directed_edges": 136,
+        "state_hash": "17fa569e7e8a9ce080763cd552f9bf58d60041e84498f74baf00309d074b1eac",
+        "training": {
+          "final_train_loss": 0.4098242521286011,
+          "optimizer": "adam",
+          "training_seconds": 2.3584514
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.0639999508857727,
+        "test_loss_increase": 0.11634284257888794,
+        "validation_accuracy_drop": 0.054000020027160645,
+        "validation_loss_increase": 0.12614494562149048
+      },
+      "family": "C-IF",
+      "method": "p_simple",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        2,
+        68,
+        71,
+        27,
+        14,
+        49,
+        86,
+        48,
+        40,
+        15,
+        94
+      ],
+      "selected_set": [
+        2,
+        13,
+        14,
+        15,
+        24,
+        27,
+        40,
+        45,
+        48,
+        49,
+        68,
+        71,
+        86,
+        94
+      ],
+      "selected_set_hash": "e8101be42ccc76935a3e6113175f1bc1d58a7b6aec40d4739ed239e3abfa1b66"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10532,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7940000295639038,
+          "test_loss": 0.9014318585395813,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.32153791189193726,
+          "validation_accuracy": 0.7820000052452087,
+          "validation_loss": 0.9333099126815796
+        },
+        "removed_directed_edges": 24,
+        "state_hash": "f78fbbffe04eb5e3d44e481d0100c75d1d66e1717b8f77c6b9dcc3ac27611341",
+        "training": {
+          "final_train_loss": 0.42173266410827637,
+          "optimizer": "adam",
+          "training_seconds": 2.382054300000007
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.022999942302703857,
+        "test_loss_increase": 0.03451746702194214,
+        "validation_accuracy_drop": 0.012000024318695068,
+        "validation_loss_increase": 0.027559340000152588
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48
+      ],
+      "selected_set": [
+        21,
+        48,
+        57
+      ],
+      "selected_set_hash": "a3640541dbf42d0cafe069c18d39fdf26e64d6df5489d9357d1623e0d2123a73"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10490,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7609999775886536,
+          "test_loss": 0.9783781170845032,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.31157416105270386,
+          "validation_accuracy": 0.75,
+          "validation_loss": 0.9998900294303894
+        },
+        "removed_directed_edges": 66,
+        "state_hash": "5a7cc4097a169980a9b0e40def82744142195092853542d1f335cb6e66e56e57",
+        "training": {
+          "final_train_loss": 0.40629908442497253,
+          "optimizer": "adam",
+          "training_seconds": 2.4221535000000074
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.0559999942779541,
+        "test_loss_increase": 0.11146372556686401,
+        "validation_accuracy_drop": 0.04400002956390381,
+        "validation_loss_increase": 0.0941394567489624
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48,
+        27,
+        30,
+        51,
+        4
+      ],
+      "selected_set": [
+        4,
+        21,
+        27,
+        30,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "68cf2377fbf774a56d560cbdef62766b999116d6017ebbd166500ba1f2333de4"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10436,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.597000002861023,
+          "test_loss": 1.2864352464675903,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.2833746671676636,
+          "validation_accuracy": 0.5960000157356262,
+          "validation_loss": 1.301939845085144
+        },
+        "removed_directed_edges": 120,
+        "state_hash": "62db66f650a1bb7c2055bb91c9e6880543593cf11a5d911cd3ceb905e885df05",
+        "training": {
+          "final_train_loss": 0.3814718425273895,
+          "optimizer": "adam",
+          "training_seconds": 2.302186700000007
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.21999996900558472,
+        "test_loss_increase": 0.41952085494995117,
+        "validation_accuracy_drop": 0.1980000138282776,
+        "validation_loss_increase": 0.39618927240371704
+      },
+      "family": "C-point",
+      "method": "r_point",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        57,
+        21,
+        48,
+        27,
+        30,
+        51,
+        4,
+        14,
+        25,
+        45,
+        8,
+        15,
+        13,
+        40
+      ],
+      "selected_set": [
+        4,
+        8,
+        13,
+        14,
+        15,
+        21,
+        25,
+        27,
+        30,
+        40,
+        45,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "6280b02f6a210c600f445b10de794f3e317651823f2d10d024f80e411e7d9133"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10488,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8169999718666077,
+          "test_loss": 0.8724545836448669,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.3388996720314026,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.9038035273551941
+        },
+        "removed_directed_edges": 68,
+        "state_hash": "04da6556cb253ff495ceca032b81ad907554fac61c0e9750e2ef6ddbdb6afc56",
+        "training": {
+          "final_train_loss": 0.4359806776046753,
+          "optimizer": "adam",
+          "training_seconds": 2.5928822999999994
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.0,
+        "test_loss_increase": 0.005540192127227783,
+        "validation_accuracy_drop": 0.0020000338554382324,
+        "validation_loss_increase": -0.0019470453262329102
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        75,
+        133,
+        118
+      ],
+      "selected_set": [
+        75,
+        118,
+        133
+      ],
+      "selected_set_hash": "c78e9a95cc465875f2d4c60cfbbf2de946b303d1ed66ad1282751f5d93c4375f"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10456,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8159999847412109,
+          "test_loss": 0.8730534911155701,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.33795005083084106,
+          "validation_accuracy": 0.7919999957084656,
+          "validation_loss": 0.902573823928833
+        },
+        "removed_directed_edges": 100,
+        "state_hash": "83ba3a9b916acd6ddb8459a903d21a5f7263f2457efea24ab18a57b3098cbf0e",
+        "training": {
+          "final_train_loss": 0.4387946128845215,
+          "optimizer": "adam",
+          "training_seconds": 2.4122554000000065
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.0009999871253967285,
+        "test_loss_increase": 0.006139099597930908,
+        "validation_accuracy_drop": 0.0020000338554382324,
+        "validation_loss_increase": -0.003176748752593994
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        75,
+        133,
+        118,
+        129,
+        123,
+        36,
+        100
+      ],
+      "selected_set": [
+        36,
+        75,
+        100,
+        118,
+        123,
+        129,
+        133
+      ],
+      "selected_set_hash": "20186153fb34758621f6c12aa160413503e39515711f0c0c85af1f9fde199304"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10400,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8220000267028809,
+          "test_loss": 0.8610725998878479,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.3201412260532379,
+          "validation_accuracy": 0.7900000214576721,
+          "validation_loss": 0.8921182155609131
+        },
+        "removed_directed_edges": 156,
+        "state_hash": "493a9efcf791631f97c24c693773c2011c0654038d999f01e97d13b870b5cf05",
+        "training": {
+          "final_train_loss": 0.4059070646762848,
+          "optimizer": "adam",
+          "training_seconds": 2.566376500000004
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": -0.005000054836273193,
+        "test_loss_increase": -0.00584179162979126,
+        "validation_accuracy_drop": 0.0040000081062316895,
+        "validation_loss_increase": -0.013632357120513916
+      },
+      "family": "control",
+      "method": "random",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        75,
+        133,
+        118,
+        129,
+        123,
+        36,
+        100,
+        20,
+        33,
+        107,
+        115,
+        122,
+        78,
+        42
+      ],
+      "selected_set": [
+        20,
+        33,
+        36,
+        42,
+        75,
+        78,
+        100,
+        107,
+        115,
+        118,
+        122,
+        123,
+        129,
+        133
+      ],
+      "selected_set_hash": "dd1f6367fa3135909d17a2884807c173843ea77c235e2240a7cb744d37d403f7"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10530,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7960000038146973,
+          "test_loss": 0.9007463455200195,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.3312242925167084,
+          "validation_accuracy": 0.7760000228881836,
+          "validation_loss": 0.9490659832954407
+        },
+        "removed_directed_edges": 26,
+        "state_hash": "08588362baabbb61da064f6e249584332aaa698a30eadd1bd0cc551949ca09ed",
+        "training": {
+          "final_train_loss": 0.4313865602016449,
+          "optimizer": "adam",
+          "training_seconds": 2.5534953999999885
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.03383195400238037,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.04331541061401367
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        4,
+        14
+      ],
+      "selected_set": [
+        4,
+        8,
+        14
+      ],
+      "selected_set_hash": "492cca9779c96d029670090880deb107363b48144809d2845fd2c4cf5bd84000"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10504,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7689999938011169,
+          "test_loss": 0.9590425491333008,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.31862810254096985,
+          "validation_accuracy": 0.75,
+          "validation_loss": 0.9889775514602661
+        },
+        "removed_directed_edges": 52,
+        "state_hash": "7ed378e983cc986a755a04e97e82288c8249be9414019a828f205d3920fc8302",
+        "training": {
+          "final_train_loss": 0.4184029996395111,
+          "optimizer": "adam",
+          "training_seconds": 2.621906800000005
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.04799997806549072,
+        "test_loss_increase": 0.09212815761566162,
+        "validation_accuracy_drop": 0.04400002956390381,
+        "validation_loss_increase": 0.08322697877883911
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        4,
+        14,
+        25,
+        21,
+        57,
+        51
+      ],
+      "selected_set": [
+        4,
+        8,
+        14,
+        21,
+        25,
+        51,
+        57
+      ],
+      "selected_set_hash": "974dfe90db5ac6d6aac7fc9abb0e7b51a0ba21bd1117efc877bb5546a4f35f78"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10378,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.6349999904632568,
+          "test_loss": 1.1481730937957764,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.30029717087745667,
+          "validation_accuracy": 0.6399999856948853,
+          "validation_loss": 1.1550312042236328
+        },
+        "removed_directed_edges": 178,
+        "state_hash": "c45f92afc1297d692f85a70ac74f46e41ca6fd0ed049ebca585fd25e128533bf",
+        "training": {
+          "final_train_loss": 0.39881113171577454,
+          "optimizer": "adam",
+          "training_seconds": 2.3545754000000017
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.18199998140335083,
+        "test_loss_increase": 0.2812587022781372,
+        "validation_accuracy_drop": 0.15400004386901855,
+        "validation_loss_increase": 0.2492806315422058
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        4,
+        14,
+        25,
+        21,
+        57,
+        51,
+        30,
+        19,
+        45,
+        109,
+        48,
+        18,
+        15
+      ],
+      "selected_set": [
+        4,
+        8,
+        14,
+        15,
+        18,
+        19,
+        21,
+        25,
+        30,
+        45,
+        48,
+        51,
+        57,
+        109
+      ],
+      "selected_set_hash": "83fb351988a652f09f9499c3038f69f53ed2fa75bb48d7bbfb00c8e365950b64"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10530,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7960000038146973,
+          "test_loss": 0.9007463455200195,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.3312242925167084,
+          "validation_accuracy": 0.7760000228881836,
+          "validation_loss": 0.9490659832954407
+        },
+        "removed_directed_edges": 26,
+        "state_hash": "08588362baabbb61da064f6e249584332aaa698a30eadd1bd0cc551949ca09ed",
+        "training": {
+          "final_train_loss": 0.4313865602016449,
+          "optimizer": "adam",
+          "training_seconds": 2.5534953999999885
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.0209999680519104,
+        "test_loss_increase": 0.03383195400238037,
+        "validation_accuracy_drop": 0.018000006675720215,
+        "validation_loss_increase": 0.04331541061401367
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        14,
+        4
+      ],
+      "selected_set": [
+        4,
+        8,
+        14
+      ],
+      "selected_set_hash": "492cca9779c96d029670090880deb107363b48144809d2845fd2c4cf5bd84000"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10452,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7820000052452087,
+          "test_loss": 0.9293195605278015,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3174002766609192,
+          "validation_accuracy": 0.7580000162124634,
+          "validation_loss": 0.9711705446243286
+        },
+        "removed_directed_edges": 104,
+        "state_hash": "6ab8e0606f1dd76d1db8f22342271e56f960b994fbaa2060b29c1b1e640526e1",
+        "training": {
+          "final_train_loss": 0.42169320583343506,
+          "optimizer": "adam",
+          "training_seconds": 2.5269885999999957
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.034999966621398926,
+        "test_loss_increase": 0.062405169010162354,
+        "validation_accuracy_drop": 0.03600001335144043,
+        "validation_loss_increase": 0.06541997194290161
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        14,
+        4,
+        25,
+        57,
+        109,
+        21
+      ],
+      "selected_set": [
+        4,
+        8,
+        14,
+        21,
+        25,
+        57,
+        109
+      ],
+      "selected_set_hash": "367c4ab3b5f403c5c03722ed666b277d5cdcec2a5b68aae772d7c767722d1568"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10382,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.6349999904632568,
+          "test_loss": 1.157530426979065,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.2943636476993561,
+          "validation_accuracy": 0.6439999938011169,
+          "validation_loss": 1.1678725481033325
+        },
+        "removed_directed_edges": 174,
+        "state_hash": "76b5a78d19d6a5a5ffb8c457e2475a64a8f4c840eb79ea8a547fdb4caeb9e767",
+        "training": {
+          "final_train_loss": 0.3978537917137146,
+          "optimizer": "adam",
+          "training_seconds": 2.3167087000000066
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.18199998140335083,
+        "test_loss_increase": 0.2906160354614258,
+        "validation_accuracy_drop": 0.15000003576278687,
+        "validation_loss_increase": 0.2621219754219055
+      },
+      "family": "C-GIF",
+      "method": "tracin_cp_graph_6",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        8,
+        14,
+        4,
+        25,
+        57,
+        109,
+        21,
+        30,
+        51,
+        19,
+        45,
+        48,
+        18,
+        13
+      ],
+      "selected_set": [
+        4,
+        8,
+        13,
+        14,
+        18,
+        19,
+        21,
+        25,
+        30,
+        45,
+        48,
+        51,
+        57,
+        109
+      ],
+      "selected_set_hash": "6eb50ab1f208f474fedb23e18035e076962a548e8f73eabb197f59f13a8356d0"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10522,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7929999828338623,
+          "test_loss": 0.9139723181724548,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.32723796367645264,
+          "validation_accuracy": 0.7799999713897705,
+          "validation_loss": 0.9327333569526672
+        },
+        "removed_directed_edges": 34,
+        "state_hash": "0fb8f193d64989e260d54985368ed1b5458fbf0f37f5ce29f0e705546d03980c",
+        "training": {
+          "final_train_loss": 0.42503681778907776,
+          "optimizer": "adam",
+          "training_seconds": 2.3714888999999886
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.02399998903274536,
+        "test_loss_increase": 0.047057926654815674,
+        "validation_accuracy_drop": 0.0140000581741333,
+        "validation_loss_increase": 0.026982784271240234
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21
+      ],
+      "selected_set": [
+        21,
+        48,
+        51
+      ],
+      "selected_set_hash": "9271ddc8f7fc8753f102f75ae94e6e703ec7ee35a843061ed538f6535960301d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10484,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7450000047683716,
+          "test_loss": 0.9904252290725708,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3167841136455536,
+          "validation_accuracy": 0.7419999837875366,
+          "validation_loss": 0.9930755496025085
+        },
+        "removed_directed_edges": 72,
+        "state_hash": "33cfbcdbce24123bf9b6816e9a18ddcc360f39c578f6e19062a3374a7d96a169",
+        "training": {
+          "final_train_loss": 0.41344934701919556,
+          "optimizer": "adam",
+          "training_seconds": 2.3680816999999905
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.07199996709823608,
+        "test_loss_increase": 0.12351083755493164,
+        "validation_accuracy_drop": 0.05200004577636719,
+        "validation_loss_increase": 0.08732497692108154
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21,
+        30,
+        27,
+        25,
+        4
+      ],
+      "selected_set": [
+        4,
+        21,
+        25,
+        27,
+        30,
+        48,
+        51
+      ],
+      "selected_set_hash": "69722b63c9bd8e4966e97f968c2947c833b538e0e5175c076b01a210bddcfe72"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10434,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.5910000205039978,
+          "test_loss": 1.2900805473327637,
+          "train_accuracy": 0.9841269850730896,
+          "train_loss": 0.2951538562774658,
+          "validation_accuracy": 0.593999981880188,
+          "validation_loss": 1.2939327955245972
+        },
+        "removed_directed_edges": 122,
+        "state_hash": "d0805adc2baaa4632fb89879d7624c1b9ed6891eeedb41a48c10685d7a25e806",
+        "training": {
+          "final_train_loss": 0.3852759301662445,
+          "optimizer": "adam",
+          "training_seconds": 2.361707999999993
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.008730173110961914,
+        "test_accuracy_drop": 0.22599995136260986,
+        "test_loss_increase": 0.4231661558151245,
+        "validation_accuracy_drop": 0.20000004768371582,
+        "validation_loss_increase": 0.38818222284317017
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21,
+        30,
+        27,
+        25,
+        4,
+        57,
+        14,
+        45,
+        40,
+        8,
+        15,
+        0
+      ],
+      "selected_set": [
+        0,
+        4,
+        8,
+        14,
+        15,
+        21,
+        25,
+        27,
+        30,
+        40,
+        45,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "dcae74c3b99d2122d829b3b5d918e5745b8a126e1969fd150be014fea5d8b0f6"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10522,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7929999828338623,
+          "test_loss": 0.9139723181724548,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.32723796367645264,
+          "validation_accuracy": 0.7799999713897705,
+          "validation_loss": 0.9327333569526672
+        },
+        "removed_directed_edges": 34,
+        "state_hash": "0fb8f193d64989e260d54985368ed1b5458fbf0f37f5ce29f0e705546d03980c",
+        "training": {
+          "final_train_loss": 0.42503681778907776,
+          "optimizer": "adam",
+          "training_seconds": 2.3714888999999886
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.02399998903274536,
+        "test_loss_increase": 0.047057926654815674,
+        "validation_accuracy_drop": 0.0140000581741333,
+        "validation_loss_increase": 0.026982784271240234
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21
+      ],
+      "selected_set": [
+        21,
+        48,
+        51
+      ],
+      "selected_set_hash": "9271ddc8f7fc8753f102f75ae94e6e703ec7ee35a843061ed538f6535960301d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10492,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7540000081062317,
+          "test_loss": 0.9878934621810913,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3107435703277588,
+          "validation_accuracy": 0.7540000081062317,
+          "validation_loss": 0.994971513748169
+        },
+        "removed_directed_edges": 64,
+        "state_hash": "2f28597d0af05a724038b432cfcdd890d19a04ea975a0050c9711267bce80dd6",
+        "training": {
+          "final_train_loss": 0.4064655005931854,
+          "optimizer": "adam",
+          "training_seconds": 2.3317815000000053
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.06299996376037598,
+        "test_loss_increase": 0.12097907066345215,
+        "validation_accuracy_drop": 0.04000002145767212,
+        "validation_loss_increase": 0.08922094106674194
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21,
+        30,
+        57,
+        27,
+        25
+      ],
+      "selected_set": [
+        21,
+        25,
+        27,
+        30,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "e464c4439eee7c07b3c7d2815bb95e957efd25178fcca57787c53c529b6d793d"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10438,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.5979999899864197,
+          "test_loss": 1.2620326280593872,
+          "train_accuracy": 0.9841269850730896,
+          "train_loss": 0.2928009629249573,
+          "validation_accuracy": 0.6000000238418579,
+          "validation_loss": 1.2722437381744385
+        },
+        "removed_directed_edges": 118,
+        "state_hash": "52353fa7e96a8293461189a19da9a61853127606f7762a57865171afc9219be4",
+        "training": {
+          "final_train_loss": 0.3861391246318817,
+          "optimizer": "adam",
+          "training_seconds": 2.5129811000000046
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.008730173110961914,
+        "test_accuracy_drop": 0.218999981880188,
+        "test_loss_increase": 0.39511823654174805,
+        "validation_accuracy_drop": 0.1940000057220459,
+        "validation_loss_increase": 0.3664931654930115
+      },
+      "family": "C-point",
+      "method": "tracin_cp_point_6",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        48,
+        51,
+        21,
+        30,
+        57,
+        27,
+        25,
+        4,
+        14,
+        45,
+        8,
+        15,
+        40,
+        19
+      ],
+      "selected_set": [
+        4,
+        8,
+        14,
+        15,
+        19,
+        21,
+        25,
+        27,
+        30,
+        40,
+        45,
+        48,
+        51,
+        57
+      ],
+      "selected_set_hash": "272ac6f386fbea73c35770a9d1acc44186c10447d244e1aad38607d8b0235307"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10526,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.800000011920929,
+          "test_loss": 0.8970035910606384,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33391985297203064,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9367499351501465
+        },
+        "removed_directed_edges": 30,
+        "state_hash": "b0950c2ef5013f5561c1963a69aa4475707306204f54ffabd21e1abedf5786a9",
+        "training": {
+          "final_train_loss": 0.4328131675720215,
+          "optimizer": "adam",
+          "training_seconds": 2.484963399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.01699995994567871,
+        "test_loss_increase": 0.030089199542999268,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.030999362468719482
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45
+      ],
+      "selected_set": [
+        13,
+        24,
+        45
+      ],
+      "selected_set_hash": "efe8955264ec30aba687f300931a444fbe558a728e084efa15d2a0d26dd8ee8d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10494,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7910000085830688,
+          "test_loss": 0.9112848043441772,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.32742127776145935,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9562128186225891
+        },
+        "removed_directed_edges": 62,
+        "state_hash": "ce154562d852e270ca2a3187e53acf1a2fc2998cc1f7d3f362014872e302da76",
+        "training": {
+          "final_train_loss": 0.426061749458313,
+          "optimizer": "adam",
+          "training_seconds": 2.4614561000000066
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.02599996328353882,
+        "test_loss_increase": 0.044370412826538086,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.05046224594116211
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        68,
+        2,
+        71,
+        14
+      ],
+      "selected_set": [
+        2,
+        13,
+        14,
+        24,
+        45,
+        68,
+        71
+      ],
+      "selected_set_hash": "8f89a0f591385b78b6a0cb49dc8c000df14e2f7f2328374e65e9c00a407772bc"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10422,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.7459999918937683,
+          "test_loss": 0.9965326189994812,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.3030620813369751,
+          "validation_accuracy": 0.7160000205039978,
+          "validation_loss": 1.050452470779419
+        },
+        "removed_directed_edges": 134,
+        "state_hash": "89b6b30380cd9b423fc01980213c945b37c35c5efb3016dc91cdc1111a1d9ee0",
+        "training": {
+          "final_train_loss": 0.40879184007644653,
+          "optimizer": "adam",
+          "training_seconds": 2.3349244999999996
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.07099997997283936,
+        "test_loss_increase": 0.12961822748184204,
+        "validation_accuracy_drop": 0.078000009059906,
+        "validation_loss_increase": 0.14470189809799194
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_3",
+      "reused_identical_selected_set": false,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        68,
+        2,
+        71,
+        14,
+        27,
+        48,
+        49,
+        86,
+        40,
+        94,
+        8
+      ],
+      "selected_set": [
+        2,
+        8,
+        13,
+        14,
+        24,
+        27,
+        40,
+        45,
+        48,
+        49,
+        68,
+        71,
+        86,
+        94
+      ],
+      "selected_set_hash": "be4b4061edc1b10edcd6884fc25d36338ef3befba0bd9d3198c8abb613e52037"
+    },
+    {
+      "budget": 3,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10526,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.800000011920929,
+          "test_loss": 0.8970035910606384,
+          "train_accuracy": 0.9927007555961609,
+          "train_loss": 0.33391985297203064,
+          "validation_accuracy": 0.7860000133514404,
+          "validation_loss": 0.9367499351501465
+        },
+        "removed_directed_edges": 30,
+        "state_hash": "b0950c2ef5013f5561c1963a69aa4475707306204f54ffabd21e1abedf5786a9",
+        "training": {
+          "final_train_loss": 0.4328131675720215,
+          "optimizer": "adam",
+          "training_seconds": 2.484963399999998
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.000156402587890625,
+        "test_accuracy_drop": 0.01699995994567871,
+        "test_loss_increase": 0.030089199542999268,
+        "validation_accuracy_drop": 0.008000016212463379,
+        "validation_loss_increase": 0.030999362468719482
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45
+      ],
+      "selected_set": [
+        13,
+        24,
+        45
+      ],
+      "selected_set_hash": "efe8955264ec30aba687f300931a444fbe558a728e084efa15d2a0d26dd8ee8d"
+    },
+    {
+      "budget": 7,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10496,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.8009999990463257,
+          "test_loss": 0.9088069200515747,
+          "train_accuracy": 0.9924812316894531,
+          "train_loss": 0.3271009922027588,
+          "validation_accuracy": 0.7839999794960022,
+          "validation_loss": 0.9519703984260559
+        },
+        "removed_directed_edges": 60,
+        "state_hash": "c385ea12df65a8bba083215ca3970b003e726ac6e6605c91fc9705d407dc5c5a",
+        "training": {
+          "final_train_loss": 0.42262548208236694,
+          "optimizer": "adam",
+          "training_seconds": 2.4812379999999976
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.00037592649459838867,
+        "test_accuracy_drop": 0.015999972820281982,
+        "test_loss_increase": 0.04189252853393555,
+        "validation_accuracy_drop": 0.010000050067901611,
+        "validation_loss_increase": 0.046219825744628906
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        68,
+        2,
+        71,
+        27
+      ],
+      "selected_set": [
+        2,
+        13,
+        24,
+        27,
+        45,
+        68,
+        71
+      ],
+      "selected_set_hash": "42a302745b5a1c4109d35cac44a5cd42388f42a5a84803dfc5db0b1572e551f2"
+    },
+    {
+      "budget": 14,
+      "dataset": "Cora",
+      "deleted_model": {
+        "edge_count_after": 10420,
+        "edge_count_before": 10556,
+        "metrics": {
+          "test_accuracy": 0.753000020980835,
+          "test_loss": 0.9832572340965271,
+          "train_accuracy": 0.9920634627342224,
+          "train_loss": 0.3035043776035309,
+          "validation_accuracy": 0.7400000095367432,
+          "validation_loss": 1.0318955183029175
+        },
+        "removed_directed_edges": 136,
+        "state_hash": "17fa569e7e8a9ce080763cd552f9bf58d60041e84498f74baf00309d074b1eac",
+        "training": {
+          "final_train_loss": 0.4098242521286011,
+          "optimizer": "adam",
+          "training_seconds": 2.3584514
+        }
+      },
+      "effect": {
+        "retained_train_accuracy_drop": 0.0007936954498291016,
+        "test_accuracy_drop": 0.0639999508857727,
+        "test_loss_increase": 0.11634284257888794,
+        "validation_accuracy_drop": 0.054000020027160645,
+        "validation_loss_increase": 0.12614494562149048
+      },
+      "family": "C-IF",
+      "method": "tracin_cp_simple_6",
+      "reused_identical_selected_set": true,
+      "seed": 212,
+      "selected_rank_order": [
+        13,
+        24,
+        45,
+        68,
+        2,
+        71,
+        27,
+        14,
+        48,
+        49,
+        86,
+        40,
+        94,
+        15
+      ],
+      "selected_set": [
+        2,
+        13,
+        14,
+        15,
+        24,
+        27,
+        40,
+        45,
+        48,
+        49,
+        68,
+        71,
+        86,
+        94
+      ],
+      "selected_set_hash": "e8101be42ccc76935a3e6113175f1bc1d58a7b6aec40d4739ed239e3abfa1b66"
+    }
+  ],
+  "runtime": {
+    "total_seconds": 107.1097437
+  },
+  "schema": "bc_target_v2.downstream_summary",
+  "seed": 212,
+  "selection_artifact_id": "score_46167175_175575a6",
+  "selection_content_hash": "175575a67966077658f75f1de70046ed030b96b2eb9d5a5f61c5901e31248895",
+  "selection_summary": "C:\\Users\\ADMIN\\.codex\\worktrees\\if-target-comparison-plan\\OpenGU\\GULib-master\\results\\bc_target_v2\\selection\\cora_gcn_seed212_selection.json",
+  "unique_selected_sets_trained": 41,
+  "version": 1
+}

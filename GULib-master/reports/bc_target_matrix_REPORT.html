@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>B/C Influence Target Matrix</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / B–C MATRIX</div>
+    <div class="side-title">B/C Influence Target Matrix</div>
+    <span class="badge">ACCEPTED · LOCAL MATRIX</span>
+    <nav><a class="" href="#verdict">Verdict</a>
+<a class="" href="#acceptance-scope">Acceptance scope</a>
+<a class="" href="#objective-hierarchy">Objective hierarchy</a>
+<a class="" href="#full-method-matrix">Full method matrix</a>
+<a class="sub" href="#controls-a-and-b">Controls, A and B</a>
+<a class="sub" href="#complete-c-configurations">Complete C configurations</a>
+<a class="" href="#experiment-matrix-coverage">Experiment matrix coverage</a>
+<a class="" href="#selection-results">Selection results</a>
+<a class="sub" href="#b-approximation-and-target-level-separation">B approximation and target-level separation</a>
+<a class="sub" href="#same-source-hessian-removal">Same-source Hessian removal</a>
+<a class="sub" href="#source-mismatch">Source mismatch</a>
+<a class="sub" href="#checkpoint-ablation">Checkpoint ablation</a>
+<a class="sub" href="#dataset-detail-at-k-7">Dataset detail at k=7</a>
+<a class="" href="#set-level-downstream-configuration">Set-level downstream configuration</a>
+<a class="" href="#downstream-results">Downstream results</a>
+<a class="sub" href="#coverage-and-runtime">Coverage and runtime</a>
+<a class="sub" href="#global-outcome-by-budget">Global outcome by budget</a>
+<a class="sub" href="#complete-c-result-at-k-7">Complete C result at k=7</a>
+<a class="sub" href="#proxy-reference-outcome-preservation">Proxy/reference outcome preservation</a>
+<a class="sub" href="#fidelity-is-not-finite-set-optimality">Fidelity is not finite-set optimality</a>
+<a class="sub" href="#dataset-specific-k-7-winners">Dataset-specific k=7 winners</a>
+<a class="sub" href="#b-outcome">B outcome</a>
+<a class="" href="#cache-v2-and-provenance">Cache V2 and provenance</a>
+<a class="sub" href="#score-artifacts">Score Artifacts</a>
+<a class="sub" href="#legacy-cache-isolation">Legacy cache isolation</a>
+<a class="" href="#reproduction">Reproduction</a>
+<a class="" href="#limits-and-next-extension">Limits and next extension</a>
+<a class="" href="#acceptance-decision">Acceptance decision</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">9 SELECTION CELLS · 486 DOWNSTREAM ROWS · CACHE V2</div>
+      <h1>B/C Influence Target Matrix</h1>
+    </section>
+    <article><h1 id="b-c-influence-target-selection-and-set-deletion-matrix">B/C Influence Target Selection and Set-Deletion Matrix</h1>
+<h2 id="verdict">Verdict</h2>
+<p>本地 B/C 实验已完成以下闭环：</p>
+<ul>
+<li>3 个 Planetoid 数据集；</li>
+<li>3 个确定性 seed；</li>
+<li>18 个完整 score/ranking 方法；</li>
+<li>k=3/7/14 三个删除预算；</li>
+<li>9 个正式 Cache V2 Score Artifacts；</li>
+<li>每个方法-预算的集合级删点、删边、重新训练验证；</li>
+<li>不执行逐候选 exact retrain。</li>
+</ul>
+<p>Selection 层的核心结论：</p>
+<ol>
+<li>B-Hutchinson 对 B-LiSSA 的全排序 Spearman 为 <code>0.968</code>，说明 target-free parameter-change IF 可以被共享 probe 有效近似。</li>
+<li>B-LiSSA 与 C-GIF 的 Spearman 仅 <code>0.023</code>，说明“参数移动大”与“伤害目标 E”不是同一排序。</li>
+<li>固定 source 后，single-final Hessian-free proxy 很可靠：<ul>
+<li>point：Spearman <code>0.969</code>；</li>
+<li>simple：<code>0.958</code>；</li>
+<li>graph：<code>0.984</code>。</li>
+</ul>
+</li>
+<li><code>gt_simple</code> 与 <code>gt_full</code> 的 Spearman 只有 <code>0.040</code>；删除图引起的邻居梯度变化不能默认忽略。</li>
+<li>3/6-checkpoint graph trajectory 对 final <code>gt_full</code> 的 Spearman 仅 <code>0.498/0.529</code>，多 checkpoint 没有自动优于 single-final <code>p_graph</code>。</li>
+</ol>
+<p>下游层单独回答：这些排名形成的 top-k 集合真正删掉并重训练后，validation target 与 test utility 如何变化。它不把 GIF reference overlap 当成真实 outcome 的替代。</p>
+<p>下游结论是：<code>p_graph</code> 与 <code>gt_full</code> 的实际效果几乎相同，证明其 proxy fidelity 确实传递到选中集合；但 validation damage 最大的通常是 point/checkpoint selector。k=7 时 <code>tracin_cp_point_6</code> 的 mean validation-loss increase 为 <code>0.0707</code>，而 <code>gt_full</code> 为 <code>0.0118</code>。因此“最像 final GIF”和“最能破坏有限 top-k 集合”必须作为两个轴报告。</p>
+<h2 id="acceptance-scope">Acceptance scope</h2>
+<table>
+<thead>
+<tr>
+  <th>Item</th>
+  <th>Accepted setting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td>Planetoid Cora / CiteSeer / PubMed</td>
+</tr>
+<tr>
+  <td>Model</td>
+  <td>two-layer GCN</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td>42 / 212 / 2024</td>
+</tr>
+<tr>
+  <td>Candidate pool</td>
+  <td>standard <code>train_mask</code></td>
+</tr>
+<tr>
+  <td>Target E</td>
+  <td><code>val_mask</code> mean cross-entropy</td>
+</tr>
+<tr>
+  <td>Test labels</td>
+  <td>selection 完成后只作 utility</td>
+</tr>
+<tr>
+  <td>Budgets</td>
+  <td>3 / 7 / 14</td>
+</tr>
+<tr>
+  <td>Training</td>
+  <td>Adam, 200 epochs, lr 0.01, wd 0.0005</td>
+</tr>
+<tr>
+  <td>Hidden / dropout</td>
+  <td>16 / 0.5</td>
+</tr>
+<tr>
+  <td>Schedule</td>
+  <td>milestones 100/150, gamma 0.5</td>
+</tr>
+<tr>
+  <td>Checkpoints</td>
+  <td>1 / 10 / 25 / 50 / 100 / 200</td>
+</tr>
+<tr>
+  <td>3-checkpoint view</td>
+  <td>1 / 50 / 200</td>
+</tr>
+<tr>
+  <td>Affected set</td>
+  <td>candidate + undirected two-hop nodes</td>
+</tr>
+<tr>
+  <td>IHVP</td>
+  <td>LiSSA 20, scale 25, damp 0.01</td>
+</tr>
+<tr>
+  <td>B-Hutchinson</td>
+  <td>32 Rademacher probes, seed 1729</td>
+</tr>
+<tr>
+  <td>Ranking</td>
+  <td>score descending, node ID ascending</td>
+</tr>
+<tr>
+  <td>Per-candidate exact retrain</td>
+  <td>not performed</td>
+</tr>
+</tbody>
+</table>
+<p>Candidate counts are 140 for Cora, 120 for CiteSeer, and 60 for PubMed. Each dataset uses 500 validation nodes as E.</p>
+<h2 id="objective-hierarchy">Objective hierarchy</h2>
+<table>
+<thead>
+<tr>
+  <th>Layer</th>
+  <th>Score</th>
+  <th>Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A</td>
+  <td>(\lVert g_v\rVert)</td>
+  <td>训练梯度本身多大</td>
+</tr>
+<tr>
+  <td>B</td>
+  <td>(\lVert H^{-1}g_v\rVert)</td>
+  <td>删除后参数预计移动多远</td>
+</tr>
+<tr>
+  <td>C</td>
+  <td>(q_v^\top H^{-1}g_E)</td>
+  <td>这次移动是否伤害目标 E</td>
+</tr>
+</tbody>
+</table>
+<p>B 不需要额外 target loss，因为它的目标就是 parameter displacement magnitude。C 需要 (g_E)，因为它把参数变化投影到一个指定的 evaluation/query 方向。</p>
+<h2 id="full-method-matrix">Full method matrix</h2>
+<h3 id="controls-a-and-b">Controls, A and B</h3>
+<table>
+<thead>
+<tr>
+  <th>Family</th>
+  <th>Method</th>
+  <th>Definition</th>
+  <th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>control</td>
+  <td><code>random</code></td>
+  <td>deterministic seeded random</td>
+  <td>budget-matched control</td>
+</tr>
+<tr>
+  <td>control</td>
+  <td><code>degree</code></td>
+  <td>candidate degree</td>
+  <td>structural control</td>
+</tr>
+<tr>
+  <td>A</td>
+  <td><code>a_grad_norm</code></td>
+  <td>(\lVert g_v\rVert)</td>
+  <td>gradient magnitude</td>
+</tr>
+<tr>
+  <td>B</td>
+  <td><code>b_param_lissa</code></td>
+  <td>(\lVert H^{-1}g_v\rVert)</td>
+  <td>parameter-change reference</td>
+</tr>
+<tr>
+  <td>B</td>
+  <td><code>b_param_hutch</code></td>
+  <td>shared-probe norm estimate</td>
+  <td>scalable B proxy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="complete-c-configurations">Complete C configurations</h3>
+<table>
+<thead>
+<tr>
+  <th>Source</th>
+  <th>Hessian reference</th>
+  <th>Single-final proxy</th>
+  <th>3 checkpoints</th>
+  <th>6 checkpoints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>point (g_v)</td>
+  <td><code>r_point</code></td>
+  <td><code>p_point</code></td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td><code>tracin_cp_point_6</code></td>
+</tr>
+<tr>
+  <td>simple (a_v=\mathrm{grad1})</td>
+  <td><code>gt_simple</code></td>
+  <td><code>p_simple</code></td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td><code>tracin_cp_simple_6</code></td>
+</tr>
+<tr>
+  <td>full graph (q_v=\mathrm{grad1}-\mathrm{grad2})</td>
+  <td><code>gt_full</code></td>
+  <td><code>p_graph</code></td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td><code>tracin_cp_graph_6</code></td>
+</tr>
+</tbody>
+</table>
+<p>Reference and proxy definitions:</p>
+<p>[
+\begin{aligned}
+\text{point IF} &amp;: \langle g_v,H^{-1}g_E\rangle,\
+\text{simple IF} &amp;: \langle a_v,H^{-1}g_E\rangle,\
+\text{full GIF} &amp;: \langle q_v,H^{-1}g_E\rangle,\
+\text{single-final proxy} &amp;: \langle \text{same source},g_E\rangle,\
+\text{checkpoint proxy} &amp;: \sum_c w_c\langle \text{source}(\theta_c),g_E(\theta_c)\rangle.
+\end{aligned}
+]</p>
+<p><code>legacy = &lt;g_v, -sum_j g_j&gt;</code> is retained as a training-residual negative control. Only point checkpoint variants correspond closely to standard TracInCP; simple and graph versions are project-specific graph-source ablations.</p>
+<h2 id="experiment-matrix-coverage">Experiment matrix coverage</h2>
+<table>
+<thead>
+<tr>
+  <th>Layer</th>
+  <th style="text-align:right">Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dataset-seed selection cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>Methods per cell</td>
+  <td style="text-align:right">18</td>
+</tr>
+<tr>
+  <td>Complete rankings</td>
+  <td style="text-align:right">162</td>
+</tr>
+<tr>
+  <td>C rankings</td>
+  <td style="text-align:right">108</td>
+</tr>
+<tr>
+  <td>Budgets per ranking</td>
+  <td style="text-align:right">3</td>
+</tr>
+<tr>
+  <td>Pre-registered selection comparison rows</td>
+  <td style="text-align:right">378</td>
+</tr>
+<tr>
+  <td>Dataset-seed downstream cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>Downstream method-budget rows</td>
+  <td style="text-align:right">486</td>
+</tr>
+</tbody>
+</table>
+<p>k does not enter Score Artifact identity. One complete ranking per method is safely reused for k=3/7/14.</p>
+<h2 id="selection-results">Selection results</h2>
+<h3 id="b-approximation-and-target-level-separation">B approximation and target-level separation</h3>
+<p>Global means over 9 dataset-seed cells:</p>
+<table>
+<thead>
+<tr>
+  <th>Comparison</th>
+  <th style="text-align:right">k</th>
+  <th style="text-align:right">Common</th>
+  <th style="text-align:right">Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.741</td>
+  <td style="text-align:right">0.656</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.778</td>
+  <td style="text-align:right">0.684</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.881</td>
+  <td style="text-align:right">0.793</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.704</td>
+  <td style="text-align:right">0.578</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.810</td>
+  <td style="text-align:right">0.696</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.841</td>
+  <td style="text-align:right">0.735</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.185</td>
+  <td style="text-align:right">0.111</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.175</td>
+  <td style="text-align:right">0.104</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.262</td>
+  <td style="text-align:right">0.159</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+</tbody>
+</table>
+<p>The B proxy succeeds. The B/C disagreement is therefore a semantic target difference, not evidence that the B approximation failed.</p>
+<h3 id="same-source-hessian-removal">Same-source Hessian removal</h3>
+<table>
+<thead>
+<tr>
+  <th>Proxy vs reference</th>
+  <th>k=3 common / J</th>
+  <th>k=7 common / J</th>
+  <th>k=14 common / J</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td>1.000 / 1.000</td>
+  <td>0.889 / 0.812</td>
+  <td>0.937 / 0.897</td>
+  <td style="text-align:right">0.969</td>
+</tr>
+<tr>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td>0.926 / 0.911</td>
+  <td>0.921 / 0.878</td>
+  <td>0.976 / 0.956</td>
+  <td style="text-align:right">0.958</td>
+</tr>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td>0.926 / 0.889</td>
+  <td>0.905 / 0.833</td>
+  <td>0.929 / 0.870</td>
+  <td style="text-align:right">0.984</td>
+</tr>
+</tbody>
+</table>
+<p>The graph-aware final proxy is the strongest accepted approximation to the full GIF reference.</p>
+<h3 id="source-mismatch">Source mismatch</h3>
+<table>
+<thead>
+<tr>
+  <th>Comparison</th>
+  <th>k=3 common / J</th>
+  <th>k=7 common / J</th>
+  <th>k=14 common / J</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>gt_simple</code> vs <code>gt_full</code></td>
+  <td>0.111 / 0.067</td>
+  <td>0.111 / 0.066</td>
+  <td>0.151 / 0.085</td>
+  <td style="text-align:right">0.040</td>
+</tr>
+<tr>
+  <td><code>r_point</code> vs <code>gt_full</code></td>
+  <td>0.148 / 0.089</td>
+  <td>0.190 / 0.107</td>
+  <td>0.262 / 0.154</td>
+  <td style="text-align:right">0.112</td>
+</tr>
+</tbody>
+</table>
+<p>Skipping <code>grad2</code> or using only the candidate gradient changes the source object. High point-IF fidelity does not imply full-GIF fidelity.</p>
+<h3 id="checkpoint-ablation">Checkpoint ablation</h3>
+<table>
+<thead>
+<tr>
+  <th>Checkpoint proxy vs same-source reference</th>
+  <th style="text-align:right">k=7 common</th>
+  <th style="text-align:right">k=7 Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">0.746</td>
+  <td style="text-align:right">0.607</td>
+  <td style="text-align:right">0.901</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.762</td>
+  <td style="text-align:right">0.625</td>
+  <td style="text-align:right">0.903</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">0.857</td>
+  <td style="text-align:right">0.779</td>
+  <td style="text-align:right">0.765</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">0.873</td>
+  <td style="text-align:right">0.807</td>
+  <td style="text-align:right">0.771</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.349</td>
+  <td style="text-align:right">0.220</td>
+  <td style="text-align:right">0.498</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">0.365</td>
+  <td style="text-align:right">0.232</td>
+  <td style="text-align:right">0.529</td>
+</tr>
+</tbody>
+</table>
+<p>Six checkpoints are only marginally better than three. Neither beats the corresponding single-final proxy. Checkpoint accumulation changes the temporal object, so it is not guaranteed to approximate a final-point GIF reference.</p>
+<h3 id="dataset-detail-at-k-7">Dataset detail at k=7</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th>B-Hutch vs LiSSA</th>
+  <th>P-point vs R-point</th>
+  <th>P-simple vs GT-simple</th>
+  <th>P-graph vs GT-full</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td>0.810 / 0.685 / 0.986</td>
+  <td>0.952 / 0.917 / 0.967</td>
+  <td>1.000 / 1.000 / 0.963</td>
+  <td>0.857 / 0.750 / 0.983</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td>0.714 / 0.569 / 0.946</td>
+  <td>0.810 / 0.685 / 0.944</td>
+  <td>0.810 / 0.717 / 0.920</td>
+  <td>0.905 / 0.833 / 0.974</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td>0.905 / 0.833 / 0.972</td>
+  <td>0.905 / 0.833 / 0.996</td>
+  <td>0.952 / 0.917 / 0.990</td>
+  <td>0.952 / 0.917 / 0.997</td>
+</tr>
+</tbody>
+</table>
+<p>Each cell shows common fraction / Jaccard / full-ranking Spearman.</p>
+<h2 id="set-level-downstream-configuration">Set-level downstream configuration</h2>
+<p>For every dataset, seed, method and k:</p>
+<ol>
+<li>slice top-k from the cached full ranking;</li>
+<li>remove selected nodes from <code>train_mask</code>;</li>
+<li>remove all graph edges incident to selected nodes;</li>
+<li>train one same-recipe GCN from the same deterministic initialization;</li>
+<li>compare to the same-seed undeleted base model;</li>
+<li>deduplicate identical selected sets across methods.</li>
+</ol>
+<table>
+<thead>
+<tr>
+  <th>Metric</th>
+  <th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>validation loss increase</td>
+  <td>primary target damage</td>
+</tr>
+<tr>
+  <td>validation accuracy drop</td>
+  <td>secondary target damage</td>
+</tr>
+<tr>
+  <td>test loss increase</td>
+  <td>utility degradation</td>
+</tr>
+<tr>
+  <td>test accuracy drop</td>
+  <td>utility degradation</td>
+</tr>
+<tr>
+  <td>retained-train accuracy drop</td>
+  <td>training behavior</td>
+</tr>
+<tr>
+  <td>removed directed edges</td>
+  <td>structural exposure</td>
+</tr>
+</tbody>
+</table>
+<p>This is a selection-effect downstream test. It is not an approximate-GU algorithm test, and it does not introduce per-candidate exact retraining.</p>
+<h2 id="downstream-results">Downstream results</h2>
+<h3 id="coverage-and-runtime">Coverage and runtime</h3>
+<table>
+<thead>
+<tr>
+  <th>Measure</th>
+  <th style="text-align:right">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dataset-seed cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>Method-budget rows</td>
+  <td style="text-align:right">486</td>
+</tr>
+<tr>
+  <td>Unique selected sets retrained</td>
+  <td style="text-align:right">370</td>
+</tr>
+<tr>
+  <td>Sum of per-cell runtime</td>
+  <td style="text-align:right">2466.2 s</td>
+</tr>
+<tr>
+  <td>Base model state matches selector model</td>
+  <td style="text-align:right">9 / 9</td>
+</tr>
+<tr>
+  <td>CiteSeer/PubMed exact downstream warm hits</td>
+  <td style="text-align:right">passed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="global-outcome-by-budget">Global outcome by budget</h3>
+<table>
+<thead>
+<tr>
+  <th style="text-align:right">k</th>
+  <th>Highest validation-loss method</th>
+  <th style="text-align:right">Mean increase</th>
+  <th style="text-align:right">Paired vs random</th>
+  <th style="text-align:right">Validation accuracy drop</th>
+  <th style="text-align:right">Test accuracy drop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:right">3</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0218</td>
+  <td style="text-align:right">+0.0209</td>
+  <td style="text-align:right">0.0138</td>
+  <td style="text-align:right">0.0154</td>
+</tr>
+<tr>
+  <td style="text-align:right">7</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0707</td>
+  <td style="text-align:right">+0.0596</td>
+  <td style="text-align:right">0.0404</td>
+  <td style="text-align:right">0.0560</td>
+</tr>
+<tr>
+  <td style="text-align:right">14</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">0.2898</td>
+  <td style="text-align:right">+0.2691</td>
+  <td style="text-align:right">0.1484</td>
+  <td style="text-align:right">0.1660</td>
+</tr>
+</tbody>
+</table>
+<p>Larger budgets amplify the target effect and cross-dataset variance. These are descriptive means over nine cells, not significance claims.</p>
+<h3 id="complete-c-result-at-k-7">Complete C result at k=7</h3>
+<table>
+<thead>
+<tr>
+  <th>Method</th>
+  <th>Family</th>
+  <th style="text-align:right">Validation loss increase</th>
+  <th style="text-align:right">Validation accuracy drop</th>
+  <th style="text-align:right">Test accuracy drop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0707 ± 0.0210</td>
+  <td style="text-align:right">0.0404</td>
+  <td style="text-align:right">0.0560</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_3</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0674 ± 0.0207</td>
+  <td style="text-align:right">0.0391</td>
+  <td style="text-align:right">0.0569</td>
+</tr>
+<tr>
+  <td><code>p_point</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0616 ± 0.0332</td>
+  <td style="text-align:right">0.0331</td>
+  <td style="text-align:right">0.0421</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td>C-GIF trajectory</td>
+  <td style="text-align:right">0.0602 ± 0.0425</td>
+  <td style="text-align:right">0.0367</td>
+  <td style="text-align:right">0.0404</td>
+</tr>
+<tr>
+  <td><code>r_point</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0602 ± 0.0277</td>
+  <td style="text-align:right">0.0336</td>
+  <td style="text-align:right">0.0387</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td>C-GIF trajectory</td>
+  <td style="text-align:right">0.0499 ± 0.0308</td>
+  <td style="text-align:right">0.0362</td>
+  <td style="text-align:right">0.0396</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td>C-IF trajectory</td>
+  <td style="text-align:right">0.0368 ± 0.0243</td>
+  <td style="text-align:right">0.0142</td>
+  <td style="text-align:right">0.0207</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td>C-IF trajectory</td>
+  <td style="text-align:right">0.0363 ± 0.0240</td>
+  <td style="text-align:right">0.0144</td>
+  <td style="text-align:right">0.0196</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code></td>
+  <td>C-IF reference</td>
+  <td style="text-align:right">0.0360 ± 0.0274</td>
+  <td style="text-align:right">0.0124</td>
+  <td style="text-align:right">0.0164</td>
+</tr>
+<tr>
+  <td><code>p_simple</code></td>
+  <td>C-IF final proxy</td>
+  <td style="text-align:right">0.0307 ± 0.0331</td>
+  <td style="text-align:right">0.0082</td>
+  <td style="text-align:right">0.0132</td>
+</tr>
+<tr>
+  <td><code>p_graph</code></td>
+  <td>C-GIF final proxy</td>
+  <td style="text-align:right">0.0127 ± 0.0233</td>
+  <td style="text-align:right">0.0082</td>
+  <td style="text-align:right">0.0071</td>
+</tr>
+<tr>
+  <td><code>gt_full</code></td>
+  <td>C-GIF reference</td>
+  <td style="text-align:right">0.0118 ± 0.0243</td>
+  <td style="text-align:right">0.0069</td>
+  <td style="text-align:right">0.0082</td>
+</tr>
+</tbody>
+</table>
+<p>The random k=7 mean is 0.0110. B-LiSSA and B-Hutchinson produce -0.0005 and -0.0078, respectively.</p>
+<h3 id="proxy-reference-outcome-preservation">Proxy/reference outcome preservation</h3>
+<p>Mean proxy-minus-reference validation-loss increase:</p>
+<table>
+<thead>
+<tr>
+  <th>Pair</th>
+  <th style="text-align:right">k=3</th>
+  <th style="text-align:right">k=7</th>
+  <th style="text-align:right">k=14</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point - r_point</code></td>
+  <td style="text-align:right">0.0000</td>
+  <td style="text-align:right">+0.0014</td>
+  <td style="text-align:right">+0.0013</td>
+</tr>
+<tr>
+  <td><code>p_simple - gt_simple</code></td>
+  <td style="text-align:right">-0.0012</td>
+  <td style="text-align:right">-0.0053</td>
+  <td style="text-align:right">+0.0005</td>
+</tr>
+<tr>
+  <td><code>p_graph - gt_full</code></td>
+  <td style="text-align:right">-0.0012</td>
+  <td style="text-align:right">+0.0010</td>
+  <td style="text-align:right">+0.0015</td>
+</tr>
+</tbody>
+</table>
+<p>The same-source final proxies preserve not only the reference ranking but also the mean downstream effect. <code>p_graph</code> is therefore accepted as a faithful scalable proxy for <code>gt_full</code>.</p>
+<h3 id="fidelity-is-not-finite-set-optimality">Fidelity is not finite-set optimality</h3>
+<p><code>p_graph</code> is the best approximation to the final GIF reference, but the final GIF reference is not the strongest finite-set damage selector in this experiment:</p>
+<table>
+<thead>
+<tr>
+  <th>Method</th>
+  <th style="text-align:right">Spearman to same/full reference</th>
+  <th style="text-align:right">k=7 validation-loss increase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.984</td>
+  <td style="text-align:right">0.0127</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.498</td>
+  <td style="text-align:right">0.0602</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.529</td>
+  <td style="text-align:right">0.0499</td>
+</tr>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">0.969</td>
+  <td style="text-align:right">0.0616</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_6</code> vs <code>r_point</code></td>
+  <td style="text-align:right">0.903</td>
+  <td style="text-align:right">0.0707</td>
+</tr>
+</tbody>
+</table>
+<p>This is the decisive two-axis result:</p>
+<ul>
+<li>approximation question: <code>p_graph</code> best reproduces final GIF;</li>
+<li>attack-selection question: point/checkpoint methods often create larger finite-set deletion damage.</li>
+</ul>
+<p>There is no contradiction. The first is a local per-candidate reference at the final model. The second contains simultaneous top-k deletion, graph intervention, parameter re-optimization and candidate interactions.</p>
+<h3 id="dataset-specific-k-7-winners">Dataset-specific k=7 winners</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th>Winner</th>
+  <th style="text-align:right">Validation loss increase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.0983</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">0.0548</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0771</td>
+</tr>
+</tbody>
+</table>
+<p>No single source/checkpoint configuration wins on all datasets.</p>
+<h3 id="b-outcome">B outcome</h3>
+<p>Paired validation-loss difference from random:</p>
+<table>
+<thead>
+<tr>
+  <th>Method</th>
+  <th style="text-align:right">k=3</th>
+  <th style="text-align:right">k=7</th>
+  <th style="text-align:right">k=14</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>B-LiSSA</td>
+  <td style="text-align:right">-0.0052</td>
+  <td style="text-align:right">-0.0116</td>
+  <td style="text-align:right">-0.0287</td>
+</tr>
+<tr>
+  <td>B-Hutchinson</td>
+  <td style="text-align:right">-0.0018</td>
+  <td style="text-align:right">-0.0188</td>
+  <td style="text-align:right">-0.0205</td>
+</tr>
+</tbody>
+</table>
+<p>B-Hutchinson successfully approximates B-LiSSA at selection level, but B does not maximize validation damage here. This supports the definition-level distinction: parameter movement magnitude is not eval-impact. B may still be useful for algorithm-specific approximate-unlearning gap, which is outside this local protocol.</p>
+<h2 id="cache-v2-and-provenance">Cache V2 and provenance</h2>
+<h3 id="score-artifacts">Score Artifacts</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Seed</th>
+  <th>Artifact</th>
+  <th style="text-align:right">Candidates</th>
+  <th style="text-align:right">Cold total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_26488c63_c1a785de</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">61.32 s</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_46167175_175575a6</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">59.93 s</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_4346d28a_bbe857e7</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">68.05 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_5f4c4971_a329f277</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">158.63 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_65315186_8efc051a</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">140.93 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_f69e8b38_375b858e</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">140.42 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_8b3257d6_c87fd4da</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">120.08 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_5f61998d_88b47a75</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">100.68 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_23f2cbea_e1dd24dd</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">99.21 s</td>
+</tr>
+</tbody>
+</table>
+<p>The payload preserves all 18 full score vectors and rankings, candidate and target order hashes, dataset/model/checkpoint hashes, graph intervention metadata, numerical recipe, and runtime. Cora, CiteSeer and PubMed exact warm hits all passed with a producer-call failure guard. Recipe mismatch fails closed.</p>
+<p>Downstream outputs use independent deterministic recipe hashes and retain selected-set hashes, base/selector state hashes, edge counts, retrained model hashes, effects and runtime.</p>
+<h3 id="legacy-cache-isolation">Legacy cache isolation</h3>
+<p>Before the matrix, legacy cache manifests were:</p>
+<table>
+<thead>
+<tr>
+  <th>Path</th>
+  <th style="text-align:right">Files</th>
+  <th style="text-align:right">Bytes</th>
+  <th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>results/cache</code></td>
+  <td style="text-align:right">1</td>
+  <td style="text-align:right">3486</td>
+  <td><code>b4bd4abab68a8342e45525b8c208894cd3f1ca0af415fb8a4e9f795de4d26000</code></td>
+</tr>
+<tr>
+  <td><code>results/selection_cache</code></td>
+  <td style="text-align:right">1</td>
+  <td style="text-align:right">3051</td>
+  <td><code>5be6817293be58b5add31edf26d39cd1348883d7a74741bd511650144227d6e0</code></td>
+</tr>
+<tr>
+  <td><code>results/score_cache</code></td>
+  <td style="text-align:right">1</td>
+  <td style="text-align:right">5711</td>
+  <td><code>c8f3698077ff2bf9faa6553be770494fb361eee997e43054730f54e000f6f554</code></td>
+</tr>
+</tbody>
+</table>
+<p>The same manifests are rechecked in final verification.</p>
+<h2 id="reproduction">Reproduction</h2>
+<pre><code class="language-powershell">&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage selection
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage downstream
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.aggregate
+</code></pre>
+<p>Primary evidence:</p>
+<ul>
+<li><code>results/bc_target_v2/aggregate/matrix_summary.json</code>;</li>
+<li><code>results/bc_target_v2/aggregate/selection_metrics.csv</code>;</li>
+<li><code>results/bc_target_v2/aggregate/selection_aggregate.csv</code>;</li>
+<li><code>results/bc_target_v2/aggregate/cross_seed_stability.csv</code>;</li>
+<li><code>results/bc_target_v2/aggregate/downstream_metrics.csv</code>;</li>
+<li><code>results/bc_target_v2/aggregate/downstream_aggregate.csv</code>;</li>
+<li><code>results/bc_target_v2/aggregate/global_downstream.csv</code>.</li>
+</ul>
+<h2 id="limits-and-next-extension">Limits and next extension</h2>
+<ul>
+<li>Three seeds support a descriptive supplementary conclusion, not a significance claim.</li>
+<li>Full GIF is an operational LiSSA reference, not an exact-retrain ground truth.</li>
+<li>The local downstream validates true set deletion effects but not a particular approximate graph-unlearning algorithm.</li>
+<li>The next server matrix should begin with random, B-LiSSA, GT-full, P-graph and TracInCP-graph-6 under GNNDelete and GraphEraser, with independent GU recipes.</li>
+<li>Additional backbones, affected-hop definitions and checkpoint-weight searches remain future work.</li>
+</ul>
+<h2 id="acceptance-decision">Acceptance decision</h2>
+<p>Accept:</p>
+<ul>
+<li>B-Hutchinson as an effective B approximation;</li>
+<li><code>p_graph</code> as the primary scalable full-source C proxy;</li>
+<li>separate reporting of C-IF and C-GIF;</li>
+<li>selection fidelity and downstream effect as two independent evaluation axes;</li>
+<li>Cache V2 score/ranking reuse across k.</li>
+</ul>
+<p>Reject:</p>
+<ul>
+<li>treating B as a broken C;</li>
+<li>treating <code>gt_simple</code> or point IF as full GIF;</li>
+<li>assuming more checkpoints are automatically closer to final GIF;</li>
+<li>using overlap alone as proof of downstream effectiveness;</li>
+<li>any per-candidate exact-retrain expansion for this experiment.</li>
+</ul>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

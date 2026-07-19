@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>C Target GIF–TracIn Approximation · Local Experiment</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.68 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97)}main{width:min(1160px,100%);padding:44px 56px 76px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:5px 0}nav a:hover{color:var(--cyan)}.hero{padding:31px 35px;margin-bottom:28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:34px;line-height:1.2;margin:9px 0 10px}.hero p{color:var(--muted);max-width:880px;margin:0}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:26px 0 9px}p,li{max-width:980px}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}.formula{margin:13px 0;padding:14px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code);color:#ccecff;font:15px/1.7 Cambria Math,Consolas,monospace}.callout{margin:18px 0;padding:15px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}.warn{border-left-color:var(--amber);background:rgba(242,188,98,.08)}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}.card{padding:18px;border:1px solid var(--line);border-radius:12px;background:rgba(15,28,46,.85)}.card .label{font-size:11px;letter-spacing:.1em;color:var(--cyan);font-weight:800}.card .value{font-size:29px;font-weight:800;margin:4px 0}.card p{margin:0;color:var(--muted)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:14px}th,td{border:1px solid var(--line);padding:10px 11px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}.good{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:930px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:28px}.cards{grid-template-columns:1fr}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / C TARGET V1</div>
+    <div class="side-title">GIF–TracIn Approximation</div>
+    <span class="badge">ACCEPTED · SEED 2024</span>
+    <nav>
+      <a href="#verdict">结论</a><a href="#setup">设置</a><a href="#results">结果</a><a href="#cache">Cache V2</a><a href="#limits">边界</a>
+    </nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">CORA · GCN · FULL GRAPH SOURCE · NO EXACT RETRAIN</div>
+      <h1>C Target GIF–TracIn Approximation</h1>
+      <p>一次本地 CPU 机制实验：固定 E、固定候选集合，拆开 source、Hessian 与 checkpoint 三个变量。完整分数、全排序和 provenance 已写入 Cache V2 SCORE Artifact。</p>
+    </section>
+
+    <section id="verdict">
+      <h2>结论</h2>
+      <div class="callout"><strong>同 source 时，g_E 点乘可以很好地近似 H^-1g_E；但把 full graph source 换成 grad1 或 g_v，会改变问题本身。</strong></div>
+      <div class="cards">
+        <div class="card"><div class="label">P-GRAPH → GT-FULL</div><div class="value good">6 / 7</div><p>Jaccard 0.75 · Spearman 0.966</p></div>
+        <div class="card"><div class="label">GT-SIMPLE → GT-FULL</div><div class="value bad">1 / 7</div><p>不算 grad2 在本轮不可接受</p></div>
+        <div class="card"><div class="label">TRACINCP-POINT → GT-FULL</div><div class="value bad">0 / 7</div><p>checkpoint 没修复 source 错位</p></div>
+      </div>
+      <div class="formula">GT_full = ⟨grad1−grad2, H^-1g_E⟩ &nbsp;&nbsp; P_graph = ⟨grad1−grad2, g_E⟩</div>
+    </section>
+
+    <section id="setup">
+      <h2>实验设置</h2>
+      <table><tbody>
+        <tr><th>数据 / 模型</th><td>Planetoid Cora / two-layer GCN</td><th>候选 / E</th><td>140 train nodes / 500 validation nodes</td></tr>
+        <tr><th>训练</th><td>Adam · 200 epochs · seed 2024</td><th>Checkpoints</th><td>1, 10, 25, 50, 100, 200</td></tr>
+        <tr><th>Graph source</th><td>candidate + two-hop affected nodes</td><th>IHVP</th><td>LiSSA 20 · scale 25 · damp 0.01</td></tr>
+        <tr><th>Top-k</th><td>7 (5% of 140)</td><th>Exact retrain</th><td class="good">未执行；设计上明确排除</td></tr>
+      </tbody></table>
+    </section>
+
+    <section id="results">
+      <h2>主结果</h2>
+      <table>
+        <thead><tr><th>Reference</th><th>Candidate</th><th>交集</th><th>Jaccard</th><th>Common</th><th>Spearman</th><th>解释</th></tr></thead>
+        <tbody>
+          <tr><td>GT-full</td><td>GT-simple</td><td>1</td><td>0.0769</td><td>0.1429</td><td>0.0491</td><td class="bad">grad2 不能忽略</td></tr>
+          <tr><td>GT-simple</td><td>P-simple</td><td>7</td><td>1.0000</td><td>1.0000</td><td>0.9624</td><td class="good">同 source 跳过 Hessian 成功</td></tr>
+          <tr><td>R-point</td><td>P-point</td><td>6</td><td>0.7500</td><td>0.8571</td><td>0.9692</td><td class="good">point proxy 自洽</td></tr>
+          <tr><td>R-point</td><td>TracInCP-point</td><td>6</td><td>0.7500</td><td>0.8571</td><td>0.9482</td><td class="good">checkpoint point 自洽</td></tr>
+          <tr><td>GT-full</td><td>P-graph</td><td>6</td><td>0.7500</td><td>0.8571</td><td>0.9658</td><td class="good">本轮最佳 full-GIF proxy</td></tr>
+          <tr><td>GT-full</td><td>P-point</td><td>0</td><td>0.0000</td><td>0.0000</td><td>0.1385</td><td class="bad">point source 错位</td></tr>
+          <tr><td>GT-full</td><td>TracInCP-point</td><td>0</td><td>0.0000</td><td>0.0000</td><td>0.1035</td><td class="bad">多 checkpoint 仍错位</td></tr>
+        </tbody>
+      </table>
+      <h3>模型与成本门</h3>
+      <table><tbody>
+        <tr><th>Train / Val / Test accuracy</th><td>99.29% / 79.20% / 81.50%</td><th>Cold total</th><td>10.36 s</td></tr>
+        <tr><th>Score producer</th><td>7.61 s</td><th>Graph source / IHVP</th><td>2.51 s / 0.24 s</td></tr>
+      </tbody></table>
+    </section>
+
+    <section id="cache">
+      <h2>Cache V2 验收</h2>
+      <table><tbody>
+        <tr><th>Artifact</th><td><code>score_9c9b34fd_004f3774</code></td></tr>
+        <tr><th>Recipe</th><td><code>9c9b34fd64ab8424280d048255168cc5b7595a2752293f6db5e768e7905eed8e</code></td></tr>
+        <tr><th>Content</th><td><code>004f37749c23e524ddec1f9c33e7623df60317339d68255424fea9af23e6303f</code></td></tr>
+        <tr><th>Payload</th><td><code>results/cache_v2/c_target_v1/artifacts/score/9c/score_9c9b34fd_004f3774/payload.json</code></td></tr>
+      </tbody></table>
+      <ul><li>cold run 创建正式 SCORE Artifact；</li><li>warm run 在 <code>--fail-if-producer-called</code> 下命中同一 Artifact；</li><li>139-candidate mismatch 非零退出且没有写结果；</li><li>Legacy 三个 cache 目录的内容哈希保持不变。</li></ul>
+    </section>
+
+    <section id="limits">
+      <h2>边界与下一步</h2>
+      <div class="callout warn">这是 Cora / GCN / 单 seed 的机制证据；GT-full 是 LiSSA 下的操作性 GIF reference，不是 exact-retrain ground truth。</div>
+      <p>下一项最自然的补充是 graph-source trajectory：Σ_c w_c⟨q_v(θ_c),g_E(θ_c)⟩。本轮已经说明为什么它值得单独测：checkpoint 与 graph source 是两个不同变量，不能用 point TracInCP 的失败替代 graph trajectory 的结论。</p>
+    </section>
+
+    <footer>OpenGU C Target V1 · accepted local run · 2026-07-16 · Markdown is the editable source of truth.</footer>
+  </main>
+</div>
+</body>
+</html>
