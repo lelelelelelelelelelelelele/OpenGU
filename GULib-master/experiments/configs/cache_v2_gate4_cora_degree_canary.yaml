@@ -1,0 +1,31 @@
+name: cache_v2_gate4_cora_degree_canary
+dataset: cora
+base_model: GCN
+ratio: 0.05
+methods: [GIF]
+strategies: [degree]
+seeds: [42]
+
+# Dataset and result ownership stay in the experiment layer.  The Cache block
+# contains only the exact Selection store identity and the read-only Legacy
+# invariant root.
+processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
+runtime_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/runtime
+run_root: results/runs/__syncmate_gate4__
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  no_cache: true
+  num_epochs: 5
+  batch_size: 64
+  cuda: 0
+
+cache_v2:
+  mode: selection
+  store_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/store
+  legacy_results_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/legacy-empty
+
+extra_args:
+  - --num_threads
+  - "1"

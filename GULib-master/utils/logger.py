@@ -3,7 +3,7 @@ import os
 import logging
 import pprint
 import time
-from config import root_path
+from config import runtime_root
 class Logger(object):
 
     def __init__(self, filename):
@@ -85,7 +85,7 @@ def create_logger(args):
     data_name = args['dataset_name']
     method_name = args['unlearning_methods']
     run_id = f"{timestamp:.8f}"
-    log_dir = os.path.join(root_path , "log", method_name,data_name, model_name)
+    log_dir = os.path.join(runtime_root, "log", method_name,data_name, model_name)
     logger_name = os.path.join(log_dir, current_time_str + ".log")
     logger = Logger(logger_name)
 

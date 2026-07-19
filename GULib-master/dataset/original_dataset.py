@@ -16,7 +16,11 @@ from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.datasets import Planetoid, Coauthor, Flickr, Amazon, CitationFull,PPI,Reddit,TUDataset
 from utils.dataset_utils import is_data_exists, load_saved_data, save_data
 from torch_geometric.transforms import SIGN
-from config import root_path,split_ratio
+from config import root_path
+from experiments.processed_provider import (
+    processed_artifact_paths,
+    require_processed_artifacts,
+)
 from torch_geometric.io import fs
 from dataset.ppi_data import ppi_data
 from torch_geometric.datasets import Actor
@@ -125,26 +129,17 @@ class original_dataset:
         Raises:
             Exception: If the dataset name is not supported or invalid.
         """
-        if self.args["is_transductive"]:
-            if self.args['is_balanced']:
-                data_filename = './data/processed/transductive/'+self.args['dataset_name']+ split_ratio +'_balanced.pkl'
-                dataset_filename = './data/processed/transductive/'+self.args['dataset_name'] +  split_ratio +"dataset" +'_balanced.pkl'
-            else:
-                data_filename = './data/processed/transductive/'+self.args['dataset_name']+ split_ratio +'.pkl'
-                dataset_filename = './data/processed/transductive/'+self.args['dataset_name'] +  split_ratio +"dataset" +'.pkl'
-        else:
-            if self.args['is_balanced']:
-                data_filename = './data/processed/inductive/'+self.args['dataset_name']+ split_ratio +'_balanced.pkl'
-                dataset_filename = './data/processed/inductive/'+self.args['dataset_name'] +  split_ratio +"dataset" +'_balanced.pkl'
-            else:
-                data_filename = './data/processed/inductive/' + self.args['dataset_name'] +  split_ratio +'.pkl'
-                dataset_filename = './data/processed/inductive/' + self.args['dataset_name'] +  split_ratio +"dataset" + '.pkl'
+        processed = processed_artifact_paths(self.args)
+        data_filename = str(processed.data_path)
+        dataset_filename = str(processed.dataset_path)
         if is_data_exists(data_filename) and is_data_exists(dataset_filename):
             self.logger.info("Data already saved! "+ data_filename)
             data = load_saved_data(self.logger,data_filename)
             dataset = load_saved_data(self.logger, dataset_filename)
             self.args["num_unlearned_nodes"] = int(data.num_nodes * self.args["proportion_unlearned_nodes"])
             return data, dataset
+        if processed.explicit:
+            require_processed_artifacts(self.args)
 
         if self.dataset_name in ["cora", "pubmed", "citeseer"]:
             dataset = Planetoid(root_path + '/data/raw', self.dataset_name, transform=T.NormalizeFeatures())

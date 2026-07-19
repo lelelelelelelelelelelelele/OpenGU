@@ -339,9 +339,8 @@ class AttackPipeline:
         if isinstance(nodes, Tensor):
             nodes = nodes.cpu().numpy()
 
-        # Construct path matching config.py format
-        # unlearning_path = root_path + "/data/unlearning_task/{transductive|inductive}/{balanced|imbalanced}/unlearning_nodes_{ratio}_{dataset}"
-        root_path = "."
+        # Construct the experiment-owned runtime path matching config.py.
+        runtime_root = self.args.get("runtime_root") or self.args.get("root_path") or "."
 
         if self.args["is_transductive"]:
             split_type = "transductive"
@@ -353,7 +352,7 @@ class AttackPipeline:
         else:
             balance_type = "imbalanced"
 
-        path = f"{root_path}/data/unlearning_task/{split_type}/{balance_type}/unlearning_nodes_{self.args['unlearn_ratio']}_{self.args['dataset_name']}_{run_id}.txt"
+        path = f"{runtime_root}/data/unlearning_task/{split_type}/{balance_type}/unlearning_nodes_{self.args['unlearn_ratio']}_{self.args['dataset_name']}_{run_id}.txt"
 
         # Sanity check: the path we write must match the one downstream
         # unlearning methods read from `config.unlearning_path`. A mismatch
@@ -630,7 +629,7 @@ class AttackPipeline:
         - Shard_based: aggregated model accessed via disk; use self.method.model_zoo.model
         """
         method = self.method
-        if self.args.get("unlearning_methods") == "GraphRevoker":
+        if getattr(self, "args", {}).get("unlearning_methods") == "GraphRevoker":
             return self._build_graphrevoker_ensemble_model(method)
 
         # IF_based and Learning_based pipelines
