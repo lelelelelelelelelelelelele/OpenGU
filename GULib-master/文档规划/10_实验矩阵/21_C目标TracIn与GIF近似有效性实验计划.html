@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>C Target · TracIn / IF / GIF</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / B–C MATRIX</div>
+    <div class="side-title">C Target · TracIn / IF / GIF</div>
+    <span class="badge">IMPLEMENTED · 9 CELLS</span>
+    <nav><a class="" href="#0-先给结论">0. 先给结论</a>
+<a class="" href="#1-两种-真值-必须分开">1. 两种“真值”必须分开</a>
+<a class="sub" href="#1-1-selection-reference">1.1 Selection reference</a>
+<a class="sub" href="#1-2-downstream-outcome">1.2 Downstream outcome</a>
+<a class="" href="#2-三种-source">2. 三种 source</a>
+<a class="sub" href="#2-1-candidate-only-point-source">2.1 Candidate-only point source</a>
+<a class="sub" href="#2-2-no-grad2-simple-source">2.2 No-grad2 simple source</a>
+<a class="sub" href="#2-3-full-graph-deletion-source">2.3 Full graph-deletion source</a>
+<a class="" href="#3-固定实验配置">3. 固定实验配置</a>
+<a class="" href="#4-完整-c-方法配置矩阵">4. 完整 C 方法配置矩阵</a>
+<a class="sub" href="#4-1-reference">4.1 Reference</a>
+<a class="sub" href="#4-2-single-final-hessian-free">4.2 Single-final Hessian-free</a>
+<a class="sub" href="#4-3-multi-checkpoint">4.3 Multi-checkpoint</a>
+<a class="sub" href="#4-4-control">4.4 Control</a>
+<a class="" href="#5-selection-实验矩阵">5. Selection 实验矩阵</a>
+<a class="" href="#6-selection-结果">6. Selection 结果</a>
+<a class="sub" href="#6-1-single-final-固定-source-后去掉-hessian">6.1 Single-final：固定 source 后去掉 Hessian</a>
+<a class="sub" href="#6-2-k-7-的分数据集结果">6.2 k=7 的分数据集结果</a>
+<a class="sub" href="#6-3-source-mismatch-simple-point-不能代替-full-gif">6.3 Source mismatch：simple/point 不能代替 full GIF</a>
+<a class="sub" href="#6-4-checkpoint-ablation">6.4 Checkpoint ablation</a>
+<a class="sub" href="#6-5-为什么多-checkpoint-没有自动变好">6.5 为什么多 checkpoint 没有自动变好</a>
+<a class="sub" href="#6-6-cross-seed-稳定性">6.6 Cross-seed 稳定性</a>
+<a class="" href="#7-集合级下游配置">7. 集合级下游配置</a>
+<a class="" href="#8-集合级下游结果">8. 集合级下游结果</a>
+<a class="sub" href="#8-1-全局结果">8.1 全局结果</a>
+<a class="sub" href="#8-2-fidelity-与真实效果是两个轴">8.2 Fidelity 与真实效果是两个轴</a>
+<a class="sub" href="#8-3-checkpoint-方法的双重身份">8.3 Checkpoint 方法的双重身份</a>
+<a class="sub" href="#8-4-数据集差异">8.4 数据集差异</a>
+<a class="sub" href="#8-5-预算趋势">8.5 预算趋势</a>
+<a class="" href="#9-cache-与结果文件">9. Cache 与结果文件</a>
+<a class="sub" href="#9-1-score-artifact">9.1 Score Artifact</a>
+<a class="sub" href="#9-2-聚合输出">9.2 聚合输出</a>
+<a class="" href="#10-复现命令">10. 复现命令</a>
+<a class="" href="#11-已通过与未覆盖">11. 已通过与未覆盖</a>
+<a class="sub" href="#已通过">已通过</a>
+<a class="sub" href="#未覆盖">未覆盖</a>
+<a class="" href="#12-解释规则">12. 解释规则</a>
+<a class="" href="#13-一句话记忆">13. 一句话记忆</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">FULL C CONFIG MATRIX · SET-DELETION OUTCOME</div>
+      <h1>C Target · TracIn / IF / GIF</h1>
+    </section>
+    <article><h1 id="c-目标-tracin-if-与-gif-近似有效性实验配置与结果">C 目标 TracIn、IF 与 GIF 近似有效性实验配置与结果</h1>
+<blockquote>
+<p>状态：<strong>Cora / CiteSeer / PubMed，GCN，3 seeds，k=3/7/14 的 selection 与集合级下游矩阵已实施。</strong> 坚决不做逐候选 exact retrain。</p>
+</blockquote>
+<p>关联页面：</p>
+<ul>
+<li>[[20_IF目标层级对比实验计划]]：A/B/C 总对比与 B 实验；</li>
+<li>[[20_研究框架/21_TracIn变体与GIF关系]]：IF、GIF、TracIn 的概念关系；</li>
+<li><a href="../../reports/bc_target_matrix_REPORT.md">完整验收报告</a>。</li>
+</ul>
+<h2 id="0-先给结论">0. 先给结论</h2>
+<p>本轮最重要的结论不是“TracIn 好或坏”，而是：</p>
+<blockquote>
+<p><strong>固定 source 后，用 (g_E) 替换 (H^{-1}g_E) 的 single-final Hessian-free proxy 很可靠；但改变 source，或把多个 checkpoint 简单累积起来，并不会自动更接近 full GIF。</strong></p>
+</blockquote>
+<p>九个 dataset-seed 单元的全局结果：</p>
+<table>
+<thead>
+<tr>
+  <th>固定 source 的比较</th>
+  <th style="text-align:right">k=7 common</th>
+  <th style="text-align:right">k=7 Jaccard</th>
+  <th style="text-align:right">全排序 Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">0.889</td>
+  <td style="text-align:right">0.812</td>
+  <td style="text-align:right">0.969</td>
+</tr>
+<tr>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td style="text-align:right">0.921</td>
+  <td style="text-align:right">0.878</td>
+  <td style="text-align:right">0.958</td>
+</tr>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.905</td>
+  <td style="text-align:right">0.833</td>
+  <td style="text-align:right">0.984</td>
+</tr>
+</tbody>
+</table>
+<p>相反：</p>
+<table>
+<thead>
+<tr>
+  <th>Source mismatch</th>
+  <th style="text-align:right">k=7 common</th>
+  <th style="text-align:right">k=7 Jaccard</th>
+  <th style="text-align:right">全排序 Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>gt_simple</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.111</td>
+  <td style="text-align:right">0.066</td>
+  <td style="text-align:right">0.040</td>
+</tr>
+<tr>
+  <td><code>r_point</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.190</td>
+  <td style="text-align:right">0.107</td>
+  <td style="text-align:right">0.112</td>
+</tr>
+</tbody>
+</table>
+<p>多 checkpoint 的 graph 版本：</p>
+<table>
+<thead>
+<tr>
+  <th>方法 vs <code>gt_full</code></th>
+  <th style="text-align:right">k=7 common</th>
+  <th style="text-align:right">k=7 Jaccard</th>
+  <th style="text-align:right">全排序 Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.349</td>
+  <td style="text-align:right">0.220</td>
+  <td style="text-align:right">0.498</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">0.365</td>
+  <td style="text-align:right">0.232</td>
+  <td style="text-align:right">0.529</td>
+</tr>
+</tbody>
+</table>
+<p>因此当前推荐顺序是：</p>
+<ol>
+<li>full graph source 下优先 <code>p_graph</code>；</li>
+<li><code>gt_full</code> 作为 operation-level GIF reference；</li>
+<li>checkpoint 数量不是单调增益，3/6 checkpoint 只保留为 trajectory ablation；</li>
+<li><code>p_point</code>、<code>p_simple</code> 只能解释各自 source 的 IF，不应写成 full GIF proxy。</li>
+</ol>
+<p>真实 set-level 删除又给出另一条结论：<code>p_graph</code> 与 <code>gt_full</code> 的平均下游效果几乎一致，但 damage 最大的通常是 point/checkpoint selector。k=7 时 <code>tracin_cp_point_6=0.0707</code>，<code>gt_full=0.0118</code>。所以近似 GIF 的有效性与攻击式 selection 的有效性必须分开验收。</p>
+<h2 id="1-两种-真值-必须分开">1. 两种“真值”必须分开</h2>
+<h3 id="1-1-selection-reference">1.1 Selection reference</h3>
+<p>本页 selection 层的主 reference 是：</p>
+<h1 id="mathrm-gt-mathrm-full-v-e">[
+\mathrm{GT}_{\mathrm{full}}(v;E)</h1>
+<p>\left\langle
+\mathrm{grad1}_v-\mathrm{grad2}_v,,
+H^{-1}g_E
+\right\rangle .
+]</p>
+<p>它是操作性的 graph-aware GIF reference，不是数学上的 exact truth，也不是 exact-retrain truth。LiSSA 仍是有限迭代近似。</p>
+<h3 id="1-2-downstream-outcome">1.2 Downstream outcome</h3>
+<p>selection 做完后，真正的集合级 outcome 是：</p>
+<ol>
+<li>同时删掉 top-k 节点；</li>
+<li>删除这些节点关联的边；</li>
+<li>从同一初始化重新训练模型；</li>
+<li>实测 validation loss / accuracy 和 test utility。</li>
+</ol>
+<p>所以：</p>
+<ul>
+<li><code>gt_full</code> 回答“某个近似是否复现 GIF reference”；</li>
+<li>set-level retraining 回答“选中的整个集合删掉后实际效果怎样”。</li>
+</ul>
+<p>两者都需要，不能用高 overlap 代替下游效果，也不能用一次下游结果反推逐候选 GIF 定义。</p>
+<h2 id="2-三种-source">2. 三种 source</h2>
+<h3 id="2-1-candidate-only-point-source">2.1 Candidate-only point source</h3>
+<p>[
+g_v=\nabla_\theta \ell_v(\theta;G).
+]</p>
+<p>只包含候选节点自己的训练 loss gradient。</p>
+<h3 id="2-2-no-grad2-simple-source">2.2 No-grad2 simple source</h3>
+<p>令 (A_v) 为候选与两跳 affected nodes：</p>
+<h1 id="a-v-mathrm-grad1-v">[
+a_v=\mathrm{grad1}_v</h1>
+<p>\nabla_\theta
+\sum_{i\in A_v}\ell_i(\theta;G).
+]</p>
+<p>它在原图上加入 affected neighbors，但不构造删后图梯度。</p>
+<h3 id="2-3-full-graph-deletion-source">2.3 Full graph-deletion source</h3>
+<p>在移除候选 (v) 关联边的图 (G_{-v}) 上：</p>
+<h1 id="b-v-mathrm-grad2-v">[
+b_v=\mathrm{grad2}_v</h1>
+<p>\nabla_\theta
+\sum_{i\in A_v\setminus{v}}\ell_i(\theta;G_{-v}),
+]</p>
+<p>[
+q_v=a_v-b_v.
+]</p>
+<p><code>grad1</code> 与 <code>grad2</code> 都在同一参数 (\theta) 上做 forward/backward，不重训练模型。full source 逐候选构造删后图，但仍不是逐候选 exact retrain。</p>
+<table>
+<thead>
+<tr>
+  <th>Source</th>
+  <th style="text-align:right">候选自身</th>
+  <th style="text-align:right">原图 affected neighbors</th>
+  <th style="text-align:right">删后图邻居变化</th>
+  <th style="text-align:right">逐候选删图 forward/backward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>(g_v)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">否</td>
+</tr>
+<tr>
+  <td>(a_v=\mathrm{grad1})</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">否</td>
+</tr>
+<tr>
+  <td>(q_v=\mathrm{grad1}-\mathrm{grad2})</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">是</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-固定实验配置">3. 固定实验配置</h2>
+<table>
+<thead>
+<tr>
+  <th>配置</th>
+  <th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td>Cora、CiteSeer、PubMed</td>
+</tr>
+<tr>
+  <td>Model</td>
+  <td>two-layer GCN</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td>42、212、2024</td>
+</tr>
+<tr>
+  <td>Candidate pool</td>
+  <td>标准 <code>train_mask</code></td>
+</tr>
+<tr>
+  <td>Candidate counts</td>
+  <td>Cora 140；CiteSeer 120；PubMed 60</td>
+</tr>
+<tr>
+  <td>Target E</td>
+  <td>500 个 <code>val_mask</code> nodes，mean CE</td>
+</tr>
+<tr>
+  <td>Budgets</td>
+  <td>3、7、14</td>
+</tr>
+<tr>
+  <td>Optimizer</td>
+  <td>Adam</td>
+</tr>
+<tr>
+  <td>Epochs</td>
+  <td>200</td>
+</tr>
+<tr>
+  <td>LR / weight decay</td>
+  <td>0.01 / 0.0005</td>
+</tr>
+<tr>
+  <td>Hidden / dropout</td>
+  <td>16 / 0.5</td>
+</tr>
+<tr>
+  <td>Scheduler</td>
+  <td>milestones 100/150，gamma 0.5</td>
+</tr>
+<tr>
+  <td>Checkpoints</td>
+  <td>1、10、25、50、100、200</td>
+</tr>
+<tr>
+  <td>3-checkpoint view</td>
+  <td>1、50、200</td>
+</tr>
+<tr>
+  <td>6-checkpoint view</td>
+  <td>全六个</td>
+</tr>
+<tr>
+  <td>TracIn weights</td>
+  <td>各 checkpoint 对应 update learning rate</td>
+</tr>
+<tr>
+  <td>Affected hops</td>
+  <td>2</td>
+</tr>
+<tr>
+  <td>IHVP</td>
+  <td>LiSSA 20 iterations，scale 25，damp 0.01</td>
+</tr>
+<tr>
+  <td>Ranking</td>
+  <td>score 降序，node ID 升序 tie-break</td>
+</tr>
+<tr>
+  <td>Exact candidate retrain</td>
+  <td>未执行</td>
+</tr>
+</tbody>
+</table>
+<p>正式 C 选择只读取 validation labels。test accuracy/loss 只在 selection Artifact 落盘后作为 downstream utility。</p>
+<h2 id="4-完整-c-方法配置矩阵">4. 完整 C 方法配置矩阵</h2>
+<h3 id="4-1-reference">4.1 Reference</h3>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>Source</th>
+  <th>Target direction</th>
+  <th style="text-align:right">Hessian</th>
+  <th style="text-align:right">Checkpoint</th>
+  <th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>r_point</code></td>
+  <td>(g_v)</td>
+  <td>(H^{-1}g_E)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>candidate-only point IF</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code></td>
+  <td>(a_v)</td>
+  <td>(H^{-1}g_E)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>no-grad2 IF approximate GT</td>
+</tr>
+<tr>
+  <td><code>gt_full</code></td>
+  <td>(q_v)</td>
+  <td>(H^{-1}g_E)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>full graph-aware GIF GT</td>
+</tr>
+</tbody>
+</table>
+<p>三项共用一次：</p>
+<p>[
+s_E=H^{-1}g_E,
+]</p>
+<p>随后只计算 (g_v^\top s_E)、(a_v^\top s_E)、(q_v^\top s_E)。不存储完整 (H^{-1})。</p>
+<h3 id="4-2-single-final-hessian-free">4.2 Single-final Hessian-free</h3>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>Score</th>
+  <th>相对 reference 只改变什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point</code></td>
+  <td>(\langle g_v,g_E\rangle)</td>
+  <td>去掉 point IF 的 Hessian</td>
+</tr>
+<tr>
+  <td><code>p_simple</code></td>
+  <td>(\langle a_v,g_E\rangle)</td>
+  <td>去掉 simple IF 的 Hessian</td>
+</tr>
+<tr>
+  <td><code>p_graph</code></td>
+  <td>(\langle q_v,g_E\rangle)</td>
+  <td>去掉 full GIF 的 Hessian</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-3-multi-checkpoint">4.3 Multi-checkpoint</h3>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>Source</th>
+  <th style="text-align:right">Checkpoints</th>
+  <th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_3</code></td>
+  <td>(g_v)</td>
+  <td style="text-align:right">3</td>
+  <td>(\sum_c w_c\langle g_v(\theta_c),g_E(\theta_c)\rangle)</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td>(g_v)</td>
+  <td style="text-align:right">6</td>
+  <td>同上</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td>(a_v)</td>
+  <td style="text-align:right">3</td>
+  <td>(\sum_c w_c\langle a_v(\theta_c),g_E(\theta_c)\rangle)</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td>(a_v)</td>
+  <td style="text-align:right">6</td>
+  <td>同上</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td>(q_v)</td>
+  <td style="text-align:right">3</td>
+  <td>(\sum_c w_c\langle q_v(\theta_c),g_E(\theta_c)\rangle)</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td>(q_v)</td>
+  <td style="text-align:right">6</td>
+  <td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>只有 point 版本接近原始 TracInCP。simple/graph checkpoint 版本是本项目的 graph-aware trajectory ablation，报告中不会把它们冒充原论文的标准实现。</p>
+<h3 id="4-4-control">4.4 Control</h3>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>定义</th>
+  <th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>legacy</code></td>
+  <td>(\langle g_v,-\sum_{j\in T}g_j\rangle)</td>
+  <td>旧 training-residual target negative control</td>
+</tr>
+<tr>
+  <td><code>random</code> / <code>degree</code> / A / B</td>
+  <td>见 [[20_IF目标层级对比实验计划]]</td>
+  <td>外部锚点与目标层级对照</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-selection-实验矩阵">5. Selection 实验矩阵</h2>
+<table>
+<thead>
+<tr>
+  <th>轴</th>
+  <th style="text-align:right">数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td style="text-align:right">3</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td style="text-align:right">3</td>
+</tr>
+<tr>
+  <td>Score/ranking methods</td>
+  <td style="text-align:right">18</td>
+</tr>
+<tr>
+  <td>C methods</td>
+  <td style="text-align:right">12</td>
+</tr>
+<tr>
+  <td>Budgets per ranking</td>
+  <td style="text-align:right">3</td>
+</tr>
+<tr>
+  <td>Selection cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>完整排名数</td>
+  <td style="text-align:right">162</td>
+</tr>
+<tr>
+  <td>C 排名数</td>
+  <td style="text-align:right">108</td>
+</tr>
+<tr>
+  <td>预注册 reference-pair rows</td>
+  <td style="text-align:right">378</td>
+</tr>
+</tbody>
+</table>
+<p>每个 cell 保存完整 score vectors 和 full rankings；k=3/7/14 是同一排名的三个切片。</p>
+<h2 id="6-selection-结果">6. Selection 结果</h2>
+<h3 id="6-1-single-final-固定-source-后去掉-hessian">6.1 Single-final：固定 source 后去掉 Hessian</h3>
+<p>九个数据集-seed 单元的全局均值：</p>
+<table>
+<thead>
+<tr>
+  <th>Proxy vs same-source reference</th>
+  <th style="text-align:right">k</th>
+  <th style="text-align:right">common</th>
+  <th style="text-align:right">Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">1.000</td>
+  <td style="text-align:right">1.000</td>
+  <td style="text-align:right">0.969</td>
+</tr>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.889</td>
+  <td style="text-align:right">0.812</td>
+  <td style="text-align:right">0.969</td>
+</tr>
+<tr>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.937</td>
+  <td style="text-align:right">0.897</td>
+  <td style="text-align:right">0.969</td>
+</tr>
+<tr>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.926</td>
+  <td style="text-align:right">0.911</td>
+  <td style="text-align:right">0.958</td>
+</tr>
+<tr>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.921</td>
+  <td style="text-align:right">0.878</td>
+  <td style="text-align:right">0.958</td>
+</tr>
+<tr>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.976</td>
+  <td style="text-align:right">0.956</td>
+  <td style="text-align:right">0.958</td>
+</tr>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.926</td>
+  <td style="text-align:right">0.889</td>
+  <td style="text-align:right">0.984</td>
+</tr>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.905</td>
+  <td style="text-align:right">0.833</td>
+  <td style="text-align:right">0.984</td>
+</tr>
+<tr>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.929</td>
+  <td style="text-align:right">0.870</td>
+  <td style="text-align:right">0.984</td>
+</tr>
+</tbody>
+</table>
+<p><code>p_graph</code> 是当前 full GIF reference 的最佳 scalable proxy。这里的“去掉 Hessian”成立，是因为 (q_v) 和 (g_E) 均保持不变。</p>
+<h3 id="6-2-k-7-的分数据集结果">6.2 k=7 的分数据集结果</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th><code>p_point</code> vs <code>r_point</code></th>
+  <th><code>p_simple</code> vs <code>gt_simple</code></th>
+  <th><code>p_graph</code> vs <code>gt_full</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td>common 0.952 / J 0.917 / ρ 0.967</td>
+  <td>1.000 / 1.000 / 0.963</td>
+  <td>0.857 / 0.750 / 0.983</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td>0.810 / 0.685 / 0.944</td>
+  <td>0.810 / 0.717 / 0.920</td>
+  <td>0.905 / 0.833 / 0.974</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td>0.905 / 0.833 / 0.996</td>
+  <td>0.952 / 0.917 / 0.990</td>
+  <td>0.952 / 0.917 / 0.997</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6-3-source-mismatch-simple-point-不能代替-full-gif">6.3 Source mismatch：simple/point 不能代替 full GIF</h3>
+<table>
+<thead>
+<tr>
+  <th>比较</th>
+  <th style="text-align:right">k</th>
+  <th style="text-align:right">common</th>
+  <th style="text-align:right">Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>gt_simple</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.111</td>
+  <td style="text-align:right">0.067</td>
+  <td style="text-align:right">0.040</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.111</td>
+  <td style="text-align:right">0.066</td>
+  <td style="text-align:right">0.040</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.151</td>
+  <td style="text-align:right">0.085</td>
+  <td style="text-align:right">0.040</td>
+</tr>
+<tr>
+  <td><code>r_point</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.148</td>
+  <td style="text-align:right">0.089</td>
+  <td style="text-align:right">0.112</td>
+</tr>
+<tr>
+  <td><code>r_point</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.190</td>
+  <td style="text-align:right">0.107</td>
+  <td style="text-align:right">0.112</td>
+</tr>
+<tr>
+  <td><code>r_point</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.262</td>
+  <td style="text-align:right">0.154</td>
+  <td style="text-align:right">0.112</td>
+</tr>
+</tbody>
+</table>
+<p>这说明 <code>grad2</code> 不是一个可以默认忽略的细节。no-grad2 的 IF reference 和 full GIF reference 在本矩阵中几乎是两个不同排序。</p>
+<h3 id="6-4-checkpoint-ablation">6.4 Checkpoint ablation</h3>
+<p>全局均值：</p>
+<table>
+<thead>
+<tr>
+  <th>方法 vs same-source reference</th>
+  <th style="text-align:right">k=7 common</th>
+  <th style="text-align:right">k=7 Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">0.746</td>
+  <td style="text-align:right">0.607</td>
+  <td style="text-align:right">0.901</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.762</td>
+  <td style="text-align:right">0.625</td>
+  <td style="text-align:right">0.903</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">0.857</td>
+  <td style="text-align:right">0.779</td>
+  <td style="text-align:right">0.765</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">0.873</td>
+  <td style="text-align:right">0.807</td>
+  <td style="text-align:right">0.771</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.349</td>
+  <td style="text-align:right">0.220</td>
+  <td style="text-align:right">0.498</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">0.365</td>
+  <td style="text-align:right">0.232</td>
+  <td style="text-align:right">0.529</td>
+</tr>
+</tbody>
+</table>
+<p>6 checkpoints 对 3 checkpoints 只有小幅改善；两者都没有超过对应 single-final proxy。尤其 graph trajectory 明显弱于 <code>p_graph</code>。</p>
+<h3 id="6-5-为什么多-checkpoint-没有自动变好">6.5 为什么多 checkpoint 没有自动变好</h3>
+<p><code>gt_full</code> 是 final trained point 的局部 GIF reference：</p>
+<p>[
+q_v(\theta_<em>)^\top H(\theta_</em>)^{-1}g_E(\theta_*).
+]</p>
+<p>TracInCP 累积的是整个训练轨迹：</p>
+<p>[
+\sum_c w_c q_v(\theta_c)^\top g_E(\theta_c).
+]</p>
+<p>即使 source 名称相同，这两个对象仍不同：</p>
+<ul>
+<li>final GIF 关心最终点的局部曲率；</li>
+<li>TracInCP 关心训练路径上的梯度对齐累计。</li>
+</ul>
+<p>所以 checkpoint 版本跳过 (H^{-1}) 的同时，也改变了时间语义。它可以是有用 selector，但不能预设会更接近 final GIF。</p>
+<h3 id="6-6-cross-seed-稳定性">6.6 Cross-seed 稳定性</h3>
+<p>k=7 的三对 seed 平均 Jaccard：</p>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right"><code>gt_full</code></th>
+  <th style="text-align:right"><code>p_graph</code></th>
+  <th style="text-align:right"><code>gt_simple</code></th>
+  <th style="text-align:right"><code>r_point</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">0.504</td>
+  <td style="text-align:right">0.504</td>
+  <td style="text-align:right">0.833</td>
+  <td style="text-align:right">0.833</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">0.358</td>
+  <td style="text-align:right">0.358</td>
+  <td style="text-align:right">0.833</td>
+  <td style="text-align:right">0.620</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">0.685</td>
+  <td style="text-align:right">0.620</td>
+  <td style="text-align:right">0.409</td>
+  <td style="text-align:right">0.504</td>
+</tr>
+</tbody>
+</table>
+<p>full graph source 在 CiteSeer 的小预算稳定性有限；但 <code>p_graph</code> 基本跟随 <code>gt_full</code>，说明 proxy 没额外制造大量不稳定。三 seed 结果只作描述性证据，不做显著性 claim。</p>
+<h2 id="7-集合级下游配置">7. 集合级下游配置</h2>
+<p>每个 C 方法和 k 都接受相同验证：</p>
+<ol>
+<li>top-k 从该方法的完整排名切出；</li>
+<li>删除节点的 train membership；</li>
+<li>删除全部 incident graph edges；</li>
+<li>相同 seed、相同初始化、相同 GCN recipe 重训练；</li>
+<li>与 undeleted same-seed base 比较；</li>
+<li>identical selected sets 只训练一次，结果复用到对应方法行。</li>
+</ol>
+<p>主要指标：</p>
+<ul>
+<li>validation loss increase；</li>
+<li>validation accuracy drop；</li>
+<li>test loss increase；</li>
+<li>test accuracy drop；</li>
+<li>removed directed edges；</li>
+<li>runtime。</li>
+</ul>
+<p><code>gt_full</code> 与 <code>p_graph</code> 是两种独立的 C-GIF selection；<code>gt_simple</code> 与 <code>p_simple</code> 是两种 C-IF selection；point 和 checkpoint 路线也分别保留。没有只挑一次 top-7。</p>
+<h2 id="8-集合级下游结果">8. 集合级下游结果</h2>
+<h3 id="8-1-全局结果">8.1 全局结果</h3>
+<table>
+<thead>
+<tr>
+  <th>项目</th>
+  <th style="text-align:right">数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dataset-seed cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>C 方法-预算结果</td>
+  <td style="text-align:right">324</td>
+</tr>
+<tr>
+  <td>全部方法-预算结果</td>
+  <td style="text-align:right">486</td>
+</tr>
+<tr>
+  <td>实际唯一 selected-set 重训练</td>
+  <td style="text-align:right">370</td>
+</tr>
+<tr>
+  <td>Base/selector state hash 一致</td>
+  <td style="text-align:right">9 / 9</td>
+</tr>
+</tbody>
+</table>
+<p>k=7 的 C 方法均值：</p>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>Family</th>
+  <th style="text-align:right">Validation loss increase</th>
+  <th style="text-align:right">Validation accuracy drop</th>
+  <th style="text-align:right">Test accuracy drop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0707 ± 0.0210</td>
+  <td style="text-align:right">0.0404</td>
+  <td style="text-align:right">0.0560</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_point_3</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0674 ± 0.0207</td>
+  <td style="text-align:right">0.0391</td>
+  <td style="text-align:right">0.0569</td>
+</tr>
+<tr>
+  <td><code>p_point</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0616 ± 0.0332</td>
+  <td style="text-align:right">0.0331</td>
+  <td style="text-align:right">0.0421</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td>C-GIF trajectory</td>
+  <td style="text-align:right">0.0602 ± 0.0425</td>
+  <td style="text-align:right">0.0367</td>
+  <td style="text-align:right">0.0404</td>
+</tr>
+<tr>
+  <td><code>r_point</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0602 ± 0.0277</td>
+  <td style="text-align:right">0.0336</td>
+  <td style="text-align:right">0.0387</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td>C-GIF trajectory</td>
+  <td style="text-align:right">0.0499 ± 0.0308</td>
+  <td style="text-align:right">0.0362</td>
+  <td style="text-align:right">0.0396</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td>C-IF trajectory</td>
+  <td style="text-align:right">0.0368 ± 0.0243</td>
+  <td style="text-align:right">0.0142</td>
+  <td style="text-align:right">0.0207</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td>C-IF trajectory</td>
+  <td style="text-align:right">0.0363 ± 0.0240</td>
+  <td style="text-align:right">0.0144</td>
+  <td style="text-align:right">0.0196</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code></td>
+  <td>C-IF reference</td>
+  <td style="text-align:right">0.0360 ± 0.0274</td>
+  <td style="text-align:right">0.0124</td>
+  <td style="text-align:right">0.0164</td>
+</tr>
+<tr>
+  <td><code>p_simple</code></td>
+  <td>C-IF final proxy</td>
+  <td style="text-align:right">0.0307 ± 0.0331</td>
+  <td style="text-align:right">0.0082</td>
+  <td style="text-align:right">0.0132</td>
+</tr>
+<tr>
+  <td><code>p_graph</code></td>
+  <td>C-GIF final proxy</td>
+  <td style="text-align:right">0.0127 ± 0.0233</td>
+  <td style="text-align:right">0.0082</td>
+  <td style="text-align:right">0.0071</td>
+</tr>
+<tr>
+  <td><code>gt_full</code></td>
+  <td>C-GIF reference</td>
+  <td style="text-align:right">0.0118 ± 0.0243</td>
+  <td style="text-align:right">0.0069</td>
+  <td style="text-align:right">0.0082</td>
+</tr>
+</tbody>
+</table>
+<p>random 的 k=7 validation-loss increase 为 <code>0.0110</code>。相对 random：</p>
+<ul>
+<li><code>tracin_cp_point_6</code>: <code>+0.0596</code>；</li>
+<li><code>p_point</code>: <code>+0.0505</code>；</li>
+<li><code>tracin_cp_graph_3</code>: <code>+0.0492</code>；</li>
+<li><code>gt_simple</code>: <code>+0.0250</code>；</li>
+<li><code>p_graph</code>: <code>+0.0017</code>；</li>
+<li><code>gt_full</code>: <code>+0.0007</code>。</li>
+</ul>
+<h3 id="8-2-fidelity-与真实效果是两个轴">8.2 Fidelity 与真实效果是两个轴</h3>
+<p>同 source 的 proxy/reference 在下游仍然非常接近。下面报告 proxy validation-loss increase 减去 reference：</p>
+<table>
+<thead>
+<tr>
+  <th>Proxy minus reference</th>
+  <th style="text-align:right">k=3</th>
+  <th style="text-align:right">k=7</th>
+  <th style="text-align:right">k=14</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_point - r_point</code></td>
+  <td style="text-align:right">0.0000</td>
+  <td style="text-align:right">+0.0014</td>
+  <td style="text-align:right">+0.0013</td>
+</tr>
+<tr>
+  <td><code>p_simple - gt_simple</code></td>
+  <td style="text-align:right">-0.0012</td>
+  <td style="text-align:right">-0.0053</td>
+  <td style="text-align:right">+0.0005</td>
+</tr>
+<tr>
+  <td><code>p_graph - gt_full</code></td>
+  <td style="text-align:right">-0.0012</td>
+  <td style="text-align:right">+0.0010</td>
+  <td style="text-align:right">+0.0015</td>
+</tr>
+</tbody>
+</table>
+<p>因此 <code>p_graph</code> 的高 fidelity 不只是排序数字：它与 <code>gt_full</code> 选出的集合也产生近乎相同的平均下游效果。</p>
+<p>但 <code>gt_full</code> 本身并不是有限 top-k 集合删除中的最大-damage selector：</p>
+<ul>
+<li>k=7：<code>gt_full=0.0118</code>，<code>tracin_cp_point_6=0.0707</code>；</li>
+<li>k=14：<code>gt_full=0.0442</code>，<code>tracin_cp_point_3=0.2898</code>。</li>
+</ul>
+<p>这不推翻 GIF reference。它说明：</p>
+<ol>
+<li><code>gt_full</code> 是 final point 的逐候选局部一阶 reference；</li>
+<li>top-k 同时删除、删边并重新优化是有限幅度、含候选交互的 set-level problem；</li>
+<li>“复现局部 GIF”与“寻找最破坏性的有限集合”可以产生不同 winner。</li>
+</ol>
+<h3 id="8-3-checkpoint-方法的双重身份">8.3 Checkpoint 方法的双重身份</h3>
+<p>graph checkpoint 方法对 <code>gt_full</code> 的 selection fidelity 较低，却产生更大的实际 damage：</p>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th style="text-align:right">Spearman vs <code>gt_full</code></th>
+  <th style="text-align:right">k=7 validation-loss increase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">0.984</td>
+  <td style="text-align:right">0.0127</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.498</td>
+  <td style="text-align:right">0.0602</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">0.529</td>
+  <td style="text-align:right">0.0499</td>
+</tr>
+</tbody>
+</table>
+<p>所以：</p>
+<ul>
+<li>若目标是 <strong>近似 final GIF</strong>，选 <code>p_graph</code>；</li>
+<li>若目标是 <strong>攻击式选择、最大化当前 set-level damage</strong>，checkpoint 方法值得保留；</li>
+<li>但不能把 checkpoint 方法造成更大 damage 写成“它更接近 GIF”。</li>
+</ul>
+<h3 id="8-4-数据集差异">8.4 数据集差异</h3>
+<p>k=7 每个数据集的最高 validation-loss increase：</p>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th>Winner</th>
+  <th style="text-align:right">Mean increase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">0.0983</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">0.0548</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0771</td>
+</tr>
+</tbody>
+</table>
+<p>没有一个 C 配置在三个数据集上统一获胜。PubMed 上 <code>gt_full</code> / <code>p_graph</code> 甚至低于 random，而 point checkpoint 仍明显高于 random；这进一步说明 source、trajectory 与有限集合交互需要分别解释。</p>
+<h3 id="8-5-预算趋势">8.5 预算趋势</h3>
+<table>
+<thead>
+<tr>
+  <th style="text-align:right">k</th>
+  <th>Global winner</th>
+  <th style="text-align:right">Validation-loss increase</th>
+  <th style="text-align:right">Paired vs random</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:right">3</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0218</td>
+  <td style="text-align:right">+0.0209</td>
+</tr>
+<tr>
+  <td style="text-align:right">7</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0707</td>
+  <td style="text-align:right">+0.0596</td>
+</tr>
+<tr>
+  <td style="text-align:right">14</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">0.2898</td>
+  <td style="text-align:right">+0.2691</td>
+</tr>
+</tbody>
+</table>
+<p>预算变大后，point trajectory 的优势显著扩大；同时标准差也增大，说明较大集合的非线性与数据集差异更强。</p>
+<h2 id="9-cache-与结果文件">9. Cache 与结果文件</h2>
+<h3 id="9-1-score-artifact">9.1 Score Artifact</h3>
+<p>正式缓存根：</p>
+<pre><code class="language-text">results/cache_v2/bc_target_v2/
+</code></pre>
+<p>九个 Score Artifacts：</p>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Seed</th>
+  <th>Artifact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_26488c63_c1a785de</code></td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_46167175_175575a6</code></td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_4346d28a_bbe857e7</code></td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_5f4c4971_a329f277</code></td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_65315186_8efc051a</code></td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_f69e8b38_375b858e</code></td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_8b3257d6_c87fd4da</code></td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_5f61998d_88b47a75</code></td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_23f2cbea_e1dd24dd</code></td>
+</tr>
+</tbody>
+</table>
+<p>Artifact payload 保存：</p>
+<ul>
+<li>ordered candidate IDs；</li>
+<li>18 个完整 score vectors；</li>
+<li>18 个 deterministic full rankings；</li>
+<li>dataset/model/checkpoint hashes；</li>
+<li>source intervention 与 affected-set metadata；</li>
+<li>LiSSA/Hutchinson 参数；</li>
+<li>seeds、numerics、runtime；</li>
+<li><code>per_candidate_exact_retrain_performed=false</code>。</li>
+</ul>
+<p>三数据集都通过 exact warm hit；recipe mismatch fail closed。</p>
+<h3 id="9-2-聚合输出">9.2 聚合输出</h3>
+<pre><code class="language-text">results/bc_target_v2/aggregate/
+  matrix_summary.json
+  selection_metrics.csv
+  selection_aggregate.csv
+  cross_seed_stability.csv
+  downstream_metrics.csv
+  downstream_aggregate.csv
+  global_downstream.csv
+</code></pre>
+<h2 id="10-复现命令">10. 复现命令</h2>
+<pre><code class="language-powershell">&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage selection
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage downstream
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.aggregate
+</code></pre>
+<p>温命中检查：</p>
+<pre><code class="language-powershell">&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_selection `
+  --dataset PubMed --seed 42 `
+  --output results\bc_target_v2\cache_checks\pubmed_seed42_warm.json `
+  --fail-if-producer-called
+</code></pre>
+<h2 id="11-已通过与未覆盖">11. 已通过与未覆盖</h2>
+<h3 id="已通过">已通过</h3>
+<ul>
+<li>3 datasets × 3 seeds；</li>
+<li>k=3/7/14；</li>
+<li>C-point / C-IF / C-GIF；</li>
+<li>single-final / 3 checkpoints / 6 checkpoints；</li>
+<li>Hessian reference / Hessian-free proxy；</li>
+<li>全部方法集合级下游重训练；</li>
+<li>Cache V2 cold/warm/mismatch；</li>
+<li>无逐候选 exact retrain。</li>
+</ul>
+<h3 id="未覆盖">未覆盖</h3>
+<ul>
+<li>GAT 或其他 backbone；</li>
+<li>canonical 5 seeds 与显著性检验；</li>
+<li>具体 approximate GU 方法的 end-to-end gap；</li>
+<li>checkpoint 权重、checkpoint epoch 的更大搜索；</li>
+<li>不同 affected-hop 或 source normalization。</li>
+</ul>
+<p>这些是后续扩展，不影响本轮对 source、Hessian 和 checkpoint 三个变量的结论。</p>
+<h2 id="12-解释规则">12. 解释规则</h2>
+<table>
+<thead>
+<tr>
+  <th>观察</th>
+  <th>可以说</th>
+  <th>不能说</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>p_graph</code> 高 fidelity</td>
+  <td>full source 下可以有效跳过 Hessian</td>
+  <td><code>p_graph</code> 等于 GIF</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code> 与 <code>gt_full</code> 低重合</td>
+  <td>删后图邻居变化不可默认忽略</td>
+  <td>simple IF 没有任何用途</td>
+</tr>
+<tr>
+  <td>point 方法只接近 point reference</td>
+  <td>candidate-only TracIn 回答 point IF 问题</td>
+  <td>它已逼近 full GIF</td>
+</tr>
+<tr>
+  <td>6 checkpoint 略优于 3</td>
+  <td>当前轨迹密度有小幅增益</td>
+  <td>checkpoint 越多越好</td>
+</tr>
+<tr>
+  <td>checkpoint graph 低 fidelity</td>
+  <td>trajectory accumulation 不等于 final GIF</td>
+  <td>graph-aware TracIn 无效</td>
+</tr>
+<tr>
+  <td>下游 damage 与 fidelity 排名不同</td>
+  <td>reference fidelity 与实际选择效果是两个轴</td>
+  <td>reference 没意义</td>
+</tr>
+</tbody>
+</table>
+<h2 id="13-一句话记忆">13. 一句话记忆</h2>
+<blockquote>
+<p>C-selection 的 full GIF reference 是 (\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle)。本轮最强近似是同 source 的 single-final <code>p_graph</code>；多 checkpoint 没有修复 source 或时间语义的差异，真实效果仍要靠集合级删后重训练单独验证。</p>
+</blockquote>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

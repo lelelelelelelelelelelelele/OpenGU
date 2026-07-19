@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IF 目标层级 A/B/C 对比</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / B–C MATRIX</div>
+    <div class="side-title">IF 目标层级 A/B/C 对比</div>
+    <span class="badge">IMPLEMENTED · LOCAL MATRIX</span>
+    <nav><a class="" href="#0-验收结论">0. 验收结论</a>
+<a class="" href="#1-实验边界">1. 实验边界</a>
+<a class="" href="#2-为什么-b-不需要额外-target-loss">2. 为什么 B 不需要额外 target loss</a>
+<a class="" href="#3-可执行配置">3. 可执行配置</a>
+<a class="sub" href="#3-1-基础训练">3.1 基础训练</a>
+<a class="sub" href="#3-2-hessian-与-b-近似">3.2 Hessian 与 B 近似</a>
+<a class="" href="#4-完整-selection-方法矩阵">4. 完整 selection 方法矩阵</a>
+<a class="" href="#5-selection-结果-b-是否近似成功">5. Selection 结果：B 是否近似成功</a>
+<a class="sub" href="#5-1-九单元全局汇总">5.1 九单元全局汇总</a>
+<a class="sub" href="#5-2-k-7-的分数据集结果">5.2 k=7 的分数据集结果</a>
+<a class="" href="#6-集合级下游效果配置">6. 集合级下游效果配置</a>
+<a class="" href="#7-集合级下游结果">7. 集合级下游结果</a>
+<a class="" href="#8-cache-v2-与可复现性">8. Cache V2 与可复现性</a>
+<a class="sub" href="#8-1-score-artifact">8.1 Score Artifact</a>
+<a class="sub" href="#8-2-下游结果缓存">8.2 下游结果缓存</a>
+<a class="" href="#9-复现命令">9. 复现命令</a>
+<a class="" href="#10-服务器-gu-follow-up-配置">10. 服务器 GU follow-up 配置</a>
+<a class="" href="#11-解释规则">11. 解释规则</a>
+<a class="" href="#12-输出锚点">12. 输出锚点</a>
+<a class="" href="#13-一句话记忆">13. 一句话记忆</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">3 DATASETS · 3 SEEDS · K=3/7/14</div>
+      <h1>IF 目标层级 A/B/C 对比</h1>
+    </section>
+    <article><h1 id="if-目标层级-a-b-c-对比实验配置与本地结果">IF 目标层级 A/B/C 对比实验配置与本地结果</h1>
+<blockquote>
+<p>状态：<strong>本地 selection 与集合级删后重训练矩阵已实施。</strong> 本页不使用逐候选 exact retrain；正式 C 目标只读取 <code>val_mask</code>，test split 只在选点完成后报告 utility。</p>
+</blockquote>
+<p>关联页面：</p>
+<ul>
+<li>[[21_C目标TracIn与GIF近似有效性实验计划]]：C-IF、C-GIF、single-final 与 checkpoint 近似的完整拆分；</li>
+<li>[[20_研究框架/21_TracIn变体与GIF关系]]：IF、GIF、TracIn 的概念关系；</li>
+<li><a href="../../reports/bc_target_matrix_REPORT.md">完整验收报告</a>。</li>
+</ul>
+<h2 id="0-验收结论">0. 验收结论</h2>
+<p>这轮实验把三个经常混在一起的问题真正分开了：</p>
+<p>[
+A(v)=\lVert g_v\rVert ,
+]</p>
+<p>[
+B(v)=\lVert H^{-1}g_v\rVert ,
+]</p>
+<p>[
+C(v;E)=\langle q_v,H^{-1}g_E\rangle .
+]</p>
+<p>其中 (q_v) 可以是候选自身 (g_v)、原图 affected-set 梯度 (\mathrm{grad1}_v)，或完整删图 source (\mathrm{grad1}_v-\mathrm{grad2}_v)。</p>
+<p>本地矩阵给出四个结论：</p>
+<ol>
+<li><strong>B 的近似是成功的。</strong> <code>b_param_hutch</code> 对 <code>b_param_lissa</code> 的九个数据集-seed 单元全排序 Spearman 均值为 <code>0.968</code>；k=7 时平均保留 <code>81.0%</code> 的相同候选。</li>
+<li><strong>A 与 B 在本设置里高度相关，但不是定义等价。</strong> A/B 全排序 Spearman 均值为 <code>0.962</code>；k 越大，集合越接近。</li>
+<li><strong>B 与 C-GIF 不是同一个选择目标。</strong> <code>b_param_lissa</code> 对 <code>gt_full</code> 的全排序 Spearman 只有 <code>0.023</code>，k=7 平均只重合 <code>17.5%</code>。</li>
+<li><strong>不能只看 selection overlap。</strong> 所有 A/B/C/控制方法都接受 k=3/7/14 的集合级删点、删边、重新训练验证，最终结论同时报告 reference fidelity 与实际删后效果。</li>
+</ol>
+<p>所以 B 不是“缺一个 (g_E) 的错误 C”，而是合法的 target-free parameter-change 目标；它回答的是“参数会移动多远”，C 回答的是“这次移动是否沿着目标 (E) 的坏方向”。</p>
+<h2 id="1-实验边界">1. 实验边界</h2>
+<table>
+<thead>
+<tr>
+  <th>边界</th>
+  <th>固定口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>本地目标</td>
+  <td>验证 A/B/C selection 的差异、近似质量和集合级删后效果</td>
+</tr>
+<tr>
+  <td>数据集</td>
+  <td>Planetoid Cora、CiteSeer、PubMed</td>
+</tr>
+<tr>
+  <td>模型</td>
+  <td>两层 GCN</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td>42、212、2024</td>
+</tr>
+<tr>
+  <td>删除预算</td>
+  <td>k=3、7、14</td>
+</tr>
+<tr>
+  <td>候选集合</td>
+  <td>标准 <code>train_mask</code></td>
+</tr>
+<tr>
+  <td>C 的目标集合 E</td>
+  <td>标准 <code>val_mask</code>，mean cross-entropy</td>
+</tr>
+<tr>
+  <td>test split</td>
+  <td>选点完成后只作 utility 诊断</td>
+</tr>
+<tr>
+  <td>逐候选 exact retrain</td>
+  <td>明确排除</td>
+</tr>
+<tr>
+  <td>本地下游</td>
+  <td>每个选中集合只重训练一次</td>
+</tr>
+<tr>
+  <td>特定 GU 算法</td>
+  <td>单独列为服务器 follow-up，不属于本地已完成结果</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-为什么-b-不需要额外-target-loss">2. 为什么 B 不需要额外 target loss</h2>
+<p>删除样本 (v) 后的局部参数变化写作：</p>
+<p>[
+\Delta\theta_v \approx H^{-1}g_v .
+]</p>
+<p>B 直接测量这个向量的大小：</p>
+<p>[
+s_B(v)=\lVert \Delta\theta_v\rVert
+=\lVert H^{-1}g_v\rVert .
+]</p>
+<p>因此它已经有完整目标：<strong>找出预计使参数移动最大的删除点</strong>。只有当问题变成“这次参数移动会不会伤害某个验证/query 目标”时，才需要再投影到：</p>
+<p>[
+g_E=\nabla_\theta L_E,
+\qquad
+s_C(v;E)=g_E^\top\Delta\theta_v .
+]</p>
+<p>本轮把 B 与 C 分开实现，而不是让 B 复用 C 的 (g_E)。</p>
+<h2 id="3-可执行配置">3. 可执行配置</h2>
+<h3 id="3-1-基础训练">3.1 基础训练</h3>
+<table>
+<thead>
+<tr>
+  <th>配置</th>
+  <th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Optimizer</td>
+  <td>Adam</td>
+</tr>
+<tr>
+  <td>Epochs</td>
+  <td>200</td>
+</tr>
+<tr>
+  <td>Learning rate</td>
+  <td>0.01</td>
+</tr>
+<tr>
+  <td>Weight decay</td>
+  <td>0.0005</td>
+</tr>
+<tr>
+  <td>Hidden channels</td>
+  <td>16</td>
+</tr>
+<tr>
+  <td>Dropout</td>
+  <td>0.5</td>
+</tr>
+<tr>
+  <td>Scheduler</td>
+  <td>milestones 100/150，gamma 0.5</td>
+</tr>
+<tr>
+  <td>Checkpoints</td>
+  <td>1、10、25、50、100、200</td>
+</tr>
+<tr>
+  <td>3-checkpoint view</td>
+  <td>epoch 1、50、200</td>
+</tr>
+<tr>
+  <td>6-checkpoint view</td>
+  <td>全部六个 checkpoint</td>
+</tr>
+<tr>
+  <td>Affected hops</td>
+  <td>2</td>
+</tr>
+<tr>
+  <td>Parameter scope</td>
+  <td>全部可训练参数</td>
+</tr>
+<tr>
+  <td>Ranking</td>
+  <td>score 降序，node ID 升序稳定 tie-break</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-2-hessian-与-b-近似">3.2 Hessian 与 B 近似</h3>
+<table>
+<thead>
+<tr>
+  <th>配置</th>
+  <th>B-LiSSA</th>
+  <th>B-Hutchinson</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>定义</td>
+  <td>(\lVert H^{-1}g_v\rVert)</td>
+  <td>共享 Rademacher probes 估计同一范数</td>
+</tr>
+<tr>
+  <td>LiSSA iterations</td>
+  <td>20</td>
+  <td>每个 probe 20</td>
+</tr>
+<tr>
+  <td>Scale / damp</td>
+  <td>25 / 0.01</td>
+  <td>25 / 0.01</td>
+</tr>
+<tr>
+  <td>Probe count</td>
+  <td>不适用</td>
+  <td>32</td>
+</tr>
+<tr>
+  <td>Probe seed</td>
+  <td>不适用</td>
+  <td>1729</td>
+</tr>
+<tr>
+  <td>是否需要 E</td>
+  <td>否</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td>角色</td>
+  <td>B reference</td>
+  <td>B scalable proxy</td>
+</tr>
+</tbody>
+</table>
+<p>实现不会存储完整 (H^{-1})。<code>b_param_lissa</code> 对候选梯度矩阵求近似 inverse-Hessian-vector products；<code>b_param_hutch</code> 先共享求解 (H^{-1}z_r)，再由 (g_v^\top H^{-1}z_r) 估计范数。</p>
+<h2 id="4-完整-selection-方法矩阵">4. 完整 selection 方法矩阵</h2>
+<table>
+<thead>
+<tr>
+  <th>Family</th>
+  <th>方法</th>
+  <th>Source / target</th>
+  <th style="text-align:right">Hessian</th>
+  <th style="text-align:right">Checkpoint</th>
+  <th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>control</td>
+  <td><code>random</code></td>
+  <td>seeded random</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>预算匹配控制</td>
+</tr>
+<tr>
+  <td>control</td>
+  <td><code>degree</code></td>
+  <td>train-candidate degree</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>结构控制</td>
+</tr>
+<tr>
+  <td>A</td>
+  <td><code>a_grad_norm</code></td>
+  <td>(\lVert g_v\rVert)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>原始训练梯度 magnitude</td>
+</tr>
+<tr>
+  <td>B</td>
+  <td><code>b_param_lissa</code></td>
+  <td>(\lVert H^{-1}g_v\rVert)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>参数变化 reference</td>
+</tr>
+<tr>
+  <td>B</td>
+  <td><code>b_param_hutch</code></td>
+  <td>Hutchinson (\lVert H^{-1}g_v\rVert)</td>
+  <td style="text-align:right">近似</td>
+  <td style="text-align:right">final</td>
+  <td>B scalable proxy</td>
+</tr>
+<tr>
+  <td>C-point</td>
+  <td><code>r_point</code></td>
+  <td>(\langle g_v,H^{-1}g_E\rangle)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>point IF reference</td>
+</tr>
+<tr>
+  <td>C-IF</td>
+  <td><code>gt_simple</code></td>
+  <td>(\langle \mathrm{grad1},H^{-1}g_E\rangle)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>no-grad2 IF reference</td>
+</tr>
+<tr>
+  <td>C-GIF</td>
+  <td><code>gt_full</code></td>
+  <td>(\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle)</td>
+  <td style="text-align:right">是</td>
+  <td style="text-align:right">final</td>
+  <td>graph-aware GIF reference</td>
+</tr>
+<tr>
+  <td>C-point</td>
+  <td><code>p_point</code></td>
+  <td>(\langle g_v,g_E\rangle)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>point Hessian-free</td>
+</tr>
+<tr>
+  <td>C-IF</td>
+  <td><code>p_simple</code></td>
+  <td>(\langle \mathrm{grad1},g_E\rangle)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>simple Hessian-free</td>
+</tr>
+<tr>
+  <td>C-GIF</td>
+  <td><code>p_graph</code></td>
+  <td>(\langle \mathrm{grad1}-\mathrm{grad2},g_E\rangle)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>graph Hessian-free</td>
+</tr>
+<tr>
+  <td>C-point</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td>point source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">3</td>
+  <td>trajectory ablation</td>
+</tr>
+<tr>
+  <td>C-point</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td>point source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">6</td>
+  <td>trajectory ablation</td>
+</tr>
+<tr>
+  <td>C-IF</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td>simple source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">3</td>
+  <td>graph-aware project ablation</td>
+</tr>
+<tr>
+  <td>C-IF</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td>simple source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">6</td>
+  <td>graph-aware project ablation</td>
+</tr>
+<tr>
+  <td>C-GIF</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td>full graph source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">3</td>
+  <td>graph-aware trajectory ablation</td>
+</tr>
+<tr>
+  <td>C-GIF</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td>full graph source + (g_E)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">6</td>
+  <td>graph-aware trajectory ablation</td>
+</tr>
+<tr>
+  <td>legacy</td>
+  <td><code>legacy</code></td>
+  <td>(\langle g_v,-\sum_{j\in T}g_j\rangle)</td>
+  <td style="text-align:right">否</td>
+  <td style="text-align:right">final</td>
+  <td>旧 target-direction negative control</td>
+</tr>
+</tbody>
+</table>
+<p>每个数据集-seed 只生成一次 18 个完整 score/ranking。k=3/7/14 只是切同一排名，不进入 Score Artifact identity。</p>
+<h2 id="5-selection-结果-b-是否近似成功">5. Selection 结果：B 是否近似成功</h2>
+<h3 id="5-1-九单元全局汇总">5.1 九单元全局汇总</h3>
+<table>
+<thead>
+<tr>
+  <th>对比</th>
+  <th style="text-align:right">k</th>
+  <th style="text-align:right">common fraction</th>
+  <th style="text-align:right">Jaccard</th>
+  <th style="text-align:right">Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.741</td>
+  <td style="text-align:right">0.656</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.778</td>
+  <td style="text-align:right">0.684</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>A vs B-LiSSA</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.881</td>
+  <td style="text-align:right">0.793</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.704</td>
+  <td style="text-align:right">0.578</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.810</td>
+  <td style="text-align:right">0.696</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-Hutch vs B-LiSSA</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.841</td>
+  <td style="text-align:right">0.735</td>
+  <td style="text-align:right">0.968</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">3</td>
+  <td style="text-align:right">0.185</td>
+  <td style="text-align:right">0.111</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">7</td>
+  <td style="text-align:right">0.175</td>
+  <td style="text-align:right">0.104</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+<tr>
+  <td>B-LiSSA vs C-GIF</td>
+  <td style="text-align:right">14</td>
+  <td style="text-align:right">0.262</td>
+  <td style="text-align:right">0.159</td>
+  <td style="text-align:right">0.023</td>
+</tr>
+</tbody>
+</table>
+<p>这里的全局均值覆盖 3 datasets × 3 seeds。结论是：</p>
+<ul>
+<li>A/B 高相关，说明本模型下曲率修正通常是在高梯度候选中进一步重排；</li>
+<li>Hutchinson 基本复现了 LiSSA 的 B 排名；</li>
+<li>B/C-GIF 接近不相关，证明 target projection 是目标层级上的真实分界。</li>
+</ul>
+<h3 id="5-2-k-7-的分数据集结果">5.2 k=7 的分数据集结果</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th>A vs B common / Jaccard / Spearman</th>
+  <th>Hutch vs LiSSA common / Jaccard / Spearman</th>
+  <th>B vs C-GIF common / Jaccard / Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td>0.619 / 0.461 / 0.989</td>
+  <td>0.810 / 0.685 / 0.986</td>
+  <td>0.000 / 0.000 / -0.075</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td>0.714 / 0.591 / 0.920</td>
+  <td>0.714 / 0.569 / 0.946</td>
+  <td>0.190 / 0.111 / 0.012</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td>1.000 / 1.000 / 0.976</td>
+  <td>0.905 / 0.833 / 0.972</td>
+  <td>0.333 / 0.202 / 0.132</td>
+</tr>
+</tbody>
+</table>
+<p>PubMed 的 A/B top-7 完全相同，不意味着两者数学等价；它只说明这个数据集、预算和三 seed 均值下，曲率修正没有跨过 top-7 边界。</p>
+<h2 id="6-集合级下游效果配置">6. 集合级下游效果配置</h2>
+<p>对每个 dataset/seed/method/k：</p>
+<ol>
+<li>从 <code>train_mask</code> 去掉选中节点；</li>
+<li>从图中删除所有与选中节点相连的有向边；</li>
+<li>使用相同 seed、初始化与 GCN recipe 重新训练一次；</li>
+<li>与同 seed 的未删除 base model 比较；</li>
+<li>相同 selected set 跨方法去重训练，但每个方法仍保留独立结果行。</li>
+</ol>
+<table>
+<thead>
+<tr>
+  <th>Primary / secondary</th>
+  <th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Target primary</td>
+  <td>validation loss increase</td>
+</tr>
+<tr>
+  <td>Target secondary</td>
+  <td>validation accuracy drop</td>
+</tr>
+<tr>
+  <td>Utility</td>
+  <td>test loss increase、test accuracy drop</td>
+</tr>
+<tr>
+  <td>Training behavior</td>
+  <td>retained-train accuracy drop</td>
+</tr>
+<tr>
+  <td>Structural exposure</td>
+  <td>removed directed edges</td>
+</tr>
+<tr>
+  <td>Cost</td>
+  <td>unique selected sets、training seconds</td>
+</tr>
+</tbody>
+</table>
+<p>这个验证回答“该 selector 选出的集合删掉后，目标和 utility 实际发生什么”。它不是某个 approximate GU 算法的 approximation-gap 验证，也不是逐候选重训练。</p>
+<h2 id="7-集合级下游结果">7. 集合级下游结果</h2>
+<p>全量覆盖：</p>
+<table>
+<thead>
+<tr>
+  <th>项目</th>
+  <th style="text-align:right">数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dataset-seed cells</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>方法-预算结果行</td>
+  <td style="text-align:right">486</td>
+</tr>
+<tr>
+  <td>实际唯一 selected-set 重训练</td>
+  <td style="text-align:right">370</td>
+</tr>
+<tr>
+  <td>单元 runtime 合计</td>
+  <td style="text-align:right">2466.2 s</td>
+</tr>
+<tr>
+  <td>Base/selector state hash 一致</td>
+  <td style="text-align:right">9 / 9</td>
+</tr>
+</tbody>
+</table>
+<p>k=7 的九单元均值：</p>
+<table>
+<thead>
+<tr>
+  <th>方法</th>
+  <th>Family</th>
+  <th style="text-align:right">Validation loss increase</th>
+  <th style="text-align:right">Paired vs random</th>
+  <th style="text-align:right">Validation accuracy drop</th>
+  <th style="text-align:right">Test accuracy drop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>tracin_cp_point_6</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0707</td>
+  <td style="text-align:right">+0.0596</td>
+  <td style="text-align:right">0.0404</td>
+  <td style="text-align:right">0.0560</td>
+</tr>
+<tr>
+  <td><code>p_point</code></td>
+  <td>C-point</td>
+  <td style="text-align:right">0.0616</td>
+  <td style="text-align:right">+0.0505</td>
+  <td style="text-align:right">0.0331</td>
+  <td style="text-align:right">0.0421</td>
+</tr>
+<tr>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td>C-GIF trajectory</td>
+  <td style="text-align:right">0.0602</td>
+  <td style="text-align:right">+0.0492</td>
+  <td style="text-align:right">0.0367</td>
+  <td style="text-align:right">0.0404</td>
+</tr>
+<tr>
+  <td><code>gt_simple</code></td>
+  <td>C-IF</td>
+  <td style="text-align:right">0.0360</td>
+  <td style="text-align:right">+0.0250</td>
+  <td style="text-align:right">0.0124</td>
+  <td style="text-align:right">0.0164</td>
+</tr>
+<tr>
+  <td><code>p_graph</code></td>
+  <td>C-GIF final proxy</td>
+  <td style="text-align:right">0.0127</td>
+  <td style="text-align:right">+0.0017</td>
+  <td style="text-align:right">0.0082</td>
+  <td style="text-align:right">0.0071</td>
+</tr>
+<tr>
+  <td><code>gt_full</code></td>
+  <td>C-GIF reference</td>
+  <td style="text-align:right">0.0118</td>
+  <td style="text-align:right">+0.0007</td>
+  <td style="text-align:right">0.0069</td>
+  <td style="text-align:right">0.0082</td>
+</tr>
+<tr>
+  <td><code>random</code></td>
+  <td>control</td>
+  <td style="text-align:right">0.0110</td>
+  <td style="text-align:right">0.0000</td>
+  <td style="text-align:right">0.0102</td>
+  <td style="text-align:right">0.0096</td>
+</tr>
+<tr>
+  <td><code>b_param_lissa</code></td>
+  <td>B</td>
+  <td style="text-align:right">-0.0005</td>
+  <td style="text-align:right">-0.0116</td>
+  <td style="text-align:right">0.0024</td>
+  <td style="text-align:right">0.0119</td>
+</tr>
+<tr>
+  <td><code>b_param_hutch</code></td>
+  <td>B</td>
+  <td style="text-align:right">-0.0078</td>
+  <td style="text-align:right">-0.0188</td>
+  <td style="text-align:right">-0.0018</td>
+  <td style="text-align:right">0.0059</td>
+</tr>
+<tr>
+  <td><code>a_grad_norm</code></td>
+  <td>A</td>
+  <td style="text-align:right">-0.0035</td>
+  <td style="text-align:right">-0.0145</td>
+  <td style="text-align:right">0.0029</td>
+  <td style="text-align:right">0.0100</td>
+</tr>
+</tbody>
+</table>
+<p>在这个 validation-target set-deletion protocol 中：</p>
+<ul>
+<li>B-LiSSA 与 B-Hutch 都没有超过 random 的 validation-loss damage；</li>
+<li>k=14 时，B-LiSSA / B-Hutch 对 random 的 paired difference 进一步为 <code>-0.0287 / -0.0205</code>；</li>
+<li>C-point 和部分 checkpoint C 方法造成的实际 target damage 更大；</li>
+<li><code>p_graph</code> 与 <code>gt_full</code> 的下游效果很接近，但二者都不是有限集合删除中的 damage 最大方法。</li>
+</ul>
+<p>这不是 B 实现失败。B-Hutch 已在 selection 层复现 B-LiSSA；下游结果说明的是：<strong>parameter displacement magnitude 在本设置中不是 validation damage 的好代理。</strong> B 是否更能暴露某个 approximate GU 方法的 retrain gap，仍需服务器上的 algorithm-specific 实验，不能由本地结果代替。</p>
+<p>预算趋势：</p>
+<table>
+<thead>
+<tr>
+  <th style="text-align:right">k</th>
+  <th>Validation-loss damage 最大方法</th>
+  <th style="text-align:right">Mean increase</th>
+  <th style="text-align:right">Paired vs random</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:right">3</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0218</td>
+  <td style="text-align:right">+0.0209</td>
+</tr>
+<tr>
+  <td style="text-align:right">7</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">0.0707</td>
+  <td style="text-align:right">+0.0596</td>
+</tr>
+<tr>
+  <td style="text-align:right">14</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">0.2898</td>
+  <td style="text-align:right">+0.2691</td>
+</tr>
+</tbody>
+</table>
+<p>不同数据集的 k=7 winner 也不同：Cora 是 <code>tracin_cp_graph_3</code>，CiteSeer 是 <code>gt_simple</code>，PubMed 是 <code>tracin_cp_point_6</code>。因此三 seed × 三数据集支持“目标层级与近似必须分开”的结论，但不支持一个 selector 在所有设置中统一最优。</p>
+<h2 id="8-cache-v2-与可复现性">8. Cache V2 与可复现性</h2>
+<h3 id="8-1-score-artifact">8.1 Score Artifact</h3>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Seed</th>
+  <th>Artifact</th>
+  <th style="text-align:right">Candidates</th>
+  <th style="text-align:right">E nodes</th>
+  <th style="text-align:right">Cold total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_26488c63_c1a785de</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">61.32 s</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_46167175_175575a6</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">59.93 s</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_4346d28a_bbe857e7</code></td>
+  <td style="text-align:right">140</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">68.05 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_5f4c4971_a329f277</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">158.63 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_65315186_8efc051a</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">140.93 s</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_f69e8b38_375b858e</code></td>
+  <td style="text-align:right">120</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">140.42 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>score_8b3257d6_c87fd4da</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">120.08 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>score_5f61998d_88b47a75</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">100.68 s</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>score_23f2cbea_e1dd24dd</code></td>
+  <td style="text-align:right">60</td>
+  <td style="text-align:right">500</td>
+  <td style="text-align:right">99.21 s</td>
+</tr>
+</tbody>
+</table>
+<p>三数据集均通过 <code>--fail-if-producer-called</code> exact warm-hit。改变 candidate set、target set、数据指纹、checkpoint、模型 state、LiSSA/Hutchinson 参数或源码指纹都会形成不同 Recipe；失配不会静默复用。</p>
+<h3 id="8-2-下游结果缓存">8.2 下游结果缓存</h3>
+<p>下游 JSON 使用独立 deterministic recipe hash。相同 selection Artifact、方法集合、预算、数据指纹和训练 recipe 才能 warm hit；改变方法子集会 fail closed。下游结果保留：</p>
+<ul>
+<li>selected rank order 与无序 selected set；</li>
+<li>selected-set SHA-256；</li>
+<li>base/selector model state hash；</li>
+<li>删前/删后 edge count；</li>
+<li>每个重训练模型 state hash；</li>
+<li>全部 effect metrics 与 runtime。</li>
+</ul>
+<h2 id="9-复现命令">9. 复现命令</h2>
+<pre><code class="language-powershell">&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage selection
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_matrix `
+  --stage downstream
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.aggregate
+</code></pre>
+<p>单元级命令：</p>
+<pre><code class="language-powershell">&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_selection `
+  --dataset Cora --seed 2024 `
+  --output results\bc_target_v2\selection\cora_gcn_seed2024_selection.json
+
+&amp; 'E:\conda_package\envs\gnn\python.exe' -m experiments.bc_target_v2.run_downstream `
+  --selection-summary results\bc_target_v2\selection\cora_gcn_seed2024_selection.json `
+  --output results\bc_target_v2\downstream\cora_gcn_seed2024_downstream.json
+</code></pre>
+<h2 id="10-服务器-gu-follow-up-配置">10. 服务器 GU follow-up 配置</h2>
+<p>本轮本地结果只验证 selector 与真实集合删除效应。若继续验证 approximate graph unlearning，建议服务器矩阵先用：</p>
+<table>
+<thead>
+<tr>
+  <th>维度</th>
+  <th>冻结建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td>Cora、CiteSeer、PubMed</td>
+</tr>
+<tr>
+  <td>Backbone</td>
+  <td>GCN</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td>42、212、2024</td>
+</tr>
+<tr>
+  <td>Budgets</td>
+  <td>3、7、14</td>
+</tr>
+<tr>
+  <td>GU families</td>
+  <td>GNNDelete、GraphEraser</td>
+</tr>
+<tr>
+  <td>必须 selectors</td>
+  <td>random、B-LiSSA、B-Hutch、GT-full、P-graph、TracInCP-graph-6</td>
+</tr>
+<tr>
+  <td>主要指标</td>
+  <td>approximate-vs-retrain gap、validation/query damage、test utility、prediction shift</td>
+</tr>
+<tr>
+  <td>Artifact reuse</td>
+  <td>selection Artifact 可复用；GU 输出必须有独立 recipe</td>
+</tr>
+</tbody>
+</table>
+<p>先跑 <code>GT-full / P-graph / B-LiSSA / random</code> 的 canary，再决定是否铺满全部 C ablation。不能把本地集合删除效果直接写成某个 GU 方法的 vulnerability。</p>
+<h2 id="11-解释规则">11. 解释规则</h2>
+<table>
+<thead>
+<tr>
+  <th>观察</th>
+  <th>可以说</th>
+  <th>不能说</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Hutch 与 LiSSA 高相关</td>
+  <td>共享 probe 是 B 的有效 scalable proxy</td>
+  <td>Hutch 逐点数值等于 LiSSA</td>
+</tr>
+<tr>
+  <td>A/B 高相关</td>
+  <td>当前设置中曲率重排有限</td>
+  <td>A 与 B 定义等价</td>
+</tr>
+<tr>
+  <td>B/C 低相关</td>
+  <td>参数位移 magnitude 与目标损失投影不同</td>
+  <td>B 实现失败</td>
+</tr>
+<tr>
+  <td>C 在 validation damage 上更高</td>
+  <td>target-aware selector 更贴近该目标</td>
+  <td>C 必然攻击所有 GU 算法</td>
+</tr>
+<tr>
+  <td>B 在某些 utility/gap 上更高</td>
+  <td>参数变化可能暴露另一种脆弱性</td>
+  <td>B 比 C 更接近 eval impact</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-输出锚点">12. 输出锚点</h2>
+<ul>
+<li><code>experiments/bc_target_v2/</code>：selection、downstream、aggregate、render；</li>
+<li><code>results/cache_v2/bc_target_v2/</code>：正式 Score Artifacts；</li>
+<li><code>results/bc_target_v2/selection/</code>：9 个 selection summaries；</li>
+<li><code>results/bc_target_v2/downstream/</code>：9 个 downstream summaries；</li>
+<li><code>results/bc_target_v2/aggregate/</code>：CSV 与总 JSON；</li>
+<li><a href="../../reports/bc_target_matrix_REPORT.md">验收报告</a>。</li>
+</ul>
+<h2 id="13-一句话记忆">13. 一句话记忆</h2>
+<blockquote>
+<p>B 不需要 (g_E)，因为它测的是参数移动大小；Hutchinson 已经很好地近似了 B-LiSSA。B 与 C-GIF 低重合不是错误，而是“移动多远”和“是否伤害目标”本来就是两个问题。</p>
+</blockquote>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>
