@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WORKPLAN 未完成项并行模块梳理</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / WORKPLAN REVIEW</div>
+    <div class="side-title">WORKPLAN 未完成项并行模块梳理</div>
+    <span class="badge">REVIEW PROJECTION</span>
+    <nav><a class="" href="#一句话结论">一句话结论</a>
+<a class="" href="#当前基线与已关闭事项">当前基线与已关闭事项</a>
+<a class="" href="#数字校正">数字校正</a>
+<a class="" href="#可并行模块">可并行模块</a>
+<a class="" href="#模块-m5-的真实缺口">模块 M5 的真实缺口</a>
+<a class="" href="#推荐并行波次">推荐并行波次</a>
+<a class="sub" href="#wave-a-现在即可并行">Wave A：现在即可并行</a>
+<a class="sub" href="#wave-b-单-gpu-队列-按关键路径串行">Wave B：单 GPU 队列，按关键路径串行</a>
+<a class="sub" href="#wave-c-依赖回填">Wave C：依赖回填</a>
+<a class="" href="#建议的优先级">建议的优先级</a>
+<a class="" href="#git-收口审计">Git 收口审计</a>
+<a class="" href="#审阅后建议">审阅后建议</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">2026-07-20 · MAIN B46927E · PARALLEL LANES</div>
+      <h1>WORKPLAN 未完成项并行模块梳理</h1>
+    </section>
+    <article><h1 id="workplan-未完成项并行模块梳理">WORKPLAN 未完成项并行模块梳理</h1>
+<blockquote>
+<p>这是一份供审阅的并行化投影，不是第二份状态中枢。任务定义和最终勾选仍以 <a href="../self/dashboard/WORKPLAN.md"><code>self/dashboard/WORKPLAN.md</code></a> 为准；本报告只整理当前证据、依赖和可并行边界。</p>
+</blockquote>
+<h2 id="一句话结论">一句话结论</h2>
+<p><strong>Cache V2 当前范围已经完成；真正未完成的核心是 IF collateral/hop、noise anchor、arxiv scope、A5 ratio 补量、TracIn 正式化与 surrogate transfer，以及对应写作和图。</strong></p>
+<p>上一轮看起来像 WIP 的 IF-target 实验其实已达到本地验收条件，本轮已完成测试、提交、父线合并、主线合并和推送，不再列为未完成模块。现在唯一保留的真实代码 WIP 是 <code>codex/wip-tracin-promotion-20260720@3ccde63</code>。</p>
+<h2 id="当前基线与已关闭事项">当前基线与已关闭事项</h2>
+<table>
+<thead>
+<tr>
+  <th>项目</th>
+  <th>当前结论</th>
+  <th>证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Git 主线</td>
+  <td>local/main 与 origin/main 均为 <code>b46927e</code></td>
+  <td>本轮推送后 SHA 与 ahead/behind=<code>0/0</code></td>
+</tr>
+<tr>
+  <td>Worktree</td>
+  <td>从 19 个收敛到 3 个，全部 clean</td>
+  <td>主工作区、TracIn WIP、本报告工作区</td>
+</tr>
+<tr>
+  <td>分支</td>
+  <td>已删 26 条本地、6 条远端短期分支</td>
+  <td>ancestor、patch-equivalent 或 superseded 审计</td>
+</tr>
+<tr>
+  <td>Cache V2</td>
+  <td><strong>当前范围 accepted</strong>；不再作为 E7 的通用 Cache blocker</td>
+  <td><a href="cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md"><code>cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md</code></a></td>
+</tr>
+<tr>
+  <td>Legacy Cache</td>
+  <td>active authority/fallback 已收口；物理退休延后</td>
+  <td>970 payload、70 refs、<code>physical_archive_authorized=false</code></td>
+</tr>
+<tr>
+  <td>IF-target</td>
+  <td><strong>已进入 main</strong>：single-seed C-target + 三数据集三 seed B/C matrix</td>
+  <td><a href="../reports/c_target_v1_REPORT.md"><code>c_target_v1_REPORT.md</code></a>、<a href="../reports/bc_target_matrix_REPORT.md"><code>bc_target_matrix_REPORT.md</code></a></td>
+</tr>
+<tr>
+  <td>E1 / E4 / F4</td>
+  <td>已完成或已有接受结论</td>
+  <td>WORKPLAN 的 E1、E4、F4</td>
+</tr>
+</tbody>
+</table>
+<p>不要重新打开的事项：Cache Gates 2–4、E1 Citeseer stable scope、E4 GraphRevoker 40-cell 修复矩阵、IF-target 本地机制矩阵。Legacy 物理退休是独立工程，不应混入当前 rebuttal 主线。</p>
+<h2 id="数字校正">数字校正</h2>
+<p><a href="../self/dashboard/config_inventory.csv"><code>config_inventory.csv</code></a> 与当前验收报告暴露了几处 WORKPLAN 表面数字漂移：</p>
+<table>
+<thead>
+<tr>
+  <th>项目</th>
+  <th style="text-align:right">WORKPLAN 表面状态</th>
+  <th style="text-align:right">当前证据化状态</th>
+  <th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A3</td>
+  <td style="text-align:right"><code>0/200</code></td>
+  <td style="text-align:right"><strong>10/200</strong></td>
+  <td>GCN α=0.00 已有 10 行；其余仍待 gate 决策</td>
+</tr>
+<tr>
+  <td>A5 全配置空间</td>
+  <td style="text-align:right">当前文字强调 190 pending</td>
+  <td style="text-align:right"><strong>90/450</strong></td>
+  <td>inventory 是全配置口径；190 是当前收窄后的 stable-strategy formal lane</td>
+</tr>
+<tr>
+  <td>arxiv T1–T3</td>
+  <td style="text-align:right">T1 <code>6/18</code></td>
+  <td style="text-align:right"><strong>6/54</strong></td>
+  <td>inventory/YAML 为每 seed 18；T2/T3 均 0。README 的 12/seed 是旧口径</td>
+</tr>
+<tr>
+  <td>TracIn</td>
+  <td style="text-align:right">prototype gates 已合入</td>
+  <td style="text-align:right"><strong>仍未 production accepted</strong></td>
+  <td>G1/G3 partial，G5/G6 not run</td>
+</tr>
+<tr>
+  <td>Cache V2</td>
+  <td style="text-align:right">E7 文本仍写 real-hit blocker</td>
+  <td style="text-align:right"><strong>real-hit 已通过</strong></td>
+  <td>E7 现在只被 proper TracIn/runner gate 阻塞</td>
+</tr>
+</tbody>
+</table>
+<p>因此，后续更新 WORKPLAN 时应把 Git SHA、Cache/E7 blocker、IF-target accepted evidence、A3 进度和 arxiv cell 口径一起同步，而不是只改一处 checkbox。</p>
+<h2 id="可并行模块">可并行模块</h2>
+<table>
+<thead>
+<tr>
+  <th>模块</th>
+  <th>对应 ID</th>
+  <th>当前状态</th>
+  <th>资源</th>
+  <th>前置依赖</th>
+  <th>完成定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>M0 当前真相同步</strong></td>
+  <td>dashboard maintenance</td>
+  <td>ready</td>
+  <td>本地 CPU / 文档</td>
+  <td>本报告审阅</td>
+  <td>WORKPLAN 更新到 <code>b46927e</code>；同步 Cache、IF-target、A3、arxiv 口径；重生 <code>progress.html</code></td>
+</tr>
+<tr>
+  <td><strong>M1 IF collateral 修复与 hop 闭环</strong></td>
+  <td>E2 → E6 → W3-L3 / W8 / F3-hop</td>
+  <td>未开始</td>
+  <td>AutoDL GPU + 本地聚合</td>
+  <td>E2 先于 E6</td>
+  <td>120 个 GIF/IDEA collateral cell 通过；aggregate 460/460 有 4 个 hop 字段；caveat 与 hop 图回填</td>
+</tr>
+<tr>
+  <td><strong>M2 noise anchor</strong></td>
+  <td>E3 → W3-L4</td>
+  <td>ready</td>
+  <td>本地 CPU</td>
+  <td>无</td>
+  <td>完成 k=5 <code>f1_after</code> 与主矩阵 <code>perf_before</code> join；同时给出 <code>relative_f1_drop</code> sanity；锁定论文采用口径</td>
+</tr>
+<tr>
+  <td><strong>M3 arxiv scope</strong></td>
+  <td>AC-1 → E5 → W2-② / W3-L7</td>
+  <td>部分完成</td>
+  <td>AutoDL GPU</td>
+  <td>AC-1 必须先过</td>
+  <td>AUC disabled-policy canary 1/1；T1–T3 authoritative matrix 54 格中补齐缺失 48 格，或先书面收窄 scope；更新 scope 结论</td>
+</tr>
+<tr>
+  <td><strong>M4 ratio 补量</strong></td>
+  <td>A5 → F3-ratio</td>
+  <td>部分完成</td>
+  <td>AutoDL GPU</td>
+  <td>r0.20 先做 1-cell gate</td>
+  <td>按当前 formal lane 完成 190 个 stable-strategy cells；同步 inventory；生成 ratio-elasticity 数据</td>
+</tr>
+<tr>
+  <td><strong>M5 TracIn 正式化与迁移攻击</strong></td>
+  <td>TracIn G1/G3/G5/G6 → E7 C.6a → C.6b</td>
+  <td>blocked / WIP</td>
+  <td>本地代码 + AutoDL GPU</td>
+  <td>proper versioned Recipe 和 runner gate</td>
+  <td>WIP 与 main 对齐；formal ScoreArtifact/store；G5 Hybrid、G6 GU canary 通过；再跑 C.6a 5 格与 C.6b 10 格</td>
+</tr>
+<tr>
+  <td><strong>M6 统计与 ablation 决策</strong></td>
+  <td>A3、A7</td>
+  <td>decision required</td>
+  <td>本地分析 + 可选 GPU</td>
+  <td>先做价值/功效判断</td>
+  <td>A3 明确 go/no-go；若 go，补到 200/200。A7 明确追加 seed 数或改为 volume-driven/n.s. 表述</td>
+</tr>
+<tr>
+  <td><strong>M7 写作证据线</strong></td>
+  <td>W1–W9、W3 子项、W4 收口</td>
+  <td>未验收</td>
+  <td>写作 / 本地分析</td>
+  <td>部分子项依赖 M1–M3</td>
+  <td>立即完成 W1/W5、W3 可写 caveat、W6/W7/W9；实验回填后完成 W2/W3/W8；最后 W4 融合并逐表核对</td>
+</tr>
+<tr>
+  <td><strong>M8 图与生成器线</strong></td>
+  <td>F1、F2、F3</td>
+  <td>未验收</td>
+  <td>本地绘图</td>
+  <td>F3 依赖 M1/M4，alpha 图依赖 M6</td>
+  <td>F1 pipeline 图；F2 生成器单一权威入口；F3 三类 supp 图由正式数据重生</td>
+</tr>
+<tr>
+  <td><strong>M9 非当前主线</strong></td>
+  <td>A8、A9、Legacy 物理退休</td>
+  <td>option / deferred</td>
+  <td>独立项目</td>
+  <td>rebuttal 主线完成或 reviewer 点名</td>
+  <td>只有明确升级优先级后再建独立 branch；不得混进 M1–M8</td>
+</tr>
+</tbody>
+</table>
+<h2 id="模块-m5-的真实缺口">模块 M5 的真实缺口</h2>
+<p>TracIn 是现在最容易被“原型已合并”误判成“已经完成”的部分。正式报告的结论仍是 <a href="tracin_v2_gates_ACCEPTANCE_REPORT.md"><code>CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE</code></a>：</p>
+<ul>
+<li>G1 Recipe identity：partial pass，formal ScoreArtifact/store/conflict gate 缺失；</li>
+<li>G3 Legacy replay/isolation：partial pass，formal store snapshot gate 缺失；</li>
+<li>G5 Hybrid：未运行；</li>
+<li>G6 GU canary：未运行；</li>
+<li>默认 runner/production registry：有意没有接入。</li>
+</ul>
+<p>本轮合入的 IF-target 证据解决了“B/C 目标层级与 same-source proxy 是否有效”的机制问题，但它没有自动完成 TracIn production registration，也没有完成 E7 surrogate transfer。两者应作为 M5 的输入证据，而不是把 M5 标成完成。</p>
+<h2 id="推荐并行波次">推荐并行波次</h2>
+<h3 id="wave-a-现在即可并行">Wave A：现在即可并行</h3>
+<table>
+<thead>
+<tr>
+  <th>Lane</th>
+  <th>立即动作</th>
+  <th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>本地数据</td>
+  <td>M2 noise anchor</td>
+  <td>无 GPU 依赖，直接关闭 C4/W3-L4</td>
+</tr>
+<tr>
+  <td>状态治理</td>
+  <td>M0 WORKPLAN 同步</td>
+  <td>避免继续按旧 SHA、旧 Cache blocker 和旧 cell 数排期</td>
+</tr>
+<tr>
+  <td>代码研究</td>
+  <td>M5a：把 TracIn WIP 与 main 对齐并补 formal gate 设计</td>
+  <td>可与 GPU 队列并行，但未过 gate 前不合 main</td>
+</tr>
+<tr>
+  <td>写作</td>
+  <td>M7 的 W1/W5、W3 即时 caveat、W6/W7/W9</td>
+  <td>不等待新实验即可推进</td>
+</tr>
+<tr>
+  <td>图</td>
+  <td>M8 的 F1/F2</td>
+  <td>不依赖实验结果</td>
+</tr>
+</tbody>
+</table>
+<h3 id="wave-b-单-gpu-队列-按关键路径串行">Wave B：单 GPU 队列，按关键路径串行</h3>
+<ol>
+<li><strong>AC-1</strong>：先验证大图 AUC disabled-policy；失败则禁止开 E5。</li>
+<li><strong>E2</strong>：优先于其它大批量任务，因为它同时解锁 E6、W3-L3、W8 和 hop 图。</li>
+<li><strong>E5</strong>：补 arxiv scope，解锁 W2-② 与 W3-L7 的最终表述。</li>
+<li><strong>A5</strong>：完成 ratio formal lane；r0.20 shard 方法先 1-cell gate。</li>
+<li><strong>A7 / A3</strong>：只在 M6 决策为 go 后排队，避免无效烧卡。</li>
+</ol>
+<h3 id="wave-c-依赖回填">Wave C：依赖回填</h3>
+<ul>
+<li>E2 完成后：E6 → W3-L3 / W8 → F3-hop；</li>
+<li>E3 完成后：W3-L4；</li>
+<li>E5 完成后：W2-② / W3-L7；</li>
+<li>A5/A3 完成后：F3 ratio/alpha；</li>
+<li>W1–W3 完成后：W4 全文融合与表格重查；</li>
+<li>TracIn G1/G3/G5/G6 全过后：E7 C.6a，再按 transfer ratio gate 决定 C.6b 后续扩展。</li>
+</ul>
+<h2 id="建议的优先级">建议的优先级</h2>
+<table>
+<thead>
+<tr>
+  <th>优先级</th>
+  <th>模块</th>
+  <th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>P0</strong></td>
+  <td>M0、M1、M2、M3</td>
+  <td>直接修正状态源并关闭 C3/C4/L7 的证据硬伤</td>
+</tr>
+<tr>
+  <td><strong>P1</strong></td>
+  <td>M4、M5、M7、M8</td>
+  <td>补规模、完成 proper TracIn 路径并形成可交付 paper/figure</td>
+</tr>
+<tr>
+  <td><strong>P2 / gated</strong></td>
+  <td>M6</td>
+  <td>A3 价值有限，A7 需先决定追加 seed 还是收缩 claim</td>
+</tr>
+<tr>
+  <td><strong>不排期</strong></td>
+  <td>M9</td>
+  <td>follow-up 或独立 retirement，不属于当前 rebuttal 主线</td>
+</tr>
+</tbody>
+</table>
+<p>如果只看“还有哪些没有修改完”，当前应关注的是 <strong>M1–M8</strong>；M0 是状态同步，M9 是明确不在当前主线。最短可见成果路径是 <strong>M2 + M0 + W1/W5 + F1/F2</strong>，关键实验路径是 <strong>AC-1 → E2 → E6</strong>，最长研究路径是 <strong>TracIn production gates → E7</strong>。</p>
+<h2 id="git-收口审计">Git 收口审计</h2>
+<table>
+<thead>
+<tr>
+  <th>动作</th>
+  <th style="text-align:right">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>第一次 main 推送</td>
+  <td style="text-align:right"><code>3f631fb → a41efe1</code>，97 个领先提交进入 origin</td>
+</tr>
+<tr>
+  <td>IF-target 接收</td>
+  <td style="text-align:right">child <code>e335885</code> → parent merge <code>8a648d2</code> → main merge <code>b46927e</code></td>
+</tr>
+<tr>
+  <td>IF-target 测试</td>
+  <td style="text-align:right">合并前后均 9/9 passed</td>
+</tr>
+<tr>
+  <td>Dirty worktree</td>
+  <td style="text-align:right">4 个全部 clean；IF-target 正式接收，TracIn 保留 WIP，2 份旧稿转 archive tag</td>
+</tr>
+<tr>
+  <td>Worktree 删除</td>
+  <td style="text-align:right">16 个 clean 历史 worktree</td>
+</tr>
+<tr>
+  <td>本地分支删除</td>
+  <td style="text-align:right">26 条</td>
+</tr>
+<tr>
+  <td>远端分支删除</td>
+  <td style="text-align:right">6 条</td>
+</tr>
+<tr>
+  <td>Archive tags</td>
+  <td style="text-align:right"><code>archive/docs-residue-20260720</code>、<code>archive/runner-residue-20260720</code>，均已推送</td>
+</tr>
+</tbody>
+</table>
+<h2 id="审阅后建议">审阅后建议</h2>
+<p>审阅本报告后，只需要决定三件事：</p>
+<ol>
+<li>M6 的 A3/A7 是继续跑，还是收缩 claim；</li>
+<li>M3 的 arxiv 是否按 54-cell 完整口径补齐，还是书面收窄 scope；</li>
+<li>M5 是否升级为当前主线，还是先只完成 proper TracIn production gate、暂缓 E7。</li>
+</ol>
+<p>决定后再回写 WORKPLAN 和重生 dashboard，避免报告与状态中枢继续漂移。</p>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

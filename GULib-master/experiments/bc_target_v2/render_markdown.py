@@ -59,6 +59,7 @@ def render_document(
     title: str,
     badge: str,
     kicker: str,
+    brand: str = "OPENGU / B–C MATRIX",
 ) -> None:
     renderer = AnchoredRenderer()
     markdown = mistune.create_markdown(
@@ -84,7 +85,7 @@ def render_document(
 <body>
 <div class="layout">
   <aside>
-    <div class="brand">OPENGU / B–C MATRIX</div>
+    <div class="brand">{html.escape(brand)}</div>
     <div class="side-title">{html.escape(title)}</div>
     <span class="badge">{html.escape(badge)}</span>
     <nav>{nav}</nav>
@@ -112,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--title", required=True)
     parser.add_argument("--badge", default="LOCAL MATRIX")
     parser.add_argument("--kicker", default="CORA · CITESEER · PUBMED · GCN")
+    parser.add_argument("--brand", default="OPENGU / B–C MATRIX")
     return parser
 
 
@@ -123,6 +125,7 @@ def main(argv: Sequence[str] = None) -> int:
         args.title,
         args.badge,
         args.kicker,
+        args.brand,
     )
     print(args.output.resolve())
     return 0
