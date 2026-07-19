@@ -29,7 +29,7 @@ from cache_v2.legacy import LegacyIndexer  # noqa: E402
 
 DEFAULT_DB = REPO_ROOT / "results" / "cache_v2" / "index.sqlite"
 DEFAULT_STORE_ROOT = REPO_ROOT / "results" / "cache_v2"
-DEFAULT_DATASET_ROOT = REPO_ROOT / "data" / "raw"
+DEFAULT_PROCESSED_ROOT = REPO_ROOT / "data" / "processed"
 DEFAULT_LEGACY_RESULTS_ROOT = REPO_ROOT / "results"
 
 
@@ -381,24 +381,22 @@ def _cmd_resolve_explain(args: argparse.Namespace) -> int:
 
 def _selection_paths(args: argparse.Namespace) -> Dict[str, Path]:
     return {
-        "config_path": _resolve_repo_path(args.config),
-        "dataset_root": _resolve_repo_path(args.dataset_root),
+        "config_source": _resolve_repo_path(args.config),
+        "processed_root": _resolve_repo_path(args.processed_root),
         "store_root": _resolve_repo_path(args.store_root),
         "legacy_results_root": _resolve_repo_path(args.legacy_results_root),
     }
 
 
 def _cmd_selection_plan(args: argparse.Namespace) -> int:
-    from cache_v2.selection_materializer import plan_selection
+    from experiments.selection_producer import plan_selection
 
     paths = _selection_paths(args)
     document = plan_selection(
-        paths["config_path"],
-        paths["dataset_root"],
+        paths["config_source"],
+        paths["processed_root"],
         paths["store_root"],
         paths["legacy_results_root"],
-        allow_download=bool(args.allow_download),
-        split_seed=args.split_seed,
     )
     _emit(document)
     return 0
@@ -410,16 +408,14 @@ def _cmd_selection_materialize(args: argparse.Namespace) -> int:
             "apply_required",
             "selection materialize is write-capable; pass --apply explicitly",
         )
-    from cache_v2.selection_materializer import materialize_selection
+    from experiments.selection_producer import materialize_selection
 
     paths = _selection_paths(args)
     document = materialize_selection(
-        paths["config_path"],
-        paths["dataset_root"],
+        paths["config_source"],
+        paths["processed_root"],
         paths["store_root"],
         paths["legacy_results_root"],
-        allow_download=bool(args.allow_download),
-        split_seed=args.split_seed,
         verify=bool(args.verify),
         fail_if_producer_called=bool(args.fail_if_producer_called),
         compare_legacy=bool(args.compare_legacy),
@@ -432,9 +428,9 @@ def _cmd_selection_materialize(args: argparse.Namespace) -> int:
 def _add_selection_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--config", required=True, help="experiment YAML request envelope")
     parser.add_argument(
-        "--dataset-root",
-        default=str(DEFAULT_DATASET_ROOT),
-        help="repo-anchored or absolute PyG/OGB dataset root",
+        "--processed-root",
+        default=str(DEFAULT_PROCESSED_ROOT),
+        help="repo-anchored or absolute OpenGU canonical data/processed root",
     )
     parser.add_argument(
         "--store-root",
@@ -445,16 +441,6 @@ def _add_selection_common_arguments(parser: argparse.ArgumentParser) -> None:
         "--legacy-results-root",
         default=str(DEFAULT_LEGACY_RESULTS_ROOT),
         help="read-only Legacy results root used for invariants/comparison",
-    )
-    parser.add_argument(
-        "--allow-download",
-        action="store_true",
-        help="explicitly allow the dataset adapter to download/process missing data",
-    )
-    parser.add_argument(
-        "--split-seed",
-        type=int,
-        help="override the default OpenGU split seed (first YAML seed)",
     )
 
 

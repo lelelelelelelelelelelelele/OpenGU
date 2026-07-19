@@ -16,12 +16,15 @@ import hashlib
 import html
 import json
 import os
+import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import webbrowser
 import zipfile
 from collections import Counter, defaultdict
@@ -61,6 +64,93 @@ LOG_ERROR_KEYWORDS = (
     "killed",
     "failed",
 )
+QUEUE_PROTOCOL = "syncmate-runner-queue/v1"
+QUEUE_STATES = ("inbox", "running", "done", "failed", "blocked")
+QUEUE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,80}$")
+RUNNER_AGENT_MIN_POLL_SECONDS = 1.0
+RUNNER_AGENT_MAX_POLL_SECONDS = 60.0
+RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 3600
+RUNNER_RECIPE_BASE_SHA = "a177e2c3bdf2a5a152c0e7be9fa5385c9b462b2a"
+RUNNER_RECIPE_ALLOWED_TOOL_DELTA = (
+    "GULib-master/scripts/syncmate/",
+    "GULib-master/tests/test_syncmate.py",
+    "GULib-master/docs/syncmate_bounded_runner_agent_ACCEPTANCE_REPORT.",
+)
+GATE4_RECIPE_BASE_SHA = "dbe79efd8fd70a9a455a8055a6627bd0bd95ed0e"
+GATE4_RECIPE_ALLOWED_DELTA = (
+    "GULib-master/attack/pipeline_adapter.py",
+    "GULib-master/config.py",
+    "GULib-master/dataset/original_dataset.py",
+    "GULib-master/experiments/run.py",
+    "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+    "GULib-master/experiments/processed_provider.py",
+    "GULib-master/parameter_parser.py",
+    "GULib-master/scripts/cache_v2_gate4_canary.py",
+    "GULib-master/scripts/syncmate/syncmate.py",
+    "GULib-master/tests/test_auto_report_v3.py",
+    "GULib-master/tests/test_cache_v2_gate4_canary.py",
+    "GULib-master/tests/test_demo.py",
+    "GULib-master/tests/test_experiment_processed_provider.py",
+    "GULib-master/tests/test_phase_b_invariants.py",
+    "GULib-master/tests/test_syncmate.py",
+    "GULib-master/utils/dataset_utils.py",
+    "GULib-master/utils/logger.py",
+)
+RUNNER_RECIPE_DEFINITIONS = {
+    "smoke": {
+        "id": "smoke",
+        "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),
+        "config_path": "scripts/syncmate/setup.example.yaml",
+        "config_sha256": "34f0ad2d462d6575a285760ddfd45f17f01672c1342881a7719b27ed8efafa56",
+        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "timeout_seconds": 180,
+        "expected_artifact_paths": (),
+        "success_predicate": "json.passed == true",
+        "collector_acceptance": False,
+    },
+    "opengu-preflight-v1": {
+        "id": "opengu-preflight-v1",
+        "argv": (
+            "{python}", "scripts/syncmate/syncmate.py", "runner-preflight",
+            "--recipe", "opengu-preflight-v1", "--json",
+        ),
+        "config_path": "experiments/configs/phase_b_cora_gcn.yaml",
+        "config_sha256": "8c31c6c05aa3737cab457a0ae0a6937d4c99c30499b5f54b620c500a0c967c2e",
+        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "timeout_seconds": 180,
+        "expected_artifact_paths": (
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/attack.json",
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/collateral.json",
+            "results/runs/__syncmate_preflight__/opengu_preflight/seed0/_meta.json",
+        ),
+        "success_predicate": "json.passed == true and generated_artifacts == expected_artifact_paths",
+        "collector_acceptance": True,
+    },
+    "opengu-cache-v2-gate4-v1": {
+        "id": "opengu-cache-v2-gate4-v1",
+        "argv": (
+            "{python}", "-m", "scripts.cache_v2_gate4_canary", "--json",
+        ),
+        "config_path": "experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+        "config_sha256": "45f587853aee6a91e85efd82ee40350435969a7b51b9539062762ae06b875980",
+        "expected_git_sha": GATE4_RECIPE_BASE_SHA,
+        "allowed_git_delta_paths": GATE4_RECIPE_ALLOWED_DELTA,
+        "timeout_seconds": 3600,
+        "expected_artifact_paths": (
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/attack.json",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/collateral.json",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/predictions.npz",
+            "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42/_meta.json",
+        ),
+        "success_predicate": "json.passed == true and collector gate passes for the exact result leaf",
+        "collector_acceptance": True,
+    },
+}
+QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
+QUEUE_ALLOWED_JOB_FIELDS = {
+    "protocol", "version", "id", "recipe", "created_at", "requested_by", "note",
+    "expected_git_sha",
+}
 
 
 def artifact_index_file() -> Path:
@@ -195,6 +285,18 @@ def is_report_stale(generated_at: Any, *, stale_hours: int = REPORT_STALE_HOURS)
     return age is None or age > stale_hours
 
 
+def report_is_at_least_as_new(candidate: Any, reference: Any) -> bool:
+    candidate_ts = parse_iso_time(candidate)
+    reference_ts = parse_iso_time(reference)
+    if candidate_ts is None or reference_ts is None:
+        return False
+    if candidate_ts.tzinfo is not None and reference_ts.tzinfo is None:
+        reference_ts = reference_ts.replace(tzinfo=candidate_ts.tzinfo)
+    if candidate_ts.tzinfo is None and reference_ts.tzinfo is not None:
+        candidate_ts = candidate_ts.replace(tzinfo=reference_ts.tzinfo)
+    return candidate_ts >= reference_ts
+
+
 def format_age(generated_at: Any) -> str:
     age = report_age_hours(generated_at)
     if age is None:
@@ -323,6 +425,22 @@ def transport_ssh_value(peer: Optional[Dict[str, Any]]) -> str:
     if peer_uses_local_transport(peer):
         return LOCAL_SSH_SENTINEL
     return str((peer or {}).get("ssh") or "")
+
+
+def peer_python_executable(peer: Optional[Dict[str, Any]]) -> str:
+    value = (peer or {}).get("python_executable")
+    if value is None:
+        return "python"
+    if not isinstance(value, str) or not value.strip():
+        raise SystemExit("peer python_executable must be a non-empty string")
+    return value.strip()
+
+
+def peer_python_kwargs(peer: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    python_executable = peer_python_executable(peer)
+    if python_executable == "python":
+        return {}
+    return {"python_executable": python_executable}
 
 
 def is_local_transport_ref(value: Any) -> bool:
@@ -529,6 +647,23 @@ def classify_repo_leaf_path(local_path: Any) -> Tuple[str, str, str, str, str]:
     if len(rel_parts) >= 4:
         return first, rel_parts[1], rel_parts[2], rel_parts[3], "node"
     return first, "unknown", rel_parts[-2], rel_parts[-1], "unknown"
+
+
+def classify_indexed_leaf_path(
+    local_path: Any,
+    remote_path: Any,
+) -> Tuple[str, str, str, str, str]:
+    local = classify_repo_leaf_path(local_path)
+    remote = classify_repo_leaf_path(remote_path)
+    if local[4] in ("unknown", "short") and remote[4] not in ("unknown", "short"):
+        return remote
+    # A collector landing can wrap a remote node namespace:
+    # results/runs/<landing>/<remote-node>/<cell>/<method>/<seed>.
+    # In that case the local generic parser mistakes <remote-node> for <cell>,
+    # while the original remote path still carries the formal cell identity.
+    if "_r" in remote[1] and "_r" not in local[1]:
+        return remote
+    return local if local_path else remote
 
 
 def artifact_leaf_dirs(results_runs: Optional[Path] = None,
@@ -971,8 +1106,12 @@ def inventory_from_index(index: Optional[Dict[str, Any]] = None,
                 "missing": [],
                 "complete": False,
             })
-            if local_path:
-                _node, cell, method_strategy, seed, layout = classify_repo_leaf_path(local_path)
+            remote_path = item.get("remote_path") or item.get("path")
+            if local_path or remote_path:
+                _node, cell, method_strategy, seed, layout = classify_indexed_leaf_path(
+                    local_path,
+                    remote_path,
+                )
                 leaf.update({
                     "cell": cell,
                     "method_strategy": method_strategy,
@@ -1123,8 +1262,11 @@ def export_payload_from_index(index: Optional[Dict[str, Any]] = None,
                 "source_report": peer_entry.get("source_report"),
                 "updated_at": peer_entry.get("updated_at"),
             })
-            if local_path:
-                _node, cell, method_strategy, seed, layout = classify_repo_leaf_path(local_path)
+            if local_path or remote_path:
+                _node, cell, method_strategy, seed, layout = classify_indexed_leaf_path(
+                    local_path,
+                    remote_path,
+                )
                 leaf.update({
                     "cell": cell,
                     "method_strategy": method_strategy,
@@ -2124,20 +2266,34 @@ def syncmate_command_prefix(config_path: Optional[Path] = None) -> List[Any]:
     return parts
 
 
-def remote_status_command(repo_path: str) -> str:
+def remote_status_command(repo_path: str, python_executable: str = "python") -> str:
     return (
         f"cd {shell_quote(repo_path)} && "
-        "python scripts/syncmate/syncmate.py status --json --no-write-state"
+        + command_line([
+            python_executable,
+            "scripts/syncmate/syncmate.py",
+            "status",
+            "--json",
+            "--no-write-state",
+        ])
     )
 
 
 def remote_manifest_command(repo_path: str, roots: List[str],
-                            artifact_names: Optional[Tuple[str, ...]] = None) -> str:
-    roots_args = " ".join(shell_quote(root) for root in roots)
-    include_args = " ".join(shell_quote(name) for name in (artifact_names or ARTIFACT_NAMES))
+                            artifact_names: Optional[Tuple[str, ...]] = None,
+                            python_executable: str = "python") -> str:
     return (
         f"cd {shell_quote(repo_path)} && "
-        f"python scripts/syncmate/syncmate.py manifest --json --roots {roots_args} --include {include_args}"
+        + command_line([
+            python_executable,
+            "scripts/syncmate/syncmate.py",
+            "manifest",
+            "--json",
+            "--roots",
+            *roots,
+            "--include",
+            *(artifact_names or ARTIFACT_NAMES),
+        ])
     )
 
 
@@ -2146,9 +2302,10 @@ def remote_tar_command(repo_path: str) -> str:
 
 
 def runner_init_command(repo_path: str, node_id: str, role: str,
-                        collector_id: Any, artifact_names: Tuple[str, ...]) -> str:
+                        collector_id: Any, artifact_names: Tuple[str, ...],
+                        python_executable: str = "python") -> str:
     parts = [
-        "python",
+        python_executable,
         "scripts/syncmate/syncmate.py",
         "init-device",
         "--device-id",
@@ -2368,7 +2525,8 @@ def write_device_config(path: Path, config: Dict[str, Any], *, force: bool = Fal
 def build_peer_config(role: str, ssh: Optional[str], repo_path: str, landing: str,
                       result_roots: List[str],
                       artifact_policy: Optional[Dict[str, Any]] = None,
-                      transport: str = "ssh") -> Dict[str, Any]:
+                      transport: str = "ssh",
+                      python_executable: Optional[str] = None) -> Dict[str, Any]:
     if role not in ROLE_CHOICES:
         raise ValueError(f"role must be one of: {', '.join(ROLE_CHOICES)}")
     mode = normalize_transport(transport)
@@ -2384,6 +2542,10 @@ def build_peer_config(role: str, ssh: Optional[str], repo_path: str, landing: st
         data["ssh"] = ssh
     elif mode == "local":
         data["ssh"] = "local"
+    if python_executable is not None:
+        if not isinstance(python_executable, str) or not python_executable.strip():
+            raise ValueError("python_executable must be a non-empty string")
+        data["python_executable"] = python_executable.strip()
     if artifact_policy:
         data["artifact_policy"] = artifact_policy
     return data
@@ -2422,6 +2584,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
                        peer_id: Optional[str] = None,
                        peer_ssh: Optional[str] = None,
                        peer_repo_path: Optional[str] = None,
+                       peer_python_executable: Optional[str] = None,
                        peer_local: bool = False,
                        landing: Optional[str] = None,
                        result_roots: Optional[List[str]] = None,
@@ -2437,6 +2600,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
     peer_transport = "local" if peer_local else "ssh"
     runner_ssh = None if peer_local else peer_ssh or "<ssh_alias>"
     runner_repo = peer_repo_path or ("<local_runner_repo_path>" if peer_local else "<remote_repo_path>")
+    runner_python = peer_python_executable or "python"
     roots = result_roots or ["results/runs"]
     local_landing = landing or f"results/runs/{runner_id}"
     collector_hint = collector_id or local_device_id
@@ -2472,7 +2636,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
     if "collector" in role:
         if not peer_local:
             runner_init_parts = [
-                "python", "scripts/syncmate/syncmate.py", "init-device",
+                runner_python, "scripts/syncmate/syncmate.py", "init-device",
                 "--device-id", runner_id,
                 "--role", "runner",
                 "--repo-path", runner_repo,
@@ -2497,6 +2661,8 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
             add_peer_parts.insert(len(base_cmd) + 2, "--local")
         else:
             add_peer_parts[len(base_cmd) + 2:len(base_cmd) + 2] = ["--ssh", runner_ssh]
+            if runner_python != "python":
+                add_peer_parts.extend(["--python-executable", runner_python])
         for root in roots:
             add_peer_parts.extend(["--result-root", root])
         add_peer_parts.extend(["--artifact-include", *artifact_names])
@@ -2588,6 +2754,7 @@ def setup_plan_payload(device: Dict[str, Any], warnings: List[str], *,
             "peer_transport": peer_transport,
             "peer_ssh": runner_ssh,
             "peer_repo_path": runner_repo,
+            "peer_python_executable": runner_python,
             "landing": local_landing,
             "result_roots": roots,
             "artifact_policy": artifact_policy_payload(artifact_names),
@@ -2775,6 +2942,17 @@ def peer_config_diagnostics(device: Dict[str, Any]) -> List[Dict[str, Any]]:
                     "action": f"Run add-peer {node} --force with repo path and {'--local' if transport == 'local' else 'ssh'}.",
                 })
 
+        python_executable = peer.get("python_executable")
+        if python_executable is not None and (
+                not isinstance(python_executable, str) or not python_executable.strip()):
+            diagnostics.append({
+                "severity": "error",
+                "code": "peer-python-invalid",
+                "node": node,
+                "message": f"Peer {node} python_executable must be a non-empty string.",
+                "action": f"Run add-peer {node} --force with --python-executable <remote-python>.",
+            })
+
         role = peer.get("role", "runner")
         if role not in ROLE_CHOICES:
             diagnostics.append({
@@ -2904,6 +3082,17 @@ def preflight_peer_payload(device: Dict[str, Any], node_id: str, peer: Any,
         ))
     ssh = peer.get("ssh")
     repo_path = peer.get("repo_path")
+    try:
+        python_executable = peer_python_executable(peer)
+    except SystemExit as exc:
+        python_executable = "python"
+        checks.append(preflight_check(
+            "error",
+            "peer-python-invalid",
+            f"Peer {node_id} python_executable is invalid: {exc}.",
+            action=f"Run add-peer {node_id} --force with --python-executable <remote-python>.",
+            node=node_id,
+        ))
     landing = peer.get("landing") or f"results/runs/{node_id}"
     roots = peer.get("result_roots") or ["results/runs"]
     artifact_names: Tuple[str, ...] = ()
@@ -3014,6 +3203,7 @@ def preflight_peer_payload(device: Dict[str, Any], node_id: str, peer: Any,
         "transport": transport,
         "ssh": ssh,
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "landing": landing,
         "local_landing": rel(REPO_ROOT / landing) if is_safe_repo_relative_path(landing) else landing,
         "result_roots": roots,
@@ -3563,7 +3753,19 @@ def diagnostics_for_snapshot(snapshot: Dict[str, Any]) -> List[Dict[str, Any]]:
         summary = report.get("summary") or {}
         missing_count = summary.get("missing", len(report.get("missing") or []))
         conflict_count = summary.get("conflicts", len(report.get("conflicts") or []))
-        if missing_count:
+        verify_report = verify_reports.get(peer) or {}
+        verify_summary = verify_report.get("summary") or {}
+        clean_newer_verify = bool(
+            report_is_at_least_as_new(
+                verify_report.get("generated_at"),
+                report.get("generated_at"),
+            )
+            and not (verify_report.get("errors") or [])
+            and verify_summary.get("status") == "verified"
+            and not int(verify_summary.get("missing") or 0)
+            and not int(verify_summary.get("conflicts") or 0)
+        )
+        if missing_count and not clean_newer_verify:
             action = (
                 f"Run {import_bundle_command(report, peer)} to extract and verify missing selected artifacts from the copied bundle."
                 if is_bundle_plan else
@@ -3576,7 +3778,7 @@ def diagnostics_for_snapshot(snapshot: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "message": f"{peer} diff found {missing_count} remote artifact file(s) not present locally.",
                 "action": action,
             })
-        if conflict_count:
+        if conflict_count and not clean_newer_verify:
             action = (
                 f"Review conflicts in {report.get('report_path')} before using "
                 f"{import_bundle_command(report, peer, overwrite=True)}."
@@ -4384,6 +4586,7 @@ def cmd_add_peer(args: argparse.Namespace) -> int:
         result_roots=args.result_roots or ["results/runs"],
         artifact_policy=artifact_policy,
         transport=transport,
+        python_executable=args.python_executable,
     )
     add_peer_to_device(device, args.node_id, peer, force=args.force)
     write_device_config(args.config, device, force=True)
@@ -4404,6 +4607,8 @@ def cmd_add_peer(args: argparse.Namespace) -> int:
     print(f"  transport: {transport}")
     if peer.get("ssh"):
         print(f"  ssh: {peer.get('ssh')}")
+    if peer.get("python_executable"):
+        print(f"  python: {peer.get('python_executable')}")
     print(f"  repo: {args.repo_path}")
     print(f"  landing: {landing}")
     print(f"  result roots: {', '.join(peer['result_roots'])}")
@@ -4427,6 +4632,7 @@ def cmd_setup_plan(args: argparse.Namespace) -> int:
         peer_id=args.peer_id,
         peer_ssh=args.peer_ssh,
         peer_repo_path=args.peer_repo_path,
+        peer_python_executable=args.peer_python_executable,
         peer_local=args.peer_local,
         landing=args.landing,
         result_roots=args.result_roots,
@@ -11506,8 +11712,14 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
     roots = peer.get("result_roots") or ["results/runs"]
     landing = peer.get("landing") or f"results/runs/{node_id}"
     artifact_names = artifact_names_for_peer(device, peer)
-    remote_status_cmd = remote_status_command(repo_path)
-    remote_manifest_cmd = remote_manifest_command(repo_path, roots, artifact_names)
+    python_executable = peer_python_executable(peer)
+    remote_status_cmd = remote_status_command(repo_path, python_executable)
+    remote_manifest_cmd = remote_manifest_command(
+        repo_path,
+        roots,
+        artifact_names,
+        python_executable,
+    )
     local_mode = peer_uses_local_transport(peer)
     remote_init_cmd = runner_init_command(
         repo_path,
@@ -11515,6 +11727,7 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
         peer.get("role", "runner"),
         device.get("device_id"),
         artifact_names,
+        python_executable,
     )
     return {
         "generated_at": now_iso(),
@@ -11530,6 +11743,7 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
             "transport": peer_transport(peer),
             "ssh": peer.get("ssh"),
             "repo_path": repo_path,
+            "python_executable": python_executable,
             "result_roots": roots,
             "landing": landing,
         },
@@ -11581,12 +11795,12 @@ def handoff_payload(device: Dict[str, Any], node_id: str, peer: Dict[str, Any],
             },
             "remote_agent": {
                 "init_device": remote_init_cmd,
-                "self": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py self",
-                "progress_json": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py progress --json",
+                "self": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'self'])}",
+                "progress_json": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'progress', '--json'])}",
                 "status_json": remote_status_cmd,
                 "manifest_json": remote_manifest_cmd,
-                "publish": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py publish --write",
-                "bundle": f"cd {shell_quote(repo_path)} && python scripts/syncmate/syncmate.py bundle",
+                "publish": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'publish', '--write'])}",
+                "bundle": f"cd {shell_quote(repo_path)} && {command_line([python_executable, 'scripts/syncmate/syncmate.py', 'bundle'])}",
             },
             "ssh": {
                 "status_json": (
@@ -11821,23 +12035,32 @@ def cmd_remote_status(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
-    remote_cmd = remote_status_command(repo_path)
+    remote_cmd = remote_status_command(repo_path, python_executable)
     local_mode = peer_uses_local_transport(peer)
     data = {
         "node_id": args.node_id,
         "mode": "apply" if args.apply else "plan-only",
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "command": (
             f"python scripts/syncmate/syncmate.py remote-status {args.node_id} --apply"
             if local_mode else f'ssh {ssh} "{remote_cmd}"'
         ),
     }
     if args.apply:
-        result = apply_remote_status(args.node_id, ssh, repo_path, save=not args.no_save)
+        result = apply_remote_status(
+            args.node_id,
+            ssh,
+            repo_path,
+            save=not args.no_save,
+            **python_kwargs,
+        )
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11864,6 +12087,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
@@ -11878,6 +12103,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
         "artifact_policy": artifact_policy_payload(artifact_names),
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "result_roots": roots,
         "landing": landing,
         "commands": {
@@ -11892,7 +12118,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
     }
     if args.diff:
         result = diff_collect(args.node_id, ssh, repo_path, roots, landing,
-                              artifact_names=artifact_names, save=not args.no_save)
+                              artifact_names=artifact_names, save=not args.no_save,
+                              **python_kwargs)
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11901,7 +12128,8 @@ def cmd_collect(args: argparse.Namespace) -> int:
 
     if args.apply:
         result = apply_collect(args.node_id, ssh, repo_path, roots, landing,
-                               artifact_names=artifact_names, overwrite=args.overwrite, save=not args.no_save)
+                               artifact_names=artifact_names, overwrite=args.overwrite,
+                               save=not args.no_save, **python_kwargs)
         if args.json:
             print_json(result)
             return 0 if not result.get("errors") else 1
@@ -11932,6 +12160,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
     peer = peer_or_die(device, args.node_id)
     ssh = transport_ssh_value(peer)
     repo_path = peer.get("repo_path")
+    python_executable = peer_python_executable(peer)
+    python_kwargs = peer_python_kwargs(peer)
     if (not ssh and not peer_uses_local_transport(peer)) or not repo_path:
         raise SystemExit(f"Peer {args.node_id!r} needs 'ssh' and 'repo_path'")
 
@@ -11945,6 +12175,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
         "artifact_policy": artifact_policy_payload(artifact_names),
         **transport_payload(ssh),
         "repo_path": repo_path,
+        "python_executable": python_executable,
         "result_roots": roots,
         "landing": landing,
         "commands": {
@@ -11958,7 +12189,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
     }
     if args.apply:
         result = verify_collect(args.node_id, ssh, repo_path, roots, landing,
-                                artifact_names=artifact_names, save=not args.no_save)
+                                artifact_names=artifact_names, save=not args.no_save,
+                                **python_kwargs)
         failures = verify_result_failures(result)
         if args.json:
             print_json(result)
@@ -12047,17 +12279,19 @@ def refresh_peer(node_id: str, peer: Dict[str, Any], *,
     roots = peer.get("result_roots") or ["results/runs"]
     landing = peer.get("landing") or f"results/runs/{node_id}"
     names = artifact_names or ARTIFACT_NAMES
-    remote = apply_remote_status(node_id, ssh, repo_path, save=save)
+    python_kwargs = peer_python_kwargs(peer)
+    remote = apply_remote_status(node_id, ssh, repo_path, save=save, **python_kwargs)
     diff = diff_collect(node_id, ssh, repo_path, roots, landing,
-                        artifact_names=names, save=save)
+                        artifact_names=names, save=save, **python_kwargs)
     collect = None
     if apply:
         collect = apply_collect(node_id, ssh, repo_path, roots, landing,
-                                artifact_names=names, overwrite=overwrite, save=save)
+                                artifact_names=names, overwrite=overwrite, save=save,
+                                **python_kwargs)
     verify_report = None
     if verify:
         verify_report = verify_collect(node_id, ssh, repo_path, roots, landing,
-                                       artifact_names=names, save=save)
+                                       artifact_names=names, save=save, **python_kwargs)
 
     errors = []
     for item in (remote, diff, collect):
@@ -12905,22 +13139,24 @@ def local_status_snapshot(repo_path: str) -> Dict[str, Any]:
 
 
 def remote_manifest(ssh: str, repo_path: str, roots: List[str],
-                    artifact_names: Optional[Tuple[str, ...]] = None) -> Dict[str, Any]:
+                    artifact_names: Optional[Tuple[str, ...]] = None,
+                    python_executable: str = "python") -> Dict[str, Any]:
     if is_local_transport_ref(ssh):
         return manifest_for_roots(
             roots,
             artifact_names,
             repo_root=resolve_local_repo_root(repo_path),
         )
-    cmd = remote_manifest_command(repo_path, roots, artifact_names)
+    cmd = remote_manifest_command(repo_path, roots, artifact_names, python_executable)
     out = subprocess.check_output(["ssh", ssh, cmd], stderr=subprocess.STDOUT)
     return json.loads(out.decode("utf-8", errors="replace"))
 
 
-def remote_status_snapshot(ssh: str, repo_path: str) -> Dict[str, Any]:
+def remote_status_snapshot(ssh: str, repo_path: str,
+                           python_executable: str = "python") -> Dict[str, Any]:
     if is_local_transport_ref(ssh):
         return local_status_snapshot(repo_path)
-    cmd = remote_status_command(repo_path)
+    cmd = remote_status_command(repo_path, python_executable)
     out = subprocess.check_output(["ssh", ssh, cmd], stderr=subprocess.STDOUT)
     return json.loads(out.decode("utf-8", errors="replace"))
 
@@ -12939,9 +13175,15 @@ def remote_status_failure(node_id: str, error: Exception) -> Dict[str, Any]:
     }
 
 
-def apply_remote_status(node_id: str, ssh: str, repo_path: str, *, save: bool = True) -> Dict[str, Any]:
+def apply_remote_status(node_id: str, ssh: str, repo_path: str, *,
+                        python_executable: str = "python",
+                        save: bool = True) -> Dict[str, Any]:
     try:
-        snapshot = remote_status_snapshot(ssh, repo_path)
+        snapshot = (
+            remote_status_snapshot(ssh, repo_path)
+            if python_executable == "python"
+            else remote_status_snapshot(ssh, repo_path, python_executable)
+        )
     except Exception as e:
         result = remote_status_failure(node_id, e)
         if save:
@@ -13110,10 +13352,15 @@ def update_artifact_index(node_id: str, landing: str, report: Dict[str, Any],
 
 
 def collect_diff_payload(node_id: str, ssh: str, repo_path: str, roots: List[str],
-                         landing: str, artifact_names: Optional[Tuple[str, ...]] = None
+                         landing: str, artifact_names: Optional[Tuple[str, ...]] = None,
+                         python_executable: str = "python"
                          ) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     names = artifact_names or ARTIFACT_NAMES
-    manifest = remote_manifest(ssh, repo_path, roots, names)
+    manifest = (
+        remote_manifest(ssh, repo_path, roots, names)
+        if python_executable == "python"
+        else remote_manifest(ssh, repo_path, roots, names, python_executable)
+    )
     missing, same, conflicts = compare_manifest(landing, manifest)
     items = manifest.get("items", [])
     remote_inventory = manifest.get("inventory") or manifest_inventory_from_items(items, names)
@@ -13164,10 +13411,11 @@ def remote_manifest_failure(node_id: str, error: Exception) -> Dict[str, Any]:
 
 def diff_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                  landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                 python_executable: str = "python",
                  save: bool = True) -> Dict[str, Any]:
     try:
         payload, _missing, _same, _conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "diff", "landing": landing}
@@ -13181,10 +13429,11 @@ def diff_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
 
 def verify_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                    landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                   python_executable: str = "python",
                    save: bool = True) -> Dict[str, Any]:
     try:
         payload, missing, same, conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "verify", "landing": landing}
@@ -13282,12 +13531,13 @@ def fetch_items(ssh: str, repo_path: str, items: List[Dict[str, Any]], landing: 
 
 def apply_collect(node_id: str, ssh: str, repo_path: str, roots: List[str],
                   landing: str, *, artifact_names: Optional[Tuple[str, ...]] = None,
+                  python_executable: str = "python",
                   overwrite: bool = False, save: bool = True) -> Dict[str, Any]:
     errors: List[str] = []
     ensure_sync_dir()
     try:
         report, missing, same, conflicts = collect_diff_payload(
-            node_id, ssh, repo_path, roots, landing, artifact_names
+            node_id, ssh, repo_path, roots, landing, artifact_names, python_executable
         )
     except Exception as e:
         result = {**remote_manifest_failure(node_id, e), "mode": "apply", "landing": landing}
@@ -13816,6 +14066,1199 @@ def smoke_payload(args: argparse.Namespace) -> Dict[str, Any]:
     return data
 
 
+def runner_preflight_leaf() -> Path:
+    """Return the deliberately isolated no-GPU runner-agent evidence leaf."""
+    return RESULTS_RUNS / "__syncmate_preflight__" / "opengu_preflight" / "seed0"
+
+
+def runner_preflight_payload(recipe: str) -> Dict[str, Any]:
+    """Create only schema-valid, clearly marked preflight evidence.
+
+    This is intentionally *not* an OpenGU experiment invocation.  It binds the
+    declared experiment configuration and proves the controller's normal
+    collection/verification path without consuming a GPU or changing cache
+    semantics.
+    """
+    if recipe != "opengu-preflight-v1":
+        return {"passed": False, "recipe": recipe, "errors": ["unsupported runner preflight recipe"]}
+    binding = runner_recipe_binding(recipe)
+    if not binding.get("ready"):
+        return {"passed": False, "recipe": recipe, "binding": binding, "errors": binding.get("errors") or []}
+    leaf = runner_preflight_leaf()
+    expected = list((runner_recipe_definition(recipe) or {}).get("expected_artifact_paths") or [])
+    existing = [path for path in expected if (REPO_ROOT / path).exists()]
+    if existing:
+        return {
+            "passed": False,
+            "recipe": recipe,
+            "binding": binding,
+            "generated_artifacts": [],
+            "errors": ["preflight evidence already exists; no artifact was overwritten: " + ", ".join(existing)],
+        }
+    try:
+        git_sha = run_git(["rev-parse", "HEAD"]) or "unknown"
+    except Exception:
+        git_sha = "unknown"
+    attack = {
+        "results": {
+            "opengu_preflight": {
+                "f1_after": 1.0,
+                "mia_auc": 0.5,
+                "unlearn_time": 0.0,
+                "selection_time": 0.0,
+                "selected_nodes": [],
+            }
+        }
+    }
+    collateral = {"results": [{"strategy": "opengu_preflight", "perf_before": 1.0, "gap": 0.0, "prediction_shift": 0.0}]}
+    meta = {
+        "git_sha": git_sha,
+        "hostname": socket.gethostname(),
+        "timestamp": now_iso(),
+        "syncmate_runner_preflight": True,
+        "recipe": recipe,
+        "config_path": binding["expected"]["config_path"],
+        "config_sha256": binding["expected"]["config_sha256"],
+        "note": "Synthetic bounded-runner evidence only; no OpenGU experiment or cache operation was run.",
+    }
+    write_json_artifact(leaf / "attack.json", attack)
+    write_json_artifact(leaf / "collateral.json", collateral)
+    write_json_artifact(leaf / "_meta.json", meta)
+    generated = [rel(leaf / name) for name in ("attack.json", "collateral.json", "_meta.json")]
+    passed = generated == expected
+    return {
+        "passed": passed,
+        "recipe": recipe,
+        "binding": binding,
+        "generated_artifacts": generated,
+        "errors": [] if passed else ["generated artifact paths did not match the immutable recipe declaration"],
+    }
+
+
+def cmd_runner_preflight(args: argparse.Namespace) -> int:
+    data = runner_preflight_payload(args.recipe)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner preflight: {'passed' if data.get('passed') else 'failed'}")
+        for path in data.get("generated_artifacts") or []:
+            print(f"  artifact: {path}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data.get("passed") else 1
+
+
+def runner_queue_root() -> Path:
+    return SYNC_DIR / "runner_queue"
+
+
+def runner_queue_state_dir(state: str) -> Path:
+    if state not in QUEUE_STATES:
+        raise ValueError(f"unknown runner queue state: {state}")
+    return runner_queue_root() / state
+
+
+def runner_queue_receipts_dir() -> Path:
+    return runner_queue_root() / "receipts"
+
+
+def runner_queue_results_dir() -> Path:
+    return runner_queue_root() / "results"
+
+
+def runner_queue_manifest_file() -> Path:
+    return runner_queue_root() / "manifest.json"
+
+
+def runner_queue_status_file() -> Path:
+    return runner_queue_root() / "status.html"
+
+
+def runner_queue_contract_file() -> Path:
+    return runner_queue_root() / "contract.json"
+
+
+def runner_agent_lock_dir() -> Path:
+    return runner_queue_root() / "agent.lock"
+
+
+def runner_agent_recovery_file() -> Path:
+    return runner_queue_root() / "recovery.jsonl"
+
+
+def runner_recipe_definition(recipe: str) -> Dict[str, Any]:
+    definition = RUNNER_RECIPE_DEFINITIONS.get(recipe)
+    if not definition:
+        raise ValueError(f"recipe {recipe!r} is not allowlisted")
+    return json.loads(json.dumps(definition))
+
+
+def runner_recipe_command(definition: Dict[str, Any]) -> List[str]:
+    return [sys.executable if value == "{python}" else str(value) for value in definition["argv"]]
+
+
+def _runner_delta_path_allowed(path: str, allowed_paths: Tuple[str, ...]) -> bool:
+    return any(
+        path.startswith(allowed) if allowed.endswith("/") else path == allowed
+        for allowed in allowed_paths
+    )
+
+
+def runner_recipe_git_binding(
+    expected_sha: str,
+    allowed_delta_paths: Optional[Tuple[str, ...]] = None,
+) -> Dict[str, Any]:
+    observed_sha = run_git(["rev-parse", "HEAD"])
+    data: Dict[str, Any] = {
+        "expected_git_sha": expected_sha,
+        "observed_git_sha": observed_sha,
+        "mode": "exact" if observed_sha == expected_sha else "tooling-delta",
+        "ok": observed_sha == expected_sha,
+        "changed_paths": [],
+        "errors": [],
+    }
+    if data["ok"]:
+        return data
+    try:
+        ancestor = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "merge-base", "--is-ancestor", expected_sha, observed_sha],
+            check=False,
+            capture_output=True,
+        ).returncode == 0
+        changed = subprocess.check_output(
+            ["git", "-C", str(REPO_ROOT), "diff", "--name-only", f"{expected_sha}..{observed_sha}"],
+            stderr=subprocess.DEVNULL,
+        ).decode("utf-8", errors="replace").splitlines()
+    except Exception as exc:
+        data["errors"].append(f"could not verify Git binding: {type(exc).__name__}: {exc}")
+        return data
+    data["changed_paths"] = changed
+    allowed_paths = (
+        tuple(allowed_delta_paths)
+        if allowed_delta_paths is not None
+        else RUNNER_RECIPE_ALLOWED_TOOL_DELTA
+    )
+    disallowed = [
+        path for path in changed
+        if not _runner_delta_path_allowed(path, allowed_paths)
+    ]
+    if not ancestor:
+        data["errors"].append("expected OpenGU baseline is not an ancestor of the runner checkout")
+    if disallowed:
+        data["errors"].append("runner checkout contains non-tooling commits after the expected baseline: " + ", ".join(disallowed))
+    data["ok"] = ancestor and not disallowed
+    return data
+
+
+def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
+    definition = runner_recipe_definition(recipe)
+    config_rel = str(definition["config_path"])
+    config_path = safe_repo_path(config_rel)
+    errors: List[str] = []
+    observed_config_sha = None
+    if config_path is None or not config_path.is_file():
+        errors.append(f"fixed recipe config is missing or unsafe: {config_rel}")
+    else:
+        observed_config_sha = sha256_file(config_path)
+        if observed_config_sha != definition["config_sha256"]:
+            errors.append("fixed recipe config SHA-256 differs from recipe metadata")
+    allowed_delta_paths = definition.get("allowed_git_delta_paths")
+    git = runner_recipe_git_binding(
+        str(definition["expected_git_sha"]),
+        tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
+    )
+    errors.extend(git.get("errors") or [])
+    return {
+        "recipe": definition,
+        "expected": {
+            "git_sha": definition["expected_git_sha"],
+            "config_path": config_rel,
+            "config_sha256": definition["config_sha256"],
+            "timeout_seconds": definition["timeout_seconds"],
+            "artifact_paths": definition["expected_artifact_paths"],
+            "collector_acceptance": definition["collector_acceptance"],
+        },
+        "observed": {
+            "git_sha": git.get("observed_git_sha"),
+            "config_sha256": observed_config_sha,
+            "git_binding_mode": git.get("mode"),
+            "git_changed_paths": git.get("changed_paths") or [],
+        },
+        "git": git,
+        "ready": not errors,
+        "errors": errors,
+    }
+
+
+def runner_queue_existing_paths(job_id: str) -> Dict[str, str]:
+    paths = {
+        state: runner_queue_job_path(state, job_id)
+        for state in QUEUE_STATES
+        if runner_queue_job_path(state, job_id).exists()
+    }
+    if runner_queue_result_path(job_id).exists():
+        paths["result"] = runner_queue_result_path(job_id)
+    return {key: runner_queue_rel(path) for key, path in paths.items()}
+
+
+def runner_queue_duplicate_errors(payload: Dict[str, Any]) -> List[str]:
+    return [
+        str(error) for error in ((payload.get("validation") or {}).get("errors") or [])
+        if str(error).startswith("job id appears in multiple states:")
+    ]
+
+
+def runner_agent_acquire_lock(device_id: str) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    lock = runner_agent_lock_dir()
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        owner = runner_queue_load_json(lock / "owner.json")
+        raise RuntimeError(f"runner agent lock already exists: {runner_queue_rel(lock)} owner={owner or 'unknown'}")
+    owner = {
+        "protocol": QUEUE_PROTOCOL,
+        "device_id": device_id,
+        "pid": os.getpid(),
+        "acquired_at": now_iso(),
+    }
+    write_runner_queue_json(lock / "owner.json", owner)
+    return owner
+
+
+def runner_agent_release_lock() -> None:
+    lock = runner_agent_lock_dir()
+    if not lock.exists():
+        return
+    owner = lock / "owner.json"
+    if owner.exists():
+        owner.unlink()
+    lock.rmdir()
+
+
+def runner_agent_append_recovery(event: Dict[str, Any]) -> None:
+    ensure_runner_queue_dirs()
+    data = {"generated_at": now_iso(), **event}
+    with runner_agent_recovery_file().open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(data, ensure_ascii=False) + "\n")
+
+
+def runner_queue_contract_payload() -> Dict[str, Any]:
+    """Return the stable external boundary for optional queue integrations.
+
+    This is deliberately data-only: callers can discover the protocol without
+    creating a queue directory or changing runner state.
+    """
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "version": 1,
+        "job_schema": {
+            "required": ["protocol", "version", "id", "recipe", "created_at"],
+            "optional": ["requested_by", "note", "expected_git_sha"],
+            "additional_fields": False,
+            "id_pattern": QUEUE_ID_RE.pattern,
+            "expected_git_sha_pattern": "[0-9a-fA-F]{40}",
+            "file_name": "<id>.yaml",
+        },
+        "state_machine": {
+            "states": list(QUEUE_STATES),
+            "transitions": {
+                "submit": ["inbox"],
+                "claim": ["inbox", "running"],
+                "complete": ["running", "done"],
+                "fail": ["running", "failed"],
+                "block": ["inbox", "blocked"],
+            },
+            "owner": "Only runner-queue run --once or runner-agent serve may claim or transition a job.",
+        },
+        "execution": {
+            "mode": "single-shot or bounded runner-agent serve",
+            "single_shot_flag": "--once",
+            "agent_limit": "one exclusive local lock and one concurrent job",
+            "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
+            "recipe_inputs": (
+                "Jobs select a recipe id and may bind one exact controller-observed Git SHA; "
+                "they cannot provide commands, arguments, paths, or cache operations."
+            ),
+        },
+        "evidence": {
+            "job": "inbox|running|done|failed|blocked/<id>.yaml",
+            "receipt": "receipts/<id>.json",
+            "result": "results/<id>.json",
+            "manifest": "manifest.json",
+            "dashboard": "status.html",
+        },
+        "integration": {
+            "syncmate": "Keeps collector, checksum verifier, trusted-index, and acceptance-gate authority.",
+            "opengu": "May submit or observe declared jobs through this contract; it must not directly mutate queue state or treat a queue result as trusted experiment evidence.",
+            "forbidden": [
+                "arbitrary shell or Python command fields in job YAML",
+                "direct writes to running, done, failed, or blocked",
+                "cache deletion, cache invalidation, or result-schema changes through the queue",
+                "bypassing SyncMate collection, checksum verification, or gate evidence",
+            ],
+            "extension_rule": "Adding an OpenGU recipe is a reviewed code change to the static allowlist, with a frozen input schema and dedicated tests; it is not a job-YAML feature flag.",
+        },
+    }
+
+
+def ensure_runner_queue_dirs() -> None:
+    for state in QUEUE_STATES:
+        runner_queue_state_dir(state).mkdir(parents=True, exist_ok=True)
+    runner_queue_receipts_dir().mkdir(parents=True, exist_ok=True)
+    runner_queue_results_dir().mkdir(parents=True, exist_ok=True)
+
+
+def runner_queue_safe_id(value: Any) -> bool:
+    return isinstance(value, str) and bool(QUEUE_ID_RE.fullmatch(value))
+
+
+def runner_queue_safe_git_sha(value: Any) -> bool:
+    return isinstance(value, str) and bool(re.fullmatch(r"[0-9a-fA-F]{40}", value))
+
+
+def runner_queue_default_id() -> str:
+    return "smoke-" + _dt.datetime.now().strftime("%Y%m%d%H%M%S%f")
+
+
+def runner_queue_rel(path: Path) -> str:
+    return rel(path)
+
+
+def write_runner_queue_json(path: Path, data: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def write_runner_queue_yaml(path: Path, data: Dict[str, Any]) -> None:
+    if yaml is None:
+        raise SystemExit("PyYAML is required. Use the project gnn environment or install pyyaml.")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=False), encoding="utf-8")
+
+
+def runner_queue_job_path(state: str, job_id: str) -> Path:
+    if not runner_queue_safe_id(job_id):
+        raise ValueError(f"unsafe runner queue job id: {job_id!r}")
+    return runner_queue_state_dir(state) / f"{job_id}.yaml"
+
+
+def runner_queue_read_job(path: Path, state: str) -> Dict[str, Any]:
+    entry: Dict[str, Any] = {
+        "path": runner_queue_rel(path), "state": state, "valid": False, "errors": [],
+    }
+    try:
+        if yaml is None:
+            raise ValueError("PyYAML is unavailable")
+        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        entry["errors"].append(f"invalid YAML: {type(exc).__name__}: {exc}")
+        entry["id"] = path.stem
+        return entry
+    if not isinstance(raw, dict):
+        entry["errors"].append("job must be a YAML mapping")
+        entry["id"] = path.stem
+        return entry
+    entry["job"] = raw
+    job_id = raw.get("id")
+    entry["id"] = job_id if isinstance(job_id, str) else path.stem
+    unknown = sorted(set(raw) - QUEUE_ALLOWED_JOB_FIELDS)
+    if unknown:
+        entry["errors"].append("unsupported job fields: " + ", ".join(unknown))
+    if raw.get("protocol") != QUEUE_PROTOCOL:
+        entry["errors"].append(f"protocol must be {QUEUE_PROTOCOL!r}")
+    if raw.get("version") != 1:
+        entry["errors"].append("version must be 1")
+    if not runner_queue_safe_id(job_id):
+        entry["errors"].append("id must match [A-Za-z0-9][A-Za-z0-9_.-]{0,80}")
+    elif path.name != f"{job_id}.yaml":
+        entry["errors"].append("file name must match job id")
+    if raw.get("recipe") not in QUEUE_ALLOWED_RECIPES:
+        entry["errors"].append("recipe is not allowlisted")
+    if not isinstance(raw.get("created_at"), str) or parse_iso_time(raw.get("created_at")) is None:
+        entry["errors"].append("created_at must be an ISO-8601 timestamp")
+    for field in ("requested_by", "note"):
+        if field in raw and (not isinstance(raw[field], str) or len(raw[field]) > 500):
+            entry["errors"].append(f"{field} must be a short string")
+    if "expected_git_sha" in raw and not runner_queue_safe_git_sha(raw["expected_git_sha"]):
+        entry["errors"].append("expected_git_sha must be a full 40-character hexadecimal Git SHA")
+    entry["recipe"] = raw.get("recipe")
+    entry["created_at"] = raw.get("created_at")
+    entry["expected_git_sha"] = raw.get("expected_git_sha")
+    entry["valid"] = not entry["errors"]
+    return entry
+
+
+def runner_queue_receipt_path(job_id: str) -> Path:
+    return runner_queue_receipts_dir() / f"{job_id}.json"
+
+
+def runner_queue_result_path(job_id: str) -> Path:
+    return runner_queue_results_dir() / f"{job_id}.json"
+
+
+def runner_queue_load_json(path: Path) -> Dict[str, Any]:
+    value = load_optional_json(path)
+    return value if isinstance(value, dict) else {}
+
+
+def runner_queue_write_receipt(job_id: str, **updates: Any) -> Dict[str, Any]:
+    prior = runner_queue_load_json(runner_queue_receipt_path(job_id))
+    prior.update(updates)
+    prior.setdefault("protocol", QUEUE_PROTOCOL)
+    prior.setdefault("job_id", job_id)
+    prior["updated_at"] = now_iso()
+    write_runner_queue_json(runner_queue_receipt_path(job_id), prior)
+    return prior
+
+
+def runner_queue_job_summary(entry: Dict[str, Any]) -> Dict[str, Any]:
+    job_id = str(entry.get("id") or "unknown")
+    receipt = runner_queue_load_json(runner_queue_receipt_path(job_id))
+    result = runner_queue_load_json(runner_queue_result_path(job_id))
+    return {
+        "id": job_id,
+        "state": entry.get("state"),
+        "recipe": entry.get("recipe"),
+        "created_at": entry.get("created_at"),
+        "expected_git_sha": entry.get("expected_git_sha"),
+        "valid": bool(entry.get("valid")),
+        "errors": entry.get("errors") or [],
+        "path": entry.get("path"),
+        "receipt": {
+            key: receipt.get(key) for key in ("state", "submitted_at", "claimed_at", "started_at", "finished_at", "blocked_at", "runner_id")
+            if receipt.get(key) is not None
+        },
+        "result": {
+            key: result.get(key) for key in ("status", "exit_code", "reason", "finished_at", "recipe_passed")
+            if result.get(key) is not None
+        },
+    }
+
+
+def runner_queue_payload() -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    entries: List[Dict[str, Any]] = []
+    errors: List[str] = []
+    for state in QUEUE_STATES:
+        directory = runner_queue_state_dir(state)
+        for path in sorted(directory.iterdir()):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() != ".yaml":
+                errors.append(f"unexpected file in {state}: {runner_queue_rel(path)}")
+                continue
+            entries.append(runner_queue_read_job(path, state))
+    ids: Dict[str, List[str]] = defaultdict(list)
+    for entry in entries:
+        if runner_queue_safe_id(entry.get("id")):
+            ids[str(entry["id"])].append(str(entry.get("state")))
+    for job_id, states in sorted(ids.items()):
+        if len(states) > 1:
+            errors.append(f"job id appears in multiple states: {job_id} ({', '.join(states)})")
+    jobs = [runner_queue_job_summary(entry) for entry in entries]
+    jobs.sort(key=lambda item: (QUEUE_STATES.index(str(item["state"])), str(item["id"])))
+    counts = {state: sum(1 for job in jobs if job["state"] == state) for state in QUEUE_STATES}
+    invalid = [job for job in jobs if not job["valid"]]
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "generated_at": now_iso(),
+        "paths": {
+            "root": runner_queue_rel(runner_queue_root()),
+            "manifest": runner_queue_rel(runner_queue_manifest_file()),
+            "status": runner_queue_rel(runner_queue_status_file()),
+            "receipts": runner_queue_rel(runner_queue_receipts_dir()),
+            "results": runner_queue_rel(runner_queue_results_dir()),
+        },
+        "allowlisted_recipes": list(QUEUE_ALLOWED_RECIPES),
+        "counts": counts,
+        "jobs": jobs,
+        "validation": {"valid": not errors and not invalid, "errors": errors, "invalid_jobs": len(invalid)},
+    }
+
+
+def write_runner_queue_manifest(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    data = payload or runner_queue_payload()
+    data["manifest_path"] = runner_queue_rel(runner_queue_manifest_file())
+    write_runner_queue_json(runner_queue_manifest_file(), data)
+    return data
+
+
+def render_runner_queue_status(payload: Dict[str, Any]) -> str:
+    counts = payload.get("counts") or {}
+    jobs = payload.get("jobs") or []
+    validation = payload.get("validation") or {}
+    cards = "".join(
+        f'<section class="card {state}"><span>{html.escape(state)}</span><strong>{int(counts.get(state, 0))}</strong></section>'
+        for state in QUEUE_STATES
+    )
+    rows = []
+    for job in jobs:
+        result = job.get("result") or {}
+        reason = result.get("reason") or "; ".join(job.get("errors") or []) or "—"
+        rows.append(
+            "<tr>"
+            f'<td><code>{html.escape(str(job.get("id") or "—"))}</code></td>'
+            f'<td><span class="pill {html.escape(str(job.get("state") or "unknown"))}">{html.escape(str(job.get("state") or "unknown"))}</span></td>'
+            f'<td>{html.escape(str(job.get("recipe") or "—"))}</td>'
+            f'<td>{html.escape(str(job.get("created_at") or "—"))}</td>'
+            f'<td>{html.escape(str(result.get("exit_code", "—")))}</td>'
+            f'<td>{html.escape(str(reason))}</td></tr>'
+        )
+    table = "\n".join(rows) or '<tr><td colspan="6" class="empty">No jobs yet. Submit an allowlisted smoke job to begin.</td></tr>'
+    validation_text = "Protocol valid" if validation.get("valid") else "Protocol needs attention"
+    errors = "".join(f"<li>{html.escape(str(error))}</li>" for error in validation.get("errors") or [])
+    generated_at = html.escape(str(payload.get("generated_at") or "—"))
+    health_class = "ok" if validation.get("valid") else "warn"
+    errors_block = "<ul>" + errors + "</ul>" if errors else ""
+    template = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SyncMate Runner Queue</title><style>
+:root{{color-scheme:dark;--bg:#0b1020;--panel:#141b31;--line:#2c385b;--text:#eef3ff;--muted:#9ba8c7;--blue:#69a7ff;--green:#53d39a;--amber:#f4bd63;--red:#ff7884;--purple:#aa8cff}}
+*{{box-sizing:border-box}}body{{margin:0;background:radial-gradient(circle at 20% -10%,#213565,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 Inter,Segoe UI,Arial,sans-serif}}main{{max-width:1250px;margin:auto;padding:42px 24px 64px}}header{{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:28px}}h1{{margin:0;font-size:32px;letter-spacing:-.03em}}h1 span{{color:var(--blue)}}.sub{{color:var(--muted);margin:7px 0 0}}.stamp{{text-align:right;color:var(--muted);font-size:13px}}.grid{{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:22px 0}}.card{{background:linear-gradient(145deg,#18233f,#121a2e);border:1px solid var(--line);border-radius:14px;padding:16px}.card span{{display:block;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.1em}}.card strong{{font-size:30px}}.card.done strong{{color:var(--green)}}.card.failed strong{{color:var(--red)}}.card.blocked strong{{color:var(--amber)}}.panel{{background:rgba(20,27,49,.88);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:18px}}.panel h2{{font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line)}}.ok,.warn{{padding:12px 18px;font-weight:600}}.ok{{color:var(--green)}}.warn{{color:var(--amber)}}ul{{margin:0 18px 16px;color:var(--muted)}}table{{width:100%;border-collapse:collapse;min-width:850px}}.table-wrap{{overflow:auto}}th,td{{padding:13px 16px;text-align:left;border-bottom:1px solid #263252;vertical-align:top}}th{{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}}code{{color:#c8dcff;font-family:ui-monospace,Consolas,monospace}}.pill{{display:inline-block;border-radius:99px;padding:2px 9px;font-size:12px;background:#2b3658}}.pill.done{{background:#174635;color:#9bf0c4}}.pill.failed{{background:#5a2732;color:#ffb3bd}}.pill.blocked{{background:#62491d;color:#ffe0a0}}.pill.running{{background:#283d70;color:#bfd3ff}}.empty{{color:var(--muted);text-align:center;padding:28px}}.contract{{color:var(--muted);padding:0 18px 18px}}@media(max-width:760px){{header{{display:block}}.stamp{{text-align:left;margin-top:12px}}.grid{{grid-template-columns:repeat(2,1fr)}}}}
+</style></head><body><main><header><div><h1>SyncMate <span>Runner Queue</span></h1><p class="sub">Local, allowlisted work protocol. SyncMate remains collector, verifier, and gate.</p></div><div class="stamp">Generated __GENERATED_AT__<br>Recipe allowlist: <code>smoke</code></div></header>
+<div class="grid">__CARDS__</div><section class="panel"><h2>Protocol health</h2><div class="__HEALTH_CLASS__">__VALIDATION_TEXT__</div>__ERRORS_BLOCK__<p class="contract">Inbox → running → done | failed | blocked. The runner accepts only <code>smoke</code>, which is SyncMate’s temporary local smoke check; it cannot run experiment commands or alter cache semantics.</p></section>
+<section class="panel"><h2>Jobs</h2><div class="table-wrap"><table><thead><tr><th>Job</th><th>State</th><th>Recipe</th><th>Created</th><th>Exit</th><th>Result / reason</th></tr></thead><tbody>__TABLE__</tbody></table></div></section>
+</main></body></html>"""
+    template = template.replace("{{", "{").replace("}}", "}")
+    return (template.replace("__GENERATED_AT__", generated_at)
+            .replace("__CARDS__", cards)
+            .replace("__HEALTH_CLASS__", health_class)
+            .replace("__VALIDATION_TEXT__", html.escape(validation_text))
+            .replace("__ERRORS_BLOCK__", errors_block)
+            .replace("__TABLE__", table))
+
+
+def write_runner_queue_status(payload: Optional[Dict[str, Any]] = None) -> Path:
+    data = payload or runner_queue_payload()
+    out = runner_queue_status_file()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_runner_queue_status(data), encoding="utf-8")
+    return out
+
+
+def runner_queue_unique_destination(state: str, job_id: str) -> Path:
+    destination = runner_queue_job_path(state, job_id)
+    if not destination.exists() and not runner_queue_result_path(job_id).exists():
+        return destination
+    candidate_id = f"{job_id[:60].rstrip('.-')}-{_dt.datetime.now().strftime('%H%M%S%f')}"
+    return runner_queue_job_path(state, candidate_id)
+
+
+def runner_queue_block_invalid(path: Path, entry: Dict[str, Any], *, binding: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    raw_id = entry.get("id")
+    job_id = str(raw_id) if runner_queue_safe_id(raw_id) else f"invalid-{safe_file_stem(path.stem)[:60]}"
+    destination = runner_queue_unique_destination("blocked", job_id)
+    result_id = destination.stem
+    path.replace(destination)
+    reason = "; ".join(entry.get("errors") or ["invalid runner queue job"])
+    runner_queue_write_receipt(
+        result_id,
+        state="blocked",
+        blocked_at=now_iso(),
+        reason=reason,
+        recipe_binding=binding,
+    )
+    result = {
+        "protocol": QUEUE_PROTOCOL,
+        "job_id": result_id,
+        "status": "blocked",
+        "reason": reason,
+        "finished_at": now_iso(),
+        "recipe_binding": binding,
+    }
+    write_runner_queue_json(runner_queue_result_path(result_id), result)
+    return {"job_id": result_id, "state": "blocked", "reason": reason, "path": runner_queue_rel(destination)}
+
+
+def runner_queue_output_text(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value or "")
+
+
+def runner_queue_recipe_command(recipe: str) -> Tuple[List[str], int]:
+    definition = runner_recipe_definition(recipe)
+    return runner_recipe_command(definition), int(definition["timeout_seconds"])
+
+
+def runner_queue_submit(
+    job_id: str,
+    recipe: str,
+    *,
+    requested_by: Optional[str] = None,
+    note: Optional[str] = None,
+    expected_git_sha: Optional[str] = None,
+) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    if not runner_queue_safe_id(job_id):
+        raise SystemExit("job id must match [A-Za-z0-9][A-Za-z0-9_.-]{0,80}")
+    if recipe not in QUEUE_ALLOWED_RECIPES:
+        raise SystemExit("recipe is not allowlisted")
+    if requested_by is not None and (not isinstance(requested_by, str) or len(requested_by) > 500):
+        raise SystemExit("requested_by must be a short string")
+    if note is not None and (not isinstance(note, str) or len(note) > 500):
+        raise SystemExit("note must be a short string")
+    if expected_git_sha is not None and not runner_queue_safe_git_sha(expected_git_sha):
+        raise SystemExit("expected_git_sha must be a full 40-character hexadecimal Git SHA")
+    existing = runner_queue_existing_paths(job_id)
+    if existing:
+        raise SystemExit(f"job id is already reserved by queue evidence: {existing}")
+    job = {"protocol": QUEUE_PROTOCOL, "version": 1, "id": job_id, "recipe": recipe, "created_at": now_iso()}
+    if requested_by:
+        job["requested_by"] = requested_by
+    if note:
+        job["note"] = note
+    if expected_git_sha:
+        job["expected_git_sha"] = expected_git_sha.lower()
+    path = runner_queue_job_path("inbox", job_id)
+    write_runner_queue_yaml(path, job)
+    runner_queue_write_receipt(job_id, state="inbox", submitted_at=job["created_at"])
+    payload = write_runner_queue_manifest()
+    return {"submitted": True, "job": job, "path": runner_queue_rel(path), "manifest": payload["manifest_path"]}
+
+
+def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
+    ensure_runner_queue_dirs()
+    role = config.get("role")
+    if role not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["runner-queue run requires device role runner or runner+collector"], "processed": False}
+    queue = runner_queue_payload()
+    duplicates = runner_queue_duplicate_errors(queue)
+    if duplicates:
+        return {"status": "blocked", "processed": False, "errors": duplicates}
+    if queue["counts"]["running"]:
+        return {
+            "status": "blocked",
+            "processed": False,
+            "errors": ["a running job requires explicit manual recovery; automatic retry is disabled"],
+        }
+    inbox = sorted(runner_queue_state_dir("inbox").glob("*.yaml"))
+    if not inbox:
+        return {"status": "idle", "processed": False}
+    source = inbox[0]
+    entry = runner_queue_read_job(source, "inbox")
+    if not entry["valid"]:
+        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
+    job = entry["job"]
+    job_id = str(job["id"])
+    binding = runner_recipe_binding(str(job["recipe"]))
+    expected_git_sha = job.get("expected_git_sha")
+    observed_git_sha = (binding.get("observed") or {}).get("git_sha")
+    binding["job_expected_git_sha"] = expected_git_sha
+    binding["job_exact_git_match"] = (
+        observed_git_sha == expected_git_sha if expected_git_sha else None
+    )
+    if expected_git_sha and observed_git_sha != expected_git_sha:
+        binding.setdefault("errors", []).append(
+            "runner checkout does not match the exact Git SHA bound in the job envelope"
+        )
+        binding["ready"] = False
+    if not binding["ready"]:
+        entry["errors"].extend(binding["errors"])
+        return {
+            "status": "blocked",
+            "processed": True,
+            "blocked": runner_queue_block_invalid(source, entry, binding=binding),
+        }
+    running_path = runner_queue_job_path("running", job_id)
+    if running_path.exists():
+        entry["errors"].append("job id already exists in running; refusing to overwrite")
+        return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry, binding=binding)}
+    try:
+        source.replace(running_path)
+    except FileNotFoundError:
+        return {"status": "contended", "processed": False, "errors": ["job was claimed by another runner"]}
+    runner_queue_write_receipt(
+        job_id,
+        state="running",
+        claimed_at=now_iso(),
+        started_at=now_iso(),
+        runner_id=config.get("device_id"),
+        recipe_binding=binding,
+    )
+    command, timeout = runner_queue_recipe_command(str(job["recipe"]))
+    try:
+        completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout, check=False)
+        stdout = runner_queue_output_text(completed.stdout)[-16000:]
+        stderr = runner_queue_output_text(completed.stderr)[-16000:]
+        recipe_data = None
+        try:
+            recipe_data = json.loads(stdout)
+        except json.JSONDecodeError:
+            pass
+        succeeded = completed.returncode == 0 and (not isinstance(recipe_data, dict) or recipe_data.get("passed") is not False)
+        state = "done" if succeeded else "failed"
+        reason = None if succeeded else f"recipe exited with code {completed.returncode}"
+        result = {
+            "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
+            "exit_code": completed.returncode, "finished_at": now_iso(), "command": command,
+            "recipe_passed": recipe_data.get("passed") if isinstance(recipe_data, dict) else None,
+            "stdout": stdout, "stderr": stderr, "reason": reason, "recipe_binding": binding,
+        }
+    except subprocess.TimeoutExpired as exc:
+        state = "failed"
+        result = {
+            "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
+            "exit_code": None, "finished_at": now_iso(), "command": command, "recipe_passed": False,
+            "stdout": runner_queue_output_text(exc.stdout)[-16000:], "stderr": runner_queue_output_text(exc.stderr)[-16000:],
+            "reason": f"recipe timed out after {timeout}s", "recipe_binding": binding,
+        }
+    conflicting = runner_queue_existing_paths(job_id)
+    conflicting.pop("running", None)
+    if conflicting:
+        return {
+            "status": "conflict",
+            "processed": True,
+            "job_id": job_id,
+            "errors": ["terminal transition refused; duplicate queue evidence exists: " + json.dumps(conflicting)],
+        }
+    destination = runner_queue_job_path(state, job_id)
+    running_path.replace(destination)
+    write_runner_queue_json(runner_queue_result_path(job_id), result)
+    runner_queue_write_receipt(job_id, state=state, finished_at=result["finished_at"], exit_code=result["exit_code"])
+    return {"status": state, "processed": True, "job_id": job_id, "result": result, "path": runner_queue_rel(destination)}
+
+
+def cmd_runner_queue_submit(args: argparse.Namespace) -> int:
+    data = runner_queue_submit(
+        args.job_id or runner_queue_default_id(),
+        args.recipe,
+        requested_by=args.requested_by,
+        note=args.note,
+        expected_git_sha=args.expected_git_sha,
+    )
+    if args.json:
+        print_json(data)
+    else:
+        print(f"queued {data['job']['id']} ({data['job']['recipe']}) -> {data['path']}")
+    return 0
+
+
+def cmd_runner_queue_contract(args: argparse.Namespace) -> int:
+    data = runner_queue_contract_payload()
+    if args.write:
+        ensure_runner_queue_dirs()
+        data["contract_path"] = runner_queue_rel(runner_queue_contract_file())
+        write_runner_queue_json(runner_queue_contract_file(), data)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue contract: {data['protocol']}")
+        print("  states: " + " -> ".join(QUEUE_STATES))
+        print("  recipes: " + ", ".join(QUEUE_ALLOWED_RECIPES))
+        print("  owner: runner-queue run --once")
+        if data.get("contract_path"):
+            print(f"  written: {data['contract_path']}")
+    return 0
+
+
+def cmd_runner_queue_validate(args: argparse.Namespace) -> int:
+    data = runner_queue_payload()
+    if args.write:
+        data = write_runner_queue_manifest(data)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue: {'valid' if data['validation']['valid'] else 'invalid'}")
+        print("  " + " ".join(f"{state}={data['counts'][state]}" for state in QUEUE_STATES))
+        for error in data['validation']['errors']:
+            print(f"  error: {error}")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_status(args: argparse.Namespace) -> int:
+    data = runner_queue_payload()
+    if args.json:
+        print_json(data)
+    else:
+        print("runner queue: " + " ".join(f"{state}={data['counts'][state]}" for state in QUEUE_STATES))
+        for job in data["jobs"]:
+            print(f"  {job['state']:7} {job['id']} ({job.get('recipe') or 'invalid'})")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_dashboard(args: argparse.Namespace) -> int:
+    data = write_runner_queue_manifest()
+    out = write_runner_queue_status(data)
+    if args.open:
+        webbrowser.open(out.resolve().as_uri())
+    response = {"dashboard": runner_queue_rel(out), "manifest": data["manifest_path"], "counts": data["counts"], "validation": data["validation"]}
+    if args.json:
+        print_json(response)
+    else:
+        print(f"runner queue dashboard: {response['dashboard']}")
+    return 0 if data["validation"]["valid"] else 1
+
+
+def cmd_runner_queue_run(args: argparse.Namespace) -> int:
+    config, _warnings = load_device(args.config)
+    data = runner_queue_run_once(config)
+    payload = write_runner_queue_manifest()
+    data["manifest"] = payload["manifest_path"]
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner queue run: {data['status']}")
+        if data.get("job_id"):
+            print(f"  job: {data['job_id']}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("done", "idle") else 1
+
+
+def runner_agent_validate_poll_seconds(value: float) -> float:
+    if value < RUNNER_AGENT_MIN_POLL_SECONDS or value > RUNNER_AGENT_MAX_POLL_SECONDS:
+        raise ValueError(
+            f"poll seconds must be between {RUNNER_AGENT_MIN_POLL_SECONDS:g} and {RUNNER_AGENT_MAX_POLL_SECONDS:g}"
+        )
+    return value
+
+
+def runner_agent_serve(config: Dict[str, Any], *, poll_seconds: float, max_jobs: Optional[int] = None,
+                       max_idle_polls: Optional[int] = None) -> Dict[str, Any]:
+    """Run the deliberately small, exclusive runner-agent loop.
+
+    The loop executes at most one queue job at a time and stops on any blocked,
+    failed, stale, or conflicted state.  It never retries a running job.
+    """
+    poll_seconds = runner_agent_validate_poll_seconds(float(poll_seconds))
+    if config.get("role") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["runner-agent serve requires device role runner or runner+collector"], "processed": 0}
+    if max_jobs is not None and max_jobs < 1:
+        return {"status": "blocked", "errors": ["max_jobs must be at least 1"], "processed": 0}
+    if max_idle_polls is not None and max_idle_polls < 0:
+        return {"status": "blocked", "errors": ["max_idle_polls cannot be negative"], "processed": 0}
+    try:
+        owner = runner_agent_acquire_lock(str(config.get("device_id") or "unknown-runner"))
+    except RuntimeError as exc:
+        return {"status": "locked", "errors": [str(exc)], "processed": 0}
+    processed = 0
+    idle_polls = 0
+    events: List[Dict[str, Any]] = []
+    try:
+        while True:
+            outcome = runner_queue_run_once(config)
+            events.append({key: value for key, value in outcome.items() if key != "result"})
+            status = str(outcome.get("status"))
+            if status == "done":
+                processed += 1
+                if max_jobs is not None and processed >= max_jobs:
+                    return {"status": "completed", "processed": processed, "owner": owner, "events": events}
+                time.sleep(poll_seconds)
+                continue
+            if status == "idle":
+                idle_polls += 1
+                if max_idle_polls is not None and idle_polls >= max_idle_polls:
+                    return {"status": "idle", "processed": processed, "owner": owner, "events": events}
+                time.sleep(poll_seconds)
+                continue
+            # A failed recipe is terminal evidence, not a prompt to retry.
+            return {"status": status, "processed": processed, "owner": owner, "events": events,
+                    "errors": outcome.get("errors") or []}
+    finally:
+        runner_agent_release_lock()
+
+
+def runner_agent_inspect_payload() -> Dict[str, Any]:
+    queue = runner_queue_payload()
+    lock = runner_agent_lock_dir()
+    running_count = int(queue["counts"].get("running", 0) or 0)
+    lock_present = lock.exists()
+    recovery_entries: List[Dict[str, Any]] = []
+    if runner_agent_recovery_file().is_file():
+        for line in runner_agent_recovery_file().read_text(encoding="utf-8").splitlines()[-20:]:
+            try:
+                value = json.loads(line)
+                if isinstance(value, dict):
+                    recovery_entries.append(value)
+            except json.JSONDecodeError:
+                recovery_entries.append({"invalid_line": line[:300]})
+    return {
+        "protocol": QUEUE_PROTOCOL,
+        "generated_at": now_iso(),
+        "lock": {"present": lock_present, "owner": runner_queue_load_json(lock / "owner.json") if lock_present else {}},
+        "queue": queue,
+        "active_running": running_count > 0 and lock_present,
+        "stale_running": running_count > 0 and not lock_present,
+        "recovery_events": recovery_entries,
+    }
+
+
+def runner_agent_recover(*, job_id: Optional[str], clear_lock: bool, block_running: bool, confirm: bool) -> Dict[str, Any]:
+    """Perform one explicit, append-only recovery operation after inspection."""
+    if not confirm:
+        return {"status": "blocked", "errors": ["recovery requires --confirm after runner-agent inspect"]}
+    if int(bool(clear_lock)) + int(bool(block_running)) != 1:
+        return {"status": "blocked", "errors": ["choose exactly one of --clear-lock or --block-running"]}
+    if clear_lock:
+        lock = runner_agent_lock_dir()
+        if not lock.exists():
+            return {"status": "idle", "action": "clear-lock", "errors": ["no agent lock exists"]}
+        owner = runner_queue_load_json(lock / "owner.json")
+        runner_agent_release_lock()
+        event = {"action": "clear-lock", "owner": owner, "reason": "explicit operator recovery"}
+        runner_agent_append_recovery(event)
+        return {"status": "recovered", **event}
+    if not job_id or not runner_queue_safe_id(job_id):
+        return {"status": "blocked", "errors": ["--block-running requires a safe --job-id"]}
+    if runner_agent_lock_dir().exists():
+        return {"status": "blocked", "errors": ["refusing recovery while an agent lock exists; inspect and clear it explicitly first"]}
+    source = runner_queue_job_path("running", job_id)
+    if not source.exists():
+        return {"status": "blocked", "errors": ["no matching running job exists"]}
+    conflicts = runner_queue_existing_paths(job_id)
+    conflicts.pop("running", None)
+    if conflicts:
+        return {"status": "blocked", "errors": ["refusing recovery because terminal evidence already exists: " + json.dumps(conflicts)]}
+    entry = runner_queue_read_job(source, "running")
+    destination = runner_queue_job_path("blocked", job_id)
+    source.replace(destination)
+    reason = "explicit operator recovery blocked a stale running job; retry requires a new job id"
+    runner_queue_write_receipt(job_id, state="blocked", blocked_at=now_iso(), reason=reason, recovery=True)
+    write_runner_queue_json(runner_queue_result_path(job_id), {
+        "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": entry.get("recipe"), "status": "blocked",
+        "finished_at": now_iso(), "reason": reason, "recovery": True,
+    })
+    event = {"action": "block-running", "job_id": job_id, "reason": reason}
+    runner_agent_append_recovery(event)
+    return {"status": "recovered", **event, "path": runner_queue_rel(destination)}
+
+
+def cmd_runner_agent_serve(args: argparse.Namespace) -> int:
+    config, _warnings = load_device(args.config)
+    data = runner_agent_serve(config, poll_seconds=args.poll_seconds, max_jobs=args.max_jobs,
+                              max_idle_polls=args.max_idle_polls)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner agent: {data['status']} processed={data.get('processed', 0)}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("completed", "idle") else 1
+
+
+def cmd_runner_agent_inspect(args: argparse.Namespace) -> int:
+    data = runner_agent_inspect_payload()
+    if args.json:
+        print_json(data)
+    else:
+        print(
+            f"runner agent: lock={'present' if data['lock']['present'] else 'clear'} "
+            f"active_running={data['active_running']} stale_running={data['stale_running']}"
+        )
+    return 0 if data["queue"]["validation"]["valid"] else 1
+
+
+def cmd_runner_agent_recover(args: argparse.Namespace) -> int:
+    data = runner_agent_recover(job_id=args.job_id, clear_lock=args.clear_lock,
+                                block_running=args.block_running, confirm=args.confirm)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner agent recovery: {data['status']}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data["status"] in ("recovered", "idle") else 1
+
+
+def runner_agent_peer_invoke(peer: Dict[str, Any], arguments: List[str], *, timeout: int = 60) -> Dict[str, Any]:
+    """Invoke one fixed SyncMate CLI on a configured runner peer.
+
+    `arguments` is built internally from validated schema values only; it is
+    never accepted as a user-provided remote command string.
+    """
+    repo_path = str(peer.get("repo_path") or "")
+    if not repo_path:
+        return {"ok": False, "errors": ["configured runner peer has no repo_path"]}
+    if peer_uses_local_transport(peer):
+        command = [sys.executable, "scripts/syncmate/syncmate.py", *arguments]
+        completed = subprocess.run(command, cwd=resolve_local_repo_root(repo_path), capture_output=True, text=True,
+                                   timeout=timeout, check=False)
+    else:
+        ssh = transport_ssh_value(peer)
+        if not ssh:
+            return {"ok": False, "errors": ["configured SSH runner peer has no ssh target"]}
+        python_executable = peer_python_executable(peer)
+        remote = "cd " + shell_quote(repo_path) + " && PYTHONDONTWRITEBYTECODE=1 " + " ".join(
+            shell_quote(part) for part in [python_executable, "scripts/syncmate/syncmate.py", *arguments]
+        )
+        command = ["ssh", ssh, remote]
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+    stdout = runner_queue_output_text(completed.stdout)[-16000:]
+    stderr = runner_queue_output_text(completed.stderr)[-16000:]
+    payload: Dict[str, Any] = {}
+    try:
+        raw = json.loads(stdout)
+        if isinstance(raw, dict):
+            payload = raw
+    except json.JSONDecodeError:
+        pass
+    return {
+        "ok": completed.returncode == 0 and bool(payload),
+        "returncode": completed.returncode,
+        "command": command,
+        "stdout": stdout,
+        "stderr": stderr,
+        "payload": payload,
+        "errors": [] if completed.returncode == 0 else [f"runner peer command exited {completed.returncode}"],
+    }
+
+
+def runner_agent_dispatch_payload(device: Dict[str, Any], warnings: List[str], *, config_path: Path,
+                                  node_id: str, job_id: str, recipe: str, requested_by: Optional[str],
+                                  note: Optional[str]) -> Dict[str, Any]:
+    """Controller-side guarded enqueue; this does not run an experiment."""
+    if recipe not in QUEUE_ALLOWED_RECIPES:
+        return {"status": "blocked", "errors": ["recipe is not allowlisted"]}
+    if not runner_queue_safe_id(job_id):
+        return {"status": "blocked", "errors": ["job id is unsafe"]}
+    if requested_by is not None and (not isinstance(requested_by, str) or len(requested_by) > 500):
+        return {"status": "blocked", "errors": ["requested_by must be a short string"]}
+    if note is not None and (not isinstance(note, str) or len(note) > 500):
+        return {"status": "blocked", "errors": ["note must be a short string"]}
+    preflight = preflight_payload(device, warnings, config_path=config_path, node_ids=[node_id], require_sync_targets=True)
+    maybe_write_preflight_report(preflight, save=True)
+    if preflight.get("status") == "blocked":
+        return {"status": "blocked", "errors": ["controller preflight blocked dispatch"], "preflight": preflight}
+    peers = device.get("peers") if isinstance(device.get("peers"), dict) else {}
+    peer = peers.get(node_id)
+    if not isinstance(peer, dict):
+        return {"status": "blocked", "errors": ["runner peer is unknown"], "preflight": preflight}
+    if peer.get("role", "runner") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["dispatch target must be a runner or runner+collector peer"], "preflight": preflight}
+    identity = runner_agent_peer_invoke(peer, ["self", "--json"])
+    identity_git = (identity.get("payload") or {}).get("git") or {}
+    exact_git_sha = identity_git.get("sha")
+    if (
+        not identity.get("ok")
+        or not runner_queue_safe_git_sha(exact_git_sha)
+        or identity_git.get("dirty")
+    ):
+        return {
+            "status": "blocked",
+            "errors": ["dispatch requires a clean runner checkout with a full exact Git SHA"],
+            "preflight": preflight,
+            "runner_identity": identity,
+        }
+    result = runner_agent_peer_invoke(
+        peer,
+        ["runner-queue", "submit", "--job-id", job_id, "--recipe", recipe,
+         "--requested-by", requested_by or str(device.get("device_id") or "syncmate-controller"),
+         "--note", note or "controller-dispatch",
+         "--expected-git-sha", exact_git_sha,
+         "--json"],
+    )
+    if not result.get("ok"):
+        return {"status": "blocked", "errors": result.get("errors") or ["runner submit failed"],
+                "preflight": preflight, "peer_command": result}
+    return {
+        "status": "submitted",
+        "job_id": job_id,
+        "recipe": recipe,
+        "node_id": node_id,
+        "expected_git_sha": exact_git_sha,
+        "preflight": preflight,
+        "runner_identity": identity,
+        "peer_command": result,
+        "submission": result.get("payload"),
+    }
+
+
+def runner_agent_watch_payload(device: Dict[str, Any], *, node_id: str, job_id: str, poll_seconds: float,
+                               timeout_seconds: int) -> Dict[str, Any]:
+    poll_seconds = runner_agent_validate_poll_seconds(float(poll_seconds))
+    if timeout_seconds < 1 or timeout_seconds > RUNNER_AGENT_MAX_TIMEOUT_SECONDS:
+        return {"status": "blocked", "errors": [f"timeout seconds must be between 1 and {RUNNER_AGENT_MAX_TIMEOUT_SECONDS}"]}
+    peers = device.get("peers") if isinstance(device.get("peers"), dict) else {}
+    peer = peers.get(node_id)
+    if not isinstance(peer, dict) or peer.get("role", "runner") not in ("runner", "runner+collector"):
+        return {"status": "blocked", "errors": ["watch target must be a configured runner peer"]}
+    started = time.monotonic()
+    observations: List[Dict[str, Any]] = []
+    while True:
+        response = runner_agent_peer_invoke(peer, ["runner-queue", "status", "--json"])
+        observations.append({key: value for key, value in response.items() if key not in ("stdout", "stderr")})
+        if not response.get("ok"):
+            return {"status": "blocked", "errors": response.get("errors") or ["could not read runner queue"],
+                    "observations": observations}
+        jobs = (response.get("payload") or {}).get("jobs") or []
+        matched = [job for job in jobs if job.get("id") == job_id]
+        if matched and matched[0].get("state") in ("done", "failed", "blocked"):
+            job = matched[0]
+            state = str(job["state"])
+            return {"status": state, "job": job, "observations": observations}
+        if time.monotonic() - started >= timeout_seconds:
+            return {"status": "timeout", "errors": ["watch timed out; no retry or acceptance was attempted"],
+                    "observations": observations}
+        time.sleep(poll_seconds)
+
+
+def runner_agent_collect_and_gate(config_path: Path, node_id: str) -> Dict[str, Any]:
+    """Run the existing collector command only after the runner reaches done."""
+    command = [sys.executable, "scripts/syncmate/syncmate.py"]
+    if config_path != DEFAULT_DEVICE_FILE:
+        command.extend(["--config", str(config_path)])
+    command.extend(["sync", node_id, "--json"])
+    completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+                               check=False)
+    stdout = runner_queue_output_text(completed.stdout)[-16000:]
+    stderr = runner_queue_output_text(completed.stderr)[-16000:]
+    payload: Dict[str, Any] = {}
+    try:
+        raw = json.loads(stdout)
+        if isinstance(raw, dict):
+            payload = raw
+    except json.JSONDecodeError:
+        pass
+    gate_passed = bool((payload.get("gate") or {}).get("passed"))
+    return {"ok": completed.returncode == 0 and gate_passed, "returncode": completed.returncode,
+            "gate_passed": gate_passed, "command": command, "payload": payload,
+            "stdout": stdout, "stderr": stderr,
+            "errors": [] if completed.returncode == 0 and gate_passed else ["collector verification or acceptance gate failed"]}
+
+
+def cmd_runner_agent_dispatch(args: argparse.Namespace) -> int:
+    device, warnings = load_device(args.config)
+    job_id = args.job_id or runner_queue_default_id()
+    data = runner_agent_dispatch_payload(device, warnings, config_path=args.config, node_id=args.node_id,
+                                         job_id=job_id, recipe=args.recipe, requested_by=args.requested_by, note=args.note)
+    if data.get("status") == "submitted" and args.wait:
+        watched = runner_agent_watch_payload(device, node_id=args.node_id, job_id=job_id,
+                                             poll_seconds=args.poll_seconds, timeout_seconds=args.timeout_seconds)
+        data["watch"] = watched
+        if watched.get("status") == "done":
+            definition = runner_recipe_definition(args.recipe)
+            if definition.get("collector_acceptance"):
+                data["acceptance"] = runner_agent_collect_and_gate(args.config, args.node_id)
+                if not data["acceptance"].get("ok"):
+                    data["status"] = "blocked"
+                else:
+                    data["status"] = "accepted"
+            else:
+                data["status"] = "done-not-eligible"
+        else:
+            data["status"] = str(watched.get("status"))
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner dispatch: {data.get('status')} job={job_id}")
+        for error in data.get("errors") or []:
+            print(f"  error: {error}")
+    return 0 if data.get("status") in ("submitted", "accepted", "done-not-eligible") else 1
+
+
+def cmd_runner_agent_watch(args: argparse.Namespace) -> int:
+    device, _warnings = load_device(args.config)
+    data = runner_agent_watch_payload(device, node_id=args.node_id, job_id=args.job_id,
+                                      poll_seconds=args.poll_seconds, timeout_seconds=args.timeout_seconds)
+    if args.json:
+        print_json(data)
+    else:
+        print(f"runner watch: {data['status']}")
+    return 0 if data["status"] == "done" else 1
+
+
 def cmd_smoke(args: argparse.Namespace) -> int:
     data = smoke_payload(args)
     if args.json:
@@ -13959,6 +15402,106 @@ def build_parser() -> argparse.ArgumentParser:
                          help="parent directory for a kept smoke workspace")
     p_smoke.set_defaults(func=cmd_smoke)
 
+    p_runner_preflight = sub.add_parser(
+        "runner-preflight",
+        help="write only isolated, no-GPU bounded-runner evidence for a declared recipe",
+    )
+    p_runner_preflight.add_argument("--recipe", choices=("opengu-preflight-v1",), required=True)
+    p_runner_preflight.add_argument("--json", action="store_true")
+    p_runner_preflight.set_defaults(func=cmd_runner_preflight)
+
+    p_runner_agent = sub.add_parser(
+        "runner-agent",
+        help="bounded local runner agent: one lock, one queue job, declared recipes only",
+    )
+    runner_agent_sub = p_runner_agent.add_subparsers(dest="runner_agent_command", required=True)
+    p_agent_serve = runner_agent_sub.add_parser("serve", help="poll the local inbox under one exclusive lock")
+    p_agent_serve.add_argument("--poll-seconds", type=float, default=5.0,
+                               help="bounded poll interval, 1 to 60 seconds (default: 5)")
+    p_agent_serve.add_argument("--max-jobs", type=int,
+                               help="optional bounded job count; useful for supervised runs/tests")
+    p_agent_serve.add_argument("--max-idle-polls", type=int,
+                               help="optional bounded idle polls; useful for supervised runs/tests")
+    p_agent_serve.add_argument("--json", action="store_true")
+    p_agent_serve.set_defaults(func=cmd_runner_agent_serve)
+    p_agent_inspect = runner_agent_sub.add_parser("inspect", help="read lock, queue, stale state, and recovery audit")
+    p_agent_inspect.add_argument("--json", action="store_true")
+    p_agent_inspect.set_defaults(func=cmd_runner_agent_inspect)
+    p_agent_recover = runner_agent_sub.add_parser("recover", help="explicitly recover a stale lock or running job")
+    p_agent_recover.add_argument("--clear-lock", action="store_true", help="remove an inspected stale agent lock")
+    p_agent_recover.add_argument("--block-running", action="store_true", help="move one stale running job to blocked")
+    p_agent_recover.add_argument("--job-id", help="required with --block-running")
+    p_agent_recover.add_argument("--confirm", action="store_true", help="required acknowledgement after inspect")
+    p_agent_recover.add_argument("--json", action="store_true")
+    p_agent_recover.set_defaults(func=cmd_runner_agent_recover)
+    p_agent_dispatch = runner_agent_sub.add_parser(
+        "dispatch", help="collector-side guarded submission to one configured runner peer",
+    )
+    p_agent_dispatch.add_argument("node_id", help="configured runner peer id")
+    p_agent_dispatch.add_argument("--recipe", choices=QUEUE_ALLOWED_RECIPES, required=True)
+    p_agent_dispatch.add_argument("--job-id", help="stable unique job id; default is generated")
+    p_agent_dispatch.add_argument("--requested-by", help="short requester label recorded remotely")
+    p_agent_dispatch.add_argument("--note", help="short immutable submission note")
+    p_agent_dispatch.add_argument("--wait", action="store_true", help="watch terminal state and then run normal collector verification")
+    p_agent_dispatch.add_argument("--poll-seconds", type=float, default=5.0)
+    p_agent_dispatch.add_argument("--timeout-seconds", type=int, default=300)
+    p_agent_dispatch.add_argument("--json", action="store_true")
+    p_agent_dispatch.set_defaults(func=cmd_runner_agent_dispatch)
+    p_agent_watch = runner_agent_sub.add_parser("watch", help="watch one remote job without dispatching or accepting it")
+    p_agent_watch.add_argument("node_id", help="configured runner peer id")
+    p_agent_watch.add_argument("--job-id", required=True)
+    p_agent_watch.add_argument("--poll-seconds", type=float, default=5.0)
+    p_agent_watch.add_argument("--timeout-seconds", type=int, default=300)
+    p_agent_watch.add_argument("--json", action="store_true")
+    p_agent_watch.set_defaults(func=cmd_runner_agent_watch)
+
+    p_runner_queue = sub.add_parser(
+        "runner-queue",
+        help="local YAML inbox for allowlisted runner smoke checks; never runs experiments",
+    )
+    runner_queue_sub = p_runner_queue.add_subparsers(dest="runner_queue_command", required=True)
+    p_queue_submit = runner_queue_sub.add_parser("submit", help="write one allowlisted YAML job into the local inbox")
+    p_queue_submit.add_argument("--recipe", choices=QUEUE_ALLOWED_RECIPES, default="smoke",
+                                help="allowlisted recipe (default: smoke)")
+    p_queue_submit.add_argument("--job-id", help="optional stable job id; default is generated")
+    p_queue_submit.add_argument("--requested-by", help="short local requester label recorded in the job")
+    p_queue_submit.add_argument("--note", help="short local note recorded in the job")
+    p_queue_submit.add_argument(
+        "--expected-git-sha",
+        help="optional exact 40-character runner Git SHA; execution blocks if HEAD differs",
+    )
+    p_queue_submit.add_argument("--json", action="store_true")
+    p_queue_submit.set_defaults(func=cmd_runner_queue_submit)
+
+    p_queue_contract = runner_queue_sub.add_parser(
+        "contract",
+        help="print the stable read-only boundary for SyncMate/OpenGU integration",
+    )
+    p_queue_contract.add_argument("--write", action="store_true",
+                                  help="also write .syncmate/runner_queue/contract.json")
+    p_queue_contract.add_argument("--json", action="store_true")
+    p_queue_contract.set_defaults(func=cmd_runner_queue_contract)
+
+    p_queue_validate = runner_queue_sub.add_parser("validate", help="validate YAML queue protocol and state exclusivity")
+    p_queue_validate.add_argument("--write", action="store_true", help="also write .syncmate/runner_queue/manifest.json")
+    p_queue_validate.add_argument("--json", action="store_true")
+    p_queue_validate.set_defaults(func=cmd_runner_queue_validate)
+
+    p_queue_status = runner_queue_sub.add_parser("status", help="read queue state without executing jobs")
+    p_queue_status.add_argument("--json", action="store_true")
+    p_queue_status.set_defaults(func=cmd_runner_queue_status)
+
+    p_queue_dashboard = runner_queue_sub.add_parser("dashboard", help="write static .syncmate/runner_queue/status.html")
+    p_queue_dashboard.add_argument("--open", action="store_true", help="open the generated static status page")
+    p_queue_dashboard.add_argument("--json", action="store_true")
+    p_queue_dashboard.set_defaults(func=cmd_runner_queue_dashboard)
+
+    p_queue_run = runner_queue_sub.add_parser("run", help="claim and run exactly one allowlisted inbox job")
+    p_queue_run.add_argument("--once", action="store_true", required=True,
+                             help="required: process at most one job; use runner-agent serve for bounded polling")
+    p_queue_run.add_argument("--json", action="store_true")
+    p_queue_run.set_defaults(func=cmd_runner_queue_run)
+
     p_init = sub.add_parser("init-device", help="create the untracked device-local setup file")
     p_init.add_argument("--device-id", default=default_device_id(),
                         help="local node id (default: hostname)")
@@ -13983,6 +15526,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_add.add_argument("--local", action="store_true",
                        help="use a local filesystem repo-path instead of SSH")
     p_add.add_argument("--repo-path", required=True, help="repo path on the peer")
+    p_add.add_argument("--python-executable",
+                       help="Python executable on an SSH peer (default: python)")
     p_add.add_argument("--role", choices=ROLE_CHOICES, default="runner",
                        help="peer role (default: runner)")
     p_add.add_argument("--landing",
@@ -14015,6 +15560,8 @@ def build_parser() -> argparse.ArgumentParser:
                          help="generate local-transport peer commands instead of SSH commands")
     p_setup.add_argument("--peer-repo-path",
                          help="repo path on the runner peer")
+    p_setup.add_argument("--peer-python-executable",
+                         help="Python executable on the runner peer (default: python)")
     p_setup.add_argument("--landing",
                          help="collector landing path for this peer")
     p_setup.add_argument("--result-root", dest="result_roots", action="append",

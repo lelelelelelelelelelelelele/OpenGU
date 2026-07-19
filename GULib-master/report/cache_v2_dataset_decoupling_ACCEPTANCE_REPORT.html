@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache V2 Dataset 职责解耦验收</title>
+  <style>
+    :root{--bg:#09111f;--panel:#111c2f;--panel2:#17263d;--text:#e8eef8;--muted:#9fb0c8;--line:#2a3d59;--ok:#4bd6a0;--warn:#ffca68;--accent:#79a8ff;--code:#08101c}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 12% 0,#17345f 0,transparent 32%),var(--bg);color:var(--text);font:15px/1.65 Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+    main{width:min(1160px,calc(100% - 32px));margin:auto;padding:44px 0 72px} header,.card,table,.callout{border:1px solid var(--line);background:var(--panel)}
+    header{padding:30px;border-radius:20px} h1{margin:8px 0 10px;font-size:clamp(30px,4vw,46px);line-height:1.15} h2{margin:38px 0 14px;font-size:24px} h3{margin:24px 0 8px;font-size:18px}
+    p{margin:9px 0}.eyebrow{color:var(--accent);letter-spacing:.13em;text-transform:uppercase;font-size:12px;font-weight:700}.lede{max-width:900px;color:var(--muted);font-size:17px}
+    .cards,.metrics{display:grid;gap:14px;margin-top:20px}.cards{grid-template-columns:repeat(3,1fr)}.metrics{grid-template-columns:repeat(4,1fr)}.card{padding:17px;border-radius:14px}.card strong{display:block;font-size:17px}.card span,.label,.muted{color:var(--muted)}
+    .ok{border-color:rgba(75,214,160,.55)}.ok strong,.pass{color:var(--ok)}.warn{border-color:rgba(255,202,104,.55)}.warn strong,.pending{color:var(--warn)}.value{font:700 24px/1.2 ui-monospace,Consolas,monospace}.label{font-size:13px}
+    table{width:100%;border-collapse:collapse;margin:14px 0 24px}th,td{padding:11px 12px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--panel2);color:#cfdbef}
+    code{padding:.12em .38em;border-radius:5px;background:var(--code);color:#c9d8ff}pre{overflow:auto;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--code);color:#cfdaed}
+    .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center;margin:16px 0}.node{min-height:100px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.arrow{color:var(--accent);font-size:25px}.callout{padding:16px 18px;border-left:4px solid var(--accent);border-radius:0 10px 10px 0}
+    ul{padding-left:23px}footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted)}a{color:#9dbdff}
+    @media(max-width:820px){.cards,.metrics{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);justify-self:center}}@media(max-width:520px){.cards,.metrics{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+  <header>
+    <div class="eyebrow">OpenGU · Cache V2 · 2026-07-15</div>
+    <h1>Dataset 职责解耦验收</h1>
+    <p class="lede"><strong class="pass">ACCEPTED。</strong>Cache V2 现在只负责 Recipe、Artifact、store、resolver 与完整性；canonical processed dataset、persisted candidates 和 Selection producer 已回到 OpenGU experiment 层。服务器 smoke 是非阻塞的环境差异检查，不重新决定本次有效性。</p>
+    <div class="cards">
+      <div class="card ok"><strong>Cache HIT 隔离：通过</strong><span>零 dataset provider、零 producer callback、exact-only。</span></div>
+      <div class="card ok"><strong>Canonical Cora：通过</strong><span>2708 nodes / 10556 edges，CPU cold→warm。</span></div>
+      <div class="card warn"><strong>Server：后续 TODO</strong><span>本地证据充分；仅补最小 CPU 环境/路径 smoke，不阻塞验收。</span></div>
+    </div>
+    <div class="metrics">
+      <div class="card"><div class="value">118</div><div class="label">范围内回归 passed</div></div>
+      <div class="card"><div class="value">500</div><div class="label">宽 CPU 回归 passed</div></div>
+      <div class="card"><div class="value">3</div><div class="label">既有 stub tests deselected</div></div>
+      <div class="card"><div class="value">108</div><div class="label">canonical Degree selected nodes</div></div>
+    </div>
+  </header>
+
+  <h2>验收矩阵</h2>
+  <table><thead><tr><th>验收项</th><th>结论</th><th>证据</th></tr></thead><tbody>
+    <tr><td>Dataset ownership</td><td class="pass">通过</td><td><code>experiments/selection_inputs.py</code> 只读 canonical processed pickle，不下载、不重建 split。</td></tr>
+    <tr><td>Cache dependency boundary</td><td class="pass">通过</td><td>AST 静态测试确认 <code>cache_v2</code> 无 dataset/experiment/Torch/PyG/OGB/YAML import。</td></tr>
+    <tr><td>HIT isolation</td><td class="pass">通过</td><td>forbidden provider/producer 调用数为 0；read-only payload/header verification。</td></tr>
+    <tr><td>MISS ownership</td><td class="pass">通过</td><td>experiment 层调用 producer 并校验节点，再把显式 selected nodes 交给 store。</td></tr>
+    <tr><td>Recipe identity</td><td class="pass">通过</td><td>绑定 dataset fingerprint、candidate hash、seed/k、algorithm 与 producer version。</td></tr>
+    <tr><td>Conflict / integrity</td><td class="pass">通过</td><td>Artifact ID、identical、marker、quarantine、corruption fail-closed 均回归通过。</td></tr>
+    <tr><td>Runner / AutoReport</td><td class="pass">通过</td><td><code>selection-only</code>、<code>attack-only</code>、<code>complete</code>、<code>failed:collateral</code> 与 authoritative provenance 保留。</td></tr>
+    <tr><td>Server CPU smoke</td><td class="pending">非阻塞 TODO</td><td>本地已有 canonical processed Cora 与完整 CPU 证据；后续仅排查环境/路径差异。</td></tr>
+  </tbody></table>
+
+  <h2>职责与数据流</h2>
+  <div class="flow">
+    <div class="node"><strong>OpenGU processed provider</strong><br><span class="muted">既有 pickle、persisted mask/indices、fingerprints</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>Experiment producer</strong><br><span class="muted">exact miss 后调用 selector，校验候选集</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>Cache V2</strong><br><span class="muted">Recipe / exact resolve / immutable Artifact / integrity</span></div>
+  </div>
+  <div class="callout"><strong>HIT 路径：</strong>upstream identity → Cache exact resolve → header/payload verification → Artifact。Cache API 没有 dataset provider 或 producer 参数。</div>
+
+  <h2>实现落点</h2>
+  <table><thead><tr><th>文件</th><th>职责</th></tr></thead><tbody>
+    <tr><td><code>experiments/selection_inputs.py</code></td><td>canonical processed data、persisted candidates、dataset/graph/candidate fingerprints。</td></tr>
+    <tr><td><code>experiments/selection_producer.py</code></td><td>request 展开、strategy import、producer version、selector 调用、结果校验、Legacy 只读比较。</td></tr>
+    <tr><td><code>cache_v2/selection_materializer.py</code></td><td>Selection Recipe v2、exact resolve、显式 selected-node Artifact materialization。</td></tr>
+    <tr><td><code>cache_v2/store.py</code></td><td>payload/header、Artifact ID、原子写入、完整性、conflict/quarantine；不再有 <code>get_or_compute</code>。</td></tr>
+    <tr><td><code>experiments/run.py</code> / <code>scripts/cachectl.py</code></td><td>使用 canonical <code>processed_root</code>；旧 Cache dataset/download 参数明确拒绝。</td></tr>
+  </tbody></table>
+
+  <h2>Canonical processed Cora</h2>
+  <table><tbody>
+    <tr><th>Source</th><td><code>E:\project\OpenGU\GULib-master\data\processed\transductive\cora0.8_0_0.2.pkl</code></td></tr>
+    <tr><th>Shape / candidates</th><td>2708 nodes / 10556 edges / 2166 persisted candidates / CPU</td></tr>
+    <tr><th>Dataset fingerprint</th><td><code>a77b911b3feddfd6d9aa269e2b4048304a9f5e4f21fe36539d99d7fce874354b</code></td></tr>
+    <tr><th>Candidate set hash</th><td><code>7d55f2d596ea4386a1d1d926a7a662e19e0c53202e6da8782292a3a2a5304765</code></td></tr>
+    <tr><th>Degree ratio / k</th><td>0.05 / 108</td></tr>
+    <tr><th>Recipe hash</th><td><code>04fe0b95d7d8388e366638caf23f92ede2a607e162a8ebd24ea7c65917ddc5ea</code></td></tr>
+    <tr><th>Artifact ID</th><td><code>sel_04fe0b95_82b98325</code></td></tr>
+    <tr><th>cold → warm</th><td><code>false/true</code> hit；<code>true/false</code> producer_called；Artifact ID 相同。</td></tr>
+    <tr><th>Legacy</th><td>cold/warm 均 <code>legacy_cache_unchanged=true</code>。</td></tr>
+  </tbody></table>
+
+  <h2>兼容与 fail-closed</h2>
+  <ul>
+    <li>Artifact ID 公式与 <code>sel_&lt;recipe8&gt;_&lt;content8&gt;</code> 形式不变。</li>
+    <li>旧 Artifact 仍可由 runtime 按显式 Artifact ID 与存储的 Recipe/header 读取。</li>
+    <li>新 producer resolution 只接受 <code>opengu-selection-recipe-v2</code>；缺 identity 的旧 Recipe 明确拒绝。</li>
+    <li>Legacy freeze、exact-only resolver、immutable write 与 AutoReport authoritative source 保持。</li>
+  </ul>
+
+  <h2>测试证据</h2>
+  <h3>范围内</h3>
+  <pre>tests/test_cache_v2*.py + tests/test_auto_report_v3.py
+118 passed in 3.86s</pre>
+  <h3>宽 CPU</h3>
+  <pre>CUDA_VISIBLE_DEVICES=-1
+pytest tests --ignore=tests/test_report_figure_refresh.py [3 known stub deselections]
+500 passed, 3 deselected in 17.01s</pre>
+  <p>3 项 deselected 是未修改 <code>attack/pipeline_adapter.py</code> 的既有测试桩缺少 <code>args</code>；没有在本任务中顺手修复。显式禁用 CUDA 后 TracIn/Hybrid 的 9 项 CPU 测试全部通过，算法机制未修改。</p>
+
+  <h2>完成与未完成</h2>
+  <table><thead><tr><th>状态</th><th>事项</th></tr></thead><tbody>
+    <tr><td class="pass">完成</td><td>独立 worktree/branch、职责拆分、Recipe v2 identity、纯 Cache store、runner/AutoReport 回归、canonical Cora CPU cold/warm、成对报告。</td></tr>
+    <tr><td class="pending">后续 TODO（不阻塞）</td><td>在标准根执行最小 CPU server smoke；不下载、不运行 GPU，不修改仓库、cache/results 或历史 archive。</td></tr>
+    <tr><td class="pending">非目标</td><td>TracIn/Hybrid producer 接入或机制修改、历史 Recipe 迁移、3 个既有 AttackPipeline stub 测试修复。</td></tr>
+  </tbody></table>
+
+  <footer>Markdown source of truth: <a href="../docs/cache_v2_dataset_decoupling_ACCEPTANCE_REPORT.md">docs/cache_v2_dataset_decoupling_ACCEPTANCE_REPORT.md</a> · Design: <a href="../docs/cache_v2_dataset_decoupling_DESIGN.md">docs/cache_v2_dataset_decoupling_DESIGN.md</a></footer>
+</main></body>
+</html>

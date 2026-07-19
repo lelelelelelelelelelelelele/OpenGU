@@ -1,8 +1,9 @@
-"""Isolated Selection payload store used by the Cache V2 canary.
+"""Dataset-free immutable Selection Artifact storage for Cache V2.
 
-The V2.1 index remains metadata-only.  This module is deliberately opt-in and
-does not import or alter any runner or Legacy cache path.  It stores only the
-small, versioned Selection payload needed to prove an exact cold/warm hit.
+The store accepts only Recipe identity and already-produced selected nodes.
+It never owns or invokes a Selection producer.  Exact resolution, payload and
+sidecar integrity, immutable writes, conflict quarantine, and index updates
+remain Cache responsibilities.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterator, Mapping, Optional, Sequence, Tuple, Union
 
 from .canonical import canonicalize, sha256_bytes
 from .contracts import (
@@ -35,12 +36,13 @@ from .contracts import (
 from .errors import (
     ArtifactStoreError,
     CacheResolutionError,
+    CacheV2Error,
     ContractValidationError,
     PathValidationError,
 )
 from .index import CacheIndex
 from .paths import normalize_relative_path, normalize_semantic_path
-from .resolver import ArtifactResolver, ResolveExplanation
+from .resolver import ArtifactResolver
 from .conflict_resolution import ConflictResolutionLedger
 
 
@@ -51,10 +53,6 @@ CONFLICT_MARKER_VERSION = 1
 
 class ArtifactIntegrityError(ArtifactStoreError):
     """An indexed payload or sidecar failed closed verification."""
-
-
-class ProducerCalledError(ArtifactStoreError):
-    """The fail-if-called producer sentinel was reached."""
 
 
 class ArtifactConflictError(ArtifactStoreError):
@@ -175,23 +173,23 @@ def _recipe_graph_fingerprint(fields: Mapping[str, Any]) -> str:
 def _validate_candidate_input(
     recipe: ArtifactRecipe,
     num_nodes: int,
-    candidate_nodes: Sequence[int],
-) -> Tuple[int, ...]:
+    candidate_nodes: Optional[Sequence[int]],
+) -> Optional[Tuple[int, ...]]:
     """Validate caller-supplied candidates before resolution or production."""
 
-    if candidate_nodes is None:
-        raise ContractValidationError("candidate_nodes is required")
     if isinstance(num_nodes, bool) or not isinstance(num_nodes, int) or num_nodes < 0:
         raise ContractValidationError("num_nodes must be a non-negative integer")
+    expected_hash = validate_sha256(
+        recipe.fields.get("candidate_set_hash"), "Recipe candidate_set_hash"
+    )
+    if candidate_nodes is None:
+        return None
     candidates = _node_sequence(candidate_nodes)
     for node in candidates:
         if node < 0 or node >= num_nodes:
             raise ContractValidationError(
                 "candidate node {0} is outside [0, {1})".format(node, num_nodes)
             )
-    expected_hash = validate_sha256(
-        recipe.fields.get("candidate_set_hash"), "Recipe candidate_set_hash"
-    )
     observed_hash = _nodes_hash(sorted(candidates))
     if observed_hash != expected_hash:
         raise ContractValidationError(
@@ -401,9 +399,6 @@ class StoreResult:
     miss_reasons: Tuple[str, ...] = ()
 
 
-ProducerResult = Union[SelectionPayload, Sequence[int], Any]
-
-
 @dataclass(frozen=True)
 class _CreatedFile:
     """Filesystem identity for a file created by the current operation."""
@@ -426,7 +421,6 @@ class ArtifactStore:
         producer_version: ProducerVersion,
         index: Optional[CacheIndex] = None,
         trace_path: Optional[Union[str, Path]] = None,
-        counter_path: Optional[Union[str, Path]] = None,
     ) -> None:
         supplied = Path(root).expanduser()
         if not supplied.is_absolute():
@@ -448,7 +442,6 @@ class ArtifactStore:
         self._require_below_root(self.index.database_path, "CacheIndex database")
         self.producer_version = producer_version
         self.trace_path = self._store_path(trace_path, "trace.jsonl")
-        self.counter_path = self._store_path(counter_path, "producer_counter.json")
 
     def _store_path(
         self, supplied: Optional[Union[str, Path]], default_name: str
@@ -499,32 +492,6 @@ class ArtifactStore:
             raise ArtifactStoreError("ArtifactStore is not initialized")
         self.index.check_schema()
 
-    @property
-    def producer_call_count(self) -> int:
-        self._safe_output_path(self.counter_path, "producer counter")
-        if not self.counter_path.exists():
-            return 0
-        raw = self.counter_path.read_bytes()
-        value = _parse_canonical_plain_json(raw, "producer counter")
-        if (
-            not isinstance(value, dict)
-            or set(value) != {"producer_calls", "version"}
-            or value.get("version") != 1
-            or isinstance(value.get("producer_calls"), bool)
-            or not isinstance(value.get("producer_calls"), int)
-            or value["producer_calls"] < 0
-        ):
-            raise ArtifactIntegrityError("producer counter contract is invalid")
-        return value["producer_calls"]
-
-    def _increment_producer_call_count(self) -> int:
-        with self._exclusive_lock("producer-counter"):
-            count = self.producer_call_count + 1
-            self._atomic_replace_json(
-                self.counter_path, {"producer_calls": count, "version": 1}
-            )
-            return count
-
     def _trace(self, event: str, **fields: Any) -> None:
         entry = {"event": event, "timestamp": utc_now_iso()}
         entry.update(fields)
@@ -540,32 +507,6 @@ class ArtifactStore:
             os.fsync(descriptor)
         finally:
             os.close(descriptor)
-
-    def _envelope_keys(self, envelope: Optional[Mapping[str, Any]]) -> Tuple[str, ...]:
-        if envelope is None:
-            return ()
-        if not isinstance(envelope, Mapping):
-            raise ContractValidationError("request_envelope must be a mapping")
-        return tuple(sorted(str(key) for key in envelope.keys()))
-
-    def _atomic_replace_json(self, path: Path, value: Any) -> None:
-        self._atomic_replace(path, _plain_json_bytes(value))
-
-    def _atomic_replace(self, path: Path, payload: bytes) -> None:
-        path = self._safe_output_path(path, "replace target")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = path.parent / (".{0}.{1}.tmp".format(path.name, uuid.uuid4().hex))
-        temporary = self._safe_output_path(temporary, "temporary output")
-        try:
-            with temporary.open("xb") as handle:
-                handle.write(payload)
-                handle.flush()
-                os.fsync(handle.fileno())
-            path = self._safe_output_path(path, "replace target")
-            os.replace(str(temporary), str(path))
-        finally:
-            if temporary.exists():
-                temporary.unlink()
 
     def _atomic_write_once(
         self, path: Path, payload: bytes
@@ -874,50 +815,6 @@ class ArtifactStore:
                 )
             )
 
-    def _invoke_producer(
-        self,
-        recipe: ArtifactRecipe,
-        producer: Callable[[], ProducerResult],
-        num_nodes: int,
-        fail_if_called: bool,
-        candidate_nodes: Sequence[int],
-    ) -> SelectionPayload:
-        if not callable(producer):
-            raise ContractValidationError("producer must be callable")
-        if fail_if_called:
-            self._trace("producer_trap", recipe_hash=recipe.recipe_hash)
-            raise ProducerCalledError(
-                "producer fail-if-called sentinel reached for Recipe {0}".format(
-                    recipe.recipe_hash
-                )
-            )
-        count = self._increment_producer_call_count()
-        self._trace(
-            "producer_call_start",
-            recipe_hash=recipe.recipe_hash,
-            producer_call_count=count,
-        )
-        result = producer()
-        if isinstance(result, SelectionPayload):
-            payload = result
-        else:
-            fields = recipe.fields
-            payload = SelectionPayload.build(
-                result,
-                graph_fingerprint=_recipe_graph_fingerprint(fields),
-                candidate_set_hash=fields.get("candidate_set_hash"),
-                node_id_space=fields.get("node_id_space"),
-                source_score_artifact_id=fields.get("source_score_artifact_id"),
-            )
-        payload.validate_against(recipe, num_nodes, candidate_nodes=candidate_nodes)
-        self._trace(
-            "producer_call_end",
-            recipe_hash=recipe.recipe_hash,
-            producer_call_count=count,
-            content_hash=payload.content_hash,
-        )
-        return payload
-
     def _formal_paths(self, recipe: ArtifactRecipe, artifact_id: str) -> Tuple[str, Path, Path]:
         semantic = normalize_semantic_path(
             "artifacts/selection/{0}/payload.json".format(artifact_id)
@@ -971,7 +868,7 @@ class ArtifactStore:
         compute_seconds: float,
         miss_reasons: Tuple[str, ...],
         num_nodes: int,
-        candidate_nodes: Sequence[int],
+        candidate_nodes: Optional[Sequence[int]],
     ) -> StoreResult:
         artifact_id = build_artifact_id(
             ArtifactType.SELECTION, recipe.recipe_hash, payload.content_hash
@@ -1075,7 +972,7 @@ class ArtifactStore:
                 content_hash=loaded.content_hash,
                 semantic_path=loaded.semantic_path,
                 payload=payload,
-                producer_called=True,
+                producer_called=False,
                 miss_reasons=miss_reasons,
             )
 
@@ -1093,7 +990,7 @@ class ArtifactStore:
             content_hash=header.content_hash,
             semantic_path=semantic,
             payload=payload,
-            producer_called=True,
+            producer_called=False,
             miss_reasons=miss_reasons,
         )
 
@@ -1141,7 +1038,7 @@ class ArtifactStore:
         candidate: Mapping[str, Any],
         recipe: ArtifactRecipe,
         num_nodes: int,
-        candidate_nodes: Sequence[int],
+        candidate_nodes: Optional[Sequence[int]],
         miss_reasons: Tuple[str, ...] = (),
     ) -> StoreResult:
         if candidate.get("artifact_type") != ArtifactType.SELECTION.value:
@@ -1335,7 +1232,7 @@ class ArtifactStore:
         recipe: ArtifactRecipe,
         num_nodes: int,
         *,
-        candidate_nodes: Sequence[int],
+        candidate_nodes: Optional[Sequence[int]] = None,
         artifact_id: Optional[str] = None,
     ) -> StoreResult:
         """Verify an immutable exact hit without creating a coordination lock.
@@ -1385,232 +1282,69 @@ class ArtifactStore:
             )
         return result
 
-    def get_or_compute(
+    def store_selection(
         self,
         recipe: ArtifactRecipe,
-        producer: Callable[[], ProducerResult],
+        selected_nodes: Sequence[int],
         *,
         num_nodes: int,
-        candidate_nodes: Sequence[int],
-        request_envelope: Optional[Mapping[str, Any]] = None,
-        fail_if_called: bool = False,
+        candidate_nodes: Optional[Sequence[int]] = None,
+        compute_seconds: float = 0.0,
     ) -> StoreResult:
-        self._ensure_initialized()
-        if not isinstance(recipe, ArtifactRecipe):
-            raise ContractValidationError("recipe must be ArtifactRecipe")
-        candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
-        with self._recipe_lock(recipe):
-            return self._get_or_compute_locked(
-                recipe,
-                producer,
-                num_nodes=num_nodes,
-                candidate_nodes=candidates,
-                request_envelope=request_envelope,
-                fail_if_called=fail_if_called,
-            )
+        """Persist nodes already produced and validated by the experiment layer.
 
-    def _get_or_compute_locked(
-        self,
-        recipe: ArtifactRecipe,
-        producer: Callable[[], ProducerResult],
-        *,
-        num_nodes: int,
-        candidate_nodes: Sequence[int],
-        request_envelope: Optional[Mapping[str, Any]],
-        fail_if_called: bool,
-    ) -> StoreResult:
-        self._assert_no_conflict_marker(recipe)
-        envelope_keys = self._envelope_keys(request_envelope)
-        explanation: ResolveExplanation = ArtifactResolver(self.index).explain_exact(
-            ArtifactType.SELECTION, recipe
-        )
-        self._trace(
-            "resolve_exact",
-            recipe_hash=recipe.recipe_hash,
-            hit=explanation.hit,
-            miss_reasons=list(explanation.miss_reasons),
-            request_envelope_keys=list(envelope_keys),
-        )
-        if explanation.hit and explanation.exact_candidate is not None:
-            try:
-                result = self._load_candidate(
-                    explanation.exact_candidate,
-                    recipe,
-                    num_nodes,
-                    candidate_nodes=candidate_nodes,
-                    miss_reasons=explanation.miss_reasons,
-                )
-            except ArtifactIntegrityError as exc:
-                self._trace(
-                    "payload_verification_failed",
-                    recipe_hash=recipe.recipe_hash,
-                    reason=str(exc),
-                )
-                raise
-            self._trace(
-                "cache_hit",
-                recipe_hash=recipe.recipe_hash,
-                artifact_id=result.artifact_id,
-                content_hash=result.content_hash,
-            )
-            return result
-
-        if (
-            explanation.exact_candidate is not None
-            or explanation.miss_reasons != ("no_exact_candidate",)
-        ):
-            self._trace(
-                "resolve_blocked",
-                recipe_hash=recipe.recipe_hash,
-                miss_reasons=list(explanation.miss_reasons),
-            )
-            raise CacheResolutionError(
-                "exact Selection lookup failed closed: {0}".format(
-                    ",".join(explanation.miss_reasons)
-                )
-            )
-
-        started = time.perf_counter()
-        payload = self._invoke_producer(
-            recipe,
-            producer,
-            num_nodes,
-            fail_if_called=fail_if_called,
-            candidate_nodes=candidate_nodes,
-        )
-        compute_seconds = time.perf_counter() - started
-        return self._write_formal(
-            recipe,
-            payload,
-            compute_seconds,
-            explanation.miss_reasons,
-            num_nodes,
-            candidate_nodes=candidate_nodes,
-        )
-
-    def observe_recomputation(
-        self,
-        recipe: ArtifactRecipe,
-        producer: Callable[[], ProducerResult],
-        *,
-        num_nodes: int,
-        candidate_nodes: Sequence[int],
-        request_envelope: Optional[Mapping[str, Any]] = None,
-        fail_if_called: bool = False,
-    ) -> StoreResult:
-        """Explicitly recompute for an idempotence/conflict canary.
-
-        This is never called by normal resolution.  Different content is
-        quarantined and recorded while the formal Artifact remains untouched.
+        No producer callback is accepted here.  Optional ``candidate_nodes`` is
+        retained for callers that want Cache to repeat membership validation;
+        the dataset-free boundary validates Recipe/payload hashes, node bounds,
+        and immutable-store conflict semantics without it.
         """
 
         self._ensure_initialized()
         if not isinstance(recipe, ArtifactRecipe):
             raise ContractValidationError("recipe must be ArtifactRecipe")
         candidates = _validate_candidate_input(recipe, num_nodes, candidate_nodes)
+        fields = recipe.fields
+        payload = SelectionPayload.build(
+            selected_nodes,
+            graph_fingerprint=_recipe_graph_fingerprint(fields),
+            candidate_set_hash=fields.get("candidate_set_hash"),
+            node_id_space=fields.get("node_id_space"),
+            source_score_artifact_id=fields.get("source_score_artifact_id"),
+        )
+        payload.validate_against(recipe, num_nodes, candidate_nodes=candidates)
         with self._recipe_lock(recipe):
-            return self._observe_recomputation_locked(
-                recipe,
-                producer,
-                num_nodes=num_nodes,
-                candidate_nodes=candidates,
-                request_envelope=request_envelope,
-                fail_if_called=fail_if_called,
+            self._assert_no_conflict_marker(recipe)
+            explanation = ArtifactResolver(self.index).explain_exact(
+                ArtifactType.SELECTION, recipe
             )
-
-    def _observe_recomputation_locked(
-        self,
-        recipe: ArtifactRecipe,
-        producer: Callable[[], ProducerResult],
-        *,
-        num_nodes: int,
-        candidate_nodes: Sequence[int],
-        request_envelope: Optional[Mapping[str, Any]],
-        fail_if_called: bool,
-    ) -> StoreResult:
-        self._envelope_keys(request_envelope)
-        candidate = self.index.find_artifact(ArtifactType.SELECTION, recipe.recipe_hash)
-        if candidate is None:
-            raise CacheResolutionError(
-                "observe_recomputation requires an existing formal Artifact"
-            )
-        existing = self._load_candidate(
-            candidate,
-            recipe,
-            num_nodes,
-            candidate_nodes=candidate_nodes,
-        )
-        started = time.perf_counter()
-        observed = self._invoke_producer(
-            recipe,
-            producer,
-            num_nodes,
-            fail_if_called=fail_if_called,
-            candidate_nodes=candidate_nodes,
-        )
-        compute_seconds = time.perf_counter() - started
-        if observed.content_hash == existing.content_hash:
-            self._trace(
-                "recomputation_identical",
-                recipe_hash=recipe.recipe_hash,
-                artifact_id=existing.artifact_id,
-                content_hash=existing.content_hash,
-            )
-            return StoreResult(
-                hit=True,
-                outcome=RegisterOutcome.IDENTICAL.value,
-                artifact_id=existing.artifact_id,
-                content_hash=existing.content_hash,
-                semantic_path=existing.semantic_path,
-                payload=observed,
-                producer_called=True,
-            )
-
-        self._write_conflict_marker(
-            recipe,
-            existing.artifact_id,
-            existing.content_hash,
-            observed.content_hash,
-        )
-        quarantine_path, observed_header = self._quarantine_observation(
-            recipe, observed, compute_seconds
-        )
-        conflict = ArtifactConflictRecord(
-            artifact_type=ArtifactType.SELECTION,
-            recipe_hash=recipe.recipe_hash,
-            existing_artifact_id=existing.artifact_id,
-            existing_content_hash=existing.content_hash,
-            observed_content_hash=observed_header.content_hash,
-            quarantine_path=quarantine_path,
-            metadata={"observed_artifact_id": observed_header.artifact_id},
-        )
-        with self.index.transaction() as writer:
-            baseline = writer.connection.execute(
-                """
-                SELECT artifact_id, content_hash FROM artifacts
-                WHERE artifact_type = ? AND recipe_hash = ?
-                """,
-                (ArtifactType.SELECTION.value, recipe.recipe_hash),
-            ).fetchone()
             if (
-                baseline is None
-                or str(baseline["artifact_id"]) != existing.artifact_id
-                or str(baseline["content_hash"]) != existing.content_hash
+                not explanation.hit
+                and (
+                    explanation.exact_candidate is not None
+                    or explanation.miss_reasons != ("no_exact_candidate",)
+                )
             ):
                 raise CacheResolutionError(
-                    "formal Artifact changed before conflict registration"
+                    "exact Selection lookup failed closed: {0}".format(
+                        ",".join(explanation.miss_reasons)
+                    )
                 )
-            writer.record_conflict(conflict)
-        self._trace(
-            "recomputation_conflict",
-            recipe_hash=recipe.recipe_hash,
-            artifact_id=existing.artifact_id,
-            observed_content_hash=observed_header.content_hash,
-            conflict_id=conflict.conflict_id,
-            quarantine_path=quarantine_path,
-        )
-        raise ArtifactConflictError(conflict.conflict_id, quarantine_path)
-
+            result = self._write_formal(
+                recipe,
+                payload,
+                compute_seconds,
+                explanation.miss_reasons,
+                num_nodes,
+                candidate_nodes=candidates,
+            )
+            self._trace(
+                "upstream_selection_stored",
+                recipe_hash=recipe.recipe_hash,
+                artifact_id=result.artifact_id,
+                content_hash=result.content_hash,
+                outcome=result.outcome,
+            )
+            return result
 
 __all__ = [
     "SELECTION_PAYLOAD_SCHEMA",
@@ -1620,7 +1354,6 @@ __all__ = [
     "ArtifactStore",
     "ArtifactStoreError",
     "CacheResolutionError",
-    "ProducerCalledError",
     "SelectionPayload",
     "StoreResult",
 ]

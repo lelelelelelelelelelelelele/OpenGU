@@ -20,6 +20,18 @@ def parameter_parser():
     parser.add_argument('--cuda', type=int, default=0, help='specify gpu')
     parser.add_argument('--num_threads', type=int, default=1)
     parser.add_argument('--root_path', type=str, default='./', help='Set The Root Path')
+    parser.add_argument(
+        '--runtime_root',
+        type=str,
+        default=None,
+        help='Experiment-owned root for logs, method data, and unlearning tasks',
+    )
+    parser.add_argument(
+        '--processed_root',
+        type=str,
+        default=None,
+        help='Absolute canonical OpenGU data/processed root; fail closed if incomplete',
+    )
     
 
     #data

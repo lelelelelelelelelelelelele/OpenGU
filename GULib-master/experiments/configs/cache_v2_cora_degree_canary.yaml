@@ -17,6 +17,4 @@ defaults:
 cache_v2:
   mode: selection
   store_root: results/cache_v2
-  dataset_root: data/raw
   legacy_results_root: results
-  allow_download: false

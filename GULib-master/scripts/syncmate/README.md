@@ -1,7 +1,8 @@
 # Syncmate
 
-Syncmate is a tiny companion protocol for this repo. It is not a daemon and it
-does not try to turn the project into a distributed system. Its job is to give
+Syncmate is a tiny companion protocol for this repo. It does not try to turn
+the project into a distributed system; its optional runner-agent is a bounded
+single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
@@ -57,6 +58,11 @@ python scripts/syncmate/syncmate.py runbook [node_id ...]
 python scripts/syncmate/syncmate.py overview
 python scripts/syncmate/syncmate.py lifecycle
 python scripts/syncmate/syncmate.py smoke
+python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke
+python scripts/syncmate/syncmate.py runner-queue contract --json
+python scripts/syncmate/syncmate.py runner-queue validate --write
+python scripts/syncmate/syncmate.py runner-queue run --once
+python scripts/syncmate/syncmate.py runner-queue dashboard
 python scripts/syncmate/syncmate.py setup-plan
 python scripts/syncmate/syncmate.py init-device --role collector
 python scripts/syncmate/syncmate.py add-peer <node_id> --ssh <ssh_alias> --repo-path <remote_repo>
@@ -381,6 +387,7 @@ Add runner peers from the collector:
 python scripts/syncmate/syncmate.py add-peer gpu4090 \
   --ssh autodl-4090 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
+  --python-executable /root/miniconda3/bin/python \
   --result-root results/runs/cora_GCN_r0.05 \
   --result-root results/runs/cora_GAT_r0.05 \
   --artifact-include attack.json collateral.json _meta.json
@@ -388,6 +395,7 @@ python scripts/syncmate/syncmate.py add-peer gpu4090 \
 python scripts/syncmate/syncmate.py add-peer h800 \
   --ssh autodl-h800 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
+  --python-executable /root/miniconda3/bin/python \
   --result-root results/runs/ogbn-arxiv_GCN_r0.01 \
   --artifact-include attack.json collateral.json _meta.json predictions.npz
 ```
@@ -412,6 +420,9 @@ or reconnecting a server.
 `add-peer` requires the local role to be `collector` or `runner+collector`.
 Existing peer entries are protected unless `--force` is explicit. The default
 landing path is `results/runs/<node_id>`.
+For non-interactive SSH sessions, set `python_executable` to the peer's exact
+environment interpreter; remote status, manifest, queue dispatch, and generated
+handoff commands use that value instead of assuming `python` is on `PATH`.
 Landing paths and result roots should be repo-relative paths without `..`;
 `doctor` flags unsafe or duplicate peer landings before any transfer runs.
 
@@ -1097,6 +1108,99 @@ not require a configured peer and never compares or writes the local landing.
 Without `--write` it is zero-write; with `--write` it only saves
 `.syncmate/last_bundle_inspect_<node_id>.json` so the inspection becomes part
 of the local status trail before import.
+
+## Runner Queue: Bounded Runner Agent
+
+The optional queue is a small data-only protocol, with a bounded local runner
+agent. It is not an experiment launcher, general scheduler, distributed system,
+or remote shell. Jobs are YAML documents in ignored
+`.syncmate/runner_queue/inbox/` and move atomically through:
+
+```text
+inbox -> running -> done | failed | blocked
+```
+
+Jobs select only a static recipe id. They cannot accept shell fragments,
+arguments, paths, configurations, environment values, cache operations, or
+expressions. Each code-defined recipe freezes its exact argv, fixed config path
+and SHA-256, expected OpenGU baseline/check-out policy, timeout, expected raw
+artifact paths, success predicate, and whether controller acceptance is
+eligible. Binding mismatch becomes `blocked` with expected/observed evidence.
+
+The safe `smoke` recipe remains a temporary local SyncMate smoke check. The
+first handoff-capable recipe, `opengu-preflight-v1`, binds the existing Phase B
+config but writes clearly marked synthetic no-GPU preflight artifacts only; it
+does not call `experiments/run.py`, conduct training, alter cache semantics, or
+claim experiment results.
+
+On a checkout configured with `role: runner` or `role: runner+collector`:
+
+```bash
+# Producer: creates .syncmate/runner_queue/inbox/<id>.yaml and a receipt.
+python scripts/syncmate/syncmate.py runner-queue submit --recipe smoke --requested-by operator
+
+# Any device: inspect the protocol without running work; --write refreshes the manifest.
+python scripts/syncmate/syncmate.py runner-queue validate --write
+python scripts/syncmate/syncmate.py runner-queue status --json
+
+# Runner only: exactly one job.
+python scripts/syncmate/syncmate.py runner-queue run --once --json
+
+# Runner only: supervised bounded poller, one exclusive lock and one job at a time.
+python scripts/syncmate/syncmate.py runner-agent serve --poll-seconds 5
+python scripts/syncmate/syncmate.py runner-agent inspect --json
+# Stale work is never retried automatically; inspect first, then explicitly audit recovery.
+python scripts/syncmate/syncmate.py runner-agent recover --block-running --job-id <id> --confirm
+
+# Writes a static, browser-readable queue page from the same manifest.
+python scripts/syncmate/syncmate.py runner-queue dashboard
+```
+
+Each job requires `protocol: syncmate-runner-queue/v1`, `version: 1`, a safe ID
+matching its filename, an ISO timestamp, and an allowlisted recipe. Invalid,
+duplicate, mismatched, or stale work blocks rather than overwriting evidence.
+Claim/start/finish timestamps and binding observations live in
+`receipts/<id>.json`; command outcome and bounded output live in
+`results/<id>.json`; `manifest.json` is the current structured state; and
+`status.html` is the matching static frontend. All stay untracked beneath
+`.syncmate/`.
+
+### SyncMate / OpenGU Integration Boundary
+
+Runner Queue and SyncMate intentionally live together: Queue owns local job
+lifecycle and declared execution; the bounded agent can poll only its local
+inbox. SyncMate remains the controller, collector, checksum verifier,
+trusted-index writer, and acceptance gate. OpenGU is an optional client of that
+boundary, not another queue owner.
+
+Use the read-only, machine-readable contract before adding an adapter:
+
+```bash
+python scripts/syncmate/syncmate.py runner-queue contract --json
+# Optional local copy for a handoff; does not alter jobs.
+python scripts/syncmate/syncmate.py runner-queue contract --write
+```
+
+From a collector, use only a configured runner peer and the fixed controller
+bridge:
+
+```bash
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
+```
+
+Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
+only validated job id, static recipe, requester, and note. `--wait` observes a
+terminal result; only `done` for an acceptance-eligible recipe invokes the
+normal SyncMate `sync` collection/verification/gate chain. `failed`, `blocked`,
+timeout, checksum mismatch, or gate failure never becomes acceptance.
+
+OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
+results. It must not move files between queue states, add command/argument/path
+fields to job YAML, invalidate caches, or treat queue completion as trusted
+experiment evidence. Any future OpenGU recipe is a reviewed code-level
+allowlist addition with a frozen input schema and dedicated tests—not a YAML
+switch. The ready-to-use integration prompt is
+[`OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md`](OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md).
 
 ## Local Status Page
 

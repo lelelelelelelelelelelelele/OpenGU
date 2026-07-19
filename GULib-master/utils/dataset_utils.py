@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from config import root_path
 from torch_geometric.transforms import SIGN
 from config import root_path,unlearning_path,split_ratio,unlearning_edge_path
+from experiments.processed_provider import require_processed_artifacts
 from utils.utils import filter_edge_index_2
 from torch_geometric.utils import negative_sampling
 def process_data(logger,data,args):
@@ -48,7 +49,10 @@ def process_data(logger,data,args):
         data = ceu_process(args,data)
         return data
 
-    if args['is_transductive']:
+    if args.get("processed_root") not in (None, ""):
+        processed = require_processed_artifacts(args)
+        data = load_saved_data(logger, str(processed.data_path))
+    elif args['is_transductive']:
         if args['is_balanced']:
             filename = root_path + '/data/processed/transductive/' + args['dataset_name'] +split_ratio+ '_balanced.pkl'
             if is_data_exists(filename):
