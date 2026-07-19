@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TracIn V2 UNSTABLE Gates — Acceptance Report</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#5d687a; --line:#d9deea; --blue:#2457c5; --amber:#9b5d00; --green:#176b3a; --bg:#f5f7fb; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:1050px; margin:36px auto; padding:34px 42px; background:white; box-shadow:0 8px 30px rgba(30,45,80,.09); border-radius:14px; }
+    h1 { font-size:30px; margin:0 0 8px; } h2 { margin-top:34px; border-bottom:1px solid var(--line); padding-bottom:7px; }
+    .meta { color:var(--muted); margin-bottom:24px; } .decision { border-left:5px solid var(--amber); background:#fff7e8; padding:14px 18px; }
+    table { border-collapse:collapse; width:100%; margin:14px 0 22px; } th,td { border:1px solid var(--line); padding:8px 10px; vertical-align:top; } th { background:#eef3ff; text-align:left; }
+    code, pre { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; } pre { background:#101827; color:#edf2ff; padding:14px 16px; border-radius:9px; overflow:auto; }
+    .pass { color:var(--green); font-weight:700; } .partial { color:var(--amber); font-weight:700; } .no { color:#9b2631; font-weight:700; }
+    .note { color:var(--muted); } li { margin:5px 0; }
+  </style>
+</head>
+<body><main>
+  <h1>TracIn V2 UNSTABLE Gates</h1>
+  <div class="meta">Acceptance report · 2026-07-15 · branch <code>codex/experiment-tracin-v2-gates-20260715</code></div>
+  <div class="decision"><strong>CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE.</strong><br>
+    The isolated scorer, Recipe identity, full 18-run Planetoid matrix, repeatability, and reduced cross-machine gate work. Formal ScoreArtifact storage, Hybrid, and GU canary remain absent.</div>
+
+  <h2>Implemented lane</h2>
+  <ul><li>Pure multi-checkpoint eval/self scoring, legacy replay, finite checks, stable ties.</li>
+  <li>UNSTABLE Recipe covering data, T/E, model/checkpoints, parameter schema, optimizer/loss, seeds, numerics, and graph semantics.</li>
+  <li>Public-split Cora/CiteSeer/PubMed gate with GCN/GAT, post-epoch states, and the LR of the preceding update.</li>
+  <li>No attack-runner or producer registration; known Legacy cache output roots are rejected.</li></ul>
+
+  <h2>Gate status</h2>
+  <table><tr><th>Gate</th><th>Status</th><th>Evidence</th></tr>
+  <tr><td>G0 formula</td><td class="pass">PASS</td><td>Hand calculation, collapse, sign, stable ties</td></tr>
+  <tr><td>G1 Recipe/Artifact</td><td class="partial">PARTIAL</td><td>Recipe mutation and strict manifest pass; formal ScoreArtifact/store absent</td></tr>
+  <tr><td>G2 Planetoid selector</td><td class="partial">PASS WITH VARIANCE</td><td>3 datasets x 2 backbones x 3 seeds; PubMed/GAT sensitivity is explicit</td></tr>
+  <tr><td>G3 Legacy isolation</td><td class="partial">PARTIAL</td><td>No Legacy imports/access; formal directory snapshot gate absent</td></tr>
+  <tr><td>G4 cross-machine</td><td class="pass">REDUCED PASS</td><td>Last-layer CPU profile, distinct Recipe, stable ranks/top-k</td></tr>
+  <tr><td>G5 Hybrid</td><td class="no">NOT RUN</td><td>No V2 ScoreArtifact parent</td></tr>
+  <tr><td>G6 GU canary</td><td class="no">NOT RUN</td><td>Runner integration intentionally absent</td></tr></table>
+
+  <h2>Tests</h2>
+  <pre>Local:  80 passed in 2.05s  (Torch 2.2.1, PyG 2.6.1)
+Remote: 80 passed in 2.58s  (Torch 2.1.2, PyG 2.6.1)</pre>
+
+  <h2>Score definitions used in this report</h2>
+  <p>Let <code>T</code> be the deletion-candidate/training set and <code>E</code> the disjoint evaluation target set. Here <code>E</code> is the 500-node Planetoid validation split, not a set of nodes eligible for deletion.</p>
+  <pre>g_v(theta) = grad_theta loss_v(theta)
+g_E(theta) = grad_theta L_E(theta)
+L_E(theta) = (1 / |E|) sum_{e in E} loss_e(theta)</pre>
+
+  <h3>eval-IF reference</h3>
+  <pre>s_IF(v) = g_v(theta*)^T H_T(theta*)^{-1} g_E(theta*)
+H_T(theta*) = grad_theta^2 L_T(theta*)</pre>
+  <p>Higher positive values predict that removing <code>v</code> increases loss on <code>E</code>. The implementation approximates the inverse-Hessian vector with a 50-step deterministic LiSSA/Neumann recursion:</p>
+  <pre>h_0 = g_E
+h_(r+1) = g_E + (1-d) h_r - H_T h_r / s
+estimated H_T^{-1} g_E = h_R / s</pre>
+  <p>Scale <code>s=25</code>, damp <code>d=0.01</code>; <code>H_T</code> comes from full public-training-mask mean cross-entropy without optimizer regularization. This is a deterministic diagnostic approximation, not an exact matrix inverse.</p>
+
+  <h3>TracIn V2 primary score</h3>
+  <pre>s_V2(v) = sum_{c in C} w_c g_v(theta_c)^T g_E(theta_c)
+C = {1,10,25,50,100}; w_c = eta_c</pre>
+  <p><code>theta_c</code> is the post-epoch checkpoint and <code>eta_c</code> the learning rate of the update that produced it. eval-IF is final-state and curvature-aware; V2 is multi-checkpoint and Hessian-free. Since Adam has parameter-wise preconditioning, scalar LR weighting is explicitly labeled <code>adam_lr_weighted_gradient_heuristic</code>.</p>
+  <pre>s_single(v) = g_v(theta*)^T g_E(theta*)
+s_legacy(v) = -g_v(theta*)^T sum_{u in T} g_u(theta*)</pre>
+  <p><strong>Reading PubMed/GAT 0.762 / [4,4,1]:</strong> <code>0.762</code> is the three-seed mean Spearman rank correlation between V2 and eval-IF over all candidates. Their Top-7 sets share 4, 4, and 1 nodes for seeds [2024,7,42]. It is neither model accuracy nor downstream graph-unlearning damage.</p>
+
+  <h2>Cora all-parameter Adam compatibility gate</h2>
+  <p>Cora public split; T=140, validation E=500, k=7, hidden=16, Adam 100 epochs, LR milestones [50,80] with gamma 0.5, checkpoints [1,10,25,50,100], all trainable parameters, 50-step deterministic Neumann IF reference. Test accuracy: <strong>0.8110</strong>.</p>
+  <table><tr><th>Pair</th><th>Spearman</th><th>Kendall</th><th>Jaccard@7</th><th>Reading</th></tr>
+  <tr><td>deployed cross-final vs V2</td><td>0.2130</td><td>0.1457</td><td>0.0000</td><td>Legacy residual selects a different set</td></tr>
+  <tr><td>single-final eval vs V2</td><td>0.9699</td><td>0.8608</td><td>0.5556</td><td>Strong rank agreement; trajectory changes 2/7 nodes</td></tr>
+  <tr><td>V2 vs eval-IF reference</td><td>0.9107</td><td>0.7609</td><td>0.5556</td><td>Same target-aware axis, not identical</td></tr></table>
+  <p class="note">This standalone public-split gate is not directly comparable with historical OpenGU overlap 0.7419. The report records <code>historical_overlap_comparable=false</code>.</p>
+
+  <h2>Cross-dataset and cross-model matrix</h2>
+  <p>Fixed profile: k=7, Adam heuristic, 100 epochs, LR milestones [50,80] with gamma 0.5, checkpoints [1,10,25,50,100], validation E, all trainable parameters, 50-step deterministic Neumann IF reference, and seeds {2024,7,42}. Brackets show common nodes out of two Top-7 lists in that seed order.</p>
+  <table><tr><th>Configuration</th><th>Mean test accuracy</th><th>single-final vs V2<br>mean Spearman / common@7</th><th>V2 vs eval-IF<br>mean Spearman / common@7</th><th>legacy vs V2<br>mean Spearman / common@7</th></tr>
+  <tr><td>Cora / GCN</td><td>0.797</td><td>0.961 / [5,6,5]</td><td>0.877 / [5,6,5]</td><td>-0.119 / [0,0,0]</td></tr>
+  <tr><td>CiteSeer / GCN</td><td>0.692</td><td>0.970 / [6,5,5]</td><td>0.950 / [6,5,4]</td><td>0.204 / [0,1,4]</td></tr>
+  <tr><td>PubMed / GCN</td><td>0.773</td><td>0.924 / [5,3,5]</td><td>0.908 / [5,3,5]</td><td>0.073 / [3,3,0]</td></tr>
+  <tr><td>Cora / GAT</td><td>0.821</td><td>0.855 / [6,7,5]</td><td>0.825 / [6,7,5]</td><td>0.111 / [0,0,0]</td></tr>
+  <tr><td>CiteSeer / GAT</td><td>0.700</td><td>0.966 / [6,7,5]</td><td>0.962 / [6,6,5]</td><td>0.175 / [0,0,0]</td></tr>
+  <tr><td>PubMed / GAT</td><td>0.777</td><td>0.733 / [5,3,1]</td><td>0.762 / [4,4,1]</td><td>-0.083 / [0,2,3]</td></tr></table>
+  <ul><li>Compute is feasible but architecture/data dependent: 602.9 aggregate CPU-seconds; 9.0--67.9 seconds per retained run, excluding one-time downloads.</li>
+  <li>Final-only and V2 are strongly correlated in five configuration means; PubMed/GAT is lower and seed-sensitive (0.967, 0.667, 0.565).</li>
+  <li>V2 is usually close to eval-IF (configuration means 0.762--0.962), but PubMed/GAT falls from 0.970 to 0.722 and 0.592; common Top-7 counts are [4,4,1].</li>
+  <li>The deployed legacy direction is inconsistent across data and seeds; occasional overlap does not make it a stable substitute for explicit-E multi-checkpoint scoring.</li></ul>
+  <p><strong>Reading:</strong> promising target alignment with a clear dataset x backbone interaction, not universal superiority. Cora and CiteSeer support the GAT extension; PubMed/GAT is the explicit warning case. Downstream graph-unlearning damage is still unmeasured.</p>
+
+  <h2>Determinism and cross-machine behavior</h2>
+  <p>Two full local runs had identical Recipe, checkpoint hashes, every score, every ordered top-k, and accuracy. Only elapsed time differed.</p>
+  <table><tr><th>Cross-machine score</th><th>max |Δ|</th><th>Spearman</th><th>Kendall</th><th>top-k equal</th></tr>
+  <tr><td>deployed cross-final</td><td>1.0133e-6</td><td>1.0</td><td>1.0</td><td>yes</td></tr>
+  <tr><td>single-final eval</td><td>2.9802e-8</td><td>1.0</td><td>1.0</td><td>yes</td></tr>
+  <tr><td>TracInCP LR</td><td>9.3132e-10</td><td>1.0</td><td>1.0</td><td>yes</td></tr>
+  <tr><td>TracInCP uniform</td><td>1.1921e-7</td><td>1.0</td><td>1.0</td><td>yes</td></tr>
+  <tr><td>TracInCP self</td><td>7.4506e-9</td><td>1.0</td><td>1.0</td><td>yes</td></tr>
+  <tr><td>eval-IF reference</td><td>1.4901e-8</td><td>1.0</td><td>1.0</td><td>yes</td></tr></table>
+  <p>Different Torch/build profiles correctly produced different Recipe and checkpoint hashes; close floats were not forced into one Artifact.</p>
+
+  <h2>Promotion blockers</h2>
+  <ol><li>Formal immutable ScoreArtifact/store and conflict quarantine.</li><li>Legacy tree snapshot gate.</li><li>Canonical OpenGU checkpoint capture and Adam decision.</li><li>Canonical OpenGU split/model validation.</li><li>Hybrid parent gates.</li><li>Single-seed isolated GU canary.</li></ol>
+  <p><strong>Until then: <code>tracin-v2-unstable</code>, not stable or production TracIn.</strong></p>
+</main></body></html>
