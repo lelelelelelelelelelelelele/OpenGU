@@ -1,21 +1,25 @@
+import os
+
 from parameter_parser import parameter_parser
 args = parameter_parser()
 split_ratio = str(args['train_ratio']) + '_' + str(args['val_ratio']) + '_' + str(args['test_ratio'])
+root_path = os.path.normpath(str(args.get("root_path") or "."))
+runtime_root = os.path.normpath(str(args.get("runtime_root") or root_path))
 ###for Graph Eraser and GraphRevoker###
-RAW_DATA_PATH = './data/raw/'
+RAW_DATA_PATH = root_path + '/data/raw/'
 # PROCESSED_DATA_PATH = './data/GraphEraser/processed/'
-PROCESSED_DATA_PATH = './data/' + args["unlearning_methods"] + "/processed/"
+PROCESSED_DATA_PATH = runtime_root + '/data/' + args["unlearning_methods"] + "/processed/"
 if args["unlearning_methods"] == "GIF":
-    PROCESSED_DATA_PATH2 = './data/processed/GIF/'
+    PROCESSED_DATA_PATH2 = runtime_root + '/data/processed/GIF/'
 else:
     if args["is_transductive"]:
-        PROCESSED_DATA_PATH2 = './data/processed/transductive/'
+        PROCESSED_DATA_PATH2 = runtime_root + '/data/processed/transductive/'
     else:
-        PROCESSED_DATA_PATH2 = './data/processed/inductive/'
+        PROCESSED_DATA_PATH2 = runtime_root + '/data/processed/inductive/'
 # MODEL_PATH = './data/GraphEraser/'
-MODEL_PATH = './data/' + args["unlearning_methods"] + "/"
+MODEL_PATH = runtime_root + '/data/' + args["unlearning_methods"] + "/"
 # ANALYSIS_PATH = './data/GraphEraser/analysis_data/'
-ANALYSIS_PATH = './data/'+ args["unlearning_methods"] +'/analysis_data/'
+ANALYSIS_PATH = runtime_root + '/data/'+ args["unlearning_methods"] +'/analysis_data/'
 
 embedding_name = '_'.join(('embedding', args["partition_method"],str(args['ratio_deleted_edges'])))
 
@@ -48,22 +52,21 @@ target_model_file = MODEL_PATH + args['dataset_name'] + '/' + target_model_name
 
 #for SGU
 # root_path = "./GULib"
-root_path = "."
 # unlearning_path = root_path + "/data/unlearning_nodes_" + str(args["proportion_unlearned_nodes"]) + "_" + args["dataset_name"] + ".txt"
 if args["is_transductive"]:
     if args["is_balanced"]:
-        unlearning_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_path = runtime_root + "/data/unlearning_task/transductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
+        unlearning_edge_path = runtime_root + "/data/unlearning_task/transductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
     else:       
-        unlearning_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/transductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_path = runtime_root + "/data/unlearning_task/transductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
+        unlearning_edge_path = runtime_root + "/data/unlearning_task/transductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
 else:
     if args["is_balanced"]:
-        unlearning_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_path = runtime_root + "/data/unlearning_task/inductive/balanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
+        unlearning_edge_path = runtime_root + "/data/unlearning_task/inductive/balanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
     else:       
-        unlearning_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
-        unlearning_edge_path = root_path + "/data/unlearning_task/inductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"] 
+        unlearning_path = runtime_root + "/data/unlearning_task/inductive/imbalanced/unlearning_nodes_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
+        unlearning_edge_path = runtime_root + "/data/unlearning_task/inductive/imbalanced/unlearning_edges_" + str(args["unlearn_ratio"]) + "_" + args["dataset_name"]
 
 if args["poison"]:
     unlearning_edge_path = unlearning_edge_path + "_poison"

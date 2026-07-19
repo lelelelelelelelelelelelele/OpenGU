@@ -156,6 +156,8 @@ payload = {
     "unlearn_ratio": config.args["unlearn_ratio"],
     "proportion_unlearned_nodes": config.args["proportion_unlearned_nodes"],
     "random_seed": config.args["random_seed"],
+    "processed_root": config.args["processed_root"],
+    "runtime_root": config.args["runtime_root"],
     "unlearning_path": config.unlearning_path,
 }
 print(json.dumps(payload, sort_keys=True))
@@ -178,6 +180,10 @@ print(json.dumps(payload, sort_keys=True))
                 "--strategies",
                 "random",
                 "--no_cache",
+                "--processed_root",
+                "C:/canonical/processed",
+                "--runtime_root",
+                "C:/isolated/runtime",
             ],
             cwd=Path(__file__).resolve().parents[1],
             capture_output=True,
@@ -192,6 +198,8 @@ print(json.dumps(payload, sort_keys=True))
         assert payload["unlearn_ratio"] == 0.05
         assert payload["proportion_unlearned_nodes"] == 0.05
         assert payload["random_seed"] == 42
+        assert payload["processed_root"] == "C:/canonical/processed"
+        assert payload["runtime_root"] == "C:/isolated/runtime"
         assert "unlearning_nodes_0.05_ogbn-arxiv" in payload["unlearning_path"]
         assert "--strategies" not in payload["argv"]
 

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cache V2 Gates 2–4 与 SyncMate Rollout 验收</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#151d33;--panel2:#10182b;--line:#2b3859;--text:#edf3ff;--muted:#a7b3cf;--green:#5add9b;--blue:#70aaff;--amber:#f5c365;--red:#ff7f8b}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#203a6c 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.65 "Segoe UI",Arial,sans-serif}
+    main{max-width:1180px;margin:auto;padding:44px 24px 70px}h1{margin:0;font-size:34px;letter-spacing:-.03em}h2{margin:36px 0 14px;font-size:22px}h3{margin:24px 0 10px}.meta,.muted{color:var(--muted)}code{color:#cbe0ff;font-family:Consolas,monospace}
+    .verdict{margin:25px 0;padding:22px;border:1px solid #356b5a;border-radius:16px;background:linear-gradient(135deg,#12352d,#13243a)}.verdict b{color:var(--green);font-size:20px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{padding:17px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,var(--panel),var(--panel2))}.card strong{display:block;font-size:26px;color:var(--blue)}.card span{color:var(--muted)}
+    table{width:100%;border-collapse:collapse;background:rgba(18,26,47,.78);border:1px solid var(--line)}th,td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:#c7d7f7;background:#182440}.ok{color:var(--green)}.warn{color:var(--amber)}.no{color:var(--red)}
+    pre{padding:15px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#090f1d;color:#cce0ff}ul{padding-left:22px}.boundary{padding:15px 17px;border-left:4px solid var(--amber);background:#211d18;color:#f2dfb4}.checks li{margin:5px 0}.checks .done::marker{color:var(--green)}.checks .open::marker{color:var(--amber)}
+    @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}h1{font-size:28px}}
+  </style>
+</head>
+<body><main>
+  <h1>Cache V2 Gates 2–4、Dataset 解耦与 SyncMate Rollout 验收</h1>
+  <p class="meta">2026-07-17 · validated code pin <code>f62a3e0</code> · Gate 4 execution pin <code>e6091f9</code></p>
+
+  <section class="verdict">
+    <b>ACCEPTED：Cache V2 当前范围已经整体完成。</b>
+    <p>Dataset 越界已关闭，Gates 2–4 均通过。HIT 不访问 dataset、不下载、不调用 producer；MISS 只由 experiment/GU producer 计算。本次没有全量重建 Cache，只在隔离 store 生成一个 Selection Artifact。</p>
+  </section>
+
+  <div class="grid">
+    <div class="card"><strong>450</strong><span>最终本地 CPU tests</span></div>
+    <div class="card"><strong>173</strong><span>最终远端 SyncMate tests</span></div>
+    <div class="card"><strong>4 / 4</strong><span>收集 Artifact SHA verified</span></div>
+    <div class="card"><strong>0</strong><span>missing / conflict / gate failure</span></div>
+  </div>
+
+  <h2>Gate 结论</h2>
+  <table><thead><tr><th>Gate</th><th>结果</th><th>证据</th></tr></thead><tbody>
+    <tr><td>Dataset boundary</td><td class="ok">通过</td><td><code>cache_v2</code> 对 Planetoid、OGB、dataset loader、allow-download、dataset-root 静态命中为 0</td></tr>
+    <tr><td>Gate 2</td><td class="ok">通过</td><td>Score / Selection / Prediction / Evaluation 正式 Artifact、依赖 DAG、冲突与递归完整性</td></tr>
+    <tr><td>Gate 3</td><td class="ok">通过</td><td>真实 Cora/GIF/Degree 四 Artifact；Selection ordered exact；float tolerance 显式</td></tr>
+    <tr><td>Gate 4</td><td class="ok">通过</td><td>单 cell GU/GPU canary；cold producer 1，warm producer 0；无下载、无全量 rebuild</td></tr>
+    <tr><td>AutoReport</td><td class="ok">通过</td><td>7 events；selection-only → attack-only → collateral → complete；authority/source/Recipe 正确</td></tr>
+    <tr><td>Integrity</td><td class="ok">通过</td><td>tamper fail-closed；无 producer retry；<code>legacy_fallback=false</code></td></tr>
+  </tbody></table>
+
+  <h2>Gate 4 真实 canary</h2>
+  <table><tbody>
+    <tr><th>Cell</th><td>Cora / GCN / GIF / Degree / seed42，5 epochs</td></tr>
+    <tr><th>Selection Artifact</th><td><code>sel_08afe166_4673b877</code></td></tr>
+    <tr><th>Recipe / content</th><td><code>08afe166…</code> / <code>4673b877…</code></td></tr>
+    <tr><th>Selection / logits</th><td>108 ordered exact；三组 logits 均 <code>[2708, 7]</code></td></tr>
+    <tr><th>Cold / warm</th><td>producer <code>1 / 0</code>；runner 与 warm exact reuse，store 不变</td></tr>
+    <tr><th>Download / rebuild</th><td><code>false / false</code></td></tr>
+    <tr><th>Evidence root</th><td><code>/autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4</code></td></tr>
+  </tbody></table>
+
+  <h3>Runner Artifact SHA-256</h3>
+  <table><thead><tr><th>Artifact</th><th>SHA-256</th></tr></thead><tbody>
+    <tr><td>_meta.json</td><td><code>136a4611a5d07d29fa93825ecee822453090993982bfd5d1e82dceca06f5bda3</code></td></tr>
+    <tr><td>attack.json</td><td><code>c9853a5190f2daf5d79873ecc612b1253d1c2f5f330ef5d7ac78cc6e2066c557</code></td></tr>
+    <tr><td>collateral.json</td><td><code>6ea733cd8289fc13533af84e33e454c9dd73cf0d4773626b5d6f36ebdce9b060</code></td></tr>
+    <tr><td>predictions.npz</td><td><code>b42ca924f1508cce39e86eee129a266c026a522ecc08de68bc9e0aa794f29dbe</code></td></tr>
+  </tbody></table>
+
+  <h2>职责与运行路径</h2>
+  <pre>MISS: canonical processed pair → SelectionInputs → exact miss
+      → experiment/GU producer → validate → immutable Cache V2 Artifact
+
+HIT:  Recipe / explicit Artifact ID → exact resolver
+      → header + payload + dependency verification → Artifact</pre>
+  <p>显式 processed pair 不完整时，experiment 层直接失败，不进入 Planetoid/OGB、不下载、不重建 split。Cache API 没有 dataset provider 或 producer callback。</p>
+
+  <h2>SyncMate</h2>
+  <p>最终幂等 sync 为 <b>0 fetched / 4 already-current / 4 verified</b>；strict acceptance 为 ready，failure_count 0，corrected trusted row 是 <code>cora_GCN_r0.05 / GIF / degree / seed42</code>，row hash <code>563b4b2ab8b0c7e8</code>。</p>
+  <ul>
+    <li>clean verify 可覆盖旧 planning diff 的 missing 状态；</li>
+    <li>双层 landing 按远端正式 leaf 解析 identity；</li>
+    <li>inspect 区分 active running 与无锁 stale running；</li>
+    <li>未来 dispatch 将 clean runner exact Git SHA 绑定进 job envelope。</li>
+  </ul>
+  <p class="boundary">历史 Attempt-04 receipt 没有被重写：它以 <code>dbe79ef</code> 为 base，通过 17 个 allowlisted delta 接受实际 <code>e6091f9</code>。Artifact/Meta/collector 都明确属于 e609；exact job-envelope pin 是随后在 f62 完成的未来运行加固，因此没有重跑 GPU canary。</p>
+
+  <h2>Legacy 边界</h2>
+  <table><thead><tr><th>Root</th><th>Files</th><th>Bytes</th></tr></thead><tbody>
+    <tr><td>ResultCache</td><td>784</td><td>6,242,823</td></tr>
+    <tr><td>SelectionCache</td><td>111</td><td>369,280</td></tr>
+    <tr><td>ScoreCache</td><td>75</td><td>2,659,617</td></tr>
+    <tr><th>合计</th><th>970</th><th>9,271,720</th></tr>
+  </tbody></table>
+  <p>Legacy 已冻结且 V2 active path 无 fallback；aggregate SHA 为 <code>3fc32343…</code>。但 70 条兼容/旧工具/测试 consumer refs 仍存在，所以物理移动或删除未执行，<code>physical_archive_authorized=false</code>。</p>
+
+  <h2>对齐与测试</h2>
+  <table><tbody>
+    <tr><th>Git 对齐</th><td>可执行代码验证 pin 为 <code>f62a3e0</code>；报告发布 commit 只新增文档，handoff 前同样对齐 local/origin/collector/remote</td></tr>
+    <tr><th>本地回归</th><td class="ok">450 passed in 15.95s</td></tr>
+    <tr><th>远端 SyncMate</th><td class="ok">173 passed in 5.14s</td></tr>
+    <tr><th>Static dataset boundary</th><td class="ok">0 forbidden matches</td></tr>
+  </tbody></table>
+
+  <h2>完成清单</h2>
+  <ul class="checks">
+    <li class="done">Dataset/selection producer 回归 experiment/GU 层。</li>
+    <li class="done">Gates 2–4、AutoReport、完整性、分阶段 runner、SyncMate gate 全部通过。</li>
+    <li class="done">Legacy active authority/fallback 收口，freeze/rollback/consumer 再盘点。</li>
+    <li class="done">本地、origin、collector、远端 pin 对齐。</li>
+    <li class="open">未物理删除 Legacy；需独立授权并先处理 70 条 refs。</li>
+    <li class="open">当前 branch 尚未 merge；需按 parent + merge commit 流程单独接受。</li>
+  </ul>
+</main></body></html>
