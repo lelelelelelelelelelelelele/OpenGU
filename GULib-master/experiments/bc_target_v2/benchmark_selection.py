@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import statistics
 import subprocess
 import sys
@@ -31,6 +32,7 @@ DEFAULT_REPORT_HTML = (
 BENCHMARK_SCHEMA = "bc_target_v2.small_graph_selection_benchmark"
 BENCHMARK_VERSION = 1
 CUBLAS_WORKSPACE_CONFIG = ":4096:8"
+GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def _names(value: str) -> Tuple[str, ...]:
@@ -53,6 +55,15 @@ def _integers(value: str) -> Tuple[int, ...]:
     return result
 
 
+def _git_sha(value: str) -> str:
+    normalized = str(value).strip().lower()
+    if GIT_SHA_RE.fullmatch(normalized) is None:
+        raise argparse.ArgumentTypeError(
+            "experiment git SHA must be 40 lowercase hex characters"
+        )
+    return normalized
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
@@ -67,6 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--budgets", default="14,7,3")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--timeout-seconds", type=float, default=7200.0)
+    parser.add_argument("--experiment-git-sha", type=_git_sha, required=True)
     parser.add_argument("--resume", action="store_true")
     return parser
 
@@ -281,6 +293,8 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
         "- cold method time：共享 ScoreBundle 已生成后，每个 ranking 首次物化 max-k Selection Artifact 的完整冷路径。",
         "- cold ScoreBundle total：exact miss lookup、共享计算、17 输出构造、校验和落盘的总时间。",
         "- warm read：同一 recipe 在 producer-call sentinel 下的 exact ScoreBundle 读取时间；17 个 Selection Artifact 也必须全部命中。",
+        "- 方法级时间包含逐 Artifact 的索引、校验与文件系统访问；warm hit 是零 producer 的正确性证据，不保证共享文件系统上的每次 wall-clock 都短于 cold。",
+        "- Experiment Git SHA：`{0}`。".format(document["experiment_git_sha"]),
         "",
         "## 2. Cell 总览",
         "",
@@ -387,6 +401,7 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
             "- Cache root: `{0}`".format(document["cache_root"]),
             "- Cell summaries: `{0}`".format(document["output_root"]),
             "- Algorithm version: `{0}`".format(document["algorithm_version"]),
+            "- Experiment Git SHA: `{0}`".format(document["experiment_git_sha"]),
             "",
         ]
     )
@@ -494,6 +509,7 @@ def main(argv: Sequence[str] = None) -> int:
                     "schema": BENCHMARK_SCHEMA,
                     "version": BENCHMARK_VERSION,
                     "algorithm_version": ALGORITHM_VERSION,
+                    "experiment_git_sha": args.experiment_git_sha,
                     "formal_score_names": list(SCORE_NAMES),
                     "formal_score_count": len(SCORE_NAMES),
                     "datasets": list(args.datasets),

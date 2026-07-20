@@ -16,6 +16,7 @@ from experiments.bc_target_v2.benchmark_selection import (
     _build_cell_record,
     _command,
     _run,
+    build_parser as build_benchmark_parser,
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
 from experiments.bc_target_v2.render_markdown import render_document
@@ -155,6 +156,14 @@ def test_budget_cli_normalizes_duplicates_and_order():
 def test_default_budget_order_is_max_first():
     assert build_selection_parser().parse_args([]).budgets == (14, 7, 3)
     assert build_matrix_parser().parse_args([]).budgets == (14, 7, 3)
+
+
+def test_benchmark_requires_explicit_experiment_git_sha():
+    parser = build_benchmark_parser()
+    args = parser.parse_args(["--experiment-git-sha", "a" * 40])
+    assert args.experiment_git_sha == "a" * 40
+    with pytest.raises(SystemExit):
+        parser.parse_args([])
 
 
 def test_selection_device_defaults_to_auto():
