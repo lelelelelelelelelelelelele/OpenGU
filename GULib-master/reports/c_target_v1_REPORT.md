@@ -108,9 +108,10 @@ The accepted full run is stored as a typed Cache V2 `SCORE` bundle:
 | Artifact ID | `score_9c9b34fd_004f3774` |
 | Recipe SHA-256 | `9c9b34fd64ab8424280d048255168cc5b7595a2752293f6db5e768e7905eed8e` |
 | Content SHA-256 | `004f37749c23e524ddec1f9c33e7623df60317339d68255424fea9af23e6303f` |
-| Payload | `results/cache_v2/c_target_v1/artifacts/score/9c/score_9c9b34fd_004f3774/payload.json` |
+| Tracked cold summary | `results/c_target_v1/cora_gcn_seed2024_adam200_n140_accepted_cold.json` |
+| Tracked warm summary | `results/c_target_v1/cora_gcn_seed2024_adam200_n140_accepted_warm.json` |
 
-The payload contains all 140 ordered candidate IDs, all eight complete score vectors, deterministic full rankings, affected-set sizes, timings, accuracy, and provenance. The cold run created the Artifact. The exact warm run, executed with `--fail-if-producer-called`, returned the same Artifact with `producer_called=false`. A 139-candidate mismatch exited non-zero with `ProducerCalledError` and wrote no result, proving that a different Recipe does not silently reuse the 140-candidate Artifact.
+The tracked cold/warm summaries preserve all 140 ordered candidate IDs, all eight complete score vectors, deterministic full rankings, affected-set sizes, timings, accuracy, full Recipe/Content hashes, and provenance. The device-local Cache V2 store is intentionally Git-ignored and can be regenerated from the frozen Recipe. The cold run created the Artifact. The exact warm run, executed with `--fail-if-producer-called`, returned the same Artifact with `producer_called=false`. A 139-candidate mismatch exited non-zero with `ProducerCalledError` and wrote no result, proving that a different Recipe does not silently reuse the 140-candidate Artifact.
 
 Legacy `results/cache`, `results/selection_cache`, and `results/score_cache` were content-hash-sentinelled before and after execution and remained unchanged.
 
