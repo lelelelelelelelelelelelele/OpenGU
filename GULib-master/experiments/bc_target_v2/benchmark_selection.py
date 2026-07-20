@@ -30,6 +30,7 @@ DEFAULT_REPORT_HTML = (
 )
 BENCHMARK_SCHEMA = "bc_target_v2.small_graph_selection_benchmark"
 BENCHMARK_VERSION = 1
+CUBLAS_WORKSPACE_CONFIG = ":4096:8"
 
 
 def _names(value: str) -> Tuple[str, ...]:
@@ -90,10 +91,13 @@ def _load_json(path: Path) -> Mapping[str, Any]:
 
 def _run(command: Sequence[str], timeout_seconds: float) -> Mapping[str, Any]:
     started = time.perf_counter()
+    environment = os.environ.copy()
+    environment["CUBLAS_WORKSPACE_CONFIG"] = CUBLAS_WORKSPACE_CONFIG
     try:
         completed = subprocess.run(
             list(command),
             cwd=str(REPO_ROOT),
+            env=environment,
             capture_output=True,
             text=True,
             encoding="utf-8",

@@ -774,6 +774,9 @@ def main(argv: Sequence[str] = None) -> int:
             "executable": sys.executable,
             "device": str(device),
             "cuda": torch.version.cuda,
+            "cublas_workspace_config": os.environ.get(
+                "CUBLAS_WORKSPACE_CONFIG"
+            ),
         },
         "config": {
             "data_root": str(args.data_root.expanduser().resolve()),

@@ -12,8 +12,10 @@ from experiments.bc_target_v2.core import (
     weighted_checkpoint_scores,
 )
 from experiments.bc_target_v2.benchmark_selection import (
+    CUBLAS_WORKSPACE_CONFIG,
     _build_cell_record,
     _command,
+    _run,
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
 from experiments.bc_target_v2.render_markdown import render_document
@@ -221,3 +223,21 @@ def test_benchmark_warm_command_enables_producer_sentinel(tmp_path):
     )
     assert "--fail-if-producer-called" in command
     assert command[0] == sys.executable
+
+
+def test_benchmark_subprocess_sets_deterministic_cublas_workspace(monkeypatch):
+    observed = {}
+
+    class Completed:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def fake_run(command, **kwargs):
+        observed.update(kwargs["env"])
+        return Completed()
+
+    monkeypatch.setattr("experiments.bc_target_v2.benchmark_selection.subprocess.run", fake_run)
+    result = _run((sys.executable, "-c", "pass"), 1.0)
+    assert result["returncode"] == 0
+    assert observed["CUBLAS_WORKSPACE_CONFIG"] == CUBLAS_WORKSPACE_CONFIG
