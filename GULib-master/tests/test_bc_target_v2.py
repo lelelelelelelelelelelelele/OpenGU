@@ -12,6 +12,9 @@ from experiments.bc_target_v2.core import (
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
 from experiments.bc_target_v2.render_markdown import render_document
+from experiments.bc_target_v2.run_downstream import build_parser as build_downstream_parser
+from experiments.bc_target_v2.run_matrix import build_parser as build_matrix_parser
+from experiments.bc_target_v2.run_selection import build_parser as build_selection_parser
 
 
 def _sha(label):
@@ -121,3 +124,25 @@ def test_markdown_renderer_keeps_tables_and_heading_anchors(tmp_path):
     assert "<table>" in rendered
     assert "GIF" in rendered
     assert "title: smoke" not in rendered
+
+
+def test_budget_cli_normalizes_duplicates_and_order():
+    value = "14,3,7,3"
+    assert build_selection_parser().parse_args(["--budgets", value]).budgets == (
+        14,
+        7,
+        3,
+    )
+    assert build_downstream_parser().parse_args(
+        ["--selection-summary", "selection.json", "--budgets", value]
+    ).budgets == (14, 7, 3)
+    assert build_matrix_parser().parse_args(["--budgets", value]).budgets == (
+        14,
+        7,
+        3,
+    )
+
+
+def test_default_budget_order_is_max_first():
+    assert build_selection_parser().parse_args([]).budgets == (14, 7, 3)
+    assert build_matrix_parser().parse_args([]).budgets == (14, 7, 3)

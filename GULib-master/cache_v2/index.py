@@ -478,6 +478,23 @@ class CacheIndex:
             ).fetchone()
         return None if row is None else _json_record(row)
 
+    def find_artifacts_by_type(
+        self, artifact_type: Union[ArtifactType, str]
+    ) -> List[Dict[str, Any]]:
+        """Return validated Artifact rows of one type in deterministic order."""
+
+        type_value = ArtifactType(artifact_type).value
+        with self._read_connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM artifacts
+                WHERE artifact_type = ?
+                ORDER BY recipe_hash, artifact_id
+                """,
+                (type_value,),
+            ).fetchall()
+        return [_json_record(row) for row in rows]
+
     def lookup_exact(
         self, artifact_type: Union[ArtifactType, str], recipe_hash: str
     ) -> Optional[Dict[str, Any]]:
