@@ -29,6 +29,13 @@ results/cache_v2/index.sqlite-journal
 results/cache_v2/index.sqlite-wal
 results/cache_v2/index.sqlite-shm
 
+# Full-matrix benchmark caches are machine-local and reproducible. Keep the
+# benchmark manifests/cell summaries under results/<experiment>/ visible as
+# formal evidence, and keep non-benchmark Cache V2 payloads visible by default.
+results/cache_v2/*_benchmark_*/
+results/cache_v2/**/.locks/
+results/cache_v2/**/.tmp-*/
+
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
