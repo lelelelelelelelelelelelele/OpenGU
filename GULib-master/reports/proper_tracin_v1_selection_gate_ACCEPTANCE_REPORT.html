@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>proper-tracin-v1 × SUP Selection Gate</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / TRACIN × SUP</div>
+    <div class="side-title">proper-tracin-v1 × SUP Selection Gate</div>
+    <span class="badge">CONDITIONAL PASS</span>
+    <nav><a class="" href="#1-判定">1. 判定</a>
+<a class="" href="#2-关于-legacy-删除与实验进度">2. 关于 Legacy 删除与实验进度</a>
+<a class="" href="#3-本轮完成的链路">3. 本轮完成的链路</a>
+<a class="" href="#4-recipe-的关键修正">4. Recipe 的关键修正</a>
+<a class="" href="#5-真实-cora-selection-only-canary">5. 真实 Cora selection-only canary</a>
+<a class="" href="#6-legacy-快照证据">6. Legacy 快照证据</a>
+<a class="" href="#7-自动化验证">7. 自动化验证</a>
+<a class="sub" href="#focused">Focused</a>
+<a class="sub" href="#联合回归">联合回归</a>
+<a class="" href="#8-代码与旧-wip-的处理">8. 代码与旧 WIP 的处理</a>
+<a class="" href="#9-对-sup-与论文的当前含义">9. 对 SUP 与论文的当前含义</a>
+<a class="" href="#10-下一批顺序">10. 下一批顺序</a>
+<a class="" href="#11-复现与机器证据">11. 复现与机器证据</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">FORMAL SCORE → MAX-K SELECTION</div>
+      <h1>proper-tracin-v1 × SUP Selection Gate</h1>
+    </section>
+    <article><h1 id="proper-tracin-v1-sup-selection-gate-验收报告">proper-tracin-v1 × SUP Selection Gate 验收报告</h1>
+<h2 id="1-判定">1. 判定</h2>
+<p><strong>CONDITIONAL SELECTION-GATE PASS。</strong></p>
+<p>本轮已经把 proper TracIn 的第一段正式链路跑通：一个在计算前即可确定的 <code>proper-tracin-v1</code> Recipe，经过真实 Cora/GCN/seed-2024 训练与多 checkpoint 梯度打分，生成不可变 Cache V2 Score Artifact；该 Score 再作为父 Artifact，生成唯一的 max-k Selection Artifact，并为较小 SUP 预算提供有序前缀。</p>
+<p>本判定只接受 <strong>Score → Selection</strong>。它不是 production TracIn 总验收，也不是 GU 攻击效果结果。Hybrid、OpenGU canonical split/model、单 seed GU canary、C.6a surrogate transfer 和 C.6b cross-backbone 均尚未运行。</p>
+<h2 id="2-关于-legacy-删除与实验进度">2. 关于 Legacy 删除与实验进度</h2>
+<p>“物理删除 Legacy 会让整个实验进度表清空”并不准确。当前 Phase B runner 的完成/跳过判定来自 <code>results/runs/...</code> 中四件套及当前 config fingerprint：</p>
+<ul>
+<li><code>attack.json</code>；</li>
+<li><code>collateral.json</code>；</li>
+<li><code>predictions.npz</code>；</li>
+<li><code>_meta.json</code>。</li>
+</ul>
+<p>因此，删除 <code>results/cache</code>、<code>results/selection_cache</code> 或 <code>results/score_cache</code> 不会自动删除这些正式结果，也不会让四件套覆盖率凭空归零。但删除 Legacy 会丢掉已有 run/selection/score 的快速复用入口，使未完成、stale 或需要复跑的 cell 重新计算；TracIn/IM 的代价尤其高，并且旧 selector 结果的追溯能力会下降。</p>
+<p>本轮继续执行既定政策：<strong>Legacy 原位只读冻结，不删除、不覆盖；新计算只写隔离的 V2 evidence store。</strong></p>
+<h2 id="3-本轮完成的链路">3. 本轮完成的链路</h2>
+<pre><code class="language-text">pre-compute input identity
+  → proper-tracin-v1 Recipe
+  → experiment-owned model training + checkpoint gradients
+  → immutable Score Artifact
+  → source_score_artifact_id
+  → one max-k Selection Artifact
+  → SUP budget prefixes (k=14 → k=7 → k=3)
+</code></pre>
+<table>
+<thead>
+<tr>
+  <th>层</th>
+  <th>本轮结果</th>
+  <th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Recipe</td>
+  <td>计算前可解析</td>
+  <td>不含训练后 final/checkpoint state hash</td>
+</tr>
+<tr>
+  <td>Score</td>
+  <td>formal immutable Artifact</td>
+  <td>producer 位于 experiment 层，Cache 不训练模型</td>
+</tr>
+<tr>
+  <td>Conflict</td>
+  <td>quarantine + durable marker + index conflict</td>
+  <td>同 Recipe 不同 content 后续 fail closed</td>
+</tr>
+<tr>
+  <td>Selection</td>
+  <td>formal Cache V2 Artifact</td>
+  <td>显式绑定父 Score Artifact ID</td>
+</tr>
+<tr>
+  <td>SUP budget</td>
+  <td>max-k 一次物化，较小 k 取前缀</td>
+  <td>不创建 k=7、k=3 子 Artifact</td>
+</tr>
+<tr>
+  <td>Legacy</td>
+  <td>前后 SHA-256 快照一致</td>
+  <td>未读写旧 Result/Selection/Score Cache</td>
+</tr>
+<tr>
+  <td>GU runner</td>
+  <td>未注册</td>
+  <td>等 Hybrid 与 GU canary gate</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-recipe-的关键修正">4. Recipe 的关键修正</h2>
+<p>原 <code>tracin-v2-unstable</code> 原型把训练结束后的 <code>final_state_hash</code> 与 checkpoint <code>state_hash</code> 放在 Recipe 中。该结构能给一次完成后的报告编号，却不能在 producer 运行前查 Cache：必须先训练，才能知道 Recipe。</p>
+<p><code>proper-tracin-v1</code> 改为如下分工：</p>
+<table>
+<thead>
+<tr>
+  <th>Recipe：计算前输入身份</th>
+  <th>Score payload：计算后 provenance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>data/split/candidate/target hashes</td>
+  <td>checkpoint state hashes</td>
+</tr>
+<tr>
+  <td>初始化模型 state hash、参数 schema</td>
+  <td>final state hash</td>
+</tr>
+<tr>
+  <td>optimizer、loss、seed、epoch</td>
+  <td>final train loss</td>
+</tr>
+<tr>
+  <td>checkpoint schedule 与预期权重</td>
+  <td>test accuracy</td>
+</tr>
+<tr>
+  <td>parameter scope、numerics、source fingerprint</td>
+  <td>hostname 与实际 numerics</td>
+</tr>
+</tbody>
+</table>
+<p>这使 warm exact lookup 真正发生在训练和梯度计算之前。Adam 路径仍明确标为 <code>adam_lr_weighted_gradient_heuristic</code>；本轮没有把它写成原始 SGD/GD TracIn 推导的严格等价物。</p>
+<h2 id="5-真实-cora-selection-only-canary">5. 真实 Cora selection-only canary</h2>
+<p>配置：Planetoid public split、Cora、two-layer GCN、seed 2024、Adam、30 epochs、checkpoints <code>{1,5,10,20,30}</code>、all-trainable parameters、validation set 作为显式目标 E、SUP budgets <code>{14,7,3}</code>。</p>
+<table>
+<thead>
+<tr>
+  <th>运行</th>
+  <th>Score</th>
+  <th>Selection</th>
+  <th>producer</th>
+  <th>Legacy</th>
+  <th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>cold</td>
+  <td>miss → <code>score_ee18e0f4_6d52213b</code></td>
+  <td>miss → <code>sel_4744275f_1a373931</code> (k=14)</td>
+  <td>Score=1，Selection=1</td>
+  <td>unchanged</td>
+  <td>pass</td>
+</tr>
+<tr>
+  <td>warm</td>
+  <td>exact hit，同一 Score ID</td>
+  <td>exact hit，同一 Selection ID</td>
+  <td>Score=0，Selection=0</td>
+  <td>unchanged</td>
+  <td>pass</td>
+</tr>
+<tr>
+  <td>future-smaller <code>{7,3}</code></td>
+  <td>exact hit</td>
+  <td>covering hit，复用 k=14</td>
+  <td>Score=0，Selection=0</td>
+  <td>unchanged</td>
+  <td>pass</td>
+</tr>
+</tbody>
+</table>
+<p>训练模型 test accuracy 为 <code>0.7960</code>。该值只作为本轮 selector model quality/provenance，不是 GU 后准确率或攻击收益。</p>
+<p>Top-14 的稳定顺序为：</p>
+<pre><code class="language-text">[48, 51, 44, 30, 25, 40, 21, 0, 45, 4, 27, 14, 17, 19]
+</code></pre>
+<p>因此：</p>
+<ul>
+<li>k=7 = <code>[48, 51, 44, 30, 25, 40, 21]</code>；</li>
+<li>k=3 = <code>[48, 51, 44]</code>；</li>
+<li>两者都来自 <code>sel_4744275f_1a373931</code> 的前缀，而不是新 Artifact 或从下游结果反推。</li>
+</ul>
+<p>Selection Artifact 的父引用为 <code>source_score_artifact_id=score_ee18e0f4_6d52213b</code>。</p>
+<h2 id="6-legacy-快照证据">6. Legacy 快照证据</h2>
+<p>本地 canary 覆盖当前 checkout 中实际存在的 46 个 Legacy cache 文件，共 789,634 bytes：</p>
+<table>
+<thead>
+<tr>
+  <th>Root</th>
+  <th style="text-align:right">文件数</th>
+  <th style="text-align:right">bytes</th>
+  <th>aggregate SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>results/cache</code></td>
+  <td style="text-align:right">9</td>
+  <td style="text-align:right">63,348</td>
+  <td><code>421a06f63dc747df2508d329acb0ea3fd4aa4dd71e072da6957f38656e3a3077</code></td>
+</tr>
+<tr>
+  <td><code>results/selection_cache</code></td>
+  <td style="text-align:right">10</td>
+  <td style="text-align:right">22,663</td>
+  <td><code>10197dc26400d016426eb26da9215131031810efae64a256e1c865d9af7c7d1b</code></td>
+</tr>
+<tr>
+  <td><code>results/score_cache</code></td>
+  <td style="text-align:right">27</td>
+  <td style="text-align:right">703,623</td>
+  <td><code>daba3f962ee9def5e679918d436377183465136a0436dadae733ac7dd57536cd</code></td>
+</tr>
+<tr>
+  <td>combined</td>
+  <td style="text-align:right">46</td>
+  <td style="text-align:right">789,634</td>
+  <td><code>c3465e6d65469147c24316e81c0bf2f48f5465a79f088a428b30142ce2c538c7</code></td>
+</tr>
+</tbody>
+</table>
+<p>cold、warm 和 future-smaller 三次执行均记录 <code>legacy_unchanged=true</code>。这里的 46 是本地 checkout 当前实际文件数，不替代此前服务器/历史 retirement inventory 的更大计数。</p>
+<h2 id="7-自动化验证">7. 自动化验证</h2>
+<h3 id="focused">Focused</h3>
+<pre><code class="language-text">36 passed in 0.61s
+</code></pre>
+<p>覆盖 formal Recipe、Score payload、cold/warm、fail-if-called、same-Recipe/different-content quarantine、max-k Selection、future-smaller covering hit，以及既有 TracIn V2 prototype gates。</p>
+<h3 id="联合回归">联合回归</h3>
+<pre><code class="language-text">255 passed in 7.18s
+</code></pre>
+<p>覆盖 Cache V2 全部 <code>test_cache_v2*.py</code>、proper TracIn、SUP max-k planner、TracIn unstable prototype、strategy goldens、ScoreCache、Phase B invariants 与旧策略 tests。<code>CUDA_VISIBLE_DEVICES=-1</code>，未调用本机不兼容 GPU。</p>
+<h2 id="8-代码与旧-wip-的处理">8. 代码与旧 WIP 的处理</h2>
+<p>新增：</p>
+<ul>
+<li><code>cache_v2/score_store.py</code>：通用 formal Score payload/store；</li>
+<li><code>experiments/tracin_v2/formal_recipe.py</code>：pre-compute <code>proper-tracin-v1</code> Recipe；</li>
+<li><code>experiments/tracin_v2/run_formal_selection_gate.py</code>：真实 Score → max-k Selection canary；</li>
+<li><code>tests/test_proper_tracin_v1_artifacts.py</code>：Artifact 与 SUP gate tests。</li>
+</ul>
+<p>旧 WIP <code>3ccde63</code> 没有被整体合并。只择取了它正确的术语结论：现有 <code>attack/attack_strategies/tracin_strategy.py</code> 是 <code>deployed-cross-gradient-legacy</code>，不是 multi-checkpoint proper TracIn。公式、Legacy cache key 和旧 runner 行为均未改变。</p>
+<h2 id="9-对-sup-与论文的当前含义">9. 对 SUP 与论文的当前含义</h2>
+<p>现在可以安全推进的结论有两条：</p>
+<ol>
+<li>proper TracIn 的 Score 身份与 SUP 多预算 Selection 身份已经可审计、可复用；</li>
+<li>旧论文/代码中把 deployed cross-gradient 直接称作 TracIn 的表述需要逐步改成 Legacy compatibility 说明。</li>
+</ol>
+<p>现在还不能写入论文结果表的结论：</p>
+<ul>
+<li>proper TracIn 比 random/degree/IM 的 GU damage 更强或更弱；</li>
+<li>surrogate selection 能迁移到 target model；</li>
+<li>Hybrid 存在正协同；</li>
+<li>C.6a/C.6b 的 retrain-gap transfer ratio。</li>
+</ul>
+<p>这些必须等待 OpenGU canonical profile 与 GU 结果四件套。当前 <code>0.7960</code> 与 Top-14 只能作为 selection gate evidence。</p>
+<h2 id="10-下一批顺序">10. 下一批顺序</h2>
+<ol>
+<li>把 formal producer 从 Planetoid public split 对齐到 OpenGU canonical processed split/model/checkpoint entry；</li>
+<li>做 Hybrid parent identity、alpha/normalization 与 miss/conflict gate；</li>
+<li>运行单 seed、单 GU 的 isolated canary，并把 Selection Artifact ref 写入 <code>_meta.json</code>；</li>
+<li>先跑 C.6a same-architecture surrogate；transfer ratio gate 通过后才展开 C.6b；</li>
+<li>把 selection Jaccard 与 retrain-gap transfer ratio 分别写入论文证据链。</li>
+</ol>
+<p>下一 server 小矩阵优先采用现有 B/C 报告建议的选择器：random、B-LiSSA、GT-full、P-graph、TracInCP-graph-6；GU 先限 GNNDelete/GraphEraser，且每个 cell 使用独立 GU Recipe。</p>
+<h2 id="11-复现与机器证据">11. 复现与机器证据</h2>
+<p>入口：</p>
+<pre><code class="language-powershell">E:/conda_package/envs/gnn/python.exe -m experiments.tracin_v2.run_formal_selection_gate `
+  --data-root E:/project/OpenGU/GULib-master/data/raw/Planetoid `
+  --score-store-root &lt;ABSOLUTE_SCORE_STORE&gt; `
+  --selection-store-root &lt;ABSOLUTE_SELECTION_STORE&gt; `
+  --legacy-results-root E:/project/OpenGU/GULib-master/results `
+  --output &lt;ABSOLUTE_OUTPUT_JSON&gt; `
+  --dataset Cora --model gcn --seed 2024 --optimizer adam `
+  --epochs 30 --checkpoint-epochs 1,5,10,20,30 --budgets 14,7,3
+</code></pre>
+<p>Warm 运行增加 <code>--fail-if-producer-called</code>。</p>
+<p>本轮 evidence JSON SHA-256：</p>
+<table>
+<thead>
+<tr>
+  <th>File</th>
+  <th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>cold.json</code></td>
+  <td><code>19b6df4b2b5823f77a9ed0d7763f861181dc4e477fd4d9f0fbefa13cf82acdc2</code></td>
+</tr>
+<tr>
+  <td><code>warm.json</code></td>
+  <td><code>50baea01e6bb4cafa96a375367327b7a462120bfce3df254558954d8a05da7a6</code></td>
+</tr>
+<tr>
+  <td><code>covering.json</code></td>
+  <td><code>70f0f5af23ba65614dc7f7f214258446eff1a71cf3472014bb2d54f9531a9e16</code></td>
+</tr>
+</tbody>
+</table>
+<p>在这个边界内，阶段 2 的 formal Score→Selection gate 已通过；阶段 3 的 Hybrid 与 GU canary 仍保持关闭。</p>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>
