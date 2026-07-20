@@ -1,6 +1,6 @@
 ---
-title: B/C Influence Target Selection and Set-Deletion Matrix
-date: 2026-07-17
+title: A/B–C–D Influence Selection and Set-Deletion Matrix
+date: 2026-07-20
 status: accepted-local-matrix
 datasets: [Cora, CiteSeer, PubMed]
 model: GCN
@@ -8,11 +8,11 @@ seeds: [42, 212, 2024]
 budgets: [3, 7, 14]
 ---
 
-# B/C Influence Target Selection and Set-Deletion Matrix
+# A/B–C–D Influence Selection and Set-Deletion Matrix
 
 ## Verdict
 
-本地 B/C 实验已完成以下闭环：
+本地 A/B–C–D 实验已完成以下闭环：
 
 - 3 个 Planetoid 数据集；
 - 3 个确定性 seed；
@@ -24,14 +24,16 @@ budgets: [3, 7, 14]
 
 Selection 层的核心结论：
 
-1. B-Hutchinson 对 B-LiSSA 的全排序 Spearman 为 `0.968`，说明 target-free parameter-change IF 可以被共享 probe 有效近似。
-2. B-LiSSA 与 C-GIF 的 Spearman 仅 `0.023`，说明“参数移动大”与“伤害目标 E”不是同一排序。
+1. A 对 B reference 的全排序 Spearman 为 `0.962`，说明梯度 magnitude 是 B 排序的强 Hessian-free 代理，但二者不定义等价。
+2. B reference 与 D-GIF 的 Spearman 仅 `0.023`，说明“参数移动大”与 graph-aware “伤害目标 E”不是同一排序。
 3. 固定 source 后，single-final Hessian-free proxy 很可靠：
    - point：Spearman `0.969`；
    - simple：`0.958`；
    - graph：`0.984`。
-4. `gt_simple` 与 `gt_full` 的 Spearman 只有 `0.040`；删除图引起的邻居梯度变化不能默认忽略。
-5. 3/6-checkpoint graph trajectory 对 final `gt_full` 的 Spearman 仅 `0.498/0.529`，多 checkpoint 没有自动优于 single-final `p_graph`。
+4. `gt_simple`（C-IF）与 `gt_full`（D-GIF）的 Spearman 只有 `0.040`；删除图引起的邻居梯度变化不能默认忽略。
+5. 3/6-checkpoint D graph trajectory 对 final `gt_full` 的 Spearman 仅 `0.498/0.529`，多 checkpoint 没有自动优于 single-final `p_graph`。
+
+所有 \(H^{-1}g\) reference 均通过迭代 IHVP 求解。B-Hutch / B-LiSSA 的 `0.968` 只作为两种实现的一致性 sanity check，保留在复现结果中，不构成独立 selector 结论。
 
 下游层单独回答：这些排名形成的 top-k 集合真正删掉并重训练后，validation target 与 test utility 如何变化。它不把 GIF reference overlap 当成真实 outcome 的替代。
 
@@ -61,15 +63,16 @@ Selection 层的核心结论：
 
 Candidate counts are 140 for Cora, 120 for CiteSeer, and 60 for PubMed. Each dataset uses 500 validation nodes as E.
 
-## Objective hierarchy
+## A/B–C–D taxonomy
 
 | Layer | Score | Question |
 |---|---|---|
 | A | \(\lVert g_v\rVert\) | 训练梯度本身多大 |
 | B | \(\lVert H^{-1}g_v\rVert\) | 删除后参数预计移动多远 |
-| C | \(q_v^\top H^{-1}g_E\) | 这次移动是否伤害目标 E |
+| C-IF | \(q_v^\top H^{-1}g_E\), \(q_v\in\{g_v,\mathrm{grad1}_v\}\) | 不含删除后 `grad2` 时是否伤害目标 E |
+| D-GIF | \((\mathrm{grad1}_v-\mathrm{grad2}_v)^\top H^{-1}g_E\) | 纳入图删除 source 后是否伤害目标 E |
 
-B 不需要额外 target loss，因为它的目标就是 parameter displacement magnitude。C 需要 \(g_E\)，因为它把参数变化投影到一个指定的 evaluation/query 方向。
+B 不需要额外 target loss，因为它的目标就是 parameter displacement magnitude。C 与 D 需要 \(g_E\)，但只有 D 使用 `grad1-grad2` 的完整 graph-deletion source。
 
 ## Full method matrix
 
@@ -81,15 +84,15 @@ B 不需要额外 target loss，因为它的目标就是 parameter displacement 
 | control | `degree` | candidate degree | structural control |
 | A | `a_grad_norm` | \(\lVert g_v\rVert\) | gradient magnitude |
 | B | `b_param_lissa` | \(\lVert H^{-1}g_v\rVert\) | parameter-change reference |
-| B | `b_param_hutch` | shared-probe norm estimate | scalable B proxy |
+| B implementation | `b_param_hutch` | shared-probe norm estimate | IHVP implementation sanity |
 
-### Complete C configurations
+### Complete C-IF and D-GIF configurations
 
 | Source | Hessian reference | Single-final proxy | 3 checkpoints | 6 checkpoints |
 |---|---|---|---|---|
-| point \(g_v\) | `r_point` | `p_point` | `tracin_cp_point_3` | `tracin_cp_point_6` |
-| simple \(a_v=\mathrm{grad1}\) | `gt_simple` | `p_simple` | `tracin_cp_simple_3` | `tracin_cp_simple_6` |
-| full graph \(q_v=\mathrm{grad1}-\mathrm{grad2}\) | `gt_full` | `p_graph` | `tracin_cp_graph_3` | `tracin_cp_graph_6` |
+| C-point \(g_v\) | `r_point` | `p_point` | `tracin_cp_point_3` | `tracin_cp_point_6` |
+| C-simple \(a_v=\mathrm{grad1}\) | `gt_simple` | `p_simple` | `tracin_cp_simple_3` | `tracin_cp_simple_6` |
+| D-full \(q_v=\mathrm{grad1}-\mathrm{grad2}\) | `gt_full` | `p_graph` | `tracin_cp_graph_3` | `tracin_cp_graph_6` |
 
 Reference and proxy definitions:
 
@@ -112,7 +115,7 @@ Reference and proxy definitions:
 | Dataset-seed selection cells | 9 |
 | Methods per cell | 18 |
 | Complete rankings | 162 |
-| C rankings | 108 |
+| C/D rankings | 108 |
 | Budgets per ranking | 3 |
 | Pre-registered selection comparison rows | 378 |
 | Dataset-seed downstream cells | 9 |
@@ -122,7 +125,7 @@ k does not enter Score Artifact identity. One complete ranking per method is saf
 
 ## Selection results
 
-### B approximation and target-level separation
+### A/B proxy and group separation
 
 Global means over 9 dataset-seed cells:
 
@@ -134,11 +137,11 @@ Global means over 9 dataset-seed cells:
 | B-Hutch vs B-LiSSA | 3 | 0.704 | 0.578 | 0.968 |
 | B-Hutch vs B-LiSSA | 7 | 0.810 | 0.696 | 0.968 |
 | B-Hutch vs B-LiSSA | 14 | 0.841 | 0.735 | 0.968 |
-| B-LiSSA vs C-GIF | 3 | 0.185 | 0.111 | 0.023 |
-| B-LiSSA vs C-GIF | 7 | 0.175 | 0.104 | 0.023 |
-| B-LiSSA vs C-GIF | 14 | 0.262 | 0.159 | 0.023 |
+| B-LiSSA vs D-GIF | 3 | 0.185 | 0.111 | 0.023 |
+| B-LiSSA vs D-GIF | 7 | 0.175 | 0.104 | 0.023 |
+| B-LiSSA vs D-GIF | 14 | 0.262 | 0.159 | 0.023 |
 
-The B proxy succeeds. The B/C disagreement is therefore a semantic target difference, not evidence that the B approximation failed.
+A strongly tracks B ranking. The B-Hutch/B-LiSSA rows are retained only as an IHVP implementation consistency check. The B/D disagreement is a semantic target difference, not evidence that B failed.
 
 ### Same-source Hessian removal
 
@@ -227,22 +230,22 @@ This is a selection-effect downstream test. It is not an approximate-GU algorith
 
 Larger budgets amplify the target effect and cross-dataset variance. These are descriptive means over nine cells, not significance claims.
 
-### Complete C result at k=7
+### Complete C/D result at k=7
 
 | Method | Family | Validation loss increase | Validation accuracy drop | Test accuracy drop |
 |---|---|---:|---:|---:|
 | `tracin_cp_point_6` | C-point | 0.0707 ± 0.0210 | 0.0404 | 0.0560 |
 | `tracin_cp_point_3` | C-point | 0.0674 ± 0.0207 | 0.0391 | 0.0569 |
 | `p_point` | C-point | 0.0616 ± 0.0332 | 0.0331 | 0.0421 |
-| `tracin_cp_graph_3` | C-GIF trajectory | 0.0602 ± 0.0425 | 0.0367 | 0.0404 |
+| `tracin_cp_graph_3` | D-GIF trajectory | 0.0602 ± 0.0425 | 0.0367 | 0.0404 |
 | `r_point` | C-point | 0.0602 ± 0.0277 | 0.0336 | 0.0387 |
-| `tracin_cp_graph_6` | C-GIF trajectory | 0.0499 ± 0.0308 | 0.0362 | 0.0396 |
+| `tracin_cp_graph_6` | D-GIF trajectory | 0.0499 ± 0.0308 | 0.0362 | 0.0396 |
 | `tracin_cp_simple_3` | C-IF trajectory | 0.0368 ± 0.0243 | 0.0142 | 0.0207 |
 | `tracin_cp_simple_6` | C-IF trajectory | 0.0363 ± 0.0240 | 0.0144 | 0.0196 |
 | `gt_simple` | C-IF reference | 0.0360 ± 0.0274 | 0.0124 | 0.0164 |
 | `p_simple` | C-IF final proxy | 0.0307 ± 0.0331 | 0.0082 | 0.0132 |
-| `p_graph` | C-GIF final proxy | 0.0127 ± 0.0233 | 0.0082 | 0.0071 |
-| `gt_full` | C-GIF reference | 0.0118 ± 0.0243 | 0.0069 | 0.0082 |
+| `p_graph` | D-GIF final proxy | 0.0127 ± 0.0233 | 0.0082 | 0.0071 |
+| `gt_full` | D-GIF reference | 0.0118 ± 0.0243 | 0.0069 | 0.0082 |
 
 The random k=7 mean is 0.0110. B-LiSSA and B-Hutchinson produce -0.0005 and -0.0078, respectively.
 
@@ -287,7 +290,7 @@ There is no contradiction. The first is a local per-candidate reference at the f
 
 No single source/checkpoint configuration wins on all datasets.
 
-### B outcome
+### B implementation rows in downstream evaluation
 
 Paired validation-loss difference from random:
 
@@ -296,7 +299,7 @@ Paired validation-loss difference from random:
 | B-LiSSA | -0.0052 | -0.0116 | -0.0287 |
 | B-Hutchinson | -0.0018 | -0.0188 | -0.0205 |
 
-B-Hutchinson successfully approximates B-LiSSA at selection level, but B does not maximize validation damage here. This supports the definition-level distinction: parameter movement magnitude is not eval-impact. B may still be useful for algorithm-specific approximate-unlearning gap, which is outside this local protocol.
+The two rows are implementations of the same B target, not distinct selectors. Their consistency is a reproducibility check; the substantive result is that B does not maximize validation damage here. Parameter movement magnitude is not eval-impact, although B may still be useful for algorithm-specific approximate-unlearning gap outside this local protocol.
 
 ## Cache V2 and provenance
 
@@ -355,24 +358,26 @@ Primary evidence:
 ## Limits and next extension
 
 - Three seeds support a descriptive supplementary conclusion, not a significance claim.
-- Full GIF is an operational LiSSA reference, not an exact-retrain ground truth.
+- Full GIF is an operational iterative-IHVP reference, not an exact-retrain ground truth.
 - The local downstream validates true set deletion effects but not a particular approximate graph-unlearning algorithm.
-- The next server matrix should begin with random, B-LiSSA, GT-full, P-graph and TracInCP-graph-6 under GNNDelete and GraphEraser, with independent GU recipes.
+- The next server matrix should begin with random, B reference, GT-full, P-graph and TracInCP-graph-6 under GNNDelete and GraphEraser, with independent GU recipes.
 - Additional backbones, affected-hop definitions and checkpoint-weight searches remain future work.
 
 ## Acceptance decision
 
 Accept:
 
-- B-Hutchinson as an effective B approximation;
-- `p_graph` as the primary scalable full-source C proxy;
-- separate reporting of C-IF and C-GIF;
+- A as a strong Hessian-free proxy for B ranking in the accepted setting;
+- IHVP implementation consistency as a reproducibility sanity check only;
+- `p_graph` as the primary scalable D full-source proxy;
+- separate reporting of C-IF and D-GIF;
 - selection fidelity and downstream effect as two independent evaluation axes;
 - Cache V2 score/ranking reuse across k.
 
 Reject:
 
-- treating B as a broken C;
+- treating B as a broken C/D method;
+- promoting an IHVP solver variant to a separate selector or TracIn approximation;
 - treating `gt_simple` or point IF as full GIF;
 - assuming more checkpoints are automatically closer to final GIF;
 - using overlap alone as proof of downstream effectiveness;

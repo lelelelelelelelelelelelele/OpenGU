@@ -1,17 +1,17 @@
 ---
-title: C Target GIF–TracIn Approximation Local Experiment
-date: 2026-07-16
+title: C-IF / D-GIF TracIn Approximation Local Experiment
+date: 2026-07-20
 status: accepted-single-seed
 dataset: Cora
 model: GCN
 seed: 2024
 ---
 
-# C Target GIF–TracIn Approximation Local Experiment
+# C-IF / D-GIF TracIn Approximation Local Experiment
 
 ## Verdict
 
-The local Cora/GCN experiment is implemented, cached, and reproducible. It performs **no per-candidate exact retraining**.
+The local Cora/GCN experiment is implemented, cached, and reproducible. It performs **no per-candidate exact retraining**. In the final taxonomy, point/simple scores belong to C-IF; only the `grad1-grad2` graph-deletion source belongs to D-GIF.
 
 The main result is not simply “TracIn works” or “TracIn fails.” It is more precise:
 
@@ -45,16 +45,16 @@ recovered 6 of the full GIF GT top-7 candidates: Jaccard@7 = 0.7500, common frac
 
 The score hierarchy is:
 
-| ID | Score | Meaning |
+| Group / ID | Score | Meaning |
 |---|---|---|
-| GT-full | \(\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle\) | operational full graph-aware GIF reference |
-| GT-simple | \(\langle \mathrm{grad1},H^{-1}g_E\rangle\) | no-grad2 approximate GT |
-| R-point | \(\langle g_v,H^{-1}g_E\rangle\) | candidate-only point IF reference |
-| P-graph | \(\langle \mathrm{grad1}-\mathrm{grad2},g_E\rangle\) | graph-aware Hessian-free proxy |
-| P-simple | \(\langle \mathrm{grad1},g_E\rangle\) | no-grad2 Hessian-free proxy |
-| P-point | \(\langle g_v,g_E\rangle\) | final-checkpoint point proxy |
-| TracInCP-point | \(\sum_c w_c\langle g_v(\theta_c),g_E(\theta_c)\rangle\) | multi-checkpoint point proxy |
-| legacy | \(\langle g_v,-\sum_{j\in T}g_j\rangle\) | old training-residual negative control |
+| D / GT-full | \(\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle\) | operational full graph-aware GIF reference |
+| C / GT-simple | \(\langle \mathrm{grad1},H^{-1}g_E\rangle\) | no-grad2 IF reference |
+| C / R-point | \(\langle g_v,H^{-1}g_E\rangle\) | candidate-only point IF reference |
+| D / P-graph | \(\langle \mathrm{grad1}-\mathrm{grad2},g_E\rangle\) | graph-aware Hessian-free proxy |
+| C / P-simple | \(\langle \mathrm{grad1},g_E\rangle\) | no-grad2 Hessian-free proxy |
+| C / P-point | \(\langle g_v,g_E\rangle\) | final-checkpoint point proxy |
+| C / TracInCP-point | \(\sum_c w_c\langle g_v(\theta_c),g_E(\theta_c)\rangle\) | multi-checkpoint point proxy |
+| control / legacy | \(\langle g_v,-\sum_{j\in T}g_j\rangle\) | old training-residual negative control |
 
 For every candidate, `grad1` uses the affected-set sum loss on the original graph. `grad2` uses affected neighbors on a graph whose edges incident to the candidate have been removed. Both gradients are evaluated at the same trained parameters; this is a forward/backward intervention, not retraining.
 
@@ -68,7 +68,7 @@ For every candidate, `grad1` uses the affected-set sum loss on the original grap
 | R-point | TracInCP-point | 6 | 0.7500 | 0.8571 | 0.9482 | 0.8189 | checkpoint point proxy also works for the point reference |
 | GT-full | P-graph | 6 | 0.7500 | 0.8571 | 0.9658 | 0.8557 | best full-GIF approximation in this run |
 | GT-full | P-point | 0 | 0.0000 | 0.0000 | 0.1385 | 0.0972 | candidate-only source is misaligned with full GIF |
-| GT-full | TracInCP-point | 0 | 0.0000 | 0.0000 | 0.1035 | checkpoints do not repair the source mismatch |
+| GT-full | TracInCP-point | 0 | 0.0000 | 0.0000 | 0.1035 | — | checkpoints do not repair the source mismatch |
 | GT-full | legacy | 1 | 0.0769 | 0.1429 | -0.1102 | -0.0742 | negative control remains misaligned |
 
 The top-7 sets make the source mismatch concrete:
@@ -146,4 +146,4 @@ Implementation anchors:
 - `test_mask` was used only to report diagnostic accuracy; (g_E) uses `val_mask`.
 - The current multi-checkpoint method is point-source TracInCP. A graph-source trajectory, \(\sum_c w_c\langle q_v(\theta_c),g_E(\theta_c)\rangle\), is the natural next ablation if a second-stage experiment is desired. The current result already shows why that source change matters.
 
-The v1 acceptance decision is therefore: **accept the cache-backed mechanism experiment and P-graph signal; reject GT-simple, P-point, and point TracInCP as substitutes for full GIF on this run.**
+The v1 acceptance decision is therefore: **accept the cache-backed mechanism experiment and D-group P-graph signal; retain GT-simple, P-point, and point TracInCP as C-IF variants, but reject them as substitutes for D full GIF on this run.**

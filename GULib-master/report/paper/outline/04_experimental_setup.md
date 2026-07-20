@@ -23,17 +23,26 @@
   - TracIn G-matrix at 169K nodes — chunked or subsampled (Physics OOS, see §6.3)
   - IM candidate-fraction at scale
   - GCN config differs (3 layers / hidden 256) — affects hop-decay buckets
+- **4.7 Artifact generations, replay, and stability audit** — separate three non-overlapping evidence ledgers:
+  - **V1 Baseline**: retain Legacy V1 outputs as a frozen, read-only historical baseline. They are not authoritative Cache V2 hits and do not count toward V2 completion.
+  - **V2 Replay**: start formal matrix completion from zero under accepted Cache V2 runner paths; a selector enters the replay only after its versioned producer passes its acceptance gate. A paper cell is complete only when `attack.json`, `collateral.json`, `predictions.npz`, and `_meta.json` are present and the recorded config fingerprint matches the replay configuration. Infrastructure canaries validate the pipeline but are excluded from the paper matrix.
+  - **V1↔V2 Check**: compare only exactly matched cells (dataset/split, backbone, GU method, selector algorithm and version, ratio, seed, candidate/budget, and training hyperparameters). If V1 provenance cannot establish an exact match, label the pair non-comparable.
+  - Report paired V2−V1 deltas for F1/attack effect, retrain gap, prediction shift, and update-detection AUC; report selected-node overlap only when selector semantics are unchanged, and explicitly flag sign or method-ranking reversals.
+  - Do not pool V1 and V2 rows. Primary tables and claims use V2 only; the compact V1↔V2 table is a reproducibility audit, not extra sample size or a formal equivalence claim.
 
 ## Evidence binding
 
 - Existing draft: `overleaf/sec/4_experiment.tex`
 - Phase B config: `experiments/configs/phase_b_arxiv*.yaml`, `phase_b_cora_*.yaml`
 - 4.6 sourcing: `self/limitations.md`
+- 4.7 runner contract: `experiments/run.py`, `experiments/configs/README.md`
+- 4.7 Cache/Legacy boundary: `docs/cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md`, `docs/cache_v2_cutover_archive_readiness_ACCEPTANCE_REPORT.md`
 
 ## Open questions
 
 - **Q-4.6.1**: §4.6 lives here (protocol) or moved to §5 as "scaling validation" prelude? *Current vote: §4.6 — protocol stays with protocol.*
 - **Q-4.3**: report power-analysis explicitly for the 3-seed arxiv setting?
+- **Q-4.7**: claim formal V1/V2 equivalence only if metric-specific margins are fixed before inspecting replay results; otherwise retain the default descriptive stability audit.
 
 ## Cross-refs
 

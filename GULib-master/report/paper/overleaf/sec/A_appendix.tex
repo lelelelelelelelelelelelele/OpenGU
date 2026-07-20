@@ -57,9 +57,12 @@ gradient inner-products between training and validation losses:
 \nabla_\theta\mathcal{L}(f_{\theta_c};V_{\mathrm{val}})
 \right\rangle .
 \end{equation}
-The checkpoints $\theta_c$ are sampled periodically across training; we
-rank by $|\mathrm{TracIn}(v)|$ and run the main matrix in the
-L2-\textsc{direct} setting.
+The checkpoints $\theta_c$ are sampled periodically across training.  In this
+revision, Eq.~\eqref{eq:tracin} denotes the paper-aligned trajectory selector
+validated in the isolated gate of Appendix~\ref{app:approx-validity}.  The
+historical main-matrix TracIn artifacts predate this contract and use a
+deployed cross-final direction; they are not evidence for
+Eq.~\eqref{eq:tracin} and require a versioned refresh before production use.
 
 \paragraph{Influence Maximization.}
 We treat the GNN receptive field as a diffusion graph and select nodes
@@ -78,7 +81,9 @@ Hybrid ranks candidates by
 where $\widetilde{\cdot}$ denotes min-max normalization. We treat
 $\alpha$ as a mixing coordinate: $\alpha=0$ is the IM endpoint,
 $\alpha=1$ is the TracIn endpoint, and $\alpha=0.5$ is used in the main
-matrix.
+matrix.  Because the historical Hybrid artifacts inherit the deployed
+cross-final branch, any paper-aligned Hybrid conclusion remains gated on a
+versioned trajectory-score parent artifact.
 
 \paragraph{Batched CELF.}
 We adopt CELF++~\cite{goyal2011celf++} with two modifications:
@@ -95,9 +100,11 @@ Appendix~\ref{app:imseed}.
 \subsection{TracIn for GNNs}
 For node classification we treat the per-node training loss as
 $\mathcal{L}_v = \mathrm{CE}(f_\theta(v), y_v)$ and the validation loss
-as the mean over $V_{\mathrm{val}}$. We average gradients across 5
-evenly spaced checkpoints (epochs 20, 40, 60, 80, 100) and weight by
-the checkpoint learning rate.
+as the mean over $V_{\mathrm{val}}$.  The isolated V2 gate uses five
+post-update checkpoints (epochs 1, 10, 25, 50, and 100), weighted by the
+learning rate of the update that produced each checkpoint.  This configuration
+is prototype evidence, not a claim that the production runner already uses the
+same artifact contract.
 
 \subsection{Compute Resources}
 Cora and Citeseer experiments fit on a single 4090 (24~GB); ogbn-arxiv
@@ -228,6 +235,123 @@ ${\approx}18\%$ at $h{=}2$, $4.5\%$ at $h{=}3$). The Partition pair
 shows broad flips across all hop buckets ($35$--$40\%$ at $h{=}1$,
 $20\%$+ even at $h{>}3$), consistent with shard re-training rather
 than localised approximation drift.
+
+\section{Influence-Selector Taxonomy and Concordance}
+\label{app:if-gif-taxonomy}
+
+We separate the influence-family selectors by the object they score.
+The target-free A/B group measures gradient magnitude
+$\lVert g_v\rVert$ or curvature-adjusted parameter displacement
+$\lVert H^{-1}g_v\rVert$.  The C group contains evaluation-conditioned
+IF scores whose source is either $g_v$ or the original-graph affected-set
+gradient $\mathrm{grad1}_v$.  The D group is reserved for graph-aware GIF
+and therefore uses the full deletion source
+$\mathrm{grad1}_v-\mathrm{grad2}_v$.  Legacy cross-TracIn and topology
+selectors are external controls rather than D-group methods.
+
+\begin{table}[h]
+\centering
+\small
+\caption{\textbf{Within- and cross-group selector concordance.}
+Spearman correlations are descriptive means over three Planetoid datasets
+and three seeds with a two-layer GCN.  A/B, C, and D denote parameter-change,
+IF, and graph-aware GIF groups, respectively.}
+\label{tab:if-gif-concordance}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Test & Comparison & Spearman \\
+\midrule
+A/B proxy & A vs. B reference & $0.962$ \\
+C/D separation & C-simple vs. D-full & $0.040$ \\
+D final proxy & P-graph vs. D-full & $0.984$ \\
+D trajectory & graph CP-3 / CP-6 vs. D-full & $0.498/0.529$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The A/B correlation shows that gradient magnitude is a strong
+Hessian-free proxy for the B ranking in this setting; it does not make
+the two definitions equivalent.  All inverse-Hessian terms are computed
+through iterative IHVP solves; solver, HVP, and probe choices are
+reproducibility details rather than separate selector families.  The
+near-zero C-simple/D-full correlation shows that adding
+the post-deletion graph term is a mechanism change, whereas the high
+P-graph/D-full correlation shows that the Hessian can be removed reliably
+when the D source is held fixed.  B reference versus D-full ($0.023$) and
+C-point versus D-full ($0.112$) provide additional cross-group separation.
+
+This study uses $3$ datasets $\times$ $3$ seeds and deletion budgets
+$k\in\{3,7,14\}$.  It evaluates local rankings and set-deletion outcomes;
+it is not an end-to-end graph-unlearning comparison and supports no
+significance claim.  Production registration of the proper-TracIn selector
+is governed by a separate cache/recipe gate.
+
+\section{Approximation Validity of IM and Trajectory Influence Proxies}
+\label{app:approx-validity}
+
+We next ask whether two proxy objectives preserve the signals they claim to
+represent.  This is distinct from Appendix~\ref{app:if-gif-taxonomy}: the
+previous section separates influence targets, whereas this section validates
+representative approximations within their intended axes.
+
+\paragraph{IM coverage is not degree in disguise.}
+Table~\ref{tab:im-degree-validity} reports top-set overlap between IM and
+degree on six datasets.  IM has low Jaccard overlap on every dataset and is
+most distinct on the larger or denser graphs.  Thus its coalition-level
+coverage signal does not reduce to a pointwise degree ranking, although this
+does not imply stronger downstream attack damage.
+
+\begin{table}[h]
+\centering
+\scriptsize
+\caption{\textbf{Set-level validity of the IM coverage proxy.} Jaccard
+overlap between the top IM and degree selections at the recorded 5\% budget.}
+\label{tab:im-degree-validity}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Dataset & Cora & CiteSeer & PubMed & Photo & Computers & CS & Mean \\
+\midrule
+IM vs. degree & 0.187 & 0.177 & 0.061 & 0.046 & 0.030 & 0.032 & 0.089 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Trajectory influence is aligned but not uniformly so.}
+The isolated V2 gate compares the multi-checkpoint score in
+Eq.~\eqref{eq:tracin} with an evaluation-conditioned IF reference over
+$3$ Planetoid datasets, $2$ backbones, and $3$ seeds.
+Table~\ref{tab:tracin-v2-validity} shows that configuration-mean Spearman
+correlations range from $0.762$ to $0.962$.  PubMed/GAT is the explicit
+sensitivity case: its common Top-7 counts fall to $[4,4,1]$ across seeds, so
+the evidence supports typical alignment rather than universal equivalence.
+
+\begin{table}[h]
+\centering
+\small
+\caption{\textbf{Trajectory-proxy alignment with eval-IF.} Spearman is the
+three-seed configuration mean; brackets report common Top-7 nodes for seeds
+$[2024,7,42]$.}
+\label{tab:tracin-v2-validity}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Configuration & Spearman & Common@7 \\
+\midrule
+Cora / GCN     & 0.877 & $[5,6,5]$ \\
+CiteSeer / GCN & 0.950 & $[6,5,4]$ \\
+PubMed / GCN   & 0.908 & $[5,3,5]$ \\
+Cora / GAT     & 0.825 & $[6,7,5]$ \\
+CiteSeer / GAT & 0.962 & $[6,6,5]$ \\
+PubMed / GAT   & 0.762 & $[4,4,1]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Evidence boundary.}
+The IM result is a deterministic set-level selector comparison, and the
+trajectory result is an isolated conditional-prototype gate.  Neither measures
+graph-unlearning damage.  Formal immutable score storage, Legacy-store
+isolation, Hybrid parent identity, and an end-to-end GU canary remain required
+before the trajectory selector can support production or main-matrix claims.
 
 \section{Ablation: IM Selector Seed Decoupling}
 \label{app:imseed}

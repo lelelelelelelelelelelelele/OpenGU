@@ -31,3 +31,11 @@ The authoritative human-readable workflow is [`docs/GIT_WORKFLOW.md`](docs/GIT_W
 ## Human-Readable Reports
 
 For acceptance reports, experiment reports, architecture reviews, milestone summaries, and advisor-facing reports, produce matching Markdown and static HTML files. Markdown is the editable source of truth; both files must agree on conclusions and key numbers. Follow existing `docs/` and `reports/` conventions.
+
+### Obsidian / Markdown layout rules
+
+- Do not remove comparison tables merely because they are wide. Preserve tables when row/column alignment materially improves comparison.
+- If a table is hard to read, first shorten cell text, move formulas or explanations outside the table, or split it into smaller same-purpose tables. Use callouts for definitions, verdicts, warnings, and evidence summaries—not as a blanket replacement for tables.
+- In Obsidian-facing Markdown, write math with `$...$` and `$$...$$`; do not use `\(...\)` or `\[...\]` as the canonical delimiters.
+- For display math inside a callout, prefix the opening delimiter, every equation line, and the closing delimiter with `>`.
+- Visually verify edited tables and formulas in Obsidian reading view. Source-level Markdown checks alone are not sufficient acceptance evidence.

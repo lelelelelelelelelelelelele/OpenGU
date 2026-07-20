@@ -22,9 +22,9 @@ source_main: b46927e86cc2f0d4783a7b544661458881b014d0
 | Git 主线 | local/main 与 origin/main 均为 `b46927e` | 本轮推送后 SHA 与 ahead/behind=`0/0` |
 | Worktree | 从 19 个收敛到 3 个，全部 clean | 主工作区、TracIn WIP、本报告工作区 |
 | 分支 | 已删 26 条本地、6 条远端短期分支 | ancestor、patch-equivalent 或 superseded 审计 |
-| Cache V2 | **当前范围 accepted**；不再作为 E7 的通用 Cache blocker | [`cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md`](cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md) |
+| Cache V2 | **当前范围 accepted**；不再作为 E7 的通用 Cache blocker | [`cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md`](../docs/cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md) |
 | Legacy Cache | active authority/fallback 已收口；物理退休延后 | 970 payload、70 refs、`physical_archive_authorized=false` |
-| IF-target | **已进入 main**：single-seed C-target + 三数据集三 seed B/C matrix | [`c_target_v1_REPORT.md`](../reports/c_target_v1_REPORT.md)、[`bc_target_matrix_REPORT.md`](../reports/bc_target_matrix_REPORT.md) |
+| IF/GIF target | **已进入 main**：single-seed C/D target + 三数据集三 seed A/B–C–D matrix | [`c_target_v1_REPORT.md`](../reports/c_target_v1_REPORT.md)、[`bc_target_matrix_REPORT.md`](../reports/bc_target_matrix_REPORT.md) |
 | E1 / E4 / F4 | 已完成或已有接受结论 | WORKPLAN 的 E1、E4、F4 |
 
 不要重新打开的事项：Cache Gates 2–4、E1 Citeseer stable scope、E4 GraphRevoker 40-cell 修复矩阵、IF-target 本地机制矩阵。Legacy 物理退休是独立工程，不应混入当前 rebuttal 主线。
@@ -60,7 +60,7 @@ source_main: b46927e86cc2f0d4783a7b544661458881b014d0
 
 ## 模块 M5 的真实缺口
 
-TracIn 是现在最容易被“原型已合并”误判成“已经完成”的部分。正式报告的结论仍是 [`CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE`](tracin_v2_gates_ACCEPTANCE_REPORT.md)：
+TracIn 是现在最容易被“原型已合并”误判成“已经完成”的部分。正式报告的结论仍是 [`CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE`](../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md)：
 
 - G1 Recipe identity：partial pass，formal ScoreArtifact/store/conflict gate 缺失；
 - G3 Legacy replay/isolation：partial pass，formal store snapshot gate 缺失；
@@ -68,7 +68,7 @@ TracIn 是现在最容易被“原型已合并”误判成“已经完成”的�
 - G6 GU canary：未运行；
 - 默认 runner/production registry：有意没有接入。
 
-本轮合入的 IF-target 证据解决了“B/C 目标层级与 same-source proxy 是否有效”的机制问题，但它没有自动完成 TracIn production registration，也没有完成 E7 surrogate transfer。两者应作为 M5 的输入证据，而不是把 M5 标成完成。
+本轮合入的 IF/GIF-target 证据解决了“A 对 B 的排序代理、B 的数值估计、C-IF/D-GIF 分界与 same-source proxy 是否有效”的机制问题，但它没有自动完成 TracIn production registration，也没有完成 E7 surrogate transfer。两者应作为 M5 的输入证据，而不是把 M5 标成完成。
 
 ## 推荐并行波次
 
