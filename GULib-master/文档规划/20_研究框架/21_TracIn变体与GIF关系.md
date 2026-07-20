@@ -1,413 +1,289 @@
 ---
-title: TracIn 变体与 GIF 的关系
+title: TracIn、IF 与 GIF 的目标、source 和时间边界
 created: 2026-07-10
+updated: 2026-07-20
 type: framework-note
+status: current-evidence-aligned
 tags: [tracin, gif, influence, concordance, human-readable]
 ---
 
-# TracIn 变体与 GIF 的关系
+# TracIn、IF 与 GIF 的目标、source 和时间边界
 
 这页只解决一个问题：
 
-> 我们说 TracIn、proper TracIn、GIF、self-influence、parameter-change IF 时，到底在算什么？它们为什么会选出不同节点？
+> 两个方法都叫“influence”时，它们究竟是在影响什么、怎样表示删节点、看最终模型还是看整条训练轨迹？
 
-这里不复制所有实验产物。权威数字和脚本仍在 repo：
-
-- [FINDING_tracin_misspecification.md](../../self/related_work/concordance/FINDING_tracin_misspecification.md)
-- [HANDOFF.md](../../self/related_work/concordance/HANDOFF.md)
-- [concordance_model_based.py](../../self/related_work/concordance/concordance_model_based.py)
-- [if_selector_diagnostic.py](../../self/related_work/concordance/if_selector_diagnostic.py)
-- [ifdiag_cora_GCN_r0.05_seed2024.json](../../self/related_work/concordance/data/ifdiag_cora_GCN_r0.05_seed2024.json)
-- [cora_GCN_r0.05_seed2024.json（topology sidecar）](../../self/related_work/concordance/data/cora_GCN_r0.05_seed2024.json)
-- [report.html](../../self/related_work/concordance/report.html)
-
-### 证据与复现契约
-
-本页引用的 `ifdiag_cora_GCN_r0.05_seed2024.json` 是 2026-07-10 生成的 32-probe 历史 artifact（SHA-256：`36f9b68cf083495a53d2d32e5fbd581afeb6bfa71618475a07f658da8998ccf2`）。其中 topology 对照来自 `cora_GCN_r0.05_seed2024.json`（SHA-256：`1ece38c13dd1929b8b5479705c502474fd8bf9f8ae37ded6d9b05a29629dedc4`）。它们早于当前 diagnostic schema v2，因此没有新版 `recipe_hash`；保留原内容是为了让本文数字仍有稳定证据，不把旧文件伪装成新版 artifact。
-
-当前脚本的 canonical reproduction command 是：
-
-```powershell
-E:/conda_package/envs/gnn/python.exe self/related_work/concordance/if_selector_diagnostic.py --dataset_name cora --base_model GCN --unlearn_ratio 0.05 --seed 2024 --num_epochs 100 --batch_size 64 --lissa_iter 100 --lissa_scale 25.0 --lissa_damp 0.01 --hutch_probes 32 --hutch_seed 1729
-```
-
-新版结果声明 diagnostic schema、algorithm version、完整 recipe/config、实现源码 fingerprint 和稳定 recipe hash，默认写入带 recipe hash 的新文件名。已有目标默认不覆盖；`--overwrite` 也只能覆盖 recipe hash 完全相同的新版结果，不能覆盖不同配置或缺少 recipe hash 的旧 artifact。写入采用同目录临时文件后 `os.replace`。
-
-topology sidecar 的路径和内容 hash 也进入 Recipe；它存在时才导入 degree / PageRank / IM 对照。缺少 sidecar 的 clean run 仍能完成 model-based 五种 score，但 topology 对照为空且 Recipe hash 不同，不会冒充完整复现。
-
-证据边界也要一起记住：该命令只跑 CPU selector diagnostic，不执行 GU；Cora follow-up 是单 dataset、单 backbone、单 seed；`||H^-1 g_v||` 是 LiSSA + 32-probe Hutchinson 估计，不是逐节点精确 inverse-Hessian；`E=test_mask` 只用于机制校准，不能直接变成正式攻击的 test-label query。
+当前实验总入口是 [[10_实验矩阵/12_近似策略重合度实验]]。完整数据见 [B/C target matrix](../../reports/bc_target_matrix_REPORT.md)，正式 selection 链路见 [proper-tracin-v1 gate](../../docs/proper_tracin_v1_selection_gate_ACCEPTANCE_REPORT.md)。
 
 ---
 
-## 0. 先记住一句话
+## 0. 先记住三句话
 
-**TracIn 不是一个自动清楚的名字。它必须说明“候选节点梯度在和哪个方向做内积”。**
+1. `<g_v,g_E>` 只是 **single-final eval proxy**，不是标准多 checkpoint TracInCP。
+2. `<g_v,H^-1 g_E>` 是 **point IF**；图删除的 full GIF 还要把候选点对邻居和边的影响放进 source。
+3. “最像 GIF”和“实际删掉 top-k 后伤害最大”是两个不同问题。
 
-统一写法是：
+---
+
+## 1. 用一个通用式看懂大部分方法
+
+对候选删除节点 `v`，记它的训练 loss gradient 为 `g_v`。很多 target-aware selector 都可以写成：
 
 ```text
-score(v) = <g_v, u>
+score(v) = <source_v, target_direction>
 ```
 
-其中：
+这里有三个独立选择：
 
-- `v` 是候选删除节点；
-- `g_v = grad loss_v` 是这个候选节点自己的训练损失梯度；
-- `u` 是参考方向；
-- 不同 TracIn / GIF 的区别，主要就在 `u` 是什么。
+- `target_direction`：想伤害谁；
+- `source_v`：怎样表示“删掉节点 v”；
+- checkpoint policy：只看最终模型，还是沿训练轨迹累计。
 
-所以真正要问的不是“这是不是 TracIn”，而是：
-
-> 这个 selector 用候选节点 `g_v` 去投影哪个目标方向？
+方法名容易漂移，这三个选择不会。
 
 ---
 
-## 1. T 和 E 先分清
+## 2. `T` 和 `E`：从哪里挑，想伤害谁
 
-这个问题里最容易混的是 `T` 和 `E`。
-
-| 符号 | 是什么 | 作用 |
+| 符号 | 含义 | 作用 |
 |---|---|---|
 | `T` | training / candidate pool | 从这里挑要 unlearn 的节点 |
 | `E` | evaluation / query set | 定义“我们关心哪个 loss 变坏” |
 
-**E 不是要删除的节点池。**
-
-一个 selector 的目标可以是：
+`E` 不是删除候选池。目标是：
 
 ```text
-从 T 里挑节点 v，
-让删除 v 后，
-E 上的 loss 变化最大。
+从 T 里挑 v，预测删掉 v 后 E 上的 loss 如何变化。
 ```
 
-诊断实验里可以用 test split 当 `E` 来校准 GIF / TracIn，因为这是机制诊断；真正攻击设定里不能拿真实 test label 来选点，否则是 label leakage。攻击里更合理的是 validation/query set 或 pseudo-labeled probe set。
+机制诊断可以用 test split 当 `E`；正式攻击选点不能用真实 test labels，否则是 label leakage。正式路径使用 validation/query set 或明确记录 teacher 的 pseudo-label probe set。
 
 ---
 
-## **2. 先按“影响谁”分三组**
+## 3. 目标轴：A / B / C 不是一回事
 
-不要先背公式。先问一句：
+| 层 | 分数 | 回答的问题 | 需要 `E` |
+|---|---|---|---|
+| A · gradient magnitude | `||g_v||` | 这个点自己的训练梯度大不大 | 否 |
+| B · parameter change | `||H^-1 g_v||` | 删掉它后参数预计移动多远 | 否 |
+| C · target impact | `<source_v,H^-1 g_E>` | 这次变化是否会伤害 `E` | 是 |
 
-> 我现在想选“对谁影响大”的训练点？：
+当前 3 datasets × 3 seeds 的实验中：
 
-| 组 | 代表 score | 需要 `E` 吗 | 需要 `H^-1` 吗 | 它问什么 |
-|---|---|---|---|---|
-| A. training-objective / model-state | `||g_v||` 或 `||g_v||^2` | 不需要 | 不需要 | 这个点自己的训练 loss 梯度大不大 |
-| B. parameter-change IF | `||H^-1 g_v||` | 不需要 | 需要 | 删除这个点会不会让参数移动很大 |
-| C. eval / generalization impact IF | `<grad L_E, H^-1 g_v>` | 需要 | 需要 | 删除这个点会不会影响 `E` 上的 loss |
+- A vs B-LiSSA Spearman = `0.962`；
+- B-Hutchinson vs B-LiSSA = `0.968`；
+- B-LiSSA vs C-full GIF = `0.023`。
 
-其中 C 也常写成：
+读法是：A/B 在当前矩阵里经验上很像，但不是定义等价；B/C 则明确在问不同的问题。
 
-```text
-<g_v, H^-1 grad L_E>
-```
+### 3.1 B-Hutchinson 到底在做什么
 
-如果 Hessian 近似看成对称矩阵，这两个写法是同一件事：一个是“先把候选点方向曲率修正”，一个是“先把 eval 方向曲率修正”。
-
-所以，不是“只有两组”。概念上是三组：
+它不是一个新 influence 目标，而是 B 的快速算法：
 
 ```text
-||g_v||                 -> 训练目标 / 自身梯度 magnitude
-||H^-1 g_v||            -> 参数变化 / model-editing impact
-<grad L_E, H^-1 g_v>    -> eval 或泛化影响
+参考 B-LiSSA：对很多候选点分别估计 H^-1 g_v
+
+B-Hutchinson：
+  先对少量共享随机 probe 求 H^-1 z_r
+  再用这些共享结果估计每个 ||H^-1 g_v||
 ```
 
-只是 2026-07-10 的 Cora/GCN first-pass 里，A 和 B 的 top-k 很像，所以看结果会像“两团”。这不代表它们概念上是一组。
-
-旧 deployed cross-TracIn 不是第四组干净目标。它是旧代码实际用过的 legacy selector，应该单独当反例看。
+所以 Hutchinson 是“多个候选点共用一批曲率探针”，不是把 HVP 删掉。
 
 ---
 
-## 3. 五个分数在问什么
+## 4. source 轴：point IF 不是 full GIF
 
-### 3.1 deployed cross-TracIn：旧代码实际在算什么
+在 GNN 中，删掉一个节点不仅删掉它自己的 loss，还会删边并改变邻居收到的 message。
 
-旧代码的分数可以写成：
+| 名称 | source | 看到的删除效应 |
+|---|---|---|
+| point | `g_v` | 只看候选点自己的 loss gradient |
+| simple | `a_v=grad1_v` | 原图上加入受影响邻域 |
+| full graph | `q_v=grad1_v-grad2_v` | 显式加入删边后邻居梯度的变化 |
 
-```text
-score_cross(v) = <g_v, - sum_{j in T} g_j>
-```
-
-也就是：候选节点 `v` 的梯度，和“所有候选/训练节点梯度之和的负方向”做内积。
-
-它问的是：
-
-> 这个节点的梯度，是否和训练梯度残差方向对齐？
-
-问题在于，训练收敛后 `sum_j g_j` 并不等于我们关心的 `grad L_E`。在 L2 regularization 下，训练梯度和正则项满足近似平衡：
+因此：
 
 ```text
-(1 / |T|) sum_{j in T} g_j + lambda * theta ~= 0
+point IF      = <g_v, H^-1 g_E>
+simple IF     = <a_v, H^-1 g_E>
+full GIF ref  = <q_v, H^-1 g_E>
 ```
 
-所以：
+实验上：
 
-```text
-- sum_j g_j ~= |T| * lambda * theta
-```
+- point IF vs full GIF Spearman = `0.112`；
+- simple IF vs full GIF = `0.040`；
+- 固定 full source 后，`p_graph=<q_v,g_E>` vs `gt_full` = `0.984`。
 
-这说明 deployed cross-TracIn 大致是在看：
+结论不是“IF 无效”，而是：
 
-```text
-<g_v, parameter / regularization direction>
-```
-
-它不是在问“删除这个点会不会让 E 的 loss 变坏”。它更像在问“这个点的梯度是否沿着参数/正则残差方向”。
-
-这就是为什么它和 GIF 重合低：它瞄准的方向本来就不一样。
+> 要近似 full GIF，先要用同一个 graph-deletion source；不能靠 Hessian 或更多 checkpoint 弥补 source 定义的错位。
 
 ---
 
-### 3.2 proper TracIn：Hessian-free 的 eval-impact proxy
+## 5. 时间轴：single-final 不是 TracInCP
 
-proper TracIn 的分数是：
-
-```text
-score_proper(v) = <g_v, grad L_E>
-```
-
-其中：
+### 5.1 single-final eval proxy
 
 ```text
-L_E = sum_{e in E} loss_e
+score_final(v) = <source_v(theta_final), g_E(theta_final)>
 ```
 
-它问的是：
+它只问：在最终模型上，候选 source 与目标 loss 梯度是否对齐。历史文档把 point 版 `<g_v,g_E>` 叫作 `proper TracIn`；这个命名已经废止。
 
-> 这个候选节点的训练梯度，是否和 evaluation/query loss 的梯度方向一致？
+### 5.2 TracInCP
 
-直觉上，如果 `g_v` 和 `grad L_E` 对齐，说明这个训练点和 E 上的 loss 方向关系更强。删除这个点时，E 上的 loss 可能更受影响。
+```text
+score_TracInCP(v) = sum_c w_c <source_v(theta_c), g_E(theta_c)>
+```
 
-它叫 Hessian-free，是因为它没有乘 `H^-1`。它只做梯度内积，所以成本和旧 deployed TracIn 基本同阶。
+它沿多个 checkpoint 累计影响，必须说明：
+
+- checkpoint 是哪些；
+- 每个 checkpoint 用什么权重；
+- target `E`、loss、符号和排序方向；
+- point / simple / full graph 哪个 source。
+
+当前 graph source 的 3/6-checkpoint 版本对 final `gt_full` 的 Spearman 只有 `0.498/0.529`，低于 single-final `p_graph=0.984`。这不表示 TracInCP 没有用；它表示 trajectory score 和 final-state GIF reference 本来就不是同一个时间对象。
+
+### 5.3 self-influence 也要分 final 和 trajectory
+
+```text
+final grad norm:       ||g_v(theta_final)||^2
+TracInCP self:         sum_c w_c ||g_v(theta_c)||^2
+```
+
+两者都不需要 `E`，但不能因为都叫 self-influence 就混为同一实现。
 
 ---
 
-### 3.3 GIF / real influence：proper TracIn 加上曲率修正
+## 6. Legacy deployed cross-gradient 到底是什么
 
-GIF 的 eval-impact 形式可以写成：
-
-```text
-score_GIF(v) = <g_v, H^-1 grad L_E>
-```
-
-它问的是：
-
-> 考虑训练 loss 曲率以后，这个候选节点对 E 的 loss 影响有多大？
-
-和 proper TracIn 比，它们关心的是同一个目标 `E`，但 GIF 多了一个 `H^-1`：
+旧 `attack/attack_strategies/tracin_strategy.py` 计算：
 
 ```text
-proper TracIn:  u = grad L_E
-GIF:            u = H^-1 grad L_E
+score_legacy(v) = <g_v, -sum_{j in T} g_j>
 ```
 
-所以可以这样理解：
-
-> proper TracIn 是不看地形坡度修正的方向；GIF 是经过 Hessian 曲率预条件化后的方向。
-
-如果 proper TracIn 和 GIF 高重合，说明 Hessian-free proxy 对这个 eval-impact 目标是有用的。它不是完全等价，因为 `H^-1` 会改变方向，但它们至少在问同一个问题。
-
----
-
-### 3.4 self-influence / grad-norm：training-objective magnitude
-
-self-influence 常写成：
+在 L2 regularization 下，训练收敛点近似满足：
 
 ```text
-score_self(v) = <g_v, g_v> = ||g_v||^2
+(1/|T|) sum_j g_j + lambda * theta ~= 0
 ```
 
-它问的是：
+所以 `-sum_j g_j` 更像参数/正则残差方向，而不是 `g_E`。它不是随机噪声，而是在稳定地按另一个目标排序。
 
-> 这个点自己的梯度范数大不大？
-
-它没有一个固定的 `u`。每个候选节点都拿自己和自己比。
-
-所以 self-influence 不能简单当成 proper TracIn 或 GIF 的替代品。它更接近“这个点自己的训练 loss 梯度是不是很大”，而不是“它对某个 held-out/query loss 方向影响大不大”。
-
-它也不等于 parameter-change IF。parameter-change IF 还要看 `H^-1` 曲率修正。
+历史三数据集诊断中，它与 eval-target IF diagnostic 的 top-k overlap 只有 `0.098–0.142`。因此旧结果只能标作 `deployed-cross-gradient-legacy`，不能当作 TracInCP 或 full GIF 证据。
 
 ---
 
-### 3.5 parameter-change IF：model editing 意义上的“参数影响大”
+## 7. 你刚才问的工程词，用人话怎么理解
 
-如果你的本意是：
+### 7.1 “Adam 不能直接冒充论文 SGD TracIn”
 
-> 选出删除后会让模型参数 / 模型状态改变很大的点。
+TracIn 论文里的直觉是：一步参数更新大致等于“学习率 × 梯度”。Adam 还会对每个参数做不同的动量和缩放。
 
-那更贴近 IF / model editing 的分数是：
+所以我们现在的 Adam 路径可以当作一个有用的轨迹启发式，但不能写成严格重放了论文中的 SGD/GD 更新。当前正式名称是 `adam_lr_weighted_gradient_heuristic`。
+
+### 7.2 “node loss 不等于 graph deletion”
+
+普通表格数据里，删一条训练样本主要少一项 loss。GNN 里删节点还会删边，邻居的 message 和表示也会变。
+
+因此 point `g_v` 只是“这个节点自己”；full source `grad1-grad2` 才进一步表示“它从图上被删掉后，邻居也变了”。
+
+### 7.3 Recipe / Producer / Artifact 是什么
+
+| 工程词 | 人话 | 为什么要有 |
+|---|---|---|
+| Recipe | 这次 score 到底怎么算的完整配方 | 配方变了就不能误命中旧结果 |
+| ProducerVersion | 哪一版代码实现了这个配方 | 同名算法改了实现时仍然可追溯 |
+| Score Artifact | 实际保存的候选 ID、score 和排名文件 | 下游选点和实验知道自己使用了哪份 score |
+
+可以把它们理解成：
 
 ```text
-Delta theta_v ~= - H^-1 g_v
-score_param(v) = ||H^-1 g_v||
+Recipe = 菜谱
+ProducerVersion = 厨师和做法版本
+Artifact = 最后端上来的那盘菜
 ```
 
-它问的是：
+名字都叫 TracIn 不够；菜谱、做法版本或 target `E` 不同，就必须是不同结果身份。
 
-> 如果只删除这个训练点，近似更新方向会不会很大？
+### 7.4 CPU / GPU numerics 边界
 
-这个目标不需要 `E`，所以它不是 test-set influence。它也不是 proper TracIn / GIF 那条 eval-impact 线。它是另一组：parameter-change IF。
+同一公式在不同 Torch/CUDA/CPU 上可能差最后几位小数。我们不把两份不同的浮点内容强行冒充同一 Artifact；但会另外检查排名相关、top-k 和并列情况。
 
-实际计算上，逐候选点精确求 `H^-1 g_v` 很贵。这次诊断用 Hutchinson shared probes 估计 `||H^-1 g_v||`，目的是先看 selector 集合会不会和 `||g_v||`、eval-impact IF、degree、IM 混在一起。
+这就是为什么 cross-machine gate 同时报告：绝对数值差、Spearman/Kendall、ordered top-k 是否一致。
 
----
+### 7.5 “Hybrid 必须绑定父 Artifact”
 
-## 4. 一张表记住边界
-
-| 名称 | 分数 | 参考方向 `u` | 它真正问的问题 | 和 GIF 的关系 |
-|---|---|---|---|---|
-| deployed cross-TracIn | `<g_v, -sum_T g_j>` | 训练梯度残差 / 正则方向 | 这个点是否沿参数残差方向 | 目标错位，重合低 |
-| proper TracIn | `<g_v, grad L_E>` | evaluation/query loss 梯度 | 这个点是否影响 E 的 loss | 和 GIF 同目标，少 `H^-1` |
-| GIF | `<g_v, H^-1 grad L_E>` | 曲率修正后的 E 梯度 | 考虑 Hessian 后影响 E 的 loss | 小图 gold/reference |
-| self-influence / grad-norm | `<g_v, g_v>` 或 `||g_v||` | 候选点自己的梯度 | 这个点自身训练梯度大不大 | 不是固定 E 目标 |
-| parameter-change IF | `||H^-1 g_v||` | 不是投影到固定 `u`，而是删除点的 IF 更新范数 | 删除这个点会不会让参数移动很大 | 不是 eval-impact GIF，但同属 IF/model-editing 线 |
-
----
-
-## 5. 当前重合度说明了什么
-
-下面第一张三数据集表来自既有 model-based concordance artifacts；各数据集都在各自的 seeded trained base GCN 上比较 selector，`k = 0.05 * |V_train|`，不是新版 Cora follow-up 一次运行的联合输出。
-
-| pair | cora | citeseer | pubmed | 读法 |
-|---|---:|---:|---:|---|
-| GIF vs proper TracIn | 0.742 | 0.727 | 0.647 | 高重合：proper TracIn 是 reasonable Hessian-free eval-impact proxy |
-| GIF vs deployed cross-TracIn | 0.113 | 0.142 | 0.098 | 低重合：旧实现没有对准 eval-impact IF |
-| GIF vs self-influence | 0.249 | 0.298 | 0.133 | 中间：梯度范数有信号，但不是同一目标 |
-| GIF vs degree | 0.024 | 0.051 | 0.041 | 几乎正交：真实 IF 也不是 degree |
-| proper TracIn vs degree | 0.024 | 0.043 | 0.045 | proper TracIn 也不是结构中心性 |
-
-这里最重要的不是背数字，而是理解结论：
-
-1. **proper TracIn 和 GIF 靠得近**，因为它们都关心 `E` 上的 loss sensitivity。
-2. **deployed cross-TracIn 和 GIF 离得远**，因为旧实现用的是 training residual / regularization direction。
-3. **GIF / proper TracIn 和 degree 都离得远**，说明 influence signal 和 structural-volume signal 不是同一批节点。
-
-这也是为什么“degree 强”这个发现仍然重要：如果 correct influence selector 仍然和 degree 几乎正交，那么 degree 的强不是因为它偷偷近似了 GIF，而是因为 approximate unlearning 里结构 volume 可能是另一条更致命的攻击信号。
-
-2026-07-10 的历史 32-probe artifact 又补了一次 Cora/GCN 三组 score 诊断，用来回答“参数影响大、训练目标影响大、泛化影响大是不是同一批点”：
-
-| pair | Jaccard@k | 读法 |
-|---|---:|---|
-| `||H^-1 g_v||` vs `||g_v||` | 0.8462 | parameter-change IF 和 grad-norm 在 Cora/GCN 上很接近 |
-| `||H^-1 g_v||` vs eval-impact GIF | 0.2343 | 参数扰动大不等于 eval/generalization 影响大 |
-| proper TracIn vs eval-impact GIF | 0.7419 | Hessian-free eval-impact proxy 仍然靠谱 |
-| deployed cross-TracIn vs eval-impact GIF | 0.1134 | 旧实现仍然没对准 eval-impact |
-| `||H^-1 g_v||` vs degree / IM | 0.0385 / 0.0435 | parameter-change IF 也不是 topology selector |
-
-所以这页最终应该这样读：
-
-> 设计上是三组影响目标；实验上 Cora/GCN 里前两组很像，第三组不同。旧 deployed cross-TracIn 不算干净目标，只是 legacy selector。
-
----
-
-## 6. 为什么旧解释要修正
-
-以前容易说成：
-
-> 训练收敛后 `sum grad ~= 0`，所以 deployed TracIn 是噪声。
-
-这个说法不对。
-
-更准确的是：
+Hybrid 是把 TracIn 和 IM 两份上游 score 融合。因此它必须记录：
 
 ```text
-sum_j g_j 不是 0；
-它大致对应 L2 regularization residual；
-所以 deployed cross-TracIn 不是随机噪声，
-而是在稳定地按“错误方向”排序。
+我融合的是哪一份 TracIn Score Artifact
+我融合的是哪一份 IM Artifact
+alpha / normalization / tie-break 是什么
 ```
 
-这点很关键。因为如果它只是噪声，那结论是“实现坏了”。但如果它是错误方向，那结论更具体：
+否则一个 Hybrid 结果出问题时，我们无法判断是 TracIn、IM 还是融合参数造成的。
 
-> 它在选择和参数/正则残差方向对齐的点，而不是选择影响 held-out/query loss 的点。
+### 7.6 “Legacy cache 冻结”
 
-这个解释能说明为什么它有一点点信号，但不接近 GIF。
+它不是说删掉旧 cache。正确操作是：
+
+- 旧 cache 保留，只读，用来追溯旧结果；
+- 新公式用新 Recipe / Artifact 身份；
+- 新路径 miss 时不能悄悄 fallback 到旧 TracIn；
+- 不通过“清 cache”来偷偷切换算法定义。
 
 ---
 
-## 7. 和论文 claim 的关系
+## 8. 当前证据的最短正确读法
 
-这件事会影响的 claim：
+| 观察 | 可以说 | 不能说 |
+|---|---|---|
+| A/B Spearman `0.962` | 当前矩阵上两者排序很像 | A 在定义上就等于 B |
+| B-Hutch vs B-LiSSA `0.968` | shared-probe 可有效近似 B | Hutchinson 是一个新 influence 目标 |
+| `p_graph` vs `gt_full` `0.984` | 固定 full source 后可有效去掉 Hessian | `p_graph` 数学上等于 exact GIF |
+| point/simple vs full GIF 低相关 | source 不能省略 | point/simple IF 没有自己的用途 |
+| checkpoint graph 对 final GIF 忠实度低 | trajectory 不等于 final-state GIF | TracInCP 无效 |
+| point checkpoint damage 更大 | fidelity 和 damage 必须分开验收 | GIF reference 没意义 |
 
-| claim | 当前状态 |
+---
+
+## 9. 旧文档和旧结果的处理
+
+| 旧名称 / 结果 | 新处理 |
 |---|---|
-| 旧 TracIn attack outcome 代表 proper IF selector | 不稳，应该 refresh 或改名 |
-| Hybrid 结果完全干净 | 不稳，因为 Hybrid 复用了 TracIn 分支 |
-| random / degree / pagerank / IM 结果 | 不受这个 TracIn 定义问题影响 |
-| degree / structural-volume 是独立强信号 | 仍然有支撑，因为 GIF / proper TracIn 都和 degree 低重合 |
-| influence-based selector 一定弱于 degree | 不能现在写死，要等 proper TracIn / Hybrid rerun 后再判断 |
-| parameter-change IF 和 eval-impact IF 是同一个 selector | 不能这么说；Cora/GCN 上二者 Jaccard 只有 0.2343 |
+| `proper TracIn = <g_v,g_E>` | 改称 `single-final point eval proxy` |
+| `GIF = <g_v,H^-1g_E>` | 改称 `point IF reference`；full GIF 使用 `q_v=grad1-grad2` |
+| deployed `TracInStrategy` | `deployed-cross-gradient-legacy` |
+| 旧 TracIn / Hybrid attack cells | 保留为 produced history，不当 proper TracIn evidence |
+| 2026-06 concordance `0.65–0.74` | 保留为 single-final point diagnostic 的历史证据 |
 
-一句安全口径：
-
-> 旧 deployed TracIn 不能作为 proper eval-impact IF 的证据；但 concordance 也显示，correct eval-impact IF 与 degree 选择的是不同节点，因此 structural-volume signal 和 influence signal 是两条不同轴。
+历史 finding 已按这个口径降级：[FINDING_tracin_misspecification.md](../../self/related_work/concordance/FINDING_tracin_misspecification.md)。
 
 ---
 
-## 8. 明天学习时按这个顺序读
+## 10. 自测问题
 
-### Step 1：先看 `score(v)=<g_v,u>`
-
-只要记住不同方法的核心区别是 `u`，就不会被名字绕晕。
-
-### Step 2：问每个公式“它影响谁”
-
-- 影响训练目标 / 自身梯度 magnitude？对应 `||g_v||`。
-- 影响删除后的参数变化？对应 `||H^-1 g_v||`。
-- 影响 held-out/query loss？对应 `<grad L_E, H^-1 g_v>` 或 `<g_v, H^-1 grad L_E>`。
-- 影响 training residual / regularization direction？这是旧 deployed cross-TracIn，目标不干净。
-
-如果说不出“影响谁”，公式就还没懂。
-
-### Step 3：再看 Jaccard 表
-
-不要把 Jaccard 当最终目的。它只是回答：
-
-> 两个公式最后选出来的是不是同一批节点？
-
-Jaccard 高，说明两个 selector 的 top-k 集合接近；Jaccard 低，说明它们在 attack 预算下实际删除的是不同对象。
-
-### Step 4：最后回到研究问题
-
-我们真正关心的是：
-
-> Approximate graph unlearning 的脆弱性，到底更像 model influence 问题，还是更像 structural volume / coverage 问题？
-
-TracIn/GIF 这组工作是在把 model influence 这条线清理干净。degree/IM/concordance 是在检查 structural / coverage 这条线是不是独立。
+1. `T` 和 `E` 分别是什么？为什么 `E` 不是删除候选池？
+2. A、B、C 分别影响谁？
+3. point IF 和 full GIF 的 source 差在哪里？
+4. single-final proxy 和 TracInCP 的时间差在哪里？
+5. 为什么 Adam LR-weighted score 只能标作 heuristic？
+6. Recipe、ProducerVersion、Artifact 各自防止什么混用？
+7. 为什么 Hybrid 必须记录它的 TracIn / IM 父 Artifact？
+8. 为什么旧 cache 应保留只读，而不是删掉？
 
 ---
 
-## 9. 自测问题
+## 11. 证据入口
 
-明天读完可以用这几个问题检查自己：
-
-1. `T` 和 `E` 分别是什么？为什么 E 不是 deletion candidate pool？
-2. deployed cross-TracIn 的 `u` 是什么？为什么它不是 `grad L_E`？
-3. proper TracIn 和 GIF 的唯一核心差别是什么？
-4. `||g_v||` 和 `||H^-1 g_v||` 概念上为什么不是同一组？为什么 Cora/GCN 上又会高重合？
-5. self-influence 为什么不能简单叫 proper TracIn？
-6. GIF vs proper TracIn 高重合说明什么？不能说明什么？
-7. GIF / proper TracIn vs degree 低重合，对 structural-volume claim 有什么意义？
-8. 为什么旧 TracIn / Hybrid 结果需要 refresh，但 random / degree / pagerank / IM 不需要？
-
----
-
-## 10. 当前下一步
-
-研究上下一步不是“再堆一个表”，而是把这条链闭合：
-
-```text
-定义干净的 selector
-  -> 看它和 GIF / degree / IM 的重合度
-  -> 用 proper TracIn / Hybrid rerun attack outcome
-  -> 连接 overlap-with-degree 与 attack damage
-  -> 判断 structural-volume 是否真的比 influence 更能解释脆弱性
-```
-
-目前已经比较稳的是：
-
-- proper TracIn 是 eval-impact GIF 的便宜近似；
-- deployed cross-TracIn 不是；
-- correct influence selector 和 degree 仍然选不同节点；
-- 所以不能用旧 TracIn outcome 给 IF 线下最终结论，但可以继续推进“结构 volume 与 influence 是不同轴”的论证。
+- [B/C target matrix 报告](../../reports/bc_target_matrix_REPORT.md)
+- [C-target 实验计划与结果](../10_实验矩阵/21_C目标TracIn与GIF近似有效性实验计划.md)
+- [TracIn V2 prototype gates](../../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md)
+- [proper-tracin-v1 selection gate](../../docs/proper_tracin_v1_selection_gate_ACCEPTANCE_REPORT.md)
+- [历史 concordance finding](../../self/related_work/concordance/FINDING_tracin_misspecification.md)
+- [历史 selector diagnostic](../../self/related_work/concordance/if_selector_diagnostic.py)
