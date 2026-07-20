@@ -1,7 +1,7 @@
 ---
 title: CPU-GPU 估时与资源分工
 created: 2026-07-09
-updated: 2026-07-16
+updated: 2026-07-09
 type: runtime-estimation
 tags: [runtime, cpu, gpu, im, tracin, resource-planning]
 ---
@@ -16,8 +16,8 @@ tags: [runtime, cpu, gpu, im, tracin, resource-planning]
 原始来源：
 
 - [experiments/im_benchmark/docs/runtime_estimation.md](../../experiments/im_benchmark/docs/runtime_estimation.md)
-- [SERVER_RUNBOOK.md](../../SERVER_RUNBOOK.md)
-- [ARXIV_RUNBOOK.md](../../ARXIV_RUNBOOK.md)
+- [当前 WORKPLAN](../../self/dashboard/WORKPLAN.md)
+- [[15_实验运行入口与脚本]] 与 [[16_4090小数据集运行与回收]]
 
 ---
 
@@ -30,38 +30,6 @@ tags: [runtime, cpu, gpu, im, tracin, resource-planning]
 | TracIn / Hybrid 的 IF 分数 | GPU 显存 + backward | arxiv 需要 80GB 级别；小图 4090 足够 |
 | collateral retrain | GPU 显存 + retrain | 小图 4090 足够；arxiv 24GB 边缘或 OOM |
 | aggregate / plot / paper table | CPU / 文件 IO | 本地可以做，不需要 GPU |
-
-这里要特别拆开两个容易混在一起的词：
-
-- **Selection 不等于只用 CPU。** random / degree / PageRank / IM 主要在 CPU；TracIn 需要对候选点做梯度计算，主要吃 GPU 与 backward，Hybrid 同时继承 TracIn 和 IM 两侧成本。
-- **AUC 的最后一步 `roc_auc_score` 在 CPU，但 AUC 不等于纯 CPU 指标。** 它前面还要生成 before/unlearn posterior；单模方法需要 forward，GraphEraser / GraphRevoker 还包含逐 shard 查询与模型/文件 IO。这部分才是大图上值得关闭的成本。
-
----
-
-## Update-detection AUC 的数据集开关（2026-07-16 已实施）
-
-Update-detection AUC 是 secondary metric，不再作为所有数据集的强制完成条件。策略由 YAML 显式决定，不在代码里按数据集名称或节点数猜测：
-
-~~~yaml
-defaults:
-  # Cora / Citeseer 等小数据集
-  run_update_detection_auc: true
-~~~
-
-~~~yaml
-defaults:
-  # ogbn-arxiv 等大数据集
-  run_update_detection_auc: false
-~~~
-
-| 配置 | 执行语义 | 结果语义 |
-|---|---|---|
-| `true` | 计算各方法现有 posterior-shift AUC | `attack.json::mia_auc` 为有限数；gate 检查不塌缩 |
-| `false` | 跳过 posterior 生成和 AUC 计算 | `attack.json::mia_auc = null`；`_meta.json` 标记 `disabled_by_config`；gate 不把它当缺失 |
-
-默认值仍是 `true`，保证没有新增字段的旧 YAML 行为不变；正式小图与 arxiv YAML 已分别显式写出 `true` / `false`。
-
-这个开关只控制 Evaluation 请求，不进入 Score / Selection identity，也不改变 TracIn、IM 的选点缓存。当前 runner 的完整 `defaults` 会进入 cell fingerprint，因此同一 cell 的“计算 AUC”和“关闭 AUC”结果不会误判为同一份完整实验产物。
 
 ---
 

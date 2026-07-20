@@ -1,7 +1,7 @@
 ---
 title: Cache V2 架构与 Legacy 迁移方案
 created: 2026-07-10
-updated: 2026-07-16
+updated: 2026-07-14
 type: cache-architecture-design
 status: v2.1-readonly-index-implemented
 tags: [cache, artifact, dependency-dag, migration, prediction, evaluation]
@@ -767,38 +767,6 @@ PredictionArtifact 已保存三套 logits、`y`、mask 和 selected nodes，因�
 
 每种定义产生独立 EvaluationArtifact。旧 `mia_auc` 只作为 legacy derived value，不迁移为权威 V2 指标。
 
-#### 10.1.1 当前运行策略：小图计算，大图关闭（2026-07-16 已实施）
-
-YAML 使用唯一正式字段：
-
-~~~yaml
-defaults:
-  run_update_detection_auc: true   # Cora / Citeseer 等小图
-  # run_update_detection_auc: false  # ogbn-arxiv 等大图
-~~~
-
-锁定以下语义：
-
-| 层 | 开关是否进入 identity | 原因 |
-|---|---|---|
-| ScoreArtifact | 否 | AUC 不改变 TracIn / IM 分数 |
-| SelectionArtifact | 否 | AUC 不改变 selected nodes |
-| PredictionArtifact | 否 | 同一标准化预测观测可供多个 Evaluation 复用 |
-| AUC EvaluationArtifact | 是，以“是否请求 + metric recipe/version”表达 | 只有启用时才请求或生成该指标 |
-| 当前 `results/runs` cell fingerprint | 是 | 防止启用/关闭 AUC 的完整 run 目录互相冒充完成 |
-
-当前实现已经完成：
-
-- `experiments/run.py` 将开关同时传给 `demo_attack.py` 与 `eval_collateral.py`；
-- GIF / IDEA 所在 IF pipeline、GNNDelete、MEGU、GraphEraser、GraphRevoker 都在昂贵 posterior/AUC 路径前判断该开关；
-- 关闭时 `attack.json::mia_auc` 明确写 `null`，`_meta.json::metric_policy.update_detection_auc.status` 写 `disabled_by_config`；
-- `scripts/gate_runs.py` 只在启用时要求有限且不塌缩的 AUC；关闭时反而要求该字段为 `null`；
-- 所有 `phase_b_arxiv*.yaml` 显式关闭，Cora/Citeseer 主配置显式开启；没有按 dataset 名称硬编码。
-
-需要区分“已实施的运行开关”和“尚未完成的独立 EvaluationCache”：当前 V2 主路径只保证上游 Score/Selection 不因该开关分叉，并在现有 runner 中真正停止 AUC 计算；等 V2.3 Prediction/Evaluation 主路径接入后，`false` 的等价语义是 Resolver 根本不请求 AUC EvaluationArtifact。小图现有各方法 AUC 协议仍是 method-specific legacy producer；尤其 GraphEraser/GraphRevoker 的逐 shard query posterior 不能未经协议选择就宣称可由统一全图 logits 严格复现。
-
-Legacy ResultCache 的 key 不补入该字段：它已进入退役路线，迁移只读/冻结边界优先于继续扩展旧 identity。过渡期若命中旧完整 Result，输出层会按当前 policy 把 AUC 归一为 `null`；新 runner 的 cell fingerprint 与 V2 Artifact 边界负责防混。
-
 ### 10.2 时间只记录原始计算成本
 
 每个 Artifact 保存：
@@ -934,21 +902,19 @@ V2.1 于 2026-07-13 对当前本地 checkout 执行了上述精确 dry-run；这
 | Gate | 必须证据 | 当前状态 |
 |---|---|---|
 | 1. SSH 真机验收 V2.1 | dry-run 零写入；Legacy hash/mtime 不变；`--apply` 只写 `results/cache_v2/index.sqlite`；SQLite、路径和 schema 异常 fail closed；本地/远端统计可解释 | **已通过**（2026-07-14，`9b90ad4`） |
-| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **Selection cutover 范围已通过**：IM、random、degree、PageRank 使用 versioned payload/header；conflict resolution 为 write-once sidecar，保留 SQLite row、marker 与 quarantine。Score/Prediction/Evaluation 一级 Artifact 仍属后续范围 |
-| 3. 版本化 V2 与有界下游 smoke | V2 producer 的 Recipe/版本明确；同版本 cold/warm 与跨进程确定性通过；Legacy exact replay 降为迁移诊断；Prediction/Evaluation 只做有明确容差的小样本 smoke | **已通过当前 Selection 范围**：四类 producer exact canary 已通过；Legacy IM/Random mismatch 保留为非权威诊断；单 cell 9 项 Prediction→Evaluation 指标在 `1e-6` 内 |
-| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **当前 Selection cutover 范围已通过**：active 4090 cold/warm 得到 `sel_5bc434cd_7e66e515`；runner preflight `writes=0`、`would_run=1`；attack/collateral 共用同一 verified Artifact ID；本轮按边界未启动 GU/GPU |
-| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | **已通过并在 active 4090 生效**：970 files / 9,271,720 bytes 原位可读；write-once marker；受控 ResultCache 写探针以 `LegacyCacheFrozenError` 失败，文件数 784→784 |
-| 6. 归档准备 / 物理归档或删除 | 先产出逐文件 hash、consumer refs、V2/conflict 状态和回滚 manifest；物理移动/删除必须另行审批 | **归档准备完成**：逐文件 manifest、consumer refs、V2/conflict 与回滚锚点已生成；70 条代码/配置引用仍存在，因此 `legacy_delete_ready=false`；物理移动/删除未授权 |
+| 2. 新计算只写 V2 | 不双写 Legacy；Legacy 只作历史读取/迁移源；补齐 payload、versioned header 和 conflict resolution | **未通过；Selection exact-only materializer 已通过 IM、random、degree、PageRank 的真实计算/命中**（2026-07-14），Score、runner、Prediction/Evaluation 与 conflict resolution 尚未接入 |
+| 3. 新旧结果对照 | 抽样对照 Score、Selection、Prediction、Evaluation；Selection 节点有序序列精确一致；Prediction 按明确浮点容差比较，不要求文件 hash 相同 | **未通过；ogbn-arxiv IM 暴露 Legacy content mismatch**（同 seed / k / 参数与同剪枝后 pool，但 ordered/set 均不一致） |
+| 4. runner 切换 V2 | 先小范围 canary，通过后再设默认；查询失败禁止静默回退 Legacy | **硬阻塞**：当前只有 conflict fail-closed 检测与 durable marker，没有可审计解除流程 |
+| 5. Legacy 冻结 | 完全只读；保留明确回滚窗口；列出所有尚未迁移 Legacy Artifact | 未通过 |
+| 6. 归档或删除 Legacy | 迁移覆盖率、`consumer_refs`、结果一致性、回滚备份全部通过，并对物理范围单独审批 | 未通过 |
 
-Gate 仍按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 的 conflict 硬门槛现由显式 `keep_existing` 授权满足：默认 unresolved；resolution record 绑定 conflict fingerprint、正式 Artifact、actor、reason 与 UTC 时间；原 conflict row、durable marker 和 quarantine 不改写；新 conflict 会重新阻塞。Legacy-only conflict 没有正式 verified Artifact，因此不能使用 `keep_existing`。
-
-**2026-07-14 Gate 3 policy revision：** Legacy 节点逐项一致从硬门槛降为迁移诊断。旧 Cache 缺少 producer source fingerprint，不能反向证明它与当前 versioned Recipe 是同一计算；强行要求 V2 复制旧节点反而会固化历史不确定性。当前硬门槛改为：Recipe/producer version 完整、同版本 cold/warm exact hit、跨进程确定性、payload 完整性和 fail-closed，以及一个有界 Prediction→Evaluation smoke。此前 IM/simple producer 报告中“Legacy mismatch 因而 Gate 3 关闭”的结论由本段取代；原始数字仍保留作迁移证据。
+Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy 删除。** Gate 4 之前，conflict 解除机制是硬门槛：需要明确人工授权、保留原冲突证据、产生可追溯 resolution record，并证明 Resolver 只在解除后重新允许 hit。当前的 marker 只能阻止误命中，不是 resolution workflow。
 
 2026-07-14 已在隔离 V2 store 完成真实 Citeseer Selection payload 的 cold miss → warm exact hit、producer fail-if-called 哨兵、payload mtime 不变、changed-`k` miss 与篡改拒绝验证；详见 [Cache V2 Citeseer Selection Canary 真机验收报告](../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md)。这只通过了 Gate 2/4 前的单条 Selection canary：没有接 runner，也没有验收 Prediction/Evaluation 或 conflict resolution，因此 **Gate 2 与 Gate 4 状态均不变**，更不得用 Gate 1 的 SQLite 命中解释替代真实 payload hit。
 
 同日，`b10f672` 把 canary 收敛为独立 `cachectl selection plan/materialize` 主入口，并在 SSH 隔离 checkout 对真实 `ogbn-arxiv`、IM、`k=1354` 完成 cold 计算（13,583.91 s）→ 另一 YAML 的 warm exact hit（0.341 s）。warm 启用 fail-if-called 哨兵，仍返回同一 Artifact / Recipe / content hash，payload mtime 不变；9 个 cold consumer 请求去重为一个 Recipe，TracIn/Hybrid 以 `producer_not_registered` 结构化跳过。该结果验收了 **V2 exact Cache 契约**，没有接 runner。
 
-同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict。该段保留原始迁移诊断；其旧 Gate 3 verdict 已由上方 policy revision 取代。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
+同 seed Legacy 对照没有通过：V2 与 Legacy 前 164 个有序节点相同，但最终只交集 1252/1354，Jaccard 为 0.859890，双方各有 102 个独有节点。剪枝后 candidate pool fingerprint 均为 `7237f1cd80d5d4eadd5c6d33484b9e47`，因此不能归因于候选池不同；Legacy 记录缺 producer source fingerprint，且生成后 IM 源码仍有提交变化，现有 provenance 不能区分历史 source 变化与执行环境差异。Legacy 不参与 resolve，也没有被伪装成同一正式 V2 Recipe，因此本次不登记 V2 conflict，但 **Gate 3 明确保持未通过**。详见 [Cache V2 IM Selection Materializer 真机验收报告](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)。
 
 同日继续注册 random、degree、PageRank 三个直接产生 SelectionArtifact 的 producer，并在真实 Cora 图上完成本机与 SSH exact canary：2 methods × 3 strategies × 3 seeds 共 18 个 consumer 请求去重为 5 个 Recipe（random 按 3 个 seed 各一份，degree/PageRank 各一份跨 seed 共享），cold 全部创建后，独立 warm 进程与另一 YAML 名/路径均返回相同 Artifact ID/content hash，且 `producer_called=false`；改变 ratio/k 的 plan 则 5/5 `no_exact_candidate`、零 producer、零写入。Random 使用显式 Recipe seed 与隔离 Torch RNG；PageRank 只额外包含 `pagerank_alpha`。首次 SSH 重放真实暴露 Degree v1 的 `torch.topk` 平分边界跨环境不稳定：同 Recipe `fd84330c...` 在本机/SSH 得到不同 content，且节点集合不同。V2 没有覆盖旧 Artifact，而是将 Degree 算法升级为“度降序、node id 升序”的 v2 全序，生成新 Recipe `5bc434cd...`；全新本机/SSH store 随后均得到 Artifact `sel_5bc434cd_7e66e515` 与 content `7e66e515...`。SSH Legacy 三目录 784/111/75 个文件的聚合 hash 前后均为 `b7488cb1...`；Random 三个 Legacy 对照为 `content_mismatch`，Degree/PageRank 为 `missing`，均不参与 V2 resolve。详见 [Cache V2 Simple Selection Producers 验收报告](../../docs/cache_v2_simple_selection_producers_ACCEPTANCE_REPORT.md)。这完成了 producer registry 与 simple selector 真机确定性验收，但没有改变 Gate 2/3/4 的整体状态。
 
@@ -1038,14 +1004,14 @@ GCN selection → GIN target
 
 ### V2.2 Score / Selection 主路径
 
-- [x] gate：完成 schema-v1-compatible、write-once `keep_existing` conflict resolution；provenance 缺口未清零的 Legacy source 不得 promotion，Legacy-only conflict 不可解除为正式 hit。
+- [ ] gate：完成 Legacy promotion policy 与可审计 conflict resolution；provenance 缺口未清零的 source 不得 promotion。
 - [ ] 将 IM 初始 spread / CELF ranking 落成正式 ScoreArtifact；当前大图 cold 仍因禁用 Legacy ScoreCache 承担完整 Step 1 成本。
 - [x] 建立 versioned SelectionArtifact payload/header Store、SQLite exact resolve、完整性校验与 fail-if-called producer 哨兵。
 - [x] 建立 YAML request → 最小 Recipe 投影；`config_name`、YAML path、GU method 与实验 seed 不进入 IM Selection identity，多 consumer 先按 Recipe 去重。
 - [x] 注册 IM producer；TracIn/Hybrid 在 Score/model provenance 就绪前结构化跳过，并保留同一 registry 扩展点。
 - [x] 建立 ordered/set 双 hash 与只读 Legacy 对照；真实 arxiv 对照已 fail closed 暴露 mismatch，没有伪造等价。
 - [x] 注册 random / degree / PageRank producer；真实 Cora 本机/SSH cold/warm、producer 哨兵、跨 YAML exact hit、changed-k miss、Random RNG 隔离、Degree v2 可移植 tie-break 与 Legacy 只读均已验证。
-- [x] `demo_attack`、`eval_collateral` 接受同一 `selection_artifact_id`；V2 runner preflight 只允许 random/degree/PageRank/IM，禁用全部 Legacy cache 并禁止查询失败回退。
+- [ ] `demo_attack`、`eval_collateral` 接受 selection artifact reference；本阶段仍未修改 runner 或现有查询路径。
 - [ ] 建 ranking/prefix compatible lookup；当前只允许 `(artifact_type, recipe_hash)` exact hit。
 
 ### V2.3 Prediction / Evaluation 主路径
@@ -1087,20 +1053,6 @@ python scripts/cachectl.py resolve explain --type selection --recipe recipe.json
 python scripts/cachectl.py artifact parents sel_xxx
 python scripts/cachectl.py artifact children sel_xxx
 python scripts/cachectl.py artifact consumers sel_xxx
-
-# 查看 / dry-run / 显式冻结 Legacy 三棵 cache；冻结后仍可读
-python scripts/cachectl.py legacy freeze-status --root results
-python scripts/cachectl.py legacy freeze --root results --actor NAME --reason REASON
-python scripts/cachectl.py legacy freeze --root results --actor NAME --reason REASON --apply
-
-# 只生成归档准备计划；--apply 也只写 manifest，不移动或删除 Legacy
-python scripts/cachectl.py legacy archive-plan --root results --source-root . --output EVIDENCE.json
-python scripts/cachectl.py legacy archive-plan --root results --source-root . --output EVIDENCE.json --apply
-
-# 显式查看 / write-once 授权一个 formal V2 conflict
-python scripts/cachectl.py conflict status conf_xxx
-python scripts/cachectl.py conflict resolve conf_xxx --actor NAME --reason REASON
-python scripts/cachectl.py conflict resolve conf_xxx --actor NAME --reason REASON --apply
 ~~~
 
 V2.2+ 设计占位，V2.1 未实现：
