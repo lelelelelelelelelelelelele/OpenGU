@@ -41,6 +41,11 @@ EXPERIMENTS = [
 ]
 SEEDS = [111, 333, 555, 777, 999]  # Independent from main experiment seeds (42,212,722,1337,2024)
 BASELINE_K = 5
+DATASET_NUM_NODES = {'cora': 2708, 'citeseer': 3327, 'pubmed': 19717}
+METHOD_EXTRA_ARGS = {
+    # GraphRevoker's supported partition default for the current runner.
+    'GraphRevoker': ['--partition_method', 'gpa'],
+}
 
 # Resolve paths
 SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -62,7 +67,10 @@ def run_single_baseline(method, dataset, model, seed, baseline_k):
         '--unlearning_methods', method,
         '--random_seed', str(seed),
         '--baseline_k', str(baseline_k),
+        '--unlearn_ratio', str(baseline_k / DATASET_NUM_NODES[dataset]),
+        '--proportion_unlearned_nodes', str(baseline_k / DATASET_NUM_NODES[dataset]),
     ]
+    cmd.extend(METHOD_EXTRA_ARGS.get(method, []))
     
     cache_file = BASELINE_ROOT / method / dataset / model / f"baseline_seed{seed}_k{baseline_k}.json"
     if cache_file.exists():
@@ -108,6 +116,8 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
     f1_afters = []
     f1_befores = []
     f1_drops = []
+    method_perf_befores = []
+    method_noise_drops = []
     seed_details = []
     
     for seed in SEEDS:
@@ -121,6 +131,8 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
             f1_after = data.get('f1_after')
             f1_before = data.get('f1_before')
             f1_drop = data.get('f1_drop')
+            method_perf_before = data.get('method_perf_before')
+            method_noise_drop = data.get('method_noise_drop')
             
             if f1_after is not None:
                 f1_afters.append(f1_after)
@@ -128,12 +140,18 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
                 f1_befores.append(f1_before)
             if f1_drop is not None:
                 f1_drops.append(f1_drop)
+            if method_perf_before is not None:
+                method_perf_befores.append(method_perf_before)
+            if method_noise_drop is not None:
+                method_noise_drops.append(method_noise_drop)
                 
             seed_details.append({
                 'seed': seed,
                 'f1_after': f1_after,
                 'f1_before': f1_before,
                 'f1_drop': f1_drop,
+                'method_perf_before': method_perf_before,
+                'method_noise_drop': method_noise_drop,
             })
         except Exception as e:
             print(f"  [WARN] Failed to read seed={seed}: {e}")
@@ -147,6 +165,8 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
         'f1_after_std': float(np.std(f1_afters)),
         'f1_before': float(np.mean(f1_befores)) if f1_befores else None,
         'f1_drop': float(np.mean(f1_drops)) if f1_drops else None,
+        'method_perf_before': float(np.mean(method_perf_befores)) if method_perf_befores else None,
+        'method_noise_drop': float(np.mean(method_noise_drops)) if method_noise_drops else None,
         'n_seeds': len(f1_afters),
         'seeds_used': [d['seed'] for d in seed_details if d['f1_after'] is not None],
         'per_seed_details': seed_details,
@@ -157,6 +177,7 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
             'k': baseline_k,
             'strategy': 'random',
             'averaged': True,
+            'before_metric': 'method_train_only_f1',
             'timestamp': datetime.now().isoformat(),
         }
     }

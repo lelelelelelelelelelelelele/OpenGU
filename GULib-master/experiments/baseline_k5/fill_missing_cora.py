@@ -95,7 +95,7 @@ def aggregate(method: str, backbone: str) -> bool:
     cdir = ROOT / method / DATASET / backbone
     if not cdir.exists():
         return False
-    f1a, f1b, f1d, details = [], [], [], []
+    f1a, f1b, f1d, method_before, method_noise, details = [], [], [], [], [], []
     for s in SEEDS:
         p = cdir / f"baseline_seed{s}_k{BASELINE_K}.json"
         if not p.exists():
@@ -107,8 +107,12 @@ def aggregate(method: str, backbone: str) -> bool:
         if d.get("f1_after") is not None: f1a.append(d["f1_after"])
         if d.get("f1_before") is not None: f1b.append(d["f1_before"])
         if d.get("f1_drop") is not None: f1d.append(d["f1_drop"])
+        if d.get("method_perf_before") is not None: method_before.append(d["method_perf_before"])
+        if d.get("method_noise_drop") is not None: method_noise.append(d["method_noise_drop"])
         details.append({"seed": s, "f1_after": d.get("f1_after"),
-                        "f1_before": d.get("f1_before"), "f1_drop": d.get("f1_drop")})
+                        "f1_before": d.get("f1_before"), "f1_drop": d.get("f1_drop"),
+                        "method_perf_before": d.get("method_perf_before"),
+                        "method_noise_drop": d.get("method_noise_drop")})
     if not f1a:
         return False
     out = {
@@ -116,6 +120,8 @@ def aggregate(method: str, backbone: str) -> bool:
         "f1_after_std": float(np.std(f1a)),
         "f1_before": float(np.mean(f1b)) if f1b else None,
         "f1_drop": float(np.mean(f1d)) if f1d else None,
+        "method_perf_before": float(np.mean(method_before)) if method_before else None,
+        "method_noise_drop": float(np.mean(method_noise)) if method_noise else None,
         "n_seeds": len(f1a),
         "seeds_used": [d["seed"] for d in details if d.get("f1_after") is not None],
         "per_seed_details": details,
@@ -123,6 +129,7 @@ def aggregate(method: str, backbone: str) -> bool:
             "dataset_name": DATASET, "base_model": backbone,
             "unlearning_methods": method, "k": BASELINE_K,
             "strategy": "random", "averaged": True,
+            "before_metric": "method_train_only_f1",
             "timestamp": datetime.now().isoformat(),
         },
     }

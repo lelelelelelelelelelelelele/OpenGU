@@ -86,6 +86,17 @@ def generate_baseline(args: dict, k: int):
     pipeline = AttackPipeline(args)
     strategy = RandomStrategy(args)
 
+    # Capture the same method-specific train-only baseline used by the
+    # Phase-B collateral artifact (``perf_before``).  ``poison_f1`` is not
+    # populated for most node-unlearning methods, so it cannot anchor the
+    # k=5 noise-floor diagnostic on its own.  This is deliberately named
+    # ``method_perf_before`` rather than ``canonical_f1_before``: shard
+    # methods may expose an aggregated/SISA before model, not a shared
+    # vanilla base model.
+    pipeline._ensure_base_model_trained()
+    method_perf_before = pipeline._evaluate_model(pipeline.model)
+    print(f"[*] Method-specific before F1: {method_perf_before:.4f}")
+
     # CRITICAL: Sync proportion_unlearned_nodes with actual k / num_nodes.
     # GNNDelete's delete_node() computes df_size = int(num_nodes * proportion_unlearned_nodes)
     # and asserts df_mask_node.sum() == df_size.  If proportion_unlearned_nodes stays at the
@@ -113,6 +124,12 @@ def generate_baseline(args: dict, k: int):
         "f1_after": f1_after,
         "f1_before": f1_before,
         "f1_drop": f1_drop,
+        "method_perf_before": method_perf_before,
+        "method_noise_drop": (
+            method_perf_before - f1_after
+            if method_perf_before is not None and f1_after is not None
+            else None
+        ),
         "config": {
             "dataset_name": dataset,
             "base_model": model,
@@ -120,6 +137,7 @@ def generate_baseline(args: dict, k: int):
             "seed": seed,
             "k": k,
             "strategy": "random",
+            "before_metric": "method_train_only_f1",
             "timestamp": datetime.now().isoformat()
         }
     }
