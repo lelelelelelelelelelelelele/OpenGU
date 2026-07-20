@@ -20,6 +20,7 @@ from experiments.bc_target_v2.render_markdown import render_document
 from experiments.bc_target_v2.run_downstream import build_parser as build_downstream_parser
 from experiments.bc_target_v2.run_matrix import build_parser as build_matrix_parser
 from experiments.bc_target_v2.run_selection import build_parser as build_selection_parser
+from experiments.bc_target_v2.run_selection import _resolve_device
 
 
 def _sha(label):
@@ -158,6 +159,12 @@ def test_selection_device_defaults_to_auto():
     parser = build_selection_parser()
     assert parser.parse_args([]).device == "auto"
     assert parser.parse_args(["--device", "cpu"]).device == "cpu"
+
+
+def test_cuda_device_resolution_has_an_explicit_index(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    assert str(_resolve_device("cuda")) == "cuda:0"
 
 
 def test_benchmark_cell_requires_17_cold_misses_and_warm_hits(tmp_path):

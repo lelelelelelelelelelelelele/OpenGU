@@ -161,6 +161,8 @@ def _resolve_device(value: str) -> torch.device:
         normalized = "cuda" if torch.cuda.is_available() else "cpu"
     if normalized == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA was requested but is not available")
+    if normalized == "cuda":
+        return torch.device("cuda", torch.cuda.current_device())
     return torch.device(normalized)
 
 
