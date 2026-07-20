@@ -1,5 +1,7 @@
 # Config Inventory 仪表盘 — 验收报告
 
+> **FROZEN HISTORICAL SNAPSHOT（2026-06-30）**：本报告保留当日 F4 验收事实，不再代表当前 GraphRevoker 状态。2026-07-20 起，dashboard 明确区分 `local usable`、`accepted remote / archive pending` 与 `rerun`；GraphRevoker 当前边界见 [`docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`](../../docs/graphrevoker_e4_ACCEPTANCE_REPORT.md)。
+
 > 验收对象：[`config_inventory.html`](config_inventory.html)（coverage-heatmap）+ 生成器 [`scripts/dashboard/gen_config_inventory.py`](../../scripts/dashboard/gen_config_inventory.py) + 数据 [`config_inventory.csv`](config_inventory.csv)
 > 对应任务：WORKPLAN **F4**（"exp 看板改进：`config_inventory` 仍不够清晰，迭代成『一眼看懂跑了啥 / 缺啥』"）
 > 验收日期：2026-06-30 · 验收人：Claude (Opus 4.8)

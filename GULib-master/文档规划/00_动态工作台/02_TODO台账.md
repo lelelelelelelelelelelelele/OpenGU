@@ -1,7 +1,7 @@
 ---
 title: TODO 台账
 created: 2026-07-09
-updated: 2026-07-16
+updated: 2026-07-20
 type: todo-ledger
 source:
   - ../规划手记.md
@@ -23,7 +23,7 @@ tags: [todo, workplan, opengu]
 
 | ID | TODO | 放在哪个板块 | 状态 | 来源 |
 |---|---|---|---|---|
-| E4 | GraphRevoker 先做：修 OpenGU 上游聚合器 bug，清损坏数据，整 method 重跑，并争取交叉验证 | [[10_实验矩阵/10_实验-框架总览]] | ◐ seed42 四策略 canary accepted；完整多 seed E4 pending | 规划手记 / WORKPLAN §5 |
+| E4 | GraphRevoker 修复与四策略整 method 重跑 | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | ✅ 代码 + 远端 40/40；◐ 本地 evidence import / manifest 待闭环；旧数据永久 invalid | WORKPLAN §5 / GraphRevoker E4 验收报告 |
 | E1 | 跑干净 Citeseer，堵 scope 漏洞 | [[10_实验矩阵/10_实验-框架总览]] | ✅ stable scope 50/50 accepted | AI 审稿痛点：实验完成度 |
 | E2 | L8 redo：清 `.pyc` 后重跑 GIF/IDEA collateral | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
 | E3 | 本地算 k=5 noise anchor | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
@@ -95,7 +95,7 @@ tags: [todo, workplan, opengu]
 | R1 | 把 AI 模拟审稿三痛点转成 W/E/A 任务 | [[30_评审与汇报/31_评审意见与rebuttal]] | ✅ 已拆入本台账 | [[30_评审与汇报/AI审稿_2026-06-28]] |
 | R2 | 把已有 abstract / draft / figure review 汇总成 reviewer pressure list | [[30_评审与汇报/31_评审意见与rebuttal]] | ☐ | `report/paper/review/` |
 | R3 | 后续真实 reviewer 意见进入同一页，不再散放根目录 | [[30_评审与汇报/31_评审意见与rebuttal]] | ☐ | 规划手记 |
-| R4 | produced / usable / rerun 口径同步：GraphRevoker 与 TracIn 都不能只写“跑过” | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | ☐ | 当前同步规则 |
+| R4 | produced / usable / accepted-remote / invalid 口径同步：GraphRevoker 与 TracIn 都不能只写“跑过” | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | ✅ 测试台账与 config inventory 四态已同步 | 当前同步规则 |
 
 ---
 

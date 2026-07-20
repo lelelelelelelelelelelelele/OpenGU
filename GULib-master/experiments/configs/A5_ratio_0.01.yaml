@@ -10,7 +10,7 @@ methods:
   - GIF
   - GNNDelete
   - GraphEraser
-  - GraphRevoker      # gate-pending
+  - GraphRevoker      # existing rows invalid; r0.05 E4 does not validate this ratio
   - IDEA
   - MEGU
 

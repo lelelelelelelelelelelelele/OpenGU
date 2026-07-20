@@ -16,8 +16,8 @@ tags: [runtime, cpu, gpu, im, tracin, resource-planning]
 原始来源：
 
 - [experiments/im_benchmark/docs/runtime_estimation.md](../../experiments/im_benchmark/docs/runtime_estimation.md)
-- [SERVER_RUNBOOK.md](../../SERVER_RUNBOOK.md)
-- [ARXIV_RUNBOOK.md](../../ARXIV_RUNBOOK.md)
+- [当前 WORKPLAN](../../self/dashboard/WORKPLAN.md)
+- [[15_实验运行入口与脚本]] 与 [[16_4090小数据集运行与回收]]
 
 ---
 

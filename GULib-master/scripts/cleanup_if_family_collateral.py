@@ -57,7 +57,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--root", default="results/runs",
                     help="cell root (default: results/runs); on the server cells live"
-                         " here. On a local mirror after MIGRATION_RUNBOOK §3.4 they live"
+                         " here. On the local machine-split mirror they live"
                          " under results/runs/4090/, so pass --root results/runs/4090.")
     ap.add_argument("--dry_run", action="store_true",
                     help="enumerate without deleting")

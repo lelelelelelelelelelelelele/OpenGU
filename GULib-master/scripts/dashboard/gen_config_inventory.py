@@ -12,11 +12,16 @@ ever edit ONE thing: the `done` column of the CSV. Then:
 
 CSV columns (header order):
     file,name,cat,dataset,model,ratio,hybrid_alpha,n_methods,n_strategies,
-    n_seeds,n_cells,done,src,methods,strategies,seeds,valid,rerun,warning
+    n_seeds,n_cells,done,src,methods,strategies,seeds,valid,rerun,warning,
+    accepted_remote
 
 `done` means an output row/artifact exists. `valid` means it is currently
 usable for paper-facing conclusions. `rerun` marks produced cells that must be
 rerun before they should count as clean evidence (for example GraphRevoker E4).
+
+`accepted_remote` marks cells whose formal remote gate passed but whose complete
+evidence bundle has not yet been imported into the local archive. They are not
+counted as local `valid` until that archive boundary closes.
 
 `cat` long names are mapped to short block keys (CORA/ARXIV/SUPP/A3/A5/A6/SANITY).
 """
@@ -48,14 +53,14 @@ GROUP_STORY = {
         "Question": "What is the core vulnerability fingerprint across methods and selectors?",
         "Setup": "Cora, GCN/GAT, r=0.05, 6 GU methods, 6 selectors, 5 seeds.",
         "Why": "This is the audit backbone: it gives the advisor a per-method comparison before we argue about mechanisms.",
-        "Current read": "Produced data exists, but GraphRevoker needs repair and IF-concordance shows every paper-facing old TracIn/Hybrid row needs a proper-TracIn refresh.",
-        "Next decision": "Run GraphRevoker repair and refresh all paper-facing TracIn/Hybrid evidence before treating the Cora matrix as clean.",
+        "Current read": "GraphRevoker random/degree/pagerank/IM passed the remote E4 gate (20 cells per backbone), but local evidence import is pending; every TracIn/Hybrid row still needs a proper-TracIn refresh.",
+        "Next decision": "Import the GraphRevoker E4 manifest/artifacts, then promote remote-accepted cells to local usable; refresh TracIn/Hybrid independently.",
     },
     "A5": {
         "Question": "Does the story survive budget and dataset changes?",
         "Setup": "Ratio sweep on Cora/GCN plus Citeseer scope cells.",
         "Why": "It separates a one-budget anecdote from a stable vulnerability pattern and supports advisor questions about scope.",
-        "Current read": "r=0.01 is produced, but GraphRevoker and every paper-facing old TracIn row are not clean under the repair/IF-concordance semantics.",
+        "Current read": "r=0.01 is produced, but its GraphRevoker cells were not covered by the r=0.05 E4 gate and every old TracIn row remains invalid.",
         "Next decision": "Use r=0.01 as a partial anchor; run r=0.10/r=0.20 and Citeseer after the clean-selector path is settled.",
     },
     "ARXIV": {
@@ -131,15 +136,16 @@ def build_configs_array(rows):
         done = js_int(r["done"])
         valid = js_int(r.get("valid") or r["done"])
         rerun = js_int(r.get("rerun") or "0")
+        accepted_remote = js_int(r.get("accepted_remote") or "0")
         obj = (
             "  {file:%s, name:%s, cat:%s, ds:%s, model:%s, ratio:%s, alpha:%s, "
-            "nm:%s,ns:%s,nse:%s, total:%s, done:%s, valid:%s, rerun:%s, "
+            "nm:%s,ns:%s,nse:%s, total:%s, done:%s, valid:%s, rerun:%s, acceptedRemote:%s, "
             "src:%s, methods:%s, strategies:%s, seeds:%s, warning:%s},"
             % (
                 js_str(r["file"]), js_str(r["name"]), js_str(catkey), js_str(r["dataset"]),
                 js_str(r["model"]), js_str(r["ratio"]), alpha_js,
                 js_int(r["n_methods"]), js_int(r["n_strategies"]), js_int(r["n_seeds"]),
-                js_int(r["n_cells"]), done, valid, rerun, js_str(r["src"]),
+                js_int(r["n_cells"]), done, valid, rerun, accepted_remote, js_str(r["src"]),
                 js_str(r["methods"]), js_str(r["strategies"]), js_str(r["seeds"]),
                 js_str(r.get("warning", "")),
             )
@@ -165,10 +171,11 @@ def main():
     done = sum(int(float(r["done"] or 0)) for r in rows)
     valid = sum(int(float((r.get("valid") or r["done"] or 0))) for r in rows)
     rerun = sum(int(float(r.get("rerun") or 0)) for r in rows)
+    accepted_remote = sum(int(float(r.get("accepted_remote") or 0)) for r in rows)
     total = sum(int(float(r["n_cells"] or 0)) for r in rows)
     print(
         f"[gen] {nconfigs} configs | {done}/{total} produced | "
-        f"{valid}/{total} usable | {rerun} rerun"
+        f"{valid}/{total} usable | {accepted_remote} accepted remote | {rerun} rerun"
     )
     print(f"[gen] wrote {OUT_PATH.relative_to(ROOT)}")
 
@@ -568,7 +575,7 @@ const TRACK_META = [
 ];
 const EXEC_ORDER = ["CORA","SUPP","A5","ARXIV","A3","A6","SANITY"];
 const EXEC_LABELS = {
-  CORA:  {title:"1. main-matrix / cora",         sub:"produced; GraphRevoker repair + TracIn/Hybrid refresh pending"},
+  CORA:  {title:"1. main-matrix / cora",         sub:"GraphRevoker remote-accepted/archive-pending; TracIn/Hybrid refresh pending"},
   SUPP:  {title:"2. supplementary / overlap-validity", sub:"selector concordance + GIF/TracIn validity"},
   A5:    {title:"3. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
   ARXIV: {title:"4. arxiv pilot / remote queue", sub:"GPU-bound"},
@@ -597,6 +604,7 @@ function agg(cs){
     done:cs.reduce((a,c)=>a+c.done,0),
     valid:cs.reduce((a,c)=>a+c.valid,0),
     rerun:cs.reduce((a,c)=>a+c.rerun,0),
+    acceptedRemote:cs.reduce((a,c)=>a+c.acceptedRemote,0),
     total:cs.reduce((a,c)=>a+c.total,0),
     n:cs.length
   };
@@ -608,16 +616,18 @@ function rollrow(label, a){
   const d = a.valid, t = a.total;
   const w = pct(d,t);
   const suffix = a.done !== a.valid ? ` prod ${a.done}` : "";
+  const remote = a.acceptedRemote ? ` remote ${a.acceptedRemote}` : "";
   const rerun = a.rerun ? ` rerun ${a.rerun}` : "";
   return `<div class="rollrow"><span class="lbl">${label}</span>`
        + `<span class="mini"><i style="width:${w}%; background:${statusColor(d,t)};"></i></span>`
-       + `<span class="val num"><b>${d}</b>/${t}${suffix}${rerun}</span></div>`;
+       + `<span class="val num"><b>${d}</b>/${t}${suffix}${remote}${rerun}</span></div>`;
 }
 function renderSummary(){
   const all = agg(CONFIGS);
   const opct = pct(all.valid, all.total);
+  const remotePct = pct(all.acceptedRemote, all.total);
   const rerunPct = pct(all.rerun, all.total);
-  const outstandingPct = Math.max(0, 100 - opct - rerunPct);
+  const outstandingPct = Math.max(0, 100 - opct - remotePct - rerunPct);
   const opctLabel = all.total ? (100*all.valid/all.total).toFixed(1)+"%" : "0%";
 
   let trackRows = "";
@@ -644,10 +654,11 @@ function renderSummary(){
     <h3>Usable coverage <span class="pct">${opctLabel}</span></h3>
     <div class="global">
       <div class="big num">${all.valid}<small>&thinsp;/&thinsp;${all.total}</small></div>
-      <div class="delta num">${all.done} produced · ${all.rerun} rerun pending</div>
+      <div class="delta num">${all.done} produced · ${all.acceptedRemote} remote accepted/archive pending · ${all.rerun} rerun pending</div>
     </div>
-    <div class="gbar" title="${all.valid} usable, ${all.rerun} rerun pending, ${all.done} produced of ${all.total} configured">
+    <div class="gbar" title="${all.valid} local usable, ${all.acceptedRemote} remote accepted/archive pending, ${all.rerun} rerun pending, ${all.done} produced of ${all.total} configured">
       <i style="width:${opct}%; background:var(--ok);"></i>
+      <i style="width:${remotePct}%; background:var(--accent);"></i>
       <i style="width:${rerunPct}%; background:var(--warn);"></i>
       <i style="width:${outstandingPct}%; background:var(--blocked-dim);"></i>
     </div>
@@ -687,10 +698,11 @@ function tileHTML(c){
   const provLetter = c.src==="csv" ? "C" : "D";
   const provClass  = c.src==="csv" ? "prov-csv" : "prov-disk";
   const rerunChip = c.rerun ? `<span class="chip warn">rerun ${c.rerun}</span>` : "";
+  const remoteChip = c.acceptedRemote ? `<span class="chip">remote ${c.acceptedRemote}</span>` : "";
   const rerunBasis = (() => {
     if(!c.rerun) return "";
     const basis = [];
-    if(/GraphRevoker/i.test(c.warning)) basis.push("GraphRevoker repair");
+    if(/GraphRevoker[^.;]*(invalid|rerun|refresh)/i.test(c.warning)) basis.push("GraphRevoker post-fix rerun");
     if(/proper-TracIn|TracIn\/Hybrid|TracIn/i.test(c.warning)) basis.push("proper-TracIn refresh");
     return basis.length ? basis.join(" + ") : "rerun pending";
   })();
@@ -699,7 +711,7 @@ function tileHTML(c){
   const shape = `${c.nm}m×${c.ns}s×${c.nse}seed`;
   const alphaChip = c.alpha!==null ? `<span class="chip">α=${c.alpha}</span>` : "";
   return `
-  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-valid="${c.valid}" data-rerun="${c.rerun}" data-total="${c.total}">
+  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-valid="${c.valid}" data-accepted-remote="${c.acceptedRemote}" data-rerun="${c.rerun}" data-total="${c.total}">
     <div class="wash" style="height:${Math.max(p,3)}%;"></div>
     <div class="prov ${provClass}" title="src = ${c.src}">${provLetter}</div>
     <div class="tname">${c.name}</div>
@@ -707,7 +719,7 @@ function tileHTML(c){
       <span class="d num">${c.done}</span><span class="t num">/ ${c.total}</span>
       <span class="p num">${fmtPct(c.done,c.total)} produced</span>
     </div>
-    <div class="usable">usable <b>${c.valid}/${c.total}</b> (${fmtPct(c.valid,c.total)})${c.rerun ? ` · <span class="rerun">${c.rerun} rerun</span>` : ""}</div>
+    <div class="usable">local usable <b>${c.valid}/${c.total}</b> (${fmtPct(c.valid,c.total)})${c.acceptedRemote ? ` · <span>${c.acceptedRemote} remote accepted/archive pending</span>` : ""}${c.rerun ? ` · <span class="rerun">${c.rerun} rerun</span>` : ""}</div>
     <div class="fillbar" title="${c.valid}/${c.total} usable; ${c.done}/${c.total} produced">
       <i style="width:${p}%;"></i>
     </div>
@@ -716,6 +728,7 @@ function tileHTML(c){
       <span class="chip">${c.model}</span>
       <span class="chip">r${c.ratio}</span>
       ${alphaChip}
+      ${remoteChip}
       ${rerunChip}
       <span class="chip shape">${shape}</span>
     </div>

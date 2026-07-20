@@ -1,13 +1,15 @@
 ---
-tags: [progress/phase, status/active, diagnosis]
+tags: [progress/phase, status/frozen, diagnosis]
 phase: "2026-06 Resume Diagnosis"
 date-range: 2026-06-15 → (进行中)
-status: active
+status: superseded-snapshot
 created: 2026-06-16
 up: "[[_Home]]"
 ---
 
 # 2026-06 Resume Diagnosis — 全面状态整理
+
+> **SUPERSEDED SNAPSHOT（2026-07-20）**：本文件保留 2026-06 诊断过程，不再表示当前状态。GraphRevoker 代码与远端四策略 E4 已通过，本地 evidence archive 待闭环；当前结论见 `self/dashboard/WORKPLAN.md` 与 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`。
 
 > 范围: 休整一个月后回流数据 + 找回旧记忆 + 逐项核查后的**完整诊断**。回答"现在到底是什么处境、paper 该变成什么、怎么走"。
 > 配对: 操作 TODO → [PROGRESS（外部）](../../../self/dashboard/PROGRESS.md)；冲刺历史 → [2026-05_NeurIPS-Push](2026-05_NeurIPS-Push.md)；当前汇报 → [current-status-report.html](current-status-report.html)。

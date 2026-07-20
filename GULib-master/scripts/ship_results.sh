@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage:
 #   bash scripts/ship_results.sh cora   # 4090 small-dataset line
-#   bash scripts/ship_results.sh arxiv  # historical arxiv helper; prefer ARXIV_RUNBOOK.md
+#   bash scripts/ship_results.sh arxiv  # historical arxiv helper; prefer the current OB run/recovery docs
 #
 # Behavior: gate -> tar json/_meta only (skip predictions.npz) -> md5.
 set -e
@@ -27,7 +27,7 @@ case "$1" in
         | tar czf "$OUT" -T -
     ;;
   arxiv)
-    echo "[warn] arxiv shipping is a historical helper; prefer ARXIV_RUNBOOK.md."
+    echo "[warn] arxiv shipping is a historical helper; see 文档规划/10_实验矩阵/15_实验运行入口与脚本.md and the live WORKPLAN."
     for tier in T1_seed42 T2_seed212 T3_seed722; do
       yaml="experiments/configs/phase_b_arxiv_${tier}.yaml"
       [ -f "$yaml" ] || continue

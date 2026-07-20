@@ -285,7 +285,7 @@
 <header class="titlebar">
   <div>
     <h1>Experiment Config Inventory <span class="tag">Coverage Heatmap</span></h1>
-    <div class="sub">32 configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated 2026-07-09</div>
+    <div class="sub">33 configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated 2026-07-20</div>
   </div>
 </header>
 
@@ -353,38 +353,39 @@
 
 /* ---- authoritative data (config granularity only; injected from CSV) ---- */
 const CONFIGS = [
-  {file:"A3_cora_GAT_alpha0.00.yaml", name:"A3_cora_GAT_alpha0.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GAT_alpha0.25.yaml", name:"A3_cora_GAT_alpha0.25", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GAT_alpha0.75.yaml", name:"A3_cora_GAT_alpha0.75", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GAT_alpha1.00.yaml", name:"A3_cora_GAT_alpha1.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GCN_alpha0.00.yaml", name:"A3_cora_GCN_alpha0.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:10, valid:10, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:"10 aggregate rows from hybrid_alpha0.00 (GIF and GNNDelete x 5 seeds); remaining A3 methods pending."},
-  {file:"A3_cora_GCN_alpha0.25.yaml", name:"A3_cora_GCN_alpha0.25", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GCN_alpha0.75.yaml", name:"A3_cora_GCN_alpha0.75", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A3_cora_GCN_alpha1.00.yaml", name:"A3_cora_GCN_alpha1.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A5_citeseer_r0.05.yaml", name:"A5_citeseer_r0.05", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A5_citeseer_r0.20.yaml", name:"A5_citeseer_r0.20", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A5_ratio_0.01.yaml", name:"A5_ratio_0.01", cat:"A5", ds:"cora", model:"GCN", ratio:"0.01", alpha:null, nm:6,ns:3,nse:5, total:90, done:90, valid:50, rerun:40, src:"csv", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 15 produced cells require E4 rerun; non-GraphRevoker TracIn cells require proper-TracIn refresh after IF-concordance; includes 1 failed GraphRevoker/random/seed42 cell."},
-  {file:"A5_ratio_0.10.yaml", name:"A5_ratio_0.10", cat:"A5", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A5_ratio_0.20.yaml", name:"A5_ratio_0.20", cat:"A5", ds:"cora", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"A6_cora_gin_r0.05.yaml", name:"A6_cora_gin_r0.05", cat:"A6", ds:"cora", model:"GIN", ratio:"0.05", alpha:null, nm:5,ns:3,nse:5, total:75, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
-  {file:"phase_b_cora_gat.yaml", name:"phase_b_cora_gat", cat:"CORA", ds:"cora", model:"GAT", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance. Local analysis bundle is already under results/runs/4090; predictions.npz is intentionally not transferred."},
-  {file:"phase_b_cora_gcn.yaml", name:"phase_b_cora_gcn", cat:"CORA", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:80, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 30 produced cells require E4 rerun; non-GraphRevoker TracIn/Hybrid cells require proper-TracIn refresh after IF-concordance. Local analysis bundle is already under results/runs/4090; predictions.npz is intentionally not transferred."},
-  {file:"phase_b_arxiv.yaml", name:"phase_b_arxiv", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:4,nse:3, total:36, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|tracin|im|hybrid", seeds:"42|212|722", warning:""},
-  {file:"phase_b_arxiv_T1_seed42.yaml", name:"phase_b_arxiv_T1_seed42", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:6, valid:4, rerun:2, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:"Produced TracIn pilot cells require proper-TracIn refresh after IF-concordance."},
-  {file:"phase_b_arxiv_T2_seed212.yaml", name:"phase_b_arxiv_T2_seed212", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"212", warning:""},
-  {file:"phase_b_arxiv_T3_seed722.yaml", name:"phase_b_arxiv_T3_seed722", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"722", warning:""},
-  {file:"phase_b_arxiv_feasibility.yaml", name:"phase_b_arxiv_feasibility", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:5,ns:1,nse:1, total:5, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random", seeds:"42", warning:""},
-  {file:"phase_b_arxiv_hybrid_smoke.yaml", name:"phase_b_arxiv_hybrid_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, valid:0, rerun:0, src:"disk", methods:"GIF", strategies:"hybrid", seeds:"42", warning:""},
-  {file:"phase_b_arxiv_im_only.yaml", name:"phase_b_arxiv_im_only", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:1,nse:3, total:9, done:0, valid:0, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
-  {file:"phase_b_arxiv_im_only_r01.yaml", name:"phase_b_arxiv_im_only_r01", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:1,nse:3, total:9, done:2, valid:2, rerun:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
-  {file:"phase_b_arxiv_tracin_smoke.yaml", name:"phase_b_arxiv_tracin_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:0, rerun:1, src:"disk", methods:"GIF", strategies:"tracin", seeds:"42", warning:"Produced TracIn smoke cell requires proper-TracIn refresh after IF-concordance."},
-  {file:"self/related_work/concordance/run_topology_selectors.py", name:"concordance_topology_overlap", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:6, rerun:0, src:"disk", methods:"concordance", strategies:"random|degree|pagerank|im|tracin|hybrid", seeds:"2024", warning:"Top-k selector overlap produced for 6 datasets; TracIn/Hybrid overlap is Cora-only in this topology pass."},
-  {file:"self/related_work/concordance/concordance_model_based.py", name:"concordance_if_validity_gif_tracin", cat:"SUPP", ds:"cora|citeseer|pubmed", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:3,nse:1, total:3, done:3, valid:3, rerun:0, src:"disk", methods:"concordance", strategies:"gif|proper_tracin|deployed_tracin", seeds:"2024", warning:"Proper TracIn aligns with GIF on 3 datasets; run LiSSA sensitivity before quoting exact GIF magnitudes."},
-  {file:"self/related_work/concordance/report.html", name:"concordance_overlap_damage_join", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, valid:0, rerun:0, src:"disk", methods:"proper_tracin_rerun", strategies:"overlap_vs_damage", seeds:"TBD", warning:"Pending after proper-TracIn/Hybrid attack reruns: join selector overlap with attack outcome."},
-  {file:"sanity_graphrevoker.yaml", name:"sanity_graphrevoker", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:1, rerun:0, src:"csv", methods:"GraphRevoker", strategies:"random", seeds:"42", warning:""},
-  {file:"sanity_graphrevoker_r05_full.yaml", name:"sanity_graphrevoker_r05_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:6, rerun:0, src:"csv", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:""},
-  {file:"sanity_graphrevoker_r10_full.yaml", name:"sanity_graphrevoker_r10_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:1,ns:6,nse:1, total:6, done:0, valid:0, rerun:0, src:"disk", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:""},
-  {file:"sanity_one_cell.yaml", name:"sanity_one_cell", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:1, rerun:0, src:"csv", methods:"GIF", strategies:"random", seeds:"42", warning:""},
+  {file:"A3_cora_GAT_alpha0.00.yaml", name:"A3_cora_GAT_alpha0.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GAT_alpha0.25.yaml", name:"A3_cora_GAT_alpha0.25", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GAT_alpha0.75.yaml", name:"A3_cora_GAT_alpha0.75", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GAT_alpha1.00.yaml", name:"A3_cora_GAT_alpha1.00", cat:"A3", ds:"cora", model:"GAT", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GCN_alpha0.00.yaml", name:"A3_cora_GCN_alpha0.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.00", nm:5,ns:1,nse:5, total:25, done:10, valid:10, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:"10 aggregate rows from hybrid_alpha0.00 (GIF and GNNDelete x 5 seeds); remaining A3 methods pending."},
+  {file:"A3_cora_GCN_alpha0.25.yaml", name:"A3_cora_GCN_alpha0.25", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.25", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GCN_alpha0.75.yaml", name:"A3_cora_GCN_alpha0.75", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"0.75", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A3_cora_GCN_alpha1.00.yaml", name:"A3_cora_GCN_alpha1.00", cat:"A3", ds:"cora", model:"GCN", ratio:"0.05", alpha:"1.00", nm:5,ns:1,nse:5, total:25, done:0, valid:0, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"hybrid", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A5_citeseer_r0.05.yaml", name:"A5_citeseer_r0.05", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A5_citeseer_r0.20.yaml", name:"A5_citeseer_r0.20", cat:"A5", ds:"citeseer", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GraphEraser|GraphRevoker|GIF|IDEA|GNNDelete|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A5_ratio_0.01.yaml", name:"A5_ratio_0.01", cat:"A5", ds:"cora", model:"GCN", ratio:"0.01", alpha:null, nm:6,ns:3,nse:5, total:90, done:90, valid:50, rerun:40, acceptedRemote:0, src:"csv", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:"GraphRevoker 15 r0.01 cells remain invalid and need a dedicated post-fix rerun because E4 only covered r0.05; non-GraphRevoker TracIn cells require proper-TracIn refresh; includes 1 failed GraphRevoker/random/seed42 cell."},
+  {file:"A5_ratio_0.10.yaml", name:"A5_ratio_0.10", cat:"A5", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A5_ratio_0.20.yaml", name:"A5_ratio_0.20", cat:"A5", ds:"cora", model:"GCN", ratio:"0.2", alpha:null, nm:6,ns:3,nse:5, total:90, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser|GraphRevoker|IDEA|MEGU", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"A6_cora_gin_r0.05.yaml", name:"A6_cora_gin_r0.05", cat:"A6", ds:"cora", model:"GIN", ratio:"0.05", alpha:null, nm:5,ns:3,nse:5, total:75, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random|im|tracin", seeds:"42|212|722|1337|2024", warning:""},
+  {file:"phase_b_cora_gat.yaml", name:"phase_b_cora_gat", cat:"CORA", ds:"cora", model:"GAT", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:60, acceptedRemote:20, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker random/degree/pagerank/IM 20 cells passed the remote E4 gate but still need local evidence import; all 60 TracIn/Hybrid cells require proper-TracIn refresh."},
+  {file:"phase_b_cora_gcn.yaml", name:"phase_b_cora_gcn", cat:"CORA", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:6,ns:6,nse:5, total:180, done:180, valid:100, rerun:60, acceptedRemote:20, src:"csv", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser|GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42|212|722|1337|2024", warning:"GraphRevoker random/degree/pagerank/IM 20 cells passed the remote E4 gate but still need local evidence import; all 60 TracIn/Hybrid cells require proper-TracIn refresh."},
+  {file:"phase_b_arxiv.yaml", name:"phase_b_arxiv", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:4,nse:3, total:36, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|tracin|im|hybrid", seeds:"42|212|722", warning:""},
+  {file:"phase_b_arxiv_T1_seed42.yaml", name:"phase_b_arxiv_T1_seed42", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:6, valid:4, rerun:2, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:"Produced TracIn pilot cells require proper-TracIn refresh after IF-concordance."},
+  {file:"phase_b_arxiv_T2_seed212.yaml", name:"phase_b_arxiv_T2_seed212", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"212", warning:""},
+  {file:"phase_b_arxiv_T3_seed722.yaml", name:"phase_b_arxiv_T3_seed722", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:6,nse:1, total:18, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"722", warning:""},
+  {file:"phase_b_arxiv_feasibility.yaml", name:"phase_b_arxiv_feasibility", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:5,ns:1,nse:1, total:5, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|MEGU|IDEA|GraphEraser", strategies:"random", seeds:"42", warning:""},
+  {file:"phase_b_arxiv_hybrid_smoke.yaml", name:"phase_b_arxiv_hybrid_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF", strategies:"hybrid", seeds:"42", warning:""},
+  {file:"phase_b_arxiv_im_only.yaml", name:"phase_b_arxiv_im_only", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.05", alpha:null, nm:3,ns:1,nse:3, total:9, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
+  {file:"phase_b_arxiv_im_only_r01.yaml", name:"phase_b_arxiv_im_only_r01", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:3,ns:1,nse:3, total:9, done:2, valid:2, rerun:0, acceptedRemote:0, src:"disk", methods:"GIF|GNNDelete|GraphEraser", strategies:"im", seeds:"42|212|722", warning:""},
+  {file:"phase_b_arxiv_tracin_smoke.yaml", name:"phase_b_arxiv_tracin_smoke", cat:"ARXIV", ds:"ogbn-arxiv", model:"GCN", ratio:"0.01", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:0, rerun:1, acceptedRemote:0, src:"disk", methods:"GIF", strategies:"tracin", seeds:"42", warning:"Produced TracIn smoke cell requires proper-TracIn refresh after IF-concordance."},
+  {file:"self/related_work/concordance/run_topology_selectors.py", name:"concordance_topology_overlap", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:6, rerun:0, acceptedRemote:0, src:"disk", methods:"concordance", strategies:"random|degree|pagerank|im|tracin|hybrid", seeds:"2024", warning:"Top-k selector overlap produced for 6 datasets; TracIn/Hybrid overlap is Cora-only in this topology pass."},
+  {file:"self/related_work/concordance/concordance_model_based.py", name:"concordance_if_validity_gif_tracin", cat:"SUPP", ds:"cora|citeseer|pubmed", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:3,nse:1, total:3, done:3, valid:3, rerun:0, acceptedRemote:0, src:"disk", methods:"concordance", strategies:"gif|proper_tracin|deployed_tracin", seeds:"2024", warning:"Proper TracIn aligns with GIF on 3 datasets; run LiSSA sensitivity before quoting exact GIF magnitudes."},
+  {file:"self/related_work/concordance/report.html", name:"concordance_overlap_damage_join", cat:"SUPP", ds:"multi", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"proper_tracin_rerun", strategies:"overlap_vs_damage", seeds:"TBD", warning:"Pending after proper-TracIn/Hybrid attack reruns: join selector overlap with attack outcome."},
+  {file:"sanity_graphrevoker.yaml", name:"sanity_graphrevoker", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:0, rerun:1, acceptedRemote:0, src:"csv", methods:"GraphRevoker", strategies:"random", seeds:"42", warning:"Historical feasibility cell predates the July shard-ensemble fix; superseded by sanity_graphrevoker_r05_notracin."},
+  {file:"sanity_graphrevoker_r05_full.yaml", name:"sanity_graphrevoker_r05_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:6,nse:1, total:6, done:6, valid:0, rerun:6, acceptedRemote:0, src:"csv", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:"Historical six-strategy sanity predates the July shard-ensemble fix and uses deployed legacy TracIn/Hybrid; do not cite."},
+  {file:"sanity_graphrevoker_r05_notracin.yaml", name:"sanity_graphrevoker_r05_notracin", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:4,nse:1, total:4, done:4, valid:0, rerun:0, acceptedRemote:4, src:"disk", methods:"GraphRevoker", strategies:"random|degree|pagerank|im", seeds:"42", warning:"Post-fix four-strategy canary passed remotely; local evidence import pending."},
+  {file:"sanity_graphrevoker_r10_full.yaml", name:"sanity_graphrevoker_r10_full", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.1", alpha:null, nm:1,ns:6,nse:1, total:6, done:0, valid:0, rerun:0, acceptedRemote:0, src:"disk", methods:"GraphRevoker", strategies:"random|degree|pagerank|tracin|im|hybrid", seeds:"42", warning:""},
+  {file:"sanity_one_cell.yaml", name:"sanity_one_cell", cat:"SANITY", ds:"cora", model:"GCN", ratio:"0.05", alpha:null, nm:1,ns:1,nse:1, total:1, done:1, valid:1, rerun:0, acceptedRemote:0, src:"csv", methods:"GIF", strategies:"random", seeds:"42", warning:""},
 ];
 
 /* ---- advisor-facing story layer (not CSV data) ---- */
@@ -393,14 +394,14 @@ const STORY_META = {
     "Question":"What is the core vulnerability fingerprint across methods and selectors?",
     "Setup":"Cora, GCN/GAT, r=0.05, 6 GU methods, 6 selectors, 5 seeds.",
     "Why":"This is the audit backbone: it gives the advisor a per-method comparison before we argue about mechanisms.",
-    "Current read":"Produced data exists, but GraphRevoker needs repair and IF-concordance shows every paper-facing old TracIn/Hybrid row needs a proper-TracIn refresh.",
-    "Next decision":"Run GraphRevoker repair and refresh all paper-facing TracIn/Hybrid evidence before treating the Cora matrix as clean.",
+    "Current read":"GraphRevoker random/degree/pagerank/IM passed the remote E4 gate (20 cells per backbone), but local evidence import is pending; every TracIn/Hybrid row still needs a proper-TracIn refresh.",
+    "Next decision":"Import the GraphRevoker E4 manifest/artifacts, then promote remote-accepted cells to local usable; refresh TracIn/Hybrid independently.",
   },
   A5: {
     "Question":"Does the story survive budget and dataset changes?",
     "Setup":"Ratio sweep on Cora/GCN plus Citeseer scope cells.",
     "Why":"It separates a one-budget anecdote from a stable vulnerability pattern and supports advisor questions about scope.",
-    "Current read":"r=0.01 is produced, but GraphRevoker and every paper-facing old TracIn row are not clean under the repair/IF-concordance semantics.",
+    "Current read":"r=0.01 is produced, but its GraphRevoker cells were not covered by the r=0.05 E4 gate and every old TracIn row remains invalid.",
     "Next decision":"Use r=0.01 as a partial anchor; run r=0.10/r=0.20 and Citeseer after the clean-selector path is settled.",
   },
   ARXIV: {
@@ -458,7 +459,7 @@ const TRACK_META = [
 ];
 const EXEC_ORDER = ["CORA","SUPP","A5","ARXIV","A3","A6","SANITY"];
 const EXEC_LABELS = {
-  CORA:  {title:"1. main-matrix / cora",         sub:"produced; GraphRevoker repair + TracIn/Hybrid refresh pending"},
+  CORA:  {title:"1. main-matrix / cora",         sub:"GraphRevoker remote-accepted/archive-pending; TracIn/Hybrid refresh pending"},
   SUPP:  {title:"2. supplementary / overlap-validity", sub:"selector concordance + GIF/TracIn validity"},
   A5:    {title:"3. A5 ratio / dataset",         sub:"r0.01 done; higher ratios pending"},
   ARXIV: {title:"4. arxiv pilot / remote queue", sub:"GPU-bound"},
@@ -487,6 +488,7 @@ function agg(cs){
     done:cs.reduce((a,c)=>a+c.done,0),
     valid:cs.reduce((a,c)=>a+c.valid,0),
     rerun:cs.reduce((a,c)=>a+c.rerun,0),
+    acceptedRemote:cs.reduce((a,c)=>a+c.acceptedRemote,0),
     total:cs.reduce((a,c)=>a+c.total,0),
     n:cs.length
   };
@@ -498,16 +500,18 @@ function rollrow(label, a){
   const d = a.valid, t = a.total;
   const w = pct(d,t);
   const suffix = a.done !== a.valid ? ` prod ${a.done}` : "";
+  const remote = a.acceptedRemote ? ` remote ${a.acceptedRemote}` : "";
   const rerun = a.rerun ? ` rerun ${a.rerun}` : "";
   return `<div class="rollrow"><span class="lbl">${label}</span>`
        + `<span class="mini"><i style="width:${w}%; background:${statusColor(d,t)};"></i></span>`
-       + `<span class="val num"><b>${d}</b>/${t}${suffix}${rerun}</span></div>`;
+       + `<span class="val num"><b>${d}</b>/${t}${suffix}${remote}${rerun}</span></div>`;
 }
 function renderSummary(){
   const all = agg(CONFIGS);
   const opct = pct(all.valid, all.total);
+  const remotePct = pct(all.acceptedRemote, all.total);
   const rerunPct = pct(all.rerun, all.total);
-  const outstandingPct = Math.max(0, 100 - opct - rerunPct);
+  const outstandingPct = Math.max(0, 100 - opct - remotePct - rerunPct);
   const opctLabel = all.total ? (100*all.valid/all.total).toFixed(1)+"%" : "0%";
 
   let trackRows = "";
@@ -534,10 +538,11 @@ function renderSummary(){
     <h3>Usable coverage <span class="pct">${opctLabel}</span></h3>
     <div class="global">
       <div class="big num">${all.valid}<small>&thinsp;/&thinsp;${all.total}</small></div>
-      <div class="delta num">${all.done} produced · ${all.rerun} rerun pending</div>
+      <div class="delta num">${all.done} produced · ${all.acceptedRemote} remote accepted/archive pending · ${all.rerun} rerun pending</div>
     </div>
-    <div class="gbar" title="${all.valid} usable, ${all.rerun} rerun pending, ${all.done} produced of ${all.total} configured">
+    <div class="gbar" title="${all.valid} local usable, ${all.acceptedRemote} remote accepted/archive pending, ${all.rerun} rerun pending, ${all.done} produced of ${all.total} configured">
       <i style="width:${opct}%; background:var(--ok);"></i>
+      <i style="width:${remotePct}%; background:var(--accent);"></i>
       <i style="width:${rerunPct}%; background:var(--warn);"></i>
       <i style="width:${outstandingPct}%; background:var(--blocked-dim);"></i>
     </div>
@@ -577,10 +582,11 @@ function tileHTML(c){
   const provLetter = c.src==="csv" ? "C" : "D";
   const provClass  = c.src==="csv" ? "prov-csv" : "prov-disk";
   const rerunChip = c.rerun ? `<span class="chip warn">rerun ${c.rerun}</span>` : "";
+  const remoteChip = c.acceptedRemote ? `<span class="chip">remote ${c.acceptedRemote}</span>` : "";
   const rerunBasis = (() => {
     if(!c.rerun) return "";
     const basis = [];
-    if(/GraphRevoker/i.test(c.warning)) basis.push("GraphRevoker repair");
+    if(/GraphRevoker[^.;]*(invalid|rerun|refresh)/i.test(c.warning)) basis.push("GraphRevoker post-fix rerun");
     if(/proper-TracIn|TracIn\/Hybrid|TracIn/i.test(c.warning)) basis.push("proper-TracIn refresh");
     return basis.length ? basis.join(" + ") : "rerun pending";
   })();
@@ -589,7 +595,7 @@ function tileHTML(c){
   const shape = `${c.nm}m×${c.ns}s×${c.nse}seed`;
   const alphaChip = c.alpha!==null ? `<span class="chip">α=${c.alpha}</span>` : "";
   return `
-  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-valid="${c.valid}" data-rerun="${c.rerun}" data-total="${c.total}">
+  <div class="tile tile-status-${s}" data-status="${s}" data-prov="${c.src}" data-done="${c.done}" data-valid="${c.valid}" data-accepted-remote="${c.acceptedRemote}" data-rerun="${c.rerun}" data-total="${c.total}">
     <div class="wash" style="height:${Math.max(p,3)}%;"></div>
     <div class="prov ${provClass}" title="src = ${c.src}">${provLetter}</div>
     <div class="tname">${c.name}</div>
@@ -597,7 +603,7 @@ function tileHTML(c){
       <span class="d num">${c.done}</span><span class="t num">/ ${c.total}</span>
       <span class="p num">${fmtPct(c.done,c.total)} produced</span>
     </div>
-    <div class="usable">usable <b>${c.valid}/${c.total}</b> (${fmtPct(c.valid,c.total)})${c.rerun ? ` · <span class="rerun">${c.rerun} rerun</span>` : ""}</div>
+    <div class="usable">local usable <b>${c.valid}/${c.total}</b> (${fmtPct(c.valid,c.total)})${c.acceptedRemote ? ` · <span>${c.acceptedRemote} remote accepted/archive pending</span>` : ""}${c.rerun ? ` · <span class="rerun">${c.rerun} rerun</span>` : ""}</div>
     <div class="fillbar" title="${c.valid}/${c.total} usable; ${c.done}/${c.total} produced">
       <i style="width:${p}%;"></i>
     </div>
@@ -606,6 +612,7 @@ function tileHTML(c){
       <span class="chip">${c.model}</span>
       <span class="chip">r${c.ratio}</span>
       ${alphaChip}
+      ${remoteChip}
       ${rerunChip}
       <span class="chip shape">${shape}</span>
     </div>

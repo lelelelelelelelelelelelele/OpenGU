@@ -135,7 +135,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 - **Never use `--no_cache`** unless explicitly testing cache behavior itself. This flag disables both result cache AND selection cache, causing IM strategy to re-run for ~500s each time instead of using cached selections (sub-second).
 - `config.py` executes `parameter_parser()` at import time, so importing it outside of a CLI context (e.g., in a notebook) will fail or use defaults
 - ScaleGUN is currently commented out in `unlearning_manager.py`
-- GraphRevoker reuses the `grapheraser` class in the method map
+- GraphRevoker dispatches to its real `graphrevoker` class. The historical pre-2026-05-05 alias and the later single-shard collateral path are fixed; old affected results remain invalid. Current acceptance boundary: `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`.
 - Seed is hardcoded to 2024 in `main.py::seed_everything()`
 - Logs are timestamped and organized at `log/{method}/{dataset}/{model}/`
 - Bug 修复后数据刷新：Phase B 没有"修补"流程，重跑 `experiments/run.py <yaml>` 即可（旧的 HOWTO_REPAIR_CORRUPTED_RESULTS.md 描述的是 pre-Phase-B 流程，已删除 2026-05-06）
@@ -172,7 +172,7 @@ Resolved (2026-05-05):
 | `scripts/diag_b1.sh` | 一键看 cell 输出列表 + log 错误尾（不在 git，需 cat 创建） |
 | `scripts/redo_collateral.sh` | 补 OOM 失败的 collateral cell（不在 git，需 cat 创建） |
 | `experiments/run.py` | 主 runner：吃 yaml，展开 (method,strategy,seed) 矩阵跑 demo_attack + eval_collateral |
-| `SERVER_RUNBOOK.md` | 双机执行手册（4090 cora + H800 arxiv） |
+| `文档规划/10_实验矩阵/15_实验运行入口与脚本.md` | 当前 runner / yaml / dry-run / gate 入口；2026-05 deadline Runbook 已退休 |
 | `self/attack_flow.md` | 一个 cell 时序拆解 + CPU/GPU 占用图 |
 | `self/limitations.md` | paper §5 candidates：实测瓶颈 + decision status |
 
