@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-07-14
+> Last updated: 2026-07-20
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -37,7 +37,7 @@
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
 4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**（**设计如此、非缺同步**；只有 GNNDelete 的方法自吐 before）→ before 锚点用主矩阵 `perf_before` 本地 join 重算（**E3**，不需服务器）/W3-L4。
-5. **C5 — GraphRevoker 历史矩阵退化（✅ 已修复并重跑）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续把新矩阵作为 GraphRevoker 权威证据，不再把“代码仍未修好”或“正式实验必须隔离”当默认前提。→ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`；完整多 seed 验收待补同口径报告。
+5. **C5 — GraphRevoker 历史矩阵退化（✅ 代码与远端 E4 已通过；本地归档待闭环）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续不再写“代码仍未修好”；但本地同名 40-cell 仍是 2026-05-07 旧视图，完整 evidence import 前不得从它们提取 post-fix 数值。→ `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`（总状态）+ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`（seed42）。
 
 ---
 
@@ -88,7 +88,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
-| **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0；seed42 报告见 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
+| **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **远端 40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0）· ◐ **本地归档待闭环**（总状态 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`；seed42 报告 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
 | **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
 | **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
@@ -157,7 +157,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - 配置矩阵监督：[`config_inventory.html`](config_inventory.html) · 数据 [`config_inventory.csv`](config_inventory.csv) · 生成器 [`scripts/dashboard/gen_config_inventory.py`](../../scripts/dashboard/gen_config_inventory.py)（改 CSV `done` 后重跑即刷新）· 验收 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)
 - 硬伤映射：[`PAPER_LIABILITIES_MAP.md`](PAPER_LIABILITIES_MAP.md)（L1–L9 + overleaf 行号）
 - 实测瓶颈：[`self/limitations.md`](../limitations.md)（L1–L8）
-- ablation 设计原典：`experiments/configs/A3_alpha_sweep_SPEC.md` · `A5_README.md` · `SANITY_GRAPHREVOKER.md`
+- ablation / regression 入口：`experiments/configs/A3_alpha_sweep_SPEC.md` · `A5_README.md` · `sanity_graphrevoker*.yaml`；GraphRevoker 验收结论见 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`
 - 跨架构 idea：`self/idea_cross_arch_consensus.md`
 - 历史覆盖矩阵 + bug 档案（冻结 2026-05-07）：[`EXPERIMENT_DASHBOARD.md`](EXPERIMENT_DASHBOARD.md)
 - 旧状态中枢（已并入本文件）：[`PROGRESS.md`](PROGRESS.md)
@@ -178,3 +178,4 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **2026-07-14** 同步 Git 与 E7 gate：代码基线记录为 `main` / `origin/main`=`3f631fb`，当前在 `codex/opengu-worktree-recovery-20260714` 收口多 session dirty tree；E7 统一为 Cache V2 real-hit + versioned `proper-tracin-v1` gate 后的 C.6a/C.6b umbrella，Legacy IF / Selection Cache 保持只读，V2 换版只建新 Recipe、明确退役才显式 retire。
 - **2026-07-14** E1 stable scope 真机验收：Citeseer/GCN/r=0.05，GIF/IDEA/GNNDelete/MEGU/GraphEraser × random/IM × 5 seeds = **50/50 accepted**；runner rc=0、机器验收 0 errors、active Legacy path/size/mtime/SHA-256 聚合 hash 不变。该完成项不包含 TracIn/Hybrid/GraphRevoker，scratch Legacy-format cache 命中不记作 V2 runner hit；GraphRevoker 继续走 E4 独立 gate。
 - **2026-07-14** E4 seed42 post-fix canary：Cora/GCN/r=0.05 的 GraphRevoker random/degree/pagerank/IM **4/4 accepted**，runner rc=0、机器验收 0 errors；10+10 shard checkpoints 与聚合权重有效，NPZ 复算 collateral 一致，旧单 shard 0.50–0.58 regression 已关闭。当前提交的独立 Cache V2 Citeseer Selection recheck 也完成 cold miss → warm exact hit；两条证据分开，E4 多 seed 和 runner V2 接入仍 pending，Hybrid/TracIn 未执行。
+- **2026-07-20** GraphRevoker 文档状态收敛：OB:13 从一次性 Runbook 迁移为验收/回归测试台账；代码与远端 E4 标 `PASS`，本地 40-cell evidence import 标 `ARCHIVE PENDING`，2026-05-07 旧 SHA 视图永久 `INVALID`；新增双格式总状态报告，TracIn/Hybrid 继续独立 gate。

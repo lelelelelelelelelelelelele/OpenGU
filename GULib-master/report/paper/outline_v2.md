@@ -33,6 +33,8 @@
 | A.3 | **Ablation: α-sweep as Synergy Diagnostic** | `outline/A3_alpha_synergy.md` | outline (confirmed scope) | new runs scheduled |
 | A.4 | Ablation: IM Hyperparameters | `outline/A4_im_hyperparams.md` | outline (should-have) | new runs (small) |
 | A.5 | **Ablation: Deletion Ratio Sweep** | `outline/A5_ratio_sweep.md` | outline (must-have, user-requested) | new runs on cora/GCN |
+| A.6 | **Influence-Selector Taxonomy and Concordance** | `outline/A6_if_gif_taxonomy.md` | drafted from accepted local mechanism evidence | 3 Planetoid × 3 seeds selector matrix |
+| A.7 | **Approximation Validity of IM and Trajectory Influence Proxies** | `outline/A7_approximation_validity.md` | drafted; IM accepted at set level, TracIn V2 conditional prototype | 6-dataset topology summary + 18-run selector gate |
 | B | NeurIPS Reproducibility Checklist | `outline/B_checklist.md` | outline (mechanical) | §1–§6 stable |
 
 ---
@@ -54,7 +56,7 @@ Each `outline/*.md` has the same shape:
 
 - **Family taxonomy**: aligned with **upstream OpenGU 4-category taxonomy** (Partition / IF / Learning / Others) — `E:/project/OpenGU/README.md`. Paper covers 3 of 4 categories with intra-family pair in each; "Others" deferred.
 - **Methods = 6, all 3 covered categories have n=2 intra-family pairs**:
-  - Partition-based: **GraphEraser** + **GraphRevoker** *(GraphRevoker pending feasibility gate — un-alias `unlearning_manager.py:40` + sanity test in separate local session)*
+  - Partition-based: **GraphEraser** + **GraphRevoker** *(GraphRevoker dispatcher/ensemble fix and four-strategy E4 passed; old pre-fix rows remain invalid, and final multi-seed numbers require the local evidence archive recorded in `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`)*
   - IF-based: **GIF** (canonical) + **IDEA** (predicted intra-family outlier)
   - Learning-based: **GNNDelete** (canonical) + **MEGU** (predicted intra-family outlier)
 - **Three pair signatures**: convergent (Partition pair predicted) vs outlier (IF, Learning predicted) — contrast across signatures is a headline insight

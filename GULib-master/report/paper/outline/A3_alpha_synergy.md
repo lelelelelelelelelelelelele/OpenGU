@@ -21,7 +21,7 @@ Not "defending α=0.5". Instead: $f(\alpha) := \text{paired effect of Hybrid}_\a
 ## Experimental design  *(USER CONFIRMED)*
 
 - 5 α values: $\{0.0, 0.25, 0.5, 0.75, 1.0\}$
-- 6 methods: GraphEraser, **GraphRevoker**, GIF, IDEA, GNNDelete, MEGU (GraphRevoker contingent on feasibility gate)
+- 6 methods: GraphEraser, **GraphRevoker**, GIF, IDEA, GNNDelete, MEGU (GraphRevoker feasibility passed; its TracIn/Hybrid-dependent alpha endpoints remain gated by the proper-TracIn refresh)
 - 2 cells: cora/GCN, cora/GAT (4090 fast; arxiv NOT in scope — too costly)
 - 5 seeds per (method, α, cell)
 - Total new runs: 6 × 5 × 2 × 5 = **300 runs** (α=0.0 ≡ IM and α=1.0 ≡ TracIn already in main matrix → effective new = 6 × 3 × 2 × 5 = **180 runs**)

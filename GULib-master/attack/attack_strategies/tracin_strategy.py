@@ -9,17 +9,17 @@ from ..score_cache import ScoreCache, graph_fingerprint
 
 class TracInStrategy(BaseStrategy):
     """
-    TracIn (Tracing Influence) strategy for node selection.
+    Legacy cross-gradient selector kept for compatibility.
 
-    TracIn approximates influence functions using gradient similarity, providing
-    a computationally efficient alternative to full Hessian-based IF calculation.
+    Despite the historical class name, this is not multi-checkpoint,
+    learning-rate-weighted TracInCP. At the final model only, it computes
 
-    The TracIn score for a node is computed as the sum of negative gradient dot
-    products with all other nodes. Higher scores indicate more influential nodes
-    that, when unlearned, have greater impact on model performance.
+        score_i = -g_i(theta_final) dot sum_j g_j(theta_final)
 
-    Reference: "Estimating Training Data Influence by Tracing Gradient Descent"
-    (Pruthi et al., NeurIPS 2020)
+    It has no checkpoint trajectory, per-checkpoint learning rate, or explicit
+    evaluation target E. Its scores and Legacy ScoreCache entries are therefore
+    `deployed-cross-gradient-legacy`, not authoritative proper-TracIn Artifacts.
+    The isolated `proper-tracin-v1` lane owns the formal Score Recipe/Artifact.
     """
 
     requires_trained_model = True
@@ -86,7 +86,7 @@ class TracInStrategy(BaseStrategy):
         data: Data,
         candidates: Tensor,
     ) -> Tensor:
-        """Public, cache-aware wrapper around _compute_tracin_scores.
+        """Public, cache-aware wrapper around the Legacy cross-gradient score.
 
         HybridStrategy calls this directly so the IF branch can be reused
         across alpha values without recomputing the gradient matrix.
@@ -120,13 +120,13 @@ class TracInStrategy(BaseStrategy):
         data: Data,
         candidates: Tensor,
     ) -> dict:
-        """Cache key for IF scores.
+        """Legacy cache key for cross-gradient scores; not a V2 Recipe.
 
         Intentionally does NOT include the model state hash — empirically,
         re-training under the same (dataset, model, seed, ratio) config
         produces tiny weight drift due to non-deterministic CUDA/cuDNN ops,
         which would make the cache miss across every process invocation.
-        Since the cache is used to share TracIn rankings (not bit-exact
+        Since the cache is used to share Legacy rankings (not bit-exact
         scores) between Hybrid alpha-sweeps and across cells with the same
         training config, the static config fields are the right key.
 
@@ -187,7 +187,7 @@ class TracInStrategy(BaseStrategy):
         candidates: Tensor,
     ) -> Tensor:
         """
-        Original dense TracIn implementation; materialises full G [N, d] on GPU.
+        Original dense Legacy implementation; materialises full G [N, d] on GPU.
 
         Use only when N × num_params × 4B fits in GPU memory with margin.
         For arxiv (N≈90K, d≈160K → ~55 GB) this OOMs even on H100 96GB
@@ -218,7 +218,8 @@ class TracInStrategy(BaseStrategy):
         # G: [N, d] matrix of per-node gradients
         G = torch.stack(grads)  # [num_candidates, num_params]
 
-        # TracIn score_i = -sum_j (grad_i · grad_j) = -(G @ G^T).sum(dim=1)[i]
+        # Legacy cross-gradient score_i = -sum_j (grad_i · grad_j).
+        # This is not the checkpoint-weighted TracInCP definition.
         # Equivalent: scores = -(G @ G^T @ 1) = -(G @ (G^T @ 1)) for memory efficiency
         col_sum = G.sum(dim=0)  # [d]
         scores = -(G @ col_sum)  # [num_candidates]
@@ -232,7 +233,7 @@ class TracInStrategy(BaseStrategy):
         candidates: Tensor,
         chunk_size: int = 1000,
     ) -> Tensor:
-        """Chunked + CPU-offload TracIn: streams gradients to CPU pinned memory.
+        """Chunked + CPU-offload Legacy score path.
 
         Pass 1: forward once, then for each chunk of `chunk_size` candidates,
                 stack their gradients into a small G_chunk on GPU, accumulate

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>WORKPLAN 未完成项并行模块梳理</title>
+  <title>Parallel Modules Workplan</title>
   <style>
     :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
@@ -12,9 +12,9 @@
 <body>
 <div class="layout">
   <aside>
-    <div class="brand">OPENGU / WORKPLAN REVIEW</div>
-    <div class="side-title">WORKPLAN 未完成项并行模块梳理</div>
-    <span class="badge">REVIEW PROJECTION</span>
+    <div class="brand">OpenGU Research</div>
+    <div class="side-title">Parallel Modules Workplan</div>
+    <span class="badge">WORKPLAN</span>
     <nav><a class="" href="#一句话结论">一句话结论</a>
 <a class="" href="#当前基线与已关闭事项">当前基线与已关闭事项</a>
 <a class="" href="#数字校正">数字校正</a>
@@ -30,8 +30,8 @@
   </aside>
   <main>
     <section class="hero">
-      <div class="kicker">2026-07-20 · MAIN B46927E · PARALLEL LANES</div>
-      <h1>WORKPLAN 未完成项并行模块梳理</h1>
+      <div class="kicker">Research Operations</div>
+      <h1>Parallel Modules Workplan</h1>
     </section>
     <article><h1 id="workplan-未完成项并行模块梳理">WORKPLAN 未完成项并行模块梳理</h1>
 <blockquote>
@@ -68,7 +68,7 @@
 <tr>
   <td>Cache V2</td>
   <td><strong>当前范围 accepted</strong>；不再作为 E7 的通用 Cache blocker</td>
-  <td><a href="cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md"><code>cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md</code></a></td>
+  <td><a href="../docs/cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md"><code>cache_v2_rollout_syncmate_ACCEPTANCE_REPORT.md</code></a></td>
 </tr>
 <tr>
   <td>Legacy Cache</td>
@@ -76,8 +76,8 @@
   <td>970 payload、70 refs、<code>physical_archive_authorized=false</code></td>
 </tr>
 <tr>
-  <td>IF-target</td>
-  <td><strong>已进入 main</strong>：single-seed C-target + 三数据集三 seed B/C matrix</td>
+  <td>IF/GIF target</td>
+  <td><strong>已进入 main</strong>：single-seed C/D target + 三数据集三 seed A/B–C–D matrix</td>
   <td><a href="../reports/c_target_v1_REPORT.md"><code>c_target_v1_REPORT.md</code></a>、<a href="../reports/bc_target_matrix_REPORT.md"><code>bc_target_matrix_REPORT.md</code></a></td>
 </tr>
 <tr>
@@ -229,7 +229,7 @@
 </tbody>
 </table>
 <h2 id="模块-m5-的真实缺口">模块 M5 的真实缺口</h2>
-<p>TracIn 是现在最容易被“原型已合并”误判成“已经完成”的部分。正式报告的结论仍是 <a href="tracin_v2_gates_ACCEPTANCE_REPORT.md"><code>CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE</code></a>：</p>
+<p>TracIn 是现在最容易被“原型已合并”误判成“已经完成”的部分。正式报告的结论仍是 <a href="../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md"><code>CONDITIONAL PROTOTYPE PASS; KEEP UNSTABLE</code></a>：</p>
 <ul>
 <li>G1 Recipe identity：partial pass，formal ScoreArtifact/store/conflict gate 缺失；</li>
 <li>G3 Legacy replay/isolation：partial pass，formal store snapshot gate 缺失；</li>
@@ -237,7 +237,7 @@
 <li>G6 GU canary：未运行；</li>
 <li>默认 runner/production registry：有意没有接入。</li>
 </ul>
-<p>本轮合入的 IF-target 证据解决了“B/C 目标层级与 same-source proxy 是否有效”的机制问题，但它没有自动完成 TracIn production registration，也没有完成 E7 surrogate transfer。两者应作为 M5 的输入证据，而不是把 M5 标成完成。</p>
+<p>本轮合入的 IF/GIF-target 证据解决了“A 对 B 的排序代理、B 的数值估计、C-IF/D-GIF 分界与 same-source proxy 是否有效”的机制问题，但它没有自动完成 TracIn production registration，也没有完成 E7 surrogate transfer。两者应作为 M5 的输入证据，而不是把 M5 标成完成。</p>
 <h2 id="推荐并行波次">推荐并行波次</h2>
 <h3 id="wave-a-现在即可并行">Wave A：现在即可并行</h3>
 <table>

@@ -74,6 +74,32 @@ speed-up over brute-force CELF with $<2\%$ spread loss
 (\S\ref{app:imhp}). Source code and configurations will be released upon
 acceptance.
 
+\paragraph{Artifact generations and replay audit.}
+We separate historical evidence from the authoritative rerun rather than
+pooling artifacts produced under different cache regimes. Legacy V1
+outputs are retained as a frozen, read-only baseline; they are not treated
+as Cache V2 hits and do not count toward V2 completion. The formal V2
+matrix is replayed from zero under accepted Cache V2 runner paths; a
+selector enters the replay only after its versioned producer passes its
+acceptance gate. A cell is eligible for the paper only when \texttt{attack.json},
+\texttt{collateral.json}, \texttt{predictions.npz}, and
+\texttt{\_meta.json} are complete and the recorded configuration
+fingerprint matches the replay configuration. Infrastructure canaries are
+excluded from the paper matrix.
+
+For configurations also represented in V1, we perform a matched
+reproducibility audit using the same dataset and split, backbone,
+unlearning method, selector algorithm and version, deletion ratio, seed,
+candidate set and budget, and training hyperparameters. A V1 row with
+insufficient provenance for an exact match is marked non-comparable. We
+report paired V2-minus-V1 changes in F1/attack effect, retrain gap,
+prediction shift, and update-detection AUC; selected-node overlap is
+reported only when selector semantics are unchanged. We also flag any
+effect-direction or method-ranking reversal. V1 and V2 rows are never
+pooled: primary estimates and claims use V2 only, while the matched table
+serves solely as a stability audit and not as additional sample size or a
+formal equivalence claim.
+
 \subsection{Scaling to ogbn-arxiv}
 \label{sec:setup-arxiv}
 
