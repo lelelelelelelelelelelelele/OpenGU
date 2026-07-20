@@ -71,6 +71,17 @@ from .conflict_resolution import (
 from .schema import SCHEMA_VERSION
 from .runtime import LoadedSelectionArtifact, load_selection_artifact
 from .legacy_freeze import LegacyCacheFrozenError
+from .score_store import (
+    SCORE_PAYLOAD_SCHEMA,
+    SCORE_PAYLOAD_VERSION,
+    ScoreArtifactConflictError,
+    ScoreArtifactIntegrityError,
+    ScoreArtifactStore,
+    ScorePayload,
+    ScoreProducerCalledError,
+    ScoreStoreResult,
+    ordered_ids_hash,
+)
 
 
 __version__ = "2.1.0"
@@ -117,6 +128,14 @@ __all__ = [
     "ResolveExplanation",
     "ScanReport",
     "SchemaVersionError",
+    "SCORE_PAYLOAD_SCHEMA",
+    "SCORE_PAYLOAD_VERSION",
+    "ScoreArtifactConflictError",
+    "ScoreArtifactIntegrityError",
+    "ScoreArtifactStore",
+    "ScorePayload",
+    "ScoreProducerCalledError",
+    "ScoreStoreResult",
     "VerificationStatus",
     "build_artifact_id",
     "canonical_bytes",
@@ -132,6 +151,7 @@ __all__ = [
     "normalize_relative_path",
     "normalize_semantic_path",
     "normalize_source_path",
+    "ordered_ids_hash",
     "reject_forbidden_recipe_fields",
     "sha256_bytes",
     "utc_now_iso",
