@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>近似策略有效性实验：IM coverage 与 trajectory influence</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OpenGU Research</div>
+    <div class="side-title">近似策略有效性实验：IM coverage 与 trajectory influence</div>
+    <span class="badge">SUP A.7 DRAFTED</span>
+    <nav><a class="" href="#1-证据分层">1. 证据分层</a>
+<a class="" href="#2-im-coverage-proxy-是否只是-degree">2. IM coverage proxy 是否只是 degree</a>
+<a class="" href="#3-trajectory-influence-proxy-是否对准-eval-if">3. trajectory influence proxy 是否对准 eval-IF</a>
+<a class="" href="#4-与-a-b-c-d-证据的关系">4. 与 A/B–C–D 证据的关系</a>
+<a class="" href="#5-production-接入边界">5. production 接入边界</a>
+<a class="" href="#6-ob-sup-的快跑闭环">6. OB ↔ SUP 的快跑闭环</a>
+<a class="" href="#7-当前最短论文结论">7. 当前最短论文结论</a>
+<a class="" href="#8-证据入口">8. 证据入口</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">Approximation Validity</div>
+      <h1>近似策略有效性实验：IM coverage 与 trajectory influence</h1>
+    </section>
+    <article><h1 id="近似策略有效性实验-im-coverage-与-trajectory-influence">近似策略有效性实验：IM coverage 与 trajectory influence</h1>
+<p>这页是 Obsidian 与论文 supplementary 的共同桥梁，回答的不是“两个
+selector 是否属于同一类”，而是：</p>
+<blockquote>
+<p>selector 使用的 proxy，是否仍然对准它声称代表的信号？</p>
+</blockquote>
+<p>它和 [[11_策略输出重合度实验]] 分工如下：</p>
+<table>
+<thead>
+<tr>
+  <th>OB 页面</th>
+  <th>论文位置</th>
+  <th>核心问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>11 · selector taxonomy / concordance</td>
+  <td>Appendix A.6</td>
+  <td>A/B、C-IF、D-GIF 分别是什么，组内与组间是否选择相同节点</td>
+</tr>
+<tr>
+  <td>12 · approximation validity</td>
+  <td>Appendix A.7</td>
+  <td>IM coverage 与 trajectory influence 的 proxy 是否有效</td>
+</tr>
+<tr>
+  <td>production / GU gate</td>
+  <td>main-results 后续增量</td>
+  <td>proxy 接入真实 GU 后是否产生 attack outcome</td>
+</tr>
+</tbody>
+</table>
+<p>因此，本页可以在 production 接入之前先形成附录内容；但不能把 selector
+证据写成真实 GU vulnerability。</p>
+<p>论文草稿入口：</p>
+<ul>
+<li><a href="../../report/paper/outline/A7_approximation_validity.md">A.7 outline</a></li>
+<li><a href="../../report/paper/overleaf/sec/A_appendix.tex">Overleaf Appendix</a></li>
+</ul>
+<hr />
+<h2 id="1-证据分层">1. 证据分层</h2>
+<table>
+<thead>
+<tr>
+  <th>层</th>
+  <th>近似对象</th>
+  <th>验证方式</th>
+  <th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>P1 · topology proxy</td>
+  <td>IM 的 coalition coverage 是否退化成 degree</td>
+  <td>六数据集 IM vs degree top-set Jaccard</td>
+  <td><strong>accepted set-level evidence</strong></td>
+</tr>
+<tr>
+  <td>P2 · influence taxonomy</td>
+  <td>A/B、C-IF、D-GIF 是否应分组</td>
+  <td>3 datasets × 3 seeds 组内/组间矩阵</td>
+  <td><strong>accepted local mechanism evidence</strong>；见 [[11_策略输出重合度实验]]</td>
+</tr>
+<tr>
+  <td>P3 · trajectory proxy</td>
+  <td>multi-checkpoint score 是否对准 eval-IF</td>
+  <td>3 datasets × 2 backbones × 3 seeds</td>
+  <td><strong>conditional prototype pass</strong></td>
+</tr>
+<tr>
+  <td>P4 · production / GU</td>
+  <td>proxy 是否能安全进入 Cache V2、Hybrid 与真实 GU</td>
+  <td>Artifact/cache gate + Hybrid + GU canary</td>
+  <td><strong>pending</strong></td>
+</tr>
+</tbody>
+</table>
+<p>P1–P3 已经足以写 supplementary 的 proxy-validity 结论；P4 决定它何时能
+进入 main-results 的 attack-outcome 结论。</p>
+<hr />
+<h2 id="2-im-coverage-proxy-是否只是-degree">2. IM coverage proxy 是否只是 degree</h2>
+<p>IM 的风险是：单点 spread 可能受 degree 强烈影响，最终集合却被误写成
+独立的组合覆盖信号。当前 retained evidence 在六个数据集上比较相同预算下
+的 top-set Jaccard：</p>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Cora</th>
+  <th style="text-align:right">CiteSeer</th>
+  <th style="text-align:right">PubMed</th>
+  <th style="text-align:right">Photo</th>
+  <th style="text-align:right">Computers</th>
+  <th style="text-align:right">CS</th>
+  <th style="text-align:right">Mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>IM vs degree</td>
+  <td style="text-align:right">0.187</td>
+  <td style="text-align:right">0.177</td>
+  <td style="text-align:right">0.061</td>
+  <td style="text-align:right">0.046</td>
+  <td style="text-align:right">0.030</td>
+  <td style="text-align:right">0.032</td>
+  <td style="text-align:right">0.089</td>
+</tr>
+</tbody>
+</table>
+<p>正确结论是：</p>
+<blockquote>
+<p>IM 在 set level 没有退化为 degree。其组合式 coverage 在所有六个数据集上
+都产生了不同节点集合，而且在较大图上的差异更明显。</p>
+</blockquote>
+<p>不能推出：</p>
+<ul>
+<li>IM 的 downstream attack outcome 一定强于 degree；</li>
+<li>低 Jaccard 意味着两个 selector 中有一个实现失败；</li>
+<li>单次 deterministic selector 对照已经构成跨 seed 统计显著性。</li>
+</ul>
+<p>机器可读来源：<a href="../../self/related_work/concordance/data/summary.json">summary.json</a>。</p>
+<hr />
+<h2 id="3-trajectory-influence-proxy-是否对准-eval-if">3. trajectory influence proxy 是否对准 eval-IF</h2>
+<p>paper-aligned trajectory score 使用多个训练 checkpoint 的
+evaluation-conditioned gradient inner product。它与 C-IF 的 final-state
+reference 比较；reference 中的逆 Hessian 项统一通过迭代 IHVP 求解。</p>
+<p>当前隔离 gate 覆盖：</p>
+<ul>
+<li>Planetoid Cora、CiteSeer、PubMed；</li>
+<li>GCN 与 GAT；</li>
+<li>seeds <code>2024 / 7 / 42</code>；</li>
+<li>固定 <code>k=7</code>；</li>
+<li>selection target 为与 candidate set 分离的 validation loss，test labels
+只用于 downstream utility。</li>
+</ul>
+<table>
+<thead>
+<tr>
+  <th>Configuration</th>
+  <th style="text-align:right">V2 vs eval-IF Spearman</th>
+  <th style="text-align:right">common@7，seeds <code>[2024,7,42]</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora / GCN</td>
+  <td style="text-align:right">0.877</td>
+  <td style="text-align:right"><code>[5,6,5]</code></td>
+</tr>
+<tr>
+  <td>CiteSeer / GCN</td>
+  <td style="text-align:right">0.950</td>
+  <td style="text-align:right"><code>[6,5,4]</code></td>
+</tr>
+<tr>
+  <td>PubMed / GCN</td>
+  <td style="text-align:right">0.908</td>
+  <td style="text-align:right"><code>[5,3,5]</code></td>
+</tr>
+<tr>
+  <td>Cora / GAT</td>
+  <td style="text-align:right">0.825</td>
+  <td style="text-align:right"><code>[6,7,5]</code></td>
+</tr>
+<tr>
+  <td>CiteSeer / GAT</td>
+  <td style="text-align:right">0.962</td>
+  <td style="text-align:right"><code>[6,6,5]</code></td>
+</tr>
+<tr>
+  <td>PubMed / GAT</td>
+  <td style="text-align:right">0.762</td>
+  <td style="text-align:right"><code>[4,4,1]</code></td>
+</tr>
+</tbody>
+</table>
+<p>配置均值 Spearman 为 <code>0.762–0.962</code>。因此可以写：</p>
+<blockquote>
+<p>隔离的 trajectory proxy 通常与 eval-IF reference 高度对齐，但这种对齐
+依赖 dataset × backbone；PubMed/GAT 是明确的 seed-sensitive 边界。</p>
+</blockquote>
+<p>不能写成“trajectory proxy 与 IF 等价”。尤其是 PubMed/GAT 的 common@7
+降到 <code>[4,4,1]</code>，说明全排序相关仍较高时，有限预算集合也可能不稳定。</p>
+<p>旧 deployed cross-final selector 与 V2 的配置均值相关方向不稳定，不能作为
+这个 trajectory score 的替代证据。旧 TracIn / Hybrid artifact 只保留为
+legacy 结果，不进入本节 proxy-validity 结论。</p>
+<p>双格式权威来源：</p>
+<ul>
+<li><a href="../../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md">TracIn V2 gate report.md</a></li>
+<li><a href="../../docs/tracin_v2_gates_ACCEPTANCE_REPORT.html">TracIn V2 gate report.html</a></li>
+</ul>
+<hr />
+<h2 id="4-与-a-b-c-d-证据的关系">4. 与 A/B–C–D 证据的关系</h2>
+<p>本页不重复 A.6 的 IF/GIF taxonomy：</p>
+<ul>
+<li>A/B 是 target-free parameter-change 组；</li>
+<li>C 是不含 post-deletion <code>grad2</code> 的 eval-conditioned IF；</li>
+<li>D 才是使用 <code>grad1-grad2</code> source 的 graph-aware GIF；</li>
+<li>trajectory proxy 在本页验证的是 eval-IF 对齐，不因此自动成为 D-GIF。</li>
+</ul>
+<p>现有 3 datasets × 3 seeds A/B–C–D 结果与详细数字统一见：</p>
+<ul>
+<li>[[11_策略输出重合度实验]]；</li>
+<li>[[20_IF目标层级对比实验计划]]；</li>
+<li>[[21_C目标TracIn与GIF近似有效性实验计划]]。</li>
+</ul>
+<p>这样 A.6 回答“目标和方法分组”，A.7 回答“proxy validity”，不再把
+taxonomy、数值求解和 production 接入混成一个问题。</p>
+<hr />
+<h2 id="5-production-接入边界">5. production 接入边界</h2>
+<p>当前 proper trajectory selector 已完成公式、独立 Recipe、跨数据集/模型
+selector gate 与缩减版跨机器排序检查，但还没有完全进入 main：</p>
+<table>
+<thead>
+<tr>
+  <th>待闭环项</th>
+  <th>为什么需要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>正式 immutable Score Artifact/store</td>
+  <td>验证 cold miss、warm exact hit 与同 Recipe 内容冲突隔离</td>
+</tr>
+<tr>
+  <td>Legacy store 前后快照</td>
+  <td>证明新版没有读取或污染旧 IF / Selection Cache</td>
+</tr>
+<tr>
+  <td>Hybrid parent identity</td>
+  <td>确认 Hybrid 明确依赖同一个 versioned trajectory Artifact</td>
+</tr>
+<tr>
+  <td>最小 GU canary</td>
+  <td>验证 selector 能进入真实 approximate-GU 流程并生成完整 outcome</td>
+</tr>
+<tr>
+  <td>main runner / registry promotion</td>
+  <td>上述 gate 通过后才允许默认入口使用</td>
+</tr>
+</tbody>
+</table>
+<p>这些属于“接入 main”的工程与 end-to-end 验收，不阻止 P1–P3 先写成
+supplementary；但在它们完成前，正确名称仍是 conditional prototype，不能写
+production-ready。</p>
+<hr />
+<h2 id="6-ob-sup-的快跑闭环">6. OB ↔ SUP 的快跑闭环</h2>
+<p>本页采用增量写作，而不是等待所有实验一次结束：</p>
+<ol>
+<li><strong>本轮已完成</strong>：把 IM 六数据集证据与 TracIn V2 18-run gate 写入 OB 12；</li>
+<li><strong>本轮已完成</strong>：建立 paper outline A.7，并把同一数字写入 Overleaf Appendix；</li>
+<li><strong>下一 slice</strong>：完成正式 Artifact/cache 与 Legacy 隔离 gate，只更新
+reproducibility/status 段；</li>
+<li><strong>再下一 slice</strong>：完成 Hybrid 与最小 GU canary，新增 outcome 段；</li>
+<li><strong>最后</strong>：通过 main runner promotion 后，再让 main-results 使用新版
+trajectory / Hybrid 数据。</li>
+</ol>
+<p>每个 slice 都产生一个可审阅结论，同时保持 OB、SUP 与验收报告同源。</p>
+<hr />
+<h2 id="7-当前最短论文结论">7. 当前最短论文结论</h2>
+<p>可以写：</p>
+<blockquote>
+<p>IM's low set overlap with degree across six datasets shows that its
+coalition-level coverage proxy does not collapse to pointwise centrality.
+Separately, an isolated multi-checkpoint trajectory score remains aligned
+with an eval-IF reference across most dataset--backbone configurations
+(mean Spearman <code>0.762–0.962</code>), with PubMed/GAT exposing a clear
+seed-sensitive boundary. These are selector-level validity results; formal
+cache integration, Hybrid composition, and graph-unlearning outcomes remain
+outside the present evidence boundary.</p>
+</blockquote>
+<p>不要写：</p>
+<blockquote>
+<p>proper-TracIn / Hybrid 已经在 main matrix 中证明 influence attack 的强弱。</p>
+</blockquote>
+<hr />
+<h2 id="8-证据入口">8. 证据入口</h2>
+<ul>
+<li><a href="../../self/related_work/concordance/HANDOFF.md">Topology concordance HANDOFF</a></li>
+<li><a href="../../self/related_work/concordance/data/summary.json">Topology summary JSON</a></li>
+<li><a href="../../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md">TracIn V2 acceptance report</a></li>
+<li><a href="../../report/paper/outline/A6_if_gif_taxonomy.md">A.6 taxonomy outline</a></li>
+<li><a href="../../report/paper/outline/A7_approximation_validity.md">A.7 approximation-validity outline</a></li>
+</ul>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>
