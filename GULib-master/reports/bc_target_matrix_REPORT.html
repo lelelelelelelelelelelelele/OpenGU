@@ -985,7 +985,7 @@
 </tr>
 </tbody>
 </table>
-<p>The payload preserves all 18 full score vectors and rankings, candidate and target order hashes, dataset/model/checkpoint hashes, graph intervention metadata, numerical recipe, and runtime. Cora, CiteSeer and PubMed exact warm hits all passed with a producer-call failure guard. Recipe mismatch fails closed.</p>
+<p>The tracked selection summaries preserve all 18 full score vectors and rankings, candidate and target order hashes, dataset/model/checkpoint hashes, graph intervention metadata, numerical recipe, Artifact/Content hashes, and runtime. The device-local Cache V2 payload store is intentionally Git-ignored and reproducible from the frozen Recipe. Cora, CiteSeer and PubMed exact warm hits all passed with a producer-call failure guard. Recipe mismatch fails closed.</p>
 <p>Downstream outputs use independent deterministic recipe hashes and retain selected-set hashes, base/selector state hashes, edge counts, retrained model hashes, effects and runtime.</p>
 <h3 id="legacy-cache-isolation">Legacy cache isolation</h3>
 <p>Before the matrix, legacy cache manifests were:</p>

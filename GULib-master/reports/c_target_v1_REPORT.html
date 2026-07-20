@@ -353,12 +353,16 @@ P_{\mathrm{graph}}(v)=
   <td><code>004f37749c23e524ddec1f9c33e7623df60317339d68255424fea9af23e6303f</code></td>
 </tr>
 <tr>
-  <td>Payload</td>
-  <td><code>results/cache_v2/c_target_v1/artifacts/score/9c/score_9c9b34fd_004f3774/payload.json</code></td>
+  <td>Tracked cold summary</td>
+  <td><code>results/c_target_v1/cora_gcn_seed2024_adam200_n140_accepted_cold.json</code></td>
+</tr>
+<tr>
+  <td>Tracked warm summary</td>
+  <td><code>results/c_target_v1/cora_gcn_seed2024_adam200_n140_accepted_warm.json</code></td>
 </tr>
 </tbody>
 </table>
-<p>The payload contains all 140 ordered candidate IDs, all eight complete score vectors, deterministic full rankings, affected-set sizes, timings, accuracy, and provenance. The cold run created the Artifact. The exact warm run, executed with <code>--fail-if-producer-called</code>, returned the same Artifact with <code>producer_called=false</code>. A 139-candidate mismatch exited non-zero with <code>ProducerCalledError</code> and wrote no result, proving that a different Recipe does not silently reuse the 140-candidate Artifact.</p>
+<p>The tracked cold/warm summaries preserve all 140 ordered candidate IDs, all eight complete score vectors, deterministic full rankings, affected-set sizes, timings, accuracy, full Recipe/Content hashes, and provenance. The device-local Cache V2 store is intentionally Git-ignored and can be regenerated from the frozen Recipe. The cold run created the Artifact. The exact warm run, executed with <code>--fail-if-producer-called</code>, returned the same Artifact with <code>producer_called=false</code>. A 139-candidate mismatch exited non-zero with <code>ProducerCalledError</code> and wrote no result, proving that a different Recipe does not silently reuse the 140-candidate Artifact.</p>
 <p>Legacy <code>results/cache</code>, <code>results/selection_cache</code>, and <code>results/score_cache</code> were content-hash-sentinelled before and after execution and remained unchanged.</p>
 <h2 id="reproduction">Reproduction</h2>
 <p>Run from the repository root with the local CPU environment:</p>

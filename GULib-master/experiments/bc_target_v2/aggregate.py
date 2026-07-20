@@ -18,9 +18,6 @@ DEFAULT_RESULT_ROOT = REPO_ROOT / "results" / "bc_target_v2"
 
 
 PAIR_SET = (
-    ("a_grad_norm", "b_param_lissa"),
-    ("b_param_hutch", "b_param_lissa"),
-    ("b_param_lissa", "gt_full"),
     ("gt_simple", "gt_full"),
     ("r_point", "gt_full"),
     ("p_point", "r_point"),
@@ -32,6 +29,12 @@ PAIR_SET = (
     ("tracin_cp_simple_6", "gt_simple"),
     ("tracin_cp_graph_3", "gt_full"),
     ("tracin_cp_graph_6", "gt_full"),
+)
+
+HISTORICAL_VALIDATION_PAIR_SET = (
+    ("a_grad_norm", "b_param_lissa"),
+    ("b_param_hutch", "b_param_lissa"),
+    ("b_param_lissa", "gt_full"),
 )
 
 
@@ -109,7 +112,12 @@ def main(argv: Sequence[str] = None) -> int:
 
     selection_rows = []
     for cell in selections:
-        for left, right in PAIR_SET:
+        available_pairs = tuple(PAIR_SET) + tuple(
+            pair
+            for pair in HISTORICAL_VALIDATION_PAIR_SET
+            if all(name in cell["rankings"] for name in pair)
+        )
+        for left, right in available_pairs:
             key = _pair_key(left, right)
             metrics_by_k = cell["pairwise_metrics"][key]
             for budget in cell["budgets"]:

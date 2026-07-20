@@ -1,4 +1,4 @@
-"""Run one cached Planetoid/GCN B+C selection cell on CPU."""
+"""Run one cached Planetoid/GCN B+C selection cell with runtime telemetry."""
 
 from __future__ import annotations
 
@@ -60,8 +60,8 @@ DEFAULT_DATA_ROOT = Path(
 )
 DEFAULT_CACHE_ROOT = REPO_ROOT / "results" / "cache_v2" / "bc_target_v2"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "bc_target_v2" / "selection"
-SELECTION_ALGORITHM_VERSION = "bc-target-score-ranking-prefix-v1"
-SELECTION_PRODUCER_VERSION = "bc-target-maxk-selection-v1"
+SELECTION_ALGORITHM_VERSION = "bc-target-score-ranking-prefix-v2"
+SELECTION_PRODUCER_VERSION = "bc-target-maxk-selection-v2"
 
 
 def _int_list(value: str) -> Sequence[int]:
@@ -105,6 +105,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--budgets", type=_budget_list, default=(14, 7, 3))
     parser.add_argument("--num-threads", type=int, default=1)
+    parser.add_argument(
+        "--device",
+        choices=("auto", "cpu", "cuda"),
+        default="auto",
+        help="compute device; auto uses CUDA when available",
+    )
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument(
         "--checkpoint-epochs",
@@ -147,6 +153,40 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("optimizer settings are invalid")
     if args.affected_hops < 0 or args.hutch_probes <= 0:
         raise ValueError("affected hops and Hutchinson probes are invalid")
+
+
+def _resolve_device(value: str) -> torch.device:
+    normalized = str(value).strip().lower()
+    if normalized == "auto":
+        normalized = "cuda" if torch.cuda.is_available() else "cpu"
+    if normalized == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA was requested but is not available")
+    if normalized == "cuda":
+        return torch.device("cuda", torch.cuda.current_device())
+    return torch.device(normalized)
+
+
+def _synchronize(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
+def _gpu_peaks(device: torch.device) -> Dict[str, Any]:
+    if device.type != "cuda":
+        return {
+            "available": False,
+            "device": str(device),
+            "peak_allocated_bytes": None,
+            "peak_reserved_bytes": None,
+        }
+    _synchronize(device)
+    return {
+        "available": True,
+        "device": str(device),
+        "device_name": torch.cuda.get_device_name(device),
+        "peak_allocated_bytes": int(torch.cuda.max_memory_allocated(device)),
+        "peak_reserved_bytes": int(torch.cuda.max_memory_reserved(device)),
+    }
 
 
 def _write_json_atomic(
@@ -245,14 +285,20 @@ def main(argv: Sequence[str] = None) -> int:
     args = build_parser().parse_args(argv)
     _validate_args(args)
     run_started = time.perf_counter()
+    device = _resolve_device(args.device)
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+        torch.cuda.reset_peak_memory_stats(device)
     seed_everything(args.seed, args.num_threads)
+    if device.type == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
 
     dataset = Planetoid(
         root=str(args.data_root.expanduser().resolve()),
         name=args.dataset,
         transform=NormalizeFeatures(),
     )
-    data = dataset[0].to(torch.device("cpu"))
+    data = dataset[0].to(device)
     candidate_ids = torch.where(data.train_mask)[0].sort().values
     target_ids = torch.where(data.val_mask)[0].sort().values
     hessian_train_ids = candidate_ids
@@ -266,7 +312,7 @@ def main(argv: Sequence[str] = None) -> int:
         int(args.hidden_channels),
         int(dataset.num_classes),
         float(args.dropout),
-    )
+    ).to(device)
     checkpoints, training_observation = train_trajectory(
         model,
         data,
@@ -379,16 +425,20 @@ def main(argv: Sequence[str] = None) -> int:
         numerics={
             "torch_dtype": str(data.x.dtype),
             "deterministic_algorithms": True,
+            "compute_device": str(device),
+            "cuda_version": torch.version.cuda if device.type == "cuda" else None,
         },
     )
 
     def produce() -> ScoreBundlePayload:
+        _synchronize(device)
         scoring_started = time.perf_counter()
         candidate_gradients = []
         target_gradients = []
         point_vectors = []
         checkpoint_gradient_seconds = []
         for item in checkpoints:
+            _synchronize(device)
             started = time.perf_counter()
             matrix, target = checkpoint_point_gradients(
                 model,
@@ -401,6 +451,7 @@ def main(argv: Sequence[str] = None) -> int:
             candidate_gradients.append(matrix)
             target_gradients.append(target)
             point_vectors.append(matrix.mv(target).to(torch.float64))
+            _synchronize(device)
             checkpoint_gradient_seconds.append(time.perf_counter() - started)
 
         final_candidate_gradient = candidate_gradients[-1]
@@ -433,17 +484,6 @@ def main(argv: Sequence[str] = None) -> int:
             final_inverse_target=inverse_target,
         )
 
-        inverse_candidates, b_lissa_observation = inverse_hessian_vectors(
-            model,
-            data,
-            state=final_state,
-            hessian_train_ids=hessian_train_ids,
-            parameter_scope=args.parameter_scope,
-            vectors=final_candidate_gradient,
-            iterations=args.lissa_iterations,
-            scale=args.lissa_scale,
-            damp=args.lissa_damp,
-        )
         generator = torch.Generator(device="cpu")
         generator.manual_seed(int(args.hutch_seed))
         probes = torch.randint(
@@ -470,9 +510,9 @@ def main(argv: Sequence[str] = None) -> int:
         final_graph_scores = graph["final_scores"]
         scores = {
             "a_grad_norm": final_candidate_gradient.norm(dim=1).to(torch.float64),
-            "b_param_lissa": inverse_candidates.norm(dim=1).to(torch.float64),
             "b_param_hutch": hutchinson_parameter_change_scores(
-                final_candidate_gradient, inverse_probes
+                final_candidate_gradient,
+                inverse_probes.to(final_candidate_gradient.device),
             ).to(torch.float64),
             "degree": degree_scores(
                 data.edge_index, candidate_ids, int(data.num_nodes)
@@ -524,6 +564,7 @@ def main(argv: Sequence[str] = None) -> int:
             name: list(stable_ranking(candidate_list, scores[name]))
             for name in sorted(scores)
         }
+        _synchronize(device)
         metadata = {
             "experiment": "bc_target_v2",
             "dataset": args.dataset,
@@ -543,10 +584,11 @@ def main(argv: Sequence[str] = None) -> int:
             "checkpoint_graph": graph["checkpoint_observations"],
             "target_gradient_max_abs_diff": max_target_diff,
             "c_ihvp": ihvp_observation,
-            "b_param_lissa": b_lissa_observation,
             "b_param_hutch": b_hutch_observation,
             "final_graph_source": graph["final_observation"],
             "score_compute_seconds": time.perf_counter() - scoring_started,
+            "formal_score_count": len(SCORE_NAMES),
+            "validation_only_scores_excluded": ["b_param_lissa"],
             "per_candidate_exact_retrain_performed": False,
         }
         return ScoreBundlePayload.build(
@@ -560,11 +602,19 @@ def main(argv: Sequence[str] = None) -> int:
             source_fingerprint=code_fingerprint,
         ),
     )
+    training_gpu_peaks = _gpu_peaks(device)
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+    _synchronize(device)
+    score_bundle_started = time.perf_counter()
     store_result = store.get_or_compute(
         recipe,
         produce,
         fail_if_called=args.fail_if_producer_called,
     )
+    _synchronize(device)
+    score_bundle_access_seconds = time.perf_counter() - score_bundle_started
+    score_bundle_gpu_peaks = _gpu_peaks(device)
     payload = store_result.payload
     selection_cache_root = (
         args.cache_root.expanduser().resolve() / "selection_artifacts"
@@ -588,8 +638,10 @@ def main(argv: Sequence[str] = None) -> int:
         source_fingerprint=selection_source_fingerprint,
     )
     selection_artifacts = {}
+    selection_timings = {}
     for name in sorted(payload.rankings):
         ranking = tuple(int(node) for node in payload.rankings[name])
+        selection_started = time.perf_counter()
         materialized = materialize_budget_selection(
             store_root=selection_cache_root,
             dataset=selection_dataset,
@@ -609,7 +661,15 @@ def main(argv: Sequence[str] = None) -> int:
             producer=lambda max_k, ordered=ranking: ordered[:max_k],
             fail_if_producer_called=args.fail_if_producer_called,
         )
+        selection_seconds = time.perf_counter() - selection_started
         selection_artifacts[name] = materialized.to_manifest(selection_cache_root)
+        selection_timings[name] = {
+            "seconds": selection_seconds,
+            "cache_hit": bool(materialized.cache_hit),
+            "outcome": "hit" if materialized.cache_hit else "miss_saved",
+            "producer_called": bool(materialized.producer_called),
+            "status": "success",
+        }
     output_path = args.output
     if output_path is None:
         output_path = DEFAULT_OUTPUT_ROOT / (
@@ -629,6 +689,7 @@ def main(argv: Sequence[str] = None) -> int:
         "budgets": list(args.budgets),
         "target_set": "validation_mask_mean_ce",
         "per_candidate_exact_retrain_performed": False,
+        "status": {"state": "success", "failure": None},
         "cache": {
             "root": str(store.root),
             "hit": bool(store_result.hit),
@@ -658,6 +719,7 @@ def main(argv: Sequence[str] = None) -> int:
                 for item in selection_artifacts.values()
                 if item["cache"]["producer_called"]
             ),
+            "method_timings": selection_timings,
         },
         "selection_artifacts": selection_artifacts,
         "selector_model_final_state_hash": state_hash(final_state),
@@ -671,13 +733,47 @@ def main(argv: Sequence[str] = None) -> int:
         },
         "persisted_metadata": dict(payload.metadata),
         "training_observation": training_observation,
-        "runtime": {"total_seconds": time.perf_counter() - run_started},
+        "runtime": {
+            "total_seconds": None,
+            "score_bundle_access_seconds": score_bundle_access_seconds,
+            "score_bundle_cold_total_seconds": (
+                score_bundle_access_seconds if not store_result.hit else None
+            ),
+            "score_bundle_warm_read_seconds": (
+                score_bundle_access_seconds if store_result.hit else None
+            ),
+            "persisted_score_compute_seconds": payload.metadata.get(
+                "score_compute_seconds"
+            ),
+        },
+        "gpu_memory": {
+            "training_and_recipe": training_gpu_peaks,
+            "score_bundle": score_bundle_gpu_peaks,
+            "process_peak_allocated_bytes": (
+                max(
+                    int(training_gpu_peaks["peak_allocated_bytes"] or 0),
+                    int(score_bundle_gpu_peaks["peak_allocated_bytes"] or 0),
+                )
+                if device.type == "cuda"
+                else None
+            ),
+            "process_peak_reserved_bytes": (
+                max(
+                    int(training_gpu_peaks["peak_reserved_bytes"] or 0),
+                    int(score_bundle_gpu_peaks["peak_reserved_bytes"] or 0),
+                )
+                if device.type == "cuda"
+                else None
+            ),
+        },
         "environment": {
             "python": platform.python_version(),
             "torch": torch.__version__,
             "torch_geometric": torch_geometric.__version__,
             "platform": platform.platform(),
             "executable": sys.executable,
+            "device": str(device),
+            "cuda": torch.version.cuda,
         },
         "config": {
             "data_root": str(args.data_root.expanduser().resolve()),
@@ -703,8 +799,11 @@ def main(argv: Sequence[str] = None) -> int:
             "hutch_probes": int(args.hutch_probes),
             "hutch_seed": int(args.hutch_seed),
             "num_threads": int(args.num_threads),
+            "device": str(device),
         },
     }
+    _synchronize(device)
+    summary["runtime"]["total_seconds"] = time.perf_counter() - run_started
     _write_json_atomic(
         output_path, summary, overwrite=args.overwrite_output
     )

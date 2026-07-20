@@ -317,7 +317,7 @@ The two rows are implementations of the same B target, not distinct selectors. T
 | PubMed | 212 | `score_5f61998d_88b47a75` | 60 | 100.68 s |
 | PubMed | 2024 | `score_23f2cbea_e1dd24dd` | 60 | 99.21 s |
 
-The payload preserves all 18 full score vectors and rankings, candidate and target order hashes, dataset/model/checkpoint hashes, graph intervention metadata, numerical recipe, and runtime. Cora, CiteSeer and PubMed exact warm hits all passed with a producer-call failure guard. Recipe mismatch fails closed.
+The tracked selection summaries preserve all 18 full score vectors and rankings, candidate and target order hashes, dataset/model/checkpoint hashes, graph intervention metadata, numerical recipe, Artifact/Content hashes, and runtime. The device-local Cache V2 payload store is intentionally Git-ignored and reproducible from the frozen Recipe. Cora, CiteSeer and PubMed exact warm hits all passed with a producer-call failure guard. Recipe mismatch fails closed.
 
 Downstream outputs use independent deterministic recipe hashes and retain selected-set hashes, base/selector state hashes, edge counts, retrained model hashes, effects and runtime.
 

@@ -9,12 +9,11 @@ from typing import Any, Mapping, Sequence
 from cache_v2 import ArtifactRecipe
 
 
-ALGORITHM_VERSION = "bc-target-matrix-v2.0"
+ALGORITHM_VERSION = "bc-target-matrix-v3.0"
 SCORE_FAMILY = "bc_target_selection_score_bundle"
 SCORE_NAMES = (
     "a_grad_norm",
     "b_param_hutch",
-    "b_param_lissa",
     "degree",
     "gt_full",
     "gt_simple",
@@ -31,6 +30,7 @@ SCORE_NAMES = (
     "tracin_cp_simple_3",
     "tracin_cp_simple_6",
 )
+VALIDATION_SCORE_NAMES = ("b_param_lissa",)
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
