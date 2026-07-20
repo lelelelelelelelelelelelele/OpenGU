@@ -1,7 +1,7 @@
 ---
 title: WORKPLAN 同步
 created: 2026-07-09
-updated: 2026-07-14
+updated: 2026-07-20
 type: workplan-sync
 source: ../../self/dashboard/WORKPLAN.md
 tags: [workplan, sync, dynamic]
@@ -19,16 +19,16 @@ tags: [workplan, sync, dynamic]
 - thesis 锁死：systematic audit + extreme heterogeneity + Vulnerability Fingerprint。
 - 本轮不做重投式 reframe；先在现有 thesis 内补证、改写、清硬伤。
 - 本地 GPU 不可用，GPU 实验走 AutoDL 镜像 `gnn_20`；本地用于 CPU 分析和文档。
-- Git 基线是 `main` / `origin/main`=`3f631fb`；当前在 `codex/opengu-worktree-recovery-20260714` 按 session / 主题收口既有 dirty tree，尚未声称全部提交或推送。
+- Git 分支与 worktree 状态不在本页固化；每次操作前以 `git status --short --branch` 和 `git worktree list` 为准。
 
 ---
 
 ## 推进顺序
 
-1. E4 GraphRevoker 修复：先修聚合器 bug + 整 method 重跑，确保 6-method audit 底座有效。
+1. GraphRevoker E4：代码与远端 40/40 已通过；只剩本地 evidence import / manifest 闭环，旧数据永久 invalid。
 2. E7 严格门控顺序（不是跳过 gate 直接开跑）：Cache V2 Selection Artifact cold/warm exact hit + versioned `proper-tracin-v1` → C.6a GCN→GCN surrogate transfer → C.6b GCN→GAT/GIN surrogate transfer；Legacy IF / Selection Cache 只读，换版只建新 V2 Recipe，明确退役才显式 retire。
 3. W1/W2/W3 写作主线：主指标转 retrain gap，回应 degree / scope / 叙述过满。
-4. E1/E2/E3/E5/E6 补证：Citeseer、L8 redo、noise anchor、arxiv scope、hop 列。
+4. E2/E3/E5/E6 + A5 补证：L8 redo、noise anchor、arxiv scope、hop 列、ratio/dataset sweep；E1 已完成。
 5. F3/F4 看图和看板：补 supp 图，持续维护 config_inventory。
 6. W6/W9 review + AI 数据分析：把评审意见转成任务，把矩阵再过一遍找可写点。
 
@@ -42,7 +42,7 @@ tags: [workplan, sync, dynamic]
 | Ablation | [[02_TODO台账#Ablation A]] | [WORKPLAN.md §6](../../self/dashboard/WORKPLAN.md) |
 | 写作 | [[02_TODO台账#写作 W]] | [WORKPLAN.md §7](../../self/dashboard/WORKPLAN.md) |
 | 画图 / 看板 | [[02_TODO台账#画图与看板 F]] | [WORKPLAN.md §8](../../self/dashboard/WORKPLAN.md) |
-| 重跑 / Artifact 版本 | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | GraphRevoker rerun / E7 versioned V2 Recipe |
+| 修复验收 / Artifact 版本 | [[10_实验矩阵/13_重跑与缓存修复Runbook]] | GraphRevoker archive boundary / E7 versioned V2 Recipe |
 | 评审 / rebuttal | [[30_评审与汇报/31_评审意见与rebuttal]] | [WORKPLAN.md §7 W6](../../self/dashboard/WORKPLAN.md) |
 
 ---

@@ -34,4 +34,4 @@ Aggregator script (TBD): `scripts/plot_supp_figures.py::plot_ratio_elasticity` r
 ## Caveats
 
 - **r=0.20 may break methods**: GraphEraser at high deletion ratio can yield empty or imbalanced shards; sanity-check before queuing all 90 cells. Drop offending cells in the paper rather than hide.
-- **GraphRevoker contingent**: see `SANITY_GRAPHREVOKER.md`; if it fails the gate, drop GraphRevoker from all three configs and report n=5 partition reverts to n=1.
+- **GraphRevoker evidence is ratio-specific**: the r=0.05 four-strategy E4 gate passed, but it does not validate the existing r=0.01 rows or future r=0.10/r=0.20 cells. Run a one-cell post-fix gate at each new ratio before expanding; see `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md` and the OB repair-acceptance ledger.

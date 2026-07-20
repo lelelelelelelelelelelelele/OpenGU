@@ -3,13 +3,13 @@
 > Status: outline (current draft `overleaf/sec/4_experiment.tex`, 50 lines)
 > Parent: §4
 > Depends on: Phase B configs in `experiments/configs/`
-> Updated: 2026-05-05
+> Updated: 2026-07-20
 
 ## Subsections
 
 - **4.1 Datasets and backbones** — Cora (2,708) / Citeseer (3,327) / ogbn-arxiv (169,343) × GCN / GAT
 - **4.2 Unlearning methods** — **6 methods** under the official OpenGU 4-category taxonomy (Partition / IF / Learning / Others; see upstream `OpenGU/README.md`). Coverage:
-  - **Partition-based**: GraphEraser + **GraphRevoker** *(pending feasibility gate — re-wire `unlearning_manager.py:40` to dispatch to `graphrevoker` class instead of alias to `grapheraser`; sanity test on cora/GCN single seed before committing main matrix runs)*. GUIDE is not evaluated in this paper; make no empirical claim about it.
+  - **Partition-based**: GraphEraser + **GraphRevoker**. GraphRevoker's real dispatcher and shard-ensemble path passed the seed42 canary and the four-strategy E4 execution gate; pre-fix rows remain invalid, and archived multi-seed evidence must be used for final numbers. GUIDE is not evaluated in this paper; make no empirical claim about it.
   - **IF-based**: GIF (canonical Newton-step) + IDEA (certified-gradient — predicted intra-family outlier)
   - **Learning-based**: GNNDelete (deletion-aware proximal) + MEGU (mutual-evolution — predicted intra-family outlier)
   - **Others** (UtU, Projector): not covered in this paper; future work

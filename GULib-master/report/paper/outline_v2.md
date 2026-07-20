@@ -54,7 +54,7 @@ Each `outline/*.md` has the same shape:
 
 - **Family taxonomy**: aligned with **upstream OpenGU 4-category taxonomy** (Partition / IF / Learning / Others) — `E:/project/OpenGU/README.md`. Paper covers 3 of 4 categories with intra-family pair in each; "Others" deferred.
 - **Methods = 6, all 3 covered categories have n=2 intra-family pairs**:
-  - Partition-based: **GraphEraser** + **GraphRevoker** *(GraphRevoker pending feasibility gate — un-alias `unlearning_manager.py:40` + sanity test in separate local session)*
+  - Partition-based: **GraphEraser** + **GraphRevoker** *(GraphRevoker dispatcher/ensemble fix and four-strategy E4 passed; old pre-fix rows remain invalid, and final multi-seed numbers require the local evidence archive recorded in `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`)*
   - IF-based: **GIF** (canonical) + **IDEA** (predicted intra-family outlier)
   - Learning-based: **GNNDelete** (canonical) + **MEGU** (predicted intra-family outlier)
 - **Three pair signatures**: convergent (Partition pair predicted) vs outlier (IF, Learning predicted) — contrast across signatures is a headline insight

@@ -1,7 +1,7 @@
 # self/dashboard/ — Single Source of Truth
 
 > Created: 2026-05-03
-> Last updated: 2026-07-14
+> Last updated: 2026-07-20
 > Role: 实验状态、metrics、bug、findings 的**唯一权威落点**。其他文档（thesis_transition_memo、PROJECT_MASTER_CONTEXT 等）应**链接到此**，不应复制内容。
 
 ## 文件分工
@@ -14,6 +14,7 @@
 | `EXPERIMENT_DASHBOARD.md` | ⚠️ **FROZEN 2026-05-07**：历史 coverage 矩阵 + bug 档案 | 不再更新；只读参考 | 查历史覆盖 / pre-Phase-B bug 溯源 |
 | `METRICS_CATALOG.md` | 6 个 v2 metric 的定义 + 实测覆盖 + bug 位置 + v3 候选 | **半手写**：metric 定义稳定，状态字段每日更新 | 写 paper §metric / 修 metric bug 时 |
 | `VALIDATION_LOG.md` | append-only 实证 finding 与 sanity check 记录 | **append-only**，禁止删改历史条目 | 验证假说 / 引用证据时 |
+| `config_inventory.csv` / `.html` | cell 级 produced、local usable、accepted-remote/archive-pending、rerun 四态看板 | CSV 为数据源，HTML 由 `scripts/dashboard/gen_config_inventory.py` 生成 | 判断实验能否本地复核与下一步 rerun/import |
 | `CLAUDE.md`（本文件） | 这些文件本身的使用规则 | 几乎不变 | 第一次进入此文件夹 |
 
 ## 维护铁律

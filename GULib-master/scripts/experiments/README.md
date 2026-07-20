@@ -19,7 +19,7 @@ E:/conda_package/envs/gnn/python.exe scripts/gate_runs.py results/runs/cora_GCN_
 ```
 
 可用 yaml：见 `experiments/configs/`。
-执行手册：根目录 `SERVER_RUNBOOK.md`（4090 cora + H800 arxiv 双机版）。
+当前执行入口：`文档规划/10_实验矩阵/15_实验运行入口与脚本.md` + `self/dashboard/WORKPLAN.md`。2026-05 的根目录双机 Runbook 已退休。
 
 ## 仍在用的辅助 .sh
 

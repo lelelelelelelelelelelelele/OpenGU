@@ -1,6 +1,7 @@
 # Sanity: single cell GraphRevoker/random/seed=42 on cora/GCN.
-# Used as feasibility gate before promoting GraphRevoker into Phase B 6-method matrix.
-# See SANITY_GRAPHREVOKER.md for run guide and pass/fail criteria.
+# Retained as the smallest post-fix regression cell; feasibility already passed.
+# Acceptance criteria and invalid-history boundary live in
+# docs/graphrevoker_e4_ACCEPTANCE_REPORT.md and the OB repair ledger.
 name: sanity_graphrevoker
 dataset: cora
 base_model: GCN
