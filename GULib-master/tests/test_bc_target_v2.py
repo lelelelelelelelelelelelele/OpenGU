@@ -1,4 +1,5 @@
 import hashlib
+import sys
 
 import pytest
 import torch
@@ -9,6 +10,10 @@ from experiments.bc_target_v2.core import (
     hutchinson_parameter_change_scores,
     remove_selected_nodes,
     weighted_checkpoint_scores,
+)
+from experiments.bc_target_v2.benchmark_selection import (
+    _build_cell_record,
+    _command,
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
 from experiments.bc_target_v2.render_markdown import render_document
@@ -100,7 +105,8 @@ def test_bc_recipe_contains_complete_score_family():
         numerics={"torch_dtype": "torch.float32"},
     )
     assert tuple(recipe.fields["score_names"]) == SCORE_NAMES
-    assert len(SCORE_NAMES) == 18
+    assert len(SCORE_NAMES) == 17
+    assert "b_param_lissa" not in SCORE_NAMES
     assert recipe.fields["candidate_set"]["ranking_reusable_across_budgets"]
 
 
@@ -146,3 +152,65 @@ def test_budget_cli_normalizes_duplicates_and_order():
 def test_default_budget_order_is_max_first():
     assert build_selection_parser().parse_args([]).budgets == (14, 7, 3)
     assert build_matrix_parser().parse_args([]).budgets == (14, 7, 3)
+
+
+def test_selection_device_defaults_to_auto():
+    parser = build_selection_parser()
+    assert parser.parse_args([]).device == "auto"
+    assert parser.parse_args(["--device", "cpu"]).device == "cpu"
+
+
+def test_benchmark_cell_requires_17_cold_misses_and_warm_hits(tmp_path):
+    def summary(hit):
+        return {
+            "cache": {"hit": hit, "artifact_id": "score_fixture"},
+            "selection_cache": {
+                "miss_saved_count": 0 if hit else 17,
+                "hit_count": 17 if hit else 0,
+                "method_timings": {
+                    name: {
+                        "seconds": 0.001,
+                        "cache_hit": hit,
+                    }
+                    for name in SCORE_NAMES
+                },
+            },
+            "runtime": {
+                "score_bundle_cold_total_seconds": None if hit else 2.0,
+                "score_bundle_warm_read_seconds": 0.01 if hit else None,
+                "total_seconds": 3.0,
+            },
+            "gpu_memory": {
+                "process_peak_allocated_bytes": 1024 if not hit else 512,
+                "process_peak_reserved_bytes": 2048 if not hit else 1024,
+            },
+            "environment": {"device": "cuda"},
+        }
+
+    record = _build_cell_record(
+        dataset="Cora",
+        seed=42,
+        cold_path=tmp_path / "cold.json",
+        warm_path=tmp_path / "warm.json",
+        cold=summary(False),
+        warm=summary(True),
+    )
+    assert record["status"] == "success"
+    assert len(record["methods"]) == 17
+    assert record["score_bundle_cold_total_seconds"] == 2.0
+    assert record["score_bundle_warm_read_seconds"] == 0.01
+
+
+def test_benchmark_warm_command_enables_producer_sentinel(tmp_path):
+    command = _command(
+        dataset="Cora",
+        seed=42,
+        data_root=tmp_path / "data",
+        cache_root=tmp_path / "cache",
+        output=tmp_path / "warm.json",
+        budgets="14,7,3",
+        device="cpu",
+        warm=True,
+    )
+    assert "--fail-if-producer-called" in command
+    assert command[0] == sys.executable
