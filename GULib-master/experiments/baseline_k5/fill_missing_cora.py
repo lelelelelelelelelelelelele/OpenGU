@@ -1,4 +1,4 @@
-"""Fill k=5 noise floor for the 4 (method, backbone) combos missing on Cora.
+"""Run the four historically missing Cora cells into the isolated v2 root.
 
 Targets:
     GraphRevoker x GCN   (added post dispatcher fix; not in original k=5 batch)
@@ -6,9 +6,8 @@ Targets:
     IDEA         x GCN   (original k=5 batch only ran GAT for IDEA)
     MEGU         x GCN   (same)
 
-Idempotent: per-seed JSON files are reused if already present, only missing
-cells are computed. Existing GIF / GNNDelete / GraphEraser averaged files are
-NOT touched.
+Idempotent: only compatible v2 per-seed JSON files are reused.  The legacy
+``results/baseline/k5_random`` evidence is never read or overwritten.
 
 Usage (from project root, with the gnn env active):
     python experiments/baseline_k5/fill_missing_cora.py
@@ -27,9 +26,26 @@ from pathlib import Path
 
 import numpy as np
 
+try:
+    from .baseline_contract import (
+        SCHEMA,
+        SCHEMA_VERSION,
+        default_result_root,
+        expected_config,
+        load_valid_record,
+    )
+except ImportError:
+    from baseline_contract import (
+        SCHEMA,
+        SCHEMA_VERSION,
+        default_result_root,
+        expected_config,
+        load_valid_record,
+    )
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GEN = REPO_ROOT / "experiments" / "baseline_k5" / "generate_baseline.py"
-ROOT = REPO_ROOT / "results" / "baseline" / "k5_random"
+ROOT = default_result_root(REPO_ROOT)
 LOG_DIR = REPO_ROOT / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG = LOG_DIR / f"fill_k5_missing_{datetime.now():%Y%m%d_%H%M%S}.log"
@@ -67,6 +83,19 @@ def run_one(method: str, backbone: str, seed: int) -> str:
     cdir.mkdir(parents=True, exist_ok=True)
     cfile = cdir / f"baseline_seed{seed}_k{BASELINE_K}.json"
     if cfile.exists():
+        try:
+            load_valid_record(
+                cfile,
+                expected_config(
+                    dataset=DATASET,
+                    model=backbone,
+                    method=method,
+                    seed=seed,
+                    k=BASELINE_K,
+                ),
+            )
+        except Exception:
+            return "stale"
         return "skip"
     n_nodes = DATASET_NUM_NODES[DATASET]
     ratio_k = BASELINE_K / n_nodes
@@ -77,6 +106,7 @@ def run_one(method: str, backbone: str, seed: int) -> str:
         "--unlearning_methods", method,
         "--random_seed", str(seed),
         "--baseline_k", str(BASELINE_K),
+        "--output_root", str(ROOT),
         # Sync ratio BEFORE parameter_parser runs — config.py captures it at import time
         "--unlearn_ratio", str(ratio_k),
         "--proportion_unlearned_nodes", str(ratio_k),
@@ -101,7 +131,16 @@ def aggregate(method: str, backbone: str) -> bool:
         if not p.exists():
             continue
         try:
-            d = json.loads(p.read_text(encoding="utf-8"))
+            d = load_valid_record(
+                p,
+                expected_config(
+                    dataset=DATASET,
+                    model=backbone,
+                    method=method,
+                    seed=s,
+                    k=BASELINE_K,
+                ),
+            )
         except Exception:
             continue
         if d.get("f1_after") is not None: f1a.append(d["f1_after"])
@@ -113,9 +152,11 @@ def aggregate(method: str, backbone: str) -> bool:
                         "f1_before": d.get("f1_before"), "f1_drop": d.get("f1_drop"),
                         "method_perf_before": d.get("method_perf_before"),
                         "method_noise_drop": d.get("method_noise_drop")})
-    if not f1a:
+    if len(f1a) != len(SEEDS) or len(method_before) != len(SEEDS):
         return False
     out = {
+        "schema": SCHEMA,
+        "schema_version": SCHEMA_VERSION,
         "f1_after": float(np.mean(f1a)),
         "f1_after_std": float(np.std(f1a)),
         "f1_before": float(np.mean(f1b)) if f1b else None,
@@ -130,6 +171,7 @@ def aggregate(method: str, backbone: str) -> bool:
             "unlearning_methods": method, "k": BASELINE_K,
             "strategy": "random", "averaged": True,
             "before_metric": "method_train_only_f1",
+            "output_root": str(ROOT.resolve()),
             "timestamp": datetime.now().isoformat(),
         },
     }
@@ -163,7 +205,7 @@ def main() -> int:
         log("       set PYTHON env var to a working python")
         return 2
 
-    counters = {"ok": 0, "skip": 0, "fail": 0, "timeout": 0}
+    counters = {"ok": 0, "skip": 0, "stale": 0, "fail": 0, "timeout": 0}
     total = len(COMBOS) * len(SEEDS)
     i = 0
     for method, backbone in COMBOS:
@@ -193,7 +235,12 @@ def main() -> int:
     log(f"  aggregate: {n_avg_ok}/{len(COMBOS)} cells")
     log(f"  log: {LOG}")
 
-    if counters["fail"] or counters["timeout"] or n_avg_ok < len(COMBOS):
+    if (
+        counters["stale"]
+        or counters["fail"]
+        or counters["timeout"]
+        or n_avg_ok < len(COMBOS)
+    ):
         return 1
     return 0
 

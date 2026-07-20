@@ -19,11 +19,13 @@ import json
 import numpy as np
 import torch
 import random
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
 # Extract custom args BEFORE parameter_parser (which rejects unknown args)
 _baseline_k = 5
+_output_root = None
 _raw_args = list(sys.argv[1:])
 _filtered_argv = []
 _i = 0
@@ -38,6 +40,14 @@ while _i < len(_raw_args):
         continue
     elif _arg.startswith('--baseline_k='):
         _baseline_k = int(_arg.split('=', 1)[1])
+    elif _arg == '--output_root':
+        if _i + 1 < len(_raw_args):
+            _output_root = _raw_args[_i + 1]
+            _i += 2
+            continue
+        raise SystemExit('--output_root requires a path')
+    elif _arg.startswith('--output_root='):
+        _output_root = _arg.split('=', 1)[1]
     else:
         _filtered_argv.append(_arg)
     _i += 1
@@ -50,17 +60,55 @@ if base_dir not in sys.path:
 from parameter_parser import parameter_parser
 from attack.pipeline_adapter import AttackPipeline
 from attack.attack_strategies import RandomStrategy
+from experiments.baseline_k5.baseline_contract import (
+    SCHEMA,
+    SCHEMA_VERSION,
+    default_result_root,
+    expected_config,
+    load_valid_record,
+    measure_method_perf_before,
+    validate_run_result,
+)
 
-def generate_baseline(args: dict, k: int):
+
+REPO_ROOT = Path(base_dir)
+DEFAULT_OUTPUT_ROOT = default_result_root(REPO_ROOT)
+
+
+def _git_provenance():
+    def run(*args):
+        return subprocess.check_output(
+            ['git', '-C', str(REPO_ROOT), *args], text=True, encoding='utf-8'
+        ).strip()
+
+    try:
+        sha = run('rev-parse', 'HEAD')
+        dirty = bool(run('status', '--porcelain'))
+    except (OSError, subprocess.SubprocessError):
+        sha, dirty = None, None
+    return {'git_sha': sha, 'git_dirty': dirty}
+
+
+def _write_json_atomic(path: Path, value: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + f'.tmp-{os.getpid()}')
+    temporary.write_text(json.dumps(value, indent=2), encoding='utf-8')
+    os.replace(str(temporary), str(path))
+
+
+def generate_baseline(args: dict, k: int, output_root: Path):
     dataset = args.get('dataset_name', 'cora')
     model = args.get('base_model', 'GCN')
     method = args.get('unlearning_methods', 'GraphEraser')
     seed = int(args.get('random_seed', 2024))
     
-    # Target output path for eval_relative.py to automatically discover
-    cache_dir = Path(f"./results/baseline/k5_random/{method}/{dataset}/{model}")
+    # V2 is deliberately isolated from the frozen legacy k5_random evidence.
+    cache_dir = Path(output_root) / method / dataset / model
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / f"baseline_seed{seed}_k{k}.json"
+    expected = expected_config(
+        dataset=dataset, model=model, method=method, seed=seed, k=k
+    )
     
     print(f"\n==================================================")
     print(f"[Generate Baseline] Method: {method} | Dataset: {dataset} | Model: {model}")
@@ -68,10 +116,15 @@ def generate_baseline(args: dict, k: int):
     print(f"==================================================")
     
     if cache_file.exists():
-        print(f"[INFO] Cache already exists at:")
-        print(f"       {cache_file}")
-        print(f"       Skipping generation. (Delete file manually if you want to re-run)")
-        return
+        try:
+            load_valid_record(cache_file, expected)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Existing output is not a compatible v2 artifact: {cache_file}: {exc}. "
+                "Move it aside explicitly; it will not be overwritten."
+            ) from exc
+        print(f"[INFO] Compatible v2 artifact exists; resuming: {cache_file}")
+        return cache_file
         
     print(f"[*] Initializing pipeline...")
     
@@ -83,19 +136,21 @@ def generate_baseline(args: dict, k: int):
         torch.cuda.manual_seed_all(seed)
         
     # 2. Setup
+    before_pipeline = AttackPipeline(dict(args))
+    method_perf_before, before_source = measure_method_perf_before(
+        before_pipeline, method
+    )
+    print(
+        f"[*] Method-specific before F1: {method_perf_before:.4f} "
+        f"(source={before_source})"
+    )
+
+    # Use a fresh pipeline for the actual random-unlearning run.  The
+    # train-only measurement above can replace ``self.model`` with a shard
+    # wrapper or trained target; reusing it would contaminate random-init
+    # restoration in the unlearning path.
     pipeline = AttackPipeline(args)
     strategy = RandomStrategy(args)
-
-    # Capture the same method-specific train-only baseline used by the
-    # Phase-B collateral artifact (``perf_before``).  ``poison_f1`` is not
-    # populated for most node-unlearning methods, so it cannot anchor the
-    # k=5 noise-floor diagnostic on its own.  This is deliberately named
-    # ``method_perf_before`` rather than ``canonical_f1_before``: shard
-    # methods may expose an aggregated/SISA before model, not a shared
-    # vanilla base model.
-    pipeline._ensure_base_model_trained()
-    method_perf_before = pipeline._evaluate_model(pipeline.model)
-    print(f"[*] Method-specific before F1: {method_perf_before:.4f}")
 
     # CRITICAL: Sync proportion_unlearned_nodes with actual k / num_nodes.
     # GNNDelete's delete_node() computes df_size = int(num_nodes * proportion_unlearned_nodes)
@@ -114,13 +169,15 @@ def generate_baseline(args: dict, k: int):
     result_dict = pipeline.run_with_strategy(strategy, k)
     
     # 4. Collection
-    f1_after = result_dict.get("f1_after")
+    f1_after = validate_run_result(result_dict, k)
     f1_before = result_dict.get("f1_before")
     f1_drop = result_dict.get("f1_drop")
     if f1_drop is None and f1_before is not None and f1_after is not None:
         f1_drop = f1_before - f1_after
     
     data = {
+        "schema": SCHEMA,
+        "schema_version": SCHEMA_VERSION,
         "f1_after": f1_after,
         "f1_before": f1_before,
         "f1_drop": f1_drop,
@@ -138,25 +195,19 @@ def generate_baseline(args: dict, k: int):
             "k": k,
             "strategy": "random",
             "before_metric": "method_train_only_f1",
+            "before_metric_source": before_source,
+            "output_root": str(Path(output_root).resolve()),
+            **_git_provenance(),
             "timestamp": datetime.now().isoformat()
         }
     }
     
-    # 5. Sanity check — catch garbage results from silently swallowed exceptions
-    if f1_after is not None and f1_after < 0.3:
-        print(f"\n[CRITICAL WARNING] f1_after = {f1_after:.4f} is suspiciously low!")
-        print(f"  This may indicate GNNDelete's df_size assertion failed silently.")
-        print(f"  proportion_unlearned_nodes = {args.get('proportion_unlearned_nodes')}")
-        print(f"  k = {k}, expected df_size = {int(pipeline.data.num_nodes * args.get('proportion_unlearned_nodes', 0.1))}")
-        print(f"  NOT saving this result. Please investigate before re-running.")
-        return
-
-    # 6. Saving
-    with open(cache_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
+    # 5. Saving. Failed runs never reach this point.
+    _write_json_atomic(cache_file, data)
         
     print(f"[*] Completed! F1 After: {f1_after:.4f}")
     print(f"[*] Baseline saved to: {cache_file}")
+    return cache_file
 
 
 def main():
@@ -166,7 +217,12 @@ def main():
     # to avoid conflict, but since AttackPipeline only triggers the 'k'
     # we pass to 'run_with_strategy(strategy, k)', standard args are fine.
     
-    generate_baseline(args, _baseline_k)
+    output_root = (
+        Path(_output_root).expanduser().resolve()
+        if _output_root
+        else DEFAULT_OUTPUT_ROOT
+    )
+    generate_baseline(args, _baseline_k, output_root)
 
 
 if __name__ == '__main__':
