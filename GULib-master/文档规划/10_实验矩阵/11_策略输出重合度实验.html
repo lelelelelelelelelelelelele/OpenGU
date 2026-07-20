@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>策略输出重合度实验：结构轴与 A/B–C–D influence 轴</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OpenGU Research</div>
+    <div class="side-title">策略输出重合度实验：结构轴与 A/B–C–D influence 轴</div>
+    <span class="badge">SUP BRIDGE</span>
+    <nav><a class="" href="#1-比较框架">1. 比较框架</a>
+<a class="" href="#2-指标与边界">2. 指标与边界</a>
+<a class="" href="#3-组内近似验证">3. 组内近似验证</a>
+<a class="" href="#4-组间机制比较">4. 组间机制比较</a>
+<a class="" href="#5-结构-selector-锚点">5. 结构 selector 锚点</a>
+<a class="" href="#6-快跑迭代策略">6. 快跑迭代策略</a>
+<a class="" href="#7-不能推出的结论">7. 不能推出的结论</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">Selector Concordance</div>
+      <h1>策略输出重合度实验：结构轴与 A/B–C–D influence 轴</h1>
+    </section>
+    <article><h1 id="策略输出重合度实验-结构轴与-a-b-c-d-influence-轴">策略输出重合度实验：结构轴与 A/B–C–D influence 轴</h1>
+<p>这页是 Obsidian 规划与论文 supplementary 的共同桥梁：统一回答不同 selector 是否选中相同节点，并明确区分组内近似验证和组间机制比较。</p>
+<p>方法定义见 [[20_研究框架/20_方法与策略框架]]；完整 IF/GIF 配置与结果见 [[20_IF目标层级对比实验计划]] 和 [[21_C目标TracIn与GIF近似有效性实验计划]]。</p>
+<h2 id="1-比较框架">1. 比较框架</h2>
+<table>
+<thead>
+<tr>
+  <th>层级</th>
+  <th>方法</th>
+  <th>要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>结构控制</td>
+  <td>degree、PageRank、IM</td>
+  <td>结构 selector 是否复用相同中心性信号</td>
+</tr>
+<tr>
+  <td>A/B 参数变化组</td>
+  <td>A=$\lVert g_v\rVert$；B=$\lVert H^{-1}g_v\rVert$</td>
+  <td>Hessian-free 梯度量是否能代理参数位移排序</td>
+</tr>
+<tr>
+  <td>C-IF 组</td>
+  <td>point/simple IF 及其 Hessian-free、checkpoint 版本</td>
+  <td>不含 <code>grad2</code> 时，同 source 近似是否稳定</td>
+</tr>
+<tr>
+  <td>D-GIF 组</td>
+  <td><code>grad1-grad2</code> 的 full GIF 及其代理</td>
+  <td>graph-deletion source 下近似是否复现 GIF reference</td>
+</tr>
+<tr>
+  <td>组间</td>
+  <td>A/B vs C；A/B vs D；C vs D</td>
+  <td>不同机制是否实际选择不同节点</td>
+</tr>
+</tbody>
+</table>
+<p>旧 cross-TracIn 和 topology selector 是外部控制，不属于 D；D 只指包含 <code>grad1-grad2</code> 的 graph-aware GIF 路线。</p>
+<h2 id="2-指标与边界">2. 指标与边界</h2>
+<p>top-k 集合使用：</p>
+<pre><code class="language-text">Jaccard(S_a, S_b) = |S_a ∩ S_b| / |S_a ∪ S_b|
+common@k = |S_a ∩ S_b| / k
+</code></pre>
+<p>完整排序使用 Spearman。Overlap 只能说明选择行为是否一致，不能替代集合级删除后的真实 outcome；因此每个 influence selector 还要接 k=3/7/14 的删点、删边与同 recipe 重训练验证。</p>
+<h2 id="3-组内近似验证">3. 组内近似验证</h2>
+<p>下表均为 Cora、CiteSeer、PubMed × seeds 42/212/2024 的描述性均值。</p>
+<table>
+<thead>
+<tr>
+  <th>组</th>
+  <th>比较</th>
+  <th style="text-align:right">全排序 Spearman</th>
+  <th style="text-align:right">k=7 common</th>
+  <th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>A/B</td>
+  <td>A vs B reference</td>
+  <td style="text-align:right">0.962</td>
+  <td style="text-align:right">0.778</td>
+  <td>A 是 B 排序的强 Hessian-free 代理；不是定义等价</td>
+</tr>
+<tr>
+  <td>C-point</td>
+  <td><code>p_point</code> vs <code>r_point</code></td>
+  <td style="text-align:right">0.969</td>
+  <td style="text-align:right">0.889</td>
+  <td>同 source 去 Hessian 后仍高度一致</td>
+</tr>
+<tr>
+  <td>C-simple</td>
+  <td><code>p_simple</code> vs <code>gt_simple</code></td>
+  <td style="text-align:right">0.958</td>
+  <td style="text-align:right">0.921</td>
+  <td>no-grad2 IF 的 final proxy 有效</td>
+</tr>
+<tr>
+  <td>D-GIF</td>
+  <td><code>p_graph</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.984</td>
+  <td style="text-align:right">0.905</td>
+  <td>D 内 single-final graph proxy 最接近 reference</td>
+</tr>
+<tr>
+  <td>D trajectory</td>
+  <td><code>tracin_cp_graph_3/6</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.498 / 0.529</td>
+  <td style="text-align:right">0.349 / 0.365</td>
+  <td>checkpoint 累积没有自动逼近 final GIF</td>
+</tr>
+</tbody>
+</table>
+<p>所有 reference 中的 $H^{-1}g$ 统一通过迭代 IHVP 求解。solver、HVP 和 shared-probe 配置只作实现 sanity check，不进入 selector 组内/组间矩阵。</p>
+<h2 id="4-组间机制比较">4. 组间机制比较</h2>
+<table>
+<thead>
+<tr>
+  <th>比较</th>
+  <th style="text-align:right">Spearman</th>
+  <th style="text-align:right">k=7 common</th>
+  <th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>C-simple IF vs D-full GIF：<code>gt_simple</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.040</td>
+  <td style="text-align:right">0.111</td>
+  <td><code>grad2</code> 不是小修正；C 与 D 是不同机制</td>
+</tr>
+<tr>
+  <td>C-point IF vs D-full GIF：<code>r_point</code> vs <code>gt_full</code></td>
+  <td style="text-align:right">0.112</td>
+  <td style="text-align:right">0.190</td>
+  <td>candidate-only IF 不能当作 graph-aware GIF</td>
+</tr>
+<tr>
+  <td>B reference vs D-full GIF</td>
+  <td style="text-align:right">0.023</td>
+  <td style="text-align:right">0.175</td>
+  <td>参数位移大小与 graph-aware eval impact 不是同一排序</td>
+</tr>
+</tbody>
+</table>
+<p>完整的 A/B vs C 交叉矩阵仍应作为下一轮汇总项补齐；当前已有 C-point/C-simple 与 D 的直接证据，以及 B 与 D 的强分离证据。组间结果不应被误写为某组“实现失败”。</p>
+<h2 id="5-结构-selector-锚点">5. 结构 selector 锚点</h2>
+<table>
+<thead>
+<tr>
+  <th>问题</th>
+  <th>当前结果</th>
+  <th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>degree 和 PageRank 是否相近</td>
+  <td>较高重合，但数据集相关</td>
+  <td>都是结构中心性，但不能互换</td>
+</tr>
+<tr>
+  <td>IM 是否退化成 degree</td>
+  <td>没有；多数据集集合重合较低</td>
+  <td>IM 的组合覆盖不同于单点中心性</td>
+</tr>
+<tr>
+  <td>legacy cross-TracIn 是否只是结构 selector</td>
+  <td>与 degree / IM 近乎正交</td>
+  <td>它是外部 model-based 控制，但算法口径已标为 legacy</td>
+</tr>
+</tbody>
+</table>
+<p>结构轴权威来源：</p>
+<ul>
+<li><a href="../../self/related_work/concordance/HANDOFF.md">HANDOFF.md</a></li>
+<li><a href="../../self/related_work/concordance/report.html">concordance report.html</a></li>
+</ul>
+<h2 id="6-快跑迭代策略">6. 快跑迭代策略</h2>
+<p>不等待“所有内容一次做完”，而按最小闭环滚动：</p>
+<ol>
+<li>每增加一个 reference/proxy pair，先完成组内 Spearman + Jaccard@k；</li>
+<li>再补它与相邻机制组的交叉比较；</li>
+<li>通过 selection gate 后，才运行集合级删后重训练；</li>
+<li>Obsidian 本页当天回填结论与证据链接；</li>
+<li>同一小批次同步进入 SUP 草稿，标注 <code>descriptive</code>、<code>pending</code> 或 <code>accepted</code>。</li>
+</ol>
+<p>这样 OB 是实验与论文的接口，而不是等全部实验结束后才补写的总结。</p>
+<h2 id="7-不能推出的结论">7. 不能推出的结论</h2>
+<ul>
+<li>高重合不等于两个定义相同；</li>
+<li>低重合不等于其中一个实现失败；</li>
+<li>IHVP solver 变体的一致性不构成新的 selector 结论；</li>
+<li>selection fidelity 不等于有限集合 damage 最大；</li>
+<li>本地 set-deletion 结果不等于某个 approximate GU 方法的 end-to-end vulnerability。</li>
+</ul>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

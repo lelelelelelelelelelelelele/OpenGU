@@ -1,20 +1,20 @@
 ---
-title: C 目标 TracIn、IF 与 GIF 近似有效性实验配置与结果
+title: C-IF 与 D-GIF 的 TracIn 近似有效性实验配置与结果
 created: 2026-07-16
-updated: 2026-07-17
+updated: 2026-07-20
 type: supplementary-experiment-report
 status: implemented-multi-dataset
 tags: [eval-impact, tracin, influence-function, gif, graph-source, cache-v2]
-aliases: [C目标实验, TracIn近似有效性实验, GIF近似GT实验]
+aliases: [C目标实验, C-D方法实验, TracIn近似有效性实验, GIF近似GT实验]
 ---
 
-# C 目标 TracIn、IF 与 GIF 近似有效性实验配置与结果
+# C-IF 与 D-GIF 的 TracIn 近似有效性实验配置与结果
 
-> 状态：**Cora / CiteSeer / PubMed，GCN，3 seeds，k=3/7/14 的 selection 与集合级下游矩阵已实施。** 坚决不做逐候选 exact retrain。
+> 状态：**Cora / CiteSeer / PubMed，GCN，3 seeds，k=3/7/14 的 C-IF / D-GIF selection 与集合级下游矩阵已实施。** 坚决不做逐候选 exact retrain。
 
 关联页面：
 
-- [[20_IF目标层级对比实验计划]]：A/B/C 总对比与 B 实验；
+- [[20_IF目标层级对比实验计划]]：A/B–C–D 总对比与 B 实验；
 - [[20_研究框架/21_TracIn变体与GIF关系]]：IF、GIF、TracIn 的概念关系；
 - [完整验收报告](../../reports/bc_target_matrix_REPORT.md)。
 
@@ -22,7 +22,7 @@ aliases: [C目标实验, TracIn近似有效性实验, GIF近似GT实验]
 
 本轮最重要的结论不是“TracIn 好或坏”，而是：
 
-> **固定 source 后，用 \(g_E\) 替换 \(H^{-1}g_E\) 的 single-final Hessian-free proxy 很可靠；但改变 source，或把多个 checkpoint 简单累积起来，并不会自动更接近 full GIF。**
+> **固定 source 后，用 $g_E$ 替换 $H^{-1}g_E$ 的 single-final Hessian-free proxy 很可靠；但改变 source，或把多个 checkpoint 简单累积起来，并不会自动更接近 full GIF。**
 
 九个 dataset-seed 单元的全局结果：
 
@@ -48,10 +48,10 @@ aliases: [C目标实验, TracIn近似有效性实验, GIF近似GT实验]
 
 因此当前推荐顺序是：
 
-1. full graph source 下优先 `p_graph`；
-2. `gt_full` 作为 operation-level GIF reference；
+1. D 的 full graph source 下优先 `p_graph`；
+2. `gt_full` 作为 D-GIF 的 operation-level reference；
 3. checkpoint 数量不是单调增益，3/6 checkpoint 只保留为 trajectory ablation；
-4. `p_point`、`p_simple` 只能解释各自 source 的 IF，不应写成 full GIF proxy。
+4. `p_point`、`p_simple` 属于 C-IF，只能解释各自 source 的 IF，不应写成 D-GIF proxy。
 
 真实 set-level 删除又给出另一条结论：`p_graph` 与 `gt_full` 的平均下游效果几乎一致，但 damage 最大的通常是 point/checkpoint selector。k=7 时 `tracin_cp_point_6=0.0707`，`gt_full=0.0118`。所以近似 GIF 的有效性与攻击式 selection 的有效性必须分开验收。
 
@@ -61,16 +61,16 @@ aliases: [C目标实验, TracIn近似有效性实验, GIF近似GT实验]
 
 本页 selection 层的主 reference 是：
 
-\[
+$$
 \mathrm{GT}_{\mathrm{full}}(v;E)
 =
 \left\langle
 \mathrm{grad1}_v-\mathrm{grad2}_v,\,
 H^{-1}g_E
 \right\rangle .
-\]
+$$
 
-它是操作性的 graph-aware GIF reference，不是数学上的 exact truth，也不是 exact-retrain truth。LiSSA 仍是有限迭代近似。
+它是操作性的 graph-aware GIF reference，不是数学上的 exact truth，也不是 exact-retrain truth；其中 $H^{-1}g_E$ 通过迭代 IHVP 求解。
 
 ### 1.2 Downstream outcome
 
@@ -92,47 +92,47 @@ selection 做完后，真正的集合级 outcome 是：
 
 ### 2.1 Candidate-only point source
 
-\[
+$$
 g_v=\nabla_\theta \ell_v(\theta;G).
-\]
+$$
 
 只包含候选节点自己的训练 loss gradient。
 
 ### 2.2 No-grad2 simple source
 
-令 \(A_v\) 为候选与两跳 affected nodes：
+令 $A_v$ 为候选与两跳 affected nodes：
 
-\[
+$$
 a_v=\mathrm{grad1}_v
 =
 \nabla_\theta
 \sum_{i\in A_v}\ell_i(\theta;G).
-\]
+$$
 
 它在原图上加入 affected neighbors，但不构造删后图梯度。
 
 ### 2.3 Full graph-deletion source
 
-在移除候选 \(v\) 关联边的图 \(G_{-v}\) 上：
+在移除候选 $v$ 关联边的图 $G_{-v}$ 上：
 
-\[
+$$
 b_v=\mathrm{grad2}_v
 =
 \nabla_\theta
 \sum_{i\in A_v\setminus\{v\}}\ell_i(\theta;G_{-v}),
-\]
+$$
 
-\[
+$$
 q_v=a_v-b_v.
-\]
+$$
 
-`grad1` 与 `grad2` 都在同一参数 \(\theta\) 上做 forward/backward，不重训练模型。full source 逐候选构造删后图，但仍不是逐候选 exact retrain。
+`grad1` 与 `grad2` 都在同一参数 $\theta$ 上做 forward/backward，不重训练模型。full source 逐候选构造删后图，但仍不是逐候选 exact retrain。
 
 | Source | 候选自身 | 原图 affected neighbors | 删后图邻居变化 | 逐候选删图 forward/backward |
 |---|---:|---:|---:|---:|
-| \(g_v\) | 是 | 否 | 否 | 否 |
-| \(a_v=\mathrm{grad1}\) | 是 | 是 | 否 | 否 |
-| \(q_v=\mathrm{grad1}-\mathrm{grad2}\) | 是 | 是 | 是 | 是 |
+| $g_v$ | 是 | 否 | 否 | 否 |
+| $a_v=\mathrm{grad1}$ | 是 | 是 | 否 | 否 |
+| $q_v=\mathrm{grad1}-\mathrm{grad2}$ | 是 | 是 | 是 | 是 |
 
 ## 3. 固定实验配置
 
@@ -159,44 +159,44 @@ q_v=a_v-b_v.
 | Ranking | score 降序，node ID 升序 tie-break |
 | Exact candidate retrain | 未执行 |
 
-正式 C 选择只读取 validation labels。test accuracy/loss 只在 selection Artifact 落盘后作为 downstream utility。
+正式 C/D 选择只读取 validation labels。test accuracy/loss 只在 selection Artifact 落盘后作为 downstream utility。
 
-## 4. 完整 C 方法配置矩阵
+## 4. 完整 C-IF / D-GIF 方法配置矩阵
 
 ### 4.1 Reference
 
 | 方法 | Source | Target direction | Hessian | Checkpoint | 角色 |
 |---|---|---|---:|---:|---|
-| `r_point` | \(g_v\) | \(H^{-1}g_E\) | 是 | final | candidate-only point IF |
-| `gt_simple` | \(a_v\) | \(H^{-1}g_E\) | 是 | final | no-grad2 IF approximate GT |
-| `gt_full` | \(q_v\) | \(H^{-1}g_E\) | 是 | final | full graph-aware GIF GT |
+| `r_point` | $g_v$ | $H^{-1}g_E$ | 是 | final | C-point IF reference |
+| `gt_simple` | $a_v$ | $H^{-1}g_E$ | 是 | final | C-simple IF reference |
+| `gt_full` | $q_v$ | $H^{-1}g_E$ | 是 | final | D graph-aware GIF reference |
 
 三项共用一次：
 
-\[
+$$
 s_E=H^{-1}g_E,
-\]
+$$
 
-随后只计算 \(g_v^\top s_E\)、\(a_v^\top s_E\)、\(q_v^\top s_E\)。不存储完整 \(H^{-1}\)。
+随后只计算 $g_v^\top s_E$、$a_v^\top s_E$、$q_v^\top s_E$。不存储完整 $H^{-1}$。
 
 ### 4.2 Single-final Hessian-free
 
 | 方法 | Score | 相对 reference 只改变什么 |
 |---|---|---|
-| `p_point` | \(\langle g_v,g_E\rangle\) | 去掉 point IF 的 Hessian |
-| `p_simple` | \(\langle a_v,g_E\rangle\) | 去掉 simple IF 的 Hessian |
-| `p_graph` | \(\langle q_v,g_E\rangle\) | 去掉 full GIF 的 Hessian |
+| `p_point` | $\langle g_v,g_E\rangle$ | 去掉 point IF 的 Hessian |
+| `p_simple` | $\langle a_v,g_E\rangle$ | 去掉 simple IF 的 Hessian |
+| `p_graph` | $\langle q_v,g_E\rangle$ | 去掉 full GIF 的 Hessian |
 
 ### 4.3 Multi-checkpoint
 
 | 方法 | Source | Checkpoints | Score |
 |---|---|---:|---|
-| `tracin_cp_point_3` | \(g_v\) | 3 | \(\sum_c w_c\langle g_v(\theta_c),g_E(\theta_c)\rangle\) |
-| `tracin_cp_point_6` | \(g_v\) | 6 | 同上 |
-| `tracin_cp_simple_3` | \(a_v\) | 3 | \(\sum_c w_c\langle a_v(\theta_c),g_E(\theta_c)\rangle\) |
-| `tracin_cp_simple_6` | \(a_v\) | 6 | 同上 |
-| `tracin_cp_graph_3` | \(q_v\) | 3 | \(\sum_c w_c\langle q_v(\theta_c),g_E(\theta_c)\rangle\) |
-| `tracin_cp_graph_6` | \(q_v\) | 6 | 同上 |
+| `tracin_cp_point_3` | $g_v$ | 3 | $\sum_c w_c\langle g_v(\theta_c),g_E(\theta_c)\rangle$ |
+| `tracin_cp_point_6` | $g_v$ | 6 | 同上 |
+| `tracin_cp_simple_3` | $a_v$ | 3 | $\sum_c w_c\langle a_v(\theta_c),g_E(\theta_c)\rangle$ |
+| `tracin_cp_simple_6` | $a_v$ | 6 | 同上 |
+| `tracin_cp_graph_3` | $q_v$ | 3 | $\sum_c w_c\langle q_v(\theta_c),g_E(\theta_c)\rangle$ |
+| `tracin_cp_graph_6` | $q_v$ | 6 | 同上 |
 
 只有 point 版本接近原始 TracInCP。simple/graph checkpoint 版本是本项目的 graph-aware trajectory ablation，报告中不会把它们冒充原论文的标准实现。
 
@@ -204,7 +204,7 @@ s_E=H^{-1}g_E,
 
 | 方法 | 定义 | 角色 |
 |---|---|---|
-| `legacy` | \(\langle g_v,-\sum_{j\in T}g_j\rangle\) | 旧 training-residual target negative control |
+| `legacy` | $\langle g_v,-\sum_{j\in T}g_j\rangle$ | 旧 training-residual target negative control |
 | `random` / `degree` / A / B | 见 [[20_IF目标层级对比实验计划]] | 外部锚点与目标层级对照 |
 
 ## 5. Selection 实验矩阵
@@ -214,7 +214,7 @@ s_E=H^{-1}g_E,
 | Datasets | 3 |
 | Seeds | 3 |
 | Score/ranking methods | 18 |
-| C methods | 12 |
+| C/D methods | 12 |
 | Budgets per ranking | 3 |
 | Selection cells | 9 |
 | 完整排名数 | 162 |
@@ -241,7 +241,7 @@ s_E=H^{-1}g_E,
 | `p_graph` vs `gt_full` | 7 | 0.905 | 0.833 | 0.984 |
 | `p_graph` vs `gt_full` | 14 | 0.929 | 0.870 | 0.984 |
 
-`p_graph` 是当前 full GIF reference 的最佳 scalable proxy。这里的“去掉 Hessian”成立，是因为 \(q_v\) 和 \(g_E\) 均保持不变。
+`p_graph` 是当前 full GIF reference 的最佳 scalable proxy。这里的“去掉 Hessian”成立，是因为 $q_v$ 和 $g_E$ 均保持不变。
 
 ### 6.2 k=7 的分数据集结果
 
@@ -283,22 +283,22 @@ s_E=H^{-1}g_E,
 
 `gt_full` 是 final trained point 的局部 GIF reference：
 
-\[
+$$
 q_v(\theta_*)^\top H(\theta_*)^{-1}g_E(\theta_*).
-\]
+$$
 
 TracInCP 累积的是整个训练轨迹：
 
-\[
+$$
 \sum_c w_c q_v(\theta_c)^\top g_E(\theta_c).
-\]
+$$
 
 即使 source 名称相同，这两个对象仍不同：
 
 - final GIF 关心最终点的局部曲率；
 - TracInCP 关心训练路径上的梯度对齐累计。
 
-所以 checkpoint 版本跳过 \(H^{-1}\) 的同时，也改变了时间语义。它可以是有用 selector，但不能预设会更接近 final GIF。
+所以 checkpoint 版本跳过 $H^{-1}$ 的同时，也改变了时间语义。它可以是有用 selector，但不能预设会更接近 final GIF。
 
 ### 6.6 Cross-seed 稳定性
 
@@ -314,7 +314,7 @@ full graph source 在 CiteSeer 的小预算稳定性有限；但 `p_graph` 基�
 
 ## 7. 集合级下游配置
 
-每个 C 方法和 k 都接受相同验证：
+每个 C/D 方法和 k 都接受相同验证：
 
 1. top-k 从该方法的完整排名切出；
 2. 删除节点的 train membership；
@@ -332,7 +332,7 @@ full graph source 在 CiteSeer 的小预算稳定性有限；但 `p_graph` 基�
 - removed directed edges；
 - runtime。
 
-`gt_full` 与 `p_graph` 是两种独立的 C-GIF selection；`gt_simple` 与 `p_simple` 是两种 C-IF selection；point 和 checkpoint 路线也分别保留。没有只挑一次 top-7。
+`gt_full` 与 `p_graph` 是两种独立的 D-GIF selection；`gt_simple` 与 `p_simple` 是两种 C-IF selection；point 和 checkpoint 路线也分别保留。没有只挑一次 top-7。
 
 ## 8. 集合级下游结果
 
@@ -341,27 +341,27 @@ full graph source 在 CiteSeer 的小预算稳定性有限；但 `p_graph` 基�
 | 项目 | 数量 |
 |---|---:|
 | Dataset-seed cells | 9 |
-| C 方法-预算结果 | 324 |
+| C/D 方法-预算结果 | 324 |
 | 全部方法-预算结果 | 486 |
 | 实际唯一 selected-set 重训练 | 370 |
 | Base/selector state hash 一致 | 9 / 9 |
 
-k=7 的 C 方法均值：
+k=7 的 C/D 方法均值：
 
 | 方法 | Family | Validation loss increase | Validation accuracy drop | Test accuracy drop |
 |---|---|---:|---:|---:|
 | `tracin_cp_point_6` | C-point | 0.0707 ± 0.0210 | 0.0404 | 0.0560 |
 | `tracin_cp_point_3` | C-point | 0.0674 ± 0.0207 | 0.0391 | 0.0569 |
 | `p_point` | C-point | 0.0616 ± 0.0332 | 0.0331 | 0.0421 |
-| `tracin_cp_graph_3` | C-GIF trajectory | 0.0602 ± 0.0425 | 0.0367 | 0.0404 |
+| `tracin_cp_graph_3` | D-GIF trajectory | 0.0602 ± 0.0425 | 0.0367 | 0.0404 |
 | `r_point` | C-point | 0.0602 ± 0.0277 | 0.0336 | 0.0387 |
-| `tracin_cp_graph_6` | C-GIF trajectory | 0.0499 ± 0.0308 | 0.0362 | 0.0396 |
+| `tracin_cp_graph_6` | D-GIF trajectory | 0.0499 ± 0.0308 | 0.0362 | 0.0396 |
 | `tracin_cp_simple_3` | C-IF trajectory | 0.0368 ± 0.0243 | 0.0142 | 0.0207 |
 | `tracin_cp_simple_6` | C-IF trajectory | 0.0363 ± 0.0240 | 0.0144 | 0.0196 |
 | `gt_simple` | C-IF reference | 0.0360 ± 0.0274 | 0.0124 | 0.0164 |
 | `p_simple` | C-IF final proxy | 0.0307 ± 0.0331 | 0.0082 | 0.0132 |
-| `p_graph` | C-GIF final proxy | 0.0127 ± 0.0233 | 0.0082 | 0.0071 |
-| `gt_full` | C-GIF reference | 0.0118 ± 0.0243 | 0.0069 | 0.0082 |
+| `p_graph` | D-GIF final proxy | 0.0127 ± 0.0233 | 0.0082 | 0.0071 |
+| `gt_full` | D-GIF reference | 0.0118 ± 0.0243 | 0.0069 | 0.0082 |
 
 random 的 k=7 validation-loss increase 为 `0.0110`。相对 random：
 
@@ -421,7 +421,7 @@ k=7 每个数据集的最高 validation-loss increase：
 | CiteSeer | `gt_simple` | 0.0548 |
 | PubMed | `tracin_cp_point_6` | 0.0771 |
 
-没有一个 C 配置在三个数据集上统一获胜。PubMed 上 `gt_full` / `p_graph` 甚至低于 random，而 point checkpoint 仍明显高于 random；这进一步说明 source、trajectory 与有限集合交互需要分别解释。
+没有一个 C/D 配置在三个数据集上统一获胜。PubMed 上 `gt_full` / `p_graph` 甚至低于 random，而 point checkpoint 仍明显高于 random；这进一步说明 source、trajectory 与有限集合交互需要分别解释。
 
 ### 8.5 预算趋势
 
@@ -510,7 +510,7 @@ results/bc_target_v2/aggregate/
 
 - 3 datasets × 3 seeds；
 - k=3/7/14；
-- C-point / C-IF / C-GIF；
+- C-point / C-simple IF / D-GIF；
 - single-final / 3 checkpoints / 6 checkpoints；
 - Hessian reference / Hessian-free proxy；
 - 全部方法集合级下游重训练；
@@ -540,4 +540,4 @@ results/bc_target_v2/aggregate/
 
 ## 13. 一句话记忆
 
-> C-selection 的 full GIF reference 是 \(\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle\)。本轮最强近似是同 source 的 single-final `p_graph`；多 checkpoint 没有修复 source 或时间语义的差异，真实效果仍要靠集合级删后重训练单独验证。
+> C 是不含 `grad2` 的 IF；D 的 full GIF reference 才是 $\langle \mathrm{grad1}-\mathrm{grad2},H^{-1}g_E\rangle$。D 内最强近似是同 source 的 single-final `p_graph`；多 checkpoint 没有修复 source 或时间语义差异，真实效果仍要靠集合级删后重训练单独验证。
