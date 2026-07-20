@@ -17,8 +17,10 @@ import torch_geometric
 from torch_geometric.datasets import Planetoid
 from torch_geometric.transforms import NormalizeFeatures
 
+from cache_v2.runtime import load_selection_artifact
 from experiments.c_target_v1.core import ids_hash, source_fingerprint
 from experiments.c_target_v1.score_store import ScoreBundlePayload
+from experiments.selection_budget_planner import MAXK_SELECTION_PLAN_SCHEMA
 
 from .core import remove_selected_nodes, train_model_once
 
@@ -31,9 +33,7 @@ def _int_list(value: str) -> Sequence[int]:
     result = tuple(int(item.strip()) for item in value.split(",") if item.strip())
     if not result or any(item <= 0 for item in result):
         raise argparse.ArgumentTypeError("expected positive comma-separated integers")
-    if tuple(sorted(set(result))) != result:
-        raise argparse.ArgumentTypeError("values must be unique and increasing")
-    return result
+    return tuple(sorted(set(result), reverse=True))
 
 
 def _str_list(value: str) -> Sequence[str]:
@@ -156,6 +156,10 @@ def main(argv: Sequence[str] = None) -> int:
     selection = json.loads(selection_path.read_text(encoding="utf-8"))
     if selection.get("schema") != "bc_target_v2.selection_summary":
         raise ValueError("selection summary schema is unsupported")
+    if selection.get("version") != 2:
+        raise ValueError(
+            "selection summary must be version 2 with max-k Selection Artifacts"
+        )
 
     payload_path = Path(selection["cache"]["payload_path"]).resolve()
     payload = ScoreBundlePayload.from_bytes(payload_path.read_bytes())
@@ -179,7 +183,7 @@ def main(argv: Sequence[str] = None) -> int:
         else tuple(int(value) for value in args.budgets)
     )
     methods = (
-        tuple(sorted(payload.scores))
+        tuple(sorted(selection["selection_artifacts"]))
         if args.methods is None
         else tuple(args.methods)
     )
@@ -188,6 +192,39 @@ def main(argv: Sequence[str] = None) -> int:
     unknown = sorted(set(methods) - set(payload.scores))
     if unknown:
         raise ValueError("unknown downstream methods: {0}".format(unknown))
+    missing_artifacts = sorted(set(methods) - set(selection["selection_artifacts"]))
+    if missing_artifacts:
+        raise ValueError(
+            "methods have no Selection Artifact: {0}".format(missing_artifacts)
+        )
+    unsupported_budgets = sorted(set(budgets) - set(int(v) for v in selection["budgets"]))
+    if unsupported_budgets:
+        raise ValueError(
+            "downstream budgets were not materialized by selection: {0}".format(
+                unsupported_budgets
+            )
+        )
+
+    selection_identities = {
+        method: {
+            "artifact_id": selection["selection_artifacts"][method]["artifact"][
+                "artifact_id"
+            ],
+            "recipe_hash": selection["selection_artifacts"][method]["artifact"][
+                "recipe_hash"
+            ],
+            "content_hash": selection["selection_artifacts"][method]["artifact"][
+                "content_hash"
+            ],
+            "artifact_k": int(
+                selection["selection_artifacts"][method]["artifact_k"]
+            ),
+            "request_max_k": int(
+                selection["selection_artifacts"][method]["request_max_k"]
+            ),
+        }
+        for method in methods
+    }
 
     code_fingerprint = source_fingerprint(
         (
@@ -198,11 +235,12 @@ def main(argv: Sequence[str] = None) -> int:
     )
     recipe = {
         "schema": "bc_target_v2.downstream_recipe",
-        "version": 1,
+        "version": 2,
         "producer": code_fingerprint,
-        "selection_artifact_id": selection["cache"]["artifact_id"],
-        "selection_content_hash": selection["cache"]["content_hash"],
+        "source_score_artifact_id": selection["cache"]["artifact_id"],
+        "source_score_content_hash": selection["cache"]["content_hash"],
         "selection_candidate_hash": payload.candidate_ids_hash,
+        "selection_artifacts": selection_identities,
         "dataset": selection["dataset"],
         "seed": int(selection["seed"]),
         "methods": list(methods),
@@ -272,6 +310,33 @@ def main(argv: Sequence[str] = None) -> int:
     if ids_hash(observed_candidates) != payload.candidate_ids_hash:
         raise RuntimeError("downstream candidate set does not match selection")
 
+    loaded_selections = {}
+    for method in methods:
+        manifest = selection["selection_artifacts"][method]
+        if manifest.get("schema") != MAXK_SELECTION_PLAN_SCHEMA:
+            raise ValueError(
+                "Selection Artifact manifest schema is unsupported for {0}".format(
+                    method
+                )
+            )
+        artifact = manifest["artifact"]
+        loaded = load_selection_artifact(
+            Path(manifest["cache"]["root"]).expanduser().resolve(),
+            artifact["artifact_id"],
+            num_nodes=int(data.num_nodes),
+            candidate_nodes=tuple(int(value) for value in observed_candidates.tolist()),
+            expected_selector=method,
+            expected_k=int(manifest["artifact_k"]),
+        )
+        if (
+            loaded.recipe_hash != artifact["recipe_hash"]
+            or loaded.content_hash != artifact["content_hash"]
+        ):
+            raise RuntimeError(
+                "Selection Artifact identity changed for {0}".format(method)
+            )
+        loaded_selections[method] = loaded
+
     training_kwargs = {
         "in_channels": int(dataset.num_features),
         "hidden_channels": int(config["hidden_channels"]),
@@ -298,9 +363,18 @@ def main(argv: Sequence[str] = None) -> int:
     results = []
     memo: Dict[Tuple[int, ...], Mapping[str, Any]] = {}
     for method in methods:
-        ranking = tuple(int(value) for value in payload.rankings[method])
+        loaded = loaded_selections[method]
+        ranking = tuple(int(value) for value in loaded.selected_nodes)
+        manifest = selection["selection_artifacts"][method]
         for budget in budgets:
             selected_rank_order = ranking[: int(budget)]
+            view = manifest["views"].get(str(int(budget)))
+            if view is None or tuple(view["selected_nodes"]) != selected_rank_order:
+                raise RuntimeError(
+                    "Selection prefix manifest mismatch for {0} k={1}".format(
+                        method, budget
+                    )
+                )
             selected_key = tuple(sorted(selected_rank_order))
             if selected_key in memo:
                 observation = memo[selected_key]
@@ -345,6 +419,18 @@ def main(argv: Sequence[str] = None) -> int:
                             "ascii"
                         )
                     ).hexdigest(),
+                    "selection_provenance": {
+                        "artifact_id": loaded.artifact_id,
+                        "recipe_hash": loaded.recipe_hash,
+                        "content_hash": loaded.content_hash,
+                        "artifact_k": loaded.k,
+                        "requested_k": int(budget),
+                        "request_max_k": int(manifest["request_max_k"]),
+                        "cache_outcome": view["cache_outcome"],
+                        "prefix_reuse": bool(view["prefix_reuse"]),
+                        "reuse_kind": view["reuse_kind"],
+                        "lookup_policy": manifest["cache"]["lookup_policy"],
+                    },
                     "reused_identical_selected_set": reused,
                     "deleted_model": dict(observation),
                     "effect": _effect(
@@ -355,13 +441,14 @@ def main(argv: Sequence[str] = None) -> int:
 
     output = {
         "schema": "bc_target_v2.downstream_summary",
-        "version": 1,
+        "version": 2,
         "recipe": recipe,
         "recipe_hash": recipe_hash,
         "cache_hit": False,
         "selection_summary": str(selection_path),
-        "selection_artifact_id": selection["cache"]["artifact_id"],
-        "selection_content_hash": selection["cache"]["content_hash"],
+        "source_score_artifact_id": selection["cache"]["artifact_id"],
+        "source_score_content_hash": selection["cache"]["content_hash"],
+        "selection_artifacts": selection_identities,
         "dataset": selection["dataset"],
         "seed": int(selection["seed"]),
         "budgets": list(budgets),

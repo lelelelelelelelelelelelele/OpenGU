@@ -40,6 +40,8 @@ from experiments.c_target_v1.score_store import (
     ScoreBundlePayload,
     ScoreBundleStore,
 )
+from experiments.selection_budget_planner import materialize_budget_selection
+from experiments.selection_inputs import make_dataset_selection_inputs
 
 from .core import (
     checkpoint_view_indices,
@@ -58,6 +60,8 @@ DEFAULT_DATA_ROOT = Path(
 )
 DEFAULT_CACHE_ROOT = REPO_ROOT / "results" / "cache_v2" / "bc_target_v2"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "bc_target_v2" / "selection"
+SELECTION_ALGORITHM_VERSION = "bc-target-score-ranking-prefix-v1"
+SELECTION_PRODUCER_VERSION = "bc-target-maxk-selection-v1"
 
 
 def _int_list(value: str) -> Sequence[int]:
@@ -72,6 +76,16 @@ def _int_list(value: str) -> Sequence[int]:
     return result
 
 
+def _budget_list(value: str) -> Sequence[int]:
+    try:
+        result = tuple(int(item.strip()) for item in value.split(",") if item.strip())
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc))
+    if not result or any(item <= 0 for item in result):
+        raise argparse.ArgumentTypeError("expected comma-separated positive integers")
+    return tuple(sorted(set(result), reverse=True))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
@@ -81,9 +95,15 @@ def build_parser() -> argparse.ArgumentParser:
         default="Cora",
     )
     parser.add_argument("--cache-root", type=Path, default=DEFAULT_CACHE_ROOT)
+    parser.add_argument(
+        "--selection-cache-root",
+        type=Path,
+        default=None,
+        help="formal Cache V2 Selection store (default: <cache-root>/selection_artifacts)",
+    )
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--seed", type=int, default=2024)
-    parser.add_argument("--budgets", type=_int_list, default=(3, 7, 14))
+    parser.add_argument("--budgets", type=_budget_list, default=(14, 7, 3))
     parser.add_argument("--num-threads", type=int, default=1)
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument(
@@ -546,6 +566,50 @@ def main(argv: Sequence[str] = None) -> int:
         fail_if_called=args.fail_if_producer_called,
     )
     payload = store_result.payload
+    selection_cache_root = (
+        args.cache_root.expanduser().resolve() / "selection_artifacts"
+        if args.selection_cache_root is None
+        else args.selection_cache_root.expanduser().resolve()
+    )
+    selection_dataset = make_dataset_selection_inputs(
+        data,
+        dataset_name=args.dataset,
+    )
+    if tuple(payload.candidate_nodes_ordered) != selection_dataset.candidate_nodes:
+        raise RuntimeError("ScoreBundle candidates do not match Selection inputs")
+    selection_source_fingerprint = source_fingerprint(
+        (
+            REPO_ROOT / "experiments" / "selection_budget_planner.py",
+            REPO_ROOT / "cache_v2" / "selection_materializer.py",
+        )
+    )
+    selection_producer = ProducerVersion(
+        semantic_version=SELECTION_PRODUCER_VERSION,
+        source_fingerprint=selection_source_fingerprint,
+    )
+    selection_artifacts = {}
+    for name in sorted(payload.rankings):
+        ranking = tuple(int(node) for node in payload.rankings[name])
+        materialized = materialize_budget_selection(
+            store_root=selection_cache_root,
+            dataset=selection_dataset,
+            strategy=name,
+            selector_seed=int(args.seed),
+            budgets=args.budgets,
+            producer_version=selection_producer,
+            algorithm_version=SELECTION_ALGORITHM_VERSION,
+            parameters={
+                "prefix_stable": True,
+                "score_name": name,
+                "score_family": "bc_target_selection_score_bundle",
+                "orientation": "score_desc_more_influential_or_harmful_if_removed",
+                "ranking": "score_desc_node_id_asc",
+            },
+            source_score_artifact_id=store_result.artifact_id,
+            producer=lambda max_k, ordered=ranking: ordered[:max_k],
+            fail_if_producer_called=args.fail_if_producer_called,
+        )
+        selection_artifacts[name] = materialized.to_manifest(selection_cache_root)
     output_path = args.output
     if output_path is None:
         output_path = DEFAULT_OUTPUT_ROOT / (
@@ -555,7 +619,7 @@ def main(argv: Sequence[str] = None) -> int:
         )
     summary = {
         "schema": "bc_target_v2.selection_summary",
-        "version": 1,
+        "version": 2,
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": args.dataset,
         "model": "GCN",
@@ -578,6 +642,24 @@ def main(argv: Sequence[str] = None) -> int:
                 store.root.joinpath(*store_result.semantic_path.split("/"))
             ),
         },
+        "selection_cache": {
+            "root": str(selection_cache_root),
+            "lookup_policy": "exact_then_smallest_covering_k",
+            "request_max_k": max(int(value) for value in args.budgets),
+            "method_count": len(selection_artifacts),
+            "hit_count": sum(
+                1 for item in selection_artifacts.values() if item["cache"]["hit"]
+            ),
+            "miss_saved_count": sum(
+                1 for item in selection_artifacts.values() if not item["cache"]["hit"]
+            ),
+            "producer_call_count": sum(
+                1
+                for item in selection_artifacts.values()
+                if item["cache"]["producer_called"]
+            ),
+        },
+        "selection_artifacts": selection_artifacts,
         "selector_model_final_state_hash": state_hash(final_state),
         "pairwise_metrics": _all_pair_metrics(payload, args.budgets),
         "scores": {
@@ -600,6 +682,7 @@ def main(argv: Sequence[str] = None) -> int:
         "config": {
             "data_root": str(args.data_root.expanduser().resolve()),
             "cache_root": str(store.root),
+            "selection_cache_root": str(selection_cache_root),
             "dataset": args.dataset,
             "seed": int(args.seed),
             "budgets": list(args.budgets),
@@ -633,6 +716,8 @@ def main(argv: Sequence[str] = None) -> int:
                 "seed": int(args.seed),
                 "cache_hit": bool(store_result.hit),
                 "artifact_id": store_result.artifact_id,
+                "selection_cache_hit_count": summary["selection_cache"]["hit_count"],
+                "selection_cache_miss_saved_count": summary["selection_cache"]["miss_saved_count"],
                 "candidate_count": len(payload.candidate_nodes_ordered),
                 "score_count": len(payload.scores),
                 "budgets": list(args.budgets),

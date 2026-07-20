@@ -2,12 +2,14 @@
 
 Dataset access and Selection compute deliberately do not exist in this module.
 The experiment/GU layer supplies a complete Recipe and, on a clean miss, an
-already-produced ordered node list.  Cache V2 only validates identity,
-resolves exact hits, writes immutable Artifacts, and enforces integrity.
+already-produced ordered node list. Cache V2 validates identity, resolves
+exact hits or Selection-only larger-k coverage, writes immutable Artifacts,
+and enforces integrity. Prefix slicing remains an experiment responsibility.
 """
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +22,7 @@ from .contracts import (
     validate_artifact_id,
     validate_sha256,
 )
+from .canonical import TYPE_TAG
 from .errors import CacheResolutionError, ContractValidationError
 from .index import CacheIndex
 from .resolver import ArtifactResolver
@@ -212,6 +215,9 @@ class SelectionResolution:
     hit: bool
     result: Optional[StoreResult]
     miss_reasons: Tuple[str, ...]
+    source_k: Optional[int] = None
+    source_recipe_hash: Optional[str] = None
+    lookup_policy: str = "cache_v2_exact_recipe"
 
 
 def _absolute_store_root(store_root: Union[str, Path]) -> Path:
@@ -251,7 +257,13 @@ def resolve_selection_artifact(
             candidate_nodes=None,
             artifact_id=explanation.exact_candidate["artifact_id"],
         )
-        return SelectionResolution(True, result, explanation.miss_reasons)
+        return SelectionResolution(
+            True,
+            result,
+            explanation.miss_reasons,
+            source_k=int(request.recipe.fields["k"]),
+            source_recipe_hash=request.recipe.recipe_hash,
+        )
     if (
         explanation.exact_candidate is None
         and explanation.miss_reasons == ("no_exact_candidate",)
@@ -261,6 +273,167 @@ def resolve_selection_artifact(
         "exact Selection lookup failed closed: {0}".format(
             ",".join(explanation.miss_reasons)
         )
+    )
+
+
+def _tagged_mapping_item(mapping: Any, key: str, label: str) -> Any:
+    if (
+        not isinstance(mapping, Mapping)
+        or mapping.get(TYPE_TAG) != "mapping"
+        or set(mapping) != {TYPE_TAG, "items"}
+        or not isinstance(mapping.get("items"), list)
+    ):
+        raise ContractValidationError("{0} is not a canonical mapping".format(label))
+    items = mapping["items"]
+    if any(
+        not isinstance(item, list)
+        or len(item) != 2
+        or not isinstance(item[0], str)
+        for item in items
+    ):
+        raise ContractValidationError("{0} has invalid canonical items".format(label))
+    matches = [item for item in items if item[0] == key]
+    if len(matches) != 1:
+        raise ContractValidationError(
+            "{0} must contain exactly one {1!r} field".format(label, key)
+        )
+    return matches[0][1]
+
+
+def _optional_tagged_mapping_item(mapping: Any, key: str, label: str) -> Any:
+    if (
+        not isinstance(mapping, Mapping)
+        or mapping.get(TYPE_TAG) != "mapping"
+        or set(mapping) != {TYPE_TAG, "items"}
+        or not isinstance(mapping.get("items"), list)
+    ):
+        raise ContractValidationError("{0} is not a canonical mapping".format(label))
+    matches = [
+        item
+        for item in mapping["items"]
+        if isinstance(item, list) and len(item) == 2 and item[0] == key
+    ]
+    if len(matches) > 1:
+        raise ContractValidationError(
+            "{0} contains duplicate {1!r} fields".format(label, key)
+        )
+    return None if not matches else matches[0][1]
+
+
+def _replace_tagged_mapping_item(mapping: Any, key: str, value: Any, label: str) -> Any:
+    result = copy.deepcopy(mapping)
+    _tagged_mapping_item(result, key, label)
+    for item in result["items"]:
+        if item[0] == key:
+            item[1] = value
+            return result
+    raise AssertionError("validated canonical mapping field disappeared")
+
+
+def _covering_recipe_from_record(
+    request: SelectionArtifactRequest, record: Mapping[str, Any]
+) -> Optional[Tuple[int, ArtifactRecipe]]:
+    """Return a compatible larger-k Recipe without weakening any other identity."""
+
+    canonical_recipe = record.get("recipe")
+    canonical_fields = _tagged_mapping_item(
+        canonical_recipe, "fields", "indexed Selection Recipe"
+    )
+    contract = _optional_tagged_mapping_item(
+        canonical_fields,
+        "selection_recipe_contract",
+        "indexed Selection Recipe fields",
+    )
+    if contract != SELECTION_RECIPE_CONTRACT:
+        return None
+    candidate_k = _optional_tagged_mapping_item(
+        canonical_fields, "k", "indexed Selection Recipe fields"
+    )
+    if candidate_k is None:
+        return None
+    if isinstance(candidate_k, bool) or not isinstance(candidate_k, int):
+        raise ContractValidationError("indexed Selection Recipe k is invalid")
+    requested_k = int(request.recipe.fields["k"])
+    if candidate_k < requested_k:
+        return None
+
+    normalized_fields = _replace_tagged_mapping_item(
+        canonical_fields,
+        "k",
+        requested_k,
+        "indexed Selection Recipe fields",
+    )
+    normalized_recipe = _replace_tagged_mapping_item(
+        canonical_recipe,
+        "fields",
+        normalized_fields,
+        "indexed Selection Recipe",
+    )
+    if normalized_recipe != request.recipe.canonical_form:
+        return None
+
+    fields = request.recipe.fields
+    fields["k"] = candidate_k
+    recipe = ArtifactRecipe(fields, recipe_version=request.recipe.recipe_version)
+    if recipe.recipe_hash != record.get("recipe_hash"):
+        raise CacheResolutionError(
+            "indexed covering Selection Recipe hash is inconsistent"
+        )
+    return candidate_k, recipe
+
+
+def resolve_covering_selection_artifact(
+    store_root: Union[str, Path], request: SelectionArtifactRequest
+) -> SelectionResolution:
+    """Resolve exact k first, then the smallest authoritative compatible k >= request."""
+
+    exact = resolve_selection_artifact(store_root, request)
+    if exact.hit:
+        return exact
+    if exact.miss_reasons == ("store_not_initialized",):
+        return SelectionResolution(
+            False,
+            None,
+            exact.miss_reasons,
+            lookup_policy="cache_v2_exact_then_smallest_covering_k",
+        )
+
+    root = _absolute_store_root(store_root)
+    index = CacheIndex(root / "index.sqlite")
+    index.check_schema()
+    compatible = []
+    for record in index.find_artifacts_by_type(ArtifactType.SELECTION):
+        match = _covering_recipe_from_record(request, record)
+        if match is not None:
+            compatible.append((match[0], str(record.get("artifact_id")), match[1]))
+    if not compatible:
+        return SelectionResolution(
+            False,
+            None,
+            ("no_covering_candidate",),
+            lookup_policy="cache_v2_exact_then_smallest_covering_k",
+        )
+
+    source_k, _artifact_id, recipe = min(
+        compatible, key=lambda item: (item[0], item[1])
+    )
+    covering_request = SelectionArtifactRequest.from_recipe(
+        recipe, request.producer_version
+    )
+    covering = resolve_selection_artifact(root, covering_request)
+    if not covering.hit or covering.result is None:
+        raise CacheResolutionError(
+            "compatible covering Selection candidate is not authoritative: {0}".format(
+                ",".join(covering.miss_reasons)
+            )
+        )
+    return SelectionResolution(
+        True,
+        covering.result,
+        covering.miss_reasons,
+        source_k=source_k,
+        source_recipe_hash=recipe.recipe_hash,
+        lookup_policy="cache_v2_exact_then_smallest_covering_k",
     )
 
 
@@ -295,6 +468,7 @@ __all__ = [
     "SelectionArtifactRequest",
     "SelectionResolution",
     "build_selection_recipe",
+    "resolve_covering_selection_artifact",
     "resolve_selection_artifact",
     "store_selection_artifact",
 ]

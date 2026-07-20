@@ -31,6 +31,13 @@ def _int_list(value: str) -> Sequence[int]:
     return result
 
 
+def _budget_list(value: str) -> Sequence[int]:
+    result = tuple(int(item.strip()) for item in value.split(",") if item.strip())
+    if not result or any(item <= 0 for item in result):
+        raise argparse.ArgumentTypeError("expected positive comma-separated integers")
+    return tuple(sorted(set(result), reverse=True))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -46,7 +53,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--cache-root", type=Path, default=DEFAULT_CACHE_ROOT)
+    parser.add_argument("--selection-cache-root", type=Path, default=None)
     parser.add_argument("--result-root", type=Path, default=DEFAULT_RESULT_ROOT)
+    parser.add_argument("--budgets", type=_budget_list, default=(14, 7, 3))
     parser.add_argument("--overwrite", action="store_true")
     return parser
 
@@ -87,9 +96,18 @@ def main(argv: Sequence[str] = None) -> int:
                         str(args.data_root.expanduser().resolve()),
                         "--cache-root",
                         str(args.cache_root.expanduser().resolve()),
+                        "--budgets",
+                        ",".join(str(value) for value in args.budgets),
                         "--output",
                         str(selection_output),
                     ]
+                    if args.selection_cache_root is not None:
+                        command.extend(
+                            [
+                                "--selection-cache-root",
+                                str(args.selection_cache_root.expanduser().resolve()),
+                            ]
+                        )
                     if args.overwrite:
                         command.append("--overwrite-output")
                     _run(command)
@@ -118,6 +136,8 @@ def main(argv: Sequence[str] = None) -> int:
                         "experiments.bc_target_v2.run_downstream",
                         "--selection-summary",
                         str(selection_output),
+                        "--budgets",
+                        ",".join(str(value) for value in args.budgets),
                         "--output",
                         str(downstream_output),
                     ]
