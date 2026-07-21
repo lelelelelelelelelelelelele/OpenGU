@@ -5,12 +5,14 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import torch
 from torch_geometric.data import Data
 
 from experiments.bc_target_v2.recipe import SCORE_NAMES
 from experiments.gu_target_v1 import adapter
+from experiments.gu_target_v1 import public_profile
 from experiments.gu_target_v1 import syncmate_recipe
 from experiments.gu_target_v1 import syncmate_stage
 from experiments.processed_provider import processed_artifact_paths
@@ -73,6 +75,78 @@ def test_fixed_gu_full_config_covers_exact_17_by_3_by_3_matrix():
     assert config["claims"]["gate_required"] is True
     assert config["claims"]["total_cells"] == 153
     assert len(syncmate_stage.expected_artifacts("pubmed-seed2024", config)) == 68
+
+
+def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch):
+    data = Data(
+        x=torch.eye(5),
+        y=torch.tensor([0, 1, 0, 1, 0]),
+        edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
+    )
+    data.train_mask = torch.tensor([True, True, True, True, False])
+    inputs = make_dataset_selection_inputs(
+        data, dataset_name="cora", source_path=tmp_path / "cora.pkl"
+    )
+    paths = SimpleNamespace(
+        data_path=tmp_path / "processed" / "cora.pkl",
+        dataset_path=tmp_path / "processed" / "coradataset.pkl",
+    )
+    source = SimpleNamespace(
+        dataset="Cora",
+        storage_name="cora",
+        resolved_root=tmp_path / "raw",
+        resolved_dataset_dir=tmp_path / "raw" / "cora",
+        to_manifest=lambda: {"source_fingerprint": "a" * 64},
+    )
+    calls = []
+
+    class FakePlanetoid:
+        def __init__(self, *, root, name, transform):
+            calls.append((root, name))
+
+        def __getitem__(self, index):
+            assert index == 0
+            return data
+
+    monkeypatch.setattr(public_profile, "_paths", lambda *args: paths)
+    monkeypatch.setattr(
+        public_profile, "resolve_planetoid_public_source", lambda *args, **kwargs: source
+    )
+    monkeypatch.setattr(public_profile, "OfflineCanonicalPlanetoid", FakePlanetoid)
+    monkeypatch.setattr(public_profile.pickle, "dumps", lambda *args, **kwargs: b"fake")
+    monkeypatch.setattr(
+        public_profile,
+        "validate_public_split",
+        lambda *args: {"train": inputs.candidate_count, "validation": 0, "test": 1},
+    )
+    monkeypatch.setattr(
+        public_profile,
+        "verify_public_profile",
+        lambda **kwargs: {"manifest": {"verified": True}},
+    )
+
+    result = public_profile.stage_public_profile(
+        repository_root=tmp_path,
+        processed_root=tmp_path / "processed",
+        dataset="Cora",
+    )
+
+    assert result["status"] == "created"
+    assert calls == [(str(source.resolved_root), "cora")]
+
+
+def test_public_profile_loader_forbids_download_and_processing_fallbacks():
+    loader = public_profile.OfflineCanonicalPlanetoid.__new__(
+        public_profile.OfflineCanonicalPlanetoid
+    )
+
+    for method in (loader.download, loader.process):
+        try:
+            method()
+        except RuntimeError as exc:
+            assert "forbidden" in str(exc)
+        else:
+            raise AssertionError("offline Planetoid fallback did not fail closed")
 
 
 def test_adapter_materializes_and_loads_custom_formula_label(tmp_path, monkeypatch):

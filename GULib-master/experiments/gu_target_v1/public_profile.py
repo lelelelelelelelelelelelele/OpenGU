@@ -28,6 +28,16 @@ MANIFEST_SCHEMA = "gu_target_v1.processed_public_profile"
 MANIFEST_VERSION = 1
 
 
+class OfflineCanonicalPlanetoid(Planetoid):
+    """Load an already-verified PyG cache and forbid network/preprocessing fallback."""
+
+    def download(self) -> None:
+        raise RuntimeError("canonical Planetoid raw cache is incomplete; download is forbidden")
+
+    def process(self) -> None:
+        raise RuntimeError("canonical Planetoid processed cache is incomplete; processing is forbidden")
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -153,9 +163,11 @@ def stage_public_profile(
         repository_root=repository_root,
         dataset=dataset,
     )
-    pyg_dataset = Planetoid(
+    pyg_dataset = OfflineCanonicalPlanetoid(
+        # This PyG version expands root/name/raw. OpenGU's accepted cache leaves
+        # are lowercase, so the exact binding is data/raw + storage_name.
         root=str(source.resolved_root),
-        name=source.dataset,
+        name=source.storage_name,
         transform=NormalizeFeatures(),
     )
     data = pyg_dataset[0]
