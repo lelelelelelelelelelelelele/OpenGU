@@ -1,0 +1,1728 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>小图 Selection 全量实测</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OpenGU Research</div>
+    <div class="side-title">小图 Selection 全量实测</div>
+    <span class="badge">ACCEPTED</span>
+    <nav><a class="" href="#1-实测口径">1. 实测口径</a>
+<a class="" href="#2-cell-总览">2. Cell 总览</a>
+<a class="" href="#3-方法级-cold-warm-selection-时间">3. 方法级 cold / warm Selection 时间</a>
+<a class="" href="#4-汇总与失败状态">4. 汇总与失败状态</a>
+<a class="" href="#5-evidence">5. Evidence</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">17-METHOD COLD/WARM BENCHMARK</div>
+      <h1>小图 Selection 全量实测</h1>
+    </section>
+    <article><h1 id="小图-selection-全量实测报告">小图 Selection 全量实测报告</h1>
+<blockquote>
+<p><strong>Verdict:</strong> PASS — full cold/warm matrix and GPU telemetry complete</p>
+</blockquote>
+<h2 id="1-实测口径">1. 实测口径</h2>
+<ul>
+<li>正式矩阵：<code>Cora/CiteSeer/PubMed × seeds 42/212/2024</code>，共 9 cells。</li>
+<li>正式 ScoreBundle 固定为 <strong>17 个 score/ranking 输出</strong>；<code>b_param_lissa</code> 仅是历史数值验证项，不进入本轮 bundle。</li>
+<li>cold method time：共享 ScoreBundle 已生成后，每个 ranking 首次物化 max-k Selection Artifact 的完整冷路径。</li>
+<li>cold ScoreBundle total：exact miss lookup、共享计算、17 输出构造、校验和落盘的总时间。</li>
+<li>warm read：同一 recipe 在 producer-call sentinel 下的 exact ScoreBundle 读取时间；17 个 Selection Artifact 也必须全部命中。</li>
+<li>方法级时间包含逐 Artifact 的索引、校验与文件系统访问；warm hit 是零 producer 的正确性证据，不保证共享文件系统上的每次 wall-clock 都短于 cold。</li>
+<li>Experiment Git SHA：<code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code>。</li>
+</ul>
+<h2 id="2-cell-总览">2. Cell 总览</h2>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Seed</th>
+  <th>Status</th>
+  <th>Device</th>
+  <th style="text-align:right">Cold bundle (s)</th>
+  <th style="text-align:right">Warm read (s)</th>
+  <th style="text-align:right">Peak alloc (MiB)</th>
+  <th style="text-align:right">Peak reserve (MiB)</th>
+  <th>Failure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">9.1624</td>
+  <td style="text-align:right">0.9635</td>
+  <td style="text-align:right">187.8</td>
+  <td style="text-align:right">208.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">7.0050</td>
+  <td style="text-align:right">0.1325</td>
+  <td style="text-align:right">187.8</td>
+  <td style="text-align:right">208.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">6.9413</td>
+  <td style="text-align:right">0.1546</td>
+  <td style="text-align:right">187.8</td>
+  <td style="text-align:right">208.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">7.6537</td>
+  <td style="text-align:right">0.1286</td>
+  <td style="text-align:right">357.0</td>
+  <td style="text-align:right">384.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">7.3706</td>
+  <td style="text-align:right">0.1427</td>
+  <td style="text-align:right">357.0</td>
+  <td style="text-align:right">384.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">6.9745</td>
+  <td style="text-align:right">0.9430</td>
+  <td style="text-align:right">357.0</td>
+  <td style="text-align:right">384.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">5.1406</td>
+  <td style="text-align:right">0.1448</td>
+  <td style="text-align:right">268.2</td>
+  <td style="text-align:right">314.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">5.0778</td>
+  <td style="text-align:right">0.1315</td>
+  <td style="text-align:right">268.2</td>
+  <td style="text-align:right">314.0</td>
+  <td>—</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td>success</td>
+  <td>cuda:0</td>
+  <td style="text-align:right">5.9085</td>
+  <td style="text-align:right">0.1388</td>
+  <td style="text-align:right">268.2</td>
+  <td style="text-align:right">314.0</td>
+  <td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-方法级-cold-warm-selection-时间">3. 方法级 cold / warm Selection 时间</h2>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Seed</th>
+  <th>Method</th>
+  <th style="text-align:right">Cold selection (ms)</th>
+  <th style="text-align:right">Warm selection (ms)</th>
+  <th>Cold outcome</th>
+  <th>Warm outcome</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">1222.731</td>
+  <td style="text-align:right">2637.590</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">2269.844</td>
+  <td style="text-align:right">2744.252</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">2157.279</td>
+  <td style="text-align:right">2865.136</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">2285.796</td>
+  <td style="text-align:right">2694.369</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">2235.524</td>
+  <td style="text-align:right">2383.186</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">2304.373</td>
+  <td style="text-align:right">285.899</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">2140.669</td>
+  <td style="text-align:right">287.862</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">2126.445</td>
+  <td style="text-align:right">304.929</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">2205.524</td>
+  <td style="text-align:right">292.551</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">2065.667</td>
+  <td style="text-align:right">286.541</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">2179.714</td>
+  <td style="text-align:right">322.264</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">2138.960</td>
+  <td style="text-align:right">296.392</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">2246.771</td>
+  <td style="text-align:right">296.753</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">2207.657</td>
+  <td style="text-align:right">295.741</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">2236.006</td>
+  <td style="text-align:right">281.822</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">2365.102</td>
+  <td style="text-align:right">286.046</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">2326.838</td>
+  <td style="text-align:right">239.897</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">193.280</td>
+  <td style="text-align:right">345.680</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">284.104</td>
+  <td style="text-align:right">381.531</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">280.614</td>
+  <td style="text-align:right">304.790</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">314.743</td>
+  <td style="text-align:right">290.863</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">311.303</td>
+  <td style="text-align:right">278.416</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">326.659</td>
+  <td style="text-align:right">292.236</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">297.062</td>
+  <td style="text-align:right">370.113</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">276.712</td>
+  <td style="text-align:right">307.251</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">292.062</td>
+  <td style="text-align:right">286.312</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">288.682</td>
+  <td style="text-align:right">280.345</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">283.237</td>
+  <td style="text-align:right">274.826</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">302.789</td>
+  <td style="text-align:right">282.134</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">299.692</td>
+  <td style="text-align:right">291.767</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">277.913</td>
+  <td style="text-align:right">277.739</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">316.347</td>
+  <td style="text-align:right">314.685</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">306.921</td>
+  <td style="text-align:right">382.622</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">290.380</td>
+  <td style="text-align:right">304.978</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">203.445</td>
+  <td style="text-align:right">296.281</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">281.453</td>
+  <td style="text-align:right">284.784</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">279.872</td>
+  <td style="text-align:right">282.633</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">287.310</td>
+  <td style="text-align:right">290.615</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">288.736</td>
+  <td style="text-align:right">249.157</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">314.171</td>
+  <td style="text-align:right">280.014</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">332.486</td>
+  <td style="text-align:right">283.879</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">280.342</td>
+  <td style="text-align:right">285.458</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">312.026</td>
+  <td style="text-align:right">228.137</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">268.009</td>
+  <td style="text-align:right">222.045</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">321.650</td>
+  <td style="text-align:right">224.734</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">259.013</td>
+  <td style="text-align:right">228.327</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">290.501</td>
+  <td style="text-align:right">282.537</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">284.660</td>
+  <td style="text-align:right">296.116</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">277.312</td>
+  <td style="text-align:right">306.286</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">284.313</td>
+  <td style="text-align:right">374.165</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">327.154</td>
+  <td style="text-align:right">295.563</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">190.481</td>
+  <td style="text-align:right">431.866</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">326.306</td>
+  <td style="text-align:right">321.229</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">294.809</td>
+  <td style="text-align:right">312.045</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">315.230</td>
+  <td style="text-align:right">304.948</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">311.476</td>
+  <td style="text-align:right">323.448</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">296.251</td>
+  <td style="text-align:right">307.450</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">307.753</td>
+  <td style="text-align:right">307.229</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">341.181</td>
+  <td style="text-align:right">374.570</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">350.067</td>
+  <td style="text-align:right">311.982</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">292.828</td>
+  <td style="text-align:right">314.697</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">305.736</td>
+  <td style="text-align:right">300.579</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">314.160</td>
+  <td style="text-align:right">297.211</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">308.926</td>
+  <td style="text-align:right">317.949</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">295.532</td>
+  <td style="text-align:right">309.275</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">308.244</td>
+  <td style="text-align:right">313.048</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">360.284</td>
+  <td style="text-align:right">332.393</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">288.363</td>
+  <td style="text-align:right">318.422</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">178.047</td>
+  <td style="text-align:right">340.028</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">374.151</td>
+  <td style="text-align:right">303.054</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">337.222</td>
+  <td style="text-align:right">289.163</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">344.424</td>
+  <td style="text-align:right">347.876</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">272.910</td>
+  <td style="text-align:right">298.545</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">264.189</td>
+  <td style="text-align:right">280.543</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">276.630</td>
+  <td style="text-align:right">288.915</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">277.247</td>
+  <td style="text-align:right">282.109</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">314.098</td>
+  <td style="text-align:right">291.463</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">310.514</td>
+  <td style="text-align:right">307.807</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">321.119</td>
+  <td style="text-align:right">313.603</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">301.738</td>
+  <td style="text-align:right">301.716</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">342.091</td>
+  <td style="text-align:right">305.013</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">319.598</td>
+  <td style="text-align:right">303.123</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">288.022</td>
+  <td style="text-align:right">292.663</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">282.717</td>
+  <td style="text-align:right">310.949</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">319.132</td>
+  <td style="text-align:right">309.156</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">190.741</td>
+  <td style="text-align:right">2570.941</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">285.362</td>
+  <td style="text-align:right">2588.932</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">390.880</td>
+  <td style="text-align:right">3652.728</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">319.092</td>
+  <td style="text-align:right">2718.543</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">295.338</td>
+  <td style="text-align:right">2613.364</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">318.217</td>
+  <td style="text-align:right">2930.877</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">300.514</td>
+  <td style="text-align:right">2601.442</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">279.439</td>
+  <td style="text-align:right">2516.252</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">287.052</td>
+  <td style="text-align:right">2597.938</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">346.727</td>
+  <td style="text-align:right">2660.460</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">300.965</td>
+  <td style="text-align:right">2521.141</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">309.729</td>
+  <td style="text-align:right">2493.627</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">292.883</td>
+  <td style="text-align:right">2553.067</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">304.450</td>
+  <td style="text-align:right">2707.871</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">300.831</td>
+  <td style="text-align:right">2871.084</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">312.586</td>
+  <td style="text-align:right">3885.406</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">1981.020</td>
+  <td style="text-align:right">2991.661</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">201.881</td>
+  <td style="text-align:right">325.192</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">370.191</td>
+  <td style="text-align:right">319.397</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">309.903</td>
+  <td style="text-align:right">312.683</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">323.079</td>
+  <td style="text-align:right">318.935</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">320.163</td>
+  <td style="text-align:right">295.750</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">303.035</td>
+  <td style="text-align:right">315.829</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">289.459</td>
+  <td style="text-align:right">317.080</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">296.943</td>
+  <td style="text-align:right">298.747</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">294.241</td>
+  <td style="text-align:right">303.412</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">303.075</td>
+  <td style="text-align:right">308.760</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">322.479</td>
+  <td style="text-align:right">310.885</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">313.285</td>
+  <td style="text-align:right">313.604</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">319.378</td>
+  <td style="text-align:right">291.566</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">304.302</td>
+  <td style="text-align:right">294.748</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">410.309</td>
+  <td style="text-align:right">296.453</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">299.954</td>
+  <td style="text-align:right">306.762</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">42</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">337.899</td>
+  <td style="text-align:right">321.136</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">238.997</td>
+  <td style="text-align:right">397.142</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">385.357</td>
+  <td style="text-align:right">356.967</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">340.420</td>
+  <td style="text-align:right">342.774</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">311.207</td>
+  <td style="text-align:right">326.588</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">297.879</td>
+  <td style="text-align:right">311.212</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">308.218</td>
+  <td style="text-align:right">304.823</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">363.532</td>
+  <td style="text-align:right">326.682</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">327.874</td>
+  <td style="text-align:right">347.738</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">376.344</td>
+  <td style="text-align:right">302.558</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">406.243</td>
+  <td style="text-align:right">311.043</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">314.660</td>
+  <td style="text-align:right">311.631</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">356.886</td>
+  <td style="text-align:right">308.057</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">290.398</td>
+  <td style="text-align:right">303.083</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">287.574</td>
+  <td style="text-align:right">285.973</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">306.188</td>
+  <td style="text-align:right">305.038</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">305.457</td>
+  <td style="text-align:right">292.267</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">212</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">306.757</td>
+  <td style="text-align:right">295.352</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>a_grad_norm</code></td>
+  <td style="text-align:right">196.064</td>
+  <td style="text-align:right">366.174</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>b_param_hutch</code></td>
+  <td style="text-align:right">303.953</td>
+  <td style="text-align:right">370.857</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>degree</code></td>
+  <td style="text-align:right">320.076</td>
+  <td style="text-align:right">296.135</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_full</code></td>
+  <td style="text-align:right">338.912</td>
+  <td style="text-align:right">341.608</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>gt_simple</code></td>
+  <td style="text-align:right">346.879</td>
+  <td style="text-align:right">305.931</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>legacy</code></td>
+  <td style="text-align:right">283.332</td>
+  <td style="text-align:right">302.504</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_graph</code></td>
+  <td style="text-align:right">321.055</td>
+  <td style="text-align:right">297.795</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_point</code></td>
+  <td style="text-align:right">385.446</td>
+  <td style="text-align:right">299.094</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>p_simple</code></td>
+  <td style="text-align:right">299.420</td>
+  <td style="text-align:right">295.587</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>r_point</code></td>
+  <td style="text-align:right">300.958</td>
+  <td style="text-align:right">334.501</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>random</code></td>
+  <td style="text-align:right">318.795</td>
+  <td style="text-align:right">330.595</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_3</code></td>
+  <td style="text-align:right">345.337</td>
+  <td style="text-align:right">316.793</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_graph_6</code></td>
+  <td style="text-align:right">318.782</td>
+  <td style="text-align:right">321.299</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_3</code></td>
+  <td style="text-align:right">323.200</td>
+  <td style="text-align:right">378.328</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_point_6</code></td>
+  <td style="text-align:right">336.122</td>
+  <td style="text-align:right">291.994</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_3</code></td>
+  <td style="text-align:right">334.789</td>
+  <td style="text-align:right">317.209</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">2024</td>
+  <td><code>tracin_cp_simple_6</code></td>
+  <td style="text-align:right">314.008</td>
+  <td style="text-align:right">321.571</td>
+  <td>miss_saved</td>
+  <td>hit</td>
+  <td>success</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-汇总与失败状态">4. 汇总与失败状态</h2>
+<ul>
+<li>成功 cells：<strong>9/9</strong>；失败 cells：<strong>0</strong>。</li>
+<li>ScoreBundle cold total：mean <code>6.8038s</code>，max <code>9.1624s</code>。</li>
+<li>ScoreBundle warm exact read：mean <code>0.3200s</code>，max <code>0.9635s</code>。</li>
+<li>方法级 cold selection：mean <code>522.404ms</code>，max <code>2365.102ms</code>。</li>
+<li>方法级 warm selection：mean <code>660.689ms</code>，max <code>3885.406ms</code>。</li>
+</ul>
+<h2 id="5-evidence">5. Evidence</h2>
+<ul>
+<li>Machine-readable manifest: <code>/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json</code></li>
+<li>Cache root: <code>/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721</code></li>
+<li>Cell summaries: <code>/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721</code></li>
+<li>Algorithm version: <code>bc-target-matrix-v3.0</code></li>
+<li>Experiment Git SHA: <code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></li>
+</ul>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

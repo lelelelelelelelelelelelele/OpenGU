@@ -1,5 +1,7 @@
 import hashlib
 import sys
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -12,19 +14,48 @@ from experiments.bc_target_v2.core import (
     weighted_checkpoint_scores,
 )
 from experiments.bc_target_v2.benchmark_selection import (
+    CUBLAS_WORKSPACE_CONFIG,
     _build_cell_record,
     _command,
+    _run,
+    build_parser as build_benchmark_parser,
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
+from experiments.bc_target_v2.dataset_source import (
+    DatasetSourceError,
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 from experiments.bc_target_v2.render_markdown import render_document
 from experiments.bc_target_v2.run_downstream import build_parser as build_downstream_parser
 from experiments.bc_target_v2.run_matrix import build_parser as build_matrix_parser
 from experiments.bc_target_v2.run_selection import build_parser as build_selection_parser
 from experiments.bc_target_v2.run_selection import _resolve_device
+from experiments.bc_target_v2.syncmate_recipe import (
+    cell_artifact_paths,
+    load_recipe_config,
+    preflight_recipe,
+)
 
 
 def _sha(label):
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def _write_planetoid_source(repository_root, dataset="Cora"):
+    root = canonical_data_root(repository_root)
+    storage = dataset.lower()
+    raw = root / storage / "raw"
+    processed = root / storage / "processed"
+    raw.mkdir(parents=True)
+    processed.mkdir(parents=True)
+    for suffix in ("x", "tx", "allx", "y", "ty", "ally", "graph", "test.index"):
+        (raw / "ind.{0}.{1}".format(storage, suffix)).write_bytes(
+            (dataset + suffix).encode("utf-8")
+        )
+    (processed / "data.pt").write_bytes(b"processed")
+    return root
 
 
 def test_checkpoint_views_and_weighted_scores():
@@ -155,6 +186,62 @@ def test_default_budget_order_is_max_first():
     assert build_matrix_parser().parse_args([]).budgets == (14, 7, 3)
 
 
+def test_benchmark_requires_explicit_experiment_git_sha():
+    parser = build_benchmark_parser()
+    args = parser.parse_args(["--experiment-git-sha", "a" * 40])
+    assert args.experiment_git_sha == "a" * 40
+    with pytest.raises(SystemExit):
+        parser.parse_args([])
+
+
+def test_planetoid_source_is_repo_relative_fingerprinted_and_fail_closed(tmp_path):
+    repository_root = tmp_path / "repo"
+    root = _write_planetoid_source(repository_root)
+    source = resolve_planetoid_public_source(
+        root, repository_root=repository_root, dataset="Cora"
+    )
+    manifest = source.to_manifest()
+    assert manifest["canonical_root_match"] is True
+    assert manifest["resolved_root"] == str(root.resolve())
+    assert Path(manifest["dataset_dir"]).parts[-3:] == ("data", "raw", "cora")
+    assert len(manifest["raw_files"]) == 8
+    assert len(manifest["source_fingerprint"]) == 64
+    assert manifest["automatic_download_allowed"] is False
+    assert manifest["runtime_processing_allowed"] is False
+
+    external_root = _write_planetoid_source(tmp_path / "external-repo")
+    with pytest.raises(DatasetSourceError, match="non-canonical"):
+        resolve_planetoid_public_source(
+            external_root, repository_root=repository_root, dataset="Cora"
+        )
+
+
+def test_planetoid_source_requires_existing_processed_cache(tmp_path):
+    repository_root = tmp_path / "repo"
+    root = _write_planetoid_source(repository_root)
+    (root / "cora" / "processed" / "data.pt").unlink()
+    with pytest.raises(DatasetSourceError, match="processed/data.pt"):
+        resolve_planetoid_public_source(
+            root, repository_root=repository_root, dataset="Cora"
+        )
+
+
+def test_public_split_validator_rejects_opengu_80_20_split():
+    public = SimpleNamespace(
+        num_nodes=2708,
+        edge_index=torch.empty((2, 10556), dtype=torch.long),
+        train_mask=torch.cat((torch.ones(140), torch.zeros(2568))),
+        val_mask=torch.cat((torch.ones(500), torch.zeros(2208))),
+        test_mask=torch.cat((torch.ones(1000), torch.zeros(1708))),
+    )
+    assert validate_public_split(public, "Cora")["train_count"] == 140
+    public.train_mask = torch.cat((torch.ones(2166), torch.zeros(542)))
+    public.val_mask = torch.zeros(2708)
+    public.test_mask = torch.cat((torch.ones(542), torch.zeros(2166)))
+    with pytest.raises(DatasetSourceError, match="frozen public split"):
+        validate_public_split(public, "Cora")
+
+
 def test_selection_device_defaults_to_auto():
     parser = build_selection_parser()
     assert parser.parse_args([]).device == "auto"
@@ -168,8 +255,25 @@ def test_cuda_device_resolution_has_an_explicit_index(monkeypatch):
 
 
 def test_benchmark_cell_requires_17_cold_misses_and_warm_hits(tmp_path):
+    dataset_source = {
+        "schema": "bc_target_v2.planetoid_public_source",
+        "version": 1,
+        "profile": "planetoid_public_fixed_split",
+        "dataset": "Cora",
+        "storage_name": "cora",
+        "split_policy": "public",
+        "resolved_root": "/repo/data/raw",
+        "resolved_dataset_dir": "/repo/data/raw/cora",
+        "raw_dir": "/repo/data/raw/cora/raw",
+        "processed_data_path": "/repo/data/raw/cora/processed/data.pt",
+        "source_fingerprint": _sha("dataset-source"),
+    }
+
     def summary(hit):
         return {
+            "dataset_source": dataset_source,
+            "split_observation": {"train_count": 140},
+            "git_provenance": {"head": "a" * 40},
             "cache": {"hit": hit, "artifact_id": "score_fixture"},
             "selection_cache": {
                 "miss_saved_count": 0 if hit else 17,
@@ -217,7 +321,106 @@ def test_benchmark_warm_command_enables_producer_sentinel(tmp_path):
         output=tmp_path / "warm.json",
         budgets="14,7,3",
         device="cpu",
+        experiment_git_sha="a" * 40,
         warm=True,
     )
     assert "--fail-if-producer-called" in command
     assert command[0] == sys.executable
+
+
+def test_benchmark_subprocess_sets_deterministic_cublas_workspace(monkeypatch):
+    observed = {}
+
+    class Completed:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def fake_run(command, **kwargs):
+        observed.update(kwargs["env"])
+        return Completed()
+
+    monkeypatch.setattr("experiments.bc_target_v2.benchmark_selection.subprocess.run", fake_run)
+    result = _run((sys.executable, "-c", "pass"), 1.0)
+    assert result["returncode"] == 0
+    assert observed["CUBLAS_WORKSPACE_CONFIG"] == CUBLAS_WORKSPACE_CONFIG
+
+
+def test_syncmate_small_selection_configs_are_three_bounded_stages():
+    root = Path(__file__).resolve().parents[1]
+    config_dir = root / "experiments" / "configs"
+    mvp = load_recipe_config(
+        config_dir / "syncmate_small_selection_mvp_v1.yaml",
+        repository_root=root,
+    )
+    dataset_gate = load_recipe_config(
+        config_dir / "syncmate_small_selection_dataset_gate_v1.yaml",
+        repository_root=root,
+    )
+    full = load_recipe_config(
+        config_dir / "syncmate_small_selection_full_v1.yaml",
+        repository_root=root,
+    )
+
+    assert (mvp["datasets"], mvp["seeds"], mvp["resume"]) == (("Cora",), (42,), False)
+    assert mvp["required_branch"] == "main"
+    assert dataset_gate["required_branch"] == "main"
+    assert full["required_branch"] == "main"
+    assert dataset_gate["datasets"] == ("Cora", "CiteSeer", "PubMed")
+    assert dataset_gate["seeds"] == (42,)
+    assert dataset_gate["required_prior_cells"] == ("cora_seed42",)
+    assert full["seeds"] == (42, 212, 2024)
+    assert full["required_prior_cells"] == (
+        "cora_seed42",
+        "citeseer_seed42",
+        "pubmed_seed42",
+    )
+    assert len(cell_artifact_paths(mvp)) == 3
+    assert len(cell_artifact_paths(dataset_gate)) == 9
+    assert len(cell_artifact_paths(full)) == 27
+
+
+def test_syncmate_small_selection_preflight_blocks_non_4090(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe._git_state",
+        lambda _root: {"head": "a" * 40, "branch": "main", "status_short": []},
+    )
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
+        lambda *_args, **_kwargs: SimpleNamespace(to_manifest=lambda: {"canonical_root_match": True}),
+    )
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda _index: "NVIDIA GeForce RTX 5070")
+
+    result = preflight_recipe(config)
+
+    assert result["ready"] is False
+    assert any("required device" in error for error in result["errors"])
+
+
+def test_syncmate_small_selection_preflight_blocks_feature_branch(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe._git_state",
+        lambda _root: {
+            "head": "a" * 40,
+            "branch": "codex/feat-selection",
+            "status_short": [],
+        },
+    )
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            to_manifest=lambda: {"canonical_root_match": True}
+        ),
+    )
+
+    result = preflight_recipe(config, require_gpu=False)
+
+    assert result["ready"] is False
+    assert any("required formal branch" in error for error in result["errors"])

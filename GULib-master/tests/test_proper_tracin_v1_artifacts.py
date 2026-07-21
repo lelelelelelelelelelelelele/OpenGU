@@ -22,12 +22,18 @@ from experiments.tracin_v2.formal_recipe import (
     build_formal_recipe,
 )
 from experiments.tracin_v2.run_formal_selection_gate import (
+    DEFAULT_DATA_ROOT as FORMAL_DEFAULT_DATA_ROOT,
     checkpoint_weight_schedule,
 )
 
 
 def _sha(label):
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def test_formal_tracin_default_dataset_root_is_repository_canonical_raw():
+    repository_root = Path(__file__).resolve().parents[1]
+    assert FORMAL_DEFAULT_DATA_ROOT == (repository_root / "data" / "raw").resolve()
 
 
 def _producer_version():

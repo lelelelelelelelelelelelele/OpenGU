@@ -38,11 +38,36 @@ Repository Git rules are defined in `AGENTS.md` and explained with executable Po
 
 ### Formal Remote Execution Lane
 
+- Feature/fix branches may run unit tests, integration tests, and explicitly non-formal smoke checks only. A formal MVP/one-cell gate is already part of the real experiment matrix and therefore runs only after the complete code line has been accepted into `main`.
+- Pin every formal matrix to one exact full `main` SHA. If a formal gate finds a code defect, stop, fix it on a new branch, accept that fix into `main`, and restart the gate with the new SHA and result/cache identity; do not mix cells across SHAs.
 - The default lane for formal GPU experiments is the **aligned, intentionally clean SSH active checkout**. A formal run does not require a separate worktree merely because it is formal.
 - Use an isolated worktree only when there is a concrete boundary that requires it: concurrent branch work, unresolved tracked/operational contamination, validation of an unaccepted fix, or a demonstrated result/cache identity collision.
 - Before claiming isolation is necessary, inspect `git status --short --branch`, `git worktree list`, and the canonical runner's `--dry_run` classification. Historical ignored results alone are not evidence of a collision when the fingerprinted runner reports the intended cells as `would_run`.
 - Formality comes from accepted source/config provenance, complete four-file cell artifacts, gates, and recorded logs—not from the checkout directory. A one-cell gate run made with the same full config/fingerprint remains part of the formal matrix and is skipped, not overwritten, during expansion.
 - Current experiment placement and any explicit exception are recorded in `self/dashboard/WORKPLAN.md`; do not infer an isolation requirement from an older acceptance report that happened to use a fresh checkout.
+
+### Canonical Dataset Location on SSH
+
+- The SSH authority is the active checkout
+  `/autodl-fs/data/OpenGU/GULib-master`. Canonical dataset sources must resolve
+  below that checkout, not below `OpenGU-shared`, another worktree, an
+  experiment checkout, a backup, or an archive.
+- Raw adapter caches live under `data/raw/<dataset>/`. Planetoid uses lowercase
+  `data/raw/{cora,citeseer,pubmed}`; its nested PyG `processed/data.pt` remains
+  part of the public/raw adapter cache.
+- OpenGU canonical graph/split pairs live only under
+  `data/processed/{transductive,inductive}/`. A public Planetoid `data.pt`
+  must never be relabeled or copied as an OpenGU canonical split pickle.
+- `data/<Method>/`, `data/unlearning_task/`, and result/cache trees are allowed
+  generated artifacts, not alternative canonical dataset roots.
+- Formal runs must use the active `root_path`/canonical `processed_root`, must
+  not download or preprocess inside the timed run, and must record resolved
+  path, content/split fingerprints, and Git provenance. Missing datasets are
+  staged into active `data/raw/` and processed through the accepted OpenGU
+  flow before the formal run starts.
+- Existing duplicates are recovery evidence until separately approved for
+  deletion. See `reports/dataset_layout_AUDIT_REPORT.md` for the hash audit and
+  `self/dashboard/WORKPLAN.md` for the current availability snapshot.
 
 ```bash
 # Basic experiment (from GULib-master directory)
@@ -96,7 +121,8 @@ Each unlearning method in `unlearning/unlearning_methods/{Method}/` inherits fro
 
 ### Data Flow
 
-1. Raw datasets auto-download via PyTorch Geometric to `data/raw/`
+1. Development loaders may download raw datasets to `data/raw/`; formal SSH
+   runs require the canonical active raw cache to exist before timing begins
 2. `dataset/original_dataset.py` loads and returns `(data, dataset)` objects
 3. `utils/dataset_utils.py::process_data()` handles train/test splitting (transductive/inductive, balanced/imbalanced) and caches splits to `data/processed/`
 4. Unlearning target nodes/edges are stored under `data/unlearning_task/{transductive|inductive}/{balanced|imbalanced}/`
