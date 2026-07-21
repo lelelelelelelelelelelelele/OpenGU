@@ -29,6 +29,11 @@ from cache_v2 import (
     sha256_bytes,
 )
 from cache_v2.legacy_freeze import snapshot_legacy_caches
+from experiments.bc_target_v2.dataset_source import (
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 from experiments.selection_budget_planner import materialize_budget_selection
 from experiments.selection_inputs import make_dataset_selection_inputs
 
@@ -51,6 +56,8 @@ from .run_planetoid_gate import (
 )
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 SELECTION_ALGORITHM_VERSION = "proper-tracin-v1-topk"
 SELECTION_PRODUCER_VERSION = "proper-tracin-selection-v1"
 
@@ -66,7 +73,7 @@ def parse_budgets(value: str) -> Tuple[int, ...]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-root", type=Path, required=True)
+    parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--score-store-root", type=Path, required=True)
     parser.add_argument("--selection-store-root", type=Path, required=True)
     parser.add_argument("--legacy-results-root", type=Path, required=True)
@@ -171,7 +178,7 @@ def main(argv=None) -> int:
     if not 0 < args.lr_gamma <= 1:
         raise ValueError("lr_gamma must be in (0, 1]")
 
-    repo = Path(__file__).resolve().parents[2]
+    repo = REPO_ROOT
     output = _require_absolute(args.output, "output")
     score_root = _require_absolute(args.score_store_root, "score-store-root")
     selection_root = _require_absolute(
@@ -180,7 +187,11 @@ def main(argv=None) -> int:
     legacy_results_root = _require_absolute(
         args.legacy_results_root, "legacy-results-root"
     )
-    data_root = _require_absolute(args.data_root, "data-root")
+    dataset_source = resolve_planetoid_public_source(
+        args.data_root,
+        repository_root=repo,
+        dataset=args.dataset,
+    )
     reject_legacy_output_path(output, repo)
     for label, root in (
         ("score-store-root", score_root),
@@ -197,19 +208,14 @@ def main(argv=None) -> int:
                     "{0} must not be inside Legacy {1}".format(label, legacy_name)
                 )
 
-    raw_root = data_root / args.dataset / "raw"
-    if not raw_root.is_dir() or not any(path.is_file() for path in raw_root.iterdir()):
-        raise FileNotFoundError(
-            "formal gate requires existing Planetoid raw files; automatic download is disabled: {0}".format(
-                raw_root
-            )
-        )
-
     seed_everything(args.seed, args.num_threads)
     dataset = Planetoid(
-        root=str(data_root), name=args.dataset, transform=NormalizeFeatures()
+        root=str(dataset_source.resolved_root),
+        name=dataset_source.storage_name,
+        transform=NormalizeFeatures(),
     )
     data = dataset[0].to(torch.device("cpu"))
+    split_observation = validate_public_split(data, args.dataset)
     candidate_ids = data.train_mask.nonzero(as_tuple=False).view(-1)
     target_ids = data.val_mask.nonzero(as_tuple=False).view(-1)
     if set(candidate_ids.tolist()) & set(target_ids.tolist()):
@@ -250,6 +256,7 @@ def main(argv=None) -> int:
             repo / "cache_v2" / "score_store.py",
             repo / "cache_v2" / "selection_materializer.py",
             repo / "experiments" / "selection_budget_planner.py",
+            repo / "experiments" / "bc_target_v2" / "dataset_source.py",
         ]
     )
     recipe = build_formal_recipe(
@@ -258,6 +265,7 @@ def main(argv=None) -> int:
             "dataset_adapter": "torch_geometric.datasets.Planetoid",
             "dataset_name": args.dataset,
             "split_policy": "public",
+            "dataset_source_fingerprint": dataset_source.source_fingerprint,
             "transform_policy": "NormalizeFeatures",
             "edge_index_hash": tensor_hash(data.edge_index),
             "features_hash": tensor_hash(data.x),
@@ -391,7 +399,9 @@ def main(argv=None) -> int:
         fail_if_producer_called=args.fail_if_producer_called,
     )
     selection_dataset = make_dataset_selection_inputs(
-        data, dataset_name=args.dataset, source_path=data_root
+        data,
+        dataset_name=args.dataset,
+        source_path=dataset_source.processed_data_path,
     )
     if (
         tuple(selection_dataset.candidate_nodes)
@@ -451,6 +461,8 @@ def main(argv=None) -> int:
             "num_candidates": int(candidate_ids.numel()),
             "num_targets": int(target_ids.numel()),
             "split_policy": "public",
+            "source": dataset_source.to_manifest(),
+            "split_observation": split_observation,
         },
         "score_artifact": {
             "store_root": str(score_root),

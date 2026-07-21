@@ -167,7 +167,7 @@ cold、warm 和 future-smaller 三次执行均记录 `legacy_unchanged=true`。�
 
 ```powershell
 E:/conda_package/envs/gnn/python.exe -m experiments.tracin_v2.run_formal_selection_gate `
-  --data-root E:/project/OpenGU/GULib-master/data/raw/Planetoid `
+  --data-root E:/project/OpenGU/GULib-master/data/raw `
   --score-store-root <ABSOLUTE_SCORE_STORE> `
   --selection-store-root <ABSOLUTE_SELECTION_STORE> `
   --legacy-results-root E:/project/OpenGU/GULib-master/results `

@@ -1,0 +1,1428 @@
+{
+  "algorithm_version": "bc-target-matrix-v3.0",
+  "cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721",
+  "cells": [
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json",
+      "cold_total_process_seconds": 47.770938757807016,
+      "dataset": "Cora",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 1.2227305136620998,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.63758996501565
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.269844079390168,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.7442522309720516
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.157279459759593,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.865135744214058
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.285796271637082,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.694369360804558
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.235524222254753,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.383186422288418
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.304373435676098,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28589919954538345
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.140668610110879,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2878624480217695
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.1264448072761297,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3049285486340523
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.2055235765874386,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29255132377147675
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.0656674280762672,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28654083237051964
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.1797137446701527,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32226444222033024
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.1389598418027163,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29639180935919285
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.246770713478327,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2967530023306608
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.2076570317149162,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2957413848489523
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.2360056955367327,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28182157315313816
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.365102196112275,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2860457431524992
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 2.32683764770627,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2398971989750862
+        }
+      },
+      "peak_gpu_allocated_bytes": 196915200,
+      "peak_gpu_reserved_bytes": 218103808,
+      "score_artifact_id": "score_c8df2f02_a36035f7",
+      "score_bundle_cold_total_seconds": 9.162389010190964,
+      "score_bundle_warm_read_seconds": 0.9635117575526237,
+      "seed": 42,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/warm.json",
+      "warm_total_process_seconds": 19.933219227939844
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json",
+      "cold_total_process_seconds": 13.834153555333614,
+      "dataset": "Cora",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.1932801827788353,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3456795755773783
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2841040436178446,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.38153117522597313
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28061426244676113,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3047895934432745
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3147434964776039,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2908630929887295
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3113029357045889,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.27841565385460854
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.326659245416522,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2922358736395836
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.29706150107085705,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3701125644147396
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2767124082893133,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3072513956576586
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2920616865158081,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28631158731877804
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2886817790567875,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2803445868194103
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.283237436786294,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2748256213963032
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3027888871729374,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28213429637253284
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2996919807046652,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2917666118592024
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.27791341580450535,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.277739180251956
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3163466118276119,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31468514911830425
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3069209326058626,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.38262197375297546
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2903800141066313,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3049777578562498
+        }
+      },
+      "peak_gpu_allocated_bytes": 196915200,
+      "peak_gpu_reserved_bytes": 218103808,
+      "score_artifact_id": "score_31e7adf8_b0836423",
+      "score_bundle_cold_total_seconds": 7.004957085475326,
+      "score_bundle_warm_read_seconds": 0.1325039304792881,
+      "seed": 212,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/warm.json",
+      "warm_total_process_seconds": 7.148845167830586
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json",
+      "cold_total_process_seconds": 13.556725667789578,
+      "dataset": "Cora",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.20344511978328228,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2962809316813946
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28145304694771767,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28478402085602283
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2798720896244049,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2826330438256264
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2873097024857998,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29061536118388176
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2887364085763693,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.24915669485926628
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31417103111743927,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2800144739449024
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3324864227324724,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28387884981930256
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28034243918955326,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28545786067843437
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3120260313153267,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.22813736833631992
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.26800853200256824,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.22204532846808434
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.321650005877018,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.22473423928022385
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.25901275500655174,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.22832650505006313
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2905011270195246,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2825367283076048
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2846602760255337,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29611613042652607
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.27731203474104404,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30628638714551926
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28431289084255695,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3741653524339199
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3271541651338339,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29556275345385075
+        }
+      },
+      "peak_gpu_allocated_bytes": 196915200,
+      "peak_gpu_reserved_bytes": 218103808,
+      "score_artifact_id": "score_b75ae9e4_ede60612",
+      "score_bundle_cold_total_seconds": 6.941251788288355,
+      "score_bundle_warm_read_seconds": 0.15463380701839924,
+      "seed": 2024,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/warm.json",
+      "warm_total_process_seconds": 6.622196823358536
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json",
+      "cold_total_process_seconds": 28.518356727436185,
+      "dataset": "CiteSeer",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.1904814075678587,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.4318657722324133
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3263057693839073,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32122940942645073
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.294809328392148,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31204540841281414
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3152304831892252,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30494762770831585
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31147609651088715,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32344816252589226
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2962514888495207,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3074499983340502
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30775304697453976,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3072292674332857
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3411810416728258,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.37456973642110825
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.35006662271916866,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3119824081659317
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2928284350782633,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.314696978777647
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30573596246540546,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30057897977530956
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31416031159460545,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.297210980206728
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3089262079447508,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31794936023652554
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.29553164914250374,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30927549675107
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3082439824938774,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31304774060845375
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.36028421111404896,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3323928937315941
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2883629519492388,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31842213310301304
+        }
+      },
+      "peak_gpu_allocated_bytes": 374295552,
+      "peak_gpu_reserved_bytes": 402653184,
+      "score_artifact_id": "score_3b846e1d_c23ae08c",
+      "score_bundle_cold_total_seconds": 7.653721245005727,
+      "score_bundle_warm_read_seconds": 0.12856554053723812,
+      "seed": 42,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/warm.json",
+      "warm_total_process_seconds": 7.997563591226935
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json",
+      "cold_total_process_seconds": 14.802349545061588,
+      "dataset": "CiteSeer",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.17804686352610588,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.340028490871191
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.37415110133588314,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30305428989231586
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3372224532067776,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28916316479444504
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.34442360140383244,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.34787644632160664
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.27290977351367474,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2985453251749277
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2641888055950403,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2805430684238672
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.27663041092455387,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2889153677970171
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.27724732272326946,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28210928477346897
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31409793719649315,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2914626728743315
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31051395647227764,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3078074622899294
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32111908681690693,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.313602514564991
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3017383646219969,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3017156645655632
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.342090530321002,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.305013295263052
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3195981588214636,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3031230252236128
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2880222722887993,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29266295209527016
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28271741047501564,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3109489865601063
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31913199089467525,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.309156009927392
+        }
+      },
+      "peak_gpu_allocated_bytes": 374295552,
+      "peak_gpu_reserved_bytes": 402653184,
+      "score_artifact_id": "score_21530297_45ec7349",
+      "score_bundle_cold_total_seconds": 7.370600340887904,
+      "score_bundle_warm_read_seconds": 0.1426763143390417,
+      "seed": 212,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/warm.json",
+      "warm_total_process_seconds": 7.306017559021711
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json",
+      "cold_total_process_seconds": 15.902976924553514,
+      "dataset": "CiteSeer",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.19074126332998276,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.570941274985671
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.285361560061574,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.588931944221258
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.39087951742112637,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 3.652727695181966
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3190918806940317,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.7185427770018578
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2953380476683378,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.6133642457425594
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31821730360388756,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.93087674677372
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30051390267908573,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.6014418713748455
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2794393189251423,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.5162515230476856
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2870517410337925,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.5979376807808876
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.34672708436846733,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.660459814593196
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3009645417332649,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.5211411993950605
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30972904339432716,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.4936265628784895
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.29288284853100777,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.5530666913837194
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30444953218102455,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.707871086895466
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3008314836770296,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.8710838090628386
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3125864490866661,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 3.8854061029851437
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 1.981020376086235,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 2.991660827770829
+        }
+      },
+      "peak_gpu_allocated_bytes": 374295552,
+      "peak_gpu_reserved_bytes": 402653184,
+      "score_artifact_id": "score_9ebd0b10_9b68a451",
+      "score_bundle_cold_total_seconds": 6.97451002523303,
+      "score_bundle_warm_read_seconds": 0.9429577626287937,
+      "seed": 2024,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/warm.json",
+      "warm_total_process_seconds": 50.65300456993282
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json",
+      "cold_total_process_seconds": 13.547708617523313,
+      "dataset": "PubMed",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.20188110321760178,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32519232109189034
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3701905272901058,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31939718313515186
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30990306101739407,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31268311478197575
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32307911664247513,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31893512792885303
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3201626967638731,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2957501467317343
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30303458869457245,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31582893058657646
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2894588764756918,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31707984022796154
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2969427891075611,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29874698258936405
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2942408099770546,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3034121058881283
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3030753917992115,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3087597358971834
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32247850857675076,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3108850736171007
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3132847025990486,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31360356323421
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31937834806740284,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29156581684947014
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.304301880300045,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2947476152330637
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.4103092644363642,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29645298421382904
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.299954179674387,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30676158890128136
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3378985542804003,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3211360517889261
+        }
+      },
+      "peak_gpu_allocated_bytes": 281243648,
+      "peak_gpu_reserved_bytes": 329252864,
+      "score_artifact_id": "score_3ee14f6e_d625896a",
+      "score_bundle_cold_total_seconds": 5.140600027516484,
+      "score_bundle_warm_read_seconds": 0.144777599722147,
+      "seed": 42,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/warm.json",
+      "warm_total_process_seconds": 7.482381863519549
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json",
+      "cold_total_process_seconds": 12.682146953418851,
+      "dataset": "PubMed",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.23899740539491177,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.39714199118316174
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3853571694344282,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3569666463881731
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3404203038662672,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3427744172513485
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3112069070339203,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32658834755420685
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2978785801678896,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3112115357071161
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.308218153193593,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30482271686196327
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3635318111628294,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3266821149736643
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32787366956472397,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.34773845225572586
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3763440754264593,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3025576565414667
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.4062429182231426,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31104281917214394
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31466031074523926,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31163090094923973
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3568858131766319,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30805675499141216
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2903980705887079,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3030833099037409
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.28757407143712044,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.28597317263484
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3061877228319645,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3050377871841192
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3054573405534029,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.292267132550478
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3067571986466646,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29535153321921825
+        }
+      },
+      "peak_gpu_allocated_bytes": 281243648,
+      "peak_gpu_reserved_bytes": 329252864,
+      "score_artifact_id": "score_a171f5b1_3cb7fb07",
+      "score_bundle_cold_total_seconds": 5.07777295075357,
+      "score_bundle_warm_read_seconds": 0.13145400024950504,
+      "seed": 212,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/warm.json",
+      "warm_total_process_seconds": 7.774811973795295
+    },
+    {
+      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json",
+      "cold_total_process_seconds": 13.633712884038687,
+      "dataset": "PubMed",
+      "device": "cuda:0",
+      "failure": null,
+      "methods": {
+        "a_grad_norm": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.19606413505971432,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.36617352813482285
+        },
+        "b_param_hutch": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3039533533155918,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3708565980195999
+        },
+        "degree": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3200758174061775,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2961352113634348
+        },
+        "gt_full": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.338912233710289,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.34160784259438515
+        },
+        "gt_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.346879119053483,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.30593113228678703
+        },
+        "legacy": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2833318877965212,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3025035671889782
+        },
+        "p_graph": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32105534709990025,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2977948635816574
+        },
+        "p_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.38544635474681854,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2990943565964699
+        },
+        "p_simple": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.2994203604757786,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.2955865915864706
+        },
+        "r_point": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.30095789209008217,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.33450086414813995
+        },
+        "random": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.31879485584795475,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.33059509471058846
+        },
+        "tracin_cp_graph_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3453372959047556,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.316793380305171
+        },
+        "tracin_cp_graph_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3187816124409437,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3212986011058092
+        },
+        "tracin_cp_point_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.32320048101246357,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.3783282395452261
+        },
+        "tracin_cp_point_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.33612185157835484,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.29199442081153393
+        },
+        "tracin_cp_simple_3": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.33478923700749874,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.31720880046486855
+        },
+        "tracin_cp_simple_6": {
+          "cold_cache_hit": false,
+          "cold_selection_seconds": 0.3140083756297827,
+          "failure": null,
+          "status": "success",
+          "warm_cache_hit": true,
+          "warm_selection_seconds": 0.32157087698578835
+        }
+      },
+      "peak_gpu_allocated_bytes": 281243648,
+      "peak_gpu_reserved_bytes": 329252864,
+      "score_artifact_id": "score_029989ca_fa575ca0",
+      "score_bundle_cold_total_seconds": 5.908536035567522,
+      "score_bundle_warm_read_seconds": 0.13880306854844093,
+      "seed": 2024,
+      "status": "success",
+      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/warm.json",
+      "warm_total_process_seconds": 7.842256655916572
+    }
+  ],
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed"
+  ],
+  "device_requested": "cuda",
+  "experiment_git_sha": "9240b9a7bd61b17b4c841981ec2892fdf100dc4b",
+  "formal_score_count": 17,
+  "formal_score_names": [
+    "a_grad_norm",
+    "b_param_hutch",
+    "degree",
+    "gt_full",
+    "gt_simple",
+    "legacy",
+    "p_graph",
+    "p_point",
+    "p_simple",
+    "r_point",
+    "random",
+    "tracin_cp_graph_3",
+    "tracin_cp_graph_6",
+    "tracin_cp_point_3",
+    "tracin_cp_point_6",
+    "tracin_cp_simple_3",
+    "tracin_cp_simple_6"
+  ],
+  "manifest_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json",
+  "output_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721",
+  "schema": "bc_target_v2.small_graph_selection_benchmark",
+  "seeds": [
+    42,
+    212,
+    2024
+  ],
+  "version": 1
+}

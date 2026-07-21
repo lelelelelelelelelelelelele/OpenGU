@@ -1133,6 +1133,28 @@ config but writes clearly marked synthetic no-GPU preflight artifacts only; it
 does not call `experiments/run.py`, conduct training, alter cache semantics, or
 claim experiment results.
 
+The formal small-graph Selection benchmark is exposed as three ordered static
+recipes:
+
+1. `opengu-small-selection-mvp-v1`: Cora × seed 42.
+2. `opengu-small-selection-dataset-gate-v1`: Cora/CiteSeer/PubMed × seed 42.
+3. `opengu-small-selection-full-v1`: three datasets × seeds 42/212/2024.
+
+Their reviewed YAML files fix the dataset matrix, budgets, canonical
+checkout-local `data/raw` root, ignored Cache V2/output roots, CUDA-only device,
+RTX 4090 requirement, required `main` branch, and per-cell timeout. These are
+formal recipes: feature branches may run only separately labelled disposable
+smoke checks, not these MVP/dataset/full jobs. Dispatch pins the runner's full
+`main` SHA into the job envelope; a missing or mismatched SHA blocks before
+execution. The first stage requires empty runtime roots; later stages require
+accepted prior cells from that same SHA and resume without overwriting them.
+Before execution, the recipe also blocks on a dirty checkout, wrong config
+binding, missing canonical data, unavailable CUDA, or a GPU other than RTX
+4090. A successful cell produces immutable `cold.json`,
+`warm.json`, and `cell.json`; controller acceptance collects exactly those
+files, verifies SHA-256, and checks the 17-output cold/warm/GPU contract without
+coercing Selection evidence into attack/collateral result schemas.
+
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
 ```bash

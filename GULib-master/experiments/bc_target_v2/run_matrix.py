@@ -8,13 +8,13 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from .dataset_source import canonical_data_root
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RESULT_ROOT = REPO_ROOT / "results" / "bc_target_v2"
 DEFAULT_CACHE_ROOT = REPO_ROOT / "results" / "cache_v2" / "bc_target_v2"
-DEFAULT_DATA_ROOT = Path(
-    "E:/project/OpenGU/GULib-master/data/raw/Planetoid"
-)
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 
 
 def _str_list(value: str) -> Sequence[str]:

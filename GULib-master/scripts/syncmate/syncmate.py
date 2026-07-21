@@ -96,6 +96,55 @@ GATE4_RECIPE_ALLOWED_DELTA = (
     "GULib-master/utils/dataset_utils.py",
     "GULib-master/utils/logger.py",
 )
+SMALL_SELECTION_RECIPE_INTRODUCED_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
+SMALL_SELECTION_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_v1__"
+SMALL_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
+
+
+def _small_selection_artifact_paths(datasets: Tuple[str, ...], seeds: Tuple[int, ...]) -> Tuple[str, ...]:
+    paths = []
+    for dataset in datasets:
+        for seed in seeds:
+            leaf = f"{SMALL_SELECTION_OUTPUT_ROOT}/cells/{dataset.lower()}_seed{seed}"
+            paths.extend(f"{leaf}/{name}" for name in SMALL_SELECTION_ARTIFACT_NAMES)
+    return tuple(paths)
+
+
+def _small_selection_recipe(
+    recipe_id: str,
+    config_name: str,
+    config_sha256: str,
+    datasets: Tuple[str, ...],
+    seeds: Tuple[int, ...],
+) -> Dict[str, Any]:
+    config_path = f"experiments/configs/{config_name}"
+    return {
+        "id": recipe_id,
+        "argv": (
+            "{python}", "-m", "experiments.bc_target_v2.syncmate_recipe",
+            "--config", config_path, "--json",
+        ),
+        "config_path": config_path,
+        "config_sha256": config_sha256,
+        "recipe_introduced_git_sha": SMALL_SELECTION_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": _small_selection_artifact_paths(datasets, seeds),
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "small-selection-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "small-selection-v1",
+        "collector_result_roots": (SMALL_SELECTION_OUTPUT_ROOT,),
+        "collector_artifact_names": SMALL_SELECTION_ARTIFACT_NAMES,
+        "selection_matrix": {"datasets": datasets, "seeds": seeds, "score_count": 17},
+    }
+
+
 RUNNER_RECIPE_DEFINITIONS = {
     "smoke": {
         "id": "smoke",
@@ -145,6 +194,27 @@ RUNNER_RECIPE_DEFINITIONS = {
         "success_predicate": "json.passed == true and collector gate passes for the exact result leaf",
         "collector_acceptance": True,
     },
+    "opengu-small-selection-mvp-v1": _small_selection_recipe(
+        "opengu-small-selection-mvp-v1",
+        "syncmate_small_selection_mvp_v1.yaml",
+        "d75a8d89a212fd3bdb71fce101b17fd4d2f3ed05dd426c5410183b1c59eec5d0",
+        ("Cora",),
+        (42,),
+    ),
+    "opengu-small-selection-dataset-gate-v1": _small_selection_recipe(
+        "opengu-small-selection-dataset-gate-v1",
+        "syncmate_small_selection_dataset_gate_v1.yaml",
+        "8394325534bee937ff8a5459671cbf20918f82c5615efc3e8cb7c6340b2cc214",
+        ("Cora", "CiteSeer", "PubMed"),
+        (42,),
+    ),
+    "opengu-small-selection-full-v1": _small_selection_recipe(
+        "opengu-small-selection-full-v1",
+        "syncmate_small_selection_full_v1.yaml",
+        "29149a559ac14c0f4e13cc677417f4633002bc55c06ddb06f33f1b3bca62079d",
+        ("Cora", "CiteSeer", "PubMed"),
+        (42, 212, 2024),
+    ),
 }
 QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
 QUEUE_ALLOWED_JOB_FIELDS = {
@@ -14262,16 +14332,41 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
         observed_config_sha = sha256_file(config_path)
         if observed_config_sha != definition["config_sha256"]:
             errors.append("fixed recipe config SHA-256 differs from recipe metadata")
-    allowed_delta_paths = definition.get("allowed_git_delta_paths")
-    git = runner_recipe_git_binding(
-        str(definition["expected_git_sha"]),
-        tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
-    )
+    if definition.get("git_binding_policy") == "job-exact-main-v1":
+        observed_sha = run_git(["rev-parse", "HEAD"])
+        git = {
+            "expected_git_sha": None,
+            "observed_git_sha": observed_sha,
+            "mode": "job-exact-main-v1",
+            "ok": True,
+            "changed_paths": [],
+            "errors": [],
+        }
+    else:
+        allowed_delta_paths = definition.get("allowed_git_delta_paths")
+        git = runner_recipe_git_binding(
+            str(definition["expected_git_sha"]),
+            tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
+        )
     errors.extend(git.get("errors") or [])
+    runtime_preflight = None
+    if definition.get("preflight_profile") == "small-selection-4090-v1" and not errors:
+        try:
+            from experiments.bc_target_v2.syncmate_recipe import preflight_recipe
+
+            runtime_preflight = preflight_recipe(config_path)
+            errors.extend(runtime_preflight.get("errors") or [])
+        except Exception as exc:
+            errors.append(
+                "small-selection runtime preflight failed: {0}: {1}".format(
+                    type(exc).__name__, exc
+                )
+            )
     return {
         "recipe": definition,
         "expected": {
-            "git_sha": definition["expected_git_sha"],
+            "git_sha": definition.get("expected_git_sha"),
+            "recipe_introduced_git_sha": definition.get("recipe_introduced_git_sha"),
             "config_path": config_rel,
             "config_sha256": definition["config_sha256"],
             "timeout_seconds": definition["timeout_seconds"],
@@ -14285,6 +14380,7 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
             "git_changed_paths": git.get("changed_paths") or [],
         },
         "git": git,
+        "runtime_preflight": runtime_preflight,
         "ready": not errors,
         "errors": errors,
     }
@@ -14682,6 +14778,27 @@ def runner_queue_recipe_command(recipe: str) -> Tuple[List[str], int]:
     return runner_recipe_command(definition), int(definition["timeout_seconds"])
 
 
+def runner_recipe_execution_errors(
+    definition: Dict[str, Any], recipe_data: Any
+) -> List[str]:
+    if definition.get("execution_validator") != "exact-artifacts-json-v1":
+        return []
+    if not isinstance(recipe_data, dict):
+        return ["recipe stdout is not one JSON object"]
+    errors = []
+    if recipe_data.get("passed") is not True:
+        errors.append("recipe JSON did not report passed=true")
+    expected = list(definition.get("expected_artifact_paths") or [])
+    observed = recipe_data.get("generated_artifacts")
+    if observed != expected:
+        errors.append("generated_artifacts do not exactly match the reviewed recipe")
+    for relative in expected:
+        path = safe_repo_path(relative)
+        if path is None or not path.is_file():
+            errors.append("expected recipe artifact is missing or unsafe: " + relative)
+    return errors
+
+
 def runner_queue_submit(
     job_id: str,
     recipe: str,
@@ -14742,6 +14859,7 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
     job = entry["job"]
     job_id = str(job["id"])
+    definition = runner_recipe_definition(str(job["recipe"]))
     binding = runner_recipe_binding(str(job["recipe"]))
     expected_git_sha = job.get("expected_git_sha")
     observed_git_sha = (binding.get("observed") or {}).get("git_sha")
@@ -14749,6 +14867,11 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
     binding["job_exact_git_match"] = (
         observed_git_sha == expected_git_sha if expected_git_sha else None
     )
+    if definition.get("requires_job_expected_git_sha") and not expected_git_sha:
+        binding.setdefault("errors", []).append(
+            "formal recipe requires an exact Git SHA in the job envelope"
+        )
+        binding["ready"] = False
     if expected_git_sha and observed_git_sha != expected_git_sha:
         binding.setdefault("errors", []).append(
             "runner checkout does not match the exact Git SHA bound in the job envelope"
@@ -14787,14 +14910,27 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
             recipe_data = json.loads(stdout)
         except json.JSONDecodeError:
             pass
-        succeeded = completed.returncode == 0 and (not isinstance(recipe_data, dict) or recipe_data.get("passed") is not False)
+        execution_errors = runner_recipe_execution_errors(definition, recipe_data)
+        succeeded = (
+            completed.returncode == 0
+            and (not isinstance(recipe_data, dict) or recipe_data.get("passed") is not False)
+            and not execution_errors
+        )
         state = "done" if succeeded else "failed"
-        reason = None if succeeded else f"recipe exited with code {completed.returncode}"
+        reason = None if succeeded else (
+            "; ".join(execution_errors)
+            if execution_errors
+            else f"recipe exited with code {completed.returncode}"
+        )
         result = {
             "protocol": QUEUE_PROTOCOL, "job_id": job_id, "recipe": job["recipe"], "status": state,
             "exit_code": completed.returncode, "finished_at": now_iso(), "command": command,
             "recipe_passed": recipe_data.get("passed") if isinstance(recipe_data, dict) else None,
             "stdout": stdout, "stderr": stderr, "reason": reason, "recipe_binding": binding,
+            "execution_validation": {
+                "profile": definition.get("execution_validator"),
+                "errors": execution_errors,
+            },
         }
     except subprocess.TimeoutExpired as exc:
         state = "failed"
@@ -15194,8 +15330,163 @@ def runner_agent_watch_payload(device: Dict[str, Any], *, node_id: str, job_id: 
         time.sleep(poll_seconds)
 
 
-def runner_agent_collect_and_gate(config_path: Path, node_id: str) -> Dict[str, Any]:
+def small_selection_acceptance_payload(
+    definition: Dict[str, Any],
+    *,
+    node_id: str,
+    expected_git_sha: Optional[str],
+) -> Dict[str, Any]:
+    errors: List[str] = []
+    index = load_artifact_index()
+    peer = (index.get("peers") or {}).get(node_id) or {}
+    summary = peer.get("summary") or {}
+    items = peer.get("items") or []
+    expected_paths = list(definition.get("expected_artifact_paths") or [])
+    by_remote = {
+        str(item.get("remote_path") or item.get("path")): item
+        for item in items
+        if isinstance(item, dict) and (item.get("remote_path") or item.get("path"))
+    }
+    if summary.get("status") != "verified":
+        errors.append("selection artifact index is not verified")
+    if set(by_remote) != set(expected_paths):
+        errors.append("verified selection artifact set differs from the reviewed recipe")
+    remote_git = (peer.get("remote") or {}).get("git") or {}
+    observed_remote_sha = remote_git.get("sha")
+    if expected_git_sha and observed_remote_sha != expected_git_sha:
+        errors.append("verified remote artifact Git SHA differs from the dispatched SHA")
+
+    matrix = definition.get("selection_matrix") or {}
+    expected_cells = {
+        (dataset, int(seed))
+        for dataset in matrix.get("datasets") or ()
+        for seed in matrix.get("seeds") or ()
+    }
+    observed_cells = set()
+    receipts = []
+    for remote_path in sorted(path for path in expected_paths if path.endswith("/cell.json")):
+        item = by_remote.get(remote_path) or {}
+        local_path = safe_repo_path(str(item.get("local_path") or ""))
+        if local_path is None or not local_path.is_file():
+            errors.append("verified cell receipt is missing locally: " + remote_path)
+            continue
+        try:
+            receipt = json.loads(local_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            errors.append("invalid cell receipt {0}: {1}".format(remote_path, exc))
+            continue
+        if not isinstance(receipt, dict):
+            errors.append("cell receipt root is not an object: " + remote_path)
+            continue
+        dataset = receipt.get("dataset")
+        seed = receipt.get("seed")
+        if not isinstance(dataset, str) or not isinstance(seed, int):
+            errors.append("cell receipt identity is invalid: " + remote_path)
+            continue
+        observed_cells.add((dataset, seed))
+        if receipt.get("schema") != "bc_target_v2.syncmate_selection_cell":
+            errors.append("cell receipt schema mismatch: " + remote_path)
+        if receipt.get("status") != "success" or receipt.get("formal_score_count") != 17:
+            errors.append("cell receipt is not a successful 17-output result: " + remote_path)
+        if expected_git_sha and receipt.get("experiment_git_sha") != expected_git_sha:
+            errors.append("cell receipt Git SHA mismatch: " + remote_path)
+        if "RTX 4090" not in str(receipt.get("device_name") or ""):
+            errors.append("cell receipt is not from RTX 4090: " + remote_path)
+        for field in ("peak_gpu_allocated_bytes", "peak_gpu_reserved_bytes"):
+            if not isinstance(receipt.get(field), int) or receipt[field] <= 0:
+                errors.append("cell receipt has no valid {0}: {1}".format(field, remote_path))
+        parent = remote_path.rsplit("/", 1)[0]
+        for name, hash_field in (("cold.json", "cold_sha256"), ("warm.json", "warm_sha256")):
+            evidence_remote = parent + "/" + name
+            evidence_item = by_remote.get(evidence_remote) or {}
+            evidence_local = safe_repo_path(str(evidence_item.get("local_path") or ""))
+            if (
+                evidence_local is None
+                or not evidence_local.is_file()
+                or sha256_file(evidence_local) != receipt.get(hash_field)
+            ):
+                errors.append("cell receipt does not bind verified {0}: {1}".format(name, remote_path))
+        receipts.append(receipt)
+    if observed_cells != expected_cells:
+        errors.append("accepted cell matrix differs from the reviewed recipe")
+    return {
+        "generated_at": now_iso(),
+        "mode": "small-selection-acceptance",
+        "node_id": node_id,
+        "recipe": definition.get("id"),
+        "expected_git_sha": expected_git_sha,
+        "observed_remote_git_sha": observed_remote_sha,
+        "expected_artifacts": len(expected_paths),
+        "verified_artifacts": len(by_remote),
+        "expected_cells": len(expected_cells),
+        "accepted_cells": len(observed_cells),
+        "receipts": receipts,
+        "passed": not errors,
+        "errors": errors,
+    }
+
+
+def runner_agent_collect_and_gate(
+    config_path: Path,
+    node_id: str,
+    *,
+    recipe: Optional[str] = None,
+    expected_git_sha: Optional[str] = None,
+) -> Dict[str, Any]:
     """Run the existing collector command only after the runner reaches done."""
+    definition = runner_recipe_definition(recipe) if recipe else None
+    if definition and definition.get("collector_profile") == "small-selection-v1":
+        device, warnings = load_device(config_path)
+        if warnings:
+            return {"ok": False, "errors": warnings}
+        peer = peer_or_die(device, node_id)
+        ssh = transport_ssh_value(peer)
+        repo_path = str(peer.get("repo_path") or "")
+        landing = str(peer.get("landing") or f"results/runs/{node_id}")
+        python_executable = peer_python_executable(peer)
+        roots = list(definition.get("collector_result_roots") or [])
+        artifact_names = tuple(definition.get("collector_artifact_names") or ())
+        collect = apply_collect(
+            node_id,
+            ssh,
+            repo_path,
+            roots,
+            landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            overwrite=False,
+            save=True,
+        )
+        verify = verify_collect(
+            node_id,
+            ssh,
+            repo_path,
+            roots,
+            landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            save=True,
+        )
+        acceptance = small_selection_acceptance_payload(
+            definition,
+            node_id=node_id,
+            expected_git_sha=expected_git_sha,
+        )
+        write_sync_report("selection_acceptance", node_id, acceptance)
+        ok = (
+            not collect.get("errors")
+            and (verify.get("summary") or {}).get("status") == "verified"
+            and acceptance.get("passed") is True
+        )
+        return {
+            "ok": ok,
+            "returncode": 0 if ok else 1,
+            "gate_passed": acceptance.get("passed") is True,
+            "collect": collect,
+            "verify": verify,
+            "selection_acceptance": acceptance,
+            "errors": [] if ok else ["selection collection, verification, or acceptance failed"],
+        }
     command = [sys.executable, "scripts/syncmate/syncmate.py"]
     if config_path != DEFAULT_DEVICE_FILE:
         command.extend(["--config", str(config_path)])
@@ -15230,7 +15521,12 @@ def cmd_runner_agent_dispatch(args: argparse.Namespace) -> int:
         if watched.get("status") == "done":
             definition = runner_recipe_definition(args.recipe)
             if definition.get("collector_acceptance"):
-                data["acceptance"] = runner_agent_collect_and_gate(args.config, args.node_id)
+                data["acceptance"] = runner_agent_collect_and_gate(
+                    args.config,
+                    args.node_id,
+                    recipe=args.recipe,
+                    expected_git_sha=data.get("expected_git_sha"),
+                )
                 if not data["acceptance"].get("ok"):
                     data["status"] = "blocked"
                 else:

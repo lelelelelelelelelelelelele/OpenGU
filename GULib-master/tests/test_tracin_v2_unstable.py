@@ -1,4 +1,5 @@
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 import torch
@@ -12,10 +13,16 @@ from experiments.tracin_v2.core import (
 )
 from experiments.tracin_v2.recipe import build_unstable_recipe
 from experiments.tracin_v2.run_planetoid_gate import (
+    DEFAULT_DATA_ROOT,
     build_model,
     canonical_dataset_name,
     parameter_schema_hash,
 )
+
+
+def test_unstable_tracin_default_dataset_root_is_repository_canonical_raw():
+    repository_root = Path(__file__).resolve().parents[1]
+    assert DEFAULT_DATA_ROOT == (repository_root / "data" / "raw").resolve()
 
 
 def test_two_checkpoint_eval_and_self_scores_match_hand_calculation():
