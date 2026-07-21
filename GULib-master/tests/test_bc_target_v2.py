@@ -32,6 +32,11 @@ from experiments.bc_target_v2.run_downstream import build_parser as build_downst
 from experiments.bc_target_v2.run_matrix import build_parser as build_matrix_parser
 from experiments.bc_target_v2.run_selection import build_parser as build_selection_parser
 from experiments.bc_target_v2.run_selection import _resolve_device
+from experiments.bc_target_v2.syncmate_recipe import (
+    cell_artifact_paths,
+    load_recipe_config,
+    preflight_recipe,
+)
 
 
 def _sha(label):
@@ -339,3 +344,83 @@ def test_benchmark_subprocess_sets_deterministic_cublas_workspace(monkeypatch):
     result = _run((sys.executable, "-c", "pass"), 1.0)
     assert result["returncode"] == 0
     assert observed["CUBLAS_WORKSPACE_CONFIG"] == CUBLAS_WORKSPACE_CONFIG
+
+
+def test_syncmate_small_selection_configs_are_three_bounded_stages():
+    root = Path(__file__).resolve().parents[1]
+    config_dir = root / "experiments" / "configs"
+    mvp = load_recipe_config(
+        config_dir / "syncmate_small_selection_mvp_v1.yaml",
+        repository_root=root,
+    )
+    dataset_gate = load_recipe_config(
+        config_dir / "syncmate_small_selection_dataset_gate_v1.yaml",
+        repository_root=root,
+    )
+    full = load_recipe_config(
+        config_dir / "syncmate_small_selection_full_v1.yaml",
+        repository_root=root,
+    )
+
+    assert (mvp["datasets"], mvp["seeds"], mvp["resume"]) == (("Cora",), (42,), False)
+    assert mvp["required_branch"] == "main"
+    assert dataset_gate["required_branch"] == "main"
+    assert full["required_branch"] == "main"
+    assert dataset_gate["datasets"] == ("Cora", "CiteSeer", "PubMed")
+    assert dataset_gate["seeds"] == (42,)
+    assert dataset_gate["required_prior_cells"] == ("cora_seed42",)
+    assert full["seeds"] == (42, 212, 2024)
+    assert full["required_prior_cells"] == (
+        "cora_seed42",
+        "citeseer_seed42",
+        "pubmed_seed42",
+    )
+    assert len(cell_artifact_paths(mvp)) == 3
+    assert len(cell_artifact_paths(dataset_gate)) == 9
+    assert len(cell_artifact_paths(full)) == 27
+
+
+def test_syncmate_small_selection_preflight_blocks_non_4090(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe._git_state",
+        lambda _root: {"head": "a" * 40, "branch": "main", "status_short": []},
+    )
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
+        lambda *_args, **_kwargs: SimpleNamespace(to_manifest=lambda: {"canonical_root_match": True}),
+    )
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda _index: "NVIDIA GeForce RTX 5070")
+
+    result = preflight_recipe(config)
+
+    assert result["ready"] is False
+    assert any("required device" in error for error in result["errors"])
+
+
+def test_syncmate_small_selection_preflight_blocks_feature_branch(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe._git_state",
+        lambda _root: {
+            "head": "a" * 40,
+            "branch": "codex/feat-selection",
+            "status_short": [],
+        },
+    )
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            to_manifest=lambda: {"canonical_root_match": True}
+        ),
+    )
+
+    result = preflight_recipe(config, require_gpu=False)
+
+    assert result["ready"] is False
+    assert any("required formal branch" in error for error in result["errors"])
