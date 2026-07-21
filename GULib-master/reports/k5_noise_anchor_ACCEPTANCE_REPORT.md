@@ -128,6 +128,9 @@ results/baseline/k5_random/
 - `processed_root` 固定为 active `data/processed`；
 - canonical processed data/dataset pair 必须在计时前完整存在；
 - preflight 记录 requested path、real path、size、SHA-256、split counts、split-index SHA-256、source fingerprint 和 Git/GPU provenance；
+- 正式矩阵注册唯一 1-cell gate：`Cora/GCN/GraphRevoker/seed111/k=5`，优先覆盖 shard/SISA aggregate-before 与 GraphRevoker partition 路径；
+- `--gate-only` 只运行该 cell；gate manifest 绑定完整 main SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256；
+- 全矩阵入口必须显式 `--resume`，并先验证同 SHA 的 gate manifest 与 V2 artifact；无 gate、被篡改 gate 或直接全跑都会 fail closed；
 - 运行结束再次核对 branch/SHA/dirty，防止矩阵跨 SHA 或运行中污染源码状态。
 
 ## 5. 验证
@@ -136,7 +139,7 @@ K5 功能分支、合并后的本地 main 与同步后的 SSH main 仅运行代�
 
 | Validation | Result |
 |---|---|
-| `pytest tests/test_baseline_k5_v2.py tests/test_experiment_processed_provider.py -q` | **17 passed**（K5 分支、本地 merged main、SSH merged main 各通过一次） |
+| `pytest tests/test_baseline_k5_v2.py tests/test_experiment_processed_provider.py -q` | 原 K5 接收为 **17 passed**；补入 gate→同 SHA resume 合同后为 **21 passed** |
 | `py_compile`：K5 contract/preflight/generator/runners | **PASS**（本地与 SSH） |
 | `git diff --check` | **PASS**（无 whitespace error） |
 | `git merge-tree --write-tree main K5`（接收前） | **PASS / no conflict** |
@@ -210,14 +213,23 @@ K5 代码接收和 canonical dataset 两项已经通过；正式执行仍须同�
 2. SSH active `git status --short --branch` clean；
 3. canonical Cora processed pair 在实际启动前再次 preflight 通过且位于 active checkout；
 4. GPU 0 是 RTX 4090，且 `torch.cuda.is_available()` 为 true；
-5. canonical `results/baseline/k5_random/` 为空，或仅含 source/config 完全匹配的 V2 resume cells。
+5. 注册的 `GraphRevoker/GCN/seed111/k=5` gate 先通过，manifest 与 artifact 绑定同一 SHA/dataset fingerprint；
+6. canonical `results/baseline/k5_random/` 在 gate 前为空，扩展时仅含 gate 及 source/config 完全匹配的 V2 resume cells。
 
 入口：
 
 ```bash
-python experiments/baseline_k5/rerun_cora_noise_anchor.py --preflight-only
 python experiments/baseline_k5/rerun_cora_noise_anchor.py \
+  --preflight-only \
   --expected-git-sha <accepted-main-full-sha>
+
+python experiments/baseline_k5/rerun_cora_noise_anchor.py \
+  --gate-only \
+  --expected-git-sha <accepted-main-full-sha>
+
+python experiments/baseline_k5/rerun_cora_noise_anchor.py \
+  --resume \
+  --expected-git-sha <the-same-accepted-main-full-sha>
 ```
 
-任一 gate 失败都必须停止，不得覆盖 journal/config/backup，不得把旧 K5 JSON 当作 resume，也不得在功能分支上补跑正式 cell。
+任一 gate 失败都必须停止，不得覆盖 journal/config/backup，不得把旧 K5 JSON 当作 resume，也不得在功能分支上补跑正式 cell。该顺序已经由 runner 强制执行，不再依赖操作者或对话记忆。
