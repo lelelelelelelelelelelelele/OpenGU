@@ -31,6 +31,8 @@ def _inputs(tmp_path: Path):
         edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
     )
     data.train_mask = torch.tensor([True, True, True, True, False])
+    data.val_mask = torch.tensor([False, False, False, False, False])
+    data.test_mask = torch.tensor([False, False, False, False, True])
     return make_dataset_selection_inputs(
         data, dataset_name="cora", source_path=tmp_path / "cora.pkl"
     )
@@ -85,6 +87,8 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
         edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
     )
     data.train_mask = torch.tensor([True, True, True, True, False])
+    data.val_mask = torch.tensor([False, False, False, False, False])
+    data.test_mask = torch.tensor([False, False, False, False, True])
     inputs = make_dataset_selection_inputs(
         data, dataset_name="cora", source_path=tmp_path / "cora.pkl"
     )
