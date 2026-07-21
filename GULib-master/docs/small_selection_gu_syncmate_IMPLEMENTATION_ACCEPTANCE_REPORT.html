@@ -41,7 +41,7 @@
     <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities.</div>
     <div class="card"><h3>Selection migration</h3>Fixed-hash cold summary and benchmark manifest create a fresh Cache V2 Selection Artifact. Deleted worktree/cache paths are never followed.</div>
     <div class="card"><h3>Hypothesis preserved</h3>All 17 scientific labels remain distinct through recipe, result key, and metadata; exact k is passed to both GU and retrain/collateral consumers.</div>
-    <div class="card"><h3>SyncMate acceptance</h3>Static allowlist recipe, exact dispatched SHA, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate.</div>
+    <div class="card"><h3>SyncMate acceptance</h3>Active v2 allowlist recipe, exact dispatched SHA, fresh identities, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate.</div>
     <div class="card"><h3>Bounded full matrix</h3>Nine static recipes each preserve 17 labels and exact k=7. Partial progress resumes only under the same source, profile, manifest, and Git identities.</div>
   </div>
 
@@ -49,6 +49,7 @@
   <table><tbody>
     <tr><th>Selector code SHA</th><td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td></tr>
     <tr><th>GU recipe introduction SHA</th><td><code>218f6421c2cb31b71ebfad113fee15b9ad0a3d36</code></td></tr>
+    <tr><th>Active GU v2 recipe introduction SHA</th><td><code>5e8502d915d7f311f26e659fcbe58c463e96d3ae</code></td></tr>
     <tr><th>Cora cold SHA-256</th><td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td></tr>
     <tr><th>Benchmark SHA-256</th><td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td></tr>
     <tr><th>SSH public source fingerprint</th><td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td></tr>
@@ -60,6 +61,8 @@
     <tr><td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td><td class="pass">222 passed</td></tr>
     <tr><td>SSH GU/SyncMate/provider/demo suite including new stage contracts</td><td class="pass">214 passed</td></tr>
     <tr><td>SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite</td><td class="pass">144 passed</td></tr>
+    <tr><td>Active v2 profile/recipe focused suite</td><td class="pass">188 passed</td></tr>
+    <tr><td>Cross-entry-point dataset-pickle smoke</td><td class="pass">3/3 native Planetoid; temp 203 MB removed</td></tr>
     <tr><td>Python compile + diff check</td><td class="pass">PASS</td></tr>
     <tr><td>Disposable Cora public-profile stage/verify</td><td class="pass">PASS; 31.45 MB removed</td></tr>
     <tr><td>Local SyncMate E2E smoke</td><td class="pass">3/3 verified/indexed; 1 row parsed; temp removed</td></tr>
