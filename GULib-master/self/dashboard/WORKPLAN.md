@@ -36,7 +36,7 @@
 1. **C1 — 指标选错，非贡献被证伪**：`degree ≥ IM/IF` 在 **raw-F1**（degree +1.85 > im +1.19 > tracin −0.31）**和 retrain gap**（全局 degree .0286 > im .0233；逐方法只有 GNNDelete 有真 gap、degree .158 第一、IF 家族≈0）**都成立**。但 thesis 本是 *audit + 异质性*，不是"IM/IF 最强" → **degree 赢不证伪它**。rebuttal 内：换主指标 retrain gap、异质性当头条、IM/IF 降诊断轴；TracIn 最弱本身是 finding。唯一可能翻盘的 IM/IF niche：GIF/IDEA gap 现≈0 且 L8 污染 → **E2** 是唯一能验出真 niche 的实验。→ 记忆 `paper-contribution-falsified`。
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
-4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**（**设计如此、非缺同步**；只有 GNNDelete 的方法自吐 before）→ before 锚点用主矩阵 `perf_before` 本地 join 重算（**E3**，不需服务器）/W3-L4。
+4. **C4 — ΔF_noise(k=5) 历史 K5 口径缺 method-native before**：旧磁盘 5/6 方法 `f1_before=null`，不能继续充当 fresh anchor。→ **E3** 先走 fixed-SHA SSH formal 1-cell gate + 59-cell V2 expansion，取得 `method_perf_before/f1_after`，再本地 join 与 sanity；W3-L4 只引用新 accepted evidence。
 5. **C5 — GraphRevoker 历史矩阵退化（✅ 代码与远端 E4 已通过；本地归档待闭环）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续不再写“代码仍未修好”；但本地同名 40-cell 仍是 2026-05-07 旧视图，完整 evidence import 前不得从它们提取 post-fix 数值。→ `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`（总状态）+ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`（seed42）。
 
 ---
@@ -62,7 +62,7 @@ E4 GraphRevoker 修复 + 整 method 重跑（✅ GCN/GAT 四策略五 seed，40/
                                                  └─► 唯一能验 IM/IF 在 IF 家族有无真 niche
 
 ★ E1 citeseer clean ─► W2-② scope 必答题 / W3-L6 scope 改写
-E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─► W3-L4 anchor footnote
+E3 fresh K5：1-cell formal gate ─► 同 SHA 59-cell expansion ─► 本地 ΔF_noise sanity ─► W3-L4 anchor footnote
 
 Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe gate ─► E7 umbrella ─► C.6a 同架构 surrogate ─► C.6b 跨 backbone surrogate
 
@@ -70,11 +70,11 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
 
-**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ 本地算 E3 → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
+**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ E3 fixed-SHA K5 gate/full matrix 后本地 sanity → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
 
 ---
 
-## 5. 实验（主矩阵补证 / 关硬伤）—— 多数 ★需 GPU（E3 例外：本地重算）
+## 5. 实验（主矩阵补证 / 关硬伤）—— 多数 ★需 GPU（E3：formal K5 生成需 GPU，后续 join/sanity 本地）
 
 > 目标：把 paper 已写但磁盘撑不住的数字补干净。**不是新故事，是给 thesis 补证。** 进度数字源 = `config_inventory.html`。
 
@@ -177,7 +177,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移与清理完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；两个 `archive/paper-alignment-*` tag 经 peel 验证后，原 alignment stash 已 drop、旧分支已删除，不再以活动 branch/stash 充当知识库。
 - **2026-06-27** 建档（实验/ablation/写作/画图 四阶段，收敛 PROGRESS §2/§3 + limitations + PAPER_LIABILITIES_MAP + 配置矩阵）；配套 `config_inventory.{csv,html}` 监督看板。
 - **2026-06-27（晚）** E4 决策定为 **修 + 重跑**（不 drop / 不 caveat）；并 **升级为唯一操作中枢**：折入 PROGRESS §0/§1/§2/§4（现状/快照/硬伤/方向），`refresh.py` 重指到本文件生成 `progress.html`（看板列改为四阶段），`PROGRESS.md` 退成指针。
-- **2026-06-28** E3 从 ★GPU 降级为**本地重算**：核实 k=5 baseline `f1_before=null` 是设计如此（非缺同步），before 锚点在主矩阵 `perf_before`/`_phase_b_aggregate.csv` 已有 → 离线 join 或 reframe，不需服务器。
+- **2026-06-28（SUPERSEDED 2026-07-22）** E3 当时从 ★GPU 降级为本地重算：依据旧 k=5 `f1_before=null`，计划从主矩阵取 before。该方案已被 2026-07-22 fresh V2 K5 formal gate/full-matrix 决策取代；旧证据只保留为历史背景。
 - **2026-06-30** **F4 完成 + 验收**：`config_inventory` 重设计为 coverage-heatmap（分类 block + A3 α-grid + 红/黄/绿 fill）、全派生（消除 3 处硬编码）、配 CSV→HTML 生成器 `gen_config_inventory.py`（一处改 `done` 全盘联动，实测回填闭环）。验收报告 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)：功能 + 数据真实性全过（headline 对得上 `_phase_b_aggregate.csv` / 磁盘）；遗留 **F-1**（A3 实有 10 个 α=0.00 alias 结果、看板报 0）/ **F-2**（A5_ratio_0.01 90/90 含 1 个已知 GraphRevoker 失败 cell）两项 done 口径待拍板（见 VALIDATION_LOG V-2026-06-30-01）。
 - **2026-06-28** 并入 `p.md` 笔记：E4 提到第一（audit 底座 + OpenGU 上游老 bug + 争取交叉验证）；W6 加 reviewer意见文件区(OB)；新增 W9(AI 数据分析)/F4(exp 看板改进)/A9(加新方法)；§3 记下"fingerprint 是否偏轻"开放问题；§7 加"per-method 优劣打底"。
 - **2026-06-28** 接入 AI review `文档规划/AI审稿_2026-06-28.md`（5/10 weak reject，**非官方审稿** → 现状仍完善期）→ W6；三痛点（scope 没跑完 / 叙述过满 / 统计偏弱）对应 E1·E5 / W1·W3 / C2·A7（均已在计划内）；W3 加"清未完成语句"；§3 fingerprint 偏轻被 review 印证。
