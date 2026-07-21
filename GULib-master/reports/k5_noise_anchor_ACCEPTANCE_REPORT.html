@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K5 noise-anchor 独立代码线验收报告</title>
+<style>
+:root { color-scheme: dark; --bg:#0b1020; --panel:#121a2e; --line:#2b3857; --text:#e8edf7; --muted:#aab7cf; --green:#59d38c; --amber:#f2c14e; --red:#ff7474; --blue:#71a7ff; }
+* { box-sizing: border-box; }
+body { margin:0; background:radial-gradient(circle at top right,#162342 0,#0b1020 42%); color:var(--text); font:15px/1.65 Inter,Segoe UI,Arial,sans-serif; }
+main { max-width:1180px; margin:0 auto; padding:52px 36px 80px; }
+h1 { font-size:34px; line-height:1.2; margin:0 0 20px; letter-spacing:-.02em; }
+h2 { margin-top:44px; padding-top:14px; border-top:1px solid var(--line); font-size:24px; }
+h3 { margin-top:28px; color:#cfe0ff; }
+p, li { color:var(--text); }
+a { color:var(--blue); }
+code { background:#090e1a; border:1px solid #25304a; border-radius:5px; padding:2px 6px; color:#d7e5ff; }
+pre { overflow:auto; padding:16px 18px; border-radius:10px; background:#080d18; border:1px solid #25304a; }
+pre code { border:0; padding:0; }
+blockquote { margin:22px 0; padding:14px 18px; border-left:4px solid var(--amber); background:rgba(242,193,78,.08); border-radius:0 8px 8px 0; }
+table { width:100%; border-collapse:collapse; margin:18px 0 28px; background:rgba(18,26,46,.82); box-shadow:0 14px 40px rgba(0,0,0,.18); }
+th, td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+th { background:#1a2744; color:#f4f7ff; position:sticky; top:0; }
+tr:nth-child(even) td { background:rgba(255,255,255,.018); }
+strong { color:#fff; }
+hr { border:0; border-top:1px solid var(--line); }
+.meta { color:var(--muted); font-size:13px; margin-bottom:28px; }
+.verdict { display:inline-block; padding:5px 10px; border:1px solid var(--green); color:var(--green); border-radius:999px; font-weight:700; margin-bottom:18px; }
+@media (max-width:760px) { main { padding:28px 16px 60px; } table { display:block; overflow-x:auto; } h1 { font-size:28px; } }
+@media print { body { background:white; color:#111; } main { max-width:none; padding:24px; } p,li { color:#111; } table { box-shadow:none; } th { position:static; } }
+</style>
+</head>
+<body><main><h1>K5 noise-anchor 独立代码线验收报告</h1>
+<blockquote>
+<p>Date: 2026-07-22<br />
+Source branch: <code>codex/wip-k5-noise-anchor-20260721</code><br />
+Registered parent: <code>main</code><br />
+Audited parent baseline: <code>main@c26759d51ab0665dff8d78e96a0915aadd0877a2</code><br />
+Scope: 代码/配置、legacy 归档、单元/集成验证、正式运行前置门；本报告不包含可引用的正式 K5 实验结果。</p>
+</blockquote>
+<h2>Verdict</h2>
+<table>
+<thead>
+<tr>
+  <th>Gate</th>
+  <th>Verdict</th>
+  <th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>K5 代码线</td>
+  <td><strong>PASS — 可按 <code>--no-ff</code> 合入登记父线 <code>main</code></strong></td>
+  <td>K5 逻辑已同步当前 main；定向测试 <code>17 passed</code>；Python compile 通过；工作树 clean</td>
+</tr>
+<tr>
+  <td><code>method_perf_before</code> 语义</td>
+  <td><strong>PASS</strong></td>
+  <td>GraphEraser/GraphRevoker 生成与 V2 resume 都被约束为 <code>shard_aggregate_f1</code></td>
+</tr>
+<tr>
+  <td>legacy 隔离</td>
+  <td><strong>PASS</strong></td>
+  <td>102/102 JSON 以 <code>R100</code> 移到 <code>results/baseline/k5_random_OLD_20260227/</code>；canonical <code>k5_random/</code> 为空</td>
+</tr>
+<tr>
+  <td>旧结果防命中</td>
+  <td><strong>PASS</strong></td>
+  <td>路径隔离 + schema v2 + config/source 校验；旧 102 JSON 中 v2-compatible schema=<code>0</code></td>
+</tr>
+<tr>
+  <td>正式 K5 执行</td>
+  <td><strong>BLOCKED — 未启动，符合治理要求</strong></td>
+  <td>SSH active 非 clean；<code>/dev/nvidia0</code> 缺失；未满足 clean main + RTX 4090 + fixed full SHA</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!IMPORTANT]
+本次验收结论是“代码线可以接收”，不是“K5 实验已经完成”。任何正式 gate/MVP 都必须在本线合入后的 SSH clean <code>main</code> 上，以一个固定 40 位 SHA 启动。</p>
+</blockquote>
+<h2>1. 分支历史与真实父线</h2>
+<p>本地 Git 配置明确记录：</p>
+<pre><code class="language-text">branch.codex/wip-k5-noise-anchor-20260721.openguParent = main
+</code></pre>
+<p>历史审计显示，分支最初从较早的 <code>4de8c75</code> 开出；随后先合入当时的 <code>main@b941303</code>，本次又合入当前审计基线 <code>main@c26759d</code>。因此：</p>
+<ul>
+<li><strong>登记父线和真实接收目标都是 <code>main</code></strong>；</li>
+<li>最初 fork 点较旧，但不构成另一条 research/release 父线；</li>
+<li>代码审计时 <code>main...K5</code> 计数为 <code>0 / 7</code>（本报告提交会再增加 1 个 docs commit），即当前 main 已成为 K5 HEAD 的祖先；</li>
+<li>接收动作仍必须使用 <code>git merge --no-ff codex/wip-k5-noise-anchor-20260721</code>，保留完整 K5 改进边界。</li>
+</ul>
+<p>K5 侧关键提交：</p>
+<table>
+<thead>
+<tr>
+  <th>Commit</th>
+  <th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>9093df2</code></td>
+  <td>建立 method-specific K5 noise-anchor WIP</td>
+</tr>
+<tr>
+  <td><code>0f6475e</code></td>
+  <td>引入 V2 schema、失败拒绝和 canonical root</td>
+</tr>
+<tr>
+  <td><code>8f47619</code></td>
+  <td>物理归档 legacy K5 evidence</td>
+</tr>
+<tr>
+  <td><code>f7f42b4</code></td>
+  <td>把 V2 resume 绑定到 method-native before source</td>
+</tr>
+<tr>
+  <td><code>968e40f</code></td>
+  <td>增加 formal preflight、canonical processed provenance 和 GPU/Git gate</td>
+</tr>
+</tbody>
+</table>
+<h2>2. <code>method_perf_before</code> 是否必然来自 shard/SISA ensemble</h2>
+<p>结论：<strong>对 GraphEraser 和 GraphRevoker，是。</strong> 该结论同时覆盖“新生成”和“断点复用”。</p>
+<p>生成链如下：</p>
+<ol>
+<li><code>generate_baseline.py</code> 使用独立的 <code>before_pipeline</code> 调用 <code>measure_method_perf_before(...)</code>；before 测量与实际随机删除运行不共享 pipeline 状态。</li>
+<li><code>measure_method_perf_before(...)</code> 先调用 <code>_ensure_base_model_trained()</code>。</li>
+<li>shard 方法的 <code>train_only</code> 路径执行 <code>Shard_based_pipeline.run_exp → exp_partition → exp_train → aggregate_shard_model</code>，跳过 unlearning。</li>
+<li>GraphEraser 的 <code>aggregate(...)</code> 用所有 shard posterior 的 Aggregator 计算并写入 <code>self.aggregate_f1_score</code>。</li>
+<li>GraphRevoker 的 <code>aggregate(...)</code> 同样生成所有 shard posterior，再由 mean/optimal/majority/contrastive aggregator 写入 <code>self.aggregate_f1_score</code>。</li>
+<li>K5 合同对两种方法只读取 <code>pipeline.method.aggregate_f1_score</code>，不会调用单一 <code>model_zoo.model</code> 的普通评估。</li>
+</ol>
+<p>V2 复用侧新增了第二道门：</p>
+<pre><code class="language-text">GraphEraser / GraphRevoker
+  before_metric        = method_train_only_f1
+  before_metric_source = shard_aggregate_f1
+</code></pre>
+<p><code>load_valid_record(...)</code> 会把该 source 纳入 expected config。即便文件自称 schema v2，只要把 shard 方法标成 <code>trained_model_test_f1</code>，也会被判 stale/incompatible，不能 resume。</p>
+<h2>3. 旧 102 个 JSON 为什么不会被新运行命中</h2>
+<h3>3.1 物理路径已经分离</h3>
+<p>审计计数：</p>
+<table>
+<thead>
+<tr>
+  <th>项目</th>
+  <th style="text-align:right">数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>_OLD</code> 下 tracked JSON</td>
+  <td style="text-align:right">102</td>
+</tr>
+<tr>
+  <td><code>_OLD</code> 下物理 JSON</td>
+  <td style="text-align:right">102</td>
+</tr>
+<tr>
+  <td>commit <code>8f47619</code> 的 <code>R100</code> JSON rename</td>
+  <td style="text-align:right">102</td>
+</tr>
+<tr>
+  <td>canonical <code>k5_random/</code> tracked JSON</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>canonical <code>k5_random/</code> 物理 JSON</td>
+  <td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>旧证据位于：</p>
+<pre><code class="language-text">results/baseline/k5_random_OLD_20260227/
+</code></pre>
+<p>新运行只在以下 canonical root 查找/写入：</p>
+<pre><code class="language-text">results/baseline/k5_random/
+</code></pre>
+<p>这不是通过改一个临时输出根绕开旧文件；102 个 tracked 文件本身已从旧 canonical 路径移动到同一源目录下带日期的明确 <code>_OLD</code> 归档。</p>
+<h3>3.2 schema 和 config 双重拒绝</h3>
+<p>102 个 legacy JSON 的解析审计结果：</p>
+<table>
+<thead>
+<tr>
+  <th>类型</th>
+  <th style="text-align:right">数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>per-seed</td>
+  <td style="text-align:right">82</td>
+</tr>
+<tr>
+  <td>averaged</td>
+  <td style="text-align:right">16</td>
+</tr>
+<tr>
+  <td>batch summary</td>
+  <td style="text-align:right">4</td>
+</tr>
+<tr>
+  <td>parse error</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>缺少 V2 schema</td>
+  <td style="text-align:right">102</td>
+</tr>
+<tr>
+  <td>v2-compatible schema</td>
+  <td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>即使把旧文件错误复制回 canonical 同名位置，<code>load_valid_record(...)</code> 也会因缺少 <code>schema=opengu.k5_noise_anchor</code> / <code>schema_version=2</code> 拒绝；不会覆盖，也不会当作成功 resume。</p>
+<h3>3.3 legacy archive 显式禁写</h3>
+<p><code>validate_output_root(...)</code> 现在拒绝 <code>_OLD</code> 根及其任何子目录。这样即使显式传入 <code>--output_root .../k5_random_OLD_20260227</code>，也不能在旧归档里补出新的 V2 文件，避免混合时代证据。</p>
+<h2>4. Formal-lane 收紧</h2>
+<p>新增 <code>experiments/baseline_k5/formal_preflight.py</code>，并把 <code>rerun_cora_noise_anchor.py</code> 变为 fail-closed formal entrypoint：</p>
+<ul>
+<li><code>--preflight-only</code> 只读报告 readiness，不创建结果、不启动 GPU 工作；</li>
+<li>实际运行必须显式传入 <code>--expected-git-sha &lt;40-char SHA&gt;</code>；</li>
+<li>branch 必须是 <code>main</code>；</li>
+<li>Git 必须 clean，错误信息携带精确 dirty path；</li>
+<li>GPU 0 必须由 <code>nvidia-smi</code> 和 PyTorch 同时识别为 RTX 4090；</li>
+<li><code>root_path</code> 固定为 active checkout；</li>
+<li><code>processed_root</code> 固定为 active <code>data/processed</code>；</li>
+<li>canonical processed data/dataset pair 必须在计时前完整存在；</li>
+<li>preflight 记录 requested path、real path、size、SHA-256、split counts、split-index SHA-256、source fingerprint 和 Git/GPU provenance；</li>
+<li>运行结束再次核对 branch/SHA/dirty，防止矩阵跨 SHA 或运行中污染源码状态。</li>
+</ul>
+<h2>5. 验证</h2>
+<p>本分支仅运行代码测试和只读/non-formal preflight，没有启动可引用的 GPU 实验。</p>
+<table>
+<thead>
+<tr>
+  <th>Validation</th>
+  <th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>pytest tests/test_baseline_k5_v2.py tests/test_experiment_processed_provider.py -q</code></td>
+  <td><strong>17 passed</strong></td>
+</tr>
+<tr>
+  <td><code>py_compile</code>：K5 contract/preflight/generator/runners</td>
+  <td><strong>PASS</strong></td>
+</tr>
+<tr>
+  <td><code>git diff --check</code></td>
+  <td><strong>PASS</strong>（仅 Windows LF→CRLF 提示，无 whitespace error）</td>
+</tr>
+<tr>
+  <td><code>git merge-tree --write-tree main K5</code>（合入当前 main 前）</td>
+  <td><strong>PASS / no conflict</strong></td>
+</tr>
+<tr>
+  <td>本地 <code>--preflight-only</code> non-formal 诊断</td>
+  <td>正确拒绝 K5 branch、缺 canonical pair、RTX 5070</td>
+</tr>
+<tr>
+  <td>Markdown/HTML 关键结论与数字一致性</td>
+  <td><strong>PASS</strong></td>
+</tr>
+<tr>
+  <td>浏览器视觉预览</td>
+  <td><strong>NOT RUN</strong> — in-app browser 的 <code>file://</code> URL 策略拒绝本地页；未绕过策略，未伪称目视通过</td>
+</tr>
+</tbody>
+</table>
+<h2>6. SSH active 精确 blocker（只读检查）</h2>
+<p>检查目标：<code>autodl-opengu:/autodl-fs/data/OpenGU/GULib-master</code>。</p>
+<p>Git 引用在检查时对齐：</p>
+<pre><code class="language-text">main = origin/main = c26759d51ab0665dff8d78e96a0915aadd0877a2
+</code></pre>
+<p>但 active checkout 不是 clean：</p>
+<pre><code class="language-text"> M results/_journal/auto_report.html
+ M results/_journal/auto_report.md
+?? experiments/configs/A6_cora_gin_r0.05_notracin.yaml
+?? results/_journal/archive/auto_report_2026-05-06_to_2026-07-10_active4090.md
+?? results/_journal/auto_report.events.jsonl
+</code></pre>
+<p>此外，<code>../_backups</code> 有两个用户备份目录，共 13 个 Git 可见未跟踪文件。这些资产未被覆盖、删除或移动。</p>
+<p>GPU gate：</p>
+<pre><code class="language-text">/dev/nvidia0 = missing
+</code></pre>
+<p>因此正式 K5 <strong>没有启动</strong>。tracked journal、A6 config、archive/event JSONL 和 backup 资产必须先由用户决定如何接收/归档；GPU 容器也必须重新挂载 RTX 4090。不能为获得 clean 状态而覆盖或删除它们。</p>
+<h2>7. Worktree 清理边界</h2>
+<p>远端 K5 worktree 在检查时：</p>
+<ul>
+<li>non-ignored untracked=<code>0</code>；</li>
+<li>ignored=<code>56</code>，全部位于 <code>.pytest_cache/</code> 或 <code>__pycache__/</code>，分布于 12 个缓存目录；</li>
+<li>没有 K5 实验结果、配置或用户文档资产。</li>
+</ul>
+<p>因此，在 K5 线合入、推送、SSH main 快进同步后，可以删除该 K5 worktree 与临时分支；删除的仅是可再生测试/字节码缓存。A5 detached worktree 与 active 用户资产不属于 K5 清理范围。</p>
+<h2>8. 接收后正式运行条件</h2>
+<p>只有同时满足以下条件才能执行：</p>
+<ol>
+<li>K5 线已以 <code>--no-ff</code> 进入 <code>main</code>；</li>
+<li>本地、GitHub、SSH active <code>main</code> 指向同一个完整 40 位 SHA；</li>
+<li>SSH active <code>git status --short --branch</code> clean；</li>
+<li>canonical Cora processed pair preflight 通过且位于 active checkout；</li>
+<li>GPU 0 是 RTX 4090，且 <code>torch.cuda.is_available()</code> 为 true；</li>
+<li>canonical <code>results/baseline/k5_random/</code> 为空，或仅含 source/config 完全匹配的 V2 resume cells。</li>
+</ol>
+<p>入口：</p>
+<pre><code class="language-bash">python experiments/baseline_k5/rerun_cora_noise_anchor.py --preflight-only
+python experiments/baseline_k5/rerun_cora_noise_anchor.py \
+  --expected-git-sha &lt;accepted-main-full-sha&gt;
+</code></pre>
+<p>任一 gate 失败都必须停止，不得覆盖 journal/config/backup，不得把旧 K5 JSON 当作 resume，也不得在功能分支上补跑正式 cell。</p>
+</main></body>
+</html>
