@@ -13,24 +13,37 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
+from .dataset_source import (
+    assert_same_dataset_source,
+    canonical_data_root,
+    resolve_planetoid_public_source,
+)
 from .recipe import ALGORITHM_VERSION, SCORE_NAMES
 from .render_markdown import render_document
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATA_ROOT = Path("E:/project/OpenGU/GULib-master/data/raw/Planetoid")
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 DEFAULT_CACHE_ROOT = (
-    REPO_ROOT / "results" / "cache_v2" / "bc_target_v3_benchmark_20260721"
+    REPO_ROOT
+    / "results"
+    / "cache_v2"
+    / "bc_target_v3_1_canonical_public_20260721"
 )
 DEFAULT_OUTPUT_ROOT = (
-    REPO_ROOT / "results" / "bc_target_v2" / "selection_benchmark_20260721"
+    REPO_ROOT
+    / "results"
+    / "bc_target_v2"
+    / "selection_benchmark_canonical_20260721"
 )
-DEFAULT_REPORT_MD = REPO_ROOT / "reports" / "small_graph_selection_BENCHMARK_REPORT.md"
+DEFAULT_REPORT_MD = (
+    REPO_ROOT / "reports" / "small_graph_selection_CANONICAL_BENCHMARK_REPORT.md"
+)
 DEFAULT_REPORT_HTML = (
-    REPO_ROOT / "reports" / "small_graph_selection_BENCHMARK_REPORT.html"
+    REPO_ROOT / "reports" / "small_graph_selection_CANONICAL_BENCHMARK_REPORT.html"
 )
 BENCHMARK_SCHEMA = "bc_target_v2.small_graph_selection_benchmark"
-BENCHMARK_VERSION = 1
+BENCHMARK_VERSION = 2
 CUBLAS_WORKSPACE_CONFIG = ":4096:8"
 GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -143,6 +156,7 @@ def _command(
     output: Path,
     budgets: str,
     device: str,
+    experiment_git_sha: str,
     warm: bool,
 ) -> Tuple[str, ...]:
     result = [
@@ -164,6 +178,8 @@ def _command(
         budgets,
         "--device",
         device,
+        "--experiment-git-sha",
+        experiment_git_sha,
     ]
     if warm:
         result.append("--fail-if-producer-called")
@@ -188,6 +204,15 @@ def _build_cell_record(
 ) -> Mapping[str, Any]:
     cold_methods = _method_timings(cold)
     warm_methods = _method_timings(warm)
+    cold_source = cold.get("dataset_source")
+    warm_source = warm.get("dataset_source")
+    if not isinstance(cold_source, dict) or not isinstance(warm_source, dict):
+        raise ValueError("cold/warm summaries must contain dataset_source manifests")
+    assert_same_dataset_source(cold_source, warm_source)
+    cold_git = cold.get("git_provenance", {})
+    warm_git = warm.get("git_provenance", {})
+    if cold_git.get("head") != warm_git.get("head"):
+        raise ValueError("cold/warm runs used different Git HEADs")
     if cold.get("cache", {}).get("hit") is not False:
         raise ValueError("cold ScoreBundle access was not a cache miss")
     if warm.get("cache", {}).get("hit") is not True:
@@ -229,6 +254,9 @@ def _build_cell_record(
         "peak_gpu_reserved_bytes": cold["gpu_memory"]["process_peak_reserved_bytes"],
         "device": cold["environment"]["device"],
         "score_artifact_id": cold["cache"]["artifact_id"],
+        "dataset_source": cold_source,
+        "split_observation": cold.get("split_observation"),
+        "git_provenance": cold_git,
         "methods": methods,
     }
 
@@ -294,13 +322,36 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
         "- cold ScoreBundle total：exact miss lookup、共享计算、17 输出构造、校验和落盘的总时间。",
         "- warm read：同一 recipe 在 producer-call sentinel 下的 exact ScoreBundle 读取时间；17 个 Selection Artifact 也必须全部命中。",
         "- 方法级时间包含逐 Artifact 的索引、校验与文件系统访问；warm hit 是零 producer 的正确性证据，不保证共享文件系统上的每次 wall-clock 都短于 cold。",
+        "- Dataset profile：`planetoid_public_fixed_split`；该矩阵不等同于 OpenGU `data/processed` 的 80/20 split。",
+        "- Canonical data root：`{0}`；自动下载与运行时预处理均禁用。".format(
+            document["data_root_resolved"]
+        ),
         "- Experiment Git SHA：`{0}`。".format(document["experiment_git_sha"]),
         "",
-        "## 2. Cell 总览",
+        "## 2. Dataset 来源与内容指纹",
         "",
-        "| Dataset | Seed | Status | Device | Cold bundle (s) | Warm read (s) | Peak alloc (MiB) | Peak reserve (MiB) | Failure |",
-        "|---|---:|---|---|---:|---:|---:|---:|---|",
+        "| Dataset | Resolved dataset directory | Source SHA-256 | Processed data SHA-256 |",
+        "|---|---|---|---|",
     ]
+    for dataset in document["datasets"]:
+        source = document["dataset_sources"][dataset]
+        lines.append(
+            "| {0} | `{1}` | `{2}` | `{3}` |".format(
+                dataset,
+                source["resolved_dataset_dir"],
+                source["source_fingerprint"],
+                source["processed_data"]["sha256"],
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "## 3. Cell 总览",
+            "",
+            "| Dataset | Seed | Status | Device | Cold bundle (s) | Warm read (s) | Peak alloc (MiB) | Peak reserve (MiB) | Failure |",
+            "|---|---:|---|---|---:|---:|---:|---:|---|",
+        ]
+    )
     for cell in cells:
         failure = cell.get("failure")
         lines.append(
@@ -320,7 +371,7 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
     lines.extend(
         [
             "",
-            "## 3. 方法级 cold / warm Selection 时间",
+            "## 4. 方法级 cold / warm Selection 时间",
             "",
             "| Dataset | Seed | Method | Cold selection (ms) | Warm selection (ms) | Cold outcome | Warm outcome | Status |",
             "|---|---:|---|---:|---:|---|---|---|",
@@ -354,7 +405,7 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
         for name in SCORE_NAMES
         if cell["methods"][name]["status"] == "success"
     ]
-    lines.extend(["", "## 4. 汇总与失败状态", ""])
+    lines.extend(["", "## 5. 汇总与失败状态", ""])
     if passed:
         cold_bundle = [cell["score_bundle_cold_total_seconds"] for cell in passed]
         warm_bundle = [cell["score_bundle_warm_read_seconds"] for cell in passed]
@@ -395,13 +446,14 @@ def _render_report(document: Mapping[str, Any], md_path: Path, html_path: Path) 
     lines.extend(
         [
             "",
-            "## 5. Evidence",
+            "## 6. Evidence",
             "",
             "- Machine-readable manifest: `{0}`".format(document["manifest_path"]),
             "- Cache root: `{0}`".format(document["cache_root"]),
             "- Cell summaries: `{0}`".format(document["output_root"]),
             "- Algorithm version: `{0}`".format(document["algorithm_version"]),
             "- Experiment Git SHA: `{0}`".format(document["experiment_git_sha"]),
+            "- Dataset source manifests are embedded under `dataset_sources` and each cell's `dataset_source`.",
             "",
         ]
     )
@@ -423,6 +475,14 @@ def main(argv: Sequence[str] = None) -> int:
     args = build_parser().parse_args(argv)
     if args.timeout_seconds <= 0:
         raise ValueError("timeout-seconds must be positive")
+    dataset_sources = {
+        dataset: resolve_planetoid_public_source(
+            args.data_root,
+            repository_root=REPO_ROOT,
+            dataset=dataset,
+        ).to_manifest()
+        for dataset in args.datasets
+    }
     cache_root = args.cache_root.expanduser().resolve()
     output_root = args.output_root.expanduser().resolve()
     manifest_path = output_root / "benchmark_manifest.json"
@@ -455,6 +515,7 @@ def main(argv: Sequence[str] = None) -> int:
                             output=cold_path,
                             budgets=args.budgets,
                             device=args.device,
+                            experiment_git_sha=args.experiment_git_sha,
                             warm=False,
                         ),
                         args.timeout_seconds,
@@ -476,6 +537,7 @@ def main(argv: Sequence[str] = None) -> int:
                             output=warm_path,
                             budgets=args.budgets,
                             device=args.device,
+                            experiment_git_sha=args.experiment_git_sha,
                             warm=True,
                         ),
                         args.timeout_seconds,
@@ -485,16 +547,22 @@ def main(argv: Sequence[str] = None) -> int:
                         continue
                     warm = _load_json(warm_path)
 
-                records.append(
-                    _build_cell_record(
-                        dataset=dataset,
-                        seed=seed,
-                        cold_path=cold_path,
-                        warm_path=warm_path,
-                        cold=cold,
-                        warm=warm,
-                    )
+                cell = _build_cell_record(
+                    dataset=dataset,
+                    seed=seed,
+                    cold_path=cold_path,
+                    warm_path=warm_path,
+                    cold=cold,
+                    warm=warm,
                 )
+                assert_same_dataset_source(
+                    dataset_sources[dataset], cell["dataset_source"]
+                )
+                if cell["git_provenance"].get("head") != args.experiment_git_sha:
+                    raise ValueError(
+                        "cell Git HEAD differs from --experiment-git-sha"
+                    )
+                records.append(cell)
             except Exception as exc:
                 records.append(
                     _failure_record(
@@ -515,6 +583,11 @@ def main(argv: Sequence[str] = None) -> int:
                     "datasets": list(args.datasets),
                     "seeds": list(args.seeds),
                     "device_requested": args.device,
+                    "data_root_requested": str(args.data_root),
+                    "data_root_resolved": str(
+                        args.data_root.expanduser().resolve(strict=True)
+                    ),
+                    "dataset_sources": dataset_sources,
                     "cache_root": str(cache_root),
                     "output_root": str(output_root),
                     "manifest_path": str(manifest_path),

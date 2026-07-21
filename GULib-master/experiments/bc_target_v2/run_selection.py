@@ -8,6 +8,8 @@ import json
 import math
 import os
 import platform
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -51,13 +53,16 @@ from .core import (
     inverse_hessian_vectors,
     weighted_checkpoint_scores,
 )
+from .dataset_source import (
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 from .recipe import ALGORITHM_VERSION, SCORE_NAMES, build_recipe
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATA_ROOT = Path(
-    "E:/project/OpenGU/GULib-master/data/raw/Planetoid"
-)
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 DEFAULT_CACHE_ROOT = REPO_ROOT / "results" / "cache_v2" / "bc_target_v2"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "bc_target_v2" / "selection"
 SELECTION_ALGORITHM_VERSION = "bc-target-score-ranking-prefix-v2"
@@ -89,6 +94,11 @@ def _budget_list(value: str) -> Sequence[int]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
+    parser.add_argument(
+        "--allow-noncanonical-data-root",
+        action="store_true",
+        help="allow an explicitly labeled diagnostic root outside <repo>/data/raw",
+    )
     parser.add_argument(
         "--dataset",
         choices=("Cora", "CiteSeer", "PubMed"),
@@ -137,6 +147,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--hutch-seed", type=int, default=1729)
     parser.add_argument("--fail-if-producer-called", action="store_true")
     parser.add_argument("--overwrite-output", action="store_true")
+    parser.add_argument(
+        "--experiment-git-sha",
+        default=None,
+        help="optional expected 40-character Git HEAD; mismatch fails closed",
+    )
     return parser
 
 
@@ -153,6 +168,41 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("optimizer settings are invalid")
     if args.affected_hops < 0 or args.hutch_probes <= 0:
         raise ValueError("affected hops and Hutchinson probes are invalid")
+    if args.experiment_git_sha is not None and re.fullmatch(
+        r"[0-9a-f]{40}", str(args.experiment_git_sha)
+    ) is None:
+        raise ValueError("experiment-git-sha must be 40 lowercase hex characters")
+
+
+def _git_provenance(expected_sha: str = None) -> Mapping[str, Any]:
+    def run(*arguments: str) -> str:
+        completed = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return completed.stdout.strip()
+
+    head = run("rev-parse", "HEAD").lower()
+    if expected_sha is not None and head != expected_sha:
+        raise RuntimeError(
+            "experiment Git HEAD mismatch: observed {0}, expected {1}".format(
+                head, expected_sha
+            )
+        )
+    branch = run("rev-parse", "--abbrev-ref", "HEAD")
+    status = run("status", "--short")
+    return {
+        "head": head,
+        "expected_head": expected_sha,
+        "head_matches_expected": expected_sha is None or head == expected_sha,
+        "branch": branch,
+        "worktree_dirty": bool(status),
+        "status_short": status.splitlines() if status else [],
+    }
 
 
 def _resolve_device(value: str) -> torch.device:
@@ -284,6 +334,13 @@ def _checkpoint_graph_scores(
 def main(argv: Sequence[str] = None) -> int:
     args = build_parser().parse_args(argv)
     _validate_args(args)
+    git_provenance = _git_provenance(args.experiment_git_sha)
+    dataset_source = resolve_planetoid_public_source(
+        args.data_root,
+        repository_root=REPO_ROOT,
+        dataset=args.dataset,
+        allow_noncanonical_root=args.allow_noncanonical_data_root,
+    )
     run_started = time.perf_counter()
     device = _resolve_device(args.device)
     if device.type == "cuda":
@@ -294,11 +351,12 @@ def main(argv: Sequence[str] = None) -> int:
         torch.cuda.manual_seed_all(args.seed)
 
     dataset = Planetoid(
-        root=str(args.data_root.expanduser().resolve()),
-        name=args.dataset,
+        root=str(dataset_source.resolved_root),
+        name=dataset_source.storage_name,
         transform=NormalizeFeatures(),
     )
     data = dataset[0].to(device)
+    split_observation = validate_public_split(data, args.dataset)
     candidate_ids = torch.where(data.train_mask)[0].sort().values
     target_ids = torch.where(data.val_mask)[0].sort().values
     hessian_train_ids = candidate_ids
@@ -332,6 +390,7 @@ def main(argv: Sequence[str] = None) -> int:
         Path(__file__).resolve(),
         Path(__file__).with_name("__init__.py"),
         Path(__file__).with_name("core.py"),
+        Path(__file__).with_name("dataset_source.py"),
         Path(__file__).with_name("recipe.py"),
         REPO_ROOT / "experiments" / "c_target_v1" / "core.py",
         REPO_ROOT / "experiments" / "c_target_v1" / "score_store.py",
@@ -358,6 +417,9 @@ def main(argv: Sequence[str] = None) -> int:
         data_identity={
             "dataset": args.dataset,
             "dataset_family": "Planetoid",
+            "dataset_adapter": "torch_geometric.datasets.Planetoid",
+            "split_policy": "public",
+            "dataset_source_fingerprint": dataset_source.source_fingerprint,
             "edge_index_hash": tensor_hash(data.edge_index),
             "features_hash": tensor_hash(data.x),
             "labels_hash": tensor_hash(data.y),
@@ -624,6 +686,7 @@ def main(argv: Sequence[str] = None) -> int:
     selection_dataset = make_dataset_selection_inputs(
         data,
         dataset_name=args.dataset,
+        source_path=dataset_source.processed_data_path,
     )
     if tuple(payload.candidate_nodes_ordered) != selection_dataset.candidate_nodes:
         raise RuntimeError("ScoreBundle candidates do not match Selection inputs")
@@ -679,7 +742,7 @@ def main(argv: Sequence[str] = None) -> int:
         )
     summary = {
         "schema": "bc_target_v2.selection_summary",
-        "version": 2,
+        "version": 3,
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": args.dataset,
         "model": "GCN",
@@ -688,6 +751,9 @@ def main(argv: Sequence[str] = None) -> int:
         "target_count": int(target_ids.numel()),
         "budgets": list(args.budgets),
         "target_set": "validation_mask_mean_ce",
+        "dataset_source": dataset_source.to_manifest(),
+        "split_observation": split_observation,
+        "git_provenance": git_provenance,
         "per_candidate_exact_retrain_performed": False,
         "status": {"state": "success", "failure": None},
         "cache": {
@@ -779,7 +845,11 @@ def main(argv: Sequence[str] = None) -> int:
             ),
         },
         "config": {
-            "data_root": str(args.data_root.expanduser().resolve()),
+            "data_root_requested": str(args.data_root),
+            "data_root": str(dataset_source.resolved_root),
+            "allow_noncanonical_data_root": bool(
+                args.allow_noncanonical_data_root
+            ),
             "cache_root": str(store.root),
             "selection_cache_root": str(selection_cache_root),
             "dataset": args.dataset,

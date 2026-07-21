@@ -1,5 +1,7 @@
 import hashlib
 import sys
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -19,6 +21,12 @@ from experiments.bc_target_v2.benchmark_selection import (
     build_parser as build_benchmark_parser,
 )
 from experiments.bc_target_v2.recipe import SCORE_NAMES, build_recipe
+from experiments.bc_target_v2.dataset_source import (
+    DatasetSourceError,
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 from experiments.bc_target_v2.render_markdown import render_document
 from experiments.bc_target_v2.run_downstream import build_parser as build_downstream_parser
 from experiments.bc_target_v2.run_matrix import build_parser as build_matrix_parser
@@ -28,6 +36,21 @@ from experiments.bc_target_v2.run_selection import _resolve_device
 
 def _sha(label):
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def _write_planetoid_source(repository_root, dataset="Cora"):
+    root = canonical_data_root(repository_root)
+    storage = dataset.lower()
+    raw = root / storage / "raw"
+    processed = root / storage / "processed"
+    raw.mkdir(parents=True)
+    processed.mkdir(parents=True)
+    for suffix in ("x", "tx", "allx", "y", "ty", "ally", "graph", "test.index"):
+        (raw / "ind.{0}.{1}".format(storage, suffix)).write_bytes(
+            (dataset + suffix).encode("utf-8")
+        )
+    (processed / "data.pt").write_bytes(b"processed")
+    return root
 
 
 def test_checkpoint_views_and_weighted_scores():
@@ -166,6 +189,54 @@ def test_benchmark_requires_explicit_experiment_git_sha():
         parser.parse_args([])
 
 
+def test_planetoid_source_is_repo_relative_fingerprinted_and_fail_closed(tmp_path):
+    repository_root = tmp_path / "repo"
+    root = _write_planetoid_source(repository_root)
+    source = resolve_planetoid_public_source(
+        root, repository_root=repository_root, dataset="Cora"
+    )
+    manifest = source.to_manifest()
+    assert manifest["canonical_root_match"] is True
+    assert manifest["resolved_root"] == str(root.resolve())
+    assert Path(manifest["dataset_dir"]).parts[-3:] == ("data", "raw", "cora")
+    assert len(manifest["raw_files"]) == 8
+    assert len(manifest["source_fingerprint"]) == 64
+    assert manifest["automatic_download_allowed"] is False
+    assert manifest["runtime_processing_allowed"] is False
+
+    external_root = _write_planetoid_source(tmp_path / "external-repo")
+    with pytest.raises(DatasetSourceError, match="non-canonical"):
+        resolve_planetoid_public_source(
+            external_root, repository_root=repository_root, dataset="Cora"
+        )
+
+
+def test_planetoid_source_requires_existing_processed_cache(tmp_path):
+    repository_root = tmp_path / "repo"
+    root = _write_planetoid_source(repository_root)
+    (root / "cora" / "processed" / "data.pt").unlink()
+    with pytest.raises(DatasetSourceError, match="processed/data.pt"):
+        resolve_planetoid_public_source(
+            root, repository_root=repository_root, dataset="Cora"
+        )
+
+
+def test_public_split_validator_rejects_opengu_80_20_split():
+    public = SimpleNamespace(
+        num_nodes=2708,
+        edge_index=torch.empty((2, 10556), dtype=torch.long),
+        train_mask=torch.cat((torch.ones(140), torch.zeros(2568))),
+        val_mask=torch.cat((torch.ones(500), torch.zeros(2208))),
+        test_mask=torch.cat((torch.ones(1000), torch.zeros(1708))),
+    )
+    assert validate_public_split(public, "Cora")["train_count"] == 140
+    public.train_mask = torch.cat((torch.ones(2166), torch.zeros(542)))
+    public.val_mask = torch.zeros(2708)
+    public.test_mask = torch.cat((torch.ones(542), torch.zeros(2166)))
+    with pytest.raises(DatasetSourceError, match="frozen public split"):
+        validate_public_split(public, "Cora")
+
+
 def test_selection_device_defaults_to_auto():
     parser = build_selection_parser()
     assert parser.parse_args([]).device == "auto"
@@ -179,8 +250,25 @@ def test_cuda_device_resolution_has_an_explicit_index(monkeypatch):
 
 
 def test_benchmark_cell_requires_17_cold_misses_and_warm_hits(tmp_path):
+    dataset_source = {
+        "schema": "bc_target_v2.planetoid_public_source",
+        "version": 1,
+        "profile": "planetoid_public_fixed_split",
+        "dataset": "Cora",
+        "storage_name": "cora",
+        "split_policy": "public",
+        "resolved_root": "/repo/data/raw",
+        "resolved_dataset_dir": "/repo/data/raw/cora",
+        "raw_dir": "/repo/data/raw/cora/raw",
+        "processed_data_path": "/repo/data/raw/cora/processed/data.pt",
+        "source_fingerprint": _sha("dataset-source"),
+    }
+
     def summary(hit):
         return {
+            "dataset_source": dataset_source,
+            "split_observation": {"train_count": 140},
+            "git_provenance": {"head": "a" * 40},
             "cache": {"hit": hit, "artifact_id": "score_fixture"},
             "selection_cache": {
                 "miss_saved_count": 0 if hit else 17,
@@ -228,6 +316,7 @@ def test_benchmark_warm_command_enables_producer_sentinel(tmp_path):
         output=tmp_path / "warm.json",
         budgets="14,7,3",
         device="cpu",
+        experiment_git_sha="a" * 40,
         warm=True,
     )
     assert "--fail-if-producer-called" in command
