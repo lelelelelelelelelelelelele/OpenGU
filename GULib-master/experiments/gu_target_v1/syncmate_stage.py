@@ -27,10 +27,10 @@ from experiments.gu_target_v1.public_profile import PROFILE, verify_public_profi
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = (
-    REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_full_v2.yaml"
+    REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_full_v3.yaml"
 )
-EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v2")
-RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_full_v2__"
+EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v3")
+RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_full_v3__"
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
 SEEDS = (42, 212, 2024)
@@ -73,7 +73,7 @@ def _config() -> Dict[str, Any]:
         "selection_k": 7,
         "processed_root": "/autodl-fs/data/OpenGU/GULib-master/data/processed",
         "evidence_root": str(EVIDENCE_ROOT),
-        "run_root": "results/runs/__syncmate_small_selection_gu_full_v2__",
+        "run_root": "results/runs/__syncmate_small_selection_gu_full_v3__",
         "selection_experiment_git_sha": "9240b9a7bd61b17b4c841981ec2892fdf100dc4b",
         "benchmark_manifest_sha256": "3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479",
     }
@@ -162,7 +162,7 @@ def _projected_config(stage: str, cfg: Mapping[str, Any]) -> Dict[str, Any]:
     dataset_cfg = cfg["datasets"][dataset]
     paths = _stage_paths(stage, cfg)
     return {
-        "name": "syncmate_small_selection_gu_full_v2__{0}".format(stage),
+        "name": "syncmate_small_selection_gu_full_v3__{0}".format(stage),
         "dataset": dataset,
         "base_model": cfg["base_model"],
         "ratio": float(dataset_cfg["ratio"]),

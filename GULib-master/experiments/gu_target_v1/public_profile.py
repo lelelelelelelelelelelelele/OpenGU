@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, Mapping, Sequence
 
+import torch
 from torch_geometric.datasets import Planetoid
 from torch_geometric.transforms import NormalizeFeatures
 
@@ -25,7 +26,8 @@ from experiments.selection_inputs import make_dataset_selection_inputs
 
 PROFILE = "planetoid_public_fixed"
 MANIFEST_SCHEMA = "gu_target_v1.processed_public_profile"
-MANIFEST_VERSION = 1
+MANIFEST_VERSION = 2
+OPENGU_SPLIT_CONTRACT = "public-mask-indices-and-induced-edges-v1"
 
 
 class OfflineCanonicalPlanetoid(Planetoid):
@@ -50,6 +52,74 @@ def _load_offline_planetoid(source):
     # native Planetoid layout, so restore its portable upstream class first.
     dataset.__class__ = Planetoid
     return dataset
+
+
+def _opengu_split_contract(data, *, materialize: bool) -> Dict[str, Any]:
+    """Materialize or verify the split fields OpenGU consumes downstream.
+
+    PyG's Planetoid object persists the public ``*_mask`` tensors, while
+    OpenGU's processed-data path also requires ``*_indices`` and expects the
+    split edge tensors to be present.  Keep the public masks authoritative and
+    derive every OpenGU compatibility field deterministically from them.
+    """
+
+    num_nodes = int(data.num_nodes)
+    edge_index = data.edge_index
+    if not torch.is_tensor(edge_index) or edge_index.dim() != 2 or edge_index.size(0) != 2:
+        raise RuntimeError("processed public profile edge_index is invalid")
+    if edge_index.numel() and (
+        int(edge_index.min().item()) < 0 or int(edge_index.max().item()) >= num_nodes
+    ):
+        raise RuntimeError("processed public profile edge_index exceeds num_nodes")
+
+    observation: Dict[str, Any] = {
+        "contract": OPENGU_SPLIT_CONTRACT,
+        "num_nodes": num_nodes,
+        "splits": {},
+    }
+    src, dst = edge_index[0], edge_index[1]
+    for split_name in ("train", "val", "test"):
+        mask_name = "{0}_mask".format(split_name)
+        indices_name = "{0}_indices".format(split_name)
+        edge_name = "{0}_edge_index".format(split_name)
+        mask = getattr(data, mask_name, None)
+        if not torch.is_tensor(mask) or mask.dim() != 1 or mask.numel() != num_nodes:
+            raise RuntimeError(
+                "processed public profile {0} must be a one-dimensional node mask".format(
+                    mask_name
+                )
+            )
+        normalized_mask = mask.bool()
+        expected_indices = normalized_mask.nonzero(as_tuple=True)[0].tolist()
+        expected_edges = edge_index[:, normalized_mask[src] & normalized_mask[dst]].clone()
+
+        if materialize:
+            setattr(data, mask_name, normalized_mask)
+            setattr(data, indices_name, expected_indices)
+            setattr(data, edge_name, expected_edges)
+        else:
+            observed_indices = getattr(data, indices_name, None)
+            if not isinstance(observed_indices, list) or observed_indices != expected_indices:
+                raise RuntimeError(
+                    "processed public profile {0} does not match {1}".format(
+                        indices_name, mask_name
+                    )
+                )
+            observed_edges = getattr(data, edge_name, None)
+            if not torch.is_tensor(observed_edges) or not torch.equal(
+                observed_edges, expected_edges
+            ):
+                raise RuntimeError(
+                    "processed public profile {0} is not induced by {1}".format(
+                        edge_name, mask_name
+                    )
+                )
+
+        observation["splits"][split_name] = {
+            "node_count": len(expected_indices),
+            "edge_count": int(expected_edges.size(1)),
+        }
+    return observation
 
 
 def _sha256_file(path: Path) -> str:
@@ -133,6 +203,9 @@ def verify_public_profile(
         pyg_dataset = pickle.load(handle)
     if type(pyg_dataset) is not Planetoid:
         raise RuntimeError("processed public profile dataset pickle is not native Planetoid")
+    observed_contract = _opengu_split_contract(data, materialize=False)
+    if observed_contract != manifest.get("opengu_processed_contract"):
+        raise RuntimeError("processed public profile OpenGU split contract changed")
     split = validate_public_split(data, source.dataset)
     if split != manifest.get("split_observation"):
         raise RuntimeError("processed public profile split observation changed")
@@ -186,6 +259,7 @@ def stage_public_profile(
     pyg_dataset = _load_offline_planetoid(source)
     data = pyg_dataset[0]
     split = validate_public_split(data, source.dataset)
+    opengu_contract = _opengu_split_contract(data, materialize=True)
     inputs = make_dataset_selection_inputs(
         data, dataset_name=dataset.lower(), source_path=paths.data_path
     )
@@ -205,6 +279,7 @@ def stage_public_profile(
         "dataset_sha256": _sha256_file(paths.dataset_path),
         "dataset_source": source.to_manifest(),
         "split_observation": split,
+        "opengu_processed_contract": opengu_contract,
         "selection_identity": {
             "dataset_fingerprint": inputs.dataset_fingerprint,
             "graph_fingerprint": inputs.graph_fingerprint,

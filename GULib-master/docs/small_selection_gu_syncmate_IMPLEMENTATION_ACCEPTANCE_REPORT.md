@@ -1,16 +1,19 @@
 # Small-selection → GU + SyncMate implementation acceptance
 
 Date: 2026-07-22
-Status: **implementation PASS; formal SSH gate pending**
+Status: **implementation PASS; v1/v2 diagnostic gates superseded; formal SSH gate v3 pending**
 
 ## Verdict
 
 The code line is ready to enter Git acceptance. It provides a fail-closed,
 hypothesis-preserving path from the accepted public 17-output Selection GT to
 real OpenGU GU cells, plus a static gate recipe, nine bounded matrix recipes,
-and verified collector contracts. No GU result is claimed by this report; the first formal result is
-created only after this line is merged into `main` and executed from the clean,
-pinned SSH active checkout.
+and verified collector contracts. Gate v2 exposed a processed-profile contract
+gap before training (`train_indices` absent); it is diagnostic only. The v3
+profile derives and verifies OpenGU compatibility fields from the immutable
+Planetoid public masks. No GU result is claimed by this report; the first formal
+result is created only after v3 is merged into `main` and executed from the
+clean, pinned SSH active checkout.
 
 ## Frozen first gate
 
@@ -56,7 +59,7 @@ pinned SSH active checkout.
 - Added exact-k propagation to attack and collateral consumers, so k=7 is not
   inferred from a dataset ratio.
 - Added the active static SyncMate recipe
-  `opengu-small-selection-gu-gate-v2`, exact four-artifact execution
+  `opengu-small-selection-gu-gate-v3`, exact four-artifact execution
   validation, a GU-specific collector profile, and post-collection acceptance.
 - Added nine gate-conditioned static recipes covering the complete 17 x 3 x 3
   screen. Each stage has an exact 68-file allowlist and a dedicated collector
@@ -65,9 +68,14 @@ pinned SSH active checkout.
 - Added resumable stage execution: complete leaves are skipped by content
   fingerprint; incomplete leaves are rerun; source/store/profile/SHA drift
   blocks instead of silently mixing evidence.
-- Superseded the v1 identities after a fail-closed dataset-pickle diagnostic.
-  V2 uses fresh gate/full config, evidence, Selection store, result roots, and
-  recipe ids; v1 remains diagnostic only and cannot be resumed by the wrappers.
+- Superseded v1 after a fail-closed dataset-pickle diagnostic and v2 after its
+  pre-training `train_indices` diagnostic. V3 uses fresh gate/full config,
+  evidence, Selection store, result roots, and recipe ids; v1/v2 cannot be
+  resumed by the active wrappers.
+- Raised the processed-profile manifest to v2. It now derives
+  `train/val/test_indices` and induced split edge tensors from the public masks,
+  persists them before timing, and rejects any field that no longer matches its
+  authoritative mask.
 - Repaired stale generic smoke/preflight binding. Text config hashes normalize
   line endings, and the recipes use the exact dispatched checkout rather than
   the unavailable historical base object.
@@ -78,7 +86,9 @@ pinned SSH active checkout.
 |---|---|
 | Accepted selector code SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
 | GU recipe introduction SHA | `218f6421c2cb31b71ebfad113fee15b9ad0a3d36` |
-| Active GU v2 recipe introduction SHA | `5e8502d915d7f311f26e659fcbe58c463e96d3ae` |
+| Active GU v3 recipe introduction SHA | `d8eda635dd5c8bd5ab7489340a3c00b00df46e1b` |
+| Gate v3 config SHA-256 | `adb00f5e76097953415cea27e9e621b6c98e658685a1bf0450df5c6a96a0bd71` |
+| Full v3 config SHA-256 | `f3eca0b813acbf582ba357e6ee3ac3b2ec90bfb064d7475f8324d7b0ada92dac` |
 | Cora cold summary SHA-256 | `977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7` |
 | Benchmark manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
@@ -95,8 +105,11 @@ pinned SSH active checkout.
 | Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension | **222 passed** |
 | SSH GU/SyncMate/provider/demo suite including new stage contracts | **214 passed** |
 | SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite | **144 passed** |
-| Active v2 profile/recipe focused suite | **188 passed** |
-| Cross-entry-point dataset-pickle smoke | PASS; 3/3 native `Planetoid`, temp 203 MB removed |
+| Active v3 GU/profile/provider/SyncMate focused suite | **195 passed** |
+| Real three-dataset v3 stage + verify | PASS; Cora/CiteSeer/PubMed all accepted |
+| Cross-entry-point OpenGU split-contract smoke | PASS; indices and induced edges match all masks; `process_data` loads 3/3 |
+| Observed public split counts | Cora 140/500/1000; CiteSeer 120/500/1000; PubMed 60/500/1000 |
+| Disposable v3 profile bytes | about 203 MB, removed after verification |
 | `py_compile` on changed Python modules | PASS |
 | Disposable local Cora public-profile stage + verify | PASS |
 | Disposable staged bytes | 31.45 MB, removed after verification |
@@ -120,17 +133,15 @@ the OpenGU 80/20 confirmatory lane remain explicitly separate.
 
 ## Next acceptance steps
 
-1. Commit this implementation and pin its introduction SHA in the reviewed
-   SyncMate recipe metadata.
-2. Merge with `--no-ff` into `main`, push, and synchronize the SSH active
+1. Merge the accepted v3 fix with `--no-ff` into `main`, push, and synchronize the SSH active
    checkout with `git pull --ff-only`.
-3. Stage and verify all three `planetoid_public_fixed` profiles before timed runs.
-4. Configure the local collector/peer and update the runner's untracked artifact
+2. Stage and verify all three `planetoid_public_fixed` profiles before timed runs.
+3. Configure the local collector/peer and update the runner's untracked artifact
    policy for the exact four files.
-5. Run a pinned SyncMate smoke, then the single formal GU recipe.
-6. Collect, checksum-verify, index, and gate the four files. Expansion remains
+4. Run the single formal v3 GU recipe through SyncMate.
+5. Collect, checksum-verify, index, and gate the four files. Expansion remains
    blocked until that acceptance passes.
-7. Dispatch the nine reviewed dataset-seed recipes sequentially. Each stage
+6. Dispatch the nine reviewed dataset-seed recipes sequentially. Each stage
    must collect and accept 68 files before the next stage is trusted.
-8. Aggregate and return all 612 verified files to the local collector, together
+7. Aggregate and return all 612 verified files to the local collector, together
    with a matching Markdown/HTML scientific report.

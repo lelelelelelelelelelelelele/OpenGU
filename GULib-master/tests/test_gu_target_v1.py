@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 import torch
 from torch_geometric.data import Data
 
@@ -30,6 +31,8 @@ def _inputs(tmp_path: Path):
         edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
     )
     data.train_mask = torch.tensor([True, True, True, True, False])
+    data.val_mask = torch.tensor([False, False, False, False, False])
+    data.test_mask = torch.tensor([False, False, False, False, True])
     return make_dataset_selection_inputs(
         data, dataset_name="cora", source_path=tmp_path / "cora.pkl"
     )
@@ -84,6 +87,8 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
         edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
     )
     data.train_mask = torch.tensor([True, True, True, True, False])
+    data.val_mask = torch.tensor([False, False, False, False, False])
+    data.test_mask = torch.tensor([False, False, False, False, True])
     inputs = make_dataset_selection_inputs(
         data, dataset_name="cora", source_path=tmp_path / "cora.pkl"
     )
@@ -148,6 +153,34 @@ def test_public_profile_loader_forbids_download_and_processing_fallbacks():
             assert "forbidden" in str(exc)
         else:
             raise AssertionError("offline Planetoid fallback did not fail closed")
+
+
+def test_public_profile_materializes_and_verifies_opengu_split_contract():
+    data = Data(
+        x=torch.eye(5),
+        y=torch.tensor([0, 1, 0, 1, 0]),
+        edge_index=torch.tensor(
+            [[0, 1, 2, 3, 0, 4], [1, 2, 3, 4, 4, 0]], dtype=torch.long
+        ),
+    )
+    data.train_mask = torch.tensor([True, True, False, False, False])
+    data.val_mask = torch.tensor([False, False, True, False, False])
+    data.test_mask = torch.tensor([False, False, False, True, True])
+
+    observed = public_profile._opengu_split_contract(data, materialize=True)
+
+    assert observed["contract"] == "public-mask-indices-and-induced-edges-v1"
+    assert data.train_indices == [0, 1]
+    assert data.val_indices == [2]
+    assert data.test_indices == [3, 4]
+    assert data.train_edge_index.tolist() == [[0], [1]]
+    assert data.val_edge_index.numel() == 0
+    assert data.test_edge_index.tolist() == [[3], [4]]
+    assert public_profile._opengu_split_contract(data, materialize=False) == observed
+
+    data.train_indices = [1, 0]
+    with pytest.raises(RuntimeError, match="train_indices"):
+        public_profile._opengu_split_contract(data, materialize=False)
 
 
 def test_adapter_materializes_and_loads_custom_formula_label(tmp_path, monkeypatch):
