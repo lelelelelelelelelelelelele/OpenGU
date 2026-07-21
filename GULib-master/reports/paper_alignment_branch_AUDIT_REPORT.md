@@ -1,7 +1,8 @@
 ---
 title: paper/alignment-experiment 差异与图件审计
 date: 2026-07-21
-status: audit-complete-no-cleanup-executed
+status: audit-complete-cleanup-executed
+cleanup_date: 2026-07-22
 scope: main, paper/alignment-experiment, stash@{0}, FIG-3, FIG-5, figure generators
 baseline: main@b94130339e1a2490957fcc3c5373fb491422dc84
 ---
@@ -9,6 +10,9 @@ baseline: main@b94130339e1a2490957fcc3c5373fb491422dc84
 # paper/alignment-experiment 差异与图件审计
 
 ## 执行摘要
+
+> [!success] 2026-07-22 后续处置已完成
+> 有价值内容已提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`，未完成项已进入 `self/dashboard/WORKPLAN.md` 的 F2、F5、W10；文档提交 `5877981` 已持久化审计证据。`archive/paper-alignment-20260507` 与 `archive/paper-alignment-wip-20260507` 分别验证指向 `565aaf6` 和 `eb9595c` 后，原 `stash@{0}` 已 drop，`paper/alignment-experiment` 已删除。以下“不要现在删除”是 2026-07-21 审计时的条件性结论，现已满足其安全门。
 
 > [!warning] 总结论
 > `paper/alignment-experiment` 已不适合作为当前 paper 的可合并开发线，但仍是被当前 `WORKPLAN.md` 明确引用的“不中后重投蓝本”。它的概念价值仍在，具体数字、GraphRevoker 机制楔子和旧图则已经过时。**不要 cherry-pick，不要现在删除分支。**
@@ -21,7 +25,7 @@ baseline: main@b94130339e1a2490957fcc3c5373fb491422dc84
 - `stash@{0}` 当前不应立即 drop；审计报告经审核并形成持久记录后，可先建立 archive ref，再 drop。
 - 分支当前不应删除，因为项目文档仍以分支名引用它。若确需清理，先把 `565aaf6` 和 `eb9595c` 变成持久 archive tag/bundle，并同步文档引用，再删除。
 
-本审计没有执行 switch、merge、cherry-pick、stash drop、branch delete、commit 或 push，也没有修改报告之外的项目文件。
+2026-07-21 的审计阶段没有执行 switch、merge、cherry-pick、stash drop、branch delete、commit 或 push，也没有修改报告之外的项目文件；2026-07-22 经用户授权后执行的价值迁移与清理记录见本报告后续处置说明。
 
 ## 1. 现场身份与提交拓扑
 
@@ -155,7 +159,7 @@ FIG-5 实际依赖三类输入，不是脚本头部所称的“only two inputs�
 
 ### `stash@{0}`
 
-**现在不安全直接 drop。** 原因不是 FIG-3，而是 stash 仍是 Jaccard 段落唯一直接文本来源，且本报告尚未被接受/提交。满足以下条件后可 drop：
+**审计时不安全直接 drop；2026-07-22 已满足条件并完成 drop。** 原因不是 FIG-3，而是当时 stash 仍是 Jaccard 段落唯一直接文本来源，且报告尚未进入持久历史。执行前完成了：
 
 1. 本报告或等价证据已进入持久历史；
 2. Jaccard 结果已用选定的最终 aggregate 重新计算并写入 paper/catalog，或明确决定不采用；
@@ -164,12 +168,12 @@ FIG-5 实际依赖三类输入，不是脚本头部所称的“only two inputs�
 
 ### `paper/alignment-experiment`
 
-**现在不建议删除。** 技术上它只有一个独有提交，且代码价值为零；但 `WORKPLAN.md`、advisor diagnosis 和 Git audit 都把分支名当作重投恢复入口。直接删除会让这些引用失效。只有在以下二选一完成后才安全：
+**审计时不建议删除；2026-07-22 已迁移入口并完成删除。** 技术上它只有一个独有提交，且代码价值为零；当时 `WORKPLAN.md`、advisor diagnosis 和 Git audit 都把分支名当作重投恢复入口。处置采用了第二条路径：
 
 - 继续保留该分支，直到重投决策结束；或
 - 建立并验证 `archive/paper-alignment-20260507` 持久 tag/bundle，把文档引用从 branch 改成 archive ref，再删除旧 branch。
 
-## 8. 建议的后续操作顺序（本审计未执行）
+## 8. 后续操作顺序（图件待执行；历史 ref 清理已执行）
 
 ### A. 先修复和重生图件
 
@@ -276,11 +280,19 @@ git -C $repo branch -D paper/alignment-experiment
 5. 运行旧 `test1.py` 的 fallback 曾在 `E:\project\OpenGU\data\raw\Cora` 创建缓存；本次新建的 `processed/` 和 4 个新 raw 文件已移到系统临时隔离区。4 个原有 raw 文件被官方 downloader 同名重写，仅 mtime 变化，仍是 ignored data；没有 tracked 文件变化。
 6. HTML 已在浏览器中逐页视觉复检；当前 Obsidian vault 只覆盖 `文档规划` 子树，报告位于同级 `reports/`，若不新增链接或改 vault 就无法直接在 Reading View 打开。为遵守“报告之外不改文件”，本次只完成 Markdown 表格结构检查，未把该报告临时接入 Obsidian；这是版式验收的已知缺口。
 
-## 10. 最终回答
+## 10. 2026-07-22 后续处置记录
+
+- 新建并提交 `report/paper/RESUBMISSION_BLUEPRINT.md`，提炼叙事骨架、FIG-5 设计契约、Jaccard 分析问题与禁用旧结论。
+- WORKPLAN 展开 F2，并新增 F5（accepted evidence 后重生/入库 FIG-5）与 W10（仅 reject/resubmit 后激活）。
+- 建立并 peel-verify 两个 annotated archive tags；完整对象仍可恢复。
+- 精确核验 `stash@{0}=eb9595c` 后 drop；随后删除 `paper/alignment-experiment@565aaf6`。其他 stash、branch、worktree 均未清理。
+- archive tags 当前仅是本地 repository refs；若需要跨机器灾备，仍需另行授权 push tags 或生成离仓 bundle。
+
+## 11. 最终回答
 
 - **分支最初用途**：诚实地把 paper 从 informed-selector hero story 转成 access-tier inversion + structural alignment/objective misalignment，并试验 FIG-5。
 - **现在是否过时**：作为可合并实现线已过时；作为重投叙事蓝本仍有效。
 - **FIG-3**：main keep；branch/stash 版本 superseded/delete candidate；生成器修复后 regenerate main。
 - **FIG-5**：图有独立价值，必须 regenerate；复检通过后应强制纳入 Git；当前 68KB 文件不应直接加入。
-- **stash**：现在不 drop；证据持久化和 archive ref 完成后可 drop。
-- **分支**：现在不删；只有把项目引用迁移到 archive ref 并验证恢复点后才可删。
+- **stash**：独特问题已迁移，WIP tag 已验证，原 alignment stash 已安全 drop。
+- **分支**：蓝本入口和历史恢复点均已迁移，旧分支已安全删除。

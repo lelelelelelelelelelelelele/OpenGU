@@ -20,11 +20,11 @@
     </nav>
   </aside>
   <main>
-    <section class="hero"><div class="kicker">EVIDENCE AUDIT · 2026-07-21</div><h1>paper/alignment-experiment 差异与图件审计</h1><p>基线 main@b941303 · 未执行 merge / cherry-pick / drop / delete / commit / push</p></section>
+    <section class="hero"><div class="kicker">EVIDENCE AUDIT · 2026-07-21 · CLEANUP RECORDED 2026-07-22</div><h1>paper/alignment-experiment 差异与图件审计</h1><p>基线 main@b941303 · 审计阶段只读；后续价值迁移与历史 ref 清理已完成</p></section>
     <section id="summary">
-      <div class="verdict"><strong>结论：</strong>旧分支已不适合作为当前 paper 的可合并开发线，但仍是项目明确保留的重投蓝本。FIG-5 有独立价值，应在修复生成链和数据口径后强制纳入 Git；当前 68KB ignored 文件不能直接入库。</div>
+      <div class="verdict"><strong>结论：</strong>旧分支的有效内容已迁入 <code>RESUBMISSION_BLUEPRINT.md</code>，精确历史由两个 archive tags 保留；原 alignment stash 与旧分支已安全清理。FIG-5 仍应在修复生成链和数据口径后强制纳入 Git；当前 68KB ignored 文件不能直接入库。</div>
       <div class="cards"><div class="card"><div class="n">180 / 1</div><div class="l">main / branch 独有提交</div></div><div class="card"><div class="n">0</div><div class="l">main 中 FIG-5 blobs</div></div><div class="card"><div class="n">360</div><div class="l">可解析 attack.json</div></div><div class="card"><div class="n">300</div><div class="l">non-random alignment tuples</div></div></div>
-      <ul><li><span class="keep">保留：</span>main FIG-3、`565aaf6` 的概念蓝本。</li><li><span class="warn">重生：</span>FIG-5；生成器统一后再受控重生 FIG-3。</li><li><span class="bad">不要做：</span>直接 force-add 68KB 文件、cherry-pick 旧提交、现在 drop stash 或删分支。</li></ul>
+      <ul><li><span class="keep">已迁移：</span>概念蓝本、FIG-5 设计契约、Jaccard 分析问题。</li><li><span class="warn">仍待完成：</span>F2 生成器收敛、F5 新 evidence 后重生 FIG-5、W10 仅重投时激活。</li><li><span class="bad">不要做：</span>直接 force-add 68KB 文件或 cherry-pick 旧提交。</li></ul>
     </section>
 
     <h2 id="topology">1. 现场身份与拓扑</h2>
@@ -82,11 +82,11 @@
     </tbody></table>
 
     <h2 id="cleanup">6. stash drop 与分支删除</h2>
-    <p><strong>stash 现在不安全 drop。</strong>报告/重算结论持久化、Jaccard 去留裁定、<code>eb9595c</code> archive ref 建立且 drop 前再次核对身份后，才可 drop。</p>
-    <p><strong>分支现在不建议删除。</strong>当前项目文档仍以分支名引用它。保留到重投决策结束，或先建立并验证 archive tag/bundle、更新文档引用，再删 branch。</p>
+    <p><strong>2026-07-22 已完成。</strong>审计报告与蓝本先进入提交 <code>5877981</code>，随后建立并验证两个 archive tags；精确核验 <code>stash@{0}=eb9595c</code> 后 drop，最后删除 <code>paper/alignment-experiment@565aaf6</code>。</p>
+    <p>其他 stash、branch 和 worktree 未清理。archive tags 当前仅为本地 repository refs；跨机器灾备仍需另行 push tags 或生成 bundle。</p>
 
     <h2 id="commands">7. 精确后续顺序</h2>
-    <ol><li>从 main 新建 <code>codex/fix-paper-figure-provenance-20260721</code> 独立 worktree。</li><li>选 <code>scripts/plot_neurips_figures.py</code> 为唯一入口，移植所需样式；锁定 <code>paired_dF_pct</code> 单位和 300/60 tuple 断言。</li><li>导入 post-fix GraphRevoker evidence，或显式排除 GraphRevoker。</li><li>先生成到系统 temp；核对 PDF text、页面、坐标、caption 和 LaTeX 编译。</li><li>仅对最终 FIG-5 精确执行 <code>git add -f -- GULib-master/report/paper/overleaf/figures/FIG-5_Alignment.pdf</code>。</li><li>另一次审批中建立 archive tags；验证后才 drop stash / delete branch。</li></ol>
+    <ol><li>从 main 新建独立 figure-provenance 分支。</li><li>选 <code>scripts/plot_neurips_figures.py</code> 为唯一入口，移植所需样式；锁定 <code>paired_dF_pct</code> 单位和 300/60 tuple 断言。</li><li>导入 post-fix GraphRevoker evidence，或显式排除 GraphRevoker。</li><li>先生成到系统 temp；核对 PDF text、页面、坐标、caption 和 LaTeX 编译。</li><li>仅对最终 FIG-5 精确执行 <code>git add -f -- GULib-master/report/paper/overleaf/figures/FIG-5_Alignment.pdf</code>。</li><li><strong>已完成：</strong>价值迁移、archive tags、alignment stash drop、旧分支删除。</li></ol>
     <pre><code>git tag -a archive/paper-alignment-20260507 565aaf64... -m "Archive paper alignment resubmission blueprint"
 git tag -a archive/paper-alignment-wip-20260507 eb9595cb... -m "Archive paper alignment WIP stash before cleanup"
 git show --no-patch archive/paper-alignment-20260507
@@ -99,7 +99,7 @@ git branch -D paper/alignment-experiment</code></pre>
 
     <h2 id="risks">8. 风险与边界</h2>
     <ul><li>当前 GraphRevoker rows 不是最终科学真值。</li><li>PDF 文件大小/hash 不代表内容等价。</li><li>main FIG-3 内容合理，但当前两个生成器均不能无修复复现。</li><li>未访问远端实验主机，未导入 E4 artifacts。</li><li>一次旧 fallback 生成的新增 Cora 缓存已移到系统临时隔离区；tracked 文件未变化。</li><li>HTML 已逐页视觉复检；因当前 Obsidian vault 不含 <code>reports/</code>，且本任务禁止新增报告外文件，本报告未临时接入 Obsidian Reading View。这是已记录的版式验收缺口。</li></ul>
-    <div class="source">Markdown 是源事实版本；本 HTML 与其结论、关键数字、处置建议一致。生成日期：2026-07-21。</div>
+    <div class="source">Markdown 是源事实版本；本 HTML 与其结论、关键数字、处置建议一致。审计日期：2026-07-21；清理记录更新：2026-07-22。</div>
   </main>
 </div>
 </body>

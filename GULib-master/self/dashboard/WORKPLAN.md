@@ -169,7 +169,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 ## 10. Changelog
 
-- **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；历史对象改由两个 `archive/paper-alignment-*` tag 恢复，不再以活动 branch/stash 充当知识库。
+- **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移与清理完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；两个 `archive/paper-alignment-*` tag 经 peel 验证后，原 alignment stash 已 drop、旧分支已删除，不再以活动 branch/stash 充当知识库。
 - **2026-06-27** 建档（实验/ablation/写作/画图 四阶段，收敛 PROGRESS §2/§3 + limitations + PAPER_LIABILITIES_MAP + 配置矩阵）；配套 `config_inventory.{csv,html}` 监督看板。
 - **2026-06-27（晚）** E4 决策定为 **修 + 重跑**（不 drop / 不 caveat）；并 **升级为唯一操作中枢**：折入 PROGRESS §0/§1/§2/§4（现状/快照/硬伤/方向），`refresh.py` 重指到本文件生成 `progress.html`（看板列改为四阶段），`PROGRESS.md` 退成指针。
 - **2026-06-28** E3 从 ★GPU 降级为**本地重算**：核实 k=5 baseline `f1_before=null` 是设计如此（非缺同步），before 锚点在主矩阵 `perf_before`/`_phase_b_aggregate.csv` 已有 → 离线 join 或 reframe，不需服务器。
