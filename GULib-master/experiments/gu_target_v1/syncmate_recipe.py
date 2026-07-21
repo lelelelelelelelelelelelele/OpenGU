@@ -21,9 +21,9 @@ from experiments.gu_target_v1.public_profile import verify_public_profile
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONFIG_PATH = REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_gate_v4.yaml"
-EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v4")
-RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_v4__"
+CONFIG_PATH = REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_gate_v5.yaml"
+EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5")
+RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_v5__"
 EXPECTED_LEAF = RUN_ROOT / "cora_GCN_r0.05" / "GNNDelete_degree" / "seed42"
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 CONFIG_SCHEMA = "gu_target_v1.syncmate_gate"
@@ -58,8 +58,8 @@ def _config() -> Dict[str, Any]:
         "seeds": [42],
         "selection_k": 7,
         "processed_root": "/autodl-fs/data/OpenGU/GULib-master/data/processed",
-        "runtime_root": "/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v4/runtime",
-        "run_root": "results/runs/__syncmate_small_selection_gu_v4__",
+        "runtime_root": "/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/runtime",
+        "run_root": "results/runs/__syncmate_small_selection_gu_v5__",
     }
     for field, expected_value in expected.items():
         if value.get(field) != expected_value:

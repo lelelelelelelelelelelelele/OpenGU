@@ -1,7 +1,7 @@
 # Small-selection → GU + SyncMate implementation acceptance
 
 Date: 2026-07-22
-Status: **implementation PASS; v1/v2/v3 diagnostic gates superseded; formal SSH gate v4 pending**
+Status: **implementation PASS; gate v4 passed; first full v4 stage diagnostic superseded; v5 rerun pending**
 
 ## Verdict
 
@@ -12,9 +12,11 @@ and verified collector contracts. Gate v2 exposed a processed-profile contract
 gap before training (`train_indices` absent); gate v3 then exposed the explicit
 pair loader's missing graph metadata (`num_classes`). Both are diagnostic only.
 The v4 profile derives and verifies OpenGU split and graph compatibility fields
-from immutable Planetoid tensors. No GU result is claimed by this report; the first formal
-result is created only after v4 is merged into `main` and executed from the
-clean, pinned SSH active checkout.
+from immutable Planetoid tensors, and gate v4 passed end to end. The first full
+stage then produced all 68 files but exposed a SyncMate protocol bug: the runner
+validated only the last 16 KB of a larger valid JSON envelope. V5 validates the
+complete envelope while retaining a bounded, hashed diagnostic tail. The v4
+stage remains diagnostic because it was not accepted by SyncMate.
 
 ## Frozen first gate
 
@@ -60,7 +62,7 @@ clean, pinned SSH active checkout.
 - Added exact-k propagation to attack and collateral consumers, so k=7 is not
   inferred from a dataset ratio.
 - Added the active static SyncMate recipe
-  `opengu-small-selection-gu-gate-v4`, exact four-artifact execution
+  `opengu-small-selection-gu-gate-v5`, exact four-artifact execution
   validation, a GU-specific collector profile, and post-collection acceptance.
 - Added nine gate-conditioned static recipes covering the complete 17 x 3 x 3
   screen. Each stage has an exact 68-file allowlist and a dedicated collector
@@ -72,8 +74,13 @@ clean, pinned SSH active checkout.
 - Superseded v1 after a fail-closed dataset-pickle diagnostic, v2 after its
   pre-training `train_indices` diagnostic, and v3 after its `num_classes`
   diagnostic. V4 uses fresh gate/full config, evidence, Selection store, result
-  roots, and recipe ids; v1/v2/v3 cannot be
+  roots, and recipe ids; v1/v2/v3/v4 cannot be
   resumed by the active wrappers.
+- Gate v4 passed and collected 4/4 checksum-verified files. The first 17-cell
+  full v4 stage completed its GU subprocess and wrote 68/68 files, but its
+  16,000-byte-truncated stage JSON could not pass the exact-envelope validator.
+  V5 fixes that parser and uses new gate/full/cache/result identities under a
+  new pinned `main` SHA.
 - Raised the processed-profile manifest to v3. It now derives
   `train/val/test_indices` and induced split edge tensors from the public masks,
   plus `name`, `num_features`, `num_classes`, and `num_edges` from graph tensors.
@@ -88,9 +95,9 @@ clean, pinned SSH active checkout.
 |---|---|
 | Accepted selector code SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
 | GU recipe introduction SHA | `218f6421c2cb31b71ebfad113fee15b9ad0a3d36` |
-| Active GU v4 recipe introduction SHA | `544eab7ece867a406a4bdc703f7e4c10bb9a313c` |
-| Gate v4 config SHA-256 | `ec0ec36da6d5e65ed72dcd37e8cc2fbd854ffda2da134154e6c566444876264e` |
-| Full v4 config SHA-256 | `551c5360ec424b1eb35d6c6fce06f251bfe01c3380a0fa731cb136c8e3022f21` |
+| Active GU v5 recipe introduction SHA | `324d3a0434614ec0d206e18f784560ae90f5f945` |
+| Gate v5 config SHA-256 | `26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10` |
+| Full v5 config SHA-256 | `bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd` |
 | Cora cold summary SHA-256 | `977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7` |
 | Benchmark manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
@@ -107,7 +114,10 @@ clean, pinned SSH active checkout.
 | Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension | **222 passed** |
 | SSH GU/SyncMate/provider/demo suite including new stage contracts | **214 passed** |
 | SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite | **144 passed** |
-| Active v4 GU/profile/provider/SyncMate focused suite | **196 passed** |
+| Active v5 GU/profile/provider/SyncMate focused suite | **197 passed** |
+| Large stage-envelope regression | PASS; >16 KB JSON is validated in full, diagnostic tail remains bounded and SHA-256 recorded |
+| Formal v4 gate | PASS; 4/4 fetched, checksum-verified, and GU-accepted at `main@85c775a` |
+| Full v4 Cora/seed42 diagnostic | GU subprocess exit 0 and 68/68 files present; SyncMate rejection due solely to truncated JSON validation |
 | Real three-dataset v4 stage + verify | PASS; Cora/CiteSeer/PubMed all accepted |
 | Cross-entry-point OpenGU split-contract smoke | PASS; indices and induced edges match all masks; `process_data` loads 3/3 |
 | Cross-entry-point model construction | PASS; GCNNet instantiated for all 3 datasets with 1433/7, 3703/6, 500/3 feature/class metadata |
@@ -136,12 +146,12 @@ the OpenGU 80/20 confirmatory lane remain explicitly separate.
 
 ## Next acceptance steps
 
-1. Merge the accepted v4 fix with `--no-ff` into `main`, push, and synchronize the SSH active
+1. Merge the accepted v5 fix with `--no-ff` into `main`, push, and synchronize the SSH active
    checkout with `git pull --ff-only`.
 2. Stage and verify all three `planetoid_public_fixed` profiles before timed runs.
 3. Configure the local collector/peer and update the runner's untracked artifact
    policy for the exact four files.
-4. Run the single formal v4 GU recipe through SyncMate.
+4. Run the single formal v5 GU recipe through SyncMate.
 5. Collect, checksum-verify, index, and gate the four files. Expansion remains
    blocked until that acceptance passes.
 6. Dispatch the nine reviewed dataset-seed recipes sequentially. Each stage

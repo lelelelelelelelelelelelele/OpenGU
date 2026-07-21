@@ -17,8 +17,8 @@
 <body><main>
   <h1>Small-selection → GU + SyncMate</h1>
   <div class="muted">Implementation acceptance · 2026-07-22</div>
-  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">v1/v2/v3 diagnostic gates superseded; formal SSH gate v4 pending</span><br>
-    Gate v2 stopped before training because the profile lacked <code>train_indices</code>; gate v3 then exposed missing <code>num_classes</code> graph metadata. V4 derives and verifies split and graph compatibility fields from immutable Planetoid tensors. This page claims no GU outcome yet.</section>
+  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">gate v4 passed; first full v4 stage diagnostic superseded; v5 rerun pending</span><br>
+    Gate v4 passed end to end. Its first full 17-cell stage wrote 68/68 files, but SyncMate validated only the final 16 KB of a larger valid JSON envelope. V5 validates the complete envelope and retains a bounded, hashed diagnostic tail.</section>
 
   <h2>Frozen first gate</h2>
   <table><tbody>
@@ -41,7 +41,7 @@
     <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities. V4 binds <code>*_indices</code> and induced split edges to public masks and graph metadata to tensors.</div>
     <div class="card"><h3>Selection migration</h3>Fixed-hash cold summary and benchmark manifest create a fresh Cache V2 Selection Artifact. Deleted worktree/cache paths are never followed.</div>
     <div class="card"><h3>Hypothesis preserved</h3>All 17 scientific labels remain distinct through recipe, result key, and metadata; exact k is passed to both GU and retrain/collateral consumers.</div>
-    <div class="card"><h3>SyncMate acceptance</h3>Active v4 allowlist recipe, exact dispatched SHA, fresh identities, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate. V1/v2/v3 remain diagnostic only.</div>
+    <div class="card"><h3>SyncMate acceptance</h3>Active v5 allowlist recipe, exact dispatched SHA, fresh identities, full-envelope validation, bounded diagnostic tails, checksum collection, trusted index, and GU-specific post-collection gate.</div>
     <div class="card"><h3>Bounded full matrix</h3>Nine static recipes each preserve 17 labels and exact k=7. Partial progress resumes only under the same source, profile, manifest, and Git identities.</div>
   </div>
 
@@ -49,9 +49,9 @@
   <table><tbody>
     <tr><th>Selector code SHA</th><td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td></tr>
     <tr><th>GU recipe introduction SHA</th><td><code>218f6421c2cb31b71ebfad113fee15b9ad0a3d36</code></td></tr>
-    <tr><th>Active GU v4 recipe introduction SHA</th><td><code>544eab7ece867a406a4bdc703f7e4c10bb9a313c</code></td></tr>
-    <tr><th>Gate v4 config SHA-256</th><td><code>ec0ec36da6d5e65ed72dcd37e8cc2fbd854ffda2da134154e6c566444876264e</code></td></tr>
-    <tr><th>Full v4 config SHA-256</th><td><code>551c5360ec424b1eb35d6c6fce06f251bfe01c3380a0fa731cb136c8e3022f21</code></td></tr>
+    <tr><th>Active GU v5 recipe introduction SHA</th><td><code>324d3a0434614ec0d206e18f784560ae90f5f945</code></td></tr>
+    <tr><th>Gate v5 config SHA-256</th><td><code>26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10</code></td></tr>
+    <tr><th>Full v5 config SHA-256</th><td><code>bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd</code></td></tr>
     <tr><th>Cora cold SHA-256</th><td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td></tr>
     <tr><th>Benchmark SHA-256</th><td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td></tr>
     <tr><th>SSH public source fingerprint</th><td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td></tr>
@@ -63,7 +63,10 @@
     <tr><td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td><td class="pass">222 passed</td></tr>
     <tr><td>SSH GU/SyncMate/provider/demo suite including new stage contracts</td><td class="pass">214 passed</td></tr>
     <tr><td>SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite</td><td class="pass">144 passed</td></tr>
-    <tr><td>Active v4 GU/profile/provider/SyncMate focused suite</td><td class="pass">196 passed</td></tr>
+    <tr><td>Active v5 GU/profile/provider/SyncMate focused suite</td><td class="pass">197 passed</td></tr>
+    <tr><td>Large stage-envelope regression</td><td class="pass">&gt;16 KB JSON validated in full; bounded tail and SHA-256 retained</td></tr>
+    <tr><td>Formal v4 gate</td><td class="pass">4/4 fetched, checksum-verified, and GU-accepted at <code>main@85c775a</code></td></tr>
+    <tr><td>Full v4 Cora/seed42 diagnostic</td><td class="pending">GU exit 0 and 68/68 files present; rejected only by truncated JSON validation</td></tr>
     <tr><td>Real three-dataset v4 stage + verify</td><td class="pass">Cora/CiteSeer/PubMed all accepted</td></tr>
     <tr><td>Cross-entry-point OpenGU split-contract smoke</td><td class="pass">Indices and induced edges match all masks; <code>process_data</code> loads 3/3</td></tr>
     <tr><td>Cross-entry-point model construction</td><td class="pass">GCNNet instantiated for all 3 datasets with 1433/7, 3703/6, 500/3 feature/class metadata</td></tr>
@@ -82,10 +85,10 @@
 
   <h2>Remaining acceptance sequence</h2>
   <ol>
-    <li>Merge the accepted v4 fix with <code>--no-ff</code> into <code>main</code>, push, and synchronize the clean SSH active checkout.</li>
+    <li>Merge the accepted v5 fix with <code>--no-ff</code> into <code>main</code>, push, and synchronize the clean SSH active checkout.</li>
     <li>Stage/verify all three public processed profiles before timing.</li>
     <li>Configure collector and four-file runner policy.</li>
-    <li>Run exactly one formal v4 GU gate through SyncMate.</li>
+    <li>Run exactly one formal v5 GU gate through SyncMate.</li>
     <li>Collect, verify, index, and gate before any matrix expansion.</li>
     <li>Dispatch nine reviewed stages; each must accept 68 files.</li>
     <li>Return all 612 verified files with matching Markdown/HTML scientific reports.</li>
