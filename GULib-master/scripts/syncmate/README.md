@@ -1133,6 +1133,12 @@ config but writes clearly marked synthetic no-GPU preflight artifacts only; it
 does not call `experiments/run.py`, conduct training, alter cache semantics, or
 claim experiment results.
 
+Text recipe fingerprints are normalized to LF before hashing, so a reviewed
+config has one identity on Windows and Linux. `smoke` and `opengu-preflight-v1`
+use the current job's exact checkout binding instead of an unreachable historic
+comparison object; a dispatched job still carries and enforces the full runner
+SHA.
+
 The formal small-graph Selection benchmark is exposed as three ordered static
 recipes:
 
@@ -1154,6 +1160,33 @@ binding, missing canonical data, unavailable CUDA, or a GPU other than RTX
 `warm.json`, and `cell.json`; controller acceptance collects exactly those
 files, verifies SHA-256, and checks the 17-output cold/warm/GPU contract without
 coercing Selection evidence into attack/collateral result schemas.
+
+The downstream infrastructure gate is the separate static recipe
+`opengu-small-selection-gu-gate-v1`. It runs exactly
+Cora/GCN/GNNDelete/degree/seed42/k=7 on the named
+`planetoid_public_fixed` processed profile. The adapter consumes the frozen
+grandfathered public Selection summary by exact SHA-256, preserves the selector
+label in a new Cache V2 Selection Artifact, and rejects any dataset, split,
+candidate-set, k, or artifact mismatch before GU starts. Its four accepted
+artifacts are `attack.json`, `collateral.json`, `predictions.npz`, and
+`_meta.json`. This is an infrastructure/provenance gate, not a
+TracIn-vs-degree or IF-formula scientific comparison. A broader public screen
+may expand only after the gate passes; an OpenGU 80/20 paper claim remains a
+separate canonical lane whose included model-dependent selectors must be
+recomputed on that exact split/model/checkpoint identity.
+
+After that gate is checksum-accepted, the public-profile scientific screen is
+available as nine static recipes named
+`opengu-small-selection-gu-<dataset>-seed<seed>-v1`, where dataset is
+`cora`, `citeseer`, or `pubmed`, and seed is `42`, `212`, or `2024`. Each
+recipe runs the exact 17-selector grid at k=7 for GCN/GNNDelete and requires
+the passing gate from the same full `main` SHA. A stage produces 17 complete
+four-file leaves (68 files); the complete screen is 153 cells and 612 files.
+Stages preserve partial progress through the normal runner fingerprints, but
+block if a resumed Selection manifest, source hash, dataset profile, or result
+metadata crosses identity. Collection is scoped to the exact 17 stage leaves,
+then SHA-256 verification and a dedicated 17-cell acceptance payload run before
+the stage is trusted.
 
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
@@ -1208,6 +1241,11 @@ bridge:
 
 ```bash
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
+# Formal one-cell Selection-to-GU infrastructure gate (after its processed
+# public profile has been staged and verified outside the timed run):
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-gate-v1 --wait --json
+# Only after the gate is accepted; repeat for the reviewed 3 x 3 stage ids:
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-cora-seed42-v1 --wait --json
 ```
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends

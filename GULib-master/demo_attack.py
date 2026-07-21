@@ -17,6 +17,7 @@ Example usage:
 import os
 import sys
 import argparse
+import re
 import time
 
 # IMPORTANT: Parse and clean sys.argv BEFORE importing any module that might
@@ -166,10 +167,8 @@ def main():
         if len(strategies) != 1:
             print("Cache V2 runner mode requires exactly one strategy")
             sys.exit(1)
-        if strategies[0] not in {"random", "degree", "pagerank", "im"}:
-            print(
-                "Cache V2 runner mode supports only random, degree, pagerank, or im"
-            )
+        if re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,80}", strategies[0]) is None:
+            print("Cache V2 runner strategy label is unsafe")
             sys.exit(1)
     print(f"\nStrategies to compare: {strategies}")
 
@@ -206,7 +205,10 @@ def main():
 
     # Validate strategies
     available_strategies = manager.list_strategies()
-    invalid_strategies = [s for s in strategies if s not in available_strategies]
+    invalid_strategies = (
+        [] if v2_selection
+        else [s for s in strategies if s not in available_strategies]
+    )
 
     if invalid_strategies:
         print(f"\nWarning: Invalid strategies: {invalid_strategies}")

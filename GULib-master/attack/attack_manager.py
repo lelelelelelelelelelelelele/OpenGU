@@ -536,10 +536,8 @@ class AttackManager:
         provenance; missing fields fail before the unlearning pipeline runs.
         """
 
-        if self.get_strategy(strategy_name) is None:
-            raise ValueError(
-                f"Strategy '{strategy_name}' not found. Registered: {self.list_strategies()}"
-            )
+        if not isinstance(strategy_name, str) or not strategy_name:
+            raise ValueError("Selection Artifact strategy label must be non-empty")
         required = {
             "artifact_id",
             "recipe_hash",
@@ -556,6 +554,14 @@ class AttackManager:
             )
         if selection_provenance.get("authoritative") is not True:
             raise ValueError("Selection Artifact provenance must be authoritative")
+        recipe = selection_provenance.get("recipe")
+        if self.get_strategy(strategy_name) is None and (
+            not isinstance(recipe, dict)
+            or recipe.get("strategy") != strategy_name
+        ):
+            raise ValueError(
+                "Selection Artifact provenance strategy must match the result label"
+            )
         nodes = torch.as_tensor(selected_nodes, dtype=torch.long).view(-1).cpu()
         if nodes.numel() <= 0:
             raise ValueError("Selection Artifact must contain at least one node")
