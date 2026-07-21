@@ -17,8 +17,8 @@
 <body><main>
   <h1>Small-selection → GU + SyncMate</h1>
   <div class="muted">Implementation acceptance · 2026-07-22</div>
-  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">v1/v2 diagnostic gates superseded; formal SSH gate v3 pending</span><br>
-    Gate v2 stopped before training because the processed public profile lacked OpenGU's <code>train_indices</code> contract. V3 derives and verifies all compatibility fields from the immutable public masks. This page claims no GU outcome yet.</section>
+  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">v1/v2/v3 diagnostic gates superseded; formal SSH gate v4 pending</span><br>
+    Gate v2 stopped before training because the profile lacked <code>train_indices</code>; gate v3 then exposed missing <code>num_classes</code> graph metadata. V4 derives and verifies split and graph compatibility fields from immutable Planetoid tensors. This page claims no GU outcome yet.</section>
 
   <h2>Frozen first gate</h2>
   <table><tbody>
@@ -38,10 +38,10 @@
 
   <h2>Implemented contract</h2>
   <div class="grid">
-    <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities. V3 also binds <code>*_indices</code> and induced split edges to each public mask.</div>
+    <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities. V4 binds <code>*_indices</code> and induced split edges to public masks and graph metadata to tensors.</div>
     <div class="card"><h3>Selection migration</h3>Fixed-hash cold summary and benchmark manifest create a fresh Cache V2 Selection Artifact. Deleted worktree/cache paths are never followed.</div>
     <div class="card"><h3>Hypothesis preserved</h3>All 17 scientific labels remain distinct through recipe, result key, and metadata; exact k is passed to both GU and retrain/collateral consumers.</div>
-    <div class="card"><h3>SyncMate acceptance</h3>Active v3 allowlist recipe, exact dispatched SHA, fresh identities, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate. V1/v2 remain diagnostic only.</div>
+    <div class="card"><h3>SyncMate acceptance</h3>Active v4 allowlist recipe, exact dispatched SHA, fresh identities, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate. V1/v2/v3 remain diagnostic only.</div>
     <div class="card"><h3>Bounded full matrix</h3>Nine static recipes each preserve 17 labels and exact k=7. Partial progress resumes only under the same source, profile, manifest, and Git identities.</div>
   </div>
 
@@ -49,9 +49,9 @@
   <table><tbody>
     <tr><th>Selector code SHA</th><td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td></tr>
     <tr><th>GU recipe introduction SHA</th><td><code>218f6421c2cb31b71ebfad113fee15b9ad0a3d36</code></td></tr>
-    <tr><th>Active GU v3 recipe introduction SHA</th><td><code>d8eda635dd5c8bd5ab7489340a3c00b00df46e1b</code></td></tr>
-    <tr><th>Gate v3 config SHA-256</th><td><code>adb00f5e76097953415cea27e9e621b6c98e658685a1bf0450df5c6a96a0bd71</code></td></tr>
-    <tr><th>Full v3 config SHA-256</th><td><code>f3eca0b813acbf582ba357e6ee3ac3b2ec90bfb064d7475f8324d7b0ada92dac</code></td></tr>
+    <tr><th>Active GU v4 recipe introduction SHA</th><td><code>544eab7ece867a406a4bdc703f7e4c10bb9a313c</code></td></tr>
+    <tr><th>Gate v4 config SHA-256</th><td><code>ec0ec36da6d5e65ed72dcd37e8cc2fbd854ffda2da134154e6c566444876264e</code></td></tr>
+    <tr><th>Full v4 config SHA-256</th><td><code>551c5360ec424b1eb35d6c6fce06f251bfe01c3380a0fa731cb136c8e3022f21</code></td></tr>
     <tr><th>Cora cold SHA-256</th><td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td></tr>
     <tr><th>Benchmark SHA-256</th><td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td></tr>
     <tr><th>SSH public source fingerprint</th><td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td></tr>
@@ -63,11 +63,12 @@
     <tr><td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td><td class="pass">222 passed</td></tr>
     <tr><td>SSH GU/SyncMate/provider/demo suite including new stage contracts</td><td class="pass">214 passed</td></tr>
     <tr><td>SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite</td><td class="pass">144 passed</td></tr>
-    <tr><td>Active v3 GU/profile/provider/SyncMate focused suite</td><td class="pass">195 passed</td></tr>
-    <tr><td>Real three-dataset v3 stage + verify</td><td class="pass">Cora/CiteSeer/PubMed all accepted</td></tr>
+    <tr><td>Active v4 GU/profile/provider/SyncMate focused suite</td><td class="pass">196 passed</td></tr>
+    <tr><td>Real three-dataset v4 stage + verify</td><td class="pass">Cora/CiteSeer/PubMed all accepted</td></tr>
     <tr><td>Cross-entry-point OpenGU split-contract smoke</td><td class="pass">Indices and induced edges match all masks; <code>process_data</code> loads 3/3</td></tr>
+    <tr><td>Cross-entry-point model construction</td><td class="pass">GCNNet instantiated for all 3 datasets with 1433/7, 3703/6, 500/3 feature/class metadata</td></tr>
     <tr><td>Observed public split counts</td><td class="pass">Cora 140/500/1000; CiteSeer 120/500/1000; PubMed 60/500/1000</td></tr>
-    <tr><td>Disposable v3 profiles</td><td class="pass">About 203 MB; removed after verification</td></tr>
+    <tr><td>Disposable v4 profiles</td><td class="pass">About 203 MB; removed after verification</td></tr>
     <tr><td>Python compile + diff check</td><td class="pass">PASS</td></tr>
     <tr><td>Disposable Cora public-profile stage/verify</td><td class="pass">PASS; 31.45 MB removed</td></tr>
     <tr><td>Local SyncMate E2E smoke</td><td class="pass">3/3 verified/indexed; 1 row parsed; temp removed</td></tr>
@@ -81,10 +82,10 @@
 
   <h2>Remaining acceptance sequence</h2>
   <ol>
-    <li>Merge the accepted v3 fix with <code>--no-ff</code> into <code>main</code>, push, and synchronize the clean SSH active checkout.</li>
+    <li>Merge the accepted v4 fix with <code>--no-ff</code> into <code>main</code>, push, and synchronize the clean SSH active checkout.</li>
     <li>Stage/verify all three public processed profiles before timing.</li>
     <li>Configure collector and four-file runner policy.</li>
-    <li>Run exactly one formal v3 GU gate through SyncMate.</li>
+    <li>Run exactly one formal v4 GU gate through SyncMate.</li>
     <li>Collect, verify, index, and gate before any matrix expansion.</li>
     <li>Dispatch nine reviewed stages; each must accept 68 files.</li>
     <li>Return all 612 verified files with matching Markdown/HTML scientific reports.</li>
