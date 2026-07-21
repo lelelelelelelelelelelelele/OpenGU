@@ -18,7 +18,10 @@ from experiments.baseline_k5.baseline_contract import (
     validate_output_root,
     validate_run_result,
 )
-from experiments.baseline_k5 import formal_preflight
+from experiments.baseline_k5 import (
+    formal_preflight,
+    rerun_cora_noise_anchor as k5_runner,
+)
 
 
 class _Method:
@@ -200,3 +203,155 @@ def test_formal_preflight_reports_exact_git_and_gpu_blockers(monkeypatch, tmp_pa
     assert "git-dirty" in text
     assert "RTX 4090 required" in text
     assert "torch.cuda.is_available() is false" in text
+
+
+def _formal_preflight(sha: str = "a" * 40):
+    return {
+        "ready": True,
+        "git": {
+            "branch": "main",
+            "git_sha": sha,
+            "dirty": False,
+            "status_entries": [],
+        },
+        "dataset_source": {"source_fingerprint": "b" * 64},
+        "gpu": {
+            "devices": [{"index": 0, "name": "NVIDIA GeForce RTX 4090"}],
+            "torch_cuda_available": True,
+            "torch_device_name": "NVIDIA GeForce RTX 4090",
+        },
+        "errors": [],
+    }
+
+
+def _write_gate_artifact(root: Path, sha: str = "a" * 40) -> Path:
+    artifact, _ = k5_runner._gate_paths(root)
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    config = dict(
+        expected_config(
+            dataset=k5_runner.DATASET,
+            model=k5_runner.GATE_BACKBONE,
+            method=k5_runner.GATE_METHOD,
+            seed=k5_runner.GATE_SEED,
+            k=k5_runner.BASELINE_K,
+        )
+    )
+    config.update({"git_sha": sha, "git_dirty": False})
+    artifact.write_text(
+        json.dumps(
+            {
+                "schema": SCHEMA,
+                "schema_version": SCHEMA_VERSION,
+                "f1_after": 0.70,
+                "method_perf_before": 0.72,
+                "method_noise_drop": 0.02,
+                "config": config,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return artifact
+
+
+def test_registered_gate_exercises_graphrevoker_shard_anchor():
+    assert k5_runner.gate_identity() == {
+        "dataset": "cora",
+        "backbone": "GCN",
+        "method": "GraphRevoker",
+        "seed": 111,
+        "baseline_k": 5,
+    }
+    expected = expected_config(
+        dataset="cora", model="GCN", method="GraphRevoker", seed=111, k=5
+    )
+    assert expected["before_metric_source"] == "shard_aggregate_f1"
+
+
+def test_full_matrix_refuses_without_completed_gate(monkeypatch, tmp_path: Path):
+    preflight = _formal_preflight()
+    monkeypatch.setattr(k5_runner, "BASELINE_ROOT", tmp_path)
+    monkeypatch.setattr(
+        k5_runner, "build_formal_preflight", lambda *args, **kwargs: preflight
+    )
+    monkeypatch.setattr(
+        k5_runner,
+        "run_single_baseline",
+        lambda *args: pytest.fail("full matrix must not start before the gate"),
+    )
+    assert k5_runner.main(["--expected-git-sha", "a" * 40, "--resume"]) == 2
+
+
+def test_gate_manifest_binds_sha_dataset_identity_and_artifact_digest(tmp_path: Path):
+    preflight = _formal_preflight()
+    artifact = _write_gate_artifact(tmp_path)
+    _, manifest_path = k5_runner._gate_paths(tmp_path)
+    manifest = {
+        "schema": k5_runner.GATE_SCHEMA,
+        "schema_version": k5_runner.GATE_SCHEMA_VERSION,
+        "kind": "formal_one_cell_gate",
+        "git_sha": "a" * 40,
+        "dataset_source_fingerprint": "b" * 64,
+        "gate": k5_runner.gate_identity(),
+        "artifact": {
+            "relative_path": artifact.relative_to(tmp_path).as_posix(),
+            "sha256": k5_runner._sha256_file(artifact),
+        },
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert k5_runner._validate_gate(preflight, tmp_path) == manifest
+
+    artifact.write_text(artifact.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="digest mismatch"):
+        k5_runner._validate_gate(preflight, tmp_path)
+
+
+def test_gate_then_resume_expands_same_formal_matrix(monkeypatch, tmp_path: Path):
+    preflight = _formal_preflight()
+    calls = []
+    monkeypatch.setattr(k5_runner, "BASELINE_ROOT", tmp_path)
+    monkeypatch.setattr(
+        k5_runner, "build_formal_preflight", lambda *args, **kwargs: preflight
+    )
+    monkeypatch.setattr(
+        k5_runner,
+        "collect_git_provenance",
+        lambda root: dict(preflight["git"]),
+    )
+    monkeypatch.setattr(
+        k5_runner,
+        "_git_provenance",
+        lambda: {"git_sha": "a" * 40, "git_dirty": False},
+    )
+
+    def run_gate(method, dataset, backbone, seed, baseline_k):
+        calls.append((method, dataset, backbone, seed, baseline_k))
+        _write_gate_artifact(tmp_path)
+        return True
+
+    monkeypatch.setattr(k5_runner, "run_single_baseline", run_gate)
+    assert (
+        k5_runner.main(["--gate-only", "--expected-git-sha", "a" * 40]) == 0
+    )
+    assert calls == [("GraphRevoker", "cora", "GCN", 111, 5)]
+
+    calls.clear()
+    monkeypatch.setattr(
+        k5_runner,
+        "run_single_baseline",
+        lambda *args: calls.append(args) or True,
+    )
+    monkeypatch.setattr(
+        k5_runner,
+        "compute_averaged_baseline",
+        lambda *args: {"method_perf_before": 0.72, "method_noise_drop": 0.02},
+    )
+    assert k5_runner.main(["--resume", "--expected-git-sha", "a" * 40]) == 0
+    assert len(calls) == 60
+    final_manifest = json.loads(
+        (tmp_path / "clean_cora_noise_anchor_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert final_manifest["formal_one_cell_gate"]["gate"] == (
+        k5_runner.gate_identity()
+    )

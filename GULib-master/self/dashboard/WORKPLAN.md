@@ -36,7 +36,7 @@
 1. **C1 — 指标选错，非贡献被证伪**：`degree ≥ IM/IF` 在 **raw-F1**（degree +1.85 > im +1.19 > tracin −0.31）**和 retrain gap**（全局 degree .0286 > im .0233；逐方法只有 GNNDelete 有真 gap、degree .158 第一、IF 家族≈0）**都成立**。但 thesis 本是 *audit + 异质性*，不是"IM/IF 最强" → **degree 赢不证伪它**。rebuttal 内：换主指标 retrain gap、异质性当头条、IM/IF 降诊断轴；TracIn 最弱本身是 finding。唯一可能翻盘的 IM/IF niche：GIF/IDEA gap 现≈0 且 L8 污染 → **E2** 是唯一能验出真 niche 的实验。→ 记忆 `paper-contribution-falsified`。
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
-4. **C4 — ΔF_noise(k=5) 磁盘上 5/6 方法 `f1_before`=null**（**设计如此、非缺同步**；只有 GNNDelete 的方法自吐 before）→ before 锚点用主矩阵 `perf_before` 本地 join 重算（**E3**，不需服务器）/W3-L4。
+4. **C4 — ΔF_noise(k=5) 历史 K5 口径缺 method-native before**：旧磁盘 5/6 方法 `f1_before=null`，不能继续充当 fresh anchor。→ **E3** 先走 fixed-SHA SSH formal 1-cell gate + 59-cell V2 expansion，取得 `method_perf_before/f1_after`，再本地 join 与 sanity；W3-L4 只引用新 accepted evidence。
 5. **C5 — GraphRevoker 历史矩阵退化（✅ 代码与远端 E4 已通过；本地归档待闭环）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续不再写“代码仍未修好”；但本地同名 40-cell 仍是 2026-05-07 旧视图，完整 evidence import 前不得从它们提取 post-fix 数值。→ `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`（总状态）+ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`（seed42）。
 
 ---
@@ -62,7 +62,7 @@ E4 GraphRevoker 修复 + 整 method 重跑（✅ GCN/GAT 四策略五 seed，40/
                                                  └─► 唯一能验 IM/IF 在 IF 家族有无真 niche
 
 ★ E1 citeseer clean ─► W2-② scope 必答题 / W3-L6 scope 改写
-E3 ΔF_noise anchor（本地重算：k=5 f1_after + 主矩阵 perf_before）─► W3-L4 anchor footnote
+E3 fresh K5：1-cell formal gate ─► 同 SHA 59-cell expansion ─► 本地 ΔF_noise sanity ─► W3-L4 anchor footnote
 
 Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe gate ─► E7 umbrella ─► C.6a 同架构 surrogate ─► C.6b 跨 backbone surrogate
 
@@ -70,11 +70,11 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
 
-**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ 本地算 E3 → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
+**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ E3 fixed-SHA K5 gate/full matrix 后本地 sanity → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
 
 ---
 
-## 5. 实验（主矩阵补证 / 关硬伤）—— 多数 ★需 GPU（E3 例外：本地重算）
+## 5. 实验（主矩阵补证 / 关硬伤）—— 多数 ★需 GPU（E3：formal K5 生成需 GPU，后续 join/sanity 本地）
 
 > 目标：把 paper 已写但磁盘撑不住的数字补干净。**不是新故事，是给 thesis 补证。** 进度数字源 = `config_inventory.html`。
 
@@ -84,6 +84,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - 只有出现明确边界时才建隔离 worktree：并发分支、尚未解决的 tracked/运行态污染、未接收修复的验证，或 `experiments/run.py --dry_run` 已证明存在结果/cache identity 冲突。
 - 判断前必须查 active 的 `git status --short --branch`、`git worktree list` 和 runner fingerprint 分类。ignored 历史结果本身不等于误判；若目标 cells 全部显示 `would_run`，不得再以“可能误跳过”为由强制隔离。
 - 正式性的判据是固定源码/配置 provenance、每格四件套、质量 gate 和日志。用同一 full config/fingerprint 跑出的 1-cell gate 是正式矩阵的一部分，扩展时应 skip 而不是覆盖。
+- **K5 formal lane（2026-07-22 锁定）**：注册 gate=`Cora/GCN/GraphRevoker/seed111/k=5`，先执行 `rerun_cora_noise_anchor.py --gate-only --expected-git-sha <full-sha>`；只有 gate manifest 的 SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256 全部匹配，才允许用同一 SHA 加 `--resume` 扩展剩余 59 cells。runner 对“无 gate 直接全跑”必须 fail closed。
 - **A5 当前决定**：active 上五段 dry-run 为 `50 + 20 + 80 + 20 + 20 = 190/190 would_run`，不存在旧结果误跳过；完成 active 剩余 Git hygiene 后直接走 active formal lane。此前误建且 0 产物的 A5 worktree 不作为执行路径。
 - **小图 Selection 数据合同（2026-07-21）**：public 17-method benchmark 只从 active checkout 的 `data/raw/{cora,citeseer,pubmed}` 读取，必须已有八个 raw 文件与 `processed/data.pt`，禁止自动下载/运行时加工；OpenGU integrated Selection 只从 `data/processed/{transductive,inductive}` pickle 读取。public split 与 OpenGU 80/20 split 不得混称。该合同已固化到根 `AGENTS.md`（所有 agent 强制规则）和 `CLAUDE.md`（SSH 操作规则）；shared/worktree/experiment checkout 不得作为 dataset root，既有 source-dataset 副本已在验证后清理。
 - active 已补齐三套 public raw/PyG cache 与 Cora/CiteSeer canonical 80/20 pickle；PubMed canonical 80/20 pair 尚无可信历史副本。路径、逐文件 SHA-256、聚合 source fingerprint 与 split count 由 runner 写入每个 cold/warm summary。
@@ -94,7 +95,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 | **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **远端 40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0）· ◐ **本地归档待闭环**（总状态 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`；seed42 报告 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
 | **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
-| **E3** | **算 ΔF_noise anchor（本地，不需服务器）**：k=5 的 `f1_after` 本地已有 + 主矩阵 `perf_before`（在 `_phase_b_aggregate.csv`）→ 离线 join 算 ΔF_noise；或按 `METRIC_FIELD_SEMANTICS` 改用 `relative_f1_drop`（免 before，纯写作 W3-L4）。⚠ k=5 seed(111…)≠主矩阵 seed(42…)，取均值作近似锚点 | 本地 inline join | 离线重算 | C4 / L4 | ☐ |
+| **E3** | **重建并计算 ΔF_noise anchor**：先在 clean SSH main、固定 full SHA、RTX 4090 上生成 fresh V2 K5 matrix；注册 `GraphRevoker/GCN/seed111` 1-cell gate，PASS 后同 SHA resume 剩余 59 cells。随后本地把 K5 `method_perf_before/f1_after` 与主矩阵口径核对并计算 ΔF_noise / `relative_f1_drop` sanity。⚠ K5 seed(111…)≠主矩阵 seed(42…)，跨 seed 只允许均值级近似并写入 caveat | `experiments/baseline_k5/rerun_cora_noise_anchor.py` | 1-cell gate + 59-cell expansion；再离线 join | C4 / L4 | ◐ runner gate contract 就绪；SSH dirty/GPU 阻断，0/60 formal cells |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
 | **E7** ★ | **C.6 surrogate-transfer umbrella（严格门控）**：Cache V2 Selection Artifact 真实命中且 `proper-tracin-v1` versioned recipe 通过 gate 后，先做 **C.6a** 独立训练 GCN surrogate 选点 → GCN target GNNDelete，再做 **C.6b** GCN surrogate 选点 → GAT / GIN target GNNDelete。比较 target-direct TracIn、same-seed random、degree；主指标 = retrain gap transfer ratio，辅以 selection Jaccard。术语定为 query-free surrogate / 灰盒迁移，不写成纯黑盒 | 待建 `C6a_same_arch_surrogate.yaml`、`C6b_cross_backbone_surrogate.yaml`；gate = Cache V2 cold/warm exact hit + `proper-tracin-v1` recipe；显式记录 selection artifact ref，且 `selector_model_id != target_model_id` | C.6a 5 cell + C.6b 10 cell；5 seeds；若 transfer ratio ≥60% 再扩反向组合或第二个 GU family | L2-direct → L2-surrogate / threat-model realism | ◐ generic 17-output Cache V2 real-hit 已由 SSH `9/9` grandfathered GT 特例关闭，**不再要求 3×3 重跑**。仍待 `proper-tracin-v1`、E7 model-id/runner 集成与 C.6a/C.6b GU outcome |
@@ -172,10 +173,11 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 ## 10. Changelog
 
+- **2026-07-22** K5 formal 顺序固化：E3 从“沿用旧 K5 后纯本地 join”更新为 fresh V2 formal lane；注册 `Cora/GCN/GraphRevoker/seed111/k=5` 单 cell gate，manifest 绑定 full main SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256。全矩阵必须在 gate PASS 后用同一 SHA `--resume`，无 gate 直接全跑由 runner 拒绝。
 - **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移与清理完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；两个 `archive/paper-alignment-*` tag 经 peel 验证后，原 alignment stash 已 drop、旧分支已删除，不再以活动 branch/stash 充当知识库。
 - **2026-06-27** 建档（实验/ablation/写作/画图 四阶段，收敛 PROGRESS §2/§3 + limitations + PAPER_LIABILITIES_MAP + 配置矩阵）；配套 `config_inventory.{csv,html}` 监督看板。
 - **2026-06-27（晚）** E4 决策定为 **修 + 重跑**（不 drop / 不 caveat）；并 **升级为唯一操作中枢**：折入 PROGRESS §0/§1/§2/§4（现状/快照/硬伤/方向），`refresh.py` 重指到本文件生成 `progress.html`（看板列改为四阶段），`PROGRESS.md` 退成指针。
-- **2026-06-28** E3 从 ★GPU 降级为**本地重算**：核实 k=5 baseline `f1_before=null` 是设计如此（非缺同步），before 锚点在主矩阵 `perf_before`/`_phase_b_aggregate.csv` 已有 → 离线 join 或 reframe，不需服务器。
+- **2026-06-28（SUPERSEDED 2026-07-22）** E3 当时从 ★GPU 降级为本地重算：依据旧 k=5 `f1_before=null`，计划从主矩阵取 before。该方案已被 2026-07-22 fresh V2 K5 formal gate/full-matrix 决策取代；旧证据只保留为历史背景。
 - **2026-06-30** **F4 完成 + 验收**：`config_inventory` 重设计为 coverage-heatmap（分类 block + A3 α-grid + 红/黄/绿 fill）、全派生（消除 3 处硬编码）、配 CSV→HTML 生成器 `gen_config_inventory.py`（一处改 `done` 全盘联动，实测回填闭环）。验收报告 [`CONFIG_INVENTORY_ACCEPTANCE.md`](CONFIG_INVENTORY_ACCEPTANCE.md)：功能 + 数据真实性全过（headline 对得上 `_phase_b_aggregate.csv` / 磁盘）；遗留 **F-1**（A3 实有 10 个 α=0.00 alias 结果、看板报 0）/ **F-2**（A5_ratio_0.01 90/90 含 1 个已知 GraphRevoker 失败 cell）两项 done 口径待拍板（见 VALIDATION_LOG V-2026-06-30-01）。
 - **2026-06-28** 并入 `p.md` 笔记：E4 提到第一（audit 底座 + OpenGU 上游老 bug + 争取交叉验证）；W6 加 reviewer意见文件区(OB)；新增 W9(AI 数据分析)/F4(exp 看板改进)/A9(加新方法)；§3 记下"fingerprint 是否偏轻"开放问题；§7 加"per-method 优劣打底"。
 - **2026-06-28** 接入 AI review `文档规划/AI审稿_2026-06-28.md`（5/10 weak reject，**非官方审稿** → 现状仍完善期）→ W6；三痛点（scope 没跑完 / 叙述过满 / 统计偏弱）对应 E1·E5 / W1·W3 / C2·A7（均已在计划内）；W3 加"清未完成语句"；§3 fingerprint 偏轻被 review 印证。
