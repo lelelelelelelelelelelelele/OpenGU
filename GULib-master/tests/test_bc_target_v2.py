@@ -363,6 +363,9 @@ def test_syncmate_small_selection_configs_are_three_bounded_stages():
     )
 
     assert (mvp["datasets"], mvp["seeds"], mvp["resume"]) == (("Cora",), (42,), False)
+    assert mvp["required_branch"] == "main"
+    assert dataset_gate["required_branch"] == "main"
+    assert full["required_branch"] == "main"
     assert dataset_gate["datasets"] == ("Cora", "CiteSeer", "PubMed")
     assert dataset_gate["seeds"] == (42,)
     assert dataset_gate["required_prior_cells"] == ("cora_seed42",)
@@ -382,7 +385,7 @@ def test_syncmate_small_selection_preflight_blocks_non_4090(monkeypatch):
     config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
     monkeypatch.setattr(
         "experiments.bc_target_v2.syncmate_recipe._git_state",
-        lambda _root: {"head": "a" * 40, "branch": "test", "status_short": []},
+        lambda _root: {"head": "a" * 40, "branch": "main", "status_short": []},
     )
     monkeypatch.setattr(
         "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
@@ -397,3 +400,27 @@ def test_syncmate_small_selection_preflight_blocks_non_4090(monkeypatch):
 
     assert result["ready"] is False
     assert any("required device" in error for error in result["errors"])
+
+
+def test_syncmate_small_selection_preflight_blocks_feature_branch(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    config = root / "experiments" / "configs" / "syncmate_small_selection_mvp_v1.yaml"
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe._git_state",
+        lambda _root: {
+            "head": "a" * 40,
+            "branch": "codex/feat-selection",
+            "status_short": [],
+        },
+    )
+    monkeypatch.setattr(
+        "experiments.bc_target_v2.syncmate_recipe.resolve_planetoid_public_source",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            to_manifest=lambda: {"canonical_root_match": True}
+        ),
+    )
+
+    result = preflight_recipe(config, require_gpu=False)
+
+    assert result["ready"] is False
+    assert any("required formal branch" in error for error in result["errors"])

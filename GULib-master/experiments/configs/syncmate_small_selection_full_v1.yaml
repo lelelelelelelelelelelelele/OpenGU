@@ -1,5 +1,5 @@
 schema: bc_target_v2.syncmate_small_selection_recipe
-version: 1
+version: 2
 recipe_id: opengu-small-selection-full-v1
 stage: full
 datasets: [Cora, CiteSeer, PubMed]
@@ -7,6 +7,7 @@ seeds: [42, 212, 2024]
 budgets: [14, 7, 3]
 device: cuda
 required_device_name: RTX 4090
+required_branch: main
 data_root: data/raw
 cache_root: results/cache_v2/small_selection_syncmate_v1
 output_root: results/runs/__syncmate_small_selection_v1__

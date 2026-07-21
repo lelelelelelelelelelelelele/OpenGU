@@ -7642,6 +7642,8 @@ def test_small_selection_runner_recipes_are_fixed_three_stage_configs():
         "--json",
     ]
     assert mvp["preflight_profile"] == "small-selection-4090-v1"
+    assert mvp["git_binding_policy"] == "job-exact-main-v1"
+    assert mvp["requires_job_expected_git_sha"] is True
     assert mvp["execution_validator"] == "exact-artifacts-json-v1"
     assert mvp["collector_profile"] == "small-selection-v1"
     assert len(mvp["expected_artifact_paths"]) == 3
@@ -7675,7 +7677,7 @@ def test_small_selection_execution_validator_rejects_missing_artifacts(tmp_path,
     )
     recipe = "opengu-small-selection-mvp-v1"
     definition = sm.runner_recipe_definition(recipe)
-    sm.runner_queue_submit("selection-001", recipe)
+    sm.runner_queue_submit("selection-001", recipe, expected_git_sha="a" * 40)
 
     class Completed:
         returncode = 0
@@ -7698,6 +7700,44 @@ def test_small_selection_execution_validator_rejects_missing_artifacts(tmp_path,
         )
     )
     assert "expected recipe artifact is missing" in outcome["reason"]
+
+
+def test_small_selection_runner_blocks_job_without_exact_git_sha(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(
+        sm,
+        "runner_recipe_binding",
+        lambda recipe: {
+            "ready": True,
+            "errors": [],
+            "observed": {"git_sha": "a" * 40},
+            "recipe": {"id": recipe},
+        },
+    )
+    sm.runner_queue_submit(
+        "selection-unpinned-001", "opengu-small-selection-mvp-v1"
+    )
+    calls = []
+    monkeypatch.setattr(
+        sm.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs))
+    )
+
+    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+
+    assert result["status"] == "blocked"
+    assert not calls
+    blocked = json.loads(
+        (
+            sync_dir
+            / "runner_queue"
+            / "results"
+            / "selection-unpinned-001.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert "requires an exact Git SHA" in blocked["reason"]
 
 
 def test_small_selection_collector_acceptance_binds_verified_cold_warm_receipt(

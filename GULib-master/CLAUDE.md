@@ -38,6 +38,8 @@ Repository Git rules are defined in `AGENTS.md` and explained with executable Po
 
 ### Formal Remote Execution Lane
 
+- Feature/fix branches may run unit tests, integration tests, and explicitly non-formal smoke checks only. A formal MVP/one-cell gate is already part of the real experiment matrix and therefore runs only after the complete code line has been accepted into `main`.
+- Pin every formal matrix to one exact full `main` SHA. If a formal gate finds a code defect, stop, fix it on a new branch, accept that fix into `main`, and restart the gate with the new SHA and result/cache identity; do not mix cells across SHAs.
 - The default lane for formal GPU experiments is the **aligned, intentionally clean SSH active checkout**. A formal run does not require a separate worktree merely because it is formal.
 - Use an isolated worktree only when there is a concrete boundary that requires it: concurrent branch work, unresolved tracked/operational contamination, validation of an unaccepted fix, or a demonstrated result/cache identity collision.
 - Before claiming isolation is necessary, inspect `git status --short --branch`, `git worktree list`, and the canonical runner's `--dry_run` classification. Historical ignored results alone are not evidence of a collision when the fingerprinted runner reports the intended cells as `would_run`.

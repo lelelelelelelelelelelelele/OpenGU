@@ -96,16 +96,7 @@ GATE4_RECIPE_ALLOWED_DELTA = (
     "GULib-master/utils/dataset_utils.py",
     "GULib-master/utils/logger.py",
 )
-SMALL_SELECTION_RECIPE_BASE_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
-SMALL_SELECTION_RECIPE_ALLOWED_DELTA = (
-    "GULib-master/experiments/bc_target_v2/syncmate_recipe.py",
-    "GULib-master/experiments/configs/syncmate_small_selection_mvp_v1.yaml",
-    "GULib-master/experiments/configs/syncmate_small_selection_dataset_gate_v1.yaml",
-    "GULib-master/experiments/configs/syncmate_small_selection_full_v1.yaml",
-    "GULib-master/scripts/syncmate/syncmate.py",
-    "GULib-master/tests/test_bc_target_v2.py",
-    "GULib-master/tests/test_syncmate.py",
-)
+SMALL_SELECTION_RECIPE_INTRODUCED_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
 SMALL_SELECTION_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_v1__"
 SMALL_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
 
@@ -135,8 +126,9 @@ def _small_selection_recipe(
         ),
         "config_path": config_path,
         "config_sha256": config_sha256,
-        "expected_git_sha": SMALL_SELECTION_RECIPE_BASE_SHA,
-        "allowed_git_delta_paths": SMALL_SELECTION_RECIPE_ALLOWED_DELTA,
+        "recipe_introduced_git_sha": SMALL_SELECTION_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
         "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
         "expected_artifact_paths": _small_selection_artifact_paths(datasets, seeds),
         "success_predicate": (
@@ -205,21 +197,21 @@ RUNNER_RECIPE_DEFINITIONS = {
     "opengu-small-selection-mvp-v1": _small_selection_recipe(
         "opengu-small-selection-mvp-v1",
         "syncmate_small_selection_mvp_v1.yaml",
-        "f84f143cb8814516e2fbfb477743a8b58a583d17527b1d700eb3f520867b77ce",
+        "d75a8d89a212fd3bdb71fce101b17fd4d2f3ed05dd426c5410183b1c59eec5d0",
         ("Cora",),
         (42,),
     ),
     "opengu-small-selection-dataset-gate-v1": _small_selection_recipe(
         "opengu-small-selection-dataset-gate-v1",
         "syncmate_small_selection_dataset_gate_v1.yaml",
-        "8540e18ce8342c3d4686c1ef80119265232ade75f35a6fcbe155f074f042ac8e",
+        "8394325534bee937ff8a5459671cbf20918f82c5615efc3e8cb7c6340b2cc214",
         ("Cora", "CiteSeer", "PubMed"),
         (42,),
     ),
     "opengu-small-selection-full-v1": _small_selection_recipe(
         "opengu-small-selection-full-v1",
         "syncmate_small_selection_full_v1.yaml",
-        "4989168c99894ee9c3b6cc3be9a6951a8b2f25893197eb70aa6378a0959c7b06",
+        "29149a559ac14c0f4e13cc677417f4633002bc55c06ddb06f33f1b3bca62079d",
         ("Cora", "CiteSeer", "PubMed"),
         (42, 212, 2024),
     ),
@@ -14340,11 +14332,22 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
         observed_config_sha = sha256_file(config_path)
         if observed_config_sha != definition["config_sha256"]:
             errors.append("fixed recipe config SHA-256 differs from recipe metadata")
-    allowed_delta_paths = definition.get("allowed_git_delta_paths")
-    git = runner_recipe_git_binding(
-        str(definition["expected_git_sha"]),
-        tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
-    )
+    if definition.get("git_binding_policy") == "job-exact-main-v1":
+        observed_sha = run_git(["rev-parse", "HEAD"])
+        git = {
+            "expected_git_sha": None,
+            "observed_git_sha": observed_sha,
+            "mode": "job-exact-main-v1",
+            "ok": True,
+            "changed_paths": [],
+            "errors": [],
+        }
+    else:
+        allowed_delta_paths = definition.get("allowed_git_delta_paths")
+        git = runner_recipe_git_binding(
+            str(definition["expected_git_sha"]),
+            tuple(allowed_delta_paths) if allowed_delta_paths is not None else None,
+        )
     errors.extend(git.get("errors") or [])
     runtime_preflight = None
     if definition.get("preflight_profile") == "small-selection-4090-v1" and not errors:
@@ -14362,7 +14365,8 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
     return {
         "recipe": definition,
         "expected": {
-            "git_sha": definition["expected_git_sha"],
+            "git_sha": definition.get("expected_git_sha"),
+            "recipe_introduced_git_sha": definition.get("recipe_introduced_git_sha"),
             "config_path": config_rel,
             "config_sha256": definition["config_sha256"],
             "timeout_seconds": definition["timeout_seconds"],
@@ -14855,6 +14859,7 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "blocked", "processed": True, "blocked": runner_queue_block_invalid(source, entry)}
     job = entry["job"]
     job_id = str(job["id"])
+    definition = runner_recipe_definition(str(job["recipe"]))
     binding = runner_recipe_binding(str(job["recipe"]))
     expected_git_sha = job.get("expected_git_sha")
     observed_git_sha = (binding.get("observed") or {}).get("git_sha")
@@ -14862,6 +14867,11 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
     binding["job_exact_git_match"] = (
         observed_git_sha == expected_git_sha if expected_git_sha else None
     )
+    if definition.get("requires_job_expected_git_sha") and not expected_git_sha:
+        binding.setdefault("errors", []).append(
+            "formal recipe requires an exact Git SHA in the job envelope"
+        )
+        binding["ready"] = False
     if expected_git_sha and observed_git_sha != expected_git_sha:
         binding.setdefault("errors", []).append(
             "runner checkout does not match the exact Git SHA bound in the job envelope"
@@ -14890,7 +14900,6 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
         runner_id=config.get("device_id"),
         recipe_binding=binding,
     )
-    definition = runner_recipe_definition(str(job["recipe"]))
     command, timeout = runner_queue_recipe_command(str(job["recipe"]))
     try:
         completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout, check=False)

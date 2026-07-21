@@ -23,7 +23,7 @@ from .recipe import SCORE_NAMES
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_SCHEMA = "bc_target_v2.syncmate_small_selection_recipe"
-CONFIG_VERSION = 1
+CONFIG_VERSION = 2
 CELL_RECEIPT_SCHEMA = "bc_target_v2.syncmate_selection_cell"
 CELL_RECEIPT_VERSION = 1
 ALLOWED_STAGES = ("mvp", "dataset_gate", "full")
@@ -37,6 +37,7 @@ CONFIG_KEYS = {
     "budgets",
     "device",
     "required_device_name",
+    "required_branch",
     "data_root",
     "cache_root",
     "output_root",
@@ -138,6 +139,8 @@ def load_recipe_config(
         raise SyncMateSelectionRecipeError("formal SyncMate recipe must require CUDA")
     if not isinstance(value["required_device_name"], str) or not value["required_device_name"].strip():
         raise SyncMateSelectionRecipeError("required_device_name must be non-empty")
+    if value["required_branch"] != "main":
+        raise SyncMateSelectionRecipeError("formal SyncMate recipe must require the main branch")
     if not isinstance(value["timeout_seconds"], int) or value["timeout_seconds"] <= 0:
         raise SyncMateSelectionRecipeError("timeout_seconds must be positive")
     for key in ("resume", "require_empty_roots"):
@@ -235,6 +238,12 @@ def preflight_recipe(
     git = _git_state(Path(config["repository_root"]))
     if git["status_short"]:
         errors.append("runner worktree is dirty")
+    if git["branch"] != config["required_branch"]:
+        errors.append(
+            "runner branch is not the required formal branch: expected {0}, observed {1}".format(
+                config["required_branch"], git["branch"]
+            )
+        )
     if config["require_empty_roots"]:
         for label in ("cache_root_resolved", "output_root_resolved"):
             root = Path(config[label])

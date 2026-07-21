@@ -1142,11 +1142,15 @@ recipes:
 
 Their reviewed YAML files fix the dataset matrix, budgets, canonical
 checkout-local `data/raw` root, ignored Cache V2/output roots, CUDA-only device,
-RTX 4090 requirement, and per-cell timeout. The first stage requires empty
-runtime roots; later stages require accepted prior cells and resume without
-overwriting them. Before execution, the recipe blocks on a dirty checkout,
-wrong Git/config binding, missing canonical data, unavailable CUDA, or a GPU
-other than RTX 4090. A successful cell produces immutable `cold.json`,
+RTX 4090 requirement, required `main` branch, and per-cell timeout. These are
+formal recipes: feature branches may run only separately labelled disposable
+smoke checks, not these MVP/dataset/full jobs. Dispatch pins the runner's full
+`main` SHA into the job envelope; a missing or mismatched SHA blocks before
+execution. The first stage requires empty runtime roots; later stages require
+accepted prior cells from that same SHA and resume without overwriting them.
+Before execution, the recipe also blocks on a dirty checkout, wrong config
+binding, missing canonical data, unavailable CUDA, or a GPU other than RTX
+4090. A successful cell produces immutable `cold.json`,
 `warm.json`, and `cell.json`; controller acceptance collects exactly those
 files, verifies SHA-256, and checks the 17-output cold/warm/GPU contract without
 coercing Selection evidence into attack/collateral result schemas.

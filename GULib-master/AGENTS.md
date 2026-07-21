@@ -58,6 +58,9 @@ The authoritative human-readable workflow is [`docs/GIT_WORKFLOW.md`](docs/GIT_W
 - Before switching or merging, run `git status --short --branch` and `git worktree list`. Preserve unrelated dirty files and never move a branch that is checked out in another worktree.
 - Suggested branch names are `feat/*`, `fix/*`, `experiment/*`, `docs/*`, and `chore/*`. Agent-created branches use `codex/<type>-<topic>-YYYYMMDD`.
 - Keep commits reviewable and scoped. A heterogeneous worktree must be split into semantic commits; never use `git add -A` blindly.
+- Improvement branches are for code/config/documentation changes plus unit, integration, and explicitly non-formal smoke tests. A branch smoke must use disposable output and must not be cited or resumed as a formal matrix cell.
+- Formal experiments, including the one-cell MVP/gate that will become part of a matrix, start only after the complete improvement line is accepted into `main`. Run them from the intentionally clean SSH active checkout on `main`, with the exact full `main` SHA recorded and pinned for every stage of that matrix.
+- If a formal run exposes a code defect, stop the matrix. Create a fix branch from the pinned `main`, test it, merge it through the recorded parent chain into `main`, then restart the formal gate under the new `main` SHA and a new result/cache identity. Results from the superseded SHA are diagnostic only.
 - Do not merge into `main`, push, delete branches, prune refs, or rewrite shared history unless the user explicitly authorizes that step.
 
 ## Human-Readable Reports
