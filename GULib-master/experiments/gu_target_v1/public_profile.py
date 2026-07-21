@@ -154,7 +154,10 @@ def stage_public_profile(
         dataset=dataset,
     )
     pyg_dataset = Planetoid(
-        root=str(source.resolved_root),
+        # OpenGU stores each Planetoid adapter cache in a lowercase dataset
+        # leaf (`data/raw/cora`, etc.). Passing the canonical parent raw root
+        # makes PyG look for `data/raw/raw` and attempt a forbidden download.
+        root=str(source.resolved_dataset_dir),
         name=source.dataset,
         transform=NormalizeFeatures(),
     )
