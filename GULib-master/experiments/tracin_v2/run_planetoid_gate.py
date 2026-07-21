@@ -32,6 +32,11 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import GATConv, GCNConv
 from torch_geometric.transforms import NormalizeFeatures
 
+from experiments.bc_target_v2.dataset_source import (
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 from experiments.tracin_v2.core import (
     deployed_cross_gradient_scores,
     stable_topk,
@@ -91,6 +96,8 @@ PLANETOID_NAMES = {
     "citeseer": "CiteSeer",
     "pubmed": "PubMed",
 }
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 
 
 def canonical_dataset_name(value: str) -> str:
@@ -125,7 +132,7 @@ def build_model(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-root", type=Path, required=True)
+    parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--dataset", type=canonical_dataset_name, default="Cora")
@@ -478,17 +485,23 @@ def main(argv=None) -> None:
     if args.lissa_scale <= 0 or not 0.0 <= args.lissa_damp < 1.0:
         raise ValueError("LiSSA scale must be positive and damp must be in [0, 1)")
 
-    repo = Path(__file__).resolve().parents[2]
+    repo = REPO_ROOT
     reject_legacy_output_path(args.output, repo)
 
+    dataset_source = resolve_planetoid_public_source(
+        args.data_root,
+        repository_root=repo,
+        dataset=args.dataset,
+    )
     seed_everything(args.seed, args.num_threads)
     device = torch.device("cpu")
     dataset = Planetoid(
-        root=str(args.data_root.expanduser().resolve()),
-        name=args.dataset,
+        root=str(dataset_source.resolved_root),
+        name=dataset_source.storage_name,
         transform=NormalizeFeatures(),
     )
     data = dataset[0].to(device)
+    split_observation = validate_public_split(data, args.dataset)
     candidate_ids = data.train_mask.nonzero(as_tuple=False).view(-1)
     hessian_train_ids = candidate_ids.clone()
     if args.candidate_limit > 0:
@@ -572,7 +585,12 @@ def main(argv=None) -> None:
     }
 
     source_hash = source_fingerprint(
-        [Path(__file__).resolve(), repo / "experiments" / "tracin_v2" / "core.py", repo / "experiments" / "tracin_v2" / "recipe.py"]
+        [
+            Path(__file__).resolve(),
+            repo / "experiments" / "tracin_v2" / "core.py",
+            repo / "experiments" / "tracin_v2" / "recipe.py",
+            repo / "experiments" / "bc_target_v2" / "dataset_source.py",
+        ]
     )
     numerics = {
         "python": platform.python_version(),
@@ -608,6 +626,7 @@ def main(argv=None) -> None:
             "dataset_adapter": "torch_geometric.datasets.Planetoid",
             "dataset_name": args.dataset,
             "split_policy": "public",
+            "dataset_source_fingerprint": dataset_source.source_fingerprint,
             "transform_policy": "NormalizeFeatures",
             "edge_index_hash": tensor_hash(data.edge_index),
             "features_hash": tensor_hash(data.x),
@@ -680,6 +699,8 @@ def main(argv=None) -> None:
         },
         "dataset": {
             "name": args.dataset,
+            "source": dataset_source.to_manifest(),
+            "split_observation": split_observation,
             "num_nodes": int(data.num_nodes),
             "num_edges": int(data.num_edges),
             "num_candidates": int(candidate_ids.numel()),
