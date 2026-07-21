@@ -25,6 +25,11 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.transforms import NormalizeFeatures
 
 from cache_v2 import ProducerVersion
+from experiments.bc_target_v2.dataset_source import (
+    canonical_data_root,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 
 from .core import (
     GateGCN,
@@ -48,9 +53,7 @@ from .score_store import ScoreBundlePayload, ScoreBundleStore
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATA_ROOT = Path(
-    "E:/project/OpenGU/GULib-master/data/raw/Planetoid"
-)
+DEFAULT_DATA_ROOT = canonical_data_root(REPO_ROOT)
 DEFAULT_CACHE_ROOT = REPO_ROOT / "results" / "cache_v2" / "c_target_v1"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "c_target_v1"
 
@@ -159,16 +162,22 @@ def main(argv: Sequence[str] = None) -> int:
     args = build_parser().parse_args(argv)
     _validate_args(args)
     run_started = time.perf_counter()
+    dataset_source = resolve_planetoid_public_source(
+        args.data_root,
+        repository_root=REPO_ROOT,
+        dataset=args.dataset,
+    )
     seed_everything(args.seed, args.num_threads)
     device = torch.device("cpu")
 
     load_started = time.perf_counter()
     dataset = Planetoid(
-        root=str(args.data_root.expanduser().resolve()),
-        name=args.dataset,
+        root=str(dataset_source.resolved_root),
+        name=dataset_source.storage_name,
         transform=NormalizeFeatures(),
     )
     data = dataset[0].to(device)
+    split_observation = validate_public_split(data, args.dataset)
     load_seconds = time.perf_counter() - load_started
 
     candidate_ids = torch.where(data.train_mask)[0].sort().values
@@ -205,6 +214,7 @@ def main(argv: Sequence[str] = None) -> int:
         Path(__file__).with_name("core.py"),
         Path(__file__).with_name("recipe.py"),
         Path(__file__).with_name("score_store.py"),
+        REPO_ROOT / "experiments" / "bc_target_v2" / "dataset_source.py",
     )
     code_fingerprint = source_fingerprint(source_paths)
     split_tensor = torch.stack(
@@ -227,6 +237,7 @@ def main(argv: Sequence[str] = None) -> int:
         data_identity={
             "dataset": args.dataset,
             "dataset_family": "Planetoid",
+            "dataset_source_fingerprint": dataset_source.source_fingerprint,
             "edge_index_hash": tensor_hash(data.edge_index),
             "features_hash": tensor_hash(data.x),
             "labels_hash": tensor_hash(data.y),
@@ -436,6 +447,8 @@ def main(argv: Sequence[str] = None) -> int:
         "version": 1,
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": args.dataset,
+        "dataset_source": dataset_source.to_manifest(),
+        "split_observation": split_observation,
         "model": "GCN",
         "device": "cpu",
         "seed": int(args.seed),
@@ -483,7 +496,8 @@ def main(argv: Sequence[str] = None) -> int:
             "executable": sys.executable,
         },
         "config": {
-            "data_root": str(args.data_root.expanduser().resolve()),
+            "data_root_requested": str(args.data_root),
+            "data_root": str(dataset_source.resolved_root),
             "dataset": args.dataset,
             "cache_root": str(store.root),
             "epochs": int(args.epochs),

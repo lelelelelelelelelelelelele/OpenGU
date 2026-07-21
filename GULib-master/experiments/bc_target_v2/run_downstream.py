@@ -23,6 +23,11 @@ from experiments.c_target_v1.score_store import ScoreBundlePayload
 from experiments.selection_budget_planner import MAXK_SELECTION_PLAN_SCHEMA
 
 from .core import remove_selected_nodes, train_model_once
+from .dataset_source import (
+    assert_same_dataset_source,
+    resolve_planetoid_public_source,
+    validate_public_split,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -156,9 +161,9 @@ def main(argv: Sequence[str] = None) -> int:
     selection = json.loads(selection_path.read_text(encoding="utf-8"))
     if selection.get("schema") != "bc_target_v2.selection_summary":
         raise ValueError("selection summary schema is unsupported")
-    if selection.get("version") != 2:
+    if selection.get("version") != 3:
         raise ValueError(
-            "selection summary must be version 2 with max-k Selection Artifacts"
+            "selection summary must be version 3 with exact dataset provenance"
         )
 
     payload_path = Path(selection["cache"]["payload_path"]).resolve()
@@ -242,6 +247,9 @@ def main(argv: Sequence[str] = None) -> int:
         "selection_candidate_hash": payload.candidate_ids_hash,
         "selection_artifacts": selection_identities,
         "dataset": selection["dataset"],
+        "dataset_source_fingerprint": selection["dataset_source"][
+            "source_fingerprint"
+        ],
         "seed": int(selection["seed"]),
         "methods": list(methods),
         "budgets": list(budgets),
@@ -300,12 +308,26 @@ def main(argv: Sequence[str] = None) -> int:
         )
         return 0
 
+    dataset_source = resolve_planetoid_public_source(
+        config["data_root"],
+        repository_root=REPO_ROOT,
+        dataset=selection["dataset"],
+        allow_noncanonical_root=bool(
+            config.get("allow_noncanonical_data_root", False)
+        ),
+    )
+    assert_same_dataset_source(
+        selection["dataset_source"], dataset_source.to_manifest()
+    )
     dataset = Planetoid(
-        root=str(Path(config["data_root"]).expanduser().resolve()),
-        name=selection["dataset"],
+        root=str(dataset_source.resolved_root),
+        name=dataset_source.storage_name,
         transform=NormalizeFeatures(),
     )
     data = dataset[0].to(torch.device("cpu"))
+    split_observation = validate_public_split(data, selection["dataset"])
+    if split_observation != selection.get("split_observation"):
+        raise RuntimeError("downstream public split differs from selection")
     observed_candidates = torch.where(data.train_mask)[0].sort().values
     if ids_hash(observed_candidates) != payload.candidate_ids_hash:
         raise RuntimeError("downstream candidate set does not match selection")
@@ -450,6 +472,8 @@ def main(argv: Sequence[str] = None) -> int:
         "source_score_content_hash": selection["cache"]["content_hash"],
         "selection_artifacts": selection_identities,
         "dataset": selection["dataset"],
+        "dataset_source": dataset_source.to_manifest(),
+        "split_observation": split_observation,
         "seed": int(selection["seed"]),
         "budgets": list(budgets),
         "methods": list(methods),

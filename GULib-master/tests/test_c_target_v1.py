@@ -1,4 +1,5 @@
 import hashlib
+from pathlib import Path
 
 import pytest
 import torch
@@ -12,6 +13,7 @@ from experiments.c_target_v1.core import (
     stable_ranking,
 )
 from experiments.c_target_v1.recipe import SCORE_NAMES, build_recipe
+from experiments.c_target_v1.run_cora_gcn import DEFAULT_DATA_ROOT
 from experiments.c_target_v1.score_store import (
     ProducerCalledError,
     ScoreBundlePayload,
@@ -21,6 +23,11 @@ from experiments.c_target_v1.score_store import (
 
 def _sha(label):
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def test_c_target_default_dataset_root_is_repository_canonical_raw():
+    repository_root = Path(__file__).resolve().parents[1]
+    assert DEFAULT_DATA_ROOT == (repository_root / "data" / "raw").resolve()
 
 
 def _recipe(candidate_hash, seed=2024):

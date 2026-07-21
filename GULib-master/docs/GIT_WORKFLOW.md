@@ -39,6 +39,13 @@ gitGraph
 8. **先看 worktree 和脏文件。** 切分支、合并、清理前必须检查 `git status --short --branch` 与 `git worktree list`。
 9. **`main` 是显式审批门。** 完成父线不等于自动获得合入 `main`、push 或删分支的授权。
 
+## 2.1 开发验证与正式实验的边界
+
+- 短期功能/修复分支承载代码、配置、直接相关文档，以及单元测试、集成测试和明确标注为非正式的 smoke。非正式 smoke 使用可丢弃输出，不能引用为正式结果，也不能续跑为正式矩阵的一格。
+- MVP/单格 gate 只要计划保留并扩展进真实矩阵，就已经属于正式实验。它必须等整条改进线按父子关系合入 `main` 后，在 SSH active checkout 的干净 `main` 上运行。
+- 一组正式实验固定同一个完整 `main` SHA；MVP、dataset gate 和 full expansion 不得混用不同 SHA。
+- 正式 gate 若暴露代码缺陷，立即停止矩阵：从当时的 `main` 新开 fix branch，完成测试并按父线合回 `main`，然后以新的 `main` SHA 和新的 result/cache identity 重启 gate。旧 SHA 的结果只保留为诊断证据。
+
 ## 3. 分支命名
 
 | 类型 | 用途 | 示例 |
