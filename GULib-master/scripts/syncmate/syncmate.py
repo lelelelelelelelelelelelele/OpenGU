@@ -38,6 +38,10 @@ except ImportError:  # pragma: no cover - friendly CLI failure
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    # Direct script execution sets sys.path[0] to scripts/syncmate, while the
+    # bounded recipe preflights dynamically import repo-local packages.
+    sys.path.insert(0, str(REPO_ROOT))
 SYNC_DIR = REPO_ROOT / ".syncmate"
 DEFAULT_DEVICE_FILE = SYNC_DIR / "device.yaml"
 STATE_FILE = SYNC_DIR / "state.json"
