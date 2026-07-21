@@ -105,6 +105,7 @@ SMALL_SELECTION_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_v1__"
 SMALL_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
 SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA = "218f6421c2cb31b71ebfad113fee15b9ad0a3d36"
 SMALL_SELECTION_GU_V2_RECIPE_INTRODUCED_SHA = "5e8502d915d7f311f26e659fcbe58c463e96d3ae"
+SMALL_SELECTION_GU_V3_RECIPE_INTRODUCED_SHA = "d8eda635dd5c8bd5ab7489340a3c00b00df46e1b"
 SMALL_SELECTION_GU_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_v1__"
 SMALL_SELECTION_GU_ARTIFACT_NAMES = (
     "attack.json", "collateral.json", "predictions.npz", "_meta.json"
@@ -118,9 +119,17 @@ SMALL_SELECTION_GU_V2_EXPECTED_ARTIFACTS = tuple(
     f"{SMALL_SELECTION_GU_V2_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
     for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
 )
+SMALL_SELECTION_GU_V3_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_v3__"
+SMALL_SELECTION_GU_V3_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_V3_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
 SMALL_SELECTION_GU_FULL_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_full_v2__"
 SMALL_SELECTION_GU_FULL_CONFIG = "experiments/configs/syncmate_small_selection_gu_full_v2.yaml"
 SMALL_SELECTION_GU_FULL_CONFIG_SHA256 = "5b94c51aa950ebda34a31498aaf92dbabb69f65099cbca1848a346f4dce80ad6"
+SMALL_SELECTION_GU_V3_FULL_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_full_v3__"
+SMALL_SELECTION_GU_V3_FULL_CONFIG = "experiments/configs/syncmate_small_selection_gu_full_v3.yaml"
+SMALL_SELECTION_GU_V3_FULL_CONFIG_SHA256 = "f3eca0b813acbf582ba357e6ee3ac3b2ec90bfb064d7475f8324d7b0ada92dac"
 SMALL_SELECTION_GU_FULL_DATASETS = ("cora", "citeseer", "pubmed")
 SMALL_SELECTION_GU_FULL_SEEDS = (42, 212, 2024)
 SMALL_SELECTION_GU_FULL_STRATEGIES = (
@@ -179,6 +188,67 @@ def _small_selection_gu_stage_recipe(stage: str) -> Dict[str, Any]:
         "collector_acceptance": True,
         "collector_profile": "small-selection-gu-stage-v1",
         "collector_result_roots": _small_selection_gu_stage_roots(stage),
+        "collector_artifact_names": SMALL_SELECTION_GU_ARTIFACT_NAMES,
+        "gu_stage": {
+            "stage": stage,
+            "dataset": dataset,
+            "base_model": "GCN",
+            "gu_method": "GNNDelete",
+            "selectors": SMALL_SELECTION_GU_FULL_STRATEGIES,
+            "seed": seed,
+            "k": 7,
+            "lane": "controlled_public_profile_gu",
+            "scientific_comparison": True,
+        },
+    }
+
+
+def _small_selection_gu_v3_stage_artifacts(stage: str) -> Tuple[str, ...]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    paths = []
+    for strategy in SMALL_SELECTION_GU_FULL_STRATEGIES:
+        leaf = (
+            f"{SMALL_SELECTION_GU_V3_FULL_OUTPUT_ROOT}/"
+            f"{dataset}_GCN_r0.05/GNNDelete_{strategy}/seed{seed}"
+        )
+        paths.extend(f"{leaf}/{name}" for name in SMALL_SELECTION_GU_ARTIFACT_NAMES)
+    return tuple(paths)
+
+
+def _small_selection_gu_v3_stage_roots(stage: str) -> Tuple[str, ...]:
+    return tuple(
+        path.rsplit("/", 1)[0]
+        for path in _small_selection_gu_v3_stage_artifacts(stage)[::4]
+    )
+
+
+def _small_selection_gu_v3_stage_recipe(stage: str) -> Dict[str, Any]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    return {
+        "id": f"opengu-small-selection-gu-{stage}-v3",
+        "argv": (
+            "{python}", "-m", "experiments.gu_target_v1.syncmate_stage",
+            "--config", SMALL_SELECTION_GU_V3_FULL_CONFIG,
+            "--stage", stage, "--json",
+        ),
+        "config_path": SMALL_SELECTION_GU_V3_FULL_CONFIG,
+        "config_sha256": SMALL_SELECTION_GU_V3_FULL_CONFIG_SHA256,
+        "recipe_introduced_git_sha": SMALL_SELECTION_GU_V3_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": _small_selection_gu_v3_stage_artifacts(stage),
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "small-selection-gu-stage-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "small-selection-gu-stage-v1",
+        "collector_result_roots": _small_selection_gu_v3_stage_roots(stage),
         "collector_artifact_names": SMALL_SELECTION_GU_ARTIFACT_NAMES,
         "gu_stage": {
             "stage": stage,
@@ -380,10 +450,51 @@ RUNNER_RECIPE_DEFINITIONS = {
             "scientific_comparison": False,
         },
     },
+    "opengu-small-selection-gu-gate-v3": {
+        "id": "opengu-small-selection-gu-gate-v3",
+        "argv": (
+            "{python}", "-m", "experiments.gu_target_v1.syncmate_recipe",
+            "--config", "experiments/configs/syncmate_small_selection_gu_gate_v3.yaml",
+            "--json",
+        ),
+        "config_path": "experiments/configs/syncmate_small_selection_gu_gate_v3.yaml",
+        "config_sha256": "adb00f5e76097953415cea27e9e621b6c98e658685a1bf0450df5c6a96a0bd71",
+        "recipe_introduced_git_sha": SMALL_SELECTION_GU_V3_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": SMALL_SELECTION_GU_V3_EXPECTED_ARTIFACTS,
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "small-selection-gu-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "small-selection-gu-v1",
+        "collector_result_roots": (SMALL_SELECTION_GU_V3_OUTPUT_ROOT,),
+        "collector_artifact_names": SMALL_SELECTION_GU_ARTIFACT_NAMES,
+        "gu_gate": {
+            "dataset": "Cora",
+            "base_model": "GCN",
+            "gu_method": "GNNDelete",
+            "selector": "degree",
+            "seed": 42,
+            "k": 7,
+            "lane": "controlled_public_profile_gu",
+            "scientific_comparison": False,
+        },
+    },
 }
 RUNNER_RECIPE_DEFINITIONS.update(
     {
         f"opengu-small-selection-gu-{stage}-v2": _small_selection_gu_stage_recipe(stage)
+        for stage in SMALL_SELECTION_GU_FULL_STAGES
+    }
+)
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        f"opengu-small-selection-gu-{stage}-v3": _small_selection_gu_v3_stage_recipe(stage)
         for stage in SMALL_SELECTION_GU_FULL_STAGES
     }
 )
