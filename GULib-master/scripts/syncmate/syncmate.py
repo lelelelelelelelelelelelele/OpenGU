@@ -99,7 +99,7 @@ GATE4_RECIPE_ALLOWED_DELTA = (
 SMALL_SELECTION_RECIPE_INTRODUCED_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
 SMALL_SELECTION_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_v1__"
 SMALL_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
-SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA = "0000000000000000000000000000000000000000"
+SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA = "218f6421c2cb31b71ebfad113fee15b9ad0a3d36"
 SMALL_SELECTION_GU_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_v1__"
 SMALL_SELECTION_GU_ARTIFACT_NAMES = (
     "attack.json", "collateral.json", "predictions.npz", "_meta.json"

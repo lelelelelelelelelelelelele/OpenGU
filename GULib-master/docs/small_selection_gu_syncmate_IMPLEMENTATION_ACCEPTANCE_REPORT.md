@@ -1,6 +1,6 @@
 # Small-selection → GU + SyncMate implementation acceptance
 
-Date: 2026-07-22  
+Date: 2026-07-22
 Status: **implementation PASS; formal SSH gate pending**
 
 ## Verdict
@@ -74,6 +74,7 @@ pinned SSH active checkout.
 | Evidence | Frozen value / rule |
 |---|---|
 | Accepted selector code SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
+| GU recipe introduction SHA | `218f6421c2cb31b71ebfad113fee15b9ad0a3d36` |
 | Cora cold summary SHA-256 | `977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7` |
 | Benchmark manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
