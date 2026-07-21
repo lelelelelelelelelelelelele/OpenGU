@@ -7417,6 +7417,43 @@ def test_runner_agent_processes_exactly_one_job_under_lock(tmp_path, monkeypatch
     assert not sm.runner_agent_lock_dir().exists()
 
 
+def test_runner_queue_validates_full_json_before_bounding_diagnostic_tail(
+    tmp_path, monkeypatch
+):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(
+        sm,
+        "runner_recipe_binding",
+        lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}},
+    )
+    sm.runner_queue_submit("large-json-001", "smoke")
+
+    class Completed:
+        returncode = 0
+        stdout = json.dumps({"passed": True, "padding": "x" * 20000})
+        stderr = ""
+
+    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Completed())
+
+    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+    result = json.loads(
+        (sync_dir / "runner_queue" / "results" / "large-json-001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert outcome["status"] == "done"
+    assert result["recipe_passed"] is True
+    assert result["stdout_truncated"] is True
+    assert len(result["stdout"]) == 16000
+    assert result["stdout_sha256"] == hashlib.sha256(
+        Completed.stdout.encode("utf-8")
+    ).hexdigest()
+
+
 def test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"

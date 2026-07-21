@@ -15329,11 +15329,16 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
     command, timeout = runner_queue_recipe_command(str(job["recipe"]))
     try:
         completed = subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout, check=False)
-        stdout = runner_queue_output_text(completed.stdout)[-16000:]
-        stderr = runner_queue_output_text(completed.stderr)[-16000:]
+        full_stdout = runner_queue_output_text(completed.stdout)
+        full_stderr = runner_queue_output_text(completed.stderr)
+        stdout = full_stdout[-16000:]
+        stderr = full_stderr[-16000:]
         recipe_data = None
         try:
-            recipe_data = json.loads(stdout)
+            # Validate the complete recipe envelope.  The persisted diagnostic
+            # tail is intentionally bounded, but a valid large stage result
+            # must not become unparsable merely because it exceeds 16 KB.
+            recipe_data = json.loads(full_stdout)
         except json.JSONDecodeError:
             pass
         execution_errors = runner_recipe_execution_errors(definition, recipe_data)
@@ -15353,6 +15358,10 @@ def runner_queue_run_once(config: Dict[str, Any]) -> Dict[str, Any]:
             "exit_code": completed.returncode, "finished_at": now_iso(), "command": command,
             "recipe_passed": recipe_data.get("passed") if isinstance(recipe_data, dict) else None,
             "stdout": stdout, "stderr": stderr, "reason": reason, "recipe_binding": binding,
+            "stdout_truncated": len(full_stdout) > len(stdout),
+            "stderr_truncated": len(full_stderr) > len(stderr),
+            "stdout_sha256": hashlib.sha256(full_stdout.encode("utf-8")).hexdigest(),
+            "stderr_sha256": hashlib.sha256(full_stderr.encode("utf-8")).hexdigest(),
             "execution_validation": {
                 "profile": definition.get("execution_validator"),
                 "errors": execution_errors,
