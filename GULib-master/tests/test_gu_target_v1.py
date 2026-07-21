@@ -93,6 +93,7 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
     )
     source = SimpleNamespace(
         dataset="Cora",
+        storage_name="cora",
         resolved_root=tmp_path / "raw",
         resolved_dataset_dir=tmp_path / "raw" / "cora",
         to_manifest=lambda: {"source_fingerprint": "a" * 64},
@@ -111,7 +112,7 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
     monkeypatch.setattr(
         public_profile, "resolve_planetoid_public_source", lambda *args, **kwargs: source
     )
-    monkeypatch.setattr(public_profile, "Planetoid", FakePlanetoid)
+    monkeypatch.setattr(public_profile, "OfflineCanonicalPlanetoid", FakePlanetoid)
     monkeypatch.setattr(public_profile.pickle, "dumps", lambda *args, **kwargs: b"fake")
     monkeypatch.setattr(
         public_profile,
@@ -131,7 +132,21 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
     )
 
     assert result["status"] == "created"
-    assert calls == [(str(source.resolved_dataset_dir), "Cora")]
+    assert calls == [(str(source.resolved_root), "cora")]
+
+
+def test_public_profile_loader_forbids_download_and_processing_fallbacks():
+    loader = public_profile.OfflineCanonicalPlanetoid.__new__(
+        public_profile.OfflineCanonicalPlanetoid
+    )
+
+    for method in (loader.download, loader.process):
+        try:
+            method()
+        except RuntimeError as exc:
+            assert "forbidden" in str(exc)
+        else:
+            raise AssertionError("offline Planetoid fallback did not fail closed")
 
 
 def test_adapter_materializes_and_loads_custom_formula_label(tmp_path, monkeypatch):
