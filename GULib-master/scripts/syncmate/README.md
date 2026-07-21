@@ -1161,8 +1161,8 @@ binding, missing canonical data, unavailable CUDA, or a GPU other than RTX
 files, verifies SHA-256, and checks the 17-output cold/warm/GPU contract without
 coercing Selection evidence into attack/collateral result schemas.
 
-The downstream infrastructure gate is the separate static recipe
-`opengu-small-selection-gu-gate-v1`. It runs exactly
+The active downstream infrastructure gate is the separate static recipe
+`opengu-small-selection-gu-gate-v2`. It runs exactly
 Cora/GCN/GNNDelete/degree/seed42/k=7 on the named
 `planetoid_public_fixed` processed profile. The adapter consumes the frozen
 grandfathered public Selection summary by exact SHA-256, preserves the selector
@@ -1175,9 +1175,11 @@ may expand only after the gate passes; an OpenGU 80/20 paper claim remains a
 separate canonical lane whose included model-dependent selectors must be
 recomputed on that exact split/model/checkpoint identity.
 
-After that gate is checksum-accepted, the public-profile scientific screen is
+The v1 gate remains allowlisted only so its failed queue evidence stays
+interpretable; it must not be resumed or cited. After the v2 gate is
+checksum-accepted, the public-profile scientific screen is
 available as nine static recipes named
-`opengu-small-selection-gu-<dataset>-seed<seed>-v1`, where dataset is
+`opengu-small-selection-gu-<dataset>-seed<seed>-v2`, where dataset is
 `cora`, `citeseer`, or `pubmed`, and seed is `42`, `212`, or `2024`. Each
 recipe runs the exact 17-selector grid at k=7 for GCN/GNNDelete and requires
 the passing gate from the same full `main` SHA. A stage produces 17 complete
@@ -1243,9 +1245,9 @@ bridge:
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
 # Formal one-cell Selection-to-GU infrastructure gate (after its processed
 # public profile has been staged and verified outside the timed run):
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-gate-v1 --wait --json
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-gate-v2 --wait --json
 # Only after the gate is accepted; repeat for the reviewed 3 x 3 stage ids:
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-cora-seed42-v1 --wait --json
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-small-selection-gu-cora-seed42-v2 --wait --json
 ```
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends

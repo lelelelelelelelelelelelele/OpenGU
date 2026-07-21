@@ -113,6 +113,7 @@ def test_public_profile_staging_uses_verified_dataset_leaf(tmp_path, monkeypatch
         public_profile, "resolve_planetoid_public_source", lambda *args, **kwargs: source
     )
     monkeypatch.setattr(public_profile, "OfflineCanonicalPlanetoid", FakePlanetoid)
+    monkeypatch.setattr(public_profile, "Planetoid", FakePlanetoid)
     monkeypatch.setattr(public_profile.pickle, "dumps", lambda *args, **kwargs: b"fake")
     monkeypatch.setattr(
         public_profile,

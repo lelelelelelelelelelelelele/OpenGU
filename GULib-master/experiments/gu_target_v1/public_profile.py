@@ -38,6 +38,20 @@ class OfflineCanonicalPlanetoid(Planetoid):
         raise RuntimeError("canonical Planetoid processed cache is incomplete; processing is forbidden")
 
 
+def _load_offline_planetoid(source):
+    dataset = OfflineCanonicalPlanetoid(
+        root=str(source.resolved_root),
+        name=source.storage_name,
+        transform=NormalizeFeatures(),
+    )
+    # The guard subclass must never cross a pickle/process boundary: when the
+    # module is launched with `python -m`, its pickle name becomes `__main__`
+    # and downstream entry points cannot import it. The instance layout is the
+    # native Planetoid layout, so restore its portable upstream class first.
+    dataset.__class__ = Planetoid
+    return dataset
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -115,6 +129,10 @@ def verify_public_profile(
     assert_same_dataset_source(manifest["dataset_source"], source.to_manifest())
     with paths.data_path.open("rb") as handle:
         data = pickle.load(handle)
+    with paths.dataset_path.open("rb") as handle:
+        pyg_dataset = pickle.load(handle)
+    if type(pyg_dataset) is not Planetoid:
+        raise RuntimeError("processed public profile dataset pickle is not native Planetoid")
     split = validate_public_split(data, source.dataset)
     if split != manifest.get("split_observation"):
         raise RuntimeError("processed public profile split observation changed")
@@ -163,13 +181,9 @@ def stage_public_profile(
         repository_root=repository_root,
         dataset=dataset,
     )
-    pyg_dataset = OfflineCanonicalPlanetoid(
-        # This PyG version expands root/name/raw. OpenGU's accepted cache leaves
-        # are lowercase, so the exact binding is data/raw + storage_name.
-        root=str(source.resolved_root),
-        name=source.storage_name,
-        transform=NormalizeFeatures(),
-    )
+    # This PyG version expands root/name/raw. OpenGU's accepted cache leaves
+    # are lowercase, so the exact binding is data/raw + storage_name.
+    pyg_dataset = _load_offline_planetoid(source)
     data = pyg_dataset[0]
     split = validate_public_split(data, source.dataset)
     inputs = make_dataset_selection_inputs(

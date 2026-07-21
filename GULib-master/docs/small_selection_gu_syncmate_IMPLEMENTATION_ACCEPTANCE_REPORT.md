@@ -55,8 +55,8 @@ pinned SSH active checkout.
   metadata. Formula rows are not relabelled as `degree` or `external`.
 - Added exact-k propagation to attack and collateral consumers, so k=7 is not
   inferred from a dataset ratio.
-- Added the static SyncMate recipe
-  `opengu-small-selection-gu-gate-v1`, exact four-artifact execution
+- Added the active static SyncMate recipe
+  `opengu-small-selection-gu-gate-v2`, exact four-artifact execution
   validation, a GU-specific collector profile, and post-collection acceptance.
 - Added nine gate-conditioned static recipes covering the complete 17 x 3 x 3
   screen. Each stage has an exact 68-file allowlist and a dedicated collector
@@ -65,6 +65,9 @@ pinned SSH active checkout.
 - Added resumable stage execution: complete leaves are skipped by content
   fingerprint; incomplete leaves are rerun; source/store/profile/SHA drift
   blocks instead of silently mixing evidence.
+- Superseded the v1 identities after a fail-closed dataset-pickle diagnostic.
+  V2 uses fresh gate/full config, evidence, Selection store, result roots, and
+  recipe ids; v1 remains diagnostic only and cannot be resumed by the wrappers.
 - Repaired stale generic smoke/preflight binding. Text config hashes normalize
   line endings, and the recipes use the exact dispatched checkout rather than
   the unavailable historical base object.
