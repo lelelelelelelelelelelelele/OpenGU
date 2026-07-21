@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>小图 Selection Dataset 布局审计</title>
+  <title>小图 Selection Dataset 布局审计与迁移</title>
   <style>
     :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
@@ -12,33 +12,34 @@
 <body>
 <div class="layout">
   <aside>
-    <div class="brand">OpenGU Research</div>
-    <div class="side-title">小图 Selection Dataset 布局审计</div>
-    <span class="badge">CONDITIONAL PASS</span>
+    <div class="brand">OpenGU / DATA GOVERNANCE</div>
+    <div class="side-title">小图 Selection Dataset 布局审计与迁移</div>
+    <span class="badge">PASS · GT EXCEPTION</span>
     <nav><a class="" href="#1-结论">1. 结论</a>
 <a class="" href="#2-冻结的数据合同">2. 冻结的数据合同</a>
 <a class="" href="#3-ssh-active-public-数据">3. SSH active public 数据</a>
 <a class="" href="#4-ssh-active-opengu-canonical-processed-数据">4. SSH active OpenGU canonical processed 数据</a>
 <a class="" href="#5-重复副本清理">5. 重复副本清理</a>
 <a class="" href="#6-代码与验证">6. 代码与验证</a>
-<a class="" href="#7-正式-3-3-gpu-矩阵状态">7. 正式 3×3 GPU 矩阵状态</a>
+<a class="" href="#7-grandfathered-3-3-gt-验收">7. Grandfathered 3×3 GT 验收</a>
+<a class="sub" href="#7-1-为什么不重跑">7.1 为什么不重跑</a>
 <a class="" href="#8-待决事项">8. 待决事项</a></nav>
   </aside>
   <main>
     <section class="hero">
-      <div class="kicker">DATASET PATH &amp; PROVENANCE AUDIT</div>
-      <h1>小图 Selection Dataset 布局审计</h1>
+      <div class="kicker">DATASET AUTHORITY / PROVENANCE / RETIREMENT</div>
+      <h1>小图 Selection Dataset 布局审计与迁移</h1>
     </section>
     <article><h1 id="小图-selection-dataset-布局审计与迁移报告">小图 Selection Dataset 布局审计与迁移报告</h1>
 <blockquote>
-<p><strong>Verdict: CONDITIONAL PASS</strong> — SSH active 主目录的数据路径、代码解析与 provenance 合同已经收口；public Cora/CiteSeer/PubMed 可从主目录无下载读取。OpenGU canonical processed 的 PubMed pair 仍缺失，正式 <code>3 datasets × 3 seeds</code> GPU cold/warm 矩阵因当前容器未挂 GPU 而尚未启动。</p>
+<p><strong>Verdict: PASS WITH GRANDFATHERED GT EXCEPTION</strong> — SSH active 主目录的数据路径、代码解析与 provenance 合同已经收口；既有 public <code>3 datasets × 3 seeds</code> GPU cold/warm 矩阵经数据内容与 scorer 语义核验后作为一次性权威 GT 接受，无需重跑。OpenGU canonical processed 的 PubMed pair 仍缺失，但不影响 public benchmark 的本次验收。</p>
 </blockquote>
 <h2 id="1-结论">1. 结论</h2>
 <ul>
 <li>SSH 登录与正式 active checkout 根目录均为 <code>/autodl-fs/data/OpenGU/GULib-master</code>。</li>
 <li>public 17-method benchmark 的唯一默认根已定为 <code>/autodl-fs/data/OpenGU/GULib-master/data/raw</code>，数据目录为 lowercase <code>cora</code>、<code>citeseer</code>、<code>pubmed</code>。</li>
 <li>OpenGU integrated Selection 的 canonical 输入仍是 <code>/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl</code>。它与 public Planetoid 固定 split 是两条不同数据通道。</li>
-<li>旧 benchmark 实际使用 <code>/autodl-fs/data/OpenGU-shared/Planetoid</code> 和隔离 worktree；其 <code>9/9</code> 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。对应物理副本已在逐文件验证后删除。</li>
+<li>既有 benchmark 实际使用 <code>/autodl-fs/data/OpenGU-shared/Planetoid</code> 和隔离 worktree；其 <code>9/9</code> 经一次性 grandfathered GT 例外接受为 <strong>public-split 17-output benchmark 权威结果</strong>。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。</li>
 <li>三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。</li>
 <li>accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public <code>data.pt</code> 冒充。</li>
 <li>代码提交 <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code> 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；<code>51f19460b51a048e33e840a99e35826f5b7af2b4</code> 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。</li>
@@ -150,8 +151,8 @@
 <thead>
 <tr>
   <th>精确范围</th>
-  <th>删除文件</th>
-  <th>删除字节</th>
+  <th style="text-align:right">删除文件</th>
+  <th style="text-align:right">删除字节</th>
   <th>删除前证据</th>
   <th>状态</th>
 </tr>
@@ -159,36 +160,36 @@
 <tbody>
 <tr>
   <td>SSH shared Planetoid root</td>
-  <td>33</td>
-  <td>116,595,446</td>
+  <td style="text-align:right">33</td>
+  <td style="text-align:right">116,595,446</td>
   <td>三套 public cache 的 9 个有效输入逐文件 SHA-256 等于 active</td>
   <td>已删除</td>
 </tr>
 <tr>
   <td>SSH TracIn G4 Planetoid root</td>
-  <td>11</td>
-  <td>16,297,508</td>
+  <td style="text-align:right">11</td>
+  <td style="text-align:right">16,297,508</td>
   <td>Cora raw 与 <code>data.pt</code> 等于 active；PyG 空元数据不参与数据身份</td>
   <td>已删除</td>
 </tr>
 <tr>
   <td>SSH accepted E1 raw CiteSeer</td>
-  <td>11</td>
-  <td>50,501,924</td>
+  <td style="text-align:right">11</td>
+  <td style="text-align:right">50,501,924</td>
   <td>11/11 文件与 active 相同</td>
   <td>已删除</td>
 </tr>
 <tr>
   <td>SSH E1 / GraphRevoker / E4 / A5 / A5 nested canonical pickle copies</td>
-  <td>10</td>
-  <td>360,257,462</td>
+  <td style="text-align:right">10</td>
+  <td style="text-align:right">360,257,462</td>
   <td>十个 pickle 分别与 active Cora/CiteSeer counterpart byte-identical</td>
   <td>已删除</td>
 </tr>
 <tr>
   <td>本地 <code>data/raw/Planetoid</code></td>
-  <td>33</td>
-  <td>116,595,446</td>
+  <td style="text-align:right">33</td>
+  <td style="text-align:right">116,595,446</td>
   <td>CiteSeer/PubMed 六类张量完全相同；Cora 特征、标签、mask 及有向边多重集合相同，仅边列顺序/序列化不同</td>
   <td>已删除</td>
 </tr>
@@ -240,35 +241,35 @@
   <td>SSH unrelated dirty files</td>
   <td>原有 <code>results/_journal/auto_report.{md,html}</code> 等仍保留；未暂存、未清理、未覆盖</td>
 </tr>
+<tr>
+  <td>Scorer semantic diff</td>
+  <td><code>9240b9a</code> 与 accepted main 的 ScoreBundle <code>produce()</code> 块逐字一致；B/C core 与 C-target core Git blob 均未变化</td>
+</tr>
+<tr>
+  <td>Grandfathered GT scope</td>
+  <td>接受 v3.0 result payload、17-output ranking、cold/warm 与 GPU telemetry；不接受旧 cache 作为 v3.1 exact hit，不扩展到 OpenGU 80/20 或 GU outcome</td>
+</tr>
 </tbody>
 </table>
-<p>SyncMate runner queue 当前只允许 <code>smoke</code>、<code>opengu-preflight-v1</code>、<code>opengu-cache-v2-gate4-v1</code> 静态 recipe，不能安全调度任意 17-method 命令。本轮不绕过其 allowlist；正式 benchmark 由 exact Git SHA、source fingerprint、dataset fingerprint 和 cold/warm producer sentinel 绑定。SyncMate 可在后续为已注册 recipe 做结果收集，但本次不将其错误地宣称为执行证据。</p>
-<h2 id="7-正式-3-3-gpu-矩阵状态">7. 正式 3×3 GPU 矩阵状态</h2>
-<p>当前 SSH 容器：</p>
+<p>SyncMate 当前已注册 staged small-selection recipes，包括 <code>opengu-small-selection-full-v1</code>；它适用于未来 active-root 新运行的调度、收集与验真。历史 <code>9240b9a</code> 矩阵不是由该 recipe 执行，本次 GT 接受依据是逐文件 dataset 等同性、scorer 语义未变和已完成的 cold/warm/GPU gate，不倒填 SyncMate 执行声明。</p>
+<h2 id="7-grandfathered-3-3-gt-验收">7. Grandfathered 3×3 GT 验收</h2>
+<p>现有 SSH GPU 矩阵在 <code>9240b9a</code> 上完成：</p>
 <ul>
-<li>hostname: <code>autodl-container-cce24cb250-11e2a1b2</code>；</li>
-<li><code>/dev/nvidia*</code>: 空；</li>
-<li><code>torch.cuda.is_available()</code>: <code>False</code>；</li>
-<li><code>torch.cuda.device_count()</code>: <code>0</code>；</li>
-<li>磁盘：<code>195G</code> 可用；新 cache/output identity 均不存在。</li>
+<li>Cora/CiteSeer/PubMed × seeds 42/212/2024 = <code>9/9</code> cells；</li>
+<li><code>153/153</code> 方法级 cold Selection miss→warm exact hit；</li>
+<li>0 failures；cold ScoreBundle mean/max <code>6.8038/9.1624 s</code>；warm read <code>0.3200/0.9635 s</code>；</li>
+<li>峰值 allocated/reserved <code>357/384 MiB</code>；</li>
+<li>机器证据保留在 <code>results/bc_target_v2/selection_benchmark_20260721/</code>，双格式结论见 <code>reports/small_graph_selection_BENCHMARK_REPORT.{md,html}</code>。</li>
 </ul>
-<p>因此未启动默认 <code>auto</code> 模式，避免它静默落到 CPU 并产生没有峰值显存的“伪正式”报告。GPU 重新挂载后，从 SSH active 主目录运行：</p>
-<pre><code class="language-bash">cd /autodl-fs/data/OpenGU/GULib-master
-experiment_git_sha=&quot;$(git rev-parse HEAD)&quot;
-/root/miniconda3/bin/python -m experiments.bc_target_v2.benchmark_selection \
-  --device cuda \
-  --experiment-git-sha &quot;$experiment_git_sha&quot;
-</code></pre>
-<p>新默认 identity：</p>
-<ul>
-<li>cache: <code>results/cache_v2/bc_target_v3_1_canonical_public_20260721</code>；</li>
-<li>cells/manifest: <code>results/bc_target_v2/selection_benchmark_canonical_20260721</code>；</li>
-<li>reports: <code>reports/small_graph_selection_CANONICAL_BENCHMARK_REPORT.{md,html}</code>。</li>
-</ul>
-<p>验收条件仍是 9/9 cells、每格 17 cold selection 时间、一次共享 ScoreBundle cold total、warm exact read、峰值 allocated/reserved VRAM 和明确 failure 状态；cold/warm dataset source 与 Git HEAD 必须逐格一致。</p>
+<h3 id="7-1-为什么不重跑">7.1 为什么不重跑</h3>
+<ol>
+<li><strong>数据内容不变。</strong> shared 三套 public cache 的 9 个有效输入在删除前逐文件 SHA-256 等于 active；2026-07-22 从 SSH active 只读重算得到同一组已记录 source fingerprint 与 <code>processed/data.pt</code> SHA-256。</li>
+<li><strong>score/ranking 语义不变。</strong> <code>9240b9a</code> 之后没有修改 ScoreBundle <code>produce()</code>、B/C core 或 C-target core；v3.1 只把 dataset source/Git provenance 加入 fail-closed 身份，并增加 SyncMate 调度。</li>
+<li><strong>目标证据已经齐全。</strong> 原矩阵已同时记录每方法 cold selection、共享 ScoreBundle total、warm exact read、GPU 峰值和失败状态。重新执行只会得到新的 Recipe/Artifact ID，不会补充本验收缺失项。</li>
+</ol>
+<p>因此本轮采用明确的一次性例外：以服务器 v3.0 results 作为该 public benchmark 的 GT/analysis authority，并退休本机旧重复/legacy 运行。v3.0 与 v3.1 Artifact 身份继续严格分离；未来任何新增 dataset、seed、算法版本或结果内容都必须从 active canonical root 按新合同运行。</p>
 <h2 id="8-待决事项">8. 待决事项</h2>
 <ol>
-<li>在 AutoDL 控制台恢复带 GPU 的 <code>gnn_20</code> 实例或重新挂载 GPU 后，执行上面的 3×3 矩阵。</li>
 <li>PubMed 若要进入 OpenGU integrated 80/20 Selection，必须通过冻结 seed/config 的 OpenGU preprocessing 生成新的 canonical pair，并另做 split fingerprint 验收。</li>
 <li>后续新增或恢复 dataset 必须先写入 active <code>data/raw</code> 或经 accepted preprocessing 写入 active <code>data/processed/{transductive,inductive}</code>；不得在 shared/worktree/experiment root 新建 authoritative source copy。method-specific evidence 仍按现有 artifact 规则保留。</li>
 </ol>

@@ -2,6 +2,8 @@
 
 > **Verdict:** PASS — full cold/warm matrix and GPU telemetry complete
 
+> **Authority:** ACCEPTED GT — one-time grandfathered public-split exception; no GPU rerun required.
+
 ## 1. 实测口径
 
 - 正式矩阵：`Cora/CiteSeer/PubMed × seeds 42/212/2024`，共 9 cells。
@@ -11,6 +13,16 @@
 - warm read：同一 recipe 在 producer-call sentinel 下的 exact ScoreBundle 读取时间；17 个 Selection Artifact 也必须全部命中。
 - 方法级时间包含逐 Artifact 的索引、校验与文件系统访问；warm hit 是零 producer 的正确性证据，不保证共享文件系统上的每次 wall-clock 都短于 cold。
 - Experiment Git SHA：`9240b9a7bd61b17b4c841981ec2892fdf100dc4b`。
+
+### 1.1 一次性 GT 特例
+
+本轮 SSH 结果被指定为该 public Planetoid 17-output benchmark 的权威 GT，用于后续 selection 性能、ranking 与资源分析，不再因 dataset 根目录迁移重复消耗 GPU。该例外成立于以下已经完成的核验：
+
+- 运行时使用的 `/autodl-fs/data/OpenGU-shared/Planetoid` 三套 public cache，在删除前已对 9 个有效输入逐文件验证为与 SSH active `data/raw/{cora,citeseer,pubmed}` 完全相同；当前 active 端重新计算的 source fingerprint 分别为 Cora `8201869d...`、CiteSeer `fba32999...`、PubMed `3ccd7393...`。
+- `9240b9a` 到当前 accepted main 的 B/C `produce()` ScoreBundle 计算块逐字一致；`experiments/bc_target_v2/core.py` 与 `experiments/c_target_v1/core.py` 的 Git blob 未变化。后续修改只增加 canonical path 解析、dataset/Git provenance、Recipe 身份隔离与 SyncMate 调度，不改变 17 个 score 或 stable ranking 语义。
+- 实测本身已覆盖 `9/9` cells、`153/153` cold miss→warm exact hit、0 failures，以及完整 GPU peak telemetry；重跑只能生成新的 v3.1 Recipe/Artifact 身份，不能增加本报告所需的算法或资源证据。
+
+该特例只接受现有 v3.0 **result payload 与结论**。它不把历史 cache 冒充成 v3.1 warm hit，不把 worktree/shared path 写成当前 canonical path，也不把 `legacy` score 升格为 proper TracIn。未来新运行仍必须遵守 active-root fail-closed 合同。
 
 ## 2. Cell 总览
 
@@ -194,8 +206,9 @@
 
 ## 5. Evidence
 
-- Machine-readable manifest: `/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json`
-- Cache root: `/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721`
-- Cell summaries: `/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721`
+- Repository-retained manifest: `results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json`
+- Repository-retained cell summaries: `results/bc_target_v2/selection_benchmark_20260721/cells/`
+- Historical runtime cache/worktree: retired after result/report hash verification；不再作为可复用 cache authority。
 - Algorithm version: `bc-target-matrix-v3.0`
 - Experiment Git SHA: `9240b9a7bd61b17b4c841981ec2892fdf100dc4b`
+- Dataset identity and grandfathering audit: `reports/dataset_layout_AUDIT_REPORT.{md,html}`

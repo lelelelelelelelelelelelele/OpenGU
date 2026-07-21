@@ -1,13 +1,13 @@
 # 小图 Selection Dataset 布局审计与迁移报告
 
-> **Verdict: CONDITIONAL PASS** — SSH active 主目录的数据路径、代码解析与 provenance 合同已经收口；public Cora/CiteSeer/PubMed 可从主目录无下载读取。OpenGU canonical processed 的 PubMed pair 仍缺失，正式 `3 datasets × 3 seeds` GPU cold/warm 矩阵因当前容器未挂 GPU 而尚未启动。
+> **Verdict: PASS WITH GRANDFATHERED GT EXCEPTION** — SSH active 主目录的数据路径、代码解析与 provenance 合同已经收口；既有 public `3 datasets × 3 seeds` GPU cold/warm 矩阵经数据内容与 scorer 语义核验后作为一次性权威 GT 接受，无需重跑。OpenGU canonical processed 的 PubMed pair 仍缺失，但不影响 public benchmark 的本次验收。
 
 ## 1. 结论
 
 - SSH 登录与正式 active checkout 根目录均为 `/autodl-fs/data/OpenGU/GULib-master`。
 - public 17-method benchmark 的唯一默认根已定为 `/autodl-fs/data/OpenGU/GULib-master/data/raw`，数据目录为 lowercase `cora`、`citeseer`、`pubmed`。
 - OpenGU integrated Selection 的 canonical 输入仍是 `/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl`。它与 public Planetoid 固定 split 是两条不同数据通道。
-- 旧 benchmark 实际使用 `/autodl-fs/data/OpenGU-shared/Planetoid` 和隔离 worktree；其 `9/9` 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。对应物理副本已在逐文件验证后删除。
+- 既有 benchmark 实际使用 `/autodl-fs/data/OpenGU-shared/Planetoid` 和隔离 worktree；其 `9/9` 经一次性 grandfathered GT 例外接受为 **public-split 17-output benchmark 权威结果**。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。
 - 三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。
 - accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public `data.pt` 冒充。
 - 代码提交 `da3688c3e40b6b2d50f26717ad036b8c041bbde0` 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；`51f19460b51a048e33e840a99e35826f5b7af2b4` 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。
@@ -69,39 +69,30 @@ SSH 共删除 `65` 个文件、`543,652,340` bytes；本地另删除 `33` 个文
 | SSH active branch | caller cleanup 基线为 `codex/fix-dataset-layout-20260721` at `51f19460b51a048e33e840a99e35826f5b7af2b4`；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD |
 | Post-delete source scan | external populated source roots `0`；Cora/CiteSeer/PubMed 从 active lowercase raw path 加载并通过 fixed-split validation |
 | SSH unrelated dirty files | 原有 `results/_journal/auto_report.{md,html}` 等仍保留；未暂存、未清理、未覆盖 |
+| Scorer semantic diff | `9240b9a` 与 accepted main 的 ScoreBundle `produce()` 块逐字一致；B/C core 与 C-target core Git blob 均未变化 |
+| Grandfathered GT scope | 接受 v3.0 result payload、17-output ranking、cold/warm 与 GPU telemetry；不接受旧 cache 作为 v3.1 exact hit，不扩展到 OpenGU 80/20 或 GU outcome |
 
-SyncMate runner queue 当前只允许 `smoke`、`opengu-preflight-v1`、`opengu-cache-v2-gate4-v1` 静态 recipe，不能安全调度任意 17-method 命令。本轮不绕过其 allowlist；正式 benchmark 由 exact Git SHA、source fingerprint、dataset fingerprint 和 cold/warm producer sentinel 绑定。SyncMate 可在后续为已注册 recipe 做结果收集，但本次不将其错误地宣称为执行证据。
+SyncMate 当前已注册 staged small-selection recipes，包括 `opengu-small-selection-full-v1`；它适用于未来 active-root 新运行的调度、收集与验真。历史 `9240b9a` 矩阵不是由该 recipe 执行，本次 GT 接受依据是逐文件 dataset 等同性、scorer 语义未变和已完成的 cold/warm/GPU gate，不倒填 SyncMate 执行声明。
 
-## 7. 正式 3×3 GPU 矩阵状态
+## 7. Grandfathered 3×3 GT 验收
 
-当前 SSH 容器：
+现有 SSH GPU 矩阵在 `9240b9a` 上完成：
 
-- hostname: `autodl-container-cce24cb250-11e2a1b2`；
-- `/dev/nvidia*`: 空；
-- `torch.cuda.is_available()`: `False`；
-- `torch.cuda.device_count()`: `0`；
-- 磁盘：`195G` 可用；新 cache/output identity 均不存在。
+- Cora/CiteSeer/PubMed × seeds 42/212/2024 = `9/9` cells；
+- `153/153` 方法级 cold Selection miss→warm exact hit；
+- 0 failures；cold ScoreBundle mean/max `6.8038/9.1624 s`；warm read `0.3200/0.9635 s`；
+- 峰值 allocated/reserved `357/384 MiB`；
+- 机器证据保留在 `results/bc_target_v2/selection_benchmark_20260721/`，双格式结论见 `reports/small_graph_selection_BENCHMARK_REPORT.{md,html}`。
 
-因此未启动默认 `auto` 模式，避免它静默落到 CPU 并产生没有峰值显存的“伪正式”报告。GPU 重新挂载后，从 SSH active 主目录运行：
+### 7.1 为什么不重跑
 
-```bash
-cd /autodl-fs/data/OpenGU/GULib-master
-experiment_git_sha="$(git rev-parse HEAD)"
-/root/miniconda3/bin/python -m experiments.bc_target_v2.benchmark_selection \
-  --device cuda \
-  --experiment-git-sha "$experiment_git_sha"
-```
+1. **数据内容不变。** shared 三套 public cache 的 9 个有效输入在删除前逐文件 SHA-256 等于 active；2026-07-22 从 SSH active 只读重算得到同一组已记录 source fingerprint 与 `processed/data.pt` SHA-256。
+2. **score/ranking 语义不变。** `9240b9a` 之后没有修改 ScoreBundle `produce()`、B/C core 或 C-target core；v3.1 只把 dataset source/Git provenance 加入 fail-closed 身份，并增加 SyncMate 调度。
+3. **目标证据已经齐全。** 原矩阵已同时记录每方法 cold selection、共享 ScoreBundle total、warm exact read、GPU 峰值和失败状态。重新执行只会得到新的 Recipe/Artifact ID，不会补充本验收缺失项。
 
-新默认 identity：
-
-- cache: `results/cache_v2/bc_target_v3_1_canonical_public_20260721`；
-- cells/manifest: `results/bc_target_v2/selection_benchmark_canonical_20260721`；
-- reports: `reports/small_graph_selection_CANONICAL_BENCHMARK_REPORT.{md,html}`。
-
-验收条件仍是 9/9 cells、每格 17 cold selection 时间、一次共享 ScoreBundle cold total、warm exact read、峰值 allocated/reserved VRAM 和明确 failure 状态；cold/warm dataset source 与 Git HEAD 必须逐格一致。
+因此本轮采用明确的一次性例外：以服务器 v3.0 results 作为该 public benchmark 的 GT/analysis authority，并退休本机旧重复/legacy 运行。v3.0 与 v3.1 Artifact 身份继续严格分离；未来任何新增 dataset、seed、算法版本或结果内容都必须从 active canonical root 按新合同运行。
 
 ## 8. 待决事项
 
-1. 在 AutoDL 控制台恢复带 GPU 的 `gnn_20` 实例或重新挂载 GPU 后，执行上面的 3×3 矩阵。
-2. PubMed 若要进入 OpenGU integrated 80/20 Selection，必须通过冻结 seed/config 的 OpenGU preprocessing 生成新的 canonical pair，并另做 split fingerprint 验收。
-3. 后续新增或恢复 dataset 必须先写入 active `data/raw` 或经 accepted preprocessing 写入 active `data/processed/{transductive,inductive}`；不得在 shared/worktree/experiment root 新建 authoritative source copy。method-specific evidence 仍按现有 artifact 规则保留。
+1. PubMed 若要进入 OpenGU integrated 80/20 Selection，必须通过冻结 seed/config 的 OpenGU preprocessing 生成新的 canonical pair，并另做 split fingerprint 验收。
+2. 后续新增或恢复 dataset 必须先写入 active `data/raw` 或经 accepted preprocessing 写入 active `data/processed/{transductive,inductive}`；不得在 shared/worktree/experiment root 新建 authoritative source copy。method-specific evidence 仍按现有 artifact 规则保留。
