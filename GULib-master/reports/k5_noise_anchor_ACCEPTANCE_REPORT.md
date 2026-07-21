@@ -1,23 +1,24 @@
-# K5 noise-anchor 独立代码线验收报告
+# K5 noise-anchor 独立代码线验收与收口报告
 
-> Date: 2026-07-22  
-> Source branch: `codex/wip-k5-noise-anchor-20260721`  
-> Registered parent: `main`  
-> Audited parent baseline: `main@c26759d51ab0665dff8d78e96a0915aadd0877a2`  
-> Scope: 代码/配置、legacy 归档、单元/集成验证、正式运行前置门；本报告不包含可引用的正式 K5 实验结果。
+> Date: 2026-07-22<br>
+> Source branch: `codex/wip-k5-noise-anchor-20260721`（已合并并清理）<br>
+> Registered parent: `main`<br>
+> Audited parent baseline: `main@c26759d51ab0665dff8d78e96a0915aadd0877a2`<br>
+> Code-line acceptance merge: `b280422cd794df1246df2218ce56215e4d14cdbf`<br>
+> Scope: 代码/配置、legacy 归档、单元/集成验证、合并/推送/SSH 同步、正式运行前置门；本报告不包含可引用的正式 K5 实验结果。
 
 ## Verdict
 
 | Gate | Verdict | Evidence |
 |---|---|---|
-| K5 代码线 | **PASS — 可按 `--no-ff` 合入登记父线 `main`** | K5 逻辑已同步当前 main；定向测试 `17 passed`；Python compile 通过；工作树 clean |
+| K5 代码线 | **PASS — 已按 `--no-ff` 合入登记父线 `main`** | 接收 merge `b280422`；本地/GitHub/SSH 完成同步；合并后本地与 SSH 均为 `17 passed` |
 | `method_perf_before` 语义 | **PASS** | GraphEraser/GraphRevoker 生成与 V2 resume 都被约束为 `shard_aggregate_f1` |
 | legacy 隔离 | **PASS** | 102/102 JSON 以 `R100` 移到 `results/baseline/k5_random_OLD_20260227/`；canonical `k5_random/` 为空 |
 | 旧结果防命中 | **PASS** | 路径隔离 + schema v2 + config/source 校验；旧 102 JSON 中 v2-compatible schema=`0` |
 | 正式 K5 执行 | **BLOCKED — 未启动，符合治理要求** | SSH active 非 clean；`/dev/nvidia0` 缺失；未满足 clean main + RTX 4090 + fixed full SHA |
 
 > [!IMPORTANT]
-> 本次验收结论是“代码线可以接收”，不是“K5 实验已经完成”。任何正式 gate/MVP 都必须在本线合入后的 SSH clean `main` 上，以一个固定 40 位 SHA 启动。
+> 本次收口结论是“代码线已经接收并同步”，不是“K5 实验已经完成”。正式 gate/MVP 仍被 SSH 用户资产与 GPU 状态阻断；只有 SSH `main` clean、RTX 4090 就绪且最终完整 SHA 固定后才能启动。
 
 ## 1. 分支历史与真实父线
 
@@ -31,8 +32,8 @@ branch.codex/wip-k5-noise-anchor-20260721.openguParent = main
 
 - **登记父线和真实接收目标都是 `main`**；
 - 最初 fork 点较旧，但不构成另一条 research/release 父线；
-- 代码审计时 `main...K5` 计数为 `0 / 7`（本报告提交会再增加 1 个 docs commit），即当前 main 已成为 K5 HEAD 的祖先；
-- 接收动作仍必须使用 `git merge --no-ff codex/wip-k5-noise-anchor-20260721`，保留完整 K5 改进边界。
+- 接收前 `main...K5` 计数为 `0 / 8`，即审计基线 main 已成为最终 K5 HEAD `47e67ec` 的祖先；
+- 接收动作已使用 `git merge --no-ff codex/wip-k5-noise-anchor-20260721` 完成：merge `b280422` 的父提交为 `c26759d` 与 `47e67ec`，完整保留 K5 改进边界。
 
 K5 侧关键提交：
 
@@ -131,15 +132,17 @@ results/baseline/k5_random/
 
 ## 5. 验证
 
-本分支仅运行代码测试和只读/non-formal preflight，没有启动可引用的 GPU 实验。
+K5 功能分支、合并后的本地 main 与同步后的 SSH main 仅运行代码测试和只读/non-formal preflight，没有启动可引用的 GPU 实验。
 
 | Validation | Result |
 |---|---|
-| `pytest tests/test_baseline_k5_v2.py tests/test_experiment_processed_provider.py -q` | **17 passed** |
-| `py_compile`：K5 contract/preflight/generator/runners | **PASS** |
-| `git diff --check` | **PASS**（仅 Windows LF→CRLF 提示，无 whitespace error） |
-| `git merge-tree --write-tree main K5`（合入当前 main 前） | **PASS / no conflict** |
+| `pytest tests/test_baseline_k5_v2.py tests/test_experiment_processed_provider.py -q` | **17 passed**（K5 分支、本地 merged main、SSH merged main 各通过一次） |
+| `py_compile`：K5 contract/preflight/generator/runners | **PASS**（本地与 SSH） |
+| `git diff --check` | **PASS**（无 whitespace error） |
+| `git merge-tree --write-tree main K5`（接收前） | **PASS / no conflict** |
+| `--no-ff` 接收 merge | **PASS** — `b280422`，parents=`c26759d 47e67ec` |
 | 本地 `--preflight-only` non-formal 诊断 | 正确拒绝 K5 branch、缺 canonical pair、RTX 5070 |
+| SSH `--preflight-only` non-formal 诊断 | 正确验证 canonical Cora pair，并拒绝 dirty active 与不可用 GPU |
 | Markdown/HTML 关键结论与数字一致性 | **PASS** |
 | 浏览器视觉预览 | **NOT RUN** — in-app browser 的 `file://` URL 策略拒绝本地页；未绕过策略，未伪称目视通过 |
 
@@ -147,52 +150,67 @@ results/baseline/k5_random/
 
 检查目标：`autodl-opengu:/autodl-fs/data/OpenGU/GULib-master`。
 
-Git 引用在检查时对齐：
+代码接收并快进同步后，Git 引用对齐：
 
 ```text
-main = origin/main = c26759d51ab0665dff8d78e96a0915aadd0877a2
+local main = GitHub origin/main = SSH main = SSH origin/main
+= b280422cd794df1246df2218ce56215e4d14cdbf
 ```
 
-但 active checkout 不是 clean：
+SSH `--preflight-only` 验证 canonical Cora processed pair 位于 active checkout，未使用下载或运行时预处理：
+
+| Evidence | Value |
+|---|---|
+| data pickle | `15850381` bytes；SHA-256 `e8919e1850b4a9682a384d93dd2f8cf3733190d565ee9287843af1cd82b5432f` |
+| dataset pickle | `15723324` bytes；SHA-256 `1dcbb6be57c174bcad6fe8186ec5eadfeb01196dd7ee33772e697aa5057ad6e4` |
+| split | train=`2166`，val=`0`，test=`542`，nodes=`2708`，directed edges=`10556` |
+| source fingerprint | `fe93535af1f59cb967ed7ec14b25fd02c87e207ea51c028b72456203be519ba6` |
+
+但 active checkout 仍不是 clean：
 
 ```text
  M results/_journal/auto_report.html
  M results/_journal/auto_report.md
+?? %ln                                      # 0-byte file
 ?? experiments/configs/A6_cora_gin_r0.05_notracin.yaml
 ?? results/_journal/archive/auto_report_2026-05-06_to_2026-07-10_active4090.md
 ?? results/_journal/auto_report.events.jsonl
 ```
 
-此外，`../_backups` 有两个用户备份目录，共 13 个 Git 可见未跟踪文件。这些资产未被覆盖、删除或移动。
+此外，`../_backups` 的两个用户备份目录共有 13 个 Git 可见未跟踪文件。上述 journal、config、archive/event、`%ln` 与 backup 资产均未被覆盖、删除或移动。
 
-GPU gate：
+GPU gate 同时失败：
 
 ```text
 /dev/nvidia0 = missing
+nvidia-smi = OSError: [Errno 8] Exec format error
 ```
 
-因此正式 K5 **没有启动**。tracked journal、A6 config、archive/event JSONL 和 backup 资产必须先由用户决定如何接收/归档；GPU 容器也必须重新挂载 RTX 4090。不能为获得 clean 状态而覆盖或删除它们。
+因此正式 K5 **没有启动**。这些用户资产必须先由用户决定如何接收/归档，GPU 容器也必须重新挂载 RTX 4090；不能为获得 clean 状态而覆盖或删除它们。
 
 ## 7. Worktree 清理边界
 
-远端 K5 worktree 在检查时：
+K5 临时线已在资产盘点后完成清理：
 
-- non-ignored untracked=`0`；
-- ignored=`56`，全部位于 `.pytest_cache/` 或 `__pycache__/`，分布于 12 个缓存目录；
-- 没有 K5 实验结果、配置或用户文档资产。
+| Location | Non-ignored | Ignored inventory | Action |
+|---|---:|---|---|
+| local K5 worktree | 0 | 64 个 `.pytest_cache` / `__pycache__` 文件 | worktree 与空父目录已删除 |
+| SSH K5 worktree | 0 | 56 个 `.pytest_cache` / `__pycache__` 文件 | worktree 已删除 |
+| local/GitHub/SSH K5 branch refs | — | 已被 `main` 包含 | 精确删除，不做 broad prune |
 
-因此，在 K5 线合入、推送、SSH main 快进同步后，可以删除该 K5 worktree 与临时分支；删除的仅是可再生测试/字节码缓存。A5 detached worktree 与 active 用户资产不属于 K5 清理范围。
+删除的 120 个文件全部是可再生测试/字节码缓存，没有 K5 实验结果、配置或用户文档资产。
+
+以下 worktree 因不属于 K5 或含 ignored 用户资产而保留：本地 `main-tracin-sup-merge` 现承载 `main` 且含历史 result/cache；本地 `syncmate-small-selection` 含 `.syncmate/device.yaml` 与 `remote_status_gpu4090.json`；SSH A5 detached worktree 不属于本线；主工作区的 `codex/docs-grandfather-selection-20260722` 是无关活动分支。其中的 ignored/用户资产均未被覆盖、移动或删除；无关分支没有被切换或改写。
 
 ## 8. 接收后正式运行条件
 
-只有同时满足以下条件才能执行：
+K5 代码接收和 canonical dataset 两项已经通过；正式执行仍须同时满足以下条件：
 
-1. K5 线已以 `--no-ff` 进入 `main`；
-2. 本地、GitHub、SSH active `main` 指向同一个完整 40 位 SHA；
-3. SSH active `git status --short --branch` clean；
-4. canonical Cora processed pair preflight 通过且位于 active checkout；
-5. GPU 0 是 RTX 4090，且 `torch.cuda.is_available()` 为 true；
-6. canonical `results/baseline/k5_random/` 为空，或仅含 source/config 完全匹配的 V2 resume cells。
+1. `b280422` 是最终 `main` 的祖先，且本地、GitHub、SSH active `main` 指向同一个最终完整 40 位 SHA；
+2. SSH active `git status --short --branch` clean；
+3. canonical Cora processed pair 在实际启动前再次 preflight 通过且位于 active checkout；
+4. GPU 0 是 RTX 4090，且 `torch.cuda.is_available()` 为 true；
+5. canonical `results/baseline/k5_random/` 为空，或仅含 source/config 完全匹配的 V2 resume cells。
 
 入口：
 
