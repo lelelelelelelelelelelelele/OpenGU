@@ -96,7 +96,7 @@ GATE4_RECIPE_ALLOWED_DELTA = (
     "GULib-master/utils/dataset_utils.py",
     "GULib-master/utils/logger.py",
 )
-SMALL_SELECTION_RECIPE_BASE_SHA = "17ce207a6a4bc37a1cbdd9dabd96f84d38b4deed"
+SMALL_SELECTION_RECIPE_BASE_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
 SMALL_SELECTION_RECIPE_ALLOWED_DELTA = (
     "GULib-master/experiments/bc_target_v2/syncmate_recipe.py",
     "GULib-master/experiments/configs/syncmate_small_selection_mvp_v1.yaml",
