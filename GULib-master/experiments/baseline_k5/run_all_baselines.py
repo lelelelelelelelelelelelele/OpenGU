@@ -19,6 +19,27 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 
+try:
+    from .baseline_contract import (
+        BEFORE_METRIC,
+        SCHEMA,
+        SCHEMA_VERSION,
+        default_result_root,
+        expected_before_metric_source,
+        expected_config,
+        load_valid_record,
+    )
+except ImportError:
+    from baseline_contract import (
+        BEFORE_METRIC,
+        SCHEMA,
+        SCHEMA_VERSION,
+        default_result_root,
+        expected_before_metric_source,
+        expected_config,
+        load_valid_record,
+    )
+
 # ============================================================
 # Configuration: mirrors self/generalization_experiment_checklist.md
 # Each entry = (dataset, model, [methods])
@@ -41,12 +62,17 @@ EXPERIMENTS = [
 ]
 SEEDS = [111, 333, 555, 777, 999]  # Independent from main experiment seeds (42,212,722,1337,2024)
 BASELINE_K = 5
+DATASET_NUM_NODES = {'cora': 2708, 'citeseer': 3327, 'pubmed': 19717}
+METHOD_EXTRA_ARGS = {
+    # GraphRevoker's supported partition default for the current runner.
+    'GraphRevoker': ['--partition_method', 'gpa'],
+}
 
 # Resolve paths
 SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 REPO_ROOT = SCRIPT_DIR.parent.parent
 GENERATE_SCRIPT = SCRIPT_DIR / "generate_baseline.py"
-BASELINE_ROOT = REPO_ROOT / "results" / "baseline" / "k5_random"
+BASELINE_ROOT = default_result_root(REPO_ROOT)
 
 # Python executable: use the gnn conda env if available
 PYTHON_BIN = sys.executable
@@ -62,11 +88,26 @@ def run_single_baseline(method, dataset, model, seed, baseline_k):
         '--unlearning_methods', method,
         '--random_seed', str(seed),
         '--baseline_k', str(baseline_k),
+        '--output_root', str(BASELINE_ROOT),
+        '--root_path', str(REPO_ROOT.resolve()),
+        '--processed_root', str((REPO_ROOT / 'data' / 'processed').resolve()),
+        '--unlearn_ratio', str(baseline_k / DATASET_NUM_NODES[dataset]),
+        '--proportion_unlearned_nodes', str(baseline_k / DATASET_NUM_NODES[dataset]),
     ]
+    cmd.extend(METHOD_EXTRA_ARGS.get(method, []))
     
     cache_file = BASELINE_ROOT / method / dataset / model / f"baseline_seed{seed}_k{baseline_k}.json"
     if cache_file.exists():
-        print(f"  [SKIP] Already exists: seed={seed}")
+        expected = expected_config(
+            dataset=dataset, model=model, method=method, seed=seed, k=baseline_k
+        )
+        try:
+            load_valid_record(cache_file, expected)
+        except Exception as exc:
+            print(f"  [STALE] Refusing incompatible output: {cache_file}")
+            print(f"          {exc}")
+            return False
+        print(f"  [SKIP] Compatible v2 artifact exists: seed={seed}")
         return True
     
     print(f"  [RUN]  Generating: seed={seed} ...")
@@ -108,6 +149,8 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
     f1_afters = []
     f1_befores = []
     f1_drops = []
+    method_perf_befores = []
+    method_noise_drops = []
     seed_details = []
     
     for seed in SEEDS:
@@ -116,11 +159,21 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
             print(f"  [WARN] Missing seed={seed} for averaging")
             continue
         try:
-            with open(seed_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            data = load_valid_record(
+                seed_file,
+                expected_config(
+                    dataset=dataset,
+                    model=model,
+                    method=method,
+                    seed=seed,
+                    k=baseline_k,
+                ),
+            )
             f1_after = data.get('f1_after')
             f1_before = data.get('f1_before')
             f1_drop = data.get('f1_drop')
+            method_perf_before = data.get('method_perf_before')
+            method_noise_drop = data.get('method_noise_drop')
             
             if f1_after is not None:
                 f1_afters.append(f1_after)
@@ -128,25 +181,39 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
                 f1_befores.append(f1_before)
             if f1_drop is not None:
                 f1_drops.append(f1_drop)
+            if method_perf_before is not None:
+                method_perf_befores.append(method_perf_before)
+            if method_noise_drop is not None:
+                method_noise_drops.append(method_noise_drop)
                 
             seed_details.append({
                 'seed': seed,
                 'f1_after': f1_after,
                 'f1_before': f1_before,
                 'f1_drop': f1_drop,
+                'method_perf_before': method_perf_before,
+                'method_noise_drop': method_noise_drop,
             })
         except Exception as e:
             print(f"  [WARN] Failed to read seed={seed}: {e}")
     
-    if not f1_afters:
-        print(f"  [ERROR] No valid seed data found for averaging!")
+    if len(f1_afters) != len(SEEDS) or len(method_perf_befores) != len(SEEDS):
+        print(
+            f"  [ERROR] Incomplete v2 aggregate: "
+            f"after={len(f1_afters)}/{len(SEEDS)}, "
+            f"before={len(method_perf_befores)}/{len(SEEDS)}"
+        )
         return None
     
     averaged = {
+        'schema': SCHEMA,
+        'schema_version': SCHEMA_VERSION,
         'f1_after': float(np.mean(f1_afters)),
         'f1_after_std': float(np.std(f1_afters)),
         'f1_before': float(np.mean(f1_befores)) if f1_befores else None,
         'f1_drop': float(np.mean(f1_drops)) if f1_drops else None,
+        'method_perf_before': float(np.mean(method_perf_befores)) if method_perf_befores else None,
+        'method_noise_drop': float(np.mean(method_noise_drops)) if method_noise_drops else None,
         'n_seeds': len(f1_afters),
         'seeds_used': [d['seed'] for d in seed_details if d['f1_after'] is not None],
         'per_seed_details': seed_details,
@@ -157,6 +224,9 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
             'k': baseline_k,
             'strategy': 'random',
             'averaged': True,
+            'before_metric': BEFORE_METRIC,
+            'before_metric_source': expected_before_metric_source(method),
+            'output_root': str(BASELINE_ROOT.resolve()),
             'timestamp': datetime.now().isoformat(),
         }
     }
@@ -209,7 +279,7 @@ def main():
                     successes += 1
             
             # Phase 2: Average across seeds
-            if successes > 0:
+            if successes == len(SEEDS):
                 avg = compute_averaged_baseline(method, dataset, model, baseline_k)
                 summary.append({
                     'method': method,
@@ -220,7 +290,7 @@ def main():
                     'f1_after_avg': avg['f1_after'] if avg else None,
                 })
             else:
-                print(f"  [SKIP] No successful runs, cannot average")
+                print(f"  [SKIP] Incomplete per-seed run; refusing aggregate")
                 summary.append({
                     'method': method,
                     'dataset': dataset,

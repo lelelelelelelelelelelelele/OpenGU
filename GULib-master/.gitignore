@@ -72,8 +72,9 @@ GEMINI.md
 *.blg
 *.out
 
-# k=5 noise floor — paper just consumes the *_averaged_k5.json,
-# tracking the per-seed JSONs is repo bloat. Existing tracked entries stay.
+# k=5 noise floor — pre-v2 tracked evidence is preserved under
+# k5_random_OLD_20260227. New canonical k5_random artifacts stay device-local;
+# acceptance numbers belong in tracked summaries/reports rather than raw seeds.
 results/baseline/
 
 # Device-local syncmate identity/state. This is intentionally different on
