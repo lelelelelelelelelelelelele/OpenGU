@@ -78,6 +78,7 @@ pinned SSH active checkout.
 |---|---|
 | Accepted selector code SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
 | GU recipe introduction SHA | `218f6421c2cb31b71ebfad113fee15b9ad0a3d36` |
+| Active GU v2 recipe introduction SHA | `5e8502d915d7f311f26e659fcbe58c463e96d3ae` |
 | Cora cold summary SHA-256 | `977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7` |
 | Benchmark manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
