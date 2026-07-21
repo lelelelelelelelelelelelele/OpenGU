@@ -145,7 +145,7 @@ The `gnn` environment contains all required dependencies (PyTorch, PyG, pytest, 
 
 **Current research status / 硬伤 C1–C5 → `self/dashboard/WORKPLAN.md` §0–§3** (single hub, 2026-06-27+). Do not read the dated list below for *current* state — it has drifted.
 
-**Project phase (2026-06)**: NeurIPS paper **submitted, awaiting review** — this is the rebuttal-prep / 完善期, no longer a deadline crunch. thesis 锁死 = *systematic audit + extreme heterogeneity + Vulnerability Fingerprint* (reframe to "结构杠杆主轴" `565aaf6` is held for re-submission only). Active branch: `research/selection-concordance-2026-06-27`.
+**Project phase (2026-06)**: NeurIPS paper **submitted, awaiting review** — this is the rebuttal-prep / 完善期, no longer a deadline crunch. thesis 锁死 = *systematic audit + extreme heterogeneity + Vulnerability Fingerprint* (reframe to "结构杠杆主轴" is held for re-submission only; use `report/paper/RESUBMISSION_BLUEPRINT.md`, with exact history archived under `archive/paper-alignment-20260507`). Active branch: `research/selection-concordance-2026-06-27`.
 
 **Local GPU is dead — GPU experiments are remote-only**: this machine's RTX 5070 is sm_120 (Blackwell); the pinned torch 2.2.1+cu121 only ships kernels to sm_90, so every CUDA kernel crashes and rebuilding per requirements.txt does not fix it. **All GPU runs go to the AutoDL image `gnn_20`** (rentable on demand); local conda `gnn` (`E:/conda_package/envs/gnn/python.exe`) is **CPU/analysis only**. Do not mix new-stack and old-stack results in one matrix.
 

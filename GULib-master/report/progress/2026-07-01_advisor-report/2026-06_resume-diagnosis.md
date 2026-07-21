@@ -11,6 +11,8 @@ up: "[[_Home]]"
 
 > **SUPERSEDED SNAPSHOT（2026-07-20）**：本文件保留 2026-06 诊断过程，不再表示当前状态。GraphRevoker 代码与远端四策略 E4 已通过，本地 evidence archive 待闭环；当前结论见 `self/dashboard/WORKPLAN.md` 与 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`。
 
+> **2026-07-22 归档更新**：旧活动分支已由正式蓝本 [`RESUBMISSION_BLUEPRINT.md`](../../paper/RESUBMISSION_BLUEPRINT.md) 取代；精确历史内容改由 `archive/paper-alignment-20260507` 和 `archive/paper-alignment-wip-20260507` 恢复。下文出现的旧分支名只保留为历史叙述。
+
 > 范围: 休整一个月后回流数据 + 找回旧记忆 + 逐项核查后的**完整诊断**。回答"现在到底是什么处境、paper 该变成什么、怎么走"。
 > 配对: 操作 TODO → [PROGRESS（外部）](../../../self/dashboard/PROGRESS.md)；冲刺历史 → [2026-05_NeurIPS-Push](2026-05_NeurIPS-Push.md)；当前汇报 → [current-status-report.html](current-status-report.html)。
 
@@ -72,7 +74,7 @@ up: "[[_Home]]"
 
 ## 3. 诚实版 paper 应该长啥样
 
-1. **中心论点改成"倒置 + 失配"**：access tier 不预测攻击成功（degree 6/12 显著、TracIn 1/12；GraphRevoker 重跑前不用于机制结论）；机制是 objective-misalignment。用 `565aaf6` abstract/intro 当重投蓝本（**不 cherry-pick**：5_results/FIG-5 已在会冲突、工作树脏、内容要按 C2-C5 更新），手动重写 + 回填真实数字。
+1. **中心论点改成"倒置 + 失配"**：access tier 不预测攻击成功（本段旧数字仅为历史快照；GraphRevoker 重跑前不用于机制结论）；机制是 objective-misalignment。重投时使用 [`RESUBMISSION_BLUEPRINT.md`](../../paper/RESUBMISSION_BLUEPRINT.md)（**不 cherry-pick**；从届时 main 手动重写 + 回填 accepted matrix 的真实数字）。
 2. **GNNDelete 用 gap 领头**（绕开 C2，且跟 degree 分解路径一脉相承）。
 3. **GraphRevoker 标记 pending，修复并重跑**；重跑前删除或冻结 §5.2 GR×GAT wedge，不把坏数据写成机制结论（C5）。
 4. **修/caveat 不可支持的数字**：hop-decay（C3）、ΔF_noise（C4）、citeseer（C6）。
