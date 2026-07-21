@@ -3,10 +3,34 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
 from scripts.syncmate import syncmate as sm
+
+
+def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
+    script = Path(sm.__file__).resolve()
+    repo = script.parents[2]
+    probe = (
+        "import os,runpy,sys; "
+        "repo=os.path.abspath(sys.argv[2]); "
+        "sys.path=[p for p in sys.path if os.path.abspath(p or os.getcwd()) != repo]; "
+        "scope=runpy.run_path(sys.argv[1],run_name='syncmate_probe'); "
+        "import experiments; "
+        "assert str(scope['REPO_ROOT']) in sys.path"
+    )
+
+    completed = subprocess.run(
+        [sys.executable, "-c", probe, str(script), str(repo)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
 
 
 def _write(path: Path, data: bytes = b"{}") -> Path:
