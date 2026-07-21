@@ -183,6 +183,38 @@ def test_public_profile_materializes_and_verifies_opengu_split_contract():
         public_profile._opengu_split_contract(data, materialize=False)
 
 
+def test_public_profile_materializes_and_verifies_opengu_graph_contract():
+    data = Data(
+        x=torch.eye(5, 3),
+        y=torch.tensor([0, 1, 2, 1, 0]),
+        edge_index=torch.tensor([[0, 1, 2, 3], [1, 2, 3, 4]]),
+    )
+
+    observed = public_profile._opengu_graph_contract(
+        data, dataset_name="Cora", materialize=True
+    )
+
+    assert observed == {
+        "contract": "planetoid-graph-metadata-v1",
+        "name": "cora",
+        "num_nodes": 5,
+        "num_edges": 4,
+        "num_features": 3,
+        "num_classes": 3,
+    }
+    assert data.name == "cora"
+    assert data.num_classes == 3
+    assert public_profile._opengu_graph_contract(
+        data, dataset_name="cora", materialize=False
+    ) == observed
+
+    data.num_classes = 4
+    with pytest.raises(RuntimeError, match="num_classes"):
+        public_profile._opengu_graph_contract(
+            data, dataset_name="cora", materialize=False
+        )
+
+
 def test_adapter_materializes_and_loads_custom_formula_label(tmp_path, monkeypatch):
     inputs = _inputs(tmp_path)
     profile_manifest = {

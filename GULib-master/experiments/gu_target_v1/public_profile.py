@@ -26,8 +26,9 @@ from experiments.selection_inputs import make_dataset_selection_inputs
 
 PROFILE = "planetoid_public_fixed"
 MANIFEST_SCHEMA = "gu_target_v1.processed_public_profile"
-MANIFEST_VERSION = 2
+MANIFEST_VERSION = 3
 OPENGU_SPLIT_CONTRACT = "public-mask-indices-and-induced-edges-v1"
+OPENGU_GRAPH_CONTRACT = "planetoid-graph-metadata-v1"
 
 
 class OfflineCanonicalPlanetoid(Planetoid):
@@ -122,6 +123,38 @@ def _opengu_split_contract(data, *, materialize: bool) -> Dict[str, Any]:
     return observation
 
 
+def _opengu_graph_contract(
+    data, *, dataset_name: str, materialize: bool
+) -> Dict[str, Any]:
+    """Materialize or verify graph metadata skipped by explicit-pair loading."""
+
+    if not torch.is_tensor(data.x) or data.x.dim() != 2:
+        raise RuntimeError("processed public profile x tensor is invalid")
+    if not torch.is_tensor(data.y) or data.y.numel() != int(data.num_nodes):
+        raise RuntimeError("processed public profile y tensor is invalid")
+    expected = {
+        "contract": OPENGU_GRAPH_CONTRACT,
+        "name": dataset_name.lower(),
+        "num_nodes": int(data.num_nodes),
+        "num_edges": int(data.edge_index.size(1)),
+        "num_features": int(data.x.size(1)),
+        "num_classes": int(data.y.max().item()) + 1,
+    }
+    if materialize:
+        for field in ("name", "num_edges", "num_features", "num_classes"):
+            setattr(data, field, expected[field])
+    else:
+        for field in ("name", "num_edges", "num_features", "num_classes"):
+            observed = getattr(data, field, None)
+            if observed != expected[field]:
+                raise RuntimeError(
+                    "processed public profile {0} differs from graph tensors".format(
+                        field
+                    )
+                )
+    return expected
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -203,6 +236,11 @@ def verify_public_profile(
         pyg_dataset = pickle.load(handle)
     if type(pyg_dataset) is not Planetoid:
         raise RuntimeError("processed public profile dataset pickle is not native Planetoid")
+    observed_graph_contract = _opengu_graph_contract(
+        data, dataset_name=dataset, materialize=False
+    )
+    if observed_graph_contract != manifest.get("opengu_graph_contract"):
+        raise RuntimeError("processed public profile OpenGU graph contract changed")
     observed_contract = _opengu_split_contract(data, materialize=False)
     if observed_contract != manifest.get("opengu_processed_contract"):
         raise RuntimeError("processed public profile OpenGU split contract changed")
@@ -259,6 +297,9 @@ def stage_public_profile(
     pyg_dataset = _load_offline_planetoid(source)
     data = pyg_dataset[0]
     split = validate_public_split(data, source.dataset)
+    opengu_graph_contract = _opengu_graph_contract(
+        data, dataset_name=source.storage_name, materialize=True
+    )
     opengu_contract = _opengu_split_contract(data, materialize=True)
     inputs = make_dataset_selection_inputs(
         data, dataset_name=dataset.lower(), source_path=paths.data_path
@@ -279,6 +320,7 @@ def stage_public_profile(
         "dataset_sha256": _sha256_file(paths.dataset_path),
         "dataset_source": source.to_manifest(),
         "split_observation": split,
+        "opengu_graph_contract": opengu_graph_contract,
         "opengu_processed_contract": opengu_contract,
         "selection_identity": {
             "dataset_fingerprint": inputs.dataset_fingerprint,
