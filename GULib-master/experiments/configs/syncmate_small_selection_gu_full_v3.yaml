@@ -1,0 +1,86 @@
+name: syncmate_small_selection_gu_full_v3
+base_model: GCN
+processed_profile: planetoid_public_fixed
+methods: [GNNDelete]
+strategies:
+  - a_grad_norm
+  - b_param_hutch
+  - degree
+  - gt_full
+  - gt_simple
+  - legacy
+  - p_graph
+  - p_point
+  - p_simple
+  - r_point
+  - random
+  - tracin_cp_graph_3
+  - tracin_cp_graph_6
+  - tracin_cp_point_3
+  - tracin_cp_point_6
+  - tracin_cp_simple_3
+  - tracin_cp_simple_6
+seeds: [42, 212, 2024]
+selection_k: 7
+
+processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
+evidence_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v3
+run_root: results/runs/__syncmate_small_selection_gu_full_v3__
+
+benchmark_manifest_path: results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json
+benchmark_manifest_sha256: 3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479
+selection_experiment_git_sha: 9240b9a7bd61b17b4c841981ec2892fdf100dc4b
+
+datasets:
+  cora:
+    display_name: Cora
+    ratio: 0.05
+    canonical_public_source_fingerprint: 8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f
+    summaries:
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json, sha256: 977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json, sha256: ef03ed9c2b2af4c2d81b2354d6a384d3c0b51ccbf04406563dcedaa88423de8c}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json, sha256: 7e884e2aba1bdb4d0e802fa8a9d14b5721ef36b3489f3decb42429ee807c3553}
+  citeseer:
+    display_name: CiteSeer
+    ratio: 0.05
+    canonical_public_source_fingerprint: fba32999724ad1cf79676f3a0f09583c63ec9e439dfefaa6430dd7ba85e533da
+    summaries:
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json, sha256: 71ef4f8432635e8c3774e8a7855ba28016c78774f3bfd96cb3db27757dcf87e5}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json, sha256: c5425e57a1cb273132806b68881caba712770427f3acc8ba62082e735d54a2fe}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json, sha256: acddcaaed8189cc37270273550092716314f1169988c225326ad6744685107d1}
+  pubmed:
+    display_name: PubMed
+    ratio: 0.05
+    canonical_public_source_fingerprint: 3ccd73931a2a9149a20d782036f8ecb5f5eb50e797396d176244e1ff74001f6c
+    summaries:
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json, sha256: d997d7b4f227a8c93d46e553deee49a76e159d95bb7619d1e0160a792f796487}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json, sha256: d151896ea9c03326f075af2a0411abfa91e62bc6c11407e25cedf906f34715f2}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json, sha256: 03e47ac0341e33a7ed90a61de0ab4dc29e8ebbdd241620b320c367a96ad74151}
+
+required_gate:
+  result_root: results/runs/__syncmate_small_selection_gu_v3__
+  leaf: cora_GCN_r0.05/GNNDelete_degree/seed42
+
+defaults:
+  save_predictions: true
+  run_collateral: true
+  run_update_detection_auc: true
+  no_cache: true
+  num_epochs: 100
+  batch_size: 64
+  cuda: 0
+
+model_overrides:
+  GCN: {gcn_num_layers: 2, gcn_hidden: 64}
+
+extra_args: [--num_threads, "1"]
+
+claims:
+  lane: controlled_public_profile_gu
+  scientific_comparison: true
+  canonical_opengu_80_20: false
+  gate_required: true
+  selectors: 17
+  datasets: 3
+  seeds: 3
+  total_cells: 153
