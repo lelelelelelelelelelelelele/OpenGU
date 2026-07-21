@@ -95,6 +95,8 @@ pinned SSH active checkout.
 | Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension | **222 passed** |
 | SSH GU/SyncMate/provider/demo suite including new stage contracts | **214 passed** |
 | SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite | **144 passed** |
+| Active v2 profile/recipe focused suite | **188 passed** |
+| Cross-entry-point dataset-pickle smoke | PASS; 3/3 native `Planetoid`, temp 203 MB removed |
 | `py_compile` on changed Python modules | PASS |
 | Disposable local Cora public-profile stage + verify | PASS |
 | Disposable staged bytes | 31.45 MB, removed after verification |
