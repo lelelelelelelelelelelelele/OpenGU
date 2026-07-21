@@ -11,6 +11,7 @@
 - 三套 public PyG cache 已从共享副本复制到 active 主目录，源副本保留，目标逐文件 SHA-256 验证通过。
 - accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public `data.pt` 冒充。
 - 代码提交 `da3688c3e40b6b2d50f26717ad036b8c041bbde0` 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance。
+- 根 `AGENTS.md` 与 `CLAUDE.md` 已将 active `data/raw` / `data/processed` 合同、外部副本禁用、正式运行禁下载和 provenance preflight 固化为 SSH agent 强制规则。
 
 ## 2. 冻结的数据合同
 
@@ -65,7 +66,7 @@ public 与 OpenGU canonical 的 Cora/CiteSeer node/edge 数一致，但 candidat
 | Local real Cora cold smoke | ScoreBundle miss；17/17 Selection Artifact `miss_saved` |
 | Local real Cora warm smoke | exact ScoreBundle hit；17/17 Selection Artifact hit；producer sentinel 未触发 |
 | Smoke dataset provenance | canonical root match；Cora source fingerprint `d16c609f...`; public split `140/500/1000`; Git dirty 状态显式记录 |
-| SSH active branch | `codex/fix-dataset-layout-20260721` at `da3688c3e40b6b2d50f26717ad036b8c041bbde0` |
+| SSH active branch | 审计时实现基线为 `codex/fix-dataset-layout-20260721` at `da3688c3e40b6b2d50f26717ad036b8c041bbde0`；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD |
 | SSH unrelated dirty files | 原有 `results/_journal/auto_report.{md,html}` 等仍保留；未暂存、未清理、未覆盖 |
 
 SyncMate runner queue 当前只允许 `smoke`、`opengu-preflight-v1`、`opengu-cache-v2-gate4-v1` 静态 recipe，不能安全调度任意 17-method 命令。本轮不绕过其 allowlist；正式 benchmark 由 exact Git SHA、source fingerprint、dataset fingerprint 和 cold/warm producer sentinel 绑定。SyncMate 可在后续为已注册 recipe 做结果收集，但本次不将其错误地宣称为执行证据。
@@ -83,9 +84,11 @@ SyncMate runner queue 当前只允许 `smoke`、`opengu-preflight-v1`、`opengu-
 因此未启动默认 `auto` 模式，避免它静默落到 CPU 并产生没有峰值显存的“伪正式”报告。GPU 重新挂载后，从 SSH active 主目录运行：
 
 ```bash
+cd /autodl-fs/data/OpenGU/GULib-master
+experiment_git_sha="$(git rev-parse HEAD)"
 /root/miniconda3/bin/python -m experiments.bc_target_v2.benchmark_selection \
   --device cuda \
-  --experiment-git-sha da3688c3e40b6b2d50f26717ad036b8c041bbde0
+  --experiment-git-sha "$experiment_git_sha"
 ```
 
 新默认 identity：

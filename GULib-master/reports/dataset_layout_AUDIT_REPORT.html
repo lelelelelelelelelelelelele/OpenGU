@@ -42,6 +42,7 @@
 <li>三套 public PyG cache 已从共享副本复制到 active 主目录，源副本保留，目标逐文件 SHA-256 验证通过。</li>
 <li>accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public <code>data.pt</code> 冒充。</li>
 <li>代码提交 <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code> 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance。</li>
+<li>根 <code>AGENTS.md</code> 与 <code>CLAUDE.md</code> 已将 active <code>data/raw</code> / <code>data/processed</code> 合同、外部副本禁用、正式运行禁下载和 provenance preflight 固化为 SSH agent 强制规则。</li>
 </ul>
 <h2 id="2-冻结的数据合同">2. 冻结的数据合同</h2>
 <table>
@@ -228,7 +229,7 @@
 </tr>
 <tr>
   <td>SSH active branch</td>
-  <td><code>codex/fix-dataset-layout-20260721</code> at <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code></td>
+  <td>审计时实现基线为 <code>codex/fix-dataset-layout-20260721</code> at <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code>；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD</td>
 </tr>
 <tr>
   <td>SSH unrelated dirty files</td>
@@ -247,9 +248,11 @@
 <li>磁盘：<code>195G</code> 可用；新 cache/output identity 均不存在。</li>
 </ul>
 <p>因此未启动默认 <code>auto</code> 模式，避免它静默落到 CPU 并产生没有峰值显存的“伪正式”报告。GPU 重新挂载后，从 SSH active 主目录运行：</p>
-<pre><code class="language-bash">/root/miniconda3/bin/python -m experiments.bc_target_v2.benchmark_selection \
+<pre><code class="language-bash">cd /autodl-fs/data/OpenGU/GULib-master
+experiment_git_sha=&quot;$(git rev-parse HEAD)&quot;
+/root/miniconda3/bin/python -m experiments.bc_target_v2.benchmark_selection \
   --device cuda \
-  --experiment-git-sha da3688c3e40b6b2d50f26717ad036b8c041bbde0
+  --experiment-git-sha &quot;$experiment_git_sha&quot;
 </code></pre>
 <p>新默认 identity：</p>
 <ul>

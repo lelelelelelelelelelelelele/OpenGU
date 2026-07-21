@@ -14,6 +14,38 @@ These instructions apply to all work under `GULib-master/`.
 - Preserve reviewable history and accept completed work through meaningful merge commits.
 - Protect shared branches, other worktrees, remote experiment state, and unrelated dirty files.
 
+## Canonical Dataset Location (Mandatory)
+
+These rules apply to every agent and are especially strict for formal runs on
+the SSH active checkout at `/autodl-fs/data/OpenGU/GULib-master`.
+
+- Canonical **source datasets** must resolve inside the active checkout. Raw
+  adapter caches belong under `data/raw/<dataset>/`; OpenGU-persisted graph and
+  split pairs belong under `data/processed/{transductive,inductive}/`.
+- For Planetoid datasets, use the OpenGU lowercase leaves
+  `data/raw/{cora,citeseer,pubmed}`. PyG's `raw/` and `processed/data.pt`
+  beneath each leaf are part of that raw-adapter cache; they are not OpenGU
+  canonical processed split pickles.
+- `/autodl-fs/data/OpenGU-shared`, another worktree's `data/`, experiment
+  checkouts, backups, and archives are recovery/evidence sources only. Never
+  use them as formal dataset roots, create new authoritative copies there, or
+  symlink canonical active paths to them.
+- Method-owned artifacts under `data/<Method>/`, unlearning targets under
+  `data/unlearning_task/`, and result/cache directories are allowed runtime
+  outputs. They are not alternative locations for canonical source datasets.
+- When a dataset is missing, first stage and verify it under active
+  `data/raw/`, then generate the canonical `data/processed/...` pair through
+  the accepted OpenGU preprocessing flow with an explicit split/config/seed.
+  Never substitute PyG `processed/data.pt` for an OpenGU canonical pickle.
+- A formal SSH run must not download or preprocess a dataset inside the timed
+  run. Preflight must resolve and record the requested path, real path,
+  content fingerprint, split identity, and Git provenance, and must fail if a
+  source resolves outside the active checkout.
+- Do not delete historical duplicates merely because they are noncanonical.
+  Inventory and hash them first, then remove only exact targets approved by
+  the user. Current availability and known gaps live in
+  `self/dashboard/WORKPLAN.md` and `reports/dataset_layout_AUDIT_REPORT.md`.
+
 ## Git Workflow (Mandatory)
 
 The authoritative human-readable workflow is [`docs/GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md).

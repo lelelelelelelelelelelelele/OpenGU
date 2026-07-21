@@ -44,6 +44,29 @@ Repository Git rules are defined in `AGENTS.md` and explained with executable Po
 - Formality comes from accepted source/config provenance, complete four-file cell artifacts, gates, and recorded logs—not from the checkout directory. A one-cell gate run made with the same full config/fingerprint remains part of the formal matrix and is skipped, not overwritten, during expansion.
 - Current experiment placement and any explicit exception are recorded in `self/dashboard/WORKPLAN.md`; do not infer an isolation requirement from an older acceptance report that happened to use a fresh checkout.
 
+### Canonical Dataset Location on SSH
+
+- The SSH authority is the active checkout
+  `/autodl-fs/data/OpenGU/GULib-master`. Canonical dataset sources must resolve
+  below that checkout, not below `OpenGU-shared`, another worktree, an
+  experiment checkout, a backup, or an archive.
+- Raw adapter caches live under `data/raw/<dataset>/`. Planetoid uses lowercase
+  `data/raw/{cora,citeseer,pubmed}`; its nested PyG `processed/data.pt` remains
+  part of the public/raw adapter cache.
+- OpenGU canonical graph/split pairs live only under
+  `data/processed/{transductive,inductive}/`. A public Planetoid `data.pt`
+  must never be relabeled or copied as an OpenGU canonical split pickle.
+- `data/<Method>/`, `data/unlearning_task/`, and result/cache trees are allowed
+  generated artifacts, not alternative canonical dataset roots.
+- Formal runs must use the active `root_path`/canonical `processed_root`, must
+  not download or preprocess inside the timed run, and must record resolved
+  path, content/split fingerprints, and Git provenance. Missing datasets are
+  staged into active `data/raw/` and processed through the accepted OpenGU
+  flow before the formal run starts.
+- Existing duplicates are recovery evidence until separately approved for
+  deletion. See `reports/dataset_layout_AUDIT_REPORT.md` for the hash audit and
+  `self/dashboard/WORKPLAN.md` for the current availability snapshot.
+
 ```bash
 # Basic experiment (from GULib-master directory)
 python main.py --cuda 0 --dataset_name cora --base_model GCN --unlearning_methods GraphEraser --unlearn_task node --downstream_task node --num_epochs 100 --batch_size 64
@@ -96,7 +119,8 @@ Each unlearning method in `unlearning/unlearning_methods/{Method}/` inherits fro
 
 ### Data Flow
 
-1. Raw datasets auto-download via PyTorch Geometric to `data/raw/`
+1. Development loaders may download raw datasets to `data/raw/`; formal SSH
+   runs require the canonical active raw cache to exist before timing begins
 2. `dataset/original_dataset.py` loads and returns `(data, dataset)` objects
 3. `utils/dataset_utils.py::process_data()` handles train/test splitting (transductive/inductive, balanced/imbalanced) and caches splits to `data/processed/`
 4. Unlearning target nodes/edges are stored under `data/unlearning_task/{transductive|inductive}/{balanced|imbalanced}/`
