@@ -7321,6 +7321,9 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
+        "opengu-small-selection-mvp-v1",
+        "opengu-small-selection-dataset-gate-v1",
+        "opengu-small-selection-full-v1",
     ]
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
@@ -7623,6 +7626,153 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
         for path in definition["expected_artifact_paths"]
     )
     assert "predictions.npz" in definition["expected_artifact_paths"][2]
+
+
+def test_small_selection_runner_recipes_are_fixed_three_stage_configs():
+    mvp = sm.runner_recipe_definition("opengu-small-selection-mvp-v1")
+    dataset_gate = sm.runner_recipe_definition("opengu-small-selection-dataset-gate-v1")
+    full = sm.runner_recipe_definition("opengu-small-selection-full-v1")
+
+    assert mvp["argv"] == [
+        "{python}",
+        "-m",
+        "experiments.bc_target_v2.syncmate_recipe",
+        "--config",
+        "experiments/configs/syncmate_small_selection_mvp_v1.yaml",
+        "--json",
+    ]
+    assert mvp["preflight_profile"] == "small-selection-4090-v1"
+    assert mvp["execution_validator"] == "exact-artifacts-json-v1"
+    assert mvp["collector_profile"] == "small-selection-v1"
+    assert len(mvp["expected_artifact_paths"]) == 3
+    assert len(dataset_gate["expected_artifact_paths"]) == 9
+    assert len(full["expected_artifact_paths"]) == 27
+    assert full["selection_matrix"] == {
+        "datasets": ["Cora", "CiteSeer", "PubMed"],
+        "seeds": [42, 212, 2024],
+        "score_count": 17,
+    }
+    assert all(
+        path.startswith(sm.SMALL_SELECTION_OUTPUT_ROOT + "/cells/")
+        for path in full["expected_artifact_paths"]
+    )
+
+
+def test_small_selection_execution_validator_rejects_missing_artifacts(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    monkeypatch.setattr(
+        sm,
+        "runner_recipe_binding",
+        lambda recipe: {
+            "ready": True,
+            "errors": [],
+            "observed": {"git_sha": "a" * 40},
+            "recipe": {"id": recipe},
+        },
+    )
+    recipe = "opengu-small-selection-mvp-v1"
+    definition = sm.runner_recipe_definition(recipe)
+    sm.runner_queue_submit("selection-001", recipe)
+
+    class Completed:
+        returncode = 0
+        stdout = json.dumps(
+            {
+                "passed": True,
+                "generated_artifacts": definition["expected_artifact_paths"],
+            }
+        )
+        stderr = ""
+
+    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Completed())
+
+    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+
+    assert result["status"] == "failed"
+    outcome = json.loads(
+        (sync_dir / "runner_queue" / "results" / "selection-001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert "expected recipe artifact is missing" in outcome["reason"]
+
+
+def test_small_selection_collector_acceptance_binds_verified_cold_warm_receipt(
+    tmp_path, monkeypatch
+):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    definition = sm.runner_recipe_definition("opengu-small-selection-mvp-v1")
+    landing = "results/runs/gpu4090-selection"
+    remote_root = sm.SMALL_SELECTION_OUTPUT_ROOT + "/cells/cora_seed42"
+    cold_remote = remote_root + "/cold.json"
+    warm_remote = remote_root + "/warm.json"
+    receipt_remote = remote_root + "/cell.json"
+    cold_path = sm.local_landing_path(landing, cold_remote)
+    warm_path = sm.local_landing_path(landing, warm_remote)
+    receipt_path = sm.local_landing_path(landing, receipt_remote)
+    cold_path.parent.mkdir(parents=True, exist_ok=True)
+    cold_path.write_text('{"cold":true}\n', encoding="utf-8")
+    warm_path.write_text('{"warm":true}\n', encoding="utf-8")
+    receipt = {
+        "schema": "bc_target_v2.syncmate_selection_cell",
+        "version": 1,
+        "dataset": "Cora",
+        "seed": 42,
+        "status": "success",
+        "experiment_git_sha": "a" * 40,
+        "formal_score_count": 17,
+        "device_name": "NVIDIA GeForce RTX 4090",
+        "peak_gpu_allocated_bytes": 1024,
+        "peak_gpu_reserved_bytes": 2048,
+        "cold_sha256": sm.sha256_file(cold_path),
+        "warm_sha256": sm.sha256_file(warm_path),
+    }
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    paths = (cold_remote, warm_remote, receipt_remote)
+    locals_by_remote = {
+        cold_remote: cold_path,
+        warm_remote: warm_path,
+        receipt_remote: receipt_path,
+    }
+    sm.write_artifact_index(
+        {
+            "version": 0,
+            "updated_at": "2026-07-21T12:00:00",
+            "errors": [],
+            "peers": {
+                "gpu4090": {
+                    "node_id": "gpu4090",
+                    "landing": landing,
+                    "remote": {"git": {"sha": "a" * 40}},
+                    "summary": {"status": "verified", "indexed": 3},
+                    "items": [
+                        {
+                            "remote_path": remote,
+                            "local_path": sm.rel(locals_by_remote[remote]),
+                            "sha256": sm.sha256_file(locals_by_remote[remote]),
+                        }
+                        for remote in paths
+                    ],
+                }
+            },
+        }
+    )
+
+    result = sm.small_selection_acceptance_payload(
+        definition,
+        node_id="gpu4090",
+        expected_git_sha="a" * 40,
+    )
+
+    assert result["passed"] is True
+    assert result["accepted_cells"] == 1
+    assert result["verified_artifacts"] == 3
 
 
 def test_gate4_runner_recipe_uses_exact_scoped_git_delta(monkeypatch):
