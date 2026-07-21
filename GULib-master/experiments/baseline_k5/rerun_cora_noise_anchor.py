@@ -9,7 +9,9 @@ uses five independent baseline seeds, and writes ``method_perf_before`` for
 every retained cell.
 
 Usage (on the formal GPU checkout):
-    PYTHON=/path/to/python python experiments/baseline_k5/rerun_cora_noise_anchor.py
+    python experiments/baseline_k5/rerun_cora_noise_anchor.py --preflight-only
+    python experiments/baseline_k5/rerun_cora_noise_anchor.py \
+        --expected-git-sha <40-character-accepted-main-sha>
 """
 from __future__ import annotations
 
@@ -22,11 +24,13 @@ from pathlib import Path
 from run_all_baselines import (
     BASELINE_K,
     BASELINE_ROOT,
+    REPO_ROOT,
     SEEDS,
     compute_averaged_baseline,
     run_single_baseline,
 )
 from baseline_contract import BEFORE_METRIC, SCHEMA, SCHEMA_VERSION
+from formal_preflight import build_formal_preflight, collect_git_provenance
 
 
 DATASET = "cora"
@@ -40,6 +44,15 @@ def _parser() -> argparse.ArgumentParser:
         "--resume",
         action="store_true",
         help="reuse only compatible v2 cells already present in the canonical root",
+    )
+    parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="report formal readiness without creating artifacts or starting GPU work",
+    )
+    parser.add_argument(
+        "--expected-git-sha",
+        help="full accepted main SHA; required for an actual formal run",
     )
     return parser
 
@@ -63,6 +76,20 @@ def _git_provenance():
 
 def main(argv=None) -> int:
     args = _parser().parse_args(argv)
+    if not args.preflight_only and not args.expected_git_sha:
+        print("Refusing formal run without --expected-git-sha <40-character SHA>")
+        return 2
+    preflight = build_formal_preflight(
+        REPO_ROOT,
+        expected_git_sha=args.expected_git_sha,
+        dataset=DATASET,
+    )
+    print(json.dumps(preflight, indent=2))
+    if not preflight["ready"]:
+        return 2
+    if args.preflight_only:
+        return 0
+
     existing = list(BASELINE_ROOT.rglob("*.json")) if BASELINE_ROOT.exists() else []
     if existing and not args.resume:
         print(
@@ -103,6 +130,14 @@ def main(argv=None) -> int:
                 failures.append(f"{method}/{backbone}: incomplete aggregate or missing method_perf_before")
 
     BASELINE_ROOT.mkdir(parents=True, exist_ok=True)
+    final_git = collect_git_provenance(REPO_ROOT)
+    if (
+        final_git["git_sha"] != preflight["git"]["git_sha"]
+        or final_git["branch"] != "main"
+        or final_git["dirty"]
+    ):
+        failures.append("Git provenance changed or became dirty during the run")
+
     manifest = {
         "schema": SCHEMA,
         "schema_version": SCHEMA_VERSION,
@@ -115,6 +150,8 @@ def main(argv=None) -> int:
         "baseline_k": BASELINE_K,
         "before_metric": BEFORE_METRIC,
         "result_root": str(BASELINE_ROOT.resolve()),
+        "formal_preflight": preflight,
+        "final_git": final_git,
         **_git_provenance(),
         "summary": summary,
         "failures": failures,

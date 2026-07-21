@@ -112,6 +112,8 @@ def run_one(method: str, backbone: str, seed: int) -> str:
         "--random_seed", str(seed),
         "--baseline_k", str(BASELINE_K),
         "--output_root", str(ROOT),
+        "--root_path", str(REPO_ROOT.resolve()),
+        "--processed_root", str((REPO_ROOT / "data" / "processed").resolve()),
         # Sync ratio BEFORE parameter_parser runs — config.py captures it at import time
         "--unlearn_ratio", str(ratio_k),
         "--proportion_unlearned_nodes", str(ratio_k),

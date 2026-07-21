@@ -1,5 +1,7 @@
 import json
+import pickle
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -16,6 +18,7 @@ from experiments.baseline_k5.baseline_contract import (
     validate_output_root,
     validate_run_result,
 )
+from experiments.baseline_k5 import formal_preflight
 
 
 class _Method:
@@ -134,3 +137,66 @@ def test_v2_record_requires_consistent_noise_drop():
     record["method_noise_drop"] = 0.01
     with pytest.raises(ValueError, match="inconsistent"):
         validate_record(record, record["config"])
+
+
+def test_processed_source_records_real_paths_hashes_and_split(tmp_path: Path):
+    lane = tmp_path / "data" / "processed" / "transductive"
+    lane.mkdir(parents=True)
+    data_path = lane / "cora0.8_0_0.2.pkl"
+    dataset_path = lane / "cora0.8_0_0.2dataset.pkl"
+    data = SimpleNamespace(
+        num_nodes=4,
+        edge_index=SimpleNamespace(shape=(2, 6)),
+        train_mask=[True, True, True, False],
+        val_mask=[False, False, False, False],
+        test_mask=[False, False, False, True],
+    )
+    data_path.write_bytes(pickle.dumps(data))
+    dataset_path.write_bytes(pickle.dumps({"name": "cora"}))
+
+    source = formal_preflight.resolve_processed_source(tmp_path, dataset="cora")
+    assert source["resolved_root"] == str((tmp_path / "data" / "processed").resolve())
+    assert source["split_identity"]["counts"] == {
+        "train": 3,
+        "val": 0,
+        "test": 1,
+    }
+    assert len(source["source_fingerprint"]) == 64
+    assert all(len(item["sha256"]) == 64 for item in source["files"])
+
+
+def test_formal_preflight_reports_exact_git_and_gpu_blockers(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(
+        formal_preflight,
+        "collect_git_provenance",
+        lambda root: {
+            "branch": "codex/wip",
+            "git_sha": "a" * 40,
+            "dirty": True,
+            "status_entries": [" M results/_journal/auto_report.md"],
+        },
+    )
+    monkeypatch.setattr(
+        formal_preflight,
+        "resolve_processed_source",
+        lambda root, dataset: {"dataset": dataset, "source_fingerprint": "b" * 64},
+    )
+    monkeypatch.setattr(
+        formal_preflight,
+        "collect_gpu_provenance",
+        lambda: {
+            "devices": [{"index": 0, "name": "NVIDIA A100"}],
+            "torch_cuda_available": False,
+            "torch_device_name": None,
+        },
+    )
+    result = formal_preflight.build_formal_preflight(
+        tmp_path, expected_git_sha="c" * 40
+    )
+    assert result["ready"] is False
+    text = "\n".join(result["errors"])
+    assert "git-branch" in text
+    assert "git-sha" in text
+    assert "git-dirty" in text
+    assert "RTX 4090 required" in text
+    assert "torch.cuda.is_available() is false" in text

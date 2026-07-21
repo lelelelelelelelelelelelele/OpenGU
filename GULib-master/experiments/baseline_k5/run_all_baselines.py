@@ -89,6 +89,8 @@ def run_single_baseline(method, dataset, model, seed, baseline_k):
         '--random_seed', str(seed),
         '--baseline_k', str(baseline_k),
         '--output_root', str(BASELINE_ROOT),
+        '--root_path', str(REPO_ROOT.resolve()),
+        '--processed_root', str((REPO_ROOT / 'data' / 'processed').resolve()),
         '--unlearn_ratio', str(baseline_k / DATASET_NUM_NODES[dataset]),
         '--proportion_unlearned_nodes', str(baseline_k / DATASET_NUM_NODES[dataset]),
     ]
