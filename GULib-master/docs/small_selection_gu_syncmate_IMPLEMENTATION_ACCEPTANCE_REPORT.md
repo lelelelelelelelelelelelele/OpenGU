@@ -89,14 +89,15 @@ pinned SSH active checkout.
 | Check | Result |
 |---|---|
 | Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension | **222 passed** |
-| New nine-stage SyncMate/config contract | local syntax + definition smoke PASS; SSH focused pytest pending first review commit |
-| Earlier Phase-B/Cache-V2/AutoReport changed-surface suite | **138 passed** |
+| SSH GU/SyncMate/provider/demo suite including new stage contracts | **214 passed** |
+| SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite | **144 passed** |
 | `py_compile` on changed Python modules | PASS |
 | Disposable local Cora public-profile stage + verify | PASS |
 | Disposable staged bytes | 31.45 MB, removed after verification |
 | Local SyncMate end-to-end smoke | PASS; 3/3 artifacts verified/indexed, 1 row parsed, temp workspace removed |
 | `git diff --check` | PASS |
 | Full repository `pytest -q` | INCOMPLETE: tool timeout after 604 s; no failure output was emitted |
+| Strategy golden suite | 10/11; `degree_basic_k3` tie mismatch reproduces unchanged on `main@894a714`, so it is a pre-existing baseline issue |
 
 The focused counts overlap and must not be added together. The full-suite timeout
 is recorded as a gap, not converted into a pass. The formal SSH gate is the
