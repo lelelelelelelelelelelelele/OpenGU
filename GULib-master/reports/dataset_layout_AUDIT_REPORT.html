@@ -19,7 +19,7 @@
 <a class="" href="#2-冻结的数据合同">2. 冻结的数据合同</a>
 <a class="" href="#3-ssh-active-public-数据">3. SSH active public 数据</a>
 <a class="" href="#4-ssh-active-opengu-canonical-processed-数据">4. SSH active OpenGU canonical processed 数据</a>
-<a class="" href="#5-重复副本审计">5. 重复副本审计</a>
+<a class="" href="#5-重复副本清理">5. 重复副本清理</a>
 <a class="" href="#6-代码与验证">6. 代码与验证</a>
 <a class="" href="#7-正式-3-3-gpu-矩阵状态">7. 正式 3×3 GPU 矩阵状态</a>
 <a class="" href="#8-待决事项">8. 待决事项</a></nav>
@@ -38,11 +38,12 @@
 <li>SSH 登录与正式 active checkout 根目录均为 <code>/autodl-fs/data/OpenGU/GULib-master</code>。</li>
 <li>public 17-method benchmark 的唯一默认根已定为 <code>/autodl-fs/data/OpenGU/GULib-master/data/raw</code>，数据目录为 lowercase <code>cora</code>、<code>citeseer</code>、<code>pubmed</code>。</li>
 <li>OpenGU integrated Selection 的 canonical 输入仍是 <code>/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl</code>。它与 public Planetoid 固定 split 是两条不同数据通道。</li>
-<li>旧 benchmark 实际使用 <code>/autodl-fs/data/OpenGU-shared/Planetoid</code> 和隔离 worktree；其 <code>9/9</code> 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。</li>
-<li>三套 public PyG cache 已从共享副本复制到 active 主目录，源副本保留，目标逐文件 SHA-256 验证通过。</li>
+<li>旧 benchmark 实际使用 <code>/autodl-fs/data/OpenGU-shared/Planetoid</code> 和隔离 worktree；其 <code>9/9</code> 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。对应物理副本已在逐文件验证后删除。</li>
+<li>三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。</li>
 <li>accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public <code>data.pt</code> 冒充。</li>
-<li>代码提交 <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code> 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance。</li>
+<li>代码提交 <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code> 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；<code>51f19460b51a048e33e840a99e35826f5b7af2b4</code> 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。</li>
 <li>根 <code>AGENTS.md</code> 与 <code>CLAUDE.md</code> 已将 active <code>data/raw</code> / <code>data/processed</code> 合同、外部副本禁用、正式运行禁下载和 provenance preflight 固化为 SSH agent 强制规则。</li>
+<li>清理后的目录级复扫显示，SSH shared/worktree/experiment roots 中有内容的 <code>data/raw</code>、<code>data/processed/transductive</code>、<code>data/processed/inductive</code> 数量均为 <code>0</code>；source dataset 只保留在 active 主目录。</li>
 </ul>
 <h2 id="2-冻结的数据合同">2. 冻结的数据合同</h2>
 <table>
@@ -144,56 +145,56 @@
 </tbody>
 </table>
 <p>public 与 OpenGU canonical 的 Cora/CiteSeer node/edge 数一致，但 candidate/target masks 不同。路径正确不代表 split 正确，因此 runner 同时绑定文件内容与 split identity。</p>
-<h2 id="5-重复副本审计">5. 重复副本审计</h2>
+<h2 id="5-重复副本清理">5. 重复副本清理</h2>
 <table>
 <thead>
 <tr>
-  <th>位置</th>
-  <th>内容</th>
-  <th>与 active 的关系</th>
-  <th>当前处理</th>
+  <th>精确范围</th>
+  <th>删除文件</th>
+  <th>删除字节</th>
+  <th>删除前证据</th>
+  <th>状态</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td><code>/autodl-fs/data/OpenGU-shared/Planetoid</code></td>
-  <td>Cora/CiteSeer/PubMed public raw + PyG processed</td>
-  <td>active 三套 public cache 的复制源；迁移后逐文件相同</td>
-  <td>保留；待用户明确批准后才删除</td>
+  <td>SSH shared Planetoid root</td>
+  <td>33</td>
+  <td>116,595,446</td>
+  <td>三套 public cache 的 9 个有效输入逐文件 SHA-256 等于 active</td>
+  <td>已删除</td>
 </tr>
 <tr>
-  <td><code>/autodl-fs/data/OpenGU-worktrees/tracin-v2-g4/data/Planetoid/Cora</code></td>
-  <td>Cora public cache</td>
-  <td>raw 与 <code>data.pt</code> 相同；仅 PyG <code>pre_filter.pt</code> / <code>pre_transform.pt</code> 元数据不同</td>
-  <td>保留；语义重复候选</td>
+  <td>SSH TracIn G4 Planetoid root</td>
+  <td>11</td>
+  <td>16,297,508</td>
+  <td>Cora raw 与 <code>data.pt</code> 等于 active；PyG 空元数据不参与数据身份</td>
+  <td>已删除</td>
 </tr>
 <tr>
-  <td>accepted CiteSeer E1 checkout <code>data/raw/citeseer</code></td>
-  <td>CiteSeer public cache</td>
-  <td>11/11 文件与 shared/active 相同</td>
-  <td>保留；实验归档确认后可清理</td>
+  <td>SSH accepted E1 raw CiteSeer</td>
+  <td>11</td>
+  <td>50,501,924</td>
+  <td>11/11 文件与 active 相同</td>
+  <td>已删除</td>
 </tr>
 <tr>
-  <td>GraphRevoker experiment checkouts</td>
-  <td>Cora canonical processed pair</td>
-  <td>与 active 两个 pickle byte-identical</td>
-  <td>保留；不能把 method-specific evidence 一并误删</td>
+  <td>SSH E1 / GraphRevoker / E4 / A5 / A5 nested canonical pickle copies</td>
+  <td>10</td>
+  <td>360,257,462</td>
+  <td>十个 pickle 分别与 active Cora/CiteSeer counterpart byte-identical</td>
+  <td>已删除</td>
 </tr>
 <tr>
-  <td>accepted E1、A5 及 A5 nested checkout</td>
-  <td>CiteSeer canonical processed pair</td>
-  <td>三组 pickle byte-identical；A5 存在 nested <code>GULib-master/GULib-master</code> 重复</td>
-  <td>保留；nested leaf 是最高优先清理候选</td>
-</tr>
-<tr>
-  <td>本地 <code>E:/project/OpenGU/GULib-master/data/raw/Planetoid</code></td>
-  <td>三套 public cache</td>
-  <td>CiteSeer/PubMed 内容相同；Cora test-index 仅行尾不同且 <code>data.pt</code> 序列化不同，语义需按 tensor 验证</td>
-  <td>保留；不做无确认删除</td>
+  <td>本地 <code>data/raw/Planetoid</code></td>
+  <td>33</td>
+  <td>116,595,446</td>
+  <td>CiteSeer/PubMed 六类张量完全相同；Cora 特征、标签、mask 及有向边多重集合相同，仅边列顺序/序列化不同</td>
+  <td>已删除</td>
 </tr>
 </tbody>
 </table>
-<p>本轮没有删除、移动或覆盖任何旧数据。迁移只写入事前确认不存在的 active 目标；源文件复制前后保留，目标完成后做 SHA-256 复核。</p>
+<p>SSH 共删除 <code>65</code> 个文件、<code>543,652,340</code> bytes；本地另删除 <code>33</code> 个文件、<code>116,595,446</code> bytes。删除前旧路径 executable reference 为 <code>0</code>、运行中进程引用为 <code>0</code>，所有目标均为非 symlink 的精确绝对路径。删除后再次扫描，外部 populated source roots 为 <code>0</code>；active <code>data/raw</code> 保留 <code>49</code> 个文件，active <code>data/processed/transductive</code> 保留 <code>6</code> 个文件。历史实验结果、method-specific artifacts 和 unrelated dirty files 均未删除。</p>
 <h2 id="6-代码与验证">6. 代码与验证</h2>
 <table>
 <thead>
@@ -205,11 +206,11 @@
 <tbody>
 <tr>
   <td>Local focused tests</td>
-  <td><code>38 passed in 1.24s</code></td>
+  <td><code>52 passed in 0.58s</code></td>
 </tr>
 <tr>
   <td>SSH active focused tests</td>
-  <td><code>38 passed in 4.58s</code></td>
+  <td><code>52 passed in 1.45s</code></td>
 </tr>
 <tr>
   <td>Python compilation / diff hygiene</td>
@@ -229,7 +230,11 @@
 </tr>
 <tr>
   <td>SSH active branch</td>
-  <td>审计时实现基线为 <code>codex/fix-dataset-layout-20260721</code> at <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code>；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD</td>
+  <td>caller cleanup 基线为 <code>codex/fix-dataset-layout-20260721</code> at <code>51f19460b51a048e33e840a99e35826f5b7af2b4</code>；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD</td>
+</tr>
+<tr>
+  <td>Post-delete source scan</td>
+  <td>external populated source roots <code>0</code>；Cora/CiteSeer/PubMed 从 active lowercase raw path 加载并通过 fixed-split validation</td>
 </tr>
 <tr>
   <td>SSH unrelated dirty files</td>
@@ -265,7 +270,7 @@ experiment_git_sha=&quot;$(git rev-parse HEAD)&quot;
 <ol>
 <li>在 AutoDL 控制台恢复带 GPU 的 <code>gnn_20</code> 实例或重新挂载 GPU 后，执行上面的 3×3 矩阵。</li>
 <li>PubMed 若要进入 OpenGU integrated 80/20 Selection，必须通过冻结 seed/config 的 OpenGU preprocessing 生成新的 canonical pair，并另做 split fingerprint 验收。</li>
-<li>任何重复副本清理都需单独批准精确目标。优先候选是 A5 nested canonical processed leaf，其次是迁移完成后的 shared Planetoid；旧实验 checkout 的 method-specific evidence 不应按整个 <code>data/</code> 目录粗删。</li>
+<li>后续新增或恢复 dataset 必须先写入 active <code>data/raw</code> 或经 accepted preprocessing 写入 active <code>data/processed/{transductive,inductive}</code>；不得在 shared/worktree/experiment root 新建 authoritative source copy。method-specific evidence 仍按现有 artifact 规则保留。</li>
 </ol>
 </article>
     <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>

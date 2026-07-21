@@ -16,7 +16,7 @@ Local example:
 E:/conda_package/envs/gnn/python.exe -m pytest -q tests/test_tracin_v2_unstable.py
 
 E:/conda_package/envs/gnn/python.exe -m experiments.tracin_v2.run_planetoid_gate `
-  --data-root E:/project/OpenGU/GULib-master/data/raw/Planetoid `
+  --data-root E:/project/OpenGU/GULib-master/data/raw `
   --output C:/temp/tracin_v2_cora_sgd.json `
   --dataset Cora `
   --model gcn `
@@ -48,7 +48,7 @@ required; the formal gate does not auto-download datasets.
 
 ```powershell
 E:/conda_package/envs/gnn/python.exe -m experiments.tracin_v2.run_formal_selection_gate `
-  --data-root E:/project/OpenGU/GULib-master/data/raw/Planetoid `
+  --data-root E:/project/OpenGU/GULib-master/data/raw `
   --score-store-root C:/temp/proper-tracin/score `
   --selection-store-root C:/temp/proper-tracin/selection `
   --legacy-results-root E:/project/OpenGU/GULib-master/results `

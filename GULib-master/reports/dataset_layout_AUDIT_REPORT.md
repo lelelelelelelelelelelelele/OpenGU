@@ -7,11 +7,12 @@
 - SSH 登录与正式 active checkout 根目录均为 `/autodl-fs/data/OpenGU/GULib-master`。
 - public 17-method benchmark 的唯一默认根已定为 `/autodl-fs/data/OpenGU/GULib-master/data/raw`，数据目录为 lowercase `cora`、`citeseer`、`pubmed`。
 - OpenGU integrated Selection 的 canonical 输入仍是 `/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl`。它与 public Planetoid 固定 split 是两条不同数据通道。
-- 旧 benchmark 实际使用 `/autodl-fs/data/OpenGU-shared/Planetoid` 和隔离 worktree；其 `9/9` 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。
-- 三套 public PyG cache 已从共享副本复制到 active 主目录，源副本保留，目标逐文件 SHA-256 验证通过。
+- 旧 benchmark 实际使用 `/autodl-fs/data/OpenGU-shared/Planetoid` 和隔离 worktree；其 `9/9` 只保留为 public-split 诊断证据，不能改称 active-root 或 OpenGU 80/20 实验。对应物理副本已在逐文件验证后删除。
+- 三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。
 - accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public `data.pt` 冒充。
-- 代码提交 `da3688c3e40b6b2d50f26717ad036b8c041bbde0` 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance。
+- 代码提交 `da3688c3e40b6b2d50f26717ad036b8c041bbde0` 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；`51f19460b51a048e33e840a99e35826f5b7af2b4` 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。
 - 根 `AGENTS.md` 与 `CLAUDE.md` 已将 active `data/raw` / `data/processed` 合同、外部副本禁用、正式运行禁下载和 provenance preflight 固化为 SSH agent 强制规则。
+- 清理后的目录级复扫显示，SSH shared/worktree/experiment roots 中有内容的 `data/raw`、`data/processed/transductive`、`data/processed/inductive` 数量均为 `0`；source dataset 只保留在 active 主目录。
 
 ## 2. 冻结的数据合同
 
@@ -43,30 +44,30 @@ PyG 从三个 lowercase active 路径直接读取后得到的图规模分别为 
 
 public 与 OpenGU canonical 的 Cora/CiteSeer node/edge 数一致，但 candidate/target masks 不同。路径正确不代表 split 正确，因此 runner 同时绑定文件内容与 split identity。
 
-## 5. 重复副本审计
+## 5. 重复副本清理
 
-| 位置 | 内容 | 与 active 的关系 | 当前处理 |
-|---|---|---|---|
-| `/autodl-fs/data/OpenGU-shared/Planetoid` | Cora/CiteSeer/PubMed public raw + PyG processed | active 三套 public cache 的复制源；迁移后逐文件相同 | 保留；待用户明确批准后才删除 |
-| `/autodl-fs/data/OpenGU-worktrees/tracin-v2-g4/data/Planetoid/Cora` | Cora public cache | raw 与 `data.pt` 相同；仅 PyG `pre_filter.pt` / `pre_transform.pt` 元数据不同 | 保留；语义重复候选 |
-| accepted CiteSeer E1 checkout `data/raw/citeseer` | CiteSeer public cache | 11/11 文件与 shared/active 相同 | 保留；实验归档确认后可清理 |
-| GraphRevoker experiment checkouts | Cora canonical processed pair | 与 active 两个 pickle byte-identical | 保留；不能把 method-specific evidence 一并误删 |
-| accepted E1、A5 及 A5 nested checkout | CiteSeer canonical processed pair | 三组 pickle byte-identical；A5 存在 nested `GULib-master/GULib-master` 重复 | 保留；nested leaf 是最高优先清理候选 |
-| 本地 `E:/project/OpenGU/GULib-master/data/raw/Planetoid` | 三套 public cache | CiteSeer/PubMed 内容相同；Cora test-index 仅行尾不同且 `data.pt` 序列化不同，语义需按 tensor 验证 | 保留；不做无确认删除 |
+| 精确范围 | 删除文件 | 删除字节 | 删除前证据 | 状态 |
+|---|---:|---:|---|---|
+| SSH shared Planetoid root | 33 | 116,595,446 | 三套 public cache 的 9 个有效输入逐文件 SHA-256 等于 active | 已删除 |
+| SSH TracIn G4 Planetoid root | 11 | 16,297,508 | Cora raw 与 `data.pt` 等于 active；PyG 空元数据不参与数据身份 | 已删除 |
+| SSH accepted E1 raw CiteSeer | 11 | 50,501,924 | 11/11 文件与 active 相同 | 已删除 |
+| SSH E1 / GraphRevoker / E4 / A5 / A5 nested canonical pickle copies | 10 | 360,257,462 | 十个 pickle 分别与 active Cora/CiteSeer counterpart byte-identical | 已删除 |
+| 本地 `data/raw/Planetoid` | 33 | 116,595,446 | CiteSeer/PubMed 六类张量完全相同；Cora 特征、标签、mask 及有向边多重集合相同，仅边列顺序/序列化不同 | 已删除 |
 
-本轮没有删除、移动或覆盖任何旧数据。迁移只写入事前确认不存在的 active 目标；源文件复制前后保留，目标完成后做 SHA-256 复核。
+SSH 共删除 `65` 个文件、`543,652,340` bytes；本地另删除 `33` 个文件、`116,595,446` bytes。删除前旧路径 executable reference 为 `0`、运行中进程引用为 `0`，所有目标均为非 symlink 的精确绝对路径。删除后再次扫描，外部 populated source roots 为 `0`；active `data/raw` 保留 `49` 个文件，active `data/processed/transductive` 保留 `6` 个文件。历史实验结果、method-specific artifacts 和 unrelated dirty files 均未删除。
 
 ## 6. 代码与验证
 
 | Check | Result |
 |---|---|
-| Local focused tests | `38 passed in 1.24s` |
-| SSH active focused tests | `38 passed in 4.58s` |
+| Local focused tests | `52 passed in 0.58s` |
+| SSH active focused tests | `52 passed in 1.45s` |
 | Python compilation / diff hygiene | passed；`git diff --check` clean |
 | Local real Cora cold smoke | ScoreBundle miss；17/17 Selection Artifact `miss_saved` |
 | Local real Cora warm smoke | exact ScoreBundle hit；17/17 Selection Artifact hit；producer sentinel 未触发 |
 | Smoke dataset provenance | canonical root match；Cora source fingerprint `d16c609f...`; public split `140/500/1000`; Git dirty 状态显式记录 |
-| SSH active branch | 审计时实现基线为 `codex/fix-dataset-layout-20260721` at `da3688c3e40b6b2d50f26717ad036b8c041bbde0`；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD |
+| SSH active branch | caller cleanup 基线为 `codex/fix-dataset-layout-20260721` at `51f19460b51a048e33e840a99e35826f5b7af2b4`；规则/报告提交可推进 HEAD，正式运行必须重新读取并冻结当时的 exact HEAD |
+| Post-delete source scan | external populated source roots `0`；Cora/CiteSeer/PubMed 从 active lowercase raw path 加载并通过 fixed-split validation |
 | SSH unrelated dirty files | 原有 `results/_journal/auto_report.{md,html}` 等仍保留；未暂存、未清理、未覆盖 |
 
 SyncMate runner queue 当前只允许 `smoke`、`opengu-preflight-v1`、`opengu-cache-v2-gate4-v1` 静态 recipe，不能安全调度任意 17-method 命令。本轮不绕过其 allowlist；正式 benchmark 由 exact Git SHA、source fingerprint、dataset fingerprint 和 cold/warm producer sentinel 绑定。SyncMate 可在后续为已注册 recipe 做结果收集，但本次不将其错误地宣称为执行证据。
@@ -103,4 +104,4 @@ experiment_git_sha="$(git rev-parse HEAD)"
 
 1. 在 AutoDL 控制台恢复带 GPU 的 `gnn_20` 实例或重新挂载 GPU 后，执行上面的 3×3 矩阵。
 2. PubMed 若要进入 OpenGU integrated 80/20 Selection，必须通过冻结 seed/config 的 OpenGU preprocessing 生成新的 canonical pair，并另做 split fingerprint 验收。
-3. 任何重复副本清理都需单独批准精确目标。优先候选是 A5 nested canonical processed leaf，其次是迁移完成后的 shared Planetoid；旧实验 checkout 的 method-specific evidence 不应按整个 `data/` 目录粗删。
+3. 后续新增或恢复 dataset 必须先写入 active `data/raw` 或经 accepted preprocessing 写入 active `data/processed/{transductive,inductive}`；不得在 shared/worktree/experiment root 新建 authoritative source copy。method-specific evidence 仍按现有 artifact 规则保留。
