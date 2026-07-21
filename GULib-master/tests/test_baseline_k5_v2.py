@@ -4,11 +4,13 @@ from pathlib import Path
 import pytest
 
 from experiments.baseline_k5.baseline_contract import (
+    LEGACY_ARCHIVE_ROOT_NAME,
     RESULT_ROOT_NAME,
     SCHEMA,
     SCHEMA_VERSION,
     default_result_root,
     expected_config,
+    legacy_archive_root,
     measure_method_perf_before,
     validate_record,
     validate_run_result,
@@ -65,10 +67,13 @@ def _record():
     }
 
 
-def test_v2_result_root_is_separate_from_legacy_k5_random(tmp_path: Path):
+def test_v2_result_uses_canonical_path_and_legacy_has_separate_archive(tmp_path: Path):
     root = default_result_root(tmp_path)
     assert root.name == RESULT_ROOT_NAME
-    assert root != tmp_path / "results" / "baseline" / "k5_random"
+    assert root == tmp_path / "results" / "baseline" / "k5_random"
+    archive = legacy_archive_root(tmp_path)
+    assert archive.name == LEGACY_ARCHIVE_ROOT_NAME
+    assert archive != root
 
 
 @pytest.mark.parametrize("method", ["GraphEraser", "GraphRevoker"])

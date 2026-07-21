@@ -102,7 +102,8 @@ def generate_baseline(args: dict, k: int, output_root: Path):
     method = args.get('unlearning_methods', 'GraphEraser')
     seed = int(args.get('random_seed', 2024))
     
-    # V2 is deliberately isolated from the frozen legacy k5_random evidence.
+    # k5_random is canonical.  Pre-v2 evidence lives in the tracked
+    # k5_random_OLD_20260227 archive, so it cannot be mistaken for a resume hit.
     cache_dir = Path(output_root) / method / dataset / model
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / f"baseline_seed{seed}_k{k}.json"

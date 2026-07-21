@@ -10,13 +10,19 @@ from typing import Any, Mapping, Tuple
 
 SCHEMA = "opengu.k5_noise_anchor"
 SCHEMA_VERSION = 2
-RESULT_ROOT_NAME = "k5_noise_anchor_v2"
+RESULT_ROOT_NAME = "k5_random"
+LEGACY_ARCHIVE_ROOT_NAME = "k5_random_OLD_20260227"
 SHARD_METHODS = frozenset({"GraphEraser", "GraphRevoker"})
 
 
 def default_result_root(repo_root: Path) -> Path:
-    """Return the isolated v2 root; never reuse the legacy k5_random store."""
+    """Return the canonical K5 path after the pre-v2 evidence is archived."""
     return Path(repo_root) / "results" / "baseline" / RESULT_ROOT_NAME
+
+
+def legacy_archive_root(repo_root: Path) -> Path:
+    """Return the immutable location of the 2026-02-26/27 legacy artifacts."""
+    return Path(repo_root) / "results" / "baseline" / LEGACY_ARCHIVE_ROOT_NAME
 
 
 def finite_f1(value: Any, label: str) -> float:

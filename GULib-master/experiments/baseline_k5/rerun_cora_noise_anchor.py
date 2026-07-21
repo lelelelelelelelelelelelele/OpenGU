@@ -1,7 +1,8 @@
 """Clean k=5 random-baseline rerun for the paper's Cora noise anchor.
 
-The run starts from the isolated ``results/baseline/k5_noise_anchor_v2``
-directory.  By default that root must contain no JSON artifacts; pass
+The run starts from the canonical ``results/baseline/k5_random`` directory;
+the pre-v2 evidence is preserved in ``k5_random_OLD_20260227``.  By default
+the canonical root must contain no JSON artifacts; pass
 ``--resume`` only to reuse schema-validated v2 cells after an interruption.
 It covers the entire Cora x {GCN, GAT} six-method scorecard,
 uses five independent baseline seeds, and writes ``method_perf_before`` for
@@ -38,7 +39,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="reuse only compatible v2 cells already present in the isolated root",
+        help="reuse only compatible v2 cells already present in the canonical root",
     )
     return parser
 

@@ -7,7 +7,8 @@ Targets:
     MEGU         x GCN   (same)
 
 Idempotent: only compatible v2 per-seed JSON files are reused.  The legacy
-``results/baseline/k5_random`` evidence is never read or overwritten.
+evidence has moved to ``results/baseline/k5_random_OLD_20260227`` and is never
+read or overwritten.
 
 Usage (from project root, with the gnn env active):
     python experiments/baseline_k5/fill_missing_cora.py
