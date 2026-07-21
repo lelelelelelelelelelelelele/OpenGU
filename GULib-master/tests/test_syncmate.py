@@ -7352,6 +7352,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "opengu-small-selection-gu-gate-v2",
         "opengu-small-selection-gu-gate-v3",
         "opengu-small-selection-gu-gate-v4",
+        "opengu-small-selection-gu-gate-v5",
     ]
     expected_recipes.extend(
         "opengu-small-selection-gu-{0}-v2".format(stage)
@@ -7363,6 +7364,10 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     )
     expected_recipes.extend(
         "opengu-small-selection-gu-{0}-v4".format(stage)
+        for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
+    )
+    expected_recipes.extend(
+        "opengu-small-selection-gu-{0}-v5".format(stage)
         for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
     )
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
@@ -7739,14 +7744,14 @@ def test_small_selection_runner_recipes_are_fixed_three_stage_configs():
 
 
 def test_small_selection_gu_runner_recipe_is_exact_and_collectable():
-    definition = sm.runner_recipe_definition("opengu-small-selection-gu-gate-v4")
+    definition = sm.runner_recipe_definition("opengu-small-selection-gu-gate-v5")
 
     assert definition["argv"] == [
         "{python}",
         "-m",
         "experiments.gu_target_v1.syncmate_recipe",
         "--config",
-        "experiments/configs/syncmate_small_selection_gu_gate_v4.yaml",
+        "experiments/configs/syncmate_small_selection_gu_gate_v5.yaml",
         "--json",
     ]
     assert definition["git_binding_policy"] == "job-exact-main-v1"
@@ -7757,7 +7762,7 @@ def test_small_selection_gu_runner_recipe_is_exact_and_collectable():
         "attack.json", "collateral.json", "predictions.npz", "_meta.json"
     ]
     assert definition["expected_artifact_paths"] == list(
-        sm.SMALL_SELECTION_GU_V4_EXPECTED_ARTIFACTS
+        sm.SMALL_SELECTION_GU_V5_EXPECTED_ARTIFACTS
     )
     assert definition["gu_gate"] == {
         "dataset": "Cora",
@@ -7773,7 +7778,7 @@ def test_small_selection_gu_runner_recipe_is_exact_and_collectable():
 
 def test_small_selection_gu_stage_recipes_are_exact_bounded_and_collectable():
     definition = sm.runner_recipe_definition(
-        "opengu-small-selection-gu-citeseer-seed212-v4"
+        "opengu-small-selection-gu-citeseer-seed212-v5"
     )
 
     assert definition["argv"] == [
@@ -7781,7 +7786,7 @@ def test_small_selection_gu_stage_recipes_are_exact_bounded_and_collectable():
         "-m",
         "experiments.gu_target_v1.syncmate_stage",
         "--config",
-        "experiments/configs/syncmate_small_selection_gu_full_v4.yaml",
+        "experiments/configs/syncmate_small_selection_gu_full_v5.yaml",
         "--stage",
         "citeseer-seed212",
         "--json",
@@ -7808,13 +7813,13 @@ def test_small_selection_gu_stage_acceptance_validates_all_17_cells(
     monkeypatch.setattr(sm, "REPO_ROOT", repo)
     monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
     definition = sm.runner_recipe_definition(
-        "opengu-small-selection-gu-cora-seed42-v4"
+        "opengu-small-selection-gu-cora-seed42-v5"
     )
     landing = "results/runs/gpu4090-gu-full"
     items = []
     for selector in sm.SMALL_SELECTION_GU_FULL_STRATEGIES:
         parent = (
-            sm.SMALL_SELECTION_GU_V4_FULL_OUTPUT_ROOT
+            sm.SMALL_SELECTION_GU_V5_FULL_OUTPUT_ROOT
             + "/cora_GCN_r0.05/GNNDelete_"
             + selector
             + "/seed42"
