@@ -61,12 +61,14 @@ from parameter_parser import parameter_parser
 from attack.pipeline_adapter import AttackPipeline
 from attack.attack_strategies import RandomStrategy
 from experiments.baseline_k5.baseline_contract import (
+    BEFORE_METRIC,
     SCHEMA,
     SCHEMA_VERSION,
     default_result_root,
     expected_config,
     load_valid_record,
     measure_method_perf_before,
+    validate_output_root,
     validate_run_result,
 )
 
@@ -97,6 +99,7 @@ def _write_json_atomic(path: Path, value: dict) -> None:
 
 
 def generate_baseline(args: dict, k: int, output_root: Path):
+    output_root = validate_output_root(output_root, REPO_ROOT)
     dataset = args.get('dataset_name', 'cora')
     model = args.get('base_model', 'GCN')
     method = args.get('unlearning_methods', 'GraphEraser')
@@ -195,7 +198,7 @@ def generate_baseline(args: dict, k: int, output_root: Path):
             "seed": seed,
             "k": k,
             "strategy": "random",
-            "before_metric": "method_train_only_f1",
+            "before_metric": BEFORE_METRIC,
             "before_metric_source": before_source,
             "output_root": str(Path(output_root).resolve()),
             **_git_provenance(),

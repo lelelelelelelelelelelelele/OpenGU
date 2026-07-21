@@ -13,6 +13,9 @@ SCHEMA_VERSION = 2
 RESULT_ROOT_NAME = "k5_random"
 LEGACY_ARCHIVE_ROOT_NAME = "k5_random_OLD_20260227"
 SHARD_METHODS = frozenset({"GraphEraser", "GraphRevoker"})
+BEFORE_METRIC = "method_train_only_f1"
+SHARD_BEFORE_SOURCE = "shard_aggregate_f1"
+MODEL_BEFORE_SOURCE = "trained_model_test_f1"
 
 
 def default_result_root(repo_root: Path) -> Path:
@@ -23,6 +26,21 @@ def default_result_root(repo_root: Path) -> Path:
 def legacy_archive_root(repo_root: Path) -> Path:
     """Return the immutable location of the 2026-02-26/27 legacy artifacts."""
     return Path(repo_root) / "results" / "baseline" / LEGACY_ARCHIVE_ROOT_NAME
+
+
+def validate_output_root(output_root: Path, repo_root: Path) -> Path:
+    """Reject writes inside the immutable pre-v2 archive."""
+    resolved = Path(output_root).expanduser().resolve()
+    archive = legacy_archive_root(repo_root).resolve()
+    if resolved == archive or archive in resolved.parents:
+        raise ValueError(f"legacy k5 archive is immutable: {resolved}")
+    return resolved
+
+
+def expected_before_metric_source(method_name: str) -> str:
+    if str(method_name) in SHARD_METHODS:
+        return SHARD_BEFORE_SOURCE
+    return MODEL_BEFORE_SOURCE
 
 
 def finite_f1(value: Any, label: str) -> float:
@@ -44,11 +62,14 @@ def measure_method_perf_before(pipeline: Any, method_name: str) -> Tuple[float, 
     pipeline._ensure_base_model_trained()
     if str(method_name) in SHARD_METHODS:
         value = getattr(pipeline.method, "aggregate_f1_score", None)
-        return finite_f1(value, f"{method_name}.aggregate_f1_score"), "shard_aggregate_f1"
+        return (
+            finite_f1(value, f"{method_name}.aggregate_f1_score"),
+            SHARD_BEFORE_SOURCE,
+        )
 
     trained_model = pipeline._get_trained_model()
     value = pipeline._evaluate_model(trained_model)
-    return finite_f1(value, f"{method_name}.trained_model_f1"), "trained_model_test_f1"
+    return finite_f1(value, f"{method_name}.trained_model_f1"), MODEL_BEFORE_SOURCE
 
 
 def validate_run_result(result: Mapping[str, Any], expected_k: int) -> float:
@@ -73,6 +94,8 @@ def expected_config(
         "seed": int(seed),
         "k": int(k),
         "strategy": "random",
+        "before_metric": BEFORE_METRIC,
+        "before_metric_source": expected_before_metric_source(method),
     }
 
 

@@ -21,17 +21,21 @@ from datetime import datetime
 
 try:
     from .baseline_contract import (
+        BEFORE_METRIC,
         SCHEMA,
         SCHEMA_VERSION,
         default_result_root,
+        expected_before_metric_source,
         expected_config,
         load_valid_record,
     )
 except ImportError:
     from baseline_contract import (
+        BEFORE_METRIC,
         SCHEMA,
         SCHEMA_VERSION,
         default_result_root,
+        expected_before_metric_source,
         expected_config,
         load_valid_record,
     )
@@ -218,7 +222,8 @@ def compute_averaged_baseline(method, dataset, model, baseline_k):
             'k': baseline_k,
             'strategy': 'random',
             'averaged': True,
-            'before_metric': 'method_train_only_f1',
+            'before_metric': BEFORE_METRIC,
+            'before_metric_source': expected_before_metric_source(method),
             'output_root': str(BASELINE_ROOT.resolve()),
             'timestamp': datetime.now().isoformat(),
         }

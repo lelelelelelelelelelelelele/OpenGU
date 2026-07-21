@@ -26,7 +26,7 @@ from run_all_baselines import (
     compute_averaged_baseline,
     run_single_baseline,
 )
-from baseline_contract import SCHEMA, SCHEMA_VERSION
+from baseline_contract import BEFORE_METRIC, SCHEMA, SCHEMA_VERSION
 
 
 DATASET = "cora"
@@ -113,7 +113,7 @@ def main(argv=None) -> int:
         "methods": list(METHODS),
         "seeds": list(SEEDS),
         "baseline_k": BASELINE_K,
-        "before_metric": "method_train_only_f1",
+        "before_metric": BEFORE_METRIC,
         "result_root": str(BASELINE_ROOT.resolve()),
         **_git_provenance(),
         "summary": summary,

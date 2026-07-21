@@ -13,6 +13,7 @@ from experiments.baseline_k5.baseline_contract import (
     legacy_archive_root,
     measure_method_perf_before,
     validate_record,
+    validate_output_root,
     validate_run_result,
 )
 
@@ -74,6 +75,8 @@ def test_v2_result_uses_canonical_path_and_legacy_has_separate_archive(tmp_path:
     archive = legacy_archive_root(tmp_path)
     assert archive.name == LEGACY_ARCHIVE_ROOT_NAME
     assert archive != root
+    with pytest.raises(ValueError, match="legacy k5 archive is immutable"):
+        validate_output_root(archive / "GraphRevoker", tmp_path)
 
 
 @pytest.mark.parametrize("method", ["GraphEraser", "GraphRevoker"])
@@ -111,6 +114,18 @@ def test_legacy_record_cannot_be_reused_as_v2():
     record.pop("schema")
     with pytest.raises(ValueError, match="not a k5 noise-anchor v2"):
         validate_record(record, _record()["config"])
+
+
+@pytest.mark.parametrize("method", ["GraphEraser", "GraphRevoker"])
+def test_shard_v2_record_cannot_claim_single_model_before(method):
+    expected = expected_config(
+        dataset="cora", model="GCN", method=method, seed=111, k=5
+    )
+    record = _record()
+    record["config"] = dict(expected)
+    record["config"]["before_metric_source"] = "trained_model_test_f1"
+    with pytest.raises(ValueError, match="before_metric_source"):
+        validate_record(record, expected)
 
 
 def test_v2_record_requires_consistent_noise_drop():

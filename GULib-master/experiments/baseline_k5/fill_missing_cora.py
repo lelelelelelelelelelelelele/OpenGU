@@ -29,17 +29,21 @@ import numpy as np
 
 try:
     from .baseline_contract import (
+        BEFORE_METRIC,
         SCHEMA,
         SCHEMA_VERSION,
         default_result_root,
+        expected_before_metric_source,
         expected_config,
         load_valid_record,
     )
 except ImportError:
     from baseline_contract import (
+        BEFORE_METRIC,
         SCHEMA,
         SCHEMA_VERSION,
         default_result_root,
+        expected_before_metric_source,
         expected_config,
         load_valid_record,
     )
@@ -171,7 +175,8 @@ def aggregate(method: str, backbone: str) -> bool:
             "dataset_name": DATASET, "base_model": backbone,
             "unlearning_methods": method, "k": BASELINE_K,
             "strategy": "random", "averaged": True,
-            "before_metric": "method_train_only_f1",
+            "before_metric": BEFORE_METRIC,
+            "before_metric_source": expected_before_metric_source(method),
             "output_root": str(ROOT.resolve()),
             "timestamp": datetime.now().isoformat(),
         },
