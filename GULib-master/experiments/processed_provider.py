@@ -4,11 +4,33 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any, Mapping, Tuple
 
 
 class ProcessedArtifactError(RuntimeError):
     """Raised when an explicit processed-data contract cannot be satisfied."""
+
+
+PROCESSED_PROFILE_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+
+
+def normalized_processed_profile(value: Any) -> str:
+    """Return a safe optional persisted-split profile token.
+
+    Ratio-derived filenames remain the default.  A named profile is reserved
+    for an explicitly persisted split whose masks cannot be represented by a
+    train/validation/test ratio triplet (for example Planetoid's public split).
+    """
+
+    if value in (None, ""):
+        return ""
+    profile = str(value).strip().lower()
+    if PROCESSED_PROFILE_RE.fullmatch(profile) is None:
+        raise ProcessedArtifactError(
+            "processed_profile must match {0}".format(PROCESSED_PROFILE_RE.pattern)
+        )
+    return profile
 
 
 @dataclass(frozen=True)
@@ -49,11 +71,15 @@ def processed_artifact_paths(args: Mapping[str, Any]) -> ProcessedArtifactPaths:
 
     root = root.resolve()
     lane = "transductive" if args.get("is_transductive", True) else "inductive"
-    split_token = "_".join(
-        str(args[name])
-        for name in ("train_ratio", "val_ratio", "test_ratio")
-    )
-    stem = "{0}{1}".format(args["dataset_name"], split_token)
+    profile = normalized_processed_profile(args.get("processed_profile"))
+    if profile:
+        stem = "{0}__{1}".format(args["dataset_name"], profile)
+    else:
+        split_token = "_".join(
+            str(args[name])
+            for name in ("train_ratio", "val_ratio", "test_ratio")
+        )
+        stem = "{0}{1}".format(args["dataset_name"], split_token)
     suffix = "_balanced" if args.get("is_balanced", False) else ""
     lane_root = root / lane
     return ProcessedArtifactPaths(

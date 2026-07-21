@@ -32,6 +32,12 @@ def parameter_parser():
         default=None,
         help='Absolute canonical OpenGU data/processed root; fail closed if incomplete',
     )
+    parser.add_argument(
+        '--processed_profile',
+        type=str,
+        default=None,
+        help='Named persisted split profile under data/processed (for example planetoid_public_fixed)',
+    )
     
 
     #data

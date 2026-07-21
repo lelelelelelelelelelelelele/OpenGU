@@ -34,6 +34,7 @@ _save_predictions = False
 _output_dir = None  # if set: write collateral.json + predictions.npz here, no timestamp suffix
 _cache_v2_store_root = None
 _selection_artifact_id = None
+_selection_k = None
 _raw_args = list(sys.argv[1:])
 _filtered_argv = []
 _i = 0
@@ -87,6 +88,15 @@ while _i < len(_raw_args):
         continue
     elif _arg.startswith('--selection_artifact_id='):
         _selection_artifact_id = _arg.split('=', 1)[1]
+    elif _arg == '--selection_k':
+        if _i + 1 < len(_raw_args):
+            _selection_k = int(_raw_args[_i + 1])
+            _i += 2
+            continue
+        _i += 1
+        continue
+    elif _arg.startswith('--selection_k='):
+        _selection_k = int(_arg.split('=', 1)[1])
     else:
         _filtered_argv.append(_arg)
     _i += 1
@@ -398,10 +408,15 @@ def main():
     if v2_selection:
         if _repair_mode:
             raise SystemExit("Cache V2 Selection mode does not support Legacy repair mode")
-        if len(strategies) != 1 or strategies[0] not in {"random", "degree", "pagerank", "im"}:
+        if len(strategies) != 1:
             raise SystemExit(
-                "Cache V2 Selection mode requires one supported strategy: random, degree, pagerank, or im"
+                "Cache V2 Selection mode requires exactly one strategy"
             )
+        import re
+        if re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,80}", strategies[0]) is None:
+            raise SystemExit("Cache V2 Selection strategy label is unsafe")
+        if _selection_k is not None and _selection_k <= 0:
+            raise SystemExit("--selection_k must be positive")
 
     # Parse CLI args (inherits all main.py args via parameter_parser)
     args = parameter_parser()
@@ -500,9 +515,13 @@ def main():
         if v2_selection:
             from cache_v2.runtime import load_selection_artifact
 
-            target_k = max(
-                1,
-                int(len(_candidate_nodes(pipeline.data)) * float(args['unlearn_ratio'])),
+            target_k = (
+                int(_selection_k)
+                if _selection_k is not None
+                else max(
+                    1,
+                    int(len(_candidate_nodes(pipeline.data)) * float(args['unlearn_ratio'])),
+                )
             )
             loaded = load_selection_artifact(
                 str(Path(_cache_v2_store_root).resolve()),

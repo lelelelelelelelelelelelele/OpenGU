@@ -225,7 +225,7 @@ def method_overrides(cfg: Dict[str, Any], method: str) -> List[str]:
 def validate_experiment_owned_extra_args(extra: List[str]) -> None:
     """Reject duplicate roots that would diverge from the runner fingerprint."""
 
-    owned = ("--processed_root", "--runtime_root")
+    owned = ("--processed_root", "--processed_profile", "--runtime_root")
     duplicates = sorted({
         flag
         for token in extra
@@ -255,7 +255,7 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
 
 # Bump when the set of fields hashed in _content_fingerprint changes,
 # so old fingerprints stop matching and force a clean re-run.
-_FINGERPRINT_VERSION = "v2-cache-selection"
+_FINGERPRINT_VERSION = "v3-external-selection-profile"
 
 
 def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> str:
@@ -275,11 +275,13 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
         "method": method,
         "strategy": strategy,
         "seed": seed,
+        "selection_k": cfg.get("selection_k"),
         "defaults": defaults,
         "extra_args": list(cfg.get("extra_args", []) or []),
         "model_overrides": (cfg.get("model_overrides", {}) or {}).get(cfg["base_model"], {}) or {},
         "cache_v2": cfg.get("cache_v2"),
         "processed_root": str(experiment_processed_root(cfg)),
+        "processed_profile": cfg.get("processed_profile"),
         "runtime_root": str(experiment_runtime_root(cfg)),
     }
     if method_extra:
@@ -404,32 +406,46 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     raw = cfg.get("cache_v2")
     if raw is None:
         return None
-    if not isinstance(raw, dict) or raw.get("mode") != "selection":
-        raise ValueError("cache_v2.mode must be 'selection'")
+    if not isinstance(raw, dict) or raw.get("mode") not in {
+        "selection", "external_selection"
+    }:
+        raise ValueError(
+            "cache_v2.mode must be 'selection' or 'external_selection'"
+        )
     removed = sorted(set(raw).intersection({"dataset_root", "allow_download"}))
     if removed:
         raise ValueError(
             "Cache V2 dataset options were removed; {0} belongs to the OpenGU "
             "dataset/experiment layer".format(",".join("cache_v2." + key for key in removed))
         )
+    mode = str(raw["mode"])
     allowed = {"mode", "store_root", "legacy_results_root"}
+    if mode == "external_selection":
+        allowed.add("manifest_path")
     unknown = sorted(set(raw).difference(allowed))
     if unknown:
         raise ValueError(
             "unknown cache_v2 option(s): {0}".format(",".join(unknown))
         )
     unsupported = sorted(set(cfg.get("strategies") or []) - CACHE_V2_RUNNER_STRATEGIES)
-    if unsupported:
+    if mode == "selection" and unsupported:
         raise ValueError(
             "Cache V2 runner has no producer for: {0}".format(",".join(unsupported))
         )
-    return {
-        "mode": "selection",
+    if mode == "external_selection" and not raw.get("manifest_path"):
+        raise ValueError(
+            "cache_v2.manifest_path is required for external_selection"
+        )
+    result = {
+        "mode": mode,
         "store_root": _repo_path(raw.get("store_root", "results/cache_v2")),
         "legacy_results_root": _repo_path(
             raw.get("legacy_results_root", "results")
         ),
     }
+    if mode == "external_selection":
+        result["manifest_path"] = _repo_path(raw["manifest_path"])
+    return result
 
 
 def prepare_cache_v2_selection(
@@ -438,6 +454,15 @@ def prepare_cache_v2_selection(
     settings = cache_v2_settings(cfg)
     if settings is None:
         return {}, {}
+    if settings["mode"] == "external_selection":
+        from experiments.gu_target_v1.adapter import load_external_selection_manifest
+
+        return load_external_selection_manifest(
+            cfg,
+            manifest_path=settings["manifest_path"],
+            expected_store_root=settings["store_root"],
+            processed_root=experiment_processed_root(cfg),
+        )
     from experiments.selection_producer import materialize_selection, plan_selection
 
     common = {
@@ -535,6 +560,8 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         out_dir, expected_fp, want_collateral, expected_strategy=strategy
     )
     identity = _report_identity(cfg, method, strategy, seed)
+    if selection_artifact is not None:
+        identity["k"] = int(selection_artifact["k"])
     cell_id = make_cell_id(identity)
     git_sha = _git_sha()
     report_event_path = event_path_from_env()
@@ -686,6 +713,8 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "--processed_root", str(experiment_processed_root(cfg)),
         "--runtime_root", str(experiment_runtime_root(cfg)),
     ]
+    if cfg.get("processed_profile"):
+        experiment_roots += ["--processed_profile", str(cfg["processed_profile"])]
 
     # 1) demo_attack: writes attack.json
     cmd1 = [
@@ -710,6 +739,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         cmd1 += [
             "--cache_v2_store_root", str(selection_artifact["store_root"]),
             "--selection_artifact_id", str(selection_artifact["artifact_id"]),
+            "--k", str(selection_artifact["k"]),
         ]
     cmd1 += extra
     print(f"\n[run] demo_attack {method}/{strategy}/seed{seed} → {_display_path(out_dir)}")
@@ -839,6 +869,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             cmd2 += [
                 "--cache_v2_store_root", str(selection_artifact["store_root"]),
                 "--selection_artifact_id", str(selection_artifact["artifact_id"]),
+                "--selection_k", str(selection_artifact["k"]),
             ]
         cmd2 += extra
         print(f"[run] eval_collateral {method}/{strategy}/seed{seed}")

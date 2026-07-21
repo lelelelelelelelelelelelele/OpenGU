@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Small-selection → GU + SyncMate implementation acceptance</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#131b31;--ink:#e8edf8;--muted:#9facc5;--line:#2b3858;--ok:#5ee0a0;--warn:#ffd166;--accent:#78a9ff}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#101936);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:1080px;margin:0 auto;padding:42px 24px 72px}h1{font-size:32px;margin:0 0 8px}h2{margin-top:34px;font-size:21px}p,li{max-width:92ch}.muted{color:var(--muted)}
+    .verdict{margin:22px 0;padding:18px 20px;border:1px solid #2e6f55;background:#102b25;border-radius:12px}.pass{color:var(--ok);font-weight:750}.pending{color:var(--warn);font-weight:700}
+    table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{color:#bfd1f5;background:#17223d}tr:last-child td{border-bottom:0}code{color:#c8ddff;background:#111a30;padding:.12em .35em;border-radius:4px;overflow-wrap:anywhere}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.card h3{margin:0 0 8px;color:var(--accent)}
+    ul,ol{padding-left:22px}footer{margin-top:40px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body><main>
+  <h1>Small-selection → GU + SyncMate</h1>
+  <div class="muted">Implementation acceptance · 2026-07-22</div>
+  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">formal SSH gate pending</span><br>
+    The fail-closed adapter, fixed gate, nine matrix recipes, and collector contracts are ready for Git acceptance. This page claims no GU outcome yet.</section>
+
+  <h2>Frozen first gate</h2>
+  <table><tbody>
+    <tr><th>Lane</th><td>Controlled public-profile GU</td><th>Claim</th><td>Infrastructure/provenance only</td></tr>
+    <tr><th>Cell</th><td>Cora / GCN / GNNDelete / degree</td><th>Seed · budget</th><td>42 · k=7</td></tr>
+    <tr><th>Training</th><td>100 epochs · CUDA 0</td><th>Split</th><td>Planetoid public fixed</td></tr>
+    <tr><th>Artifacts</th><td colspan="3"><code>attack.json</code>, <code>collateral.json</code>, <code>predictions.npz</code>, <code>_meta.json</code></td></tr>
+  </tbody></table>
+
+  <h2>Gate-conditioned full screen</h2>
+  <table><tbody>
+    <tr><th>Expansion condition</th><td colspan="3">The four-file gate is checksum-verified and accepted from the same <code>main</code> SHA.</td></tr>
+    <tr><th>Matrix</th><td>17 selectors × 3 datasets × 3 seeds</td><th>Total</th><td>153 cells</td></tr>
+    <tr><th>Execution</th><td>9 static dataset-seed recipes</td><th>Artifacts</th><td>68 per stage; 612 total</td></tr>
+    <tr><th>Scientific questions</th><td colspan="3">TracIn versus degree/controls; effect and feasibility across the structured IF formula grid.</td></tr>
+  </tbody></table>
+
+  <h2>Implemented contract</h2>
+  <div class="grid">
+    <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities.</div>
+    <div class="card"><h3>Selection migration</h3>Fixed-hash cold summary and benchmark manifest create a fresh Cache V2 Selection Artifact. Deleted worktree/cache paths are never followed.</div>
+    <div class="card"><h3>Hypothesis preserved</h3>All 17 scientific labels remain distinct through recipe, result key, and metadata; exact k is passed to both GU and retrain/collateral consumers.</div>
+    <div class="card"><h3>SyncMate acceptance</h3>Static allowlist recipe, exact dispatched SHA, four-file validator, checksum collection, trusted index, and GU-specific post-collection gate.</div>
+    <div class="card"><h3>Bounded full matrix</h3>Nine static recipes each preserve 17 labels and exact k=7. Partial progress resumes only under the same source, profile, manifest, and Git identities.</div>
+  </div>
+
+  <h2>Frozen source identity</h2>
+  <table><tbody>
+    <tr><th>Selector code SHA</th><td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td></tr>
+    <tr><th>Cora cold SHA-256</th><td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td></tr>
+    <tr><th>Benchmark SHA-256</th><td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td></tr>
+    <tr><th>SSH public source fingerprint</th><td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td></tr>
+    <tr><th>Candidate requirement</th><td>140 nodes; exact 17 complete permutations; downstream identity and k must match</td></tr>
+  </tbody></table>
+
+  <h2>Validation</h2>
+  <table><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody>
+    <tr><td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td><td class="pass">222 passed</td></tr>
+    <tr><td>New nine-stage SyncMate/config contract</td><td class="pending">Local syntax + definition smoke PASS; SSH focused pytest pending first review commit</td></tr>
+    <tr><td>Phase-B/Cache-V2/AutoReport changed-surface suite</td><td class="pass">138 passed</td></tr>
+    <tr><td>Python compile + diff check</td><td class="pass">PASS</td></tr>
+    <tr><td>Disposable Cora public-profile stage/verify</td><td class="pass">PASS; 31.45 MB removed</td></tr>
+    <tr><td>Local SyncMate E2E smoke</td><td class="pass">3/3 verified/indexed; 1 row parsed; temp removed</td></tr>
+    <tr><td>Full repository pytest</td><td class="pending">INCOMPLETE · 604 s tool timeout, no failure output</td></tr>
+  </tbody></table>
+  <p class="muted">Focused suites overlap and are not summed. The timeout is a recorded gap, not a pass.</p>
+
+  <h2>Claim boundary</h2>
+  <p>A passing first gate proves one immutable accepted ranking can drive a real GNNDelete cell with exact-k and end-to-end verified provenance. It does not establish degree &gt; TracIn or choose an IF formula. Those conclusions require the gate-conditioned 153-cell matrix. The public screen and OpenGU 80/20 confirmation remain separate lanes.</p>
+
+  <h2>Remaining acceptance sequence</h2>
+  <ol>
+    <li>Commit, pin the recipe introduction SHA, and merge with <code>--no-ff</code> into <code>main</code>.</li>
+    <li>Push and synchronize the clean SSH active checkout.</li>
+    <li>Stage/verify all three public processed profiles before timing.</li>
+    <li>Configure collector and four-file runner policy.</li>
+    <li>Run pinned smoke, then exactly one formal GU gate.</li>
+    <li>Collect, verify, index, and gate before any matrix expansion.</li>
+    <li>Dispatch nine reviewed stages; each must accept 68 files.</li>
+    <li>Return all 612 verified files with matching Markdown/HTML scientific reports.</li>
+  </ol>
+  <footer>Source of truth: small_selection_gu_syncmate_IMPLEMENTATION_ACCEPTANCE_REPORT.md</footer>
+</main></body></html>

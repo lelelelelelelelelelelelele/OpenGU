@@ -69,8 +69,8 @@ QUEUE_STATES = ("inbox", "running", "done", "failed", "blocked")
 QUEUE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,80}$")
 RUNNER_AGENT_MIN_POLL_SECONDS = 1.0
 RUNNER_AGENT_MAX_POLL_SECONDS = 60.0
-RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 3600
-RUNNER_RECIPE_BASE_SHA = "a177e2c3bdf2a5a152c0e7be9fa5385c9b462b2a"
+RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
+RUNNER_RECIPE_INTRODUCED_SHA = "3331c641ce16d0d7a3def66b0e302dd4a39a919c"
 RUNNER_RECIPE_ALLOWED_TOOL_DELTA = (
     "GULib-master/scripts/syncmate/",
     "GULib-master/tests/test_syncmate.py",
@@ -99,6 +99,89 @@ GATE4_RECIPE_ALLOWED_DELTA = (
 SMALL_SELECTION_RECIPE_INTRODUCED_SHA = "57bdefdf62d304f83352ce0f5de2adadd594a8cb"
 SMALL_SELECTION_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_v1__"
 SMALL_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
+SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA = "0000000000000000000000000000000000000000"
+SMALL_SELECTION_GU_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_v1__"
+SMALL_SELECTION_GU_ARTIFACT_NAMES = (
+    "attack.json", "collateral.json", "predictions.npz", "_meta.json"
+)
+SMALL_SELECTION_GU_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_FULL_OUTPUT_ROOT = "results/runs/__syncmate_small_selection_gu_full_v1__"
+SMALL_SELECTION_GU_FULL_CONFIG = "experiments/configs/syncmate_small_selection_gu_full_v1.yaml"
+SMALL_SELECTION_GU_FULL_CONFIG_SHA256 = "59ba25c0176708c94eefc054b42ab3121cebdd429d2e5abc2c2e112f9d69eb28"
+SMALL_SELECTION_GU_FULL_DATASETS = ("cora", "citeseer", "pubmed")
+SMALL_SELECTION_GU_FULL_SEEDS = (42, 212, 2024)
+SMALL_SELECTION_GU_FULL_STRATEGIES = (
+    "a_grad_norm", "b_param_hutch", "degree", "gt_full", "gt_simple",
+    "legacy", "p_graph", "p_point", "p_simple", "r_point", "random",
+    "tracin_cp_graph_3", "tracin_cp_graph_6", "tracin_cp_point_3",
+    "tracin_cp_point_6", "tracin_cp_simple_3", "tracin_cp_simple_6",
+)
+SMALL_SELECTION_GU_FULL_STAGES = tuple(
+    f"{dataset}-seed{seed}"
+    for dataset in SMALL_SELECTION_GU_FULL_DATASETS
+    for seed in SMALL_SELECTION_GU_FULL_SEEDS
+)
+
+
+def _small_selection_gu_stage_artifacts(stage: str) -> Tuple[str, ...]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    paths = []
+    for strategy in SMALL_SELECTION_GU_FULL_STRATEGIES:
+        leaf = (
+            f"{SMALL_SELECTION_GU_FULL_OUTPUT_ROOT}/"
+            f"{dataset}_GCN_r0.05/GNNDelete_{strategy}/seed{seed}"
+        )
+        paths.extend(f"{leaf}/{name}" for name in SMALL_SELECTION_GU_ARTIFACT_NAMES)
+    return tuple(paths)
+
+
+def _small_selection_gu_stage_roots(stage: str) -> Tuple[str, ...]:
+    return tuple(path.rsplit("/", 1)[0] for path in _small_selection_gu_stage_artifacts(stage)[::4])
+
+
+def _small_selection_gu_stage_recipe(stage: str) -> Dict[str, Any]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    return {
+        "id": f"opengu-small-selection-gu-{stage}-v1",
+        "argv": (
+            "{python}", "-m", "experiments.gu_target_v1.syncmate_stage",
+            "--config", SMALL_SELECTION_GU_FULL_CONFIG,
+            "--stage", stage, "--json",
+        ),
+        "config_path": SMALL_SELECTION_GU_FULL_CONFIG,
+        "config_sha256": SMALL_SELECTION_GU_FULL_CONFIG_SHA256,
+        "recipe_introduced_git_sha": SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": _small_selection_gu_stage_artifacts(stage),
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "small-selection-gu-stage-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "small-selection-gu-stage-v1",
+        "collector_result_roots": _small_selection_gu_stage_roots(stage),
+        "collector_artifact_names": SMALL_SELECTION_GU_ARTIFACT_NAMES,
+        "gu_stage": {
+            "stage": stage,
+            "dataset": dataset,
+            "base_model": "GCN",
+            "gu_method": "GNNDelete",
+            "selectors": SMALL_SELECTION_GU_FULL_STRATEGIES,
+            "seed": seed,
+            "k": 7,
+            "lane": "controlled_public_profile_gu",
+            "scientific_comparison": True,
+        },
+    }
 
 
 def _small_selection_artifact_paths(datasets: Tuple[str, ...], seeds: Tuple[int, ...]) -> Tuple[str, ...]:
@@ -150,8 +233,9 @@ RUNNER_RECIPE_DEFINITIONS = {
         "id": "smoke",
         "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),
         "config_path": "scripts/syncmate/setup.example.yaml",
-        "config_sha256": "34f0ad2d462d6575a285760ddfd45f17f01672c1342881a7719b27ed8efafa56",
-        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "config_sha256": "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1",
+        "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
         "timeout_seconds": 180,
         "expected_artifact_paths": (),
         "success_predicate": "json.passed == true",
@@ -164,8 +248,9 @@ RUNNER_RECIPE_DEFINITIONS = {
             "--recipe", "opengu-preflight-v1", "--json",
         ),
         "config_path": "experiments/configs/phase_b_cora_gcn.yaml",
-        "config_sha256": "8c31c6c05aa3737cab457a0ae0a6937d4c99c30499b5f54b620c500a0c967c2e",
-        "expected_git_sha": RUNNER_RECIPE_BASE_SHA,
+        "config_sha256": "5011d428dac128a4f5ca6ee7346cfc46880281ceb7528135f2f023cc1e683c89",
+        "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
         "timeout_seconds": 180,
         "expected_artifact_paths": (
             "results/runs/__syncmate_preflight__/opengu_preflight/seed0/attack.json",
@@ -215,7 +300,48 @@ RUNNER_RECIPE_DEFINITIONS = {
         ("Cora", "CiteSeer", "PubMed"),
         (42, 212, 2024),
     ),
+    "opengu-small-selection-gu-gate-v1": {
+        "id": "opengu-small-selection-gu-gate-v1",
+        "argv": (
+            "{python}", "-m", "experiments.gu_target_v1.syncmate_recipe",
+            "--config", "experiments/configs/syncmate_small_selection_gu_gate_v1.yaml",
+            "--json",
+        ),
+        "config_path": "experiments/configs/syncmate_small_selection_gu_gate_v1.yaml",
+        "config_sha256": "0e277fa5871ec2fa9b1b9049de8878504ceea7507150e45b8b5ec43d30b88833",
+        "recipe_introduced_git_sha": SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": SMALL_SELECTION_GU_EXPECTED_ARTIFACTS,
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "small-selection-gu-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "small-selection-gu-v1",
+        "collector_result_roots": (SMALL_SELECTION_GU_OUTPUT_ROOT,),
+        "collector_artifact_names": SMALL_SELECTION_GU_ARTIFACT_NAMES,
+        "gu_gate": {
+            "dataset": "Cora",
+            "base_model": "GCN",
+            "gu_method": "GNNDelete",
+            "selector": "degree",
+            "seed": 42,
+            "k": 7,
+            "lane": "controlled_public_profile_gu",
+            "scientific_comparison": False,
+        },
+    },
 }
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        f"opengu-small-selection-gu-{stage}-v1": _small_selection_gu_stage_recipe(stage)
+        for stage in SMALL_SELECTION_GU_FULL_STAGES
+    }
+)
 QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
 QUEUE_ALLOWED_JOB_FIELDS = {
     "protocol", "version", "id", "recipe", "created_at", "requested_by", "note",
@@ -421,6 +547,14 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: fh.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def sha256_recipe_config(path: Path) -> str:
+    """Hash reviewed text configs independent of Git checkout line endings."""
+
+    text = path.read_text(encoding="utf-8")
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def normalize_artifact_names(names: Any, *, allow_empty: bool = False) -> List[str]:
@@ -14329,7 +14463,7 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
     if config_path is None or not config_path.is_file():
         errors.append(f"fixed recipe config is missing or unsafe: {config_rel}")
     else:
-        observed_config_sha = sha256_file(config_path)
+        observed_config_sha = sha256_recipe_config(config_path)
         if observed_config_sha != definition["config_sha256"]:
             errors.append("fixed recipe config SHA-256 differs from recipe metadata")
     if definition.get("git_binding_policy") == "job-exact-main-v1":
@@ -14359,6 +14493,31 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
         except Exception as exc:
             errors.append(
                 "small-selection runtime preflight failed: {0}: {1}".format(
+                    type(exc).__name__, exc
+                )
+            )
+    if definition.get("preflight_profile") == "small-selection-gu-4090-v1" and not errors:
+        try:
+            from experiments.gu_target_v1.syncmate_recipe import preflight_recipe
+
+            runtime_preflight = preflight_recipe(config_path)
+            errors.extend(runtime_preflight.get("errors") or [])
+        except Exception as exc:
+            errors.append(
+                "small-selection GU runtime preflight failed: {0}: {1}".format(
+                    type(exc).__name__, exc
+                )
+            )
+    if definition.get("preflight_profile") == "small-selection-gu-stage-4090-v1" and not errors:
+        try:
+            from experiments.gu_target_v1.syncmate_stage import preflight_stage
+
+            stage = str((definition.get("gu_stage") or {}).get("stage") or "")
+            runtime_preflight = preflight_stage(stage, config_path)
+            errors.extend(runtime_preflight.get("errors") or [])
+        except Exception as exc:
+            errors.append(
+                "small-selection GU stage preflight failed: {0}: {1}".format(
                     type(exc).__name__, exc
                 )
             )
@@ -15426,6 +15585,224 @@ def small_selection_acceptance_payload(
     }
 
 
+def small_selection_gu_acceptance_payload(
+    definition: Dict[str, Any],
+    *,
+    node_id: str,
+    expected_git_sha: Optional[str],
+) -> Dict[str, Any]:
+    """Validate the exact four-file GU gate after verified collection."""
+
+    errors: List[str] = []
+    index = load_artifact_index()
+    peer = (index.get("peers") or {}).get(node_id) or {}
+    summary = peer.get("summary") or {}
+    items = peer.get("items") or []
+    expected_paths = list(definition.get("expected_artifact_paths") or [])
+    by_remote = {
+        str(item.get("remote_path") or item.get("path")): item
+        for item in items
+        if isinstance(item, dict) and (item.get("remote_path") or item.get("path"))
+    }
+    if summary.get("status") != "verified":
+        errors.append("GU artifact index is not verified")
+    if set(by_remote) != set(expected_paths):
+        errors.append("verified GU artifact set differs from the reviewed recipe")
+    observed_remote_sha = ((peer.get("remote") or {}).get("git") or {}).get("sha")
+    if expected_git_sha and observed_remote_sha != expected_git_sha:
+        errors.append("verified GU artifact Git SHA differs from the dispatched SHA")
+
+    documents: Dict[str, Any] = {}
+    for remote_path in expected_paths:
+        item = by_remote.get(remote_path) or {}
+        local_path = safe_repo_path(str(item.get("local_path") or ""))
+        if local_path is None or not local_path.is_file():
+            errors.append("verified GU artifact is missing locally: " + remote_path)
+            continue
+        if remote_path.endswith(".json"):
+            try:
+                documents[remote_path.rsplit("/", 1)[-1]] = json.loads(
+                    local_path.read_text(encoding="utf-8")
+                )
+            except Exception as exc:
+                errors.append("invalid GU JSON {0}: {1}".format(remote_path, exc))
+
+    gate = definition.get("gu_gate") or {}
+    meta = documents.get("_meta.json") or {}
+    artifact = meta.get("selection_artifact") or {}
+    if expected_git_sha and meta.get("git_sha") != expected_git_sha:
+        errors.append("GU _meta Git SHA differs from the dispatched SHA")
+    for field, expected in (
+        ("method", gate.get("gu_method")),
+        ("strategy", gate.get("selector")),
+        ("seed", gate.get("seed")),
+    ):
+        if meta.get(field) != expected:
+            errors.append("GU _meta {0} mismatch".format(field))
+    if (
+        artifact.get("strategy") != gate.get("selector")
+        or artifact.get("k") != gate.get("k")
+        or artifact.get("authoritative") is not True
+        or not artifact.get("artifact_id")
+        or not artifact.get("recipe_hash")
+        or not artifact.get("content_hash")
+        or (artifact.get("source_selection") or {}).get("profile")
+        != "grandfathered-public-selection-gt-v1"
+    ):
+        errors.append("GU _meta Selection Artifact provenance is incomplete or changed")
+    attack = documents.get("attack.json") or {}
+    attack_row = (attack.get("results") or {}).get(gate.get("selector")) or {}
+    if not attack_row or attack_row.get("failed") is True:
+        errors.append("GU attack result is missing or failed")
+    collateral = documents.get("collateral.json") or {}
+    collateral_rows = [
+        row for row in collateral.get("results") or []
+        if row.get("strategy") == gate.get("selector")
+    ]
+    if len(collateral_rows) != 1:
+        errors.append("GU collateral result has no unique selector row")
+    return {
+        "generated_at": now_iso(),
+        "mode": "small-selection-gu-acceptance",
+        "node_id": node_id,
+        "recipe": definition.get("id"),
+        "expected_git_sha": expected_git_sha,
+        "observed_remote_git_sha": observed_remote_sha,
+        "expected_artifacts": len(expected_paths),
+        "verified_artifacts": len(by_remote),
+        "gate": dict(gate),
+        "selection_artifact_id": artifact.get("artifact_id"),
+        "passed": not errors,
+        "errors": errors,
+    }
+
+
+def small_selection_gu_stage_acceptance_payload(
+    definition: Dict[str, Any],
+    *,
+    node_id: str,
+    expected_git_sha: Optional[str],
+) -> Dict[str, Any]:
+    """Validate one checksum-verified 17-selector GU stage."""
+
+    errors: List[str] = []
+    index = load_artifact_index()
+    peer = (index.get("peers") or {}).get(node_id) or {}
+    summary = peer.get("summary") or {}
+    items = peer.get("items") or []
+    expected_paths = list(definition.get("expected_artifact_paths") or [])
+    by_remote = {
+        str(item.get("remote_path") or item.get("path")): item
+        for item in items
+        if isinstance(item, dict) and (item.get("remote_path") or item.get("path"))
+    }
+    if summary.get("status") != "verified":
+        errors.append("GU stage artifact index is not verified")
+    if set(by_remote) != set(expected_paths):
+        errors.append("verified GU stage artifact set differs from the reviewed recipe")
+    observed_remote_sha = ((peer.get("remote") or {}).get("git") or {}).get("sha")
+    if expected_git_sha and observed_remote_sha != expected_git_sha:
+        errors.append("verified GU stage Git SHA differs from the dispatched SHA")
+
+    local_by_remote: Dict[str, Path] = {}
+    for remote_path in expected_paths:
+        item = by_remote.get(remote_path) or {}
+        local_path = safe_repo_path(str(item.get("local_path") or ""))
+        if local_path is None or not local_path.is_file():
+            errors.append("verified GU stage artifact is missing locally: " + remote_path)
+            continue
+        local_by_remote[remote_path] = local_path
+
+    stage = definition.get("gu_stage") or {}
+    selectors = tuple(stage.get("selectors") or ())
+    accepted = []
+    for selector in selectors:
+        suffix = f"/GNNDelete_{selector}/seed{stage.get('seed')}"
+        parents = {
+            remote.rsplit("/", 1)[0]
+            for remote in expected_paths
+            if suffix in remote
+        }
+        if len(parents) != 1:
+            errors.append("GU stage has no unique reviewed leaf: " + str(selector))
+            continue
+        parent = next(iter(parents))
+        paths = {name: parent + "/" + name for name in SMALL_SELECTION_GU_ARTIFACT_NAMES}
+        if any(remote not in local_by_remote for remote in paths.values()):
+            continue
+        try:
+            attack = json.loads(local_by_remote[paths["attack.json"]].read_text(encoding="utf-8"))
+            collateral = json.loads(local_by_remote[paths["collateral.json"]].read_text(encoding="utf-8"))
+            meta = json.loads(local_by_remote[paths["_meta.json"]].read_text(encoding="utf-8"))
+        except Exception as exc:
+            errors.append("invalid GU stage JSON for {0}: {1}".format(selector, exc))
+            continue
+        artifact = meta.get("selection_artifact") or {}
+        if expected_git_sha and meta.get("git_sha") != expected_git_sha:
+            errors.append("GU stage _meta Git SHA mismatch: " + str(selector))
+        if (
+            meta.get("method") != stage.get("gu_method")
+            or meta.get("strategy") != selector
+            or meta.get("seed") != stage.get("seed")
+        ):
+            errors.append("GU stage _meta identity mismatch: " + str(selector))
+        if (
+            artifact.get("strategy") != selector
+            or artifact.get("k") != stage.get("k")
+            or artifact.get("authoritative") is not True
+            or not artifact.get("artifact_id")
+            or not artifact.get("recipe_hash")
+            or not artifact.get("content_hash")
+            or (artifact.get("source_selection") or {}).get("profile")
+            != "grandfathered-public-selection-gt-v1"
+        ):
+            errors.append("GU stage Selection provenance mismatch: " + str(selector))
+        attack_row = (attack.get("results") or {}).get(selector) or {}
+        if not attack_row or attack_row.get("failed") is True:
+            errors.append("GU stage attack result is missing or failed: " + str(selector))
+        collateral_rows = [
+            row for row in collateral.get("results") or []
+            if row.get("strategy") == selector
+        ]
+        if len(collateral_rows) != 1:
+            errors.append("GU stage collateral row is missing or ambiguous: " + str(selector))
+        try:
+            with zipfile.ZipFile(local_by_remote[paths["predictions.npz"]]) as archive:
+                if f"{selector}__selected_nodes.npy" not in archive.namelist():
+                    errors.append("GU stage prediction identity is missing: " + str(selector))
+        except Exception as exc:
+            errors.append("invalid GU stage prediction bundle {0}: {1}".format(selector, exc))
+        accepted.append(
+            {
+                "selector": selector,
+                "selection_artifact_id": artifact.get("artifact_id"),
+                "attack_total_seconds": attack_row.get("total_time"),
+                "unlearn_seconds": attack_row.get("unlearn_time"),
+                "selection_reuse_seconds": attack_row.get("selection_reuse_time"),
+                "f1_drop": attack_row.get("f1_drop"),
+                "collateral": collateral_rows[0] if len(collateral_rows) == 1 else None,
+            }
+        )
+    if len(accepted) != len(selectors):
+        errors.append("accepted GU stage selector count differs from the reviewed recipe")
+    return {
+        "generated_at": now_iso(),
+        "mode": "small-selection-gu-stage-acceptance",
+        "node_id": node_id,
+        "recipe": definition.get("id"),
+        "expected_git_sha": expected_git_sha,
+        "observed_remote_git_sha": observed_remote_sha,
+        "expected_artifacts": len(expected_paths),
+        "verified_artifacts": len(by_remote),
+        "stage": dict(stage),
+        "expected_cells": len(selectors),
+        "accepted_cells": len(accepted),
+        "cells": accepted,
+        "passed": not errors,
+        "errors": errors,
+    }
+
+
 def runner_agent_collect_and_gate(
     config_path: Path,
     node_id: str,
@@ -15486,6 +15863,101 @@ def runner_agent_collect_and_gate(
             "verify": verify,
             "selection_acceptance": acceptance,
             "errors": [] if ok else ["selection collection, verification, or acceptance failed"],
+        }
+    if definition and definition.get("collector_profile") == "small-selection-gu-v1":
+        device, warnings = load_device(config_path)
+        if warnings:
+            return {"ok": False, "errors": warnings}
+        peer = peer_or_die(device, node_id)
+        ssh = transport_ssh_value(peer)
+        repo_path = str(peer.get("repo_path") or "")
+        landing = str(peer.get("landing") or f"results/runs/{node_id}")
+        python_executable = peer_python_executable(peer)
+        roots = list(definition.get("collector_result_roots") or [])
+        artifact_names = tuple(definition.get("collector_artifact_names") or ())
+        collect = apply_collect(
+            node_id,
+            ssh,
+            repo_path,
+            roots,
+            landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            overwrite=False,
+            save=True,
+        )
+        verify = verify_collect(
+            node_id,
+            ssh,
+            repo_path,
+            roots,
+            landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            save=True,
+        )
+        acceptance = small_selection_gu_acceptance_payload(
+            definition,
+            node_id=node_id,
+            expected_git_sha=expected_git_sha,
+        )
+        write_sync_report("selection_gu_acceptance", node_id, acceptance)
+        ok = (
+            not collect.get("errors")
+            and (verify.get("summary") or {}).get("status") == "verified"
+            and acceptance.get("passed") is True
+        )
+        return {
+            "ok": ok,
+            "returncode": 0 if ok else 1,
+            "gate_passed": acceptance.get("passed") is True,
+            "collect": collect,
+            "verify": verify,
+            "gu_acceptance": acceptance,
+            "errors": [] if ok else ["GU collection, verification, or acceptance failed"],
+        }
+    if definition and definition.get("collector_profile") == "small-selection-gu-stage-v1":
+        device, warnings = load_device(config_path)
+        if warnings:
+            return {"ok": False, "errors": warnings}
+        peer = peer_or_die(device, node_id)
+        ssh = transport_ssh_value(peer)
+        repo_path = str(peer.get("repo_path") or "")
+        landing = str(peer.get("landing") or f"results/runs/{node_id}")
+        python_executable = peer_python_executable(peer)
+        roots = list(definition.get("collector_result_roots") or [])
+        artifact_names = tuple(definition.get("collector_artifact_names") or ())
+        collect = apply_collect(
+            node_id, ssh, repo_path, roots, landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            overwrite=False, save=True,
+        )
+        verify = verify_collect(
+            node_id, ssh, repo_path, roots, landing,
+            artifact_names=artifact_names,
+            python_executable=python_executable,
+            save=True,
+        )
+        acceptance = small_selection_gu_stage_acceptance_payload(
+            definition,
+            node_id=node_id,
+            expected_git_sha=expected_git_sha,
+        )
+        write_sync_report("selection_gu_stage_acceptance", node_id, acceptance)
+        ok = (
+            not collect.get("errors")
+            and (verify.get("summary") or {}).get("status") == "verified"
+            and acceptance.get("passed") is True
+        )
+        return {
+            "ok": ok,
+            "returncode": 0 if ok else 1,
+            "gate_passed": acceptance.get("passed") is True,
+            "collect": collect,
+            "verify": verify,
+            "gu_stage_acceptance": acceptance,
+            "errors": [] if ok else ["GU stage collection, verification, or acceptance failed"],
         }
     command = [sys.executable, "scripts/syncmate/syncmate.py"]
     if config_path != DEFAULT_DEVICE_FILE:
