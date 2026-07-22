@@ -3,7 +3,7 @@ title: IM 成熟算法可用性、Score 形态与 Degree 超越实验计划
 created: 2026-07-23
 updated: 2026-07-23
 type: supplementary-experiment-plan
-status: pre-registered-awaiting-approval
+status: implementation-local-validation-complete
 tags: [influence-maximization, reverse-reachable, score-artifact, degree-baseline, scalability]
 aliases: [IM成熟算法实验, IM Score实验, IM与Degree实验]
 ---
@@ -11,7 +11,7 @@ aliases: [IM成熟算法实验, IM Score实验, IM与Degree实验]
 # IM 成熟算法可用性、Score 形态与 Degree 超越实验计划
 
 > [!IMPORTANT]
-> **状态：待审批，尚未执行。** 本页只完成研究问题、方法输出合同、实验矩阵、资源预算与停止条件的预注册。用户批准前，不实现算法 adapter，不运行 selector benchmark，也不启动 GU cell。
+> **状态：本机实现与 dataset-free 最小验证已完成；正式矩阵仍待审批。** 2026-07-23 的授权只覆盖 implementation branch、exact-tiny、单元测试和内存玩具图集成测试。没有连接 SSH，没有读取/运行 Planetoid 或 ogbn-arxiv 矩阵，也没有启动 GU cell。实现证据见 [[23_IM成熟算法本机实现与验收]]。
 
 关联页面：
 
@@ -468,7 +468,7 @@ OPIM-C 的 max-$k$ prefix 不能共享一个 certificate 冒充所有较小 budg
 
 ## 11. 实现与测试顺序
 
-审批后另开 implementation branch，不在当前文档分支直接开发：
+已从文档分支另开 implementation branch `codex/feat-im-modern-score-20260723`，实现目录如下：
 
 ```text
 experiments/im_score_benchmark/
@@ -484,18 +484,21 @@ experiments/im_score_benchmark/
   tests/
 ```
 
-顺序：
+执行顺序与当前状态：
 
-1. directed RR sampler + inverted index；
-2. SNI/Shapley/$k$-semivalue reducers；
-3. maximum-coverage greedy trace；
-4. corrected IMM；
-5. OPIM-C independent dual-sample certificate；
-6. exact-tiny tests；
-7. small non-formal smoke；
-8. 接受实现线到 `main`；
-9. clean SSH `main` 上跑 formal Phase S/L；
-10. spread gate 通过后再提交/执行 Phase G。
+1. [x] directed RR sampler + inverted index；
+2. [x] SNI/Shapley/$k$-semivalue reducers；
+3. [x] maximum-coverage greedy trace；
+4. [x] corrected IMM（独立 final RR batch）；
+5. [x] OPIM-C-shaped independent dual-sample conservative certificate；
+6. [x] exact-tiny / contract / runner-guard tests；
+7. [x] dataset-free non-formal smoke 与 9-method 最小集成；
+8. [ ] 用户验收后决定是否接受实现线到 `main`；
+9. [ ] 另行批准后才可在 clean SSH `main` 上跑 formal Phase S/L；
+10. [ ] spread gate 通过后再提交/执行 Phase G。
+
+> [!WARNING]
+> 当前 `opimc` adapter 的证书是独立双 RR batch 的保守 union-Hoeffding 证书，artifact 明确记录 `paper_equivalent=false`；它不是对 SIGMOD 2018 tight OPIM-C certificate 的复现声明。corrected IMM 也因候选受限适配与实现线尚未接受，暂时记录 `paper_equivalent=false`。这两个边界必须保留到正式 theory audit 完成。
 
 formal 矩阵中若发现代码缺陷，停止矩阵；从 pinned main 建 fix branch，修复/验收/合回 main 后，以新 SHA 和新 artifact identity 重启 gate。
 
@@ -517,14 +520,20 @@ formal 矩阵中若发现代码缺陷，停止矩阵；从 pinned main 建 fix b
 
 本页建议分两次授权：
 
-### 审批 A：实现与 selector 验证
+### 审批 A-local：实现与本机 selector 验证（已授权、已完成）
 
 授权范围：
 
 - 建 implementation branch；
 - 实现 RR core、3 个 score、corrected IMM、OPIM-C；
-- 跑 exact-tiny、Phase S 与注册的 ogbn-arxiv canary/Phase L；
+- 运行 exact-tiny、单元测试与 dataset-free 内存玩具图集成测试；
 - 不运行任何 approximate-GU cell。
+
+验收结果与文件入口见 [[23_IM成熟算法本机实现与验收]]。
+
+### 审批 A-formal：Phase S / Phase L（仍待批准）
+
+Planetoid 243 rows 与 ogbn-arxiv 54 rows 的正式执行不在 A-local 授权内。只有用户验收实现、实现线按 Git workflow 接受进入 `main`、SSH active checkout 为 clean `main` 且再次给出执行授权后，才可启动注册矩阵。
 
 ### 审批 B：条件式 GU canary
 

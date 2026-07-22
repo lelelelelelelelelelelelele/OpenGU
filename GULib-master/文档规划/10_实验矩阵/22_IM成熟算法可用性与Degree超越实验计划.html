@@ -96,7 +96,8 @@
 <a class="" href="#11-实现与测试顺序">11. 实现与测试顺序</a>
 <a class="" href="#12-预计资源">12. 预计资源</a>
 <a class="" href="#13-审批项">13. 审批项</a>
-<a class="sub" href="#审批-a-实现与-selector-验证">审批 A：实现与 selector 验证</a>
+<a class="sub" href="#审批-a-local-实现与本机-selector-验证-已授权-已完成">审批 A-local：实现与本机 selector 验证（已授权、已完成）</a>
+<a class="sub" href="#审批-a-formal-phase-s-phase-l-仍待批准">审批 A-formal：Phase S / Phase L（仍待批准）</a>
 <a class="sub" href="#审批-b-条件式-gu-canary">审批 B：条件式 GU canary</a>
 <a class="" href="#14-已覆盖与未覆盖">14. 已覆盖与未覆盖</a>
 <a class="sub" href="#计划覆盖">计划覆盖</a>
@@ -104,9 +105,9 @@
 <a class="" href="#15-解释规则">15. 解释规则</a>
 <a class="" href="#16-一句话记忆">16. 一句话记忆</a></nav>
     <main>
-      <div class="meta">OpenGU · 2026-07-23 · 待审批预注册 · static IC / cardinality-constrained IM</div>
+      <div class="meta">OpenGU · 实现状态同步 · 2026-07-23</div>
       <h1>IM 成熟算法可用性、Score 形态与 Degree 超越实验计划</h1>
-<aside class="callout important"><div class="callout-label">关键结论</div><div><strong>状态：待审批，尚未执行。</strong> 本页只完成研究问题、方法输出合同、实验矩阵、资源预算与停止条件的预注册。用户批准前，不实现算法 adapter，不运行 selector benchmark，也不启动 GU cell。</div></aside>
+<aside class="callout important"><div class="callout-label">关键结论</div><div><strong>状态：本机实现与 dataset-free 最小验证已完成；正式矩阵仍待审批。</strong> 2026-07-23 的授权只覆盖 implementation branch、exact-tiny、单元测试和内存玩具图集成测试。没有连接 SSH，没有读取/运行 Planetoid 或 ogbn-arxiv 矩阵，也没有启动 GU cell。实现证据见 <a href="23_IM%E6%88%90%E7%86%9F%E7%AE%97%E6%B3%95%E6%9C%AC%E6%9C%BA%E5%AE%9E%E7%8E%B0%E4%B8%8E%E9%AA%8C%E6%94%B6.html">23_IM成熟算法本机实现与验收</a>。</div></aside>
 <p>关联页面：</p>
 <ul>
 <li><a href="20_IF%E7%9B%AE%E6%A0%87%E5%B1%82%E7%BA%A7%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C%E8%AE%A1%E5%88%92.html">20_IF目标层级对比实验计划</a>：可复用的“reference / proxy / downstream outcome”文档结构；</li>
@@ -704,7 +705,7 @@ runtime / memory / provenance
 </code></pre>
 <p>OPIM-C 的 max-<span class="math-inline">\(k\)</span> prefix 不能共享一个 certificate 冒充所有较小 budget 的保证；每个正式 <span class="math-inline">\(k\)</span> 必须有独立 certificate record。</p>
 <h2 id="11-实现与测试顺序">11. 实现与测试顺序</h2>
-<p>审批后另开 implementation branch，不在当前文档分支直接开发：</p>
+<p>已从文档分支另开 implementation branch <code>codex/feat-im-modern-score-20260723</code>，实现目录如下：</p>
 <pre><code class="language-text">experiments/im_score_benchmark/
   rr_core.py
   score_reducers.py
@@ -717,19 +718,20 @@ runtime / memory / provenance
   render_report.py
   tests/
 </code></pre>
-<p>顺序：</p>
+<p>执行顺序与当前状态：</p>
 <ol>
-<li>directed RR sampler + inverted index；</li>
-<li>SNI/Shapley/<span class="math-inline">\(k\)</span>-semivalue reducers；</li>
-<li>maximum-coverage greedy trace；</li>
-<li>corrected IMM；</li>
-<li>OPIM-C independent dual-sample certificate；</li>
-<li>exact-tiny tests；</li>
-<li>small non-formal smoke；</li>
-<li>接受实现线到 <code>main</code>；</li>
-<li>clean SSH <code>main</code> 上跑 formal Phase S/L；</li>
-<li>spread gate 通过后再提交/执行 Phase G。</li>
+<li><input checked="" disabled="" type="checkbox"> directed RR sampler + inverted index；</li>
+<li><input checked="" disabled="" type="checkbox"> SNI/Shapley/<span class="math-inline">\(k\)</span>-semivalue reducers；</li>
+<li><input checked="" disabled="" type="checkbox"> maximum-coverage greedy trace；</li>
+<li><input checked="" disabled="" type="checkbox"> corrected IMM（独立 final RR batch）；</li>
+<li><input checked="" disabled="" type="checkbox"> OPIM-C-shaped independent dual-sample conservative certificate；</li>
+<li><input checked="" disabled="" type="checkbox"> exact-tiny / contract / runner-guard tests；</li>
+<li><input checked="" disabled="" type="checkbox"> dataset-free non-formal smoke 与 9-method 最小集成；</li>
+<li><input disabled="" type="checkbox"> 用户验收后决定是否接受实现线到 <code>main</code>；</li>
+<li><input disabled="" type="checkbox"> 另行批准后才可在 clean SSH <code>main</code> 上跑 formal Phase S/L；</li>
+<li><input disabled="" type="checkbox"> spread gate 通过后再提交/执行 Phase G。</li>
 </ol>
+<aside class="callout warning"><div class="callout-label">注意</div><div>当前 <code>opimc</code> adapter 的证书是独立双 RR batch 的保守 union-Hoeffding 证书，artifact 明确记录 <code>paper_equivalent=false</code>；它不是对 SIGMOD 2018 tight OPIM-C certificate 的复现声明。corrected IMM 也因候选受限适配与实现线尚未接受，暂时记录 <code>paper_equivalent=false</code>。这两个边界必须保留到正式 theory audit 完成。</div></aside>
 <p>formal 矩阵中若发现代码缺陷，停止矩阵；从 pinned main 建 fix branch，修复/验收/合回 main 后，以新 SHA 和新 artifact identity 重启 gate。</p>
 <h2 id="12-预计资源">12. 预计资源</h2>
 <table>
@@ -779,14 +781,17 @@ runtime / memory / provenance
 <p>首轮不需要本地 GPU；selector 主线为 CPU/RAM workload。GU canary 仍按项目规则走 AutoDL GPU。</p>
 <h2 id="13-审批项">13. 审批项</h2>
 <p>本页建议分两次授权：</p>
-<h3 id="审批-a-实现与-selector-验证">审批 A：实现与 selector 验证</h3>
+<h3 id="审批-a-local-实现与本机-selector-验证-已授权-已完成">审批 A-local：实现与本机 selector 验证（已授权、已完成）</h3>
 <p>授权范围：</p>
 <ul>
 <li>建 implementation branch；</li>
 <li>实现 RR core、3 个 score、corrected IMM、OPIM-C；</li>
-<li>跑 exact-tiny、Phase S 与注册的 ogbn-arxiv canary/Phase L；</li>
+<li>运行 exact-tiny、单元测试与 dataset-free 内存玩具图集成测试；</li>
 <li>不运行任何 approximate-GU cell。</li>
 </ul>
+<p>验收结果与文件入口见 <a href="23_IM%E6%88%90%E7%86%9F%E7%AE%97%E6%B3%95%E6%9C%AC%E6%9C%BA%E5%AE%9E%E7%8E%B0%E4%B8%8E%E9%AA%8C%E6%94%B6.html">23_IM成熟算法本机实现与验收</a>。</p>
+<h3 id="审批-a-formal-phase-s-phase-l-仍待批准">审批 A-formal：Phase S / Phase L（仍待批准）</h3>
+<p>Planetoid 243 rows 与 ogbn-arxiv 54 rows 的正式执行不在 A-local 授权内。只有用户验收实现、实现线按 Git workflow 接受进入 <code>main</code>、SSH active checkout 为 clean <code>main</code> 且再次给出执行授权后，才可启动注册矩阵。</p>
 <h3 id="审批-b-条件式-gu-canary">审批 B：条件式 GU canary</h3>
 <p>只有审批 A 结果出现通过 §8.2 的 winner 后，再带具体 winner、预计 cells 与 GPU 预算单独报备。本页的 Phase G 是预注册模板，不等于已授权执行。</p>
 <h2 id="14-已覆盖与未覆盖">14. 已覆盖与未覆盖</h2>
