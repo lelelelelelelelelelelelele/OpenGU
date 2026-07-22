@@ -1,7 +1,7 @@
 # Small-selection → GU + SyncMate implementation acceptance
 
 Date: 2026-07-22
-Status: **implementation PASS; gate v4 passed; first full v4 stage diagnostic superseded; v5 rerun pending**
+Status: **implementation PASS; formal v5 gate and 153-cell matrix accepted**
 
 ## Verdict
 
@@ -17,6 +17,13 @@ stage then produced all 68 files but exposed a SyncMate protocol bug: the runner
 validated only the last 16 KB of a larger valid JSON envelope. V5 validates the
 complete envelope while retaining a bounded, hashed diagnostic tail. The v4
 stage remains diagnostic because it was not accepted by SyncMate.
+
+The active v5 line subsequently completed its formal gate and all nine bounded
+dataset-seed stages on clean SSH `main@1c83bb4`. SyncMate accepted `153/153`
+GU cells and `612/612` artifacts with zero GU failures. A separate sorted
+SHA-256 manifest was then re-verified against the durable local copy with zero
+missing, mismatched, or extra files. Scientific outcomes are reported in
+`reports/small_selection_gu_FULL_REPORT.{md,html}`.
 
 ## Frozen first gate
 
@@ -144,17 +151,18 @@ show that degree is better than TracIn, nor which IF formula is best. Those
 questions require the gate-conditioned 153-cell structured matrix. The public-profile screen and
 the OpenGU 80/20 confirmatory lane remain explicitly separate.
 
-## Next acceptance steps
+## Final execution outcome
 
-1. Merge the accepted v5 fix with `--no-ff` into `main`, push, and synchronize the SSH active
-   checkout with `git pull --ff-only`.
-2. Stage and verify all three `planetoid_public_fixed` profiles before timed runs.
-3. Configure the local collector/peer and update the runner's untracked artifact
-   policy for the exact four files.
-4. Run the single formal v5 GU recipe through SyncMate.
-5. Collect, checksum-verify, index, and gate the four files. Expansion remains
-   blocked until that acceptance passes.
-6. Dispatch the nine reviewed dataset-seed recipes sequentially. Each stage
-   must collect and accept 68 files before the next stage is trusted.
-7. Aggregate and return all 612 verified files to the local collector, together
-   with a matching Markdown/HTML scientific report.
+1. The complete v5 implementation line was accepted into `main`; local,
+   `origin/main`, and the SSH active checkout were aligned before formal work.
+2. All three `planetoid_public_fixed` profiles were staged and verified before
+   timing. No formal stage downloaded or preprocessed a dataset.
+3. Gate job `gu-gate-v5-20260722-0702` passed and collected `4/4` artifacts.
+4. The nine dataset-seed jobs ran sequentially. Every stage accepted `17/17`
+   cells and `68/68` checksum-verified artifacts before the next stage started.
+5. The complete result root contains exactly `153` leaves and `612` files.
+   Remote-to-local SHA-256 verification passed `612/612`; manifest SHA-256 is
+   `e45aa4b193d53b854c709e3de543517417fa6a9f0d3eb1f013aea9bc3e16d236`.
+6. Results, verification receipts, gate/stage evidence, machine-readable
+   aggregates, and the paired scientific report are retained locally under
+   `results/runs/gpu4090-gu-20260722/`.
