@@ -13,7 +13,7 @@
 
 ## 0. 一句话现状
 
-已投 NeurIPS、在等审稿、**rebuttal 还远 = 完善期**。回流数据 `degree ≥ IM/IF`（raw-F1 和 retrain gap 都是）——但**这没证伪贡献**：投出去的 thesis 本就是 *systematic audit + extreme heterogeneity + fingerprint*，不是"IM/IF 最强"。这轮的活 = **thesis 内**把主指标 raw-F1 换成 **retrain gap**（它把异质性讲得最干净：GNNDelete 崩 16%、partition/IF 鲁棒）、IM/IF 降为诊断轴——**不重写故事**（重投叙事见 [`RESUBMISSION_BLUEPRINT.md`](../../report/paper/RESUBMISSION_BLUEPRINT.md)）。环境已厘清（H→E 已重指、本地 CPU 就绪、GPU 走 AutoDL 镜像 `gnn_20`、**可随时租服务器**）。
+已投 NeurIPS、在等审稿、**rebuttal 还远 = 完善期**。回流数据 `degree ≥ IM/IF`（raw-F1 和 retrain gap 都是）——但**这没证伪贡献**：投出去的 thesis 本就是 *systematic audit + extreme heterogeneity + fingerprint*，不是"IM/IF 最强"。2026-07-22 controlled public-profile GNNDelete 17-selector 矩阵也已 `153/153` accepted：degree 对 random 的 paired F1 drop `+2.30 pp`，标准 TracInCP 最佳 point row 仅 `+0.17 pp`，进一步确认 selector×GU interaction 与强 dataset heterogeneity。当前活 = **thesis 内**把主指标 raw-F1 换成 **retrain gap**、IM/IF 降为诊断轴——**不重写故事**（重投叙事见 [`RESUBMISSION_BLUEPRINT.md`](../../report/paper/RESUBMISSION_BLUEPRINT.md)）。
 
 ---
 
@@ -22,9 +22,9 @@
 | 维度 | 状态 | 原因 / 细节 | 权威出处 |
 |---|---|---|---|
 | **数据** | 🟢 cora 全+双备份 / arxiv 6-cell pilot（已核实） | cora 460（`ablating/` 460 + `4090/` 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——**服务器权威 journal 核实只完成 6、全在本地、nothing stranded**；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑 | server journal 存档 `results/_journal/archive/`；`_phase_b_aggregate.csv` |
-| **环境** | 🟡 本地分析就绪 / 当前 SSH 容器未挂 GPU | H→E 已重指；conda `gnn` 在 `E:/conda_package/envs/gnn/python.exe`（torch 2.2.1+cu121/Py3.8），CPU 栈全 import OK。**本地 GPU 死**：RTX 5070=sm_120(Blackwell)，此 torch 只到 sm_90。AutoDL 镜像 `gnn_20` 仍是正式 GPU 路径，但 2026-07-21 当前容器无 `/dev/nvidia*`，`torch.cuda.is_available()=False`；恢复 GPU 挂载前不得把 `auto→cpu` 结果记为正式显存实测 | 本 session 本地/SSH 实测；`reports/dataset_layout_AUDIT_REPORT.md` |
+| **环境** | 🟢 本地分析就绪 / SSH RTX 4090 正常 | H→E 已重指；本地 conda `gnn` 继续用于 CPU 分析，本地 RTX 5070 与 pinned torch 不兼容。AutoDL active checkout 已在 RTX 4090 上完成本轮 gate + 153-cell GU matrix；收口时 GPU `0% / 0 MiB`、无残留 runner | `reports/small_selection_gu_FULL_REPORT.md`；本 session SSH 实测 |
 | **数据安全** | 🟢 已多处备份 | 服务器有完整原件；本地备份 `D:\backups\OpenGU_GULib\2026-06-15\` + `F:\…`（2482 文件校验通过） | 备份 MANIFEST |
-| **代码** | 🟡 多 session dirty tree 收口中 | `main` / `origin/main` 基线同为 `3f631fb`；当前分支 `codex/opengu-worktree-recovery-20260714` 正按 session / 主题整理既有 dirty tree，尚未声称全部提交或推送 | git |
+| **代码** | 🟢 正式实验身份已冻结 | 本轮 formal run 固定为当时三端对齐的 clean `main@1c83bb4`；结果报告与聚合器随后通过独立短分支合回 integration line，因此当前 main 可以前移，但不会改写 formal run SHA。每个 stage 前后均恢复 clean active checkout | git；`docs/small_selection_gu_syncmate_IMPLEMENTATION_ACCEPTANCE_REPORT.md` |
 | **L8 修复** | 🟢 代码已修 / 🔴 数据仍坏 | 写回逻辑 `d674f62` 已在 HEAD（**不用合分支**）；数据坏是服务器 **stale `.pyc`** → 只需清缓存重跑（见 E2） | `limitations.md` L8 |
 | **paper** | 🟡 thesis 站得住 / 有 rebuttal 硬伤 | contribution = audit + 异质性 + fingerprint，**未被 degree 证伪**（§2 C1）。这轮 = 换主指标 retrain gap + 压异质性，thesis 内不改写。两道必答题：① vs degree ② citeseer/arxiv scope（L6/L7，需租服务器补）。§2 数字硬伤待 caveat | 记忆 `paper-correctness-liabilities`；§2/§3 |
 | **大方向** | 🟡 已厘清 | **不是"rebuttal vs 重投"二选一**：先备 rebuttal（thesis 内，§3）；不中再按 [`RESUBMISSION_BLUEPRINT.md`](../../report/paper/RESUBMISSION_BLUEPRINT.md) 重投+reframe。别在 rebuttal 里改 thesis | §3 |
@@ -33,7 +33,7 @@
 
 ## 2. 硬伤 C1–C5（必须处理；overleaf 行号见 `PAPER_LIABILITIES_MAP.md`）
 
-1. **C1 — 指标选错，非贡献被证伪**：`degree ≥ IM/IF` 在 **raw-F1**（degree +1.85 > im +1.19 > tracin −0.31）**和 retrain gap**（全局 degree .0286 > im .0233；逐方法只有 GNNDelete 有真 gap、degree .158 第一、IF 家族≈0）**都成立**。但 thesis 本是 *audit + 异质性*，不是"IM/IF 最强" → **degree 赢不证伪它**。rebuttal 内：换主指标 retrain gap、异质性当头条、IM/IF 降诊断轴；TracIn 最弱本身是 finding。唯一可能翻盘的 IM/IF niche：GIF/IDEA gap 现≈0 且 L8 污染 → **E2** 是唯一能验出真 niche 的实验。→ 记忆 `paper-contribution-falsified`。
+1. **C1 — 指标选错，非贡献被证伪**：`degree ≥ IM/IF` 在 **raw-F1**（degree +1.85 > im +1.19 > tracin −0.31）**和 retrain gap**（全局 degree .0286 > im .0233；逐方法只有 GNNDelete 有真 gap、degree .158 第一、IF 家族≈0）**都成立**。新增 E8 controlled public-profile GNNDelete 配对矩阵再次给出 degree `+2.30 pp` vs random，而标准 TracInCP point 最佳仅 `+0.17 pp`；Cora/CiteSeer/PubMed 方向并不一致。thesis 本是 *audit + 异质性*，不是"IM/IF 最强" → **degree 赢不证伪它**。rebuttal 内：换主指标 retrain gap、异质性当头条、IM/IF 降诊断轴；TracIn 最弱本身是 finding。唯一可能翻盘的 IM/IF niche：GIF/IDEA gap 现≈0 且 L8 污染 → **E2** 是唯一能验出真 niche 的实验。→ `reports/small_selection_gu_FULL_REPORT.md`。
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
 4. **C4 — ΔF_noise(k=5) 历史 K5 口径缺 method-native before**：旧磁盘 5/6 方法 `f1_before=null`，不能继续充当 fresh anchor。→ **E3** 先走 fixed-SHA SSH formal 1-cell gate + 59-cell V2 expansion，取得 `method_perf_before/f1_after`，再本地 join 与 sanity；W3-L4 只引用新 accepted evidence。
@@ -89,6 +89,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **小图 Selection 数据合同（2026-07-21）**：public 17-method benchmark 只从 active checkout 的 `data/raw/{cora,citeseer,pubmed}` 读取，必须已有八个 raw 文件与 `processed/data.pt`，禁止自动下载/运行时加工；OpenGU integrated Selection 只从 `data/processed/{transductive,inductive}` pickle 读取。public split 与 OpenGU 80/20 split 不得混称。该合同已固化到根 `AGENTS.md`（所有 agent 强制规则）和 `CLAUDE.md`（SSH 操作规则）；shared/worktree/experiment checkout 不得作为 dataset root，既有 source-dataset 副本已在验证后清理。
 - active 已补齐三套 public raw/PyG cache 与 Cora/CiteSeer canonical 80/20 pickle；PubMed canonical 80/20 pair 尚无可信历史副本。路径、逐文件 SHA-256、聚合 source fingerprint 与 split count 由 runner 写入每个 cold/warm summary。
 - **一次性 GT 特例（2026-07-22）**：`9240b9a` 的 SSH public 17-output `9/9` 矩阵作为本 benchmark 的权威 GT 接受，不再重跑。依据是旧 shared 三套 public cache 的 9 个有效输入逐文件等于 active、ScoreBundle `produce()` 与两份 scorer core 在后续提交中未变、cold/warm/GPU/failure 证据已完整。该特例只接受 v3.0 result payload 与分析结论；不得把旧路径改称 active-root、把旧 cache 当 v3.1 exact hit，或扩展到 OpenGU 80/20 / GU outcome。未来新运行仍严格走 active canonical contract。
+- **小图 Selection→GU 正式结果（2026-07-22）**：在 clean SSH `main@1c83bb4` 上先过一格 v5 gate，再串行完成 GCN/GNNDelete/k=7 的 `17 selectors × 3 datasets × 3 seeds = 153` cells；9/9 stages、612/612 artifacts、0 failures，远端→本地 SHA-256 全量一致。该结果使用 accepted public GT materialize 新 Cache V2 Selection Artifact，不重算 Selection，也不扩张为 OpenGU 80/20 或 E7 surrogate-transfer。科学结论见 `reports/small_selection_gu_FULL_REPORT.{md,html}`。
 
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
@@ -99,8 +100,9 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
 | **E7** ★ | **C.6 surrogate-transfer umbrella（严格门控）**：Cache V2 Selection Artifact 真实命中且 `proper-tracin-v1` versioned recipe 通过 gate 后，先做 **C.6a** 独立训练 GCN surrogate 选点 → GCN target GNNDelete，再做 **C.6b** GCN surrogate 选点 → GAT / GIN target GNNDelete。比较 target-direct TracIn、same-seed random、degree；主指标 = retrain gap transfer ratio，辅以 selection Jaccard。术语定为 query-free surrogate / 灰盒迁移，不写成纯黑盒 | 待建 `C6a_same_arch_surrogate.yaml`、`C6b_cross_backbone_surrogate.yaml`；gate = Cache V2 cold/warm exact hit + `proper-tracin-v1` recipe；显式记录 selection artifact ref，且 `selector_model_id != target_model_id` | C.6a 5 cell + C.6b 10 cell；5 seeds；若 transfer ratio ≥60% 再扩反向组合或第二个 GU family | L2-direct → L2-surrogate / threat-model realism | ◐ generic 17-output Cache V2 real-hit 已由 SSH `9/9` grandfathered GT 特例关闭，**不再要求 3×3 重跑**。仍待 `proper-tracin-v1`、E7 model-id/runner 集成与 C.6a/C.6b GU outcome |
+| **E8** ★ | **小图 17-Selection → GNNDelete GU screen**：先 gate，再跑全部公式与 controls；回答 TracIn vs degree、IF formula effect/feasibility | `syncmate_small_selection_gu_{gate,full}_v5.yaml`; `experiments/gu_target_v1/aggregate.py` | 1-cell gate + 153-cell matrix；612 artifacts | C1 / selector×GU interaction | ✅ **153/153 accepted**、0 failures、612/612 local verified；`reports/small_selection_gu_FULL_REPORT.md` |
 
-**坑提醒**：E1 的 2 月 citeseer 数据在 `_archive_20260506/` 是**污染数据，不能引**；改 GNN 架构维度才需清 `data/{Method}/`，E1–E6 不改架构故不用清。public Planetoid 固定 split（Cora/CiteSeer/PubMed train=`140/120/60`、val=`500`）不是 OpenGU canonical 80/20 processed split，二者结果不得互相改名。E7 禁止通过“清 IF / selection cache”切换算法口径：Legacy IF / Selection Cache 全程只读；算法换版创建带显式 algorithm / producer version 的新 V2 Recipe，旧 V2 Artifact 不删除、不覆盖，只有明确退役时才显式 retire。先锁定 `proper-tracin-v1`（旧口径仅可标成 `deployed-cross-tracin-legacy`），再运行 C.6a/C.6b。
+**坑提醒**：E1 的 2 月 citeseer 数据在 `_archive_20260506/` 是**污染数据，不能引**；改 GNN 架构维度才需清 `data/{Method}/`，E1–E6 不改架构故不用清。public Planetoid 固定 split（Cora/CiteSeer/PubMed train=`140/120/60`、val=`500`）不是 OpenGU canonical 80/20 processed split，二者结果不得互相改名。E8 是 direct selected-set → GNNDelete screen，不是 E7 query-free surrogate-transfer，不能关闭 `selector_model_id != target_model_id` 的 C.6a/C.6b。E7 禁止通过“清 IF / selection cache”切换算法口径：Legacy IF / Selection Cache 全程只读；算法换版创建带显式 algorithm / producer version 的新 V2 Recipe，旧 V2 Artifact 不删除、不覆盖，只有明确退役时才显式 retire。
 
 ---
 
@@ -191,3 +193,4 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **2026-07-21** Dataset 历史副本清理：在逐文件/语义等价、caller reference=0、process reference=0 后，删除 SSH 65 files / 543,652,340 bytes 与本地 33 files / 116,595,446 bytes；复扫确认 SSH 外部 populated source roots=`0`，实验结果及 method-specific artifacts 未删除。PubMed canonical 80/20 pair 仍缺失。
 - **2026-07-20** GraphRevoker 文档状态收敛：OB:13 从一次性 Runbook 迁移为验收/回归测试台账；代码与远端 E4 标 `PASS`，本地 40-cell evidence import 标 `ARCHIVE PENDING`，2026-05-07 旧 SHA 视图永久 `INVALID`；新增双格式总状态报告，TracIn/Hybrid 继续独立 gate。
 - **2026-07-21/22** 小图 Selection cold/warm 全量实测与 authority 决议：Cora/CiteSeer/PubMed × seeds 42/212/2024，正式 17-output ScoreBundle 共 `9/9` cells、`153/153` 方法级 cold miss→warm exact hit，0 failures；cold bundle mean/max `6.8038/9.1624 s`，warm read `0.3200/0.9635 s`，峰值 allocated/reserved `357/384 MiB`。证据见 `reports/small_graph_selection_BENCHMARK_REPORT.{md,html}`；本轮作为 public benchmark GT/analysis authority 接受且不重跑，关闭 generic Cache V2 real-hit，但不替代 proper-TracIn 的 E7 集成 gate。
+- **2026-07-22** E8 小图 Selection→GU 全量完成：formal gate 后在 clean SSH `main@1c83bb4` 串行跑完 9 stages，`153/153` GNNDelete cells、`612/612` artifacts、0 failures；本地 durable copy 逐文件 SHA-256 全量一致。degree paired F1 drop vs random `+2.30 pp`，标准 TracInCP point 最佳 `+0.17 pp`；D-full `gt_full/p_graph` 分别 `+1.19/+0.80 pp`。完整口径、dataset 异质性与限制见 `reports/small_selection_gu_FULL_REPORT.{md,html}`。

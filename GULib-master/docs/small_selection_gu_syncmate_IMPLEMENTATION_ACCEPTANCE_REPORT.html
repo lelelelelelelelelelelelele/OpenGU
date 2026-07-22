@@ -1,97 +1,372 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Small-selection → GU + SyncMate implementation acceptance</title>
   <style>
-    :root{--bg:#0b1020;--panel:#131b31;--ink:#e8edf8;--muted:#9facc5;--line:#2b3858;--ok:#5ee0a0;--warn:#ffd166;--accent:#78a9ff}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#101936);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
-    main{max-width:1080px;margin:0 auto;padding:42px 24px 72px}h1{font-size:32px;margin:0 0 8px}h2{margin-top:34px;font-size:21px}p,li{max-width:92ch}.muted{color:var(--muted)}
-    .verdict{margin:22px 0;padding:18px 20px;border:1px solid #2e6f55;background:#102b25;border-radius:12px}.pass{color:var(--ok);font-weight:750}.pending{color:var(--warn);font-weight:700}
-    table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{color:#bfd1f5;background:#17223d}tr:last-child td{border-bottom:0}code{color:#c8ddff;background:#111a30;padding:.12em .35em;border-radius:4px;overflow-wrap:anywhere}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.card h3{margin:0 0 8px;color:var(--accent)}
-    ul,ol{padding-left:22px}footer{margin-top:40px;color:var(--muted);font-size:13px}
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
   </style>
 </head>
-<body><main>
-  <h1>Small-selection → GU + SyncMate</h1>
-  <div class="muted">Implementation acceptance · 2026-07-22</div>
-  <section class="verdict"><span class="pass">IMPLEMENTATION PASS</span> · <span class="pending">gate v4 passed; first full v4 stage diagnostic superseded; v5 rerun pending</span><br>
-    Gate v4 passed end to end. Its first full 17-cell stage wrote 68/68 files, but SyncMate validated only the final 16 KB of a larger valid JSON envelope. V5 validates the complete envelope and retains a bounded, hashed diagnostic tail.</section>
-
-  <h2>Frozen first gate</h2>
-  <table><tbody>
-    <tr><th>Lane</th><td>Controlled public-profile GU</td><th>Claim</th><td>Infrastructure/provenance only</td></tr>
-    <tr><th>Cell</th><td>Cora / GCN / GNNDelete / degree</td><th>Seed · budget</th><td>42 · k=7</td></tr>
-    <tr><th>Training</th><td>100 epochs · CUDA 0</td><th>Split</th><td>Planetoid public fixed</td></tr>
-    <tr><th>Artifacts</th><td colspan="3"><code>attack.json</code>, <code>collateral.json</code>, <code>predictions.npz</code>, <code>_meta.json</code></td></tr>
-  </tbody></table>
-
-  <h2>Gate-conditioned full screen</h2>
-  <table><tbody>
-    <tr><th>Expansion condition</th><td colspan="3">The four-file gate is checksum-verified and accepted from the same <code>main</code> SHA.</td></tr>
-    <tr><th>Matrix</th><td>17 selectors × 3 datasets × 3 seeds</td><th>Total</th><td>153 cells</td></tr>
-    <tr><th>Execution</th><td>9 static dataset-seed recipes</td><th>Artifacts</th><td>68 per stage; 612 total</td></tr>
-    <tr><th>Scientific questions</th><td colspan="3">TracIn versus degree/controls; effect and feasibility across the structured IF formula grid.</td></tr>
-  </tbody></table>
-
-  <h2>Implemented contract</h2>
-  <div class="grid">
-    <div class="card"><h3>Dataset identity</h3>Named <code>planetoid_public_fixed</code> pair under <code>data/processed/transductive</code>, verified against raw source, split counts, file hashes, graph and candidate identities. V4 binds <code>*_indices</code> and induced split edges to public masks and graph metadata to tensors.</div>
-    <div class="card"><h3>Selection migration</h3>Fixed-hash cold summary and benchmark manifest create a fresh Cache V2 Selection Artifact. Deleted worktree/cache paths are never followed.</div>
-    <div class="card"><h3>Hypothesis preserved</h3>All 17 scientific labels remain distinct through recipe, result key, and metadata; exact k is passed to both GU and retrain/collateral consumers.</div>
-    <div class="card"><h3>SyncMate acceptance</h3>Active v5 allowlist recipe, exact dispatched SHA, fresh identities, full-envelope validation, bounded diagnostic tails, checksum collection, trusted index, and GU-specific post-collection gate.</div>
-    <div class="card"><h3>Bounded full matrix</h3>Nine static recipes each preserve 17 labels and exact k=7. Partial progress resumes only under the same source, profile, manifest, and Git identities.</div>
-  </div>
-
-  <h2>Frozen source identity</h2>
-  <table><tbody>
-    <tr><th>Selector code SHA</th><td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td></tr>
-    <tr><th>GU recipe introduction SHA</th><td><code>218f6421c2cb31b71ebfad113fee15b9ad0a3d36</code></td></tr>
-    <tr><th>Active GU v5 recipe introduction SHA</th><td><code>324d3a0434614ec0d206e18f784560ae90f5f945</code></td></tr>
-    <tr><th>Gate v5 config SHA-256</th><td><code>26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10</code></td></tr>
-    <tr><th>Full v5 config SHA-256</th><td><code>bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd</code></td></tr>
-    <tr><th>Cora cold SHA-256</th><td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td></tr>
-    <tr><th>Benchmark SHA-256</th><td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td></tr>
-    <tr><th>SSH public source fingerprint</th><td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td></tr>
-    <tr><th>Candidate requirement</th><td>140 nodes; exact 17 complete permutations; downstream identity and k must match</td></tr>
-  </tbody></table>
-
-  <h2>Validation</h2>
-  <table><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody>
-    <tr><td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td><td class="pass">222 passed</td></tr>
-    <tr><td>SSH GU/SyncMate/provider/demo suite including new stage contracts</td><td class="pass">214 passed</td></tr>
-    <tr><td>SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite</td><td class="pass">144 passed</td></tr>
-    <tr><td>Active v5 GU/profile/provider/SyncMate focused suite</td><td class="pass">197 passed</td></tr>
-    <tr><td>Large stage-envelope regression</td><td class="pass">&gt;16 KB JSON validated in full; bounded tail and SHA-256 retained</td></tr>
-    <tr><td>Formal v4 gate</td><td class="pass">4/4 fetched, checksum-verified, and GU-accepted at <code>main@85c775a</code></td></tr>
-    <tr><td>Full v4 Cora/seed42 diagnostic</td><td class="pending">GU exit 0 and 68/68 files present; rejected only by truncated JSON validation</td></tr>
-    <tr><td>Real three-dataset v4 stage + verify</td><td class="pass">Cora/CiteSeer/PubMed all accepted</td></tr>
-    <tr><td>Cross-entry-point OpenGU split-contract smoke</td><td class="pass">Indices and induced edges match all masks; <code>process_data</code> loads 3/3</td></tr>
-    <tr><td>Cross-entry-point model construction</td><td class="pass">GCNNet instantiated for all 3 datasets with 1433/7, 3703/6, 500/3 feature/class metadata</td></tr>
-    <tr><td>Observed public split counts</td><td class="pass">Cora 140/500/1000; CiteSeer 120/500/1000; PubMed 60/500/1000</td></tr>
-    <tr><td>Disposable v4 profiles</td><td class="pass">About 203 MB; removed after verification</td></tr>
-    <tr><td>Python compile + diff check</td><td class="pass">PASS</td></tr>
-    <tr><td>Disposable Cora public-profile stage/verify</td><td class="pass">PASS; 31.45 MB removed</td></tr>
-    <tr><td>Local SyncMate E2E smoke</td><td class="pass">3/3 verified/indexed; 1 row parsed; temp removed</td></tr>
-    <tr><td>Full repository pytest</td><td class="pending">INCOMPLETE · 604 s tool timeout, no failure output</td></tr>
-    <tr><td>Strategy golden suite</td><td class="pending">10/11; degree tie mismatch reproduces unchanged on main@894a714 (pre-existing baseline)</td></tr>
-  </tbody></table>
-  <p class="muted">Focused suites overlap and are not summed. The timeout is a recorded gap, not a pass.</p>
-
-  <h2>Claim boundary</h2>
-  <p>A passing first gate proves one immutable accepted ranking can drive a real GNNDelete cell with exact-k and end-to-end verified provenance. It does not establish degree &gt; TracIn or choose an IF formula. Those conclusions require the gate-conditioned 153-cell matrix. The public screen and OpenGU 80/20 confirmation remain separate lanes.</p>
-
-  <h2>Remaining acceptance sequence</h2>
-  <ol>
-    <li>Merge the accepted v5 fix with <code>--no-ff</code> into <code>main</code>, push, and synchronize the clean SSH active checkout.</li>
-    <li>Stage/verify all three public processed profiles before timing.</li>
-    <li>Configure collector and four-file runner policy.</li>
-    <li>Run exactly one formal v5 GU gate through SyncMate.</li>
-    <li>Collect, verify, index, and gate before any matrix expansion.</li>
-    <li>Dispatch nine reviewed stages; each must accept 68 files.</li>
-    <li>Return all 612 verified files with matching Markdown/HTML scientific reports.</li>
-  </ol>
-  <footer>Source of truth: small_selection_gu_syncmate_IMPLEMENTATION_ACCEPTANCE_REPORT.md</footer>
-</main></body></html>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / SYNCMATE</div>
+    <div class="side-title">Small-selection → GU + SyncMate implementation acceptance</div>
+    <span class="badge">IMPLEMENTATION + FORMAL RUN PASS</span>
+    <nav><a class="" href="#verdict">Verdict</a>
+<a class="" href="#frozen-first-gate">Frozen first gate</a>
+<a class="" href="#gate-conditioned-full-screen">Gate-conditioned full screen</a>
+<a class="" href="#what-changed">What changed</a>
+<a class="" href="#identity-and-fail-closed-evidence">Identity and fail-closed evidence</a>
+<a class="" href="#validation">Validation</a>
+<a class="" href="#claim-boundary">Claim boundary</a>
+<a class="" href="#final-execution-outcome">Final execution outcome</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">V5 · GATE + 9 STAGES · 612 VERIFIED</div>
+      <h1>Small-selection → GU + SyncMate implementation acceptance</h1>
+    </section>
+    <article><h1 id="small-selection-gu-syncmate-implementation-acceptance">Small-selection → GU + SyncMate implementation acceptance</h1>
+<p>Date: 2026-07-22
+Status: <strong>implementation PASS; formal v5 gate and 153-cell matrix accepted</strong></p>
+<h2 id="verdict">Verdict</h2>
+<p>The code line is ready to enter Git acceptance. It provides a fail-closed,
+hypothesis-preserving path from the accepted public 17-output Selection GT to
+real OpenGU GU cells, plus a static gate recipe, nine bounded matrix recipes,
+and verified collector contracts. Gate v2 exposed a processed-profile contract
+gap before training (<code>train_indices</code> absent); gate v3 then exposed the explicit
+pair loader's missing graph metadata (<code>num_classes</code>). Both are diagnostic only.
+The v4 profile derives and verifies OpenGU split and graph compatibility fields
+from immutable Planetoid tensors, and gate v4 passed end to end. The first full
+stage then produced all 68 files but exposed a SyncMate protocol bug: the runner
+validated only the last 16 KB of a larger valid JSON envelope. V5 validates the
+complete envelope while retaining a bounded, hashed diagnostic tail. The v4
+stage remains diagnostic because it was not accepted by SyncMate.</p>
+<p>The active v5 line subsequently completed its formal gate and all nine bounded
+dataset-seed stages on clean SSH <code>main@1c83bb4</code>. SyncMate accepted <code>153/153</code>
+GU cells and <code>612/612</code> artifacts with zero GU failures. A separate sorted
+SHA-256 manifest was then re-verified against the durable local copy with zero
+missing, mismatched, or extra files. Scientific outcomes are reported in
+<code>reports/small_selection_gu_FULL_REPORT.{md,html}</code>.</p>
+<h2 id="frozen-first-gate">Frozen first gate</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Lane</td>
+  <td>controlled public-profile GU</td>
+</tr>
+<tr>
+  <td>Dataset / split</td>
+  <td>Cora / Planetoid public fixed split</td>
+</tr>
+<tr>
+  <td>Base model</td>
+  <td>GCN, 2 layers, 64 hidden</td>
+</tr>
+<tr>
+  <td>GU method</td>
+  <td>GNNDelete</td>
+</tr>
+<tr>
+  <td>Selector</td>
+  <td>degree</td>
+</tr>
+<tr>
+  <td>Seed / budget</td>
+  <td>42 / k=7</td>
+</tr>
+<tr>
+  <td>Training</td>
+  <td>100 epochs, CUDA 0</td>
+</tr>
+<tr>
+  <td>Output</td>
+  <td><code>attack.json</code>, <code>collateral.json</code>, <code>predictions.npz</code>, <code>_meta.json</code></td>
+</tr>
+<tr>
+  <td>Claim boundary</td>
+  <td>infrastructure/provenance gate; not a method comparison</td>
+</tr>
+</tbody>
+</table>
+<h2 id="gate-conditioned-full-screen">Gate-conditioned full screen</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Frozen value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Expansion condition</td>
+  <td>the four-file gate is checksum-verified and accepted</td>
+</tr>
+<tr>
+  <td>Matrix</td>
+  <td>17 selectors x 3 datasets x 3 seeds = 153 cells</td>
+</tr>
+<tr>
+  <td>Datasets</td>
+  <td>Cora, CiteSeer, PubMed; Planetoid public fixed profile</td>
+</tr>
+<tr>
+  <td>Seeds</td>
+  <td>42, 212, 2024</td>
+</tr>
+<tr>
+  <td>Model / GU / budget</td>
+  <td>GCN / GNNDelete / exact k=7</td>
+</tr>
+<tr>
+  <td>Execution units</td>
+  <td>9 static dataset-seed recipes; 17 selectors per recipe</td>
+</tr>
+<tr>
+  <td>Required artifacts</td>
+  <td>4 per cell, 68 per stage, 612 total</td>
+</tr>
+<tr>
+  <td>Resume rule</td>
+  <td>same main SHA, source hashes, profile identity, and Selection manifest only</td>
+</tr>
+<tr>
+  <td>Scientific questions</td>
+  <td>TracIn vs degree/controls; effect and feasibility across IF formulas</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-changed">What changed</h2>
+<ul>
+<li>Added the named <code>planetoid_public_fixed</code> processed profile under
+<code>data/processed/transductive/</code>. It is staged before a formal timed run and
+verifies raw source fingerprint, public split counts, processed-file hashes,
+graph fingerprint, candidate-set hash, and candidate count.</li>
+<li>Added a grandfathered-GT adapter. It consumes the retained Cora cold summary
+and benchmark manifest by fixed SHA-256, validates the exact 17-output grid,
+and materializes fresh Cache V2 Selection Artifacts. It never follows the
+deleted worktree/cache paths recorded in the old summary.</li>
+<li>Preserved scientific selector labels (<code>a_grad_norm</code>, <code>p_graph</code>,
+<code>tracin_cp_point_6</code>, etc.) through artifact recipe, runner result key, and
+metadata. Formula rows are not relabelled as <code>degree</code> or <code>external</code>.</li>
+<li>Added exact-k propagation to attack and collateral consumers, so k=7 is not
+inferred from a dataset ratio.</li>
+<li>Added the active static SyncMate recipe
+<code>opengu-small-selection-gu-gate-v5</code>, exact four-artifact execution
+validation, a GU-specific collector profile, and post-collection acceptance.</li>
+<li>Added nine gate-conditioned static recipes covering the complete 17 x 3 x 3
+screen. Each stage has an exact 68-file allowlist and a dedicated collector
+acceptance that validates all 17 selector labels, Cache V2 provenance,
+attack status, collateral row, prediction identity, Git SHA, and checksums.</li>
+<li>Added resumable stage execution: complete leaves are skipped by content
+fingerprint; incomplete leaves are rerun; source/store/profile/SHA drift
+blocks instead of silently mixing evidence.</li>
+<li>Superseded v1 after a fail-closed dataset-pickle diagnostic, v2 after its
+pre-training <code>train_indices</code> diagnostic, and v3 after its <code>num_classes</code>
+diagnostic. V4 uses fresh gate/full config, evidence, Selection store, result
+roots, and recipe ids; v1/v2/v3/v4 cannot be
+resumed by the active wrappers.</li>
+<li>Gate v4 passed and collected 4/4 checksum-verified files. The first 17-cell
+full v4 stage completed its GU subprocess and wrote 68/68 files, but its
+16,000-byte-truncated stage JSON could not pass the exact-envelope validator.
+V5 fixes that parser and uses new gate/full/cache/result identities under a
+new pinned <code>main</code> SHA.</li>
+<li>Raised the processed-profile manifest to v3. It now derives
+<code>train/val/test_indices</code> and induced split edge tensors from the public masks,
+plus <code>name</code>, <code>num_features</code>, <code>num_classes</code>, and <code>num_edges</code> from graph tensors.
+All are persisted before timing and rejected if they drift.</li>
+<li>Repaired stale generic smoke/preflight binding. Text config hashes normalize
+line endings, and the recipes use the exact dispatched checkout rather than
+the unavailable historical base object.</li>
+</ul>
+<h2 id="identity-and-fail-closed-evidence">Identity and fail-closed evidence</h2>
+<table>
+<thead>
+<tr>
+  <th>Evidence</th>
+  <th>Frozen value / rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Accepted selector code SHA</td>
+  <td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td>
+</tr>
+<tr>
+  <td>GU recipe introduction SHA</td>
+  <td><code>218f6421c2cb31b71ebfad113fee15b9ad0a3d36</code></td>
+</tr>
+<tr>
+  <td>Active GU v5 recipe introduction SHA</td>
+  <td><code>324d3a0434614ec0d206e18f784560ae90f5f945</code></td>
+</tr>
+<tr>
+  <td>Gate v5 config SHA-256</td>
+  <td><code>26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10</code></td>
+</tr>
+<tr>
+  <td>Full v5 config SHA-256</td>
+  <td><code>bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd</code></td>
+</tr>
+<tr>
+  <td>Cora cold summary SHA-256</td>
+  <td><code>977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7</code></td>
+</tr>
+<tr>
+  <td>Benchmark manifest SHA-256</td>
+  <td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td>
+</tr>
+<tr>
+  <td>SSH canonical public source fingerprint</td>
+  <td><code>8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f</code></td>
+</tr>
+<tr>
+  <td>Source candidate count</td>
+  <td>140</td>
+</tr>
+<tr>
+  <td>Matrix requirement</td>
+  <td>exact 17 labels and full candidate permutations; 153 downstream cells</td>
+</tr>
+<tr>
+  <td>Downstream requirement</td>
+  <td>exact dataset/split/candidate identity and k</td>
+</tr>
+<tr>
+  <td>Formal checkout</td>
+  <td>clean SSH active <code>main</code>, job-bound full SHA</td>
+</tr>
+<tr>
+  <td>Reuse policy</td>
+  <td>new downstream Selection store; deleted old cache is never revived</td>
+</tr>
+</tbody>
+</table>
+<h2 id="validation">Validation</h2>
+<table>
+<thead>
+<tr>
+  <th>Check</th>
+  <th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Focused gate GU/SyncMate/provider/demo/strategy suite before matrix extension</td>
+  <td><strong>222 passed</strong></td>
+</tr>
+<tr>
+  <td>SSH GU/SyncMate/provider/demo suite including new stage contracts</td>
+  <td><strong>214 passed</strong></td>
+</tr>
+<tr>
+  <td>SSH Cache-V2/Gate4/Phase-B/AutoReport/B-C suite</td>
+  <td><strong>144 passed</strong></td>
+</tr>
+<tr>
+  <td>Active v5 GU/profile/provider/SyncMate focused suite</td>
+  <td><strong>197 passed</strong></td>
+</tr>
+<tr>
+  <td>Large stage-envelope regression</td>
+  <td>PASS; &gt;16 KB JSON is validated in full, diagnostic tail remains bounded and SHA-256 recorded</td>
+</tr>
+<tr>
+  <td>Formal v4 gate</td>
+  <td>PASS; 4/4 fetched, checksum-verified, and GU-accepted at <code>main@85c775a</code></td>
+</tr>
+<tr>
+  <td>Full v4 Cora/seed42 diagnostic</td>
+  <td>GU subprocess exit 0 and 68/68 files present; SyncMate rejection due solely to truncated JSON validation</td>
+</tr>
+<tr>
+  <td>Real three-dataset v4 stage + verify</td>
+  <td>PASS; Cora/CiteSeer/PubMed all accepted</td>
+</tr>
+<tr>
+  <td>Cross-entry-point OpenGU split-contract smoke</td>
+  <td>PASS; indices and induced edges match all masks; <code>process_data</code> loads 3/3</td>
+</tr>
+<tr>
+  <td>Cross-entry-point model construction</td>
+  <td>PASS; GCNNet instantiated for all 3 datasets with 1433/7, 3703/6, 500/3 feature/class metadata</td>
+</tr>
+<tr>
+  <td>Observed public split counts</td>
+  <td>Cora 140/500/1000; CiteSeer 120/500/1000; PubMed 60/500/1000</td>
+</tr>
+<tr>
+  <td>Disposable v4 profile bytes</td>
+  <td>about 203 MB, removed after verification</td>
+</tr>
+<tr>
+  <td><code>py_compile</code> on changed Python modules</td>
+  <td>PASS</td>
+</tr>
+<tr>
+  <td>Disposable local Cora public-profile stage + verify</td>
+  <td>PASS</td>
+</tr>
+<tr>
+  <td>Disposable staged bytes</td>
+  <td>31.45 MB, removed after verification</td>
+</tr>
+<tr>
+  <td>Local SyncMate end-to-end smoke</td>
+  <td>PASS; 3/3 artifacts verified/indexed, 1 row parsed, temp workspace removed</td>
+</tr>
+<tr>
+  <td><code>git diff --check</code></td>
+  <td>PASS</td>
+</tr>
+<tr>
+  <td>Full repository <code>pytest -q</code></td>
+  <td>INCOMPLETE: tool timeout after 604 s; no failure output was emitted</td>
+</tr>
+<tr>
+  <td>Strategy golden suite</td>
+  <td>10/11; <code>degree_basic_k3</code> tie mismatch reproduces unchanged on <code>main@894a714</code>, so it is a pre-existing baseline issue</td>
+</tr>
+</tbody>
+</table>
+<p>The focused counts overlap and must not be added together. The full-suite timeout
+is recorded as a gap, not converted into a pass. The formal SSH gate is the
+remaining integration acceptance.</p>
+<h2 id="claim-boundary">Claim boundary</h2>
+<p>Passing the first gate proves that one immutable accepted ranking can be
+transferred into a real GNNDelete cell, executed with exact k, collected,
+checksum-verified, indexed, and accepted without losing provenance. It does not
+show that degree is better than TracIn, nor which IF formula is best. Those
+questions require the gate-conditioned 153-cell structured matrix. The public-profile screen and
+the OpenGU 80/20 confirmatory lane remain explicitly separate.</p>
+<h2 id="final-execution-outcome">Final execution outcome</h2>
+<ol>
+<li>The complete v5 implementation line was accepted into <code>main</code>; local,
+<code>origin/main</code>, and the SSH active checkout were aligned before formal work.</li>
+<li>All three <code>planetoid_public_fixed</code> profiles were staged and verified before
+timing. No formal stage downloaded or preprocessed a dataset.</li>
+<li>Gate job <code>gu-gate-v5-20260722-0702</code> passed and collected <code>4/4</code> artifacts.</li>
+<li>The nine dataset-seed jobs ran sequentially. Every stage accepted <code>17/17</code>
+cells and <code>68/68</code> checksum-verified artifacts before the next stage started.</li>
+<li>The complete result root contains exactly <code>153</code> leaves and <code>612</code> files.
+Remote-to-local SHA-256 verification passed <code>612/612</code>; manifest SHA-256 is
+<code>e45aa4b193d53b854c709e3de543517417fa6a9f0d3eb1f013aea9bc3e16d236</code>.</li>
+<li>Results, verification receipts, gate/stage evidence, machine-readable
+aggregates, and the paired scientific report are retained locally under
+<code>results/runs/gpu4090-gu-20260722/</code>.</li>
+</ol>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Validation Log
 
-> Last updated: 2026-05-07
+> Last updated: 2026-07-22
 > **Append-only**——禁止删改历史条目。错的条目不删，新条目标 SUPERSEDES + 解释
 > 用途：固化今天讨论 / 实测验证 / sanity check 的实证证据，避免 4 天 deadline 期间反复发现同一件事
 
@@ -858,3 +858,35 @@ The decomposition is **always two terms** (`drop_strat = ΔF_arch + ΔF^attack`)
 **Files updated**: `config_inventory.html`, `scripts/dashboard/gen_config_inventory.py`, and `report/progress/2026-07-01_advisor-report/current-status-report.html`.
 
 **Regression test**: `tests/test_config_inventory_dashboard.py`.
+
+---
+
+## 2026-07-22 Session
+
+### V-2026-07-22-01: 17-Selection × GNNDelete controlled public-profile GU matrix
+
+**Setting**：GCN / GNNDelete / exact k=7，Planetoid public fixed profile，Cora/CiteSeer/PubMed × seeds 42/212/2024 × 17 accepted Selection rows。正式 gate 后在 clean SSH `main@1c83bb4` 串行执行 9 stages。Selection 来自 accepted public GT，并 materialize 为新的 authoritative Cache V2 Selection Artifact；没有在 GU timed run 内重算 scorer。
+
+**Execution evidence**：`153/153` GU cells、`612/612` four-file artifacts、0 failures。每 stage 17/17 cells、68/68 collect+verify+acceptance 后才进入下一 stage。独立 sorted SHA-256 manifest 远端→本地复验 `612/612`，missing/mismatch/extra 均为 0；manifest SHA-256=`e45aa4b193d53b854c709e3de543517417fa6a9f0d3eb1f013aea9bc3e16d236`。
+
+**Primary paired result**：$\Delta_{GU}(S)=F1Drop(S)-F1Drop(random)$，同 dataset-seed 配对。
+
+| Row | Mean paired Δ vs random | W/T/L vs random | Mean Δ vs degree | W/T/L vs degree |
+|---|---:|---:|---:|---:|
+| degree | +2.30 pp | 6/0/3 | 0 | 0/9/0 |
+| gt_full | +1.19 pp | 3/2/4 | -1.11 pp | 2/0/7 |
+| p_graph | +0.80 pp | 4/2/3 | -1.50 pp | 2/0/7 |
+| tracin_cp_graph_6 | +0.47 pp | 3/0/6 | -1.83 pp | 1/0/8 |
+| tracin_cp_point_6 | +0.17 pp | 5/0/4 | -2.13 pp | 1/0/8 |
+
+**Findings**：
+
+1. 标准 TracInCP 对应的 point variants 没有超过 degree；point-6 仅接近 random，degree 在 9 格中 8 格更强。
+2. D-full `gt_full` 是最强 IF reference；`p_graph` 是 outcome/fidelity 更均衡的 scalable proxy。`p_graph - gt_full` 平均 `-0.39 pp`，1/6/2，selected set 3/9 完全相同。
+3. checkpoint 数不产生单调提升：point-6 比 point-3 `+0.24 pp`（2/7/0），graph-6 比 graph-3 `+0.04 pp`（2/3/4），simple-6 比 simple-3 `-0.14 pp`（0/6/3）。
+4. 强 dataset heterogeneity：degree 对 random 在 Cora/CiteSeer/PubMed 分别 `+5.93/+1.07/-0.10 pp`；PubMed 3-seed mean 中没有 selector 超过 random。
+5. 既有 exact set-deletion validation 里 point/checkpoint selector 更强，而真实 GNNDelete GU outcome 由 degree 胜出。二者反转证明 selection-only validation 不能替代 target-GU outcome；selector×GU interaction 是必须实测的对象。
+
+**Decision**：后续 GU screen 强制保留 degree control；small-graph IF representative 优先 `gt_full + p_graph`，proper-TracIn 问题保留 `tracin_cp_point_6`。本结果不扩张到其他 GU family/backbone，也不关闭 E7 的 query-free surrogate-transfer gate。
+
+**Cross-ref**：`reports/small_selection_gu_FULL_REPORT.{md,html}`；machine aggregate `results/runs/gpu4090-gu-20260722/analysis/`；implementation contract `docs/small_selection_gu_syncmate_IMPLEMENTATION_ACCEPTANCE_REPORT.{md,html}`。
