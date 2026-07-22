@@ -483,6 +483,7 @@ class AttackManager:
         total_time = time.time() - start_time
 
         # Build AttackResult
+        target_checkpoint = dict(result_dict.get("target_checkpoint") or {})
         result = AttackResult(
             strategy_name=strategy_name,
             selected_nodes=result_dict["selected_nodes"],
@@ -497,6 +498,9 @@ class AttackManager:
             selection_cache_source=selection_cache_source,
             selection_cache_lookup_mode=selection_cache_lookup_mode,
             selection_cache_source_k=selection_cache_source_k,
+            target_checkpoint_path=target_checkpoint.get("path"),
+            target_checkpoint_file_sha256=target_checkpoint.get("file_sha256"),
+            target_checkpoint_state_hash=target_checkpoint.get("state_hash"),
             result_cache_hit=False if use_cache and self.cache else None,
             mia_auc=result_dict.get("mia_auc"),
             config=config,
@@ -589,6 +593,7 @@ class AttackManager:
         )
         total_time = time.time() - started
         config = self._build_config(strategy_name, int(nodes.numel()))
+        target_checkpoint = dict(result_dict.get("target_checkpoint") or {})
         result = AttackResult(
             strategy_name=strategy_name,
             selected_nodes=result_dict["selected_nodes"],
@@ -607,6 +612,9 @@ class AttackManager:
             selection_recipe_hash=str(selection_provenance["recipe_hash"]),
             selection_content_hash=str(selection_provenance["content_hash"]),
             selection_authoritative=True,
+            target_checkpoint_path=target_checkpoint.get("path"),
+            target_checkpoint_file_sha256=target_checkpoint.get("file_sha256"),
+            target_checkpoint_state_hash=target_checkpoint.get("state_hash"),
             result_cache_hit=None,
             mia_auc=result_dict.get("mia_auc"),
             config=config,

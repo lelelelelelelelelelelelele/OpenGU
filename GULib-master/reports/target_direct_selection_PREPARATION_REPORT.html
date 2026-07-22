@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Target-direct Selection→GU 正式实验准备报告</title>
+  <style>
+    :root { --bg:#08111f; --panel:#101c2d; --panel2:#14243a; --text:#e8eef7; --muted:#9eb0c7; --line:#29405e; --cyan:#5ee4d4; --blue:#7bb7ff; --amber:#ffd166; --red:#ff7b8b; --green:#65e6a7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 15% 0,#122842 0,#08111f 42%); color:var(--text); font:15px/1.65 Inter,"Segoe UI","Microsoft YaHei",sans-serif; }
+    main { width:min(1180px,calc(100% - 36px)); margin:36px auto 72px; }
+    header { padding:30px 32px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(135deg,rgba(20,36,58,.96),rgba(10,22,38,.96)); box-shadow:0 20px 50px rgba(0,0,0,.24); }
+    h1 { margin:0 0 8px; font-size:clamp(28px,4vw,46px); line-height:1.12; letter-spacing:-.03em; }
+    h2 { margin:34px 0 14px; font-size:23px; }
+    h3 { margin:24px 0 10px; font-size:18px; color:var(--blue); }
+    p { margin:9px 0; }
+    .meta,.muted { color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:20px; }
+    .card,.callout { border:1px solid var(--line); border-radius:14px; background:rgba(16,28,45,.92); padding:18px 20px; }
+    .card strong { display:block; color:var(--cyan); font-size:24px; margin-bottom:4px; }
+    .callout { margin:18px 0; border-left:4px solid var(--amber); }
+    .callout.good { border-left-color:var(--green); }
+    .callout.bad { border-left-color:var(--red); }
+    .callout b { color:#fff; }
+    table { width:100%; border-collapse:separate; border-spacing:0; margin:12px 0 22px; overflow:hidden; border:1px solid var(--line); border-radius:12px; }
+    th,td { padding:10px 12px; vertical-align:top; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--cyan); background:#13243a; font-weight:650; }
+    tr:last-child td { border-bottom:0; }
+    tbody tr:nth-child(even) td { background:rgba(20,36,58,.4); }
+    code { color:#b9e6ff; background:#0a1728; padding:.12em .38em; border-radius:5px; }
+    ul,ol { padding-left:22px; }
+    .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:18px 0 26px; }
+    .step { position:relative; min-height:110px; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+    .step span { display:block; color:var(--cyan); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+    .step b { display:block; margin:5px 0; }
+    .formula { margin:14px 0; padding:13px 16px; border-radius:10px; background:#071728; color:#d9f5ff; font:17px/1.5 Cambria Math,serif; text-align:center; }
+    .tag { display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-size:12px; }
+    footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); }
+    @media(max-width:860px){ .grid,.flow{grid-template-columns:1fr;} main{width:min(100% - 22px,1180px);} header{padding:24px 20px;} table{display:block;overflow-x:auto;} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="tag">PREPARATION REPORT · 2026-07-23</div>
+    <h1>Target-direct Selection→GU<br>正式实验准备报告</h1>
+    <p class="meta">分支 <code>codex/fix-target-direct-selection-20260723</code> · 父提交 <code>main@fc27f70e…</code></p>
+    <div class="grid">
+      <div class="card"><strong>L1 transfer</strong>旧 153-cell 矩阵的正确归类</div>
+      <div class="card"><strong>183 passed</strong>本次受影响路径定向测试</div>
+      <div class="card"><strong>0 formal cells</strong>正式 GPU 实验尚未启动</div>
+    </div>
+  </header>
+
+  <div class="callout bad"><b>核心纠正：</b>旧实验不是严格白盒。selector 使用 GateGCN hidden=16、200 epochs；GNNDelete target 使用 OpenGU GCN hidden=64、100 epochs，且两者不是同一参数状态。旧矩阵还把 <code>r=0.05</code> 标在目录中、实际每格只删 <code>k=7</code>。因此它只能作为 surrogate-transfer / engineering screen，不能支撑“新 IF 普遍优于旧 IF、random 或 degree”。</div>
+  <div class="callout good"><b>当前成果：</b>同一 target checkpoint 贯通 ScoreBundle 与 GU 的 fail-closed 链已经实现并通过本地定向验证。正式运行必须等分支验收并合入 <code>main</code>，再从 SSH active clean checkout 的 pinned SHA 启动。</div>
+
+  <h2>1. 白盒边界：问题不在 validation CE → test F1</h2>
+  <p>validation CE 用来构造 selection target、test F1 用来做最终评价，是合理的防泄漏设计。真正的白盒条件是：打分与 GU 必须指向<strong>同一份 pre-unlearning checkpoint</strong>。</p>
+  <table>
+    <thead><tr><th>层级</th><th>模型关系</th><th>能够回答</th></tr></thead>
+    <tbody>
+      <tr><td>Target-direct white-box</td><td>同一 checkpoint；文件 SHA-256 与 state hash 完全一致</td><td>selector 对实际被遗忘目标是否有效</td></tr>
+      <tr><td>L1 surrogate transfer</td><td>同任务、相关模型族，但结构超参、训练或 state 不同</td><td>ranking 能否迁移到另一个目标模型</td></tr>
+      <tr><td>更强 transfer</td><td>模型族或任务也不同</td><td>跨模型/跨任务迁移</td></tr>
+    </tbody>
+  </table>
+  <p>旧配置期望/实际删除数为 Cora <code>135/7</code>、CiteSeer <code>166/7</code>、PubMed <code>985/7</code>。旧代码只 warning 后继续；新 formal 模式对此直接失败。</p>
+
+  <h2>2. 新实验合同</h2>
+  <h3>Canonical 数据与无泄漏 split</h3>
+  <ul>
+    <li>source 只允许 SSH active checkout 的 <code>data/raw/&lt;dataset&gt;/</code>；OpenGU pair 只允许 <code>data/processed/transductive/</code>。</li>
+    <li>固定 <code>planetoid_70_10_20_seed2024</code>，train/validation/test 互斥且穷尽。</li>
+    <li>全图 message passing；train-only candidates；validation-mask mean CE target；test labels 只用于最终 F1。</li>
+  </ul>
+  <p>80/0/20 的 validation mask 为空，因此不能继续作为本轮 IF/TracIn target profile：使用 test 会泄漏，复用 train 会改变科学问题。</p>
+
+  <h3>真实 5% 预算</h3>
+  <div class="formula">k = max(1, floor(0.05 × |V<sub>train</sub>|))</div>
+  <table>
+    <thead><tr><th>Dataset</th><th>全图节点</th><th>理论 train / val / test</th><th>理论 k</th></tr></thead>
+    <tbody>
+      <tr><td>Cora</td><td>2,708</td><td>1,895 / 271 / 542</td><td>94</td></tr>
+      <tr><td>CiteSeer</td><td>3,327</td><td>2,328 / 333 / 666</td><td>116</td></tr>
+      <tr><td>PubMed</td><td>19,717</td><td>13,801 / 1,972 / 3,944</td><td>690</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">最终 counts 以 SSH staged manifest 为准。expected_k 是 Selection 与 GNNDelete 的唯一事实源；重复、越界或数量漂移均 fail closed。10% 如需补充，将使用独立 cache/result identity。</p>
+
+  <h3>同一 checkpoint 的闭环</h3>
+  <div class="flow">
+    <div class="step"><span>01</span><b>训练 target</b>每个 dataset-model seed 只训练一次</div>
+    <div class="step"><span>02</span><b>持久化</b>final state + 6 trajectory checkpoints</div>
+    <div class="step"><span>03</span><b>ScoreBundle</b>同一 state 生成 17 个 score/ranking</div>
+    <div class="step"><span>04</span><b>GNNDelete</b>17 cells 加载同一 checkpoint</div>
+    <div class="step"><span>05</span><b>验收</b>文件哈希、state、data、k、Git SHA 全匹配</div>
+  </div>
+  <p>retained-data retrain reference 会主动清除 checkpoint binding，从随机初始化重训；否则 retrain gap 无效。</p>
+
+  <h3>参数域</h3>
+  <p>主 gate 先用 <code>last_layer</code>：它是 target-direct 的白盒近似，但必须明确写作 last-layer IF。额外运行 Cora seed 42 的 <code>all_trainable</code> gate，检查 runtime、VRAM、OOM/NaN、ranking fidelity 与 GU outcome；只有资源可承受时才扩大。</p>
+
+  <h2>3. Gate 到完整矩阵</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>执行</th><th>硬验收</th></tr></thead>
+    <tbody>
+      <tr><td>G0</td><td>分支测试、CLI、静态检查、MD/HTML</td><td>实现审查通过</td></tr>
+      <tr><td>G1</td><td>SSH stage/verify 三个 70/10/20 pairs</td><td>canonical realpath、fingerprint、split、counts 冻结</td></tr>
+      <tr><td>G2</td><td>Cora seed 42 cold 17-way + strict warm reuse</td><td>17/17 artifacts；计时/显存/失败状态齐全；warm producer 未调用</td></tr>
+      <tr><td>G2b</td><td>同格 all-trainable</td><td>可行性与 fidelity 证据完整</td></tr>
+      <tr><td>G3</td><td>Cora seed 42 degree 单 GU cell</td><td>四件套、checkpoint、k、Git SHA 一致</td></tr>
+      <tr><td>G4</td><td>同 stage 17 cells</td><td>17/17 cells、68/68 files</td></tr>
+      <tr><td>G5</td><td>17 × 3 datasets × 3 seeds</td><td>153/153 cells、612/612 files；失败不静默</td></tr>
+    </tbody>
+  </table>
+  <p>模型 seeds 为 <code>42, 212, 2024</code>；split seed 固定 2024。正式缺陷会停止矩阵，修复合入新 main SHA 后以新 identity 重跑 gate。</p>
+
+  <h2>4. 计时、显存与失败口径</h2>
+  <table>
+    <thead><tr><th>记录项</th><th>定义</th></tr></thead>
+    <tbody>
+      <tr><td>ScoreBundle cold total</td><td>共享计算、17 法公式/排序、校验与落盘的总时间</td></tr>
+      <tr><td>每法实测增量</td><td>formula + stable ranking + Selection Artifact materialization</td></tr>
+      <tr><td>每法 standalone equivalent</td><td>共享前置成本 + 该法增量；用于估计单法 cold</td></tr>
+      <tr><td>每法 17-way amortized</td><td>共享成本按 1/17 分摊 + 该法增量</td></tr>
+      <tr><td>Warm read</td><td>第二次 strict cache 读取/验证；producer 必须未调用</td></tr>
+      <tr><td>GPU / failure</td><td>training、ScoreBundle、process peak allocated/reserved；失败也原子写 type/message</td></tr>
+    </tbody>
+  </table>
+  <p>GU 每格保留 <code>attack.json</code>、<code>collateral.json</code>、<code>predictions.npz</code>、<code>_meta.json</code>，并报告 F1 before/after/drop、retrain gap、collateral、MIA/update AUC、时间、failure 与 checkpoint identity。</p>
+
+  <h2>5. 两个科学问题如何回答</h2>
+  <div class="grid">
+    <div class="card"><strong>TracIn vs baseline</strong>逐 dataset-seed paired 比较 random/degree，报告 win/tie/loss、均值/中位数、bootstrap CI 与成本；禁止用 Cora-only 写普遍优势。</div>
+    <div class="card"><strong>IF 簇内部</strong>区分 ranking fidelity、GU outcome 与 feasibility；检查组内 ranking 相似是否带来效果相似。</div>
+    <div class="card"><strong>PubMed 重判</strong>按真实 k≈690 重测。旧 k=7 null regime 不再作为 selector-insensitive 证据。</div>
+  </div>
+
+  <h2>6. 实现与验证</h2>
+  <ul>
+    <li>新增 target checkpoint 原子存取、双哈希、trajectory、data identity 校验。</li>
+    <li>新增 70/10/20 staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
+    <li>formal expected-k、candidate、checkpoint 与结果 provenance 全链 fail closed。</li>
+    <li>本次路径测试：<b>183 passed, 1 warning</b>；更宽组合 <b>191 passed</b>，另有一个旧测试因冻结了另一 worktree 的绝对 <code>evidence_root</code> 而失败，与本次行为无关。</li>
+    <li><code>compileall</code>、4 个 CLI help、<code>git diff --check</code> 通过。</li>
+  </ul>
+  <div class="callout"><b>尚未完成：</b>本地无可用 CUDA，且隔离 worktree 不复制正式数据，所以没有把 branch smoke 当作正式格。下一步需先验收/提交并显式 no-ff 合入 main，然后生成绑定新 main SHA 的 SyncMate recipe，在 SSH active checkout 依次执行 G1→G3；一格通过后再展开 G4→G5。</div>
+
+  <footer>Source of truth: <code>reports/target_direct_selection_PREPARATION_REPORT.md</code> · Status: implementation ready for review, formal experiment not started.</footer>
+</main>
+</body>
+</html>
