@@ -28,7 +28,7 @@ evidence_root: results/runs/__syncmate_small_selection_gu_full_v1_evidence__
 run_root: results/runs/__syncmate_small_selection_gu_full_v1__
 
 benchmark_manifest_path: results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json
-benchmark_manifest_sha256: 80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9
+benchmark_manifest_sha256: c46a5d3eb65f3196eeb7a21dcf67b8502d0cb08404803ea86e6a8c278297c49a
 selection_experiment_git_sha: 9240b9a7bd61b17b4c841981ec2892fdf100dc4b
 
 datasets:
@@ -39,13 +39,13 @@ datasets:
     summaries:
       "42":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json
-        sha256: e7297263c413686b783ed58c4ace6cb658b907f77fa08f7a9e53c96e0e43fe0e
+        sha256: 9e166ce6ad80c038eda11e1b5bdacbf541c17c19c416010c81ec708d3e929cee
       "212":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json
-        sha256: 96f609dce1527d467d9dbba77f6c7f815814cbc461ec7a7283b1986dc45140dc
+        sha256: 0bfe0b2f499d7c420c8ba881bf8731e4e6f449e6a9bef122bc4bea7bf404febc
       "2024":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json
-        sha256: 2db12b42de99a73f631e6b507ff79877d16e9bfd8314ef13ae774fba3ef7136d
+        sha256: 10e89bb596f608978fad2260b4e14868c56fb2419a0a58d835f6bb506b6d63d2
   citeseer:
     display_name: CiteSeer
     ratio: 0.05
@@ -53,13 +53,13 @@ datasets:
     summaries:
       "42":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json
-        sha256: 7cc266b908bf5ccd6c1d5c9f2b5e275bd60c5ef61989c3eeb29f554454462de1
+        sha256: 522c9a423f3ff73dbfae4399f9cec9065efaa408100820b4ea3143bee7c874c1
       "212":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json
-        sha256: b74a3a5fc29fe613e846293767c5900fe4f4f1eec4fc632a126203eb8e8cbac4
+        sha256: 37d6b11dc15a653b90b8bf5162da21bf8f2f120005425652e0e31979aed1a056
       "2024":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json
-        sha256: 0f92f26ba169f76babba9b7d03c82ba9232c210d3e0cdbf6cdc082fba044f9a4
+        sha256: 383d9e978f729944843dc480c3bb249ce5d7c362dcf13841022b0c55ffe0a5a5
   pubmed:
     display_name: PubMed
     ratio: 0.05
@@ -67,13 +67,13 @@ datasets:
     summaries:
       "42":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json
-        sha256: 854d1d9dcb1216da4f7c3d92d54c7549b7ec2c946bc3013a121a2ec5ea6ee113
+        sha256: 11b882bb86b71f799f8e31501862867de3fcf1be3dc8f63d990d177c8c609935
       "212":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json
-        sha256: d0b9e9a9a26702ee9898d837a4f563a2268aa6e232554fc1d8a4c02e9a1dd62a
+        sha256: 5b3d7628b53daab86d2b0897e2de1968e948e428a6322b8f08b28d8276f5913c
       "2024":
         path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json
-        sha256: 4500204caf5809aa3f98fdc38ca03ebbec3b91b2fb2dbf3a9f92cbd5362b7d8b
+        sha256: 989bccc8af1934b10d9e8027aaece89a947f524b2952ce0fdaebe3be87ca971c
 
 required_gate:
   result_root: results/runs/__syncmate_small_selection_gu_v1__

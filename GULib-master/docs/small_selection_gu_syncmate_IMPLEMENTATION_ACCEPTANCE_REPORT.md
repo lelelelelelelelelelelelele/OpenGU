@@ -108,8 +108,8 @@ missing, mismatched, or extra files. Scientific outcomes are reported in
 | Active GU v5 recipe introduction SHA | `324d3a0434614ec0d206e18f784560ae90f5f945` |
 | Gate v5 config SHA-256 | `26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10` |
 | Full v5 config SHA-256 | `bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd` |
-| Cora cold summary SHA-256 | `e7297263c413686b783ed58c4ace6cb658b907f77fa08f7a9e53c96e0e43fe0e` |
-| Benchmark manifest SHA-256 | `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
+| Cora cold summary SHA-256 | `9e166ce6ad80c038eda11e1b5bdacbf541c17c19c416010c81ec708d3e929cee` |
+| Benchmark manifest SHA-256 | `c46a5d3eb65f3196eeb7a21dcf67b8502d0cb08404803ea86e6a8c278297c49a` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
 | Source candidate count | 140 |
 | Matrix requirement | exact 17 labels and full candidate permutations; 153 downstream cells |

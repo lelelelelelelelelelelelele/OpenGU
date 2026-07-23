@@ -159,7 +159,8 @@ python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
 - 19 个 imported benchmark JSON 只归一化路径字符串，manifest 增加
   `path_migration` 元数据；实验数值、Recipe/content identity 和选择结果未改；
 - benchmark/summary 文件字节变化后，对 17 个 consumer 文件中的 69 处
-  SHA-256 引用全部重算；
+  SHA-256 引用全部按 canonical Git-blob / Linux LF 字节重算；`.gitattributes`
+  将这 19 个跨平台证据 JSON 固定为 `eol=lf`；
 - 新增 `scripts/validate_retired_ssh_references.py`，扫描全部 tracked UTF-8
   文本并要求 retired prefix 为 0。
 
@@ -181,6 +182,7 @@ python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
 | Python compilation | PASS |
 | tracked retired-prefix scan | PASS，1214 个 UTF-8 tracked files，0 matches |
 | benchmark/summary SHA consumer 对账 | PASS，10 configs |
+| cross-platform evidence bytes | PASS，19 JSON 为 LF；consumer hash 与 canonical bytes 一致 |
 | imported benchmark JSON path-only diff | PASS，19/19；除 manifest 迁移元数据外仅字符串映射 |
 | 第二轮相关回归 | PASS，36 passed（另 180 deselected） |
 

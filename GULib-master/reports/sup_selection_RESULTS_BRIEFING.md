@@ -282,7 +282,7 @@ simple 或 full source，不能只依据 proxy fidelity，必须结合后续 GU 
 | Experiment Git SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
 | Algorithm | `bc-target-matrix-v3.0` |
 | Machine manifest | `results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json` |
-| Manifest SHA-256 | `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
+| Manifest SHA-256 | `c46a5d3eb65f3196eeb7a21dcf67b8502d0cb08404803ea86e6a8c278297c49a` |
 | Retained cell evidence | `results/bc_target_v2/selection_benchmark_20260721/cells/*/{cold,warm}.json` |
 
 历史运行位于已退役 worktree，并使用后来清理的 shared Planetoid cache。本结果之所以

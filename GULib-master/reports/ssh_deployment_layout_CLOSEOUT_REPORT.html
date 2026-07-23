@@ -275,7 +275,8 @@ manifest、store 和 canonical processed 路径，绝不向 archive 写新输出
 <li>19 个 imported benchmark JSON 只归一化路径字符串，manifest 增加
 <code>path_migration</code> 元数据；实验数值、Recipe/content identity 和选择结果未改；</li>
 <li>benchmark/summary 文件字节变化后，对 17 个 consumer 文件中的 69 处
-SHA-256 引用全部重算；</li>
+SHA-256 引用全部按 canonical Git-blob / Linux LF 字节重算；<code>.gitattributes</code>
+将这 19 个跨平台证据 JSON 固定为 <code>eol=lf</code>；</li>
 <li>新增 <code>scripts/validate_retired_ssh_references.py</code>，扫描全部 tracked UTF-8
 文本并要求 retired prefix 为 0。</li>
 </ul>
@@ -333,6 +334,10 @@ SHA-256 引用全部重算；</li>
 <tr>
   <td>benchmark/summary SHA consumer 对账</td>
   <td>PASS，10 configs</td>
+</tr>
+<tr>
+  <td>cross-platform evidence bytes</td>
+  <td>PASS，19 JSON 为 LF；consumer hash 与 canonical bytes 一致</td>
 </tr>
 <tr>
   <td>imported benchmark JSON path-only diff</td>
