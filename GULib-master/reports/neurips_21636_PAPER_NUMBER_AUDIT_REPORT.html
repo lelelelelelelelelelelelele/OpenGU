@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NeurIPS 21636 争议数字与理论主张首轮审计</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.65 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97)}main{width:min(1280px,100%);padding:42px 48px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #785e2b;border-radius:999px;background:#2a2112;color:var(--amber);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}.hero{padding:30px 34px;margin-bottom:28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97))}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0}.hero p{color:var(--muted)}.verdict{padding:18px 20px;border:1px solid #785e2b;border-left:5px solid var(--amber);border-radius:12px;background:rgba(242,188,98,.09);margin:20px 0}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}.card{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.card .n{font:700 22px/1.1 Consolas,monospace;color:var(--cyan)}.card .l{font-size:12px;color:var(--muted);margin-top:5px}h2{font-size:24px;margin:42px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line)}p,li{max-width:1080px}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}.keep{color:var(--green);font-weight:800}.warn{color:var(--amber);font-weight:800}.bad{color:var(--red);font-weight:800}.flow{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--code);font:14px/1.8 Consolas,monospace;white-space:pre-wrap}.source{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.cards{grid-template-columns:1fr 1fr}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OpenGU Evidence Audit</div>
+    <div class="side-title">NeurIPS 21636<br>数字与理论主张</div>
+    <span class="badge">INITIAL AUDIT</span>
+    <nav><a href="#summary">执行摘要</a><a href="#numbers">争议数字</a><a href="#claims">理论主张</a><a href="#parallel">并行依赖</a><a href="#next">下一步</a></nav>
+  </aside>
+  <main>
+    <section class="hero"><div class="kicker">PAPER-NUMBER LEDGER · 2026-07-24</div><h1>NeurIPS 21636 争议数字与理论主张首轮审计</h1><p>branch codex/docs-neurips-reviews-20260724 · parent main@ea4f34a</p></section>
+    <section id="summary">
+      <div class="verdict"><strong>当前判定：</strong>GraphRevoker 数字、全部 ΔF<sub>noise</sub> headline、GraphRevoker-dependent Figure 5 楔子和 surrogate upper-bound 断言均暂列 <span class="bad">do_not_claim</span>。近两个月工作提供了修复基础，但尚未完成 paper-level replacement。</div>
+      <div class="cards"><div class="card"><div class="n">40/40</div><div class="l">GraphRevoker E4 remote passed，archive pending</div></div><div class="card"><div class="n">50/50</div><div class="l">Citeseer stable scope accepted</div></div><div class="card"><div class="n">0/60</div><div class="l">E3 K5 formal cells</div></div><div class="card"><div class="n">0</div><div class="l">当前可用 GPU devices</div></div></div>
+      <ul>
+        <li>远端为干净 <code>main@ea4f34a29f5211079e1f7a7caf5a4c296f14ff08</code>，但 GPU 返回 <code>No devices were found</code>，<code>gnn_20</code> 缺失。</li>
+        <li>当前 aggregate 仍含 pre-fix GraphRevoker，<code>perf_before</code> 抽查约 0.47–0.55。</li>
+        <li>当前 checkout 不存在 <code>results/baseline/k5_random/</code>，无法重生 ΔF<sub>noise</sub>。</li>
+      </ul>
+    </section>
+
+    <h2 id="numbers">1. 争议数字账本</h2>
+    <table><thead><tr><th>ID</th><th>Paper 位置</th><th>当前显示</th><th>审计结果</th><th>动作</th></tr></thead><tbody>
+      <tr><td>N01</td><td><code>5_results.tex:54</code></td><td>GraphRevoker/GCN: +0.7, +1.5, +1.0, +0.2, +0.7 pp</td><td>与 Appendix N03 不一致；aggregate invalid</td><td class="bad">do_not_claim；E4 替换四策略</td></tr>
+      <tr><td>N02</td><td><code>5_results.tex:55</code></td><td>GraphRevoker/GAT: +2.6, +0.7, +1.6, +3.6, +3.6 pp</td><td>与 Appendix N04 不一致；机制楔子依赖旧数据</td><td class="bad">do_not_claim；HY/TC 等 proper-TracIn outcome</td></tr>
+      <tr><td>N03</td><td><code>A_appendix.tex:174</code></td><td>+0.11±0.85, +0.33±0.84, +0.19±0.89, +0.07±0.87, −0.04±1.09</td><td>与 N01 不一致；manifest 未绑定</td><td class="bad">do_not_claim</td></tr>
+      <tr><td>N04</td><td><code>A_appendix.tex:201</code></td><td>+1.44±1.23, +1.29±1.05, +1.25±1.45, +1.37±1.74, +0.22±1.99</td><td>与 N02 不一致；旧 GraphRevoker invalid</td><td class="bad">do_not_claim</td></tr>
+      <tr><td>N05</td><td>Table 2/3 GraphRevoker Gap/AUC</td><td>Gap −0.4/−1.2；AUC .81/.79；另表 paired effect +1.0</td><td>旧 collateral 路径失效，sign/metric 描述不统一</td><td class="bad">从 post-fix collateral/predictions 重算</td></tr>
+      <tr><td>N06</td><td>Table 2 + Shard section</td><td>ΔF<sub>noise</sub> −19.3、−16.9、−11.9、−9.6 等</td><td>K5 输入缺失；历史 5/6 before-anchor 为空</td><td class="bad">pending E3 formal gate</td></tr>
+      <tr><td>N07</td><td>Figure 5</td><td>alignment statistics + GraphRevoker×GAT wedge</td><td>生成器读取含 invalid GraphRevoker 的 aggregate</td><td class="bad">导入 E4 或排除后重生</td></tr>
+      <tr><td>N08</td><td><code>5_results.tex:232–236</code></td><td>ogbn-arxiv “3 seeds / final refresh”</td><td>实际为 seed42、GCN、2 methods × 3 selectors pilot</td><td class="warn">rewrite-only：诚实降级</td></tr>
+      <tr><td>N09</td><td>非 GraphRevoker attack columns</td><td>多个 paired means</td><td>大多可追溯，但缺主表 std 与 generator ledger</td><td class="warn">candidate_keep；补 N/std/unit/hash</td></tr>
+      <tr><td>N10</td><td>Citeseer scope</td><td>笼统 Citeseer evaluation</td><td>新 accepted 范围为 5 methods × random/IM × GCN × 5 seeds</td><td class="keep">按真实范围替换</td></tr>
+    </tbody></table>
+
+    <h2 id="claims">2. 理论主张账本</h2>
+    <table><thead><tr><th>ID</th><th>主张</th><th>判定</th><th>最小动作</th></tr></thead><tbody>
+      <tr><td>C01</td><td>L2-surrogate bounded above by L2-direct</td><td class="bad">无证明，do_not_claim</td><td>改成 white-box reference setting；transfer 是待测经验问题</td></tr>
+      <tr><td>C02</td><td>GIF degree-aligned</td><td class="warn">candidate_keep</td><td>Conclusion 删除 “weakly TracIn-aligned”</td></tr>
+      <tr><td>C03</td><td>Shard Protection / architectural immunity</td><td class="bad">当前不能作普遍规律</td><td>改成 evaluated matrix 下 conditional pattern；等 E3/E4</td></tr>
+      <tr><td>C04</td><td>method-adaptive attack 已证实</td><td class="bad">proper-TracIn 仅 Selection gate；target-direct outcome 未开始</td><td>E8 G1/G2/G3 前只写 systematic selector audit</td></tr>
+      <tr><td>C05</td><td>Retrain Gap 足以代表 unlearning distance</td><td class="warn">仅任务级 F1 差</td><td>增加 KL/JS/L2 posterior distance 与 mean±std</td></tr>
+      <tr><td>C06</td><td>普通用户可任意选择高影响节点</td><td class="bad">knowledge 与 deletion permission 混淆</td><td>permission axis × knowledge axis</td></tr>
+      <tr><td>C07</td><td>Immune/Structural/Mild/Uniform verdict</td><td class="bad">无可复现 rubric</td><td>给显式阈值或删除列</td></tr>
+    </tbody></table>
+
+    <h2 id="parallel">3. 理论与实验并行依赖</h2>
+    <div class="flow">理论：permission×knowledge threat model ─────┐
+理论：删除 surrogate 上界断言 ──────────────┤
+理论：F1 Gap + KL/JS/L2 互补定义 ──────────┤
+                                             ├─► 最终 claim / rebuttal
+实验：E3 K5 formal gate ─► ΔF_noise          │
+实验：E4 evidence import ─► GraphRevoker      │
+实验：E8 target-direct gate ─► adaptivity ───┘</div>
+    <p>理论定义与降级现在即可完成。formal 实验必须等待 GPU、accepted <code>gnn_20</code>、canonical data、clean <code>main</code> 和 dry-run 同时通过。</p>
+
+    <h2 id="next">4. 下一步</h2>
+    <ol>
+      <li>扩展 N09，为每个保留值登记 seed set、mean/std、sign、unit、source filter 和 generator commit。</li>
+      <li>从 accepted predictions 设计离线 KL/JS 统计合同；缺失产物显式标 missing。</li>
+      <li>环境恢复后先执行 E3 one-cell formal gate。</li>
+      <li>导入 GraphRevoker E4 40-cell manifest，再决定主表 inclusion。</li>
+      <li>E8 先过 G1/G2/G3；只有 GU outcome 支持才恢复 adaptive claim。</li>
+      <li>立即删除 upper-bound 断言、GIF alignment 矛盾、开发残留与过强 immunity 语言。</li>
+    </ol>
+    <div class="source">Markdown 是源事实版本；本 HTML 与其结论、关键数字和状态一致。首轮审计未启动 GPU 实验、未修改 cache/results/论文正文；GUIDE 完全排除。</div>
+  </main>
+</div>
+</body>
+</html>
