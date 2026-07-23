@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-07-23
+> Last updated: 2026-07-24
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -23,6 +23,7 @@
 |---|---|---|---|
 | **数据** | 🟢 cora 全+双备份 / arxiv 6-cell pilot（已核实） | cora 460（`ablating/` 460 + `4090/` 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——**服务器权威 journal 核实只完成 6、全在本地、nothing stranded**；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑 | server journal 存档 `results/_journal/archive/`；`_phase_b_aggregate.csv` |
 | **环境** | 🟡 本地分析就绪 / SSH GPU 与 `gnn_20` 未挂载 | SSH、Git 与 `/autodl-fs/data` 正常，磁盘约 196G 可用；但 2026-07-23 实测 `nvidia-smi` 返回 `No devices were found`，默认 `python`/`conda` 不存在，预期 `/root/miniconda3/envs/gnn_20/bin/python` 也缺失。当前容器只能做 Git/文件操作，恢复 GPU 与 accepted env 前不得启动 formal gate | 本次 SSH 实测；`reports/target_direct_selection_PREPARATION_REPORT.md` |
+| **部署边界** | 🟢 SSH 同级目录已收口 | `/autodl-fs/data` 只保留 `.sys`、`.gitignore`、`OpenGU`；7 个证据树的 6952 个文件迁入 active checkout ignored archive，逐文件 SHA-256 全通过，2 个空壳删除。runner 已对 active checkout 外输出 fail closed | `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}` |
 | **数据安全** | 🟢 已多处备份 | 服务器有完整原件；本地备份 `D:\backups\OpenGU_GULib\2026-06-15\` + `F:\…`（2482 文件校验通过） | 备份 MANIFEST |
 | **代码** | 🟢 target-direct 修正已验收 | 旧 run 固定 `main@1c83bb4`，artifact/provenance 有效但科学身份降级。严格白盒修正已由 merge commit `71076bc` 合入 `main`：ScoreBundle 与 GU 绑定同一 checkpoint/state hash，真实 expected-k 与 candidate fail closed；本机、`origin/main` 与 SSH active checkout 已收口到同一主线 | git；`reports/target_direct_selection_PREPARATION_REPORT.md` |
 | **L8 修复** | 🟢 代码已修 / 🔴 数据仍坏 | 写回逻辑 `d674f62` 已在 HEAD（**不用合分支**）；数据坏是服务器 **stale `.pyc`** → 只需清缓存重跑（见 E2） | `limitations.md` L8 |
@@ -81,6 +82,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 ### 正式实验运行位置（2026-07-14 锁定）
 
 - **默认正式 lane = 已对齐、已完成预期 Git 清理的 SSH active checkout。**“正式实验”与“隔离 worktree”是两个不同维度；不能因为某次验收使用 fresh checkout，就推导以后正式实验都必须隔离。
+- **部署根边界（2026-07-24）**：`/autodl-fs/data` 只允许平台 `.sys`、`.gitignore` 与单一 `OpenGU`。任何 fresh clone、worktree、evidence、ops、canary、materializer store 均须落在 active checkout 内；`scripts/validate_ssh_deployment_layout.py` 发现额外顶层条目即失败。历史 sibling 已无 symlink 地迁入 `results/_archive_ssh_peer_layout_20260724/`。
 - 只有出现明确边界时才建隔离 worktree：并发分支、尚未解决的 tracked/运行态污染、未接收修复的验证，或 `experiments/run.py --dry_run` 已证明存在结果/cache identity 冲突。
 - 判断前必须查 active 的 `git status --short --branch`、`git worktree list` 和 runner fingerprint 分类。ignored 历史结果本身不等于误判；若目标 cells 全部显示 `would_run`，不得再以“可能误跳过”为由强制隔离。
 - 正式性的判据是固定源码/配置 provenance、每格四件套、质量 gate 和日志。用同一 full config/fingerprint 跑出的 1-cell gate 是正式矩阵的一部分，扩展时应 skip 而不是覆盖。
@@ -175,6 +177,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 ## 10. Changelog
 
+- **2026-07-24** SSH 部署根摸排与收口：确认 2026-07-14 至 07-22 的 fresh clone / evidence / ops / canary / materializer 与两组 tracked 绝对路径配置共同造成 9 个 OpenGU sibling；2 个空壳删除，7 个证据树共 6952 files / 1,078,876,926 bytes 原子迁入 active ignored archive，逐文件 SHA-256 通过，清单锚点 `32961210ff7a874b7f13f75987be19f5d825002e9f453bb5ac015976e048882e`。runner 增加 active-checkout path fail-closed，Gate4 与 GU v5 改为 repo-relative，新增顶层布局验收器。见 `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}`。
 - **2026-07-22** K5 formal 顺序固化：E3 从“沿用旧 K5 后纯本地 join”更新为 fresh V2 formal lane；注册 `Cora/GCN/GraphRevoker/seed111/k=5` 单 cell gate，manifest 绑定 full main SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256。全矩阵必须在 gate PASS 后用同一 SHA `--resume`，无 gate 直接全跑由 runner 拒绝。
 - **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移与清理完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；两个 `archive/paper-alignment-*` tag 经 peel 验证后，原 alignment stash 已 drop、旧分支已删除，不再以活动 branch/stash 充当知识库。
 - **2026-06-27** 建档（实验/ablation/写作/画图 四阶段，收敛 PROGRESS §2/§3 + limitations + PAPER_LIABILITIES_MAP + 配置矩阵）；配套 `config_inventory.{csv,html}` 监督看板。
