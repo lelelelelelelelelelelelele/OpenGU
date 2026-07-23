@@ -1,4 +1,4 @@
-"""Preflight or run one public-Planetoid modern IM selector cell."""
+"""Preflight or run one historical public-Planetoid diagnostic cell."""
 
 from __future__ import annotations
 
@@ -74,6 +74,11 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] = None) -> int:
     args = _parser().parse_args(argv)
+    if args.formal:
+        raise RuntimeError(
+            "public Planetoid is diagnostic-only; formal modern-IM runs "
+            "must use canonical OpenGU processed train candidates"
+        )
     provenance = assert_execution_authorized(
         execute=bool(args.execute),
         approval_token=args.approval_token,
@@ -90,6 +95,7 @@ def main(argv: Sequence[str] = None) -> int:
         "version": 1,
         "execute": bool(args.execute),
         "formal": bool(args.formal),
+        "claim_scope": "historical_public_split_diagnostic_only",
         "execution_token_required": EXECUTION_TOKEN,
         "dataset_source": source.to_manifest(),
         "git_provenance": provenance,

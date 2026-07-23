@@ -2,61 +2,29 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>现代 Influence Maximization 算法调研与 OpenGU 实验计划</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\(', '\)']],
+        displayMath: [['$$', '$$'], ['\[', '\]']]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    :root {
-      color-scheme: dark; --bg:#07111f; --panel:#0d1b2d; --text:#e8eef6;
-      --muted:#9eb0c7; --line:#29415e; --accent:#55d6be; --accent-2:#78a9ff;
-      --warn:#ffcc66; --max:1120px;
-    }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; background:radial-gradient(circle at 15% 0%,#102846 0,var(--bg) 34rem); color:var(--text); font:16px/1.72 Inter,"Segoe UI","Microsoft YaHei",sans-serif; }
-    a { color:var(--accent-2); text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .layout { display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1480px; margin:auto; }
-    nav { position:sticky; top:0; height:100vh; overflow:auto; padding:32px 24px; border-right:1px solid var(--line); background:rgba(7,17,31,.86); }
-    nav strong { display:block; margin-bottom:16px; color:var(--accent); letter-spacing:.08em; }
-    nav a { display:block; padding:5px 0; color:var(--muted); font-size:14px; }
-    nav a.sub { padding-left:14px; font-size:13px; }
-    main { width:min(var(--max),100%); padding:54px 62px 96px; }
-    h1 { font-size:clamp(2rem,4vw,3.4rem); line-height:1.12; margin:0 0 36px; max-width:900px; }
-    h2 { margin:64px 0 22px; padding-bottom:10px; border-bottom:1px solid var(--line); font-size:1.65rem; }
-    h3 { margin:38px 0 14px; font-size:1.23rem; color:#d4e4f7; }
-    h4 { margin-top:28px; }
-    p,li { color:#d6e1ee; }
-    strong { color:#f6fbff; }
-    code { background:#142a42; color:#b9f5e9; padding:.12em .38em; border-radius:5px; }
-    pre { overflow:auto; padding:18px; border:1px solid var(--line); background:#091727; border-radius:10px; }
-    pre code { padding:0; background:none; }
-    table { width:100%; border-collapse:collapse; margin:22px 0 34px; font-size:14px; }
-    th,td { padding:11px 12px; border:1px solid var(--line); vertical-align:top; }
-    th { background:#142a42; color:#f2f7fc; text-align:left; }
-    tr:nth-child(even) td { background:rgba(18,36,58,.42); }
-    blockquote,.callout { margin:24px 0; padding:18px 20px; border-left:4px solid var(--accent); background:linear-gradient(90deg,rgba(85,214,190,.13),rgba(18,36,58,.72)); border-radius:8px; }
-    blockquote p,.callout p { margin:0; }
-    .callout-label { color:var(--accent); font-weight:700; margin-bottom:6px; }
-    .warning { border-left-color:var(--warn); }
-    .warning .callout-label { color:var(--warn); }
-    hr { border:0; border-top:1px solid var(--line); margin:52px 0; }
-    .meta { color:var(--muted); margin:-20px 0 42px; }
-    @media (max-width:920px) {
-      .layout { display:block; }
-      nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); }
-      nav a.sub { display:none; }
-      main { padding:38px 22px 72px; }
-      table { display:block; overflow-x:auto; }
-    }
-    @media print {
-      nav { display:none; } .layout { display:block; } main { width:100%; max-width:none; padding:0; }
-      body { background:white; color:#111; } p,li,h1,h2,h3,strong { color:#111; } a { color:#174ea6; }
-    }
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
   </style>
 </head>
 <body>
-  <div class="layout">
-    <nav><strong>IM RESEARCH PLAN</strong><a class="" href="#执行结论">执行结论</a>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / MODERN IM</div>
+    <div class="side-title">现代 Influence Maximization 算法调研与 OpenGU 实验计划</div>
+    <span class="badge">SURVEY + REVISED PLAN</span>
+    <nav><a class="" href="#执行结论">执行结论</a>
 <a class="" href="#1-为什么现在值得做">1. 为什么现在值得做</a>
 <a class="" href="#2-理论下界-应分成三件事">2. “理论下界”应分成三件事</a>
 <a class="" href="#3-算法谱系与项目角色">3. 算法谱系与项目角色</a>
@@ -74,8 +42,8 @@
 <a class="" href="#6-分阶段实验计划">6. 分阶段实验计划</a>
 <a class="sub" href="#phase-0-实现契约与最小原语">Phase 0：实现契约与最小原语</a>
 <a class="sub" href="#phase-1-精确小图与契约-gate">Phase 1：精确小图与契约 gate</a>
-<a class="sub" href="#phase-2-三数据集-selector-validity-bridge">Phase 2：三数据集 selector-validity bridge</a>
-<a class="sub" href="#phase-3-canonical-opengu-转移">Phase 3：canonical OpenGU 转移</a>
+<a class="sub" href="#phase-2-三数据集-canonical-selector-validity">Phase 2：三数据集 canonical selector-validity</a>
+<a class="sub" href="#phase-3-ogbn-arxiv-大图-gate">Phase 3：ogbn-arxiv 大图 Gate</a>
 <a class="sub" href="#phase-4-gu-downstream-canary">Phase 4：GU downstream canary</a>
 <a class="sub" href="#phase-5-条件扩展">Phase 5：条件扩展</a>
 <a class="" href="#7-指标与验收门槛">7. 指标与验收门槛</a>
@@ -85,9 +53,13 @@
 <a class="" href="#9-最终建议">9. 最终建议</a>
 <a class="" href="#参考文献">参考文献</a>
 <a class="" href="#已知边界">已知边界</a></nav>
-    <main>
-      <div class="meta">OpenGU · 2026-07-23 · static IC / cardinality-constrained IM</div>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">CANONICAL 1% / 5% · DEGREE BASELINE</div>
       <h1>现代 Influence Maximization 算法调研与 OpenGU 实验计划</h1>
+    </section>
+    <article><h1 id="现代-influence-maximization-算法调研与-opengu-实验计划">现代 Influence Maximization 算法调研与 OpenGU 实验计划</h1>
 <h2 id="执行结论">执行结论</h2>
 <p>建议推进，而且不应只继续优化 CELF。下一阶段应建立一条独立的 <strong>Modern-IM approximation-validity lane</strong>，优先顺序为：</p>
 <ol>
@@ -98,34 +70,39 @@
 <li><strong>可选多预算方法：SKIM。</strong> 一次生成 seed sequence、各 prefix 都可分析，适合 ratio sweep；实现优先级低于 OPIM-C。</li>
 </ol>
 <p>不建议第一轮实现原始 SSA/D-SSA、把 CELF++包装成新近似、直接引入深度强化学习 IM，或直接覆盖现有 <code>im</code>。这些路线分别存在保证纠偏、语义重复、目标不可比和证据污染问题。</p>
-<aside class="callout important"><div class="callout-label">关键结论</div><div>现代 IM 的第一研究问题不是“选点与旧 CELF 重合多少”，而是“新算法是否更可靠地优化 IC spread，以及这种目标改进是否真的传递到 approximate-GU 的 retrain gap”。低 Jaccard 但等 spread 可能只是多个近最优解；高 spread 但攻击不更强则是更有价值的 objective-mismatch 发现。</div></aside>
+<blockquote>
+<p>[!IMPORTANT]
+现代 IM 的第一研究问题不是“选点与旧 CELF 重合多少”，而是“新算法是否更可靠地优化 IC spread，以及这种目标改进是否真的传递到 approximate-GU 的 retrain gap”。低 Jaccard 但等 spread 可能只是多个近最优解；高 spread 但攻击不更强则是更有价值的 objective-mismatch 发现。</p>
+</blockquote>
 <h2 id="1-为什么现在值得做">1. 为什么现在值得做</h2>
 <p>当前 <a href="../attack/attack_strategies/im_strategy.py">IMStrategy</a> 使用 IC + MC-CELF，但 canonical 默认包含 <code>im_batch_size=5</code>。<code>batch_size&gt;1</code> 会一次接受多个未经逐步重新验证的候选，因此它不是经典 CELF 的纯工程等价实现。</p>
 <p>历史 prototype 已显示明显的 dataset interaction：</p>
 <table>
 <thead>
 <tr>
-<th>Dataset / budget</th>
-<th align="right">Batch-CELF speedup</th>
-<th align="right">独立评估 spread loss</th>
+  <th>Dataset / budget</th>
+  <th style="text-align:right">Batch-CELF speedup</th>
+  <th style="text-align:right">独立评估 spread loss</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Cora, $k=135$</td>
-<td align="right">34.6x</td>
-<td align="right">1.26%</td>
+<tbody>
+<tr>
+  <td>Cora, $k=135$</td>
+  <td style="text-align:right">34.6x</td>
+  <td style="text-align:right">1.26%</td>
 </tr>
 <tr>
-<td>CiteSeer, $k=50$</td>
-<td align="right">1.6x</td>
-<td align="right">11.98%</td>
+  <td>CiteSeer, $k=50$</td>
+  <td style="text-align:right">1.6x</td>
+  <td style="text-align:right">11.98%</td>
 </tr>
 <tr>
-<td>CiteSeer, $k=135$</td>
-<td align="right">3.9x</td>
-<td align="right">17.05%</td>
+  <td>CiteSeer, $k=135$</td>
+  <td style="text-align:right">3.9x</td>
+  <td style="text-align:right">17.05%</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>来源为 <a href="../experiments/im_benchmark/docs/multi_v1_v3_summary.md">旧 V0–V4 prototype</a>。这些结果只有 Cora/CiteSeer、单一历史实现口径，不能作为正式三数据集证据；但它们足以说明“Batch 近似是否保真”不是一个已经解决的问题。</p>
 <p>同时，<code>ogbn-arxiv</code> 的历史 Cache V2 IM cold run 在 degree-pruned、50 MC、classic CELF 条件下仍耗时约 3 小时 46 分，见 <a href="../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md">IM materializer 验收</a>。现代 RR-set 路线因此既有方法学价值，也有现实扩展性价值。</p>
 <h2 id="2-理论下界-应分成三件事">2. “理论下界”应分成三件事</h2>
@@ -133,27 +110,29 @@
 <table>
 <thead>
 <tr>
-<th>保证类型</th>
-<th>正确问题</th>
-<th>例子</th>
+  <th>保证类型</th>
+  <th>正确问题</th>
+  <th>例子</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>解质量下界</td>
-<td>返回解至少达到 OPT 的多少</td>
-<td>$sigma(S)\ge(1-1/e-\epsilon)\mathrm{OPT}$</td>
+<tbody>
+<tr>
+  <td>解质量下界</td>
+  <td>返回解至少达到 OPT 的多少</td>
+  <td>$sigma(S)\ge(1-1/e-\epsilon)\mathrm{OPT}$</td>
 </tr>
 <tr>
-<td>成功概率</td>
-<td>上述质量下界多大概率成立</td>
-<td>$1-\delta$ 或 $1-n^{-\ell}$</td>
+  <td>成功概率</td>
+  <td>上述质量下界多大概率成立</td>
+  <td>$1-\delta$ 或 $1-n^{-\ell}$</td>
 </tr>
 <tr>
-<td>时间/样本下界</td>
-<td>任何算法至少需要多少图访问或样本</td>
-<td>对网络规模近线性最优；或样本数渐近下界</td>
+  <td>时间/样本下界</td>
+  <td>任何算法至少需要多少图访问或样本</td>
+  <td>对网络规模近线性最优；或样本数渐近下界</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>经典 IC influence function 是 monotone submodular。<a href="https://doi.org/10.1145/956750.956769">Kempe, Kleinberg, and Tardos</a> 证明，在可准确查询 influence 的前提下，逐步加入最大 marginal-gain 节点的 greedy 至少达到 $1-1/e$。但有限轮 MC 只是一个随机 value oracle；如果没有样本复杂度和置信控制，就不能自动把该保证贴到现有 MC-CELF 结果上。</p>
 <p>RR-set 方法利用恒等式</p>
 <p>$$
@@ -164,112 +143,114 @@ $$</p>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>核心机制</th>
-<th>理论状态</th>
-<th>本项目角色</th>
-<th align="right">优先级</th>
+  <th>方法</th>
+  <th>核心机制</th>
+  <th>理论状态</th>
+  <th>本项目角色</th>
+  <th style="text-align:right">优先级</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Strict MC-Greedy/CELF</td>
-<td>forward MC + 逐点 greedy</td>
-<td>仅在受控 oracle 下继承 $1-1/e$</td>
-<td>operational reference</td>
-<td align="right">必须保留</td>
+<tbody>
+<tr>
+  <td>Strict MC-Greedy/CELF</td>
+  <td>forward MC + 逐点 greedy</td>
+  <td>仅在受控 oracle 下继承 $1-1/e$</td>
+  <td>operational reference</td>
+  <td style="text-align:right">必须保留</td>
 </tr>
 <tr>
-<td>CELF++</td>
-<td>缓存下一轮 marginal</td>
-<td>与同一 greedy 目标等价</td>
-<td>equivalence sanity</td>
-<td align="right">低</td>
+  <td>CELF++</td>
+  <td>缓存下一轮 marginal</td>
+  <td>与同一 greedy 目标等价</td>
+  <td>equivalence sanity</td>
+  <td style="text-align:right">低</td>
 </tr>
 <tr>
-<td>PMC</td>
-<td>pruned Monte Carlo snapshots</td>
-<td>高质量 MC 路线，论文给出保证</td>
-<td>MC-family 对照</td>
-<td align="right">中低</td>
+  <td>PMC</td>
+  <td>pruned Monte Carlo snapshots</td>
+  <td>高质量 MC 路线，论文给出保证</td>
+  <td>MC-family 对照</td>
+  <td style="text-align:right">中低</td>
 </tr>
 <tr>
-<td>TIM/TIM+</td>
-<td>RR sets + 预计算样本界</td>
-<td>$(1-1/e-\epsilon)$，高概率</td>
-<td>历史 RR 基线</td>
-<td align="right">低</td>
+  <td>TIM/TIM+</td>
+  <td>RR sets + 预计算样本界</td>
+  <td>$(1-1/e-\epsilon)$，高概率</td>
+  <td>历史 RR 基线</td>
+  <td style="text-align:right">低</td>
 </tr>
 <tr>
-<td>corrected IMM</td>
-<td>自适应估计 OPT 下界 + 独立最终 RR batch</td>
-<td>$(1-1/e-\epsilon)$，高概率</td>
-<td>理论/生态对照</td>
-<td align="right">高</td>
+  <td>corrected IMM</td>
+  <td>自适应估计 OPT 下界 + 独立最终 RR batch</td>
+  <td>$(1-1/e-\epsilon)$，高概率</td>
+  <td>理论/生态对照</td>
+  <td style="text-align:right">高</td>
 </tr>
 <tr>
-<td>SSA/D-SSA original</td>
-<td>stop-and-stare</td>
-<td>原始保证被后续工作指出缺口</td>
-<td>不进入主矩阵</td>
-<td align="right">排除</td>
+  <td>SSA/D-SSA original</td>
+  <td>stop-and-stare</td>
+  <td>原始保证被后续工作指出缺口</td>
+  <td>不进入主矩阵</td>
+  <td style="text-align:right">排除</td>
 </tr>
 <tr>
-<td>SSA-Fix</td>
-<td>修正 stop-and-stare</td>
-<td>恢复声明保证</td>
-<td>可选复核</td>
-<td align="right">低</td>
+  <td>SSA-Fix</td>
+  <td>修正 stop-and-stare</td>
+  <td>恢复声明保证</td>
+  <td>可选复核</td>
+  <td style="text-align:right">低</td>
 </tr>
 <tr>
-<td>OPIM-C</td>
-<td>双独立 RR batch + online certificate</td>
-<td>$(1-1/e-\epsilon)$，高概率</td>
-<td>第一实现候选</td>
-<td align="right">最高</td>
+  <td>OPIM-C</td>
+  <td>双独立 RR batch + online certificate</td>
+  <td>$(1-1/e-\epsilon)$，高概率</td>
+  <td>第一实现候选</td>
+  <td style="text-align:right">最高</td>
 </tr>
 <tr>
-<td>SKIM</td>
-<td>bottom-$k$ reachability sketches</td>
-<td>prefix-level 概率近似</td>
-<td>多 budget 候选</td>
-<td align="right">中</td>
+  <td>SKIM</td>
+  <td>bottom-$k$ reachability sketches</td>
+  <td>prefix-level 概率近似</td>
+  <td>多 budget 候选</td>
+  <td style="text-align:right">中</td>
 </tr>
 <tr>
-<td>TipTop</td>
-<td>RR sampling + integer programming</td>
-<td>$(1-\epsilon)$ 近最优</td>
-<td>小图质量 anchor</td>
-<td align="right">中</td>
+  <td>TipTop</td>
+  <td>RR sampling + integer programming</td>
+  <td>$(1-\epsilon)$ 近最优</td>
+  <td>小图质量 anchor</td>
+  <td style="text-align:right">中</td>
 </tr>
 <tr>
-<td>SUBSIM</td>
-<td>更快的 RR subset sampling</td>
-<td>保留上层算法保证</td>
-<td>OPIM-C estimator backend</td>
-<td align="right">第二阶段</td>
+  <td>SUBSIM</td>
+  <td>更快的 RR subset sampling</td>
+  <td>保留上层算法保证</td>
+  <td>OPIM-C estimator backend</td>
+  <td style="text-align:right">第二阶段</td>
 </tr>
 <tr>
-<td>HIST</td>
-<td>sentinel seeds 截断大 RR sets</td>
-<td>高 influence 场景保证</td>
-<td>条件扩展</td>
-<td align="right">第二阶段</td>
+  <td>HIST</td>
+  <td>sentinel seeds 截断大 RR sets</td>
+  <td>高 influence 场景保证</td>
+  <td>条件扩展</td>
+  <td style="text-align:right">第二阶段</td>
 </tr>
 <tr>
-<td>Ripples/cuRipples</td>
-<td>多核/多 GPU RR 系统</td>
-<td>保留所实现算法语义</td>
-<td>外部大图 oracle</td>
-<td align="right">后续</td>
+  <td>Ripples/cuRipples</td>
+  <td>多核/多 GPU RR 系统</td>
+  <td>保留所实现算法语义</td>
+  <td>外部大图 oracle</td>
+  <td style="text-align:right">后续</td>
 </tr>
 <tr>
-<td>EPIC/AdaptiveGreedy</td>
-<td>expected guarantee + adaptive feedback</td>
-<td>问题与保证语义不同</td>
-<td>related work</td>
-<td align="right">排除</td>
+  <td>EPIC/AdaptiveGreedy</td>
+  <td>expected guarantee + adaptive feedback</td>
+  <td>问题与保证语义不同</td>
+  <td>related work</td>
+  <td style="text-align:right">排除</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <h3 id="3-1-opim-c-第一推荐">3.1 OPIM-C：第一推荐</h3>
 <p><a href="https://doi.org/10.1145/3183713.3183749">OPIM-C</a> 的优势不是“年份较新”，而是验证结构与本项目匹配：</p>
 <ol>
@@ -327,75 +308,79 @@ $$</p>
 <table>
 <thead>
 <tr>
-<th>Identity field</th>
-<th>内容</th>
+  <th>Identity field</th>
+  <th>内容</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Algorithm</td>
-<td>family、algorithm version、修正版标识</td>
+<tbody>
+<tr>
+  <td>Algorithm</td>
+  <td>family、algorithm version、修正版标识</td>
 </tr>
 <tr>
-<td>Diffusion</td>
-<td>IC、$p$ 或 per-edge probability hash、方向语义</td>
+  <td>Diffusion</td>
+  <td>IC、$p$ 或 per-edge probability hash、方向语义</td>
 </tr>
 <tr>
-<td>Guarantee</td>
-<td>$\epsilon$、$\delta$、certificate mode</td>
+  <td>Guarantee</td>
+  <td>$\epsilon$、$\delta$、certificate mode</td>
 </tr>
 <tr>
-<td>Randomness</td>
-<td>selector/RR seed、PRNG algorithm/version</td>
+  <td>Randomness</td>
+  <td>selector/RR seed、PRNG algorithm/version</td>
 </tr>
 <tr>
-<td>Data</td>
-<td>dataset、graph、candidate、root-domain fingerprints</td>
+  <td>Data</td>
+  <td>dataset、graph、candidate、root-domain fingerprints</td>
 </tr>
 <tr>
-<td>Budget</td>
-<td>$k$ 与 candidate ratio</td>
+  <td>Budget</td>
+  <td>$k$ 与 candidate ratio</td>
 </tr>
 <tr>
-<td>Backend</td>
-<td>Python/Numba/C++，仅作 execution provenance</td>
+  <td>Backend</td>
+  <td>Python/Numba/C++，仅作 execution provenance</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>固定 RR batch 上的 greedy sequence 可以复用前缀，但 max-$k$ 的证书不自动覆盖其他预算。每个报告 budget 必须单独保存 certificate；在实现 per-prefix certificate 之前，不把 max-$k$ prefix 标成“已认证”。</p>
 <h2 id="5-研究问题与假设">5. 研究问题与假设</h2>
 <table>
 <thead>
 <tr>
-<th>ID</th>
-<th>研究问题</th>
-<th>可证伪假设</th>
+  <th>ID</th>
+  <th>研究问题</th>
+  <th>可证伪假设</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>RQ1</td>
-<td>新方法是否更好优化同一个 IC spread？</td>
-<td>OPIM-C/corrected IMM 的独立 spread 不低于 current Batch-CELF</td>
+<tbody>
+<tr>
+  <td>RQ1</td>
+  <td>新方法是否更好优化同一个 IC spread？</td>
+  <td>OPIM-C/corrected IMM 的独立 spread 不低于 current Batch-CELF</td>
 </tr>
 <tr>
-<td>RQ2</td>
-<td>理论保证的代价是什么？</td>
-<td>runtime/sample 随 $\epsilon^{-2}$ 增长，但 PubMed 仍优于 strict CELF</td>
+  <td>RQ2</td>
+  <td>理论保证的代价是什么？</td>
+  <td>runtime/sample 随 $\epsilon^{-2}$ 增长，但 PubMed 仍优于 strict CELF</td>
 </tr>
 <tr>
-<td>RQ3</td>
-<td>多个近最优解是否导致低集合重合？</td>
-<td>Jaccard 可低，但 spread regret 仍接近 0</td>
+  <td>RQ3</td>
+  <td>多个近最优解是否导致低集合重合？</td>
+  <td>Jaccard 可低，但 spread regret 仍接近 0</td>
 </tr>
 <tr>
-<td>RQ4</td>
-<td>更高 IC spread 是否带来更强 GU 攻击？</td>
-<td>spread 提升与 retrain gap 提升并不必然一致</td>
+  <td>RQ4</td>
+  <td>更高 IC spread 是否带来更强 GU 攻击？</td>
+  <td>spread 提升与 retrain gap 提升并不必然一致</td>
 </tr>
 <tr>
-<td>RQ5</td>
-<td>算法优势是否依赖图与 budget？</td>
-<td>CiteSeer/PubMed、small/large $k$ 存在明显 interaction</td>
+  <td>RQ5</td>
+  <td>算法优势是否依赖图与 budget？</td>
+  <td>CiteSeer/PubMed、small/large $k$ 存在明显 interaction</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <h2 id="6-分阶段实验计划">6. 分阶段实验计划</h2>
 <h3 id="phase-0-实现契约与最小原语">Phase 0：实现契约与最小原语</h3>
 <p>建议新建隔离目录 <code>experiments/im_modern/</code>，不改 production <code>IMStrategy</code> 路由。最小模块为：</p>
@@ -420,100 +405,112 @@ $$</p>
 <li>same recipe + same seed 的 selected order、certificate 和 sample hashes 可复现；</li>
 <li>recipe 任一语义字段变化都产生 cache miss。</li>
 </ul>
-<h3 id="phase-2-三数据集-selector-validity-bridge">Phase 2：三数据集 selector-validity bridge</h3>
-<p>先复用 IF 近似研究的 public Planetoid 口径，便于直接比较选择层现象；该层不是正式 GU 数据替代品。</p>
+<h3 id="phase-2-三数据集-canonical-selector-validity">Phase 2：三数据集 canonical selector-validity</h3>
+<p>直接使用 active checkout 内 canonical <code>data/processed/transductive/</code> 80/0/20 split。public Planetoid 固定小候选集不再作为新实验的 bridge；旧结果只在原报告中作为机制诊断留档。</p>
 <table>
 <thead>
 <tr>
-<th>Dimension</th>
-<th>Values</th>
+  <th>Dimension</th>
+  <th>Values</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Datasets</td>
-<td>Cora / CiteSeer / PubMed</td>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td>Cora / CiteSeer / PubMed</td>
 </tr>
 <tr>
-<td>Candidate counts</td>
-<td>140 / 120 / 60</td>
+  <td>Candidate pool</td>
+  <td>complete persisted OpenGU train candidates</td>
 </tr>
 <tr>
-<td>Budgets</td>
-<td>$k\in{3,7,14}$</td>
+  <td>Expected candidate counts</td>
+  <td>2,166 / 2,661 / 15,773；正式值由 manifest 冻结</td>
 </tr>
 <tr>
-<td>Selector/RR seeds</td>
-<td>42 / 212 / 2024</td>
+  <td>Ratios</td>
+  <td>0.01 / 0.05</td>
 </tr>
 <tr>
-<td>Primary $p$</td>
-<td>0.1</td>
+  <td>Expected $k$</td>
+  <td>Cora 21/108；CiteSeer 26/133；PubMed 157/788</td>
 </tr>
 <tr>
-<td>Primary guarantee</td>
-<td>$\epsilon=0.1,\ \delta=0.01$</td>
+  <td>Selector/RR seeds</td>
+  <td>42 / 212 / 2024</td>
 </tr>
 <tr>
-<td>Main algorithms</td>
-<td>strict CELF / current Batch-CELF / corrected IMM / OPIM-C</td>
+  <td>Primary $p$</td>
+  <td>0.1</td>
 </tr>
 <tr>
-<td>Optional anchor</td>
-<td>TipTop on Cora/CiteSeer, $k\le7$</td>
+  <td>Primary guarantee</td>
+  <td>$\epsilon=0.1,\ \delta=0.01$</td>
 </tr>
-</tbody></table>
-<p>主矩阵为 $3\times3\times3\times4=108$ 个逻辑 selection cells。可以复用 RR batches 或 max-$k$ sequence 降低计算，但每个 budget 的证书必须单独报告。</p>
+<tr>
+  <td>Main algorithms</td>
+  <td>degree / random / corrected IMM / OPIM-C / RR-SNI / RR-Shapley / RR-$k$-semivalue</td>
+</tr>
+<tr>
+  <td>Diagnostic anchors</td>
+  <td>current Batch-CELF / strict CELF 仅限 Cora、seed42、1% feasibility</td>
+</tr>
+</tbody>
+</table>
+<p>主矩阵为 $3\ datasets\times3\ seeds\times2\ ratios\times7\ methods=126$ 行。可以复用 RR batches 降低计算，但每个 budget 的 certificate 必须单独报告。旧 CELF 诊断不进入 promotion 统计。</p>
 <p>补充两组单 seed sensitivity：</p>
 <ul>
 <li>$\epsilon\in{0.20,0.10,0.05}$，验证时间/样本与质量曲线；</li>
 <li>$p\in{0.05,0.10,0.20}$，观察 subcritical/high-influence 转换和 RR-size 膨胀。</li>
 </ul>
-<h3 id="phase-3-canonical-opengu-转移">Phase 3：canonical OpenGU 转移</h3>
-<p>Phase 2 通过后，使用 active checkout 内 canonical <code>data/processed/transductive/</code> 80/20 split，禁止下载、临时预处理或外部数据根。</p>
+<h3 id="phase-3-ogbn-arxiv-大图-gate">Phase 3：ogbn-arxiv 大图 Gate</h3>
+<p>Phase 2 通过后，使用 active checkout 内 canonical ogbn-arxiv processed graph/split，禁止下载、临时预处理、外部数据根或 degree candidate pruning。</p>
 <table>
 <thead>
 <tr>
-<th>Dimension</th>
-<th>Values</th>
+  <th>Dimension</th>
+  <th>Values</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Datasets</td>
-<td>Cora / CiteSeer / PubMed</td>
+<tbody>
+<tr>
+  <td>Dataset</td>
+  <td>ogbn-arxiv</td>
 </tr>
 <tr>
-<td>Candidate pool</td>
-<td>persisted OpenGU train mask</td>
+  <td>Candidate pool</td>
+  <td>persisted OpenGU train mask</td>
 </tr>
 <tr>
-<td>Ratios</td>
-<td>0.01 / 0.05 / 0.10</td>
+  <td>Ratios</td>
+  <td>0.01 / 0.05</td>
 </tr>
 <tr>
-<td>Selector seeds</td>
-<td>42 / 212 / 2024</td>
+  <td>Selector seeds</td>
+  <td>42 / 212 / 2024</td>
 </tr>
 <tr>
-<td>Algorithms</td>
-<td>current Batch-CELF / corrected IMM / OPIM-C</td>
+  <td>Algorithms</td>
+  <td>degree / corrected IMM / OPIM-C / RR-SNI / RR-Shapley / RR-$k$-semivalue</td>
 </tr>
 <tr>
-<td>Reference</td>
-<td>strict CELF 仅在 feasibility 允许的 cells</td>
+  <td>Rows</td>
+  <td>$3\ seeds\times2\ ratios\times6\ methods=36$</td>
 </tr>
-</tbody></table>
-<p>这一层回答算法是否能从 public selector benchmark 转移到真正 GU candidate contract。任何正式矩阵必须等代码线完整合入 <code>main</code> 后，在 clean SSH active checkout 上固定 full <code>main</code> SHA 运行。</p>
+</tbody>
+</table>
+<p>这一层回答成熟 IM 在完整大图候选域上是否仍能满足时间、RSS、certificate 和 independent-spread gate。任何正式矩阵必须等代码线完整合入 <code>main</code> 后，在 clean SSH active checkout 上固定 full <code>main</code> SHA 运行。</p>
 <h3 id="phase-4-gu-downstream-canary">Phase 4：GU downstream canary</h3>
 <p>只把三种有解释意义的删除集送入 GU：</p>
 <ul>
-<li>current Batch-CELF；</li>
-<li>OPIM-C；</li>
-<li>strict/high-fidelity reference，或 corrected IMM（视 Phase 2 fidelity 决定）。</li>
+<li>degree；</li>
+<li>random；</li>
+<li>Phase 2/3 通过 spread promotion 的最佳一个现代 IM 方法。</li>
 </ul>
 <p>首个 canary：Cora + CiteSeer、ratio 0.05、GIF + GNNDelete、3 GU seeds，共 $2\times2\times3\times3=36$ cells。主指标为 retrain gap，辅指标为 relative F1 drop、collateral 和 update-detection AUC。</p>
 <p>扩展条件：</p>
 <ul>
-<li>若 OPIM-C 与 current IM 的 retrain gap 差异达到至少 1 percentage point，或改变方法脆弱性排序，则扩 PubMed 和一个稳健方法；</li>
+<li>若 IM winner 相对 degree 的 paired retrain-gap gain 达到至少 1 percentage point，或改变方法脆弱性排序，则扩 PubMed 和一个稳健方法；</li>
 <li>若 IC spread 明显提升但 GU outcome 不变/变弱，不继续调参追求“更好看”，而报告 objective mismatch；</li>
 <li>若 selector 层没有可测差异，则停止 GU 扩矩阵。</li>
 </ul>
@@ -530,39 +527,41 @@ $$</p>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>角色</th>
+  <th>Metric</th>
+  <th>角色</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>Independent spread mean + 95% CI</td>
-<td>主质量指标</td>
+<tbody>
+<tr>
+  <td>Independent spread mean + 95% CI</td>
+  <td>主质量指标</td>
 </tr>
 <tr>
-<td>Spread regret / ratio to best anchor</td>
-<td>主 fidelity 指标</td>
+  <td>Spread regret / ratio to best anchor</td>
+  <td>主 fidelity 指标</td>
 </tr>
 <tr>
-<td>OPIM-C lower / upper / certificate ratio</td>
-<td>理论证书</td>
+  <td>OPIM-C lower / upper / certificate ratio</td>
+  <td>理论证书</td>
 </tr>
 <tr>
-<td>Jaccard、common fraction、prefix overlap</td>
-<td>解多样性辅指标</td>
+  <td>Jaccard、common fraction、prefix overlap</td>
+  <td>解多样性辅指标</td>
 </tr>
 <tr>
-<td>Runtime、peak RSS</td>
-<td>工程指标</td>
+  <td>Runtime、peak RSS</td>
+  <td>工程指标</td>
 </tr>
 <tr>
-<td>RR count、total memberships、mean/p95/max size</td>
-<td>RR 成本解释</td>
+  <td>RR count、total memberships、mean/p95/max size</td>
+  <td>RR 成本解释</td>
 </tr>
 <tr>
-<td>Repeatability across selector seeds</td>
-<td>随机稳定性</td>
+  <td>Repeatability across selector seeds</td>
+  <td>随机稳定性</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>建议 promotion gate：</p>
 <ol>
 <li>synthetic exact gate 全通过；</li>
@@ -582,72 +581,76 @@ $$</p>
 <table>
 <thead>
 <tr>
-<th>IC spread</th>
-<th>GU damage</th>
-<th>结论</th>
+  <th>IC spread</th>
+  <th>GU damage</th>
+  <th>结论</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>提高</td>
-<td>提高</td>
-<td>新 IM 同时改善目标与攻击</td>
+<tbody>
+<tr>
+  <td>提高</td>
+  <td>提高</td>
+  <td>新 IM 同时改善目标与攻击</td>
 </tr>
 <tr>
-<td>提高</td>
-<td>不变/降低</td>
-<td>IC objective 与 GU vulnerability 失配</td>
+  <td>提高</td>
+  <td>不变/降低</td>
+  <td>IC objective 与 GU vulnerability 失配</td>
 </tr>
 <tr>
-<td>近似相同</td>
-<td>集合差异大</td>
-<td>多个近最优 seed sets</td>
+  <td>近似相同</td>
+  <td>集合差异大</td>
+  <td>多个近最优 seed sets</td>
 </tr>
 <tr>
-<td>提高不明显</td>
-<td>速度大幅提高</td>
-<td>工程替代价值，研究增量有限</td>
+  <td>提高不明显</td>
+  <td>速度大幅提高</td>
+  <td>工程替代价值，研究增量有限</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <h2 id="8-预计工作量与停止条件">8. 预计工作量与停止条件</h2>
 <table>
 <thead>
 <tr>
-<th>阶段</th>
-<th align="right">预计投入</th>
-<th>明确停止条件</th>
+  <th>阶段</th>
+  <th style="text-align:right">预计投入</th>
+  <th>明确停止条件</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>OPIM-C + corrected IMM MVP</td>
-<td align="right">2–3 人日</td>
-<td>exact/certificate gate 无法闭环则不跑数据集</td>
+<tbody>
+<tr>
+  <td>OPIM-C + corrected IMM MVP</td>
+  <td style="text-align:right">2–3 人日</td>
+  <td>exact/certificate gate 无法闭环则不跑数据集</td>
 </tr>
 <tr>
-<td>synthetic + Cora pilot</td>
-<td align="right">1 人日</td>
-<td>spread estimator 或 candidate contract 不一致</td>
+  <td>synthetic + Cora pilot</td>
+  <td style="text-align:right">1 人日</td>
+  <td>spread estimator 或 candidate contract 不一致</td>
 </tr>
 <tr>
-<td>三数据集 selector matrix</td>
-<td align="right">1–2 CPU 日</td>
-<td>OPIM-C 全部慢且无质量/证书优势</td>
+  <td>三数据集 selector matrix</td>
+  <td style="text-align:right">1–2 CPU 日</td>
+  <td>OPIM-C 全部慢且无质量/证书优势</td>
 </tr>
 <tr>
-<td>canonical transfer</td>
-<td align="right">1 CPU/SSH 日</td>
-<td>public → canonical 结论不稳定则先解释 split interaction</td>
+  <td>canonical transfer</td>
+  <td style="text-align:right">1 CPU/SSH 日</td>
+  <td>public → canonical 结论不稳定则先解释 split interaction</td>
 </tr>
 <tr>
-<td>GU canary</td>
-<td align="right">1 GPU 日量级</td>
-<td>selector 层无差异则不启动</td>
+  <td>GU canary</td>
+  <td style="text-align:right">1 GPU 日量级</td>
+  <td>selector 层无差异则不启动</td>
 </tr>
 <tr>
-<td>SUBSIM/HIST/Ripples</td>
-<td align="right">2–4 人日</td>
-<td>只有实测瓶颈触发才投入</td>
+  <td>SUBSIM/HIST/Ripples</td>
+  <td style="text-align:right">2–4 人日</td>
+  <td>只有实测瓶颈触发才投入</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <h2 id="9-最终建议">9. 最终建议</h2>
 <p>这条线值得做，但应把论文贡献目标定为：</p>
 <blockquote>
@@ -680,8 +683,9 @@ $$</p>
 <li>OPIM-C、TipTop、SUBSIM 的第三方代码可得性与许可证尚未达到 formal dependency acceptance；计划按仓库内重实现核心语义估算。</li>
 <li>没有在本轮启动 GPU/GU 实验，也没有修改 production selector 或 Legacy cache。</li>
 </ul>
-
-    </main>
-  </div>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
 </body>
 </html>

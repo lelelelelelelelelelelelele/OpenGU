@@ -13,7 +13,8 @@ Implemented outputs:
 - an OPIM-C-shaped anytime dual-sample selector with a conservative
   union-Hoeffding certificate;
 - independent common-random spread evaluation against degree;
-- public-Planetoid and canonical OpenGU processed-data runners;
+- a historical public-Planetoid diagnostic runner and a canonical OpenGU
+  processed-data runner;
 - aggregate plus Markdown/HTML result rendering.
 
 Timing rows use a conservative end-to-end interpretation.  Degree includes
@@ -51,8 +52,10 @@ E:/conda_package/envs/gnn/python.exe -m experiments.im_score_benchmark.local_acc
 ## Runner safety
 
 Both dataset runners are preflight-only unless `--execute` is supplied.
-Execution also requires `--approval-token IM-SELECTOR-A`. A formal run adds
-`--formal`, which fails unless Git is on a clean `main` checkout.
+Execution also requires `--approval-token IM-SELECTOR-A`. The public
+Planetoid runner is diagnostic-only and rejects `--formal`. A formal run uses
+canonical OpenGU processed train candidates and adds `--formal`, which fails
+unless Git is on a clean `main` checkout.
 
 Preflight examples:
 
@@ -61,5 +64,7 @@ E:/conda_package/envs/gnn/python.exe -m experiments.im_score_benchmark.run_plane
 E:/conda_package/envs/gnn/python.exe -m experiments.im_score_benchmark.run_arxiv
 ```
 
-Do not cite a diagnostic run as formal evidence. The full registered matrix
-remains disabled in `registered_plan.json` until a later explicit approval.
+The registered formal budgets are 1%/5% of the complete candidate set. Do not
+cite a public-split diagnostic run as formal evidence. The full registered
+matrix remains disabled in `registered_plan.json` until a later explicit
+approval.

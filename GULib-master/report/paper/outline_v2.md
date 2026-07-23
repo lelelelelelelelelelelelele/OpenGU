@@ -34,7 +34,7 @@
 | A.4 | Ablation: IM Hyperparameters | `outline/A4_im_hyperparams.md` | outline (should-have) | new runs (small) |
 | A.5 | **Ablation: Deletion Ratio Sweep** | `outline/A5_ratio_sweep.md` | outline (must-have, user-requested) | new runs on cora/GCN |
 | A.6 | **Influence-Selector Taxonomy and Concordance** | `outline/A6_if_gif_taxonomy.md` | drafted from accepted local mechanism evidence | 3 Planetoid × 3 seeds selector matrix |
-| A.7 | **Approximation Validity of IM and Trajectory Influence Proxies** | `outline/A7_approximation_validity.md` | drafted; IM accepted at set level, TracIn V2 conditional prototype | 6-dataset topology summary + 18-run selector gate |
+| A.7 | **Approximation Validity of Modern IM and Trajectory Influence Proxies** | `outline/A7_approximation_validity.md` | historical diagnostics retained; canonical 1%/5% IM and corrected 5% target-direct matrices pre-registered, not run | 6-dataset topology summary + modern-IM/degree selector matrix + target-direct trajectory gate |
 | B | NeurIPS Reproducibility Checklist | `outline/B_checklist.md` | outline (mechanical) | §1–§6 stable |
 
 ---

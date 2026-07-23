@@ -25,6 +25,8 @@ from experiments.im_score_benchmark.render_report import (
     render_html,
     render_markdown,
 )
+from experiments.im_score_benchmark.run_arxiv import _parser as arxiv_parser
+from experiments.im_score_benchmark.run_planetoid import main as planetoid_main
 from experiments.im_score_benchmark.runner_common import (
     EXECUTION_TOKEN,
     assert_execution_authorized,
@@ -400,14 +402,25 @@ def test_registered_matrix_is_disabled_and_counts_are_consistent():
     assert plan["formal_execution_authorized"] is False
     small = plan["small"]
     large = plan["large"]
+    assert small["profile"] == "opengu_canonical_processed_transductive_80_20"
+    assert small["budget_ratios"] == [0.01, 0.05]
+    assert "im_batch_celf_current" not in small["methods"]
+    assert "im_celf_strict" not in small["methods"]
     assert small["registered_rows"] == (
         len(small["datasets"])
         * len(small["selector_seeds"])
-        * len(small["budgets"])
+        * len(small["budget_ratios"])
         * len(small["methods"])
     )
+    assert large["budget_ratios"] == [0.01, 0.05]
     assert large["registered_rows"] == (
         len(large["selector_seeds"])
         * len(large["budget_ratios"])
         * len(large["methods"])
     )
+
+
+def test_formal_budget_defaults_and_public_diagnostic_boundary():
+    assert arxiv_parser().parse_args([]).budget_ratios == "0.01,0.05"
+    with pytest.raises(RuntimeError, match="diagnostic-only"):
+        planetoid_main(["--dataset", "Cora", "--formal"])
