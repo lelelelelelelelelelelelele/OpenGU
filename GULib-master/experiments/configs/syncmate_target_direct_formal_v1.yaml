@@ -10,8 +10,6 @@ ratio: 0.05
 base_model: GCN
 gu_method: GNNDelete
 main_parameter_scope: last_layer
-stress_parameter_scope: all_trainable
-stress_ladder: [cora-seed42, pubmed-seed42, citeseer-seed42]
 
 datasets:
   cora:
@@ -67,7 +65,6 @@ claims:
   selector_and_gu_share_exact_checkpoint: true
   budget_denominator: train_candidate_count
   formal_matrix_scope: last_layer
-  stress_scope_is_separate: true
   cache_v2_identity: fresh_target_direct_formal_v1
   old_public_or_surrogate_results_reusable: false
   formal_cells: 153

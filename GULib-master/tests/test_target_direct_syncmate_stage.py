@@ -55,16 +55,12 @@ def _summary(*, warm: bool):
     }
 
 
-def test_formal_config_freezes_scope_budget_and_stress_boundary():
+def test_formal_config_freezes_scope_budget_and_excludes_stress():
     config = stage_module.load_config()
 
     assert config["main_parameter_scope"] == "last_layer"
-    assert config["stress_parameter_scope"] == "all_trainable"
-    assert config["stress_ladder"] == [
-        "cora-seed42",
-        "pubmed-seed42",
-        "citeseer-seed42",
-    ]
+    assert "stress_parameter_scope" not in config
+    assert "stress_ladder" not in config
     assert config["datasets"]["cora"]["expected_candidate_count"] == 1895
     assert config["datasets"]["cora"]["expected_k"] == 94
     assert config["datasets"]["citeseer"]["expected_k"] == 116

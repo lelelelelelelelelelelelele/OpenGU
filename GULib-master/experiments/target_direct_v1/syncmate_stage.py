@@ -142,7 +142,6 @@ def load_config(
         or value.get("base_model") != "GCN"
         or value.get("gu_method") != "GNNDelete"
         or value.get("main_parameter_scope") != "last_layer"
-        or value.get("stress_parameter_scope") != "all_trainable"
         or float(value.get("ratio", -1)) != 0.05
         or tuple(value.get("seeds") or ()) != MODEL_SEEDS
         or tuple(value.get("strategy_order") or ()) != FORMAL_STRATEGIES
@@ -154,7 +153,6 @@ def load_config(
         claims.get("selector_and_gu_share_exact_checkpoint") is not True
         or claims.get("budget_denominator") != "train_candidate_count"
         or claims.get("formal_matrix_scope") != "last_layer"
-        or claims.get("stress_scope_is_separate") is not True
         or claims.get("old_public_or_surrogate_results_reusable") is not False
         or int(claims.get("formal_cells", -1)) != 153
     ):

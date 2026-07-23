@@ -163,7 +163,7 @@ SMALL_SELECTION_GU_FULL_STAGES = tuple(
 )
 TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "a4db487d95e1de0e1210331fbdbc0b83c1749201"
 TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v1.yaml"
-TARGET_DIRECT_CONFIG_SHA256 = "67a0d552d1516075b0d7363cc8e8c4a661863c78d20de4dce6ca2827ff6b42dd"
+TARGET_DIRECT_CONFIG_SHA256 = "399ab0a55c3423fbb9c588e69511e9936af752968115b67f2f10e5a7136d4c37"
 TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v1/selection"
 TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v1/gu"
 TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
