@@ -1,7 +1,7 @@
 ---
 title: TracIn、IF 与 GIF 的目标、source 和时间边界
 created: 2026-07-10
-updated: 2026-07-21
+updated: 2026-07-24
 type: framework-note
 status: current-evidence-aligned
 tags: [tracin, gif, influence, concordance, human-readable]
@@ -58,19 +58,64 @@ $$
 
 C-simple 数学上只需要 `grad1`，应介于 $G_p$ 与完整 $G_g$ 之间；但当前 ScoreBundle producer 把 C-simple 与 D-full 放在同一个候选循环中共同计算，连同 `grad2` 一起产出，所以表中按当前共享实现统一记作 $G_g$。这些表达式是排期用的 operation-count model，不是脱离模型结构的精确 wall-clock 公式。
 
-下面的时间全部是 **EST（排期估算）**，不是新的正式 benchmark。小图栏按当前 Planetoid candidate pool（约 60–140 个训练候选）已有 producer 计时取整；大图栏以 ogbn-arxiv（约 90,941 个训练候选、116 万条边）和历史 TracIn cold selection 约 5,110 秒作为 $nG_p$ 的量级锚点，再按当前未向量化的候选循环外推。该历史 Artifact 只记录 `cuda: 0`，**没有记录 GPU 型号**，所以大图栏不能直接称为 4090、A100 或 H100 实测。
+> [!warning] 2026-07-24 target-direct 口径更正
+> 旧的“小图约 60–140 个训练候选”来自 Planetoid public split，不能用于当前正式 target-direct 预算。新 profile 固定为 `planetoid_70_10_20_seed2024`，候选池扩大到 1,895–13,801 个节点；旧的秒级 small-graph EST 已撤回。下面只给出可审计的 operation count、参数维数和显存下限；wall-clock 必须由 RTX 4090 cold/warm gate 实测。
 
-| 主导成本项                    | 对应方法                       |           小图 EST |   ogbn-arxiv EST（历史锚点） | 排期判断                           |
-| ------------------------ | -------------------------- | ---------------: | ---------------------: | ------------------------------ |
-| $O(n)$ / $O(m+n)$        | `random`、`degree`          |         $<0.1$ s |                $<10$ s | 可忽略                            |
-| $O(nG_p)$                | A、C-point final、`legacy`   |            1–2 s |                  1–2 h | 大图已明显昂贵                        |
-| $O(nG_p+IH)$             | C-point reference          |            1–3 s | 1–2 h，外加约 1–5 min IHVP | $IH$ 是共享附加项，不改变主量级             |
-| $O(3nG_p)$ / $O(6nG_p)$  | C-point trajectory         |   2–6 s / 4–12 s |         3–6 h / 6–12 h | checkpoint 数近似线性放大             |
-| $O(nG_p+MIH+nMd)$        | B-Hutch SUP diagnostic     |           7–25 s |                  2–6 h | 32 probes × 20 HVP，不能当作一次 $IH$ |
-| $O(nG_g)$ / $O(nG_g+IH)$ | C-simple、D-final/reference |            2–6 s |                 2–10 d | 候选级删图循环是主瓶颈                    |
-| $O(3nG_g)$ / $O(6nG_g)$  | C-simple、D trajectory      | 7–18 s / 15–35 s |        1–4 wk / 2–8 wk | 当前实现不适合全候选大图扫描                 |
+当前 5% 预算以 train candidates 为唯一分母：
 
-这里估的是 **cold selection producer**。一旦 score/ranking Artifact 已缓存，读取 top-$k$ 通常是秒级或亚秒级，不能拿 warm-hit 时间代表算法计算成本。大图上的天/周级数字不是精确承诺，而是“当前逐候选全图 backward / 删图实现不可直接扩展”的工程警示。
+$$
+k=\max\left(1,\left\lfloor 0.05|V_{\mathrm{train}}|\right\rfloor\right).
+$$
+
+| Dataset | 全图节点 | train / val / test | 正式候选数 $n$ | 理论 $k$ |
+|---|---:|---:|---:|---:|
+| Cora | 2,708 | 1,895 / 271 / 542 | 1,895 | 94 |
+| CiteSeer | 3,327 | 2,328 / 333 / 666 | 2,328 | 116 |
+| PubMed | 19,717 | 13,801 / 1,972 / 3,944 | 13,801 | 690 |
+
+最终 counts 以 SSH active checkout staged manifest 为准；表中是固定比例下的理论值。
+
+### 0.1.1 `last_layer` 与 `all_trainable`
+
+两者都从同一个 OpenGU target checkpoint 取参数，因此都是 target-direct white-box。差别不是模型架构，而是 IF/TracIn 梯度向量覆盖的参数域：
+
+- `last_layer` 只包含最后一层 `GCNConv(64 → classes)`；
+- `all_trainable` 同时包含第一层 `GCNConv(features → 64)` 与最后一层。
+
+对当前 2-layer、hidden=64 的 GCN，参数维数为：
+
+| Dataset | `last_layer` 参数 $d_{\mathrm{last}}$ | `all_trainable` 参数 $d_{\mathrm{all}}$ | 维数倍率 |
+|---|---:|---:|---:|
+| Cora | 455 | 92,231 | 202.7× |
+| CiteSeer | 390 | 237,446 | 608.8× |
+| PubMed | 195 | 32,259 | 165.4× |
+
+当前 producer 会在 GPU 上保留多个 checkpoint 的 candidate-gradient matrix。仅按 float32 计算、尚未计入模型、图、autograd、HVP、probe 和 allocator 的理论内存下限为：
+
+| Dataset | last-layer 单 checkpoint | all-trainable 单 checkpoint | all-trainable 6 checkpoints |
+|---|---:|---:|---:|
+| Cora | 3.29 MiB | 666.72 MiB | 3.91 GiB |
+| CiteSeer | 3.46 MiB | 2.06 GiB | 12.36 GiB |
+| PubMed | 10.27 MiB | 1.66 GiB | 9.95 GiB |
+
+因此，两种 scope 的渐近循环结构相同，但常数和参数维数完全不同：
+
+| 主导成本项 | 对应方法 | `last_layer` | `all_trainable` 的额外代价 |
+|---|---|---|---|
+| $O(n)$ / $O(m+n)$ | `random`、`degree` | 与 scope 无关 | 与 scope 无关 |
+| $O(CnG_p)$ | A、C-point、`legacy`、point trajectory | 每候选只求最后层梯度 | 梯度向量扩大 165–609×，且 backward 穿过两层 GCN |
+| $O(IH)$ | C/D reference | 最后层 HVP | 对全部可训练参数构造 HVP，计算图和向量均扩大 |
+| $O(MIH+nMd)$ | B-Hutch | 小 $d$ 的 probe/HVP/投影 | $M=32$ probes 的 HVP 与 $nMd$ 投影随 $d$ 增长 |
+| $O(CnG_g)$ | C-simple、D-full/trajectory | 候选级删图仍是主循环 | forward 次数不变，但每次 backward 覆盖完整模型 |
+
+这些倍率是参数/存储维度，不是 wall-clock 倍率。整图 forward、删边与 affected-neighborhood 构造并不随 $d$ 线性增长，因此不能把 202.7× 直接写成“慢 202.7 倍”。当前实现仍逐候选调用 autograd，并未实现旧设计笔记设想的 last-layer 解析向量化。
+
+> [!decision] 正式矩阵的参数域
+> 主矩阵固定使用 `last_layer`，理由是它在三个数据集上具有一致的可运行边界，并且一次 ScoreBundle 可以共享生成 17 个输出。它必须在论文中称为 **last-layer target-direct white-box approximation**，不能冒充 full-parameter exact IF。
+>
+> `all_trainable` 已按本轮用户决定延期：当前正式配置、SyncMate recipe 和 3×3 主矩阵均不包含该 scope。若未来重新批准，必须先定义独立的 fidelity/feasibility 合同，并使用新的 parameter-schema hash、Recipe 和结果身份；不得与 `last_layer` 主矩阵混跑或互相 warm-hit。
+
+这里衡量的是 **cold selection producer**。一旦 score/ranking Artifact 已缓存，读取 top-$k$ 通常是秒级或亚秒级，不能拿 warm-hit 时间代表算法计算成本。`last_layer` 与 `all_trainable` 使用不同 parameter-schema hash 和 Recipe，二者不得互相 warm-hit。
 
 | 方法学角色（正文名称）                   | 代码 / Artifact ID     | 公式 / 精确定义                                              | selection 成本             | GU 建议                            |
 | ----------------------------- | -------------------- | ------------------------------------------------------ | ------------------------ | -------------------------------- |
