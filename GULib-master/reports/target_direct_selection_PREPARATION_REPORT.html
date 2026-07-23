@@ -42,18 +42,18 @@
 <body>
 <main>
   <header>
-    <div class="tag">PREPARATION REPORT · 2026-07-23</div>
+    <div class="tag">PREPARATION REPORT · 2026-07-24</div>
     <h1>Target-direct Selection→GU<br>正式实验准备报告</h1>
-    <p class="meta">分支 <code>codex/fix-target-direct-selection-20260723</code> · 父提交 <code>main@fc27f70e…</code></p>
+    <p class="meta">实施合并 <code>71076bc</code> · 2026-07-24 收口前复核基线 <code>main@fb0d9a3…</code></p>
     <div class="grid">
       <div class="card"><strong>L1 transfer</strong>旧 153-cell 矩阵的正确归类</div>
-      <div class="card"><strong>183 passed</strong>本次受影响路径定向测试</div>
+      <div class="card"><strong>316 passed</strong>target-direct / Cache V2 / SyncMate 复核套件</div>
       <div class="card"><strong>0 formal cells</strong>正式 GPU 实验尚未启动</div>
     </div>
   </header>
 
   <div class="callout bad"><b>核心纠正：</b>旧实验不是严格白盒。selector 使用 GateGCN hidden=16、200 epochs；GNNDelete target 使用 OpenGU GCN hidden=64、100 epochs，且两者不是同一参数状态。旧矩阵还把 <code>r=0.05</code> 标在目录中、实际每格只删 <code>k=7</code>。因此它只能作为 surrogate-transfer / engineering screen，不能支撑“新 IF 普遍优于旧 IF、random 或 degree”。</div>
-  <div class="callout good"><b>当前成果：</b>同一 target checkpoint 贯通 ScoreBundle 与 GU 的 fail-closed 链已经实现并通过本地定向验证。正式运行必须等分支验收并合入 <code>main</code>，再从 SSH active clean checkout 的 pinned SHA 启动。</div>
+  <div class="callout good"><b>当前成果：</b>同一 target checkpoint 贯通 ScoreBundle 与 GU 的 fail-closed 链已经由 <code>71076bc</code> 合入 <code>main</code>，并在收口前基线 <code>fb0d9a3</code> 上完成复核。未发现新的 correctness blocker；正式运行仍须等待 SSH 恢复 RTX 4090 与 accepted <code>gnn_20</code>，并先 stage/verify 三个 70/10/20 processed pairs。</div>
 
   <h2>1. 白盒边界：问题不在 validation CE → test F1</h2>
   <p>validation CE 用来构造 selection target、test F1 用来做最终评价，是合理的防泄漏设计。真正的白盒条件是：打分与 GU 必须指向<strong>同一份 pre-unlearning checkpoint</strong>。</p>
@@ -99,7 +99,7 @@
   <p>retained-data retrain reference 会主动清除 checkpoint binding，从随机初始化重训；否则 retrain gap 无效。</p>
 
   <h3>参数域</h3>
-  <p>主 gate 先用 <code>last_layer</code>：它是 target-direct 的白盒近似，但必须明确写作 last-layer IF。额外运行 Cora seed 42 的 <code>all_trainable</code> gate，检查 runtime、VRAM、OOM/NaN、ranking fidelity 与 GU outcome；只有资源可承受时才扩大。</p>
+  <p>主矩阵固定使用 <code>last_layer</code>：它是 target-direct 的白盒近似，但必须明确写作 last-layer IF，不能冒充 full-parameter exact IF。当前 GCN 下，last-layer / all-trainable 参数维数分别为 Cora <code>455/92,231</code>、CiteSeer <code>390/237,446</code>、PubMed <code>195/32,259</code>。<code>all_trainable</code> 已按本轮用户决定延期：它不在正式配置、SyncMate recipe 或当前矩阵中。未来若重新批准，必须使用独立合同、新 parameter-schema hash、Recipe 与结果身份。</p>
 
   <h2>3. Gate 到完整矩阵</h2>
   <table>
@@ -108,7 +108,6 @@
       <tr><td>G0</td><td>分支测试、CLI、静态检查、MD/HTML</td><td>实现审查通过</td></tr>
       <tr><td>G1</td><td>SSH stage/verify 三个 70/10/20 pairs</td><td>canonical realpath、fingerprint、split、counts 冻结</td></tr>
       <tr><td>G2</td><td>Cora seed 42 cold 17-way + strict warm reuse</td><td>17/17 artifacts；计时/显存/失败状态齐全；warm producer 未调用</td></tr>
-      <tr><td>G2b</td><td>同格 all-trainable</td><td>可行性与 fidelity 证据完整</td></tr>
       <tr><td>G3</td><td>Cora seed 42 degree 单 GU cell</td><td>四件套、checkpoint、k、Git SHA 一致</td></tr>
       <tr><td>G4</td><td>同 stage 17 cells</td><td>17/17 cells、68/68 files</td></tr>
       <tr><td>G5</td><td>17 × 3 datasets × 3 seeds</td><td>153/153 cells、612/612 files；失败不静默</td></tr>
@@ -142,12 +141,13 @@
     <li>新增 target checkpoint 原子存取、双哈希、trajectory、data identity 校验。</li>
     <li>新增 70/10/20 staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
     <li>formal expected-k、candidate、checkpoint 与结果 provenance 全链 fail closed。</li>
-    <li>本次路径测试：<b>183 passed, 1 warning</b>；更宽组合 <b>191 passed</b>，另有一个旧测试因冻结了另一 worktree 的绝对 <code>evidence_root</code> 而失败，与本次行为无关。</li>
-    <li><code>compileall</code>、4 个 CLI help、<code>git diff --check</code> 通过。</li>
+    <li>2026-07-24 复核：target checkpoint、split、expected-k、runner propagation、Cache V2、GNNDelete architecture 与完整 SyncMate tests 共 <b>316 passed, 1 warning</b>。</li>
+    <li>target-direct / SyncMate 关键模块编译通过；SyncMate 临时 smoke 的 3/3 artifacts collect、SHA-256 verify、trusted index/results 全部通过，临时目录已删除。</li>
+    <li>SSH 仍无 GPU device，<code>gnn_20</code> 解释器不存在；canonical raw 已在 active checkout，但三个 <code>planetoid_70_10_20_seed2024</code> processed pairs 尚未 stage。</li>
   </ul>
-  <div class="callout"><b>尚未完成：</b>本地无可用 CUDA，且隔离 worktree 不复制正式数据，所以没有把 branch smoke 当作正式格。下一步需先验收/提交并显式 no-ff 合入 main，然后生成绑定新 main SHA 的 SyncMate recipe，在 SSH active checkout 依次执行 G1→G3；一格通过后再展开 G4→G5。</div>
+  <div class="callout"><b>尚未完成：</b>状态是 implementation accepted and re-reviewed、formal experiment blocked by runtime availability。文档收口合入后，以最终 full <code>main</code> SHA 生成 pinned SyncMate runtime recipe：先做 G1，随后 Cora seed 42 last-layer cold→strict warm gate；补齐 Cora 三个 Selection seed 后，以同一 full config 的 degree/seed42 做 GU gate，再展开 G4→G5。<code>all_trainable</code> 不进入本轮配置或排期；若未来启动，必须另建成本/近似合同与 full-parameter matrix。</div>
 
-  <footer>Source of truth: <code>reports/target_direct_selection_PREPARATION_REPORT.md</code> · Status: implementation ready for review, formal experiment not started.</footer>
+  <footer>Source of truth: <code>reports/target_direct_selection_PREPARATION_REPORT.md</code> · Status: implementation accepted and re-reviewed; formal experiment blocked by runtime availability.</footer>
 </main>
 </body>
 </html>
