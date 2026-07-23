@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUP Selection 实验结果汇报</title>
+<style>
+:root{--bg:#07111f;--panel:#0e1c2d;--panel2:#14263c;--panel3:#19304b;--text:#eaf2fb;--muted:#9fb2c9;--line:#29465f;--cyan:#5fe0da;--green:#74d69a;--amber:#f0bd65;--red:#ff8f86;--blue:#79b8ff;--code:#081725;--shadow:0 22px 60px rgba(0,0,0,.28)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 80% -10%,rgba(52,117,150,.22),transparent 35%),linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.72 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}
+main{width:min(1320px,100%);padding:42px 54px 84px}
+.brand{font-size:11px;letter-spacing:.16em;color:var(--cyan);font-weight:800}.side-title{font-size:21px;line-height:1.38;margin:10px 0 13px;font-weight:760}
+.badge{display:inline-block;padding:5px 10px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}
+nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0;font-size:12px}nav a.sub{padding-left:12px;color:#8298b2}nav a:hover{color:var(--cyan)}
+.hero{padding:30px 34px;margin-bottom:26px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(21,42,65,.98),rgba(9,23,40,.98));box-shadow:var(--shadow)}
+.kicker{color:var(--cyan);font-size:12px;letter-spacing:.14em;font-weight:800}.hero h1{font-size:34px;line-height:1.18;margin:8px 0 8px}.hero p{margin:0;color:var(--muted)}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 0}.metric{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(7,19,33,.58)}
+.metric b{display:block;font-size:24px;color:#fff;line-height:1.2}.metric span{font-size:11px;color:var(--muted)}
+article>h1:first-child{display:none}h2{font-size:25px;margin:46px 0 16px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d8edff;margin:29px 0 10px}
+p,li{max-width:1060px}a{color:#85dcff}strong{color:#fff}
+code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#bcecff;font-family:Consolas,monospace}
+pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}
+.callout{margin:17px 0;padding:14px 18px;border-radius:10px;background:rgba(117,215,157,.08);border:1px solid rgba(117,215,157,.3);border-left:4px solid var(--green)}
+.callout.warning{background:rgba(240,189,101,.08);border-color:rgba(240,189,101,.3);border-left-color:var(--amber)}.callout p{margin:4px 0}
+.table-wrap{overflow:auto;margin:17px 0 28px;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;background:rgba(15,28,46,.78);font-size:13px;margin:0}
+th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 11px;vertical-align:top}
+th:last-child,td:last-child{border-right:0}tr:last-child td{border-bottom:0}th{background:var(--panel2);color:#def7ff;text-align:left;position:sticky;top:0}tr:nth-child(even) td{background:rgba(20,37,60,.43)}
+.math{color:#e9f5ff}div.math{margin:16px 0;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:var(--code);overflow:auto;text-align:center}
+.pipeline{display:flex;align-items:center;gap:12px;margin:18px 0 28px;padding:20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,rgba(15,29,47,.9),rgba(9,23,39,.9));overflow:auto}
+.pipe-node{min-width:150px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);text-align:center}.pipe-node b,.pipe-node span{display:block}.pipe-node span{font-size:11px;color:var(--muted);margin-top:3px}
+.pipe-node.accent{border-color:#318b8b;background:#10353c}.pipe-node.good{border-color:#31654a;background:#102e22}.pipe-stack{display:grid;gap:7px}.pipe-arrow{font-size:25px;color:var(--cyan)}
+.task-list-item{list-style:none;margin-left:-20px}.source{margin-top:55px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@media(max-width:1000px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.metric-grid{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:28px}.pipeline{align-items:stretch}.pipe-arrow{align-self:center}}
+@media print{body{background:#fff;color:#17202a}.layout{display:block}aside{display:none}main{padding:0;width:100%}.hero,.table-wrap,.pipeline,.callout{box-shadow:none;break-inside:avoid}.hero{background:#eef5f7;color:#17202a}.hero h1,.metric b,strong{color:#17202a}h2,h3{color:#17202a}.table-wrap{border-color:#b8c3cc}table{color:#17202a;background:#fff}th{background:#e8eff4;color:#17202a}tr:nth-child(even) td{background:#f6f8fa}code,pre,div.math{background:#eef2f5;color:#17202a}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="layout">
+<aside><div class="brand">OpenGU / SUP SELECTION</div><div class="side-title">SUP Selection 实验结果汇报</div><span class="badge">ACCEPTED SELECTION GT</span><nav><a class="" href="#1-给验收人的一分钟摘要">1. 给验收人的一分钟摘要</a>
+<a class="" href="#2-研究问题与本报告能回答到哪一步">2. 研究问题与本报告能回答到哪一步</a>
+<a class="" href="#3-实验设置">3. 实验设置</a>
+<a class="sub" href="#3-1-sup-的-artifact-语义">3.1 SUP 的 Artifact 语义</a>
+<a class="" href="#4-公式体系与-17-个输出">4. 公式体系与 17 个输出</a>
+<a class="sub" href="#4-1-记号">4.1 记号</a>
+<a class="sub" href="#4-2-a-b-c-d-主公式">4.2 A/B/C/D 主公式</a>
+<a class="sub" href="#4-3-完整方法矩阵">4.3 完整方法矩阵</a>
+<a class="" href="#5-时间到底测了什么">5. 时间到底测了什么</a>
+<a class="sub" href="#5-1-共享公式组件成本">5.1 共享公式组件成本</a>
+<a class="" href="#6-资源-缓存与失败状态">6. 资源、缓存与失败状态</a>
+<a class="" href="#7-selection-结果">7. Selection 结果</a>
+<a class="sub" href="#7-1-同一-source-single-final-proxy-是否足够忠实">7.1 同一 source：single-final proxy 是否足够忠实？</a>
+<a class="sub" href="#7-2-改变-source-会发生什么">7.2 改变 source 会发生什么？</a>
+<a class="sub" href="#7-3-3-个还是-6-个-checkpoints">7.3 3 个还是 6 个 checkpoints？</a>
+<a class="sub" href="#7-4-tracin-like-与-degree-是否选了相同节点">7.4 TracIn-like 与 degree 是否选了相同节点？</a>
+<a class="" href="#8-效果-可行性判断">8. 效果—可行性判断</a>
+<a class="" href="#9-provenance-与一次性-gt-例外">9. Provenance 与一次性 GT 例外</a>
+<a class="" href="#10-明日验收清单">10. 明日验收清单</a>
+<a class="" href="#11-evidence-index">11. Evidence index</a></nav></aside>
+<main>
+<section class="hero"><div class="kicker">17 OUTPUTS × 3 DATASETS × 3 SEEDS</div><h1>SUP Selection 实验结果汇报</h1><p>公式、ranking、cold/warm、Cache V2 与 GPU 资源的一次性验收汇报</p>
+<div class="metric-grid"><div class="metric"><b>9 / 9</b><span>dataset-seed cells passed</span></div><div class="metric"><b>153 / 153</b><span>method rows cold → warm</span></div><div class="metric"><b>6.8038 s</b><span>mean cold ScoreBundle</span></div><div class="metric"><b>384 MiB</b><span>max reserved GPU memory</span></div></div></section>
+<article>
+<h1>SUP Selection 实验结果汇报</h1>
+<blockquote class="callout success">
+<p>验收结论
+Cora、CiteSeer、PubMed × seeds 42/212/2024 的 17-output SUP Selection
+实验已完成：9/9 cells 成功，153/153 方法级 cold miss → warm exact hit，
+0 failures。本结果作为一次性 grandfathered public-split Selection GT
+接受，无需重复消耗 GPU。</p>
+</blockquote>
+<blockquote class="callout warning">
+<p>结论边界
+本报告只回答 Selection 公式、ranking、时间、缓存与资源可行性。
+它不是 GU outcome，不回答 TracIn 是否比 degree 造成更强的 GU damage，
+也不能改称 OpenGU canonical 80/20 split 结果。</p>
+</blockquote>
+<h2 id="1-给验收人的一分钟摘要">1. 给验收人的一分钟摘要</h2>
+<p>本实验把 17 种节点选择得分统一放入一个共享 <code>ScoreBundle</code>，在相同的
+two-layer GCN、候选节点、目标集合和 checkpoint 轨迹上计算，再将每个完整
+ranking 物化为一个最大预算 <span class="math">\(k=14\)</span> 的不可变 Selection Artifact；<span class="math">\(k=7\)</span> 与
+<span class="math">\(k=3\)</span> 直接复用稳定前缀。这就是本文所称的 <strong>SUP Selection</strong>。</p>
+<p>四个核心结论：</p>
+<ol>
+<li><strong>同一 source 下，去掉 Hessian 的 single-final proxy 很可靠。</strong>
+<code>p_point/r_point</code>、<code>p_simple/gt_simple</code>、<code>p_graph/gt_full</code> 的平均全排序
+Spearman 分别为 <strong>0.977、0.953、0.985</strong>。</li>
+<li><strong>source 公式比求解器选择更重要。</strong> <code>gt_simple/gt_full</code> 的 Spearman
+只有 <strong>0.036</strong>；忽略删除图带来的邻居梯度变化，会改变所选节点，而不只是
+产生小数值误差。</li>
+<li><strong>更多 checkpoint 没有自动提高 reference fidelity。</strong> 从 3 增至 6 个
+checkpoint，point/simple/graph 三组 Spearman 仅从
+<code>0.892/0.719/0.511</code> 变为 <code>0.893/0.722/0.521</code>。</li>
+<li><strong>degree 与 TracIn-like / graph-aware ranking 明显不同，但“不同”不等于
+“更强”。</strong> 在 <span class="math">\(k=7\)</span>，degree 与 <code>tracin_cp_point_6</code>、
+<code>tracin_cp_graph_6</code>、<code>p_graph</code> 的平均 Jaccard 仅为
+<strong>0.149、0.073、0.127</strong>；强弱必须由后续 GU retrain-gap 实验回答。</li>
+</ol>
+<h2 id="2-研究问题与本报告能回答到哪一步">2. 研究问题与本报告能回答到哪一步</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>研究问题</th>
+<th>Selection 部分能回答</th>
+<th>仍需后续实验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TracIn 是否比 degree / random / IM 更强？</td>
+<td>是否选择相同节点、ranking 是否相关、选择成本是否可行</td>
+<td>在同一 GU method / dataset / seed / budget 下比较 retrain gap、forgetting efficacy 与 retained utility</td>
+</tr>
+<tr>
+<td>IF 系内部哪种公式更有效？</td>
+<td>公式之间的 ranking fidelity、source 差异、checkpoint 差异</td>
+<td>选中节点进入 GNNDelete / GraphEraser 后的真实 GU outcome</td>
+</tr>
+<tr>
+<td>哪种公式同时可行？</td>
+<td>shared compute、公式组件成本、显存、cache、失败状态</td>
+<td>正式 canonical profile 下的端到端 selector + GU 成本</td>
+</tr>
+</tbody>
+</table></div>
+<p>因此，Selection 结果是两个研究问题的<strong>第一层证据</strong>：它确定公式到底在选谁、
+近似是否忠于 reference、成本来自哪里；它不能用 overlap 直接替代 GU outcome。</p>
+<div class="callout important"><p><strong>重要边界</strong></p>
+<p>当前 17-output ScoreBundle <strong>不包含 IM，也不包含生产版 <code>proper-tracin-v1</code></strong>。
+<code>tracin_cp_point_6</code> 只是最接近标准 TracInCP 定义的桥接实现；因此本报告尚未闭环
+“TracIn vs degree / random / IM 谁的 GU 效果更强”，该问题必须由后续 downstream GU 矩阵回答。</p></div>
+<h2 id="3-实验设置">3. 实验设置</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>设置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Datasets</td>
+<td>Planetoid Cora / CiteSeer / PubMed</td>
+</tr>
+<tr>
+<td>Split</td>
+<td>public fixed split</td>
+</tr>
+<tr>
+<td>Seeds</td>
+<td>42 / 212 / 2024</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>two-layer GCN，hidden 16，dropout 0.5</td>
+</tr>
+<tr>
+<td>Training</td>
+<td>Adam，200 epochs，lr 0.01，weight decay 0.0005</td>
+</tr>
+<tr>
+<td>Candidate pool</td>
+<td><code>train_mask</code>：Cora 140、CiteSeer 120、PubMed 60</td>
+</tr>
+<tr>
+<td>Target <span class="math">\(E\)</span></td>
+<td><code>val_mask</code> 的 mean cross-entropy，三数据集均为 500 nodes</td>
+</tr>
+<tr>
+<td>Test set</td>
+<td>不参与选点；仅绑定 split identity，本报告没有 test/GU outcome</td>
+</tr>
+<tr>
+<td>Budgets</td>
+<td><span class="math">\(k\in\{14,7,3\}\)</span>，max-k 一次物化、较小 <span class="math">\(k\)</span> 取稳定前缀</td>
+</tr>
+<tr>
+<td>Checkpoints</td>
+<td>epochs 1 / 10 / 25 / 50 / 100 / 200</td>
+</tr>
+<tr>
+<td>3-checkpoint view</td>
+<td>epochs 1 / 50 / 200</td>
+</tr>
+<tr>
+<td>Graph source</td>
+<td>candidate + undirected 2-hop affected nodes</td>
+</tr>
+<tr>
+<td>IHVP</td>
+<td>LiSSA 20 iterations，scale 25，damp 0.01</td>
+</tr>
+<tr>
+<td>B-Hutch</td>
+<td>32 Rademacher probes，seed 1729</td>
+</tr>
+<tr>
+<td>Ranking</td>
+<td>score descending，node ID ascending</td>
+</tr>
+<tr>
+<td>Device</td>
+<td>SSH RTX 4090 / <code>cuda:0</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="3-1-sup-的-artifact-语义">3.1 SUP 的 Artifact 语义</h3>
+
+<div aria-label="SUP Selection pipeline" class="pipeline" role="img">
+<div class="pipe-node"><b>GCN + 6 checkpoints</b><span>共享训练轨迹</span></div>
+<div class="pipe-arrow">→</div>
+<div class="pipe-node accent"><b>Shared ScoreBundle</b><span>17 scores + 17 rankings</span></div>
+<div class="pipe-arrow">→</div>
+<div class="pipe-stack">
+<div class="pipe-node"><b>Method 1</b><span>max-k=14 Artifact</span></div>
+<div class="pipe-node"><b>…</b><span>独立 identity</span></div>
+<div class="pipe-node"><b>Method 17</b><span>max-k=14 Artifact</span></div>
+</div>
+<div class="pipe-arrow">→</div>
+<div class="pipe-stack">
+<div class="pipe-node good"><b>k=14</b><span>完整前缀</span></div>
+<div class="pipe-node good"><b>k=7</b><span>nodes 1–7</span></div>
+<div class="pipe-node good"><b>k=3</b><span>nodes 1–3</span></div>
+</div>
+</div>
+<ul>
+<li>每个 method 只保存一个最大 <span class="math">\(k\)</span> Selection Artifact。</li>
+<li>较小预算不重新计算 score，也不创建独立子 Artifact。</li>
+<li>cold 要求 ScoreBundle 与 17 个 Selection Artifacts 全部 miss 后成功保存。</li>
+<li>warm 要求相同 Recipe 全部 exact hit，并用 producer sentinel 证明没有偷偷重算。</li>
+</ul>
+<h2 id="4-公式体系与-17-个输出">4. 公式体系与 17 个输出</h2>
+<h3 id="4-1-记号">4.1 记号</h3>
+<ul>
+<li><span class="math">\(g_v\)</span>：候选训练节点 <span class="math">\(v\)</span> 的参数梯度。</li>
+<li><span class="math">\(g_E\)</span>：validation target <span class="math">\(E\)</span> 的平均参数梯度。</li>
+<li><span class="math">\(H\)</span>：训练目标在最终模型处的 Hessian。</li>
+<li><span class="math">\(a_v=\mathrm{grad1}_v\)</span>：原图 affected set 的梯度 source。</li>
+<li><span class="math">\(q_v=\mathrm{grad1}_v-\mathrm{grad2}_v\)</span>：删除候选及关联边前后的
+graph-aware 梯度差。</li>
+<li><span class="math">\(\theta_c,w_c\)</span>：第 <span class="math">\(c\)</span> 个 checkpoint 及其更新权重。</li>
+</ul>
+<h3 id="4-2-a-b-c-d-主公式">4.2 A/B/C/D 主公式</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层</th>
+<th>公式</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td><span class="math">\(s_A(v)=\lVert g_v\rVert\)</span></td>
+<td>当前训练梯度本身有多大？</td>
+</tr>
+<tr>
+<td>B</td>
+<td><span class="math">\(s_B(v)=\lVert H^{-1}g_v\rVert\)</span></td>
+<td>删除后预计造成多大的参数位移？</td>
+</tr>
+<tr>
+<td>C-point</td>
+<td><span class="math">\(s_{C,p}(v)=g_v^\top H^{-1}g_E\)</span></td>
+<td>单点 IF 是否伤害目标 <span class="math">\(E\)</span>？</td>
+</tr>
+<tr>
+<td>C-simple</td>
+<td><span class="math">\(s_{C,s}(v)=a_v^\top H^{-1}g_E\)</span></td>
+<td>使用原图 affected-source 是否伤害 <span class="math">\(E\)</span>？</td>
+</tr>
+<tr>
+<td>D-full</td>
+<td><span class="math">\(s_D(v)=q_v^\top H^{-1}g_E\)</span></td>
+<td>纳入删除图 source 后是否伤害 <span class="math">\(E\)</span>？</td>
+</tr>
+</tbody>
+</table></div>
+<p>两种 Hessian-free 近似：</p>
+<div class="math">$$
+s_{\mathrm{final}}(v)=\langle \mathrm{source}_v,g_E\rangle,
+$$</div>
+<div class="math">$$
+s_{\mathrm{cp}}(v)=\sum_c w_c
+\langle \mathrm{source}_v(\theta_c),g_E(\theta_c)\rangle.
+$$</div>
+<h3 id="4-3-完整方法矩阵">4.3 完整方法矩阵</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Reference / control</th>
+<th>Single-final proxy</th>
+<th>3 checkpoints</th>
+<th>6 checkpoints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Controls</td>
+<td><code>random</code>, <code>degree</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>A</td>
+<td><code>a_grad_norm</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>B implementation</td>
+<td><code>b_param_hutch</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>C-point, source <span class="math">\(g_v\)</span></td>
+<td><code>r_point</code></td>
+<td><code>p_point</code></td>
+<td><code>tracin_cp_point_3</code></td>
+<td><code>tracin_cp_point_6</code></td>
+</tr>
+<tr>
+<td>C-simple, source <span class="math">\(a_v\)</span></td>
+<td><code>gt_simple</code></td>
+<td><code>p_simple</code></td>
+<td><code>tracin_cp_simple_3</code></td>
+<td><code>tracin_cp_simple_6</code></td>
+</tr>
+<tr>
+<td>D-full, source <span class="math">\(q_v\)</span></td>
+<td><code>gt_full</code></td>
+<td><code>p_graph</code></td>
+<td><code>tracin_cp_graph_3</code></td>
+<td><code>tracin_cp_graph_6</code></td>
+</tr>
+<tr>
+<td>Legacy negative control</td>
+<td><code>legacy = \langle g_v,-\sum_j g_j\rangle</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p>术语必须保持严格：</p>
+<ul>
+<li>只有 point checkpoint variants 与标准 TracInCP 较接近。</li>
+<li>simple / graph checkpoint variants 是项目内部的 source ablation，不是
+proper TracIn。</li>
+<li><code>legacy</code> 是 deployed cross-gradient negative control，也不是 proper TracIn。</li>
+<li><code>b_param_hutch</code> 是 B 目标的 Hutchinson 实现；历史 <code>b_param_lissa</code> 只用于
+数值一致性验证，没有进入本轮 17-output bundle。</li>
+</ul>
+<h2 id="5-时间到底测了什么">5. 时间到底测了什么</h2>
+<p>这是本次汇报最容易混淆的部分。报告保留五个互不替代的时间口径。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间字段</th>
+<th>计时边界</th>
+<th style="text-align:right">9-cell 结果</th>
+<th>应如何解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Common training</td>
+<td>GCN 训练与 checkpoint 生成</td>
+<td style="text-align:right">mean 1.1079 s，max 1.2998 s</td>
+<td>所有公式共享，不用于判断某个 selector 更快</td>
+</tr>
+<tr>
+<td>Shared score compute</td>
+<td>真实公式计算：梯度、IHVP、graph source、Hutch、17 score/ranking</td>
+<td style="text-align:right">mean 6.4824 s，max 8.1552 s</td>
+<td>当前最接近“Selection 计算时间”的口径</td>
+</tr>
+<tr>
+<td>ScoreBundle cold total</td>
+<td>exact-miss lookup + shared compute + 校验/序列化/落盘</td>
+<td style="text-align:right">mean 6.8038 s，max 9.1624 s</td>
+<td>正式 cold ScoreBundle 端到端时间</td>
+</tr>
+<tr>
+<td>Per-method cold Selection</td>
+<td>ScoreBundle 已存在后，ranking → top-k Artifact + 索引/文件系统</td>
+<td style="text-align:right">mean 522.404 ms，max 2365.102 ms</td>
+<td><strong>不是每个公式的独立计算时间</strong></td>
+</tr>
+<tr>
+<td>ScoreBundle warm read</td>
+<td>exact read；producer 必须为 0</td>
+<td style="text-align:right">mean 0.3200 s，max 0.9635 s</td>
+<td>cache 正确性与复用成本</td>
+</tr>
+</tbody>
+</table></div>
+<p>方法级 warm Selection Artifact access 的 mean/max 为
+<code>660.689/3885.406 ms</code>。warm wall-clock 偶尔慢于 cold，是共享 AutoFS 索引、
+校验和文件访问抖动；warm 的验收含义是<strong>没有调用 producer</strong>，不是保证每次
+文件读取都更短。</p>
+<p><code>total_seconds</code> 还包括数据加载、公共训练、Recipe/provenance、17 个 Artifact、
+pairwise metrics 和 JSON 写出，9 cells mean/max 为 <code>19.3610/47.7709 s</code>。它不是单纯算法时间，
+不应与 <code>ScoreBundle cold total</code> 混用。</p>
+<h3 id="5-1-共享公式组件成本">5.1 共享公式组件成本</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>共享组件</th>
+<th style="text-align:right">Mean</th>
+<th style="text-align:right">Max</th>
+<th>被哪些方法需要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Checkpoint point gradients</td>
+<td style="text-align:right">0.7356 s</td>
+<td style="text-align:right">0.9246 s</td>
+<td>A、C-point、point checkpoint family</td>
+</tr>
+<tr>
+<td>C-target IHVP</td>
+<td style="text-align:right">0.0835 s</td>
+<td style="text-align:right">0.0936 s</td>
+<td><code>r_point</code>、<code>gt_simple</code>、<code>gt_full</code> reference</td>
+</tr>
+<tr>
+<td>Checkpoint graph-source construction</td>
+<td style="text-align:right">3.7822 s</td>
+<td style="text-align:right">5.0526 s</td>
+<td>simple / graph final 与 checkpoint family</td>
+</tr>
+<tr>
+<td>B-Hutch inverse probes</td>
+<td style="text-align:right">1.7918 s</td>
+<td style="text-align:right">2.0124 s</td>
+<td><code>b_param_hutch</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>这些组件共享中间量，不能相加后伪装成 17 个独立方法时间。它们的正确用途是
+解释 feasibility：graph-aware source 是当前共享计算的最大块；B-Hutch 的
+32 个 inverse probes 是另一项显著成本；single-final <code>p_*</code> 去掉了 IHVP，
+但仍需其对应的 source gradient。</p>
+<h2 id="6-资源-缓存与失败状态">6. 资源、缓存与失败状态</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th style="text-align:right">Seed</th>
+<th style="text-align:right">Cold bundle (s)</th>
+<th style="text-align:right">Warm read (s)</th>
+<th style="text-align:right">Peak alloc (MiB)</th>
+<th style="text-align:right">Peak reserve (MiB)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cora</td>
+<td style="text-align:right">42</td>
+<td style="text-align:right">9.1624</td>
+<td style="text-align:right">0.9635</td>
+<td style="text-align:right">187.8</td>
+<td style="text-align:right">208.0</td>
+</tr>
+<tr>
+<td>Cora</td>
+<td style="text-align:right">212</td>
+<td style="text-align:right">7.0050</td>
+<td style="text-align:right">0.1325</td>
+<td style="text-align:right">187.8</td>
+<td style="text-align:right">208.0</td>
+</tr>
+<tr>
+<td>Cora</td>
+<td style="text-align:right">2024</td>
+<td style="text-align:right">6.9413</td>
+<td style="text-align:right">0.1546</td>
+<td style="text-align:right">187.8</td>
+<td style="text-align:right">208.0</td>
+</tr>
+<tr>
+<td>CiteSeer</td>
+<td style="text-align:right">42</td>
+<td style="text-align:right">7.6537</td>
+<td style="text-align:right">0.1286</td>
+<td style="text-align:right">357.0</td>
+<td style="text-align:right">384.0</td>
+</tr>
+<tr>
+<td>CiteSeer</td>
+<td style="text-align:right">212</td>
+<td style="text-align:right">7.3706</td>
+<td style="text-align:right">0.1427</td>
+<td style="text-align:right">357.0</td>
+<td style="text-align:right">384.0</td>
+</tr>
+<tr>
+<td>CiteSeer</td>
+<td style="text-align:right">2024</td>
+<td style="text-align:right">6.9745</td>
+<td style="text-align:right">0.9430</td>
+<td style="text-align:right">357.0</td>
+<td style="text-align:right">384.0</td>
+</tr>
+<tr>
+<td>PubMed</td>
+<td style="text-align:right">42</td>
+<td style="text-align:right">5.1406</td>
+<td style="text-align:right">0.1448</td>
+<td style="text-align:right">268.2</td>
+<td style="text-align:right">314.0</td>
+</tr>
+<tr>
+<td>PubMed</td>
+<td style="text-align:right">212</td>
+<td style="text-align:right">5.0778</td>
+<td style="text-align:right">0.1315</td>
+<td style="text-align:right">268.2</td>
+<td style="text-align:right">314.0</td>
+</tr>
+<tr>
+<td>PubMed</td>
+<td style="text-align:right">2024</td>
+<td style="text-align:right">5.9085</td>
+<td style="text-align:right">0.1388</td>
+<td style="text-align:right">268.2</td>
+<td style="text-align:right">314.0</td>
+</tr>
+</tbody>
+</table></div>
+<p>总体峰值为 <strong>357 MiB allocated / 384 MiB reserved</strong>。9 个 cells、153 个方法行
+全部成功，没有 OOM、非有限 score、cache conflict 或 producer-sentinel failure。</p>
+<h2 id="7-selection-结果">7. Selection 结果</h2>
+<h3 id="7-1-同一-source-single-final-proxy-是否足够忠实">7.1 同一 source：single-final proxy 是否足够忠实？</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pair</th>
+<th style="text-align:right"><span class="math">\(k=3\)</span> Jaccard</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> Jaccard</th>
+<th style="text-align:right"><span class="math">\(k=14\)</span> Jaccard</th>
+<th style="text-align:right">Full-rank Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p_point</code> vs <code>r_point</code></td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">0.901</td>
+<td style="text-align:right">0.890</td>
+<td style="text-align:right"><strong>0.977</strong></td>
+</tr>
+<tr>
+<td><code>p_simple</code> vs <code>gt_simple</code></td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">0.972</td>
+<td style="text-align:right">0.970</td>
+<td style="text-align:right"><strong>0.953</strong></td>
+</tr>
+<tr>
+<td><code>p_graph</code> vs <code>gt_full</code></td>
+<td style="text-align:right">0.778</td>
+<td style="text-align:right">0.828</td>
+<td style="text-align:right">0.877</td>
+<td style="text-align:right"><strong>0.985</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>结论：固定 source 后，single-final Hessian-free proxy 基本保留 reference 排名。
+如果目标是以较低复杂度复现同一 reference，<code>p_point</code>、<code>p_simple</code>、<code>p_graph</code>
+均是可行候选；其中 <code>p_graph</code> 是 D-full source 的首选 scalable proxy。</p>
+<h3 id="7-2-改变-source-会发生什么">7.2 改变 source 会发生什么？</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pair</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> common fraction</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> Jaccard</th>
+<th style="text-align:right">Full-rank Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gt_simple</code> vs <code>gt_full</code></td>
+<td style="text-align:right">0.175</td>
+<td style="text-align:right">0.108</td>
+<td style="text-align:right"><strong>0.036</strong></td>
+</tr>
+<tr>
+<td><code>r_point</code> vs <code>gt_full</code></td>
+<td style="text-align:right">0.175</td>
+<td style="text-align:right">0.097</td>
+<td style="text-align:right"><strong>0.086</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>结论：point、simple 与 full graph-deletion source 不是同一公式的轻微实现差异。
+是否纳入 <code>grad2</code> 与邻居梯度变化，会实质改变被选节点。</p>
+<h3 id="7-3-3-个还是-6-个-checkpoints">7.3 3 个还是 6 个 checkpoints？</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Checkpoint proxy vs same-source reference</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> Jaccard</th>
+<th style="text-align:right">Full-rank Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tracin_cp_point_3</code> vs <code>r_point</code></td>
+<td style="text-align:right">0.551</td>
+<td style="text-align:right">0.892</td>
+</tr>
+<tr>
+<td><code>tracin_cp_point_6</code> vs <code>r_point</code></td>
+<td style="text-align:right">0.551</td>
+<td style="text-align:right">0.893</td>
+</tr>
+<tr>
+<td><code>tracin_cp_simple_3</code> vs <code>gt_simple</code></td>
+<td style="text-align:right">0.746</td>
+<td style="text-align:right">0.719</td>
+</tr>
+<tr>
+<td><code>tracin_cp_simple_6</code> vs <code>gt_simple</code></td>
+<td style="text-align:right">0.775</td>
+<td style="text-align:right">0.722</td>
+</tr>
+<tr>
+<td><code>tracin_cp_graph_3</code> vs <code>gt_full</code></td>
+<td style="text-align:right">0.234</td>
+<td style="text-align:right">0.511</td>
+</tr>
+<tr>
+<td><code>tracin_cp_graph_6</code> vs <code>gt_full</code></td>
+<td style="text-align:right">0.212</td>
+<td style="text-align:right">0.521</td>
+</tr>
+</tbody>
+</table></div>
+<p>6 checkpoints 相比 3 checkpoints 只有边际 Spearman 改善，并且 graph 组的
+<span class="math">\(k=7\)</span> Jaccard 反而略低。checkpoint 累积表示轨迹量，而 reference 是最终点局部量；
+二者不必随着 checkpoint 数量增加而收敛。</p>
+<h3 id="7-4-tracin-like-与-degree-是否选了相同节点">7.4 TracIn-like 与 degree 是否选了相同节点？</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pair</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> common fraction</th>
+<th style="text-align:right"><span class="math">\(k=7\)</span> Jaccard</th>
+<th style="text-align:right">Full-rank Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>degree vs <code>tracin_cp_point_6</code></td>
+<td style="text-align:right">0.238</td>
+<td style="text-align:right">0.149</td>
+<td style="text-align:right">0.009</td>
+</tr>
+<tr>
+<td>degree vs <code>tracin_cp_graph_6</code></td>
+<td style="text-align:right">0.127</td>
+<td style="text-align:right">0.073</td>
+<td style="text-align:right">-0.072</td>
+</tr>
+<tr>
+<td>degree vs <code>p_graph</code></td>
+<td style="text-align:right">0.206</td>
+<td style="text-align:right">0.127</td>
+<td style="text-align:right">-0.037</td>
+</tr>
+<tr>
+<td>degree vs <code>legacy</code></td>
+<td style="text-align:right">0.206</td>
+<td style="text-align:right">0.118</td>
+<td style="text-align:right">0.176</td>
+</tr>
+</tbody>
+</table></div>
+<p>Selection 层已经证明这些方法并非 degree 的别名。但本表没有 GU outcome，不能据此
+声称 TracIn 更强或 degree 更强。下一阶段应在相同 GU Recipe 下做 paired comparison。</p>
+<h2 id="8-效果-可行性判断">8. 效果—可行性判断</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法族</th>
+<th>Selection fidelity 证据</th>
+<th>主要成本/依赖</th>
+<th>当前判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>random</code> / <code>degree</code></td>
+<td>control，不追求 IF fidelity</td>
+<td>无 checkpoint IHVP；degree 只需图结构</td>
+<td>必须保留的低成本 baseline</td>
+</tr>
+<tr>
+<td><code>a_grad_norm</code></td>
+<td>与 B-Hutch full-rank <span class="math">\(\rho=0.935\)</span>，<span class="math">\(k=7\)</span> Jaccard 0.641</td>
+<td>final candidate gradients</td>
+<td>强 B-ranking proxy，但语义仍是 gradient magnitude</td>
+</tr>
+<tr>
+<td><code>b_param_hutch</code></td>
+<td>B 参数位移目标的实现</td>
+<td>32 inverse probes，组件 mean 1.7918 s</td>
+<td>可行性中等；不能当成 eval-impact 公式</td>
+</tr>
+<tr>
+<td><code>r_point</code></td>
+<td>C-point reference</td>
+<td>target IHVP + final point gradients</td>
+<td>reference；小图可行，规模扩大需审慎</td>
+</tr>
+<tr>
+<td><code>p_point</code></td>
+<td>对 <code>r_point</code> <span class="math">\(\rho=0.977\)</span></td>
+<td>无 IHVP；final point gradients</td>
+<td>point-source 的高保真可行 proxy</td>
+</tr>
+<tr>
+<td><code>gt_simple</code></td>
+<td>C-simple reference</td>
+<td>target IHVP + graph-source</td>
+<td>与 D-full 不等价</td>
+</tr>
+<tr>
+<td><code>p_simple</code></td>
+<td>对 <code>gt_simple</code> <span class="math">\(\rho=0.953\)</span></td>
+<td>无 IHVP；仍需 simple graph-source</td>
+<td>C-simple 的高保真可行 proxy</td>
+</tr>
+<tr>
+<td><code>gt_full</code></td>
+<td>D-full operational reference</td>
+<td>target IHVP +完整 graph-deletion source</td>
+<td>研究 reference，不应默认作为大图部署方案</td>
+</tr>
+<tr>
+<td><code>p_graph</code></td>
+<td>对 <code>gt_full</code> <span class="math">\(\rho=0.985\)</span></td>
+<td>无 IHVP；仍需 graph source</td>
+<td>当前最有力的 D-full scalable proxy</td>
+</tr>
+<tr>
+<td>checkpoint families</td>
+<td>轨迹近似；point 最接近标准 TracInCP</td>
+<td>需要 3/6 checkpoints 与对应梯度/source</td>
+<td>6 点相对 3 点收益很小；需用 GU outcome 决定价值</td>
+</tr>
+</tbody>
+</table></div>
+<p>selection-only 的 Pareto 判断是：<strong>同一 source 下优先考虑 <code>p_*</code>；是否采用 point、
+simple 或 full source，不能只依据 proxy fidelity，必须结合后续 GU damage 与业务目标。</strong></p>
+<h2 id="9-provenance-与一次性-gt-例外">9. Provenance 与一次性 GT 例外</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Experiment Git SHA</td>
+<td><code>9240b9a7bd61b17b4c841981ec2892fdf100dc4b</code></td>
+</tr>
+<tr>
+<td>Algorithm</td>
+<td><code>bc-target-matrix-v3.0</code></td>
+</tr>
+<tr>
+<td>Machine manifest</td>
+<td><code>results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json</code></td>
+</tr>
+<tr>
+<td>Manifest SHA-256</td>
+<td><code>3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479</code></td>
+</tr>
+<tr>
+<td>Retained cell evidence</td>
+<td><code>results/bc_target_v2/selection_benchmark_20260721/cells/*/{cold,warm}.json</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>历史运行位于已退役 worktree，并使用后来清理的 shared Planetoid cache。本结果之所以
+仍被接受，是因为：</p>
+<ol>
+<li>删除前，9 个有效输入逐文件 SHA-256 等于当前 SSH active
+<code>data/raw/{cora,citeseer,pubmed}</code>；</li>
+<li><code>9240b9a</code> 到 accepted main 的 ScoreBundle <code>produce()</code> 计算块逐字一致，
+B/C 与 C-target scorer core blob 未变化；</li>
+<li>cold/warm、GPU memory、method status 与 failure evidence 已完整保留。</li>
+</ol>
+<p>该例外接受的是 v3.0 <strong>result payload 与结论</strong>，不是旧 cache 路径。未来新实验仍必须
+从 <code>/autodl-fs/data/OpenGU/GULib-master</code> active checkout、canonical dataset root、
+clean accepted <code>main</code> 和新的 Recipe/cache identity 运行。</p>
+<h2 id="10-明日验收清单">10. 明日验收清单</h2>
+<ul>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 17 个方法名称与 A/B/C/D taxonomy 一致。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认公式中的 source、Hessian、checkpoint 语义没有混写。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 <code>shared score compute</code> 与 <code>per-method Artifact time</code> 被明确分开。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 9/9 cells、153/153 method rows、0 failures。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 cold/warm、显存和 component timing 数字可回溯到 retained JSON。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 degree-vs-TracIn 只下“selection distinct”结论，没有越界写 GU 强弱。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 <code>legacy</code>、simple/graph checkpoint variants 未被称为 proper TracIn。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 public Planetoid split 未被改称 OpenGU canonical 80/20。</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"/>确认 Markdown 与 HTML 的结论、公式和关键数字一致。</li>
+</ul>
+<h2 id="11-evidence-index">11. Evidence index</h2>
+<ul>
+<li>权威 cold/warm 报告：<a href="small_graph_selection_BENCHMARK_REPORT.md">Markdown</a> ·
+<a href="small_graph_selection_BENCHMARK_REPORT.html">HTML</a></li>
+<li>公式与 A/B/C/D 设计：<a href="bc_target_matrix_REPORT.md">Markdown</a> ·
+<a href="bc_target_matrix_REPORT.html">HTML</a></li>
+<li>dataset / grandfather audit：<a href="dataset_layout_AUDIT_REPORT.md">Markdown</a> ·
+<a href="dataset_layout_AUDIT_REPORT.html">HTML</a></li>
+<li>proper-TracIn 术语边界：<a href="../docs/proper_tracin_v1_selection_gate_ACCEPTANCE_REPORT.md">acceptance report</a></li>
+<li>SUP max-k/prefix 语义：<a href="../docs/cache_v2_sup_selection_maxk_ACCEPTANCE_REPORT.md">acceptance report</a></li>
+</ul>
+</article>
+<div class="source">Source of truth: <code>reports/sup_selection_RESULTS_BRIEFING.md</code> · Evidence: <code>results/bc_target_v2/selection_benchmark_20260721/</code> · Branch: <code>codex/docs-sup-selection-briefing-20260722</code></div>
+</main></div></body></html>
