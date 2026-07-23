@@ -10,10 +10,10 @@
     "content_hash": "d625896a5f874d3b1068f3d513d4335ab84f8a1152d767efa5f903c087b0f218",
     "hit": true,
     "outcome": "hit",
-    "payload_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/artifacts/score/3e/score_3ee14f6e_d625896a/payload.json",
+    "payload_path": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/artifacts/score/3e/score_3ee14f6e_d625896a/payload.json",
     "producer_called": false,
     "recipe_hash": "3ee14f6ea27105eed4d19a97618772de840ccbe69f6e1b6095f3c096e7b1619b",
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42",
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42",
     "semantic_path": "artifacts/score/3e/score_3ee14f6e_d625896a/payload.json"
   },
   "candidate_count": 60,
@@ -24,7 +24,7 @@
       7,
       3
     ],
-    "cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42",
+    "cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42",
     "checkpoint_epochs": [
       1,
       10,
@@ -33,7 +33,7 @@
       100,
       200
     ],
-    "data_root": "/autodl-fs/data/OpenGU-shared/Planetoid",
+    "data_root": "/autodl-fs/data/OpenGU/GULib-master/data/raw",
     "dataset": "PubMed",
     "device": "cuda:0",
     "dropout": 0.5,
@@ -54,7 +54,7 @@
     "optimizer": "adam",
     "parameter_scope": "all_trainable",
     "seed": 42,
-    "selection_cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts",
+    "selection_cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts",
     "weight_decay": 0.0005
   },
   "dataset": "PubMed",
@@ -6764,7 +6764,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -6846,7 +6846,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -6928,7 +6928,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7010,7 +7010,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7092,7 +7092,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7174,7 +7174,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7256,7 +7256,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7338,7 +7338,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7420,7 +7420,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7502,7 +7502,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7584,7 +7584,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7666,7 +7666,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7748,7 +7748,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7830,7 +7830,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7912,7 +7912,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7994,7 +7994,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -8076,7 +8076,7 @@
         "lookup_policy": "cache_v2_exact_recipe",
         "outcome": "hit",
         "producer_called": false,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -8273,7 +8273,7 @@
     "miss_saved_count": 0,
     "producer_call_count": 0,
     "request_max_k": 14,
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed42/selection_artifacts"
   },
   "selector_model_final_state_hash": "59b3b555e5b987aae62b4dc4a17469ce7fb93c30fd634a1fb39ac80eed6b5be5",
   "status": {

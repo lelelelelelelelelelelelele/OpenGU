@@ -10,10 +10,10 @@
     "content_hash": "45ec734987d740cbc649d2e42efdb9501663bc6ae4f2ddf042e993d880284a88",
     "hit": false,
     "outcome": "created",
-    "payload_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/artifacts/score/21/score_21530297_45ec7349/payload.json",
+    "payload_path": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/artifacts/score/21/score_21530297_45ec7349/payload.json",
     "producer_called": true,
     "recipe_hash": "21530297db3acdde94ec555281d90d3c920865ba2aecad73f2de94d1cf5ea8f2",
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212",
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212",
     "semantic_path": "artifacts/score/21/score_21530297_45ec7349/payload.json"
   },
   "candidate_count": 120,
@@ -24,7 +24,7 @@
       7,
       3
     ],
-    "cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212",
+    "cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212",
     "checkpoint_epochs": [
       1,
       10,
@@ -33,7 +33,7 @@
       100,
       200
     ],
-    "data_root": "/autodl-fs/data/OpenGU-shared/Planetoid",
+    "data_root": "/autodl-fs/data/OpenGU/GULib-master/data/raw",
     "dataset": "CiteSeer",
     "device": "cuda:0",
     "dropout": 0.5,
@@ -54,7 +54,7 @@
     "optimizer": "adam",
     "parameter_scope": "all_trainable",
     "seed": 212,
-    "selection_cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts",
+    "selection_cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts",
     "weight_decay": 0.0005
   },
   "dataset": "CiteSeer",
@@ -8864,7 +8864,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -8946,7 +8946,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9028,7 +9028,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9110,7 +9110,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9192,7 +9192,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9274,7 +9274,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9356,7 +9356,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9438,7 +9438,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9520,7 +9520,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9602,7 +9602,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9684,7 +9684,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9766,7 +9766,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9848,7 +9848,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -9930,7 +9930,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -10012,7 +10012,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -10094,7 +10094,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -10176,7 +10176,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -10373,7 +10373,7 @@
     "miss_saved_count": 17,
     "producer_call_count": 17,
     "request_max_k": 14,
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/citeseer_seed212/selection_artifacts"
   },
   "selector_model_final_state_hash": "3c9d57a485b7fa94d6cf9dd174b9f10c9239055e38de1f1aff3af9d11ef2a514",
   "status": {

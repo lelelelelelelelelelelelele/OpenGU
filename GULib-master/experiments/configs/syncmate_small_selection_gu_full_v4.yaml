@@ -23,12 +23,12 @@ strategies:
 seeds: [42, 212, 2024]
 selection_k: 7
 
-processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
-evidence_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v4
+processed_root: data/processed
+evidence_root: results/runs/__syncmate_small_selection_gu_full_v4_evidence__
 run_root: results/runs/__syncmate_small_selection_gu_full_v4__
 
 benchmark_manifest_path: results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json
-benchmark_manifest_sha256: 3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479
+benchmark_manifest_sha256: 80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9
 selection_experiment_git_sha: 9240b9a7bd61b17b4c841981ec2892fdf100dc4b
 
 datasets:
@@ -37,25 +37,25 @@ datasets:
     ratio: 0.05
     canonical_public_source_fingerprint: 8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f
     summaries:
-      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json, sha256: 977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7}
-      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json, sha256: ef03ed9c2b2af4c2d81b2354d6a384d3c0b51ccbf04406563dcedaa88423de8c}
-      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json, sha256: 7e884e2aba1bdb4d0e802fa8a9d14b5721ef36b3489f3decb42429ee807c3553}
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json, sha256: e7297263c413686b783ed58c4ace6cb658b907f77fa08f7a9e53c96e0e43fe0e}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json, sha256: 96f609dce1527d467d9dbba77f6c7f815814cbc461ec7a7283b1986dc45140dc}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json, sha256: 2db12b42de99a73f631e6b507ff79877d16e9bfd8314ef13ae774fba3ef7136d}
   citeseer:
     display_name: CiteSeer
     ratio: 0.05
     canonical_public_source_fingerprint: fba32999724ad1cf79676f3a0f09583c63ec9e439dfefaa6430dd7ba85e533da
     summaries:
-      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json, sha256: 71ef4f8432635e8c3774e8a7855ba28016c78774f3bfd96cb3db27757dcf87e5}
-      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json, sha256: c5425e57a1cb273132806b68881caba712770427f3acc8ba62082e735d54a2fe}
-      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json, sha256: acddcaaed8189cc37270273550092716314f1169988c225326ad6744685107d1}
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json, sha256: 7cc266b908bf5ccd6c1d5c9f2b5e275bd60c5ef61989c3eeb29f554454462de1}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json, sha256: b74a3a5fc29fe613e846293767c5900fe4f4f1eec4fc632a126203eb8e8cbac4}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json, sha256: 0f92f26ba169f76babba9b7d03c82ba9232c210d3e0cdbf6cdc082fba044f9a4}
   pubmed:
     display_name: PubMed
     ratio: 0.05
     canonical_public_source_fingerprint: 3ccd73931a2a9149a20d782036f8ecb5f5eb50e797396d176244e1ff74001f6c
     summaries:
-      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json, sha256: d997d7b4f227a8c93d46e553deee49a76e159d95bb7619d1e0160a792f796487}
-      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json, sha256: d151896ea9c03326f075af2a0411abfa91e62bc6c11407e25cedf906f34715f2}
-      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json, sha256: 03e47ac0341e33a7ed90a61de0ab4dc29e8ebbdd241620b320c367a96ad74151}
+      "42": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json, sha256: 854d1d9dcb1216da4f7c3d92d54c7549b7ec2c946bc3013a121a2ec5ea6ee113}
+      "212": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json, sha256: d0b9e9a9a26702ee9898d837a4f563a2268aa6e232554fc1d8a4c02e9a1dd62a}
+      "2024": {path: results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json, sha256: 4500204caf5809aa3f98fdc38ca03ebbec3b91b2fb2dbf3a9f92cbd5362b7d8b}
 
 required_gate:
   result_root: results/runs/__syncmate_small_selection_gu_v4__
