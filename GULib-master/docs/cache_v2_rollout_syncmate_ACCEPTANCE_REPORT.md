@@ -6,6 +6,9 @@ status: accepted-legacy-physical-retirement-deferred
 
 # Cache V2 Gates 2–4、Dataset 解耦与 SyncMate Rollout 验收
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 **ACCEPTED。Cache V2 当前范围已经整体完成，dataset 职责越界已关闭，Gates 2–4 均有真实证据。**
@@ -59,11 +62,11 @@ Runner 四件套：
 
 远端 evidence root：
 
-`/autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4`
+`/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/OpenGU-cache-v2-rollout/20260717/gate4`
 
 正式 result leaf：
 
-`/autodl-fs/data/OpenGU-worktrees/cache-v2-rollout-syncmate-20260717/GULib-master/results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42`
+`/autodl-fs/data/OpenGU/GULib-master/results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42`
 
 ## 4. Dataset ownership 与 fail-closed
 

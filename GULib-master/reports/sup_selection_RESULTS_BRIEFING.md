@@ -7,6 +7,9 @@ audience: external-review
 
 # SUP Selection 实验结果汇报
 
+> [!NOTE]
+> **路径哈希迁移说明（2026-07-24）**：本报告引用的 benchmark/summary SHA-256 已随 retired SSH path normalization 重算；实验数值和验收结论未改。原始字节可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 复核。
+
 > [!success] 验收结论
 > Cora、CiteSeer、PubMed × seeds 42/212/2024 的 17-output SUP Selection
 > 实验已完成：**9/9 cells 成功，153/153 方法级 cold miss → warm exact hit，
@@ -279,7 +282,7 @@ simple 或 full source，不能只依据 proxy fidelity，必须结合后续 GU 
 | Experiment Git SHA | `9240b9a7bd61b17b4c841981ec2892fdf100dc4b` |
 | Algorithm | `bc-target-matrix-v3.0` |
 | Machine manifest | `results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json` |
-| Manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
+| Manifest SHA-256 | `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
 | Retained cell evidence | `results/bc_target_v2/selection_benchmark_20260721/cells/*/{cold,warm}.json` |
 
 历史运行位于已退役 worktree，并使用后来清理的 shared Planetoid cache。本结果之所以

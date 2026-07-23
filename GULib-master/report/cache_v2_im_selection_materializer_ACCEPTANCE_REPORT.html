@@ -72,6 +72,7 @@
   </style>
 </head>
 <body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside>
 <main>
   <header>
     <div class="eyebrow">Cache V2 · SSH real workload · 2026-07-14</div>
@@ -196,8 +197,8 @@
   <div class="callout"><strong>Gate 状态不变：</strong> Gate 2 仍是 partial，Gate 3 有明确反例，Gate 4 仍被 conflict resolution 阻塞。Legacy 不得冻结、归档或删除。</div>
 
   <h2>证据入口</h2>
-  <pre>/autodl-fs/data/opengu-experiment-evidence/cache-v2-im-b10f672-bundle/
-/autodl-fs/data/cache-v2-materializer/arxiv-b10f672-bundle/</pre>
+  <pre>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-im-b10f672-bundle/
+/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-materializer/arxiv-b10f672-bundle/</pre>
   <p>关键机器文件：<code>plan.json</code>、<code>cold.json</code>、<code>warm.json</code>、<code>acceptance.json</code>、<code>legacy-before.json</code>、<code>legacy-after.json</code>、<code>resolve-explain.json</code>、<code>pytest.log</code>。</p>
 
   <footer>Editable source: <a href="../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md">docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md</a></footer>

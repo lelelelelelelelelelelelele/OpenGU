@@ -1,5 +1,8 @@
 # 小图 Selection 全量实测报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 > **Verdict:** PASS — full cold/warm matrix and GPU telemetry complete
 
 > **Authority:** ACCEPTED GT — one-time grandfathered public-split exception; no GPU rerun required.
@@ -18,7 +21,7 @@
 
 本轮 SSH 结果被指定为该 public Planetoid 17-output benchmark 的权威 GT，用于后续 selection 性能、ranking 与资源分析，不再因 dataset 根目录迁移重复消耗 GPU。该例外成立于以下已经完成的核验：
 
-- 运行时使用的 `/autodl-fs/data/OpenGU-shared/Planetoid` 三套 public cache，在删除前已对 9 个有效输入逐文件验证为与 SSH active `data/raw/{cora,citeseer,pubmed}` 完全相同；当前 active 端重新计算的 source fingerprint 分别为 Cora `8201869d...`、CiteSeer `fba32999...`、PubMed `3ccd7393...`。
+- 运行时使用的 `/autodl-fs/data/OpenGU/GULib-master/data/raw` 三套 public cache，在删除前已对 9 个有效输入逐文件验证为与 SSH active `data/raw/{cora,citeseer,pubmed}` 完全相同；当前 active 端重新计算的 source fingerprint 分别为 Cora `8201869d...`、CiteSeer `fba32999...`、PubMed `3ccd7393...`。
 - `9240b9a` 到当前 accepted main 的 B/C `produce()` ScoreBundle 计算块逐字一致；`experiments/bc_target_v2/core.py` 与 `experiments/c_target_v1/core.py` 的 Git blob 未变化。后续修改只增加 canonical path 解析、dataset/Git provenance、Recipe 身份隔离与 SyncMate 调度，不改变 17 个 score 或 stable ranking 语义。
 - 实测本身已覆盖 `9/9` cells、`153/153` cold miss→warm exact hit、0 failures，以及完整 GPU peak telemetry；重跑只能生成新的 v3.1 Recipe/Artifact 身份，不能增加本报告所需的算法或资源证据。
 

@@ -6,6 +6,9 @@ status: accepted-with-delete-blocked
 
 # Cache V2 Selection Cutover 与 Legacy 归档准备验收
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 结论
 
 **Gate 3 的修订标准、Gate 4 的显式 Selection runner 路径、Gate 5 的 active Legacy freeze，以及 Gate 6 的归档准备均已完成。** 本轮到此结束。
@@ -54,7 +57,7 @@ status: accepted-with-delete-blocked
 | 项目 | 值 |
 |---|---|
 | 部署 commit | `a1eae3d` |
-| Evidence root | `/autodl-fs/data/opengu-experiment-evidence/cache-v2-cutover-431d5df-20260714` |
+| Evidence root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-cutover-431d5df-20260714` |
 | V2 Selection Artifact | `sel_5bc434cd_7e66e515` |
 | Recipe hash | `5bc434cdb68a652e5f4e4ae5974eafc56decfbdbad79ce27787baf47d28136de` |
 | Content hash | `7e66e5153fdd003d633d7e2fe9459f524b5aa738bfb649f9a6dd398d990c232a` |

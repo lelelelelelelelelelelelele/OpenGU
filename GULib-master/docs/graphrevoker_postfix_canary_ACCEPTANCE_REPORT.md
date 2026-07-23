@@ -6,6 +6,9 @@ status: seed42-canary-accepted-full-e4-pending
 
 # GraphRevoker Post-fix Canary 与 Cache V2 Recheck 验收报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 **GraphRevoker 修复后的 Cora/GCN/r=0.05、seed 42 四策略 canary 通过；Cache V2 当前提交 cold/warm recheck 也通过。** 本轮执行 random、degree、pagerank、IM，明确不执行 Hybrid 与 TracIn。GraphRevoker runner 返回 0，机器验收 `accepted=true`、0 errors；当前提交的真实 Citeseer Selection V2 canary 则证明 cold miss 后的第二个独立进程 exact hit，同一 Artifact 未再次调用 producer。
@@ -29,9 +32,9 @@ status: seed42-canary-accepted-full-e4-pending
 | Git branch | `codex/citeseer-e1-graphrevoker-20260714` |
 | 被测 HEAD | `93095d9b8ea7e6c3972ffda70b74b232fafaf887` |
 | GraphRevoker 配置 | `experiments/configs/sanity_graphrevoker_r05_notracin.yaml` |
-| fresh code checkout | `/autodl-fs/data/opengu-experiments/graphrevoker-cora-aad4e99/GULib-master` |
-| GraphRevoker evidence | `/autodl-fs/data/opengu-experiment-evidence/graphrevoker-cora-aad4e99` |
-| V2 recheck root | `/autodl-fs/data/cache-v2-canary/citeseer-93095d9-recheck` |
+| fresh code checkout | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiments/graphrevoker-cora-aad4e99/GULib-master` |
+| GraphRevoker evidence | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/graphrevoker-cora-aad4e99` |
+| V2 recheck root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-93095d9-recheck` |
 | active Legacy root | `/autodl-fs/data/OpenGU/GULib-master/results`（只读核验） |
 | GPU | RTX 4090 24 GB |
 

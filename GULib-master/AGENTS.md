@@ -87,7 +87,7 @@ the SSH active checkout at `/autodl-fs/data/OpenGU/GULib-master`.
   `data/raw/{cora,citeseer,pubmed}`. PyG's `raw/` and `processed/data.pt`
   beneath each leaf are part of that raw-adapter cache; they are not OpenGU
   canonical processed split pickles.
-- `/autodl-fs/data/OpenGU-shared`, another worktree's `data/`, experiment
+- Retired sibling dataset roots, another worktree's `data/`, experiment
   checkouts, backups, and archives are recovery/evidence sources only. Never
   use them as formal dataset roots, create new authoritative copies there, or
   symlink canonical active paths to them.
@@ -145,6 +145,11 @@ the SSH active checkout at `/autodl-fs/data/OpenGU/GULib-master`.
   `reports/ssh_deployment_layout_CLOSEOUT_REPORT.md` as the relocation
   authority; do not recreate an old absolute path to make a historical
   command work.
+- Tracked reports, commands, configs, and imported machine summaries must not
+  retain a retired `/autodl-fs/data` sibling prefix. Human-facing history uses
+  the current archive/canonical access path plus a relocation notice. A
+  controlled machine-summary path migration must record its baseline commit
+  and pre-migration aggregate hash, then update every consuming SHA-256.
 
 ## Workflow Instructions: Git (Mandatory)
 

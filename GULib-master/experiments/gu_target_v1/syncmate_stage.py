@@ -80,7 +80,7 @@ def _config() -> Dict[str, Any]:
         ),
         "run_root": "results/runs/__syncmate_small_selection_gu_full_v5__",
         "selection_experiment_git_sha": "9240b9a7bd61b17b4c841981ec2892fdf100dc4b",
-        "benchmark_manifest_sha256": "3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479",
+        "benchmark_manifest_sha256": "80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9",
     }
     for field, expected_value in expected.items():
         if value.get(field) != expected_value:

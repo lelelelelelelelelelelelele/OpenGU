@@ -8,7 +8,8 @@ h1{margin:0 0 6px;font-size:31px}h2{margin:32px 0 12px;font-size:21px}.meta{colo
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}.card b{display:block;font-size:21px}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
 table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-variant-numeric:tabular-nums}th,td{padding:10px 11px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft)}td.num{text-align:right}code{padding:.12em .35em;background:var(--soft);border-radius:5px;overflow-wrap:anywhere}
 .boundary{padding:15px 17px;background:#fff8e8;border:1px solid #ecd79e;border-radius:10px}ul{padding-left:22px}footer{margin-top:30px;padding-top:15px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:800px){main{margin:0;padding:24px;border-radius:0}.grid{grid-template-columns:1fr 1fr}}
-</style></head><body><main>
+</style></head><body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside><main>
 <h1>Cache V2 Selection Cutover 与 Legacy 归档准备验收</h1><p class="meta">2026-07-14 · branch <code>codex/autoreport-v3-20260714</code> · active 4090</p>
 <section class="verdict"><strong>完成到“归档准备”</strong><p>Gate 3 修订标准、显式 V2 Selection runner、active Legacy freeze 和归档准备均完成。Legacy 未移动、未删除，当前也不允许删除。</p></section>
 <div class="grid"><div class="card"><b class="ok">1</b>正式 V2 Selection Artifact</div><div class="card"><b class="ok">970</b>Legacy files 原位只读</div><div class="card"><b>9.27 MB</b>冻结回滚 payload</div><div class="card"><b class="warn">70</b>删除前 consumer refs</div></div>
@@ -28,7 +29,7 @@ table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-variant-numeri
 <tr><th>Legacy invariant</th><td>784 Result + 111 Selection + 75 Score；materializer before/after hash <code>b7488cb14f32…</code></td></tr>
 <tr><th>Freeze marker</th><td><code>53a0988d5ad8a38ef5870e26b87af82426f769f2f7a7d7ca75702a2a34f9eef4</code></td></tr>
 <tr><th>Archive integrity anchor</th><td><code>3fc323436bbc12b22e9f81c2d9c5c4613b169c5503f0cc71feae520542519d51</code></td></tr>
-<tr><th>Evidence root</th><td><code>/autodl-fs/data/opengu-experiment-evidence/cache-v2-cutover-431d5df-20260714</code></td></tr></table>
+<tr><th>Evidence root</th><td><code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-cutover-431d5df-20260714</code></td></tr></table>
 
 <h2>V2 index</h2><table><thead><tr><th>项目</th><th>数量</th></tr></thead><tbody><tr><td>Legacy sources</td><td class="num">4,076</td></tr><tr><td>正式 Selection Artifacts</td><td class="num">1</td></tr><tr><td>Legacy diagnostic conflicts</td><td class="num">5</td></tr><tr><td>formal / unresolved formal conflicts</td><td class="num">0 / 0</td></tr><tr><td>dependencies / consumer refs</td><td class="num">0 / 0</td></tr></tbody></table>
 

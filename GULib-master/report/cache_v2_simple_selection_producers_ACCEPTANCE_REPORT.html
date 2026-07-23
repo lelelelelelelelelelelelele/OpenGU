@@ -44,7 +44,8 @@
     @media(max-width:520px){ .cards,.metrics{grid-template-columns:1fr} }
   </style>
 </head>
-<body><main>
+<body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside><main>
   <header>
     <div class="eyebrow">Cache V2 · real Cora · 2026-07-14</div>
     <h1>Simple Selection Producers 验收</h1>
@@ -114,7 +115,7 @@
     <div class="card ok"><strong>v2：两端一致</strong><span>新 Recipe <code>5bc434cd…</code>，两端均为 content <code>7e66e515…</code>。</span></div>
     <div class="card ok"><strong>失败证据保留</strong><span>旧 SSH v1 store未覆盖或删除；新验证使用全新 store。</span></div>
   </div>
-  <p>SSH正式 store：<code>/autodl-fs/data/cache-v2-materializer/simple-eb7c2d8-cora</code>；证据：<code>/autodl-fs/data/opengu-experiment-evidence/cache-v2-simple-eb7c2d8</code>。SQLite integrity为 <code>ok</code>，5 artifacts、0 conflicts。</p>
+  <p>SSH正式 store：<code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-materializer/simple-eb7c2d8-cora</code>；证据：<code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-simple-eb7c2d8</code>。SQLite integrity为 <code>ok</code>，5 artifacts、0 conflicts。</p>
 
   <h2>Legacy与测试</h2>
   <div class="callout"><strong>Legacy没有参与 resolve。</strong> SSH before/after hash均为 <code>b7488cb14f32e9482fd268f31bada5bca3561e81f953db4ed1f117ff32e98ffa</code>。Random对照为 <code>content_mismatch</code>，Degree/PageRank为 <code>missing</code>；这些只读状态均不升级为正式 V2 conflict。</div>

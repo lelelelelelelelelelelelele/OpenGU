@@ -6,6 +6,9 @@ status: accepted-stable-scope
 
 # Citeseer E1 Stable Matrix 真机验收报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 **Citeseer clean E1 稳定范围验收通过：50/50 cells，0 个结构错误，0 个 attack failure，runner 返回 0。** 本次在远端 RTX 4090 的 fresh checkout 上重算 5 个稳定方法 × 2 个策略 × 5 个 seed：
@@ -34,9 +37,9 @@ status: accepted-stable-scope
 |---|---|
 | Git branch | `codex/citeseer-e1-graphrevoker-20260714` |
 | 被测 commit | `aad4e994a199499126e39491c4e31ba9d86c6578` |
-| fresh outer clone | `/autodl-fs/data/opengu-experiments/citeseer-e1-aad4e99` |
-| code checkout | `/autodl-fs/data/opengu-experiments/citeseer-e1-aad4e99/GULib-master` |
-| evidence root | `/autodl-fs/data/opengu-experiment-evidence/citeseer-e1-aad4e99` |
+| fresh outer clone | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiments/citeseer-e1-aad4e99` |
+| code checkout | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiments/citeseer-e1-aad4e99/GULib-master` |
+| evidence root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/citeseer-e1-aad4e99` |
 | active Legacy root | `/autodl-fs/data/OpenGU/GULib-master/results`（只读核验） |
 | GPU | RTX 4090 24 GB |
 | runner 配置 | `experiments/configs/A5_citeseer_r0.05_stable_notracin.yaml` |
@@ -149,7 +152,7 @@ E:/conda_package/envs/gnn/python.exe -m pytest `
 远端证据根：
 
 ~~~text
-/autodl-fs/data/opengu-experiment-evidence/citeseer-e1-aad4e99
+/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/citeseer-e1-aad4e99
 ~~~
 
 ## 9. 未完成边界与下一步

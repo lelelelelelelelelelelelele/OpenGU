@@ -7,17 +7,17 @@ methods: [GNNDelete]
 strategies: [degree]
 seeds: [42]
 
-processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
-runtime_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v3/runtime
+processed_root: data/processed
+runtime_root: results/runs/__syncmate_small_selection_gu_v3_runtime__
 run_root: results/runs/__syncmate_small_selection_gu_v3__
 
 selection_k: 7
 selection_source:
   profile: grandfathered-public-selection-gt-v1
   summary_path: results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json
-  summary_sha256: 977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7
+  summary_sha256: e7297263c413686b783ed58c4ace6cb658b907f77fa08f7a9e53c96e0e43fe0e
   benchmark_manifest_path: results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json
-  benchmark_manifest_sha256: 3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479
+  benchmark_manifest_sha256: 80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9
   experiment_git_sha: 9240b9a7bd61b17b4c841981ec2892fdf100dc4b
   canonical_public_source_fingerprint: 8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f
 
@@ -37,9 +37,9 @@ model_overrides:
 
 cache_v2:
   mode: external_selection
-  store_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v3/store
-  manifest_path: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v3/selection_manifest.json
-  legacy_results_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v3/legacy-empty
+  store_root: results/cache_v2/syncmate_small_selection_gu_v3
+  manifest_path: results/runs/__syncmate_small_selection_gu_v3_evidence__/selection_manifest.json
+  legacy_results_root: results/runs/__syncmate_small_selection_gu_v3_legacy_empty__
 
 extra_args:
   - --num_threads

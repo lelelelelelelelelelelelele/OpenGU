@@ -6,6 +6,9 @@ status: partial-cache-contract-accepted-legacy-equivalence-rejected
 
 # Cache V2 IM Selection Materializer 真机验收报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 本轮得到的是一个必须拆分表达的 **partial verdict**：
@@ -183,11 +186,14 @@ E:/conda_package/envs/gnn/python.exe -m pytest `
 
 ## 8. CLI 复现入口
 
+以下仅是非正式 replay。归档内 clone/store 均保持只读；如需重放，使用
+active checkout 与新的 repo-local disposable store，生成新的执行身份。
+
 ```bash
 PY=/root/miniconda3/bin/python
-CODE=/autodl-fs/data/opengu-experiments/cache-v2-im-b10f672-bundle/GULib-master
 ACTIVE=/autodl-fs/data/OpenGU/GULib-master
-STORE=/autodl-fs/data/cache-v2-materializer/arxiv-b10f672-bundle
+CODE=$ACTIVE
+STORE=$ACTIVE/results/cache_v2/__replay_im_materializer__
 
 cd "$CODE"
 $PY scripts/cachectl.py selection plan \
@@ -222,13 +228,13 @@ $PY scripts/cachectl.py resolve explain \
 远端机器证据：
 
 ```text
-/autodl-fs/data/opengu-experiment-evidence/cache-v2-im-b10f672-bundle/
+/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-im-b10f672-bundle/
 ```
 
 关键文件包括 `plan.json`、`cold.json`、`warm.json`、`acceptance.json`、`legacy-before.json`、`legacy-after.json`、`resolve-explain.json` 和 `pytest.log`。V2 store 位于：
 
 ```text
-/autodl-fs/data/cache-v2-materializer/arxiv-b10f672-bundle/
+/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-materializer/arxiv-b10f672-bundle/
 ```
 
 它与旧 checkout 和 Legacy results 物理隔离。

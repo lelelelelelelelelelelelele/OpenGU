@@ -206,17 +206,18 @@ OpenGU/
 </tr>
 </tbody>
 </table>
-<p>历史报告中的旧绝对路径不回写，因为它们记录的是当时的执行事实。本报告是统一 relocation authority。</p>
+<p>2026-07-24 的第二轮引用收口已把 tracked 历史报告中的 retired sibling 绝对路径改为当前 archive/canonical access path，并在受影响报告加入迁移说明。原始执行字符串仍可从 Git 基线 <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 复核，不再留作可复制命令。本报告是统一 relocation authority。</p>
 <h2>4. 防复发改动</h2>
 <h3>4.1 Runner fail closed</h3>
 <p>新增 <code>experiments/path_policy.py</code>。当代码实际运行于：</p>
 <pre><code class="language-text">/autodl-fs/data/OpenGU/GULib-master
 </code></pre>
 <p><code>processed_root</code>、<code>runtime_root</code>、<code>run_root</code>、Cache V2 <code>store_root</code>、<code>legacy_results_root</code> 和 <code>manifest_path</code> 必须全部解析到 active checkout 内；任何 sibling 或 <code>/tmp</code> 输出会在创建目录之前失败。</p>
-<p>这使仍保留为历史身份的 v1–v4 绝对路径配置无法在 active SSH checkout 上重新扩散目录。</p>
+<p>这使任何遗漏的 retired sibling 路径都无法在 active SSH checkout 上重新扩散目录。</p>
 <h3>4.2 仍可能使用的配置改为 repo-relative</h3>
 <ul>
 <li>Cache V2 Gate4：runtime/evidence 写入 <code>results/runs/</code>，store 写入 <code>results/cache_v2/</code>。</li>
+<li>small-selection GU gate/full v1–v4：runtime/evidence/manifest 写入 <code>results/runs/</code>，store 写入 <code>results/cache_v2/</code>。</li>
 <li>small-selection GU gate v5：runtime/evidence/manifest 写入 <code>results/runs/</code>，store 写入 <code>results/cache_v2/</code>。</li>
 <li>small-selection GU full v5：evidence 写入 <code>results/runs/</code>。</li>
 <li>canonical processed root 统一写成 <code>data/processed</code>，由 checkout 解析。</li>
@@ -227,6 +228,59 @@ OpenGU/
 <pre><code class="language-bash">python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
 </code></pre>
 <p>默认只允许 <code>.gitignore</code>、<code>.sys</code> 和 <code>OpenGU</code>；发现任何其他顶层条目即返回非零。</p>
+<h3>4.4 Tracked 旧路径清退</h3>
+<p>第二轮引用摸排以 merge commit
+<code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 为原始字节基线，共发现：</p>
+<table>
+<thead>
+<tr>
+  <th>类别</th>
+  <th style="text-align:right">文件数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Markdown / HTML 报告</td>
+  <td style="text-align:right">21</td>
+</tr>
+<tr>
+  <td>runnable / historical YAML</td>
+  <td style="text-align:right">8</td>
+</tr>
+<tr>
+  <td>imported benchmark JSON</td>
+  <td style="text-align:right">19</td>
+</tr>
+<tr>
+  <td>repository policy</td>
+  <td style="text-align:right">1</td>
+</tr>
+<tr>
+  <td>合计</td>
+  <td style="text-align:right">49</td>
+</tr>
+</tbody>
+</table>
+<p>这 49 个文件包含 499 处 retired sibling 前缀。迁移前按
+<code>SHA256(file) + tracked path</code> 排序形成的聚合锚点为：</p>
+<pre><code class="language-text">2709ba4bd103042d98f10370e38787715b22fd87bdafe8c526ba5047e2489b7f
+</code></pre>
+<p>处理规则：</p>
+<ul>
+<li>已迁移证据树的报告引用改为 archive 内当前路径；</li>
+<li>已删除的 shared/worktree 入口改为 active canonical access 路径，并加入
+<code>2026-07-24</code> 路径迁移说明；</li>
+<li>gate/full v1–v4 与 v5 一样使用 repo-relative runtime、evidence、
+manifest、store 和 canonical processed 路径，绝不向 archive 写新输出；</li>
+<li>19 个 imported benchmark JSON 只归一化路径字符串，manifest 增加
+<code>path_migration</code> 元数据；实验数值、Recipe/content identity 和选择结果未改；</li>
+<li>benchmark/summary 文件字节变化后，对 17 个 consumer 文件中的 69 处
+SHA-256 引用全部重算；</li>
+<li>新增 <code>scripts/validate_retired_ssh_references.py</code>，扫描全部 tracked UTF-8
+文本并要求 retired prefix 为 0。</li>
+</ul>
+<p>原始报告和机器 JSON 字节仍可从上述 Git 基线恢复；活动 tracked 内容不再保留
+会被复制执行的 retired sibling 路径。</p>
 <h2>5. 验证</h2>
 <table>
 <thead>
@@ -272,6 +326,22 @@ OpenGU/
   <td>Python compilation</td>
   <td>PASS</td>
 </tr>
+<tr>
+  <td>tracked retired-prefix scan</td>
+  <td>PASS，1214 个 UTF-8 tracked files，0 matches</td>
+</tr>
+<tr>
+  <td>benchmark/summary SHA consumer 对账</td>
+  <td>PASS，10 configs</td>
+</tr>
+<tr>
+  <td>imported benchmark JSON path-only diff</td>
+  <td>PASS，19/19；除 manifest 迁移元数据外仅字符串映射</td>
+</tr>
+<tr>
+  <td>第二轮相关回归</td>
+  <td>PASS，36 passed（另 180 deselected）</td>
+</tr>
 </tbody>
 </table>
 <p>YAML 变更还执行了 canonical <code>--dry_run</code>。本机不是 formal data lane，因此分类如下；这些是预检结果，不是正式实验结果：</p>
@@ -288,12 +358,12 @@ OpenGU/
   <td>在创建任何输出前 fail closed：本机 worktree 缺少 canonical processed Cora pickle</td>
 </tr>
 <tr>
-  <td><code>syncmate_small_selection_gu_gate_v5.yaml</code></td>
-  <td>在创建任何输出前 fail closed：新的 repo-local external Selection manifest 尚未由 accepted staging step 生成</td>
+  <td><code>syncmate_small_selection_gu_gate_v1.yaml</code> … <code>v5.yaml</code></td>
+  <td>五份配置都在创建任何输出前 fail closed：各自新的 repo-local external Selection manifest 尚未由 accepted staging step 生成</td>
 </tr>
 <tr>
-  <td><code>syncmate_small_selection_gu_full_v5.yaml</code></td>
-  <td>该文件是 <code>syncmate_stage.py</code> 的阶段编排配置，不是 <code>experiments/run.py</code> 单矩阵 schema；专属 <code>_config()</code>/17-cell contract tests 已通过</td>
+  <td><code>syncmate_small_selection_gu_full_v1.yaml</code> … <code>v5.yaml</code></td>
+  <td>这些文件是阶段编排配置，不是 <code>experiments/run.py</code> 单矩阵 schema；path/hash contracts 与 v5 专属 <code>_config()</code>/17-cell tests 已通过</td>
 </tr>
 </tbody>
 </table>
@@ -304,6 +374,9 @@ OpenGU/
 <ul>
 <li>本次没有删除历史实验内容；约 1.08 GB 被保留在 active checkout 的 ignored archive 中。</li>
 <li>归档不是 formal dataset、cache authority 或可恢复运行根。需要引用旧证据时，应先查本报告和归档清单。</li>
+<li>tracked 历史路径已迁移，但原始字节与原始路径字符串仍由 Git
+<code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 保存；不要把该旧视图 checkout
+到 SSH deployment root。</li>
 <li>SSH 当前仍无 GPU device、默认 Python/conda 与预期 <code>gnn_20</code>；本次是文件/Git 治理，不构成 formal GPU 实验验收。</li>
 <li>并行的本机 NeurIPS review 与 target-scope 工作树未被切换、暂存、合并或清理。</li>
 </ul>

@@ -10,10 +10,10 @@
     "content_hash": "fa575ca01569b3233cb9a403cef59c88602cd1f772ba6d5dfbc1166b9a5c33fe",
     "hit": false,
     "outcome": "created",
-    "payload_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/artifacts/score/02/score_029989ca_fa575ca0/payload.json",
+    "payload_path": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/artifacts/score/02/score_029989ca_fa575ca0/payload.json",
     "producer_called": true,
     "recipe_hash": "029989ca664a335d7f9b7b88150a4c1acd6cf8ceb163c23b460b91f72e38989d",
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024",
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024",
     "semantic_path": "artifacts/score/02/score_029989ca_fa575ca0/payload.json"
   },
   "candidate_count": 60,
@@ -24,7 +24,7 @@
       7,
       3
     ],
-    "cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024",
+    "cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024",
     "checkpoint_epochs": [
       1,
       10,
@@ -33,7 +33,7 @@
       100,
       200
     ],
-    "data_root": "/autodl-fs/data/OpenGU-shared/Planetoid",
+    "data_root": "/autodl-fs/data/OpenGU/GULib-master/data/raw",
     "dataset": "PubMed",
     "device": "cuda:0",
     "dropout": 0.5,
@@ -54,7 +54,7 @@
     "optimizer": "adam",
     "parameter_scope": "all_trainable",
     "seed": 2024,
-    "selection_cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts",
+    "selection_cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts",
     "weight_decay": 0.0005
   },
   "dataset": "PubMed",
@@ -6764,7 +6764,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -6846,7 +6846,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -6928,7 +6928,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7010,7 +7010,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7092,7 +7092,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7174,7 +7174,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7256,7 +7256,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7338,7 +7338,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7420,7 +7420,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7502,7 +7502,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7584,7 +7584,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7666,7 +7666,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7748,7 +7748,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7830,7 +7830,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7912,7 +7912,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -7994,7 +7994,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -8076,7 +8076,7 @@
         "lookup_policy": "cache_v2_exact_then_smallest_covering_k",
         "outcome": "miss_saved",
         "producer_called": true,
-        "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+        "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
       },
       "request_max_k": 14,
       "requested_budgets_descending": [
@@ -8273,7 +8273,7 @@
     "miss_saved_count": 17,
     "producer_call_count": 17,
     "request_max_k": 14,
-    "root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
+    "root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721/pubmed_seed2024/selection_artifacts"
   },
   "selector_model_final_state_hash": "583746171fa8781b6442192fbf904ad93b2ae56e35e6323c27e724c873c814dc",
   "status": {

@@ -1,5 +1,8 @@
 # Small-selection → GU + SyncMate implementation acceptance
 
+> [!NOTE]
+> **路径哈希迁移说明（2026-07-24）**：本报告引用的 benchmark/summary SHA-256 已随 retired SSH path normalization 重算；实验数值和验收结论未改。原始字节可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 复核。
+
 Date: 2026-07-22
 Status: **implementation PASS; formal v5 gate and 153-cell matrix accepted**
 
@@ -105,8 +108,8 @@ missing, mismatched, or extra files. Scientific outcomes are reported in
 | Active GU v5 recipe introduction SHA | `324d3a0434614ec0d206e18f784560ae90f5f945` |
 | Gate v5 config SHA-256 | `26c1b120c91cc96c14a659e15881687605be9b1e8fedd12aa54e085120e1bd10` |
 | Full v5 config SHA-256 | `bdabc12b1a1cb83938c21eeb3b0e899d80855af38f036e38d08186a1ae4451dd` |
-| Cora cold summary SHA-256 | `977a6ff2384f31da8974df98affa7b2109a8f69df3f0191c0990e1101e5bacf7` |
-| Benchmark manifest SHA-256 | `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
+| Cora cold summary SHA-256 | `e7297263c413686b783ed58c4ace6cb658b907f77fa08f7a9e53c96e0e43fe0e` |
+| Benchmark manifest SHA-256 | `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
 | SSH canonical public source fingerprint | `8201869db05fe584d6ee429b1c965be6b4cb4214b312c70963ac3be7b45e888f` |
 | Source candidate count | 140 |
 | Matrix requirement | exact 17 labels and full candidate permutations; 153 downstream cells |

@@ -6,6 +6,9 @@ status: selection-canary-accepted
 
 # Cache V2 Citeseer Selection Canary 真机验收报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 **真实 Citeseer Selection cold miss → warm exact hit canary 通过。** 在远端隔离 checkout `83842e6dfb39b36e20725ea632913c5b8c2b8e5f` 上，真实 Planetoid Citeseer 图和项目现有 `IMStrategy` 首次计算产生一个 V2 Selection Artifact；第二个独立进程使用相同 Artifact Recipe 时精确命中同一 Artifact，并由 fail-if-called producer 哨兵证明没有重新执行 IM 计算。
@@ -39,10 +42,10 @@ status: selection-canary-accepted
 | Git branch | `codex/citeseer-v2-canary-20260714` |
 | 被测 commit | `83842e6dfb39b36e20725ea632913c5b8c2b8e5f` |
 | fresh code checkout | `/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master` |
-| run root | `/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2` |
-| dataset root | `/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/dataset` |
-| V2 store root | `/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/store` |
-| evidence root | `/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/evidence` |
+| run root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2` |
+| dataset root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2/dataset` |
+| V2 store root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2/store` |
+| evidence root | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2/evidence` |
 | Legacy snapshot root | `/autodl-fs/data/OpenGU/GULib-master/results` |
 | 运行环境 | torch `2.1.2+cu118`；PyG `2.6.1`；Numba `0.65.1`；CUDA available |
 | 设备边界 | RTX 4090 24GB 可用，但该 Selection canary 是 CPU/Numba workload，未跑 GPU GU 实验 |
@@ -164,18 +167,20 @@ E:/conda_package/envs/gnn/python.exe -m pytest `
 
 ### 9.2 Cold / warm 复现入口
 
+以下仅是非正式 replay 入口；必须使用 active checkout 和新的 repo-local
+disposable root，归档证据目录保持只读，不得作为 `RUN`/store。
+
 ~~~bash
 PY=/root/miniconda3/bin/python
-CODE=/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master
-RUN=/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2
+CODE=/autodl-fs/data/OpenGU/GULib-master
+RUN=$CODE/results/runs/__replay_cache_v2_citeseer_gate2__
 LEGACY=/autodl-fs/data/OpenGU/GULib-master/results
 
 cd "$CODE"
 $PY scripts/cache_v2_selection_canary.py cold \
   --store-root "$RUN/store" \
-  --dataset-root "$RUN/dataset" \
+  --dataset-root "$CODE/data/raw" \
   --legacy-results-root "$LEGACY" \
-  --allow-download \
   --selection-ratio 0.05 \
   --config-name A5_citeseer_r0.05 \
   --yaml-path experiments/configs/A5_citeseer_r0.05.yaml \
@@ -183,7 +188,7 @@ $PY scripts/cache_v2_selection_canary.py cold \
 
 $PY scripts/cache_v2_selection_canary.py warm \
   --store-root "$RUN/store" \
-  --dataset-root "$RUN/dataset" \
+  --dataset-root "$CODE/data/raw" \
   --legacy-results-root "$LEGACY" \
   --selection-ratio 0.05 \
   --config-name renamed-config \
@@ -198,7 +203,7 @@ $PY scripts/cache_v2_selection_canary.py warm \
 机器汇总位于：
 
 ~~~text
-/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/evidence/gate2_acceptance.json
+/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2/evidence/gate2_acceptance.json
 ~~~
 
 该文件中的 16 个验收检查均为 `true`，整体 `accepted=true`；SHA-256 为 `a67f52c82854c22f085d84b8e47a6801c0ef25d6209a4f28922f431d9e67b113`。同目录 `evidence_sha256.txt` 覆盖 evidence、正式 store 与 tamper-store 的全部 28 个文件（manifest 自身除外），已经由 `sha256sum -c` 核验通过；manifest SHA-256 为 `d6a6d378dda6478a0c56404e44bf6fe9d3d43f545d0d3b7ad7ac9fd6e8bd19ce`。关键文件校验和：

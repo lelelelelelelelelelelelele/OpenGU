@@ -1,9 +1,15 @@
 {
   "algorithm_version": "bc-target-matrix-v3.0",
-  "cache_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721",
+  "path_migration": {
+    "date": "2026-07-24",
+    "baseline_git_commit": "41708162a4f3e2c4fd89c30c47b6b35feb1b8d75",
+    "original_reference_set_sha256": "2709ba4bd103042d98f10370e38787715b22fd87bdafe8c526ba5047e2489b7f",
+    "policy": "retired SSH sibling prefixes normalized to active-checkout or archive access paths; experiment measurements unchanged"
+  },
+  "cache_root": "/autodl-fs/data/OpenGU/GULib-master/results/cache_v2/bc_target_v3_benchmark_20260721",
   "cells": [
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/cold.json",
       "cold_total_process_seconds": 47.770938757807016,
       "dataset": "Cora",
       "device": "cuda:0",
@@ -153,11 +159,11 @@
       "score_bundle_warm_read_seconds": 0.9635117575526237,
       "seed": 42,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed42/warm.json",
       "warm_total_process_seconds": 19.933219227939844
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/cold.json",
       "cold_total_process_seconds": 13.834153555333614,
       "dataset": "Cora",
       "device": "cuda:0",
@@ -307,11 +313,11 @@
       "score_bundle_warm_read_seconds": 0.1325039304792881,
       "seed": 212,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed212/warm.json",
       "warm_total_process_seconds": 7.148845167830586
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/cold.json",
       "cold_total_process_seconds": 13.556725667789578,
       "dataset": "Cora",
       "device": "cuda:0",
@@ -461,11 +467,11 @@
       "score_bundle_warm_read_seconds": 0.15463380701839924,
       "seed": 2024,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/cora_seed2024/warm.json",
       "warm_total_process_seconds": 6.622196823358536
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/cold.json",
       "cold_total_process_seconds": 28.518356727436185,
       "dataset": "CiteSeer",
       "device": "cuda:0",
@@ -615,11 +621,11 @@
       "score_bundle_warm_read_seconds": 0.12856554053723812,
       "seed": 42,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed42/warm.json",
       "warm_total_process_seconds": 7.997563591226935
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/cold.json",
       "cold_total_process_seconds": 14.802349545061588,
       "dataset": "CiteSeer",
       "device": "cuda:0",
@@ -769,11 +775,11 @@
       "score_bundle_warm_read_seconds": 0.1426763143390417,
       "seed": 212,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed212/warm.json",
       "warm_total_process_seconds": 7.306017559021711
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/cold.json",
       "cold_total_process_seconds": 15.902976924553514,
       "dataset": "CiteSeer",
       "device": "cuda:0",
@@ -923,11 +929,11 @@
       "score_bundle_warm_read_seconds": 0.9429577626287937,
       "seed": 2024,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/citeseer_seed2024/warm.json",
       "warm_total_process_seconds": 50.65300456993282
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/cold.json",
       "cold_total_process_seconds": 13.547708617523313,
       "dataset": "PubMed",
       "device": "cuda:0",
@@ -1077,11 +1083,11 @@
       "score_bundle_warm_read_seconds": 0.144777599722147,
       "seed": 42,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed42/warm.json",
       "warm_total_process_seconds": 7.482381863519549
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/cold.json",
       "cold_total_process_seconds": 12.682146953418851,
       "dataset": "PubMed",
       "device": "cuda:0",
@@ -1231,11 +1237,11 @@
       "score_bundle_warm_read_seconds": 0.13145400024950504,
       "seed": 212,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed212/warm.json",
       "warm_total_process_seconds": 7.774811973795295
     },
     {
-      "cold_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json",
+      "cold_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/cold.json",
       "cold_total_process_seconds": 13.633712884038687,
       "dataset": "PubMed",
       "device": "cuda:0",
@@ -1385,7 +1391,7 @@
       "score_bundle_warm_read_seconds": 0.13880306854844093,
       "seed": 2024,
       "status": "success",
-      "warm_summary_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/warm.json",
+      "warm_summary_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/cells/pubmed_seed2024/warm.json",
       "warm_total_process_seconds": 7.842256655916572
     }
   ],
@@ -1416,8 +1422,8 @@
     "tracin_cp_simple_3",
     "tracin_cp_simple_6"
   ],
-  "manifest_path": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json",
-  "output_root": "/autodl-fs/data/OpenGU-worktrees/small-graph-selection-20260721/GULib-master/results/bc_target_v2/selection_benchmark_20260721",
+  "manifest_path": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json",
+  "output_root": "/autodl-fs/data/OpenGU/GULib-master/results/bc_target_v2/selection_benchmark_20260721",
   "schema": "bc_target_v2.small_graph_selection_benchmark",
   "seeds": [
     42,
