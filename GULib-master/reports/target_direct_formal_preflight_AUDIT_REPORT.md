@@ -9,7 +9,7 @@ Status: **preparation PASS; formal execution NO-GO**
 > [!danger] Verdict
 > The updated target-direct lane is prepared and locally validated, but no formal
 > experiment was started. The active SSH checkout is clean `main@fb0d9a33`, while
-> the preparation commits remain unmerged on
+> the five-commit preparation line remains unmerged on
 > `codex/fix-target-direct-formal-orchestration-20260724`. The SSH runner also has
 > no visible GPU, no accepted `gnn_20` interpreter, and none of the three approved
 > 70/10/20 processed profiles. These are hard blockers, not warnings.
@@ -64,7 +64,12 @@ differs from the processed profile.
 | Implementation commit | `a4db487d95e1de0e1210331fbdbc0b83c1749201` |
 | SyncMate registration commit | `ffb474c` |
 | Deferred-stress correction | `47569f9c96066038abbada24bc0d98d98650723f` |
+| Preflight report commits | `27690db`, `264b389` |
 | Merge/push performed by this task | No |
+
+This is a pre-integration audit with a fixed temporal boundary. After repository
+closeout, Git reachability and the final closeout report—not the historical
+“unmerged” wording below—are authoritative for acceptance state.
 
 `main` advanced while this task was active. A read-only overlap audit found no
 newer-main edits to the target-direct modules, formal config,
@@ -145,7 +150,7 @@ Therefore the current E8 claim boundary is:
 
 ## Exact blockers
 
-1. The three preparation commits are not accepted into current `main`.
+1. The five-commit preparation branch is not accepted into current `main`.
 2. The SSH host exposes no GPU device.
 3. The accepted `gnn_20` interpreter is absent.
 4. The approved 70/10/20 OpenGU processed profiles are absent.

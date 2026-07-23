@@ -43,7 +43,7 @@
   <section class="verdict">
     <strong>Verdict:</strong> the updated target-direct lane is prepared and locally validated,
     but no formal experiment was started. The active SSH checkout is clean
-    <code>main@fb0d9a33</code>; the preparation line remains unmerged. The runner has no GPU,
+    <code>main@fb0d9a33</code>; the five-commit preparation line remains unmerged. The runner has no GPU,
     no accepted <code>gnn_20</code>, and no approved 70/10/20 processed profiles.
   </section>
 
@@ -83,11 +83,15 @@
     <tr><td>Preparation branch</td><td><code>codex/fix-target-direct-formal-orchestration-20260724</code></td></tr>
     <tr><td>Original audited parent</td><td><code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code></td></tr>
     <tr><td>Current local/origin/SSH main</td><td><code>fb0d9a332c4086e98c6c988d6a02851a8d7a2b79</code></td></tr>
-    <tr><td>Preparation commits</td><td><code>a4db487</code>, <code>ffb474c</code>, <code>47569f9</code></td></tr>
+    <tr><td>Implementation commits</td><td><code>a4db487</code>, <code>ffb474c</code>, <code>47569f9</code></td></tr>
+    <tr><td>Preflight report commits</td><td><code>27690db</code>, <code>264b389</code></td></tr>
     <tr><td>Merge/push by this task</td><td>No</td></tr>
   </table>
   <p>A read-only overlap audit found no newer-main edits to the target-direct modules,
     formal config, SyncMate controller, or tests. Explicit Git acceptance is still required.</p>
+  <p>This report is a pre-integration audit with a fixed temporal boundary. After
+    repository closeout, Git reachability and the final closeout report—not this
+    historical “unmerged” state—are authoritative for acceptance.</p>
 
   <h2>Validation</h2>
   <table>
@@ -134,7 +138,7 @@
 
   <h2>Exact blockers and continuation</h2>
   <ol>
-    <li>Accept the three preparation commits through the recorded Git workflow.</li>
+    <li>Accept the five-commit preparation branch through the recorded Git workflow.</li>
     <li>Restore a visible accepted GPU and the exact <code>gnn_20</code> interpreter.</li>
     <li>Stage and verify all three 70/10/20 profiles before timing.</li>
     <li>Run Cora/seed42 Selection, collect three artifacts, then run the canonical dry-run.</li>
