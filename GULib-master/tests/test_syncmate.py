@@ -7370,6 +7370,15 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "opengu-small-selection-gu-{0}-v5".format(stage)
         for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
     )
+    expected_recipes.extend(
+        "opengu-target-direct-selection-{0}-v1".format(stage)
+        for stage in sm.TARGET_DIRECT_STAGES
+    )
+    expected_recipes.append("opengu-target-direct-gu-gate-v1")
+    expected_recipes.extend(
+        "opengu-target-direct-gu-{0}-v1".format(stage)
+        for stage in sm.TARGET_DIRECT_STAGES
+    )
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
@@ -8136,3 +8145,303 @@ def test_runner_delta_file_allowlist_does_not_accept_prefix_collisions():
         "GULib-master/scripts/syncmate/helper.py",
         ("GULib-master/scripts/syncmate/",),
     )
+
+
+def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
+    selection = sm.runner_recipe_definition(
+        "opengu-target-direct-selection-citeseer-seed212-v1"
+    )
+    gate = sm.runner_recipe_definition("opengu-target-direct-gu-gate-v1")
+    full = sm.runner_recipe_definition(
+        "opengu-target-direct-gu-pubmed-seed2024-v1"
+    )
+
+    assert selection["recipe_introduced_git_sha"] == (
+        "a4db487d95e1de0e1210331fbdbc0b83c1749201"
+    )
+    assert selection["config_sha256"] == sm.TARGET_DIRECT_CONFIG_SHA256
+    assert selection["selection_matrix"]["candidate_count"] == 2328
+    assert selection["selection_matrix"]["k"] == 116
+    assert selection["selection_matrix"]["parameter_scope"] == "last_layer"
+    assert len(selection["expected_artifact_paths"]) == 3
+    assert gate["gu_gate"]["k"] == 94
+    assert gate["gu_gate"]["target_checkpoint_required"] is True
+    assert len(gate["expected_artifact_paths"]) == 4
+    assert full["gu_stage"]["candidate_count"] == 13801
+    assert full["gu_stage"]["k"] == 690
+    assert full["gu_stage"]["selectors"] == list(
+        sm.TARGET_DIRECT_STRATEGIES
+    )
+    assert len(full["expected_artifact_paths"]) == 68
+
+
+def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
+    tmp_path, monkeypatch
+):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    definition = sm.runner_recipe_definition(
+        "opengu-target-direct-selection-cora-seed42-v1"
+    )
+    landing = "results/runs/gpu4090-target-direct"
+    paths = {}
+    for remote in definition["expected_artifact_paths"][:2]:
+        local = sm.local_landing_path(landing, remote)
+        local.parent.mkdir(parents=True, exist_ok=True)
+        local.write_text('{"status":"success"}\n', encoding="utf-8")
+        paths[remote] = local
+    receipt_remote = definition["expected_artifact_paths"][2]
+    receipt_path = sm.local_landing_path(landing, receipt_remote)
+    receipt = {
+        "schema": "target_direct_v1.syncmate_selection_cell",
+        "version": 1,
+        "dataset": "Cora",
+        "seed": 42,
+        "status": "success",
+        "experiment_git_sha": "a" * 40,
+        "parameter_scope": "last_layer",
+        "candidate_count": 1895,
+        "k": 94,
+        "formal_score_count": 17,
+        "score_bundle_cold_total_seconds": 4.0,
+        "score_bundle_warm_read_seconds": 0.02,
+        "method_timings": {
+            strategy: {"status": "success", "cache_hit": False}
+            for strategy in sm.TARGET_DIRECT_STRATEGIES
+        },
+        "failure_state": {"state": "success", "failure": None},
+        "target_checkpoint": {
+            "file_sha256": "b" * 64,
+            "state_hash": "c" * 64,
+        },
+        "device_name": "NVIDIA GeForce RTX 4090",
+        "peak_gpu_allocated_bytes": 1024,
+        "peak_gpu_reserved_bytes": 2048,
+        "cold_sha256": sm.sha256_file(
+            paths[definition["expected_artifact_paths"][0]]
+        ),
+        "warm_sha256": sm.sha256_file(
+            paths[definition["expected_artifact_paths"][1]]
+        ),
+    }
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    paths[receipt_remote] = receipt_path
+    sm.write_artifact_index(
+        {
+            "version": 0,
+            "updated_at": "2026-07-24T00:00:00",
+            "errors": [],
+            "peers": {
+                "gpu4090": {
+                    "node_id": "gpu4090",
+                    "landing": landing,
+                    "remote": {"git": {"sha": "a" * 40}},
+                    "summary": {"status": "verified", "indexed": 3},
+                    "items": [
+                        {
+                            "remote_path": remote,
+                            "local_path": sm.rel(paths[remote]),
+                            "sha256": sm.sha256_file(paths[remote]),
+                        }
+                        for remote in definition["expected_artifact_paths"]
+                    ],
+                }
+            },
+        }
+    )
+
+    result = sm.small_selection_acceptance_payload(
+        definition,
+        node_id="gpu4090",
+        expected_git_sha="a" * 40,
+    )
+
+    assert result["passed"] is True
+    assert result["mode"] == "target-direct-selection-acceptance"
+    assert result["accepted_cells"] == 1
+
+
+def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
+    tmp_path, monkeypatch
+):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    definition = sm.runner_recipe_definition("opengu-target-direct-gu-gate-v1")
+    landing = "results/runs/gpu4090-target-direct"
+    documents = {
+        "attack.json": {
+            "results": {"degree": {"failed": False, "total_time": 1.0}}
+        },
+        "collateral.json": {
+            "results": [{"strategy": "degree", "gap": 0.1}]
+        },
+        "_meta.json": {
+            "git_sha": "a" * 40,
+            "method": "GNNDelete",
+            "strategy": "degree",
+            "seed": 42,
+            "config": {"claims": {"parameter_scope": "last_layer"}},
+            "selection_artifact": {
+                "artifact_id": "selection_degree",
+                "recipe_hash": "b" * 64,
+                "content_hash": "c" * 64,
+                "strategy": "degree",
+                "k": 94,
+                "authoritative": True,
+                "target_checkpoint": {
+                    "state_hash": "d" * 64,
+                    "file_sha256": "e" * 64,
+                },
+            },
+        },
+    }
+    items = []
+    for remote in definition["expected_artifact_paths"]:
+        local = sm.local_landing_path(landing, remote)
+        local.parent.mkdir(parents=True, exist_ok=True)
+        name = remote.rsplit("/", 1)[-1]
+        if name in documents:
+            local.write_text(json.dumps(documents[name]), encoding="utf-8")
+        else:
+            local.write_bytes(b"npz")
+        items.append(
+            {
+                "remote_path": remote,
+                "local_path": sm.rel(local),
+                "sha256": sm.sha256_file(local),
+            }
+        )
+    sm.write_artifact_index(
+        {
+            "version": 0,
+            "updated_at": "2026-07-24T00:00:00",
+            "errors": [],
+            "peers": {
+                "gpu4090": {
+                    "node_id": "gpu4090",
+                    "landing": landing,
+                    "remote": {"git": {"sha": "a" * 40}},
+                    "summary": {"status": "verified", "indexed": 4},
+                    "items": items,
+                }
+            },
+        }
+    )
+
+    result = sm.small_selection_gu_acceptance_payload(
+        definition,
+        node_id="gpu4090",
+        expected_git_sha="a" * 40,
+    )
+
+    assert result["passed"] is True
+    assert result["mode"] == "target-direct-gu-acceptance"
+    assert result["target_checkpoint_state_hash"] == "d" * 64
+
+
+def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
+    tmp_path, monkeypatch
+):
+    repo = tmp_path / "repo"
+    sync_dir = repo / ".syncmate"
+    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    definition = sm.runner_recipe_definition(
+        "opengu-target-direct-gu-cora-seed42-v1"
+    )
+    definition["expected_artifact_paths"] = definition[
+        "expected_artifact_paths"
+    ][:8]
+    definition["gu_stage"]["selectors"] = ["degree", "a_grad_norm"]
+    landing = "results/runs/gpu4090-target-direct"
+    items = []
+    for selector in definition["gu_stage"]["selectors"]:
+        parent = (
+            sm.TARGET_DIRECT_GU_OUTPUT_ROOT
+            + "/cora_GCN_r0.05/GNNDelete_"
+            + selector
+            + "/seed42"
+        )
+        documents = {
+            "attack.json": {
+                "results": {selector: {"failed": False, "total_time": 1.0}}
+            },
+            "collateral.json": {
+                "results": [{"strategy": selector, "gap": 0.1}]
+            },
+            "_meta.json": {
+                "git_sha": "a" * 40,
+                "method": "GNNDelete",
+                "strategy": selector,
+                "seed": 42,
+                "config": {"claims": {"parameter_scope": "last_layer"}},
+                "selection_artifact": {
+                    "artifact_id": "selection_" + selector,
+                    "recipe_hash": "b" * 64,
+                    "content_hash": "c" * 64,
+                    "strategy": selector,
+                    "k": 94,
+                    "authoritative": True,
+                    "target_checkpoint": {
+                        "state_hash": "d" * 64,
+                        "file_sha256": "e" * 64,
+                    },
+                },
+            },
+        }
+        for name, document in documents.items():
+            remote = parent + "/" + name
+            local = sm.local_landing_path(landing, remote)
+            local.parent.mkdir(parents=True, exist_ok=True)
+            local.write_text(json.dumps(document), encoding="utf-8")
+            items.append(
+                {
+                    "remote_path": remote,
+                    "local_path": sm.rel(local),
+                    "sha256": sm.sha256_file(local),
+                }
+            )
+        remote = parent + "/predictions.npz"
+        local = sm.local_landing_path(landing, remote)
+        with zipfile.ZipFile(local, "w") as archive:
+            archive.writestr(selector + "__selected_nodes.npy", b"test")
+        items.append(
+            {
+                "remote_path": remote,
+                "local_path": sm.rel(local),
+                "sha256": sm.sha256_file(local),
+            }
+        )
+    sm.write_artifact_index(
+        {
+            "version": 0,
+            "updated_at": "2026-07-24T00:00:00",
+            "errors": [],
+            "peers": {
+                "gpu4090": {
+                    "node_id": "gpu4090",
+                    "landing": landing,
+                    "remote": {"git": {"sha": "a" * 40}},
+                    "summary": {"status": "verified", "indexed": 8},
+                    "items": items,
+                }
+            },
+        }
+    )
+
+    result = sm.small_selection_gu_stage_acceptance_payload(
+        definition,
+        node_id="gpu4090",
+        expected_git_sha="a" * 40,
+    )
+
+    assert result["passed"] is True
+    assert result["mode"] == "target-direct-gu-stage-acceptance"
+    assert result["accepted_cells"] == 2
+    assert {
+        cell["target_checkpoint_state_hash"] for cell in result["cells"]
+    } == {"d" * 64}
