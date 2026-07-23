@@ -1,0 +1,171 @@
+# E8 IF Target-Direct Formal Preflight Audit
+
+Date: 2026-07-24  
+Source of truth: this Markdown file  
+Status: **preparation PASS; formal execution NO-GO**
+
+> [!danger] Verdict
+> The updated target-direct lane is prepared and locally validated, but no formal
+> experiment was started. The active SSH checkout is clean `main@fb0d9a33`, while
+> the preparation commits remain unmerged on
+> `codex/fix-target-direct-formal-orchestration-20260724`. The SSH runner also has
+> no visible GPU, no accepted `gnn_20` interpreter, and none of the three approved
+> 70/10/20 processed profiles. These are hard blockers, not warnings.
+
+## Contract disposition
+
+| Contract item | Prepared behavior | Status |
+|---|---|---|
+| Matrix | Cora/CiteSeer/PubMed × seeds 42/212/2024 × 17 selectors | PASS |
+| Budget | Derive `k = max(1, floor(0.05 × candidate_count))` from each verified profile | PASS |
+| Expected profile checks | Cora 1,895→94; CiteSeer 2,328→116; PubMed 13,801→690 | PASS as preflight expectations; execution still derives them |
+| White-box identity | Selection and downstream GNNDelete bind the same OpenGU GCN architecture and exact checkpoint hashes | PASS |
+| Formal parameter scope | `last_layer` only | PASS |
+| `all_trainable` | Deferred by user; absent from formal config and SyncMate recipes | PASS |
+| Cache identity | Fresh target-direct ScoreBundle and Selection roots; legacy/public/surrogate results are not inputs | PASS |
+| Selection evidence | Cold 17-way batch, per-method timing, shared overhead, warm exact read, peak GPU memory, failure state, checkpoint identity | PASS |
+| Downstream evidence | Attack, collateral, predictions, metadata, exact Selection Artifact and checkpoint provenance | PASS |
+| Formal start | Requires accepted preparation line on clean pinned SSH `main`, GPU, environment, profiles, and SyncMate acceptance | BLOCKED |
+
+## Prepared implementation
+
+The branch adds a frozen target-direct formal configuration and one bounded
+executor. It exposes:
+
+- 9 static Selection recipes, one per dataset/seed cell;
+- 1 formal Cora/seed42/degree GNNDelete gate recipe;
+- 9 static downstream recipes, each bounded to 17 selectors and 68 artifacts;
+- immutable cold/warm/receipt evidence for each Selection stage;
+- collector-side checksum and scientific-identity checks;
+- same-manifest gate expansion: `degree` is first, the gate runs `--limit 1`,
+  and the later Cora/seed42 full stage uses the same config/fingerprint and
+  resumes the accepted degree cell.
+
+Formal roots are isolated under:
+
+- `results/cache_v2/target_direct_formal_v1/{score,selection}`
+- `results/runs/target_direct_formal_v1/{selection,checkpoints,evidence,runtime,gu}`
+
+The manifest builder now permits an approved seed subset for a gate/stage while
+still requiring the exact 17-method set. It rejects any summary whose scope is
+not `last_layer`, whose Git provenance is dirty or different, whose `k` does not
+derive from the verified candidate pool, or whose checkpoint data identity
+differs from the processed profile.
+
+## Git state
+
+| Item | Value |
+|---|---|
+| Preparation branch | `codex/fix-target-direct-formal-orchestration-20260724` |
+| Original audited parent | `main@41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` |
+| Current local/origin/SSH main | `fb0d9a332c4086e98c6c988d6a02851a8d7a2b79` |
+| Implementation commit | `a4db487d95e1de0e1210331fbdbc0b83c1749201` |
+| SyncMate registration commit | `ffb474c` |
+| Deferred-stress correction | `47569f9c96066038abbada24bc0d98d98650723f` |
+| Merge/push performed by this task | No |
+
+`main` advanced while this task was active. A read-only overlap audit found no
+newer-main edits to the target-direct modules, formal config,
+`scripts/syncmate/syncmate.py`, or their tests. That reduces conflict risk but
+does not authorize integration. The preparation line must still be accepted
+through the repository Git workflow before formal work.
+
+## Validation evidence
+
+| Check | Result |
+|---|---|
+| Baseline target/checkpoint/cache/SyncMate suite | 219 passed, 1 warning |
+| Final expanded targeted suite | **230 passed, 1 warning in 9.17 s** |
+| Python compilation | PASS |
+| `git diff --check` | PASS |
+| Local formal Selection preflight | Correctly blocked: feature branch/dirty during development, wrong checkout, missing profile, incompatible RTX 5070 |
+| Canonical GU dry-run entry | Correctly blocked before runner load because real G1/G2 profile, checkpoint, manifest, and Selection evidence do not exist |
+| Formal jobs launched | **0** |
+
+The warning is the existing CuPy CUDA-path probe. The local RTX 5070 is
+incompatible with the pinned PyTorch/CUDA stack and is not accepted for formal
+execution.
+
+## SSH and SyncMate readiness
+
+Latest read-only SSH evidence:
+
+| Check | Observation | Verdict |
+|---|---|---|
+| Git | Clean `main...origin/main` at `fb0d9a33` | PASS |
+| GPU | `nvidia-smi`: `No devices were found` | BLOCK |
+| k5 contention | No GPU exists to contend for; this is not a wait-on-k5 state | BLOCK |
+| Python environment | `/root/miniconda3/envs/gnn_20/bin/python` absent | BLOCK |
+| Raw datasets | Canonical `data/raw/{cora,citeseer,pubmed}` caches present | PASS |
+| Processed profiles | No `planetoid_70_10_20_seed2024` pair/manifest for any dataset | BLOCK |
+| SSH SyncMate runner | `.syncmate/device.yaml` present as runner `gpu4090` | PASS |
+| Local SyncMate collector | Ignored config prepared as `local-gu-controller` with exact peer/path/result roots | PASS |
+| SyncMate transport dry-run | Blocked at missing remote `gnn_20` executable; no files collected | BLOCK |
+
+SyncMate has not submitted a queue job. Its dry-run contacted the peer only for
+status/manifest discovery and returned a fail-closed error for the missing
+interpreter.
+
+## Why `last_layer` is retained without an `all_trainable` run
+
+This is a computational-scope decision, not a claim that last-layer and
+all-parameter influence are scientifically equivalent.
+
+- Koh and Liang's classical deep-learning IF implementation relies on gradients
+  and Hessian-vector products to avoid explicit inverse-Hessian construction.
+  This establishes the core scalability pressure.
+  [ICML 2017 paper](https://proceedings.mlr.press/v70/koh17a.html)
+- TracIn lists “cherry-picking layers of a deep neural network” as one of its
+  explicit scaling mechanisms.
+  [NeurIPS 2020 paper](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html)
+- Yeh et al. state that following influence through all parameters is often
+  computationally infeasible for large models and that methods commonly select
+  the last layer. They also show a cancellation limitation for last-layer
+  influence in language models. The first point supports feasibility; the
+  second prevents overclaiming general equivalence.
+  [NeurIPS 2022 paper](https://proceedings.neurips.cc/paper_files/paper/2022/hash/d07022783ff6f7bf7a288c207b7dcbd1-Abstract-Conference.html)
+- FastIF reports that standard IF cost scales poorly with model/data size and
+  obtains large speedups through candidate restriction and faster IHVP
+  estimation.
+  [EMNLP 2021 paper](https://aclanthology.org/2021.emnlp-main.808/)
+- Scaling Up Influence Functions introduces an Arnoldi inverse-Hessian
+  approximation to reach full-size Transformer models, reinforcing that
+  all-parameter IF requires a separate scalable-method study.
+  [paper](https://arxiv.org/abs/2112.03052)
+
+Therefore the current E8 claim boundary is:
+
+1. formal results describe the reviewed `last_layer` target-direct estimators;
+2. they do not claim equality to an all-parameter IF computation;
+3. `all_trainable` is not configured, scheduled, or required for this matrix;
+4. any future all-parameter study would need a separate cost/approximation
+   contract and fresh Cache V2 identity.
+
+## Exact blockers
+
+1. The three preparation commits are not accepted into current `main`.
+2. The SSH host exposes no GPU device.
+3. The accepted `gnn_20` interpreter is absent.
+4. The approved 70/10/20 OpenGU processed profiles are absent.
+5. Consequently, real target checkpoints, cold/warm Selection receipts,
+   external manifests, and canonical runner dry-run evidence do not exist.
+
+## Approved continuation sequence
+
+After infrastructure is restored and Git integration is explicitly authorized:
+
+1. accept the preparation branch through the recorded parent workflow;
+2. fast-forward the SSH active checkout to the exact accepted full `main` SHA
+   and record it;
+3. stage and verify all three processed profiles before timing;
+4. run the Cora/seed42 Selection recipe and collect/verify its three artifacts;
+5. run the canonical GNNDelete dry-run against that real manifest/checkpoint;
+6. run and accept the Cora/seed42/degree formal gate (4 artifacts);
+7. run the Cora/seed42 17-selector stage using the same manifest/config;
+8. run the remaining eight Selection→GU stages sequentially through SyncMate;
+9. accept every stage only after exact artifact collection, SHA-256 verification,
+   checkpoint/scope checks, and downstream metric parsing.
+
+No step in this sequence may reuse the old public-split, surrogate, fixed-`k=7`,
+or wrong-budget evidence as a formal input.
+
