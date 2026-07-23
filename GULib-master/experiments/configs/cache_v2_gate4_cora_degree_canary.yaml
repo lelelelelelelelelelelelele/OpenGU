@@ -9,8 +9,8 @@ seeds: [42]
 # Dataset and result ownership stay in the experiment layer.  The Cache block
 # contains only the exact Selection store identity and the read-only Legacy
 # invariant root.
-processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
-runtime_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/runtime
+processed_root: data/processed
+runtime_root: results/runs/__syncmate_gate4_runtime__
 run_root: results/runs/__syncmate_gate4__
 
 defaults:
@@ -23,8 +23,8 @@ defaults:
 
 cache_v2:
   mode: selection
-  store_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/store
-  legacy_results_root: /autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4/legacy-empty
+  store_root: results/cache_v2/syncmate_gate4
+  legacy_results_root: results/runs/__syncmate_gate4_legacy_empty__
 
 extra_args:
   - --num_threads

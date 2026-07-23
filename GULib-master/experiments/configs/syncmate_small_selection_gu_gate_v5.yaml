@@ -7,8 +7,8 @@ methods: [GNNDelete]
 strategies: [degree]
 seeds: [42]
 
-processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
-runtime_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/runtime
+processed_root: data/processed
+runtime_root: results/runs/__syncmate_small_selection_gu_v5_runtime__
 run_root: results/runs/__syncmate_small_selection_gu_v5__
 
 selection_k: 7
@@ -37,9 +37,9 @@ model_overrides:
 
 cache_v2:
   mode: external_selection
-  store_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/store
-  manifest_path: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/selection_manifest.json
-  legacy_results_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/legacy-empty
+  store_root: results/cache_v2/syncmate_small_selection_gu_v5
+  manifest_path: results/runs/__syncmate_small_selection_gu_v5_evidence__/selection_manifest.json
+  legacy_results_root: results/runs/__syncmate_small_selection_gu_v5_legacy_empty__
 
 extra_args:
   - --num_threads

@@ -23,13 +23,19 @@ from experiments.gu_target_v1.adapter import (
     materialize_grandfathered_selection,
 )
 from experiments.gu_target_v1.public_profile import PROFILE, verify_public_profile
+from experiments.path_policy import resolve_owned_path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = (
     REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_full_v5.yaml"
 )
-EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v5")
+EVIDENCE_ROOT = (
+    REPO_ROOT
+    / "results"
+    / "runs"
+    / "__syncmate_small_selection_gu_full_v5_evidence__"
+)
 RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_full_v5__"
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
@@ -47,10 +53,7 @@ def _sha256_file(path: Path) -> str:
 
 
 def _repo_path(value: Any) -> Path:
-    path = Path(str(value)).expanduser()
-    if not path.is_absolute():
-        path = REPO_ROOT / path
-    return path.resolve()
+    return resolve_owned_path(REPO_ROOT, value, "GU stage path")
 
 
 def parse_stage(stage: str) -> Tuple[str, int]:
@@ -71,8 +74,10 @@ def _config() -> Dict[str, Any]:
         "strategies": list(SCORE_NAMES),
         "seeds": list(SEEDS),
         "selection_k": 7,
-        "processed_root": "/autodl-fs/data/OpenGU/GULib-master/data/processed",
-        "evidence_root": str(EVIDENCE_ROOT),
+        "processed_root": "data/processed",
+        "evidence_root": (
+            "results/runs/__syncmate_small_selection_gu_full_v5_evidence__"
+        ),
         "run_root": "results/runs/__syncmate_small_selection_gu_full_v5__",
         "selection_experiment_git_sha": "9240b9a7bd61b17b4c841981ec2892fdf100dc4b",
         "benchmark_manifest_sha256": "3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479",
