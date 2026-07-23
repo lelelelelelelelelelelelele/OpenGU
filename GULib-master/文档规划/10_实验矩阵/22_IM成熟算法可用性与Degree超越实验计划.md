@@ -1,9 +1,9 @@
 ---
 title: IM 成熟算法可用性、Score 形态与 Degree 超越实验计划
 created: 2026-07-23
-updated: 2026-07-23
+updated: 2026-07-24
 type: supplementary-experiment-plan
-status: implementation-local-validation-complete
+status: implementation-local-validation-complete-formal-plan-revised
 tags: [influence-maximization, reverse-reachable, score-artifact, degree-baseline, scalability]
 aliases: [IM成熟算法实验, IM Score实验, IM与Degree实验]
 ---
@@ -11,13 +11,14 @@ aliases: [IM成熟算法实验, IM Score实验, IM与Degree实验]
 # IM 成熟算法可用性、Score 形态与 Degree 超越实验计划
 
 > [!IMPORTANT]
-> **状态：本机实现与 dataset-free 最小验证已完成；正式矩阵仍待审批。** 2026-07-23 的授权只覆盖 implementation branch、exact-tiny、单元测试和内存玩具图集成测试。没有连接 SSH，没有读取/运行 Planetoid 或 ogbn-arxiv 矩阵，也没有启动 GU cell。实现证据见 [[23_IM成熟算法本机实现与验收]]。
+> **状态：本机实现与 dataset-free 最小验证已完成；正式矩阵已改为 canonical train candidates 上的 1%/5%，仍待审批。** 2026-07-23 的授权只覆盖 implementation branch、exact-tiny、单元测试和内存玩具图集成测试。没有连接 SSH，没有读取/运行 Cora/CiteSeer/PubMed 或 ogbn-arxiv 矩阵，也没有启动 GU cell。实现证据见 [[23_IM成熟算法本机实现与验收]]。
 
 关联页面：
 
 - [[20_IF目标层级对比实验计划]]：可复用的“reference / proxy / downstream outcome”文档结构；
 - [[21_C目标TracIn与GIF近似有效性实验计划]]：selection fidelity 与真实集合效果分开验收的范例；
 - [[12_近似策略重合度实验]]：当前 IM/IF proxy-validity 总入口；
+- [Appendix A.7](../../report/paper/outline/A7_approximation_validity.md)：本计划对应的论文证据合同；
 - [现代 IM 算法调研](../../reports/im_modern_algorithms_SURVEY_REPORT.md)：算法保证、纠偏文献与 OpenGU 适配背景；
 - [历史大图 IM materializer 验收](../../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md)：ogbn-arxiv cold `13,583.91 s` 的时间锚点；
 - [小图 17-output 实测](../../reports/small_graph_selection_BENCHMARK_REPORT.md)：IF 线小图 cold/warm 工程参照。
@@ -260,21 +261,24 @@ IMM 的证明纠偏见 [Chen 2018](https://arxiv.org/abs/1808.09363)；OPIM-C �
 
 任何公式/证书 gate 失败，停止后续矩阵并修复；失败结果只作诊断。
 
-## 6. Phase S：三数据集小图主矩阵
+## 6. Phase S：三数据集 canonical 小图主矩阵
 
 ### 6.1 配置
 
 | 轴 | 值 |
 |---|---|
-| Datasets | Cora、CiteSeer、PubMed public Planetoid |
-| Candidates | public `train_mask`：140 / 120 / 60 |
+| Datasets | Cora、CiteSeer、PubMed canonical OpenGU transductive 80/0/20 |
+| Candidates | 完整 persisted train candidates；预期 2,166 / 2,661 / 15,773，正式值由 manifest 冻结 |
 | Selector seeds | 42、212、2024 |
-| Budgets | $k=3,7,14$ |
-| Methods | 9 个，见 §3 |
-| Contexts | $3\times3\times3=27$ |
-| Method-budget result rows | $27\times9=243$ |
+| Ratios | 1% / 5% of candidate count，向下取整且至少 1 |
+| Expected $k$ | Cora 21/108；CiteSeer 26/133；PubMed 157/788 |
+| Main methods | degree、random、corrected IMM、OPIM-C、RR-SNI、RR-Shapley、RR-$k$-semivalue |
+| Contexts | $3\ datasets\times3\ seeds\times2\ ratios=18$ |
+| Method-budget result rows | $18\times7=126$ |
 
-每个 graph/seed 只生成一次共享 RR score bundle，供 SNI/Shapley 使用；$k$-semivalue 从同一 RR bundle 按三个 budget 派生。IMM、OPIM-C 保持各自正式抽样与 certificate 语义，不为了省时间强制共享不允许共享的随机样本。
+每个 graph/seed 只生成一次共享 RR score bundle，供 SNI/Shapley 使用；$k$-semivalue 从同一 RR bundle按 1%/5% 两个 budget 派生。IMM、OPIM-C 保持各自正式抽样与 certificate 语义，不为了省时间强制共享不允许共享的随机样本。
+
+current Batch-CELF 与 strict CELF 不进入 126 行主矩阵。它们只保留为明确标注的 feasibility diagnostics：最多运行 Cora/seed42/1%，用于解释旧实现与成熟 RR 方法的时间差；诊断结果不参加 degree promotion。
 
 ### 6.2 小图输出
 
@@ -297,7 +301,7 @@ IMM 的证明纠偏见 [Chen 2018](https://arxiv.org/abs/1808.09363)；OPIM-C �
 | warm exact read | 每 cell $\le1$ s |
 | Peak RSS | $\le4$ GiB |
 
-IF 线现有 17-output cold mean/max 为 `6.80/9.16 s`，只作工程参照，不作为 IM pass/fail 的直接数值来源。
+IF 线现有 public-split 17-output cold mean/max 为 `6.80/9.16 s`，只在历史记录中作工程背景，不作为 IM pass/fail 的直接数值来源，也不与 canonical 126 行矩阵并表。
 
 ## 7. Phase L：ogbn-arxiv 大图 Gate
 
@@ -308,12 +312,12 @@ IF 线现有 17-output cold mean/max 为 `6.80/9.16 s`，只作工程参照，�
 | Dataset | canonical OpenGU ogbn-arxiv processed graph/split |
 | Candidates | 运行时从 canonical processed train candidates 解析并记录数量/指纹 |
 | Selector seeds | 42、212、2024 |
-| Budgets | $0.1\%,0.5\%,1.0\%\times |C|$，向下取整且至少 1 |
+| Budgets | $1\%,5\%\times |C|$，向下取整且至少 1 |
 | Methods | degree、corrected IMM、OPIM-C、RR-SNI、RR-Shapley、RR-$k$-semivalue |
-| Result rows | $3\times3\times6=54$ |
+| Result rows | $3\ seeds\times2\ ratios\times6\ methods=36$ |
 | Candidate pruning | 禁止；`candidate_fraction=1.0` |
 
-current CELF 不重新进入 54 行大图矩阵。已接受的历史 materializer 在 degree-pruned 10%、50 MC 下 cold `13,583.91 s`，作为 legacy time anchor；其 selected set 不能与新 full-candidate 方法作公平 quality 对比。
+current CELF 不重新进入 36 行大图矩阵。已接受的历史 materializer 在 degree-pruned 10%、50 MC 下 cold `13,583.91 s`，只作为 legacy time anchor；其 selected set 不能与新 full-candidate 方法作公平 quality 对比。
 
 ### 7.2 大图时间与资源 Gate
 
@@ -326,7 +330,7 @@ current CELF 不重新进入 54 行大图矩阵。已接受的历史 materialize
 | Peak RSS | $\le16$ GiB |
 | 相对历史 CELF | 至少 $20\times$ cold speedup，或以更紧 certificate 提供明确补偿 |
 
-首个 seed42、$k=0.1\%|C|$ 是注册 canary。任一主方法超过 600 s、RSS 超过 16 GiB、RR incidences 超过可用磁盘/内存预算，立即停止该方法扩展并记录原因，不静默改成 degree-pruned candidates。
+首个 seed42、$k=1\%|C|$ 是注册 canary。任一主方法超过 600 s、RSS 超过 16 GiB、RR incidences 超过可用磁盘/内存预算，立即停止该方法扩展并记录原因，不静默改成 degree-pruned candidates。
 
 ### 7.3 运行环境
 
@@ -371,7 +375,7 @@ $$
 
 某方法成为 GU canary candidate，需满足：
 
-1. ogbn-arxiv 至少 2/3 budgets 的 spread ratio vs degree $\ge1.02$；
+1. ogbn-arxiv 两个 budgets 的 spread ratio vs degree 均 $\ge1.02$；
 2. paired 95% CI lower bound $>0$；
 3. 无 budget 低于 degree 超过 1%；
 4. 满足 §7.2 时间/RSS gate。
@@ -509,7 +513,7 @@ formal 矩阵中若发现代码缺陷，停止矩阵；从 pinned main 建 fix b
 | RR core + score reducers | 1–2 天 | directed/candidate semantics |
 | corrected IMM + OPIM-C | 2–4 天 | sample-size/certificate 复现 |
 | exact-tiny gate | 0.5–1 天 | exact enumeration 成本 |
-| 三数据集 Phase S | 0.5–1 CPU 日 | strict/current CELF 长尾 |
+| 三数据集 Phase S | 0.5–1 CPU 日 | PubMed RR incidence / certificate 长尾 |
 | ogbn-arxiv Phase L | 0.5–1 CPU 日 | RR incidences / RSS |
 | GU canary | 视服务器，36 cells | GPU 与 retrain 成本 |
 | 聚合与双格式结果报告 | 0.5–1 天 | 证据/口径漂移 |
@@ -533,7 +537,7 @@ formal 矩阵中若发现代码缺陷，停止矩阵；从 pinned main 建 fix b
 
 ### 审批 A-formal：Phase S / Phase L（仍待批准）
 
-Planetoid 243 rows 与 ogbn-arxiv 54 rows 的正式执行不在 A-local 授权内。只有用户验收实现、实现线按 Git workflow 接受进入 `main`、SSH active checkout 为 clean `main` 且再次给出执行授权后，才可启动注册矩阵。
+canonical 小图 126 rows 与 ogbn-arxiv 36 rows 的正式执行不在 A-local 授权内。只有用户验收实现、实现线按 Git workflow 接受进入 `main`、canonical runner 与注册 plan 对 1%/5% fail-closed 一致、SSH active checkout 为 clean `main` 且再次给出执行授权后，才可启动注册矩阵。
 
 ### 审批 B：条件式 GU canary
 

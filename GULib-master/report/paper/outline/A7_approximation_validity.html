@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>A.7 Modern IM 与 Trajectory Influence 近似有效性</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\(', '\)']],
+        displayMath: [['$$', '$$'], ['\[', '\]']]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / APPENDIX A.7</div>
+    <div class="side-title">A.7 Modern IM 与 Trajectory Influence 近似有效性</div>
+    <span class="badge">PRE-REGISTERED · NOT RUN</span>
+    <nav><a class="" href="#purpose">Purpose</a>
+<a class="" href="#evidence-already-retained">Evidence already retained</a>
+<a class="sub" href="#historical-im-coverage-observation">Historical IM coverage observation</a>
+<a class="sub" href="#historical-trajectory-diagnostic">Historical trajectory diagnostic</a>
+<a class="" href="#new-a-7-experiment-contract">New A.7 experiment contract</a>
+<a class="sub" href="#a-7a-modern-im-selector-validity">A.7a Modern IM selector validity</a>
+<a class="sub" href="#a-7a-large-graph-runtime-and-quality-gate">A.7a Large-graph runtime and quality gate</a>
+<a class="sub" href="#a-7b-target-direct-trajectory-validity">A.7b Target-direct trajectory validity</a>
+<a class="sub" href="#conditional-gu-test-for-modern-im">Conditional GU test for modern IM</a>
+<a class="" href="#historical-boundary">Historical boundary</a>
+<a class="" href="#writing-constraints">Writing constraints</a>
+<a class="" href="#status">Status</a></nav>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">CANONICAL 1% / 5% · DEGREE COMPARISON</div>
+      <h1>A.7 Modern IM 与 Trajectory Influence 近似有效性</h1>
+    </section>
+    <article><h1 id="a-7-approximation-validity-of-modern-im-and-trajectory-influence-proxies">A.7 Approximation Validity of Modern IM and Trajectory Influence Proxies</h1>
+<h2 id="purpose">Purpose</h2>
+<p>Test whether two selector families retain the signals they claim to represent
+under budgets that can be transferred to graph unlearning:</p>
+<ul>
+<li>modern IM: whether a method is computationally usable, what form of score or
+certificate it returns, and whether its selected set improves independent IC
+spread over degree;</li>
+<li>trajectory influence: whether an evaluation-conditioned multi-checkpoint
+score remains aligned with its reference and produces a stronger
+target-direct GU outcome than degree.</li>
+</ul>
+<p>This section complements A.6. A.6 defines the A/B--C--D influence taxonomy and
+compares selector groups. A.7 evaluates approximation validity, runtime, score
+semantics, and the boundary between selector fidelity and downstream GU damage.</p>
+<h2 id="evidence-already-retained">Evidence already retained</h2>
+<h3 id="historical-im-coverage-observation">Historical IM coverage observation</h3>
+<ul>
+<li>Source: <code>../../../self/related_work/concordance/data/summary.json</code>.</li>
+<li>Datasets: Cora, CiteSeer, PubMed, Photo, Computers, and CS.</li>
+<li>Metric: top-set Jaccard between the deployed IM selector and degree at the
+recorded 5% candidate budget.</li>
+<li>Scope: one deterministic selector configuration per dataset; no independent
+spread evaluation and no GU outcome.</li>
+</ul>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Cora</th>
+  <th style="text-align:right">CiteSeer</th>
+  <th style="text-align:right">PubMed</th>
+  <th style="text-align:right">Photo</th>
+  <th style="text-align:right">Computers</th>
+  <th style="text-align:right">CS</th>
+  <th style="text-align:right">Mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>IM vs degree Jaccard</td>
+  <td style="text-align:right">0.187</td>
+  <td style="text-align:right">0.177</td>
+  <td style="text-align:right">0.061</td>
+  <td style="text-align:right">0.046</td>
+  <td style="text-align:right">0.030</td>
+  <td style="text-align:right">0.032</td>
+  <td style="text-align:right">0.089</td>
+</tr>
+</tbody>
+</table>
+<p>This retained evidence only shows that the deployed IM set differs from degree.
+It does not show that IM is better than degree. The new experiment below must
+test that claim using independent spread and, conditionally, GU retrain gap.</p>
+<h3 id="historical-trajectory-diagnostic">Historical trajectory diagnostic</h3>
+<ul>
+<li>Source: <code>../../../docs/tracin_v2_gates_ACCEPTANCE_REPORT.md</code>.</li>
+<li>Matrix: Cora/CiteSeer/PubMed x GCN/GAT x seeds 2024/7/42.</li>
+<li>Primary retained metric: full-ranking Spearman against the eval-IF reference.</li>
+<li>Scope: isolated selector prototype; not a target-direct GU result.</li>
+</ul>
+<table>
+<thead>
+<tr>
+  <th>Configuration</th>
+  <th style="text-align:right">V2 vs eval-IF Spearman</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora / GCN</td>
+  <td style="text-align:right">0.877</td>
+</tr>
+<tr>
+  <td>CiteSeer / GCN</td>
+  <td style="text-align:right">0.950</td>
+</tr>
+<tr>
+  <td>PubMed / GCN</td>
+  <td style="text-align:right">0.908</td>
+</tr>
+<tr>
+  <td>Cora / GAT</td>
+  <td style="text-align:right">0.825</td>
+</tr>
+<tr>
+  <td>CiteSeer / GAT</td>
+  <td style="text-align:right">0.962</td>
+</tr>
+<tr>
+  <td>PubMed / GAT</td>
+  <td style="text-align:right">0.762</td>
+</tr>
+</tbody>
+</table>
+<p>The configuration means span <code>0.762--0.962</code>; PubMed/GAT remains the explicit
+boundary against a universal proxy-equivalence claim. Historical fixed-$k$
+overlap fields remain traceable in the source report, but they are not a budget
+for the new A.7 experiment.</p>
+<h2 id="new-a-7-experiment-contract">New A.7 experiment contract</h2>
+<p>The detailed modern-IM matrix and approval gates are maintained in
+<a href="../../../%E6%96%87%E6%A1%A3%E8%A7%84%E5%88%92/10_%E5%AE%9E%E9%AA%8C%E7%9F%A9%E9%98%B5/22_IM%E6%88%90%E7%86%9F%E7%AE%97%E6%B3%95%E5%8F%AF%E7%94%A8%E6%80%A7%E4%B8%8EDegree%E8%B6%85%E8%B6%8A%E5%AE%9E%E9%AA%8C%E8%AE%A1%E5%88%92.md"><code>22_IM成熟算法可用性与Degree超越实验计划.md</code></a>.</p>
+<h3 id="a-7a-modern-im-selector-validity">A.7a Modern IM selector validity</h3>
+<table>
+<thead>
+<tr>
+  <th>Axis</th>
+  <th>Pre-registered value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Datasets</td>
+  <td>Cora, CiteSeer, PubMed</td>
+</tr>
+<tr>
+  <td>Data profile</td>
+  <td>canonical OpenGU transductive 80/0/20 processed split</td>
+</tr>
+<tr>
+  <td>Candidate ground set</td>
+  <td>complete persisted train candidates</td>
+</tr>
+<tr>
+  <td>Ratios</td>
+  <td>1% and 5% of candidate count</td>
+</tr>
+<tr>
+  <td>Selector seeds</td>
+  <td>42, 212, 2024</td>
+</tr>
+<tr>
+  <td>Primary methods</td>
+  <td>degree, random, corrected IMM, OPIM-C, RR-SNI, RR-Shapley, RR-$k$-semivalue</td>
+</tr>
+<tr>
+  <td>Candidate pruning</td>
+  <td>none</td>
+</tr>
+<tr>
+  <td>Primary evaluator</td>
+  <td>selector-independent common-random RR/live-edge samples</td>
+</tr>
+</tbody>
+</table>
+<p>This is a <code>3 datasets x 3 seeds x 2 ratios x 7 methods = 126</code> row
+selection matrix.</p>
+<p>Expected counts from the current canonical split contract are:</p>
+<table>
+<thead>
+<tr>
+  <th>Dataset</th>
+  <th style="text-align:right">Expected train candidates</th>
+  <th style="text-align:right">$k$ at 1%</th>
+  <th style="text-align:right">$k$ at 5%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Cora</td>
+  <td style="text-align:right">2,166</td>
+  <td style="text-align:right">21</td>
+  <td style="text-align:right">108</td>
+</tr>
+<tr>
+  <td>CiteSeer</td>
+  <td style="text-align:right">2,661</td>
+  <td style="text-align:right">26</td>
+  <td style="text-align:right">133</td>
+</tr>
+<tr>
+  <td>PubMed</td>
+  <td style="text-align:right">15,773</td>
+  <td style="text-align:right">157</td>
+  <td style="text-align:right">788</td>
+</tr>
+</tbody>
+</table>
+<p>The formal manifest, rather than this table, is the final authority for
+candidate counts and $k$. It must record the resolved canonical path, split and
+candidate fingerprints, exact ratio, rounding rule, and full Git provenance.</p>
+<p>The experiment reports four separate outputs:</p>
+<ol>
+<li>cold/warm time, peak RSS, RR count, and RR incidence scale;</li>
+<li>guarantee status: paper-equivalent guarantee, conservative certificate,
+empirical confidence interval, or no guarantee;</li>
+<li>score form: full static score, budget-conditioned full score, dynamic
+residual trace, or selection only;</li>
+<li>degree comparison: independent spread difference/ratio with paired 95% CI,
+plus Jaccard and rank correlation only as interpretation metrics.</li>
+</ol>
+<p>No method is promoted because it merely has low overlap with degree. Promotion
+requires an independent spread ratio of at least <code>1.02</code>, a positive paired 95%
+CI lower bound on at least two of the three small datasets, no loss larger than
+1% on the remaining dataset, and passage of the registered time/RSS gate.</p>
+<h3 id="a-7a-large-graph-runtime-and-quality-gate">A.7a Large-graph runtime and quality gate</h3>
+<p>Only methods that pass the small-graph gate proceed to the canonical
+ogbn-arxiv processed graph. The registered matrix uses the complete persisted
+train candidates, ratios 1% and 5%, seeds 42/212/2024, and six methods:
+degree, corrected IMM, OPIM-C, RR-SNI, RR-Shapley, and
+RR-$k$-semivalue. This is <code>3 seeds x 2 ratios x 6 methods = 36</code> rows.</p>
+<p>The first canary is seed 42 at 1%. A method stops expansion if its cold runtime
+exceeds 600 seconds, peak RSS exceeds 16 GiB, or its RR incidence structure
+exceeds the registered resource limit. Candidate pruning is not an allowed
+fallback. Promotion requires beating degree at both ratios with positive paired
+confidence bounds while satisfying the time and memory gates.</p>
+<h3 id="a-7b-target-direct-trajectory-validity">A.7b Target-direct trajectory validity</h3>
+<p>The
+<a href="../../../reports/target_direct_selection_PREPARATION_REPORT.md">target-direct preparation audit</a>
+shows that the previous 153-cell matrix cannot be used as A.7 evidence: its
+directory/configuration said 5%, while its external Selection Artifact fixed
+every cell to $k=7$, and the selector and GU target did not share the same
+checkpoint state.</p>
+<p>The corrected first-round contract is:</p>
+<ul>
+<li>source: canonical checkout-local Planetoid data;</li>
+<li>split: fixed 70/10/20 so the selection target is a validation-mask objective
+disjoint from both train candidates and final test evaluation;</li>
+<li>budget: 5% of train candidates, with one fail-closed <code>expected_k</code> shared by
+selection and GU;</li>
+<li>identity: the ScoreBundle, Selection Artifact, and GNNDelete target all bind
+the same checkpoint file hash and state hash;</li>
+<li>comparisons: degree and random, reported per dataset and seed;</li>
+<li>outcomes: target F1 drop, absolute retrain gap, collateral effect,
+update-detection AUC, runtime, memory, and failure status.</li>
+</ul>
+<p>This trajectory lane starts at 5% because it is a GPU GU matrix. A 1% extension
+is a separate ratio-sensitivity decision after the 5% gate; it must not be
+silently mixed into the first result identity.</p>
+<h3 id="conditional-gu-test-for-modern-im">Conditional GU test for modern IM</h3>
+<p>Only a modern-IM method that passes A.7a may enter a GU canary. The first canary
+uses Cora/CiteSeer, GCN, GIF/GNNDelete, seeds 42/212/2024, and a 5% canonical
+train-candidate budget. Degree remains the primary comparator and random the
+negative control. A second IM winner or a 1% GU ratio requires a new approval.</p>
+<h2 id="historical-boundary">Historical boundary</h2>
+<p>The public Planetoid selector studies remain recoverable as mechanism
+diagnostics. Their small fixed budgets are not part of the new A.7 matrix and
+are not used to justify a GU claim.</p>
+<h2 id="writing-constraints">Writing constraints</h2>
+<ul>
+<li>Say “historical IM differs from degree at the set level,” until the new
+independent-spread comparison is available.</li>
+<li>Say “a modern IM method exceeds degree” only if the pre-registered paired
+spread gate passes; use GU retrain gap for the downstream attack claim.</li>
+<li>Keep full static scores, budget-conditioned scores, dynamic residual traces,
+and set-level approximation guarantees as separate output types.</li>
+<li>Say “the historical trajectory prototype is aligned with eval-IF,” not
+“production TracIn is accepted.”</li>
+<li>Do not use selector overlap as a substitute for spread, GU damage, retrain
+gap, or statistical significance.</li>
+<li>Keep the invalid fixed-$k=7$ target-direct matrix out of all new A.7 result
+tables.</li>
+</ul>
+<h2 id="status">Status</h2>
+<p>The historical IM set-overlap observation and trajectory ranking diagnostic
+remain retained with limited scope. The new canonical 1%/5% modern-IM matrix
+and corrected 5% target-direct trajectory matrix are pre-registered but have
+not been run. Formal execution remains subject to a separate experiment
+approval.</p>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
+</body>
+</html>

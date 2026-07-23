@@ -1,7 +1,7 @@
 {
   "schema": "im_score_benchmark.registered_plan",
-  "version": 1,
-  "status": "implementation_local_validation_only",
+  "version": 2,
+  "status": "implementation_local_validation_complete_formal_plan_revised",
   "formal_execution_authorized": false,
   "diffusion": {
     "model": "independent_cascade",
@@ -12,25 +12,32 @@
   },
   "small": {
     "datasets": ["Cora", "CiteSeer", "PubMed"],
+    "profile": "opengu_canonical_processed_transductive_80_20",
+    "candidate_ground_set": "complete_persisted_train_candidates",
     "selector_seeds": [42, 212, 2024],
-    "budgets": [3, 7, 14],
+    "budget_ratios": [0.01, 0.05],
+    "budget_rounding": "max_1_floor_ratio_times_candidate_count",
     "methods": [
       "random",
       "degree",
-      "im_batch_celf_current",
-      "im_celf_strict",
       "corrected_imm",
       "opimc",
       "rr_sni",
       "rr_shapley",
       "rr_ksemivalue"
     ],
-    "registered_rows": 243
+    "diagnostic_only_methods": [
+      "im_batch_celf_current",
+      "im_celf_strict"
+    ],
+    "registered_rows": 126
   },
   "large": {
     "dataset": "ogbn-arxiv",
+    "profile": "opengu_canonical_processed_transductive_80_20",
+    "candidate_ground_set": "complete_persisted_train_candidates",
     "selector_seeds": [42, 212, 2024],
-    "budget_ratios": [0.001, 0.005, 0.01],
+    "budget_ratios": [0.01, 0.05],
     "methods": [
       "degree",
       "corrected_imm",
@@ -39,7 +46,7 @@
       "rr_shapley",
       "rr_ksemivalue"
     ],
-    "registered_rows": 54
+    "registered_rows": 36
   },
   "theory": {
     "epsilon": 0.1,

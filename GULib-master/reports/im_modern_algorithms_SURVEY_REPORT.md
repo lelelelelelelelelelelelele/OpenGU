@@ -1,6 +1,6 @@
 ---
 title: 现代 Influence Maximization 算法调研与 OpenGU 实验计划
-date: 2026-07-23
+date: 2026-07-24
 status: research-plan
 scope: static-IC-cardinality-IM
 datasets: [Cora, CiteSeer, PubMed]
@@ -211,56 +211,58 @@ RR roots 必须从全体目标节点域采样；maximum coverage 选种子时才
 - same recipe + same seed 的 selected order、certificate 和 sample hashes 可复现；
 - recipe 任一语义字段变化都产生 cache miss。
 
-### Phase 2：三数据集 selector-validity bridge
+### Phase 2：三数据集 canonical selector-validity
 
-先复用 IF 近似研究的 public Planetoid 口径，便于直接比较选择层现象；该层不是正式 GU 数据替代品。
+直接使用 active checkout 内 canonical `data/processed/transductive/` 80/0/20 split。public Planetoid 固定小候选集不再作为新实验的 bridge；旧结果只在原报告中作为机制诊断留档。
 
 | Dimension | Values |
 |---|---|
 | Datasets | Cora / CiteSeer / PubMed |
-| Candidate counts | 140 / 120 / 60 |
-| Budgets | $k\in\{3,7,14\}$ |
+| Candidate pool | complete persisted OpenGU train candidates |
+| Expected candidate counts | 2,166 / 2,661 / 15,773；正式值由 manifest 冻结 |
+| Ratios | 0.01 / 0.05 |
+| Expected $k$ | Cora 21/108；CiteSeer 26/133；PubMed 157/788 |
 | Selector/RR seeds | 42 / 212 / 2024 |
 | Primary $p$ | 0.1 |
 | Primary guarantee | $\epsilon=0.1,\ \delta=0.01$ |
-| Main algorithms | strict CELF / current Batch-CELF / corrected IMM / OPIM-C |
-| Optional anchor | TipTop on Cora/CiteSeer, $k\le7$ |
+| Main algorithms | degree / random / corrected IMM / OPIM-C / RR-SNI / RR-Shapley / RR-$k$-semivalue |
+| Diagnostic anchors | current Batch-CELF / strict CELF 仅限 Cora、seed42、1% feasibility |
 
-主矩阵为 $3\times3\times3\times4=108$ 个逻辑 selection cells。可以复用 RR batches 或 max-$k$ sequence 降低计算，但每个 budget 的证书必须单独报告。
+主矩阵为 $3\ datasets\times3\ seeds\times2\ ratios\times7\ methods=126$ 行。可以复用 RR batches 降低计算，但每个 budget 的 certificate 必须单独报告。旧 CELF 诊断不进入 promotion 统计。
 
 补充两组单 seed sensitivity：
 
 - $\epsilon\in\{0.20,0.10,0.05\}$，验证时间/样本与质量曲线；
 - $p\in\{0.05,0.10,0.20\}$，观察 subcritical/high-influence 转换和 RR-size 膨胀。
 
-### Phase 3：canonical OpenGU 转移
+### Phase 3：ogbn-arxiv 大图 Gate
 
-Phase 2 通过后，使用 active checkout 内 canonical `data/processed/transductive/` 80/20 split，禁止下载、临时预处理或外部数据根。
+Phase 2 通过后，使用 active checkout 内 canonical ogbn-arxiv processed graph/split，禁止下载、临时预处理、外部数据根或 degree candidate pruning。
 
 | Dimension | Values |
 |---|---|
-| Datasets | Cora / CiteSeer / PubMed |
+| Dataset | ogbn-arxiv |
 | Candidate pool | persisted OpenGU train mask |
-| Ratios | 0.01 / 0.05 / 0.10 |
+| Ratios | 0.01 / 0.05 |
 | Selector seeds | 42 / 212 / 2024 |
-| Algorithms | current Batch-CELF / corrected IMM / OPIM-C |
-| Reference | strict CELF 仅在 feasibility 允许的 cells |
+| Algorithms | degree / corrected IMM / OPIM-C / RR-SNI / RR-Shapley / RR-$k$-semivalue |
+| Rows | $3\ seeds\times2\ ratios\times6\ methods=36$ |
 
-这一层回答算法是否能从 public selector benchmark 转移到真正 GU candidate contract。任何正式矩阵必须等代码线完整合入 `main` 后，在 clean SSH active checkout 上固定 full `main` SHA 运行。
+这一层回答成熟 IM 在完整大图候选域上是否仍能满足时间、RSS、certificate 和 independent-spread gate。任何正式矩阵必须等代码线完整合入 `main` 后，在 clean SSH active checkout 上固定 full `main` SHA 运行。
 
 ### Phase 4：GU downstream canary
 
 只把三种有解释意义的删除集送入 GU：
 
-- current Batch-CELF；
-- OPIM-C；
-- strict/high-fidelity reference，或 corrected IMM（视 Phase 2 fidelity 决定）。
+- degree；
+- random；
+- Phase 2/3 通过 spread promotion 的最佳一个现代 IM 方法。
 
 首个 canary：Cora + CiteSeer、ratio 0.05、GIF + GNNDelete、3 GU seeds，共 $2\times2\times3\times3=36$ cells。主指标为 retrain gap，辅指标为 relative F1 drop、collateral 和 update-detection AUC。
 
 扩展条件：
 
-- 若 OPIM-C 与 current IM 的 retrain gap 差异达到至少 1 percentage point，或改变方法脆弱性排序，则扩 PubMed 和一个稳健方法；
+- 若 IM winner 相对 degree 的 paired retrain-gap gain 达到至少 1 percentage point，或改变方法脆弱性排序，则扩 PubMed 和一个稳健方法；
 - 若 IC spread 明显提升但 GU outcome 不变/变弱，不继续调参追求“更好看”，而报告 objective mismatch；
 - 若 selector 层没有可测差异，则停止 GU 扩矩阵。
 

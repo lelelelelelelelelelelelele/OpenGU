@@ -2,64 +2,29 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>IM 成熟算法本机实现与验收</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\(', '\)']],
+        displayMath: [['$$', '$$'], ['\[', '\]']]
+      }
+    };
+  </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    :root {
-      color-scheme: dark; --bg:#07111f; --panel:#0d1b2d; --text:#e8eef6;
-      --muted:#9eb0c7; --line:#29415e; --accent:#55d6be; --accent-2:#78a9ff;
-      --warn:#ffcc66; --max:1120px;
-    }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; background:radial-gradient(circle at 15% 0%,#102846 0,var(--bg) 34rem); color:var(--text); font:16px/1.72 Inter,"Segoe UI","Microsoft YaHei",sans-serif; }
-    a { color:var(--accent-2); text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .layout { display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1480px; margin:auto; }
-    nav { position:sticky; top:0; height:100vh; overflow:auto; padding:32px 24px; border-right:1px solid var(--line); background:rgba(7,17,31,.86); }
-    nav strong { display:block; margin-bottom:16px; color:var(--accent); letter-spacing:.08em; }
-    nav a { display:block; padding:5px 0; color:var(--muted); font-size:14px; }
-    nav a.sub { padding-left:14px; font-size:13px; }
-    main { width:min(var(--max),100%); padding:54px 62px 96px; }
-    h1 { font-size:clamp(2rem,4vw,3.4rem); line-height:1.12; margin:0 0 36px; max-width:900px; }
-    h2 { margin:64px 0 22px; padding-bottom:10px; border-bottom:1px solid var(--line); font-size:1.65rem; }
-    h3 { margin:38px 0 14px; font-size:1.23rem; color:#d4e4f7; }
-    h4 { margin-top:28px; }
-    p,li { color:#d6e1ee; }
-    strong { color:#f6fbff; }
-    code { background:#142a42; color:#b9f5e9; padding:.12em .38em; border-radius:5px; }
-    pre { overflow:auto; padding:18px; border:1px solid var(--line); background:#091727; border-radius:10px; }
-    pre code { padding:0; background:none; }
-    .math-display { overflow-x:auto; margin:20px 0; padding:12px 16px; text-align:center; color:#f2f7fc; }
-    .math-inline { white-space:nowrap; }
-    table { width:100%; border-collapse:collapse; margin:22px 0 34px; font-size:14px; }
-    th,td { padding:11px 12px; border:1px solid var(--line); vertical-align:top; }
-    th { background:#142a42; color:#f2f7fc; text-align:left; }
-    tr:nth-child(even) td { background:rgba(18,36,58,.42); }
-    blockquote,.callout { margin:24px 0; padding:18px 20px; border-left:4px solid var(--accent); background:linear-gradient(90deg,rgba(85,214,190,.13),rgba(18,36,58,.72)); border-radius:8px; }
-    blockquote p,.callout p { margin:0; }
-    .callout-label { color:var(--accent); font-weight:700; margin-bottom:6px; }
-    .warning { border-left-color:var(--warn); }
-    .warning .callout-label { color:var(--warn); }
-    hr { border:0; border-top:1px solid var(--line); margin:52px 0; }
-    .meta { color:var(--muted); margin:-20px 0 42px; }
-    @media (max-width:920px) {
-      .layout { display:block; }
-      nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); }
-      nav a.sub { display:none; }
-      main { padding:38px 22px 72px; }
-      table { display:block; overflow-x:auto; }
-    }
-    @media print {
-      nav { display:none; } .layout { display:block; } main { width:100%; max-width:none; padding:0; }
-      body { background:white; color:#111; } p,li,h1,h2,h3,strong { color:#111; } a { color:#174ea6; }
-    }
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--red:#ff8d86;--code:#081726}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}aside{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(7,17,31,.97);overflow:auto}main{width:min(1240px,100%);padding:42px 54px 80px}.brand{font-size:11px;letter-spacing:.15em;color:var(--cyan);font-weight:800}.side-title{font-size:20px;line-height:1.35;margin:10px 0}.badge{display:inline-block;padding:4px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}nav{margin-top:24px}nav a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}nav a.sub{padding-left:12px;font-size:12px}nav a:hover{color:var(--cyan)}.hero{padding:28px 34px;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(20,37,60,.97),rgba(9,23,40,.97));box-shadow:0 20px 60px rgba(0,0,0,.25)}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0 6px}article>h1:first-child{display:none}h2{font-size:24px;margin:43px 0 15px;padding-bottom:9px;border-bottom:1px solid var(--line)}h3{font-size:18px;color:#d5eaff;margin:27px 0 9px}h4{font-size:15px;color:var(--cyan);margin-top:22px}p,li{max-width:1020px}a{color:#81d9ff}strong{color:#fff}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}blockquote{margin:18px 0;padding:13px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}table{width:100%;border-collapse:collapse;margin:17px 0 28px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}tr:nth-child(even) td{background:rgba(20,37,60,.43)}hr{border:0;border-top:1px solid var(--line);margin:38px 0}.source{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:950px){.layout{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:none}main{padding:28px 20px}.hero h1{font-size:27px}table{display:block;overflow:auto}}
   </style>
 </head>
 <body>
-  <div class="layout">
-    <nav><strong>IM LOCAL ACCEPTANCE</strong><a class="" href="#0-验收结论">0. 验收结论</a>
+<div class="layout">
+  <aside>
+    <div class="brand">OPENGU / MODERN IM</div>
+    <div class="side-title">IM 成熟算法本机实现与验收</div>
+    <span class="badge">LOCAL PASS · FORMAL NOT RUN</span>
+    <nav><a class="" href="#0-验收结论">0. 验收结论</a>
 <a class="" href="#1-实现范围">1. 实现范围</a>
 <a class="sub" href="#1-1-核心图与-rr-层">1.1 核心图与 RR 层</a>
 <a class="sub" href="#1-2-全量-score-层">1.2 全量 Score 层</a>
@@ -74,13 +39,20 @@
 <a class="" href="#5-明日验收建议">5. 明日验收建议</a>
 <a class="" href="#6-已知缺口">6. 已知缺口</a>
 <a class="" href="#7-一句话记忆">7. 一句话记忆</a></nav>
-    <main>
-      <div class="meta">OpenGU · Local-only acceptance · 2026-07-23</div>
+  </aside>
+  <main>
+    <section class="hero">
+      <div class="kicker">25 TESTS · REGISTERED PLAN V2</div>
       <h1>IM 成熟算法本机实现与验收</h1>
-<aside class="callout important"><div class="callout-label">关键结论</div><div><strong>本机实现已完成，24 项定向测试全部通过。</strong> 本轮只用了内存玩具图：<code>ssh_used=false</code>、<code>formal_dataset_used=false</code>、<code>gu_cell_used=false</code>。因此本页可以证明实现入口与最小合同已走通，<strong>不能</strong>证明任何方法已在 Cora/CiteSeer/PubMed、ogbn-arxiv 或 GU outcome 上超过 degree。</div></aside>
+    </section>
+    <article><h1 id="im-成熟算法本机实现与验收">IM 成熟算法本机实现与验收</h1>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>本机实现已完成，25 项定向测试全部通过。</strong> 本轮只用了内存玩具图：<code>ssh_used=false</code>、<code>formal_dataset_used=false</code>、<code>gu_cell_used=false</code>。因此本页可以证明实现入口与最小合同已走通，<strong>不能</strong>证明任何方法已在 Cora/CiteSeer/PubMed、ogbn-arxiv 或 GU outcome 上超过 degree。</p>
+</blockquote>
 <p>关联页面：</p>
 <ul>
-<li><a href="22_IM%E6%88%90%E7%86%9F%E7%AE%97%E6%B3%95%E5%8F%AF%E7%94%A8%E6%80%A7%E4%B8%8EDegree%E8%B6%85%E8%B6%8A%E5%AE%9E%E9%AA%8C%E8%AE%A1%E5%88%92.html">22_IM成熟算法可用性与Degree超越实验计划</a>：正式研究问题、243/54 行矩阵与 promotion gate；</li>
+<li>[[22_IM成熟算法可用性与Degree超越实验计划]]：canonical 1%/5% 的 126/36 行正式矩阵与 promotion gate；</li>
 <li><a href="../../experiments/im_score_benchmark/README.md">实现包 README</a>：命令、理论边界与 runner guard；</li>
 <li><a href="../../tests/test_im_score_benchmark.py">定向测试</a>：exact-tiny、旧 CELF adapter、benchmark、聚合与执行锁；</li>
 <li><a href="../../reports/im_modern_algorithms_SURVEY_REPORT.md">现代 IM 调研</a>：算法选择与理论背景。</li>
@@ -89,145 +61,153 @@
 <table>
 <thead>
 <tr>
-<th>项目</th>
-<th>结论</th>
-<th>证据强度</th>
+  <th>项目</th>
+  <th>结论</th>
+  <th>证据强度</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>全量 score 可行性</td>
-<td>已实现 RR-SNI、candidate-restricted RR-Shapley、RR-<span class="math-inline">\(k\)</span>-semivalue，均返回完整候选 score 与稳定 ranking</td>
-<td>exact-tiny + contract test</td>
+<tbody>
+<tr>
+  <td>全量 score 可行性</td>
+  <td>已实现 RR-SNI、candidate-restricted RR-Shapley、RR-$k$-semivalue，均返回完整候选 score 与稳定 ranking</td>
+  <td>exact-tiny + contract test</td>
 </tr>
 <tr>
-<td>Set-level selector</td>
-<td>corrected IMM 与 OPIM-C-shaped dual-sample selector 已走通</td>
-<td>toy exact spread + typed artifact</td>
+  <td>Set-level selector</td>
+  <td>corrected IMM 与 OPIM-C-shaped dual-sample selector 已走通</td>
+  <td>toy exact spread + typed artifact</td>
 </tr>
 <tr>
-<td>旧实现对照</td>
-<td>current Batch-CELF 与 strict CELF 可通过无 cache adapter 调用</td>
-<td>2 个 adapter test + 9-method integration</td>
+  <td>旧实现对照</td>
+  <td>current Batch-CELF 与 strict CELF 可通过无 cache adapter 调用</td>
+  <td>2 个 adapter test + 9-method integration</td>
 </tr>
 <tr>
-<td>Degree 对照</td>
-<td>benchmark 强制 degree 存在，并用 selector 独立的 common-random RR evaluator 形成 paired difference/CI</td>
-<td>integration test</td>
+  <td>Degree 对照</td>
+  <td>benchmark 强制 degree 存在，并用 selector 独立的 common-random RR evaluator 形成 paired difference/CI</td>
+  <td>integration test</td>
 </tr>
 <tr>
-<td>时间口径</td>
-<td>保留 online、shared precompute、one-time Numba warmup 与保守 end-to-end 时间</td>
-<td>artifact inspection</td>
+  <td>时间口径</td>
+  <td>保留 online、shared precompute、one-time Numba warmup 与保守 end-to-end 时间</td>
+  <td>artifact inspection</td>
 </tr>
 <tr>
-<td>小图/大图结果</td>
-<td>未运行</td>
-<td>无权作结论</td>
+  <td>小图/大图结果</td>
+  <td>未运行</td>
+  <td>无权作结论</td>
 </tr>
 <tr>
-<td>超过 degree</td>
-<td>尚未证明</td>
-<td>等待正式 Phase S / L</td>
+  <td>超过 degree</td>
+  <td>尚未证明</td>
+  <td>等待正式 Phase S / L</td>
 </tr>
 <tr>
-<td>GU downstream</td>
-<td>未运行</td>
-<td>等待 winner 后另行报备</td>
+  <td>GU downstream</td>
+  <td>未运行</td>
+  <td>等待 winner 后另行报备</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>当前适合作为明日验收对象，不适合作为论文结果。下一步不是直接跑服务器，而是先审实现合同和 theory labels；通过后再决定是否接受分支并授权 formal matrix。</p>
 <h2 id="1-实现范围">1. 实现范围</h2>
 <h3 id="1-1-核心图与-rr-层">1.1 核心图与 RR 层</h3>
 <table>
 <thead>
 <tr>
-<th>文件</th>
-<th>作用</th>
-<th>关键合同</th>
+  <th>文件</th>
+  <th>作用</th>
+  <th>关键合同</th>
 </tr>
 </thead>
-<tbody><tr>
-<td><code>rr_core.py</code></td>
-<td>directed IC reverse-reachable sampling、压缩 candidate incidence、coverage/inverted index</td>
-<td>不自动无向化；候选域显式；seed 可复现</td>
+<tbody>
+<tr>
+  <td><code>rr_core.py</code></td>
+  <td>directed IC reverse-reachable sampling、压缩 candidate incidence、coverage/inverted index</td>
+  <td>不自动无向化；候选域显式；seed 可复现</td>
 </tr>
 <tr>
-<td><code>contracts.py</code></td>
-<td><code>ScoreArtifact</code>、<code>SelectionArtifact</code>、<code>ApproximationCertificate</code></td>
-<td>完整向量、只读 ndarray、有限值、JSON 可序列化</td>
+  <td><code>contracts.py</code></td>
+  <td><code>ScoreArtifact</code>、<code>SelectionArtifact</code>、<code>ApproximationCertificate</code></td>
+  <td>完整向量、只读 ndarray、有限值、JSON 可序列化</td>
 </tr>
 <tr>
-<td><code>exact_tiny.py</code></td>
-<td>最多 20 条边的 live-edge 精确枚举</td>
-<td>为 score/selection 提供小图真值</td>
+  <td><code>exact_tiny.py</code></td>
+  <td>最多 20 条边的 live-edge 精确枚举</td>
+  <td>为 score/selection 提供小图真值</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <h3 id="1-2-全量-score-层">1.2 全量 Score 层</h3>
 <table>
 <thead>
 <tr>
-<th>输出</th>
-<th>Score 形式</th>
-<th align="right">Budget</th>
-<th>可以叠加吗</th>
-<th>不应声称</th>
+  <th>输出</th>
+  <th>Score 形式</th>
+  <th style="text-align:right">Budget</th>
+  <th>可以叠加吗</th>
+  <th>不应声称</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>RR-SNI</td>
-<td>每个候选的 singleton spread 估计</td>
-<td align="right">无关</td>
-<td>可以；语义固定后可和其他静态分数归一化后融合</td>
-<td>top-<span class="math-inline">\(k\)</span> 有 IM 近似保证</td>
+<tbody>
+<tr>
+  <td>RR-SNI</td>
+  <td>每个候选的 singleton spread 估计</td>
+  <td style="text-align:right">无关</td>
+  <td>可以；语义固定后可和其他静态分数归一化后融合</td>
+  <td>top-$k$ 有 IM 近似保证</td>
 </tr>
 <tr>
-<td>RR-Shapley</td>
-<td>candidate game 中的平均边际贡献</td>
-<td align="right">无关</td>
-<td>可以；比 SNI 更显式考虑 coalition attribution</td>
-<td>top-<span class="math-inline">\(k\)</span> 等价 set-level greedy</td>
+  <td>RR-Shapley</td>
+  <td>candidate game 中的平均边际贡献</td>
+  <td style="text-align:right">无关</td>
+  <td>可以；比 SNI 更显式考虑 coalition attribution</td>
+  <td>top-$k$ 等价 set-level greedy</td>
 </tr>
 <tr>
-<td>RR-<span class="math-inline">\(k\)</span>-semivalue</td>
-<td>coalition size 固定为 <span class="math-inline">\(k-1\)</span> 时的期望边际</td>
-<td align="right">相关</td>
-<td>可以，但 recipe 必须带 <span class="math-inline">\(k\)</span></td>
-<td>一个向量跨预算复用</td>
+  <td>RR-$k$-semivalue</td>
+  <td>coalition size 固定为 $k-1$ 时的期望边际</td>
+  <td style="text-align:right">相关</td>
+  <td>可以，但 recipe 必须带 $k$</td>
+  <td>一个向量跨预算复用</td>
 </tr>
 <tr>
-<td>accepted marginal trace</td>
-<td>selector 选中节点当时的 residual gain</td>
-<td align="right">相关且路径相关</td>
-<td>不作为未选节点的全量静态分数</td>
-<td>Stage 1 full score</td>
+  <td>accepted marginal trace</td>
+  <td>selector 选中节点当时的 residual gain</td>
+  <td style="text-align:right">相关且路径相关</td>
+  <td>不作为未选节点的全量静态分数</td>
+  <td>Stage 1 full score</td>
 </tr>
-</tbody></table>
-<p>这回答了原问题：IM 的 set-level optimum 本身没有一个天然、预算无关的全量静态 score；但可以从同一 RR bundle 产出三种语义明确的完整 score，专门承担 Stage 1 / score fusion，再把 IMM/OPIM-C 保留为联合 selection 线。两条线在正式实验中竞争，不能提前假设 static top-<span class="math-inline">\(k\)</span> 等于 joint IM。</p>
+</tbody>
+</table>
+<p>这回答了原问题：IM 的 set-level optimum 本身没有一个天然、预算无关的全量静态 score；但可以从同一 RR bundle 产出三种语义明确的完整 score，专门承担 Stage 1 / score fusion，再把 IMM/OPIM-C 保留为联合 selection 线。两条线在正式实验中竞争，不能提前假设 static top-$k$ 等于 joint IM。</p>
 <h3 id="1-3-selector-与理论标签">1.3 Selector 与理论标签</h3>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>本实现输出</th>
-<th>当前标签</th>
+  <th>方法</th>
+  <th>本实现输出</th>
+  <th>当前标签</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>RR maximum coverage greedy</td>
-<td>ordered selection、accepted gains、coverage trace</td>
-<td>固定 RR hypergraph 上的 deterministic greedy</td>
+<tbody>
+<tr>
+  <td>RR maximum coverage greedy</td>
+  <td>ordered selection、accepted gains、coverage trace</td>
+  <td>固定 RR hypergraph 上的 deterministic greedy</td>
 </tr>
 <tr>
-<td>corrected IMM</td>
-<td>independent pilot/final RR、selection、<span class="math-inline">\(1-1/e-\epsilon\)</span> target metadata</td>
-<td><code>paper_equivalent=false</code>；Chen workaround 1 结构已落实，candidate-restricted theory 尚待正式 audit</td>
+  <td>corrected IMM</td>
+  <td>independent pilot/final RR、selection、$1-1/e-\epsilon$ target metadata</td>
+  <td><code>paper_equivalent=false</code>；Chen workaround 1 结构已落实，candidate-restricted theory 尚待正式 audit</td>
 </tr>
 <tr>
-<td>OPIM-C-shaped</td>
-<td>独立 selection/validation RR、逐轮 lower/upper/ratio certificate</td>
-<td><code>paper_equivalent=false</code>；当前为 conservative union-Hoeffding v1，不冒充论文 tight bound</td>
+  <td>OPIM-C-shaped</td>
+  <td>独立 selection/validation RR、逐轮 lower/upper/ratio certificate</td>
+  <td><code>paper_equivalent=false</code>；当前为 conservative union-Hoeffding v1，不冒充论文 tight bound</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>其中“有 certificate”与“论文实现等价”是两件事。机器 artifact 中保留 <code>kind</code>、<code>failure_probability</code>、<code>paper_equivalent</code> 和 details；报告不得只显示一个近似比而隐藏适用范围。</p>
 <h2 id="2-benchmark-与时间口径">2. Benchmark 与时间口径</h2>
 <p>统一 runner 支持 9 个小图方法：</p>
@@ -236,11 +216,13 @@ im_batch_celf_current / im_celf_strict
 rr_sni / rr_shapley / rr_ksemivalue
 corrected_imm / opimc
 </code></pre>
-<p>每个 budget 强制生成 degree 参照，并用<strong>与 selector 独立</strong>的 RR batches 对所有 selection 做 paired evaluation。静态 RR score 的时间不只记 top-<span class="math-inline">\(k\)</span>：</p>
-<div class="math-display">\[T_{\mathrm{end-to-end}}
+<p>每个 budget 强制生成 degree 参照，并用<strong>与 selector 独立</strong>的 RR batches 对所有 selection 做 paired evaluation。静态 RR score 的时间不只记 top-$k$：</p>
+<p>$$
+T_{\mathrm{end-to-end}}
 =T_{\mathrm{RR\ sample}}
 +T_{\mathrm{reducers}}
-+T_{\mathrm{top-k}}.\]</div>
++T_{\mathrm{top-k}}.
+$$</p>
 <p>artifact 同时保留：</p>
 <ul>
 <li><code>online_wall_seconds</code>；</li>
@@ -256,11 +238,11 @@ corrected_imm / opimc
 <pre><code class="language-powershell">E:/conda_package/envs/gnn/python.exe -m compileall -q experiments/im_score_benchmark tests/test_im_score_benchmark.py
 E:/conda_package/envs/gnn/python.exe -m pytest -q tests/test_im_score_benchmark.py
 </code></pre>
-<p>结果：<code>24 passed in 0.40s</code>。另有两条来自既有 <code>llvmlite/pkg_resources</code> 的 deprecation warning；没有 test failure。</p>
+<p>2026-07-24 修订 A.7 预算合同后的最终复跑结果：<code>25 passed in 0.27s</code>。另有两条来自既有 <code>llvmlite/pkg_resources</code> 的 deprecation warning；没有 test failure。</p>
 <p>覆盖内容：</p>
 <ul>
 <li>directed RR direction/dedup 与 deterministic sampling；</li>
-<li>SNI、Shapley、<span class="math-inline">\(k\)</span>-semivalue 对 exact live-edge/coalition enumeration；</li>
+<li>SNI、Shapley、$k$-semivalue 对 exact live-edge/coalition enumeration；</li>
 <li>maximum coverage greedy 对 exact greedy；</li>
 <li>corrected IMM 独立 final batch 与 sample guard；</li>
 <li>conservative OPIM-C 双样本 certificate；</li>
@@ -268,14 +250,14 @@ E:/conda_package/envs/gnn/python.exe -m pytest -q tests/test_im_score_benchmark.
 <li>current Batch-CELF / strict CELF 无 cache adapter；</li>
 <li>独立 common-random evaluator；</li>
 <li>benchmark → aggregate → Markdown/HTML render；</li>
-<li>formal plan disabled 与 execution token guard。</li>
+<li>formal plan disabled、1%/5% 矩阵计数、public diagnostic 拒绝 <code>--formal</code> 与 execution token guard。</li>
 </ul>
 <p>额外兼容回归：</p>
-<pre><code class="language-powershell">$env:CUDA_VISIBLE_DEVICES=&#39;-1&#39;
+<pre><code class="language-powershell">$env:CUDA_VISIBLE_DEVICES='-1'
 E:/conda_package/envs/gnn/python.exe -m pytest -q `
   tests/test_im_score_benchmark.py tests/test_im_hybrid.py tests/test_strategies.py
 </code></pre>
-<p>结果：<code>84 passed</code>。不屏蔽 CUDA 时，同一集合为 <code>75 passed / 9 failed</code>；9 个失败都来自既有 Hybrid/TracIn 自动选择本机 RTX 5070，而当前 PyTorch wheel 不含 <code>sm_120</code> kernel。显式使用 <code>CUDA_VISIBLE_DEVICES=-1</code> 后全部通过，因此该现象记录为本机环境限制，不修改旧策略代码，也不算作本次实现回归。</p>
+<p>2026-07-24 本次收口复跑结果：<code>85 passed in 2.35s</code>。未屏蔽 CUDA 的既有诊断曾出现 9 个失败，均来自 Hybrid/TracIn 自动选择本机 RTX 5070，而当前 PyTorch wheel 不含 <code>sm_120</code> kernel。显式使用 <code>CUDA_VISIBLE_DEVICES=-1</code> 后本次 85 项全部通过，因此该现象记录为本机环境限制，不修改旧策略代码，也不算作本次实现回归。</p>
 <h3 id="3-2-six-node-exact-smoke">3.2 Six-node exact smoke</h3>
 <p><code>local_smoke</code> 生成 256 个 RR sets。corrected IMM 与 conservative OPIM-C 都选择 <code>[0,1]</code>，exact spread 均为 <code>6.0</code>，与 exact restricted optimum <code>6.0</code> 一致。该 fixture 还验证三类 score 都返回完整 6-node ranking。</p>
 <h3 id="3-3-eight-node-9-method-integration">3.3 Eight-node 9-method integration</h3>
@@ -288,42 +270,44 @@ E:/conda_package/envs/gnn/python.exe -m pytest -q `
   &quot;claim_scope&quot;: &quot;implementation_acceptance_only&quot;
 }
 </code></pre>
-<p>玩具图中 degree、两种 CELF、三种 RR score、corrected IMM 与 OPIM-C 都选到同一中心节点，spread ratio 为 <code>1.0</code>；random 在 <span class="math-inline">\(k=1\)</span> 为约 <code>0.334</code>。这是路径连通性检查，不是算法质量 benchmark，也没有“超过 degree”的证据。</p>
+<p>玩具图中 degree、两种 CELF、三种 RR score、corrected IMM 与 OPIM-C 都选到同一中心节点，spread ratio 为 <code>1.0</code>；random 在 $k=1$ 为约 <code>0.334</code>。这是路径连通性检查，不是算法质量 benchmark，也没有“超过 degree”的证据。</p>
 <h3 id="3-4-玩具图时间只作仪表检查">3.4 玩具图时间只作仪表检查</h3>
 <table>
 <thead>
 <tr>
-<th>方法族</th>
-<th align="right"><span class="math-inline">\(k=1\)</span> 本次时间</th>
-<th>口径</th>
-<th>如何解读</th>
+  <th>方法族</th>
+  <th style="text-align:right">$k=1$ 本次时间</th>
+  <th>口径</th>
+  <th>如何解读</th>
 </tr>
 </thead>
-<tbody><tr>
-<td>degree</td>
-<td align="right">0.000358 s</td>
-<td>score + top-k</td>
-<td>仪表正常；不能外推数据集时间</td>
+<tbody>
+<tr>
+  <td>degree</td>
+  <td style="text-align:right">0.000358 s</td>
+  <td>score + top-k</td>
+  <td>仪表正常；不能外推数据集时间</td>
 </tr>
 <tr>
-<td>current/strict CELF</td>
-<td align="right">0.000494 / 0.000489 s</td>
-<td>warm selector</td>
-<td>one-time Numba setup 另记 3.233944 s</td>
+  <td>current/strict CELF</td>
+  <td style="text-align:right">0.000494 / 0.000489 s</td>
+  <td>warm selector</td>
+  <td>one-time Numba setup 另记 3.233944 s</td>
 </tr>
 <tr>
-<td>corrected IMM / OPIM-C-shaped</td>
-<td align="right">0.005761 / 0.005675 s</td>
-<td>selector end-to-end</td>
-<td>参数被刻意放宽，只用于 smoke</td>
+  <td>corrected IMM / OPIM-C-shaped</td>
+  <td style="text-align:right">0.005761 / 0.005675 s</td>
+  <td>selector end-to-end</td>
+  <td>参数被刻意放宽，只用于 smoke</td>
 </tr>
 <tr>
-<td>三种 RR static score</td>
-<td align="right">约 0.0112 s</td>
-<td>shared RR + 全部 reducers + top-k</td>
-<td>shared cost 被保守重复计入各方法</td>
+  <td>三种 RR static score</td>
+  <td style="text-align:right">约 0.0112 s</td>
+  <td>shared RR + 全部 reducers + top-k</td>
+  <td>shared cost 被保守重复计入各方法</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>这些数字仅证明分段计时字段真实生成；小图 30 s gate、大图 600 s gate 仍必须由注册数据集矩阵回答。</p>
 <h2 id="4-runner-安全边界">4. Runner 安全边界</h2>
 <p><code>run_planetoid.py</code> 与 <code>run_arxiv.py</code> 默认只做 preflight；真正执行必须同时给出 <code>--execute --approval-token IM-SELECTOR-A</code>。<code>--formal</code> 还要求：</p>
@@ -333,7 +317,7 @@ E:/conda_package/envs/gnn/python.exe -m pytest -q `
 <li>数据解析到 active checkout 内的 canonical path；</li>
 <li>output 显式给定且默认拒绝覆盖。</li>
 </ul>
-<p>当前 <code>registered_plan.json</code> 固定 <code>formal_execution_authorized=false</code>。本轮没有调用上述执行入口；正式 SSH 矩阵继续受 <a href="22_IM%E6%88%90%E7%86%9F%E7%AE%97%E6%B3%95%E5%8F%AF%E7%94%A8%E6%80%A7%E4%B8%8EDegree%E8%B6%85%E8%B6%8A%E5%AE%9E%E9%AA%8C%E8%AE%A1%E5%88%92.html">22_IM成熟算法可用性与Degree超越实验计划</a> 的审批与 Git 规则约束。</p>
+<p>当前 <code>registered_plan.json</code> 固定 <code>formal_execution_authorized=false</code>。本轮没有调用上述执行入口；正式 SSH 矩阵继续受 [[22_IM成熟算法可用性与Degree超越实验计划]] 的审批与 Git 规则约束。</p>
 <h2 id="5-明日验收建议">5. 明日验收建议</h2>
 <p>按下面顺序检查即可：</p>
 <ol>
@@ -341,34 +325,27 @@ E:/conda_package/envs/gnn/python.exe -m pytest -q `
 <li>看 corrected IMM 的 final RR batch 是否与 pilot seed/batch 独立；</li>
 <li>看 OPIM-C-shaped artifact 的 <code>paper_equivalent=false</code> 是否在代码、JSON、报告三处一致；</li>
 <li>看静态 score 时间是否包含 RR generation/reducer，旧 CELF JIT 是否单列；</li>
-<li>跑 24 项定向测试与 <code>local_smoke</code>；</li>
+<li>跑 25 项定向测试与 <code>local_smoke</code>；</li>
 <li>决定实现线是接受、要求修订，还是暂不进入 <code>main</code>；</li>
-<li>只有接受后，再审批 Phase S 的首个 dataset/seed/budget gate，不能直接铺满 243/54 rows。</li>
+<li>只有接受后，再审批 Phase S 的首个 canonical dataset/seed/1% gate，不能直接铺满 126/36 rows。</li>
 </ol>
 <h2 id="6-已知缺口">6. 已知缺口</h2>
 <ul>
 <li>未在 Obsidian reading view 视觉验收；当前环境未发现 Obsidian 可执行程序。静态 HTML 会另做浏览器截图检查。</li>
-<li>本机 RTX 5070 为 <code>sm_120</code>，当前 PyTorch wheel 只支持到 <code>sm_90</code>；涉及旧 Hybrid/TracIn 的本机回归需显式 <code>CUDA_VISIBLE_DEVICES=-1</code>，本次 CPU 回归为 84/84 通过。</li>
+<li>本机 RTX 5070 为 <code>sm_120</code>，当前 PyTorch wheel 只支持到 <code>sm_90</code>；涉及旧 Hybrid/TracIn 的本机回归需显式 <code>CUDA_VISIBLE_DEVICES=-1</code>，本次 CPU 回归为 85/85 通过。</li>
 <li>OPIM-C tight paper certificate 尚未复现；当前 adapter 是保守、可审计的独立双样本版本。</li>
 <li>candidate-restricted IMM/OPIM 理论适配尚未完成独立 proof audit，因此均不标 <code>paper_equivalent=true</code>。</li>
 <li>尚无 Planetoid/ogbn-arxiv runtime、RSS、spread 或 degree win 结果。</li>
+<li><code>run_planetoid.py</code> 已明确为 public-split 诊断入口并拒绝 <code>--formal</code>；<code>registered_plan.json</code> 与 canonical processed runner 的默认 ratio 已改为 1%/5%。正式执行前仍需验收三数据集 orchestration、逐数据集 canonical preflight 与输出 identity。</li>
 <li>尚未接入正式 Cache V2；当前为隔离的 experiment artifact lane，避免污染 production AttackManager。</li>
 </ul>
 <h2 id="7-一句话记忆">7. 一句话记忆</h2>
 <blockquote>
 <p>IM 的 joint selection 不能硬压成一个天然静态分数；现在已经有三种可叠加、可全量物化的 RR score，以及两种保留集合冗余语义的 selector。实现和玩具图合同已过，但是否快、是否有足够强的可审计保证、是否超过 degree，必须等用户批准后的正式小图/大图矩阵。</p>
 </blockquote>
-
-    </main>
-  </div>
-  <script>
-    window.addEventListener('load', () => {
-      const queryTarget = new URLSearchParams(window.location.search).get('section');
-      const targetId = queryTarget || decodeURIComponent(window.location.hash.slice(1));
-      if (!targetId) return;
-      const target = document.getElementById(targetId);
-      if (target) window.setTimeout(() => target.scrollIntoView(), 250);
-    });
-  </script>
+</article>
+    <div class="source">由同名 Markdown 源文件生成；Markdown 是可编辑的事实源。</div>
+  </main>
+</div>
 </body>
 </html>

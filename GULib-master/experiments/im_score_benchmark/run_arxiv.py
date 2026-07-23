@@ -59,7 +59,7 @@ def _parser() -> argparse.ArgumentParser:
         default="ogbn-arxiv",
     )
     parser.add_argument("--selector-seed", type=int, default=42)
-    parser.add_argument("--budget-ratios", default="0.001,0.005,0.01")
+    parser.add_argument("--budget-ratios", default="0.01,0.05")
     parser.add_argument("--methods", default=DEFAULT_METHODS)
     parser.add_argument("--propagation-probability", type=float, default=0.1)
     parser.add_argument("--score-rr-count", type=int, default=4096)
