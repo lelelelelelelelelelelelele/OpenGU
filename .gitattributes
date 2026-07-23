@@ -1,0 +1,2 @@
+# Evidence files referenced by byte-level SHA-256 must be platform-stable.
+GULib-master/results/bc_target_v2/selection_benchmark_20260721/**/*.json text eol=lf

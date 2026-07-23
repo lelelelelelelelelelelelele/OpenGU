@@ -60,7 +60,7 @@ selection_k: 7
 | Datasets | Cora / CiteSeer / PubMed `planetoid_public_fixed` |
 | Public split | train `140/120/60`; validation `500`; test `1000` |
 | Seeds | `42`, `212`, `2024` |
-| Selection GT | accepted 17-output public benchmark; manifest SHA-256 `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
+| Selection GT | accepted 17-output public benchmark; manifest SHA-256 `c46a5d3eb65f3196eeb7a21dcf67b8502d0cb08404803ea86e6a8c278297c49a` |
 | Full-result checksum manifest | 612 rows; SHA-256 `e45aa4b193d53b854c709e3de543517417fa6a9f0d3eb1f013aea9bc3e16d236` |
 | Claim boundary | controlled public-profile GNNDelete comparison；不是 OpenGU 80/20，也不是跨 GU-family / backbone 普遍结论 |
 
