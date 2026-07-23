@@ -7371,13 +7371,21 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
     )
     expected_recipes.extend(
-        "opengu-target-direct-selection-{0}-v1".format(stage)
+        "opengu-target-direct-selection-{0}-v2".format(stage)
         for stage in sm.TARGET_DIRECT_STAGES
     )
-    expected_recipes.append("opengu-target-direct-gu-gate-v1")
     expected_recipes.extend(
-        "opengu-target-direct-gu-{0}-v1".format(stage)
+        "opengu-target-direct-gu-gate-{0}-v2".format(
+            sm._target_direct_ratio_id(ratio)
+        )
+        for ratio in sm.TARGET_DIRECT_RATIOS
+    )
+    expected_recipes.extend(
+        "opengu-target-direct-gu-{0}-{1}-v2".format(
+            stage, sm._target_direct_ratio_id(ratio)
+        )
         for stage in sm.TARGET_DIRECT_STAGES
+        for ratio in sm.TARGET_DIRECT_RATIOS
     )
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
@@ -8149,26 +8157,47 @@ def test_runner_delta_file_allowlist_does_not_accept_prefix_collisions():
 
 def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
     selection = sm.runner_recipe_definition(
-        "opengu-target-direct-selection-citeseer-seed212-v1"
+        "opengu-target-direct-selection-citeseer-seed212-v2"
     )
-    gate = sm.runner_recipe_definition("opengu-target-direct-gu-gate-v1")
+    gate_1 = sm.runner_recipe_definition(
+        "opengu-target-direct-gu-gate-r001-v2"
+    )
+    gate_5 = sm.runner_recipe_definition(
+        "opengu-target-direct-gu-gate-r005-v2"
+    )
     full = sm.runner_recipe_definition(
-        "opengu-target-direct-gu-pubmed-seed2024-v1"
+        "opengu-target-direct-gu-pubmed-seed2024-r005-v2"
     )
 
     assert selection["recipe_introduced_git_sha"] == (
-        "a4db487d95e1de0e1210331fbdbc0b83c1749201"
+        "264b38995cebc84d10402d8113ea949ca2cfa34f"
     )
     assert selection["config_sha256"] == sm.TARGET_DIRECT_CONFIG_SHA256
     assert selection["selection_matrix"]["candidate_count"] == 2328
-    assert selection["selection_matrix"]["k"] == 116
+    assert selection["selection_matrix"]["budget_ratios"] == [0.01, 0.05]
+    assert selection["selection_matrix"]["expected_k_by_ratio"] == {
+        "0.01": 23,
+        "0.05": 116,
+    }
+    assert selection["selection_matrix"]["score_budget_semantics"] == (
+        "prefix_stable_budget_independent"
+    )
     assert selection["selection_matrix"]["parameter_scope"] == "last_layer"
-    assert len(selection["expected_artifact_paths"]) == 3
-    assert gate["gu_gate"]["k"] == 94
-    assert gate["gu_gate"]["target_checkpoint_required"] is True
-    assert len(gate["expected_artifact_paths"]) == 4
+    assert len(selection["expected_artifact_paths"]) == 5
+    assert gate_1["gu_gate"]["ratio"] == 0.01
+    assert gate_1["gu_gate"]["k"] == 18
+    assert gate_5["gu_gate"]["ratio"] == 0.05
+    assert gate_5["gu_gate"]["k"] == 94
+    assert gate_1["gu_gate"]["target_checkpoint_required"] is True
+    assert len(gate_1["expected_artifact_paths"]) == 4
+    assert set(gate_1["expected_artifact_paths"]).isdisjoint(
+        set(gate_5["expected_artifact_paths"])
+    )
     assert full["gu_stage"]["candidate_count"] == 13801
     assert full["gu_stage"]["k"] == 690
+    assert full["gu_stage"]["ratio"] == 0.05
+    assert full["gu_stage"]["execution_authorized"] is False
+    assert full["gu_stage"]["candidate_matrix_only"] is True
     assert full["gu_stage"]["selectors"] == list(
         sm.TARGET_DIRECT_STRATEGIES
     )
@@ -8183,35 +8212,62 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
     monkeypatch.setattr(sm, "REPO_ROOT", repo)
     monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
     definition = sm.runner_recipe_definition(
-        "opengu-target-direct-selection-cora-seed42-v1"
+        "opengu-target-direct-selection-cora-seed42-v2"
     )
     landing = "results/runs/gpu4090-target-direct"
     paths = {}
-    for remote in definition["expected_artifact_paths"][:2]:
+    for remote in definition["expected_artifact_paths"][:4]:
         local = sm.local_landing_path(landing, remote)
         local.parent.mkdir(parents=True, exist_ok=True)
         local.write_text('{"status":"success"}\n', encoding="utf-8")
         paths[remote] = local
-    receipt_remote = definition["expected_artifact_paths"][2]
+    receipt_remote = definition["expected_artifact_paths"][4]
     receipt_path = sm.local_landing_path(landing, receipt_remote)
     receipt = {
         "schema": "target_direct_v1.syncmate_selection_cell",
-        "version": 1,
+        "version": 2,
         "dataset": "Cora",
         "seed": 42,
         "status": "success",
         "experiment_git_sha": "a" * 40,
         "parameter_scope": "last_layer",
         "candidate_count": 1895,
-        "k": 94,
+        "budget_ratios": [0.01, 0.05],
+        "expected_k_by_ratio": {"0.01": 18, "0.05": 94},
         "formal_score_count": 17,
+        "score_budget_semantics": "prefix_stable_budget_independent",
+        "budget_conditioned_strategies": [],
         "score_bundle_cold_total_seconds": 4.0,
-        "score_bundle_warm_read_seconds": 0.02,
-        "method_timings": {
-            strategy: {"status": "success", "cache_hit": False}
-            for strategy in sm.TARGET_DIRECT_STRATEGIES
+        "score_bundle_warm_read_seconds": {
+            "0.01_warm": 0.02,
+            "0.05_cold_projection": 0.02,
+            "0.05_warm": 0.02,
         },
-        "failure_state": {"state": "success", "failure": None},
+        "ratio_results": {
+            ratio: {
+                "ratio": float(ratio),
+                "k": expected_k,
+                "cold_method_timings": {
+                    strategy: {
+                        "status": "success",
+                        "cache_hit": False,
+                        "selection_projection_cache_hit": False,
+                        "cold_selection_projection_seconds": 0.01,
+                    }
+                    for strategy in sm.TARGET_DIRECT_STRATEGIES
+                },
+                "warm_method_timings": {
+                    strategy: {
+                        "status": "success",
+                        "cache_hit": True,
+                        "selection_projection_cache_hit": True,
+                    }
+                    for strategy in sm.TARGET_DIRECT_STRATEGIES
+                },
+                "failure_state": {"state": "success", "failure": None},
+            }
+            for ratio, expected_k in (("0.01", 18), ("0.05", 94))
+        },
         "target_checkpoint": {
             "file_sha256": "b" * 64,
             "state_hash": "c" * 64,
@@ -8219,13 +8275,17 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         "device_name": "NVIDIA GeForce RTX 4090",
         "peak_gpu_allocated_bytes": 1024,
         "peak_gpu_reserved_bytes": 2048,
-        "cold_sha256": sm.sha256_file(
-            paths[definition["expected_artifact_paths"][0]]
-        ),
-        "warm_sha256": sm.sha256_file(
-            paths[definition["expected_artifact_paths"][1]]
-        ),
     }
+    for ratio, cold_index, warm_index in (
+        ("0.01", 0, 2),
+        ("0.05", 1, 3),
+    ):
+        receipt["ratio_results"][ratio]["cold_sha256"] = sm.sha256_file(
+            paths[definition["expected_artifact_paths"][cold_index]]
+        )
+        receipt["ratio_results"][ratio]["warm_sha256"] = sm.sha256_file(
+            paths[definition["expected_artifact_paths"][warm_index]]
+        )
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
     paths[receipt_remote] = receipt_path
     sm.write_artifact_index(
@@ -8238,7 +8298,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
                     "node_id": "gpu4090",
                     "landing": landing,
                     "remote": {"git": {"sha": "a" * 40}},
-                    "summary": {"status": "verified", "indexed": 3},
+                    "summary": {"status": "verified", "indexed": 5},
                     "items": [
                         {
                             "remote_path": remote,
@@ -8270,7 +8330,9 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
     sync_dir = repo / ".syncmate"
     monkeypatch.setattr(sm, "REPO_ROOT", repo)
     monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition("opengu-target-direct-gu-gate-v1")
+    definition = sm.runner_recipe_definition(
+        "opengu-target-direct-gu-gate-r001-v2"
+    )
     landing = "results/runs/gpu4090-target-direct"
     documents = {
         "attack.json": {
@@ -8284,13 +8346,19 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
             "method": "GNNDelete",
             "strategy": "degree",
             "seed": 42,
-            "config": {"claims": {"parameter_scope": "last_layer"}},
+            "config": {
+                "claims": {
+                    "parameter_scope": "last_layer",
+                    "deletion_ratio": 0.01,
+                }
+            },
             "selection_artifact": {
                 "artifact_id": "selection_degree",
                 "recipe_hash": "b" * 64,
                 "content_hash": "c" * 64,
                 "strategy": "degree",
-                "k": 94,
+                "ratio": 0.01,
+                "k": 18,
                 "authoritative": True,
                 "target_checkpoint": {
                     "state_hash": "d" * 64,
@@ -8351,7 +8419,7 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
     monkeypatch.setattr(sm, "REPO_ROOT", repo)
     monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
     definition = sm.runner_recipe_definition(
-        "opengu-target-direct-gu-cora-seed42-v1"
+        "opengu-target-direct-gu-cora-seed42-r001-v2"
     )
     definition["expected_artifact_paths"] = definition[
         "expected_artifact_paths"
@@ -8362,7 +8430,7 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
     for selector in definition["gu_stage"]["selectors"]:
         parent = (
             sm.TARGET_DIRECT_GU_OUTPUT_ROOT
-            + "/cora_GCN_r0.05/GNNDelete_"
+            + "/cora_GCN_r0.01/GNNDelete_"
             + selector
             + "/seed42"
         )
@@ -8378,13 +8446,19 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
                 "method": "GNNDelete",
                 "strategy": selector,
                 "seed": 42,
-                "config": {"claims": {"parameter_scope": "last_layer"}},
+                "config": {
+                    "claims": {
+                        "parameter_scope": "last_layer",
+                        "deletion_ratio": 0.01,
+                    }
+                },
                 "selection_artifact": {
                     "artifact_id": "selection_" + selector,
                     "recipe_hash": "b" * 64,
                     "content_hash": "c" * 64,
                     "strategy": selector,
-                    "k": 94,
+                    "ratio": 0.01,
+                    "k": 18,
                     "authoritative": True,
                     "target_checkpoint": {
                         "state_hash": "d" * 64,

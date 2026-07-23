@@ -9,7 +9,7 @@ Status: **preparation PASS; formal execution NO-GO**
 > [!danger] Verdict
 > The updated target-direct lane is prepared and locally validated, but no formal
 > experiment was started. The active SSH checkout is clean `main@fb0d9a33`, while
-> the five-commit preparation line remains unmerged on
+> the preparation line, including this dual-budget revision, remains unmerged on
 > `codex/fix-target-direct-formal-orchestration-20260724`. The SSH runner also has
 > no visible GPU, no accepted `gnn_20` interpreter, and none of the three approved
 > 70/10/20 processed profiles. These are hard blockers, not warnings.
@@ -18,14 +18,16 @@ Status: **preparation PASS; formal execution NO-GO**
 
 | Contract item | Prepared behavior | Status |
 |---|---|---|
-| Matrix | Cora/CiteSeer/PubMed × seeds 42/212/2024 × 17 selectors | PASS |
-| Budget | Derive `k = max(1, floor(0.05 × candidate_count))` from each verified profile | PASS |
-| Expected profile checks | Cora 1,895→94; CiteSeer 2,328→116; PubMed 13,801→690 | PASS as preflight expectations; execution still derives them |
+| Matrix | Candidate scope is Cora/CiteSeer/PubMed × seeds 42/212/2024 × 17 selectors × ratios 1%/5% = 306 cells; expansion is not yet authorized | PASS |
+| Split vs budget | `70/10/20` is the leakage-safe split; `{0.01, 0.05}` are deletion ratios and cannot replace it | PASS |
+| Budget | Per ratio derive `k(r) = max(1, floor(r × candidate_count))` from each verified profile | PASS |
+| Expected profile checks | Cora 1,895→18/94; CiteSeer 2,328→23/116; PubMed 13,801→138/690 | PASS as preflight expectations; execution still derives them |
 | White-box identity | Selection and downstream GNNDelete bind the same OpenGU GCN architecture and exact checkpoint hashes | PASS |
 | Formal parameter scope | `last_layer` only | PASS |
 | `all_trainable` | Deferred by user; absent from formal config and SyncMate recipes | PASS |
-| Cache identity | Fresh target-direct ScoreBundle and Selection roots; legacy/public/surrogate results are not inputs | PASS |
-| Selection evidence | Cold 17-way batch, per-method timing, shared overhead, warm exact read, peak GPU memory, failure state, checkpoint identity | PASS |
+| Cache identity | Fresh `target_direct_formal_v2` ScoreBundle and ratio-conditioned Selection roots; legacy/public/surrogate results are not inputs | PASS |
+| Cross-ratio score semantics | Current 17 prefix-stable methods share one immutable ScoreBundle per dataset/seed; 1%/5% Selection recipes remain distinct; budget-conditioned methods require a separate score recipe | PASS |
+| Selection evidence | One cold 17-way ScoreBundle, cold 1%/5% Selection projection, strict warm reads for both ratios, per-method timing, peak GPU memory, failure state, checkpoint identity | PASS |
 | Downstream evidence | Attack, collateral, predictions, metadata, exact Selection Artifact and checkpoint provenance | PASS |
 | Formal start | Requires accepted preparation line on clean pinned SSH `main`, GPU, environment, profiles, and SyncMate acceptance | BLOCKED |
 
@@ -34,19 +36,23 @@ Status: **preparation PASS; formal execution NO-GO**
 The branch adds a frozen target-direct formal configuration and one bounded
 executor. It exposes:
 
-- 9 static Selection recipes, one per dataset/seed cell;
-- 1 formal Cora/seed42/degree GNNDelete gate recipe;
-- 9 static downstream recipes, each bounded to 17 selectors and 68 artifacts;
-- immutable cold/warm/receipt evidence for each Selection stage;
+- 9 static Selection recipes, one per dataset/seed cell, each producing both
+  ratio projections from one immutable ScoreBundle;
+- 2 formal Cora/seed42/degree GNNDelete gate recipes, one for 1% and one for 5%;
+- 18 static candidate downstream recipes (dataset/seed/ratio), each bounded to
+  17 selectors and 68 artifacts (306 cells / 1,224 artifacts in total), with
+  execution explicitly unauthorized;
+- immutable cold-1%, cold-5%, warm-1%, warm-5%, and receipt evidence for each
+  Selection stage;
 - collector-side checksum and scientific-identity checks;
-- same-manifest gate expansion: `degree` is first, the gate runs `--limit 1`,
-  and the later Cora/seed42 full stage uses the same config/fingerprint and
-  resumes the accepted degree cell.
+- ratio-specific manifest/config identity: `degree` is first in each ratio, each
+  gate runs `--limit 1`, and any later explicitly authorized full stage for that
+  ratio must use the same config/fingerprint and resume its accepted degree cell.
 
 Formal roots are isolated under:
 
-- `results/cache_v2/target_direct_formal_v1/{score,selection}`
-- `results/runs/target_direct_formal_v1/{selection,checkpoints,evidence,runtime,gu}`
+- `results/cache_v2/target_direct_formal_v2/{score,selection}`
+- `results/runs/target_direct_formal_v2/{selection,checkpoints,evidence,runtime,gu}`
 
 The manifest builder now permits an approved seed subset for a gate/stage while
 still requiring the exact 17-method set. It rejects any summary whose scope is
@@ -81,12 +87,14 @@ through the repository Git workflow before formal work.
 
 | Check | Result |
 |---|---|
-| Baseline target/checkpoint/cache/SyncMate suite | 219 passed, 1 warning |
-| Final expanded targeted suite | **230 passed, 1 warning in 9.17 s** |
+| Dual-budget runner/manifest/SyncMate suite | **197 passed** |
+| Final expanded targeted suite | **242 passed, 1 warning in 10.73 s** |
 | Python compilation | PASS |
 | `git diff --check` | PASS |
 | Local formal Selection preflight | Correctly blocked: feature branch/dirty during development, wrong checkout, missing profile, incompatible RTX 5070 |
-| Canonical GU dry-run entry | Correctly blocked before runner load because real G1/G2 profile, checkpoint, manifest, and Selection evidence do not exist |
+| Canonical GU dry-run entries | Both 1% and 5% correctly blocked before runner load because real G1/G2 profile, checkpoint, manifest, and Selection evidence do not exist |
+| Candidate expansion preflight | Correctly adds `306-cell candidate expansion is not authorized` and requires both ratio gates |
+| SyncMate temporary smoke | PASS; 3/3 disposable artifacts collected and verified, temporary root cleaned |
 | Formal jobs launched | **0** |
 
 The warning is the existing CuPy CUDA-path probe. The local RTX 5070 is
@@ -150,7 +158,8 @@ Therefore the current E8 claim boundary is:
 
 ## Exact blockers
 
-1. The five-commit preparation branch is not accepted into current `main`.
+1. The preparation branch, including the dual-budget revision, is not accepted
+   into current `main`.
 2. The SSH host exposes no GPU device.
 3. The accepted `gnn_20` interpreter is absent.
 4. The approved 70/10/20 OpenGU processed profiles are absent.
@@ -165,13 +174,17 @@ After infrastructure is restored and Git integration is explicitly authorized:
 2. fast-forward the SSH active checkout to the exact accepted full `main` SHA
    and record it;
 3. stage and verify all three processed profiles before timing;
-4. run the Cora/seed42 Selection recipe and collect/verify its three artifacts;
-5. run the canonical GNNDelete dry-run against that real manifest/checkpoint;
-6. run and accept the Cora/seed42/degree formal gate (4 artifacts);
-7. run the Cora/seed42 17-selector stage using the same manifest/config;
-8. run the remaining eight Selection→GU stages sequentially through SyncMate;
-9. accept every stage only after exact artifact collection, SHA-256 verification,
-   checkpoint/scope checks, and downstream metric parsing.
+4. run the Cora/seed42 Selection recipe and collect/verify its five artifacts,
+   including one shared ScoreBundle identity and both ratios' cold/warm evidence;
+5. run the canonical GNNDelete dry-run separately against the real 1% and 5%
+   manifests/checkpoint;
+6. run and accept the Cora/seed42/degree 1% formal gate (4 artifacts);
+7. run and accept the separate Cora/seed42/degree 5% formal gate (4 artifacts);
+8. stop at canary acceptance unless the user explicitly authorizes the
+   306-cell candidate expansion;
+9. if authorized, run ratio-specific stages sequentially through SyncMate and
+   accept each only after exact artifact collection, SHA-256 verification,
+   checkpoint/scope/ratio checks, and downstream metric parsing.
 
 No step in this sequence may reuse the old public-split, surrogate, fixed-`k=7`,
 or wrong-budget evidence as a formal input.

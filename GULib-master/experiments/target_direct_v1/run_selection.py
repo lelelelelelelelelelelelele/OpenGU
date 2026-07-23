@@ -48,6 +48,8 @@ from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1 import PROFILE
 from experiments.target_direct_v1.recipe import (
     ALGORITHM_VERSION,
+    APPROVED_BUDGET_RATIOS,
+    SCORE_BUDGET_SEMANTICS,
     SCORE_FAMILY,
     SCORE_NAMES,
     build_recipe,
@@ -63,8 +65,8 @@ from utils.target_checkpoint import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SELECTION_PRODUCER_VERSION = "target-direct-selection-prefix-v1"
-SELECTION_ALGORITHM_VERSION = "target-direct-score-desc-prefix-v1"
+SELECTION_PRODUCER_VERSION = "target-direct-selection-prefix-v2"
+SELECTION_ALGORITHM_VERSION = "target-direct-score-desc-prefix-v2"
 
 
 def _int_list(value: str) -> Tuple[int, ...]:
@@ -86,7 +88,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--checkpoint-path", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--ratio", type=float, default=0.05)
+    parser.add_argument("--ratio", type=float, required=True)
     parser.add_argument("--cuda", type=int, default=0)
     parser.add_argument("--num-threads", type=int, default=1)
     parser.add_argument("--epochs", type=int, default=100)
@@ -109,6 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--hutch-probes", type=int, default=32)
     parser.add_argument("--hutch-seed", type=int, default=1729)
     parser.add_argument("--reuse-checkpoint", action="store_true")
+    parser.add_argument("--fail-if-score-producer-called", action="store_true")
     parser.add_argument("--fail-if-producer-called", action="store_true")
     parser.add_argument("--overwrite-output", action="store_true")
     parser.add_argument("--allow-dirty", action="store_true")
@@ -119,8 +122,15 @@ def build_parser() -> argparse.ArgumentParser:
 def _validate_args(args: argparse.Namespace) -> None:
     if args.seed < 0 or args.num_threads <= 0 or args.epochs <= 0:
         raise ValueError("seed, thread count, and epochs must be positive")
-    if not 0 < args.ratio <= 1:
-        raise ValueError("ratio must be in (0, 1]")
+    if not any(
+        abs(float(args.ratio) - approved) < 1e-12
+        for approved in APPROVED_BUDGET_RATIOS
+    ):
+        raise ValueError(
+            "formal ratio must be one of {0}".format(
+                list(APPROVED_BUDGET_RATIOS)
+            )
+        )
     if args.checkpoint_epochs[-1] != args.epochs:
         raise ValueError("final checkpoint epoch must equal epochs")
     if len(args.checkpoint_epochs) < 3:
@@ -279,6 +289,7 @@ def _parameter_argv(args: argparse.Namespace, expected_k: int) -> Sequence[str]:
 def _prepare_target(
     args: argparse.Namespace,
     *,
+    candidate_count: int,
     expected_k: int,
     expected_data_identity: Mapping[str, Any],
 ) -> Tuple[Any, Any, Sequence[Mapping[str, Any]], Dict[str, Any], Dict[str, Any]]:
@@ -349,10 +360,10 @@ def _prepare_target(
             "gcn_num_layers": int(args.gcn_num_layers),
             "gcn_hidden": int(args.gcn_hidden),
             "data_identity": observed_identity,
-            "candidate_budget": {
-                "ratio": float(args.ratio),
+            "candidate_identity": {
                 "denominator": "train_candidate_count",
-                "expected_k": int(expected_k),
+                "candidate_count": int(candidate_count),
+                "deletion_budget_conditioned": False,
             },
         }
         checkpoint_manifest = save_target_checkpoint(
@@ -397,6 +408,35 @@ def _pair_metrics(
     return result
 
 
+def selection_recipe_parameters(
+    *,
+    name: str,
+    ratio: float,
+    expected_k: int,
+    target_checkpoint_state_hash: str,
+) -> Dict[str, Any]:
+    if name not in SCORE_NAMES:
+        raise ValueError("unknown target-direct score name")
+    if not any(
+        abs(float(ratio) - approved) < 1e-12
+        for approved in APPROVED_BUDGET_RATIOS
+    ):
+        raise ValueError("unapproved target-direct budget ratio")
+    if int(expected_k) <= 0:
+        raise ValueError("expected_k must be positive")
+    return {
+        "prefix_stable": True,
+        "requested_ratio": float(ratio),
+        "budget_denominator": "train_candidate_count",
+        "budget_rounding": "floor_with_minimum_one",
+        "expected_k": int(expected_k),
+        "score_name": name,
+        "score_family": SCORE_FAMILY,
+        "target_checkpoint_state_hash": target_checkpoint_state_hash,
+        "orientation": "score_desc_more_influential_or_harmful_if_removed",
+    }
+
+
 def run(args: argparse.Namespace) -> Dict[str, Any]:
     _validate_args(args)
     run_started = time.perf_counter()
@@ -420,6 +460,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
     pipeline, model, checkpoints, target_checkpoint, training_observation = (
         _prepare_target(
             args,
+            candidate_count=candidate_count,
             expected_k=expected_k,
             expected_data_identity=data_identity(profile["data"]),
         )
@@ -739,7 +780,13 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
                 "seed": int(args.seed),
                 "candidate_count": candidate_count,
                 "target_count": int(target_ids.numel()),
-                "budget": int(expected_k),
+                "budget_projection": {
+                    "semantics": SCORE_BUDGET_SEMANTICS,
+                    "supported_ratios": list(APPROVED_BUDGET_RATIOS),
+                    "denominator": "train_candidate_count",
+                    "rounding": "floor_with_minimum_one",
+                    "budget_conditioned_strategies": [],
+                },
                 "checkpoint_steps": [
                     int(item["global_step"]) for item in checkpoints
                 ],
@@ -772,7 +819,10 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
     score_result = score_store.get_or_compute(
         recipe,
         produce,
-        fail_if_called=args.fail_if_producer_called,
+        fail_if_called=(
+            args.fail_if_score_producer_called
+            or args.fail_if_producer_called
+        ),
     )
     _synchronize(device)
     score_access_seconds = time.perf_counter() - score_started
@@ -829,13 +879,12 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             budgets=(expected_k,),
             producer_version=selection_producer,
             algorithm_version=SELECTION_ALGORITHM_VERSION,
-            parameters={
-                "prefix_stable": True,
-                "score_name": name,
-                "score_family": SCORE_FAMILY,
-                "target_checkpoint_state_hash": target_checkpoint["state_hash"],
-                "orientation": "score_desc_more_influential_or_harmful_if_removed",
-            },
+            parameters=selection_recipe_parameters(
+                name=name,
+                ratio=float(args.ratio),
+                expected_k=expected_k,
+                target_checkpoint_state_hash=target_checkpoint["state_hash"],
+            ),
             source_score_artifact_id=score_result.artifact_id,
             producer=lambda max_k, ordered=ranking: ordered[:max_k],
             fail_if_producer_called=args.fail_if_producer_called,
@@ -846,10 +895,22 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             + payload_ranking_seconds.get(name, 0.0)
             + materialization_seconds
         )
+        selection_projection_cache_hit = bool(materialized.cache_hit)
         selection_timings[name] = {
             "formula_seconds": payload_score_seconds.get(name),
             "ranking_seconds": payload_ranking_seconds.get(name),
             "materialization_seconds": materialization_seconds,
+            "score_measurement_source": (
+                "current_cold_compute"
+                if not score_result.hit
+                else "shared_score_bundle_metadata"
+            ),
+            "selection_projection_cache_hit": selection_projection_cache_hit,
+            "cold_selection_projection_seconds": (
+                materialization_seconds
+                if not selection_projection_cache_hit
+                else None
+            ),
             "cold_incremental_seconds": (
                 incremental_seconds if not score_result.hit else None
             ),
@@ -874,7 +935,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
 
     return {
         "schema": "target_direct_v1.selection_summary",
-        "version": 1,
+        "version": 2,
         "status": {"state": "success", "failure": None},
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": args.dataset,
@@ -889,6 +950,13 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "denominator_count": candidate_count,
             "rounding": "floor_with_minimum_one",
             "expected_k": expected_k,
+        },
+        "budget_projection": {
+            "score_semantics": SCORE_BUDGET_SEMANTICS,
+            "supported_ratios": list(APPROVED_BUDGET_RATIOS),
+            "budget_conditioned_strategies": [],
+            "score_bundle_shared_across_ratios": True,
+            "selection_artifact_ratio_conditioned": True,
         },
         "target_objective": "validation_mask_mean_cross_entropy",
         "parameter_scope": args.parameter_scope,
@@ -973,7 +1041,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 pass
         failure = {
             "schema": "target_direct_v1.selection_summary",
-            "version": 1,
+            "version": 2,
             "status": {
                 "state": "failed",
                 "failure": {
@@ -985,6 +1053,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             "seed": int(parsed.seed),
             "processed_profile": PROFILE,
             "parameter_scope": parsed.parameter_scope,
+            "budget": {
+                "requested_ratio": float(parsed.ratio),
+                "denominator": "train_candidate_count",
+                "rounding": "floor_with_minimum_one",
+            },
             "gpu_memory": failure_gpu,
             "runtime": {"total_seconds": time.perf_counter() - started},
         }

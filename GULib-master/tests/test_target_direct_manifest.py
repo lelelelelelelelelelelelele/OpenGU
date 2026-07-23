@@ -12,18 +12,30 @@ from experiments.target_direct_v1.recipe import ALGORITHM_VERSION, SCORE_NAMES
 GIT_SHA = "a" * 40
 
 
-def _summary(seed: int, *, parameter_scope: str = "last_layer"):
+def _summary(
+    seed: int,
+    *,
+    ratio: float,
+    parameter_scope: str = "last_layer",
+):
+    expected_k = max(1, int(200 * ratio))
     return {
         "schema": "target_direct_v1.selection_summary",
-        "version": 1,
+        "version": 2,
         "status": {"state": "success"},
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": "Cora",
         "seed": seed,
         "processed_profile": PROFILE,
-        "candidate_count": 20,
+        "candidate_count": 200,
         "parameter_scope": parameter_scope,
-        "budget": {"requested_ratio": 0.05, "expected_k": 1},
+        "budget": {
+            "requested_ratio": ratio,
+            "denominator": "train_candidate_count",
+            "denominator_count": 200,
+            "rounding": "floor_with_minimum_one",
+            "expected_k": expected_k,
+        },
         "git_provenance": {"head": GIT_SHA, "worktree_dirty": False},
         "target_checkpoint": {
             "path": "checkpoint.pt",
@@ -37,7 +49,9 @@ def _summary(seed: int, *, parameter_scope: str = "last_layer"):
         "selection_artifacts": {
             strategy: {
                 "artifact": {
-                    "artifact_id": "selection_" + strategy,
+                    "artifact_id": "selection_{0}_{1}".format(
+                        ratio, strategy
+                    ),
                     "recipe_hash": "e" * 64,
                     "content_hash": "f" * 64,
                 }
@@ -52,9 +66,9 @@ def manifest_fakes(tmp_path, monkeypatch):
     profile_manifest = tmp_path / "profile.manifest.json"
     profile_manifest.write_text("{}\n", encoding="utf-8")
     inputs = SimpleNamespace(
-        candidate_count=20,
-        num_nodes=30,
-        candidate_nodes=tuple(range(20)),
+        candidate_count=200,
+        num_nodes=300,
+        candidate_nodes=tuple(range(200)),
     )
     monkeypatch.setattr(
         manifest_module,
@@ -62,7 +76,7 @@ def manifest_fakes(tmp_path, monkeypatch):
         lambda **_kwargs: {
             "inputs": inputs,
             "data": object(),
-            "manifest": {"selection_identity": {"candidate_count": 20}},
+            "manifest": {"selection_identity": {"candidate_count": 200}},
             "manifest_path": str(profile_manifest),
         },
     )
@@ -88,12 +102,13 @@ def manifest_fakes(tmp_path, monkeypatch):
     )
 
     def load_selection(_root, artifact_id, **_kwargs):
-        strategy = artifact_id[len("selection_") :]
+        strategy = _kwargs["expected_selector"]
+        expected_k = _kwargs["expected_k"]
         return SimpleNamespace(
             artifact_id=artifact_id,
             recipe_hash="e" * 64,
             content_hash="f" * 64,
-            selected_nodes=(0,),
+            selected_nodes=tuple(range(expected_k)),
             selector=strategy,
         )
 
@@ -107,7 +122,9 @@ def test_gate_manifest_accepts_one_seed_and_orders_degree_first(
     manifest_fakes,
 ):
     summary_path = manifest_fakes / "cold.json"
-    summary_path.write_text(json.dumps(_summary(42)), encoding="utf-8")
+    summary_path.write_text(
+        json.dumps(_summary(42, ratio=0.01)), encoding="utf-8"
+    )
     order = ("degree",) + tuple(
         strategy for strategy in SCORE_NAMES if strategy != "degree"
     )
@@ -119,7 +136,7 @@ def test_gate_manifest_accepts_one_seed_and_orders_degree_first(
         dataset="Cora",
         summaries=[summary_path],
         expected_git_sha=GIT_SHA,
-        ratio=0.05,
+        ratio=0.01,
         required_seeds=(42,),
         strategy_order=order,
     )
@@ -127,6 +144,10 @@ def test_gate_manifest_accepts_one_seed_and_orders_degree_first(
     assert manifest["seeds"] == [42]
     assert manifest["strategies"] == list(order)
     assert manifest["parameter_scope"] == "last_layer"
+    assert manifest["ratio"] == 0.01
+    assert manifest["expected_k"] == 2
+    assert manifest["budget"]["expected_k"] == 2
+    assert manifest["cells"][0]["ratio"] == 0.01
     assert manifest["cells"][0]["strategy"] == "degree"
     assert len(manifest["cells"]) == 17
 
@@ -134,7 +155,11 @@ def test_gate_manifest_accepts_one_seed_and_orders_degree_first(
 def test_formal_manifest_rejects_all_trainable_summary(manifest_fakes):
     summary_path = manifest_fakes / "all_trainable.json"
     summary_path.write_text(
-        json.dumps(_summary(42, parameter_scope="all_trainable")),
+        json.dumps(
+            _summary(
+                42, ratio=0.05, parameter_scope="all_trainable"
+            )
+        ),
         encoding="utf-8",
     )
 
@@ -164,4 +189,18 @@ def test_formal_manifest_rejects_unapproved_seed_request(manifest_fakes):
             expected_git_sha=GIT_SHA,
             ratio=0.05,
             required_seeds=(7,),
+        )
+
+
+def test_formal_manifest_rejects_unapproved_ratio(manifest_fakes):
+    with pytest.raises(ValueError, match="ratio must be one of"):
+        manifest_module.build_manifest(
+            repository_root=manifest_fakes,
+            processed_root=manifest_fakes / "data" / "processed",
+            selection_store_root=manifest_fakes / "selection",
+            dataset="Cora",
+            summaries=[],
+            expected_git_sha=GIT_SHA,
+            ratio=0.02,
+            required_seeds=(42,),
         )

@@ -11,13 +11,17 @@ from typing import Any, Dict, Mapping, Sequence
 
 from cache_v2.runtime import load_selection_artifact
 from experiments.target_direct_v1 import MODEL_SEEDS, PROFILE
-from experiments.target_direct_v1.recipe import ALGORITHM_VERSION, SCORE_NAMES
+from experiments.target_direct_v1.recipe import (
+    ALGORITHM_VERSION,
+    APPROVED_BUDGET_RATIOS,
+    SCORE_NAMES,
+)
 from experiments.target_direct_v1.split_profile import verify_profile
 from utils.target_checkpoint import data_identity, load_target_checkpoint
 
 
 SCHEMA = "target_direct_v1.external_selection_manifest"
-VERSION = 1
+VERSION = 2
 
 
 def sha256_file(path: Path) -> str:
@@ -73,6 +77,15 @@ def build_manifest(
         )
     if required_parameter_scope != "last_layer":
         raise ValueError("formal target-direct manifest requires last_layer")
+    if not any(
+        abs(float(ratio) - approved) < 1e-12
+        for approved in APPROVED_BUDGET_RATIOS
+    ):
+        raise ValueError(
+            "formal target-direct ratio must be one of {0}".format(
+                list(APPROVED_BUDGET_RATIOS)
+            )
+        )
     strategy_order = tuple(str(value) for value in strategy_order)
     if (
         len(strategy_order) != len(SCORE_NAMES)
@@ -97,7 +110,7 @@ def build_manifest(
         summary = json.loads(source_path.read_text(encoding="utf-8"))
         if (
             summary.get("schema") != "target_direct_v1.selection_summary"
-            or summary.get("version") != 1
+            or summary.get("version") != 2
             or (summary.get("status") or {}).get("state") != "success"
             or summary.get("algorithm_version") != ALGORITHM_VERSION
             or str(summary.get("dataset", "")).lower() != dataset.lower()
@@ -106,6 +119,14 @@ def build_manifest(
             != float(ratio)
             or int((summary.get("budget") or {}).get("expected_k", -1))
             != expected_k
+            or (summary.get("budget") or {}).get("denominator")
+            != "train_candidate_count"
+            or (summary.get("budget") or {}).get("rounding")
+            != "floor_with_minimum_one"
+            or int(
+                (summary.get("budget") or {}).get("denominator_count", -1)
+            )
+            != inputs.candidate_count
             or int(summary.get("candidate_count", -1)) != inputs.candidate_count
             or summary.get("parameter_scope") != required_parameter_scope
         ):
@@ -175,6 +196,7 @@ def build_manifest(
                 {
                     "strategy": strategy,
                     "seed": seed,
+                    "ratio": float(ratio),
                     "k": expected_k,
                     "artifact": {
                         "artifact_id": loaded.artifact_id,
@@ -197,6 +219,7 @@ def build_manifest(
                 "path": str(source_path),
                 "sha256": sha256_file(source_path),
                 "seed": seed,
+                "ratio": float(ratio),
                 "score_bundle_artifact_id": summary["score_bundle"][
                     "artifact_id"
                 ],
@@ -226,6 +249,13 @@ def build_manifest(
         "budget_denominator": "train_candidate_count",
         "expected_k": expected_k,
         "candidate_count": inputs.candidate_count,
+        "budget": {
+            "ratio": float(ratio),
+            "denominator": "train_candidate_count",
+            "denominator_count": inputs.candidate_count,
+            "rounding": "floor_with_minimum_one",
+            "expected_k": expected_k,
+        },
         "gu_methods": ["GNNDelete"],
         "strategies": list(strategy_order),
         "seeds": seeds,
@@ -242,6 +272,9 @@ def build_manifest(
             "selector_and_gu_share_exact_checkpoint": True,
             "test_labels_used_for_selection": False,
             "formal_count_fail_closed": True,
+            "score_bundle_budget_semantics":
+                "prefix_stable_budget_independent",
+            "budget_conditioned_strategies": [],
         },
     }
 
@@ -256,7 +289,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--summaries", type=Path, nargs="+", required=True)
     parser.add_argument("--expected-git-sha", required=True)
-    parser.add_argument("--ratio", type=float, default=0.05)
+    parser.add_argument("--ratio", type=float, required=True)
     parser.add_argument(
         "--required-seeds",
         type=int,

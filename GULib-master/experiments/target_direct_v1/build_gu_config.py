@@ -25,6 +25,17 @@ def build_gu_config(
         raise ValueError("target-direct manifest schema/version mismatch")
     if manifest.get("parameter_scope") != "last_layer":
         raise ValueError("formal target-direct GU config requires last_layer")
+    budget = manifest.get("budget") or {}
+    if (
+        float(budget.get("ratio", -1)) != float(manifest.get("ratio", -2))
+        or budget.get("denominator") != "train_candidate_count"
+        or budget.get("rounding") != "floor_with_minimum_one"
+        or int(budget.get("denominator_count", -1))
+        != int(manifest.get("candidate_count", -2))
+        or int(budget.get("expected_k", -1))
+        != int(manifest.get("expected_k", -2))
+    ):
+        raise ValueError("target-direct manifest budget contract mismatch")
     resolved = {}
     for path, label in (
         (processed_root, "processed_root"),
@@ -73,6 +84,7 @@ def build_gu_config(
             "white_box_target_direct": True,
             "target_checkpoint_reused_exactly": True,
             "budget_denominator": "train_candidate_count",
+            "deletion_ratio": float(manifest["ratio"]),
             "expected_k": int(manifest["expected_k"]),
             "parameter_scope": "last_layer",
         },

@@ -64,6 +64,16 @@ def load_external_selection_manifest(
         int(manifest.get("candidate_count", -1)) != inputs.candidate_count
         or int(manifest.get("expected_k", -1)) != expected_k
         or manifest.get("budget_denominator") != "train_candidate_count"
+        or (manifest.get("budget") or {}).get("denominator")
+        != "train_candidate_count"
+        or (manifest.get("budget") or {}).get("rounding")
+        != "floor_with_minimum_one"
+        or float((manifest.get("budget") or {}).get("ratio", -1))
+        != float(cfg["ratio"])
+        or int((manifest.get("budget") or {}).get("denominator_count", -1))
+        != inputs.candidate_count
+        or int((manifest.get("budget") or {}).get("expected_k", -1))
+        != expected_k
     ):
         raise ValueError("target-direct budget identity mismatch")
     observed_data_identity = data_identity(profile["data"])
@@ -72,9 +82,10 @@ def load_external_selection_manifest(
     for cell in manifest.get("cells") or []:
         strategy = str(cell.get("strategy") or "")
         seed = int(cell.get("seed"))
+        ratio = float(cell.get("ratio", -1))
         k = int(cell.get("k"))
-        if k != expected_k:
-            raise ValueError("target-direct cell k mismatch")
+        if ratio != float(cfg["ratio"]) or k != expected_k:
+            raise ValueError("target-direct cell ratio/k mismatch")
         artifact = cell.get("artifact") or {}
         loaded = load_selection_artifact(
             store_root,
@@ -140,6 +151,7 @@ def load_external_selection_manifest(
             "authoritative": True,
             "write_outcome": "reused",
             "strategy": strategy,
+            "ratio": ratio,
             "k": k,
             "selected_node_count": len(loaded.selected_nodes),
             "source_score_artifact_id": cell.get("source_score_artifact_id"),

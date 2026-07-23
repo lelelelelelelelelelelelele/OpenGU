@@ -161,12 +161,16 @@ SMALL_SELECTION_GU_FULL_STAGES = tuple(
     for dataset in SMALL_SELECTION_GU_FULL_DATASETS
     for seed in SMALL_SELECTION_GU_FULL_SEEDS
 )
-TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "a4db487d95e1de0e1210331fbdbc0b83c1749201"
-TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v1.yaml"
-TARGET_DIRECT_CONFIG_SHA256 = "399ab0a55c3423fbb9c588e69511e9936af752968115b67f2f10e5a7136d4c37"
-TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v1/selection"
-TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v1/gu"
-TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = ("cold.json", "warm.json", "cell.json")
+TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "264b38995cebc84d10402d8113ea949ca2cfa34f"
+TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v2.yaml"
+TARGET_DIRECT_CONFIG_SHA256 = "13494b761585aa8d168d9e2c5548e1521a4d795bcf72ed790e2766ad8caa888d"
+TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/selection"
+TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/gu"
+TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = (
+    "cold-r0.01.json", "cold-r0.05.json",
+    "warm-r0.01.json", "warm-r0.05.json",
+    "cell.json",
+)
 TARGET_DIRECT_GU_ARTIFACT_NAMES = (
     "attack.json", "collateral.json", "predictions.npz", "_meta.json"
 )
@@ -181,7 +185,12 @@ TARGET_DIRECT_CANDIDATE_COUNTS = {
     "citeseer": 2328,
     "pubmed": 13801,
 }
-TARGET_DIRECT_K = {"cora": 94, "citeseer": 116, "pubmed": 690}
+TARGET_DIRECT_RATIOS = (0.01, 0.05)
+TARGET_DIRECT_K_BY_RATIO = {
+    "cora": {"0.01": 18, "0.05": 94},
+    "citeseer": {"0.01": 23, "0.05": 116},
+    "pubmed": {"0.01": 138, "0.05": 690},
+}
 TARGET_DIRECT_SEEDS = (42, 212, 2024)
 TARGET_DIRECT_STRATEGIES = (
     "degree", "a_grad_norm", "b_param_hutch", "gt_full", "gt_simple",
@@ -201,11 +210,22 @@ def _target_direct_selection_artifacts(stage: str) -> Tuple[str, ...]:
     return tuple(f"{leaf}/{name}" for name in TARGET_DIRECT_SELECTION_ARTIFACT_NAMES)
 
 
+def _target_direct_ratio_key(ratio: float) -> str:
+    value = float(ratio)
+    if value not in TARGET_DIRECT_RATIOS:
+        raise ValueError("unsupported target-direct ratio")
+    return f"{value:.2f}"
+
+
+def _target_direct_ratio_id(ratio: float) -> str:
+    return "r001" if float(ratio) == 0.01 else "r005"
+
+
 def _target_direct_selection_recipe(stage: str) -> Dict[str, Any]:
     dataset, seed_text = stage.rsplit("-seed", 1)
     seed = int(seed_text)
     return {
-        "id": f"opengu-target-direct-selection-{stage}-v1",
+        "id": f"opengu-target-direct-selection-{stage}-v2",
         "argv": (
             "{python}", "-m", "experiments.target_direct_v1.syncmate_stage",
             "--config", TARGET_DIRECT_CONFIG,
@@ -225,7 +245,7 @@ def _target_direct_selection_recipe(stage: str) -> Dict[str, Any]:
         "execution_validator": "exact-artifacts-json-v1",
         "preflight_profile": "target-direct-selection-4090-v1",
         "collector_acceptance": True,
-        "collector_profile": "target-direct-selection-v1",
+        "collector_profile": "target-direct-selection-v2",
         "collector_result_roots": (
             f"{TARGET_DIRECT_SELECTION_OUTPUT_ROOT}/cells/{stage}",
         ),
@@ -237,7 +257,10 @@ def _target_direct_selection_recipe(stage: str) -> Dict[str, Any]:
             "seeds": (seed,),
             "score_count": 17,
             "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
-            "k": TARGET_DIRECT_K[dataset],
+            "budget_ratios": TARGET_DIRECT_RATIOS,
+            "expected_k_by_ratio": TARGET_DIRECT_K_BY_RATIO[dataset],
+            "score_budget_semantics": "prefix_stable_budget_independent",
+            "budget_conditioned_strategies": (),
             "parameter_scope": "last_layer",
             "lane": "target_direct_white_box",
         },
@@ -245,46 +268,50 @@ def _target_direct_selection_recipe(stage: str) -> Dict[str, Any]:
 
 
 def _target_direct_gu_artifacts(
-    stage: str, *, gate_only: bool = False
+    stage: str, *, ratio: float, gate_only: bool = False
 ) -> Tuple[str, ...]:
     dataset, seed_text = stage.rsplit("-seed", 1)
     seed = int(seed_text)
+    ratio_key = _target_direct_ratio_key(ratio)
     strategies = ("degree",) if gate_only else TARGET_DIRECT_STRATEGIES
     paths = []
     for strategy in strategies:
         leaf = (
             f"{TARGET_DIRECT_GU_OUTPUT_ROOT}/"
-            f"{dataset}_GCN_r0.05/GNNDelete_{strategy}/seed{seed}"
+            f"{dataset}_GCN_r{ratio_key}/GNNDelete_{strategy}/seed{seed}"
         )
         paths.extend(f"{leaf}/{name}" for name in TARGET_DIRECT_GU_ARTIFACT_NAMES)
     return tuple(paths)
 
 
 def _target_direct_gu_roots(
-    stage: str, *, gate_only: bool = False
+    stage: str, *, ratio: float, gate_only: bool = False
 ) -> Tuple[str, ...]:
     return tuple(
         path.rsplit("/", 1)[0]
         for path in _target_direct_gu_artifacts(
-            stage, gate_only=gate_only
+            stage, ratio=ratio, gate_only=gate_only
         )[::4]
     )
 
 
 def _target_direct_gu_recipe(
-    stage: str, *, gate_only: bool = False
+    stage: str, *, ratio: float, gate_only: bool = False
 ) -> Dict[str, Any]:
     dataset, seed_text = stage.rsplit("-seed", 1)
     seed = int(seed_text)
+    ratio_key = _target_direct_ratio_key(ratio)
+    ratio_id = _target_direct_ratio_id(ratio)
     recipe_id = (
-        "opengu-target-direct-gu-gate-v1"
+        f"opengu-target-direct-gu-gate-{ratio_id}-v2"
         if gate_only
-        else f"opengu-target-direct-gu-{stage}-v1"
+        else f"opengu-target-direct-gu-{stage}-{ratio_id}-v2"
     )
     argv = [
         "{python}", "-m", "experiments.target_direct_v1.syncmate_stage",
         "--config", TARGET_DIRECT_CONFIG,
         "--action", "gu", "--stage", stage,
+        "--ratio", ratio_key,
     ]
     if gate_only:
         argv.append("--gate-only")
@@ -299,7 +326,7 @@ def _target_direct_gu_recipe(
         "requires_job_expected_git_sha": True,
         "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
         "expected_artifact_paths": _target_direct_gu_artifacts(
-            stage, gate_only=gate_only
+            stage, ratio=ratio, gate_only=gate_only
         ),
         "success_predicate": (
             "json.passed == true and generated_artifacts exactly equal "
@@ -309,12 +336,12 @@ def _target_direct_gu_recipe(
         "preflight_profile": "target-direct-gu-4090-v1",
         "collector_acceptance": True,
         "collector_profile": (
-            "target-direct-gu-v1"
+            "target-direct-gu-v2"
             if gate_only
-            else "target-direct-gu-stage-v1"
+            else "target-direct-gu-stage-v2"
         ),
         "collector_result_roots": _target_direct_gu_roots(
-            stage, gate_only=gate_only
+            stage, ratio=ratio, gate_only=gate_only
         ),
         "collector_artifact_names": TARGET_DIRECT_GU_ARTIFACT_NAMES,
     }
@@ -324,12 +351,15 @@ def _target_direct_gu_recipe(
         "base_model": "GCN",
         "gu_method": "GNNDelete",
         "seed": seed,
-        "k": TARGET_DIRECT_K[dataset],
+        "ratio": float(ratio),
+        "k": TARGET_DIRECT_K_BY_RATIO[dataset][ratio_key],
         "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
         "parameter_scope": "last_layer",
         "lane": "target_direct_white_box",
         "target_checkpoint_required": True,
         "scientific_comparison": not gate_only,
+        "execution_authorized": bool(gate_only),
+        "candidate_matrix_only": not gate_only,
     }
     if gate_only:
         contract["selector"] = "degree"
@@ -899,19 +929,29 @@ RUNNER_RECIPE_DEFINITIONS.update(
 )
 RUNNER_RECIPE_DEFINITIONS.update(
     {
-        f"opengu-target-direct-selection-{stage}-v1":
+        f"opengu-target-direct-selection-{stage}-v2":
         _target_direct_selection_recipe(stage)
         for stage in TARGET_DIRECT_STAGES
     }
 )
-RUNNER_RECIPE_DEFINITIONS["opengu-target-direct-gu-gate-v1"] = (
-    _target_direct_gu_recipe("cora-seed42", gate_only=True)
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        f"opengu-target-direct-gu-gate-{_target_direct_ratio_id(ratio)}-v2":
+        _target_direct_gu_recipe(
+            "cora-seed42", ratio=ratio, gate_only=True
+        )
+        for ratio in TARGET_DIRECT_RATIOS
+    }
 )
 RUNNER_RECIPE_DEFINITIONS.update(
     {
-        f"opengu-target-direct-gu-{stage}-v1":
-        _target_direct_gu_recipe(stage)
+        (
+            f"opengu-target-direct-gu-{stage}-"
+            f"{_target_direct_ratio_id(ratio)}-v2"
+        ):
+        _target_direct_gu_recipe(stage, ratio=ratio)
         for stage in TARGET_DIRECT_STAGES
+        for ratio in TARGET_DIRECT_RATIOS
     }
 )
 QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
@@ -16173,21 +16213,38 @@ def small_selection_acceptance_payload(
             if not isinstance(receipt.get(field), int) or receipt[field] <= 0:
                 errors.append("cell receipt has no valid {0}: {1}".format(field, remote_path))
         if target_direct:
-            methods = receipt.get("method_timings") or {}
+            expected_ratios = tuple(
+                float(value) for value in matrix.get("budget_ratios") or ()
+            )
+            expected_k_by_ratio = matrix.get("expected_k_by_ratio") or {}
+            ratio_results = receipt.get("ratio_results") or {}
             checkpoint = receipt.get("target_checkpoint") or {}
             if (
-                receipt.get("parameter_scope") != matrix.get("parameter_scope")
+                receipt.get("version") != 2
+                or receipt.get("parameter_scope")
+                != matrix.get("parameter_scope")
                 or receipt.get("candidate_count") != matrix.get("candidate_count")
-                or receipt.get("k") != matrix.get("k")
-                or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
-                or not isinstance(receipt.get("score_bundle_warm_read_seconds"), (int, float))
-                or set(methods) != set(TARGET_DIRECT_STRATEGIES)
-                or any(
-                    item.get("status") != "success"
-                    or item.get("cache_hit") is not False
-                    for item in methods.values()
+                or tuple(
+                    float(value) for value in receipt.get("budget_ratios") or ()
                 )
-                or (receipt.get("failure_state") or {}).get("state") != "success"
+                != expected_ratios
+                or receipt.get("expected_k_by_ratio")
+                != expected_k_by_ratio
+                or receipt.get("score_budget_semantics")
+                != matrix.get("score_budget_semantics")
+                or tuple(receipt.get("budget_conditioned_strategies") or ())
+                != tuple(matrix.get("budget_conditioned_strategies") or ())
+                or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
+                or not isinstance(receipt.get("score_bundle_warm_read_seconds"), dict)
+                or not receipt.get("score_bundle_warm_read_seconds")
+                or any(
+                    not isinstance(value, (int, float))
+                    for value in (
+                        receipt.get("score_bundle_warm_read_seconds") or {}
+                    ).values()
+                )
+                or set(ratio_results)
+                != {f"{ratio:.2f}" for ratio in expected_ratios}
                 or not checkpoint.get("file_sha256")
                 or not checkpoint.get("state_hash")
             ):
@@ -16195,17 +16252,90 @@ def small_selection_acceptance_payload(
                     "target-direct receipt timing/scope/checkpoint contract "
                     "is incomplete: " + remote_path
                 )
+            for ratio in expected_ratios:
+                ratio_key = f"{ratio:.2f}"
+                ratio_result = ratio_results.get(ratio_key) or {}
+                cold_methods = ratio_result.get("cold_method_timings") or {}
+                warm_methods = ratio_result.get("warm_method_timings") or {}
+                if (
+                    float(ratio_result.get("ratio", -1)) != ratio
+                    or ratio_result.get("k")
+                    != expected_k_by_ratio.get(ratio_key)
+                    or set(cold_methods) != set(TARGET_DIRECT_STRATEGIES)
+                    or set(warm_methods) != set(TARGET_DIRECT_STRATEGIES)
+                    or any(
+                        item.get("status") != "success"
+                        or item.get("cache_hit") is not False
+                        or item.get("selection_projection_cache_hit")
+                        is not False
+                        or not isinstance(
+                            item.get("cold_selection_projection_seconds"),
+                            (int, float),
+                        )
+                        for item in cold_methods.values()
+                    )
+                    or any(
+                        item.get("status") != "success"
+                        or item.get("cache_hit") is not True
+                        or item.get("selection_projection_cache_hit")
+                        is not True
+                        for item in warm_methods.values()
+                    )
+                    or (ratio_result.get("failure_state") or {}).get("state")
+                    != "success"
+                ):
+                    errors.append(
+                        "target-direct ratio projection contract is incomplete: "
+                        + ratio_key
+                    )
         parent = remote_path.rsplit("/", 1)[0]
-        for name, hash_field in (("cold.json", "cold_sha256"), ("warm.json", "warm_sha256")):
-            evidence_remote = parent + "/" + name
-            evidence_item = by_remote.get(evidence_remote) or {}
-            evidence_local = safe_repo_path(str(evidence_item.get("local_path") or ""))
-            if (
-                evidence_local is None
-                or not evidence_local.is_file()
-                or sha256_file(evidence_local) != receipt.get(hash_field)
+        if target_direct:
+            for ratio in matrix.get("budget_ratios") or ():
+                ratio_key = f"{float(ratio):.2f}"
+                ratio_result = (receipt.get("ratio_results") or {}).get(
+                    ratio_key
+                ) or {}
+                for phase, hash_field in (
+                    ("cold", "cold_sha256"),
+                    ("warm", "warm_sha256"),
+                ):
+                    name = f"{phase}-r{ratio_key}.json"
+                    evidence_remote = parent + "/" + name
+                    evidence_item = by_remote.get(evidence_remote) or {}
+                    evidence_local = safe_repo_path(
+                        str(evidence_item.get("local_path") or "")
+                    )
+                    if (
+                        evidence_local is None
+                        or not evidence_local.is_file()
+                        or sha256_file(evidence_local)
+                        != ratio_result.get(hash_field)
+                    ):
+                        errors.append(
+                            "cell receipt does not bind verified {0}: {1}".format(
+                                name, remote_path
+                            )
+                        )
+        else:
+            for name, hash_field in (
+                ("cold.json", "cold_sha256"),
+                ("warm.json", "warm_sha256"),
             ):
-                errors.append("cell receipt does not bind verified {0}: {1}".format(name, remote_path))
+                evidence_remote = parent + "/" + name
+                evidence_item = by_remote.get(evidence_remote) or {}
+                evidence_local = safe_repo_path(
+                    str(evidence_item.get("local_path") or "")
+                )
+                if (
+                    evidence_local is None
+                    or not evidence_local.is_file()
+                    or sha256_file(evidence_local) != receipt.get(hash_field)
+                ):
+                    errors.append(
+                        "cell receipt does not bind verified {0}: {1}".format(
+                            name, remote_path
+                        )
+                    )
         receipts.append(receipt)
     if observed_cells != expected_cells:
         errors.append("accepted cell matrix differs from the reviewed recipe")
@@ -16288,6 +16418,7 @@ def small_selection_gu_acceptance_payload(
             errors.append("GU _meta {0} mismatch".format(field))
     if (
         artifact.get("strategy") != gate.get("selector")
+        or artifact.get("ratio") != gate.get("ratio")
         or artifact.get("k") != gate.get("k")
         or artifact.get("authoritative") is not True
         or not artifact.get("artifact_id")
@@ -16300,6 +16431,7 @@ def small_selection_gu_acceptance_payload(
         if (
             gate.get("parameter_scope") != "last_layer"
             or claims.get("parameter_scope") != "last_layer"
+            or claims.get("deletion_ratio") != gate.get("ratio")
             or not target_checkpoint.get("state_hash")
             or not target_checkpoint.get("file_sha256")
         ):
@@ -16417,6 +16549,7 @@ def small_selection_gu_stage_acceptance_payload(
             errors.append("GU stage _meta identity mismatch: " + str(selector))
         if (
             artifact.get("strategy") != selector
+            or artifact.get("ratio") != stage.get("ratio")
             or artifact.get("k") != stage.get("k")
             or artifact.get("authoritative") is not True
             or not artifact.get("artifact_id")
@@ -16431,6 +16564,7 @@ def small_selection_gu_stage_acceptance_payload(
             if (
                 stage.get("parameter_scope") != "last_layer"
                 or claims.get("parameter_scope") != "last_layer"
+                or claims.get("deletion_ratio") != stage.get("ratio")
                 or not state_hash
                 or not file_sha256
             ):
@@ -16463,6 +16597,7 @@ def small_selection_gu_stage_acceptance_payload(
         accepted.append(
             {
                 "selector": selector,
+                "ratio": stage.get("ratio"),
                 "selection_artifact_id": artifact.get("artifact_id"),
                 "target_checkpoint_state_hash": target_checkpoint.get("state_hash"),
                 "attack_total_seconds": attack_row.get("total_time"),
@@ -16511,7 +16646,7 @@ def runner_agent_collect_and_gate(
     definition = runner_recipe_definition(recipe) if recipe else None
     if definition and definition.get("collector_profile") in (
         "small-selection-v1",
-        "target-direct-selection-v1",
+        "target-direct-selection-v2",
     ):
         device, warnings = load_device(config_path)
         if warnings:
@@ -16553,7 +16688,7 @@ def runner_agent_collect_and_gate(
             (
                 "target_direct_selection_acceptance"
                 if definition.get("collector_profile")
-                == "target-direct-selection-v1"
+                == "target-direct-selection-v2"
                 else "selection_acceptance"
             ),
             node_id,
@@ -16575,7 +16710,7 @@ def runner_agent_collect_and_gate(
         }
     if definition and definition.get("collector_profile") in (
         "small-selection-gu-v1",
-        "target-direct-gu-v1",
+        "target-direct-gu-v2",
     ):
         device, warnings = load_device(config_path)
         if warnings:
@@ -16616,7 +16751,7 @@ def runner_agent_collect_and_gate(
         write_sync_report(
             (
                 "target_direct_gu_acceptance"
-                if definition.get("collector_profile") == "target-direct-gu-v1"
+                if definition.get("collector_profile") == "target-direct-gu-v2"
                 else "selection_gu_acceptance"
             ),
             node_id,
@@ -16638,7 +16773,7 @@ def runner_agent_collect_and_gate(
         }
     if definition and definition.get("collector_profile") in (
         "small-selection-gu-stage-v1",
-        "target-direct-gu-stage-v1",
+        "target-direct-gu-stage-v2",
     ):
         device, warnings = load_device(config_path)
         if warnings:
@@ -16671,7 +16806,7 @@ def runner_agent_collect_and_gate(
             (
                 "target_direct_gu_stage_acceptance"
                 if definition.get("collector_profile")
-                == "target-direct-gu-stage-v1"
+                == "target-direct-gu-stage-v2"
                 else "selection_gu_stage_acceptance"
             ),
             node_id,

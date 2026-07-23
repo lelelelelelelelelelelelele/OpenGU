@@ -43,39 +43,40 @@
   <section class="verdict">
     <strong>Verdict:</strong> the updated target-direct lane is prepared and locally validated,
     but no formal experiment was started. The active SSH checkout is clean
-    <code>main@fb0d9a33</code>; the five-commit preparation line remains unmerged. The runner has no GPU,
+    <code>main@fb0d9a33</code>; the preparation line, including this dual-budget revision, remains unmerged. The runner has no GPU,
     no accepted <code>gnn_20</code>, and no approved 70/10/20 processed profiles.
   </section>
 
   <div class="grid">
-    <div class="card"><b class="good">230 passed</b>Final targeted tests; 1 existing warning</div>
-    <div class="card"><b>153 cells</b>3 datasets × 3 seeds × 17 selectors</div>
+    <div class="card"><b class="good">242 passed</b>Expanded targeted tests; 1 existing warning</div>
+    <div class="card"><b>306 candidate cells</b>3 datasets × 3 seeds × 17 selectors × 2 ratios; not authorized</div>
     <div class="card"><b class="bad">0 launched</b>No formal gate or matrix job</div>
   </div>
 
   <h2>Contract disposition</h2>
   <table>
     <tr><th>Contract</th><th>Prepared behavior</th><th>Status</th></tr>
-    <tr><td>Matrix</td><td>Cora/CiteSeer/PubMed × 42/212/2024 × 17 selectors</td><td class="good">PASS</td></tr>
-    <tr><td>Budget</td><td>Derive floor 5% from verified train candidate pool; expected 1,895→94, 2,328→116, 13,801→690</td><td class="good">PASS</td></tr>
+    <tr><td>Matrix</td><td>Candidate scope: Cora/CiteSeer/PubMed × 42/212/2024 × 17 selectors × ratios 1%/5% = 306 cells; expansion not authorized</td><td class="good">PASS</td></tr>
+    <tr><td>Split vs budget</td><td><code>70/10/20</code> prevents test leakage; <code>{0.01,0.05}</code> are deletion ratios and cannot replace the split</td><td class="good">PASS</td></tr>
+    <tr><td>Budget</td><td>Per ratio derive <code>max(1,floor(r×Ntrain))</code>; expected Cora 18/94, CiteSeer 23/116, PubMed 138/690</td><td class="good">PASS</td></tr>
     <tr><td>White-box identity</td><td>Selection and GNNDelete bind the same GCN architecture and exact checkpoint hashes</td><td class="good">PASS</td></tr>
     <tr><td>Scope</td><td><code>last_layer</code> only; <code>all_trainable</code> absent from config and recipes</td><td class="good">PASS</td></tr>
-    <tr><td>Cache</td><td>Fresh target-direct ScoreBundle/Selection identities; old public/surrogate results excluded</td><td class="good">PASS</td></tr>
+    <tr><td>Cache</td><td>Fresh <code>target_direct_formal_v2</code> identities; one immutable ScoreBundle shared by current prefix-stable methods, with distinct ratio-conditioned Selection recipes</td><td class="good">PASS</td></tr>
     <tr><td>Formal start</td><td>Requires accepted clean pinned main, GPU, environment, profiles, and SyncMate acceptance</td><td class="bad">BLOCKED</td></tr>
   </table>
 
   <h2>Prepared implementation</h2>
   <ul>
-    <li>9 bounded Selection recipes with immutable cold/warm/receipt evidence.</li>
-    <li>1 Cora/seed42/degree gate and 9 downstream 17-selector recipes.</li>
-    <li>68 exact downstream artifacts per full dataset/seed stage.</li>
+    <li>9 bounded Selection recipes; each produces both ratios from one immutable ScoreBundle and preserves cold/warm evidence for both.</li>
+    <li>2 Cora/seed42/degree gate recipes, one for 1% and one for 5%.</li>
+    <li>18 candidate downstream dataset/seed/ratio recipes, 68 artifacts each (306 cells / 1,224 artifacts total), with execution explicitly unauthorized.</li>
     <li>Per-method cold timing, shared 17-way ScoreBundle time, warm read, GPU peak,
       failure state, Selection Artifact identity, and exact checkpoint provenance.</li>
-    <li>One manifest/config identity for the degree gate and later Cora/seed42 expansion.</li>
+    <li>Ratio-specific manifest/config identity; any later authorized stage must resume the accepted degree cell for that same ratio.</li>
   </ul>
   <p>Fresh roots are isolated under
-    <code>results/cache_v2/target_direct_formal_v1</code> and
-    <code>results/runs/target_direct_formal_v1</code>.</p>
+    <code>results/cache_v2/target_direct_formal_v2</code> and
+    <code>results/runs/target_direct_formal_v2</code>.</p>
 
   <h2>Git state</h2>
   <table>
@@ -96,11 +97,13 @@
   <h2>Validation</h2>
   <table>
     <tr><th>Check</th><th>Result</th></tr>
-    <tr><td>Baseline suite</td><td>219 passed, 1 warning</td></tr>
-    <tr><td>Final expanded suite</td><td><strong class="good">230 passed, 1 warning in 9.17 s</strong></td></tr>
+    <tr><td>Dual-budget focused suite</td><td><strong class="good">197 passed</strong></td></tr>
+    <tr><td>Final expanded suite</td><td><strong class="good">242 passed, 1 warning in 10.73 s</strong></td></tr>
     <tr><td>Compilation / diff</td><td>PASS / PASS</td></tr>
     <tr><td>Local formal preflight</td><td>Correctly blocked on branch/path/profile/local-GPU conditions</td></tr>
-    <tr><td>Canonical GU dry-run</td><td>Correctly blocked because real profile/checkpoint/manifest/Selection evidence is absent</td></tr>
+    <tr><td>Canonical GU dry-runs</td><td>Both 1% and 5% correctly blocked because real profile/checkpoint/manifest/Selection evidence is absent</td></tr>
+    <tr><td>Candidate expansion</td><td>Correctly blocked as unauthorized and requires both ratio gates</td></tr>
+    <tr><td>SyncMate smoke</td><td>PASS; 3/3 disposable artifacts verified and temporary root cleaned</td></tr>
   </table>
 
   <h2>SSH and SyncMate readiness</h2>
@@ -138,13 +141,13 @@
 
   <h2>Exact blockers and continuation</h2>
   <ol>
-    <li>Accept the five-commit preparation branch through the recorded Git workflow.</li>
+    <li>Accept the preparation branch, including this dual-budget revision, through the recorded Git workflow.</li>
     <li>Restore a visible accepted GPU and the exact <code>gnn_20</code> interpreter.</li>
     <li>Stage and verify all three 70/10/20 profiles before timing.</li>
-    <li>Run Cora/seed42 Selection, collect three artifacts, then run the canonical dry-run.</li>
-    <li>Run and accept the 4-artifact degree gate.</li>
-    <li>Expand Cora/seed42 under the same identity, then run the remaining eight
-      Selection→GU stages through SyncMate with checksum and provenance acceptance.</li>
+    <li>Run Cora/seed42 Selection, collect five evidence artifacts, and verify one shared ScoreBundle plus both ratios' cold/warm projections.</li>
+    <li>Run the canonical GNNDelete dry-run separately for the real 1% and 5% manifests.</li>
+    <li>Run and accept the 4-artifact 1% degree gate, then the separate 4-artifact 5% degree gate.</li>
+    <li>Stop after canary acceptance unless the user explicitly authorizes the 306-cell candidate expansion; if authorized, run ratio-specific stages through SyncMate with checksum and provenance acceptance.</li>
   </ol>
 
   <footer>Source of truth:

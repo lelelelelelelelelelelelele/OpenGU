@@ -26,7 +26,11 @@ from experiments.path_policy import resolve_owned_path
 from experiments.target_direct_v1 import MODEL_SEEDS, PROFILE
 from experiments.target_direct_v1.build_gu_config import build_gu_config
 from experiments.target_direct_v1.build_manifest import build_manifest
-from experiments.target_direct_v1.recipe import SCORE_NAMES
+from experiments.target_direct_v1.recipe import (
+    APPROVED_BUDGET_RATIOS,
+    SCORE_BUDGET_SEMANTICS,
+    SCORE_NAMES,
+)
 from experiments.target_direct_v1.split_profile import verify_profile
 
 
@@ -35,12 +39,12 @@ CONFIG_PATH = (
     REPO_ROOT
     / "experiments"
     / "configs"
-    / "syncmate_target_direct_formal_v1.yaml"
+    / "syncmate_target_direct_formal_v2.yaml"
 )
 CONFIG_SCHEMA = "target_direct_v1.syncmate_formal"
-CONFIG_VERSION = 1
+CONFIG_VERSION = 2
 RECEIPT_SCHEMA = "target_direct_v1.syncmate_selection_cell"
-RECEIPT_VERSION = 1
+RECEIPT_VERSION = 2
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
 STAGES = tuple(
@@ -51,6 +55,7 @@ STAGES = tuple(
 FORMAL_STRATEGIES = ("degree",) + tuple(
     strategy for strategy in SCORE_NAMES if strategy != "degree"
 )
+BUDGET_RATIOS = APPROVED_BUDGET_RATIOS
 
 
 class TargetDirectStageError(RuntimeError):
@@ -120,6 +125,29 @@ def parse_stage(stage: str) -> Tuple[str, int]:
     return dataset, int(seed_text)
 
 
+def ratio_key(ratio: float) -> str:
+    value = float(ratio)
+    if not any(abs(value - expected) < 1e-12 for expected in BUDGET_RATIOS):
+        raise TargetDirectStageError(
+            "ratio is outside the reviewed {0} budget set".format(
+                list(BUDGET_RATIOS)
+            )
+        )
+    return "{0:.2f}".format(value)
+
+
+def ratio_token(ratio: float) -> str:
+    return "r" + ratio_key(ratio)
+
+
+def _expected_k(
+    config: Mapping[str, Any], dataset: str, ratio: float
+) -> int:
+    return int(
+        config["datasets"][dataset]["expected_k_by_ratio"][ratio_key(ratio)]
+    )
+
+
 def load_config(
     config_path: Path = CONFIG_PATH,
     *,
@@ -142,7 +170,12 @@ def load_config(
         or value.get("base_model") != "GCN"
         or value.get("gu_method") != "GNNDelete"
         or value.get("main_parameter_scope") != "last_layer"
-        or float(value.get("ratio", -1)) != 0.05
+        or tuple(float(item) for item in value.get("budget_ratios") or ())
+        != BUDGET_RATIOS
+        or value.get("budget_rounding") != "floor_with_minimum_one"
+        or value.get("score_budget_semantics")
+        != SCORE_BUDGET_SEMANTICS
+        or tuple(value.get("budget_conditioned_strategies") or ()) != ()
         or tuple(value.get("seeds") or ()) != MODEL_SEEDS
         or tuple(value.get("strategy_order") or ()) != FORMAL_STRATEGIES
         or set(value.get("datasets") or {}) != set(DATASETS)
@@ -152,9 +185,19 @@ def load_config(
     if (
         claims.get("selector_and_gu_share_exact_checkpoint") is not True
         or claims.get("budget_denominator") != "train_candidate_count"
+        or tuple(
+            float(item) for item in claims.get("deletion_budget_ratios") or ()
+        )
+        != BUDGET_RATIOS
+        or int(claims.get("score_bundle_compute_per_dataset_seed", -1)) != 1
+        or claims.get("selection_artifact_identity_is_ratio_conditioned")
+        is not True
         or claims.get("formal_matrix_scope") != "last_layer"
         or claims.get("old_public_or_surrogate_results_reusable") is not False
-        or int(claims.get("formal_cells", -1)) != 153
+        or int(claims.get("formal_gate_cells", -1)) != 2
+        or int(claims.get("candidate_full_matrix_cells", -1)) != 306
+        or claims.get("candidate_full_matrix_authorized") is not False
+        or claims.get("execution_scope") != "dual_budget_canary_only"
     ):
         raise TargetDirectStageError("formal claim boundary is not frozen")
     resolved = {}
@@ -185,15 +228,15 @@ def load_config(
         if (root / "results" / "runs").resolve() not in resolved[key].parents:
             raise TargetDirectStageError(key + " must be under results/runs")
     expected_budgets = {
-        "cora": (1895, 94),
-        "citeseer": (2328, 116),
-        "pubmed": (13801, 690),
+        "cora": (1895, {"0.01": 18, "0.05": 94}),
+        "citeseer": (2328, {"0.01": 23, "0.05": 116}),
+        "pubmed": (13801, {"0.01": 138, "0.05": 690}),
     }
-    for dataset, (candidate_count, k) in expected_budgets.items():
+    for dataset, (candidate_count, expected_k_by_ratio) in expected_budgets.items():
         item = value["datasets"][dataset]
         if (
             int(item.get("expected_candidate_count", -1)) != candidate_count
-            or int(item.get("expected_k", -1)) != k
+            or item.get("expected_k_by_ratio") != expected_k_by_ratio
         ):
             raise TargetDirectStageError(
                 "reviewed candidate/k expectation changed for " + dataset
@@ -201,32 +244,43 @@ def load_config(
     return {**value, "repository_root": root, "config_path": path, "paths": resolved}
 
 
-def _stage_paths(config: Mapping[str, Any], stage: str) -> Dict[str, Path]:
+def _stage_paths(config: Mapping[str, Any], stage: str) -> Dict[str, Any]:
     dataset, seed = parse_stage(stage)
+    cell_root = (
+        Path(config["paths"]["selection_output_root"]) / "cells" / stage
+    )
+    evidence_root = Path(config["paths"]["evidence_root"])
     return {
-        "cold": Path(config["paths"]["selection_output_root"])
-        / "cells"
-        / stage
-        / "cold.json",
-        "warm": Path(config["paths"]["selection_output_root"])
-        / "cells"
-        / stage
-        / "warm.json",
-        "receipt": Path(config["paths"]["selection_output_root"])
-        / "cells"
-        / stage
-        / "cell.json",
+        "cold": {
+            ratio_key(ratio): cell_root
+            / "cold-{0}.json".format(ratio_token(ratio))
+            for ratio in BUDGET_RATIOS
+        },
+        "warm": {
+            ratio_key(ratio): cell_root
+            / "warm-{0}.json".format(ratio_token(ratio))
+            for ratio in BUDGET_RATIOS
+        },
+        "receipt": cell_root / "cell.json",
         "score_store": Path(config["paths"]["score_cache_root"]) / stage,
         "selection_store": Path(config["paths"]["selection_store_root"]) / stage,
         "checkpoint": Path(config["paths"]["checkpoint_root"])
         / "{0}_seed{1}_target.pt".format(dataset, seed),
-        "manifest": Path(config["paths"]["evidence_root"])
-        / "manifests"
-        / (stage + ".json"),
-        "gu_config": Path(config["paths"]["evidence_root"])
-        / "configs"
-        / (stage + ".yaml"),
-        "logs": Path(config["paths"]["evidence_root"]) / "logs" / stage,
+        "manifest": {
+            ratio_key(ratio): evidence_root
+            / "manifests"
+            / ratio_token(ratio)
+            / (stage + ".json")
+            for ratio in BUDGET_RATIOS
+        },
+        "gu_config": {
+            ratio_key(ratio): evidence_root
+            / "configs"
+            / ratio_token(ratio)
+            / (stage + ".yaml")
+            for ratio in BUDGET_RATIOS
+        },
+        "logs": evidence_root / "logs" / stage,
     }
 
 
@@ -236,15 +290,20 @@ def selection_artifacts(
     cfg = dict(config or load_config())
     root = Path(cfg["repository_root"])
     paths = _stage_paths(cfg, stage)
-    return tuple(
-        paths[key].relative_to(root).as_posix()
-        for key in ("cold", "warm", "receipt")
-    )
+    artifacts = []
+    for key in ("cold", "warm"):
+        artifacts.extend(
+            paths[key][ratio_key(ratio)].relative_to(root).as_posix()
+            for ratio in BUDGET_RATIOS
+        )
+    artifacts.append(paths["receipt"].relative_to(root).as_posix())
+    return tuple(artifacts)
 
 
 def gu_artifacts(
     stage: str,
     *,
+    ratio: float,
     gate_only: bool = False,
     config: Optional[Mapping[str, Any]] = None,
 ) -> Tuple[str, ...]:
@@ -256,7 +315,7 @@ def gu_artifacts(
     for strategy in strategies:
         leaf = (
             Path(cfg["paths"]["gu_run_root"])
-            / "{0}_GCN_r0.05".format(dataset)
+            / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
             / "GNNDelete_{0}".format(strategy)
             / "seed{0}".format(seed)
         )
@@ -275,15 +334,22 @@ def _profile(config: Mapping[str, Any], dataset: str) -> Mapping[str, Any]:
         dataset=display_name,
     )
     observed_count = int(profile["inputs"].candidate_count)
-    observed_k = max(1, int(observed_count * float(config["ratio"])))
     expected = config["datasets"][dataset]
-    if (
-        observed_count != int(expected["expected_candidate_count"])
-        or observed_k != int(expected["expected_k"])
-    ):
+    observed_k_by_ratio = {
+        ratio_key(ratio): max(1, int(observed_count * float(ratio)))
+        for ratio in BUDGET_RATIOS
+    }
+    if observed_count != int(expected["expected_candidate_count"]):
         raise TargetDirectStageError(
-            "derived candidate/k differs from the reviewed expectation"
+            "derived candidate count differs from the reviewed expectation"
         )
+    for ratio in BUDGET_RATIOS:
+        key = ratio_key(ratio)
+        if observed_k_by_ratio[key] != _expected_k(config, dataset, ratio):
+            raise TargetDirectStageError(
+                "derived k differs from the reviewed expectation at ratio "
+                + key
+            )
     return profile
 
 
@@ -347,58 +413,161 @@ def _load_summary(path: Path) -> Mapping[str, Any]:
 def _validate_selection_pair(
     config: Mapping[str, Any], stage: str, expected_head: str
 ) -> Dict[str, Any]:
+    """Validate one shared cold ScoreBundle and two ratio projections."""
+
     dataset, seed = parse_stage(stage)
     paths = _stage_paths(config, stage)
-    cold = _load_summary(paths["cold"])
-    warm = _load_summary(paths["warm"])
-    expected_k = int(config["datasets"][dataset]["expected_k"])
-    for label, summary in (("cold", cold), ("warm", warm)):
+    summaries: Dict[Tuple[str, str], Mapping[str, Any]] = {}
+    score_identities = set()
+    checkpoint_identities = set()
+    ratio_results = {}
+    score_warm_reads = {}
+
+    for position, ratio in enumerate(BUDGET_RATIOS):
+        key = ratio_key(ratio)
+        expected_k = _expected_k(config, dataset, ratio)
+        cold = _load_summary(paths["cold"][key])
+        warm = _load_summary(paths["warm"][key])
+        summaries[(key, "cold")] = cold
+        summaries[(key, "warm")] = warm
+        for label, summary in (("cold", cold), ("warm", warm)):
+            budget = summary.get("budget") or {}
+            projection = summary.get("budget_projection") or {}
+            if (
+                summary.get("schema")
+                != "target_direct_v1.selection_summary"
+                or summary.get("version") != 2
+                or (summary.get("status") or {}).get("state") != "success"
+                or str(summary.get("dataset", "")).lower() != dataset
+                or int(summary.get("seed", -1)) != seed
+                or summary.get("processed_profile") != PROFILE
+                or summary.get("parameter_scope") != "last_layer"
+                or float(budget.get("requested_ratio", -1)) != float(ratio)
+                or budget.get("denominator") != "train_candidate_count"
+                or budget.get("rounding") != "floor_with_minimum_one"
+                or int(budget.get("denominator_count", -1))
+                != int(config["datasets"][dataset]["expected_candidate_count"])
+                or int(budget.get("expected_k", -1)) != expected_k
+                or projection.get("score_semantics")
+                != SCORE_BUDGET_SEMANTICS
+                or tuple(
+                    float(item)
+                    for item in projection.get("supported_ratios") or ()
+                )
+                != BUDGET_RATIOS
+                or projection.get("budget_conditioned_strategies") != []
+                or projection.get("score_bundle_shared_across_ratios")
+                is not True
+                or projection.get("selection_artifact_ratio_conditioned")
+                is not True
+                or (summary.get("git_provenance") or {}).get("head")
+                != expected_head
+                or (summary.get("git_provenance") or {}).get(
+                    "worktree_dirty"
+                )
+                is not False
+                or set(summary.get("selection_artifacts") or {})
+                != set(SCORE_NAMES)
+            ):
+                raise TargetDirectStageError(
+                    "{0} {1} target-direct summary identity mismatch".format(
+                        key, label
+                    )
+                )
+
+            score = summary.get("score_bundle") or {}
+            checkpoint = summary.get("target_checkpoint") or {}
+            score_identities.add(
+                (score.get("artifact_id"), score.get("recipe_hash"))
+            )
+            checkpoint_identities.add(
+                (checkpoint.get("file_sha256"), checkpoint.get("state_hash"))
+            )
+
+        cold_score_hit = (cold.get("score_bundle") or {}).get("hit")
+        expected_cold_score_hit = position != 0
+        if cold_score_hit is not expected_cold_score_hit:
+            raise TargetDirectStageError(
+                "{0} cold ScoreBundle sharing outcome changed".format(key)
+            )
+        if (warm.get("score_bundle") or {}).get("hit") is not True:
+            raise TargetDirectStageError(
+                "{0} warm ScoreBundle was not an exact hit".format(key)
+            )
+        cold_timings = (
+            (cold.get("selection_cache") or {}).get("method_timings") or {}
+        )
+        warm_timings = (
+            (warm.get("selection_cache") or {}).get("method_timings") or {}
+        )
         if (
-            summary.get("schema") != "target_direct_v1.selection_summary"
-            or (summary.get("status") or {}).get("state") != "success"
-            or str(summary.get("dataset", "")).lower() != dataset
-            or int(summary.get("seed", -1)) != seed
-            or summary.get("processed_profile") != PROFILE
-            or summary.get("parameter_scope") != "last_layer"
-            or int((summary.get("budget") or {}).get("expected_k", -1))
-            != expected_k
-            or (summary.get("git_provenance") or {}).get("head") != expected_head
-            or (summary.get("git_provenance") or {}).get("worktree_dirty")
-            is not False
-            or set(summary.get("selection_artifacts") or {}) != set(SCORE_NAMES)
+            set(cold_timings) != set(SCORE_NAMES)
+            or set(warm_timings) != set(SCORE_NAMES)
         ):
             raise TargetDirectStageError(
-                "{0} target-direct summary identity mismatch".format(label)
+                "{0} selection timing method set is not 17".format(key)
             )
-    if (cold.get("score_bundle") or {}).get("hit") is not False:
-        raise TargetDirectStageError("cold ScoreBundle was not a cache miss")
-    if (warm.get("score_bundle") or {}).get("hit") is not True:
-        raise TargetDirectStageError("warm ScoreBundle was not an exact hit")
-    cold_timings = (cold.get("selection_cache") or {}).get("method_timings") or {}
-    warm_timings = (warm.get("selection_cache") or {}).get("method_timings") or {}
-    if set(cold_timings) != set(SCORE_NAMES) or set(warm_timings) != set(SCORE_NAMES):
-        raise TargetDirectStageError("selection timing method set is not 17")
-    if any(item.get("cache_hit") is not False for item in cold_timings.values()):
-        raise TargetDirectStageError("cold Selection Artifact unexpectedly hit")
-    if any(item.get("cache_hit") is not True for item in warm_timings.values()):
-        raise TargetDirectStageError("warm Selection Artifact was not an exact hit")
-    cold_checkpoint = cold.get("target_checkpoint") or {}
-    warm_checkpoint = warm.get("target_checkpoint") or {}
-    for field in ("file_sha256", "state_hash"):
-        if not cold_checkpoint.get(field) or (
-            cold_checkpoint.get(field) != warm_checkpoint.get(field)
+        if any(
+            item.get("cache_hit") is not False
+            or item.get("selection_projection_cache_hit") is not False
+            or not isinstance(
+                item.get("cold_selection_projection_seconds"), (int, float)
+            )
+            for item in cold_timings.values()
         ):
             raise TargetDirectStageError(
-                "cold/warm target checkpoint identity mismatch"
+                "{0} cold Selection projection unexpectedly hit".format(key)
             )
-    if (
-        cold.get("score_bundle", {}).get("artifact_id")
-        != warm.get("score_bundle", {}).get("artifact_id")
-        or cold.get("score_bundle", {}).get("recipe_hash")
-        != warm.get("score_bundle", {}).get("recipe_hash")
+        if any(
+            item.get("cache_hit") is not True
+            or item.get("selection_projection_cache_hit") is not True
+            for item in warm_timings.values()
+        ):
+            raise TargetDirectStageError(
+                "{0} warm Selection Artifact was not an exact hit".format(key)
+            )
+        if cold_score_hit:
+            score_warm_reads[key + "_cold_projection"] = (
+                (cold.get("score_bundle") or {}).get("warm_read_seconds")
+            )
+        score_warm_reads[key + "_warm"] = (
+            (warm.get("score_bundle") or {}).get("warm_read_seconds")
+        )
+        ratio_results[key] = {
+            "ratio": float(ratio),
+            "k": expected_k,
+            "cold_score_bundle_hit": bool(cold_score_hit),
+            "cold_method_timings": cold_timings,
+            "warm_method_timings": warm_timings,
+            "failure_state": cold["status"],
+            "cold_sha256": _sha256_file(paths["cold"][key]),
+            "warm_sha256": _sha256_file(paths["warm"][key]),
+        }
+
+    if len(score_identities) != 1 or None in next(iter(score_identities)):
+        raise TargetDirectStageError(
+            "1%/5% summaries do not share one exact ScoreBundle identity"
+        )
+    if len(checkpoint_identities) != 1 or None in next(
+        iter(checkpoint_identities)
     ):
-        raise TargetDirectStageError("cold/warm ScoreBundle identity mismatch")
-    gpu = cold.get("gpu_memory") or {}
+        raise TargetDirectStageError(
+            "1%/5% summaries do not share one exact target checkpoint"
+        )
+    first_key = ratio_key(BUDGET_RATIOS[0])
+    first_cold = summaries[(first_key, "cold")]
+    first_checkpoint = first_cold["target_checkpoint"]
+    first_score = first_cold["score_bundle"]
+    if not isinstance(first_score.get("cold_total_seconds"), (int, float)):
+        raise TargetDirectStageError(
+            "shared cold ScoreBundle total timing is missing"
+        )
+    if any(
+        not isinstance(value, (int, float))
+        for value in score_warm_reads.values()
+    ):
+        raise TargetDirectStageError("shared ScoreBundle warm timing is missing")
+    gpu = first_cold.get("gpu_memory") or {}
     device_name = str(
         ((gpu.get("score_bundle") or {}).get("device_name")) or ""
     )
@@ -410,7 +579,8 @@ def _validate_selection_pair(
         or peak_reserved <= 0
     ):
         raise TargetDirectStageError("selection GPU evidence is incomplete")
-    receipt = {
+    artifact_id, recipe_hash = next(iter(score_identities))
+    return {
         "schema": RECEIPT_SCHEMA,
         "version": RECEIPT_VERSION,
         "dataset": config["datasets"][dataset]["display_name"],
@@ -418,31 +588,31 @@ def _validate_selection_pair(
         "status": "success",
         "experiment_git_sha": expected_head,
         "parameter_scope": "last_layer",
-        "candidate_count": int(cold["candidate_count"]),
-        "k": expected_k,
+        "candidate_count": int(first_cold["candidate_count"]),
+        "budget_ratios": list(BUDGET_RATIOS),
+        "expected_k_by_ratio": {
+            ratio_key(ratio): _expected_k(config, dataset, ratio)
+            for ratio in BUDGET_RATIOS
+        },
         "formal_score_count": len(SCORE_NAMES),
-        "score_bundle_artifact_id": cold["score_bundle"]["artifact_id"],
-        "score_bundle_recipe_hash": cold["score_bundle"]["recipe_hash"],
-        "score_bundle_cold_total_seconds": cold["score_bundle"][
+        "score_budget_semantics": SCORE_BUDGET_SEMANTICS,
+        "budget_conditioned_strategies": [],
+        "score_bundle_artifact_id": artifact_id,
+        "score_bundle_recipe_hash": recipe_hash,
+        "score_bundle_cold_total_seconds": first_score[
             "cold_total_seconds"
         ],
-        "score_bundle_warm_read_seconds": warm["score_bundle"][
-            "warm_read_seconds"
-        ],
-        "method_timings": cold_timings,
-        "failure_state": cold["status"],
+        "score_bundle_warm_read_seconds": score_warm_reads,
+        "ratio_results": ratio_results,
         "target_checkpoint": {
-            "path": cold_checkpoint["path"],
-            "file_sha256": cold_checkpoint["file_sha256"],
-            "state_hash": cold_checkpoint["state_hash"],
+            "path": first_checkpoint["path"],
+            "file_sha256": first_checkpoint["file_sha256"],
+            "state_hash": first_checkpoint["state_hash"],
         },
         "device_name": device_name,
         "peak_gpu_allocated_bytes": peak_allocated,
         "peak_gpu_reserved_bytes": peak_reserved,
-        "cold_sha256": _sha256_file(paths["cold"]),
-        "warm_sha256": _sha256_file(paths["warm"]),
     }
-    return receipt
 
 
 def preflight_selection(
@@ -472,8 +642,8 @@ def preflight_selection(
     elif any(
         path.exists()
         for path in (
-            paths["cold"],
-            paths["warm"],
+            *paths["cold"].values(),
+            *paths["warm"].values(),
             paths["score_store"],
             paths["selection_store"],
             paths["checkpoint"],
@@ -560,8 +730,6 @@ def execute_selection(
         str(paths["checkpoint"]),
         "--seed",
         str(seed),
-        "--ratio",
-        str(config["ratio"]),
         "--cuda",
         str(config["cuda"]),
         "--num-threads",
@@ -579,21 +747,38 @@ def execute_selection(
         "--experiment-git-sha",
         preflight["git"]["head"],
     ]
-    paths["cold"].parent.mkdir(parents=True, exist_ok=True)
-    _run_command(
-        [*base, "--output", str(paths["cold"])],
-        paths["logs"] / "selection_cold",
-    )
-    _run_command(
-        [
+    for position, ratio in enumerate(BUDGET_RATIOS):
+        key = ratio_key(ratio)
+        paths["cold"][key].parent.mkdir(parents=True, exist_ok=True)
+        command = [
             *base,
+            "--ratio",
+            key,
             "--output",
-            str(paths["warm"]),
-            "--reuse-checkpoint",
-            "--fail-if-producer-called",
-        ],
-        paths["logs"] / "selection_warm",
-    )
+            str(paths["cold"][key]),
+        ]
+        if position:
+            command.extend(
+                ["--reuse-checkpoint", "--fail-if-score-producer-called"]
+            )
+        _run_command(
+            command,
+            paths["logs"] / "selection_cold_{0}".format(ratio_token(ratio)),
+        )
+    for ratio in BUDGET_RATIOS:
+        key = ratio_key(ratio)
+        _run_command(
+            [
+                *base,
+                "--ratio",
+                key,
+                "--output",
+                str(paths["warm"][key]),
+                "--reuse-checkpoint",
+                "--fail-if-producer-called",
+            ],
+            paths["logs"] / "selection_warm_{0}".format(ratio_token(ratio)),
+        )
     receipt = _validate_selection_pair(
         config, stage, preflight["git"]["head"]
     )
@@ -610,9 +795,13 @@ def execute_selection(
 
 
 def _ensure_gu_inputs(
-    config: Mapping[str, Any], stage: str, expected_head: str
+    config: Mapping[str, Any],
+    stage: str,
+    ratio: float,
+    expected_head: str,
 ) -> Mapping[str, Any]:
     dataset, seed = parse_stage(stage)
+    key = ratio_key(ratio)
     paths = _stage_paths(config, stage)
     receipt = _validate_selection_pair(config, stage, expected_head)
     if (
@@ -625,37 +814,40 @@ def _ensure_gu_inputs(
         processed_root=Path(config["paths"]["processed_root"]),
         selection_store_root=paths["selection_store"],
         dataset=config["datasets"][dataset]["display_name"],
-        summaries=[paths["cold"]],
+        summaries=[paths["cold"][key]],
         expected_git_sha=expected_head,
-        ratio=float(config["ratio"]),
+        ratio=float(ratio),
         required_seeds=(seed,),
         required_parameter_scope="last_layer",
         strategy_order=FORMAL_STRATEGIES,
     )
-    _write_immutable_json(paths["manifest"], manifest)
+    _write_immutable_json(paths["manifest"][key], manifest)
     gu_config = build_gu_config(
-        manifest_path=paths["manifest"],
+        manifest_path=paths["manifest"][key],
         processed_root=Path(config["paths"]["processed_root"]),
-        runtime_root=Path(config["paths"]["runtime_root"]) / stage,
+        runtime_root=Path(config["paths"]["runtime_root"])
+        / ratio_token(ratio)
+        / stage,
         run_root=Path(config["paths"]["gu_run_root"]),
     )
     yaml_payload = yaml.safe_dump(
         gu_config, sort_keys=False, allow_unicode=True
     )
-    if paths["gu_config"].exists():
+    if paths["gu_config"][key].exists():
         if yaml.safe_load(
-            paths["gu_config"].read_text(encoding="utf-8")
+            paths["gu_config"][key].read_text(encoding="utf-8")
         ) != gu_config:
             raise TargetDirectStageError("existing GU config conflicts")
     else:
-        paths["gu_config"].parent.mkdir(parents=True, exist_ok=True)
-        paths["gu_config"].write_text(yaml_payload, encoding="utf-8")
+        paths["gu_config"][key].parent.mkdir(parents=True, exist_ok=True)
+        paths["gu_config"][key].write_text(yaml_payload, encoding="utf-8")
     return manifest
 
 
 def _validate_gu(
     config: Mapping[str, Any],
     stage: str,
+    ratio: float,
     manifest: Mapping[str, Any],
     *,
     gate_only: bool,
@@ -671,7 +863,7 @@ def _validate_gu(
     for strategy in strategies:
         leaf = (
             Path(config["paths"]["gu_run_root"])
-            / "{0}_GCN_r0.05".format(dataset)
+            / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
             / "GNNDelete_{0}".format(strategy)
             / "seed{0}".format(seed)
         )
@@ -706,6 +898,7 @@ def _validate_gu(
             or meta.get("method") != "GNNDelete"
             or meta.get("strategy") != strategy
             or int(meta.get("seed", -1)) != seed
+            or float(artifact.get("ratio", -1)) != float(ratio)
             or artifact.get("artifact_id")
             != expected_artifact["artifact_id"]
             or artifact.get("recipe_hash")
@@ -713,6 +906,7 @@ def _validate_gu(
             or artifact.get("content_hash")
             != expected_artifact["content_hash"]
             or int(artifact.get("k", -1)) != int(expected_cell["k"])
+            or float(expected_cell.get("ratio", -1)) != float(ratio)
             or artifact.get("authoritative") is not True
             or (artifact.get("target_checkpoint") or {}).get("state_hash")
             != expected_checkpoint["state_hash"]
@@ -730,6 +924,7 @@ def _validate_gu(
         accepted.append(
             {
                 "strategy": strategy,
+                "ratio": float(ratio),
                 "k": int(expected_cell["k"]),
                 "selection_artifact_id": artifact["artifact_id"],
                 "target_checkpoint_state_hash": expected_checkpoint["state_hash"],
@@ -742,16 +937,26 @@ def _validate_gu(
 
 def preflight_gu(
     stage: str,
+    ratio: float,
     config_path: Path = CONFIG_PATH,
     *,
+    gate_only: bool = False,
     repository_root: Optional[Path] = None,
     require_gpu: bool = True,
 ) -> Dict[str, Any]:
     try:
         config = load_config(config_path, repository_root=repository_root)
     except Exception as exc:
-        return {"ready": False, "stage": stage, "errors": [str(exc)]}
+        return {
+            "ready": False,
+            "stage": stage,
+            "ratio": ratio,
+            "errors": [str(exc)],
+        }
+    ratio = float(ratio_key(ratio))
     result = _formal_preflight(config, stage, require_gpu=require_gpu)
+    result["ratio"] = ratio
+    result["gate_only"] = gate_only
     paths = _stage_paths(config, stage)
     try:
         receipt = _validate_selection_pair(
@@ -767,19 +972,39 @@ def preflight_gu(
             )
     except Exception as exc:
         result["errors"].append("selection prerequisite: {0}".format(exc))
-    if stage != "cora-seed42":
-        gate_paths = gu_artifacts("cora-seed42", gate_only=True, config=config)
-        if any(
-            not (Path(config["repository_root"]) / relative).is_file()
-            for relative in gate_paths
+    if not gate_only:
+        if (
+            (config.get("claims") or {}).get(
+                "candidate_full_matrix_authorized"
+            )
+            is not True
         ):
-            result["errors"].append("formal degree gate has not completed")
+            result["errors"].append(
+                "306-cell candidate expansion is not authorized"
+            )
+        for gate_ratio in BUDGET_RATIOS:
+            gate_paths = gu_artifacts(
+                "cora-seed42",
+                ratio=gate_ratio,
+                gate_only=True,
+                config=config,
+            )
+            if any(
+                not (Path(config["repository_root"]) / relative).is_file()
+                for relative in gate_paths
+            ):
+                result["errors"].append(
+                    "{0} formal degree gate has not completed".format(
+                        ratio_key(gate_ratio)
+                    )
+                )
     result["ready"] = not result["errors"]
     return result
 
 
 def execute_gu(
     stage: str,
+    ratio: float,
     config_path: Path = CONFIG_PATH,
     *,
     gate_only: bool = False,
@@ -787,12 +1012,16 @@ def execute_gu(
 ) -> Dict[str, Any]:
     if gate_only and stage != "cora-seed42":
         raise TargetDirectStageError("the reviewed gate is Cora seed42 only")
+    ratio = float(ratio_key(ratio))
     config = load_config(config_path)
-    preflight = preflight_gu(stage, config_path)
+    preflight = preflight_gu(
+        stage, ratio, config_path, gate_only=gate_only
+    )
     if not preflight["ready"]:
         return {
             "passed": False,
             "stage": stage,
+            "ratio": ratio,
             "gate_only": gate_only,
             "dry_run": dry_run,
             "preflight": preflight,
@@ -800,13 +1029,14 @@ def execute_gu(
             "errors": preflight["errors"],
         }
     manifest = _ensure_gu_inputs(
-        config, stage, preflight["git"]["head"]
+        config, stage, ratio, preflight["git"]["head"]
     )
     paths = _stage_paths(config, stage)
+    key = ratio_key(ratio)
     command = [
         sys.executable,
         "experiments/run.py",
-        str(paths["gu_config"]),
+        str(paths["gu_config"][key]),
     ]
     if dry_run:
         command.append("--dry_run")
@@ -837,27 +1067,34 @@ def execute_gu(
     validation = _validate_gu(
         config,
         stage,
+        ratio,
         manifest,
         gate_only=gate_only,
         expected_head=preflight["git"]["head"],
     )
     return {
         "schema": "target_direct_v1.syncmate_gu_result",
-        "version": 1,
+        "version": 2,
         "passed": True,
         "stage": stage,
+        "ratio": ratio,
         "gate_only": gate_only,
         "dry_run": False,
         "git_sha": preflight["git"]["head"],
         "hostname": socket.gethostname(),
         "elapsed_seconds": time.perf_counter() - started,
-        "manifest_path": str(paths["manifest"]),
-        "manifest_sha256": _sha256_file(paths["manifest"]),
-        "config_path": str(paths["gu_config"]),
-        "config_sha256": _sha256_file(paths["gu_config"]),
+        "manifest_path": str(paths["manifest"][key]),
+        "manifest_sha256": _sha256_file(paths["manifest"][key]),
+        "config_path": str(paths["gu_config"][key]),
+        "config_sha256": _sha256_file(paths["gu_config"][key]),
         "validation": validation,
         "generated_artifacts": list(
-            gu_artifacts(stage, gate_only=gate_only, config=config)
+            gu_artifacts(
+                stage,
+                ratio=ratio,
+                gate_only=gate_only,
+                config=config,
+            )
         ),
         "errors": [],
     }
@@ -869,6 +1106,9 @@ def _parser() -> argparse.ArgumentParser:
         "--action", choices=("selection", "gu"), required=True
     )
     parser.add_argument("--stage", choices=STAGES, required=True)
+    parser.add_argument(
+        "--ratio", type=float, choices=BUDGET_RATIOS, default=None
+    )
     parser.add_argument("--config", type=Path, default=CONFIG_PATH)
     parser.add_argument("--gate-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -881,9 +1121,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         if args.action == "selection":
-            if args.gate_only or args.dry_run:
+            if args.gate_only or args.dry_run or args.ratio is not None:
                 raise TargetDirectStageError(
-                    "selection does not accept gate-only or dry-run"
+                    "selection does not accept ratio, gate-only, or dry-run"
                 )
             payload = (
                 preflight_selection(args.stage, args.config)
@@ -891,11 +1131,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 else execute_selection(args.stage, args.config)
             )
         else:
+            if args.ratio is None:
+                raise TargetDirectStageError(
+                    "GU action requires an explicit reviewed ratio"
+                )
             payload = (
-                preflight_gu(args.stage, args.config)
+                preflight_gu(
+                    args.stage,
+                    args.ratio,
+                    args.config,
+                    gate_only=args.gate_only,
+                )
                 if args.preflight_only
                 else execute_gu(
                     args.stage,
+                    args.ratio,
                     args.config,
                     gate_only=args.gate_only,
                     dry_run=args.dry_run,
@@ -906,6 +1156,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "passed": False,
             "ready": False,
             "stage": args.stage,
+            "ratio": args.ratio,
             "generated_artifacts": [],
             "errors": ["{0}: {1}".format(type(exc).__name__, exc)],
         }
