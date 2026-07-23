@@ -1,7 +1,9 @@
 # E8 IF Target-Direct Formal Preflight Audit
 
-Date: 2026-07-24  
-Source of truth: this Markdown file  
+Date: 2026-07-24
+
+Source of truth: this Markdown file
+
 Status: **preparation PASS; formal execution NO-GO**
 
 > [!danger] Verdict
@@ -168,4 +170,3 @@ After infrastructure is restored and Git integration is explicitly authorized:
 
 No step in this sequence may reuse the old public-split, surrogate, fixed-`k=7`,
 or wrong-budget evidence as a formal input.
-
