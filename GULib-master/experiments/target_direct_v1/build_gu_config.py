@@ -12,26 +12,30 @@ import yaml
 from experiments.target_direct_v1.build_manifest import SCHEMA, VERSION, sha256_file
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--processed-root", type=Path, required=True)
-    parser.add_argument("--runtime-root", type=Path, required=True)
-    parser.add_argument("--run-root", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args(argv)
-    manifest_path = args.manifest.expanduser().resolve()
+def build_gu_config(
+    *,
+    manifest_path: Path,
+    processed_root: Path,
+    runtime_root: Path,
+    run_root: Path,
+) -> dict:
+    manifest_path = Path(manifest_path).expanduser().resolve()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("schema") != SCHEMA or manifest.get("version") != VERSION:
         raise ValueError("target-direct manifest schema/version mismatch")
+    if manifest.get("parameter_scope") != "last_layer":
+        raise ValueError("formal target-direct GU config requires last_layer")
+    resolved = {}
     for path, label in (
-        (args.processed_root, "processed_root"),
-        (args.runtime_root, "runtime_root"),
-        (args.run_root, "run_root"),
+        (processed_root, "processed_root"),
+        (runtime_root, "runtime_root"),
+        (run_root, "run_root"),
     ):
-        if not path.expanduser().is_absolute():
+        supplied = Path(path).expanduser()
+        if not supplied.is_absolute():
             raise ValueError("{0} must be absolute".format(label))
-    config = {
+        resolved[label] = supplied.resolve()
+    return {
         "name": "target_direct_v1_{0}_r{1}".format(
             manifest["dataset"], manifest["ratio"]
         ),
@@ -42,15 +46,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         "methods": ["GNNDelete"],
         "strategies": list(manifest["strategies"]),
         "seeds": [int(value) for value in manifest["seeds"]],
-        "processed_root": str(args.processed_root.expanduser().resolve()),
-        "runtime_root": str(args.runtime_root.expanduser().resolve()),
-        "run_root": str(args.run_root.expanduser().resolve()),
+        "processed_root": str(resolved["processed_root"]),
+        "runtime_root": str(resolved["runtime_root"]),
+        "run_root": str(resolved["run_root"]),
         "cache_v2": {
             "mode": "target_direct_external_selection",
             "store_root": manifest["store_root"],
-            "legacy_results_root": str(
-                args.runtime_root.expanduser().resolve() / "results"
-            ),
+            "legacy_results_root": str(resolved["runtime_root"] / "results"),
             "manifest_path": str(manifest_path),
             "manifest_sha256": sha256_file(manifest_path),
         },
@@ -72,8 +74,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             "target_checkpoint_reused_exactly": True,
             "budget_denominator": "train_candidate_count",
             "expected_k": int(manifest["expected_k"]),
+            "parameter_scope": "last_layer",
         },
     }
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--processed-root", type=Path, required=True)
+    parser.add_argument("--runtime-root", type=Path, required=True)
+    parser.add_argument("--run-root", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(argv)
+    manifest_path = args.manifest.expanduser().resolve()
+    config = build_gu_config(
+        manifest_path=manifest_path,
+        processed_root=args.processed_root,
+        runtime_root=args.runtime_root,
+        run_root=args.run_root,
+    )
     output = args.output.expanduser().resolve()
     if output.exists():
         raise FileExistsError("GU config already exists: {0}".format(output))
