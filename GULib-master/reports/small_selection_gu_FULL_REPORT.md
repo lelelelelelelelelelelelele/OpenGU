@@ -1,7 +1,7 @@
 ---
 title: Small-graph 17-Selection to GNNDelete GU Full Matrix
 date: 2026-07-22
-status: accepted-formal-matrix
+status: reclassified-l1-surrogate-transfer
 datasets: [Cora, CiteSeer, PubMed]
 model: GCN
 gu_method: GNNDelete
@@ -10,6 +10,9 @@ selection_k: 7
 ---
 
 # 小图 17-Selection → GNNDelete GU 全量实测报告
+
+> [!WARNING]
+> **2026-07-23 科学身份更正：本报告不再是 target-direct 白盒权威结果。** 153 cells / 612 artifacts / 0 failures 与逐文件校验仍是有效工程证据，但 selector 使用 GateGCN hidden=16、200 epochs，GU target 使用 OpenGU GCN hidden=64、100 epochs，且二者不是同一 checkpoint；目录标记 5% 时实际每格仅删 `k=7`。因此下述数值只允许作为 **public-split、exact-k=7、L1 surrogate-transfer / engineering screen** 引用，不得支持“新 IF 普遍优于/弱于 random、degree 或旧 IF”的 target-direct 结论。严格重做合同见 `reports/target_direct_selection_PREPARATION_REPORT.{md,html}`。
 
 > **执行 Verdict：PASS。** 正式 gate 通过后，9 个 dataset-seed stage 全部验收；共 `153/153` GU cells、`612/612` 四件套 artifact、`0` failures。远端与本地逐文件 SHA-256 全量一致。
 

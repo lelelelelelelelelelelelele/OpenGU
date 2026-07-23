@@ -14,7 +14,7 @@
   <aside>
     <div class="brand">OpenGU</div>
     <div class="side-title">Small-Graph Selection → GU Full Report</div>
-    <span class="badge">PASS</span>
+    <span class="badge" style="border-color:#80622e;background:#31240f;color:var(--amber)">RECLASSIFIED</span>
     <nav><a class="" href="#1-回答两个研究问题">1. 回答两个研究问题</a>
 <a class="sub" href="#1-1-tracin-是否比-degree-或其他方法更强">1.1 TracIn 是否比 degree 或其他方法更强？</a>
 <a class="sub" href="#1-2-if-家族内部哪种公式效果更好-同时可行">1.2 IF 家族内部哪种公式效果更好，同时可行？</a>
@@ -34,10 +34,13 @@
   </aside>
   <main>
     <section class="hero">
-      <div class="kicker">OpenGU Formal GPU4090 Experiment</div>
+      <div class="kicker">Historical L1 Surrogate-Transfer Evidence</div>
       <h1>Small-Graph Selection → GU Full Report</h1>
     </section>
     <article><h1 id="小图-17-selection-gnndelete-gu-全量实测报告">小图 17-Selection → GNNDelete GU 全量实测报告</h1>
+<blockquote style="border-left-color:var(--amber);background:rgba(242,188,98,.10)">
+<p><strong>2026-07-23 科学身份更正：本报告不再是 target-direct 白盒权威结果。</strong> 153 cells / 612 artifacts / 0 failures 与逐文件校验仍是有效工程证据，但 selector 使用 GateGCN hidden=16、200 epochs，GU target 使用 OpenGU GCN hidden=64、100 epochs，且二者不是同一 checkpoint；目录标记 5% 时实际每格仅删 <code>k=7</code>。因此下述数值只允许作为 <strong>public-split、exact-k=7、L1 surrogate-transfer / engineering screen</strong> 引用，不得支持“新 IF 普遍优于/弱于 random、degree 或旧 IF”的 target-direct 结论。严格重做合同见 <code>reports/target_direct_selection_PREPARATION_REPORT.{md,html}</code>。</p>
+</blockquote>
 <blockquote>
 <p><strong>执行 Verdict：PASS。</strong> 正式 gate 通过后，9 个 dataset-seed stage 全部验收；共 <code>153/153</code> GU cells、<code>612/612</code> 四件套 artifact、<code>0</code> failures。远端与本地逐文件 SHA-256 全量一致。</p>
 </blockquote>

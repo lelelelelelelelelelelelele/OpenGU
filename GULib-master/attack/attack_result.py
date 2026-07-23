@@ -46,6 +46,9 @@ class AttackResult:
     selection_recipe_hash: Optional[str] = None
     selection_content_hash: Optional[str] = None
     selection_authoritative: Optional[bool] = None
+    target_checkpoint_path: Optional[str] = None
+    target_checkpoint_file_sha256: Optional[str] = None
+    target_checkpoint_state_hash: Optional[str] = None
     result_cache_hit: Optional[bool] = None
     result_cache_key: Optional[str] = None
     result_cache_source: Optional[str] = None
@@ -96,6 +99,9 @@ class AttackResult:
             "selection_recipe_hash": self.selection_recipe_hash,
             "selection_content_hash": self.selection_content_hash,
             "selection_authoritative": self.selection_authoritative,
+            "target_checkpoint_path": self.target_checkpoint_path,
+            "target_checkpoint_file_sha256": self.target_checkpoint_file_sha256,
+            "target_checkpoint_state_hash": self.target_checkpoint_state_hash,
             "result_cache_hit": self.result_cache_hit,
             "result_cache_key": self.result_cache_key,
             "result_cache_source": self.result_cache_source,

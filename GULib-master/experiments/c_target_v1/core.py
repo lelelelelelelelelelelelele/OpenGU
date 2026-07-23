@@ -101,9 +101,15 @@ def seed_everything(seed: int, num_threads: int) -> None:
 
 def model_parameters(model: nn.Module, scope: str) -> List[nn.Parameter]:
     if scope == "last_layer":
+        if hasattr(model, "conv2"):
+            module = model.conv2
+        elif hasattr(model, "convs") and len(model.convs) > 0:
+            module = model.convs[-1]
+        else:
+            raise ValueError("model has no recognized final GNN layer")
         return [
             parameter
-            for parameter in model.conv2.parameters()
+            for parameter in module.parameters()
             if parameter.requires_grad
         ]
     if scope != "all_trainable":
@@ -112,11 +118,16 @@ def model_parameters(model: nn.Module, scope: str) -> List[nn.Parameter]:
 
 
 def parameter_schema_hash(model: nn.Module, scope: str) -> str:
+    last_layer_prefixes = ("conv2.",)
+    if hasattr(model, "convs") and len(model.convs) > 0:
+        last_layer_prefixes = (
+            "convs.{0}.".format(len(model.convs) - 1),
+        )
     entries = []
     for name, parameter in model.named_parameters():
         if not parameter.requires_grad:
             continue
-        if scope == "last_layer" and not name.startswith("conv2."):
+        if scope == "last_layer" and not name.startswith(last_layer_prefixes):
             continue
         entries.append(
             {

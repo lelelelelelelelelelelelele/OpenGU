@@ -84,7 +84,74 @@ class gnndelete(Learning_based_pipeline):
         """
         Trains the original target model and get the original soft labels for the dataset.
         """
-        self.target_model.train(save=False)
+        checkpoint_path = self.args.get("target_checkpoint_path")
+        if checkpoint_path:
+            if not self.args.get("formal_fail_closed", False):
+                raise RuntimeError(
+                    "target checkpoint reuse requires formal_fail_closed"
+                )
+            from utils.target_checkpoint import (
+                TargetCheckpointError,
+                data_identity,
+                load_target_checkpoint,
+                state_hash,
+            )
+
+            required = (
+                self.args.get("target_checkpoint_sha256"),
+                self.args.get("target_checkpoint_state_hash"),
+            )
+            if any(value in (None, "") for value in required):
+                raise TargetCheckpointError(
+                    "target checkpoint file and state hashes are required"
+                )
+            expected_metadata = {
+                "dataset_name": str(self.args["dataset_name"]),
+                "base_model": str(self.args["base_model"]),
+                "seed": int(self.args["random_seed"]),
+                "processed_profile": str(
+                    self.args.get("processed_profile") or ""
+                ),
+                "num_epochs": int(self.args["num_epochs"]),
+                "gcn_num_layers": int(self.args.get("gcn_num_layers", 2)),
+                "gcn_hidden": int(self.args.get("gcn_hidden", 64)),
+            }
+            checkpoint = load_target_checkpoint(
+                checkpoint_path,
+                expected_file_sha256=self.args["target_checkpoint_sha256"],
+                expected_state_hash=self.args["target_checkpoint_state_hash"],
+                expected_metadata=expected_metadata,
+                map_location=self.device,
+            )
+            if checkpoint["metadata"].get("data_identity") != data_identity(
+                self.data
+            ):
+                raise TargetCheckpointError(
+                    "target checkpoint dataset/split identity mismatch"
+                )
+            self.target_model.model.load_state_dict(
+                checkpoint["state_dict"], strict=True
+            )
+            observed_state_hash = state_hash(
+                self.target_model.model.state_dict()
+            )
+            if observed_state_hash != checkpoint["state_hash"]:
+                raise TargetCheckpointError(
+                    "loaded target model state identity mismatch"
+                )
+            self.target_checkpoint_observation = {
+                "path": checkpoint["path"],
+                "file_sha256": checkpoint["file_sha256"],
+                "state_hash": checkpoint["state_hash"],
+                "checkpoint_count": len(checkpoint["checkpoints"]),
+            }
+            self.logger.info(
+                "Loaded target-direct checkpoint state_hash={0}".format(
+                    checkpoint["state_hash"]
+                )
+            )
+        else:
+            self.target_model.train(save=False)
         self.data = self.data.to(self.device)
         # Always record pre-unlearning F1 for attack evaluation
         self.poison_f1[self.run] = self.target_model.evaluate()
@@ -398,12 +465,28 @@ class gnndelete(Learning_based_pipeline):
         dr_mask_node = global_node_mask
         df_mask_node = ~global_node_mask
         
-        # Log mismatch instead of crashing to handle minor float/int rounding differences
+        # Legacy runs retain the warning, while formal runs bind a resolved
+        # integer budget and must fail closed on any drift.
         actual_df_size = df_mask_node.sum().item()
         if hasattr(self, 'args') and 'num_unlearned_nodes' in self.args:
-            expected = self.args['num_unlearned_nodes']
+            expected = int(
+                self.args.get(
+                    'formal_expected_k', self.args['num_unlearned_nodes']
+                )
+            )
             if actual_df_size != expected:
-                self.logger.warning(f"GNNDelete: Node count mismatch. Expected {expected}, got {actual_df_size} (unique). Continuing...")
+                message = (
+                    f"GNNDelete: Node count mismatch. Expected {expected}, "
+                    f"got {actual_df_size} (unique)."
+                )
+                if self.args.get("formal_fail_closed", False):
+                    raise ValueError(message)
+                self.logger.warning(message + " Continuing...")
+        if not all_exist:
+            message = "GNNDelete: selected nodes are outside train candidates."
+            if self.args.get("formal_fail_closed", False):
+                raise ValueError(message)
+            self.logger.warning(message + " Continuing...")
         
         # Delete edges associated with deleted nodes from training set
         res = [torch.eq(self.data.edge_index, aelem).logical_or_(torch.eq(self.data.edge_index, aelem)) for aelem in df_nodes]

@@ -247,6 +247,23 @@ class AttackPipeline:
         self.data, self.dataset = self.original_data.load_data()
         self.data = process_data(self.logger, self.data, self.args)
 
+        # Formal Selection→GU runs resolve the ratio once against the actual
+        # candidate pool and pass the resulting integer as the single source
+        # of truth.  original_dataset historically derives this field from
+        # full-graph num_nodes, which is a different denominator.
+        formal_expected_k = self.args.get("formal_expected_k")
+        if formal_expected_k is not None:
+            formal_expected_k = int(formal_expected_k)
+            candidate_count = int(self._candidate_nodes_for_data(self.data).numel())
+            if formal_expected_k <= 0 or formal_expected_k > candidate_count:
+                raise ValueError(
+                    "formal_expected_k={0} is outside candidate range [1, {1}]".format(
+                        formal_expected_k, candidate_count
+                    )
+                )
+            self.args["formal_expected_k"] = formal_expected_k
+            self.args["num_unlearned_nodes"] = formal_expected_k
+
         # Initialize model
         self.model_zoo = model_zoo_cls(self.args, self.data)
         self.model = self.model_zoo.model
@@ -277,6 +294,49 @@ class AttackPipeline:
         self.method = self.manager.get_method()
 
         self.logger.info("AttackPipeline initialized successfully.")
+
+    @staticmethod
+    def _candidate_nodes_for_data(data) -> Tensor:
+        train_mask = getattr(data, "train_mask", None)
+        if train_mask is not None:
+            if train_mask.dim() > 1:
+                train_mask = train_mask.squeeze(-1)
+            candidates = train_mask.nonzero(as_tuple=False).view(-1).long()
+            if candidates.numel() > 0:
+                return candidates.cpu()
+        train_indices = getattr(data, "train_indices", None)
+        if train_indices is not None:
+            candidates = torch.as_tensor(train_indices, dtype=torch.long)
+            if candidates.numel() > 0:
+                return candidates.cpu()
+        return torch.arange(int(data.num_nodes), dtype=torch.long)
+
+    def _validate_formal_selected_nodes(self, selected_nodes: Tensor) -> None:
+        if not self.args.get("formal_fail_closed", False):
+            return
+        nodes = selected_nodes.detach().cpu().long().view(-1)
+        expected = self.args.get("formal_expected_k")
+        if expected is None:
+            raise ValueError(
+                "formal_fail_closed requires an explicit formal_expected_k"
+            )
+        if int(nodes.numel()) != int(expected):
+            raise ValueError(
+                "selected node count mismatch: expected {0}, got {1}".format(
+                    int(expected), int(nodes.numel())
+                )
+            )
+        if int(torch.unique(nodes).numel()) != int(nodes.numel()):
+            raise ValueError("formal selected nodes must be unique")
+        candidates = self._candidate_nodes_for_data(self.data)
+        allowed = set(int(value) for value in candidates.tolist())
+        invalid = [int(value) for value in nodes.tolist() if int(value) not in allowed]
+        if invalid:
+            raise ValueError(
+                "formal selected nodes are outside the candidate pool: {0}".format(
+                    invalid[:10]
+                )
+            )
 
     def _restore_random_init(self):
         """Reset self.model to the random-init weights snapshotted at _setup.
@@ -519,6 +579,8 @@ class AttackPipeline:
         else:
             selected_nodes = selected_nodes.cpu().long()
 
+        self._validate_formal_selected_nodes(selected_nodes)
+
         return self._run_unlearning_with_selected_nodes(
             strategy_name=strategy_name,
             selected_nodes=selected_nodes,
@@ -620,6 +682,9 @@ class AttackPipeline:
             "mia_auc": mia_auc,
             "failed": failed,
             "failure_reason": failure_reason,
+            "target_checkpoint": dict(
+                getattr(self.method, "target_checkpoint_observation", {}) or {}
+            ),
         }
 
     def _get_trained_model(self):
@@ -674,37 +739,54 @@ class AttackPipeline:
         Returns:
             (model_retrained, f1_retrained)
         """
-        # 1. Backup original train_mask
+        # 1. Backup original train_mask and target-direct binding. Exact
+        # retraining must start from scratch on retained data; carrying the
+        # original target checkpoint into this path would silently turn the
+        # retrain reference into another copy of the original model.
         original_train_mask = self.data.train_mask.clone()
+        checkpoint_fields = (
+            "target_checkpoint_path",
+            "target_checkpoint_sha256",
+            "target_checkpoint_state_hash",
+        )
+        checkpoint_backup = {
+            name: self.args.get(name) for name in checkpoint_fields
+        }
+        for name in checkpoint_fields:
+            self.args[name] = None
 
         # 2. Exclude selected_nodes from train_mask
         node_idx = selected_nodes.long()
         self.data.train_mask[node_idx] = False
 
-        # 3. Reinitialize model + method with train_only (lazy imports — see top-of-file note)
-        model_zoo_cls = _load_model_zoo()
-        unlearning_manager_cls = _load_unlearning_manager()
-        self.args["train_only"] = True
-        self.args["num_runs"] = 1
-        self.model_zoo = model_zoo_cls(self.args, self.data)
-        self.model = self.model_zoo.model
+        try:
+            # 3. Reinitialize model + method with train_only (lazy imports — see top-of-file note)
+            model_zoo_cls = _load_model_zoo()
+            unlearning_manager_cls = _load_unlearning_manager()
+            self.args["train_only"] = True
+            self.args["num_runs"] = 1
+            self.model_zoo = model_zoo_cls(self.args, self.data)
+            self.model = self.model_zoo.model
 
-        self.manager = unlearning_manager_cls(
-            self.args, self.original_data, self.data,
-            self.logger, self.model_zoo, self.dataset
-        )
-        self.method = self.manager.get_method()
+            self.manager = unlearning_manager_cls(
+                self.args, self.original_data, self.data,
+                self.logger, self.model_zoo, self.dataset
+            )
+            self.method = self.manager.get_method()
 
-        # 4. run_exp() trains only (no unlearning due to train_only flag)
-        self.method.run_exp()
+            # 4. run_exp() trains only (no unlearning due to train_only flag)
+            self.method.run_exp()
 
-        # 5. Extract retrained model and evaluate
-        model_retrained = self._get_trained_model()
-        f1_retrained = self._evaluate_model(model_retrained)
-
-        # 6. Restore original state
-        self.data.train_mask = original_train_mask
-        self.args["train_only"] = False
+            # 5. Extract retrained model and evaluate
+            model_retrained = self._get_trained_model()
+            f1_retrained = self._evaluate_model(model_retrained)
+        finally:
+            # 6. Restore original state and the exact target binding for any
+            # subsequent collateral operation in this process.
+            self.data.train_mask = original_train_mask
+            self.args["train_only"] = False
+            for name, value in checkpoint_backup.items():
+                self.args[name] = value
 
         self.logger.info(f"Retrain F1 (excl {len(selected_nodes)} nodes): {f1_retrained:.4f}")
         return model_retrained, f1_retrained

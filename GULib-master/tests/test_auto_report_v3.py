@@ -1000,6 +1000,80 @@ def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_pat
     assert meta["selection_artifact"]["artifact_id"] == selection["artifact_id"]
 
 
+def test_runner_passes_target_direct_checkpoint_binding(tmp_path, monkeypatch):
+    _event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
+    runner = _load_experiment_runner()
+    monkeypatch.setattr(runner, "REPO_ROOT", tmp_path)
+    out_dir = tmp_path / "cell"
+    monkeypatch.setattr(runner, "cell_dir", lambda *_args, **_kwargs: out_dir)
+    monkeypatch.setattr(runner, "_git_sha", lambda: "abc123")
+    cfg = {
+        "name": "fixture-target-direct",
+        "dataset": "cora",
+        "base_model": "GCN",
+        "ratio": 0.05,
+        "methods": ["GNNDelete"],
+        "strategies": ["degree"],
+        "seeds": [42],
+        "defaults": {"run_collateral": False},
+        "cache_v2": {
+            "mode": "target_direct_external_selection",
+            "store_root": str(tmp_path / "v2-store"),
+            "manifest_path": str(tmp_path / "manifest.json"),
+            "manifest_sha256": "c" * 64,
+        },
+    }
+    selection = {
+        "store_root": str(tmp_path / "v2-store"),
+        "artifact_id": "sel_12345678_90abcdef",
+        "artifact_type": "selection",
+        "recipe_hash": "a" * 64,
+        "content_hash": "b" * 64,
+        "source_file": str(tmp_path / "v2-store" / "payload.json"),
+        "hit_source": "cache_v2:sel_12345678_90abcdef",
+        "lookup_policy": "cache_v2_exact_artifact_id",
+        "authoritative": True,
+        "write_outcome": "reused",
+        "strategy": "degree",
+        "k": 94,
+        "selected_node_count": 94,
+        "target_checkpoint": {
+            "path": str(tmp_path / "target.pt"),
+            "file_sha256": "d" * 64,
+            "state_hash": "e" * 64,
+            "checkpoint_count": 6,
+        },
+    }
+    commands = []
+
+    def fake_run(command, cwd, env):
+        commands.append(command)
+        Path(command[command.index("--save_path") + 1]).write_text(
+            json.dumps({"results": {"degree": {"failed": False}}}),
+            encoding="utf-8",
+        )
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+    assert runner.run_cell(
+        cfg,
+        "GNNDelete",
+        "degree",
+        42,
+        force=False,
+        dry_run=False,
+        selection_artifact=selection,
+    ) == "completed"
+    command = commands[0]
+    assert command[command.index("--formal_expected_k") + 1] == "94"
+    assert "--formal_fail_closed" in command
+    assert command[command.index("--target_checkpoint_path") + 1] == selection[
+        "target_checkpoint"
+    ]["path"]
+    assert command[command.index("--target_checkpoint_sha256") + 1] == "d" * 64
+    assert command[command.index("--target_checkpoint_state_hash") + 1] == "e" * 64
+
+
 def test_runner_passes_experiment_roots_to_attack_and_collateral(tmp_path, monkeypatch):
     _event_path, _markdown_path, _html_path = _paths(tmp_path, monkeypatch)
     runner = _load_experiment_runner()

@@ -407,10 +407,11 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if raw is None:
         return None
     if not isinstance(raw, dict) or raw.get("mode") not in {
-        "selection", "external_selection"
+        "selection", "external_selection", "target_direct_external_selection"
     }:
         raise ValueError(
-            "cache_v2.mode must be 'selection' or 'external_selection'"
+            "cache_v2.mode must be 'selection', 'external_selection', or "
+            "'target_direct_external_selection'"
         )
     removed = sorted(set(raw).intersection({"dataset_root", "allow_download"}))
     if removed:
@@ -420,8 +421,10 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         )
     mode = str(raw["mode"])
     allowed = {"mode", "store_root", "legacy_results_root"}
-    if mode == "external_selection":
+    if mode in {"external_selection", "target_direct_external_selection"}:
         allowed.add("manifest_path")
+    if mode == "target_direct_external_selection":
+        allowed.add("manifest_sha256")
     unknown = sorted(set(raw).difference(allowed))
     if unknown:
         raise ValueError(
@@ -432,9 +435,15 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         raise ValueError(
             "Cache V2 runner has no producer for: {0}".format(",".join(unsupported))
         )
-    if mode == "external_selection" and not raw.get("manifest_path"):
+    if mode in {"external_selection", "target_direct_external_selection"} and not raw.get("manifest_path"):
         raise ValueError(
             "cache_v2.manifest_path is required for external_selection"
+        )
+    if mode == "target_direct_external_selection" and not raw.get(
+        "manifest_sha256"
+    ):
+        raise ValueError(
+            "cache_v2.manifest_sha256 is required for target-direct selection"
         )
     result = {
         "mode": mode,
@@ -443,8 +452,10 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             raw.get("legacy_results_root", "results")
         ),
     }
-    if mode == "external_selection":
+    if mode in {"external_selection", "target_direct_external_selection"}:
         result["manifest_path"] = _repo_path(raw["manifest_path"])
+    if mode == "target_direct_external_selection":
+        result["manifest_sha256"] = str(raw["manifest_sha256"])
     return result
 
 
@@ -460,6 +471,18 @@ def prepare_cache_v2_selection(
         return load_external_selection_manifest(
             cfg,
             manifest_path=settings["manifest_path"],
+            expected_store_root=settings["store_root"],
+            processed_root=experiment_processed_root(cfg),
+        )
+    if settings["mode"] == "target_direct_external_selection":
+        from experiments.target_direct_v1.adapter import (
+            load_external_selection_manifest,
+        )
+
+        return load_external_selection_manifest(
+            cfg,
+            manifest_path=settings["manifest_path"],
+            expected_manifest_sha256=settings["manifest_sha256"],
             expected_store_root=settings["store_root"],
             processed_root=experiment_processed_root(cfg),
         )
@@ -715,6 +738,18 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     ]
     if cfg.get("processed_profile"):
         experiment_roots += ["--processed_profile", str(cfg["processed_profile"])]
+    target_checkpoint_args: List[str] = []
+    if selection_artifact is not None and selection_artifact.get(
+        "target_checkpoint"
+    ):
+        checkpoint = selection_artifact["target_checkpoint"]
+        target_checkpoint_args = [
+            "--formal_expected_k", str(selection_artifact["k"]),
+            "--formal_fail_closed",
+            "--target_checkpoint_path", str(checkpoint["path"]),
+            "--target_checkpoint_sha256", str(checkpoint["file_sha256"]),
+            "--target_checkpoint_state_hash", str(checkpoint["state_hash"]),
+        ]
 
     # 1) demo_attack: writes attack.json
     cmd1 = [
@@ -730,7 +765,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         "--batch_size", str(defaults.get("batch_size", 64)),
         "--cuda", str(defaults.get("cuda", 0)),
         "--run_update_detection_auc", str(run_update_detection_auc),
-    ] + experiment_roots
+    ] + experiment_roots + target_checkpoint_args
     if defaults.get("no_cache", False):
         cmd1.append("--no_cache")
     if v2_mode:
@@ -862,7 +897,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             "--batch_size", str(defaults.get("batch_size", 64)),
             "--cuda", str(defaults.get("cuda", 0)),
             "--run_update_detection_auc", str(run_update_detection_auc),
-        ] + experiment_roots
+        ] + experiment_roots + target_checkpoint_args
         if defaults.get("save_predictions", True):
             cmd2.append("--save_predictions")
         if v2_mode:
