@@ -31,18 +31,18 @@ from scripts.evaluation.reporting.summary import (
 CONFIG_PATH = (
     REPO_ROOT / "experiments" / "configs" / "cache_v2_gate4_cora_degree_canary.yaml"
 )
-EVIDENCE_ROOT = Path(
-    "/autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4"
-)
-STORE_ROOT = EVIDENCE_ROOT / "store"
-RUNTIME_ROOT = EVIDENCE_ROOT / "runtime"
+EVIDENCE_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_gate4_evidence__"
+STORE_ROOT = REPO_ROOT / "results" / "cache_v2" / "syncmate_gate4"
+RUNTIME_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_gate4_runtime__"
 RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_gate4__"
-LEGACY_INVARIANT_ROOT = EVIDENCE_ROOT / "legacy-empty"
+LEGACY_INVARIANT_ROOT = (
+    REPO_ROOT / "results" / "runs" / "__syncmate_gate4_legacy_empty__"
+)
 AUTOREPORT_ROOT = EVIDENCE_ROOT / "autoreport"
 EVENT_PATH = AUTOREPORT_ROOT / "auto_report.events.jsonl"
 STATUS_MD_PATH = AUTOREPORT_ROOT / "AUTO_REPORT_STATUS.md"
 STATUS_HTML_PATH = AUTOREPORT_ROOT / "AUTO_REPORT_STATUS.html"
-CANONICAL_REPO_ROOT = Path("/autodl-fs/data/OpenGU/GULib-master")
+CANONICAL_REPO_ROOT = REPO_ROOT
 CANONICAL_PROCESSED_ROOT = CANONICAL_REPO_ROOT / "data" / "processed"
 CANONICAL_CORA_PATH = (
     CANONICAL_PROCESSED_ROOT / "transductive" / "cora0.8_0_0.2.pkl"
@@ -126,8 +126,8 @@ def _config() -> Dict[str, Any]:
         "methods": ["GIF"],
         "strategies": ["degree"],
         "seeds": [42],
-        "processed_root": _portable_path(CANONICAL_PROCESSED_ROOT),
-        "runtime_root": _portable_path(RUNTIME_ROOT),
+        "processed_root": "data/processed",
+        "runtime_root": "results/runs/__syncmate_gate4_runtime__",
         "run_root": "results/runs/__syncmate_gate4__",
     }
     for name, observed in expected.items():
@@ -140,9 +140,12 @@ def _config() -> Dict[str, Any]:
     cache = value.get("cache_v2")
     if not isinstance(cache, Mapping):
         raise RuntimeError("Gate 4 config cache_v2 block is missing")
-    if cache.get("store_root") != _portable_path(STORE_ROOT):
+    if cache.get("store_root") != "results/cache_v2/syncmate_gate4":
         raise RuntimeError("Gate 4 store root is not isolated")
-    if cache.get("legacy_results_root") != _portable_path(LEGACY_INVARIANT_ROOT):
+    if (
+        cache.get("legacy_results_root")
+        != "results/runs/__syncmate_gate4_legacy_empty__"
+    ):
         raise RuntimeError("Gate 4 Legacy invariant root is not isolated")
     for forbidden in ("dataset_root", "allow_download", "processed_root"):
         if forbidden in cache:

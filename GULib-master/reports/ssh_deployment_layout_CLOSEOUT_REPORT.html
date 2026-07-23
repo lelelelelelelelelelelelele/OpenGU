@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SSH 部署根目录摸排与收口报告</title>
+<style>
+:root{--bg:#08111f;--panel:#111f33;--text:#eaf2fb;--muted:#9fb0c6;--line:#2b4563;--cyan:#5edbd5;--green:#78d99d;--code:#071827}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07101c,#0b1829 60%,#071321);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+main{width:min(1180px,calc(100% - 36px));margin:32px auto 72px}header{padding:30px 34px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#152943,#0c1a2d);box-shadow:0 20px 60px #0005}
+header .kicker{font-size:12px;letter-spacing:.14em;color:var(--cyan);font-weight:800}header h1{margin:8px 0 4px;font-size:34px;line-height:1.2}.badge{display:inline-block;margin-top:10px;padding:4px 10px;border:1px solid #397252;border-radius:999px;background:#102d21;color:var(--green);font-weight:800;font-size:12px}
+article{margin-top:26px;padding:30px 34px;border:1px solid var(--line);border-radius:16px;background:#0d1a2bcc}article>h1:first-child{display:none}h2{margin:38px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:24px}h3{margin-top:27px;color:#d7edff}
+p,li{max-width:1020px}blockquote{margin:16px 0;padding:12px 18px;border-left:4px solid var(--green);background:#16312566}table{width:100%;border-collapse:collapse;margin:16px 0 28px;font-size:13px}th,td{border:1px solid var(--line);padding:9px 10px;vertical-align:top}th{background:#172b46;text-align:left}tr:nth-child(even) td{background:#14243a66}
+code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9edff;font-family:Consolas,monospace}pre{overflow:auto;padding:15px 17px;border:1px solid var(--line);border-radius:10px;background:var(--code)}pre code{padding:0}.foot{margin-top:24px;color:var(--muted);font-size:12px}
+@media(max-width:760px){main{width:min(100% - 20px,1180px);margin-top:10px}header,article{padding:22px 18px}header h1{font-size:27px}table{display:block;overflow:auto}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="kicker">OpenGU / SSH DEPLOYMENT GOVERNANCE</div><h1>SSH 部署根目录摸排与收口报告</h1><span class="badge">PASS · SINGLE ROOT</span></header>
+<article><h1>SSH 部署根目录摸排与收口报告</h1>
+<blockquote>
+<p><strong>Verdict: PASS</strong> — 2026-07-24 已将 <code>/autodl-fs/data</code> 从九个 OpenGU 同级目录收口为单一 <code>OpenGU</code> 部署根；平台目录 <code>.sys</code> 与平台文件 <code>.gitignore</code> 保留。6952 个证据文件逐文件 SHA-256 校验通过，历史内容未丢失，未来运行路径已增加 active-checkout fail-closed 边界。</p>
+</blockquote>
+<h2>1. 最终状态</h2>
+<p>收口后的 <code>/autodl-fs/data</code> 顶层只有：</p>
+<pre><code class="language-text">.gitignore
+.sys/
+OpenGU/
+</code></pre>
+<p>证据统一迁入：</p>
+<pre><code class="language-text">/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/
+</code></pre>
+<p>该目录匹配仓库现有 <code>results/_archive_*/</code> 忽略规则，不改变 SSH active checkout 的 Git 状态，也不属于 canonical dataset 或正式运行输入。</p>
+<table>
+<thead>
+<tr>
+  <th>验收项</th>
+  <th style="text-align:right">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>收口前 OpenGU 同级业务目录</td>
+  <td style="text-align:right">9</td>
+</tr>
+<tr>
+  <td>删除的空目录</td>
+  <td style="text-align:right">2</td>
+</tr>
+<tr>
+  <td>迁入 active checkout 的证据树</td>
+  <td style="text-align:right">7</td>
+</tr>
+<tr>
+  <td>迁移文件</td>
+  <td style="text-align:right">6952</td>
+</tr>
+<tr>
+  <td>迁移目录</td>
+  <td style="text-align:right">1961</td>
+</tr>
+<tr>
+  <td>迁移源内容字节</td>
+  <td style="text-align:right">1,078,876,926</td>
+</tr>
+<tr>
+  <td>归档总字节（含清单和验证日志）</td>
+  <td style="text-align:right">1,080,852,444</td>
+</tr>
+<tr>
+  <td>文件 SHA-256 验证</td>
+  <td style="text-align:right">6952/6952 PASS</td>
+</tr>
+<tr>
+  <td>symlink</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>live process / cwd / fd 引用</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>独立 mount</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>SSH active Git dirty entries</td>
+  <td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>全量清单锚点：</p>
+<pre><code class="language-text">32961210ff7a874b7f13f75987be19f5d825002e9f453bb5ac015976e048882e
+</code></pre>
+<p>该值是归档内 <code>SHA256SUMS</code> 文件本身的 SHA-256。逐文件复核记录位于归档内 <code>VERIFY_SHA256.log</code>。</p>
+<h2>2. 为什么会出现这些目录</h2>
+<p>结论不是“系统自动生成垃圾”，而是 2026-07-14 至 2026-07-22 的多轮验收把实验隔离错误地实现成了部署根同级扩散，并且缺少统一的退出/归档步骤。</p>
+<table>
+<thead>
+<tr>
+  <th>根目录</th>
+  <th>直接来源</th>
+  <th>根因分类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>opengu-experiments</code></td>
+  <td>Cache V2、Citeseer E1、GraphRevoker 的 fresh clone；E4 queue 日志明确把 <code>WORKTREE</code> 指向该根</td>
+  <td>把短期代码隔离实现成永久 sibling clone</td>
+</tr>
+<tr>
+  <td><code>opengu-experiment-evidence</code></td>
+  <td>多份 2026-07-14 验收报告明确指定独立 evidence root</td>
+  <td>把证据归档放在部署边界外</td>
+</tr>
+<tr>
+  <td><code>opengu-experiment-ops</code></td>
+  <td>E4/A5 queue shell、PID、日志和临时 YAML</td>
+  <td>ad-hoc 运维文件没有回收入口</td>
+</tr>
+<tr>
+  <td><code>cache-v2-canary</code></td>
+  <td>Citeseer Cache V2 gate/recheck 的 run、dataset、store、evidence</td>
+  <td>canary 输出根写在 active checkout 外</td>
+</tr>
+<tr>
+  <td><code>cache-v2-materializer</code></td>
+  <td>IM/simple producer 的独立 ArtifactStore 与失败对照</td>
+  <td>materializer store 写在 active checkout 外</td>
+</tr>
+<tr>
+  <td><code>OpenGU-cache-v2-rollout</code></td>
+  <td><code>4634504</code> 引入 Gate4；YAML 和 <code>scripts/cache_v2_gate4_canary.py</code> 直接写死该路径</td>
+  <td>tracked 配置硬编码 sibling root</td>
+</tr>
+<tr>
+  <td><code>OpenGU-small-selection-gu</code></td>
+  <td><code>218f642</code> 起的 GU gate/full v1–v5；v5 Python 与 YAML 直接写死该路径</td>
+  <td>tracked 配置硬编码 sibling root</td>
+</tr>
+<tr>
+  <td><code>OpenGU-shared</code></td>
+  <td>dataset 副本清理后留下</td>
+  <td>空壳未回收</td>
+</tr>
+<tr>
+  <td><code>OpenGU-worktrees</code></td>
+  <td>rollout/worktree 清理后留下</td>
+  <td>空壳未回收</td>
+</tr>
+</tbody>
+</table>
+<p>三个系统性原因：</p>
+<ol>
+<li><strong>把“隔离”与“部署目录”混为一谈。</strong> fresh clone、canary store、queue ops 和 evidence 都直接落到 <code>/autodl-fs/data</code>。</li>
+<li><strong>缺少 active-checkout 输出边界。</strong> runner 能解析任意绝对 <code>runtime_root</code>、<code>store_root</code>、<code>manifest_path</code>，因此 tracked YAML 可以持续重建 sibling。</li>
+<li><strong>此前 Git 收口范围不完整。</strong> branch/worktree 已收口，但没有把 filesystem deployment root 纳入最终验收。</li>
+</ol>
+<h2>3. 证据保全与迁移</h2>
+<p>迁移前逐个确认：</p>
+<ul>
+<li>九个源路径均为 <code>/autodl-fs/data</code> 的直接子目录、非 symlink，<code>readlink -f</code> 与预期绝对路径相同。</li>
+<li><code>OpenGU-shared</code> 与 <code>OpenGU-worktrees</code> 完全为空。</li>
+<li>其余七个目录无进程参数、cwd、打开 fd 或独立 mount 引用。</li>
+<li><code>opengu-experiments</code> 中四个完整 clone 的代码提交均已进入当前 <code>main</code>，但实验 data/results/logs 与两个 dirty <code>auto_report.md</code> 并非 active checkout 的逐文件冗余副本。</li>
+<li>evidence、canary、materializer 与 small-selection 树被历史验收报告引用，不能按“旧目录”直接删除。</li>
+</ul>
+<p>因此采用同文件系统原子迁移，而不是删除或留下兼容 symlink：</p>
+<pre><code class="language-text">&lt;old sibling&gt;/
+  -&gt; OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/&lt;old sibling&gt;/
+</code></pre>
+<p>归档内保留：</p>
+<table>
+<thead>
+<tr>
+  <th>文件</th>
+  <th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>INVENTORY.tsv</code></td>
+  <td>迁移前每个根的文件数、目录数、字节数与基线 Git SHA</td>
+</tr>
+<tr>
+  <td><code>POST_MOVE_INVENTORY.tsv</code></td>
+  <td>迁移后同口径对账</td>
+</tr>
+<tr>
+  <td><code>SHA256SUMS</code></td>
+  <td>6952 个文件的相对路径与 SHA-256</td>
+</tr>
+<tr>
+  <td><code>SHA256SUMS.sha256</code></td>
+  <td>全量清单锚点</td>
+</tr>
+<tr>
+  <td><code>SYMLINKS.tsv</code></td>
+  <td>symlink 清单；本次为空</td>
+</tr>
+<tr>
+  <td><code>VERIFY_SHA256.log</code></td>
+  <td>迁移后逐文件校验结果</td>
+</tr>
+</tbody>
+</table>
+<p>历史报告中的旧绝对路径不回写，因为它们记录的是当时的执行事实。本报告是统一 relocation authority。</p>
+<h2>4. 防复发改动</h2>
+<h3>4.1 Runner fail closed</h3>
+<p>新增 <code>experiments/path_policy.py</code>。当代码实际运行于：</p>
+<pre><code class="language-text">/autodl-fs/data/OpenGU/GULib-master
+</code></pre>
+<p><code>processed_root</code>、<code>runtime_root</code>、<code>run_root</code>、Cache V2 <code>store_root</code>、<code>legacy_results_root</code> 和 <code>manifest_path</code> 必须全部解析到 active checkout 内；任何 sibling 或 <code>/tmp</code> 输出会在创建目录之前失败。</p>
+<p>这使仍保留为历史身份的 v1–v4 绝对路径配置无法在 active SSH checkout 上重新扩散目录。</p>
+<h3>4.2 仍可能使用的配置改为 repo-relative</h3>
+<ul>
+<li>Cache V2 Gate4：runtime/evidence 写入 <code>results/runs/</code>，store 写入 <code>results/cache_v2/</code>。</li>
+<li>small-selection GU gate v5：runtime/evidence/manifest 写入 <code>results/runs/</code>，store 写入 <code>results/cache_v2/</code>。</li>
+<li>small-selection GU full v5：evidence 写入 <code>results/runs/</code>。</li>
+<li>canonical processed root 统一写成 <code>data/processed</code>，由 checkout 解析。</li>
+</ul>
+<p>这些改动形成新的配置 fingerprint；不会冒充 2026-07-17/22 的历史执行身份。</p>
+<h3>4.3 顶层布局验收</h3>
+<p>新增只读检查：</p>
+<pre><code class="language-bash">python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
+</code></pre>
+<p>默认只允许 <code>.gitignore</code>、<code>.sys</code> 和 <code>OpenGU</code>；发现任何其他顶层条目即返回非零。</p>
+<h2>5. 验证</h2>
+<table>
+<thead>
+<tr>
+  <th>Check</th>
+  <th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>迁移前精确路径与类型检查</td>
+  <td>PASS</td>
+</tr>
+<tr>
+  <td>迁移前 process/cwd/fd/mount 检查</td>
+  <td>PASS，0 引用</td>
+</tr>
+<tr>
+  <td>迁移前后 root 级 files/dirs/bytes diff</td>
+  <td>PASS，无差异</td>
+</tr>
+<tr>
+  <td>迁移后逐文件 SHA-256</td>
+  <td>PASS，6952/6952</td>
+</tr>
+<tr>
+  <td>顶层精确扫描</td>
+  <td>PASS，仅 <code>.gitignore</code>、<code>.sys</code>、<code>OpenGU</code></td>
+</tr>
+<tr>
+  <td>SSH active Git status</td>
+  <td>PASS，clean <code>main</code></td>
+</tr>
+<tr>
+  <td>path policy / layout validator / Gate4 contract tests</td>
+  <td>PASS，11 passed</td>
+</tr>
+<tr>
+  <td>GU v5 / Cache V2 / runner 相邻回归</td>
+  <td>PASS，22 passed（另 217 deselected）</td>
+</tr>
+<tr>
+  <td>Python compilation</td>
+  <td>PASS</td>
+</tr>
+</tbody>
+</table>
+<p>YAML 变更还执行了 canonical <code>--dry_run</code>。本机不是 formal data lane，因此分类如下；这些是预检结果，不是正式实验结果：</p>
+<table>
+<thead>
+<tr>
+  <th>Config</th>
+  <th>Dry-run classification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>cache_v2_gate4_cora_degree_canary.yaml</code></td>
+  <td>在创建任何输出前 fail closed：本机 worktree 缺少 canonical processed Cora pickle</td>
+</tr>
+<tr>
+  <td><code>syncmate_small_selection_gu_gate_v5.yaml</code></td>
+  <td>在创建任何输出前 fail closed：新的 repo-local external Selection manifest 尚未由 accepted staging step 生成</td>
+</tr>
+<tr>
+  <td><code>syncmate_small_selection_gu_full_v5.yaml</code></td>
+  <td>该文件是 <code>syncmate_stage.py</code> 的阶段编排配置，不是 <code>experiments/run.py</code> 单矩阵 schema；专属 <code>_config()</code>/17-cell contract tests 已通过</td>
+</tr>
+</tbody>
+</table>
+<p>迁移动作执行时的 SSH active 基线为：</p>
+<pre><code class="language-text">ea4f34a29f5211079e1f7a7caf5a4c296f14ff08
+</code></pre>
+<h2>6. 已知边界</h2>
+<ul>
+<li>本次没有删除历史实验内容；约 1.08 GB 被保留在 active checkout 的 ignored archive 中。</li>
+<li>归档不是 formal dataset、cache authority 或可恢复运行根。需要引用旧证据时，应先查本报告和归档清单。</li>
+<li>SSH 当前仍无 GPU device、默认 Python/conda 与预期 <code>gnn_20</code>；本次是文件/Git 治理，不构成 formal GPU 实验验收。</li>
+<li>并行的本机 NeurIPS review 与 target-scope 工作树未被切换、暂存、合并或清理。</li>
+</ul>
+</article>
+<div class="foot">Source of truth: reports/ssh_deployment_layout_CLOSEOUT_REPORT.md · Generated from the same Markdown content.</div>
+</main>
+</body>
+</html>

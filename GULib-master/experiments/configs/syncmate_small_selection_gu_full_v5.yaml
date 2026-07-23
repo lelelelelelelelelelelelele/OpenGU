@@ -23,8 +23,8 @@ strategies:
 seeds: [42, 212, 2024]
 selection_k: 7
 
-processed_root: /autodl-fs/data/OpenGU/GULib-master/data/processed
-evidence_root: /autodl-fs/data/OpenGU-small-selection-gu/20260722/full-v5
+processed_root: data/processed
+evidence_root: results/runs/__syncmate_small_selection_gu_full_v5_evidence__
 run_root: results/runs/__syncmate_small_selection_gu_full_v5__
 
 benchmark_manifest_path: results/bc_target_v2/selection_benchmark_20260721/benchmark_manifest.json

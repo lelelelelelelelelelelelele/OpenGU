@@ -86,6 +86,7 @@ from scripts.evaluation.reporting.events import (
     prior_attempt_context,
     record_event,
 )
+from experiments.path_policy import resolve_owned_path
 
 try:
     import yaml
@@ -97,29 +98,32 @@ except ImportError:
 REPO_ROOT = _MODULE_REPO_ROOT
 
 
-def _repo_path(value: Any) -> Path:
-    path = Path(value).expanduser()
-    if not path.is_absolute():
-        path = REPO_ROOT / path
-    return path.resolve()
+def _repo_path(value: Any, label: str = "experiment path") -> Path:
+    return resolve_owned_path(REPO_ROOT, value, label)
 
 
 def experiment_processed_root(cfg: Mapping[str, Any]) -> Path:
     """Return the experiment-owned canonical processed-data root."""
 
-    return _repo_path(cfg.get("processed_root", REPO_ROOT / "data" / "processed"))
+    return _repo_path(
+        cfg.get("processed_root", REPO_ROOT / "data" / "processed"),
+        "processed_root",
+    )
 
 
 def experiment_runtime_root(cfg: Mapping[str, Any]) -> Path:
     """Return the experiment-owned root for mutable GU runtime state."""
 
-    return _repo_path(cfg.get("runtime_root", REPO_ROOT))
+    return _repo_path(cfg.get("runtime_root", REPO_ROOT), "runtime_root")
 
 
 def experiment_run_root(cfg: Mapping[str, Any]) -> Path:
     """Return the explicit experiment output root for runner leaves."""
 
-    return _repo_path(cfg.get("run_root", REPO_ROOT / "results" / "runs"))
+    return _repo_path(
+        cfg.get("run_root", REPO_ROOT / "results" / "runs"),
+        "run_root",
+    )
 
 
 def _display_path(path: Path) -> str:
@@ -447,13 +451,20 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         )
     result = {
         "mode": mode,
-        "store_root": _repo_path(raw.get("store_root", "results/cache_v2")),
+        "store_root": _repo_path(
+            raw.get("store_root", "results/cache_v2"),
+            "cache_v2.store_root",
+        ),
         "legacy_results_root": _repo_path(
-            raw.get("legacy_results_root", "results")
+            raw.get("legacy_results_root", "results"),
+            "cache_v2.legacy_results_root",
         ),
     }
     if mode in {"external_selection", "target_direct_external_selection"}:
-        result["manifest_path"] = _repo_path(raw["manifest_path"])
+        result["manifest_path"] = _repo_path(
+            raw["manifest_path"],
+            "cache_v2.manifest_path",
+        )
     if mode == "target_direct_external_selection":
         result["manifest_sha256"] = str(raw["manifest_sha256"])
     return result

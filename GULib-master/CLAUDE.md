@@ -45,6 +45,13 @@ Repository Git rules are defined in `AGENTS.md` and explained with executable Po
 - Before claiming isolation is necessary, inspect `git status --short --branch`, `git worktree list`, and the canonical runner's `--dry_run` classification. Historical ignored results alone are not evidence of a collision when the fingerprinted runner reports the intended cells as `would_run`.
 - Formality comes from accepted source/config provenance, complete four-file cell artifacts, gates, and recorded logs—not from the checkout directory. A one-cell gate run made with the same full config/fingerprint remains part of the formal matrix and is skipped, not overwritten, during expansion.
 - Current experiment placement and any explicit exception are recorded in `self/dashboard/WORKPLAN.md`; do not infer an isolation requirement from an older acceptance report that happened to use a fresh checkout.
+- `/autodl-fs/data` is the deployment boundary, not an experiment scratch
+  root. Its only OpenGU project entry is `OpenGU`; fresh clones, worktrees,
+  evidence, operations, canaries, and materializer stores belong inside the
+  active checkout. Run `python scripts/validate_ssh_deployment_layout.py
+  --base /autodl-fs/data` during SSH acceptance. Historical peer paths were
+  relocated under `results/_archive_ssh_peer_layout_20260724/`; do not
+  recreate them.
 
 ### Canonical Dataset Location on SSH
 

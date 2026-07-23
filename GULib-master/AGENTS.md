@@ -128,6 +128,24 @@ the SSH active checkout at `/autodl-fs/data/OpenGU/GULib-master`.
   manifests when a repository generator owns them. Change the source or
   generator, regenerate, and validate the output.
 
+## SSH Deployment Root Boundary
+
+- The AutoDL deployment root `/autodl-fs/data` contains only the platform
+  entries `.sys`, `.gitignore`, and the single active `OpenGU` checkout. Do
+  not create sibling clones, worktree roots, canary stores, evidence roots,
+  queue-operation roots, or shared dataset roots there.
+- On the active checkout, all mutable experiment paths must resolve inside
+  `/autodl-fs/data/OpenGU/GULib-master`, normally below `results/`, `data/`,
+  `log/`, or `logs/`. The experiment runner must fail closed on an external
+  absolute output path.
+- Validate the top-level contract with
+  `python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data`.
+- Historical sibling evidence was relocated, without symlinks, under the
+  ignored `results/_archive_ssh_peer_layout_20260724/` tree. Use
+  `reports/ssh_deployment_layout_CLOSEOUT_REPORT.md` as the relocation
+  authority; do not recreate an old absolute path to make a historical
+  command work.
+
 ## Workflow Instructions: Git (Mandatory)
 
 The authoritative human-readable workflow is [`docs/GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md).

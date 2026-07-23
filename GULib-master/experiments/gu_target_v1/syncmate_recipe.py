@@ -18,11 +18,14 @@ import yaml
 
 from experiments.gu_target_v1.adapter import materialize_grandfathered_selection
 from experiments.gu_target_v1.public_profile import verify_public_profile
+from experiments.path_policy import resolve_owned_path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = REPO_ROOT / "experiments" / "configs" / "syncmate_small_selection_gu_gate_v5.yaml"
-EVIDENCE_ROOT = Path("/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5")
+EVIDENCE_ROOT = (
+    REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_v5_evidence__"
+)
 RUN_ROOT = REPO_ROOT / "results" / "runs" / "__syncmate_small_selection_gu_v5__"
 EXPECTED_LEAF = RUN_ROOT / "cora_GCN_r0.05" / "GNNDelete_degree" / "seed42"
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
@@ -38,10 +41,7 @@ def _sha256_file(path: Path) -> str:
 
 
 def _repo_path(value: Any) -> Path:
-    path = Path(str(value)).expanduser()
-    if not path.is_absolute():
-        path = REPO_ROOT / path
-    return path.resolve()
+    return resolve_owned_path(REPO_ROOT, value, "GU gate path")
 
 
 def _config() -> Dict[str, Any]:
@@ -57,8 +57,8 @@ def _config() -> Dict[str, Any]:
         "strategies": ["degree"],
         "seeds": [42],
         "selection_k": 7,
-        "processed_root": "/autodl-fs/data/OpenGU/GULib-master/data/processed",
-        "runtime_root": "/autodl-fs/data/OpenGU-small-selection-gu/20260722/gate-v5/runtime",
+        "processed_root": "data/processed",
+        "runtime_root": "results/runs/__syncmate_small_selection_gu_v5_runtime__",
         "run_root": "results/runs/__syncmate_small_selection_gu_v5__",
     }
     for field, expected_value in expected.items():
@@ -73,7 +73,17 @@ def _config() -> Dict[str, Any]:
     }:
         raise RuntimeError("GU gate claim boundary is not frozen")
     cache = value.get("cache_v2") or {}
-    if cache.get("mode") != "external_selection":
+    if cache != {
+        "mode": "external_selection",
+        "store_root": "results/cache_v2/syncmate_small_selection_gu_v5",
+        "manifest_path": (
+            "results/runs/__syncmate_small_selection_gu_v5_evidence__/"
+            "selection_manifest.json"
+        ),
+        "legacy_results_root": (
+            "results/runs/__syncmate_small_selection_gu_v5_legacy_empty__"
+        ),
+    }:
         raise RuntimeError("GU gate must consume an external Selection manifest")
     defaults = value.get("defaults") or {}
     if (
