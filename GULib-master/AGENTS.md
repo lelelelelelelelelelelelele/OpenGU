@@ -2,17 +2,78 @@
 
 These instructions apply to all work under `GULib-master/`.
 
-## Start Here
+## Project Overview
+
+GULib is a Python/PyTorch Geometric research framework for adversarial attacks
+on graph unlearning. The main research question is how strategically selected
+node, edge, or feature deletion requests affect approximate unlearning methods.
+This is an experiment/evidence repository: provenance, cache identity, metric
+semantics, and reproducibility are part of correctness.
+
+## Tech Stack
+
+- Python with PyTorch, PyTorch Geometric, NumPy, scikit-learn, and related
+  scientific/graph packages.
+- YAML-driven experiment matrices, pytest contract/regression tests, and
+  Markdown plus static HTML for human-facing evidence.
+
+## Quick Navigation / Start Here
 
 1. Read the root `CLAUDE.md` before changing code, experiments, or reports.
-2. Read the nearest subfolder `CLAUDE.md` before touching that subtree.
+2. Read the nearest context-specific subfolder `CLAUDE.md` before touching that subtree.
 3. For current experiment state, use `self/dashboard/WORKPLAN.md`; do not infer it from an old branch name or dated report.
+
+## Project Map and File Organization
+
+- `main.py`, `config.py`, `parameter_parser.py`, and `unlearning_manager.py`
+  define the primary CLI, path construction, and method dispatch.
+- `pipeline/`, `unlearning/`, `model/`, and `task/` contain the shared
+  unlearning pipelines, method implementations, GNN backbones, and trainers.
+- `attack/` contains selection strategies, attack orchestration, metrics, and
+  the Legacy Result/Selection/Score cache clients.
+- `cache_v2/` contains versioned Recipe/Artifact contracts and immutable
+  selection/score artifacts.
+- `experiments/` contains canonical runners, YAML matrices, and experiment
+  families; `scripts/` contains validation, dashboard, plotting, and
+  operational tools.
+- `tests/` contains targeted pytest regression and contract tests.
+- `self/dashboard/` is the live operational hub; `docs/`, `report/`, and
+  `reports/` contain durable design, paper, and human-facing evidence.
+- `data/`, `results/`, `log/`, and `logs/` contain inputs or generated runtime
+  state. Treat them as evidence-bearing trees, not scratch space.
 
 ## Core Principles
 
 - One coherent improvement belongs to one branch with one explicit parent.
 - Preserve reviewable history and accept completed work through meaningful merge commits.
 - Protect shared branches, other worktrees, remote experiment state, and unrelated dirty files.
+- Fail closed when provenance, dataset identity, split identity, cache identity,
+  or metric semantics are ambiguous.
+
+## Runtime, Validation, and Common Commands
+
+- Use the conda `gnn` interpreter for Python work:
+  `E:/conda_package/envs/gnn/python.exe`. Do not rely on `conda activate` in a
+  non-interactive shell.
+- The local RTX 5070 is incompatible with the pinned CUDA/PyTorch stack. Local
+  work is CPU analysis and targeted tests only; GPU experiments run on the
+  accepted AutoDL `gnn_20` environment.
+- `config.py` parses CLI arguments at import time. Avoid importing it from
+  lightweight tests or notebooks unless the CLI context is intentionally set.
+- Run the smallest relevant pytest set for a code change, for example:
+
+  ```powershell
+  E:/conda_package/envs/gnn/python.exe -m pytest -q tests/test_<area>.py
+  ```
+
+- Expand to adjacent contract/regression tests when changing shared runners,
+  cache keys, artifact schemas, dataset resolution, metric semantics, or
+  dispatch. Do not claim repository-wide acceptance from one targeted test.
+- For experiment YAML or runner changes, run the canonical `--dry_run` and
+  record its classification before any execution. A dry run is validation, not
+  a formal result.
+- Documentation-only edits do not require the Python suite, but links,
+  generated counterparts, commands, and stated paths must be checked.
 
 ## Canonical Dataset Location (Mandatory)
 
@@ -46,7 +107,28 @@ the SSH active checkout at `/autodl-fs/data/OpenGU/GULib-master`.
   the user. Current availability and known gaps live in
   `self/dashboard/WORKPLAN.md` and `reports/dataset_layout_AUDIT_REPORT.md`.
 
-## Git Workflow (Mandatory)
+## Generated State and Cache Safety
+
+- `self/dashboard/WORKPLAN.md` is the source of truth for current status.
+  `self/dashboard/progress.html` is derived; never hand-edit it. Regenerate it
+  with `E:/conda_package/envs/gnn/python.exe scripts/dashboard/refresh.py`.
+- Follow the nearest cache-specific `CLAUDE.md` before inspecting or changing
+  `results/cache/`, `results/selection_cache/`, or `results/score_cache/`.
+  Never rename or hand-edit hash-named cache files.
+- Do not clear caches to switch algorithm semantics. For the active E7/Cache V2
+  lane, Legacy IF/Selection caches are read-only evidence. A changed algorithm
+  or producer creates a new explicitly versioned V2 Recipe; existing V2
+  Artifacts are not deleted or overwritten and are retired only through an
+  explicit approved action.
+- Cache invalidation, deletion, migration, freeze, or retirement is a material
+  evidence operation. Inventory exact paths and hashes first, use a dry run
+  when supported, and obtain explicit user approval before mutating existing
+  evidence.
+- Do not hand-edit generated reports, dashboards, aggregate CSVs, figures, or
+  manifests when a repository generator owns them. Change the source or
+  generator, regenerate, and validate the output.
+
+## Workflow Instructions: Git (Mandatory)
 
 The authoritative human-readable workflow is [`docs/GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md).
 
