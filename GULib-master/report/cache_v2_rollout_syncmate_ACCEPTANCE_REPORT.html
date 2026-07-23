@@ -15,7 +15,8 @@
     @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}h1{font-size:28px}}
   </style>
 </head>
-<body><main>
+<body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside><main>
   <h1>Cache V2 Gates 2–4、Dataset 解耦与 SyncMate Rollout 验收</h1>
   <p class="meta">2026-07-17 · validated code pin <code>f62a3e0</code> · Gate 4 execution pin <code>e6091f9</code></p>
 
@@ -49,7 +50,7 @@
     <tr><th>Selection / logits</th><td>108 ordered exact；三组 logits 均 <code>[2708, 7]</code></td></tr>
     <tr><th>Cold / warm</th><td>producer <code>1 / 0</code>；runner 与 warm exact reuse，store 不变</td></tr>
     <tr><th>Download / rebuild</th><td><code>false / false</code></td></tr>
-    <tr><th>Evidence root</th><td><code>/autodl-fs/data/OpenGU-cache-v2-rollout/20260717/gate4</code></td></tr>
+    <tr><th>Evidence root</th><td><code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/OpenGU-cache-v2-rollout/20260717/gate4</code></td></tr>
   </tbody></table>
 
   <h3>Runner Artifact SHA-256</h3>

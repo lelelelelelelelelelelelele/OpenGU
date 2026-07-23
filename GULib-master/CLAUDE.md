@@ -51,7 +51,10 @@ Repository Git rules are defined in `AGENTS.md` and explained with executable Po
   active checkout. Run `python scripts/validate_ssh_deployment_layout.py
   --base /autodl-fs/data` during SSH acceptance. Historical peer paths were
   relocated under `results/_archive_ssh_peer_layout_20260724/`; do not
-  recreate them.
+  recreate them. Tracked reports, configs, commands, and imported summaries
+  must use current archive/canonical access paths rather than a retired
+  sibling prefix; enforce this with
+  `python scripts/validate_retired_ssh_references.py`.
 
 ### Canonical Dataset Location on SSH
 

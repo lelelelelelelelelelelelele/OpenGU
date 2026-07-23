@@ -15,6 +15,7 @@ table{width:100%;border-collapse:collapse;margin:15px 0 25px;background:rgba(16,
 </style>
 </head>
 <body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside>
 <main class="wrap">
 <section class="hero">
   <div class="eyebrow">Cache V2 · Real-data Selection Canary · 2026-07-14</div>
@@ -64,7 +65,7 @@ table{width:100%;border-collapse:collapse;margin:15px 0 25px;background:rgba(16,
 <tbody>
 <tr><th>Git branch / commit</th><td><code>codex/citeseer-v2-canary-20260714</code><br><code class="hash">83842e6dfb39b36e20725ea632913c5b8c2b8e5f</code></td></tr>
 <tr><th>fresh code checkout</th><td><code>/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master</code></td></tr>
-<tr><th>run / data / store</th><td><code>/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2</code><br><code>…/dataset</code><br><code>…/store</code></td></tr>
+<tr><th>run / data / store</th><td><code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2</code><br><code>…/dataset</code><br><code>…/store</code></td></tr>
 <tr><th>Legacy snapshot root</th><td><code>/autodl-fs/data/OpenGU/GULib-master/results</code></td></tr>
 <tr><th>软件</th><td>torch <code>2.1.2+cu118</code>；PyG <code>2.6.1</code>；Numba <code>0.65.1</code></td></tr>
 <tr><th>设备边界</th><td>RTX 4090 24GB 可用；该 Selection canary 为 CPU/Numba workload，未跑 GPU GU 实验</td></tr>
@@ -152,25 +153,26 @@ table{width:100%;border-collapse:collapse;margin:15px 0 25px;background:rgba(16,
   tests/test_cache_v2_selection_canary.py tests/test_cache_v2_store.py \
   tests/test_cache_v2.py tests/test_score_cache.py \
   tests/test_attack_manager.py tests/test_phase_b_invariants.py -q</pre>
+<p><strong>非正式 replay：</strong>只使用 active checkout 和新的 repo-local disposable root；归档证据目录保持只读，不得作为 RUN/store。</p>
 <pre>PY=/root/miniconda3/bin/python
-CODE=/tmp/opengu-citeseer-v2-canary-83842e6/GULib-master
-RUN=/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2
+CODE=/autodl-fs/data/OpenGU/GULib-master
+RUN=$CODE/results/runs/__replay_cache_v2_citeseer_gate2__
 LEGACY=/autodl-fs/data/OpenGU/GULib-master/results
 
 cd "$CODE"
 $PY scripts/cache_v2_selection_canary.py cold \
-  --store-root "$RUN/store" --dataset-root "$RUN/dataset" \
-  --legacy-results-root "$LEGACY" --allow-download \
+  --store-root "$RUN/store" --dataset-root "$CODE/data/raw" \
+  --legacy-results-root "$LEGACY" \
   --selection-ratio 0.05 --config-name A5_citeseer_r0.05 \
   --yaml-path experiments/configs/A5_citeseer_r0.05.yaml \
   --experiment-id cache-v2-citeseer-cold
 
 $PY scripts/cache_v2_selection_canary.py warm \
-  --store-root "$RUN/store" --dataset-root "$RUN/dataset" \
+  --store-root "$RUN/store" --dataset-root "$CODE/data/raw" \
   --legacy-results-root "$LEGACY" --selection-ratio 0.05 \
   --config-name renamed-config --yaml-path elsewhere/renamed.yaml \
   --experiment-id cache-v2-citeseer-warm-different-request</pre>
-<p>机器汇总：<code>/autodl-fs/data/cache-v2-canary/citeseer-83842e6-gate2/evidence/gate2_acceptance.json</code>，16/16 checks true，<code>accepted=true</code>。</p>
+<p>机器汇总：<code>/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-canary/citeseer-83842e6-gate2/evidence/gate2_acceptance.json</code>，16/16 checks true，<code>accepted=true</code>。</p>
 <table>
 <thead><tr><th>证据</th><th>SHA-256</th></tr></thead>
 <tbody>

@@ -11,6 +11,9 @@ selection_k: 7
 
 # 小图 17-Selection → GNNDelete GU 全量实测报告
 
+> [!NOTE]
+> **路径哈希迁移说明（2026-07-24）**：本报告引用的 benchmark/summary SHA-256 已随 retired SSH path normalization 重算；实验数值和验收结论未改。原始字节可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 复核。
+
 > [!WARNING]
 > **2026-07-23 科学身份更正：本报告不再是 target-direct 白盒权威结果。** 153 cells / 612 artifacts / 0 failures 与逐文件校验仍是有效工程证据，但 selector 使用 GateGCN hidden=16、200 epochs，GU target 使用 OpenGU GCN hidden=64、100 epochs，且二者不是同一 checkpoint；目录标记 5% 时实际每格仅删 `k=7`。因此下述数值只允许作为 **public-split、exact-k=7、L1 surrogate-transfer / engineering screen** 引用，不得支持“新 IF 普遍优于/弱于 random、degree 或旧 IF”的 target-direct 结论。严格重做合同见 `reports/target_direct_selection_PREPARATION_REPORT.{md,html}`。
 
@@ -57,7 +60,7 @@ selection_k: 7
 | Datasets | Cora / CiteSeer / PubMed `planetoid_public_fixed` |
 | Public split | train `140/120/60`; validation `500`; test `1000` |
 | Seeds | `42`, `212`, `2024` |
-| Selection GT | accepted 17-output public benchmark; manifest SHA-256 `3212232a4274190e4c5a075eeea20fc92f982e7f4293670037795c2932e0e479` |
+| Selection GT | accepted 17-output public benchmark; manifest SHA-256 `80a68a101459d78e9cd6dfd26b8e99b4878a67e07bcc9f63cb225bf67c73d1a9` |
 | Full-result checksum manifest | 612 rows; SHA-256 `e45aa4b193d53b854c709e3de543517417fa6a9f0d3eb1f013aea9bc3e16d236` |
 | Claim boundary | controlled public-profile GNNDelete comparison；不是 OpenGU 80/20，也不是跨 GU-family / backbone 普遍结论 |
 

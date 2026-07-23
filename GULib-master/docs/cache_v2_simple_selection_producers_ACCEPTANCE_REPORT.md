@@ -6,6 +6,9 @@ status: ssh-canary-accepted-gates-remain-partial
 
 # Cache V2 Simple Selection Producers 验收报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 1. 验收结论
 
 Random、Degree、PageRank 已接入与 IM 相同的 Cache V2 exact-only SelectionArtifact 主路径，并通过本机与 SSH 真实 Cora cold/warm 验收。首次 SSH 重放还真实暴露了 Degree `torch.topk` 平分边界跨环境不稳定；V2 producer 已改为“度降序、node id 升序”的完整确定性排序，并以新算法版本、全新 Recipe 重新通过两端一致性验证。
@@ -106,8 +109,8 @@ Degree producer 不改 Legacy `DegreeStrategy`，也不改变 runner；V2 只在
 
 ```text
 local:  C:\Users\ADMIN\AppData\Local\Temp\opengu-cache-v2-degree-v2-1784017625
-SSH:    /autodl-fs/data/cache-v2-materializer/simple-eb7c2d8-cora
-evidence:/autodl-fs/data/opengu-experiment-evidence/cache-v2-simple-eb7c2d8
+SSH:    /autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-materializer/simple-eb7c2d8-cora
+evidence:/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiment-evidence/cache-v2-simple-eb7c2d8
 ```
 
 SSH index 的 `PRAGMA integrity_check` 为 `ok`，`schema_version=1`、正式 Artifact 5 个、conflict 0 个。隔离 checkout 固定在 `eb7c2d82a0d5ef9d5afd8010f70246d9acc034e2`；active master 始终保持原 HEAD `3f631fb057a42e62db5f612e66e53edc2937459a` 与原 dirty 列表。
@@ -123,7 +126,7 @@ SSH index 的 `PRAGMA integrity_check` 为 `ok`，`schema_version=1`、正式 Ar
 - 生成新 Recipe `5bc434cd...`；
 - 在全新本机/SSH store 中均得到同一 Artifact `sel_5bc434cd_7e66e515` 与同一 content `7e66e515...`。
 
-旧 SSH v1 store `/autodl-fs/data/cache-v2-materializer/simple-f1fcd2c-cora` 保留为失败证据，没有删除或覆盖。
+旧 SSH v1 store `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/cache-v2-materializer/simple-f1fcd2c-cora` 保留为失败证据，没有删除或覆盖。
 
 ## 5. Legacy 与数据目录不变性
 

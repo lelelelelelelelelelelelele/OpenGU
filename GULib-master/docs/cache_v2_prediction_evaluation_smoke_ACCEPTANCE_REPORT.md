@@ -6,6 +6,9 @@ status: accepted-read-only-smoke
 
 # Cache V2 Prediction → Evaluation 单 Cell Smoke
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 ## 结论
 
 **通过。** 对远端已完成的 `cora / GAT / GraphRevoker / im / seed42` cell 做只读复算后，`predictions.npz` 可独立导出的 9 个 Evaluation 指标与 `collateral.json` 一致。8 个指标逐值一致；`max_pred_shift` 的绝对差为 `1.1920928955078125e-7`，小于预先采用的 float32 容差 `1e-6`。
@@ -16,7 +19,7 @@ status: accepted-read-only-smoke
 
 | 项目 | 值 |
 |---|---|
-| 远端实验 checkout | `/autodl-fs/data/opengu-experiments/e4-graphrevoker-multiseed-648a6f1-20260714/GULib-master` |
+| 远端实验 checkout | `/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiments/e4-graphrevoker-multiseed-648a6f1-20260714/GULib-master` |
 | cell | `results/runs/cora_GAT_r0.05/GraphRevoker_im/seed42` |
 | producer commit | `648a6f10dae167fa238427427cbf7c1f660b4e57` |
 | Prediction shape | 2708 nodes × 7 classes，float32 |

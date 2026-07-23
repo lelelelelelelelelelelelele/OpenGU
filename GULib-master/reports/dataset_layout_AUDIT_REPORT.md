@@ -1,5 +1,8 @@
 # 小图 Selection Dataset 布局审计与迁移报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 > **Verdict: PASS WITH GRANDFATHERED GT EXCEPTION** — SSH active 主目录的数据路径、代码解析与 provenance 合同已经收口；既有 public `3 datasets × 3 seeds` GPU cold/warm 矩阵经数据内容与 scorer 语义核验后作为一次性权威 GT 接受，无需重跑。OpenGU canonical processed 的 PubMed pair 仍缺失，但不影响 public benchmark 的本次验收。
 
 ## 1. 结论
@@ -7,7 +10,7 @@
 - SSH 登录与正式 active checkout 根目录均为 `/autodl-fs/data/OpenGU/GULib-master`。
 - public 17-method benchmark 的唯一默认根已定为 `/autodl-fs/data/OpenGU/GULib-master/data/raw`，数据目录为 lowercase `cora`、`citeseer`、`pubmed`。
 - OpenGU integrated Selection 的 canonical 输入仍是 `/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl`。它与 public Planetoid 固定 split 是两条不同数据通道。
-- 既有 benchmark 实际使用 `/autodl-fs/data/OpenGU-shared/Planetoid` 和隔离 worktree；其 `9/9` 经一次性 grandfathered GT 例外接受为 **public-split 17-output benchmark 权威结果**。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。
+- 既有 benchmark 实际使用 `/autodl-fs/data/OpenGU/GULib-master/data/raw` 和隔离 worktree；其 `9/9` 经一次性 grandfathered GT 例外接受为 **public-split 17-output benchmark 权威结果**。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。
 - 三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。
 - accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public `data.pt` 冒充。
 - 代码提交 `da3688c3e40b6b2d50f26717ad036b8c041bbde0` 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；`51f19460b51a048e33e840a99e35826f5b7af2b4` 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。

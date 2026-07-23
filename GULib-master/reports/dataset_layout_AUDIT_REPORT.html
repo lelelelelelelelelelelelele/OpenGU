@@ -10,6 +10,7 @@
   </style>
 </head>
 <body>
+<aside class="path-migration-notice" style="margin:16px auto;padding:12px 16px;max-width:1100px;border-left:4px solid #d89b2b;background:#fff7e6;color:#4d3500"><strong>路径迁移说明（2026-07-24）</strong>：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 <code>/autodl-fs/data</code> sibling。原始执行字符串可从 Git <code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code> 与迁移报告复核；实验数值和验收结论未改。</aside>
 <div class="layout">
   <aside>
     <div class="brand">OpenGU / DATA GOVERNANCE</div>
@@ -39,7 +40,7 @@
 <li>SSH 登录与正式 active checkout 根目录均为 <code>/autodl-fs/data/OpenGU/GULib-master</code>。</li>
 <li>public 17-method benchmark 的唯一默认根已定为 <code>/autodl-fs/data/OpenGU/GULib-master/data/raw</code>，数据目录为 lowercase <code>cora</code>、<code>citeseer</code>、<code>pubmed</code>。</li>
 <li>OpenGU integrated Selection 的 canonical 输入仍是 <code>/autodl-fs/data/OpenGU/GULib-master/data/processed/{transductive,inductive}/*.pkl</code>。它与 public Planetoid 固定 split 是两条不同数据通道。</li>
-<li>既有 benchmark 实际使用 <code>/autodl-fs/data/OpenGU-shared/Planetoid</code> 和隔离 worktree；其 <code>9/9</code> 经一次性 grandfathered GT 例外接受为 <strong>public-split 17-output benchmark 权威结果</strong>。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。</li>
+<li>既有 benchmark 实际使用 <code>/autodl-fs/data/OpenGU/GULib-master/data/raw</code> 和隔离 worktree；其 <code>9/9</code> 经一次性 grandfathered GT 例外接受为 <strong>public-split 17-output benchmark 权威结果</strong>。它仍不得改称 active-root 运行或 OpenGU 80/20 实验；对应数据副本已在逐文件等同性验证后删除。</li>
 <li>三套 public PyG cache 已从共享副本复制到 active 主目录并逐文件 SHA-256 验证；历史 shared/worktree/experiment source copies 已按用户明确授权清理。</li>
 <li>accepted CiteSeer canonical processed pair 已回填 active；Cora pair 原本已在 active 且与历史副本相同；PubMed pair 未在受检历史目录中找到，因此未用 public <code>data.pt</code> 冒充。</li>
 <li>代码提交 <code>da3688c3e40b6b2d50f26717ad036b8c041bbde0</code> 将 B/C selection、benchmark、matrix 与 downstream 改成 repo-relative、fail-closed、path-aware + content-aware provenance；<code>51f19460b51a048e33e840a99e35826f5b7af2b4</code> 将 C-target 及正式/诊断 TracIn gate 收口到同一合同。</li>

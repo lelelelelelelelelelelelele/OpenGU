@@ -1,5 +1,8 @@
 # OpenGU Git 全面一致性审计与安全对齐报告
 
+> [!NOTE]
+> **路径迁移说明（2026-07-24）**：本文显示的 SSH 文件系统路径已更新为当前 archive/canonical access 位置，不能据旧执行语境重建 `/autodl-fs/data` sibling。原始执行字符串可从 Git `41708162a4f3e2c4fd89c30c47b6b35feb1b8d75` 与迁移报告复核；实验数值和验收结论未改。
+
 > 审计冻结时间：2026-07-14 17:30 CST 左右
 > Git root：`E:/project/OpenGU`
 > 项目目录：`E:/project/OpenGU/GULib-master`
@@ -28,7 +31,7 @@
 | SSH active | `codex/citeseer-e1-graphrevoker-20260714` | `d38df143` | journal modified；A6 与 `_backups` untracked；SQLite ignored | backup branch `39d284d` 本地保留；3 个保护 stash |
 | SSH primary isolated | `codex/citeseer-e1-graphrevoker-20260714` | `d38df143` | 普通 dirty clean；只有 ignored test/cache 状态 | 无未 push commit |
 
-Primary isolated 路径：`/autodl-fs/data/opengu-experiments/cache-v2-simple-f1fcd2c`。
+Primary isolated 路径：`/autodl-fs/data/OpenGU/GULib-master/results/_archive_ssh_peer_layout_20260724/peer_roots/opengu-experiments/cache-v2-simple-f1fcd2c`。
 
 ## 3. Local / origin 审计
 

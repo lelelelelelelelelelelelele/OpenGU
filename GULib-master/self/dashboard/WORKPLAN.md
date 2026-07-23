@@ -177,6 +177,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 ## 10. Changelog
 
+- **2026-07-24** retired SSH path 第二轮清退：按 `main@4170816` 摸排出 49 个 tracked 文件 / 499 处旧 sibling 前缀；报告改指 archive/canonical access 并加迁移说明，GU v1–v4 配置全部 repo-relative，19 个 imported benchmark JSON 做带 baseline/aggregate-hash 元数据的路径归一化，17 个 consumer 的 69 处 SHA-256 同步重算。新增全 tracked 文本 validator，当前 1214 个 UTF-8 文件 0 matches；原始字节仍由 Git 基线保存。见 `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}`。
 - **2026-07-24** SSH 部署根摸排与收口：确认 2026-07-14 至 07-22 的 fresh clone / evidence / ops / canary / materializer 与两组 tracked 绝对路径配置共同造成 9 个 OpenGU sibling；2 个空壳删除，7 个证据树共 6952 files / 1,078,876,926 bytes 原子迁入 active ignored archive，逐文件 SHA-256 通过，清单锚点 `32961210ff7a874b7f13f75987be19f5d825002e9f453bb5ac015976e048882e`。runner 增加 active-checkout path fail-closed，Gate4 与 GU v5 改为 repo-relative，新增顶层布局验收器。见 `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}`。
 - **2026-07-22** K5 formal 顺序固化：E3 从“沿用旧 K5 后纯本地 join”更新为 fresh V2 formal lane；注册 `Cora/GCN/GraphRevoker/seed111/k=5` 单 cell gate，manifest 绑定 full main SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256。全矩阵必须在 gate PASS 后用同一 SHA `--resume`，无 gate 直接全跑由 runner 拒绝。
 - **2026-07-22** 旧 `paper/alignment-experiment` 价值迁移与清理完成：叙事骨架、FIG-5 设计契约和 Jaccard 分析问题提炼到 `report/paper/RESUBMISSION_BLUEPRINT.md`；F2 展开生成链修复，新增 F5（新 evidence 后重生/入库 FIG-5）和 W10（仅重投时激活）；两个 `archive/paper-alignment-*` tag 经 peel 验证后，原 alignment stash 已 drop、旧分支已删除，不再以活动 branch/stash 充当知识库。
