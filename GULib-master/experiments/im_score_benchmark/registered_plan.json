@@ -1,0 +1,61 @@
+{
+  "schema": "im_score_benchmark.registered_plan",
+  "version": 1,
+  "status": "implementation_local_validation_only",
+  "formal_execution_authorized": false,
+  "diffusion": {
+    "model": "independent_cascade",
+    "propagation_probability": 0.1,
+    "directed_arcs": true,
+    "rr_root_domain": "full_evaluation_node_domain",
+    "candidate_fraction": 1.0
+  },
+  "small": {
+    "datasets": ["Cora", "CiteSeer", "PubMed"],
+    "selector_seeds": [42, 212, 2024],
+    "budgets": [3, 7, 14],
+    "methods": [
+      "random",
+      "degree",
+      "im_batch_celf_current",
+      "im_celf_strict",
+      "corrected_imm",
+      "opimc",
+      "rr_sni",
+      "rr_shapley",
+      "rr_ksemivalue"
+    ],
+    "registered_rows": 243
+  },
+  "large": {
+    "dataset": "ogbn-arxiv",
+    "selector_seeds": [42, 212, 2024],
+    "budget_ratios": [0.001, 0.005, 0.01],
+    "methods": [
+      "degree",
+      "corrected_imm",
+      "opimc",
+      "rr_sni",
+      "rr_shapley",
+      "rr_ksemivalue"
+    ],
+    "registered_rows": 54
+  },
+  "theory": {
+    "epsilon": 0.1,
+    "delta": 0.01,
+    "corrected_imm": "workaround1_independent_final_rr",
+    "opimc_certificate": "conservative_independent_rr_hoeffding_v1",
+    "opimc_paper_equivalent": false
+  },
+  "degree_promotion": {
+    "minimum_ratio": 1.02,
+    "paired_ci95_lower_must_be_positive": true,
+    "maximum_allowed_loss_on_remaining_context": 0.01
+  },
+  "execution_guard": {
+    "token": "IM-SELECTOR-A",
+    "formal_requires_branch": "main",
+    "formal_requires_clean_worktree": true
+  }
+}

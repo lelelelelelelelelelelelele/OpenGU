@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>现代 Influence Maximization 算法调研与 OpenGU 实验计划</title>
+  <style>
+    :root {
+      color-scheme: dark; --bg:#07111f; --panel:#0d1b2d; --text:#e8eef6;
+      --muted:#9eb0c7; --line:#29415e; --accent:#55d6be; --accent-2:#78a9ff;
+      --warn:#ffcc66; --max:1120px;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 15% 0%,#102846 0,var(--bg) 34rem); color:var(--text); font:16px/1.72 Inter,"Segoe UI","Microsoft YaHei",sans-serif; }
+    a { color:var(--accent-2); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .layout { display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1480px; margin:auto; }
+    nav { position:sticky; top:0; height:100vh; overflow:auto; padding:32px 24px; border-right:1px solid var(--line); background:rgba(7,17,31,.86); }
+    nav strong { display:block; margin-bottom:16px; color:var(--accent); letter-spacing:.08em; }
+    nav a { display:block; padding:5px 0; color:var(--muted); font-size:14px; }
+    nav a.sub { padding-left:14px; font-size:13px; }
+    main { width:min(var(--max),100%); padding:54px 62px 96px; }
+    h1 { font-size:clamp(2rem,4vw,3.4rem); line-height:1.12; margin:0 0 36px; max-width:900px; }
+    h2 { margin:64px 0 22px; padding-bottom:10px; border-bottom:1px solid var(--line); font-size:1.65rem; }
+    h3 { margin:38px 0 14px; font-size:1.23rem; color:#d4e4f7; }
+    h4 { margin-top:28px; }
+    p,li { color:#d6e1ee; }
+    strong { color:#f6fbff; }
+    code { background:#142a42; color:#b9f5e9; padding:.12em .38em; border-radius:5px; }
+    pre { overflow:auto; padding:18px; border:1px solid var(--line); background:#091727; border-radius:10px; }
+    pre code { padding:0; background:none; }
+    table { width:100%; border-collapse:collapse; margin:22px 0 34px; font-size:14px; }
+    th,td { padding:11px 12px; border:1px solid var(--line); vertical-align:top; }
+    th { background:#142a42; color:#f2f7fc; text-align:left; }
+    tr:nth-child(even) td { background:rgba(18,36,58,.42); }
+    blockquote,.callout { margin:24px 0; padding:18px 20px; border-left:4px solid var(--accent); background:linear-gradient(90deg,rgba(85,214,190,.13),rgba(18,36,58,.72)); border-radius:8px; }
+    blockquote p,.callout p { margin:0; }
+    .callout-label { color:var(--accent); font-weight:700; margin-bottom:6px; }
+    .warning { border-left-color:var(--warn); }
+    .warning .callout-label { color:var(--warn); }
+    hr { border:0; border-top:1px solid var(--line); margin:52px 0; }
+    .meta { color:var(--muted); margin:-20px 0 42px; }
+    @media (max-width:920px) {
+      .layout { display:block; }
+      nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); }
+      nav a.sub { display:none; }
+      main { padding:38px 22px 72px; }
+      table { display:block; overflow-x:auto; }
+    }
+    @media print {
+      nav { display:none; } .layout { display:block; } main { width:100%; max-width:none; padding:0; }
+      body { background:white; color:#111; } p,li,h1,h2,h3,strong { color:#111; } a { color:#174ea6; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav><strong>IM RESEARCH PLAN</strong><a class="" href="#执行结论">执行结论</a>
+<a class="" href="#1-为什么现在值得做">1. 为什么现在值得做</a>
+<a class="" href="#2-理论下界-应分成三件事">2. “理论下界”应分成三件事</a>
+<a class="" href="#3-算法谱系与项目角色">3. 算法谱系与项目角色</a>
+<a class="sub" href="#3-1-opim-c-第一推荐">3.1 OPIM-C：第一推荐</a>
+<a class="sub" href="#3-2-corrected-imm-不能忽略后续纠偏">3.2 corrected IMM：不能忽略后续纠偏</a>
+<a class="sub" href="#3-3-ssa-d-ssa-速度声明不能脱离修正版">3.3 SSA/D-SSA：速度声明不能脱离修正版</a>
+<a class="sub" href="#3-4-tiptop-更强保证-但不是第一生产方案">3.4 TipTop：更强保证，但不是第一生产方案</a>
+<a class="sub" href="#3-5-subsim-hist-确认瓶颈后再加">3.5 SUBSIM/HIST：确认瓶颈后再加</a>
+<a class="sub" href="#3-6-skim-pmc-与并行系统">3.6 SKIM、PMC 与并行系统</a>
+<a class="" href="#4-与-opengu-契约的适配">4. 与 OpenGU 契约的适配</a>
+<a class="sub" href="#4-1-候选节点受限">4.1 候选节点受限</a>
+<a class="sub" href="#4-2-图方向与边概率">4.2 图方向与边概率</a>
+<a class="sub" href="#4-3-cache-v2-与命名">4.3 Cache V2 与命名</a>
+<a class="" href="#5-研究问题与假设">5. 研究问题与假设</a>
+<a class="" href="#6-分阶段实验计划">6. 分阶段实验计划</a>
+<a class="sub" href="#phase-0-实现契约与最小原语">Phase 0：实现契约与最小原语</a>
+<a class="sub" href="#phase-1-精确小图与契约-gate">Phase 1：精确小图与契约 gate</a>
+<a class="sub" href="#phase-2-三数据集-selector-validity-bridge">Phase 2：三数据集 selector-validity bridge</a>
+<a class="sub" href="#phase-3-canonical-opengu-转移">Phase 3：canonical OpenGU 转移</a>
+<a class="sub" href="#phase-4-gu-downstream-canary">Phase 4：GU downstream canary</a>
+<a class="sub" href="#phase-5-条件扩展">Phase 5：条件扩展</a>
+<a class="" href="#7-指标与验收门槛">7. 指标与验收门槛</a>
+<a class="sub" href="#7-1-selection-objective">7.1 Selection objective</a>
+<a class="sub" href="#7-2-downstream">7.2 Downstream</a>
+<a class="" href="#8-预计工作量与停止条件">8. 预计工作量与停止条件</a>
+<a class="" href="#9-最终建议">9. 最终建议</a>
+<a class="" href="#参考文献">参考文献</a>
+<a class="" href="#已知边界">已知边界</a></nav>
+    <main>
+      <div class="meta">OpenGU · 2026-07-23 · static IC / cardinality-constrained IM</div>
+      <h1>现代 Influence Maximization 算法调研与 OpenGU 实验计划</h1>
+<h2 id="执行结论">执行结论</h2>
+<p>建议推进，而且不应只继续优化 CELF。下一阶段应建立一条独立的 <strong>Modern-IM approximation-validity lane</strong>，优先顺序为：</p>
+<ol>
+<li><strong>首选实现：OPIM-C。</strong> 它基于两批独立 RR sets，在运行中同时给出候选解、影响下界、最优值上界和可检查的停止证书，最符合当前项目的 Cache V2 与审计需求。</li>
+<li><strong>理论/生态对照：corrected IMM。</strong> 使用 Wei Chen 2018 的独立重采样修正版，不能直接照搬原始 IMM 实现并宣称原证明成立。</li>
+<li><strong>小图质量锚点：TipTop。</strong> 其目标是 $(1-\epsilon)$ 近最优，保证强于常见的 $(1-1/e-\epsilon)$，但依赖整数规划；只作为小图 reference，不阻塞主线。</li>
+<li><strong>第二阶段加速：OPIM-C + SUBSIM。</strong> 先验证 OPIM-C 语义，再替换 RR-set generator；只有高 influence 压力测试证明 RR sets 过大时才上 HIST。</li>
+<li><strong>可选多预算方法：SKIM。</strong> 一次生成 seed sequence、各 prefix 都可分析，适合 ratio sweep；实现优先级低于 OPIM-C。</li>
+</ol>
+<p>不建议第一轮实现原始 SSA/D-SSA、把 CELF++包装成新近似、直接引入深度强化学习 IM，或直接覆盖现有 <code>im</code>。这些路线分别存在保证纠偏、语义重复、目标不可比和证据污染问题。</p>
+<aside class="callout important"><div class="callout-label">关键结论</div><div>现代 IM 的第一研究问题不是“选点与旧 CELF 重合多少”，而是“新算法是否更可靠地优化 IC spread，以及这种目标改进是否真的传递到 approximate-GU 的 retrain gap”。低 Jaccard 但等 spread 可能只是多个近最优解；高 spread 但攻击不更强则是更有价值的 objective-mismatch 发现。</div></aside>
+<h2 id="1-为什么现在值得做">1. 为什么现在值得做</h2>
+<p>当前 <a href="../attack/attack_strategies/im_strategy.py">IMStrategy</a> 使用 IC + MC-CELF，但 canonical 默认包含 <code>im_batch_size=5</code>。<code>batch_size&gt;1</code> 会一次接受多个未经逐步重新验证的候选，因此它不是经典 CELF 的纯工程等价实现。</p>
+<p>历史 prototype 已显示明显的 dataset interaction：</p>
+<table>
+<thead>
+<tr>
+<th>Dataset / budget</th>
+<th align="right">Batch-CELF speedup</th>
+<th align="right">独立评估 spread loss</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cora, $k=135$</td>
+<td align="right">34.6x</td>
+<td align="right">1.26%</td>
+</tr>
+<tr>
+<td>CiteSeer, $k=50$</td>
+<td align="right">1.6x</td>
+<td align="right">11.98%</td>
+</tr>
+<tr>
+<td>CiteSeer, $k=135$</td>
+<td align="right">3.9x</td>
+<td align="right">17.05%</td>
+</tr>
+</tbody></table>
+<p>来源为 <a href="../experiments/im_benchmark/docs/multi_v1_v3_summary.md">旧 V0–V4 prototype</a>。这些结果只有 Cora/CiteSeer、单一历史实现口径，不能作为正式三数据集证据；但它们足以说明“Batch 近似是否保真”不是一个已经解决的问题。</p>
+<p>同时，<code>ogbn-arxiv</code> 的历史 Cache V2 IM cold run 在 degree-pruned、50 MC、classic CELF 条件下仍耗时约 3 小时 46 分，见 <a href="../docs/cache_v2_im_selection_materializer_ACCEPTANCE_REPORT.md">IM materializer 验收</a>。现代 RR-set 路线因此既有方法学价值，也有现实扩展性价值。</p>
+<h2 id="2-理论下界-应分成三件事">2. “理论下界”应分成三件事</h2>
+<p>用户关心的“理论下界保证”不能笼统书写。现代 IM 文献至少讨论三种不同保证：</p>
+<table>
+<thead>
+<tr>
+<th>保证类型</th>
+<th>正确问题</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解质量下界</td>
+<td>返回解至少达到 OPT 的多少</td>
+<td>$sigma(S)\ge(1-1/e-\epsilon)\mathrm{OPT}$</td>
+</tr>
+<tr>
+<td>成功概率</td>
+<td>上述质量下界多大概率成立</td>
+<td>$1-\delta$ 或 $1-n^{-\ell}$</td>
+</tr>
+<tr>
+<td>时间/样本下界</td>
+<td>任何算法至少需要多少图访问或样本</td>
+<td>对网络规模近线性最优；或样本数渐近下界</td>
+</tr>
+</tbody></table>
+<p>经典 IC influence function 是 monotone submodular。<a href="https://doi.org/10.1145/956750.956769">Kempe, Kleinberg, and Tardos</a> 证明，在可准确查询 influence 的前提下，逐步加入最大 marginal-gain 节点的 greedy 至少达到 $1-1/e$。但有限轮 MC 只是一个随机 value oracle；如果没有样本复杂度和置信控制，就不能自动把该保证贴到现有 MC-CELF 结果上。</p>
+<p>RR-set 方法利用恒等式</p>
+<p>$$
+\sigma(S)=n\Pr[R\cap S\neq\varnothing],
+$$</p>
+<p>把 influence maximization 转成随机超边上的 maximum coverage。现代算法的主要差别在于：如何确定 RR-set 数量、如何验证解质量、如何降低每个 RR set 的生成与存储成本。</p>
+<h2 id="3-算法谱系与项目角色">3. 算法谱系与项目角色</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>核心机制</th>
+<th>理论状态</th>
+<th>本项目角色</th>
+<th align="right">优先级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Strict MC-Greedy/CELF</td>
+<td>forward MC + 逐点 greedy</td>
+<td>仅在受控 oracle 下继承 $1-1/e$</td>
+<td>operational reference</td>
+<td align="right">必须保留</td>
+</tr>
+<tr>
+<td>CELF++</td>
+<td>缓存下一轮 marginal</td>
+<td>与同一 greedy 目标等价</td>
+<td>equivalence sanity</td>
+<td align="right">低</td>
+</tr>
+<tr>
+<td>PMC</td>
+<td>pruned Monte Carlo snapshots</td>
+<td>高质量 MC 路线，论文给出保证</td>
+<td>MC-family 对照</td>
+<td align="right">中低</td>
+</tr>
+<tr>
+<td>TIM/TIM+</td>
+<td>RR sets + 预计算样本界</td>
+<td>$(1-1/e-\epsilon)$，高概率</td>
+<td>历史 RR 基线</td>
+<td align="right">低</td>
+</tr>
+<tr>
+<td>corrected IMM</td>
+<td>自适应估计 OPT 下界 + 独立最终 RR batch</td>
+<td>$(1-1/e-\epsilon)$，高概率</td>
+<td>理论/生态对照</td>
+<td align="right">高</td>
+</tr>
+<tr>
+<td>SSA/D-SSA original</td>
+<td>stop-and-stare</td>
+<td>原始保证被后续工作指出缺口</td>
+<td>不进入主矩阵</td>
+<td align="right">排除</td>
+</tr>
+<tr>
+<td>SSA-Fix</td>
+<td>修正 stop-and-stare</td>
+<td>恢复声明保证</td>
+<td>可选复核</td>
+<td align="right">低</td>
+</tr>
+<tr>
+<td>OPIM-C</td>
+<td>双独立 RR batch + online certificate</td>
+<td>$(1-1/e-\epsilon)$，高概率</td>
+<td>第一实现候选</td>
+<td align="right">最高</td>
+</tr>
+<tr>
+<td>SKIM</td>
+<td>bottom-$k$ reachability sketches</td>
+<td>prefix-level 概率近似</td>
+<td>多 budget 候选</td>
+<td align="right">中</td>
+</tr>
+<tr>
+<td>TipTop</td>
+<td>RR sampling + integer programming</td>
+<td>$(1-\epsilon)$ 近最优</td>
+<td>小图质量 anchor</td>
+<td align="right">中</td>
+</tr>
+<tr>
+<td>SUBSIM</td>
+<td>更快的 RR subset sampling</td>
+<td>保留上层算法保证</td>
+<td>OPIM-C estimator backend</td>
+<td align="right">第二阶段</td>
+</tr>
+<tr>
+<td>HIST</td>
+<td>sentinel seeds 截断大 RR sets</td>
+<td>高 influence 场景保证</td>
+<td>条件扩展</td>
+<td align="right">第二阶段</td>
+</tr>
+<tr>
+<td>Ripples/cuRipples</td>
+<td>多核/多 GPU RR 系统</td>
+<td>保留所实现算法语义</td>
+<td>外部大图 oracle</td>
+<td align="right">后续</td>
+</tr>
+<tr>
+<td>EPIC/AdaptiveGreedy</td>
+<td>expected guarantee + adaptive feedback</td>
+<td>问题与保证语义不同</td>
+<td>related work</td>
+<td align="right">排除</td>
+</tr>
+</tbody></table>
+<h3 id="3-1-opim-c-第一推荐">3.1 OPIM-C：第一推荐</h3>
+<p><a href="https://doi.org/10.1145/3183713.3183749">OPIM-C</a> 的优势不是“年份较新”，而是验证结构与本项目匹配：</p>
+<ol>
+<li>从第一批 RR sets $\mathcal R_1$ 上贪心得到 $S_k$，并估计最优解的上界；</li>
+<li>用独立第二批 RR sets $\mathcal R_2$ 估计 $S_k$ 的影响下界；</li>
+<li>当 lower/upper ratio 达到目标阈值时停止；否则增加样本；</li>
+<li>随时可以输出当前解和可解释的质量证书。</li>
+</ol>
+<p>这使一个 Selection Artifact 不再只有节点列表，还可以记录：<code>rr_count_train</code>、<code>rr_count_verify</code>、上下界、certificate ratio、$\epsilon$、$\delta$、两批样本 hash 和运行资源。与当前只凭 <code>mc_rounds=100</code> 的结果相比，证据链明显更完整。</p>
+<h3 id="3-2-corrected-imm-不能忽略后续纠偏">3.2 corrected IMM：不能忽略后续纠偏</h3>
+<p><a href="https://doi.org/10.1145/2723372.2723734">IMM</a> 是成熟 RR-set 基线，但 <a href="https://arxiv.org/abs/1808.09363">Chen 2018</a> 指出原始鞅分析对自适应停止样本与最终 NodeSelection 的依赖处理存在技术问题。</p>
+<p>建议采用最简单的 workaround：确定最终样本量后，重新独立生成整批 RR sets 再做最终选点。该修复最多把 RR 生成量增加约一倍，期望渐近复杂度仍保持</p>
+<p>$$
+O!\left((k+\ell)(n+m)\log n/\epsilon^2\right).
+$$</p>
+<p>算法标识必须写成 <code>imm-corrected-independent-final-v1</code>，不能只在报告中补一句 caveat 而继续使用不明版本的 <code>IMM</code>。</p>
+<h3 id="3-3-ssa-d-ssa-速度声明不能脱离修正版">3.3 SSA/D-SSA：速度声明不能脱离修正版</h3>
+<p><a href="https://arxiv.org/abs/1605.07990">Stop-and-Stare</a> 原论文声明 SSA/D-SSA 具有 $(1-1/e-\epsilon)$ 保证与渐近最少样本，并报告极高加速。但 <a href="https://doi.org/10.14778/3099622.3099623">Huang et al. 2017</a> 复核后指出原始证明与部分实验结论存在缺口，并提出 SSA-Fix。</p>
+<p>复核结果还显示明显 budget interaction：IC、小 $k$ 时 IMM 可能更快，大 $k$ 时 SSA/D-SSA 才更有优势。因此第一轮不应投入 SSA/D-SSA；若以后纳入，只能使用明确修正版并单独记录 recipe。</p>
+<h3 id="3-4-tiptop-更强保证-但不是第一生产方案">3.4 TipTop：更强保证，但不是第一生产方案</h3>
+<p><a href="https://arxiv.org/abs/1701.08462">TipTop</a> 通过在采样空间上求解整数规划，目标是任意 $\epsilon&gt;0$ 下的 $(1-\epsilon)$ 近最优。这比 $1-1/e-\epsilon$ 强，适合回答“OPIM-C/IMM 实际距离近最优还有多远”。</p>
+<p>代价是 MIP solver、模型构造与随机规划验证。建议只在 Cora/CiteSeer 的小 $k$ 运行；TipTop 失败或超时不能阻塞 OPIM-C 主线。</p>
+<h3 id="3-5-subsim-hist-确认瓶颈后再加">3.5 SUBSIM/HIST：确认瓶颈后再加</h3>
+<p><a href="https://doi.org/10.1145/3318464.3389740">Guo et al.</a> 的 SUBSIM 改进 RR-set generation，而不改变上层 maximum-coverage 目标。在入边概率和有界条件下，其分析把现有 RR-based IM 的期望时间改善到 $O(kn\log n/\epsilon^2)$；偏斜权重使用 SKIP subset sampler。</p>
+<p>HIST 先找 sentinel seeds，再在反向传播命中 sentinel 时截断 RR set，主要解决高 influence 图上 RR set 过大的问题。当前 Planetoid、$p=0.1$ 未必处于这个区间，因此应先记录 RR-size 分布；只有 average/p95 RR size 明显膨胀时才实现 HIST。</p>
+<h3 id="3-6-skim-pmc-与并行系统">3.6 SKIM、PMC 与并行系统</h3>
+<p><a href="https://arxiv.org/abs/1408.6282">SKIM</a> 输出一条 seed sequence，各 prefix 均可分析，适合一次支持多个 deletion budget。<a href="https://doi.org/10.1609/aaai.v28i1.8726">PMC</a> 更接近现有 forward-MC 语义，可作为“RR 路线是否真的必要”的对照。</p>
+<p><a href="https://github.com/pnnl/ripples">PNNL Ripples</a> 提供 C++/CUDA 的并行 IM 框架。其价值在大图吞吐，不在改变 selection objective。第一阶段把它当外部 oracle；等 Python 语义 gate 通过后，再决定是否接入 C++/GPU。</p>
+<h2 id="4-与-opengu-契约的适配">4. 与 OpenGU 契约的适配</h2>
+<h3 id="4-1-候选节点受限">4.1 候选节点受限</h3>
+<p>OpenGU 只能从 persisted <code>train_mask/train_indices</code> 选删除节点，而 influence spread 仍在全图上计算。建议定义：</p>
+<p>$$
+\max_{S\subseteq C,\ |S|=k}\sigma(S),\qquad C=\text{persisted training candidates}.
+$$</p>
+<p>将 monotone submodular function 的 ground set 从 $V$ 限制到 $C$ 后，greedy 保证相对于受限最优解仍成立。这是由子模性得到的项目适配推论，不冒充原论文已经验证 OpenGU train-mask 契约。</p>
+<p>RR roots 必须从全体目标节点域采样；maximum coverage 选种子时才过滤到 $C$。如果只从训练节点采 RR roots，优化目标会悄悄变成“训练子集上的 spread”。</p>
+<h3 id="4-2-图方向与边概率">4.2 图方向与边概率</h3>
+<p>当前 canonical graph fingerprint 去除完全重复的 directed arcs，但保留 $(u,v)$ 与 $(v,u)$。Planetoid 常以双向 arc 表示无向边；现有 forward MC 实际把两个方向视为独立 IC 尝试。RR sampler 必须严格复现这一语义：</p>
+<ul>
+<li>为每个 directed arc 独立采样 live/dead；</li>
+<li>使用 reverse adjacency 生成 RR set；</li>
+<li>不再次无向化，不把两条 arc 合并成一次 Bernoulli；</li>
+<li><code>edge_direction_mode</code> 与 <code>edge_probability_semantics</code> 进入 recipe。</li>
+</ul>
+<h3 id="4-3-cache-v2-与命名">4.3 Cache V2 与命名</h3>
+<p>第一阶段新增策略标识：</p>
+<ul>
+<li><code>im_celf_strict</code></li>
+<li><code>im_batch_celf_current</code></li>
+<li><code>im_imm_corrected</code></li>
+<li><code>im_opimc</code></li>
+<li><code>im_tiptop_anchor</code>（可选）</li>
+</ul>
+<p>不要把新结果直接写成 <code>im</code>，也不要读取/覆盖 Legacy <code>im_celf</code> / <code>im</code> ScoreCache。Selection Recipe 至少包含：</p>
+<table>
+<thead>
+<tr>
+<th>Identity field</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Algorithm</td>
+<td>family、algorithm version、修正版标识</td>
+</tr>
+<tr>
+<td>Diffusion</td>
+<td>IC、$p$ 或 per-edge probability hash、方向语义</td>
+</tr>
+<tr>
+<td>Guarantee</td>
+<td>$\epsilon$、$\delta$、certificate mode</td>
+</tr>
+<tr>
+<td>Randomness</td>
+<td>selector/RR seed、PRNG algorithm/version</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>dataset、graph、candidate、root-domain fingerprints</td>
+</tr>
+<tr>
+<td>Budget</td>
+<td>$k$ 与 candidate ratio</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Python/Numba/C++，仅作 execution provenance</td>
+</tr>
+</tbody></table>
+<p>固定 RR batch 上的 greedy sequence 可以复用前缀，但 max-$k$ 的证书不自动覆盖其他预算。每个报告 budget 必须单独保存 certificate；在实现 per-prefix certificate 之前，不把 max-$k$ prefix 标成“已认证”。</p>
+<h2 id="5-研究问题与假设">5. 研究问题与假设</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>研究问题</th>
+<th>可证伪假设</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RQ1</td>
+<td>新方法是否更好优化同一个 IC spread？</td>
+<td>OPIM-C/corrected IMM 的独立 spread 不低于 current Batch-CELF</td>
+</tr>
+<tr>
+<td>RQ2</td>
+<td>理论保证的代价是什么？</td>
+<td>runtime/sample 随 $\epsilon^{-2}$ 增长，但 PubMed 仍优于 strict CELF</td>
+</tr>
+<tr>
+<td>RQ3</td>
+<td>多个近最优解是否导致低集合重合？</td>
+<td>Jaccard 可低，但 spread regret 仍接近 0</td>
+</tr>
+<tr>
+<td>RQ4</td>
+<td>更高 IC spread 是否带来更强 GU 攻击？</td>
+<td>spread 提升与 retrain gap 提升并不必然一致</td>
+</tr>
+<tr>
+<td>RQ5</td>
+<td>算法优势是否依赖图与 budget？</td>
+<td>CiteSeer/PubMed、small/large $k$ 存在明显 interaction</td>
+</tr>
+</tbody></table>
+<h2 id="6-分阶段实验计划">6. 分阶段实验计划</h2>
+<h3 id="phase-0-实现契约与最小原语">Phase 0：实现契约与最小原语</h3>
+<p>建议新建隔离目录 <code>experiments/im_modern/</code>，不改 production <code>IMStrategy</code> 路由。最小模块为：</p>
+<ol>
+<li>deterministic IC live-edge / reverse-RR sampler；</li>
+<li>candidate-restricted maximum coverage greedy；</li>
+<li>OPIM-C 双样本循环与 certificate；</li>
+<li>corrected IMM 独立最终样本；</li>
+<li>paired independent-MC evaluator；</li>
+<li>versioned recipe、manifest 与 cold/warm store boundary。</li>
+</ol>
+<p>首版优先 Python/Numba，便于逐项验证；不先绑定 Ripples 或 GPU。</p>
+<h3 id="phase-1-精确小图与契约-gate">Phase 1：精确小图与契约 gate</h3>
+<p>在 $n\le 12$ 的 directed synthetic graphs 上枚举 live-edge worlds 与所有 $k$-subsets，得到真正 OPT。覆盖 chain、star、disconnected、双向 arc、重复输入 arc、candidate-restricted 等情况。</p>
+<p>必须全部通过：</p>
+<ul>
+<li>RR estimator 对 exact influence 无系统偏差；</li>
+<li>maximum coverage 与手工 RR hypergraph 一致；</li>
+<li>candidate 外节点绝不被选，但仍可被传播覆盖；</li>
+<li>OPIM-C 上下界、停止条件和 failure probability 参数实现正确；</li>
+<li>corrected IMM 最终 RR batch 与估计阶段独立；</li>
+<li>same recipe + same seed 的 selected order、certificate 和 sample hashes 可复现；</li>
+<li>recipe 任一语义字段变化都产生 cache miss。</li>
+</ul>
+<h3 id="phase-2-三数据集-selector-validity-bridge">Phase 2：三数据集 selector-validity bridge</h3>
+<p>先复用 IF 近似研究的 public Planetoid 口径，便于直接比较选择层现象；该层不是正式 GU 数据替代品。</p>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Datasets</td>
+<td>Cora / CiteSeer / PubMed</td>
+</tr>
+<tr>
+<td>Candidate counts</td>
+<td>140 / 120 / 60</td>
+</tr>
+<tr>
+<td>Budgets</td>
+<td>$k\in{3,7,14}$</td>
+</tr>
+<tr>
+<td>Selector/RR seeds</td>
+<td>42 / 212 / 2024</td>
+</tr>
+<tr>
+<td>Primary $p$</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>Primary guarantee</td>
+<td>$\epsilon=0.1,\ \delta=0.01$</td>
+</tr>
+<tr>
+<td>Main algorithms</td>
+<td>strict CELF / current Batch-CELF / corrected IMM / OPIM-C</td>
+</tr>
+<tr>
+<td>Optional anchor</td>
+<td>TipTop on Cora/CiteSeer, $k\le7$</td>
+</tr>
+</tbody></table>
+<p>主矩阵为 $3\times3\times3\times4=108$ 个逻辑 selection cells。可以复用 RR batches 或 max-$k$ sequence 降低计算，但每个 budget 的证书必须单独报告。</p>
+<p>补充两组单 seed sensitivity：</p>
+<ul>
+<li>$\epsilon\in{0.20,0.10,0.05}$，验证时间/样本与质量曲线；</li>
+<li>$p\in{0.05,0.10,0.20}$，观察 subcritical/high-influence 转换和 RR-size 膨胀。</li>
+</ul>
+<h3 id="phase-3-canonical-opengu-转移">Phase 3：canonical OpenGU 转移</h3>
+<p>Phase 2 通过后，使用 active checkout 内 canonical <code>data/processed/transductive/</code> 80/20 split，禁止下载、临时预处理或外部数据根。</p>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Datasets</td>
+<td>Cora / CiteSeer / PubMed</td>
+</tr>
+<tr>
+<td>Candidate pool</td>
+<td>persisted OpenGU train mask</td>
+</tr>
+<tr>
+<td>Ratios</td>
+<td>0.01 / 0.05 / 0.10</td>
+</tr>
+<tr>
+<td>Selector seeds</td>
+<td>42 / 212 / 2024</td>
+</tr>
+<tr>
+<td>Algorithms</td>
+<td>current Batch-CELF / corrected IMM / OPIM-C</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td>strict CELF 仅在 feasibility 允许的 cells</td>
+</tr>
+</tbody></table>
+<p>这一层回答算法是否能从 public selector benchmark 转移到真正 GU candidate contract。任何正式矩阵必须等代码线完整合入 <code>main</code> 后，在 clean SSH active checkout 上固定 full <code>main</code> SHA 运行。</p>
+<h3 id="phase-4-gu-downstream-canary">Phase 4：GU downstream canary</h3>
+<p>只把三种有解释意义的删除集送入 GU：</p>
+<ul>
+<li>current Batch-CELF；</li>
+<li>OPIM-C；</li>
+<li>strict/high-fidelity reference，或 corrected IMM（视 Phase 2 fidelity 决定）。</li>
+</ul>
+<p>首个 canary：Cora + CiteSeer、ratio 0.05、GIF + GNNDelete、3 GU seeds，共 $2\times2\times3\times3=36$ cells。主指标为 retrain gap，辅指标为 relative F1 drop、collateral 和 update-detection AUC。</p>
+<p>扩展条件：</p>
+<ul>
+<li>若 OPIM-C 与 current IM 的 retrain gap 差异达到至少 1 percentage point，或改变方法脆弱性排序，则扩 PubMed 和一个稳健方法；</li>
+<li>若 IC spread 明显提升但 GU outcome 不变/变弱，不继续调参追求“更好看”，而报告 objective mismatch；</li>
+<li>若 selector 层没有可测差异，则停止 GU 扩矩阵。</li>
+</ul>
+<h3 id="phase-5-条件扩展">Phase 5：条件扩展</h3>
+<ul>
+<li>RR-size p95/maximum 成为主要瓶颈：实现 SUBSIM，必要时 HIST；</li>
+<li>多 ratio 重复计算成为主要瓶颈：评估 SKIM 或 per-prefix OPIM-C certificate；</li>
+<li><code>ogbn-arxiv</code> CPU 仍不可接受：以 Ripples/CuRipples 作外部 oracle，再决定 C++ integration；</li>
+<li>需要强质量 anchor：扩大 TipTop 小图范围，但不让 MIP 阻塞主线。</li>
+</ul>
+<h2 id="7-指标与验收门槛">7. 指标与验收门槛</h2>
+<h3 id="7-1-selection-objective">7.1 Selection objective</h3>
+<p>统一使用一批独立、固定的 common-random live-edge worlds 评估所有算法；优化样本与评估样本必须隔离。</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Independent spread mean + 95% CI</td>
+<td>主质量指标</td>
+</tr>
+<tr>
+<td>Spread regret / ratio to best anchor</td>
+<td>主 fidelity 指标</td>
+</tr>
+<tr>
+<td>OPIM-C lower / upper / certificate ratio</td>
+<td>理论证书</td>
+</tr>
+<tr>
+<td>Jaccard、common fraction、prefix overlap</td>
+<td>解多样性辅指标</td>
+</tr>
+<tr>
+<td>Runtime、peak RSS</td>
+<td>工程指标</td>
+</tr>
+<tr>
+<td>RR count、total memberships、mean/p95/max size</td>
+<td>RR 成本解释</td>
+</tr>
+<tr>
+<td>Repeatability across selector seeds</td>
+<td>随机稳定性</td>
+</tr>
+</tbody></table>
+<p>建议 promotion gate：</p>
+<ol>
+<li>synthetic exact gate 全通过；</li>
+<li>27 个三数据集 primary cells 无 certificate/recipe/provenance 错误；</li>
+<li>OPIM-C 对 best independently evaluated set 的 mean spread ratio 至少 0.99，worst-cell 至少 0.97；</li>
+<li>PubMed cold runtime 相对 current Batch-CELF 至少 5x 改善，或在相同时间预算下给出显著更窄证书；</li>
+<li>同 recipe/seed 重跑输出 bit-stable ordered nodes 与 manifest；</li>
+<li>没有读取、覆盖或 promotion Legacy IM cache。</li>
+</ol>
+<p>这些 0.99/0.97 是项目 promotion gate，不是论文理论常数。以 $\epsilon=0.1$ 为例，通用理论阈值只有</p>
+<p>$$
+1-1/e-0.1\approx0.5321,
+$$</p>
+<p>实际研究要求应明显高于这个 worst-case 下界。</p>
+<h3 id="7-2-downstream">7.2 Downstream</h3>
+<p>Downstream 不设置“必须复现旧 IM”的单一通过条件，因为新算法可能找到 spread 更高但集合不同的解。结果按四类解释：</p>
+<table>
+<thead>
+<tr>
+<th>IC spread</th>
+<th>GU damage</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>提高</td>
+<td>提高</td>
+<td>新 IM 同时改善目标与攻击</td>
+</tr>
+<tr>
+<td>提高</td>
+<td>不变/降低</td>
+<td>IC objective 与 GU vulnerability 失配</td>
+</tr>
+<tr>
+<td>近似相同</td>
+<td>集合差异大</td>
+<td>多个近最优 seed sets</td>
+</tr>
+<tr>
+<td>提高不明显</td>
+<td>速度大幅提高</td>
+<td>工程替代价值，研究增量有限</td>
+</tr>
+</tbody></table>
+<h2 id="8-预计工作量与停止条件">8. 预计工作量与停止条件</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th align="right">预计投入</th>
+<th>明确停止条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OPIM-C + corrected IMM MVP</td>
+<td align="right">2–3 人日</td>
+<td>exact/certificate gate 无法闭环则不跑数据集</td>
+</tr>
+<tr>
+<td>synthetic + Cora pilot</td>
+<td align="right">1 人日</td>
+<td>spread estimator 或 candidate contract 不一致</td>
+</tr>
+<tr>
+<td>三数据集 selector matrix</td>
+<td align="right">1–2 CPU 日</td>
+<td>OPIM-C 全部慢且无质量/证书优势</td>
+</tr>
+<tr>
+<td>canonical transfer</td>
+<td align="right">1 CPU/SSH 日</td>
+<td>public → canonical 结论不稳定则先解释 split interaction</td>
+</tr>
+<tr>
+<td>GU canary</td>
+<td align="right">1 GPU 日量级</td>
+<td>selector 层无差异则不启动</td>
+</tr>
+<tr>
+<td>SUBSIM/HIST/Ripples</td>
+<td align="right">2–4 人日</td>
+<td>只有实测瓶颈触发才投入</td>
+</tr>
+</tbody></table>
+<h2 id="9-最终建议">9. 最终建议</h2>
+<p>这条线值得做，但应把论文贡献目标定为：</p>
+<blockquote>
+<p><strong>Modern IM algorithms can provide auditable spread guarantees and major scalability gains, but whether better influence maximization yields stronger attacks on approximate graph unlearning is an empirical question.</strong></p>
+</blockquote>
+<p>第一步不是实现十个算法，而是用 <code>OPIM-C + corrected IMM + current Batch-CELF + strict reference</code> 建立一个可证明、可复现、可向 GU outcome 传递的最小闭环。TipTop、SUBSIM/HIST、SKIM 和 Ripples分别承担质量 anchor、RR backend、多预算、系统扩展角色；只有对应 gate 触发才进入。</p>
+<h2 id="参考文献">参考文献</h2>
+<ol>
+<li>Kempe, D., Kleinberg, J., &amp; Tardos, É. (2003/2015). <a href="https://doi.org/10.1145/956750.956769">Maximizing the Spread of Influence through a Social Network</a>.</li>
+<li>Leskovec, J., et al. (2007). <a href="https://doi.org/10.1145/1281192.1281239">Cost-effective Outbreak Detection in Networks</a>.</li>
+<li>Goyal, A., Lu, W., &amp; Lakshmanan, L. V. S. (2011). <a href="https://doi.org/10.1145/1963192.1963217">CELF++</a>.</li>
+<li>Borgs, C., Brautbar, M., Chayes, J., &amp; Lucier, B. (2014). <a href="https://arxiv.org/abs/1212.0884">Maximizing Social Influence in Nearly Optimal Time</a>.</li>
+<li>Tang, Y., Xiao, X., &amp; Shi, Y. (2014). <a href="https://arxiv.org/abs/1404.0900">Influence Maximization: Near-Optimal Time Complexity Meets Practical Efficiency</a>.</li>
+<li>Tang, Y., Shi, Y., &amp; Xiao, X. (2015). <a href="https://doi.org/10.1145/2723372.2723734">Influence Maximization in Near-Linear Time: A Martingale Approach</a>.</li>
+<li>Chen, W. (2018). <a href="https://arxiv.org/abs/1808.09363">An Issue in the Martingale Analysis of IMM</a>.</li>
+<li>Nguyen, H. T., Thai, M. T., &amp; Dinh, T. N. (2016). <a href="https://arxiv.org/abs/1605.07990">Stop-and-Stare</a>.</li>
+<li>Huang, K., et al. (2017). <a href="https://doi.org/10.14778/3099622.3099623">Revisiting the Stop-and-Stare Algorithms for Influence Maximization</a>.</li>
+<li>Tang, J., Tang, X., Xiao, X., &amp; Yuan, J. (2018). <a href="https://doi.org/10.1145/3183713.3183749">Online Processing Algorithms for Influence Maximization</a>.</li>
+<li>Cohen, E., Delling, D., Pajor, T., &amp; Werneck, R. F. (2014). <a href="https://arxiv.org/abs/1408.6282">Sketch-based Influence Maximization and Computation</a>.</li>
+<li>Ohsaka, N., et al. (2014). <a href="https://doi.org/10.1609/aaai.v28i1.8726">Fast and Accurate Influence Maximization on Large Networks with Pruned Monte-Carlo Simulations</a>.</li>
+<li>Li, X., Smith, J. D., Dinh, T. N., &amp; Thai, M. T. (2019). <a href="https://arxiv.org/abs/1701.08462">TipTop</a>.</li>
+<li>Guo, Q., Wang, S., Wei, Z., &amp; Chen, M. (2020/2022). <a href="https://doi.org/10.1145/3318464.3389740">Influence Maximization Revisited</a>.</li>
+<li>Minutoli, M., et al. <a href="https://github.com/pnnl/ripples">PNNL Ripples</a>.</li>
+</ol>
+<h2 id="已知边界">已知边界</h2>
+<ul>
+<li>这是调研与执行计划，不是新 IM 的实验验收报告。</li>
+<li>旧 V0–V4 数字仅作立项依据，不具备当前 formal provenance。</li>
+<li>候选受限保证是由 monotone submodularity 推导出的项目适配，需用小图枚举和实现测试验证。</li>
+<li>OPIM-C、TipTop、SUBSIM 的第三方代码可得性与许可证尚未达到 formal dependency acceptance；计划按仓库内重实现核心语义估算。</li>
+<li>没有在本轮启动 GPU/GU 实验，也没有修改 production selector 或 Legacy cache。</li>
+</ul>
+
+    </main>
+  </div>
+</body>
+</html>

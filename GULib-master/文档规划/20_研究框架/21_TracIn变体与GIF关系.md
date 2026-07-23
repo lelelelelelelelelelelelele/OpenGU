@@ -43,16 +43,16 @@ $$
 
 这里衡量的是 **selection 阶段**，不是后续 GU 的成本。$G_p$、$G_g$ 不是标准算法名，而是为了描述当前实现实际做了多少次 forward/backward 而定义的单位成本。
 
-| 符号 | 含义 | 当前实现中实际发生的操作 |
-|---|---|---|
-| $n$ | candidate pool 大小 | 有多少个候选训练节点需要分别打分 |
-| $m$ | 图的边数 | `degree` 只需扫描边并累计度数 |
-| $d$ | 参数向量维数 | 梯度、probe 和 IHVP 向量的长度 |
-| $G_p$ | 一个候选的 point-gradient 单位成本 | 每个 checkpoint 先共享一次整图 forward，再从保留的计算图中对候选节点 $v$ 的单点 loss 做一次 backward；$nG_p$ 表示对 $n$ 个候选分别取梯度 |
-| $G_g$ | 一个候选的 graph-deletion source 单位成本 | 找到 $v$ 的 affected nodes，计算原图 `grad1`；移除 $v$ 的 incident edges，构造 $G_{-v}$，再做删后图 forward/backward 得到 `grad2`；因此通常 $G_g\gg G_p$ |
-| $I\cdot H$ | 一次迭代 IHVP solve | $I$ 次 Hessian-vector product；C/D reference 的 $H^{-1}g_E$ 对所有候选共享，所以写成 $+IH$，不是 $+nIH$ |
-| $M$ | Hutchinson probe 数 | 正式 SUP 的 B-Hutch 使用 $M=32$ 个 shared Rademacher probes，因此需要 $MIH$，随后做约 $nMd$ 的投影 |
-| $C$ | checkpoint 数 | trajectory 方法把候选梯度或 graph-source 计算重复到 $C=3$ 或 $C=6$ 个训练时刻 |
+| 符号         | 含义                               | 当前实现中实际发生的操作                                                                                                                 |
+| ---------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| $n$        | candidate pool 大小                | 有多少个候选训练节点需要分别打分                                                                                                             |
+| $m$        | 图的边数                             | `degree` 只需扫描边并累计度数                                                                                                          |
+| $d$        | 参数向量维数                           | 梯度、probe 和 IHVP 向量的长度                                                                                                        |
+| $G_p$      | 一个候选的 point-gradient 单位成本        | 每个 checkpoint 先共享一次整图 forward，再从保留的计算图中对候选节点 $v$ 的单点 loss 做一次 backward；$nG_p$ 表示对 $n$ 个候选分别取梯度                               |
+| $G_g$      | 一个候选的 graph-deletion source 单位成本 | 找到 $v$ 的 affected nodes，计算原图 `grad1`；移除 $v$ 的 incident edges，构造 $G_{-v}$，再做删后图 forward/backward 得到 `grad2`；因此通常 $G_g\gg G_p$ |
+| $I\cdot H$ | 一次迭代 IHVP solve                  | $I$ 次 Hessian-vector product；C/D reference 的 $H^{-1}g_E$ 对所有候选共享，所以写成 $+IH$，不是 $+nIH$                                        |
+| $M$        | Hutchinson probe 数               | 正式 SUP 的 B-Hutch 使用 $M=32$ 个 shared Rademacher probes，因此需要 $MIH$，随后做约 $nMd$ 的投影                                              |
+| $C$        | checkpoint 数                     | trajectory 方法把候选梯度或 graph-source 计算重复到 $C=3$ 或 $C=6$ 个训练时刻                                                                   |
 
 因此，$O(nG_p)$ 不是“$n$ 乘一个没定义的神秘常数”，而是“共享一次整图 forward 后，对 $n$ 个候选分别 backward”的简写。$O(nG_g)$ 则表示 $n$ 次候选级删图干预，其中每个候选都要额外构造删后图并运行 forward/backward。checkpoint 方法前面的 3 或 6 表示整套计算在不同训练参数快照上重复。
 
@@ -60,37 +60,37 @@ C-simple 数学上只需要 `grad1`，应介于 $G_p$ 与完整 $G_g$ 之间；�
 
 下面的时间全部是 **EST（排期估算）**，不是新的正式 benchmark。小图栏按当前 Planetoid candidate pool（约 60–140 个训练候选）已有 producer 计时取整；大图栏以 ogbn-arxiv（约 90,941 个训练候选、116 万条边）和历史 TracIn cold selection 约 5,110 秒作为 $nG_p$ 的量级锚点，再按当前未向量化的候选循环外推。该历史 Artifact 只记录 `cuda: 0`，**没有记录 GPU 型号**，所以大图栏不能直接称为 4090、A100 或 H100 实测。
 
-| 主导成本项 | 对应方法 | 小图 EST | ogbn-arxiv EST（历史锚点） | 排期判断 |
-|---|---|---:|---:|---|
-| $O(n)$ / $O(m+n)$ | `random`、`degree` | $<0.1$ s | $<10$ s | 可忽略 |
-| $O(nG_p)$ | A、C-point final、`legacy` | 1–2 s | 1–2 h | 大图已明显昂贵 |
-| $O(nG_p+IH)$ | C-point reference | 1–3 s | 1–2 h，外加约 1–5 min IHVP | $IH$ 是共享附加项，不改变主量级 |
-| $O(3nG_p)$ / $O(6nG_p)$ | C-point trajectory | 2–6 s / 4–12 s | 3–6 h / 6–12 h | checkpoint 数近似线性放大 |
-| $O(nG_p+MIH+nMd)$ | B-Hutch SUP diagnostic | 7–25 s | 2–6 h | 32 probes × 20 HVP，不能当作一次 $IH$ |
-| $O(nG_g)$ / $O(nG_g+IH)$ | C-simple、D-final/reference | 2–6 s | 2–10 d | 候选级删图循环是主瓶颈 |
-| $O(3nG_g)$ / $O(6nG_g)$ | C-simple、D trajectory | 7–18 s / 15–35 s | 1–4 wk / 2–8 wk | 当前实现不适合全候选大图扫描 |
+| 主导成本项                    | 对应方法                       |           小图 EST |   ogbn-arxiv EST（历史锚点） | 排期判断                           |
+| ------------------------ | -------------------------- | ---------------: | ---------------------: | ------------------------------ |
+| $O(n)$ / $O(m+n)$        | `random`、`degree`          |         $<0.1$ s |                $<10$ s | 可忽略                            |
+| $O(nG_p)$                | A、C-point final、`legacy`   |            1–2 s |                  1–2 h | 大图已明显昂贵                        |
+| $O(nG_p+IH)$             | C-point reference          |            1–3 s | 1–2 h，外加约 1–5 min IHVP | $IH$ 是共享附加项，不改变主量级             |
+| $O(3nG_p)$ / $O(6nG_p)$  | C-point trajectory         |   2–6 s / 4–12 s |         3–6 h / 6–12 h | checkpoint 数近似线性放大             |
+| $O(nG_p+MIH+nMd)$        | B-Hutch SUP diagnostic     |           7–25 s |                  2–6 h | 32 probes × 20 HVP，不能当作一次 $IH$ |
+| $O(nG_g)$ / $O(nG_g+IH)$ | C-simple、D-final/reference |            2–6 s |                 2–10 d | 候选级删图循环是主瓶颈                    |
+| $O(3nG_g)$ / $O(6nG_g)$  | C-simple、D trajectory      | 7–18 s / 15–35 s |        1–4 wk / 2–8 wk | 当前实现不适合全候选大图扫描                 |
 
 这里估的是 **cold selection producer**。一旦 score/ranking Artifact 已缓存，读取 top-$k$ 通常是秒级或亚秒级，不能拿 warm-hit 时间代表算法计算成本。大图上的天/周级数字不是精确承诺，而是“当前逐候选全图 backward / 删图实现不可直接扩展”的工程警示。
 
-| 方法学角色（正文名称） | 代码 / Artifact ID | 公式 / 精确定义 | selection 成本 | GU 建议 |
-|---|---|---|---|---|
-| control | `random` | $u_v\sim U(0,1)$；固定 seed 后按 $u_v$ 排序 | `C0` · $O(n)$ | **核心**：budget-matched baseline |
-| control | `degree` | $\deg(v)$ | `C1` · $O(m+n)$ | **可选**：结构 anchor；优先复用既有 GU 证据 |
-| A | `a_grad_norm` | $\lVert g_v\rVert$ | `C2` · $O(nG_p)$ | 否：B 的便宜 SUP 排序 proxy |
-| B parameter-change diagnostic | `b_param_hutch` | $\lVert H^{-1}g_v\rVert$ | `C4` · $O(nG_p+MIH+nMd)$ | 否：完善 SUP 与实现 sanity check |
-| C-point reference | `r_point` | $R(g_v)$ | `C3` · $O(nG_p+IH)$ | **可选**：C/D 机制对照 |
-| C-point final proxy | `p_point` | $P(g_v)$ | `C2` · $O(nG_p)$ | 否：与 reference 组内比较 |
-| C-point trajectory | `tracin_cp_point_3` | $CP_{\mathcal C_3}(g_v)$ | `C3` · $O(3nG_p)$ | 否：checkpoint ablation |
-| C-point trajectory | `tracin_cp_point_6` | $CP_{\mathcal C_6}(g_v)$ | `C4` · $O(6nG_p)$ | **可选**：若验证高 damage 能否传递到 GU |
-| C-simple reference | `gt_simple` | $R(\mathrm{grad1}_v)$ | `C4` · $O(nG_g+IH)$ | 否：C/D source 边界诊断 |
-| C-simple final proxy | `p_simple` | $P(\mathrm{grad1}_v)$ | `C4` · $O(nG_g)$ | 否：与 reference 组内比较 |
-| C-simple trajectory | `tracin_cp_simple_3` | $CP_{\mathcal C_3}(\mathrm{grad1}_v)$ | `C5` · $O(3nG_g)$ | 否：checkpoint ablation |
-| C-simple trajectory | `tracin_cp_simple_6` | $CP_{\mathcal C_6}(\mathrm{grad1}_v)$ | `C5` · $O(6nG_g)$ | 否：checkpoint ablation |
-| D-GIF reference | `gt_full` | $R(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C4` · $O(nG_g+IH)$ | **核心**：full GIF reference |
-| D-GIF final proxy | `p_graph` | $P(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C4` · $O(nG_g)$ | **核心**：scalable D proxy |
-| D-GIF trajectory | `tracin_cp_graph_3` | $CP_{\mathcal C_3}(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C5` · $O(3nG_g)$ | 否：3/6 ablation 中的低预算版本 |
-| D-GIF trajectory | `tracin_cp_graph_6` | $CP_{\mathcal C_6}(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C5` · $O(6nG_g)$ | **核心**：trajectory representative |
-| negative control | `legacy` | $\langle g_v,-\sum_{j\in T}g_j\rangle$ | `C2` · $O(nG_p)$ | 否：negative control |
+| 方法学角色（正文名称）                   | 代码 / Artifact ID     | 公式 / 精确定义                                              | selection 成本             | GU 建议                            |
+| ----------------------------- | -------------------- | ------------------------------------------------------ | ------------------------ | -------------------------------- |
+| control                       | `random`             | $u_v\sim U(0,1)$；固定 seed 后按 $u_v$ 排序                   | `C0` · $O(n)$            | **核心**：budget-matched baseline   |
+| control                       | `degree`             | $\deg(v)$                                              | `C1` · $O(m+n)$          | **可选**：结构 anchor；优先复用既有 GU 证据    |
+| A                             | `a_grad_norm`        | $\lVert g_v\rVert$                                     | `C2` · $O(nG_p)$         | 否：B 的便宜 SUP 排序 proxy             |
+| B parameter-change diagnostic | `b_param_hutch`      | $\lVert H^{-1}g_v\rVert$                               | `C4` · $O(nG_p+MIH+nMd)$ | 否：完善 SUP 与实现 sanity check        |
+| C-point reference             | `r_point`            | $R(g_v)$                                               | `C3` · $O(nG_p+IH)$      | **可选**：C/D 机制对照                  |
+| C-point final proxy           | `p_point`            | $P(g_v)$                                               | `C2` · $O(nG_p)$         | 否：与 reference 组内比较               |
+| C-point trajectory            | `tracin_cp_point_3`  | $CP_{\mathcal C_3}(g_v)$                               | `C3` · $O(3nG_p)$        | 否：checkpoint ablation            |
+| C-point trajectory            | `tracin_cp_point_6`  | $CP_{\mathcal C_6}(g_v)$                               | `C4` · $O(6nG_p)$        | **可选**：若验证高 damage 能否传递到 GU      |
+| C-simple reference            | `gt_simple`          | $R(\mathrm{grad1}_v)$                                  | `C4` · $O(nG_g+IH)$      | 否：C/D source 边界诊断                |
+| C-simple final proxy          | `p_simple`           | $P(\mathrm{grad1}_v)$                                  | `C4` · $O(nG_g)$         | 否：与 reference 组内比较               |
+| C-simple trajectory           | `tracin_cp_simple_3` | $CP_{\mathcal C_3}(\mathrm{grad1}_v)$                  | `C5` · $O(3nG_g)$        | 否：checkpoint ablation            |
+| C-simple trajectory           | `tracin_cp_simple_6` | $CP_{\mathcal C_6}(\mathrm{grad1}_v)$                  | `C5` · $O(6nG_g)$        | 否：checkpoint ablation            |
+| D-GIF reference               | `gt_full`            | $R(\mathrm{grad1}_v-\mathrm{grad2}_v)$                 | `C4` · $O(nG_g+IH)$      | **核心**：full GIF reference        |
+| D-GIF final proxy             | `p_graph`            | $P(\mathrm{grad1}_v-\mathrm{grad2}_v)$                 | `C4` · $O(nG_g)$         | **核心**：scalable D proxy          |
+| D-GIF trajectory              | `tracin_cp_graph_3`  | $CP_{\mathcal C_3}(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C5` · $O(3nG_g)$        | 否：3/6 ablation 中的低预算版本           |
+| D-GIF trajectory              | `tracin_cp_graph_6`  | $CP_{\mathcal C_6}(\mathrm{grad1}_v-\mathrm{grad2}_v)$ | `C5` · $O(6nG_g)$        | **核心**：trajectory representative |
+| negative control              | `legacy`             | $\langle g_v,-\sum_{j\in T}g_j\rangle$                 | `C2` · $O(nG_p)$         | 否：negative control               |
 
 > [!note] B 是一个方法，不是两个方法族
 > `b_param_hutch` 与 `b_param_lissa` 都估计同一个 $B(v)=\lVert H^{-1}g_v\rVert$。前者用 32 个 shared Rademacher probes，是正式 SUP 输出；后者逐候选运行 LiSSA，只作为数值验证 Artifact。二者全排序 Spearman 为 **0.968**，因此正式 SUP 只保留 `b_param_hutch`；两者都不作为真实 IF/GU 主线。
