@@ -73,6 +73,7 @@
     <li>source 只允许 SSH active checkout 的 <code>data/raw/&lt;dataset&gt;/</code>；OpenGU pair 只允许 <code>data/processed/transductive/</code>。</li>
     <li>固定 <code>planetoid_70_10_20_seed2024</code>，train/validation/test 互斥且穷尽。</li>
     <li>全图 message passing；train-only candidates；validation-mask mean CE target；test labels 只用于最终 F1。</li>
+    <li>分割算法的单一事实源是无 <code>config.py</code> 副作用的 <code>utils/node_split.py</code>；原生 OpenGU 与 target-direct 共用同一 randperm、ratio/count、mask、indices 和 induced-edge 实现。<code>split_profile.py</code> 只保留 canonical path、materialize/verify、manifest/hash 与 Selection identity。</li>
   </ul>
   <p>80/0/20 的 validation mask 为空，因此不能继续作为本轮 IF/TracIn target profile：使用 test 会泄漏，复用 train 会改变科学问题。</p>
 
@@ -140,11 +141,13 @@
 
   <h2>6. 实现与验证</h2>
   <ul>
+    <li>公共 deterministic split 支持显式 ratio、split seed 或调用者 Generator；未提供局部 RNG 时保持 OpenGU 原生全局 RNG 默认行为。</li>
     <li>新增 target checkpoint 原子存取、双哈希、trajectory、data identity 校验。</li>
-    <li>新增 70/10/20 staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
+    <li>新增薄 70/10/20 staging/verification、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
     <li>formal expected-k、candidate、checkpoint 与结果 provenance 全链 fail closed。</li>
     <li>双预算 runner/manifest/SyncMate 定向测试：<b>197 passed</b>。</li>
     <li>包含 target checkpoint、split profile、Cache V2、budget planner 与 GU aggregate 的扩展组合：<b>242 passed, 1 warning</b>；warning 是既有 CuPy CUDA-path probe。</li>
+    <li>公共 split、原生 OpenGU、target-direct recipe/manifest/SyncMate 与 processed-provider 最终定向组合：<b>28 passed</b>。</li>
     <li>受影响模块 <code>py_compile</code> 与 SyncMate temporary smoke 通过；canonical Selection preflight 和 1%/5% GU dry-run 均按预期 fail closed，没有生成 formal artifact。</li>
     <li><code>git diff --check</code> 与 Markdown/HTML 关键口径一致性检查通过。</li>
   </ul>

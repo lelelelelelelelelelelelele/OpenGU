@@ -37,6 +37,14 @@ validation CE 作为 selection target、test F1 作为最终评估，本身是�
 - selector candidate pool 仅为 train mask；selection target 仅为 validation-mask mean CE。
 - test labels 只用于最终 test F1，不进入 selection、调参或 gate 决策。
 
+分割算法的单一事实源现为 OpenGU 公共纯模块 `utils/node_split.py`：
+原生 `transductive_split_node` 与 target-direct profile materializer 使用同一
+randperm、ratio/count、mask、indices 和 induced-edge 实现。公共模块不导入
+`config.py`，显式接受 ratio 以及 `split_seed` 或调用者提供的 Generator；
+未提供二者时仍使用 torch 全局 RNG，保持 OpenGU 原生默认行为。
+`split_profile.py` 不再另写分割算法，只负责 canonical path、materialize/verify、
+manifest、文件哈希、mask 互斥/穷尽和 Selection candidate identity。
+
 不继续使用 80/0/20，是因为其 validation mask 为空；17 个 IF/TracIn 公式需要一个与 train、test 均隔离的 target objective。用 test labels 会泄漏，用 train labels则改变问题定义。
 
 ### 2.2 预算
@@ -138,8 +146,9 @@ GU 每格继续生成 `attack.json`、`collateral.json`、`predictions.npz`、`_
 
 | 模块 | 修正 |
 |---|---|
+| `utils/node_split.py` | 无 `config.py` 副作用的公共 deterministic split；原生 OpenGU 与 E8 共用 |
 | `utils/target_checkpoint.py` | target checkpoint 原子保存/加载、文件哈希、state hash、trajectory 与 data identity 校验 |
-| `experiments/target_direct_v1/` | 70/10/20 profile staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter、GU config builder |
+| `experiments/target_direct_v1/` | 薄 70/10/20 profile staging/verification、target-direct recipe、17 法 ScoreBundle、manifest/adapter、GU config builder |
 | `attack/pipeline_adapter.py` | formal expected-k 单一事实源、candidate/count fail-closed、retrain 清除 target binding |
 | `unlearning/.../gnndelete.py` | 精确加载 target checkpoint，校验 metadata/data/state，禁止 formal warning 后继续 |
 | `experiments/run.py` | 新 `target_direct_external_selection` 模式，把 checkpoint 与 expected-k 传给 attack/collateral |
@@ -152,6 +161,7 @@ GU 每格继续生成 `attack.json`、`collateral.json`、`predictions.npz`、`_
 
 - 双预算 runner/manifest/SyncMate 定向测试：`197 passed`。
 - 包含 target checkpoint、split profile、Cache V2、budget planner 与 GU aggregate 的扩展组合：`242 passed, 1 warning`；warning 是既有 CuPy CUDA-path probe。
+- 公共 split、原生 OpenGU、target-direct recipe/manifest/SyncMate 与 processed-provider 最终定向组合：`28 passed`。
 - 受影响 Python 模块 `py_compile` 与 SyncMate temporary smoke 通过；canonical Selection preflight、1%/5% GU dry-run 均按预期 fail closed，没有生成 formal artifact。
 - `git diff --check` 与 Markdown/HTML 关键口径一致性检查通过。
 - 本地没有可用 CUDA，也没有在隔离 worktree 复制正式数据，因此尚未做 disposable GPU end-to-end smoke；正式 GPU 工作必须等合入 main 后在 SSH active checkout 执行。

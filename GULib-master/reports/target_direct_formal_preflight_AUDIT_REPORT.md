@@ -20,6 +20,7 @@ Status: **preparation PASS; formal execution NO-GO**
 |---|---|---|
 | Matrix | Candidate scope is Cora/CiteSeer/PubMed × seeds 42/212/2024 × 17 selectors × ratios 1%/5% = 306 cells; expansion is not yet authorized | PASS |
 | Split vs budget | `70/10/20` is the leakage-safe split; `{0.01, 0.05}` are deletion ratios and cannot replace it | PASS |
+| Split implementation | Import-safe `utils/node_split.py` is shared by native OpenGU preprocessing and target-direct staging; the formal layer owns only materialization/verification and evidence identity | PASS |
 | Budget | Per ratio derive `k(r) = max(1, floor(r × candidate_count))` from each verified profile | PASS |
 | Expected profile checks | Cora 1,895→18/94; CiteSeer 2,328→23/116; PubMed 13,801→138/690 | PASS as preflight expectations; execution still derives them |
 | White-box identity | Selection and downstream GNNDelete bind the same OpenGU GCN architecture and exact checkpoint hashes | PASS |
@@ -36,6 +37,12 @@ Status: **preparation PASS; formal execution NO-GO**
 The branch adds a frozen target-direct formal configuration and one bounded
 executor. It exposes:
 
+- one import-safe deterministic split implementation shared by native OpenGU
+  and target-direct, with explicit ratios and either a split seed or caller
+  Generator; the no-local-RNG path preserves native global-RNG behavior;
+- a thin profile layer that retains canonical path enforcement, manifests,
+  file hashes, mask disjointness/exhaustiveness, and Selection candidate
+  identity without owning a second split algorithm;
 - 9 static Selection recipes, one per dataset/seed cell, each producing both
   ratio projections from one immutable ScoreBundle;
 - 2 formal Cora/seed42/degree GNNDelete gate recipes, one for 1% and one for 5%;
@@ -89,6 +96,7 @@ through the repository Git workflow before formal work.
 |---|---|
 | Dual-budget runner/manifest/SyncMate suite | **197 passed** |
 | Final expanded targeted suite | **242 passed, 1 warning in 10.73 s** |
+| Shared split/native/target-direct/provider suite | **28 passed** |
 | Python compilation | PASS |
 | `git diff --check` | PASS |
 | Local formal Selection preflight | Correctly blocked: feature branch/dirty during development, wrong checkout, missing profile, incompatible RTX 5070 |

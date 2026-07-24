@@ -8,7 +8,6 @@ import pickle
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
-import torch
 from torch_geometric.datasets import Planetoid
 
 from experiments.bc_target_v2.dataset_source import (
@@ -32,6 +31,7 @@ from experiments.target_direct_v1 import (
     TRAIN_RATIO,
     VALIDATION_RATIO,
 )
+from utils.node_split import apply_transductive_node_split, observe_node_split
 
 
 MANIFEST_SCHEMA = "target_direct_v1.processed_split_profile"
@@ -70,49 +70,18 @@ def _paths(repository_root: Path, processed_root: Path, dataset: str):
 
 
 def apply_fixed_split(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
-    num_nodes = int(data.num_nodes)
-    generator = torch.Generator(device="cpu")
-    generator.manual_seed(int(seed))
-    permutation = torch.randperm(num_nodes, generator=generator)
-    train_end = int(TRAIN_RATIO * num_nodes)
-    validation_end = int((TRAIN_RATIO + VALIDATION_RATIO) * num_nodes)
-    masks = {}
-    for name, node_ids in (
-        ("train", permutation[:train_end]),
-        ("val", permutation[train_end:validation_end]),
-        ("test", permutation[validation_end:]),
-    ):
-        mask = torch.zeros(num_nodes, dtype=torch.bool)
-        mask[node_ids] = True
-        setattr(data, "{0}_mask".format(name), mask)
-        masks[name] = mask
-    if bool((masks["train"] & masks["val"]).any()):
-        raise RuntimeError("train and validation masks overlap")
-    if bool((masks["train"] & masks["test"]).any()):
-        raise RuntimeError("train and test masks overlap")
-    if bool((masks["val"] & masks["test"]).any()):
-        raise RuntimeError("validation and test masks overlap")
-    if int((masks["train"] | masks["val"] | masks["test"]).sum()) != num_nodes:
-        raise RuntimeError("fixed split does not cover every node")
+    apply_transductive_node_split(
+        data,
+        train_ratio=TRAIN_RATIO,
+        val_ratio=VALIDATION_RATIO,
+        test_ratio=TEST_RATIO,
+        split_seed=seed,
+    )
     return split_observation(data, seed=seed)
 
 
 def split_observation(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
-    num_nodes = int(data.num_nodes)
-    masks = {
-        name: getattr(data, "{0}_mask".format(name)).bool()
-        for name in ("train", "val", "test")
-    }
-    if any(mask.dim() != 1 or mask.numel() != num_nodes for mask in masks.values()):
-        raise RuntimeError("fixed split masks have invalid shapes")
-    disjoint = not bool(
-        (masks["train"] & masks["val"]).any()
-        or (masks["train"] & masks["test"]).any()
-        or (masks["val"] & masks["test"]).any()
-    )
-    exhaustive = int(
-        (masks["train"] | masks["val"] | masks["test"]).sum().item()
-    ) == num_nodes
+    observed = observe_node_split(data)
     result = {
         "policy": SPLIT_POLICY,
         "seed": int(seed),
@@ -121,13 +90,9 @@ def split_observation(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
             "validation": VALIDATION_RATIO,
             "test": TEST_RATIO,
         },
-        "counts": {
-            name: int(mask.sum().item()) for name, mask in masks.items()
-        },
-        "disjoint": disjoint,
-        "exhaustive": exhaustive,
+        **observed,
     }
-    if not disjoint or not exhaustive or result["counts"]["val"] <= 0:
+    if result["counts"]["val"] <= 0:
         raise RuntimeError("fixed split contract is not satisfied")
     return result
 

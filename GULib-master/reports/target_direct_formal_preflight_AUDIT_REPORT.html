@@ -58,6 +58,7 @@
     <tr><th>Contract</th><th>Prepared behavior</th><th>Status</th></tr>
     <tr><td>Matrix</td><td>Candidate scope: Cora/CiteSeer/PubMed × 42/212/2024 × 17 selectors × ratios 1%/5% = 306 cells; expansion not authorized</td><td class="good">PASS</td></tr>
     <tr><td>Split vs budget</td><td><code>70/10/20</code> prevents test leakage; <code>{0.01,0.05}</code> are deletion ratios and cannot replace the split</td><td class="good">PASS</td></tr>
+    <tr><td>Split implementation</td><td>Import-safe <code>utils/node_split.py</code> is shared by native OpenGU preprocessing and target-direct staging; the formal layer retains materialization/verification and evidence identity</td><td class="good">PASS</td></tr>
     <tr><td>Budget</td><td>Per ratio derive <code>max(1,floor(r×Ntrain))</code>; expected Cora 18/94, CiteSeer 23/116, PubMed 138/690</td><td class="good">PASS</td></tr>
     <tr><td>White-box identity</td><td>Selection and GNNDelete bind the same GCN architecture and exact checkpoint hashes</td><td class="good">PASS</td></tr>
     <tr><td>Scope</td><td><code>last_layer</code> only; <code>all_trainable</code> absent from config and recipes</td><td class="good">PASS</td></tr>
@@ -67,6 +68,8 @@
 
   <h2>Prepared implementation</h2>
   <ul>
+    <li>One deterministic split implementation shared by native OpenGU and target-direct, with explicit ratios and either a split seed or caller Generator; the no-local-RNG path preserves native global-RNG behavior.</li>
+    <li>A thin formal profile layer retaining canonical paths, manifests, hashes, disjoint/exhaustive masks, and Selection candidate identity without owning a second split algorithm.</li>
     <li>9 bounded Selection recipes; each produces both ratios from one immutable ScoreBundle and preserves cold/warm evidence for both.</li>
     <li>2 Cora/seed42/degree gate recipes, one for 1% and one for 5%.</li>
     <li>18 candidate downstream dataset/seed/ratio recipes, 68 artifacts each (306 cells / 1,224 artifacts total), with execution explicitly unauthorized.</li>
@@ -99,6 +102,7 @@
     <tr><th>Check</th><th>Result</th></tr>
     <tr><td>Dual-budget focused suite</td><td><strong class="good">197 passed</strong></td></tr>
     <tr><td>Final expanded suite</td><td><strong class="good">242 passed, 1 warning in 10.73 s</strong></td></tr>
+    <tr><td>Shared split/native/target-direct/provider suite</td><td><strong class="good">28 passed</strong></td></tr>
     <tr><td>Compilation / diff</td><td>PASS / PASS</td></tr>
     <tr><td>Local formal preflight</td><td>Correctly blocked on branch/path/profile/local-GPU conditions</td></tr>
     <tr><td>Canonical GU dry-runs</td><td>Both 1% and 5% correctly blocked because real profile/checkpoint/manifest/Selection evidence is absent</td></tr>

@@ -486,6 +486,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         Path(__file__).resolve(),
         Path(__file__).with_name("recipe.py"),
         Path(__file__).with_name("split_profile.py"),
+        REPO_ROOT / "utils" / "node_split.py",
         REPO_ROOT / "experiments" / "bc_target_v2" / "run_selection.py",
         REPO_ROOT / "experiments" / "bc_target_v2" / "core.py",
         REPO_ROOT / "experiments" / "c_target_v1" / "core.py",
