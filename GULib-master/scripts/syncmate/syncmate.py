@@ -161,6 +161,213 @@ SMALL_SELECTION_GU_FULL_STAGES = tuple(
     for dataset in SMALL_SELECTION_GU_FULL_DATASETS
     for seed in SMALL_SELECTION_GU_FULL_SEEDS
 )
+TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "264b38995cebc84d10402d8113ea949ca2cfa34f"
+TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v2.yaml"
+TARGET_DIRECT_CONFIG_SHA256 = "13494b761585aa8d168d9e2c5548e1521a4d795bcf72ed790e2766ad8caa888d"
+TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/selection"
+TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/gu"
+TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = (
+    "cold-r0.01.json", "cold-r0.05.json",
+    "warm-r0.01.json", "warm-r0.05.json",
+    "cell.json",
+)
+TARGET_DIRECT_GU_ARTIFACT_NAMES = (
+    "attack.json", "collateral.json", "predictions.npz", "_meta.json"
+)
+TARGET_DIRECT_DATASETS = ("cora", "citeseer", "pubmed")
+TARGET_DIRECT_DATASET_DISPLAY = {
+    "cora": "Cora",
+    "citeseer": "CiteSeer",
+    "pubmed": "PubMed",
+}
+TARGET_DIRECT_CANDIDATE_COUNTS = {
+    "cora": 1895,
+    "citeseer": 2328,
+    "pubmed": 13801,
+}
+TARGET_DIRECT_RATIOS = (0.01, 0.05)
+TARGET_DIRECT_K_BY_RATIO = {
+    "cora": {"0.01": 18, "0.05": 94},
+    "citeseer": {"0.01": 23, "0.05": 116},
+    "pubmed": {"0.01": 138, "0.05": 690},
+}
+TARGET_DIRECT_SEEDS = (42, 212, 2024)
+TARGET_DIRECT_STRATEGIES = (
+    "degree", "a_grad_norm", "b_param_hutch", "gt_full", "gt_simple",
+    "legacy", "p_graph", "p_point", "p_simple", "r_point", "random",
+    "tracin_cp_graph_3", "tracin_cp_graph_6", "tracin_cp_point_3",
+    "tracin_cp_point_6", "tracin_cp_simple_3", "tracin_cp_simple_6",
+)
+TARGET_DIRECT_STAGES = tuple(
+    f"{dataset}-seed{seed}"
+    for dataset in TARGET_DIRECT_DATASETS
+    for seed in TARGET_DIRECT_SEEDS
+)
+
+
+def _target_direct_selection_artifacts(stage: str) -> Tuple[str, ...]:
+    leaf = f"{TARGET_DIRECT_SELECTION_OUTPUT_ROOT}/cells/{stage}"
+    return tuple(f"{leaf}/{name}" for name in TARGET_DIRECT_SELECTION_ARTIFACT_NAMES)
+
+
+def _target_direct_ratio_key(ratio: float) -> str:
+    value = float(ratio)
+    if value not in TARGET_DIRECT_RATIOS:
+        raise ValueError("unsupported target-direct ratio")
+    return f"{value:.2f}"
+
+
+def _target_direct_ratio_id(ratio: float) -> str:
+    return "r001" if float(ratio) == 0.01 else "r005"
+
+
+def _target_direct_selection_recipe(stage: str) -> Dict[str, Any]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    return {
+        "id": f"opengu-target-direct-selection-{stage}-v2",
+        "argv": (
+            "{python}", "-m", "experiments.target_direct_v1.syncmate_stage",
+            "--config", TARGET_DIRECT_CONFIG,
+            "--action", "selection", "--stage", stage, "--json",
+        ),
+        "config_path": TARGET_DIRECT_CONFIG,
+        "config_sha256": TARGET_DIRECT_CONFIG_SHA256,
+        "recipe_introduced_git_sha": TARGET_DIRECT_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": _target_direct_selection_artifacts(stage),
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "target-direct-selection-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": "target-direct-selection-v2",
+        "collector_result_roots": (
+            f"{TARGET_DIRECT_SELECTION_OUTPUT_ROOT}/cells/{stage}",
+        ),
+        "collector_artifact_names": TARGET_DIRECT_SELECTION_ARTIFACT_NAMES,
+        "selection_receipt_schema": "target_direct_v1.syncmate_selection_cell",
+        "selection_matrix": {
+            "stage": stage,
+            "datasets": (TARGET_DIRECT_DATASET_DISPLAY[dataset],),
+            "seeds": (seed,),
+            "score_count": 17,
+            "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
+            "budget_ratios": TARGET_DIRECT_RATIOS,
+            "expected_k_by_ratio": TARGET_DIRECT_K_BY_RATIO[dataset],
+            "score_budget_semantics": "prefix_stable_budget_independent",
+            "budget_conditioned_strategies": (),
+            "parameter_scope": "last_layer",
+            "lane": "target_direct_white_box",
+        },
+    }
+
+
+def _target_direct_gu_artifacts(
+    stage: str, *, ratio: float, gate_only: bool = False
+) -> Tuple[str, ...]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    ratio_key = _target_direct_ratio_key(ratio)
+    strategies = ("degree",) if gate_only else TARGET_DIRECT_STRATEGIES
+    paths = []
+    for strategy in strategies:
+        leaf = (
+            f"{TARGET_DIRECT_GU_OUTPUT_ROOT}/"
+            f"{dataset}_GCN_r{ratio_key}/GNNDelete_{strategy}/seed{seed}"
+        )
+        paths.extend(f"{leaf}/{name}" for name in TARGET_DIRECT_GU_ARTIFACT_NAMES)
+    return tuple(paths)
+
+
+def _target_direct_gu_roots(
+    stage: str, *, ratio: float, gate_only: bool = False
+) -> Tuple[str, ...]:
+    return tuple(
+        path.rsplit("/", 1)[0]
+        for path in _target_direct_gu_artifacts(
+            stage, ratio=ratio, gate_only=gate_only
+        )[::4]
+    )
+
+
+def _target_direct_gu_recipe(
+    stage: str, *, ratio: float, gate_only: bool = False
+) -> Dict[str, Any]:
+    dataset, seed_text = stage.rsplit("-seed", 1)
+    seed = int(seed_text)
+    ratio_key = _target_direct_ratio_key(ratio)
+    ratio_id = _target_direct_ratio_id(ratio)
+    recipe_id = (
+        f"opengu-target-direct-gu-gate-{ratio_id}-v2"
+        if gate_only
+        else f"opengu-target-direct-gu-{stage}-{ratio_id}-v2"
+    )
+    argv = [
+        "{python}", "-m", "experiments.target_direct_v1.syncmate_stage",
+        "--config", TARGET_DIRECT_CONFIG,
+        "--action", "gu", "--stage", stage,
+        "--ratio", ratio_key,
+    ]
+    if gate_only:
+        argv.append("--gate-only")
+    argv.append("--json")
+    definition = {
+        "id": recipe_id,
+        "argv": tuple(argv),
+        "config_path": TARGET_DIRECT_CONFIG,
+        "config_sha256": TARGET_DIRECT_CONFIG_SHA256,
+        "recipe_introduced_git_sha": TARGET_DIRECT_RECIPE_INTRODUCED_SHA,
+        "git_binding_policy": "job-exact-main-v1",
+        "requires_job_expected_git_sha": True,
+        "timeout_seconds": RUNNER_AGENT_MAX_TIMEOUT_SECONDS,
+        "expected_artifact_paths": _target_direct_gu_artifacts(
+            stage, ratio=ratio, gate_only=gate_only
+        ),
+        "success_predicate": (
+            "json.passed == true and generated_artifacts exactly equal "
+            "expected_artifact_paths"
+        ),
+        "execution_validator": "exact-artifacts-json-v1",
+        "preflight_profile": "target-direct-gu-4090-v1",
+        "collector_acceptance": True,
+        "collector_profile": (
+            "target-direct-gu-v2"
+            if gate_only
+            else "target-direct-gu-stage-v2"
+        ),
+        "collector_result_roots": _target_direct_gu_roots(
+            stage, ratio=ratio, gate_only=gate_only
+        ),
+        "collector_artifact_names": TARGET_DIRECT_GU_ARTIFACT_NAMES,
+    }
+    contract = {
+        "stage": stage,
+        "dataset": TARGET_DIRECT_DATASET_DISPLAY[dataset],
+        "base_model": "GCN",
+        "gu_method": "GNNDelete",
+        "seed": seed,
+        "ratio": float(ratio),
+        "k": TARGET_DIRECT_K_BY_RATIO[dataset][ratio_key],
+        "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
+        "parameter_scope": "last_layer",
+        "lane": "target_direct_white_box",
+        "target_checkpoint_required": True,
+        "scientific_comparison": not gate_only,
+        "execution_authorized": bool(gate_only),
+        "candidate_matrix_only": not gate_only,
+    }
+    if gate_only:
+        contract["selector"] = "degree"
+        definition["gu_gate"] = contract
+    else:
+        contract["selectors"] = TARGET_DIRECT_STRATEGIES
+        definition["gu_stage"] = contract
+    return definition
 
 
 def _small_selection_gu_stage_artifacts(stage: str) -> Tuple[str, ...]:
@@ -718,6 +925,33 @@ RUNNER_RECIPE_DEFINITIONS.update(
     {
         f"opengu-small-selection-gu-{stage}-v5": _small_selection_gu_v5_stage_recipe(stage)
         for stage in SMALL_SELECTION_GU_FULL_STAGES
+    }
+)
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        f"opengu-target-direct-selection-{stage}-v2":
+        _target_direct_selection_recipe(stage)
+        for stage in TARGET_DIRECT_STAGES
+    }
+)
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        f"opengu-target-direct-gu-gate-{_target_direct_ratio_id(ratio)}-v2":
+        _target_direct_gu_recipe(
+            "cora-seed42", ratio=ratio, gate_only=True
+        )
+        for ratio in TARGET_DIRECT_RATIOS
+    }
+)
+RUNNER_RECIPE_DEFINITIONS.update(
+    {
+        (
+            f"opengu-target-direct-gu-{stage}-"
+            f"{_target_direct_ratio_id(ratio)}-v2"
+        ):
+        _target_direct_gu_recipe(stage, ratio=ratio)
+        for stage in TARGET_DIRECT_STAGES
+        for ratio in TARGET_DIRECT_RATIOS
     }
 )
 QUEUE_ALLOWED_RECIPES = tuple(RUNNER_RECIPE_DEFINITIONS)
@@ -14899,6 +15133,36 @@ def runner_recipe_binding(recipe: str) -> Dict[str, Any]:
                     type(exc).__name__, exc
                 )
             )
+    if definition.get("preflight_profile") == "target-direct-selection-4090-v1" and not errors:
+        try:
+            from experiments.target_direct_v1.syncmate_stage import (
+                preflight_selection,
+            )
+
+            stage = str(
+                (definition.get("selection_matrix") or {}).get("stage") or ""
+            )
+            runtime_preflight = preflight_selection(stage, config_path)
+            errors.extend(runtime_preflight.get("errors") or [])
+        except Exception as exc:
+            errors.append(
+                "target-direct Selection runtime preflight failed: "
+                "{0}: {1}".format(type(exc).__name__, exc)
+            )
+    if definition.get("preflight_profile") == "target-direct-gu-4090-v1" and not errors:
+        try:
+            from experiments.target_direct_v1.syncmate_stage import preflight_gu
+
+            contract = definition.get("gu_gate") or definition.get("gu_stage") or {}
+            runtime_preflight = preflight_gu(
+                str(contract.get("stage") or ""), config_path
+            )
+            errors.extend(runtime_preflight.get("errors") or [])
+        except Exception as exc:
+            errors.append(
+                "target-direct GU runtime preflight failed: "
+                "{0}: {1}".format(type(exc).__name__, exc)
+            )
     return {
         "recipe": definition,
         "expected": {
@@ -15883,6 +16147,13 @@ def small_selection_acceptance_payload(
     expected_git_sha: Optional[str],
 ) -> Dict[str, Any]:
     errors: List[str] = []
+    receipt_schema = str(
+        definition.get("selection_receipt_schema")
+        or "bc_target_v2.syncmate_selection_cell"
+    )
+    target_direct = (
+        receipt_schema == "target_direct_v1.syncmate_selection_cell"
+    )
     index = load_artifact_index()
     peer = (index.get("peers") or {}).get(node_id) or {}
     summary = peer.get("summary") or {}
@@ -15930,7 +16201,7 @@ def small_selection_acceptance_payload(
             errors.append("cell receipt identity is invalid: " + remote_path)
             continue
         observed_cells.add((dataset, seed))
-        if receipt.get("schema") != "bc_target_v2.syncmate_selection_cell":
+        if receipt.get("schema") != receipt_schema:
             errors.append("cell receipt schema mismatch: " + remote_path)
         if receipt.get("status") != "success" or receipt.get("formal_score_count") != 17:
             errors.append("cell receipt is not a successful 17-output result: " + remote_path)
@@ -15941,23 +16212,140 @@ def small_selection_acceptance_payload(
         for field in ("peak_gpu_allocated_bytes", "peak_gpu_reserved_bytes"):
             if not isinstance(receipt.get(field), int) or receipt[field] <= 0:
                 errors.append("cell receipt has no valid {0}: {1}".format(field, remote_path))
-        parent = remote_path.rsplit("/", 1)[0]
-        for name, hash_field in (("cold.json", "cold_sha256"), ("warm.json", "warm_sha256")):
-            evidence_remote = parent + "/" + name
-            evidence_item = by_remote.get(evidence_remote) or {}
-            evidence_local = safe_repo_path(str(evidence_item.get("local_path") or ""))
+        if target_direct:
+            expected_ratios = tuple(
+                float(value) for value in matrix.get("budget_ratios") or ()
+            )
+            expected_k_by_ratio = matrix.get("expected_k_by_ratio") or {}
+            ratio_results = receipt.get("ratio_results") or {}
+            checkpoint = receipt.get("target_checkpoint") or {}
             if (
-                evidence_local is None
-                or not evidence_local.is_file()
-                or sha256_file(evidence_local) != receipt.get(hash_field)
+                receipt.get("version") != 2
+                or receipt.get("parameter_scope")
+                != matrix.get("parameter_scope")
+                or receipt.get("candidate_count") != matrix.get("candidate_count")
+                or tuple(
+                    float(value) for value in receipt.get("budget_ratios") or ()
+                )
+                != expected_ratios
+                or receipt.get("expected_k_by_ratio")
+                != expected_k_by_ratio
+                or receipt.get("score_budget_semantics")
+                != matrix.get("score_budget_semantics")
+                or tuple(receipt.get("budget_conditioned_strategies") or ())
+                != tuple(matrix.get("budget_conditioned_strategies") or ())
+                or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
+                or not isinstance(receipt.get("score_bundle_warm_read_seconds"), dict)
+                or not receipt.get("score_bundle_warm_read_seconds")
+                or any(
+                    not isinstance(value, (int, float))
+                    for value in (
+                        receipt.get("score_bundle_warm_read_seconds") or {}
+                    ).values()
+                )
+                or set(ratio_results)
+                != {f"{ratio:.2f}" for ratio in expected_ratios}
+                or not checkpoint.get("file_sha256")
+                or not checkpoint.get("state_hash")
             ):
-                errors.append("cell receipt does not bind verified {0}: {1}".format(name, remote_path))
+                errors.append(
+                    "target-direct receipt timing/scope/checkpoint contract "
+                    "is incomplete: " + remote_path
+                )
+            for ratio in expected_ratios:
+                ratio_key = f"{ratio:.2f}"
+                ratio_result = ratio_results.get(ratio_key) or {}
+                cold_methods = ratio_result.get("cold_method_timings") or {}
+                warm_methods = ratio_result.get("warm_method_timings") or {}
+                if (
+                    float(ratio_result.get("ratio", -1)) != ratio
+                    or ratio_result.get("k")
+                    != expected_k_by_ratio.get(ratio_key)
+                    or set(cold_methods) != set(TARGET_DIRECT_STRATEGIES)
+                    or set(warm_methods) != set(TARGET_DIRECT_STRATEGIES)
+                    or any(
+                        item.get("status") != "success"
+                        or item.get("cache_hit") is not False
+                        or item.get("selection_projection_cache_hit")
+                        is not False
+                        or not isinstance(
+                            item.get("cold_selection_projection_seconds"),
+                            (int, float),
+                        )
+                        for item in cold_methods.values()
+                    )
+                    or any(
+                        item.get("status") != "success"
+                        or item.get("cache_hit") is not True
+                        or item.get("selection_projection_cache_hit")
+                        is not True
+                        for item in warm_methods.values()
+                    )
+                    or (ratio_result.get("failure_state") or {}).get("state")
+                    != "success"
+                ):
+                    errors.append(
+                        "target-direct ratio projection contract is incomplete: "
+                        + ratio_key
+                    )
+        parent = remote_path.rsplit("/", 1)[0]
+        if target_direct:
+            for ratio in matrix.get("budget_ratios") or ():
+                ratio_key = f"{float(ratio):.2f}"
+                ratio_result = (receipt.get("ratio_results") or {}).get(
+                    ratio_key
+                ) or {}
+                for phase, hash_field in (
+                    ("cold", "cold_sha256"),
+                    ("warm", "warm_sha256"),
+                ):
+                    name = f"{phase}-r{ratio_key}.json"
+                    evidence_remote = parent + "/" + name
+                    evidence_item = by_remote.get(evidence_remote) or {}
+                    evidence_local = safe_repo_path(
+                        str(evidence_item.get("local_path") or "")
+                    )
+                    if (
+                        evidence_local is None
+                        or not evidence_local.is_file()
+                        or sha256_file(evidence_local)
+                        != ratio_result.get(hash_field)
+                    ):
+                        errors.append(
+                            "cell receipt does not bind verified {0}: {1}".format(
+                                name, remote_path
+                            )
+                        )
+        else:
+            for name, hash_field in (
+                ("cold.json", "cold_sha256"),
+                ("warm.json", "warm_sha256"),
+            ):
+                evidence_remote = parent + "/" + name
+                evidence_item = by_remote.get(evidence_remote) or {}
+                evidence_local = safe_repo_path(
+                    str(evidence_item.get("local_path") or "")
+                )
+                if (
+                    evidence_local is None
+                    or not evidence_local.is_file()
+                    or sha256_file(evidence_local) != receipt.get(hash_field)
+                ):
+                    errors.append(
+                        "cell receipt does not bind verified {0}: {1}".format(
+                            name, remote_path
+                        )
+                    )
         receipts.append(receipt)
     if observed_cells != expected_cells:
         errors.append("accepted cell matrix differs from the reviewed recipe")
     return {
         "generated_at": now_iso(),
-        "mode": "small-selection-acceptance",
+        "mode": (
+            "target-direct-selection-acceptance"
+            if target_direct
+            else "small-selection-acceptance"
+        ),
         "node_id": node_id,
         "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha,
@@ -16015,8 +16403,10 @@ def small_selection_gu_acceptance_payload(
                 errors.append("invalid GU JSON {0}: {1}".format(remote_path, exc))
 
     gate = definition.get("gu_gate") or {}
+    target_direct = gate.get("lane") == "target_direct_white_box"
     meta = documents.get("_meta.json") or {}
     artifact = meta.get("selection_artifact") or {}
+    target_checkpoint = artifact.get("target_checkpoint") or {}
     if expected_git_sha and meta.get("git_sha") != expected_git_sha:
         errors.append("GU _meta Git SHA differs from the dispatched SHA")
     for field, expected in (
@@ -16028,15 +16418,31 @@ def small_selection_gu_acceptance_payload(
             errors.append("GU _meta {0} mismatch".format(field))
     if (
         artifact.get("strategy") != gate.get("selector")
+        or artifact.get("ratio") != gate.get("ratio")
         or artifact.get("k") != gate.get("k")
         or artifact.get("authoritative") is not True
         or not artifact.get("artifact_id")
         or not artifact.get("recipe_hash")
         or not artifact.get("content_hash")
-        or (artifact.get("source_selection") or {}).get("profile")
-        != "grandfathered-public-selection-gt-v1"
     ):
         errors.append("GU _meta Selection Artifact provenance is incomplete or changed")
+    if target_direct:
+        claims = ((meta.get("config") or {}).get("claims") or {})
+        if (
+            gate.get("parameter_scope") != "last_layer"
+            or claims.get("parameter_scope") != "last_layer"
+            or claims.get("deletion_ratio") != gate.get("ratio")
+            or not target_checkpoint.get("state_hash")
+            or not target_checkpoint.get("file_sha256")
+        ):
+            errors.append(
+                "GU gate target-direct checkpoint/scope provenance is incomplete"
+            )
+    elif (
+        (artifact.get("source_selection") or {}).get("profile")
+        != "grandfathered-public-selection-gt-v1"
+    ):
+        errors.append("GU _meta Selection source profile changed")
     attack = documents.get("attack.json") or {}
     attack_row = (attack.get("results") or {}).get(gate.get("selector")) or {}
     if not attack_row or attack_row.get("failed") is True:
@@ -16050,7 +16456,11 @@ def small_selection_gu_acceptance_payload(
         errors.append("GU collateral result has no unique selector row")
     return {
         "generated_at": now_iso(),
-        "mode": "small-selection-gu-acceptance",
+        "mode": (
+            "target-direct-gu-acceptance"
+            if target_direct
+            else "small-selection-gu-acceptance"
+        ),
         "node_id": node_id,
         "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha,
@@ -16059,6 +16469,7 @@ def small_selection_gu_acceptance_payload(
         "verified_artifacts": len(by_remote),
         "gate": dict(gate),
         "selection_artifact_id": artifact.get("artifact_id"),
+        "target_checkpoint_state_hash": target_checkpoint.get("state_hash"),
         "passed": not errors,
         "errors": errors,
     }
@@ -16101,8 +16512,10 @@ def small_selection_gu_stage_acceptance_payload(
         local_by_remote[remote_path] = local_path
 
     stage = definition.get("gu_stage") or {}
+    target_direct = stage.get("lane") == "target_direct_white_box"
     selectors = tuple(stage.get("selectors") or ())
     accepted = []
+    target_checkpoint_hashes = set()
     for selector in selectors:
         suffix = f"/GNNDelete_{selector}/seed{stage.get('seed')}"
         parents = {
@@ -16125,6 +16538,7 @@ def small_selection_gu_stage_acceptance_payload(
             errors.append("invalid GU stage JSON for {0}: {1}".format(selector, exc))
             continue
         artifact = meta.get("selection_artifact") or {}
+        target_checkpoint = artifact.get("target_checkpoint") or {}
         if expected_git_sha and meta.get("git_sha") != expected_git_sha:
             errors.append("GU stage _meta Git SHA mismatch: " + str(selector))
         if (
@@ -16135,15 +16549,36 @@ def small_selection_gu_stage_acceptance_payload(
             errors.append("GU stage _meta identity mismatch: " + str(selector))
         if (
             artifact.get("strategy") != selector
+            or artifact.get("ratio") != stage.get("ratio")
             or artifact.get("k") != stage.get("k")
             or artifact.get("authoritative") is not True
             or not artifact.get("artifact_id")
             or not artifact.get("recipe_hash")
             or not artifact.get("content_hash")
-            or (artifact.get("source_selection") or {}).get("profile")
-            != "grandfathered-public-selection-gt-v1"
         ):
             errors.append("GU stage Selection provenance mismatch: " + str(selector))
+        if target_direct:
+            claims = ((meta.get("config") or {}).get("claims") or {})
+            state_hash = target_checkpoint.get("state_hash")
+            file_sha256 = target_checkpoint.get("file_sha256")
+            if (
+                stage.get("parameter_scope") != "last_layer"
+                or claims.get("parameter_scope") != "last_layer"
+                or claims.get("deletion_ratio") != stage.get("ratio")
+                or not state_hash
+                or not file_sha256
+            ):
+                errors.append(
+                    "GU stage target-direct checkpoint/scope provenance mismatch: "
+                    + str(selector)
+                )
+            else:
+                target_checkpoint_hashes.add((state_hash, file_sha256))
+        elif (
+            (artifact.get("source_selection") or {}).get("profile")
+            != "grandfathered-public-selection-gt-v1"
+        ):
+            errors.append("GU stage Selection source profile mismatch: " + str(selector))
         attack_row = (attack.get("results") or {}).get(selector) or {}
         if not attack_row or attack_row.get("failed") is True:
             errors.append("GU stage attack result is missing or failed: " + str(selector))
@@ -16162,7 +16597,9 @@ def small_selection_gu_stage_acceptance_payload(
         accepted.append(
             {
                 "selector": selector,
+                "ratio": stage.get("ratio"),
                 "selection_artifact_id": artifact.get("artifact_id"),
+                "target_checkpoint_state_hash": target_checkpoint.get("state_hash"),
                 "attack_total_seconds": attack_row.get("total_time"),
                 "unlearn_seconds": attack_row.get("unlearn_time"),
                 "selection_reuse_seconds": attack_row.get("selection_reuse_time"),
@@ -16172,9 +16609,17 @@ def small_selection_gu_stage_acceptance_payload(
         )
     if len(accepted) != len(selectors):
         errors.append("accepted GU stage selector count differs from the reviewed recipe")
+    if target_direct and len(target_checkpoint_hashes) != 1:
+        errors.append(
+            "target-direct GU stage did not share one exact checkpoint across 17 selectors"
+        )
     return {
         "generated_at": now_iso(),
-        "mode": "small-selection-gu-stage-acceptance",
+        "mode": (
+            "target-direct-gu-stage-acceptance"
+            if target_direct
+            else "small-selection-gu-stage-acceptance"
+        ),
         "node_id": node_id,
         "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha,
@@ -16199,7 +16644,10 @@ def runner_agent_collect_and_gate(
 ) -> Dict[str, Any]:
     """Run the existing collector command only after the runner reaches done."""
     definition = runner_recipe_definition(recipe) if recipe else None
-    if definition and definition.get("collector_profile") == "small-selection-v1":
+    if definition and definition.get("collector_profile") in (
+        "small-selection-v1",
+        "target-direct-selection-v2",
+    ):
         device, warnings = load_device(config_path)
         if warnings:
             return {"ok": False, "errors": warnings}
@@ -16236,7 +16684,16 @@ def runner_agent_collect_and_gate(
             node_id=node_id,
             expected_git_sha=expected_git_sha,
         )
-        write_sync_report("selection_acceptance", node_id, acceptance)
+        write_sync_report(
+            (
+                "target_direct_selection_acceptance"
+                if definition.get("collector_profile")
+                == "target-direct-selection-v2"
+                else "selection_acceptance"
+            ),
+            node_id,
+            acceptance,
+        )
         ok = (
             not collect.get("errors")
             and (verify.get("summary") or {}).get("status") == "verified"
@@ -16251,7 +16708,10 @@ def runner_agent_collect_and_gate(
             "selection_acceptance": acceptance,
             "errors": [] if ok else ["selection collection, verification, or acceptance failed"],
         }
-    if definition and definition.get("collector_profile") == "small-selection-gu-v1":
+    if definition and definition.get("collector_profile") in (
+        "small-selection-gu-v1",
+        "target-direct-gu-v2",
+    ):
         device, warnings = load_device(config_path)
         if warnings:
             return {"ok": False, "errors": warnings}
@@ -16288,7 +16748,15 @@ def runner_agent_collect_and_gate(
             node_id=node_id,
             expected_git_sha=expected_git_sha,
         )
-        write_sync_report("selection_gu_acceptance", node_id, acceptance)
+        write_sync_report(
+            (
+                "target_direct_gu_acceptance"
+                if definition.get("collector_profile") == "target-direct-gu-v2"
+                else "selection_gu_acceptance"
+            ),
+            node_id,
+            acceptance,
+        )
         ok = (
             not collect.get("errors")
             and (verify.get("summary") or {}).get("status") == "verified"
@@ -16303,7 +16771,10 @@ def runner_agent_collect_and_gate(
             "gu_acceptance": acceptance,
             "errors": [] if ok else ["GU collection, verification, or acceptance failed"],
         }
-    if definition and definition.get("collector_profile") == "small-selection-gu-stage-v1":
+    if definition and definition.get("collector_profile") in (
+        "small-selection-gu-stage-v1",
+        "target-direct-gu-stage-v2",
+    ):
         device, warnings = load_device(config_path)
         if warnings:
             return {"ok": False, "errors": warnings}
@@ -16331,7 +16802,16 @@ def runner_agent_collect_and_gate(
             node_id=node_id,
             expected_git_sha=expected_git_sha,
         )
-        write_sync_report("selection_gu_stage_acceptance", node_id, acceptance)
+        write_sync_report(
+            (
+                "target_direct_gu_stage_acceptance"
+                if definition.get("collector_profile")
+                == "target-direct-gu-stage-v2"
+                else "selection_gu_stage_acceptance"
+            ),
+            node_id,
+            acceptance,
+        )
         ok = (
             not collect.get("errors")
             and (verify.get("summary") or {}).get("status") == "verified"

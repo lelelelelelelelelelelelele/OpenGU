@@ -37,25 +37,40 @@ validation CE 作为 selection target、test F1 作为最终评估，本身是�
 - selector candidate pool 仅为 train mask；selection target 仅为 validation-mask mean CE。
 - test labels 只用于最终 test F1，不进入 selection、调参或 gate 决策。
 
+分割算法的单一事实源现为 OpenGU 公共纯模块 `utils/node_split.py`：
+原生 `transductive_split_node` 与 target-direct profile materializer 使用同一
+randperm、ratio/count、mask、indices 和 induced-edge 实现。公共模块不导入
+`config.py`，显式接受 ratio 以及 `split_seed` 或调用者提供的 Generator；
+未提供二者时仍使用 torch 全局 RNG，保持 OpenGU 原生默认行为。
+`split_profile.py` 不再另写分割算法，只负责 canonical path、materialize/verify、
+manifest、文件哈希、mask 互斥/穷尽和 Selection candidate identity。
+
 不继续使用 80/0/20，是因为其 validation mask 为空；17 个 IF/TracIn 公式需要一个与 train、test 均隔离的 target objective。用 test labels 会泄漏，用 train labels则改变问题定义。
 
 ### 2.2 预算
 
-首轮只跑 `r=0.05`，并以 train candidate count 为唯一分母：
+`70/10/20` 是防止 test leakage 的 split 身份；`r∈{0.01,0.05}`
+是删除预算。两者是正交维度，不能相互替换。每个 ratio 都以 verified
+train candidate count 为唯一分母：
 
 $$
-k = \max\left(1,\left\lfloor 0.05\,|V_{train}|\right\rfloor\right).
+k(r) = \max\left(1,\left\lfloor r\,|V_{train}|\right\rfloor\right),
+\qquad r\in\{0.01,0.05\}.
 $$
 
-| Dataset | 全图节点 | 理论 train/val/test | 理论 $k$（5% train） |
-|---|---:|---:|---:|
-| Cora | 2,708 | 1,895 / 271 / 542 | 94 |
-| CiteSeer | 3,327 | 2,328 / 333 / 666 | 116 |
-| PubMed | 19,717 | 13,801 / 1,972 / 3,944 | 690 |
+| Dataset | 全图节点 | 理论 train/val/test | $k$（1% train） | $k$（5% train） |
+|---|---:|---:|---:|---:|
+| Cora | 2,708 | 1,895 / 271 / 542 | 18 | 94 |
+| CiteSeer | 3,327 | 2,328 / 333 / 666 | 23 | 116 |
+| PubMed | 19,717 | 13,801 / 1,972 / 3,944 | 138 | 690 |
 
 这些是按节点总数推导的预期值；正式值必须由 SSH staged manifest 实测并冻结。`expected_k` 会作为唯一事实源同时传给 Selection 和 GNNDelete。任何 `actual_k != expected_k`、重复节点或越出 train candidates 都立即失败。
 
-`r=0.10` 若后续需要，将使用独立 result/cache identity 做 ratio sweep，不与 5% 主矩阵混写。
+现有 17 法都是 budget-independent score/ranking prefix。每个
+`(dataset, model seed)` 只允许一次 cold ScoreBundle 计算；1% 与 5%
+Selection Artifacts 从同一 immutable score identity 分别物化，并在
+Selection Recipe 中显式绑定 ratio、分母、rounding 与 `expected_k`。
+未来若加入 budget-conditioned 方法，必须使用独立 score recipe，禁止伪共享。
 
 ### 2.3 严格白盒 checkpoint 绑定
 
@@ -67,13 +82,13 @@ $$
 4. `attack.json` 记录实际观察到的 checkpoint 文件 SHA-256 和 state hash；
 5. retained-data retrain reference 清除 checkpoint binding，从随机初始化重新训练。
 
-checkpoint metadata 同时绑定 dataset/split fingerprint、模型结构、训练 seed/epochs、候选预算与 Git provenance。任何不一致均 fail closed。
+checkpoint metadata 同时绑定 dataset/split fingerprint、模型结构、训练 seed/epochs、ratio-neutral 的 verified candidate pool identity 与 Git provenance。删除 ratio 与 `expected_k` 则绑定在 Selection Recipe、manifest 和 GU config；任何不一致均 fail closed。
 
 ### 2.4 参数域与可行性
 
 主矩阵固定使用 `parameter_scope=last_layer`。它仍是 target-direct white-box，因为参数来自同一实际 target checkpoint，但明确属于“last-layer IF approximation”，不能写成 full-parameter exact IF。当前 2-layer、hidden=64 GCN 下，last-layer / all-trainable 参数维数分别为：Cora `455/92,231`、CiteSeer `390/237,446`、PubMed `195/32,259`。
 
-`all_trainable` 已按本轮用户决定延期：它不在正式配置、SyncMate recipe 或当前验收矩阵中，也不是启动 `last_layer` 主矩阵的前置条件。若未来重新批准全参数研究，必须先定义独立的可行性/保真度合同，使用新的 parameter-schema hash、Recipe 和结果身份；不得在当前 3×3 主矩阵中切换 scope 或复用 warm artifact。
+`all_trainable` 不配置、不调度，也不是本轮扩展条件。现有 IF 文献已记录全参数 Hessian/IHVP 的扩展成本，以及层级或最后一层近似的可行性路径；本轮只如实限定 claim，而不支付独立 stress ladder 的计算成本。文献依据与边界集中列在 `target_direct_formal_preflight_AUDIT_REPORT.md` 的 “Why `last_layer` is retained” 一节。未来若研究全参数 IF，必须另立成本/近似合同，使用新的 parameter-schema hash、Recipe 和 Cache V2/结果身份；不得在当前 3×3 主矩阵中切换 scope 或复用 warm artifact。
 
 ## 3. 正式执行顺序
 
@@ -81,10 +96,10 @@ checkpoint metadata 同时绑定 dataset/split fingerprint、模型结构、训�
 |---|---|---|
 | G0 分支验收 | 本地单元/集成测试、CLI、静态检查、报告 | 无本次代码失败；实现报告一致 |
 | G1 数据 preflight | 在 SSH active root stage/verify 三个 70/10/20 pairs | 路径、realpath、source/data/split hashes、counts 全部冻结且位于 active checkout |
-| G2 Selection gate | Cora seed 42、5%、last-layer，一次生成全部 17 法；随后 exact warm reuse | 17/17 artifacts；cold/warm timing、ScoreBundle 总时、显存、失败状态齐全；warm producer 未调用 |
-| G3 GU 一格 | Cora seed 42 的 degree 先跑一个 cell | 四件套完整；checkpoint/state/count/provenance 一致；无 failure |
-| G4 单 stage | G3 通过后跑同一 Cora seed 的 17 cells | 17/17 cells、68/68 files，通过 checksum 验证 |
-| G5 全矩阵 | 3 datasets × 3 seeds × 17 selectors | 153/153 cells、612/612 四件套、0 identity drift；失败单独记录，绝不静默跳过 |
+| G2 Selection gate | Cora seed 42、last-layer：1% 首次 cold ScoreBundle，5% 从同一 immutable score identity cold 物化；两者各做 exact warm reuse | 34/34 ratio-conditioned Selection Artifacts；4 summaries + receipt；仅一次 ScoreBundle producer；cold/warm timing、显存、失败状态齐全 |
+| G3 双预算 GU gates | Cora seed 42 的 degree 分别跑 1% 与 5% 两个 cell | 2/2 cells、8/8 文件；各自 ratio/k、checkpoint/state/count/provenance 一致；无 failure |
+| G4 候选单 stage | 双 gate 通过且另获扩展授权后，跑同一 Cora seed 的 17 selectors × 2 ratios | 34/34 cells、136/136 files，通过 checksum 验证 |
+| G5 候选完整矩阵 | 3 datasets × 3 seeds × 17 selectors × 2 ratios | 候选规模 306 cells、1,224 四件套；**当前未授权执行**；失败单独记录，绝不静默跳过 |
 
 模型 seeds 沿用 `42, 212, 2024`；split seed 固定为 2024，因此三个模型 seed 共享同一数据划分，只改变训练随机性与 random selector。
 
@@ -125,14 +140,15 @@ GU 每格继续生成 `attack.json`、`collateral.json`、`predictions.npz`、`_
 - 先比较 A/B/C/D 及 point/simple/graph、single/checkpoint 变体的组内 ranking 相似性。
 - 再比较 ranking 相似性是否转化为 GU outcome 相似性。
 - 分开报告 reference/proxy fidelity、实际 GU 效果和计算代价，不能用 proxy 接近 GT 直接替代 GU 有效。
-- PubMed 必须按真实 `k≈690` 重测；旧 `k=7` null regime 不再作为 dataset-insensitive 证据。
+- PubMed 必须按真实 1%/5% 的 `k=138/690` 重测；旧 `k=7` null regime 不再作为 dataset-insensitive 证据。
 
 ## 6. 已完成实现
 
 | 模块 | 修正 |
 |---|---|
+| `utils/node_split.py` | 无 `config.py` 副作用的公共 deterministic split；原生 OpenGU 与 E8 共用 |
 | `utils/target_checkpoint.py` | target checkpoint 原子保存/加载、文件哈希、state hash、trajectory 与 data identity 校验 |
-| `experiments/target_direct_v1/` | 70/10/20 profile staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter、GU config builder |
+| `experiments/target_direct_v1/` | 薄 70/10/20 profile staging/verification、target-direct recipe、17 法 ScoreBundle、manifest/adapter、GU config builder |
 | `attack/pipeline_adapter.py` | formal expected-k 单一事实源、candidate/count fail-closed、retrain 清除 target binding |
 | `unlearning/.../gnndelete.py` | 精确加载 target checkpoint，校验 metadata/data/state，禁止 formal warning 后继续 |
 | `experiments/run.py` | 新 `target_direct_external_selection` 模式，把 checkpoint 与 expected-k 传给 attack/collateral |
@@ -144,15 +160,15 @@ GU 每格继续生成 `attack.json`、`collateral.json`、`predictions.npz`、`_
 ## 7. 本地验证与边界
 
 - 2026-07-24 复核套件：target checkpoint、split、expected-k、runner propagation、Cache V2、GNNDelete architecture 与完整 SyncMate tests 共 `316 passed, 1 warning`。
-- target-direct 与 SyncMate 关键模块 `py_compile` 通过；`git diff --check` 通过。
-- SyncMate 临时端到端 smoke 通过：3/3 artifacts collect、SHA-256 verify、trusted index/results 均成功，临时目录已自动删除。
-- 本地没有可用 CUDA，因此没有把本地 smoke 当作正式格。
+- 双预算 runner/manifest/SyncMate 定向测试：`197 passed`；包含 target checkpoint、split profile、Cache V2、budget planner 与 GU aggregate 的扩展组合：`242 passed, 1 warning`；公共 split、原生 OpenGU、target-direct recipe/manifest/SyncMate 与 processed-provider 最终定向组合：`28 passed`。
+- 受影响 Python 模块 `py_compile`、`git diff --check` 与 SyncMate temporary smoke 通过；canonical Selection preflight、1%/5% GU dry-run 均按预期 fail closed，没有生成 formal artifact。
+- 本地没有可用 CUDA，也没有在隔离 worktree 复制正式数据，因此没有把本地 smoke 当作正式格；正式 GPU 工作仅能在已接收的 SSH active `main` 执行。
 - 2026-07-24 SSH 复核：`nvidia-smi` 仍返回 `No devices were found`，`/root/miniconda3/envs/gnn_20/bin/python` 不存在；canonical raw 三套已在 active checkout，但 `planetoid_70_10_20_seed2024` processed pairs 尚未 stage。
 
 ## 8. 当前验收结论与下一步
 
 当前状态是 **implementation accepted and re-reviewed，formal experiment blocked by runtime availability**。还不能说“A.7 已完成”，也不能用旧矩阵回答新 IF 与 baseline 的白盒优劣。
 
-本轮文档/参数域收口合入后，以最终 full `main` SHA 生成 pinned SyncMate runtime recipe；先在非计时 G1 stage/verify 三个 processed profiles，再做 Cora seed 42 `last_layer` cold→strict warm gate。Selection gate 通过后补齐 Cora 另外两个 seed 的 Selection，生成同一 full config，并以 `degree/seed42` 作为 GU 一格 gate；通过后在同一 config/fingerprint 下扩展 G4→G5。远端 results 必须经 SyncMate collect→SHA-256 verify→trusted index/results 回传本地。
+在 SSH 基础设施恢复后，先在非计时 G1 stage/verify 三个 processed profiles，再做 Cora seed42 的 G2；随后分别执行 1% 与 5% 的 G3 `degree` formal gate。两个 gate 都通过也只完成 canary 验收，G4/G5 的 306-cell 候选扩展仍需用户另行明确授权，不会自动启动。远端 results 必须经 SyncMate collect→逐文件 SHA-256 verify→trusted index/results 回传本地。
 
 `all_trainable` 不进入本轮配置或排期；它仅作为未来可能另行批准的研究问题保留。若重新启动，必须先完成独立成本/近似合同与分块或落盘可行性设计，再建立新的 full-parameter matrix。

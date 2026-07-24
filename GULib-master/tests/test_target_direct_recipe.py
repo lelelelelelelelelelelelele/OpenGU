@@ -3,6 +3,9 @@ from experiments.target_direct_v1.recipe import (
     SCORE_FAMILY,
     build_recipe,
 )
+from experiments.target_direct_v1.run_selection import (
+    selection_recipe_parameters,
+)
 
 
 SHA = "a" * 64
@@ -36,3 +39,32 @@ def test_target_direct_recipe_binds_checkpoint_identity():
     assert fields["score_family"] == SCORE_FAMILY
     assert fields["target_direct"]["white_box"] is True
     assert fields["target_direct"]["target_checkpoint"]["state_hash"] == SHA
+    projection = fields["target_direct"]["budget_projection"]
+    assert projection["semantics"] == "prefix_stable_budget_independent"
+    assert projection["supported_ratios"] == [0.01, 0.05]
+    assert projection["budget_conditioned_strategies"] == []
+
+
+def test_ratio_specific_selection_recipes_share_scores_but_not_budget_identity():
+    one = selection_recipe_parameters(
+        name="degree",
+        ratio=0.01,
+        expected_k=18,
+        target_checkpoint_state_hash=SHA,
+    )
+    five = selection_recipe_parameters(
+        name="degree",
+        ratio=0.05,
+        expected_k=94,
+        target_checkpoint_state_hash=SHA,
+    )
+
+    assert one["score_family"] == five["score_family"]
+    assert one["target_checkpoint_state_hash"] == five[
+        "target_checkpoint_state_hash"
+    ]
+    assert one["requested_ratio"] == 0.01
+    assert five["requested_ratio"] == 0.05
+    assert one["expected_k"] == 18
+    assert five["expected_k"] == 94
+    assert one != five

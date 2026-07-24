@@ -73,20 +73,23 @@
     <li>source 只允许 SSH active checkout 的 <code>data/raw/&lt;dataset&gt;/</code>；OpenGU pair 只允许 <code>data/processed/transductive/</code>。</li>
     <li>固定 <code>planetoid_70_10_20_seed2024</code>，train/validation/test 互斥且穷尽。</li>
     <li>全图 message passing；train-only candidates；validation-mask mean CE target；test labels 只用于最终 F1。</li>
+    <li>分割算法的单一事实源是无 <code>config.py</code> 副作用的 <code>utils/node_split.py</code>；原生 OpenGU 与 target-direct 共用同一 randperm、ratio/count、mask、indices 和 induced-edge 实现。<code>split_profile.py</code> 只保留 canonical path、materialize/verify、manifest/hash 与 Selection identity。</li>
   </ul>
   <p>80/0/20 的 validation mask 为空，因此不能继续作为本轮 IF/TracIn target profile：使用 test 会泄漏，复用 train 会改变科学问题。</p>
 
-  <h3>真实 5% 预算</h3>
-  <div class="formula">k = max(1, floor(0.05 × |V<sub>train</sub>|))</div>
+  <h3>与 split 正交的 1% / 5% 删除预算</h3>
+  <p><code>70/10/20</code> 是防止 test leakage 的 split 身份；<code>r∈{0.01,0.05}</code> 是删除预算，两者不能互相替换。</p>
+  <div class="formula">k(r) = max(1, floor(r × |V<sub>train</sub>|)), r ∈ {0.01, 0.05}</div>
   <table>
-    <thead><tr><th>Dataset</th><th>全图节点</th><th>理论 train / val / test</th><th>理论 k</th></tr></thead>
+    <thead><tr><th>Dataset</th><th>全图节点</th><th>理论 train / val / test</th><th>k（1%）</th><th>k（5%）</th></tr></thead>
     <tbody>
-      <tr><td>Cora</td><td>2,708</td><td>1,895 / 271 / 542</td><td>94</td></tr>
-      <tr><td>CiteSeer</td><td>3,327</td><td>2,328 / 333 / 666</td><td>116</td></tr>
-      <tr><td>PubMed</td><td>19,717</td><td>13,801 / 1,972 / 3,944</td><td>690</td></tr>
+      <tr><td>Cora</td><td>2,708</td><td>1,895 / 271 / 542</td><td>18</td><td>94</td></tr>
+      <tr><td>CiteSeer</td><td>3,327</td><td>2,328 / 333 / 666</td><td>23</td><td>116</td></tr>
+      <tr><td>PubMed</td><td>19,717</td><td>13,801 / 1,972 / 3,944</td><td>138</td><td>690</td></tr>
     </tbody>
   </table>
-  <p class="muted">最终 counts 以 SSH staged manifest 为准。expected_k 是 Selection 与 GNNDelete 的唯一事实源；重复、越界或数量漂移均 fail closed。10% 如需补充，将使用独立 cache/result identity。</p>
+  <p class="muted">最终 counts 以 SSH staged manifest 为准。每个 ratio 的 expected_k 是 Selection 与 GNNDelete 的唯一事实源；重复、越界或数量漂移均 fail closed。</p>
+  <p>现有 17 法都是 budget-independent score/ranking prefix：每个 dataset-seed 只计算一次 cold ScoreBundle，再由同一 immutable score identity 分别物化 1%/5% Selection Artifacts。未来若加入 budget-conditioned 方法，必须使用独立 score recipe，禁止伪共享。</p>
 
   <h3>同一 checkpoint 的闭环</h3>
   <div class="flow">
@@ -99,7 +102,7 @@
   <p>retained-data retrain reference 会主动清除 checkpoint binding，从随机初始化重训；否则 retrain gap 无效。</p>
 
   <h3>参数域</h3>
-  <p>主矩阵固定使用 <code>last_layer</code>：它是 target-direct 的白盒近似，但必须明确写作 last-layer IF，不能冒充 full-parameter exact IF。当前 GCN 下，last-layer / all-trainable 参数维数分别为 Cora <code>455/92,231</code>、CiteSeer <code>390/237,446</code>、PubMed <code>195/32,259</code>。<code>all_trainable</code> 已按本轮用户决定延期：它不在正式配置、SyncMate recipe 或当前矩阵中。未来若重新批准，必须使用独立合同、新 parameter-schema hash、Recipe 与结果身份。</p>
+  <p>主矩阵固定使用 <code>last_layer</code>：它是 target-direct 的白盒近似，但必须明确写作 last-layer IF，不能冒充 full-parameter exact IF。当前 GCN 下，last-layer / all-trainable 参数维数分别为 Cora <code>455/92,231</code>、CiteSeer <code>390/237,446</code>、PubMed <code>195/32,259</code>。<code>all_trainable</code> 不配置、不调度、也不是扩展条件；未来全参数研究必须另立成本/近似合同，并使用新的 parameter-schema hash、Recipe、Cache V2 与结果身份。</p>
 
   <h2>3. Gate 到完整矩阵</h2>
   <table>
@@ -107,10 +110,10 @@
     <tbody>
       <tr><td>G0</td><td>分支测试、CLI、静态检查、MD/HTML</td><td>实现审查通过</td></tr>
       <tr><td>G1</td><td>SSH stage/verify 三个 70/10/20 pairs</td><td>canonical realpath、fingerprint、split、counts 冻结</td></tr>
-      <tr><td>G2</td><td>Cora seed 42 cold 17-way + strict warm reuse</td><td>17/17 artifacts；计时/显存/失败状态齐全；warm producer 未调用</td></tr>
-      <tr><td>G3</td><td>Cora seed 42 degree 单 GU cell</td><td>四件套、checkpoint、k、Git SHA 一致</td></tr>
-      <tr><td>G4</td><td>同 stage 17 cells</td><td>17/17 cells、68/68 files</td></tr>
-      <tr><td>G5</td><td>17 × 3 datasets × 3 seeds</td><td>153/153 cells、612/612 files；失败不静默</td></tr>
+      <tr><td>G2</td><td>Cora seed 42：一次 cold ScoreBundle，分别物化 1%/5%，两者各做 strict warm reuse</td><td>34/34 ratio-conditioned Selection Artifacts；4 summaries + receipt；ScoreBundle producer 仅调用一次</td></tr>
+      <tr><td>G3</td><td>Cora seed 42 degree 的 1% 与 5% 两个 GU gate</td><td>2/2 cells、8/8 文件；ratio/k、checkpoint、Git SHA 一致</td></tr>
+      <tr><td>G4</td><td>另获授权后的候选单 stage：17 selectors × 2 ratios</td><td>34/34 cells、136/136 files</td></tr>
+      <tr><td>G5</td><td>候选 17 × 3 datasets × 3 seeds × 2 ratios</td><td>306 cells、1,224 files；当前未授权执行</td></tr>
     </tbody>
   </table>
   <p>模型 seeds 为 <code>42, 212, 2024</code>；split seed 固定 2024。正式缺陷会停止矩阵，修复合入新 main SHA 后以新 identity 重跑 gate。</p>
@@ -133,19 +136,21 @@
   <div class="grid">
     <div class="card"><strong>TracIn vs baseline</strong>逐 dataset-seed paired 比较 random/degree，报告 win/tie/loss、均值/中位数、bootstrap CI 与成本；禁止用 Cora-only 写普遍优势。</div>
     <div class="card"><strong>IF 簇内部</strong>区分 ranking fidelity、GU outcome 与 feasibility；检查组内 ranking 相似是否带来效果相似。</div>
-    <div class="card"><strong>PubMed 重判</strong>按真实 k≈690 重测。旧 k=7 null regime 不再作为 selector-insensitive 证据。</div>
+    <div class="card"><strong>PubMed 重判</strong>按真实 1%/5% 的 k=138/690 重测。旧 k=7 null regime 不再作为 selector-insensitive 证据。</div>
   </div>
 
   <h2>6. 实现与验证</h2>
   <ul>
+    <li>公共 deterministic split 支持显式 ratio、split seed 或调用者 Generator；未提供局部 RNG 时保持 OpenGU 原生全局 RNG 默认行为。</li>
     <li>新增 target checkpoint 原子存取、双哈希、trajectory、data identity 校验。</li>
-    <li>新增 70/10/20 staging、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
+    <li>新增薄 70/10/20 staging/verification、target-direct recipe、17 法 ScoreBundle、manifest/adapter 和 GU config builder。</li>
     <li>formal expected-k、candidate、checkpoint 与结果 provenance 全链 fail closed。</li>
     <li>2026-07-24 复核：target checkpoint、split、expected-k、runner propagation、Cache V2、GNNDelete architecture 与完整 SyncMate tests 共 <b>316 passed, 1 warning</b>。</li>
-    <li>target-direct / SyncMate 关键模块编译通过；SyncMate 临时 smoke 的 3/3 artifacts collect、SHA-256 verify、trusted index/results 全部通过，临时目录已删除。</li>
+    <li>双预算 runner/manifest/SyncMate 定向测试：<b>197 passed</b>；扩展组合 <b>242 passed, 1 warning</b>；公共 split、原生 OpenGU、target-direct recipe/manifest/SyncMate 与 processed-provider 最终定向组合：<b>28 passed</b>。</li>
+    <li>受影响模块 <code>py_compile</code>、<code>git diff --check</code> 与 SyncMate temporary smoke 通过；canonical Selection preflight 和 1%/5% GU dry-run 均按预期 fail closed，没有生成 formal artifact。</li>
     <li>SSH 仍无 GPU device，<code>gnn_20</code> 解释器不存在；canonical raw 已在 active checkout，但三个 <code>planetoid_70_10_20_seed2024</code> processed pairs 尚未 stage。</li>
   </ul>
-  <div class="callout"><b>尚未完成：</b>状态是 implementation accepted and re-reviewed、formal experiment blocked by runtime availability。文档收口合入后，以最终 full <code>main</code> SHA 生成 pinned SyncMate runtime recipe：先做 G1，随后 Cora seed 42 last-layer cold→strict warm gate；补齐 Cora 三个 Selection seed 后，以同一 full config 的 degree/seed42 做 GU gate，再展开 G4→G5。<code>all_trainable</code> 不进入本轮配置或排期；若未来启动，必须另建成本/近似合同与 full-parameter matrix。</div>
+  <div class="callout"><b>尚未完成：</b>状态是 implementation accepted and re-reviewed、formal experiment blocked by runtime availability。基础设施恢复后，先完成 G1/G2，再分别验收 1% 与 5% 两个 G3 formal gate。两个 gate 通过也不会自动授权 G4/G5 的 306-cell 候选扩展。</div>
 
   <footer>Source of truth: <code>reports/target_direct_selection_PREPARATION_REPORT.md</code> · Status: implementation accepted and re-reviewed; formal experiment blocked by runtime availability.</footer>
 </main>

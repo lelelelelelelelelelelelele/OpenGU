@@ -11,13 +11,17 @@ from typing import Any, Dict, Mapping, Sequence
 
 from cache_v2.runtime import load_selection_artifact
 from experiments.target_direct_v1 import MODEL_SEEDS, PROFILE
-from experiments.target_direct_v1.recipe import ALGORITHM_VERSION, SCORE_NAMES
+from experiments.target_direct_v1.recipe import (
+    ALGORITHM_VERSION,
+    APPROVED_BUDGET_RATIOS,
+    SCORE_NAMES,
+)
 from experiments.target_direct_v1.split_profile import verify_profile
-from utils.target_checkpoint import load_target_checkpoint
+from utils.target_checkpoint import data_identity, load_target_checkpoint
 
 
 SCHEMA = "target_direct_v1.external_selection_manifest"
-VERSION = 1
+VERSION = 2
 
 
 def sha256_file(path: Path) -> str:
@@ -54,15 +58,48 @@ def build_manifest(
     summaries: Sequence[Path],
     expected_git_sha: str,
     ratio: float,
+    required_seeds: Sequence[int] = MODEL_SEEDS,
+    required_parameter_scope: str = "last_layer",
+    strategy_order: Sequence[str] = SCORE_NAMES,
 ) -> Dict[str, Any]:
     repository_root = Path(repository_root).resolve()
     selection_store_root = Path(selection_store_root).resolve()
+    required_seeds = tuple(int(seed) for seed in required_seeds)
+    if (
+        not required_seeds
+        or len(set(required_seeds)) != len(required_seeds)
+        or not set(required_seeds).issubset(set(MODEL_SEEDS))
+    ):
+        raise ValueError(
+            "required_seeds must be a non-empty unique subset of {0}".format(
+                list(MODEL_SEEDS)
+            )
+        )
+    if required_parameter_scope != "last_layer":
+        raise ValueError("formal target-direct manifest requires last_layer")
+    if not any(
+        abs(float(ratio) - approved) < 1e-12
+        for approved in APPROVED_BUDGET_RATIOS
+    ):
+        raise ValueError(
+            "formal target-direct ratio must be one of {0}".format(
+                list(APPROVED_BUDGET_RATIOS)
+            )
+        )
+    strategy_order = tuple(str(value) for value in strategy_order)
+    if (
+        len(strategy_order) != len(SCORE_NAMES)
+        or len(set(strategy_order)) != len(strategy_order)
+        or set(strategy_order) != set(SCORE_NAMES)
+    ):
+        raise ValueError("strategy_order must contain the exact 17 methods")
     profile = verify_profile(
         repository_root=repository_root,
         processed_root=processed_root,
         dataset=dataset,
     )
     inputs = profile["inputs"]
+    observed_data_identity = data_identity(profile["data"])
     expected_k = max(1, int(inputs.candidate_count * float(ratio)))
     cells = []
     sources = []
@@ -73,7 +110,7 @@ def build_manifest(
         summary = json.loads(source_path.read_text(encoding="utf-8"))
         if (
             summary.get("schema") != "target_direct_v1.selection_summary"
-            or summary.get("version") != 1
+            or summary.get("version") != 2
             or (summary.get("status") or {}).get("state") != "success"
             or summary.get("algorithm_version") != ALGORITHM_VERSION
             or str(summary.get("dataset", "")).lower() != dataset.lower()
@@ -82,7 +119,16 @@ def build_manifest(
             != float(ratio)
             or int((summary.get("budget") or {}).get("expected_k", -1))
             != expected_k
+            or (summary.get("budget") or {}).get("denominator")
+            != "train_candidate_count"
+            or (summary.get("budget") or {}).get("rounding")
+            != "floor_with_minimum_one"
+            or int(
+                (summary.get("budget") or {}).get("denominator_count", -1)
+            )
+            != inputs.candidate_count
             or int(summary.get("candidate_count", -1)) != inputs.candidate_count
+            or summary.get("parameter_scope") != required_parameter_scope
         ):
             raise RuntimeError(
                 "target-direct Selection summary identity mismatch: {0}".format(
@@ -115,6 +161,10 @@ def build_manifest(
         )
         if loaded_checkpoint["metadata"].get("data_identity") is None:
             raise RuntimeError("target checkpoint has no dataset identity")
+        if loaded_checkpoint["metadata"]["data_identity"] != observed_data_identity:
+            raise RuntimeError(
+                "target checkpoint dataset/split identity differs from profile"
+            )
         checkpoints_by_seed[seed] = {
             "path": loaded_checkpoint["path"],
             "file_sha256": loaded_checkpoint["file_sha256"],
@@ -125,7 +175,7 @@ def build_manifest(
         artifacts = summary.get("selection_artifacts") or {}
         if set(artifacts) != set(SCORE_NAMES):
             raise RuntimeError("Selection summary does not contain all 17 methods")
-        for strategy in SCORE_NAMES:
+        for strategy in strategy_order:
             item = artifacts[strategy]
             artifact = item.get("artifact") or {}
             loaded = load_selection_artifact(
@@ -146,6 +196,7 @@ def build_manifest(
                 {
                     "strategy": strategy,
                     "seed": seed,
+                    "ratio": float(ratio),
                     "k": expected_k,
                     "artifact": {
                         "artifact_id": loaded.artifact_id,
@@ -168,6 +219,7 @@ def build_manifest(
                 "path": str(source_path),
                 "sha256": sha256_file(source_path),
                 "seed": seed,
+                "ratio": float(ratio),
                 "score_bundle_artifact_id": summary["score_bundle"][
                     "artifact_id"
                 ],
@@ -175,13 +227,18 @@ def build_manifest(
             }
         )
     seeds = sorted(seeds)
-    if tuple(seeds) != tuple(sorted(MODEL_SEEDS)):
+    if tuple(seeds) != tuple(sorted(required_seeds)):
         raise RuntimeError(
             "target-direct summaries must cover exact model seeds {0}".format(
-                list(MODEL_SEEDS)
+                list(required_seeds)
             )
         )
-    cells.sort(key=lambda item: (item["strategy"], item["seed"]))
+    strategy_position = {
+        strategy: position for position, strategy in enumerate(strategy_order)
+    }
+    cells.sort(
+        key=lambda item: (strategy_position[item["strategy"]], item["seed"])
+    )
     return {
         "schema": SCHEMA,
         "version": VERSION,
@@ -192,9 +249,17 @@ def build_manifest(
         "budget_denominator": "train_candidate_count",
         "expected_k": expected_k,
         "candidate_count": inputs.candidate_count,
+        "budget": {
+            "ratio": float(ratio),
+            "denominator": "train_candidate_count",
+            "denominator_count": inputs.candidate_count,
+            "rounding": "floor_with_minimum_one",
+            "expected_k": expected_k,
+        },
         "gu_methods": ["GNNDelete"],
-        "strategies": list(SCORE_NAMES),
+        "strategies": list(strategy_order),
         "seeds": seeds,
+        "parameter_scope": required_parameter_scope,
         "store_root": str(selection_store_root),
         "selection_identity": profile["manifest"]["selection_identity"],
         "profile_manifest_path": profile["manifest_path"],
@@ -207,6 +272,9 @@ def build_manifest(
             "selector_and_gu_share_exact_checkpoint": True,
             "test_labels_used_for_selection": False,
             "formal_count_fail_closed": True,
+            "score_bundle_budget_semantics":
+                "prefix_stable_budget_independent",
+            "budget_conditioned_strategies": [],
         },
     }
 
@@ -221,7 +289,23 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--summaries", type=Path, nargs="+", required=True)
     parser.add_argument("--expected-git-sha", required=True)
-    parser.add_argument("--ratio", type=float, default=0.05)
+    parser.add_argument("--ratio", type=float, required=True)
+    parser.add_argument(
+        "--required-seeds",
+        type=int,
+        nargs="+",
+        default=list(MODEL_SEEDS),
+    )
+    parser.add_argument(
+        "--parameter-scope",
+        choices=("last_layer",),
+        default="last_layer",
+    )
+    parser.add_argument(
+        "--strategy-order",
+        nargs="+",
+        default=list(SCORE_NAMES),
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser
 
@@ -236,6 +320,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         summaries=args.summaries,
         expected_git_sha=args.expected_git_sha,
         ratio=args.ratio,
+        required_seeds=args.required_seeds,
+        required_parameter_scope=args.parameter_scope,
+        strategy_order=args.strategy_order,
     )
     _atomic_json(args.output, manifest)
     print(

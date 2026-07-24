@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E8 IF Target-Direct Formal Preflight Audit</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#141b2d; --ink:#e8edf7; --muted:#a9b4c8;
+      --line:#2d3a55; --good:#51d88a; --warn:#f6c85f; --bad:#ff6b7a; --accent:#7aa2ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(145deg,#080d18,#11192a); color:var(--ink);
+      font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif; }
+    main { max-width:1120px; margin:0 auto; padding:40px 24px 72px; }
+    h1 { margin:0 0 6px; font-size:34px; letter-spacing:-.02em; }
+    h2 { margin:38px 0 14px; font-size:22px; }
+    p, li { color:var(--muted); }
+    code { color:#d9e4ff; background:#0c1426; padding:2px 5px; border-radius:5px; }
+    a { color:#9bb8ff; }
+    .meta { color:var(--muted); margin-bottom:22px; }
+    .verdict { background:linear-gradient(135deg,#281925,#1b2132); border:1px solid #6e3544;
+      border-left:5px solid var(--bad); border-radius:12px; padding:18px 20px; }
+    .verdict strong { color:var(--bad); }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:15px; }
+    .card b { display:block; font-size:22px; color:var(--ink); }
+    .good { color:var(--good); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+    table { width:100%; border-collapse:collapse; background:rgba(20,27,45,.85); }
+    th, td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+    th { color:#d9e4ff; background:#182238; }
+    td { color:var(--muted); }
+    ul, ol { padding-left:22px; }
+    .note { border-left:4px solid var(--accent); padding:8px 14px; background:#101a2c; }
+    footer { margin-top:42px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); }
+    @media (max-width:760px) { .grid { grid-template-columns:1fr; } table { font-size:13px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>E8 IF Target-Direct Formal Preflight Audit</h1>
+  <div class="meta">2026-07-24 · Status: <strong class="warn">preparation PASS</strong> /
+    <strong class="bad">formal execution NO-GO</strong></div>
+
+  <section class="verdict">
+    <strong>Verdict:</strong> the updated target-direct lane is prepared and locally validated,
+    but no formal experiment was started. The active SSH checkout is clean
+    <code>main@fb0d9a33</code>; the preparation line, including this dual-budget revision, remains unmerged. The runner has no GPU,
+    no accepted <code>gnn_20</code>, and no approved 70/10/20 processed profiles.
+  </section>
+
+  <div class="grid">
+    <div class="card"><b class="good">242 passed</b>Expanded targeted tests; 1 existing warning</div>
+    <div class="card"><b>306 candidate cells</b>3 datasets × 3 seeds × 17 selectors × 2 ratios; not authorized</div>
+    <div class="card"><b class="bad">0 launched</b>No formal gate or matrix job</div>
+  </div>
+
+  <h2>Contract disposition</h2>
+  <table>
+    <tr><th>Contract</th><th>Prepared behavior</th><th>Status</th></tr>
+    <tr><td>Matrix</td><td>Candidate scope: Cora/CiteSeer/PubMed × 42/212/2024 × 17 selectors × ratios 1%/5% = 306 cells; expansion not authorized</td><td class="good">PASS</td></tr>
+    <tr><td>Split vs budget</td><td><code>70/10/20</code> prevents test leakage; <code>{0.01,0.05}</code> are deletion ratios and cannot replace the split</td><td class="good">PASS</td></tr>
+    <tr><td>Split implementation</td><td>Import-safe <code>utils/node_split.py</code> is shared by native OpenGU preprocessing and target-direct staging; the formal layer retains materialization/verification and evidence identity</td><td class="good">PASS</td></tr>
+    <tr><td>Budget</td><td>Per ratio derive <code>max(1,floor(r×Ntrain))</code>; expected Cora 18/94, CiteSeer 23/116, PubMed 138/690</td><td class="good">PASS</td></tr>
+    <tr><td>White-box identity</td><td>Selection and GNNDelete bind the same GCN architecture and exact checkpoint hashes</td><td class="good">PASS</td></tr>
+    <tr><td>Scope</td><td><code>last_layer</code> only; <code>all_trainable</code> absent from config and recipes</td><td class="good">PASS</td></tr>
+    <tr><td>Cache</td><td>Fresh <code>target_direct_formal_v2</code> identities; one immutable ScoreBundle shared by current prefix-stable methods, with distinct ratio-conditioned Selection recipes</td><td class="good">PASS</td></tr>
+    <tr><td>Formal start</td><td>Requires accepted clean pinned main, GPU, environment, profiles, and SyncMate acceptance</td><td class="bad">BLOCKED</td></tr>
+  </table>
+
+  <h2>Prepared implementation</h2>
+  <ul>
+    <li>One deterministic split implementation shared by native OpenGU and target-direct, with explicit ratios and either a split seed or caller Generator; the no-local-RNG path preserves native global-RNG behavior.</li>
+    <li>A thin formal profile layer retaining canonical paths, manifests, hashes, disjoint/exhaustive masks, and Selection candidate identity without owning a second split algorithm.</li>
+    <li>9 bounded Selection recipes; each produces both ratios from one immutable ScoreBundle and preserves cold/warm evidence for both.</li>
+    <li>2 Cora/seed42/degree gate recipes, one for 1% and one for 5%.</li>
+    <li>18 candidate downstream dataset/seed/ratio recipes, 68 artifacts each (306 cells / 1,224 artifacts total), with execution explicitly unauthorized.</li>
+    <li>Per-method cold timing, shared 17-way ScoreBundle time, warm read, GPU peak,
+      failure state, Selection Artifact identity, and exact checkpoint provenance.</li>
+    <li>Ratio-specific manifest/config identity; any later authorized stage must resume the accepted degree cell for that same ratio.</li>
+  </ul>
+  <p>Fresh roots are isolated under
+    <code>results/cache_v2/target_direct_formal_v2</code> and
+    <code>results/runs/target_direct_formal_v2</code>.</p>
+
+  <h2>Git state</h2>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Preparation branch</td><td><code>codex/fix-target-direct-formal-orchestration-20260724</code></td></tr>
+    <tr><td>Original audited parent</td><td><code>41708162a4f3e2c4fd89c30c47b6b35feb1b8d75</code></td></tr>
+    <tr><td>Current local/origin/SSH main</td><td><code>fb0d9a332c4086e98c6c988d6a02851a8d7a2b79</code></td></tr>
+    <tr><td>Implementation commits</td><td><code>a4db487</code>, <code>ffb474c</code>, <code>47569f9</code></td></tr>
+    <tr><td>Preflight report commits</td><td><code>27690db</code>, <code>264b389</code></td></tr>
+    <tr><td>Merge/push by this task</td><td>No</td></tr>
+  </table>
+  <p>A read-only overlap audit found no newer-main edits to the target-direct modules,
+    formal config, SyncMate controller, or tests. Explicit Git acceptance is still required.</p>
+  <p>This report is a pre-integration audit with a fixed temporal boundary. After
+    repository closeout, Git reachability and the final closeout report—not this
+    historical “unmerged” state—are authoritative for acceptance.</p>
+
+  <h2>Validation</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Dual-budget focused suite</td><td><strong class="good">197 passed</strong></td></tr>
+    <tr><td>Final expanded suite</td><td><strong class="good">242 passed, 1 warning in 10.73 s</strong></td></tr>
+    <tr><td>Shared split/native/target-direct/provider suite</td><td><strong class="good">28 passed</strong></td></tr>
+    <tr><td>Compilation / diff</td><td>PASS / PASS</td></tr>
+    <tr><td>Local formal preflight</td><td>Correctly blocked on branch/path/profile/local-GPU conditions</td></tr>
+    <tr><td>Canonical GU dry-runs</td><td>Both 1% and 5% correctly blocked because real profile/checkpoint/manifest/Selection evidence is absent</td></tr>
+    <tr><td>Candidate expansion</td><td>Correctly blocked as unauthorized and requires both ratio gates</td></tr>
+    <tr><td>SyncMate smoke</td><td>PASS; 3/3 disposable artifacts verified and temporary root cleaned</td></tr>
+  </table>
+
+  <h2>SSH and SyncMate readiness</h2>
+  <table>
+    <tr><th>Check</th><th>Observation</th><th>Verdict</th></tr>
+    <tr><td>Git</td><td>Clean <code>main...origin/main@fb0d9a33</code></td><td class="good">PASS</td></tr>
+    <tr><td>GPU</td><td><code>No devices were found</code></td><td class="bad">BLOCK</td></tr>
+    <tr><td>gnn_20</td><td>Expected interpreter absent</td><td class="bad">BLOCK</td></tr>
+    <tr><td>Raw data</td><td>Canonical Cora/CiteSeer/PubMed caches present</td><td class="good">PASS</td></tr>
+    <tr><td>Processed profiles</td><td>No approved 70/10/20 pairs/manifests</td><td class="bad">BLOCK</td></tr>
+    <tr><td>Remote SyncMate</td><td>Runner <code>gpu4090</code> configured</td><td class="good">PASS</td></tr>
+    <tr><td>Local SyncMate</td><td>Collector <code>local-gu-controller</code> configured</td><td class="good">PASS</td></tr>
+    <tr><td>Transport dry-run</td><td>Fails at missing remote <code>gnn_20</code>; nothing collected</td><td class="bad">BLOCK</td></tr>
+  </table>
+
+  <h2>Literature-only rationale for last-layer scope</h2>
+  <p class="note">This is a feasibility rationale, not evidence that last-layer and
+    all-parameter influence are equivalent on these GCNs.</p>
+  <ul>
+    <li><a href="https://proceedings.mlr.press/v70/koh17a.html">Koh &amp; Liang (ICML 2017)</a>:
+      scalable IF still depends on gradients and Hessian-vector products.</li>
+    <li><a href="https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html">Pruthi et al. (NeurIPS 2020)</a>:
+      TracIn explicitly uses layer cherry-picking as a scaling mechanism.</li>
+    <li><a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/d07022783ff6f7bf7a288c207b7dcbd1-Abstract-Conference.html">Yeh et al. (NeurIPS 2022)</a>:
+      all-parameter tracing is often infeasible and last-layer selection is common, but last-layer
+      influence can suffer cancellation in language models.</li>
+    <li><a href="https://aclanthology.org/2021.emnlp-main.808/">FastIF (EMNLP 2021)</a>:
+      standard IF cost scales poorly and needs search/IHVP approximations.</li>
+    <li><a href="https://arxiv.org/abs/2112.03052">Scaling Up Influence Functions</a>:
+      Arnoldi approximation is introduced to reach full-size Transformers.</li>
+  </ul>
+  <p>The formal claims are therefore limited to the reviewed <code>last_layer</code>
+    target-direct estimators. Any future all-parameter study requires a separate
+    cost/approximation contract and fresh Cache V2 identity.</p>
+
+  <h2>Exact blockers and continuation</h2>
+  <ol>
+    <li>Accept the preparation branch, including this dual-budget revision, through the recorded Git workflow.</li>
+    <li>Restore a visible accepted GPU and the exact <code>gnn_20</code> interpreter.</li>
+    <li>Stage and verify all three 70/10/20 profiles before timing.</li>
+    <li>Run Cora/seed42 Selection, collect five evidence artifacts, and verify one shared ScoreBundle plus both ratios' cold/warm projections.</li>
+    <li>Run the canonical GNNDelete dry-run separately for the real 1% and 5% manifests.</li>
+    <li>Run and accept the 4-artifact 1% degree gate, then the separate 4-artifact 5% degree gate.</li>
+    <li>Stop after canary acceptance unless the user explicitly authorizes the 306-cell candidate expansion; if authorized, run ratio-specific stages through SyncMate with checksum and provenance acceptance.</li>
+  </ol>
+
+  <footer>Source of truth:
+    <code>reports/target_direct_formal_preflight_AUDIT_REPORT.md</code>.
+    No old public-split, surrogate, fixed-k=7, or wrong-budget artifact is a formal input.</footer>
+</main>
+</body>
+</html>

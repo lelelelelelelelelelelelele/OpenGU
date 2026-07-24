@@ -11,8 +11,10 @@ from experiments.bc_target_v2.recipe import (
 )
 
 
-ALGORITHM_VERSION = "target-direct-opengu-gcn-score-bundle-v1"
+ALGORITHM_VERSION = "target-direct-opengu-gcn-score-bundle-v2"
 SCORE_FAMILY = "target_direct_opengu_gcn_selection_score_bundle"
+APPROVED_BUDGET_RATIOS = (0.01, 0.05)
+SCORE_BUDGET_SEMANTICS = "prefix_stable_budget_independent"
 
 
 def build_recipe(
@@ -57,5 +59,12 @@ def build_recipe(
         "white_box": True,
         "selector_and_gu_share_exact_checkpoint": True,
         "target_checkpoint": dict(target_checkpoint),
+        "budget_projection": {
+            "semantics": SCORE_BUDGET_SEMANTICS,
+            "supported_ratios": list(APPROVED_BUDGET_RATIOS),
+            "denominator": "train_candidate_count",
+            "rounding": "floor_with_minimum_one",
+            "budget_conditioned_strategies": [],
+        },
     }
     return ArtifactRecipe(fields)
