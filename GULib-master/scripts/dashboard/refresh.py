@@ -285,10 +285,13 @@ TEMPLATE = r'''<!doctype html>
     display:grid;place-items:center;font-size:12px;color:#04101f;margin-top:1px;line-height:1}
   .item.done .box{background:var(--ok);border-color:var(--ok);font-weight:800}
   .item.wip .box{background:var(--accent);border-color:var(--accent);font-weight:800}
-  .item .txt{flex:1}
+  .item .txt{flex:1;min-width:0}
   .tid{color:var(--accent);font-weight:750;font-size:12px;font-family:ui-monospace,Consolas,monospace}
   .item.wip .tid{color:var(--accent)}
-  .sub{color:var(--muted);font-size:11.5px;white-space:nowrap}
+  .item .task,.item .sub,.item code,.item .ref{
+    overflow-wrap:anywhere;word-break:break-word}
+  .sub{display:block;color:var(--muted);font-size:11.5px;
+    white-space:normal;margin-top:4px;line-height:1.4}
   .item.done .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#475061}
   .item.done .tid{color:var(--muted)}
   .badge{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--warn);
@@ -385,8 +388,8 @@ function render(){
       const mark = it.state==='done'?'✓':(it.state==='wip'?'◐':'');
       list.appendChild(elem('div',cls,
         '<span class="box">'+mark+'</span>'+
-        '<span class="txt"><span class="tid">'+esc(it.id)+'</span> '+it.task+
-        (it.label?' <span class="sub">'+it.label+'</span>':'')+'</span>'+
+        '<span class="txt"><span class="task"><span class="tid">'+esc(it.id)+'</span> '+it.task+'</span>'+
+        (it.label?'<span class="sub">'+it.label+'</span>':'')+'</span>'+
         (it.blocked?'<span class="badge">★ GPU</span>':'')));
     });
     col.appendChild(list);
