@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-07-24
+> Last updated: 2026-07-25
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -21,14 +21,11 @@
 
 | 维度 | 状态 | 原因 / 细节 | 权威出处 |
 |---|---|---|---|
-| **数据** | 🟢 cora 全+双备份 / arxiv 6-cell pilot（已核实） | cora 460（`ablating/` 460 + `4090/` 360 两份）+ D:/F: 备份，5 seed 无缺口。arxiv=6 cell（GIF/GNNDelete×{random,tracin,im}，seed42，r0.01）——**服务器权威 journal 核实只完成 6、全在本地、nothing stranded**；2 空壳（GIF_hybrid/GraphEraser）=中断未完成，T2/T3/r0.05/degree/pagerank 从没跑 | server journal 存档 `results/_journal/archive/`；`_phase_b_aggregate.csv` |
-| **环境** | 🟡 本地分析就绪 / SSH GPU 与 `gnn_20` 未挂载 | SSH、Git 与 `/autodl-fs/data` 正常，磁盘约 196G 可用；但 2026-07-24 复测 `nvidia-smi` 仍返回 `No devices were found`，预期 `/root/miniconda3/envs/gnn_20/bin/python` 也缺失。当前容器只能做 Git/文件操作，恢复 GPU 与 accepted env 前不得启动 formal gate | 本次 SSH 实测；`reports/target_direct_selection_PREPARATION_REPORT.md` |
-| **部署边界** | 🟢 SSH 同级目录已收口 | `/autodl-fs/data` 只保留 `.sys`、`.gitignore`、`OpenGU`；7 个证据树的 6952 个文件迁入 active checkout ignored archive，逐文件 SHA-256 全通过，2 个空壳删除。runner 已对 active checkout 外输出 fail closed | `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}` |
-| **数据安全** | 🟢 已多处备份 | 服务器有完整原件；本地备份 `D:\backups\OpenGU_GULib\2026-06-15\` + `F:\…`（2482 文件校验通过） | 备份 MANIFEST |
-| **代码** | 🟢 target-direct 修正已验收并复核 | 旧 run 固定 `main@1c83bb4`，artifact/provenance 有效但科学身份降级。严格白盒修正已由 merge commit `71076bc` 合入 `main`：ScoreBundle 与 GU 绑定同一 checkpoint/state hash，真实 expected-k 与 candidate fail closed。2026-07-24 复核套件 `316 passed`；主矩阵固定 `last_layer`，`all_trainable` 已延期且不进入本轮配置/排期 | git；`reports/target_direct_selection_PREPARATION_REPORT.md` |
-| **L8 修复** | 🟢 代码已修 / 🔴 数据仍坏 | 写回逻辑 `d674f62` 已在 HEAD（**不用合分支**）；数据坏是服务器 **stale `.pyc`** → 只需清缓存重跑（见 E2） | `limitations.md` L8 |
-| **paper** | 🟡 thesis 站得住 / 有 rebuttal 硬伤 | contribution = audit + 异质性 + fingerprint，**未被 degree 证伪**（§2 C1）。这轮 = 换主指标 retrain gap + 压异质性，thesis 内不改写。两道必答题：① vs degree ② citeseer/arxiv scope（L6/L7，需租服务器补）。§2 数字硬伤待 caveat | 记忆 `paper-correctness-liabilities`；§2/§3 |
-| **大方向** | 🟡 已厘清 | **不是"rebuttal vs 重投"二选一**：先备 rebuttal（thesis 内，§3）；不中再按 [`RESUBMISSION_BLUEPRINT.md`](../../report/paper/RESUBMISSION_BLUEPRINT.md) 重投+reframe。别在 rebuttal 里改 thesis | §3 |
+| **研究证据** | 🟡 Cora / CiteSeer 可用；arxiv 仍是 pilot | Cora 主矩阵与 CiteSeer E1（50/50）已接受；arxiv 仅 6-cell T1，不能支撑跨数据集强结论 | `config_inventory.html`；E1 / E5 |
+| **科学身份** | 🟡 旧 153-cell 仅是迁移筛查 | public-split、exact-k=7 的 GateGCN-surrogate→OpenGU-GCN 结果可留作 L1 engineering screen，**不能**支撑 target-direct 白盒或 1%/5% 预算结论 | `reports/target_direct_selection_PREPARATION_REPORT.{md,html}` |
+| **正式运行** | 🔴 修正已验收；formal gate 受环境阻断 | target-direct 链已进入 `main`；SSH GPU、`gnn_20` 与 70/10/20 processed profiles 恢复前，不启动正式 gate | E8；`reports/target_direct_selection_PREPARATION_REPORT.md` |
+| **paper** | 🟡 thesis 锁定；关键 liabilities 待关闭 | 本轮维持 *systematic audit + extreme heterogeneity + fingerprint*；需回应 degree 比较、数据集 scope，并以重跑结果关闭 L8/K5 等数字风险 | §2 / §3；`PAPER_LIABILITIES_MAP.md` |
+| **当前关口** | 🟡 E8 双预算 gate 为首要恢复项 | 环境恢复后先跑 Cora/seed42/degree 的 1% 与 5% gate；随后 E2 collateral redo、E3 K5 anchor，再回填写作与图表 | E8 → E2 / E3；§4 / §5 |
 
 ---
 
@@ -54,6 +51,12 @@
 ---
 
 ## 4. 排序 / 依赖（章法 —— 先看这张，别乱序开工）
+
+### P0 — Init 文档体系重设（2026-07-26 上午首项）
+
+| ID | 任务 | 目的 / 验收 | 依赖 | 状态 |
+|---|---|---|---|---|
+| **I0** | **重设 agent init 文档体系**：根 `AGENTS.md` 成为唯一实质初始化入口；根 `CLAUDE.md` 仅保留指向 `AGENTS.md` 的兼容指针；逐份审计并收敛子目录 `CLAUDE.md`，只在确有目录级风险的地方迁为精简的局部 `AGENTS.md`。 | 先完成读取路径与信息 owner 审计，再迁移；验收为：① 当前状态只在 dashboard；② 历史/证据只在其权威报告或归档；③ Git、数据集、缓存、正式实验等硬约束各有唯一 owner；④ 任务按需加载而非初始全文加载；⑤ 全仓引用与链接校验通过。**不在本任务中改写实验语义或删除证据。** | 无 GPU；Git 收口遗留与正式实验可并行 | ☐ **P0 / 最高优先级** |
 
 ```
 E4 GraphRevoker 修复 + 整 method 重跑（✅ GCN/GAT 四策略五 seed，40/40）──► §5.2 GR×GAT wedge
@@ -89,6 +92,10 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - **K5 formal lane（2026-07-22 锁定）**：注册 gate=`Cora/GCN/GraphRevoker/seed111/k=5`，先执行 `rerun_cora_noise_anchor.py --gate-only --expected-git-sha <full-sha>`；只有 gate manifest 的 SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256 全部匹配，才允许用同一 SHA 加 `--resume` 扩展剩余 59 cells。runner 对“无 gate 直接全跑”必须 fail closed。
 - **A5 当前决定**：active 上五段 dry-run 为 `50 + 20 + 80 + 20 + 20 = 190/190 would_run`，不存在旧结果误跳过；完成 active 剩余 Git hygiene 后直接走 active formal lane。此前误建且 0 产物的 A5 worktree 不作为执行路径。
 - **小图 Selection 数据合同（2026-07-21）**：public 17-method benchmark 只从 active checkout 的 `data/raw/{cora,citeseer,pubmed}` 读取，必须已有八个 raw 文件与 `processed/data.pt`，禁止自动下载/运行时加工；OpenGU integrated Selection 只从 `data/processed/{transductive,inductive}` pickle 读取。public split 与 OpenGU 80/20 split 不得混称。该合同已固化到根 `AGENTS.md`（所有 agent 强制规则）和 `CLAUDE.md`（SSH 操作规则）；shared/worktree/experiment checkout 不得作为 dataset root，既有 source-dataset 副本已在验证后清理。
+
+#### Git 收口遗留待办（2026-07-25）
+
+- [ ] **GIT-LOCAL-1 — 删除已注销的 E8 物理残留目录**：目标仅为 `C:\Users\ADMIN\.codex\worktrees\b8ad\OpenGU`。该路径已不在 `git worktree list`，`codex/fix-target-direct-formal-orchestration-20260724` 已由 `git branch -d` 删除，primary `E:\project\OpenGU` 已回到 clean `main`；但 Windows 仍报告其中 `GULib-master` 被外部进程占用。待锁释放后，重新确认精确 resolved path、非 reparse point、未注册为 worktree、非 primary/SSH/evidence 路径，再仅删除该物理残留。**不得触碰**同名但独立的 `E:\project\OpenGU-worktrees`：它含 2026-07-22 历史 Git bundles，需单独审计与授权。
 - active 已补齐三套 public raw/PyG cache 与 Cora/CiteSeer canonical 80/20 pickle；PubMed canonical 80/20 pair 尚无可信历史副本。路径、逐文件 SHA-256、聚合 source fingerprint 与 split count 由 runner 写入每个 cold/warm summary。
 - **一次性 GT 特例（2026-07-22）**：`9240b9a` 的 SSH public 17-output `9/9` 矩阵作为本 benchmark 的权威 GT 接受，不再重跑。依据是旧 shared 三套 public cache 的 9 个有效输入逐文件等于 active、ScoreBundle `produce()` 与两份 scorer core 在后续提交中未变、cold/warm/GPU/failure 证据已完整。该特例只接受 v3.0 result payload 与分析结论；不得把旧路径改称 active-root、把旧 cache 当 v3.1 exact hit，或扩展到 OpenGU 80/20 / GU outcome。未来新运行仍严格走 active canonical contract。
 - **小图 Selection→GU 旧矩阵（2026-07-22；2026-07-23 重分类）**：clean SSH `main@1c83bb4` 上的 153 cells / 612 artifacts / 0 failures 与 SHA-256 仍是有效工程证据，但 scientific identity 仅为 public-split、exact-k=7、GateGCN-surrogate→OpenGU-GCN target 的 L1 transfer screen。它不回答 target-direct 白盒与真实 1%/5% 预算。新正式链固定 70/10/20 无泄漏 validation target、同一 target checkpoint，并按每个 ratio 独立计算 `k=max(1,floor(ratio*train candidates))`；见 `reports/target_direct_selection_PREPARATION_REPORT.{md,html}`。
@@ -97,7 +104,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 |---|---|---|---|---|---|
 | **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **远端 40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0）· ◐ **本地归档待闭环**（总状态 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`；seed42 报告 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
 | **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
-| **E2** ★ | **L8 redo**：清 `__pycache__/*.pyc` + 重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 别动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ |
+| **E2** ★ | **L8 redo**：远端 `__pycache__/*.pyc` 已清；重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 未动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ 2026-07-25 SSH 已清 138 个 `__pycache__` / 662 个 `.pyc`；待 GPU/`gnn_20` 恢复后执行 120 cell |
 | **E3** | **重建并计算 ΔF_noise anchor**：先在 clean SSH main、固定 full SHA、RTX 4090 上生成 fresh V2 K5 matrix；注册 `GraphRevoker/GCN/seed111` 1-cell gate，PASS 后同 SHA resume 剩余 59 cells。随后本地把 K5 `method_perf_before/f1_after` 与主矩阵口径核对并计算 ΔF_noise / `relative_f1_drop` sanity。⚠ K5 seed(111…)≠主矩阵 seed(42…)，跨 seed 只允许均值级近似并写入 caveat | `experiments/baseline_k5/rerun_cora_noise_anchor.py` | 1-cell gate + 59-cell expansion；再离线 join | C4 / L4 | ◐ runner gate contract 就绪；SSH dirty/GPU 阻断，0/60 formal cells |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
