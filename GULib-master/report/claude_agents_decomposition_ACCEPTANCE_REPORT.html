@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Root CLAUDE.md Decomposition and AGENTS Placement Audit</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#596579; --line:#dbe2ea; --bg:#f6f8fb; --card:#fff; --good:#0d6b45; --warn:#975a00; --bad:#ae2e24; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.55 Inter,Segoe UI,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+    main { max-width:1240px; margin:0 auto; padding:42px 24px 64px; }
+    header, section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:28px; margin:18px 0; box-shadow:0 1px 2px #17203308; }
+    h1,h2 { margin:0 0 12px; line-height:1.22; } h1 { font-size:30px; } h2 { font-size:21px; } p { margin:8px 0; }
+    .meta { color:var(--muted); } .verdict { color:var(--good); font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(225px,1fr)); gap:12px; margin-top:16px; }
+    .tile { border-left:4px solid #3c79c9; background:#f7faff; padding:12px 14px; border-radius:7px; }
+    table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; } th,td { border:1px solid var(--line); text-align:left; vertical-align:top; padding:10px; } th { background:#eef3f8; } code,pre { background:#f1f4f7; border-radius:5px; } code { padding:2px 4px; } pre { padding:14px; white-space:pre-wrap; overflow:auto; }
+    .yes { color:var(--good); font-weight:700; } .move { color:var(--warn); font-weight:700; } .remove { color:var(--bad); font-weight:700; }
+    ul { margin:8px 0 0; padding-left:22px; } @media (max-width:720px) { main{padding:20px 12px} header,section{padding:18px} table{font-size:12px} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="meta">2026-07-26 · status: accepted-as-migration-inventory</p>
+    <h1>Root CLAUDE.md Decomposition and AGENTS Placement Audit</h1>
+    <p class="verdict">ACCEPTED as a migration inventory; not yet an instruction-file replacement.</p>
+    <p>The 307-line root document mixes stable agent constraints, formal-experiment contracts, live or historical research state, and old command/agent hints. The audit covers all 13 substantive blocks.</p>
+  </header>
+
+  <section>
+    <h2>Target ownership</h2>
+    <div class="grid">
+      <div class="tile"><strong>Root AGENTS.md</strong><br>Stable repository purpose, navigation, execution boundaries, evidence invariants, compact Git rule.</div>
+      <div class="tile"><strong>experiments/AGENTS.md</strong><br>Formal SSH lane, fixed-SHA gate, dataset/preflight/result identity, matrix runner rules.</div>
+      <div class="tile"><strong>Local instructions</strong><br>Narrow cache, dashboard, and SyncMate implementation rules.</div>
+      <div class="tile"><strong>Docs / self / reports</strong><br>Method design, runbooks, active state, historical findings, human evidence.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Disposition of all 13 root blocks</h2>
+    <table>
+      <thead><tr><th>#</th><th>Block</th><th>Keep?</th><th>Destination</th><th>Decision</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Project Overview</td><td class="yes">Rewrite</td><td>Root AGENTS</td><td>Keep research question and evidence framing; drop volatile counts.</td></tr>
+        <tr><td>2</td><td>Live Dashboard</td><td class="yes">Compress</td><td>Root pointer + dashboard-local rules</td><td>Root names WORKPLAN only; local dashboard document owns the table.</td></tr>
+        <tr><td>3</td><td>Git Workflow</td><td class="yes">Rewrite</td><td>Root AGENTS</td><td>Use compact approved Git rule; migrate callers before deleting duplicate workflow doc.</td></tr>
+        <tr><td>4</td><td>Formal Remote Execution Lane</td><td class="yes">Preserve meaning</td><td>experiments/AGENTS</td><td>Formal SSH, accepted-main, full SHA, worktree criteria, deployment boundary.</td></tr>
+        <tr><td>5</td><td>Canonical Dataset Location</td><td class="yes">Preserve meaning</td><td>experiments/AGENTS</td><td>Formal dataset identity and preflight are experiment evidence, not root detail.</td></tr>
+        <tr><td>6</td><td>Commands and Phase-B Runner</td><td class="move">Partial</td><td>Runbook / experiments</td><td>Keep current entry points only. “No formal test suite exists” is stale.</td></tr>
+        <tr><td>7</td><td>Architecture</td><td class="yes">Split</td><td>Root summary + architecture docs</td><td>Root needs only minimal flow/map; do not copy duplicated pipeline bullet.</td></tr>
+        <tr><td>8</td><td>Dependencies / Environment</td><td class="yes">Compress</td><td>Root AGENTS</td><td>Keep full gnn interpreter and CPU boundary; versions remain in requirements.</td></tr>
+        <tr><td>9</td><td>Important Notes</td><td class="move">Split</td><td>Root / experiment / local cache docs</td><td>Keep config import side effect; do not retain blanket destructive cleanup advice.</td></tr>
+        <tr><td>10</td><td>Status & Bottlenecks</td><td class="remove">Remove from root</td><td>Dashboard / limitations / archives</td><td>It admits it has drifted and must not compete with live state.</td></tr>
+        <tr><td>11</td><td>Phase-B Toolkit</td><td class="move">Runbook only</td><td>Document map</td><td>Keep current scripts only; old redo shell script is missing.</td></tr>
+        <tr><td>12</td><td>Research Context / Storage</td><td class="move">Split</td><td>self, docs, experiments</td><td>Keep only Cache V2 and AutoReport evidence boundaries at root.</td></tr>
+        <tr><td>13</td><td>Document Workflow / Slash Commands</td><td class="move">Split</td><td>Root rule + local workflow</td><td>JSONL is V3 audit authority; Claude-only slash commands leave shared rules.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Required root evidence boundary</h2>
+    <pre>## Critical Evidence Infrastructure
+
+- `cache_v2/` stores exact, immutable Recipe/Artifact evidence. Dataset loading,
+  split construction, candidate construction, and selection computation belong
+  to the experiment layer; never rename, overwrite, repair, or delete a V2
+  Artifact by hand.
+- AutoReport V3 writes append-only JSONL audit facts. Its Markdown and HTML
+  files are rebuildable projections; change producers or generators, then
+  rebuild, rather than hand-editing either evidence surface.</pre>
+    <p>IF, IM, TracIn, and other method lines remain in <code>文档规划/</code>, <code>self/</code>, and experiment configuration. They are not root policy.</p>
+  </section>
+
+  <section>
+    <h2>Verified drift and broken references</h2>
+    <table>
+      <thead><tr><th>Check</th><th>Result</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>results/experiments/CLAUDE.md</code></td><td class="remove">Missing</td><td>Remove root reference; historical mapping is in dashboard archive.</td></tr>
+        <tr><td><code>self/concordance/HANDOFF.md</code></td><td class="remove">Wrong path</td><td>Use <code>self/related_work/concordance/HANDOFF.md</code>.</td></tr>
+        <tr><td><code>scripts/redo_collateral.sh</code></td><td class="remove">Missing</td><td>Retire table row; current tracked helper is <code>scripts/redo_collateral_if_family.py</code>.</td></tr>
+        <tr><td>V3 AutoReport</td><td class="yes">Confirmed</td><td>JSONL is audit authority; Markdown/HTML are rebuildable projections.</td></tr>
+        <tr><td>Cache V2 boundary</td><td class="yes">Confirmed</td><td>Cache owns exact immutable Recipe/Artifact handling, not experiment computation.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Migration sequence</h2>
+    <ol>
+      <li>Review and approve the root draft, which now includes the two evidence-infrastructure rules.</li>
+      <li>Create and approve <code>experiments/AGENTS_DRAFT.md</code>.</li>
+      <li>Move retained runbook, research, and historical material to its owner; correct broken references.</li>
+      <li>Replace root AGENTS only after draft approval; migrate callers and then delete <code>docs/GIT_WORKFLOW.md</code> in the same accepted work block.</li>
+      <li>Reduce or retire root CLAUDE only after all unique content has an owner.</li>
+    </ol>
+    <p class="meta">No executable experiment, cache, result, remote state, or current instruction file was changed by this audit.</p>
+  </section>
+</main>
+</body>
+</html>
