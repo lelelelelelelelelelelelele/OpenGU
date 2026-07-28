@@ -19,6 +19,7 @@ import torch
 import torch_geometric
 
 from cache_v2 import ProducerVersion
+from cache_v2.index import CacheIndex
 from experiments.bc_target_v2.core import (
     checkpoint_view_indices,
     degree_scores,
@@ -149,6 +150,12 @@ def _validate_args(args: argparse.Namespace) -> None:
     ):
         if not Path(path).expanduser().is_absolute():
             raise ValueError("{0} must be absolute".format(label))
+    cache_root = Path(args.cache_root).expanduser().resolve()
+    selection_cache_root = Path(args.selection_cache_root).expanduser().resolve()
+    if cache_root != selection_cache_root:
+        raise ValueError(
+            "cache_root and selection_cache_root must resolve to the same canonical Cache V2 root"
+        )
 
 
 def _git_provenance(expected_sha: str | None, allow_dirty: bool) -> Dict[str, Any]:
@@ -813,6 +820,9 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         producer_version=ProducerVersion(
             semantic_version=ALGORITHM_VERSION,
             source_fingerprint=code_fingerprint,
+        ),
+        index=CacheIndex(
+            args.cache_root.expanduser().resolve() / "index.sqlite"
         ),
     )
     _synchronize(device)

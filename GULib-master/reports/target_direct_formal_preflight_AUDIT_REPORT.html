@@ -62,7 +62,7 @@
     <tr><td>Budget</td><td>Per ratio derive <code>max(1,floor(r×Ntrain))</code>; expected Cora 18/94, CiteSeer 23/116, PubMed 138/690</td><td class="good">PASS</td></tr>
     <tr><td>White-box identity</td><td>Selection and GNNDelete bind the same GCN architecture and exact checkpoint hashes</td><td class="good">PASS</td></tr>
     <tr><td>Scope</td><td><code>last_layer</code> only; <code>all_trainable</code> absent from config and recipes</td><td class="good">PASS</td></tr>
-    <tr><td>Cache</td><td>Fresh <code>target_direct_formal_v2</code> identities; one immutable ScoreBundle shared by current prefix-stable methods, with distinct ratio-conditioned Selection recipes</td><td class="good">PASS</td></tr>
+    <tr><td>Cache Store</td><td>E8 uses the canonical shared Cache V2 Store at <code>results/cache_v2</code> with one <code>index.sqlite</code> for ScoreBundle and Selection Artifacts; legacy/public/surrogate results are not inputs</td><td class="good">PASS</td></tr>
     <tr><td>Formal start</td><td>Requires accepted clean pinned main, GPU, environment, profiles, and SyncMate acceptance</td><td class="bad">BLOCKED</td></tr>
   </table>
 
@@ -77,8 +77,10 @@
       failure state, Selection Artifact identity, and exact checkpoint provenance.</li>
     <li>Ratio-specific manifest/config identity; any later authorized stage must resume the accepted degree cell for that same ratio.</li>
   </ul>
-  <p>Fresh roots are isolated under
-    <code>results/cache_v2/target_direct_formal_v2</code> and
+  <p>E8 consumes the canonical shared Cache V2 Store at
+    <code>results/cache_v2</code> and its single <code>index.sqlite</code>;
+    the Store is not scoped by experiment, dataset, seed, or stage. Its
+    reviewable, experiment-owned products remain isolated under
     <code>results/runs/target_direct_formal_v2</code>.</p>
 
   <h2>Git state</h2>

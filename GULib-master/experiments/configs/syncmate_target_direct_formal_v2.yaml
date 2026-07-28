@@ -54,8 +54,7 @@ strategy_order:
   - tracin_cp_simple_6
 
 processed_root: data/processed
-score_cache_root: results/cache_v2/target_direct_formal_v2/score
-selection_store_root: results/cache_v2/target_direct_formal_v2/selection
+cache_v2_root: results/cache_v2
 selection_output_root: results/runs/target_direct_formal_v2/selection
 checkpoint_root: results/runs/target_direct_formal_v2/checkpoints
 evidence_root: results/runs/target_direct_formal_v2/evidence
@@ -78,7 +77,6 @@ claims:
   score_bundle_compute_per_dataset_seed: 1
   selection_artifact_identity_is_ratio_conditioned: true
   formal_matrix_scope: last_layer
-  cache_v2_identity: fresh_target_direct_formal_v2_dual_budget
   old_public_or_surrogate_results_reusable: false
   formal_gate_cells: 2
   candidate_full_matrix_cells: 306

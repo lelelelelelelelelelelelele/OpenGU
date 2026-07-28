@@ -296,6 +296,7 @@ class ScoreBundleStore:
         root: Path,
         *,
         producer_version: ProducerVersion,
+        index: Optional[CacheIndex] = None,
         lock_timeout_seconds: float = 30.0,
     ) -> None:
         supplied = Path(root).expanduser()
@@ -307,16 +308,31 @@ class ScoreBundleStore:
             raise ContractValidationError(
                 "producer_version must be ProducerVersion"
             )
-        self.root = supplied
+        self.root = supplied.resolve(strict=False)
         self.producer_version = producer_version
         self.lock_timeout_seconds = float(lock_timeout_seconds)
-        self.index = CacheIndex((self.root / "index.sqlite3").absolute())
+        self._injected_index = index is not None
+        if index is None:
+            self.index = CacheIndex((self.root / "index.sqlite3").absolute())
+        else:
+            if not isinstance(index, CacheIndex):
+                raise ContractValidationError("index must be CacheIndex")
+            index_path = index.database_path.resolve(strict=False)
+            try:
+                index_path.relative_to(self.root)
+            except ValueError as exc:
+                raise PathValidationError(
+                    "injected CacheIndex must resolve below the ScoreBundleStore root"
+                ) from exc
+            self.index = index
         self.producer_call_count = 0
 
     def initialize(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         (self.root / ".locks").mkdir(parents=True, exist_ok=True)
         self.index.initialize()
+        if self._injected_index:
+            self.index.check_schema()
 
     @contextmanager
     def _recipe_lock(self, recipe: ArtifactRecipe) -> Iterator[None]:

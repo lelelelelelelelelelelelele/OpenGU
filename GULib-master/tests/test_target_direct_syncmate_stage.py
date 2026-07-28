@@ -2,9 +2,11 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from experiments.target_direct_v1.recipe import SCORE_NAMES
 from experiments.target_direct_v1 import syncmate_stage as stage_module
+from experiments.target_direct_v1 import run_selection as selection_module
 
 
 GIT_SHA = "a" * 40
@@ -107,6 +109,113 @@ def test_formal_config_freezes_scope_budget_and_excludes_stress():
     assert config["claims"]["candidate_full_matrix_cells"] == 306
     assert config["claims"]["candidate_full_matrix_authorized"] is False
     assert tuple(config["strategy_order"]) == stage_module.FORMAL_STRATEGIES
+    assert "score_cache_root" not in config
+    assert "selection_store_root" not in config
+    assert "cache_v2_identity" not in config["claims"]
+    assert config["paths"]["cache_v2_root"] == (
+        config["repository_root"] / "results" / "cache_v2"
+    ).resolve()
+
+
+def _write_formal_config(tmp_path, mutate):
+    repository_root = tmp_path / "repo"
+    config_path = (
+        repository_root
+        / "experiments"
+        / "configs"
+        / stage_module.CONFIG_PATH.name
+    )
+    config_path.parent.mkdir(parents=True)
+    config = yaml.safe_load(
+        stage_module.CONFIG_PATH.read_text(encoding="utf-8")
+    )
+    mutate(config)
+    config_path.write_text(
+        yaml.safe_dump(config, sort_keys=False), encoding="utf-8"
+    )
+    return config_path, repository_root
+
+
+@pytest.mark.parametrize(
+    "legacy_root",
+    (
+        "results/cache_v2/target_direct_formal_v2/score",
+        "results/cache_v2/cora-seed42",
+    ),
+)
+def test_formal_config_rejects_split_or_stage_cache_roots(
+    tmp_path, legacy_root
+):
+    def mutate(config):
+        config.pop("cache_v2_root", None)
+        config["score_cache_root"] = legacy_root
+        config["selection_store_root"] = legacy_root
+
+    config_path, repository_root = _write_formal_config(tmp_path, mutate)
+
+    with pytest.raises(stage_module.TargetDirectStageError, match="cache_v2_root"):
+        stage_module.load_config(
+            config_path, repository_root=repository_root
+        )
+
+
+@pytest.mark.parametrize(
+    "noncanonical_root",
+    (
+        "results/cache_v2/target_direct_formal_v2",
+        "results/cache_v2/cora-seed42",
+    ),
+)
+def test_formal_config_rejects_cache_root_experiment_or_stage_descendant(
+    tmp_path, noncanonical_root
+):
+    config_path, repository_root = _write_formal_config(
+        tmp_path,
+        lambda config: config.update({"cache_v2_root": noncanonical_root}),
+    )
+
+    with pytest.raises(stage_module.TargetDirectStageError, match="exactly"):
+        stage_module.load_config(
+            config_path, repository_root=repository_root
+        )
+
+
+def test_each_stage_uses_one_canonical_cache_store_root():
+    config = stage_module.load_config()
+    cora = stage_module._stage_paths(config, "cora-seed42")
+    pubmed = stage_module._stage_paths(config, "pubmed-seed2024")
+
+    expected = config["paths"]["cache_v2_root"]
+    assert cora["score_store"] == cora["selection_store"] == expected
+    assert pubmed["score_store"] == pubmed["selection_store"] == expected
+
+
+def test_direct_selection_rejects_unequal_cache_roots(tmp_path):
+    args = selection_module.build_parser().parse_args(
+        [
+            "--dataset",
+            "Cora",
+            "--processed-root",
+            str(tmp_path.resolve()),
+            "--runtime-root",
+            str(tmp_path.resolve()),
+            "--cache-root",
+            str((tmp_path / "score").resolve()),
+            "--selection-cache-root",
+            str((tmp_path / "selection").resolve()),
+            "--checkpoint-path",
+            str((tmp_path / "checkpoint.pt").resolve()),
+            "--output",
+            str((tmp_path / "summary.json").resolve()),
+            "--seed",
+            "42",
+            "--ratio",
+            "0.01",
+        ]
+    )
+
+    with pytest.raises(ValueError, match="same canonical Cache V2 root"):
+        selection_module._validate_args(args)
 
 
 def test_static_stage_artifact_sets_are_exact_and_bounded():
@@ -142,8 +251,7 @@ def test_selection_receipt_binds_cold_warm_checkpoint_and_timings(tmp_path):
     config = stage_module.load_config()
     config["paths"] = dict(config["paths"])
     config["paths"]["selection_output_root"] = tmp_path / "selection"
-    config["paths"]["score_cache_root"] = tmp_path / "score"
-    config["paths"]["selection_store_root"] = tmp_path / "selection-store"
+    config["paths"]["cache_v2_root"] = tmp_path / "cache_v2"
     config["paths"]["checkpoint_root"] = tmp_path / "checkpoints"
     config["paths"]["evidence_root"] = tmp_path / "evidence"
     paths = stage_module._stage_paths(config, "cora-seed42")
