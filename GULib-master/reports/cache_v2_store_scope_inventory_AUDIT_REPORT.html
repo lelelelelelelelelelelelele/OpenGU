@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache V2 Store Scope Inventory Audit</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#141b2d; --ink:#e8edf7; --muted:#a9b4c8; --line:#2d3a55; --good:#51d88a; --warn:#f6c85f; --accent:#7aa2ff; }
+    * { box-sizing:border-box; } body { margin:0; background:linear-gradient(145deg,#080d18,#11192a); color:var(--ink); font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif; }
+    main { max-width:1280px; margin:0 auto; padding:40px 24px 72px; } h1 { margin:0 0 6px; font-size:34px; letter-spacing:-.02em; } h2 { margin:38px 0 14px; font-size:22px; }
+    p, li { color:var(--muted); } code { color:#d9e4ff; background:#0c1426; padding:2px 5px; border-radius:5px; overflow-wrap:anywhere; }
+    .meta { color:var(--muted); margin-bottom:22px; } .verdict { background:linear-gradient(135deg,#13291f,#1b2132); border:1px solid #347151; border-left:5px solid var(--good); border-radius:12px; padding:18px 20px; }
+    .verdict strong { color:var(--good); } table { width:100%; border-collapse:collapse; background:rgba(20,27,45,.85); } th,td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; } th { color:#d9e4ff; background:#182238; } td { color:var(--muted); }
+    .good { color:var(--good); } .warn { color:var(--warn); } ul,ol { padding-left:22px; } .note { border-left:4px solid var(--accent); padding:8px 14px; background:#101a2c; } @media (max-width:760px) { table { font-size:13px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Cache V2 Store Scope Inventory Audit</h1>
+  <div class="meta">2026-07-29 · Status: <strong class="good">inventory complete</strong> / no Store migration or cleanup performed</div>
+  <section class="verdict"><strong>Verdict:</strong> E8 is the target-direct formal consumer of the canonical shared <code>results/cache_v2</code> Store and its <code>index.sqlite</code>. No E8 Cache/Result Artifact exists in the local E8 worktree or SSH active checkout, so no migration, import, deletion, or index repair is needed. The local primary workspace retains two untouched experiment-owned historical ScoreBundle Stores.</section>
+
+  <h2>Scope and method</h2>
+  <ul>
+    <li>Tracked callers/configs were inspected at <code>codex/cache-v2-e8-canonical-root@65885e7</code>.</li>
+    <li>Local primary Store: <code>E:/project/OpenGU/GULib-master/results/cache_v2</code>; its unrelated dirty <code>experiments/AGENTS_DRAFT.md</code> was not read, changed, staged, or copied.</li>
+    <li>SSH active checkout: <code>/autodl-fs/data/OpenGU/GULib-master</code> at <code>main@0566ec75b2a492520b392851be663d27790e9fba</code>; no SSH state was changed.</li>
+    <li>SQLite index contents were read read-only. No payload, header, index row, Legacy cache, config, or run layout was modified.</li>
+  </ul>
+
+  <h2>Physical Store observations</h2>
+  <table>
+    <tr><th>Location / Store</th><th>Index</th><th>Artifact rows</th><th>Payload / header</th><th>Consumer refs</th><th>Notes</th></tr>
+    <tr><td>Local primary <code>bc_target_v2</code></td><td><code>index.sqlite3</code></td><td>Score: 9</td><td>9 / 9</td><td>0</td><td>Experiment-owned B/C ScoreBundle Store</td></tr>
+    <tr><td>Local primary <code>c_target_v1</code></td><td><code>index.sqlite3</code></td><td>Score: 6</td><td>6 / 6</td><td>0</td><td>Experiment-owned C-target ScoreBundle Store</td></tr>
+    <tr><td>Local primary aggregate</td><td>2 indexes, 32 files</td><td>Score: 15</td><td>15 / 15</td><td>0</td><td>No root-level canonical <code>index.sqlite</code></td></tr>
+    <tr><td>Current E8 worktree</td><td>absent</td><td>0</td><td>0 / 0</td><td>0</td><td>No Cache V2 directory</td></tr>
+    <tr><td>SSH active <code>results/cache_v2</code></td><td><code>index.sqlite</code></td><td>Selection: 1</td><td>1 / 1</td><td>0</td><td>Schema v1; SHA-256 <code>c8bb5e5b26a2067907dee06ef4e987b04398a7dbe7eceb5c5b9fa5c3647bed07</code></td></tr>
+    <tr><td>SSH active E8 paths</td><td>absent</td><td>0</td><td>0 / 0</td><td>0</td><td>Neither target-direct Cache nor result root exists</td></tr>
+  </table>
+  <p class="note">The SSH Store also contains <code>trace.jsonl</code>, <code>producer_counter.json</code>, and <code>legacy_freeze.json</code>. Its sole payload is an immutable Selection Artifact.</p>
+
+  <h2>Tracked caller/config classification</h2>
+  <table>
+    <tr><th>Classification</th><th>Entry points / configured root</th><th>Artifact / producer family</th><th>Assessment and risk</th></tr>
+    <tr><td>Canonical formal consumer</td><td><code>target_direct_v1/syncmate_stage.py</code>, <code>run_selection.py</code>, formal YAML → <code>results/cache_v2/index.sqlite</code></td><td>Target-direct V1 ScoreBundle + Cache V2 Selection</td><td>No E8 payload exists. Formal execution remains blocked by clean-main, AutoDL, GPU, and profile gates.</td></tr>
+    <tr><td>Canonical formal consumer</td><td><code>experiments/run.py</code> default and <code>cache_v2_cora_degree_canary.yaml</code> → <code>results/cache_v2/index.sqlite</code></td><td>Generic Cache V2 Selection / degree adapter</td><td>One SSH Selection row is present but is not attributed to a historical caller by this inventory; exact Recipe resolution remains mandatory.</td></tr>
+    <tr><td>Explicit isolated canary</td><td>Gate4 config/script → <code>results/cache_v2/syncmate_gate4</code>; small-selection/GU v1–v5 roots</td><td>Bounded Selection and external-selection GU gates</td><td>No matching live substore was observed. Isolation is intentional and is not a formal default.</td></tr>
+    <tr><td>Experiment-owned Store requiring follow-up</td><td>B/C V2 default <code>results/cache_v2/bc_target_v2</code>; C-target V1 default <code>results/cache_v2/c_target_v1</code></td><td>Historical ScoreBundles; B/C also creates a Selection child Store</td><td>Local rows are 9 and 6, respectively. Both use <code>index.sqlite3</code>; a separate cutover/provenance decision is required.</td></tr>
+    <tr><td>Experiment-owned Store requiring follow-up</td><td>B/C benchmark per-cell root and TracIn's caller-supplied separate score/selection roots</td><td>Benchmark and formal TracIn producers</td><td>Per-run/per-stage shapes prevent intended reuse; no live inspected Store was found.</td></tr>
+    <tr><td>Historical / inactive reference</td><td>Tracked B/C and C-target summaries, prior reports, replay instructions</td><td>Historical Score/Selection evidence</td><td>Provenance only; retain read-only and do not rewrite or import during E8 work.</td></tr>
+  </table>
+
+  <h2>Conclusions and non-actions</h2>
+  <ol>
+    <li>E8 ScoreBundle and Selection Artifacts share one canonical Store/index; <code>results/runs/target_direct_formal_v2</code> is experiment evidence, never a Store.</li>
+    <li>No E8 Cache/Result Artifact exists locally or on SSH active: the no-migration/no-deletion condition is confirmed.</li>
+    <li>All inspected indexes report <code>consumer_refs=0</code>; no consumer claim can authorize migration or cross-store reuse.</li>
+    <li>Repository-wide cutover, Legacy retirement, imports, cache rebuilds, config edits outside E8, GPU execution, merge, push, and deletion are <strong>not implemented</strong>.</li>
+  </ol>
+</main>
+</body>
+</html>
