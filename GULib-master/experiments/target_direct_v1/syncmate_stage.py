@@ -200,11 +200,17 @@ def load_config(
         or claims.get("execution_scope") != "dual_budget_canary_only"
     ):
         raise TargetDirectStageError("formal claim boundary is not frozen")
+    legacy_cache_keys = ("score_cache_root", "selection_store_root")
+    if any(key in value for key in legacy_cache_keys):
+        raise TargetDirectStageError(
+            "legacy split Cache V2 roots are forbidden; use cache_v2_root"
+        )
+    if "cache_v2_root" not in value:
+        raise TargetDirectStageError("cache_v2_root is required")
     resolved = {}
     for key in (
         "processed_root",
-        "score_cache_root",
-        "selection_store_root",
+        "cache_v2_root",
         "selection_output_root",
         "checkpoint_root",
         "evidence_root",
@@ -215,9 +221,11 @@ def load_config(
     expected_processed = (root / "data" / "processed").resolve()
     if resolved["processed_root"] != expected_processed:
         raise TargetDirectStageError("processed_root is not checkout-canonical")
-    for key in ("score_cache_root", "selection_store_root"):
-        if (root / "results" / "cache_v2").resolve() not in resolved[key].parents:
-            raise TargetDirectStageError(key + " must be under results/cache_v2")
+    expected_cache_v2 = (root / "results" / "cache_v2").resolve()
+    if resolved["cache_v2_root"] != expected_cache_v2:
+        raise TargetDirectStageError(
+            "cache_v2_root must resolve exactly to results/cache_v2"
+        )
     for key in (
         "selection_output_root",
         "checkpoint_root",
@@ -262,8 +270,8 @@ def _stage_paths(config: Mapping[str, Any], stage: str) -> Dict[str, Any]:
             for ratio in BUDGET_RATIOS
         },
         "receipt": cell_root / "cell.json",
-        "score_store": Path(config["paths"]["score_cache_root"]) / stage,
-        "selection_store": Path(config["paths"]["selection_store_root"]) / stage,
+        "score_store": Path(config["paths"]["cache_v2_root"]),
+        "selection_store": Path(config["paths"]["cache_v2_root"]),
         "checkpoint": Path(config["paths"]["checkpoint_root"])
         / "{0}_seed{1}_target.pt".format(dataset, seed),
         "manifest": {

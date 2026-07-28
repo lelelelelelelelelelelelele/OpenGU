@@ -8204,6 +8204,13 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
     assert len(full["expected_artifact_paths"]) == 68
 
 
+def test_target_direct_recipe_hash_matches_frozen_config_source():
+    config_path = Path(sm.REPO_ROOT) / sm.TARGET_DIRECT_CONFIG
+    assert sm.TARGET_DIRECT_CONFIG_SHA256 == hashlib.sha256(
+        config_path.read_bytes()
+    ).hexdigest()
+
+
 def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
     tmp_path, monkeypatch
 ):

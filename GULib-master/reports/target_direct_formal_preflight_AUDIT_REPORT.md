@@ -26,7 +26,7 @@ Status: **preparation PASS; formal execution NO-GO**
 | White-box identity | Selection and downstream GNNDelete bind the same OpenGU GCN architecture and exact checkpoint hashes | PASS |
 | Formal parameter scope | `last_layer` only | PASS |
 | `all_trainable` | Deferred by user; absent from formal config and SyncMate recipes | PASS |
-| Cache identity | Fresh `target_direct_formal_v2` ScoreBundle and ratio-conditioned Selection roots; legacy/public/surrogate results are not inputs | PASS |
+| Cache Store | E8 uses the canonical shared Cache V2 Store at `results/cache_v2` with one `index.sqlite` for ScoreBundle and Selection Artifacts; legacy/public/surrogate results are not inputs | PASS |
 | Cross-ratio score semantics | Current 17 prefix-stable methods share one immutable ScoreBundle per dataset/seed; 1%/5% Selection recipes remain distinct; budget-conditioned methods require a separate score recipe | PASS |
 | Selection evidence | One cold 17-way ScoreBundle, cold 1%/5% Selection projection, strict warm reads for both ratios, per-method timing, peak GPU memory, failure state, checkpoint identity | PASS |
 | Downstream evidence | Attack, collateral, predictions, metadata, exact Selection Artifact and checkpoint provenance | PASS |
@@ -56,10 +56,10 @@ executor. It exposes:
   gate runs `--limit 1`, and any later explicitly authorized full stage for that
   ratio must use the same config/fingerprint and resume its accepted degree cell.
 
-Formal roots are isolated under:
-
-- `results/cache_v2/target_direct_formal_v2/{score,selection}`
-- `results/runs/target_direct_formal_v2/{selection,checkpoints,evidence,runtime,gu}`
+E8 consumes the canonical shared Cache V2 Store at `results/cache_v2` and its
+single `index.sqlite`; the Store is not scoped by experiment, dataset, seed,
+or stage. Its reviewable, experiment-owned products remain isolated under
+`results/runs/target_direct_formal_v2/{selection,checkpoints,evidence,runtime,gu}`.
 
 The manifest builder now permits an approved seed subset for a gate/stage while
 still requiring the exact 17-method set. It rejects any summary whose scope is

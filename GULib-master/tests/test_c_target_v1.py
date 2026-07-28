@@ -1,10 +1,18 @@
 import hashlib
+import sqlite3
 from pathlib import Path
 
 import pytest
 import torch
 
 from cache_v2 import ProducerVersion
+from cache_v2.errors import PathValidationError, SchemaVersionError
+from cache_v2.index import CacheIndex
+from cache_v2.selection_materializer import (
+    SelectionArtifactRequest,
+    build_selection_recipe,
+    store_selection_artifact,
+)
 from experiments.c_target_v1.core import (
     affected_nodes,
     build_undirected_adjacency,
@@ -116,6 +124,97 @@ def test_score_bundle_store_cold_warm_and_recipe_mismatch(tmp_path):
             lambda: pytest.fail("mismatched recipe must not reuse the old payload"),
             fail_if_called=True,
         )
+
+
+def test_score_bundle_store_can_share_canonical_index_with_selection_store(
+    tmp_path,
+):
+    root = tmp_path.resolve()
+    candidates = (3, 8, 10)
+    payload = _payload(candidates)
+    recipe = _recipe(payload.candidate_ids_hash)
+    producer = ProducerVersion(
+        semantic_version="test-v1", source_fingerprint=_sha("producer")
+    )
+    canonical_index = CacheIndex(root / "index.sqlite")
+
+    cold = ScoreBundleStore(
+        root, producer_version=producer, index=canonical_index
+    ).get_or_compute(recipe, lambda: payload)
+    assert cold.hit is False
+    assert canonical_index.database_path == root / "index.sqlite"
+
+    selection_producer = ProducerVersion(
+        semantic_version="selection-v1", source_fingerprint=_sha("selection")
+    )
+    selection_recipe = build_selection_recipe(
+        dataset_fingerprint=_sha("dataset"),
+        graph_fingerprint=_sha("graph"),
+        candidate_set_hash=payload.candidate_ids_hash,
+        num_nodes=11,
+        candidate_count=len(candidates),
+        node_id_space="global",
+        strategy="degree",
+        seed=2024,
+        k=2,
+        producer_version=selection_producer,
+        algorithm_version="selection-v1",
+        parameters={"fixture": True},
+        source_score_artifact_id=cold.artifact_id,
+    )
+    selection = store_selection_artifact(
+        root,
+        SelectionArtifactRequest.from_recipe(
+            selection_recipe, selection_producer
+        ),
+        selected_nodes=(3, 8),
+        compute_seconds=0.01,
+    )
+    assert selection.artifact_id.startswith("sel_")
+    assert canonical_index.check_schema() == 1
+
+    warm = ScoreBundleStore(
+        root,
+        producer_version=producer,
+        index=CacheIndex(root / "index.sqlite"),
+    ).get_or_compute(
+        recipe,
+        lambda: pytest.fail("canonical index warm hit must not call producer"),
+        fail_if_called=True,
+    )
+    assert warm.hit is True
+    assert warm.artifact_id == cold.artifact_id
+
+
+def test_score_bundle_store_rejects_injected_index_outside_root(tmp_path):
+    root = (tmp_path / "cache").resolve()
+    external = CacheIndex((tmp_path / "other" / "index.sqlite").resolve())
+
+    with pytest.raises(PathValidationError, match="injected CacheIndex"):
+        ScoreBundleStore(
+            root,
+            producer_version=ProducerVersion(
+                semantic_version="test-v1", source_fingerprint=_sha("producer")
+            ),
+            index=external,
+        )
+
+
+def test_score_bundle_store_rejects_injected_index_with_wrong_schema(tmp_path):
+    root = tmp_path.resolve()
+    index_path = root / "index.sqlite"
+    with sqlite3.connect(index_path) as connection:
+        connection.execute("CREATE TABLE wrong_schema (id INTEGER PRIMARY KEY)")
+    store = ScoreBundleStore(
+        root,
+        producer_version=ProducerVersion(
+            semantic_version="test-v1", source_fingerprint=_sha("producer")
+        ),
+        index=CacheIndex(index_path),
+    )
+
+    with pytest.raises(SchemaVersionError):
+        store.initialize()
 
 
 def test_score_bundle_rejects_ranking_not_derived_from_scores():
