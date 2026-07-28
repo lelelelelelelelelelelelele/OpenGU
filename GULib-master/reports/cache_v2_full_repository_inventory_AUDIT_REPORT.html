@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache V2 Full-Repository Store Inventory Audit</title>
+  <style>
+    :root { color-scheme: light dark; --ink:#172033; --muted:#526070; --paper:#f6f8fb; --card:#fff; --line:#d8e0ea; --good:#075f47; --warn:#9a5b00; --code:#eef2f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.55 Inter,Segoe UI,Arial,sans-serif; }
+    main { max-width:1280px; margin:0 auto; padding:36px 28px 56px; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    h2 { margin:34px 0 12px; font-size:21px; }
+    p, li { max-width:1120px; }
+    .verdict { padding:18px 20px; border-left:5px solid var(--good); background:#e9f8f1; border-radius:6px; font-size:17px; }
+    .note { padding:14px 16px; border-left:4px solid var(--warn); background:#fff7e8; border-radius:6px; }
+    code { background:var(--code); padding:1px 4px; border-radius:3px; overflow-wrap:anywhere; }
+    table { width:100%; border-collapse:collapse; margin:14px 0 22px; background:var(--card); font-size:13px; }
+    th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+    th { background:#e8eef5; font-weight:700; }
+    .num { text-align:right; white-space:nowrap; }
+    .footer { color:var(--muted); font-size:13px; }
+    @media (prefers-color-scheme: dark) { :root { --ink:#e8eef7; --muted:#b2bed0; --paper:#111722; --card:#182131; --line:#38455a; --good:#55d0a2; --warn:#f0b85c; --code:#202c3d; } .verdict { background:#15352b; } .note { background:#402f13; } th { background:#253248; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Cache V2 Full-Repository Store Inventory Audit</h1>
+  <div class="verdict"><strong>Verdict.</strong> E8 is correctly configured as a consumer of the one shared canonical Cache V2 Store, <code>results/cache_v2/index.sqlite</code>. A full read-only inventory found no E8 target-direct Artifact to migrate or remove. Other stores are experiment-owned defaults, isolated canary evidence, or historical archives; none should be cut over, migrated, or deleted without separate approval.</div>
+
+  <h2>Audit boundary</h2>
+  <ul>
+    <li>Code/config: E8 worktree <code>codex/cache-v2-e8-canonical-root</code> at <code>e0bceac1d1ade9dc74bb2f75bdd672919c608515</code>.</li>
+    <li>Local physical state: <code>E:/project/OpenGU/GULib-master</code> at <code>6ef57ce95566161b8137d692893ccbf80391293e</code>; unrelated local user work was preserved.</li>
+    <li>SSH physical state: <code>/autodl-fs/data/OpenGU/GULib-master</code> at <code>0566ec75b2a492520b392851be663d27790e9fba</code>; only two deleted generated SGU pyc files were dirty, and were not repaired.</li>
+    <li>Read-only method: tracked root scan, every <code>index.sqlite</code>/<code>index.sqlite3</code>, local SQLite inspection, and remote header/payload census. No Store or experiment state changed.</li>
+  </ul>
+  <p class="note">The active canonical index checksum is <code>c8bb5e5b26a2067907dee06ef4e987b04398a7dbe7eceb5c5b9fa5c3647bed07</code>. It exactly matches the prior direct CacheIndex inspection: schema v1 and one Selection Artifact. SSH has no SQLite/Python command-line client, so archive rows are enumerated from physical Cache V2 header/payload pairs.</p>
+
+  <h2>Tracked root and consumer map</h2>
+  <table>
+    <thead><tr><th>Classification</th><th>Entrypoint / configuration</th><th>Root</th><th>Reuse and boundary</th></tr></thead>
+    <tbody>
+      <tr><td>Canonical formal</td><td><code>syncmate_target_direct_formal_v2.yaml</code>; target-direct stage and selection runner</td><td><code>results/cache_v2</code></td><td>E8 rejects split/stage-shaped roots and shares one index for Score and Selection. No E8 payload exists.</td></tr>
+      <tr><td>Canonical generic</td><td><code>experiments/run.py</code>; degree canary</td><td><code>results/cache_v2</code></td><td>Generic exact-compatible Cache V2 reuse.</td></tr>
+      <tr><td>Explicit isolated canary</td><td>Gate 4, small-selection v1, GU gates v1–v5</td><td>Named children of <code>results/cache_v2</code></td><td>Versioned canary roots; not E8 consumers.</td></tr>
+      <tr><td>Experiment-owned</td><td>B/C and C-target runners; TracIn and benchmark callers</td><td><code>bc_target_v2</code>, <code>c_target_v1</code>, or caller-supplied roots</td><td>Do not silently fold into canonical storage; owner/recipe compatibility review is required.</td></tr>
+      <tr><td>Historical/inactive</td><td>Local planning/run evidence and SSH peer-layout archive</td><td>Evidence-local roots</td><td>No tracked active runner points at the exact archive paths. Retain unchanged.</td></tr>
+      <tr><td>Outside Cache V2</td><td>Legacy cache clients</td><td><code>results/cache</code>, <code>selection_cache</code>, <code>score_cache</code></td><td>Separate Legacy evidence; untouched.</td></tr>
+    </tbody>
+  </table>
+  <p>The static consumer check found archive-name strings only in the retired-path validator and its tests, not in experiment configuration or runner arguments. An untracked shell command cannot be disproved by source scanning, so historical evidence remains retained.</p>
+
+  <h2>Local full-tree census</h2>
+  <p>The local primary checkout has <strong>17 indexes</strong>, <strong>174 header/payload Artifact pairs</strong>, and <strong>2,555,904 index bytes</strong>. All 17 opened as schema v1; every physical Store is Git-ignored generated evidence.</p>
+  <table>
+    <thead><tr><th>Location</th><th class="num">Indexes</th><th>Artifacts</th><th class="num">Index bytes</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>.planning/cache_v2_selection_materializer_20260714</code> and <code>.planning/tracin_sup_selection_20260720</code></td><td class="num">5</td><td>Selection 3; Score 2</td><td class="num">540,672</td><td>Historical local planning/TracIn evidence</td></tr>
+      <tr><td><code>results/cache_v2/bc_target_v2</code></td><td class="num">1</td><td>Score 9</td><td class="num">180,224</td><td>B/C default <code>index.sqlite3</code></td></tr>
+      <tr><td><code>results/cache_v2/c_target_v1</code></td><td class="num">1</td><td>Score 6</td><td class="num">143,360</td><td>C-target default <code>index.sqlite3</code></td></tr>
+      <tr><td><code>results/runs/gpu4090-gu-20260722/_evidence/full-v5/*/store</code></td><td class="num">9</td><td>Selection 153</td><td class="num">1,585,152</td><td>Frozen full-GU evidence</td></tr>
+      <tr><td><code>results/runs/gpu4090-gu-20260722/_evidence/gate-v5/store</code></td><td class="num">1</td><td>Selection 1</td><td class="num">106,496</td><td>Frozen gate evidence</td></tr>
+    </tbody>
+  </table>
+  <p>The E8 worktree and two other Codex worktrees have zero Cache V2 indexes. Neither the local primary nor E8 worktree contains a target-direct formal Cache or run root.</p>
+
+  <h2>SSH active checkout and archive census</h2>
+  <p>The SSH checkout has <strong>25 indexes</strong>, <strong>196 header/payload Artifact pairs</strong>, and <strong>14,454,784 index bytes</strong>. Exactly one Store is active; the other 24 are contained in the approved archive.</p>
+  <table>
+    <thead><tr><th>Location</th><th class="num">Indexes</th><th>Artifacts</th><th class="num">Index bytes</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><code>results/cache_v2/index.sqlite</code></td><td class="num">1</td><td>Selection 1</td><td class="num">11,177,984</td><td><strong>Active canonical Store.</strong> Shared by E8 configuration, but no E8 target-direct Artifact exists.</td></tr>
+      <tr><td><code>.../OpenGU-cache-v2-rollout/20260717</code></td><td class="num">3</td><td>Selection 3; Score 1; Prediction 1; Evaluation 1</td><td class="num">327,680</td><td>Historical Gate 3/4 rollout evidence</td></tr>
+      <tr><td><code>.../OpenGU-small-selection-gu/20260722</code></td><td class="num">15</td><td>Selection 175</td><td class="num">2,293,760</td><td>Historical v4/v5 full and gate evidence</td></tr>
+      <tr><td><code>.../cache-v2-canary</code></td><td class="num">3</td><td>Selection 3</td><td class="num">319,488</td><td>Historical canary/tamper/recheck evidence</td></tr>
+      <tr><td><code>.../cache-v2-materializer</code></td><td class="num">3</td><td>Selection 11</td><td class="num">335,872</td><td>Historical materializer evidence</td></tr>
+      <tr><th>Archive subtotal</th><th class="num">24</th><th>195</th><th class="num">3,276,800</th><th>No active promotion</th></tr>
+    </tbody>
+  </table>
+  <p>Direct SSH path checks found neither <code>results/cache_v2/target_direct_formal_v2</code> nor <code>results/runs/target_direct_formal_v2</code>.</p>
+
+  <h2>Decision</h2>
+  <ol>
+    <li>E8 shares the canonical Store and index by design.</li>
+    <li>No E8 Artifact requires migration, reconciliation, or deletion.</li>
+    <li>No second active SSH Store exists outside the canonical root; historical Stores are contained in the approved archive.</li>
+    <li>Local B/C and C-target stores remain experiment-owned; any global Store governance needs separate owner approval and compatibility review.</li>
+  </ol>
+  <p class="footer">No Legacy cache cleanup, all-repository cutover, Store migration, Artifact deletion, GPU run, queue action, recipe change, merge, push, or SSH repair was performed.</p>
+</main>
+</body>
+</html>
