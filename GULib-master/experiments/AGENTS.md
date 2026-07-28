@@ -1,8 +1,8 @@
 # Formal Experiment Agent Guide
 
-> Working draft for the future `experiments/AGENTS.md`. Until this draft is
-> reviewed and accepted, the [root agent instructions](../AGENTS.md) remain
-> binding, and this file does not by itself authorize a formal run.
+> Binding directory guidance for formal experiment definitions, gates, reruns,
+> and evidence collection. The [root agent instructions](../AGENTS.md) remain
+> binding; this file adds the experiment-local execution boundary.
 
 ## 1. Scope, Registration, and Authorities
 
@@ -50,7 +50,7 @@ An unregistered experiment must declare, before execution:
 | Baseline | Matched baseline and why it is valid |
 | Evidence | Required artifacts, metrics, and acceptance gate |
 | Identity | YAML or launcher, full Git SHA, dataset/split fingerprint, and cache/artifact identity |
-| Recovery | Invalidating failures, isolation boundary, and restart procedure |
+| Recovery | Invalidating failures, runtime/output boundary, and restart procedure |
 
 Register a new experiment, or an explicit extension of an existing one, when
 the claim, dataset or split, method semantics, baseline, core metric, or matrix
@@ -89,10 +89,13 @@ cd /autodl-fs/data/OpenGU/GULib-master
 git status --short --branch
 git rev-parse HEAD
 python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
+python scripts/validate_retired_ssh_references.py
+# Formal GPU gates and matrices require an enumerated GPU; never fall back to CPU.
+nvidia-smi -L | grep -q . || { echo "No GPU available; formal GPU run blocked."; exit 1; }
 ```
 
 Record and compare the full SHAs; a short SHA is not sufficient provenance.
-Do not create another worktree merely because a run is formal.
+If the GPU check fails, do not start a formal GPU gate or matrix.
 
 ## 4. Minimal Gate Before Full Expansion
 
@@ -120,6 +123,8 @@ The gate must exercise the fragile parts of the real lane, including:
 Only expand the same registered matrix after the gate passes. A failure stops
 the expansion. Local tests, dry runs, and disposable smoke checks remain useful
 pre-gate validation, but none substitutes for the formal minimal gate.
+Reuse accepted gate evidence while its full registered identity remains valid;
+do not force a rerun without declaring what invalidated that evidence.
 
 ## 5. Canonical Launchers and Command Examples
 
@@ -169,7 +174,7 @@ there, the [experiment runbook](../文档规划/10_实验矩阵/15_实验运行�
 and the [rerun and cache repair runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md).
 Do not revive a stale wrapper path merely because the script still exists.
 
-## 6. Single Dataset Authority, Cache, and Evidence Boundaries
+## 6. Single Dataset Authority and Runtime Boundaries
 
 The SSH active checkout is the only authoritative dataset root for formal
 runs. Two canonical dataset channels exist inside that one checkout:
@@ -185,21 +190,13 @@ each other. PyG `processed/data.pt` is not an OpenGU canonical processed split
 pickle.
 
 Another worktree, sibling checkout, shared dataset root, backup, archive, or
-symlink is recovery material, not a formal source. Method-owned paths under
-`data/<Method>/`, unlearning targets under `data/unlearning_task/`, and
-result/cache directories are runtime outputs, not alternative source datasets.
+symlink is recovery material, not a formal source.
 
 A timed formal run must not download or preprocess source data. Before the
 gate, resolve and record the requested path, real path, canonical root,
 content fingerprint, split and candidate identity, and Git provenance. Fail
 closed if any source resolves outside the active checkout or its identity is
 ambiguous.
-
-Cache V2 Artifacts are exact and immutable. A semantic or producer change
-creates a new versioned Recipe and identity; it does not overwrite an existing
-Artifact. Legacy IF, Selection, and Score caches are read-only evidence unless
-an explicitly approved migration says otherwise. Inventory exact paths and
-hashes before any cache invalidation, retirement, migration, or deletion.
 
 All mutable experiment outputs must resolve inside the active checkout,
 normally under `results/`, `data/`, `log/`, or `logs/`.
