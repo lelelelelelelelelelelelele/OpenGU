@@ -35,7 +35,7 @@
 - 含 `schema`、`version`、`recipe_id`、阶段定义或多数据集结构的配置通常由对应专题包解析。
 - 不根据文件名猜入口；先查找哪个模块加载、校验或绑定该配置。
 
-专题包常按 `recipe → core → runner/stage → manifest/adapter → aggregate/render` 分层；先读 recipe 和 runner，aggregate 和报告只是已有事实的投影。
+Specialized packages commonly follow `recipe → core → runner/stage → manifest/adapter → aggregate/render`. Read the recipe and runner first; aggregate/render consume verified upstream evidence and do not define the primary experiment facts.
 **SyncMate 执行通道**：部分已注册实验从 `scripts/syncmate/syncmate.py` 及专题 `syncmate_*` recipe/stage 进入，由它把已审阅配置、阶段和预期完整 Git SHA 绑定到 SSH runner，并支持状态、回执和 Artifact 收集。
 SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专题 preflight 和 acceptance gate。
 注册计划指定 SyncMate 时不得改写成临时 SSH 命令或 `run.py`；未指定时也不自行切换，具体操作使用当前注册计划的命令。
@@ -43,7 +43,6 @@ SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专�
 ### 最小执行导航
 
 通用矩阵在本地先用 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run` 验证定义；正式执行只使用注册计划指定的 launcher。
-注册计划指定 SyncMate 时使用对应 recipe/stage，不把它临时改写为裸 SSH 命令或通用 `run.py` 调用。
 
 ## 5. 通用矩阵与证据接缝
 
@@ -61,7 +60,7 @@ Selection 输入必须来自持久化图、划分和候选集合；多预算前�
 SSH 上正式数据的默认且固定根目录是 `/autodl-fs/data/OpenGU/GULib-master/data/processed`。正式实验读取的数据，以及获准执行的数据准备操作所写入的正式 dataset 内容，都必须解析到该目录下。
 “获准的数据准备”仅指当前注册计划或独立数据准备任务明确授权的操作，不由执行 agent 因数据缺失而自行推断。
 只使用其中 `transductive/`、`inductive/` 的 OpenGU canonical graph/split pair 或已注册 `processed_profile`；不得直接使用 PyG `processed/data.pt`、临时重建 split/candidate set，或把其他数据通道改名为 OpenGU processed split。
-不得在当前工作目录、其他 checkout、工具默认缓存或临时路径中新建 dataset 内容。执行任何可能写入数据的操作前先核对最终目标；目标不是上述目录、所需 artifact 缺失或身份不清楚时立即停止，不得自动下载、搜索同名副本或切换路径。该目录之外的同名数据不得作为正式输入，也不得自动修补或删除。
+获准的数据准备只能在上述 canonical root 下新建正式 dataset 内容；当前工作目录、其他 checkout、工具默认缓存和临时路径等其他位置一律不得新建。执行任何可能写入数据的操作前先核对最终目标；目标不是上述目录、所需 artifact 缺失或身份不清楚时立即停止，不得自动下载、搜索同名副本或切换路径。该目录之外的同名数据不得作为正式输入，也不得自动修补或删除。
 
 ## 6. 实验等级与递进验证流程
 
@@ -78,7 +77,7 @@ Minimal gate 必须在正式 SSH 环境代表真实 lane，并与后续扩展保
 
 ## 7. 正式运行版本一致性与 SSH 边界
 
-本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。正式执行前，所有相关工作先审阅并接受进 `main`，并确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`。
+本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。根级 work-block 按仓库 Git Workflow 收口完成后，再确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`。
 本地与 SSH tracked tree 必须干净，SSH 只使用唯一正式活跃检出。
 该要求只保证一次正式运行的代码与配置一致；它不是 cache key，也不要求清空缓存。
 Cache 命中仍由 Recipe、producer、数据、候选集合和依赖 Artifact 身份决定：语义身份未变时可跨无关提交精确复用，生产语义或输入身份变化时必须形成新 Recipe、MISS 或 fail-closed；专题显式绑定 Git SHA 时服从其契约。
