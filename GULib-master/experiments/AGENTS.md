@@ -1,257 +1,98 @@
-# Formal Experiment Agent Guide
+# experiments/ Agent Guide
 
-> Binding directory guidance for formal experiment definitions, gates, reruns,
-> and evidence collection. The [root agent instructions](../AGENTS.md) remain
-> binding; this file adds the experiment-local execution boundary.
+> 本文件提供 `experiments/` 的目录级架构心智模型与行动导航；根 `AGENTS.md` 继续提供项目定位、总体执行链与仓库级边界。
 
-## 1. Scope, Registration, and Authorities
+## 1. 目录使命
 
-These rules apply to experiment definitions, formal gates, full matrices,
-reruns, and evidence collection under `experiments/`. Local inspection,
-targeted tests, `--dry_run`, and disposable smoke checks may support
-development, but they are not formal experiment evidence.
+`experiments/` 把研究意图组织为可运行单元，并把执行连接到可追溯证据；它编排图遗忘、攻击策略和 Cache V2，而不拥有这些模块的内部实现。
+目录包含通用 `run.py + YAML` 矩阵、跨实验复用的 Selection/Artifact 证据接缝，以及拥有独立 recipe、runner、gate、adapter 或 aggregate 的专题包。
+`configs/` 是配置容器，不表示所有 YAML 都由同一个入口消费。
 
-Before changing, starting, resuming, or repairing an experiment, read:
+## 2. 按需加载实验上下文
 
-- the [root agent instructions](../AGENTS.md);
-- the [live WORKPLAN](../self/dashboard/WORKPLAN.md) for current registration,
-  readiness, blockers, and the exact experiment plan;
-- the [experiment runbook](../文档规划/10_实验矩阵/15_实验运行入口与脚本.md)
-  for current launch and collection procedures; and
-- for failures or resumed work, the
-  [rerun and cache repair runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md).
+根级上下文及其信息入口已经生效，不在本文件重复。
 
-The WORKPLAN is the sole source of current operational state. The registered
-experiment plan owns the experiment-specific claim, matrix, launcher, gate,
-and acceptance criteria. The runbooks own reusable execution and repair
-procedures. Do not reconstruct a run or recovery command from an old branch
-name, process list, log, result directory, or dated report.
+- 需要确认当前注册、准备状态或阻塞项时，只读取 WORKPLAN 中与目标实验相关的条目及其计划链接。
+- 准备正式启动或收集结果时，只读取[实验运行入口与脚本](../文档规划/10_实验矩阵/15_实验运行入口与脚本.md)中当前 launcher 对应的部分。
+- 出现失败、恢复、重跑或缓存问题时，只读取 repair Runbook 的相关部分。
+- 仅做源码阅读或局部测试时，不加载正式运行和修复材料；dry-run 或 disposable smoke 只加载当前配置与 launcher 所需的相邻验证材料，不加载失败恢复材料。
 
-Experiment families such as IF, IM, TracIn, target-direct, surrogate-transfer,
-and baseline reconstruction have different claims and evidence contracts.
-Read the registered family plan instead of flattening them into a generic
-matrix.
+不要预先加载全部实验文档，也不要把实时状态复制进本文件。
 
-## 2. Registered and Unregistered Experiment Plans
+## 3. 先判断实验是否已经定型
 
-A registered experiment may be declared by its stable ID, such as `A7` or
-`E8`, plus its canonical YAML, script, or registered plan. Do not duplicate its
-full planning table in a task message. A repair may reference the same ID, but
-must additionally state the defect, invalidated evidence boundary, replacement
-Git SHA, and new result/cache identity.
+先从当前研究意图与实时任务的权威来源确认目标，不在本目录复制其当前状态。
 
-An unregistered experiment must declare, before execution:
+- **已定型实验**：若已有注册计划、配置或 versioned Recipe、明确消费者、launcher 和 acceptance gate，则沿用既有 setup；先确认版本、阶段并运行相邻验证，不重新选择数据、划分、种子、预算、路径或临时改写 launcher。
+- **临时或新实验**：没有已确认定义时，先声明问题、对照、变量、矩阵、指标、证据和结论边界；完成注册、身份绑定和正式 gate 前，只属于探索或验证。
+- **稳定 ID**：可作为注册计划的导航别名，但不能替代配置、Git、数据和 Artifact 身份。
 
-| Field | Required declaration |
-|---|---|
-| Question | Claim or failure mode being tested |
-| Lane | Local check, disposable smoke, formal gate, or formal matrix |
-| Matrix | Dataset, model, method, strategy, seed, ratio, and budget |
-| Baseline | Matched baseline and why it is valid |
-| Evidence | Required artifacts, metrics, and acceptance gate |
-| Identity | YAML or launcher, full Git SHA, dataset/split fingerprint, and cache/artifact identity |
-| Recovery | Invalidating failures, runtime/output boundary, and restart procedure |
+只有当前研究意图改变 claim、数据或划分、方法语义、核心指标或矩阵范围时，才建立新的实验定义；配置存在不等于它仍是当前注册实验。
 
-Register a new experiment, or an explicit extension of an existing one, when
-the claim, dataset or split, method semantics, baseline, core metric, or matrix
-scope changes. A renamed directory or reused ID does not preserve identity
-across such a change.
+## 4. 找到正确的配置消费者
 
-## 3. Stage Cleanliness and Local-Origin-SSH Alignment
+- 含 `dataset`、`base_model`、`ratio`、`methods`、`strategies`、`seeds` 的配置通常属于 `run.py` 矩阵。
+- 含 `schema`、`version`、`recipe_id`、阶段定义或多数据集结构的配置通常由对应专题包解析。
+- 不根据文件名猜入口；先查找哪个模块加载、校验或绑定该配置。
 
-Formal execution starts only at a repository-wide stage boundary:
+专题包常按 `recipe → core → runner/stage → manifest/adapter → aggregate/render` 分层；先读 recipe 和 runner，aggregate 和报告只是已有事实的投影。
+**SyncMate 执行通道**：部分已注册实验从 `scripts/syncmate/syncmate.py` 及专题 `syncmate_*` recipe/stage 进入，由它把已审阅配置、阶段和预期完整 Git SHA 绑定到 SSH runner，并支持状态、回执和 Artifact 收集。
+SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专题 preflight 和 acceptance gate。
+注册计划指定 SyncMate 时不得改写成临时 SSH 命令或 `run.py`；未指定时也不自行切换，具体操作使用当前注册计划的命令。
 
-1. Every active work block is closed, reviewed, and accepted into `main`.
-   Historical branch refs may remain, but no unaccepted work line remains
-   active.
-2. The primary local `main`, `origin/main`, and the SSH active checkout
-   `main` resolve to the same recorded 40-character SHA.
-3. The primary local and SSH tracked trees are clean, including source,
-   configuration, and documentation used by the run.
-4. The SSH checkout is the single active formal checkout at
-   `/autodl-fs/data/OpenGU/GULib-master`.
+### 最小执行导航
 
-Managed ignored runtime outputs may remain only when their ownership and
-identity are already registered. An unexplained dirty path, SHA mismatch,
-wrong branch, external source/config path, or incomplete work block blocks the
-formal gate.
+通用矩阵在本地先用 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run` 验证定义；正式执行只使用注册计划指定的 launcher。
+注册计划指定 SyncMate 时使用对应 recipe/stage，不把它临时改写为裸 SSH 命令或通用 `run.py` 调用。
 
-Verify the stage explicitly:
+## 5. 通用矩阵与证据接缝
 
-```powershell
-git status --short --branch
-git rev-parse main
-git rev-parse origin/main
-```
+一个 `run.py` YAML 固定数据集、模型和删除比例，并展开 `methods × strategies × seeds`。
+`YAML → Selection 计划或 Artifact → demo_attack.py → 可选 collateral 评估 → metadata 与审计事件`
+默认 cell 位于 `run_root/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/`，完整叶子通常包括 `attack.json`、`collateral.json`、`predictions.npz` 和 `_meta.json`。
+完整性还要求内容可解析、目标策略存在和配置指纹匹配；`--dry_run` 只展开并验证计划，不代表已经执行。
 
-```bash
-cd /autodl-fs/data/OpenGU/GULib-master
-git status --short --branch
-git rev-parse HEAD
-python scripts/validate_ssh_deployment_layout.py --base /autodl-fs/data
-python scripts/validate_retired_ssh_references.py
-# Formal GPU gates and matrices require an enumerated GPU; never fall back to CPU.
-nvidia-smi -L | grep -q . || { echo "No GPU available; formal GPU run blocked."; exit 1; }
-```
+正式启动前先检查目标 run identity 和已有 cell 状态。不得为了继续运行而自行使用 `--force`，也不得手动删除、移动或覆盖已有正式产物；发现 complete、partial、stale、corrupt 或身份冲突时停止，按 repair Runbook 判断恢复、重跑或建立新结果身份。
 
-Record and compare the full SHAs; a short SHA is not sufficient provenance.
-If the GPU check fails, do not start a formal GPU gate or matrix.
+Selection 输入必须来自持久化图、划分和候选集合；多预算前缀复用只适用于显式 prefix-stable 的排序；正式 Artifact 只在验证后的精确 MISS 上调用 producer，身份或依赖不清楚时 fail closed。
 
-## 4. Minimal Gate Before Full Expansion
+### SSH 正式数据固定位置
 
-Every full formal experiment must first pass a registered, representative
-minimal gate. A registered experiment uses its registered gate. An
-unregistered experiment must define and register one before the full run.
+SSH 上正式数据的默认且固定根目录是 `/autodl-fs/data/OpenGU/GULib-master/data/processed`。正式实验读取的数据，以及获准执行的数据准备操作所写入的正式 dataset 内容，都必须解析到该目录下。
+“获准的数据准备”仅指当前注册计划或独立数据准备任务明确授权的操作，不由执行 agent 因数据缺失而自行推断。
+只使用其中 `transductive/`、`inductive/` 的 OpenGU canonical graph/split pair 或已注册 `processed_profile`；不得直接使用 PyG `processed/data.pt`、临时重建 split/candidate set，或把其他数据通道改名为 OpenGU processed split。
+不得在当前工作目录、其他 checkout、工具默认缓存或临时路径中新建 dataset 内容。执行任何可能写入数据的操作前先核对最终目标；目标不是上述目录、所需 artifact 缺失或身份不清楚时立即停止，不得自动下载、搜索同名副本或切换路径。该目录之外的同名数据不得作为正式输入，也不得自动修补或删除。
 
-The gate and the later expansion must use the same:
+## 6. 实验等级与递进验证流程
 
-- full Git SHA and clean stage;
-- canonical dataset, split, candidate set, and fingerprints;
-- configuration or versioned Recipe;
-- cache and artifact semantics; and
-- output identity and acceptance logic.
+`探索 / 验证 / 正式` 描述结果能支持什么结论；`test / dry-run / smoke / gate / matrix` 描述怎样执行，二者不能混为一类。
 
-The gate must exercise the fragile parts of the real lane, including:
+- **探索**：快速缩小问题或检验现象；输出只作为线索。
+- **验证**：检查配置、契约或真实执行链是否正确；不证明研究假设。
+- **正式实验**：使用已注册定义和正式身份生成可进入研究结论的证据。
 
-- dataset and split resolution;
-- cache cold miss, write, warm exact hit, and provenance checks when caching is
-  used;
-- method, selector, seed, ratio, and budget propagation;
-- required artifact production; and
-- metric, AutoReport, and acceptance-gate logic.
+递进流程固化为：`targeted tests → dry-run → disposable smoke → registered minimal gate → full matrix → collection/acceptance`。
+Smoke 用最小数据或 cell 跑通真实 lane，暴露依赖、路径、参数传播和 Artifact 生产问题；它是可丢弃的 pre-gate 验证，不是正式证据。
+Minimal gate 必须在正式 SSH 环境代表真实 lane，并与后续扩展保持相同代码、配置或 Recipe、数据与划分、缓存语义、输出身份和 acceptance logic。
+任一步失败都停止向后推进；已接受 gate 在完整身份未失效时可以复用，不因开始新会话或重复检查而强制重跑。
 
-Only expand the same registered matrix after the gate passes. A failure stops
-the expansion. Local tests, dry runs, and disposable smoke checks remain useful
-pre-gate validation, but none substitutes for the formal minimal gate.
-Reuse accepted gate evidence while its full registered identity remains valid;
-do not force a rerun without declaring what invalidated that evidence.
+## 7. 正式运行版本一致性与 SSH 边界
 
-## 5. Canonical Launchers and Command Examples
+本地用于代码与配置修改、CPU 测试、dry-run 和结果审阅；正式 GPU gate、矩阵、正式数据及运行态位于 SSH 活跃检出。正式执行前，所有相关工作先审阅并接受进 `main`，并确认 `本地 main = origin/main = SSH 活跃检出 main = 同一已记录的完整 Git SHA`。
+本地与 SSH tracked tree 必须干净，SSH 只使用唯一正式活跃检出。
+该要求只保证一次正式运行的代码与配置一致；它不是 cache key，也不要求清空缓存。
+Cache 命中仍由 Recipe、producer、数据、候选集合和依赖 Artifact 身份决定：语义身份未变时可跨无关提交精确复用，生产语义或输入身份变化时必须形成新 Recipe、MISS 或 fail-closed；专题显式绑定 Git SHA 时服从其契约。
 
-Do not assume every formal experiment is launched by one Python command. Use
-the launcher registered for that experiment: a YAML matrix runner, a
-standalone Python or module runner, a gate/resume runner, a SyncMate recipe, or
-an accepted shell/PowerShell orchestration wrapper.
+SSH 正式启动分两层：
 
-The current Phase B main matrix still uses `experiments/run.py + YAML`; this is
-current for that lane, not a universal rule:
+1. **共享 stage check**：三方 `main` 与完整 SHA 一致、tracked tree 干净、活跃检出正确、GPU 可用、运行路径归属明确；
+2. **实验专属 preflight**：配置或 Recipe、数据与划分、manifest、设备要求、已有产物和恢复条件符合本实验定义。
 
-```powershell
-# Local expansion check only
-E:/conda_package/envs/gnn/python.exe experiments/run.py experiments/configs/<config>.yaml --dry_run
-```
+正式 GPU gate 或 matrix 必须枚举到至少一张 GPU；GPU 不可用时立即停止，禁止自动降级到 CPU。
 
-```bash
-# Formal SSH execution only after the stage and minimal gate are ready
-python experiments/run.py experiments/configs/<config>.yaml
-python scripts/gate_runs.py experiments/configs/<config>.yaml
-```
+两层通过后才使用已注册 launcher；任一条件不满足时先恢复版本或身份边界，不启动正式实验。
 
-Registered specialized entry points include, for example:
+## 8. 证据闭环
 
-```bash
-# E2 enumeration / repair preflight
-python scripts/redo_collateral_if_family.py \
-  experiments/configs/phase_b_cora_gcn.yaml --dry_run
-
-# E3 preflight, registered one-cell gate, then same-SHA expansion
-python experiments/baseline_k5/rerun_cora_noise_anchor.py --preflight-only
-python experiments/baseline_k5/rerun_cora_noise_anchor.py \
-  --gate-only --expected-git-sha <full-sha>
-python experiments/baseline_k5/rerun_cora_noise_anchor.py \
-  --resume --expected-git-sha <same-full-sha>
-```
-
-E8 uses the registered target-direct/SyncMate path rooted at
-`experiments/target_direct_v1/` and
-`experiments/configs/syncmate_target_direct_formal_v2.yaml`. Shell wrappers
-may sequence registered commands, logging, collection, and shutdown, but they
-do not replace the experiment definition or provenance.
-
-For an exact start, resume, or recovery command, follow the
-[live WORKPLAN](../self/dashboard/WORKPLAN.md), the experiment plan linked
-there, the [experiment runbook](../文档规划/10_实验矩阵/15_实验运行入口与脚本.md),
-and the [rerun and cache repair runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md).
-Do not revive a stale wrapper path merely because the script still exists.
-
-## 6. Single Dataset Authority and Runtime Boundaries
-
-The SSH active checkout is the only authoritative dataset root for formal
-runs. Two canonical dataset channels exist inside that one checkout:
-
-- Public Planetoid fixed-split lanes read lowercase
-  `data/raw/{cora,citeseer,pubmed}` leaves. Their eight raw files and PyG
-  `processed/data.pt` belong to the raw-adapter cache.
-- OpenGU integrated lanes read graph/split pairs from
-  `data/processed/{transductive,inductive}/`.
-
-These channels have different split semantics and must never be relabelled as
-each other. PyG `processed/data.pt` is not an OpenGU canonical processed split
-pickle.
-
-Another worktree, sibling checkout, shared dataset root, backup, archive, or
-symlink is recovery material, not a formal source.
-
-A timed formal run must not download or preprocess source data. Before the
-gate, resolve and record the requested path, real path, canonical root,
-content fingerprint, split and candidate identity, and Git provenance. Fail
-closed if any source resolves outside the active checkout or its identity is
-ambiguous.
-
-All mutable experiment outputs must resolve inside the active checkout,
-normally under `results/`, `data/`, `log/`, or `logs/`.
-
-## 7. Gate, Collection, and Progress Update
-
-For a standard `experiments/run.py` cell, collect `attack.json`,
-`collateral.json`, `predictions.npz`, and `_meta.json`; metadata must match the
-registered configuration fingerprint and full Git SHA. A selection-only,
-baseline, or method-specific lane follows its own registered artifact contract
-and must not present partial artifacts as a standard complete cell.
-
-Run the declared acceptance gate and retain its receipt together with the
-configuration, full SHA, dataset/split fingerprints, cache or artifact
-references, result paths, logs, and remote-to-local verification record.
-AutoReport V3 JSONL is the machine audit source; generated Markdown and HTML
-views are projections and must not be hand-edited.
-
-The browser-readable experiment progress table is
-[config_inventory.html](../self/dashboard/config_inventory.html), generated
-from [config_inventory.csv](../self/dashboard/config_inventory.csv). After a
-registered experiment reaches a declared terminal state and its artifacts and
-gate evidence are collected:
-
-1. update the appropriate produced, usable, accepted-remote, or rerun state in
-   the CSV source;
-2. record an explanatory warning when evidence is partial or invalidated; and
-3. regenerate the HTML view:
-
-   ```powershell
-   E:/conda_package/envs/gnn/python.exe scripts/dashboard/gen_config_inventory.py
-   ```
-
-Never hand-edit the HTML. Disposable local checks and unregistered smoke runs
-do not update the table unless they are explicitly registered. Append a new
-empirical acceptance claim to
-[VALIDATION_LOG.md](../self/dashboard/VALIDATION_LOG.md) only with its evidence
-boundary intact.
-
-## 8. Defect, Repair, Restart, and Closeout
-
-If a formal run exposes a code, configuration, data, metric, cache, or
-provenance defect, stop the affected matrix and follow the
-[rerun and cache repair runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md).
-
-Declare the affected experiment ID and cells, the defect, the invalid SHA and
-result/cache/artifact boundary, and which old evidence is retained only for
-diagnosis. Fix and validate the issue on its work block, accept it through the
-recorded parent chain into `main`, and restore the clean local-origin-SSH
-alignment.
-
-Then run the registered minimal gate again under the new full `main` SHA and a
-new result/cache identity before restarting the matrix. Never combine cells
-from the superseded SHA with the restarted matrix.
-
-Closeout is complete only after the registered gate and artifact collection
-pass, the progress source is updated and regenerated, and the WORKPLAN records
-the current terminal or blocked state.
+进程成功退出不等于可信证据；需核对 Artifact 完整可解析，metadata 的 Git SHA、配置指纹和运行身份一致，并验证 Selection、manifest 与依赖链。远端产物完成收集与核验后才进入本地结论；交接时分别说明执行、验证、可支持结论和未知项。
+正式运行暴露代码、配置、数据、指标、缓存或 provenance 缺陷时，立即停止受影响矩阵并将相关证据标为未验证；后续失效范围、修复、重跑与恢复遵循[重跑与缓存修复 Runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md)，在其重新建立可信身份前不恢复矩阵或混用受影响产物。

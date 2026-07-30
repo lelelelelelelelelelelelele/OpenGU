@@ -22,7 +22,7 @@ Devices share Git-tracked source and configuration. An experiment artifact becom
 
 ## 3. Minimal Execution Pipeline
 
-Experiment matrices are expanded by `experiments/run.py`; single runs enter through `main.py`:
+Registered experiment definitions enter the execution chain through the launcher owned by their plan and directory-level guidance:
 
 `CLI / YAML`
 → `parameter_parser`, `config`
@@ -42,7 +42,7 @@ Experiment matrices are expanded by `experiments/run.py`; single runs enter thro
 
 ## 5. Runtime and Validation
 
-Use the local machine for code changes, CPU analysis, targeted tests, and reviewing verified evidence. For local Python work, use `E:/conda_package/envs/gnn/python.exe`. `config.py` parses CLI arguments at import time; do not import it from lightweight tests or notebooks unless the CLI context is intentionally supplied. Run formal GPU experiments from the active SSH checkout; `experiments/AGENTS.md` owns the detailed rules for the remote environment, datasets, pinned SHAs, and formal gates. Before running or modifying an experiment matrix, read `文档规划/10_实验矩阵/15_实验运行入口与脚本.md`; the formal entry point is `experiments/run.py` with YAML configuration. Validate changes in proportion to their risk: run the smallest relevant tests for code, `--dry_run` for experiment configurations, and link plus generated-artifact checks for documentation.
+Use the local machine for code changes, CPU analysis, targeted tests, and reviewing verified evidence. `config.py` parses CLI arguments at import time; do not import it from lightweight tests or notebooks unless the CLI context is intentionally supplied. Run formal GPU experiments from the active SSH checkout; `experiments/AGENTS.md` owns experiment entry-point selection, local experiment commands, and the detailed remote environment, dataset, pinned-SHA, and formal-gate rules. Validate changes in proportion to their risk: run the smallest relevant tests for code, the registered dry-run for experiment configurations, and link plus generated-artifact checks for documentation.
 
 ## 6. Repository Map
 
