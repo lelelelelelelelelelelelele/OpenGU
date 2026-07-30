@@ -1,6 +1,6 @@
 # Adversarial Attacks on Graph Unlearning — Agent Guide
 
-> Working draft. This document is being reviewed section by section and does not replace `AGENTS.md` yet.
+> Active repository-level guidance. Directory-level `AGENTS.md` files add scoped ownership and operational detail.
 
 ## 1. Project Positioning and Information Entry Points
 
