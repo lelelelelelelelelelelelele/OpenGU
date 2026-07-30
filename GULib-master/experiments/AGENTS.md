@@ -14,7 +14,7 @@
 
 - 需要确认当前注册、准备状态或阻塞项时，只读取 WORKPLAN 中与目标实验相关的条目及其计划链接。
 - 准备正式启动或收集结果时，只读取[实验运行入口与脚本](../文档规划/10_实验矩阵/15_实验运行入口与脚本.md)中当前 launcher 对应的部分。
-- 出现失败、恢复、重跑或缓存问题时，只读取 repair Runbook 的相关部分。
+- 出现 Selection/selector 或 GU method 缺陷，以及相关 Cache、Artifact、结果或证据的失效与恢复问题时，先读取[重跑与缓存修复 Runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md)中对应的修复链，确认影响范围和证据边界；只有范围明确后，才执行该页链接的机器端操作规范。
 - 仅做源码阅读或局部测试时，不加载正式运行和修复材料；dry-run 或 disposable smoke 只加载当前配置与 launcher 所需的相邻验证材料，不加载失败恢复材料。
 
 不要预先加载全部实验文档，也不要把实时状态复制进本文件。
@@ -52,7 +52,7 @@ SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专�
 默认 cell 位于 `run_root/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/`，完整叶子通常包括 `attack.json`、`collateral.json`、`predictions.npz` 和 `_meta.json`。
 完整性还要求内容可解析、目标策略存在和配置指纹匹配；`--dry_run` 只展开并验证计划，不代表已经执行。
 
-正式启动前先检查目标 run identity 和已有 cell 状态。不得为了继续运行而自行使用 `--force`，也不得手动删除、移动或覆盖已有正式产物；发现 complete、partial、stale、corrupt 或身份冲突时停止，按 repair Runbook 判断恢复、重跑或建立新结果身份。
+正式启动前先检查目标 run identity 和已有 cell 状态。不得为了继续运行而自行使用 `--force`，也不得手动删除、移动或覆盖已有正式产物；发现 complete、partial、stale、corrupt 或身份冲突时停止，按已确认的修复链判断恢复、重跑或建立新结果身份。
 
 Selection 输入必须来自持久化图、划分和候选集合；多预算前缀复用只适用于显式 prefix-stable 的排序；正式 Artifact 只在验证后的精确 MISS 上调用 producer，身份或依赖不清楚时 fail closed。
 
@@ -95,4 +95,4 @@ SSH 正式启动分两层：
 ## 8. 证据闭环
 
 进程成功退出不等于可信证据；需核对 Artifact 完整可解析，metadata 的 Git SHA、配置指纹和运行身份一致，并验证 Selection、manifest 与依赖链。远端产物完成收集与核验后才进入本地结论；交接时分别说明执行、验证、可支持结论和未知项。
-正式运行暴露代码、配置、数据、指标、缓存或 provenance 缺陷时，立即停止受影响矩阵并将相关证据标为未验证；后续失效范围、修复、重跑与恢复遵循[重跑与缓存修复 Runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md)，在其重新建立可信身份前不恢复矩阵或混用受影响产物。
+正式运行暴露代码、配置、数据、指标、缓存或 provenance 缺陷时，立即停止受影响矩阵并将相关证据标为未验证；后续失效范围、修复、重跑与恢复遵循已确认的修复链，在其重新建立可信身份前不恢复矩阵或混用受影响产物。
