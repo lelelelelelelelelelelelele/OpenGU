@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-07-25
+> Last updated: 2026-07-30
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -96,6 +96,10 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 #### Git 收口遗留待办（2026-07-25）
 
 - [ ] **GIT-LOCAL-1 — 删除已注销的 E8 物理残留目录**：目标仅为 `C:\Users\ADMIN\.codex\worktrees\b8ad\OpenGU`。该路径已不在 `git worktree list`，`codex/fix-target-direct-formal-orchestration-20260724` 已由 `git branch -d` 删除，primary `E:\project\OpenGU` 已回到 clean `main`；但 Windows 仍报告其中 `GULib-master` 被外部进程占用。待锁释放后，重新确认精确 resolved path、非 reparse point、未注册为 worktree、非 primary/SSH/evidence 路径，再仅删除该物理残留。**不得触碰**同名但独立的 `E:\project\OpenGU-worktrees`：它含 2026-07-22 历史 Git bundles，需单独审计与授权。
+
+#### Cache V2 Legacy 退役待办（2026-07-30）
+
+- [ ] **CACHE-LEGACY-1 — 本机与 SSH Legacy cache 联合退役**：archive-plan、逐文件 hash、freeze 和 rollback 清单已经实现，但物理归档/删除从未执行；本机 `results/{cache,score_cache,selection_cache}` 仍存在，SSH 端以 2026-07-14 的只读冻结证据为最近确认状态，2026-07-30 在线复核因实例不可达而未完成。恢复 SSH 后先重新盘点两端精确范围并复核 consumer refs、V2 覆盖、身份冲突和回滚证据；只有 `legacy_delete_ready` 重新验收且获得单独授权后才归档或删除。不得把整个 `results/runs` 视为 Legacy cache 清空。→ [Cache V2 cutover 与归档准备验收](../../docs/cache_v2_cutover_archive_readiness_ACCEPTANCE_REPORT.md)。
 - active 已补齐三套 public raw/PyG cache 与 Cora/CiteSeer canonical 80/20 pickle；PubMed canonical 80/20 pair 尚无可信历史副本。路径、逐文件 SHA-256、聚合 source fingerprint 与 split count 由 runner 写入每个 cold/warm summary。
 - **一次性 GT 特例（2026-07-22）**：`9240b9a` 的 SSH public 17-output `9/9` 矩阵作为本 benchmark 的权威 GT 接受，不再重跑。依据是旧 shared 三套 public cache 的 9 个有效输入逐文件等于 active、ScoreBundle `produce()` 与两份 scorer core 在后续提交中未变、cold/warm/GPU/failure 证据已完整。该特例只接受 v3.0 result payload 与分析结论；不得把旧路径改称 active-root、把旧 cache 当 v3.1 exact hit，或扩展到 OpenGU 80/20 / GU outcome。未来新运行仍严格走 active canonical contract。
 - **小图 Selection→GU 旧矩阵（2026-07-22；2026-07-23 重分类）**：clean SSH `main@1c83bb4` 上的 153 cells / 612 artifacts / 0 failures 与 SHA-256 仍是有效工程证据，但 scientific identity 仅为 public-split、exact-k=7、GateGCN-surrogate→OpenGU-GCN target 的 L1 transfer screen。它不回答 target-direct 白盒与真实 1%/5% 预算。新正式链固定 70/10/20 无泄漏 validation target、同一 target checkpoint，并按每个 ratio 独立计算 `k=max(1,floor(ratio*train candidates))`；见 `reports/target_direct_selection_PREPARATION_REPORT.{md,html}`。
