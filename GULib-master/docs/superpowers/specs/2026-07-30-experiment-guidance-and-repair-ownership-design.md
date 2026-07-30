@@ -9,6 +9,15 @@
 本设计只调整文档职责和路由，不改变实验实现、当前注册计划、数据、
 Cache、结果或运行状态。
 
+## 实施分期
+
+- **当前阶段**：只收敛根 `AGENTS.md` 与 `experiments/AGENTS.md` 的入口、
+  解释器、dry-run 上下文和正式 GPU 边界。
+- **延期阶段**：`13/13A/13B` 拆分、OpenGU repair Runbook 真源迁移、
+  修复身份重启规范和相关链接调整另行设计与实施。
+
+当前阶段不得改写、移动或删除现有修复文档，也不得提前修改其入链。
+
 ## 设计原则
 
 - 根 `AGENTS.md` 只保留仓库级定位、总体执行链和职责路由，不保存
@@ -69,7 +78,7 @@ Cache、结果或运行状态。
 `data/processed` 根目录。旧版把 public raw/PyG 直接列作正式输入通道的
 表述不恢复。
 
-## 修复文档迁移
+## 延期阶段：修复文档迁移
 
 ### Obsidian 兼容入口
 
@@ -99,7 +108,7 @@ Obsidian vault 内的 `13A`，并新增“正式身份重启不变量”小节�
 代码侧原 Runbook 文件改为短跳转页，说明真源已经迁入 `13A`。SyncMate
 README 和目录指导直接链接 `13A`；保留旧路径仅用于兼容外部引用。
 
-## 迁移顺序
+## 延期阶段迁移顺序
 
 1. 从当前 `13_...` 提取历史台账到 `13B`，确认结论和失效范围无丢失。
 2. 将代码侧 OpenGU repair Runbook 迁入 `13A`，合并必要的通用修复流程
@@ -113,10 +122,19 @@ README 和目录指导直接链接 `13A`；保留旧路径仅用于兼容外部�
 
 ## 验证
 
+当前阶段验证：
+
 - 根 `AGENTS.md` 不再包含 `experiments/run.py`、
   `E:/conda_package/envs/gnn/python.exe` 或具体 launcher 命令。
 - `experiments/AGENTS.md` 对通用入口、专题入口、本地 dry-run 和正式
   GPU 边界各有一个明确落点，且不与根级规则冲突。
+- 现有 `13_重跑与缓存修复Runbook.md`、
+  `scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md` 及其链接没有变化。
+- Git diff 不包含实验代码、配置、Cache、结果、WORKPLAN 实时状态或
+  无关 dirty 文件。
+
+延期阶段验证：
+
 - `13_...` 的现有入链继续解析，并能在 Obsidian vault 内到达 `13A`
   和 `13B`。
 - `13A` 是唯一完整修复协议；`13B` 是唯一历史验收台账；代码侧旧路径
@@ -124,8 +142,6 @@ README 和目录指导直接链接 `13A`；保留旧路径仅用于兼容外部�
 - 所有新增或修改的 Markdown 相对链接存在，文档地图能到达新的真源。
 - 在实时操作文档中搜索正式身份重启规则时，完整规范性定义只出现在
   `13A`；历史设计说明不作为运行输入。
-- Git diff 不包含实验代码、配置、Cache、结果、WORKPLAN 实时状态或
-  无关 dirty 文件。
 
 ## 非目标
 
