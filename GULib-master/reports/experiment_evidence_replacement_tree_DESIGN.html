@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenGU 实验证据换代树设计</title>
+  <style>
+    :root{--bg:#09111f;--panel:#111d2e;--panel2:#16253a;--text:#eaf2ff;--muted:#9eb0c9;--line:#385170;--blue:#67b7ff;--green:#5ad6a0;--amber:#ffca6a;--red:#ff7a86;--purple:#bda2ff;--shadow:0 16px 42px rgba(0,0,0,.28)}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 20% -10%,#183252 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.65 Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+    a{color:var(--blue)} .wrap{max-width:1220px;margin:auto;padding:48px 24px 72px} .eyebrow{color:var(--blue);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    h1{font-size:clamp(32px,5vw,58px);line-height:1.08;margin:.2em 0}.lead{max-width:900px;font-size:20px;color:#c9d7ea}.meta{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 38px}.tag{border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--muted);background:#0e1928}
+    section{margin:28px 0}.panel{background:linear-gradient(145deg,rgba(22,37,58,.96),rgba(13,24,39,.96));border:1px solid #29405d;border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+    h2{font-size:25px;margin:0 0 14px} h3{margin:20px 0 8px;color:#d7e6fb}.verdict{border-left:5px solid var(--green)} .warning{border-left:5px solid var(--amber)}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:14px}.card{background:#0d1928;border:1px solid #29405d;border-radius:14px;padding:17px}.card b{display:block;font-size:18px}.card small{color:var(--muted)}
+    .bad{color:var(--red)}.good{color:var(--green)}.wait{color:var(--amber)}.blue{color:var(--blue)}
+    .state{display:flex;gap:8px;align-items:center;overflow:auto;padding:12px 2px}.state span{white-space:nowrap;background:#101f32;border:1px solid #355270;border-radius:10px;padding:9px 12px;font-weight:700}.state i{color:var(--blue);font-style:normal}
+    .tree{overflow:auto;padding:4px}.tree ul{list-style:none;margin:0;padding-left:26px;position:relative}.tree ul:before{content:"";position:absolute;left:8px;top:0;bottom:18px;border-left:1px solid var(--line)}.tree>ul{padding-left:0}.tree>ul:before{display:none}.tree li{position:relative;margin:12px 0}.tree li:before{content:"";position:absolute;left:-18px;top:20px;width:18px;border-top:1px solid var(--line)}.tree>ul>li:before{display:none}
+    .node{display:inline-block;min-width:270px;max-width:880px;padding:11px 14px;border-radius:11px;background:#102036;border:1px solid #345371}.node strong{color:#fff}.node.pause{border-color:#8a672a;background:#2b2418}.node.branch{border-color:#4e79a8}.node.end{border-color:#337a62;background:#10271f}.node.blocked{border-color:#8d3e49;background:#2b1820}
+    table{width:100%;border-collapse:collapse;display:block;overflow:auto}th,td{border-bottom:1px solid #2b415b;text-align:left;padding:11px 12px;vertical-align:top}th{color:#bdd8f7;background:#101d2d}td{min-width:180px}
+    ol,ul{padding-left:22px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.foot{margin-top:40px;color:var(--muted);font-size:13px}
+    @media(max-width:760px){.wrap{padding:28px 15px 50px}.cols{grid-template-columns:1fr}.panel{padding:18px}.node{min-width:230px}}
+    @media print{body{background:white;color:#142033}.panel,.card{box-shadow:none;background:white;border-color:#bbc7d3}.node{background:white;color:#142033}.node strong{color:#142033}.tag{background:white}.wrap{max-width:none}}
+  </style>
+</head>
+<body><main class="wrap">
+  <div class="eyebrow">Experiment evidence renewal · design review</div>
+  <h1>OpenGU 实验证据换代树</h1>
+  <p class="lead">旧证据不先硬删。当前计划仍需要的实验按完整注册批次重跑，逐批经过 gate、SyncMate 校验、下游重建和替代审计，再退役本机与 SSH 的对应旧 payload。</p>
+  <div class="meta"><span class="tag">截止线 2026-05-31 23:59:59</span><span class="tag">设计稿 · 非运行授权</span><span class="tag">科学决策点必须暂停</span></div>
+
+  <section class="panel verdict"><h2>核心决策</h2><p>即使批次间有少量重叠，也完整执行各自注册矩阵，不跨批次手工去重。只有身份完全相同、不可变且校验通过的 Cache V2 Score/Selection Artifact 可以精确命中复用；Legacy cache、同名路径和“参数看起来一样”都不能作为复用依据。</p></section>
+
+  <section><h2>当前可证明的起点</h2><div class="cards">
+    <div class="card"><small>Local work branch</small><b>f2b9876…</b><span class="wait">尚未进入 main</span></div>
+    <div class="card"><small>main = origin/main</small><b>44b587d…</b><span class="good">两者一致</span></div>
+    <div class="card"><small>SyncMate local</small><b>device unknown</b><span class="bad">无 peer</span></div>
+    <div class="card"><small>SSH</small><b>当前 alias 不可达</b><span class="bad">远端状态未知</span></div>
+    <div class="card"><small>Local results/runs</small><b>3,990 files</b><span class="wait">需按身份盘点</span></div>
+    <div class="card"><small>E8 minimum gate</small><b>34 Selection + 2 GU</b><span class="blue">先 gate，后扩展</span></div>
+  </div></section>
+
+  <section class="panel warning"><h2>当前首个暂停点</h2><p>用户报告 SSH 实例已开启但没有 GPU；本次检查中现有 SSH alias 均不可达。因此远端 Git、Python、processed data、GPU 和结果库存仍是未知状态。更新 endpoint、配置 SyncMate collector/peer 并取得只读快照前，不开始正式 gate。</p></section>
+
+  <section class="panel"><h2>每个批次的状态机</h2><div class="state"><span>INVALIDATED</span><i>→</i><span>REGISTERED</span><i>→</i><span>GATED</span><i>→</i><span>RUNNING</span><i>→</i><span>COLLECTED</span><i>→</i><span>ACCEPTED</span><i>→</i><span>PROJECTED</span><i>→</i><span>REPLACED</span><i>→</i><span>RETIRED</span></div><p>失败就停在当前状态。只有新证据被接受、投影已重建、旧引用为 0 后，旧 payload 才能进入另行授权的退役操作。</p></section>
+
+  <section class="panel"><h2>完整实验树</h2><div class="tree"><ul>
+    <li><div class="node"><strong>R0 · 换代政策与清单</strong><br>固化截止线；盘点本机 + SSH；先不删除；登记完整重跑批次</div>
+      <ul><li><div class="node"><strong>R1 · 正式源代码身份</strong><br>收口 work blocks；接受进 main；local = origin = SSH full SHA</div>
+        <ul><li><div class="node pause"><strong>PAUSE</strong> · 任一 SHA 不一致即停止</div></li>
+          <li><div class="node"><strong>R2 · SyncMate 与 SSH 只读摸牌</strong><br>更新 endpoint；配置 collector/peer；读取 Git / Python / GPU / data / results</div>
+            <ul><li><div class="node blocked"><strong>当前停在这里</strong> · SSH 不可达，设备与远端状态未知</div></li>
+              <li><div class="node"><strong>R3 · 正式运行前置</strong><br>GPU、gnn_20、canonical data/processed、注册 dry-run</div>
+                <ul><li><div class="node pause"><strong>PAUSE</strong> · 数据需 materialize 或矩阵不一致</div></li>
+                  <li><div class="node branch"><strong>R4 · E8 树干 gate</strong><br>G1 processed preflight → G2 34/34 Selection → G3 2 GU cells / 8 files</div>
+                    <ul><li><div class="node pause"><strong>PAUSE</strong> · 审核 gate；缺陷则新 SHA / identity 后从 G1 重启</div></li>
+                      <li><div class="node branch"><strong>R5A · 核心与 target-direct</strong><br>Cora GCN/GAT 核心矩阵 → G4 34 cells / 136 artifacts → PAUSE → G5 306 cells / 1,224 artifacts（另行授权）</div></li>
+                      <li><div class="node branch"><strong>R5B · 方法专项</strong><br>E4 GraphRevoker 40；proper-TracIn/Hybrid 独立 gate；E2 120；E3 1-cell gate + 59</div></li>
+                      <li><div class="node branch"><strong>R5C · 数据集与预算</strong><br>E1 CiteSeer 50；A5 ratio 190；PubMed 当前注册范围；arxiv 分 feasibility / 首 seed / 扩展三段暂停</div></li>
+                      <li><div class="node branch"><strong>R5D · 条件机制实验</strong><br>A3 仅在存在非平凡 synergy 时运行；E7 C.6a 5 cells，transfer ratio ≥ 60% 才进入 C.6b 10 cells</div></li>
+                      <li><div class="node"><strong>R6 · 下游重建</strong><br>E6、config inventory、接受报告、表格、图、F3、F5</div>
+                        <ul><li><div class="node pause"><strong>PAUSE</strong> · 审核新证据是否改变研究问题或下一目标</div></li>
+                          <li><div class="node end"><strong>R7 · 逐批替换与退役</strong><br>old → new 映射；引用归零；本机 + SSH 待退役；另行授权清理；保留审计 manifest</div></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li></ul>
+    </li>
+  </ul></div></section>
+
+  <section class="cols">
+    <div class="panel"><h2>重叠批次规则</h2><ol><li>每个注册 outcome batch 完整运行。</li><li>不跨批次剪掉重复 cells，不复制结果凑矩阵。</li><li>每批有独立 identity、manifest 和接受结论。</li><li>Cache V2 中间证据仅在完整身份精确相同时命中。</li><li>Legacy cache 一律不进入新批次。</li></ol></div>
+    <div class="panel"><h2>必须看结果再决定</h2><ul><li>E8 G3 → G4；G4 → G5。</li><li>arxiv feasibility → 首 seed → 扩展。</li><li>A3 是否有非平凡 hybrid synergy。</li><li>E7 transfer ratio 是否达到 60%。</li><li>新证据是否改变主张、对照组或 ablation。</li></ul></div>
+  </section>
+
+  <section class="panel"><h2>批次数字与换代定位</h2><table><thead><tr><th>分支</th><th>当前设计规模</th><th>换代处理</th></tr></thead><tbody>
+    <tr><td>E8 G2 / G3</td><td>34 Selection Artifacts；2 GU cells / 8 files</td><td>全树最小正式 gate</td></tr>
+    <tr><td>E8 G4 / G5</td><td>34 cells / 136 artifacts；306 cells / 1,224 artifacts</td><td>两级分别暂停、另行授权</td></tr>
+    <tr><td>E1</td><td>50 cells</td><td>历史可行，但在统一身份下整批重跑</td></tr>
+    <tr><td>E4</td><td>40 cells</td><td>历史远端通过，但整批重跑并完成新归档</td></tr>
+    <tr><td>E2 / E3</td><td>120 cells；1 gate + 59 cells</td><td>方法专项完整换代</td></tr>
+    <tr><td>A5</td><td>190 cells</td><td>预算分支完整换代</td></tr>
+    <tr><td>E7</td><td>C.6a 5；C.6b 10</td><td>60% transfer ratio 条件分支</td></tr>
+  </tbody></table></section>
+
+  <section class="panel"><h2>事实与指令不重复维护</h2><table><thead><tr><th>内容</th><th>所有者</th></tr></thead><tbody>
+    <tr><td>当前任务、优先级、依赖</td><td><code>self/dashboard/WORKPLAN.md</code></td></tr>
+    <tr><td>正式入口、GPU、解释器、数据、SHA、gate</td><td><code>experiments/AGENTS.md</code></td></tr>
+    <tr><td>Selection 与 GU 修复链的人类决策</td><td>13 重跑与缓存修复 Runbook</td></tr>
+    <tr><td>已确认修复链的机器操作</td><td><code>scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md</code></td></tr>
+    <tr><td>收集、校验和 trusted index</td><td><code>scripts/syncmate/AGENTS.md</code></td></tr>
+    <tr><td>批次顺序、分支和暂停条件</td><td>本设计</td></tr>
+  </tbody></table></section>
+
+  <section class="panel warning"><h2>不是本设计的授权</h2><p>不删除文件，不启动 G4/G5 或完整矩阵，不把历史 50/50、40/40 宣称为新的统一基线，不在本报告复制 SSH 命令、解释器路径、cache key 或机器修复协议。设计确认后，下一步是写可执行实施计划并完成 SSH 只读摸牌。</p></section>
+
+  <p class="foot">Editable source: <a href="../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md">2026-08-01-experiment-evidence-replacement-tree-design.md</a> · Generated as a paired human-readable design report.</p>
+</main></body></html>
