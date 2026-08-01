@@ -26,20 +26,40 @@
   <div class="eyebrow">Experiment evidence renewal · design review</div>
   <h1>OpenGU 实验证据换代树</h1>
   <p class="lead">旧证据不先硬删。当前计划仍需要的实验按完整注册批次重跑，逐批经过 gate、SyncMate 校验、下游重建和替代审计，再退役本机与 SSH 的对应旧 payload。</p>
-  <div class="meta"><span class="tag">截止线 2026-05-31 23:59:59</span><span class="tag">设计稿 · 非运行授权</span><span class="tag">科学决策点必须暂停</span></div>
+  <div class="meta"><span class="tag">截止线 2026-05-31 23:59:59</span><span class="tag">SSH snapshot · 2026-08-01 19:27 +08</span><span class="tag">设计原则已确认 · 非运行授权</span><span class="tag">科学决策点必须暂停</span></div>
 
   <section class="panel verdict"><h2>核心决策</h2><p>即使批次间有少量重叠，也完整执行各自注册矩阵，不跨批次手工去重。只有身份完全相同、不可变且校验通过的 Cache V2 Score/Selection Artifact 可以精确命中复用；Legacy cache、同名路径和“参数看起来一样”都不能作为复用依据。</p></section>
 
   <section><h2>当前可证明的起点</h2><div class="cards">
-    <div class="card"><small>Local work branch</small><b>f2b9876…</b><span class="wait">尚未进入 main</span></div>
+    <div class="card"><small>Local docs work block</small><b>not in main</b><span class="wait">正式 gate 前必须收口</span></div>
     <div class="card"><small>main = origin/main</small><b>44b587d…</b><span class="good">两者一致</span></div>
-    <div class="card"><small>SyncMate local</small><b>device unknown</b><span class="bad">无 peer</span></div>
-    <div class="card"><small>SSH</small><b>当前 alias 不可达</b><span class="bad">远端状态未知</span></div>
-    <div class="card"><small>Local results/runs</small><b>3,990 files</b><span class="wait">需按身份盘点</span></div>
+    <div class="card"><small>SSH active checkout</small><b>clean main@44b587d</b><span class="good">alias 已恢复</span></div>
+    <div class="card"><small>Container GPU</small><b>cuda_count = 0</b><span class="bad">无 /dev/nvidia*</span></div>
+    <div class="card"><small>SSH runtime</small><b>gnn_20 missing</b><span class="bad">只有 base Conda</span></div>
+    <div class="card"><small>Processed data</small><b>15 files · 603.9 MB</b><span class="bad">无 70/10/20 profiles</span></div>
+    <div class="card"><small>SyncMate</small><b>remote runner ready</b><span class="wait">local collector / peer 未配置</span></div>
+    <div class="card"><small>SSH results</small><b>11,571 files · 1.87 GB</b><span class="wait">需按 batch identity 盘点</span></div>
     <div class="card"><small>E8 minimum gate</small><b>34 Selection + 2 GU</b><span class="blue">先 gate，后扩展</span></div>
   </div></section>
 
-  <section class="panel warning"><h2>当前首个暂停点</h2><p>用户报告 SSH 实例已开启但没有 GPU；本次检查中现有 SSH alias 均不可达。因此远端 Git、Python、processed data、GPU 和结果库存仍是未知状态。更新 endpoint、配置 SyncMate collector/peer 并取得只读快照前，不开始正式 gate。</p></section>
+  <section class="panel warning"><h2>当前暂停点：R1–R3 readiness</h2><p>SSH endpoint 和只读摸牌已经完成，但正式 gate 仍需四项收口：当前文档 work block 接受进 main；本机 SyncMate collector/peer 建立并刷新远端 queue 投影；恢复 <code>gnn_20</code>；materialize 三套 70/10/20 profiles 并让容器枚举到 GPU。任一未完成都不进入 E8 G1。</p></section>
+
+  <section class="panel"><h2>双端结果库存（只读快照）</h2><table><thead><tr><th>范围</th><th>本机</th><th>SSH</th><th>截止线 mtime 初筛</th></tr></thead><tbody>
+    <tr><td><code>results/</code> 总计</td><td>7,078 files / 168,007,303 B</td><td>11,571 files / 1,871,228,196 B</td><td>本机 5,344；SSH 4,362</td></tr>
+    <tr><td><code>runs/</code></td><td>3,990 / 90,647,631 B</td><td>3,834 / 691,726,692 B</td><td>本机 2,482；SSH 3,138；不可整目录处理</td></tr>
+    <tr><td>三类 Legacy cache</td><td>43 files</td><td>970 files</td><td>本机 23；SSH 968；新批次不复用</td></tr>
+    <tr><td><code>cache_v2/</code></td><td>32 / 983,515 B</td><td>6 / 11,184,028 B</td><td>全部晚于截止线；仍只按完整 identity 复用</td></tr>
+    <tr><td>历史 archive</td><td>2,703 files</td><td>6,510 files / 1,148,248,651 B</td><td>SSH 仅 253 个旧 mtime，说明迁移后的 mtime 不能判定证据年龄</td></tr>
+  </tbody></table><p>SSH 中七月的 612-file / 153-cell small-selection GU v5 批次仍只是 L1 surrogate-transfer / engineering screen，不是 E8 新 306-cell target-direct 矩阵。</p></section>
+
+  <section class="panel"><h2>SSH readiness 证据</h2><table><thead><tr><th>检查项</th><th>当前证据</th><th>判定</th></tr></thead><tbody>
+    <tr><td>Active checkout</td><td>唯一 worktree；clean <code>main@44b587df59763a162057f1f60ecd9446147ec5b9</code></td><td class="good">远端 main 与本机 main / origin/main 一致</td></tr>
+    <tr><td>GPU</td><td>无 <code>/dev/nvidia*</code>；Torch <code>cuda_available=False</code>、<code>cuda_count=0</code></td><td class="bad">正式 GPU gate 禁止启动</td></tr>
+    <tr><td>Python</td><td>仅 base Conda Python 3.10.8 / Torch 2.1.2+cu118；<code>gnn_20</code> 不存在</td><td class="bad">不得用 base 环境代跑</td></tr>
+    <tr><td>Processed data</td><td>15 files / 603,922,347 B；无 70/10/20 / seed2024 profiles；PubMed canonical 80/20 pair 不完整</td><td class="bad">先 materialize 并通过 G1</td></tr>
+    <tr><td>SyncMate</td><td>remote runner <code>gpu4090</code>、无 peer；实际 queue done 12 / failed 4 / blocked 2 / inbox 0 / running 0；旧 manifest 为 done 11 / inbox 1</td><td class="wait">建立 local collector/peer，并重建投影</td></tr>
+    <tr><td>Process / storage</td><td>无 experiment 或 SyncMate runner 进程；177 GiB available</td><td class="good">无后台运行，空间不是首个阻断</td></tr>
+  </tbody></table></section>
 
   <section class="panel"><h2>每个批次的状态机</h2><div class="state"><span>INVALIDATED</span><i>→</i><span>REGISTERED</span><i>→</i><span>GATED</span><i>→</i><span>RUNNING</span><i>→</i><span>COLLECTED</span><i>→</i><span>ACCEPTED</span><i>→</i><span>PROJECTED</span><i>→</i><span>REPLACED</span><i>→</i><span>RETIRED</span></div><p>失败就停在当前状态。只有新证据被接受、投影已重建、旧引用为 0 后，旧 payload 才能进入另行授权的退役操作。</p></section>
 
@@ -47,8 +67,8 @@
     <li><div class="node"><strong>R0 · 换代政策与清单</strong><br>固化截止线；盘点本机 + SSH；先不删除；登记完整重跑批次</div>
       <ul><li><div class="node"><strong>R1 · 正式源代码身份</strong><br>收口 work blocks；接受进 main；local = origin = SSH full SHA</div>
         <ul><li><div class="node pause"><strong>PAUSE</strong> · 任一 SHA 不一致即停止</div></li>
-          <li><div class="node"><strong>R2 · SyncMate 与 SSH 只读摸牌</strong><br>更新 endpoint；配置 collector/peer；读取 Git / Python / GPU / data / results</div>
-            <ul><li><div class="node blocked"><strong>当前停在这里</strong> · SSH 不可达，设备与远端状态未知</div></li>
+          <li><div class="node"><strong>R2 · SyncMate 与 SSH 只读摸牌</strong><br><span class="good">已完成 endpoint + 远端快照</span>；待配置 local collector/peer 并刷新 queue 投影</div>
+            <ul><li><div class="node blocked"><strong>当前 readiness 缺口</strong> · work block 未进 main；local SyncMate 未配置；GPU=0；gnn_20 与 70/10/20 profiles 缺失</div></li>
               <li><div class="node"><strong>R3 · 正式运行前置</strong><br>GPU、gnn_20、canonical data/processed、注册 dry-run</div>
                 <ul><li><div class="node pause"><strong>PAUSE</strong> · 数据需 materialize 或矩阵不一致</div></li>
                   <li><div class="node branch"><strong>R4 · E8 树干 gate</strong><br>G1 processed preflight → G2 34/34 Selection → G3 2 GU cells / 8 files</div>
@@ -97,7 +117,7 @@
     <tr><td>批次顺序、分支和暂停条件</td><td>本设计</td></tr>
   </tbody></table></section>
 
-  <section class="panel warning"><h2>不是本设计的授权</h2><p>不删除文件，不启动 G4/G5 或完整矩阵，不把历史 50/50、40/40 宣称为新的统一基线，不在本报告复制 SSH 命令、解释器路径、cache key 或机器修复协议。设计确认后，下一步是写可执行实施计划并完成 SSH 只读摸牌。</p></section>
+  <section class="panel warning"><h2>不是本设计的授权</h2><p>不删除文件，不启动 G4/G5 或完整矩阵，不把历史 50/50、40/40 宣称为新的统一基线，不在本报告复制 SSH 命令、解释器路径、cache key 或机器修复协议。下一步只收口 R1–R3 readiness；通过后也只执行 E8 G1/G2/G3 并暂停。</p></section>
 
   <p class="foot">Editable source: <a href="../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md">2026-08-01-experiment-evidence-replacement-tree-design.md</a> · Generated as a paired human-readable design report.</p>
 </main></body></html>

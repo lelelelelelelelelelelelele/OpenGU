@@ -2,7 +2,9 @@
 
 **日期：** 2026-08-01
 
-**状态：** 待人工审核的设计稿；不是运行、扩矩阵或删除授权
+**状态：** 线性换代与树形暂停原则已确认；不是运行、扩矩阵或删除授权
+
+**当前快照：** 2026-08-01 19:27 +08:00；SSH 只读摸牌已完成
 
 **可读版：** [HTML 报告](../../../reports/experiment_evidence_replacement_tree_DESIGN.html)
 
@@ -20,16 +22,33 @@
 
 | 项目 | 当前状态 | 对计划的影响 |
 |---|---|---|
-| 本机工作分支 | `codex/docs-context-architecture-20260726`，HEAD `f2b9876386ddcb8a5cce958f43e6c4c33f8043bb`，工作区干净 | 尚未进入正式运行线 |
+| 本机工作分支 | `codex/docs-context-architecture-20260726`；本次摸牌开始时基线为 `2d263601826ad84c2eb1c933f4fc38380a74a200` | 本设计与摸牌更新尚未接受进 `main`；正式 gate 前必须收口 |
 | 本机 `main` / `origin/main` | 均为 `44b587df59763a162057f1f60ecd9446147ec5b9` | 当前分支与正式线不一致 |
 | 本机 SyncMate | device role 为 `unknown`，无 peer | 需要先配置 collector 与远端 peer |
-| SSH | 用户报告实例已开启但无 GPU；当前配置的 SSH alias 均不可达 | 远端 Git、Python、数据和结果库存仍是未知状态 |
-| 本机旧结果 | `runs` 3,990 文件；三类 Legacy cache 共 43 文件；`cache_v2` 32 文件；另有 baseline、evaluation 和历史 archive | 只能先做身份清单，不按目录或 mtime 直接删除 |
+| SSH active checkout | alias 已恢复；`main@44b587df59763a162057f1f60ecd9446147ec5b9`，tracked tree 干净，只有一个 worktree | 远端 `main` 与本机 `main` / `origin/main` 一致；当前文档 work block 尚未进入三方共同 SHA |
+| SSH GPU | 容器中无 `/dev/nvidia*`；base Torch 报告 `cuda_available=False`、`cuda_count=0` | 正式 GPU gate 必须继续暂停；宿主机 `/proc` 条目不能替代容器可枚举 GPU |
+| SSH Python | 只有 base Conda Python 3.10.8、Torch 2.1.2+cu118；`gnn_20` 不存在 | 必须恢复正式环境，禁止用 base 环境代跑 |
+| SSH processed data | 固定根存在 15 文件、603,922,347 bytes；有部分 80/20 与 public-fixed 文件，但无任何 70/10/20 / seed2024 profile，PubMed canonical 80/20 pair 也不完整 | E8 G1 前需获准 materialize 并验收三套正式 profile |
+| SSH SyncMate | runner `gpu4090` 已配置且 Git 干净，无 peer；实际 queue 为 done 12 / failed 4 / blocked 2 / inbox 0 / running 0 | 本机 collector/peer 仍未建立；2026-07-22 的 queue manifest 记录 done 11 / inbox 1，已落后于实际目录，正式使用前需重建投影 |
+| 运行进程 / 空间 | 无 experiment 或 SyncMate runner 进程；`/autodl-fs/data` 可用 177 GiB | 当前没有后台实验；空间不是首个阻断 |
+| 双端结果 | 本机 7,078 文件 / 168,007,303 bytes；SSH 11,571 文件 / 1,871,228,196 bytes | 先形成 batch identity 与 replacement ledger；不按目录或 mtime 直接删除 |
 | 历史 E1 | 50/50 曾验收，但依赖 Legacy-format scratch cache | 作为已知可行性，仍纳入统一身份下整批重跑 |
 | 历史 E4 | 40/40 远端曾通过，本机同名旧目录无效，归档未闭环 | 作为已知可行性，仍纳入整批重跑与新归档 |
 | E8 正式候选 | G2 为 34 个 Selection Artifacts；G3 为 2 个 GU cells；G4 为 34 cells；G5 为 306 cells / 1,224 artifacts | 只授权到逐级 gate；G4、G5 都需暂停审核 |
 
-因此，当前不能开始正式实验。第一个暂停点是：更新 SSH endpoint、配置 SyncMate、完成远端只读快照，并让正式 Git SHA 与运行环境通过 preflight。
+SSH endpoint 与只读摸牌已经完成，但当前仍不能开始正式实验。当前暂停点跨越 R1–R3：先收口当前 work block，使三方正式 SHA 一致；再配置本机 SyncMate collector/peer 并刷新远端 queue 投影；随后恢复 `gnn_20`、三套 70/10/20 profiles 和容器 GPU。四项全部通过 preflight 后，才进入 E8 G1。
+
+### 2.1 双端结果库存（只读快照）
+
+| 范围 | 本机 | SSH | 截止线 mtime 初筛 | 解释 |
+|---|---:|---:|---:|---|
+| `results/` 总计 | 7,078 files / 168,007,303 B | 11,571 files / 1,871,228,196 B | 本机 5,344；SSH 4,362 | 仅说明文件时间分布，不是失效判定或删除清单 |
+| `runs/` | 3,990 / 90,647,631 B | 3,834 / 691,726,692 B | 本机 2,482；SSH 3,138 | 同一目录混有五月旧结果与七月证据，禁止整目录处理 |
+| 三类 Legacy cache | 43 files | 970 files | 本机 23；SSH 968 | 新批次不复用；退役仍须 consumer/ref 与 replacement gate |
+| `cache_v2/` | 32 / 983,515 B | 6 / 11,184,028 B | 0 | 只按完整 Recipe/Artifact identity 判断 exact reuse |
+| 历史 archive | 本机 2,703 files | SSH 6,510 files / 1,148,248,651 B | 本机 2,703；SSH 253 | SSH archive 在七月迁移后大量文件 mtime 变新，直接证明 mtime 不足以判断证据年龄 |
+
+SSH `runs/` 中 2026-07-22 的 `__syncmate_small_selection_gu_full_v5__` 为 612 files，对应已重分类的 153-cell L1 surrogate-transfer / engineering screen，不是 E8 新 306-cell target-direct 矩阵。它保留工程证据身份，但不能替代 E8 G1–G5。
 
 ## 3. 单一事实归属
 
@@ -86,20 +105,21 @@ R1 正式源代码身份
 ├─ 收口当前 work blocks
 ├─ 接受进 main
 └─ local main = origin/main = SSH active checkout full SHA
-   └─ [PAUSE] 任一 SHA 不一致即停止
+   └─ [CURRENT PAUSE A] 当前 work branch 尚未进入 main
       │
 R2 SyncMate 与 SSH 只读摸牌
-├─ 更新可达 endpoint
+├─ ✅ endpoint 可达；远端 Git / Python / GPU / data / result inventory 已读取
+├─ ✅ 远端 runner=gpu4090，queue 当前无 inbox/running job
 ├─ 配置本机 collector 和 SSH peer
-├─ 读取远端 Git / Python / GPU / data / result inventory
-└─ [PAUSE] endpoint 不可达、设备身份不明或远端状态异常
+├─ 重建已落后的 queue manifest/status 投影
+└─ [CURRENT PAUSE B] 本机设备身份与 peer 尚未建立
       │
 R3 正式运行前置
 ├─ GPU 可枚举，禁止 CPU fallback
 ├─ gnn_20 环境和正式解释器通过
 ├─ canonical data/processed profiles 通过
 └─ 注册 dry-run 固化 batch / cells / identities
-   └─ [PAUSE] 数据需 materialize 或注册矩阵与计划不一致
+   └─ [CURRENT PAUSE C] 当前 GPU=0、gnn_20 缺失、70/10/20 profiles 缺失
       │
 R4 E8 target-direct 最小门禁（树干）
 ├─ G1：canonical processed profile preflight
@@ -199,14 +219,16 @@ Selection/selector 缺陷与 GU method 缺陷先由 13 Runbook 判断修复链�
 
 ## 9. 设计落地顺序
 
-本设计经人工确认后，才进行以下落地：
+线性换代与树形暂停原则已获确认；当前按下列顺序落地：
 
-1. 把树根和当前首个暂停点写入 `WORKPLAN.md`，不复制本设计全文。
-2. 建立 inventory / retirement ledger 的机器可读 schema 与只读生成器。
-3. 更新 SSH endpoint 并初始化 SyncMate collector/peer。
-4. 生成远端只读快照，回填实际 Git、GPU、Python、processed data 和 result inventory。
-5. 用当前注册 dry-run 固化第一批真实 cell 数和身份。
-6. 只执行 R4 的 G1/G2/G3；提交 gate 报告并暂停。
+1. ✅ 恢复 SSH endpoint，生成远端只读快照并回填本文。
+2. 把树根、当前 R1–R3 暂停点和本文链接写入 `WORKPLAN.md`，不复制整棵树。
+3. 收口当前 work block，使 local / origin / SSH 的正式 `main` 使用同一完整 SHA。
+4. 初始化本机 SyncMate collector/peer，并从实际 queue 目录重建 manifest/status 投影。
+5. 建立 inventory / retirement ledger 的机器可读 schema 与只读生成器。
+6. 获准后 materialize 三套 70/10/20 profiles；恢复 `gnn_20` 并挂载 GPU。
+7. 用当前注册 dry-run 固化第一批真实 cell 数和身份。
+8. 只执行 R4 的 G1/G2/G3；提交 gate 报告并暂停。
 
 ## 10. 非目标
 
@@ -216,12 +238,12 @@ Selection/selector 缺陷与 GU method 缺陷先由 13 Runbook 判断修复链�
 - 本设计不在文档中复制正式命令、解释器路径、cache key 或远端修复协议。
 - 本设计不承诺恢复已经不再服务当前研究问题的旧实验；它们只需记录失效和退役原因。
 
-## 11. 审核问题
+## 11. 已确认的设计决策
 
-人工审核本设计时只需确认三点：
+本轮已经确认三点：
 
-1. 是否接受“有重叠也按注册批次完整重跑，只有精确 Cache V2 中间证据可复用”。
-2. 是否接受 E8 G1/G2/G3 作为所有正式换代实验之前的树干 gate。
-3. 是否接受逐批 `ACCEPTED -> PROJECTED -> REPLACED -> RETIRED`，而不是预先整目录删除。
+1. 有重叠也按注册批次完整重跑，只有精确 Cache V2 中间证据可复用。
+2. E8 G1/G2/G3 是所有正式换代实验之前的树干 gate。
+3. 逐批 `ACCEPTED -> PROJECTED -> REPLACED -> RETIRED`，不预先整目录删除。
 
-确认后，下一份产物应是可执行实施计划，而不是直接启动完整实验。
+下一次需要人工决定的是 R3 readiness 全部通过后是否启动 E8 G1/G2/G3；G3 结果返回后再次暂停，决定是否授权 G4。

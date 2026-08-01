@@ -1,6 +1,6 @@
 # WORKPLAN — 操作中枢 + 阶段计划（实验 / ablation / 写作 / 画图）
 
-> Last updated: 2026-07-30
+> Last updated: 2026-08-01
 > Role: **当前阶段的唯一操作中枢**（2026-06-27 起取代 `PROGRESS.md`）。现状快照 + 硬伤 + 方向 + 按工作流阶段拆的任务计划，全在这一份。
 > 看板 `progress.html` 由 `scripts/dashboard/refresh.py` 从本文件生成（§0 现状 + §1 快照 + §5–§8 四阶段 kanban）；改完本文件跑一次 refresh（或靠 pre-commit hook 自动重生）。**单一真相是这份 markdown。**
 > 维护规则：只放 **状态 / 原因 / 任务 / 链接**，不复制其他文档内容（`config_inventory.html` 管 cell 级进度、`PAPER_LIABILITIES_MAP.md` 管 overleaf 行号、`limitations.md` 管实测瓶颈——这里只链接）。
@@ -21,11 +21,11 @@
 
 | 维度 | 状态 | 原因 / 细节 | 权威出处 |
 |---|---|---|---|
-| **研究证据** | 🟡 Cora / CiteSeer 可用；arxiv 仍是 pilot | Cora 主矩阵与 CiteSeer E1（50/50）已接受；arxiv 仅 6-cell T1，不能支撑跨数据集强结论 | `config_inventory.html`；E1 / E5 |
+| **研究证据** | 🟡 历史证据可审计；统一新基线尚未建立 | 截止线前证据全部降为非权威候选；七月 E1 50/50、E4 40/40 与 L1 screen 只证明可行性/历史身份，不能替代当前统一身份下的 replacement batches；arxiv 仍只是 pilot | [实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)；E1 / E4 / E5 |
 | **科学身份** | 🟡 旧 153-cell 仅是迁移筛查 | public-split、exact-k=7 的 GateGCN-surrogate→OpenGU-GCN 结果可留作 L1 engineering screen，**不能**支撑 target-direct 白盒或 1%/5% 预算结论 | `reports/target_direct_selection_PREPARATION_REPORT.{md,html}` |
-| **正式运行** | 🔴 修正已验收；formal gate 受环境阻断 | target-direct 链已进入 `main`；SSH GPU、`gnn_20` 与 70/10/20 processed profiles 恢复前，不启动正式 gate | E8；`reports/target_direct_selection_PREPARATION_REPORT.md` |
+| **正式运行** | 🔴 SSH 已恢复；R1–R3 readiness 未闭环 | SSH active checkout 为 clean `main@44b587d`，但当前本机 work block 尚未进入 `main`；容器 GPU=0、`gnn_20` 缺失、三套 70/10/20 profiles 缺失，本机 SyncMate collector/peer 未配置 | [实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)；E8 |
 | **paper** | 🟡 thesis 锁定；关键 liabilities 待关闭 | 本轮维持 *systematic audit + extreme heterogeneity + fingerprint*；需回应 degree 比较、数据集 scope，并以重跑结果关闭 L8/K5 等数字风险 | §2 / §3；`PAPER_LIABILITIES_MAP.md` |
-| **当前关口** | 🟡 E8 双预算 gate 为首要恢复项 | 环境恢复后先跑 Cora/seed42/degree 的 1% 与 5% gate；随后 E2 collateral redo、E3 K5 anchor，再回填写作与图表 | E8 → E2 / E3；§4 / §5 |
+| **当前关口** | 🟡 先闭环换代树 R1–R3，再进 E8 | 顺序为 work-block/main 收口 → SyncMate collector/peer 与 queue 投影 → `gnn_20` / processed profiles / GPU → E8 G1/G2/G3；G3 后暂停审核，不自动进入 G4/G5 | [完整实验树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)；E8 → E2 / E3 |
 
 ---
 
@@ -35,7 +35,7 @@
 2. **C2 — GNNDelete 在 n=5 不显著**（sd≫mean）。"最脆弱方法"措辞需带 n.s. 对冲 → W3-L2 / A7。
 3. **C3 — §A.4 hop-decay 被 L8 污染且 CSV 4 列全空**（GIF≡IDEA 逐位相同）→ E2/E6/W3-L3。
 4. **C4 — ΔF_noise(k=5) 历史 K5 口径缺 method-native before**：旧磁盘 5/6 方法 `f1_before=null`，不能继续充当 fresh anchor。→ **E3** 先走 fixed-SHA SSH formal 1-cell gate + 59-cell V2 expansion，取得 `method_perf_before/f1_after`，再本地 join 与 sanity；W3-L4 只引用新 accepted evidence。
-5. **C5 — GraphRevoker 历史矩阵退化（✅ 代码与远端 E4 已通过；本地归档待闭环）**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，旧数据继续禁止引用。2026-07-14 修复线已进入 active 基线；E4 在固定源码上完成 GCN/GAT × random/degree/pagerank/IM × 5 seeds，共 **40/40**，两阶段 gate 均通过、queue exit=0。后续不再写“代码仍未修好”；但本地同名 40-cell 仍是 2026-05-07 旧视图，完整 evidence import 前不得从它们提取 post-fix 数值。→ `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`（总状态）+ `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`（seed42）。
+5. **C5 — GraphRevoker 代码缺陷已关闭；统一证据 replacement 待跑**：旧 cell 的 `perf_before`=0.50–0.58 来自未完成的 aggregator/shard-ensemble 路径，继续禁止引用。2026-07-14 修复线与历史远端 40/40 证明实现可行，后续不再写“代码仍未修好”；但它们不替代当前统一身份下的新 40-cell batch。E4 按实验树 R5B 重跑并接受前，不把历史数值写入新基线。→ `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`（历史验收）+ [实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)。
 
 ---
 
@@ -59,8 +59,8 @@
 | **I0** | **重设 agent init 文档体系**：根 `AGENTS.md` 成为唯一实质初始化入口；根 `CLAUDE.md` 仅保留指向 `AGENTS.md` 的兼容指针；逐份审计并收敛子目录 `CLAUDE.md`，只在确有目录级风险的地方迁为精简的局部 `AGENTS.md`。 | 先完成读取路径与信息 owner 审计，再迁移；验收为：① 当前状态只在 dashboard；② 历史/证据只在其权威报告或归档；③ Git、数据集、缓存、正式实验等硬约束各有唯一 owner；④ 任务按需加载而非初始全文加载；⑤ 全仓引用与链接校验通过。**不在本任务中改写实验语义或删除证据。** | 无 GPU；Git 收口遗留与正式实验可并行 | ☐ **P0 / 最高优先级** |
 
 ```
-E4 GraphRevoker 修复 + 整 method 重跑（✅ GCN/GAT 四策略五 seed，40/40）──► §5.2 GR×GAT wedge
-   修复已验收；旧坏数据仍禁引，新 40-cell 矩阵作为权威证据
+E4 GraphRevoker 修复（历史 40/40 可行性）──► R5B 新统一身份 40-cell replacement ──► §5.2 GR×GAT wedge
+   修复已验收；旧坏数据仍禁引，新 replacement 接受后才成为统一基线
 
 ★ E2 L8 redo（清 .pyc 重跑 GIF/IDEA collateral）─► E6 hop 灌 CSV ─► W3-L3 hop caveat / F3 hop 图
                                                  └─► 唯一能验 IM/IF 在 IF 家族有无真 niche
@@ -74,7 +74,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 画图：F1 pipeline 图（独立）· F2 生成器收敛（独立）· F3 supp 图（依赖 A3/A5/E2）
 ```
 
-**本轮主线**：`W1 指标切换 retrain gap → W2 必答题 → W3 纯 prose 那几条(L1/L2/L7/L8/L9) → E2 + A5 正式补量（E1/E4 已完成）+ E3 fixed-SHA K5 gate/full matrix 后本地 sanity → 回填 W3 剩余(L3/L4/L5/L6) + F3`。
+**本轮实验主线**：以[实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)为顺序；当前只闭环 R1–R3，随后执行 E8 G1/G2/G3 并暂停。E1/E4 的历史完成度不计作统一新基线，分别在 R5C/R5B 运行完整 replacement batch。写作项可并行，但不得从未 replacement 的旧结果回填新数字。
 
 ---
 
@@ -91,25 +91,25 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 - 正式性的判据是固定源码/配置 provenance、每格四件套、质量 gate 和日志。用同一 full config/fingerprint 跑出的 1-cell gate 是正式矩阵的一部分，扩展时应 skip 而不是覆盖。
 - **K5 formal lane（2026-07-22 锁定）**：注册 gate=`Cora/GCN/GraphRevoker/seed111/k=5`，先执行 `rerun_cora_noise_anchor.py --gate-only --expected-git-sha <full-sha>`；只有 gate manifest 的 SHA、canonical dataset fingerprint、cell identity 与 artifact SHA-256 全部匹配，才允许用同一 SHA 加 `--resume` 扩展剩余 59 cells。runner 对“无 gate 直接全跑”必须 fail closed。
 - **A5 当前决定**：active 上五段 dry-run 为 `50 + 20 + 80 + 20 + 20 = 190/190 would_run`，不存在旧结果误跳过；完成 active 剩余 Git hygiene 后直接走 active formal lane。此前误建且 0 产物的 A5 worktree 不作为执行路径。
-- **小图 Selection 数据合同（2026-07-21）**：public 17-method benchmark 只从 active checkout 的 `data/raw/{cora,citeseer,pubmed}` 读取，必须已有八个 raw 文件与 `processed/data.pt`，禁止自动下载/运行时加工；OpenGU integrated Selection 只从 `data/processed/{transductive,inductive}` pickle 读取。public split 与 OpenGU 80/20 split 不得混称。该合同已固化到根 `AGENTS.md`（所有 agent 强制规则）和 `CLAUDE.md`（SSH 操作规则）；shared/worktree/experiment checkout 不得作为 dataset root，既有 source-dataset 副本已在验证后清理。
+- **正式数据当前状态（2026-08-01）**：数据合同只由 `experiments/AGENTS.md` 维护。SSH 正式 processed 根当前有 15 files / 603,922,347 bytes，保留部分 80/20 与 public-fixed 文件，但没有 E8 注册的三套 70/10/20 / seed2024 profiles，PubMed canonical 80/20 pair 也不完整；获准 materialize 并通过 G1 前不得进入正式 Selection/GU gate。→ [实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md)
 
 #### Git 收口遗留待办（2026-07-25）
 
 - [ ] **GIT-LOCAL-1 — 删除已注销的 E8 物理残留目录**：目标仅为 `C:\Users\ADMIN\.codex\worktrees\b8ad\OpenGU`。该路径已不在 `git worktree list`，`codex/fix-target-direct-formal-orchestration-20260724` 已由 `git branch -d` 删除，primary `E:\project\OpenGU` 已回到 clean `main`；但 Windows 仍报告其中 `GULib-master` 被外部进程占用。待锁释放后，重新确认精确 resolved path、非 reparse point、未注册为 worktree、非 primary/SSH/evidence 路径，再仅删除该物理残留。**不得触碰**同名但独立的 `E:\project\OpenGU-worktrees`：它含 2026-07-22 历史 Git bundles，需单独审计与授权。
 
-#### Cache V2 Legacy 退役待办（2026-07-30）
+#### 实验证据换代与旧结果退役（2026-08-01）
 
-- [ ] **CACHE-LEGACY-1 — 本机与 SSH Legacy cache 联合退役**：archive-plan、逐文件 hash、freeze 和 rollback 清单已经实现，但物理归档/删除从未执行；本机 `results/{cache,score_cache,selection_cache}` 仍存在，SSH 端以 2026-07-14 的只读冻结证据为最近确认状态，2026-07-30 在线复核因实例不可达而未完成。恢复 SSH 后先重新盘点两端精确范围并复核 consumer refs、V2 覆盖、身份冲突和回滚证据；只有 `legacy_delete_ready` 重新验收且获得单独授权后才归档或删除。不得把整个 `results/runs` 视为 Legacy cache 清空。→ [Cache V2 cutover 与归档准备验收](../../docs/cache_v2_cutover_archive_readiness_ACCEPTANCE_REPORT.md)。
-- active 已补齐三套 public raw/PyG cache 与 Cora/CiteSeer canonical 80/20 pickle；PubMed canonical 80/20 pair 尚无可信历史副本。路径、逐文件 SHA-256、聚合 source fingerprint 与 split count 由 runner 写入每个 cold/warm summary。
+- [ ] **EVIDENCE-RENEWAL-1 — 截止线前证据顺序换代**：将 2026-05-31 23:59:59 及以前产生的全部实验结果视为非权威候选，不再只处理 Legacy cache。当前计划仍需要的问题按实验树逐批完整重跑；批次即使重叠也不人工剪 cell，只有完整 identity 精确一致的 immutable Cache V2 Score/Selection Artifact 可复用。每批必须依次完成 registered → gated → collected → accepted → projected → replaced，旧 payload 才进入另行授权的 retired 操作。原 `CACHE-LEGACY-1` 并入本任务。2026-08-01 已完成双端只读库存与 SSH readiness 摸牌；下一节点是 R1–R3，未授权删除。→ [实验证据换代树](../../docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md) · [HTML](../../reports/experiment_evidence_replacement_tree_DESIGN.html) · [Cache V2 cutover 历史验收](../../docs/cache_v2_cutover_archive_readiness_ACCEPTANCE_REPORT.md)
+- 当前 SSH 数据状态与正式数据合同分别由上述换代树快照和 `experiments/AGENTS.md` 拥有；本文件不重复维护解释器、远端命令、cache key 或 materialize 指令。
 - **一次性 GT 特例（2026-07-22）**：`9240b9a` 的 SSH public 17-output `9/9` 矩阵作为本 benchmark 的权威 GT 接受，不再重跑。依据是旧 shared 三套 public cache 的 9 个有效输入逐文件等于 active、ScoreBundle `produce()` 与两份 scorer core 在后续提交中未变、cold/warm/GPU/failure 证据已完整。该特例只接受 v3.0 result payload 与分析结论；不得把旧路径改称 active-root、把旧 cache 当 v3.1 exact hit，或扩展到 OpenGU 80/20 / GU outcome。未来新运行仍严格走 active canonical contract。
 - **小图 Selection→GU 旧矩阵（2026-07-22；2026-07-23 重分类）**：clean SSH `main@1c83bb4` 上的 153 cells / 612 artifacts / 0 failures 与 SHA-256 仍是有效工程证据，但 scientific identity 仅为 public-split、exact-k=7、GateGCN-surrogate→OpenGU-GCN target 的 L1 transfer screen。它不回答 target-direct 白盒与真实 1%/5% 预算。新正式链固定 70/10/20 无泄漏 validation target、同一 target checkpoint，并按每个 ratio 独立计算 `k=max(1,floor(ratio*train candidates))`；见 `reports/target_direct_selection_PREPARATION_REPORT.{md,html}`。
 
 | ID | 任务 | config / 脚本 | 规模·耗时 | 关 | 状态 |
 |---|---|---|---|---|---|
-| **E4** ★ | **GraphRevoker 修复 + 整 method 重跑**（修正 aggregator / shard-ensemble collateral 路径；旧坏数据禁引） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ✅ **远端 40/40 passed**（GCN 20/20、GAT 20/20；queue exit=0）· ◐ **本地归档待闭环**（总状态 `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`；seed42 报告 `docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md`） |
-| **E1** ★ | **跑干净 citeseer**（当前验收范围：stable 5 methods × random/IM × 5 seeds；TracIn 按本轮 gate 排除，GraphRevoker 转 E4） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh 4090 checkout | L6 / C-scope | ✅ **50/50 accepted**（0 failures；见 `docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
+| **E4** ★ | **GraphRevoker 统一身份 replacement batch**（修正后的 aggregator / shard-ensemble 路径；完整批次重跑） | GraphRevoker × `random/degree/pagerank/IM` × 5 seeds × GCN/GAT | 40 cells；两阶段 gate | C5 / L5 | ◐ 历史远端 40/40 仅作可行性与缺陷修复证据；新统一基线 0/40，按实验树 R5B 在 E8 树干 gate 后运行（历史报告：`docs/graphrevoker_e4_ACCEPTANCE_REPORT.md`） |
+| **E1** ★ | **CiteSeer stable 统一身份 replacement batch**（stable 5 methods × random/IM × 5 seeds；TracIn/GraphRevoker 仍走各自分支） | `A5_citeseer_r0.05_stable_notracin.yaml` | 50 cells；fresh formal lane | L6 / C-scope | ◐ 历史 50/50 只作可行性证据；新统一基线 0/50，按实验树 R5C 完整重跑（历史报告：`docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md`） |
 | **E2** ★ | **L8 redo**：远端 `__pycache__/*.pyc` 已清；重跑 GIF/IDEA collateral（代码已修 `d674f62`，三 cache 未动） | `scripts/redo_collateral_if_family.py` `phase_b_cora_{gcn,gat}.yaml` | GIF+IDEA×6×5×2=120 cell | C3 / L8 | ☐ 2026-07-25 SSH 已清 138 个 `__pycache__` / 662 个 `.pyc`；待 GPU/`gnn_20` 恢复后执行 120 cell |
-| **E3** | **重建并计算 ΔF_noise anchor**：先在 clean SSH main、固定 full SHA、RTX 4090 上生成 fresh V2 K5 matrix；注册 `GraphRevoker/GCN/seed111` 1-cell gate，PASS 后同 SHA resume 剩余 59 cells。随后本地把 K5 `method_perf_before/f1_after` 与主矩阵口径核对并计算 ΔF_noise / `relative_f1_drop` sanity。⚠ K5 seed(111…)≠主矩阵 seed(42…)，跨 seed 只允许均值级近似并写入 caveat | `experiments/baseline_k5/rerun_cora_noise_anchor.py` | 1-cell gate + 59-cell expansion；再离线 join | C4 / L4 | ◐ runner gate contract 就绪；SSH dirty/GPU 阻断，0/60 formal cells |
+| **E3** | **重建并计算 ΔF_noise anchor**：先在 clean SSH main、固定 full SHA、RTX 4090 上生成 fresh V2 K5 matrix；注册 `GraphRevoker/GCN/seed111` 1-cell gate，PASS 后同 SHA resume 剩余 59 cells。随后本地把 K5 `method_perf_before/f1_after` 与主矩阵口径核对并计算 ΔF_noise / `relative_f1_drop` sanity。⚠ K5 seed(111…)≠主矩阵 seed(42…)，跨 seed 只允许均值级近似并写入 caveat | `experiments/baseline_k5/rerun_cora_noise_anchor.py` | 1-cell gate + 59-cell expansion；再离线 join | C4 / L4 | ◐ runner gate contract 就绪；SSH active 已 clean，但 GPU=0、`gnn_20` 与所需 profiles 缺失，0/60 formal cells |
 | **E5** ★ | **arxiv 补量**：补 T2/T3 seed 或扩 6 method，关"只是 pilot" | `phase_b_arxiv_T2_seed212.yaml` `..._T3_seed722.yaml` | 18 cell/seed | L7 | ◐ T1 6/18 |
 | **E6** ★ | **hop 列灌进 aggregate CSV**：扩 aggregator 读 `collateral.json::hop_decay`（**依赖 E2**） | aggregator 扩展 | 4 列 ×460 行 | C3 | ☐ 0/460 |
 | **E7** ★ | **C.6 surrogate-transfer umbrella（严格门控）**：Cache V2 Selection Artifact 真实命中且 `proper-tracin-v1` versioned recipe 通过 gate 后，先做 **C.6a** 独立训练 GCN surrogate 选点 → GCN target GNNDelete，再做 **C.6b** GCN surrogate 选点 → GAT / GIN target GNNDelete。比较 target-direct TracIn、same-seed random、degree；主指标 = retrain gap transfer ratio，辅以 selection Jaccard。术语定为 query-free surrogate / 灰盒迁移，不写成纯黑盒 | 待建 `C6a_same_arch_surrogate.yaml`、`C6b_cross_backbone_surrogate.yaml`；gate = Cache V2 cold/warm exact hit + `proper-tracin-v1` recipe；显式记录 selection artifact ref，且 `selector_model_id != target_model_id` | C.6a 5 cell + C.6b 10 cell；5 seeds；若 transfer ratio ≥60% 再扩反向组合或第二个 GU family | L2-direct → L2-surrogate / threat-model realism | ◐ generic 17-output Cache V2 real-hit 已由 SSH `9/9` grandfathered GT 特例关闭，**不再要求 3×3 重跑**。仍待 `proper-tracin-v1`、E7 model-id/runner 集成与 C.6a/C.6b GU outcome |
@@ -126,7 +126,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 | ID | 任务 | config | 规模 | gate / 备注 | 状态 |
 |---|---|---|---|---|---|
 | **A3** ★ | **alpha-sweep**：hybrid_alpha {0,.25,.5,.75,1}×{GCN,GAT}×cora r0.05 | `A3_cora_{GCN,GAT}_alpha{0.00,0.25,0.75,1.00}.yaml` | 有效新增 ~180 cell（α=0≡im, α=1≡tracin） | **gate**：主矩阵 fingerprint 出来后，若 MEGU/IDEA 有非平凡坐标才值得跑。⚠ IM 整体打不过 degree → 价值有限 | ☐ 0/200 |
-| **A5** ★ | **ratio-sweep**：cora r∈{0.01,0.10,0.20} + citeseer r∈{0.05,0.20} 四稳定策略补量（**active formal lane**；dry-run=`190/190 would_run`） | `A5_ratio_{0.01,0.10,0.20}.yaml`；`A5_citeseer_r{0.05,0.20}.yaml` | cora 90 cell/ratio；citeseer 缺失 190 cells | 不因 ignored 历史结果隔离。r0.20 的 GraphRevoker/GraphEraser 仍先做同配置 1-cell gate | ◐ cora r0.01=90；Citeseer E1=50 accepted；四策略 190 待跑（active） |
+| **A5** ★ | **ratio-sweep**：cora r∈{0.01,0.10,0.20} + citeseer r∈{0.05,0.20} 四稳定策略补量（**active formal lane**；dry-run=`190/190 would_run`） | `A5_ratio_{0.01,0.10,0.20}.yaml`；`A5_citeseer_r{0.05,0.20}.yaml` | cora 90 cell/ratio；citeseer 缺失 190 cells | 不因 ignored 历史结果隔离。r0.20 的 GraphRevoker/GraphEraser 仍先做同配置 1-cell gate | ◐ cora r0.01=90 与 CiteSeer E1=50 仅为历史身份；四策略 190-cell replacement 待跑 |
 | **A6** | **新 backbone / 跨架构共识** — **2026-06-28 决策：不跑，降 future-work**。只用现有 GCN+GAT 两个 MP backbone；claim **收到 "across two message-passing backbones"**，limitations 主动认"两者同属 MP 家族，谱方法/graph-transformer 跨家族泛化留 future work"。要补也只在 reviewer 点名 / 下篇当卖点时，按**窄探针**(cora×1 新 backbone×degree-vs-1-informed×≥3 seed)，**别均匀撒** | (不跑) | — | → `idea_cross_arch_consensus.md` §4 | ✅ 决策：scope-to-MP |
 | **A7** ★ | **GNNDelete +seed**（n.s.→显著）或 reframe 成 volume-driven | 扩 `phase_b_cora_*` seeds | +N seed | 关 C2（n=5 sd≫mean）。P2 | ☐ |
 | **A8** | **RR-set IM / RR-IF-Hybrid**（统一 IMM 框架，IF 作 bicriteria） | 新算法 | ~2-3 天实现 | limitations L6-(C)，**ICLR-tier follow-up**；rebuttal 不做 | ☐ option |
@@ -188,6 +188,7 @@ Cache V2 Selection Artifact 真实命中 + `proper-tracin-v1` versioned recipe g
 
 ## 10. Changelog
 
+- **2026-08-01** 实验证据换代树与 SSH 摸牌：固定 2026-05-31 23:59:59 截止线，把原 Legacy-only 退役扩为全部旧实验证据的逐批 replacement；重叠 outcome batch 允许完整重跑，退役只在 accepted/projected/replaced 后另行授权。SSH active 为 clean `main@44b587d`，runner `gpu4090` 可读且当前无 inbox/running job；容器 GPU=0、`gnn_20` 与三套 70/10/20 profiles 缺失，本机 collector/peer 未配置。当前停在实验树 R1–R3，不启动正式 gate。→ `docs/superpowers/specs/2026-08-01-experiment-evidence-replacement-tree-design.md`
 - **2026-07-24** E8 target-direct 重跑复核：主矩阵参数域固定为 `last_layer`，`all_trainable` 按用户决定延期并从正式配置、SyncMate recipe 与本轮排期中移除；撤回基于 public split 60–140 candidates 的旧 small-graph 时间估算，正式 5% 理论预算更新为 Cora/CiteSeer/PubMed=`94/116/690`。target checkpoint、split、expected-k、runner propagation、Cache V2、GNNDelete architecture 与完整 SyncMate tests 共 `316 passed`，SyncMate 临时 collect/verify/index smoke PASS。SSH active Git 干净且与本地/origin 对齐，但无 GPU/`gnn_20`，三个 70/10/20 processed pairs 尚未 stage，formal E8 仍暂停。
 - **2026-07-24** retired SSH path 第二轮清退：按 `main@4170816` 摸排出 49 个 tracked 文件 / 499 处旧 sibling 前缀；报告改指 archive/canonical access 并加迁移说明，GU v1–v4 配置全部 repo-relative，19 个 imported benchmark JSON 做带 baseline/aggregate-hash 元数据的路径归一化，17 个 consumer 的 69 处 SHA-256 按 canonical Git-blob/Linux LF 字节重算并由 `.gitattributes eol=lf` 固定。新增全 tracked 文本 validator，当前 1214 个 UTF-8 文件 0 matches；原始字节仍由 Git 基线保存。见 `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}`。
 - **2026-07-24** SSH 部署根摸排与收口：确认 2026-07-14 至 07-22 的 fresh clone / evidence / ops / canary / materializer 与两组 tracked 绝对路径配置共同造成 9 个 OpenGU sibling；2 个空壳删除，7 个证据树共 6952 files / 1,078,876,926 bytes 原子迁入 active ignored archive，逐文件 SHA-256 通过，清单锚点 `32961210ff7a874b7f13f75987be19f5d825002e9f453bb5ac015976e048882e`。runner 增加 active-checkout path fail-closed，Gate4 与 GU v5 改为 repo-relative，新增顶层布局验收器。见 `reports/ssh_deployment_layout_CLOSEOUT_REPORT.{md,html}`。
