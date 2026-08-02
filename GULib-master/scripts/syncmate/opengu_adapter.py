@@ -6,10 +6,75 @@ from typing import Any, Mapping
 
 import syncmate_core as core
 
+import opengu_recipes as recipes_module
+
 
 OPENGU_SETUP_CONFIG_SHA256 = (
     "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1"
 )
+
+
+class OpenGUProjectExtension:
+    """OpenGU-owned policy surface consumed by the generic compatibility Core."""
+
+    extension_id = "opengu"
+
+    def recipes(self, project_root: Path) -> Mapping[str, Mapping[str, Any]]:
+        del project_root
+        return recipes_module.recipe_definitions()
+
+    def artifact_names(
+        self,
+        device: Mapping[str, Any] | None,
+        peer: Mapping[str, Any] | None,
+    ) -> tuple[str, ...]:
+        policy = (peer or {}).get("artifact_policy") or (device or {}).get("artifact_policy") or {}
+        included = policy.get("include") if isinstance(policy, Mapping) else None
+        if included:
+            return tuple(str(name) for name in included)
+        return ("attack.json", "collateral.json", "_meta.json")
+
+    def preflight(
+        self,
+        profile: str,
+        definition: Mapping[str, Any],
+        config_path: Path,
+    ) -> Mapping[str, Any]:
+        del definition, config_path
+        return {
+            "ready": False,
+            "owner": self.extension_id,
+            "profile": profile,
+            "errors": ["OpenGU preflight profile is not implemented"],
+        }
+
+    def accept(
+        self,
+        profile: str,
+        definition: Mapping[str, Any],
+        context: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        del definition, context
+        return {
+            "status": "not_evaluated",
+            "owner": self.extension_id,
+            "profile": profile,
+            "passed": False,
+            "errors": ["OpenGU acceptance profile is not implemented"],
+        }
+
+    def results(
+        self,
+        index: Mapping[str, Any],
+        options: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        del index, options
+        return {
+            "owner": self.extension_id,
+            "summary": {"rows": 0, "parse_errors": 1},
+            "rows": [],
+            "parse_errors": [{"error": "OpenGU result parser is not implemented"}],
+        }
 
 
 class OpenGUAdapter:
