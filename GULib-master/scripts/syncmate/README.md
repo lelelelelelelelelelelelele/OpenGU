@@ -6,7 +6,7 @@ single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
-## Ownership and M1 migration status
+## Ownership and compatibility entry
 
 Generic protocol, immutable job-envelope, bounded-runner, checksum, readiness,
 and device-resolution rules are owned by the independent SyncMate repository:
@@ -16,19 +16,18 @@ and device-resolution rules are owned by the independent SyncMate repository:
 - [Canonical Device Contract](https://github.com/lelelelelelelelelelelelele/SyncMate/blob/main/docs/DEVICE_CONTRACT.md)
 
 OpenGU owns the concrete recipes, experiment preflight, result parsing,
-acceptance semantics, cache repair, and this project runbook. The M1 candidate
-is `scripts/syncmate/syncmate_m1.py`; it imports `syncmate_core` from the
-independent repository and binds the reviewed OpenGU `smoke` recipe through
-`scripts/syncmate/opengu_adapter.py`.
+acceptance semantics, cache repair, and this project runbook. The default
+`scripts/syncmate/syncmate.py` compatibility entry is a thin facade: it imports
+the installed `syncmate_core` package, installs
+`scripts/syncmate/opengu_adapter.py`, and exposes the reviewed OpenGU Project
+surface without embedding transfer, queue, manifest, checksum, or trusted-index
+implementations.
 
-The existing `scripts/syncmate/syncmate.py` remains the active compatibility
-entry until the source-to-target ledger, candidate tests, local Gate 1/2,
-full legacy CLI/test compatibility, reference audit, and an explicit
-physical-replacement approval are complete. The current three-command M1
-candidate is locally verified but is not yet replacement-ready, so that
-approval is not requested in this milestone.
-The detailed command material below documents that retained legacy entry; it
-is not a second authority for the generic protocol.
+`scripts/syncmate/syncmate_m1.py` remains the three-command M1 Gate 1/2 helper,
+and `scripts/syncmate/syncmate_compat.py` remains the reviewed switch source
+until a separate cleanup is approved. The detailed command material below
+documents the OpenGU compatibility surface; it is not a second authority for
+the generic protocol.
 
 ## Principle
 

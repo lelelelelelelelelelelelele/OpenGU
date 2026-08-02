@@ -1,35 +1,20 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
-import os
 import subprocess
 import sys
 import zipfile
 from pathlib import Path
 
 
-if os.environ.get("OPENGU_SYNCMATE_IMPLEMENTATION") == "candidate":
-    _candidate_path = Path(__file__).resolve().parents[1] / "scripts" / "syncmate" / "syncmate_compat.py"
-    _candidate_spec = importlib.util.spec_from_file_location(
-        "scripts.syncmate.syncmate_candidate",
-        _candidate_path,
-    )
-    assert _candidate_spec is not None and _candidate_spec.loader is not None
-    _candidate_module = importlib.util.module_from_spec(_candidate_spec)
-    sys.modules[_candidate_spec.name] = _candidate_module
-    _candidate_spec.loader.exec_module(_candidate_module)
-    sm = sys.modules[_candidate_spec.name]
-else:
-    from scripts.syncmate import syncmate as sm
+from scripts.syncmate import syncmate as sm
 
 
-def test_selected_implementation_matches_environment():
-    expected = "syncmate_compat.py" if os.environ.get("OPENGU_SYNCMATE_IMPLEMENTATION") == "candidate" else "syncmate.py"
-    assert Path(sm.__file__).name == expected
-    if expected == "syncmate_compat.py":
-        assert Path(sm.implementation_file).parent.name == "syncmate_core"
+def test_default_implementation_is_core_backed_exact_entry():
+    assert Path(sm.__file__).name == "syncmate.py"
+    assert Path(sm.implementation_file).parent.name == "syncmate_core"
+    assert Path(sm.compatibility_entry_file).resolve() == Path(sm.__file__).resolve()
 
 
 def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
@@ -1991,23 +1976,14 @@ def test_smoke_cli_runs_local_end_to_end_and_keeps_workspace(tmp_path, monkeypat
     assert out["checks"]["automation_core_markdown_written"] is True
     assert out["summary"]["diff_missing"] == 3
     assert out["summary"]["collected"] == 3
-    if os.environ.get("OPENGU_SYNCMATE_IMPLEMENTATION") == "candidate":
-        assert out["summary"]["export_leaves"] == 1
-        assert out["summary"]["export_artifacts"] == 3
-        assert (collector / out["files"]["local_artifact"]).is_file()
-        export_manifest = json.loads(
-            (collector / out["files"]["export_manifest"]).read_text(encoding="utf-8")
-        )
-        assert export_manifest["summary"]["leaves"] == 1
-        assert export_manifest["leaves"][0]["node_id"] == "local-runner"
-    else:
-        assert out["summary"]["result_rows"] == 1
-        assert (collector / out["files"]["local_attack"]).is_file()
-        results_table = json.loads(
-            (collector / out["files"]["results_json"]).read_text(encoding="utf-8")
-        )
-        assert results_table["summary"]["rows"] == 1
-        assert results_table["rows"][0]["node_id"] == "local-runner"
+    assert out["summary"]["export_leaves"] == 1
+    assert out["summary"]["export_artifacts"] == 3
+    assert (collector / out["files"]["local_artifact"]).is_file()
+    export_manifest = json.loads(
+        (collector / out["files"]["export_manifest"]).read_text(encoding="utf-8")
+    )
+    assert export_manifest["summary"]["leaves"] == 1
+    assert export_manifest["leaves"][0]["node_id"] == "local-runner"
     assert (collector / out["files"]["acceptance"]).is_file()
     assert (collector / out["files"]["action_plan"]).is_file()
     assert (collector / out["files"]["action_plan_markdown"]).is_file()
