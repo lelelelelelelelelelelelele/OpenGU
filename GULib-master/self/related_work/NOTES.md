@@ -58,4 +58,4 @@ Training-free set-overlap (Jaccard@k) of selector outputs across 5 datasets (GCN
 - **IM ≠ degree** on every dataset (0.03–0.19, mean 0.10) — the "IM degenerates to degree" worry is **false at the set level** (single-node spread ~ degree, but the CELF *combination* diverges).
 - **degree ≈ pagerank** but dataset-varying (0.50–0.83).
 - **TracIn ⟂ degree & IM** (cora 0.02–0.03) → influence targets different nodes; degree wins anyway ⇒ volume-driven.
-- **GIF-as-scorer**: implemented (LiSSA `s=H⁻¹∇L_test`, then `⟨s,∇ℓ_v⟩`); inconclusive — on-disk cora model is a 34%-acc GNNDelete variant; needs a real trained base GCN. See [[related-work-zhang-chen-2026]] and `concordance/HANDOFF.md`.
+- **GIF-as-scorer（历史）**：早期 34%-acc GNNDelete checkpoint feasibility 结果已被 trained base-GCN diagnostic 取代；旧称 “proper TracIn” 的 single-final proxy 标签已经退役。见 [[related-work-zhang-chen-2026]]、`concordance/FINDING_tracin_misspecification.md` 和当前实验入口 `../../文档规划/10_实验矩阵/12_近似策略重合度实验.md`。

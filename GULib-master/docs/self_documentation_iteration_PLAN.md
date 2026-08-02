@@ -76,7 +76,7 @@ scope: self documentation inventory and orchestration only
 | `self/neurips_2026_submission21636_reviews.md` | **handoff（当前审稿综合）** | note/callout 适合 Obsidian；无主页入口 | 中低 | 保持为 review synthesis；从 README、OB 评审区和 WORKPLAN 互链，不复制 live state |
 | `self/related_work/NOTES.md` | **durable design / literature handoff** | 内容充分但导航弱 | 中 | 保留；增设 current-evidence 与 paper-review 的明确入口 |
 | `self/related_work/concordance/report.html` | **derived frozen study report** | 浏览器可读；生成器存在 | 中 | 不手改；需要更新时改 study source/`gen_report.py` 后重生 |
-| `self/related_work/concordance/HANDOFF.md` | **stale handoff** | 有复现入口但仍把 retired “proper TracIn”当 current 叙述 | 高 | 不删；第一批加历史状态与 `FINDING`/current evidence pointer，后续再决定是否重写结论 |
+| `self/related_work/concordance/HANDOFF.md` | **retired / removed** | 结果、复现入口、术语纠正和未完成 gate 均已有独立 owner；旧文仍把 retired “proper TracIn”与 public-split 路径当 current 叙述 | 低 | 删除；历史研究保留在 `report.html`/data/scripts，当前状态转到 `FINDING`、实验 12、现代 IM 计划与 E8 |
 | `self/related_work/concordance/FINDING_tracin_misspecification.md` | **frozen background / corrected finding** | 已明确 historical、label retired、链接 current report | 低 | 维持原地，作为 HANDOFF 的上游纠偏入口 |
 | `self/dashboard/WORKPLAN.md` | **live source** | Markdown 入口、链接索引和生成关系清楚 | 低 | 必须保持唯一 live hub；只放状态/原因/任务/链接 |
 | `self/dashboard/progress.html` | **duplicate（合法派生）** | 浏览器看板 | 低 | 仅由 `refresh.py` 重生；不手改 |
@@ -112,7 +112,7 @@ scope: self documentation inventory and orchestration only
 | 3 | `results/_journal/RULES.md`、`results/_journal/archive/README.md` | 加 V3-first 导航；保留 v1/v2 模板/archive 原文；把 retired PROGRESS 指向 WORKPLAN | `RULES.md` 开头即可看出新运行只写 JSONL；archive 文本不动 |
 | 4 | `文档规划/_文档地图.md` 与 `10_实验矩阵/16_4090小数据集运行与回收.md` | 加“运行审计 V3”入口；将 `auto_report.md` 改称投影并指向 JSONL/RULES；不复制 events 内容 | Wiki 和 Markdown 目标存在，OB map 不把投影说成 append-only 日志 |
 | 5 | `self/dashboard/EXPERIMENT_DASHBOARD.md`、`self/dashboard/METRICS_CATALOG.md` | 将 retired `PROGRESS`/frozen-dashboard 的“当前”路由改为 WORKPLAN/VALIDATION_LOG；保留历史链接和历史事实 | 历史快照仍可读，所有 current-state 指针只到 WORKPLAN |
-| 6 | `self/thesis_transition_memo.md`、`self/research_path_degree_severity_decomposition.md`、`self/related_work/concordance/HANDOFF.md` | 只加顶部 status/current-pointer：战略 memo、resubmission hypothesis、historical concordance handoff；不重写其证据正文 | 无文档继续被误读成 live execution plan 或 current TracIn acceptance source |
+| 6 | `self/thesis_transition_memo.md`、`self/research_path_degree_severity_decomposition.md`、concordance 历史入口 | 前两份只加顶部 status/current-pointer；退役 `concordance/HANDOFF.md`，把引用转到 frozen `report.html`、`FINDING` 与当前实验入口 | 无文档继续被误读成 live execution plan 或 current TracIn acceptance source |
 
 ### Batch 2 — 有证据的 current-support 刷新
 
