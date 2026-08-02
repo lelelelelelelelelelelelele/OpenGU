@@ -1,43 +1,56 @@
-# OpenGU SyncMate M1 Adapter Milestone Report
+# OpenGU SyncMate M1 Migration Completion Report
 
 > Date: 2026-08-03
 > Branch: `codex/syncmate-m1-opengu-20260803`
-> Parent: `a53b14857f08c9167b17197ecb4311920607ace4`
-> Verdict: **The OpenGU adapter candidate and local Gate 1/2 vertical slice are verified. The retained compatibility entry must not be replaced yet.**
+> Switch commit: `0db0a5763e3c726fe792e8993b58510104617d28`
+> Core implementation commit: `1e96e479b346690458b1363b3606f72145b96561`
+> Verdict: **The authorized local OpenGU migration is complete: the exact compatibility path now uses independent Core and all default-path gates pass.**
 
-## Delivered Project boundary
+## Final ownership
 
-- Added `scripts/syncmate/opengu_adapter.py`, which owns the reviewed OpenGU `smoke` recipe, its fixed argv, normalized setup hash, project preflight, and the rule that execution completion is not formal project acceptance.
-- Added `scripts/syncmate/syncmate_m1.py`, a thin candidate that imports the independent `syncmate_core` package and exposes `contract`, `smoke`, and `runner-smoke`.
-- Added candidate tests and a minimal README ownership/navigation section. Existing Project recipes, result interpretation, acceptance, cache repair, runbooks, and the old compatibility file remain OpenGU-owned and unchanged.
-- The exact-path runner fixture installs the candidate at `scripts/syncmate/syncmate.py` in a temporary clean Git repository, proving the intended compatibility location without changing the real old file.
+- `scripts/syncmate/syncmate.py` is a 4,104-byte facade whose SHA-256 exactly matches the reviewed `syncmate_compat.py` source: `538BB6930440BD7FEF3F691CFF3547BB5E66B5E3E09B15BDE0A586466050C295`.
+- Independent `syncmate_core.legacy` owns generic compatibility, transfer, queue, checksum, manifest, trusted-index/export and CLI implementation.
+- OpenGU owns all 76 reviewed recipes, five preflight dispatch profiles, verified-result interpretation, Selection/GU/target-direct acceptance, cache repair and runbooks.
+- `.syncmate/` remains ignored and Device-owned. `done` remains execution evidence, not project acceptance.
 
-## Fresh local evidence
+## Fresh verification
 
-| Check | Result |
+| Gate | Verified result |
 |---|---|
-| Candidate plus retained target tests | `194 passed` (`7` candidate + `187` legacy), exit 0 |
-| Python compilation | old entry, candidate, and adapter exit 0 |
-| Gate 1 contract | exit 0; independent Core module path reported; physical replacement false |
-| Gate 1 smoke | exit 0; temporary and cleaned; formal evidence false; acceptance not evaluated |
-| Gate 2 runner smoke | exit 0; exact-path clean fixture; exact Git/config SHA; fixed argv; receipt/manifest SHA; cleaned |
-| Dependency warnings | two existing `llvmlite/pkg_resources` deprecation warnings |
+| Source-backed default suite | `208 passed`, no candidate selector |
+| Portable default suite | `212 passed` in Python 3.8.20 venv with only local `syncmate==0.2.0` wheel installed |
+| Dependency verifier | `ready=true`; version `0.2.0`; audited source `4f0242306ba2707cbaadb9abce3c45d9ea4d0d51`; module inside venv `site-packages` |
+| Compilation | default entry, M1 helper, adapter, recipes, results, acceptance and verifier exit 0 |
+| Default smoke | `passed=true`, `temporary=true`, `cleaned=true` |
+| Gate 1/2 | temporary and cleaned; `formal_evidence=false`; Gate 2 `project_acceptance=not_evaluated` |
+| API/CLI | frozen 106 attributes plus 2 provenance attributes, missing 0; frozen 43 tested commands; old/new parser 52/52, missing 0, extra 0 |
+| Recipes | 76; canonical SHA-256 `c8ae1581f2346f3c4d79e9867bcd3642703651581cad9e3357d29cf843a7adaa` |
+| Core ownership | Core suite `50 passed`; concrete Project marker scan 0 |
 
-Gate 2 used normalized setup SHA `03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1`. The receipt recorded `status=done`, but both Core and Project layers retained `not_evaluated`; the adapter returned `accepted=false` and `formal_evidence=false`.
+## Switch and rollback
 
-## Preserved boundaries
+The user explicitly approved a four-path switch. Commit `0db0a5763e3c726fe792e8993b58510104617d28` changes only:
 
-- `scripts/syncmate/syncmate.py` was not edited, replaced, copied over, or deleted. Its SHA-256 remained `B5A0700E0ED29D141B1F6997F52359CFAAAC42FFAD5DEA1E6C41E6DFE64A8BF6` in both active and feature checkouts.
-- `.syncmate/` evidence existed only in temporary fixtures and was cleaned; it was not tracked.
-- No merge, push, submodule/gitlink change, FlowChunk write, SSH connection, GPU execution, remote process, or remote write occurred.
-- The active OpenGU checkout acquired unrelated concurrent edits during the task. This work was isolated in its feature worktree; only the target monolith hash—not the active checkout's global dirty set—is asserted unchanged.
+1. `scripts/syncmate/syncmate.py`
+2. `tests/test_syncmate.py`
+3. `scripts/syncmate/README.md`
+4. `scripts/syncmate/CORE_DEPENDENCY.md`
 
-## Why replacement is blocked
+Deleted files: **0**. `syncmate_compat.py`, `syncmate_m1.py`, all Project modules, repair/runbook files and historical evidence remain. If the switch itself must be undone, use `git revert 0db0a5763e3c726fe792e8993b58510104617d28`; do not reset or delete history.
 
-The original `tests/test_syncmate.py` imports `scripts.syncmate.syncmate` directly, so its 187 passes validate the retained monolith rather than the new candidate. The retained CLI also exposes many more commands than the candidate's three-command M1 slice. In addition, the candidate currently needs an explicitly installed or `PYTHONPATH`-supplied `syncmate_core`; without it, import fails instead of falling back to embedded Core code.
+## Backup and preservation
 
-Consequently this milestone does not request approval to replace the old file. The next slice must migrate or route the remaining CLI and make the original suite exercise the candidate exact path. Only then should the exact replacement list be presented for explicit approval.
+- Valid backup directory: `backups/syncmate-switch-20260803-042220`
+- ZIP: `syncmate-switch-20260803-042220.zip`
+- ZIP SHA-256: `7376719675EA8CE9370F3DB1BE2E39B42C3FA2CD0E35DE661C6263838EA301C5`
+- Manifest: 58 copied files, 19,511,406 bytes; all 48 active untracked files covered with missing 0 and extra 0.
+- Active SyncMate/OpenGU and FlowChunk porcelain-v2 snapshots match the backup exactly; their protected source hashes are unchanged.
+- Feature SyncMate stayed clean; OpenGU was clean immediately after the switch commit. Active OpenGU retains the old entry SHA because active checkout modification was not authorized.
 
-## Gate 3 status
+Earlier failed backup attempts are retained with `.incomplete` / `.invalid-checksums.zip` suffixes and are not cited as valid recovery artifacts.
 
-Read-only `ssh -G opengu-4090` alias parsing succeeded. Live connectivity, remote project path, device identity, GPU capability, cache state, and `DEVICE_READY` were not verified. No remote/GPU authority was inferred.
+## Authorized-scope limitations
+
+- No merge, push, tag, publication, gitlink/submodule update, SSH connection, remote/GPU execution, or formal experiment evidence promotion occurred.
+- Cross-device installation remains unverified until an authorized Core remote/tag/package source exists.
+- The local feature branches are the completed implementation and evidence locations; active checkouts remain intentionally untouched.
