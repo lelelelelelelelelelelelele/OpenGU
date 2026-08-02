@@ -80,6 +80,11 @@ def runner_smoke_payload() -> dict[str, Any]:
             Path(adapter_module.__file__).resolve().with_name("opengu_recipes.py"),
             sync_dir / "opengu_recipes.py",
         )
+        for name in ("opengu_acceptance.py", "opengu_results.py"):
+            shutil.copy2(
+                Path(adapter_module.__file__).resolve().with_name(name),
+                sync_dir / name,
+            )
         shutil.copy2(
             Path(adapter_module.__file__).resolve().with_name("setup.example.yaml"),
             sync_dir / "setup.example.yaml",

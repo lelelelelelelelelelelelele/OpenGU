@@ -6,12 +6,58 @@ from typing import Any, Mapping
 
 import syncmate_core as core
 
+import opengu_acceptance as acceptance_module
 import opengu_recipes as recipes_module
+import opengu_results as results_module
 
 
 OPENGU_SETUP_CONFIG_SHA256 = (
     "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1"
 )
+
+
+def _selection_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
+    del definition
+    from experiments.bc_target_v2.syncmate_recipe import preflight_recipe
+
+    return preflight_recipe(config_path)
+
+
+def _gu_gate_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
+    del definition
+    from experiments.gu_target_v1.syncmate_recipe import preflight_recipe
+
+    return preflight_recipe(config_path)
+
+
+def _gu_stage_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
+    from experiments.gu_target_v1.syncmate_stage import preflight_stage
+
+    stage = str((definition.get("gu_stage") or {}).get("stage") or "")
+    return preflight_stage(stage, config_path)
+
+
+def _target_selection_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
+    from experiments.target_direct_v1.syncmate_stage import preflight_selection
+
+    stage = str((definition.get("selection_matrix") or {}).get("stage") or "")
+    return preflight_selection(stage, config_path)
+
+
+def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
+    from experiments.target_direct_v1.syncmate_stage import preflight_gu
+
+    contract = definition.get("gu_gate") or definition.get("gu_stage") or {}
+    return preflight_gu(str(contract.get("stage") or ""), config_path)
+
+
+_PREFLIGHT_HANDLERS = {
+    "small-selection-4090-v1": _selection_preflight,
+    "small-selection-gu-4090-v1": _gu_gate_preflight,
+    "small-selection-gu-stage-4090-v1": _gu_stage_preflight,
+    "target-direct-selection-4090-v1": _target_selection_preflight,
+    "target-direct-gu-4090-v1": _target_gu_preflight,
+}
 
 
 class OpenGUProjectExtension:
@@ -40,13 +86,32 @@ class OpenGUProjectExtension:
         definition: Mapping[str, Any],
         config_path: Path,
     ) -> Mapping[str, Any]:
-        del definition, config_path
-        return {
-            "ready": False,
-            "owner": self.extension_id,
-            "profile": profile,
-            "errors": ["OpenGU preflight profile is not implemented"],
-        }
+        handler = _PREFLIGHT_HANDLERS.get(profile)
+        if handler is None:
+            return {
+                "ready": False,
+                "owner": self.extension_id,
+                "profile": profile,
+                "expected": {"profile": "reviewed OpenGU preflight profile"},
+                "observed": {"profile": profile},
+                "action": "select a reviewed OpenGU recipe",
+                "errors": ["OpenGU preflight profile is not reviewed"],
+            }
+        try:
+            result = dict(handler(definition, config_path))
+        except Exception as exc:
+            return {
+                "ready": False,
+                "owner": self.extension_id,
+                "profile": profile,
+                "expected": {"handler": "successful Project preflight"},
+                "observed": {"error": f"{type(exc).__name__}: {exc}"},
+                "action": "repair the OpenGU Project preflight dependency",
+                "errors": [f"OpenGU Project preflight failed: {type(exc).__name__}: {exc}"],
+            }
+        result["owner"] = self.extension_id
+        result["profile"] = profile
+        return result
 
     def accept(
         self,
@@ -54,27 +119,14 @@ class OpenGUProjectExtension:
         definition: Mapping[str, Any],
         context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
-        del definition, context
-        return {
-            "status": "not_evaluated",
-            "owner": self.extension_id,
-            "profile": profile,
-            "passed": False,
-            "errors": ["OpenGU acceptance profile is not implemented"],
-        }
+        return acceptance_module.acceptance_payload(profile, definition, context)
 
     def results(
         self,
         index: Mapping[str, Any],
         options: Mapping[str, Any],
     ) -> Mapping[str, Any]:
-        del index, options
-        return {
-            "owner": self.extension_id,
-            "summary": {"rows": 0, "parse_errors": 1},
-            "rows": [],
-            "parse_errors": [{"error": "OpenGU result parser is not implemented"}],
-        }
+        return results_module.results_payload(index, options)
 
 
 class OpenGUAdapter:

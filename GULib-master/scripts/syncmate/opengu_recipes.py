@@ -97,6 +97,49 @@ _GU_VERSIONS = {
     },
 }
 
+SMALL_SELECTION_GU_RECIPE_INTRODUCED_SHA = _GU_VERSIONS[1]["introduced"]
+SMALL_SELECTION_GU_V2_RECIPE_INTRODUCED_SHA = _GU_VERSIONS[2]["introduced"]
+SMALL_SELECTION_GU_V3_RECIPE_INTRODUCED_SHA = _GU_VERSIONS[3]["introduced"]
+SMALL_SELECTION_GU_V4_RECIPE_INTRODUCED_SHA = _GU_VERSIONS[4]["introduced"]
+SMALL_SELECTION_GU_V5_RECIPE_INTRODUCED_SHA = _GU_VERSIONS[5]["introduced"]
+SMALL_SELECTION_GU_OUTPUT_ROOT = _GU_VERSIONS[1]["gate_root"]
+SMALL_SELECTION_GU_V2_OUTPUT_ROOT = _GU_VERSIONS[2]["gate_root"]
+SMALL_SELECTION_GU_V3_OUTPUT_ROOT = _GU_VERSIONS[3]["gate_root"]
+SMALL_SELECTION_GU_V4_OUTPUT_ROOT = _GU_VERSIONS[4]["gate_root"]
+SMALL_SELECTION_GU_V5_OUTPUT_ROOT = _GU_VERSIONS[5]["gate_root"]
+SMALL_SELECTION_GU_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_V2_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_V2_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_V3_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_V3_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_V4_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_V4_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_V5_EXPECTED_ARTIFACTS = tuple(
+    f"{SMALL_SELECTION_GU_V5_OUTPUT_ROOT}/cora_GCN_r0.05/GNNDelete_degree/seed42/{name}"
+    for name in SMALL_SELECTION_GU_ARTIFACT_NAMES
+)
+SMALL_SELECTION_GU_FULL_OUTPUT_ROOT = _GU_VERSIONS[2]["full_root"]
+SMALL_SELECTION_GU_FULL_CONFIG = _GU_VERSIONS[2]["full_config"]
+SMALL_SELECTION_GU_FULL_CONFIG_SHA256 = _GU_VERSIONS[2]["full_sha"]
+SMALL_SELECTION_GU_V3_FULL_OUTPUT_ROOT = _GU_VERSIONS[3]["full_root"]
+SMALL_SELECTION_GU_V3_FULL_CONFIG = _GU_VERSIONS[3]["full_config"]
+SMALL_SELECTION_GU_V3_FULL_CONFIG_SHA256 = _GU_VERSIONS[3]["full_sha"]
+SMALL_SELECTION_GU_V4_FULL_OUTPUT_ROOT = _GU_VERSIONS[4]["full_root"]
+SMALL_SELECTION_GU_V4_FULL_CONFIG = _GU_VERSIONS[4]["full_config"]
+SMALL_SELECTION_GU_V4_FULL_CONFIG_SHA256 = _GU_VERSIONS[4]["full_sha"]
+SMALL_SELECTION_GU_V5_FULL_OUTPUT_ROOT = _GU_VERSIONS[5]["full_root"]
+SMALL_SELECTION_GU_V5_FULL_CONFIG = _GU_VERSIONS[5]["full_config"]
+SMALL_SELECTION_GU_V5_FULL_CONFIG_SHA256 = _GU_VERSIONS[5]["full_sha"]
+
 TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "264b38995cebc84d10402d8113ea949ca2cfa34f"
 TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v2.yaml"
 TARGET_DIRECT_CONFIG_SHA256 = "13494b761585aa8d168d9e2c5548e1521a4d795bcf72ed790e2766ad8caa888d"
@@ -256,6 +299,19 @@ def _target_ratio_id(ratio: float) -> str:
     return "r001" if float(ratio) == 0.01 else "r005"
 
 
+def _target_direct_selection_artifacts(stage: str) -> tuple[str, ...]:
+    leaf = f"{TARGET_DIRECT_SELECTION_OUTPUT_ROOT}/cells/{stage}"
+    return tuple(f"{leaf}/{name}" for name in TARGET_DIRECT_SELECTION_ARTIFACT_NAMES)
+
+
+def _target_direct_ratio_key(ratio: float) -> str:
+    return _target_ratio_key(ratio)
+
+
+def _target_direct_ratio_id(ratio: float) -> str:
+    return _target_ratio_id(ratio)
+
+
 def _target_selection_recipe(stage: str) -> dict[str, Any]:
     dataset, seed_text = stage.rsplit("-seed", 1)
     seed = int(seed_text)
@@ -290,6 +346,10 @@ def _target_selection_recipe(stage: str) -> dict[str, Any]:
             "lane": "target_direct_white_box",
         },
     }
+
+
+def _target_direct_selection_recipe(stage: str) -> dict[str, Any]:
+    return _target_selection_recipe(stage)
 
 
 def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> dict[str, Any]:
@@ -346,6 +406,41 @@ def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> d
         contract["selectors"] = TARGET_DIRECT_STRATEGIES
         definition["gu_stage"] = contract
     return definition
+
+
+def _target_direct_gu_artifacts(
+    stage: str,
+    *,
+    ratio: float,
+    gate_only: bool = False,
+) -> tuple[str, ...]:
+    return tuple(
+        _target_gu_recipe(stage, ratio=ratio, gate_only=gate_only)[
+            "expected_artifact_paths"
+        ]
+    )
+
+
+def _target_direct_gu_roots(
+    stage: str,
+    *,
+    ratio: float,
+    gate_only: bool = False,
+) -> tuple[str, ...]:
+    return tuple(
+        _target_gu_recipe(stage, ratio=ratio, gate_only=gate_only)[
+            "collector_result_roots"
+        ]
+    )
+
+
+def _target_direct_gu_recipe(
+    stage: str,
+    *,
+    ratio: float,
+    gate_only: bool = False,
+) -> dict[str, Any]:
+    return _target_gu_recipe(stage, ratio=ratio, gate_only=gate_only)
 
 
 def _build_registry() -> dict[str, dict[str, Any]]:
