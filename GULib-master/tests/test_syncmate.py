@@ -7,7 +7,14 @@ import sys
 import zipfile
 from pathlib import Path
 
+
 from scripts.syncmate import syncmate as sm
+
+
+def test_default_implementation_is_core_backed_exact_entry():
+    assert Path(sm.__file__).name == "syncmate.py"
+    assert Path(sm.implementation_file).parent.name == "syncmate_core"
+    assert Path(sm.compatibility_entry_file).resolve() == Path(sm.__file__).resolve()
 
 
 def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
@@ -1969,19 +1976,22 @@ def test_smoke_cli_runs_local_end_to_end_and_keeps_workspace(tmp_path, monkeypat
     assert out["checks"]["automation_core_markdown_written"] is True
     assert out["summary"]["diff_missing"] == 3
     assert out["summary"]["collected"] == 3
-    assert out["summary"]["result_rows"] == 1
-    assert (collector / out["files"]["local_attack"]).is_file()
+    assert out["summary"]["export_leaves"] == 1
+    assert out["summary"]["export_artifacts"] == 3
+    assert (collector / out["files"]["local_artifact"]).is_file()
+    export_manifest = json.loads(
+        (collector / out["files"]["export_manifest"]).read_text(encoding="utf-8")
+    )
+    assert export_manifest["summary"]["leaves"] == 1
+    assert export_manifest["leaves"][0]["node_id"] == "local-runner"
     assert (collector / out["files"]["acceptance"]).is_file()
     assert (collector / out["files"]["action_plan"]).is_file()
     assert (collector / out["files"]["action_plan_markdown"]).is_file()
     assert (collector / out["files"]["automation_core_markdown"]).is_file()
     assert (collector / out["files"]["checklist"]).is_file()
     assert (collector / out["files"]["runbook"]).is_file()
-    results_table = json.loads((collector / out["files"]["results_json"]).read_text(encoding="utf-8"))
     acceptance = json.loads((collector / out["files"]["acceptance"]).read_text(encoding="utf-8"))
     action_plan = json.loads((collector / out["files"]["action_plan"]).read_text(encoding="utf-8"))
-    assert results_table["summary"]["rows"] == 1
-    assert results_table["rows"][0]["node_id"] == "local-runner"
     assert acceptance["mode"] == "acceptance"
     assert acceptance["automation_core"]["totals"]["checksum_verified"] == 3
     assert action_plan["mode"] == "next"
