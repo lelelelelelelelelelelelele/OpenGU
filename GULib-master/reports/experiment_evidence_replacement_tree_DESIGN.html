@@ -26,7 +26,7 @@
   <div class="eyebrow">Experiment evidence renewal · design review</div>
   <h1>OpenGU 实验证据换代树</h1>
   <p class="lead">旧证据不先硬删。当前计划仍需要的实验按完整注册批次重跑，逐批经过 gate、SyncMate 校验、下游重建和替代审计，再退役本机与 SSH 的对应旧 payload。</p>
-  <div class="meta"><span class="tag">截止线 2026-05-31 23:59:59</span><span class="tag">SSH snapshot · 2026-08-01 19:27 +08</span><span class="tag">设计原则已确认 · 非运行授权</span><span class="tag">科学决策点必须暂停</span></div>
+  <div class="meta"><span class="tag">截止线 2026-05-31 23:59:59</span><span class="tag">SSH snapshot · 2026-08-01 19:27 +08</span><span class="tag">E7 updated · 2026-08-06</span><span class="tag">设计原则已确认 · 非运行授权</span><span class="tag">科学决策点必须暂停</span></div>
 
   <section class="panel verdict"><h2>核心决策</h2><p>即使批次间有少量重叠，也完整执行各自注册矩阵，不跨批次手工去重。只有身份完全相同、不可变且校验通过的 Cache V2 Score/Selection Artifact 可以精确命中复用；Legacy cache、同名路径和“参数看起来一样”都不能作为复用依据。</p></section>
 
@@ -76,7 +76,7 @@
                       <li><div class="node branch"><strong>R5A · 核心与 target-direct</strong><br>Cora GCN/GAT 核心矩阵 → G4 34 cells / 136 artifacts → PAUSE → G5 306 cells / 1,224 artifacts（另行授权）</div></li>
                       <li><div class="node branch"><strong>R5B · 方法专项</strong><br>E4 GraphRevoker 40；proper-TracIn/Hybrid 独立 gate；E2 120；E3 1-cell gate + 59</div></li>
                       <li><div class="node branch"><strong>R5C · 数据集与预算</strong><br>E1 CiteSeer 50；A5 ratio 190；PubMed 当前注册范围；arxiv 分 feasibility / 首 seed / 扩展三段暂停</div></li>
-                      <li><div class="node branch"><strong>R5D · 条件机制实验</strong><br>A3 仅在存在非平凡 synergy 时运行；E7 C.6a 5 cells，transfer ratio ≥ 60% 才进入 C.6b 10 cells</div></li>
+                      <li><div class="node branch"><strong>R5D · 条件机制实验</strong><br>A3 仅在存在非平凡 synergy 时运行；E7 Group 1：GCN→GAT/GIN，10 个最小身份对；Group 2：SGC→GCN/GAT/GIN，15 个最小身份对；两组独立 gate 与暂停审核</div></li>
                       <li><div class="node"><strong>R6 · 下游重建</strong><br>E6、config inventory、接受报告、表格、图、F3、F5</div>
                         <ul><li><div class="node pause"><strong>PAUSE</strong> · 审核新证据是否改变研究问题或下一目标</div></li>
                           <li><div class="node end"><strong>R7 · 逐批替换与退役</strong><br>old → new 映射；引用归零；本机 + SSH 待退役；另行授权清理；保留审计 manifest</div></li>
@@ -95,7 +95,7 @@
 
   <section class="cols">
     <div class="panel"><h2>重叠批次规则</h2><ol><li>每个注册 outcome batch 完整运行。</li><li>不跨批次剪掉重复 cells，不复制结果凑矩阵。</li><li>每批有独立 identity、manifest 和接受结论。</li><li>Cache V2 中间证据仅在完整身份精确相同时命中。</li><li>Legacy cache 一律不进入新批次。</li></ol></div>
-    <div class="panel"><h2>必须看结果再决定</h2><ul><li>E8 G3 → G4；G4 → G5。</li><li>arxiv feasibility → 首 seed → 扩展。</li><li>A3 是否有非平凡 hybrid synergy。</li><li>E7 transfer ratio 是否达到 60%。</li><li>新证据是否改变主张、对照组或 ablation。</li></ul></div>
+    <div class="panel"><h2>必须看结果再决定</h2><ul><li>E8 G3 → G4；G4 → G5。</li><li>arxiv feasibility → 首 seed → 扩展。</li><li>A3 是否有非平凡 hybrid synergy。</li><li>E7 两组各自的最小 registered gate 是否支持扩 ratio、dataset、第二个 GU family 或反向组合。</li><li>新证据是否改变主张、对照组或 ablation。</li></ul></div>
   </section>
 
   <section class="panel"><h2>批次数字与换代定位</h2><table><thead><tr><th>分支</th><th>当前设计规模</th><th>换代处理</th></tr></thead><tbody>
@@ -105,7 +105,7 @@
     <tr><td>E4</td><td>40 cells</td><td>历史远端通过，但整批重跑并完成新归档</td></tr>
     <tr><td>E2 / E3</td><td>120 cells；1 gate + 59 cells</td><td>方法专项完整换代</td></tr>
     <tr><td>A5</td><td>190 cells</td><td>预算分支完整换代</td></tr>
-    <tr><td>E7</td><td>C.6a 5；C.6b 10</td><td>60% transfer ratio 条件分支</td></tr>
+    <tr><td>E7</td><td>Group 1：10 个最小身份对；Group 2：15 个最小身份对</td><td>两组独立 gate；target-direct 只作 white-box reference</td></tr>
   </tbody></table></section>
 
   <section class="panel"><h2>事实与指令不重复维护</h2><table><thead><tr><th>内容</th><th>所有者</th></tr></thead><tbody>

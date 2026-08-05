@@ -29,7 +29,7 @@ tags: [todo, workplan, opengu]
 | E3 | 本地算 k=5 noise anchor | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
 | E5 | arxiv 补量，避免只剩 pilot 口径 | [[10_实验矩阵/10_实验-框架总览]] | ◐ | AI 审稿痛点：scope |
 | E6 | hop_decay 列灌进 aggregate CSV | [[10_实验矩阵/10_实验-框架总览]] | ☐ | WORKPLAN §5 |
-| E7 | C.6 surrogate-transfer umbrella（严格门控）：Cache V2 Selection Artifact cold/warm exact hit + versioned `proper-tracin-v1` 通过后，先 C.6a GCN→GCN，再 C.6b GCN→GAT/GIN；比较 target-direct TracIn / same-seed random / degree，主指标为 retrain-gap transfer ratio，辅以 selection Jaccard。Legacy IF / Selection Cache 只读；换版建新 V2 Recipe，旧 V2 Artifact 仅在明确退役时显式 retire | [[10_实验矩阵/19_Cache架构重设计与迁移方案]] / [[10_实验矩阵/12_近似策略重合度实验]] | ☐ blocked by Cache V2 real-hit + proper-TracIn gate | WORKPLAN §5 |
+| E7 | 两组 query-free 灰盒选集迁移，彼此独立门控：Group 1 `proper-tracin-v1` GCN→GAT/GIN；Group 2 `d-gif-sgc-v1` SGC→GCN/GAT/GIN。每个 victim 的 target-direct 只作 white-box reference；不做 GCN-B→GCN-A，不用 60% 阈值串联两组。报告 selection overlap/rank 与 victim 上原始 outcome、配对差值；transfer ratio 仅作描述。Legacy IF / Selection Cache 只读；换版建新 V2 Recipe，旧 V2 Artifact 仅在明确退役时显式 retire | [[10_实验矩阵/24_E7代理选集迁移实验计划]] / [[10_实验矩阵/19_Cache架构重设计与迁移方案]] | ☐ Group 1 blocked by proper-TracIn + cross-backbone runner；Group 2 blocked by `d-gif-sgc-v1` + SGC selector/runner；formal GPU 未授权 | WORKPLAN §5 |
 
 ---
 
@@ -87,4 +87,4 @@ tags: [todo, workplan, opengu]
 | ID | TODO | 放在哪个板块 | 状态 | 来源 |
 |---|---|---|---|---|
 | F4.1 | config_inventory 增加 supplementary overlap/validity 面板块，纳入 selector 重叠度和 GIF/TracIn 近似有效性实验 | [[10_实验矩阵/10_实验-框架总览]] / [config_inventory.html](../../self/dashboard/config_inventory.html) | 已完成 | 当前同步 |
-| E8 | overlap-vs-damage join：versioned V2 proper-TracIn / Hybrid Artifact 与 E7 C.6a/C.6b 结果就绪后，把 selector overlap 与 attack outcome 连接 | [[10_实验矩阵/12_近似策略重合度实验]] | 待 gate / rerun 后做 | concordance next step |
+| E8 | overlap-vs-damage join：versioned V2 proper-TracIn / Hybrid Artifact 与 E7 GCN-cross-backbone / SGC-analytical 两组结果就绪后，把 selector overlap 与 victim attack outcome 连接 | [[10_实验矩阵/12_近似策略重合度实验]] / [[10_实验矩阵/24_E7代理选集迁移实验计划]] | 待各组独立 gate / rerun 后做 | concordance next step |

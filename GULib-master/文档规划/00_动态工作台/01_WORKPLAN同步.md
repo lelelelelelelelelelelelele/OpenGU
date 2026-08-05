@@ -26,7 +26,7 @@ tags: [workplan, sync, dynamic]
 ## 推进顺序
 
 1. GraphRevoker E4：代码与远端 40/40 已通过；只剩本地 evidence import / manifest 闭环，旧数据永久 invalid。
-2. E7 严格门控顺序（不是跳过 gate 直接开跑）：Cache V2 Selection Artifact cold/warm exact hit + versioned `proper-tracin-v1` → C.6a GCN→GCN surrogate transfer → C.6b GCN→GAT/GIN surrogate transfer；Legacy IF / Selection Cache 只读，换版只建新 V2 Recipe，明确退役才显式 retire。
+2. E7 两组独立门控（不是跳过 gate 直接开跑）：Group 1 为 `proper-tracin-v1` + Cache V2 cold/warm exact hit → GCN→GAT/GIN；Group 2 为 `d-gif-sgc-v1` + SGC selector 单元验证 + Cache V2 cold/warm exact hit → SGC→GCN/GAT/GIN。target-direct 只作 white-box reference；不做 GCN-B→GCN-A，不以 60% 阈值串联两组，也不预设放大 approximation gap。Legacy IF / Selection Cache 只读，换版只建新 V2 Recipe，明确退役才显式 retire。→ [[10_实验矩阵/24_E7代理选集迁移实验计划]]。
 3. W1/W2/W3 写作主线：主指标转 retrain gap，回应 degree / scope / 叙述过满。
 4. E2/E3/E5/E6 + A5 补证：L8 redo、noise anchor、arxiv scope、hop 列、ratio/dataset sweep；E1 已完成。
 5. F3/F4 看图和看板：补 supp 图，持续维护 config_inventory。

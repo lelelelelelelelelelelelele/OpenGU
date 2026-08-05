@@ -2,6 +2,8 @@
 
 **日期：** 2026-08-01
 
+**最近更新：** 2026-08-06（E7 两组独立 surrogate-transfer gate）
+
 **状态：** 线性换代与树形暂停原则已确认；不是运行、扩矩阵或删除授权
 
 **当前快照：** 2026-08-01 19:27 +08:00；SSH 只读摸牌已完成
@@ -152,9 +154,10 @@ R4 E8 target-direct 最小门禁（树干）
       │
       └─ R5D 条件机制实验
          ├─ A3 alpha sweep：只有核心结果显示非平凡 hybrid synergy 才运行
-         ├─ E7 C.6a：proper-TracIn 通过后先运行 5 cells
-         ├─ [PAUSE] transfer ratio >= 60% 才进入 C.6b
-         ├─ E7 C.6b：10 cells
+         ├─ E7 Group 1：proper-TracIn + exact-hit gate → GCN→GAT/GIN，10 个最小身份对
+         │  └─ [PAUSE] 独立审核 selection 与 victim outcome 迁移
+         ├─ E7 Group 2：d-gif-sgc-v1 + SGC 单元验证 + exact-hit gate → SGC→GCN/GAT/GIN，15 个最小身份对
+         │  └─ [PAUSE] 独立审核 selection 与 victim outcome 迁移
          └─ 其余 ablation：只运行届时 WORKPLAN 仍登记的问题
             │
 R6 下游重建
@@ -199,7 +202,7 @@ Selection/selector 缺陷与 GU method 缺陷先由 13 Runbook 判断修复链�
 - E8 G3 后是否进入 G4；G4 后是否授权 G5。
 - arxiv feasibility 和首 seed 后是否扩展。
 - A3 是否存在值得继续验证的 hybrid synergy。
-- E7 C.6a transfer ratio 是否达到 60%，从而进入 C.6b。
+- E7 Group 1 / Group 2 各自的最小 registered gate 是否支持扩 ratio、dataset、第二个 GU family 或反向组合；两组不以 transfer ratio 阈值互相解锁。
 - 任一新批次是否改变论文主张、对照组或后续 ablation 的必要性。
 
 暂停时只提交可审核结果和建议，不自动扩矩阵。

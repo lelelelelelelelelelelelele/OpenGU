@@ -939,37 +939,43 @@ Gate 必须按顺序推进。**Gate 1 的一次真机通过绝不授权 Legacy �
 V2 把 selector model identity 与 target model recipe 分开后，可正常表达：
 
 ~~~text
-GCN selection → GCN target
 GCN selection → GAT target
 GCN selection → GIN target
+SGC selection → GCN target
+SGC selection → GAT target
+SGC selection → GIN target
 ~~~
 
-### C.6a same-architecture surrogate
+### Group 1：GCN cross-backbone surrogate
 
 | 项目 | 设计 |
 |---|---|
-| Selector producer | 独立训练的 GCN surrogate |
-| Target | GCN + GNNDelete |
-| Seeds | 5 |
-| 新增规模 | 5 cells |
-| 目的 | 隔离相同 architecture、不同权重/seed 的迁移损失 |
-
-### C.6b cross-backbone surrogate
-
-| 项目 | 设计 |
-|---|---|
-| Selector producer | GCN surrogate |
+| Selector producer | GCN surrogate；proper TracIn 路径使用 `proper-tracin-v1` |
 | Target | GAT / GIN + GNNDelete |
 | Seeds | 5 |
-| 新增规模 | 10 cells |
+| 最小身份对 | 2 victims × 5 seeds = 10；最终 YAML 另行展开 selector / ratio / baseline |
 | 目的 | 模拟不知道 target backbone 的 query-free surrogate transfer |
+
+### Group 2：SGC analytical surrogate
+
+| 项目 | 设计 |
+|---|---|
+| Selector producer | SGC graph-aware IF / D-GIF；版本化为 `d-gif-sgc-v1` |
+| Target | GCN / GAT / GIN + GNNDelete |
+| Seeds | 5 |
+| 最小身份对 | 3 victims × 5 seeds = 15；最终 YAML 另行展开 selector / ratio / baseline |
+| 目的 | 检验理论和计算更清晰的 analytical surrogate 是否能跨非凸 victim 迁移 |
 
 边界：
 
 - 这是 L2-surrogate / query-free 灰盒迁移，不称纯黑盒；
-- 正式实验先锁定 `proper-tracin-v1`；
+- Group 1 先锁定 `proper-tracin-v1` 并通过 Cache V2 cold/warm exact-hit gate；
+- Group 2 先锁定 `d-gif-sgc-v1`，通过 SGC selector 单元验证与 Cache V2 cold/warm exact-hit gate；
+- 两组科学上独立，不以 transfer ratio 阈值互相解锁；每组最小 registered gate 后各自暂停审核；
+- target-direct 只作各 victim 的 white-box reference，不算第三组；不做 GCN-B→GCN-A；
+- SGC 的凸性、Hessian 或 error-bound 只约束 selector 自身，不构成对 GCN/GAT/GIN 迁移的理论保证；
 - deployed cross-TracIn 只作 legacy diagnostic；
-- 不同实验 YAML 可以直接复用同一 GCN SelectionArtifact。
+- 不同实验 YAML 只有在 Recipe、输入身份、candidate pool 和 budget 精确一致时才复用同一 SelectionArtifact。
 
 ---
 
@@ -1152,7 +1158,7 @@ V2.1 没有删除、retire、repair 或 GC 写命令。未来这些命令仍必�
 - `selection_reuse_time` 不进入正式 Artifact；`total_time` 动态求和；`retrain_time` 仅可选 breakdown。
 - 统一 Resolver、分散 payload、SQLite 可重建索引。
 - Legacy 只读旁路迁移，ResultCache 删除前先抢救 selected nodes 与 Prediction。
-- C.6a/C.6b 进入实验计划，并跨 YAML 复用相同 SelectionArtifact。
+- E7 Group 1（GCN→GAT/GIN）与 Group 2（SGC→GCN/GAT/GIN）进入实验计划；两组独立 gate，跨 YAML 仅精确复用身份一致的 SelectionArtifact。
 
 ### V2.1 保守落点（已拍板）
 
