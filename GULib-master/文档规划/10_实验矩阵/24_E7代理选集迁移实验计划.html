@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E7 两组代理选集迁移实验计划</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0f1c2e;--panel2:#14253c;--text:#e9f0fa;--muted:#9dafc7;--line:#29435f;--cyan:#59d8d2;--green:#75d79d;--amber:#f2bc62;--code:#081726}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#06101d,#0a1728 55%,#07121f);color:var(--text);font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}main{width:min(1120px,calc(100% - 40px));margin:auto;padding:48px 0 80px}.hero,.card{border:1px solid var(--line);border-radius:17px;background:rgba(15,28,46,.88);box-shadow:0 18px 50px rgba(0,0,0,.2)}.hero{padding:30px 34px;margin-bottom:24px;background:linear-gradient(145deg,rgba(20,37,60,.98),rgba(9,23,40,.98))}.kicker{color:var(--cyan);font-size:12px;letter-spacing:.13em;font-weight:800}.hero h1{font-size:32px;line-height:1.2;margin:8px 0}.verdict{margin-top:20px;padding:14px 18px;border-left:4px solid var(--green);background:rgba(117,215,157,.08)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}.card{padding:20px 22px}.card h2{margin:0 0 8px;font-size:20px;color:#d5eaff}.tag{display:inline-block;padding:3px 9px;border:1px solid #315f48;border-radius:999px;background:#102c21;color:var(--green);font-size:11px;font-weight:800}section>h2{font-size:24px;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:16px 0 26px;background:rgba(15,28,46,.75);font-size:13px}th,td{border:1px solid var(--line);padding:10px 11px;vertical-align:top}th{background:var(--panel2);color:#ddf8ff;text-align:left}code{padding:.14em .36em;border-radius:5px;background:var(--code);color:#b9ecff;font-family:Consolas,monospace}a{color:#81d9ff}.muted{color:var(--muted)}.warn{border-left:4px solid var(--amber);padding:12px 17px;background:rgba(242,188,98,.08)}li{margin:6px 0}@media(max-width:760px){.grid{grid-template-columns:1fr}.hero h1{font-size:27px}main{width:min(100% - 24px,1120px);padding-top:24px}table{display:block;overflow:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="kicker">OPENGU · E7 · EXPERIMENT DESIGN</div>
+    <h1>E7 两组代理选集迁移实验计划</h1>
+    <span class="tag">PLANNED</span>
+    <div class="verdict"><strong>核心决定：</strong>E7 只保留两组 query-free 灰盒迁移；target-direct 是白盒参考，不是第三组。实验验证选集和攻击效果是否仍然适用，不预设 surrogate 必须进一步放大 approximation gap。</div>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <h2>Group 1 · GCN 跨 backbone</h2>
+      <p><code>GCN selector → GAT victim</code></p>
+      <p><code>GCN selector → GIN victim</code></p>
+      <p class="muted">回答攻击者拥有 GCN surrogate、但不知道 victim backbone 时，选集能否迁移。</p>
+    </article>
+    <article class="card">
+      <h2>Group 2 · SGC analytical surrogate</h2>
+      <p><code>SGC selector → GCN victim</code></p>
+      <p><code>SGC selector → GAT victim</code></p>
+      <p><code>SGC selector → GIN victim</code></p>
+      <p class="muted">使用版本化 <code>d-gif-sgc-v1</code>，检验理论和计算更清晰的 selector 能否迁移到非凸 victim。</p>
+    </article>
+  </div>
+
+  <section>
+    <h2>研究边界</h2>
+    <ul>
+      <li>不增加 <code>GCN-B selector → GCN-A victim</code> 的同架构跨 checkpoint 组。</li>
+      <li>每个 victim 自己产生的 target-direct 选集只作为 white-box reference。</li>
+      <li>SGC 的凸性、Hessian 或 error-bound 结论只约束 SGC selector，不构成跨 victim 的理论保证。</li>
+      <li><code>retrain gap</code> 可以继续作为 GU outcome，但不是必须额外放大的预设攻击目标。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>身份与最小规模</h2>
+    <table>
+      <thead><tr><th>合同</th><th>要求</th></tr></thead>
+      <tbody>
+        <tr><td>模型身份</td><td><code>selector_model_id != target_model_id</code>，并记录 family、training identity、algorithm version 与 Artifact hash。</td></tr>
+        <tr><td>公平比较</td><td>同一 victim 的 surrogate 与 target-direct reference 固定 dataset、split、candidate pool、budget、victim checkpoint 与 GU 配置。</td></tr>
+        <tr><td>Group 1 最小身份对</td><td>2 victims × 5 seeds = <strong>10</strong>。</td></tr>
+        <tr><td>Group 2 最小身份对</td><td>3 victims × 5 seeds = <strong>15</strong>。</td></tr>
+      </tbody>
+    </table>
+    <p class="warn">10/15 是 surrogate-victim 身份对数量，不是最终完整 cell 数；selector、ratio 和 baseline 必须在 YAML 中显式展开。</p>
+  </section>
+
+  <section>
+    <h2>指标</h2>
+    <table>
+      <thead><tr><th>层次</th><th>报告内容</th></tr></thead>
+      <tbody>
+        <tr><td>选集迁移</td><td>top-k Jaccard、overlap@k；共享候选池允许时报告 rank correlation。</td></tr>
+        <tr><td>攻击效果迁移</td><td>victim 上的原始 utility、loss、现有 GU outcome，以及相对 target-direct reference 的配对差值。</td></tr>
+        <tr><td>归一化</td><td>transfer ratio 仅作描述；同时报告原始分子、分母，避免分母接近零时误读。</td></tr>
+        <tr><td>分层</td><td>按 victim、ratio、seed 报告，不用 pooled mean 代替条件结论。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Gate 与授权边界</h2>
+    <ol>
+      <li>Group 1 由 GCN selector 的版本化 Recipe 与 Cache V2 exact-hit gate 解锁。</li>
+      <li>Group 2 由 <code>d-gif-sgc-v1</code>、SGC selector 单元验证与 Cache V2 cold/warm exact-hit gate 解锁。</li>
+      <li>两组科学上独立，不再使用“前一组 transfer ratio ≥ 60% 才允许后一组”的门。</li>
+      <li>每组完成最小 registered gate 后暂停审阅，再决定是否扩展。</li>
+      <li>本计划不授权正式 GPU cell、数据准备、SSH 运行或旧 Artifact 退役。</li>
+    </ol>
+  </section>
+
+  <p class="muted">Editable source: <a href="24_E7代理选集迁移实验计划.md">24_E7代理选集迁移实验计划.md</a></p>
+</main>
+</body>
+</html>
