@@ -27,7 +27,7 @@ case "$1" in
         | tar czf "$OUT" -T -
     ;;
   arxiv)
-    echo "[warn] arxiv shipping is a historical helper; see 文档规划/10_实验矩阵/15_实验运行入口与脚本.md and the live WORKPLAN."
+    echo "[warn] arxiv shipping is a historical helper; see the sibling OpenGU-DocMap experiment entry guide and the live WORKPLAN."
     for tier in T1_seed42 T2_seed212 T3_seed722; do
       yaml="experiments/configs/phase_b_arxiv_${tier}.yaml"
       [ -f "$yaml" ] || continue

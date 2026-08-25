@@ -59,7 +59,7 @@ for the new A.7 experiment.
 ## New A.7 experiment contract
 
 The detailed modern-IM matrix and approval gates are maintained in
-[`22_IM成熟算法可用性与Degree超越实验计划.md`](../../../文档规划/10_实验矩阵/22_IM成熟算法可用性与Degree超越实验计划.md).
+[`22_IM成熟算法可用性与Degree超越实验计划.md`](../../../../../OpenGU-DocMap/10_实验矩阵/22_IM成熟算法可用性与Degree超越实验计划.md).
 
 ### A.7a Modern IM selector validity
 

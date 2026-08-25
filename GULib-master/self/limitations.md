@@ -122,7 +122,7 @@ G_size = 90,941 × 109,096 × 4 bytes = 39.7 GB
 升级 GPU。配套 commit `af1c8ba` 提供 `prewarm_selection_cache.py`，把 selection 阶段
 （贵卡需求）和 GU+retrain+MIA（4090 够）拆到两台机器跑，总成本 ~$20 vs 单 A100 全程 ~$42。
 
-当前执行边界见 `文档规划/10_实验矩阵/15_实验运行入口与脚本.md` 与 `17_CPU-GPU估时与资源分工.md`；2026-05 deadline Runbook 已退休。
+当前执行边界见 sibling DocMap 的[实验运行入口与脚本](../../../OpenGU-DocMap/10_实验矩阵/15_实验运行入口与脚本.md)与 [CPU-GPU 估时及资源分工](../../../OpenGU-DocMap/10_实验矩阵/17_CPU-GPU估时与资源分工.md)；2026-05 deadline Runbook 已退休。
 
 ---
 

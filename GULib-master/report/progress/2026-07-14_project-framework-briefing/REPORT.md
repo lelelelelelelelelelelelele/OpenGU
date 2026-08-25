@@ -11,7 +11,7 @@ derived_html: REPORT.html
 
 > **汇报截面：2026-07-14。** 这不是最终论文结论，也不是实时实验看板；它面向一次阶段进度汇报，重点解释完整 experiment setup 如何组织可证伪比较、如何产出可解释证据，以及下一步仍在推进什么。
 
-[打开长条 HTML](REPORT.html) · [实验框架总览](../../../文档规划/10_实验矩阵/10_实验-框架总览.md) · [OB 汇报大纲](../../../文档规划/30_评审与汇报/32_学长汇报大纲.md)
+[打开长条 HTML](REPORT.html) · [实验框架总览](../../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) · [OB 汇报大纲](../../../../../OpenGU-DocMap/30_评审与汇报/32_学长汇报大纲.md)
 
 ## Executive Brief
 
@@ -282,13 +282,13 @@ Cache V2 runner real-hit + proper-tracin-v1
 
 | 需要核对 | 权威文件 |
 |---|---|
-| 实验矩阵与框架关系 | [10_实验-框架总览.md](../../../文档规划/10_实验矩阵/10_实验-框架总览.md) |
+| 实验矩阵与框架关系 | [10_实验-框架总览.md](../../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | 全量实验版图与实时覆盖 | [config_inventory.html](../../../self/dashboard/config_inventory.html) |
 | Cell、运行入口与 artifact 分层 | [experiments/configs/README.md](../../../experiments/configs/README.md) |
-| 方法与 selector 定义 | [20_方法与策略框架.md](../../../文档规划/20_研究框架/20_方法与策略框架.md) |
+| 方法与 selector 定义 | [20_方法与策略框架.md](../../../../../OpenGU-DocMap/20_研究框架/20_方法与策略框架.md) |
 | Ongoing 状态与依赖 | [WORKPLAN.md](../../../self/dashboard/WORKPLAN.md) |
-| TracIn / GIF 公式边界 | [21_TracIn变体与GIF关系.md](../../../文档规划/20_研究框架/21_TracIn变体与GIF关系.md) |
-| Cache V2 架构与迁移 | [19_Cache架构重设计与迁移方案.md](../../../文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md) |
+| TracIn / GIF 公式边界 | [21_TracIn变体与GIF关系.md](../../../../../OpenGU-DocMap/20_研究框架/21_TracIn变体与GIF关系.md) |
+| Cache V2 架构与迁移 | [19_Cache架构重设计与迁移方案.md](../../../../../OpenGU-DocMap/10_实验矩阵/19_Cache架构重设计与迁移方案.md) |
 | Citeseer E1 evidence | [citeseer_e1_stable_ACCEPTANCE_REPORT.md](../../../docs/citeseer_e1_stable_ACCEPTANCE_REPORT.md) |
 | GraphRevoker canary evidence | [graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md](../../../docs/graphrevoker_postfix_canary_ACCEPTANCE_REPORT.md) |
 | Cache V2 Selection evidence | [cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md](../../../docs/cache_v2_citeseer_selection_canary_ACCEPTANCE_REPORT.md) |

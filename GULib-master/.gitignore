@@ -86,4 +86,3 @@ results/baseline/
 
 # Optional high-DPI raster exports for Cache architecture diagrams. The
 # referenced SVG sources are tracked; these local preview fallbacks are not.
-文档规划/10_实验矩阵/diagram/cache-v2-*@2x.png

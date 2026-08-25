@@ -16,7 +16,7 @@ This directory contains the repository-local companion tool for experiment synch
 
 SyncMate does not decide whether a defect belongs to Selection/selector logic or a GU method, and it does not infer the affected evidence range.
 
-1. First use the human-facing [重跑与缓存修复 Runbook](../../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md) to confirm the repair chain, invalidation scope, evidence boundary, and required re-acceptance.
+1. First use the human-facing [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) to confirm the repair chain, invalidation scope, evidence boundary, and required re-acceptance.
 2. Only after that decision, use the [OpenGU machine repair Runbook](OPENGU_CACHE_REPAIR_RUNBOOK.md) for the approved machine operations.
 
 Do not add generic destructive remote cleanup or execute an unconfirmed repair. A machine procedure requires an explicit profile, exact scope, dry-run, and confirmation path.
