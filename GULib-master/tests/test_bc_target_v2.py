@@ -99,8 +99,18 @@ def test_remove_selected_nodes_updates_mask_and_incident_edges():
     assert clean_edges.tolist() == [[2, 3], [3, 2]]
 
 
-def test_bc_recipe_contains_complete_score_family():
-    recipe = build_recipe(
+def _bc_recipe(*, include_source_contract=True):
+    graph_intervention = {
+        "operation": "remove_candidate_incident_edges",
+        "per_candidate_exact_retrain": False,
+    }
+    loss = {"type": "cross_entropy", "target_set": "validation_mask"}
+    if include_source_contract:
+        graph_intervention["source_scope"] = (
+            "affected_intersection_train_mask"
+        )
+        loss["graph_source_set"] = "affected_intersection_train_mask"
+    return build_recipe(
         source_fingerprint=_sha("source"),
         data_identity={
             "dataset": "Cora",
@@ -126,20 +136,32 @@ def test_bc_recipe_contains_complete_score_family():
             "cp3": (0, 1, 2),
             "cp_all": (0, 1, 2),
         },
-        graph_intervention={
-            "operation": "remove_candidate_incident_edges",
-            "per_candidate_exact_retrain": False,
-        },
+        graph_intervention=graph_intervention,
         hessian={"method": "LiSSA", "hutch_probes": 32},
-        loss={"type": "cross_entropy", "target_set": "validation_mask"},
+        loss=loss,
         parameter_scope="all_trainable",
         seed_bundle={"python_numpy_torch": 2024},
         numerics={"torch_dtype": "torch.float32"},
     )
+
+
+def test_bc_recipe_contains_complete_score_family():
+    recipe = _bc_recipe()
     assert tuple(recipe.fields["score_names"]) == SCORE_NAMES
     assert len(SCORE_NAMES) == 17
     assert "b_param_lissa" not in SCORE_NAMES
     assert recipe.fields["candidate_set"]["ranking_reusable_across_budgets"]
+    assert recipe.fields["algorithm_version"] == "bc-target-matrix-v3.2"
+    assert (
+        recipe.fields["graph_intervention"]["source_scope"]
+        == "affected_intersection_train_mask"
+    )
+    assert (
+        recipe.fields["loss"]["graph_source_set"]
+        == "affected_intersection_train_mask"
+    )
+    with pytest.raises(ValueError, match="affected training-source contract"):
+        _bc_recipe(include_source_contract=False)
 
 
 def test_markdown_renderer_keeps_tables_and_heading_anchors(tmp_path):

@@ -32,6 +32,7 @@ SCORE_NAMES = (
 )
 VALIDATION_SCORE_NAMES = ("b_param_lissa",)
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+GRAPH_SOURCE_SCOPE = "affected_intersection_train_mask"
 
 
 def _sha(value: Any, label: str) -> str:
@@ -57,6 +58,13 @@ def build_recipe(
     seed_bundle: Mapping[str, Any],
     numerics: Mapping[str, Any],
 ) -> ArtifactRecipe:
+    if (
+        graph_intervention.get("source_scope") != GRAPH_SOURCE_SCOPE
+        or loss.get("graph_source_set") != GRAPH_SOURCE_SCOPE
+    ):
+        raise ValueError(
+            "recipe must declare the affected training-source contract"
+        )
     _sha(source_fingerprint, "source_fingerprint")
     _sha(candidate_ids_hash, "candidate_ids_hash")
     _sha(target_ids_hash, "target_ids_hash")

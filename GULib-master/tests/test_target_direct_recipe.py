@@ -26,9 +26,12 @@ def test_target_direct_recipe_binds_checkpoint_identity():
         training={"epochs": 100},
         checkpoints=({"global_step": 100, "state_hash": SHA, "weight": 0.01},),
         checkpoint_views={"single": (0,)},
-        graph_intervention={},
+        graph_intervention={
+            "operation": "remove_candidate_incident_edges",
+            "source_scope": "affected_intersection_train_mask",
+        },
         hessian={},
-        loss={},
+        loss={"graph_source_set": "affected_intersection_train_mask"},
         parameter_scope="last_layer",
         seed_bundle={},
         numerics={},
@@ -36,7 +39,16 @@ def test_target_direct_recipe_binds_checkpoint_identity():
     )
     fields = recipe.fields
     assert fields["algorithm_version"] == ALGORITHM_VERSION
+    assert ALGORITHM_VERSION == "target-direct-opengu-gcn-score-bundle-v3"
     assert fields["score_family"] == SCORE_FAMILY
+    assert (
+        fields["graph_intervention"]["source_scope"]
+        == "affected_intersection_train_mask"
+    )
+    assert (
+        fields["loss"]["graph_source_set"]
+        == "affected_intersection_train_mask"
+    )
     assert fields["target_direct"]["white_box"] is True
     assert fields["target_direct"]["target_checkpoint"]["state_hash"] == SHA
     projection = fields["target_direct"]["budget_projection"]
