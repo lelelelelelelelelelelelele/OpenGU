@@ -60,7 +60,7 @@ SSH `runs/` 中 2026-07-22 的 `__syncmate_small_selection_gu_full_v5__` 为 612
 |---|---|
 | 当前任务、优先级和依赖 | [`self/dashboard/WORKPLAN.md`](../../../self/dashboard/WORKPLAN.md) |
 | 正式入口、解释器、GPU、数据根、SHA 和 gate 规则 | [`experiments/AGENTS.md`](../../../experiments/AGENTS.md) |
-| Selection 修改与 GU 修改的修复链、失效范围和人类决策 | [13 重跑与缓存修复 Runbook](../../../%E6%96%87%E6%A1%A3%E8%A7%84%E5%88%92/10_%E5%AE%9E%E9%AA%8C%E7%9F%A9%E9%98%B5/13_%E9%87%8D%E8%B7%91%E4%B8%8E%E7%BC%93%E5%AD%98%E4%BF%AE%E5%A4%8DRunbook.md) |
+| Selection 修改与 GU 修改的修复链、失效范围和人类决策 | [13 重跑与缓存修复 Runbook](../../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | 已确认修复链之后的机器端命令 | [`scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md`](../../../scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md) |
 | SyncMate 收集、校验和 trusted-index 协议 | [`scripts/syncmate/AGENTS.md`](../../../scripts/syncmate/AGENTS.md) |
 | 当前设计的批次顺序和暂停条件 | 本文 |

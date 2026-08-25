@@ -34,7 +34,7 @@
 Use this exact text:
 
 ```markdown
-- 出现 Selection/selector 或 GU method 缺陷，以及相关 Cache、Artifact、结果或证据的失效与恢复问题时，先读取[重跑与缓存修复 Runbook](../文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md)中对应的修复链，确认影响范围和证据边界；只有范围明确后，才执行该页链接的机器端操作规范。
+- 出现 Selection/selector 或 GU method 缺陷，以及相关 Cache、Artifact、结果或证据的失效与恢复问题时，先读取[重跑与缓存修复 Runbook](../../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md)中对应的修复链，确认影响范围和证据边界；只有范围明确后，才执行该页链接的机器端操作规范。
 ```
 
 - [ ] **Step 2: Remove duplicate generic Runbook wording**

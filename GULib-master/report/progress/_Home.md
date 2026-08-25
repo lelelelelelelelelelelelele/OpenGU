@@ -11,7 +11,7 @@ updated: 2026-07-14
 and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 
 - Current operational truth: [WORKPLAN.md](../../self/dashboard/WORKPLAN.md)
-- Project document map / Obsidian-style planning hub: [文档规划/_文档地图.md](../../文档规划/_文档地图.md)
+- Project document map / Obsidian-style planning hub: [文档规划/_文档地图.md](../../../../OpenGU-DocMap/_文档地图.md)
 - Daily logs: [report/daily-log/](../daily-log/)
 
 ## Read First
@@ -24,7 +24,7 @@ and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 | Advisor-facing progress narrative | [current-status-report.html](2026-07-01_advisor-report/current-status-report.html) |
 | Historical advisor/review diagnostic source | [advisor_report_2026-06-16.html](../advisor_report_2026-06-16.html) |
 | Historical NeurIPS push summary | [2026-05_NeurIPS-Push.md](2026-07-01_advisor-report/2026-05_NeurIPS-Push.md) |
-| Project-wide document navigation | [文档规划/_文档地图.md](../../文档规划/_文档地图.md) |
+| Project-wide document navigation | [文档规划/_文档地图.md](../../../../OpenGU-DocMap/_文档地图.md) |
 
 ## Chronological Index
 
@@ -47,5 +47,5 @@ reports, checkpoint bundles, and presentation packages.
 - If the report has assets, create `YYYY-MM-DD_short-topic/` with a `README.md`
   or main report file inside.
 - If it is a single markdown report, use `YYYY-MM-DD_short-topic.md`.
-- Put planning maps, loose notes, and cross-document indexes in `文档规划/`, not here.
+- Put planning maps, loose notes, and cross-document indexes in the sibling OpenGU DocMap, not here.
 - Put current task state, experiment status, and validation claims in `self/dashboard/`.
