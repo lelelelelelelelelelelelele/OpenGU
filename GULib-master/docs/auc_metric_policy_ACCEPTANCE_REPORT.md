@@ -88,8 +88,8 @@ python -m pytest \
 
 ## 6. 文档落点
 
-- `文档规划/10_实验矩阵/17_CPU-GPU估时与资源分工.md`：解释 Selection 与 AUC 的 CPU/GPU 成本，以及 small/large YAML 策略。
-- `文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md/.html`：记录 Score/Selection/Prediction/Evaluation identity 边界与 Legacy 退役处理。
+- OpenGU DocMap 的实验资源说明：解释 Selection 与 AUC 的 CPU/GPU 成本，以及 small/large YAML 策略。
+- OpenGU DocMap 的 Cache V2 架构说明：记录 Score/Selection/Prediction/Evaluation identity 边界与 Legacy 退役处理。
 - `self/dashboard/METRICS_CATALOG.md`：把 update-detection AUC 标为可选 secondary metric，并锁定 `null`/gate 口径。
 
 ## 7. 已知边界与下一道门

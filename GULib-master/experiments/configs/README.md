@@ -86,5 +86,5 @@ results/runs/
    python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T1_seed42.yaml --f1-min 0.55 --f1-max 0.85
    # …if compute remains, T2/T3
    ```
-   For current long-run wrapping and machine placement, use the sibling DocMap's [experiment entry guide](../../../../OpenGU-DocMap/10_实验矩阵/15_实验运行入口与脚本.md) plus the live `WORKPLAN`; the 2026-05 deadline runbook is retired.
+   For current long-run wrapping and machine placement, see the experiment section in OpenGU DocMap plus the live `WORKPLAN`; the 2026-05 deadline runbook is retired.
 6. Cora can run in parallel on a second GPU: `phase_b_cora_gcn.yaml` + `phase_b_cora_gat.yaml`

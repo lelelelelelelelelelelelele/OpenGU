@@ -3,8 +3,8 @@
 This folder is a chronological archive for progress reports, checkpoints, and
 presentation deliverables.
 
-It is not the project planning/MOC hub. Use the sibling
-[OpenGU DocMap](../../../../OpenGU-DocMap/_文档地图.md) for document navigation
+It is not the project planning/MOC hub. Use the sibling OpenGU DocMap for
+project-wide document navigation
 and `self/dashboard/WORKPLAN.md` for the current operational state.
 
 New report convention:

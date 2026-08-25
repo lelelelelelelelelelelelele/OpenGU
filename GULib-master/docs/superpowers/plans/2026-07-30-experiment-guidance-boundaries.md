@@ -25,7 +25,7 @@
 - Modify: `experiments/AGENTS.md:11-18`
 - Modify: `experiments/AGENTS.md:43-46`
 - Modify: `experiments/AGENTS.md:79-91`
-- Verify unchanged: `文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md`
+- Verify unchanged: the OpenGU DocMap experiment repair section
 - Verify unchanged: `scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md`
 
 **Interfaces:**
@@ -110,7 +110,7 @@ Expected: one dry-run command and one GPU hard-stop line.
 Run:
 
 ```powershell
-git diff --exit-code HEAD -- 'GULib-master/文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md' 'GULib-master/scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md'
+git diff --exit-code HEAD -- 'GULib-master/scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md'
 ```
 
 Expected: exit code `0` and no output.

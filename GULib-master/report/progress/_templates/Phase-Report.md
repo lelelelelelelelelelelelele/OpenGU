@@ -40,5 +40,5 @@ and how it changes the next step.
 
 - Current operational state: [WORKPLAN.md](../../../self/dashboard/WORKPLAN.md)
 - Validation log: [VALIDATION_LOG.md](../../../self/dashboard/VALIDATION_LOG.md)
-- Document map: [文档规划/_文档地图.md](../../../../../OpenGU-DocMap/_文档地图.md)
+- Document map: see OpenGU DocMap.
 

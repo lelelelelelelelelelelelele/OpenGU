@@ -52,7 +52,7 @@ status: ssh-gate-1-accepted
 | `scripts/cachectl.py` | 最小 CLI；真实子命令 argv 下不导入旧 runner/config |
 | `tests/test_cache_v2.py` | 契约、SQLite、Legacy、路径、CLI 与零写回归测试 |
 
-架构 source of truth 已同步更新：`文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md` 与同名 HTML。
+架构 source of truth 已同步更新至 OpenGU DocMap 实验部分的 Cache V2 架构说明。
 
 ## 4. 机器契约与 DDL
 
