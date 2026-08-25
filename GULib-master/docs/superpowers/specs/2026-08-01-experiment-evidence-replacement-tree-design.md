@@ -60,7 +60,7 @@ SSH `runs/` 中 2026-07-22 的 `__syncmate_small_selection_gu_full_v5__` 为 612
 |---|---|
 | 当前任务、优先级和依赖 | [`self/dashboard/WORKPLAN.md`](../../../self/dashboard/WORKPLAN.md) |
 | 正式入口、解释器、GPU、数据根、SHA 和 gate 规则 | [`experiments/AGENTS.md`](../../../experiments/AGENTS.md) |
-| Selection 修改与 GU 修改的修复链、失效范围和人类决策 | [13 重跑与缓存修复 Runbook](../../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| Selection 修改与 GU 修改的修复链、失效范围和人类决策 | 详见 OpenGU DocMap 实验部分的重跑与缓存修复说明 |
 | 已确认修复链之后的机器端命令 | [`scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md`](../../../scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md) |
 | SyncMate 收集、校验和 trusted-index 协议 | [`scripts/syncmate/AGENTS.md`](../../../scripts/syncmate/AGENTS.md) |
 | 当前设计的批次顺序和暂停条件 | 本文 |

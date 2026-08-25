@@ -27,7 +27,7 @@ layout is deliberately small:
 | root `AGENTS.md` | stable repository purpose, navigation, execution boundaries, evidence invariants, compact Git rule |
 | `experiments/AGENTS.md` | formal SSH lane, fixed-SHA gate, dataset/preflight/result identity, matrix runner rules |
 | nearest local `AGENTS.md` / retained local `CLAUDE.md` | narrow cache, dashboard, or SyncMate implementation rules |
-| `文档规划/`, `docs/`, `self/`, `reports/` | method design, runbooks, active state, historical findings, and human-facing evidence |
+| OpenGU DocMap, `docs/`, `self/`, `reports/` | method design, runbooks, active state, historical findings, and human-facing evidence |
 
 The existing `AGENTS_DRAFT.md` now covers repository positioning, entry
 points, execution locations, a minimal pipeline, runtime/validation, map,
@@ -49,8 +49,8 @@ runbook.
 | 8 | Dependencies and Environment (147-167) | Python stack and full `gnn` interpreter path. | Yes, compressed. | Root `AGENTS.md`: **yes** for interpreter and local CPU boundary. | Package versions belong in `../requirements.txt`; tool-shell explanation does not need a root instruction block. |
 | 9 | Important Notes (169-178) | `--no_cache`, import side effect, ScaleGUN status, GraphRevoker history, seed, logs, rerun and checkpoint-collision advice. | Split; do not retain as one block. | Root: config import side effect only; experiments/local cache docs: cache and checkpoint matters; evidence docs: historical defects. | A blanket destructive cleanup command is unsafe as root guidance. Old defect and static-status notes are not universal instructions. |
 | 10 | Status & Engineering Bottlenecks (180-199) | Dated project phase, active branch, hardware facts, bottlenecks and resolved incidents. | Preserve as evidence, remove from root. | `self/dashboard/WORKPLAN.md`, `self/limitations.md`, archived reports: **not AGENTS**. | The file itself says this list has drifted. It must not compete with the live dashboard. |
-| 11 | Phase-B Toolkit (201-213) | A table of scripts, commands and pointers. | Preserve current entries only. | `文档规划/10_实验矩阵/15_实验运行入口与脚本.md`: **not AGENTS**. | The table includes a nonexistent `scripts/redo_collateral.sh`; the current tracked rerun helper is `scripts/redo_collateral_if_family.py`. |
-| 12 | Project Context, Attack Structure, Result Storage (215-291) | Research narrative, method findings, attack files, Phase-B artifacts, baselines, journal/cache locations. | Split. | `self/` and `文档规划/`: research/method detail; `experiments/AGENTS.md`: formal cell artifacts; root: two evidence-infrastructure rules only. | The former `self/concordance/HANDOFF.md` pointer was wrong and the later handoff has now been retired; historical study evidence remains in `self/related_work/concordance/report.html`, while current status lives in the experiment map. AutoReport V3 is a root-level integrity boundary, but the whole storage catalogue is not. |
+| 11 | Phase-B Toolkit (201-213) | A table of scripts, commands and pointers. | Preserve current entries only. | OpenGU DocMap 的实验运行入口说明：**not AGENTS**. | The table includes a nonexistent `scripts/redo_collateral.sh`; the current tracked rerun helper is `scripts/redo_collateral_if_family.py`. |
+| 12 | Project Context, Attack Structure, Result Storage (215-291) | Research narrative, method findings, attack files, Phase-B artifacts, baselines, journal/cache locations. | Split. | `self/` and OpenGU DocMap: research/method detail; `experiments/AGENTS.md`: formal cell artifacts; root: two evidence-infrastructure rules only. | The former `self/concordance/HANDOFF.md` pointer was wrong and the later handoff has now been retired; historical study evidence remains in `self/related_work/concordance/report.html`, while current status lives in the experiment map. AutoReport V3 is a root-level integrity boundary, but the whole storage catalogue is not. |
 | 13 | Document Workflow and Slash Commands (293-307) | V3 journal explanation, daily-log pointer, Claude slash commands. | Split. | Root: AutoReport authority rule; `report/daily-log/` / skills: daily-log workflow; Claude-specific commands: remove from shared instruction surface. | V3 JSONL is the audit authority. The historical `results/_journal/RULES.md` is explanatory archive material and must not override V3 design. |
 
 ## Required root additions
@@ -71,7 +71,7 @@ added to the root draft beyond its existing map and pipeline description:
 ```
 
 This is intentionally not an IF, IM, TracIn, or method-policy section. Those
-are evolving research lanes and are routed through `文档规划/`, `self/`, and
+are evolving research lanes and are routed through OpenGU DocMap, `self/`, and
 experiment configuration rather than frozen into a repository-wide agent rule.
 
 ## Verified reference and drift checks

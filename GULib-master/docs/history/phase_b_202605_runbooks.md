@@ -15,11 +15,11 @@
 | 需要 | 当前来源 |
 |---|---|
 | 当前任务、正式 lane、远端状态 | `self/dashboard/WORKPLAN.md` |
-| runner / yaml / dry-run / gate | `文档规划/10_实验矩阵/15_实验运行入口与脚本.md` |
-| 4090 小图运行与回收 | `文档规划/10_实验矩阵/16_4090小数据集运行与回收.md` |
-| CPU/GPU 估时 | `文档规划/10_实验矩阵/17_CPU-GPU估时与资源分工.md` |
-| SSH / AutoDL | `文档规划/10_实验矩阵/18_AutoDL_4090连接与加速.md` |
-| 修复结论、测试、失效数据 | `文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md` |
+| runner / yaml / dry-run / gate | OpenGU DocMap 实验部分的运行入口说明 |
+| 4090 小图运行与回收 | OpenGU DocMap 实验部分的 4090 运行说明 |
+| CPU/GPU 估时 | OpenGU DocMap 实验部分的资源分工说明 |
+| SSH / AutoDL | OpenGU DocMap 实验部分的 AutoDL 运行说明 |
+| 修复结论、测试、失效数据 | OpenGU DocMap 实验部分的重跑与缓存修复说明 |
 | OpenGU cache/result 修复 | `scripts/syncmate/OPENGU_CACHE_REPAIR_RUNBOOK.md` |
 | GraphRevoker 当前边界 | `docs/graphrevoker_e4_ACCEPTANCE_REPORT.md` |
 

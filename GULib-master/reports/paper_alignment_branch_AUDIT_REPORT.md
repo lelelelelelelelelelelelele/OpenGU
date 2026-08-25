@@ -278,7 +278,7 @@ git -C $repo branch -D paper/alignment-experiment
 3. 当前 main 的 FIG-3 数值尺度合理，但两个现存生成器都不能在当前 schema 下无修改复现它；因此“keep”不等于 provenance 已闭环。
 4. 本审计只比较本地 refs 和现场文件，没有访问远端实验主机，也没有导入 E4 GraphRevoker artifacts。
 5. 运行旧 `test1.py` 的 fallback 曾在 `E:\project\OpenGU\data\raw\Cora` 创建缓存；本次新建的 `processed/` 和 4 个新 raw 文件已移到系统临时隔离区。4 个原有 raw 文件被官方 downloader 同名重写，仅 mtime 变化，仍是 ignored data；没有 tracked 文件变化。
-6. HTML 已在浏览器中逐页视觉复检；当前 Obsidian vault 只覆盖 `文档规划` 子树，报告位于同级 `reports/`，若不新增链接或改 vault 就无法直接在 Reading View 打开。为遵守“报告之外不改文件”，本次只完成 Markdown 表格结构检查，未把该报告临时接入 Obsidian；这是版式验收的已知缺口。
+6. HTML 已在浏览器中逐页视觉复检；当时 OpenGU DocMap 与同级 `reports/` 目录相互独立，若不新增链接或调整 vault 范围就无法直接在 Reading View 打开。为遵守“报告之外不改文件”，本次只完成 Markdown 表格结构检查，未把该报告临时接入 Obsidian；这是版式验收的已知缺口。
 
 ## 10. 2026-07-22 后续处置记录
 

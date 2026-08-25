@@ -17,7 +17,7 @@ scope: self documentation inventory and orchestration only
 
 - 盘点范围：`self/` 的 32 份人读文档（29 Markdown、3 HTML），不把程序、数据 JSON、图片或缓存当作文档。
 - 当前治理：根 `AGENTS.md` 指定 dashboard 为 live operational hub，禁止手改生成 dashboard；`self/dashboard/CLAUDE.md` 是唯一的 `self/` 局部说明。`AGENTS_DRAFT.md` 是未跟踪的审阅草稿，明确不取代根 `AGENTS.md`。
-- 链接：本地 Markdown 目标检查没有真实断链；唯一命中是 `flow.md` 代码块里的 `strategy_map[name](args)`，不是 Markdown 链接。`文档规划/_文档地图.md` 的 Obsidian 目标也都存在。
+- 链接：本地 Markdown 目标检查没有真实断链；唯一命中是 `flow.md` 代码块里的 `strategy_map[name](args)`，不是 Markdown 链接。OpenGU DocMap 的 Obsidian 目标也都存在。
 - 入口问题：根目录多数文档只有 code-style `See also`，不形成可点击/可追踪导航；`self/README.md` 没有索引近期 review、limitations、AutoReport/V3 或 concordance，并列出一个不存在的 `.bak` 文件。
 - 时间判断采用正文、权威入口和 Git 最近内容变更，不只使用文件 mtime。例如 `attack_flow.md` 与 `flow.md` 在本地显示较新 mtime，但最近内容提交仍是 2026-05-07。
 
@@ -41,7 +41,7 @@ scope: self documentation inventory and orchestration only
 |---|---|---|---|
 | `self/dashboard/CLAUDE.md` | 已正确描述 JSONL/投影/baseline，但仍保留“`refresh.py` 待建”、过宽的“每个文件都有 Last updated”与 `scripts/experiments/` 路径表述 | 改为 V3-first 的短链接；将 timestamp 约束限定为手写 active Markdown；指向实际 `experiments/` 和当前生成器 | 低：只澄清已有规则 |
 | `results/_journal/RULES.md` | V3 规则正确，但 v1/v2 模板在文件前部，容易被只读开头的人误当作新写法 | 增加位于文件开头的“新运行只读 V3”导航，保留 v1/v2 原文作为 archive compatibility | 低：不改变 V3 contract 或 archive |
-| `文档规划/10_实验矩阵/16_4090小数据集运行与回收.md` | 把 `auto_report.md` 称作 append-only 运行日志 | 指向 JSONL 为审计权威，MD/HTML 为投影；不修改任何 journal data | 低：纠正导航语义 |
+| OpenGU DocMap 实验部分的 4090 运行说明 | 把 `auto_report.md` 称作 append-only 运行日志 | 指向 JSONL 为审计权威，MD/HTML 为投影；不修改任何 journal data | 低：纠正导航语义 |
 | `results/_journal/archive/README.md` | 仍把读者引向退役 `self/dashboard/PROGRESS.md` | 指向 `WORKPLAN.md`；明确 archive 只读且不承担 live state | 低：修复退役入口 |
 
 ## 治理关系
@@ -110,7 +110,7 @@ scope: self documentation inventory and orchestration only
 | 1 | `self/README.md` | 把 Fast Path 改为 `WORKPLAN → README role map → 按任务进入`；补 review、limitations、related-work/concordance、journal V3 的链接；删除不存在 `.bak` 的 inventory 行；历史资料只列为按需阅读 | 本地链接全过；Obsidian 可从一个入口区分 current/strategy/history |
 | 2 | `self/dashboard/CLAUDE.md` | 明确 hand-written active Markdown 与 generated files 的维护差异；把 `refresh.py`、`gen_config_inventory.py`、`experiments/` 路径改为现行；链接 `RULES.md` 而非复制 V3 细节 | 不新增第二套 V3 规则；不要求 generated HTML 自带 `Last updated` |
 | 3 | `results/_journal/RULES.md`、`results/_journal/archive/README.md` | 加 V3-first 导航；保留 v1/v2 模板/archive 原文；把 retired PROGRESS 指向 WORKPLAN | `RULES.md` 开头即可看出新运行只写 JSONL；archive 文本不动 |
-| 4 | `文档规划/_文档地图.md` 与 `10_实验矩阵/16_4090小数据集运行与回收.md` | 加“运行审计 V3”入口；将 `auto_report.md` 改称投影并指向 JSONL/RULES；不复制 events 内容 | Wiki 和 Markdown 目标存在，OB map 不把投影说成 append-only 日志 |
+| 4 | OpenGU DocMap 的文档地图与 4090 运行说明 | 加“运行审计 V3”入口；将 `auto_report.md` 改称投影并指向 JSONL/RULES；不复制 events 内容 | Wiki 和 Markdown 目标存在，OB map 不把投影说成 append-only 日志 |
 | 5 | `self/dashboard/EXPERIMENT_DASHBOARD.md`、`self/dashboard/METRICS_CATALOG.md` | 将 retired `PROGRESS`/frozen-dashboard 的“当前”路由改为 WORKPLAN/VALIDATION_LOG；保留历史链接和历史事实 | 历史快照仍可读，所有 current-state 指针只到 WORKPLAN |
 | 6 | `self/thesis_transition_memo.md`、`self/research_path_degree_severity_decomposition.md`、concordance 历史入口 | 前两份只加顶部 status/current-pointer；退役 `concordance/HANDOFF.md`，把引用转到 frozen `report.html`、`FINDING` 与当前实验入口 | 无文档继续被误读成 live execution plan 或 current TracIn acceptance source |
 
@@ -126,7 +126,7 @@ scope: self documentation inventory and orchestration only
 ### Batch 3 — Obsidian 可读性与导航收敛
 
 1. 将 active/handoff/frozen 三种文档统一为简短 metadata block：`Status`、`Role`、`Use this when`、`Current source / Superseded by`。不为 frozen archive 伪造新的更新时间。
-2. 把重要的 code-style `See also` 路径替换成相对 Markdown 链接（Obsidian 兼容）；仅在 `文档规划/` 保留可解析的 `[[wiki link]]` 风格。
+2. 把重要的 code-style `See also` 路径替换成相对 Markdown 链接（Obsidian 兼容）；仅在 OpenGU DocMap 内保留可解析的 `[[wiki link]]` 风格。
 3. 在 `_文档地图.md` 增加一个不复制内容的“研究材料与证据边界”入口：指向 `self/README.md`、review synthesis、limitations、concordance finding、V3 rules；不把 WORKPLAN 内容搬进 OB。
 4. 对宽表与数学内容用 Obsidian Reading View 目视检查；保留有对齐价值的表，按根 AGENTS 的数学分隔符规则修小问题，不把长表改成 callout 堆砌。
 

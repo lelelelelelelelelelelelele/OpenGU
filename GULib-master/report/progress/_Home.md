@@ -11,7 +11,7 @@ updated: 2026-07-14
 and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 
 - Current operational truth: [WORKPLAN.md](../../self/dashboard/WORKPLAN.md)
-- Project document map / Obsidian-style planning hub: [文档规划/_文档地图.md](../../../../OpenGU-DocMap/_文档地图.md)
+- Project document map / Obsidian-style planning hub: see OpenGU DocMap.
 - Daily logs: [report/daily-log/](../daily-log/)
 
 ## Read First
@@ -24,7 +24,7 @@ and presentation deliverables. It is not the project Obsidian/MOC hub anymore.
 | Advisor-facing progress narrative | [current-status-report.html](2026-07-01_advisor-report/current-status-report.html) |
 | Historical advisor/review diagnostic source | [advisor_report_2026-06-16.html](../advisor_report_2026-06-16.html) |
 | Historical NeurIPS push summary | [2026-05_NeurIPS-Push.md](2026-07-01_advisor-report/2026-05_NeurIPS-Push.md) |
-| Project-wide document navigation | [文档规划/_文档地图.md](../../../../OpenGU-DocMap/_文档地图.md) |
+| Project-wide document navigation | See OpenGU DocMap. |
 
 ## Chronological Index
 

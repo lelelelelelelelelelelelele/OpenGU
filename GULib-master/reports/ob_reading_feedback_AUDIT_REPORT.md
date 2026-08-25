@@ -88,12 +88,12 @@ A 与 B 的 `0.962` 足以支持“强排序代理”，但不支持定义等价
 
 ## 证据入口
 
-- `文档规划/20_研究框架/21_TracIn变体与GIF关系.md`
-- `文档规划/10_实验矩阵/11_策略输出重合度实验.md`
-- `文档规划/10_实验矩阵/12_近似策略重合度实验.md`
-- `文档规划/10_实验矩阵/13_重跑与缓存修复Runbook.md`
-- `文档规划/10_实验矩阵/19_Cache架构重设计与迁移方案.md`
-- `文档规划/10_实验矩阵/21_C目标TracIn与GIF近似有效性实验计划.md`
+- OpenGU DocMap 研究框架部分的 TracIn / GIF 关系说明
+- OpenGU DocMap 实验部分的策略输出重合度实验
+- OpenGU DocMap 实验部分的近似策略重合度实验
+- OpenGU DocMap 实验部分的重跑与缓存修复说明
+- OpenGU DocMap 实验部分的 Cache V2 架构说明
+- OpenGU DocMap 实验部分的 C-target TracIn / GIF 有效性实验
 - `reports/c_target_v1_REPORT.md`
 - `reports/bc_target_matrix_REPORT.md`
 - `docs/workplan_parallel_modules_REPORT.md`
