@@ -9,7 +9,7 @@ from typing import Any, Mapping, Sequence
 from cache_v2 import ArtifactRecipe
 
 
-ALGORITHM_VERSION = "bc-target-matrix-v3.1"
+ALGORITHM_VERSION = "bc-target-matrix-v3.2"
 SCORE_FAMILY = "bc_target_selection_score_bundle"
 SCORE_NAMES = (
     "a_grad_norm",

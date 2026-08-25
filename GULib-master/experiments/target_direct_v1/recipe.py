@@ -11,7 +11,7 @@ from experiments.bc_target_v2.recipe import (
 )
 
 
-ALGORITHM_VERSION = "target-direct-opengu-gcn-score-bundle-v2"
+ALGORITHM_VERSION = "target-direct-opengu-gcn-score-bundle-v3"
 SCORE_FAMILY = "target_direct_opengu_gcn_selection_score_bundle"
 APPROVED_BUDGET_RATIOS = (0.01, 0.05)
 SCORE_BUDGET_SEMANTICS = "prefix_stable_budget_independent"

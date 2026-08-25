@@ -556,6 +556,9 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "operation": "remove_candidate_incident_edges",
             "affected_set": "candidate_plus_undirected_k_hop_neighbors",
             "affected_hops": int(args.affected_hops),
+            "source_scope": "affected_intersection_train_mask",
+            "grad1": "sum_ce_original_graph_affected_training_set",
+            "grad2": "sum_ce_deleted_graph_affected_training_neighbors_excluding_candidate",
             "per_candidate_exact_retrain": False,
         },
         hessian={
@@ -571,6 +574,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "target_set": "validation_mask",
             "target_reduction": "mean",
             "graph_source_reduction": "sum",
+            "graph_source_set": "affected_intersection_train_mask",
         },
         parameter_scope=args.parameter_scope,
         seed_bundle={
@@ -636,6 +640,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             data,
             checkpoints=checkpoints,
             candidate_ids=candidate_ids,
+            source_ids=candidate_ids,
             target_gradients=target_gradients,
             parameter_scope=args.parameter_scope,
             affected_hops=args.affected_hops,

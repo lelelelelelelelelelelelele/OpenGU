@@ -9,7 +9,7 @@ from typing import Any, Mapping, Sequence
 from cache_v2 import ArtifactRecipe
 
 
-ALGORITHM_VERSION = "c-target-gif-tracin-v1.0"
+ALGORITHM_VERSION = "c-target-gif-tracin-v1.1"
 SCORE_FAMILY = "c_target_gif_tracin_score_bundle"
 SCORE_NAMES = (
     "gt_full",

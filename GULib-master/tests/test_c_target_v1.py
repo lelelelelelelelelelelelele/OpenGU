@@ -1,6 +1,7 @@
 import hashlib
 import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -16,6 +17,7 @@ from cache_v2.selection_materializer import (
 from experiments.c_target_v1.core import (
     affected_nodes,
     build_undirected_adjacency,
+    graph_source_scores,
     pair_metrics,
     remove_incident_edges,
     stable_ranking,
@@ -237,6 +239,82 @@ def test_graph_affected_set_and_incident_edge_removal():
 
     deleted = remove_incident_edges(edge_index, node_id=1)
     assert deleted.tolist() == [[2, 3], [3, 2]]
+
+
+class _ToyMessagePassing(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.weight = torch.nn.Parameter(
+            torch.tensor([[0.7, -0.4], [0.2, 0.9]], dtype=torch.float32)
+        )
+
+    def forward(self, x, edge_index):
+        messages = torch.zeros_like(x)
+        messages.index_add_(0, edge_index[1], x[edge_index[0]])
+        return (x + 0.5 * messages).matmul(self.weight)
+
+
+def _toy_graph_source_scores(*, labels=None, features=None):
+    model = _ToyMessagePassing()
+    edge_index = torch.tensor(
+        [[0, 1, 0, 2, 0, 3], [1, 0, 2, 0, 3, 0]], dtype=torch.long
+    )
+    if features is None:
+        features = torch.tensor(
+            [[1.0, 0.2], [0.3, 1.4], [1.1, -0.7], [-0.4, 0.8]],
+            dtype=torch.float32,
+        )
+    if labels is None:
+        labels = torch.tensor([0, 1, 0, 1], dtype=torch.long)
+    data = SimpleNamespace(
+        x=features,
+        y=labels,
+        edge_index=edge_index,
+        num_nodes=4,
+    )
+    direction = torch.tensor([0.4, -0.6, 0.3, 0.8], dtype=torch.float32)
+    scores, _ = graph_source_scores(
+        model,
+        data,
+        state=model.state_dict(),
+        candidate_ids=torch.tensor([0]),
+        source_ids=torch.tensor([0, 3]),
+        parameter_scope="all_trainable",
+        affected_hops=1,
+        target_gradient=direction,
+        inverse_target=direction,
+    )
+    return scores
+
+
+def test_graph_source_scores_use_only_affected_training_labels():
+    baseline = _toy_graph_source_scores()
+    nontraining_labels = torch.tensor([0, 0, 1, 1], dtype=torch.long)
+    assert all(
+        torch.equal(
+            baseline[name],
+            _toy_graph_source_scores(labels=nontraining_labels)[name],
+        )
+        for name in baseline
+    )
+
+    training_labels = torch.tensor([0, 1, 0, 0], dtype=torch.long)
+    changed = _toy_graph_source_scores(labels=training_labels)
+    assert not torch.equal(baseline["p_graph"], changed["p_graph"])
+
+
+def test_graph_source_scores_keep_nontraining_features_and_deleted_graph_effects():
+    features = torch.tensor(
+        [[1.0, 0.2], [0.3, 1.4], [1.1, -0.7], [-0.4, 0.8]],
+        dtype=torch.float32,
+    )
+    baseline = _toy_graph_source_scores(features=features)
+    changed_features = features.clone()
+    changed_features[1] = torch.tensor([1.7, -0.2])
+    changed_features[2] = torch.tensor([-0.8, 1.5])
+    changed = _toy_graph_source_scores(features=changed_features)
+    assert not torch.equal(baseline["p_graph"], changed["p_graph"])
+    assert not torch.equal(baseline["p_graph"], baseline["p_simple"])
 
 
 def test_stable_ranking_and_pair_metrics_are_deterministic():
