@@ -58,7 +58,7 @@ def emit_markdown(df: pd.DataFrame) -> str:
     for metric, label, sig in [
         ("f1_drop", "F1 drop  (perf_before − f1_after; ↑ = attack worked)", 3),
         ("mia_auc", "MIA AUC  (0.5 = random guess; |AUC−0.5| measures leakage)", 3),
-        ("gap", "Retrain gap  (perf_unlearn − perf_retrain; ↑ = unlearn fails to mimic retrain)", 3),
+        ("gap", "Retrain gap  (perf_retrain − perf_unlearn; ↑ = unlearn is worse than exact retrain)", 3),
     ]:
         out.append(f"\n## {label}\n")
         wide, _ = build_metric_table(df, metric, sig)
@@ -81,7 +81,7 @@ def emit_latex(df: pd.DataFrame) -> str:
     for metric, caption, sig in [
         ("f1_drop", "F1 drop on Cora (perf\\_before $-$ f1\\_after; n=5 seeds, mean$\\pm$std)", 3),
         ("mia_auc", "MIA AUC on Cora", 3),
-        ("gap", "Retrain gap on Cora (perf\\_unlearn $-$ perf\\_retrain)", 3),
+        ("gap", "Retrain gap on Cora (perf\\_retrain $-$ perf\\_unlearn)", 3),
     ]:
         _, tex = build_metric_table(df, metric, sig)
         parts.append(f"% ----- {metric} -----")

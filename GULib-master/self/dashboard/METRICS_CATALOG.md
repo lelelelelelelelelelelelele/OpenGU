@@ -66,7 +66,7 @@ drop_total(S) = ΔF_noise + ΔF_volume(r) + ΔF_attack(S)
 
 ### 4. Approximation Gap (Retrain Gap) ✅
 
-- **核心量**：`perf_unlearn − perf_retrain`（近似遗忘相对精确 retrain 的额外损失；正值 = unlearn 后 F1 比 retrain 高，意味着模型"假装遗忘"还保留信息）
+- **核心量**：`perf_retrain − perf_unlearn`（近似遗忘相对精确 retrain 的额外损失；正值 = unlearn 后 F1 比 retrain 低，表示 over-forgetting / approximation drift）
 - **实现**：`attack/attack_eval.py::evaluate_retrain_gap()` (line 95)
 - **存储**：Phase B canonical 路径 `results/runs/{cell}/{method}_{strategy}/seed{N}/collateral.json::results[0].gap`；旧路径 `results/collateral/...` 已 untrack（2026-05-05）
 - **覆盖**（Cora post-Phase-B 实测，attack strategies 平均）：
@@ -76,7 +76,7 @@ drop_total(S) = ΔF_noise + ΔF_volume(r) + ΔF_attack(S)
   - IDEA$^{\ddagger}$: GCN $-0.4\%$ / GAT $-0.5\%$ — 同
   - GNNDelete: GCN $+11.0\%$ / GAT $+11.8\%$ ✅ — **唯一 outlier**
   - MEGU: GCN $-0.0\%$ / GAT $+0.2\%$ ✅
-- **bug 状态**：GIF/IDEA bug-affected（IF-family pre-fix `perf_unlearn` ≈ `perf_before`，so reported `gap` 是 `perf_before − perf_retrain`，is a lower bound on the true post-fix gap）。Master scorecard 用 `^{\ddagger}` 标注。
+- **证据状态**：GIF/IDEA 的现有 collateral 仍是 IF-family pre-fix（`perf_unlearn` ≈ `perf_before`，所以旧 `gap` 实际是 `perf_retrain − perf_before`，不能当作修复后 gap）。代码已修复，受影响 evidence 等待重跑；Master scorecard 继续用 `^{\ddagger}` 标注。
 - **paper 用法**：master scorecard "Gap" 列；§5.4 GNNDelete approx-error 论据（"order of magnitude larger than every other method"）
 - **三模型框架**：(model_before, model_unlearned, model_retrained) 同时持有，定义 `drop_retrain + gap = drop_total`
 - **before 口径注意**：`perf_before` 是当前 method 的 `train_only` before；对 GraphEraser/GraphRevoker 可能是 SISA/shard before，不一定是 vanilla `canonical_f1_before`

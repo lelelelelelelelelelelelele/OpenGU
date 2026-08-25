@@ -161,6 +161,16 @@ class TestEvaluateRetrainGap:
         expected = result["perf_before"] - result["perf_unlearn"]
         assert abs(total - expected) < 1e-6
 
+    def test_gap_sign_is_retrain_minus_unlearn(self):
+        """Positive gap means approximate unlearning is below exact retraining."""
+        data = _make_dummy_data()
+        m1 = _make_dummy_model()
+        m2 = _make_dummy_model()
+        m3 = _make_dummy_model()
+        result = evaluate_retrain_gap(m1, m2, m3, data, data.test_mask)
+        expected = result["perf_retrain"] - result["perf_unlearn"]
+        assert abs(result["gap"] - expected) < 1e-6
+
 
 # ===========================================================================
 # TestEvaluateCollateralDamage

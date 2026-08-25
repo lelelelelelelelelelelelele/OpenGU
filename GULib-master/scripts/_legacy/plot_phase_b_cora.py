@@ -214,7 +214,7 @@ def main() -> int:
     hop_decay(df)
 
     print("[fig5] retrain gap by method × strategy")
-    grouped_bars(df, "gap", "Retrain gap  (perf_unlearn − perf_retrain)",
+    grouped_bars(df, "gap", "Retrain gap  (perf_retrain − perf_unlearn)",
                  "fig5_retrain_gap", hline=0.0)
 
     print(f"\nall figures -> {OUT.resolve()}")

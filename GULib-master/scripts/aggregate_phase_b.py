@@ -17,7 +17,7 @@ Field semantics (per self/dashboard/METRIC_FIELD_SEMANTICS.md):
   f1_drop        -- perf_before - f1_after (derived; positive = attack worked)
   perf_unlearn   -- collateral.json view of post-unlearn F1 (sanity cross-check vs f1_after)
   perf_retrain   -- gold-standard retrain-from-scratch F1
-  gap            -- perf_unlearn - perf_retrain (retrain gap; positive = unlearn over-shoots)
+  gap            -- perf_retrain - perf_unlearn (retrain gap; positive = unlearn is worse than exact retrain)
   mia_auc        -- membership inference AUC against the unlearned model
   hop_{k}_flip_rate -- prediction-flip rate at k-hop (k in {1,2,3,gt3})
 """

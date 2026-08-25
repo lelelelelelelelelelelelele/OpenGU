@@ -327,14 +327,16 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
 
 ## L8. Hop-distance decay (collateral) IF-family 数值 bug-affected
 
-**Status**: `OPEN` — 修复已知，未跑（同 IF-family params_esti write-back fix 路径）
+**Status**: `CODE FIXED · EVIDENCE RERUN PENDING` — write-back 修复已落地并通过 stub/source 回归；受影响的旧 collateral 数字尚未重跑
 **Discovered**: 2026-05-07 整理 master scorecard 时
 **Severity**: 中 — 影响 GIF/IDEA 两个 method 的 hop-decay 数字 in §A.4 prose；不影响 attack ΔF^attack / Update AUC / Selection alignment
 
 ### Evidence
 
 `hop_*_flip_rate` 字段定义为 `fraction_flipped(model_unlearned, model_retrained, nodes_at_hop)`。
-GIF/IDEA 的 `model_unlearned` 由于 `approxi()` 没把 `params_esti` 写回 `target_model.model.parameters()`（commit `d674f62` fix 没在 4090 当前 cell 真正生效，详见 V-2026-05-07 早期讨论 + tarball replace 那段），所以 GIF/IDEA 的 `hop_*` 实际算的是 `(原 trained model) vs retrain`，**不是** `(post-unlearn model) vs retrain`。
+历史 GIF/IDEA collateral 是在 `approxi()` write-back 修复前生成的：当时 `params_esti` 没有写回
+`target_model.model.parameters()`，所以这些旧 `hop_*` 实际算的是 `(原 trained model) vs retrain`，**不是** `(post-unlearn model) vs retrain`。
+代码层面的 write-back 修复已在 commit `d674f62` 落地；`scripts/verify_if_writeback_patch.py` 的 stub/source 回归确认两个方法都包含该写回路径。远端受影响 cell 尚未重跑，因此修复后的数值仍 `PENDING`。
 
 实测对照（Cora/GCN, attack strategies 平均, h=1 flip rate）：
 
@@ -349,14 +351,14 @@ GIF/IDEA 的 `model_unlearned` 由于 `approxi()` 没把 `params_esti` 写回 `t
 
 ### Decision
 
-`OPEN`：master scorecard 早期版有 Hop₁ 列，**当前版本已删** 避免误导。§A.4 appendix 散文里的 GIF/IDEA "7%" 数字带 `^{\ddagger}` 标注或者直接改成 "(IF-family bug-affected; pending re-run)"。
+代码修复结论为 `RESOLVED`；证据结论仍为 `PENDING`：master scorecard 早期版有 Hop₁ 列，**当前版本已删** 避免误导。§A.4 appendix 散文里的 GIF/IDEA "7%" 数字必须带 `^{\ddagger}` 标注或直接改成 "(IF-family pre-fix; pending re-run)"。
 
 ### 修复路径
 
-1. 服务器上清 `__pycache__/*.pyc`（autodl 容器旧 .pyc 让 d674f62 patch 不生效）
-2. `python scripts/redo_collateral_if_family.py experiments/configs/phase_b_cora_{gcn,gat}.yaml` 重跑 GIF + IDEA × 6 strategy × 5 seed × 2 backbone = 120 cell collateral
-3. 重生 `_phase_b_aggregate.csv`、master scorecard 重生（hop_decay 行的 GIF/IDEA 会更新）
-4. NeurIPS 投稿前来不及，标 `^{\ddagger}` 处理；rebuttal / camera-ready 阶段补完
+1. **已完成（代码）**：`d674f62` 在 GIF/IDEA `approxi()` 中把 `params_esti` 写回 `target_model.model`；stub/source 回归通过。
+2. **待执行（环境）**：服务器上清 `__pycache__/*.pyc`，确保运行时加载当前源码。
+3. **待执行（实验）**：`python scripts/redo_collateral_if_family.py experiments/configs/phase_b_cora_{gcn,gat}.yaml` 重跑 GIF + IDEA × 6 strategy × 5 seed × 2 backbone = 120 cell collateral。
+4. **待执行（证据）**：重生 `_phase_b_aggregate.csv` 与 master scorecard；在完成前，旧 Hop₁ 数字继续标为 pre-fix / pending。
 
 ### 影响 paper 主线
 

@@ -232,7 +232,7 @@ results/collateral/{method}/{dataset}/{model}/collateral_{timestamp}.json
 
 | 指标 | 含义 | 健康范围 |
 |------|------|----------|
-| gap | Retrain Gap (unlearned - retrained) | < 5% |
+| gap | Retrain Gap (retrained - unlearned; positive means approximate unlearning is worse) | < 5% |
 | gap_pct | Gap 百分比 | < 10% |
 | mean_pred_shift | 保留节点预测变化均值 | < 0.1 |
 | max_pred_shift | 保留节点预测变化最大值 | < 0.3 |
