@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "afterAccept": {
+    "remote": "push",
+    "install": "skip"
+  }
+}
