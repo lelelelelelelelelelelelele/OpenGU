@@ -1,60 +1,62 @@
 #!/usr/bin/env python3
 """
-refresh.py - generate a self-contained progress dashboard from WORKPLAN.md.
+refresh.py - project WorkItems into WORKPLAN.md and generate its HTML dashboard.
 
-Reads  self/dashboard/WORKPLAN.md  (the single source of truth; this script
-never edits it) and emits  self/dashboard/progress.html  -- ONE self-contained
-file: no build step, no server, no framework, no external assets. Double-click
-to open, works over file://.
+WORKPLAN owns orchestration facts (priority, dependencies, current line and
+next step).  .workblock/items/*/WORKITEM.md owns lifecycle status.  This script
+joins them into the generated status region in WORKPLAN and emits
+self/dashboard/progress.html.  It never copies research facts or experiment
+results into either projection.
 
-The HTML is a *derived snapshot*. Re-run this script after editing WORKPLAN.md
-to regenerate it (a git pre-commit hook does this automatically when WORKPLAN.md
-is staged). Per self/dashboard/CLAUDE.md the dashboard is never a second source
-of truth -- WORKPLAN.md is. Nothing here writes back into the markdown.
+Both the status region and HTML are derived snapshots. Re-run this script after
+editing orchestration nodes or WorkItem Records. Use --check in validation to
+detect stale projections, broken links, duplicate mappings and lifecycle drift.
 
 What it parses out of WORKPLAN.md:
   * H1 title + "Last updated" line
   * Section 0 one-liner status            -> header banner
-  * Section 1 state-snapshot table         -> status cards, colored by emoji
-  * Sections "实验 / Ablation / 写作 / 画图" -> 4-stage kanban with progress bars
-    (each is a markdown table; ID=col 0, task=col 1, status symbol=last col)
+  * Current node                          -> unique active-line validation
+  * node tables                           -> type, priority, dependencies, owner
+  * WorkItem Records                      -> lifecycle status only
 
 Usage:
     python scripts/dashboard/refresh.py
-    python scripts/dashboard/refresh.py --open    # also open it in a browser
+    python scripts/dashboard/refresh.py --check   # validate without writes
+    python scripts/dashboard/refresh.py --open    # regenerate and open
 
 Pure standard library; runs under any Python 3.8+.
 """
 from __future__ import annotations
 
 import argparse
-import datetime
 import html
 import json
+import os
 import pathlib
 import re
+import subprocess
 import sys
+import urllib.parse
 import webbrowser
+from typing import Optional
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SRC = ROOT / "self" / "dashboard" / "WORKPLAN.md"
 OUT = ROOT / "self" / "dashboard" / "progress.html"
+WORKITEM_ROOT = ROOT / ".workblock" / "items"
 
-# leading emoji in the §1 status column -> (css class, fallback label)
-STATUS_EMOJI = [
-    ("\U0001F7E2", "ok",      "on track"),  # green
-    ("\U0001F7E1", "warn",    "partial"),   # yellow
-    ("\U0001F534", "blocked", "blocked"),   # red
-    ("⏸️", "paused", "paused"),
-    ("⏸",      "paused", "paused"),
-]
+STATUS_BEGIN = "<!-- WORKITEM_STATUS:BEGIN -->"
+STATUS_END = "<!-- WORKITEM_STATUS:END -->"
+WORKITEM_ID_RE = re.compile(r"^(?:Block|Todo) ID:\s*`?([^`\n]+)`?\s*$", re.M)
+CURRENT_NODE_RE = re.compile(r"^Current node:\s*(?:\[)?(AAGU-\d+)", re.M)
 
-# §5-§8 stage sections, matched by keyword in the H2 header.
+# Stage sections, matched by keyword in the H2 header.
 STAGES = [
-    ("实验", "实验"),
-    ("ablation", "Ablation"),
+    ("修复队列", "修复"),
+    ("实验 timeline", "实验"),
     ("写作", "写作"),
     ("画图", "画图"),
+    ("支撑", "支撑"),
 ]
 
 
@@ -84,20 +86,339 @@ def strip_md(s: str) -> str:
     return s.strip()
 
 
+def _field(md: str, label: str) -> str:
+    match = re.search(
+        r"^%s:\s*`?([^`\n]+)`?\s*$" % re.escape(label), md, re.M
+    )
+    return match.group(1).strip() if match else ""
+
+
+def _lifecycle_state(status: str) -> str:
+    value = status.casefold()
+    if "accepted" in value or "closed" in value:
+        return "closed"
+    if "awaiting acceptance" in value:
+        return "awaiting"
+    if "todo candidate" in value:
+        return "todo"
+    if "registered" in value and "not claimed" in value:
+        return "registered"
+    if "blocked" in value:
+        return "blocked"
+    if "working" in value or "claimed" in value or "in progress" in value:
+        return "working"
+    return "unknown"
+
+
+def parse_workitem(path: pathlib.Path) -> dict:
+    md = path.read_text(encoding="utf-8")
+    ids = {match.strip() for match in WORKITEM_ID_RE.findall(md)}
+    if len(ids) != 1:
+        raise ValueError("WorkItem must declare exactly one ID: %s" % path)
+    code = ids.pop()
+    h1 = re.search(r"^#\s+(.*)$", md, re.M)
+    title = h1.group(1).strip() if h1 else code
+    title = re.sub(r"^%s\s*·\s*" % re.escape(code), "", title)
+    raw_status = _field(md, "当前状态")
+    item_type = _field(md, "Item Type")
+    if not raw_status or item_type not in {"Block", "Todo"}:
+        raise ValueError("WorkItem lacks status or Item Type: %s" % path)
+    return {
+        "id": code,
+        "title": title,
+        "raw_status": raw_status,
+        "lifecycle": _lifecycle_state(raw_status),
+        "item_type": item_type,
+        "path": path,
+    }
+
+
+def load_workitems(items_root: pathlib.Path) -> dict:
+    items = {}
+    if not items_root.exists():
+        return items
+    for path in sorted(items_root.glob("*/WORKITEM.md")):
+        item = parse_workitem(path)
+        if item["id"] in items:
+            raise ValueError("duplicate WorkItem ID: %s" % item["id"])
+        items[item["id"]] = item
+    return items
+
+
+def _table_cells(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def parse_plan_nodes(md: str) -> list[dict]:
+    """Read orchestration node tables, never the generated status table."""
+    lines = md.splitlines()
+    nodes = []
+    section = ""
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        heading = re.match(r"^##\s+(.*)$", line)
+        if heading:
+            section = heading.group(1).strip()
+        if not line.strip().startswith("|"):
+            index += 1
+            continue
+        headers = _table_cells(line)
+        required = {"ID", "类型", "节点", "优先级", "前置", "Owner"}
+        if not required.issubset(headers):
+            index += 1
+            continue
+        positions = {name: headers.index(name) for name in required}
+        index += 2  # header and separator
+        while index < len(lines) and lines[index].strip().startswith("|"):
+            cells = _table_cells(lines[index])
+            if len(cells) >= len(headers):
+                code = strip_md(cells[positions["ID"]])
+                if re.fullmatch(r"AAGU-\d+", code):
+                    dependency_text = cells[positions["前置"]]
+                    nodes.append({
+                        "id": code,
+                        "kind": strip_md(cells[positions["类型"]]),
+                        "task": cells[positions["节点"]],
+                        "priority": strip_md(cells[positions["优先级"]]),
+                        "dependency_text": dependency_text,
+                        "dependencies": re.findall(r"AAGU-\d+", dependency_text),
+                        "owner": cells[positions["Owner"]],
+                        "section": section,
+                        "source_index": len(nodes),
+                    })
+            index += 1
+        continue
+    return nodes
+
+
+def current_node_id(md: str) -> str:
+    match = CURRENT_NODE_RE.search(md)
+    return match.group(1) if match else ""
+
+
+def project_nodes(nodes: list[dict], items: dict, current_id: str) -> list[dict]:
+    projected = []
+    for node in nodes:
+        item = items.get(node["id"])
+        enriched = dict(node)
+        if item is None:
+            enriched.update({
+                "projection": "missing WorkItem",
+                "state": "todo",
+                "blocked": True,
+                "visible": True,
+                "item_type": "missing",
+                "lifecycle": "missing",
+                "workitem_path": WORKITEM_ROOT / node["id"] / "WORKITEM.md",
+            })
+            projected.append(enriched)
+            continue
+
+        unresolved = [
+            dependency
+            for dependency in node["dependencies"]
+            if dependency not in items
+            or items[dependency]["lifecycle"] != "closed"
+        ]
+        lifecycle = item["lifecycle"]
+        if lifecycle == "closed":
+            projection, state, blocked = "accepted / closed", "done", False
+        elif lifecycle == "awaiting":
+            projection, state, blocked = "awaiting acceptance", "wip", False
+        elif lifecycle == "working":
+            projection, state, blocked = "in progress", "wip", False
+        elif unresolved:
+            projection = "blocked by %s" % ", ".join(unresolved)
+            state, blocked = "todo", True
+        elif item["item_type"] == "Todo":
+            projection, state, blocked = "todo candidate / ready to promote", "todo", False
+        elif lifecycle == "registered":
+            projection, state, blocked = "registered / not claimed", "todo", False
+        elif lifecycle == "blocked":
+            projection, state, blocked = "blocked", "todo", True
+        else:
+            projection, state, blocked = item["raw_status"], "todo", False
+
+        if node["id"] == current_id:
+            projection += " / current"
+
+        enriched.update({
+            "projection": projection,
+            "state": state,
+            "blocked": blocked,
+            "visible": not (node["kind"] == "FIX" and lifecycle == "closed"),
+            "item_type": item["item_type"],
+            "lifecycle": lifecycle,
+            "unresolved": unresolved,
+            "workitem_path": item["path"],
+        })
+        projected.append(enriched)
+    return projected
+
+
+def _priority_rank(priority: str) -> int:
+    match = re.search(r"\d+", priority)
+    return int(match.group()) if match else 9
+
+
+def _projection_rank(node: dict, current_id: str) -> tuple:
+    if node["id"] == current_id:
+        group = 0
+    elif node["lifecycle"] == "awaiting":
+        group = 1
+    elif node["blocked"]:
+        group = 2
+    elif node["lifecycle"] == "closed":
+        group = 4
+    else:
+        group = 3
+    return group, _priority_rank(node["priority"]), node["source_index"]
+
+
+def render_status_projection(projected: list[dict], current_id: str) -> str:
+    rows = [
+        STATUS_BEGIN,
+        "<!-- Generated by scripts/dashboard/refresh.py; lifecycle status comes from WORKITEM.md. -->",
+        "| ID | 类型 | 状态投影 | 优先级 | 前置 | 唯一事实 owner |",
+        "|---|---|---|---|---|---|",
+    ]
+    for node in sorted(projected, key=lambda value: _projection_rank(value, current_id)):
+        if not node["visible"]:
+            continue
+        locator = pathlib.Path(
+            os.path.relpath(node["workitem_path"], SRC.parent)
+        ).as_posix()
+        rows.append(
+            "| [%s](%s) | %s | %s | %s | %s | %s |"
+            % (
+                node["id"], locator, node["kind"], node["projection"],
+                node["priority"], node["dependency_text"], node["owner"],
+            )
+        )
+    hidden_fixes = sum(
+        1 for node in projected
+        if node["kind"] == "FIX" and node["lifecycle"] == "closed"
+    )
+    if hidden_fixes:
+        rows.append("")
+        rows.append("已关闭 FIX 节点已从活动投影隐藏：%d 个；历史保留在对应 WorkItem 与 Git。" % hidden_fixes)
+    rows.append(STATUS_END)
+    return "\n".join(rows)
+
+
+def replace_status_projection(md: str, projection: str) -> str:
+    if md.count(STATUS_BEGIN) != 1 or md.count(STATUS_END) != 1:
+        raise ValueError("WORKPLAN must contain exactly one generated status region")
+    pattern = re.compile(
+        re.escape(STATUS_BEGIN) + r".*?" + re.escape(STATUS_END), re.S
+    )
+    return pattern.sub(lambda _match: projection, md)
+
+
+def _canonical_docmap_target(target: str) -> Optional[pathlib.Path]:
+    marker = "OpenGU-DocMap/"
+    normalized = target.replace("\\", "/")
+    if marker not in normalized:
+        return None
+    relative = normalized.split(marker, 1)[1]
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    common = pathlib.Path(result.stdout.strip())
+    if not common.is_absolute():
+        common = (ROOT / common).resolve()
+    return common.parent.parent / "OpenGU-DocMap" / relative
+
+
+def _broken_links(md: str, plan_path: pathlib.Path) -> list[str]:
+    errors = []
+    for raw_target in re.findall(r"(?<!!)\[[^\]]+\]\(([^)]+)\)", md):
+        target = raw_target.strip().strip("<>")
+        if re.match(r"^(?:https?|mailto|obsidian):", target) or target.startswith("#"):
+            continue
+        target = urllib.parse.unquote(target.split("#", 1)[0])
+        resolved = (plan_path.parent / target).resolve()
+        if resolved == OUT.resolve():
+            continue  # generated in this same refresh transaction
+        if resolved.exists():
+            continue
+        fallback = _canonical_docmap_target(target)
+        if fallback is not None and fallback.exists():
+            continue
+        errors.append("broken link: %s" % raw_target)
+    return errors
+
+
+def validate_drift(
+    md: str,
+    plan_path: pathlib.Path,
+    nodes: list[dict],
+    items: dict,
+    current_id: str,
+) -> list[str]:
+    errors = []
+    counts = {}
+    for node in nodes:
+        counts[node["id"]] = counts.get(node["id"], 0) + 1
+    for code, count in sorted(counts.items()):
+        if count > 1:
+            errors.append("duplicate node mapping: %s" % code)
+    for code in sorted(set(counts) - set(items)):
+        errors.append("node has no WorkItem: %s" % code)
+    for code in sorted(set(items) - set(counts)):
+        errors.append("WorkItem is not mapped in WORKPLAN: %s" % code)
+
+    node_by_id = {}
+    for node in nodes:
+        node_by_id.setdefault(node["id"], node)
+    if not current_id:
+        errors.append("WORKPLAN has no Current node")
+    elif current_id not in node_by_id or current_id not in items:
+        errors.append("current node is not mapped: %s" % current_id)
+    else:
+        current_item = items[current_id]
+        if current_item["lifecycle"] == "closed":
+            errors.append("current node is already accepted/closed: %s" % current_id)
+        unresolved = [
+            dependency
+            for dependency in node_by_id[current_id]["dependencies"]
+            if dependency not in items
+            or items[dependency]["lifecycle"] != "closed"
+        ]
+        if unresolved:
+            errors.append(
+                "current node has unresolved dependencies: %s -> %s"
+                % (current_id, ", ".join(unresolved))
+            )
+
+    for code, node in node_by_id.items():
+        item = items.get(code)
+        if item is None or item["item_type"] != "Todo" or item["lifecycle"] != "blocked":
+            continue
+        dependencies_closed = all(
+            dependency in items and items[dependency]["lifecycle"] == "closed"
+            for dependency in node["dependencies"]
+        )
+        if dependencies_closed:
+            errors.append(
+                "Todo %s remains blocked after all dependencies closed" % code
+            )
+    errors.extend(_broken_links(md, plan_path))
+    return errors
+
+
 def section_body(md: str, num: int) -> str:
     """Body of '## {num}. ...' up to the next '## ' heading (or EOF)."""
     m = re.search(r"^##\s+%d\.\s.*?$(.*?)(?=^##\s|\Z)" % num, md, re.M | re.S)
     return m.group(1).strip() if m else ""
-
-
-def h2_section(md: str, keyword: str) -> str:
-    """Body of the first H2 whose header text contains `keyword` (case-insensitive)."""
-    m = re.search(r"^##\s+.*%s.*$" % re.escape(keyword), md, re.M | re.I)
-    if not m:
-        return ""
-    start = m.end()
-    nxt = re.search(r"^##\s", md[start:], re.M)
-    return md[start: start + nxt.start()] if nxt else md[start:]
 
 
 def clean_para(body: str) -> str:
@@ -107,72 +428,20 @@ def clean_para(body: str) -> str:
     return inline_md(" ".join(keep))
 
 
-def parse_snapshot(body: str):
-    """Parse the §1 markdown table into status-card dicts."""
-    rows = []
-    tlines = [ln for ln in body.splitlines() if ln.strip().startswith("|")]
-    for ln in tlines[2:]:  # skip header + separator
-        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
-        if len(cells) < 4:
-            continue
-        dim, status, why = cells[0], cells[1], cells[2]
-        cls, status_text = "warn", status
-        for emo, c, lbl in STATUS_EMOJI:
-            if status.startswith(emo):
-                cls = c
-                status_text = status[len(emo):].strip() or lbl
-                break
-        rows.append({
-            "dim": strip_md(dim),
-            "cls": cls,
-            "status": inline_md(status_text),
-            "why": inline_md(why),
-        })
-    return rows
-
-
-SEP_RE = re.compile(r"^:?-{2,}:?$")
-
-
-def parse_stage_items(body: str):
-    """Parse a stage markdown table -> task items (ID, task html, state, blocked)."""
-    items = []
-    for ln in body.splitlines():
-        s = ln.strip()
-        if not s.startswith("|"):
-            continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
-        nonempty = [c for c in cells if c]
-        if nonempty and all(SEP_RE.match(c) for c in nonempty):
-            continue                              # separator row
-        if not cells or cells[0] in ("ID", "id"):
-            continue                              # header row
-        if len(cells) < 2:
-            continue
-        idraw, taskraw, statusraw = cells[0], cells[1], cells[-1]
-        if "✅" in statusraw:
-            state = "done"
-        elif "◐" in statusraw:
-            state = "wip"
-        else:
-            state = "todo"
-        sub = statusraw
-        for ch in ("☐", "◐", "✅", "★"):
-            sub = sub.replace(ch, "")
-        items.append({
-            "id": strip_md(idraw.replace("★", "").strip()),
-            "task": inline_md(taskraw),
-            "state": state,
-            "blocked": "★" in s,
-            "label": inline_md(sub.strip()) if sub.strip() else "",
-        })
-    return items
-
-
-def build_stages(md: str):
+def build_stages(projected: list[dict]):
     stages = []
     for kw, label in STAGES:
-        items = parse_stage_items(h2_section(md, kw))
+        items = []
+        for node in projected:
+            if kw.casefold() not in node["section"].casefold() or not node["visible"]:
+                continue
+            items.append({
+                "id": node["id"],
+                "task": inline_md(node["task"]),
+                "state": node["state"],
+                "blocked": node["blocked"],
+                "label": inline_md(node["projection"]),
+            })
         stages.append({
             "label": label,
             "items": items,
@@ -183,19 +452,47 @@ def build_stages(md: str):
     return stages
 
 
-def build_data(md: str) -> dict:
+def build_snapshot(projected: list[dict], current_id: str) -> list[dict]:
+    current = next((node for node in projected if node["id"] == current_id), None)
+    blocked = sum(1 for node in projected if node["blocked"] and node["visible"])
+    awaiting = sum(1 for node in projected if node["lifecycle"] == "awaiting")
+    ready = sum(
+        1 for node in projected
+        if node["visible"] and not node["blocked"]
+        and node["lifecycle"] in {"registered", "todo"}
+    )
+    current_text = (
+        "%s · %s" % (current_id, strip_md(current["task"]))
+        if current else "not mapped"
+    )
+    return [
+        {"dim": "当前唯一线", "cls": "ok", "status": inline_md(current_text),
+         "why": inline_md(current["projection"] if current else "drift")},
+        {"dim": "等待验收", "cls": "warn" if awaiting else "ok",
+         "status": "%d item(s)" % awaiting,
+         "why": "decision required before closeout"},
+        {"dim": "依赖阻塞", "cls": "blocked" if blocked else "ok",
+         "status": "%d item(s)" % blocked,
+         "why": "derived from WORKPLAN dependencies and WorkItem lifecycle"},
+        {"dim": "可领取/Promote", "cls": "warn" if ready else "paused",
+         "status": "%d item(s)" % ready,
+         "why": "registration is not a claim"},
+    ]
+
+
+def build_data(md: str, projected: list[dict], current_id: str) -> dict:
     h1 = re.search(r"^#\s+(.*)$", md, re.M)
     lu = re.search(r"Last updated:\s*([0-9-]+)", md)
-    stages = build_stages(md)
+    stages = build_stages(projected)
     done = sum(s["done"] for s in stages)
     wip = sum(s["wip"] for s in stages)
     total = sum(s["total"] for s in stages)
     return {
         "h1": h1.group(1).strip() if h1 else "Progress",
         "last_updated": lu.group(1) if lu else "?",
-        "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated": lu.group(1) if lu else "?",
         "oneLiner": clean_para(section_body(md, 0)),
-        "snapshot": parse_snapshot(section_body(md, 1)),
+        "snapshot": build_snapshot(projected, current_id),
         "stages": stages,
         "overall": {"done": done, "wip": wip, "total": total},
     }
@@ -336,12 +633,12 @@ TEMPLATE = r'''<!doctype html>
     <span class="lbl">TODO &mdash; 阶段计划</span>
     <button class="active" data-f="all">all</button>
     <button data-f="todo">open only</button>
-    <button data-f="blocked">★ GPU-blocked</button>
+    <button data-f="blocked">blocked</button>
   </div>
   <div class="board" id="board"></div>
 
   <footer>
-    Derived snapshot of <code>self/dashboard/WORKPLAN.md</code> &mdash; regenerate with
+    Derived projection of <code>WORKPLAN.md + WORKITEM.md</code> &mdash; regenerate with
     <code>python scripts/dashboard/refresh.py</code> (auto on commit via pre-commit hook).
     Single source of truth stays the markdown.
   </footer>
@@ -390,7 +687,7 @@ function render(){
         '<span class="box">'+mark+'</span>'+
         '<span class="txt"><span class="task"><span class="tid">'+esc(it.id)+'</span> '+it.task+'</span>'+
         (it.label?'<span class="sub">'+it.label+'</span>':'')+'</span>'+
-        (it.blocked?'<span class="badge">★ GPU</span>':'')));
+        (it.blocked?'<span class="badge">blocked</span>':'')));
     });
     col.appendChild(list);
     board.appendChild(col);
@@ -417,6 +714,7 @@ render();
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Generate progress.html from WORKPLAN.md")
     ap.add_argument("--open", action="store_true", help="open the result in a browser")
+    ap.add_argument("--check", action="store_true", help="validate projections without writing")
     args = ap.parse_args(argv)
 
     if not SRC.exists():
@@ -424,12 +722,49 @@ def main(argv=None) -> int:
         return 1
 
     md = SRC.read_text(encoding="utf-8")
-    data = build_data(md)
+    try:
+        items = load_workitems(WORKITEM_ROOT)
+        nodes = parse_plan_nodes(md)
+        current_id = current_node_id(md)
+        projected = project_nodes(nodes, items, current_id)
+        expected_md = replace_status_projection(
+            md, render_status_projection(projected, current_id)
+        )
+        errors = validate_drift(
+            expected_md, SRC, nodes, items, current_id
+        )
+    except (OSError, ValueError) as exc:
+        print("ERROR: %s" % exc, file=sys.stderr)
+        return 2
+    if errors:
+        for error in errors:
+            print("DRIFT: %s" % error, file=sys.stderr)
+        return 2
+
+    data = build_data(expected_md, projected, current_id)
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
-    OUT.write_text(TEMPLATE.replace("__DATA_JSON__", payload), encoding="utf-8")
+    expected_html = TEMPLATE.replace("__DATA_JSON__", payload)
+
+    if args.check:
+        stale = []
+        if md != expected_md:
+            stale.append("WORKPLAN generated status region is stale")
+        if not OUT.exists() or OUT.read_text(encoding="utf-8") != expected_html:
+            stale.append("progress.html is stale")
+        if stale:
+            for error in stale:
+                print("DRIFT: %s" % error, file=sys.stderr)
+            return 2
+        print("dashboard projection check: PASS")
+        return 0
+
+    if md != expected_md:
+        SRC.write_text(expected_md, encoding="utf-8")
+    OUT.write_text(expected_html, encoding="utf-8")
 
     o = data["overall"]
     print("wrote %s" % OUT)
+    print("  WorkItems: %d; mapped nodes: %d" % (len(items), len(nodes)))
     print("  snapshot rows: %d" % len(data["snapshot"]))
     print("  stages: %s" % ", ".join(
         "%s %d/%d" % (s["label"], s["done"], s["total"]) for s in data["stages"]))

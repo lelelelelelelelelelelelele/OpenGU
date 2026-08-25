@@ -1,4 +1,4 @@
-# AAGU-003 · Formal GPU Execution and Evidence Acceptance
+# AAGU-003 · EXP · Formal GPU Evidence Acceptance Gate
 
 Block ID: `AAGU-003`
 
@@ -9,10 +9,10 @@ Item Type: Block
 ## Block human acceptance surface
 
 ### 当前基线
-OpenGU M1 工程交付与 no-GPU smoke 已有证据，但正式 GPU 科研实验尚未运行，也没有可接纳的正式科研 evidence package。
+OpenGU 工程交付与 no-GPU smoke 已有独立证据，但正式 GPU 科研 evidence package 尚未经过项目级接纳。
 
 ### 这次增量
-在 AAGU-001 的批准实验定义和 AAGU-002 的 readiness gate 之后，执行正式 GPU 矩阵并对结果、来源、配置、版本和 artifacts 做科研证据接纳。
+在各独立 EXP Block、AAGU-001 定义合同和 AAGU-002 readiness gate 关闭后，对结果、来源、配置、版本和 artifacts 做最终科研证据接纳。
 
 ### 完成后人会看到什么
 每个正式实验结论都能追溯到批准的配置、数据/split、代码 SHA、设备 readiness、运行产物和明确的接纳决定。
@@ -46,7 +46,7 @@ AAGU 研究负责人对正式 GPU evidence package 做明确接纳或返工决�
 
 ## Context and relations
 
-- Blueprint scope: OpenGU experiments/AGENTS、正式 GPU gate、当前 E8/E3 计划；没有额外稳定 Graph/Blueprint ID。
+- Blueprint scope: OpenGU experiments/AGENTS、正式 GPU gate 与 WORKPLAN 实验 timeline；没有额外稳定 Graph/Blueprint ID。
 - Suggested relations: `AAGU-003 depends_on AAGU-001`; `AAGU-003 depends_on AAGU-002`。理由是正式执行必须消费已批准定义和 readiness 结论。
 - Unconfirmed suggestions: no automatic relation to any smoke report.
 

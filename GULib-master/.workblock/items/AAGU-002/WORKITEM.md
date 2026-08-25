@@ -1,4 +1,4 @@
-# AAGU-002 · Device Readiness Pilot Acceptance Gate
+# AAGU-002 · GATE · Device Readiness Pilot Acceptance
 
 Block ID: `AAGU-002`
 
