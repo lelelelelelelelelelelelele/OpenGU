@@ -17,7 +17,7 @@ What it parses out of WORKPLAN.md:
   * Section 0 one-liner status            -> header banner
   * Current node                          -> unique active-line validation
   * node tables                           -> type, priority, dependencies, owner
-  * WorkItem Records                      -> lifecycle status only
+  * WorkItem Records                      -> lifecycle status and explicit fact owner
 
 Usage:
     python scripts/dashboard/refresh.py
@@ -49,6 +49,7 @@ STATUS_BEGIN = "<!-- WORKITEM_STATUS:BEGIN -->"
 STATUS_END = "<!-- WORKITEM_STATUS:END -->"
 WORKITEM_ID_RE = re.compile(r"^(?:Block|Todo) ID:\s*`?([^`\n]+)`?\s*$", re.M)
 CURRENT_NODE_RE = re.compile(r"^Current node:\s*(?:\[)?(AAGU-\d+)", re.M)
+MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 # Stage sections, matched by keyword in the H2 header.
 STAGES = [
@@ -110,6 +111,18 @@ def _lifecycle_state(status: str) -> str:
     return "unknown"
 
 
+def _link_target(value: str) -> str:
+    match = MARKDOWN_LINK_RE.search(value or "")
+    return match.group(1).strip().strip("<>") if match else ""
+
+
+def _resolved_local_link(target: str, source_path: pathlib.Path) -> Optional[pathlib.Path]:
+    if not target or re.match(r"^(?:https?|mailto|obsidian):", target):
+        return None
+    local_target = urllib.parse.unquote(target.split("#", 1)[0])
+    return (source_path.parent / local_target).resolve()
+
+
 def parse_workitem(path: pathlib.Path) -> dict:
     md = path.read_text(encoding="utf-8")
     ids = {match.strip() for match in WORKITEM_ID_RE.findall(md)}
@@ -123,12 +136,16 @@ def parse_workitem(path: pathlib.Path) -> dict:
     item_type = _field(md, "Item Type")
     if not raw_status or item_type not in {"Block", "Todo"}:
         raise ValueError("WorkItem lacks status or Item Type: %s" % path)
+    fact_owner = re.search(r"^- Fact owner:\s*(.+)$", md, re.M)
     return {
         "id": code,
         "title": title,
         "raw_status": raw_status,
         "lifecycle": _lifecycle_state(raw_status),
         "item_type": item_type,
+        "fact_owner_target": _link_target(
+            fact_owner.group(1).strip() if fact_owner else ""
+        ),
         "path": path,
     }
 
@@ -401,6 +418,17 @@ def validate_drift(
 
     for code, node in node_by_id.items():
         item = items.get(code)
+        if item is not None and item.get("fact_owner_target"):
+            fact_owner = _resolved_local_link(
+                item["fact_owner_target"], item["path"]
+            )
+            plan_owner = _resolved_local_link(
+                _link_target(node["owner"]), plan_path
+            )
+            if fact_owner is None or plan_owner != fact_owner:
+                errors.append(
+                    "node owner disagrees with WorkItem fact owner: %s" % code
+                )
         if item is None or item["item_type"] != "Todo" or item["lifecycle"] != "blocked":
             continue
         dependencies_closed = all(

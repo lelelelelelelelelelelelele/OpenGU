@@ -102,7 +102,7 @@ flowchart LR
 
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
-| AAGU-006 | FIX | 目标实验 Dataset/Split 权威修复 | P0 | — | [实验数据与正式运行合同](../../experiments/AGENTS.md) |
+| AAGU-006 | FIX | 目标实验 Dataset/Split 权威修复 | P0 | — | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
 | AAGU-009 | FIX | L8 collateral evidence 修复 | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 
@@ -115,7 +115,7 @@ flowchart LR
 | AAGU-015 | EXP | IF 科学定义与 selector 决策（Todo candidate） | P0 | AAGU-006 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
 | AAGU-001 | GATE | 实验定义与注册 gate | P0 | AAGU-006, AAGU-015 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | AAGU-002 | GATE | Device Readiness gate | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
-| AAGU-007 | EXP | Target-Direct GU gate | P0 | AAGU-002 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+| AAGU-007 | EXP | Target-Direct GU gate | P0 | AAGU-002 | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
 | AAGU-008 | EXP | K5 noise anchor | P1 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | AAGU-011 | EXP | CiteSeer scope replacement | P1 | AAGU-008 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | AAGU-012 | EXP | GraphRevoker replacement | P1 | AAGU-011 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |

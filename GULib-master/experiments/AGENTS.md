@@ -44,6 +44,10 @@ SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专�
 
 通用矩阵在本地先用 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run` 验证定义；正式执行只使用注册计划指定的 launcher。
 
+### Target-direct 数据与划分权威
+
+当前 target-direct formal lane 的可执行 dataset、split、candidate pool 和删除预算合同只由 [`configs/syncmate_target_direct_formal_v2.yaml`](configs/syncmate_target_direct_formal_v2.yaml) 及其经过 `target_direct_v1` profile/manifest 校验后的身份拥有。历史 public-split、OpenGU 80/20、固定小 `k` 的报告和配置只作溯源，不能覆盖、补全或推导当前正式参数。任何新的执行入口都必须消费该注册 recipe 并 fail closed；若研究合同改变，创建新的 versioned recipe，不保留兼容分支。
+
 ## 5. 通用矩阵与证据接缝
 
 一个 `run.py` YAML 固定数据集、模型和删除比例，并展开 `methods × strategies × seeds`。
