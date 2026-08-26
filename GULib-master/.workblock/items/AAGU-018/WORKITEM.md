@@ -96,7 +96,7 @@ Item Type: Block
 
 ## Candidate, evidence, and restart
 
-- Verified implementation checkpoint: `ebb63c9f4cd603ad60fafb0a2e7b9c91c284f0ab`, based on registration baseline `9d36a30a38e3f90d4bc2081014c400037ed25404`. The only subsequent candidate change is this tracked formal decision projection; no production or test source changed after that checkpoint.
+- Verified implementation checkpoint: `ebb63c9f4cd603ad60fafb0a2e7b9c91c284f0ab`, based on registration baseline `9d36a30a38e3f90d4bc2081014c400037ed25404`. Subsequent tracked changes are this formal decision projection plus the user's explicitly requested preservation of the separately registered AAGU-019 Record and its project-counter advance; no AAGU-019 implementation and no further production or test source change is included.
 - Evidence: focused toy-graph RED/GREEN and mutation regression; caller/Recipe tests; disposable current-source Cora canary at `C:\Users\ADMIN\AppData\Local\Temp\AAGU-018-canary-20260826T054340Z`; and `.workblock/items/AAGU-018/evidence/impact-ledger.md`.
 - Current human surface: this WorkItem. The candidate is verified and awaits the user's explicit accept/reject decision; verification does not imply acceptance.
 - Restart point: if accepted, invoke `block-closeout` on this same stable locator and follow `.workblock/policy.json`. If rejected, keep rework in AAGU-018.
@@ -113,6 +113,7 @@ Item Type: Block
 - 2026-08-26 first real-data canary: a disposable one-candidate Cora run completed cold under the initial implementation source. A later Recipe contract hardening changed the producer source fingerprint, so that earlier canary is superseded and is not used as evidence for the final implementation checkpoint.
 - 2026-08-26 review correction: two read-only reviews found no critical implementation defect. The candidate then added fail-closed Recipe enforcement, exact deleted-graph and non-training-structure regressions, all 72 affected benchmark Selection Artifact identities (144 matching cold/warm references), and the SUP source score identity to the impact ledger.
 - 2026-08-26 current-source canary: the replacement one-candidate Cora run completed cold with exit code 0, `c-target-gif-tracin-v1.1`, source fingerprint `682ebe0a9e8bdba2f580907b7a484924ed57832aa74e5cc46e5fdbe8feac3390`, Recipe `521725cb4556f6709236d35786ea3d80b28f206a0dacac00d630a02e159edd0c`, verified Artifact `score_521725cb_31186b50`, and `p_graph` ranking `[0]`. Its isolated root is the current path recorded above; this is validation evidence, not formal experiment evidence.
+- 2026-08-26 registration carry-through: after acceptance, the user confirmed that the target worktree's only dirty state was the already authorized AAGU-019 registration and requested that its WorkItem plus `nextWorkItemNumber=20` be preserved in this candidate. AAGU-019 remains `registered / ready after dependency`; it is not claimed, implemented, or accepted here.
 
 ## Formal verification and decision note
 
