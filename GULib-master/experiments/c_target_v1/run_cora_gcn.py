@@ -271,8 +271,9 @@ def main(argv: Sequence[str] = None) -> int:
             "operation": "remove_candidate_incident_edges",
             "affected_set": "candidate_plus_undirected_k_hop_neighbors",
             "affected_hops": int(args.affected_hops),
-            "grad1": "sum_ce_original_graph_affected_set",
-            "grad2": "sum_ce_deleted_graph_affected_neighbors_excluding_candidate",
+            "source_scope": "affected_intersection_train_mask",
+            "grad1": "sum_ce_original_graph_affected_training_set",
+            "grad2": "sum_ce_deleted_graph_affected_training_neighbors_excluding_candidate",
             "exact_retrain": False,
         },
         hessian={
@@ -287,6 +288,7 @@ def main(argv: Sequence[str] = None) -> int:
             "target_set": "validation_mask",
             "target_reduction": "mean",
             "graph_source_reduction": "sum",
+            "graph_source_set": "affected_intersection_train_mask",
         },
         parameter_scope=args.parameter_scope,
         seed_bundle={
@@ -344,6 +346,7 @@ def main(argv: Sequence[str] = None) -> int:
             data,
             state=final_state,
             candidate_ids=candidate_ids,
+            source_ids=hessian_train_ids,
             parameter_scope=args.parameter_scope,
             affected_hops=args.affected_hops,
             target_gradient=target_gradient,
