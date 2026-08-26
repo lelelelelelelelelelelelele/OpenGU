@@ -11,9 +11,21 @@ Exit codes: 0 = OK, 1 = patch missing or write-back not visible.
 """
 from __future__ import annotations
 
+import hashlib
+import inspect
+from pathlib import Path
 import sys
 import torch
 import torch.nn as nn
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+WRITEBACK_MARKER = "Write params_esti back into target_model.model"
+WRITEBACK_BYTECODE_NAMES = {"copy_", "detach", "device"}
+
+# A directly executed script otherwise places scripts/ rather than the checkout
+# root first on sys.path. Formal preflight must import from this checkout.
+sys.path.insert(0, str(REPO_ROOT))
 
 
 class MiniGCNStub(nn.Module):
@@ -60,9 +72,29 @@ def all_close_lists(a, b):
     return len(a) == len(b) and all(torch.equal(x, y) for x, y in zip(a, b))
 
 
-def check_fix_applied_in_source(path: str, marker: str = "Write params_esti back into target_model.model") -> bool:
-    with open(path, encoding="utf-8") as f:
-        return marker in f.read()
+def verify_loaded_writeback(label, pipeline_class, relative_path: str) -> bool:
+    expected_path = (REPO_ROOT / relative_path).resolve()
+    loaded_path = Path(pipeline_class.approxi.__code__.co_filename).resolve()
+    print(f"  loaded {label} source: {loaded_path}")
+
+    if loaded_path != expected_path:
+        print(f"  [FAIL] expected active-checkout source: {expected_path}")
+        return False
+
+    source = inspect.getsource(pipeline_class.approxi)
+    if WRITEBACK_MARKER not in source:
+        print(f"  [FAIL] loaded {label}.approxi source does not contain the write-back marker")
+        return False
+
+    loaded_names = set(pipeline_class.approxi.__code__.co_names)
+    missing_names = WRITEBACK_BYTECODE_NAMES - loaded_names
+    if missing_names:
+        print(f"  [FAIL] loaded {label}.approxi bytecode misses: {sorted(missing_names)}")
+        return False
+
+    digest = hashlib.sha256(expected_path.read_bytes()).hexdigest()
+    print(f"  [OK] loaded {label}.approxi bytecode contains write-back operations; source_sha256={digest}")
+    return True
 
 
 def test_writeback_changes_model():
@@ -88,33 +120,23 @@ def test_writeback_changes_model():
     print("  [OK] write-back correctly transferred params_esti into model")
 
 
-def test_idea_source_has_patch():
-    p = "unlearning/unlearning_methods/IDEA/idea.py"
-    if not check_fix_applied_in_source(p):
-        print(f"  [FAIL] {p} does not contain the write-back marker — patch missing")
-        return False
-    print(f"  [OK] {p} contains write-back marker")
-    return True
-
-
-def test_gif_source_has_patch():
-    p = "unlearning/unlearning_methods/GIF/gif.py"
-    if not check_fix_applied_in_source(p):
-        print(f"  [FAIL] {p} does not contain the write-back marker — patch missing")
-        return False
-    print(f"  [OK] {p} contains write-back marker")
-    return True
-
-
 def main() -> int:
     print("[1/3] simulate write-back on a stub model")
     test_writeback_changes_model()
 
-    print("[2/3] verify IDEA source carries the patch")
-    ok1 = test_idea_source_has_patch()
+    print("[2/3] import GIF from the active interpreter and verify loaded bytecode")
+    from unlearning.unlearning_methods.GIF.gif import gif
 
-    print("[3/3] verify GIF source carries the patch")
-    ok2 = test_gif_source_has_patch()
+    ok1 = verify_loaded_writeback(
+        "GIF", gif, "unlearning/unlearning_methods/GIF/gif.py"
+    )
+
+    print("[3/3] import IDEA from the active interpreter and verify loaded bytecode")
+    from unlearning.unlearning_methods.IDEA.idea import idea
+
+    ok2 = verify_loaded_writeback(
+        "IDEA", idea, "unlearning/unlearning_methods/IDEA/idea.py"
+    )
 
     if ok1 and ok2:
         print("\nALL CHECKS PASSED")

@@ -85,9 +85,8 @@ $\bar d$ 在 FIG-5 / §5.2 已经算好，**几乎零新数据**。
 1. **gap 的 L8 污染（IF-family）**：GIF/IDEA 的 `perf_unlearn ≈ 原模型`，所以它俩的 gap 逐位相同、近零，是**假的**。
    **代码已经修好**：写回逻辑在 `gif.py:802-810` / `idea.py:489-497`，已提交为 `d674f62`（在 HEAD，
    与所谓"未合并分支 `949d0f8`"逐字相同——**不需要合任何分支**）。
-   **数据仍坏的根因是 stale `.pyc`**：那次 run 的 `git_sha=78872fc` 已含 `d674f62`，但 autodl 容器加载了
-   旧 `__pycache__` 字节码，所以 bug 照旧。→ 修复动作不是改代码，而是
-   **清 `.pyc`（`find . -name '*.pyc' -delete` + 删 `__pycache__`）+ `scripts/redo_collateral_if_family.py` 重跑 GIF/IDEA collateral**（环境可重建、服务器有原件）。
+   **数据仍坏的直接原因尚未被运行时证据唯一定位**：那次 run 的 `git_sha=78872fc` 已含 `d674f62`，所以仅凭 Git ancestry 不能证明实际加载了修复代码，stale bytecode 只是待证假设。→ 修复动作不是继续猜测或局部覆盖，而是
+   **按 AAGU-009 preflight 证明解释器加载的源路径/内容，再可逆隔离 120 个完整旧 leaf，并通过两份 canonical config 无 `--force` 重跑**。
    非-IF（GNNDelete/GraphEraser/GraphRevoker/MEGU）的 gap 干净可用。
 2. **避免循环论证**：degree 既是 selector 又被当"重要性"代理 → 会变成同义反复。
    **操作上用 (Ⅰ)=`F1_before − F1_retrain`（与 selector 无关）当重要性的客观度量**，

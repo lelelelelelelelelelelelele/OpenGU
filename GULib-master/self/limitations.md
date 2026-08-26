@@ -356,8 +356,8 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
 ### 修复路径
 
 1. **已完成（代码）**：`d674f62` 在 GIF/IDEA `approxi()` 中把 `params_esti` 写回 `target_model.model`；stub/source 回归通过。
-2. **待执行（环境）**：服务器上清 `__pycache__/*.pyc`，确保运行时加载当前源码。
-3. **待执行（实验）**：`python scripts/redo_collateral_if_family.py experiments/configs/phase_b_cora_{gcn,gat}.yaml` 重跑 GIF + IDEA × 6 strategy × 5 seed × 2 backbone = 120 cell collateral。
+2. **待执行（环境）**：按 AAGU-009 的正式 preflight 证明解释器从 active checkout 加载含 `d674f62` 写回修复的 GIF/IDEA 源码；不以 Git ancestry 或宽泛删除 `.pyc` 代替运行时证明。
+3. **待执行（实验）**：按 `.workblock/items/AAGU-009/evidence/repair-scope.yaml` 可逆隔离 120 个完整旧 leaf，再用 `experiments/run.py` 运行两份 canonical config；禁止删除旧证据与使用 `--force`。
 4. **待执行（证据）**：重生 `_phase_b_aggregate.csv` 与 master scorecard；在完成前，旧 Hop₁ 数字继续标为 pre-fix / pending。
 
 ### 影响 paper 主线

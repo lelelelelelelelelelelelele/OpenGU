@@ -1,0 +1,81 @@
+schema: opengu.aagu009.repair-scope.v1
+block_id: AAGU-009
+status: preflight_blocked
+purpose: Replace the invalid IF-family collateral evidence without deleting or mutating its historical run identity.
+
+source_configs:
+  - experiments/configs/phase_b_cora_gcn.yaml
+  - experiments/configs/phase_b_cora_gat.yaml
+
+source_result_root: results/runs
+quarantine_root: results/quarantine/AAGU-009
+remote_action: quarantine_whole_leaf_then_rerun
+expected_cells: 120
+
+matrix:
+  dataset: cora
+  ratio: 0.05
+  base_models:
+    - GCN
+    - GAT
+  methods:
+    - GIF
+    - IDEA
+  strategies:
+    - random
+    - degree
+    - pagerank
+    - tracin
+    - im
+    - hybrid
+  seeds:
+    - 42
+    - 212
+    - 722
+    - 1337
+    - 2024
+
+artifacts_per_leaf:
+  - attack.json
+  - collateral.json
+  - predictions.npz
+  - _meta.json
+
+cache_policy:
+  result_cache: preserve
+  selection_cache: preserve
+  cache_v2: read_only
+
+destructive_actions:
+  delete_allowed: false
+  force_allowed: false
+
+preconditions:
+  - Local main, origin/main, and the SSH active checkout resolve to one full Git SHA.
+  - Every active work block is closed and explicitly accepted into main.
+  - Local and SSH tracked worktrees are clean at that SHA.
+  - The formal interpreter imports GIF and IDEA from the active checkout and the loaded source contains the d674f62 write-back fix.
+  - A GPU is visible to the formal interpreter; CPU fallback is forbidden.
+  - Exactly 120 target leaves are present and the run-unique quarantine destination does not exist.
+  - All 240 non-target Phase B leaves are complete before any target leaf is moved.
+
+execution:
+  - Record the 120 target paths and hashes for all four leaf artifacts.
+  - Move each complete target leaf to a new run-unique directory below the quarantine root.
+  - Run both source configs through experiments/run.py without --force.
+  - Require each config summary to report 60 completed target leaves and 120 skipped non-target leaves.
+  - Gate both configs and require all new collateral and hop-decay fields to be complete and parseable.
+  - Compare quarantined and regenerated attack.json selected_nodes and require equality for 120 of 120 leaves.
+  - Collect through SyncMate, verify hashes, and read back the trusted index before acceptance.
+
+current_readiness:
+  observed_at: 2026-08-26
+  local_main_sha: 9d4a0475842d908a90e51fbc2d81c8878335c6c3
+  apply_target_sha: 6be95c74f230cbfcb6a99d0166ba8b1d143e5416
+  apply_target_ahead_of_main: 20
+  syncmate_device_config: missing
+  ssh_active_checkout: unavailable_connection_refused
+  active_items_outside_scope:
+    - AAGU-004
+    - AAGU-006
+  decision: fail_closed_before_remote_mutation

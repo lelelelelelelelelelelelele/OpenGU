@@ -41,8 +41,9 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 
 ### 验收项目
 
-- 受影响范围严格限定为 120 个 IF-family collateral cell；`attack.json`、Selection 与其他 GU method 不被重算或改写。
-- 历史 `collateral.json` / `predictions.npz` 被可逆保存并从可信视图隔离，新输出不会冒充原运行身份。
+- 受影响范围严格限定为 120 个 IF-family collateral cell；Selection/Result cache 与其他 GU method 不被失效或改写。
+- 历史完整 leaf 被可逆隔离且保持原样；新 active leaf 由 canonical runner 完整重建，不会把局部重算冒充为原运行身份。
+- 隔离前后的 `attack.json.selected_nodes` 必须逐格相等（120/120），证明删除请求没有漂移。
 - 120 个新 cell 的 runtime/config/Git 身份一致，产物完整可解析，collateral 与 hop-decay 字段通过回归和正式 gate。
 - 收集后的 SHA-256、trusted index 与结果 read-back 一致；旧污染数字继续保持 invalid，直到本候选被明确接受。
 
@@ -63,7 +64,7 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 
 ## Boundaries
 
-- Do not mutate or delete historical artifacts. Any runner-side change must begin from an exact dry-run plan and use reversible quarantine.
+- Do not mutate or delete historical artifacts. The only permitted runner-side action is the exact whole-leaf quarantine and no-`--force` rerun defined in `evidence/repair-scope.yaml`.
 - Formal execution requires one clean full Git SHA, the registered runtime/config identity, at least one GPU, the intended interpreter, and complete collection/read-back; fail closed rather than falling back to CPU.
 - AAGU-010, paper conclusions, selector changes, and unrelated result/cache repair remain outside this Block.
 
@@ -72,6 +73,7 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 - 2026-08-26: registered from the prominent collateral repair Todo.
 - 2026-08-26: corrected the registration-time `AAGU-002 -> AAGU-009` projection error; the legacy E2 repair lane has no AAGU-001/AAGU-002 task dependency.
 - 2026-08-26: claimed by the current Codex task after the user explicitly said to perform the AAGU-009 repair.
+- 2026-08-26: local inventory confirmed the exact 120-leaf scope and retired the destructive partial-redo route. Formal preflight failed closed because the Apply target is not yet accepted into `main`, `.syncmate/device.yaml` is absent, the active SSH aliases refuse connection, and AAGU-004/AAGU-006 remain active.
 
 ## Claim and runtime record
 
@@ -86,4 +88,4 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 - Evidence paths: `.workblock/items/AAGU-009/evidence/`, the formal run root selected by the repair profile, and verified SyncMate trusted outputs.
 - Human surface: `.workblock/items/AAGU-009/REPORT.md` and `.workblock/items/AAGU-009/REPORT.html` after Verify.
 - Policy: `.workblock/policy.json`; after explicit acceptance, closeout routes to remote `push` and skips install.
-- Restart point: replace the destructive legacy helper with a tested reversible repair plan, then run local validation and formal preflight. Start no GPU cell until every formal-run gate is observed.
+- Restart point: satisfy every precondition in `evidence/repair-scope.yaml`, then inventory and quarantine exactly 120 whole leaves and run the two canonical configs without `--force`. Start no GPU cell until every formal-run gate is observed.
