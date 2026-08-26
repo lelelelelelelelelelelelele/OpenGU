@@ -37,8 +37,11 @@ Next step: 在独立执行任务中用 `block-workflow` claim `AAGU-006`，统�
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
+| [AAGU-019](../../.workblock/items/AAGU-019/WORKITEM.md) | FIX | registered / ready after dependency | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+
+已关闭 FIX 节点已从活动投影隐藏：1 个；历史保留在对应 WorkItem 与 Git。
 <!-- WORKITEM_STATUS:END -->
 
 ## 2. 事实所有权
@@ -69,7 +72,10 @@ flowchart LR
     R0[AAGU-006 FIX dataset/split]
     R1[AAGU-009 FIX collateral evidence]
     R2[AAGU-010 FIX hop aggregate]
+    R3[AAGU-018 FIX D-GIF source labels]
+    R4[AAGU-019 FIX retire legacy budgets]
     R1 --> R2
+    R3 --> R4
   end
 
   subgraph Gates[定义与设备 gate]
@@ -103,6 +109,8 @@ flowchart LR
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
 | AAGU-006 | FIX | 目标实验 Dataset/Split 权威修复 | P0 | — | [实验数据与正式运行合同](../../experiments/AGENTS.md) |
+| AAGU-018 | FIX | D-GIF affected-source 标签越界修复 | P0 | — | [AAGU-018 Block contract](../../.workblock/items/AAGU-018/WORKITEM.md) |
+| AAGU-019 | FIX | 硬退役旧小预算实验 setup | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | AAGU-009 | FIX | L8 collateral evidence 修复 | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 

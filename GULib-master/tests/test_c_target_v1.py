@@ -1,6 +1,7 @@
 import hashlib
 import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -16,6 +17,7 @@ from cache_v2.selection_materializer import (
 from experiments.c_target_v1.core import (
     affected_nodes,
     build_undirected_adjacency,
+    graph_source_scores,
     pair_metrics,
     remove_incident_edges,
     stable_ranking,
@@ -38,7 +40,18 @@ def test_c_target_default_dataset_root_is_repository_canonical_raw():
     assert DEFAULT_DATA_ROOT == (repository_root / "data" / "raw").resolve()
 
 
-def _recipe(candidate_hash, seed=2024):
+def _recipe(candidate_hash, seed=2024, *, include_source_contract=True):
+    graph_intervention = {
+        "operation": "remove_candidate_incident_edges",
+        "affected_hops": 2,
+        "exact_retrain": False,
+    }
+    loss = {"type": "cross_entropy", "target_set": "validation_mask"}
+    if include_source_contract:
+        graph_intervention["source_scope"] = (
+            "affected_intersection_train_mask"
+        )
+        loss["graph_source_set"] = "affected_intersection_train_mask"
     return build_recipe(
         source_fingerprint=_sha("source"),
         data_identity={
@@ -60,13 +73,9 @@ def _recipe(candidate_hash, seed=2024):
             {"global_step": 1, "state_hash": _sha("state-1"), "weight": 0.1},
             {"global_step": 30, "state_hash": _sha("state-30"), "weight": 0.1},
         ),
-        graph_intervention={
-            "operation": "remove_candidate_incident_edges",
-            "affected_hops": 2,
-            "exact_retrain": False,
-        },
+        graph_intervention=graph_intervention,
         hessian={"method": "LiSSA", "iterations": 20},
-        loss={"type": "cross_entropy", "target_set": "validation_mask"},
+        loss=loss,
         parameter_scope="all_trainable",
         seed_bundle={"python_numpy_torch": seed},
         numerics={"torch_dtype": "torch.float32", "deterministic_algorithms": True},
@@ -237,6 +246,163 @@ def test_graph_affected_set_and_incident_edge_removal():
 
     deleted = remove_incident_edges(edge_index, node_id=1)
     assert deleted.tolist() == [[2, 3], [3, 2]]
+
+
+class _ToyMessagePassing(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.weight = torch.nn.Parameter(
+            torch.tensor([[0.7, -0.4], [0.2, 0.9]], dtype=torch.float32)
+        )
+
+    def forward(self, x, edge_index):
+        messages = torch.zeros_like(x)
+        messages.index_add_(0, edge_index[1], x[edge_index[0]])
+        return (x + 0.5 * messages).matmul(self.weight)
+
+
+def test_c_target_recipe_requires_affected_training_source_contract():
+    recipe = _recipe(_sha("candidates"))
+    assert recipe.fields["algorithm_version"] == "c-target-gif-tracin-v1.1"
+    assert (
+        recipe.fields["graph_intervention"]["source_scope"]
+        == "affected_intersection_train_mask"
+    )
+    assert (
+        recipe.fields["loss"]["graph_source_set"]
+        == "affected_intersection_train_mask"
+    )
+
+    with pytest.raises(ValueError, match="affected training-source contract"):
+        _recipe(
+            _sha("obsolete-candidates"),
+            include_source_contract=False,
+        )
+
+
+def _toy_graph_source_scores(*, labels=None, features=None, edge_index=None):
+    model = _ToyMessagePassing()
+    if edge_index is None:
+        edge_index = torch.tensor(
+            [[0, 1, 0, 2, 0, 3], [1, 0, 2, 0, 3, 0]], dtype=torch.long
+        )
+    if features is None:
+        features = torch.tensor(
+            [[1.0, 0.2], [0.3, 1.4], [1.1, -0.7], [-0.4, 0.8]],
+            dtype=torch.float32,
+        )
+    if labels is None:
+        labels = torch.tensor([0, 1, 0, 1], dtype=torch.long)
+    data = SimpleNamespace(
+        x=features,
+        y=labels,
+        edge_index=edge_index,
+        num_nodes=4,
+    )
+    direction = torch.tensor([0.4, -0.6, 0.3, 0.8], dtype=torch.float32)
+    scores, _ = graph_source_scores(
+        model,
+        data,
+        state=model.state_dict(),
+        candidate_ids=torch.tensor([0]),
+        source_ids=torch.tensor([0, 3]),
+        parameter_scope="all_trainable",
+        affected_hops=1,
+        target_gradient=direction,
+        inverse_target=direction,
+    )
+    return scores
+
+
+def test_graph_source_scores_use_only_affected_training_labels():
+    baseline = _toy_graph_source_scores()
+    nontraining_labels = torch.tensor([0, 0, 1, 1], dtype=torch.long)
+    assert all(
+        torch.equal(
+            baseline[name],
+            _toy_graph_source_scores(labels=nontraining_labels)[name],
+        )
+        for name in baseline
+    )
+
+    training_labels = torch.tensor([0, 1, 0, 0], dtype=torch.long)
+    changed = _toy_graph_source_scores(labels=training_labels)
+    assert not torch.equal(baseline["p_graph"], changed["p_graph"])
+
+
+def test_graph_source_scores_keep_nontraining_features_in_message_passing():
+    features = torch.tensor(
+        [[1.0, 0.2], [0.3, 1.4], [1.1, -0.7], [-0.4, 0.8]],
+        dtype=torch.float32,
+    )
+    baseline = _toy_graph_source_scores(features=features)
+    changed_features = features.clone()
+    changed_features[1] = torch.tensor([1.7, -0.2])
+    changed_features[2] = torch.tensor([-0.8, 1.5])
+    changed = _toy_graph_source_scores(features=changed_features)
+    assert not torch.equal(baseline["p_graph"], changed["p_graph"])
+
+
+def test_graph_source_scores_keep_nontraining_structure_in_message_passing():
+    baseline_edges = torch.tensor(
+        [[0, 1, 0, 2, 0, 3], [1, 0, 2, 0, 3, 0]], dtype=torch.long
+    )
+    changed_edges = torch.cat(
+        (
+            baseline_edges,
+            torch.tensor([[1, 3], [3, 1]], dtype=torch.long),
+        ),
+        dim=1,
+    )
+    baseline = _toy_graph_source_scores(edge_index=baseline_edges)
+    changed = _toy_graph_source_scores(edge_index=changed_edges)
+    assert not torch.equal(baseline["p_graph"], changed["p_graph"])
+
+
+def test_graph_source_scores_match_explicit_incident_edge_deletion():
+    model = _ToyMessagePassing()
+    edge_index = torch.tensor(
+        [[0, 1, 0, 2, 0, 3], [1, 0, 2, 0, 3, 0]], dtype=torch.long
+    )
+    data = SimpleNamespace(
+        x=torch.tensor(
+            [[1.0, 0.2], [0.3, 1.4], [1.1, -0.7], [-0.4, 0.8]],
+            dtype=torch.float32,
+        ),
+        y=torch.tensor([0, 1, 0, 1], dtype=torch.long),
+        edge_index=edge_index,
+        num_nodes=4,
+    )
+    direction = torch.tensor([0.4, -0.6, 0.3, 0.8], dtype=torch.float32)
+    scores, _ = graph_source_scores(
+        model,
+        data,
+        state=model.state_dict(),
+        candidate_ids=torch.tensor([0]),
+        source_ids=torch.tensor([0, 3]),
+        parameter_scope="all_trainable",
+        affected_hops=1,
+        target_gradient=direction,
+        inverse_target=direction,
+    )
+
+    original_logits = model(data.x, data.edge_index)
+    loss1 = torch.nn.functional.cross_entropy(
+        original_logits[torch.tensor([0, 3])],
+        data.y[torch.tensor([0, 3])],
+        reduction="sum",
+    )
+    grad1 = torch.autograd.grad(loss1, model.weight)[0].reshape(-1)
+    deleted_edge_index = remove_incident_edges(data.edge_index, node_id=0)
+    deleted_logits = model(data.x, deleted_edge_index)
+    loss2 = torch.nn.functional.cross_entropy(
+        deleted_logits[torch.tensor([3])],
+        data.y[torch.tensor([3])],
+        reduction="sum",
+    )
+    grad2 = torch.autograd.grad(loss2, model.weight)[0].reshape(-1)
+    expected = torch.dot(grad1 - grad2, direction)
+    assert scores["p_graph"].item() == pytest.approx(expected.item())
 
 
 def test_stable_ranking_and_pair_metrics_are_deterministic():

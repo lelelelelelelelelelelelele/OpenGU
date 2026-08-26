@@ -384,6 +384,7 @@ def graph_source_scores(
     *,
     state: Mapping[str, Tensor],
     candidate_ids: Tensor,
+    source_ids: Tensor,
     parameter_scope: str,
     affected_hops: int,
     target_gradient: Tensor,
@@ -399,6 +400,8 @@ def graph_source_scores(
         )
         original_logits = model(data.x, data.edge_index)
         candidate_list = [int(value) for value in candidate_ids.cpu().tolist()]
+        source_list = [int(value) for value in source_ids.cpu().tolist()]
+        source_set = set(source_list)
 
         gt_simple: List[float] = []
         gt_full: List[float] = []
@@ -408,13 +411,18 @@ def graph_source_scores(
 
         for position, node_id in enumerate(candidate_list):
             affected = affected_nodes(adjacency, node_id, affected_hops)
-            neighbors = tuple(value for value in affected if value != node_id)
-            affected_tensor = torch.as_tensor(
-                affected, dtype=torch.long, device=data.y.device
+            affected_source = tuple(
+                value for value in affected if value in source_set
+            )
+            source_neighbors = tuple(
+                value for value in affected_source if value != node_id
+            )
+            affected_source_tensor = torch.as_tensor(
+                affected_source, dtype=torch.long, device=data.y.device
             )
             loss1 = F.cross_entropy(
-                original_logits[affected_tensor],
-                data.y[affected_tensor],
+                original_logits[affected_source_tensor],
+                data.y[affected_source_tensor],
                 reduction="sum",
             )
             grad1 = flatten(
@@ -425,13 +433,13 @@ def graph_source_scores(
                 )
             ).detach()
 
-            if neighbors:
+            if source_neighbors:
                 deleted_edge_index = remove_incident_edges(
                     data.edge_index, node_id
                 )
                 deleted_logits = model(data.x, deleted_edge_index)
                 neighbor_tensor = torch.as_tensor(
-                    neighbors, dtype=torch.long, device=data.y.device
+                    source_neighbors, dtype=torch.long, device=data.y.device
                 )
                 loss2 = F.cross_entropy(
                     deleted_logits[neighbor_tensor],
