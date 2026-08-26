@@ -2,7 +2,7 @@
 
 Block ID: `AAGU-006`
 
-当前状态: `working / claimed`
+当前状态: `awaiting human acceptance / candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -75,12 +75,14 @@ Item Type: Block
 - Stable locator: `.workblock/items/AAGU-006/WORKITEM.md`; this task owns only Block `AAGU-006`.
 - Registration baseline: `9d36a30a38e3f90d4bc2081014c400037ed25404` on parent `refs/heads/codex/e7-two-surrogate-groups-20260805`.
 - Source branch/worktree: `codex/aagu-006-dataset-split-authority` at `C:\Users\ADMIN\.codex\worktrees\aagu006\OpenGU\GULib-master`.
-- Inherited state: the tracked AAGU-018 registration commit is part of the baseline; its implementation remains owned by its independent task/worktree.
-- Excluded state: the parent worktree's uncommitted `.workblock/project.json` advance to 20 and `.workblock/items/AAGU-019/WORKITEM.md` belong to a separate registration and must not enter this Block.
+- Inherited state: accepted AAGU-018 and the retained AAGU-019 registration landed on the Apply target at `6be95c74f230cbfcb6a99d0166ba8b1d143e5416`, then converged into this branch by merge checkpoint `77b03eb246a918d611c251927a65722ebb147c71`; AAGU-019 implementation remains outside this Block.
+- Excluded state: no unrelated dirty state is present. AAGU-019 hard retirement, formal GPU execution, historical Artifact mutation, and scientific IF/selector decisions remain independently owned and excluded.
 - Runtime profile: `local-git`; owned writes are limited to the dataset/split contract, its active consumers/generators, focused tests, and this item package.
 - External boundaries: no formal GPU run, SSH write, live provider, historical Artifact mutation, push, install, Apply, cleanup, or destructive action is authorized before explicit acceptance.
-- Candidate: not yet formed. Evidence and paired human surface will be recorded after RED/GREEN diagnosis and Verify.
-- Restart point: wait for the independently owned AAGU-018/AAGU-019 dashboard mappings to land, integrate that accepted parent change, regenerate the dashboard, and complete candidate Verify.
+- Candidate: the clean `codex/aagu-006-dataset-split-authority` `HEAD`; its verified implementation/parent-convergence checkpoint is `77b03eb246a918d611c251927a65722ebb147c71`, and this tracked Record/Report projection advances the live candidate normally.
+- Evidence: `tests/test_dashboard_refresh.py`, the target-direct split/recipe/manifest/stage suites, `scripts/dashboard/refresh.py --check`, the registered local dry-run, and the paired `REPORT.md` / `REPORT.html` in this item directory.
+- Current human surface: `.workblock/items/AAGU-006/REPORT.md` and `.workblock/items/AAGU-006/REPORT.html`.
+- Restart point: wait for an explicit accept/reject decision. If accepted, invoke `block-closeout` with this same stable locator; if rejected, keep rework inside AAGU-006.
 
 ## Work events
 
@@ -91,3 +93,15 @@ Item Type: Block
 - 2026-08-26 GREEN: dashboard parsing now resolves an explicit WorkItem fact-owner link against the WorkItem locator and rejects a semantically different WORKPLAN Owner. AAGU-006 and AAGU-007 both route to the registered formal-v2 recipe, while `experiments/AGENTS.md` states that historical public/80-20/fixed-small-k material cannot supply current executable values. The focused set passed `21/21`.
 - 2026-08-26 registered dry-run observation: the Cora/seed42/1% degree-gate dry-run accepted the frozen recipe, then correctly stopped before execution on the non-main local candidate, non-AutoDL checkout, missing processed profile and Selection receipt, and unreviewed local GPU. It reported `generated_artifacts=[]`; this is fail-closed contract evidence, not a formal run.
 - 2026-08-26 inherited dashboard gap: the registration baseline contains AAGU-018 without a WORKPLAN mapping, and the separately preserved AAGU-019 registration adds the same gap. Their owning task was given the exact `refresh.py --check` failures. Until those independent mappings land, global dashboard Verify remains incomplete rather than being hidden or repaired inside AAGU-006.
+- 2026-08-26 parent convergence: AAGU-018 was explicitly accepted and no-ff applied at parent commit `6be95c7`. Its accepted AAGU-018/AAGU-019 mappings were merged into AAGU-006 while preserving this Block's recipe Owner for AAGU-006; the dashboard generator rebuilt all 19 WorkItems and passed drift validation.
+- 2026-08-26 final Verify: the combined AAGU-006 plus accepted-parent suite passed `67/67`; dashboard projection, corrected-root Python compilation, ancestry, clean-status, and diff checks passed. A repeated registered Cora/seed42/1% dry-run bound `HEAD=77b03eb`, accepted the formal-v2 recipe, then stopped only at the declared non-main/non-AutoDL/device/profile/receipt gates with `generated_artifacts=[]`.
+
+## Formal verification and decision note
+
+- `PASS` — WORKPLAN routes executable AAGU-006 and AAGU-007 nodes to `syncmate_target_direct_formal_v2.yaml`; AAGU-015 keeps its scientific-definition Owner but is explicitly forbidden from reopening historical split/budget lanes.
+- `PASS` — dashboard drift validation resolves explicit WorkItem fact-owner links and rejects a semantically different WORKPLAN Owner; its RED test failed before the implementation and passes now.
+- `PASS` — the frozen recipe remains `planetoid_70_10_20_seed2024` with 1%/5% floor budgets and exact per-dataset candidate counts; the registered dry-run consumes it and fails closed before any invalid local formal execution.
+- `PASS` — the accepted AAGU-018/AAGU-019 parent projection and AAGU-006 authority projection coexist in one regenerated dashboard; `67` combined tests pass on the converged branch.
+- `NOT OBSERVED` — no formal AutoDL GPU cell, full matrix, downstream GU outcome, or scientific attack-effect result was run in this implementation Block.
+- `NOT CONFIRMED` — AAGU-019's hard retirement of obsolete executable packages is not complete and is not claimed here.
+- Agent recommendation: accept this candidate as the active dataset/split authority repair. This recommendation does not accept the Block; the user remains the decision owner.

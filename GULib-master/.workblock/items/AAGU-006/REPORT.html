@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAGU-006 · Dataset/Split 权威修复</title>
+  <style>
+    :root { color-scheme: dark; --bg:#09111f; --panel:#111c2f; --panel2:#16243b; --text:#eaf1ff; --muted:#9eb0ca; --line:#2a3b58; --cyan:#56d6d0; --green:#83e59b; --amber:#ffc96b; --blue:#74a7ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 85% 0,#18345b 0,transparent 34%),var(--bg); color:var(--text); font:16px/1.65 "Segoe UI","Microsoft YaHei",sans-serif; }
+    main { width:min(1120px,calc(100% - 40px)); margin:36px auto 72px; }
+    header,section { background:linear-gradient(145deg,rgba(22,36,59,.96),rgba(13,24,42,.96)); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 48px rgba(0,0,0,.24); }
+    header { padding:34px 38px; }
+    section { padding:26px 30px; margin-top:20px; }
+    .eyebrow { margin:0 0 8px; color:var(--cyan); font-size:.82rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(2rem,4vw,3.35rem); line-height:1.12; letter-spacing:-.035em; }
+    h2 { margin:0 0 14px; font-size:1.35rem; }
+    h3 { margin:22px 0 6px; font-size:1.05rem; }
+    p { margin:9px 0; }
+    .lede { max-width:850px; color:#cbd8eb; font-size:1.08rem; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; color:var(--muted); }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 11px; background:rgba(7,16,30,.55); }
+    .decision { margin-top:22px; display:flex; align-items:center; gap:12px; padding:15px 18px; background:rgba(255,201,107,.09); border:1px solid rgba(255,201,107,.35); border-radius:13px; }
+    .decision strong { color:var(--amber); }
+    .decision span { padding:3px 10px; border-radius:999px; color:#1d1404; background:var(--amber); font-weight:800; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .card { padding:18px; border:1px solid var(--line); border-radius:13px; background:rgba(6,15,29,.42); }
+    .label { color:var(--green); font-weight:800; }
+    .scoped { color:var(--blue); font-weight:800; }
+    .gap { color:var(--amber); font-weight:800; }
+    table { width:100%; border-collapse:collapse; margin:12px 0; overflow:hidden; }
+    th,td { padding:11px 13px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-size:.85rem; letter-spacing:.04em; }
+    td:not(:first-child),th:not(:first-child) { text-align:right; }
+    code { color:#b9d3ff; background:#081426; border:1px solid #233651; padding:.1em .35em; border-radius:5px; }
+    ul { margin:8px 0; padding-left:22px; }
+    .recommend { border-color:rgba(131,229,155,.42); background:linear-gradient(145deg,rgba(25,73,53,.35),rgba(13,24,42,.96)); }
+    .recommend b { color:var(--green); font-size:1.22rem; }
+    .footer { color:var(--muted); font-size:.9rem; }
+    @media (max-width:760px) { main { width:min(100% - 22px,1120px); margin-top:14px; } header,section { padding:22px; border-radius:14px; } .grid { grid-template-columns:1fr; } }
+    @media print { header, section, .card, table { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">WorkBlock Acceptance · AAGU-006</p>
+    <h1>Dataset/Split 权威修复</h1>
+    <p class="lede">目标实验的活跃入口已统一到一个 versioned recipe，并新增机器 drift 校验，防止 WorkItem 与 WORKPLAN 再次指向不同的执行权威。</p>
+    <div class="meta">
+      <span class="pill">事实日期 2026-08-26</span>
+      <span class="pill">联合验证 67 passed</span>
+      <span class="pill">实现/收敛检查点 77b03eb</span>
+    </div>
+    <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="pending">待决定</span></div>
+  </header>
+
+  <section>
+    <h2>实际改变</h2>
+    <p>AAGU-006 与 AAGU-007 的 WORKPLAN Owner 现在都直接指向 <code>syncmate_target_direct_formal_v2.yaml</code>。历史 public split、OpenGU 80/20 和 fixed-small-k 材料只保留溯源角色；若研究合同变化，必须建立新的 versioned recipe。</p>
+    <p>Dashboard 生成器会解析显式 WorkItem Fact owner，并与 WORKPLAN Owner 的真实本地路径比较。两者不一致时检查直接失败。</p>
+  </section>
+
+  <section>
+    <h2>唯一活跃数据合同</h2>
+    <table>
+      <thead><tr><th>数据集</th><th>train candidates</th><th>1%</th><th>5%</th></tr></thead>
+      <tbody>
+        <tr><td>Cora</td><td>1,895</td><td>18</td><td>94</td></tr>
+        <tr><td>CiteSeer</td><td>2,328</td><td>23</td><td>116</td></tr>
+        <tr><td>PubMed</td><td>13,801</td><td>138</td><td>690</td></tr>
+      </tbody>
+    </table>
+    <p class="footer">共同身份：<code>planetoid_70_10_20_seed2024</code> · budgets <code>[0.01, 0.05]</code> · <code>floor_with_minimum_one</code></p>
+  </section>
+
+  <section>
+    <h2>验收判断</h2>
+    <div class="grid">
+      <div class="card"><span class="label">PASS</span><h3>单一执行入口</h3><p>从两个可执行节点进入时，都解析到同一个正式 recipe；历史口径不能覆盖或补全参数。</p></div>
+      <div class="card"><span class="label">PASS</span><h3>冲突会 fail closed</h3><p>故意制造的 Fact owner / WORKPLAN Owner 分歧会触发明确 drift 错误，链接一致时恢复通过。</p></div>
+      <div class="card"><span class="scoped">PASS · scoped</span><h3>注册 dry-run</h3><p>正确 recipe 被消费；非 main、非 AutoDL、错误设备及缺失正式 profile/receipt 会阻止继续，且 <code>generated_artifacts=[]</code>。</p></div>
+      <div class="card"><span class="label">PASS</span><h3>父线组合</h3><p>AAGU-018 accepted 父线合入后，19 个 WorkItem 映射完整，联合测试 67 项及 dashboard 检查通过。</p></div>
+    </div>
+  </section>
+
+  <section class="recommend">
+    <h2>Agent 建议</h2>
+    <p><b>建议接受。</b> 当前候选修复了活跃控制面的权威歧义，并留下可复现的通用校验；没有增加兼容分支、复制 recipe 数值或运行未经授权的正式实验。</p>
+    <p>决定人：刘丞毓。可接受，或指出具体返工项。</p>
+  </section>
+
+  <section>
+    <h2>缺口与边界</h2>
+    <ul>
+      <li><span class="gap">NOT OBSERVED</span> — 未运行 AutoDL 正式 GPU cell、完整矩阵或 downstream GU，不形成科研效果结论。</li>
+      <li><span class="gap">NOT CONFIRMED</span> — AAGU-019 的旧小预算 setup 硬退役尚未实现，且不属于本候选。</li>
+      <li>本 Block 不选择 IF/selector，不修改历史 Artifact，不把旧证据改写为新合同证据。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>复核入口</h2>
+    <ul>
+      <li><code>experiments/configs/syncmate_target_direct_formal_v2.yaml</code></li>
+      <li><code>scripts/dashboard/refresh.py</code> 与 <code>tests/test_dashboard_refresh.py</code></li>
+      <li><code>python -B -X utf8 scripts/dashboard/refresh.py --check</code> → PASS</li>
+      <li>9 个定向测试文件 → <code>67 passed in 1.41s</code></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>
