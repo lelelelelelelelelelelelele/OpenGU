@@ -2,7 +2,7 @@
 
 Block ID: `AAGU-018`
 
-当前状态: `awaiting human acceptance / candidate verified`
+当前状态: `awaiting human acceptance / rework candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -76,6 +76,7 @@ Item Type: Block
 
 - 2026-08-26: registered from the confirmed Fix Block preview; ready for a separate execution task to claim.
 - 2026-08-26: claimed by the Codex task `AAGU-018 · 修复 D-GIF affected-source 标签越界`; implementation remains bounded by this Record and the stable locator `.workblock/items/AAGU-018/WORKITEM.md`.
+- 2026-08-26: rework claimed in the same Codex task after the dashboard validator proved that AAGU-018 and the user-retained AAGU-019 registration were not mapped in `WORKPLAN.md`; acceptance of the earlier candidate does not extend to this new candidate content.
 
 ## Runtime / Git
 
@@ -96,9 +97,9 @@ Item Type: Block
 
 ## Candidate, evidence, and restart
 
-- Verified implementation checkpoint: `ebb63c9f4cd603ad60fafb0a2e7b9c91c284f0ab`, based on registration baseline `9d36a30a38e3f90d4bc2081014c400037ed25404`. Subsequent tracked changes are this formal decision projection plus the user's explicitly requested preservation of the separately registered AAGU-019 Record and its project-counter advance; no AAGU-019 implementation and no further production or test source change is included.
-- Evidence: focused toy-graph RED/GREEN and mutation regression; caller/Recipe tests; disposable current-source Cora canary at `C:\Users\ADMIN\AppData\Local\Temp\AAGU-018-canary-20260826T054340Z`; and `.workblock/items/AAGU-018/evidence/impact-ledger.md`.
-- Current human surface: this WorkItem. The candidate is verified and awaits the user's explicit accept/reject decision; verification does not imply acceptance.
+- Verified implementation checkpoint: `ebb63c9f4cd603ad60fafb0a2e7b9c91c284f0ab`, based on registration baseline `9d36a30a38e3f90d4bc2081014c400037ed25404`. The current candidate lineage additionally contains the formal decision projection, the user's explicitly retained AAGU-019 registration, and this dashboard-mapping rework; no AAGU-019 implementation and no further production or test source change is included.
+- Evidence: focused toy-graph RED/GREEN and mutation regression; caller/Recipe tests; disposable current-source Cora canary at `C:\Users\ADMIN\AppData\Local\Temp\AAGU-018-canary-20260826T054340Z`; `.workblock/items/AAGU-018/evidence/impact-ledger.md`; and the dashboard generator check plus its dedicated unit tests.
+- Current human surface: this WorkItem. The rework candidate is verified and awaits a new explicit accept/reject decision; acceptance of an earlier candidate does not accept this changed candidate.
 - Restart point: if accepted, invoke `block-closeout` on this same stable locator and follow `.workblock/policy.json`. If rejected, keep rework in AAGU-018.
 - Prohibited next actions: do not create a sibling Record/relation, run the full E8 matrix, modify historical Artifacts, merge, push, install, or mark this Block accepted.
 
@@ -114,24 +115,27 @@ Item Type: Block
 - 2026-08-26 review correction: two read-only reviews found no critical implementation defect. The candidate then added fail-closed Recipe enforcement, exact deleted-graph and non-training-structure regressions, all 72 affected benchmark Selection Artifact identities (144 matching cold/warm references), and the SUP source score identity to the impact ledger.
 - 2026-08-26 current-source canary: the replacement one-candidate Cora run completed cold with exit code 0, `c-target-gif-tracin-v1.1`, source fingerprint `682ebe0a9e8bdba2f580907b7a484924ed57832aa74e5cc46e5fdbe8feac3390`, Recipe `521725cb4556f6709236d35786ea3d80b28f206a0dacac00d630a02e159edd0c`, verified Artifact `score_521725cb_31186b50`, and `p_graph` ranking `[0]`. Its isolated root is the current path recorded above; this is validation evidence, not formal experiment evidence.
 - 2026-08-26 registration carry-through: after acceptance, the user confirmed that the target worktree's only dirty state was the already authorized AAGU-019 registration and requested that its WorkItem plus `nextWorkItemNumber=20` be preserved in this candidate. AAGU-019 remains `registered / ready after dependency`; it is not claimed, implemented, or accepted here.
+- 2026-08-26 dashboard rework RED: `python -B -X utf8 scripts/dashboard/refresh.py --check` exits 2 because AAGU-018 and AAGU-019 have no manual WORKPLAN mapping. This task reclaims AAGU-018 only; AAGU-006 remains read-only, AAGU-019 remains registration-only, and the allowed rework is limited to mapping both retained Records plus generator-owned projections.
+- 2026-08-26 dashboard rework GREEN: the repair queue now maps AAGU-018 and AAGU-019 as P0 FIX nodes with `AAGU-019 depends_on AAGU-018`; the generator rebuilt the lifecycle projection and `progress.html` for all 19 WorkItems. `scripts/dashboard/refresh.py --check` passes, `tests.test_dashboard_refresh` passes 3/3, AAGU-006 remains the unique Current node, and no AAGU-006 path changed.
 
 ## Formal verification and decision note
 
 ### Observable result
 
-`graph_source_scores` now forms both graph-source losses only from the candidate's affected nodes that are also in the explicit training source set. Full-graph message passing, validation-target direction, candidate deletion, incident-edge removal, parameter scope, and stable ranking remain on their prior paths.
+`graph_source_scores` now forms both graph-source losses only from the candidate's affected nodes that are also in the explicit training source set. Full-graph message passing, validation-target direction, candidate deletion, incident-edge removal, parameter scope, and stable ranking remain on their prior paths. The dashboard also maps the retained AAGU-018/AAGU-019 Records without changing AAGU-006 as the unique Current line.
 
 ### Judgement items
 
 - `PASS` — affected graph-source loss labels are restricted to explicit training nodes; validation/test label changes are invariant while an affected training-label change can change `p_graph`.
 - `PASS` — validation/test features and a non-training structural edge still change the fixed-direction graph-source score, proving transductive information flow remains active without using those labels as source supervision.
-- `PASS` — the numerical regression matches an independently constructed incident-edge-deleted `grad1 - grad2`; a deliberate mutation back to the original graph made that regression fail.
-- `PASS` — c-target, BC-target, and target-direct pass the complete training source scope and use fresh semantic versions; their Recipe builders reject the new identity when the source-scope contract is absent.
-- `PASS` — the impact ledger identifies the affected score families, 72 benchmark Selection Artifacts, the SUP identities, downstream/aggregate/report boundaries, and unaffected selectors; no historical evidence was rewritten.
+- `PASS` — the numerical regression matches an independently constructed incident-edge-deleted `grad1 - grad2`; a deliberate mutation back to the original graph made that regression fail, while candidate deletion and incident-edge removal retain their contract.
+- `PASS` — c-target, BC-target, and target-direct pass the complete training source scope and use fresh semantic versions; their Recipe builders fail closed without that contract, and the impact ledger bounds every affected historical identity without rewriting it.
+- `PASS` — WORKPLAN maps both retained Records in the P0 repair queue, projects AAGU-019 as blocked by AAGU-018, keeps AAGU-006 as the unique Current node, and regenerates `progress.html` without touching AAGU-006.
 
 ### Verification evidence
 
 - Final focused command: `python -B -X utf8 -m pytest tests/test_c_target_v1.py tests/test_bc_target_v2.py tests/test_target_direct_recipe.py tests/test_target_direct_manifest.py tests/test_target_direct_syncmate_stage.py tests/test_target_direct_split_profile.py tests/test_gu_target_v1.py tests/test_gu_target_v1_aggregate.py -q` — `63 passed`; the same result was reproduced after the formal projection commit.
+- Dashboard verification: `python -B -X utf8 -m unittest tests.test_dashboard_refresh -v` — `3 passed`; `python -B -X utf8 scripts/dashboard/refresh.py --check` — `PASS` after generator rebuild, replacing the reproduced two-item drift failure.
 - Python compilation of all changed production/test files and `git diff --check` both passed before and after the formal projection commit.
 - Current-source Cora canary: cold create, one candidate, exit 0, valid/verified Artifact `score_521725cb_31186b50`; its header binds the corrected source fingerprint, `source_scope=affected_intersection_train_mask`, and `graph_source_set=affected_intersection_train_mask`.
 
@@ -139,4 +143,4 @@ Item Type: Block
 
 - `NOT OBSERVED` — the full E8 formal matrix, three-dataset coverage experiment, downstream GU outcomes, and rebuilt human reports were intentionally not run; the canary is not formal experiment evidence.
 - `NOT CONFIRMED` — no scientific performance or attack-effect conclusion is claimed by this implementation Block.
-- Agent recommendation: accept this scoped implementation candidate for closeout if the five judgement items match human intent. Otherwise reject it into the same AAGU-018 Record with the disputed item; do not create a sibling Block.
+- Agent recommendation: accept the new clean candidate for closeout if the five judgement items match human intent. The prior candidate decision is not reused; otherwise reject this candidate into the same AAGU-018 Record with the disputed item and do not create a sibling Block.
