@@ -2,7 +2,7 @@
 
 Block ID: `AAGU-006`
 
-当前状态: `awaiting human acceptance / candidate verified`
+当前状态: `awaiting acceptance / candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -94,14 +94,16 @@ Item Type: Block
 - 2026-08-26 registered dry-run observation: the Cora/seed42/1% degree-gate dry-run accepted the frozen recipe, then correctly stopped before execution on the non-main local candidate, non-AutoDL checkout, missing processed profile and Selection receipt, and unreviewed local GPU. It reported `generated_artifacts=[]`; this is fail-closed contract evidence, not a formal run.
 - 2026-08-26 inherited dashboard gap: the registration baseline contains AAGU-018 without a WORKPLAN mapping, and the separately preserved AAGU-019 registration adds the same gap. Their owning task was given the exact `refresh.py --check` failures. Until those independent mappings land, global dashboard Verify remains incomplete rather than being hidden or repaired inside AAGU-006.
 - 2026-08-26 parent convergence: AAGU-018 was explicitly accepted and no-ff applied at parent commit `6be95c7`. Its accepted AAGU-018/AAGU-019 mappings were merged into AAGU-006 while preserving this Block's recipe Owner for AAGU-006; the dashboard generator rebuilt all 19 WorkItems and passed drift validation.
-- 2026-08-26 final Verify: the combined AAGU-006 plus accepted-parent suite passed `67/67`; dashboard projection, corrected-root Python compilation, ancestry, clean-status, and diff checks passed. A repeated registered Cora/seed42/1% dry-run bound `HEAD=77b03eb`, accepted the formal-v2 recipe, then stopped only at the declared non-main/non-AutoDL/device/profile/receipt gates with `generated_artifacts=[]`.
+- 2026-08-26 pre-review Verify: the combined AAGU-006 plus accepted-parent suite passed `67/67`; dashboard projection, corrected-root Python compilation, ancestry, clean-status, and diff checks passed. A repeated registered Cora/seed42/1% dry-run bound `HEAD=77b03eb`, accepted the formal-v2 recipe, then stopped only at the declared non-main/non-AutoDL/device/profile/receipt gates with `generated_artifacts=[]`.
+- 2026-08-26 review correction: independent review reproduced that the noncanonical phrase `awaiting human acceptance` parsed as an unknown lifecycle and made the dashboard undercount WIP while still passing projection equality. The Record now uses the existing `awaiting acceptance / candidate verified` grammar, unknown lifecycle values fail drift validation, and WORKPLAN routes directly to the human decision instead of repeating claim/implementation.
+- 2026-08-26 post-review Verify: three lifecycle regressions cover the canonical candidate status, fail-closed unknown status, and the retained AAGU-019 registration status. The combined suite passed `70/70`; the regenerated dashboard projects AAGU-006 as awaiting/WIP, reports two waiting decisions, and passes drift validation.
 
 ## Formal verification and decision note
 
 - `PASS` — WORKPLAN routes executable AAGU-006 and AAGU-007 nodes to `syncmate_target_direct_formal_v2.yaml`; AAGU-015 keeps its scientific-definition Owner but is explicitly forbidden from reopening historical split/budget lanes.
 - `PASS` — dashboard drift validation resolves explicit WorkItem fact-owner links and rejects a semantically different WORKPLAN Owner; its RED test failed before the implementation and passes now.
 - `PASS` — the frozen recipe remains `planetoid_70_10_20_seed2024` with 1%/5% floor budgets and exact per-dataset candidate counts; the registered dry-run consumes it and fails closed before any invalid local formal execution.
-- `PASS` — the accepted AAGU-018/AAGU-019 parent projection and AAGU-006 authority projection coexist in one regenerated dashboard; `67` combined tests pass on the converged branch.
+- `PASS` — the accepted AAGU-018/AAGU-019 parent projection and AAGU-006 authority projection coexist in one regenerated dashboard; AAGU-006 is counted as awaiting/WIP and `70` combined tests pass on the converged branch.
 - `NOT OBSERVED` — no formal AutoDL GPU cell, full matrix, downstream GU outcome, or scientific attack-effect result was run in this implementation Block.
 - `NOT CONFIRMED` — AAGU-019's hard retirement of obsolete executable packages is not complete and is not claimed here.
 - Agent recommendation: accept this candidate as the active dataset/split authority repair. This recommendation does not accept the Block; the user remains the decision owner.

@@ -102,7 +102,9 @@ def _lifecycle_state(status: str) -> str:
         return "awaiting"
     if "todo candidate" in value:
         return "todo"
-    if "registered" in value and "not claimed" in value:
+    if "registered" in value and (
+        "not claimed" in value or "ready after dependency" in value
+    ):
         return "registered"
     if "blocked" in value:
         return "blocked"
@@ -392,6 +394,9 @@ def validate_drift(
         errors.append("node has no WorkItem: %s" % code)
     for code in sorted(set(items) - set(counts)):
         errors.append("WorkItem is not mapped in WORKPLAN: %s" % code)
+    for code, item in sorted(items.items()):
+        if item["lifecycle"] == "unknown":
+            errors.append("WorkItem has unknown lifecycle status: %s" % code)
 
     node_by_id = {}
     for node in nodes:

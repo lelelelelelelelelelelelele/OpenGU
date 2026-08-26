@@ -40,7 +40,7 @@ Dashboard 生成器同时增加了机器校验：当 WorkItem 的显式 Fact own
 
 ### 4. 与已接受父线组合后是否仍一致 — `PASS`
 
-将 AAGU-018 的 accepted no-ff Apply 父线合入后，期待看板投影与 target-direct 合同测试同时成立。实际联合测试 `67 passed`，dashboard `--check`、Python 编译、Git ancestry、clean-status 和 diff 检查均通过。
+将 AAGU-018 的 accepted no-ff Apply 父线合入后，期待看板投影与 target-direct 合同测试同时成立。实际联合测试 `70 passed`；AAGU-006 被正确投影为 awaiting/WIP，等待决定计数为 2，dashboard `--check`、Python 编译、Git ancestry、clean-status 和 diff 检查均通过。未知生命周期状态会直接触发 drift 错误。
 
 ## Agent 建议
 
@@ -59,7 +59,7 @@ Dashboard 生成器同时增加了机器校验：当 WorkItem 的显式 Fact own
 - 权威 recipe：`experiments/configs/syncmate_target_direct_formal_v2.yaml`
 - 核心校验：`scripts/dashboard/refresh.py`
 - RED/GREEN 回归：`tests/test_dashboard_refresh.py`
-- 联合验证：9 个定向测试文件，`67 passed in 1.41s`
+- 联合验证：9 个定向测试文件，`70 passed in 1.37s`
 - Dashboard：`python -B -X utf8 scripts/dashboard/refresh.py --check` → `PASS`
 - Dry-run：Cora / seed 42 / 1% / gate-only → recipe 接受，环境 gate 拒绝，`generated_artifacts=[]`
 - Apply target：`refs/heads/codex/e7-two-surrogate-groups-20260805`，观察值 `6be95c7`

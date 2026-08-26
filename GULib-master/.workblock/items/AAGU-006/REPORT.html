@@ -49,7 +49,7 @@
     <p class="lede">目标实验的活跃入口已统一到一个 versioned recipe，并新增机器 drift 校验，防止 WorkItem 与 WORKPLAN 再次指向不同的执行权威。</p>
     <div class="meta">
       <span class="pill">事实日期 2026-08-26</span>
-      <span class="pill">联合验证 67 passed</span>
+      <span class="pill">联合验证 70 passed</span>
       <span class="pill">实现/收敛检查点 77b03eb</span>
     </div>
     <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="pending">待决定</span></div>
@@ -80,7 +80,7 @@
       <div class="card"><span class="label">PASS</span><h3>单一执行入口</h3><p>从两个可执行节点进入时，都解析到同一个正式 recipe；历史口径不能覆盖或补全参数。</p></div>
       <div class="card"><span class="label">PASS</span><h3>冲突会 fail closed</h3><p>故意制造的 Fact owner / WORKPLAN Owner 分歧会触发明确 drift 错误，链接一致时恢复通过。</p></div>
       <div class="card"><span class="scoped">PASS · scoped</span><h3>注册 dry-run</h3><p>正确 recipe 被消费；非 main、非 AutoDL、错误设备及缺失正式 profile/receipt 会阻止继续，且 <code>generated_artifacts=[]</code>。</p></div>
-      <div class="card"><span class="label">PASS</span><h3>父线组合</h3><p>AAGU-018 accepted 父线合入后，19 个 WorkItem 映射完整，联合测试 67 项及 dashboard 检查通过。</p></div>
+      <div class="card"><span class="label">PASS</span><h3>父线与生命周期组合</h3><p>AAGU-018 accepted 父线合入后，19 个 WorkItem 映射完整；AAGU-006 正确计为 awaiting/WIP，未知状态会 fail closed，联合测试 70 项通过。</p></div>
     </div>
   </section>
 
@@ -105,7 +105,7 @@
       <li><code>experiments/configs/syncmate_target_direct_formal_v2.yaml</code></li>
       <li><code>scripts/dashboard/refresh.py</code> 与 <code>tests/test_dashboard_refresh.py</code></li>
       <li><code>python -B -X utf8 scripts/dashboard/refresh.py --check</code> → PASS</li>
-      <li>9 个定向测试文件 → <code>67 passed in 1.41s</code></li>
+      <li>9 个定向测试文件 → <code>70 passed in 1.37s</code></li>
     </ul>
   </section>
 </main>
