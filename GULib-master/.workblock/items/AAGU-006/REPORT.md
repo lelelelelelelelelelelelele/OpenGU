@@ -2,7 +2,7 @@
 
 > 当前验收决定：`待决定`
 
-报告事实日期：2026-08-26  
+报告事实日期：2026-08-26
 当前候选：`codex/aagu-006-dataset-split-authority` 的 clean `HEAD`；实现与父线收敛检查点 `77b03eb246a918d611c251927a65722ebb147c71`
 
 ## 这次改变了什么
@@ -63,4 +63,3 @@ Dashboard 生成器同时增加了机器校验：当 WorkItem 的显式 Fact own
 - Dashboard：`python -B -X utf8 scripts/dashboard/refresh.py --check` → `PASS`
 - Dry-run：Cora / seed 42 / 1% / gate-only → recipe 接受，环境 gate 拒绝，`generated_artifacts=[]`
 - Apply target：`refs/heads/codex/e7-two-surrogate-groups-20260805`，观察值 `6be95c7`
-
