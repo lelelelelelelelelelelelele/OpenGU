@@ -2,7 +2,7 @@
 
 Block ID: `AAGU-018`
 
-当前状态: `awaiting human acceptance / rework candidate verified`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -77,6 +77,7 @@ Item Type: Block
 - 2026-08-26: registered from the confirmed Fix Block preview; ready for a separate execution task to claim.
 - 2026-08-26: claimed by the Codex task `AAGU-018 · 修复 D-GIF affected-source 标签越界`; implementation remains bounded by this Record and the stable locator `.workblock/items/AAGU-018/WORKITEM.md`.
 - 2026-08-26: rework claimed in the same Codex task after the dashboard validator proved that AAGU-018 and the user-retained AAGU-019 registration were not mapped in `WORKPLAN.md`; acceptance of the earlier candidate does not extend to this new candidate content.
+- `accepted`（2026-08-26T13:53:33+08:00）：刘丞毓 基于 已验证候选 7bd5028 与用户明确的验收和收口确认 接受候选 commit `7bd5028df1cdd3179a64b2e5aab8a62226f8fefc`。
 
 ## Runtime / Git
 

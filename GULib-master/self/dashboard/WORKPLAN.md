@@ -24,7 +24,6 @@ Next step: 在独立执行任务中用 `block-workflow` claim `AAGU-006`，统�
 |---|---|---|---|---|---|
 | [AAGU-006](../../.workblock/items/AAGU-006/WORKITEM.md) | FIX | registered / not claimed / current | P0 | — | [实验数据与正式运行合同](../../experiments/AGENTS.md) |
 | [AAGU-004](../../.workblock/items/AAGU-004/WORKITEM.md) | SUPPORT | awaiting acceptance | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
-| [AAGU-019](../../.workblock/items/AAGU-019/WORKITEM.md) | FIX | blocked by AAGU-018 | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | blocked by AAGU-006 | P0 | AAGU-006 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
 | [AAGU-001](../../.workblock/items/AAGU-001/WORKITEM.md) | GATE | blocked by AAGU-006, AAGU-015 | P0 | AAGU-006, AAGU-015 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | blocked by AAGU-001 | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
@@ -38,9 +37,11 @@ Next step: 在独立执行任务中用 `block-workflow` claim `AAGU-006`，统�
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
-| [AAGU-018](../../.workblock/items/AAGU-018/WORKITEM.md) | FIX | awaiting human acceptance / rework candidate verified | P0 | — | [AAGU-018 Block contract](../../.workblock/items/AAGU-018/WORKITEM.md) |
+| [AAGU-019](../../.workblock/items/AAGU-019/WORKITEM.md) | FIX | registered / ready after dependency | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+
+已关闭 FIX 节点已从活动投影隐藏：1 个；历史保留在对应 WorkItem 与 Git。
 <!-- WORKITEM_STATUS:END -->
 
 ## 2. 事实所有权
