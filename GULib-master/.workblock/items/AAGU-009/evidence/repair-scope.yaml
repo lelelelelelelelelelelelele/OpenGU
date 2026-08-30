@@ -69,13 +69,34 @@ execution:
   - Collect through SyncMate, verify hashes, and read back the trusted index before acceptance.
 
 current_readiness:
-  observed_at: 2026-08-26
-  local_main_sha: 9d4a0475842d908a90e51fbc2d81c8878335c6c3
-  apply_target_sha: 6be95c74f230cbfcb6a99d0166ba8b1d143e5416
-  apply_target_ahead_of_main: 20
+  observed_at: 2026-08-31T02:34:02.9974729+08:00
+  source_candidate_sha: 2f5044f567368f7a02a1274daa0881521f6a400c
+  local_main_sha: fa5a3ecb190eba6a3d5694a041c0d839fc94d36b
+  origin_main_sha: 9d4a0475842d908a90e51fbc2d81c8878335c6c3
+  local_main_matches_origin_main: false
+  apply_target_sha: 77b629c77cb8372c73bcc776288f974782c9a644
+  apply_target_ahead_of_main: 23
+  apply_target_behind_main: 2
+  source_ahead_of_apply_target: 4
   syncmate_device_config: missing
+  ssh_alias: autodl-opengu
   ssh_active_checkout: unavailable_connection_refused
+  formal_gpu: not_observed
+  formal_data: not_observed
+  formal_configs:
+    phase_b_cora_gcn:
+      dry_run_exit: 0
+      expanded_cells: 180
+      local_result: would_run_180
+    phase_b_cora_gat:
+      dry_run_exit: 0
+      expanded_cells: 180
+      local_result: would_run_180
+  local_regression:
+    tests: 44_passed
+    writeback_verifier: passed
   active_items_outside_scope:
-    - AAGU-004
-    - AAGU-006
+    AAGU-004: awaiting_acceptance
+    AAGU-006: awaiting_acceptance
   decision: fail_closed_before_remote_mutation
+  evidence: .workblock/items/AAGU-009/evidence/preflight-2026-08-31.md

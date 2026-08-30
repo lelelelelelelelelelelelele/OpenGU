@@ -82,6 +82,7 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 - 2026-08-26: claimed by the current Codex task after the user explicitly said to perform the AAGU-009 repair.
 - 2026-08-26: local inventory confirmed the exact 120-leaf scope and retired the destructive partial-redo route. Formal preflight failed closed because the Apply target is not yet accepted into `main`, `.syncmate/device.yaml` is absent, the active SSH aliases refuse connection, and AAGU-004/AAGU-006 remain active.
 - 2026-08-31: upgraded this same Record to Item Version 2.0, stabilized the current Campaign baseline, removed the spurious AAGU-002 relation, and moved the committed source branch back to canonical A without changing the Claim identity.
+- 2026-08-31: refreshed the local and remote preflight after merging the Campaign baseline. The focused regression suite passed 44/44, the write-back verifier passed, and both registered configs expanded successfully in read-only dry-run mode. Formal execution remains blocked before mutation because local `main` differs from `origin/main`, the Apply target is not landed, `.syncmate/device.yaml` is missing, `autodl-opengu` refuses the connection, AAGU-004/AAGU-006 await acceptance, and remote GPU/data/leaf readiness is therefore `NOT OBSERVED`.
 
 ## Claim and runtime record
 
@@ -92,8 +93,8 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 - Excluded state: the separate AAGU-006 candidate/worktree and AAGU-004 acceptance decision are not owned or modified here; AAGU-010 remains independently accepted follow-up work.
 - Runtime profile: Git-backed local repair candidate plus formal SSH evidence execution. Tracked writes are limited to AAGU-009 orchestration/repair tooling, focused tests, this item package, and the user-authorized AAGU-010 priority projection.
 - External boundary: the user authorized the AAGU-009 repair. No deletion, overwrite, CPU fallback, unrelated cache invalidation, push, Apply, or acceptance is authorized; remote result changes must be exact-scope and reversible.
-- Candidate: pending; the clean source branch `HEAD` will become the candidate after implementation, evidence, Record, and Report converge.
+- Candidate: local implementation and regression evidence are green at `2f5044f567368f7a02a1274daa0881521f6a400c`; the formal research-evidence candidate remains pending until remote rerun, collection, gate, and read-back converge.
 - Evidence paths: `.workblock/items/AAGU-009/evidence/`, the formal run root selected by the repair profile, and verified SyncMate trusted outputs.
 - Human surface: `.workblock/items/AAGU-009/REPORT.md` and `.workblock/items/AAGU-009/REPORT.html` after Verify.
 - Policy: `.workblock/policy.json`; after explicit acceptance, closeout routes to remote `push` and skips install.
-- Restart point: satisfy every precondition in `evidence/repair-scope.yaml`, then inventory and quarantine exactly 120 whole leaves and run the two canonical configs without `--force`. Start no GPU cell until every formal-run gate is observed.
+- Restart point: first align the explicitly accepted code on local `main`, `origin/main`, and the SSH active checkout; restore the registered SyncMate device identity and SSH reachability; then observe GPU/data plus the 120 target/240 non-target remote leaf inventory. Only after every precondition in `evidence/repair-scope.yaml` passes may the run quarantine exactly 120 whole leaves and execute the two canonical configs without `--force`.
