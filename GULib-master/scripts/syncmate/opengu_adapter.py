@@ -16,27 +16,6 @@ OPENGU_SETUP_CONFIG_SHA256 = (
 )
 
 
-def _selection_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
-    del definition
-    from experiments.bc_target_v2.syncmate_recipe import preflight_recipe
-
-    return preflight_recipe(config_path)
-
-
-def _gu_gate_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
-    del definition
-    from experiments.gu_target_v1.syncmate_recipe import preflight_recipe
-
-    return preflight_recipe(config_path)
-
-
-def _gu_stage_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
-    from experiments.gu_target_v1.syncmate_stage import preflight_stage
-
-    stage = str((definition.get("gu_stage") or {}).get("stage") or "")
-    return preflight_stage(stage, config_path)
-
-
 def _target_selection_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
     from experiments.target_direct_v1.syncmate_stage import preflight_selection
 
@@ -52,9 +31,6 @@ def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Ma
 
 
 _PREFLIGHT_HANDLERS = {
-    "small-selection-4090-v1": _selection_preflight,
-    "small-selection-gu-4090-v1": _gu_gate_preflight,
-    "small-selection-gu-stage-4090-v1": _gu_stage_preflight,
     "target-direct-selection-4090-v1": _target_selection_preflight,
     "target-direct-gu-4090-v1": _target_gu_preflight,
 }

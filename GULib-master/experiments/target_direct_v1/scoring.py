@@ -1,10 +1,10 @@
-"""CPU primitives shared by the B/C target matrix and downstream evaluator."""
+"""CPU scoring primitives for the current target-direct selector lane."""
 
 from __future__ import annotations
 
 import math
 import time
-from typing import Dict, List, Mapping, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -20,6 +20,7 @@ from experiments.c_target_v1.core import (
     state_hash,
     train_trajectory,
 )
+from experiments.c_target_v1.core import graph_source_scores
 
 
 def checkpoint_view_indices(checkpoint_count: int) -> Dict[str, Tuple[int, ...]]:
@@ -270,3 +271,62 @@ def train_model_once(
 
 def state_copy(model: GateGCN) -> Dict[str, Tensor]:
     return capture_state(model)
+
+
+def checkpoint_graph_scores(
+    model: GateGCN,
+    data,
+    *,
+    checkpoints,
+    candidate_ids: Tensor,
+    source_ids: Tensor,
+    target_gradients,
+    parameter_scope: str,
+    affected_hops: int,
+    final_inverse_target: Tensor,
+) -> Dict[str, Any]:
+    """Evaluate point and graph sources over one checkpoint trajectory."""
+
+    simple_vectors = []
+    graph_vectors = []
+    observations = []
+    final_index = len(checkpoints) - 1
+    final_scores = None
+    final_observation = None
+    for index, item in enumerate(checkpoints):
+        target = target_gradients[index]
+        inverse = final_inverse_target if index == final_index else target
+        scores, observation = graph_source_scores(
+            model,
+            data,
+            state=item["state"],
+            candidate_ids=candidate_ids,
+            source_ids=source_ids,
+            parameter_scope=parameter_scope,
+            affected_hops=affected_hops,
+            target_gradient=target,
+            inverse_target=inverse,
+        )
+        simple_vectors.append(scores["p_simple"].to(torch.float64))
+        graph_vectors.append(scores["p_graph"].to(torch.float64))
+        observations.append(
+            {
+                "global_step": int(item["global_step"]),
+                "seconds": float(observation["graph_source_seconds"]),
+                "affected_size_min": int(observation["affected_size_min"]),
+                "affected_size_mean": float(observation["affected_size_mean"]),
+                "affected_size_max": int(observation["affected_size_max"]),
+            }
+        )
+        if index == final_index:
+            final_scores = scores
+            final_observation = observation
+    if final_scores is None or final_observation is None:
+        raise RuntimeError("final graph source scores were not produced")
+    return {
+        "simple_vectors": simple_vectors,
+        "graph_vectors": graph_vectors,
+        "final_scores": final_scores,
+        "final_observation": final_observation,
+        "checkpoint_observations": observations,
+    }

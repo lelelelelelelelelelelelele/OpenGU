@@ -1,4 +1,4 @@
-"""Fail-closed Planetoid public-split source contract for B/C experiments."""
+"""Fail-closed source identity for repository-local Planetoid datasets."""
 
 from __future__ import annotations
 

@@ -9,17 +9,22 @@ Separate all influence-family selectors by mechanism before comparing their sele
 - D: graph-aware GIF with `grad1-grad2`;
 - legacy cross-TracIn and topology selectors: external controls.
 
-## Evidence boundary
+## Historical evidence boundary
 
 - Datasets: Planetoid Cora, CiteSeer, PubMed.
 - Model: two-layer GCN.
 - Seeds: 42, 212, 2024.
-- Budgets: k=3, 7, 14.
+- Budgets: the retired study used fixed small node counts; those counts are not
+  valid inputs for the current ratio-conditioned experiment.
 - Target: validation mean cross-entropy; test labels are downstream utility only.
 - Evidence is descriptive over 3 datasets × 3 seeds.
 - This is a local selector/set-deletion study, not an end-to-end approximate-GU result.
 
-Primary evidence: `../../../reports/bc_target_matrix_REPORT.md` and `../../../results/bc_target_v2/aggregate/`.
+Historical navigation only: `../../../reports/bc_target_matrix_REPORT.md` and
+`../../../results/bc_target_v2/aggregate/`. These retained artifacts may support
+mechanism discussion, but are excluded from new figure/table inputs. Current
+target-direct evidence must come from `target_direct_formal_v2` under the
+registered 1%/5% contract and is still pending formal execution.
 
 ## Table plan
 
@@ -42,4 +47,5 @@ Also report B reference vs D-full (`0.023`) and C-point vs D-full (`0.112`) as c
 
 ## Status
 
-Accepted local mechanism evidence; production proper-TracIn registration remains a separate gate.
+Historical local mechanism evidence retained read-only; current target-direct
+evidence remains pending and must not inherit acceptance from this study.

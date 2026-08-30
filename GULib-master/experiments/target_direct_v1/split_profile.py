@@ -10,11 +10,11 @@ from typing import Any, Dict, Sequence
 
 from torch_geometric.datasets import Planetoid
 
-from experiments.bc_target_v2.dataset_source import (
+from experiments.planetoid_source import (
     assert_same_dataset_source,
     resolve_planetoid_public_source,
 )
-from experiments.gu_target_v1.public_profile import (
+from experiments.target_direct_v1.planetoid_io import (
     _atomic_bytes,
     _load_offline_planetoid,
     _opengu_graph_contract,

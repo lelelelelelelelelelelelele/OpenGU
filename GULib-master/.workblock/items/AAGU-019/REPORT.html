@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAGU-019 · 旧实验 setup 退役验收</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2d; --line:#293652; --text:#edf3ff; --muted:#aab7cf; --cyan:#57d6d0; --green:#70dfa2; --amber:#ffc66d; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:radial-gradient(circle at 10% 0,#182746 0,transparent 38%),var(--bg); color:var(--text); font:16px/1.65 Inter,"Segoe UI",sans-serif; }
+    main { width:min(1120px,calc(100% - 40px)); margin:32px auto 72px; }
+    .hero,.card { background:rgba(18,26,45,.94); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 52px rgba(0,0,0,.26); }
+    .hero { padding:30px; display:grid; gap:22px; }
+    .eyebrow { color:var(--cyan); font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    h1 { margin:4px 0 0; font-size:clamp(30px,4vw,50px); line-height:1.12; }
+    h2 { margin:0 0 12px; font-size:23px; }
+    h3 { margin:0 0 8px; font-size:18px; }
+    p { margin:0; color:#d7e1f3; }
+    .meta { color:var(--muted); font-size:14px; }
+    .decision { display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid #70592d; border-radius:12px; background:#2b2418; }
+    .decision span { color:var(--amber); font-weight:800; }
+    .first-screen { display:grid; grid-template-columns:1.25fr .75fr; gap:18px; }
+    .summary { display:grid; gap:14px; }
+    .recommend { border-left:4px solid var(--green); padding-left:16px; }
+    .recommend strong { color:var(--green); }
+    .metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .metric { padding:15px; background:#0d1528; border:1px solid var(--line); border-radius:12px; }
+    .metric b { display:block; color:var(--green); font-size:27px; }
+    section.card { margin-top:18px; padding:24px; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.05em; }
+    .pass { color:var(--green); font-weight:800; }
+    .unknown { color:var(--amber); font-weight:800; }
+    .checks { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .check { padding:17px; background:#0d1528; border:1px solid var(--line); border-radius:12px; }
+    code { color:#91e8e3; background:#0a1222; padding:.1em .35em; border-radius:5px; overflow-wrap:anywhere; }
+    ul { margin:8px 0 0; padding-left:21px; }
+    .appendix { color:var(--muted); font-size:14px; }
+    @media (max-width:780px) { .first-screen,.checks { grid-template-columns:1fr; } main { width:min(100% - 24px,1120px); margin-top:12px; } .hero,section.card { padding:20px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div>
+      <div class="eyebrow">WorkBlock AAGU-019 · Formal acceptance surface</div>
+      <h1>旧小预算实验 setup 已退出活动执行面</h1>
+      <div class="meta">新鲜度：2026-08-31 03:09 +08:00 · focused verification 已重跑</div>
+    </div>
+    <div class="decision">当前验收决定：<span data-workblock-decision="pending">待决定</span></div>
+    <div class="first-screen">
+      <div class="summary">
+        <div><h2>这次改变了什么</h2><p>删除仍可执行的 fixed-k 历史包、13 份配置和 44 条 recipe；保留历史结果与报告。当前所需原语迁入中性或 target-direct 模块，没有旧路径兼容层。</p></div>
+        <div><h2>现在实际看到了什么</h2><p>活动 registry 从 76 条降为 32 条，legacy recipe 为 0，29 条 target-direct recipe 保持可用。正式 1%/5% 与 exact-k 合同没有改变。</p></div>
+        <div class="recommend"><h2>Agent 建议</h2><p><strong>建议接受。</strong>四项实质判断均有明确退出为 green 的源码、配置、registry 和回归证据；未运行 GPU 是已声明的 non-goal。</p></div>
+      </div>
+      <div class="metrics" aria-label="关键指标">
+        <div class="metric"><span>Legacy recipe</span><b>44 → 0</b><small class="pass">PASS</small></div>
+        <div class="metric"><span>Active registry</span><b>76 → 32</b><small class="pass">PASS</small></div>
+        <div class="metric"><span>Focused tests</span><b>331</b><small class="pass">PASS</small></div>
+        <div class="metric"><span>Historical tree diff</span><b>0</b><small class="pass">PASS</small></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>最关键的证据</h2>
+    <table>
+      <thead><tr><th>判断面</th><th>基线</th><th>本轮状态</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>活动 legacy recipe</td><td>44</td><td>0</td><td class="pass">PASS</td></tr>
+        <tr><td>旧 executable config</td><td>13</td><td>0</td><td class="pass">PASS</td></tr>
+        <tr><td>target-direct recipe</td><td>29</td><td>29</td><td class="pass">PASS</td></tr>
+        <tr><td>正式预算</td><td>1% / 5%</td><td>1% / 5%</td><td class="pass">PASS</td></tr>
+        <tr><td>exact-k</td><td>18/94 · 23/116 · 138/690</td><td>未改变</td><td class="pass">PASS</td></tr>
+        <tr><td>formal GPU 新结果</td><td>未要求</td><td>未运行</td><td class="unknown">NOT OBSERVED</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>判断详情</h2>
+    <div class="checks">
+      <div class="check"><h3>旧 setup 无活动入口 <span class="pass">PASS</span></h3><p>三个旧 source root、13 个配置、44 条 registry 定义及其 preflight/acceptance 路由均已退役。</p></div>
+      <div class="check"><h3>当前实现自包含 <span class="pass">PASS</span></h3><p>活动 Python surface 没有旧 package import；source identity、scoring、Planetoid I/O 与 Recipe validation 已迁出。</p></div>
+      <div class="check"><h3>ratio 合同不变 <span class="pass">PASS</span></h3><p>仍只接受 1%/5%，rounding 为 <code>floor_with_minimum_one</code>，identity mismatch fail closed。</p></div>
+      <div class="check"><h3>历史证据只读保留 <span class="pass">PASS</span></h3><p><code>results/</code> 与 <code>reports/</code> tracked diff 为 0；A.6 只保留历史导航，不作为当前 claim 输入。</p></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>已知缺口与验收边界</h2>
+    <ul>
+      <li>全仓 pytest 额外运行约 12 分钟后仍 CPU-active、无失败输出，随后人工中止；无终态，不计入 PASS。</li>
+      <li>没有 dispatch GPU gate/matrix，没有新研究结果，也不接受新论文 claim。</li>
+      <li>未 Apply、push、安装或清理其他 Claim；AAGU-009 未修改。</li>
+    </ul>
+  </section>
+
+  <section class="card appendix">
+    <h2>技术附录</h2>
+    <p>Baseline：<code>cdfb8a0ece41922beb447c2279569ae9448396aa</code> · Source branch：<code>refs/heads/codex/aagu-019-retire-legacy-budgets</code> · Apply target 未改变：<code>refs/heads/codex/e7-two-surrogate-groups-20260805</code></p>
+    <p style="margin-top:10px">Verify：44 + 230 + 57 tests，合计 331 passed；另有 compileall、registry inventory、活动引用审计和 <code>git diff --check</code>。本证据只证明候选代码/配置/lifecycle 边界，不证明 GPU 或科学指标。</p>
+    <p style="margin-top:10px">HTML 渲染检查：<strong class="pass">PASS</strong>；1280×720 桌面视口首屏完整，无横向溢出、断图或层级问题，当前决定投影恰好一个。</p>
+  </section>
+</main>
+</body>
+</html>

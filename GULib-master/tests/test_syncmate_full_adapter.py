@@ -13,7 +13,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SYNC_DIR = PROJECT_ROOT / "scripts" / "syncmate"
 RECIPE_REGISTRY_SHA256 = (
-    "bb36f6943f7c519f9c7309a837c5e7a93598a72359d28da6fb0fa3614efc016a"
+    "10d871bf92dfc4cd0a14b4d0a45fd9a918931d64d1170aef1f98d46f1e5a639f"
 )
 
 
@@ -56,16 +56,6 @@ def test_full_registry_matches_reviewed_literal_contract(project_extension):
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
-        "opengu-small-selection-mvp-v1",
-        "opengu-small-selection-dataset-gate-v1",
-        "opengu-small-selection-full-v1",
-        *{f"opengu-small-selection-gu-gate-v{version}" for version in range(1, 6)},
-        *{
-            f"opengu-small-selection-gu-{dataset}-seed{seed}-v{version}"
-            for version in range(2, 6)
-            for dataset in ("cora", "citeseer", "pubmed")
-            for seed in (42, 212, 2024)
-        },
         *{
             f"opengu-target-direct-selection-{dataset}-seed{seed}-v2"
             for dataset in ("cora", "citeseer", "pubmed")
@@ -81,7 +71,7 @@ def test_full_registry_matches_reviewed_literal_contract(project_extension):
         },
     }
 
-    assert len(definitions) == 76
+    assert len(definitions) == 32
     assert set(definitions) == expected_ids
     assert _canonical_sha256(definitions) == RECIPE_REGISTRY_SHA256
 
@@ -96,14 +86,12 @@ def test_representative_recipe_fields_remain_exact(project_extension):
         "--json",
     )
     assert definitions["opengu-cache-v2-gate4-v1"]["timeout_seconds"] == 3600
-    assert definitions["opengu-small-selection-full-v1"]["selection_matrix"] == {
-        "datasets": ("Cora", "CiteSeer", "PubMed"),
-        "seeds": (42, 212, 2024),
-        "score_count": 17,
+    selection = definitions["opengu-target-direct-selection-pubmed-seed2024-v2"]
+    assert selection["selection_matrix"]["budget_ratios"] == (0.01, 0.05)
+    assert selection["selection_matrix"]["expected_k_by_ratio"] == {
+        "0.01": 138,
+        "0.05": 690,
     }
-    gu_stage = definitions["opengu-small-selection-gu-pubmed-seed2024-v5"]
-    assert gu_stage["gu_stage"]["selectors"][-1] == "tracin_cp_simple_6"
-    assert len(gu_stage["expected_artifact_paths"]) == 68
     target = definitions["opengu-target-direct-gu-citeseer-seed212-r001-v2"]
     assert target["gu_stage"]["k"] == 23
     assert target["gu_stage"]["target_checkpoint_required"] is True
@@ -144,9 +132,6 @@ def test_all_reviewed_preflight_profiles_dispatch_to_project_handlers(
         return {"ready": True, "errors": [], "source": "project-handler"}
 
     profiles = {
-        "small-selection-4090-v1": "opengu-small-selection-mvp-v1",
-        "small-selection-gu-4090-v1": "opengu-small-selection-gu-gate-v5",
-        "small-selection-gu-stage-4090-v1": "opengu-small-selection-gu-cora-seed42-v5",
         "target-direct-selection-4090-v1": "opengu-target-direct-selection-cora-seed42-v2",
         "target-direct-gu-4090-v1": "opengu-target-direct-gu-cora-seed42-r005-v2",
     }
@@ -236,9 +221,6 @@ def test_results_parser_reads_only_verified_index_artifacts(
 @pytest.mark.parametrize(
     "profile,recipe_id",
     [
-        ("small-selection-v1", "opengu-small-selection-mvp-v1"),
-        ("small-selection-gu-v1", "opengu-small-selection-gu-gate-v5"),
-        ("small-selection-gu-stage-v1", "opengu-small-selection-gu-cora-seed42-v5"),
         ("target-direct-selection-v2", "opengu-target-direct-selection-cora-seed42-v2"),
         ("target-direct-gu-v2", "opengu-target-direct-gu-gate-r005-v2"),
         ("target-direct-gu-stage-v2", "opengu-target-direct-gu-cora-seed42-r005-v2"),

@@ -7,8 +7,6 @@ import json
 from pathlib import Path
 
 import pytest
-import yaml
-
 from experiments import path_policy
 from experiments import run as experiment_runner
 from scripts.validate_ssh_deployment_layout import inspect_layout
@@ -121,7 +119,7 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def test_migrated_benchmark_hashes_match_every_syncmate_config():
+def test_historical_benchmark_is_preserved_without_active_legacy_configs():
     repository_root = Path(__file__).resolve().parents[1]
     benchmark_root = (
         repository_root
@@ -148,20 +146,5 @@ def test_migrated_benchmark_hashes_match_every_syncmate_config():
 
     config_root = repository_root / "experiments" / "configs"
     configs = sorted(config_root.glob("syncmate_small_selection_gu_*_v*.yaml"))
-    assert len(configs) == 10
-    for config_path in configs:
-        config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-        if "benchmark_manifest_sha256" in config:
-            assert config["benchmark_manifest_sha256"] == manifest_sha256
-        selection_source = config.get("selection_source") or {}
-        if "benchmark_manifest_sha256" in selection_source:
-            assert selection_source["benchmark_manifest_sha256"] == manifest_sha256
-        if "summary_path" in selection_source:
-            assert selection_source["summary_sha256"] == _sha256(
-                repository_root / selection_source["summary_path"]
-            )
-        for dataset in (config.get("datasets") or {}).values():
-            for summary in (dataset.get("summaries") or {}).values():
-                assert summary["sha256"] == _sha256(
-                    repository_root / summary["path"]
-                )
+    assert manifest_sha256
+    assert configs == []
