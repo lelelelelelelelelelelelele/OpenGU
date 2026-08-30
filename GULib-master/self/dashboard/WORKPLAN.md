@@ -30,17 +30,17 @@ Next step: 恢复同一 `AAGU-009` Claim 与可逆 collateral repair 候选，�
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | blocked by AAGU-001 | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | [AAGU-007](../../.workblock/items/AAGU-007/WORKITEM.md) | EXP | blocked by AAGU-002 | P0 | AAGU-002 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-008](../../.workblock/items/AAGU-008/WORKITEM.md) | EXP | blocked by AAGU-007 | P1 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-011](../../.workblock/items/AAGU-011/WORKITEM.md) | EXP | blocked by AAGU-008 | P1 | AAGU-008 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-012](../../.workblock/items/AAGU-012/WORKITEM.md) | EXP | blocked by AAGU-011 | P1 | AAGU-011 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | [AAGU-021](../../.workblock/items/AAGU-021/WORKITEM.md) | EXP | blocked by AAGU-020 | P1 | AAGU-020 | [AAGU-021 Block contract](../../.workblock/items/AAGU-021/WORKITEM.md) |
-| [AAGU-013](../../.workblock/items/AAGU-013/WORKITEM.md) | EXP | blocked by AAGU-012 | P2 | AAGU-012 | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
-| [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
+| [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-001, AAGU-002, AAGU-007, AAGU-008, AAGU-010, AAGU-011, AAGU-012, AAGU-013, AAGU-014 | P2 | AAGU-001, AAGU-002, AAGU-007, AAGU-008, AAGU-010, AAGU-011, AAGU-012, AAGU-013, AAGU-014 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 | [AAGU-006](../../.workblock/items/AAGU-006/WORKITEM.md) | FIX | registered / not claimed | P0 | — | [实验数据与正式运行合同](../../experiments/AGENTS.md) |
 | [AAGU-019](../../.workblock/items/AAGU-019/WORKITEM.md) | FIX | registered / ready after dependency | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
+| [AAGU-011](../../.workblock/items/AAGU-011/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+| [AAGU-012](../../.workblock/items/AAGU-012/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
+| [AAGU-013](../../.workblock/items/AAGU-013/WORKITEM.md) | EXP | registered / not claimed | P2 | — | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
+| [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | registered / not claimed | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 
@@ -67,7 +67,7 @@ Next step: 恢复同一 `AAGU-009` Claim 与可逆 collateral repair 候选，�
 
 ## 4. 依赖图
 
-实线表示编排前置；实验 timeline 的相邻边同时固定逐项推进顺序，不表示前一实验结论在科学上证明后一实验。
+实线只表示真实输入前置。版面相邻和优先级不自动生成 `depends_on`；AAGU-011/012/013/014 可独立形成各自候选，最终由 AAGU-003 直接消费。
 
 ```mermaid
 flowchart LR
@@ -89,7 +89,7 @@ flowchart LR
     R0 --> G0
   end
 
-  subgraph Experiments[单一实验 timeline]
+  subgraph Experiments[独立实验包]
     X0[AAGU-007 target-direct]
     X1[AAGU-008 K5 anchor]
     X2[AAGU-011 CiteSeer]
@@ -97,10 +97,18 @@ flowchart LR
     X4[AAGU-013 surrogate transfer]
     X5[AAGU-014 arXiv scope]
     G2[AAGU-003 final evidence gate]
-    X0 --> X1 --> X2 --> X3 --> X4 --> X5 --> G2
+    X0 --> X1
+    X0 --> G2
+    X1 --> G2
+    X2 --> G2
+    X3 --> G2
+    X4 --> G2
+    X5 --> G2
   end
 
   G1 --> X0
+  G0 --> G2
+  G1 --> G2
   R2 --> G2
 
   subgraph DFull[D-full 计时路线]
@@ -123,9 +131,9 @@ flowchart LR
 | AAGU-009 | FIX | L8 collateral evidence 修复 | P0 | — | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-010 | FIX | hop aggregate fields 修复 | P0 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 
-## 6. 实验 timeline
+## 6. 独立实验包
 
-每个 `EXP` 都是独立 Block。只有前一节点关闭且真实依赖满足后，下一节点才进入可领取状态；正式 GPU 仍需执行时授权。
+每个 `EXP` 都是独立 Block。优先级决定注意顺序，不把表格相邻关系投影成硬依赖；只有明确消费前一 Block 产物的节点才保留 `depends_on`。正式 GPU 仍需执行时授权。
 
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
@@ -134,11 +142,11 @@ flowchart LR
 | AAGU-002 | GATE | Device Readiness gate | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | AAGU-007 | EXP | Target-Direct GU gate | P0 | AAGU-002 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | AAGU-008 | EXP | K5 noise anchor | P1 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| AAGU-011 | EXP | CiteSeer scope replacement | P1 | AAGU-008 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| AAGU-012 | EXP | GraphRevoker replacement | P1 | AAGU-011 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
-| AAGU-013 | EXP | Surrogate transfer | P2 | AAGU-012 | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
-| AAGU-014 | EXP | arXiv scope expansion | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| AAGU-003 | GATE | Formal GPU evidence acceptance | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
+| AAGU-011 | EXP | CiteSeer scope replacement | P1 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+| AAGU-012 | EXP | GraphRevoker replacement | P1 | — | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| AAGU-013 | EXP | Surrogate transfer | P2 | — | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
+| AAGU-014 | EXP | arXiv scope expansion | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
+| AAGU-003 | GATE | Formal GPU evidence acceptance | P2 | AAGU-001, AAGU-002, AAGU-007, AAGU-008, AAGU-010, AAGU-011, AAGU-012, AAGU-013, AAGU-014 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 
 ## 7. D-full 计时路线
 
