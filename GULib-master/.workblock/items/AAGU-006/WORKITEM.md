@@ -2,7 +2,13 @@
 
 Block ID: `AAGU-006`
 
+Item Version: 2.0
+
 当前状态: `registered / not claimed`
+
+> Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
+
+Execution topology: `sequential`
 
 Item Type: Block
 
@@ -31,3 +37,4 @@ Item Type: Block
 ## Status history
 
 - 2026-08-26: registered from the prominent WORKPLAN dataset/split repair Todo under delegated registration authority.
+- 2026-08-31: upgraded the same stable WorkItem to protocol 2.0 with the current sequential topology and Apply target; no Claim, candidate, or acceptance fact changed.
