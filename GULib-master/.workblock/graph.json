@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "factVersion": 4,
+  "factVersion": 5,
   "stages": [
     {
       "id": "repair",
@@ -14,8 +14,8 @@
     },
     {
       "id": "experiments",
-      "name": "Experiment timeline",
-      "goal": "按 WORKPLAN 的单一实验 timeline 逐项推进。"
+      "name": "Independent experiments",
+      "goal": "独立形成各实验包，并由最终 evidence gate 统一消费。"
     },
     {
       "id": "d-full",
@@ -106,27 +106,45 @@
       "to": "AAGU-007"
     },
     {
-      "id": "depends-aagu-011-on-aagu-008",
+      "id": "depends-aagu-003-on-aagu-001",
       "type": "depends_on",
-      "from": "AAGU-011",
+      "from": "AAGU-003",
+      "to": "AAGU-001"
+    },
+    {
+      "id": "depends-aagu-003-on-aagu-002",
+      "type": "depends_on",
+      "from": "AAGU-003",
+      "to": "AAGU-002"
+    },
+    {
+      "id": "depends-aagu-003-on-aagu-007",
+      "type": "depends_on",
+      "from": "AAGU-003",
+      "to": "AAGU-007"
+    },
+    {
+      "id": "depends-aagu-003-on-aagu-008",
+      "type": "depends_on",
+      "from": "AAGU-003",
       "to": "AAGU-008"
     },
     {
-      "id": "depends-aagu-012-on-aagu-011",
+      "id": "depends-aagu-003-on-aagu-011",
       "type": "depends_on",
-      "from": "AAGU-012",
+      "from": "AAGU-003",
       "to": "AAGU-011"
     },
     {
-      "id": "depends-aagu-013-on-aagu-012",
+      "id": "depends-aagu-003-on-aagu-012",
       "type": "depends_on",
-      "from": "AAGU-013",
+      "from": "AAGU-003",
       "to": "AAGU-012"
     },
     {
-      "id": "depends-aagu-014-on-aagu-013",
+      "id": "depends-aagu-003-on-aagu-013",
       "type": "depends_on",
-      "from": "AAGU-014",
+      "from": "AAGU-003",
       "to": "AAGU-013"
     },
     {
@@ -194,6 +212,13 @@
       "actor": "User direction to proceed with runnable AAGU fixes",
       "at": "2026-08-31T02:29:00.0204919+08:00",
       "summary": "Remove the spurious AAGU-009 depends_on AAGU-002 relation; device readiness remains a formal-run precondition rather than a Block dependency."
+    },
+    {
+      "id": "confirmation-aagu-independent-experiment-packages-20260831",
+      "changeSetId": "aagu-independent-experiment-packages-20260831",
+      "actor": "User direction that several projected dependencies are wrong and independently startable work should proceed",
+      "at": "2026-08-31T02:37:46.2075004+08:00",
+      "summary": "Remove four timeline-adjacency relations from AAGU-011 through AAGU-014; retain true input contracts and make AAGU-003 consume every independent experiment package directly."
     }
   ]
 }
