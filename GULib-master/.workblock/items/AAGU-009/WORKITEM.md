@@ -8,6 +8,10 @@ Item Version: 2.0
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
+> Git baseline：`6be95c74f230cbfcb6a99d0166ba8b1d143e5416`
+
+> Source branch：`refs/heads/codex/aagu-009-collateral-evidence`
+
 Execution topology: `sequential`
 
 Item Type: Block
@@ -28,7 +32,6 @@ Item Type: Block
 - Minimum evidence: corrected runtime identity, complete artifacts, regression checks, and explicit acceptance.
 - Confirmation: user explicitly authorized starting AAGU-009 after correcting the spurious experiment-definition/device dependency.
 - Report size: paired `REPORT.md` / `REPORT.html`, because the decision concerns formal research evidence and invalid historical outputs.
-
 ## Confirmed acceptance brief
 
 ### 当前基线
@@ -78,12 +81,13 @@ GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral c
 - 2026-08-26: corrected the registration-time `AAGU-002 -> AAGU-009` projection error; the legacy E2 repair lane has no AAGU-001/AAGU-002 task dependency.
 - 2026-08-26: claimed by the current Codex task after the user explicitly said to perform the AAGU-009 repair.
 - 2026-08-26: local inventory confirmed the exact 120-leaf scope and retired the destructive partial-redo route. Formal preflight failed closed because the Apply target is not yet accepted into `main`, `.syncmate/device.yaml` is absent, the active SSH aliases refuse connection, and AAGU-004/AAGU-006 remain active.
+- 2026-08-31: upgraded this same Record to Item Version 2.0, stabilized the current Campaign baseline, removed the spurious AAGU-002 relation, and moved the committed source branch back to canonical A without changing the Claim identity.
 
 ## Claim and runtime record
 
 - Stable locator: `.workblock/items/AAGU-009/WORKITEM.md`; this task owns only Block `AAGU-009`.
 - Baseline: `6be95c74f230cbfcb6a99d0166ba8b1d143e5416` on `refs/heads/codex/e7-two-surrogate-groups-20260805`.
-- Source branch/worktree: `codex/aagu-009-collateral-evidence` at `C:\Users\ADMIN\.codex\worktrees\aagu009\OpenGU\GULib-master`.
+- Source branch/worktree: `codex/aagu-009-collateral-evidence` at canonical A `E:\project\OpenGU\GULib-master`.
 - Inherited state: accepted AAGU-018 is already on the Apply target. The existing IF-family write-back fix is inherited and must be re-proven against the formal runtime before rerun.
 - Excluded state: the separate AAGU-006 candidate/worktree and AAGU-004 acceptance decision are not owned or modified here; AAGU-010 remains independently accepted follow-up work.
 - Runtime profile: Git-backed local repair candidate plus formal SSH evidence execution. Tracked writes are limited to AAGU-009 orchestration/repair tooling, focused tests, this item package, and the user-authorized AAGU-010 priority projection.
