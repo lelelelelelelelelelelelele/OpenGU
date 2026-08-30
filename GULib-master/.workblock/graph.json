@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "factVersion": 4,
+  "stages": [
+    {
+      "id": "repair",
+      "name": "Repair",
+      "goal": "修复数据、证据与旧实验边界后再推进实验。"
+    },
+    {
+      "id": "definition-gates",
+      "name": "Definition and gates",
+      "goal": "收敛科学定义、实验合同与设备 readiness。"
+    },
+    {
+      "id": "experiments",
+      "name": "Experiment timeline",
+      "goal": "按 WORKPLAN 的单一实验 timeline 逐项推进。"
+    },
+    {
+      "id": "d-full",
+      "name": "D-full timing",
+      "goal": "从计算原语到小图计时，再到大图探针与外推。"
+    },
+    {
+      "id": "support",
+      "name": "Support and decisions",
+      "goal": "承载独立于主实验线的支撑与产品化决定。"
+    },
+    {
+      "id": "writing",
+      "name": "Writing",
+      "goal": "保留可按需 Promote 的写作入口。"
+    },
+    {
+      "id": "figures",
+      "name": "Figures",
+      "goal": "保留可按需 Promote 的作图入口。"
+    }
+  ],
+  "assignments": {
+    "AAGU-001": "definition-gates",
+    "AAGU-002": "definition-gates",
+    "AAGU-003": "definition-gates",
+    "AAGU-004": "support",
+    "AAGU-005": "support",
+    "AAGU-006": "repair",
+    "AAGU-007": "experiments",
+    "AAGU-008": "experiments",
+    "AAGU-009": "repair",
+    "AAGU-010": "repair",
+    "AAGU-011": "experiments",
+    "AAGU-012": "experiments",
+    "AAGU-013": "experiments",
+    "AAGU-014": "experiments",
+    "AAGU-015": "definition-gates",
+    "AAGU-016": "writing",
+    "AAGU-017": "figures",
+    "AAGU-018": "repair",
+    "AAGU-019": "repair",
+    "AAGU-020": "d-full",
+    "AAGU-021": "d-full",
+    "AAGU-022": "d-full"
+  },
+  "relations": [
+    {
+      "id": "depends-aagu-015-on-aagu-006",
+      "type": "depends_on",
+      "from": "AAGU-015",
+      "to": "AAGU-006"
+    },
+    {
+      "id": "depends-aagu-001-on-aagu-006",
+      "type": "depends_on",
+      "from": "AAGU-001",
+      "to": "AAGU-006"
+    },
+    {
+      "id": "depends-aagu-001-on-aagu-015",
+      "type": "depends_on",
+      "from": "AAGU-001",
+      "to": "AAGU-015"
+    },
+    {
+      "id": "depends-aagu-002-on-aagu-001",
+      "type": "depends_on",
+      "from": "AAGU-002",
+      "to": "AAGU-001"
+    },
+    {
+      "id": "depends-aagu-007-on-aagu-002",
+      "type": "depends_on",
+      "from": "AAGU-007",
+      "to": "AAGU-002"
+    },
+    {
+      "id": "depends-aagu-010-on-aagu-009",
+      "type": "depends_on",
+      "from": "AAGU-010",
+      "to": "AAGU-009"
+    },
+    {
+      "id": "depends-aagu-008-on-aagu-007",
+      "type": "depends_on",
+      "from": "AAGU-008",
+      "to": "AAGU-007"
+    },
+    {
+      "id": "depends-aagu-011-on-aagu-008",
+      "type": "depends_on",
+      "from": "AAGU-011",
+      "to": "AAGU-008"
+    },
+    {
+      "id": "depends-aagu-012-on-aagu-011",
+      "type": "depends_on",
+      "from": "AAGU-012",
+      "to": "AAGU-011"
+    },
+    {
+      "id": "depends-aagu-013-on-aagu-012",
+      "type": "depends_on",
+      "from": "AAGU-013",
+      "to": "AAGU-012"
+    },
+    {
+      "id": "depends-aagu-014-on-aagu-013",
+      "type": "depends_on",
+      "from": "AAGU-014",
+      "to": "AAGU-013"
+    },
+    {
+      "id": "depends-aagu-003-on-aagu-014",
+      "type": "depends_on",
+      "from": "AAGU-003",
+      "to": "AAGU-014"
+    },
+    {
+      "id": "depends-aagu-003-on-aagu-010",
+      "type": "depends_on",
+      "from": "AAGU-003",
+      "to": "AAGU-010"
+    },
+    {
+      "id": "depends-aagu-005-on-aagu-001",
+      "type": "depends_on",
+      "from": "AAGU-005",
+      "to": "AAGU-001"
+    },
+    {
+      "id": "depends-aagu-019-on-aagu-018",
+      "type": "depends_on",
+      "from": "AAGU-019",
+      "to": "AAGU-018"
+    },
+    {
+      "id": "depends-aagu-021-on-aagu-020",
+      "type": "depends_on",
+      "from": "AAGU-021",
+      "to": "AAGU-020"
+    },
+    {
+      "id": "depends-aagu-022-on-aagu-021",
+      "type": "depends_on",
+      "from": "AAGU-022",
+      "to": "AAGU-021"
+    }
+  ],
+  "confirmations": [
+    {
+      "id": "confirmation-aagu-truthful-map-bootstrap-20260830",
+      "changeSetId": "comp-035-aagu-graph-bootstrap",
+      "actor": "User standing permission for COMP-035 AAGU Graph bootstrap",
+      "at": "2026-08-30T05:05:49.3848579+08:00",
+      "summary": "Materialized WORKPLAN orchestration dependencies and explicit AAGU-019/AAGU-021/AAGU-022 Record dependencies without changing lifecycle or evidence facts."
+    },
+    {
+      "id": "confirmation-2026-08-29T21:18:45.994Z-comp-038-live-remove-aagu-022-021",
+      "changeSetId": "comp-038-live-remove-aagu-022-021",
+      "actor": "User standing permission for COMP-038 live AAGU relation verification",
+      "at": "2026-08-29T21:18:45.994Z",
+      "summary": "COMP-038 authorized verification: temporarily remove AAGU-022 depends_on AAGU-021."
+    },
+    {
+      "id": "confirmation-2026-08-29T21:18:46.096Z-comp-038-live-restore-aagu-022-021",
+      "changeSetId": "comp-038-live-restore-aagu-022-021",
+      "actor": "User standing permission for COMP-038 live AAGU relation verification",
+      "at": "2026-08-29T21:18:46.096Z",
+      "summary": "COMP-038 authorized verification: restore AAGU-022 depends_on AAGU-021 exactly."
+    },
+    {
+      "id": "confirmation-aagu-009-independent-repair-20260831",
+      "changeSetId": "aagu-009-independent-repair-20260831",
+      "actor": "User direction to proceed with runnable AAGU fixes",
+      "at": "2026-08-31T02:29:00.0204919+08:00",
+      "summary": "Remove the spurious AAGU-009 depends_on AAGU-002 relation; device readiness remains a formal-run precondition rather than a Block dependency."
+    }
+  ]
+}

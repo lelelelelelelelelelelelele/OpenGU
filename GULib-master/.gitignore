@@ -84,5 +84,8 @@ results/baseline/
 # Local agent/task planning scratch state.
 .planning/
 
+# Transient WorkBlock supervision state.
+/.workblock/runtime/
+
 # Optional high-DPI raster exports for Cache architecture diagrams. The
 # referenced SVG sources are tracked; these local preview fallbacks are not.
