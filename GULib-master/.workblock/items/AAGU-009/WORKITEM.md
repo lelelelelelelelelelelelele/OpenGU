@@ -2,9 +2,13 @@
 
 Block ID: `AAGU-009`
 
+Item Version: 2.0
+
 当前状态: `working / claimed`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
+
+Execution topology: `sequential`
 
 Item Type: Block
 
