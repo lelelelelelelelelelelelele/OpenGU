@@ -73,7 +73,10 @@ def inspect_paths(repository_root: Path, paths: Iterable[Path]) -> dict:
     matches = []
     scanned = 0
     for path in paths:
-        payload = Path(path).read_bytes()
+        path = Path(path)
+        if not path.is_file():
+            continue
+        payload = path.read_bytes()
         if b"\0" in payload:
             continue
         try:
@@ -81,7 +84,7 @@ def inspect_paths(repository_root: Path, paths: Iterable[Path]) -> dict:
         except UnicodeDecodeError:
             continue
         scanned += 1
-        relative = Path(path).resolve().relative_to(root).as_posix()
+        relative = path.resolve().relative_to(root).as_posix()
         matches.extend(inspect_text(relative, text))
     return {
         "schema": "opengu.retired_ssh_references.v1",

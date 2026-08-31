@@ -39,57 +39,40 @@ def _acceptance_context(
     }
 
 
-def small_selection_acceptance_payload(
+def target_direct_selection_acceptance_payload(
     definition: Mapping[str, Any],
     *,
     node_id: str,
     expected_git_sha: Optional[str],
 ) -> dict[str, Any]:
-    profile = (
-        "target-direct-selection-v2"
-        if definition.get("selection_receipt_schema") == "target_direct_v1.syncmate_selection_cell"
-        else "small-selection-v1"
-    )
     return _acceptance.acceptance_payload(
-        profile,
+        "target-direct-selection-v2",
         definition,
         _acceptance_context(node_id, expected_git_sha),
     )
 
 
-def small_selection_gu_acceptance_payload(
+def target_direct_gu_acceptance_payload(
     definition: Mapping[str, Any],
     *,
     node_id: str,
     expected_git_sha: Optional[str],
 ) -> dict[str, Any]:
-    gate = definition.get("gu_gate") or {}
-    profile = (
-        "target-direct-gu-v2"
-        if gate.get("lane") == "target_direct_white_box"
-        else "small-selection-gu-v1"
-    )
     return _acceptance.acceptance_payload(
-        profile,
+        "target-direct-gu-v2",
         definition,
         _acceptance_context(node_id, expected_git_sha),
     )
 
 
-def small_selection_gu_stage_acceptance_payload(
+def target_direct_gu_stage_acceptance_payload(
     definition: Mapping[str, Any],
     *,
     node_id: str,
     expected_git_sha: Optional[str],
 ) -> dict[str, Any]:
-    stage = definition.get("gu_stage") or {}
-    profile = (
-        "target-direct-gu-stage-v2"
-        if stage.get("lane") == "target_direct_white_box"
-        else "small-selection-gu-stage-v1"
-    )
     return _acceptance.acceptance_payload(
-        profile,
+        "target-direct-gu-stage-v2",
         definition,
         _acceptance_context(node_id, expected_git_sha),
     )
@@ -100,9 +83,9 @@ def _install_project_compatibility_surface() -> None:
     _core.RUNNER_RECIPE_DEFINITIONS = definitions
     _core.QUEUE_ALLOWED_RECIPES = tuple(definitions)
     _core.ARTIFACT_NAMES = ("attack.json", "collateral.json", "_meta.json")
-    _core.small_selection_acceptance_payload = small_selection_acceptance_payload
-    _core.small_selection_gu_acceptance_payload = small_selection_gu_acceptance_payload
-    _core.small_selection_gu_stage_acceptance_payload = small_selection_gu_stage_acceptance_payload
+    _core.target_direct_selection_acceptance_payload = target_direct_selection_acceptance_payload
+    _core.target_direct_gu_acceptance_payload = target_direct_gu_acceptance_payload
+    _core.target_direct_gu_stage_acceptance_payload = target_direct_gu_stage_acceptance_payload
     generic_contract_payload = _core.runner_queue_contract_payload
 
     def project_contract_payload() -> dict[str, Any]:
@@ -115,7 +98,7 @@ def _install_project_compatibility_surface() -> None:
     for name in dir(_recipes):
         if name.startswith("__"):
             continue
-        if name.isupper() or name.startswith(("_target_direct", "_small_selection")):
+        if name.isupper() or name.startswith("_target_direct"):
             setattr(_core, name, getattr(_recipes, name))
 
 

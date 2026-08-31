@@ -20,7 +20,8 @@ import torch_geometric
 
 from cache_v2 import ProducerVersion
 from cache_v2.index import CacheIndex
-from experiments.bc_target_v2.core import (
+from experiments.target_direct_v1.scoring import (
+    checkpoint_graph_scores,
     checkpoint_view_indices,
     degree_scores,
     deterministic_random_scores,
@@ -28,7 +29,6 @@ from experiments.bc_target_v2.core import (
     inverse_hessian_vectors,
     weighted_checkpoint_scores,
 )
-from experiments.bc_target_v2.run_selection import _checkpoint_graph_scores
 from experiments.c_target_v1.core import (
     checkpoint_point_gradients,
     deployed_cross_gradient_scores,
@@ -494,8 +494,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         Path(__file__).with_name("recipe.py"),
         Path(__file__).with_name("split_profile.py"),
         REPO_ROOT / "utils" / "node_split.py",
-        REPO_ROOT / "experiments" / "bc_target_v2" / "run_selection.py",
-        REPO_ROOT / "experiments" / "bc_target_v2" / "core.py",
+        REPO_ROOT / "experiments" / "target_direct_v1" / "scoring.py",
         REPO_ROOT / "experiments" / "c_target_v1" / "core.py",
         REPO_ROOT / "experiments" / "c_target_v1" / "score_store.py",
         REPO_ROOT / "utils" / "target_checkpoint.py",
@@ -635,7 +634,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         )
         if max_target_diff > 1e-6:
             raise RuntimeError("final target gradient mismatch")
-        graph = _checkpoint_graph_scores(
+        graph = checkpoint_graph_scores(
             model,
             data,
             checkpoints=checkpoints,

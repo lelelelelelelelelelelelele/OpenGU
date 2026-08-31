@@ -411,10 +411,10 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if raw is None:
         return None
     if not isinstance(raw, dict) or raw.get("mode") not in {
-        "selection", "external_selection", "target_direct_external_selection"
+        "selection", "target_direct_external_selection"
     }:
         raise ValueError(
-            "cache_v2.mode must be 'selection', 'external_selection', or "
+            "cache_v2.mode must be 'selection' or "
             "'target_direct_external_selection'"
         )
     removed = sorted(set(raw).intersection({"dataset_root", "allow_download"}))
@@ -425,7 +425,7 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         )
     mode = str(raw["mode"])
     allowed = {"mode", "store_root", "legacy_results_root"}
-    if mode in {"external_selection", "target_direct_external_selection"}:
+    if mode == "target_direct_external_selection":
         allowed.add("manifest_path")
     if mode == "target_direct_external_selection":
         allowed.add("manifest_sha256")
@@ -439,7 +439,7 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         raise ValueError(
             "Cache V2 runner has no producer for: {0}".format(",".join(unsupported))
         )
-    if mode in {"external_selection", "target_direct_external_selection"} and not raw.get("manifest_path"):
+    if mode == "target_direct_external_selection" and not raw.get("manifest_path"):
         raise ValueError(
             "cache_v2.manifest_path is required for external_selection"
         )
@@ -460,7 +460,7 @@ def cache_v2_settings(cfg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "cache_v2.legacy_results_root",
         ),
     }
-    if mode in {"external_selection", "target_direct_external_selection"}:
+    if mode == "target_direct_external_selection":
         result["manifest_path"] = _repo_path(
             raw["manifest_path"],
             "cache_v2.manifest_path",
@@ -476,15 +476,6 @@ def prepare_cache_v2_selection(
     settings = cache_v2_settings(cfg)
     if settings is None:
         return {}, {}
-    if settings["mode"] == "external_selection":
-        from experiments.gu_target_v1.adapter import load_external_selection_manifest
-
-        return load_external_selection_manifest(
-            cfg,
-            manifest_path=settings["manifest_path"],
-            expected_store_root=settings["store_root"],
-            processed_root=experiment_processed_root(cfg),
-        )
     if settings["mode"] == "target_direct_external_selection":
         from experiments.target_direct_v1.adapter import (
             load_external_selection_manifest,

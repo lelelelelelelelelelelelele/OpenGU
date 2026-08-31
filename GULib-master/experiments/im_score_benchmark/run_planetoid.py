@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from experiments.bc_target_v2.dataset_source import (
+from experiments.planetoid_source import (
     SUPPORTED_DATASETS,
     resolve_planetoid_public_source,
     validate_public_split,
