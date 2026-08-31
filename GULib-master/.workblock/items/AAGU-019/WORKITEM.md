@@ -4,7 +4,7 @@ Block ID: `AAGU-019`
 
 Item Version: 2.0
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -112,3 +112,4 @@ Item Type: Block
   `cdfb8a0ece41922beb447c2279569ae9448396aa`, hard-retired the legacy
   executable setup, and completed focused CPU/static verification without
   formal GPU execution; human acceptance remains pending.
+- `accepted`（2026-09-01T02:57:31.8070980+08:00）：human user 基于 User reviewed AAGU-019 and explicitly replied: 可以 accept 接受当前已验证候选。
