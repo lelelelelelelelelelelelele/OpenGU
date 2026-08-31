@@ -4,7 +4,7 @@ Block ID: `AAGU-019`
 
 Item Version: 2.0
 
-当前状态: `awaiting_acceptance / verified candidate`
+当前状态: `awaiting acceptance`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
