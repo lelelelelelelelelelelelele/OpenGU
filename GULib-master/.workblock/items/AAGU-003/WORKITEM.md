@@ -2,38 +2,27 @@
 
 Block ID: `AAGU-003`
 
+Item Version: 2.1
+
 当前状态: `registered / not claimed`
 
 Item Type: Block
 
-## Block human acceptance surface
+## Human Surface
 
-### 当前基线
-OpenGU 工程交付与 no-GPU smoke 已有独立证据，但正式 GPU 科研 evidence package 尚未经过项目级接纳。
+### 核心意图
 
-### 这次增量
-在各独立 EXP Block、AAGU-001 定义合同和 AAGU-002 readiness gate 关闭后，对结果、来源、配置、版本和 artifacts 做最终科研证据接纳。
+把正式 GPU 实验从“已经运行”提升为“证据可以被项目接纳”：每项科研结论都必须能追溯到批准的实验定义、数据与划分（split）、代码 SHA、设备就绪结论、运行产物和明确的人类决定，工程交付、队列完成或无 GPU 冒烟检查都不能替代这一步。
 
-### 完成后人会看到什么
-每个正式实验结论都能追溯到批准的配置、数据/split、代码 SHA、设备 readiness、运行产物和明确的接纳决定。
+### 本次增量
 
-### 验收项目
-- 正式运行使用批准的矩阵、recipe、数据/split 和 pinned source identity。
-- 结果 artifacts、日志、指标语义和 provenance 足以复核，不把 queue done 或单次 smoke 当作科学证据。
-- 每个结论都有明确的 PASS、FAIL、NOT OBSERVED 或 NOT CONFIRMED 事实，以及人的接纳决定。
+在各独立 EXP Block、AAGU-001 实验定义合同、AAGU-002 设备就绪门以及 WORKPLAN 声明的其余前置全部满足后，统一复核正式矩阵、实验配方、来源身份、结果产物、日志、指标语义和来源链，并形成项目级科研证据包。本 Block 不为迎合结果而改实验定义，也不开发新的 SyncMate 消费端或产品化功能。
 
-### 主要证据
-- formal gate/matrix manifest：判断执行是否严格遵守批准计划。
-- SHA-verified run artifacts 与环境/设备 identity：判断结果来源是否可信。
-- 科研 acceptance report：判断哪些结果被接受、哪些仍缺证据。
+### 核心验收
 
-### 关键 non-goals
-- 不修改实验定义以迎合已经产生的结果。
-- 不把工程 smoke、dry-run、queue 状态或部署成功写成正式科研接受。
-- 不在本 Block 内开发新的 SyncMate consumer 或产品化功能。
-
-### 需要人的决定
-AAGU 研究负责人对正式 GPU evidence package 做明确接纳或返工决定；结果尚未观测。
+- 正式运行严格绑定批准的矩阵、实验配方、数据/split、固定源码身份和设备就绪结论，正式运行清单与经 SHA 校验的产物可相互复核。
+- 每个结论都明确记录 PASS、FAIL、NOT OBSERVED 或 NOT CONFIRMED；冒烟检查、空跑检查、部署成功和队列状态不会被提升为科学证据。
+- AAGU 研究负责人能从验收报告判断哪些结果可接纳、哪些必须返工或仍缺证据，并作出明确决定。
 
 ## Confirmed acceptance contract
 

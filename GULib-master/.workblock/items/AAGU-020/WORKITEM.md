@@ -2,21 +2,33 @@
 
 Block ID: `AAGU-020`
 
+Item Version: 2.1
+
 当前状态: `registered / not claimed`
 
 Item Type: Block
+
+## Human Surface
+
+### 核心意图
+
+把 D-full GIF 的候选评分成本从完整 Selector 的多分数准备、排序和缓存流程中分离出来，得到可复用、可验证的评分原语，为后续小图计时验证和大图容量探针建立同一条可信测量路径。
+
+### 本次增量
+
+从现有 Selector 内部提取唯一的 D-full GIF 评分原语与小型计时应用；输入一个或多个有序 candidate node IDs，输出同序的有限 `gt_full` 分数，并分别记录共享准备与候选计算 wall time。生产 Selector 改为复用同一原语，不保留第二套公式实现，也不改变 affected-source、全图消息传递、IHVP、目标集、参数范围或节点删除语义。
+
+### 核心验收
+
+- 单候选和多候选输入都返回同序、有限的 D-full GIF 分数，并在固定上下文中与现有 Selector 的 `gt_full` 结果满足明确数值容差。
+- 共享准备和候选计算分别计时，设备同步边界正确；生产 Selector 只消费这一条 D-full GIF 公式路径。
+- 计时应用不进入排序、Top-k、Selection Artifact、GU、Retrain 或 Metrics；用户查看短验证说明后再决定接受，测试通过不会自动接受本 Block。
 
 ## Source
 
 - Anchor: `experiments/c_target_v1/core.py::graph_source_scores` and the `gt_full` path consumed by `experiments/target_direct_v1/run_selection.py`.
 - Scientific contract: D-full GIF uses `D(v;E) = <grad1_v - grad2_v, H^-1 g_E>` under the current corrected affected-training-source semantics.
 - Baseline: the existing Selector computes D-full GIF inside a complete multi-score ScoreBundle and then ranks all candidates; it does not expose a focused timing application for an arbitrary candidate subset.
-
-## Intent
-
-- Why now: estimate D-full GIF candidate-scoring cost independently from full Selector ranking so later small-graph measurements can support a real large-graph timing probe.
-- Change: extract one reusable D-full GIF scoring primitive and a small timing application from the current Selector internals; the existing Selector must reuse the same primitive rather than retain a duplicate formula path.
-- Human outcome: provide one or more candidate node IDs and receive one ordered `gt_full` influence score per ID together with separated shared-preparation and candidate-compute wall times.
 
 ## Scope
 

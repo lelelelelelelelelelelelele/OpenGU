@@ -2,21 +2,33 @@
 
 Block ID: `AAGU-021`
 
+Item Version: 2.1
+
 当前状态: `registered / ready after dependency`
 
 Item Type: Block
+
+## Human Surface
+
+### 核心意图
+
+先在小图上证明 AAGU-020 的计时通道测到的确实是目标 D-full GIF 工作，并判断候选计算在受控范围内是否近似线性，再决定能否把同一探针用于昂贵的大图容量估计。
+
+### 本次增量
+
+在 AAGU-020 被接受并落地后，使用固定的 Cora、GCN checkpoint、split、目标集、参数、candidate ordering 和设备，对嵌套的 `N = 1, 10, 20, 30` 候选集合重复计时；分别记录共享准备、候选计算、总时长、单位候选成本、峰值显存与环境身份，并透明拟合 `T_candidate(N) = a + bN`。
+
+### 核心验收
+
+- 探针通过生产 Selector 使用的同一原语端到端运行，candidate IDs、分数、上下文身份和计时边界彼此一致，分数与 Selector 结果相符。
+- 每个 N 在明确 warmup 后至少有三次观测，报告 median、spread、内存、拟合参数、`R^2` 与残差，不隐藏不支持线性的结果。
+- paired Report 明确判断测量区间内是否支持外推；本 Block 不运行大图、排名、GU 或其他 selector 家族，成功执行本身不自动接受。
 
 ## Source
 
 - Anchor: the registered D-full GIF primitive and timing application at `.workblock/items/AAGU-020/WORKITEM.md`.
 - User-defined sequence: validate the probe on a small graph before using the identical probe on a large graph.
 - Baseline: the current small-graph Selector timings mix full ScoreBundle prerequisites, scoring, ranking, and cache behavior; they do not establish the candidate-count timing law for D-full GIF alone.
-
-## Intent
-
-- Why now: prove that the AAGU-020 timing lane measures the intended D-full GIF work and determine whether candidate computation scales linearly before spending large-graph resources.
-- Change: run the accepted AAGU-020 application on a canonical small-graph context over controlled candidate counts and fit a transparent fixed-plus-linear timing model.
-- Human outcome: see how shared preparation, candidate scoring, and per-candidate cost change for `N = 1, 10, 20, 30`, with enough repeated observations to judge whether linear extrapolation is justified.
 
 ## Scope
 
