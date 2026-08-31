@@ -1,8 +1,8 @@
 # AAGU-024 · 真实 AAGU mixed-version Companion 验收
 
-验收日期：2026-09-01  
-COMP-042 exact candidate：`08be674abc60c9249982a1c3f341a080cd8b5121`  
-COMP branch：`refs/heads/codex/comp-042-mixed-version-campaign`  
+验收日期：2026-09-01
+COMP-042 exact candidate：`08be674abc60c9249982a1c3f341a080cd8b5121`
+COMP branch：`refs/heads/codex/comp-042-mixed-version-campaign`
 AAGU snapshot HEAD：`bcbe688fde20e55af68cadda64fed93f13bcd196`
 
 ## 场景与隔离

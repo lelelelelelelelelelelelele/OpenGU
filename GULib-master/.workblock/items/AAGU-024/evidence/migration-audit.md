@@ -1,8 +1,8 @@
 # AAGU-024 · 结构迁移与零变化审计
 
-审计日期：2026-09-01  
-Git baseline：`be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`  
-协议来源：WB-228 exact candidate `bbb299034a58438c691a3f7a5380b005cfe80219`  
+审计日期：2026-09-01
+Git baseline：`be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`
+协议来源：WB-228 exact candidate `bbb299034a58438c691a3f7a5380b005cfe80219`
 当前 installed contract：WorkItem `2.1`，`block-workflow 2.1.0`，`acceptance-reporting 2.1.0`
 
 本文件是 AAGU-024 的验证快照，不是 WORKPLAN、成员状态、依赖或优先级的新权威来源。

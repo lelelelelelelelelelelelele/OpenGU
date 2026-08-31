@@ -1,8 +1,8 @@
 # AAGU-024 · Final verification record
 
-Verification date: 2026-09-01  
-Git baseline: `be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`  
-Source branch: `refs/heads/codex/aagu-024-workitem-2-1`  
+Verification date: 2026-09-01
+Git baseline: `be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`
+Source branch: `refs/heads/codex/aagu-024-workitem-2-1`
 COMP-042 exact candidate: `08be674abc60c9249982a1c3f341a080cd8b5121`
 
 This record consolidates the final pre-candidate checks. It does not accept, Apply, merge, push, install, clean up, run experiments, or access SSH.

@@ -1,8 +1,8 @@
 # AAGU-024 · COMP-042 exact candidate 真实 AAGU 探针
 
-探针日期：2026-09-01  
-COMP-042 candidate：`f6832b9dec0be903d9f8d83f50ba2bc2864dfbd7`  
-COMP source branch：`refs/heads/codex/comp-042-mixed-version-campaign`  
+探针日期：2026-09-01
+COMP-042 candidate：`f6832b9dec0be903d9f8d83f50ba2bc2864dfbd7`
+COMP source branch：`refs/heads/codex/comp-042-mixed-version-campaign`
 COMP product checkout：`E:\project\workblockgraph`，探针时 HEAD 与 candidate 一致
 
 ## 输入隔离
