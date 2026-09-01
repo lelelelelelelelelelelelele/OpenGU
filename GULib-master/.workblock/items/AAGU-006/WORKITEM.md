@@ -4,7 +4,7 @@ Block ID: `AAGU-006`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -65,6 +65,7 @@ Item Type: Block
 - 2026-08-26: claimed by the Codex task `AAGU-006 · FIX · 目标实验 Dataset/Split 权威修复` after the user explicitly said to start this P0 root Block.
 - 2026-09-01: the user explicitly requested rework and authorized an in-place protocol 2.1 upgrade; the same locator now defines the reusable YAML-driven split-profile contract before Run resumes.
 - 2026-09-01: the user selected single-owner `parallel` so this same source can resume truthfully in its existing linked worktree while canonical A remains owned by AAGU-024.
+- `accepted`（2026-09-02T05:02:08+08:00）：刘丞毓 基于 用户确认报告仅修正 split 与 budget 归属后验收通过并明确 accept 接受当前已验证候选。
 
 ## Claim and runtime record
 
