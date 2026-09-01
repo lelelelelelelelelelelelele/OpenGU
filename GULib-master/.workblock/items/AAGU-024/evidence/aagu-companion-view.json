@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "companionCandidate": "08be674abc60c9249982a1c3f341a080cd8b5121",
+  "fixtureRoot": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu-024-companion-f6832b9-960b17f5a60046e1a4bd27c4c23ea52b",
+  "nodeCount": 24,
+  "relationCount": 20,
+  "graphFactVersion": 5,
+  "versionCounts": {
+    "1.0": 5,
+    "2.0": 4,
+    "2.1": 15
+  },
+  "migratedHumanSurfaceAvailable": [
+    "AAGU-001",
+    "AAGU-002",
+    "AAGU-003",
+    "AAGU-005",
+    "AAGU-007",
+    "AAGU-008",
+    "AAGU-010",
+    "AAGU-011",
+    "AAGU-012",
+    "AAGU-013",
+    "AAGU-014",
+    "AAGU-020",
+    "AAGU-021",
+    "AAGU-022"
+  ],
+  "legacyNoHumanSurfaceOrResult": [
+    "AAGU-004",
+    "AAGU-006",
+    "AAGU-009",
+    "AAGU-015",
+    "AAGU-016",
+    "AAGU-017",
+    "AAGU-018",
+    "AAGU-019",
+    "AAGU-023"
+  ],
+  "representative21": "AAGU-020",
+  "representativeLegacy": "AAGU-004",
+  "aagu020ExactFieldsMatch": true,
+  "fixtureUnchanged": true,
+  "guardedFileCount": 33
+}

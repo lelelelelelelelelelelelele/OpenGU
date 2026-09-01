@@ -2,38 +2,27 @@
 
 Block ID: `AAGU-001`
 
+Item Version: 2.1
+
 当前状态: `registered / not claimed`
 
 Item Type: Block
 
-## Block human acceptance surface
+## Human Surface
 
-### 当前基线
-OpenGU 的正式实验方向、实验入口和 SyncMate 工程连接已有局部事实，但科学 owner、recipe、矩阵、acceptance gate 与工具职责边界尚未在一个正式注册块中闭合。
+### 核心意图
 
-### 这次增量
-把 OpenGU 的正式实验定义与 SyncMate 的执行/证据连接点收敛成一个可审阅合同；研究定义链接到 OB owner，SyncMate 只提供通用执行边界与证据连接。
+把 OpenGU 已分散存在的正式实验方向、实验入口和 SyncMate 工程连接收敛为一份可批准、可追溯的实验定义合同。最终需要让每个科学问题、配置、矩阵和验收门都有明确的事实所有者，同时让 SyncMate 只承担通用执行与证据连接，不替代科研判断。
 
-### 完成后人会看到什么
-一份可批准的正式实验定义入口，明确配置、矩阵、recipe、验收门、证据接纳条件和 SyncMate 的连接边界。
+### 本次增量
 
-### 验收项目
-- 各正式实验节点的研究问题、变量、矩阵和 recipe 可以从唯一 owner 逐项确认。
-- 科研 claim、实验执行、设备就绪、证据接纳与 SyncMate Core/adapter 的责任边界清楚分开。
-- 计划能够进入 OpenGU 的注册执行链，并明确什么只能算 smoke、什么才可进入 formal acceptance。
+在现有局部事实之上，形成正式实验的统一定义入口：逐项明确研究问题、变量、实验配方（recipe）、矩阵、证据接纳条件和注册执行链，并清楚分开科研判断、实验执行、设备就绪、证据接纳以及 SyncMate 核心/适配器的职责。本 Block 只形成定义与连接合同，不运行正式 GPU 实验，也不实现设备就绪检查、FlowChunk 适配器或产品化增强。
 
-### 主要证据
-- OpenGU 实验指令、当前 OB 计划和配置入口：判断科研定义是否完整。
-- SyncMate M1、Device Contract 与 consumer 边界材料：判断工具连接是否越界。
-- 注册后的 dry-run/recipe/matrix 证据包：判断定义是否可执行，而不是把 dry-run 当成实验结果。
+### 核心验收
 
-### 关键 non-goals
-- 不运行正式 GPU 实验。
-- 不把 SyncMate 变成科研 claim 或 acceptance 的决定者。
-- 不在本 Block 内实现 Device Readiness、FlowChunk adapter 或产品化增强。
-
-### 需要人的决定
-AAGU 研究负责人确认各正式实验 owner、注册矩阵、acceptance gate 和 SyncMate 连接边界；结果尚未观测。
+- 每个正式实验节点都能从唯一事实所有者追溯到明确的研究问题、变量、矩阵和实验配方；注册后的空跑检查（dry-run）只能证明计划可执行，不能冒充实验结果。
+- 科研决定、设备与执行职责、证据接纳以及 SyncMate 的工具边界清楚分开，SyncMate 不成为科研 Claim 或 acceptance 的决定者。
+- AAGU 研究负责人能够据此明确批准、返工或拒绝实验定义；在批准前，正式实验结果仍是“未观测”。
 
 ## Confirmed acceptance contract
 

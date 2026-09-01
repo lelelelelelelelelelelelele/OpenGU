@@ -6,8 +6,14 @@ Item Type: `Block`
 Work Type: `DOCS/PROTOCOL`
 Acceptance Route: `formal`
 Execution topology: `sequential`
-> Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
-当前状态: `registered / not claimed`
+> Apply target ref：`refs/heads/main`
+
+> Git baseline：`be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`
+
+> Source branch：`refs/heads/codex/aagu-024-workitem-2-1`
+
+> Remote target：`origin refs/heads/main`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 
 ## Human Surface
@@ -61,3 +67,29 @@ Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 ## Registration boundary
 
 只注册 AAGU-024；不 Claim、不升级成员、不执行实验、不修改外部项目。
+
+## Work and verification
+
+- 2026-09-01：同一 stable locator 已由任务 `AAGU-024 · Upgrade unclaimed WorkItems to 2.1` Claim；Git baseline 为 `be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`，source branch 为 `refs/heads/codex/aagu-024-workitem-2-1`。
+- 2026-09-01：14 个 scope members 已原位完成结构迁移；当前 2.1 Human Surface validator 为 `14/14 PASS`。
+- 2026-09-01：去掉迁移专属的 `Item Version` 与旧/新 human section 后，14 个成员其余非空行均与 baseline 逐字一致；9 个禁止修改 WorkItems、`self/dashboard/WORKPLAN.md`、既有 AAGU-004/006/009 Claims 均保持不变，成员 Claim 数为 0。
+- 2026-09-01：AAGU-010 的成员 Record 仍写 `P1 after accepted collateral evidence`，live WORKPLAN 仍投影为 `P0 / AAGU-009`；这是 baseline 已存在的只读差异，本次迁移未选择或改写任一权威事实。
+- 2026-09-01：结构子块尝试通过当前 installed `run_git.py finish` 形成 checkpoint 时，被 `unrelated-dirty-state` 安全停止；该调用只执行 1 个 `git status`，没有 stage 或 commit。只读诊断确认 nested project 的 porcelain `-z` 返回 Git-root-relative `GULib-master/...`，而 finish 的 owned paths 按 project-relative `.workblock/...` 比较；等待主任务提供已验证的 2.1 合法入口，不手工绕过或修改 installed Skill。
+- 2026-09-01：主任务随后以可逆 hotfix 更新 installed `run_git.py`，最终安装 SHA-256 为 `BC2B64DD7EC8F2ABC68500D0598BC1D09009D25841F4DFD48AC81A876AB272C0`；它把 nested project 的 status paths 归一为 project-relative，让 candidate HEAD 读取向上定位真实 `.git`，并跳过不含 `HEAD` 的空 `.git/` 标记目录。含空 `.git/` 的 nested fixture finish 仍为 3 个 Git commands，project 外 dirt guard 继续 fail-closed。原 WB-228 exact candidate `bbb2990...` 备份保存在 `C:\Users\ADMIN\.codex\skill-backups\aagu-nested-finish-pre-hotfix-bbb2990\block-workflow`。此 hotfix 尚未进入 WB-228 Git candidate，必须作为本候选的工具链边界保留，不能声称 2.1 协议候选已包含该修复。
+- 2026-09-01：收到 COMP-042 exact candidate `f6832b9dec0be903d9f8d83f50ba2bc2864dfbd7` 后，以其产品代码注册 clean AAGU 临时 Git 快照；首次 `getCompanionView()` 在 AAGU-001 处返回 `Unsupported Item Type ...: Block.`。根因是产品对任何显式 Item Version 都额外要求带反引号的 Item Type，但当前 2.1 协议门禁没有这项要求，且受保护的 AAGU-006/009/019 也是显式 2.0 + `Item Type: Block`。没有改 live AAGU 或伪造 fixture；25 个 live 文件哈希均未变化。
+- 2026-09-01：COMP-042 在同一 Block 修正后形成新 exact candidate `08be674abc60c9249982a1c3f341a080cd8b5121`。从 fresh registry 重新加载同一 clean AAGU snapshot，24/24 nodes、20 relations、1.0/2.0/2.1 三种版本全部成功；14 个迁移成员 Human Surface available，legacy/2.0 代表集合不显示 Human Surface/Result。
+- 2026-09-01：三张真实 Windows native 截图覆盖同屏 mixed-version Campaign、AAGU-020 2.1 正例与 AAGU-004 legacy 负例；fixture 前后 clean，live 非 owner graph/WorkItems 与既有 Claims 零变化。
+- 2026-09-01：paired `REPORT.md` / `REPORT.html` 已生成并通过 current Report validator；HTML 在 1280×720 与 390×844 均无横向溢出，三张证据图无断图，warning/error console 为 0。Agent 建议接受；当前决定仍由用户作出。
+- 2026-09-02：用户明确接受当前迁移，并在原 integration ref 已退役后授权将 Apply target 改为 `refs/heads/main`、Remote target 改为 `origin refs/heads/main`，同时授权按项目 policy 完成本地 no-ff merge 与 ordinary push；迁移内容与既有验收证据不变。
+
+## Human-facing result
+
+- Markdown: `.workblock/items/AAGU-024/REPORT.md`
+- HTML: `http://127.0.0.1:18768/.workblock/items/AAGU-024/REPORT.html`
+- Evidence: `.workblock/items/AAGU-024/evidence/`
+- Decision owner: 用户。
+- Current projection: awaiting acceptance；不代表已接受、已 Apply 或已 closeout。
+
+## Status history
+
+- `accepted`（2026-09-02T06:33:47.7129248+08:00）：User 基于 User explicitly accepted AAGU-024, retargeted Apply to main, and authorized the policy push to origin/main. 接受当前已验证候选。

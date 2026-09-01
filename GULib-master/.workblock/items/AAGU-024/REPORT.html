@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAGU-024 · WorkItem 2.1 migration acceptance</title>
+  <style>
+    :root{--bg:#07111f;--panel:#0d1b2d;--panel2:#10243a;--line:#24415e;--text:#e9f1f8;--muted:#9fb2c6;--cyan:#63e6df;--blue:#78a8ff;--gold:#ffc857;--ok:#70e3a4;--warn:#ffca6a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% -10%,#153453 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.65 Inter,"Segoe UI","Microsoft YaHei",sans-serif}main{width:min(1180px,calc(100% - 34px));margin:32px auto 80px}.eyebrow{color:var(--cyan);font:700 12px/1.2 Consolas,monospace;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,56px);line-height:1.04;margin:12px 0 14px;max-width:900px}h2{font-size:26px;margin:0 0 18px}h3{font-size:17px;margin:24px 0 8px;color:#fff}p{margin:8px 0 14px}.sub{color:var(--muted);max-width:850px}.hero,.section{border:1px solid var(--line);background:linear-gradient(145deg,rgba(16,36,58,.96),rgba(8,22,37,.96));border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.28)}.hero{padding:28px;margin-top:24px}.result{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.result article{background:rgba(7,17,31,.72);border:1px solid #294a69;border-radius:15px;padding:18px}.result h3{margin:0 0 10px;color:var(--cyan)}.decision{margin-top:18px;padding:16px 18px;border-left:4px solid var(--gold);background:rgba(255,200,87,.08);border-radius:8px}.decision span{display:inline-block;margin-right:12px;color:#101820;background:var(--gold);padding:4px 10px;border-radius:999px;font-weight:800}.section{padding:26px;margin-top:22px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.stat{padding:16px;border:1px solid var(--line);background:#091829;border-radius:14px}.stat strong{display:block;color:var(--cyan);font-size:27px}.stat small{color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.figure{margin:22px 0 30px}.figure img{display:block;width:100%;height:auto;border:1px solid #315777;border-radius:14px;background:#081420}.figure figcaption{color:var(--muted);margin-top:10px}.pass{color:var(--ok);font-weight:800}table{width:100%;border-collapse:collapse;margin:14px 0 8px}th,td{padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{color:var(--cyan);font-size:12px;letter-spacing:.08em;text-transform:uppercase}code{color:#b9d4ff;background:#071522;border:1px solid #223b54;padding:1px 5px;border-radius:5px}.timeline{border-left:2px solid var(--line);padding-left:20px}.timeline p{position:relative}.timeline p:before{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:var(--blue);left:-26px;top:8px}.boundary{color:var(--muted)}a{color:#8bc4ff}@media(max-width:850px){main{width:min(100% - 20px,1180px);margin-top:14px}.hero,.section{padding:18px;border-radius:16px}.result,.stats{grid-template-columns:1fr}table{display:block;overflow-x:auto}.figure{margin-left:-8px;margin-right:-8px}.figure img{border-radius:10px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">WorkBlock acceptance report · AAGU-024</div>
+  <h1>让未 Claim 的 AAGU WorkItems 先成为人能直接读懂的 2.1 Record</h1>
+  <p class="sub">迁移、语义守恒与真实 mixed-version Companion 观察已完成；当前候选仍等待用户决定。</p>
+
+  <section class="hero" data-workblock-human-result="2.1">
+    <h2>Human Result</h2>
+    <div class="result">
+      <article><h3>实际增量</h3><p>本候选把 14 个尚未 Claim 的 AAGU Blocks 原位升级为 WorkItem 2.1：每份 Record 现在都以唯一、首个 <code>## Human Surface</code> 直接说明核心意图、本次增量和核心验收；旧人类权威入口已收敛。成员 ID、状态、关系、priority 文本、运行/SSH/GPU 边界、来源和历史没有随迁移改写，成员也没有被 Claim 或执行。</p></article>
+      <article><h3>核心观察</h3><p>14/14 validator 与语义守恒检查通过。COMP-042 exact candidate <code>08be674…</code> 从 fresh registry 加载真实 AAGU 临时快照，观察到 24 nodes、20 relations 和 1.0/2.0/2.1；AAGU-020 逐字显示 Human Surface，AAGU-004 只显示 legacy 机器事实。live AAGU 非 owner facts 与既有 Claims 未被浏览动作改写。</p></article>
+      <article><h3>当前决定</h3><div class="decision"><span data-workblock-decision="accepted">接受</span><p>Agent 建议接受当前 AAGU-024 report-bearing source HEAD。最终决定者是用户；决定对象不是 COMP-042、WB-228 或 Apply target。installed nested-finish hotfix 尚未进入 WB-228 candidate，这一工具链边界独立保留。</p></div></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="eyebrow">Observed product state</div><h2>真实产品证据</h2>
+    <div class="stats"><div class="stat"><strong>24</strong><small>WorkItems loaded</small></div><div class="stat"><strong>20</strong><small>relations</small></div><div class="stat"><strong>5 / 4 / 15</strong><small>v1.0 / v2.0 / v2.1</small></div><div class="stat"><strong>14 / 14</strong><small>2.1 surface available</small></div></div>
+    <figure class="figure"><img src="evidence/aagu-mixed-version-campaign.png" alt="真实 AAGU Campaign 同时显示 v1.0、v2.0、v2.1"><figcaption><b class="pass">PASS · 同屏 mixed-version Campaign。</b> Windows native Companion 显示 24 Blocks、20 Relations、Graph v5 与三种协议版本。</figcaption></figure>
+    <figure class="figure"><img src="evidence/aagu-2-1-human-surface.png" alt="AAGU-020 显示三段 canonical Human Surface"><figcaption><b class="pass">PASS · 2.1 canonical surface。</b> AAGU-020 显示 <code>v2.1 / declared</code> 与固定三段；确定性读回与 Record 逐字一致。</figcaption></figure>
+    <figure class="figure"><img src="evidence/aagu-legacy-no-fallback.png" alt="AAGU-004 旧协议只显示真实机器事实"><figcaption><b class="pass">PASS · Legacy no fallback。</b> AAGU-004 只显示 protocol、lifecycle 与 confirmed relations，没有 Human Surface / Human Result 标题、卡片或占位文案。</figcaption></figure>
+  </section>
+
+  <section class="section">
+    <div class="eyebrow">Before → after</div><h2>迁移前后</h2>
+    <table><thead><tr><th>WorkItems</th><th>迁移前</th><th>当前</th><th>守恒</th></tr></thead><tbody>
+      <tr><td>AAGU-001 / 002 / 003 / 005</td><td>实际 1.0；旧 Block human acceptance surface</td><td>2.1；唯一首个 Human Surface</td><td>状态、关系与边界原文不变</td></tr>
+      <tr><td>AAGU-007 / 008 / 011 / 012 / 013 / 014</td><td>实际 1.0；无正式人类入口</td><td>2.1；唯一首个 Human Surface</td><td>状态、关系与边界原文不变</td></tr>
+      <tr><td>AAGU-010</td><td>2.0；无正式人类入口</td><td>2.1；唯一首个 Human Surface</td><td>既存 Record P1 / WORKPLAN P0 差异未改</td></tr>
+      <tr><td>AAGU-020 / 021 / 022</td><td>实际 1.0；旧 Intent</td><td>2.1；唯一首个 Human Surface</td><td>状态、关系与边界原文不变</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="section">
+    <div class="eyebrow">Verification</div><h2>完整验证记录</h2>
+    <table><thead><tr><th>判断</th><th>结果</th><th>实际观察</th></tr></thead><tbody>
+      <tr><td>WorkItem 2.1 结构</td><td class="pass">PASS</td><td>14/14 members + owner 通过 current Human Surface validator。</td></tr>
+      <tr><td>非 Human Surface 守恒</td><td class="pass">PASS</td><td>14/14 去掉迁移区块后其余非空行逐字相同。</td></tr>
+      <tr><td>禁止对象与 Claim</td><td class="pass">PASS</td><td>9 个保护 WorkItems、WORKPLAN、既有 Claims 不变；成员 Claim=0。</td></tr>
+      <tr><td>真实 mixed-version view</td><td class="pass">PASS</td><td>24 nodes、20 relations、v1.0/v2.0/v2.1 = 5/4/15。</td></tr>
+      <tr><td>Native visual</td><td class="pass">PASS</td><td>三张 1792×1196 原生窗口截图覆盖全图、2.1 正例与 legacy 负例。</td></tr>
+      <tr><td>COMP regressions</td><td class="pass">PASS</td><td>project-source-adapter + mixed-version Campaign：18/18 tests PASS。</td></tr>
+      <tr><td>零写入</td><td class="pass">PASS</td><td>fixture view/capture 前后 clean；live 非 owner graph/WorkItems guard 零变化。</td></tr>
+      <tr><td>Report pair / HTML QA</td><td class="pass">PASS</td><td>合同校验通过；1280×720 与 390×844 无横向溢出，3 张图无断图，warning/error console=0。</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="section">
+    <div class="eyebrow">Fail closed → rework → pass</div><h2>失败与修正链</h2>
+    <div class="timeline"><p><code>f6832b9…</code> 在真实 AAGU 的 unquoted <code>Item Type: Block</code> 处 fail closed；没有改 AAGU，也没有改 fixture 绕过。</p><p>COMP-042 在同一 Block 补齐 declared 2.0/2.1 quoted/unquoted Todo/Block coverage，形成 <code>08be674…</code>。</p><p>AAGU 从 fresh registry 重新加载相同 clean snapshot，确定性 view 与 native 三场景全部 PASS。</p></div>
+  </section>
+
+  <section class="section boundary">
+    <div class="eyebrow">Boundaries</div><h2>已知边界</h2>
+    <p>native runtime 保留 Graph 写能力；本次安全性来自 temp registry/fixture 隔离与 hash/clean guard。AAGU-010 的既存 priority 差异未被本次迁移裁决。installed <code>run_git.py</code> nested-finish hotfix 的 SHA-256 为 <code>BC2B64DD…AB272C0</code>；含空 <code>.git/</code> 的 nested fixture 已验证 3-command finish 与 project 外 dirt guard，且该 hotfix 尚未进入 WB-228 candidate <code>bbb2990…</code>。未运行实验、未 SSH、未修改 Cache/Result/DocMap，也未 Merge / Apply、push、install 或 cleanup。</p>
+  </section>
+</main>
+</body>
+</html>

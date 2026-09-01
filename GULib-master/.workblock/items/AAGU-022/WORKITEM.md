@@ -2,21 +2,33 @@
 
 Block ID: `AAGU-022`
 
+Item Version: 2.1
+
 当前状态: `registered / ready after dependency`
 
 Item Type: Block
+
+## Human Surface
+
+### 核心意图
+
+在承诺昂贵的完整大图 Selector 运行前，用真实大图上下文获得 D-full GIF 全候选评分时间与显存需求的可决策估计，并清楚区分已观测测量、拟合结果和带假设的全量外推。
+
+### 本次增量
+
+在 AAGU-021 被接受并落地后，把同一 AAGU-020 探针用于 canonical `ogbn-arxiv`，从确定性的 `N = 1, 10, 20, 30` 嵌套候选子集开始，在声明的时间/显存上限内重复测量；绑定 graph/split/checkpoint/code/device identity，分开上下文准备、IHVP 准备、候选计算与总时长，并只在观测支持时拟合全候选评分成本。
+
+### 核心验收
+
+- 每个可行测点都绑定 candidate IDs、模型与数据身份、设备、分阶段时长和峰值显存；遇到资源上限时明确失败并停止，不静默切换 CPU、公式或数据。
+- paired Report 区分观测值与拟合值，给出 slope、intercept、`R^2`、残差、不确定性、候选总数和外推假设；若模型不受支持，就明确拒绝外推。
+- 本 Block 不运行全部候选、最终排名、GU、Retrain、Metrics 或攻击矩阵；用户基于容量报告决定下一步，探针成功本身不自动接受估计。
 
 ## Source
 
 - Anchor: the small-graph timing-validation contract at `.workblock/items/AAGU-021/WORKITEM.md`, which in turn depends on the AAGU-020 D-full GIF primitive.
 - User-defined sequence: after the identical probe is validated on a small graph, apply it to a large graph and estimate the full Selector scoring time without first running every candidate.
 - Baseline: historical aggregate or small-graph Selector durations do not establish D-full GIF capacity on a large graph; the estimate must come from the same phase-separated scoring primitive on the real large-graph context.
-
-## Intent
-
-- Why now: obtain a decision-useful estimate of D-full GIF full-candidate scoring time and memory demand before committing to an expensive complete large-graph Selector run.
-- Change: run the accepted timing probe on canonical `ogbn-arxiv` over bounded candidate subsets, verify the large-graph scaling law, and project total scoring time for the complete candidate set.
-- Human outcome: see measured large-graph shared cost, candidate slope, uncertainty, memory headroom, and a clearly qualified estimate of how long a complete D-full GIF scoring pass would take.
 
 ## Scope
 
