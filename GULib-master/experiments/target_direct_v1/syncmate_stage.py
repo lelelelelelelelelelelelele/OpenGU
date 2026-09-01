@@ -23,7 +23,14 @@ import torch
 import yaml
 
 from experiments.path_policy import resolve_owned_path
-from experiments.target_direct_v1 import MODEL_SEEDS, PROFILE
+from experiments.processed_provider import (
+    ProcessedArtifactError,
+    processed_split_contract,
+)
+from experiments.target_direct_v1 import (
+    DEFAULT_SPLIT_CONTRACT,
+    MODEL_SEEDS,
+)
 from experiments.target_direct_v1.build_gu_config import build_gu_config
 from experiments.target_direct_v1.build_manifest import build_manifest
 from experiments.target_direct_v1.recipe import (
@@ -31,7 +38,7 @@ from experiments.target_direct_v1.recipe import (
     SCORE_BUDGET_SEMANTICS,
     SCORE_NAMES,
 )
-from experiments.target_direct_v1.split_profile import verify_profile
+from experiments.target_direct_v1.split_profile import stage_profile, verify_profile
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -162,10 +169,20 @@ def load_config(
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise TargetDirectStageError("formal config root must be a mapping")
+    try:
+        split_contract = processed_split_contract(
+            value,
+            require_explicit=True,
+            require_profile=True,
+        )
+    except ProcessedArtifactError as exc:
+        raise TargetDirectStageError(str(exc)) from exc
+    split_registration = value.get("split") or {}
     if (
         value.get("schema") != CONFIG_SCHEMA
         or value.get("version") != CONFIG_VERSION
-        or value.get("processed_profile") != PROFILE
+        or split_contract != DEFAULT_SPLIT_CONTRACT
+        or split_registration.get("materialize_on_miss") is not True
         or value.get("required_branch") != "main"
         or value.get("base_model") != "GCN"
         or value.get("gu_method") != "GNNDelete"
@@ -249,7 +266,13 @@ def load_config(
             raise TargetDirectStageError(
                 "reviewed candidate/k expectation changed for " + dataset
             )
-    return {**value, "repository_root": root, "config_path": path, "paths": resolved}
+    return {
+        **value,
+        "repository_root": root,
+        "config_path": path,
+        "paths": resolved,
+        "split_contract": split_contract,
+    }
 
 
 def _stage_paths(config: Mapping[str, Any], stage: str) -> Dict[str, Any]:
@@ -334,12 +357,25 @@ def gu_artifacts(
     return tuple(paths)
 
 
-def _profile(config: Mapping[str, Any], dataset: str) -> Mapping[str, Any]:
+def _profile(
+    config: Mapping[str, Any],
+    dataset: str,
+    *,
+    allow_materialize: bool,
+) -> Mapping[str, Any]:
     display_name = str(config["datasets"][dataset]["display_name"])
-    profile = verify_profile(
+    contract = config["split_contract"]
+    profile_loader = (
+        stage_profile
+        if allow_materialize
+        and (config.get("split") or {}).get("materialize_on_miss") is True
+        else verify_profile
+    )
+    profile = profile_loader(
         repository_root=Path(config["repository_root"]),
         processed_root=Path(config["paths"]["processed_root"]),
         dataset=display_name,
+        contract=contract,
     )
     observed_count = int(profile["inputs"].candidate_count)
     expected = config["datasets"][dataset]
@@ -379,11 +415,6 @@ def _formal_preflight(
                 required_checkout
             )
         )
-    profile = None
-    try:
-        profile = _profile(config, dataset)
-    except Exception as exc:
-        errors.append("processed profile: {0}".format(exc))
     gpu = {
         "required": require_gpu,
         "available": bool(torch.cuda.is_available()),
@@ -399,6 +430,11 @@ def _formal_preflight(
                 not in gpu["device_name"].lower()
             ):
                 errors.append("runner GPU does not match the reviewed device")
+    profile = None
+    try:
+        profile = _profile(config, dataset, allow_materialize=not errors)
+    except Exception as exc:
+        errors.append("processed profile: {0}".format(exc))
     return {
         "ready": not errors,
         "stage": stage,
@@ -448,7 +484,10 @@ def _validate_selection_pair(
                 or (summary.get("status") or {}).get("state") != "success"
                 or str(summary.get("dataset", "")).lower() != dataset
                 or int(summary.get("seed", -1)) != seed
-                or summary.get("processed_profile") != PROFILE
+                or summary.get("processed_profile")
+                != config["split_contract"].processed_profile
+                or summary.get("split_contract")
+                != config["split_contract"].to_manifest()
                 or summary.get("parameter_scope") != "last_layer"
                 or float(budget.get("requested_ratio", -1)) != float(ratio)
                 or budget.get("denominator") != "train_candidate_count"
@@ -596,6 +635,8 @@ def _validate_selection_pair(
         "status": "success",
         "experiment_git_sha": expected_head,
         "parameter_scope": "last_layer",
+        "processed_profile": config["split_contract"].processed_profile,
+        "split_contract": config["split_contract"].to_manifest(),
         "candidate_count": int(first_cold["candidate_count"]),
         "budget_ratios": list(BUDGET_RATIOS),
         "expected_k_by_ratio": {
@@ -728,6 +769,17 @@ def execute_selection(
         str(display_name),
         "--processed-root",
         str(config["paths"]["processed_root"]),
+        "--processed-profile",
+        config["split_contract"].processed_profile,
+        "--train-ratio",
+        str(config["split_contract"].train_ratio),
+        "--val-ratio",
+        str(config["split_contract"].val_ratio),
+        "--test-ratio",
+        str(config["split_contract"].test_ratio),
+        "--split-seed",
+        str(config["split_contract"].split_seed),
+        "--materialize-split-on-miss",
         "--runtime-root",
         str(config["paths"]["runtime_root"]),
         "--cache-root",
@@ -828,6 +880,7 @@ def _ensure_gu_inputs(
         required_seeds=(seed,),
         required_parameter_scope="last_layer",
         strategy_order=FORMAL_STRATEGIES,
+        split_contract=config["split_contract"],
     )
     _write_immutable_json(paths["manifest"][key], manifest)
     gu_config = build_gu_config(

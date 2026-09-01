@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Mapping, Tuple
 
 from cache_v2.runtime import load_selection_artifact
-from experiments.target_direct_v1 import PROFILE
+from experiments.processed_provider import processed_split_contract
 from experiments.target_direct_v1.build_manifest import SCHEMA, VERSION, sha256_file
 from experiments.target_direct_v1.split_profile import verify_profile
 from utils.target_checkpoint import data_identity, load_target_checkpoint
@@ -30,6 +30,11 @@ def load_external_selection_manifest(
         or manifest.get("version") != VERSION
     ):
         raise ValueError("target-direct external manifest schema/version mismatch")
+    split_contract = processed_split_contract(
+        cfg,
+        require_explicit=True,
+        require_profile=True,
+    )
     expected = {
         "dataset": str(cfg["dataset"]).lower(),
         "base_model": str(cfg["base_model"]),
@@ -44,8 +49,8 @@ def load_external_selection_manifest(
             raise ValueError(
                 "target-direct external manifest {0} mismatch".format(field)
             )
-    if manifest.get("processed_profile") != PROFILE:
-        raise ValueError("target-direct processed profile is not canonical")
+    if manifest.get("split_contract") != split_contract.to_manifest():
+        raise ValueError("target-direct split contract mismatch")
     store_root = Path(str(manifest.get("store_root") or "")).resolve()
     if store_root != Path(expected_store_root).resolve():
         raise ValueError("target-direct Selection store root mismatch")
@@ -53,6 +58,7 @@ def load_external_selection_manifest(
         repository_root=Path(__file__).resolve().parents[2],
         processed_root=processed_root,
         dataset=str(cfg["dataset"]),
+        contract=split_contract,
     )
     inputs = profile["inputs"]
     if manifest.get("selection_identity") != profile["manifest"][
@@ -110,7 +116,8 @@ def load_external_selection_manifest(
                 "dataset_name": str(cfg["dataset"]).lower(),
                 "base_model": "GCN",
                 "seed": seed,
-                "processed_profile": PROFILE,
+                "processed_profile": split_contract.processed_profile,
+                "split_contract": split_contract.to_manifest(),
                 "num_epochs": int((cfg.get("defaults") or {}).get("num_epochs", 100)),
                 "gcn_num_layers": int(
                     ((cfg.get("model_overrides") or {}).get("GCN") or {}).get(

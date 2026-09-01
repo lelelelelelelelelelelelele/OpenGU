@@ -40,6 +40,13 @@ def _summary(
         "dataset": "Cora",
         "seed": 42,
         "processed_profile": "planetoid_70_10_20_seed2024",
+        "split_contract": {
+            "processed_profile": "planetoid_70_10_20_seed2024",
+            "train_ratio": 0.7,
+            "val_ratio": 0.1,
+            "test_ratio": 0.2,
+            "split_seed": 2024,
+        },
         "parameter_scope": "last_layer",
         "candidate_count": 1895,
         "budget": {
@@ -85,6 +92,14 @@ def _summary(
 def test_formal_config_freezes_scope_budget_and_excludes_stress():
     config = stage_module.load_config()
 
+    assert config["split_contract"].to_manifest() == {
+        "processed_profile": "planetoid_70_10_20_seed2024",
+        "train_ratio": 0.7,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "split_seed": 2024,
+    }
+    assert config["split"]["materialize_on_miss"] is True
     assert config["main_parameter_scope"] == "last_layer"
     assert "stress_parameter_scope" not in config
     assert "stress_ladder" not in config
@@ -134,6 +149,80 @@ def _write_formal_config(tmp_path, mutate):
         yaml.safe_dump(config, sort_keys=False), encoding="utf-8"
     )
     return config_path, repository_root
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    (
+        ("train_ratio", 0.6),
+        ("val_ratio", 0.2),
+        ("test_ratio", 0.1),
+        ("split_seed", 42),
+        ("materialize_on_miss", False),
+    ),
+)
+def test_formal_config_rejects_unregistered_split_contract(tmp_path, field, value):
+    config_path, repository_root = _write_formal_config(
+        tmp_path,
+        lambda config: config["split"].update({field: value}),
+    )
+
+    with pytest.raises(stage_module.TargetDirectStageError, match="split|frozen"):
+        stage_module.load_config(config_path, repository_root=repository_root)
+
+
+def test_preflight_does_not_materialize_split_before_execution_gates(monkeypatch):
+    config = stage_module.load_config()
+    observed = []
+    monkeypatch.setattr(
+        stage_module,
+        "_git_state",
+        lambda _root: {"branch": "other", "status_short": ["dirty"], "head": GIT_SHA},
+    )
+    monkeypatch.setattr(
+        stage_module,
+        "_profile",
+        lambda _config, _dataset, *, allow_materialize: (
+            observed.append(allow_materialize) or {"manifest_path": "profile.json"}
+        ),
+    )
+
+    result = stage_module._formal_preflight(
+        config,
+        "cora-seed42",
+        require_gpu=False,
+    )
+
+    assert result["ready"] is False
+    assert observed == [False]
+
+
+def test_preflight_allows_registered_split_materialization_after_gates(monkeypatch):
+    config = stage_module.load_config()
+    config["required_branch"] = "ready"
+    config["required_active_checkout"] = str(config["repository_root"])
+    observed = []
+    monkeypatch.setattr(
+        stage_module,
+        "_git_state",
+        lambda _root: {"branch": "ready", "status_short": [], "head": GIT_SHA},
+    )
+    monkeypatch.setattr(
+        stage_module,
+        "_profile",
+        lambda _config, _dataset, *, allow_materialize: (
+            observed.append(allow_materialize) or {"manifest_path": "profile.json"}
+        ),
+    )
+
+    result = stage_module._formal_preflight(
+        config,
+        "cora-seed42",
+        require_gpu=False,
+    )
+
+    assert result["ready"] is True
+    assert observed == [True]
 
 
 @pytest.mark.parametrize(

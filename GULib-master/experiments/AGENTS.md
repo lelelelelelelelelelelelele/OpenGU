@@ -46,7 +46,7 @@ SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专�
 
 ### Target-direct 数据与划分权威
 
-当前 target-direct formal lane 的可执行 dataset、split、candidate pool 和删除预算合同只由 [`configs/syncmate_target_direct_formal_v2.yaml`](configs/syncmate_target_direct_formal_v2.yaml) 及其经过 `target_direct_v1` profile/manifest 校验后的身份拥有。历史 public-split、OpenGU 80/20、固定小 `k` 的报告和配置只作溯源，不能覆盖、补全或推导当前正式参数。任何新的执行入口都必须消费该注册 recipe 并 fail closed；若研究合同改变，创建新的 versioned recipe，不保留兼容分支。
+当前 target-direct formal lane 的可执行 dataset、split、candidate pool 和删除预算合同只由 [`configs/syncmate_target_direct_formal_v2.yaml`](configs/syncmate_target_direct_formal_v2.yaml) 及其经过 `target_direct_v1` profile/manifest 校验后的身份拥有。recipe 必须显式声明 train/validation/test 比例、split seed 与首次缺失时是否允许物化；首次物化复用 OpenGU canonical processed pair，后续运行命中并复用同一 pair，model、selector 或 unlearning seed 不得重新切分。Cache V2 继续只有一个 selection root，并通过 split contract 与实际 `split_hash` 绑定输入身份，不按 split 另建 cache 系统。历史 public-split、OpenGU 80/20、固定小 `k` 的报告和配置只作溯源，不能覆盖、补全或推导当前正式参数。任何新的执行入口都必须消费该注册 recipe 并 fail closed；若研究合同改变，创建新的 versioned recipe，不保留兼容分支。
 
 ## 5. 通用矩阵与证据接缝
 

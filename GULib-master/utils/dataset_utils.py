@@ -68,7 +68,15 @@ def process_data(logger,data,args):
                 with open(filename, 'rb') as file:
                     data = pickle.load(file)
             else:
-                data = transductive_split_node(logger,args,data,train_ratio=args["train_ratio"], val_ratio=args["val_ratio"], test_ratio=args["test_ratio"])
+                data = transductive_split_node(
+                    logger,
+                    args,
+                    data,
+                    train_ratio=args["train_ratio"],
+                    val_ratio=args["val_ratio"],
+                    test_ratio=args["test_ratio"],
+                    split_seed=args.get("split_seed"),
+                )
                 save_data(logger, data, filename)
             
     else:

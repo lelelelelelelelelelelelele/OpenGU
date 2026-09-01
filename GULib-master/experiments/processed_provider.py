@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 import re
-from typing import Any, Mapping, Tuple
+from typing import Any, Dict, Mapping, Tuple
 
 
 class ProcessedArtifactError(RuntimeError):
@@ -13,6 +14,10 @@ class ProcessedArtifactError(RuntimeError):
 
 
 PROCESSED_PROFILE_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+DEFAULT_TRAIN_RATIO = 0.7
+DEFAULT_VALIDATION_RATIO = 0.1
+DEFAULT_TEST_RATIO = 0.2
+DEFAULT_SPLIT_SEED = 2024
 
 
 def normalized_processed_profile(value: Any) -> str:
@@ -31,6 +36,85 @@ def normalized_processed_profile(value: Any) -> str:
             "processed_profile must match {0}".format(PROCESSED_PROFILE_RE.pattern)
         )
     return profile
+
+
+@dataclass(frozen=True)
+class ProcessedSplitContract:
+    """Identity of one persisted OpenGU dataset split."""
+
+    processed_profile: str
+    train_ratio: float
+    val_ratio: float
+    test_ratio: float
+    split_seed: int
+
+    def to_manifest(self) -> Dict[str, Any]:
+        return {
+            "processed_profile": self.processed_profile,
+            "train_ratio": self.train_ratio,
+            "val_ratio": self.val_ratio,
+            "test_ratio": self.test_ratio,
+            "split_seed": self.split_seed,
+        }
+
+
+def processed_split_contract(
+    value: Mapping[str, Any],
+    *,
+    require_explicit: bool = False,
+    require_profile: bool = False,
+) -> ProcessedSplitContract:
+    """Parse and validate the reusable split contract declared by an experiment."""
+
+    split = value.get("split")
+    if split is None:
+        if require_explicit:
+            raise ProcessedArtifactError("split mapping is required")
+        split = {}
+    if not isinstance(split, Mapping):
+        raise ProcessedArtifactError("split must be a mapping")
+    profile = normalized_processed_profile(value.get("processed_profile"))
+    if require_profile and not profile:
+        raise ProcessedArtifactError("processed_profile is required")
+
+    try:
+        train_ratio = float(split.get("train_ratio", DEFAULT_TRAIN_RATIO))
+        val_ratio = float(split.get("val_ratio", DEFAULT_VALIDATION_RATIO))
+        test_ratio = float(split.get("test_ratio", DEFAULT_TEST_RATIO))
+    except (TypeError, ValueError) as exc:
+        raise ProcessedArtifactError("split ratios must be numeric") from exc
+    ratios = (train_ratio, val_ratio, test_ratio)
+    if (
+        any(not math.isfinite(item) for item in ratios)
+        or train_ratio <= 0
+        or val_ratio < 0
+        or test_ratio <= 0
+        or abs(sum(ratios) - 1.0) > 1e-12
+    ):
+        raise ProcessedArtifactError(
+            "split ratios must be finite, train/test positive, validation "
+            "non-negative, and sum to 1"
+        )
+
+    raw_seed = split.get("split_seed", DEFAULT_SPLIT_SEED)
+    if isinstance(raw_seed, bool):
+        raise ProcessedArtifactError("split_seed must be a non-negative integer")
+    try:
+        split_seed = int(raw_seed)
+    except (TypeError, ValueError) as exc:
+        raise ProcessedArtifactError(
+            "split_seed must be a non-negative integer"
+        ) from exc
+    if split_seed < 0 or str(raw_seed).strip() != str(split_seed):
+        raise ProcessedArtifactError("split_seed must be a non-negative integer")
+
+    return ProcessedSplitContract(
+        processed_profile=profile,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio,
+        split_seed=split_seed,
+    )
 
 
 @dataclass(frozen=True)

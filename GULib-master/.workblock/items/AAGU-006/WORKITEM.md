@@ -4,7 +4,7 @@ Block ID: `AAGU-006`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance / candidate verified`
+当前状态: `working / claimed`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -48,13 +48,13 @@ Item Type: Block
 - Route: `formal`.
 - Primary surface: `data / research contract`.
 - Minimum evidence: authoritative split identity, consistent owner links and recipe, contract tests/dry-run, and dashboard drift validation.
-- Confirmation: user delegated registration now; confirm or correct this contract only when the Block is claimed for real execution.
+- Confirmation: the user explicitly requested this in-place rework and confirmed that AAGU-006 must use protocol 2.1 before the new candidate is presented.
 - Report size: paired `REPORT.md` / `REPORT.html` after Verify because this Block changes the human-visible data/research contract; registration and claim create no empty report.
 
 ## Boundaries
 
 - No IF scientific decision, selector choice, formal GPU run, result reinterpretation, or historical evidence deletion.
-- Registration only; later execution must claim this exact locator.
+- Implementation and local verification only; formal GPU execution and every post-accept action remain outside this Run.
 
 ## Status history
 
@@ -72,10 +72,10 @@ Item Type: Block
 - Excluded state: no unrelated dirty state is present. AAGU-019 hard retirement, formal GPU execution, historical Artifact mutation, and scientific IF/selector decisions remain independently owned and excluded.
 - Runtime profile: `local-git`; owned writes are limited to the dataset/split contract, its active consumers/generators, focused tests, and this item package.
 - External boundaries: no formal GPU run, SSH write, live provider, historical Artifact mutation, push, install, Apply, cleanup, or destructive action is authorized before explicit acceptance.
-- Candidate: the clean `codex/aagu-006-dataset-split-authority` `HEAD`; its verified implementation/parent-convergence checkpoint is `77b03eb246a918d611c251927a65722ebb147c71`, and this tracked Record/Report projection advances the live candidate normally.
+- Candidate: the previous dataset/split-authority candidate is superseded by the user-requested rework. Protocol/topology checkpoints `d5f64bc` and `a011a95` preserve the same branch and locator; a new implementation candidate is not yet formed.
 - Evidence: `tests/test_dashboard_refresh.py`, the target-direct split/recipe/manifest/stage suites, `scripts/dashboard/refresh.py --check`, the registered local dry-run, and the paired `REPORT.md` / `REPORT.html` in this item directory.
-- Current human surface: `.workblock/items/AAGU-006/REPORT.md` and `.workblock/items/AAGU-006/REPORT.html`.
-- Restart point: wait for an explicit accept/reject decision. If accepted, invoke `block-closeout` with this same stable locator; if rejected, keep rework inside AAGU-006.
+- Current human surface: the 2.1 `## Human Surface` above; the previous paired Report is superseded and will be rebuilt only after the new Verify.
+- Restart point: continue the YAML-driven split-profile implementation and real cold/warm verification inside this same linked source.
 
 ## Work events
 
@@ -90,8 +90,12 @@ Item Type: Block
 - 2026-08-26 pre-review Verify: the combined AAGU-006 plus accepted-parent suite passed `67/67`; dashboard projection, corrected-root Python compilation, ancestry, clean-status, and diff checks passed. A repeated registered Cora/seed42/1% dry-run bound `HEAD=77b03eb`, accepted the formal-v2 recipe, then stopped only at the declared non-main/non-AutoDL/device/profile/receipt gates with `generated_artifacts=[]`.
 - 2026-08-26 review correction: independent review reproduced that the noncanonical phrase `awaiting human acceptance` parsed as an unknown lifecycle and made the dashboard undercount WIP while still passing projection equality. The Record now uses the existing `awaiting acceptance / candidate verified` grammar, unknown lifecycle values fail drift validation, and WORKPLAN routes directly to the human decision instead of repeating claim/implementation.
 - 2026-08-26 post-review Verify: three lifecycle regressions cover the canonical candidate status, fail-closed unknown status, and the retained AAGU-019 registration status. The combined suite passed `70/70`; the regenerated dashboard projects AAGU-006 as awaiting/WIP, reports two waiting decisions, and passes drift validation.
+- 2026-09-01 rework Resume: installed block-workflow 2.1.2 validated a single-owner linked source, resumed this exact branch with three Git identity commands, and transitioned the existing Claim `eed658bd-1f4f-4eaf-b258-7dd607616064` to `ongoing` revision 4. AAGU-024 and its candidate remain unchanged.
+- 2026-09-02 implementation Verify before candidate: the registered YAML split contract, OpenGU processed-pair cold/warm path, manifest/GU adapter identity, Cache V2 recipe identity and dashboard suites passed `111/111`. The real temporary PyG cold path wrote the pair and manifest once; the warm path returned `reused` with identical bytes and `mtime_ns`. A clean-candidate registered dry-run remains the next check.
 
-## Formal verification and decision note
+## Superseded 2026-08-26 verification note
+
+The observations below describe the previous candidate only. The 2026-09-01 Human Surface materially expands AAGU-006 to the executable split-profile contract, so the old Agent recommendation is no longer a current acceptance recommendation.
 
 - `PASS` — WORKPLAN routes executable AAGU-006 and AAGU-007 nodes to `syncmate_target_direct_formal_v2.yaml`; AAGU-015 keeps its scientific-definition Owner but is explicitly forbidden from reopening historical split/budget lanes.
 - `PASS` — dashboard drift validation resolves explicit WorkItem fact-owner links and rejects a semantically different WORKPLAN Owner; its RED test failed before the implementation and passes now.

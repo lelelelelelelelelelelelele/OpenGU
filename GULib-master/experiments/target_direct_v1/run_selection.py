@@ -46,7 +46,11 @@ from experiments.c_target_v1.score_store import (
 )
 from experiments.selection_budget_planner import materialize_budget_selection
 from experiments.selection_inputs import make_dataset_selection_inputs
-from experiments.target_direct_v1 import PROFILE
+from experiments.processed_provider import (
+    ProcessedArtifactError,
+    processed_split_contract,
+)
+from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT
 from experiments.target_direct_v1.recipe import (
     ALGORITHM_VERSION,
     APPROVED_BUDGET_RATIOS,
@@ -55,7 +59,7 @@ from experiments.target_direct_v1.recipe import (
     SCORE_NAMES,
     build_recipe,
 )
-from experiments.target_direct_v1.split_profile import verify_profile
+from experiments.target_direct_v1.split_profile import stage_profile, verify_profile
 from utils.target_checkpoint import (
     capture_state,
     data_identity,
@@ -83,6 +87,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--dataset", choices=("Cora", "CiteSeer", "PubMed"), required=True
     )
     parser.add_argument("--processed-root", type=Path, required=True)
+    parser.add_argument(
+        "--processed-profile",
+        default=DEFAULT_SPLIT_CONTRACT.processed_profile,
+    )
+    parser.add_argument(
+        "--train-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.train_ratio
+    )
+    parser.add_argument(
+        "--val-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.val_ratio
+    )
+    parser.add_argument(
+        "--test-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.test_ratio
+    )
+    parser.add_argument(
+        "--split-seed", type=int, default=DEFAULT_SPLIT_CONTRACT.split_seed
+    )
+    parser.add_argument("--materialize-split-on-miss", action="store_true")
     parser.add_argument("--runtime-root", type=Path, required=True)
     parser.add_argument("--cache-root", type=Path, required=True)
     parser.add_argument("--selection-cache-root", type=Path, required=True)
@@ -121,6 +142,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _validate_args(args: argparse.Namespace) -> None:
+    try:
+        args.split_contract = processed_split_contract(
+            {
+                "processed_profile": args.processed_profile,
+                "split": {
+                    "train_ratio": args.train_ratio,
+                    "val_ratio": args.val_ratio,
+                    "test_ratio": args.test_ratio,
+                    "split_seed": args.split_seed,
+                },
+            },
+            require_explicit=True,
+            require_profile=True,
+        )
+    except ProcessedArtifactError as exc:
+        raise ValueError(str(exc)) from exc
     if args.seed < 0 or args.num_threads <= 0 or args.epochs <= 0:
         raise ValueError("seed, thread count, and epochs must be positive")
     if not any(
@@ -249,6 +286,7 @@ def _atomic_json(path: Path, value: Mapping[str, Any], overwrite: bool) -> None:
 
 
 def _parameter_argv(args: argparse.Namespace, expected_k: int) -> Sequence[str]:
+    contract = args.split_contract
     return [
         str(Path(__file__).resolve()),
         "--root_path",
@@ -258,7 +296,7 @@ def _parameter_argv(args: argparse.Namespace, expected_k: int) -> Sequence[str]:
         "--processed_root",
         str(args.processed_root.expanduser().resolve()),
         "--processed_profile",
-        PROFILE,
+        contract.processed_profile,
         "--dataset_name",
         args.dataset.lower(),
         "--base_model",
@@ -266,11 +304,13 @@ def _parameter_argv(args: argparse.Namespace, expected_k: int) -> Sequence[str]:
         "--unlearning_methods",
         "GNNDelete",
         "--train_ratio",
-        "0.7",
+        str(contract.train_ratio),
         "--val_ratio",
-        "0.1",
+        str(contract.val_ratio),
         "--test_ratio",
-        "0.2",
+        str(contract.test_ratio),
+        "--split_seed",
+        str(contract.split_seed),
         "--unlearn_ratio",
         str(args.ratio),
         "--proportion_unlearned_nodes",
@@ -305,6 +345,7 @@ def _prepare_target(
     from attack.pipeline_adapter import AttackPipeline
 
     runtime_args = parameter_parser()
+    runtime_args["split_contract"] = args.split_contract.to_manifest()
     runtime_args["seed"] = int(args.seed)
     runtime_args["target_direct_checkpoint_epochs"] = tuple(
         int(value) for value in args.checkpoint_epochs
@@ -325,7 +366,8 @@ def _prepare_target(
                 "dataset_name": args.dataset.lower(),
                 "base_model": "GCN",
                 "seed": int(args.seed),
-                "processed_profile": PROFILE,
+                "processed_profile": args.split_contract.processed_profile,
+                "split_contract": args.split_contract.to_manifest(),
                 "num_epochs": int(args.epochs),
                 "gcn_num_layers": int(args.gcn_num_layers),
                 "gcn_hidden": int(args.gcn_hidden),
@@ -362,7 +404,8 @@ def _prepare_target(
             "dataset_name": args.dataset.lower(),
             "base_model": "GCN",
             "seed": int(args.seed),
-            "processed_profile": PROFILE,
+            "processed_profile": args.split_contract.processed_profile,
+            "split_contract": args.split_contract.to_manifest(),
             "num_epochs": int(args.epochs),
             "gcn_num_layers": int(args.gcn_num_layers),
             "gcn_hidden": int(args.gcn_hidden),
@@ -450,10 +493,14 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
     git_provenance = _git_provenance(
         args.experiment_git_sha, args.allow_dirty
     )
-    profile = verify_profile(
+    profile_loader = (
+        stage_profile if args.materialize_split_on_miss else verify_profile
+    )
+    profile = profile_loader(
         repository_root=REPO_ROOT,
         processed_root=args.processed_root,
         dataset=args.dataset,
+        contract=args.split_contract,
     )
     candidate_count = int(profile["inputs"].candidate_count)
     expected_k = max(1, int(candidate_count * float(args.ratio)))
@@ -493,6 +540,7 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         Path(__file__).resolve(),
         Path(__file__).with_name("recipe.py"),
         Path(__file__).with_name("split_profile.py"),
+        REPO_ROOT / "experiments" / "processed_provider.py",
         REPO_ROOT / "utils" / "node_split.py",
         REPO_ROOT / "experiments" / "bc_target_v2" / "run_selection.py",
         REPO_ROOT / "experiments" / "bc_target_v2" / "core.py",
@@ -518,7 +566,9 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "dataset": args.dataset,
             "dataset_family": "Planetoid",
             "dataset_adapter": "OpenGU persisted processed pair",
-            "split_policy": PROFILE,
+            "split_policy": profile["manifest"]["split_observation"]["policy"],
+            "processed_profile": args.split_contract.processed_profile,
+            "split_contract": args.split_contract.to_manifest(),
             "dataset_source_fingerprint": profile["manifest"][
                 "dataset_source"
             ]["source_fingerprint"],
@@ -957,7 +1007,8 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
         "dataset": args.dataset,
         "model": "OpenGU.GCNNet",
         "seed": int(args.seed),
-        "processed_profile": PROFILE,
+        "processed_profile": args.split_contract.processed_profile,
+        "split_contract": args.split_contract.to_manifest(),
         "candidate_count": candidate_count,
         "target_count": int(target_ids.numel()),
         "budget": {
@@ -1067,7 +1118,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             },
             "dataset": parsed.dataset,
             "seed": int(parsed.seed),
-            "processed_profile": PROFILE,
+            "processed_profile": parsed.processed_profile,
+            "split_contract": {
+                "processed_profile": parsed.processed_profile,
+                "train_ratio": float(parsed.train_ratio),
+                "val_ratio": float(parsed.val_ratio),
+                "test_ratio": float(parsed.test_ratio),
+                "split_seed": int(parsed.split_seed),
+            },
             "parameter_scope": parsed.parameter_scope,
             "budget": {
                 "requested_ratio": float(parsed.ratio),
