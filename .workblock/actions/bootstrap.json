@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "action": "bootstrap",
+  "instruction": "Repair or initialize the explicitly selected AutoDL OpenGU runtime environment using the project's current environment guidance. This action may install CUDA/Python dependencies only when invoked by name; it must not run as part of routine deploy.",
+  "workingDirectory": ".",
+  "targets": [
+    "ssh://autodl-opengu/autodl-fs/data/OpenGU/environment"
+  ],
+  "preconditions": [
+    "Confirm bootstrap was explicitly requested, the active checkout is /autodl-fs/data/OpenGU, and the remote GPU/CUDA/Python baseline has been observed rather than guessed.",
+    "Confirm a recoverable environment plan and enough remote storage exist before installing or removing dependencies."
+  ],
+  "permissions": {
+    "write": [],
+    "delete": [],
+    "network": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU/environment"
+    ]
+  },
+  "secretRefs": [],
+  "readBack": "Read back the selected Python environment, CUDA/PyTorch compatibility, required package imports and one project preflight. Report bootstrap verified only when those exact checks pass; do not claim that any experiment has run.",
+  "onFailure": "stop"
+}
