@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAGU-023 · Legacy evidence inventory and archive</title>
+  <style>
+    :root { color-scheme: dark; --bg:#071016; --panel:#101d25; --line:#27404d; --text:#e8f0f2; --muted:#9fb2bb; --cyan:#66d9d0; --green:#7ee0a1; --amber:#ffd166; --red:#ff8f8f; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:linear-gradient(145deg,#071016 0%,#0c171e 55%,#071016 100%); color:var(--text); font:16px/1.62 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(1120px,calc(100% - 32px)); margin:32px auto 72px; }
+    header { margin-bottom:18px; }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem,4vw,3.3rem); line-height:1.08; letter-spacing:-.035em; }
+    h2 { margin:42px 0 14px; font-size:1.55rem; }
+    h3 { margin:22px 0 8px; font-size:1.08rem; color:#d9e7eb; }
+    p { margin:8px 0 14px; }
+    code { color:#b8f4ef; background:#0a141a; border:1px solid #203641; padding:.08rem .35rem; border-radius:5px; overflow-wrap:anywhere; }
+    a { color:#8eece5; }
+    .eyebrow { color:var(--cyan); font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:.78rem; }
+    .sub { color:var(--muted); max-width:72ch; }
+    section { background:rgba(16,29,37,.92); border:1px solid var(--line); border-radius:16px; padding:clamp(18px,3vw,34px); box-shadow:0 18px 50px rgba(0,0,0,.22); }
+    section + section { margin-top:20px; }
+    [data-workblock-human-result] { border-top:4px solid var(--cyan); }
+    .decision { display:flex; gap:14px; align-items:center; flex-wrap:wrap; padding:14px 16px; border:1px solid #765f2a; background:#2a2414; border-radius:10px; }
+    [data-workblock-decision] { display:inline-block; color:#1b1707; background:var(--amber); font-weight:800; padding:5px 11px; border-radius:999px; }
+    .recommend { color:var(--amber); font-weight:800; }
+    .observations { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }
+    .obs { border:1px solid var(--line); background:#0a151b; border-radius:11px; padding:14px; min-width:0; }
+    .obs strong { display:block; margin-bottom:5px; }
+    .pass { color:var(--green); }
+    .unknown { color:var(--amber); }
+    .no { color:var(--red); }
+    .metricbar { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:16px 0 6px; }
+    .metric { background:#09141a; border:1px solid var(--line); padding:13px; border-radius:10px; }
+    .metric b { display:block; font-size:1.55rem; color:var(--cyan); }
+    .metric span { color:var(--muted); font-size:.88rem; }
+    table { width:100%; border-collapse:collapse; font-size:.92rem; }
+    th,td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }
+    th { color:var(--cyan); }
+    .tablewrap { overflow-x:auto; }
+    ol,ul { padding-left:1.25rem; }
+    li + li { margin-top:7px; }
+    .muted { color:var(--muted); }
+    .evidence { display:flex; flex-wrap:wrap; gap:8px; padding:0; list-style:none; }
+    .evidence a { display:block; border:1px solid var(--line); background:#09141a; padding:8px 10px; border-radius:8px; text-decoration:none; }
+    footer { color:var(--muted); margin-top:24px; font-size:.9rem; }
+    @media (max-width:760px) { main{width:min(100% - 20px,1120px);margin-top:14px}.observations,.metricbar{grid-template-columns:1fr}section{border-radius:12px;padding:17px}h1{font-size:2rem}th,td{min-width:150px} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Formal acceptance · data / lifecycle / integration</div>
+    <h1>AAGU-023 · Legacy evidence inventory and archive</h1>
+    <p class="sub">精确登记旧证据，保留归档门槛；本报告不把本地 scoped PASS 冒充 SSH 双端验收。</p>
+  </header>
+
+  <section data-workblock-human-result="2.1">
+    <h2>Human Result</h2>
+    <h3>实际增量</h3>
+    <p>本候选把 <code>results/</code> 的旧证据拆成 20 个真实批次，新增只读、write-once 的 inventory / retirement-ledger 生成器；逐文件记录路径、大小、mtime、SHA-256 与 Git 状态，并把 Cache V2 固定为 protected path。</p>
+    <p>三个既有 archive 的隔离状态得到复核；其余批次没有达到 <code>REPLACED</code> 或仍有消费者，因此原位保留。新增物理移动 0、删除 0、Cache V2 写入 0。</p>
+
+    <h3>核心观察</h3>
+    <div class="metricbar">
+      <div class="metric"><b>20</b><span>登记批次</span></div>
+      <div class="metric"><b>7,044</b><span>本地 evidence 文件</span></div>
+      <div class="metric"><b>74</b><span>Legacy consumer refs</span></div>
+      <div class="metric"><b>0</b><span>move / delete / V2 write</span></div>
+    </div>
+    <div class="observations">
+      <div class="obs"><strong class="pass">PASS · 本地 data</strong>三棵 Legacy 根分别登记为 8 / 9 / 26 文件；仅两个当前治理文件在 retirement scope 外。</div>
+      <div class="obs"><strong class="pass">PASS · lifecycle</strong>两次 manifest 无 batch/protected-path 变化；Cache V2 锚保持 32 文件 / 983,515 bytes。</div>
+      <div class="obs"><strong class="pass">PASS · integration</strong><code>67be158e…</code> 的相关回归 21/21，dashboard check 通过，tracked diff 不含 <code>results/</code> payload。</div>
+      <div class="obs"><strong class="unknown">NOT OBSERVED · SSH</strong>三组 OpenGU alias 均在远端命令前拒绝连接；5 个双端批次和 parity 未观察。</div>
+    </div>
+    <p><strong class="unknown">NOT CONFIRMED：</strong>没有批次达到 <code>REPLACED</code> 且引用为零，所以活动 Cache 与混合 <code>results/runs</code> 均不可移动。</p>
+
+    <h3>当前决定</h3>
+    <div class="decision"><span data-workblock-decision="pending">待决定</span><span><strong class="recommend">Agent 建议：证据不足。</strong> 本地候选精确，但 Human Surface 要求的 SSH parity 尚无实时证据。决定者为用户。</span></div>
+  </section>
+
+  <section>
+    <h2>Data · 前后状态</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>判断面</th><th>目标状态</th><th>当前实测</th><th>结论</th></tr></thead>
+      <tbody>
+        <tr><td>批次边界</td><td>逐批身份，不按目录/mtime 混批</td><td>20 批；runs 拆为五个子批</td><td class="pass">PASS</td></tr>
+        <tr><td>Legacy Cache</td><td>三根分开，新批次禁止复用</td><td>8 / 9 / 26 文件；74 refs</td><td><span class="pass">登记 PASS</span><br><span class="unknown">移动未确认</span></td></tr>
+        <tr><td>既有 archive</td><td>原位隔离且内容保持</td><td>2,675 / 28 / 126 文件，前后不变</td><td class="pass">PASS</td></tr>
+        <tr><td>Cache V2</td><td>不写、不移、不进入 retirement batch</td><td>32 文件 / 983,515 bytes，不变</td><td class="pass">PASS</td></tr>
+        <tr><td>双端一致</td><td>本机与 SSH ledger 可对照</td><td>本机已观察；SSH 不可达</td><td class="unknown">NOT OBSERVED</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="evidence">
+      <li><a href="evidence/batch-plan.json">批次计划</a></li>
+      <li><a href="evidence/local-inventory-before.json">本地前置 manifest</a></li>
+      <li><a href="evidence/local-inventory-after.json">本地后置 manifest</a></li>
+      <li><a href="evidence/local-inventory-comparison.json">前后比较</a></li>
+      <li><a href="evidence/retirement-ledger.json">共同 ledger</a></li>
+    </ul>
+    <p class="muted">这些证据能证明本地批次、内容锚和零动作；不能证明 2026-09-02 的 SSH 实时内容。</p>
+  </section>
+
+  <section>
+    <h2>Lifecycle · 实际过程</h2>
+    <ol>
+      <li>同一 AAGU-023 在 <code>main@3ec3d564…</code> 上由唯一 Run 入口 Claim；没有 sibling Record。</li>
+      <li>本地 7,044 个 evidence 文件进入 19 个精确本地批次；两个治理文件显式排除。</li>
+      <li>先写 write-once manifest，再尝试只读 SSH；连接在任何远端命令前失败，远端零动作。</li>
+      <li>第二次读取同一批次：batch changes 0、protected changes 0、moves 0、deletions 0。</li>
+      <li>共同 ledger 对 5 个 SSH pairing 标记 <code>NOT_OBSERVED</code>，没有用旧文档补成当前事实。</li>
+      <li>implementation checkpoint 验证完成；本 Report 与状态投影将形成最终 report-bearing candidate。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Integration · 候选整体行为</h2>
+    <p>Plan 禁止 Cache V2 进入 retirement batch；inventory 只读结果树；comparison 证明零变化；ledger 在 SSH 缺失时 fail closed；dashboard 不再把已 Claim 的 AAGU-023 显示为待 Promote Todo。</p>
+    <p>实际观察到 SSH 不可达时 <code>device_parity_confirmed=false</code>、archive-eligible batch 为空、所有 action list 为空。本地组合行为得到支持，但跨设备核心验收仍不能成立。</p>
+  </section>
+
+  <section>
+    <h2>已知缺口与技术附录</h2>
+    <ul>
+      <li class="unknown">尚未观察 SSH 当前 payload hash、远端消费者、Cache V2 锚和双端 parity。</li>
+      <li>不判断正式 GPU 实验、科学性能、payload 删除或 Cache V2 Artifact 修复。</li>
+      <li>远端恢复后若发现 drift，必须在同一 AAGU-023 返工，不得在 Closeout 中猜测。</li>
+      <li>Baseline <code>3ec3d56476f008f7bfc94b4e62a70efd239be6e2</code>；implementation checkpoint <code>67be158e77460a26ca3aaa201f0eeb3fc1815a05</code>。</li>
+      <li>验证：21 passed；compile、dashboard、evidence invariants、ancestry、clean status、result diff 与 diff-check 均通过。</li>
+    </ul>
+    <p class="muted">HTML 渲染检查：NOT OBSERVED。结构 validator 已通过；in-app browser 无法访问本机 loopback，安全策略也禁止本地 file URL，因此没有声称桌面或窄屏视觉 PASS。</p>
+  </section>
+  <footer>Evidence surface: fresh local data / lifecycle / integration. SSH is a connection-failure observation, not a remote inventory snapshot.</footer>
+</main>
+</body>
+</html>

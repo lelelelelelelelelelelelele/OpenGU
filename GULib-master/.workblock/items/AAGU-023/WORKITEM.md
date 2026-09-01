@@ -12,7 +12,7 @@ Execution topology: `sequential`
 > Source branch：`refs/heads/codex/aagu-023-legacy-evidence-archive`
 
 > Remote target：`origin refs/heads/main`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 
 ## Human Surface
@@ -75,6 +75,7 @@ Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 - 2026-09-02: Upgraded the same Todo from WorkItem 2.0 to 2.1 without changing its identity, status, or cleanup authority.
 - 2026-09-02: Promoted the same `AAGU-023` to a formal, sequential Block after human confirmation; remains `registered / not claimed`.
 - 2026-09-02: Claimed as the same Block by session `AAGU-023 · Legacy evidence inventory and archive`; Claim `2c8e25f2-5ca9-42a1-82ee-a3a3c2b6693e` is `ongoing` revision 1.
+- 2026-09-02: Paired formal Report completed and the same Claim transitioned to `awaiting_acceptance` revision 2. Agent recommendation remains `证据不足` because live SSH parity is `NOT OBSERVED`; this status is not human acceptance.
 
 ## Run inventory and archive decision
 
@@ -95,3 +96,11 @@ Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 - `PASS` — the local data/lifecycle surface is deterministic: 20 declared batches, 7,044 assigned evidence files, two explicitly excluded governance files, zero moves, zero deletions, and unchanged Cache V2 anchor.
 - `NOT OBSERVED` — live SSH payload hashes, remote consumer count, and local/SSH ledger parity could not be verified while the AutoDL endpoint was unavailable.
 - `NOT CONFIRMED` — no physical archive action is eligible because no newly observed batch has reached `REPLACED` with zero downstream references; this is a gate result, not permission to weaken the state machine.
+
+## Candidate verification
+
+- Implementation checkpoint `67be158e77460a26ca3aaa201f0eeb3fc1815a05` is a clean descendant of baseline `3ec3d56476f008f7bfc94b4e62a70efd239be6e2`; its tracked diff contains only this item package, the inventory generator and test, and generator-owned dashboard sources/projection. No tracked `results/` or Cache V2 path changed.
+- Candidate Verify reproduced `21/21` relevant tests, Python compilation, dashboard projection check, evidence invariant assertions, ancestry, clean status, and diff checks. Machine evidence hashes are plan `d0bd91b8…`, before `618e274b…`, after `3d7b5e8a…`, comparison `3a88d561…`, and ledger `d5eca3d0…`.
+- Formal paired decision surface: `REPORT.md` and `REPORT.html`. It recommends `证据不足`, keeps the user decision pending, and does not convert the missing SSH parity into a PASS.
+- Report structure validator passes. HTML visual QA is `NOT OBSERVED`: the in-app browser could not reach the local loopback server and its security policy blocked local `file:` navigation; no alternate browser or policy bypass was used.
+- The final decision candidate is the clean report-bearing `HEAD` formed after the paired Report, HTML inspection result, and `awaiting_acceptance` Record projection are committed. The implementation checkpoint above remains the tested content anchor for report-only evidence reuse.
