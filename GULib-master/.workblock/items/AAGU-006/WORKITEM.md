@@ -12,7 +12,9 @@ Item Version: 2.1
 
 > Source branch：`refs/heads/codex/aagu-006-dataset-split-authority`
 
-Execution topology: `sequential`
+Execution topology: `parallel`
+
+Parallel owner: `Codex` session `统计现有 Fix Blocks` branch `refs/heads/codex/aagu-006-dataset-split-authority`
 
 Item Type: Block
 
@@ -59,6 +61,7 @@ Item Type: Block
 - 2026-08-26: registered from the prominent WORKPLAN dataset/split repair Todo under delegated registration authority.
 - 2026-08-26: claimed by the Codex task `AAGU-006 · FIX · 目标实验 Dataset/Split 权威修复` after the user explicitly said to start this P0 root Block.
 - 2026-09-01: the user explicitly requested rework and authorized an in-place protocol 2.1 upgrade; the same locator now defines the reusable YAML-driven split-profile contract before Run resumes.
+- 2026-09-01: the user selected single-owner `parallel` so this same source can resume truthfully in its existing linked worktree while canonical A remains owned by AAGU-024.
 
 ## Claim and runtime record
 
