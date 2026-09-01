@@ -58,31 +58,68 @@ def test_active_python_surface_has_no_legacy_runtime_reference():
     assert matches == {}
 
 
-def test_current_formal_config_keeps_exact_ratio_conditioned_contract():
+def test_current_formal_config_derives_ratio_conditioned_contract():
     config = yaml.safe_load(
         (ROOT / "experiments" / "configs" / "syncmate_target_direct_formal_v2.yaml")
         .read_text(encoding="utf-8")
     )
     assert config["version"] == 2
+    assert config["split"] == {
+        "train_ratio": 0.7,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "split_seed": 2024,
+        "materialize_on_miss": True,
+    }
     assert config["budget_ratios"] == [0.01, 0.05]
     assert config["budget_rounding"] == "floor_with_minimum_one"
     assert config["datasets"] == {
         "cora": {
             "display_name": "Cora",
-            "expected_candidate_count": 1895,
-            "expected_k_by_ratio": {"0.01": 18, "0.05": 94},
+            "num_nodes": 2708,
         },
         "citeseer": {
             "display_name": "CiteSeer",
-            "expected_candidate_count": 2328,
-            "expected_k_by_ratio": {"0.01": 23, "0.05": 116},
+            "num_nodes": 3327,
         },
         "pubmed": {
             "display_name": "PubMed",
-            "expected_candidate_count": 13801,
-            "expected_k_by_ratio": {"0.01": 138, "0.05": 690},
+            "num_nodes": 19717,
         },
     }
+    train_ratio = config["split"]["train_ratio"]
+    derived = {}
+    for dataset, settings in config["datasets"].items():
+        candidate_count = int(settings["num_nodes"] * train_ratio)
+        derived[dataset] = {
+            "candidate_count": candidate_count,
+            "k_by_ratio": {
+                str(ratio): max(
+                    1,
+                    int(candidate_count * ratio),
+                )
+                for ratio in config["budget_ratios"]
+            },
+        }
+    assert derived == {
+        "cora": {
+            "candidate_count": 1895,
+            "k_by_ratio": {"0.01": 18, "0.05": 94},
+        },
+        "citeseer": {
+            "candidate_count": 2328,
+            "k_by_ratio": {"0.01": 23, "0.05": 116},
+        },
+        "pubmed": {
+            "candidate_count": 13801,
+            "k_by_ratio": {"0.01": 138, "0.05": 690},
+        },
+    }
+    assert all(
+        "expected_candidate_count" not in settings
+        and "expected_k_by_ratio" not in settings
+        for settings in config["datasets"].values()
+    )
     assert "selection_k" not in config
 
 
