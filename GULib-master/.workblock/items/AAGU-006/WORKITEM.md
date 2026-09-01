@@ -8,7 +8,7 @@ Item Version: 2.1
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
-> Git baseline：`9d36a30a38e3f90d4bc2081014c400037ed25404`
+> Git baseline：`6be95c74f230cbfcb6a99d0166ba8b1d143e5416`
 
 > Source branch：`refs/heads/codex/aagu-006-dataset-split-authority`
 
