@@ -2,11 +2,35 @@
 
 Block ID: `AAGU-006`
 
+Item Version: 2.1
+
 当前状态: `awaiting acceptance / candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
+> Git baseline：`9d36a30a38e3f90d4bc2081014c400037ed25404`
+
+> Source branch：`refs/heads/codex/aagu-006-dataset-split-authority`
+
+Execution topology: `sequential`
+
 Item Type: Block
+
+## Human Surface
+
+### 核心意图
+
+让正式实验的数据划分成为可声明、可复用、可校验的独立数据状态，而不是由每次实验运行或随机种子临时重切。实验配置默认声明 `0.7 / 0.1 / 0.2` 的 train/validation/test 比例和固定 split seed；同一数据集与同一划分合同只生成一次，之后所有模型、selector 和 unlearning 实验消费同一份已持久化划分。
+
+### 本次增量
+
+复用 OpenGU 现有的“划分后保存 pickle、后续直接加载”基础设施，把当前 target-direct 的硬编码常量收敛为 YAML 驱动的通用 split profile 合同。运行代码读取配置中的比例、split seed 和 profile 身份：首次没有匹配 profile 时生成 masks、pickle 与 manifest；已有完全匹配的 profile 时直接命中并复用，不重新划分。Cache V2 不建立按 seed 分裂的新目录，但其 Recipe/Artifact 必须绑定实际 `split_hash` 和候选集身份，任何配置、manifest 与持久化数据不一致都 fail closed。
+
+### 核心验收
+
+- 正式实验 YAML 能显式声明并默认使用 `0.7 / 0.1 / 0.2` 与固定 split seed，运行入口不再用另一套硬编码比例覆盖注册内容。
+- 真实冷路径测试会完成一次划分、保存可再次加载的 processed profile；真实热路径测试会命中同一 profile，证明没有重新划分或覆写，且不同模型、selector、unlearning seed 仍消费相同的 masks 与 `split_hash`。
+- split 比例、split seed、profile、manifest、持久化 masks 或 Cache V2 输入身份发生冲突时会明确拒绝；测试同时证明复用了 OpenGU 的持久化数据加载路径，而不是另建 target-direct 私有数据系统。
 
 ## Orchestration contract
 
@@ -25,41 +49,6 @@ Item Type: Block
 - Confirmation: user delegated registration now; confirm or correct this contract only when the Block is claimed for real execution.
 - Report size: paired `REPORT.md` / `REPORT.html` after Verify because this Block changes the human-visible data/research contract; registration and claim create no empty report.
 
-## Confirmed acceptance brief
-
-### 当前基线
-
-目标实验的活跃计划、可执行配置和历史文字尚未收敛到一个可验证的 dataset/split 身份，因此后续实验定义与 target-direct 执行不能安全前进。
-
-### 这次增量
-
-把活跃规划和可执行配置统一到一个明确的 dataset/split 权威入口，删除活跃表面中并行保留的过时 split/budget 路径。
-
-### 完成后人会看到什么
-
-从 WORKPLAN 进入目标实验时，所有活跃链接和 recipe 都指向同一个已验证的数据/划分合同，不再有可被误执行的旧口径。
-
-### 验收项目
-
-- 活跃计划、owner 链接和可执行 recipe 对 dataset/split 的定义一致。
-- 旧 split/budget 身份无法从当前正式入口启动，且没有用兼容分支保留第二条活跃路径。
-- 不一致的 dataset/split 或预算身份会 fail closed，而不是静默改写或降级。
-- 仓库的定向合同测试、注册 dry-run 和 dashboard drift 校验一致支持这个权威入口。
-
-### 主要证据
-
-- dataset/split 权威定义与活跃消费者对照：帮助判断是否真正只剩一个合同。
-- 定向 RED/GREEN 合同测试和注册 dry-run：帮助判断正确路径可执行且冲突路径会被拒绝。
-- WORKPLAN/dashboard 重建与 drift 检查：帮助判断人类可见状态没有继续引用旧口径。
-
-### 关键 non-goals
-
-- 不在本 Block 选择 IF/selector，不运行正式 GPU 实验，不重解释或删除历史证据。
-
-### 需要人的决定
-
-用户已批准按这个范围开工；Verify 完成后由用户对精确候选明确接受、拒绝或要求返工，验证通过不代表自动接受。
-
 ## Boundaries
 
 - No IF scientific decision, selector choice, formal GPU run, result reinterpretation, or historical evidence deletion.
@@ -69,6 +58,7 @@ Item Type: Block
 
 - 2026-08-26: registered from the prominent WORKPLAN dataset/split repair Todo under delegated registration authority.
 - 2026-08-26: claimed by the Codex task `AAGU-006 · FIX · 目标实验 Dataset/Split 权威修复` after the user explicitly said to start this P0 root Block.
+- 2026-09-01: the user explicitly requested rework and authorized an in-place protocol 2.1 upgrade; the same locator now defines the reusable YAML-driven split-profile contract before Run resumes.
 
 ## Claim and runtime record
 
