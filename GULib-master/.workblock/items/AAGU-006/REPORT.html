@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AAGU-006 · 可复用 Dataset Split 合同</title>
+  <title>AAGU-006 · 默认可覆盖、合同可复用的 Dataset Split</title>
   <style>
     :root { color-scheme:dark; --bg:#07101d; --panel:#101d31; --text:#edf4ff; --muted:#9db0cb; --line:#2a4163; --cyan:#59ddd4; --green:#85e6a0; --amber:#ffd06f; --blue:#83b2ff; }
     * { box-sizing:border-box; }
@@ -46,12 +46,12 @@
 <main>
   <header>
     <p class="eyebrow">WorkBlock Acceptance · AAGU-006</p>
-    <h1>可复用 Dataset Split 合同</h1>
-    <p class="lede">正式实验的 split 已从隐式运行行为收敛为 YAML 声明、一次持久化、后续命中复用的独立数据状态；Cache V2 继续使用一个 store，并通过实际 split 身份区分 hit。</p>
+    <h1>默认可覆盖、合同可复用的 Dataset Split</h1>
+    <p class="lede">当前注册默认是 70/10/20，但 loader 不再把 default 当作白名单；相同规范化合同只保存一次，不同合法合同可以并存，注册与运行链都从 YAML 派生身份。</p>
     <div class="meta">
       <span class="pill">事实日期 2026-09-02</span>
-      <span class="pill">实现检查点 439b876c</span>
-      <span class="pill">clean candidate 111 passed</span>
+      <span class="pill">实现检查点 13083d68</span>
+      <span class="pill">250 passed · 1 deselected</span>
       <span class="pill">正式 GPU 未运行</span>
     </div>
   </header>
@@ -61,45 +61,47 @@
     <div class="result-grid">
       <div class="block">
         <h3>实际增量</h3>
-        <p><code>syncmate_target_direct_formal_v2.yaml</code> 显式登记 <code>0.7 / 0.1 / 0.2</code>、<code>split_seed=2024</code> 与 cold materialize 权限。launcher、processed profile、Selection summary、manifest、GU YAML 和 adapter 消费同一合同。</p>
-        <p>cold miss 写 OpenGU canonical pickle pair 与 manifest；warm hit 校验后直接复用。Cache V2 不另建 split-specific 根，而是在 Recipe 中绑定 split contract、实际 <code>split_hash</code> 和候选集身份。</p>
+        <p><code>syncmate_target_direct_formal_v2.yaml</code> 只登记 split mapping；当前 default 是 <code>0.7 / 0.1 / 0.2</code> 与 <code>split_seed=2024</code>。profile、candidate count 和预算 <code>k</code> 均从合同派生。</p>
+        <p><code>0.7</code> 与 <code>0.70</code> 命中同一 OpenGU pickle pair；另一组合法合同生成不同 profile 并与 default 并存。Cache V2 保持一个 root，以实际 <code>split_hash</code> 区分 identity。</p>
       </div>
       <div class="block">
         <h3>核心观察</h3>
         <ul>
-          <li><span class="pass">PASS</span> cold 实际写入三份持久化文件。</li>
-          <li><span class="pass">PASS</span> warm 返回 <code>reused</code>，bytes 与 <code>mtime_ns</code> 不变。</li>
-          <li><span class="pass">PASS</span> model seed 42/212 消费同一 split seed 与 masks 身份。</li>
-          <li><span class="pass">PASS</span> clean SHA 上 111 项回归与 dashboard 通过。</li>
-          <li><span class="scoped">PASS · scoped</span> registered dry-run 零物化、零 Artifact。</li>
+          <li><span class="pass">PASS</span> <code>0.6/0.2/0.2 + seed42</code> 通过同一 loader/runner。</li>
+          <li><span class="pass">PASS</span> 等价 default warm hit，bytes、<code>mtime_ns</code>、<code>split_hash</code> 不变。</li>
+          <li><span class="pass">PASS</span> 不同合同得到不同路径和 split hash，可同时存在。</li>
+          <li><span class="pass">PASS</span> 29 个 target-direct recipe 投影同一 YAML default。</li>
+          <li><span class="scoped">PASS · scoped</span> 250 项回归；registered preflight 零物化。</li>
         </ul>
       </div>
       <div class="block full recommend">
         <h3>当前决定</h3>
         <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="pending">待决定</span></div>
-        <p><b>Agent 建议：建议接受。</b> 实际文件行为与 cache identity 都支持“一次 split、后续复用”；候选没有运行正式实验或扩张科研结论。</p>
+        <p><b>Agent 建议：建议接受。</b> frozen-default 语义已取消；相同合同只保存一次、不同合法合同保留多样性，且当前正式注册全部消费 YAML。</p>
         <p>决定人：刘丞毓。可以接受，或指出具体返工项。</p>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>真实行为证据</h2>
+    <h2>真实行为与注册证据</h2>
     <table>
       <thead><tr><th>场景</th><th>实际观察</th><th>判断</th></tr></thead>
       <tbody>
-        <tr><td>cold create</td><td>真实 PyG Data 在临时 canonical root 生成 masks、data pickle、dataset pickle 与 manifest。</td><td class="pass">PASS</td></tr>
-        <tr><td>warm hit</td><td>返回 <code>reused</code>；三份文件 bytes 与纳秒修改时间不变；cold/warm data identity 相同。</td><td class="pass">PASS</td></tr>
-        <tr><td>seed 隔离</td><td>model seed 42 与 212 产生同一 profile/ratio/split-seed 参数；显式 provider 不调用重切函数。</td><td class="pass">PASS</td></tr>
-        <tr><td>Cache V2</td><td>Recipe 保留 <code>data_identity.split_hash</code> 和 candidate IDs hash；同 split 可 hit，不同 masks 自然形成不同 Recipe。</td><td class="pass">PASS</td></tr>
-        <tr><td>registered dry-run</td><td>绑定当前 clean HEAD 后在正式环境 gate 处停止，<code>generated_artifacts=[]</code>，本地 processed 文件数为 0。</td><td class="scoped">PASS · scoped</td></tr>
+        <tr><td>当前 default</td><td>YAML 派生 <code>planetoid_70_10_20_seed2024</code> 与既有三数据集 candidate/预算值，不再重复登记派生字段。</td><td class="pass">PASS</td></tr>
+        <tr><td>合法 alternate</td><td><code>0.6/0.2/0.2 + seed42</code> 通过 formal loader 和 direct runner，派生独立 profile 与预算。</td><td class="pass">PASS</td></tr>
+        <tr><td>等价合同复用</td><td>真实 cold 创建后，<code>0.70/0.10/0.20</code> warm 返回 <code>reused</code>；bytes、纳秒修改时间与 split hash 不变。</td><td class="pass">PASS</td></tr>
+        <tr><td>不同合同并存</td><td>alternate 生成不同 pickle path 和 <code>split_hash</code>；default 文件未改写。</td><td class="pass">PASS</td></tr>
+        <tr><td>注册投影</td><td>AAGU-006/AAGU-007 共用 fact owner；9 Selection + 2 gate + 18 GU stage recipe 都携带同一 default contract。</td><td class="pass">PASS</td></tr>
+        <tr><td>registered preflight</td><td>绑定 clean SHA <code>13083d68</code> 后在正式环境 gate 处停止，<code>generated_artifacts=[]</code>，processed 文件前后均为 0。</td><td class="scoped">PASS · scoped</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>为什么不需要多个 split cache</h2>
-    <p>数据划分本身由 processed profile 持久化；Selection 证据由 Cache V2 exact Recipe 管理。Recipe 绑定 YAML split contract、pickle/图 SHA、实际 masks 的 <code>split_hash</code>、candidate IDs 和 target IDs。相同数据状态复用同一身份，不同数据状态自然 miss，因此无需为每个 seed 或 split 新建 Cache 根。</p>
+    <h2>default、多样性与一个 Cache root</h2>
+    <p>default 只决定当前注册值，不限制其他合法实验合同。processed profile 持久化数据划分，Cache V2 exact Recipe 绑定实际 masks 的 <code>split_hash</code>、candidate IDs 和 target IDs。相同合同具备 exact hit 前提；不同合同形成不同 Recipe identity，因此无需为每个 split 新建 Cache 根。</p>
+    <p>通用 OpenGU 仍可表示 <code>0.8/0/0.2</code>。target-direct 的攻击目标来自 validation mask，因此只在自己的入口要求 validation 非空；这不是全局禁止旧比例。</p>
   </section>
 
   <section>
@@ -107,7 +109,8 @@
     <ul>
       <li><span class="gap">NOT OBSERVED</span> — 未在 AutoDL RTX 4090/main checkout 上执行正式 cold materialization、Selection/GU gate 或完整矩阵。</li>
       <li><span class="gap">NOT OBSERVED</span> — 没有攻击效果、遗忘效果、隐私或论文结论。</li>
-      <li><span class="gap">NOT CONFIRMED</span> — AAGU-019 的旧小预算 setup 硬退役仍由独立 Block 负责。</li>
+      <li><span class="gap">NOT CONFIRMED</span> — 本机未安装项目声明的独立 SyncMate Core distribution；依赖该安装态的 bootstrap 测试未计入 PASS。</li>
+      <li>AAGU-006 是 split 基础设施前置；AAGU-001 是后续实验定义/注册 gate，并同时等待 AAGU-015。</li>
       <li>AAGU-024 未被修改，也不是 AAGU-006 的验收前置。</li>
     </ul>
   </section>
@@ -119,8 +122,9 @@
       <li><code>experiments/processed_provider.py</code></li>
       <li><code>experiments/target_direct_v1/split_profile.py</code></li>
       <li><code>experiments/target_direct_v1/run_selection.py</code></li>
+      <li><code>scripts/syncmate/opengu_recipes.py</code></li>
       <li><code>tests/test_target_direct_split_profile.py</code></li>
-      <li>10 个相关测试文件：<code>111 passed in 3.00s</code></li>
+      <li>相关回归：<code>250 passed, 1 deselected</code></li>
     </ul>
     <p class="footer">Apply target：<code>refs/heads/codex/e7-two-surrogate-groups-20260805</code>。本报告是验收投影；<code>WORKITEM.md</code> 仍是权威 Record。</p>
   </section>

@@ -4,7 +4,7 @@ Block ID: `AAGU-006`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance / candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -73,10 +73,10 @@ Item Type: Block
 - Excluded state: no unrelated dirty state is present. AAGU-019 hard retirement, formal GPU execution, historical Artifact mutation, and scientific IF/selector decisions remain independently owned and excluded.
 - Runtime profile: `local-git`; owned writes are limited to the dataset/split contract, its active consumers/generators, focused tests, and this item package.
 - External boundaries: no formal GPU run, SSH write, live provider, historical Artifact mutation, push, install, Apply, cleanup, or destructive action is authorized before explicit acceptance.
-- Candidate: `40e45bbaf433b0bbe422d0217d0cf0b322355a4e` is superseded by the user's valid-split rework. A new candidate is not yet formed.
-- Evidence: `tests/test_dashboard_refresh.py`, the target-direct split/recipe/manifest/stage suites, `scripts/dashboard/refresh.py --check`, the registered local dry-run, and the paired `REPORT.md` / `REPORT.html` in this item directory.
-- Current human surface: the revised 2.1 `## Human Surface` above; the previous paired Report is superseded until Verify completes.
-- Restart point: implement canonical split-profile derivation, audit registered split consumers, and rerun real cold/warm verification inside this same source.
+- Candidate: the clean `codex/aagu-006-dataset-split-authority` `HEAD`; implementation checkpoint `13083d6822ccaf23d1801732c4af3c16c7abe4d6` contains the valid-split code, and the tracked Record/Report projection advances the same ordinary candidate normally. Superseded candidate `40e45bba` was never Applied.
+- Evidence: `250 passed, 1 deselected`, `scripts/dashboard/refresh.py --check`, the 29-recipe registration audit, the clean-checkpoint registered local preflight, and the paired `REPORT.md` / `REPORT.html` in this item directory.
+- Current human surface: `.workblock/items/AAGU-006/REPORT.md` and `.workblock/items/AAGU-006/REPORT.html`.
+- Restart point: wait for the user's decision on this same candidate; do not Apply, push, install, execute formal GPU work, or clean up without matching authority.
 
 ## Work events
 
@@ -97,14 +97,17 @@ Item Type: Block
 - 2026-09-02 acceptance surface: the paired Report has one valid Human Result and one pending decision projection. Browser inspection observed one decision, no horizontal overflow or broken images, readable desktop hierarchy, and all five intended evidence sections.
 - 2026-09-02 acceptance rework: the user rejected frozen-default semantics. Default remains 70/10/20, but all legal split contracts must be accepted; equivalent contracts must converge on one persisted profile, while different legal contracts retain distinct identities. Candidate `40e45bba` and its Report are superseded without Apply.
 - 2026-09-02 valid-split implementation: formal YAML now declares only split and dataset node counts; canonical profile, candidate count and budget `k` are derived by both target-direct and SyncMate registration consumers. A valid 60/20/20 seed42 contract passes the same loader/direct-runner path, while real file tests prove equivalent default reuse and distinct-contract coexistence.
+- 2026-09-02 valid-split Verify: implementation checkpoint `13083d68` passed `250` related tests with one installed-SyncMate-Core bootstrap test explicitly deselected. A registered local preflight bound that clean SHA, stopped at the declared environment/prerequisite gates with `generated_artifacts=[]`, and kept the processed file count at zero.
+- 2026-09-02 valid-split acceptance surface: the rebuilt Markdown/HTML Report passed the report contract. Browser inspection observed one Human Result and one pending decision, no horizontal overflow, no broken images or console errors, and readable desktop hierarchy, decision and registration-evidence table.
 
 ## 2026-09-02 formal verification and decision note
 
-- `PASS` — the formal YAML explicitly owns `0.7 / 0.1 / 0.2`, split seed 2024 and materialize-on-miss; launcher, processed profile, manifest, GU config and adapter consume one contract.
-- `PASS` — a real PyG cold/warm integration test created the OpenGU canonical pair once, then reused it without changing bytes or `mtime_ns`; cold/warm data identities, including `split_hash`, matched.
-- `PASS` — model seed changes do not change split arguments, and the explicit OpenGU processed provider never invokes a downstream split path.
-- `PASS` — Cache V2 keeps one root while its exact Recipe binds actual `split_hash`, candidate IDs and the registered split contract.
-- `PASS · scoped` — registered local dry-run consumes the recipe and creates no formal split or experiment Artifact when the formal environment gates are not met.
+- `PASS` — the formal YAML explicitly owns the current default `0.7 / 0.1 / 0.2`, split seed 2024 and materialize-on-miss; profile, candidate count and budget `k` are derived rather than separately registered.
+- `PASS` — valid `0.6/0.2/0.2 + seed42` passes the same loader and direct runner; it is not rejected for differing from the default.
+- `PASS` — real PyG/file tests prove `0.7` and `0.70` reuse one pair without changing bytes, `mtime_ns` or `split_hash`, while another valid contract creates a distinct coexisting pair and split hash.
+- `PASS` — AAGU-006/AAGU-007 and all 29 registered target-direct recipes consume the same formal-v2 YAML contract; Cache V2 keeps one root and binds exact split/candidate/target identities.
+- `PASS · scoped` — `250` related tests pass with the unavailable installed-Core bootstrap test excluded; registered local preflight consumes the recipe and creates no formal split or experiment Artifact when formal gates are not met.
+- `NOT CONFIRMED` — the independent SyncMate Core distribution is not installed in this local project interpreter; installed-package bootstrap is therefore outside the observed PASS set.
 - `NOT OBSERVED` — no AutoDL RTX 4090 formal materialization, Selection/GU gate, full matrix or scientific result was run.
 - Agent recommendation: accept the verified candidate. This is not human acceptance; the decision remains with the user.
 
