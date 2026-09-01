@@ -12,7 +12,7 @@
 
 ### 当前决定
 
-> 当前验收决定：`待决定`
+> 当前验收决定：`接受`
 
 Agent 建议接受当前 AAGU-024 候选：结构、语义守恒、真实 mixed-version native 显示和零写入边界均有直接证据。最终决定者是用户；决定对象仅是 AAGU-024 当前 report-bearing source `HEAD`，不是 COMP-042、WB-228 或 Apply target。installed nested-finish hotfix 尚未进入 WB-228 Git candidate，这一工具链边界不影响本次迁移内容，但必须独立保留。
 

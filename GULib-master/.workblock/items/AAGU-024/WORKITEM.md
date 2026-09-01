@@ -13,7 +13,7 @@ Execution topology: `sequential`
 > Source branch：`refs/heads/codex/aagu-024-workitem-2-1`
 
 > Remote target：`origin refs/heads/main`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 
 ## Human Surface
@@ -89,3 +89,7 @@ Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 - Evidence: `.workblock/items/AAGU-024/evidence/`
 - Decision owner: 用户。
 - Current projection: awaiting acceptance；不代表已接受、已 Apply 或已 closeout。
+
+## Status history
+
+- `accepted`（2026-09-02T06:33:47.7129248+08:00）：User 基于 User explicitly accepted AAGU-024, retargeted Apply to main, and authorized the policy push to origin/main. 接受当前已验证候选。
