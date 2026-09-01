@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "factVersion": 5,
+  "factVersion": 6,
   "stages": [
     {
       "id": "repair",
@@ -60,7 +60,9 @@
     "AAGU-019": "repair",
     "AAGU-020": "d-full",
     "AAGU-021": "d-full",
-    "AAGU-022": "d-full"
+    "AAGU-022": "d-full",
+    "AAGU-023": "repair",
+    "AAGU-024": "repair"
   },
   "relations": [
     {
@@ -160,6 +162,12 @@
       "to": "AAGU-010"
     },
     {
+      "id": "depends-aagu-003-on-aagu-023",
+      "type": "depends_on",
+      "from": "AAGU-003",
+      "to": "AAGU-023"
+    },
+    {
       "id": "depends-aagu-005-on-aagu-001",
       "type": "depends_on",
       "from": "AAGU-005",
@@ -182,6 +190,90 @@
       "type": "depends_on",
       "from": "AAGU-022",
       "to": "AAGU-021"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-001",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-001"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-002",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-002"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-003",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-003"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-005",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-005"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-007",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-007"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-008",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-008"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-010",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-010"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-011",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-011"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-012",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-012"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-013",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-013"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-014",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-014"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-020",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-020"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-021",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-021"
+    },
+    {
+      "id": "correction-aagu-024-of-aagu-022",
+      "type": "correction_of",
+      "from": "AAGU-024",
+      "to": "AAGU-022"
     }
   ],
   "confirmations": [
@@ -219,6 +311,13 @@
       "actor": "User direction that several projected dependencies are wrong and independently startable work should proceed",
       "at": "2026-08-31T02:37:46.2075004+08:00",
       "summary": "Remove four timeline-adjacency relations from AAGU-011 through AAGU-014; retain true input contracts and make AAGU-003 consume every independent experiment package directly."
+    },
+    {
+      "id": "confirmation-2026-09-02T06:26:59.9935666+08:00-aagu-023-024-repair-placement-20260902",
+      "changeSetId": "aagu-023-024-repair-placement-20260902",
+      "actor": "User direction to place AAGU-023 and AAGU-024 in the Fix workstream and model them as early repair work",
+      "at": "2026-09-02T06:26:59.9935666+08:00",
+      "summary": "Assign AAGU-023 and AAGU-024 to Repair; make AAGU-023 an upstream guard for final evidence acceptance and record AAGU-024 as the protocol correction of its 14 migration members without inventing execution blockers."
     }
   ]
 }
