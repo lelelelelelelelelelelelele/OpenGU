@@ -28,7 +28,7 @@ Item Type: Block
 
 ### 本次增量
 
-复用 OpenGU 现有的“划分后保存 pickle、后续直接加载”基础设施，把 split mapping 设为唯一配置输入，并由 dataset family、归一化比例和 split seed 确定性派生 processed profile；candidate count 与预算 `k` 同样从合同计算，不再与 YAML 重复登记。`0.7`、`0.70` 等等价写法必须得到同一身份和同一 pickle 路径；首次 miss 生成 masks、pickle 与 manifest，后续命中直接复用。Cache V2 不建立 split-specific 根，但其 Recipe/Artifact 绑定实际 `split_hash` 和候选集身份；只有非法比例、不满足当前实验目标定义，或声明与持久化事实冲突时才 fail closed，不能因为比例不是默认值而拒绝。
+复用 OpenGU 现有的“划分后保存 pickle、后续直接加载”基础设施，把 split mapping 设为唯一数据划分输入，并由 dataset family、归一化比例和 split seed 确定性派生 processed profile 与候选集合/数量。删除预算的 ratio 或固定 `k` 仍由实验注册独立拥有；若注册 ratio，运行时只把它投影到候选集合得到实际整数数量。`0.7`、`0.70` 等等价写法必须得到同一身份和同一 pickle 路径；首次 miss 生成 masks、pickle 与 manifest，后续命中直接复用。Cache V2 不建立 split-specific 根，但其 Recipe/Artifact 绑定实际 `split_hash` 和候选集身份；只有非法比例、不满足当前实验目标定义，或声明与持久化事实冲突时才 fail closed，不能因为比例不是默认值而拒绝。
 
 ### 核心验收
 
@@ -98,13 +98,13 @@ Item Type: Block
 - 2026-09-02 clean-candidate Verify: implementation checkpoint `439b876c` passed the same `111/111` set; the registered Cora/seed42/1% dry-run bound that clean SHA, failed closed on the declared local environment mismatches, returned `generated_artifacts=[]`, and left the exact profile absent with zero local processed files.
 - 2026-09-02 acceptance surface: the paired Report has one valid Human Result and one pending decision projection. Browser inspection observed one decision, no horizontal overflow or broken images, readable desktop hierarchy, and all five intended evidence sections.
 - 2026-09-02 acceptance rework: the user rejected frozen-default semantics. Default remains 70/10/20, but all legal split contracts must be accepted; equivalent contracts must converge on one persisted profile, while different legal contracts retain distinct identities. Candidate `40e45bba` and its Report are superseded without Apply.
-- 2026-09-02 valid-split implementation: formal YAML now declares only split and dataset node counts; canonical profile, candidate count and budget `k` are derived by both target-direct and SyncMate registration consumers. A valid 60/20/20 seed42 contract passes the same loader/direct-runner path, while real file tests prove equivalent default reuse and distinct-contract coexistence.
+- 2026-09-02 valid-split implementation: formal YAML now declares split and dataset node counts; canonical profile and candidate count are derived by both target-direct and SyncMate registration consumers, while the independently registered budget ratio or fixed `k` remains a separate experiment parameter. A valid 60/20/20 seed42 contract passes the same loader/direct-runner path, while real file tests prove equivalent default reuse and distinct-contract coexistence.
 - 2026-09-02 valid-split Verify: implementation checkpoint `13083d68` passed `250` related tests with one installed-SyncMate-Core bootstrap test explicitly deselected. A registered local preflight bound that clean SHA, stopped at the declared environment/prerequisite gates with `generated_artifacts=[]`, and kept the processed file count at zero.
 - 2026-09-02 valid-split acceptance surface: the rebuilt Markdown/HTML Report passed the report contract. Browser inspection observed one Human Result and one pending decision, no horizontal overflow, no broken images or console errors, and readable desktop hierarchy, decision and registration-evidence table.
 
 ## 2026-09-02 formal verification and decision note
 
-- `PASS` — the formal YAML explicitly owns the current default `0.7 / 0.1 / 0.2`, split seed 2024 and materialize-on-miss; profile, candidate count and budget `k` are derived rather than separately registered.
+- `PASS` — the formal YAML explicitly owns the current default `0.7 / 0.1 / 0.2`, split seed 2024 and materialize-on-miss; profile and candidate count are derived from split, while the deletion budget ratio or fixed `k` remains independently registered.
 - `PASS` — valid `0.6/0.2/0.2 + seed42` passes the same loader and direct runner; it is not rejected for differing from the default.
 - `PASS` — real PyG/file tests prove `0.7` and `0.70` reuse one pair without changing bytes, `mtime_ns` or `split_hash`, while another valid contract creates a distinct coexisting pair and split hash.
 - `PASS` — AAGU-006/AAGU-007 and all 29 registered target-direct recipes consume the same formal-v2 YAML contract; Cache V2 keeps one root and binds exact split/candidate/target identities.
