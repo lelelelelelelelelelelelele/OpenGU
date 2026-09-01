@@ -6,13 +6,13 @@ Item Type: `Block`
 Work Type: `DOCS/PROTOCOL`
 Acceptance Route: `formal`
 Execution topology: `sequential`
-> Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
+> Apply target ref：`refs/heads/main`
 
 > Git baseline：`be0dd0fad09458d6111ab2e422c8c8bdd3d90bfc`
 
 > Source branch：`refs/heads/codex/aagu-024-workitem-2-1`
 
-> Remote target：`origin refs/heads/codex/e7-two-surrogate-groups-20260805`
+> Remote target：`origin refs/heads/main`
 当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 
@@ -80,6 +80,7 @@ Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 - 2026-09-01：COMP-042 在同一 Block 修正后形成新 exact candidate `08be674abc60c9249982a1c3f341a080cd8b5121`。从 fresh registry 重新加载同一 clean AAGU snapshot，24/24 nodes、20 relations、1.0/2.0/2.1 三种版本全部成功；14 个迁移成员 Human Surface available，legacy/2.0 代表集合不显示 Human Surface/Result。
 - 2026-09-01：三张真实 Windows native 截图覆盖同屏 mixed-version Campaign、AAGU-020 2.1 正例与 AAGU-004 legacy 负例；fixture 前后 clean，live 非 owner graph/WorkItems 与既有 Claims 零变化。
 - 2026-09-01：paired `REPORT.md` / `REPORT.html` 已生成并通过 current Report validator；HTML 在 1280×720 与 390×844 均无横向溢出，三张证据图无断图，warning/error console 为 0。Agent 建议接受；当前决定仍由用户作出。
+- 2026-09-02：用户明确接受当前迁移，并在原 integration ref 已退役后授权将 Apply target 改为 `refs/heads/main`、Remote target 改为 `origin refs/heads/main`，同时授权按项目 policy 完成本地 no-ff merge 与 ordinary push；迁移内容与既有验收证据不变。
 
 ## Human-facing result
 
