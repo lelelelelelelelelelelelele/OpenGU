@@ -103,6 +103,7 @@ def parameter_parser():
     parser.add_argument('--train_ratio', type=float, default=0.8)
     parser.add_argument('--val_ratio', type=float, default=0)
     parser.add_argument('--test_ratio', type=float, default=0.2)
+    parser.add_argument('--split_seed', type=int, default=None)
     #task
     parser.add_argument('--exp', type=str, default='sequence',
                         choices=["partition", "unlearning", "node_edge_unlearning", "attack_unlearning","sequence"])

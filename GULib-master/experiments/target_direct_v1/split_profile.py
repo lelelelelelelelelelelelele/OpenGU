@@ -1,4 +1,4 @@
-"""Stage and verify the fixed 70/10/20 Planetoid OpenGU split profile."""
+"""Stage and verify one registered Planetoid OpenGU split profile."""
 
 from __future__ import annotations
 
@@ -22,21 +22,21 @@ from experiments.target_direct_v1.planetoid_io import (
     _sha256_file,
     manifest_path_for,
 )
-from experiments.processed_provider import processed_artifact_paths
+from experiments.processed_provider import (
+    ProcessedSplitContract,
+    processed_artifact_paths,
+)
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1 import (
-    PROFILE,
-    SPLIT_SEED,
-    TEST_RATIO,
-    TRAIN_RATIO,
-    VALIDATION_RATIO,
+    DEFAULT_SPLIT_CONTRACT,
+    target_direct_split_contract,
 )
 from utils.node_split import apply_transductive_node_split, observe_node_split
 
 
 MANIFEST_SCHEMA = "target_direct_v1.processed_split_profile"
-MANIFEST_VERSION = 1
-SPLIT_POLICY = "fixed-randperm-disjoint-70-10-20-v1"
+MANIFEST_VERSION = 2
+SPLIT_POLICY = "seeded-randperm-disjoint-v1"
 
 
 def assert_canonical_processed_root(
@@ -53,42 +53,59 @@ def assert_canonical_processed_root(
     return observed
 
 
-def _paths(repository_root: Path, processed_root: Path, dataset: str):
+def _paths(
+    repository_root: Path,
+    processed_root: Path,
+    dataset: str,
+    contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
+):
     return processed_artifact_paths(
         {
             "root_path": str(repository_root),
             "processed_root": str(processed_root),
-            "processed_profile": PROFILE,
+            "processed_profile": contract.processed_profile,
             "dataset_name": dataset.lower(),
-            "train_ratio": TRAIN_RATIO,
-            "val_ratio": VALIDATION_RATIO,
-            "test_ratio": TEST_RATIO,
+            "train_ratio": contract.train_ratio,
+            "val_ratio": contract.val_ratio,
+            "test_ratio": contract.test_ratio,
             "is_transductive": True,
             "is_balanced": False,
         }
     )
 
 
-def apply_fixed_split(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
+def apply_fixed_split(
+    data,
+    seed: int | None = None,
+    *,
+    contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
+) -> Dict[str, Any]:
+    split_seed = contract.split_seed if seed is None else int(seed)
     apply_transductive_node_split(
         data,
-        train_ratio=TRAIN_RATIO,
-        val_ratio=VALIDATION_RATIO,
-        test_ratio=TEST_RATIO,
-        split_seed=seed,
+        train_ratio=contract.train_ratio,
+        val_ratio=contract.val_ratio,
+        test_ratio=contract.test_ratio,
+        split_seed=split_seed,
     )
-    return split_observation(data, seed=seed)
+    return split_observation(data, seed=split_seed, contract=contract)
 
 
-def split_observation(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
+def split_observation(
+    data,
+    seed: int | None = None,
+    *,
+    contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
+) -> Dict[str, Any]:
+    split_seed = contract.split_seed if seed is None else int(seed)
     observed = observe_node_split(data)
     result = {
         "policy": SPLIT_POLICY,
-        "seed": int(seed),
+        "seed": split_seed,
         "ratios": {
-            "train": TRAIN_RATIO,
-            "validation": VALIDATION_RATIO,
-            "test": TEST_RATIO,
+            "train": contract.train_ratio,
+            "validation": contract.val_ratio,
+            "test": contract.test_ratio,
         },
         **observed,
     }
@@ -98,13 +115,17 @@ def split_observation(data, seed: int = SPLIT_SEED) -> Dict[str, Any]:
 
 
 def verify_profile(
-    *, repository_root: Path, processed_root: Path, dataset: str
+    *,
+    repository_root: Path,
+    processed_root: Path,
+    dataset: str,
+    contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
 ) -> Dict[str, Any]:
     repository_root = Path(repository_root).resolve()
     processed_root = assert_canonical_processed_root(
         repository_root, processed_root
     )
-    paths = _paths(repository_root, processed_root, dataset)
+    paths = _paths(repository_root, processed_root, dataset, contract)
     manifest_path = manifest_path_for(paths.data_path)
     for path in (paths.data_path, paths.dataset_path, manifest_path):
         if not path.is_file():
@@ -116,7 +137,7 @@ def verify_profile(
         not isinstance(manifest, dict)
         or manifest.get("schema") != MANIFEST_SCHEMA
         or manifest.get("version") != MANIFEST_VERSION
-        or manifest.get("profile") != PROFILE
+        or manifest.get("profile") != contract.processed_profile
         or str(manifest.get("dataset", "")).lower() != dataset.lower()
     ):
         raise RuntimeError("target-direct profile manifest identity is invalid")
@@ -145,7 +166,7 @@ def verify_profile(
         data, dataset_name=dataset, materialize=False
     )
     observed_processed = _opengu_split_contract(data, materialize=False)
-    observed_split = split_observation(data)
+    observed_split = split_observation(data, contract=contract)
     if observed_graph != manifest.get("opengu_graph_contract"):
         raise RuntimeError("target-direct graph contract changed")
     if observed_processed != manifest.get("opengu_processed_contract"):
@@ -175,13 +196,17 @@ def verify_profile(
 
 
 def stage_profile(
-    *, repository_root: Path, processed_root: Path, dataset: str
+    *,
+    repository_root: Path,
+    processed_root: Path,
+    dataset: str,
+    contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
 ) -> Dict[str, Any]:
     repository_root = Path(repository_root).resolve()
     processed_root = assert_canonical_processed_root(
         repository_root, processed_root
     )
-    paths = _paths(repository_root, processed_root, dataset)
+    paths = _paths(repository_root, processed_root, dataset, contract)
     manifest_path = manifest_path_for(paths.data_path)
     existing = [
         path.exists() for path in (paths.data_path, paths.dataset_path, manifest_path)
@@ -197,6 +222,7 @@ def stage_profile(
                 repository_root=repository_root,
                 processed_root=processed_root,
                 dataset=dataset,
+                contract=contract,
             ),
         }
 
@@ -207,7 +233,7 @@ def stage_profile(
     )
     pyg_dataset = _load_offline_planetoid(source)
     data = pyg_dataset[0]
-    split = apply_fixed_split(data)
+    split = apply_fixed_split(data, contract=contract)
     graph_contract = _opengu_graph_contract(
         data, dataset_name=source.storage_name, materialize=True
     )
@@ -225,7 +251,7 @@ def stage_profile(
     manifest = {
         "schema": MANIFEST_SCHEMA,
         "version": MANIFEST_VERSION,
-        "profile": PROFILE,
+        "profile": contract.processed_profile,
         "dataset": source.dataset,
         "lane": "transductive",
         "data_path": str(paths.data_path),
@@ -255,6 +281,7 @@ def stage_profile(
             repository_root=repository_root,
             processed_root=processed_root,
             dataset=dataset,
+            contract=contract,
         ),
     }
 
@@ -266,6 +293,22 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dataset", choices=("Cora", "CiteSeer", "PubMed"), required=True
     )
+    parser.add_argument(
+        "--processed-profile",
+        default=None,
+    )
+    parser.add_argument(
+        "--train-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.train_ratio
+    )
+    parser.add_argument(
+        "--val-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.val_ratio
+    )
+    parser.add_argument(
+        "--test-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.test_ratio
+    )
+    parser.add_argument(
+        "--split-seed", type=int, default=DEFAULT_SPLIT_CONTRACT.split_seed
+    )
     parser.add_argument("--verify-only", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -274,10 +317,23 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     function = verify_profile if args.verify_only else stage_profile
+    contract = target_direct_split_contract(
+        {
+            "processed_profile": args.processed_profile,
+            "split": {
+                "train_ratio": args.train_ratio,
+                "val_ratio": args.val_ratio,
+                "test_ratio": args.test_ratio,
+                "split_seed": args.split_seed,
+            },
+        },
+        require_explicit=True,
+    )
     result = function(
         repository_root=args.repository_root,
         processed_root=args.processed_root,
         dataset=args.dataset,
+        contract=contract,
     )
     payload = {
         key: value for key, value in result.items() if key not in {"inputs", "data"}

@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from experiments.target_direct_v1 import PROFILE
+from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT, PROFILE
+from experiments.target_direct_v1 import build_gu_config as gu_config_module
 from experiments.target_direct_v1 import build_manifest as manifest_module
 from experiments.target_direct_v1.recipe import ALGORITHM_VERSION, SCORE_NAMES
 
@@ -27,6 +28,7 @@ def _summary(
         "dataset": "Cora",
         "seed": seed,
         "processed_profile": PROFILE,
+        "split_contract": DEFAULT_SPLIT_CONTRACT.to_manifest(),
         "candidate_count": 200,
         "parameter_scope": parameter_scope,
         "budget": {
@@ -147,9 +149,26 @@ def test_gate_manifest_accepts_one_seed_and_orders_degree_first(
     assert manifest["ratio"] == 0.01
     assert manifest["expected_k"] == 2
     assert manifest["budget"]["expected_k"] == 2
+    assert manifest["split_contract"] == DEFAULT_SPLIT_CONTRACT.to_manifest()
     assert manifest["cells"][0]["ratio"] == 0.01
     assert manifest["cells"][0]["strategy"] == "degree"
     assert len(manifest["cells"]) == 17
+
+    manifest_path = manifest_fakes / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    config = gu_config_module.build_gu_config(
+        manifest_path=manifest_path,
+        processed_root=manifest_fakes / "data" / "processed",
+        runtime_root=manifest_fakes / "runtime",
+        run_root=manifest_fakes / "runs",
+    )
+    assert config["processed_profile"] == PROFILE
+    assert config["split"] == {
+        "train_ratio": 0.7,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "split_seed": 2024,
+    }
 
 
 def test_formal_manifest_rejects_all_trainable_summary(manifest_fakes):

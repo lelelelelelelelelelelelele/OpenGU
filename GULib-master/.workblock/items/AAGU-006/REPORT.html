@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAGU-006 · 默认可覆盖、合同可复用的 Dataset Split</title>
+  <style>
+    :root { color-scheme:dark; --bg:#07101d; --panel:#101d31; --text:#edf4ff; --muted:#9db0cb; --line:#2a4163; --cyan:#59ddd4; --green:#85e6a0; --amber:#ffd06f; --blue:#83b2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 92% 0,#173b67 0,transparent 34%),var(--bg); color:var(--text); font:16px/1.65 "Segoe UI","Microsoft YaHei",sans-serif; }
+    main { width:min(1140px,calc(100% - 40px)); margin:34px auto 70px; }
+    header,section { background:linear-gradient(145deg,rgba(22,39,64,.97),rgba(10,21,38,.97)); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.24); }
+    header { padding:34px 38px; }
+    section { padding:26px 30px; margin-top:20px; }
+    .eyebrow { margin:0 0 8px; color:var(--cyan); font-size:.8rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(2rem,4vw,3.25rem); line-height:1.12; letter-spacing:-.035em; }
+    h2 { margin:0 0 15px; font-size:1.45rem; }
+    h3 { margin:20px 0 7px; font-size:1.08rem; }
+    p { margin:9px 0; }
+    .lede { max-width:900px; color:#cbd8ea; font-size:1.08rem; }
+    .meta { display:flex; flex-wrap:wrap; gap:9px; margin-top:20px; color:var(--muted); }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 11px; background:rgba(5,14,27,.55); }
+    .result { border-color:rgba(89,221,212,.4); }
+    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .block { padding:18px; border:1px solid var(--line); border-radius:14px; background:rgba(5,15,29,.46); }
+    .block.full { grid-column:1/-1; }
+    .decision { display:flex; align-items:center; gap:12px; margin:14px 0; padding:14px 16px; border:1px solid rgba(255,208,111,.38); border-radius:12px; background:rgba(255,208,111,.09); }
+    .decision strong { color:var(--amber); }
+    .decision span { padding:3px 10px; border-radius:999px; color:#1c1404; background:var(--amber); font-weight:900; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:.84rem; letter-spacing:.03em; }
+    .pass { color:var(--green); font-weight:850; white-space:nowrap; }
+    .scoped { color:var(--blue); font-weight:850; white-space:nowrap; }
+    .gap { color:var(--amber); font-weight:850; }
+    code { color:#c3d8ff; background:#071528; border:1px solid #294464; padding:.1em .35em; border-radius:5px; }
+    ul { margin:8px 0; padding-left:22px; }
+    .recommend { border-color:rgba(133,230,160,.42); background:linear-gradient(145deg,rgba(25,74,54,.38),rgba(10,21,38,.97)); }
+    .recommend b { color:var(--green); font-size:1.18rem; }
+    .footer { color:var(--muted); font-size:.9rem; }
+    @media (max-width:780px) { main { width:min(100% - 22px,1140px); margin-top:14px; } header,section { padding:21px; border-radius:14px; } .result-grid { grid-template-columns:1fr; } .block.full { grid-column:auto; } table { display:block; overflow-x:auto; } }
+    @media print { header,section,.block,table { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">WorkBlock Acceptance · AAGU-006</p>
+    <h1>默认可覆盖、合同可复用的 Dataset Split</h1>
+    <p class="lede">当前注册默认是 70/10/20，但 loader 不再把 default 当作白名单；相同规范化合同只保存一次，不同合法合同可以并存，注册与运行链都从 YAML 派生身份。</p>
+    <div class="meta">
+      <span class="pill">事实日期 2026-09-02</span>
+      <span class="pill">实现检查点 13083d68</span>
+      <span class="pill">250 passed · 1 deselected</span>
+      <span class="pill">正式 GPU 未运行</span>
+    </div>
+  </header>
+
+  <section class="result" data-workblock-human-result>
+    <h2>Human Result</h2>
+    <div class="result-grid">
+      <div class="block">
+        <h3>实际增量</h3>
+        <p><code>syncmate_target_direct_formal_v2.yaml</code> 用 split mapping 登记数据划分；当前 default 是 <code>0.7 / 0.1 / 0.2</code> 与 <code>split_seed=2024</code>。profile 和候选集合由 split 确定；budget ratio 或固定 <code>k</code> 由实验注册独立拥有。</p>
+        <p><code>0.7</code> 与 <code>0.70</code> 命中同一 OpenGU pickle pair；另一组合法合同生成不同 profile 并与 default 并存。Cache V2 保持一个 root，以实际 <code>split_hash</code> 区分 identity。</p>
+      </div>
+      <div class="block">
+        <h3>核心观察</h3>
+        <ul>
+          <li><span class="pass">PASS</span> <code>0.6/0.2/0.2 + seed42</code> 通过同一 loader/runner。</li>
+          <li><span class="pass">PASS</span> 等价 default warm hit，bytes、<code>mtime_ns</code>、<code>split_hash</code> 不变。</li>
+          <li><span class="pass">PASS</span> 不同合同得到不同路径和 split hash，可同时存在。</li>
+          <li><span class="pass">PASS</span> 29 个 target-direct recipe 投影同一 YAML default。</li>
+          <li><span class="scoped">PASS · scoped</span> 250 项回归；registered preflight 零物化。</li>
+        </ul>
+      </div>
+      <div class="block full recommend">
+        <h3>当前决定</h3>
+        <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="accepted">接受</span></div>
+        <p><b>Agent 建议：建议接受。</b> frozen-default 语义已取消；相同合同只保存一次、不同合法合同保留多样性，且当前正式注册全部消费 YAML。</p>
+        <p>决定人：刘丞毓。可以接受，或指出具体返工项。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>真实行为与注册证据</h2>
+    <table>
+      <thead><tr><th>场景</th><th>实际观察</th><th>判断</th></tr></thead>
+      <tbody>
+        <tr><td>当前 default</td><td>YAML 派生 <code>planetoid_70_10_20_seed2024</code> 与既有三数据集训练候选集合；独立注册的删除预算未被改写。</td><td class="pass">PASS</td></tr>
+        <tr><td>合法 alternate</td><td><code>0.6/0.2/0.2 + seed42</code> 通过 formal loader 和 direct runner，派生独立 profile 与候选集合；budget 参数保持独立。</td><td class="pass">PASS</td></tr>
+        <tr><td>等价合同复用</td><td>真实 cold 创建后，<code>0.70/0.10/0.20</code> warm 返回 <code>reused</code>；bytes、纳秒修改时间与 split hash 不变。</td><td class="pass">PASS</td></tr>
+        <tr><td>不同合同并存</td><td>alternate 生成不同 pickle path 和 <code>split_hash</code>；default 文件未改写。</td><td class="pass">PASS</td></tr>
+        <tr><td>注册投影</td><td>AAGU-006/AAGU-007 共用 fact owner；9 Selection + 2 gate + 18 GU stage recipe 都携带同一 default contract。</td><td class="pass">PASS</td></tr>
+        <tr><td>registered preflight</td><td>绑定 clean SHA <code>13083d68</code> 后在正式环境 gate 处停止，<code>generated_artifacts=[]</code>，processed 文件前后均为 0。</td><td class="scoped">PASS · scoped</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>default、多样性与一个 Cache root</h2>
+    <p>default 只决定当前注册值，不限制其他合法实验合同。processed profile 持久化数据划分，Cache V2 exact Recipe 绑定实际 masks 的 <code>split_hash</code>、candidate IDs 和 target IDs。相同合同具备 exact hit 前提；不同合同形成不同 Recipe identity，因此无需为每个 split 新建 Cache 根。</p>
+    <p>通用 OpenGU 仍可表示 <code>0.8/0/0.2</code>。target-direct 的攻击目标来自 validation mask，因此只在自己的入口要求 validation 非空；这不是全局禁止旧比例。</p>
+  </section>
+
+  <section>
+    <h2>缺口与边界</h2>
+    <ul>
+      <li><span class="gap">NOT OBSERVED</span> — 未在 AutoDL RTX 4090/main checkout 上执行正式 cold materialization、Selection/GU gate 或完整矩阵。</li>
+      <li><span class="gap">NOT OBSERVED</span> — 没有攻击效果、遗忘效果、隐私或论文结论。</li>
+      <li><span class="gap">NOT CONFIRMED</span> — 本机未安装项目声明的独立 SyncMate Core distribution；依赖该安装态的 bootstrap 测试未计入 PASS。</li>
+      <li>AAGU-006 是 split 基础设施前置；AAGU-001 是后续实验定义/注册 gate，并同时等待 AAGU-015。</li>
+      <li>AAGU-024 未被修改，也不是 AAGU-006 的验收前置。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>复核入口</h2>
+    <ul>
+      <li><code>experiments/configs/syncmate_target_direct_formal_v2.yaml</code></li>
+      <li><code>experiments/processed_provider.py</code></li>
+      <li><code>experiments/target_direct_v1/split_profile.py</code></li>
+      <li><code>experiments/target_direct_v1/run_selection.py</code></li>
+      <li><code>scripts/syncmate/opengu_recipes.py</code></li>
+      <li><code>tests/test_target_direct_split_profile.py</code></li>
+      <li>相关回归：<code>250 passed, 1 deselected</code></li>
+    </ul>
+    <p class="footer">Apply target：<code>refs/heads/codex/e7-two-surrogate-groups-20260805</code>。本报告是验收投影；<code>WORKITEM.md</code> 仍是权威 Record。</p>
+  </section>
+</main>
+</body>
+</html>

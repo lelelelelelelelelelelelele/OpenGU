@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 import copy
+from pathlib import Path
 from typing import Any
+
+import yaml
+
+from experiments.target_direct_v1 import target_direct_split_contract
 
 
 RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
@@ -34,7 +39,7 @@ GATE4_RECIPE_ALLOWED_DELTA = (
 
 TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "264b38995cebc84d10402d8113ea949ca2cfa34f"
 TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v2.yaml"
-TARGET_DIRECT_CONFIG_SHA256 = "3a51a4d46c84e261c8df40c764dfc725349f8979c7d43f676c60cb9ab1693798"
+TARGET_DIRECT_CONFIG_SHA256 = "7500beb8e0a5f955a2dfbf2423d3fb142ffeb90b6f49afde67217d9ff3273439"
 TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/selection"
 TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/gu"
 TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = (
@@ -48,14 +53,30 @@ TARGET_DIRECT_DATASETS = ("cora", "citeseer", "pubmed")
 TARGET_DIRECT_DATASET_DISPLAY = {
     "cora": "Cora", "citeseer": "CiteSeer", "pubmed": "PubMed",
 }
-TARGET_DIRECT_CANDIDATE_COUNTS = {
-    "cora": 1895, "citeseer": 2328, "pubmed": 13801,
-}
 TARGET_DIRECT_RATIOS = (0.01, 0.05)
+
+
+def _target_direct_split_registration() -> tuple[dict[str, Any], dict[str, int]]:
+    path = Path(__file__).resolve().parents[2] / TARGET_DIRECT_CONFIG
+    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    contract = target_direct_split_contract(value, require_explicit=True)
+    datasets = value.get("datasets") or {}
+    candidate_counts = {
+        dataset: int(int(datasets[dataset]["num_nodes"]) * contract.train_ratio)
+        for dataset in TARGET_DIRECT_DATASETS
+    }
+    return contract.to_manifest(), candidate_counts
+
+
+TARGET_DIRECT_SPLIT_CONTRACT, TARGET_DIRECT_CANDIDATE_COUNTS = (
+    _target_direct_split_registration()
+)
 TARGET_DIRECT_K_BY_RATIO = {
-    "cora": {"0.01": 18, "0.05": 94},
-    "citeseer": {"0.01": 23, "0.05": 116},
-    "pubmed": {"0.01": 138, "0.05": 690},
+    dataset: {
+        f"{ratio:.2f}": max(1, int(candidate_count * ratio))
+        for ratio in TARGET_DIRECT_RATIOS
+    }
+    for dataset, candidate_count in TARGET_DIRECT_CANDIDATE_COUNTS.items()
 }
 TARGET_DIRECT_SEEDS = (42, 212, 2024)
 TARGET_DIRECT_STRATEGIES = (
@@ -121,6 +142,7 @@ def _target_selection_recipe(stage: str) -> dict[str, Any]:
             "stage": stage, "datasets": (TARGET_DIRECT_DATASET_DISPLAY[dataset],),
             "seeds": (seed,), "score_count": 17,
             "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
+            "split_contract": TARGET_DIRECT_SPLIT_CONTRACT,
             "budget_ratios": TARGET_DIRECT_RATIOS,
             "expected_k_by_ratio": TARGET_DIRECT_K_BY_RATIO[dataset],
             "score_budget_semantics": "prefix_stable_budget_independent",
@@ -177,6 +199,7 @@ def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> d
         "base_model": "GCN", "gu_method": "GNNDelete", "seed": seed,
         "ratio": float(ratio), "k": TARGET_DIRECT_K_BY_RATIO[dataset][ratio_key],
         "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
+        "split_contract": TARGET_DIRECT_SPLIT_CONTRACT,
         "parameter_scope": "last_layer", "lane": "target_direct_white_box",
         "target_checkpoint_required": True, "scientific_comparison": not gate_only,
         "execution_authorized": bool(gate_only), "candidate_matrix_only": not gate_only,
