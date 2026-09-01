@@ -3,99 +3,112 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AAGU-006 · Dataset/Split 权威修复</title>
+  <title>AAGU-006 · 可复用 Dataset Split 合同</title>
   <style>
-    :root { color-scheme: dark; --bg:#09111f; --panel:#111c2f; --panel2:#16243b; --text:#eaf1ff; --muted:#9eb0ca; --line:#2a3b58; --cyan:#56d6d0; --green:#83e59b; --amber:#ffc96b; --blue:#74a7ff; }
+    :root { color-scheme:dark; --bg:#07101d; --panel:#101d31; --text:#edf4ff; --muted:#9db0cb; --line:#2a4163; --cyan:#59ddd4; --green:#85e6a0; --amber:#ffd06f; --blue:#83b2ff; }
     * { box-sizing:border-box; }
-    body { margin:0; background:radial-gradient(circle at 85% 0,#18345b 0,transparent 34%),var(--bg); color:var(--text); font:16px/1.65 "Segoe UI","Microsoft YaHei",sans-serif; }
-    main { width:min(1120px,calc(100% - 40px)); margin:36px auto 72px; }
-    header,section { background:linear-gradient(145deg,rgba(22,36,59,.96),rgba(13,24,42,.96)); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 48px rgba(0,0,0,.24); }
+    body { margin:0; background:radial-gradient(circle at 92% 0,#173b67 0,transparent 34%),var(--bg); color:var(--text); font:16px/1.65 "Segoe UI","Microsoft YaHei",sans-serif; }
+    main { width:min(1140px,calc(100% - 40px)); margin:34px auto 70px; }
+    header,section { background:linear-gradient(145deg,rgba(22,39,64,.97),rgba(10,21,38,.97)); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.24); }
     header { padding:34px 38px; }
     section { padding:26px 30px; margin-top:20px; }
-    .eyebrow { margin:0 0 8px; color:var(--cyan); font-size:.82rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
-    h1 { margin:0; font-size:clamp(2rem,4vw,3.35rem); line-height:1.12; letter-spacing:-.035em; }
-    h2 { margin:0 0 14px; font-size:1.35rem; }
-    h3 { margin:22px 0 6px; font-size:1.05rem; }
+    .eyebrow { margin:0 0 8px; color:var(--cyan); font-size:.8rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(2rem,4vw,3.25rem); line-height:1.12; letter-spacing:-.035em; }
+    h2 { margin:0 0 15px; font-size:1.45rem; }
+    h3 { margin:20px 0 7px; font-size:1.08rem; }
     p { margin:9px 0; }
-    .lede { max-width:850px; color:#cbd8eb; font-size:1.08rem; }
-    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; color:var(--muted); }
-    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 11px; background:rgba(7,16,30,.55); }
-    .decision { margin-top:22px; display:flex; align-items:center; gap:12px; padding:15px 18px; background:rgba(255,201,107,.09); border:1px solid rgba(255,201,107,.35); border-radius:13px; }
+    .lede { max-width:900px; color:#cbd8ea; font-size:1.08rem; }
+    .meta { display:flex; flex-wrap:wrap; gap:9px; margin-top:20px; color:var(--muted); }
+    .pill { border:1px solid var(--line); border-radius:999px; padding:5px 11px; background:rgba(5,14,27,.55); }
+    .result { border-color:rgba(89,221,212,.4); }
+    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .block { padding:18px; border:1px solid var(--line); border-radius:14px; background:rgba(5,15,29,.46); }
+    .block.full { grid-column:1/-1; }
+    .decision { display:flex; align-items:center; gap:12px; margin:14px 0; padding:14px 16px; border:1px solid rgba(255,208,111,.38); border-radius:12px; background:rgba(255,208,111,.09); }
     .decision strong { color:var(--amber); }
-    .decision span { padding:3px 10px; border-radius:999px; color:#1d1404; background:var(--amber); font-weight:800; }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
-    .card { padding:18px; border:1px solid var(--line); border-radius:13px; background:rgba(6,15,29,.42); }
-    .label { color:var(--green); font-weight:800; }
-    .scoped { color:var(--blue); font-weight:800; }
-    .gap { color:var(--amber); font-weight:800; }
-    table { width:100%; border-collapse:collapse; margin:12px 0; overflow:hidden; }
-    th,td { padding:11px 13px; border-bottom:1px solid var(--line); text-align:left; }
-    th { color:var(--muted); font-size:.85rem; letter-spacing:.04em; }
-    td:not(:first-child),th:not(:first-child) { text-align:right; }
-    code { color:#b9d3ff; background:#081426; border:1px solid #233651; padding:.1em .35em; border-radius:5px; }
+    .decision span { padding:3px 10px; border-radius:999px; color:#1c1404; background:var(--amber); font-weight:900; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:.84rem; letter-spacing:.03em; }
+    .pass { color:var(--green); font-weight:850; white-space:nowrap; }
+    .scoped { color:var(--blue); font-weight:850; white-space:nowrap; }
+    .gap { color:var(--amber); font-weight:850; }
+    code { color:#c3d8ff; background:#071528; border:1px solid #294464; padding:.1em .35em; border-radius:5px; }
     ul { margin:8px 0; padding-left:22px; }
-    .recommend { border-color:rgba(131,229,155,.42); background:linear-gradient(145deg,rgba(25,73,53,.35),rgba(13,24,42,.96)); }
-    .recommend b { color:var(--green); font-size:1.22rem; }
+    .recommend { border-color:rgba(133,230,160,.42); background:linear-gradient(145deg,rgba(25,74,54,.38),rgba(10,21,38,.97)); }
+    .recommend b { color:var(--green); font-size:1.18rem; }
     .footer { color:var(--muted); font-size:.9rem; }
-    @media (max-width:760px) { main { width:min(100% - 22px,1120px); margin-top:14px; } header,section { padding:22px; border-radius:14px; } .grid { grid-template-columns:1fr; } }
-    @media print { header, section, .card, table { break-inside:avoid; } }
+    @media (max-width:780px) { main { width:min(100% - 22px,1140px); margin-top:14px; } header,section { padding:21px; border-radius:14px; } .result-grid { grid-template-columns:1fr; } .block.full { grid-column:auto; } table { display:block; overflow-x:auto; } }
+    @media print { header,section,.block,table { break-inside:avoid; } }
   </style>
 </head>
 <body>
 <main>
   <header>
     <p class="eyebrow">WorkBlock Acceptance · AAGU-006</p>
-    <h1>Dataset/Split 权威修复</h1>
-    <p class="lede">目标实验的活跃入口已统一到一个 versioned recipe，并新增机器 drift 校验，防止 WorkItem 与 WORKPLAN 再次指向不同的执行权威。</p>
+    <h1>可复用 Dataset Split 合同</h1>
+    <p class="lede">正式实验的 split 已从隐式运行行为收敛为 YAML 声明、一次持久化、后续命中复用的独立数据状态；Cache V2 继续使用一个 store，并通过实际 split 身份区分 hit。</p>
     <div class="meta">
-      <span class="pill">事实日期 2026-08-26</span>
-      <span class="pill">联合验证 70 passed</span>
-      <span class="pill">实现/收敛检查点 77b03eb</span>
+      <span class="pill">事实日期 2026-09-02</span>
+      <span class="pill">实现检查点 439b876c</span>
+      <span class="pill">clean candidate 111 passed</span>
+      <span class="pill">正式 GPU 未运行</span>
     </div>
-    <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="pending">待决定</span></div>
   </header>
 
-  <section>
-    <h2>实际改变</h2>
-    <p>AAGU-006 与 AAGU-007 的 WORKPLAN Owner 现在都直接指向 <code>syncmate_target_direct_formal_v2.yaml</code>。历史 public split、OpenGU 80/20 和 fixed-small-k 材料只保留溯源角色；若研究合同变化，必须建立新的 versioned recipe。</p>
-    <p>Dashboard 生成器会解析显式 WorkItem Fact owner，并与 WORKPLAN Owner 的真实本地路径比较。两者不一致时检查直接失败。</p>
-  </section>
-
-  <section>
-    <h2>唯一活跃数据合同</h2>
-    <table>
-      <thead><tr><th>数据集</th><th>train candidates</th><th>1%</th><th>5%</th></tr></thead>
-      <tbody>
-        <tr><td>Cora</td><td>1,895</td><td>18</td><td>94</td></tr>
-        <tr><td>CiteSeer</td><td>2,328</td><td>23</td><td>116</td></tr>
-        <tr><td>PubMed</td><td>13,801</td><td>138</td><td>690</td></tr>
-      </tbody>
-    </table>
-    <p class="footer">共同身份：<code>planetoid_70_10_20_seed2024</code> · budgets <code>[0.01, 0.05]</code> · <code>floor_with_minimum_one</code></p>
-  </section>
-
-  <section>
-    <h2>验收判断</h2>
-    <div class="grid">
-      <div class="card"><span class="label">PASS</span><h3>单一执行入口</h3><p>从两个可执行节点进入时，都解析到同一个正式 recipe；历史口径不能覆盖或补全参数。</p></div>
-      <div class="card"><span class="label">PASS</span><h3>冲突会 fail closed</h3><p>故意制造的 Fact owner / WORKPLAN Owner 分歧会触发明确 drift 错误，链接一致时恢复通过。</p></div>
-      <div class="card"><span class="scoped">PASS · scoped</span><h3>注册 dry-run</h3><p>正确 recipe 被消费；非 main、非 AutoDL、错误设备及缺失正式 profile/receipt 会阻止继续，且 <code>generated_artifacts=[]</code>。</p></div>
-      <div class="card"><span class="label">PASS</span><h3>父线与生命周期组合</h3><p>AAGU-018 accepted 父线合入后，19 个 WorkItem 映射完整；AAGU-006 正确计为 awaiting/WIP，未知状态会 fail closed，联合测试 70 项通过。</p></div>
+  <section class="result" data-workblock-human-result>
+    <h2>Human Result</h2>
+    <div class="result-grid">
+      <div class="block">
+        <h3>实际增量</h3>
+        <p><code>syncmate_target_direct_formal_v2.yaml</code> 显式登记 <code>0.7 / 0.1 / 0.2</code>、<code>split_seed=2024</code> 与 cold materialize 权限。launcher、processed profile、Selection summary、manifest、GU YAML 和 adapter 消费同一合同。</p>
+        <p>cold miss 写 OpenGU canonical pickle pair 与 manifest；warm hit 校验后直接复用。Cache V2 不另建 split-specific 根，而是在 Recipe 中绑定 split contract、实际 <code>split_hash</code> 和候选集身份。</p>
+      </div>
+      <div class="block">
+        <h3>核心观察</h3>
+        <ul>
+          <li><span class="pass">PASS</span> cold 实际写入三份持久化文件。</li>
+          <li><span class="pass">PASS</span> warm 返回 <code>reused</code>，bytes 与 <code>mtime_ns</code> 不变。</li>
+          <li><span class="pass">PASS</span> model seed 42/212 消费同一 split seed 与 masks 身份。</li>
+          <li><span class="pass">PASS</span> clean SHA 上 111 项回归与 dashboard 通过。</li>
+          <li><span class="scoped">PASS · scoped</span> registered dry-run 零物化、零 Artifact。</li>
+        </ul>
+      </div>
+      <div class="block full recommend">
+        <h3>当前决定</h3>
+        <div class="decision"><strong>当前验收决定</strong><span data-workblock-decision="pending">待决定</span></div>
+        <p><b>Agent 建议：建议接受。</b> 实际文件行为与 cache identity 都支持“一次 split、后续复用”；候选没有运行正式实验或扩张科研结论。</p>
+        <p>决定人：刘丞毓。可以接受，或指出具体返工项。</p>
+      </div>
     </div>
   </section>
 
-  <section class="recommend">
-    <h2>Agent 建议</h2>
-    <p><b>建议接受。</b> 当前候选修复了活跃控制面的权威歧义，并留下可复现的通用校验；没有增加兼容分支、复制 recipe 数值或运行未经授权的正式实验。</p>
-    <p>决定人：刘丞毓。可接受，或指出具体返工项。</p>
+  <section>
+    <h2>真实行为证据</h2>
+    <table>
+      <thead><tr><th>场景</th><th>实际观察</th><th>判断</th></tr></thead>
+      <tbody>
+        <tr><td>cold create</td><td>真实 PyG Data 在临时 canonical root 生成 masks、data pickle、dataset pickle 与 manifest。</td><td class="pass">PASS</td></tr>
+        <tr><td>warm hit</td><td>返回 <code>reused</code>；三份文件 bytes 与纳秒修改时间不变；cold/warm data identity 相同。</td><td class="pass">PASS</td></tr>
+        <tr><td>seed 隔离</td><td>model seed 42 与 212 产生同一 profile/ratio/split-seed 参数；显式 provider 不调用重切函数。</td><td class="pass">PASS</td></tr>
+        <tr><td>Cache V2</td><td>Recipe 保留 <code>data_identity.split_hash</code> 和 candidate IDs hash；同 split 可 hit，不同 masks 自然形成不同 Recipe。</td><td class="pass">PASS</td></tr>
+        <tr><td>registered dry-run</td><td>绑定当前 clean HEAD 后在正式环境 gate 处停止，<code>generated_artifacts=[]</code>，本地 processed 文件数为 0。</td><td class="scoped">PASS · scoped</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>为什么不需要多个 split cache</h2>
+    <p>数据划分本身由 processed profile 持久化；Selection 证据由 Cache V2 exact Recipe 管理。Recipe 绑定 YAML split contract、pickle/图 SHA、实际 masks 的 <code>split_hash</code>、candidate IDs 和 target IDs。相同数据状态复用同一身份，不同数据状态自然 miss，因此无需为每个 seed 或 split 新建 Cache 根。</p>
   </section>
 
   <section>
     <h2>缺口与边界</h2>
     <ul>
-      <li><span class="gap">NOT OBSERVED</span> — 未运行 AutoDL 正式 GPU cell、完整矩阵或 downstream GU，不形成科研效果结论。</li>
-      <li><span class="gap">NOT CONFIRMED</span> — AAGU-019 的旧小预算 setup 硬退役尚未实现，且不属于本候选。</li>
-      <li>本 Block 不选择 IF/selector，不修改历史 Artifact，不把旧证据改写为新合同证据。</li>
+      <li><span class="gap">NOT OBSERVED</span> — 未在 AutoDL RTX 4090/main checkout 上执行正式 cold materialization、Selection/GU gate 或完整矩阵。</li>
+      <li><span class="gap">NOT OBSERVED</span> — 没有攻击效果、遗忘效果、隐私或论文结论。</li>
+      <li><span class="gap">NOT CONFIRMED</span> — AAGU-019 的旧小预算 setup 硬退役仍由独立 Block 负责。</li>
+      <li>AAGU-024 未被修改，也不是 AAGU-006 的验收前置。</li>
     </ul>
   </section>
 
@@ -103,10 +116,13 @@
     <h2>复核入口</h2>
     <ul>
       <li><code>experiments/configs/syncmate_target_direct_formal_v2.yaml</code></li>
-      <li><code>scripts/dashboard/refresh.py</code> 与 <code>tests/test_dashboard_refresh.py</code></li>
-      <li><code>python -B -X utf8 scripts/dashboard/refresh.py --check</code> → PASS</li>
-      <li>9 个定向测试文件 → <code>70 passed in 1.37s</code></li>
+      <li><code>experiments/processed_provider.py</code></li>
+      <li><code>experiments/target_direct_v1/split_profile.py</code></li>
+      <li><code>experiments/target_direct_v1/run_selection.py</code></li>
+      <li><code>tests/test_target_direct_split_profile.py</code></li>
+      <li>10 个相关测试文件：<code>111 passed in 3.00s</code></li>
     </ul>
+    <p class="footer">Apply target：<code>refs/heads/codex/e7-two-surrogate-groups-20260805</code>。本报告是验收投影；<code>WORKITEM.md</code> 仍是权威 Record。</p>
   </section>
 </main>
 </body>

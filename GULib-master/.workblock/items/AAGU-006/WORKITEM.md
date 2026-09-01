@@ -4,7 +4,7 @@ Block ID: `AAGU-006`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance / candidate verified`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -72,10 +72,10 @@ Item Type: Block
 - Excluded state: no unrelated dirty state is present. AAGU-019 hard retirement, formal GPU execution, historical Artifact mutation, and scientific IF/selector decisions remain independently owned and excluded.
 - Runtime profile: `local-git`; owned writes are limited to the dataset/split contract, its active consumers/generators, focused tests, and this item package.
 - External boundaries: no formal GPU run, SSH write, live provider, historical Artifact mutation, push, install, Apply, cleanup, or destructive action is authorized before explicit acceptance.
-- Candidate: the previous dataset/split-authority candidate is superseded by the user-requested rework. Protocol/topology checkpoints `d5f64bc` and `a011a95` preserve the same branch and locator; a new implementation candidate is not yet formed.
+- Candidate: the clean `codex/aagu-006-dataset-split-authority` `HEAD`; implementation checkpoint `439b876c0a9a7a18b80a1bc47fe654c8a9c6735d` contains the YAML-driven split-profile code, and this tracked Record/Report projection advances the same ordinary candidate normally.
 - Evidence: `tests/test_dashboard_refresh.py`, the target-direct split/recipe/manifest/stage suites, `scripts/dashboard/refresh.py --check`, the registered local dry-run, and the paired `REPORT.md` / `REPORT.html` in this item directory.
-- Current human surface: the 2.1 `## Human Surface` above; the previous paired Report is superseded and will be rebuilt only after the new Verify.
-- Restart point: continue the YAML-driven split-profile implementation and real cold/warm verification inside this same linked source.
+- Current human surface: `.workblock/items/AAGU-006/REPORT.md` and `.workblock/items/AAGU-006/REPORT.html`.
+- Restart point: wait for an explicit accept/rework decision. Acceptance invokes `block-closeout` with this same locator; rework stays inside AAGU-006.
 
 ## Work events
 
@@ -92,6 +92,18 @@ Item Type: Block
 - 2026-08-26 post-review Verify: three lifecycle regressions cover the canonical candidate status, fail-closed unknown status, and the retained AAGU-019 registration status. The combined suite passed `70/70`; the regenerated dashboard projects AAGU-006 as awaiting/WIP, reports two waiting decisions, and passes drift validation.
 - 2026-09-01 rework Resume: installed block-workflow 2.1.2 validated a single-owner linked source, resumed this exact branch with three Git identity commands, and transitioned the existing Claim `eed658bd-1f4f-4eaf-b258-7dd607616064` to `ongoing` revision 4. AAGU-024 and its candidate remain unchanged.
 - 2026-09-02 implementation Verify before candidate: the registered YAML split contract, OpenGU processed-pair cold/warm path, manifest/GU adapter identity, Cache V2 recipe identity and dashboard suites passed `111/111`. The real temporary PyG cold path wrote the pair and manifest once; the warm path returned `reused` with identical bytes and `mtime_ns`. A clean-candidate registered dry-run remains the next check.
+- 2026-09-02 clean-candidate Verify: implementation checkpoint `439b876c` passed the same `111/111` set; the registered Cora/seed42/1% dry-run bound that clean SHA, failed closed on the declared local environment mismatches, returned `generated_artifacts=[]`, and left the exact profile absent with zero local processed files.
+- 2026-09-02 acceptance surface: the paired Report has one valid Human Result and one pending decision projection. Browser inspection observed one decision, no horizontal overflow or broken images, readable desktop hierarchy, and all five intended evidence sections.
+
+## 2026-09-02 formal verification and decision note
+
+- `PASS` — the formal YAML explicitly owns `0.7 / 0.1 / 0.2`, split seed 2024 and materialize-on-miss; launcher, processed profile, manifest, GU config and adapter consume one contract.
+- `PASS` — a real PyG cold/warm integration test created the OpenGU canonical pair once, then reused it without changing bytes or `mtime_ns`; cold/warm data identities, including `split_hash`, matched.
+- `PASS` — model seed changes do not change split arguments, and the explicit OpenGU processed provider never invokes a downstream split path.
+- `PASS` — Cache V2 keeps one root while its exact Recipe binds actual `split_hash`, candidate IDs and the registered split contract.
+- `PASS · scoped` — registered local dry-run consumes the recipe and creates no formal split or experiment Artifact when the formal environment gates are not met.
+- `NOT OBSERVED` — no AutoDL RTX 4090 formal materialization, Selection/GU gate, full matrix or scientific result was run.
+- Agent recommendation: accept the verified candidate. This is not human acceptance; the decision remains with the user.
 
 ## Superseded 2026-08-26 verification note
 
