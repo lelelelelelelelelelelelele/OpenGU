@@ -61,4 +61,3 @@ Stable locator: `.workblock/items/AAGU-024/WORKITEM.md`
 ## Registration boundary
 
 只注册 AAGU-024；不 Claim、不升级成员、不执行实验、不修改外部项目。
-
