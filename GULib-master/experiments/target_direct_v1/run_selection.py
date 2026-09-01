@@ -48,9 +48,11 @@ from experiments.selection_budget_planner import materialize_budget_selection
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.processed_provider import (
     ProcessedArtifactError,
-    processed_split_contract,
 )
-from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT
+from experiments.target_direct_v1 import (
+    DEFAULT_SPLIT_CONTRACT,
+    target_direct_split_contract,
+)
 from experiments.target_direct_v1.recipe import (
     ALGORITHM_VERSION,
     APPROVED_BUDGET_RATIOS,
@@ -89,7 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--processed-root", type=Path, required=True)
     parser.add_argument(
         "--processed-profile",
-        default=DEFAULT_SPLIT_CONTRACT.processed_profile,
+        default=None,
     )
     parser.add_argument(
         "--train-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.train_ratio
@@ -143,7 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _validate_args(args: argparse.Namespace) -> None:
     try:
-        args.split_contract = processed_split_contract(
+        args.split_contract = target_direct_split_contract(
             {
                 "processed_profile": args.processed_profile,
                 "split": {
@@ -154,8 +156,8 @@ def _validate_args(args: argparse.Namespace) -> None:
                 },
             },
             require_explicit=True,
-            require_profile=True,
         )
+        args.processed_profile = args.split_contract.processed_profile
     except ProcessedArtifactError as exc:
         raise ValueError(str(exc)) from exc
     if args.seed < 0 or args.num_threads <= 0 or args.epochs <= 0:

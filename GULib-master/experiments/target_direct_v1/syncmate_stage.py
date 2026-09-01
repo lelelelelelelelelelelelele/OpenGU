@@ -25,11 +25,10 @@ import yaml
 from experiments.path_policy import resolve_owned_path
 from experiments.processed_provider import (
     ProcessedArtifactError,
-    processed_split_contract,
 )
 from experiments.target_direct_v1 import (
-    DEFAULT_SPLIT_CONTRACT,
     MODEL_SEEDS,
+    target_direct_split_contract,
 )
 from experiments.target_direct_v1.build_gu_config import build_gu_config
 from experiments.target_direct_v1.build_manifest import build_manifest
@@ -54,6 +53,11 @@ RECEIPT_SCHEMA = "target_direct_v1.syncmate_selection_cell"
 RECEIPT_VERSION = 2
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
+DATASET_NODE_COUNTS = {
+    "cora": 2708,
+    "citeseer": 3327,
+    "pubmed": 19717,
+}
 STAGES = tuple(
     "{0}-seed{1}".format(dataset, seed)
     for dataset in DATASETS
@@ -170,10 +174,9 @@ def load_config(
     if not isinstance(value, dict):
         raise TargetDirectStageError("formal config root must be a mapping")
     try:
-        split_contract = processed_split_contract(
+        split_contract = target_direct_split_contract(
             value,
             require_explicit=True,
-            require_profile=True,
         )
     except ProcessedArtifactError as exc:
         raise TargetDirectStageError(str(exc)) from exc
@@ -181,7 +184,7 @@ def load_config(
     if (
         value.get("schema") != CONFIG_SCHEMA
         or value.get("version") != CONFIG_VERSION
-        or split_contract != DEFAULT_SPLIT_CONTRACT
+        or "processed_profile" in value
         or split_registration.get("materialize_on_miss") is not True
         or value.get("required_branch") != "main"
         or value.get("base_model") != "GCN"
@@ -252,22 +255,35 @@ def load_config(
     ):
         if (root / "results" / "runs").resolve() not in resolved[key].parents:
             raise TargetDirectStageError(key + " must be under results/runs")
-    expected_budgets = {
-        "cora": (1895, {"0.01": 18, "0.05": 94}),
-        "citeseer": (2328, {"0.01": 23, "0.05": 116}),
-        "pubmed": (13801, {"0.01": 138, "0.05": 690}),
-    }
-    for dataset, (candidate_count, expected_k_by_ratio) in expected_budgets.items():
+    normalized_datasets = {}
+    for dataset in DATASETS:
         item = value["datasets"][dataset]
-        if (
-            int(item.get("expected_candidate_count", -1)) != candidate_count
-            or item.get("expected_k_by_ratio") != expected_k_by_ratio
+        if not isinstance(item, Mapping):
+            raise TargetDirectStageError("dataset registration must be a mapping")
+        if any(
+            key in item for key in ("expected_candidate_count", "expected_k_by_ratio")
         ):
             raise TargetDirectStageError(
-                "reviewed candidate/k expectation changed for " + dataset
+                "candidate count and k must be derived from the split contract"
             )
+        if int(item.get("num_nodes", -1)) != DATASET_NODE_COUNTS[dataset]:
+            raise TargetDirectStageError(
+                "registered node count changed for " + dataset
+            )
+        candidate_count = int(
+            DATASET_NODE_COUNTS[dataset] * split_contract.train_ratio
+        )
+        normalized_datasets[dataset] = {
+            **item,
+            "expected_candidate_count": candidate_count,
+            "expected_k_by_ratio": {
+                ratio_key(ratio): max(1, int(candidate_count * float(ratio)))
+                for ratio in BUDGET_RATIOS
+            },
+        }
     return {
         **value,
+        "datasets": normalized_datasets,
         "repository_root": root,
         "config_path": path,
         "paths": resolved,
@@ -769,8 +785,6 @@ def execute_selection(
         str(display_name),
         "--processed-root",
         str(config["paths"]["processed_root"]),
-        "--processed-profile",
-        config["split_contract"].processed_profile,
         "--train-ratio",
         str(config["split_contract"].train_ratio),
         "--val-ratio",

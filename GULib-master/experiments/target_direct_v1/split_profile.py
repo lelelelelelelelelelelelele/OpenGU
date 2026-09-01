@@ -1,4 +1,4 @@
-"""Stage and verify the fixed 70/10/20 Planetoid OpenGU split profile."""
+"""Stage and verify one registered Planetoid OpenGU split profile."""
 
 from __future__ import annotations
 
@@ -25,16 +25,18 @@ from experiments.gu_target_v1.public_profile import (
 from experiments.processed_provider import (
     ProcessedSplitContract,
     processed_artifact_paths,
-    processed_split_contract,
 )
 from experiments.selection_inputs import make_dataset_selection_inputs
-from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT
+from experiments.target_direct_v1 import (
+    DEFAULT_SPLIT_CONTRACT,
+    target_direct_split_contract,
+)
 from utils.node_split import apply_transductive_node_split, observe_node_split
 
 
 MANIFEST_SCHEMA = "target_direct_v1.processed_split_profile"
-MANIFEST_VERSION = 1
-SPLIT_POLICY = "fixed-randperm-disjoint-70-10-20-v1"
+MANIFEST_VERSION = 2
+SPLIT_POLICY = "seeded-randperm-disjoint-v1"
 
 
 def assert_canonical_processed_root(
@@ -293,7 +295,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--processed-profile",
-        default=DEFAULT_SPLIT_CONTRACT.processed_profile,
+        default=None,
     )
     parser.add_argument(
         "--train-ratio", type=float, default=DEFAULT_SPLIT_CONTRACT.train_ratio
@@ -315,7 +317,7 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     function = verify_profile if args.verify_only else stage_profile
-    contract = processed_split_contract(
+    contract = target_direct_split_contract(
         {
             "processed_profile": args.processed_profile,
             "split": {
@@ -326,7 +328,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             },
         },
         require_explicit=True,
-        require_profile=True,
     )
     result = function(
         repository_root=args.repository_root,

@@ -6,7 +6,10 @@ import pytest
 from torch_geometric.data import Data
 
 from experiments.processed_provider import processed_split_contract
-from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT
+from experiments.target_direct_v1 import (
+    DEFAULT_SPLIT_CONTRACT,
+    target_direct_split_contract,
+)
 from experiments.target_direct_v1 import run_selection as selection_module
 from experiments.target_direct_v1 import split_profile as profile_module
 from experiments.target_direct_v1.split_profile import (
@@ -126,6 +129,38 @@ def test_split_contract_defaults_are_70_10_20_seed2024():
     }
 
 
+def test_target_direct_equivalent_ratio_values_share_one_contract():
+    equivalent = target_direct_split_contract(
+        {
+            "split": {
+                "train_ratio": "0.70",
+                "val_ratio": "0.10",
+                "test_ratio": "0.20",
+                "split_seed": "2024",
+            }
+        },
+        require_explicit=True,
+    )
+
+    assert equivalent == DEFAULT_SPLIT_CONTRACT
+    assert equivalent.processed_profile == "planetoid_70_10_20_seed2024"
+
+
+def test_target_direct_requires_a_nonempty_validation_target():
+    with pytest.raises(RuntimeError, match="positive validation"):
+        target_direct_split_contract(
+            {
+                "split": {
+                    "train_ratio": 0.8,
+                    "val_ratio": 0,
+                    "test_ratio": 0.2,
+                    "split_seed": 2024,
+                }
+            },
+            require_explicit=True,
+        )
+
+
 class _PersistedPlanetoid:
     def __init__(self, data):
         self.data = data
@@ -210,6 +245,89 @@ def test_real_processed_profile_cold_create_then_warm_hit_without_rewrite(
         payload, modified = before[path]
         assert Path(path).read_bytes() == payload
         assert Path(path).stat().st_mtime_ns == modified
+
+
+def test_real_profiles_reuse_equivalent_contract_and_keep_alternates_distinct(
+    tmp_path, monkeypatch
+):
+    repository_root = tmp_path / "GULib-master"
+    processed_root = repository_root / "data" / "processed"
+    source = _DatasetSource(repository_root)
+    base_data = _data()
+    monkeypatch.setattr(profile_module, "Planetoid", _PersistedPlanetoid)
+    monkeypatch.setattr(
+        profile_module,
+        "resolve_planetoid_public_source",
+        lambda *args, **kwargs: source,
+    )
+    monkeypatch.setattr(
+        profile_module,
+        "_load_offline_planetoid",
+        lambda observed: _PersistedPlanetoid(base_data.clone()),
+    )
+    equivalent_default = target_direct_split_contract(
+        {
+            "split": {
+                "train_ratio": "0.70",
+                "val_ratio": "0.10",
+                "test_ratio": "0.20",
+                "split_seed": 2024,
+            }
+        },
+        require_explicit=True,
+    )
+    alternate = target_direct_split_contract(
+        {
+            "split": {
+                "train_ratio": 0.6,
+                "val_ratio": 0.2,
+                "test_ratio": 0.2,
+                "split_seed": 2024,
+            }
+        },
+        require_explicit=True,
+    )
+
+    cold_default = stage_profile(
+        repository_root=repository_root,
+        processed_root=processed_root,
+        dataset="Cora",
+        contract=DEFAULT_SPLIT_CONTRACT,
+    )
+    default_before = {
+        Path(cold_default[name]): (
+            Path(cold_default[name]).read_bytes(),
+            Path(cold_default[name]).stat().st_mtime_ns,
+        )
+        for name in ("data_path", "dataset_path", "manifest_path")
+    }
+    warm_equivalent = stage_profile(
+        repository_root=repository_root,
+        processed_root=processed_root,
+        dataset="Cora",
+        contract=equivalent_default,
+    )
+    cold_alternate = stage_profile(
+        repository_root=repository_root,
+        processed_root=processed_root,
+        dataset="Cora",
+        contract=alternate,
+    )
+
+    assert warm_equivalent["status"] == "reused"
+    assert cold_alternate["status"] == "created"
+    assert warm_equivalent["data_path"] == cold_default["data_path"]
+    assert cold_alternate["data_path"] != cold_default["data_path"]
+    assert Path(cold_alternate["data_path"]).is_file()
+    assert data_identity(warm_equivalent["data"])["split_hash"] == (
+        data_identity(cold_default["data"])["split_hash"]
+    )
+    assert data_identity(cold_alternate["data"])["split_hash"] != (
+        data_identity(cold_default["data"])["split_hash"]
+    )
+    for path, (payload, modified) in default_before.items():
+        assert path.read_bytes() == payload
+        assert path.stat().st_mtime_ns == modified
 
 
 def test_model_seed_does_not_change_registered_split_arguments(tmp_path):

@@ -8184,6 +8184,13 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
     )
     assert selection["config_sha256"] == sm.TARGET_DIRECT_CONFIG_SHA256
     assert selection["selection_matrix"]["candidate_count"] == 2328
+    assert selection["selection_matrix"]["split_contract"] == {
+        "processed_profile": "planetoid_70_10_20_seed2024",
+        "train_ratio": 0.7,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "split_seed": 2024,
+    }
     assert selection["selection_matrix"]["budget_ratios"] == [0.01, 0.05]
     assert selection["selection_matrix"]["expected_k_by_ratio"] == {
         "0.01": 23,
@@ -8204,6 +8211,9 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
         set(gate_5["expected_artifact_paths"])
     )
     assert full["gu_stage"]["candidate_count"] == 13801
+    assert full["gu_stage"]["split_contract"] == selection[
+        "selection_matrix"
+    ]["split_contract"]
     assert full["gu_stage"]["k"] == 690
     assert full["gu_stage"]["ratio"] == 0.05
     assert full["gu_stage"]["execution_authorized"] is False

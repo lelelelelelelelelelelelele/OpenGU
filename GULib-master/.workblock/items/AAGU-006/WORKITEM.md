@@ -4,7 +4,7 @@ Block ID: `AAGU-006`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance / candidate verified`
+当前状态: `working / claimed`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
@@ -22,17 +22,17 @@ Item Type: Block
 
 ### 核心意图
 
-让正式实验的数据划分成为可声明、可复用、可校验的独立数据状态，而不是由每次实验运行或随机种子临时重切。实验配置默认声明 `0.7 / 0.1 / 0.2` 的 train/validation/test 比例和固定 split seed；同一数据集与同一划分合同只生成一次，之后所有模型、selector 和 unlearning 实验消费同一份已持久化划分。
+让正式实验的数据划分成为可声明、可复用、可校验的独立数据状态，而不是由每次实验运行或随机种子临时重切。实验配置默认使用 `0.7 / 0.1 / 0.2` 和 split seed 2024，但允许注册任意总和为 1、满足对应实验目标语义的合法比例与非负 split seed。同一 dataset 与同一归一化 split contract 只生成一个持久化划分；不同合法合同拥有不同身份，从而同时保证复用和实验多样性。通用 OpenGU 可以保留零 validation 的合同；target-direct 因攻击目标取自 validation mask，只要求自己的注册比例提供非空 validation。
 
 ### 本次增量
 
-复用 OpenGU 现有的“划分后保存 pickle、后续直接加载”基础设施，把当前 target-direct 的硬编码常量收敛为 YAML 驱动的通用 split profile 合同。运行代码读取配置中的比例、split seed 和 profile 身份：首次没有匹配 profile 时生成 masks、pickle 与 manifest；已有完全匹配的 profile 时直接命中并复用，不重新划分。Cache V2 不建立按 seed 分裂的新目录，但其 Recipe/Artifact 必须绑定实际 `split_hash` 和候选集身份，任何配置、manifest 与持久化数据不一致都 fail closed。
+复用 OpenGU 现有的“划分后保存 pickle、后续直接加载”基础设施，把 split mapping 设为唯一配置输入，并由 dataset family、归一化比例和 split seed 确定性派生 processed profile；candidate count 与预算 `k` 同样从合同计算，不再与 YAML 重复登记。`0.7`、`0.70` 等等价写法必须得到同一身份和同一 pickle 路径；首次 miss 生成 masks、pickle 与 manifest，后续命中直接复用。Cache V2 不建立 split-specific 根，但其 Recipe/Artifact 绑定实际 `split_hash` 和候选集身份；只有非法比例、不满足当前实验目标定义，或声明与持久化事实冲突时才 fail closed，不能因为比例不是默认值而拒绝。
 
 ### 核心验收
 
-- 正式实验 YAML 能显式声明并默认使用 `0.7 / 0.1 / 0.2` 与固定 split seed，运行入口不再用另一套硬编码比例覆盖注册内容。
-- 真实冷路径测试会完成一次划分、保存可再次加载的 processed profile；真实热路径测试会命中同一 profile，证明没有重新划分或覆写，且不同模型、selector、unlearning seed 仍消费相同的 masks 与 `split_hash`。
-- split 比例、split seed、profile、manifest、持久化 masks 或 Cache V2 输入身份发生冲突时会明确拒绝；测试同时证明复用了 OpenGU 的持久化数据加载路径，而不是另建 target-direct 私有数据系统。
+- 正式实验 YAML 显式声明 split mapping，当前 default 为 `0.7 / 0.1 / 0.2` 与 split seed 2024；另一组满足 target-direct 目标语义的合法比例能通过同一入口注册和运行准备，不被 default gate 拒绝。
+- 同一 dataset + 等价 ratios + 同一 split seed 在多次运行和不同实验 seed 下得到同一 canonical profile、同一 pickle 路径与同一 `split_hash`；真实 cold/warm 测试证明只生成一次且不覆写。
+- 不同合法 split contract 得到不同 profile 并可并存；非法比例、manifest、持久化 masks 或 Cache V2 输入身份冲突才明确拒绝。当前正式实验注册均能解析到显式 split mapping，且复用 OpenGU 持久化路径而非另建私有数据系统。
 
 ## Orchestration contract
 
@@ -55,6 +55,7 @@ Item Type: Block
 
 - No IF scientific decision, selector choice, formal GPU run, result reinterpretation, or historical evidence deletion.
 - Implementation and local verification only; formal GPU execution and every post-accept action remain outside this Run.
+- No global prohibition or deletion of historical/alternate valid split profiles; diversity remains supported through canonical per-contract identities.
 
 ## Status history
 
@@ -72,10 +73,10 @@ Item Type: Block
 - Excluded state: no unrelated dirty state is present. AAGU-019 hard retirement, formal GPU execution, historical Artifact mutation, and scientific IF/selector decisions remain independently owned and excluded.
 - Runtime profile: `local-git`; owned writes are limited to the dataset/split contract, its active consumers/generators, focused tests, and this item package.
 - External boundaries: no formal GPU run, SSH write, live provider, historical Artifact mutation, push, install, Apply, cleanup, or destructive action is authorized before explicit acceptance.
-- Candidate: the clean `codex/aagu-006-dataset-split-authority` `HEAD`; implementation checkpoint `439b876c0a9a7a18b80a1bc47fe654c8a9c6735d` contains the YAML-driven split-profile code, and this tracked Record/Report projection advances the same ordinary candidate normally.
+- Candidate: `40e45bbaf433b0bbe422d0217d0cf0b322355a4e` is superseded by the user's valid-split rework. A new candidate is not yet formed.
 - Evidence: `tests/test_dashboard_refresh.py`, the target-direct split/recipe/manifest/stage suites, `scripts/dashboard/refresh.py --check`, the registered local dry-run, and the paired `REPORT.md` / `REPORT.html` in this item directory.
-- Current human surface: `.workblock/items/AAGU-006/REPORT.md` and `.workblock/items/AAGU-006/REPORT.html`.
-- Restart point: wait for an explicit accept/rework decision. Acceptance invokes `block-closeout` with this same locator; rework stays inside AAGU-006.
+- Current human surface: the revised 2.1 `## Human Surface` above; the previous paired Report is superseded until Verify completes.
+- Restart point: implement canonical split-profile derivation, audit registered split consumers, and rerun real cold/warm verification inside this same source.
 
 ## Work events
 
@@ -94,6 +95,8 @@ Item Type: Block
 - 2026-09-02 implementation Verify before candidate: the registered YAML split contract, OpenGU processed-pair cold/warm path, manifest/GU adapter identity, Cache V2 recipe identity and dashboard suites passed `111/111`. The real temporary PyG cold path wrote the pair and manifest once; the warm path returned `reused` with identical bytes and `mtime_ns`. A clean-candidate registered dry-run remains the next check.
 - 2026-09-02 clean-candidate Verify: implementation checkpoint `439b876c` passed the same `111/111` set; the registered Cora/seed42/1% dry-run bound that clean SHA, failed closed on the declared local environment mismatches, returned `generated_artifacts=[]`, and left the exact profile absent with zero local processed files.
 - 2026-09-02 acceptance surface: the paired Report has one valid Human Result and one pending decision projection. Browser inspection observed one decision, no horizontal overflow or broken images, readable desktop hierarchy, and all five intended evidence sections.
+- 2026-09-02 acceptance rework: the user rejected frozen-default semantics. Default remains 70/10/20, but all legal split contracts must be accepted; equivalent contracts must converge on one persisted profile, while different legal contracts retain distinct identities. Candidate `40e45bba` and its Report are superseded without Apply.
+- 2026-09-02 valid-split implementation: formal YAML now declares only split and dataset node counts; canonical profile, candidate count and budget `k` are derived by both target-direct and SyncMate registration consumers. A valid 60/20/20 seed42 contract passes the same loader/direct-runner path, while real file tests prove equivalent default reuse and distinct-contract coexistence.
 
 ## 2026-09-02 formal verification and decision note
 

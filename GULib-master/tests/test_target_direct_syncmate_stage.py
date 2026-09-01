@@ -100,6 +100,7 @@ def test_formal_config_freezes_scope_budget_and_excludes_stress():
         "split_seed": 2024,
     }
     assert config["split"]["materialize_on_miss"] is True
+    assert "processed_profile" not in config
     assert config["main_parameter_scope"] == "last_layer"
     assert "stress_parameter_scope" not in config
     assert "stress_ladder" not in config
@@ -157,11 +158,10 @@ def _write_formal_config(tmp_path, mutate):
         ("train_ratio", 0.6),
         ("val_ratio", 0.2),
         ("test_ratio", 0.1),
-        ("split_seed", 42),
         ("materialize_on_miss", False),
     ),
 )
-def test_formal_config_rejects_unregistered_split_contract(tmp_path, field, value):
+def test_formal_config_rejects_invalid_split_contract(tmp_path, field, value):
     config_path, repository_root = _write_formal_config(
         tmp_path,
         lambda config: config["split"].update({field: value}),
@@ -169,6 +169,42 @@ def test_formal_config_rejects_unregistered_split_contract(tmp_path, field, valu
 
     with pytest.raises(stage_module.TargetDirectStageError, match="split|frozen"):
         stage_module.load_config(config_path, repository_root=repository_root)
+
+
+def test_formal_config_accepts_valid_alternate_split_and_derives_budgets(tmp_path):
+    def mutate(config):
+        config["split"].update(
+            {
+                "train_ratio": 0.6,
+                "val_ratio": 0.2,
+                "test_ratio": 0.2,
+                "split_seed": 42,
+            }
+        )
+
+    config_path, repository_root = _write_formal_config(tmp_path, mutate)
+
+    config = stage_module.load_config(
+        config_path, repository_root=repository_root
+    )
+
+    assert config["split_contract"].to_manifest() == {
+        "processed_profile": "planetoid_60_20_20_seed42",
+        "train_ratio": 0.6,
+        "val_ratio": 0.2,
+        "test_ratio": 0.2,
+        "split_seed": 42,
+    }
+    assert config["datasets"]["cora"]["expected_candidate_count"] == 1624
+    assert config["datasets"]["cora"]["expected_k_by_ratio"] == {
+        "0.01": 16,
+        "0.05": 81,
+    }
+    assert config["datasets"]["pubmed"]["expected_candidate_count"] == 11830
+    assert config["datasets"]["pubmed"]["expected_k_by_ratio"] == {
+        "0.01": 118,
+        "0.05": 591,
+    }
 
 
 def test_preflight_does_not_materialize_split_before_execution_gates(monkeypatch):
@@ -305,6 +341,51 @@ def test_direct_selection_rejects_unequal_cache_roots(tmp_path):
 
     with pytest.raises(ValueError, match="same canonical Cache V2 root"):
         selection_module._validate_args(args)
+
+
+def test_direct_selection_consumes_alternate_split_without_manual_profile(tmp_path):
+    cache_root = (tmp_path / "cache_v2").resolve()
+    args = selection_module.build_parser().parse_args(
+        [
+            "--dataset",
+            "Cora",
+            "--processed-root",
+            str((tmp_path / "processed").resolve()),
+            "--train-ratio",
+            "0.6",
+            "--val-ratio",
+            "0.2",
+            "--test-ratio",
+            "0.2",
+            "--split-seed",
+            "42",
+            "--runtime-root",
+            str((tmp_path / "runtime").resolve()),
+            "--cache-root",
+            str(cache_root),
+            "--selection-cache-root",
+            str(cache_root),
+            "--checkpoint-path",
+            str((tmp_path / "checkpoint.pt").resolve()),
+            "--output",
+            str((tmp_path / "summary.json").resolve()),
+            "--seed",
+            "212",
+            "--ratio",
+            "0.01",
+        ]
+    )
+
+    selection_module._validate_args(args)
+
+    assert args.processed_profile == "planetoid_60_20_20_seed42"
+    assert args.split_contract.to_manifest() == {
+        "processed_profile": "planetoid_60_20_20_seed42",
+        "train_ratio": 0.6,
+        "val_ratio": 0.2,
+        "test_ratio": 0.2,
+        "split_seed": 42,
+    }
 
 
 def test_static_stage_artifact_sets_are_exact_and_bounded():
