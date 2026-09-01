@@ -1,10 +1,24 @@
 # AAGU-023 · Legacy 实验证据归档与清理
 
 Todo ID: `AAGU-023`
-Item Version: 2.0
+Item Version: 2.1
 Item Type: `Todo`
 当前状态: `registered / not claimed`
 Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
+
+## Human Surface
+
+### 核心意图
+
+将不再支持当前正式 claim 的旧实验 payload 与 Legacy Cache 集中归档，保留批次身份、来源、失效原因和可追溯 manifest，并防止其被当前正式运行或论文结论误用。优先归档而非直接删除，只重跑当前研究计划仍需要的证据。
+
+### 本次增量
+
+将现有 AAGU-023 Todo 的协议入口从 2.0 升级到 2.1，保持同一 ID、`registered / not claimed` 状态、原始意图、详细上下文和授权边界；本次协议升级本身不 Promote、Claim、移动、删除或改写任何实验与缓存数据。
+
+### 核心验收
+
+确认记录可被 2.1 协议稳定识别，且升级前后的 ID、Todo 状态、归档优先意图、Legacy Cache 与 `results/cache_v2` 边界、本机/SSH 追溯要求均未改变；真正的归档、清理和删除验收在 Promote 为 Block 后另行执行。
 
 ## Initial idea
 
