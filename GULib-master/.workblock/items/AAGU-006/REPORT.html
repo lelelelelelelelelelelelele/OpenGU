@@ -61,7 +61,7 @@
     <div class="result-grid">
       <div class="block">
         <h3>实际增量</h3>
-        <p><code>syncmate_target_direct_formal_v2.yaml</code> 只登记 split mapping；当前 default 是 <code>0.7 / 0.1 / 0.2</code> 与 <code>split_seed=2024</code>。profile、candidate count 和预算 <code>k</code> 均从合同派生。</p>
+        <p><code>syncmate_target_direct_formal_v2.yaml</code> 用 split mapping 登记数据划分；当前 default 是 <code>0.7 / 0.1 / 0.2</code> 与 <code>split_seed=2024</code>。profile 和候选集合由 split 确定；budget ratio 或固定 <code>k</code> 由实验注册独立拥有。</p>
         <p><code>0.7</code> 与 <code>0.70</code> 命中同一 OpenGU pickle pair；另一组合法合同生成不同 profile 并与 default 并存。Cache V2 保持一个 root，以实际 <code>split_hash</code> 区分 identity。</p>
       </div>
       <div class="block">
@@ -88,8 +88,8 @@
     <table>
       <thead><tr><th>场景</th><th>实际观察</th><th>判断</th></tr></thead>
       <tbody>
-        <tr><td>当前 default</td><td>YAML 派生 <code>planetoid_70_10_20_seed2024</code> 与既有三数据集 candidate/预算值，不再重复登记派生字段。</td><td class="pass">PASS</td></tr>
-        <tr><td>合法 alternate</td><td><code>0.6/0.2/0.2 + seed42</code> 通过 formal loader 和 direct runner，派生独立 profile 与预算。</td><td class="pass">PASS</td></tr>
+        <tr><td>当前 default</td><td>YAML 派生 <code>planetoid_70_10_20_seed2024</code> 与既有三数据集训练候选集合；独立注册的删除预算未被改写。</td><td class="pass">PASS</td></tr>
+        <tr><td>合法 alternate</td><td><code>0.6/0.2/0.2 + seed42</code> 通过 formal loader 和 direct runner，派生独立 profile 与候选集合；budget 参数保持独立。</td><td class="pass">PASS</td></tr>
         <tr><td>等价合同复用</td><td>真实 cold 创建后，<code>0.70/0.10/0.20</code> warm 返回 <code>reused</code>；bytes、纳秒修改时间与 split hash 不变。</td><td class="pass">PASS</td></tr>
         <tr><td>不同合同并存</td><td>alternate 生成不同 pickle path 和 <code>split_hash</code>；default 文件未改写。</td><td class="pass">PASS</td></tr>
         <tr><td>注册投影</td><td>AAGU-006/AAGU-007 共用 fact owner；9 Selection + 2 gate + 18 GU stage recipe 都携带同一 default contract。</td><td class="pass">PASS</td></tr>

@@ -10,7 +10,7 @@
 
 ### 实际增量
 
-[`syncmate_target_direct_formal_v2.yaml`](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml) 现在只声明 split mapping：当前 default 是 `train=0.7 / validation=0.1 / test=0.2`、`split_seed=2024` 和 `materialize_on_miss=true`。processed profile、训练候选数和 1%/5% 的 `k` 都由消费者从这份合同派生，不再在 YAML 和代码中各写一份。
+[`syncmate_target_direct_formal_v2.yaml`](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml) 现在只用 split mapping 声明数据划分：当前 default 是 `train=0.7 / validation=0.1 / test=0.2`、`split_seed=2024` 和 `materialize_on_miss=true`。processed profile 与训练候选集合/数量由这份 split 合同确定；删除预算仍由实验注册中的 budget ratio 或固定 `k` 独立拥有，不属于 split 参数。
 
 同 dataset、同规范化 ratios、同 split seed 只对应一个 canonical profile 和一组 OpenGU pickle；`0.7` 与 `0.70` 会命中同一路径。另一组满足实验目标语义的合法合同会得到不同 profile，可以和 default 并存，不会被“只允许默认值”的 gate 拒绝。Cache V2 仍只有一个 root，通过实际 `split_hash`、candidate hash 和 target hash 区分 exact identity。
 
@@ -18,8 +18,8 @@
 
 | 场景 | 期待 | 实际观察 | 判断 |
 |---|---|---|---|
-| 当前注册 default | YAML 是唯一 split 输入 | loader 派生 `planetoid_70_10_20_seed2024`，Cora/CiteSeer/PubMed 候选数仍为 1895/2328/13801，预算 `k` 与当前注册一致 | `PASS` |
-| 合法 alternate | 非默认比例不能被 default gate 拒绝 | `0.6/0.2/0.2 + seed42` 通过同一 formal loader 和 direct runner 校验，派生 `planetoid_60_20_20_seed42` 及新的 candidate/`k` | `PASS` |
+| 当前注册 default | YAML 是唯一 split 输入 | loader 派生 `planetoid_70_10_20_seed2024`，Cora/CiteSeer/PubMed 的训练候选数仍为 1895/2328/13801；独立注册的删除预算未被 AAGU-006 改写 | `PASS` |
+| 合法 alternate | 非默认比例不能被 default gate 拒绝 | `0.6/0.2/0.2 + seed42` 通过同一 formal loader 和 direct runner 校验，派生 `planetoid_60_20_20_seed42` 与对应候选集合；budget 参数保持独立 | `PASS` |
 | 等价合同真实复用 | `0.7` 与 `0.70` 只物化一次 | 真实 PyG/文件 cold 先创建 pair 与 manifest；等价合同 warm 返回 `reused`，原文件 bytes、`mtime_ns` 与 `split_hash` 不变 | `PASS` |
 | 不同合同并存 | 多样性不能因复用而消失 | `0.6/0.2/0.2` 创建另一条 profile、另一组 pickle 与不同 `split_hash`；default 文件保持原样 | `PASS` |
 | 注册消费 | 当前实验注册都读取同一合同 | AAGU-006 与 AAGU-007 都指向 formal-v2 YAML；29 个 target-direct Selection/GU recipe 全部投影同一 default split contract 与新配置摘要 | `PASS` |
@@ -30,7 +30,7 @@
 
 > 当前验收决定：`待决定`
 
-**Agent 建议：建议接受。** 本候选已经取消 frozen-default 错误语义，证明相同合同只保存一次、不同合法合同可以并存，并让正式注册、运行参数和预算派生都消费 YAML。它没有启动正式实验，也没有禁止历史或其他实验使用 `0.8/0/0.2` 等不同合同。
+**Agent 建议：建议接受。** 本候选已经取消 frozen-default 错误语义，证明相同合同只保存一次、不同合法合同可以并存，并让正式注册与运行链消费 YAML split；删除预算继续由实验注册独立管理。它没有启动正式实验，也没有禁止历史或其他实验使用 `0.8/0/0.2` 等不同合同。
 
 决定人：刘丞毓。可以接受当前候选，或指出具体返工项。
 
@@ -52,7 +52,7 @@ canonical profile 只由 dataset family、规范化后的三个比例和 split s
 
 ### 4. 注册与运行链是否真的消费 YAML — `PASS`
 
-formal YAML 不再手填 `processed_profile`、`expected_candidate_count` 或 `expected_k_by_ratio`。target-direct stage、direct selection runner 和 SyncMate registry 都从 split mapping 派生这些值。审计当前控制面时，AAGU-006 与 AAGU-007 都指向同一 formal-v2 fact owner；注册表中的 9 个 Selection、2 个 GU gate 和 18 个 GU stage recipe 共 29 个定义，都携带与 loader 完全相同的 default split contract。
+formal YAML 不再手填 `processed_profile` 或 `expected_candidate_count`；target-direct stage、direct selection runner 和 SyncMate registry 从 split mapping 派生数据身份与候选集合。删除预算的 ratio/固定 `k` 仍是独立实验参数；若注册的是 ratio，运行时才把该 ratio 投影到候选集合得到实际删除数量，这不改变参数归属。审计当前控制面时，AAGU-006 与 AAGU-007 都指向同一 formal-v2 fact owner；注册表中的 9 个 Selection、2 个 GU gate 和 18 个 GU stage recipe 共 29 个定义，都携带与 loader 完全相同的 default split contract。
 
 ### 5. Cache 是否需要按 split 建多个根 — `PASS`
 
