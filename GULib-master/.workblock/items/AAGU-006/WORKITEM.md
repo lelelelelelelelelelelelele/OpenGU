@@ -12,6 +12,8 @@ Item Version: 2.1
 
 > Source branch：`refs/heads/codex/aagu-006-dataset-split-authority`
 
+> Remote target：`origin refs/heads/codex/e7-two-surrogate-groups-20260805`
+
 Execution topology: `parallel`
 
 Parallel owner: `Codex` session `统计现有 Fix Blocks` branch `refs/heads/codex/aagu-006-dataset-split-authority`
