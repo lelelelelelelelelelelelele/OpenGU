@@ -6,7 +6,13 @@ Item Type: `Block`
 Acceptance Route: `formal`
 Execution topology: `sequential`
 > Apply target ref：`refs/heads/main`
-当前状态: `registered / not claimed`
+
+> Git baseline：`3ec3d56476f008f7bfc94b4e62a70efd239be6e2`
+
+> Source branch：`refs/heads/codex/aagu-023-legacy-evidence-archive`
+
+> Remote target：`origin refs/heads/main`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 
 ## Human Surface
@@ -68,3 +74,24 @@ Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 - 2026-08-31: Registered as Todo only; not claimed or implemented.
 - 2026-09-02: Upgraded the same Todo from WorkItem 2.0 to 2.1 without changing its identity, status, or cleanup authority.
 - 2026-09-02: Promoted the same `AAGU-023` to a formal, sequential Block after human confirmation; remains `registered / not claimed`.
+- 2026-09-02: Claimed as the same Block by session `AAGU-023 · Legacy evidence inventory and archive`; Claim `2c8e25f2-5ca9-42a1-82ee-a3a3c2b6693e` is `ongoing` revision 1.
+
+## Run inventory and archive decision
+
+- Execution envelope: parent `refs/heads/main` at `3ec3d56476f008f7bfc94b4e62a70efd239be6e2`; source `refs/heads/codex/aagu-023-legacy-evidence-archive`; owned paths are this item package, `scripts/legacy_evidence_inventory.py`, its focused tests, and the generator-owned WORKPLAN/progress projection. This Run stops at a committed candidate; no merge, push, install, cleanup, or deletion is authorized.
+- Machine-readable plan: `evidence/batch-plan.json` declares 20 exact batches, the 2026-05-31 cutoff, `archive_requires_state=REPLACED`, `delete_authorized=false`, forbidden Legacy reuse for new batches, and `results/cache_v2` as the sole protected path rather than a retirement batch.
+- Local inventory: `evidence/local-inventory-before.json` and `evidence/local-inventory-after.json` cover 7,044 evidence files. The only unassigned `results/` files are the current governance files `results/AGENTS.md` and `results/README.md`.
+- Legacy roots remain distinct: ResultCache 8 files / 59,952 bytes; SelectionCache 9 / 19,696; ScoreCache 26 / 697,912. The live source scan records 74 API/path references across production code, legacy tools/configuration, and tests, so none of the three roots is archive-eligible.
+- Existing isolation is preserved: the 2026-05-06, 2026-05-07, and 2026-07-21 archive batches contain 2,675 / 28 / 126 files and remain in their existing archive locations. `results/runs` is split into exact 4090, ablating, 2026-07 engineering, H20, and arXiv sub-batches; it is never treated as one retirement batch.
+- Local before/after comparison: `evidence/local-inventory-comparison.json` reports no batch changes, no protected-path changes, `moves_observed=0`, `deletions_observed=0`, and `cache_v2_unchanged=true`. The protected Cache V2 anchor remains 32 files / 983,515 bytes.
+- Common ledger: `evidence/retirement-ledger.json` registers every local/SSH location and contains empty move, deletion, and Cache V2 write lists. No batch is in `REPLACED`, so no new physical archive action is valid in this Run.
+- SSH observation: live access is `NOT_OBSERVED`. The configured OpenGU aliases `autodl-opengu`, `opengu-4090`, and `4090` each refused banner exchange before any remote command ran. The ledger therefore keeps the five planned SSH pairings at `NOT_OBSERVED` and truthfully sets `device_parity_confirmed=false`; historical 2026-07/08 counts are not promoted into a 2026-09 live observation.
+- Integration projection: AAGU-023 now has one Repair mapping in `self/dashboard/WORKPLAN.md`, the registered dependency into AAGU-003 is projected, and `self/dashboard/progress.html` is rebuilt by `scripts/dashboard/refresh.py`.
+
+## Pre-candidate validation
+
+- `PASS` — `tests/test_legacy_evidence_inventory.py`, Cache V2 archive-readiness/freeze guards, AAGU-019 retirement guards, and dashboard generator tests pass `21/21`.
+- `PASS` — the changed Python files compile, `scripts/dashboard/refresh.py --check` passes, and `git diff --check` passes.
+- `PASS` — the local data/lifecycle surface is deterministic: 20 declared batches, 7,044 assigned evidence files, two explicitly excluded governance files, zero moves, zero deletions, and unchanged Cache V2 anchor.
+- `NOT OBSERVED` — live SSH payload hashes, remote consumer count, and local/SSH ledger parity could not be verified while the AutoDL endpoint was unavailable.
+- `NOT CONFIRMED` — no physical archive action is eligible because no newly observed batch has reached `REPLACED` with zero downstream references; this is a gate result, not permission to weaken the state machine.

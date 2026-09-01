@@ -1,0 +1,401 @@
+{
+  "schema": "opengu.legacy_evidence_batch_plan",
+  "version": 1,
+  "policy": {
+    "cutoff": "2026-05-31T23:59:59+08:00",
+    "archive_requires_state": "REPLACED",
+    "delete_authorized": false,
+    "legacy_cache_reuse": "forbidden_for_new_batches"
+  },
+  "devices": [
+    {
+      "id": "local",
+      "role": "local review checkout"
+    },
+    {
+      "id": "ssh",
+      "role": "AutoDL canonical active checkout"
+    }
+  ],
+  "protected_paths": [
+    "results/cache_v2"
+  ],
+  "batches": [
+    {
+      "id": "legacy-result-cache",
+      "description": "Legacy ResultCache payload root",
+      "evidence_class": "legacy_cache",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "ResultCache has no current formal Recipe, split, producer, or Artifact identity and cannot support target-direct formal claims.",
+      "replacement_basis": "New formal batches may use only exact Cache V2 Recipe and Artifact identities; the current local files have no one-to-one accepted replacement mapping.",
+      "downstream_reference_basis": "The live source consumer scan still finds ResultCache API and results/cache path references, so the root remains an in-place rollback source and is not archive-eligible.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/cache",
+            "disposition": "active_rollback_source"
+          }
+        ],
+        "ssh": [
+          {
+            "path": "results/cache",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-selection-cache",
+      "description": "Legacy SelectionCache payload root",
+      "evidence_class": "legacy_cache",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "SelectionCache entries lack the complete current Recipe, split, candidate-set, producer, and Artifact identity required by the formal lane.",
+      "replacement_basis": "Exact Cache V2 Selection Artifacts replace only matching accepted identities; no path- or filename-based bulk replacement is valid.",
+      "downstream_reference_basis": "The live source consumer scan still finds SelectionCache API and results/selection_cache path references, so the root remains an in-place rollback source and is not archive-eligible.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/selection_cache",
+            "disposition": "active_rollback_source"
+          }
+        ],
+        "ssh": [
+          {
+            "path": "results/selection_cache",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-score-cache",
+      "description": "Legacy ScoreCache payload root",
+      "evidence_class": "legacy_cache",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "ScoreCache entries lack complete source-fingerprint and formal Recipe identity and cannot be reused by new registered batches.",
+      "replacement_basis": "Exact Cache V2 Score Artifacts may replace only accepted matching identities; the current local files have no one-to-one accepted replacement mapping.",
+      "downstream_reference_basis": "The live source consumer scan still finds ScoreCache API and results/score_cache path references, so the root remains an in-place rollback source and is not archive-eligible.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/score_cache",
+            "disposition": "active_rollback_source"
+          }
+        ],
+        "ssh": [
+          {
+            "path": "results/score_cache",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pre-cutoff-existing-archive-20260506",
+      "description": "Pre-cutoff payload already isolated in the 2026-05-06 archive",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The payload predates the 2026-05-31 evidence-policy cutoff and includes pre-Phase-B and defect-polluted material.",
+      "replacement_basis": "The archive is retained for audit; its heterogeneous contents do not have a single accepted replacement batch.",
+      "downstream_reference_basis": "The path is already outside current result entry points under an ignored _archive_ root; no further move is required in this Block.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/_archive_20260506",
+            "disposition": "already_archived"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pre-migration-existing-archive-20260507",
+      "description": "Pre-migration GraphRevoker and smoke payload already isolated in the 2026-05-07 archive",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The payload uses the pre-migration result identity and cannot support current formal claims.",
+      "replacement_basis": "The archive remains audit-only; current formal target-direct batches have not established a one-to-one replacement mapping.",
+      "downstream_reference_basis": "The path is already outside current result entry points under an ignored _archive_ root; no further move is required in this Block.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/_archive_20260507_pre_migration",
+            "disposition": "already_archived"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-auto-report-journal",
+      "description": "Tracked historical AutoReport journal and archive",
+      "evidence_class": "historical_projection",
+      "lifecycle_state": "PROJECTED",
+      "invalidation_reason": "The historical journal is not a current formal result entry point; its append-only facts remain audit evidence.",
+      "replacement_basis": "AutoReport V3 current projections supersede the live display role without rewriting the historical journal.",
+      "downstream_reference_basis": "The tracked journal is deliberately retained and is not a physical-archive target in this Block.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/_journal",
+            "disposition": "historical_projection"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-paper-projections",
+      "description": "Tracked legacy aggregate, paper table, and figure projections",
+      "evidence_class": "historical_projection",
+      "lifecycle_state": "PROJECTED",
+      "invalidation_reason": "These files are projections over historical evidence and must not be treated as current target-direct formal results.",
+      "replacement_basis": "They remain navigable until accepted replacement evidence rebuilds the owning projections.",
+      "downstream_reference_basis": "The files are tracked consumers and therefore cannot be moved independently of their generator and replacement batch.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/_paper_table1_cora.md",
+            "disposition": "historical_projection"
+          },
+          {
+            "path": "results/_paper_table1_cora.tex",
+            "disposition": "historical_projection"
+          },
+          {
+            "path": "results/_phase_b_aggregate.csv",
+            "disposition": "historical_projection"
+          },
+          {
+            "path": "results/paper_figures",
+            "disposition": "historical_projection"
+          }
+        ]
+      }
+    },
+    {
+      "id": "k5-noise-floor-old-20260227",
+      "description": "Tracked and ignored k=5 noise-floor evidence retained from 2026-02-27",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The fixed-k payload predates the current ratio-conditioned formal contract and cannot be generalized into current claims.",
+      "replacement_basis": "It remains a narrowly labeled noise-floor reference; no accepted fixed-k replacement batch has been mapped.",
+      "downstream_reference_basis": "Repository policy explicitly retains this reference, so it is registered but not moved.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/baseline/k5_random_OLD_20260227",
+            "disposition": "historical_engineering_evidence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "k5-pre-method-archive-20260721",
+      "description": "k=5 pre-method-change archive made on 2026-07-21",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The payload precedes the later method contract and is retained only for method-change comparison.",
+      "replacement_basis": "No accepted one-to-one replacement batch is recorded; the directory is already explicitly archive-named.",
+      "downstream_reference_basis": "The path is already isolated by its archive identity and is not moved again.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/baseline/k5_random_archive_20260721_pre_method_before",
+            "disposition": "already_archived"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-baseline-transport-bundle",
+      "description": "Legacy baseline ZIP transport bundle",
+      "evidence_class": "transport_bundle",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "A transport bundle is not independently trusted evidence and predates the current collection contract.",
+      "replacement_basis": "Trusted evidence must be verified through its batch manifest and index, not inferred from this ZIP.",
+      "downstream_reference_basis": "The ignored ZIP is registered as a transport copy and remains in place pending a mapped replacement.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/baseline.zip",
+            "disposition": "transport_bundle"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bc-target-v2-engineering-evidence",
+      "description": "Tracked BC-target v2 benchmark and selection engineering evidence",
+      "evidence_class": "historical_engineering_evidence",
+      "lifecycle_state": "ACCEPTED",
+      "invalidation_reason": "The evidence remains valid for its historical engineering question but cannot substitute for the new target-direct formal matrix.",
+      "replacement_basis": "AAGU-018 bounds affected identities and AAGU-019 retired the legacy executable package while deliberately preserving this evidence.",
+      "downstream_reference_basis": "tests/test_aagu019_legacy_retirement.py asserts this evidence remains navigable, so it is not archive-eligible.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/bc_target_v2",
+            "disposition": "historical_engineering_evidence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c-target-v1-engineering-evidence",
+      "description": "Tracked c-target v1 selection engineering evidence",
+      "evidence_class": "historical_engineering_evidence",
+      "lifecycle_state": "ACCEPTED",
+      "invalidation_reason": "The evidence remains valid for its historical c-target question but older score identities are bounded by AAGU-018.",
+      "replacement_basis": "AAGU-018 records corrected source-scope identities without rewriting the historical payload.",
+      "downstream_reference_basis": "The tracked evidence remains a review input and is not an archive target before accepted downstream replacement.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/c_target_v1",
+            "disposition": "historical_engineering_evidence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-evaluation-projection",
+      "description": "Tracked historical evaluation projection",
+      "evidence_class": "historical_projection",
+      "lifecycle_state": "PROJECTED",
+      "invalidation_reason": "This lightweight tracked output is not a current formal result identity.",
+      "replacement_basis": "It stays navigable until its owning accepted batch rebuilds or retires it.",
+      "downstream_reference_basis": "The tracked projection remains in place and is not a physical-archive target.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/evaluation",
+            "disposition": "historical_projection"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-runs-4090-phase-b",
+      "description": "Legacy 4090 Phase-B result subtree",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The subtree belongs to the earlier 80/0/20 and pre-current-identity evidence lane.",
+      "replacement_basis": "Current registered batches have not yet reached accepted and projected one-to-one replacements.",
+      "downstream_reference_basis": "The mixed results/runs root cannot be moved wholesale; this exact subtree is registered and remains pending replacement mapping.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs/4090",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-runs-ablating",
+      "description": "Legacy ablation result subtree and transport bundle",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The ablation payload predates the registered current formal identities and includes a historical bundle.",
+      "replacement_basis": "Conditional mechanism experiments have no accepted replacement mapping yet.",
+      "downstream_reference_basis": "This exact subtree is registered separately from newer runs and remains pending replacement mapping.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs/ablating",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "small-selection-gu-engineering-20260722",
+      "description": "2026-07-22 small-selection GU surrogate-transfer engineering screen",
+      "evidence_class": "historical_engineering_evidence",
+      "lifecycle_state": "ACCEPTED",
+      "invalidation_reason": "The accepted 153-cell L1 surrogate-transfer screen is engineering evidence, not the new 306-cell target-direct formal matrix.",
+      "replacement_basis": "Its own accepted identity remains valid, but it cannot replace E8 G1-G5 and has not been replaced itself.",
+      "downstream_reference_basis": "The local collected package and SSH run subtree must remain paired and reviewable until a later explicit retirement decision.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs/gpu4090-gu-20260722",
+            "disposition": "historical_engineering_evidence"
+          }
+        ],
+        "ssh": [
+          {
+            "path": "results/runs/__syncmate_small_selection_gu_full_v5__",
+            "disposition": "historical_engineering_evidence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-runs-h20",
+      "description": "Legacy H20 and arXiv transport result subtree",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The H20 payload predates the current arXiv feasibility and formal identity contract.",
+      "replacement_basis": "No accepted arXiv replacement batch has been mapped.",
+      "downstream_reference_basis": "This exact subtree is registered separately and remains pending the staged arXiv replacement plan.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs/h20",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-runs-ogbn-arxiv",
+      "description": "Legacy ogbn-arxiv attack result subtree",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The subtree predates the staged arXiv feasibility and current formal identity contract.",
+      "replacement_basis": "No accepted T1/T2/T3 arXiv replacement batch has been mapped.",
+      "downstream_reference_basis": "The exact subtree remains pending the staged arXiv plan and is not archive-eligible.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs/ogbn-arxiv_GCN_r0.01",
+            "disposition": "active_rollback_source"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-runs-transport-bundle",
+      "description": "Legacy runs ZIP transport bundle",
+      "evidence_class": "transport_bundle",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The ZIP is a transport copy, not an independently verified batch identity.",
+      "replacement_basis": "Trusted collection must use manifests and checksums rather than infer trust from this bundle.",
+      "downstream_reference_basis": "The ignored bundle is registered and remains in place pending source-batch retirement.",
+      "locations": {
+        "local": [
+          {
+            "path": "results/runs.zip",
+            "disposition": "transport_bundle"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ssh-peer-layout-archive-20260724",
+      "description": "SSH peer-layout archive consolidated on 2026-07-24",
+      "evidence_class": "legacy_payload",
+      "lifecycle_state": "INVALIDATED",
+      "invalidation_reason": "The archive preserves earlier peer roots and experiment evidence with their historical identities; it is not a current formal entry point.",
+      "replacement_basis": "The archive remains audit-only and cannot be promoted into a current result without its original accepted identity.",
+      "downstream_reference_basis": "Repository reports navigate this archive; live SSH hash and path state must be observed before any further action.",
+      "locations": {
+        "ssh": [
+          {
+            "path": "results/_archive_ssh_peer_layout_20260724",
+            "disposition": "already_archived"
+          }
+        ]
+      }
+    }
+  ]
+}
