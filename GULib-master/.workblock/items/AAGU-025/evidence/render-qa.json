@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "surface": "REPORT.html in the Codex in-app browser",
+  "url": "http://127.0.0.1:8769/.workblock/items/AAGU-025/REPORT.html",
+  "desktop": {
+    "viewport": [1280, 720],
+    "document_width": 1265,
+    "decision_bottom": 586.48,
+    "observed": "Human Result and pending decision fit in the first screen; text and evidence links are readable.",
+    "screenshot": "report-desktop.png"
+  },
+  "narrow": {
+    "viewport": [390, 844],
+    "document_width": 375,
+    "observed": "Read the opening, decision area, behavior table and report end. Text wraps without horizontal overflow; evidence table columns remain readable.",
+    "screenshots": ["report-narrow.png", "report-narrow-body.png"]
+  },
+  "broken_images": 0,
+  "method": "Actual browser screenshots plus read-only DOM geometry. No screenshot-only claim about product behavior."
+}
