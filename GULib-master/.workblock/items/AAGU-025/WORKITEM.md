@@ -1,0 +1,68 @@
+# AAGU-025 · FIX · 通用缓存原位接入 Cache V2
+
+Block ID: `AAGU-025`
+Item Version: 2.1
+Item Type: `Block`
+Acceptance Route: `formal`
+Execution topology: `sequential`
+> Apply target ref：`refs/heads/main`
+当前状态: `registered / not claimed`
+Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
+
+## Human Surface
+
+### 核心意图
+
+保留正常的缓存能力，让通用执行与正式执行统一使用 Cache V2，不再依赖 `results/cache`、`results/selection_cache` 和 `results/score_cache` 三个 Legacy 活动目录。ScoreCache 的存在与默认开启不是缺陷；需要修复的是原有缓存能力尚未原位升级到统一的 V2 入口。
+
+### 本次增量
+
+将通用 AttackManager、Result／Selection／Score 消费者及原有配置和调用逻辑接入既有 Cache V2 Recipe／Artifact 合同，保持正常默认缓存能力。移除旧后端选择、Legacy 读写和自动建目录路径，不新增 Legacy/V2 双轨开关、兼容回退或另一套缓存体系；不以关闭 ScoreCache 或禁止正常缓存代替修复。现有缓存开关控制统一缓存能力，其语义必须一致。
+
+### 核心验收
+
+在隔离环境通过真实入口验证默认缓存可用、冷启动精确 MISS、再次精确 HIT，以及身份不匹配时拒绝复用旧 Artifact。正常执行不读取或重建三个 Legacy 根，通用与正式执行的相关回归通过，现有缓存开关语义一致。真实旧 payload 与现存 Cache V2 Artifact 的路径和内容均保持不变；以配对 Markdown／HTML 报告提供 behavior / integration / data 证据，由用户决定接受或返工。
+
+## Scope
+
+- 更新通用 AttackManager、Result／Selection／Score 消费者及相邻 CLI、YAML 配置和执行入口，使原有缓存能力默认消费既有 Cache V2 身份与证据合同。
+- 处理上述消费者实际依赖的适配与调用链，移除 Legacy 后端选择、回退、读写及目录创建逻辑；不通过新增模式开关保留两套实现。
+- 保持 Cache V2 的现有职责边界：Cache 负责精确 Recipe／Artifact 解析、校验与存储，实验层负责输入身份和 MISS 后的计算，不把数据加载或实验计算移入 Cache。
+- 为默认执行、缓存开关、冷／热缓存、身份拒绝和 Legacy 路径不再出现建立确定性回归，并验证通用与正式入口的集成行为。
+- 更新受影响的代码说明和测试；形成精确候选及同一 item directory 内的配对报告。
+
+## Non-goals
+
+- 不移动、删除或改写任何真实本机／SSH 旧 payload；物理归档仍属于 AAGU-023。
+- 不修复、重命名、覆盖或手工删除现存 `results/cache_v2` Artifact，不把旧 payload 无依据地转换为可信 V2 证据。验证使用隔离的临时 Artifact store。
+- 不重跑正式 GPU 实验，不改变正式研究的矩阵、数据划分、删除预算或指标定义。
+- 不以关闭正常缓存、仅替换目录字符串、新增 Legacy/V2 选项或兼容回退满足验收。
+- 不在本 Block 中重写 AAGU-023 的 inventory、ledger 或报告，也不据此宣称旧证据归档完成。
+
+## Acceptance contract
+
+- Route: `formal`。
+- Primary surface: behavior / integration / data。
+- Minimum real evidence: 隔离环境中的真实消费者冷／热执行、精确 Recipe／Artifact 身份与 HIT/MISS 证据、身份不匹配拒绝复用证据、现有缓存开关行为、三个 Legacy 根的访问／创建检测、通用与正式入口的相关回归，以及真实旧 payload 和现存 V2 Artifact 未改动证明。
+- 构造器测试或静态引用扫描只能支持其局部判断，不能代替完整消费者的缓存读写与身份验证。
+- Decision owner: 用户。
+- Post-candidate decision: 形成 clean exact candidate，完成约定 Verify 与报告后停在 `awaiting_acceptance`；Verify PASS 不自动接受或 Apply。
+- Report size: paired Markdown/HTML Report，位于同一 Block item directory。
+
+## Source and relations
+
+- 来源是 AAGU-023 候选 `2f9dd79d19a81b91c1b3ec7aeaba0b03245f8996` 的人类审阅与后续通用入口诊断，不是已经接受的归档结论。
+- 诊断时本地主线为 `15e4bb06837e52b79ae5a251cef2633510da2b58`。临时目录中的真实构造器测试观察到：通用默认初始化创建三个 Legacy 根；仅关闭 `use_cache` 仍创建 ScoreCache 根；V2 路线同时关闭两类开关才不创建旧根。该测试未加载数据或运行训练，不构成本 FIX 的完成证据。
+- 用户明确纠正：缓存默认开启和 ScoreCache 本身均正常；原有能力应更新为默认接入统一 V2，而不是新增路径选择或关闭能力。本 Block 以此为修复方向。
+- 已确认依赖：`AAGU-023 depends_on AAGU-025`，具体约束是旧 Cache 归档闭环需要消费本 FIX 已接受并落地的修复，证明旧活动路径不再被依赖或重建；AAGU-023 的只读盘点不因此暂停。
+- AAGU-025 不依赖 AAGU-023 完成。AAGU-023 的证据分类、报告纠正及物理归档仍保留在原 Block，代码修复由本独立 FIX 验收。
+
+## Boundary
+
+- 本次只注册独立 FIX Block，未 Claim、未实施，未创建后续 Codex task。
+- 后续通过 `block-workflow` 重新读取当前 Record、仓库事实和项目指令，Claim 同一 Block 后实施；Claim 时重新确定实际基线和执行身份。
+- 注册不授权远端写入、正式 GPU 执行、payload 归档或删除、接受、Apply、推送或安装。
+
+## Status history
+
+- 2026-09-03: 用户确认 AAGU-025 完整形成预览并回复“可以注册”；注册为 formal、sequential 的独立代码 FIX，状态保持 `registered / not claimed`。
