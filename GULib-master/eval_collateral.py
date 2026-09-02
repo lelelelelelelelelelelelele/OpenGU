@@ -102,7 +102,7 @@ while _i < len(_raw_args):
     _i += 1
 sys.argv = [sys.argv[0]] + _filtered_argv
 
-if bool(_cache_v2_store_root) != bool(_selection_artifact_id):
+if _selection_artifact_id and not _cache_v2_store_root:
     raise SystemExit(
         "--cache_v2_store_root and --selection_artifact_id must be provided together"
     )
@@ -133,175 +133,20 @@ def _seed_everything(seed_value):
         torch.backends.cudnn.benchmark = False
 
 
-def find_cache_entry(cache, args: dict, strategy_name: str, with_provenance: bool = False):
-    """Find a cache entry by scanning all cache files and matching key fields.
-
-    We scan rather than hash-lookup because the original cache entries may have
-    been saved with slightly different type representations (e.g., args from
-    AttackManager vs parameter_parser).
-    """
-    import json as _json
-    target = {
-        'dataset_name': str(args.get('dataset_name', '')),
-        'base_model': str(args.get('base_model', '')),
-        'unlearning_methods': str(args.get('unlearning_methods', '')),
-        'strategy_name': strategy_name,
-    }
-    target_ratio = float(args.get('unlearn_ratio', 0.1))
-    target_seed = args.get('random_seed', args.get('seed'))
-    if target_seed is not None:
-        try:
-            target_seed = int(target_seed)
-        except (TypeError, ValueError):
-            target_seed = None
-
-    # Fast path: try hash-based cache lookup first when possible.
-    cache_key_fields = getattr(cache, 'CACHE_KEY_FIELDS', None)
-    if not isinstance(cache_key_fields, (list, tuple)):
-        cache_key_fields = [
-            'dataset_name',
-            'base_model',
-            'unlearning_methods',
-            'unlearn_ratio',
-            'random_seed',
-            'seed',
-            'strategy_name',
-        ]
-
-    lookup_config = {}
-    for key in cache_key_fields:
-        if key == 'strategy_name':
-            lookup_config[key] = strategy_name
-            continue
-        value = args.get(key)
-        if key == 'random_seed' and value is None:
-            value = args.get('seed')
-        if key == 'seed' and value is None:
-            value = args.get('random_seed')
-        if isinstance(value, (str, int, float, bool, type(None))):
-            lookup_config[key] = value
-
-    def _return(result, provenance):
-        return (result, provenance) if with_provenance else result
-
-    def _miss(reason):
-        return _return(None, {
-            "outcome": "miss",
-            "cache_key": None,
-            "source_file": None,
-            "lookup_policy": "legacy_hash_or_scan",
-            "recipe": lookup_config,
-            "miss_reason": reason,
-        })
-
-    if hasattr(cache, 'get'):
-        cached = cache.get(lookup_config)
-        if cached is not None:
-            cache_key = None
-            source_file = None
-            lookup_policy = "legacy_hash_or_fallback"
-            resolve_keys = getattr(cache, '_resolve_cache_keys', None)
-            cache_path = getattr(cache, '_get_cache_path', None)
-            is_valid = getattr(cache, '_is_cache_valid', None)
-            if callable(resolve_keys) and callable(cache_path):
-                for index, candidate_key in enumerate(resolve_keys(lookup_config)):
-                    candidate_path = cache_path(candidate_key)
-                    valid = is_valid(candidate_path) if callable(is_valid) else candidate_path.exists()
-                    if valid:
-                        cache_key = candidate_key
-                        source_file = str(candidate_path)
-                        lookup_policy = (
-                            "legacy_primary_hash" if index == 0 else "legacy_fallback_hash"
-                        )
-                        break
-            return _return(cached, {
-                "outcome": "hit",
-                "cache_key": cache_key,
-                "source_file": source_file,
-                "lookup_policy": lookup_policy,
-                "recipe": lookup_config,
-                "miss_reason": None,
-            })
-
-    cache_dir_value = getattr(cache, 'cache_dir', None)
-    if not isinstance(cache_dir_value, (str, os.PathLike, Path)):
-        return _miss("ResultCache directory is unavailable")
-    cache_dir = Path(cache_dir_value)
-    if not cache_dir.exists():
-        return _miss("ResultCache directory does not exist")
-
-    # Determine target k: prefer explicit k from args, otherwise derive from ratio
-    target_k = args.get('k')
-    if target_k is None:
-        # k is typically ratio * num_nodes; not available here, so prefer
-        # entries with explicit k over legacy entries without k.
-        target_k = None
-
-    best_match = None
-    best_k = None  # track k to prefer explicit-k entries over k=MISSING
-    best_path = None
-
-    for fpath in cache_dir.glob('*.json'):
-        try:
-            with open(fpath, encoding='utf-8') as f:
-                data = _json.load(f)
-            c = data.get('config', {})
-            cache_seed = c.get('random_seed', c.get('seed'))
-            if target_seed is not None:
-                # 兼容旧缓存：cache_seed 为 null 时，假设为 2024（早期实验默认 seed）
-                if cache_seed is None:
-                    cache_seed = 2024
-                try:
-                    cache_seed = int(cache_seed)
-                except (TypeError, ValueError):
-                    continue
-                if cache_seed != target_seed:
-                    continue
-            if (str(c.get('dataset_name', '')) == target['dataset_name'] and
-                str(c.get('base_model', '')) == target['base_model'] and
-                str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
-                str(c.get('strategy_name', '')) == target['strategy_name'] and
-                abs(float(c.get('unlearn_ratio', -1)) - target_ratio) < 1e-6):
-                cache_k = c.get('k')
-
-                # If target_k is specified, require exact match
-                if target_k is not None:
-                    if cache_k is None or int(cache_k) != int(target_k):
-                        continue
-                    from attack.attack_result import AttackResult
-                    return _return(AttackResult.from_dict(data['result']), {
-                        "outcome": "hit",
-                        "cache_key": data.get('cache_key') or fpath.stem,
-                        "source_file": str(fpath),
-                        "lookup_policy": "legacy_scan_exact_k",
-                        "recipe": lookup_config,
-                        "miss_reason": None,
-                    })
-
-                # No target_k: prefer entries with explicit k over legacy (k=None)
-                if best_match is None:
-                    best_match = data
-                    best_path = fpath
-                    best_k = cache_k
-                elif cache_k is not None and best_k is None:
-                    # Prefer explicit k over missing k
-                    best_match = data
-                    best_path = fpath
-                    best_k = cache_k
-        except (ValueError, KeyError, TypeError, _json.JSONDecodeError):
-            continue
-
-    if best_match is not None:
-        from attack.attack_result import AttackResult
-        return _return(AttackResult.from_dict(best_match['result']), {
-            "outcome": "hit",
-            "cache_key": best_match.get('cache_key') or best_path.stem,
-            "source_file": str(best_path),
-            "lookup_policy": "legacy_scan_best_k",
-            "recipe": lookup_config,
-            "miss_reason": None,
-        })
-    return _miss("no matching ResultCache entry")
+def load_generic_selection(manager, strategy_name, k):
+    """Read the same exact V2 Selection Recipe used by the generic attack."""
+    from experiments.selection_inputs import make_dataset_selection_inputs
+    inputs = make_dataset_selection_inputs(manager.data, dataset_name=manager.args["dataset_name"])
+    request = manager._selection_request(strategy_name, k, inputs)
+    selection = manager.selection_cache.get(request)
+    if selection is None:
+        return None, {"outcome": "miss", "lookup_policy": "cache_v2_exact_recipe",
+                      "authoritative": True, "recipe_hash": request.recipe.recipe_hash}
+    return selection, {"outcome": "hit", "artifact_id": selection.artifact_id,
+        "artifact_type": "selection", "recipe_hash": selection.recipe_hash,
+        "content_hash": selection.content_hash, "source_file": selection.source,
+        "lookup_policy": "cache_v2_exact_recipe", "authoritative": True,
+        "hit_source": "cache_v2:" + selection.artifact_id, "write_outcome": "reused"}
 
 
 def _normalize_strategies(strategies):
@@ -433,8 +278,8 @@ def main():
     # Sync proportion_unlearned_nodes with unlearn_ratio so that GNNDelete's
     # df_size assertion passes (it uses proportion_unlearned_nodes, not unlearn_ratio)
     args['proportion_unlearned_nodes'] = args['unlearn_ratio']
-    if v2_selection:
-        args['enable_score_cache'] = False
+    args['cache_v2_store_root'] = _cache_v2_store_root
+    args['seed'] = args.get('random_seed', 2024)
     seed_value = args.get('random_seed', args.get('seed', 2024))
     _seed_everything(seed_value)
 
@@ -473,7 +318,7 @@ def main():
     import torch
     import numpy as np
     from attack.pipeline_adapter import AttackPipeline
-    from attack.result_cache import ResultCache
+    from attack.attack_manager import AttackManager
     from attack.attack_eval import evaluate_retrain_gap, evaluate_collateral_damage
 
     # Pre-training `model_before` once
@@ -498,7 +343,7 @@ def main():
 
     # Initialize pipeline for main loop
     pipeline = AttackPipeline(args)
-    cache = None if v2_selection else ResultCache(cache_dir="./results/cache")
+    selection_manager = None if v2_selection else AttackManager(args, pipeline)
 
     # Storage for results
     all_results = []
@@ -535,9 +380,8 @@ def main():
             cache_info = dict(loaded.provenance(str(Path(_cache_v2_store_root).resolve())))
             cached = None
         else:
-            cached, cache_info = find_cache_entry(
-                cache, args, strategy_name, with_provenance=True
-            )
+            target_k = _selection_k if _selection_k is not None else max(1, int(len(_candidate_nodes(pipeline.data)) * args['unlearn_ratio']))
+            cached, cache_info = load_generic_selection(selection_manager, strategy_name, target_k)
         cache_provenance[strategy_name] = cache_info
         if not v2_selection and cached is None:
             if _output_dir is not None:
@@ -562,7 +406,7 @@ def main():
                 selected_nodes = torch.tensor(selected_nodes)
         print(
             f"  Loaded {len(selected_nodes)} selected nodes from "
-            f"{'Cache V2 Artifact' if v2_selection else 'Legacy cache'}"
+            "Cache V2 Artifact"
         )
 
         # 2. Inject nodes and run unlearning to get model_unlearned

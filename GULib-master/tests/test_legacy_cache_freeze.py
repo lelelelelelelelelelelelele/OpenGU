@@ -10,6 +10,7 @@ from attack.score_cache import ScoreCache
 from attack.selection_cache import SelectionCache, SelectionResult
 from cache_v2.legacy_freeze import (
     LegacyCacheFrozenError,
+    assert_legacy_cache_writable,
     plan_or_freeze_legacy_caches,
     read_freeze_marker,
 )
@@ -27,52 +28,23 @@ def _result():
     )
 
 
-def test_freeze_dry_run_is_zero_write_then_existing_caches_are_read_only(tmp_path):
+def test_freeze_keeps_legacy_payload_read_only(tmp_path):
     results = (tmp_path / "results").resolve()
-    result_cache = ResultCache(str(results / "cache"), max_age_days=0)
-    selection_cache = SelectionCache(str(results / "selection_cache"))
-    score_cache = ScoreCache("im", str(results / "score_cache"))
-    config = {"strategy_name": "degree", "k": 2}
-    result_cache.save(_result(), config)
-    selection_cache.save(
-        SelectionResult("degree", [1, 2], 0.1, "fixture"), config
-    )
-    score_cache.save(np.array([1, 2]), np.array([0.2, 0.1]), config)
-
-    planned = plan_or_freeze_legacy_caches(
-        results, actor="maintainer", reason="V2 canary cutover", apply=False
-    )
-    assert planned["mode"] == "dry-run"
+    # Historical fixture bytes are created explicitly; no active consumer can
+    # produce Legacy payloads after AAGU-025.
+    for name in ("cache", "selection_cache", "score_cache"):
+        path = results / name
+        path.mkdir(parents=True)
+        (path / "legacy.json").write_text('{"historical":true}')
+    planned = plan_or_freeze_legacy_caches(results, actor="maintainer", reason="fixture", apply=False)
     assert planned["writes"] == []
-    assert not (results / "cache_v2" / "legacy_freeze.json").exists()
-
-    frozen = plan_or_freeze_legacy_caches(
-        results, actor="maintainer", reason="V2 canary cutover", apply=True
-    )
+    frozen = plan_or_freeze_legacy_caches(results, actor="maintainer", reason="fixture", apply=True)
     assert frozen["outcome"] == "frozen"
-    assert len(frozen["writes"]) == 1
-    marker = read_freeze_marker(results)
-    assert marker["state"] == "frozen"
-    assert marker["snapshot"]["total_files"] == 4
-
-    # Existing trees remain readable after the freeze.
-    assert ResultCache(str(results / "cache"), max_age_days=0).get(config) is not None
-    assert SelectionCache(str(results / "selection_cache")).get(config)[0] is not None
-    assert ScoreCache("im", str(results / "score_cache")).get(config)[0] is not None
-
-    with pytest.raises(LegacyCacheFrozenError):
-        result_cache.save(_result(), {"strategy_name": "random", "k": 2})
-    with pytest.raises(LegacyCacheFrozenError):
-        result_cache.invalidate(config)
-    with pytest.raises(LegacyCacheFrozenError):
-        selection_cache.save(
-            SelectionResult("random", [2, 1], 0.1, "other"), config
-        )
-    with pytest.raises(LegacyCacheFrozenError):
-        score_cache.save(np.array([1]), np.array([0.5]), {"other": True})
-    with pytest.raises(LegacyCacheFrozenError):
-        ScoreCache("new-namespace", str(results / "score_cache"))
-    assert not (results / "score_cache" / "new-namespace").exists()
+    assert read_freeze_marker(results)["snapshot"]["total_files"] == 3
+    for name in ("cache", "selection_cache", "score_cache"):
+        assert (results / name / "legacy.json").read_text() == '{"historical":true}'
+        with pytest.raises(LegacyCacheFrozenError):
+            assert_legacy_cache_writable(results / name)
 
 
 def test_cachectl_freeze_is_explicit_and_status_is_read_only(tmp_path, capsys):

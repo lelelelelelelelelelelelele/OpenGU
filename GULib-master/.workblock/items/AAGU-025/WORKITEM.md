@@ -6,7 +6,13 @@ Item Type: `Block`
 Acceptance Route: `formal`
 Execution topology: `sequential`
 > Apply target ref：`refs/heads/main`
-当前状态: `registered / not claimed`
+
+> Git baseline：`7a2c11fb06cff01363d7773c446370e1588ade4a`
+
+> Source branch：`refs/heads/codex/aagu-025-unified-cache-v2`
+
+> Remote target：`origin refs/heads/main`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
 
 ## Human Surface
@@ -59,10 +65,21 @@ Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
 
 ## Boundary
 
+以下保留注册时授权边界；当前 Run 由本任务另行明确授权，当前状态以顶部字段与同一 Claim 为准。
+
 - 本次只注册独立 FIX Block，未 Claim、未实施，未创建后续 Codex task。
 - 后续通过 `block-workflow` 重新读取当前 Record、仓库事实和项目指令，Claim 同一 Block 后实施；Claim 时重新确定实际基线和执行身份。
 - 注册不授权远端写入、正式 GPU 执行、payload 归档或删除、接受、Apply、推送或安装。
 
+## Run boundary
+
+- Parent: `refs/heads/main`; source: `refs/heads/codex/aagu-025-unified-cache-v2`.
+- Owned scope: `attack/` cache consumers and identity adapters, `cache_v2/` required typed-payload integration, `demo_attack.py`, `eval_collateral.py`, `parameter_parser.py`, affected `experiments/` consumer/config paths, directly dependent prewarm/monitor/Legacy conversion scripts, adjacent tests/docs, and this item directory.
+- Checks: isolated real consumer cold/hot execution, complete identity rejection, cache switches, forbidden Legacy root access, generic/formal regression, and before/after real cache file manifests.
+- Closeout mode: `commit`; stop at `awaiting_acceptance`.
+
 ## Status history
 
 - 2026-09-03: 用户确认 AAGU-025 完整形成预览并回复“可以注册”；注册为 formal、sequential 的独立代码 FIX，状态保持 `registered / not claimed`。
+
+- 2026-09-03: 按当前任务授权，Claim 同一 Block（claimId `2c1c77d4-4401-4397-8126-a24303fe598a`），在记录的 main 基线上实施；仅形成候选、Verify 与报告，等待用户验收。

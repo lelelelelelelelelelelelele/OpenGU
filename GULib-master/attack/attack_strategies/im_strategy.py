@@ -7,7 +7,8 @@ from torch import Tensor
 from torch_geometric.data import Data
 
 from .base_strategy import BaseStrategy
-from ..score_cache import ScoreCache, graph_fingerprint
+from ..score_cache import ScoreCache
+from ..cache_identity import store_root, score_identity, model_fingerprint, dataset_fingerprint
 
 # Numba import guard
 try:
@@ -195,7 +196,7 @@ class IMStrategy(BaseStrategy):
 
         self.enable_score_cache = bool(args.get('enable_score_cache', True))
         self._score_cache = (
-            ScoreCache(namespace='im', cache_dir=args.get('score_cache_dir', './results/score_cache'))
+            ScoreCache(namespace='im', cache_dir=store_root(args))
             if self.enable_score_cache else None
         )
         # Full-CELF cache (separate namespace from per-candidate spread cache).
@@ -203,7 +204,7 @@ class IMStrategy(BaseStrategy):
         # is purely topological (edge_index + IM hyperparams + im_selector_seed),
         # so 1 successful run amortises across all (method × GU_seed) cells.
         self._celf_cache = (
-            ScoreCache(namespace='im_celf', cache_dir=args.get('score_cache_dir', './results/score_cache'))
+            ScoreCache(namespace='im_celf', cache_dir=store_root(args))
             if self.enable_score_cache else None
         )
 
@@ -266,7 +267,7 @@ class IMStrategy(BaseStrategy):
 
         cfg = None
         key = None
-        if self._celf_cache is not None:
+        if self._celf_cache is not None and self.args.get("use_cache", True):
             cfg = self._build_celf_cache_config(edge_index, num_nodes, k, candidate_set)
             hit, key = self._celf_cache.get(cfg)
             if hit is not None:
@@ -274,7 +275,7 @@ class IMStrategy(BaseStrategy):
                     print(f"[ScoreCache] HIT  im_celf  key={key} k={k} src={hit.source}")
                     selected = hit.candidates.astype(np.int64).tolist()
                     return selected, torch.from_numpy(hit.scores.astype(np.float32))
-                print(f"[ScoreCache] STALE im_celf key={key} (k mismatch: {hit.candidates.shape[0]} vs {k}) — recomputing")
+                raise ValueError("verified Score Artifact has incompatible candidates")
             else:
                 print(f"[ScoreCache] MISS im_celf  key={key} — running full CELF on {len(candidate_set)} candidates...")
 
@@ -308,7 +309,9 @@ class IMStrategy(BaseStrategy):
             "im_selector_seed": int(self.random_seed),
             "im_batch_size": int(self.im_batch_size),
             "k": int(k),
-            "graph_fingerprint": graph_fingerprint(edge_index, num_nodes, candidate_set),
+            **score_identity(edge_index, num_nodes, candidate_set),
+            "backend": "numba" if HAS_NUMBA else "python",
+            "parallel_mc": bool(self.args.get("im_parallel_mc", True)),
         }
 
     def _compute_im_celf_python(self, edge_index, num_nodes, k, candidate_set):
@@ -460,7 +463,7 @@ class IMStrategy(BaseStrategy):
             scores: [len(candidate_set)] tensor of spread scores, in the same
                     order as candidate_set
         """
-        if self._score_cache is not None:
+        if self._score_cache is not None and self.args.get("use_cache", True):
             cfg = self._build_cache_config(edge_index, num_nodes, candidate_set)
             hit, key = self._score_cache.get(cfg)
             if hit is not None:
@@ -468,7 +471,7 @@ class IMStrategy(BaseStrategy):
                 if hit.candidates.shape == cand_np.shape and (hit.candidates == cand_np).all():
                     print(f"[ScoreCache] HIT  im  key={key} n={hit.scores.shape[0]} src={hit.source}")
                     return torch.from_numpy(hit.scores)
-                print(f"[ScoreCache] STALE im key={key} (candidate mismatch) — recomputing")
+                raise ValueError("verified Score Artifact has incompatible candidates")
             print(f"[ScoreCache] MISS im  key={key} — computing spread for {len(candidate_set)} candidates...")
 
         if HAS_NUMBA:
@@ -476,7 +479,7 @@ class IMStrategy(BaseStrategy):
         else:
             scores = self._compute_initial_gains_python(edge_index, num_nodes, candidate_set)
 
-        if self._score_cache is not None:
+        if self._score_cache is not None and self.args.get("use_cache", True):
             cand_np = np.asarray(candidate_set, dtype=np.int64)
             scores_np = scores.detach().cpu().numpy().astype(np.float32, copy=False)
             path = self._score_cache.save(cand_np, scores_np, cfg)
@@ -492,7 +495,9 @@ class IMStrategy(BaseStrategy):
             "mc_rounds": int(self.mc_rounds),
             "candidate_fraction": float(self.candidate_fraction),
             "im_selector_seed": int(self.random_seed),
-            "graph_fingerprint": graph_fingerprint(edge_index, num_nodes, candidate_set),
+            **score_identity(edge_index, num_nodes, candidate_set),
+            "backend": "numba" if HAS_NUMBA else "python",
+            "parallel_mc": bool(self.args.get("im_parallel_mc", True)),
         }
 
     def _compute_initial_gains_python(self, edge_index, num_nodes, candidate_set):

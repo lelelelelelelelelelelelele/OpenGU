@@ -53,15 +53,13 @@ class AttackResult:
     result_cache_key: Optional[str] = None
     result_cache_source: Optional[str] = None
     result_cache_lookup_mode: Optional[str] = None
+    result_artifact_id: Optional[str] = None
+    result_recipe_hash: Optional[str] = None
+    result_content_hash: Optional[str] = None
     mia_auc: Optional[float] = None
     run_timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     config: Optional[Dict[str, Any]] = None
-    # Failure marker (added 2026-05-06). True when unlearning crashed inside
-    # pipeline_adapter.run_with_selected_nodes' except block. demo_attack uses
-    # this to set non-zero rc so run.py reports failed_attack and skips
-    # _meta.json. Default False keeps backward-compat with existing on-disk
-    # JSON cache entries (ResultCache only writes failed=False entries; this
-    # field exists so it can flow through compare_strategies → attack.json).
+    # Failed execution is reported but never stored as reusable Evaluation.
     failed: bool = False
     failure_reason: Optional[str] = None
 
@@ -106,6 +104,9 @@ class AttackResult:
             "result_cache_key": self.result_cache_key,
             "result_cache_source": self.result_cache_source,
             "result_cache_lookup_mode": self.result_cache_lookup_mode,
+            "result_artifact_id": self.result_artifact_id,
+            "result_recipe_hash": self.result_recipe_hash,
+            "result_content_hash": self.result_content_hash,
             "mia_auc": round(self.mia_auc, 4) if self.mia_auc is not None else None,
             "run_timestamp": self.run_timestamp,
             "config": self.config or {},

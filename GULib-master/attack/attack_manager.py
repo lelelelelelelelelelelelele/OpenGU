@@ -8,7 +8,6 @@ import os
 import sys
 import time
 import json
-import hashlib
 import numpy as np
 import torch
 from typing import Dict, List, Optional, Any, Type
@@ -31,8 +30,14 @@ from attack.attack_strategies import (
 )
 from attack.attack_result import AttackResult, ComparisonResult
 from attack.pipeline_adapter import AttackPipeline
-from attack.result_cache import ResultCache, LogBasedCache
-from attack.selection_cache import SelectionCache, SelectionResult
+from attack.result_cache import ResultCache
+from attack.selection_cache import SelectionCache
+from attack.cache_identity import (store_root, strategy_version, producer_version, model_fingerprint,
+                                   split_fingerprint, target_parameters, seeded_execution)
+from experiments.selection_inputs import make_dataset_selection_inputs
+from cache_v2.selection_materializer import build_selection_recipe, SelectionArtifactRequest
+from cache_v2.formal_artifacts import ordered_int_hash
+from attack.attack_strategies.im_strategy import HAS_NUMBA
 from utils.metric_policy import update_detection_auc_result_value
 
 
@@ -72,17 +77,8 @@ class AttackManager:
         "im": IMStrategy,
         "hybrid": HybridStrategy,
     }
-    # Strategies whose selection result is uniquely determined by the cache
-    # key (dataset + base_model + seed + strategy_params + graph_fingerprint
-    # + k). tracin/hybrid added 2026-05-05 to enable cross-machine prewarm
-    # workflow (compute selection on a big GPU, transfer cache JSON to a
-    # cheap GPU for the GU pass). Assumes training hyperparameters
-    # (num_epochs, lr, dropout, etc.) are constant across runs of the same
-    # config — true within a single yaml config; document if you change
-    # those between machines.
+    # Built-in strategies with complete generic V2 producer identities.
     REUSABLE_SELECTION_STRATEGIES = {"random", "degree", "pagerank", "im", "tracin", "hybrid"}
-    # Runtime k-subset reuse is safe only for deterministic ranking strategies.
-    SUBSET_REUSABLE_SELECTION_STRATEGIES = {"im"}
     # Shard/SISA methods do not expose the canonical vanilla base model through
     # train_only. TracIn/Hybrid selection for these methods is only safe when it
     # reuses a method-agnostic SelectionCache entry computed by a canonical
@@ -93,7 +89,7 @@ class AttackManager:
         self,
         args: Dict[str, Any],
         pipeline: Optional[AttackPipeline] = None,
-        cache_dir: str = "./results/cache",
+        cache_dir: Optional[str] = None,
         use_cache: bool = True,
     ):
         """
@@ -103,9 +99,10 @@ class AttackManager:
             args: Configuration dictionary from parameter_parser()
             pipeline: Optional pre-initialized AttackPipeline
             cache_dir: Directory for result caching
-            use_cache: Whether to enable result caching
+            use_cache: Whether to enable optional Result, Selection and Score caching
         """
-        self.args = args
+        self.args = dict(args)
+        args = self.args
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Initialize pipeline
@@ -120,28 +117,24 @@ class AttackManager:
         # Strategy registry
         self._strategies: Dict[str, BaseStrategy] = {}
 
-        # Cache
+        # All consumers share one lazy V2 store. Construction performs no IO.
         self.use_cache = use_cache
-        if use_cache:
-            self.cache = ResultCache(cache_dir)
-            self.log_cache = LogBasedCache()
-            self.selection_cache = SelectionCache("./results/selection_cache")
-        else:
-            self.cache = None
-            self.log_cache = None
-            self.selection_cache = None
-
-        # Results storage
+        self.cache_root = Path(cache_dir).absolute().resolve() if cache_dir else store_root(args)
+        self.args["cache_v2_store_root"] = str(self.cache_root)
+        self.cache = ResultCache(self.cache_root)
+        self.selection_cache = SelectionCache(self.cache_root)
         self.results: Dict[str, AttackResult] = {}
-        self._graph_fingerprint: Optional[str] = None
+        self._initial_model_hash = model_fingerprint(self.model)
+        source_root = Path(__file__).resolve().parents[1]
+        sources = ["attack/attack_manager.py", "attack/pipeline_adapter.py", "attack/cache_identity.py",
+                   "attack/result_cache.py", "attack/attack_result.py", "unlearning_manager.py"]
+        for directory in ("unlearning", "pipeline", "task", "model", "utils"):
+            sources.extend(path.relative_to(source_root).as_posix()
+                           for path in (source_root / directory).rglob("*.py"))
+        self._result_producer = producer_version("attack-evaluation", sources)
 
         # Register built-in strategies
         self._register_builtin_strategies()
-
-    @staticmethod
-    def _stable_hash(payload: Dict[str, Any]) -> str:
-        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
     def _seed_value(self) -> int:
         seed_value = self.args.get("random_seed", self.args.get("seed", 2024))
@@ -155,19 +148,6 @@ class AttackManager:
             nodes = self.data.train_mask.nonzero(as_tuple=False).squeeze(-1).cpu().numpy()
             return nodes.astype(np.int64, copy=False)
         return np.arange(self.data.num_nodes, dtype=np.int64)
-
-    def _compute_graph_fingerprint(self) -> str:
-        if self._graph_fingerprint is not None:
-            return self._graph_fingerprint
-
-        edge_index = self.data.edge_index.detach().cpu().numpy().astype(np.int64, copy=False)
-        candidates = self._candidate_nodes()
-        digest = hashlib.sha256()
-        digest.update(np.int64(self.data.num_nodes).tobytes())
-        digest.update(edge_index.tobytes())
-        digest.update(candidates.tobytes())
-        self._graph_fingerprint = digest.hexdigest()[:32]
-        return self._graph_fingerprint
 
     def _strategy_params_for_cache(self, strategy_name: str) -> Dict[str, Any]:
         # Each strategy's cache key must include EVERY arg that meaningfully
@@ -218,52 +198,40 @@ class AttackManager:
     # Their SelectionCache key is anchored to a constant so cross-seed runs
     # share the cache instead of recomputing identical results.
     TOPOLOGY_ONLY_STRATEGIES = frozenset({"degree", "pagerank"})
-    TOPOLOGY_ONLY_SEED_ANCHOR = 0
 
-    def _build_selection_config(self, strategy_name: str, k: int) -> Dict[str, Any]:
-        strategy_params = self._strategy_params_for_cache(strategy_name)
-        strategy_params_fingerprint = self._stable_hash(strategy_params)
-        seed_for_key = self._seed_value()
-        if strategy_name == "im":
-            # IM uses a fixed im_selector_seed (default 2024, A.4-decoupled
-            # from training seed). Anchoring the cache key to im_selector_seed
-            # — not the training seed — lets cross-seed runs share a single
-            # IM computation instead of recomputing identical results 3x.
-            seed_for_key = int(self.args.get("im_selector_seed", 2024))
-        elif strategy_name in self.TOPOLOGY_ONLY_STRATEGIES:
-            # degree / pagerank are pure topology + per-strategy hyperparams
-            # (already in strategy_params_fingerprint). They have no random
-            # state and don't read the GNN model, so the training seed is
-            # irrelevant to their selection. Anchor to a constant so all
-            # 3 GU seeds × 6 methods × {degree,pagerank} = 36 cells share
-            # a single 50-ms computation per (dataset, k).
-            seed_for_key = self.TOPOLOGY_ONLY_SEED_ANCHOR
-        return {
-            "dataset_name": str(self.args.get("dataset_name", "")),
-            "base_model": str(self.args.get("base_model", "")),
-            "unlearn_ratio": float(self.args.get("unlearn_ratio", 0.0)),
-            "seed": seed_for_key,
-            "strategy_name": strategy_name,
-            "k": int(k),
-            "is_transductive": bool(self.args.get("is_transductive", True)),
-            "is_balanced": bool(self.args.get("is_balanced", False)),
-            "train_ratio": float(self.args.get("train_ratio", 0.8)),
-            "val_ratio": float(self.args.get("val_ratio", 0.0)),
-            "test_ratio": float(self.args.get("test_ratio", 0.2)),
-            "graph_fingerprint": self._compute_graph_fingerprint(),
-            "strategy_params_fingerprint": strategy_params_fingerprint,
-        }
+    def _selection_request(self, strategy_name, k, inputs):
+        parameters = self._strategy_params_for_cache(strategy_name)
+        if strategy_name in {"im", "hybrid"}:
+            parameters["implementation_backend"] = "numba" if HAS_NUMBA else "python"
+            parameters["parallel_mc"] = bool(self.args.get("im_parallel_mc", True))
+        parameters["split_fingerprint"] = split_fingerprint(self.data)
+        seed = self._seed_value()
+        if strategy_name in self.TOPOLOGY_ONLY_STRATEGIES:
+            seed = 0
+        elif strategy_name == "im":
+            seed = int(self.args.get("im_selector_seed", 2024))
+        if getattr(self.get_strategy(strategy_name), "requires_trained_model", False):
+            # Shard consumers reuse the canonical full-model selector; GU
+            # method identity belongs to the downstream Evaluation Recipe.
+            parameters["training"] = {key: value for key, value in target_parameters(self.args).items()
+                                      if key != "unlearning_methods"}
+            parameters["initial_model_hash"] = self._initial_model_hash
+            parameters["training_implementation"] = self._result_producer.to_dict()
+        producer = strategy_version(strategy_name)
+        recipe = build_selection_recipe(dataset_fingerprint=inputs.dataset_fingerprint,
+            graph_fingerprint=inputs.graph_fingerprint, candidate_set_hash=inputs.candidate_set_hash,
+            num_nodes=inputs.num_nodes, candidate_count=inputs.candidate_count,
+            node_id_space="opengu-node-id", strategy=strategy_name, seed=seed, k=int(k),
+            producer_version=producer, algorithm_version="generic-selection-v1", parameters=parameters)
+        return SelectionArtifactRequest(recipe, producer, inputs.num_nodes)
 
-    def _supports_subset_reuse(self, strategy_name: str) -> bool:
-        if strategy_name not in self.SUBSET_REUSABLE_SELECTION_STRATEGIES:
-            return False
-        if strategy_name == "im":
-            # IM with candidate_fraction < 1 may prune candidate set as a function of k.
-            try:
-                return float(self.args.get("candidate_fraction", 1.0)) >= 1.0
-            except (TypeError, ValueError):
-                return False
-        return True
+    def _result_request(self, selection, inputs):
+        target = {"parameters": target_parameters(self.args),
+                  "dataset_fingerprint": inputs.dataset_fingerprint,
+                  "split_fingerprint": split_fingerprint(self.data),
+                  "initial_model_hash": self._initial_model_hash}
+        return self.cache.request(selection, inputs.graph_fingerprint,
+            ordered_int_hash(selection.selected_nodes), target, self._result_producer)
 
     def _needs_canonical_selector_cache(self, strategy_name: str, strategy: BaseStrategy) -> bool:
         method = str(self.args.get("unlearning_methods", ""))
@@ -332,197 +300,102 @@ class AttackManager:
         return config
 
     def run_attack(self, strategy_name: str, k: int, use_cache: Optional[bool] = None) -> AttackResult:
-        """
-        Run a single attack experiment.
+        """Resolve V2 first; only a clean MISS executes selection/unlearning."""
+        enabled = self.use_cache if use_cache is None else bool(use_cache)
+        previous = self.args.get("use_cache", True)
+        self.args["use_cache"] = enabled
+        try:
+            return self._run_attack(strategy_name, k, enabled)
+        finally:
+            self.args["use_cache"] = previous
 
-        Args:
-            strategy_name: Name of the strategy to use
-            k: Number of nodes to select
-            use_cache: Override global cache setting
-
-        Returns:
-            AttackResult containing experiment results
-
-        Raises:
-            ValueError: If strategy not found
-        """
+    def _run_attack(self, strategy_name, k, enabled):
         strategy = self.get_strategy(strategy_name)
         if strategy is None:
-            raise ValueError(f"Strategy '{strategy_name}' not found. Registered: {self.list_strategies()}")
-
-        # Check cache
-        use_cache = use_cache if use_cache is not None else self.use_cache
-        config = self._build_config(strategy_name, k)
-
-        if use_cache and self.cache:
-            if hasattr(self.cache, "get_with_provenance"):
-                cached_result, cache_provenance = self.cache.get_with_provenance(config)
-            else:
-                cached_result = self.cache.get(config)
-                cache_provenance = {}
-            if cached_result is not None:
-                cached_result.mia_auc = update_detection_auc_result_value(
-                    self.args, cached_result.mia_auc
-                )
-                cached_result.result_cache_hit = True
-                cached_result.result_cache_key = cache_provenance.get("cache_key")
-                cached_result.result_cache_source = cache_provenance.get("source_file")
-                cached_result.result_cache_lookup_mode = cache_provenance.get("lookup_policy")
-                self.results[strategy_name] = cached_result
-                return cached_result
-
-        # Run experiment
-        print(f"\n[AttackManager] Running attack with strategy: {strategy_name}")
-        print(f"[AttackManager] Selecting {k} nodes for unlearning")
-
-        start_time = time.time()
-
-        # Run through pipeline (optionally reusing method-agnostic selection cache)
-        result_dict = None
-        selection_cache_hit = False
-        selection_cache_key = None
-        selection_cache_source = None
-        selection_cache_source_k = None
-        selection_cache_lookup_mode = "exact"
-        selection_time_value = None
-        selection_reuse_time = None
-        if (
-            use_cache
-            and self.selection_cache is not None
-            and strategy_name in self.REUSABLE_SELECTION_STRATEGIES
-        ):
-            selection_config = self._build_selection_config(strategy_name, k)
-            cache_lookup_start = time.time()
-            cached_selection, selection_key, source_file = self.selection_cache.get(selection_config)
-            selection_cache_key = selection_key
-            selection_cache_source = source_file
-            if cached_selection is None and self._supports_subset_reuse(strategy_name):
-                (
-                    superset_selection,
-                    superset_key,
-                    superset_source,
-                    superset_k,
-                ) = self.selection_cache.get_smallest_superset(selection_config, required_k=k)
-                if superset_selection is not None:
-                    cached_selection = superset_selection
-                    selection_cache_key = superset_key
-                    selection_cache_source = superset_source
-                    selection_cache_source_k = superset_k
-                    selection_cache_lookup_mode = "superset"
-            if cached_selection is not None and len(cached_selection.selected_nodes) < int(k):
-                print(
-                    "[SelectionCache] MISS-INVALID "
-                    f"strategy={strategy_name} selection_key={selection_cache_key} "
-                    f"cached_count={len(cached_selection.selected_nodes)} required_k={k}"
-                )
-                cached_selection = None
-            if cached_selection is not None:
-                selection_cache_hit = True
-                selected_nodes = torch.tensor(cached_selection.selected_nodes[: int(k)], dtype=torch.long)
-                selection_reuse_time = time.time() - cache_lookup_start
-                selection_time_value = float(cached_selection.selection_time)
-                speedup = None
-                if selection_reuse_time > 0:
-                    speedup = selection_time_value / selection_reuse_time
-                speedup_text = f"{speedup:.2f}x" if speedup is not None else "NA"
-                mode_text = f"reuse_mode={selection_cache_lookup_mode}"
-                if selection_cache_source_k is not None:
-                    mode_text = f"{mode_text} source_k={selection_cache_source_k} target_k={k}"
-                print(
-                    "[SelectionCache] HIT "
-                    f"strategy={strategy_name} selection_key={selection_cache_key} "
-                    f"{mode_text} "
-                    f"original_selection_time={selection_time_value:.4f}s "
-                    f"reuse_time={selection_reuse_time:.6f}s "
-                    f"speedup={speedup_text} "
-                    f"source={selection_cache_source}"
-                )
-                result_dict = self.pipeline.run_with_selected_nodes(
-                    strategy_name=strategy_name,
-                    selected_nodes=selected_nodes,
-                    selection_time=selection_time_value,
-                )
-            else:
-                print(
-                    "[SelectionCache] MISS "
-                    f"strategy={strategy_name} selection_key={selection_cache_key}"
-                )
-                if self._needs_canonical_selector_cache(strategy_name, strategy):
-                    self._raise_canonical_selector_cache_miss(strategy_name)
-                result_dict = self.pipeline.run_with_strategy(strategy, k)
-                selection_time_value = float(result_dict.get("selection_time", 0.0))
-                print(
-                    "[SelectionCache] MISS-RESULT "
-                    f"strategy={strategy_name} selection_key={selection_cache_key} "
-                    f"original_selection_time={selection_time_value:.4f}s"
-                )
-                to_cache = SelectionResult(
-                    strategy_name=strategy_name,
-                    selected_nodes=result_dict["selected_nodes"].cpu().tolist(),
-                    selection_time=selection_time_value,
-                    selection_key=selection_cache_key or "",
-                    metadata={
-                        "dataset_name": selection_config.get("dataset_name"),
-                        "base_model": selection_config.get("base_model"),
-                        "seed": selection_config.get("seed"),
-                        "graph_fingerprint": selection_config.get("graph_fingerprint"),
-                    },
-                )
-                cache_path = self.selection_cache.save(to_cache, selection_config)
-                selection_cache_source = cache_path
-                print(f"[SelectionCache] Saved strategy={strategy_name} -> {cache_path}")
+            raise ValueError(f"Strategy '{strategy_name}' not found")
+        print(f"[AttackManager] Running attack with strategy: {strategy_name}")
+        inputs = make_dataset_selection_inputs(self.data, dataset_name=self.args["dataset_name"])
+        request = self._selection_request(strategy_name, k, inputs)
+        started = time.time()
+        selection = self.selection_cache.get(request) if enabled else None
+        selection_hit = selection is not None
+        request_result = self._result_request(selection, inputs) if selection_hit else None
+        if request_result is not None:
+            cached, provenance = self.cache.get_with_provenance(request_result)
+            if cached is not None:
+                cached.result_cache_hit = True
+                cached.result_cache_key = provenance["cache_key"]
+                cached.result_cache_source = provenance["source_file"]
+                cached.result_cache_lookup_mode = provenance["lookup_policy"]
+                cached.result_artifact_id = provenance["cache_key"]
+                cached.result_recipe_hash = provenance["recipe_hash"]
+                cached.result_content_hash = provenance["content_hash"]
+                self.results[strategy_name] = cached
+                print(f"[CacheV2] HIT evaluation {cached.result_cache_key}")
+                return cached
+        selection_reuse_time = time.time() - started if selection_hit else None
+        if selection_hit:
+            print(f"[CacheV2] HIT selection {selection.artifact_id}")
+            selected_nodes = torch.tensor(selection.selected_nodes, dtype=torch.long)
+            selection_seconds = selection.selection_time
         else:
             if self._needs_canonical_selector_cache(strategy_name, strategy):
                 self._raise_canonical_selector_cache_miss(strategy_name)
-            result_dict = self.pipeline.run_with_strategy(strategy, k)
-            selection_time_value = float(result_dict.get("selection_time", 0.0))
-
-        if selection_time_value is None:
-            selection_time_value = float(result_dict.get("selection_time", 0.0))
-
-        total_time = time.time() - start_time
-
-        # Build AttackResult
-        target_checkpoint = dict(result_dict.get("target_checkpoint") or {})
-        result = AttackResult(
-            strategy_name=strategy_name,
-            selected_nodes=result_dict["selected_nodes"],
-            f1_before=result_dict["f1_before"],
-            f1_after=result_dict["f1_after"],
-            unlearn_time=result_dict["unlearn_time"],
-            total_time=total_time,
-            selection_time=selection_time_value,
-            selection_reuse_time=selection_reuse_time,
-            selection_cache_hit=selection_cache_hit,
-            selection_cache_key=selection_cache_key,
-            selection_cache_source=selection_cache_source,
-            selection_cache_lookup_mode=selection_cache_lookup_mode,
-            selection_cache_source_k=selection_cache_source_k,
-            target_checkpoint_path=target_checkpoint.get("path"),
-            target_checkpoint_file_sha256=target_checkpoint.get("file_sha256"),
-            target_checkpoint_state_hash=target_checkpoint.get("state_hash"),
-            result_cache_hit=False if use_cache and self.cache else None,
-            mia_auc=result_dict.get("mia_auc"),
-            config=config,
-            failed=bool(result_dict.get("failed", False)),
-            failure_reason=result_dict.get("failure_reason"),
-        )
-
-        # Store and cache result
+            print(f"[CacheV2] {'MISS' if enabled else 'BYPASS'} selection {request.recipe.recipe_hash}")
+            selected_nodes, selection_seconds = self.produce_selection(strategy_name, k)
+        with seeded_execution(self._seed_value()):
+            result_dict = self.pipeline.run_with_selected_nodes(strategy_name=strategy_name,
+                selected_nodes=selected_nodes, selection_time=selection_seconds)
+        if enabled and not selection_hit and not result_dict.get("failed"):
+            selection = self.selection_cache.save(selected_nodes.cpu().tolist(), request, selection_seconds)
+            request_result = self._result_request(selection, inputs)
+        checkpoint = dict(result_dict.get("target_checkpoint") or {})
+        result = AttackResult(strategy_name=strategy_name, selected_nodes=result_dict["selected_nodes"],
+            f1_before=result_dict["f1_before"], f1_after=result_dict["f1_after"],
+            unlearn_time=result_dict["unlearn_time"], total_time=time.time()-started,
+            selection_time=float(result_dict.get("selection_time", 0.0)),
+            selection_reuse_time=selection_reuse_time, selection_cache_hit=selection_hit if enabled else None,
+            selection_cache_key=selection.artifact_id if selection else None,
+            selection_cache_source=selection.source if selection else None,
+            selection_cache_lookup_mode="cache_v2_exact_recipe" if enabled else None,
+            selection_artifact_id=selection.artifact_id if selection else None,
+            selection_recipe_hash=selection.recipe_hash if selection else None,
+            selection_content_hash=selection.content_hash if selection else None,
+            selection_authoritative=True if selection else None,
+            target_checkpoint_path=checkpoint.get("path"),
+            target_checkpoint_file_sha256=checkpoint.get("file_sha256"),
+            target_checkpoint_state_hash=checkpoint.get("state_hash"),
+            result_cache_hit=False if enabled else None, mia_auc=result_dict.get("mia_auc"),
+            config=self._build_config(strategy_name, k), failed=bool(result_dict.get("failed", False)),
+            failure_reason=result_dict.get("failure_reason"))
         self.results[strategy_name] = result
-
-        if result_dict.get("failed"):
-            print(
-                f"[Cache] Skip save: unlearning failed "
-                f"(reason: {result_dict.get('failure_reason')})"
-            )
-        elif use_cache and self.cache:
-            result_cache_path = self.cache.save(result, config)
-            result.result_cache_key = Path(result_cache_path).stem
-            result.result_cache_source = result_cache_path
-            result.result_cache_lookup_mode = "legacy_primary_hash"
-
+        if enabled and not result.failed:
+            stored = self.cache.save(result, request_result)
+            result.result_cache_key = stored.artifact_id
+            result.result_artifact_id = stored.artifact_id
+            result.result_recipe_hash = request_result.recipe.recipe_hash
+            result.result_content_hash = stored.content_hash
+            result.result_cache_source = str(self.cache_root / stored.semantic_path)
+            result.result_cache_lookup_mode = "cache_v2_exact_recipe"
+            print(f"[CacheV2] MISS evaluation {stored.artifact_id}")
         return result
+
+    def produce_selection(self, strategy_name, k):
+        """Experiment-owned MISS computation, shared with the prewarm entry."""
+        strategy = self.get_strategy(strategy_name)
+        if self._needs_canonical_selector_cache(strategy_name, strategy):
+            self._raise_canonical_selector_cache_miss(strategy_name)
+        with seeded_execution(self._seed_value()):
+            if getattr(strategy, "requires_trained_model", False):
+                self.pipeline._ensure_base_model_trained()
+            started = time.time()
+            nodes = strategy.select_nodes(self.data, self.pipeline.model, k).cpu()
+            selection_seconds = time.time() - started
+        candidates = self._candidate_nodes().tolist()
+        if nodes.numel() != int(k) or nodes.unique().numel() != int(k) or not set(nodes.tolist()).issubset(candidates):
+            raise ValueError("selection producer returned invalid candidate nodes")
+        print(f"[AttackManager] Selection took {selection_seconds:.6f}s")
+        return nodes, selection_seconds
 
     def run_attack_with_selected_nodes(
         self,

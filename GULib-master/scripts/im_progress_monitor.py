@@ -22,8 +22,7 @@ if PID is None:
     print("Usage: python im_progress_monitor.py <pid>")
     sys.exit(1)
 
-IM_CELF_DIR = "./results/score_cache/im_celf"
-IM_DIR = "./results/score_cache/im"
+SCORE_DIR = "./results/cache_v2/artifacts/score"
 
 
 def get_ps_info(pid):
@@ -42,9 +41,7 @@ def get_ps_info(pid):
 
 
 def get_latest_im_cache_mtime():
-    files = glob.glob(os.path.join(IM_CELF_DIR, "*.npz")) + glob.glob(
-        os.path.join(IM_DIR, "*.npz")
-    )
+    files = glob.glob(os.path.join(SCORE_DIR, "*", "payload.npz"))
     if not files:
         return None
     return max(os.path.getmtime(f) for f in files)

@@ -19,6 +19,9 @@ def parameter_parser():
     #for all methods#
     parser.add_argument('--cuda', type=int, default=0, help='specify gpu')
     parser.add_argument('--num_threads', type=int, default=1)
+    parser.add_argument('--enable_score_cache', type=str2bool, default=True,
+                        help='Enable exact Cache V2 score reuse; global no_cache disables all caches.')
+    parser.add_argument('--cache_v2_store_root', type=str, default='./results/cache_v2')
     parser.add_argument('--root_path', type=str, default='./', help='Set The Root Path')
     parser.add_argument(
         '--runtime_root',
