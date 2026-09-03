@@ -12,7 +12,7 @@ Execution topology: `sequential`
 > Source branch：`refs/heads/codex/aagu-025-unified-cache-v2`
 
 > Remote target：`origin refs/heads/main`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
 
 ## Human Surface
@@ -103,3 +103,4 @@ Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
 - 2026-09-03: 按当前任务授权，Claim 同一 Block（claimId `2c1c77d4-4401-4397-8126-a24303fe598a`），在记录的 main 基线上实施；仅形成候选、Verify 与报告，等待用户验收。
 
 - 2026-09-03: 完成统一 V2 接入、干净代码检查点 Verify 与配对报告；当前投影为 `awaiting acceptance`，决定保持 `待决定`。最终报告候选复核后，同一 Claim 转为 `awaiting_acceptance`，按用户要求停止。
+- `accepted`（2026-09-04T05:01:19+08:00）：用户 基于 用户明确接受已验证软件候选 0501316e，并授权补齐 install.json、在 SSH 同步安装；交付配置候选 5b19532b 已完成独立配置与报告差异核验。 接受当前已验证候选。
