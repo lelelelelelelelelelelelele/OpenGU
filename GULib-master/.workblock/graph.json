@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "factVersion": 6,
+  "factVersion": 7,
   "stages": [
     {
       "id": "repair",
@@ -78,10 +78,10 @@
       "to": "AAGU-006"
     },
     {
-      "id": "depends-aagu-001-on-aagu-015",
+      "id": "depends-aagu-015-on-aagu-001",
       "type": "depends_on",
-      "from": "AAGU-001",
-      "to": "AAGU-015"
+      "from": "AAGU-015",
+      "to": "AAGU-001"
     },
     {
       "id": "depends-aagu-002-on-aagu-001",
@@ -318,6 +318,13 @@
       "actor": "User direction to place AAGU-023 and AAGU-024 in the Fix workstream and model them as early repair work",
       "at": "2026-09-02T06:26:59.9935666+08:00",
       "summary": "Assign AAGU-023 and AAGU-024 to Repair; make AAGU-023 an upstream guard for final evidence acceptance and record AAGU-024 as the protocol correction of its 14 migration members without inventing execution blockers."
+    },
+    {
+      "id": "confirmation-aagu-001-contract-registration-20260904",
+      "changeSetId": "aagu-001-contract-registration-20260904",
+      "actor": "User confirmation to narrow AAGU-001 to an independent experiment contract and registration specification",
+      "at": "2026-09-04T05:39:51+08:00",
+      "summary": "Replace AAGU-001 depends_on AAGU-015 with AAGU-015 depends_on AAGU-001. Preserve the accepted AAGU-006 input boundary and all other relations; specific scientific choices and result analysis remain with their experiment tasks."
     }
   ]
 }
