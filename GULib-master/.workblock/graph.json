@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "factVersion": 7,
+  "factVersion": 8,
   "stages": [
     {
       "id": "repair",
@@ -62,9 +62,16 @@
     "AAGU-021": "d-full",
     "AAGU-022": "d-full",
     "AAGU-023": "repair",
-    "AAGU-024": "repair"
+    "AAGU-024": "repair",
+    "AAGU-025": "repair"
   },
   "relations": [
+    {
+      "id": "depends-aagu-023-on-aagu-025",
+      "type": "depends_on",
+      "from": "AAGU-023",
+      "to": "AAGU-025"
+    },
     {
       "id": "depends-aagu-015-on-aagu-006",
       "type": "depends_on",
@@ -325,6 +332,13 @@
       "actor": "User confirmation to narrow AAGU-001 to an independent experiment contract and registration specification",
       "at": "2026-09-04T05:39:51+08:00",
       "summary": "Replace AAGU-001 depends_on AAGU-015 with AAGU-015 depends_on AAGU-001. Preserve the accepted AAGU-006 input boundary and all other relations; specific scientific choices and result analysis remain with their experiment tasks."
+    },
+    {
+      "id": "confirmation-2026-09-04T05:51:20+08:00-aagu-025-repair-placement-20260904",
+      "changeSetId": "aagu-025-repair-placement-20260904",
+      "actor": "User direction to repair AAGU-025 Graph placement and its already-confirmed dependency for visual acceptance",
+      "at": "2026-09-04T05:51:20+08:00",
+      "summary": "Assign AAGU-025 to Repair and materialize the already-confirmed AAGU-023 depends_on AAGU-025 contract. Preserve completed lifecycle and all existing Graph facts."
     }
   ]
 }
