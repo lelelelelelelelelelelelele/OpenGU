@@ -89,7 +89,7 @@ class MaterializedFormalArtifact:
         return self.result.content_hash
 
 
-def _resolve_formal_artifact(
+def resolve_formal_artifact(
     root: Path, request: FormalArtifactRequest
 ) -> FormalStoreResult | None:
     """Return a verified exact hit, a clean miss, or raise fail-closed."""
@@ -136,14 +136,14 @@ def materialize_formal_artifact(
     if not callable(producer):
         raise ContractValidationError("producer must be callable")
     root = _absolute_store_root(store_root)
-    resolved = _resolve_formal_artifact(root, request)
+    resolved = resolve_formal_artifact(root, request)
     if resolved is not None:
         return MaterializedFormalArtifact(False, resolved, 0.0)
 
     started = time.perf_counter()
     payload = producer()
     elapsed = time.perf_counter() - started
-    expected_payload_type = payload_type_for(request.artifact_type)
+    expected_payload_type = payload_type_for(request.artifact_type, request.recipe)
     if not isinstance(payload, expected_payload_type):
         raise ContractValidationError(
             "producer returned the wrong payload class for {0}".format(
@@ -151,17 +151,23 @@ def materialize_formal_artifact(
             )
         )
 
+    result = store_formal_artifact(root, request, payload, compute_seconds=elapsed)
+    return MaterializedFormalArtifact(True, result, elapsed)
+
+
+def store_formal_artifact(store_root, request, payload, *, compute_seconds=0.0):
+    """Store already-computed content; a racing different result is a conflict."""
+    root = _absolute_store_root(store_root)
     store = FormalArtifactStore(root, producer_version=request.producer_version)
     if not store.index.database_path.is_file():
         store.initialize()
     else:
         store.index.check_schema()
-    result = store.store_payload(
+    return store.store_payload(
         request.recipe,
         payload,
-        compute_seconds=elapsed,
+        compute_seconds=compute_seconds,
     )
-    return MaterializedFormalArtifact(True, result, elapsed)
 
 
 __all__ = [
@@ -169,4 +175,6 @@ __all__ = [
     "FormalArtifactRequest",
     "MaterializedFormalArtifact",
     "materialize_formal_artifact",
+    "resolve_formal_artifact",
+    "store_formal_artifact",
 ]

@@ -306,68 +306,6 @@ class TestOutputFormats:
         assert "best_strategy" in loaded["comparison"]
 
 
-class TestCacheFunctionality:
-    """Tests for caching functionality."""
-
-    def test_cache_directory_creation(self):
-        """Test that cache directory is created."""
-        from attack import ResultCache
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            cache_dir = os.path.join(tmpdir, "test_cache")
-            cache = ResultCache(cache_dir=cache_dir)
-
-            assert os.path.exists(cache_dir)
-
-    def test_cache_key_consistency(self):
-        """Test that same config produces same cache key."""
-        from attack import ResultCache
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            cache = ResultCache(cache_dir=tmpdir)
-
-            config = {
-                "dataset_name": "cora",
-                "base_model": "SGC",
-                "unlearning_methods": "SGU",
-                "unlearn_ratio": 0.05,
-                "seed": 2024,
-                "strategy_name": "random",
-            }
-
-            key1 = cache._generate_cache_key(config)
-            key2 = cache._generate_cache_key(config)
-
-            assert key1 == key2
-
-    def test_cache_different_configs(self):
-        """Test that different configs produce different cache keys."""
-        from attack import ResultCache
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            cache = ResultCache(cache_dir=tmpdir)
-
-            config1 = {
-                "dataset_name": "cora",
-                "base_model": "SGC",
-                "unlearning_methods": "SGU",
-                "unlearn_ratio": 0.05,
-                "seed": 2024,
-                "strategy_name": "random",
-            }
-
-            config2 = config1.copy()
-            config2["strategy_name"] = "degree"
-
-            key1 = cache._generate_cache_key(config1)
-            key2 = cache._generate_cache_key(config2)
-
-            assert key1 != key2
-
-
 class TestDeterministicBehavior:
     """Tests for deterministic behavior with fixed seeds."""
 

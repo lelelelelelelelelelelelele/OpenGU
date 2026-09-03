@@ -49,7 +49,7 @@ def _extract_demo_args():
     demo_args, remaining_args = parser.parse_known_args()
     if demo_args.seed is None:
         demo_args.seed = demo_args.random_seed if demo_args.random_seed is not None else 2024
-    if bool(demo_args.cache_v2_store_root) != bool(demo_args.selection_artifact_id):
+    if demo_args.selection_artifact_id and not demo_args.cache_v2_store_root:
         parser.error(
             "--cache_v2_store_root and --selection_artifact_id must be provided together"
         )
@@ -145,10 +145,8 @@ def main():
     args['random_seed'] = demo_args.seed
     args['seed'] = demo_args.seed
     v2_selection = bool(demo_args.selection_artifact_id)
-    if v2_selection:
-        # Strategy construction happens in AttackManager.__init__. Disable the
-        # eager Legacy ScoreCache constructors before that point.
-        args['enable_score_cache'] = False
+    args['cache_v2_store_root'] = demo_args.cache_v2_store_root
+    args['use_cache'] = not demo_args.no_cache
 
     # Set random seed
     seed_everything(demo_args.seed)
@@ -180,7 +178,7 @@ def main():
     try:
         manager = AttackManager(
             args,
-            use_cache=False if v2_selection else not demo_args.no_cache,
+            use_cache=not demo_args.no_cache,
         )
     except Exception as e:
         print(f"\nError initializing AttackManager: {e}")

@@ -771,8 +771,6 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     if defaults.get("no_cache", False):
         cmd1.append("--no_cache")
     if v2_mode:
-        if "--no_cache" not in cmd1:
-            cmd1.append("--no_cache")
         cmd1 += [
             "--cache_v2_store_root", str(selection_artifact["store_root"]),
             "--selection_artifact_id", str(selection_artifact["artifact_id"]),

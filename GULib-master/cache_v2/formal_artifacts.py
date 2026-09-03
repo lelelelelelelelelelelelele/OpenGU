@@ -706,7 +706,12 @@ FORMAL_PAYLOAD_TYPES: Dict[ArtifactType, Type[Any]] = {
 }
 
 
-def payload_type_for(artifact_type: ArtifactType) -> Type[Any]:
+def payload_type_for(artifact_type: ArtifactType, recipe: Optional[ArtifactRecipe] = None) -> Type[Any]:
+    if recipe is not None and recipe.fields.get("artifact_contract") == "opengu-attack-evaluation-v1":
+        from .attack_evaluation import AttackEvaluationPayload
+        if ArtifactType(artifact_type) != ArtifactType.EVALUATION:
+            raise ContractValidationError("attack Evaluation has wrong Artifact type")
+        return AttackEvaluationPayload
     try:
         type_value = ArtifactType(artifact_type)
         return FORMAL_PAYLOAD_TYPES[type_value]

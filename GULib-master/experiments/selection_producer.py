@@ -549,9 +549,9 @@ def build_im_producer(
         }
     )
     if getattr(strategy, "_score_cache", None) is not None:
-        raise ContractValidationError("IM per-candidate Legacy ScoreCache is enabled")
+        raise ContractValidationError("uncached IM producer unexpectedly has a nested ScoreCache")
     if getattr(strategy, "_celf_cache", None) is not None:
-        raise ContractValidationError("IM CELF Legacy ScoreCache is enabled")
+        raise ContractValidationError("uncached IM producer unexpectedly has a nested CELF ScoreCache")
 
     def produce() -> Sequence[int]:
         selected, _ = strategy.compute_im_celf(

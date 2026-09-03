@@ -339,6 +339,7 @@ class FormalArtifactStore(ArtifactStore):
     @staticmethod
     def _expected_parent_type(relation: str) -> ArtifactType:
         mapping = {
+            "attack_selection_input": ArtifactType.SELECTION,
             "selection_input": ArtifactType.SELECTION,
             "prediction_input": ArtifactType.PREDICTION,
         }
@@ -554,7 +555,11 @@ class FormalArtifactStore(ArtifactStore):
             parent_payload = self._load_verified_dependency_payload(
                 parent, expected_type
             )
-            if relation == "selection_input":
+            if relation == "attack_selection_input":
+                if (parent_payload.ordered_nodes_hash != payload.selected_nodes_hash
+                        or parent_payload.graph_fingerprint != payload.graph_fingerprint):
+                    raise ArtifactIntegrityError("attack Evaluation does not match Selection dependency")
+            elif relation == "selection_input":
                 if (
                     parent_payload.ordered_nodes_hash
                     != payload.metadata["selected_nodes_hash"]
@@ -626,7 +631,7 @@ class FormalArtifactStore(ArtifactStore):
         miss_reasons: Tuple[str, ...] = (),
     ) -> FormalStoreResult:
         type_value = self._formal_type(artifact_type)
-        payload_class = payload_type_for(type_value)
+        payload_class = payload_type_for(type_value, recipe)
         if candidate.get("artifact_type") != type_value.value:
             raise ArtifactIntegrityError("indexed candidate has wrong Artifact type")
         if candidate.get("recipe_hash") != recipe.recipe_hash:
@@ -927,7 +932,7 @@ class FormalArtifactStore(ArtifactStore):
     ) -> FormalStoreResult:
         self._ensure_initialized()
         artifact_type = self._formal_type(getattr(payload, "artifact_type", None))
-        payload_class = payload_type_for(artifact_type)
+        payload_class = payload_type_for(artifact_type, recipe)
         if not isinstance(payload, payload_class):
             raise ContractValidationError("payload class does not match Artifact type")
         self._validate_recipe_producer(recipe)

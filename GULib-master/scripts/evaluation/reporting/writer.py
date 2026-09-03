@@ -448,6 +448,7 @@ def _selected_node_count(result) -> Optional[int]:
 def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled: bool):
     artifact_id = getattr(result, "selection_artifact_id", None)
     if artifact_id:
+        artifact_hit = getattr(result, "selection_cache_hit", None) is not False
         source = getattr(result, "selection_cache_source", None)
         recipe_hash = getattr(result, "selection_recipe_hash", None)
         content_hash = getattr(result, "selection_content_hash", None)
@@ -457,7 +458,7 @@ def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled
         )
         return cache_observation(
             cache_type="selection",
-            outcome="hit",
+            outcome="hit" if artifact_hit else "miss",
             recipe={"strategy": strategy, "k": int(k)},
             recipe_hash=recipe_hash,
             artifact=artifact_ref(
@@ -467,10 +468,10 @@ def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled
                 recipe_hash=recipe_hash,
                 content_hash=content_hash,
             ),
-            hit_source="cache_v2:{0}".format(artifact_id),
+            hit_source="cache_v2:{0}".format(artifact_id) if artifact_hit else None,
             lookup_policy=lookup_mode,
             authoritative=True,
-            write_outcome="reused",
+            write_outcome="reused" if artifact_hit else "saved",
         )
     cache_hit = getattr(result, "selection_cache_hit", None)
     source = getattr(result, "selection_cache_source", None)
@@ -511,6 +512,17 @@ def _selection_cache_observation(result, *, strategy: str, k: int, cache_enabled
 
 
 def _result_cache_observation(result, *, strategy: str, k: int, cache_enabled: bool):
+    artifact_id = getattr(result, "result_artifact_id", None)
+    if artifact_id:
+        hit = getattr(result, "result_cache_hit", False) is True
+        recipe_hash = result.result_recipe_hash
+        return cache_observation(cache_type="result", outcome="hit" if hit else "miss",
+            recipe={"strategy": strategy, "k": int(k)}, recipe_hash=recipe_hash,
+            artifact=artifact_ref(path=result.result_cache_source, artifact_id=artifact_id,
+                artifact_type="evaluation", recipe_hash=recipe_hash, content_hash=result.result_content_hash),
+            hit_source="cache_v2:" + artifact_id if hit else None,
+            lookup_policy="cache_v2_exact_recipe", authoritative=True,
+            write_outcome="reused" if hit else "saved")
     cache_hit = getattr(result, "result_cache_hit", None)
     source = getattr(result, "result_cache_source", None)
     cache_key = getattr(result, "result_cache_key", None)

@@ -23,7 +23,7 @@ def test_selection_cache_hit_moves_to_unlearning_phase():
     phase, strategy = run_experiments._update_phase_state(
         phase,
         strategy,
-        "[SelectionCache] HIT strategy=im selection_key=abc original_selection_time=12.3s",
+        "[CacheV2] HIT selection strategy=im selection_key=abc original_selection_time=12.3s",
     )
     assert phase == "unlearning"
     assert strategy == "im"

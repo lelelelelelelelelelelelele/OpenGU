@@ -1,0 +1,95 @@
+{
+  "checkpoint": "ab005b66a5a1c8e415a62f8e549629af480d6d51",
+  "clean_before": true,
+  "clean_after": true,
+  "checks": [
+    {
+      "name": "regression",
+      "command": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_archive_readiness.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_conflict_resolution.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_dataset_boundary.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_formal_artifacts.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_gate3_comparison.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_gate3_degree_adapter.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_gate4_canary.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_materializer.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_runtime.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_selection_canary.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_cache_v2_store.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_target_direct_manifest.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_target_direct_recipe.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_target_direct_split_profile.py",
+        "E:\\project\\OpenGU\\GULib-master\\tests\\test_target_direct_syncmate_stage.py",
+        "tests/test_generic_cache_v2.py",
+        "tests/test_score_cache.py",
+        "tests/test_attack_manager.py",
+        "tests/test_demo.py",
+        "tests/test_auto_report_v3.py",
+        "tests/test_collateral.py",
+        "tests/test_legacy_cache_freeze.py",
+        "tests/test_selection_budget_planner.py",
+        "tests/test_run_experiments_timeouts.py",
+        "tests/test_run_experiments_repair_validation.py",
+        "-q",
+        "--disable-warnings",
+        "--junitxml=E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu025-junit.xml",
+        "-o",
+        "junit_family=xunit1",
+        "-o",
+        "junit_logging=all"
+      ],
+      "exit_code": 0,
+      "seconds": 16.7,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu025-regression.txt"
+    },
+    {
+      "name": "generic-dry-run",
+      "command": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "experiments/run.py",
+        "experiments/configs/phase_b_cora_gcn.yaml",
+        "--dry_run"
+      ],
+      "exit_code": 0,
+      "seconds": 3.58,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu025-generic-dry-run.txt"
+    }
+  ],
+  "syntax": "PASS",
+  "protected_cache_comparison": "identical paths, sizes and SHA-256",
+  "protected_caches": {
+    "results/cache": {
+      "files": 8,
+      "bytes": 59952,
+      "tree_sha256": "4ef0f72fe0b9e788c1571174d6a0d25ed7084fca7ddc3fd4d4d5702a90210607"
+    },
+    "results/selection_cache": {
+      "files": 9,
+      "bytes": 19696,
+      "tree_sha256": "1a102dd9fb48f826ea6737aa379d09e8edfb0b068dfc838d6af14abf098ed857"
+    },
+    "results/score_cache": {
+      "files": 26,
+      "bytes": 697912,
+      "tree_sha256": "cacb1b06433d4e14b432af2d870ff339445d3296bb9c10aebe3d18d720aeec23"
+    },
+    "results/cache_v2": {
+      "files": 32,
+      "bytes": 983515,
+      "tree_sha256": "62cf2dfda91c3aef34eccf37839a8ae9fff37baf1c1aa73a3d2fc6749b6c69a8"
+    }
+  },
+  "remote_execution": "not invoked",
+  "formal_gpu_experiments": "not invoked"
+}

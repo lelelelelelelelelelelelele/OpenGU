@@ -1,26 +1,8 @@
-"""
-Pre-compute and cache strategy selections for every (seed, strategy) combo
-in a Phase B yaml config. Skips the GU pipeline entirely.
+"""Precompute exact generic Selection Artifacts in the shared Cache V2 store.
 
-Use case: rent a big GPU (A100 80GB) for the expensive selection step, scp
-the resulting `results/selection_cache/` directory to a cheap GPU (4090),
-and run the full B.2 yaml there with all selections already cached.
-
-Workflow:
-    # On A100
-    python scripts/prewarm_selection_cache.py experiments/configs/phase_b_arxiv.yaml
-    tar czf selection_cache.tar.gz results/selection_cache/
-
-    # scp to 4090, then unpack and run normally
-    tar xzf selection_cache.tar.gz
-    python experiments/run.py experiments/configs/phase_b_arxiv.yaml
-    # Every cell hits the cache; only GU + retrain + MIA actually run.
-
-Caveat: The cache key fingerprints (dataset, base_model, seed, k, graph,
-strategy params) but NOT training hyperparameters (num_epochs, lr, dropout).
-This is fine when both machines run the SAME yaml. If you change training
-hyperparameters between machines, invalidate the cache first
-(rm results/selection_cache/*.json).
+Uses the same Recipe builder and strategy producers as AttackManager. Warm
+resolution does not invoke training or selection. No Legacy conversion or
+payload transfer commands are provided; Artifact movement uses cachectl.
 """
 import argparse
 import os
@@ -36,8 +18,6 @@ def _extract_args():
     parser.add_argument("--seeds", type=str, default=None,
                         help="Comma-separated seed override. Default: yaml seeds.")
     parser.add_argument("--cuda", type=int, default=0)
-    parser.add_argument("--force", action="store_true",
-                        help="Recompute even if cache hits.")
     args, remaining = parser.parse_known_args()
     sys.argv = [sys.argv[0]] + remaining
     return args
@@ -55,7 +35,7 @@ if base_dir not in sys.path:
 
 from parameter_parser import parameter_parser  # noqa: E402
 from attack import AttackManager  # noqa: E402
-from attack.selection_cache import SelectionResult  # noqa: E402
+from experiments.selection_inputs import make_dataset_selection_inputs  # noqa: E402
 
 
 def _candidate_node_count(data) -> int:
@@ -92,7 +72,7 @@ def _build_args(cfg, seed, method=None):
     Defaults to cfg["methods"][0] for backward compatibility — but callers
     that prewarm method-dependent strategies (tracin, hybrid) MUST iterate
     over cfg["methods"] and pass each method explicitly so per-method
-    ScoreCache entries (`if/<key>.npz`) get written for every method.
+    V2 Score Artifacts bind the actual trained model state.
     """
     defaults = cfg.get("defaults", {}) or {}
     extra = list(cfg.get("extra_args", []) or [])
@@ -125,10 +105,12 @@ def _build_args(cfg, seed, method=None):
     args["cuda"] = _args.cuda
     args["random_seed"] = int(seed)
     args["seed"] = int(seed)
+    args["proportion_unlearned_nodes"] = args["unlearn_ratio"]
+    args["cache_v2_store_root"] = (cfg.get("cache_v2") or {}).get("store_root", "./results/cache_v2")
     return args
 
 
-def _prewarm_seed(cfg, seed, strategies, method, force=False):
+def _prewarm_seed(cfg, seed, strategies, method):
     """Init AttackManager once for (this seed, this method); cache every requested strategy.
 
     `method` is the unlearning_methods to instantiate AttackManager with.
@@ -162,7 +144,6 @@ def _prewarm_seed(cfg, seed, strategies, method, force=False):
     }
     method_name = str(args.get("unlearning_methods", ""))
     is_shard_method = method_name in AttackManager.SHARD_METHODS_REQUIRE_CANONICAL_SELECTOR_CACHE
-    base_model_ensured = False  # lazy: only train when a cache MISS actually requires it
 
     summary = []
     for name in strategies:
@@ -174,9 +155,12 @@ def _prewarm_seed(cfg, seed, strategies, method, force=False):
                   f"would not be picked up by run.py later")
             continue
 
-        selection_config = manager._build_selection_config(name, k)
-        cached, key, source = manager.selection_cache.get(selection_config)
-        if cached is not None and not force:
+        inputs = make_dataset_selection_inputs(data, dataset_name=args["dataset_name"])
+        request = manager._selection_request(name, k, inputs)
+        key = request.recipe.recipe_hash
+        cached = manager.selection_cache.get(request)
+        if cached is not None:
+            source = cached.source
             # SelectionCache key for tracin is method-agnostic, so a shard
             # method (GraphEraser) can legitimately hit a cache written by
             # an earlier GIF/GNNDelete prewarm pass — accept it.
@@ -198,36 +182,13 @@ def _prewarm_seed(cfg, seed, strategies, method, force=False):
                 "top-to-bottom."
             )
 
-        # Lazy: train base model only on the first real compute.
-        if name in trained_model_strategies and not base_model_ensured:
-            manager.pipeline._ensure_base_model_trained()
-            model = manager.pipeline.model
-            base_model_ensured = True
+        selected, t_sel = manager.produce_selection(name, k)
 
-        strat = manager._strategies[name]
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
-        t_sel0 = time.perf_counter()
-        selected = strat.select_nodes(data, model, k)
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
-        t_sel = time.perf_counter() - t_sel0
-
-        result = SelectionResult(
-            strategy_name=name,
-            selected_nodes=[int(x) for x in selected.cpu().tolist()],
-            selection_time=float(t_sel),
-            selection_key=key or "",
-            metadata={
-                "dataset_name": selection_config.get("dataset_name"),
-                "base_model": selection_config.get("base_model"),
-                "seed": selection_config.get("seed"),
-                "graph_fingerprint": selection_config.get("graph_fingerprint"),
-                "prewarm": True,
-            },
-        )
-        path = manager.selection_cache.save(result, selection_config)
-        print(f"[save] {name} key={key}  time={t_sel:.2f}s  -> {path}")
+        nodes = [int(x) for x in selected.cpu().tolist()]
+        if len(nodes) != k or len(set(nodes)) != k or not set(nodes).issubset(inputs.candidate_nodes):
+            raise ValueError("prewarm producer returned invalid candidates")
+        result = manager.selection_cache.save(nodes, request, t_sel)
+        print(f"[save] {name} artifact={result.artifact_id} time={t_sel:.2f}s -> {result.source}")
         summary.append((name, "save", t_sel, key))
 
     return summary
@@ -237,6 +198,9 @@ def main():
     with open(_args.yaml_path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
+    if (cfg.get("defaults") or {}).get("no_cache", False):
+        print("Caching is disabled by this configuration; no prewarm writes.")
+        return
     yaml_strategies = cfg.get("strategies", [])
     yaml_seeds = cfg.get("seeds", [])
 
@@ -264,7 +228,7 @@ def main():
 
     print(f"[plan] yaml={_args.yaml_path}  dataset={cfg['dataset']}  "
           f"model={cfg['base_model']}  ratio={cfg['ratio']}")
-    print(f"[plan] strategies={strategies}  seeds={seeds}  methods={methods}  force={_args.force}")
+    print(f"[plan] strategies={strategies}  seeds={seeds}  methods={methods}")
     print(f"[plan] total prewarm passes: {len(strategies) * len(seeds) * len(methods)} "
           f"(method-loop {'ON' if needs_method_loop else 'OFF'}; "
           f"topology-only strategies will hit cache after the first pass)")
@@ -273,7 +237,7 @@ def main():
     t_global = time.perf_counter()
     for seed in seeds:
         for method in methods:
-            s = _prewarm_seed(cfg, seed, strategies, method, force=_args.force)
+            s = _prewarm_seed(cfg, seed, strategies, method)
             all_summary.extend([(seed, *row) for row in s])
     t_total = time.perf_counter() - t_global
 
@@ -285,9 +249,7 @@ def main():
     t_compute = sum(r[3] for r in all_summary if r[2] == "save")
     print(f"  computed: {n_save}   hit (already cached): {n_hit}")
     print(f"  selection compute time: {t_compute:.1f}s   wall total: {t_total:.1f}s")
-    print(f"  cache dir: ./results/selection_cache/  (ls -lh to see written files)")
-    print("\nTo transfer to another machine:")
-    print("  tar czf selection_cache.tar.gz results/selection_cache/")
+    print("  V2 Artifacts are stored in the configured cache_v2_store_root.")
 
 
 if __name__ == "__main__":

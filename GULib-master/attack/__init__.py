@@ -23,7 +23,7 @@ Example:
 from .attack_manager import AttackManager, create_manager, quick_demo
 from .attack_result import AttackResult, ComparisonResult
 from .pipeline_adapter import AttackPipeline, create_pipeline_from_args
-from .result_cache import ResultCache, LogBasedCache
+from .result_cache import ResultCache
 from .selection_cache import SelectionCache, SelectionResult
 
 # Import strategies
@@ -58,7 +58,6 @@ __all__ = [
     "ComparisonResult",
     "AttackPipeline",
     "ResultCache",
-    "LogBasedCache",
     "SelectionCache",
     "SelectionResult",
     # Strategies
