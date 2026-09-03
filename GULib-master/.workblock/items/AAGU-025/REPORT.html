@@ -22,7 +22,7 @@ th,td{text-align:left;padding:11px 13px;border:1px solid #dbe3e9;vertical-align:
 <p class='links'><a href='evidence/verification.json'>完整验证记录</a> · <a href='evidence/junit.xml'>场景与 Artifact 身份</a> · <a href='evidence/cache-before.json'>缓存保护清单</a></p>
 <h3>当前决定</h3>
 <p class="decision"><span data-workblock-decision="pending">待决定</span></p>
-<p>Agent 建议接受此次软件接入：已观察到默认缓存、精确复用、身份拒绝和数据保护。决定者为用户，决定对象是包含本报告的源分支干净 HEAD。当前停在 awaiting_acceptance；尚未接受或执行 Apply。</p>
+<p>Agent 建议接受此次软件接入：已观察到默认缓存、精确复用、身份拒绝和数据保护。决定者为用户，当前决定以本区投影为准；软件验证与后续同步安装的事实分别见验证证据和 Closeout 记录。</p>
 </section>
 <h2>行为与集成判断</h2>
 <div class='table-wrap'><table class='checks'><thead><tr><th>场景</th><th>实际观察</th><th>判断</th></tr></thead><tbody>
@@ -71,7 +71,9 @@ th,td{text-align:left;padding:11px 13px;border:1px solid #dbe3e9;vertical-align:
 <p>早期 demo 测试曾经走到 AutoReport 的默认输出位置，新建了 15 条测试事件。已通过创建时间、事件身份及全部临时 Artifact 路径确认归属，原字节移入本 Block 测试证据；测试随后显式隔离三个 AutoReport 输出路径，仓库投影由原 generator 重建，最终与原 tracked 内容一致。事件字节未改写。</p>
 <p class='links'><a href='evidence/early-test-events.jsonl'>早期测试事件原字节</a> · <a href='../../../docs/generic_cache_v2.md'>接入说明</a></p>
 <h2>候选与验证范围</h2>
-<p>候选是当前源分支 refs/heads/codex/aagu-025-unified-cache-v2 的干净 HEAD，包含本报告。行为回归的精确已测检查点为 ab005b66a5a1c8e415a62f8e549629af480d6d51；后续报告提交只增加本 item 的 Record、配对报告和证据，实际差异将单独复核后复用上述通过结果。</p>
+<p>软件行为回归的精确已测检查点为 ab005b66a5a1c8e415a62f8e549629af480d6d51。报告候选及后续交付配置的实际差异、证据复用判断和精确 Git 身份见最终候选核验与 Closeout 记录。</p>
+<p>用户于 2026-09-04 接受软件候选 0501316e1774985d3339e14ea3693fd5e3c022e3，并要求补齐 SSH 安装配置。最小 install 动作仅把已落地主线同步到唯一 SSH 活跃检出并核验完整文件身份；不安装环境、不启动实验、不处理真实 payload。此配置不改变以上缓存行为结论。</p>
+<p class='links'><a href='../../runtime/aagu025-delivery-verify.json'>交付配置与差异核验</a></p>
 <p>Apply target 为 refs/heads/main，基线 7a2c11fb06cff01363d7773c446370e1588ade4a。用户接受前不合并、不推送、不安装、不清理 Claim。</p>
 <p class='links'><a href='WORKITEM.md'>权威 WorkItem</a> · <a href='../../runtime/aagu025-final-verify.json'>最终 HEAD 与差异核验</a> · <a href='evidence/regression.txt'>pytest 输出</a> · <a href='evidence/generic-dry-run.txt'>dry-run 输出</a></p>
 <p>回归：293 passed，1 warning；退出码 0。覆盖通用消费者、CLI、AutoReport、缓存完整性与依赖、target-direct 和运行器。dry-run：180 would_run，退出码 0。新增/修改 Python 源码 AST 解析及 git diff --check 通过。</p>

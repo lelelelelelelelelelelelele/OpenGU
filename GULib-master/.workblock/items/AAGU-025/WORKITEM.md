@@ -89,6 +89,13 @@ Stable locator: `.workblock/items/AAGU-025/WORKITEM.md`
 - 报告后续提交仅完成本 item 的 Record、报告和证据；按最终实际 diff 复核其不会改变已验证的产品行为后，复用上述检查点结果，并单独验证报告生成、链接和显示。
 - Run 在同一 Claim 的 `awaiting_acceptance` 停留。未执行接受、Apply、Remote、Install、清理或 AAGU-023 物理归档。
 
+## Authorized delivery setup
+
+- 2026-09-04: 用户明确接受软件候选 `0501316e1774985d3339e14ea3693fd5e3c022e3`，并要求 SSH 同步安装、尝试补齐 `install.json`。此授权追加 `.workblock/actions/install.json` 与 `.workblock/policy.json` 的最小安装配置，保留本 Block、父线和原软件验收合同。
+- 安装目标：`autodl-opengu:/autodl-fs/data/OpenGU` 的唯一活跃 main 检出；本次仅同步已落地源码并核验完整文件身份，不进行环境 bootstrap、实验执行或 payload 处理。
+- 配置验证：project-installer envelope 校验、真实 SSH 路径/分支/干净状态检查；安装后核对三方 SHA、全部 tracked 内容、缓存保护清单及变更 Python AST。
+- 原回归证据继续绑定 `ab005b66a5a1c8e415a62f8e549629af480d6d51`；部署配置不改变已验证的软件行为。用户的接受决定由 Closeout 统一写回当前投影。
+
 ## Status history
 
 - 2026-09-03: 用户确认 AAGU-025 完整形成预览并回复“可以注册”；注册为 formal、sequential 的独立代码 FIX，状态保持 `registered / not claimed`。

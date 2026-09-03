@@ -56,7 +56,7 @@ links([("完整验证记录", "evidence/verification.json"), ("场景与 Artifac
 heading(3, "当前决定")
 md.append("> 当前验收决定：`" + decision + "`\n")
 body.append('<p class="decision"><span data-workblock-decision="' + decision_attr + '">' + decision + '</span></p>')
-paragraph("Agent 建议接受此次软件接入：已观察到默认缓存、精确复用、身份拒绝和数据保护。决定者为用户，决定对象是包含本报告的源分支干净 HEAD。当前停在 awaiting_acceptance；尚未接受或执行 Apply。")
+paragraph("Agent 建议接受此次软件接入：已观察到默认缓存、精确复用、身份拒绝和数据保护。决定者为用户，当前决定以本区投影为准；软件验证与后续同步安装的事实分别见验证证据和 Closeout 记录。")
 body.append("</section>")
 
 heading(2, "行为与集成判断")
@@ -104,7 +104,9 @@ paragraph("早期 demo 测试曾经走到 AutoReport 的默认输出位置，新
 links([("早期测试事件原字节", "evidence/early-test-events.jsonl"), ("接入说明", "../../../docs/generic_cache_v2.md")])
 
 heading(2, "候选与验证范围")
-paragraph("候选是当前源分支 refs/heads/codex/aagu-025-unified-cache-v2 的干净 HEAD，包含本报告。行为回归的精确已测检查点为 " + verification["checkpoint"] + "；后续报告提交只增加本 item 的 Record、配对报告和证据，实际差异将单独复核后复用上述通过结果。")
+paragraph("软件行为回归的精确已测检查点为 " + verification["checkpoint"] + "。报告候选及后续交付配置的实际差异、证据复用判断和精确 Git 身份见最终候选核验与 Closeout 记录。")
+paragraph("用户于 2026-09-04 接受软件候选 0501316e1774985d3339e14ea3693fd5e3c022e3，并要求补齐 SSH 安装配置。最小 install 动作仅把已落地主线同步到唯一 SSH 活跃检出并核验完整文件身份；不安装环境、不启动实验、不处理真实 payload。此配置不改变以上缓存行为结论。")
+links([("交付配置与差异核验", "../../runtime/aagu025-delivery-verify.json")])
 paragraph("Apply target 为 refs/heads/main，基线 7a2c11fb06cff01363d7773c446370e1588ade4a。用户接受前不合并、不推送、不安装、不清理 Claim。")
 links([("权威 WorkItem", "WORKITEM.md"), ("最终 HEAD 与差异核验", "../../runtime/aagu025-final-verify.json"), ("pytest 输出", "evidence/regression.txt"), ("dry-run 输出", "evidence/generic-dry-run.txt")])
 paragraph("回归：293 passed，1 warning；退出码 0。覆盖通用消费者、CLI、AutoReport、缓存完整性与依赖、target-direct 和运行器。dry-run：180 would_run，退出码 0。新增/修改 Python 源码 AST 解析及 git diff --check 通过。")
