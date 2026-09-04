@@ -124,3 +124,6 @@ YAML 是本 Block 的第一项可审阅产物，不是最终实验结论。正�
 - 当前前置差距：canonical `.syncmate/device.yaml` 缺失；本轮配置尚在 linked source；没有注册到本轮 YAML 的正式 launcher；真实数据身份、checkpoint、单 cell canary、时间与成本证据均未观察。旧 target-direct recipe 和历史结果不能替代。
 - 执行顺序的用户决定边界：`experiments/AGENTS.md` §7 要求正式实验先使用三端同一已落地 main，而本 Record 的最终 formal 接受依赖实验结果。需要用户明确同一 015 的配置/入口先行落地边界；不得自行把配置检查点升级为整个 EXP 已接受，或以 candidate 分支绕过正式版本要求。
 - 下一步：审阅本配置检查点并明确上述先行落地顺序；随后在同一 015 补齐真实 launcher、完整重训练/评价与输入绑定，经 canary/成本门槛后再由用户决定矩阵调度范围。
+- 配置检查点 `59baa2ae909e7fba92278d9201c635b80be65cdc` 在干净源码上通过 8 项定义回归、324 张计划的实际 parser 展开、2 个真实 CLI dry-run 和 dashboard 检查。源 worktree 所列保护目录中 7 个现存文件的 SHA-256 前后相同，其余缺失目录仍缺失。此为配置证据，不是完整 EXP Verify。
+- 本阶段人类审阅入口：[REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)。完整有效值与 YAML 指纹见 [definition-summary.json](evidence/definition-summary.json)，逐 cell 依赖见 [S 表](evidence/stage-s-cells.csv) / [U 表](evidence/stage-u-cells.csv)。研究指标、计时、真实 canary 和矩阵结果均未观察。
+- 报告在 1440×1100 桌面、600×1800 窄屏与 1440×3300 完整页面渲染后人工检查可读；430px 首次截图右侧截断，原因未单独验证，未计为通过。后续报告/Record 说明差异不影响配置消费者，复用上述配置检查点的测试并重新验证报告结构、链接、生成一致性及最终差异。
