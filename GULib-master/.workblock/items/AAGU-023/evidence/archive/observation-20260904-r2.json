@@ -1,0 +1,66 @@
+{
+  "totals": {
+    "files": 1115,
+    "bytes": 26040188,
+    "old_v2_artifacts": 16,
+    "deletions": 0,
+    "receipt_files": 25
+  },
+  "local": {
+    "device": "local",
+    "observed_at": "2026-09-04T10:23:30.465460+00:00",
+    "repo": "E:\\project\\OpenGU\\GULib-master",
+    "head": "2f9dd79d19a81b91c1b3ec7aeaba0b03245f8996",
+    "status": "PASS",
+    "files_checked_including_retained_freeze": 75,
+    "bytes_checked": 1761075,
+    "old_paths_absent": [
+      "results/cache",
+      "results/selection_cache",
+      "results/score_cache",
+      "results/cache_v2/c_target_v1",
+      "results/cache_v2/bc_target_v2",
+      "results/cache_v2/index.sqlite",
+      "results/cache_v2/artifacts",
+      "results/cache_v2/producer_counter.json",
+      "results/cache_v2/trace.jsonl"
+    ],
+    "ledger_hashes": {
+      "results/_archive_aagu023_20260904/manifest.json": "a3a8555c23eaeb6ec2592d88668425d7b6116e2463072375549c4c0b0f5315f1",
+      "results/_archive_aagu023_20260904/ledger-final.json": "cb8b23678d0f0e33feaa2ce64b27c944674dd484bc2de770a58eadf9be5418c2",
+      "results/_archive_aagu023_20260904/v2_retired/manifest.json": "7c03360d64d14531881b80ed800da24666fe0257908818ca47ced861a9f84a22",
+      "results/_archive_aagu023_20260904/v2_retired/ledger-final.json": "c99fef13f5eccb0886aee69d147d11d12dd37f6076e5ba42e0a8ce589da4b103"
+    },
+    "problems": []
+  },
+  "ssh": {
+    "device": "ssh",
+    "observed_at": "2026-09-04T10:23:39.329565+00:00",
+    "repo": "/autodl-fs/data/OpenGU/GULib-master",
+    "head": "b2c741a6e584c32e5f30bed8b64a08e08c33aa93",
+    "status": "PASS",
+    "files_checked_including_retained_freeze": 1041,
+    "bytes_checked": 24280105,
+    "old_paths_absent": [
+      "results/cache",
+      "results/selection_cache",
+      "results/score_cache",
+      "results/cache_v2/c_target_v1",
+      "results/cache_v2/bc_target_v2",
+      "results/cache_v2/index.sqlite",
+      "results/cache_v2/artifacts",
+      "results/cache_v2/producer_counter.json",
+      "results/cache_v2/trace.jsonl",
+      "results/runs/__syncmate_small_selection_gu_full_v4__"
+    ],
+    "ledger_hashes": {
+      "results/_archive_aagu023_20260904/manifest.json": "a3a8555c23eaeb6ec2592d88668425d7b6116e2463072375549c4c0b0f5315f1",
+      "results/_archive_aagu023_20260904/ledger-final.json": "cb8b23678d0f0e33feaa2ce64b27c944674dd484bc2de770a58eadf9be5418c2",
+      "results/_archive_aagu023_20260904/v2_retired/manifest.json": "7c03360d64d14531881b80ed800da24666fe0257908818ca47ced861a9f84a22",
+      "results/_archive_aagu023_20260904/v2_retired/ledger-final.json": "c99fef13f5eccb0886aee69d147d11d12dd37f6076e5ba42e0a8ce589da4b103",
+      "results/_archive_aagu023_20260903/paired-ledger-final.json": "8039295f509cedbab7e13de7364250670b44f2fcac52eca877efdee2dbb1ecc9"
+    },
+    "problems": []
+  },
+  "status": "PASS"
+}
