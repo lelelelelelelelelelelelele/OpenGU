@@ -6,13 +6,13 @@
 
 Current node: AAGU-001
 
-Next step: AAGU-006 已接受并关闭；先在独立执行任务中 Claim AAGU-001，形成公共实验合同与注册规范，并用一个已有明确实验验证其可用性。AAGU-001 接受后，再升级并 Promote/Claim AAGU-015，形成当前一轮的 IF 科学定义与 selector 决策。
+Next step: AAGU-006 已接受并关闭；先在独立执行任务中 Claim AAGU-001，形成三块参数表、真实参数来源清单与公共注册规范，并用一个已有明确实验验证其可用性。AAGU-001 接受后，AAGU-026 承接模块化配置与缓存身份隔离实现；AAGU-015 仍独立消费公共规范，形成当前一轮的 IF 科学定义与 selector 决策。
 
 ---
 
 ## 0. 一句话现状
 
-AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、不同合法合同保留多样性，删除预算由实验注册独立拥有。当前先推进 AAGU-001 公共实验合同与注册规范，再由 AAGU-015 等任务逐轮形成科学定义；已有参数和矩阵引用原计划，结果分析与下一轮设计由对应实验承接。
+AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector、Unlearning 三块独立参数表和实验组合合同，真实参数清单引用原配置并解释变更影响。AAGU-026 在该合同接受后实现配置与缓存身份隔离；AAGU-015 等任务逐轮形成科学定义，结果分析与下一轮设计由对应实验承接。
 
 ## 1. WorkItem 状态投影
 
@@ -37,6 +37,7 @@ AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、�
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
+| [AAGU-026](../../.workblock/items/AAGU-026/WORKITEM.md) | FIX | blocked by AAGU-001 | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
 | [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | in progress | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
@@ -62,7 +63,8 @@ AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、�
 - **Current**：`AAGU-001` 是下一项可领取的公共合同与注册规范 Block；本次只修订登记与编排，未 Claim 或实施。
 - **Attention ordering**：任何 awaiting-acceptance 或 blocked 节点都由生成投影置顶；本段不手工复制具体生命周期状态。
 - **Acceptance boundary**：候选验证通过不等于接受；只有明确接受后才由 `block-closeout` 投影决定并 Apply，不在当前阶段重复实施。
-- **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
+- **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；核心包括真实参数归属、当前值/来源、变体配置与缓存变更影响，不以纯模板或链接代替。接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
+- **Implementation boundary**：`AAGU-026` 消费 `AAGU-001` 接受后的合同，实现独立配置与方法级缓存身份；本次只登记，不 Claim，不将实现完成作为 001 的前置。
 - **IF boundary**：`AAGU-015` 在 `AAGU-001` 接受后消费公共规范，仍保留科学定义 Todo；具体选择、后续执行与真实结果分析由相应任务逐轮承接。
 
 ## 4. 依赖图
@@ -78,6 +80,7 @@ flowchart LR
     R3[AAGU-018 FIX D-GIF source labels]
     R4[AAGU-019 FIX retire legacy budgets]
     R5[AAGU-023 FIX legacy evidence inventory]
+    R6[AAGU-026 FIX modular config and cache identity]
     R1 --> R2
     R3 --> R4
   end
@@ -103,6 +106,7 @@ flowchart LR
   end
 
   G1 --> X0
+  G0 --> R6
   G1 --> R1
   R2 --> G2
   R5 --> G2
@@ -118,6 +122,7 @@ flowchart LR
 | AAGU-018 | FIX | D-GIF affected-source 标签越界修复 | P0 | — | [AAGU-018 Block contract](../../.workblock/items/AAGU-018/WORKITEM.md) |
 | AAGU-019 | FIX | 硬退役旧小预算实验 setup | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | AAGU-025 | FIX | 通用缓存原位接入 Cache V2 | 未定 | — | [AAGU-025 Block contract](../../.workblock/items/AAGU-025/WORKITEM.md) |
+| AAGU-026 | FIX | 模块化实验配置与缓存身份隔离 | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
 | AAGU-009 | FIX | L8 collateral evidence 修复 | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-023 | FIX | Legacy 实验证据盘点与归档边界 | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
