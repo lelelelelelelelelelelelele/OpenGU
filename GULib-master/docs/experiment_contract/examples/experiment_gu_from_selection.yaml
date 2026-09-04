@@ -7,7 +7,6 @@ decision_owner: research_owner
 stage: unlearning
 dataset_ref: dataset_cora.yaml
 selection_input: {artifact_id: null, recipe_hash: null, content_hash: null}
-target_checkpoint: {artifact_ref: null, state_hash: null}
 unlearning_refs: [unlearning_gnndelete.yaml, unlearning_gnndelete_lr002.yaml]
 matrix: cartesian_product
-evaluation_refs: [evaluation_post_unlearning_utility_and_retrain_gap.yaml]
+evaluation_refs: [evaluation_post_unlearning_utility.yaml]

@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting_acceptance`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -76,7 +76,9 @@ Execution topology: `parallel`
 
 - 2026-09-05 用户返工：实验 YAML 只保留科研配置与组合；方法小表只显式写实际选择/覆盖值，默认值留在方法所有者并进入运行证据。Device、Store、Runtime、Output 与执行授权移交项目运行策略/SyncMate，不得污染或分裂缓存。Evaluation 作为独立引用设计，未定义的 case 失败关闭。模型配置位置不作为关键约束。
 - 2026-09-05 返工候选检查点 `35eeced6b348caadb64506f000105c9507df2a55`：新增外部 `ExecutionContext`，科研 YAML 中出现运行字段会直接拒绝；真实 target-direct formal 表改为引用 17 个 Selector、1 个 GNNDelete 和 1 个 retrain-gap Evaluation 小表，SyncMate stage 消费并冻结这些引用。五 Selector × 两 GU × 一 Evaluation 的示例计划可完整 dry-run。
-- Evaluation 能力按消费者登记：`post_unlearning_utility` 已由 modular CPU 消费者执行；`post_unlearning_utility_and_retrain_gap` 仅在已有三模型输入的 target-direct SyncMate lane 可用；`rank_agreement_and_topk_overlap` 尚无消费者并失败关闭。历史 GIF/IDEA hop-flip 指标问题不在本 Block 宣称修复，本轮也未重新执行 SSH/GPU Evaluation。
+- Evaluation 能力按消费者登记：`post_unlearning_utility` 已由 modular CPU 消费者执行；`post_unlearning_utility_and_retrain_gap` 仅在已有三模型输入的 target-direct SyncMate lane 可用。历史 GIF/IDEA hop-flip 指标问题不在本 Block 宣称修复，本轮也未重新执行 SSH/GPU Evaluation。
+- 2026-09-05 用户确认职责口径：026 的结构遵循 AAGU-001，能力边界服务 AAGU-015；026 交付可执行配置、方法级缓存与 Selection→GU 消费链，015 拥有三数据集、17 Selector、两 GU、排名比较、配对重训练和正式实验结果。删除未被协议采用且没有消费者的 `rank_agreement_and_topk_overlap` 占位配置，避免把设计名称误写成已实现能力；已有排名比较原语仍由 015 的实际分析入口按其合同消费。
+- 2026-09-05 用户进一步确认原子语义：026 必须支持每一个独立的 `1 Dataset/Split × 1 Selector × 1 Unlearning × 1 Evaluation`，同时允许只执行 Selector，或让 GU 直接消费已有 Selection。多引用计划只是批量调度独立 cell，不要求各方法形成不可拆的乘积或共同缓存身份。新增真实 `1×1×1` 示例，并以既有 CPU 消费者覆盖这三条路径。
 - 2026-09-05 Verify：122 项 CPU／集成检查和 182 项 SyncMate 检查通过；主项目 3,990 个历史结果文件及全部列入保护的缓存根前后逐文件哈希一致。观察记录绑定上述代码检查点；报告、WorkItem 和证据投影完成后，最终 runtime Verify 再绑定 source branch 的 clean HEAD。
 
 - 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。

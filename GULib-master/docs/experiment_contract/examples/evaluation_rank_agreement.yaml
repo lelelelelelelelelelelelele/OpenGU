@@ -1,5 +1,0 @@
-kind: evaluation
-schema_version: 1
-case: rank_agreement_and_topk_overlap
-acceptance:
-  note: 当前只有设计，消费者尚未实现

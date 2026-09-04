@@ -386,6 +386,19 @@ def test_minimal_method_files_expand_real_defaults(tables):
     assert resolved_gu['parameters']['unlearn_lr'] == gu_defaults('GNNDelete')['unlearn_lr']
 
 
+def test_documented_atomic_and_multi_reference_plans_are_same_cell_contract():
+    examples = Path(__file__).resolve().parents[1] / 'docs/experiment_contract/examples'
+    atomic = execute(examples / 'experiment_one_selector_one_gu.yaml', dry_run=True)
+    assert len(atomic['effective_selectors']) == 1
+    assert len(atomic['effective_unlearning']) == 1
+    assert len(atomic['effective_evaluations']) == 1
+    multi = execute(examples / 'experiment_five_selectors_two_gu.yaml', dry_run=True)
+    assert len(multi['effective_selectors']) == 5
+    assert len(multi['effective_unlearning']) == 2
+    assert len(multi['effective_evaluations']) == 1
+    assert multi['schema'] == atomic['schema'] == 'opengu.modular_run'
+
+
 def test_evaluation_is_independent_and_unimplemented_case_fails_closed(tables):
     root = tables[0]
     first = run(tables, 'eval-full', stage='unlearning', selector_refs=['degree.yaml'],

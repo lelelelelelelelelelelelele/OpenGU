@@ -8,4 +8,3 @@ stage: selector
 dataset_ref: dataset_cora.yaml
 selector_refs: [selector_b_hutch32.yaml, selector_b_hutch64.yaml]
 matrix: cartesian_product
-evaluation_refs: [evaluation_rank_agreement.yaml]

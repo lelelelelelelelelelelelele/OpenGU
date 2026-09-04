@@ -25,12 +25,6 @@ CASES = {
         'consumers': ('target_direct_syncmate_v2',),
         'producer_version': 'retrain-gap-v1',
     },
-    'rank_agreement_and_topk_overlap': {
-        'metrics': ('rank_agreement', 'topk_overlap'),
-        'required_inputs': ('paired_rankings',),
-        'consumers': (),
-        'producer_version': None,
-    },
 }
 
 

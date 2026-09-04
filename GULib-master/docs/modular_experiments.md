@@ -4,33 +4,33 @@
 科研 YAML 说明要运行什么；SyncMate／项目策略决定在哪运行、使用哪个设备、读写哪一个
 Cache V2 Store，以及 runtime 和结果的固定位置。
 
-## 真实计划表
+## 原子运行单元
 
-一个计划直接列出所需小表。五个 Selector 和两个 GU 就写五个
-`selector_refs` 和两个 `unlearning_refs`；引用的是可审阅 YAML，不增加名字到隐藏配置的
-第二套映射。
+入口的基本能力是一行独立的 `1 Dataset/Split × 1 Selector × 1 GU × 1 Evaluation`。
+Selector 可以单独运行；GU 也可以直接消费已有 Selection，不必再次调用 Selector。
+下面是一份可解析的 `1×1×1` 计划：
 
 ```yaml
 kind: experiment
 schema_version: 1
-experiment_id: five-selectors-two-gu
+experiment_id: one-selector-one-gu
 stage: unlearning
 dataset_ref: dataset_cora.yaml
 selector_refs:
   - selector_degree.yaml
-  - selector_b_hutch32.yaml
-  - selector_b_hutch64.yaml
-  - selector_tracin.yaml
-  - selector_r_point.yaml
 unlearning_refs:
   - unlearning_gnndelete.yaml
-  - unlearning_gif.yaml
 evaluation_refs:
   - evaluation_post_unlearning_utility.yaml
 matrix: cartesian_product
 ```
 
-这张表展开为 `5 Selector × 2 GU × 1 Evaluation`。它不含
+如果一轮实验需要五个 Selector 和两个 GU，大表可以分别列出五个 `selector_refs` 和两个
+`unlearning_refs`；调度器只是把它展开成若干个相互独立的 `1×1×1` cell，每个 cell 都走
+同一条接口，不产生整包缓存身份。完整多引用例子见
+[`experiment_five_selectors_two_gu.yaml`](experiment_contract/examples/experiment_five_selectors_two_gu.yaml)。
+
+科研表不含
 `device/store_root/runtime_root/output/execution_authorized`。这些字段若出现在实验 YAML 中会
 被拒绝，而不是被忽略。
 
@@ -83,7 +83,6 @@ metrics: [f1_before, f1_after, f1_drop, f1_drop_pct]
 |---|---:|---:|---|
 | `post_unlearning_utility` | 可执行 | 可执行 | 消费 GU Result，不改变 Selection/GU 身份 |
 | `post_unlearning_utility_and_retrain_gap` | 拒绝 | 可执行 | 需要相同 Selection 的 exact retrain；普通 modular GU 尚未产出该输入 |
-| `rank_agreement_and_topk_overlap` | 拒绝 | 拒绝 | 只有设计名，配对排名消费者尚未实现 |
 
 `post_unlearning_utility_and_retrain_gap` 的三模型公式和 target-direct 的
 `eval_collateral.py` 已存在，旧的 retrain 随机种子问题也已修复；这不等于每条入口都已经
