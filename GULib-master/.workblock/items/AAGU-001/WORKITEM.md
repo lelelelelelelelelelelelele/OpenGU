@@ -12,7 +12,7 @@ Stable locator: `.workblock/items/AAGU-001/WORKITEM.md`
 
 Acceptance Route: `formal`
 
-Execution topology: `sequential`
+Execution topology: `parallel`
 
 > Apply target ref：`refs/heads/main`
 
@@ -60,6 +60,8 @@ Execution topology: `sequential`
 
 - 每个配置实例一个文件；同一方法可有多份配置表，例如同一 IF 方法不同求导范围、同一 TracIn 方法不同 checkpoint 集合、同一 GU 方法不同学习率。它们复用同一受支持的方法实现；文件名只是定位/展示，不另设变体注册层、隐式继承或大表覆盖。新增尚未支持的算法不属于“仅改配置”的承诺。
 - 所有有效计算字段必须有明确类型、默认值/必填规则、允许值与归属；展开默认值后按规范化语义计算身份，拒绝未知或无效字段，避免悄悄忽略参数。语义变化产生新请求键，排版、注释、等价值写法、文件路径或展示名称变化不能单独导致 MISS。
+- 人工填写的小表只需方法名、必要输入和本次覆盖值；可以省略方法或 OpenGU 已声明的默认值。解析时形成完整有效配置并记录默认值来源/相关实现身份；省略默认值与显式填写同值必须等价。固定算法定义可留在方法实现中，不强迫所有内部常数成为调参开关。
+- 方法名分发到已注册实现及其字段规则；IF 是分类而非唯一可执行实现。不同方法可以共享代码/中间计算，但只消费各自参数，分别形成身份；只写名称足以选择默认实例，不意味着缓存只按名称判断。模型、K、数据等真实输入仍须解析并绑定。
 - 小模块键只包含它实际消费的输入身份、有效参数和相关 producer 版本/实现指纹，不包含整张实验大表或无关下游代码。实验/case 编号可以出现在运行追踪记录中，不参与计算键。共享依赖真正变化时影响所有真实消费者；“正交”不是取消依赖传播。
 - 删除预算是 Selector 的输入。最终 Selection 记录明确的节点编号、候选身份、实际 K 与选择规则；GU 消费这个结果，不独立重解释预算。Score 与最终 Selection 是不同缓存层：只有明确预算无关且前缀稳定的评分才能跨 K 复用；预算相关评分必须纳入预算。
 - Selector 和 GU 各自声明模型与训练配置，可以是 Selector=SGC、GU=GCN；同为两层 GCN 也不自动意味着相同权重。仅当实际数据/划分、模型/训练配置及 checkpoint 身份匹配时复用相同 checkpoint，不用“共享”标记掩盖不匹配。
@@ -99,6 +101,8 @@ Execution topology: `sequential`
 Use `block-workflow` to claim this exact WorkItem only in a later execution task. First reread this Record, the current OpenGU experiment instructions, and the SyncMate boundary documents; then produce the concrete three-table parameter contract with current values, source traceability, variants and dependency-aware HIT/MISS examples. Validate the registration specification with one already-defined experiment and its existing dry-run, then stop at the formal human decision gate. Do not expand into AAGU-026 runtime/cache implementation, freezing every experiment or making AAGU-015's scientific choices.
 
 ## Status history
+
+- 2026-09-04: 用户指定 001 改为 parallel worktree 并继续执行；保留同一已有候选分支与 Claim，不重新 Claim、不视为验收。确认人工表可省略方法/OpenGU 默认值、按 method 分发且按有效配置判定缓存。main 保存登记合同，执行与候选投影在原分支的 linked source 继续。
 
 - 2026-09-04: 按用户确认收窄同一 WorkItem 的标题、范围和验收条件，调整为 AAGU-015 的前置；本次仅修订登记合同，状态保持 `registered / not claimed`，未 Claim 或实施公共规范。
 - 2026-09-04: 按用户确认补入三块独立参数表、实验组合大表、预算归 Selector、两侧模型独立、按方法缓存身份和变体只用不同配置表的共识；真实参数来源清单成为核心验收，实现修复单独登记 AAGU-026。状态仍为 `registered / not claimed`，没有实施、候选或验收决定。
