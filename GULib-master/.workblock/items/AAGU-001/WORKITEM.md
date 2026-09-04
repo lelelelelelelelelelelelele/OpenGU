@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 
 Item Type: Block
 
@@ -16,6 +16,12 @@ Execution topology: `sequential`
 
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`8383e30239398c5268965e088afdfba7abc74ca9`
+
+> Source branch：`refs/heads/codex/aagu-001-experiment-contract`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -90,15 +96,24 @@ Execution topology: `sequential`
 
 ## Runtime and authorization boundaries
 
-- Registration only; no claim, implementation, experiment dispatch, GPU run, push, install, or external write.
+- 2026-09-04 用户“同意 做吧”授权执行本前置合同 Block；原登记阶段的 registration-only 边界保留在历史中。本轮只做合同、参数来源、示例和本地验证，不派发实验、不运行正式 GPU、不 push/install/Apply 或写远端。
 - Future execution must use the OpenGU active checkout and experiment-specific AGENTS; local dry-run is not formal GPU acceptance.
-- Current runtime candidate, branch, evidence identity, and report identity are not yet formed.
+- 当前执行分支与 baseline 已由 Run 记录；候选、Verify 与 Report 在下方 Execution record 中追加，不把本地检查当作正式实验结果。
+
+## Execution record
+
+- 当前 owner：本任务 `01a06c2f-8e35-7bf2-8023-ab3be063830b`，session `AAGU-001 · 三层实验参数合同`；2026-09-04 Claim 同一 WorkItem，仅拥有 001 的独立验收范围。
+- 产物：[公共合同](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)、[8 份独立实例](../../../docs/experiment_contract/examples/)、[有界验证脚本](evidence/verify_contract.py)。示例不是当前 launcher 的新输入接口。
+- 工作观察：追到 GCN properties 的实际 lr=0.005、decay=1e-6；区分基础训练 100 轮与节点遗忘 50 轮；列出 17 种评分实际消费依赖。formal 配置解析与 sanity dry-run 分开，未运行 Selection/GU producer。
+- 源码与正式 YAML 未修改；026 未 Claim。候选和验收报告尚待形成。
 
 ## Restart and next action
 
-Use `block-workflow` to claim this exact WorkItem only in a later execution task. First reread this Record, the current OpenGU experiment instructions, and the SyncMate boundary documents; then produce the concrete three-table parameter contract with current values, source traceability, variants and dependency-aware HIT/MISS examples. Validate the registration specification with one already-defined experiment and its existing dry-run, then stop at the formal human decision gate. Do not expand into AAGU-026 runtime/cache implementation, freezing every experiment or making AAGU-015's scientific choices.
+本轮继续在同一 source branch 和 Claim 中形成合同候选、验证并报告，停在 formal 人工验收；不得转为 AAGU-026 的运行时/缓存实现。后继任务先重新读取最新 Record 与 canonical Claim，通过 `block-workflow` Resume 本编号，不重新 Claim 或注册。
 
 ## Status history
+
+- 2026-09-04: 用户“同意 做吧”后执行前置 001；从登记提交启动 sequential source branch，Claim 进入 ongoing，WorkItem 为 `working / claimed`。未将该同意解释为尚未形成的候选验收。
 
 - 2026-09-04: 按用户确认收窄同一 WorkItem 的标题、范围和验收条件，调整为 AAGU-015 的前置；本次仅修订登记合同，状态保持 `registered / not claimed`，未 Claim 或实施公共规范。
 - 2026-09-04: 按用户确认补入三块独立参数表、实验组合大表、预算归 Selector、两侧模型独立、按方法缓存身份和变体只用不同配置表的共识；真实参数来源清单成为核心验收，实现修复单独登记 AAGU-026。状态仍为 `registered / not claimed`，没有实施、候选或验收决定。
