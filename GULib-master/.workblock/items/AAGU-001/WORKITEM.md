@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `working / claimed`
 
 Item Type: Block
 
@@ -12,7 +12,7 @@ Stable locator: `.workblock/items/AAGU-001/WORKITEM.md`
 
 Acceptance Route: `formal`
 
-Execution topology: `sequential`
+Execution topology: `parallel`
 
 > Apply target ref：`refs/heads/main`
 
@@ -66,6 +66,8 @@ Execution topology: `sequential`
 
 - 每个配置实例一个文件；同一方法可有多份配置表，例如同一 IF 方法不同求导范围、同一 TracIn 方法不同 checkpoint 集合、同一 GU 方法不同学习率。它们复用同一受支持的方法实现；文件名只是定位/展示，不另设变体注册层、隐式继承或大表覆盖。新增尚未支持的算法不属于“仅改配置”的承诺。
 - 所有有效计算字段必须有明确类型、默认值/必填规则、允许值与归属；展开默认值后按规范化语义计算身份，拒绝未知或无效字段，避免悄悄忽略参数。语义变化产生新请求键，排版、注释、等价值写法、文件路径或展示名称变化不能单独导致 MISS。
+- 人工填写的小表只需方法名、必要输入和本次覆盖值；可以省略方法或 OpenGU 已声明的默认值。解析时形成完整有效配置并记录默认值来源/相关实现身份；省略默认值与显式填写同值必须等价。固定算法定义可留在方法实现中，不强迫所有内部常数成为调参开关。
+- 方法名分发到已注册实现及其字段规则；IF 是分类而非唯一可执行实现。不同方法可以共享代码/中间计算，但只消费各自参数，分别形成身份；只写名称足以选择默认实例，不意味着缓存只按名称判断。模型、K、数据等真实输入仍须解析并绑定。
 - 小模块键只包含它实际消费的输入身份、有效参数和相关 producer 版本/实现指纹，不包含整张实验大表或无关下游代码。实验/case 编号可以出现在运行追踪记录中，不参与计算键。共享依赖真正变化时影响所有真实消费者；“正交”不是取消依赖传播。
 - 删除预算是 Selector 的输入。最终 Selection 记录明确的节点编号、候选身份、实际 K 与选择规则；GU 消费这个结果，不独立重解释预算。Score 与最终 Selection 是不同缓存层：只有明确预算无关且前缀稳定的评分才能跨 K 复用；预算相关评分必须纳入预算。
 - Selector 和 GU 各自声明模型与训练配置，可以是 Selector=SGC、GU=GCN；同为两层 GCN 也不自动意味着相同权重。仅当实际数据/划分、模型/训练配置及 checkpoint 身份匹配时复用相同 checkpoint，不用“共享”标记掩盖不匹配。
@@ -114,6 +116,9 @@ Execution topology: `sequential`
 本轮停在 formal 人工验收。用户接受后以同一 locator 进入 block-closeout；要求返工则在同一 source branch 与 Claim 中 Resume。不得自动转为 AAGU-026 的运行时/缓存实现；026 须等本合同接受并落实其前置后再执行。
 
 ## Status history
+
+- 2026-09-04: 用户指定 001 改为 parallel worktree 并继续执行；保留同一已有候选分支与 Claim，不重新 Claim、不视为验收。确认人工表可省略方法/OpenGU 默认值、按 method 分发且按有效配置判定缓存。main 保存登记合同，执行与候选投影在原分支的 linked source 继续。
+- 2026-09-04: 同一分支从 8b7dfb8bfd7f577bf309178ce296fd1a516ca0aa 挂入 E:/project/OpenGU-worktrees/aagu-001-contract；canonical main 登记补充已提交 cdbc977。原 Claim CAS revision 2→3 / ongoing，保留原 baseline。标准 start 无已有候选迁移入口，因此仅本次拓扑搬运使用受限 worktree add；不改 Skill、不新建 Claim，后续恢复标准 Run。旧报告/回执仍属于旧候选，返工后更新。
 
 - 2026-09-04: 内容候选完成真实配置与现有入口验证，形成配对验收报告并观察桌面/窄屏渲染；投影为 `awaiting acceptance`，等待用户对 001 的决定。不将 Verify PASS 写成人类接受。
 

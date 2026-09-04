@@ -29,6 +29,7 @@ Execution topology: `sequential`
 - 固定 selector 的真实输入，仅更换实验 ID/case ID、GU 学习率、GU 方法或无关的 GU 实现时，Selection 身份与选点 HIT 保持不变；GU 结果身份按自身有效配置正确变化。改变 selector 实际依赖的数据、模型、方法参数或实现时，正确 MISS 或拒绝不匹配输入。
 - 改变 B-Hutch 等单个方法的专属参数，只改变该方法及其真实下游的身份，无关 degree、TracIn 等方法仍可命中；共同中间依赖变化只传播给真实消费者。
 - 删除预算属于 Selector 输入，最终 Selection 绑定实际 K 与选择规则；仅在明确预算无关、前缀稳定的评分合同下复用 Score。规范化等价配置不因 YAML 排版、文件名、路径或实验归属改变而误 MISS。
+- 人工小表允许省略方法/OpenGU 已声明的默认值；按 method 选择实现与字段规则，展开后的有效配置和真实依赖用于身份。省略默认值与显式填写同值必须 HIT 等价；改变实际被消费的默认值或相关实现则正确失效。共享实现不导致不同方法的参数或缓存身份混在一起。
 - 用户能够通过真实 CPU 消费者的 cold/warm、跨实验复用、负向身份测试和配对报告判断上述结果；测试或 dry-run 不冒充正式 GPU 实验，也不自动接受本 Block。
 
 ## Confirmed acceptance contract
@@ -66,5 +67,7 @@ Execution topology: `sequential`
 先确认 AAGU-001 已接受并读取其最新合同。后续使用 `block-workflow` Claim 这个精确 locator，在主检出的独立功能分支中实施已确认范围；用隔离 CPU 输入和临时 Store 验证，不触碰历史产物。形成精确候选与配对报告后停在 `formal` 人类决定边界。
 
 ## Status history
+
+- 2026-09-04: 用户再次要求登记 commit 到 main；原登记已在 main@8383e30239398c5268965e088afdfba7abc74ca9。本次补充人工表省略默认值、方法分发和默认值等价命中的验收要求；继续 registered / not claimed，不执行实现。
 
 - 2026-09-04: 用户要求确定实验配置并创建 Block，在完整登记预览后确认方法变体仅需不同配置表；登记本独立 FIX，状态为 `registered / not claimed`。AAGU-001 保留原编号与公共合同职责，具体实现移交本 Block。
