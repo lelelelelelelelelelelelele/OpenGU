@@ -6,7 +6,7 @@
 
 Current node: AAGU-001
 
-Next step: AAGU-006 已接受并关闭；先在独立执行任务中 Claim AAGU-001，形成三块参数表、真实参数来源清单与公共注册规范，并用一个已有明确实验验证其可用性。AAGU-001 接受后，AAGU-026 承接模块化配置与缓存身份隔离实现；AAGU-015 仍独立消费公共规范，形成当前一轮的 IF 科学定义与 selector 决策。
+Next step: 请研究负责人审阅 AAGU-001 的公共合同、真实参数表和验收报告，决定接受或返工。AAGU-001 接受后，AAGU-026 承接模块化配置与缓存身份隔离实现；AAGU-015 仍独立消费公共规范，形成当前一轮的 IF 科学定义与 selector 决策。
 
 ---
 
@@ -60,7 +60,7 @@ AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector�
 
 ## 3. 当前唯一线与注意项
 
-- **Current**：`AAGU-001` 是下一项可领取的公共合同与注册规范 Block；本次只修订登记与编排，未 Claim 或实施。
+- **Current**：当前唯一线为 `AAGU-001`；先审阅其 WorkItem 链接的合同与报告，由负责人决定接受或返工，不重新领取或提前执行 026。生命周期以生成投影为准。
 - **Attention ordering**：任何 awaiting-acceptance 或 blocked 节点都由生成投影置顶；本段不手工复制具体生命周期状态。
 - **Acceptance boundary**：候选验证通过不等于接受；只有明确接受后才由 `block-closeout` 投影决定并 Apply，不在当前阶段重复实施。
 - **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；核心包括真实参数归属、当前值/来源、变体配置与缓存变更影响，不以纯模板或链接代替。接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
