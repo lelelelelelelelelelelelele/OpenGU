@@ -12,7 +12,7 @@ Execution topology: `sequential`
 > Source branch：`refs/heads/codex/aagu-023-legacy-evidence-archive`
 
 > Remote target：`origin refs/heads/main`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 
 ## Human Surface
@@ -79,6 +79,7 @@ Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 - 2026-09-03: The same Claim returned to `ongoing` revision 3 for SSH rework; no new Block or Claim was created.
 - 2026-09-04: User confirmed that physical archive does not wait for AAGU-025 acceptance, then explicitly authorized moving the audited old V2 artifacts and their indexes without permanent deletion. These instructions supersede the blanket V2 no-move boundary only for the exact 16 identities and the blanket REPLACED prerequisite for historical quarantine.
 - 2026-09-04: User requested a refreshed candidate. After the unrelated graph revision was committed, the user authorized continuing on the parked original branch. The same Claim was resumed to `ongoing` revision 4; baseline and source branch remain unchanged. No merge, push, install, new archive move, or deletion is part of this report rework.
+- `accepted`（2026-09-04T18:42:49+08:00）：用户 基于 用户在本任务明确回复 accept，接受已验证候选 d5bf7bbda7b88183148d9fbca04a5dd754895b7a 及其 formal 归档报告；HTML 视觉未观察边界已披露 接受当前已验证候选。
 
 ## Current rework envelope
 
