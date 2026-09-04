@@ -34,17 +34,16 @@ AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、�
 | [AAGU-021](../../.workblock/items/AAGU-021/WORKITEM.md) | EXP | blocked by AAGU-020 | P1 | AAGU-020 | [AAGU-021 Block contract](../../.workblock/items/AAGU-021/WORKITEM.md) |
 | [AAGU-013](../../.workblock/items/AAGU-013/WORKITEM.md) | EXP | blocked by AAGU-012 | P2 | AAGU-012 | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
+| [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 | [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | in progress | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-023](../../.workblock/items/AAGU-023/WORKITEM.md) | TODO | registered / not claimed | 未定 | — | [AAGU-023 Todo contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 | [AAGU-024](../../.workblock/items/AAGU-024/WORKITEM.md) | DOCS/PROTOCOL | accepted / closed | 未定 | — | [AAGU-024 Block contract](../../.workblock/items/AAGU-024/WORKITEM.md) |
 
-已关闭 FIX 节点已从活动投影隐藏：4 个；历史保留在对应 WorkItem 与 Git。
+已关闭 FIX 节点已从活动投影隐藏：5 个；历史保留在对应 WorkItem 与 Git。
 <!-- WORKITEM_STATUS:END -->
 
 ## 2. 事实所有权
@@ -78,6 +77,7 @@ flowchart LR
     R2[AAGU-010 FIX hop aggregate]
     R3[AAGU-018 FIX D-GIF source labels]
     R4[AAGU-019 FIX retire legacy budgets]
+    R5[AAGU-023 FIX legacy evidence inventory]
     R1 --> R2
     R3 --> R4
   end
@@ -105,6 +105,7 @@ flowchart LR
   G1 --> X0
   G1 --> R1
   R2 --> G2
+  R5 --> G2
 ```
 
 ## 5. 修复队列
@@ -119,6 +120,7 @@ flowchart LR
 | AAGU-025 | FIX | 通用缓存原位接入 Cache V2 | 未定 | — | [AAGU-025 Block contract](../../.workblock/items/AAGU-025/WORKITEM.md) |
 | AAGU-009 | FIX | L8 collateral evidence 修复 | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| AAGU-023 | FIX | Legacy 实验证据盘点与归档边界 | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 
 ## 6. 实验 timeline
 
@@ -135,7 +137,7 @@ flowchart LR
 | AAGU-012 | EXP | GraphRevoker replacement | P1 | AAGU-011 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-013 | EXP | Surrogate transfer | P2 | AAGU-012 | [代理选集迁移实验计划](../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md) |
 | AAGU-014 | EXP | arXiv scope expansion | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| AAGU-003 | GATE | Formal GPU evidence acceptance | P2 | AAGU-014, AAGU-010 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
+| AAGU-003 | GATE | Formal GPU evidence acceptance | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 
 ## 7. D-full 计时路线
 
@@ -149,11 +151,10 @@ flowchart LR
 
 ## 8. 协议与归档队列
 
-这两项已登记但尚未形成新的执行授权；WorkItem 未声明优先级或前置时，WORKPLAN 保持为“未定”，不替用户推断。
+协议任务的生命周期由其 WorkItem 投影；未声明优先级时保持为“未定”，不替用户推断。AAGU-023 依照图注册归入上方修复队列。
 
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
-| AAGU-023 | TODO | Legacy 实验证据归档与清理 | 未定 | — | [AAGU-023 Todo contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 | AAGU-024 | DOCS/PROTOCOL | 未 Claim WorkItems 升级为 2.1 Human Surface | 未定 | — | [AAGU-024 Block contract](../../.workblock/items/AAGU-024/WORKITEM.md) |
 
 ## 9. 写作

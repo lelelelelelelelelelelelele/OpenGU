@@ -1,0 +1,137 @@
+[
+  {
+    "path": "ssh-rework-20260903/archive-intent.json",
+    "bytes": 50297,
+    "sha256": "48e27a023d61bccd93c25be2fabf2cda2a4862a2f602ca2f641ffe44ec85851c"
+  },
+  {
+    "path": "ssh-rework-20260903/archive-register-receipt.json",
+    "bytes": 823,
+    "sha256": "e4c862c0b985c70ce7ce186b19fd0f9882ddf4e9f9b221620220c6894927180a"
+  },
+  {
+    "path": "ssh-rework-20260903/archive-move-receipt.json",
+    "bytes": 1750,
+    "sha256": "da6858a235288b1f4528711a1641d0b8d8586ba615ca3d0861b502ce7fe047f6"
+  },
+  {
+    "path": "ssh-rework-20260903/paired-ledger-prepared.json",
+    "bytes": 2618993,
+    "sha256": "74d1fbc31fbcecdc79a82ba96f018adfad5e77b253d903a931edf57378bc6666"
+  },
+  {
+    "path": "ssh-rework-20260903/archive-publish-receipt.json",
+    "bytes": 1953,
+    "sha256": "8857c3566bfcf9df7ea6a87fd69bb4afc337977ac33446e2297bab823e33dc1d"
+  },
+  {
+    "path": "ssh-rework-20260903/paired-ledger-final.json",
+    "bytes": 2619229,
+    "sha256": "8039295f509cedbab7e13de7364250670b44f2fcac52eca877efdee2dbb1ecc9"
+  },
+  {
+    "path": "ssh-rework-20260903/verification.json",
+    "bytes": 24607,
+    "sha256": "2b421f21ea0046d2bcf817cd6e0b4c538905b3fb3a76eef2db0a3b80cc59b22c"
+  },
+  {
+    "path": "cache-archive-20260904/manifest.json",
+    "bytes": 399342,
+    "sha256": "a3a8555c23eaeb6ec2592d88668425d7b6116e2463072375549c4c0b0f5315f1"
+  },
+  {
+    "path": "cache-archive-20260904/ledger-prepared.json",
+    "bytes": 4814,
+    "sha256": "3fab670e427acb412862ad6a20b5a728cf74c44a6021afe3b8f75f638a404e45"
+  },
+  {
+    "path": "cache-archive-20260904/ledger-final.json",
+    "bytes": 10682,
+    "sha256": "cb8b23678d0f0e33feaa2ce64b27c944674dd484bc2de770a58eadf9be5418c2"
+  },
+  {
+    "path": "cache-archive-20260904/local-register.json",
+    "bytes": 7213,
+    "sha256": "423a099ac3db5a8e2ad656fc57ee07de13ab68884564859dbdcc03f32af8b82c"
+  },
+  {
+    "path": "cache-archive-20260904/ssh-register.json",
+    "bytes": 122512,
+    "sha256": "7168c17c3d268379394d17d6b19c937dbce5694538e9c4e7500e9827b010e44d"
+  },
+  {
+    "path": "cache-archive-20260904/local-move.json",
+    "bytes": 9083,
+    "sha256": "818aa20f76bf3674df1ddddb3823683d8b7310b2df2da8a9c766d8e4d4ca3b22"
+  },
+  {
+    "path": "cache-archive-20260904/ssh-move.json",
+    "bytes": 124358,
+    "sha256": "2310a14733100daadbd6ec45c1103c11bb8f7e158e2a5777e4058a6afb911d03"
+  },
+  {
+    "path": "cache-archive-20260904/local-publish.json",
+    "bytes": 9150,
+    "sha256": "91dd388d2d5c9d37bbd4e4edb5013380069a6571d1228b436b38a6135781e21e"
+  },
+  {
+    "path": "cache-archive-20260904/ssh-publish.json",
+    "bytes": 124425,
+    "sha256": "8440828e81e619604cdccd1b68ac6a0cb71bab4cd66914e9cc9f49625ddf276a"
+  },
+  {
+    "path": "v2-archive-20260904/manifest.json",
+    "bytes": 92675,
+    "sha256": "7c03360d64d14531881b80ed800da24666fe0257908818ca47ced861a9f84a22"
+  },
+  {
+    "path": "v2-archive-20260904/ledger-prepared.json",
+    "bytes": 3571,
+    "sha256": "999c8107e97eee8800a0efc2afa4db9e4c666826becb928d469517cd773d45b2"
+  },
+  {
+    "path": "v2-archive-20260904/ledger-final.json",
+    "bytes": 8011,
+    "sha256": "c99fef13f5eccb0886aee69d147d11d12dd37f6076e5ba42e0a8ce589da4b103"
+  },
+  {
+    "path": "v2-archive-20260904/local-register.json",
+    "bytes": 7594,
+    "sha256": "7a6f4880e4165c39402a727c70bf912c50e98c9017f3ec5863a61b797f10d82d"
+  },
+  {
+    "path": "v2-archive-20260904/ssh-register.json",
+    "bytes": 1549,
+    "sha256": "e2be1ce2c84d4cf8cc90343b5536545975a90c85f8e040da0ea8702d2722ba42"
+  },
+  {
+    "path": "v2-archive-20260904/local-move.json",
+    "bytes": 8088,
+    "sha256": "e3e95c014db47daef1b026241f7360a07bf6c9f12f3ba11231671e71bb2cdd55"
+  },
+  {
+    "path": "v2-archive-20260904/ssh-move.json",
+    "bytes": 3227,
+    "sha256": "0057a27e6294225368a7f8e566aaaa814f5a9c11e9b2b5d6f0fe3ffa7e2618fe"
+  },
+  {
+    "path": "v2-archive-20260904/local-publish.json",
+    "bytes": 8155,
+    "sha256": "cbcee49c35ca6792693bc4db03584bdbf6b4ab010df2b9dfb0f3957856f74d84"
+  },
+  {
+    "path": "v2-archive-20260904/ssh-publish.json",
+    "bytes": 3294,
+    "sha256": "eb577b22945c7ee34e9e38bdeca9c33cf936ee6ff015ccc163552715eae566b2"
+  },
+  {
+    "path": "v2-archive-20260904/local-lookup-check.json",
+    "bytes": 1866,
+    "sha256": "683f47f3bf11453152c89152d7700039cf923464f808db649266820535949597"
+  },
+  {
+    "path": "v2-archive-20260904/ssh-lookup-check.json",
+    "bytes": 263,
+    "sha256": "925d70802f96fa76fecf0eac02cf42f22caf2574052e63f93d2c492b08202e22"
+  }
+]
