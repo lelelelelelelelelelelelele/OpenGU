@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 Item Type: Block
 
@@ -132,3 +132,4 @@ Execution topology: `parallel`
 
 - 2026-09-04: 按用户确认收窄同一 WorkItem 的标题、范围和验收条件，调整为 AAGU-015 的前置；本次仅修订登记合同，状态保持 `registered / not claimed`，未 Claim 或实施公共规范。
 - 2026-09-04: 按用户确认补入三块独立参数表、实验组合大表、预算归 Selector、两侧模型独立、按方法缓存身份和变体只用不同配置表的共识；真实参数来源清单成为核心验收，实现修复单独登记 AAGU-026。状态仍为 `registered / not claimed`，没有实施、候选或验收决定。
+- `accepted`（2026-09-04T22:30:39+08:00）：用户 基于 用户选择先接受 001 公共合同，再开 026 实现与 015 selector-only 实验工作流和协议表两个独立任务；真实工作流、015 样例与正确缓存命中由后续任务分别交付，不把本次接受解释为实现已完成或正式实验授权。 接受当前已验证候选。
