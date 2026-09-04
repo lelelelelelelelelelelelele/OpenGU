@@ -56,7 +56,7 @@ def differences(left, right, prefix=""):
 
 def check_examples():
     examples = {path.name: read_yaml(path) for path in sorted((DOC / "examples").glob("*.yaml"))}
-    require(len(examples) == 8, "Expected eight concrete documentation examples")
+    require(len(examples) == 10, "Expected ten concrete documentation examples")
     for name, value in examples.items():
         require(value["schema_version"] == 1, name + ": example version")
         kind = value["kind"]
@@ -107,6 +107,31 @@ def check_sources(examples):
     return observed
 
 
+def check_omitted_defaults(examples, observed):
+    """Check two document examples, not a runtime loader or Cache HIT test."""
+    # These fixed definitions are audited method semantics. Numeric defaults
+    # above were read from the actual CLI AST without importing config.py.
+    selector_defaults = {
+        "parameter_scope": observed["--parameter-scope"],
+        "hessian_loss": {"type": "cross_entropy", "source": "train_mask", "reduction": "mean"},
+        "lissa": {"iterations": observed["--lissa-iterations"], "scale": observed["--lissa-scale"], "damp": observed["--lissa-damp"]},
+        "hutchinson": {"probes": observed["--hutch-probes"], "seed": observed["--hutch-seed"]},
+    }
+    gu_defaults = {key: observed[key] for key in ("unlearn_lr", "unlearning_epochs", "alpha", "loss_fct", "loss_type")}
+    gu_defaults.update(deletion_optimizer="Adam", deletion_weight_decay=0.0)
+    observations = []
+    for sparse_name, full_name, defaults in (
+        ("selector_b_hutch_defaults.yaml", "selector_b_hutch32.yaml", selector_defaults),
+        ("unlearning_gnndelete_defaults.yaml", "unlearning_gnndelete.yaml", gu_defaults),
+    ):
+        sparse = examples[sparse_name]
+        require("parameters" not in sparse, sparse_name + ": parameters must be omitted")
+        expanded = dict(sparse, parameters=defaults)
+        require(not differences(expanded, examples[full_name]), sparse_name + ": effective parameter mismatch")
+        observations.append({"omitted_example": sparse_name, "explicit_example": full_name, "effective_parameters": defaults, "comparison": "equal - documentation only, no production loader or cache invocation"})
+    return observations
+
+
 def check_links():
     count = 0
     for path in (DOC / "README.md", DOC / "PARAMETERS.md"):
@@ -130,6 +155,7 @@ def main():
     require(allowed in output.parents, "Evidence output must remain in this Block runtime directory")
     examples = check_examples()
     defaults = check_sources(examples)
+    omitted_defaults = check_omitted_defaults(examples, defaults)
     links = check_links()
     # Real project parser, read-only: no profile materialization or Cache Store.
     sys.path.insert(0, str(ROOT))
@@ -144,8 +170,9 @@ def main():
     completed = subprocess.run(command, cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
     require(completed.returncode == 0, "Existing sanity dry-run failed: " + completed.stderr)
     require("total cells: 1" in completed.stdout and "would_run: 1" in completed.stdout, "Expected current one-cell dry-run observation")
-    sources = [ROOT / "experiments/configs/sanity_one_cell.yaml", ROOT / "experiments/configs/syncmate_target_direct_formal_v2.yaml", ROOT / "experiments/target_direct_v1/run_selection.py", ROOT / "parameter_parser.py", ROOT / "model/properties/GCN.yaml"]
+    sources = [ROOT / "experiments/configs/sanity_one_cell.yaml", ROOT / "experiments/configs/syncmate_target_direct_formal_v2.yaml", ROOT / "experiments/target_direct_v1/run_selection.py", ROOT / "experiments/target_direct_v1/scoring.py", ROOT / "parameter_parser.py", ROOT / "model/properties/GCN.yaml", ROOT / "unlearning/unlearning_methods/GNNDelete/gnndelete.py"]
     result = {"schema": "aagu001.contract_verification.v1", "checkpoint": args.checkpoint, "observed_at": datetime.now(timezone.utc).isoformat(), "status": "PASS", "example_count": len(examples), "resolved_doc_links": links, "source_defaults": defaults, "planned_budgets_not_asset_observations": budgets, "cp3_epochs": [1, 50, 100], "sanity_dry_run": {"argv": command, "exit_code": completed.returncode, "stdout": completed.stdout, "stderr": completed.stderr}, "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}, "boundaries": {"formal_gpu_run": "NOT OBSERVED", "formal_asset_hashes": "NOT OBSERVED", "cache_identity_fix": "NOT IMPLEMENTED - AAGU-026", "human_acceptance": "NOT CONFIRMED"}}
+    result["omitted_defaults_examples"] = omitted_defaults
     require(not output.exists(), "Evidence path already exists; use a new observation file")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

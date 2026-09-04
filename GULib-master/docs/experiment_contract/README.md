@@ -27,8 +27,22 @@
 - 方法配置必须明确 `method`；只有已注册实现及其声明的字段才能执行。新增算法不是“写一个 YAML 就自动获得实现”。
 - 方法注册负责声明字段类型、必填项、有效默认值、允许范围、真实依赖和 producer 语义版本。026 落实校验；001 不增加新的运行时注册框架。
 - 缺失必填项、未知字段、非有限数、越界值、冲突配置都拒绝；不能悄悄丢弃拼错参数。适用的默认值先展开再求身份；`0.01` 与 `1e-2` 这类等价值规范化一致。
-- 无隐式继承、无大表 override、无 YAML merge。为了改一个参数，复制一份完整小表并改该值即可；比较工具展示差异，不需要重复算法实现。
+- 无配置文件之间的隐式继承、无大表 override、无 YAML merge。小表可省略所属方法/OpenGU 明确提供的默认值，只填写必填输入与本次覆盖值；换一组条件就保存另一份独立小表，不需要重复算法实现。方法的默认值展开不是隐式文件继承。
 - 参数和依赖内容决定键，名称、注释、文件路径、实验/case ID 只作定位与追踪。文件指向的实际内容变化则必须影响其真实消费者。
+
+### 人工表与有效配置不是同一份内容
+
+人工表允许简短；运行前解析出的有效配置必须完整。每个有效值标明来自用户显式值、已注册方法默认值或 OpenGU 的实际消费者默认值，并关联其来源/相关实现身份。记录来源是为了追溯；“显式填写还是默认展开”本身不进入数值计算身份。省略 `unlearn_lr` 与显式写入当前默认值 `0.01` 应等价；默认值真正改变时则重新计算相关身份。
+
+不是所有内部常数都要暴露为可调参数。固定算法公式、图源定义可以由具体方法及其相关实现版本拥有；改变公式不是偷偷给同一缓存换含义。模型训练 seed、backbone、输入 checkpoint、K 等即使在人工表中沿用默认值，也仍是实际依赖，不能从完整有效配置与缓存判定中消失。`PARAMETERS.md` 是有效值审阅清单，不是要求每个 YAML 重复填写全部字段。
+
+### 方法名怎样分发
+
+`method` → 已注册的具体实现与字段规则 → 校验本方法的覆盖值并展开默认值 → 绑定真实输入 → 查对应缓存 → 仅在精确 MISS 时调用计算 → Selection。
+
+IF 是方法分类；可执行名称须解析到具体算法定义，如 `r_point`、`gt_full`、`b_param_hutch`。它们可以是不同类，也可以共用函数或计算内核，不强制“一方法一份重复源码”。独立的是配置实例、语义身份和按方法的调用/命中；共享代码不能让 A 方法的专属参数污染 B 方法。注册表只接受已知方法名，不把任意 YAML 文件路径当作可执行代码。
+
+当一个自定义 selector 已固定全部专属设置时，人工表的方法部分可以只有 `method`，`parameters` 可省略。它仍须组合统一的 Dataset/Split、候选/K 和实际需要的模型输入；“名称足以选择默认实现”不等于“名称就是完整缓存键”。IF 求导范围、目标损失、实际使用的 LiSSA 配置可以复用字段定义，但按各方法的真实需要取子集；TracIn 的 checkpoint 集合与权重同样是有效参数。
 
 ### 2.2 Dataset/Split 表
 
@@ -50,7 +64,7 @@
 | `budget` | 比例模式或绝对 K 模式二选一；比例在 (0,1]，K 为正整数且不超过候选数；比例模式必须声明分母与取整规则 |
 | `selection_rule` | 排序方向、tie-break、去重/采样规则；结果记录实际 K 和明确节点序列 |
 | `model` / `training` | 仅模型型 selector 必填；结构、训练配置、seed；实际依赖的 checkpoint 内容身份由运行记录绑定 |
-| `parameters` | 每个方法自己的表；IF 的求导范围、目标集合、loss、LiSSA/Hutch 配置或 TracIn 的快照集合/权重等 |
+| `parameters` | 可省略的、本方法支持的显式覆盖值；按注册默认值展开。IF 的求导范围、目标集合、loss、LiSSA/Hutch 或 TracIn 快照/权重只由真实消费者接收；未知字段拒绝 |
 | `numerics` | 方法真正依赖的 dtype、后端或确定性约定；不得机械复制整个设备环境 |
 
 预算属于 Selector，不是 GU 的第二套独立预算。Selection 记录输入候选身份、预算请求及实际 K、节点空间、选中节点、producer 和真实依赖；GU 只消费并核验，不重新抽样、不从 ratio 重算另一套节点。
@@ -63,7 +77,7 @@
 |---|---|
 | `method` | 一个已注册 GU 方法标识 |
 | `model` / `training` | 目标模型独立声明；包括结构、训练 seed/优化器/轮数和实际初始 checkpoint 依赖 |
-| `parameters` | GU 自身的 lr、遗忘轮数、损失等；各方法只接收自己消费的字段 |
+| `parameters` | 可省略的 GU 自身覆盖值，如 lr、遗忘轮数、损失；其余沿用已确认的 OpenGU/方法默认值，解析后记录完整有效值 |
 | `selection_input` | 由大表引用已验证 Selection，或引用前一阶段的输出；执行前必须解析为精确 Artifact 身份 |
 
 Selector 模型和 GU 模型互不覆盖。Selector=SGC、GU=GCN 是允许的组合设计，但当前 formal-v2 入口仍固定 GCN/GNNDelete，不能直接执行该组合。若两边都用 GCN，两边配置与实际 checkpoint 身份匹配时自然共享；仅“两层 GCN”或一个布尔共享标记不够。
@@ -89,6 +103,8 @@ GU 结果键依赖其实际 Selection 输入及目标模型/方法参数；改�
 | 只改变这一项 | 不应受影响 | 应改变/重新核验 |
 |---|---|---|
 | experiment/case ID、文件名、注释 | 全部未改变的计算 | 运行追踪元数据 |
+| 省略默认值 ↔ 显式填写同值 | 有效配置相同的全部计算 | 来源记录可以不同，计算身份不能因此不同 |
+| 方法/OpenGU 某项实际有效默认值改变 | 不消费该项的方法 | 该项的真实消费者；不能仅按未变化的方法名称 HIT |
 | GNNDelete `unlearn_lr`、遗忘轮数、GU 方法 | Dataset/Split、各 Selector/Score/Selection | GU 及其结果消费者 |
 | B-Hutch `probes: 32 → 64` | degree、random、TracIn；相同基础训练 | B-Hutch Score/Selection 及实际消费变化输入的 GU |
 | LiSSA 迭代数/scale/damp | 不使用 IHVP 的方法 | r_point、gt_simple、gt_full、B-Hutch 等实际求解消费者 |
@@ -140,6 +156,7 @@ SyncMate 只负责已审阅静态 recipe 的执行连接、回执、收集和校
 - `unlearning_gnndelete.yaml` 与 `unlearning_gnndelete_lr002.yaml` 只差 GU 学习率，不能影响选点身份。
 - `experiment_selector_only.yaml` 只到 selector，不需要 GU 表。
 - `experiment_gu_from_selection.yaml` 从已验证 Selection 进入 GU，不包含 Selector 配置，也不能调用其 producer。
+- `selector_b_hutch_defaults.yaml`、`unlearning_gnndelete_defaults.yaml` 省略整个 `parameters`，分别与显式写出当前默认值的实例对应。模型、训练、候选和预算仍独立声明。这是人工表简化示例，不是生产默认值加载器或真实 HIT 的完成证据。
 - 跨模型扩展只需分别声明两侧模型配置；例如 Selector 表改为已支持的 SGC 结构/训练配置，GU 仍为 GCN。当前 formal-v2 不支持自由切换，此组合需 026 验证后另行注册，不自动从 GCN YAML 继承其他模型的参数。
 
 ## 6. 001 与后续工作的边界
