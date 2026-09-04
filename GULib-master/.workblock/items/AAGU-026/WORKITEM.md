@@ -6,7 +6,7 @@ Item Type: `Block`
 当前状态: `registered / not claimed`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
-Execution topology: `sequential`
+Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
 ## Human Surface
@@ -60,13 +60,15 @@ Execution topology: `sequential`
 - 新计算条件产生新的请求身份；旧 Artifact 仍可服务其原合同，不自动删除、覆写、迁移、重标为损坏或放宽旧证据的接纳条件。`results/cache_v2` 与历史实验产物禁止手工修改。
 - 保留一个统一 Store 和正常缓存默认值。移除被替代的活动耦合路径，不增加兼容层、隐藏回退、复杂配置继承或深层隐式 override。
 - 已划分数据在消费阶段只读解析与校验；缺失输入应按已有数据准备授权边界停止，不因配置加载而自动下载或重切。
-- 本次仅登记。未 Claim、未实现、未运行正式 GPU、未创建后续 Codex task、未执行 SSH 写入、push、install、Apply 或清理。
+- 登记不等于 Claim 或实施；2026-09-04 用户已另行授权创建独立任务执行本 Block。实现任务仍须 Claim 同一 locator，只做约定的本地 CPU 验证；正式 GPU、SSH 写入、push、install、Apply 或清理不属于候选实现阶段。
 
 ## Restart and next action
 
-先确认 AAGU-001 已接受并读取其最新合同。后续使用 `block-workflow` Claim 这个精确 locator，在主检出的独立功能分支中实施已确认范围；用隔离 CPU 输入和临时 Store 验证，不触碰历史产物。形成精确候选与配对报告后停在 `formal` 人类决定边界。
+先重新确认 AAGU-001 已接受并读取其最新合同。使用 `block-workflow` Claim 这个精确 locator，在 linked worktree 中实施已确认范围；用隔离 CPU 输入和临时 Store 验证，不触碰历史产物。形成精确候选与配对报告后停在 `formal` 人类决定边界。AAGU-015 在另一任务中并行准备 selector-only 的实际工作流、实验协议表和预期缓存变化样例；本实现不代替其科研决定，也不要求其先完成才能开始。
 
 ## Status history
+
+- 2026-09-04: 用户选择接受 001 公共合同并另开两个任务，分别推进本实现和 015 selector-only 实验表。按已要求的独立 worktree 方案对齐 parallel 登记；同一编号与验收范围不变，登记修改本身不 Claim。001 的代码已合入 main，本轮 SSH 安装停止不作为已部署或正式实验许可。
 
 - 2026-09-04: 用户再次要求登记 commit 到 main；原登记已在 main@8383e30239398c5268965e088afdfba7abc74ca9。本次补充人工表省略默认值、方法分发和默认值等价命中的验收要求；继续 registered / not claimed，不执行实现。
 
