@@ -23,6 +23,7 @@ AAGU-006 与 AAGU-001 已接受。AAGU-026 消费三层参数合同，实现配�
 | ID | 类型 | 状态投影 | 优先级 | 前置 | 唯一事实 owner |
 |---|---|---|---|---|---|
 | [AAGU-026](../../.workblock/items/AAGU-026/WORKITEM.md) | FIX | registered / not claimed / current | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
+| [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | awaiting acceptance | P0 | — | [AAGU-009 软件修复合同](../../.workblock/items/AAGU-009/WORKITEM.md) |
 | [AAGU-004](../../.workblock/items/AAGU-004/WORKITEM.md) | SUPPORT | awaiting acceptance | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
 | [AAGU-007](../../.workblock/items/AAGU-007/WORKITEM.md) | EXP | blocked by AAGU-002 | P0 | AAGU-002 | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
 | [AAGU-010](../../.workblock/items/AAGU-010/WORKITEM.md) | FIX | blocked by AAGU-027 | P1 | AAGU-027 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
@@ -35,7 +36,6 @@ AAGU-006 与 AAGU-001 已接受。AAGU-026 消费三层参数合同，实现配�
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
-| [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | in progress | P0 | — | [AAGU-009 软件修复合同](../../.workblock/items/AAGU-009/WORKITEM.md) |
 | [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | todo candidate / ready to promote | P0 | AAGU-006, AAGU-001 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | registered / not claimed | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |

@@ -4,7 +4,7 @@ Block ID: `AAGU-009`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 
 > Apply target ref：`refs/heads/main`
 
@@ -73,3 +73,9 @@ Item Type: Block
 
 - 2026-09-04: 用户确认 009 范围内 Legacy 入口若仍存在即可继续。恢复同一 source 分支并纳入 main@dac6fd52345f173b29f45563e4ede7d84a2a11e9 的最新软件范围，保留原 baseline 和 Claim；仅为修复旧分支/新合同漂移进行本次源分支恢复，不 Apply、不运行实验。
 - 2026-09-04: 标准 resume 保留 claimId，revision 2→3；本任务接手软件修复。保留已有效的 GIF/IDEA 算法实现，退役两个旧 helper 和过时 repair-scope，验证器改为真实 approxi→模型抽取→collateral/hop 固定 CPU fixture，并加入缺失写回及错误来源反例。初轮 40 项软件回归通过，正式实验仍归 027；最终候选与报告随后单独校验。
+
+## Software candidate verification
+
+40 项本地回归和直接 verifier 在干净 checkpoint `fdbf2cd885d1e4902ae104a6d6258281c6792fef` 通过。GIF/IDEA 的实际写回、冻结参数、collateral/hop 消费、缺失写回及来源错误反例得到验证；两个 Legacy helper 和旧实验 profile 已退役。主证据与决定入口为 [REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)，[最终回执](../../runtime/evidence/AAGU-009/final-verification.json) 绑定报告候选。
+
+Agent 建议接受软件修复，当前等待用户决定；未接受、Apply、push、部署或运行 027。最终报告/状态投影检查完成后，同一 Claim 进入 awaiting_acceptance。历史 44 passed/远端预检不替代本轮证据。

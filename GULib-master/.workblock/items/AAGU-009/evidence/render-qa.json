@@ -1,0 +1,18 @@
+[
+  {
+    "viewport": "desktop",
+    "width": 1440,
+    "scrollWidth": 1440,
+    "resultCount": 1,
+    "decisionCount": 1,
+    "decisionBottom": 506.5
+  },
+  {
+    "viewport": "narrow",
+    "width": 390,
+    "scrollWidth": 390,
+    "resultCount": 1,
+    "decisionCount": 1,
+    "decisionBottom": 657.5625
+  }
+]

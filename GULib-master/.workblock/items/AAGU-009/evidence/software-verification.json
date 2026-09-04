@@ -1,0 +1,63 @@
+{
+  "observed_at": "2026-09-04T14:47:09.432270+00:00",
+  "tested_head": "fdbf2cd885d1e4902ae104a6d6258281c6792fef",
+  "checks": [
+    {
+      "name": "regression",
+      "exit_code": 0,
+      "command": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests/test_aagu009_collateral_repair.py",
+        "tests/test_attack_eval.py",
+        "tests/test_collateral.py",
+        "-q"
+      ],
+      "log": "regression.txt"
+    },
+    {
+      "name": "writeback",
+      "exit_code": 0,
+      "command": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/verify_if_writeback_patch.py"
+      ],
+      "log": "writeback.txt"
+    },
+    {
+      "name": "dashboard",
+      "exit_code": 0,
+      "command": [
+        "python",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/dashboard/refresh.py",
+        "--check"
+      ],
+      "log": "dashboard.txt"
+    }
+  ],
+  "retired_paths": [
+    "scripts/cleanup_if_family_collateral.py",
+    "scripts/redo_collateral_if_family.py",
+    ".workblock/items/AAGU-009/evidence/repair-scope.yaml"
+  ],
+  "source_sha256": {
+    "scripts/verify_if_writeback_patch.py": "bddd1b0c5e47af34504cca7ea9ff5756f48f0f5ec751c4d8bbcae43f5431e4f5",
+    "tests/test_aagu009_collateral_repair.py": "63e1faeac850847510d6fdd4510687a5f9866003d38e5bf286548e21e1b4b775",
+    "unlearning/unlearning_methods/GIF/gif.py": "e81c702e4856b0a0ebdbf34780f905ce5631d63a00575af673ac3e9e3f67d672",
+    "unlearning/unlearning_methods/IDEA/idea.py": "fc9077d1e60e07381fd04ca8b2b99994d3c03a4bc1cca0dd3f7c0f1bd8044f63",
+    "attack/pipeline_adapter.py": "2ece7385274108915a37f58dcc4145a8d9a92c36e1401eaa95dad8e42635c122",
+    "attack/attack_eval.py": "1a77ace0946603e48abb592e038db6b934c5eeecc8cd5d6fa7adc85203ae1747"
+  },
+  "production_algorithm_and_consumers_unchanged_from_main": true,
+  "scope": "software fixtures only; no formal experiment or data/cache mutation command"
+}
