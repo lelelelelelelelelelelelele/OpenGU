@@ -8,9 +8,11 @@ Item Version: 2.1
 
 > Apply target ref：`refs/heads/main`
 
-> Git baseline：`6be95c74f230cbfcb6a99d0166ba8b1d143e5416`
+> Git baseline：`dac6fd52345f173b29f45563e4ede7d84a2a11e9`
 
 > Source branch：`refs/heads/codex/aagu-009-collateral-evidence`
+
+> Remote target：`origin refs/heads/main`
 
 Execution topology: `sequential`
 
@@ -75,6 +77,8 @@ Item Type: Block
 - 2026-09-04: 标准 resume 保留 claimId，revision 2→3；本任务接手软件修复。保留已有效的 GIF/IDEA 算法实现，退役两个旧 helper 和过时 repair-scope，验证器改为真实 approxi→模型抽取→collateral/hop 固定 CPU fixture，并加入缺失写回及错误来源反例。初轮 40 项软件回归通过，正式实验仍归 027；最终候选与报告随后单独校验。
 
 ## Software candidate verification
+
+2026-09-05 收口前校正恢复记录：原始基线 `6be95c74f230cbfcb6a99d0166ba8b1d143e5416` 保留为历史身份；恢复合并 `b741f1a45eff92d2a953579999a8682c24e81410` 的第二父提交为 `dac6fd52345f173b29f45563e4ede7d84a2a11e9`，也是已验证候选与当前 main 的实际共同基线，因此将当前 Git baseline 对齐该已纳入身份。按 main 已配置且实时核对的 upstream 补齐 `origin refs/heads/main`。本次只修正同一 WorkItem 的 Git 定位信息，不变更接受的软件内容、实验边界或原 Claim。
 
 40 项本地回归和直接 verifier 在干净 checkpoint `fdbf2cd885d1e4902ae104a6d6258281c6792fef` 通过。GIF/IDEA 的实际写回、冻结参数、collateral/hop 消费、缺失写回及来源错误反例得到验证；两个 Legacy helper 和旧实验 profile 已退役。主证据与决定入口为 [REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)，[最终回执](../../runtime/evidence/AAGU-009/final-verification.json) 绑定报告候选。
 
