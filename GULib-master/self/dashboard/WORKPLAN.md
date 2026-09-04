@@ -27,7 +27,8 @@ AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector�
 | [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | blocked by AAGU-001 | P0 | AAGU-006, AAGU-001 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | blocked by AAGU-001 | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | [AAGU-007](../../.workblock/items/AAGU-007/WORKITEM.md) | EXP | blocked by AAGU-002 | P0 | AAGU-002 | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
-| [AAGU-010](../../.workblock/items/AAGU-010/WORKITEM.md) | FIX | blocked by AAGU-009 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| [AAGU-010](../../.workblock/items/AAGU-010/WORKITEM.md) | FIX | blocked by AAGU-027 | P1 | AAGU-027 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| [AAGU-027](../../.workblock/items/AAGU-027/WORKITEM.md) | EXP | blocked by AAGU-001, AAGU-009 | P1 | AAGU-001, AAGU-009 | [AAGU-027 实验合同](../../.workblock/items/AAGU-027/WORKITEM.md) |
 | [AAGU-008](../../.workblock/items/AAGU-008/WORKITEM.md) | EXP | blocked by AAGU-007 | P1 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-011](../../.workblock/items/AAGU-011/WORKITEM.md) | EXP | blocked by AAGU-008 | P1 | AAGU-008 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-012](../../.workblock/items/AAGU-012/WORKITEM.md) | EXP | blocked by AAGU-011 | P1 | AAGU-011 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
@@ -38,7 +39,7 @@ AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector�
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | blocked by AAGU-001 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 | [AAGU-026](../../.workblock/items/AAGU-026/WORKITEM.md) | FIX | blocked by AAGU-001 | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
-| [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | in progress | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| [AAGU-009](../../.workblock/items/AAGU-009/WORKITEM.md) | FIX | in progress | P0 | — | [AAGU-009 软件修复合同](../../.workblock/items/AAGU-009/WORKITEM.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
@@ -66,6 +67,8 @@ AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector�
 - **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；核心包括真实参数归属、当前值/来源、变体配置与缓存变更影响，不以纯模板或链接代替。接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
 - **Implementation boundary**：`AAGU-026` 消费 `AAGU-001` 接受后的合同，实现独立配置与方法级缓存身份；本次只登记，不 Claim，不将实现完成作为 001 的前置。
 - **IF boundary**：`AAGU-015` 在 `AAGU-001` 接受后消费公共规范，仍保留科学定义 Todo；具体选择、后续执行与真实结果分析由相应任务逐轮承接。
+- **Experiment ordering**：所有实际实验运行，包括修复重跑、训练、评估和计时，都须先消费已接受的 `AAGU-001` 实验框图，并完成本轮定义、注册与批准。`AAGU-015` 同样在 001 之后；软件单元/回归验证可先做，但不能借 FIX 名义提前运行研究实验。
+- **Repair split**：`AAGU-009` 只承担 IF-family 代码修复和本地软件回归；`AAGU-027` 在 001、009 接受后承接双端运行准备、正式重跑、收集及证据验收；`AAGU-010` 消费 027 的已接受结果。历史 120-cell 范围不等于当前实验批准。
 
 ## 4. 依赖图
 
@@ -75,13 +78,12 @@ AAGU-006 已接受。当前先推进 AAGU-001：固定 Dataset/Split、Selector�
 flowchart LR
   subgraph Repair[修复队列]
     R0[AAGU-006 FIX dataset/split]
-    R1[AAGU-009 FIX collateral evidence]
+    R1[AAGU-009 FIX IF-family evaluation code]
     R2[AAGU-010 FIX hop aggregate]
     R3[AAGU-018 FIX D-GIF source labels]
     R4[AAGU-019 FIX retire legacy budgets]
     R5[AAGU-023 FIX legacy evidence inventory]
     R6[AAGU-026 FIX modular config and cache identity]
-    R1 --> R2
     R3 --> R4
   end
 
@@ -101,13 +103,15 @@ flowchart LR
     X3[AAGU-012 GraphRevoker]
     X4[AAGU-013 surrogate transfer]
     X5[AAGU-014 arXiv scope]
+    X6[AAGU-027 collateral rerun and evidence]
     G2[AAGU-003 final evidence gate]
     X0 --> X1 --> X2 --> X3 --> X4 --> X5 --> G2
   end
 
   G1 --> X0
   G0 --> R6
-  G1 --> R1
+  G0 --> X6
+  R1 --> X6 --> R2
   R2 --> G2
   R5 --> G2
 ```
@@ -123,8 +127,8 @@ flowchart LR
 | AAGU-019 | FIX | 硬退役旧小预算实验 setup | P0 | AAGU-018 | [AAGU-019 Block contract](../../.workblock/items/AAGU-019/WORKITEM.md) |
 | AAGU-025 | FIX | 通用缓存原位接入 Cache V2 | 未定 | — | [AAGU-025 Block contract](../../.workblock/items/AAGU-025/WORKITEM.md) |
 | AAGU-026 | FIX | 模块化实验配置与缓存身份隔离 | 未定 | AAGU-001 | [AAGU-026 Block contract](../../.workblock/items/AAGU-026/WORKITEM.md) |
-| AAGU-009 | FIX | L8 collateral evidence 修复 | P1 | AAGU-002 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
-| AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-009 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
+| AAGU-009 | FIX | IF-family 参数写回与 Collateral 评估代码修复 | P0 | — | [AAGU-009 软件修复合同](../../.workblock/items/AAGU-009/WORKITEM.md) |
+| AAGU-010 | FIX | hop aggregate fields 修复 | P1 | AAGU-027 | [重跑与缓存修复 Runbook](../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md) |
 | AAGU-023 | FIX | Legacy 实验证据盘点与归档边界 | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 
 ## 6. 实验 timeline
@@ -135,6 +139,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | AAGU-001 | GATE | 实验合同与注册规范 | P0 | AAGU-006 | [AAGU-001 合同与注册规范](../../.workblock/items/AAGU-001/WORKITEM.md) |
 | AAGU-015 | EXP | IF 科学定义与 selector 决策（Todo candidate） | P0 | AAGU-006, AAGU-001 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
+| AAGU-027 | EXP | IF-family Collateral 重跑与双端证据验收 | P1 | AAGU-001, AAGU-009 | [AAGU-027 实验合同](../../.workblock/items/AAGU-027/WORKITEM.md) |
 | AAGU-002 | GATE | Device Readiness gate | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | AAGU-007 | EXP | Target-Direct GU gate | P0 | AAGU-002 | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
 | AAGU-008 | EXP | K5 noise anchor | P1 | AAGU-007 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |

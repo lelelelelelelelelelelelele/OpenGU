@@ -20,7 +20,7 @@ Item Type: Block
 
 ### 本次增量
 
-在 AAGU-009 的 collateral evidence 前置满足后，按执行时选定的汇总结构修复汇总路径，让测试样例与真实回读都能产生必需的 hop 字段，并保留字段缺失时明确拒绝或标记未知的 fail-closed 行为。本 Block 不生成新的科研结论，也不运行 GPU 实验。
+在 AAGU-027 的 collateral evidence 前置满足后，按执行时选定的汇总结构修复汇总路径，让测试样例与真实回读都能产生必需的 hop 字段，并保留字段缺失时明确拒绝或标记未知的 fail-closed 行为。AAGU-009 只提供代码修复，其软件验收不替代这里需要的真实证据。本 Block 不生成新的科研结论，也不运行 GPU 实验。
 
 ### 核心验收
 
@@ -35,6 +35,7 @@ Item Type: Block
 - Source anchor: legacy hop-decay aggregate-field Todo.
 - Outcome: aggregate output exposes the required hop fields from accepted evidence without fabricating missing values.
 - Fact owner: OpenGU DocMap rerun/cache-fix runbook and the aggregate schema selected during execution.
+- Confirmed relation: `AAGU-010 depends_on AAGU-027`；原 009 的重跑和可信证据责任已转移至 027。
 
 ## Acceptance route proposal
 
@@ -52,3 +53,4 @@ Item Type: Block
 
 - 2026-08-26: registered from the prominent aggregate repair Todo.
 - 2026-08-31: upgraded the same stable WorkItem to protocol 2.0 with the current sequential topology and Apply target; no dependency, Claim, or acceptance fact changed.
+- 2026-09-04: 随用户确认的修复/实验拆分，将可信 collateral evidence 前置从 AAGU-009 改指 AAGU-027；保留自身实现与验收范围、registered / not claimed 状态。
