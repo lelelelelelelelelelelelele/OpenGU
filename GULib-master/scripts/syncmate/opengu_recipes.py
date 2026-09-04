@@ -250,6 +250,22 @@ def _target_direct_gu_recipe(
 
 def _build_registry() -> dict[str, dict[str, Any]]:
     definitions: dict[str, dict[str, Any]] = {
+        "opengu-sm005-atomic-gpu-v1": {
+            "id": "opengu-sm005-atomic-gpu-v1",
+            "argv": ("{python}", "-m", "experiments.syncmate_atomic_stage"),
+            "config_path": "experiments/configs/sm005_atomic/experiment.yaml",
+            "config_sha256": "d954af660d61bb095ca00f987344b45b4d78870068c9d427c970d200407b43b5",
+            "git_binding_policy": "job-exact-main-v1",
+            "requires_job_expected_git_sha": True,
+            "timeout_seconds": 1800,
+            "expected_artifact_paths": (
+                "results/runs/modular/sm005-cora-degree-gnndelete/sm005-gpu-v1/summary.json",
+            ),
+            "success_predicate": "json.passed == true and exact reviewed summary exists",
+            "execution_validator": "exact-artifacts-json-v1",
+            "preflight_profile": "sm005-atomic-gpu-v1",
+            "collector_acceptance": False,
+        },
         "smoke": {
             "id": "smoke",
             "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),

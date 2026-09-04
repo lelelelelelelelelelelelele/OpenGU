@@ -23,9 +23,8 @@ the installed `syncmate_core` package, installs
 surface without embedding transfer, queue, manifest, checksum, or trusted-index
 implementations.
 
-`scripts/syncmate/syncmate_m1.py` remains the three-command M1 Gate 1/2 helper,
-and `scripts/syncmate/syncmate_compat.py` remains the reviewed switch source
-until a separate cleanup is approved. The detailed command material below
+`scripts/syncmate/syncmate_m1.py` remains the three-command M1 Gate 1/2 helper.
+The old embedded compatibility source was removed by SM-004. The material below
 documents the OpenGU compatibility surface; it is not a second authority for
 the generic protocol.
 

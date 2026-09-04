@@ -1,0 +1,5 @@
+kind: selector
+schema_version: 1
+method: degree
+candidate: {pool: train_mask}
+budget: {mode: ratio, value: 0.01}

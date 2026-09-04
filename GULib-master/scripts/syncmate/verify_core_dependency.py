@@ -1,91 +1,70 @@
+"""Verify the installed payload against the independently published Core wheel."""
 from __future__ import annotations
-
 import argparse
+import hashlib
 import json
 from importlib import metadata
 from pathlib import Path
-from types import ModuleType
-from typing import Any, Callable
+
+PIN_PATH = Path(__file__).with_name('core_dependency.json')
 
 
-EXPECTED_DISTRIBUTION = "syncmate"
-EXPECTED_VERSION = "0.2.0"
-EXPECTED_SOURCE_COMMIT = "4f0242306ba2707cbaadb9abce3c45d9ea4d0d51"
-
-
-def verify_core_dependency(
-    *,
-    version_lookup: Callable[[str], str] = metadata.version,
-    core_module: ModuleType | Any | None = None,
-) -> dict[str, Any]:
-    errors: list[str] = []
+def verify_core_dependency(*, distribution_lookup=metadata.distribution, core_module=None,
+                           pin_path=PIN_PATH):
+    pin = json.loads(Path(pin_path).read_text(encoding='utf-8'))
+    result = {'ready': False, 'expected': {k: v for k, v in pin.items() if k != 'files'},
+              'observed': {}, 'errors': []}
+    errors = result['errors']
     try:
-        distribution_version = version_lookup(EXPECTED_DISTRIBUTION)
+        dist = distribution_lookup(pin['distribution'])
     except metadata.PackageNotFoundError:
-        return {
-            "ready": False,
-            "expected": {
-                "distribution": EXPECTED_DISTRIBUTION,
-                "version": EXPECTED_VERSION,
-                "source_commit": EXPECTED_SOURCE_COMMIT,
-            },
-            "observed": {
-                "distribution": None,
-                "version": None,
-                "source_commit": None,
-                "module_file": None,
-            },
-            "errors": ["SyncMate Core distribution is not installed"],
-        }
-
+        errors.append('SyncMate Core distribution is not installed')
+        return result
     if core_module is None:
         try:
             import syncmate_core as core_module
         except ImportError as exc:
-            errors.append(f"SyncMate Core module import failed: {exc}")
+            errors.append('SyncMate Core module import failed: ' + str(exc))
+    module_file = getattr(core_module, '__file__', None)
+    observed = result['observed']
+    observed.update(distribution_version=dist.version,
+                    version=getattr(core_module, '__version__', None),
+                    module_file=str(Path(module_file).resolve()) if module_file else None)
+    if dist.version != pin['version'] or observed['version'] != pin['version']:
+        errors.append('SyncMate Core version mismatch')
+    expected_module = Path(dist.locate_file('syncmate_core/__init__.py')).resolve()
+    if not module_file or Path(module_file).resolve() != expected_module:
+        errors.append('SyncMate Core imported module does not belong to the installed distribution')
+    checked = 0
+    for relative, digest in pin['files'].items():
+        path = Path(dist.locate_file(relative))
+        if not path.is_file() or path.is_symlink():
+            errors.append('SyncMate Core payload missing or linked: ' + relative)
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            errors.append('SyncMate Core payload SHA-256 mismatch: ' + relative)
+        else:
+            checked += 1
+    package = expected_module.parent
+    actual = {p.relative_to(package.parent).as_posix() for p in package.rglob('*')
+              if p.is_file() and '__pycache__' not in p.parts}
+    expected = {p for p in pin['files'] if p.startswith('syncmate_core/')}
+    if actual != expected:
+        errors.append('SyncMate Core package file set mismatch')
+    observed['verified_payload_files'] = checked
+    result['ready'] = not errors
+    return result
 
-    module_version = getattr(core_module, "__version__", None)
-    source_commit = getattr(core_module, "__source_commit__", None)
-    module_file = getattr(core_module, "__file__", None)
-    if distribution_version != EXPECTED_VERSION or module_version != EXPECTED_VERSION:
-        errors.append("SyncMate Core version mismatch")
-    if source_commit != EXPECTED_SOURCE_COMMIT:
-        errors.append("SyncMate Core source commit mismatch")
-    if not module_file:
-        errors.append("SyncMate Core module location is unavailable")
-    return {
-        "ready": not errors,
-        "expected": {
-            "distribution": EXPECTED_DISTRIBUTION,
-            "version": EXPECTED_VERSION,
-            "source_commit": EXPECTED_SOURCE_COMMIT,
-        },
-        "observed": {
-            "distribution": EXPECTED_DISTRIBUTION,
-            "distribution_version": distribution_version,
-            "version": module_version,
-            "source_commit": source_commit,
-            "module_file": str(Path(module_file).resolve()) if module_file else None,
-        },
-        "errors": errors,
-    }
 
-
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Verify the exact independent SyncMate Core dependency"
-    )
-    parser.add_argument("--json", action="store_true")
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
     result = verify_core_dependency()
-    if args.json:
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-    else:
-        print("SyncMate Core dependency: " + ("ready" if result["ready"] else "blocked"))
-        for error in result["errors"]:
-            print("  error: " + error)
-    return 0 if result["ready"] else 1
+    print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
+          'SyncMate Core dependency: ' + ('ready' if result['ready'] else 'blocked') +
+          '\n' + '\n'.join(result['errors']))
+    return 0 if result['ready'] else 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

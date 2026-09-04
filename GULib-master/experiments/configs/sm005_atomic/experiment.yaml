@@ -1,0 +1,12 @@
+kind: experiment
+schema_version: 1
+experiment_id: sm005-cora-degree-gnndelete
+stage: unlearning
+dataset_ref: dataset.yaml
+selector_refs:
+- degree.yaml
+unlearning_refs:
+- gnndelete.yaml
+evaluation_refs:
+- utility.yaml
+matrix: cartesian_product

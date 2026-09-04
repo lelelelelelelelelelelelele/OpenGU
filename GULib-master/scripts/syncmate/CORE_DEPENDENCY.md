@@ -1,6 +1,6 @@
 # Independent SyncMate Core dependency
 
-The default OpenGU compatibility entry requires the `syncmate` Python distribution at version `0.2.0` on Python 3.8 or newer. The package must expose audited Core source commit `4f0242306ba2707cbaadb9abce3c45d9ea4d0d51` through `syncmate_core.__source_commit__`.
+The OpenGU entry requires the installed `syncmate` distribution at version `0.3.0` on Python 3.8 or newer. [core_dependency.json](core_dependency.json) pins the published source commit, wheel SHA-256, and every wheel payload file. The current source is SyncMate commit `5feef53503ab81f4360ba38a6121f52390b7b221`; the wheel SHA-256 is `356653ba3abacb9b53f544ebbfbfa7b978b113451e061c190169b4e25576d84d`.
 
 Verify the active interpreter before using `scripts/syncmate/syncmate.py`:
 
@@ -8,6 +8,6 @@ Verify the active interpreter before using `scripts/syncmate/syncmate.py`:
 python scripts/syncmate/verify_core_dependency.py --json
 ```
 
-The verifier fails closed when the distribution is absent, either version source disagrees, or the audited source commit differs. It does not search sibling directories or fall back to an embedded Project monolith.
+The verifier checks distribution/module versions, the actual imported module location, the complete package file set, and installed file SHA-256 values against the reviewed wheel payload. It rejects missing, modified, residual, or shadowed modules. Source provenance belongs to the pinned release and installation receipt; Core no longer self-declares a commit through a Python attribute.
 
-A wheel built from the local Core worktree proves local packaging and disposable-install behavior only. Until the Core commits are explicitly pushed/tagged to an authorized remote, another device cannot reproduce this dependency from a published Git or package index reference; remote publication remains unverified and is outside this local migration.
+SyncMate owns its independent `.workblock/actions/install.json`: publish the exact source, then install the same verified wheel on the controller and SSH runner. OpenGU's install action only synchronizes OpenGU code. The 0.3.0 wheel has been installed and read back on both endpoints; subsequent checks must use the active interpreter. Remote GitHub acquisition follows the registered one-shot academic acceleration policy; a local verified wheel transferred over SSH does not require remote GitHub or PyPI access.

@@ -30,7 +30,13 @@ def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Ma
     return preflight_gu(str(contract.get("stage") or ""), config_path)
 
 
+def _atomic_preflight(definition, config_path):
+    from experiments.syncmate_atomic_stage import preflight
+    return preflight()
+
+
 _PREFLIGHT_HANDLERS = {
+    "sm005-atomic-gpu-v1": _atomic_preflight,
     "target-direct-selection-4090-v1": _target_selection_preflight,
     "target-direct-gu-4090-v1": _target_gu_preflight,
 }

@@ -1,82 +1,49 @@
-from __future__ import annotations
-
-import importlib.util
-import sys
+import hashlib
+import json
 from importlib import metadata
 from pathlib import Path
 from types import SimpleNamespace
-
 import pytest
+from scripts.syncmate.verify_core_dependency import verify_core_dependency
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-VERIFY_PATH = PROJECT_ROOT / "scripts" / "syncmate" / "verify_core_dependency.py"
-EXPECTED_VERSION = "0.2.0"
-EXPECTED_SOURCE_COMMIT = "4f0242306ba2707cbaadb9abce3c45d9ea4d0d51"
+@pytest.fixture
+def installed(tmp_path):
+    package = tmp_path / 'syncmate_core'
+    package.mkdir()
+    source = package / '__init__.py'
+    source.write_text('__version__ = "0.3.0"\n', encoding='utf-8')
+    pin = tmp_path / 'pin.json'
+    pin.write_text(json.dumps({'distribution': 'syncmate', 'version': '0.3.0',
+        'files': {'syncmate_core/__init__.py': hashlib.sha256(source.read_bytes()).hexdigest()}}))
+    return {'distribution_lookup': lambda name: SimpleNamespace(version='0.3.0', locate_file=lambda p: tmp_path / p),
+            'core_module': SimpleNamespace(__version__='0.3.0', __file__=str(source)), 'pin_path': pin}
 
 
-def _load_verifier():
-    spec = importlib.util.spec_from_file_location("verify_core_dependency_test", VERIFY_PATH)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+def test_absent_distribution_fails_closed(installed):
+    def missing(name):
+        raise metadata.PackageNotFoundError(name)
+    installed['distribution_lookup'] = missing
+    result = verify_core_dependency(**installed)
+    assert not result['ready']
+    assert result['errors'] == ['SyncMate Core distribution is not installed']
 
 
-def test_missing_core_distribution_fails_closed():
-    verifier = _load_verifier()
-
-    def missing(_name: str) -> str:
-        raise metadata.PackageNotFoundError("syncmate")
-
-    result = verifier.verify_core_dependency(
-        version_lookup=missing,
-        core_module=None,
-    )
-
-    assert result["ready"] is False
-    assert result["errors"] == ["SyncMate Core distribution is not installed"]
+def test_exact_payload_passes_without_self_declared_commit(installed):
+    assert verify_core_dependency(**installed)['ready']
 
 
-@pytest.mark.parametrize(
-    "version,commit,error",
-    [
-        ("9.9.9", EXPECTED_SOURCE_COMMIT, "SyncMate Core version mismatch"),
-        (EXPECTED_VERSION, "0" * 40, "SyncMate Core source commit mismatch"),
-    ],
-)
-def test_wrong_core_identity_fails_closed(version: str, commit: str, error: str):
-    verifier = _load_verifier()
-    core = SimpleNamespace(
-        __version__=version,
-        __source_commit__=commit,
-        __file__="C:/disposable/site-packages/syncmate_core/__init__.py",
-    )
-
-    result = verifier.verify_core_dependency(
-        version_lookup=lambda _name: version,
-        core_module=core,
-    )
-
-    assert result["ready"] is False
-    assert error in result["errors"]
-
-
-def test_exact_installed_core_identity_passes():
-    verifier = _load_verifier()
-    core = SimpleNamespace(
-        __version__=EXPECTED_VERSION,
-        __source_commit__=EXPECTED_SOURCE_COMMIT,
-        __file__="C:/disposable/site-packages/syncmate_core/__init__.py",
-    )
-
-    result = verifier.verify_core_dependency(
-        version_lookup=lambda _name: EXPECTED_VERSION,
-        core_module=core,
-    )
-
-    assert result["ready"] is True
-    assert result["errors"] == []
-    assert result["observed"]["version"] == EXPECTED_VERSION
-    assert result["observed"]["source_commit"] == EXPECTED_SOURCE_COMMIT
+@pytest.mark.parametrize('change', ['corrupt', 'missing', 'shadow', 'version', 'residual'])
+def test_installation_identity_failures(installed, change):
+    path = Path(installed['core_module'].__file__)
+    if change == 'corrupt':
+        path.write_text('changed')
+    elif change == 'missing':
+        path.unlink()
+    elif change == 'shadow':
+        installed['core_module'].__file__ = str(path.parent.parent / '__init__.py')
+    elif change == 'version':
+        installed['core_module'].__version__ = '0.2.0'
+    else:
+        path.with_name('legacy.py').write_text('obsolete')
+    assert not verify_core_dependency(**installed)['ready']
