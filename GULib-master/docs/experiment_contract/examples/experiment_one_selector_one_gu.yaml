@@ -2,8 +2,6 @@ kind: experiment
 schema_version: 1
 experiment_id: one-selector-one-gu
 round: 1
-research_question: 一个选点配置交给一个图遗忘方法后，效用如何变化？
-decision_owner: research_owner
 stage: unlearning
 dataset_ref: dataset_cora.yaml
 selector_refs:

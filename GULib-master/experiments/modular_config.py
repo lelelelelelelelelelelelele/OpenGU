@@ -174,7 +174,7 @@ def load_experiment(path):
     path = Path(path).resolve()
     value = read_yaml(path)
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
-    fields(value, required | {'round', 'research_question', 'decision_owner',
+    fields(value, required | {'round',
         'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:

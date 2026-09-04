@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting_acceptance`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -79,6 +79,7 @@ Execution topology: `parallel`
 - Evaluation 能力按消费者登记：`post_unlearning_utility` 已由 modular CPU 消费者执行；`post_unlearning_utility_and_retrain_gap` 仅在已有三模型输入的 target-direct SyncMate lane 可用。历史 GIF/IDEA hop-flip 指标问题不在本 Block 宣称修复，本轮也未重新执行 SSH/GPU Evaluation。
 - 2026-09-05 用户确认职责口径：026 的结构遵循 AAGU-001，能力边界服务 AAGU-015；026 交付可执行配置、方法级缓存与 Selection→GU 消费链，015 拥有三数据集、17 Selector、两 GU、排名比较、配对重训练和正式实验结果。删除未被协议采用且没有消费者的 `rank_agreement_and_topk_overlap` 占位配置，避免把设计名称误写成已实现能力；已有排名比较原语仍由 015 的实际分析入口按其合同消费。
 - 2026-09-05 用户进一步确认原子语义：026 必须支持每一个独立的 `1 Dataset/Split × 1 Selector × 1 Unlearning × 1 Evaluation`，同时允许只执行 Selector，或让 GU 直接消费已有 Selection。多引用计划只是批量调度独立 cell，不要求各方法形成不可拆的乘积或共同缓存身份。新增真实 `1×1×1` 示例，并以既有 CPU 消费者覆盖这三条路径。
+- 2026-09-05 用户进一步精简实验大表：`research_question` 与 `decision_owner` 没有执行消费者，也不参与科研或缓存身份；从协议允许字段、运行摘要和全部示例中删除。研究问题与决定责任继续由 WorkItem／实验说明拥有，不复制进可执行 YAML。
 - 2026-09-05 原子语义检查点 `8918aa082867bf8cd8f61c87cd950a636909e2a6`：123 项 CPU／集成检查和 182 项 SyncMate 检查通过；单独 Selector、已有 Selection→单个 GU、完整 `1×1×1` 三条路径均有真实消费者或计划 dry-run 覆盖。主项目 3,990 个历史结果文件及全部列入保护的缓存根前后逐文件哈希一致。
 
 - 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。

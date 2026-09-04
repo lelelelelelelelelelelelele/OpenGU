@@ -80,7 +80,7 @@ def _plan_summary(config):
         'configuration_sources': config['configuration_sources'],
         'experiment_annotations': {
             key: config[key]
-            for key in ('round', 'research_question', 'decision_owner') if key in config
+            for key in ('round',) if key in config
         },
     }
 
