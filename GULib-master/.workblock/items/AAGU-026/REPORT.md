@@ -1,20 +1,20 @@
-# AAGU-026 · 配置独立，缓存按真实依赖复用
+# AAGU-026 · 科研计划与执行上下文正交
 
 ## Human Result
 
 ### 实际增量
 
-Dataset/Split、Selector 和 Unlearning 现在各用独立小表，实验大表只组合引用。Selector 可以单独运行，也可以由另一实验直接引用已有 Selection 执行 GU。通用训练型 selector 已隔离 GU 参数；target-direct 的 17 种评分各自拥有缓存身份。
+科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列引用和组合。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。
 
 ### 核心观察
 
-真实 CPU 小图中，改实验编号、GU 学习率、GU 方法或 GU 专用推理实现，原 Selection 都保持命中；只改 B-Hutch 探针数时，degree 和 TracIn 继续命中。省略默认值与显式同值等价，预算只改变 Selection。17 种评分与重构前公式逐项对照，最大绝对差均为 0；冷、热两次均实际执行。
+五 Selector × 两 GU × 一 Evaluation 的计划可完整 dry-run；B-Hutch 32 小表只写 last_layer，64 小表只多 probes: 64。真实 CPU 消费者中，改变 Evaluation 只改变 Evaluation receipt，Selection 与 GU Result 均 HIT；普通 modular lane 引用缺少 exact-retrain 输入的 retrain-gap case 会在写 Store 前失败。设备与 Torch/CUDA build 只进入执行回执，不再进入 Score/Checkpoint 身份。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-建议接受本 Block 的配置与缓存隔离增量。115 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、返工或拒绝；正式 GPU、SSH 部署和科研方案判断不在这些 CPU 证据中。
+建议接受本 Block 的返工候选。122 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。
 
 ## 逐方法冷／热观察
 
@@ -23,12 +23,30 @@ Dataset/Split、Selector 和 Unlearning 现在各用独立小表，实验大表�
 | 方法 | 冷／热相同 Recipe | 冷 → 热 | 改 probes 后 Recipe | 结果 |
 |---|---|---|---|---|
 | degree | 4632f3549de7 | MISS → HIT | 4632f3549de7 | HIT |
-| B-Hutch | d161146268d2 | MISS → HIT | 7f5ca680f259 | MISS |
-| TracIn point cp3 | ffdd73793bc7 | MISS → HIT | ffdd73793bc7 | HIT |
+| B-Hutch | 530d46acce6e | MISS → HIT | 663accb8a34e | MISS |
+| TracIn point cp3 | 959a8c84a0c0 | MISS → HIT | 959a8c84a0c0 | HIT |
 
 完整身份、有效配置、参数来源和 producer 观察见 [observations.json](evidence/observations.json)。
 
 ## 核心验收逐项判断
+
+### 真实组合表与简写小表 — PASS
+
+可解析计划明确列出 5 个 selector_refs、2 个 unlearning_refs 和 1 个 evaluation_ref。B-Hutch 32 沿用注册默认 probes=32，只显式写 last_layer；B-Hutch 64 只增加 probes=64。完整有效参数及来源仍进入 dry-run／运行证据。
+
+证据：`experiment_five_selectors_two_gu.yaml / test_minimal_method_files_expand_real_defaults`。
+
+### 运行上下文正交 — PASS
+
+实验 YAML 出现 device、store_root、runtime_root、output、execution_authorized 或 execution_binding 会被拒绝。项目 ExecutionContext 固定一个 results/cache_v2，并按 job ID 生成 checkpoint、scratch 和 output；设备与 Torch/CUDA 版本只在 execution receipt。
+
+证据：`test_operational_fields_are_rejected_and_context_is_external / test_project_context_owns_fixed_store_runtime_device_and_output / test_device_and_library_build_are_execution_provenance_not_recipe_identity`。
+
+### Evaluation 独立与失败关闭 — PASS / BOUNDED
+
+post_unlearning_utility 可独立选取指标；只改变其指标集合时既有 Selection 和 GU Result 均 HIT，只有 evaluation receipt 改变。普通 modular lane 没有 exact retrain，因此 post_unlearning_utility_and_retrain_gap 会在任何 Store 写入前拒绝；target-direct SyncMate lane 明确绑定了它的现有三模型消费者。
+
+证据：`test_evaluation_is_independent_and_unimplemented_case_fails_closed / test_formal_selector_reference_is_consumed_and_frozen`。
 
 ### 跨实验复用 — PASS
 
@@ -62,7 +80,7 @@ Selector 使用真实 SGC、GU 使用真实 GCN/GNNDelete，运行完成且两�
 
 ### 入口与无 producer 消费 — PASS
 
-独立进程实际运行 experiments/run.py 的 dry-run、selector-only，再用其 Selection 执行 GNNDelete。另一个测试把 selector 入口替换为必定抛错的函数，Selection→GU 冷／热两次仍成功，selector_producer_called=false。
+独立进程运行 experiments/run.py 的计划 dry-run；不带外部 ExecutionContext 的实际执行被拒绝。测试随后用显式验证上下文完成 selector，再把其 Selection 交给 GNNDelete；禁止 selector producer 后，Selection→GU 冷／热仍成功。
 
 证据：`test_real_command_entry_selector_and_existing_selection / test_real_gu_consumes_existing_selection_without_producer`。
 
@@ -78,9 +96,9 @@ Selector 使用真实 SGC、GU 使用真实 GCN/GNNDelete，运行完成且两�
 
 证据：`test_all_seventeen_methods_match_pre_refactor_formulas`。
 
-### 正式链路接纳 — PASS / NOT OBSERVED
+### 正式 SyncMate 链路 — PASS / NOT OBSERVED
 
-summary/receipt version 3 逐方法检查身份、cold/warm 和时间，正式矩阵仅作必要字段与 SHA 同步。通过本地测试；未运行远端正式 GPU，也未验证远端部署。
+target-direct formal 科研表已从内联方法名改为 17 个 Selector 引用，并独立引用 GNNDelete 与 retrain-gap Evaluation；引用内容由 stage 校验。GPU 名称、CUDA 序号和所有运行路径来自 SyncMate preflight／项目策略。静态 recipe 的配置 SHA 已同步。
 
 证据：`test_target_direct_syncmate_stage.py / test_syncmate.py`。
 
@@ -90,7 +108,13 @@ summary/receipt version 3 逐方法检查身份、cold/warm 和时间，正式�
 
 证据使用 20 节点、3 特征、2 类的临时 CPU 图，三个已持久化 mask 为 10/5/5。常规训练 3 epoch、数值对照 6 epoch；GU 使用缩小计算量的真实 GNNDelete/GIF。它证明配置传递和缓存行为，不证明大图性能、IF 近似质量或攻击有效性。
 
-当前模块入口支持 GCN 两层、SGC 三层，GNNDelete/GCN 以及 GIF/GCN、SGC 的节点删除。超出实现的字段和组合直接拒绝。新入口仅允许 verification；原正式矩阵仍走其登记 launcher。
+当前模块入口支持 GCN 两层、SGC 三层，GNNDelete/GCN 以及 GIF/GCN、SGC 的节点删除。模型和训练可在小表省略默认值，也可由两侧分别显式覆盖；超出实现的字段和组合直接拒绝。
+
+post_unlearning_utility 已在 modular lane 实际执行。post_unlearning_utility_and_retrain_gap 只在现有 target-direct SyncMate lane 声明可用，因为它需要 model_before、model_unlearned 和同一 Selection 的 exact retrain；本轮未在 SSH/GPU 上重新执行该消费者。rank_agreement_and_topk_overlap 尚无消费者，直接拒绝。
+
+仓库指标目录记录的历史 GIF/IDEA hop-flip 问题没有在本 Block 被掩盖或宣称修复；本次 Evaluation 表不接纳这些已知受影响指标。旧 retrain seed 问题已有既存修复，本轮没有把代码存在等同于所有 lane 都已完成。
+
+跨 device HIT 的验证边界是身份结构：Score 与 checkpoint Recipe 只保留 dtype 等科研数值语义，CPU/CUDA/Torch build 位于 execution receipt。是否物理 HIT 仍要求执行端能看到同一个完整 Store；本轮没有用可工作的 CUDA 环境做跨设备实跑。
 
 旧 ScoreBundle 活动共同键已移除；复用既有存储格式，每种方法单独保存一个载荷。旧 Artifact 无删除、覆写、迁移或放宽接纳。源项目的缓存目录本来不存在；主项目 results/runs 的 3,990 文件在本轮 Verify 前后逐文件 SHA 一致。
 
@@ -98,9 +122,11 @@ AAGU-001 的既有 SSH 安装失败未在此处理；AAGU-015 的目标、协议
 
 CPU 进程屏蔽 CUDA；CuPy 提示未找到 CUDA 路径，另有依赖弃用提示，均未造成失败。正式 CUDA 行为未被 CPU 通过数代替。
 
+配对报告的 Human Result、唯一待决定投影和本地链接已通过结构检查。浏览器安全策略拒绝自动打开 file:// 页面，因此本轮更新后的桌面与窄屏视觉结果为 NOT OBSERVED；这不升级为视觉 PASS。
+
 ## 候选、复核与后续决定
 
-观察记录绑定已执行检查的 Git checkpoint `353a07fa23f05ea5cb02cb87b6761e22bc8a75d6`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 记录精确 HEAD、与该检查点的实际差异、证据复用理由及报告结构／视觉检查，不另设候选身份。
+观察记录绑定已执行检查的 Git checkpoint `35eeced6b348caadb64506f000105c9507df2a55`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 将记录精确 HEAD、与该检查点的报告差异和复用理由。
 
 [WorkItem](WORKITEM.md) · [模块使用说明](../../../docs/modular_experiments.md) · [可重跑验证脚本](evidence/verify.py) · [最终 Verify](../../runtime/aagu-026/final-verification.json)
 

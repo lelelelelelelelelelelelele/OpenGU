@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting_acceptance`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -19,15 +19,15 @@ Execution topology: `parallel`
 
 ### 核心意图
 
-让已划分数据、Selector 和 Unlearning 各自拥有清楚的配置与缓存身份，同一份选点结果能够被不同实验和 GU 方法可靠复用。更换实验编号、GU 专属参数或无关的下游实现，不应让没有改变的选点计算误判为 MISS；某个 selector 的参数改变，也不应迫使无关 selector 一起重新计算。
+让已划分数据、Selector、Unlearning 和 Evaluation 各自拥有清楚的科研配置与证据身份，同一份选点结果能够被不同实验、GU 方法和评估方案可靠复用。实验计划只说明“做什么”，Device、Store、Runtime 和 Output 由 SyncMate／项目执行策略说明“在哪里、怎样运行”。更换实验编号、GU 专属参数、Evaluation 或无关的下游实现，不应让没有改变的选点计算误判为 MISS；某个 selector 的参数改变，也不应迫使无关 selector 一起重新计算。
 
 ### 本次增量
 
-消费 AAGU-001 接受后的三层实验配置合同，在当前通用执行链和 target-direct 执行链中落实独立配置实例及明确引用：Dataset/Split 引用已经持久化的数据与划分，Selector 拥有方法、自己的模型与训练配置、方法专属参数和删除预算，Unlearning 拥有 GU 方法、自己的目标模型与训练配置及遗忘参数；实验大表只负责组合和执行终点，不隐式覆盖小表参数。
+消费 AAGU-001 接受后的三层实验配置合同，在当前通用执行链和 target-direct 执行链中落实独立配置实例及明确引用：Dataset/Split 引用已经持久化的数据与划分，Selector、Unlearning 和 Evaluation 分别拥有各自的小表；实验大表只负责组合，不隐式覆盖小表参数。模型与训练可以使用方法注册默认值，也可以在两侧配置中分别显式覆盖，不把其放置方式做成额外合同。
 
 每个配置实例使用一个文件；同一方法的变体仅通过不同配置表表达，不新增变体机制或重复算法实现。修复当前训练型 selector 将 GU 参数及无关下游源码指纹纳入键的问题，将 target-direct 整包评分的共同身份拆为方法级身份；共同模型、轨迹或其他中间计算可以在依赖相同时共享，但不得再以整包共同键决定所有方法的 HIT/MISS。
 
-保留统一 Cache V2 Store、默认缓存能力、精确身份和完整性校验。实验可以只完成 selector；另一实验可以直接消费匹配且已验证的 Selection Artifact 执行 GU。两侧模型分别声明，只有实际身份匹配才共享 checkpoint；不改变现有科研公式、节点删除语义或已批准矩阵。
+保留统一 Cache V2 Store、默认缓存能力、精确身份和完整性校验。实验可以只完成 selector；另一实验可以直接消费匹配且已验证的 Selection Artifact 执行 GU。设备与软件 build 进入执行回执，不进入 Score 或 checkpoint 的科研身份；跨设备物理 HIT 仍要求执行端看见同一完整 Store。不改变现有科研公式、节点删除语义或已批准矩阵。
 
 ### 核心验收
 
@@ -75,14 +75,17 @@ Execution topology: `parallel`
 ## Execution record
 
 - 2026-09-05 用户返工：实验 YAML 只保留科研配置与组合；方法小表只显式写实际选择/覆盖值，默认值留在方法所有者并进入运行证据。Device、Store、Runtime、Output 与执行授权移交项目运行策略/SyncMate，不得污染或分裂缓存。Evaluation 作为独立引用设计，未定义的 case 失败关闭。模型配置位置不作为关键约束。
+- 2026-09-05 返工候选检查点 `35eeced6b348caadb64506f000105c9507df2a55`：新增外部 `ExecutionContext`，科研 YAML 中出现运行字段会直接拒绝；真实 target-direct formal 表改为引用 17 个 Selector、1 个 GNNDelete 和 1 个 retrain-gap Evaluation 小表，SyncMate stage 消费并冻结这些引用。五 Selector × 两 GU × 一 Evaluation 的示例计划可完整 dry-run。
+- Evaluation 能力按消费者登记：`post_unlearning_utility` 已由 modular CPU 消费者执行；`post_unlearning_utility_and_retrain_gap` 仅在已有三模型输入的 target-direct SyncMate lane 可用；`rank_agreement_and_topk_overlap` 尚无消费者并失败关闭。历史 GIF/IDEA hop-flip 指标问题不在本 Block 宣称修复，本轮也未重新执行 SSH/GPU Evaluation。
+- 2026-09-05 Verify：122 项 CPU／集成检查和 182 项 SyncMate 检查通过；主项目 3,990 个历史结果文件及全部列入保护的缓存根前后逐文件哈希一致。观察记录绑定上述代码检查点；报告、WorkItem 和证据投影完成后，最终 runtime Verify 再绑定 source branch 的 clean HEAD。
 
 - 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。
 - 独立实例入口为 `experiments/run.py` → `modular_config.py / modular_run.py`；方法默认值、训练、评分、GU 消费分属各自模块。使用既有统一 Cache V2 Store，不增加整包共同键或 Legacy 回退。
-- target-direct 的正式矩阵与启动授权保持原合同，summary/receipt 升级为逐方法 version 3；同步修改冻结配置字段及其 SyncMate SHA。这里只验证本地消费者与接纳代码，未执行 SSH、正式 GPU、push、install、Apply 或历史载荷写入。
+- target-direct 的正式矩阵科研内容保持不变，但配置由内联方法改为引用小表；GPU 名称、CUDA 序号、运行路径和启动授权由 SyncMate preflight／项目执行策略拥有。summary/receipt 仍按逐方法 version 3 接纳；这里只验证本地消费者与接纳代码，未执行 SSH、正式 GPU、push、install、Apply 或历史载荷写入。
 - 使用说明：[独立配置与消费者](../../../docs/modular_experiments.md)。可重跑 Verify：[evidence/verify.py](evidence/verify.py)，运行原始 XML、日志和历史目录清单放在忽略的 `.workblock/runtime/`。
 - 2026-09-04 Verify：115 项 CPU／集成检查和 182 项 SyncMate 检查通过；17 个评分与原表达式数值最大绝对差均为 0。主项目 3,990 个历史结果文件及所列缓存根在 Verify 前后哈希一致。证据只支持本地配置与身份隔离，不构成正式 GPU 或科研接纳。
 - 人类验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)；完整观察：[observations.json](evidence/observations.json)。Agent 建议接受；当前决定待决定，用户拥有最终决定。
-- 配对报告推进同一 source HEAD 后，按实际差异复用 353a07fa23f05ea5cb02cb87b6761e22bc8a75d6 上的消费者检查，只重新校验报告生成、结构、真实桌面/390px 渲染、链接和候选洁净度。最终精确 HEAD 与复用理由见 [final-verification.json](../../runtime/aagu-026/final-verification.json)。
+- 配对报告推进同一 source HEAD 后，按实际差异复用 `35eeced6b348caadb64506f000105c9507df2a55` 上的 122+182 项消费者检查，并重新校验报告生成、Human Result 结构、链接和候选洁净度。浏览器安全策略拒绝自动打开本地 `file://` 报告，更新后的桌面/窄屏视觉结果保持 `NOT OBSERVED`，不写成视觉 PASS。最终精确 HEAD 与复用理由见 [final-verification.json](../../runtime/aagu-026/final-verification.json)。
 - 候选与报告完成后，将 canonical Claim 从 ongoing 转为 awaiting_acceptance；未 Apply、push、install 或清理。
 
 ## Status history
