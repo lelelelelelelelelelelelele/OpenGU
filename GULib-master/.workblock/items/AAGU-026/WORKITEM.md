@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -102,3 +102,4 @@ Execution topology: `parallel`
 - `accepted`（2026-09-05T05:59:29.9393901+08:00）：用户 基于 用户明确回复：026可以accept 接受当前已验证候选。
 - `accepted` -> `working / claimed`：组合验证失败：SyncMate 测试收集时无法从当前 syncmate_core 导入 legacy；目标运行时缺少 final-verification 链接文件；返回同一 Block 返工。
 - 2026-09-05：组合验证复核确认首次失败来自当前 SyncMate 可编辑安装指向尚未接受的 SM-004 分支；以已落地主线 `main@a4d1c5d4b779ed822ed2b7ca19d255151958a5dc` 的隔离快照重跑 OpenGU 消费回归，182 项通过。AAGU-026 产品代码未改变；目标运行时补齐忽略态 final-verification 凭据后重新进入 Closeout。
+- `accepted`（2026-09-05T05:59:29.9393901+08:00）：用户 基于 用户明确回复：026可以accept；后续仅澄清已落地主线验证身份，产品代码未改变 接受当前已验证候选。
