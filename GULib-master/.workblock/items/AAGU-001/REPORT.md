@@ -69,7 +69,7 @@
 
 - 审查基线：`8383e30239398c5268965e088afdfba7abc74ca9`。
 - 内容检查 checkpoint：`c0c433f66eb1def3dab06e05ac7ebd4ecbef026c`；[原始回执](evidence/verification.json)绑定该 checkpoint，不冒充正式实验结果。
-- 本轮内容 checkpoint：`53d0ed22d8baafe39a3f1eca5255f64c05d0f608`；[本轮内容回执](evidence/defaults-verification.json)绑定该提交。待决定候选为本报告所在 source branch `refs/heads/codex/aagu-001-experiment-contract` 的干净 HEAD；报告对齐后的复验另存[最终回执](../../runtime/evidence/AAGU-001/verify-defaults-final.json)。
+- 本轮内容 checkpoint：`53d0ed22d8baafe39a3f1eca5255f64c05d0f608`；[本轮内容回执](evidence/defaults-verification.json)绑定该提交。待决定候选为本报告所在 source branch `refs/heads/codex/aagu-001-experiment-contract` 的干净 HEAD；报告对齐后的复验另存[最终回执](../../runtime/evidence/AAGU-001/verify-defaults-final-aligned.json)。
 - 命令：项目 gnn Python 运行 `evidence/verify_contract.py --checkpoint <精确提交> --output <本 Block runtime evidence 路径>`；另运行 `scripts/dashboard/refresh.py --check` 和 `python -m unittest tests.test_dashboard_refresh -v`。
 - HTML 渲染检查：PASS。已实际渲染并查看 1366×900 桌面与 390×844 窄屏首尾；无页面横向溢出或断图，正文可读。桌面首屏完整决定区底部为 640.75px；窄屏正文自然纵向滚动，不声称整块建议都在首屏。[桌面首屏](../../runtime/evidence/AAGU-001/defaults-desktop-top.png)、[窄屏首屏](../../runtime/evidence/AAGU-001/defaults-narrow-top.png)。
 - 当前没有 Apply、push、install、SSH 写入或 026 Claim。下一步是用户对 001 的 formal 决定，不自动进入 026。
