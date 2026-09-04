@@ -4,7 +4,7 @@ Block ID: `AAGU-015`
 
 Item Version: 2.1
 
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 
 Item Type: Block
 
@@ -16,6 +16,12 @@ Execution topology: `parallel`
 
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`19b3b865ba617ed0216ae43c0ea2225731290de8`
+
+> Source branch：`refs/heads/codex/aagu-015-selector-evidence`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -106,3 +112,15 @@ YAML 是本 Block 的第一项可审阅产物，不是最终实验结论。正�
 - 2026-08-26: registered as a numbered Todo candidate; promotion and acceptance contract are deferred to the scientific-definition task.
 - 2026-09-04: 用户重申实验运行必须在 001 实验框图之后，015 同样遵守；将已有 001 前置关系写入同一 Todo，补齐 2.1 Human Surface。保留 todo candidate、未 Promote、未 Claim、未实施或接受。
 - 2026-09-05: 用户确认已讨论的 Selector 两阶段实验 formation preview；同一 AAGU-015 原地 Promote 为 `EXP` Block，新增可执行 YAML、三小图 17-selector、时间证据、固定 Selection→GNNDelete/GIF 与 paired-retrain 范围。状态为 `registered / not claimed`；未 Claim、运行或生成实验结果。
+- 2026-09-05: 用户明确要求使用 block-workflow 执行同一 locator，任务标题为 `AAGU-015 · Selector 两阶段实验与证据`。在 `main@19b3b865ba617ed0216ae43c0ea2225731290de8` 上核实 001、006、026、009 已接受并落地，标准 start 创建 linked source 并 Claim；此前“仅 Promote/注册”描述保留为历史阶段，不再限制已授权的本地实施。
+
+## Run checkpoint · YAML 与正式门槛
+
+- 实际 source project：`E:/project/OpenGU-worktrees/aagu-015-selector-evidence/GULib-master/GULib-master`；Git 根位于其父目录。使用标准 start 返回的路径，不根据目录名猜测。
+- Canonical Claim：主项目 `.workblock/runtime/claims/AAGU-015.json`；claimId `6f286852-d42c-43ce-be07-9b773247a673`，owner `codex`，session `AAGU-015 · Selector 两阶段实验与证据`，phase `ongoing`。本轮不转 awaiting_acceptance。
+- 已实现 [配置源表与运行说明](../../../experiments/configs/aagu015/README.md)、[生成器](../../../experiments/aagu015/definitions.py) 和定义专用回归。生成源表不承担实验执行；424 份生成 YAML 均使用已接受的 modular schema。
+- 阶段 S 展开 306 cell，阶段 U 展开 612 个候选 GU cell；完整有效配置、字段来源、预算预期及依赖组由实际 parser/dry-run 输出。输入空值明确表示未绑定，不伪造 data、split、checkpoint 或 Selection 哈希。
+- Stage U 不含 selector_refs；已有入口会拒绝缺完整重训练消费者的评价 case。当前只证明声明与失败关闭，未证明真实固定 Selection→GU→Retrain/Evaluation 已完成。
+- 当前前置差距：canonical `.syncmate/device.yaml` 缺失；本轮配置尚在 linked source；没有注册到本轮 YAML 的正式 launcher；真实数据身份、checkpoint、单 cell canary、时间与成本证据均未观察。旧 target-direct recipe 和历史结果不能替代。
+- 执行顺序的用户决定边界：`experiments/AGENTS.md` §7 要求正式实验先使用三端同一已落地 main，而本 Record 的最终 formal 接受依赖实验结果。需要用户明确同一 015 的配置/入口先行落地边界；不得自行把配置检查点升级为整个 EXP 已接受，或以 candidate 分支绕过正式版本要求。
+- 下一步：审阅本配置检查点并明确上述先行落地顺序；随后在同一 015 补齐真实 launcher、完整重训练/评价与输入绑定，经 canary/成本门槛后再由用户决定矩阵调度范围。

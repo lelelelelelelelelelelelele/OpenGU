@@ -1,0 +1,5181 @@
+{
+  "schema": "aagu015.definition_expansion",
+  "version": 1,
+  "evidence_level": "configuration_only",
+  "execution_ready": false,
+  "accepted_parser": "experiments.modular_config.load_experiment",
+  "accepted_dry_run": "experiments.modular_run.execute(dry_run=True)",
+  "producer_called": false,
+  "dataset_read": false,
+  "generated_result_artifacts": [],
+  "counts": {
+    "stage_s": 306,
+    "stage_u": 612,
+    "conditional_preparation_groups": 9,
+    "conditional_score_groups": 141,
+    "conditional_selection_groups": 282
+  },
+  "sharing_caveat": "Configuration dependency groups only, not Recipe/Artifact hashes or observed HITs. Actual data/candidate/checkpoint/producer identities must agree.",
+  "dataset_bindings": {
+    "Cora": {
+      "manifest": null,
+      "manifest_sha256": null,
+      "split_hash": null,
+      "node_id_space": "pyg-global-node-index-v1"
+    },
+    "CiteSeer": {
+      "manifest": null,
+      "manifest_sha256": null,
+      "split_hash": null,
+      "node_id_space": "pyg-global-node-index-v1"
+    },
+    "PubMed": {
+      "manifest": null,
+      "manifest_sha256": null,
+      "split_hash": null,
+      "node_id_space": "pyg-global-node-index-v1"
+    }
+  },
+  "blocking_inputs": [
+    "three verified Dataset/Split manifests and actual data/split/candidate hashes",
+    "checkpoint/trajectory preparation with exact identities under an approved real-input canary",
+    "verified Stage S Selection references; Stage U null inputs must be bound from collected receipts",
+    "registered AAGU-015 launcher, exact retrain and full evaluation consumer",
+    "clean local/origin/SSH main at the same accepted SHA, device setup and GPU preflight",
+    "canary and Stage S cost evidence followed by user scheduling decision"
+  ],
+  "source_yaml_sha256": {
+    "datasets/citeseer.yaml": "279d379dd81169a71373fb0db63c4cfcc7e99d4a384656ad49b9b377340d6476",
+    "datasets/cora.yaml": "2db971b4ded2dd5912b3b5e99321782fbe3952cab9e3677a8c641a3d7c606736",
+    "datasets/pubmed.yaml": "579942c09e53329bbc8bc6995694223d6d6f2e7b7b6c14bccd027bc2d88912da",
+    "evaluations/retrain_gap.yaml": "905af57cf4dc201234d84e11221ea57bd3a37fff61b4aed5c712e0ff791a21da",
+    "generated/selectors/a_grad_norm-seed2024-r0.01.yaml": "7d0450d5927f7c88fde881ebdad235af7d4d49577bf6d21cff94efb785600529",
+    "generated/selectors/a_grad_norm-seed2024-r0.05.yaml": "57507f4631f631851dfd83d54a63cdf9c59d70a952ec69e92def77f17d2e94b6",
+    "generated/selectors/a_grad_norm-seed212-r0.01.yaml": "36cd44412a6298c8f059f95f6a982de1aa8a61784af62ce7ce39b760181e00d9",
+    "generated/selectors/a_grad_norm-seed212-r0.05.yaml": "537836f227e61543a777552b9f65e2b5b43234bc64b124af76186b4dcba46194",
+    "generated/selectors/a_grad_norm-seed42-r0.01.yaml": "dd76e56f26a79b2b5554c60a1761541c345d9c03ca65c2fb208ec95924b02b25",
+    "generated/selectors/a_grad_norm-seed42-r0.05.yaml": "77d9a07cdf4fbbb0d74657f9f396122150746bc2b6d09a39ddbb7e47a1a9f476",
+    "generated/selectors/b_param_hutch-seed2024-r0.01.yaml": "0ee264d1e3e66a12ef84fcc27aa7c099d59b135c2af198bd0b11e2ce4087fb59",
+    "generated/selectors/b_param_hutch-seed2024-r0.05.yaml": "284e8cbcef6763826511e6c505e5c0aba406b932ed3ea78cefd71d2516f2ece5",
+    "generated/selectors/b_param_hutch-seed212-r0.01.yaml": "0d282eaec8357124a3f6259d5aa46704e8227355a0d8b0b693957153bc416778",
+    "generated/selectors/b_param_hutch-seed212-r0.05.yaml": "69d730b3051af9dd69a3f9d07432a58774114bfea5181f6cdaa1758fcd604b69",
+    "generated/selectors/b_param_hutch-seed42-r0.01.yaml": "a57f04660ec1c2526c3a012ed2bfc8a09f4ff549e5783508f39c411ad781e97a",
+    "generated/selectors/b_param_hutch-seed42-r0.05.yaml": "ea53511a5bad02029ba9d4819bd924eb37ebc5df05a6e7102974689a10477960",
+    "generated/selectors/degree-seedindependent-r0.01.yaml": "7860ce9adff0b6bdef4f555567de1108cce2d759d615a034be302b6920c8f900",
+    "generated/selectors/degree-seedindependent-r0.05.yaml": "b319e523cfd62d40faec314b4b67c3c53be033eb8343c6c42558ada41bd04fa9",
+    "generated/selectors/gt_full-seed2024-r0.01.yaml": "dcc1772e7a7bddbc1e1e0fb2a6568c3c1821ed898c420efbfd1e987b94928a66",
+    "generated/selectors/gt_full-seed2024-r0.05.yaml": "9682cef33eeb13d30de35bcf9d1f3f6faea77d1bce4464d7ff1a33dfff4f0bab",
+    "generated/selectors/gt_full-seed212-r0.01.yaml": "06dd8d921af0e5af5f6fba81d66d0e54d6f5a9acca3a395e9b21dd424ce64841",
+    "generated/selectors/gt_full-seed212-r0.05.yaml": "5b7a6d5cf4f7854c3fbd57eb5a80e3327e0119e28ef5ec6c67fbed5076d6e409",
+    "generated/selectors/gt_full-seed42-r0.01.yaml": "97ab603e43db3dda488a55ea0618ddd2ba6d67bffdbadf5650ac03237bcb7d22",
+    "generated/selectors/gt_full-seed42-r0.05.yaml": "4e316ff01345186f34ffe8158eb30260d42e30ab29b97e8c301e2c5343f47b0a",
+    "generated/selectors/gt_simple-seed2024-r0.01.yaml": "8230dff1b4bf5ed7ac3f8a64b381c3ea7bdba2060c60b8758a7153c3911a4cb2",
+    "generated/selectors/gt_simple-seed2024-r0.05.yaml": "a2f8b320ef583f8f5f3d0ce18a238d23803d94a29d231bd818eb0f9bfa85861a",
+    "generated/selectors/gt_simple-seed212-r0.01.yaml": "53dd1294eb7c8b3523e4906b4e10f6cf9b2b23ba61ca230999daf7ea7be5ca6c",
+    "generated/selectors/gt_simple-seed212-r0.05.yaml": "2edf1567f752fe64507708db10df7f38ad45c9d06e12dd8e436998c0ef4f5660",
+    "generated/selectors/gt_simple-seed42-r0.01.yaml": "b6f43ad1ea4ed6d7d4c2a8910c16761aff79564bcf1c41a2d88653af74159069",
+    "generated/selectors/gt_simple-seed42-r0.05.yaml": "9b102b0c31d0725714a331033fe9653077dced15eca113a0a01f731811251b67",
+    "generated/selectors/legacy-seed2024-r0.01.yaml": "f773aec43cc20583053dde633e56a24c85f7d16028d135d73dc20f1132a499be",
+    "generated/selectors/legacy-seed2024-r0.05.yaml": "4d9f866a9f608209cd1420d9f37a1a83048f476785de7e30e090af39cd9fc1b7",
+    "generated/selectors/legacy-seed212-r0.01.yaml": "fee2025a1662826bee345efccf6e80aeba14ddb1b1e770c0903e76b8fef9c60f",
+    "generated/selectors/legacy-seed212-r0.05.yaml": "70e3ccd68e1e03b77e67d9cd3f54359441ed2bb80f3dffff031d9192730e60b9",
+    "generated/selectors/legacy-seed42-r0.01.yaml": "0b0f8a06fe579bf0a71b9860228c775574254298d6448dd789ecd8533be965c9",
+    "generated/selectors/legacy-seed42-r0.05.yaml": "466e36464da18578e9bbd5310d1f75d4cc6640dfc603779cabcd3c04f380730a",
+    "generated/selectors/p_graph-seed2024-r0.01.yaml": "a3a4c7b617167fe3a33d11d6992b678f2b5fb5a94f3531f7f6e98473efb9feac",
+    "generated/selectors/p_graph-seed2024-r0.05.yaml": "68c98c20af536fc9a147680d5c586ae94bbe6676a4b69516c8ff2fea0a44734c",
+    "generated/selectors/p_graph-seed212-r0.01.yaml": "1d02a31ca81b16b1643227fa7a755849b71fc4c94369e6b4f6c26c905aaf42ca",
+    "generated/selectors/p_graph-seed212-r0.05.yaml": "943dd194235aae38ce7e616eaf81e5a2c8cf937b72165a1f7ad0052431fc132e",
+    "generated/selectors/p_graph-seed42-r0.01.yaml": "b92936d33107c781f3e2791916d5a286b4feb0a0015f9cc265368eb8c703d89d",
+    "generated/selectors/p_graph-seed42-r0.05.yaml": "522276146ec8f10270274bb26d4c62d102f2e0e071be0247f3fb1b946464ed79",
+    "generated/selectors/p_point-seed2024-r0.01.yaml": "ef480b316cfb54ac1eac2ba4404cdf6c3abf323bc73df1a5767f87a15251ad9f",
+    "generated/selectors/p_point-seed2024-r0.05.yaml": "27460f37ca62f2924460a7d2f7b3745646f89c60ca04ee93ba7c97f7ea6c0a57",
+    "generated/selectors/p_point-seed212-r0.01.yaml": "4e05a778b0f3392c5c3b4153f8deb66fad76e257b6bb177ddb7363ae5c8f3d19",
+    "generated/selectors/p_point-seed212-r0.05.yaml": "af4661a0102cad840c0fc274fa5b25467baaf4ae29539be8ab6a4e3a5de8d360",
+    "generated/selectors/p_point-seed42-r0.01.yaml": "0033a3140f048ac91009e477512c254a017740c0a759a463e6c5886b01630545",
+    "generated/selectors/p_point-seed42-r0.05.yaml": "da5202d3b950866d4bbbd3b1d420cc20d3ac6da931be3d157ef0939293b1e2db",
+    "generated/selectors/p_simple-seed2024-r0.01.yaml": "3b9f0a0a877172b7a08ac1fd0f49b4e14328f7f24ce6d4154714fe2d8872cced",
+    "generated/selectors/p_simple-seed2024-r0.05.yaml": "b7cb0020d289d168ec5653d9cf5a5e6b2f41c9121f8e0327ae8ddee40c72fb82",
+    "generated/selectors/p_simple-seed212-r0.01.yaml": "d0a31fa032677d50b6500a0ae8cbb8bf4bc34602983c1ef8d3e0198d74e34923",
+    "generated/selectors/p_simple-seed212-r0.05.yaml": "f187179721f08ccc903232317411cd3ed636e246ddd43f645dabea1e48fe8219",
+    "generated/selectors/p_simple-seed42-r0.01.yaml": "5183964d31b4da90a3f7676a277d6285e8594cb60613e9f6c871531d064b0c94",
+    "generated/selectors/p_simple-seed42-r0.05.yaml": "a95248989c1f850dcda56c53ba7514d487cec5ef9a7c5d5b824262e945607942",
+    "generated/selectors/r_point-seed2024-r0.01.yaml": "fa43f5ec4a1866216db7b0bc58598721105c0e8c65bbe0a10bd978aabebd866e",
+    "generated/selectors/r_point-seed2024-r0.05.yaml": "a88a24b6ff220249c50a7629b9d492a5f2941a0993d2275af525a6917d3f08d5",
+    "generated/selectors/r_point-seed212-r0.01.yaml": "cda9211a6b393f423b543cf7ba83ac3a4ccef80576a7ac956a3e29ad14fb210c",
+    "generated/selectors/r_point-seed212-r0.05.yaml": "14becbff39f6cab6a3bdef074a21ee7b011020129d95f783d8a14226cfa4e66c",
+    "generated/selectors/r_point-seed42-r0.01.yaml": "b909a696912602a029d2632c1aa29f516183f33bcbb7ada3e5a9fd307ed1bc2d",
+    "generated/selectors/r_point-seed42-r0.05.yaml": "3f1f10b7cb24b5b9ee7eebcdfb1bb621ba0f819747cafe2ddffc7f20f2e5f3c6",
+    "generated/selectors/random-seedindependent-r0.01.yaml": "ad55f7bff52cef3879f0ffa8681ca1dc424a3cd5871125265d71fa388c680bf0",
+    "generated/selectors/random-seedindependent-r0.05.yaml": "535c5f88cc3c9bdbd54af36fb16d75a37101f7ae4b13fbae1516524ecffd70ac",
+    "generated/selectors/tracin_cp_graph_3-seed2024-r0.01.yaml": "831a54e3dad47636c2272bfc2b6c6b6d1168f555582bec6324e4614b33307623",
+    "generated/selectors/tracin_cp_graph_3-seed2024-r0.05.yaml": "8262ca5cfec5130a42fa432bb0b0deedb824a37dc5d1cb3e465165683d56b0f8",
+    "generated/selectors/tracin_cp_graph_3-seed212-r0.01.yaml": "3e7de83340f078ef8f9bcfb5c12182cd8d8ad9a453102f11da8e1c3a229a5997",
+    "generated/selectors/tracin_cp_graph_3-seed212-r0.05.yaml": "c24848d9eae8bfe9e445a033a3ddb61edff39587257a3d3fe9b8d03ab9ebd0bc",
+    "generated/selectors/tracin_cp_graph_3-seed42-r0.01.yaml": "2e4f09b6b987d28303dfa85fbcd6a68466d03716839e49f09335d8369fa1087f",
+    "generated/selectors/tracin_cp_graph_3-seed42-r0.05.yaml": "433487283322967389d6043e81ed7c26f8b04d2ce0eea356917041aa528886ea",
+    "generated/selectors/tracin_cp_graph_6-seed2024-r0.01.yaml": "451647def30ddff5c59eab4eedada3d5501c3f05607e3d911cc67c268e6df386",
+    "generated/selectors/tracin_cp_graph_6-seed2024-r0.05.yaml": "071b0398116f2cd5102b6bcd4332e659ed95a01a14c5b0f89f982cfc276f43da",
+    "generated/selectors/tracin_cp_graph_6-seed212-r0.01.yaml": "303b2682737a853ee946091dd7b1da1c44bf8b0926e9a64f5eaf4d7720701cdc",
+    "generated/selectors/tracin_cp_graph_6-seed212-r0.05.yaml": "aba6a8f82a85babf92b2542bbcfd8f88861eaaf773d3a87f686a42d408c672ca",
+    "generated/selectors/tracin_cp_graph_6-seed42-r0.01.yaml": "6468011e7bda3dbf72cbc25132e68f5dda55b2519b98764d9dda157e98f1a5c3",
+    "generated/selectors/tracin_cp_graph_6-seed42-r0.05.yaml": "16bf04f3bf7d17008986dccc23e891dac7da7aec962196097eeff74397c7395a",
+    "generated/selectors/tracin_cp_point_3-seed2024-r0.01.yaml": "0c0b77e47362dde5075a779acd4d95c394d2b90c19adace5aa96771ea96d657c",
+    "generated/selectors/tracin_cp_point_3-seed2024-r0.05.yaml": "8cbe96f353d3ed47451befe24459358d13d7b6ad0f7fd3b890164c6a286debbb",
+    "generated/selectors/tracin_cp_point_3-seed212-r0.01.yaml": "3e7fed99216a9024deaec8ef3e85299308df83d8440612b944b5cb3d6379c61f",
+    "generated/selectors/tracin_cp_point_3-seed212-r0.05.yaml": "13d3126c6a64a2da5593ef249d11d253b883f7de6952ed0527cdbabc1db36800",
+    "generated/selectors/tracin_cp_point_3-seed42-r0.01.yaml": "576143f7c1218a6a153ea2e273bfb44bfda9331207833b2b9354aa17d069124b",
+    "generated/selectors/tracin_cp_point_3-seed42-r0.05.yaml": "5a2e7125f79be7104ed8087b6ac24e358f79bb0450a73b4a6df4b1721b24971d",
+    "generated/selectors/tracin_cp_point_6-seed2024-r0.01.yaml": "08a67d89e945e9e54088aa9ff5900677048f33c8f5a88aea30ae799583584f3c",
+    "generated/selectors/tracin_cp_point_6-seed2024-r0.05.yaml": "cc10298a5e31dbf09344af48337679eca169889a7c5c3c9dcfece8a141182c4a",
+    "generated/selectors/tracin_cp_point_6-seed212-r0.01.yaml": "86d4ea48ab73f7c2fdafc0fd1ab37d76380ee0b3e71d8e1c1134794182570d05",
+    "generated/selectors/tracin_cp_point_6-seed212-r0.05.yaml": "91032099e2f9e7cabf7e8cea028a0ce9047da64fe0ddf4698269170064da3a5d",
+    "generated/selectors/tracin_cp_point_6-seed42-r0.01.yaml": "176c388e1c1bea05edf15b79e5fe776662543a4cee417c6ecb8dd5127096a3d8",
+    "generated/selectors/tracin_cp_point_6-seed42-r0.05.yaml": "4bd91b55cf69e032dab1a257beb805ddbe2d1df4add83d902e922669a8a05987",
+    "generated/selectors/tracin_cp_simple_3-seed2024-r0.01.yaml": "f389609d484234e7f9c8d327702a862448b9f074e71dac5e8caf08411e927edc",
+    "generated/selectors/tracin_cp_simple_3-seed2024-r0.05.yaml": "68947c3a690bbf2449da67216f94c74be4f3aeb5e3fca93ef688cd361ba8b984",
+    "generated/selectors/tracin_cp_simple_3-seed212-r0.01.yaml": "6152c9c02538d53622b2eee79d2f49045d3b4dfb5fd2eec74e49fc8301033da3",
+    "generated/selectors/tracin_cp_simple_3-seed212-r0.05.yaml": "8ea73c37c410f60ebe41c594d5645fbd7a56e3d92b86d86b4e87ffa83419c0fd",
+    "generated/selectors/tracin_cp_simple_3-seed42-r0.01.yaml": "e556d465a4e7682fb28a6b0581d68ff83a7d003b1d800f67742287e12fc68ee4",
+    "generated/selectors/tracin_cp_simple_3-seed42-r0.05.yaml": "56c730d474d274296795d4f5a695aa12919f63008b338a192091aa8e6a2cd97b",
+    "generated/selectors/tracin_cp_simple_6-seed2024-r0.01.yaml": "c8c77570e4d5755a949979bccba15368dd9f0933fc712990c7b1c134b2e4165a",
+    "generated/selectors/tracin_cp_simple_6-seed2024-r0.05.yaml": "48a21359d4c40515a6152f77e118ff6631a0412913b2da8b6cedc12024270606",
+    "generated/selectors/tracin_cp_simple_6-seed212-r0.01.yaml": "e2b133e406dc196fff206bd02b2a97c020d93c59bd4352f77c2aad4e7fb54ec2",
+    "generated/selectors/tracin_cp_simple_6-seed212-r0.05.yaml": "5bfa44bf697299510d8668d423d5fd5b53e2b97ca9ed8b0e7a2989d05bd2e84c",
+    "generated/selectors/tracin_cp_simple_6-seed42-r0.01.yaml": "fc173c9f2fdf8928b17c73a6dfb422275a6897ba573e2af8510e684dfa7922ab",
+    "generated/selectors/tracin_cp_simple_6-seed42-r0.05.yaml": "ca4590d2c19c3fe0689e61b299af825880928fd7203a5203372b7fe2a1b46731",
+    "generated/stage_s/citeseer-seed2024-r0.01.yaml": "518c39660e24c1482ad098b2545b8a0ba5fe8881b46cd2e9d25457815bfdfad4",
+    "generated/stage_s/citeseer-seed2024-r0.05.yaml": "8b3c58b778198f7cc24876b022e6edaaf97606535fef402156ba4e205cc3d232",
+    "generated/stage_s/citeseer-seed212-r0.01.yaml": "7bb63b6df9a5539fd1234aab17d51dd23df6f80374fc95defa0a4f3040552adf",
+    "generated/stage_s/citeseer-seed212-r0.05.yaml": "602ea5db0159b74fda90db9d3e0a3f46be7c79043cf24404ff59f1fdd28393d6",
+    "generated/stage_s/citeseer-seed42-r0.01.yaml": "bd0d94854224257853d4ee2e4b5dbd3dae15a0fa59450019e76a21d1e37dd6c3",
+    "generated/stage_s/citeseer-seed42-r0.05.yaml": "835052c035ab566c967a312c0d5864438e2877e68d786cf9d825db181a0dc143",
+    "generated/stage_s/cora-seed2024-r0.01.yaml": "8b49d376a1c5056df982e5d0758e4ecbf3d81861c69802299e3221298a3291ae",
+    "generated/stage_s/cora-seed2024-r0.05.yaml": "a986744af2a4836fd8f3e5482c3e88d1281a006304e9be368da7883d02d781e3",
+    "generated/stage_s/cora-seed212-r0.01.yaml": "638fa0320081b2a2beef33d497968a6ca0385b219bd6d6caa0cd61a70c9c532e",
+    "generated/stage_s/cora-seed212-r0.05.yaml": "d00d88be6bf5fbbcda85a83123509e4c1e5dd3fcfc22900fb73190aca411413a",
+    "generated/stage_s/cora-seed42-r0.01.yaml": "60c7eaacc2190289e73c12ee5a8088d18467cc09b68ec685809336beb038f871",
+    "generated/stage_s/cora-seed42-r0.05.yaml": "2a68ce183637b51f3385f1f8d41a7c808f5a8d4983e1b27879b827ad6ecd3a8d",
+    "generated/stage_s/pubmed-seed2024-r0.01.yaml": "4a34c16c4fa4e4d18f79be1ec3c146506085d0774157b1d2d49b0b60d8e09af6",
+    "generated/stage_s/pubmed-seed2024-r0.05.yaml": "daf035737e8d900b4fcf6ee1a0b9d6ac7740a2980b7506ca1d91fa2b8189400d",
+    "generated/stage_s/pubmed-seed212-r0.01.yaml": "aa86a8977a4b88ab56d44efd20fab64c29336d9822e991c113ca2e251b4e6fc4",
+    "generated/stage_s/pubmed-seed212-r0.05.yaml": "560e32bad7c32b8b70686e2a6bf9032ddba88bfab83643dbdda319ee7c3519b0",
+    "generated/stage_s/pubmed-seed42-r0.01.yaml": "5d7c20c245e0d915b058b2f4a1da694e2e4e1d6734af262db07ba3b2b323e602",
+    "generated/stage_s/pubmed-seed42-r0.05.yaml": "e8beee63b79b2b9584331bc99fa5a5929a2a35116e97edb9c819227f14af5157",
+    "generated/stage_u/citeseer-seed2024-r0.01-a_grad_norm.yaml": "fa9d6a2a151d5d9a3c447e0ec2142c7e3c7c956e0c6434fe4c4cb0b5b61914c6",
+    "generated/stage_u/citeseer-seed2024-r0.01-b_param_hutch.yaml": "c22dacc77bc26c5c6da336c2ee74685e674145efb7ba8a508c138697f75a01aa",
+    "generated/stage_u/citeseer-seed2024-r0.01-degree.yaml": "3ac801b0bb1b51e69445ce16cc28f97efa2b59f51b4280b0c9cd3c339b25a35b",
+    "generated/stage_u/citeseer-seed2024-r0.01-gt_full.yaml": "69e93e24c704b23fd862968b4b9253764a61772ff6c985229b1ffa904b62b581",
+    "generated/stage_u/citeseer-seed2024-r0.01-gt_simple.yaml": "9c7737f3d9f5d1bd71389a8c520cb69cde2cc131f659e8c99d180f0eff91282d",
+    "generated/stage_u/citeseer-seed2024-r0.01-legacy.yaml": "53268731954059326526b8d5e02101cc2b5c2db6fb3018ad188d985538c48ad2",
+    "generated/stage_u/citeseer-seed2024-r0.01-p_graph.yaml": "1bc2d19da41ec166aa8c2a9b3c852eecea56d6812b8359b8672a52d4a2f95504",
+    "generated/stage_u/citeseer-seed2024-r0.01-p_point.yaml": "037d014f302a4d6ab29d71f74f0e1820e789f71a75d84daee3a26a3c71d40bcc",
+    "generated/stage_u/citeseer-seed2024-r0.01-p_simple.yaml": "1089c286e316c863df01a9684aa95e063806e3dfc5f216c77ed854498bdbe3da",
+    "generated/stage_u/citeseer-seed2024-r0.01-r_point.yaml": "27e82b5957cc69281a480b3978d36924c2660b7438785a3193c65c2088f3f14c",
+    "generated/stage_u/citeseer-seed2024-r0.01-random.yaml": "57203d16395903cad143f031a9debbf8cc4e31b9a65902f9e8ed310f191ddf94",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_graph_3.yaml": "3e5d70263a4140ccaf4c297fb7006af4a526484fa29083911ba6c878b2a01dff",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_graph_6.yaml": "e4584f2330788c1bdc0f82c289e1736ec93e3437a4d84d93c484782bd107813c",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_point_3.yaml": "5e3689c5d9121f0cd657ca9ff195afd9d041ca19af951ffb43b9b34dcfbf738d",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_point_6.yaml": "4f8fae2e42dc8f6e20e82903b4f282b8725f1686680afe4f2b13e52e54d85688",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_simple_3.yaml": "1b041f31e8c69273a3a36c1a66645e48da1533eaa018393ee715e088cb8af34b",
+    "generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_simple_6.yaml": "23d9e8418a8fd0ddd1f59f0fbb7b9d9c4c7f0e4b68ef301411c4b15e2f884984",
+    "generated/stage_u/citeseer-seed2024-r0.05-a_grad_norm.yaml": "37a26ec9ba55f395874715fa018a06cd0982ed48f646e85e7ad4d7830ab7800e",
+    "generated/stage_u/citeseer-seed2024-r0.05-b_param_hutch.yaml": "c5186872c74ae04db20d768834b924916f6d475d61a7565787c037de39b05651",
+    "generated/stage_u/citeseer-seed2024-r0.05-degree.yaml": "f75856686bf2aa03b27e35ab4e626291277bb8f3a4e9dabacd4c7526dba8492d",
+    "generated/stage_u/citeseer-seed2024-r0.05-gt_full.yaml": "87692220dc9678d0b6e0d434907360f161a1372a246d3dc6c601fbecea260842",
+    "generated/stage_u/citeseer-seed2024-r0.05-gt_simple.yaml": "9d38d353876d734d9e3afb5a69048f30e224bd50f2bd2326c17c18781f41a2d1",
+    "generated/stage_u/citeseer-seed2024-r0.05-legacy.yaml": "3770c1567e86cd862753101b56185ecd80bd01fd6941619d701ca59d803ae424",
+    "generated/stage_u/citeseer-seed2024-r0.05-p_graph.yaml": "d2b6930895c26b61eb5932e71f68598536c867815adfd0704e6f3eb6175be38d",
+    "generated/stage_u/citeseer-seed2024-r0.05-p_point.yaml": "2386d8c7ecf26ef61332250731d87ad3b377cca57b8ce908b684d7a3550a955a",
+    "generated/stage_u/citeseer-seed2024-r0.05-p_simple.yaml": "df4b337e1267f04169ef7f3f3cc5149ebee40fc5fa238b02ddddcac52d042947",
+    "generated/stage_u/citeseer-seed2024-r0.05-r_point.yaml": "fc685edbabd52afe902a6860b74a350df54f3b413b42feda26eba7fb7b259518",
+    "generated/stage_u/citeseer-seed2024-r0.05-random.yaml": "d6db6ce0a045f61339f74aa4d4a1c6c6cae0afed6a9cda0de55327ed0756ad12",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_graph_3.yaml": "a2f54e50e2e70667a90c1a3e1c11dc3c374105e7e4b1212ab5c195088a6e552e",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_graph_6.yaml": "0f630458af2e0be66d9640f656a2ddc41039f1b62ada2c8909b2d216a7374d8d",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_point_3.yaml": "45d1554f7e671e89b5d5a57e229f3099bdc55fab9aa40f036859c1559eb60113",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_point_6.yaml": "57679e0e19f33da2993c9b82edf669547cfea3ef8fb26bea77f6dd8ec2c775e7",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_simple_3.yaml": "42fe2102be1d714a21f1bfc848fc0c976dfc7867e3ab50ca5ea71fb9c63bc73f",
+    "generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_simple_6.yaml": "d3fe8f308d68f269f2903177f39386e455a82956d8d580b31d49e82b18a88652",
+    "generated/stage_u/citeseer-seed212-r0.01-a_grad_norm.yaml": "33014f13542788cb8f173f15b49022bcb14a1b4ff7bf47717813a1b3acad6ca7",
+    "generated/stage_u/citeseer-seed212-r0.01-b_param_hutch.yaml": "0c9bec53f392072fd9205643df0c9f50ab739d210a10726651872c59a84e8912",
+    "generated/stage_u/citeseer-seed212-r0.01-degree.yaml": "6d7bea294c90b721a3b6e0cb62134610b216334e4ab6c8b6d3760f9680fec1fb",
+    "generated/stage_u/citeseer-seed212-r0.01-gt_full.yaml": "bb792a40312db068b53a94bfd3d194865e2e6667194db5c3ed23050f5e0dfca6",
+    "generated/stage_u/citeseer-seed212-r0.01-gt_simple.yaml": "3105bbc7fc3cef005f068cd814c619893b360c85c7dadd2a625a609837931231",
+    "generated/stage_u/citeseer-seed212-r0.01-legacy.yaml": "cb978abfa3592888180cb2fa1dba4ed3f04f25da7474a182604ed3b12782f6c7",
+    "generated/stage_u/citeseer-seed212-r0.01-p_graph.yaml": "774cc41825da8d611686df5cead6829177fa7310213cc453c7530d5503884750",
+    "generated/stage_u/citeseer-seed212-r0.01-p_point.yaml": "3bcab4236616ff9f3a1ef70c5e2c06c422fe6d3e18ae38b17e7a33b368e9566f",
+    "generated/stage_u/citeseer-seed212-r0.01-p_simple.yaml": "7b762d145b406a9adee13d9b9ae172b6ead39f42210bfc304ef92026731944a6",
+    "generated/stage_u/citeseer-seed212-r0.01-r_point.yaml": "4d159b3e3d1743b058b88bcd15acbaa79111640c73fa8256249dba3cf343af90",
+    "generated/stage_u/citeseer-seed212-r0.01-random.yaml": "14c36f8f446b8be7f84fa6cbf6bde9eb57d375c4012bd8bb77eefcc21e73b607",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_graph_3.yaml": "7973e74a55fee4b9b7c4a22f8572b3fc0c57e8788584f67921b165ef86f3f138",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_graph_6.yaml": "23c257e34ce18cc6a47c01e77f5d0213e075fa3e444e138da6b4eed854f260fd",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_point_3.yaml": "80ef50a4a84f5be1d93e3dae88453cb6133bf117689b0ba8d1271c1ac4de79db",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_point_6.yaml": "fde73678a85a7c0ed99839bbcfbb5d8f4cda84b6948339b5568259c53dded32f",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_simple_3.yaml": "09d4b2414f2881e535d4f57b0a0eaae6214475b3cd17a40f63264264b0fe018e",
+    "generated/stage_u/citeseer-seed212-r0.01-tracin_cp_simple_6.yaml": "2dc56043b325f988d7f345a640033b470bbabeb159b4077a0febb4cbe7b5c6db",
+    "generated/stage_u/citeseer-seed212-r0.05-a_grad_norm.yaml": "7106ff7d900fde85d3893f718f690292545cfd2206bd70d4214dd61ab0ba2020",
+    "generated/stage_u/citeseer-seed212-r0.05-b_param_hutch.yaml": "ce92fd4f6ca14ba1a1ceaec46c89ce9c14d38015c7eea9fd7f744f9eceea77d0",
+    "generated/stage_u/citeseer-seed212-r0.05-degree.yaml": "f918efa9b6692864495abd6a6b589576555408919e5b2a098752e83d1000fec9",
+    "generated/stage_u/citeseer-seed212-r0.05-gt_full.yaml": "09b51d752cfbe4e4eaffff0c43911f4736a916f319b0e3ea2e339f9b647b2ae0",
+    "generated/stage_u/citeseer-seed212-r0.05-gt_simple.yaml": "af9b3feb30b0acd1226a1a799d5a614e9f16063f944b03acd6e5cd0b295d44dd",
+    "generated/stage_u/citeseer-seed212-r0.05-legacy.yaml": "b5454dd75fa15dfe218419059bce430af53afe8e3697602a8594c178a2948a17",
+    "generated/stage_u/citeseer-seed212-r0.05-p_graph.yaml": "0aea081f4e4488c0c2452cfd4a34f5d6c8d91803d6d79cee585ce641c14d2a35",
+    "generated/stage_u/citeseer-seed212-r0.05-p_point.yaml": "e82e5de642c8b4a8500508ecf5192c940ccd34519bb4a9a5038c5700894d017f",
+    "generated/stage_u/citeseer-seed212-r0.05-p_simple.yaml": "1b39c674035704aefd5f31458b4a362cca8b9819b1cbb21c701afef6f9457568",
+    "generated/stage_u/citeseer-seed212-r0.05-r_point.yaml": "fd96d5aa5ba545057ee9afb93e58aedbf58191f154cb9469879eac00cb1648b3",
+    "generated/stage_u/citeseer-seed212-r0.05-random.yaml": "fa110fdbeacc6e8bc672c80c8d4f50677b5f59931456065bc2ee42c6fd4e3202",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_graph_3.yaml": "3a19d58d743e44b458ed540bf110951cf03e8405546234c1b9864b2c48719250",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_graph_6.yaml": "b3ffe44963b9b412a69f3ad7df68fb21126f4d1c8451e0db932d04f87d83b7b8",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_point_3.yaml": "5f911a86158e4ea8f176fc889437b8f7c7e196565a746334ddc1ab3eabd72c9f",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_point_6.yaml": "886747244cec07ff201dbffa9575ad6bc60bbd0916901c90378e9c975b571917",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_simple_3.yaml": "36240d66b062208eeeca4074c120db8343f87a061d6062741dc6cc8cb3761493",
+    "generated/stage_u/citeseer-seed212-r0.05-tracin_cp_simple_6.yaml": "4f364e856f5330fc46d6c9b8e416d9ffce0c17235448ea1d8015a7751190586f",
+    "generated/stage_u/citeseer-seed42-r0.01-a_grad_norm.yaml": "4a3b7b9a6cc0b60d403ae78175c474ed362f86ea71d92aecbdd681e94b8ac73a",
+    "generated/stage_u/citeseer-seed42-r0.01-b_param_hutch.yaml": "e3563c3a6049a532f5d2f086c1937ae0e0d5b759c31d06645dd195778888ed0f",
+    "generated/stage_u/citeseer-seed42-r0.01-degree.yaml": "31ec898c565c0cd5c1bd01fec48fba3f5cd165baf9078ec095944c9ac78f57a0",
+    "generated/stage_u/citeseer-seed42-r0.01-gt_full.yaml": "ee9a81112b36a5f1606198b1ead17ed79482c813d481350a00e8b5f49eb3ce01",
+    "generated/stage_u/citeseer-seed42-r0.01-gt_simple.yaml": "601b70b69f5a4692ec8d3d0d4589e7ed856dd9fb9e1429ef22fc989711dbf61a",
+    "generated/stage_u/citeseer-seed42-r0.01-legacy.yaml": "37df05d50305fa174092df33a5dd1ad2a35143f8d67dcb54c7ab03f9e6d1720b",
+    "generated/stage_u/citeseer-seed42-r0.01-p_graph.yaml": "b7cd27279d58d863786009982e49fb4bbc5754494a4d869013add3ac2fb6611e",
+    "generated/stage_u/citeseer-seed42-r0.01-p_point.yaml": "05a516c6fad113f0e915fb00ab67b4eef2179c8282c3a6d9b3cc21ea06a27192",
+    "generated/stage_u/citeseer-seed42-r0.01-p_simple.yaml": "220bc3009e9b43ab48999e7b64b5a07e8aa4aabde0c17ac9ee270dbd6f55087f",
+    "generated/stage_u/citeseer-seed42-r0.01-r_point.yaml": "1cced3905257ba10f26d89ce22ded6931a90977c159d5739b0fd4d0fabcf2979",
+    "generated/stage_u/citeseer-seed42-r0.01-random.yaml": "eb7f933dd567b6d2d855a1001b3457ec11b0c46ae461a8889d5edebc61cce877",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_graph_3.yaml": "fee8dc8cc102c11817837fcb9d0b429b87c09dd031750bb84650e23ef72b4aa5",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_graph_6.yaml": "18f5ba264be360fc49f65e88614e2e86402793164257a0ada319dc67dddfd4b8",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_point_3.yaml": "adf33663ef5dcff8c8ccb4573eb31c8f36cd39564ea7ac8e04f68ea897d9e93d",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_point_6.yaml": "24f372efb59affd55ef714289253760822873a6e2d382498a082992ffd367911",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_simple_3.yaml": "23dda9d6c86cb3551ebcbcc20365843dc15f6239b89ca64073ad3b656397b78b",
+    "generated/stage_u/citeseer-seed42-r0.01-tracin_cp_simple_6.yaml": "6f0b03b77a482dc5aa42a38ac650153cbb05ff7d7a25963aeef19741dd4d87cd",
+    "generated/stage_u/citeseer-seed42-r0.05-a_grad_norm.yaml": "fdb8b15e3dcbe4b9f333217b2f04156a65323977e94bcde20332977a042b93dc",
+    "generated/stage_u/citeseer-seed42-r0.05-b_param_hutch.yaml": "fccbf1f87696ff1279069a980bb5fd4ef18d06557583d43a602e9accbf5a7eff",
+    "generated/stage_u/citeseer-seed42-r0.05-degree.yaml": "06e211b72b96d5cc1157323a2231759afe5ee85e426d75c5685947a42b32a81b",
+    "generated/stage_u/citeseer-seed42-r0.05-gt_full.yaml": "365352c9acd04e2f7b14fefccd271883d2fbffa5b1757f2039d910524fb3ea2f",
+    "generated/stage_u/citeseer-seed42-r0.05-gt_simple.yaml": "b4b6cc493ce8112d070c1e4916dba6b73bcd79505ceff77f326c0b51d458fd8e",
+    "generated/stage_u/citeseer-seed42-r0.05-legacy.yaml": "3863d7e38321f8ceaf3cf61c7938ff920081741dc3d51aab020b6bb75ee30a9c",
+    "generated/stage_u/citeseer-seed42-r0.05-p_graph.yaml": "b1e98dc4e903b2fe026bd2c8ec842468fdf24b9ef868f77c1ec02b84e5adca4d",
+    "generated/stage_u/citeseer-seed42-r0.05-p_point.yaml": "db5922b0d7e03d506eca3c6dc8e3d9d454a3acee01a13fff28d6f8f500f52a19",
+    "generated/stage_u/citeseer-seed42-r0.05-p_simple.yaml": "5da7dd14d082e1557aff2dd3923c92f7aff4fb80c450b6ef3159d6219c63a49c",
+    "generated/stage_u/citeseer-seed42-r0.05-r_point.yaml": "bbce0f0cfcecfe6c22c53a425c9bc618540bf8de617696399e9cf653cac1d0e6",
+    "generated/stage_u/citeseer-seed42-r0.05-random.yaml": "8d57b17e2a4a8f3579b94895b63930d17e7cd4f340e3373e36f1d869d563c05f",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_graph_3.yaml": "e45641597a19300cbb9550501d6cbf3d8138980e7120f07f8f544f4f11535770",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_graph_6.yaml": "ea574828bd9ccf956bd1894ad25b0c7d19dfa5e5d1e4988a6469cd1fac770101",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_point_3.yaml": "f2e93d875c9ea1977bb70a36a10823ac5ad9f268680a74303bf905c718eed98b",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_point_6.yaml": "71f0c9159db50ff2e541dbf7ec851e212296c104493cc120ee34628a47742c4e",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_simple_3.yaml": "e0b175deca6dd9fc4647f84cafa6f619583ecdb08bacfd489452117770faea62",
+    "generated/stage_u/citeseer-seed42-r0.05-tracin_cp_simple_6.yaml": "e3f8b9f4fd835f0079acb0005bf7db36ab9faea05b824ee73dbdf4863d996c82",
+    "generated/stage_u/cora-seed2024-r0.01-a_grad_norm.yaml": "59b5ce3b8a24cca06eb656dc2bcda24bf043778fbce80fb5035e8445d409a224",
+    "generated/stage_u/cora-seed2024-r0.01-b_param_hutch.yaml": "72a48becc5bf1d2a1c66585a82c7f9b5eb8c7345878fcff5824223bddb02a721",
+    "generated/stage_u/cora-seed2024-r0.01-degree.yaml": "d4f090fb89068432fd8a3f22b8375a36a55f6f47a550563732388197da49d0ad",
+    "generated/stage_u/cora-seed2024-r0.01-gt_full.yaml": "d92da1dce87de168fc61255f76ae6542328f9c6b9b689f7a2ad2f87d614b3285",
+    "generated/stage_u/cora-seed2024-r0.01-gt_simple.yaml": "ea9424ed461e87978f1dfab4395630a20b0181ea5019b85e1a8d442509caf059",
+    "generated/stage_u/cora-seed2024-r0.01-legacy.yaml": "6d0bb4ef0ef1a44d5cf44aae3726225ec67c914740d0469f3a82915d2e933890",
+    "generated/stage_u/cora-seed2024-r0.01-p_graph.yaml": "b70b41cf276eef0743d66484634709be61317dff165c0136043a1e778a6d7d78",
+    "generated/stage_u/cora-seed2024-r0.01-p_point.yaml": "30834bc4419134587136b2c7bfa54a05fcca5ae86b920bc3c9e0a529908685b5",
+    "generated/stage_u/cora-seed2024-r0.01-p_simple.yaml": "e2462d0836c6a5eef8078dd99f727b598efafc8ed24e84cd7d4cd5a1013cb30b",
+    "generated/stage_u/cora-seed2024-r0.01-r_point.yaml": "c9b05832049f159cb7cae9bb2616a257021a75ac35888f3f9b08841d2dc695fd",
+    "generated/stage_u/cora-seed2024-r0.01-random.yaml": "3727b4bdabbe387a30bf9b02ef30145c0f9649aac2bf386e1c13937f4a529c2b",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_graph_3.yaml": "05d3f2a927b0373536ff2545de7d92630b7ba7a8246b1bdf041f0e0c329f76c5",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_graph_6.yaml": "01db490af86f9df3df8b0f12e2ff38e1961b28d23aea47f6534ae538f1dca9a6",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_point_3.yaml": "838cc60ad92993316478a3bbb00744bf891f6628b6a7b6f531e43bd7571cdc9c",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_point_6.yaml": "34ae3e4c3ea888786c3675f3c1198e791c104f5418fbcafacc83d5441ba0a1bf",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_simple_3.yaml": "e74858147bb3d8505c22f931f3c38721407b5f2492184865eece154c7d0d5ee2",
+    "generated/stage_u/cora-seed2024-r0.01-tracin_cp_simple_6.yaml": "5a38745d0da03142d9f657847206fbdff82b9e4f08ba3abe2bfe8fbb41e0430d",
+    "generated/stage_u/cora-seed2024-r0.05-a_grad_norm.yaml": "2316be75694e02dba76c8c2cd26ed351b8ae4c16321b50876524cb9c99b06892",
+    "generated/stage_u/cora-seed2024-r0.05-b_param_hutch.yaml": "51cd5683565983d72e4a0b9d93db4584453e51125c8f4974a48766b2ffeee04a",
+    "generated/stage_u/cora-seed2024-r0.05-degree.yaml": "f6d38f61db81f31bf2bee502f5ea648093c5c396896ec9c115d8f115adccc03d",
+    "generated/stage_u/cora-seed2024-r0.05-gt_full.yaml": "7e76b6636cbf2e39e20da6db920fbb66a376c15784db9be40d56bf1115f1387a",
+    "generated/stage_u/cora-seed2024-r0.05-gt_simple.yaml": "7359e8dcd4f96db5ed8186e7fd89c03947937a8e378b587e12f249b4c5cacb98",
+    "generated/stage_u/cora-seed2024-r0.05-legacy.yaml": "0a7f86232a4575cbdb4509f55bd3ba49527dc0cee1658ff8ef3a5b3401e7347b",
+    "generated/stage_u/cora-seed2024-r0.05-p_graph.yaml": "304e4a439b15ec8baf90501408475c22689301e19c4eaaf39fd2f81fde190b71",
+    "generated/stage_u/cora-seed2024-r0.05-p_point.yaml": "0062b8b22bb390bce77c168a15b53ee35a7ac4e8723ca1ce9016a667be21ce21",
+    "generated/stage_u/cora-seed2024-r0.05-p_simple.yaml": "adeeb51e2e3603395c0e7722f7e3bc331e376c0d6ce924a3de04b9b297aba1c8",
+    "generated/stage_u/cora-seed2024-r0.05-r_point.yaml": "9e2c65838f27af2c2e075c03ff5de8d489fae8c35d997a133689c44fb3e032bc",
+    "generated/stage_u/cora-seed2024-r0.05-random.yaml": "06e23eb4767a2e8d869930ea7e04fd92db269ad548deb773998fb68cb889d852",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_graph_3.yaml": "134914b0dcfb9599d0b4108bc1d2de9a0254244457e6fe23743afe7001fc1ccb",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_graph_6.yaml": "0ee34fa7bc183ecc9dcf63997f3d9db20317e7fe19643a19555a3be74f7f1ec3",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_point_3.yaml": "cc6f7fc452696aaf67d90ee849d8265ee3630cc77ea0391e08eddb1de9ed60a3",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_point_6.yaml": "f7d71be0a187ef426d2a77db6274a6fa74478c749e1f7b0d988d4acb9c66d476",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_simple_3.yaml": "ecf2dc079180cce4c3e8c66bce0707dec26eee5ba1518eb539c11292557f8148",
+    "generated/stage_u/cora-seed2024-r0.05-tracin_cp_simple_6.yaml": "f00360735c8533e02762640228d4c9c3defb5decd94f5bca51172803ee64f904",
+    "generated/stage_u/cora-seed212-r0.01-a_grad_norm.yaml": "9265bf8954d8dd93963408c2b41b894367c21b981d5357da41197ea4ea6525e5",
+    "generated/stage_u/cora-seed212-r0.01-b_param_hutch.yaml": "21da7312da8df864528f1743d4e8fada2d6803912d03c0bf63274c6fef2d3a9d",
+    "generated/stage_u/cora-seed212-r0.01-degree.yaml": "73e787676a31b770b6ff6322fdb3976240f0bb45157d0c7616df843f0addfcdf",
+    "generated/stage_u/cora-seed212-r0.01-gt_full.yaml": "c1c47e1850b93b0489e01337d8717f7a538d3325860012076d7026febdf08ef3",
+    "generated/stage_u/cora-seed212-r0.01-gt_simple.yaml": "718d50f5ef219b3d7219924c1e137991f7e4e20a1ebf44e2e468878060a5aa28",
+    "generated/stage_u/cora-seed212-r0.01-legacy.yaml": "38cedb236c8521c8a249c3db9744e79cb0869a9f78430b06a8c342c26934cebf",
+    "generated/stage_u/cora-seed212-r0.01-p_graph.yaml": "c997507bfe657d49ef90630b5207fcd6af06646dd8a144644dc8adc24826f14d",
+    "generated/stage_u/cora-seed212-r0.01-p_point.yaml": "beccd2cf06bf9aeb4d150deca1467383a882e109ee902e5623510811825f2d48",
+    "generated/stage_u/cora-seed212-r0.01-p_simple.yaml": "1ce8150e3bbf7072353f2068958dbd29bc1664143d2fc26764c144c395ea4957",
+    "generated/stage_u/cora-seed212-r0.01-r_point.yaml": "b9d3910fd81d307f7f9b5722628c25fdb69c6d6c4123a27aa7aff84033fa4320",
+    "generated/stage_u/cora-seed212-r0.01-random.yaml": "11a682c74f0dcafe0c33d0753066c9eeb499e5d0ca29832ec74e617d81025c7a",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_graph_3.yaml": "68666abe1317fde0e2017118364d872c5c64d059fd69af589910e87080215df6",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_graph_6.yaml": "52c4d4d6afe0c127bc3bf723e8d97918e466b3052f892c9b9534c5e61364c2f5",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_point_3.yaml": "7fb7815ac26f26976470451cc3060eaa597086176803e4dfad8cd96b8dcd8734",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_point_6.yaml": "cca2a88089c3c5d3b2b00916956422703426774edd552635556e99a2c7a0c597",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_simple_3.yaml": "19d7284c368bfb482782d9a222c4219578e9d9bbd1b1f865993225413c98d09e",
+    "generated/stage_u/cora-seed212-r0.01-tracin_cp_simple_6.yaml": "8d7aece92dedef7ca5f37c6d434e7b7c5cd15909020f1b436dcb5aa7932bc5e8",
+    "generated/stage_u/cora-seed212-r0.05-a_grad_norm.yaml": "7b5c71b99ad2139f856eab1c415ed7ea4d0b40b70130e8dd54da0d6d8b887e8f",
+    "generated/stage_u/cora-seed212-r0.05-b_param_hutch.yaml": "a9bdf9a5e3333178267d70e527321a642b470ae3c9316f1b0d5019c3730e1de8",
+    "generated/stage_u/cora-seed212-r0.05-degree.yaml": "632de4ea221e6cc078cfe2627fe99670ac15ade2c0fe2336c476e3efadfee131",
+    "generated/stage_u/cora-seed212-r0.05-gt_full.yaml": "c88684d1cfb5c20822e8d19daec0a20e5ba9a014a391665a62d41c9a63ca1c89",
+    "generated/stage_u/cora-seed212-r0.05-gt_simple.yaml": "cc76db07a742e5c7cc665167dd13fa47d25b12c375c3fb4554f5c9e93d4cdb76",
+    "generated/stage_u/cora-seed212-r0.05-legacy.yaml": "a6b7c122c65789ce75a7cb0fadfe71fb2ec8a375e2d99e8a576d3ca0745e33e1",
+    "generated/stage_u/cora-seed212-r0.05-p_graph.yaml": "38cc895b0aa3e66779dae9f13801e8e4708dd02bef6ec78b89c89c02640eada5",
+    "generated/stage_u/cora-seed212-r0.05-p_point.yaml": "96ba7554631730180bc8c864e2d47e8cecd3dbba95422e5ea12eac9fea362a0b",
+    "generated/stage_u/cora-seed212-r0.05-p_simple.yaml": "9cdc1efe906122bd2386948c1f54f9a9fd5ef536fbd29f76753ffbeb14df11e9",
+    "generated/stage_u/cora-seed212-r0.05-r_point.yaml": "b544f968ac23a6a397e0ce2c417ff19ba76bfb96fc0b1a20e71356e9117762f9",
+    "generated/stage_u/cora-seed212-r0.05-random.yaml": "a8f1b17ad3337dec0167714c1d714c4956abdbaab3343fb33c32849ea893de26",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_graph_3.yaml": "491c9bbe00abda5721abd0720c3f3ff63f91ab4ade546f4d21e6efa34334c3c4",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_graph_6.yaml": "12d841d08be26b979a91e0cfb436e912c33f63e5fb5930b4493aca05b4d3fc68",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_point_3.yaml": "158c49b52297d3cabe006ddb2b882c1d3a1a1659707de8e9c00ed09272901afc",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_point_6.yaml": "52e401885c1ba3434288549a06b789bad25e7e62a4ee3eb9d396a34c75814022",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_simple_3.yaml": "ecb1c2b79e6b4ded2cb658cf37432d6ca7c1bf49c154ffbb3461eb22f17a24b4",
+    "generated/stage_u/cora-seed212-r0.05-tracin_cp_simple_6.yaml": "a927fde0e26abbaa2d14b534ddb305625f83f6f509eebfa32d04025422565aa0",
+    "generated/stage_u/cora-seed42-r0.01-a_grad_norm.yaml": "086bb44384a18854fc01116063baadcf334e511558d4101c89287de8b128f6b3",
+    "generated/stage_u/cora-seed42-r0.01-b_param_hutch.yaml": "c229648f1cfb6fb20e9f9d62bce3b6b507fb69219e25daf021f838a508a13cdd",
+    "generated/stage_u/cora-seed42-r0.01-degree.yaml": "ab86e3999408ad30044c3cdbe9af40d45aad12448a17ca9eb51362cf5cc81b59",
+    "generated/stage_u/cora-seed42-r0.01-gt_full.yaml": "82d7fa7dd9e7837bb0eb16f9b038a8dd6af99d512927986d9c96a78cc0a224b2",
+    "generated/stage_u/cora-seed42-r0.01-gt_simple.yaml": "88b22fd51332c1d637dc12143b41c0f84b31e3e3f164772a8fc258968afdb62f",
+    "generated/stage_u/cora-seed42-r0.01-legacy.yaml": "231b5988616d259352bc33fa7d8e50d3bc2e5bd5f45b84460596fefe46d44c65",
+    "generated/stage_u/cora-seed42-r0.01-p_graph.yaml": "2dfe0e16829514a6d6ab20a93b662979213e06ba2d6bca9521aee5d2e3c91eaf",
+    "generated/stage_u/cora-seed42-r0.01-p_point.yaml": "6948dee99b56096b1b8ffb29eea8ec7a6dd4844542cbc05aa09b4f0b47352c2c",
+    "generated/stage_u/cora-seed42-r0.01-p_simple.yaml": "f4756222dd81a51bb5093d4cbb3c92b2e668e16609e73437312218cd57652ad1",
+    "generated/stage_u/cora-seed42-r0.01-r_point.yaml": "c9406250778fe1680977ad65aa2f2c5a3cf4d2d29e710ec1f473f47fbd081938",
+    "generated/stage_u/cora-seed42-r0.01-random.yaml": "671f2c9b2ff79d6d78ec390fc63fab7b22b55e1cb14266fc9627e5c1bc76398b",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_graph_3.yaml": "92d1c82a9a5c4c37e84b183a91cc83398552c94eae7289cac502827cf324c92c",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_graph_6.yaml": "cb77ef11f4bf973e5363dff219e7d33dca2290ad640a96895756a295850492de",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_point_3.yaml": "b176582df8258a30e7b26d3a7e96dbd9387d0f026c3f91b0fd83717e189e218d",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_point_6.yaml": "e4140cff955c7de067ecadd90c1bf314d875a0b49f3030d7691281f6be01e97b",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_simple_3.yaml": "7c6147de9237f5254e6b23b720f630a57403f80a944cd0f830478b33b63651ce",
+    "generated/stage_u/cora-seed42-r0.01-tracin_cp_simple_6.yaml": "728ca5a74a0b1e1057b5714a583ad813a1a6d6a8aa20307dde9d34af2d95748b",
+    "generated/stage_u/cora-seed42-r0.05-a_grad_norm.yaml": "76d50897c27135cc1341464082834222d2e7852d8efdd271bd21e4f6fb83867e",
+    "generated/stage_u/cora-seed42-r0.05-b_param_hutch.yaml": "b62b1c3056f184e0c190258e082eddaaa5d15d0e6f7324ba6aebaf6357e2ed93",
+    "generated/stage_u/cora-seed42-r0.05-degree.yaml": "df7be20f48cc336a0c24277b1e17615d3a66ac5bfceed9f3e72b42070dbe7730",
+    "generated/stage_u/cora-seed42-r0.05-gt_full.yaml": "647f9b07166fd8e62f76c48b8c295f75c437a1ff0ca9f73e87cae479c5e059e6",
+    "generated/stage_u/cora-seed42-r0.05-gt_simple.yaml": "753b8a5b541359e00f589ef4deb0ce0fb89f5579b9db7cb7b8b63daeb59dca6e",
+    "generated/stage_u/cora-seed42-r0.05-legacy.yaml": "a13224599585b6a0c18b82dc3e1137e36d7fee07de43ac6dcf45ff4c2cbc01f2",
+    "generated/stage_u/cora-seed42-r0.05-p_graph.yaml": "e316f0ee94714ab4ebcbae8007088a3c70b78f5460d57440360cbe0eae5f063e",
+    "generated/stage_u/cora-seed42-r0.05-p_point.yaml": "d8485a79efa45ce2084c95b0e45fab556e75f50ec6e4c098f61eace9cf949f8a",
+    "generated/stage_u/cora-seed42-r0.05-p_simple.yaml": "2d33954183b9c08c5ff4a716c8d8f65e82b7aabe976d628d4479bdf731d1dc1f",
+    "generated/stage_u/cora-seed42-r0.05-r_point.yaml": "63cc984889ce4c5044decd5db4eec502a458a198f6c75b481fff04a756c6bc06",
+    "generated/stage_u/cora-seed42-r0.05-random.yaml": "0c7d8e72277e2e706b63bb8cc3b67a9c395f5c1a9ff6c6b6561fbf09c35ea6c7",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_graph_3.yaml": "2f8e09aa17e09ed076c972db5a7b8f98167be95eb2525dfb0e898eb2649a50eb",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_graph_6.yaml": "da84ceb13ffead092b5112a0ab80893e8ff290569d079d4a4439889e6e132671",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_point_3.yaml": "1bfe17c6e40d3f8193f55ec01a027e160b9acf4a4291b4b8f54228e144c66a7b",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_point_6.yaml": "c8df857cc3cfb7aa725a13d2a314d5bc29c6e32bc714aaafe0314929891489e6",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_simple_3.yaml": "4edc2ab8c2c11709aa8e19e9f629ab2700044cb18f29b067e1563655a600529f",
+    "generated/stage_u/cora-seed42-r0.05-tracin_cp_simple_6.yaml": "1af0d414eb9cb52775f942b29468ae7eb443b3ebca5691e5ce70574fa0cafb7a",
+    "generated/stage_u/pubmed-seed2024-r0.01-a_grad_norm.yaml": "b7cf5571d6c77b77d9e6dd3743b45f1174c10fb3282643c2ef1b674d4620fe0d",
+    "generated/stage_u/pubmed-seed2024-r0.01-b_param_hutch.yaml": "642546d5a825423dd746cd7bdb285249735e8c45c864b3c6ba826e9f63cb12cd",
+    "generated/stage_u/pubmed-seed2024-r0.01-degree.yaml": "9e5c724ea94cc029cea0f6104dd8d150739b41499de42e6f98720d92deffa0d8",
+    "generated/stage_u/pubmed-seed2024-r0.01-gt_full.yaml": "b3fd9956046d4c9eba24505af237355c32ca4eb1b51165a2e579c9d7070434ed",
+    "generated/stage_u/pubmed-seed2024-r0.01-gt_simple.yaml": "af8b2f5266978423ec5397ad4b577b673ae287b80988c60323972e0d8577e27d",
+    "generated/stage_u/pubmed-seed2024-r0.01-legacy.yaml": "1268086af061b9fdf9905caf9ef250c2b267ea9173cf55e17e505f84dc105391",
+    "generated/stage_u/pubmed-seed2024-r0.01-p_graph.yaml": "c26519ed1eb4967118f4c2e1af1b358399bdc0d134491a089f199441949aad90",
+    "generated/stage_u/pubmed-seed2024-r0.01-p_point.yaml": "0c5e55a9a75786777fd8177e1278eee3c073c297190b00d4ed265907d5da9a77",
+    "generated/stage_u/pubmed-seed2024-r0.01-p_simple.yaml": "4b6aa0231a1caf77cfd046b6cb3687524977b00a59bdf2ba097b84039689c8fc",
+    "generated/stage_u/pubmed-seed2024-r0.01-r_point.yaml": "714d6b72e31457c281e58872360daa2a41f6666ec0a975d4bdbc49df547bc758",
+    "generated/stage_u/pubmed-seed2024-r0.01-random.yaml": "57f6b127ad8307f94a15c88dfffd73d61f99fa74ff3107a327e30b692c7fb4f9",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_graph_3.yaml": "fec256d47381e871c1d21dae489f5089df849ebe9f2245279aac34087c7a45c2",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_graph_6.yaml": "77b12a82bfbb301a89154d7cc140fe72696b62907cb26b55672ba38b541c3672",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_point_3.yaml": "f57394a5e8c6489f3818fb63cb68023c499ea2267b29c9a8ca2518c62f752cd2",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_point_6.yaml": "45c2873d4ebb84593a3eb17b3995494e6a03129cb794975386464633799724d3",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_simple_3.yaml": "4f0df37bdcbedbe3dcc1fd3615ca7665800af7e27cb9bd60483c56311ddfc121",
+    "generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_simple_6.yaml": "9fa11f3309bec1c05be9f7fa0c458f0dce996245d386b3f2174fe45399611dc4",
+    "generated/stage_u/pubmed-seed2024-r0.05-a_grad_norm.yaml": "34619bf355d5c25b026887ae317aae738f565682b39d5ee31ffa6f2fb42a9d5f",
+    "generated/stage_u/pubmed-seed2024-r0.05-b_param_hutch.yaml": "c1548aa89f772ed44f1e4b150eac457fb3edf346c89d7878c255ef495d884e77",
+    "generated/stage_u/pubmed-seed2024-r0.05-degree.yaml": "6183e2a4528919d2612f0a82a244f42bc64a3f577a7f8049d9df96252e0dcfee",
+    "generated/stage_u/pubmed-seed2024-r0.05-gt_full.yaml": "c809c514ead7778a92bc844528a7f18e9765b8c111efcd6105dde46dfd72b678",
+    "generated/stage_u/pubmed-seed2024-r0.05-gt_simple.yaml": "0ef30c2ec427455fe71360f654a2ff08c5bd8d1d21c44b089df7a2be228fdef4",
+    "generated/stage_u/pubmed-seed2024-r0.05-legacy.yaml": "06f0ffe331d0a906a65b0738855075fe1d0a47a00a3b24446365a276d433939f",
+    "generated/stage_u/pubmed-seed2024-r0.05-p_graph.yaml": "fde192e3df2afa278246a9b410fdcd2ad430f589b5d70589dbdc0a6095c54e81",
+    "generated/stage_u/pubmed-seed2024-r0.05-p_point.yaml": "65906912da05554b81500ff59f6fe4512d47c54f7f7639c2dea779bf145f43f8",
+    "generated/stage_u/pubmed-seed2024-r0.05-p_simple.yaml": "9a4f37db1ac099f227172f82adf09c54a4c06bde5bf984798236abcfb6d56e63",
+    "generated/stage_u/pubmed-seed2024-r0.05-r_point.yaml": "8a79113b5f1917463fc0ca7afe33115e52cdbffd373f521e14b3b6cacbcd515e",
+    "generated/stage_u/pubmed-seed2024-r0.05-random.yaml": "627516eed5c2312affba3e913d93af6d7e5ff95383a6415d25b1aa58c39f8670",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_graph_3.yaml": "156de40ecb2f950a6de708e8f062ef07dacccdd9f1ad6ced438ea5fcb5ac36d5",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_graph_6.yaml": "1165aeddf82136702aa61cb3d1759ed66141af6f2c22ca09d089da7cf0b12c6f",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_point_3.yaml": "9dc8cc9110a247fd6f0950d8b6de675a927cdb16787723967901c58a5ed28787",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_point_6.yaml": "4436758d7d7cd0ddb5e2ee538df7993aa2d715cd51e707122df1117b54da40e2",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_simple_3.yaml": "a608308590088ffd10f266f48a4c1b26e910dfab938aa7bf212855149235c6bb",
+    "generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_simple_6.yaml": "70e4493e227245fe68fa5aa2479a60d02acc4c884cb290dbb3a1998738f67775",
+    "generated/stage_u/pubmed-seed212-r0.01-a_grad_norm.yaml": "010ed34f83273547f4060996895eb52b323bae040f67c11a510c83edfc732ef9",
+    "generated/stage_u/pubmed-seed212-r0.01-b_param_hutch.yaml": "96ae8f483d051922e39c0773f48d5b26160720aeced1637a7660b88e99e14949",
+    "generated/stage_u/pubmed-seed212-r0.01-degree.yaml": "6fde371ddc62a703b053b0a8965b08342a392887280f2e10772465573f030bb0",
+    "generated/stage_u/pubmed-seed212-r0.01-gt_full.yaml": "ca437bad25887e32d2bd1082e9cbcad9e0f10e8bda6af625a11cf3f1f62fa1c9",
+    "generated/stage_u/pubmed-seed212-r0.01-gt_simple.yaml": "d8ef6cff747fbb62248d59574b2a138e4b4227b1db18a9be7bba29d574b00e2e",
+    "generated/stage_u/pubmed-seed212-r0.01-legacy.yaml": "12ba0f3624535a0e53bbb0bf9a01fe89f5ecfe11384df10a7010f198faaa6ca2",
+    "generated/stage_u/pubmed-seed212-r0.01-p_graph.yaml": "eec058c5002db4bb3b8150f1c6c90939f2d9debc4682cb63aed2456284097249",
+    "generated/stage_u/pubmed-seed212-r0.01-p_point.yaml": "6f3c4eb8c1f4fdd9eaa694d73366c1f35e8e7c1123b315b097aad7fb2217fddc",
+    "generated/stage_u/pubmed-seed212-r0.01-p_simple.yaml": "c1753fcfc9e381ba0206d32d5068e0760f8ccec0a2893d6c231600c9fe848a22",
+    "generated/stage_u/pubmed-seed212-r0.01-r_point.yaml": "e47851c74b41f70c87f7f911012a8f24ea16da2c87570c17359efaa4385cc84d",
+    "generated/stage_u/pubmed-seed212-r0.01-random.yaml": "331880e294cbbe8226719d65bb46dfb4ee7c1eefb2354d437f328e593570bddb",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_graph_3.yaml": "88bf18af3ccafe86a743e76213db275c9a0bdb7159e1cc2ecaa0808a488e3436",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_graph_6.yaml": "367796433efc4c8b51f7e270dfc6c9e2e5eb18f674caae6565b8748a3eaa55c6",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_point_3.yaml": "edd71068590191d75b54b3ebd6e6effa0f437232cfcf8574cafcc3844aa647bd",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_point_6.yaml": "b5b265ad691fe9d8e84743251b8b482eb1856f4c3c147eb5603adf5b8b2b1b1f",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_simple_3.yaml": "123be186b569fc7f7a43d0acbf0fb311a37a7ab82468a1b8285fdfef6153e8d9",
+    "generated/stage_u/pubmed-seed212-r0.01-tracin_cp_simple_6.yaml": "7478a54df344e25e111e749162ef4a77ad567692c04291a298072ac7645ec698",
+    "generated/stage_u/pubmed-seed212-r0.05-a_grad_norm.yaml": "812b35f5082e9c03b32f3cce8329e3ba2cf98c7f07f131f79bd977a705100abb",
+    "generated/stage_u/pubmed-seed212-r0.05-b_param_hutch.yaml": "e6877660a099395f56e92f1722276b24abed99758f878be37ba81d874370a861",
+    "generated/stage_u/pubmed-seed212-r0.05-degree.yaml": "45f419298e461afc59597ff984f2b8f55f7389922d428608cce7c0d2851f7855",
+    "generated/stage_u/pubmed-seed212-r0.05-gt_full.yaml": "2827ee2489084df220825b3b63639dbcc09f1355394c943b0f59b3cab2b30075",
+    "generated/stage_u/pubmed-seed212-r0.05-gt_simple.yaml": "ec7cd91c08ab0b5d3f7aaf5b2680f136442353606f5cc45497c51c616dbaa372",
+    "generated/stage_u/pubmed-seed212-r0.05-legacy.yaml": "dccf33045829e46c8a23e43b52331686ae4d7d24284fb191cfa40a42a9c9ca5e",
+    "generated/stage_u/pubmed-seed212-r0.05-p_graph.yaml": "be1ea67410d1b9a4ebe1ebfd47e11d8187ba48e32b2829d71fcf830a3ed60b71",
+    "generated/stage_u/pubmed-seed212-r0.05-p_point.yaml": "38da85218849e05e4b6606283c84fadb3811a069d378de436dce82cb672e099e",
+    "generated/stage_u/pubmed-seed212-r0.05-p_simple.yaml": "296e946a23e1bb54bbd750e2f953bd7ec3c23e82e484a86db91cb3c42ca852fe",
+    "generated/stage_u/pubmed-seed212-r0.05-r_point.yaml": "4bb8b14af3b72a1f57dd55ec3a50952314e0c82d9361e4b618804f89c975b46c",
+    "generated/stage_u/pubmed-seed212-r0.05-random.yaml": "d186f41b0efa88905bd978479e5e18dd80720e115153c7b0fb48f2a60ce2e137",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_graph_3.yaml": "0ed8ec0421f4c5a45cfc7b9ff146c27251722400cd5452c1eccace8ca7fd68a8",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_graph_6.yaml": "c769039383f33fab808b98ba84e04b3acb8f87fc94955a091f36f2694d8bebff",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_point_3.yaml": "c0d1f0ddeb47a037edf1be5d23aa0d9f2290333d41dde5fbe4caea8031538c19",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_point_6.yaml": "da16ac74fdd57ee640311d0f40486574b676f57d0d6304fd5ac08145e3702f2a",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_simple_3.yaml": "b2e975f141600cf67c3be170823c4d0a40351bfca93bcf81c6805c76ed58c27d",
+    "generated/stage_u/pubmed-seed212-r0.05-tracin_cp_simple_6.yaml": "68421b9232bc3a11f46f4a87e8765e7930dbf2875ad0a3d686ec31122ead3aa0",
+    "generated/stage_u/pubmed-seed42-r0.01-a_grad_norm.yaml": "d129009eaaa4eb873d481796d590924c82842d11868f0f87d5b20b1ea7d34688",
+    "generated/stage_u/pubmed-seed42-r0.01-b_param_hutch.yaml": "e936f683c10c1b69c9465236bb28aedb64a1df40bd09e992965950dbba3148c0",
+    "generated/stage_u/pubmed-seed42-r0.01-degree.yaml": "1e6f41ecaffb518519c21c24f400cff2ebe5f59897ae9f68dc7503073cbd2d23",
+    "generated/stage_u/pubmed-seed42-r0.01-gt_full.yaml": "8273f295d87449b5821cf8042f0b87885e7e71d2243fe047e6a5eb6b2fcdf573",
+    "generated/stage_u/pubmed-seed42-r0.01-gt_simple.yaml": "7668a8712617397f8e239d95284b76da3d5a491410666563d17bf1d097443a7f",
+    "generated/stage_u/pubmed-seed42-r0.01-legacy.yaml": "2173fd5f865634890eae6c3e3b47989b1d5b555ab039a8c9fe028b922f6c60cf",
+    "generated/stage_u/pubmed-seed42-r0.01-p_graph.yaml": "0d514b47037fb6d3aa3ad81612f8778a41ff3457ed0d946e8f1e378476dfa17f",
+    "generated/stage_u/pubmed-seed42-r0.01-p_point.yaml": "9453140ecc31a05cf3614922049081bad01e20a3b5b7737917d5365b20b26d8e",
+    "generated/stage_u/pubmed-seed42-r0.01-p_simple.yaml": "31444876ec8f40a14e2839a32f4c5ed5299a8ca39e9658ebe15feaa633df05e6",
+    "generated/stage_u/pubmed-seed42-r0.01-r_point.yaml": "17444f9d04a636bfc741ae9b74888d6131427c0d31b394650163b7c23d9f3751",
+    "generated/stage_u/pubmed-seed42-r0.01-random.yaml": "2812524a0f1a8386c2ae78ce998c6f2cd64390bf1a15a628aeb076771313c671",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_graph_3.yaml": "b18afba42a6b61aa663c2334f65d54b4d066e6ba2324e875f6c6fd70634733f7",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_graph_6.yaml": "8588f0a4e7d6f7515c41a766567af48f80fd6982d2d0f6a7d8818985c4df9209",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_point_3.yaml": "18cd156ae7a248a101adf4c0faa2208bc3c684a759741992626fcddbf745d292",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_point_6.yaml": "e0b06bccb5536a9329e1ae624d8ba31d4d001ab66d0b24c5db9fa1baddb45211",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_simple_3.yaml": "39367d8c5e12d131564e43cfaf3268069e2ec9cea451d4f3070db9ede6a92c89",
+    "generated/stage_u/pubmed-seed42-r0.01-tracin_cp_simple_6.yaml": "11590a8ddf39f90bf3684aba5e93c6e72abb5375b409132937b6ce82e776fae9",
+    "generated/stage_u/pubmed-seed42-r0.05-a_grad_norm.yaml": "bdcb84a09871d4cff1500422c7eec843e441a4862303f04dbbd19ee1cf25ede2",
+    "generated/stage_u/pubmed-seed42-r0.05-b_param_hutch.yaml": "f2117134ed28c77ff5ebb40c8b2647390fd589b6e7697b09e748cb6d2e2d3291",
+    "generated/stage_u/pubmed-seed42-r0.05-degree.yaml": "84822b17aad8afe81b5d8e5c9a29502f02ea023d33c767650eec0be7eb905db9",
+    "generated/stage_u/pubmed-seed42-r0.05-gt_full.yaml": "2c9f77da443f679e5af7047cc865ab0a2d0bfafa9ab7e75a120b9a29892634e0",
+    "generated/stage_u/pubmed-seed42-r0.05-gt_simple.yaml": "92657634646c62c84d4a83fcf0659a2a4e4641b7cce0bdd92e38534150704cfe",
+    "generated/stage_u/pubmed-seed42-r0.05-legacy.yaml": "bb44ba9b8dedeb5606eb72b21b1075bbea91b6a48e82f247abf11ae047a5c2c0",
+    "generated/stage_u/pubmed-seed42-r0.05-p_graph.yaml": "c4c5b281f6e53ca2b436ddb1f3d911760fe4085bd663f4b9037e6ed5dab09cff",
+    "generated/stage_u/pubmed-seed42-r0.05-p_point.yaml": "b158fc50975bfa4814aa8e2969adf8f84b807e62c945e107daa46e51cbbc66ca",
+    "generated/stage_u/pubmed-seed42-r0.05-p_simple.yaml": "d1d4868c822deb43e5ac094b4a27e1a830a48c96d941153c6506e3d25a1e9fcd",
+    "generated/stage_u/pubmed-seed42-r0.05-r_point.yaml": "555a8bb7791fabbf1ed68982721ab54c3dfd3d4ba53c92ed349793e212e778a4",
+    "generated/stage_u/pubmed-seed42-r0.05-random.yaml": "bc9708e91a0c15facc0cbcd833b789387f976e184315649692ac13809aa8f66a",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_graph_3.yaml": "dc73e20d7d6990ebd9b40d3440f634af6f51e1a80afbd51108ffbdc26549034a",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_graph_6.yaml": "a9be5b327a1e78cb03b003eb951305d0c66c3baebe57c952364af0ee0b2b02a0",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_point_3.yaml": "609e8a11ce0429e535b1508d90278a04534dd02ad51f1ec9270e2f4fafa7d823",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_point_6.yaml": "2e003ebff1cc3f26189a76ee9041989f244ea5953d33982def613fde9b33d712",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_simple_3.yaml": "83637dba95f4ba422177442dd5f78be315ac59bbb22ac1558975e772d56bedd7",
+    "generated/stage_u/pubmed-seed42-r0.05-tracin_cp_simple_6.yaml": "7dfca486d199ec26a30f92a6ed2850286b212b3c9c6f5fecd2667d545c6d9d41",
+    "generated/unlearning/GIF-seed2024.yaml": "937c231d020d96f3a4e4af2754c5cb9d32c8fa5ceaecedfd00187ccfb8363ace",
+    "generated/unlearning/GIF-seed212.yaml": "4fbc59207cb591ac8f813a0fc2568c933cce4eb6878bb60fe54fd09d0d1f93f9",
+    "generated/unlearning/GIF-seed42.yaml": "b6d8f70f8468116cb8dae42172ba8b67271e170d9cd55d0dde800ca2ea826b0a",
+    "generated/unlearning/GNNDelete-seed2024.yaml": "787497e907baf4af0e08d98ae83727d29fa5df92169c2593c8540c99e93d3fc0",
+    "generated/unlearning/GNNDelete-seed212.yaml": "b8c3f03d4b3ebb115f1e82567c83161ad26763b6557354d734549cbfac658d44",
+    "generated/unlearning/GNNDelete-seed42.yaml": "ee372873c05fe4a9215d2f270535ae2d8d175a640dc40f9f83d85baeb98d1df4",
+    "selectors/a_grad_norm.yaml": "03ca2c14116ba73e975cbc7d330d16a82d2c22fd778466d6258a7062531b19bd",
+    "selectors/b_param_hutch.yaml": "08799a94f41bab1090c49e1b34244bbc0706e9e70d74114bb404533931651ee7",
+    "selectors/degree.yaml": "6fbd598fc34962ce2fe563cddf2981165b66754875cc6140a16cb84fab89f932",
+    "selectors/gt_full.yaml": "564fbfd409c1ba120ea69effca98d482f6556d195d104e9e83de4a982b8b06c5",
+    "selectors/gt_simple.yaml": "dd54dbd42dd400200024927e39128c06fd13ad2952fd1ad5d9d975a93cca2138",
+    "selectors/legacy.yaml": "f0fbbb018cbb2adecb8da79820313c890c9470633cacf74058df53a0bca6f51a",
+    "selectors/p_graph.yaml": "53fede3b17a8448581c1a8d6900b9f174712533519e0957f5dee5be09df5b564",
+    "selectors/p_point.yaml": "2ed6e9f45982d82e4f909023dd24e5e1fb4f0d99c2d2e992b92448790996662c",
+    "selectors/p_simple.yaml": "0ed232082477d8dfc52ff00c9aa8ed6368d50d8fd5de9df56f5d81b8096fa829",
+    "selectors/r_point.yaml": "b6d645d09a0c49525c23a1303c4ced8b526b3b1d970a5831f19074729c5bd033",
+    "selectors/random.yaml": "323db8d25a8ad9819cc958ea75207236cce402965f42c63e2d734bd8562a5d24",
+    "selectors/tracin_cp_graph_3.yaml": "f2f2e044a1e03c49dbfab6fa543d72dc4405bffe7a65772eb26c608d5d597d35",
+    "selectors/tracin_cp_graph_6.yaml": "a03bc11fd7979c501db48261b7255df54d98f07ac16daf15d8eb94459920e50b",
+    "selectors/tracin_cp_point_3.yaml": "02fd8a0e608f6047de5c1a0c12593dd4ca83ae1017a69c7308b5cc6f0243500b",
+    "selectors/tracin_cp_point_6.yaml": "399482839846b5bffb710bc7a3956370c4d848ba4ea44b6b60e4c3de1a11fa04",
+    "selectors/tracin_cp_simple_3.yaml": "ec6b2ef28af29ff50f2b545dff31aa521dd3190f2a3c61c91ae8796bcdc7df3c",
+    "selectors/tracin_cp_simple_6.yaml": "c69f8a6872fb5650e046afd42c0fb5da38dc9aa52640f45b49bc42458b5add92",
+    "stage_s.yaml": "9581d18d23f538a66077a4a6a386b01a2f483d7cfdd2c03ee2df8a090344707f",
+    "stage_u.yaml": "0be695b10dac24019eddd38acd31f1f2de07fdae4eed33c944607c52938678c6",
+    "unlearning/gif.yaml": "50f1bcaa22d4e0271578c10bfd5ff7d8a01080ca749cf9112cdaee208cc3d77d",
+    "unlearning/gnndelete.yaml": "9f333eec63442c7d740f1d44c1b823d18f062cb8132e0512c41903bdce0eee39"
+  },
+  "configuration_digest": "0ceee1c986ef3b9798f5d765a196dc9f38afacaf781c20faec0d20123566a26a",
+  "effective_selectors": {
+    "821953edd3cfbc1412f2e63d4bff8c5c1408d9d4fad0192dc9343c4cbf91696d": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "degree",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {},
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      }
+    },
+    "1149278d5d78d5100171222420bedf77c01a88b82c6edf97b634478ec6c268ac": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "random",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "seed": 104245
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      }
+    },
+    "27e52dcbb5d586a4319e930a2e92d85a0f862c488f691bcd793418f9c267fafc": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "0859ff5df360a857dbca013596df62af20117f96430fe83ca592de8a9c0b1a98": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "90d4547d7b5eacb9c1880cbf3492e793d22bd66bdf2fea4bf77c0910333ec824": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "823c397b5e2da8e5e28c865a32720bf157b7fd87439b9adbeab8abdd60cf9e17": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "0a159b573c46560cb5ca70ca6e02a1ceeab6dc19bd97ccc224523948d8b3639f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "2ff9625c8731818c795e11c2e0f61ec3c31e3f376e1ec6c34251d8007c9876a1": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "88e22fa238f18a06bb67adb259b48a1329c43bd77d599e2da38f07d22a6b6921": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "e88660891b2b9c0c3d30dbbd2a57c4a9f4334918302abbf27063167c5715017a": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "3b3e3266315017d2d54566c9e1d38ae4748b919a2296488accc645fe21d4eea4": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "13cabb6456e4a347e90b162621e4d7b3fa16b8b3818b3696a809f41bbf5e7554": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "ad0e1960aad1d466f8f43613a51f00d2274434bf1cd8dc30c6ab8b95b3ccf56b": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "e797192b690ee2fb3ec954f4fc28a2b7b24ada719e3e4de50e17cd54376f2142": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "1253ba9a4478769c84d85e95c24ff74f275967170b36248e2032a4bb2c023824": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "443e419ff4201bffd7740db64d4bcbc25c8e43405abe15ed98c0ad59fbb07234": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "b808eeb5ce018326414e0d5c4f9b5dce9a28ff232b93fa12f7fbb34c85b91336": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "d1f1b4649815d281df8794dc86090c086e9733122a8c4592fcc5c028b84da806": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "degree",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {},
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      }
+    },
+    "af59c1301f7ca057242d3bcafe4ae1e0df664433e24e663e87c12fa363bf628b": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "random",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "seed": 104245
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      }
+    },
+    "02dbb082f7e45d8d937ba040e9c8fc50b85bc495baba4849e459c68b37122959": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "13230e05a9bfba016f402a8904604a298514f0ec60f89b398c2cba5e22b455a6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "b76b980586b5a09db93b261840474172bad67f005ef00c37db4b9b915fb1cde9": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "86a2b14b724bd5dec11d4533309d649a70e0137b0850cbea6f7070da68e3f6f4": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "0e8165d9303f5f114b262fa8fdc2bb19712ba36dcb760f3f4a02bbea83b2076f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "37bc199b4829f01f52485b96f749b76762c8203b386740c205ece56e142c445f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "55816f36fe24fe8a9fcd8fc5410a691ae2e3fd4913d4637cd047ed1965e4fb88": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "d85c15e8557d8b536f06246d0280fec3ae2cbec6cfbf1cd63fcb1beb68d1695f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "daae75c00e489e658d94d76350ce0c3f724780059309dfa7662dc74353a1578f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "0194051f358db9ad769ba489dcda5a58ddb57c699cf50f135a62abf81c9dd2e2": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "41ff09898066b834bf501e0e1bfcd734875890ecc115cdc7dec3f604ca89690d": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "842dca365796f8676e92f21240d8a15cbb0a462baec6e45abee1fb6d5a85c6ac": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "98f03420557ce5505ac25651ee8b83f6ffff33c426613f9eebfd1881ccedc18f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "15e744c23123bd7030cdcaa50d9c6054a730a9b8c5fb9a1d8749fa8868ecfbef": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "a80d80fdfc419069deafa721a69b87bf9ca37235d3cfa6152828f243e3ca5fef": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      }
+    },
+    "bd55e2ef3e8e60b02bceba0644bd5fd51394c6dc928a8b7b4632d176a14a0913": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "453821068b31eff6279e5c924149032fc09d8916b486146ccae89a70e5ad31f8": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "2c8cad6edbe93ea942e1c6dafc392a24b1e0c58cd6148bb12bfd282c4c3a18f3": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "ce943de8a1d2c8ec2e4610e0551ec5a7163391db7fe19994a8f8752a794cb2dc": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "00a1f53f8ee254650b700f0221b147557ec82a951b75d0b0fb2b676c61fa403a": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "3dd82620440418220bb47c396f70039cb570a2af9651e0568af309de6745a07a": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "5d0ee7c92eac49802eded063e37c6702f15bdc9f92d7aaa235f23a5efa7391a6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "caf198664a30f02f9b2659d68158df0755ea1b2d2a9dd3fd60cbc2b9a610999c": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "c1d3b7120dab94ea13c14681adbed56839616ffa036ae323796a3e106eb2daf6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "6514459fb6f85bbb5d0580b773b624aa0b5d968c0af797362f761d69c324fe34": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "b283d8ebda09c2dcf278eca3c0fcd6389c198684ca8f73f60dfcf02833d138d1": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "8a1ede83475d208c1b9c5c3639708d795a490d5ed13860fcac528a2b1c1f57f1": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "418172139ff4b75a06ce183d3fea4dd499a3015401fc9bd65cf5acf5bee3a204": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "10ea395257ba4a6f1189df21700c42d6d72897e99d94174f4ea3c9743b6d26f9": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "d6b8b9186588bd7ef98b9497b87035cfb0c58cb86192bb940cc8e15182763820": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "a2c0fa5ec68c01d40aa17bc7110d16be0e5d65b840ddeb9347f4102feb5e234d": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "64b2b537a09205a8f99c5625993336d65e6fe4fcf7fa11ba7737279c497e0a99": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "246c6659a05b482f99aa4dd4e98e4a4e146f1ccd5781f3ab0f8659365c6aaec0": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "58656269679463e22aaadd12fffab11b5ba51f6ab2c5ce1b0fbd7544d59f3347": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "00e9eb7ded156f5f0f388c0a6a6ecf9ba69f24f086de95cd8ce7a6b83d716aed": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "a023b1e01c93fa2c538ec67a28d3312dad4ac2cfce39c1444c837c71bad732a3": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "c8275ec88d080f5679d45c3e3fe9a67426f76cea7794cd101af3950a88c22ddf": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "7eff942a78cade92a442fce0d4c861c5ee380bd7a3118c15ee971e18c34914c7": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "cdb37ef47ba94ed42694d25eb918774e8bf5728f87ca9b5e6c6757acd114682f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "b8eb1bf98fb53504ca4743dba42db2fe56d18c967f9026382b61e88fb3d6870f": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "32781d91a1ddce4227185359a45c2aca9c33b2c0fdd2c86ae57cd220e5dd03f7": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "040d8ce3b5007dbba4f26c3a396a1c4fd96a06c73a9ade4c09ae1d3194ba68af": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "230bad49e3e1b5d5ea41b34c25e91c6c3ff2ad1d86a974c0ba44d1faeec9f415": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "7ca3b3cf3f396acc11822d10dd9bcbf86290a841339681d22cc3e44a88659cd2": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "d54be9d6803007354fdeaa5b54beb58c6468f756d16b60d1f2718aff6e71dbec": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      }
+    },
+    "650ddfc6e1c0c207348fc4f2149c31fc11d50dae9bdb54445f35af269cc0cbe6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "467a4893733afb0f7547f779a011115c19911cf839c2603fe71f3f074834df19": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "2ad0dda0fb08b20cbf25aa451e82356eb09dba1547615782e843379983f9c8d0": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "5e963e39846dcde0fc2421c2482e5784992ffbe4571f8475e6bfc216eb18d86a": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "7cfa4f87ee61ad7fdfd563ef1d10f40590ee9626ffa96d5e8596ceff3a2bb089": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "7c42e8a42c4e8e9ab37c707a2f30364fdb8ca305a0a20d6bfc6a75b3b74d2aab": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "b56283e1fac739025ebdafa3810a0919f64246d87aabb82b8d4890db99d091b6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "8a7787929db3cfb42b742016c900666e92cd2897c2e6b0cd4ad1a3dd9c44b2db": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "3e9adc96ac74613a03145dec9ca83bb75be04042e966b1d72b8dc30996289558": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "eae990c66011f430a70a7883fa968a005c168ebb0e35fff14f504a12bb2585d6": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "34d41fd34ea59206a2e88d466850380995ff167e78e65698ac4ac4dc41b49d75": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "d03a6a9a42d9e1fb490bc82fa41d190ccd77061f68055741344ee999ac617aad": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "4be2338f3df9f33cf79524769bfc4f9c88af1d46b468544f81c357e7938dd61a": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "68b7fd855189afdaaa8c03fa73c3e197dc317b2f67d1a428aedeecfd8c1f1a42": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "40e62ca78811a00106c5f6465523e1ab9da6a0dd23c8eb7ed7f9a24e250befd9": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.01,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "0ba9bec1fb479cfd9e25b5d4fb1e784dcae348cdc69d3b96a3212e6a590f78e9": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "a_grad_norm",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "751639362ed7b3b2f51206c8e8831efbcfb2a8edc7533a49c125bdb2b1558990": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "b_param_hutch",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "dd1d42027db35f8751cc1e95d6c91369d971396c4fff78f2afc89213d792f29e": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "r_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "a85c78ff80346f5e956cba5d09620172e955a5732637c5b29a2466191efef780": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "67a1d6275fd77857e139264e5c38e490962495c5be791ceaa0e09eeef1839499": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "gt_full",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "4fd4e14058db26e358a38a9a82ed8d3f8d4735f4c2a332010b5b0a66be8c7911": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_point",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "ecae1ecdc06ed7de12996103c7aa62d7a79f4f844ee450bacf5a4cd7445960bf": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_simple",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "004418a74f287fcd06168515bb443210e92c34f76a5bbdb5251076ef54bea36e": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "p_graph",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "bacbf34c19e55b2ef8a89270032b5d7e92a19a44f640a7df74f75611f47bb55d": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "0d3e6b4b874ec5c4b6d3e30280777be6d16859ebacf46adec07a34113f1286c1": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_point_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "bea02ff03a995e65d1df15a815bb5511ade0e3f3dcd798a31e5e1cfe24729040": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "b47c0d3c63e6c57c287a8072183a4476dffe9d1062234b4d3ae9d6a60b418ae0": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_simple_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "091a27e807c644394ceaae7733f4324da7566dd915a10714b30d3c9c382375d0": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_3",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "3a544669f55a1f07b6a5babf034b9e6c49405481932ef5da4d622db2122f35eb": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "tracin_cp_graph_6",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ]
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    },
+    "0e36e50e2b89fd6b9984e255a314cd749f017d9c5cba848db761216e592d5681": {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "legacy",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "ratio",
+        "value": 0.05,
+        "denominator": "train_candidate_count",
+        "rounding": "floor_with_minimum_one"
+      },
+      "parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      }
+    }
+  },
+  "effective_gu": {
+    "0d6942f259ca309422f35359b08b05fda307295576415fac8c79c3ead96edeef": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GNNDelete",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "unlearn_lr": 0.01,
+        "unlearning_epochs": 50,
+        "alpha": 0.5,
+        "loss_fct": "mse_mean",
+        "loss_type": "both_layerwise",
+        "deletion_optimizer": "Adam",
+        "deletion_weight_decay": 0.0
+      }
+    },
+    "62ada2d9af9908fa656b9ba489f4acf4e4ca051296cd4162a763492dab1c14a9": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GIF",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 2024
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "iteration": 100,
+        "scale": 1000000000,
+        "damp": 0.0,
+        "GIF_method": "GIF"
+      }
+    },
+    "338e07575cb5707885fafad63a4f4821549b15d2d47db202875ee90c58c7f3fc": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GNNDelete",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "unlearn_lr": 0.01,
+        "unlearning_epochs": 50,
+        "alpha": 0.5,
+        "loss_fct": "mse_mean",
+        "loss_type": "both_layerwise",
+        "deletion_optimizer": "Adam",
+        "deletion_weight_decay": 0.0
+      }
+    },
+    "1304cc896db79f22fc2449753d22e29db6305b1e61ae4fd3e3a37e85a49c5f1f": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GIF",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 212
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "iteration": 100,
+        "scale": 1000000000,
+        "damp": 0.0,
+        "GIF_method": "GIF"
+      }
+    },
+    "a723ff983ce1cb2331b6e346477e5869882c6f539291e2f8b7437859693327fe": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GNNDelete",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "unlearn_lr": 0.01,
+        "unlearning_epochs": 50,
+        "alpha": 0.5,
+        "loss_fct": "mse_mean",
+        "loss_type": "both_layerwise",
+        "deletion_optimizer": "Adam",
+        "deletion_weight_decay": 0.0
+      }
+    },
+    "f195cd8423c2411ebf28eae6fde6e570c4dc0889409d0d62975c345b7bff12c5": {
+      "kind": "unlearning",
+      "schema_version": 1,
+      "method": "GIF",
+      "training": {
+        "epochs": 100,
+        "optimizer": "Adam",
+        "lr": 0.005,
+        "weight_decay": 1e-06,
+        "scheduler": "none",
+        "seed": 42
+      },
+      "model": {
+        "architecture": "OpenGU.GCNNet",
+        "layers": 2,
+        "hidden_channels": 64,
+        "dropout": 0.5
+      },
+      "parameters": {
+        "iteration": 100,
+        "scale": 1000000000,
+        "damp": 0.0,
+        "GIF_method": "GIF"
+      }
+    }
+  },
+  "full_expansion": ".workblock/runtime/aagu015/definition-expansion.json",
+  "cli_examples": {
+    "cli-stage-s": "stage_s/cora-seed42-r0.01.yaml",
+    "cli-stage-u": "stage_u/cora-seed42-r0.01-degree.yaml"
+  },
+  "verification": {
+    "targeted_tests": 8,
+    "real_cli_examples": 2,
+    "protected_tree_unchanged": true,
+    "files_hashed": 7
+  }
+}
