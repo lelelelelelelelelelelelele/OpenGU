@@ -1,0 +1,10 @@
+Fixed CPU software fixtures only; no experiment or retraining run.
+  loaded GIF source: E:\project\OpenGU\GULib-master\unlearning\unlearning_methods\GIF\gif.py
+  [OK] GIF actual approxi -> model -> collateral/hop fixture; source_sha256=e81c702e4856b0a0ebdbf34780f905ce5631d63a00575af673ac3e9e3f67d672
+  loaded IDEA source: E:\project\OpenGU\GULib-master\unlearning\unlearning_methods\IDEA\idea.py
+  [OK] IDEA actual approxi -> model -> collateral/hop fixture; source_sha256=fc9077d1e60e07381fd04ca8b2b99994d3c03a4bc1cca0dd3f7c0f1bd8044f63
+
+ALL CHECKS PASSED
+
+E:\conda_package\envs\gnn\lib\site-packages\cupy\_environment.py:216: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+  warnings.warn(

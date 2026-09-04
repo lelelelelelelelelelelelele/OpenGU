@@ -1,0 +1,14 @@
+........................................                                 [100%]
+============================== warnings summary ===============================
+..\..\..\conda_package\envs\gnn\lib\site-packages\cupy\_environment.py:216
+  E:\conda_package\envs\gnn\lib\site-packages\cupy\_environment.py:216: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+40 passed, 1 warning in 5.01s
+
+E:\conda_package\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py:175: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import resource_filename
+E:\conda_package\envs\gnn\lib\site-packages\pkg_resources\__init__.py:3154: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('mpl_toolkits')`.
+Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+  declare_namespace(pkg)

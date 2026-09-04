@@ -4,9 +4,15 @@ Block ID: `AAGU-009`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/main`
+
+> Git baseline：`dac6fd52345f173b29f45563e4ede7d84a2a11e9`
+
+> Source branch：`refs/heads/codex/aagu-009-collateral-evidence`
+
+> Remote target：`origin refs/heads/main`
 
 Execution topology: `sequential`
 
@@ -58,7 +64,7 @@ Item Type: Block
 - Preserve the existing Claim and `working / claimed` state; this scope revision is neither a new Claim nor acceptance.
 - The parked source `codex/aagu-009-collateral-evidence` retains implementation `532b5ea` and the 2026-08-31 local verification record (44 passed). These are historical software evidence, not verification against today's main.
 - Before software execution resumes, incorporate this canonical scope and current main into the same source and revalidate the affected code. The former Apply target and source-side formal rerun contract are superseded by this Record.
-- The old source-side `evidence/repair-scope.yaml` and preflight notes are historical planning/observations only. Their 120-cell matrix, SSH blockers and move/rerun steps are not a current execution authorization. AAGU-027 must re-establish its experiment identity after AAGU-001.
+- The obsolete `evidence/repair-scope.yaml` has been removed from this software candidate; its history remains in Git. The dated local-baseline/preflight notes are historical observations only. Their 120-cell matrix, SSH blockers and move/rerun steps are not a current execution authorization. AAGU-027 must re-establish its experiment identity after AAGU-001.
 
 ## Status history
 
@@ -66,3 +72,15 @@ Item Type: Block
 - 2026-08-26: corrected the registration-time `AAGU-002 -> AAGU-009` projection error; the legacy E2 repair lane has no AAGU-001/AAGU-002 task dependency.
 - 2026-08-26: claimed after the user explicitly said to perform the AAGU-009 repair; the preserved Claim remains the runtime identity for recovery.
 - 2026-09-04: 用户要求把 009 收窄为代码修复，将正式实验与 SSH 工作拆至 AAGU-027，并明确所有实验运行都在 AAGU-001 实验框图之后。本次按该语义修订同一 Record、补齐 2.1 Human Surface 并将 Apply target 对齐当前 main；保留原 Claim、历史和进行中状态，没有执行代码修复、实验或验收。
+
+- 2026-09-04: 用户确认 009 范围内 Legacy 入口若仍存在即可继续。恢复同一 source 分支并纳入 main@dac6fd52345f173b29f45563e4ede7d84a2a11e9 的最新软件范围，保留原 baseline 和 Claim；仅为修复旧分支/新合同漂移进行本次源分支恢复，不 Apply、不运行实验。
+- 2026-09-04: 标准 resume 保留 claimId，revision 2→3；本任务接手软件修复。保留已有效的 GIF/IDEA 算法实现，退役两个旧 helper 和过时 repair-scope，验证器改为真实 approxi→模型抽取→collateral/hop 固定 CPU fixture，并加入缺失写回及错误来源反例。初轮 40 项软件回归通过，正式实验仍归 027；最终候选与报告随后单独校验。
+- `accepted`（2026-09-05T01:41:09.5715037+08:00）：用户 基于 用户明确说 accept，接受 16006f2273e9dbe0a3189f28a8a7f7470f86c962 的软件修复；d76aed8 仅校正同一 WorkItem 的 Git 恢复定位，不改变软件内容和实验范围。 接受当前已验证候选。
+
+## Software candidate verification
+
+2026-09-05 收口前校正恢复记录：原始基线 `6be95c74f230cbfcb6a99d0166ba8b1d143e5416` 保留为历史身份；恢复合并 `b741f1a45eff92d2a953579999a8682c24e81410` 的第二父提交为 `dac6fd52345f173b29f45563e4ede7d84a2a11e9`，也是已验证候选与当前 main 的实际共同基线，因此将当前 Git baseline 对齐该已纳入身份。按 main 已配置且实时核对的 upstream 补齐 `origin refs/heads/main`。本次只修正同一 WorkItem 的 Git 定位信息，不变更接受的软件内容、实验边界或原 Claim。
+
+40 项本地回归和直接 verifier 在干净 checkpoint `fdbf2cd885d1e4902ae104a6d6258281c6792fef` 通过。GIF/IDEA 的实际写回、冻结参数、collateral/hop 消费、缺失写回及来源错误反例得到验证；两个 Legacy helper 和旧实验 profile 已退役。主证据与决定入口为 [REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)，[最终回执](../../runtime/evidence/AAGU-009/final-verification.json) 绑定报告候选。
+
+Agent 建议接受软件修复，当前等待用户决定；未接受、Apply、push、部署或运行 027。最终报告/状态投影检查完成后，同一 Claim 进入 awaiting_acceptance。历史 44 passed/远端预检不替代本轮证据。

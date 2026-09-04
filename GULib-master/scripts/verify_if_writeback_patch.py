@@ -1,125 +1,127 @@
-"""Unit-test for the IF-family approxi() write-back patch.
-
-Verifies that after the patched IDEA/GIF approxi() runs, target_model.model's
-parameters reflect params_esti (i.e., the fix took effect and downstream
-_get_trained_model() / collateral.perf_unlearn will see post-unlearn weights).
-
-Run:
-    E:/conda_package/envs/gnn/python.exe scripts/verify_if_writeback_patch.py
-
-Exit codes: 0 = OK, 1 = patch missing or write-back not visible.
-"""
+"""Verify real IF-family write-back on fixed CPU tensors, without experiments."""
 from __future__ import annotations
 
+import copy
+import hashlib
+from pathlib import Path
 import sys
+
 import torch
 import torch.nn as nn
 
-
-class MiniGCNStub(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.lin1 = nn.Linear(8, 4)
-        self.lin2 = nn.Linear(4, 3)
-
-    def forward(self, x):
-        return self.lin2(torch.relu(self.lin1(x)))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 class TrainerStub:
-    """Mimics target_model in IDEA/GIF. .model holds the GNN; .eval_unlearn /
-    .evaluate_unlearn_F1 take an external params list and return a fake F1."""
-
+    """Record evaluation parameters without writing them into the model."""
     def __init__(self):
-        self.model = MiniGCNStub()
-        self.eval_calls = []
+        self.model = nn.Linear(2, 2)
+        with torch.no_grad():
+            self.model.weight.copy_(torch.eye(2))
+            self.model.bias.zero_()
+        self.model.bias.requires_grad_(False)
+        self.evaluated_params = None
 
-    def eval_unlearn(self, params_esti):
-        self.eval_calls.append([p.detach().clone() for p in params_esti])
+    def eval_unlearn(self, params):
+        self.evaluated_params = [p.detach().clone() for p in params]
         return 0.5
 
-    def evaluate_unlearn_F1(self, params_esti, edge_weight_unlearn=None):
-        self.eval_calls.append([p.detach().clone() for p in params_esti])
-        return 0.5
+    def evaluate_unlearn_F1(self, params, edge_weight_unlearn=None):
+        return self.eval_unlearn(params)
 
 
-def simulate_patched_writeback(target_model, params_esti):
-    """Replicates the exact patch from IDEA/GIF approxi() — used to validate
-    the bytes inside the actual edited source files match this reference."""
+def check_model_writeback(label, pipeline_class):
+    """Call production approxi and the production model/metric consumers.
+
+    Only fixed CPU fixtures are used. The comparison model is not a retraining
+    result. No constructor, trainer, dataset loader, cache or runner is invoked.
+    """
+    from attack.attack_eval import evaluate_collateral_damage
+    from attack.pipeline_adapter import AttackPipeline
+    from torch_geometric.data import Data
+
+    method = pipeline_class.__new__(pipeline_class)
+    method.target_model = TrainerStub()
+    method.args = {
+        "iteration": 1, "damp": 0.0, "scale": 2.0,
+        "dataset_name": "Cora", "GIF_method": "GIF",
+        "gaussian_std": 0.0, "gaussian_mean": 0.25,
+    }
+    method.edge_weight_unlearn = None
+    # Isolate write-back from the expensive Hessian calculation.
+    method.hvps = lambda gradients, params, estimate: [torch.zeros_like(p) for p in params]
+    before = copy.deepcopy(method.target_model.model)
+    zero = (torch.zeros(2, 2),)
+    direction = (torch.tensor([[-4.0, 4.0], [4.0, -4.0]]),)
+    method.approxi((zero, direction, zero))
+
+    trainer = method.target_model
+    assert trainer.evaluated_params is not None, "updated parameters were not evaluated"
+    expected = trainer.evaluated_params[0]
+    assert not torch.equal(expected, before.weight), "fixture must produce a nonzero update"
+    assert torch.equal(trainer.model.weight, expected), "write-back missing: model retains stale weights"
+    assert torch.equal(trainer.model.bias, before.bias), "frozen parameter changed"
+
+    consumer = AttackPipeline.__new__(AttackPipeline)
+    consumer.method = method
+    consumer.args = {"unlearning_methods": label}
+    model = consumer._get_trained_model()
+    assert model is trainer.model, "collateral consumer extracted a different model"
+
+    reference = copy.deepcopy(before)
     with torch.no_grad():
-        trainable_params = [p for p in target_model.model.parameters() if p.requires_grad]
-        for p, new_p in zip(trainable_params, params_esti):
-            p.data.copy_(new_p.detach().to(p.device))
+        reference.weight.copy_(expected)
+    data = Data(
+        x=torch.tensor([[1.0, 0.0], [0.0, 1.0], [1.0, 0.0]]),
+        edge_index=torch.tensor([[0, 1, 1, 2], [1, 0, 2, 1]]),
+    )
+    retain = torch.tensor([False, True, True])
+    stale = evaluate_collateral_damage(before, reference, data, retain, [0], max_hop=2)
+    observed = evaluate_collateral_damage(model, reference, data, retain, [0], max_hop=2)
+    assert stale["fraction_flipped"] == 1.0, "fixture must distinguish stale predictions"
+    assert observed["fraction_flipped"] == 0.0, "collateral still sees stale predictions"
+    assert observed["mean_pred_shift"] == 0.0, "collateral sees different update parameters"
+    for hop in (1, 2):
+        assert observed["hop_decay"][f"{hop}_hop_count"] == 1
+        assert stale["hop_decay"][f"{hop}_hop_flip_rate"] == 1.0
+        assert observed["hop_decay"][f"{hop}_hop_flip_rate"] == 0.0
+    return observed
 
 
-def grab_params_snapshot(model):
-    return [p.detach().clone() for p in model.parameters() if p.requires_grad]
+def verify_loaded_writeback(label, pipeline_class, relative_path):
+    expected_path = (REPO_ROOT / relative_path).resolve()
+    loaded_path = Path(pipeline_class.approxi.__code__.co_filename).resolve()
+    print(f"  loaded {label} source: {loaded_path}")
+    if loaded_path != expected_path:
+        print(f"  [FAIL] expected active-checkout source: {expected_path}")
+        return False
+    try:
+        check_model_writeback(label, pipeline_class)
+    except AssertionError as error:
+        print(f"  [FAIL] {label}: {error}")
+        return False
+    digest = hashlib.sha256(expected_path.read_bytes()).hexdigest()
+    print(f"  [OK] {label} actual approxi -> model -> collateral/hop fixture; source_sha256={digest}")
+    return True
 
 
-def all_close_lists(a, b):
-    return len(a) == len(b) and all(torch.equal(x, y) for x, y in zip(a, b))
+def main():
+    # Direct execution supplies the intentional minimal CLI context needed by
+    # config.py when importing the actual methods; this script has no options.
+    from unlearning.unlearning_methods.GIF.gif import gif
+    from unlearning.unlearning_methods.IDEA.idea import idea
 
-
-def check_fix_applied_in_source(path: str, marker: str = "Write params_esti back into target_model.model") -> bool:
-    with open(path, encoding="utf-8") as f:
-        return marker in f.read()
-
-
-def test_writeback_changes_model():
-    target = TrainerStub()
-    pre = grab_params_snapshot(target.model)
-
-    # Fabricate a params_esti list with the same shapes but distinct values
-    params_esti = [
-        torch.randn_like(p) * 100 + 7.0
-        for p in target.model.parameters() if p.requires_grad
+    print("Fixed CPU software fixtures only; no experiment or retraining run.")
+    outcomes = [
+        verify_loaded_writeback("GIF", gif, "unlearning/unlearning_methods/GIF/gif.py"),
+        verify_loaded_writeback("IDEA", idea, "unlearning/unlearning_methods/IDEA/idea.py"),
     ]
-
-    # Sanity: pre-state must NOT match the fabricated params_esti
-    assert not all_close_lists(pre, params_esti), "pre-state already matches params_esti — test setup wrong"
-
-    simulate_patched_writeback(target, params_esti)
-
-    post = grab_params_snapshot(target.model)
-    assert all_close_lists(post, params_esti), \
-        "model.parameters() did NOT match params_esti after write-back — patch logic wrong"
-    assert not all_close_lists(post, pre), \
-        "model.parameters() unchanged — write-back was a no-op"
-    print("  [OK] write-back correctly transferred params_esti into model")
-
-
-def test_idea_source_has_patch():
-    p = "unlearning/unlearning_methods/IDEA/idea.py"
-    if not check_fix_applied_in_source(p):
-        print(f"  [FAIL] {p} does not contain the write-back marker — patch missing")
-        return False
-    print(f"  [OK] {p} contains write-back marker")
-    return True
-
-
-def test_gif_source_has_patch():
-    p = "unlearning/unlearning_methods/GIF/gif.py"
-    if not check_fix_applied_in_source(p):
-        print(f"  [FAIL] {p} does not contain the write-back marker — patch missing")
-        return False
-    print(f"  [OK] {p} contains write-back marker")
-    return True
-
-
-def main() -> int:
-    print("[1/3] simulate write-back on a stub model")
-    test_writeback_changes_model()
-
-    print("[2/3] verify IDEA source carries the patch")
-    ok1 = test_idea_source_has_patch()
-
-    print("[3/3] verify GIF source carries the patch")
-    ok2 = test_gif_source_has_patch()
-
-    if ok1 and ok2:
+    if all(outcomes):
         print("\nALL CHECKS PASSED")
         return 0
-    print("\nSOME CHECKS FAILED — re-apply patch")
+    print("\nSOME CHECKS FAILED")
     return 1
 
 

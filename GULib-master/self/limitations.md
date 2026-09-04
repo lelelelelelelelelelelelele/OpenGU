@@ -327,7 +327,7 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
 
 ## L8. Hop-distance decay (collateral) IF-family 数值 bug-affected
 
-**Status**: `CODE FIXED · EVIDENCE RERUN PENDING` — write-back 修复已落地并通过 stub/source 回归；受影响的旧 collateral 数字尚未重跑
+**Status**: `CODE FIXED · EVIDENCE RERUN PENDING` — write-back 修复已落地；009 的软件验证与 027 的实验重跑分别验收，旧 collateral 数字尚未恢复可信
 **Discovered**: 2026-05-07 整理 master scorecard 时
 **Severity**: 中 — 影响 GIF/IDEA 两个 method 的 hop-decay 数字 in §A.4 prose；不影响 attack ΔF^attack / Update AUC / Selection alignment
 
@@ -336,7 +336,7 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
 `hop_*_flip_rate` 字段定义为 `fraction_flipped(model_unlearned, model_retrained, nodes_at_hop)`。
 历史 GIF/IDEA collateral 是在 `approxi()` write-back 修复前生成的：当时 `params_esti` 没有写回
 `target_model.model.parameters()`，所以这些旧 `hop_*` 实际算的是 `(原 trained model) vs retrain`，**不是** `(post-unlearn model) vs retrain`。
-代码层面的 write-back 修复已在 commit `d674f62` 落地；`scripts/verify_if_writeback_patch.py` 的 stub/source 回归确认两个方法都包含该写回路径。远端受影响 cell 尚未重跑，因此修复后的数值仍 `PENDING`。
+代码层面的 write-back 修复已在 commit `d674f62` 落地；`scripts/verify_if_writeback_patch.py` 使用固定 CPU fixture 调用实际 GIF/IDEA `approxi()`、模型抽取与 collateral/hop 消费者。它验证软件行为，不运行训练或正式实验；修复后的研究数值仍 `PENDING`。
 
 实测对照（Cora/GCN, attack strategies 平均, h=1 flip rate）：
 
@@ -355,10 +355,10 @@ _, topk_indices = torch.topk(fused, k)   # ← 没有 step 2+ 的 marginal 重�
 
 ### 修复路径
 
-1. **已完成（代码）**：`d674f62` 在 GIF/IDEA `approxi()` 中把 `params_esti` 写回 `target_model.model`；stub/source 回归通过。
-2. **待执行（环境）**：服务器上清 `__pycache__/*.pyc`，确保运行时加载当前源码。
-3. **待执行（实验）**：`python scripts/redo_collateral_if_family.py experiments/configs/phase_b_cora_{gcn,gat}.yaml` 重跑 GIF + IDEA × 6 strategy × 5 seed × 2 backbone = 120 cell collateral。
-4. **待执行（证据）**：重生 `_phase_b_aggregate.csv` 与 master scorecard；在完成前，旧 Hop₁ 数字继续标为 pre-fix / pending。
+1. **软件修复**：[AAGU-009](../.workblock/items/AAGU-009/WORKITEM.md) 验证已有写回代码并退役原地删除/覆盖旧结果的 helper；只交付软件候选。
+2. **实验前置与环境**：[AAGU-027](../.workblock/items/AAGU-027/WORKITEM.md) 消费已接受的 001 实验框图及 009 修复，按批准的本轮合同核对双端解释器、源码、GPU、数据/划分和运行身份。Git ancestry 或文件存在不能替代这些检查。
+3. **实验与旧证据**：旧 120-cell 范围仅作历史线索；027 重新确定矩阵与结果身份，按获批精确范围保留/隔离旧证据并运行，禁止删除、原地覆盖或使用 `--force`。
+4. **可信回读与汇总**：027 完成收集和证据验收，010 再消费已接受结果形成 hop 汇总；此前旧 Hop₁ 数字继续标为 pre-fix / pending。
 
 ### 影响 paper 主线
 
