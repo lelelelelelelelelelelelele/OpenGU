@@ -11,9 +11,13 @@ def main():
     rendered = MarkdownIt("commonmark").render((ROOT / "REPORT.md").read_text(encoding="utf-8"))
     start = rendered.index("<h2>Human Result</h2>")
     end = rendered.index("<h2>", start + 4)
-    decision = r"<blockquote>\s*<p>当前验收决定：<code>待决定</code></p>\s*</blockquote>"
+    decision = r"<blockquote>\s*<p>当前验收决定：<code>(待决定|接受)</code></p>\s*</blockquote>"
     human = rendered[start:end]
-    human, count = re.subn(decision, '<p class="decision">当前验收决定：<span data-workblock-decision="pending">待决定</span></p>', human)
+    def project_decision(match):
+        label = match.group(1)
+        state = "pending" if label == "待决定" else "accepted"
+        return f'<p class="decision">当前验收决定：<span data-workblock-decision="{state}">{label}</span></p>'
+    human, count = re.subn(decision, project_decision, human)
     assert count == 1
     rendered = rendered[:start] + '<section data-workblock-human-result="2.1">' + human + '</section>' + rendered[end:]
     page = '''<!doctype html>
