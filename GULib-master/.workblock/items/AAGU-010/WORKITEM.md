@@ -31,7 +31,7 @@ Item Type: Block
 ## Orchestration contract
 
 - Class: `FIX`
-- Priority: `P0` immediately after accepted AAGU-009 collateral evidence.
+- Priority: `P1` after accepted collateral evidence.
 - Source anchor: legacy hop-decay aggregate-field Todo.
 - Outcome: aggregate output exposes the required hop fields from accepted evidence without fabricating missing values.
 - Fact owner: OpenGU DocMap rerun/cache-fix runbook and the aggregate schema selected during execution.
@@ -52,6 +52,5 @@ Item Type: Block
 ## Status history
 
 - 2026-08-26: registered from the prominent aggregate repair Todo.
-- 2026-08-26: priority raised to P0 by explicit user direction; implementation remains unclaimed and depends only on accepted AAGU-009 evidence.
 - 2026-08-31: upgraded the same stable WorkItem to protocol 2.0 with the current sequential topology and Apply target; no dependency, Claim, or acceptance fact changed.
 - 2026-09-04: 随用户确认的修复/实验拆分，将可信 collateral evidence 前置从 AAGU-009 改指 AAGU-027；保留自身实现与验收范围、registered / not claimed 状态。

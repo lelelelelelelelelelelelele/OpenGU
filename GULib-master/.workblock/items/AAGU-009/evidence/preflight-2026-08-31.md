@@ -1,5 +1,7 @@
 # AAGU-009 refreshed preflight — 2026-08-31
 
+> 历史观察，非当前就绪状态或恢复命令。2026-09-04 已将 009 收窄为软件修复，旧 repair-scope 已退役；下文保留当日记录，正式实验改由 [AAGU-027](../../AAGU-027/WORKITEM.md) 在 001 框架下重新定义和批准。
+
 Observed at `2026-08-31T02:34:02.9974729+08:00`. This is execution-readiness evidence, not formal experiment evidence and not human acceptance.
 
 ## Local candidate

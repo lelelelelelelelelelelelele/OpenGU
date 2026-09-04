@@ -1,75 +1,78 @@
+"""Software regression for IF-family write-back and retired repair entrypoints."""
+import ast
+import inspect
 from pathlib import Path
 import subprocess
 import sys
+import textwrap
 
-import yaml
+import pytest
 
+from scripts import verify_if_writeback_patch as verifier
+from unlearning.unlearning_methods.GIF.gif import gif
+from unlearning.unlearning_methods.IDEA.idea import idea
 
+METHODS = [("GIF", gif), ("IDEA", idea)]
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ITEM_ROOT = REPO_ROOT / ".workblock" / "items" / "AAGU-009"
 
 
-def test_aagu009_repair_scope_is_exact_and_reversible():
-    scope_path = ITEM_ROOT / "evidence" / "repair-scope.yaml"
-    scope = yaml.safe_load(scope_path.read_text(encoding="utf-8"))
-
-    assert scope["schema"] == "opengu.aagu009.repair-scope.v1"
-    assert scope["block_id"] == "AAGU-009"
-    assert scope["remote_action"] == "quarantine_whole_leaf_then_rerun"
-    assert scope["destructive_actions"]["delete_allowed"] is False
-    assert scope["destructive_actions"]["force_allowed"] is False
-
-    matrix = scope["matrix"]
-    expected_cells = (
-        len(matrix["base_models"])
-        * len(matrix["methods"])
-        * len(matrix["strategies"])
-        * len(matrix["seeds"])
-    )
-    assert expected_cells == 120
-    assert scope["expected_cells"] == expected_cells
-    assert scope["cache_policy"] == {
-        "result_cache": "preserve",
-        "selection_cache": "preserve",
-        "cache_v2": "read_only",
-    }
-
-    assert scope["source_configs"] == [
-        "experiments/configs/phase_b_cora_gcn.yaml",
-        "experiments/configs/phase_b_cora_gat.yaml",
-    ]
-    for relative_config, base_model in zip(scope["source_configs"], matrix["base_models"]):
-        config = yaml.safe_load((REPO_ROOT / relative_config).read_text(encoding="utf-8"))
-        assert config["dataset"] == matrix["dataset"]
-        assert config["base_model"] == base_model
-        assert config["ratio"] == matrix["ratio"]
-        assert config["strategies"] == matrix["strategies"]
-        assert config["seeds"] == matrix["seeds"]
-        assert set(matrix["methods"]).issubset(config["methods"])
-
-    total_config_cells = sum(
-        len(yaml.safe_load((REPO_ROOT / path).read_text(encoding="utf-8"))["methods"])
-        * len(matrix["strategies"])
-        * len(matrix["seeds"])
-        for path in scope["source_configs"]
-    )
-    assert total_config_cells - expected_cells == 240
+@pytest.mark.parametrize("label,method", METHODS)
+def test_actual_writeback_reaches_collateral_hop_consumer(label, method):
+    observed = verifier.check_model_writeback(label, method)
+    assert observed["fraction_flipped"] == 0.0
 
 
-def test_aagu009_destructive_legacy_helpers_are_retired():
-    assert not (REPO_ROOT / "scripts" / "redo_collateral_if_family.py").exists()
-    assert not (REPO_ROOT / "scripts" / "cleanup_if_family_collateral.py").exists()
+def without_writeback(function):
+    """Reproduce the original defect in memory; source/comments stay intact."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(function)))
+    node = tree.body[0]
+
+    def writes_parameters(statement):
+        return isinstance(statement, ast.With) and any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Attribute)
+            and child.func.attr == "copy_"
+            for child in ast.walk(statement)
+        )
+
+    assert sum(writes_parameters(statement) for statement in node.body) == 1
+    node.body = [statement for statement in node.body if not writes_parameters(statement)]
+    namespace = {}
+    exec(compile(tree, function.__code__.co_filename, "exec"), function.__globals__, namespace)
+    return namespace["approxi"]
 
 
-def test_if_writeback_verifier_proves_loaded_source_identity():
+@pytest.mark.parametrize("label,method", METHODS)
+def test_verifier_rejects_missing_writeback_despite_unchanged_source(label, method, monkeypatch, capsys):
+    original = method.approxi
+    source = Path(original.__code__.co_filename)
+    original_bytes = source.read_bytes()
+    assert "Write params_esti back" in original_bytes.decode("utf-8")
+    monkeypatch.setattr(method, "approxi", without_writeback(original))
+    assert not verifier.verify_loaded_writeback(label, method, source.relative_to(REPO_ROOT))
+    assert "write-back missing" in capsys.readouterr().out
+    assert source.read_bytes() == original_bytes
+
+
+def test_verifier_rejects_a_method_loaded_from_a_different_checkout(capsys):
+    assert not verifier.verify_loaded_writeback("GIF", gif, "other-checkout/gif.py")
+    assert "expected active-checkout source" in capsys.readouterr().out
+
+
+def test_aagu009_retired_entrypoints_are_absent():
+    for relative in (
+        "scripts/redo_collateral_if_family.py",
+        "scripts/cleanup_if_family_collateral.py",
+        ".workblock/items/AAGU-009/evidence/repair-scope.yaml",
+    ):
+        assert not (REPO_ROOT / relative).exists()
+
+
+def test_direct_verifier_runs_from_outside_the_checkout(tmp_path):
     completed = subprocess.run(
-        [sys.executable, "-B", "-X", "utf8", "scripts/verify_if_writeback_patch.py"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
+        [sys.executable, "-B", "-X", "utf8", str(REPO_ROOT / "scripts/verify_if_writeback_patch.py")],
+        cwd=tmp_path, capture_output=True, text=True, check=False,
     )
-
     assert completed.returncode == 0, completed.stdout + completed.stderr
     assert "loaded GIF source:" in completed.stdout
     assert "loaded IDEA source:" in completed.stdout

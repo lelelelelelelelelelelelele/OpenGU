@@ -86,7 +86,7 @@ $\bar d$ 在 FIG-5 / §5.2 已经算好，**几乎零新数据**。
    **代码已经修好**：写回逻辑在 `gif.py:802-810` / `idea.py:489-497`，已提交为 `d674f62`（在 HEAD，
    与所谓"未合并分支 `949d0f8`"逐字相同——**不需要合任何分支**）。
    **数据仍坏的直接原因尚未被运行时证据唯一定位**：那次 run 的 `git_sha=78872fc` 已含 `d674f62`，所以仅凭 Git ancestry 不能证明实际加载了修复代码，stale bytecode 只是待证假设。→ 修复动作不是继续猜测或局部覆盖，而是
-   **按 AAGU-009 preflight 证明解释器加载的源路径/内容，再可逆隔离 120 个完整旧 leaf，并通过两份 canonical config 无 `--force` 重跑**。
+   **AAGU-009 只做软件验证和旧入口退役；AAGU-027 在 001 框架和 009 修复接受后，按本轮批准合同处理双端准备、重跑与证据验收**。旧 120-cell 范围不是当前运行批准，不能直接沿用旧 helper 或历史重跑 profile。
    非-IF（GNNDelete/GraphEraser/GraphRevoker/MEGU）的 gap 干净可用。
 2. **避免循环论证**：degree 既是 selector 又被当"重要性"代理 → 会变成同义反复。
    **操作上用 (Ⅰ)=`F1_before − F1_retrain`（与 selector 无关）当重要性的客观度量**，

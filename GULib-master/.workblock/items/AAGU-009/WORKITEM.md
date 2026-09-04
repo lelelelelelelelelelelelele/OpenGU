@@ -62,7 +62,7 @@ Item Type: Block
 - Preserve the existing Claim and `working / claimed` state; this scope revision is neither a new Claim nor acceptance.
 - The parked source `codex/aagu-009-collateral-evidence` retains implementation `532b5ea` and the 2026-08-31 local verification record (44 passed). These are historical software evidence, not verification against today's main.
 - Before software execution resumes, incorporate this canonical scope and current main into the same source and revalidate the affected code. The former Apply target and source-side formal rerun contract are superseded by this Record.
-- The old source-side `evidence/repair-scope.yaml` and preflight notes are historical planning/observations only. Their 120-cell matrix, SSH blockers and move/rerun steps are not a current execution authorization. AAGU-027 must re-establish its experiment identity after AAGU-001.
+- The obsolete `evidence/repair-scope.yaml` has been removed from this software candidate; its history remains in Git. The dated local-baseline/preflight notes are historical observations only. Their 120-cell matrix, SSH blockers and move/rerun steps are not a current execution authorization. AAGU-027 must re-establish its experiment identity after AAGU-001.
 
 ## Status history
 
@@ -72,3 +72,4 @@ Item Type: Block
 - 2026-09-04: 用户要求把 009 收窄为代码修复，将正式实验与 SSH 工作拆至 AAGU-027，并明确所有实验运行都在 AAGU-001 实验框图之后。本次按该语义修订同一 Record、补齐 2.1 Human Surface 并将 Apply target 对齐当前 main；保留原 Claim、历史和进行中状态，没有执行代码修复、实验或验收。
 
 - 2026-09-04: 用户确认 009 范围内 Legacy 入口若仍存在即可继续。恢复同一 source 分支并纳入 main@dac6fd52345f173b29f45563e4ede7d84a2a11e9 的最新软件范围，保留原 baseline 和 Claim；仅为修复旧分支/新合同漂移进行本次源分支恢复，不 Apply、不运行实验。
+- 2026-09-04: 标准 resume 保留 claimId，revision 2→3；本任务接手软件修复。保留已有效的 GIF/IDEA 算法实现，退役两个旧 helper 和过时 repair-scope，验证器改为真实 approxi→模型抽取→collateral/hop 固定 CPU fixture，并加入缺失写回及错误来源反例。初轮 40 项软件回归通过，正式实验仍归 027；最终候选与报告随后单独校验。

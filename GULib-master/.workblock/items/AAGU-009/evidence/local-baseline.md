@@ -1,5 +1,7 @@
 # AAGU-009 local baseline — 2026-08-26
 
+> 历史观察，非当前执行入口。2026-09-04 已将 009 收窄为软件修复，旧 repair-scope 已退役；下文保留当日记录，正式实验改由 [AAGU-027](../../AAGU-027/WORKITEM.md) 在 001 框架下重新定义和批准。
+
 This is a read-only inventory of the collected local evidence. It is not formal acceptance evidence and does not authorize a remote run.
 
 ## Scope identity
