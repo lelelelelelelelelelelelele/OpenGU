@@ -1,0 +1,10 @@
+# Documentation only: method-specific parameters use the audited defaults.
+kind: selector
+schema_version: 1
+method: b_param_hutch
+candidate: {pool: train_mask}
+budget: {mode: ratio, value: 0.01, denominator: train_candidate_count, rounding: floor_with_minimum_one}
+selection_rule: {direction: descending, tie_break: node_id_ascending}
+model: {architecture: OpenGU.GCNNet, layers: 2, hidden_channels: 64, dropout: 0.5}
+training: {epochs: 100, optimizer: Adam, lr: 0.005, weight_decay: 0.000001, scheduler: none, seed: 42}
+numerics: {dtype: float32}

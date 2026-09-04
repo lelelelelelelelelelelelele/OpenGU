@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `registered / not claimed`
+当前状态: `accepted`
 
 Item Type: Block
 
@@ -16,6 +16,12 @@ Execution topology: `parallel`
 
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`8383e30239398c5268965e088afdfba7abc74ca9`
+
+> Source branch：`refs/heads/codex/aagu-001-experiment-contract`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -92,17 +98,38 @@ Execution topology: `parallel`
 
 ## Runtime and authorization boundaries
 
-- Registration only; no claim, implementation, experiment dispatch, GPU run, push, install, or external write.
+- 2026-09-04 用户“同意 做吧”授权执行本前置合同 Block；原登记阶段的 registration-only 边界保留在历史中。本轮只做合同、参数来源、示例和本地验证，不派发实验、不运行正式 GPU、不 push/install/Apply 或写远端。
 - Future execution must use the OpenGU active checkout and experiment-specific AGENTS; local dry-run is not formal GPU acceptance.
-- Current runtime candidate, branch, evidence identity, and report identity are not yet formed.
+- 当前执行分支与 baseline 已由 Run 记录；候选、Verify 与 Report 在下方 Execution record 中追加，不把本地检查当作正式实验结果。
+
+## Execution record
+
+- 当前 owner：本任务 `01a06c2f-8e35-7bf2-8023-ab3be063830b`，session `AAGU-001 · 三层实验参数合同`；2026-09-04 Claim 同一 WorkItem，仅拥有 001 的独立验收范围。
+- 产物：[公共合同](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)、[10 份独立实例](../../../docs/experiment_contract/examples/)、[有界验证脚本](evidence/verify_contract.py)。示例不是当前 launcher 的新输入接口。
+- 工作观察：追到 GCN properties 的实际 lr=0.005、decay=1e-6；区分基础训练 100 轮与节点遗忘 50 轮；列出 17 种评分实际消费依赖。formal 配置解析与 sanity dry-run 分开，未运行 Selection/GU producer。
+- 源码与正式 YAML 未修改；026 未 Claim。内容 checkpoint `c0c433f66eb1def3dab06e05ac7ebd4ecbef026c` 的验证回执见 [evidence/verification.json](evidence/verification.json)：8 份实例、25 个文档链接、真实 parser 默认值/预算/快照检查及 existing sanity dry-run 均通过；看板校验及 7 个看板测试通过。
+- 首次候选 8b7dfb8bfd7f577bf309178ce296fd1a516ca0aa 的 HTML 已真实渲染并查看桌面/窄屏首尾，其复验保留为[历史回执](../../runtime/evidence/AAGU-001/verify-final-aligned.json)。当前人类验收入口仍为同一 [REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)；本轮返工与最终候选回执见下方 Restart，不用历史回执代表新候选。
+- 证据边界：正式资产哈希与 GPU 运行 NOT OBSERVED，缓存实现未修改，001 的人类接受 NOT CONFIRMED。报告不是 026 的实现证据，也不是正式研究结论。
 
 ## Restart and next action
 
-Use `block-workflow` to claim this exact WorkItem only in a later execution task. First reread this Record, the current OpenGU experiment instructions, and the SyncMate boundary documents; then produce the concrete three-table parameter contract with current values, source traceability, variants and dependency-aware HIT/MISS examples. Validate the registration specification with one already-defined experiment and its existing dry-run, then stop at the formal human decision gate. Do not expand into AAGU-026 runtime/cache implementation, freezing every experiment or making AAGU-015's scientific choices.
+本轮 linked source：E:/project/OpenGU-worktrees/aagu-001-contract/GULib-master；分支仍为 codex/aagu-001-experiment-contract，Claim 只在 canonical A 的 runtime 下。main 上 cdbc977 已提交 026 登记补充与 001 parallel 声明；没有合入 001 待验收成果。
+
+默认值返工内容 checkpoint 为 53d0ed22d8baafe39a3f1eca5255f64c05d0f608：[本轮内容回执](evidence/defaults-verification.json)证明 10 份实例、两组省略/显式默认值等价、25 个文档链接和已有 dry-run 通过。7 项看板测试与报告结构检查通过，桌面/窄屏真实渲染已查看；最终报告候选由[本轮最终回执](../../runtime/evidence/AAGU-001/verify-defaults-final-aligned.json)绑定。真实缓存隔离仍未实施，backbone 比较仅记录待定义问题。
+
+本轮停在 formal 人工验收。用户接受后以同一 locator 进入 block-closeout；要求返工则在同一 source branch 与 Claim 中 Resume。不得自动转为 AAGU-026 的运行时/缓存实现；026 须等本合同接受并落实其前置后再执行。
 
 ## Status history
 
+- 2026-09-04: parallel worktree 中完成默认值/方法分发返工、LiSSA 解释与两个省略 parameters 实例；本轮内容验证及配对报告检查通过。再次投影 awaiting acceptance，候选最终复验后保持同一 Claim 等待用户决定，不启动 026。
+
 - 2026-09-04: 用户指定 001 改为 parallel worktree 并继续执行；保留同一已有候选分支与 Claim，不重新 Claim、不视为验收。确认人工表可省略方法/OpenGU 默认值、按 method 分发且按有效配置判定缓存。main 保存登记合同，执行与候选投影在原分支的 linked source 继续。
+- 2026-09-04: 同一分支从 8b7dfb8bfd7f577bf309178ce296fd1a516ca0aa 挂入 E:/project/OpenGU-worktrees/aagu-001-contract；canonical main 登记补充已提交 cdbc977。原 Claim CAS revision 2→3 / ongoing，保留原 baseline。标准 start 无已有候选迁移入口，因此仅本次拓扑搬运使用受限 worktree add；不改 Skill、不新建 Claim，后续恢复标准 Run。旧报告/回执仍属于旧候选，返工后更新。
+
+- 2026-09-04: 内容候选完成真实配置与现有入口验证，形成配对验收报告并观察桌面/窄屏渲染；投影为 `awaiting acceptance`，等待用户对 001 的决定。不将 Verify PASS 写成人类接受。
+
+- 2026-09-04: 用户“同意 做吧”后执行前置 001；从登记提交启动 sequential source branch，Claim 进入 ongoing，WorkItem 为 `working / claimed`。未将该同意解释为尚未形成的候选验收。
 
 - 2026-09-04: 按用户确认收窄同一 WorkItem 的标题、范围和验收条件，调整为 AAGU-015 的前置；本次仅修订登记合同，状态保持 `registered / not claimed`，未 Claim 或实施公共规范。
 - 2026-09-04: 按用户确认补入三块独立参数表、实验组合大表、预算归 Selector、两侧模型独立、按方法缓存身份和变体只用不同配置表的共识；真实参数来源清单成为核心验收，实现修复单独登记 AAGU-026。状态仍为 `registered / not claimed`，没有实施、候选或验收决定。
+- `accepted`（2026-09-04T22:30:39+08:00）：用户 基于 用户选择先接受 001 公共合同，再开 026 实现与 015 selector-only 实验工作流和协议表两个独立任务；真实工作流、015 样例与正确缓存命中由后续任务分别交付，不把本次接受解释为实现已完成或正式实验授权。 接受当前已验证候选。
