@@ -1,11 +1,12 @@
 # Thesis Transition Memo
 
-> Status: active
+> Status: historical research memo
 > Role: thesis 线的承上启下文档；连接 2026-02 阶段实验、2026-04 课程报告，以及后续解释性研究与 proposed 收束。
-> Use this when: 你要决定 thesis 下一步研究问题、可检验假说、或如何从已完成课程报告过渡到 thesis。
+> Use this when: 追溯当时从课程报告过渡到 thesis 的判断与候选假说。
+> Current source: 当前研究方向见 [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，任务编排见 [WORKPLAN](dashboard/WORKPLAN.md)；正文的下一步和执行授权只属于记录时的上下文。
 > Last revised: 2026-05-03（合并 from_experiments_to_mechanisms 草稿的有价值增量；该草稿已删除。同日二次修订：用户确认可昼夜无休 + 租 GPU 跑 ogbn-arxiv 扩展，§5 执行计划重写）
 >
-> **状态/进度/bug/finding 的实时数据 → `self/dashboard/`**（本文件保留战略层；执行细节落到 dashboard 不再回写到本文件）
+> 本文保留当时的战略判断，不再承担当前研究议程或状态；人工验证证据见 [VALIDATION_LOG](dashboard/VALIDATION_LOG.md)。
 > See also: `README.md`, `PROJECT_MASTER_CONTEXT.md`, `../report/paper/stage_report_2026-02-27.md`, `../report/progress/2026-04-17_EE5003-report/main_report/msc_project_report.md`
 
 ## 1. Purpose

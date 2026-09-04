@@ -9,7 +9,8 @@ created: 2026-06-15
 origin: 与学长讨论 + 2026-06-15 status survey 验证
 ---
 
-> Status: active research path (proposed second-order contribution)
+> Status: research proposal reference
+> Current source: 是否采纳及如何推进以 [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md) 和 [WORKPLAN](dashboard/WORKPLAN.md) 为准；本文保留提案论证，不直接建立当前执行任务。
 > Role: 把"degree 攻击严重性最高"翻成有原理的分解 + GU 安全指数（弱版），再抬成"识别正确攻击 target（$\mathcal{U}$ 近似误差）+ U-aware selector"的 **paper 核心正向贡献**（强版 §7）。
 > Use this when: 推进 paper reframe 的 mechanism / §5.2 之后的二级结论 / rebuttal 加分项。
 > See also: `report/paper/overleaf/sec/5_results.tex` §5.2 (`sec:results-alignment`), `dashboard/METRICS_CATALOG.md` (gap 定义), `limitations.md` L8 (gap 污染同根因), `idea_cross_arch_consensus.md`, 记忆 `paper-contribution-falsified`

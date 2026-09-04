@@ -3,7 +3,7 @@
 > Status: historical
 > Role: 项目早期的长期规划文档，保留原始实验路线、模块拆分和阶段优先级。
 > Use this when: 你想追溯项目最初是如何设计攻击方案和实验矩阵的。
-> Superseded by: 当前 thesis 方向以 `thesis_transition_memo.md` 为准；方法与指标升级以 `plan_flow_v2_delta.md` 为准。
+> Current source: 当前研究定义见 [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，执行编排见 [WORKPLAN](dashboard/WORKPLAN.md)；正文保留其原始日期与版本下的背景，旧 thesis memo 不再是当前研究入口。
 > See also: `PROJECT_MASTER_CONTEXT.md`, `plan_flow_v2_delta.md`, `../report/paper/stage_report_2026-02-27.md`
 
 > **v2 增量补丁**：指标体系（§5）、实验方案（§4）已有增补（新增 collateral damage、Gap 统计显著性、实验判定标准等），见 [`plan_flow_v2_delta.md`](plan_flow_v2_delta.md)。本文件内容保持不变，增量变更记录于该文件。

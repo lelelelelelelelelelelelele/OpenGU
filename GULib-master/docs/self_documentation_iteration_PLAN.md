@@ -1,11 +1,13 @@
 ---
 title: Self 文档迭代计划
 created: 2026-07-26
-status: proposed
+status: historical-inventory
 scope: self documentation inventory and orchestration only
 ---
 
 # Self 文档迭代计划
+
+> 2026-09-05 阅读说明：这是 2026-07 的盘点与分批建议，正文保留当时上下文。现行入口见 [docs README](README.md)、[self README](../self/README.md) 和 [dashboard AGENTS](../self/dashboard/AGENTS.md)。根 AGENTS 迁移、dashboard 指导归位与当前入口纠偏已完成；正文中的阶段状态、待迁移描述、工作目录限制和未提交文件清单不是当前执行指令。旧研究数字、缺陷状态与论文行号仍须按证据逐项复核。
 
 ## 结论与边界
 

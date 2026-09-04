@@ -3,7 +3,7 @@
 > Status: reference
 > Role: 旧实验参数备忘，记录 Phase B 的 `k`、MC 模拟和大规模图开销估算。
 > Use this when: 你要复查早期实验的参数取值、候选数据集或 CELF 开销假设。
-> Superseded by: 当前研究议程见 `thesis_transition_memo.md`；更完整的实验覆盖记录见 `generalization_experiment_checklist.md`。
+> Current source: 当前研究定义见 [OpenGU DocMap](../../../OpenGU-DocMap/_文档地图.md)，执行编排见 [WORKPLAN](dashboard/WORKPLAN.md)；正文保留其原始日期与版本下的背景，旧 thesis memo 不再是当前研究入口。
 > See also: `宏观plan.md`, `generalization_experiment_checklist.md`
 
 ## k 值（遗忘节点数）

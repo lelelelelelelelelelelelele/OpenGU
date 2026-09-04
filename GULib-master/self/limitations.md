@@ -1,5 +1,7 @@
 # Limitations 与 scaling 观察 — 实验过程发现的硬约束
 
+> 阅读边界：本页记录各日期、代码与实验版本下的观察。复用到当前论文前逐项复核；旧条目的 `OPEN` / `RESOLVED` 不代表当前任务生命周期，当前安排见 [WORKPLAN](dashboard/WORKPLAN.md)。
+
 > 这里只记录**实测**遇到的 scaling / methodology 限制，不写没验证的猜想。
 > 用于：paper §5 limitations、advisor meeting、reviewer rebuttal、未来 follow-up。
 

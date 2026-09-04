@@ -1,5 +1,8 @@
 # Paper Liabilities Map — 2026-06-20
 
+> Status: historical evidence snapshot (2026-06-20).
+> 本文的数字、缺陷状态与论文行号只对应当时核查；用于当前稿件前需要重新核对。当前研究入口见 [OpenGU DocMap](../../../../OpenGU-DocMap/_文档地图.md)，任务安排见 [WORKPLAN](WORKPLAN.md)。
+
 > One-page file/line map of claims the current disk does **not** cleanly support.
 > Complements `paper-correctness-liabilities` memory and `self/dashboard/PROGRESS.md` §2.
 > Target: the latest Overleaf draft (`report/paper/overleaf/`).
