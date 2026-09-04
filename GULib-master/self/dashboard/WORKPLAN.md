@@ -24,6 +24,7 @@ AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、�
 |---|---|---|---|---|---|
 | [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | todo candidate / ready to promote / current | P0 | AAGU-006 | [IF 目标层级实验计划](../../../../OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) |
 | [AAGU-004](../../.workblock/items/AAGU-004/WORKITEM.md) | SUPPORT | awaiting acceptance | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
+| [AAGU-023](../../.workblock/items/AAGU-023/WORKITEM.md) | FIX | awaiting acceptance | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 | [AAGU-001](../../.workblock/items/AAGU-001/WORKITEM.md) | GATE | blocked by AAGU-015 | P0 | AAGU-006, AAGU-015 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | blocked by AAGU-001 | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | [AAGU-007](../../.workblock/items/AAGU-007/WORKITEM.md) | EXP | blocked by AAGU-002 | P0 | AAGU-002 | [target-direct formal v2 recipe](../../experiments/configs/syncmate_target_direct_formal_v2.yaml) |
@@ -41,7 +42,6 @@ AAGU-006 已接受：70/10/20 是当前默认 split，同合同归一复用、�
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | — | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
-| [AAGU-023](../../.workblock/items/AAGU-023/WORKITEM.md) | FIX | in progress | 未定 | — | [AAGU-023 Block contract](../../.workblock/items/AAGU-023/WORKITEM.md) |
 | [AAGU-024](../../.workblock/items/AAGU-024/WORKITEM.md) | DOCS/PROTOCOL | registered / not claimed | 未定 | — | [AAGU-024 Block contract](../../.workblock/items/AAGU-024/WORKITEM.md) |
 
 已关闭 FIX 节点已从活动投影隐藏：3 个；历史保留在对应 WorkItem 与 Git。

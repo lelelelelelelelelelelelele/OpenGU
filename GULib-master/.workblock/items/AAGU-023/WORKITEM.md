@@ -12,7 +12,7 @@ Execution topology: `sequential`
 > Source branch：`refs/heads/codex/aagu-023-legacy-evidence-archive`
 
 > Remote target：`origin refs/heads/main`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 
 ## Human Surface
@@ -87,6 +87,17 @@ Stable locator: `.workblock/items/AAGU-023/WORKITEM.md`
 - Add a read-only archive verifier and fresh local/SSH hash observations; generate one formal paired Report. Stop at a clean verified candidate and `awaiting_acceptance` for a new human decision.
 - Retain existing 2026-05-06 / 2026-05-07 / 2026-07-21 archives, mixed historical experiment/report evidence, retained full-v5/gate engineering evidence and SSH `results/cache_v2/legacy_freeze.json`. These are not silently accepted as current scientific evidence and are not new move targets.
 - The original 20-batch plan and inventories below are immutable 2026-09-02 audit snapshots, not the current move plan. Their historical REPLACED gate remains meaningful for scientific replacement, not for the subsequent explicitly authorized historical quarantine.
+
+## Current candidate verification — 2026-09-04 rework
+
+- Actual archive: SSH failed full-v4 68 files / 3,836,309 bytes; Legacy roots local 43 / 777,560 and SSH 967 / 9,259,768; explicitly retired V2 local 32 / 983,515 and SSH 5 / 11,183,036. Total 1,115 files / 26,040,188 bytes; 16 V2 Artifact identities, zero deletions, zero payload/header/SQL rewrites.
+- Current evidence: `evidence/ARCHIVE_REVIEW.md`, `evidence/archive/index.json` and 27 byte-preserved operation records; the three original final ledgers remain unchanged. Local and SSH populations are distinct; shared ledger identity is verified, not inferred from matching directory names.
+- Read-only observation `evidence/archive/observation-20260904-r2.json` verifies all 1,115 archived files and the retained SSH freeze marker against original hashes; all old activity paths are absent, shared manifest/ledger hashes match, local active V2 is empty and SSH active V2 contains only the freeze file. Fresh observation time is 2026-09-04 18:23 +08:00. SSH code remains `b2c741a6e584c32e5f30bed8b64a08e08c33aa93`.
+- Clean content checkpoint `ba50b19f247a61cfcbff6c8f839f0a104fecba29` passed 5 verifier tests, package integrity/registration-order/receipt-binding checks, dashboard check and diff check. The original inventory implementation and its 21 passing checks at `67be158e77460a26ca3aaa201f0eeb3fc1815a05` are unchanged historical regression evidence; they do not establish current archive correctness.
+- The report-bearing follow-up changes only this Record, paired Report, Markdown-to-HTML renderer/tests and generated status projection. It cannot change the observed archived bytes; reuse the exact content-checkpoint checks, and verify its own three report tests (pair equality, evidence links/facts, future accepted-decision preservation), Human Surface / Human Result structure, dashboard and final clean diff. No new production tests or real cache operations are needed for this report-only increment.
+- Human Result: `REPORT.md` and `REPORT.html`, recommendation `建议接受`, decision `待决定`. Browser file navigation was refused by security policy, so visual QA remains `NOT OBSERVED`; static rendering/structure/link PASS is not visual acceptance. No bypass was attempted.
+- The current exact decision candidate is the final clean report-bearing HEAD on the recorded original source branch; its OID is supplied by the finish/Verify handoff, not fabricated inside a self-referential commit. The same Claim transitions from `ongoing` revision 4 to `awaiting_acceptance` only after final Verify. No acceptance, Apply, merge, push, install or cleanup is performed.
+- Source baseline is intentionally unchanged. Later main changes (including AAGU-025 and graph repairs) are preserved on main, not pulled into this rework; post-accept combination verification must retain them. Do not run formal experiments from this older source checkout.
 
 ## Historical 2026-09-02 inventory and archive decision
 
