@@ -1,135 +1,125 @@
-# 独立实验配置与真实消费者
+# 模块化实验计划与 SyncMate 执行上下文
 
-本入口落实 [AAGU-001 合同](experiment_contract/README.md) 的配置与缓存隔离；
-实际能力由 `experiments/modular_config.py` 校验。它用于本地 CPU 验证。
-正式 GPU 仍走已注册的 SyncMate stage，不能把 `level` 改成 formal 绕过正式门。
+本入口落实 [AAGU-001 合同](experiment_contract/README.md) 的配置和缓存隔离。
+科研 YAML 说明要运行什么；SyncMate／项目策略决定在哪运行、使用哪个设备、读写哪一个
+Cache V2 Store，以及 runtime 和结果的固定位置。
 
-## 配置到消费者
+## 真实计划表
 
-每个 Dataset/Split、Selector、Unlearning 实例各用一份 YAML。实验大表只引用文件，
-不接受 defaults、override、YAML merge 或重复字段。相同方法的变体就是另一份小表。
-相对路径按拥有该路径的配置文件解析，路径和文件原文不进入计算身份。
+一个计划直接列出所需小表。五个 Selector 和两个 GU 就写五个
+`selector_refs` 和两个 `unlearning_refs`；引用的是可审阅 YAML，不增加名字到隐藏配置的
+第二套映射。
 
 ```yaml
 kind: experiment
 schema_version: 1
-experiment_id: cpu-selection-check
-stage: selector
-dataset_ref: dataset.yaml
-selector_refs: [degree.yaml, b_hutch.yaml]
+experiment_id: five-selectors-two-gu
+stage: unlearning
+dataset_ref: dataset_cora.yaml
+selector_refs:
+  - selector_degree.yaml
+  - selector_b_hutch32.yaml
+  - selector_b_hutch64.yaml
+  - selector_tracin.yaml
+  - selector_r_point.yaml
+unlearning_refs:
+  - unlearning_gnndelete.yaml
+  - unlearning_gif.yaml
+evaluation_refs:
+  - evaluation_post_unlearning_utility.yaml
 matrix: cartesian_product
-execution_authorized: true
-execution_binding:
-  level: verification
-  device: cpu
-  store_root: runtime/cache_v2
-  runtime_root: runtime/models
-  output: runtime/selection-run-001.json
 ```
 
+这张表展开为 `5 Selector × 2 GU × 1 Evaluation`。它不含
+`device/store_root/runtime_root/output/execution_authorized`。这些字段若出现在实验 YAML 中会
+被拒绝，而不是被忽略。
+
+## 小表只写必填输入和本次覆盖值
+
 ```yaml
-# b_hutch.yaml
+# selector_b_hutch32.yaml
 kind: selector
 schema_version: 1
 method: b_param_hutch
 candidate: {pool: train_mask}
-budget: {mode: k, value: 2}
-model: {architecture: OpenGU.GCNNet, hidden_channels: 4}
-training: {epochs: 3}
-parameters: {hutchinson: {probes: 2}}
+budget: {mode: ratio, value: 0.01}
+parameters:
+  parameter_scope: last_layer
 ```
 
-degree 表只需 kind/schema_version/method/candidate/budget，不声明模型。
-K 必须落在实际候选集合内；比例预算使用 `train_candidate_count` 与
-`floor_with_minimum_one`。Score 不绑定 K，Selection 绑定规范化预算、实际 K 和同分规则。
+```yaml
+# selector_b_hutch64.yaml
+kind: selector
+schema_version: 1
+method: b_param_hutch
+candidate: {pool: train_mask}
+budget: {mode: ratio, value: 0.01}
+parameters:
+  parameter_scope: last_layer
+  hutchinson: {probes: 64}
+```
+
+32 是注册方法的当前默认探针数，所以第一份不重复写 LiSSA、Hutch seed、训练轮数、学习率
+等默认值；64 是这次真正改变的值，所以第二份只增加 `probes: 64`。解析器从实际方法、
+OpenGU parser 和模型 properties 展开完整有效配置，并在运行回执中逐字段记录来源。省略
+当前默认值与显式写同值拥有相同计算身份；默认值或其实现真正改变时，实际消费者 MISS。
+
+模型型 Selector 和 GU 未写 `model/training` 时使用已注册的 GCN/OpenGU 默认值，也可在
+自己的小表中显式覆盖。模型字段放在哪不是组合协议的关键；两侧最终仍以各自完整有效配置
+和 checkpoint 内容判定是否共享。
+
+## Evaluation 是独立实例
+
+```yaml
+kind: evaluation
+schema_version: 1
+case: post_unlearning_utility
+metrics: [f1_before, f1_after, f1_drop, f1_drop_pct]
+```
+
+当前能力边界：
+
+| case | modular CPU | target-direct SyncMate | 说明 |
+|---|---:|---:|---|
+| `post_unlearning_utility` | 可执行 | 可执行 | 消费 GU Result，不改变 Selection/GU 身份 |
+| `post_unlearning_utility_and_retrain_gap` | 拒绝 | 可执行 | 需要相同 Selection 的 exact retrain；普通 modular GU 尚未产出该输入 |
+| `rank_agreement_and_topk_overlap` | 拒绝 | 拒绝 | 只有设计名，配对排名消费者尚未实现 |
+
+`post_unlearning_utility_and_retrain_gap` 的三模型公式和 target-direct 的
+`eval_collateral.py` 已存在，旧的 retrain 随机种子问题也已修复；这不等于每条入口都已经
+提供 exact-retrain 输入。普通 modular 入口若引用该 case，会在任何 Store 或 runtime 写入前
+失败关闭。改变 Evaluation 配置只改变 evaluation receipt；既有 Selection 和 GU Result 仍精确
+HIT。
+
+## 执行方式
+
+本地只解析计划：
 
 ```powershell
 python -B -X utf8 experiments/run.py path/to/experiment.yaml --dry_run
-python -B -X utf8 experiments/run.py path/to/experiment.yaml
 ```
 
-dry-run 解析小表并验证已有 Dataset/Split 和 Selection 引用，不训练、不写 Store。
-实际执行必须显式授权，并使用尚不存在的输出文件；warm run 换一个输出文件名。
-运行 JSON 保存全部 effective 配置、每字段来源、实际 checkpoint、Score/Selection/GU
-身份、命中与 producer 调用情况。`evaluation` 是实验计划注释；本入口实际输出评分、排序
-以及 GU 前后测试集 micro-F1，不据此宣称已完成 retrain-gap 或科学接纳阈值验证。
+`experiments/run.py` 不接受模块化实际执行。注册 SyncMate recipe 时，由项目 stage 构造
+`ExecutionContext` 并传入 `modular_run.execute`；job ID 和 RequestDevice 来自 SyncMate，
+不从科研 YAML 或任意队列参数读取。现有 target-direct formal recipe 继续走已注册的
+`target_direct_v1.syncmate_stage`，其科研表现在引用 17 个 Selector 小表、一个 GNNDelete
+小表和一个 Evaluation 小表；设备选择由 SyncMate preflight profile 负责。
 
-## 只读 Dataset/Split
+项目执行策略固定使用 `results/cache_v2`，checkpoint 位于
+`results/runtime/modular/checkpoints`，本次 scratch 位于
+`results/runtime/modular/<job-id>`，结果位于
+`results/runs/modular/<experiment-id>/<job-id>/summary.json`。RequestDevice 和实际
+Torch/CUDA/GPU 信息只写 execution receipt，不进入科研配置或默认缓存身份。同一 Recipe 在
+可见同一／已同步 Store 时可以跨 device HIT；另一台机器看不到该 Artifact 时仍是物理 MISS，
+不能用逻辑身份相同冒充已有文件。
 
-dataset.yaml 沿用合同的 `dataset / preprocessing / split / artifacts` 四部分。
-当前 adapter 为 `OpenGU_persisted_processed_pair`；artifacts 需要 manifest 路径、
-其 SHA256、实际 split_hash 和 `pyg-global-node-index-v1`。空引用直接失败。
+## Dataset/Split 与缓存边界
 
-本入口的 manifest 合同如下，须由已授权的数据准备步骤提供；执行入口不会生成它，
-也不会下载、重切、修复或转换已有数据。现有 formal profile manifest 仍由原正式入口消费。
+Dataset/Split 小表只读引用已持久化的图和划分 manifest，并校验 manifest SHA、数据 SHA、
+split hash、节点空间和三个 mask。入口不会下载、重切或修复数据。Score 以方法为单位进入
+统一 Cache V2 Store；预算无关且前缀稳定的 Score 可被不同 K 复用，Selection 仍绑定规范化
+预算、实际 K 和 tie-break。GU 只依赖它实际消费的 Selection、目标模型和自身方法参数。
 
-```text
-schema = opengu.persisted_dataset_split; version = 1
-dataset / preprocessing / split = 对应小表的有效元数据
-data_path = 相对本 manifest 的已持久化 PyG Data pickle
-data_sha256 = pickle 文件 SHA256
-data_identity = utils.target_checkpoint.data_identity(data) 的完整结果
-```
-
-检查文件 SHA、元数据、features/labels/edges/split 内容身份；三个非空布尔 mask 必须
-划分全部节点。当前模型消费者接受有限 float32 特征。仅加载受信任的数据准备产物。
-临时小图和 manifest 的完整生成例见 `tests/test_modular_consumers.py:tables`；该 fixture
-只生成验证数据，不能成为正式 Cora/CiteSeer/PubMed 证据。
-
-## 默认值与实现边界
-
-| 小表 | 默认值权威 | 当前消费者 |
-|---|---|---|
-| Selector 方法参数 | target_direct_v1/methods.py 的 parameter_defaults | 原有 17 个评分公式 |
-| 模型/训练 | modular_config.py；实际 model/properties/GCN.yaml 或 SGC.yaml | GCN 两层、SGC 三层；Adam/SGD，无调度器 |
-| GU 参数 | parameter_parser.py + gu_defaults 的固定实现约束 | GNNDelete/GCN 节点删除；GIF/GCN 或 SGC 节点删除 |
-
-人工表可省略默认字段；解析后完整展开，再进入 Recipe。省略与显式同值相同。
-不支持的模型、字段、数值类型和方法参数直接拒绝。GNNDelete 只支持当前
-`both_layerwise / mse_mean / Adam / zero decay` 实现。GIF 可声明 GIF 或 IF。
-TracIn 的 checkpoint_steps 选实际 epoch，cp3 再取 first/middle/final，cp_all 消费全部
-所选快照。省略 steps 时消费当前轨迹；`_3/_6` 是既有方法名，不新增变体分发机制。
-
-Score 每方法独立读写统一 Cache V2 Store，复用既有 ScoreBundle 存储格式，每个载荷
-只含一种方法。共同梯度/IHVP 可以在本次 MISS 计算中复用；它们没有共同整包身份。
-Recipe 绑定真实数据/候选、有效方法参数、被消费的模型状态或快照及其 update_lr、
-模型前向与算法函数指纹、数值环境；不绑定实验 ID 或下游 GU。
-
-Selector 的训练使用自己的监督配置，不借 GU 的 train/unlearn 参数。模型 forward 与
-GU 专用 reason_once 指纹分开。GU Result 绑定自己的配置、训练 checkpoint、实现和
-精确 Selection 引用。基础训练配置、数据、数值环境及实际训练实现一致时，两侧才共享
-checkpoint。显式引用不同 metadata/state/file hash 的 checkpoint 会失败。
-
-## 已有 Selection → GU
-
-把上面的 stage 改成 `unlearning`，移除 selector_refs，使用刚刚生成的三个原样身份：
-
-```yaml
-selection_input:
-  artifact_id: <真实 Selection artifact_id>
-  recipe_hash: <真实 Selection recipe_hash>
-  content_hash: <真实 Selection content_hash>
-unlearning_refs: [gu.yaml]
-```
-
-```yaml
-# gu.yaml
-kind: unlearning
-schema_version: 1
-method: GNNDelete
-model: {architecture: OpenGU.GCNNet, hidden_channels: 4}
-training: {epochs: 3}
-parameters: {unlearning_epochs: 2, unlearn_lr: 0.01}
-```
-
-此分支验证 Store 完整性、Dataset/Split/候选和三个身份后，直接调用原 GU 消费者，
-不调用任何 selector producer。也可在 unlearning stage 同时引用 selector_refs 与
-unlearning_refs 形成笛卡尔积；每个实例保持独立配置。checkpoint 引用属于其模型小表，
-包含 path/file_sha256/state_hash，不能由实验大表隐式覆盖。
-
-## 正式链路的机械变更
-
-target-direct 保留原来已批准的 17 方法、模型、数据、seed、两种预算和启动边界。
-selection summary / receipt 更新为 version 3，按方法保存 Score 身份；两预算之间
-分别复用每一种方法的 Score。旧整包活动键已移除。旧 Artifact 留在原 Store，
-不删除、不覆写、不迁移，也不将身份不同视为损坏。正式运行及远端部署本次未观察。
+运行 JSON 保存完整有效配置及来源、checkpoint、Score/Selection/GU 身份、Evaluation
+receipt、HIT/MISS、producer 调用和 execution receipt。展示 ID、YAML 文件名、设备、路径和
+下游 Evaluation 不反向进入 Selector Recipe。

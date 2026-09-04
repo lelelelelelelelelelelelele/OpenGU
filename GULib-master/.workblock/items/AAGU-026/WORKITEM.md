@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting acceptance`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -73,6 +73,8 @@ Execution topology: `parallel`
 先重新确认 AAGU-001 已接受并读取其最新合同。使用 `block-workflow` Claim 这个精确 locator，在 linked worktree 中实施已确认范围；用隔离 CPU 输入和临时 Store 验证，不触碰历史产物。形成精确候选与配对报告后停在 `formal` 人类决定边界。AAGU-015 在另一任务中并行准备 selector-only 的实际工作流、实验协议表和预期缓存变化样例；本实现不代替其科研决定，也不要求其先完成才能开始。
 
 ## Execution record
+
+- 2026-09-05 用户返工：实验 YAML 只保留科研配置与组合；方法小表只显式写实际选择/覆盖值，默认值留在方法所有者并进入运行证据。Device、Store、Runtime、Output 与执行授权移交项目运行策略/SyncMate，不得污染或分裂缓存。Evaluation 作为独立引用设计，未定义的 case 失败关闭。模型配置位置不作为关键约束。
 
 - 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。
 - 独立实例入口为 `experiments/run.py` → `modular_config.py / modular_run.py`；方法默认值、训练、评分、GU 消费分属各自模块。使用既有统一 Cache V2 Store，不增加整包共同键或 Legacy 回退。

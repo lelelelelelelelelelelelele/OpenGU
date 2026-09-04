@@ -9,10 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def model_training(value):
-    fields(value, {'model', 'training'}, {'model', 'training'}, 'model/training')
-    model = value['model']
-    fields(model, {'architecture', 'layers', 'hidden_channels', 'dropout'}, {'architecture'}, 'model')
-    architecture = choice(model['architecture'], ('OpenGU.GCNNet', 'OpenGU.SGCNet'), 'architecture')
+    """Resolve the OpenGU model defaults without copying them into every method file."""
+    fields(value, {'model', 'training'}, (), 'model/training')
+    model = value.get('model', {})
+    fields(model, {'architecture', 'layers', 'hidden_channels', 'dropout'}, (), 'model')
+    architecture = choice(model.get('architecture', 'OpenGU.GCNNet'),
+                          ('OpenGU.GCNNet', 'OpenGU.SGCNet'), 'architecture')
     default = {'architecture': architecture, 'layers': 2, 'hidden_channels': 64, 'dropout': 0.5}
     if architecture == 'OpenGU.SGCNet':
         default.update(layers=3, dropout=0.0)
@@ -22,7 +24,7 @@ def model_training(value):
     if architecture == 'OpenGU.SGCNet' and model['hidden_channels'] != 64:
         raise ConfigurationError('OpenGU SGC has no hidden_channels override')
     props = read_yaml(ROOT / 'model/properties' / ('GCN.yaml' if architecture.endswith('GCNNet') else 'SGC.yaml'))
-    training = effective(value['training'], {'epochs': 100, 'optimizer': 'Adam', 'lr': float(props['lr']),
+    training = effective(value.get('training', {}), {'epochs': 100, 'optimizer': 'Adam', 'lr': float(props['lr']),
         'weight_decay': float(props['decay']), 'scheduler': 'none', 'seed': 42}, 'training')
     choice(training['optimizer'], ('Adam', 'SGD'), 'optimizer')
     choice(training['scheduler'], ('none',), 'scheduler')
@@ -76,7 +78,7 @@ def gu_defaults(method):
 
 def unlearning(value):
     fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint'},
-                  {'kind', 'schema_version', 'method', 'model', 'training'}, 'unlearning')
+                  {'kind', 'schema_version', 'method'}, 'unlearning')
     params = effective(value.get('parameters', {}), gu_defaults(value['method']))
     if value['method'] == 'GNNDelete':
         if (params['unlearn_lr'] <= 0 or params['unlearning_epochs'] <= 0 or not 0 <= params['alpha'] <= 1
@@ -87,7 +89,7 @@ def unlearning(value):
         if params['iteration'] <= 0 or params['scale'] <= 0 or not 0 <= params['damp'] < 1:
             raise ConfigurationError('invalid GIF parameters')
         choice(params['GIF_method'], ('GIF', 'IF'), 'GIF_method')
-    model, training = model_training({k: value[k] for k in ('model', 'training')})
+    model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
     return {**value, 'model': model, 'training': training, 'parameters': params}
@@ -109,6 +111,9 @@ def load_instance(path, expected_kind):
         return selector(value)
     if expected_kind == 'unlearning':
         return unlearning(value)
+    if expected_kind == 'evaluation':
+        from experiments.modular_evaluation import resolve_evaluation
+        return resolve_evaluation(value)
     fields(value, {'kind', 'schema_version', 'dataset', 'preprocessing', 'split', 'artifacts'},
                   {'kind', 'schema_version', 'dataset', 'preprocessing', 'split', 'artifacts'}, 'dataset_split')
     fields(value['preprocessing'], {'adapter'}, {'adapter'}, 'preprocessing')
@@ -168,9 +173,10 @@ def resolve_budget(value, candidate_count):
 def load_experiment(path):
     path = Path(path).resolve()
     value = read_yaml(path)
-    required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix', 'execution_binding'}
-    fields(value, required | {'round', 'research_question', 'decision_owner', 'execution_authorized',
-        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation', 'case_id'}, required, 'experiment')
+    required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
+    fields(value, required | {'round', 'research_question', 'decision_owner',
+        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id'},
+        required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
     choice(value['stage'], ('selector', 'unlearning'), 'stage')
@@ -185,8 +191,10 @@ def load_experiment(path):
     dataset_path = (path.parent / value['dataset_ref']).resolve()
     result['dataset'] = load_instance(dataset_path, 'dataset_split')
     result['dataset_directory'] = str(dataset_path.parent)
-    result['configuration_sources'] = {'dataset': str(dataset_path), 'selectors': [], 'unlearnings': []}
-    for field, kind in (('selector_refs', 'selector'), ('unlearning_refs', 'unlearning')):
+    result['configuration_sources'] = {
+        'dataset': str(dataset_path), 'selectors': [], 'unlearnings': [], 'evaluations': []}
+    for field, kind in (('selector_refs', 'selector'), ('unlearning_refs', 'unlearning'),
+                        ('evaluation_refs', 'evaluation')):
         refs = value.get(field, [])
         if not isinstance(refs, list) or any(not isinstance(ref, str) for ref in refs):
             raise ConfigurationError(f'{field} must be a list of file references')

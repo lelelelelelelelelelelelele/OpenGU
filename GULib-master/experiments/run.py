@@ -1062,7 +1062,11 @@ def main():
         from experiments.modular_model import runtime_defaults
         runtime_defaults()
         from experiments.modular_run import execute
-        result = execute(args.config, dry_run=args.dry_run)
+        if not args.dry_run:
+            raise ValueError(
+                'modular execution is owned by the registered SyncMate/project stage; '
+                'experiments/run.py supports plan dry-run only')
+        result = execute(args.config, dry_run=True)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
     selection_map, selection_document = prepare_cache_v2_selection(

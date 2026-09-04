@@ -2,9 +2,6 @@ schema: target_direct_v1.syncmate_formal
 version: 2
 recipe_id: opengu-target-direct-formal-v2
 
-required_branch: main
-required_active_checkout: /autodl-fs/data/OpenGU/GULib-master
-required_device_name: RTX 4090
 split:
   train_ratio: 0.7
   val_ratio: 0.1
@@ -16,7 +13,6 @@ budget_rounding: floor_with_minimum_one
 score_budget_semantics: prefix_stable_budget_independent
 budget_conditioned_strategies: []
 base_model: GCN
-gu_method: GNNDelete
 main_parameter_scope: last_layer
 
 datasets:
@@ -30,39 +26,33 @@ datasets:
     display_name: PubMed
     num_nodes: 19717
 seeds: [42, 212, 2024]
-strategy_order:
-  - degree
-  - a_grad_norm
-  - b_param_hutch
-  - gt_full
-  - gt_simple
-  - legacy
-  - p_graph
-  - p_point
-  - p_simple
-  - r_point
-  - random
-  - tracin_cp_graph_3
-  - tracin_cp_graph_6
-  - tracin_cp_point_3
-  - tracin_cp_point_6
-  - tracin_cp_simple_3
-  - tracin_cp_simple_6
-
-processed_root: data/processed
-cache_v2_root: results/cache_v2
-selection_output_root: results/runs/target_direct_formal_v2/selection
-checkpoint_root: results/runs/target_direct_formal_v2/checkpoints
-evidence_root: results/runs/target_direct_formal_v2/evidence
-runtime_root: results/runs/target_direct_formal_v2/runtime
-gu_run_root: results/runs/target_direct_formal_v2/gu
+selector_refs:
+  - target_direct_formal_v2/selectors/degree.yaml
+  - target_direct_formal_v2/selectors/a_grad_norm.yaml
+  - target_direct_formal_v2/selectors/b_param_hutch.yaml
+  - target_direct_formal_v2/selectors/gt_full.yaml
+  - target_direct_formal_v2/selectors/gt_simple.yaml
+  - target_direct_formal_v2/selectors/legacy.yaml
+  - target_direct_formal_v2/selectors/p_graph.yaml
+  - target_direct_formal_v2/selectors/p_point.yaml
+  - target_direct_formal_v2/selectors/p_simple.yaml
+  - target_direct_formal_v2/selectors/r_point.yaml
+  - target_direct_formal_v2/selectors/random.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_graph_3.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_graph_6.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_point_3.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_point_6.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_simple_3.yaml
+  - target_direct_formal_v2/selectors/tracin_cp_simple_6.yaml
+unlearning_refs:
+  - target_direct_formal_v2/unlearning/gnndelete.yaml
+evaluation_refs:
+  - target_direct_formal_v2/evaluations/post_unlearning_utility_and_retrain_gap.yaml
 
 epochs: 100
 checkpoint_epochs: [1, 10, 25, 50, 75, 100]
 gcn_num_layers: 2
 gcn_hidden: 64
-cuda: 0
-num_threads: 1
 
 claims:
   lane: target_direct_white_box

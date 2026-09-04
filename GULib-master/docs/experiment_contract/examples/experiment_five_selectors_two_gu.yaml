@@ -1,0 +1,20 @@
+kind: experiment
+schema_version: 1
+experiment_id: five-selectors-two-gu
+round: 1
+research_question: 在同一数据、预算和目标模型上，五种选点配置与两种 GU 的组合结果如何？
+decision_owner: research_owner
+stage: unlearning
+dataset_ref: dataset_cora.yaml
+selector_refs:
+  - selector_degree.yaml
+  - selector_b_hutch32.yaml
+  - selector_b_hutch64.yaml
+  - selector_tracin.yaml
+  - selector_r_point.yaml
+unlearning_refs:
+  - unlearning_gnndelete.yaml
+  - unlearning_gif.yaml
+evaluation_refs:
+  - evaluation_post_unlearning_utility.yaml
+matrix: cartesian_product

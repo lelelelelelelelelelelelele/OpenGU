@@ -2,13 +2,7 @@ kind: selector
 schema_version: 1
 method: b_param_hutch
 candidate: {pool: train_mask}
-budget: {mode: ratio, value: 0.01, denominator: train_candidate_count, rounding: floor_with_minimum_one}
-selection_rule: {direction: descending, tie_break: node_id_ascending}
-model: {architecture: OpenGU.GCNNet, layers: 2, hidden_channels: 64, dropout: 0.5}
-training: {epochs: 100, optimizer: Adam, lr: 0.005, weight_decay: 0.000001, scheduler: none, seed: 42}
+budget: {mode: ratio, value: 0.01}
 parameters:
   parameter_scope: last_layer
-  hessian_loss: {type: cross_entropy, source: train_mask, reduction: mean}
-  lissa: {iterations: 20, scale: 25.0, damp: 0.01}
-  hutchinson: {probes: 64, seed: 1729}
-numerics: {dtype: float32}
+  hutchinson: {probes: 64}

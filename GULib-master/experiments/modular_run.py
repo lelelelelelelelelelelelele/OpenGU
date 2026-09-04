@@ -6,8 +6,10 @@ import pickle
 from pathlib import Path
 import torch
 from cache_v2.runtime import load_selection_artifact
-from experiments.effective_config import fields, choice, ConfigurationError
+from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget
+from experiments.modular_evaluation import evaluate_modular, require_consumer
+from experiments.modular_execution import ExecutionContext
 from experiments.modular_model import prepare_model
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
@@ -68,35 +70,50 @@ def verified_selection(reference, *, store_root, data, inputs):
     return loaded
 
 
-def execute(path, *, dry_run=False):
+def _plan_summary(config):
+    return {
+        'schema': 'opengu.modular_run', 'version': 2,
+        'experiment_id': config['experiment_id'], 'case_id': config.get('case_id'),
+        'stage': config['stage'], 'effective_selectors': config['selectors'],
+        'effective_unlearning': config['unlearnings'],
+        'effective_evaluations': config['evaluations'],
+        'configuration_sources': config['configuration_sources'],
+        'experiment_annotations': {
+            key: config[key]
+            for key in ('round', 'research_question', 'decision_owner') if key in config
+        },
+    }
+
+
+def execute(path, *, context=None, dry_run=False):
     config = load_experiment(path)
-    binding = config['execution_binding']
-    fields(binding, {'level', 'device', 'store_root', 'runtime_root', 'output'},
-                    {'level', 'device', 'store_root', 'runtime_root', 'output'}, 'execution_binding')
-    choice(binding['level'], ('verification',), 'execution level (formal runs use registered SyncMate stages)')
-    choice(binding['device'], ('cpu', 'cuda'), 'device')
+    plan = _plan_summary(config)
+    if dry_run:
+        return {**plan, 'dry_run': True, 'execution_context_required': True,
+                'producer_called': False}
+    if not isinstance(context, ExecutionContext):
+        raise ConfigurationError(
+            'execution context must be supplied by project policy or a registered SyncMate stage')
+    if config['stage'] != 'unlearning' and config['evaluations']:
+        raise ConfigurationError('the current modular consumer evaluates GU results only')
+    for evaluation in config['evaluations']:
+        require_consumer(evaluation, 'modular_cpu_v1')
     directory = Path(config['source_directory'])
     from attack.cache_identity import resolve_store_root
-    store_root = resolve_store_root(directory / binding['store_root'])
-    runtime_root = (directory / binding['runtime_root']).resolve()
-    output = (directory / binding['output']).resolve()
+    store_root = resolve_store_root(context.store_root)
+    checkpoint_root = context.checkpoint_root
+    runtime_root = context.runtime_root
+    output = context.output
     data, inputs = read_dataset(config['dataset'], config['dataset_directory'])
     selectors = [{**item, 'budget': resolve_budget(item['budget'], inputs.candidate_count)} for item in config['selectors']]
     references = [config['selection_input']] if 'selection_input' in config else []
     loaded_selections = [verified_selection(ref, store_root=store_root, data=data, inputs=inputs) for ref in references]
-    summary = {'schema': 'opengu.modular_run', 'version': 1, 'experiment_id': config['experiment_id'],
-        'case_id': config.get('case_id'), 'level': binding['level'], 'stage': config['stage'],
-        'effective_selectors': selectors, 'effective_unlearning': config['unlearnings'],
-        'configuration_sources': config['configuration_sources'],
-        'experiment_annotations': {key: config[key] for key in ('round', 'research_question', 'decision_owner', 'evaluation') if key in config},
-        'data_identity': data_identity(data), 'selectors': [], 'unlearning': []}
-    if dry_run:
-        return {**summary, 'dry_run': True, 'producer_called': False}
-    if config.get('execution_authorized') is not True:
-        raise ConfigurationError('this experiment table has not authorized execution')
+    summary = {**plan, 'effective_selectors': selectors,
+        'execution_receipt': context.receipt(), 'data_identity': data_identity(data),
+        'selectors': [], 'unlearning': [], 'evaluations': []}
     if output.exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
-    device = torch.device(binding['device'])
+    device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA requested but unavailable')
     data = data.to(device)
@@ -104,7 +121,7 @@ def execute(path, *, dry_run=False):
         model, checkpoints, observation = None, [], None
         if 'model' in item:
             model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
-                runtime_root=runtime_root, device=device, reference_directory=directory)
+                checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
         resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
             model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
         reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
@@ -115,10 +132,13 @@ def execute(path, *, dry_run=False):
         for item in config['unlearnings']:
             for selection in loaded_selections:
                 model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
-                    runtime_root=runtime_root, device=device, reference_directory=directory)
+                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                 result = run_unlearning(item, selection=selection, model=model, data=data,
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint})
+        summary['evaluations'] = [
+            evaluate_modular(item, summary['unlearning']) for item in config['evaluations']
+        ]
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x', encoding='utf-8') as handle:

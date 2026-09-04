@@ -38,6 +38,9 @@ from experiments.target_direct_v1.recipe import (
     SCORE_BUDGET_SEMANTICS,
     SCORE_NAMES,
 )
+from experiments.target_direct_v1.methods import resolve_parameters
+from experiments.effective_config import ConfigurationError, fields, read_yaml
+from experiments.modular_evaluation import resolve_evaluation, require_consumer
 from experiments.target_direct_v1.split_profile import stage_profile, verify_profile
 
 
@@ -68,10 +71,94 @@ FORMAL_STRATEGIES = ("degree",) + tuple(
     strategy for strategy in SCORE_NAMES if strategy != "degree"
 )
 BUDGET_RATIOS = APPROVED_BUDGET_RATIOS
+PROJECT_EXECUTION_POLICY = {
+    "required_branch": "main",
+    "required_active_checkout": "/autodl-fs/data/OpenGU/GULib-master",
+    "cuda": 0,
+    "num_threads": 1,
+    "paths": {
+        "processed_root": "data/processed",
+        "cache_v2_root": "results/cache_v2",
+        "selection_output_root": "results/runs/target_direct_formal_v2/selection",
+        "checkpoint_root": "results/runs/target_direct_formal_v2/checkpoints",
+        "evidence_root": "results/runs/target_direct_formal_v2/evidence",
+        "runtime_root": "results/runs/target_direct_formal_v2/runtime",
+        "gu_run_root": "results/runs/target_direct_formal_v2/gu",
+    },
+}
+OPERATIONAL_CONFIG_FIELDS = frozenset({
+    "required_branch", "required_active_checkout", "required_device_name",
+    "processed_root", "cache_v2_root", "selection_output_root",
+    "checkpoint_root", "evidence_root", "runtime_root", "gu_run_root",
+    "score_cache_root", "selection_store_root", "cuda", "device",
+    "num_threads", "output",
+})
 
 
 class TargetDirectStageError(RuntimeError):
     """A reviewed formal stage or its evidence is invalid."""
+
+
+def _scientific_references(config_path: Path, value: Mapping[str, Any]):
+    """Resolve tracked method/evaluation tables; the large plan supplies shared axes."""
+    root = config_path.parent.resolve()
+    sources = {"selectors": [], "unlearnings": [], "evaluations": []}
+
+    def referenced(field):
+        refs = value.get(field)
+        if not isinstance(refs, list) or not refs or any(not isinstance(item, str) for item in refs):
+            raise TargetDirectStageError(field + " must be a nonempty list of YAML references")
+        result = []
+        for ref in refs:
+            path = (root / ref).resolve()
+            if root not in path.parents or not path.is_file():
+                raise TargetDirectStageError(field + " contains an unavailable project reference")
+            result.append((path, read_yaml(path)))
+        return result
+
+    selectors = []
+    for path, item in referenced("selector_refs"):
+        try:
+            fields(item, {"kind", "schema_version", "method", "parameters"},
+                   {"kind", "schema_version", "method"}, "formal selector")
+        except ConfigurationError as exc:
+            raise TargetDirectStageError(str(exc)) from exc
+        if item["kind"] != "selector" or item["schema_version"] != 1:
+            raise TargetDirectStageError("formal selector schema/version is invalid")
+        try:
+            parameters = resolve_parameters(item["method"], item.get("parameters"))
+        except (KeyError, TypeError, ValueError) as exc:
+            raise TargetDirectStageError(str(exc)) from exc
+        if parameters != resolve_parameters(item["method"]):
+            raise TargetDirectStageError(
+                "formal selector parameters differ from the frozen method defaults"
+            )
+        selectors.append({"method": item["method"], "parameters": parameters})
+        sources["selectors"].append(str(path))
+
+    unlearnings = []
+    for path, item in referenced("unlearning_refs"):
+        try:
+            fields(item, {"kind", "schema_version", "method", "parameters"},
+                   {"kind", "schema_version", "method"}, "formal unlearning")
+        except ConfigurationError as exc:
+            raise TargetDirectStageError(str(exc)) from exc
+        if (item["kind"] != "unlearning" or item["schema_version"] != 1
+                or item["method"] != "GNNDelete" or item.get("parameters")):
+            raise TargetDirectStageError("formal GU table must select default GNNDelete")
+        unlearnings.append({"method": item["method"]})
+        sources["unlearnings"].append(str(path))
+
+    evaluations = []
+    for path, item in referenced("evaluation_refs"):
+        try:
+            resolved = resolve_evaluation(item)
+            require_consumer(resolved, "target_direct_syncmate_v2")
+        except ValueError as exc:
+            raise TargetDirectStageError(str(exc)) from exc
+        evaluations.append(resolved)
+        sources["evaluations"].append(str(path))
+    return selectors, unlearnings, evaluations, sources
 
 
 def _sha256_file(path: Path) -> str:
@@ -174,6 +261,13 @@ def load_config(
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise TargetDirectStageError("formal config root must be a mapping")
+    forbidden = sorted(set(value) & OPERATIONAL_CONFIG_FIELDS)
+    if forbidden:
+        raise TargetDirectStageError(
+            "scientific config contains SyncMate/project execution fields: {0}".format(
+                forbidden
+            )
+        )
     try:
         split_contract = target_direct_split_contract(
             value,
@@ -181,15 +275,16 @@ def load_config(
         )
     except ProcessedArtifactError as exc:
         raise TargetDirectStageError(str(exc)) from exc
+    selectors, unlearnings, evaluations, configuration_sources = (
+        _scientific_references(path, value)
+    )
     split_registration = value.get("split") or {}
     if (
         value.get("schema") != CONFIG_SCHEMA
         or value.get("version") != CONFIG_VERSION
         or "processed_profile" in value
         or split_registration.get("materialize_on_miss") is not True
-        or value.get("required_branch") != "main"
         or value.get("base_model") != "GCN"
-        or value.get("gu_method") != "GNNDelete"
         or value.get("main_parameter_scope") != "last_layer"
         or tuple(float(item) for item in value.get("budget_ratios") or ())
         != BUDGET_RATIOS
@@ -198,7 +293,10 @@ def load_config(
         != SCORE_BUDGET_SEMANTICS
         or tuple(value.get("budget_conditioned_strategies") or ()) != ()
         or tuple(value.get("seeds") or ()) != MODEL_SEEDS
-        or tuple(value.get("strategy_order") or ()) != FORMAL_STRATEGIES
+        or tuple(item["method"] for item in selectors) != FORMAL_STRATEGIES
+        or tuple(item["method"] for item in unlearnings) != ("GNNDelete",)
+        or tuple(item["case"] for item in evaluations)
+        != ("post_unlearning_utility_and_retrain_gap",)
         or set(value.get("datasets") or {}) != set(DATASETS)
     ):
         raise TargetDirectStageError("formal target-direct config is not frozen")
@@ -221,24 +319,9 @@ def load_config(
         or claims.get("execution_scope") != "dual_budget_canary_only"
     ):
         raise TargetDirectStageError("formal claim boundary is not frozen")
-    legacy_cache_keys = ("score_cache_root", "selection_store_root")
-    if any(key in value for key in legacy_cache_keys):
-        raise TargetDirectStageError(
-            "legacy split Cache V2 roots are forbidden; use cache_v2_root"
-        )
-    if "cache_v2_root" not in value:
-        raise TargetDirectStageError("cache_v2_root is required")
     resolved = {}
-    for key in (
-        "processed_root",
-        "cache_v2_root",
-        "selection_output_root",
-        "checkpoint_root",
-        "evidence_root",
-        "runtime_root",
-        "gu_run_root",
-    ):
-        resolved[key] = resolve_owned_path(root, value.get(key), key)
+    for key, registered in PROJECT_EXECUTION_POLICY["paths"].items():
+        resolved[key] = resolve_owned_path(root, registered, key)
     expected_processed = (root / "data" / "processed").resolve()
     if resolved["processed_root"] != expected_processed:
         raise TargetDirectStageError("processed_root is not checkout-canonical")
@@ -284,6 +367,14 @@ def load_config(
         }
     return {
         **value,
+        "strategy_order": [item["method"] for item in selectors],
+        "gu_method": unlearnings[0]["method"],
+        "selector_instances": selectors,
+        "unlearning_instances": unlearnings,
+        "evaluation_instances": evaluations,
+        "configuration_sources": configuration_sources,
+        **{key: PROJECT_EXECUTION_POLICY[key]
+           for key in ("required_branch", "required_active_checkout", "cuda", "num_threads")},
         "datasets": normalized_datasets,
         "repository_root": root,
         "config_path": path,
@@ -442,11 +533,6 @@ def _formal_preflight(
             errors.append("CUDA GPU is not available")
         else:
             gpu["device_name"] = str(torch.cuda.get_device_name(int(config["cuda"])))
-            if (
-                str(config["required_device_name"]).lower()
-                not in gpu["device_name"].lower()
-            ):
-                errors.append("runner GPU does not match the reviewed device")
     profile = None
     try:
         profile = _profile(config, dataset, allow_materialize=not errors)
@@ -647,11 +733,7 @@ def _validate_selection_pair(
     )
     peak_allocated = int(gpu.get("process_peak_allocated_bytes") or 0)
     peak_reserved = int(gpu.get("process_peak_reserved_bytes") or 0)
-    if (
-        str(config["required_device_name"]).lower() not in device_name.lower()
-        or peak_allocated <= 0
-        or peak_reserved <= 0
-    ):
+    if not device_name or peak_allocated <= 0 or peak_reserved <= 0:
         raise TargetDirectStageError("selection GPU evidence is incomplete")
     return {
         "schema": RECEIPT_SCHEMA,

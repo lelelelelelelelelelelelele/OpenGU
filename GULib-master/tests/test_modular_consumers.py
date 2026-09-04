@@ -10,6 +10,7 @@ import yaml
 from torch_geometric.data import Data
 from experiments.modular_run import execute
 from experiments.modular_config import gu_defaults
+from experiments.modular_execution import ExecutionContext, project_context
 from utils.target_checkpoint import data_identity, sha256_file
 
 
@@ -50,11 +51,11 @@ def tables(tmp_path, record_property):
     gu = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GNNDelete', 'model': model,
           'training': training, 'parameters': {'unlearning_epochs': 2}}
     write_yaml(tmp_path / 'gu.yaml', gu)
+    write_yaml(tmp_path / 'utility.yaml', {'kind': 'evaluation', 'schema_version': 1,
+        'case': 'post_unlearning_utility'})
     experiment = {'kind': 'experiment', 'schema_version': 1, 'experiment_id': 'cold', 'stage': 'selector',
         'dataset_ref': 'dataset.yaml', 'selector_refs': ['degree.yaml', 'b_param_hutch.yaml', 'tracin_cp_point_3.yaml'],
-        'matrix': 'cartesian_product', 'execution_authorized': True,
-        'execution_binding': {'level': 'verification', 'device': 'cpu', 'store_root': 'v2',
-                              'runtime_root': 'runtime', 'output': 'cold.json'}}
+        'matrix': 'cartesian_product'}
     yield tmp_path, experiment, gu
     runs = [json.loads(path.read_text(encoding='utf-8')) for path in sorted(tmp_path.glob('*.json'))]
     record_property('consumer_runs', json.dumps([run for run in runs if run.get('schema') == 'opengu.modular_run']))
@@ -65,9 +66,12 @@ def run(tables, name, **changes):
     config = copy.deepcopy(base)
     config.update(changes)
     config['experiment_id'] = name
-    config['execution_binding']['output'] = name + '.json'
     write_yaml(root / (name + '.yaml'), config)
-    return execute(root / (name + '.yaml'))
+    context = ExecutionContext(run_id=name, level='verification', request_device='cpu',
+        store_root=root / 'v2', checkpoint_root=root / 'checkpoints',
+        runtime_root=root / 'runtime' / name, output=root / (name + '.json'),
+        executor='pytest')
+    return execute(root / (name + '.yaml'), context=context)
 
 
 def identities(result):
@@ -180,15 +184,14 @@ def test_real_command_entry_selector_and_existing_selection(tables):
     assert dry.returncode == 0, dry.stdout + dry.stderr
     assert not (root / 'v2').exists()
     first = subprocess.run(command, cwd=repository, capture_output=True, text=True)
-    assert first.returncode == 0, first.stdout + first.stderr
-    result = json.loads((root / 'cold.json').read_text())
+    assert first.returncode != 0
+    assert 'owned by the registered SyncMate/project stage' in first.stdout + first.stderr
+    result = run(tables, 'entry-selection', selector_refs=['degree.yaml'])
     config.update(stage='unlearning', selector_refs=[], unlearning_refs=['gu.yaml'],
         selection_input={k: result['selectors'][0]['selection']['artifact'][k] for k in ('artifact_id', 'recipe_hash', 'content_hash')})
-    config['execution_binding']['output'] = 'gu-entry.json'
     write_yaml(root / 'entry.yaml', config)
-    second = subprocess.run(command, cwd=repository, capture_output=True, text=True)
-    assert second.returncode == 0, second.stdout + second.stderr
-    result = json.loads((root / 'gu-entry.json').read_text())
+    result = run(tables, 'gu-entry', stage='unlearning', selector_refs=[],
+        selection_input=config['selection_input'], unlearning_refs=['gu.yaml'])
     assert result['selector_producer_called'] is False
     assert result['unlearning'][0]['producer_called'] is True
 
@@ -219,7 +222,7 @@ def test_all_seventeen_methods_match_pre_refactor_formulas(tables, record_proper
     instance = load_instance(root / 'r_point.yaml', 'selector')
     instance['training']['epochs'] = 6
     model, checkpoints, _ = prepare_model(instance, data=data, dataset_name=inputs.dataset_name,
-        runtime_root=root / 'runtime', device=torch.device('cpu'), reference_directory=root)
+        checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
     candidates, targets = data.train_mask.nonzero().flatten(), data.val_mask.nonzero().flatten()
     lissa = dict(iterations=2, scale=25., damp=.01)
     points = [checkpoint_point_gradients(model, data, state=item['state'], candidate_ids=candidates,
@@ -323,3 +326,80 @@ def test_yaml_duplicate_and_implicit_override_rejected(tables):
     with pytest.raises(ValueError, match='unknown'):
         run(tables, 'override', defaults={'unlearn_lr': .1})
     assert not (root / 'v2').exists()
+
+
+def test_operational_fields_are_rejected_and_context_is_external(tables):
+    root, base, _ = tables
+    path = root / 'operational.yaml'
+    for field, value in (
+        ('execution_authorized', True),
+        ('execution_binding', {'device': 'cpu'}),
+        ('device', 'cpu'), ('store_root', 'other'), ('runtime_root', 'other'),
+        ('output', 'other.json'),
+    ):
+        config = copy.deepcopy(base)
+        config[field] = value
+        write_yaml(path, config)
+        with pytest.raises(ValueError, match='unknown'):
+            execute(path, dry_run=True)
+    clean = root / 'clean.yaml'
+    write_yaml(clean, base)
+    with pytest.raises(ValueError, match='execution context must be supplied'):
+        execute(clean)
+
+
+def test_project_context_owns_fixed_store_runtime_device_and_output(tmp_path):
+    context = project_context('five-selectors-two-gu', run_id='job-7',
+        request_device='cuda', level='formal', repository_root=tmp_path)
+    assert context.store_root == (tmp_path / 'results/cache_v2').resolve()
+    assert context.checkpoint_root == (tmp_path / 'results/runtime/modular/checkpoints').resolve()
+    assert context.runtime_root == (tmp_path / 'results/runtime/modular/job-7').resolve()
+    assert context.output == (tmp_path / 'results/runs/modular/five-selectors-two-gu/job-7/summary.json').resolve()
+    assert context.request_device == 'cuda'
+
+
+def test_device_and_library_build_are_execution_provenance_not_recipe_identity():
+    from experiments.modular_model import numerical_environment
+    data = Data(x=torch.ones(2, 1), y=torch.tensor([0, 1]),
+        edge_index=torch.empty((2, 0), dtype=torch.long))
+    assert numerical_environment(data) == {'dtype': 'torch.float32'}
+    assert not ({'device_type', 'torch', 'torch_geometric', 'cuda_version'}
+                & set(numerical_environment(data)))
+
+
+def test_minimal_method_files_expand_real_defaults(tables):
+    from experiments.modular_config import load_instance
+    root = tables[0]
+    minimal = {'kind': 'selector', 'schema_version': 1, 'method': 'b_param_hutch',
+        'candidate': {'pool': 'train_mask'}, 'budget': {'mode': 'k', 'value': 1},
+        'parameters': {'parameter_scope': 'last_layer'}}
+    write_yaml(root / 'minimal-b-hutch.yaml', minimal)
+    resolved = load_instance(root / 'minimal-b-hutch.yaml', 'selector')
+    assert resolved['model']['architecture'] == 'OpenGU.GCNNet'
+    assert resolved['training']['epochs'] == 100
+    assert resolved['parameters']['parameter_scope'] == 'last_layer'
+    assert resolved['parameters']['hutchinson']['probes'] == 32
+    minimal_gu = {'kind': 'unlearning', 'schema_version': 1, 'method': 'GNNDelete'}
+    write_yaml(root / 'minimal-gu.yaml', minimal_gu)
+    resolved_gu = load_instance(root / 'minimal-gu.yaml', 'unlearning')
+    assert resolved_gu['model']['architecture'] == 'OpenGU.GCNNet'
+    assert resolved_gu['parameters']['unlearn_lr'] == gu_defaults('GNNDelete')['unlearn_lr']
+
+
+def test_evaluation_is_independent_and_unimplemented_case_fails_closed(tables):
+    root = tables[0]
+    first = run(tables, 'eval-full', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['gu.yaml'], evaluation_refs=['utility.yaml'])
+    write_yaml(root / 'utility-small.yaml', {'kind': 'evaluation', 'schema_version': 1,
+        'case': 'post_unlearning_utility', 'metrics': ['f1_after']})
+    second = run(tables, 'eval-small', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['gu.yaml'], evaluation_refs=['utility-small.yaml'])
+    assert identities(first) == identities(second)
+    assert second['selectors'][0]['score']['hit'] is True
+    assert second['unlearning'][0]['hit'] is True
+    assert first['evaluations'][0]['rows'][0]['evaluation_receipt_id'] != second['evaluations'][0]['rows'][0]['evaluation_receipt_id']
+    write_yaml(root / 'retrain-gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
+        'case': 'post_unlearning_utility_and_retrain_gap'})
+    with pytest.raises(ValueError, match='not implemented by modular_cpu_v1'):
+        run(tables, 'unsupported-eval', stage='unlearning', selector_refs=['degree.yaml'],
+            unlearning_refs=['gu.yaml'], evaluation_refs=['retrain-gap.yaml'])

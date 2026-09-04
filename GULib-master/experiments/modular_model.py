@@ -4,7 +4,6 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import torch
-import torch_geometric
 from cache_v2 import canonical_sha256
 from experiments.c_target_v1.core import train_trajectory
 from experiments.implementation_identity import implementation_fingerprint, model_functions
@@ -45,7 +44,7 @@ def train_supervised(model, data, training, checkpoint_epochs):
         milestones=(), gamma=1.0, optimizer_name=training['optimizer'])
 
 
-def prepare_model(instance, *, data, dataset_name, runtime_root, device, reference_directory):
+def prepare_model(instance, *, data, dataset_name, checkpoint_root, device, reference_directory):
     from attack.cache_identity import seeded_execution
     model_config, training = instance['model'], instance['training']
     with seeded_execution(training['seed']):
@@ -63,7 +62,7 @@ def prepare_model(instance, *, data, dataset_name, runtime_root, device, referen
         hit = True
     else:
         identity = canonical_sha256(metadata)
-        path = Path(runtime_root) / 'checkpoints' / (identity + '.pt')
+        path = Path(checkpoint_root) / (identity + '.pt')
         if path.exists():
             loaded = load_target_checkpoint(path, expected_metadata=metadata)
             hit = True
@@ -81,6 +80,5 @@ def prepare_model(instance, *, data, dataset_name, runtime_root, device, referen
 
 
 def numerical_environment(data):
-    return {'dtype': str(data.x.dtype), 'device_type': data.x.device.type,
-            'torch': str(torch.__version__), 'torch_geometric': str(torch_geometric.__version__),
-            'cuda_version': torch.version.cuda if data.x.device.type == 'cuda' else None}
+    """Numerical semantics used by computation identities, excluding placement."""
+    return {'dtype': str(data.x.dtype)}
