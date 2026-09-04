@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -78,7 +78,10 @@ Execution topology: `parallel`
 - 独立实例入口为 `experiments/run.py` → `modular_config.py / modular_run.py`；方法默认值、训练、评分、GU 消费分属各自模块。使用既有统一 Cache V2 Store，不增加整包共同键或 Legacy 回退。
 - target-direct 的正式矩阵与启动授权保持原合同，summary/receipt 升级为逐方法 version 3；同步修改冻结配置字段及其 SyncMate SHA。这里只验证本地消费者与接纳代码，未执行 SSH、正式 GPU、push、install、Apply 或历史载荷写入。
 - 使用说明：[独立配置与消费者](../../../docs/modular_experiments.md)。可重跑 Verify：[evidence/verify.py](evidence/verify.py)，运行原始 XML、日志和历史目录清单放在忽略的 `.workblock/runtime/`。
-- Verify 通过后在本目录形成配对报告，并将同一 Claim 转为 awaiting_acceptance；最终决定由用户作出。
+- 2026-09-04 Verify：115 项 CPU／集成检查和 182 项 SyncMate 检查通过；17 个评分与原表达式数值最大绝对差均为 0。主项目 3,990 个历史结果文件及所列缓存根在 Verify 前后哈希一致。证据只支持本地配置与身份隔离，不构成正式 GPU 或科研接纳。
+- 人类验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)；完整观察：[observations.json](evidence/observations.json)。Agent 建议接受；当前决定待决定，用户拥有最终决定。
+- 配对报告推进同一 source HEAD 后，按实际差异复用 353a07fa23f05ea5cb02cb87b6761e22bc8a75d6 上的消费者检查，只重新校验报告生成、结构、真实桌面/390px 渲染、链接和候选洁净度。最终精确 HEAD 与复用理由见 [final-verification.json](../../runtime/aagu-026/final-verification.json)。
+- 候选与报告完成后，将 canonical Claim 从 ongoing 转为 awaiting_acceptance；未 Apply、push、install 或清理。
 
 ## Status history
 
