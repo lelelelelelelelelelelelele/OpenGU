@@ -4,7 +4,7 @@ Block ID: `AAGU-009`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/main`
 
@@ -75,6 +75,7 @@ Item Type: Block
 
 - 2026-09-04: 用户确认 009 范围内 Legacy 入口若仍存在即可继续。恢复同一 source 分支并纳入 main@dac6fd52345f173b29f45563e4ede7d84a2a11e9 的最新软件范围，保留原 baseline 和 Claim；仅为修复旧分支/新合同漂移进行本次源分支恢复，不 Apply、不运行实验。
 - 2026-09-04: 标准 resume 保留 claimId，revision 2→3；本任务接手软件修复。保留已有效的 GIF/IDEA 算法实现，退役两个旧 helper 和过时 repair-scope，验证器改为真实 approxi→模型抽取→collateral/hop 固定 CPU fixture，并加入缺失写回及错误来源反例。初轮 40 项软件回归通过，正式实验仍归 027；最终候选与报告随后单独校验。
+- `accepted`（2026-09-05T01:41:09.5715037+08:00）：用户 基于 用户明确说 accept，接受 16006f2273e9dbe0a3189f28a8a7f7470f86c962 的软件修复；d76aed8 仅校正同一 WorkItem 的 Git 恢复定位，不改变软件内容和实验范围。 接受当前已验证候选。
 
 ## Software candidate verification
 
