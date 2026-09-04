@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -99,3 +99,4 @@ Execution topology: `parallel`
 - 2026-09-04: 用户再次要求登记 commit 到 main；原登记已在 main@8383e30239398c5268965e088afdfba7abc74ca9。本次补充人工表省略默认值、方法分发和默认值等价命中的验收要求；继续 registered / not claimed，不执行实现。
 
 - 2026-09-04: 用户要求确定实验配置并创建 Block，在完整登记预览后确认方法变体仅需不同配置表；登记本独立 FIX，状态为 `registered / not claimed`。AAGU-001 保留原编号与公共合同职责，具体实现移交本 Block。
+- `accepted`（2026-09-05T05:59:29.9393901+08:00）：用户 基于 用户明确回复：026可以accept 接受当前已验证候选。
