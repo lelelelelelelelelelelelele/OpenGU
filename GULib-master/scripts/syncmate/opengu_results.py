@@ -6,7 +6,8 @@ import json
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
-from syncmate_core import legacy as core_legacy
+from syncmate_core.index import export_payload_from_index
+from syncmate_core.context import use as project_context
 
 
 STRATEGY_NAMES = ("random", "degree", "pagerank", "tracin", "im", "hybrid")
@@ -180,11 +181,12 @@ def results_payload(
     node_ids = options.get("node_ids")
     include_incomplete = bool(options.get("include_incomplete"))
     data = _with_opengu_policy(index)
-    trusted = core_legacy.export_payload_from_index(
-        data,
-        node_ids=list(node_ids) if node_ids is not None else None,
-        include_incomplete=include_incomplete,
-    )
+    with project_context(project_root):
+        trusted = export_payload_from_index(
+            data,
+            node_ids=list(node_ids) if node_ids is not None else None,
+            include_incomplete=include_incomplete,
+        )
     rows: list[dict[str, Any]] = []
     parse_errors: list[dict[str, Any]] = []
 

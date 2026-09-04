@@ -10,11 +10,48 @@ from pathlib import Path
 
 from scripts.syncmate import syncmate as sm
 
+import pytest
+import opengu_recipes as _project_recipes
+from opengu_adapter import OpenGUProjectExtension
+from syncmate_core import artifacts as _artifacts, brief as _brief, bundles as _bundles, cli as _cli, collection as _collection, constants as _constants, context as _context, dashboard as _dashboard, devices as _devices, diagnostics as _diagnostics, dispatch as _dispatch, evidence as _evidence, fingerprints as _fingerprints, gates as _gates, handoff as _handoff, history as _history, identity as _identity, index as _index, next_steps as _next_steps, preflight as _preflight, queue as _queue, receipts as _receipts, recipes as _recipes, saved_reports as _saved_reports, snapshot as _snapshot, storage as _storage, worker as _worker, workflow as _workflow
+
+
+@pytest.fixture(autouse=True)
+def scoped_project(tmp_path):
+    with _context.use(tmp_path, extension=OpenGUProjectExtension(), require_origin_main=True):
+        yield
+
+
+
+@pytest.fixture(autouse=True)
+def reviewed_queue_checkout(request, tmp_path, monkeypatch):
+    if not request.node.name.startswith(('test_runner_queue_', 'test_runner_agent_')):
+        return
+    root = tmp_path / 'repo'
+    config = root / 'scripts/syncmate/setup.example.yaml'
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_bytes((sm.PROJECT_ROOT / 'scripts/syncmate/setup.example.yaml').read_bytes())
+    state = {'sha': 'a' * 40, 'branch': 'main', 'dirty': False, 'short_sha': 'aaaaaaa', 'status_short': []}
+    monkeypatch.setattr(_identity, 'git_state', lambda: dict(state))
+    monkeypatch.setattr(_identity, 'git_state_for_root', lambda root: dict(state))
+    monkeypatch.setattr(_identity, 'run_git', lambda args: state['sha'])
+
+def _run_cli(argv):
+    return _cli.main(argv, project_root=_context.current().root, extension=_context.extension(), require_origin_main=True)
+
+
+def _project_acceptance(profile, definition, *, node_id, expected_git_sha):
+    return _context.extension().accept(profile, definition, {
+        'artifact_index': _index.load_artifact_index(), 'node_id': node_id,
+        'expected_git_sha': expected_git_sha, 'project_root': _context.current().root,
+    })
+
+
 
 def test_default_implementation_is_core_backed_exact_entry():
-    assert Path(sm.__file__).name == "syncmate.py"
-    assert Path(sm.implementation_file).parent.name == "syncmate_core"
-    assert Path(sm.compatibility_entry_file).resolve() == Path(sm.__file__).resolve()
+    assert Path(sm.__file__).name == 'syncmate.py'
+    assert sm.core_main is _cli.main
+    assert sm.__name__ == 'scripts.syncmate.syncmate'
 
 
 def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
@@ -26,7 +63,7 @@ def test_direct_syncmate_script_bootstraps_repo_import_path(tmp_path):
         "sys.path=[p for p in sys.path if os.path.abspath(p or os.getcwd()) != repo]; "
         "scope=runpy.run_path(sys.argv[1],run_name='syncmate_probe'); "
         "import experiments; "
-        "assert str(scope['REPO_ROOT']) in sys.path"
+        "assert str(scope['PROJECT_ROOT']) in sys.path"
     )
 
     completed = subprocess.run(
@@ -59,26 +96,26 @@ def _sha(data: bytes) -> str:
 
 
 def test_report_age_and_stale_detection(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-02T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-02T12:00:00")
 
-    assert sm.report_age_hours("2026-07-02T06:00:00") == 6
-    assert sm.format_age("2026-07-02T06:00:00") == "6.0h"
-    assert not sm.is_report_stale("2026-07-02T06:00:00")
-    assert sm.is_report_stale("2026-07-01T06:00:00")
-    assert sm.format_age("not-a-time") == "unknown"
+    assert _identity.report_age_hours("2026-07-02T06:00:00") == 6
+    assert _identity.format_age("2026-07-02T06:00:00") == "6.0h"
+    assert not _identity.is_report_stale("2026-07-02T06:00:00")
+    assert _identity.is_report_stale("2026-07-01T06:00:00")
+    assert _identity.format_age("not-a-time") == "unknown"
 
 
 def test_remote_shell_commands_quote_repo_paths_and_roots():
     repo_path = "/tmp/Open GU/repo's copy"
     roots = ["results/runs/cora GCN", "results/runs/weird'cell"]
 
-    status_cmd = sm.remote_status_command(repo_path)
-    manifest_cmd = sm.remote_manifest_command(
+    status_cmd = _devices.remote_status_command(repo_path)
+    manifest_cmd = _devices.remote_manifest_command(
         repo_path,
         roots,
         ("attack.json", "predictions.npz", "weird'name.json"),
     )
-    tar_cmd = sm.remote_tar_command(repo_path)
+    tar_cmd = _devices.remote_tar_command(repo_path)
 
     assert "cd '/tmp/Open GU/repo'\"'\"'s copy'" in status_cmd
     assert "cd '/tmp/Open GU/repo'\"'\"'s copy'" in manifest_cmd
@@ -97,10 +134,10 @@ def test_remote_status_and_manifest_use_quoted_commands(monkeypatch):
             return b'{"items": [], "count": 0}'
         return b'{"device": {"id": "remote"}}'
 
-    monkeypatch.setattr(sm.subprocess, "check_output", fake_check_output)
+    monkeypatch.setattr(subprocess, "check_output", fake_check_output)
 
-    status = sm.remote_status_snapshot("ssh-host", "/tmp/Open GU/repo's copy")
-    manifest = sm.remote_manifest(
+    status = _collection.remote_status_snapshot("ssh-host", "/tmp/Open GU/repo's copy")
+    manifest = _collection.remote_manifest(
         "ssh-host",
         "/tmp/Open GU/repo's copy",
         ["results/runs/cora GCN"],
@@ -125,11 +162,11 @@ def test_remote_status_and_manifest_use_configured_python_executable(monkeypatch
             return b'{"items": [], "count": 0}'
         return b'{"device": {"id": "remote"}}'
 
-    monkeypatch.setattr(sm.subprocess, "check_output", fake_check_output)
+    monkeypatch.setattr(subprocess, "check_output", fake_check_output)
 
     python_executable = "/root/miniconda3/bin/python"
-    sm.remote_status_snapshot("ssh-host", "/repo", python_executable)
-    sm.remote_manifest(
+    _collection.remote_status_snapshot("ssh-host", "/repo", python_executable)
+    _collection.remote_manifest(
         "ssh-host",
         "/repo",
         ["results/runs"],
@@ -144,10 +181,10 @@ def test_remote_status_and_manifest_use_configured_python_executable(monkeypatch
 def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config(
         "runner",
         "ssh-gpu",
         "/remote/repo",
@@ -155,10 +192,10 @@ def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, c
         ["results/runs"],
         python_executable="/root/miniconda3/bin/python",
     )
-    sm.add_peer_to_device(config, "gpu4090", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "remote-status", "gpu4090", "--json",
     ]) == 0
@@ -171,14 +208,13 @@ def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, c
 def test_scan_results_classifies_node_bare_and_nested_layouts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     runs = repo / "results" / "runs"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runs)
+    _context.select(root=repo)
 
     _write_leaf(runs, "gpu4090/cora_GCN_r0.05/GIF_random/seed42")
     _write_leaf(runs, "ogbn-arxiv_GCN_r0.01/GIF_random/seed42")
     _write_leaf(runs, "ablating/results/runs/cora_GAT_r0.05/GIF_im/seed212")
 
-    result = sm.scan_results()
+    result = _artifacts.scan_results()
 
     assert result["nodes"]["gpu4090"]["issues"] == []
     assert result["nodes"]["gpu4090"]["cells"] == {"cora_GCN_r0.05": 1}
@@ -193,7 +229,7 @@ def test_scan_results_classifies_node_bare_and_nested_layouts(tmp_path, monkeypa
 
 def test_scan_progress_reports_recent_logs_and_error_keywords(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     _write(repo / "log" / "GIF" / "cora" / "GCN" / "ok.log", b"epoch 1\nfinished cleanly\n")
     _write(
@@ -202,7 +238,7 @@ def test_scan_progress_reports_recent_logs_and_error_keywords(tmp_path, monkeypa
     )
     _write(repo / "log" / "GIF" / "cora" / "GCN" / "ignored.bin", b"Traceback")
 
-    result = sm.scan_progress(limit=5, scan_limit=10)
+    result = _snapshot.scan_progress(limit=5, scan_limit=10)
     paths = {item["path"] for item in result["recent_logs"]}
     error = result["error_logs"][0]
 
@@ -219,21 +255,20 @@ def test_scan_progress_reports_recent_logs_and_error_keywords(tmp_path, monkeypa
 def test_progress_cli_returns_log_summary(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     _write(repo / "log" / "GIF" / "cora" / "GCN" / "run.log", b"finished\n")
 
-    assert sm.main(["--config", str(config_path), "progress", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "progress", "--json"]) == 0
 
 
 def test_write_state_appends_compact_history_with_delta(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     base = {
         "generated_at": "2026-07-01T11:00:00",
@@ -256,9 +291,9 @@ def test_write_state_appends_compact_history_with_delta(tmp_path, monkeypatch, c
         "artifact_index": {"peers": {"gpu4090": {"summary": {"indexed": 4}, "items": []}}},
     }
 
-    sm.write_state(base, "status")
-    sm.write_state(later, "refresh")
-    entries = sm.read_history(limit=10)
+    _history.write_state(base, "status")
+    _history.write_state(later, "refresh")
+    entries = _history.read_history(limit=10)
 
     assert (sync_dir / "state.json").is_file()
     assert (sync_dir / "history.jsonl").is_file()
@@ -272,7 +307,7 @@ def test_write_state_appends_compact_history_with_delta(tmp_path, monkeypatch, c
     }
     assert "remote_status" not in entries[1]
 
-    assert sm.main(["--config", str(sync_dir / "device.yaml"), "history", "--json", "--limit", "1"]) == 0
+    assert _run_cli(["--config", str(sync_dir / "device.yaml"), "history", "--json", "--limit", "1"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["entries"][0]["event"] == "refresh"
 
@@ -323,7 +358,7 @@ def test_results_table_delta_tracks_added_and_changed_rows():
         ],
     }
 
-    delta = sm.results_table_delta(previous, current, limit=1)
+    delta = _index.results_table_delta(previous, current, limit=1)
 
     assert delta["previous_rows"] == 1
     assert delta["current_rows"] == 2
@@ -375,9 +410,9 @@ def test_fingerprint_excludes_volatile_timestamps_by_default():
     later["artifact_index"]["updated_at"] = "2026-07-01T11:30:00"
     later["artifact_index"]["peers"]["gpu4090"]["items"][0]["verified_at"] = "2026-07-01T11:30:00"
 
-    first = sm.fingerprint_payload(base)
-    second = sm.fingerprint_payload(later)
-    audited = sm.fingerprint_payload(later, include_timestamps=True)
+    first = _fingerprints.fingerprint_payload(base)
+    second = _fingerprints.fingerprint_payload(later)
+    audited = _fingerprints.fingerprint_payload(later, include_timestamps=True)
 
     assert first["token"] == second["token"]
     assert first["components"]["artifact_index"] == second["components"]["artifact_index"]
@@ -388,20 +423,18 @@ def test_fingerprint_cli_supports_expect_prefix(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main(["--config", str(config_path), "fingerprint", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "fingerprint", "--json"]) == 0
     token = json.loads(capsys.readouterr().out)["token"]
-    assert sm.main(["--config", str(config_path), "fingerprint", "--expect", token[:8], "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "fingerprint", "--expect", token[:8], "--json"]) == 0
     matched = json.loads(capsys.readouterr().out)
     assert matched["matched"] is True
-    assert sm.main(["--config", str(config_path), "fingerprint", "--expect", "deadbeef", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "fingerprint", "--expect", "deadbeef", "--json"]) == 1
     mismatched = json.loads(capsys.readouterr().out)
     assert mismatched["matched"] is False
 
@@ -449,7 +482,7 @@ def test_compare_fingerprint_payload_reports_component_differences():
         },
     }
 
-    result = sm.compare_fingerprint_payload(snapshot)
+    result = _fingerprints.compare_fingerprint_payload(snapshot)
     gpu = result["peers"]["gpu4090"]
     h800 = result["peers"]["h800"]
 
@@ -467,18 +500,17 @@ def test_compare_cli_reads_saved_remote_status_fingerprint(tmp_path, monkeypatch
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     _write(
         sync_dir / "remote_status_gpu4090.json",
         json.dumps({
@@ -493,7 +525,7 @@ def test_compare_cli_reads_saved_remote_status_fingerprint(tmp_path, monkeypatch
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "compare", "gpu4090", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "compare", "gpu4090", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     peer = out["peers"]["gpu4090"]
 
@@ -507,13 +539,12 @@ def test_compare_cli_reads_saved_remote_status_fingerprint(tmp_path, monkeypatch
 def test_build_snapshot_includes_fingerprint_and_export_manifest(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
     _write(sync_dir / "export_manifest.json", json.dumps({"mode": "export", "summary": {"leaves": 1}}).encode())
 
-    snapshot = sm.build_snapshot(sm.build_device_config("local", "collector", str(repo)), [])
+    snapshot = _snapshot.build_snapshot(_devices.build_device_config("local", "collector", str(repo)), [])
 
     assert snapshot["export_manifest"]["mode"] == "export"
     assert snapshot["fingerprint"]["mode"] == "fingerprint"
@@ -525,18 +556,15 @@ def test_publish_cli_writes_compact_status_package(tmp_path, monkeypatch, capsys
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("gpu4090", "runner", str(repo), collector_hint="local")
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("gpu4090", "runner", str(repo), collector_hint="local")
+    _devices.write_device_config(config_path, config)
     _write_leaf(repo / "results" / "runs", "cora_GCN_r0.05/GIF_im/seed42")
 
-    assert sm.main(["--config", str(config_path), "publish", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "publish", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     publish_path = sync_dir / "publish_gpu4090.json"
 
@@ -561,17 +589,15 @@ def test_publish_include_items_outputs_full_manifest(tmp_path, monkeypatch, caps
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("gpu4090", "runner", str(repo), collector_hint="local")
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("gpu4090", "runner", str(repo), collector_hint="local")
+    _devices.write_device_config(config_path, config)
     _write_leaf(repo / "results" / "runs", "cora_GCN_r0.05/GIF_im/seed42")
 
-    assert sm.main(["--config", str(config_path), "publish", "--include-items", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "publish", "--include-items", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert len(out["manifest"]["items"]) == 3
@@ -584,18 +610,17 @@ def test_import_publish_saves_remote_status_and_compare_reads_it(tmp_path, monke
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
     package_path = tmp_path / "publish_gpu4090.json"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     package = {
         "generated_at": "2026-07-01T10:00:00",
         "mode": "publish",
@@ -629,7 +654,7 @@ def test_import_publish_saves_remote_status_and_compare_reads_it(tmp_path, monke
     }
     package_path.write_text(json.dumps(package), encoding="utf-8")
 
-    assert sm.main(["--config", str(config_path), "import-publish", str(package_path), "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "import-publish", str(package_path), "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     report_path = sync_dir / "remote_status_gpu4090.json"
     saved = json.loads(report_path.read_text(encoding="utf-8"))
@@ -646,7 +671,7 @@ def test_import_publish_saves_remote_status_and_compare_reads_it(tmp_path, monke
     assert saved["remote"]["repo_path"] == "/remote/repo"
     assert saved["snapshot"]["published_manifest"]["count"] == 3
 
-    assert sm.main(["--config", str(config_path), "compare", "gpu4090", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "compare", "gpu4090", "--json"]) == 0
     compare = json.loads(capsys.readouterr().out)
     peer = compare["peers"]["gpu4090"]
     assert peer["remote_token"] == "remote-token"
@@ -659,10 +684,10 @@ def test_import_publish_no_save_previews_without_writing_report(tmp_path, monkey
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
     package_path = tmp_path / "publish_gpu4090.json"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     package_path.write_text(json.dumps({
         "generated_at": "2026-07-01T10:00:00",
         "mode": "publish",
@@ -677,7 +702,7 @@ def test_import_publish_no_save_previews_without_writing_report(tmp_path, monkey
         "errors": [],
     }), encoding="utf-8")
 
-    assert sm.main(["--config", str(config_path), "import-publish", str(package_path), "--no-save", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "import-publish", str(package_path), "--no-save", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["saved"] is False
@@ -701,38 +726,32 @@ def test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results(tmp_
         "_meta.json": json.dumps({"git_sha": "abcdef123", "hostname": "runner-a", "timestamp": "2026-07-01T10:00:00"}).encode(),
     }
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     for name, data in artifacts.items():
         _write(runner / leaf_rel / name, data)
 
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     bundle_out = json.loads(capsys.readouterr().out)
     assert bundle_out["mode"] == "bundle"
     assert bundle_out["summary"]["manifest_files"] == 3
     assert bundle_out["summary"]["manifest_leaves"] == 1
     assert bundle_path.is_file()
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "STATE_FILE", collector_sync / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", collector_sync / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    config = sm.build_device_config("local", "collector", str(collector))
-    sm.add_peer_to_device(
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    config = _devices.build_device_config("local", "collector", str(collector))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", str(runner), "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", str(runner), "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(collector_config, config)
+    _devices.write_device_config(collector_config, config)
 
-    assert sm.main(["--config", str(collector_config), "import-bundle", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(collector_config), "import-bundle", str(bundle_path), "--json"]) == 0
     import_out = json.loads(capsys.readouterr().out)
     local_leaf = collector / "results" / "runs" / "gpu4090" / "cora_GCN_r0.05" / "GIF_im" / "seed42"
     index = json.loads((collector_sync / "artifact_index.json").read_text(encoding="utf-8"))
@@ -757,7 +776,7 @@ def test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results(tmp_
     assert (collector_sync / "results_table.json").is_file()
     assert (collector_sync / "results_table.csv").is_file()
 
-    assert sm.main(["--config", str(collector_config), "results", "--write", "--check", "--json"]) == 0
+    assert _run_cli(["--config", str(collector_config), "results", "--write", "--check", "--json"]) == 0
     results_out = json.loads(capsys.readouterr().out)
     assert results_out["summary"]["rows"] == 1
     assert results_out["summary"]["parse_errors"] == 0
@@ -772,19 +791,15 @@ def test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts(tmp_path, m
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     _write(repo / "results" / "runs" / "cell" / "method" / "seed" / "attack.json", b"raw")
 
-    assert sm.main(["--config", str(config_path), "handoff-pack", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "handoff-pack", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     pack_path = sync_dir / "handoff_pack_local.zip"
 
@@ -796,9 +811,9 @@ def test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts(tmp_path, m
 
     with zipfile.ZipFile(pack_path) as zf:
         names = set(zf.namelist())
-        manifest = json.loads(zf.read(sm.HANDOFF_PACK_MANIFEST_NAME).decode("utf-8"))
+        manifest = json.loads(zf.read(_constants.HANDOFF_PACK_MANIFEST_NAME).decode("utf-8"))
 
-    assert sm.HANDOFF_PACK_MANIFEST_NAME in names
+    assert _constants.HANDOFF_PACK_MANIFEST_NAME in names
     assert ".syncmate/status.html" in names
     assert ".syncmate/runbook.md" in names
     assert ".syncmate/checklist.md" in names
@@ -812,12 +827,12 @@ def test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts(tmp_path, m
     assert manifest["summary"]["files"] == out["summary"]["files"]
     assert all("sha256" in item for item in manifest["files"])
 
-    assert sm.main(["inspect-handoff-pack", str(pack_path), "--limit", "3", "--json"]) == 0
+    assert _run_cli(["inspect-handoff-pack", str(pack_path), "--limit", "3", "--json"]) == 0
     inspect_out = json.loads(capsys.readouterr().out)
     assert inspect_out["mode"] == "inspect-handoff-pack"
     assert inspect_out["handoff_pack_path"] == ".syncmate/handoff_pack_local.zip"
     assert inspect_out["audit"]["status"] == "ok"
-    assert sm.is_sha256_hex(inspect_out["audit"]["zip_sha256"])
+    assert _bundles.is_sha256_hex(inspect_out["audit"]["zip_sha256"])
     assert inspect_out["audit"]["manifest_files"] == out["summary"]["files"]
     assert inspect_out["audit"]["verified_files"] == out["summary"]["files"]
     assert inspect_out["audit"]["contains_raw_artifacts"] is False
@@ -825,7 +840,7 @@ def test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts(tmp_path, m
     assert len(inspect_out["files"]["sample"]) == 3
     assert not (sync_dir / "last_handoff_pack_inspect_local.json").exists()
 
-    assert sm.main(["inspect-handoff-pack", str(pack_path), "--write", "--json"]) == 0
+    assert _run_cli(["inspect-handoff-pack", str(pack_path), "--write", "--json"]) == 0
     written_inspect = json.loads(capsys.readouterr().out)
     saved_inspect = sync_dir / "last_handoff_pack_inspect_local.json"
     assert saved_inspect.is_file()
@@ -839,14 +854,14 @@ def test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts(tmp_path, m
             dst.writestr(info, src.read(info.filename))
         dst.writestr("results/runs/raw/attack.json", b"raw")
 
-    assert sm.main(["inspect-handoff-pack", str(tampered_pack), "--json"]) == 1
+    assert _run_cli(["inspect-handoff-pack", str(tampered_pack), "--json"]) == 1
     tampered_out = json.loads(capsys.readouterr().out)
     assert tampered_out["audit"]["status"] == "invalid"
     assert tampered_out["audit"]["contains_raw_artifacts"] is True
     assert any("raw results artifact" in error for error in tampered_out["errors"])
 
     include_setup_pack = tmp_path / "handoff_with_setup.zip"
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "handoff-pack", "--include-setup", "--output", str(include_setup_pack), "--json",
     ]) == 0
@@ -865,19 +880,17 @@ def test_inspect_bundle_is_read_only_and_reports_audit_summary(tmp_path, monkeyp
     bundle_path = tmp_path / "bundle_gpu4090.zip"
     leaf_rel = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / leaf_rel / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / leaf_rel / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / leaf_rel / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
-    assert sm.main(["inspect-bundle", str(bundle_path), "--limit", "2", "--json"]) == 0
+    assert _run_cli(["inspect-bundle", str(bundle_path), "--limit", "2", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["mode"] == "inspect-bundle"
@@ -893,11 +906,11 @@ def test_inspect_bundle_is_read_only_and_reports_audit_summary(tmp_path, monkeyp
     assert not (runner_sync / "last_bundle_inspect_gpu4090.json").exists()
     assert not (runner_sync / "artifact_index.json").exists()
 
-    assert sm.main(["inspect-bundle", str(bundle_path), "--limit", "2", "--write", "--json"]) == 0
+    assert _run_cli(["inspect-bundle", str(bundle_path), "--limit", "2", "--write", "--json"]) == 0
     written = json.loads(capsys.readouterr().out)
     saved_report = runner_sync / "last_bundle_inspect_gpu4090.json"
-    snapshot = sm.build_snapshot(sm.build_device_config("local", "collector", str(runner)), [])
-    reports = sm.peer_reports_payload(snapshot, [], node_ids=["gpu4090"], limit=2)
+    snapshot = _snapshot.build_snapshot(_devices.build_device_config("local", "collector", str(runner)), [])
+    reports = _saved_reports.peer_reports_payload(snapshot, [], node_ids=["gpu4090"], limit=2)
 
     assert written["report_path"] == ".syncmate/last_bundle_inspect_gpu4090.json"
     assert saved_report.is_file()
@@ -920,27 +933,23 @@ def test_import_bundle_leaves_checksum_conflicts_without_overwrite(tmp_path, mon
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     local_leaf = collector / "results" / "runs" / "gpu4090" / "cora_GCN_r0.05" / "GIF_im" / "seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    sm.write_device_config(collector_config, sm.build_device_config("local", "collector", str(collector)))
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    _devices.write_device_config(collector_config, _devices.build_device_config("local", "collector", str(collector)))
     _write(local_leaf / "attack.json", b'{"old": true}')
 
-    assert sm.main(["--config", str(collector_config), "import-bundle", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(collector_config), "import-bundle", str(bundle_path), "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["known_peer"] is False
@@ -963,26 +972,22 @@ def test_import_bundle_dry_run_does_not_extract_or_write_reports(tmp_path, monke
     bundle_path = tmp_path / "bundle_gpu4090.zip"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    sm.write_device_config(collector_config, sm.build_device_config("local", "collector", str(collector)))
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    _devices.write_device_config(collector_config, _devices.build_device_config("local", "collector", str(collector)))
 
-    assert sm.main(["--config", str(collector_config), "import-bundle", str(bundle_path), "--dry-run", "--json"]) == 0
+    assert _run_cli(["--config", str(collector_config), "import-bundle", str(bundle_path), "--dry-run", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["mode"] == "import-bundle-dry-run"
@@ -1013,32 +1018,28 @@ def test_import_bundle_dry_run_write_plan_saves_offline_diff_only(tmp_path, monk
     bundle_path = tmp_path / "bundle_gpu4090.zip"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    config = sm.build_device_config("local", "collector", str(collector))
-    sm.add_peer_to_device(
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    config = _devices.build_device_config("local", "collector", str(collector))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "", str(runner), "results/runs/gpu4090", ["results/runs"], transport="local"),
+        _devices.build_peer_config("runner", "", str(runner), "results/runs/gpu4090", ["results/runs"], transport="local"),
     )
-    sm.write_device_config(collector_config, config)
+    _devices.write_device_config(collector_config, config)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(collector_config),
         "import-bundle", str(bundle_path),
         "--dry-run", "--write-plan", "--json",
@@ -1046,8 +1047,8 @@ def test_import_bundle_dry_run_write_plan_saves_offline_diff_only(tmp_path, monk
     out = json.loads(capsys.readouterr().out)
     diff_report = json.loads((collector_sync / "last_diff_gpu4090.json").read_text(encoding="utf-8"))
     remote_report = json.loads((collector_sync / "remote_status_gpu4090.json").read_text(encoding="utf-8"))
-    device, warnings = sm.load_device(collector_config)
-    snapshot = sm.build_snapshot(device, warnings)
+    device, warnings = _devices.load_device(collector_config)
+    snapshot = _snapshot.build_snapshot(device, warnings)
 
     assert out["mode"] == "import-bundle-dry-run"
     assert out["dry_run"] is True
@@ -1079,22 +1080,20 @@ def test_import_bundle_rejects_corrupt_member_before_landing(tmp_path, monkeypat
     corrupt_bundle = tmp_path / "bundle_gpu4090_corrupt.zip"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
     with zipfile.ZipFile(bundle_path) as zf:
-        manifest = json.loads(zf.read(sm.BUNDLE_MANIFEST_NAME).decode("utf-8"))
+        manifest = json.loads(zf.read(_constants.BUNDLE_MANIFEST_NAME).decode("utf-8"))
     with zipfile.ZipFile(corrupt_bundle, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(sm.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
+        zf.writestr(_constants.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
         for item in manifest["manifest"]["items"]:
             path = item["path"]
             if path.endswith("attack.json"):
@@ -1102,14 +1101,12 @@ def test_import_bundle_rejects_corrupt_member_before_landing(tmp_path, monkeypat
             else:
                 zf.writestr(path, (runner / path).read_bytes())
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    sm.write_device_config(collector_config, sm.build_device_config("local", "collector", str(collector)))
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    _devices.write_device_config(collector_config, _devices.build_device_config("local", "collector", str(collector)))
 
-    assert sm.main(["--config", str(collector_config), "import-bundle", str(corrupt_bundle), "--json"]) == 1
+    assert _run_cli(["--config", str(collector_config), "import-bundle", str(corrupt_bundle), "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     local_leaf = collector / "results" / "runs" / "gpu4090" / "cora_GCN_r0.05" / "GIF_im" / "seed42"
     index = json.loads((collector_sync / "artifact_index.json").read_text(encoding="utf-8"))
@@ -1138,37 +1135,33 @@ def test_import_bundle_rejects_duplicate_manifest_path_before_extract(tmp_path, 
     duplicate_bundle = tmp_path / "bundle_gpu4090_duplicate.zip"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
     with zipfile.ZipFile(bundle_path) as zf:
-        manifest = json.loads(zf.read(sm.BUNDLE_MANIFEST_NAME).decode("utf-8"))
+        manifest = json.loads(zf.read(_constants.BUNDLE_MANIFEST_NAME).decode("utf-8"))
     manifest["manifest"]["items"].append(dict(manifest["manifest"]["items"][0]))
     manifest["manifest"]["count"] = len(manifest["manifest"]["items"])
     with zipfile.ZipFile(duplicate_bundle, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(sm.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
+        zf.writestr(_constants.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
         for item in manifest["manifest"]["items"]:
             path = item["path"]
             if path not in zf.namelist():
                 zf.writestr(path, (runner / path).read_bytes())
 
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", collector_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", collector_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
-    sm.write_device_config(collector_config, sm.build_device_config("local", "collector", str(collector)))
+    _context.select(root=collector)
+    _context.select(root=(collector_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "collector"})
+    _devices.write_device_config(collector_config, _devices.build_device_config("local", "collector", str(collector)))
 
-    assert sm.main(["--config", str(collector_config), "import-bundle", str(duplicate_bundle), "--json"]) == 1
+    assert _run_cli(["--config", str(collector_config), "import-bundle", str(duplicate_bundle), "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
 
     assert out["mode"] == "import-bundle-invalid"
@@ -1188,30 +1181,28 @@ def test_inspect_bundle_reports_invalid_manifest_without_extracting(tmp_path, mo
     duplicate_bundle = tmp_path / "bundle_gpu4090_duplicate.zip"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
 
-    monkeypatch.setattr(sm, "REPO_ROOT", runner)
-    monkeypatch.setattr(sm, "SYNC_DIR", runner_sync)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runner / "results" / "runs")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", runner_config)
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
-    sm.write_device_config(runner_config, sm.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
+    _context.select(root=runner)
+    _context.select(root=(runner_sync).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "runner"})
+    _devices.write_device_config(runner_config, _devices.build_device_config("gpu4090", "runner", str(runner), collector_hint="local"))
     _write(runner / remote_leaf / "attack.json", b'{"results": {"im": {"f1_after": 0.71}}}')
     _write(runner / remote_leaf / "collateral.json", b'{"results": [{"strategy": "im", "perf_before": 0.8}]}')
     _write(runner / remote_leaf / "_meta.json", b'{"git_sha": "abcdef123"}')
-    assert sm.main(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
+    assert _run_cli(["--config", str(runner_config), "bundle", "--output", str(bundle_path), "--json"]) == 0
     capsys.readouterr()
 
     with zipfile.ZipFile(bundle_path) as zf:
-        manifest = json.loads(zf.read(sm.BUNDLE_MANIFEST_NAME).decode("utf-8"))
+        manifest = json.loads(zf.read(_constants.BUNDLE_MANIFEST_NAME).decode("utf-8"))
     manifest["manifest"]["items"].append(dict(manifest["manifest"]["items"][0]))
     manifest["manifest"]["count"] = len(manifest["manifest"]["items"])
     with zipfile.ZipFile(duplicate_bundle, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(sm.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
+        zf.writestr(_constants.BUNDLE_MANIFEST_NAME, json.dumps(manifest))
         for item in manifest["manifest"]["items"]:
             path = item["path"]
             if path not in zf.namelist():
                 zf.writestr(path, (runner / path).read_bytes())
 
-    assert sm.main(["inspect-bundle", str(duplicate_bundle), "--json"]) == 1
+    assert _run_cli(["inspect-bundle", str(duplicate_bundle), "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
 
     assert out["mode"] == "inspect-bundle"
@@ -1223,8 +1214,8 @@ def test_inspect_bundle_reports_invalid_manifest_without_extracting(tmp_path, mo
 
 def test_manifest_hashes_only_json_meta_artifacts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "git_state", lambda: {"short_sha": "testsha", "dirty": False})
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"short_sha": "testsha", "dirty": False})
 
     leaf = repo / "results" / "runs" / "cora_GCN_r0.05" / "GIF_random" / "seed42"
     _write(leaf / "attack.json", b"attack")
@@ -1232,7 +1223,7 @@ def test_manifest_hashes_only_json_meta_artifacts(tmp_path, monkeypatch):
     _write(leaf / "_meta.json", b"meta")
     _write(leaf / "predictions.npz", b"ignored")
 
-    manifest = sm.manifest_for_roots(["results/runs/cora_GCN_r0.05"])
+    manifest = _artifacts.manifest_for_roots(["results/runs/cora_GCN_r0.05"])
 
     assert manifest["count"] == 3
     assert manifest["artifact_policy"]["include"] == ["attack.json", "collateral.json", "_meta.json"]
@@ -1246,13 +1237,13 @@ def test_manifest_hashes_only_json_meta_artifacts(tmp_path, monkeypatch):
 
 def test_manifest_inventory_flags_incomplete_remote_leaf(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "git_state", lambda: {"short_sha": "testsha", "dirty": False})
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"short_sha": "testsha", "dirty": False})
 
     leaf = repo / "results" / "runs" / "cora_GCN_r0.05" / "GIF_im" / "seed42"
     _write(leaf / "attack.json", b"attack")
 
-    manifest = sm.manifest_for_roots(["results/runs/cora_GCN_r0.05"])
+    manifest = _artifacts.manifest_for_roots(["results/runs/cora_GCN_r0.05"])
     inventory = manifest["inventory"]
 
     assert inventory["summary"]["leaves"] == 1
@@ -1265,14 +1256,14 @@ def test_manifest_inventory_flags_incomplete_remote_leaf(tmp_path, monkeypatch):
 
 def test_manifest_can_include_predictions_when_requested(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "git_state", lambda: {"short_sha": "testsha", "dirty": False})
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"short_sha": "testsha", "dirty": False})
 
     leaf = repo / "results" / "runs" / "cora_GCN_r0.05" / "GIF_random" / "seed42"
     _write(leaf / "attack.json", b"attack")
     _write(leaf / "predictions.npz", b"predictions")
 
-    manifest = sm.manifest_for_roots(
+    manifest = _artifacts.manifest_for_roots(
         ["results/runs/cora_GCN_r0.05"],
         ("attack.json", "predictions.npz"),
     )
@@ -1293,8 +1284,8 @@ def test_artifact_names_for_peer_merges_global_and_peer_policy():
     }
     peer = {"artifact_policy": {"exclude": ["attack.json"]}}
 
-    assert sm.artifact_names_for_peer(device, peer) == ("_meta.json", "predictions.npz")
-    assert sm.artifact_names_for_peer(device, {"artifact_policy": {"include": ["predictions.npz"]}}) == (
+    assert _artifacts.artifact_names_for_peer(device, peer) == ("_meta.json", "predictions.npz")
+    assert _artifacts.artifact_names_for_peer(device, {"artifact_policy": {"include": ["predictions.npz"]}}) == (
         "predictions.npz",
     )
 
@@ -1302,11 +1293,11 @@ def test_artifact_names_for_peer_merges_global_and_peer_policy():
 def test_init_device_writes_config_and_refuses_overwrite(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.write_device_config(config_path, config)
-    loaded, warnings = sm.load_device(config_path)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.write_device_config(config_path, config)
+    loaded, warnings = _devices.load_device(config_path)
 
     assert warnings == []
     assert loaded["device_id"] == "local"
@@ -1315,21 +1306,21 @@ def test_init_device_writes_config_and_refuses_overwrite(tmp_path, monkeypatch):
     assert loaded["peers"] == {}
 
     try:
-        sm.write_device_config(config_path, sm.build_device_config("other", "runner", str(repo)))
+        _devices.write_device_config(config_path, _devices.build_device_config("other", "runner", str(repo)))
     except SystemExit as exc:
         assert "already exists" in str(exc)
     else:
         raise AssertionError("expected existing device config to be protected")
 
-    sm.write_device_config(config_path, sm.build_device_config("other", "runner", str(repo)), force=True)
-    loaded, _warnings = sm.load_device(config_path)
+    _devices.write_device_config(config_path, _devices.build_device_config("other", "runner", str(repo)), force=True)
+    loaded, _warnings = _devices.load_device(config_path)
     assert loaded["device_id"] == "other"
     assert loaded["role"] == "runner"
 
 
 def test_init_device_runner_can_record_collector_hint(tmp_path):
     repo = tmp_path / "repo"
-    config = sm.build_device_config("gpu4090", "runner", str(repo), collector_hint="local-laptop")
+    config = _devices.build_device_config("gpu4090", "runner", str(repo), collector_hint="local-laptop")
 
     assert config == {
         "version": 0,
@@ -1343,9 +1334,9 @@ def test_init_device_runner_can_record_collector_hint(tmp_path):
 def test_init_device_cli_can_write_artifact_policy(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "init-device",
         "--device-id", "local",
@@ -1355,29 +1346,29 @@ def test_init_device_cli_can_write_artifact_policy(tmp_path, monkeypatch):
         "--artifact-exclude", "collateral.json",
     ]) == 0
 
-    loaded, warnings = sm.load_device(config_path)
+    loaded, warnings = _devices.load_device(config_path)
 
     assert warnings == []
     assert loaded["artifact_policy"] == {
         "include": ["attack.json", "_meta.json", "predictions.npz"],
         "exclude": ["collateral.json"],
     }
-    assert sm.artifact_names_for_peer(loaded, None) == ("attack.json", "_meta.json", "predictions.npz")
+    assert _artifacts.artifact_names_for_peer(loaded, None) == ("attack.json", "_meta.json", "predictions.npz")
 
 
 def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "init-device",
         "--device-id", "local",
         "--role", "collector",
         "--repo-path", str(repo),
     ]) == 0
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "add-peer", "gpu4090",
         "--ssh", "autodl-4090",
@@ -1387,7 +1378,7 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
         "--result-root", "results/runs/cora_GAT_r0.05",
     ]) == 0
 
-    loaded, warnings = sm.load_device(config_path)
+    loaded, warnings = _devices.load_device(config_path)
     peer = loaded["peers"]["gpu4090"]
 
     assert warnings == []
@@ -1401,7 +1392,7 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
     ]
 
     try:
-        sm.main([
+        _run_cli([
             "--config", str(config_path),
             "add-peer", "gpu4090",
             "--ssh", "autodl-4090",
@@ -1418,11 +1409,11 @@ def test_add_peer_local_transport_does_not_require_ssh(tmp_path, monkeypatch, ca
     runner = tmp_path / "runner"
     runner.mkdir()
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "add-peer", "local-runner",
         "--local",
@@ -1430,7 +1421,7 @@ def test_add_peer_local_transport_does_not_require_ssh(tmp_path, monkeypatch, ca
         "--json",
     ]) == 0
     out = json.loads(capsys.readouterr().out)
-    loaded, warnings = sm.load_device(config_path)
+    loaded, warnings = _devices.load_device(config_path)
     peer = loaded["peers"]["local-runner"]
 
     assert warnings == []
@@ -1443,11 +1434,11 @@ def test_add_peer_local_transport_does_not_require_ssh(tmp_path, monkeypatch, ca
 def test_add_peer_cli_can_write_artifact_policy(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "add-peer", "h800",
         "--ssh", "autodl-h800",
@@ -1457,7 +1448,7 @@ def test_add_peer_cli_can_write_artifact_policy(tmp_path, monkeypatch):
         "--artifact-exclude", "collateral.json",
     ]) == 0
 
-    loaded, warnings = sm.load_device(config_path)
+    loaded, warnings = _devices.load_device(config_path)
     peer = loaded["peers"]["h800"]
 
     assert warnings == []
@@ -1465,12 +1456,12 @@ def test_add_peer_cli_can_write_artifact_policy(tmp_path, monkeypatch):
         "include": ["attack.json", "_meta.json", "predictions.npz"],
         "exclude": ["collateral.json"],
     }
-    assert sm.artifact_names_for_peer(loaded, peer) == ("attack.json", "_meta.json", "predictions.npz")
+    assert _artifacts.artifact_names_for_peer(loaded, peer) == ("attack.json", "_meta.json", "predictions.npz")
 
 
 def test_artifact_policy_cli_rejects_path_entries():
     try:
-        sm.artifact_policy_from_cli([["attack.json", "../escape.json"]], None)
+        _devices.artifact_policy_from_cli([["attack.json", "../escape.json"]], None)
     except SystemExit as exc:
         assert "artifact policy entries must be file names" in str(exc)
     else:
@@ -1480,11 +1471,11 @@ def test_artifact_policy_cli_rejects_path_entries():
 def test_add_peer_requires_collector_role(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    sm.write_device_config(config_path, sm.build_device_config("gpu4090", "runner", str(repo)))
+    _context.select(root=repo)
+    _devices.write_device_config(config_path, _devices.build_device_config("gpu4090", "runner", str(repo)))
 
     try:
-        sm.main([
+        _run_cli([
             "--config", str(config_path),
             "add-peer", "h800",
             "--ssh", "autodl-h800",
@@ -1499,11 +1490,10 @@ def test_add_peer_requires_collector_role(tmp_path, monkeypatch):
 def test_setup_plan_guides_missing_collector_and_peer_config(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "setup-plan",
         "--role", "collector",
@@ -1534,11 +1524,10 @@ def test_setup_plan_guides_missing_collector_and_peer_config(tmp_path, monkeypat
 def test_setup_plan_can_generate_local_peer_commands(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "setup-plan",
         "--role", "collector",
@@ -1565,11 +1554,10 @@ def test_setup_plan_can_generate_local_peer_commands(tmp_path, monkeypatch, caps
 def test_setup_plan_local_peer_does_not_require_ssh_input(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "setup-plan",
         "--role", "collector",
@@ -1588,19 +1576,18 @@ def test_setup_plan_write_marks_existing_peer_not_needed(tmp_path, monkeypatch, 
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "autodl-4090", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "autodl-4090", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "setup-plan",
         "--peer-id", "gpu4090",
@@ -1627,17 +1614,14 @@ def test_layout_cli_shows_peer_paths_and_trusted_outputs(tmp_path, monkeypatch, 
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config(
+        _devices.build_peer_config(
             "runner",
             "ssh-gpu",
             "/remote/repo",
@@ -1646,7 +1630,7 @@ def test_layout_cli_shows_peer_paths_and_trusted_outputs(tmp_path, monkeypatch, 
             artifact_policy={"include": ["attack.json", "_meta.json"]},
         ),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     _write(
         sync_dir / "artifact_index.json",
         json.dumps({
@@ -1669,7 +1653,7 @@ def test_layout_cli_shows_peer_paths_and_trusted_outputs(tmp_path, monkeypatch, 
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "layout", "gpu4090", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "layout", "gpu4090", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     peer = out["peers"]["gpu4090"]
 
@@ -1697,17 +1681,14 @@ def test_layout_text_mentions_landing_and_sync_command(tmp_path, monkeypatch, ca
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "local-runner",
-        sm.build_peer_config(
+        _devices.build_peer_config(
             "runner",
             None,
             "../GULib-runner-copy",
@@ -1716,9 +1697,9 @@ def test_layout_text_mentions_landing_and_sync_command(tmp_path, monkeypatch, ca
             transport="local",
         ),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "layout", "local-runner"]) == 0
+    assert _run_cli(["--config", str(config_path), "layout", "local-runner"]) == 0
     text = capsys.readouterr().out
 
     assert "syncmate layout: local (collector)" in text
@@ -1733,22 +1714,18 @@ def test_landings_cli_shows_local_landing_inventory_and_rows(tmp_path, monkeypat
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
     leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
@@ -1844,7 +1821,7 @@ def test_landings_cli_shows_local_landing_inventory_and_rows(tmp_path, monkeypat
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "landings", "gpu4090", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "landings", "gpu4090", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     peer = out["peers"]["gpu4090"]
 
@@ -1861,7 +1838,7 @@ def test_landings_cli_shows_local_landing_inventory_and_rows(tmp_path, monkeypat
     assert peer["commands"]["collect"] == "python scripts/syncmate/syncmate.py collect gpu4090 --apply"
     assert out["files"]["acceptance"] == ".syncmate/acceptance.json"
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "checklist", "gpu4090", "--write", "--json",
         "--no-require-preflight", "--no-require-results",
@@ -1886,15 +1863,11 @@ def test_runbook_cli_writes_missing_setup_guide(tmp_path, monkeypatch, capsys):
     repo.mkdir()
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    assert sm.main(["--config", str(config_path), "runbook", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "runbook", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     runbook_path = sync_dir / "runbook.md"
     text = runbook_path.read_text(encoding="utf-8")
@@ -1917,21 +1890,17 @@ def test_runbook_cli_writes_collector_peer_flow(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
     peer["artifact_policy"] = {"include": ["attack.json", "_meta.json"]}
-    sm.add_peer_to_device(config, "gpu4090", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "runbook", "gpu4090", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "runbook", "gpu4090", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     runbook_path = sync_dir / "runbook.md"
     text = runbook_path.read_text(encoding="utf-8")
@@ -1954,14 +1923,10 @@ def test_runbook_cli_writes_collector_peer_flow(tmp_path, monkeypatch, capsys):
 def test_smoke_cli_runs_local_end_to_end_and_keeps_workspace(tmp_path, monkeypatch, capsys):
     current = tmp_path / "current"
     current_sync = current / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", current)
-    monkeypatch.setattr(sm, "SYNC_DIR", current_sync)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", current_sync / "device.yaml")
-    monkeypatch.setattr(sm, "STATE_FILE", current_sync / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", current_sync / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", current / "results" / "runs")
+    _context.select(root=current)
+    _context.select(root=(current_sync).parent)
 
-    assert sm.main(["smoke", "--workdir", str(tmp_path / "smoke"), "--json"]) == 0
+    assert _run_cli(["smoke", "--workdir", str(tmp_path / "smoke"), "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     collector = Path(out["collector_root"])
 
@@ -1996,21 +1961,17 @@ def test_smoke_cli_runs_local_end_to_end_and_keeps_workspace(tmp_path, monkeypat
     assert acceptance["automation_core"]["totals"]["checksum_verified"] == 3
     assert action_plan["mode"] == "next"
     assert not current_sync.exists()
-    assert sm.REPO_ROOT == current
-    assert sm.SYNC_DIR == current_sync
+    assert _context.current().root == current
+    assert _context.current().sync_dir == current_sync
 
 
 def test_smoke_cli_cleans_temporary_workspace_by_default(tmp_path, monkeypatch, capsys):
     current = tmp_path / "current"
     current_sync = current / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", current)
-    monkeypatch.setattr(sm, "SYNC_DIR", current_sync)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", current_sync / "device.yaml")
-    monkeypatch.setattr(sm, "STATE_FILE", current_sync / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", current_sync / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", current / "results" / "runs")
+    _context.select(root=current)
+    _context.select(root=(current_sync).parent)
 
-    assert sm.main(["smoke", "--json"]) == 0
+    assert _run_cli(["smoke", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["passed"] is True
@@ -2024,23 +1985,20 @@ def test_refresh_updates_all_peers_without_collecting_by_default(tmp_path, monke
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "gpu4090", sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
-    sm.add_peer_to_device(config, "h800", sm.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
+    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
+    _devices.write_device_config(config_path, config)
 
     calls = {"remote": [], "diff": [], "collect": [], "verify": []}
 
     def fake_remote(node_id, _ssh, _repo_path, save=True):
         calls["remote"].append((node_id, save))
-        return sm.write_sync_report("remote_status", node_id, {
+        return _storage.write_sync_report("remote_status", node_id, {
             "generated_at": "2026-07-01T00:00:00",
             "node_id": node_id,
             "mode": "apply",
@@ -2051,7 +2009,7 @@ def test_refresh_updates_all_peers_without_collecting_by_default(tmp_path, monke
 
     def fake_diff(node_id, _ssh, _repo_path, _roots, landing, *, artifact_names=None, save=True):
         calls["diff"].append((node_id, save, artifact_names))
-        return sm.write_sync_report("last_diff", node_id, {
+        return _storage.write_sync_report("last_diff", node_id, {
             "generated_at": "2026-07-01T00:00:01",
             "node_id": node_id,
             "mode": "diff",
@@ -2070,16 +2028,16 @@ def test_refresh_updates_all_peers_without_collecting_by_default(tmp_path, monke
         calls["verify"].append(True)
         raise AssertionError("refresh should not verify without --verify")
 
-    monkeypatch.setattr(sm, "apply_remote_status", fake_remote)
-    monkeypatch.setattr(sm, "diff_collect", fake_diff)
-    monkeypatch.setattr(sm, "apply_collect", fake_collect)
-    monkeypatch.setattr(sm, "verify_collect", fake_verify)
+    monkeypatch.setattr(_collection, 'apply_remote_status', fake_remote)
+    monkeypatch.setattr(_collection, 'diff_collect', fake_diff)
+    monkeypatch.setattr(_collection, 'apply_collect', fake_collect)
+    monkeypatch.setattr(_collection, 'verify_collect', fake_verify)
 
-    assert sm.main(["--config", str(config_path), "refresh", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "refresh", "--json"]) == 0
 
     assert [item[0] for item in calls["remote"]] == ["gpu4090", "h800"]
     assert [item[0] for item in calls["diff"]] == ["gpu4090", "h800"]
-    assert [item[2] for item in calls["diff"]] == [sm.ARTIFACT_NAMES, sm.ARTIFACT_NAMES]
+    assert [item[2] for item in calls["diff"]] == [_context.extension().artifact_names(None, None), _context.extension().artifact_names(None, None)]
     assert calls["collect"] == []
     assert calls["verify"] == []
     assert (sync_dir / "state.json").is_file()
@@ -2091,32 +2049,29 @@ def test_refresh_apply_collects_selected_peer(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "gpu4090", sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
-    sm.add_peer_to_device(config, "h800", sm.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
+    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
+    _devices.write_device_config(config_path, config)
 
     calls = {"collect": []}
 
-    monkeypatch.setattr(sm, "apply_remote_status", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
-    monkeypatch.setattr(sm, "diff_collect", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'apply_remote_status', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'diff_collect', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
 
     def fake_collect(node_id, _ssh, _repo_path, _roots, landing, *, artifact_names=None, overwrite=False, save=True):
         calls["collect"].append((node_id, overwrite, save, landing, artifact_names))
         return {"node_id": node_id, "errors": [], "landing": landing}
 
-    monkeypatch.setattr(sm, "apply_collect", fake_collect)
+    monkeypatch.setattr(_collection, 'apply_collect', fake_collect)
 
-    assert sm.main(["--config", str(config_path), "refresh", "h800", "--apply", "--overwrite", "--no-dashboard", "--no-write-state", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "refresh", "h800", "--apply", "--overwrite", "--no-dashboard", "--no-write-state", "--json"]) == 0
 
-    assert calls["collect"] == [("h800", True, True, "results/runs/h800", sm.ARTIFACT_NAMES)]
+    assert calls["collect"] == [("h800", True, True, "results/runs/h800", _context.extension().artifact_names(None, None))]
     assert not (sync_dir / "status.html").exists()
     assert not (sync_dir / "workflow.json").exists()
     assert not (sync_dir / "state.json").exists()
@@ -2127,22 +2082,19 @@ def test_refresh_apply_verify_runs_acceptance_for_selected_peer(tmp_path, monkey
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"])
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"])
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
-    sm.add_peer_to_device(config, "h800", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "h800", peer)
+    _devices.write_device_config(config_path, config)
 
     calls = {"collect": [], "verify": []}
-    monkeypatch.setattr(sm, "apply_remote_status", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
-    monkeypatch.setattr(sm, "diff_collect", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'apply_remote_status', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'diff_collect', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
 
     def fake_collect(node_id, _ssh, _repo_path, _roots, landing, *, artifact_names=None, overwrite=False, save=True):
         calls["collect"].append((node_id, landing, artifact_names, overwrite, save))
@@ -2160,10 +2112,10 @@ def test_refresh_apply_verify_runs_acceptance_for_selected_peer(tmp_path, monkey
             "errors": [],
         }
 
-    monkeypatch.setattr(sm, "apply_collect", fake_collect)
-    monkeypatch.setattr(sm, "verify_collect", fake_verify)
+    monkeypatch.setattr(_collection, 'apply_collect', fake_collect)
+    monkeypatch.setattr(_collection, 'verify_collect', fake_verify)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "refresh", "h800", "--apply", "--verify", "--overwrite",
         "--no-dashboard", "--no-write-state", "--json",
@@ -2177,19 +2129,16 @@ def test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard(tmp_path, mon
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
     peer["artifact_policy"] = {"include": ["attack.json", "collateral.json", "_meta.json"]}
-    sm.add_peer_to_device(config, "gpu4090", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
+    _devices.write_device_config(config_path, config)
 
     leaf_remote = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     leaf_local = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
@@ -2302,12 +2251,12 @@ def test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard(tmp_path, mon
             "report_path": f".syncmate/last_verify_{node_id}.json",
         }
 
-    monkeypatch.setattr(sm, "apply_remote_status", fake_remote)
-    monkeypatch.setattr(sm, "diff_collect", fake_diff)
-    monkeypatch.setattr(sm, "apply_collect", fake_collect)
-    monkeypatch.setattr(sm, "verify_collect", fake_verify)
+    monkeypatch.setattr(_collection, 'apply_remote_status', fake_remote)
+    monkeypatch.setattr(_collection, 'diff_collect', fake_diff)
+    monkeypatch.setattr(_collection, 'apply_collect', fake_collect)
+    monkeypatch.setattr(_collection, 'verify_collect', fake_verify)
 
-    assert sm.main(["--config", str(config_path), "sync", "gpu4090", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "sync", "gpu4090", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert calls["remote"] == ["gpu4090"]
@@ -2421,29 +2370,22 @@ def test_sync_no_results_skips_result_table_write(tmp_path, monkeypatch, capsys)
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    monkeypatch.setattr(sm, "refresh_peer", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
-    monkeypatch.setattr(
-        sm,
-        "write_results_table_files",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("--no-results should skip table writes")),
-    )
+    monkeypatch.setattr(_collection, 'refresh_peer', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_index, 'write_results_table_files', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("--no-results should skip table writes")))
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "sync", "gpu4090", "--no-results",
         "--no-receipt", "--no-brief", "--no-dashboard", "--no-write-state",
@@ -2469,12 +2411,9 @@ def test_sync_local_transport_collects_from_same_machine_repo(tmp_path, monkeypa
     runner = tmp_path / "runner"
     sync_dir = collector / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", collector)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", collector / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
+    _context.select(root=collector)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "local"})
 
     leaf = runner / "results" / "runs" / "cora_GCN_r0.05" / "GIF_im" / "seed42"
     artifacts = {
@@ -2485,11 +2424,11 @@ def test_sync_local_transport_collects_from_same_machine_repo(tmp_path, monkeypa
     for name, data in artifacts.items():
         _write(leaf / name, data)
 
-    config = sm.build_device_config("collector", "collector", str(collector))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("collector", "collector", str(collector))
+    _devices.add_peer_to_device(
         config,
         "local-runner",
-        sm.build_peer_config(
+        _devices.build_peer_config(
             "runner",
             None,
             str(runner),
@@ -2498,9 +2437,9 @@ def test_sync_local_transport_collects_from_same_machine_repo(tmp_path, monkeypa
             transport="local",
         ),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "sync", "local-runner", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "sync", "local-runner", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     local_attack = collector / "results" / "runs" / "local-runner" / "cora_GCN_r0.05" / "GIF_im" / "seed42" / "attack.json"
     index = json.loads((sync_dir / "artifact_index.json").read_text(encoding="utf-8"))
@@ -2523,28 +2462,25 @@ def test_sync_dry_run_skips_collect_verify_and_optional_writes(tmp_path, monkeyp
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
     calls = {"remote": [], "diff": []}
-    monkeypatch.setattr(sm, "apply_remote_status", lambda node_id, *_args, **_kwargs: calls["remote"].append(node_id) or {"node_id": node_id, "errors": []})
-    monkeypatch.setattr(sm, "diff_collect", lambda node_id, *_args, **_kwargs: calls["diff"].append(node_id) or {"node_id": node_id, "landing": "results/runs/gpu4090", "summary": {"missing": 0, "conflicts": 0}, "errors": []})
-    monkeypatch.setattr(sm, "apply_collect", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("dry-run should not collect")))
-    monkeypatch.setattr(sm, "verify_collect", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("dry-run should not verify")))
+    monkeypatch.setattr(_collection, 'apply_remote_status', lambda node_id, *_args, **_kwargs: calls["remote"].append(node_id) or {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'diff_collect', lambda node_id, *_args, **_kwargs: calls["diff"].append(node_id) or {"node_id": node_id, "landing": "results/runs/gpu4090", "summary": {"missing": 0, "conflicts": 0}, "errors": []})
+    monkeypatch.setattr(_collection, 'apply_collect', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("dry-run should not collect")))
+    monkeypatch.setattr(_collection, 'verify_collect', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("dry-run should not verify")))
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "sync", "gpu4090", "--dry-run",
         "--no-receipt", "--no-brief", "--no-dashboard", "--no-write-state",
@@ -2575,19 +2511,16 @@ def test_refresh_verify_returns_nonzero_when_acceptance_fails(tmp_path, monkeypa
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "gpu4090", sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
+    _devices.write_device_config(config_path, config)
 
-    monkeypatch.setattr(sm, "apply_remote_status", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
-    monkeypatch.setattr(sm, "diff_collect", lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'apply_remote_status', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
+    monkeypatch.setattr(_collection, 'diff_collect', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
 
     def fake_verify(node_id, *_args, **_kwargs):
         return {
@@ -2599,9 +2532,9 @@ def test_refresh_verify_returns_nonzero_when_acceptance_fails(tmp_path, monkeypa
             "errors": [],
         }
 
-    monkeypatch.setattr(sm, "verify_collect", fake_verify)
+    monkeypatch.setattr(_collection, 'verify_collect', fake_verify)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "refresh", "gpu4090", "--verify",
         "--no-dashboard", "--no-write-state", "--json",
@@ -2611,8 +2544,8 @@ def test_refresh_verify_returns_nonzero_when_acceptance_fails(tmp_path, monkeypa
 def test_apply_remote_status_saves_snapshot_summary(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     snapshot = {
         "device": {"id": "gpu4090", "role": "runner"},
@@ -2626,9 +2559,9 @@ def test_apply_remote_status_saves_snapshot_summary(tmp_path, monkeypatch):
             },
         },
     }
-    monkeypatch.setattr(sm, "remote_status_snapshot", lambda *_args: snapshot)
+    monkeypatch.setattr(_collection, 'remote_status_snapshot', lambda *_args: snapshot)
 
-    result = sm.apply_remote_status("gpu4090", "autodl-4090", "~/repo")
+    result = _collection.apply_remote_status("gpu4090", "autodl-4090", "~/repo")
 
     expected_summary = {
         "device_id": "gpu4090",
@@ -2655,15 +2588,15 @@ def test_apply_remote_status_saves_snapshot_summary(tmp_path, monkeypatch):
 
 def test_apply_remote_status_reports_remote_errors(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
     def fail(_ssh, _repo_path):
         raise RuntimeError("ssh unavailable")
 
-    monkeypatch.setattr(sm, "remote_status_snapshot", fail)
+    monkeypatch.setattr(_collection, 'remote_status_snapshot', fail)
 
-    result = sm.apply_remote_status("gpu4090", "autodl-4090", "~/repo")
+    result = _collection.apply_remote_status("gpu4090", "autodl-4090", "~/repo")
 
     assert result["mode"] == "apply"
     assert result["errors"] == ["remote status failed: RuntimeError: ssh unavailable"]
@@ -2672,8 +2605,8 @@ def test_apply_remote_status_reports_remote_errors(tmp_path, monkeypatch):
 def test_load_remote_status_reports_reads_saved_summary(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2684,7 +2617,7 @@ def test_load_remote_status_reports_reads_saved_summary(tmp_path, monkeypatch):
     }
     _write(sync_dir / "remote_status_gpu4090.json", json.dumps(report).encode())
 
-    reports = sm.load_remote_status_reports()
+    reports = _storage.load_remote_status_reports()
 
     assert reports["gpu4090"]["node_id"] == "gpu4090"
     assert reports["gpu4090"]["generated_at"] == "2026-07-01T00:00:00"
@@ -2696,8 +2629,8 @@ def test_load_remote_status_reports_reads_saved_summary(tmp_path, monkeypatch):
 def test_load_remote_status_reports_accepts_utf8_bom(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2707,7 +2640,7 @@ def test_load_remote_status_reports_accepts_utf8_bom(tmp_path, monkeypatch):
     }
     _write(sync_dir / "remote_status_gpu4090.json", json.dumps(report).encode("utf-8-sig"))
 
-    reports = sm.load_remote_status_reports()
+    reports = _storage.load_remote_status_reports()
 
     assert reports["gpu4090"]["errors"] == []
     assert reports["gpu4090"]["summary"]["device_id"] == "gpu4090"
@@ -2716,8 +2649,8 @@ def test_load_remote_status_reports_accepts_utf8_bom(tmp_path, monkeypatch):
 def test_load_collect_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2732,7 +2665,7 @@ def test_load_collect_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch)
     }
     _write(sync_dir / "last_collect_gpu4090.json", json.dumps(report).encode("utf-8-sig"))
 
-    reports = sm.load_collect_reports()
+    reports = _storage.load_collect_reports()
 
     assert reports["gpu4090"]["node_id"] == "gpu4090"
     assert reports["gpu4090"]["summary"]["remote_files"] == 3
@@ -2744,8 +2677,8 @@ def test_load_collect_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch)
 def test_load_diff_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2760,7 +2693,7 @@ def test_load_diff_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
     }
     _write(sync_dir / "last_diff_gpu4090.json", json.dumps(report).encode("utf-8-sig"))
 
-    reports = sm.load_diff_reports()
+    reports = _storage.load_diff_reports()
 
     assert reports["gpu4090"]["node_id"] == "gpu4090"
     assert reports["gpu4090"]["summary"]["missing"] == 1
@@ -2772,8 +2705,8 @@ def test_load_diff_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
 def test_load_verify_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2790,7 +2723,7 @@ def test_load_verify_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
     }
     _write(sync_dir / "last_verify_gpu4090.json", json.dumps(report).encode("utf-8-sig"))
 
-    reports = sm.load_verify_reports()
+    reports = _storage.load_verify_reports()
 
     assert reports["gpu4090"]["node_id"] == "gpu4090"
     assert reports["gpu4090"]["summary"]["verified_current"] == 2
@@ -2803,8 +2736,8 @@ def test_load_verify_reports_reads_saved_summary_and_bom(tmp_path, monkeypatch):
 def test_load_bundle_inspect_reports_reads_saved_audit_and_bom(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     report = {
         "generated_at": "2026-07-01T00:00:00",
@@ -2821,7 +2754,7 @@ def test_load_bundle_inspect_reports_reads_saved_audit_and_bom(tmp_path, monkeyp
     }
     _write(sync_dir / "last_bundle_inspect_gpu4090.json", json.dumps(report).encode("utf-8-sig"))
 
-    reports = sm.load_bundle_inspect_reports()
+    reports = _storage.load_bundle_inspect_reports()
 
     assert reports["gpu4090"]["node_id"] == "gpu4090"
     assert reports["gpu4090"]["audit"]["status"] == "ok"
@@ -2832,15 +2765,15 @@ def test_load_bundle_inspect_reports_reads_saved_audit_and_bom(tmp_path, monkeyp
 
 def test_compare_manifest_detects_same_missing_and_conflicts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     landing = "results/runs/gpu4090"
     same_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json"
     conflict_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json"
     missing_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json"
 
-    _write(sm.local_landing_path(landing, same_remote), b"same")
-    _write(sm.local_landing_path(landing, conflict_remote), b"local")
+    _write(_collection.local_landing_path(landing, same_remote), b"same")
+    _write(_collection.local_landing_path(landing, conflict_remote), b"local")
 
     manifest = {
         "items": [
@@ -2850,7 +2783,7 @@ def test_compare_manifest_detects_same_missing_and_conflicts(tmp_path, monkeypat
         ]
     }
 
-    missing, same, conflicts = sm.compare_manifest(landing, manifest)
+    missing, same, conflicts = _collection.compare_manifest(landing, manifest)
 
     assert [item["path"] for item in same] == [same_remote]
     assert [item["path"] for item in missing] == [missing_remote]
@@ -2860,15 +2793,15 @@ def test_compare_manifest_detects_same_missing_and_conflicts(tmp_path, monkeypat
 
 def test_diff_collect_reports_missing_current_and_conflicts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     landing = "results/runs/gpu4090"
     same_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json"
     conflict_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json"
     missing_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json"
 
-    _write(sm.local_landing_path(landing, same_remote), b"same")
-    _write(sm.local_landing_path(landing, conflict_remote), b"local")
+    _write(_collection.local_landing_path(landing, same_remote), b"same")
+    _write(_collection.local_landing_path(landing, conflict_remote), b"local")
 
     manifest = {
         "git": {"short_sha": "remote"},
@@ -2885,9 +2818,9 @@ def test_diff_collect_reports_missing_current_and_conflicts(tmp_path, monkeypatc
         calls.append(artifact_names)
         return manifest
 
-    monkeypatch.setattr(sm, "remote_manifest", fake_remote_manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', fake_remote_manifest)
 
-    result = sm.diff_collect(
+    result = _collection.diff_collect(
         "gpu4090",
         "ssh-host",
         "/repo",
@@ -2909,7 +2842,7 @@ def test_diff_collect_reports_missing_current_and_conflicts(tmp_path, monkeypatc
 
 def test_diff_collect_reports_remote_inventory_incomplete(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     landing = "results/runs/gpu4090"
     attack_remote = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
@@ -2920,9 +2853,9 @@ def test_diff_collect_reports_remote_inventory_incomplete(tmp_path, monkeypatch)
             {"path": attack_remote, "size": 6, "sha256": _sha(b"attack")},
         ],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args: manifest)
 
-    result = sm.diff_collect(
+    result = _collection.diff_collect(
         "gpu4090",
         "ssh-host",
         "/repo",
@@ -2942,8 +2875,8 @@ def test_diff_collect_reports_remote_inventory_incomplete(tmp_path, monkeypatch)
 def test_diff_collect_saves_last_diff_report(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     landing = "results/runs/gpu4090"
     missing_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json"
@@ -2952,9 +2885,9 @@ def test_diff_collect_saves_last_diff_report(tmp_path, monkeypatch):
         "count": 1,
         "items": [{"path": missing_remote, "size": 7, "sha256": _sha(b"missing")}],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args: manifest)
 
-    result = sm.diff_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
+    result = _collection.diff_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
 
     assert result["report_path"] == ".syncmate/last_diff_gpu4090.json"
     assert (sync_dir / "last_diff_gpu4090.json").is_file()
@@ -2963,8 +2896,8 @@ def test_diff_collect_saves_last_diff_report(tmp_path, monkeypatch):
 def test_apply_collect_counts_only_actually_fetched_missing_artifacts(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     landing = "results/runs/gpu4090"
     fetched_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json"
@@ -2977,17 +2910,17 @@ def test_apply_collect_counts_only_actually_fetched_missing_artifacts(tmp_path, 
             {"path": failed_remote, "size": 4, "sha256": _sha(b"miss")},
         ],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args, **_kwargs: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args, **_kwargs: manifest)
 
     def fake_fetch(_ssh, _repo_path, items, landing_arg):
         assert [item["path"] for item in items] == [fetched_remote, failed_remote]
-        target = sm.local_landing_path(landing_arg, fetched_remote)
+        target = _collection.local_landing_path(landing_arg, fetched_remote)
         _write(target, b"fetch")
-        return [{"path": fetched_remote, "local_path": sm.rel(target)}]
+        return [{"path": fetched_remote, "local_path": _identity.rel(target)}]
 
-    monkeypatch.setattr(sm, "fetch_items", fake_fetch)
+    monkeypatch.setattr(_collection, 'fetch_items', fake_fetch)
 
-    result = sm.apply_collect(
+    result = _collection.apply_collect(
         "gpu4090",
         "ssh-host",
         "/repo",
@@ -3010,16 +2943,16 @@ def test_apply_collect_counts_only_actually_fetched_missing_artifacts(tmp_path, 
 def test_verify_collect_saves_acceptance_report(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     landing = "results/runs/gpu4090"
     same_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json"
     conflict_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/collateral.json"
     missing_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json"
 
-    _write(sm.local_landing_path(landing, same_remote), b"same")
-    _write(sm.local_landing_path(landing, conflict_remote), b"local")
+    _write(_collection.local_landing_path(landing, same_remote), b"same")
+    _write(_collection.local_landing_path(landing, conflict_remote), b"local")
 
     manifest = {
         "git": {"short_sha": "remote"},
@@ -3036,9 +2969,9 @@ def test_verify_collect_saves_acceptance_report(tmp_path, monkeypatch):
         calls.append(artifact_names)
         return manifest
 
-    monkeypatch.setattr(sm, "remote_manifest", fake_remote_manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', fake_remote_manifest)
 
-    result = sm.verify_collect(
+    result = _collection.verify_collect(
         "gpu4090",
         "ssh-host",
         "/repo",
@@ -3071,11 +3004,11 @@ def test_verify_collect_saves_acceptance_report(tmp_path, monkeypatch):
 
 def test_verify_collect_marks_remote_inventory_incomplete(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     landing = "results/runs/gpu4090"
     attack_remote = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
-    _write(sm.local_landing_path(landing, attack_remote), b"attack")
+    _write(_collection.local_landing_path(landing, attack_remote), b"attack")
     manifest = {
         "git": {"short_sha": "remote"},
         "count": 1,
@@ -3083,9 +3016,9 @@ def test_verify_collect_marks_remote_inventory_incomplete(tmp_path, monkeypatch)
             {"path": attack_remote, "size": 6, "sha256": _sha(b"attack")},
         ],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args: manifest)
 
-    result = sm.verify_collect(
+    result = _collection.verify_collect(
         "gpu4090",
         "ssh-host",
         "/repo",
@@ -3100,20 +3033,20 @@ def test_verify_collect_marks_remote_inventory_incomplete(tmp_path, monkeypatch)
     assert result["summary"]["remote_incomplete"] == 1
     assert result["summary"]["status"] == "incomplete"
     assert result["verified"][0]["path"] == attack_remote
-    assert "remote inventory incomplete: leaves=1" in sm.verify_result_failures(result)
+    assert "remote inventory incomplete: leaves=1" in _collection.verify_result_failures(result)
 
 
 def test_verify_cli_uses_peer_artifact_policy(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
-    sm.add_peer_to_device(config, "gpu4090", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
+    _devices.write_device_config(config_path, config)
 
     calls = []
 
@@ -3129,19 +3062,19 @@ def test_verify_cli_uses_peer_artifact_policy(tmp_path, monkeypatch):
             "errors": [],
         }
 
-    monkeypatch.setattr(sm, "verify_collect", fake_verify)
+    monkeypatch.setattr(_collection, 'verify_collect', fake_verify)
 
-    assert sm.main(["--config", str(config_path), "verify", "gpu4090", "--apply", "--no-save", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "verify", "gpu4090", "--apply", "--no-save", "--json"]) == 0
     assert calls == [("gpu4090", "results/runs/gpu4090", ("attack.json", "predictions.npz"), False)]
 
 
 def test_handoff_payload_renders_local_and_remote_ai_commands(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
-    device = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config(
+    device = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config(
         "runner",
         "ssh-gpu",
         "/tmp/Open GU/repo's copy",
@@ -3150,8 +3083,8 @@ def test_handoff_payload_renders_local_and_remote_ai_commands(tmp_path, monkeypa
     )
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
 
-    payload = sm.handoff_payload(device, "gpu4090", peer, config_path)
-    markdown = sm.render_handoff_markdown(payload)
+    payload = _handoff.handoff_payload(device, "gpu4090", peer, config_path)
+    markdown = _handoff.render_handoff_markdown(payload)
 
     assert payload["artifact_policy"]["include"] == ["attack.json", "predictions.npz"]
     assert payload["reports"]["verify"] == ".syncmate/last_verify_gpu4090.json"
@@ -3198,20 +3131,17 @@ def test_handoff_cli_writes_markdown_runbook(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
     peer["artifact_policy"] = {"include": ["attack.json", "_meta.json"]}
-    sm.add_peer_to_device(config, "gpu4090", peer)
-    sm.write_device_config(config_path, config)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "handoff", "gpu4090", "--write"]) == 0
+    assert _run_cli(["--config", str(config_path), "handoff", "gpu4090", "--write"]) == 0
 
     handoff_path = sync_dir / "handoff_gpu4090.md"
     assert handoff_path.is_file()
@@ -3241,27 +3171,24 @@ def test_handoff_cli_can_write_all_configured_peers(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo-gpu", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo-gpu", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.add_peer_to_device(
+    _devices.add_peer_to_device(
         config,
         "h800",
-        sm.build_peer_config("runner", "ssh-h800", "/repo-h800", "results/runs/h800", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-h800", "/repo-h800", "results/runs/h800", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "handoff", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "handoff", "--write", "--json"]) == 0
 
     gpu_handoff = sync_dir / "handoff_gpu4090.md"
     h800_handoff = sync_dir / "handoff_h800.md"
@@ -3284,8 +3211,8 @@ def test_handoff_cli_can_write_all_configured_peers(tmp_path, monkeypatch):
 def test_apply_collect_fetches_only_missing_and_verifies(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     landing = "results/runs/gpu4090"
     same_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/attack.json"
@@ -3297,8 +3224,8 @@ def test_apply_collect_fetches_only_missing_and_verifies(tmp_path, monkeypatch):
         missing_remote: b"missing",
     }
 
-    _write(sm.local_landing_path(landing, same_remote), b"same")
-    _write(sm.local_landing_path(landing, conflict_remote), b"local")
+    _write(_collection.local_landing_path(landing, same_remote), b"same")
+    _write(_collection.local_landing_path(landing, conflict_remote), b"local")
     manifest = {
         "git": {"short_sha": "remote"},
         "count": 3,
@@ -3307,19 +3234,19 @@ def test_apply_collect_fetches_only_missing_and_verifies(tmp_path, monkeypatch):
             for path, data in remote_bytes.items()
         ],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args: manifest)
 
     fetched_paths = []
 
     def fake_fetch(_ssh, _repo_path, items, fetch_landing):
         for item in items:
             fetched_paths.append(item["path"])
-            _write(sm.local_landing_path(fetch_landing, item["path"]), remote_bytes[item["path"]])
-        return [{"path": item["path"], "local_path": str(sm.local_landing_path(fetch_landing, item["path"]))} for item in items]
+            _write(_collection.local_landing_path(fetch_landing, item["path"]), remote_bytes[item["path"]])
+        return [{"path": item["path"], "local_path": str(_collection.local_landing_path(fetch_landing, item["path"]))} for item in items]
 
-    monkeypatch.setattr(sm, "fetch_items", fake_fetch)
+    monkeypatch.setattr(_collection, 'fetch_items', fake_fetch)
 
-    result = sm.apply_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
+    result = _collection.apply_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
 
     assert fetched_paths == [missing_remote]
     assert result["summary"]["already_current"] == 1
@@ -3327,8 +3254,8 @@ def test_apply_collect_fetches_only_missing_and_verifies(tmp_path, monkeypatch):
     assert result["summary"]["conflicts"] == 1
     assert result["summary"]["verified"] == 1
     assert result["errors"] == []
-    assert sm.local_landing_path(landing, conflict_remote).read_bytes() == b"local"
-    assert sm.local_landing_path(landing, missing_remote).read_bytes() == b"missing"
+    assert _collection.local_landing_path(landing, conflict_remote).read_bytes() == b"local"
+    assert _collection.local_landing_path(landing, missing_remote).read_bytes() == b"missing"
     assert (sync_dir / "last_collect_gpu4090.json").is_file()
     index = json.loads((sync_dir / "artifact_index.json").read_text(encoding="utf-8"))
     entry = index["peers"]["gpu4090"]
@@ -3342,8 +3269,8 @@ def test_apply_collect_fetches_only_missing_and_verifies(tmp_path, monkeypatch):
 def test_apply_collect_reports_checksum_failure(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
     landing = "results/runs/gpu4090"
     missing_remote = "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json"
@@ -3351,16 +3278,16 @@ def test_apply_collect_reports_checksum_failure(tmp_path, monkeypatch):
         "count": 1,
         "items": [{"path": missing_remote, "size": 7, "sha256": _sha(b"missing")}],
     }
-    monkeypatch.setattr(sm, "remote_manifest", lambda *_args: manifest)
+    monkeypatch.setattr(_collection, 'remote_manifest', lambda *_args: manifest)
 
     def fake_bad_fetch(_ssh, _repo_path, items, fetch_landing):
         for item in items:
-            _write(sm.local_landing_path(fetch_landing, item["path"]), b"wrong")
-        return [{"path": item["path"], "local_path": str(sm.local_landing_path(fetch_landing, item["path"]))} for item in items]
+            _write(_collection.local_landing_path(fetch_landing, item["path"]), b"wrong")
+        return [{"path": item["path"], "local_path": str(_collection.local_landing_path(fetch_landing, item["path"]))} for item in items]
 
-    monkeypatch.setattr(sm, "fetch_items", fake_bad_fetch)
+    monkeypatch.setattr(_collection, 'fetch_items', fake_bad_fetch)
 
-    result = sm.apply_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
+    result = _collection.apply_collect("gpu4090", "ssh-host", "/repo", ["results/runs"], landing)
 
     assert result["summary"]["verified"] == 0
     assert result["verification_failed"] == [missing_remote]
@@ -3370,8 +3297,8 @@ def test_apply_collect_reports_checksum_failure(tmp_path, monkeypatch):
 def test_index_cli_reads_persistent_artifact_index(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
     sync_dir.mkdir(parents=True)
     (sync_dir / "artifact_index.json").write_text(
         json.dumps({
@@ -3391,12 +3318,12 @@ def test_index_cli_reads_persistent_artifact_index(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    assert sm.main(["--config", str(sync_dir / "device.yaml"), "index", "--json"]) == 0
+    assert _run_cli(["--config", str(sync_dir / "device.yaml"), "index", "--json"]) == 0
 
 
 def test_inventory_groups_indexed_artifacts_by_experiment_leaf(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
     index = {
         "index_path": ".syncmate/artifact_index.json",
         "peers": {
@@ -3430,8 +3357,8 @@ def test_inventory_groups_indexed_artifacts_by_experiment_leaf(tmp_path, monkeyp
         },
     }
 
-    result = sm.inventory_from_index(index)
-    incomplete = sm.inventory_from_index(index, only_incomplete=True)
+    result = _index.inventory_from_index(index)
+    incomplete = _index.inventory_from_index(index, only_incomplete=True)
 
     assert result["summary"]["leaves"] == 2
     assert result["summary"]["complete"] == 1
@@ -3443,7 +3370,7 @@ def test_inventory_groups_indexed_artifacts_by_experiment_leaf(tmp_path, monkeyp
     assert leaves[1]["complete"] is True
     assert incomplete["peers"]["gpu4090"]["summary"]["shown"] == 1
     assert incomplete["peers"]["gpu4090"]["leaves"][0]["method_strategy"] == "GIF_im"
-    rows = sm.inventory_csv_rows(result)
+    rows = _index.inventory_csv_rows(result)
     assert rows[0]["node_id"] == "gpu4090"
     assert rows[0]["complete"] == "false"
     assert rows[0]["missing"] == "collateral.json;_meta.json"
@@ -3453,8 +3380,8 @@ def test_inventory_groups_indexed_artifacts_by_experiment_leaf(tmp_path, monkeyp
 def test_inventory_cli_reads_index(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
     sync_dir.mkdir(parents=True)
     (sync_dir / "artifact_index.json").write_text(
         json.dumps({
@@ -3475,8 +3402,8 @@ def test_inventory_cli_reads_index(tmp_path, monkeypatch, capsys):
         encoding="utf-8",
     )
 
-    assert sm.main(["--config", str(sync_dir / "device.yaml"), "inventory", "--json"]) == 0
-    assert sm.main(["--config", str(sync_dir / "device.yaml"), "inventory", "--csv"]) == 0
+    assert _run_cli(["--config", str(sync_dir / "device.yaml"), "inventory", "--json"]) == 0
+    assert _run_cli(["--config", str(sync_dir / "device.yaml"), "inventory", "--csv"]) == 0
     out = capsys.readouterr().out
     assert "node_id,complete,cell,method_strategy,seed" in out
     assert "gpu4090,false,cell,method,seed42" in out
@@ -3522,9 +3449,9 @@ def test_export_payload_uses_complete_trusted_leaves_by_default():
         "errors": [],
     }
 
-    result = sm.export_payload_from_index(index)
-    with_incomplete = sm.export_payload_from_index(index, include_incomplete=True)
-    rows = sm.export_csv_rows(result)
+    result = _index.export_payload_from_index(index)
+    with_incomplete = _index.export_payload_from_index(index, include_incomplete=True)
+    rows = _index.export_csv_rows(result)
 
     assert result["mode"] == "export"
     assert result["summary"]["leaves"] == 1
@@ -3543,13 +3470,12 @@ def test_export_cli_writes_manifest_csv_and_checks_index(tmp_path, monkeypatch, 
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.write_device_config(config_path, config)
     paths = {
         "attack.json": ("results/runs/gpu4090/cora_GCN_r0.05/GIF_random/seed42/attack.json", b"attack"),
         "collateral.json": ("results/runs/gpu4090/cora_GCN_r0.05/GIF_random/seed42/collateral.json", b"collateral"),
@@ -3585,7 +3511,7 @@ def test_export_cli_writes_manifest_csv_and_checks_index(tmp_path, monkeypatch, 
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "export", "gpu4090", "--write", "--check", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "export", "gpu4090", "--write", "--check", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     manifest_path = sync_dir / "export_manifest.json"
     csv_path = sync_dir / "export_manifest.csv"
@@ -3607,12 +3533,11 @@ def test_results_cli_extracts_metrics_from_trusted_index(tmp_path, monkeypatch, 
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     leaf_rel = "results/runs/gpu4090/cora_GCN_r0.05/GIF_random/seed42"
     artifacts = {
         "attack.json": json.dumps({
@@ -3679,7 +3604,7 @@ def test_results_cli_extracts_metrics_from_trusted_index(tmp_path, monkeypatch, 
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "results", "gpu4090", "--write", "--check", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "results", "gpu4090", "--write", "--check", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     row = out["rows"][0]
 
@@ -3707,12 +3632,11 @@ def test_export_check_returns_nonzero_on_index_checksum_drift(tmp_path, monkeypa
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     local_path = "results/runs/gpu4090/cell/method/seed42/attack.json"
     _write(repo / local_path, b"changed")
     _write(
@@ -3736,7 +3660,7 @@ def test_export_check_returns_nonzero_on_index_checksum_drift(tmp_path, monkeypa
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "export", "gpu4090", "--check", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "export", "gpu4090", "--check", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     assert out["index_check"]["status"] == "failed"
     assert out["index_check"]["mismatched"] == 1
@@ -3746,13 +3670,12 @@ def test_trace_cli_shows_landing_result_chain_and_checksum_drift(tmp_path, monke
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
     local_leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     artifacts = {
@@ -3815,7 +3738,7 @@ def test_trace_cli_shows_landing_result_chain_and_checksum_drift(tmp_path, monke
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "trace", "gpu4090", "--check", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "trace", "gpu4090", "--check", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     leaf = out["leaves"][0]
     by_artifact = {item["artifact"]: item for item in leaf["artifacts"]}
@@ -3832,7 +3755,7 @@ def test_trace_cli_shows_landing_result_chain_and_checksum_drift(tmp_path, monke
     assert by_artifact["attack.json"]["actual_sha256"] == _sha(artifacts["attack.json"])
 
     _write(repo / local_leaf / "attack.json", b"changed")
-    assert sm.main(["--config", str(config_path), "trace", "gpu4090", "--check", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "trace", "gpu4090", "--check", "--json"]) == 1
     drift = json.loads(capsys.readouterr().out)
     drift_leaf = drift["leaves"][0]
     drift_artifacts = {item["artifact"]: item for item in drift_leaf["artifacts"]}
@@ -3846,8 +3769,8 @@ def test_trace_cli_shows_landing_result_chain_and_checksum_drift(tmp_path, monke
 def test_index_helpers_respect_explicit_empty_index(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
     sync_dir.mkdir(parents=True)
     (sync_dir / "artifact_index.json").write_text(
         json.dumps({
@@ -3866,8 +3789,8 @@ def test_index_helpers_respect_explicit_empty_index(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    inventory = sm.inventory_from_index({})
-    index_check = sm.check_artifact_index({})
+    inventory = _index.inventory_from_index({})
+    index_check = _index.check_artifact_index({})
 
     assert inventory["summary"]["peers"] == 0
     assert index_check["summary"]["peers"] == 0
@@ -3876,9 +3799,9 @@ def test_index_helpers_respect_explicit_empty_index(tmp_path, monkeypatch):
 def test_index_check_detects_local_drift(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T00:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T00:00:00")
 
     ok_path = repo / "results" / "runs" / "gpu4090" / "cell" / "method" / "seed42" / "attack.json"
     changed_path = repo / "results" / "runs" / "gpu4090" / "cell" / "method" / "seed42" / "_meta.json"
@@ -3924,7 +3847,7 @@ def test_index_check_detects_local_drift(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    result = sm.check_artifact_index()
+    result = _index.check_artifact_index()
 
     assert result["summary"]["status"] == "failed"
     assert result["summary"]["checked"] == 2
@@ -3935,15 +3858,15 @@ def test_index_check_detects_local_drift(tmp_path, monkeypatch):
     assert result["missing"][0]["local_path"] == missing_rel
     assert result["mismatched"][0]["local_path"] == "results/runs/gpu4090/cell/method/seed42/_meta.json"
     assert result["unsafe"][0]["local_path"] == "../escape.json"
-    assert sm.main(["--config", str(sync_dir / "device.yaml"), "index", "--check", "--json"]) == 1
+    assert _run_cli(["--config", str(sync_dir / "device.yaml"), "index", "--check", "--json"]) == 1
 
 
 def test_local_landing_path_rejects_path_escape(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     try:
-        sm.local_landing_path("results/runs/gpu4090", "../../escape.json")
+        _collection.local_landing_path("results/runs/gpu4090", "../../escape.json")
     except SystemExit as exc:
         assert "Unsafe target path" in str(exc)
     else:
@@ -3952,11 +3875,11 @@ def test_local_landing_path_rejects_path_escape(tmp_path, monkeypatch):
 
 def test_local_landing_path_rejects_unsafe_landing(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     for landing in ("../outside", "/tmp/outside", "C:/tmp/outside", "~/outside"):
         try:
-            sm.local_landing_path(landing, "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json")
+            _collection.local_landing_path(landing, "results/runs/cora_GCN_r0.05/GIF_random/seed42/_meta.json")
         except SystemExit as exc:
             assert "Unsafe landing path" in str(exc)
         else:
@@ -3966,28 +3889,27 @@ def test_local_landing_path_rejects_unsafe_landing(tmp_path, monkeypatch):
 def test_doctor_reports_actionable_layout_and_setup_diagnostics(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     runs = repo / "results" / "runs"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runs)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     _write_leaf(runs, "ablating/results/runs/cora_GAT_r0.05/GIF_im/seed212", meta_sha="aaa1111")
-    snapshot = sm.build_snapshot(
+    snapshot = _snapshot.build_snapshot(
         {"device_id": "dev-a", "role": "unknown", "repo_path": str(repo), "peers": {}},
         ["device setup missing: .syncmate/device.yaml"],
     )
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "setup-warning" in codes
     assert "unknown-role" in codes
     assert "nested-results-wrapper" in codes
-    assert sm.status_label(snapshot, diagnostics) == "review"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "review"
 
 
 def test_doctor_warns_when_verified_report_has_no_artifact_index(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "setup_warnings": [], "peers": ["gpu4090"]},
@@ -4008,14 +3930,14 @@ def test_doctor_warns_when_verified_report_has_no_artifact_index(monkeypatch):
         "artifact_index": {"peers": {}},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "artifact-index-missing" in codes
 
 
 def test_doctor_warns_when_trusted_inventory_leaf_is_incomplete(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "setup_warnings": [], "peers": ["gpu4090"]},
@@ -4048,7 +3970,7 @@ def test_doctor_warns_when_trusted_inventory_leaf_is_incomplete(monkeypatch):
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
     inventory_warning = next(item for item in diagnostics if item["code"] == "artifact-inventory-incomplete")
 
@@ -4059,7 +3981,7 @@ def test_doctor_warns_when_trusted_inventory_leaf_is_incomplete(monkeypatch):
 
 
 def test_doctor_reports_verified_remote_inventory_incomplete(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "setup_warnings": [], "peers": ["gpu4090"]},
@@ -4097,7 +4019,7 @@ def test_doctor_reports_verified_remote_inventory_incomplete(monkeypatch):
         "artifact_index": {"peers": {"gpu4090": {"summary": {"indexed": 0}, "items": []}}},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
     remote_warning = next(item for item in diagnostics if item["code"] == "verify-remote-inventory-incomplete")
 
@@ -4107,7 +4029,7 @@ def test_doctor_reports_verified_remote_inventory_incomplete(monkeypatch):
 
 
 def test_doctor_reports_orphaned_reports_and_index_entries(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "setup_warnings": [], "peers": ["gpu4090"]},
@@ -4132,12 +4054,12 @@ def test_doctor_reports_orphaned_reports_and_index_entries(monkeypatch):
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "orphaned-sync-report" in codes
     assert "orphaned-artifact-index" in codes
-    assert sm.orphaned_sync_entries(snapshot) == [
+    assert _saved_reports.orphaned_sync_entries(snapshot) == [
         {"kind": "remote_status", "node_id": "oldpeer", "path": ".syncmate/remote_status_oldpeer.json"},
         {"kind": "artifact_index", "node_id": "oldpeer", "path": ".syncmate/artifact_index.json", "indexed": 2},
     ]
@@ -4146,19 +4068,18 @@ def test_doctor_reports_orphaned_reports_and_index_entries(monkeypatch):
 def test_archive_orphans_dry_run_and_apply(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(sync_dir / "device.yaml", config)
+    _devices.write_device_config(sync_dir / "device.yaml", config)
     _write(sync_dir / "remote_status_oldpeer.json", json.dumps({"generated_at": "2026-07-01T10:00:00"}).encode())
     _write(sync_dir / "last_diff_oldpeer.json", json.dumps({"generated_at": "2026-07-01T10:01:00"}).encode())
     _write(
@@ -4173,10 +4094,10 @@ def test_archive_orphans_dry_run_and_apply(tmp_path, monkeypatch):
         }).encode(),
     )
 
-    device, warnings = sm.load_device(sync_dir / "device.yaml")
-    snapshot = sm.build_snapshot(device, warnings)
-    plan = sm.archive_orphaned_sync_state(snapshot, apply=False)
-    next_steps = sm.next_steps_payload(snapshot, [], limit=10)
+    device, warnings = _devices.load_device(sync_dir / "device.yaml")
+    snapshot = _snapshot.build_snapshot(device, warnings)
+    plan = _saved_reports.archive_orphaned_sync_state(snapshot, apply=False)
+    next_steps = _next_steps.next_steps_payload(snapshot, [], limit=10)
 
     assert plan["applied"] is False
     assert plan["summary"]["report_files"] == 2
@@ -4187,7 +4108,7 @@ def test_archive_orphans_dry_run_and_apply(tmp_path, monkeypatch):
     assert (sync_dir / "remote_status_oldpeer.json").is_file()
     assert (sync_dir / "last_diff_oldpeer.json").is_file()
 
-    result = sm.archive_orphaned_sync_state(snapshot, apply=True)
+    result = _saved_reports.archive_orphaned_sync_state(snapshot, apply=True)
     archive_dir = repo / result["archive_dir"]
     index = json.loads((sync_dir / "artifact_index.json").read_text(encoding="utf-8"))
 
@@ -4213,10 +4134,10 @@ def test_gate_payload_fail_thresholds_and_strict_behavior():
         "action": "refresh",
     }]
 
-    default_gate = sm.gate_payload(snapshot, diagnostics)
-    relaxed_gate = sm.gate_payload(snapshot, diagnostics, fail_on="error")
-    strict_gate = sm.gate_payload(snapshot, diagnostics, fail_on="info")
-    info_gate = sm.gate_payload(snapshot, diagnostics, fail_on="info")
+    default_gate = _gates.gate_payload(snapshot, diagnostics)
+    relaxed_gate = _gates.gate_payload(snapshot, diagnostics, fail_on="error")
+    strict_gate = _gates.gate_payload(snapshot, diagnostics, fail_on="info")
+    info_gate = _gates.gate_payload(snapshot, diagnostics, fail_on="info")
 
     assert default_gate["passed"] is False
     assert relaxed_gate["passed"]
@@ -4226,7 +4147,7 @@ def test_gate_payload_fail_thresholds_and_strict_behavior():
 
 
 def test_gate_payload_requires_clean_verify_reports(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "peers": ["gpu4090", "h800"]},
@@ -4250,7 +4171,7 @@ def test_gate_payload_requires_clean_verify_reports(monkeypatch):
         },
     }
 
-    result = sm.gate_payload(snapshot, [], require_verify=True)
+    result = _gates.gate_payload(snapshot, [], require_verify=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert result["passed"] is False
@@ -4264,7 +4185,7 @@ def test_gate_payload_requires_clean_verify_reports(monkeypatch):
         "conflicts": [],
         "errors": [],
     }
-    result = sm.gate_payload(snapshot, [], require_verify=True)
+    result = _gates.gate_payload(snapshot, [], require_verify=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert "gate-verify-incomplete" in codes
@@ -4273,7 +4194,7 @@ def test_gate_payload_requires_clean_verify_reports(monkeypatch):
 
 
 def test_gate_payload_requires_saved_preflight_report(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "peers": ["gpu4090"]},
@@ -4281,7 +4202,7 @@ def test_gate_payload_requires_saved_preflight_report(monkeypatch):
         "preflight": None,
     }
 
-    result = sm.gate_payload(snapshot, [], require_preflight=True)
+    result = _gates.gate_payload(snapshot, [], require_preflight=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert result["passed"] is False
@@ -4295,7 +4216,7 @@ def test_gate_payload_requires_saved_preflight_report(monkeypatch):
         "peers": {"gpu4090": {"status": "blocked"}},
         "report_path": ".syncmate/last_preflight.json",
     }
-    result = sm.gate_payload(snapshot, [], require_preflight=True)
+    result = _gates.gate_payload(snapshot, [], require_preflight=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert result["passed"] is False
@@ -4308,13 +4229,13 @@ def test_gate_payload_requires_saved_preflight_report(monkeypatch):
         "peers": {"gpu4090": {"status": "ready"}},
         "report_path": ".syncmate/last_preflight.json",
     }
-    result = sm.gate_payload(snapshot, [], require_preflight=True)
+    result = _gates.gate_payload(snapshot, [], require_preflight=True)
 
     assert result["passed"] is True
     assert result["gate_diagnostics"] == []
 
     snapshot["device"]["peers"] = ["gpu4090", "h800"]
-    result = sm.gate_payload(snapshot, [], require_preflight=True)
+    result = _gates.gate_payload(snapshot, [], require_preflight=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert result["passed"] is False
@@ -4323,8 +4244,8 @@ def test_gate_payload_requires_saved_preflight_report(monkeypatch):
 
 def test_gate_payload_requires_artifact_index_integrity(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     local_path = "results/runs/gpu4090/cell/method/seed42/attack.json"
     _write(repo / local_path, b"changed")
@@ -4357,7 +4278,7 @@ def test_gate_payload_requires_artifact_index_integrity(tmp_path, monkeypatch):
         },
     }
 
-    result = sm.gate_payload(snapshot, [], require_verify=True)
+    result = _gates.gate_payload(snapshot, [], require_verify=True)
     codes = {item["code"] for item in result["failures"]}
 
     assert result["passed"] is False
@@ -4367,8 +4288,8 @@ def test_gate_payload_requires_artifact_index_integrity(tmp_path, monkeypatch):
 
 def test_gate_payload_requires_trusted_results_table(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
     artifacts = {
@@ -4409,16 +4330,16 @@ def test_gate_payload_requires_trusted_results_table(tmp_path, monkeypatch):
         "results_table": None,
     }
 
-    missing = sm.gate_payload(snapshot, [], require_results=True)
+    missing = _gates.gate_payload(snapshot, [], require_results=True)
     missing_codes = {item["code"] for item in missing["failures"]}
 
     assert missing["passed"] is False
     assert missing["require_results"] is True
     assert "gate-results-missing" in missing_codes
 
-    results_table = sm.results_payload_from_index(index)
+    results_table = _index.results_payload_from_index(index)
     snapshot["results_table"] = results_table
-    clean = sm.gate_payload(snapshot, [], require_results=True)
+    clean = _gates.gate_payload(snapshot, [], require_results=True)
 
     assert clean["passed"] is True
     assert clean["results_check"]["status"] == "ok"
@@ -4426,7 +4347,7 @@ def test_gate_payload_requires_trusted_results_table(tmp_path, monkeypatch):
     stale = json.loads(json.dumps(results_table))
     stale["summary"]["rows"] = 0
     snapshot["results_table"] = stale
-    failed = sm.gate_payload(snapshot, [], require_results=True)
+    failed = _gates.gate_payload(snapshot, [], require_results=True)
     failed_codes = {item["code"] for item in failed["failures"]}
 
     assert failed["passed"] is False
@@ -4435,8 +4356,8 @@ def test_gate_payload_requires_trusted_results_table(tmp_path, monkeypatch):
 
 def test_gate_payload_rejects_incomplete_trusted_inventory(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     attack_data = b'{"attack": true}'
     local_path = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42/attack.json"
@@ -4471,7 +4392,7 @@ def test_gate_payload_rejects_incomplete_trusted_inventory(tmp_path, monkeypatch
         },
     }
 
-    result = sm.gate_payload(snapshot, [], require_verify=True)
+    result = _gates.gate_payload(snapshot, [], require_verify=True)
     codes = {item["code"] for item in result["failures"]}
     inventory_failure = next(item for item in result["failures"] if item["code"] == "gate-inventory-incomplete")
 
@@ -4484,7 +4405,7 @@ def test_gate_payload_rejects_incomplete_trusted_inventory(tmp_path, monkeypatch
 
 
 def test_gate_payload_rejects_remote_inventory_incomplete(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "peers": ["gpu4090"]},
@@ -4526,7 +4447,7 @@ def test_gate_payload_rejects_remote_inventory_incomplete(monkeypatch):
         },
     }
 
-    result = sm.gate_payload(snapshot, [], require_verify=True)
+    result = _gates.gate_payload(snapshot, [], require_verify=True)
     codes = {item["code"] for item in result["failures"]}
     remote_failure = next(item for item in result["failures"] if item["code"] == "gate-remote-inventory-incomplete")
 
@@ -4537,7 +4458,7 @@ def test_gate_payload_rejects_remote_inventory_incomplete(monkeypatch):
 
 
 def test_summary_payload_compacts_peer_reports_and_actions(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "peers": ["gpu4090"]},
@@ -4576,7 +4497,7 @@ def test_summary_payload_compacts_peer_reports_and_actions(monkeypatch):
         "action": "collect gpu4090 --apply",
     }]
 
-    result = sm.summary_payload(snapshot, diagnostics, fail_on="error")
+    result = _brief.summary_payload(snapshot, diagnostics, fail_on="error")
 
     assert result["mode"] == "summary"
     assert result["gate"]["passed"]
@@ -4590,8 +4511,8 @@ def test_summary_payload_compacts_peer_reports_and_actions(monkeypatch):
 
 
 def test_brief_payload_and_markdown_combine_status_next_and_history(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
-    monkeypatch.setattr(sm, "read_history", lambda limit=5: [{
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_history, 'read_history', lambda limit=5: [{
         "generated_at": "2026-07-01T11:50:00",
         "event": "refresh",
         "results": {"leaves": 9},
@@ -4642,8 +4563,8 @@ def test_brief_payload_and_markdown_combine_status_next_and_history(monkeypatch)
         "action": "collect gpu4090 --apply",
     }]
 
-    result = sm.brief_payload(snapshot, diagnostics, require_verify=False, limit=3)
-    markdown = sm.render_brief_markdown(result)
+    result = _brief.brief_payload(snapshot, diagnostics, require_verify=False, limit=3)
+    markdown = _brief.render_brief_markdown(result)
 
     assert result["mode"] == "brief"
     assert result["preflight"]["status"] == "ready"
@@ -4681,16 +4602,13 @@ def test_brief_cli_writes_current_state_markdown(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main(["--config", str(config_path), "brief", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "brief", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     brief_path = sync_dir / "brief.md"
 
@@ -4722,7 +4640,7 @@ def test_brief_cli_writes_current_state_markdown(tmp_path, monkeypatch, capsys):
 
 
 def test_peer_reports_payload_compacts_report_details(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {"id": "local", "role": "collector", "peers": ["gpu4090"]},
@@ -4774,7 +4692,7 @@ def test_peer_reports_payload_compacts_report_details(monkeypatch):
         "action": "collect gpu4090 --apply",
     }]
 
-    result = sm.peer_reports_payload(snapshot, diagnostics, node_ids=["gpu4090"], limit=1)
+    result = _saved_reports.peer_reports_payload(snapshot, diagnostics, node_ids=["gpu4090"], limit=1)
     peer = result["peers"]["gpu4090"]
 
     assert result["mode"] == "reports"
@@ -4793,19 +4711,18 @@ def test_reports_cli_returns_compact_peer_json(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     _write(
         sync_dir / "last_diff_gpu4090.json",
         json.dumps({
@@ -4828,7 +4745,7 @@ def test_reports_cli_returns_compact_peer_json(tmp_path, monkeypatch, capsys):
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "reports", "gpu4090", "--json", "--limit", "1"]) == 0
+    assert _run_cli(["--config", str(config_path), "reports", "gpu4090", "--json", "--limit", "1"]) == 0
     out = json.loads(capsys.readouterr().out)
     peer = out["peers"]["gpu4090"]
 
@@ -4839,7 +4756,7 @@ def test_reports_cli_returns_compact_peer_json(tmp_path, monkeypatch, capsys):
 
 
 def test_receipt_payload_summarizes_landing_checksums_and_local_examples(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {
@@ -4964,9 +4881,9 @@ def test_receipt_payload_summarizes_landing_checksums_and_local_examples(monkeyp
         },
     }
 
-    result = sm.receipt_payload(snapshot, node_ids=["gpu4090"], limit=2)
+    result = _receipts.receipt_payload(snapshot, node_ids=["gpu4090"], limit=2)
     peer = result["peers"]["gpu4090"]
-    markdown = sm.render_receipt_markdown(result)
+    markdown = _receipts.render_receipt_markdown(result)
 
     assert result["mode"] == "receipt"
     assert result["summary"]["accepted"] == 1
@@ -4992,19 +4909,18 @@ def test_receipt_cli_writes_markdown_from_saved_reports(tmp_path, monkeypatch, c
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     remote_path = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
     local_path = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42/attack.json"
     _write(repo / local_path, b"attack")
@@ -5093,7 +5009,7 @@ def test_receipt_cli_writes_markdown_from_saved_reports(tmp_path, monkeypatch, c
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "receipt", "gpu4090", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "receipt", "gpu4090", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     receipt_path = sync_dir / "receipt_gpu4090.md"
 
@@ -5116,37 +5032,32 @@ def test_summary_cli_returns_machine_readable_digest(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "summary", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "summary", "--json"]) == 0
 
 
 def test_overview_cli_combines_layout_gate_receipt_and_next(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     local_leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
@@ -5243,7 +5154,7 @@ def test_overview_cli_combines_layout_gate_receipt_and_next(tmp_path, monkeypatc
         }).encode(),
     )
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "overview", "--require-preflight", "--require-verify", "--fail-on", "error", "--json",
     ]) == 0
@@ -5267,15 +5178,11 @@ def test_overview_text_returns_nonzero_when_gate_fails(tmp_path, monkeypatch, ca
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main(["--config", str(config_path), "overview", "--require-preflight", "--limit", "2"]) == 1
+    assert _run_cli(["--config", str(config_path), "overview", "--require-preflight", "--limit", "2"]) == 1
     text = capsys.readouterr().out
 
     assert "syncmate overview: local" in text
@@ -5287,13 +5194,11 @@ def test_lifecycle_cli_reports_missing_setup_phase(tmp_path, monkeypatch, capsys
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    assert sm.main(["--config", str(config_path), "lifecycle", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "lifecycle", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["mode"] == "lifecycle"
@@ -5306,20 +5211,18 @@ def test_lifecycle_cli_reports_collect_phase_from_saved_diff(tmp_path, monkeypat
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     _write(
         sync_dir / "remote_status_gpu4090.json",
         json.dumps({
@@ -5345,7 +5248,7 @@ def test_lifecycle_cli_reports_collect_phase_from_saved_diff(tmp_path, monkeypat
         }).encode(),
     )
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "lifecycle", "--no-require-preflight", "--no-require-results", "--json",
     ]) == 0
@@ -5361,20 +5264,18 @@ def test_lifecycle_cli_reports_accepted_phase_and_trace_check(tmp_path, monkeypa
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     local_leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
     artifacts = {
@@ -5454,9 +5355,9 @@ def test_lifecycle_cli_reports_accepted_phase_and_trace_check(tmp_path, monkeypa
         },
     }
     _write(sync_dir / "artifact_index.json", json.dumps(index).encode())
-    sm.write_results_table_files(sm.results_payload_from_index(index))
+    _index.write_results_table_files(_index.results_payload_from_index(index))
 
-    assert sm.main(["--config", str(config_path), "lifecycle", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "lifecycle", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
 
     assert out["ready"] is True
@@ -5467,7 +5368,7 @@ def test_lifecycle_cli_reports_accepted_phase_and_trace_check(tmp_path, monkeypa
 
 
 def test_next_steps_payload_orders_executable_commands(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {
@@ -5496,7 +5397,7 @@ def test_next_steps_payload_orders_executable_commands(monkeypatch):
         "artifact_index": {"peers": {}},
     }
 
-    result = sm.next_steps_payload(snapshot, [], require_verify=True)
+    result = _next_steps.next_steps_payload(snapshot, [], require_verify=True)
     commands = [item["command"] for item in result["commands"]]
 
     assert commands[0] == "python scripts/syncmate/syncmate.py collect gpu4090 --apply"
@@ -5522,7 +5423,7 @@ def test_next_steps_payload_orders_executable_commands(monkeypatch):
 
 
 def test_next_steps_uses_import_bundle_for_saved_offline_diff(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     bundle_path = "C:/tmp/bundle_gpu4090.zip"
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
@@ -5557,12 +5458,12 @@ def test_next_steps_uses_import_bundle_for_saved_offline_diff(monkeypatch):
         "artifact_index": {"peers": {}},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
-    result = sm.next_steps_payload(snapshot, diagnostics, require_verify=True)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
+    result = _next_steps.next_steps_payload(snapshot, diagnostics, require_verify=True)
     commands = [item["command"] for item in result["commands"]]
     diff_missing = next(item for item in diagnostics if item["code"] == "diff-missing")
 
-    expected = sm.command_line(["python", "scripts/syncmate/syncmate.py", "import-bundle", bundle_path])
+    expected = _devices.command_line(["python", "scripts/syncmate/syncmate.py", "import-bundle", bundle_path])
     assert diff_missing["action"] == f"Run {expected} to extract and verify missing selected artifacts from the copied bundle."
     assert commands[0] == expected
     assert result["commands"][0]["evidence"]["inspects"] == ["copied bundle zip"]
@@ -5573,7 +5474,7 @@ def test_next_steps_uses_import_bundle_for_saved_offline_diff(monkeypatch):
 
 
 def test_next_steps_require_results_refreshes_table_before_gate(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {
@@ -5617,7 +5518,7 @@ def test_next_steps_require_results_refreshes_table_before_gate(monkeypatch):
         "results_table": None,
     }
 
-    result = sm.next_steps_payload(snapshot, [], require_verify=True, require_results=True)
+    result = _next_steps.next_steps_payload(snapshot, [], require_verify=True, require_results=True)
     commands = [item["command"] for item in result["commands"]]
 
     assert "python scripts/syncmate/syncmate.py results --write --check" in commands
@@ -5639,7 +5540,7 @@ def _stage_by_id(stages, stage_id):
 
 
 def test_workflow_payload_marks_incremental_collect_stage(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {
@@ -5672,7 +5573,7 @@ def test_workflow_payload_marks_incremental_collect_stage(monkeypatch):
         "results_table": None,
     }
 
-    result = sm.workflow_payload(snapshot, [], require_verify=True, require_results=True)
+    result = _workflow.workflow_payload(snapshot, [], require_verify=True, require_results=True)
     peer = result["peers"]["gpu4090"]
     collect_stage = _stage_by_id(peer["stages"], "collect")
     verify_stage = _stage_by_id(peer["stages"], "verify")
@@ -5688,8 +5589,8 @@ def test_workflow_payload_marks_incremental_collect_stage(monkeypatch):
 
 def test_workflow_payload_marks_missing_results_table_after_verified_index(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     local_leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
@@ -5762,7 +5663,7 @@ def test_workflow_payload_marks_missing_results_table_after_verified_index(tmp_p
         "results_table": None,
     }
 
-    result = sm.workflow_payload(snapshot, [], require_verify=True, require_results=True)
+    result = _workflow.workflow_payload(snapshot, [], require_verify=True, require_results=True)
     peer = result["peers"]["gpu4090"]
     results_stage = _stage_by_id(result["global_stages"], "results")
     commands = [item["command"] for item in result["next"]["commands"]]
@@ -5778,19 +5679,15 @@ def test_workflow_cli_can_write_machine_readable_stage_state(tmp_path, monkeypat
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "workflow", "--write", "--json", "--no-require-verify", "--no-require-results",
     ]) == 0
@@ -5807,22 +5704,18 @@ def test_automation_core_cli_can_write_machine_readable_ledger(tmp_path, monkeyp
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     remote_path = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
     local_path = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42/attack.json"
     _write(repo / local_path, b"attack")
@@ -5895,7 +5788,7 @@ def test_automation_core_cli_can_write_machine_readable_ledger(tmp_path, monkeyp
         }).encode(),
     )
 
-    assert sm.main(["--config", str(config_path), "automation-core", "gpu4090", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "automation-core", "gpu4090", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     saved = json.loads((sync_dir / "automation_core.json").read_text(encoding="utf-8"))
     markdown = (sync_dir / "automation_core.md").read_text(encoding="utf-8")
@@ -5929,22 +5822,18 @@ def test_acceptance_cli_can_write_machine_readable_verdict(tmp_path, monkeypatch
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
     local_leaf = "results/runs/gpu4090/cora_GCN_r0.05/GIF_im/seed42"
     artifacts = {
@@ -6073,9 +5962,9 @@ def test_acceptance_cli_can_write_machine_readable_verdict(tmp_path, monkeypatch
         },
     }
     _write(sync_dir / "artifact_index.json", json.dumps(index).encode())
-    sm.write_results_table_files(sm.results_payload_from_index(index))
+    _index.write_results_table_files(_index.results_payload_from_index(index))
 
-    assert sm.main(["--config", str(config_path), "acceptance", "gpu4090", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "acceptance", "gpu4090", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     saved = json.loads((sync_dir / "acceptance.json").read_text(encoding="utf-8"))
 
@@ -6094,8 +5983,8 @@ def test_acceptance_cli_can_write_machine_readable_verdict(tmp_path, monkeypatch
 
 def test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
     remote_leaf = "results/runs/__syncmate_gate4__/cora_GCN_r0.05/GIF_degree/seed42"
     local_leaf = (
         "results/runs/__syncmate_gate4_autodl__/__syncmate_gate4__/"
@@ -6133,7 +6022,7 @@ def test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node(tmp_pa
         },
     }
 
-    result = sm.results_payload_from_index(index)
+    result = _index.results_payload_from_index(index)
 
     assert result["summary"]["rows"] == 1
     row = result["rows"][0]
@@ -6147,7 +6036,7 @@ def test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node(tmp_pa
 
 
 def test_next_steps_payload_can_require_saved_preflight(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
     snapshot = {
         "generated_at": "2026-07-01T12:00:00",
         "device": {
@@ -6176,7 +6065,7 @@ def test_next_steps_payload_can_require_saved_preflight(monkeypatch):
         "preflight": None,
     }
 
-    result = sm.next_steps_payload(
+    result = _next_steps.next_steps_payload(
         snapshot,
         [],
         require_verify=True,
@@ -6195,21 +6084,19 @@ def test_next_cli_returns_command_queue(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path),
         "next", "--require-preflight", "--require-verify", "--require-results", "--write", "--json",
     ]) == 0
@@ -6235,26 +6122,25 @@ def test_gate_cli_returns_nonzero_for_blocking_diagnostics(tmp_path, monkeypatch
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "bad", {"role": "runner", "ssh": "", "repo_path": "", "landing": "results/runs/bad"})
-    sm.write_device_config(config_path, config)
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "bad", {"role": "runner", "ssh": "", "repo_path": "", "landing": "results/runs/bad"})
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "gate", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "gate", "--json"]) == 1
 
 
 def test_preflight_payload_reports_ready_peer_commands(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     config_path = repo / ".syncmate" / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    peer = sm.build_peer_config(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    peer = _devices.build_peer_config(
         "runner",
         "ssh-gpu",
         "/remote/repo",
@@ -6262,9 +6148,9 @@ def test_preflight_payload_reports_ready_peer_commands(tmp_path, monkeypatch):
         ["results/runs/cora_GCN_r0.05"],
         {"include": ["attack.json", "collateral.json", "_meta.json"]},
     )
-    sm.add_peer_to_device(config, "gpu4090", peer)
+    _devices.add_peer_to_device(config, "gpu4090", peer)
 
-    result = sm.preflight_payload(config, [], config_path=config_path, node_ids=["gpu4090"])
+    result = _preflight.preflight_payload(config, [], config_path=config_path, node_ids=["gpu4090"])
     peer_result = result["peers"]["gpu4090"]
 
     assert result["status"] == "ready"
@@ -6287,19 +6173,18 @@ def test_preflight_cli_can_write_latest_report(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "preflight", "gpu4090", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "preflight", "gpu4090", "--write", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     report = json.loads((sync_dir / "last_preflight.json").read_text(encoding="utf-8"))
 
@@ -6314,11 +6199,10 @@ def test_preflight_cli_blocks_missing_setup(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    assert sm.main(["--config", str(config_path), "preflight", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "preflight", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     codes = {item["code"] for item in out["device"]["checks"]}
 
@@ -6332,11 +6216,11 @@ def test_preflight_cli_returns_nonzero_for_bad_peer(tmp_path, monkeypatch, capsy
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "bad", {
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "bad", {
         "role": "runner",
         "ssh": "",
         "repo_path": "",
@@ -6344,9 +6228,9 @@ def test_preflight_cli_returns_nonzero_for_bad_peer(tmp_path, monkeypatch, capsy
         "result_roots": ["../outside"],
         "artifact_policy": {"include": ["../escape.json"]},
     })
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "preflight", "bad", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "preflight", "bad", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     checks = out["peers"]["bad"]["checks"]
     codes = {item["code"] for item in checks}
@@ -6364,26 +6248,21 @@ def test_sync_blocks_on_preflight_before_remote_calls(tmp_path, monkeypatch, cap
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(config, "bad", {
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(config, "bad", {
         "role": "runner",
         "ssh": "",
         "repo_path": "",
         "landing": "results/runs/bad",
         "result_roots": ["results/runs"],
     })
-    sm.write_device_config(config_path, config)
-    monkeypatch.setattr(
-        sm,
-        "refresh_peer",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("sync should stop before remote calls")),
-    )
+    _devices.write_device_config(config_path, config)
+    monkeypatch.setattr(_collection, 'refresh_peer', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("sync should stop before remote calls")))
 
-    assert sm.main(["--config", str(config_path), "sync", "bad", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "sync", "bad", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     codes = {item["code"] for item in out["preflight"]["peers"]["bad"]["checks"]}
 
@@ -6401,25 +6280,19 @@ def test_refresh_blocks_unknown_peer_with_preflight_json(tmp_path, monkeypatch, 
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
-    monkeypatch.setattr(
-        sm,
-        "refresh_peer",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("refresh should stop before remote calls")),
-    )
+    _devices.write_device_config(config_path, config)
+    monkeypatch.setattr(_collection, 'refresh_peer', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("refresh should stop before remote calls")))
 
-    assert sm.main(["--config", str(config_path), "refresh", "unknown", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "refresh", "unknown", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
     codes = {item["code"] for item in out["preflight"]["peers"]["unknown"]["checks"]}
 
@@ -6437,18 +6310,18 @@ def test_refresh_no_save_does_not_write_blocked_preflight_report(tmp_path, monke
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    config = sm.build_device_config("local", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("local", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "gpu4090",
-        sm.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
     )
-    sm.write_device_config(config_path, config)
+    _devices.write_device_config(config_path, config)
 
-    assert sm.main(["--config", str(config_path), "refresh", "unknown", "--no-save", "--json"]) == 1
+    assert _run_cli(["--config", str(config_path), "refresh", "unknown", "--no-save", "--json"]) == 1
     out = json.loads(capsys.readouterr().out)
 
     assert out["status"] == "blocked"
@@ -6458,13 +6331,12 @@ def test_refresh_no_save_does_not_write_blocked_preflight_report(tmp_path, monke
 
 def test_build_snapshot_includes_peer_configs(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    peer = sm.build_peer_config("runner", "autodl-4090", "~/repo", "results/runs/gpu4090", ["results/runs"])
-    snapshot = sm.build_snapshot(
+    peer = _devices.build_peer_config("runner", "autodl-4090", "~/repo", "results/runs/gpu4090", ["results/runs"])
+    snapshot = _snapshot.build_snapshot(
         {"device_id": "local", "role": "collector", "repo_path": str(repo), "peers": {"gpu4090": peer}},
         [],
     )
@@ -6518,7 +6390,7 @@ def test_doctor_reports_peer_config_issues():
         "collect_reports": {},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "peer-config-missing-field" in codes
@@ -6527,7 +6399,7 @@ def test_doctor_reports_peer_config_issues():
     assert "peer-result-roots-invalid" in codes
     assert "peer-result-root-unsafe" in codes
     assert "peer-landing-duplicate" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_doctor_reports_invalid_artifact_policies():
@@ -6556,14 +6428,14 @@ def test_doctor_reports_invalid_artifact_policies():
         "collect_reports": {},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "peer-artifact-policy-invalid" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
     snapshot["device"]["artifact_policy"] = {"include": "attack.json"}
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "artifact-policy-invalid" in codes
@@ -6572,18 +6444,17 @@ def test_doctor_reports_invalid_artifact_policies():
 def test_doctor_reports_missing_remote_status_for_configured_peer(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    snapshot = sm.build_snapshot(
+    snapshot = _snapshot.build_snapshot(
         {
             "device_id": "local",
             "role": "collector",
             "repo_path": str(repo),
             "peers": {
-                "gpu4090": sm.build_peer_config(
+                "gpu4090": _devices.build_peer_config(
                     "runner",
                     "ssh-gpu",
                     "/remote/repo",
@@ -6595,7 +6466,7 @@ def test_doctor_reports_missing_remote_status_for_configured_peer(tmp_path, monk
         [],
     )
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     missing = [item for item in diagnostics if item["code"] == "remote-status-missing"]
 
     assert missing
@@ -6632,14 +6503,14 @@ def test_doctor_reports_remote_status_errors_dirty_and_result_issues():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "remote-dirty-worktree" in codes
     assert "remote-multiple-git-shas" in codes
     assert "remote-missing-artifacts" in codes
     assert "remote-status-error" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_doctor_reports_fingerprint_attention_for_git_component():
@@ -6668,9 +6539,9 @@ def test_doctor_reports_fingerprint_attention_for_git_component():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     attention = next(item for item in diagnostics if item["code"] == "fingerprint-attention")
-    gate = sm.gate_payload(snapshot, diagnostics, fail_on="error")
+    gate = _gates.gate_payload(snapshot, diagnostics, fail_on="error")
 
     assert attention["severity"] == "error"
     assert attention["node"] == "gpu4090"
@@ -6694,7 +6565,7 @@ def test_doctor_warns_when_remote_status_lacks_fingerprint_metadata():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     missing = next(item for item in diagnostics if item["code"] == "fingerprint-missing")
 
     assert missing["severity"] == "warn"
@@ -6743,21 +6614,21 @@ def test_doctor_reports_git_mismatch_across_remote_and_manifest_reports():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "remote-git-mismatch" in codes
     assert "diff-git-mismatch" in codes
     assert "collect-git-mismatch" in codes
     assert "verify-git-mismatch" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_git_id_matching_accepts_short_and_full_prefixes():
-    assert sm.git_ids_match("abcdef1234567890", "abcdef1")
-    assert sm.git_ids_match("abcdef1", "abcdef1234567890")
-    assert sm.git_ids_match("unknown", "abcdef1")
-    assert not sm.git_ids_match("abcdef1", "1234567")
+    assert _identity.git_ids_match("abcdef1234567890", "abcdef1")
+    assert _identity.git_ids_match("abcdef1", "abcdef1234567890")
+    assert _identity.git_ids_match("unknown", "abcdef1")
+    assert not _identity.git_ids_match("abcdef1", "1234567")
 
 
 def test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures():
@@ -6777,14 +6648,14 @@ def test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures()
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "collect-report-missing" in codes
     assert "collect-error" in codes
     assert "collect-checksum-failed" in codes
     assert "collect-conflicts" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_doctor_reports_diff_errors_missing_and_conflicts():
@@ -6810,13 +6681,13 @@ def test_doctor_reports_diff_errors_missing_and_conflicts():
         "collect_reports": {},
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "diff-missing" in codes
     assert "diff-conflicts" in codes
     assert "diff-error" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_doctor_newer_clean_verify_supersedes_planning_diff_missing():
@@ -6850,7 +6721,7 @@ def test_doctor_newer_clean_verify_supersedes_planning_diff_missing():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
 
     assert "diff-missing" not in {item["code"] for item in diagnostics}
 
@@ -6879,17 +6750,17 @@ def test_doctor_reports_verify_errors_missing_and_conflicts():
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "verify-missing" in codes
     assert "verify-conflicts" in codes
     assert "verify-error" in codes
-    assert sm.status_label(snapshot, diagnostics) == "attention"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
 def test_doctor_reports_stale_remote_diff_and_collect_reports(monkeypatch):
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-02T12:00:00")
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-02T12:00:00")
     snapshot = {
         "device": {"id": "local", "role": "collector", "peers": ["gpu4090"], "setup_warnings": []},
         "git": {"dirty": False, "status_short": []},
@@ -6908,27 +6779,24 @@ def test_doctor_reports_stale_remote_diff_and_collect_reports(monkeypatch):
         },
     }
 
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
     codes = {item["code"] for item in diagnostics}
 
     assert "remote-status-stale" in codes
     assert "diff-stale" in codes
     assert "collect-stale" in codes
     assert "verify-stale" in codes
-    assert sm.status_label(snapshot, diagnostics) == "review"
+    assert _diagnostics.status_label(snapshot, diagnostics) == "review"
 
 
 def test_dashboard_html_contains_device_status_nodes_and_actions(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     runs = repo / "results" / "runs"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "RESULTS_RUNS", runs)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": True, "status_short": ["M x"], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T01:10:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": True, "status_short": ["M x"], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T01:10:00")
 
     _write_leaf(runs, "gpu4090/cora_GCN_r0.05/GIF_random/seed42")
     remote_report = {
@@ -7055,13 +6923,13 @@ def test_dashboard_html_contains_device_status_nodes_and_actions(tmp_path, monke
             },
         }).encode(),
     )
-    snapshot = sm.build_snapshot(
+    snapshot = _snapshot.build_snapshot(
         {
             "device_id": "local",
             "role": "collector",
             "repo_path": str(repo),
             "peers": {
-                "gpu4090": sm.build_peer_config(
+                "gpu4090": _devices.build_peer_config(
                     "runner",
                     "ssh-gpu",
                     "/remote/repo",
@@ -7072,8 +6940,8 @@ def test_dashboard_html_contains_device_status_nodes_and_actions(tmp_path, monke
         },
         [],
     )
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
-    out = sm.write_dashboard(snapshot, diagnostics)
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
+    out = _dashboard.write_dashboard(snapshot, diagnostics)
     html = out.read_text(encoding="utf-8")
     workflow = json.loads((sync_dir / "workflow.json").read_text(encoding="utf-8"))
     automation_core = json.loads((sync_dir / "automation_core.json").read_text(encoding="utf-8"))
@@ -7160,18 +7028,14 @@ def test_dashboard_cli_writes_workflow_report_path(tmp_path, monkeypatch, capsys
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    sm.write_device_config(config_path, sm.build_device_config("local", "collector", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("local", "collector", str(repo)))
 
-    assert sm.main(["--config", str(config_path), "dashboard", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "dashboard", "--json"]) == 0
     out = json.loads(capsys.readouterr().out)
     workflow = json.loads((sync_dir / "workflow.json").read_text(encoding="utf-8"))
     automation_core = json.loads((sync_dir / "automation_core.json").read_text(encoding="utf-8"))
@@ -7209,21 +7073,17 @@ def test_write_dashboard_can_skip_checklist_but_keep_runbook(tmp_path, monkeypat
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "STATE_FILE", sync_dir / "state.json")
-    monkeypatch.setattr(sm, "STATUS_HTML", sync_dir / "status.html")
-    monkeypatch.setattr(sm, "RESULTS_RUNS", repo / "results" / "runs")
-    monkeypatch.setattr(sm, "git_state", lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-01T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
-    device = sm.build_device_config("local", "collector", str(repo))
-    sm.write_device_config(config_path, device)
-    snapshot = sm.build_snapshot(device, [])
-    diagnostics = sm.diagnostics_for_snapshot(snapshot)
+    device = _devices.build_device_config("local", "collector", str(repo))
+    _devices.write_device_config(config_path, device)
+    snapshot = _snapshot.build_snapshot(device, [])
+    diagnostics = _diagnostics.diagnostics_for_snapshot(snapshot)
 
-    out = sm.write_dashboard(snapshot, diagnostics, write_checklist_doc=False)
+    out = _dashboard.write_dashboard(snapshot, diagnostics, write_checklist_doc=False)
 
     assert out == sync_dir / "status.html"
     assert (sync_dir / "status.html").is_file()
@@ -7237,14 +7097,13 @@ def test_runner_queue_submit_validates_and_writes_static_dashboard(tmp_path, mon
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
     config_path = sync_dir / "device.yaml"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "DEFAULT_DEVICE_FILE", config_path)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-14T12:00:00")
 
-    sm.write_device_config(config_path, sm.build_device_config("runner-a", "runner", str(repo)))
+    _devices.write_device_config(config_path, _devices.build_device_config("runner-a", "runner", str(repo)))
 
-    assert sm.main([
+    assert _run_cli([
         "--config", str(config_path), "runner-queue", "submit", "--job-id", "smoke-001",
         "--recipe", "smoke", "--requested-by", "operator",
         "--expected-git-sha", "a" * 40, "--json",
@@ -7254,13 +7113,13 @@ def test_runner_queue_submit_validates_and_writes_static_dashboard(tmp_path, mon
     assert submitted["job"]["expected_git_sha"] == "a" * 40
     assert (sync_dir / "runner_queue" / "receipts" / "smoke-001.json").is_file()
 
-    assert sm.main(["--config", str(config_path), "runner-queue", "validate", "--write", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "runner-queue", "validate", "--write", "--json"]) == 0
     validated = json.loads(capsys.readouterr().out)
     assert validated["validation"]["valid"] is True
     assert validated["counts"]["inbox"] == 1
     assert (sync_dir / "runner_queue" / "manifest.json").is_file()
 
-    assert sm.main(["--config", str(config_path), "runner-queue", "dashboard", "--json"]) == 0
+    assert _run_cli(["--config", str(config_path), "runner-queue", "dashboard", "--json"]) == 0
     dashboard = json.loads(capsys.readouterr().out)
     html = (sync_dir / "runner_queue" / "status.html").read_text(encoding="utf-8")
     assert dashboard["dashboard"] == ".syncmate/runner_queue/status.html"
@@ -7274,11 +7133,11 @@ def test_runner_queue_submit_validates_and_writes_static_dashboard(tmp_path, mon
 def test_runner_queue_run_once_claims_only_allowlisted_smoke_job(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
-    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}})
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-14T12:00:00")
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}})
+    _queue.runner_queue_submit("smoke-001", "smoke")
     calls = []
 
     class Completed:
@@ -7290,13 +7149,13 @@ def test_runner_queue_run_once_claims_only_allowlisted_smoke_job(tmp_path, monke
         calls.append((command, kwargs))
         return Completed()
 
-    monkeypatch.setattr(sm.subprocess, "run", fake_run)
-    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    result = _queue.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
 
     assert result["status"] == "done"
     assert result["job_id"] == "smoke-001"
     assert calls[0][0][1:] == ["scripts/syncmate/syncmate.py", "smoke", "--json"]
-    assert "shell" not in calls[0][1]
+    assert calls[0][1]["shell"] is False
     assert (sync_dir / "runner_queue" / "done" / "smoke-001.yaml").is_file()
     outcome = json.loads((sync_dir / "runner_queue" / "results" / "smoke-001.json").read_text(encoding="utf-8"))
     assert outcome["recipe_passed"] is True
@@ -7306,15 +7165,15 @@ def test_runner_queue_run_once_claims_only_allowlisted_smoke_job(tmp_path, monke
 def test_runner_queue_blocks_invalid_yaml_and_never_executes_it(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "now_iso", lambda: "2026-07-14T12:00:00")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-14T12:00:00")
     bad = sync_dir / "runner_queue" / "inbox" / "unsafe.yaml"
     _write(bad, b"protocol: syncmate-runner-queue/v1\nversion: 1\nid: unsafe\nrecipe: shell\ncreated_at: 2026-07-14T12:00:00\ncommand: rm -rf /\n")
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
 
-    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
+    result = _queue.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
 
     assert result["status"] == "blocked"
     assert not calls
@@ -7327,11 +7186,11 @@ def test_runner_queue_blocks_invalid_yaml_and_never_executes_it(tmp_path, monkey
 def test_runner_queue_refuses_to_run_on_collector_only_device(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _queue.runner_queue_submit("smoke-001", "smoke")
 
-    result = sm.runner_queue_run_once({"role": "collector", "device_id": "laptop"})
+    result = _queue.runner_queue_run_once({"role": "collector", "device_id": "laptop"})
 
     assert result["status"] == "blocked"
     assert (sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml").is_file()
@@ -7340,16 +7199,16 @@ def test_runner_queue_refuses_to_run_on_collector_only_device(tmp_path, monkeypa
 def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, monkeypatch, capsys):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
 
-    assert sm.main(["runner-queue", "contract", "--json"]) == 0
+    assert _run_cli(["runner-queue", "contract", "--json"]) == 0
     contract = json.loads(capsys.readouterr().out)
 
     assert not sync_dir.exists()
-    assert contract["protocol"] == "syncmate-runner-queue/v1"
+    assert contract["protocol"] == "syncmate-job/v1"
     assert contract["job_schema"]["additional_fields"] is False
-    assert "expected_git_sha" in contract["job_schema"]["optional"]
+    assert "expected_git_sha" in contract["job_schema"]["required"]
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
     expected_recipes = [
         "smoke",
@@ -7358,57 +7217,57 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     ]
     expected_recipes.extend(
         "opengu-target-direct-selection-{0}-v2".format(stage)
-        for stage in sm.TARGET_DIRECT_STAGES
+        for stage in _project_recipes.TARGET_DIRECT_STAGES
     )
     expected_recipes.extend(
         "opengu-target-direct-gu-gate-{0}-v2".format(
-            sm._target_direct_ratio_id(ratio)
+            _project_recipes._target_direct_ratio_id(ratio)
         )
-        for ratio in sm.TARGET_DIRECT_RATIOS
+        for ratio in _project_recipes.TARGET_DIRECT_RATIOS
     )
     expected_recipes.extend(
         "opengu-target-direct-gu-{0}-{1}-v2".format(
-            stage, sm._target_direct_ratio_id(ratio)
+            stage, _project_recipes._target_direct_ratio_id(ratio)
         )
-        for stage in sm.TARGET_DIRECT_STAGES
-        for ratio in sm.TARGET_DIRECT_RATIOS
+        for stage in _project_recipes.TARGET_DIRECT_STAGES
+        for ratio in _project_recipes.TARGET_DIRECT_RATIOS
     )
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
     assert "bypassing SyncMate collection, checksum verification, or gate evidence" in contract["integration"]["forbidden"]
 
-    assert sm.main(["runner-queue", "contract", "--write", "--json"]) == 0
+    assert _run_cli(["runner-queue", "contract", "--write", "--json"]) == 0
     written = json.loads(capsys.readouterr().out)
     saved = json.loads((sync_dir / "runner_queue" / "contract.json").read_text(encoding="utf-8"))
 
     assert written["contract_path"] == ".syncmate/runner_queue/contract.json"
-    assert saved["integration"]["opengu"].startswith("May submit or observe")
+    assert saved["integration"]["project"].startswith("May submit or observe")
 
 
 def test_runner_agent_lock_is_exclusive_and_released(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
 
-    owner = sm.runner_agent_acquire_lock("runner-a")
+    owner = _worker.runner_agent_acquire_lock("runner-a")
     assert owner["device_id"] == "runner-a"
     try:
-        sm.runner_agent_acquire_lock("runner-b")
+        _worker.runner_agent_acquire_lock("runner-b")
     except RuntimeError as exc:
         assert "lock already exists" in str(exc)
     else:
         raise AssertionError("second runner agent acquired an existing lock")
-    sm.runner_agent_release_lock()
-    assert not sm.runner_agent_lock_dir().exists()
+    _worker.runner_agent_release_lock()
+    assert not _queue.runner_agent_lock_dir().exists()
 
 
 def test_runner_agent_processes_exactly_one_job_under_lock(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}})
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}})
+    _queue.runner_queue_submit("smoke-001", "smoke")
 
     class Completed:
         returncode = 0
@@ -7416,13 +7275,13 @@ def test_runner_agent_processes_exactly_one_job_under_lock(tmp_path, monkeypatch
         stderr = ""
 
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)) or Completed())
-    outcome = sm.runner_agent_serve({"role": "runner", "device_id": "runner-a"}, poll_seconds=1, max_jobs=1)
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)) or Completed())
+    outcome = _worker.runner_agent_serve({"role": "runner", "device_id": "runner-a"}, poll_seconds=1, max_jobs=1)
 
     assert outcome["status"] == "completed"
     assert outcome["processed"] == 1
     assert len(calls) == 1
-    assert not sm.runner_agent_lock_dir().exists()
+    assert not _queue.runner_agent_lock_dir().exists()
 
 
 def test_runner_queue_validates_full_json_before_bounding_diagnostic_tail(
@@ -7430,23 +7289,19 @@ def test_runner_queue_validates_full_json_before_bounding_diagnostic_tail(
 ):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(
-        sm,
-        "runner_recipe_binding",
-        lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}},
-    )
-    sm.runner_queue_submit("large-json-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: {"ready": True, "errors": [], "recipe": {"id": recipe}})
+    _queue.runner_queue_submit("large-json-001", "smoke")
 
     class Completed:
         returncode = 0
         stdout = json.dumps({"passed": True, "padding": "x" * 20000})
         stderr = ""
 
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Completed())
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: Completed())
 
-    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+    outcome = _queue.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
     result = json.loads(
         (sync_dir / "runner_queue" / "results" / "large-json-001.json").read_text(
             encoding="utf-8"
@@ -7465,15 +7320,15 @@ def test_runner_queue_validates_full_json_before_bounding_diagnostic_tail(
 def test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _queue.runner_queue_submit("smoke-001", "smoke")
     mismatch = {"ready": False, "errors": ["fixed recipe config SHA-256 differs from recipe metadata"], "expected": {"git_sha": "expected"}, "observed": {"git_sha": "other"}}
-    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: mismatch)
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: mismatch)
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append(args))
 
-    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+    outcome = _queue.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
 
     assert outcome["status"] == "blocked"
     assert not calls
@@ -7484,20 +7339,21 @@ def test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution(tmp
 def test_runner_queue_blocks_exact_job_git_mismatch_before_execution(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    sm.runner_queue_submit("smoke-001", "smoke", expected_git_sha="a" * 40)
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _queue.runner_queue_submit("smoke-001", "smoke", expected_git_sha="a" * 40)
     binding = {
         "ready": True,
         "errors": [],
         "observed": {"git_sha": "b" * 40},
         "recipe": {"id": "smoke"},
     }
-    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: binding)
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: binding)
+    monkeypatch.setattr(_identity, "git_state", lambda: {"sha": "b" * 40, "branch": "main", "dirty": False})
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append(args))
 
-    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+    outcome = _queue.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
 
     assert outcome["status"] == "blocked"
     assert not calls
@@ -7506,25 +7362,25 @@ def test_runner_queue_blocks_exact_job_git_mismatch_before_execution(tmp_path, m
             encoding="utf-8"
         )
     )
-    assert result["recipe_binding"]["job_expected_git_sha"] == "a" * 40
-    assert result["recipe_binding"]["job_exact_git_match"] is False
+    assert result["binding"]["expected"]["git_sha"] == "a" * 40
+    assert result["binding"]["observed"]["git_sha"] == "b" * 40
 
 
 def test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(sm, "runner_recipe_binding", lambda recipe: {"ready": True, "errors": []})
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    monkeypatch.setattr(_recipes, 'runner_recipe_binding', lambda recipe: {"ready": True, "errors": []})
+    _queue.runner_queue_submit("smoke-001", "smoke")
     inbox = sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml"
     duplicate = sync_dir / "runner_queue" / "done" / "smoke-001.yaml"
     duplicate.parent.mkdir(parents=True, exist_ok=True)
     duplicate.write_bytes(inbox.read_bytes())
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append(args))
 
-    outcome = sm.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
+    outcome = _queue.runner_queue_run_once({"role": "runner", "device_id": "runner-a"})
 
     assert outcome["status"] == "blocked"
     assert not calls
@@ -7534,14 +7390,14 @@ def test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten(tm
 def test_runner_agent_refuses_stale_running_without_automatic_retry(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _queue.runner_queue_submit("smoke-001", "smoke")
     (sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml").replace(sync_dir / "runner_queue" / "running" / "smoke-001.yaml")
     calls = []
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: calls.append(args))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append(args))
 
-    outcome = sm.runner_agent_serve({"role": "runner", "device_id": "runner-a"}, poll_seconds=1, max_idle_polls=0)
+    outcome = _worker.runner_agent_serve({"role": "runner", "device_id": "runner-a"}, poll_seconds=1, max_idle_polls=0)
 
     assert outcome["status"] == "blocked"
     assert not calls
@@ -7551,38 +7407,38 @@ def test_runner_agent_refuses_stale_running_without_automatic_retry(tmp_path, mo
 def test_runner_agent_inspect_distinguishes_active_and_orphaned_running(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    sm.runner_queue_submit("smoke-001", "smoke")
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    _queue.runner_queue_submit("smoke-001", "smoke")
     (sync_dir / "runner_queue" / "inbox" / "smoke-001.yaml").replace(
         sync_dir / "runner_queue" / "running" / "smoke-001.yaml"
     )
 
-    orphaned = sm.runner_agent_inspect_payload()
+    orphaned = _worker.runner_agent_inspect_payload()
     assert orphaned["active_running"] is False
     assert orphaned["stale_running"] is True
 
-    sm.runner_agent_acquire_lock("runner-a")
+    _worker.runner_agent_acquire_lock("runner-a")
     try:
-        active = sm.runner_agent_inspect_payload()
+        active = _worker.runner_agent_inspect_payload()
         assert active["active_running"] is True
         assert active["stale_running"] is False
     finally:
-        sm.runner_agent_release_lock()
+        _worker.runner_agent_release_lock()
 
 
 def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    config = sm.build_device_config("collector-a", "collector", str(repo))
-    sm.add_peer_to_device(config, "bad-peer", sm.build_peer_config(
+    config = _devices.build_device_config("collector-a", "collector", str(repo))
+    _devices.add_peer_to_device(config, "bad-peer", _devices.build_peer_config(
         "collector", None, str(repo), "results/runs/bad-peer", ["results/runs"], transport="local",
     ))
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
     called = []
-    monkeypatch.setattr(sm, "runner_agent_peer_invoke", lambda *args, **kwargs: called.append(args))
+    monkeypatch.setattr(_dispatch, 'runner_agent_peer_invoke', lambda *args, **kwargs: called.append(args))
 
-    outcome = sm.runner_agent_dispatch_payload(config, [], config_path=repo / ".syncmate" / "device.yaml", node_id="bad-peer",
+    outcome = _dispatch.runner_agent_dispatch_payload(config, [], config_path=repo / ".syncmate" / "device.yaml", node_id="bad-peer",
                                                job_id="preflight-001", recipe="opengu-preflight-v1", requested_by=None, note=None)
 
     assert outcome["status"] == "blocked"
@@ -7591,11 +7447,11 @@ def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(t
 
 def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    config = sm.build_device_config("collector-a", "collector", str(repo))
-    sm.add_peer_to_device(
+    config = _devices.build_device_config("collector-a", "collector", str(repo))
+    _devices.add_peer_to_device(
         config,
         "runner-a",
-        sm.build_peer_config(
+        _devices.build_peer_config(
             "runner",
             None,
             str(repo / "runner"),
@@ -7604,17 +7460,13 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
             transport="local",
         ),
     )
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", repo / ".syncmate")
-    monkeypatch.setattr(
-        sm,
-        "preflight_payload",
-        lambda *args, **kwargs: {
+    _context.select(root=repo)
+    _context.select(root=(repo / ".syncmate").parent)
+    monkeypatch.setattr(_preflight, 'preflight_payload', lambda *args, **kwargs: {
             "status": "ready",
             "summary": {"ready": 1, "blocked": 0},
-        },
-    )
-    monkeypatch.setattr(sm, "maybe_write_preflight_report", lambda *args, **kwargs: None)
+        })
+    monkeypatch.setattr(_preflight, 'maybe_write_preflight_report', lambda *args, **kwargs: None)
     calls = []
 
     def invoke(_peer, arguments, **_kwargs):
@@ -7622,14 +7474,16 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
         if arguments == ["self", "--json"]:
             return {
                 "ok": True,
-                "payload": {"git": {"sha": "c" * 40, "dirty": False}},
+                "payload": {"git": {"sha": "c" * 40, "dirty": False, "branch": "main"}},
                 "errors": [],
             }
         return {"ok": True, "payload": {"submitted": True}, "errors": []}
 
-    monkeypatch.setattr(sm, "runner_agent_peer_invoke", invoke)
+    monkeypatch.setattr(_dispatch, 'runner_agent_peer_invoke', invoke)
+    monkeypatch.setattr(_identity, "git_state", lambda: {"sha": "c" * 40, "branch": "main", "dirty": False})
+    monkeypatch.setattr(_identity, "run_git", lambda args: "c" * 40)
 
-    outcome = sm.runner_agent_dispatch_payload(
+    outcome = _dispatch.runner_agent_dispatch_payload(
         config,
         [],
         config_path=repo / ".syncmate" / "device.yaml",
@@ -7655,7 +7509,7 @@ def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch)
         stdout = '{"submitted": true}'
         stderr = ""
 
-    monkeypatch.setattr(sm.subprocess, "run", lambda command, **kwargs: calls.append(command) or Completed())
+    monkeypatch.setattr(subprocess, "run", lambda command, **kwargs: calls.append(command) or Completed())
     peer = {
         "role": "runner",
         "transport": "ssh",
@@ -7664,7 +7518,7 @@ def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch)
         "python_executable": "/root/miniconda3/bin/python",
     }
 
-    result = sm.runner_agent_peer_invoke(
+    result = _dispatch.runner_agent_peer_invoke(
         peer,
         ["runner-queue", "status", "--json"],
     )
@@ -7677,22 +7531,22 @@ def test_runner_agent_peer_invoke_uses_configured_python_executable(monkeypatch)
 
 def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
+    _context.select(root=repo)
 
     class Completed:
         returncode = 0
         stdout = '{"gate": {"passed": false}}'
         stderr = "checksum mismatch"
 
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Completed())
-    outcome = sm.runner_agent_collect_and_gate(repo / ".syncmate" / "device.yaml", "runner-a")
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: Completed())
+    outcome = _dispatch.runner_agent_collect_and_gate(repo / ".syncmate" / "device.yaml", "runner-a")
 
     assert outcome["ok"] is False
     assert outcome["gate_passed"] is False
 
 
 def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
-    definition = sm.runner_recipe_definition("opengu-cache-v2-gate4-v1")
+    definition = _recipes.runner_recipe_definition("opengu-cache-v2-gate4-v1")
 
     assert definition["argv"] == [
         "{python}",
@@ -7700,7 +7554,7 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
         "scripts.cache_v2_gate4_canary",
         "--json",
     ]
-    assert definition["expected_git_sha"] == sm.GATE4_RECIPE_BASE_SHA
+    assert definition["expected_git_sha"] == _project_recipes.GATE4_RECIPE_BASE_SHA
     assert definition["config_sha256"] == (
         "45f587853aee6a91e85efd82ee40350435969a7b51b9539062762ae06b875980"
     )
@@ -7720,93 +7574,46 @@ def test_recipe_config_hash_is_line_ending_stable(tmp_path):
     lf.write_bytes(b"version: 1\nname: smoke\n")
     crlf.write_bytes(b"version: 1\r\nname: smoke\r\n")
 
-    assert sm.sha256_file(lf) != sm.sha256_file(crlf)
-    assert sm.sha256_recipe_config(lf) == sm.sha256_recipe_config(crlf)
+    assert _evidence.sha256_file(lf) != _evidence.sha256_file(crlf)
+    assert _identity.sha256_recipe_config(lf) == _identity.sha256_recipe_config(crlf)
 
 
-def test_gate4_runner_recipe_uses_exact_scoped_git_delta(monkeypatch):
-    changed = [
-        "GULib-master/attack/pipeline_adapter.py",
-        "GULib-master/config.py",
-        "GULib-master/dataset/original_dataset.py",
-        "GULib-master/experiments/run.py",
-        "GULib-master/experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
-        "GULib-master/experiments/processed_provider.py",
-        "GULib-master/parameter_parser.py",
-        "GULib-master/scripts/cache_v2_gate4_canary.py",
-        "GULib-master/scripts/syncmate/syncmate.py",
-        "GULib-master/tests/test_auto_report_v3.py",
-        "GULib-master/tests/test_cache_v2_gate4_canary.py",
-        "GULib-master/tests/test_demo.py",
-        "GULib-master/tests/test_experiment_processed_provider.py",
-        "GULib-master/tests/test_phase_b_invariants.py",
-        "GULib-master/tests/test_syncmate.py",
-        "GULib-master/utils/dataset_utils.py",
-        "GULib-master/utils/logger.py",
-    ]
-    monkeypatch.setattr(sm, "run_git", lambda args: "f" * 40)
-
-    class Ancestor:
-        returncode = 0
-
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Ancestor())
-    monkeypatch.setattr(
-        sm.subprocess,
-        "check_output",
-        lambda *args, **kwargs: ("\n".join(changed) + "\n").encode(),
-    )
-
-    binding = sm.runner_recipe_git_binding(
-        sm.GATE4_RECIPE_BASE_SHA,
-        sm.GATE4_RECIPE_ALLOWED_DELTA,
-    )
-
-    assert binding["ok"] is True
-    assert binding["mode"] == "tooling-delta"
-    assert binding["changed_paths"] == changed
-
-    changed.append("GULib-master/cache_v2/store.py")
-    rejected = sm.runner_recipe_git_binding(
-        sm.GATE4_RECIPE_BASE_SHA,
-        sm.GATE4_RECIPE_ALLOWED_DELTA,
-    )
-    assert rejected["ok"] is False
-    assert "non-tooling commits" in rejected["errors"][0]
+def test_gate4_runner_recipe_requires_exact_reviewed_commit(monkeypatch):
+    expected = _project_recipes.GATE4_RECIPE_BASE_SHA
+    monkeypatch.setattr(_identity, 'run_git', lambda args: expected)
+    assert _recipes.runner_recipe_git_binding(expected)['ok'] is True
+    monkeypatch.setattr(_identity, 'run_git', lambda args: 'f' * 40)
+    rejected = _recipes.runner_recipe_git_binding(expected)
+    assert rejected['ok'] is False
+    assert rejected['mode'] == 'exact'
+    assert 'exact reviewed Git commit' in rejected['errors'][0]
 
 
-def test_runner_delta_file_allowlist_does_not_accept_prefix_collisions():
-    assert sm._runner_delta_path_allowed(
-        "GULib-master/experiments/run.py",
-        ("GULib-master/experiments/run.py",),
-    )
-    assert not sm._runner_delta_path_allowed(
-        "GULib-master/experiments/run.py.backup",
-        ("GULib-master/experiments/run.py",),
-    )
-    assert sm._runner_delta_path_allowed(
-        "GULib-master/scripts/syncmate/helper.py",
-        ("GULib-master/scripts/syncmate/",),
-    )
+def test_runner_git_binding_refuses_abbreviated_or_invalid_identity():
+    assert _recipes.git_binding_matches('a' * 40, 'a' * 40)
+    assert not _recipes.git_binding_matches('a' * 7, 'a' * 40)
+    assert not _recipes.git_binding_matches('a' * 40, 'a' * 39 + 'b')
+    assert not _recipes.git_binding_matches('z' * 40, 'z' * 40)
 
 
 def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
-    selection = sm.runner_recipe_definition(
+    selection = _recipes.runner_recipe_definition(
         "opengu-target-direct-selection-citeseer-seed212-v2"
     )
-    gate_1 = sm.runner_recipe_definition(
+    gate_1 = _recipes.runner_recipe_definition(
         "opengu-target-direct-gu-gate-r001-v2"
     )
-    gate_5 = sm.runner_recipe_definition(
+    gate_5 = _recipes.runner_recipe_definition(
         "opengu-target-direct-gu-gate-r005-v2"
     )
-    full = sm.runner_recipe_definition(
+    full = _recipes.runner_recipe_definition(
         "opengu-target-direct-gu-pubmed-seed2024-r005-v2"
     )
 
     assert selection["recipe_introduced_git_sha"] == (
         "264b38995cebc84d10402d8113ea949ca2cfa34f"
     )
-    assert selection["config_sha256"] == sm.TARGET_DIRECT_CONFIG_SHA256
+    assert selection["config_sha256"] == _project_recipes.TARGET_DIRECT_CONFIG_SHA256
     assert selection["selection_matrix"]["candidate_count"] == 2328
     assert selection["selection_matrix"]["split_contract"] == {
         "processed_profile": "planetoid_70_10_20_seed2024",
@@ -7843,14 +7650,14 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
     assert full["gu_stage"]["execution_authorized"] is False
     assert full["gu_stage"]["candidate_matrix_only"] is True
     assert full["gu_stage"]["selectors"] == list(
-        sm.TARGET_DIRECT_STRATEGIES
+        _project_recipes.TARGET_DIRECT_STRATEGIES
     )
     assert len(full["expected_artifact_paths"]) == 68
 
 
 def test_target_direct_recipe_hash_matches_normalized_frozen_config_source():
-    config_path = Path(sm.REPO_ROOT) / sm.TARGET_DIRECT_CONFIG
-    assert sm.TARGET_DIRECT_CONFIG_SHA256 == sm.sha256_recipe_config(config_path)
+    config_path = sm.PROJECT_ROOT / _project_recipes.TARGET_DIRECT_CONFIG
+    assert _project_recipes.TARGET_DIRECT_CONFIG_SHA256 == _identity.sha256_recipe_config(config_path)
 
 
 def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
@@ -7858,20 +7665,20 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
 ):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition(
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    definition = _recipes.runner_recipe_definition(
         "opengu-target-direct-selection-cora-seed42-v2"
     )
     landing = "results/runs/gpu4090-target-direct"
     paths = {}
     for remote in definition["expected_artifact_paths"][:4]:
-        local = sm.local_landing_path(landing, remote)
+        local = _collection.local_landing_path(landing, remote)
         local.parent.mkdir(parents=True, exist_ok=True)
         local.write_text('{"status":"success"}\n', encoding="utf-8")
         paths[remote] = local
     receipt_remote = definition["expected_artifact_paths"][4]
-    receipt_path = sm.local_landing_path(landing, receipt_remote)
+    receipt_path = _collection.local_landing_path(landing, receipt_remote)
     receipt = {
         "schema": "target_direct_v1.syncmate_selection_cell",
         "version": 3,
@@ -7886,7 +7693,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         "formal_score_count": 17,
         "score_budget_semantics": "prefix_stable_budget_independent",
         "budget_conditioned_strategies": [],
-        "method_score_identities": {name: {"artifact_id": "score_" + name, "recipe_hash": "a" * 64} for name in sm.TARGET_DIRECT_STRATEGIES},
+        "method_score_identities": {name: {"artifact_id": "score_" + name, "recipe_hash": "a" * 64} for name in _project_recipes.TARGET_DIRECT_STRATEGIES},
         "method_scores_cold_total_seconds": 4.0,
         "method_scores_warm_read_seconds": {
             "0.01_warm": 0.02,
@@ -7904,7 +7711,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
                         "selection_projection_cache_hit": False,
                         "cold_selection_projection_seconds": 0.01,
                     }
-                    for strategy in sm.TARGET_DIRECT_STRATEGIES
+                    for strategy in _project_recipes.TARGET_DIRECT_STRATEGIES
                 },
                 "warm_method_timings": {
                     strategy: {
@@ -7912,7 +7719,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
                         "cache_hit": True,
                         "selection_projection_cache_hit": True,
                     }
-                    for strategy in sm.TARGET_DIRECT_STRATEGIES
+                    for strategy in _project_recipes.TARGET_DIRECT_STRATEGIES
                 },
                 "failure_state": {"state": "success", "failure": None},
             }
@@ -7930,15 +7737,15 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         ("0.01", 0, 2),
         ("0.05", 1, 3),
     ):
-        receipt["ratio_results"][ratio]["cold_sha256"] = sm.sha256_file(
+        receipt["ratio_results"][ratio]["cold_sha256"] = _evidence.sha256_file(
             paths[definition["expected_artifact_paths"][cold_index]]
         )
-        receipt["ratio_results"][ratio]["warm_sha256"] = sm.sha256_file(
+        receipt["ratio_results"][ratio]["warm_sha256"] = _evidence.sha256_file(
             paths[definition["expected_artifact_paths"][warm_index]]
         )
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
     paths[receipt_remote] = receipt_path
-    sm.write_artifact_index(
+    _index.write_artifact_index(
         {
             "version": 0,
             "updated_at": "2026-07-24T00:00:00",
@@ -7952,8 +7759,8 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
                     "items": [
                         {
                             "remote_path": remote,
-                            "local_path": sm.rel(paths[remote]),
-                            "sha256": sm.sha256_file(paths[remote]),
+                            "local_path": _identity.rel(paths[remote]),
+                            "sha256": _evidence.sha256_file(paths[remote]),
                         }
                         for remote in definition["expected_artifact_paths"]
                     ],
@@ -7962,7 +7769,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         }
     )
 
-    result = sm.target_direct_selection_acceptance_payload(
+    result = _project_acceptance('target-direct-selection-v2',
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,
@@ -7978,9 +7785,9 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
 ):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition(
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    definition = _recipes.runner_recipe_definition(
         "opengu-target-direct-gu-gate-r001-v2"
     )
     landing = "results/runs/gpu4090-target-direct"
@@ -8019,7 +7826,7 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
     }
     items = []
     for remote in definition["expected_artifact_paths"]:
-        local = sm.local_landing_path(landing, remote)
+        local = _collection.local_landing_path(landing, remote)
         local.parent.mkdir(parents=True, exist_ok=True)
         name = remote.rsplit("/", 1)[-1]
         if name in documents:
@@ -8029,11 +7836,11 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
         items.append(
             {
                 "remote_path": remote,
-                "local_path": sm.rel(local),
-                "sha256": sm.sha256_file(local),
+                "local_path": _identity.rel(local),
+                "sha256": _evidence.sha256_file(local),
             }
         )
-    sm.write_artifact_index(
+    _index.write_artifact_index(
         {
             "version": 0,
             "updated_at": "2026-07-24T00:00:00",
@@ -8050,7 +7857,7 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
         }
     )
 
-    result = sm.target_direct_gu_acceptance_payload(
+    result = _project_acceptance('target-direct-gu-v2',
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,
@@ -8066,9 +7873,9 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
 ):
     repo = tmp_path / "repo"
     sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition(
+    _context.select(root=repo)
+    _context.select(root=(sync_dir).parent)
+    definition = _recipes.runner_recipe_definition(
         "opengu-target-direct-gu-cora-seed42-r001-v2"
     )
     definition["expected_artifact_paths"] = definition[
@@ -8079,7 +7886,7 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
     items = []
     for selector in definition["gu_stage"]["selectors"]:
         parent = (
-            sm.TARGET_DIRECT_GU_OUTPUT_ROOT
+            _project_recipes.TARGET_DIRECT_GU_OUTPUT_ROOT
             + "/cora_GCN_r0.01/GNNDelete_"
             + selector
             + "/seed42"
@@ -8119,28 +7926,28 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
         }
         for name, document in documents.items():
             remote = parent + "/" + name
-            local = sm.local_landing_path(landing, remote)
+            local = _collection.local_landing_path(landing, remote)
             local.parent.mkdir(parents=True, exist_ok=True)
             local.write_text(json.dumps(document), encoding="utf-8")
             items.append(
                 {
                     "remote_path": remote,
-                    "local_path": sm.rel(local),
-                    "sha256": sm.sha256_file(local),
+                    "local_path": _identity.rel(local),
+                    "sha256": _evidence.sha256_file(local),
                 }
             )
         remote = parent + "/predictions.npz"
-        local = sm.local_landing_path(landing, remote)
+        local = _collection.local_landing_path(landing, remote)
         with zipfile.ZipFile(local, "w") as archive:
             archive.writestr(selector + "__selected_nodes.npy", b"test")
         items.append(
             {
                 "remote_path": remote,
-                "local_path": sm.rel(local),
-                "sha256": sm.sha256_file(local),
+                "local_path": _identity.rel(local),
+                "sha256": _evidence.sha256_file(local),
             }
         )
-    sm.write_artifact_index(
+    _index.write_artifact_index(
         {
             "version": 0,
             "updated_at": "2026-07-24T00:00:00",
@@ -8157,7 +7964,7 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
         }
     )
 
-    result = sm.target_direct_gu_stage_acceptance_payload(
+    result = _project_acceptance('target-direct-gu-stage-v2',
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,
