@@ -9,9 +9,10 @@
   "preconditions": [
     "本地 projectRoot 必须是 E:/project/OpenGU/GULib-master，Git 根是 E:/project/OpenGU；干净 main 的 HEAD 必须等于传入的 landedTarget，且 origin 的 refs/heads/main 已确认是同一完整 SHA。",
     "通过现有 SSH 配置别名 autodl-opengu 连接；唯一远端活跃检出必须解析到 /autodl-fs/data/OpenGU，项目为其 GULib-master 子目录。要求远端 main、干净 tracked/untracked 工作区、无项目实验或同步进程；远端 HEAD 必须是 landedTarget 的祖先。存在脏文件、分叉、路径歧义或运行中任务立即停止，不 stash、reset 或切换别的检出。",
-    "先核对更新 diff 不改动真实 data、results/cache、results/selection_cache、results/score_cache、results/cache_v2、results/runs 或历史 archive payload。保存远端三个旧缓存根及 Cache V2 的现存路径、文件类型、大小和 SHA-256 清单；目录原本不存在时也记录。环境检查使用已存在的 /root/miniconda3/bin/python，不依赖非交互 shell 的 PATH。"
+    "先核对更新 diff 不改动真实 data、results/cache、results/selection_cache、results/score_cache、results/cache_v2、results/runs 或历史 archive payload。保存远端三个旧缓存根及 Cache V2 的现存路径、文件类型、大小和 SHA-256 清单；目录原本不存在时也记录。环境检查使用已存在的 /root/miniconda3/bin/python，不依赖非交互 shell 的 PATH。",
+    "远端 GitHub 传输前检查 AutoDL 提供的 /etc/network_turbo：只接受当前实例上的普通、可读文件，不固定其内容哈希或代理地址。不得读取、显示、保存或转发其中的代理值，也不得为安装修改 /root/.bashrc、/root/.profile、Git 全局配置或其他持久网络配置。"
   ],
-  "instruction": "这里只做已落地主线的代码同步安装。优先在远端 Git 根获取 origin main，确认获取到的 SHA 精确等于 landedTarget 后，以 git merge --ff-only 快进现有 main；绝不更新到未知的新 tip。若远端 GitHub 网络失败或超时，只终止本动作启动的传输进程；允许采用项目既有 Git bundle 传输方式：在本地 .workblock/runtime/install 内生成从已核实远端旧 SHA 到 landedTarget 的最小 bundle，校验后通过 SSH 传入远端 .git 下本动作唯一命名的临时 bundle，远端 verify、fetch 到 refs/remotes/origin/main，再快进到相同 landedTarget。不得用 bundle 绕过祖先、干净工作区或版本检查。权限中的删除仅用于本次快进包含的已跟踪源码删除和本动作唯一临时 bundle；保留所有数据、缓存、运行结果、归档、其他任务文件及 ignored/untracked 内容。不得安装或升级依赖、Python、CUDA、驱动，不得启动 GPU 实验、缓存迁移或清理。证据输出只写本地 .workblock/runtime/install。",
+  "instruction": "这里只做已落地主线的代码同步安装。远端尝试 GitHub 获取时，必须在同一个有界的一次性非交互 Bash 子 shell 中先 source /etc/network_turbo，再以 GIT_TERMINAL_PROMPT=0 获取 origin main；不得依赖启动文件自动加载，也不得把代理值写入命令输出、证据、Git 配置或任何持久文件。子 shell 结束即丢弃代理环境；不得让学术加速影响后续普通网络。若 /etc/network_turbo 缺失/不可读，或这次加速获取返回非零、超时、Operation too slow、DNS/连接/SSL/curl 错误，只终止本动作启动的传输进程并把远端 GitHub 传输记为不可用，不得用脆弱的错误关键词断言阻断已登记的备用路线。确认获取到的 SHA 精确等于 landedTarget 后，以 git merge --ff-only 快进现有 main；绝不更新到未知的新 tip。远端 GitHub 不可用时，允许采用项目既有 Git bundle 传输方式：在本地 .workblock/runtime/install 内生成从已核实远端旧 SHA 到 landedTarget 的最小 bundle，校验后通过 SSH 传入远端 .git 下本动作唯一命名的临时 bundle，远端 verify、fetch 到 refs/remotes/origin/main，再快进到相同 landedTarget。不得用学术加速或 bundle 绕过祖先、干净工作区、目标 SHA 或版本检查。权限中的删除仅用于本次快进包含的已跟踪源码删除和本动作唯一临时 bundle；保留所有数据、缓存、运行结果、归档、其他任务文件及 ignored/untracked 内容。不得安装或升级依赖、Python、CUDA、驱动，不得启动 GPU 实验、缓存迁移或清理。证据输出只写本地 .workblock/runtime/install。",
   "permissions": {
     "write": [
       "ssh://autodl-opengu/autodl-fs/data/OpenGU",
@@ -27,6 +28,6 @@
     ]
   },
   "secretRefs": [],
-  "readBack": "确认本地 main、origin main、SSH main 均精确等于 landedTarget，SSH 工作区仍干净且仍只有原活跃检出。逐个核对远端全部已跟踪文件的路径、Git 模式/文件类型及实际内容与 landedTarget 的 tree/blob 一致，不能只看版本号或 HEAD。重新生成远端缓存保护清单，与安装前逐项比较路径、类型、大小及 SHA-256。使用 /root/miniconda3/bin/python -B 对本次安装变化的 Python 源码做不落 pyc 的 AST 解析；不运行训练、下载或写真实缓存。任一版本、文件内容、缓存保护或语法检查失败均报告失败并停止；成功时把完整身份、实际传输方式、校验数量和证据位置返回给 Closeout。",
+  "readBack": "确认本地 main、origin main、SSH main 均精确等于 landedTarget，SSH 工作区仍干净且仍只有原活跃检出。逐个核对远端全部已跟踪文件的路径、Git 模式/文件类型及实际内容与 landedTarget 的 tree/blob 一致，不能只看版本号或 HEAD。重新生成远端缓存保护清单，与安装前逐项比较路径、类型、大小及 SHA-256。若尝试 AutoDL 学术加速，证据只记录 /etc/network_turbo 是否可用、加速获取的退出状态/耗时和最终传输路线，不记录任何代理值；核对安装没有新增 /root/.bashrc、/root/.profile 或 Git 全局代理配置。使用 /root/miniconda3/bin/python -B 对本次安装变化的 Python 源码做不落 pyc 的 AST 解析；不运行训练、下载或写真实缓存。任一版本、文件内容、缓存保护、网络环境隔离或语法检查失败均报告失败并停止；成功时把完整身份、实际传输方式、校验数量和证据位置返回给 Closeout。",
   "onFailure": "stop"
 }
