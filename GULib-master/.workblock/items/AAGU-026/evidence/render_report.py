@@ -17,7 +17,7 @@ def main():
     title = 'AAGU-026 · 科研计划与执行上下文正交'
     delta = '科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列执行需要的引用和组合；research_question 与 decision_owner 留在 WorkItem／实验说明，不再进入可执行协议。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。'
     observations = '真实 CPU 消费者已分别跑通 Selector-only、已有 Selection→GU，以及 1 Dataset/Split × 1 Selector × 1 GU × 1 Evaluation。多引用大表只是调度这些独立 cell，不形成整包缓存身份。改变 Evaluation 只改变 Evaluation receipt，Selection 与 GU Result 均 HIT；设备与 Torch/CUDA build 只进入执行回执，不再进入 Score/Checkpoint 身份。'
-    decision = '建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。'
+    decision = '建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过；SyncMate 检查绑定已落地主线 main@a4d1c5d，未使用正在验收的 SM-004 候选。主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。'
     scenarios = [
         ('原子运行与简写小表', '可解析计划展示一个独立的 1×1×1 cell；真实 CPU 测试分别覆盖 Selector-only、已有 Selection→GU 和 Selector→GU→Evaluation。五 Selector × 两 GU 的大表只是同类 cell 的批量调度。B-Hutch 32 沿用默认 probes=32，64 小表只增加 probes=64。', 'PASS', 'experiment_one_selector_one_gu.yaml / test_real_gu_consumes_existing_selection_without_producer / test_evaluation_is_independent_and_unimplemented_case_fails_closed'),
         ('运行上下文正交', '实验 YAML 出现 device、store_root、runtime_root、output、execution_authorized 或 execution_binding 会被拒绝。项目 ExecutionContext 固定一个 results/cache_v2，并按 job ID 生成 checkpoint、scratch 和 output；设备与 Torch/CUDA 版本只在 execution receipt。', 'PASS', 'test_operational_fields_are_rejected_and_context_is_external / test_project_context_owns_fixed_store_runtime_device_and_output / test_device_and_library_build_are_execution_provenance_not_recipe_identity'),
@@ -48,6 +48,7 @@ def main():
         '跨 device HIT 的验证边界是身份结构：Score 与 checkpoint Recipe 只保留 dtype 等科研数值语义，CPU/CUDA/Torch build 位于 execution receipt。是否物理 HIT 仍要求执行端能看到同一个完整 Store；本轮没有用可工作的 CUDA 环境做跨设备实跑。',
         '旧 ScoreBundle 活动共同键已移除；复用既有存储格式，每种方法单独保存一个载荷。旧 Artifact 无删除、覆写、迁移或放宽接纳。源项目的缓存目录本来不存在；主项目 results/runs 的 3,990 文件在本轮 Verify 前后逐文件 SHA 一致。',
         'AAGU-001 的既有 SSH 安装失败未在此处理；AAGU-015 的目标、协议和科研接纳选择仍由该任务负责。本 Block 未进行 SSH 写入、正式 GPU、push、install、Apply 或清理。',
+        'SyncMate 消费回归绑定已落地主线 `main@a4d1c5d4b779ed822ed2b7ca19d255151958a5dc`。隔离快照中的旧入口 182 项通过；正在验收且已删除 legacy 的 SM-004 分支不属于 026 的依赖基线。',
         'CPU 进程屏蔽 CUDA；CuPy 提示未找到 CUDA 路径，另有依赖弃用提示，均未造成失败。正式 CUDA 行为未被 CPU 通过数代替。',
         '配对报告的 Human Result、唯一待决定投影和本地链接已通过结构检查。浏览器安全策略拒绝自动打开 file:// 页面，因此本轮更新后的桌面与窄屏视觉结果为 NOT OBSERVED；这不升级为视觉 PASS。',
     ]

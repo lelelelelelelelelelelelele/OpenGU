@@ -14,7 +14,7 @@
 
 > 当前验收决定：`待决定`
 
-建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。
+建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过；SyncMate 检查绑定已落地主线 main@a4d1c5d，未使用正在验收的 SM-004 候选。主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。
 
 ## 逐方法冷／热观察
 
@@ -119,6 +119,8 @@ post_unlearning_utility 已在 modular lane 实际执行。post_unlearning_utili
 旧 ScoreBundle 活动共同键已移除；复用既有存储格式，每种方法单独保存一个载荷。旧 Artifact 无删除、覆写、迁移或放宽接纳。源项目的缓存目录本来不存在；主项目 results/runs 的 3,990 文件在本轮 Verify 前后逐文件 SHA 一致。
 
 AAGU-001 的既有 SSH 安装失败未在此处理；AAGU-015 的目标、协议和科研接纳选择仍由该任务负责。本 Block 未进行 SSH 写入、正式 GPU、push、install、Apply 或清理。
+
+SyncMate 消费回归绑定已落地主线 `main@a4d1c5d4b779ed822ed2b7ca19d255151958a5dc`。隔离快照中的旧入口 182 项通过；正在验收且已删除 legacy 的 SM-004 分支不属于 026 的依赖基线。
 
 CPU 进程屏蔽 CUDA；CuPy 提示未找到 CUDA 路径，另有依赖弃用提示，均未造成失败。正式 CUDA 行为未被 CPU 通过数代替。
 
