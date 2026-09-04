@@ -33,7 +33,8 @@ from attack.pipeline_adapter import AttackPipeline
 from attack.result_cache import ResultCache
 from attack.selection_cache import SelectionCache
 from attack.cache_identity import (store_root, strategy_version, producer_version, model_fingerprint,
-                                   split_fingerprint, target_parameters, seeded_execution)
+                                   split_fingerprint, target_parameters, seeded_execution,
+                                   selector_training_parameters, train_selector_model)
 from experiments.selection_inputs import make_dataset_selection_inputs
 from cache_v2.selection_materializer import build_selection_recipe, SelectionArtifactRequest
 from cache_v2.formal_artifacts import ordered_int_hash
@@ -125,6 +126,9 @@ class AttackManager:
         self.selection_cache = SelectionCache(self.cache_root)
         self.results: Dict[str, AttackResult] = {}
         self._initial_model_hash = model_fingerprint(self.model)
+        import copy
+        self._selector_initial_model = copy.deepcopy(self.model)
+        self._selector_model = None
         source_root = Path(__file__).resolve().parents[1]
         sources = ["attack/attack_manager.py", "attack/pipeline_adapter.py", "attack/cache_identity.py",
                    "attack/result_cache.py", "attack/attack_result.py", "unlearning_manager.py"]
@@ -213,10 +217,11 @@ class AttackManager:
         if getattr(self.get_strategy(strategy_name), "requires_trained_model", False):
             # Shard consumers reuse the canonical full-model selector; GU
             # method identity belongs to the downstream Evaluation Recipe.
-            parameters["training"] = {key: value for key, value in target_parameters(self.args).items()
-                                      if key != "unlearning_methods"}
+            from experiments.implementation_identity import implementation_fingerprint, model_functions
+            from experiments.modular_model import train_supervised
+            parameters["training"] = selector_training_parameters(self.args, self.model)
             parameters["initial_model_hash"] = self._initial_model_hash
-            parameters["training_implementation"] = self._result_producer.to_dict()
+            parameters["model_implementation"] = implementation_fingerprint(*model_functions(self.model), train_selector_model, train_supervised)
         producer = strategy_version(strategy_name)
         recipe = build_selection_recipe(dataset_fingerprint=inputs.dataset_fingerprint,
             graph_fingerprint=inputs.graph_fingerprint, candidate_set_hash=inputs.candidate_set_hash,
@@ -323,6 +328,8 @@ class AttackManager:
         if request_result is not None:
             cached, provenance = self.cache.get_with_provenance(request_result)
             if cached is not None:
+                cached.selection_cache_hit = True
+                cached.selection_reuse_time = time.time() - started
                 cached.result_cache_hit = True
                 cached.result_cache_key = provenance["cache_key"]
                 cached.result_cache_source = provenance["source_file"]
@@ -386,10 +393,15 @@ class AttackManager:
         if self._needs_canonical_selector_cache(strategy_name, strategy):
             self._raise_canonical_selector_cache_miss(strategy_name)
         with seeded_execution(self._seed_value()):
+            selection_model = self.pipeline.model
             if getattr(strategy, "requires_trained_model", False):
-                self.pipeline._ensure_base_model_trained()
+                if self._selector_model is None:
+                    import copy
+                    self._selector_model = train_selector_model(copy.deepcopy(self._selector_initial_model),
+                        self.data, selector_training_parameters(self.args, self._selector_initial_model))
+                selection_model = self._selector_model
             started = time.time()
-            nodes = strategy.select_nodes(self.data, self.pipeline.model, k).cpu()
+            nodes = strategy.select_nodes(self.data, selection_model, k).cpu()
             selection_seconds = time.time() - started
         candidates = self._candidate_nodes().tolist()
         if nodes.numel() != int(k) or nodes.unique().numel() != int(k) or not set(nodes.tolist()).issubset(candidates):

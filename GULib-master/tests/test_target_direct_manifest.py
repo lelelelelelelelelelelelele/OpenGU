@@ -22,7 +22,7 @@ def _summary(
     expected_k = max(1, int(200 * ratio))
     return {
         "schema": "target_direct_v1.selection_summary",
-        "version": 2,
+        "version": 3,
         "status": {"state": "success"},
         "algorithm_version": ALGORITHM_VERSION,
         "dataset": "Cora",
@@ -44,10 +44,10 @@ def _summary(
             "file_sha256": "b" * 64,
             "state_hash": "c" * 64,
         },
-        "score_bundle": {
-            "artifact_id": "score_bundle",
+        "method_scores": {name: {
+            "artifact_id": "score_" + name,
             "recipe_hash": "d" * 64,
-        },
+        } for name in SCORE_NAMES},
         "selection_artifacts": {
             strategy: {
                 "artifact": {

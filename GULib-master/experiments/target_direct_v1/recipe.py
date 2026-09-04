@@ -1,168 +1,56 @@
-"""Cache identity for white-box OpenGU target-direct score bundles."""
-
+"""Method-scoped Score identities, independent of GU and experiment ownership."""
 from __future__ import annotations
 
-import math
-import re
-from typing import Any, Mapping, Sequence
+from functools import partial
 
-from cache_v2 import ArtifactRecipe
-
-
-ALGORITHM_VERSION = "target-direct-opengu-gcn-score-bundle-v3"
-SCORE_FAMILY = "target_direct_opengu_gcn_selection_score_bundle"
-APPROVED_BUDGET_RATIOS = (0.01, 0.05)
-SCORE_BUDGET_SEMANTICS = "prefix_stable_budget_independent"
-SCORE_NAMES = (
-    "a_grad_norm",
-    "b_param_hutch",
-    "degree",
-    "gt_full",
-    "gt_simple",
-    "legacy",
-    "p_graph",
-    "p_point",
-    "p_simple",
-    "r_point",
-    "random",
-    "tracin_cp_graph_3",
-    "tracin_cp_graph_6",
-    "tracin_cp_point_3",
-    "tracin_cp_point_6",
-    "tracin_cp_simple_3",
-    "tracin_cp_simple_6",
+from cache_v2 import ArtifactRecipe, ProducerVersion
+from experiments.implementation_identity import implementation_fingerprint, model_functions
+from experiments.c_target_v1.core import ids_hash, parameter_schema_hash, stable_ranking
+from experiments.target_direct_v1.methods import (
+    SCORE_NAMES, METHODS, uses_model, uses_target, selected_checkpoint_indices, implementation_functions,
 )
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-GRAPH_SOURCE_SCOPE = "affected_intersection_train_mask"
+from utils.target_checkpoint import data_identity, state_hash
+from experiments.modular_model import numerical_environment
+
+ALGORITHM_VERSION = 'target-direct-method-score-v1'
+SCORE_FAMILY = 'target_direct_method_score'
+APPROVED_BUDGET_RATIOS = (0.01, 0.05)
+SCORE_BUDGET_SEMANTICS = 'prefix_stable_budget_independent'
+GRAPH_SOURCE_SCOPE = 'affected_intersection_train_mask'
 
 
-def _sha(value: Any, label: str) -> str:
-    if not isinstance(value, str) or SHA256_RE.fullmatch(value) is None:
-        raise ValueError("{0} must be a full lowercase SHA-256".format(label))
-    return value
-
-
-def build_recipe(
-    *,
-    source_fingerprint: str,
-    data_identity: Mapping[str, Any],
-    candidate_ids_hash: str,
-    target_ids_hash: str,
-    selector_model: Mapping[str, Any],
-    training: Mapping[str, Any],
-    checkpoints: Sequence[Mapping[str, Any]],
-    checkpoint_views: Mapping[str, Sequence[int]],
-    graph_intervention: Mapping[str, Any],
-    hessian: Mapping[str, Any],
-    loss: Mapping[str, Any],
-    parameter_scope: str,
-    seed_bundle: Mapping[str, Any],
-    numerics: Mapping[str, Any],
-    target_checkpoint: Mapping[str, Any],
-) -> ArtifactRecipe:
-    if (
-        graph_intervention.get("source_scope") != GRAPH_SOURCE_SCOPE
-        or loss.get("graph_source_set") != GRAPH_SOURCE_SCOPE
-    ):
-        raise ValueError(
-            "recipe must declare the affected training-source contract"
-        )
-    _sha(source_fingerprint, "source_fingerprint")
-    _sha(candidate_ids_hash, "candidate_ids_hash")
-    _sha(target_ids_hash, "target_ids_hash")
-    for name in (
-        "edge_index_hash",
-        "features_hash",
-        "labels_hash",
-        "split_hash",
-    ):
-        _sha(data_identity.get(name), "data_identity.{0}".format(name))
-    for name in ("final_state_hash", "parameter_schema_hash"):
-        _sha(selector_model.get(name), "selector_model.{0}".format(name))
-    if not checkpoints:
-        raise ValueError("at least one checkpoint is required")
-    previous = None
-    for item in checkpoints:
-        step = item.get("global_step")
-        state = item.get("state_hash")
-        weight = item.get("weight")
-        if (
-            isinstance(step, bool)
-            or not isinstance(step, int)
-            or step < 0
-            or (previous is not None and step <= previous)
-        ):
-            raise ValueError("checkpoint steps must be strictly increasing")
-        _sha(state, "checkpoint state_hash")
-        if (
-            isinstance(weight, bool)
-            or not isinstance(weight, (int, float))
-            or not math.isfinite(float(weight))
-            or float(weight) < 0
-        ):
-            raise ValueError("checkpoint weight must be finite and non-negative")
-        previous = step
-
-    normalized_views = {}
-    for name, values in checkpoint_views.items():
-        indices = [int(value) for value in values]
-        if not indices or len(set(indices)) != len(indices):
-            raise ValueError("checkpoint views must be non-empty and unique")
-        if min(indices) < 0 or max(indices) >= len(checkpoints):
-            raise ValueError("checkpoint view index is out of range")
-        normalized_views[str(name)] = indices
-
+def build_recipe(*, name, computations, parameters, model_config=None, training=None):
+    c = computations
+    functions = implementation_functions(name) + [stable_ranking]
+    if uses_model(name):
+        functions.extend(model_functions(c.model))
+    producer = ProducerVersion(ALGORITHM_VERSION, implementation_fingerprint(*functions))
+    method = METHODS[name]
     fields = {
-        "artifact_kind": "score_bundle",
-        "score_family": SCORE_FAMILY,
-        "score_names": list(SCORE_NAMES),
-        "algorithm_version": ALGORITHM_VERSION,
-        "producer": {
-            "semantic_version": ALGORITHM_VERSION,
-            "source_fingerprint": source_fingerprint,
-        },
-        "data_identity": dict(data_identity),
-        "candidate_set": {
-            "ordered_ids_hash": candidate_ids_hash,
-            "node_id_space": "pyg-global-node-index-v1",
-            "ranking_reusable_across_budgets": True,
-        },
-        "target_set": {
-            "ordered_ids_hash": target_ids_hash,
-            "profile": "attack_safe_validation",
-            "label_source": "validation_true_labels",
-            "aggregation": "mean",
-            "diagnostic_only": False,
-        },
-        "selector_model": dict(selector_model),
-        "training": dict(training),
-        "trajectory": {
-            "checkpoints": [dict(item) for item in checkpoints],
-            "views": normalized_views,
-            "capture_policy": "post_epoch_state_dict",
-            "weight_policy": "preceding_optimizer_update_lr",
-        },
-        "graph_intervention": dict(graph_intervention),
-        "hessian": dict(hessian),
-        "loss": dict(loss),
-        "parameter_scope": str(parameter_scope),
-        "seed_bundle": dict(seed_bundle),
-        "numerics": dict(numerics),
-        "aggregation": {
-            "orientation": "score_desc_more_influential_or_harmful_if_removed",
-            "ranking": "score_desc_node_id_asc",
-        },
-        "target_direct": {
-            "white_box": True,
-            "selector_and_gu_share_exact_checkpoint": True,
-            "target_checkpoint": dict(target_checkpoint),
-            "budget_projection": {
-                "semantics": SCORE_BUDGET_SEMANTICS,
-                "supported_ratios": list(APPROVED_BUDGET_RATIOS),
-                "denominator": "train_candidate_count",
-                "rounding": "floor_with_minimum_one",
-                "budget_conditioned_strategies": [],
-            },
-        },
+        'artifact_kind': 'score_bundle', 'score_family': SCORE_FAMILY, 'score_names': [name],
+        'algorithm_version': ALGORITHM_VERSION, 'producer': producer.to_dict(),
+        'data_identity': data_identity(c.data),
+        'candidate_set': {'ordered_ids_hash': ids_hash(c.candidates),
+                          'node_id_space': 'pyg-global-node-index-v1',
+                          'ranking_reusable_across_budgets': True},
+        'parameters': parameters,
+        'method_binding': dict(method.keywords) if isinstance(method, partial) else {},
+        'aggregation': {'ranking': 'score_desc_node_id_asc'},
+        'budget_semantics': SCORE_BUDGET_SEMANTICS,
     }
-    return ArtifactRecipe(fields)
+    if uses_model(name):
+        fields['selector_model'] = dict(model_config or {})
+        fields['training'] = dict(training or {})
+        fields['parameter_schema_hash'] = parameter_schema_hash(c.model, parameters['parameter_scope'])
+        fields['numerics'] = numerical_environment(c.data)
+        if name.startswith('tracin_cp_'):
+            indices = selected_checkpoint_indices(c.checkpoints, parameters)
+            fields['trajectory'] = [
+                {'global_step': c.checkpoints[i]['global_step'],
+                 'state_hash': state_hash(c.checkpoints[i]['state']),
+                 'weight': float(c.checkpoints[i]['update_lr'])} for i in indices]
+        else:
+            fields['final_state_hash'] = state_hash(c.checkpoints[-1]['state'])
+    if uses_target(name):
+        fields['target_ids_hash'] = ids_hash(c.targets)
+    return ArtifactRecipe(fields), producer

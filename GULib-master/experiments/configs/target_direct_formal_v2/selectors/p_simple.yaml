@@ -1,0 +1,4 @@
+kind: selector
+schema_version: 1
+method: p_simple
+parameters: {parameter_scope: last_layer}

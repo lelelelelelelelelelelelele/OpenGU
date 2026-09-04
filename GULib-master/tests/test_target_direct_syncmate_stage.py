@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import shutil
 
 import pytest
 import yaml
@@ -35,7 +36,7 @@ def _summary(
     }
     return {
         "schema": "target_direct_v1.selection_summary",
-        "version": 2,
+        "version": 3,
         "status": {"state": "success", "failure": None},
         "dataset": "Cora",
         "seed": 42,
@@ -60,7 +61,7 @@ def _summary(
             "score_semantics": "prefix_stable_budget_independent",
             "supported_ratios": [0.01, 0.05],
             "budget_conditioned_strategies": [],
-            "score_bundle_shared_across_ratios": True,
+            "method_scores_shared_across_ratios": True,
             "selection_artifact_ratio_conditioned": True,
         },
         "git_provenance": {"head": GIT_SHA, "worktree_dirty": False},
@@ -73,16 +74,17 @@ def _summary(
             "file_sha256": "b" * 64,
             "state_hash": "c" * 64,
         },
-        "score_bundle": {
+        "method_scores": {name: {
             "hit": score_hit,
-            "artifact_id": "score_1",
+            "producer_called": not score_hit,
+            "artifact_id": "score_" + name,
             "recipe_hash": "d" * 64,
             "cold_total_seconds": None if score_hit else 3.0,
             "warm_read_seconds": 0.02 if score_hit else None,
-        },
+        } for name in SCORE_NAMES},
         "selection_cache": {"method_timings": method_timings},
         "gpu_memory": {
-            "score_bundle": {"device_name": "NVIDIA GeForce RTX 4090"},
+            "method_scores": {"device_name": "NVIDIA GeForce RTX 4090"},
             "process_peak_allocated_bytes": 1024,
             "process_peak_reserved_bytes": 2048,
         },
@@ -142,6 +144,10 @@ def _write_formal_config(tmp_path, mutate):
         / stage_module.CONFIG_PATH.name
     )
     config_path.parent.mkdir(parents=True)
+    shutil.copytree(
+        stage_module.CONFIG_PATH.parent / "target_direct_formal_v2",
+        config_path.parent / "target_direct_formal_v2",
+    )
     config = yaml.safe_load(
         stage_module.CONFIG_PATH.read_text(encoding="utf-8")
     )
@@ -278,7 +284,7 @@ def test_formal_config_rejects_split_or_stage_cache_roots(
 
     config_path, repository_root = _write_formal_config(tmp_path, mutate)
 
-    with pytest.raises(stage_module.TargetDirectStageError, match="cache_v2_root"):
+    with pytest.raises(stage_module.TargetDirectStageError, match="SyncMate/project"):
         stage_module.load_config(
             config_path, repository_root=repository_root
         )
@@ -299,7 +305,7 @@ def test_formal_config_rejects_cache_root_experiment_or_stage_descendant(
         lambda config: config.update({"cache_v2_root": noncanonical_root}),
     )
 
-    with pytest.raises(stage_module.TargetDirectStageError, match="exactly"):
+    with pytest.raises(stage_module.TargetDirectStageError, match="SyncMate/project"):
         stage_module.load_config(
             config_path, repository_root=repository_root
         )
@@ -313,6 +319,28 @@ def test_each_stage_uses_one_canonical_cache_store_root():
     expected = config["paths"]["cache_v2_root"]
     assert cora["score_store"] == cora["selection_store"] == expected
     assert pubmed["score_store"] == pubmed["selection_store"] == expected
+
+
+def test_formal_scientific_yaml_has_no_execution_paths_or_device():
+    raw = yaml.safe_load(stage_module.CONFIG_PATH.read_text(encoding="utf-8"))
+    assert not (set(raw) & stage_module.OPERATIONAL_CONFIG_FIELDS)
+    config = stage_module.load_config()
+    assert config["paths"]["cache_v2_root"] == (
+        stage_module.REPO_ROOT / "results" / "cache_v2"
+    ).resolve()
+    assert config["cuda"] == stage_module.PROJECT_EXECUTION_POLICY["cuda"]
+
+
+def test_formal_selector_reference_is_consumed_and_frozen(tmp_path):
+    config_path, repository_root = _write_formal_config(tmp_path, lambda _config: None)
+    selector_path = (
+        config_path.parent / "target_direct_formal_v2/selectors/b_param_hutch.yaml"
+    )
+    selector = yaml.safe_load(selector_path.read_text(encoding="utf-8"))
+    selector["parameters"]["hutchinson"] = {"probes": 64}
+    selector_path.write_text(yaml.safe_dump(selector, sort_keys=False), encoding="utf-8")
+    with pytest.raises(stage_module.TargetDirectStageError, match="frozen method defaults"):
+        stage_module.load_config(config_path, repository_root=repository_root)
 
 
 def test_direct_selection_rejects_unequal_cache_roots(tmp_path):
@@ -462,8 +490,8 @@ def test_selection_receipt_binds_cold_warm_checkpoint_and_timings(tmp_path):
         "0.05": 94,
     }
     assert receipt["formal_score_count"] == 17
-    assert receipt["score_bundle_cold_total_seconds"] == 3.0
-    assert set(receipt["score_bundle_warm_read_seconds"]) == {
+    assert receipt["method_scores_cold_total_seconds"] == 51.0
+    assert set(receipt["method_scores_warm_read_seconds"]) == {
         "0.01_warm",
         "0.05_cold_projection",
         "0.05_warm",

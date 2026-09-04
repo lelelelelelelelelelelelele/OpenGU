@@ -1287,3 +1287,15 @@ commands, manual actions, path layout, each runner, fingerprint component
 comparison, pending delta, last transfer result, final checksum verification,
 and trusted results-table status.
 Reports older than 24 hours are flagged by `doctor` as stale.
+
+### Target-direct method Score receipts (AAGU-026)
+
+The active selection summary and receipt use version 3. Each of the 17 methods
+owns an exact Score identity in `method_scores` / `method_score_identities`.
+The second deletion ratio reuses those same method Scores, while each ratio
+owns its Selection projection. Cold/warm validation checks every method's
+producer invocation, identity, and timing; totals are timing aggregates only.
+The frozen YAML and its registered SHA were updated together. This contract
+change does not authorize a formal run or widen the approved matrix. See the
+[modular consumer guide](../../docs/modular_experiments.md) for the independent
+local verification entry and exact existing-Selection input.

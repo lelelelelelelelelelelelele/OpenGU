@@ -99,6 +99,9 @@ def load_selection_artifact(
     candidate_nodes: Sequence[int],
     expected_selector: Optional[str] = None,
     expected_k: Optional[int] = None,
+    expected_dataset_fingerprint: Optional[str] = None,
+    expected_graph_fingerprint: Optional[str] = None,
+    expected_parameters: Optional[Mapping[str, Any]] = None,
 ) -> LoadedSelectionArtifact:
     root = Path(store_root).expanduser()
     if not root.is_absolute():
@@ -119,6 +122,13 @@ def load_selection_artifact(
     recipe = ArtifactRecipe(fields, recipe_version=recipe_wrapper["recipe_version"])
     if recipe.recipe_hash != candidate.get("recipe_hash"):
         raise CacheResolutionError("indexed Recipe does not match requested Artifact")
+    for name, expected in (("dataset_fingerprint", expected_dataset_fingerprint),
+                           ("graph_fingerprint", expected_graph_fingerprint)):
+        if expected is not None and fields.get(name) != expected:
+            raise CacheResolutionError("Selection " + name + " mismatch")
+    for name, expected in dict(expected_parameters or {}).items():
+        if (fields.get("selector_parameters") or {}).get(name) != expected:
+            raise CacheResolutionError("Selection parameter " + name + " mismatch")
 
     producer_mapping = _decode_exact_mapping(
         candidate.get("producer_version"), "indexed producer version"

@@ -387,8 +387,8 @@ class GNNDeleteTrainer(BaseTrainer):
             'unlearning_model': self.args["unlearning_model"],
             'dataset': self.args["dataset_name"],
             'log': []}
-        self.model = self.model.to('cuda')
-        self.data = self.data.to('cuda')
+        self.model = self.model.to(self.device)
+        self.data = self.data.to(self.device)
 
         best_metric = 0
         

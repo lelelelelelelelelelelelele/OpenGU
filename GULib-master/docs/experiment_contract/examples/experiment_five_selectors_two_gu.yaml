@@ -1,0 +1,18 @@
+kind: experiment
+schema_version: 1
+experiment_id: five-selectors-two-gu
+round: 1
+stage: unlearning
+dataset_ref: dataset_cora.yaml
+selector_refs:
+  - selector_degree.yaml
+  - selector_b_hutch32.yaml
+  - selector_b_hutch64.yaml
+  - selector_tracin.yaml
+  - selector_r_point.yaml
+unlearning_refs:
+  - unlearning_gnndelete.yaml
+  - unlearning_gif.yaml
+evaluation_refs:
+  - evaluation_post_unlearning_utility.yaml
+matrix: cartesian_product

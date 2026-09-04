@@ -66,7 +66,7 @@ class BaseTrainer:
         self.logger = logger
         self.model = model
         self.data = data
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(args.get('device') or ('cuda' if torch.cuda.is_available() else 'cpu'))
 
     def train(self,save=False,model_path=None):
         """

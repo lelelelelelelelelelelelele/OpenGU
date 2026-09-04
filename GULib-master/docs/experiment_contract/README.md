@@ -63,7 +63,7 @@ IF 是方法分类；可执行名称须解析到具体算法定义，如 `r_poin
 | `candidate` | 候选池定义与实际有序节点身份；默认不能从“全节点”猜成“训练节点” |
 | `budget` | 比例模式或绝对 K 模式二选一；比例在 (0,1]，K 为正整数且不超过候选数；比例模式必须声明分母与取整规则 |
 | `selection_rule` | 排序方向、tie-break、去重/采样规则；结果记录实际 K 和明确节点序列 |
-| `model` / `training` | 仅模型型 selector 必填；结构、训练配置、seed；实际依赖的 checkpoint 内容身份由运行记录绑定 |
+| `model` / `training` | 模型型 selector 的有效配置必有；人工表可省略已注册的 OpenGU 默认值，也可显式覆盖；实际 checkpoint 内容身份由运行记录绑定 |
 | `parameters` | 可省略的、本方法支持的显式覆盖值；按注册默认值展开。IF 的求导范围、目标集合、loss、LiSSA/Hutch 或 TracIn 快照/权重只由真实消费者接收；未知字段拒绝 |
 | `numerics` | 方法真正依赖的 dtype、后端或确定性约定；不得机械复制整个设备环境 |
 
@@ -76,7 +76,7 @@ IF 是方法分类；可执行名称须解析到具体算法定义，如 `r_poin
 | 字段组 | 类型/约束与用途 |
 |---|---|
 | `method` | 一个已注册 GU 方法标识 |
-| `model` / `training` | 目标模型独立声明；包括结构、训练 seed/优化器/轮数和实际初始 checkpoint 依赖 |
+| `model` / `training` | 目标模型拥有独立有效配置；人工表可省略已注册默认值，包括结构、训练 seed/优化器/轮数和实际初始 checkpoint 依赖 |
 | `parameters` | 可省略的 GU 自身覆盖值，如 lr、遗忘轮数、损失；其余沿用已确认的 OpenGU/方法默认值，解析后记录完整有效值 |
 | `selection_input` | 由大表引用已验证 Selection，或引用前一阶段的输出；执行前必须解析为精确 Artifact 身份 |
 
@@ -92,9 +92,9 @@ GU 结果键依赖其实际 Selection 输入及目标模型/方法参数；改�
 | 模块引用 | 一个 Dataset/Split；Selector 配置实例集合或已有 Selection 输入（二选一）；执行到 GU 时指定 GU 实例集合 |
 | 展开规则 | 明确 Cartesian product 或列举具体行；不把展示顺序当作缓存依赖；每行引用解析后的小表 |
 | 执行终点 | `selector` 或 `unlearning`；前者不需要 GU 参数，后者可以从已有 Selection 开始 |
-| 执行绑定 | 已注册 launcher/static recipe ID、配置摘要、代码版本、运行等级、资源/数据授权、预期产物和校验流程 |
+| Evaluation 引用 | 独立 evaluation case、所需输入、指标集合和接纳约定；未实现 case 在执行前失败关闭 |
 
-每次运行单独记录 experiment/case/run/job ID、实际展开配置摘要、代码 SHA、Dataset/Split/候选/checkpoint/Selection/结果身份、执行地点、起止时间、HIT/MISS 与 producer 调用、失败或恢复记录、收集校验回执和最终科学接纳决定。未知身份写“未观察”，不能填伪造哈希。全局代码 SHA 是复现/正式运行门禁，不应无条件代替局部 producer 的缓存身份。
+Device、Store、runtime、output、launcher、代码版本门禁和资源授权属于 SyncMate／项目执行上下文，不写入科研 YAML。每次运行在独立 receipt 中记录 experiment/case/run/job ID、实际展开配置摘要、代码 SHA、Dataset/Split/候选/checkpoint/Selection/结果身份、执行地点、设备、起止时间、HIT/MISS 与 producer 调用、失败或恢复记录、收集校验回执和最终科学接纳决定。未知身份写“未观察”，不能填伪造哈希。全局代码 SHA 是复现/正式运行门禁，不应无条件代替局部 producer 的缓存身份。
 
 ## 3. 缓存变更影响合同
 
@@ -150,13 +150,14 @@ SyncMate 只负责已审阅静态 recipe 的执行连接、回执、收集和校
 
 ### 5.3 三类小表实例
 
-[examples](examples/) 使用 `schema_version: 1` 的文档示例语法，均非当前 launcher 输入；所有组合大表显式 `execution_authorized: false`，实际资产引用为 null，执行前必须补齐并验证。缺失资产不影响审阅配置差异，却必须阻止真实运行。
+[examples](examples/) 使用 `schema_version: 1`，可以由模块化入口解析；其中 Cora 数据资产摘要仍为 null，所以只可 dry-run 审阅，实际执行会失败关闭。执行授权和路径不通过向 YAML 增加字段表达，而由注册的 SyncMate recipe 与项目执行上下文提供。
 
 - `selector_b_hutch32.yaml` 与 `selector_b_hutch64.yaml` 只差采样数：同一方法两个配置表。
 - `unlearning_gnndelete.yaml` 与 `unlearning_gnndelete_lr002.yaml` 只差 GU 学习率，不能影响选点身份。
 - `experiment_selector_only.yaml` 只到 selector，不需要 GU 表。
 - `experiment_gu_from_selection.yaml` 从已验证 Selection 进入 GU，不包含 Selector 配置，也不能调用其 producer。
-- `selector_b_hutch_defaults.yaml`、`unlearning_gnndelete_defaults.yaml` 省略整个 `parameters`，分别与显式写出当前默认值的实例对应。模型、训练、候选和预算仍独立声明。这是人工表简化示例，不是生产默认值加载器或真实 HIT 的完成证据。
+- `experiment_one_selector_one_gu.yaml` 展示一个可独立运行的 `1×1×1` cell；`experiment_five_selectors_two_gu.yaml` 只是把多个同类 cell 放在一张计划中调度，不形成整包计算或缓存身份。
+- `selector_b_hutch_defaults.yaml`、`unlearning_gnndelete_defaults.yaml` 省略默认参数；模型和训练默认值也由当前生产 parser 展开。候选与预算仍是明确的科研输入。完整有效配置、来源和 checkpoint 身份保留在运行证据中。
 - 跨模型扩展只需分别声明两侧模型配置；例如 Selector 表改为已支持的 SGC 结构/训练配置，GU 仍为 GCN。当前 formal-v2 不支持自由切换，此组合需 026 验证后另行注册，不自动从 GCN YAML 继承其他模型的参数。
 
 ## 6. 001 与后续工作的边界

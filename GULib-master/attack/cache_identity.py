@@ -35,7 +35,7 @@ def producer_version(kind, paths):
 
 def strategy_version(name):
     names = [name] + (["tracin", "im"] if name == "hybrid" else [])
-    return producer_version("selection", ["attack/cache_identity.py", "attack/attack_manager.py",
+    return producer_version("selection", [
         "attack/attack_strategies/base_strategy.py"] +
         ["attack/attack_strategies/" + item + "_strategy.py" for item in names])
 
@@ -97,6 +97,29 @@ M lambda exp parameter_task dataset formal_expected_k formal_fail_closed
 
 def target_parameters(args):
     return {key: args[key] for key in sorted(TARGET_PARAMETER_NAMES) if key in args}
+
+
+def selector_training_parameters(args, model):
+    """Only supervised model training inputs; GU owns its own parameter set."""
+    config = getattr(model, 'config', None)
+    return {
+        'base_model': args.get('base_model', type(model).__qualname__),
+        'epochs': int(args.get('num_epochs', 100)),
+        'lr': float(args.get('opt_lr', getattr(config, 'lr', 0.01))),
+        'weight_decay': float(args.get('opt_decay', getattr(config, 'decay', 5e-4))),
+        'optimizer': 'Adam',
+        'seed': int(args.get('random_seed', args.get('seed', 2024))),
+        'model_layers': int(args.get('gcn_num_layers', 2)),
+        'model_hidden': int(args.get('gcn_hidden', 64)),
+    }
+
+
+def train_selector_model(model, data, parameters):
+    from experiments.modular_model import train_supervised
+    training = {'epochs': parameters['epochs'], 'lr': parameters['lr'],
+                'weight_decay': parameters['weight_decay'], 'optimizer': parameters['optimizer']}
+    train_supervised(model, data, training, (parameters['epochs'],))
+    return model
 
 
 @contextmanager
