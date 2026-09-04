@@ -27,6 +27,9 @@ results/score_cache/**/*.npz
 # reports, not in mutable SQLite indexes or payload stores.
 results/cache_v2/
 
+# Modular model checkpoints and GU working files are device-local runtime.
+/results/runtime/
+
 # Runtime logs (timestamped, large, regenerable)
 log/
 logs/
