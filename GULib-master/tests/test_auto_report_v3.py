@@ -740,33 +740,20 @@ def test_failed_attack_result_is_a_failed_terminal_event(tmp_path, monkeypatch):
     assert events[-1]["error"]["message"] == "fixture crash"
 
 
-def test_result_cache_exposes_hit_source_without_changing_get(tmp_path):
-    cache = ResultCache(cache_dir=str(tmp_path / "cache"), max_age_days=0)
-    config = {
-        "dataset_name": "cora",
-        "base_model": "GCN",
-        "unlearning_methods": "GIF",
-        "unlearn_ratio": 0.05,
-        "random_seed": 42,
-        "seed": 42,
-        "strategy_name": "degree",
-        "k": 2,
-    }
-    result = AttackResult(
-        strategy_name="degree",
-        selected_nodes=torch.tensor([1, 2]),
-        f1_before=0.9,
-        f1_after=0.8,
-        unlearn_time=1.0,
-        total_time=2.0,
-    )
-    saved_path = cache.save(result, config)
-    loaded, provenance = cache.get_with_provenance(config)
+def test_result_cache_exposes_verified_v2_hit_source(tmp_path):
+    from test_generic_cache_v2 import manager
+    from experiments.selection_inputs import make_dataset_selection_inputs
+    owner = manager(tmp_path / "v2")
+    result = owner.run_attack("degree", 2)
+    inputs = make_dataset_selection_inputs(owner.data, dataset_name="cora")
+    selection = owner.selection_cache.get(owner._selection_request("degree", 2, inputs))
+    request = owner._result_request(selection, inputs)
+    loaded, provenance = owner.cache.get_with_provenance(request)
     assert loaded is not None
-    assert provenance["source_file"] == saved_path
-    assert provenance["cache_key"] == Path(saved_path).stem
-    assert provenance["lookup_policy"] == "legacy_primary_hash"
-    assert cache.get(config) is not None
+    assert provenance["source_file"] == result.result_cache_source
+    assert provenance["cache_key"] == result.result_cache_key
+    assert provenance["lookup_policy"] == "cache_v2_exact_recipe"
+    assert owner.cache.get(request) is not None
 
 
 def test_collateral_partial_results_record_success_and_missing_failure(tmp_path, monkeypatch):
@@ -981,7 +968,7 @@ def test_runner_v2_selection_passes_one_artifact_without_legacy_fallback(tmp_pat
         selection_artifact=selection,
     ) == "completed"
     command = commands[0]
-    assert "--no_cache" in command
+    assert "--no_cache" not in command
     assert command[command.index("--selection_artifact_id") + 1] == selection["artifact_id"]
     assert command[command.index("--cache_v2_store_root") + 1] == selection["store_root"]
     assert command[command.index("--processed_root") + 1] == str(

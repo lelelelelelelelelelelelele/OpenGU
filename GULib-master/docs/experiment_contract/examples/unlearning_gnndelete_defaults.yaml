@@ -1,0 +1,6 @@
+# Documentation only: GU-specific parameters use the audited OpenGU defaults.
+kind: unlearning
+schema_version: 1
+method: GNNDelete
+model: {architecture: OpenGU.GCNNet, layers: 2, hidden_channels: 64, dropout: 0.5}
+training: {epochs: 100, optimizer: Adam, lr: 0.005, weight_decay: 0.000001, scheduler: none, seed: 42}

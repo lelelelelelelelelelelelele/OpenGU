@@ -53,6 +53,11 @@ def build_gu_config(
         "dataset": manifest["dataset"],
         "base_model": "GCN",
         "processed_profile": manifest["processed_profile"],
+        "split": {
+            key: value
+            for key, value in manifest["split_contract"].items()
+            if key != "processed_profile"
+        },
         "ratio": float(manifest["ratio"]),
         "methods": ["GNNDelete"],
         "strategies": list(manifest["strategies"]),

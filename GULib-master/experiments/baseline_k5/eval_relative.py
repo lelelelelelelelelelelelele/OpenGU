@@ -72,74 +72,16 @@ if base_dir not in sys.path:
 from parameter_parser import parameter_parser
 
 
-def find_cache_entry_for_attack(cache, args: dict, strategy_name: str):
-    import json as _json
-    target = {
-        'dataset_name': str(args.get('dataset_name', '')),
-        'base_model': str(args.get('base_model', '')),
-        'unlearning_methods': str(args.get('unlearning_methods', '')),
-        'strategy_name': strategy_name,
-    }
-    target_ratio = float(args.get('unlearn_ratio', 0.05))
-    target_seed = args.get('random_seed', args.get('seed', 2024))
-    try:
-        target_seed = int(target_seed)
-    except (TypeError, ValueError):
-        target_seed = None
-
-    cache_dir = Path(cache.cache_dir)
-    if not cache_dir.exists():
+def find_cache_entry_for_attack(manager, args: dict, strategy_name: str):
+    """Read only the exact V2 Evaluation for the live graph and target."""
+    from experiments.selection_inputs import make_dataset_selection_inputs
+    inputs = make_dataset_selection_inputs(manager.data, dataset_name=args["dataset_name"])
+    k = int(args.get("k") or max(1, int(inputs.candidate_count * args["unlearn_ratio"])))
+    selection = manager.selection_cache.get(manager._selection_request(strategy_name, k, inputs))
+    if selection is None:
         return None
-
-    target_k = args.get('k')
-    best_match = None
-    best_k = None  # track k to prefer explicit-k entries over legacy (k=None)
-
-    for fpath in cache_dir.glob('*.json'):
-        try:
-            with open(fpath, encoding='utf-8') as f:
-                data = _json.load(f)
-            c = data.get('config', {})
-            cache_seed = c.get('random_seed', c.get('seed'))
-            if cache_seed is None:
-                cache_seed = 2024
-            try:
-                cache_seed = int(cache_seed)
-            except (TypeError, ValueError):
-                continue
-
-            if target_seed is not None and cache_seed != target_seed:
-                continue
-
-            if (str(c.get('dataset_name', '')) == target['dataset_name'] and
-                str(c.get('base_model', '')) == target['base_model'] and
-                str(c.get('unlearning_methods', '')) == target['unlearning_methods'] and
-                str(c.get('strategy_name', '')) == target['strategy_name'] and
-                abs(float(c.get('unlearn_ratio', -1)) - target_ratio) < 1e-6):
-                cache_k = c.get('k')
-
-                # If target_k is specified, require exact match
-                if target_k is not None:
-                    if cache_k is None or int(cache_k) != int(target_k):
-                        continue
-                    return data.get('result', {})
-
-                # No target_k: prefer entries with explicit k over legacy (k=None)
-                if best_match is None:
-                    best_match = data
-                    best_k = cache_k
-                elif cache_k is not None and best_k is None:
-                    best_match = data
-                    best_k = cache_k
-        except Exception:
-            continue
-
-    if best_match is not None:
-        return best_match.get('result', {})
-    summary_fallback = find_summary_entry_for_attack(args, strategy_name)
-    if summary_fallback is not None:
-        return summary_fallback
-    return None
+    result = manager.cache.get(manager._result_request(selection, inputs))
+    return result.to_dict() if result is not None else None
 
 
 _SUMMARY_INDEX_CACHE = None
@@ -423,8 +365,8 @@ def main():
         
     print(f"\n[Baseline] {args['unlearning_methods']} Random K={_baseline_k} f1_after: {baseline_f1_after:.4f}\n")
     
-    from attack.result_cache import ResultCache
-    cache = ResultCache(cache_dir="./results/cache")
+    from attack import AttackManager
+    cache = AttackManager(args)
     all_results = []
     
     print("--- Strategy Evaluation ---")

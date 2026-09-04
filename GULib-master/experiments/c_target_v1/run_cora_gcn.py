@@ -25,7 +25,7 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.transforms import NormalizeFeatures
 
 from cache_v2 import ProducerVersion
-from experiments.bc_target_v2.dataset_source import (
+from experiments.planetoid_source import (
     canonical_data_root,
     resolve_planetoid_public_source,
     validate_public_split,
@@ -214,7 +214,7 @@ def main(argv: Sequence[str] = None) -> int:
         Path(__file__).with_name("core.py"),
         Path(__file__).with_name("recipe.py"),
         Path(__file__).with_name("score_store.py"),
-        REPO_ROOT / "experiments" / "bc_target_v2" / "dataset_source.py",
+        REPO_ROOT / "experiments" / "planetoid_source.py",
     )
     code_fingerprint = source_fingerprint(source_paths)
     split_tensor = torch.stack(

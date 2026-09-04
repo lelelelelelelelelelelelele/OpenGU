@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AAGU-023 · Legacy evidence inventory and archive</title><style>
+:root{color-scheme:light;--ink:#193039;--muted:#536c74;--accent:#126b63;--line:#ccd9d6}
+*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:var(--ink);font:16px/1.7 system-ui,"Microsoft YaHei",sans-serif}
+main{max-width:1200px;margin:24px auto 60px;padding:0 24px}h1{font-size:26px;line-height:1.3;margin:0 0 8px}
+.meta{color:var(--muted);font-size:14px;margin-bottom:18px}section{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;margin:18px 0}
+h2{font-size:21px;margin:0 0 14px}h3{font-size:17px;margin:0 0 12px;color:var(--accent)}p{margin:0 0 14px}
+ul,ol{padding-left:22px}li{margin-bottom:10px}a{color:#006b78;text-underline-offset:3px}code{font-size:.88em;overflow-wrap:anywhere;background:#edf2ef;padding:1px 4px;border-radius:3px}
+.human{border-top:5px solid var(--accent)}.human-grid{display:grid;grid-template-columns:1fr 1.25fr .85fr;gap:24px}.human-grid>div{min-width:0}
+.human-grid ul{margin-top:0}.human-grid p,.human-grid li{font-size:15px;line-height:1.65}.human-grid>div+div{border-left:1px solid var(--line);padding-left:24px}
+[data-workblock-decision]{display:inline-block;background:#fff0ba;color:#604b00;font-weight:700;padding:5px 15px;border-radius:20px;margin-bottom:8px}
+blockquote{margin:8px 0 14px;border-left:3px solid var(--line);padding-left:15px}.table-wrap{overflow-x:auto;margin:18px 0}table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}th{background:#eef3ef}td code{font-size:13px}section:last-child{font-size:14px;color:var(--muted)}
+@media(max-width:800px){main{padding:0 12px;margin-top:16px}h1{font-size:22px}.human-grid{display:block}.human-grid>div+div{border-left:0;border-top:1px solid var(--line);padding:18px 0 0;margin-top:18px}section{padding:18px}}
+</style></head><body><main><h1>AAGU-023 · Legacy evidence inventory and archive</h1><div class="meta">Formal · data / lifecycle / integration · 原始证据可追溯 · 零删除</div><section class="human" data-workblock-human-result="2.1"><h2>Human Result</h2><div class="human-grid"><div><h3>实际增量</h3><p>本机和 SSH 已完成三轮零删除归档：失败的 full-v4 工程尝试、三个 Legacy Cache 根，以及追加授权的 16 个旧 V2 Artifact（含专属索引）。共 <strong>1,115 个文件 / 26,040,188 bytes</strong> 从旧活动位置移入可恢复归档。本候选将实际操作、原始账本、保留项和新复核纳入同一份正式验收报告。</p>
+</div><div><h3>核心观察</h3><ul>
+<li><strong>PASS · 保全与配对</strong>：09-04 双端只读复核，1,115 个归档文件哈希全匹配，共享 manifest/ledger 一致。见<a href="evidence/ARCHIVE_REVIEW.md">归档总览</a>与<a href="evidence/archive/observation-20260904-r2.json">双端复核</a>。</li>
+<li><strong>PASS · 隔离</strong>：双端三个 Legacy 原目录均不存在；旧 V2 的活动索引与 Artifact 路径已移出，SSH 冻结标记原样保留。没有改写 payload/header/SQL，也没有删除文件。</li>
+<li><strong>边界清楚</strong>：归档不等于新实验已完成科学替代；未清空其他历史 results。正常缓存代码修复属于 AAGU-025。</li>
+</ul>
+</div><div><h3>当前决定</h3><blockquote>
+<p>当前验收决定：<span data-workblock-decision="accepted">接受</span></p>
+</blockquote>
+<p>Agent <strong>建议接受</strong>本次明确范围的归档与证据整理：原入口隔离、字节保全和双端账本均有实际观察支持。由用户决定接受或返工；当前停在 <code>awaiting_acceptance</code>，未合并、推送或部署。接受不授权永久删除、恢复旧缓存或重跑实验。</p>
+</div></div></section><section><h2>Data · 从哪里移到哪里</h2><p>本机项目根：<code>E:/project/OpenGU/GULib-master</code>；SSH 项目根：<code>/autodl-fs/data/OpenGU/GULib-master</code>。以下路径相对于各设备项目根。两边文件群体不同，账本一致不等于 payload 相同。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+  <th>批次</th>
+  <th>旧活动位置</th>
+  <th>可恢复归档位置</th>
+  <th style="text-align:right">本机文件 / bytes</th>
+  <th style="text-align:right">SSH 文件 / bytes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>full-v4 / Cora / seed42 失败尝试</td>
+  <td><code>results/runs/__syncmate_small_selection_gu_full_v4__</code></td>
+  <td><code>results/_archive_aagu023_20260903/gu-full-v4-cora-seed42</code></td>
+  <td style="text-align:right">0 / 0</td>
+  <td style="text-align:right">68 / 3,836,309</td>
+</tr>
+<tr>
+  <td>ResultCache</td>
+  <td><code>results/cache</code></td>
+  <td><code>results/_archive_aagu023_20260904/legacy_cache/cache</code></td>
+  <td style="text-align:right">8 / 59,952</td>
+  <td style="text-align:right">783 / 6,239,427</td>
+</tr>
+<tr>
+  <td>SelectionCache</td>
+  <td><code>results/selection_cache</code></td>
+  <td><code>results/_archive_aagu023_20260904/legacy_cache/selection_cache</code></td>
+  <td style="text-align:right">9 / 19,696</td>
+  <td style="text-align:right">110 / 366,313</td>
+</tr>
+<tr>
+  <td>ScoreCache</td>
+  <td><code>results/score_cache</code></td>
+  <td><code>results/_archive_aagu023_20260904/legacy_cache/score_cache</code></td>
+  <td style="text-align:right">26 / 697,912</td>
+  <td style="text-align:right">74 / 2,654,028</td>
+</tr>
+<tr>
+  <td>旧 V2</td>
+  <td><code>results/cache_v2</code> 下的精确旧存储单元</td>
+  <td><code>results/_archive_aagu023_20260904/v2_retired/cache_v2</code></td>
+  <td style="text-align:right">32 / 983,515</td>
+  <td style="text-align:right">5 / 11,183,036</td>
+</tr>
+</tbody>
+</table></div>
+<p>新 V2 活动根仍是 <code>results/cache_v2</code>，没有换运行目录。改变的是旧存档被移出：本机 <code>c_target_v1</code>、<code>bc_target_v2</code> 整组归档；SSH 的旧 <code>index.sqlite</code>、<code>artifacts</code>、<code>producer_counter.json</code>、<code>trace.jsonl</code> 原样归档。<code>legacy_freeze.json</code> 留在 SSH 原处，992 bytes，哈希见双端复核。</p>
+<p>“保留索引”指旧 SQLite 文件与其旧 Artifact 一起进归档，不是在活动入口保留可命中的数据库。6 个本机 C-target Score、9 个 BC-target Score、1 个 SSH degree Selection，共 16 个 Artifact；37 是含索引和旧运行记录的物理文件数。</p>
+</section><section><h2>Lifecycle · 先登记，再移动，再核对</h2><ol>
+<li><strong>09-03 SSH 恢复后</strong>：核查 full-v4 身份、队列与引用，先登记 intent/ledger，再移动 68 文件。计算进程退出 0，但队列协议失败 <code>recipe stdout is not one JSON object</code>。保留 17 个 GNNDelete / Cora / GCN / seed42 / k7 单元及原 SHA，不伪造成功实验。</li>
+<li><strong>09-04 Legacy 三根</strong>：用户明确归档不必等 025 验收。双端登记共同 manifest/ledger 后，分别移动 43 与 967 文件。此阶段 V2 完全未动。</li>
+<li><strong>09-04 旧 V2</strong>：用户进一步明确“挪进一个文件夹，不永久删除”。对 16 个已审计 Artifact、三个无 consumer_refs 的专属索引及旧运行记录先登记，再整组移动；不执行 SQL，不改 ID、header 或 payload。</li>
+<li><strong>本次候选返工</strong>：恢复原分支和同一个 Claim，保存 27 份原始审计文件。09-04 18:23（北京时间）只读复核本机 75 个归档文件、SSH 1,040 个归档文件及 1 个保留冻结标记，均与原始哈希匹配。</li>
+</ol>
+<p>完整审计链：<a href="evidence/archive/ssh-rework-20260903/paired-ledger-final.json">full-v4 账本</a>、<a href="evidence/archive/cache-archive-20260904/ledger-final.json">Legacy 账本</a>、<a href="evidence/archive/v2-archive-20260904/ledger-final.json">旧 V2 账本</a>。复核器检查原收据字节、manifest/prepared-ledger 绑定、双端登记早于首次移动、最终发布哈希与实际文件。</p>
+<p>旧报告的“SSH 不可达”“0 移动”“等 025 后归档”和 blanket <code>REPLACED</code> 限制已被后续观察或明确授权取代。原收据保留当时文本；<code>REPLACED</code> 仍指科学替代，不能把历史归档冒充新科学证据。</p>
+</section><section><h2>Integration · 为什么旧缓存不会从原入口命中</h2><p>在归档后查询原 Artifact，期待旧活动索引不可访问。实际 <a href="evidence/archive/v2-archive-20260904/local-lookup-check.json">15 个本机查询</a>与 <a href="evidence/archive/v2-archive-20260904/ssh-lookup-check.json">1 个 SSH 查询</a>均得到 <code>IndexNotFoundError</code>。本次再次观察到本机活动 V2 无文件、SSH 活动 V2 只有冻结标记；没有链接或 fallback 指回归档，所以这些旧对象不能从原入口命中。<strong>PASS</strong>。</p>
+<p>不宣称旧缓存全部数值算错：部分旧 Score 含 AAGU-018 影响字段；旧 degree Selection 按协议退役，不判为数值错误。完整 ID、header、来源及消费者核查见<a href="evidence/archive/v2-archive-20260904/manifest.json">旧 V2 manifest</a>。显式打开归档索引仍能读取历史；本次不授权恢复，也不声称能阻止未来人为重新接入。</p>
+<p>代码修复与物理归档分别验收。V2 归档当时双端代码是 <code>b2c741a6e584c32e5f30bed8b64a08e08c33aa93</code>，本次 SSH 仍为该 SHA。023 原分支基线较早，<strong>不包含后来接受的 025 修复</strong>；不要在此分支运行正式实验或据此判断当前部署的缓存默认行为。接受后的 main 组合检查归 Closeout，本轮未合并或重写基线。</p>
+</section><section><h2>保留项与残余边界</h2><ul>
+<li>既有本机 2026-05-06、05-07、07-21 archives、SSH peer-layout archive、tracked 报告和 provenance 保留。</li>
+<li>混合旧 runs、ZIP、baseline 按 <a href="evidence/archive/ssh-rework-20260903/paired-ledger-final.json">09-03 locations 清单</a>保留，不升级为当前正式证据；本次没有把整个 results/runs 搬空的授权。</li>
+<li>full-v5/gate 历史工程证据保留。09-03 配对为 616/616，零缺失或不匹配；这是已保存的历史保全观察，不是本轮新科学实验。</li>
+<li>原 20 批次 inventory/ledger 是 09-02 快照，不是当前物理位置表；当前入口是<a href="evidence/ARCHIVE_REVIEW.md">归档总览</a>。</li>
+</ul>
+<p>接受后仍须使用已接受的代码、数据与 split 身份开展新实验；历史归档不进入当前 aggregate 或论文主张。恢复须另行授权、核对哈希及精确逆向路径，原位置必须为空，不得覆盖后来产生的新缓存。</p>
+</section><section><h2>候选验证与复核入口</h2><ul>
+<li><a href="WORKITEM.md">权威 WorkItem</a>：formal；data / lifecycle / integration；用户决定。</li>
+<li>source branch：<code>refs/heads/codex/aagu-023-legacy-evidence-archive</code>；原基线 <code>3ec3d56476f008f7bfc94b4e62a70efd239be6e2</code>；旧候选 <code>2f9dd79d19a81b91c1b3ec7aeaba0b03245f8996</code>。</li>
+<li>内容检查点 <code>ba50b19f247a61cfcbff6c8f839f0a104fecba29</code> 提交后验证：5 项复核器测试、27 文件证据包/哈希链/计数检查、dashboard projection、clean status、diff check 均 PASS。双端观察绑定原始文件 SHA 与时间戳，不运行旧实验代码。</li>
+<li>最终候选是本报告及状态投影提交后的同分支 clean HEAD，完整 OID 由交付回执提供。后续差异仅报告、渲染器、状态及验证说明，沿用上述数据验证，另查人类表面、链接、渲染一致性与 dashboard。</li>
+<li>原 <code>67be158e77460a26ca3aaa201f0eeb3fc1815a05</code> 的 21 项 inventory/guard 检查只复用为未变代码的历史回归证据，不代替新归档核验。</li>
+<li>新复核器首轮曾误读 protected 根和账本位置而报 FAIL；修正脚本后 r2 双端 PASS。失败观察和解释保留在<a href="evidence/ARCHIVE_REVIEW.md">开发记录</a>，未为检查通过而改动实验数据。</li>
+<li>HTML 视觉检查：<code>NOT OBSERVED</code>。本轮内置浏览器安全策略拒绝本地 file URL；未绕过策略或换浏览器。MD/HTML 由同源渲染器生成，结构、一致性与链接另有静态检查，但不冒充视觉 PASS。本轮没有新正式实验、payload 移动或永久删除。</li>
+</ul>
+<p>最终 ledger SHA-256：full-v4 <code>8039295f509cedbab7e13de7364250670b44f2fcac52eca877efdee2dbb1ecc9</code>；Legacy <code>cb8b23678d0f0e33feaa2ce64b27c944674dd484bc2de770a58eadf9be5418c2</code>；旧 V2 <code>c99fef13f5eccb0886aee69d147d11d12dd37f6076e5ba42e0a8ce589da4b103</code>。完整性清单：<a href="evidence/archive/index.json">archive/index.json</a>。</p>
+</section></main></body></html>

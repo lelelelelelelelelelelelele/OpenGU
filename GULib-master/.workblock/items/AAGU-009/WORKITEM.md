@@ -1,12 +1,12 @@
-# AAGU-009 · FIX · L8 Collateral Evidence
+# AAGU-009 · FIX · IF-family 参数写回与 Collateral 评估代码修复
 
 Block ID: `AAGU-009`
 
-Item Version: 2.0
+Item Version: 2.1
 
 当前状态: `working / claimed`
 
-> Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
+> Apply target ref：`refs/heads/main`
 
 > Git baseline：`6be95c74f230cbfcb6a99d0166ba8b1d143e5416`
 
@@ -16,85 +16,59 @@ Execution topology: `sequential`
 
 Item Type: Block
 
+## Human Surface
+
+### 核心意图
+
+确保 GIF/IDEA 的遗忘更新实际写回评估使用的模型，使 collateral 评估比较的是遗忘后模型与完整重训练模型。009 只交付代码修复和本地软件验证；修复代码不等于历史实验结果已恢复可信。
+
+### 本次增量
+
+复核并整合已有 IF-family 参数写回修复及实际加载代码检查，移除会原地删除、覆盖旧结果的活动修复 helper，补齐必要的本地回归。已有修复正确时保留并验证，不为制造增量重复改写算法。SSH 配置、部署、正式 GPU 重跑、历史产物隔离、结果收集和研究证据验收统一转交 AAGU-027。
+
+### 核心验收
+
+- 本地隔离的模型/参数 fixture 证明 GIF 和 IDEA 的更新确实进入 collateral 消费的模型；验证未写回时能够失败，不能只匹配源码注释。
+- 实际加载路径与实现身份可核对；废弃的原地删除或覆盖结果路径不再是活动入口。
+- 相关代码回归通过，形成可审阅的软件候选和验证说明；不要求正式数据、SSH 或 GPU 实验作为 009 的验收条件。
+- 旧 collateral/hop 数值保持未验证；本 Block 的接受不构成新实验批准或历史研究证据接受。
+
 ## Orchestration contract
 
 - Class: `FIX`
 - Priority: `P0 / first repair`.
-- Source anchor: legacy collateral-evidence redo Todo.
-- Outcome: replace invalid or incomplete L8 collateral evidence through a separately accepted repair run.
-- Fact owner: OpenGU DocMap rerun/cache-fix runbook; executable identity remains in the final registered recipe.
-- Relations: no dependency on `AAGU-001` or `AAGU-002`; `AAGU-010` starts only after this Block's repaired evidence is explicitly accepted.
+- Source anchor: L8 IF-family write-back defect and the user's 2026-09-04 separation of software repair from experiment execution.
+- Outcome: verified software repair only; replacement research evidence belongs to [AAGU-027](../AAGU-027/WORKITEM.md).
+- Fact owner: [this WorkItem](WORKITEM.md) owns the software scope; [L8](../../../self/limitations.md#l8-hop-distance-decay-collateral-if-family-数值-bug-affected) retains the historical defect explanation.
+- Relations: 009 software repair has no dependency on `AAGU-001` or `AAGU-002`. `AAGU-027 depends_on AAGU-009` and `AAGU-027 depends_on AAGU-001`; `AAGU-010` consumes accepted evidence from AAGU-027.
 
 ## Acceptance route proposal
 
 - Route: `formal`.
-- Primary surface: `research evidence repair`.
-- Minimum evidence: corrected runtime identity, complete artifacts, regression checks, and explicit acceptance.
-- Confirmation: user explicitly authorized starting AAGU-009 after correcting the spurious experiment-definition/device dependency.
-- Report size: paired `REPORT.md` / `REPORT.html`, because the decision concerns formal research evidence and invalid historical outputs.
-## Confirmed acceptance brief
-
-### 当前基线
-
-GIF/IDEA 的参数写回代码已经修复，但历史 120 个 Cora collateral cell 仍来自修复前语义；旧 helper 还会原地删除或覆盖结果，因此现有数字不能重新获得信任。
-
-### 这次增量
-
-冻结精确受影响范围，保留并隔离旧输出，在一个可复核的 clean full-SHA 运行身份下重新生成 GIF/IDEA collateral evidence，完成收集、完整性校验和单独接受。
-
-### 完成后人会看到什么
-
-GIF/IDEA × GCN/GAT × 6 strategies × 5 seeds 的 120 个修复后 collateral cell 具有完整、可追溯且不与旧污染结果混淆的证据，新结果可以被明确接受或拒绝。
-
-### 验收项目
-
-- 受影响范围严格限定为 120 个 IF-family collateral cell；Selection/Result cache 与其他 GU method 不被失效或改写。
-- 历史完整 leaf 被可逆隔离且保持原样；新 active leaf 由 canonical runner 完整重建，不会把局部重算冒充为原运行身份。
-- 隔离前后的 `attack.json.selected_nodes` 必须逐格相等（120/120），证明删除请求没有漂移。
-- 120 个新 cell 的 runtime/config/Git 身份一致，产物完整可解析，collateral 与 hop-decay 字段通过回归和正式 gate。
-- 收集后的 SHA-256、trusted index 与结果 read-back 一致；旧污染数字继续保持 invalid，直到本候选被明确接受。
-
-### 主要证据
-
-- 受影响范围与隔离清单：帮助判断旧证据是否被完整冻结且没有扩大破坏范围。
-- 正式重跑与 gate 证据：帮助判断 120 个 cell 是否真正使用修复后 IF-family 状态生成。
-- SyncMate 收集、校验与 trusted read-back：帮助判断本地接受面是否对应远端同一批产物。
-
-### 关键 non-goals
-
-- 不修改 selector、SelectionCache、attack 结果或其他 GU method；不在本 Block 修复 aggregate hop 列（由 AAGU-010 独立负责）。
-- 不从修复后的数字提前形成论文机制结论，也不删除历史证据。
-
-### 需要人的决定
-
-结果尚未观测。完成 Verify 后由用户明确接受、返工或拒绝这批修复证据。
+- Primary surface: `software correctness / evaluation integration`.
+- Minimum evidence: actual model write-back and consumer checks, loaded-source identity, targeted local regressions, and explicit software acceptance.
+- Confirmation: user authorized narrowing 009 to code repair; retain the explicit human decision route without a formal experiment requirement.
+- Report size: paired `REPORT.md` / `REPORT.html` at the software candidate stage; do not present old experiment data as current evidence.
 
 ## Boundaries
 
-- Do not mutate or delete historical artifacts. The only permitted runner-side action is the exact whole-leaf quarantine and no-`--force` rerun defined in `evidence/repair-scope.yaml`.
-- Formal execution requires one clean full Git SHA, the registered runtime/config identity, at least one GPU, the intended interpreter, and complete collection/read-back; fail closed rather than falling back to CPU.
-- AAGU-010, paper conclusions, selector changes, and unrelated result/cache repair remain outside this Block.
+- Scope permits software changes and isolated local regression tests only. No formal experiment, SSH setup/write, deployment, historical leaf movement, result collection, or payload/cache mutation is part of 009.
+- Tests and any definition-only dry-run verify software; they must not become a training, evaluation, ranking, or timing experiment under another name.
+- All formal execution, including the former 120-cell repair proposal, waits for the accepted AAGU-001 experiment framework and a separately approved current experiment contract in AAGU-027.
+- AAGU-010 aggregation, paper conclusions, selector changes, and unrelated repairs remain outside this Block.
+
+## Existing candidate and restart boundary
+
+- Preserve the existing Claim and `working / claimed` state; this scope revision is neither a new Claim nor acceptance.
+- The parked source `codex/aagu-009-collateral-evidence` retains implementation `532b5ea` and the 2026-08-31 local verification record (44 passed). These are historical software evidence, not verification against today's main.
+- Before software execution resumes, incorporate this canonical scope and current main into the same source and revalidate the affected code. The former Apply target and source-side formal rerun contract are superseded by this Record.
+- The old source-side `evidence/repair-scope.yaml` and preflight notes are historical planning/observations only. Their 120-cell matrix, SSH blockers and move/rerun steps are not a current execution authorization. AAGU-027 must re-establish its experiment identity after AAGU-001.
 
 ## Status history
 
 - 2026-08-26: registered from the prominent collateral repair Todo.
 - 2026-08-26: corrected the registration-time `AAGU-002 -> AAGU-009` projection error; the legacy E2 repair lane has no AAGU-001/AAGU-002 task dependency.
-- 2026-08-26: claimed by the current Codex task after the user explicitly said to perform the AAGU-009 repair.
-- 2026-08-26: local inventory confirmed the exact 120-leaf scope and retired the destructive partial-redo route. Formal preflight failed closed because the Apply target is not yet accepted into `main`, `.syncmate/device.yaml` is absent, the active SSH aliases refuse connection, and AAGU-004/AAGU-006 remain active.
-- 2026-08-31: upgraded this same Record to Item Version 2.0, stabilized the current Campaign baseline, removed the spurious AAGU-002 relation, and moved the committed source branch back to canonical A without changing the Claim identity.
-- 2026-08-31: refreshed the local and remote preflight after merging the Campaign baseline. The focused regression suite passed 44/44, the write-back verifier passed, and both registered configs expanded successfully in read-only dry-run mode. Formal execution remains blocked before mutation because local `main` differs from `origin/main`, the Apply target is not landed, `.syncmate/device.yaml` is missing, `autodl-opengu` refuses the connection, AAGU-004/AAGU-006 await acceptance, and remote GPU/data/leaf readiness is therefore `NOT OBSERVED`.
+- 2026-08-26: claimed after the user explicitly said to perform the AAGU-009 repair; the preserved Claim remains the runtime identity for recovery.
+- 2026-09-04: 用户要求把 009 收窄为代码修复，将正式实验与 SSH 工作拆至 AAGU-027，并明确所有实验运行都在 AAGU-001 实验框图之后。本次按该语义修订同一 Record、补齐 2.1 Human Surface 并将 Apply target 对齐当前 main；保留原 Claim、历史和进行中状态，没有执行代码修复、实验或验收。
 
-## Claim and runtime record
-
-- Stable locator: `.workblock/items/AAGU-009/WORKITEM.md`; this task owns only Block `AAGU-009`.
-- Baseline: `6be95c74f230cbfcb6a99d0166ba8b1d143e5416` on `refs/heads/codex/e7-two-surrogate-groups-20260805`.
-- Source branch/worktree: `codex/aagu-009-collateral-evidence` at canonical A `E:\project\OpenGU\GULib-master`.
-- Inherited state: accepted AAGU-018 is already on the Apply target. The existing IF-family write-back fix is inherited and must be re-proven against the formal runtime before rerun.
-- Excluded state: the separate AAGU-006 candidate/worktree and AAGU-004 acceptance decision are not owned or modified here; AAGU-010 remains independently accepted follow-up work.
-- Runtime profile: Git-backed local repair candidate plus formal SSH evidence execution. Tracked writes are limited to AAGU-009 orchestration/repair tooling, focused tests, this item package, and the user-authorized AAGU-010 priority projection.
-- External boundary: the user authorized the AAGU-009 repair. No deletion, overwrite, CPU fallback, unrelated cache invalidation, push, Apply, or acceptance is authorized; remote result changes must be exact-scope and reversible.
-- Candidate: local implementation and regression evidence are green at `2f5044f567368f7a02a1274daa0881521f6a400c`; the formal research-evidence candidate remains pending until remote rerun, collection, gate, and read-back converge.
-- Evidence paths: `.workblock/items/AAGU-009/evidence/`, the formal run root selected by the repair profile, and verified SyncMate trusted outputs.
-- Human surface: `.workblock/items/AAGU-009/REPORT.md` and `.workblock/items/AAGU-009/REPORT.html` after Verify.
-- Policy: `.workblock/policy.json`; after explicit acceptance, closeout routes to remote `push` and skips install.
-- Restart point: first align the explicitly accepted code on local `main`, `origin/main`, and the SSH active checkout; restore the registered SyncMate device identity and SSH reachability; then observe GPU/data plus the 120 target/240 non-target remote leaf inventory. Only after every precondition in `evidence/repair-scope.yaml` passes may the run quarantine exactly 120 whole leaves and execute the two canonical configs without `--force`.
+- 2026-09-04: 用户确认 009 范围内 Legacy 入口若仍存在即可继续。恢复同一 source 分支并纳入 main@dac6fd52345f173b29f45563e4ede7d84a2a11e9 的最新软件范围，保留原 baseline 和 Claim；仅为修复旧分支/新合同漂移进行本次源分支恢复，不 Apply、不运行实验。

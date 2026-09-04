@@ -51,6 +51,8 @@ def test_target_direct_recipe_binds_checkpoint_identity():
     )
     assert fields["target_direct"]["white_box"] is True
     assert fields["target_direct"]["target_checkpoint"]["state_hash"] == SHA
+    assert fields["data_identity"]["split_hash"] == SHA
+    assert fields["candidate_set"]["ordered_ids_hash"] == SHA
     projection = fields["target_direct"]["budget_projection"]
     assert projection["semantics"] == "prefix_stable_budget_independent"
     assert projection["supported_ratios"] == [0.01, 0.05]

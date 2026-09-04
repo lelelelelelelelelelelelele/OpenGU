@@ -91,7 +91,7 @@ def _update_phase_state(current_phase, current_strategy, line):
     if match:
         return "selection", _normalize_strategy_name(match.group(1))
 
-    if "Selection took" in stripped or "[SelectionCache] HIT" in stripped:
+    if "Selection took" in stripped or "[CacheV2] HIT selection" in stripped:
         return "unlearning", current_strategy
 
     if "Unlearning took" in stripped:

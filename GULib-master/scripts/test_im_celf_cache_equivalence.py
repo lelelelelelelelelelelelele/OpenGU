@@ -3,7 +3,7 @@ Equivalence + caching tests for the IM CELF refactor (fix/im-celf-shared-cache).
 
 Verifies four properties on cora:
   1. parallel-MC numba kernel produces the same selected nodes as serial.
-  2. Cache MISS → compute → SAVE writes a valid npz to results/score_cache/im_celf/.
+  2. Cache MISS → compute → SAVE writes a valid npz to the disposable V2 Score store.
   3. Cache HIT path returns the same selected nodes + scores as the MISS path.
   4. Cache key is method-agnostic and GU-seed-agnostic: changing
      `unlearning_methods` or the GU `seed` arg between runs still hits
@@ -82,17 +82,15 @@ def _build_strategy(args, parallel_mc, enable_cache, cache_dir, override=None):
     a = dict(args)
     a["im_parallel_mc"] = parallel_mc
     a["enable_score_cache"] = enable_cache
-    a["score_cache_dir"] = cache_dir
+    a["cache_v2_store_root"] = cache_dir
     if override:
         a.update(override)
     return IMStrategy(a)
 
 
 def _list_celf_cache(cache_dir):
-    p = os.path.join(cache_dir, "im_celf")
-    if not os.path.isdir(p):
-        return []
-    return sorted([f for f in os.listdir(p) if f.endswith(".npz")])
+    from pathlib import Path
+    return sorted(str(p) for p in (Path(cache_dir) / "artifacts/score").glob("*/payload.npz"))
 
 
 def main() -> int:

@@ -7355,31 +7355,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
-        "opengu-small-selection-mvp-v1",
-        "opengu-small-selection-dataset-gate-v1",
-        "opengu-small-selection-full-v1",
-        "opengu-small-selection-gu-gate-v1",
-        "opengu-small-selection-gu-gate-v2",
-        "opengu-small-selection-gu-gate-v3",
-        "opengu-small-selection-gu-gate-v4",
-        "opengu-small-selection-gu-gate-v5",
     ]
-    expected_recipes.extend(
-        "opengu-small-selection-gu-{0}-v2".format(stage)
-        for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
-    )
-    expected_recipes.extend(
-        "opengu-small-selection-gu-{0}-v3".format(stage)
-        for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
-    )
-    expected_recipes.extend(
-        "opengu-small-selection-gu-{0}-v4".format(stage)
-        for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
-    )
-    expected_recipes.extend(
-        "opengu-small-selection-gu-{0}-v5".format(stage)
-        for stage in sm.SMALL_SELECTION_GU_FULL_STAGES
-    )
     expected_recipes.extend(
         "opengu-target-direct-selection-{0}-v2".format(stage)
         for stage in sm.TARGET_DIRECT_STAGES
@@ -7738,203 +7714,6 @@ def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
     assert "predictions.npz" in definition["expected_artifact_paths"][2]
 
 
-def test_small_selection_runner_recipes_are_fixed_three_stage_configs():
-    mvp = sm.runner_recipe_definition("opengu-small-selection-mvp-v1")
-    dataset_gate = sm.runner_recipe_definition("opengu-small-selection-dataset-gate-v1")
-    full = sm.runner_recipe_definition("opengu-small-selection-full-v1")
-
-    assert mvp["argv"] == [
-        "{python}",
-        "-m",
-        "experiments.bc_target_v2.syncmate_recipe",
-        "--config",
-        "experiments/configs/syncmate_small_selection_mvp_v1.yaml",
-        "--json",
-    ]
-    assert mvp["preflight_profile"] == "small-selection-4090-v1"
-    assert mvp["git_binding_policy"] == "job-exact-main-v1"
-    assert mvp["requires_job_expected_git_sha"] is True
-    assert mvp["execution_validator"] == "exact-artifacts-json-v1"
-    assert mvp["collector_profile"] == "small-selection-v1"
-    assert len(mvp["expected_artifact_paths"]) == 3
-    assert len(dataset_gate["expected_artifact_paths"]) == 9
-    assert len(full["expected_artifact_paths"]) == 27
-    assert full["selection_matrix"] == {
-        "datasets": ["Cora", "CiteSeer", "PubMed"],
-        "seeds": [42, 212, 2024],
-        "score_count": 17,
-    }
-    assert all(
-        path.startswith(sm.SMALL_SELECTION_OUTPUT_ROOT + "/cells/")
-        for path in full["expected_artifact_paths"]
-    )
-
-
-def test_small_selection_gu_runner_recipe_is_exact_and_collectable():
-    definition = sm.runner_recipe_definition("opengu-small-selection-gu-gate-v5")
-
-    assert definition["argv"] == [
-        "{python}",
-        "-m",
-        "experiments.gu_target_v1.syncmate_recipe",
-        "--config",
-        "experiments/configs/syncmate_small_selection_gu_gate_v5.yaml",
-        "--json",
-    ]
-    assert definition["git_binding_policy"] == "job-exact-main-v1"
-    assert definition["requires_job_expected_git_sha"] is True
-    assert definition["execution_validator"] == "exact-artifacts-json-v1"
-    assert definition["collector_profile"] == "small-selection-gu-v1"
-    assert definition["collector_artifact_names"] == [
-        "attack.json", "collateral.json", "predictions.npz", "_meta.json"
-    ]
-    assert definition["expected_artifact_paths"] == list(
-        sm.SMALL_SELECTION_GU_V5_EXPECTED_ARTIFACTS
-    )
-    assert definition["gu_gate"] == {
-        "dataset": "Cora",
-        "base_model": "GCN",
-        "gu_method": "GNNDelete",
-        "selector": "degree",
-        "seed": 42,
-        "k": 7,
-        "lane": "controlled_public_profile_gu",
-        "scientific_comparison": False,
-    }
-
-
-def test_small_selection_gu_stage_recipes_are_exact_bounded_and_collectable():
-    definition = sm.runner_recipe_definition(
-        "opengu-small-selection-gu-citeseer-seed212-v5"
-    )
-
-    assert definition["argv"] == [
-        "{python}",
-        "-m",
-        "experiments.gu_target_v1.syncmate_stage",
-        "--config",
-        "experiments/configs/syncmate_small_selection_gu_full_v5.yaml",
-        "--stage",
-        "citeseer-seed212",
-        "--json",
-    ]
-    assert definition["git_binding_policy"] == "job-exact-main-v1"
-    assert definition["timeout_seconds"] == sm.RUNNER_AGENT_MAX_TIMEOUT_SECONDS
-    assert definition["execution_validator"] == "exact-artifacts-json-v1"
-    assert definition["collector_profile"] == "small-selection-gu-stage-v1"
-    assert len(definition["expected_artifact_paths"]) == 68
-    assert len(definition["collector_result_roots"]) == 17
-    assert definition["gu_stage"]["selectors"] == list(
-        sm.SMALL_SELECTION_GU_FULL_STRATEGIES
-    )
-    assert definition["gu_stage"]["seed"] == 212
-    assert definition["gu_stage"]["k"] == 7
-    assert all("/seed212/" in path for path in definition["expected_artifact_paths"])
-
-
-def test_small_selection_gu_stage_acceptance_validates_all_17_cells(
-    tmp_path, monkeypatch
-):
-    repo = tmp_path / "repo"
-    sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition(
-        "opengu-small-selection-gu-cora-seed42-v5"
-    )
-    landing = "results/runs/gpu4090-gu-full"
-    items = []
-    for selector in sm.SMALL_SELECTION_GU_FULL_STRATEGIES:
-        parent = (
-            sm.SMALL_SELECTION_GU_V5_FULL_OUTPUT_ROOT
-            + "/cora_GCN_r0.05/GNNDelete_"
-            + selector
-            + "/seed42"
-        )
-        documents = {
-            "attack.json": {
-                "results": {
-                    selector: {
-                        "failed": False,
-                        "total_time": 1.0,
-                        "unlearn_time": 0.5,
-                        "selection_reuse_time": 0.001,
-                        "f1_drop": 0.1,
-                    }
-                }
-            },
-            "collateral.json": {
-                "results": [{"strategy": selector, "gap": 0.1}]
-            },
-            "_meta.json": {
-                "git_sha": "a" * 40,
-                "method": "GNNDelete",
-                "strategy": selector,
-                "seed": 42,
-                "selection_artifact": {
-                    "artifact_id": "selection_" + selector,
-                    "recipe_hash": "b" * 64,
-                    "content_hash": "c" * 64,
-                    "strategy": selector,
-                    "k": 7,
-                    "authoritative": True,
-                    "source_selection": {
-                        "profile": "grandfathered-public-selection-gt-v1"
-                    },
-                },
-            },
-        }
-        for name, document in documents.items():
-            remote = parent + "/" + name
-            local = sm.local_landing_path(landing, remote)
-            local.parent.mkdir(parents=True, exist_ok=True)
-            local.write_text(json.dumps(document), encoding="utf-8")
-            items.append(
-                {
-                    "remote_path": remote,
-                    "local_path": sm.rel(local),
-                    "sha256": sm.sha256_file(local),
-                }
-            )
-        remote = parent + "/predictions.npz"
-        local = sm.local_landing_path(landing, remote)
-        with zipfile.ZipFile(local, "w") as archive:
-            archive.writestr(selector + "__selected_nodes.npy", b"test")
-        items.append(
-            {
-                "remote_path": remote,
-                "local_path": sm.rel(local),
-                "sha256": sm.sha256_file(local),
-            }
-        )
-    sm.write_artifact_index(
-        {
-            "version": 0,
-            "updated_at": "2026-07-22T00:00:00",
-            "errors": [],
-            "peers": {
-                "gpu4090": {
-                    "node_id": "gpu4090",
-                    "landing": landing,
-                    "remote": {"git": {"sha": "a" * 40}},
-                    "summary": {"status": "verified", "indexed": 68},
-                    "items": items,
-                }
-            },
-        }
-    )
-
-    result = sm.small_selection_gu_stage_acceptance_payload(
-        definition,
-        node_id="gpu4090",
-        expected_git_sha="a" * 40,
-    )
-
-    assert result["passed"] is True
-    assert result["accepted_cells"] == 17
-    assert result["verified_artifacts"] == 68
-
-
 def test_recipe_config_hash_is_line_ending_stable(tmp_path):
     lf = tmp_path / "lf.yaml"
     crlf = tmp_path / "crlf.yaml"
@@ -7943,161 +7722,6 @@ def test_recipe_config_hash_is_line_ending_stable(tmp_path):
 
     assert sm.sha256_file(lf) != sm.sha256_file(crlf)
     assert sm.sha256_recipe_config(lf) == sm.sha256_recipe_config(crlf)
-
-
-def test_small_selection_execution_validator_rejects_missing_artifacts(tmp_path, monkeypatch):
-    repo = tmp_path / "repo"
-    sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(
-        sm,
-        "runner_recipe_binding",
-        lambda recipe: {
-            "ready": True,
-            "errors": [],
-            "observed": {"git_sha": "a" * 40},
-            "recipe": {"id": recipe},
-        },
-    )
-    recipe = "opengu-small-selection-mvp-v1"
-    definition = sm.runner_recipe_definition(recipe)
-    sm.runner_queue_submit("selection-001", recipe, expected_git_sha="a" * 40)
-
-    class Completed:
-        returncode = 0
-        stdout = json.dumps(
-            {
-                "passed": True,
-                "generated_artifacts": definition["expected_artifact_paths"],
-            }
-        )
-        stderr = ""
-
-    monkeypatch.setattr(sm.subprocess, "run", lambda *args, **kwargs: Completed())
-
-    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
-
-    assert result["status"] == "failed"
-    outcome = json.loads(
-        (sync_dir / "runner_queue" / "results" / "selection-001.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert "expected recipe artifact is missing" in outcome["reason"]
-
-
-def test_small_selection_runner_blocks_job_without_exact_git_sha(tmp_path, monkeypatch):
-    repo = tmp_path / "repo"
-    sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    monkeypatch.setattr(
-        sm,
-        "runner_recipe_binding",
-        lambda recipe: {
-            "ready": True,
-            "errors": [],
-            "observed": {"git_sha": "a" * 40},
-            "recipe": {"id": recipe},
-        },
-    )
-    sm.runner_queue_submit(
-        "selection-unpinned-001", "opengu-small-selection-mvp-v1"
-    )
-    calls = []
-    monkeypatch.setattr(
-        sm.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs))
-    )
-
-    result = sm.runner_queue_run_once({"role": "runner", "device_id": "gpu4090"})
-
-    assert result["status"] == "blocked"
-    assert not calls
-    blocked = json.loads(
-        (
-            sync_dir
-            / "runner_queue"
-            / "results"
-            / "selection-unpinned-001.json"
-        ).read_text(encoding="utf-8")
-    )
-    assert "requires an exact Git SHA" in blocked["reason"]
-
-
-def test_small_selection_collector_acceptance_binds_verified_cold_warm_receipt(
-    tmp_path, monkeypatch
-):
-    repo = tmp_path / "repo"
-    sync_dir = repo / ".syncmate"
-    monkeypatch.setattr(sm, "REPO_ROOT", repo)
-    monkeypatch.setattr(sm, "SYNC_DIR", sync_dir)
-    definition = sm.runner_recipe_definition("opengu-small-selection-mvp-v1")
-    landing = "results/runs/gpu4090-selection"
-    remote_root = sm.SMALL_SELECTION_OUTPUT_ROOT + "/cells/cora_seed42"
-    cold_remote = remote_root + "/cold.json"
-    warm_remote = remote_root + "/warm.json"
-    receipt_remote = remote_root + "/cell.json"
-    cold_path = sm.local_landing_path(landing, cold_remote)
-    warm_path = sm.local_landing_path(landing, warm_remote)
-    receipt_path = sm.local_landing_path(landing, receipt_remote)
-    cold_path.parent.mkdir(parents=True, exist_ok=True)
-    cold_path.write_text('{"cold":true}\n', encoding="utf-8")
-    warm_path.write_text('{"warm":true}\n', encoding="utf-8")
-    receipt = {
-        "schema": "bc_target_v2.syncmate_selection_cell",
-        "version": 1,
-        "dataset": "Cora",
-        "seed": 42,
-        "status": "success",
-        "experiment_git_sha": "a" * 40,
-        "formal_score_count": 17,
-        "device_name": "NVIDIA GeForce RTX 4090",
-        "peak_gpu_allocated_bytes": 1024,
-        "peak_gpu_reserved_bytes": 2048,
-        "cold_sha256": sm.sha256_file(cold_path),
-        "warm_sha256": sm.sha256_file(warm_path),
-    }
-    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
-    paths = (cold_remote, warm_remote, receipt_remote)
-    locals_by_remote = {
-        cold_remote: cold_path,
-        warm_remote: warm_path,
-        receipt_remote: receipt_path,
-    }
-    sm.write_artifact_index(
-        {
-            "version": 0,
-            "updated_at": "2026-07-21T12:00:00",
-            "errors": [],
-            "peers": {
-                "gpu4090": {
-                    "node_id": "gpu4090",
-                    "landing": landing,
-                    "remote": {"git": {"sha": "a" * 40}},
-                    "summary": {"status": "verified", "indexed": 3},
-                    "items": [
-                        {
-                            "remote_path": remote,
-                            "local_path": sm.rel(locals_by_remote[remote]),
-                            "sha256": sm.sha256_file(locals_by_remote[remote]),
-                        }
-                        for remote in paths
-                    ],
-                }
-            },
-        }
-    )
-
-    result = sm.small_selection_acceptance_payload(
-        definition,
-        node_id="gpu4090",
-        expected_git_sha="a" * 40,
-    )
-
-    assert result["passed"] is True
-    assert result["accepted_cells"] == 1
-    assert result["verified_artifacts"] == 3
 
 
 def test_gate4_runner_recipe_uses_exact_scoped_git_delta(monkeypatch):
@@ -8184,6 +7808,13 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
     )
     assert selection["config_sha256"] == sm.TARGET_DIRECT_CONFIG_SHA256
     assert selection["selection_matrix"]["candidate_count"] == 2328
+    assert selection["selection_matrix"]["split_contract"] == {
+        "processed_profile": "planetoid_70_10_20_seed2024",
+        "train_ratio": 0.7,
+        "val_ratio": 0.1,
+        "test_ratio": 0.2,
+        "split_seed": 2024,
+    }
     assert selection["selection_matrix"]["budget_ratios"] == [0.01, 0.05]
     assert selection["selection_matrix"]["expected_k_by_ratio"] == {
         "0.01": 23,
@@ -8204,6 +7835,9 @@ def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
         set(gate_5["expected_artifact_paths"])
     )
     assert full["gu_stage"]["candidate_count"] == 13801
+    assert full["gu_stage"]["split_contract"] == selection[
+        "selection_matrix"
+    ]["split_contract"]
     assert full["gu_stage"]["k"] == 690
     assert full["gu_stage"]["ratio"] == 0.05
     assert full["gu_stage"]["execution_authorized"] is False
@@ -8327,7 +7961,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         }
     )
 
-    result = sm.small_selection_acceptance_payload(
+    result = sm.target_direct_selection_acceptance_payload(
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,
@@ -8415,7 +8049,7 @@ def test_target_direct_gu_gate_acceptance_requires_exact_target_checkpoint(
         }
     )
 
-    result = sm.small_selection_gu_acceptance_payload(
+    result = sm.target_direct_gu_acceptance_payload(
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,
@@ -8522,7 +8156,7 @@ def test_target_direct_gu_stage_acceptance_requires_one_shared_checkpoint(
         }
     )
 
-    result = sm.small_selection_gu_stage_acceptance_payload(
+    result = sm.target_direct_gu_stage_acceptance_payload(
         definition,
         node_id="gpu4090",
         expected_git_sha="a" * 40,

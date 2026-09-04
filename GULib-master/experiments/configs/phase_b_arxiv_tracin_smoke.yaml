@@ -11,7 +11,7 @@
 #
 # Watch for in stdout:
 #   [TracIn] G matrix ~57.0 GB > 4.0 GB threshold → chunked path (chunk_size=1000, CPU offload)
-#   [ScoreCache] SAVE if  key=... -> ./results/score_cache/if/<key>.npz
+#   [ScoreCache] SAVE if  key=... -> ./results/cache_v2/artifacts/score/<artifact-id>/payload.npz
 #
 # After success: results/runs/ogbn-arxiv_GCN_r0.05/GIF_tracin/seed42/{attack,collateral,predictions,_meta}.json
 # ScoreCache populated for any future (GIF, ogbn-arxiv, GCN, r=0.05, seed=42) TracIn calls.

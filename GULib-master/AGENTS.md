@@ -79,11 +79,3 @@ GULib-master/
 
 The independently versioned Obsidian research map lives beside this repository
 at `E:\project\OpenGU-DocMap`.
-
-## 7. Git Workflow
-
-- Each short-lived branch represents one reviewable work block. Before the first edit, declare and record its parent branch, scope and expected paths, acceptance checks, and closeout mode (`commit` / `merge-parent` / `push` / `cleanup`).
-- Use the primary local workspace by default for discussion, review, and continued work on the same block. Create a worktree only for concurrent code changes, isolated validation, or a demonstrated conflict, and state its boundary, branch, and path in advance.
-- After each reviewable sub-block, proactively review the diff, run proportionate validation, and create a focused commit. Do not leave unexplained task changes except for drafts, validation failures, or unresolved major design decisions.
-- `main`, `release/*`, and designated `research/*` branches are integration lines; do not develop on them directly. Each child branch merges back to its recorded parent with `git merge --no-ff`. Check status and worktrees before switching, merging, or cleaning up; use `git pull --ff-only` for routine synchronization.
-- Before starting a formal gate or matrix, close every active work block and accept it into `main`; then follow `experiments/AGENTS.md` for SSH, pinned-SHA, preflight, and result-identity checks.

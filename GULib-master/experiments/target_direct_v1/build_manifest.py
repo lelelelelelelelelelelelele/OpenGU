@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any, Dict, Mapping, Sequence
 
 from cache_v2.runtime import load_selection_artifact
-from experiments.target_direct_v1 import MODEL_SEEDS, PROFILE
+from experiments.processed_provider import ProcessedSplitContract
+from experiments.target_direct_v1 import DEFAULT_SPLIT_CONTRACT, MODEL_SEEDS
 from experiments.target_direct_v1.recipe import (
     ALGORITHM_VERSION,
     APPROVED_BUDGET_RATIOS,
@@ -61,6 +62,7 @@ def build_manifest(
     required_seeds: Sequence[int] = MODEL_SEEDS,
     required_parameter_scope: str = "last_layer",
     strategy_order: Sequence[str] = SCORE_NAMES,
+    split_contract: ProcessedSplitContract = DEFAULT_SPLIT_CONTRACT,
 ) -> Dict[str, Any]:
     repository_root = Path(repository_root).resolve()
     selection_store_root = Path(selection_store_root).resolve()
@@ -97,6 +99,7 @@ def build_manifest(
         repository_root=repository_root,
         processed_root=processed_root,
         dataset=dataset,
+        contract=split_contract,
     )
     inputs = profile["inputs"]
     observed_data_identity = data_identity(profile["data"])
@@ -114,7 +117,9 @@ def build_manifest(
             or (summary.get("status") or {}).get("state") != "success"
             or summary.get("algorithm_version") != ALGORITHM_VERSION
             or str(summary.get("dataset", "")).lower() != dataset.lower()
-            or summary.get("processed_profile") != PROFILE
+            or summary.get("processed_profile")
+            != split_contract.processed_profile
+            or summary.get("split_contract") != split_contract.to_manifest()
             or float((summary.get("budget") or {}).get("requested_ratio", -1))
             != float(ratio)
             or int((summary.get("budget") or {}).get("expected_k", -1))
@@ -153,7 +158,8 @@ def build_manifest(
                 "dataset_name": dataset.lower(),
                 "base_model": "GCN",
                 "seed": seed,
-                "processed_profile": PROFILE,
+                "processed_profile": split_contract.processed_profile,
+                "split_contract": split_contract.to_manifest(),
                 "num_epochs": 100,
                 "gcn_num_layers": 2,
                 "gcn_hidden": 64,
@@ -244,7 +250,8 @@ def build_manifest(
         "version": VERSION,
         "dataset": dataset.lower(),
         "base_model": "GCN",
-        "processed_profile": PROFILE,
+        "processed_profile": split_contract.processed_profile,
+        "split_contract": split_contract.to_manifest(),
         "ratio": float(ratio),
         "budget_denominator": "train_candidate_count",
         "expected_k": expected_k,

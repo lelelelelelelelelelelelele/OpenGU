@@ -1,0 +1,21 @@
+kind: experiment
+schema_version: 1
+experiment_id: illustrative_gu_lr_comparison
+round: 1
+research_question: 固定已验证删除节点和目标 checkpoint，仅改变 GU 学习率有什么影响？
+decision_owner: research_owner
+execution_authorized: false
+stage: unlearning
+dataset_ref: dataset_cora.yaml
+selection_input: {artifact_id: null, recipe_hash: null, content_hash: null}
+target_checkpoint: {artifact_ref: null, state_hash: null}
+unlearning_refs: [unlearning_gnndelete.yaml, unlearning_gnndelete_lr002.yaml]
+matrix: cartesian_product
+evaluation:
+  primary: post_unlearning_utility_and_retrain_gap
+  acceptance: 评价集合及接纳阈值须在具体实验批准时明确
+  unsupported_claim: 不将改变学习率解释为改变选点算法
+execution_binding:
+  launcher: null
+  expected_code_sha: null
+  note: 直接消费已有 Selection；不能为补全此表运行 selector producer

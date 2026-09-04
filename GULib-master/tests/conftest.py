@@ -16,19 +16,10 @@ from pathlib import Path
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
 
-# Redirect the default ScoreCache cache_dir to a tmp path before any strategy
-# is constructed. Tests that pass an explicit score_cache_dir still win.
-_SCORE_CACHE_TMP_DIR = Path(tempfile.mkdtemp(prefix="gulib-score-cache-"))
+# Redirect every default generic cache consumer before constructing strategies.
+_CACHE_TMP_DIR = Path(tempfile.mkdtemp(prefix="gulib-cache-v2-"))
 
 
 def pytest_configure(config):
-    from attack import score_cache as _sc
-
-    _orig_init = _sc.ScoreCache.__init__
-
-    def _patched_init(self, namespace, cache_dir="./results/score_cache"):
-        if cache_dir == "./results/score_cache":
-            cache_dir = str(_SCORE_CACHE_TMP_DIR)
-        _orig_init(self, namespace=namespace, cache_dir=cache_dir)
-
-    _sc.ScoreCache.__init__ = _patched_init
+    from attack import cache_identity
+    cache_identity.DEFAULT_STORE_ROOT = str(_CACHE_TMP_DIR)

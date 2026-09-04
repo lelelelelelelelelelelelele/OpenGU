@@ -19,10 +19,15 @@ def _load_refresh_module():
     return module
 
 
-def _write_item(root, code, status, item_type="Block", title=None):
+def _write_item(
+    root, code, status, item_type="Block", title=None, fact_owner=None
+):
     path = root / ".workblock" / "items" / code / "WORKITEM.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     id_label = "Todo ID" if item_type == "Todo" else "Block ID"
+    fact_owner_line = (
+        f"\n- Fact owner: [authority]({fact_owner})\n" if fact_owner else ""
+    )
     path.write_text(
         f"""# {code} · {title or code}
 
@@ -31,7 +36,7 @@ def _write_item(root, code, status, item_type="Block", title=None):
 当前状态: `{status}`
 
 Item Type: {item_type}
-""",
+{fact_owner_line}""",
         encoding="utf-8",
     )
     return path
@@ -120,6 +125,155 @@ Current node: AAGU-001
             self.assertIn("current node is already accepted/closed: AAGU-001", joined)
             self.assertIn("Todo AAGU-002 remains blocked after all dependencies closed", joined)
             self.assertIn("broken link: missing.md", joined)
+
+    def test_drift_checks_reject_plan_owner_that_disagrees_with_workitem(self):
+        refresh = _load_refresh_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "contract.yaml").write_text("schema: one\n", encoding="utf-8")
+            (root / "wrong.yaml").write_text("schema: wrong\n", encoding="utf-8")
+            _write_item(
+                root,
+                "AAGU-001",
+                "registered / not claimed",
+                fact_owner="../../../contract.yaml",
+            )
+            plan = root / "WORKPLAN.md"
+            plan.write_text(
+                """# Workplan
+
+Current node: AAGU-001
+
+## 5. 实验 timeline
+
+"""
+                + _node_table(
+                    [
+                        (
+                            "AAGU-001",
+                            "FIX",
+                            "repair authority",
+                            "P0",
+                            "—",
+                            "[wrong](wrong.yaml)",
+                        )
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            md = plan.read_text(encoding="utf-8")
+            items = refresh.load_workitems(root / ".workblock" / "items")
+            nodes = refresh.parse_plan_nodes(md)
+
+            errors = refresh.validate_drift(md, plan, nodes, items, "AAGU-001")
+
+            self.assertIn(
+                "node owner disagrees with WorkItem fact owner: AAGU-001",
+                errors,
+            )
+
+            corrected = md.replace("[wrong](wrong.yaml)", "[authority](contract.yaml)")
+            corrected_nodes = refresh.parse_plan_nodes(corrected)
+            corrected_errors = refresh.validate_drift(
+                corrected,
+                plan,
+                corrected_nodes,
+                items,
+                "AAGU-001",
+            )
+            self.assertNotIn(
+                "node owner disagrees with WorkItem fact owner: AAGU-001",
+                corrected_errors,
+            )
+
+    def test_candidate_verified_status_projects_as_awaiting_wip(self):
+        refresh = _load_refresh_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_item(
+                root,
+                "AAGU-001",
+                "awaiting acceptance / candidate verified",
+            )
+            plan = root / "WORKPLAN.md"
+            plan.write_text(
+                """# Workplan
+
+Current node: AAGU-001
+
+## 5. 修复队列
+
+"""
+                + _node_table(
+                    [("AAGU-001", "FIX", "candidate", "P0", "—", "owner")]
+                ),
+                encoding="utf-8",
+            )
+            md = plan.read_text(encoding="utf-8")
+            items = refresh.load_workitems(root / ".workblock" / "items")
+            projected = refresh.project_nodes(
+                refresh.parse_plan_nodes(md), items, "AAGU-001"
+            )
+            node = projected[0]
+            data = refresh.build_data(md, projected, "AAGU-001")
+
+            self.assertEqual(node["lifecycle"], "awaiting")
+            self.assertEqual(node["projection"], "awaiting acceptance / current")
+            self.assertEqual(node["state"], "wip")
+            self.assertEqual(data["snapshot"][1]["status"], "1 item(s)")
+            self.assertEqual(data["overall"]["wip"], 1)
+
+    def test_drift_checks_reject_unknown_lifecycle_status(self):
+        refresh = _load_refresh_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_item(
+                root,
+                "AAGU-001",
+                "awaiting human acceptance / candidate verified",
+            )
+            plan = root / "WORKPLAN.md"
+            plan.write_text(
+                """# Workplan
+
+Current node: AAGU-001
+
+## 5. 修复队列
+
+"""
+                + _node_table(
+                    [("AAGU-001", "FIX", "candidate", "P0", "—", "owner")]
+                ),
+                encoding="utf-8",
+            )
+            md = plan.read_text(encoding="utf-8")
+            items = refresh.load_workitems(root / ".workblock" / "items")
+            errors = refresh.validate_drift(
+                md,
+                plan,
+                refresh.parse_plan_nodes(md),
+                items,
+                "AAGU-001",
+            )
+
+            self.assertIn(
+                "WorkItem has unknown lifecycle status: AAGU-001",
+                errors,
+            )
+
+    def test_registered_ready_after_dependency_is_recognized(self):
+        refresh = _load_refresh_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_item(
+                root,
+                "AAGU-001",
+                "registered / ready after dependency",
+            )
+
+            items = refresh.load_workitems(root / ".workblock" / "items")
+
+            self.assertEqual(items["AAGU-001"]["lifecycle"], "registered")
 
     def test_refresh_updates_projection_and_generated_cards_wrap(self):
         refresh = _load_refresh_module()

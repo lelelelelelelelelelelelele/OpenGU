@@ -14,6 +14,7 @@ import pytest
 
 from experiments.processed_provider import (
     ProcessedArtifactError,
+    processed_split_contract,
     processed_artifact_paths,
 )
 
@@ -57,6 +58,56 @@ def test_processed_provider_uses_canonical_cora_names(tmp_path):
     assert paths.dataset_path.name == "cora0.8_0_0.2dataset.pkl"
     assert paths.lane == "transductive"
     assert paths.explicit is True
+
+
+def test_ratio_derived_profile_normalizes_equivalent_values_and_allows_zero_val():
+    first = processed_split_contract(
+        {
+            "split": {
+                "train_ratio": 0.8,
+                "val_ratio": 0,
+                "test_ratio": 0.2,
+                "split_seed": 42,
+            }
+        },
+        require_explicit=True,
+        require_profile=True,
+        profile_prefix="planetoid",
+    )
+    equivalent = processed_split_contract(
+        {
+            "split": {
+                "train_ratio": "0.80",
+                "val_ratio": "0.0",
+                "test_ratio": "0.20",
+                "split_seed": "42",
+            }
+        },
+        require_explicit=True,
+        require_profile=True,
+        profile_prefix="planetoid",
+    )
+
+    assert first == equivalent
+    assert first.processed_profile == "planetoid_80_0_20_seed42"
+
+
+def test_ratio_derived_profile_rejects_conflicting_manual_name():
+    with pytest.raises(ProcessedArtifactError, match="conflicts"):
+        processed_split_contract(
+            {
+                "processed_profile": "planetoid_other",
+                "split": {
+                    "train_ratio": 0.7,
+                    "val_ratio": 0.1,
+                    "test_ratio": 0.2,
+                    "split_seed": 2024,
+                },
+            },
+            require_explicit=True,
+            require_profile=True,
+            profile_prefix="planetoid",
+        )
 
 
 def test_original_dataset_explicit_provider_never_calls_planetoid(tmp_path, monkeypatch):

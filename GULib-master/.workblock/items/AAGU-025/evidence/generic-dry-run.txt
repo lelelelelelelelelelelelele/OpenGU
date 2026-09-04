@@ -1,0 +1,10 @@
+=== Loaded phase_b_cora_gcn.yaml ===
+  cell: cora_GCN_r0.05
+  methods × strategies × seeds = 6 × 6 × 5
+  total cells: 180
+  model_overrides: {'gcn_num_layers': 2, 'gcn_hidden': 64}
+
+=== Summary ===
+  would_run: 180
+  elapsed: 3.4s
+

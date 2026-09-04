@@ -8,14 +8,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
 from opengu_recipes import (
-    SMALL_SELECTION_GU_ARTIFACT_NAMES,
+    TARGET_DIRECT_GU_ARTIFACT_NAMES,
     TARGET_DIRECT_STRATEGIES,
 )
 
 
-_SELECTION_PROFILES = {"small-selection-v1", "target-direct-selection-v2"}
-_GU_GATE_PROFILES = {"small-selection-gu-v1", "target-direct-gu-v2"}
-_GU_STAGE_PROFILES = {"small-selection-gu-stage-v1", "target-direct-gu-stage-v2"}
+_SELECTION_PROFILES = {"target-direct-selection-v2"}
+_GU_GATE_PROFILES = {"target-direct-gu-v2"}
+_GU_STAGE_PROFILES = {"target-direct-gu-stage-v2"}
 REVIEWED_PROFILES = _SELECTION_PROFILES | _GU_GATE_PROFILES | _GU_STAGE_PROFILES
 
 
@@ -82,11 +82,9 @@ def _selection_acceptance(
     _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(
         definition, context, "selection"
     )
-    receipt_schema = str(
-        definition.get("selection_receipt_schema")
-        or "bc_target_v2.syncmate_selection_cell"
-    )
-    target_direct = receipt_schema == "target_direct_v1.syncmate_selection_cell"
+    receipt_schema = str(definition.get("selection_receipt_schema") or "")
+    if receipt_schema != "target_direct_v1.syncmate_selection_cell":
+        errors.append("target-direct selection receipt schema is not declared")
     matrix = definition.get("selection_matrix") or {}
     expected_cells = {
         (dataset, int(seed))
@@ -126,72 +124,65 @@ def _selection_acceptance(
             if not isinstance(receipt.get(field), int) or receipt[field] <= 0:
                 errors.append(f"cell receipt has no valid {field}: {remote_path}")
         parent = remote_path.rsplit("/", 1)[0]
-        if target_direct:
-            expected_ratios = tuple(float(value) for value in matrix.get("budget_ratios") or ())
-            expected_k = matrix.get("expected_k_by_ratio") or {}
-            ratio_results = receipt.get("ratio_results") or {}
-            checkpoint = receipt.get("target_checkpoint") or {}
+        expected_ratios = tuple(float(value) for value in matrix.get("budget_ratios") or ())
+        expected_k = matrix.get("expected_k_by_ratio") or {}
+        ratio_results = receipt.get("ratio_results") or {}
+        checkpoint = receipt.get("target_checkpoint") or {}
+        if (
+            receipt.get("version") != 2
+            or receipt.get("parameter_scope") != matrix.get("parameter_scope")
+            or receipt.get("candidate_count") != matrix.get("candidate_count")
+            or tuple(float(value) for value in receipt.get("budget_ratios") or ()) != expected_ratios
+            or receipt.get("expected_k_by_ratio") != expected_k
+            or receipt.get("score_budget_semantics") != matrix.get("score_budget_semantics")
+            or tuple(receipt.get("budget_conditioned_strategies") or ()) != tuple(matrix.get("budget_conditioned_strategies") or ())
+            or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
+            or not isinstance(receipt.get("score_bundle_warm_read_seconds"), dict)
+            or not receipt.get("score_bundle_warm_read_seconds")
+            or any(not isinstance(value, (int, float)) for value in (receipt.get("score_bundle_warm_read_seconds") or {}).values())
+            or set(ratio_results) != {f"{ratio:.2f}" for ratio in expected_ratios}
+            or not checkpoint.get("file_sha256")
+            or not checkpoint.get("state_hash")
+        ):
+            errors.append("target-direct receipt timing/scope/checkpoint contract is incomplete: " + remote_path)
+        for ratio in expected_ratios:
+            ratio_key = f"{ratio:.2f}"
+            ratio_result = ratio_results.get(ratio_key) or {}
+            cold_methods = ratio_result.get("cold_method_timings") or {}
+            warm_methods = ratio_result.get("warm_method_timings") or {}
             if (
-                receipt.get("version") != 2
-                or receipt.get("parameter_scope") != matrix.get("parameter_scope")
-                or receipt.get("candidate_count") != matrix.get("candidate_count")
-                or tuple(float(value) for value in receipt.get("budget_ratios") or ()) != expected_ratios
-                or receipt.get("expected_k_by_ratio") != expected_k
-                or receipt.get("score_budget_semantics") != matrix.get("score_budget_semantics")
-                or tuple(receipt.get("budget_conditioned_strategies") or ()) != tuple(matrix.get("budget_conditioned_strategies") or ())
-                or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
-                or not isinstance(receipt.get("score_bundle_warm_read_seconds"), dict)
-                or not receipt.get("score_bundle_warm_read_seconds")
-                or any(not isinstance(value, (int, float)) for value in (receipt.get("score_bundle_warm_read_seconds") or {}).values())
-                or set(ratio_results) != {f"{ratio:.2f}" for ratio in expected_ratios}
-                or not checkpoint.get("file_sha256")
-                or not checkpoint.get("state_hash")
+                float(ratio_result.get("ratio", -1)) != ratio
+                or ratio_result.get("k") != expected_k.get(ratio_key)
+                or set(cold_methods) != set(TARGET_DIRECT_STRATEGIES)
+                or set(warm_methods) != set(TARGET_DIRECT_STRATEGIES)
+                or any(
+                    item.get("status") != "success"
+                    or item.get("cache_hit") is not False
+                    or item.get("selection_projection_cache_hit") is not False
+                    or not isinstance(item.get("cold_selection_projection_seconds"), (int, float))
+                    for item in cold_methods.values()
+                )
+                or any(
+                    item.get("status") != "success"
+                    or item.get("cache_hit") is not True
+                    or item.get("selection_projection_cache_hit") is not True
+                    for item in warm_methods.values()
+                )
+                or (ratio_result.get("failure_state") or {}).get("state") != "success"
             ):
-                errors.append("target-direct receipt timing/scope/checkpoint contract is incomplete: " + remote_path)
-            for ratio in expected_ratios:
-                ratio_key = f"{ratio:.2f}"
-                ratio_result = ratio_results.get(ratio_key) or {}
-                cold_methods = ratio_result.get("cold_method_timings") or {}
-                warm_methods = ratio_result.get("warm_method_timings") or {}
-                if (
-                    float(ratio_result.get("ratio", -1)) != ratio
-                    or ratio_result.get("k") != expected_k.get(ratio_key)
-                    or set(cold_methods) != set(TARGET_DIRECT_STRATEGIES)
-                    or set(warm_methods) != set(TARGET_DIRECT_STRATEGIES)
-                    or any(
-                        item.get("status") != "success"
-                        or item.get("cache_hit") is not False
-                        or item.get("selection_projection_cache_hit") is not False
-                        or not isinstance(item.get("cold_selection_projection_seconds"), (int, float))
-                        for item in cold_methods.values()
-                    )
-                    or any(
-                        item.get("status") != "success"
-                        or item.get("cache_hit") is not True
-                        or item.get("selection_projection_cache_hit") is not True
-                        for item in warm_methods.values()
-                    )
-                    or (ratio_result.get("failure_state") or {}).get("state") != "success"
-                ):
-                    errors.append("target-direct ratio projection contract is incomplete: " + ratio_key)
-                for phase, hash_field in (("cold", "cold_sha256"), ("warm", "warm_sha256")):
-                    name = f"{phase}-r{ratio_key}.json"
-                    evidence = by_remote.get(parent + "/" + name) or {}
-                    local = _safe_project_path(project_root, evidence.get("local_path"))
-                    if local is None or not local.is_file() or _sha256(local) != ratio_result.get(hash_field):
-                        errors.append(f"cell receipt does not bind verified {name}: {remote_path}")
-        else:
-            for name, hash_field in (("cold.json", "cold_sha256"), ("warm.json", "warm_sha256")):
+                errors.append("target-direct ratio projection contract is incomplete: " + ratio_key)
+            for phase, hash_field in (("cold", "cold_sha256"), ("warm", "warm_sha256")):
+                name = f"{phase}-r{ratio_key}.json"
                 evidence = by_remote.get(parent + "/" + name) or {}
                 local = _safe_project_path(project_root, evidence.get("local_path"))
-                if local is None or not local.is_file() or _sha256(local) != receipt.get(hash_field):
+                if local is None or not local.is_file() or _sha256(local) != ratio_result.get(hash_field):
                     errors.append(f"cell receipt does not bind verified {name}: {remote_path}")
         receipts.append(receipt)
     if observed_cells != expected_cells:
         errors.append("accepted cell matrix differs from the reviewed recipe")
     return {
         "generated_at": _now_iso(),
-        "mode": "target-direct-selection-acceptance" if target_direct else "small-selection-acceptance",
+        "mode": "target-direct-selection-acceptance",
         "node_id": node_id, "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
         "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),
@@ -231,6 +222,8 @@ def _gu_gate_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any
     documents, _ = _read_documents(expected_paths, by_remote, project_root, errors, "GU")
     gate = definition.get("gu_gate") or {}
     target_direct = gate.get("lane") == "target_direct_white_box"
+    if not target_direct:
+        errors.append("GU gate is not the target-direct white-box lane")
     meta = documents.get("_meta.json") or {}
     artifact = meta.get("selection_artifact") or {}
     checkpoint = artifact.get("target_checkpoint") or {}
@@ -256,8 +249,6 @@ def _gu_gate_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any
             or not checkpoint.get("state_hash") or not checkpoint.get("file_sha256")
         ):
             errors.append("GU gate target-direct checkpoint/scope provenance is incomplete")
-    elif (artifact.get("source_selection") or {}).get("profile") != "grandfathered-public-selection-gt-v1":
-        errors.append("GU _meta Selection source profile changed")
     attack_row = ((documents.get("attack.json") or {}).get("results") or {}).get(gate.get("selector")) or {}
     if not attack_row or attack_row.get("failed") is True:
         errors.append("GU attack result is missing or failed")
@@ -269,7 +260,7 @@ def _gu_gate_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any
         errors.append("GU collateral result has no unique selector row")
     return {
         "generated_at": _now_iso(),
-        "mode": "target-direct-gu-acceptance" if target_direct else "small-selection-gu-acceptance",
+        "mode": "target-direct-gu-acceptance",
         "node_id": node_id, "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
         "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),
@@ -297,7 +288,7 @@ def _gu_stage_acceptance(definition: Mapping[str, Any], context: Mapping[str, An
             errors.append("GU stage has no unique reviewed leaf: " + str(selector))
             continue
         parent = next(iter(parents))
-        paths = {name: parent + "/" + name for name in SMALL_SELECTION_GU_ARTIFACT_NAMES}
+        paths = {name: parent + "/" + name for name in TARGET_DIRECT_GU_ARTIFACT_NAMES}
         if any(remote not in local_by_remote for remote in paths.values()):
             continue
         try:
@@ -333,8 +324,6 @@ def _gu_stage_acceptance(definition: Mapping[str, Any], context: Mapping[str, An
                 errors.append("GU stage target-direct checkpoint/scope provenance mismatch: " + str(selector))
             else:
                 checkpoint_hashes.add((state_hash, file_sha))
-        elif (artifact.get("source_selection") or {}).get("profile") != "grandfathered-public-selection-gt-v1":
-            errors.append("GU stage Selection source profile mismatch: " + str(selector))
         attack_row = (attack.get("results") or {}).get(selector) or {}
         if not attack_row or attack_row.get("failed") is True:
             errors.append("GU stage attack result is missing or failed: " + str(selector))
@@ -363,7 +352,7 @@ def _gu_stage_acceptance(definition: Mapping[str, Any], context: Mapping[str, An
         errors.append("target-direct GU stage does not share one exact target checkpoint")
     return {
         "generated_at": _now_iso(),
-        "mode": "target-direct-gu-stage-acceptance" if target_direct else "small-selection-gu-stage-acceptance",
+        "mode": "target-direct-gu-stage-acceptance",
         "node_id": node_id, "recipe": definition.get("id"),
         "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
         "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),

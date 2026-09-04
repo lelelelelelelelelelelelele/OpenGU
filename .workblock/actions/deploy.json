@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "action": "deploy",
+  "instruction": "Synchronize only the landed Git-tracked code and configuration to the established SSH active checkout at /autodl-fs/data/OpenGU. Use ordinary non-force Git/SSH synchronization, preserve datasets, results, caches, environments and runtime evidence, and do not create or revive peer OpenGU directories under /autodl-fs/data.",
+  "workingDirectory": ".",
+  "targets": [
+    "ssh://autodl-opengu/autodl-fs/data/OpenGU"
+  ],
+  "preconditions": [
+    "Confirm local HEAD equals landedTarget and the SSH alias autodl-opengu resolves through the operator's existing authorized SSH configuration.",
+    "Confirm /autodl-fs/data/OpenGU is the active checkout, no unexpected OpenGU peer deployment directory exists, and the remote checkout can advance without force or rebase."
+  ],
+  "permissions": {
+    "write": [],
+    "delete": [],
+    "network": [
+      "ssh://autodl-opengu/autodl-fs/data/OpenGU"
+    ]
+  },
+  "secretRefs": [],
+  "readBack": "Read back the remote active checkout HEAD and require it to equal landedTarget; then run the project's SSH deployment-layout and tracked retired-reference preflights against /autodl-fs/data and report their exact verdicts.",
+  "onFailure": "stop"
+}

@@ -5,7 +5,12 @@ recipe_id: opengu-target-direct-formal-v2
 required_branch: main
 required_active_checkout: /autodl-fs/data/OpenGU/GULib-master
 required_device_name: RTX 4090
-processed_profile: planetoid_70_10_20_seed2024
+split:
+  train_ratio: 0.7
+  val_ratio: 0.1
+  test_ratio: 0.2
+  split_seed: 2024
+  materialize_on_miss: true
 budget_ratios: [0.01, 0.05]
 budget_rounding: floor_with_minimum_one
 score_budget_semantics: prefix_stable_budget_independent
@@ -17,22 +22,13 @@ main_parameter_scope: last_layer
 datasets:
   cora:
     display_name: Cora
-    expected_candidate_count: 1895
-    expected_k_by_ratio:
-      "0.01": 18
-      "0.05": 94
+    num_nodes: 2708
   citeseer:
     display_name: CiteSeer
-    expected_candidate_count: 2328
-    expected_k_by_ratio:
-      "0.01": 23
-      "0.05": 116
+    num_nodes: 3327
   pubmed:
     display_name: PubMed
-    expected_candidate_count: 13801
-    expected_k_by_ratio:
-      "0.01": 138
-      "0.05": 690
+    num_nodes: 19717
 seeds: [42, 212, 2024]
 strategy_order:
   - degree

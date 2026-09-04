@@ -1,0 +1,19 @@
+kind: experiment
+schema_version: 1
+experiment_id: illustrative_hutch_probe_comparison
+round: 1
+research_question: 在相同模型与候选集合上，增加 Hutch 探针是否改变排序稳定性？
+decision_owner: research_owner
+execution_authorized: false
+stage: selector
+dataset_ref: dataset_cora.yaml
+selector_refs: [selector_b_hutch32.yaml, selector_b_hutch64.yaml]
+matrix: cartesian_product
+evaluation:
+  primary: rank_agreement_and_topk_overlap
+  acceptance: 误差与接纳阈值须在具体实验批准时明确
+  unsupported_claim: 不据此宣称任何 GU 方法的效用下降
+execution_binding:
+  launcher: null
+  expected_code_sha: null
+  note: 文档示例；当前 formal stage 不接收这些模块引用或单方法配置

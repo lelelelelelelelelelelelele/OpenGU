@@ -4,10 +4,16 @@ Block ID: `AAGU-019`
 
 Item Version: 2.0
 
-当前状态: `registered / ready after dependency`
+当前状态: `accepted`
 
 > Apply target ref：`refs/heads/codex/e7-two-surrogate-groups-20260805`
 
+
+> Git baseline：`cdfb8a0ece41922beb447c2279569ae9448396aa`
+
+> Source branch：`refs/heads/codex/aagu-019-retire-legacy-budgets`
+
+> Remote target：`origin refs/heads/codex/e7-two-surrogate-groups-20260805`
 Execution topology: `sequential`
 
 Item Type: Block
@@ -40,6 +46,27 @@ Item Type: Block
 - Do not change the formal 70/10/20 split, the train-candidate denominator, rounding rule, model, GU method, selector semantics, or approved dataset-specific counts.
 - Do not execute a formal GPU gate or matrix and do not claim new research evidence.
 - Do not absorb or bypass the independently registered AAGU-018 graph-source label-scope correction.
+
+## Implementation and verification
+
+- Retired executable source roots: `experiments/bc_target_v2/`,
+  `experiments/gu_target_v1/`, and `experiments/tracin_v2/`.
+- Retired configuration set: 13 tracked `syncmate_small_selection*.yaml`
+  files; their historical result and report roots were not changed.
+- Current primitives now live in `experiments/planetoid_source.py` and
+  `experiments/target_direct_v1/{scoring,planetoid_io,recipe}.py`; no legacy
+  compatibility import or fallback was added.
+- Active SyncMate inventory changed from 76 recipes (44 retired + 29
+  target-direct + 3 generic) to 32 recipes (29 target-direct + 3 generic).
+- Focused verification: 331 tests passed across retirement guards,
+  target-direct contracts, SyncMate/Cache/report integration, dataset-source
+  consumers, and affected regressions. A separate full-repository pytest run
+  was manually interrupted after about 12 minutes while still CPU-active and
+  produced no terminal result; it is not counted as PASS evidence.
+- Historical tracked subtrees remained unchanged at baseline tree identities:
+  `results` = `3bbc950bcb0906621c8bf682eda00b70555c4bad`, `reports` =
+  `4e9e6ecf8d991c6e38008dcf40f97d3d96231f6f`.
+- Human decision surface: `REPORT.md` and `REPORT.html` beside this Record.
 
 ## Acceptance contract
 
@@ -80,3 +107,9 @@ Item Type: Block
 
 - 2026-08-26: registered from the user-confirmed hard-retirement design; implementation waits for AAGU-018 to settle the overlapping scoring boundary.
 - 2026-08-31: upgraded the same stable WorkItem to protocol 2.0 with the current sequential topology and Apply target; no Claim, implementation, or acceptance fact changed.
+- 2026-08-31: confirmed AAGU-018 is accepted, created Claim
+  `7739d7a2-955f-4ef4-a5a7-1596f5fe8857` from baseline
+  `cdfb8a0ece41922beb447c2279569ae9448396aa`, hard-retired the legacy
+  executable setup, and completed focused CPU/static verification without
+  formal GPU execution; human acceptance remains pending.
+- `accepted`（2026-09-01T02:57:31.8070980+08:00）：human user 基于 User reviewed AAGU-019 and explicitly replied: 可以 accept 接受当前已验证候选。

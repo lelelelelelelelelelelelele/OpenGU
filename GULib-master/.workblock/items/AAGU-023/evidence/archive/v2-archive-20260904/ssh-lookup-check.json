@@ -1,0 +1,1 @@
+{"active_files":["legacy_freeze.json"],"active_root_unchanged_by_probe":true,"archived_files_hashes_exact":true,"checks":[{"artifact_id":"sel_5bc434cd_7e66e515","index":"index.sqlite","outcome":"OLD_ACTIVE_INDEX_ABSENT"}],"device":"ssh","old_artifacts_blocked":1}

@@ -13,7 +13,7 @@
 #
 # MODE=prewarm
 #   只跑 prewarm_selection_cache.py --strategies tracin × 3 method
-#   写 results/score_cache/if/ + results/selection_cache/
+#   写 results/cache_v2/artifacts/score/ + results/cache_v2/artifacts/selection/
 #   不跑 GU/MIA/retrain。完了关机。
 #
 # MODE=full
@@ -75,9 +75,9 @@ do_shutdown() {
                 experiments/configs/phase_b_arxiv_T1_seed42.yaml \
                 --strategies tracin
             status=$?
-            n_if=$(ls results/score_cache/if/*.npz 2>/dev/null | wc -l)
+            n_if=$(ls results/cache_v2/artifacts/score/*/payload.npz 2>/dev/null | wc -l)
             echo ""
-            echo "exit=$status   IF cache=$n_if (expected 3)"
+            echo "exit=$status   V2 Score Artifacts=$n_if"
             ;;
 
         im_only)
