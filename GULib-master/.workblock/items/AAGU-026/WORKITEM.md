@@ -3,7 +3,7 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting_acceptance`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -80,6 +80,7 @@ Execution topology: `parallel`
 - 2026-09-05 用户确认职责口径：026 的结构遵循 AAGU-001，能力边界服务 AAGU-015；026 交付可执行配置、方法级缓存与 Selection→GU 消费链，015 拥有三数据集、17 Selector、两 GU、排名比较、配对重训练和正式实验结果。删除未被协议采用且没有消费者的 `rank_agreement_and_topk_overlap` 占位配置，避免把设计名称误写成已实现能力；已有排名比较原语仍由 015 的实际分析入口按其合同消费。
 - 2026-09-05 用户进一步确认原子语义：026 必须支持每一个独立的 `1 Dataset/Split × 1 Selector × 1 Unlearning × 1 Evaluation`，同时允许只执行 Selector，或让 GU 直接消费已有 Selection。多引用计划只是批量调度独立 cell，不要求各方法形成不可拆的乘积或共同缓存身份。新增真实 `1×1×1` 示例，并以既有 CPU 消费者覆盖这三条路径。
 - 2026-09-05 用户进一步精简实验大表：`research_question` 与 `decision_owner` 没有执行消费者，也不参与科研或缓存身份；从协议允许字段、运行摘要和全部示例中删除。研究问题与决定责任继续由 WorkItem／实验说明拥有，不复制进可执行 YAML。
+- 2026-09-05 精简字段检查点 `951c07e06d16da136c13beae3e005d287021ccab`：123 项 CPU／集成检查和 182 项 SyncMate 检查通过；主项目 3,990 个历史结果文件及全部列入保护的缓存根前后逐文件哈希一致。
 - 2026-09-05 原子语义检查点 `8918aa082867bf8cd8f61c87cd950a636909e2a6`：123 项 CPU／集成检查和 182 项 SyncMate 检查通过；单独 Selector、已有 Selection→单个 GU、完整 `1×1×1` 三条路径均有真实消费者或计划 dry-run 覆盖。主项目 3,990 个历史结果文件及全部列入保护的缓存根前后逐文件哈希一致。
 
 - 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。
@@ -88,7 +89,7 @@ Execution topology: `parallel`
 - 使用说明：[独立配置与消费者](../../../docs/modular_experiments.md)。可重跑 Verify：[evidence/verify.py](evidence/verify.py)，运行原始 XML、日志和历史目录清单放在忽略的 `.workblock/runtime/`。
 - 2026-09-04 Verify：115 项 CPU／集成检查和 182 项 SyncMate 检查通过；17 个评分与原表达式数值最大绝对差均为 0。主项目 3,990 个历史结果文件及所列缓存根在 Verify 前后哈希一致。证据只支持本地配置与身份隔离，不构成正式 GPU 或科研接纳。
 - 人类验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)；完整观察：[observations.json](evidence/observations.json)。Agent 建议接受；当前决定待决定，用户拥有最终决定。
-- 配对报告推进同一 source HEAD 后，按实际差异复用 `8918aa082867bf8cd8f61c87cd950a636909e2a6` 上的 123+182 项消费者检查，并重新校验报告生成、Human Result 结构、链接和候选洁净度。浏览器安全策略拒绝自动打开本地 `file://` 报告，更新后的桌面/窄屏视觉结果保持 `NOT OBSERVED`，不写成视觉 PASS。最终精确 HEAD 与复用理由见 [final-verification.json](../../runtime/aagu-026/final-verification.json)。
+- 配对报告推进同一 source HEAD 后，按实际差异复用 `951c07e06d16da136c13beae3e005d287021ccab` 上的 123+182 项消费者检查，并重新校验报告生成、Human Result 结构、链接和候选洁净度。浏览器安全策略拒绝自动打开本地 `file://` 报告，更新后的桌面/窄屏视觉结果保持 `NOT OBSERVED`，不写成视觉 PASS。最终精确 HEAD 与复用理由见 [final-verification.json](../../runtime/aagu-026/final-verification.json)。
 - 候选与报告完成后，将 canonical Claim 从 ongoing 转为 awaiting_acceptance；未 Apply、push、install 或清理。
 
 ## Status history

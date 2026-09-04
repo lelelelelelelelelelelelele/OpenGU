@@ -4,7 +4,7 @@
 
 ### 实际增量
 
-科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列引用和组合。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。
+科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列执行需要的引用和组合；research_question 与 decision_owner 留在 WorkItem／实验说明，不再进入可执行协议。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。
 
 ### 核心观察
 
@@ -126,7 +126,7 @@ CPU 进程屏蔽 CUDA；CuPy 提示未找到 CUDA 路径，另有依赖弃用提
 
 ## 候选、复核与后续决定
 
-观察记录绑定已执行检查的 Git checkpoint `8918aa082867bf8cd8f61c87cd950a636909e2a6`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 将记录精确 HEAD、与该检查点的报告差异和复用理由。
+观察记录绑定已执行检查的 Git checkpoint `951c07e06d16da136c13beae3e005d287021ccab`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 将记录精确 HEAD、与该检查点的报告差异和复用理由。
 
 [WorkItem](WORKITEM.md) · [模块使用说明](../../../docs/modular_experiments.md) · [可重跑验证脚本](evidence/verify.py) · [最终 Verify](../../runtime/aagu-026/final-verification.json)
 

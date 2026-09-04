@@ -15,7 +15,7 @@ def run(test, experiment):
 
 def main():
     title = 'AAGU-026 · 科研计划与执行上下文正交'
-    delta = '科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列引用和组合。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。'
+    delta = '科研 YAML 现在由 Dataset/Split、Selector、Unlearning、Evaluation 四类实例组成，大表只列执行需要的引用和组合；research_question 与 decision_owner 留在 WorkItem／实验说明，不再进入可执行协议。真实 target-direct formal 表引用 17 个 Selector 小表、1 个 GNNDelete 小表和 1 个 Evaluation 小表。Device、Store、Runtime、Output 和执行授权已移交 SyncMate／项目执行策略。'
     observations = '真实 CPU 消费者已分别跑通 Selector-only、已有 Selection→GU，以及 1 Dataset/Split × 1 Selector × 1 GU × 1 Evaluation。多引用大表只是调度这些独立 cell，不形成整包缓存身份。改变 Evaluation 只改变 Evaluation receipt，Selection 与 GU Result 均 HIT；设备与 Torch/CUDA build 只进入执行回执，不再进入 Score/Checkpoint 身份。'
     decision = '建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。'
     scenarios = [
