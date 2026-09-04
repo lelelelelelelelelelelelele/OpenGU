@@ -343,3 +343,23 @@ def test_random_production_is_independent_of_prior_rng_and_cache(tmp_path):
     assert torch.equal(bypass.selected_nodes, cold.selected_nodes)
     assert torch.equal(cold.selected_nodes, warm.selected_nodes)
     assert bypass.f1_after == cold.f1_after == warm.f1_after
+
+
+def test_trained_selector_is_independent_of_gu_parameters_and_producer(tmp_path):
+    from cache_v2 import ProducerVersion
+    root = tmp_path / 'v2'
+    first = manager(root, num_epochs=3, unlearn_lr=.01).run_attack('tracin', 2)
+    for params in ({'unlearn_lr': .02}, {'unlearning_methods': 'GNNDelete'},
+                   {'experiment_id': 'another', 'case_id': 'renamed'}):
+        other = manager(root, num_epochs=3, unlearn_lr=.01, **{k:v for k,v in params.items() if k != 'unlearn_lr'})
+        other.args.update(params)
+        result = other.run_attack('tracin', 2)
+        assert result.selection_cache_hit
+        assert result.selection_artifact_id == first.selection_artifact_id
+        if 'case_id' not in params:
+            assert result.result_cache_key != first.result_cache_key
+    changed = manager(root, num_epochs=3, unlearn_lr=.01)
+    changed._result_producer = ProducerVersion('changed-gu-only', 'e' * 64)
+    result = changed.run_attack('tracin', 2)
+    assert result.selection_cache_hit and not result.result_cache_hit
+    assert result.selection_artifact_id == first.selection_artifact_id

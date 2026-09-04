@@ -97,10 +97,9 @@ class GCNNet(abstract_model):
     
     def reason_once(self,data):
         x, edge_index = data.x, data.edge_index
-        if not x.is_cuda:
-            x = x.to('cuda') 
-        if not edge_index.is_cuda:
-            edge_index = edge_index.to('cuda')
+        device = next(self.parameters()).device
+        x = x.to(device)
+        edge_index = edge_index.to(device)
         for i in range(self.num_layers):
             x = self.convs[i](x,edge_index)
             if i != self.num_layers - 1:
@@ -137,9 +136,3 @@ class GCNNet(abstract_model):
                 x = F.relu(x)
                 x = F.dropout(x, training=self.training)
         return F.log_softmax(x, dim=-1)
-    
-    
-        
-    
-    
-        

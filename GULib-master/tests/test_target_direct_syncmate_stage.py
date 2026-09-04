@@ -35,7 +35,7 @@ def _summary(
     }
     return {
         "schema": "target_direct_v1.selection_summary",
-        "version": 2,
+        "version": 3,
         "status": {"state": "success", "failure": None},
         "dataset": "Cora",
         "seed": 42,
@@ -60,7 +60,7 @@ def _summary(
             "score_semantics": "prefix_stable_budget_independent",
             "supported_ratios": [0.01, 0.05],
             "budget_conditioned_strategies": [],
-            "score_bundle_shared_across_ratios": True,
+            "method_scores_shared_across_ratios": True,
             "selection_artifact_ratio_conditioned": True,
         },
         "git_provenance": {"head": GIT_SHA, "worktree_dirty": False},
@@ -73,16 +73,17 @@ def _summary(
             "file_sha256": "b" * 64,
             "state_hash": "c" * 64,
         },
-        "score_bundle": {
+        "method_scores": {name: {
             "hit": score_hit,
-            "artifact_id": "score_1",
+            "producer_called": not score_hit,
+            "artifact_id": "score_" + name,
             "recipe_hash": "d" * 64,
             "cold_total_seconds": None if score_hit else 3.0,
             "warm_read_seconds": 0.02 if score_hit else None,
-        },
+        } for name in SCORE_NAMES},
         "selection_cache": {"method_timings": method_timings},
         "gpu_memory": {
-            "score_bundle": {"device_name": "NVIDIA GeForce RTX 4090"},
+            "method_scores": {"device_name": "NVIDIA GeForce RTX 4090"},
             "process_peak_allocated_bytes": 1024,
             "process_peak_reserved_bytes": 2048,
         },
@@ -462,8 +463,8 @@ def test_selection_receipt_binds_cold_warm_checkpoint_and_timings(tmp_path):
         "0.05": 94,
     }
     assert receipt["formal_score_count"] == 17
-    assert receipt["score_bundle_cold_total_seconds"] == 3.0
-    assert set(receipt["score_bundle_warm_read_seconds"]) == {
+    assert receipt["method_scores_cold_total_seconds"] == 51.0
+    assert set(receipt["method_scores_warm_read_seconds"]) == {
         "0.01_warm",
         "0.05_cold_projection",
         "0.05_warm",

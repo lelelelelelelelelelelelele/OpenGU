@@ -7874,7 +7874,7 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
     receipt_path = sm.local_landing_path(landing, receipt_remote)
     receipt = {
         "schema": "target_direct_v1.syncmate_selection_cell",
-        "version": 2,
+        "version": 3,
         "dataset": "Cora",
         "seed": 42,
         "status": "success",
@@ -7886,8 +7886,9 @@ def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
         "formal_score_count": 17,
         "score_budget_semantics": "prefix_stable_budget_independent",
         "budget_conditioned_strategies": [],
-        "score_bundle_cold_total_seconds": 4.0,
-        "score_bundle_warm_read_seconds": {
+        "method_score_identities": {name: {"artifact_id": "score_" + name, "recipe_hash": "a" * 64} for name in sm.TARGET_DIRECT_STRATEGIES},
+        "method_scores_cold_total_seconds": 4.0,
+        "method_scores_warm_read_seconds": {
             "0.01_warm": 0.02,
             "0.05_cold_projection": 0.02,
             "0.05_warm": 0.02,

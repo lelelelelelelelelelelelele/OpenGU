@@ -36,7 +36,7 @@ from config import root_path
 class model_zoo(abstract_model):
     def __init__(self,args,data):
         super(model_zoo, self).__init__()
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(args.get('device') or ('cuda' if torch.cuda.is_available() else 'cpu'))
         self.args = args
         self.data = data
         self.determine_model()

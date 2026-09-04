@@ -1037,6 +1037,9 @@ def load_config(path: Path) -> Dict[str, Any]:
     with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     cfg["_source_path"] = str(path)
+    if cfg.get("kind") == "experiment":
+        from experiments.modular_config import load_experiment
+        return load_experiment(path)
     required = ["dataset", "base_model", "ratio", "methods", "strategies", "seeds"]
     missing = [k for k in required if k not in cfg]
     if missing:
@@ -1053,6 +1056,15 @@ def main():
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    if cfg.get("kind") == "experiment":
+        if args.force or args.limit is not None:
+            raise ValueError('modular experiments do not support force or implicit matrix truncation')
+        from experiments.modular_model import runtime_defaults
+        runtime_defaults()
+        from experiments.modular_run import execute
+        result = execute(args.config, dry_run=args.dry_run)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
     selection_map, selection_document = prepare_cache_v2_selection(
         cfg, dry_run=args.dry_run
     )

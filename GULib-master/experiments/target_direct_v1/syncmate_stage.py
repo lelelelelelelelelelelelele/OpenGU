@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import socket
 import subprocess
@@ -50,7 +51,7 @@ CONFIG_PATH = (
 CONFIG_SCHEMA = "target_direct_v1.syncmate_formal"
 CONFIG_VERSION = 2
 RECEIPT_SCHEMA = "target_direct_v1.syncmate_selection_cell"
-RECEIPT_VERSION = 2
+RECEIPT_VERSION = 3
 ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
 DATASET_NODE_COUNTS = {
@@ -209,7 +210,7 @@ def load_config(
             float(item) for item in claims.get("deletion_budget_ratios") or ()
         )
         != BUDGET_RATIOS
-        or int(claims.get("score_bundle_compute_per_dataset_seed", -1)) != 1
+        or int(claims.get("method_score_compute_per_dataset_seed", -1)) != 1
         or claims.get("selection_artifact_identity_is_ratio_conditioned")
         is not True
         or claims.get("formal_matrix_scope") != "last_layer"
@@ -473,12 +474,12 @@ def _load_summary(path: Path) -> Mapping[str, Any]:
 def _validate_selection_pair(
     config: Mapping[str, Any], stage: str, expected_head: str
 ) -> Dict[str, Any]:
-    """Validate one shared cold ScoreBundle and two ratio projections."""
+    """Validate one shared cold method Scores and two ratio projections."""
 
     dataset, seed = parse_stage(stage)
     paths = _stage_paths(config, stage)
     summaries: Dict[Tuple[str, str], Mapping[str, Any]] = {}
-    score_identities = set()
+    score_identities = {name: set() for name in SCORE_NAMES}
     checkpoint_identities = set()
     ratio_results = {}
     score_warm_reads = {}
@@ -496,7 +497,7 @@ def _validate_selection_pair(
             if (
                 summary.get("schema")
                 != "target_direct_v1.selection_summary"
-                or summary.get("version") != 2
+                or summary.get("version") != 3
                 or (summary.get("status") or {}).get("state") != "success"
                 or str(summary.get("dataset", "")).lower() != dataset
                 or int(summary.get("seed", -1)) != seed
@@ -519,7 +520,7 @@ def _validate_selection_pair(
                 )
                 != BUDGET_RATIOS
                 or projection.get("budget_conditioned_strategies") != []
-                or projection.get("score_bundle_shared_across_ratios")
+                or projection.get("method_scores_shared_across_ratios")
                 is not True
                 or projection.get("selection_artifact_ratio_conditioned")
                 is not True
@@ -538,24 +539,34 @@ def _validate_selection_pair(
                     )
                 )
 
-            score = summary.get("score_bundle") or {}
+            scores = summary.get("method_scores") or {}
+            if set(scores) != set(SCORE_NAMES):
+                raise TargetDirectStageError('method Score set is incomplete')
             checkpoint = summary.get("target_checkpoint") or {}
-            score_identities.add(
-                (score.get("artifact_id"), score.get("recipe_hash"))
-            )
+            for name, score in scores.items():
+                timing_key = 'warm_read_seconds' if score.get('hit') is True else 'cold_total_seconds'
+                timing = score.get(timing_key)
+                digest = score.get('recipe_hash')
+                if (type(score.get('hit')) is not bool or score.get('producer_called') is not (not score['hit'])
+                        or not isinstance(digest, str) or len(digest) != 64
+                        or any(c not in '0123456789abcdef' for c in digest)
+                        or not score.get('artifact_id') or type(timing) not in (int, float)
+                        or not math.isfinite(timing) or timing < 0):
+                    raise TargetDirectStageError(name + ' method Score identity/timing is incomplete')
+                score_identities[name].add((score.get('artifact_id'), score.get('recipe_hash')))
             checkpoint_identities.add(
                 (checkpoint.get("file_sha256"), checkpoint.get("state_hash"))
             )
 
-        cold_score_hit = (cold.get("score_bundle") or {}).get("hit")
+        cold_score_hit = all(item.get("hit") is True for item in cold["method_scores"].values())
         expected_cold_score_hit = position != 0
-        if cold_score_hit is not expected_cold_score_hit:
+        if any(item.get("hit") is not expected_cold_score_hit for item in cold["method_scores"].values()):
             raise TargetDirectStageError(
-                "{0} cold ScoreBundle sharing outcome changed".format(key)
+                "{0} cold method Scores sharing outcome changed".format(key)
             )
-        if (warm.get("score_bundle") or {}).get("hit") is not True:
+        if any(item.get("hit") is not True or item.get("producer_called") is not False for item in warm["method_scores"].values()):
             raise TargetDirectStageError(
-                "{0} warm ScoreBundle was not an exact hit".format(key)
+                "{0} warm method Scores was not an exact hit".format(key)
             )
         cold_timings = (
             (cold.get("selection_cache") or {}).get("method_timings") or {}
@@ -591,15 +602,15 @@ def _validate_selection_pair(
             )
         if cold_score_hit:
             score_warm_reads[key + "_cold_projection"] = (
-                (cold.get("score_bundle") or {}).get("warm_read_seconds")
+                sum(item["warm_read_seconds"] for item in cold["method_scores"].values())
             )
         score_warm_reads[key + "_warm"] = (
-            (warm.get("score_bundle") or {}).get("warm_read_seconds")
+            sum(item["warm_read_seconds"] for item in warm["method_scores"].values())
         )
         ratio_results[key] = {
             "ratio": float(ratio),
             "k": expected_k,
-            "cold_score_bundle_hit": bool(cold_score_hit),
+            "cold_method_scores_hit": bool(cold_score_hit),
             "cold_method_timings": cold_timings,
             "warm_method_timings": warm_timings,
             "failure_state": cold["status"],
@@ -607,9 +618,9 @@ def _validate_selection_pair(
             "warm_sha256": _sha256_file(paths["warm"][key]),
         }
 
-    if len(score_identities) != 1 or None in next(iter(score_identities)):
+    if any(len(values) != 1 or None in next(iter(values)) for values in score_identities.values()):
         raise TargetDirectStageError(
-            "1%/5% summaries do not share one exact ScoreBundle identity"
+            "1%/5% summaries do not share one exact method Scores identity"
         )
     if len(checkpoint_identities) != 1 or None in next(
         iter(checkpoint_identities)
@@ -620,19 +631,19 @@ def _validate_selection_pair(
     first_key = ratio_key(BUDGET_RATIOS[0])
     first_cold = summaries[(first_key, "cold")]
     first_checkpoint = first_cold["target_checkpoint"]
-    first_score = first_cold["score_bundle"]
+    first_score = {"cold_total_seconds": sum(item["cold_total_seconds"] for item in first_cold["method_scores"].values())}
     if not isinstance(first_score.get("cold_total_seconds"), (int, float)):
         raise TargetDirectStageError(
-            "shared cold ScoreBundle total timing is missing"
+            "shared cold method Scores total timing is missing"
         )
     if any(
         not isinstance(value, (int, float))
         for value in score_warm_reads.values()
     ):
-        raise TargetDirectStageError("shared ScoreBundle warm timing is missing")
+        raise TargetDirectStageError("shared method Scores warm timing is missing")
     gpu = first_cold.get("gpu_memory") or {}
     device_name = str(
-        ((gpu.get("score_bundle") or {}).get("device_name")) or ""
+        ((gpu.get("method_scores") or {}).get("device_name")) or ""
     )
     peak_allocated = int(gpu.get("process_peak_allocated_bytes") or 0)
     peak_reserved = int(gpu.get("process_peak_reserved_bytes") or 0)
@@ -642,7 +653,6 @@ def _validate_selection_pair(
         or peak_reserved <= 0
     ):
         raise TargetDirectStageError("selection GPU evidence is incomplete")
-    artifact_id, recipe_hash = next(iter(score_identities))
     return {
         "schema": RECEIPT_SCHEMA,
         "version": RECEIPT_VERSION,
@@ -662,12 +672,11 @@ def _validate_selection_pair(
         "formal_score_count": len(SCORE_NAMES),
         "score_budget_semantics": SCORE_BUDGET_SEMANTICS,
         "budget_conditioned_strategies": [],
-        "score_bundle_artifact_id": artifact_id,
-        "score_bundle_recipe_hash": recipe_hash,
-        "score_bundle_cold_total_seconds": first_score[
+        "method_score_identities": {name: {'artifact_id': next(iter(values))[0], 'recipe_hash': next(iter(values))[1]} for name, values in score_identities.items()},
+        "method_scores_cold_total_seconds": first_score[
             "cold_total_seconds"
         ],
-        "score_bundle_warm_read_seconds": score_warm_reads,
+        "method_scores_warm_read_seconds": score_warm_reads,
         "ratio_results": ratio_results,
         "target_checkpoint": {
             "path": first_checkpoint["path"],

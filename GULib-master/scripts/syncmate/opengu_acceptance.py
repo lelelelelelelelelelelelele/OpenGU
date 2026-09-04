@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import math
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
@@ -129,17 +130,25 @@ def _selection_acceptance(
         ratio_results = receipt.get("ratio_results") or {}
         checkpoint = receipt.get("target_checkpoint") or {}
         if (
-            receipt.get("version") != 2
+            receipt.get("version") != 3
+            or set(receipt.get("method_score_identities") or {}) != set(TARGET_DIRECT_STRATEGIES)
+            or any(not isinstance(item, dict) or not item.get('artifact_id')
+                   or not isinstance(item.get('recipe_hash'), str) or len(item['recipe_hash']) != 64
+                   or any(c not in '0123456789abcdef' for c in item['recipe_hash'])
+                   for item in (receipt.get('method_score_identities') or {}).values())
             or receipt.get("parameter_scope") != matrix.get("parameter_scope")
             or receipt.get("candidate_count") != matrix.get("candidate_count")
             or tuple(float(value) for value in receipt.get("budget_ratios") or ()) != expected_ratios
             or receipt.get("expected_k_by_ratio") != expected_k
             or receipt.get("score_budget_semantics") != matrix.get("score_budget_semantics")
             or tuple(receipt.get("budget_conditioned_strategies") or ()) != tuple(matrix.get("budget_conditioned_strategies") or ())
-            or not isinstance(receipt.get("score_bundle_cold_total_seconds"), (int, float))
-            or not isinstance(receipt.get("score_bundle_warm_read_seconds"), dict)
-            or not receipt.get("score_bundle_warm_read_seconds")
-            or any(not isinstance(value, (int, float)) for value in (receipt.get("score_bundle_warm_read_seconds") or {}).values())
+            or type(receipt.get("method_scores_cold_total_seconds")) not in (int, float)
+            or not math.isfinite(receipt.get("method_scores_cold_total_seconds", -1))
+            or receipt.get("method_scores_cold_total_seconds", -1) < 0
+            or not isinstance(receipt.get("method_scores_warm_read_seconds"), dict)
+            or not receipt.get("method_scores_warm_read_seconds")
+            or any(type(value) not in (int, float) or not math.isfinite(value) or value < 0
+                   for value in (receipt.get("method_scores_warm_read_seconds") or {}).values())
             or set(ratio_results) != {f"{ratio:.2f}" for ratio in expected_ratios}
             or not checkpoint.get("file_sha256")
             or not checkpoint.get("state_hash")

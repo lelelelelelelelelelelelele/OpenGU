@@ -601,7 +601,7 @@ class gif(IF_based_pipeline):
             total_loss += graph_loss
         return total_loss
 
-    def unlearning_request(self):
+    def unlearning_request(self, selected_nodes=None):
         """
         Handles unlearning requests based on the specified task.
         This method processes the data for unlearning by selecting nodes, edges, or features to remove or modify.
@@ -625,7 +625,9 @@ class gif(IF_based_pipeline):
 
         if self.args["unlearn_task"] == 'node':
             path_un = unlearning_path + "_" + str(self.run) + ".txt"
-            if os.path.exists(path_un):
+            if selected_nodes is not None:
+                unique_nodes = np.asarray(selected_nodes, dtype=int)
+            elif os.path.exists(path_un):
                 unique_nodes = np.loadtxt(path_un, dtype=int)
             else:
                 unique_nodes = np.random.choice(len(self.data.train_indices),

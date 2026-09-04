@@ -113,7 +113,7 @@ def build_manifest(
         summary = json.loads(source_path.read_text(encoding="utf-8"))
         if (
             summary.get("schema") != "target_direct_v1.selection_summary"
-            or summary.get("version") != 2
+            or summary.get("version") != 3
             or (summary.get("status") or {}).get("state") != "success"
             or summary.get("algorithm_version") != ALGORITHM_VERSION
             or str(summary.get("dataset", "")).lower() != dataset.lower()
@@ -211,10 +211,10 @@ def build_manifest(
                     },
                     "selected_nodes": list(loaded.selected_nodes),
                     "target_checkpoint": checkpoints_by_seed[seed],
-                    "source_score_artifact_id": summary["score_bundle"][
+                    "source_score_artifact_id": summary["method_scores"][strategy][
                         "artifact_id"
                     ],
-                    "source_score_recipe_hash": summary["score_bundle"][
+                    "source_score_recipe_hash": summary["method_scores"][strategy][
                         "recipe_hash"
                     ],
                 }
@@ -226,9 +226,7 @@ def build_manifest(
                 "sha256": sha256_file(source_path),
                 "seed": seed,
                 "ratio": float(ratio),
-                "score_bundle_artifact_id": summary["score_bundle"][
-                    "artifact_id"
-                ],
+                "method_score_artifact_ids": {name: item["artifact_id"] for name, item in summary["method_scores"].items()},
                 "target_checkpoint_state_hash": checkpoint["state_hash"],
             }
         )
@@ -279,7 +277,7 @@ def build_manifest(
             "selector_and_gu_share_exact_checkpoint": True,
             "test_labels_used_for_selection": False,
             "formal_count_fail_closed": True,
-            "score_bundle_budget_semantics":
+            "method_score_budget_semantics":
                 "prefix_stable_budget_independent",
             "budget_conditioned_strategies": [],
         },

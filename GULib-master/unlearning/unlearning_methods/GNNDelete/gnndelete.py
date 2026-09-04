@@ -436,19 +436,20 @@ class gnndelete(Learning_based_pipeline):
 
 
 
-    def delete_node(self):
+    def delete_node(self, selected_nodes=None):
         """
         Deletes specified nodes from the graph neural network and updates the model accordingly.
         This method performs node unlearning by removing designated nodes and their associated edges from the training dataset. 
         It updates the model's masks to exclude these nodes, handles the creation of subgraphs, and manages the retraining or adjustment of the GNN model based on the selected unlearning strategy. 
         Additionally, it evaluates the updated model's performance and conducts membership inference attacks to assess the effectiveness of the unlearning process.
         """
-        self.args["checkpoint_dir"] = root_path + '/data/GNNDelete/checkpoint_node'
+        self.args["checkpoint_dir"] = self.args.get("checkpoint_dir") or root_path + '/data/GNNDelete/checkpoint_node'
         original_path = os.path.join(self.args["checkpoint_dir"],self.args["dataset_name"],self.args["base_model"],'original',
                                                           '-'.join([str(i) for i in [self.args["df"], self.args["df_size"], self.args["random_seed"]]]))
         os.makedirs(self.args["checkpoint_dir"], exist_ok=True)
         path_un = unlearning_path + "_" + str(self.run) + ".txt"
-        df_nodes = np.loadtxt(path_un, dtype=int)
+        df_nodes = (np.loadtxt(path_un, dtype=int) if selected_nodes is None
+                    else np.asarray(selected_nodes, dtype=int))
         if df_nodes.ndim == 0:
             df_nodes = df_nodes.reshape(1)
             

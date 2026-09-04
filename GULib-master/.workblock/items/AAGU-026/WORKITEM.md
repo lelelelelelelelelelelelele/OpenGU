@@ -3,12 +3,18 @@
 Block ID: `AAGU-026`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-026/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`dac6fd52345f173b29f45563e4ede7d84a2a11e9`
+
+> Source branch：`refs/heads/codex/aagu-026-modular-cache`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -65,6 +71,14 @@ Execution topology: `parallel`
 ## Restart and next action
 
 先重新确认 AAGU-001 已接受并读取其最新合同。使用 `block-workflow` Claim 这个精确 locator，在 linked worktree 中实施已确认范围；用隔离 CPU 输入和临时 Store 验证，不触碰历史产物。形成精确候选与配对报告后停在 `formal` 人类决定边界。AAGU-015 在另一任务中并行准备 selector-only 的实际工作流、实验协议表和预期缓存变化样例；本实现不代替其科研决定，也不要求其先完成才能开始。
+
+## Execution record
+
+- 2026-09-04：按已接受 AAGU-001 合同，从记录 baseline 在独立 linked worktree 执行。源码位于 `E:/project/OpenGU-worktrees/aagu-026-modular-cache/GULib-master`，canonical Claim 保留在主项目。
+- 独立实例入口为 `experiments/run.py` → `modular_config.py / modular_run.py`；方法默认值、训练、评分、GU 消费分属各自模块。使用既有统一 Cache V2 Store，不增加整包共同键或 Legacy 回退。
+- target-direct 的正式矩阵与启动授权保持原合同，summary/receipt 升级为逐方法 version 3；同步修改冻结配置字段及其 SyncMate SHA。这里只验证本地消费者与接纳代码，未执行 SSH、正式 GPU、push、install、Apply 或历史载荷写入。
+- 使用说明：[独立配置与消费者](../../../docs/modular_experiments.md)。可重跑 Verify：[evidence/verify.py](evidence/verify.py)，运行原始 XML、日志和历史目录清单放在忽略的 `.workblock/runtime/`。
+- Verify 通过后在本目录形成配对报告，并将同一 Claim 转为 awaiting_acceptance；最终决定由用户作出。
 
 ## Status history
 
