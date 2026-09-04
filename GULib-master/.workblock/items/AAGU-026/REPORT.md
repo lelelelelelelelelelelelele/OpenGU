@@ -8,13 +8,13 @@
 
 ### 核心观察
 
-五 Selector × 两 GU × 一 Evaluation 的计划可完整 dry-run；B-Hutch 32 小表只写 last_layer，64 小表只多 probes: 64。真实 CPU 消费者中，改变 Evaluation 只改变 Evaluation receipt，Selection 与 GU Result 均 HIT；普通 modular lane 引用缺少 exact-retrain 输入的 retrain-gap case 会在写 Store 前失败。设备与 Torch/CUDA build 只进入执行回执，不再进入 Score/Checkpoint 身份。
+真实 CPU 消费者已分别跑通 Selector-only、已有 Selection→GU，以及 1 Dataset/Split × 1 Selector × 1 GU × 1 Evaluation。多引用大表只是调度这些独立 cell，不形成整包缓存身份。改变 Evaluation 只改变 Evaluation receipt，Selection 与 GU Result 均 HIT；设备与 Torch/CUDA build 只进入执行回执，不再进入 Score/Checkpoint 身份。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-建议接受本 Block 的返工候选。122 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。
+建议接受本 Block 的返工候选。123 项 CPU／集成检查、182 项 SyncMate 检查通过，主项目 3,990 个历史结果文件及所列缓存目录前后哈希一致。由用户决定接受、继续返工或拒绝；正式 GPU、SSH 部署和科学结果接纳仍未执行。
 
 ## 逐方法冷／热观察
 
@@ -30,11 +30,11 @@
 
 ## 核心验收逐项判断
 
-### 真实组合表与简写小表 — PASS
+### 原子运行与简写小表 — PASS
 
-可解析计划明确列出 5 个 selector_refs、2 个 unlearning_refs 和 1 个 evaluation_ref。B-Hutch 32 沿用注册默认 probes=32，只显式写 last_layer；B-Hutch 64 只增加 probes=64。完整有效参数及来源仍进入 dry-run／运行证据。
+可解析计划展示一个独立的 1×1×1 cell；真实 CPU 测试分别覆盖 Selector-only、已有 Selection→GU 和 Selector→GU→Evaluation。五 Selector × 两 GU 的大表只是同类 cell 的批量调度。B-Hutch 32 沿用默认 probes=32，64 小表只增加 probes=64。
 
-证据：`experiment_five_selectors_two_gu.yaml / test_minimal_method_files_expand_real_defaults`。
+证据：`experiment_one_selector_one_gu.yaml / test_real_gu_consumes_existing_selection_without_producer / test_evaluation_is_independent_and_unimplemented_case_fails_closed`。
 
 ### 运行上下文正交 — PASS
 
@@ -110,7 +110,7 @@ target-direct formal 科研表已从内联方法名改为 17 个 Selector 引用
 
 当前模块入口支持 GCN 两层、SGC 三层，GNNDelete/GCN 以及 GIF/GCN、SGC 的节点删除。模型和训练可在小表省略默认值，也可由两侧分别显式覆盖；超出实现的字段和组合直接拒绝。
 
-post_unlearning_utility 已在 modular lane 实际执行。post_unlearning_utility_and_retrain_gap 只在现有 target-direct SyncMate lane 声明可用，因为它需要 model_before、model_unlearned 和同一 Selection 的 exact retrain；本轮未在 SSH/GPU 上重新执行该消费者。rank_agreement_and_topk_overlap 尚无消费者，直接拒绝。
+post_unlearning_utility 已在 modular lane 实际执行。post_unlearning_utility_and_retrain_gap 只在现有 target-direct SyncMate lane 声明可用，因为它需要 model_before、model_unlearned 和同一 Selection 的 exact retrain；本轮未在 SSH/GPU 上重新执行该消费者。Selector 排名比较和正式配对重训练属于 AAGU-015 的实验分析与证据链，不在 026 中注册空消费者。
 
 仓库指标目录记录的历史 GIF/IDEA hop-flip 问题没有在本 Block 被掩盖或宣称修复；本次 Evaluation 表不接纳这些已知受影响指标。旧 retrain seed 问题已有既存修复，本轮没有把代码存在等同于所有 lane 都已完成。
 
@@ -126,7 +126,7 @@ CPU 进程屏蔽 CUDA；CuPy 提示未找到 CUDA 路径，另有依赖弃用提
 
 ## 候选、复核与后续决定
 
-观察记录绑定已执行检查的 Git checkpoint `35eeced6b348caadb64506f000105c9507df2a55`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 将记录精确 HEAD、与该检查点的报告差异和复用理由。
+观察记录绑定已执行检查的 Git checkpoint `8918aa082867bf8cd8f61c87cd950a636909e2a6`。报告完成会推进同一 source branch 的 HEAD；决定对象始终是该分支当前 clean HEAD。最终 Verify 将记录精确 HEAD、与该检查点的报告差异和复用理由。
 
 [WorkItem](WORKITEM.md) · [模块使用说明](../../../docs/modular_experiments.md) · [可重跑验证脚本](evidence/verify.py) · [最终 Verify](../../runtime/aagu-026/final-verification.json)
 
