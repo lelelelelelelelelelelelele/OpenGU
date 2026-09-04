@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 
 Item Type: Block
 
@@ -105,13 +105,17 @@ Execution topology: `sequential`
 - 当前 owner：本任务 `01a06c2f-8e35-7bf2-8023-ab3be063830b`，session `AAGU-001 · 三层实验参数合同`；2026-09-04 Claim 同一 WorkItem，仅拥有 001 的独立验收范围。
 - 产物：[公共合同](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)、[8 份独立实例](../../../docs/experiment_contract/examples/)、[有界验证脚本](evidence/verify_contract.py)。示例不是当前 launcher 的新输入接口。
 - 工作观察：追到 GCN properties 的实际 lr=0.005、decay=1e-6；区分基础训练 100 轮与节点遗忘 50 轮；列出 17 种评分实际消费依赖。formal 配置解析与 sanity dry-run 分开，未运行 Selection/GU producer。
-- 源码与正式 YAML 未修改；026 未 Claim。候选和验收报告尚待形成。
+- 源码与正式 YAML 未修改；026 未 Claim。内容 checkpoint `c0c433f66eb1def3dab06e05ac7ebd4ecbef026c` 的验证回执见 [evidence/verification.json](evidence/verification.json)：8 份实例、25 个文档链接、真实 parser 默认值/预算/快照检查及 existing sanity dry-run 均通过；看板校验及 7 个看板测试通过。
+- 人类验收入口：[REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)。HTML 已真实渲染并查看桌面/窄屏首尾；建议接受公共合同，当前决定仍为待决定。待验收候选以本 source branch 的干净 HEAD 为准；报告完成后的同脚本完整复验保存在 [最终回执](../../runtime/evidence/AAGU-001/verify-final.json)。
+- 证据边界：正式资产哈希与 GPU 运行 NOT OBSERVED，缓存实现未修改，001 的人类接受 NOT CONFIRMED。报告不是 026 的实现证据，也不是正式研究结论。
 
 ## Restart and next action
 
-本轮继续在同一 source branch 和 Claim 中形成合同候选、验证并报告，停在 formal 人工验收；不得转为 AAGU-026 的运行时/缓存实现。后继任务先重新读取最新 Record 与 canonical Claim，通过 `block-workflow` Resume 本编号，不重新 Claim 或注册。
+本轮停在 formal 人工验收。用户接受后以同一 locator 进入 block-closeout；要求返工则在同一 source branch 与 Claim 中 Resume。不得自动转为 AAGU-026 的运行时/缓存实现；026 须等本合同接受并落实其前置后再执行。
 
 ## Status history
+
+- 2026-09-04: 内容候选完成真实配置与现有入口验证，形成配对验收报告并观察桌面/窄屏渲染；投影为 `awaiting acceptance`，等待用户对 001 的决定。不将 Verify PASS 写成人类接受。
 
 - 2026-09-04: 用户“同意 做吧”后执行前置 001；从登记提交启动 sequential source branch，Claim 进入 ongoing，WorkItem 为 `working / claimed`。未将该同意解释为尚未形成的候选验收。
 
