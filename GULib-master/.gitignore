@@ -87,5 +87,8 @@ results/baseline/
 # Transient WorkBlock supervision state.
 /.workblock/runtime/
 
+# Persistent WorkBlock graph published in canonical A.
+/.workblock/graph.json
+
 # Optional high-DPI raster exports for Cache architecture diagrams. The
 # referenced SVG sources are tracked; these local preview fallbacks are not.
