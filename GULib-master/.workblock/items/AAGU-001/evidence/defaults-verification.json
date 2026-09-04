@@ -1,0 +1,117 @@
+{
+  "schema": "aagu001.contract_verification.v1",
+  "checkpoint": "53d0ed22d8baafe39a3f1eca5255f64c05d0f608",
+  "observed_at": "2026-09-04T14:17:46.356474+00:00",
+  "status": "PASS",
+  "example_count": 10,
+  "resolved_doc_links": 25,
+  "source_defaults": {
+    "--lissa-iterations": 20,
+    "--lissa-scale": 25.0,
+    "--lissa-damp": 0.01,
+    "--hutch-probes": 32,
+    "--hutch-seed": 1729,
+    "--affected-hops": 2,
+    "--parameter-scope": "last_layer",
+    "unlearn_lr": 0.01,
+    "unlearning_epochs": 50,
+    "alpha": 0.5,
+    "loss_fct": "mse_mean",
+    "loss_type": "both_layerwise"
+  },
+  "planned_budgets_not_asset_observations": {
+    "cora": {
+      "candidate_count": 1895,
+      "k": {
+        "0.01": 18,
+        "0.05": 94
+      }
+    },
+    "citeseer": {
+      "candidate_count": 2328,
+      "k": {
+        "0.01": 23,
+        "0.05": 116
+      }
+    },
+    "pubmed": {
+      "candidate_count": 13801,
+      "k": {
+        "0.01": 138,
+        "0.05": 690
+      }
+    }
+  },
+  "cp3_epochs": [
+    1,
+    50,
+    100
+  ],
+  "sanity_dry_run": {
+    "argv": [
+      "E:\\conda_package\\envs\\gnn\\python.exe",
+      "-B",
+      "-X",
+      "utf8",
+      "experiments/run.py",
+      "experiments/configs/sanity_one_cell.yaml",
+      "--dry_run"
+    ],
+    "exit_code": 0,
+    "stdout": "=== Loaded sanity_one_cell.yaml ===\n  cell: cora_GCN_r0.05\n  methods × strategies × seeds = 1 × 1 × 1\n  total cells: 1\n  model_overrides: {'gcn_num_layers': 2, 'gcn_hidden': 64}\n\n=== Summary ===\n  would_run: 1\n  elapsed: 0.0s\n",
+    "stderr": ""
+  },
+  "source_sha256": {
+    "experiments\\configs\\sanity_one_cell.yaml": "cdd3a73a1db3e745df5792356f69907cf2edcf021dd1c47eaf0c9782ce4f1b39",
+    "experiments\\configs\\syncmate_target_direct_formal_v2.yaml": "1d4a85c084c493611fa25d39485c5a675a7cfff450c260aaaf980413a89d9b83",
+    "experiments\\target_direct_v1\\run_selection.py": "ab838660ee8f2a051e6ce3b15d38082bd5545b498bb2fb206310c27026ca13e0",
+    "experiments\\target_direct_v1\\scoring.py": "a87137039224e5307e6786999705294a825117f39e5450efc70cf54e508fb351",
+    "parameter_parser.py": "1270c64a0fb2948290236111ba428e65060513193b4f7055417a96b64e14ca81",
+    "model\\properties\\GCN.yaml": "8ea785dc7c4b2e0a25a2352710ba3726c7e0a42a377f07fe44fe47f6c7dc75b6",
+    "unlearning\\unlearning_methods\\GNNDelete\\gnndelete.py": "90e925d53a0598a45fc1ed4f136660bd0174c08495fa35ca76fb9036dbdb22ad"
+  },
+  "boundaries": {
+    "formal_gpu_run": "NOT OBSERVED",
+    "formal_asset_hashes": "NOT OBSERVED",
+    "cache_identity_fix": "NOT IMPLEMENTED - AAGU-026",
+    "human_acceptance": "NOT CONFIRMED"
+  },
+  "omitted_defaults_examples": [
+    {
+      "omitted_example": "selector_b_hutch_defaults.yaml",
+      "explicit_example": "selector_b_hutch32.yaml",
+      "effective_parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "comparison": "equal - documentation only, no production loader or cache invocation"
+    },
+    {
+      "omitted_example": "unlearning_gnndelete_defaults.yaml",
+      "explicit_example": "unlearning_gnndelete.yaml",
+      "effective_parameters": {
+        "unlearn_lr": 0.01,
+        "unlearning_epochs": 50,
+        "alpha": 0.5,
+        "loss_fct": "mse_mean",
+        "loss_type": "both_layerwise",
+        "deletion_optimizer": "Adam",
+        "deletion_weight_decay": 0.0
+      },
+      "comparison": "equal - documentation only, no production loader or cache invocation"
+    }
+  ]
+}

@@ -14,22 +14,25 @@
 <section class="result" data-workblock-human-result="2.1">
 <h2>Human Result</h2>
 <h3>实际增量</h3>
-<p>将讨论落实为一份可审阅合同：实验大表只组合 Dataset/Split、Selector、Unlearning 三块独立参数表；预算归 Selector，两侧模型分别声明，方法变体只用不同配置表。已交付<a href="../../../docs/experiment_contract/README.md">公共规范</a>、<a href="../../../docs/experiment_contract/PARAMETERS.md">真实参数表</a>和 8 份独立实例。</p>
+<p>已形成三块独立参数表的合同，并按本轮讨论区分“人工填写的覆盖值”和“解析后的完整有效配置”：OpenGU 默认值可省略；方法名分发实现，共享代码不等于共享配置或缓存身份。已交付<a href="../../../docs/experiment_contract/README.md">公共规范</a>、<a href="../../../docs/experiment_contract/PARAMETERS.md">真实参数表</a>和 10 份独立实例，补充 LiSSA 20 次递推的具体含义。</p>
 <h3>核心观察</h3>
-<p>现在可以查到具体有效值和代码来源，而不只有抽象字段名：GCN 训练 lr=0.005、GU lr=0.01；基础训练 100 轮、节点遗忘 50 轮；LiSSA=20/25/0.01、Hutch=32/1729，且列明各自影响哪些评分。两组变体各只改变一个参数；已有 sanity 实验 dry-run 实际返回一个 <code>would_run</code> cell。配置/文档检查通过，但没有执行正式实验或修复缓存实现。<a href="evidence/verification.json">验证回执</a></p>
+<p>两份省略 parameters 的示例，按已审查的实际默认值展开后，与显式填写版本逐项相等；10 份实例、25 个文档链接检查通过，已有 sanity dry-run 返回一个 <code>would_run</code> cell。001 已在独立 worktree 继续同一分支/Claim，026 登记补充已提交 main。上述证据支持合同表达，不证明生产加载器或真实缓存 HIT 已实现。<a href="evidence/defaults-verification.json">本轮回执</a></p>
 <h3>当前决定</h3>
-<div class="decision"><span data-workblock-decision="pending">待决定</span><p>建议接受 001 的公共合同：它已覆盖参数归属、当前来源、变体与缓存影响，以及可复核的注册入口示例。请由研究负责人决定接受或返工；接受对象仅是 001，不代表 026 已完成，也不批准新的 GPU 矩阵。</p></div>
+<div class="decision"><span data-workblock-decision="pending">待决定</span><p>建议接受更新后的 001 公共合同：它允许简短配置，同时保留有效参数、方法分发和缓存依赖的明确边界。请由研究负责人决定接受或返工；接受对象仅是 001，不代表 026 已完成，也不批准新的 GPU 矩阵。</p></div>
 </section>
 <section><h2>关键交付</h2><div class="table-wrap"><table><thead><tr><th>交付</th><th>审阅重点</th></tr></thead><tbody>
 <tr><td><a href="../../../docs/experiment_contract/README.md">公共合同</a></td><td>大表/小表职责、字段约束、缓存变更矩阵、注册/执行/接纳分离</td></tr>
 <tr><td><a href="../../../docs/experiment_contract/PARAMETERS.md">真实参数表</a></td><td>YAML 显式值、代码有效默认值、可比较变量、仍待科研决定的部分</td></tr>
+<tr><td><a href="../../../docs/experiment_contract/examples/selector_b_hutch_defaults.yaml">Selector 默认值</a> / <a href="../../../docs/experiment_contract/examples/unlearning_gnndelete_defaults.yaml">GU 默认值</a></td><td>人工表省略 parameters；按实际默认值展开后与完整实例等价</td></tr>
 <tr><td><a href="../../../docs/experiment_contract/examples/selector_b_hutch32.yaml">Selector 32</a> / <a href="../../../docs/experiment_contract/examples/selector_b_hutch64.yaml">64</a></td><td>同一 b_param_hutch 方法只改探针数，没有新的变体实现</td></tr>
 <tr><td><a href="../../../docs/experiment_contract/examples/unlearning_gnndelete.yaml">GU 0.01</a> / <a href="../../../docs/experiment_contract/examples/unlearning_gnndelete_lr002.yaml">0.02</a></td><td>只改 GU 学习率，不应污染已完成的 Selector</td></tr>
 <tr><td><a href="../../../docs/experiment_contract/examples/experiment_selector_only.yaml">Selector-only</a> / <a href="../../../docs/experiment_contract/examples/experiment_gu_from_selection.yaml">已有 Selection → GU</a></td><td>小模块与实验大表解耦；示例显式无执行授权，未伪造资产哈希</td></tr>
 </tbody></table></div></section>
 <section><h2>对核心验收的观察</h2>
 <h3>参数共识是否具体 — PASS</h3><p>沿 formal YAML、stage、runner、模型属性和 GU trainer 追踪，找到了不在 YAML 中的实际默认值。特别区分 GCN 属性 0.005/1e-6 与 runner 的后备值，也区分基础训练 num_epochs 与节点遗忘 unlearning_epochs。表格给出值、源码链接、配置比较边界与消费者；这是源码/配置证据，不是实测优化效果。</p>
-<h3>三块配置和方法变体是否表达清楚 — PASS（合同/实例层）</h3><p>8 份 YAML 可解析，引用存在。检查逐字段差异：Hutch 两表仅 probes 不同，GU 两表仅 unlearn_lr 不同；degree 没有模型字段；Selector-only 不要求 GU，已有 Selection → GU 不要求 selector_refs。检查证明实例表达符合合同，不证明当前运行器已接受新格式或缓存已正确命中。</p>
+<h3>三块配置和方法变体是否表达清楚 — PASS（合同/实例层）</h3><p>10 份 YAML 可解析，引用存在。检查逐字段差异：Hutch 两表仅 probes 不同，GU 两表仅 unlearn_lr 不同；两份省略 parameters 的实例展开已审查默认值后与完整实例相等。degree 没有模型字段；Selector-only 不要求 GU，已有 Selection → GU 不要求 selector_refs。验证器是文档检查工具，不是生产加载器；本项不声称真实 HIT。</p>
+<h3>方法分发与数值含义是否明确 — PASS（源码审查/合同层）</h3><p>具体 method 选择方法实现及字段规则；不同方法可共享内核，但参数实例和缓存身份独立。固定算法细节不强制做成配置开关；IF 求导/目标/求解配置和 TracIn 快照/权重按实际需要保留。LiSSA iterations=20 指固定模型上每个向量的 20 次 HVP 递推，非训练轮数或节点数；B-Hutch 32 个探针对应该分支 640 次递推，不代表总 runner 开销或近似精度已达标。</p>
+<h3>worktree 与 main 登记是否落实 — PASS（本地 Git/Claim）</h3><p>保留原分支、baseline、既有候选和同一 Claim，将 001 挂入 E:/project/OpenGU-worktrees/aagu-001-contract，再由标准 parallel-resume 恢复。026 原登记在 main@8383e30，默认值/方法分发验收补充与 001 parallel 声明在 main@cdbc977；没有把 001 的待验收内容合入 main，没有 026 Claim。</p>
 <h3>现有注册入口能否使用 — PASS（本地 dry-run）</h3><p>没有改动 sanity_one_cell.yaml，通过其既有 <code>experiments/run.py --dry_run</code> 入口得到 total cells=1、would_run=1、exit=0。另调用 formal-v2 的真实只读 load_config，得到 Cora 1895 个计划候选、K=18/94；cp3 实际映射到 epochs [1,50,100]。这些观察支持入口/参数追溯，不证明远端数据存在或已执行 train/unlearn。</p>
 <h3>科学职责和实现边界是否分开 — PASS（规范层）</h3><p>合同明确注册不等于执行授权，SyncMate done 不等于科学接纳；001 不选择 015 的最终 IF 方案。当前 GU→Selector 参数污染和 17-score 整包键仍交 026；未来真实 cold/warm、跨实验复用、producer 未调用必须另验。</p>
 <h3>配套文档是否可用 — PASS（结构与链接）</h3><p>两个规范文件的 25 个本地链接可解析；看板生成一致性检查及 7 项看板测试通过。HTML 实际渲染观察记录在技术附录，不能用结构检查代替。</p>
@@ -39,13 +42,14 @@
 <li>新格式生产 parser、按方法缓存隔离、真实跨实验 HIT：本次未实施，属于 026。</li>
 <li>正式 GPU 训练/遗忘、科学效果和完整 306-cell 矩阵：NOT OBSERVED，未运行且未扩大授权。</li>
 <li>人类验收：NOT CONFIRMED；当前仍需用户决定。</li>
+<li>不同 SGC/GCN/GAT backbone 的节点排序比较：仅记录待定义问题，尚无实验运行或结论；正式设计前须确认“相关性”指评分排序还是表示相似度。</li>
 </ul></section>
 <section><h2>技术附录</h2>
 <p>审查基线：<code>8383e30239398c5268965e088afdfba7abc74ca9</code>。</p>
 <p>内容检查 checkpoint：<code>c0c433f66eb1def3dab06e05ac7ebd4ecbef026c</code>；<a href="evidence/verification.json">原始回执</a>绑定该 checkpoint，不冒充正式实验结果。</p>
-<p>待决定候选为本报告所在 source branch <code>refs/heads/codex/aagu-001-experiment-contract</code> 的干净 HEAD；报告与看板下一步对齐后的最终复验另存<a href="../../runtime/evidence/AAGU-001/verify-final-aligned.json">最终回执</a>，由相同脚本复验当前候选。</p>
+<p>本轮内容 checkpoint：<code>53d0ed22d8baafe39a3f1eca5255f64c05d0f608</code>；<a href="evidence/defaults-verification.json">本轮内容回执</a>绑定该提交。待决定候选为本报告所在 source branch <code>refs/heads/codex/aagu-001-experiment-contract</code> 的干净 HEAD；报告对齐后的复验另存<a href="../../runtime/evidence/AAGU-001/verify-defaults-final.json">最终回执</a>。</p>
 <p>命令：项目 gnn Python 运行 <code>evidence/verify_contract.py --checkpoint &lt;精确提交&gt; --output &lt;本 Block runtime evidence 路径&gt;</code>；另运行 <code>scripts/dashboard/refresh.py --check</code> 和 <code>python -m unittest tests.test_dashboard_refresh -v</code>。</p>
-<p id="render-observation">HTML 渲染检查：PASS。实际用 headless Edge 渲染并查看 1366×900 桌面与 390×844 窄屏首尾截图；标题、正文与决定区可读，无页面横向溢出或断图，桌面首屏完整呈现建议与决定。窄屏正文自然纵向滚动。<a href="../../runtime/evidence/AAGU-001/report-desktop-top.png">桌面首屏</a>、<a href="../../runtime/evidence/AAGU-001/report-narrow-top.png">窄屏首屏</a>。</p>
+<p id="render-observation">HTML 渲染检查：PASS。已实际渲染并查看 1366×900 桌面与 390×844 窄屏首尾；无页面横向溢出或断图，正文可读。桌面首屏完整决定区底部为 640.75px；窄屏正文自然纵向滚动，不声称整块建议都在首屏。<a href="../../runtime/evidence/AAGU-001/defaults-desktop-top.png">桌面首屏</a>、<a href="../../runtime/evidence/AAGU-001/defaults-narrow-top.png">窄屏首屏</a>。</p>
 <p>当前没有 Apply、push、install、SSH 写入或 026 Claim。下一步是用户对 001 的 formal 决定，不自动进入 026。</p>
 </section><footer>同一权威入口：<a href="WORKITEM.md">AAGU-001 WorkItem</a> · <a href="REPORT.md">Markdown 报告</a></footer>
 </main></body></html>

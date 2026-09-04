@@ -4,17 +4,17 @@
 
 ### 实际增量
 
-将讨论落实为一份可审阅合同：实验大表只组合 Dataset/Split、Selector、Unlearning 三块独立参数表；预算归 Selector，两侧模型分别声明，方法变体只用不同配置表。已交付[公共规范](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)和 8 份独立实例。
+已形成三块独立参数表的合同，并按本轮讨论区分“人工填写的覆盖值”和“解析后的完整有效配置”：OpenGU 默认值可省略；方法名分发实现，共享代码不等于共享配置或缓存身份。已交付[公共规范](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)和 10 份独立实例，补充 LiSSA 20 次递推的具体含义。
 
 ### 核心观察
 
-现在可以查到具体有效值和代码来源，而不只有抽象字段名：GCN 训练 lr=0.005、GU lr=0.01；基础训练 100 轮、节点遗忘 50 轮；LiSSA=20/25/0.01、Hutch=32/1729，且列明各自影响哪些评分。两组变体各只改变一个参数；已有 sanity 实验 dry-run 实际返回一个 `would_run` cell。配置/文档检查通过，但没有执行正式实验或修复缓存实现。[验证回执](evidence/verification.json)
+两份省略 parameters 的示例，按已审查的实际默认值展开后，与显式填写版本逐项相等；10 份实例、25 个文档链接检查通过，已有 sanity dry-run 返回一个 `would_run` cell。001 已在独立 worktree 继续同一分支/Claim，026 登记补充已提交 main。上述证据支持合同表达，不证明生产加载器或真实缓存 HIT 已实现。[本轮回执](evidence/defaults-verification.json)
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-建议接受 001 的公共合同：它已覆盖参数归属、当前来源、变体与缓存影响，以及可复核的注册入口示例。请由研究负责人决定接受或返工；接受对象仅是 001，不代表 026 已完成，也不批准新的 GPU 矩阵。
+建议接受更新后的 001 公共合同：它允许简短配置，同时保留有效参数、方法分发和缓存依赖的明确边界。请由研究负责人决定接受或返工；接受对象仅是 001，不代表 026 已完成，也不批准新的 GPU 矩阵。
 
 ## 关键交付
 
@@ -22,6 +22,7 @@
 |---|---|
 | [公共合同](../../../docs/experiment_contract/README.md) | 大表/小表职责、字段约束、缓存变更矩阵、注册/执行/接纳分离 |
 | [真实参数表](../../../docs/experiment_contract/PARAMETERS.md) | YAML 显式值、代码有效默认值、可比较变量、仍待科研决定的部分 |
+| [Selector 默认值](../../../docs/experiment_contract/examples/selector_b_hutch_defaults.yaml) / [GU 默认值](../../../docs/experiment_contract/examples/unlearning_gnndelete_defaults.yaml) | 人工表省略 parameters；按实际默认值展开后与完整实例等价 |
 | [Selector 32](../../../docs/experiment_contract/examples/selector_b_hutch32.yaml) / [64](../../../docs/experiment_contract/examples/selector_b_hutch64.yaml) | 同一 b_param_hutch 方法只改探针数，没有新的变体实现 |
 | [GU 0.01](../../../docs/experiment_contract/examples/unlearning_gnndelete.yaml) / [0.02](../../../docs/experiment_contract/examples/unlearning_gnndelete_lr002.yaml) | 只改 GU 学习率，不应污染已完成的 Selector |
 | [Selector-only](../../../docs/experiment_contract/examples/experiment_selector_only.yaml) / [已有 Selection → GU](../../../docs/experiment_contract/examples/experiment_gu_from_selection.yaml) | 小模块与实验大表解耦；示例显式无执行授权，未伪造资产哈希 |
@@ -34,7 +35,15 @@
 
 ### 三块配置和方法变体是否表达清楚 — PASS（合同/实例层）
 
-8 份 YAML 可解析，引用存在。检查逐字段差异：Hutch 两表仅 probes 不同，GU 两表仅 unlearn_lr 不同；degree 没有模型字段；Selector-only 不要求 GU，已有 Selection → GU 不要求 selector_refs。检查证明实例表达符合合同，不证明当前运行器已接受新格式或缓存已正确命中。
+10 份 YAML 可解析，引用存在。检查逐字段差异：Hutch 两表仅 probes 不同，GU 两表仅 unlearn_lr 不同；两份省略 parameters 的实例展开已审查默认值后与完整实例相等。degree 没有模型字段；Selector-only 不要求 GU，已有 Selection → GU 不要求 selector_refs。验证器是文档检查工具，不是生产加载器；本项不声称真实 HIT。
+
+### 方法分发与数值含义是否明确 — PASS（源码审查/合同层）
+
+具体 method 选择方法实现及字段规则；不同方法可共享内核，但参数实例和缓存身份独立。固定算法细节不强制做成配置开关；IF 求导/目标/求解配置和 TracIn 快照/权重按实际需要保留。LiSSA iterations=20 指固定模型上每个向量的 20 次 HVP 递推，非训练轮数或节点数；B-Hutch 32 个探针对应该分支 640 次递推，不代表总 runner 开销或近似精度已达标。
+
+### worktree 与 main 登记是否落实 — PASS（本地 Git/Claim）
+
+保留原分支、baseline、既有候选和同一 Claim，将 001 挂入 E:/project/OpenGU-worktrees/aagu-001-contract，再由标准 parallel-resume 恢复。026 原登记在 main@8383e30，默认值/方法分发验收补充与 001 parallel 声明在 main@cdbc977；没有把 001 的待验收内容合入 main，没有 026 Claim。
 
 ### 现有注册入口能否使用 — PASS（本地 dry-run）
 
@@ -54,12 +63,13 @@
 - 新格式生产 parser、按方法缓存隔离、真实跨实验 HIT：本次未实施，属于 026。
 - 正式 GPU 训练/遗忘、科学效果和完整 306-cell 矩阵：NOT OBSERVED，未运行且未扩大授权。
 - 人类验收：NOT CONFIRMED；当前仍需用户决定。
+- 不同 SGC/GCN/GAT backbone 的节点排序比较：仅记录待定义问题，尚无实验运行或结论；正式设计前须确认“相关性”指评分排序还是表示相似度。
 
 ## 技术附录
 
 - 审查基线：`8383e30239398c5268965e088afdfba7abc74ca9`。
 - 内容检查 checkpoint：`c0c433f66eb1def3dab06e05ac7ebd4ecbef026c`；[原始回执](evidence/verification.json)绑定该 checkpoint，不冒充正式实验结果。
-- 待决定候选为本报告所在 source branch `refs/heads/codex/aagu-001-experiment-contract` 的干净 HEAD；报告与看板下一步对齐后的最终复验另存[最终回执](../../runtime/evidence/AAGU-001/verify-final-aligned.json)，由相同脚本复验当前候选。
+- 本轮内容 checkpoint：`53d0ed22d8baafe39a3f1eca5255f64c05d0f608`；[本轮内容回执](evidence/defaults-verification.json)绑定该提交。待决定候选为本报告所在 source branch `refs/heads/codex/aagu-001-experiment-contract` 的干净 HEAD；报告对齐后的复验另存[最终回执](../../runtime/evidence/AAGU-001/verify-defaults-final.json)。
 - 命令：项目 gnn Python 运行 `evidence/verify_contract.py --checkpoint <精确提交> --output <本 Block runtime evidence 路径>`；另运行 `scripts/dashboard/refresh.py --check` 和 `python -m unittest tests.test_dashboard_refresh -v`。
-- HTML 渲染检查：PASS。实际用 headless Edge 渲染并查看 1366×900 桌面与 390×844 窄屏首尾截图；标题、正文与决定区可读，无页面横向溢出或断图，桌面首屏完整呈现建议与决定。窄屏正文自然纵向滚动。[桌面首屏](../../runtime/evidence/AAGU-001/report-desktop-top.png)、[窄屏首屏](../../runtime/evidence/AAGU-001/report-narrow-top.png)。
+- HTML 渲染检查：PASS。已实际渲染并查看 1366×900 桌面与 390×844 窄屏首尾；无页面横向溢出或断图，正文可读。桌面首屏完整决定区底部为 640.75px；窄屏正文自然纵向滚动，不声称整块建议都在首屏。[桌面首屏](../../runtime/evidence/AAGU-001/defaults-desktop-top.png)、[窄屏首屏](../../runtime/evidence/AAGU-001/defaults-narrow-top.png)。
 - 当前没有 Apply、push、install、SSH 写入或 026 Claim。下一步是用户对 001 的 formal 决定，不自动进入 026。

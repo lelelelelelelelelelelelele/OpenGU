@@ -4,7 +4,7 @@ Block ID: `AAGU-001`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 
 Item Type: Block
 
@@ -105,7 +105,7 @@ Execution topology: `parallel`
 ## Execution record
 
 - 当前 owner：本任务 `01a06c2f-8e35-7bf2-8023-ab3be063830b`，session `AAGU-001 · 三层实验参数合同`；2026-09-04 Claim 同一 WorkItem，仅拥有 001 的独立验收范围。
-- 产物：[公共合同](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)、[8 份独立实例](../../../docs/experiment_contract/examples/)、[有界验证脚本](evidence/verify_contract.py)。示例不是当前 launcher 的新输入接口。
+- 产物：[公共合同](../../../docs/experiment_contract/README.md)、[真实参数表](../../../docs/experiment_contract/PARAMETERS.md)、[10 份独立实例](../../../docs/experiment_contract/examples/)、[有界验证脚本](evidence/verify_contract.py)。示例不是当前 launcher 的新输入接口。
 - 工作观察：追到 GCN properties 的实际 lr=0.005、decay=1e-6；区分基础训练 100 轮与节点遗忘 50 轮；列出 17 种评分实际消费依赖。formal 配置解析与 sanity dry-run 分开，未运行 Selection/GU producer。
 - 源码与正式 YAML 未修改；026 未 Claim。内容 checkpoint `c0c433f66eb1def3dab06e05ac7ebd4ecbef026c` 的验证回执见 [evidence/verification.json](evidence/verification.json)：8 份实例、25 个文档链接、真实 parser 默认值/预算/快照检查及 existing sanity dry-run 均通过；看板校验及 7 个看板测试通过。
 - 人类验收入口：[REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)。HTML 已真实渲染并查看桌面/窄屏首尾；建议接受公共合同，当前决定仍为待决定。待验收候选以本 source branch 的干净 HEAD 为准；报告与看板下一步对齐后的同脚本完整复验保存在 [最终回执](../../runtime/evidence/AAGU-001/verify-final-aligned.json)。
@@ -113,9 +113,15 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
+本轮 linked source：E:/project/OpenGU-worktrees/aagu-001-contract/GULib-master；分支仍为 codex/aagu-001-experiment-contract，Claim 只在 canonical A 的 runtime 下。main 上 cdbc977 已提交 026 登记补充与 001 parallel 声明；没有合入 001 待验收成果。
+
+默认值返工内容 checkpoint 为 53d0ed22d8baafe39a3f1eca5255f64c05d0f608：[本轮内容回执](evidence/defaults-verification.json)证明 10 份实例、两组省略/显式默认值等价、25 个文档链接和已有 dry-run 通过。7 项看板测试与报告结构检查通过，桌面/窄屏真实渲染已查看；最终报告候选由[本轮最终回执](../../runtime/evidence/AAGU-001/verify-defaults-final.json)绑定。真实缓存隔离仍未实施，backbone 比较仅记录待定义问题。
+
 本轮停在 formal 人工验收。用户接受后以同一 locator 进入 block-closeout；要求返工则在同一 source branch 与 Claim 中 Resume。不得自动转为 AAGU-026 的运行时/缓存实现；026 须等本合同接受并落实其前置后再执行。
 
 ## Status history
+
+- 2026-09-04: parallel worktree 中完成默认值/方法分发返工、LiSSA 解释与两个省略 parameters 实例；本轮内容验证及配对报告检查通过。再次投影 awaiting acceptance，候选最终复验后保持同一 Claim 等待用户决定，不启动 026。
 
 - 2026-09-04: 用户指定 001 改为 parallel worktree 并继续执行；保留同一已有候选分支与 Claim，不重新 Claim、不视为验收。确认人工表可省略方法/OpenGU 默认值、按 method 分发且按有效配置判定缓存。main 保存登记合同，执行与候选投影在原分支的 linked source 继续。
 - 2026-09-04: 同一分支从 8b7dfb8bfd7f577bf309178ce296fd1a516ca0aa 挂入 E:/project/OpenGU-worktrees/aagu-001-contract；canonical main 登记补充已提交 cdbc977。原 Claim CAS revision 2→3 / ongoing，保留原 baseline。标准 start 无已有候选迁移入口，因此仅本次拓扑搬运使用受限 worktree add；不改 Skill、不新建 Claim，后续恢复标准 Run。旧报告/回执仍属于旧候选，返工后更新。
