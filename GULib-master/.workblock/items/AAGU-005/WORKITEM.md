@@ -4,7 +4,7 @@ Block ID: `AAGU-005`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 
 Item Type: Block
 
@@ -82,9 +82,21 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-交接整理与只读核对已完成，见 [REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)。6 个原子配方、既有实测和双端依赖可复用；当前正式 GU 接入仍有下述已复现缺口，完整验收保持待决定，Claim 保持 ongoing。
+用户已要求修复整理中发现的全部接入问题。本侧代码修复与 CPU 消费闭环验证已完成，见 [REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)；当前建议接受本 WorkItem 已约定的代码验证范围，等待用户决定。
 
-下一步在同一 linked worktree 对齐 target-direct GU 的预检参数、单方法产物声明与收集后的接受检查，再更新报告和受影响验证。不重复实现已交付原子链路，不启动新 GPU 实验、AAGU-010 或研究矩阵。
+产品检查点为 `f7956bb994b20b629b60e8f1a4da20fc78ea6b88`。当前 source HEAD 还包含随后更新的报告、证据与状态；最终 identity、diff 和证据复用说明见本 linked worktree `.workblock/runtime/aagu005-report-qa/final-candidate.md`。不要重放已接受 SM-005 的安装或新增 GPU 运行。接受后沿用同一 locator Closeout。
+
+## Repair and Verify · 2026-09-06
+
+- 授权：用户明确指出接入接口与检查需要整体修复。本次继续同一 AAGU-005、同一 linked source 和 Claim；Resume 后 revision 2、phase ongoing。Human Surface、独立消费端归属和不新增 GPU 的约束保持原样。
+- 修复：Adapter 正确传递 stage / ratio / config_path / gate_only；静态配置摘要更新为当前 028 已接受 YAML 的摘要。20 个 GU 配方直接消费执行器产物清单，分别涵盖 GNNDelete / Retrain；配方中的方法条件与真实矩阵消费者一致。
+- 收集检查：独立 Output 解码、当前字节 SHA、Recipe/Artifact/内容身份、三处引用、Selection 与 checkpoint、模型/训练/删除语义、方法参数和重算指标共同核验。两种方法必须共享同一输入与请求，Retrain 不消费已训练 checkpoint；不再读取旧 collateral 或凭 npz 文件名判断成功。
+- 相邻消费：结果表正确呈现独立方法结果；基础 Adapter 按需加载实验策略模块，避免独立 smoke 因缺少实验树失败。未修改 SyncMate Core、算法、正式 YAML、正式数据或缓存。
+- 验证：8 个相关测试文件共 311 passed，0 failure/error/skip。新增检查覆盖 20 个配方清单、20 个真实预检签名、3 个 seed 下真实矩阵方法条件、gate/stage 两个真实 CPU 生产→收集→接受→结果表场景，以及 12 类拒绝情形。原始结果见 [repair-tests.xml](evidence/repair-tests.xml)，具体输出与复用边界见 [repair-verification.json](evidence/repair-verification.json)。
+- 真实消费观察：临时 20 节点 CPU 图分别执行 GNNDelete 和 Retrain；真实本地 Git runner 经 Core 收集并校验后，collector 无远端 Store 仍通过检查；再次收集 fetched=0。检查期间模型 forward 与训练更新被禁止，源 Store 文件哈希保持一致。测试范围明确为可丢弃的 CPU 验证。
+- 修复过程还暴露了重复索引被去重放过、旧配置摘要、过时的基础 smoke 断言和导入依赖；均已修正并纳入最终回归。原始失败快照保留，不将历史失败改为历史成功。
+- clean 产品检查点上只读 audit：6/6 原子配方、20/20 正式 GU 配方、配置摘要与预检参数通过；CLI 编译和 Core smoke 通过。预检测试隔离设备/正式数据边界，runtime_ready 未观察，不声称正式 GPU gate 通过。
+- 人类验收：当前建议接受代码与 CPU 接入验证，报告决定仍为待决定；最终报告检查通过后 Claim 进入 awaiting_acceptance。未 merge、push、install；SSH 主线 c9e094c5 尚不含此修复。
 
 ## Delivery audit · 2026-09-06
 
@@ -106,3 +118,5 @@ Execution topology: `parallel`
 - 2026-09-05：后续用户讨论让 SM-005 承担实际检验，AAGU-005 只监控其完成；该意图已传达给 SM-005，但协调任务中断，当前 canonical Record 未形成相应监控版本。保留这段历史，不将旧意图视为最新执行边界。
 - 2026-09-06：用户明确跨项目协作：AAGU-005 承担 OpenGU 消费端，SM-005 承担 SyncMate Core，分别修改与验收。取代“SM-005 同时拥有两边代码、AAGU-005 只监控并自动完成”的旧安排；沿用同一编号、practical 路线和 parallel 拓扑，登记状态仍为 registered / not claimed。
 - 2026-09-06：按“做整理” Claim 同一 Block，在独立分支整理交付、报告与复现证据；发现正式 GU 接口缺口，保持 working / claimed，未执行完整接受或 Closeout。
+
+- 2026-09-06：按用户明确的整体修复要求完成消费端代码修复及 311 项检查，形成同一 AAGU-005 待验收候选；此前 Delivery audit 为修复前历史观察。

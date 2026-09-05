@@ -1,0 +1,383 @@
+{
+  "observed_at": "2026-09-06T04:14:11.485807+08:00",
+  "source": "E:\\project\\OpenGU-worktrees\\aagu-005-consumer-evidence\\GULib-master",
+  "source_head_at_audit": "f7956bb994b20b629b60e8f1a4da20fc78ea6b88",
+  "product_baseline": "f7956bb994b20b629b60e8f1a4da20fc78ea6b88",
+  "previous_main": "c9e094c55b42b2833fb24fcef5fe08f057605f68",
+  "delivered_consumer": "e8f23a94dc7d753283442cadb1b45d8c1962234e",
+  "delivery_is_ancestor": true,
+  "handoff_paths_changed_since_delivery": [
+    "GULib-master/scripts/syncmate/AGENTS.md",
+    "GULib-master/scripts/syncmate/README.md",
+    "GULib-master/scripts/syncmate/opengu_acceptance.py",
+    "GULib-master/scripts/syncmate/opengu_adapter.py",
+    "GULib-master/scripts/syncmate/opengu_method_output.py",
+    "GULib-master/scripts/syncmate/opengu_recipes.py",
+    "GULib-master/scripts/syncmate/opengu_results.py",
+    "GULib-master/tests/test_syncmate.py"
+  ],
+  "dependency_local": {
+    "ready": true,
+    "expected": {
+      "distribution": "syncmate",
+      "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+      "source_commit": "5dd378cb5a732d47108e58299df462320648bda8",
+      "version": "0.4.0",
+      "wheel": "syncmate-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "a6ecf6de385d80538b1983c49f5dee8048f4787847084fee6cadc3c761a435d2"
+    },
+    "observed": {
+      "distribution_version": "0.4.0",
+      "version": "0.4.0",
+      "module_file": "E:\\conda_package\\envs\\gnn\\Lib\\site-packages\\syncmate_core\\__init__.py",
+      "verified_payload_files": 60
+    },
+    "errors": []
+  },
+  "atomic_recipes": [
+    {
+      "recipe": "opengu-sm005-atomic-gpu-v1",
+      "config": "experiments/configs/sm005_atomic/experiment.yaml",
+      "config_sha256": "d954af660d61bb095ca00f987344b45b4d78870068c9d427c970d200407b43b5",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-degree-gnndelete/sm005-gpu-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-degree-gnndelete/sm005-gpu-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    },
+    {
+      "recipe": "opengu-sm005-b-hutch32-first-v1",
+      "config": "experiments/configs/sm005_atomic/experiment_b_hutch32.yaml",
+      "config_sha256": "e14d0dd8b65528d3021ca6634263d9f4b3343ba5035f9f9db37eedfed1534a26",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-b-hutch32-gnndelete/sm005-b-hutch32-first-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-b-hutch32-gnndelete/sm005-b-hutch32-first-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    },
+    {
+      "recipe": "opengu-sm005-b-hutch32-warm-v1",
+      "config": "experiments/configs/sm005_atomic/experiment_b_hutch32.yaml",
+      "config_sha256": "e14d0dd8b65528d3021ca6634263d9f4b3343ba5035f9f9db37eedfed1534a26",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-b-hutch32-gnndelete/sm005-b-hutch32-warm-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-b-hutch32-gnndelete/sm005-b-hutch32-warm-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    },
+    {
+      "recipe": "opengu-sm005-d-full-selector-v1",
+      "config": "experiments/configs/sm005_atomic/experiment_d_full_selector.yaml",
+      "config_sha256": "1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-selector-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-selector-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    },
+    {
+      "recipe": "opengu-sm005-d-full-return-v1",
+      "config": "experiments/configs/sm005_atomic/experiment_d_full_selector.yaml",
+      "config_sha256": "1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-return-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-return-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    },
+    {
+      "recipe": "opengu-sm005-d-full-handoff-v1",
+      "config": "experiments/configs/sm005_atomic/experiment_d_full_selector.yaml",
+      "config_sha256": "1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2",
+      "declared_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-handoff-v1/summary.json"
+      ],
+      "executor_outputs": [
+        "results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-handoff-v1/summary.json"
+      ],
+      "config_matches": true,
+      "status": "PASS"
+    }
+  ],
+  "formal_gu_recipe_audit": [
+    {
+      "recipe": "opengu-target-direct-gu-gate-r001-v2",
+      "status": "PASS",
+      "declared_count": 8,
+      "producer_count": 8,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-gate-r005-v2",
+      "status": "PASS",
+      "declared_count": 8,
+      "producer_count": 8,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed42-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed42-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed212-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed212-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed2024-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed2024-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed42-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed42-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed212-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed212-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed2024-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed2024-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed42-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed42-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed212-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed212-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed2024-r001-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed2024-r005-v2",
+      "status": "PASS",
+      "declared_count": 136,
+      "producer_count": 136,
+      "declared_but_not_produced": [],
+      "produced_but_not_declared": []
+    }
+  ],
+  "formal_gu_preflight": {
+    "status": "PASS",
+    "result": {
+      "git": {
+        "head": "f7956bb994b20b629b60e8f1a4da20fc78ea6b88"
+      },
+      "errors": [
+        "read-only audit boundary",
+        "selection prerequisite: formal data not inspected by code audit"
+      ],
+      "ratio": 0.01,
+      "gate_only": true,
+      "ready": false
+    },
+    "calls": [
+      {
+        "stage": "cora-seed42",
+        "require_gpu": true
+      }
+    ],
+    "runtime_ready_observed": false,
+    "scope": "real signature, guarded device/data boundary; no runtime readiness claim"
+  },
+  "formal_config_hash_matches": true,
+  "consumer_deployment": {
+    "status": "success",
+    "target": "c9e094c55b42b2833fb24fcef5fe08f057605f68",
+    "ssh_main": "c9e094c55b42b2833fb24fcef5fe08f057605f68",
+    "ssh_worktree": "clean",
+    "cache_preservation": "exact-match"
+  },
+  "core_install": {
+    "landedTarget": "6a938e2acc4616044f8340b66f8369b1a42254b0",
+    "version": "0.4.0",
+    "wheel_sha256": "ab22f394c1e6c8b22d212b4cd29896d3a9bfc926798ba75c3c27240afff49951",
+    "local_install": "verified",
+    "remote_install": "verified",
+    "status": "partial",
+    "local_temp_cleanup": "blocked-by-policy-retained",
+    "remote_temp_cleanup": "verified-absent"
+  },
+  "source_evidence": [
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\output-handoff\\verification.json",
+      "sha256": "c69122a96fd0b639d0c98c35c1d77e48784184365a9770ed62aae199742703ce",
+      "bytes": 1211
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\output-handoff\\opengu-tests.txt",
+      "sha256": "fbd945973addfc72babc63dc54403385b7e30c75c179aed51f463c43dcfe602c",
+      "bytes": 2000
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\output-handoff\\core-tests.txt",
+      "sha256": "2b458e8399c2156ad3ac19fb80cde7a1efd4dd6007c6362aaf6e0b6ae6e9b839",
+      "bytes": 183
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\verify-final.json",
+      "sha256": "829b353f47c962879130fb501fd48aa1e1af7502a61b993984c53ad1385245d2",
+      "bytes": 1914
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\b-hutch32\\cache-comparison.json",
+      "sha256": "04bda0e358eca2cdb9316e60077835fdd02fc1e53ecf3cff9df198348c04b233",
+      "bytes": 3955
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\d-full\\verification.json",
+      "sha256": "1c612a282cf61a9e4a288e2308975ed59c0ad1637fc6bc7d4fd10192b99df0a8",
+      "bytes": 1871
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\items\\SM-005\\evidence\\auto-return\\verification.json",
+      "sha256": "a79f41551605e3485005ff9bb910931aee2a2ae98c0d887cc1d523e947800c9b",
+      "bytes": 1397
+    },
+    {
+      "path": "E:\\project\\OpenGU\\GULib-master\\.workblock\\items\\AAGU-028\\evidence\\observations.json",
+      "sha256": "86d79e47419b7312c73842acbdb16eb6e53028f0efcee8205cdb87f3d40c3b36",
+      "bytes": 73126
+    },
+    {
+      "path": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu028-combination-verify.md",
+      "sha256": "5ce7fc89086b9d1f2bbb0334433b7be03aa1a0773a2d3cd87be487727e26f2f2",
+      "bytes": 3478
+    },
+    {
+      "path": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\install\\c9e094c5-20260906\\INSTALL-RESULT.json",
+      "sha256": "c35cbabdaacf64f91752e7e2fdc78d264ff97a2d7c1df2ed81419ea75aea5bbd",
+      "bytes": 1591
+    },
+    {
+      "path": "E:\\project\\SyncMate\\.workblock\\runtime\\install\\install-6a938e2a-20260906-46c192be\\receipt.json",
+      "sha256": "a59172bd4db0de3ee963b3bacf0a1d3ea2d807b2599fc08bbcedb0b457dd9f4f",
+      "bytes": 897
+    }
+  ],
+  "runtime_boundary": {
+    "jobs_submitted": 0,
+    "gpu_runs": 0,
+    "producers_called": 0,
+    "data_or_cache_mutations": false
+  }
+}

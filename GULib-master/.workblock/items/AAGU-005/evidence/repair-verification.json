@@ -1,0 +1,654 @@
+{
+  "product_checkpoint": "f7956bb994b20b629b60e8f1a4da20fc78ea6b88",
+  "tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "311",
+    "time": "56.318",
+    "timestamp": "2026-09-06T04:12:56.982615+08:00",
+    "hostname": "DESKTOP-J0I2ET3"
+  },
+  "test_xml_sha256": "634ec2d5580f57d241ecd245a00691498e398d4011b9fd6fcdc5b00549b47107",
+  "collection_scenarios": [
+    {
+      "gate": true,
+      "accepted": {
+        "generated_at": "2026-09-06T04:13:05",
+        "mode": "target-direct-gu-acceptance",
+        "node_id": "cpu-runner",
+        "recipe": "opengu-target-direct-gu-gate-r001-v2",
+        "expected_git_sha": "8c25bc47c48d5920ac9947df8c8545653eb96adc",
+        "observed_remote_git_sha": "8c25bc47c48d5920ac9947df8c8545653eb96adc",
+        "expected_artifacts": 8,
+        "verified_artifacts": 8,
+        "gate": {
+          "stage": "cora-seed42",
+          "dataset": "Cora",
+          "base_model": "GCN",
+          "gu_methods": [
+            "GNNDelete",
+            "Retrain"
+          ],
+          "seed": 42,
+          "ratio": 0.01,
+          "k": 1,
+          "candidate_count": 10,
+          "split_contract": {
+            "processed_profile": "planetoid_70_10_20_seed2024",
+            "train_ratio": 0.7,
+            "val_ratio": 0.1,
+            "test_ratio": 0.2,
+            "split_seed": 2024
+          },
+          "parameter_scope": "last_layer",
+          "lane": "target_direct_white_box",
+          "target_checkpoint_required": true,
+          "scientific_comparison": false,
+          "execution_authorized": true,
+          "candidate_matrix_only": false,
+          "method_instances": {
+            "GNNDelete": {
+              "kind": "unlearning",
+              "schema_version": 1,
+              "method": "GNNDelete",
+              "model": {
+                "architecture": "OpenGU.GCNNet",
+                "layers": 2,
+                "hidden_channels": 4,
+                "dropout": 0.5
+              },
+              "training": {
+                "epochs": 3,
+                "optimizer": "Adam",
+                "lr": 0.005,
+                "weight_decay": 1e-06,
+                "scheduler": "none",
+                "seed": 42
+              },
+              "parameters": {
+                "unlearn_lr": 0.01,
+                "unlearning_epochs": 2,
+                "alpha": 0.5,
+                "loss_fct": "mse_mean",
+                "loss_type": "both_layerwise",
+                "deletion_optimizer": "Adam",
+                "deletion_weight_decay": 0.0
+              },
+              "deletion": {
+                "task": "node",
+                "supervision": "exclude_selected",
+                "training_graph": "remove_incident_edges",
+                "features": "retain_isolated_rows",
+                "evaluation_graph": "original"
+              }
+            },
+            "Retrain": {
+              "kind": "unlearning",
+              "schema_version": 1,
+              "model": {
+                "architecture": "OpenGU.GCNNet",
+                "layers": 2,
+                "hidden_channels": 4,
+                "dropout": 0.5
+              },
+              "training": {
+                "epochs": 3,
+                "optimizer": "Adam",
+                "lr": 0.005,
+                "weight_decay": 1e-06,
+                "scheduler": "none",
+                "seed": 42
+              },
+              "method": "Retrain",
+              "parameters": {},
+              "deletion": {
+                "task": "node",
+                "supervision": "exclude_selected",
+                "training_graph": "remove_incident_edges",
+                "features": "retain_isolated_rows",
+                "evaluation_graph": "original"
+              }
+            }
+          },
+          "selector": "degree"
+        },
+        "expected_cells": 2,
+        "accepted_cells": 2,
+        "cells": [
+          {
+            "method": "GNNDelete",
+            "selector": "degree",
+            "ratio": 0.01,
+            "selection_artifact_id": "sel_68f652b0_dce47fb4",
+            "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+            "output": {
+              "recipe_hash": "dcaed9d9792043b4ce8887d261fb926b5b2d0a9a9dd3055fad6abc27bd664462",
+              "content_hash": "f9641a7f27ec1d431f46f0cab8a1d55d12fa5907fad33ea0697f20efd6824b08",
+              "artifact_id": "pred_dcaed9d9_f9641a7f"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_16226a652c675a7f6b5e2df3e2b82f3e",
+              "identity": {
+                "output": {
+                  "recipe_hash": "dcaed9d9792043b4ce8887d261fb926b5b2d0a9a9dd3055fad6abc27bd664462",
+                  "content_hash": "f9641a7f27ec1d431f46f0cab8a1d55d12fa5907fad33ea0697f20efd6824b08",
+                  "artifact_id": "pred_dcaed9d9_f9641a7f"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.2,
+                "accuracy": 0.2,
+                "cross_entropy": 0.7174156439335573,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "insufficient_samples"
+              }
+            },
+            "f1_after": 0.2,
+            "f1_drop": 0.0,
+            "compute_seconds": 0.012214422225952148
+          },
+          {
+            "method": "Retrain",
+            "selector": "degree",
+            "ratio": 0.01,
+            "selection_artifact_id": "sel_68f652b0_dce47fb4",
+            "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+            "output": {
+              "recipe_hash": "b0bef6880f04995947bfa60686c83cce49a899a1b1e64fd0ac07bbcb3203c301",
+              "content_hash": "7c959538f142509dc7b389a9fbb9bd0794b5887fb972de1a7785a2971cf88347",
+              "artifact_id": "pred_b0bef688_7c959538"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_18c61482c59f7af2b513a401f0c5d689",
+              "identity": {
+                "output": {
+                  "recipe_hash": "b0bef6880f04995947bfa60686c83cce49a899a1b1e64fd0ac07bbcb3203c301",
+                  "content_hash": "7c959538f142509dc7b389a9fbb9bd0794b5887fb972de1a7785a2971cf88347",
+                  "artifact_id": "pred_b0bef688_7c959538"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.2,
+                "accuracy": 0.2,
+                "cross_entropy": 0.7180723631767043,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "f1_after": 0.2,
+            "f1_drop": null,
+            "compute_seconds": 0.006472700000001552
+          }
+        ],
+        "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+        "comparison_stage": "deferred",
+        "passed": true,
+        "errors": [],
+        "owner": "opengu",
+        "profile": "target-direct-gu-v2",
+        "status": "accepted"
+      },
+      "rows": [
+        {
+          "node_id": "cpu-runner",
+          "cell": "target_direct_formal_v2",
+          "dataset": "target_direct_formal",
+          "base_model": "v2",
+          "ratio": "",
+          "method_strategy": "gu",
+          "seed": "cora_GCN_r0.01",
+          "layout": "node",
+          "complete": true,
+          "local_leaf": "results/runs/cpu-runner/target_direct_formal_v2/gu/cora_GCN_r0.01/GNNDelete_degree/seed42",
+          "remote_leaf": "results/runs/target_direct_formal_v2/gu/cora_GCN_r0.01/GNNDelete_degree/seed42",
+          "source_report": ".syncmate/last_verify_cpu-runner.json",
+          "comparison_stage": "deferred",
+          "method": "GNNDelete",
+          "strategy": "degree",
+          "strategy_full": "degree",
+          "git_sha": "8c25bc4",
+          "output": {
+            "recipe_hash": "dcaed9d9792043b4ce8887d261fb926b5b2d0a9a9dd3055fad6abc27bd664462",
+            "content_hash": "f9641a7f27ec1d431f46f0cab8a1d55d12fa5907fad33ea0697f20efd6824b08",
+            "artifact_id": "pred_dcaed9d9_f9641a7f"
+          },
+          "evaluation": {
+            "evaluation_receipt_id": "evalr_16226a652c675a7f6b5e2df3e2b82f3e",
+            "identity": {
+              "output": {
+                "recipe_hash": "dcaed9d9792043b4ce8887d261fb926b5b2d0a9a9dd3055fad6abc27bd664462",
+                "content_hash": "f9641a7f27ec1d431f46f0cab8a1d55d12fa5907fad33ea0697f20efd6824b08",
+                "artifact_id": "pred_dcaed9d9_f9641a7f"
+              },
+              "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+              "metric_libraries": {
+                "sklearn": "1.3.2",
+                "torch": "2.2.1+cu121",
+                "numpy": "1.21.6"
+              },
+              "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+            },
+            "metrics": {
+              "f1": 0.2,
+              "accuracy": 0.2,
+              "cross_entropy": 0.7174156439335573,
+              "classification_auc": 0.3333333333333333,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "insufficient_samples"
+            }
+          },
+          "f1_after": 0.2,
+          "f1_drop": 0.0,
+          "selected_n": 1,
+          "compute_seconds": 0.012214422225952148,
+          "cache_hit": false,
+          "status": "ok",
+          "parse_errors": []
+        },
+        {
+          "node_id": "cpu-runner",
+          "cell": "target_direct_formal_v2",
+          "dataset": "target_direct_formal",
+          "base_model": "v2",
+          "ratio": "",
+          "method_strategy": "gu",
+          "seed": "cora_GCN_r0.01",
+          "layout": "node",
+          "complete": true,
+          "local_leaf": "results/runs/cpu-runner/target_direct_formal_v2/gu/cora_GCN_r0.01/Retrain_degree/seed42",
+          "remote_leaf": "results/runs/target_direct_formal_v2/gu/cora_GCN_r0.01/Retrain_degree/seed42",
+          "source_report": ".syncmate/last_verify_cpu-runner.json",
+          "comparison_stage": "deferred",
+          "method": "Retrain",
+          "strategy": "degree",
+          "strategy_full": "degree",
+          "git_sha": "8c25bc4",
+          "output": {
+            "recipe_hash": "b0bef6880f04995947bfa60686c83cce49a899a1b1e64fd0ac07bbcb3203c301",
+            "content_hash": "7c959538f142509dc7b389a9fbb9bd0794b5887fb972de1a7785a2971cf88347",
+            "artifact_id": "pred_b0bef688_7c959538"
+          },
+          "evaluation": {
+            "evaluation_receipt_id": "evalr_18c61482c59f7af2b513a401f0c5d689",
+            "identity": {
+              "output": {
+                "recipe_hash": "b0bef6880f04995947bfa60686c83cce49a899a1b1e64fd0ac07bbcb3203c301",
+                "content_hash": "7c959538f142509dc7b389a9fbb9bd0794b5887fb972de1a7785a2971cf88347",
+                "artifact_id": "pred_b0bef688_7c959538"
+              },
+              "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+              "metric_libraries": {
+                "sklearn": "1.3.2",
+                "torch": "2.2.1+cu121",
+                "numpy": "1.21.6"
+              },
+              "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+            },
+            "metrics": {
+              "f1": 0.2,
+              "accuracy": 0.2,
+              "cross_entropy": 0.7180723631767043,
+              "classification_auc": 0.3333333333333333,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "missing_original_predictions"
+            }
+          },
+          "f1_after": 0.2,
+          "f1_drop": null,
+          "selected_n": 1,
+          "compute_seconds": 0.006472700000001552,
+          "cache_hit": false,
+          "status": "ok",
+          "parse_errors": []
+        }
+      ],
+      "repeat_fetched": 0
+    },
+    {
+      "gate": false,
+      "accepted": {
+        "generated_at": "2026-09-06T04:13:06",
+        "mode": "target-direct-gu-stage-acceptance",
+        "node_id": "cpu-runner",
+        "recipe": "opengu-target-direct-gu-gate-r001-v2",
+        "expected_git_sha": "5cff6f1e441c4937937f1c65c26204ae1c3d206b",
+        "observed_remote_git_sha": "5cff6f1e441c4937937f1c65c26204ae1c3d206b",
+        "expected_artifacts": 8,
+        "verified_artifacts": 8,
+        "stage": {
+          "stage": "cora-seed42",
+          "dataset": "Cora",
+          "base_model": "GCN",
+          "gu_methods": [
+            "GNNDelete",
+            "Retrain"
+          ],
+          "seed": 42,
+          "ratio": 0.01,
+          "k": 1,
+          "candidate_count": 10,
+          "split_contract": {
+            "processed_profile": "planetoid_70_10_20_seed2024",
+            "train_ratio": 0.7,
+            "val_ratio": 0.1,
+            "test_ratio": 0.2,
+            "split_seed": 2024
+          },
+          "parameter_scope": "last_layer",
+          "lane": "target_direct_white_box",
+          "target_checkpoint_required": true,
+          "scientific_comparison": false,
+          "execution_authorized": true,
+          "candidate_matrix_only": false,
+          "method_instances": {
+            "GNNDelete": {
+              "kind": "unlearning",
+              "schema_version": 1,
+              "method": "GNNDelete",
+              "model": {
+                "architecture": "OpenGU.GCNNet",
+                "layers": 2,
+                "hidden_channels": 4,
+                "dropout": 0.5
+              },
+              "training": {
+                "epochs": 3,
+                "optimizer": "Adam",
+                "lr": 0.005,
+                "weight_decay": 1e-06,
+                "scheduler": "none",
+                "seed": 42
+              },
+              "parameters": {
+                "unlearn_lr": 0.01,
+                "unlearning_epochs": 2,
+                "alpha": 0.5,
+                "loss_fct": "mse_mean",
+                "loss_type": "both_layerwise",
+                "deletion_optimizer": "Adam",
+                "deletion_weight_decay": 0.0
+              },
+              "deletion": {
+                "task": "node",
+                "supervision": "exclude_selected",
+                "training_graph": "remove_incident_edges",
+                "features": "retain_isolated_rows",
+                "evaluation_graph": "original"
+              }
+            },
+            "Retrain": {
+              "kind": "unlearning",
+              "schema_version": 1,
+              "model": {
+                "architecture": "OpenGU.GCNNet",
+                "layers": 2,
+                "hidden_channels": 4,
+                "dropout": 0.5
+              },
+              "training": {
+                "epochs": 3,
+                "optimizer": "Adam",
+                "lr": 0.005,
+                "weight_decay": 1e-06,
+                "scheduler": "none",
+                "seed": 42
+              },
+              "method": "Retrain",
+              "parameters": {},
+              "deletion": {
+                "task": "node",
+                "supervision": "exclude_selected",
+                "training_graph": "remove_incident_edges",
+                "features": "retain_isolated_rows",
+                "evaluation_graph": "original"
+              }
+            }
+          },
+          "selectors": [
+            "degree"
+          ]
+        },
+        "expected_cells": 2,
+        "accepted_cells": 2,
+        "cells": [
+          {
+            "method": "GNNDelete",
+            "selector": "degree",
+            "ratio": 0.01,
+            "selection_artifact_id": "sel_692b1e61_035f8461",
+            "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+            "output": {
+              "recipe_hash": "5ee529516e0c8c1d2a878ebb930606abb5383076c0f69735c7fb0250982cb686",
+              "content_hash": "16a6330d2142bcd1503a7019a0add3d886aa98974b425a0f5fccff3d0e8a2b15",
+              "artifact_id": "pred_5ee52951_16a6330d"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_cf33cee9f3aed71cd45a23729ed8f30e",
+              "identity": {
+                "output": {
+                  "recipe_hash": "5ee529516e0c8c1d2a878ebb930606abb5383076c0f69735c7fb0250982cb686",
+                  "content_hash": "16a6330d2142bcd1503a7019a0add3d886aa98974b425a0f5fccff3d0e8a2b15",
+                  "artifact_id": "pred_5ee52951_16a6330d"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.2,
+                "accuracy": 0.2,
+                "cross_entropy": 0.7174156439335573,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "insufficient_samples"
+              }
+            },
+            "f1_after": 0.2,
+            "f1_drop": 0.0,
+            "compute_seconds": 0.011143684387207031
+          },
+          {
+            "method": "Retrain",
+            "selector": "degree",
+            "ratio": 0.01,
+            "selection_artifact_id": "sel_692b1e61_035f8461",
+            "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+            "output": {
+              "recipe_hash": "f37514a7f121f6fa6be716c449c47a50cc4493925ab7b3ffab6d9f88ac24680a",
+              "content_hash": "588c8e6b31821658b7f7490bd526e96b53e1429f2106db15ad0b958b7caf5faa",
+              "artifact_id": "pred_f37514a7_588c8e6b"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_162de1c9b94f2b9e96532a7835fd0d91",
+              "identity": {
+                "output": {
+                  "recipe_hash": "f37514a7f121f6fa6be716c449c47a50cc4493925ab7b3ffab6d9f88ac24680a",
+                  "content_hash": "588c8e6b31821658b7f7490bd526e96b53e1429f2106db15ad0b958b7caf5faa",
+                  "artifact_id": "pred_f37514a7_588c8e6b"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.2,
+                "accuracy": 0.2,
+                "cross_entropy": 0.7180723631767043,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "f1_after": 0.2,
+            "f1_drop": null,
+            "compute_seconds": 0.006793700000001124
+          }
+        ],
+        "target_checkpoint_state_hash": "3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c",
+        "comparison_stage": "deferred",
+        "passed": true,
+        "errors": [],
+        "owner": "opengu",
+        "profile": "target-direct-gu-stage-v2",
+        "status": "accepted"
+      },
+      "rows": [
+        {
+          "node_id": "cpu-runner",
+          "cell": "target_direct_formal_v2",
+          "dataset": "target_direct_formal",
+          "base_model": "v2",
+          "ratio": "",
+          "method_strategy": "gu",
+          "seed": "cora_GCN_r0.01",
+          "layout": "node",
+          "complete": true,
+          "local_leaf": "results/runs/cpu-runner/target_direct_formal_v2/gu/cora_GCN_r0.01/GNNDelete_degree/seed42",
+          "remote_leaf": "results/runs/target_direct_formal_v2/gu/cora_GCN_r0.01/GNNDelete_degree/seed42",
+          "source_report": ".syncmate/last_verify_cpu-runner.json",
+          "comparison_stage": "deferred",
+          "method": "GNNDelete",
+          "strategy": "degree",
+          "strategy_full": "degree",
+          "git_sha": "5cff6f1",
+          "output": {
+            "recipe_hash": "5ee529516e0c8c1d2a878ebb930606abb5383076c0f69735c7fb0250982cb686",
+            "content_hash": "16a6330d2142bcd1503a7019a0add3d886aa98974b425a0f5fccff3d0e8a2b15",
+            "artifact_id": "pred_5ee52951_16a6330d"
+          },
+          "evaluation": {
+            "evaluation_receipt_id": "evalr_cf33cee9f3aed71cd45a23729ed8f30e",
+            "identity": {
+              "output": {
+                "recipe_hash": "5ee529516e0c8c1d2a878ebb930606abb5383076c0f69735c7fb0250982cb686",
+                "content_hash": "16a6330d2142bcd1503a7019a0add3d886aa98974b425a0f5fccff3d0e8a2b15",
+                "artifact_id": "pred_5ee52951_16a6330d"
+              },
+              "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+              "metric_libraries": {
+                "sklearn": "1.3.2",
+                "torch": "2.2.1+cu121",
+                "numpy": "1.21.6"
+              },
+              "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+            },
+            "metrics": {
+              "f1": 0.2,
+              "accuracy": 0.2,
+              "cross_entropy": 0.7174156439335573,
+              "classification_auc": 0.3333333333333333,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "insufficient_samples"
+            }
+          },
+          "f1_after": 0.2,
+          "f1_drop": 0.0,
+          "selected_n": 1,
+          "compute_seconds": 0.011143684387207031,
+          "cache_hit": false,
+          "status": "ok",
+          "parse_errors": []
+        },
+        {
+          "node_id": "cpu-runner",
+          "cell": "target_direct_formal_v2",
+          "dataset": "target_direct_formal",
+          "base_model": "v2",
+          "ratio": "",
+          "method_strategy": "gu",
+          "seed": "cora_GCN_r0.01",
+          "layout": "node",
+          "complete": true,
+          "local_leaf": "results/runs/cpu-runner/target_direct_formal_v2/gu/cora_GCN_r0.01/Retrain_degree/seed42",
+          "remote_leaf": "results/runs/target_direct_formal_v2/gu/cora_GCN_r0.01/Retrain_degree/seed42",
+          "source_report": ".syncmate/last_verify_cpu-runner.json",
+          "comparison_stage": "deferred",
+          "method": "Retrain",
+          "strategy": "degree",
+          "strategy_full": "degree",
+          "git_sha": "5cff6f1",
+          "output": {
+            "recipe_hash": "f37514a7f121f6fa6be716c449c47a50cc4493925ab7b3ffab6d9f88ac24680a",
+            "content_hash": "588c8e6b31821658b7f7490bd526e96b53e1429f2106db15ad0b958b7caf5faa",
+            "artifact_id": "pred_f37514a7_588c8e6b"
+          },
+          "evaluation": {
+            "evaluation_receipt_id": "evalr_162de1c9b94f2b9e96532a7835fd0d91",
+            "identity": {
+              "output": {
+                "recipe_hash": "f37514a7f121f6fa6be716c449c47a50cc4493925ab7b3ffab6d9f88ac24680a",
+                "content_hash": "588c8e6b31821658b7f7490bd526e96b53e1429f2106db15ad0b958b7caf5faa",
+                "artifact_id": "pred_f37514a7_588c8e6b"
+              },
+              "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+              "metric_libraries": {
+                "sklearn": "1.3.2",
+                "torch": "2.2.1+cu121",
+                "numpy": "1.21.6"
+              },
+              "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+            },
+            "metrics": {
+              "f1": 0.2,
+              "accuracy": 0.2,
+              "cross_entropy": 0.7180723631767043,
+              "classification_auc": 0.3333333333333333,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "missing_original_predictions"
+            }
+          },
+          "f1_after": 0.2,
+          "f1_drop": null,
+          "selected_n": 1,
+          "compute_seconds": 0.006793700000001124,
+          "cache_hit": false,
+          "status": "ok",
+          "parse_errors": []
+        }
+      ],
+      "repeat_fetched": 0
+    }
+  ],
+  "checks": {
+    "core_smoke": "PASS",
+    "cli_compile": "PASS",
+    "new_gpu_runs": 0,
+    "formal_data_or_cache_mutations": false
+  },
+  "test_transition": "Initial checks exposed duplicate index acceptance, a stale formal config digest, and stale M1 smoke import/assertions; all corrected. Final suite passes.",
+  "reuse": "Exact tested implementation is committed here; subsequent edits are evidence, WorkItem, report and dashboard only."
+}
