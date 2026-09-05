@@ -2,15 +2,21 @@
 
 本文件是 AAGU-015 的本轮验收材料：把已经讨论的两阶段研究问题对应到实际 YAML、比较设计和指标输入。理论背景与历史研究记录仍由 [OpenGU DocMap](E:/project/OpenGU-DocMap/10_实验矩阵/20_IF目标层级对比实验计划.md) 拥有；本文件不沿用其中旧实验的结果、public split、固定小 K、18 方法或训练超参数作为本轮证据。
 
-本轮交付实验方案、对应配置及能力覆盖检查。范围是当前 Stage S / Stage U，不是所有未来实验；配置检查通过也不表示运行准备或科研验证通过。具体实现边界见 [能力覆盖说明](CAPABILITY_COVERAGE.md)，本次决定见 [报告](REPORT.md)。
+本轮最终产出是 Selector 实验设计大表、实际配置和复用验证。主阶段为纯 Selector：输入 Dataset/Split 与方法配置，输出候选节点分数、完整排名及按预算派生的 Selection。用户本次验收重点为配置/指标是否正确、是否以 Selector 为主，以及未来 Unlearning 能否命中这些已算结果。Stage U 保留未来组合说明；本次不要求运行正式研究矩阵或完成重训练评价。具体观察见 [复用小测试](evidence/selector-reuse-check.json)，本次决定见 [报告](REPORT.md)。
+
+### 直接审阅这三项
+
+- 配置：Cora/CiteSeer/PubMed；持久化 70/10/20 划分、split seed 2024；候选 train_mask，validation-conditioned 方法读取 val_mask；训练 seeds 42/212/2024，预算为训练候选的 1%/5%。测试集不参与 Selector 的目标或参数选择。
+- 指标：Spearman/Kendall 比较候选分数排序；common fraction/Jaccard 比较同 K 的选集；compute/access 等时间描述成本。这些分析消费分数/排名，不调用 GU。F1、retrain-gap 不属于 Stage S 指标。
+- 产物：每个方法保存完整的 candidate IDs、scores、ranking、Score 身份；Selection 保存 top-K 节点与身份。可直接查看 [238 行分数排名示例](evidence/selector-score-rank-example.csv) 和 [Q1–Q4 指标输出示例](evidence/selector-comparisons-example.json)，二者均来自本次 20 节点 CPU 软件小测试，不是三数据集科研结果。
 
 ## 1. 两阶段问题与依赖
 
 Stage S 比较 Selector 的评分、排序、选集与成本，不运行 GU。先固定这一阶段的配置、分析规则和 Selection 身份，再进入 Stage U。
 
-Stage U 对同一个 Selection 分别执行 GNNDelete、GIF，并与同删除请求的完整重训练参照比较。研究问题是：Selector 的选择差异是否对应效用和遗忘近似误差的差异。Stage U 指标不回流调整本轮 Selector；若据此改方法或参数，应形成后续研究轮次。
+未来 Stage U 对同一个 Selection 分别执行 GNNDelete、GIF，并按已批准方案与同删除请求的完整重训练参照比较。研究问题是：Selector 的选择差异是否对应效用和遗忘近似误差的差异。本次只做前半段的 Selection→GU 复用软件验证；Stage U 指标不回流调整本轮 Selector。
 
-Retrain 在研究设计中是执行删除请求得到参照模型的操作。Metrics 消费模型输出；它不应为了每个指标重新训练。当前代码尚未把 Retrain 注册为独立 Unlearning 小表方法，这一能力缺口在本方案中显式保留，不伪造可执行的 `method: Retrain` 配置。
+Retrain 在研究设计中是执行删除请求得到参照模型的操作。Metrics 消费模型输出；它不应为了每个指标重新训练。主项目已将该实现登记为 AAGU-028；其完成情况不影响本次纯 Selector 与已有 Selection→GU 复用小测试的判断，不在此伪造 `method: Retrain` 配置。
 
 ## 2. 固定条件与实际配置
 
@@ -71,7 +77,7 @@ Retrain 在研究设计中是执行删除请求得到参照模型的操作。Met
 - 计时分开记录模型/checkpoint 准备、共享中间计算、cold score compute、warm access、Selection materialization 和总墙钟时长。未观测的部分为空；方法总时长不能重复累加共享准备。
 - 对照 cold/warm 必须同时核对 Recipe/Artifact、依赖及 producer 标记，不用快慢推断 HIT。不为制造 cold 条件清空既有 Store。
 
-## 4. Stage U：固定 Selection、GU 与 Metrics
+## 4. 未来 Stage U：固定 Selection、GU 与 Metrics
 
 Stage U 的 [实际生成示例](../../../experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-degree.yaml) 只有 `selection_input`，没有 `selector_refs`。它声明 GNNDelete/GIF 与 `post_unlearning_utility_and_retrain_gap`；当前既有 modular 消费者会拒绝该评价 case，因此这是一份已解析、但尚不具备完整执行支持的计划。
 
@@ -102,10 +108,20 @@ Metrics 只能消费已明确身份的结果/预测。不存在的字段保持�
 
 SM-005 是远程工具工作链验证，可以复用其符合身份条件的运行机制证据。015 的方案不把 job ID、GPU、Store 路径等操作字段写入科研 YAML，也不重复建设或验收 SyncMate。
 
-## 6. 本轮交付检查
+## 6. Selector 输出与未来 GU 复用小测试
+
+可重跑入口为 [verify_selector_reuse.py](evidence/verify_selector_reuse.py)，实际回执为 [selector-reuse-check.json](evidence/selector-reuse-check.json)。输入是独立的 20 节点 CPU fixture（14/2/4 三个 mask），不是 Cora/CiteSeer/PubMed；为缩小软件测试，hidden=4、训练 6 epochs、CP steps=1–6、LiSSA 2 次、Hutchinson 2 probes，GU 各 2 次迭代。正式 YAML 全部保持不变。
+
+- 17 个 Selector 首次产生各 14 个有限分数和完整排名，共 238 行。稳定降序/节点 ID tie-break、top-K Selection 均与真实持久化输出一致。
+- 再次执行时显式禁止 Score / Selection producer，17 个方法全部 HIT，分数和排名逐项相同。40 组 Q1–Q4 对比使用现有 pair_metrics；已用已知同序/逆序向量核对相关性与重合度含义。
+- 同一 p_point Selection 分别交给真实 GNNDelete / GIF，禁用 Selector 调用；首次 GU MISS，第二次 GU HIT，两次均复用已有 checkpoint。
+- 后续计划即使仍带同一 p_point selector_ref，Score、Selection 和两个 GU 也全部 HIT，不调用 Selector producer。错误的 Selection content hash 在 GU 和结果写入之前被拒绝。
+- 本测试验证复用接口与命中条件，没有运行 Retrain 或完整 Stage U Evaluation；不将该小图的数值相等推广为所有 GU Metrics 冷/热一致性，已知精度缺陷由独立修复承接。
+
+## 7. 本轮交付检查
 
 - Q1–Q4 均有具体比较对象、控制变量、输出及解释边界。
 - 17 个 Selector、两种 GU、三个数据集、seed 和预算均对应现存 YAML；展开数与逐 cell CSV 对应。
 - 每项输出映射到现有入口或明确的能力缺口；运行支持不因配置可解析而被夸大。
-- Retrain 独立方法、Metrics 只读复用、删除语义和扩展评价字段的缺口明确留在能力表；未新增占位方法或自动建立实现 Block。
+- 本次纯 Selector 输出和未来 GU 复用有真实 CPU 软件证据；独立 Retrain / 完整评价另有 AAGU-028，不作为本轮完成条件。
 - 无本轮科研结果、实测速度或方向性结论；历史数字不作为本方案结果。

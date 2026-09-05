@@ -1,10 +1,12 @@
 # AAGU-015 两阶段定义
 
 本目录是 [AAGU-015](../../../.workblock/items/AAGU-015/WORKITEM.md) 的第一项配置产物。
-015 本轮交付当前阶段的实验方案、实际 YAML 及能力覆盖检查，验收对象不是完整执行系统或全量实验结果。
+015 本轮交付以纯 Selector 为主的实验方案、实际 YAML、分数排名输出合同，以及未来 GU 复用的小测试。主入口是 stage_s：评分、完整排名和 top-K Selection；模型型 Selector 可准备 checkpoint，主阶段不执行 GU。
 [方案](../../../.workblock/items/AAGU-015/EXPERIMENT_PLAN.md) 明确问题、对照与指标；
 [覆盖表](../../../.workblock/items/AAGU-015/CAPABILITY_COVERAGE.md) 说明各入口支持与缺口。
-306/612 是组合覆盖；当前计划可解析但未绑定输入，Stage U 也尚不具备完整评价支持。
+306/612 是组合覆盖；真实数据绑定属于未来运行准备。Stage U 保留未来设计，其完整重训练评价不是本次验收要求。
+
+Selector 指标为 Spearman/Kendall、common fraction/Jaccard 和成本，不是 F1/retrain-gap。当前 18 份 S 大表都没有 GU 或 GU Evaluation 引用。实际 [CPU 小测试](../../../.workblock/items/AAGU-015/evidence/selector-reuse-check.json) 已产生 17 个方法的 [238 行分数排名](../../../.workblock/items/AAGU-015/evidence/selector-score-rank-example.csv)，全部 warm HIT；同一 Selection→GNNDelete/GIF 的后续消费也已通过。
 
 ## 配置入口
 
@@ -66,7 +68,7 @@ GU 和 Selector 的相同模型配置也必须经过数据、训练、checkpoint
 3. Stage U 保留 `selection_input` 且没有 `selector_refs`，引用尚未绑定。独立 Evaluation 选择
    `post_unlearning_utility_and_retrain_gap`；modular 入口当前拒绝该 case。target-direct 固定配方仅支持
    GNNDelete；通用评估另有配置/身份合同，不能自动回退以冒充完整支持。
-4. 独立 `Retrain` 未进入 GU 方法注册；612 cell 仍只包含 GNNDelete/GIF，不能添加无法解析的 Retrain 小表。
+4. 独立 `Retrain` 未进入本分支的 GU 方法注册，相关实现已在主项目登记为 AAGU-028；612 cell 仍只包含 GNNDelete/GIF，不能添加无法解析的 Retrain 小表。
    已有 `run_retrain` 和 Metrics 函数不等于独立方法及只读 Metrics 架构已完成。
 5. 本轮检查交付配置到入口的准确映射及缺口。缺失能力的后续实现归属另行明确，不自动成为 015 的代码任务。
 
@@ -77,4 +79,4 @@ GU 和 Selector 的相同模型配置也必须经过数据、训练、checkpoint
 这些规则服务后续正式执行；不以缺全量科研结果或未完成正式部署来阻塞 015 的方案与覆盖说明验收。
 旧 target-direct recipe 不替代本轮调度授权；不从本配置直接铺开 306/612 矩阵。
 
-验收所需材料是当前阶段方案、真实配置、解析/展开检查和能力覆盖说明；排名对照结果、三数据集成本和攻击效果结论由后续获准运行产生。
+验收所需材料是 Selector 方案、真实配置、解析/展开检查、分数排名样例及后续 GU 复用 HIT 小测试。小图验证不代表三数据集成本或攻击效果；这些科学结果由后续获准运行产生。

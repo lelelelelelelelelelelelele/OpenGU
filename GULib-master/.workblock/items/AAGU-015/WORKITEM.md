@@ -26,27 +26,27 @@ Execution topology: `parallel`
 
 ### 核心意图
 
-将当前阶段的 IF/GIF Selector 研究问题整理成可审阅的实验方案，落实为真实 YAML，并核对每项实验与已有执行能力的对应关系。用户验收的是本阶段的实验定义材料：方案清楚、配置一致、入口及缺口明确。015 不规划所有未来实验，不承担整套执行框架或所有缺失能力的开发，也不要求跑完矩阵。
+将当前阶段的 IF/GIF Selector 研究问题整理成可审阅的实验方案与真实 YAML。主阶段只执行 Selector，产出每个候选节点的分数、完整排名和按预算派生的 Selection；排名相关性、选集重合度和成本是本阶段指标。用隔离 CPU 小测试证明后续 Unlearning 可以复用已有选点，并观察真正的缓存 HIT。验收不要求跑完矩阵或完成独立 Retrain / Metrics 框架。
 
 ### 本次增量
 
-交付本 WorkItem 下的 [实验方案](EXPERIMENT_PLAN.md)、[能力覆盖说明](CAPABILITY_COVERAGE.md) 和配对报告，保留并核对已经生成的 449 份 YAML。阶段 S 明确三数据集、17 Selector、三训练 seed、两预算的 Q1–Q4 比较、控制和指标；阶段 U 说明固定 Selection、GNNDelete/GIF、重训练参照和 Metrics 的关系。
+交付本 WorkItem 下的 [实验方案](EXPERIMENT_PLAN.md)、[能力覆盖说明](CAPABILITY_COVERAGE.md) 和配对报告，保留并核对已经生成的 449 份 YAML。核心为阶段 S 的三数据集、17 Selector、三训练 seed、两预算及 Q1–Q4 比较。新增真实 CPU 小图验证、分数/排名样例和后续 GNNDelete/GIF 复用检查；阶段 U 只保留未来组合的定义，不作为本次执行或完整评价验收要求。
 
-“链路”在本次交付中指方案到配置、配置到已有入口的映射与检查。026 拥有已接受的模块化执行代码，SM-005 拥有工具工作链验证，015 不重复它们。当前不受支持的 Retrain 独立方法、评价或运行绑定逐项标为缺口，不用占位配置或历史结果冒充完整可执行。
+“链路”包括方案到配置、配置到已有入口，以及本次明确授权的 Selector 输出→后续 GU 复用小测试。026 拥有通用模块化代码；本测试直接使用这些真实消费者，不开发新框架。未绑定数据属于运行准备，未完成研究矩阵属于未来执行；它们不记作代码缺口。独立 Retrain / 完整重训练评价由主项目 AAGU-028 承接，与本次 Selector 验收分开。
 
 ### 核心验收
 
 - 当前阶段的实验方案明确 Q1–Q4、比较对象、控制变量、数据/划分、seed、预算、模型/方法配置、指标输入和解释边界；不预写科研结论，也不扩展为所有未来实验计划。
 - Dataset/Split、17 Selector、两种 GU 和 Evaluation 均对应真实 YAML，实际入口可解析并无写入展开为 306 个 S cell / 612 个 U cell；默认值、来源和共享依赖可复核。
-- 覆盖表逐项指出已有入口、实际支持、尚未验证和缺失能力。明确 modular、target-direct、通用评估及 SM-005 的差别；不能把“代码存在/配置可解析”写成全方案运行通过。
-- 说明真实输入与 Selection 的后续绑定、执行与 Metrics 的职责、证据复用和运行边界。独立 Retrain 的登记/实现核对有源码依据；未支持的需求不伪造 YAML、不自动建立实现 Block。
+- 17 个 Selector 在隔离 CPU 小图上实际生成有限分数、完整候选排名和 top-K Selection；再次执行时 Score / Selection 均 HIT，禁止 producer，输出逐项相同。主要指标为分数相关性、选集重合度和成本，Stage S 不执行 GU 或 GU Evaluation。
+- 未来 GU 可直接引用已验证的 Selection；实际 GNNDelete/GIF 首次 MISS、再次 HIT，不调用 Selector producer。相同 selector_ref 的组合计划也复用已有 Score/Selection；错误内容哈希在 GU/结果写入前拒绝。独立 Retrain / Metrics 修复归 AAGU-028，不要求本次实现。
 - 配对 Markdown/HTML 报告与方案、配置、覆盖表一致，用户可据此决定接受或返工。验收不要求全量实验、正式成本或科学结果；能力缺口的明确记录不等于这些能力已实现。
 
 ## Confirmed acceptance contract
 
 - Class: `EXP`；Priority: `P0`。保留既有分类，不据此扩大运行或代码范围。
 - Route: `formal`；Primary surface: current-stage experiment design, YAML and capability coverage；Decision owner: 用户。
-- Minimum real evidence: 完整阶段方案、实际配置展开、源文件/入口审阅、缺口核对和配对报告。已有精确检查点的未变消费者测试可复用。
+- Minimum real evidence: 完整阶段方案、实际配置展开、17 个 Selector 在隔离 CPU 小图上的分数/排名与冷热读回、已有 Selection→GNNDelete/GIF 的真实 HIT 和 producer 禁止调用证据，以及配对报告。已有精确检查点的未变配置检查可复用。
 - Report size: 同目录 Markdown/HTML。
 - Confirmation source: 用户明确“实验方案文档、对应 YAML、能力覆盖说明与配置检查”后要求“那你做那倒是做呀”；当前阶段即可，不要求所有未来方案。
 - Post-candidate decision: Verify 后停在人类验收；接受方案不自动授权 GPU、全矩阵、Apply、push、安装或清理。
@@ -74,7 +74,7 @@ Execution topology: `parallel`
 
 - 沿用同一 locator、Claim 和 linked source，完成本阶段方案、真实配置及覆盖检查。
 - 不开发新 GU/Selector、通用 Retrain 方法、Metrics 框架或 SyncMate；代码缺口按实际事实记录，其后续实现责任不自动归入 015。
-- 不自动绑定运行数据/Selection、不下载重切、不运行训练、GU、重训练或 306/612 矩阵。
+- 不自动绑定正式数据/Selection，不下载重切或运行 306/612 科研矩阵；用户本轮明确授权隔离 CPU 软件小测试，可在临时图与独立临时 Store 中调用必要训练、Selector 和 GU，以核对分数排名及复用。测试不运行 Retrain，不把 toy 数据冒充 Cora/CiteSeer/PubMed 结果。
 - 方案文件明确数据/删除语义和运行前置，后续实际运行仍遵循 experiments/AGENTS.md。
 - 配置与报告不预写科学方向结论；Cache V2 和历史结果不作手工改名、覆盖、修复或删除。
 
@@ -84,6 +84,9 @@ Execution topology: `parallel`
 
 ## Status history
 
+- 2026-09-05: 用户将验收聚焦为正确的 Dataset/Selector 指标配置、纯 Selector 主阶段、分数与排名产物，以及后续 Unlearning 复用 HIT 的简单测试。沿用同一 Claim 恢复返工：`awaiting acceptance` → `working / claimed`；正式实验和 Retrain / Metrics 修复仍不在本轮执行范围。
+- 2026-09-05: 17 Selector 分数排名、冷热 HIT、40 组指标样例及两 GU 复用小测试通过，报告与方案按当前关注点重建；`working / claimed` → `awaiting acceptance`。最终精确候选仍需完成 Verify 后再推进 Claim；本状态不是用户接受。
+
 - 2026-08-26: registered as a numbered Todo candidate; promotion and acceptance contract are deferred to the scientific-definition task.
 - 2026-09-04: 用户重申实验运行必须在 001 实验框图之后，015 同样遵守；将已有 001 前置关系写入同一 Todo，补齐 2.1 Human Surface。保留 todo candidate、未 Promote、未 Claim、未实施或接受。
 - 2026-09-05: 用户确认已讨论的 Selector 两阶段实验 formation preview；同一 AAGU-015 原地 Promote 为 `EXP` Block，新增可执行 YAML、三小图 17-selector、时间证据、固定 Selection→GNNDelete/GIF 与 paired-retrain 范围。状态为 `registered / not claimed`；未 Claim、运行或生成实验结果。
@@ -92,7 +95,7 @@ Execution topology: `parallel`
 
 - 2026-09-05: 用户进一步明确 015 交付当前阶段的实验方案文档、对应 YAML、能力覆盖说明与配置检查，并要求实际完成这三项。此前“015 必须补齐所有消费者及重训练代码”的解释被取代；本轮完成定义材料，不重开 026 或重复 SM-005，不自动新增 Retrain Block。
 
-## Run checkpoint · 当前阶段方案与覆盖检查
+## Historical checkpoint · 当前阶段方案与覆盖检查
 
 - Source project：`E:/project/OpenGU-worktrees/aagu-015-selector-evidence/GULib-master/GULib-master`；沿用 `refs/heads/codex/aagu-015-selector-evidence`。
 - Canonical Claim 位于主项目 runtime；claimId `6f286852-d42c-43ce-be07-9b773247a673`，owner `codex`，session `AAGU-015 · Selector 两阶段实验与证据`。生命周期由运行流程推进，报告本身不构成接受。
@@ -102,3 +105,11 @@ Execution topology: `parallel`
 - 核验材料：[配置摘要](evidence/definition-summary.json)、[逐 S cell](evidence/stage-s-cells.csv)、[逐 U cell](evidence/stage-u-cells.csv)、[本轮覆盖核对](evidence/capability-audit.json)。精确候选、差异与检查读回保留在忽略的 runtime 中。
 - 历史配置检查时 source 所列保护目录中 7 个现存文件前后哈希相同；该范围不等于主项目全部历史结果，也不是本轮科研产物。
 - 本轮未开展 SSH/GPU、数据准备、正式实验或科研结果验收。覆盖表中的缺口保持明确，不作为本阶段方案材料未交付，也不声称已补齐代码。
+
+## Current verification · Selector 输出与后续复用
+
+- 用户追加的本地软件小测试已完成：实际运行 17 个 Selector，生成 238 行分数排名，40 组 Q1–Q4 指标样例；再次读取全部 Score/Selection HIT，显式禁止 producer，输出相同。
+- p_point 的同一 Selection 被真实 GNNDelete/GIF 消费，首次 GU MISS、再次 HIT，两个 checkpoint 也 HIT；无 Selector 调用。保留同一 selector_ref 的组合计划全部 HIT；错内容哈希在 GU 前拒绝。
+- [回执](evidence/selector-reuse-check.json) 绑定未变消费者 source HEAD、代码哈希及已运行验证器哈希；验证器运行于新增脚本提交前，不能把旧 HEAD 单独当成完整测试脚本身份。原始运行目录保留在 source 忽略的 runtime。
+- CPU fixture 为 20 节点、14/2/4 mask，hidden 4、6 epochs、LiSSA/Hutch 2、GU 2，独立临时 Store；正式 YAML 未改，所列历史保护目录哈希前后相同。首个验证器启动因 OpenGU import-time CLI 误读验证器参数而退出，未执行计算；清空已消费的 verifier argv 后完整复跑通过。
+- [分数排名示例](evidence/selector-score-rank-example.csv)、[Selector Metrics 示例](evidence/selector-comparisons-example.json)、[可重跑检查](evidence/verify_selector_reuse.py) 已持久化到本 WorkItem。接受判断以当前报告和当前精确候选为准；未获得用户最终接受决定。

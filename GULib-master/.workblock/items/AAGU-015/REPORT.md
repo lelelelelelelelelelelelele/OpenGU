@@ -1,143 +1,84 @@
-# AAGU-015 · Selector 两阶段实验与证据
+# AAGU-015 · Selector 配置、分数排名与复用验证
 
 ## Human Result
 
 ### 实际增量
 
-已完成当前阶段的实验方案、实际 YAML 与能力覆盖检查。方案给出 Q1–Q4 的比较、控制和指标，449 份 YAML 保持一致，并重新无写入展开为 306 个 S cell / 612 个 GU cell。现有入口不能完整覆盖 Stage U，相关缺口已明确记录。本次交付实验定义材料，没有执行全量实验或新增通用实验代码。
-
-主要证据：[完整实验方案](EXPERIMENT_PLAN.md) · [能力覆盖与 Retrain 核对](CAPABILITY_COVERAGE.md) · [核验记录](evidence/capability-audit.json)。
+已把本轮验收聚焦为纯 Selector 实验：配置与指标正确，输出完整分数排名，并用一个隔离 CPU 小测试确认未来 Unlearning 能复用这些结果。原有 449 份 YAML 保持不变；Q1–Q4 共享 Stage S 计算，Stage U 保留未来设计。
 
 ### 核心观察
 
-1. **PASS（阶段方案）** — 实验方案逐项列出 Q1–Q4、17 个 Selector 分组、固定条件、比较规则、阶段 U 与重训练参照，以及指标输入和解释边界；范围只覆盖当前阶段。
-2. **PASS（实际配置）** — 449 份 YAML 的哈希与既有检查点全部一致；324 张计划再次由实际 parser/dry-run 展开为 306/612 cell，未读数据或调用 producer。两 GU 中没有伪造的 Retrain 方法。
-3. **PASS（覆盖核对）** — 已核对 modular、target-direct、通用评估与 SM-005：各自支持与限制均有源码依据。完整执行覆盖不成立，已明确记录；这项 PASS 指覆盖说明准确，不代表所有消费者通过。
-4. **PASS（职责和缺口）** — 026 的通用代码、SM-005 的远程工具验证与 015 的实验定义分开。Retrain 辅助函数已有，但独立方法未注册；当前 27 个 WorkItem 未找到专门 Block。Metrics 路径仍有主动训练调用。
-5. **PASS（交付材料）** — 方案、配置说明、能力表与配对报告使用一致范围。当前验收对象是实验定义材料；缺失能力及真实输入绑定留给后续明确的实现/执行工作，不自动扩大 015。
+- **PASS · 配置与指标**：18 份 Stage S 大表均为纯 Selector，覆盖三个数据集、17 个方法、三训练 seed、两预算。候选来自 train_mask；需要验证目标的方法使用 validation_mask。Selector 指标为 Spearman/Kendall、common fraction/Jaccard 和成本；没有 GU 或 F1/retrain-gap 引用。
+- **PASS · 分数与排名**：20 节点 CPU 小图有 14 个候选；17 个方法各输出 14 个有限分数及完整排名，共 238 行。top-K 与持久化 Selection 一致，完整分数/排名已提供 CSV 示例。
+- **PASS · Selector 缓存**：再次运行时禁止 Score/Selection producer，17 个方法均 HIT；分数、排名和 Artifact 引用逐项相同。
+- **PASS · 未来 GU 复用**：同一 p_point Selection 交给真实 GNNDelete/GIF，禁用 Selector 调用；两种 GU 首次 MISS、再次 HIT，checkpoint 也命中。保留相同 selector_ref 的组合计划同样全部 HIT。错误 Selection 哈希在 GU 前被拒绝。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-Agent 建议接受本阶段的实验方案、配置和能力覆盖材料，由用户决定接受或返工。接受这些材料不表示 Stage U 全部可执行，也不自动创建 Retrain Block、修复通用代码或启动 GPU/全矩阵。
+Agent 建议接受 015 当前范围：Selector 方案、实际配置、分数排名输出及未来 GU 复用小测试。由用户明确接受或返工；本次不要求跑正式矩阵，也不以独立 Retrain / 完整重训练评价的实现作为验收条件。
 
-## 当前阶段研究问题
+## 实验配置与 Selector 指标
 
-| 问题 | 主要比较 | 判断边界 |
-| --- | --- | --- |
-| Q1 | A↔B；point/simple/graph 的 Hessian-free proxy ↔ 对应 IF/GIF 参考 | 同候选 score 相关性与同预算选集重合度 |
-| Q2 | 固定 Hessian 处理与 checkpoint，分别比较 point/simple/graph | 区分 source 改变与求解器改变 |
-| Q3 | A/B 参数变化组 ↔ validation-conditioned IF/GIF；附控制 | 选集差异不直接推导攻击效果 |
-| Q4 | 每种 source 的 final、CP3、CP6 及对应 final 参考 | 轨迹变化与参考一致性分别解释 |
+- Dataset：Cora、CiteSeer、PubMed；持久化 train/val/test=70/10/20；split seed 2024。真实 manifest 尚未绑定属于未来运行准备。
+- 候选与目标：train_mask 为候选；需要验证目标的 Selector 使用 val_mask，test 不参与选点目标或调参。
+- 模型：模型型方法使用 GCN 两层、hidden=64、dropout=0.5；训练 100 epochs，Adam，lr=0.005，weight decay=0.000001；seeds=42/212/2024。degree/random 不需要模型。
+- 预算与排序：训练候选的 1%/5%，K=max(1,floor(N_train×ratio))；score 降序、同分按 node ID 升序。
+- Selector 数值条件：last_layer；LiSSA 20/25/0.01，B-Hutch 32 probes；CP3=[1,50,100]，CP6=[1,10,25,50,75,100]。random seed 固定为 104245，不能将跨训练 seed 的相同抽样当独立样本。
+- 指标输入：Spearman/Kendall 使用按候选 ID 对齐的原始分数，common fraction/Jaccard 使用同候选同 K 的 top-K 集合；无定义的相关性保留为空。成本区分模型准备、计算和读取。
 
-## 默认展开与当前科研配置
+## Q1–Q4
 
-| 配置项 | 实际展开值 |
-| --- | --- |
-| Dataset/Split | Cora / CiteSeer / PubMed；70/10/20；split seed 2024 |
-| 模型与训练 | GCN，两层，hidden 64，dropout 0.5；100 epochs；Adam；lr 0.005；weight decay 0.000001；无 scheduler |
-| 训练 seeds / 预算 | 42、212、2024；训练候选数的 1% / 5%；floor_with_minimum_one |
-| Selector 默认 | last_layer；validation-conditioned 方法使用 val_mask；LiSSA 20 / scale 25 / damp 0.01；B Hutchinson 32 probes / seed 1729 |
-| 对照与 checkpoint | random seed 104245；CP3=[1,50,100]；CP6=[1,10,25,50,75,100] |
-| GNNDelete | unlearn_lr 0.01；50 epochs；alpha 0.5；mse_mean / both_layerwise；Adam |
-| GIF | iteration 100；scale 1000000000；damp 0；GIF_method=GIF |
-| 评价 | post_unlearning_utility_and_retrain_gap；当前 modular 消费者拒绝，不降为 utility-only |
+- Q1：省略 Hessian 后是否仍选到相似节点？比较 A/B 及各 source 的 Hessian-free proxy 与 IF/GIF 参考。
+- Q2：point/simple/graph source 改变带来什么差异？分别在相同 Hessian 处理下作组内比较。
+- Q3：参数变化与验证目标是否选择相同节点？比较 A/B 与 IF/GIF 参考，附 degree/random/legacy 控制。
+- Q4：final、CP3、CP6 有何差异？同时报告轨迹变化及对同 source final 参考的一致性。
 
-## 条件共享依赖
+## 最终输出
 
-| 对象 | 配置组数 | 解释 |
-| --- | --- | --- |
-| 训练准备 | 9 | 3 数据集 × 3 训练 seeds；checkpoint 仍需精确内容验证 |
-| Score | 141 | 15 个模型型方法 × 9，加 degree/random 各 3；Score 与预算无关 |
-| Selection | 282 | 141 个条件 Score 组 × 2 预算；具体集合重合尚未观测 |
+- Score：candidate IDs、逐候选 scores、完整 ranking，以及数据/模型/方法与 Artifact 身份。
+- Selection：按预算派生的 selected_nodes，引用同一 Score，并保留 recipe/content hash；后续 GU 直接使用这份 Selection。
+- 本次样例：17×14=238 行 selector/node_id/score/rank/selected；40 组 Q1–Q4 指标输出验证分析接口，不作为方法优劣的研究结论。
 
-组标识是有效配置的比较指纹，不是 Recipe/Artifact 哈希、实际训练次数或 HIT。真实数据、候选、checkpoint 与 producer 身份一致后才允许共享。
+## 未来 Unlearning 如何复用
 
-## 入口覆盖与后续缺口
+- Score/Selection 冷运行：17 个方法全部 MISS 并实际计算；热运行全部 HIT，明确禁止 producer 调用。
+- 后续只引用已有 Selection：p_point→GNNDelete 和 p_point→GIF 均无需 Selector；两种 GU 第一次 MISS，第二次 HIT。
+- 后续仍引用同一个 Selector：p_point 的 Score、Selection 与两个 GU 均 HIT，不重复选点。
+- 复用条件：真实 Dataset/Split、候选、模型/训练/checkpoint、Selector 参数、删除请求和相关实现身份匹配。只换实验名称不会强迫重算；改变真实依赖不能假定 HIT。
 
-| 入口/事项 | 支持情况 | 当前事实 |
-| --- | --- | --- |
-| modular | 部分支持 | 17 Selector、固定 Selection→GNNDelete/GIF、utility；当前拒绝 retrain-gap case。 |
-| target-direct | 固定配方支持 | 已有重训练比较路径，GU 表/manifest/构建器限定 GNNDelete；不能直接接收 015 全部组合。 |
-| 通用 runner / collateral | 原语及调用存在 | 已有重训练与预测诊断，但使用另一配置/身份合同；015 的完整对应关系未验证。 |
-| SM-005 | 已有实际工具链证据 | Cora Degree、B-Hutch cold/warm、D-full；不等于 015 矩阵 launcher。 |
-| Retrain 独立方法 | 未注册 / 未完整实现 | 辅助 run_retrain 已存在；GU 方法表没有 Retrain，未找到专门 Block。 |
-| 完整执行支持 | 未完整覆盖 | 输入/Selection 绑定、独立 Retrain、删除语义、扩展评价与已报告的 GU 读回差异需后续处理。 |
+## 分数排名样例
 
-## 验证与证据
+以下仅为 CPU 小图 p_point 的前六名。
 
-复用精确配置检查点 59baa2ae909e7fba92278d9201c635b80be65cdc 上的 8 项针对性回归与两个 CLI dry-run；本轮未改 YAML、生成器或消费者。重新完成 449 份 YAML 哈希一致性、324 个实际 parser 计划展开、modular retrain-gap 拒绝与 Retrain 方法拒绝检查。source 中 7 个现存保护文件哈希前后相同，其余保护目录仍缺失。主项目源码 53e1da5b 的方法注册、入口与 27 个 WorkItem 已核对；SM-005 D-full 回传文件哈希与回执一致。这些证据证明材料与实现现状相符，不证明全部实验已执行或产生科研结论。旧定义摘要的 execution_ready=false 与 blocking_inputs 描述运行准备，不能解释为本阶段方案材料未交付。
-
-HTML 已在 1440×1100 桌面、600×1800 窄屏与 1440×4600 完整页面渲染并查看：标题、正文、表格与决定区可读，无可见重叠或横向截断。此观察只证明报告可读。
-
-- [当前阶段完整实验方案](EXPERIMENT_PLAN.md)
-- [入口覆盖与 Retrain 登记/实现核对](CAPABILITY_COVERAGE.md)
-- [配置说明与生成命令](../../../experiments/configs/aagu015/README.md)
-- [阶段 S 源表](../../../experiments/configs/aagu015/stage_s.yaml)
-- [阶段 U 源表](../../../experiments/configs/aagu015/stage_u.yaml)
-- [有效参数、449 份 YAML 哈希与检查摘要](evidence/definition-summary.json)
-- [本轮源码与配置覆盖核验](evidence/capability-audit.json)
-- [306 个 S cell 与条件共享依赖](evidence/stage-s-cells.csv)
-- [612 个 U cell 与固定 Selection 来源](evidence/stage-u-cells.csv)
-- [可重跑定义验证器](evidence/verify.py)
-- [本轮完整无写入展开](../../runtime/aagu015/definition-expansion-materials.json)
-- [原配置检查点的验证回执](../../runtime/aagu015/verification.json)
-- [本次桌面首屏渲染](../../runtime/aagu015/report-materials-desktop.png)
-- [本次窄屏渲染](../../runtime/aagu015/report-materials-narrow.png)
-- [本次完整报告渲染](../../runtime/aagu015/report-materials-full.png)
-- [当前 WorkItem](WORKITEM.md)
-
-## 生成 YAML 示例
-
-### 阶段 S：Cora / seed42 / 1%
-
-```yaml
-# Generated by experiments.aagu015.definitions; edit source tables, then regenerate.
-kind: experiment
-schema_version: 1
-experiment_id: aagu015-s-cora-seed42-r0.01
-stage: selector
-dataset_ref: ../../datasets/cora.yaml
-selector_refs:
-- ../selectors/degree-seedindependent-r0.01.yaml
-- ../selectors/random-seedindependent-r0.01.yaml
-- ../selectors/a_grad_norm-seed42-r0.01.yaml
-- ../selectors/b_param_hutch-seed42-r0.01.yaml
-- ../selectors/r_point-seed42-r0.01.yaml
-- ../selectors/gt_simple-seed42-r0.01.yaml
-- ../selectors/gt_full-seed42-r0.01.yaml
-- ../selectors/p_point-seed42-r0.01.yaml
-- ../selectors/p_simple-seed42-r0.01.yaml
-- ../selectors/p_graph-seed42-r0.01.yaml
-- ../selectors/tracin_cp_point_3-seed42-r0.01.yaml
-- ../selectors/tracin_cp_point_6-seed42-r0.01.yaml
-- ../selectors/tracin_cp_simple_3-seed42-r0.01.yaml
-- ../selectors/tracin_cp_simple_6-seed42-r0.01.yaml
-- ../selectors/tracin_cp_graph_3-seed42-r0.01.yaml
-- ../selectors/tracin_cp_graph_6-seed42-r0.01.yaml
-- ../selectors/legacy-seed42-r0.01.yaml
-matrix: cartesian_product
+```csv
+selector,node_id,score,rank,selected
+p_point,11,0.05307590961456299,1,True
+p_point,13,0.05153393745422363,2,False
+p_point,9,0.050595883280038834,3,False
+p_point,3,0.050047557801008224,4,False
+p_point,1,0.04927053302526474,5,False
+p_point,5,0.047859370708465576,6,False
 ```
 
-### 阶段 U：同一 degree Selection → GNNDelete / GIF
+## 验证范围
 
-```yaml
-# Generated by experiments.aagu015.definitions; edit source tables, then regenerate.
-kind: experiment
-schema_version: 1
-experiment_id: aagu015-u-cora-seed42-r0.01-degree
-case_id: aagu015-s-cora-seed42-r0.01/degree
-stage: unlearning
-dataset_ref: ../../datasets/cora.yaml
-selection_input:
-  artifact_id: null
-  recipe_hash: null
-  content_hash: null
-unlearning_refs:
-- ../unlearning/GNNDelete-seed42.yaml
-- ../unlearning/GIF-seed42.yaml
-evaluation_refs:
-- ../../evaluations/retrain_gap.yaml
-matrix: cartesian_product
-```
+小测试使用 20 节点、14/2/4 三个 mask，hidden=4、训练 6 epochs、CP steps=1–6、LiSSA 2 次、Hutchinson 2 probes、GU 各 2 次迭代。全部运行于独立 CPU 测试目录；正式 YAML 与受保护的既有数据/缓存/结果保持不变。它证明本次接口和复用能力，不是三个真实数据集的全矩阵运行。独立 Retrain 与完整 GU Metrics 由 AAGU-028 承接；此前 GU 冷/热指标舍入缺陷不因这次小图通过而被判定修复。
+
+配置 parser/dry-run 再次检查 18 份 S / 306 份未来 U 计划；449 份 YAML 哈希不变。新增真实消费者测试由回执中的 consumer_source_head、consumer_hashes 和 verifier_sha256 标识；分数排名与 Q1–Q4 示例由该测试生成。未修改生产算法、方法分发、缓存实现或正式实验配置。报告与方案文件发生变化，原配置回归只在实际差异不能改变其结论时复用。
+
+HTML 首屏已在 1440×1100 桌面与 600×1800 窄屏渲染查看，标题、配置与决定区可读，无可见重叠或横向截断；完整页面证据保留在本次 Verify。
+
+## 证据入口
+
+- [Q1–Q4 实验设计总表](EXPERIMENT_PLAN.md)
+- [Stage S 配置源表](../../../experiments/configs/aagu015/stage_s.yaml)
+- [18 张具体计划与生成命令](../../../experiments/configs/aagu015/README.md)
+- [306 个 Selector 配置单元](evidence/stage-s-cells.csv)
+- [238 行分数排名样例](evidence/selector-score-rank-example.csv)
+- [Q1–Q4 指标输出样例](evidence/selector-comparisons-example.json)
+- [真实 HIT / producer / 身份验证回执](evidence/selector-reuse-check.json)
+- [可重跑 CPU 验证器](evidence/verify_selector_reuse.py)
+- [能力与本次验证范围](CAPABILITY_COVERAGE.md)
+- [WorkItem](WORKITEM.md)
