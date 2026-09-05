@@ -3,7 +3,7 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -67,9 +67,13 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-同一 AAGU-028 正在按用户澄清返工。已删除成对调度、审查离线指标输入，并补充单方法评价与独立结果收集验证。此前 06fcd98f 候选和报告仅是历史软件证据，不能作为本轮完成或接受依据。下一步在干净新候选上统一 Verify，更新同目录配对报告，再转 awaiting acceptance；不启动正式 GPU 或 Closeout。
+同一 AAGU-028 已完成本轮返工和软件 Verify，等待用户决定。当前验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)。候选为 source branch 当前 clean HEAD；软件检查点、报告增量的验证复用见 Current Verify。此前 06fcd98f 报告只保留为 Git 历史，不代表当前实现或人类接受。
+
+用户提出返工时沿用同一 locator；明确接受后才转 block-closeout。正式 SSH/GPU、矩阵、Apply、push、install 和清理均未执行。
 
 ## Status history
+
+- 2026-09-06: 本轮独立调度与离线指标修正完成，163 项测试和示例通过；当前 awaiting acceptance，人类决定待定。
 
 - 2026-09-06: 用户明确要求方法独立执行、独立保存指标，差值与预测比较在结果收集后处理；审查即时评价需求并删除 GU→Retrain 成对调度。在同一 Block 返工；此前候选及报告不再作为当前验收结论。
 
@@ -103,3 +107,14 @@ Execution topology: `parallel`
 - 实现审查：现有标量、预测比较、更新检测指标不需要 GU 与 Retrain 同时运行；耗时／峰值显存属于执行时观测。泛指 MIA 尚需具体攻击协议，当前不伪造通用实现。补充统一单方法 F1／accuracy、分类 AUC、交叉熵及可用性状态；指标计算身份独立于方法输出。
 - target-direct 正式表显式列出同级 GNNDelete 与 Retrain；原 306 个 GU 比较单元的科学范围不变，原有内部重训练移为独立结果单元。每个方法完成与验真不依赖另一方法或 collateral；完整 Cache V2 依赖随结果收集后再做差。未执行正式矩阵。
 - 开发验证：原受影响 61 项通过；增加矩阵独立完成／热复用和采集后禁止 forward 的检查后，18 个 Retrain/output 测试通过。最终统一 Verify 待干净候选运行，旧结果不替代本轮。
+
+## Current Verify — independent methods and offline metrics
+
+- 软件检查点：`9de1d5f985e5d6ef1dbf162c8fd144dab799ecb9`。在干净 HEAD 上运行同一 [Verify 脚本](evidence/verify.py)，17 个文件共 163 项测试全部通过，0 失败、0 跳过；24 节点示例成功。原始证据位于 source 的 `.workblock/runtime/aagu-028-rework-verify3/`；[observations.json](evidence/observations.json) 保存实际命令、测试结果、输出引用及原始日志哈希。
+- 新行为：GU 先独立完成，再单独调度 Retrain；完成条件不包含另一方法或 collateral。各自记录完整模型/预测与 F1、分类 AUC、交叉熵及可用性状态。复制完整 Store 到新目录后，禁止全局模型前向和优化器训练，单方法指标与跨方法差值仍精确重算，Store 字节未变。
+- 指标审查结论：当前登记的比较指标都无需同时执行 GU 与 Retrain；保存原始标量及必要逐节点预测、标签、mask、图即可后处理。运行耗时/峰值显存须执行时采集。更新检测 AUC 缺原模型预测时明确报告缺失，通用 MIA 没有伪造实现。完整审查表见 [数据流说明](../../../docs/retrain_outputs.md)。
+- 保护核对：source 和 canonical 的 10 个 cache/result 根未变，3,995 个历史文件哈希相同。本轮所有新运行均为临时 CPU 软件验证。
+- 修正事件：首次返工候选统一验证 163 项通过；追加热复用的有效方法条件核对后，一项测试访问小表省略的学习率字段而失败。测试改为改变解析后的默认值后，当前完整套件通过。失败记录保留在 `.workblock/runtime/aagu-028-rework-verify2/`，不作为通过证据。
+- 本检查点之后只更新 Report、Record、证据摘要和进度记录；产品、配置、训练/缓存身份及测试条件无更改。最终 live HEAD 的实际 diff 与证据复用理由记于 `.workblock/runtime/aagu-028-rework-final-verification.json`；新增内容单独通过确定性生成、报告/WorkItem Human Surface、链接和 diff 检查，复用上述精确检查点的软件结果。
+- HTML 在 Chromium 1440×1000 真实渲染并查看首屏与全页；待决定区在首屏，8 个场景及单方法指标表可读，无横向溢出、断图或脚本错误。390px 宽度检查无文档溢出。[QA 记录](evidence/report_qa.json)。
+- Agent 建议接受本次软件修复，当前决定仍由用户作出。正式 GPU stage、完整科研矩阵、真实硬件成本为 NOT OBSERVED；不把软件测试当作研究接受。

@@ -18,3 +18,5 @@ Errors / surprises:
 - Standalone caller argv exposed OpenGU import-time config parsing. Entry now initializes runtime defaults within its owned CLI context; disposable example2 completed.
 
 2026-09-06 same-Block rework: remove paired GU/Retrain dispatch; audit metrics for deferred computation; save complete per-method metrics and predictions; test collection with forward/training blocked; refresh formal reports and return to awaiting acceptance.
+
+2026-09-06 rework COMPLETE: all 163 tests and standalone example passed at clean 9de1d5f985e5d6ef1dbf162c8fd144dab799ecb9; formal paired report inspected; awaiting user decision.

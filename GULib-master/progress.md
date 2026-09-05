@@ -12,3 +12,5 @@
 - Paired formal report generated from observed evidence and inspected in Chromium; current decision pending. Report-only final diff reuses the exact checkpoint checks, with independent report/link/render verification. No formal run or acceptance action performed.
 
 - 2026-09-06: resumed same Claim (ongoing revision 4) for independent method scheduling. Initial affected suite: 61 passed. Metrics audit found no registered comparison requiring simultaneous GU/Retrain execution; timing/memory need execution-time observations.
+
+- Rework Verify: 163 tests and standalone example passed on clean 9de1d5f985e5d6ef1dbf162c8fd144dab799ecb9. Protected 3,995 historical files unchanged. Report records metric input audit, standalone execution and collection without forward. Report/Record changes reuse that checkpoint after exact diff review and independent surface checks.

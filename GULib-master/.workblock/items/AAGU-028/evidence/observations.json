@@ -1,5 +1,5 @@
 {
-  "candidate": "936394329433bf518fb22c800ca7233af1fb5dbe",
+  "candidate": "9de1d5f985e5d6ef1dbf162c8fd144dab799ecb9",
   "source": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master",
   "checks": [
     {
@@ -32,7 +32,7 @@
         "--tb=short",
         "-o",
         "junit_family=legacy",
-        "--junitxml=E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2\\cpu.xml"
+        "--junitxml=E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3\\cpu.xml"
       ],
       "exit_code": 0,
       "suites": [
@@ -41,9 +41,9 @@
           "errors": "0",
           "failures": "0",
           "skipped": "0",
-          "tests": "160",
-          "time": "42.508",
-          "timestamp": "2026-09-05T23:12:03.774124+08:00",
+          "tests": "163",
+          "time": "47.670",
+          "timestamp": "2026-09-06T02:01:36.171482+08:00",
           "hostname": "DESKTOP-J0I2ET3"
         }
       ]
@@ -57,7 +57,7 @@
         "utf8",
         "experiments/examples/retrain_cpu.py",
         "--directory",
-        "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2\\example"
+        "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3\\example"
       ],
       "exit_code": 0
     }
@@ -151,25 +151,25 @@
       "evidence": {
         "aagu028_evidence": {
           "retrain": {
-            "artifact_id": "pred_24b4745c_a4ee3c0e",
-            "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
-            "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+            "artifact_id": "pred_fbce420d_ecbc176d",
+            "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+            "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
           },
           "warm": {
-            "artifact_id": "pred_24b4745c_a4ee3c0e",
-            "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
-            "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+            "artifact_id": "pred_fbce420d_ecbc176d",
+            "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+            "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
           },
           "GU_outputs": [
             {
-              "artifact_id": "pred_c277a217_bc30eb28",
-              "recipe_hash": "c277a217d30f9a95d752609b5b3d1c7b3e2b73ff65a1171679ded6194b94ee05",
-              "content_hash": "bc30eb2813d22c37440542217bc18065f93ca35ad671eb00fc74bf4ba2bfb0eb"
+              "artifact_id": "pred_1bf49665_1295878c",
+              "recipe_hash": "1bf4966552bc3b0d2f3ce644662d007b9b13453b2523f2cf285527afd72fd794",
+              "content_hash": "1295878c091d3af43e8508f3f40a615596981042107363370e1ee4b71a5fd88d"
             },
             {
-              "artifact_id": "pred_543ed2fa_be0adfcd",
-              "recipe_hash": "543ed2fa5f0f82a59ead22e1a9dda9981fc9035a4abff0c237861505826670f4",
-              "content_hash": "be0adfcdb806ca2f6ffe5c52c81dc9663092895a8609ca65168452d5a42f71e4"
+              "artifact_id": "pred_12246945_44e417da",
+              "recipe_hash": "12246945153e5c34559dad01d9e5ece365715aae3fd7cd8e074a5b0bd69de134",
+              "content_hash": "44e417dad7f2abba04ac060ef83e175df95018f97a41e7e13a2d42e3e4ee4fe2"
             }
           ],
           "metrics": [
@@ -200,7 +200,7 @@
               },
               "rows": [
                 {
-                  "evaluation_receipt_id": "evalr_452781a6cd158e26aef9d990a00c1492",
+                  "evaluation_receipt_id": "evalr_dd014291abd27b840953ede67684016e",
                   "identity": {
                     "case": "post_unlearning_utility_and_retrain_gap",
                     "metrics": [
@@ -212,16 +212,16 @@
                       "perf_unlearn"
                     ],
                     "producer_version": "persisted-output-retrain-gap-v2",
-                    "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                    "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
                     "unlearning_output": {
-                      "artifact_id": "pred_c277a217_bc30eb28",
-                      "recipe_hash": "c277a217d30f9a95d752609b5b3d1c7b3e2b73ff65a1171679ded6194b94ee05",
-                      "content_hash": "bc30eb2813d22c37440542217bc18065f93ca35ad671eb00fc74bf4ba2bfb0eb"
+                      "artifact_id": "pred_1bf49665_1295878c",
+                      "recipe_hash": "1bf4966552bc3b0d2f3ce644662d007b9b13453b2523f2cf285527afd72fd794",
+                      "content_hash": "1295878c091d3af43e8508f3f40a615596981042107363370e1ee4b71a5fd88d"
                     },
                     "retrain_output": {
-                      "artifact_id": "pred_24b4745c_a4ee3c0e",
-                      "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
-                      "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+                      "artifact_id": "pred_fbce420d_ecbc176d",
+                      "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+                      "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
                     }
                   },
                   "metrics": {
@@ -234,7 +234,7 @@
                   }
                 },
                 {
-                  "evaluation_receipt_id": "evalr_7d028fe5a8411fc60a0d4b10107ffaaa",
+                  "evaluation_receipt_id": "evalr_ed1d3b06b490005d4c82668b6142d3f8",
                   "identity": {
                     "case": "post_unlearning_utility_and_retrain_gap",
                     "metrics": [
@@ -246,16 +246,16 @@
                       "perf_unlearn"
                     ],
                     "producer_version": "persisted-output-retrain-gap-v2",
-                    "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                    "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
                     "unlearning_output": {
-                      "artifact_id": "pred_543ed2fa_be0adfcd",
-                      "recipe_hash": "543ed2fa5f0f82a59ead22e1a9dda9981fc9035a4abff0c237861505826670f4",
-                      "content_hash": "be0adfcdb806ca2f6ffe5c52c81dc9663092895a8609ca65168452d5a42f71e4"
+                      "artifact_id": "pred_12246945_44e417da",
+                      "recipe_hash": "12246945153e5c34559dad01d9e5ece365715aae3fd7cd8e074a5b0bd69de134",
+                      "content_hash": "44e417dad7f2abba04ac060ef83e175df95018f97a41e7e13a2d42e3e4ee4fe2"
                     },
                     "retrain_output": {
-                      "artifact_id": "pred_24b4745c_a4ee3c0e",
-                      "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
-                      "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+                      "artifact_id": "pred_fbce420d_ecbc176d",
+                      "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+                      "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
                     }
                   },
                   "metrics": {
@@ -286,13 +286,13 @@
             "utf8",
             "eval_collateral.py",
             "--store-root",
-            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\v2",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\v2",
             "--inputs",
-            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\references.json",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\references.json",
             "--evaluation",
-            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\gap.yaml",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\gap.yaml",
             "--output-dir",
-            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\cli-metrics"
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\cli-metrics"
           ],
           "result": {
             "schema": "opengu.output_metrics",
@@ -333,7 +333,7 @@
                 "mean_pred_shift": 0.03294701501727104,
                 "max_pred_shift": 0.09511786699295044,
                 "fraction_flipped": 0.2222222238779068,
-                "evaluation_receipt_id": "evalr_d0ff0604a879143505b434831e9e2df4",
+                "evaluation_receipt_id": "evalr_c71c5e23bf9770db013a44190e0547f2",
                 "identity": {
                   "case": "post_unlearning_utility_and_retrain_gap",
                   "metrics": [
@@ -345,16 +345,16 @@
                     "perf_unlearn"
                   ],
                   "producer_version": "persisted-output-retrain-gap-v2",
-                  "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
                   "unlearning_output": {
-                    "artifact_id": "pred_fc805970_c2d2ecfb",
-                    "recipe_hash": "fc805970a7947bf9e5381b6ccfb1f5964cce70caa689b5f2ce286595797741d3",
-                    "content_hash": "c2d2ecfb261c42e70f9fd1b073b4c3e6b067b0f8403b782af69c0a51a818e4fe"
+                    "artifact_id": "pred_03510d66_f604b28d",
+                    "recipe_hash": "03510d668792ffdf1112578cc9cb55bbaa3af9386ffe87500a92f8e52daf3744",
+                    "content_hash": "f604b28d27093e21c187575027c93520229cc015c117907ad09c67ac02011a6d"
                   },
                   "retrain_output": {
-                    "artifact_id": "pred_f624b4db_1ffb8b01",
-                    "recipe_hash": "f624b4db48150073d345ab6019df3fb690f45fc1609cb79627ef5f30e527f4c7",
-                    "content_hash": "1ffb8b0155f86d56c522cae535dbdbecc1f1e3ede37b056f8d639a97bd67b62b"
+                    "artifact_id": "pred_21e62209_1d53b4ca",
+                    "recipe_hash": "21e6220946749bb0239ce464f530988b3dda10f1dacc425f718b3aa2c7f1d352",
+                    "content_hash": "1d53b4caf88fc63740782115a625c908789b682ec7775ee808333f4b824759af"
                   }
                 }
               }
@@ -364,25 +364,426 @@
           "store_unchanged": true
         }
       }
+    },
+    {
+      "test": "test_independent_method_metrics_survive_collection_without_forward",
+      "evidence": {
+        "aagu028_independent_collection": {
+          "per_method": [
+            {
+              "f1_before": 0.2,
+              "f1_after": 0.2,
+              "f1_drop": 0.0,
+              "f1_drop_ratio": 0.0,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_b8a50106_6a203132",
+                "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_88129eb7129ddd8fc3bbf1c8eeaa980e",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156439335573,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.010851383209228516
+            },
+            {
+              "f1_before": null,
+              "f1_after": 0.2,
+              "f1_drop": null,
+              "f1_drop_ratio": null,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_ebaf78a3_4a01c219",
+                "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_0a36e85ad249c5ab9cc22f8fd44c9de7",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7180723631767043,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "missing_original_predictions"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.006869099999999406
+            },
+            {
+              "f1_before": 0.2,
+              "f1_after": 0.2,
+              "f1_drop": 0.0,
+              "f1_drop_ratio": 0.0,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_27f6878d_475a72ef",
+                "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_4dc4df2181ac296fd1d7612dc66ee0d3",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156429915334,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.0025136470794677734
+            }
+          ],
+          "recomputed": {
+            "effective_config": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_method_metrics",
+              "metrics": [
+                "f1",
+                "accuracy",
+                "cross_entropy",
+                "classification_auc",
+                "classification_auc_status",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "method_output"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "single-method-output-metrics-v1"
+            },
+            "rows": [
+              {
+                "evaluation_receipt_id": "evalr_3337a5503eaa30df92ebf39bbc6cb72b",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_b8a50106_6a203132",
+                      "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                      "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156439335573,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_5c872fd24ea1273cde74bbeec22a661e",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_ebaf78a3_4a01c219",
+                      "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                      "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7180723631767043,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "missing_original_predictions"
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_8d8dc3f8e360304528268854a974776d",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_27f6878d_475a72ef",
+                      "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                      "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156429915334,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              }
+            ]
+          },
+          "differences": {
+            "effective_config": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "perf_before",
+                "perf_unlearn",
+                "perf_retrain",
+                "drop_retrain",
+                "gap",
+                "gap_pct"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "model_before",
+                "model_unlearned",
+                "exact_retrain_same_selection"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2"
+            },
+            "rows": [
+              {
+                "evaluation_receipt_id": "evalr_f6f2c2cadf3d745d600c978a27d420e2",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  }
+                },
+                "metrics": {
+                  "perf_before": 0.2,
+                  "perf_unlearn": 0.2,
+                  "perf_retrain": 0.2,
+                  "drop_retrain": 0.0,
+                  "gap": 0.0,
+                  "gap_pct": 0.0
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_c0f2bb2b3006b021c15b628d0742ba4c",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  }
+                },
+                "metrics": {
+                  "perf_before": 0.2,
+                  "perf_unlearn": 0.2,
+                  "perf_retrain": 0.2,
+                  "drop_retrain": 0.0,
+                  "gap": 0.0,
+                  "gap_pct": 0.0
+                }
+              }
+            ]
+          },
+          "store_unchanged": true,
+          "training_and_forward_forbidden": true
+        }
+      }
     }
   ],
-  "raw_evidence_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2",
+  "raw_evidence_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3",
   "example": {
     "retrain_output": {
-      "artifact_id": "pred_99d89305_e8bd6cd2",
-      "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
-      "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+      "artifact_id": "pred_b492204e_7b61c0bd",
+      "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+      "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
     },
     "GU_outputs": [
       {
-        "artifact_id": "pred_2553613f_ac1010c7",
-        "recipe_hash": "2553613f01b1feaaf556381ebb4f6519e2531706e5ccd0ef2c0f3931572c2e73",
-        "content_hash": "ac1010c711e0e5be24f4444ec28203e8b529bea9c589fba818f582527b5b00ba"
+        "artifact_id": "pred_a26f13c9_e9bb1a3b",
+        "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+        "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
       },
       {
-        "artifact_id": "pred_dd758f39_1ecf0467",
-        "recipe_hash": "dd758f39a0c4f0dacf825be0cb744cc4bfe1cbf0112abf2222af52e3f0b18eb1",
-        "content_hash": "1ecf0467055d6fc55cd0802076ef61c21c8e2aa2ff3cb68e5a459bd2efce880a"
+        "artifact_id": "pred_20e8907a_3be05db0",
+        "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+        "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
       }
     ],
     "hot_retrain_producer_called": false,
@@ -414,7 +815,7 @@
         },
         "rows": [
           {
-            "evaluation_receipt_id": "evalr_c72e011f06a0bb59e40dc32bac2dc719",
+            "evaluation_receipt_id": "evalr_a0c8d0bb60eb26072a66a4e2816e9904",
             "identity": {
               "case": "post_unlearning_utility_and_retrain_gap",
               "metrics": [
@@ -426,16 +827,16 @@
                 "perf_unlearn"
               ],
               "producer_version": "persisted-output-retrain-gap-v2",
-              "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
               "unlearning_output": {
-                "artifact_id": "pred_2553613f_ac1010c7",
-                "recipe_hash": "2553613f01b1feaaf556381ebb4f6519e2531706e5ccd0ef2c0f3931572c2e73",
-                "content_hash": "ac1010c711e0e5be24f4444ec28203e8b529bea9c589fba818f582527b5b00ba"
+                "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
               },
               "retrain_output": {
-                "artifact_id": "pred_99d89305_e8bd6cd2",
-                "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
-                "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
               }
             },
             "metrics": {
@@ -448,7 +849,7 @@
             }
           },
           {
-            "evaluation_receipt_id": "evalr_f9391b6373e2363e141310f5566f835d",
+            "evaluation_receipt_id": "evalr_b798439e88e61a1b4bc1e0bb84eebd56",
             "identity": {
               "case": "post_unlearning_utility_and_retrain_gap",
               "metrics": [
@@ -460,16 +861,16 @@
                 "perf_unlearn"
               ],
               "producer_version": "persisted-output-retrain-gap-v2",
-              "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
               "unlearning_output": {
-                "artifact_id": "pred_dd758f39_1ecf0467",
-                "recipe_hash": "dd758f39a0c4f0dacf825be0cb744cc4bfe1cbf0112abf2222af52e3f0b18eb1",
-                "content_hash": "1ecf0467055d6fc55cd0802076ef61c21c8e2aa2ff3cb68e5a459bd2efce880a"
+                "artifact_id": "pred_20e8907a_3be05db0",
+                "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
               },
               "retrain_output": {
-                "artifact_id": "pred_99d89305_e8bd6cd2",
-                "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
-                "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
               }
             },
             "metrics": {
@@ -485,6 +886,176 @@
       }
     ],
     "metrics_repeat_equal": true,
+    "single_method_metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_method_metrics",
+          "metrics": [
+            "f1",
+            "accuracy",
+            "cross_entropy",
+            "classification_auc",
+            "classification_auc_status",
+            "update_detection_auc",
+            "update_detection_auc_status"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "method_output"
+          ],
+          "available_consumers": [
+            "modular_cpu_v1",
+            "target_direct_syncmate_v2"
+          ],
+          "producer_version": "single-method-output-metrics-v1"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_0f4194f7b4640d492ebb9ea9b7ab78f9",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                  "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                  "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 1.0,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_79f2ae9c0a54736c0cc19cb2b2ed6182",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_20e8907a_3be05db0",
+                "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_20e8907a_3be05db0",
+                  "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                  "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 0.5,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_00eca6765ff037be1f202f315ae6a53e",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_b492204e_7b61c0bd",
+                  "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                  "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.7009000715050294,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "missing_original_predictions"
+            }
+          }
+        ]
+      }
+    ],
+    "method_order": [
+      "GNNDelete",
+      "GIF",
+      "Retrain"
+    ],
+    "forward_forbidden_during_reads": true,
     "training_steps_forbidden_during_reads": true,
     "software_evidence_only": true
   },
@@ -561,6 +1132,21 @@
     },
     {
       "name": "test_metrics_cli_and_target_direct_shared_consumer",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_independent_method_metrics_survive_collection_without_forward",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_auc_reports_missing_classes_without_producing_data",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_matrix_runs_one_requested_method_without_inline_comparison",
       "class": "tests.test_retrain_outputs",
       "passed": true
     },
@@ -1291,10 +1877,10 @@
     }
   ],
   "raw_files": {
-    "verification.json": "195c7e9cea3cd19dc522bd6f40e6eb92e2d74453a2465f96c852679cf7879c58",
-    "cpu.xml": "075377ec5c32c87225a8ccd4eb730f709e05ec1d4b2407f75ddbc735a9079c2c",
-    "cpu.log": "63a26be4fb9a181177fb358b8632857182d2f31889719cf024f8775f604948f4",
-    "example.log": "e11f0f203a0e668f578b6730a123e8a95fdb988fa0fb611614526f666a548085",
+    "verification.json": "ccd0c60813b7672d145c451a2d05e5bb7a83a4367cc672449ba40ff698162724",
+    "cpu.xml": "aa8b501f1befdfa24583842c16a2bfeaacc3ac933812f2293d9edc9a0a7ef85b",
+    "cpu.log": "f411e313f857b183eac3dc1c3c704ae13f275cc6d4f1317ef86f60d08b2bed9c",
+    "example.log": "0e952cd88016cca25f6aca3288336611712938e5433b5320d59fdef0cd8f8482",
     "protected-before.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc",
     "protected-after.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc"
   }

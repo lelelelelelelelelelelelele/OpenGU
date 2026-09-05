@@ -26,16 +26,16 @@
     "scrollWidth": 390
   },
   "errors": [],
-  "agent_observation": "Desktop first screen and full page inspected: pending decision visible above fold; body, table and evidence links legible; no clipping or broken images. Mobile width checked by layout measurement only.",
+  "agent_observation": "Inspected desktop first screen and full page: pending decision above fold, 8 scenario cards and per-method metrics table legible. No overflow or broken images. Mobile measured for document overflow only.",
   "raw_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-report-qa",
   "files": {
-    "desktop.png": "ec143d7c7019ed36bcb839ea15361b16e0d1ac12a32f4120c8ae5e47d7026a3b",
-    "full.png": "a255296ded0ca60bc273b22b760b6adf16e61cad21510b985f99ccbded0673c2",
+    "desktop.png": "d06e1aecd44e9592ff85b4000a0d8b077dd4080f0ecee6b67688fbd8ee801ec3",
+    "full.png": "a679227b9be9d875840f2f49ce2b91be4f0c045fdcc75cb33d69b321668d2ce3",
     "layout.json": "ae1cece0c97c05950bfbb6120a5592a3b68a5243b72af386e1f940c30fa5c8c7",
-    "mobile.png": "ee5f05339dc93cd87c421adf24de4ffe48ca02f2dab69441a513afd37f5db92b"
+    "mobile.png": "7e24bad3e9ab08f1256216400bac2d9805d0e90d66b9ea60274e5b77bc8c1c31"
   },
   "report_sha256": {
-    "REPORT.md": "bac26513dbd00a14084c02b3853ea929b9f2e3755eb242ff552a764ced487774",
-    "REPORT.html": "1b8094a7e9fbb43a8dd3214831e85cedb0eed55a34647b5289887e1dffae7688"
+    "REPORT.md": "b113b7ea8c48d525f024269e88954e810259658c8d17341a8544eaff11b471bc",
+    "REPORT.html": "fefb2a02dc91e9cb75f8680e1aaf3bac33255f6233423a1122f68751005f3b3a"
   }
 }
