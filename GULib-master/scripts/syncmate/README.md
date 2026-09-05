@@ -14,6 +14,7 @@ and device-resolution rules are owned by the independent SyncMate repository:
 - [SyncMate generic manual](https://github.com/lelelelelelelelelelelelele/SyncMate/blob/main/README.md)
 - [Approved lifecycle Blueprint](https://github.com/lelelelelelelelelelelelele/SyncMate/blob/main/BLUEPRINT.md)
 - [Canonical Device Contract](https://github.com/lelelelelelelelelelelelele/SyncMate/blob/main/docs/DEVICE_CONTRACT.md)
+- [Run handoff and timeout contract](https://github.com/lelelelelelelelelelelelele/SyncMate/blob/main/docs/RUN_HANDOFF.md)
 
 OpenGU owns the concrete recipes, experiment preflight, result parsing,
 acceptance semantics, cache repair, and this project runbook. The default
@@ -27,6 +28,14 @@ implementations.
 The old embedded compatibility source was removed by SM-004. The material below
 documents the OpenGU compatibility surface; it is not a second authority for
 the generic protocol.
+
+OpenGU supplies each experiment's `timeout_seconds` in the reviewed static
+recipes in `opengu_recipes.py`. The pinned Core carries that value into the
+saved run handoff and checks it again before execution and collection. Change
+the reviewed recipe when a different runtime limit is needed; the device file
+and job YAML do not override it. This is a subprocess limit, not an estimated
+completion time or a limit covering preflight and artifact transfer. Existing
+recipe limits are unchanged by this integration.
 
 ## Principle
 

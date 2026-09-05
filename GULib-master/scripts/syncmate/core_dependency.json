@@ -24,7 +24,7 @@
     "syncmate_core/collection.py": "158232278eabfec20606cd439c59161755430f13dc422ffc82c746e35607013f",
     "syncmate_core/constants.py": "5e36e37dc0a4d4d525143bafcb93132be7a7c43da5ed0cb5c186e0439a461120",
     "syncmate_core/context.py": "7d7e903fc6d836b8eb3ec1b23f2fd40418733d04294fae144ddbf22eb454bef3",
-    "syncmate_core/contracts.py": "4ed265c1736e6fa8cc348900ffc78a292ae3b94e4148720225be83a359908c4b",
+    "syncmate_core/contracts.py": "7fc167de29bcf37946043cb676d9422e408be64ae611e5b067e8f7aaebd0eb1d",
     "syncmate_core/dashboard.py": "49d34ac0a5ba0dc2ba53b5bbd89947702c2f3207369d89cda81093cff69aa7f0",
     "syncmate_core/devices.py": "0f7aacc2472fed0f2fc0df1c0968dd7a51208e3a8ac6e4911f9362f5107c0c94",
     "syncmate_core/diagnostics.py": "4323567528a0cc64563f630f03817c9bdf82d0708fb4811d56e55edb2023e305",
@@ -51,7 +51,7 @@
     "syncmate_core/readiness.py": "e15a890df79ef3b314e54888eec63e77759518d8cdcc87aeecd2d2e6e5963ce0",
     "syncmate_core/receipts.py": "aca577f7951263e880052f273aa2b400099d87a226d402d9b3d2662e6493e53b",
     "syncmate_core/recipes.py": "673136f32a64b0cd4ec48d0a443c85a2b4fc5f539853f72fbc549aed26c0be66",
-    "syncmate_core/run_handoff.py": "03dd6e0dd1a5a723641c1ef12a8d33e87d85a3c5c59b80460a0d80c461493a13",
+    "syncmate_core/run_handoff.py": "7d3e411feba98379034bc60a4d8718167fdbc0d0d9f058bcea538b90f3e914bd",
     "syncmate_core/runbook.py": "cca713adb058b1f3e1ff621d3383d4a68bf8e554df4c636e0869ebf09baf87a9",
     "syncmate_core/runner.py": "15b56e32611aa915b5e4bceabb8f660eaa2da710715ebd7b840fe511a40826cd",
     "syncmate_core/saved_reports.py": "921dec30004e103f1bb505f4265624b899300615ad149a86ca36781cfa4dabad",
@@ -63,8 +63,8 @@
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "5dd378cb5a732d47108e58299df462320648bda8",
+  "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
   "version": "0.4.0",
   "wheel": "syncmate-0.4.0-py3-none-any.whl",
-  "wheel_sha256": "a6ecf6de385d80538b1983c49f5dee8048f4787847084fee6cadc3c761a435d2"
+  "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
 }
