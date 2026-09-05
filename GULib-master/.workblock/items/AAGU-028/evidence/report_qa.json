@@ -1,0 +1,41 @@
+{
+  "desktop": {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "brokenImages": 0,
+    "decision": {
+      "x": 353,
+      "y": 671.34375,
+      "width": 48,
+      "height": 21,
+      "top": 671.34375,
+      "right": 401,
+      "bottom": 692.34375,
+      "left": 353
+    },
+    "sections": [
+      "Human Result",
+      "验收场景与实际观察",
+      "24 节点可重跑示例",
+      "边界与尚未观察",
+      "证据与复核"
+    ]
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390
+  },
+  "errors": [],
+  "agent_observation": "Desktop first screen and full page inspected: pending decision visible above fold; body, table and evidence links legible; no clipping or broken images. Mobile width checked by layout measurement only.",
+  "raw_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-report-qa",
+  "files": {
+    "desktop.png": "ec143d7c7019ed36bcb839ea15361b16e0d1ac12a32f4120c8ae5e47d7026a3b",
+    "full.png": "a255296ded0ca60bc273b22b760b6adf16e61cad21510b985f99ccbded0673c2",
+    "layout.json": "ae1cece0c97c05950bfbb6120a5592a3b68a5243b72af386e1f940c30fa5c8c7",
+    "mobile.png": "ee5f05339dc93cd87c421adf24de4ffe48ca02f2dab69441a513afd37f5db92b"
+  },
+  "report_sha256": {
+    "REPORT.md": "bac26513dbd00a14084c02b3853ea929b9f2e3755eb242ff552a764ced487774",
+    "REPORT.html": "1b8094a7e9fbb43a8dd3214831e85cedb0eed55a34647b5289887e1dffae7688"
+  }
+}

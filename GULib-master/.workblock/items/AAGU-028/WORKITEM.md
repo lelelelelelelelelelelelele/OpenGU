@@ -3,7 +3,7 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -67,9 +67,13 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-使用 block-workflow 执行此 stable locator。先重读最新 Record、AAGU-001/026 接受事实、项目指令和 live Claim，在 linked worktree 中 Claim 同一 Block 后再实施。先复现方法未注册、Metrics 隐式重训和结果读回问题，再逐层完成独立执行、持久化复用及 Metrics-only 消费。任务标题使用 AAGU-028 · FIX · Retrain 独立方法与 Metrics 输出复用；完成约定软件证据后停在 formal 人类验收。
+当前同一 linked source 已完成软件 Verify 与配对报告，等待用户接受、返工或拒绝。验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)。候选为记录的 source branch 当前 clean HEAD；软件检查点与复用依据见下方 Verify record。尚未进入 Closeout；不要重新 Claim、启动正式矩阵或把测试通过视为接受。
+
+用户提出返工时沿用同一 locator；只有明确接受后才转 block-closeout，并重新核对 live source、canonical Claim 与项目策略。AAGU-015 与其他 Block 的验收／运行边界保持其各自权威事实。
 
 ## Status history
+
+- 2026-09-05: 已完成本地 CPU 验证和正式配对报告；当前 awaiting acceptance，人的决定待定。
 
 - 2026-09-05: 用户确认此前明确提出的 Retrain 独立方法要求，指定为正式实验之前的前置 FIX，并授权登记。本次 registered / not claimed；未创建任务、Claim、实现或运行实验。
 
@@ -81,3 +85,12 @@ Execution topology: `parallel`
 - [数据流与可重跑示例](../../../docs/retrain_outputs.md)；[软件 Verify 脚本](evidence/verify.py)。开发期真实 CPU 检查与示例已通过；最终候选将在干净 HEAD 上统一验证。
 - 一次命令目录状态未保持，三个本任务编辑短暂落到 canonical A。逐项核对并转回 linked source，恢复原内容/换行后确认 canonical Git 工作区干净；没有对共享 Skills 或正式数据做修复。
 - 软件证据只支持约定本地 CPU 消费链；未进行正式矩阵、SSH/GPU、Apply、push、install 或清理。完成 Verify 后进入 formal 人类验收。
+
+## Verify record
+
+- 统一软件检查点：`936394329433bf518fb22c800ca7233af1fb5dbe`，在干净 HEAD 上执行 [verify.py](evidence/verify.py)。17 个测试文件共 160 项通过、0 失败、0 跳过；24 节点可重跑示例退出码 0。细项、运行命令、完整输出引用和原始日志哈希见 [observations.json](evidence/observations.json)。
+- 实际观察：独立 Retrain 不训练原 checkpoint、不调用 Selector；冷运行后保存完整 state／logits，热读与跨 GNNDelete/GIF 复用成功。禁止训练和选择入口后 Metrics 两次重算身份与数值相同，Store 未变；模型重建前向逐元素一致。数据／split、请求、模型／训练、删除语义、producer 和依赖错配均按测试拒绝。
+- 原始证据：source 下 `.workblock/runtime/aagu-028-verify2/`。两侧 10 个保护根核对，3,995 个历史文件内容哈希未变。第一次统一 Verify 的唯一失败为旧 AttackResult 测试要求舍入；更正为无损序列化断言后，上述完整套件通过。首轮失败保留在 `.workblock/runtime/aagu-028-verify1/`，不作为通过证据。
+- 最终候选加入 Report／Record／证据摘要后，复用上述检查点的产品验证；检查实际差异仅为人类表面、证据与进度记录，不改变产品、训练、身份、配置或测试条件。新变化单独检查报告生成确定性、Human Surface 合同、链接、diff whitespace 和浏览器实际渲染。最终 live HEAD 与差异清单保存在 ignored `.workblock/runtime/aagu-028-final-verification.json`，不创建第二套候选类型。
+- [配对报告](REPORT.md)首屏含实际增量、核心观察、Agent 建议和唯一待决定投影。HTML 经 Chromium 1440×1000 真实渲染并查看首屏／全页：决定区在首屏，正文、表格和证据链接可读，无横向溢出、断图或脚本错误。390px 宽度额外检查文档无横向溢出；[报告 QA 记录](evidence/report_qa.json)。
+- Agent 建议接受本次软件修复；决定者为用户，当前仍待决定。正式 target-direct SSH/GPU、真实数据成本和完整矩阵为 NOT OBSERVED；未作 Apply、push、install 或清理。

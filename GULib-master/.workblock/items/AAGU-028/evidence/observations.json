@@ -1,0 +1,1301 @@
+{
+  "candidate": "936394329433bf518fb22c800ca7233af1fb5dbe",
+  "source": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master",
+  "checks": [
+    {
+      "label": "cpu",
+      "command": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests/test_retrain_outputs.py",
+        "tests/test_modular_consumers.py",
+        "tests/test_generic_cache_v2.py",
+        "tests/test_collateral.py",
+        "tests/test_aagu009_collateral_repair.py",
+        "tests/test_update_detection_auc_policy.py",
+        "tests/test_target_direct_recipe.py",
+        "tests/test_target_direct_manifest.py",
+        "tests/test_target_direct_syncmate_stage.py",
+        "tests/test_cache_v2_runtime.py",
+        "tests/test_target_checkpoint.py",
+        "tests/test_gnndelete_architecture.py",
+        "tests/test_attack_manager.py",
+        "tests/test_selection_budget_planner.py",
+        "tests/test_cache_v2_formal_artifacts.py",
+        "tests/test_run_experiments_timeouts.py",
+        "tests/test_run_experiments_repair_validation.py",
+        "-q",
+        "--tb=short",
+        "-o",
+        "junit_family=legacy",
+        "--junitxml=E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2\\cpu.xml"
+      ],
+      "exit_code": 0,
+      "suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "160",
+          "time": "42.508",
+          "timestamp": "2026-09-05T23:12:03.774124+08:00",
+          "hostname": "DESKTOP-J0I2ET3"
+        }
+      ]
+    },
+    {
+      "label": "example",
+      "command": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "experiments/examples/retrain_cpu.py",
+        "--directory",
+        "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2\\example"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "protected_roots": [
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\selection_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\score_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\cache_v2",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\runs",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\selection_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\score_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\cache_v2",
+      "exists": true,
+      "file_count": 0,
+      "before_sha256": "62abd487de170b01823bdaf9aaac40baa23313650e776cba1623c0423a5ace8a",
+      "after_sha256": "62abd487de170b01823bdaf9aaac40baa23313650e776cba1623c0423a5ace8a",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\runs",
+      "exists": true,
+      "file_count": 3995,
+      "before_sha256": "4d03f8cebcb59223d244b13ce2342084ab83a8567a3bbf9f9891e3d9c14f624c",
+      "after_sha256": "4d03f8cebcb59223d244b13ce2342084ab83a8567a3bbf9f9891e3d9c14f624c",
+      "unchanged": true
+    }
+  ],
+  "protected_unchanged": true,
+  "consumer_evidence": [
+    {
+      "test": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "evidence": {
+        "aagu028_evidence": {
+          "retrain": {
+            "artifact_id": "pred_24b4745c_a4ee3c0e",
+            "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
+            "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+          },
+          "warm": {
+            "artifact_id": "pred_24b4745c_a4ee3c0e",
+            "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
+            "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+          },
+          "GU_outputs": [
+            {
+              "artifact_id": "pred_c277a217_bc30eb28",
+              "recipe_hash": "c277a217d30f9a95d752609b5b3d1c7b3e2b73ff65a1171679ded6194b94ee05",
+              "content_hash": "bc30eb2813d22c37440542217bc18065f93ca35ad671eb00fc74bf4ba2bfb0eb"
+            },
+            {
+              "artifact_id": "pred_543ed2fa_be0adfcd",
+              "recipe_hash": "543ed2fa5f0f82a59ead22e1a9dda9981fc9035a4abff0c237861505826670f4",
+              "content_hash": "be0adfcdb806ca2f6ffe5c52c81dc9663092895a8609ca65168452d5a42f71e4"
+            }
+          ],
+          "metrics": [
+            {
+              "effective_config": {
+                "kind": "evaluation",
+                "schema_version": 1,
+                "case": "post_unlearning_utility_and_retrain_gap",
+                "metrics": [
+                  "perf_before",
+                  "perf_unlearn",
+                  "perf_retrain",
+                  "drop_retrain",
+                  "gap",
+                  "gap_pct"
+                ],
+                "acceptance": {},
+                "required_inputs": [
+                  "model_before",
+                  "model_unlearned",
+                  "exact_retrain_same_selection"
+                ],
+                "available_consumers": [
+                  "modular_cpu_v1",
+                  "target_direct_syncmate_v2"
+                ],
+                "producer_version": "persisted-output-retrain-gap-v2"
+              },
+              "rows": [
+                {
+                  "evaluation_receipt_id": "evalr_452781a6cd158e26aef9d990a00c1492",
+                  "identity": {
+                    "case": "post_unlearning_utility_and_retrain_gap",
+                    "metrics": [
+                      "drop_retrain",
+                      "gap",
+                      "gap_pct",
+                      "perf_before",
+                      "perf_retrain",
+                      "perf_unlearn"
+                    ],
+                    "producer_version": "persisted-output-retrain-gap-v2",
+                    "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                    "unlearning_output": {
+                      "artifact_id": "pred_c277a217_bc30eb28",
+                      "recipe_hash": "c277a217d30f9a95d752609b5b3d1c7b3e2b73ff65a1171679ded6194b94ee05",
+                      "content_hash": "bc30eb2813d22c37440542217bc18065f93ca35ad671eb00fc74bf4ba2bfb0eb"
+                    },
+                    "retrain_output": {
+                      "artifact_id": "pred_24b4745c_a4ee3c0e",
+                      "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
+                      "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+                    }
+                  },
+                  "metrics": {
+                    "perf_before": 0.2,
+                    "perf_unlearn": 0.2,
+                    "perf_retrain": 0.2,
+                    "drop_retrain": 0.0,
+                    "gap": 0.0,
+                    "gap_pct": 0.0
+                  }
+                },
+                {
+                  "evaluation_receipt_id": "evalr_7d028fe5a8411fc60a0d4b10107ffaaa",
+                  "identity": {
+                    "case": "post_unlearning_utility_and_retrain_gap",
+                    "metrics": [
+                      "drop_retrain",
+                      "gap",
+                      "gap_pct",
+                      "perf_before",
+                      "perf_retrain",
+                      "perf_unlearn"
+                    ],
+                    "producer_version": "persisted-output-retrain-gap-v2",
+                    "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                    "unlearning_output": {
+                      "artifact_id": "pred_543ed2fa_be0adfcd",
+                      "recipe_hash": "543ed2fa5f0f82a59ead22e1a9dda9981fc9035a4abff0c237861505826670f4",
+                      "content_hash": "be0adfcdb806ca2f6ffe5c52c81dc9663092895a8609ca65168452d5a42f71e4"
+                    },
+                    "retrain_output": {
+                      "artifact_id": "pred_24b4745c_a4ee3c0e",
+                      "recipe_hash": "24b4745cef65dccaff6d07049063651b383463fcef617892fe33c3f94ea7ceef",
+                      "content_hash": "a4ee3c0e82b9b25aedf3c0640b648072cd3d3c7c8c66fd90f88b266530d08d94"
+                    }
+                  },
+                  "metrics": {
+                    "perf_before": 0.2,
+                    "perf_unlearn": 0.2,
+                    "perf_retrain": 0.2,
+                    "drop_retrain": 0.0,
+                    "gap": 0.0,
+                    "gap_pct": 0.0
+                  }
+                }
+              ]
+            }
+          ],
+          "store_unchanged_by_metrics": true,
+          "selector_and_training_forbidden": true
+        }
+      }
+    },
+    {
+      "test": "test_metrics_cli_and_target_direct_shared_consumer",
+      "evidence": {
+        "aagu028_cli": {
+          "command": [
+            "E:\\conda_package\\envs\\gnn\\python.exe",
+            "-B",
+            "-X",
+            "utf8",
+            "eval_collateral.py",
+            "--store-root",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\v2",
+            "--inputs",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\references.json",
+            "--evaluation",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\gap.yaml",
+            "--output-dir",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-185\\test_metrics_cli_and_target_di0\\cli-metrics"
+          ],
+          "result": {
+            "schema": "opengu.output_metrics",
+            "version": 1,
+            "evaluation": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "perf_before",
+                "perf_unlearn",
+                "perf_retrain",
+                "drop_retrain",
+                "gap",
+                "gap_pct"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "model_before",
+                "model_unlearned",
+                "exact_retrain_same_selection"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2"
+            },
+            "results": [
+              {
+                "strategy": "degree",
+                "perf_before": 0.2,
+                "perf_unlearn": 0.2,
+                "perf_retrain": 0.2,
+                "drop_retrain": 0.0,
+                "gap": 0.0,
+                "gap_pct": 0.0,
+                "mean_pred_shift": 0.03294701501727104,
+                "max_pred_shift": 0.09511786699295044,
+                "fraction_flipped": 0.2222222238779068,
+                "evaluation_receipt_id": "evalr_d0ff0604a879143505b434831e9e2df4",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+                  "unlearning_output": {
+                    "artifact_id": "pred_fc805970_c2d2ecfb",
+                    "recipe_hash": "fc805970a7947bf9e5381b6ccfb1f5964cce70caa689b5f2ce286595797741d3",
+                    "content_hash": "c2d2ecfb261c42e70f9fd1b073b4c3e6b067b0f8403b782af69c0a51a818e4fe"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_f624b4db_1ffb8b01",
+                    "recipe_hash": "f624b4db48150073d345ab6019df3fb690f45fc1609cb79627ef5f30e527f4c7",
+                    "content_hash": "1ffb8b0155f86d56c522cae535dbdbecc1f1e3ede37b056f8d639a97bd67b62b"
+                  }
+                }
+              }
+            ],
+            "training_producer_called": false
+          },
+          "store_unchanged": true
+        }
+      }
+    }
+  ],
+  "raw_evidence_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-verify2",
+  "example": {
+    "retrain_output": {
+      "artifact_id": "pred_99d89305_e8bd6cd2",
+      "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
+      "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+    },
+    "GU_outputs": [
+      {
+        "artifact_id": "pred_2553613f_ac1010c7",
+        "recipe_hash": "2553613f01b1feaaf556381ebb4f6519e2531706e5ccd0ef2c0f3931572c2e73",
+        "content_hash": "ac1010c711e0e5be24f4444ec28203e8b529bea9c589fba818f582527b5b00ba"
+      },
+      {
+        "artifact_id": "pred_dd758f39_1ecf0467",
+        "recipe_hash": "dd758f39a0c4f0dacf825be0cb744cc4bfe1cbf0112abf2222af52e3f0b18eb1",
+        "content_hash": "1ecf0467055d6fc55cd0802076ef61c21c8e2aa2ff3cb68e5a459bd2efce880a"
+      }
+    ],
+    "hot_retrain_producer_called": false,
+    "metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_unlearning_utility_and_retrain_gap",
+          "metrics": [
+            "perf_before",
+            "perf_unlearn",
+            "perf_retrain",
+            "drop_retrain",
+            "gap",
+            "gap_pct"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "model_before",
+            "model_unlearned",
+            "exact_retrain_same_selection"
+          ],
+          "available_consumers": [
+            "modular_cpu_v1",
+            "target_direct_syncmate_v2"
+          ],
+          "producer_version": "persisted-output-retrain-gap-v2"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_c72e011f06a0bb59e40dc32bac2dc719",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+              "unlearning_output": {
+                "artifact_id": "pred_2553613f_ac1010c7",
+                "recipe_hash": "2553613f01b1feaaf556381ebb4f6519e2531706e5ccd0ef2c0f3931572c2e73",
+                "content_hash": "ac1010c711e0e5be24f4444ec28203e8b529bea9c589fba818f582527b5b00ba"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_99d89305_e8bd6cd2",
+                "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
+                "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_f9391b6373e2363e141310f5566f835d",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "64908c6d64a8993bddd37e44f9e38933675b4589fd3b0487d1d5259dd612a720",
+              "unlearning_output": {
+                "artifact_id": "pred_dd758f39_1ecf0467",
+                "recipe_hash": "dd758f39a0c4f0dacf825be0cb744cc4bfe1cbf0112abf2222af52e3f0b18eb1",
+                "content_hash": "1ecf0467055d6fc55cd0802076ef61c21c8e2aa2ff3cb68e5a459bd2efce880a"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_99d89305_e8bd6cd2",
+                "recipe_hash": "99d89305cf8227e3b18268b101f94e42bbcf111f90a42ed32aba73a3d20cad61",
+                "content_hash": "e8bd6cd2f61365ab6729f196a2557394caeeb886b34652c91ce1f8a7eefcb40b"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          }
+        ]
+      }
+    ],
+    "metrics_repeat_equal": true,
+    "training_steps_forbidden_during_reads": true,
+    "software_evidence_only": true
+  },
+  "test_results": [
+    {
+      "name": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[training]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[model]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[semantics]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[request]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_gu_parameters_and_metrics_do_not_change_retrain",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_removes_supervision_and_incident_edges",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_corrupted_outputs_rejected_without_training",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[x]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[y]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[split]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_changed_producer_and_missing_selection_dependency_rejected",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_aggregate_serialization_is_lossless",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_metrics_cli_and_target_direct_shared_consumer",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_method_cold_warm_and_hutch_isolation",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_consumes_existing_selection_without_producer",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_default_expansion_and_budget_reuse",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_wrong_identity_fail_before_execution",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_method_and_default_equivalence",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_different_selector_and_gu_backbones",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_command_entry_selector_and_existing_selection",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad0]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad1]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad2]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_all_seventeen_methods_match_pre_refactor_formulas",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dependency_implementation_changes",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_mismatched_persisted_data_and_checkpoint_rejected",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_yaml_duplicate_and_implicit_override_rejected",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_operational_fields_are_rejected_and_context_is_external",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_project_context_owns_fixed_store_runtime_device_and_output",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_minimal_method_files_expand_real_defaults",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_is_independent_and_missing_retrain_fails_closed",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_default_real_entry_cold_hot_and_shared_store",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_selection_hit_with_distinct_target_evaluation",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_shard_consumer_reuses_canonical_trained_selection",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[features]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[labels]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[graph]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[candidates]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[split]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[model]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[seed]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[False-True]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[False-False]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[True-False]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[True-True]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_per_call_cache_override",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_tracin_exact_weight_and_data_identity",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_corrupt_artifact_fails_before_producer",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_real_demo_cli_cold_hot",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_formal_artifact_consumer_runs_real_pipeline",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_changed_score_content_is_quarantined_not_overwritten",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_random_production_is_independent_of_prior_rng_and_cache",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_trained_selector_is_independent_of_gu_parameters_and_producer",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_train_only_skips_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_default_runs_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_run_exp_mem_unaffected_by_train_only",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_missing_train_only_key",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_train_only_skips_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_default_runs_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_run_exp_mem_unaffected",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_extracts_from_target_model",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_extracts_from_model_zoo",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_fallback_to_pipeline_model",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_actual_writeback_reaches_collateral_hop_consumer[GIF-gif]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_actual_writeback_reaches_collateral_hop_consumer[IDEA-idea]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_missing_writeback_despite_unchanged_source[GIF-gif]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_missing_writeback_despite_unchanged_source[IDEA-idea]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_a_method_loaded_from_a_different_checkout",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_aagu009_retired_entrypoints_are_absent",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_direct_verifier_runs_from_outside_the_checkout",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_policy_defaults_on_and_canonical_flag_wins",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_gate_accepts_null_only_when_auc_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_gate_rejects_finite_auc_when_policy_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_primary_yaml_configs_make_dataset_scope_explicit",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_every_arxiv_phase_config_disables_optional_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_cell_fingerprint_distinguishes_enabled_and_disabled_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_only_trajectory_consumers_bind_changed_checkpoint",
+      "class": "tests.test_target_direct_recipe",
+      "passed": true
+    },
+    {
+      "name": "test_gate_manifest_accepts_one_seed_and_orders_degree_first",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_all_trainable_summary",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_unapproved_seed_request",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_unapproved_ratio",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_freezes_scope_budget_and_excludes_stress",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[train_ratio-0.6]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[val_ratio-0.2]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[test_ratio-0.1]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[materialize_on_miss-False]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_accepts_valid_alternate_split_and_derives_budgets",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_preflight_does_not_materialize_split_before_execution_gates",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_preflight_allows_registered_split_materialization_after_gates",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_split_or_stage_cache_roots[results/cache_v2/target_direct_formal_v2/score]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_split_or_stage_cache_roots[results/cache_v2/cora-seed42]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_cache_root_experiment_or_stage_descendant[results/cache_v2/target_direct_formal_v2]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_cache_root_experiment_or_stage_descendant[results/cache_v2/cora-seed42]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_each_stage_uses_one_canonical_cache_store_root",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_scientific_yaml_has_no_execution_paths_or_device",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_selector_reference_is_consumed_and_frozen",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_direct_selection_rejects_unequal_cache_roots",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_direct_selection_consumes_alternate_split_without_manual_profile",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_static_stage_artifact_sets_are_exact_and_bounded",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_selection_receipt_binds_cold_warm_checkpoint_and_timings",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_stage_parser_rejects_non_matrix_seed",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_runtime_artifact_id_load_is_exact_verified_and_zero_write",
+      "class": "tests.test_cache_v2_runtime",
+      "passed": true
+    },
+    {
+      "name": "test_runtime_load_never_substitutes_artifact_or_candidate_set",
+      "class": "tests.test_cache_v2_runtime",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_round_trip_and_hash_compatibility",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_rejects_wrong_identity",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_rejects_final_trajectory_mismatch",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_gnndelete_loads_exact_target_checkpoint_without_training",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_attack_pipeline_formal_selection_validation",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_gcn_delete_matches_configured_gcn_depth_for_arxiv",
+      "class": "tests.test_gnndelete_architecture",
+      "passed": true
+    },
+    {
+      "name": "test_gcn_delete_uses_gcn_hidden_for_first_deletion_layer",
+      "class": "tests.test_gnndelete_architecture",
+      "passed": true
+    },
+    {
+      "name": "test_basic_creation",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_to_dict",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_save_and_load",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_basic_creation",
+      "class": "tests.test_attack_manager.TestComparisonResult",
+      "passed": true
+    },
+    {
+      "name": "test_relative_improvement",
+      "class": "tests.test_attack_manager.TestComparisonResult",
+      "passed": true
+    },
+    {
+      "name": "test_strategy_registration",
+      "class": "tests.test_attack_manager.TestAttackManagerBasics",
+      "passed": true
+    },
+    {
+      "name": "test_builtin_strategies_list",
+      "class": "tests.test_attack_manager.TestAttackManagerBasics",
+      "passed": true
+    },
+    {
+      "name": "test_zero_f1_before",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_negative_f1_drop",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_empty_selected_nodes",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_cold_group_computes_max_once_and_fans_out_prefixes",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_warm_group_checks_max_once_and_is_zero_write",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_smaller_future_request_reuses_smallest_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_exact_k_is_preferred_over_a_larger_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_identity_change_does_not_reuse_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_prefix_reuse_requires_explicit_stability_contract",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_fail_if_called_rejects_a_true_maxk_miss",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_recipe_builders_bind_minimal_identity_and_producer_versions",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_score_payload_is_deterministic_versioned_and_recipe_checked",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_prediction_payload_is_deterministic_and_validates_shapes_and_retain_mask",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_formal_store_cold_warm_chain_is_exact_zero_write_and_dependency_bound",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_canonical_cora_shape_prediction_evaluation_roundtrip_is_cpu_only",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_formal_store_rejects_missing_or_unhealthy_dependencies",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_hit_recursively_rejects_corrupt_selection_dependency",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_experiment_layer_calls_upstream_producer_only_on_miss_and_never_writes_legacy",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_experiment_layer_does_not_recompute_a_corrupt_exact_candidate",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_cache_v2_formal_modules_have_no_upstream_producer_or_dataset_imports",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_phase_state_transitions_by_output_markers",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_selection_cache_hit_moves_to_unlearning_phase",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_method_timeout_override_applies_to_both_phases",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_missing_file",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_invalid_json",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_missing_results",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_strategy_mismatch",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_complete_allows_extra_strategies",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_scan_missing_items_grid_respects_validation_mode",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_run_repair_uses_current_config_strategies_and_records_meta",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    }
+  ],
+  "raw_files": {
+    "verification.json": "195c7e9cea3cd19dc522bd6f40e6eb92e2d74453a2465f96c852679cf7879c58",
+    "cpu.xml": "075377ec5c32c87225a8ccd4eb730f709e05ec1d4b2407f75ddbc735a9079c2c",
+    "cpu.log": "63a26be4fb9a181177fb358b8632857182d2f31889719cf024f8775f604948f4",
+    "example.log": "e11f0f203a0e668f578b6730a123e8a95fdb988fa0fb611614526f666a548085",
+    "protected-before.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc",
+    "protected-after.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc"
+  }
+}

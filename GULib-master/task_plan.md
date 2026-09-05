@@ -7,8 +7,8 @@ This plan tracks implementation only; human acceptance remains in that WorkItem.
 2. COMPLETE: reproduce missing Retrain registration, implicit Metrics training, rounded-result drift; map active consumers.
 3. COMPLETE: implement a single independent Retrain consumer, explicit deletion semantics, immutable model/prediction outputs and verified pairing.
 4. COMPLETE: connect read-only Metrics and remove implicit retraining; update affected OpenGU launchers.
-5. IN PROGRESS: CPU integration, cold/warm/reuse/recompute and rejection tests; runnable example and data flow.
-6. PENDING: exact candidate, Verify, paired formal report, awaiting_acceptance Claim.
+5. COMPLETE: CPU integration, cold/warm/reuse/recompute and rejection tests; runnable example and data flow.
+6. COMPLETE: clean software checkpoint verified; paired formal report generated and inspected. Same Claim proceeds to awaiting_acceptance after final surface checks.
 
 Boundaries: disposable local CPU inputs only; preserve original assets; no SSH/GPU/formal matrix, Apply, push, install or cleanup.
 
