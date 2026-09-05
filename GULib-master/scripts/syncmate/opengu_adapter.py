@@ -32,7 +32,7 @@ def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Ma
 
 def _atomic_preflight(definition, config_path):
     from experiments.syncmate_atomic_stage import preflight
-    return preflight()
+    return preflight(definition['id'])
 
 
 _PREFLIGHT_HANDLERS = {

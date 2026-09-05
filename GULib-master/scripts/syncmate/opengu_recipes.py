@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 
 from experiments.target_direct_v1 import target_direct_split_contract
+from experiments.syncmate_atomic_stage import PLANS as ATOMIC_PLANS, output_path as atomic_output_path
 
 
 RUNNER_AGENT_MAX_TIMEOUT_SECONDS = 21600
@@ -250,22 +251,20 @@ def _target_direct_gu_recipe(
 
 def _build_registry() -> dict[str, dict[str, Any]]:
     definitions: dict[str, dict[str, Any]] = {
-        "opengu-sm005-atomic-gpu-v1": {
-            "id": "opengu-sm005-atomic-gpu-v1",
-            "argv": ("{python}", "-m", "experiments.syncmate_atomic_stage"),
-            "config_path": "experiments/configs/sm005_atomic/experiment.yaml",
-            "config_sha256": "d954af660d61bb095ca00f987344b45b4d78870068c9d427c970d200407b43b5",
+        **{recipe_id: {
+            "id": recipe_id,
+            "argv": ("{python}", "-m", "experiments.syncmate_atomic_stage", "--recipe", recipe_id),
+            "config_path": plan['config'],
+            "config_sha256": plan['config_sha256'],
             "git_binding_policy": "job-exact-main-v1",
             "requires_job_expected_git_sha": True,
             "timeout_seconds": 1800,
-            "expected_artifact_paths": (
-                "results/runs/modular/sm005-cora-degree-gnndelete/sm005-gpu-v1/summary.json",
-            ),
+            "expected_artifact_paths": (atomic_output_path(plan),),
             "success_predicate": "json.passed == true and exact reviewed summary exists",
             "execution_validator": "exact-artifacts-json-v1",
             "preflight_profile": "sm005-atomic-gpu-v1",
             "collector_acceptance": False,
-        },
+        } for recipe_id, plan in ATOMIC_PLANS.items()},
         "smoke": {
             "id": "smoke",
             "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),

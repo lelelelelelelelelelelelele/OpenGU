@@ -29,3 +29,26 @@ output. Existing output blocks execution. Collect only this leaf with
 `summary.json` in the peer artifact policy, verify SHA-256 into the trusted
 index, and interpret it together with the queue receipt. `done` is execution
 success; scientific acceptance remains a separate human decision.
+
+## B-Hutch repeat and cache verification
+
+The second reviewed cell uses `experiment_b_hutch32.yaml`: the same Cora split,
+1% budget, GNNDelete and utility evaluation, with `b_param_hutch` replacing
+Degree. Its last-layer Hutchinson estimator uses 32 probes (seed 1729) and the
+registered LiSSA defaults (20 iterations, scale 25, damping 0.01). This changes
+the selector only; no data preparation or cache cleanup is part of this test.
+
+Run `opengu-sm005-b-hutch32-first-v1`, then
+`opengu-sm005-b-hutch32-warm-v1` through the same SyncMate dispatch/runner path.
+Both recipes bind the exact same scientific configuration. Their output leaves
+are `results/runs/modular/sm005-cora-b-hutch32-gnndelete/` followed by
+`sm005-b-hutch32-first-v1/summary.json` and
+`sm005-b-hutch32-warm-v1/summary.json`, respectively. Existing leaves refuse
+execution; the run ID cannot be supplied by an arbitrary queue field.
+
+Preserve the shared Cache V2 store and checkpoint root. Record the first run's
+actual cache state (it is not guaranteed cold), then compare checkpoint,
+Score, Selection and GU identities, HIT flags and producer observations after
+the second run. Verify both collected summaries before interpreting them.
+Evaluation is computed from the verified GU result on each run; it has no
+separate HIT flag. No duration-only inference counts as cache verification.
