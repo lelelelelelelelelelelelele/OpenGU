@@ -1,0 +1,399 @@
+{
+  "verification": "PASS",
+  "scope": "disposable CPU software proof, not research results",
+  "fixture": {
+    "nodes": 20,
+    "train_val_test": [
+      14,
+      2,
+      4
+    ],
+    "classes": 2,
+    "graph_sha256": "6933cbe21a0000bf61816b469b4f59aecdcb6e267930cbe113a914f57f4813c0",
+    "data_identity": {
+      "num_nodes": 20,
+      "edge_index_hash": "6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2",
+      "features_hash": "8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85",
+      "labels_hash": "54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27",
+      "split_hash": "809c6e6ed35fe1359a370d118b702a17e0419cc7efb3d2908d461ae2a19bdbd7"
+    }
+  },
+  "smoke_overrides": {
+    "dataset": "aagu015_cpu_fixture",
+    "fixture_seed": 7,
+    "hidden_channels": 4,
+    "training_epochs": 6,
+    "checkpoint_steps": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "lissa_iterations": 2,
+    "hutchinson_probes": 2,
+    "gnndelete_epochs": 2,
+    "gif_iterations": 2
+  },
+  "config_audit": {
+    "yaml_count": 449,
+    "stage_s_plans": 18,
+    "cells": {
+      "stage_s": 306,
+      "stage_u": 612,
+      "conditional_preparation_groups": 9,
+      "conditional_score_groups": 141,
+      "conditional_selection_groups": 282
+    },
+    "stage_s_has_gu": false,
+    "stage_s_has_gu_evaluation": false,
+    "candidate_pool": "train_mask",
+    "conditioned_target": "validation_mask",
+    "official_yaml_unchanged": true,
+    "real_dataset_binding": "not changed; future execution preparation"
+  },
+  "selectors": [
+    {
+      "method": "degree",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_f0b7b399_dd271ad1",
+      "selection": {
+        "artifact_id": "sel_d64665b1_c5fe3bc7",
+        "recipe_hash": "d64665b10f31e974d016b33547731c7c88d61ca7abf582dbd19fd22b331f05f9",
+        "content_hash": "c5fe3bc78c12fa503b5b44e10b081822d1d945f2677873b2e6613fe41bb9d1e0"
+      }
+    },
+    {
+      "method": "random",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_b3d93de6_04936dc8",
+      "selection": {
+        "artifact_id": "sel_96f71544_874b6f1d",
+        "recipe_hash": "96f71544923a5aec4edd229422a46a028fd6d2fb61b021f11f212459717d0156",
+        "content_hash": "874b6f1d36c688d80df9fc776586c5303158c5219855127b07988ae5ab31cd53"
+      }
+    },
+    {
+      "method": "a_grad_norm",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_f2ff1afc_5e353526",
+      "selection": {
+        "artifact_id": "sel_8c88009a_a9b4e0a7",
+        "recipe_hash": "8c88009ad8c5146826529a1024c7a6ccc4ea69a69eb033f835f48a9b81baaf92",
+        "content_hash": "a9b4e0a73c2a25b79091ff9d50bf3c83573e29c1d1c84018285882498449272d"
+      }
+    },
+    {
+      "method": "b_param_hutch",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_b34f6ca1_fd917272",
+      "selection": {
+        "artifact_id": "sel_97268583_97c3f5bf",
+        "recipe_hash": "9726858344bd59168e8e78b443bcf31c66d5514375dfeba9549359765c50d3f0",
+        "content_hash": "97c3f5bf992852b5c824d9d9abde4917897df866dc23bce2f0321af04230f554"
+      }
+    },
+    {
+      "method": "r_point",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_ab288dfe_c3e04a93",
+      "selection": {
+        "artifact_id": "sel_6ef33f40_240d2470",
+        "recipe_hash": "6ef33f4013b8f95d332bb3d6e0bc04fce3b89b1dfbe88ce92dadfbf201838697",
+        "content_hash": "240d2470d0ee6feebeb293698457ef16fefc6a22fa89d5d043a51e9ade0af171"
+      }
+    },
+    {
+      "method": "gt_simple",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_83c3d35b_c0028966",
+      "selection": {
+        "artifact_id": "sel_9abe0467_c19a4a2c",
+        "recipe_hash": "9abe0467a2378c9542dcdec6df31b46eab1ac83980d47c7214c8a46b7b2d48cd",
+        "content_hash": "c19a4a2c417a6facf76c4b34b2ad02bf00469855dee946dda1376b9334f9bcb2"
+      }
+    },
+    {
+      "method": "gt_full",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_6847d981_ad626e2d",
+      "selection": {
+        "artifact_id": "sel_9119ddb4_838962ca",
+        "recipe_hash": "9119ddb4e5a84fad1bfa75ed59493f502d503174d8d6b5e6cfa648eea75ee38d",
+        "content_hash": "838962ca59d1202944c58199c885bfbb1acd323111e43fc9d643102ec57bb9b9"
+      }
+    },
+    {
+      "method": "p_point",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_d9cdc077_d59589f7",
+      "selection": {
+        "artifact_id": "sel_99fd5cd2_9a7a17ef",
+        "recipe_hash": "99fd5cd20bf1d786deda808c6c80ab2275e917c22c24e4b5019f95a5139a823a",
+        "content_hash": "9a7a17ef1c5e3b9af9070a7ff598a50a57ee94b0eb5146518deb1a2529850831"
+      }
+    },
+    {
+      "method": "p_simple",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_fe09cda3_d34a13fb",
+      "selection": {
+        "artifact_id": "sel_fa1ef569_a12f97d8",
+        "recipe_hash": "fa1ef5696c455e444ad0fbc79b9675c270edb1119577708c73a20a4c1e1e6a97",
+        "content_hash": "a12f97d867ad1d0c089282ab333bd0d2e9d4e6ddb8868c28eda5a835a4b633d7"
+      }
+    },
+    {
+      "method": "p_graph",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_86486cd0_da586a7b",
+      "selection": {
+        "artifact_id": "sel_45593e11_45bc835c",
+        "recipe_hash": "45593e1171ad1748c3b2046e892d48269c59c6ebd359a125d12b0ecea9a0fbdb",
+        "content_hash": "45bc835c027dc0ecf19336c7d1bc3d615f7e1a97d4e98391288710b02a8684d0"
+      }
+    },
+    {
+      "method": "tracin_cp_point_3",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_f5457c9a_d903cd85",
+      "selection": {
+        "artifact_id": "sel_15317387_b676b481",
+        "recipe_hash": "15317387e884bf63880bae0641f078983b074bc7b3cdec4264feaf766aaaba16",
+        "content_hash": "b676b48118e5f985d9b7dda387a54008e063b8b4001a2464f6697b627c5d63e5"
+      }
+    },
+    {
+      "method": "tracin_cp_point_6",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_4c487e0c_4967f62b",
+      "selection": {
+        "artifact_id": "sel_9ab23338_f83afd43",
+        "recipe_hash": "9ab23338d196e125d8d6cdae6d59726c02f4406300f29718d2671ce2e6b84d3f",
+        "content_hash": "f83afd43446a8cbef760fbc3ad6f904303866a5bec18565ad044e795e2257d9b"
+      }
+    },
+    {
+      "method": "tracin_cp_simple_3",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_a3bebc19_85e11712",
+      "selection": {
+        "artifact_id": "sel_b7b34335_be81a5c5",
+        "recipe_hash": "b7b3433586510a2dc0592ebb0683352c8da66361151cff0b678c390c747580f4",
+        "content_hash": "be81a5c501f0ff8b19712a4f2b65459c25b8a1a6709e5dd177eb98a48a404d61"
+      }
+    },
+    {
+      "method": "tracin_cp_simple_6",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_18c3617b_a5a7deb8",
+      "selection": {
+        "artifact_id": "sel_f4d9d970_dc6c4966",
+        "recipe_hash": "f4d9d970be02592b6081208b34f38e6bafbd330ba1c19de99a299f18a4f77aa0",
+        "content_hash": "dc6c4966064b5848671e720a779f5c2cafe5ce79e53dae0079812037e2f7e517"
+      }
+    },
+    {
+      "method": "tracin_cp_graph_3",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_8a6e8ae5_425e5583",
+      "selection": {
+        "artifact_id": "sel_eca93dfe_65cc2079",
+        "recipe_hash": "eca93dfed72c451c766aa470e2b7c1879b9fcb99ac45740952316a9c869c3c72",
+        "content_hash": "65cc207983f14fe141b605da176f947564914d24036b0605bfc13b2780f8ace9"
+      }
+    },
+    {
+      "method": "tracin_cp_graph_6",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_cb1b8507_91e63ef8",
+      "selection": {
+        "artifact_id": "sel_0cfa2108_5e9dfec4",
+        "recipe_hash": "0cfa2108882d5ba757c3f0c79298b9e6a5eba178eee2808d0ca5e9779908d0cf",
+        "content_hash": "5e9dfec4026a6b2da24bf4ce5c4467ce97b13a3e4d9945421b220e350fd696bd"
+      }
+    },
+    {
+      "method": "legacy",
+      "candidate_count": 14,
+      "k": 1,
+      "score_cold_hit": false,
+      "score_warm_hit": true,
+      "selection_warm_hit": true,
+      "warm_producer_called": false,
+      "scores_and_ranking_equal": true,
+      "score_artifact_id": "score_c6ca11a9_93442f00",
+      "selection": {
+        "artifact_id": "sel_07d6d0b8_ab22e663",
+        "recipe_hash": "07d6d0b87d72909d8f5cefd26512bdf544997d7db4a2a61452e8dd2b454673f5",
+        "content_hash": "ab22e6636067755ef1edafc4e1dbfe4320ecba5fd199d1c8a7f69499ba57a694"
+      }
+    }
+  ],
+  "score_rank_rows": 238,
+  "selector_metric_cases": 40,
+  "metric_known_vectors": "PASS",
+  "unlearning_reuse": [
+    {
+      "method": "GNNDelete",
+      "first_hit": false,
+      "second_hit": true,
+      "warm_producer_called": false,
+      "selection_producer_called": false,
+      "checkpoint_hit": true,
+      "same_gu_artifact": true,
+      "artifact_id": "eval_42a7ecf1_8f6bf9c5",
+      "selection": {
+        "artifact_id": "sel_99fd5cd2_9a7a17ef",
+        "recipe_hash": "99fd5cd20bf1d786deda808c6c80ab2275e917c22c24e4b5019f95a5139a823a",
+        "content_hash": "9a7a17ef1c5e3b9af9070a7ff598a50a57ee94b0eb5146518deb1a2529850831"
+      },
+      "result_values_equal_in_this_fixture": true
+    },
+    {
+      "method": "GIF",
+      "first_hit": false,
+      "second_hit": true,
+      "warm_producer_called": false,
+      "selection_producer_called": false,
+      "checkpoint_hit": true,
+      "same_gu_artifact": true,
+      "artifact_id": "eval_7162efb4_77a4237f",
+      "selection": {
+        "artifact_id": "sel_99fd5cd2_9a7a17ef",
+        "recipe_hash": "99fd5cd20bf1d786deda808c6c80ab2275e917c22c24e4b5019f95a5139a823a",
+        "content_hash": "9a7a17ef1c5e3b9af9070a7ff598a50a57ee94b0eb5146518deb1a2529850831"
+      },
+      "result_values_equal_in_this_fixture": true
+    }
+  ],
+  "combined_future_plan": {
+    "score_hit": true,
+    "selection_hit": true,
+    "gu_hits": 2,
+    "selector_producer_called": false
+  },
+  "wrong_selection_hash_rejected_before_gu": true,
+  "protected_trees_unchanged": true,
+  "protected_files": 7,
+  "limitations": [
+    "No real Cora/CiteSeer/PubMed run",
+    "No Retrain or retrain-gap evaluation",
+    "No full-matrix timing or scientific conclusion",
+    "GU metric cold/warm precision defect is outside this reuse proof"
+  ],
+  "runtime_directory": "E:\\project\\OpenGU-worktrees\\aagu-015-selector-evidence\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu015\\selector-reuse-check-2",
+  "consumer_source_head": "55e31d44722852a9969b96a595cc42aba43bc1e7",
+  "verifier_sha256": "2c60f7376a8a373853afcaa869da995145a79d4000ea6972ec3057df6e89b7f5",
+  "consumer_hashes": {
+    "experiments/modular_run.py": "5b2d6e0b57cafc0a706066b70ff3f4a0d81055cc885dcd7766793f6ca14311a5",
+    "experiments/modular_config.py": "d14e61718d636138a6f42129736a9d272b0c7e97e67c88e10e8b4da44768dd18",
+    "experiments/modular_gu.py": "500c35704ef1bde5cc2f657e483ac43bf3ceea9c201d410ae18c2e4da2616488",
+    "experiments/modular_model.py": "9f02a8fdae4647842ab5d14ed11de25ad890fc862d3c5b8f128682c791c67320",
+    "experiments/target_direct_v1/method_cache.py": "27ba85cce35b13a40104da22ff3966228e65455903e64f1031c1e5cc86070b6d",
+    "experiments/target_direct_v1/methods.py": "80bc9e386d84716bf76d8bf22439176d28a4e5c5273e6debfd6676d73e4aeb98",
+    "experiments/c_target_v1/core.py": "adfbd4c5062cf3c5dc491940be5b2d800beb57cf874fdd78995715f84ff64c67"
+  },
+  "source_state_note": "Production consumers match the recorded source HEAD. The new verifier was run before its candidate commit and is identified by verifier_sha256.",
+  "example_hashes": {
+    "selector-score-rank-example.csv": "bef073a214fb93d2c8a4d24a56fa83b1bd5b89b54743ecb5b7872dfb348c40c6",
+    "selector-comparisons-example.json": "456902cd692559a8a09a5405b7e89e493e4275da7128e8f8dcf1ca8ec2cbdda8"
+  }
+}

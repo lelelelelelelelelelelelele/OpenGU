@@ -1,0 +1,4 @@
+# Accepted case; modular_cpu_v1 correctly refuses missing exact-retrain support.
+kind: evaluation
+schema_version: 1
+case: post_unlearning_utility_and_retrain_gap
