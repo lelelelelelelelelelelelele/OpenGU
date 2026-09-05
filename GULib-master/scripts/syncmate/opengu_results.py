@@ -191,6 +191,33 @@ def results_payload(
     parse_errors: list[dict[str, Any]] = []
 
     for leaf in trusted.get("leaves") or []:
+        if ("output-references.json" in (leaf.get("artifacts") or {})
+                or "target_direct_formal_v2/gu/" in str(leaf.get("remote_leaf") or "")):
+            from opengu_method_output import read_method_output
+            dataset, base_model, ratio = _split_cell_name(leaf.get("cell"))
+            row = {"node_id": leaf.get("node_id"), "cell": leaf.get("cell"),
+                "dataset": dataset, "base_model": base_model, "ratio": ratio,
+                "method_strategy": leaf.get("method_strategy"), "seed": leaf.get("seed"),
+                "layout": leaf.get("layout"), "complete": bool(leaf.get("complete")),
+                "local_leaf": leaf.get("local_leaf"), "remote_leaf": leaf.get("remote_leaf"),
+                "source_report": leaf.get("source_report"), "comparison_stage": "deferred"}
+            try:
+                if not leaf.get('complete'):
+                    raise ValueError('collected method leaf is incomplete')
+                read = read_method_output(leaf.get("artifacts") or {}, project_root)
+                meta, result = read['meta'], read['result']
+                row.update(method=meta['method'], strategy=meta['strategy'], strategy_full=meta['strategy'],
+                    git_sha=meta['git_sha'][:7], output=read['output'], evaluation=read['evaluation'],
+                    f1_after=result['f1_after'], f1_drop=result['f1_drop'],
+                    selected_n=len(result['selected_nodes']), compute_seconds=result['compute_seconds'],
+                    cache_hit=result['cache_hit'], status='ok', parse_errors=[])
+            except Exception as exc:
+                error = f'{type(exc).__name__}: {exc}'
+                row.update(status='parse-error', parse_errors=[error])
+                parse_errors.append({'node_id': leaf.get('node_id'), 'local_leaf': leaf.get('local_leaf'),
+                                     'error': error})
+            rows.append(row)
+            continue
         method, directory_strategy, strategy_full = _split_method_strategy_name(leaf.get("method_strategy"))
         dataset, base_model, ratio = _split_cell_name(leaf.get("cell"))
         leaf_errors = [f"missing artifact: {name}" for name in (leaf.get("missing") or [])]

@@ -1,0 +1,23 @@
+{
+  "git_sha": "c9e094c55b42b2833fb24fcef5fe08f057605f68",
+  "git_status": "",
+  "dependency": {
+    "ready": true,
+    "expected": {
+      "distribution": "syncmate",
+      "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+      "source_commit": "5dd378cb5a732d47108e58299df462320648bda8",
+      "version": "0.4.0",
+      "wheel": "syncmate-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "a6ecf6de385d80538b1983c49f5dee8048f4787847084fee6cadc3c761a435d2"
+    },
+    "observed": {
+      "distribution_version": "0.4.0",
+      "version": "0.4.0",
+      "module_file": "/root/miniconda3/lib/python3.10/site-packages/syncmate_core/__init__.py",
+      "verified_payload_files": 60
+    },
+    "errors": []
+  },
+  "observed_at": "2026-09-06T03:52:52.120441+08:00"
+}
