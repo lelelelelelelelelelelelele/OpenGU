@@ -7214,6 +7214,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "opengu-sm005-atomic-gpu-v1",
         "opengu-sm005-b-hutch32-first-v1",
         "opengu-sm005-b-hutch32-warm-v1",
+        "opengu-sm005-d-full-selector-v1",
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",

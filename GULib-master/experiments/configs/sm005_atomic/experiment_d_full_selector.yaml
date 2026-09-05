@@ -1,0 +1,8 @@
+kind: experiment
+schema_version: 1
+experiment_id: sm005-cora-d-full-selector
+stage: selector
+dataset_ref: dataset.yaml
+selector_refs:
+- d_full.yaml
+matrix: cartesian_product

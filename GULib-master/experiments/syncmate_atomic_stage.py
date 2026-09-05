@@ -16,6 +16,7 @@ PLANS = {
         'config': 'experiments/configs/sm005_atomic/experiment.yaml',
         'experiment_id': 'sm005-cora-degree-gnndelete',
         'run_id': 'sm005-gpu-v1',
+        'expected_counts': (1, 1, 1),
         'config_sha256': 'd954af660d61bb095ca00f987344b45b4d78870068c9d427c970d200407b43b5',
     },
     **{
@@ -23,9 +24,17 @@ PLANS = {
             'config': 'experiments/configs/sm005_atomic/experiment_b_hutch32.yaml',
             'experiment_id': 'sm005-cora-b-hutch32-gnndelete',
             'run_id': f'sm005-b-hutch32-{attempt}-v1',
+            'expected_counts': (1, 1, 1),
             'config_sha256': 'e14d0dd8b65528d3021ca6634263d9f4b3343ba5035f9f9db37eedfed1534a26',
         }
         for attempt in ('first', 'warm')
+    },
+    'opengu-sm005-d-full-selector-v1': {
+        'config': 'experiments/configs/sm005_atomic/experiment_d_full_selector.yaml',
+        'experiment_id': 'sm005-cora-d-full-selector',
+        'run_id': 'sm005-d-full-selector-v1',
+        'expected_counts': (1, 0, 0),
+        'config_sha256': '1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2',
     },
 }
 
@@ -50,6 +59,9 @@ def preflight(recipe_id, root=ROOT):
     if gpu != 'NVIDIA GeForce RTX 4090':
         errors.append('registered RTX 4090 is unavailable; no CPU fallback')
     config = load_experiment(root / plan['config'])
+    counts = tuple(len(config[key]) for key in ('selectors', 'unlearnings', 'evaluations'))
+    if counts != plan['expected_counts']:
+        errors.append('configuration exceeds the reviewed Selector/GU/Evaluation counts')
     dataset = None
     if not errors:
         data, inputs = read_dataset(config['dataset'], config['dataset_directory'])
@@ -83,8 +95,8 @@ def run(recipe_id):
     context = project_context(plan['experiment_id'], run_id=plan['run_id'],
                               request_device='cuda', level='verification', repository_root=ROOT)
     summary = execute(ROOT / plan['config'], context=context)
-    if (len(summary['selectors']), len(summary['unlearning']), len(summary['evaluations'])) != (1, 1, 1):
-        raise RuntimeError('atomic execution did not produce exactly one cell')
+    if tuple(len(summary[key]) for key in ('selectors', 'unlearning', 'evaluations')) != plan['expected_counts']:
+        raise RuntimeError('atomic execution differs from reviewed Selector/GU/Evaluation counts')
     return {'passed': True, 'generated_artifacts': [output_path(plan)], 'queue_job_id': job['id'],
             'git_sha': sha, 'run_id': plan['run_id'], 'preflight': checked,
             'scientific_acceptance': 'not_evaluated'}

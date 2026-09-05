@@ -52,3 +52,18 @@ Score, Selection and GU identities, HIT flags and producer observations after
 the second run. Verify both collected summaries before interpreting them.
 Evaluation is computed from the verified GU result on each run; it has no
 separate HIT flag. No duration-only inference counts as cache verification.
+
+## D-full, stopping at Selector
+
+`opengu-sm005-d-full-selector-v1` consumes `experiment_d_full_selector.yaml`
+with `gt_full` (D-full), the same Cora input and 1% train-candidate budget.
+It reuses the registered last-layer model/training and graph-source / LiSSA
+defaults. It scores all 1,895 candidates and selects 18 nodes. The reviewed
+shape is one Selector, zero GU, zero Evaluation, checked before data access
+and again against the result. This test does not exercise GU result readback.
+
+Its immutable output is
+`results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-selector-v1/summary.json`.
+Run once via the normal SyncMate queue, collect and verify this exact output,
+and report actual checkpoint / Score / Selection HIT flags. Existing caches
+are preserved; no warm rerun or downstream unlearning is implied.

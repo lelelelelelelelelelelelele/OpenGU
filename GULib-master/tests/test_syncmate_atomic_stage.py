@@ -75,7 +75,8 @@ def test_existing_output_refuses_repeat_even_before_execution(tmp_path, monkeypa
     output.write_text('preserved evidence')
     monkeypatch.setattr(torch.cuda, 'is_available', lambda: False)
     monkeypatch.setattr(verify_core_dependency, 'verify_core_dependency', lambda: {'errors': []})
-    monkeypatch.setattr(modular_config, 'load_experiment', lambda path: {})
+    monkeypatch.setattr(modular_config, 'load_experiment', lambda path: {
+        'selectors': [{}], 'unlearnings': [{}], 'evaluations': [{}]})
     result = stage.preflight(recipe_id, root=tmp_path)
     assert any('output already exists' in e for e in result['errors'])
     assert output.read_text() == 'preserved evidence'
@@ -94,3 +95,30 @@ def test_cli_recipe_does_not_leak_into_opengu_import_time_parser():
     assert output['generated_artifacts'] == []
     assert output['preflight']['errors'] == ['test preflight stop']
     assert 'unrecognized arguments' not in result.stderr
+
+
+def test_d_full_plan_stops_after_selection():
+    plan = stage.PLANS['opengu-sm005-d-full-selector-v1']
+    expanded = execute(stage.ROOT / plan['config'], dry_run=True)
+    assert expanded['stage'] == 'selector'
+    selector, = expanded['effective_selectors']
+    assert selector['method'] == 'gt_full'
+    assert selector['parameters']['parameter_scope'] == 'last_layer'
+    assert selector['budget'] == {'mode': 'ratio', 'value': 0.01}
+    assert expanded['effective_unlearning'] == expanded['effective_evaluations'] == []
+    assert plan['expected_counts'] == (1, 0, 0)
+
+
+def test_d_full_rejects_gu_or_evaluation_before_data_access(monkeypatch):
+    from scripts.syncmate import verify_core_dependency
+    from experiments import modular_config, modular_run
+    monkeypatch.setattr(torch.cuda, 'is_available', lambda: False)
+    monkeypatch.setattr(verify_core_dependency, 'verify_core_dependency', lambda: {'errors': []})
+    monkeypatch.setattr(modular_config, 'load_experiment', lambda path: {
+        'selectors': [{}], 'unlearnings': [{}], 'evaluations': [{}]})
+    def forbidden(*args):
+        raise AssertionError('unreviewed stage must not access data')
+    monkeypatch.setattr(modular_run, 'read_dataset', forbidden)
+    result = stage.preflight('opengu-sm005-d-full-selector-v1')
+    assert not result['ready']
+    assert any('exceeds the reviewed' in e for e in result['errors'])
