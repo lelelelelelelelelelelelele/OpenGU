@@ -35,7 +35,7 @@ Execution topology: `parallel`
 
 - Class: DOCS/CONFIG；Priority: P0；Route: formal；Decision owner: 用户。
 - Primary surface: 实验方案表、配置映射与配置检查；Report size: 配对 Markdown/HTML。
-- Prerequisites: AAGU-001、AAGU-015、AAGU-028 的已接受合同、方案和运行接口；026 的模块化能力由现有方案与实现继承。
+- Prerequisites: AAGU-001、AAGU-015、AAGU-028 的已接受合同、方案和运行接口，以及 AAGU-034 已接受的公共配置与统一入口修正；026 的模块化能力由现有方案与实现继承。
 - Execution topology: parallel，使用新任务的 linked worktree 形成独立候选；分支、owner、session 和工作目录在 Claim 时绑定。Apply target 为 allocator 核对的 canonical refs/heads/main。
 - 本设计 Block 不依赖 AAGU-002 设备就绪、AAGU-031 实际矩阵完成、AAGU-030 总表整理或 AAGU-020～022 计时路线。未来正式执行仍消费实际设备/版本/输入/运行批准，不能把这些运行条件误设为当前文档制作的前置。
 - 当前用户明确授权登记此 Block、创建一个新 session 并在该 session 中使用 block-workflow 实施此验收材料；这同时授权实际配置解析/无写入检查和必要的针对性软件验证，不授权正式训练、评分、重训练科研矩阵、GPU 作业或新的模型路线。
@@ -57,3 +57,9 @@ Execution topology: `parallel`
 ## Status history
 
 - 2026-09-06：依据本任务已讨论方案及用户明确创建 Block、开新 session 制作验收实验表的指令登记。登记时未 Claim、未制作候选、未运行正式实验；后续由新任务承担同一 Block 的实施与验收报告。
+
+## 公共设施责任修正 · 2026-09-06
+
+- 用户明确公共 YAML 目录、两套解析器、统一实际执行入口、旧注册与 015 的 424 份生成 YAML 退役不属于 032，另登记 [AAGU-034](../AAGU-034/WORKITEM.md) 作为 026 的后续返工。新增 `AAGU-032 depends_on AAGU-034`，用于最终可执行配置与模板验收；科学方案讨论可继续。
+- 032 linked source 中已有两轴展开/模板/测试作为 034 可复核的参考，未经接受不整包落地主线。034 不依赖 032 接受，避免循环；032 后续候选应重新对齐本责任划分和最新公共接口。
+- 本轮只登记新 FIX 与必要前置，不更改 032 的 live Claim、候选状态或历史验证，也不表示接受或关闭 032。
