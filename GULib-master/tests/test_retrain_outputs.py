@@ -363,7 +363,7 @@ def test_matrix_runs_one_requested_method_without_inline_comparison(tables, monk
         assert matrix.run_cell(cfg, name, 'degree', 42, force=False, dry_run=False,
                                selection_artifact=artifact) == 'skipped'
     changed = yaml.safe_load((root / 'gu.yaml').read_text())
-    changed['parameters']['unlearn_lr'] *= 2
+    changed['parameters']['unlearn_lr'] = gu['parameters']['unlearn_lr'] * 2
     write_yaml(root / 'gu.yaml', changed)
     with pytest.raises(ValueError, match='method conditions'):
         matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
