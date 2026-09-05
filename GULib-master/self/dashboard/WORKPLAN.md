@@ -200,6 +200,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | AAGU-004 | SUPPORT | FlowChunk D0 acceptance decision | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
 | AAGU-005 | SUPPORT | SyncMate 的 OpenGU 接入与联调 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
+| AAGU-029 | SUPPORT | 大图实验准备：指定节点评分与分阶段计时接口 | P2 | AAGU-001, AAGU-026 | [AAGU-029 Block contract](../../.workblock/items/AAGU-029/WORKITEM.md) |
 
 ## 12. 漂移检测与重建
 
