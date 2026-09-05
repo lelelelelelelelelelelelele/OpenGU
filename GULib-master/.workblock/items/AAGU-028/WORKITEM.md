@@ -3,7 +3,7 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -127,3 +127,4 @@ Execution topology: `parallel`
 - 恢复的真实合并预览 tree 为 `4670e5cb5cd42463f8ebb19537895a38d8aac09b`。组合检查 77 项通过，1 项因新合入的 AAGU-015 测试仍期待“Retrain 未实现”旧错误文案而失败。实际入口已按接受的独立 Metrics 合同，在任何数据/模型访问或写入前拒绝内联 retrain-gap。
 - 通过标准 reopen 保留失败证据和同一 Claim，将当前 main `5c78fbecb8ab772a110aa04ea62197e414c272ca` 合入原 source branch，baseline 更新为新的共同祖先。仅修正上述测试名称与期望错误文案，保留 producer 禁止和零写入断言；本次适配不扩张原接受范围。
 - 原 163 项软件检查点与示例保持可复用；原预览的其他 77 项结果绑定上述 tree。修正后的 AAGU-015 全文件检查、最终预览身份/实际 diff 和验证复用理由记录于 canonical `.workblock/runtime/aagu028-combination-verify.md`，然后沿用用户继续收口授权执行同一 locator。
+- 修正检查点 `1ba9fdf98d1ddc9b151c442ca4cb78e9e15372e3` 上，`tests/test_aagu015_definitions.py` 全部 8 项通过；未访问正式数据或写真实 Cache V2。原始日志为 source `.workblock/runtime/aagu-028-integration-guard.log` / `.xml`。此后仅更新本验证记录和生命周期投影，复用该精确检查点结果。
