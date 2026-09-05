@@ -1,0 +1,85 @@
+{
+  "evidence_integrity_passed": true,
+  "checks": {
+    "alias_resolves_one_endpoint": true,
+    "remote_clean_main": true,
+    "device_facts_match_pilot_expectations": true,
+    "local_remote_exact_core_payload": true,
+    "real_recipe_refused_existing_output": true,
+    "controlled_missing_gpu_refused": true,
+    "remote_queue_preserved": true,
+    "no_remote_submission": true,
+    "enqueue_gap_reproduced": true,
+    "execution_refusal_retained": true,
+    "incomplete_preflight_gap_reproduced": true
+  },
+  "device_comparison": {
+    "code": "DEVICE_READY",
+    "device": "gpu4090",
+    "operation": "AAGU-002 read-only pilot",
+    "expected": {
+      "device_identity": "gpu4090",
+      "gpu_model": "NVIDIA GeForce RTX 4090",
+      "gpu_count": 1,
+      "project_path": "/autodl-fs/data/OpenGU/GULib-master",
+      "capabilities": [
+        "ssh-runner",
+        "nvidia-gpu",
+        "verified-syncmate-core"
+      ]
+    },
+    "observed": {
+      "device_identity": "gpu4090",
+      "gpu_model": "NVIDIA GeForce RTX 4090",
+      "gpu_count": 1,
+      "project_path": "/autodl-fs/data/OpenGU/GULib-master",
+      "capabilities": [
+        "ssh-runner",
+        "nvidia-gpu",
+        "verified-syncmate-core"
+      ]
+    },
+    "decision": "permitted",
+    "suggested_action": "dispatch only the reviewed recipe with the captured fingerprints"
+  },
+  "expectation_sources": [
+    "Accepted SM-005 evidence/d-full/queue-receipt.json runner_id=gpu4090",
+    "Current ignored controller peer binding: gpu4090 -> autodl-opengu and canonical path",
+    "Tracked experiments/syncmate_atomic_stage.py exact GPU and checkout checks"
+  ],
+  "device_comparison_limit": "Manual normalized pilot comparison; not an enforced or reusable production dispatch receipt. GPU capacity was not measured.",
+  "aagu002_gate": {
+    "decision": "REFUSED",
+    "passed": false,
+    "reasons": [
+      "REFUSED preflight is not checked before queue submission",
+      "Missing preflight ready field is accepted by recipe binding",
+      "SM-001 implementation has not been accepted"
+    ]
+  },
+  "local_core_dependency": {
+    "ready": true,
+    "expected": {
+      "distribution": "syncmate",
+      "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+      "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+      "version": "0.4.0",
+      "wheel": "syncmate-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+    },
+    "observed": {
+      "distribution_version": "0.4.0",
+      "version": "0.4.0",
+      "module_file": "E:\\conda_package\\envs\\gnn\\Lib\\site-packages\\syncmate_core\\__init__.py",
+      "verified_payload_files": 60
+    },
+    "errors": []
+  },
+  "sources_sha256": {
+    "remote_probe.py": "108b37a66ef0a8826964e45e623e918870a4ede33aca2fa2243a951f85ddd1ba",
+    "remote-probe.stdout.json": "2ddaaa483ae2b088c4dd0ce3d058efb466b5739c33030ebd8736d72ceebfdb0d",
+    "alias-resolution.json": "af2c3416905179c75cf7be36f1ead10d9d20722d320566e56057c0eb396bee30",
+    "queue_guard_repro.py": "3207548d55164734a25eef41ecd7861deb5d7d58190e0a8f79436791cb996508",
+    "queue-guard-repro.json": "46b2965eeee51f10652523070c744dfa9bfb1e6efa8e70da57ee200b12387523"
+  }
+}

@@ -1,0 +1,223 @@
+{
+  "observed_at": "2026-09-05T20:54:43.715291+00:00",
+  "evidence_kind": "real-ssh-read-only-observation",
+  "project_path": "/autodl-fs/data/OpenGU/GULib-master",
+  "device": {
+    "device_id": "gpu4090",
+    "role": "runner",
+    "repo_path": "/autodl-fs/data/OpenGU/GULib-master"
+  },
+  "gpu": {
+    "available": true,
+    "count": 1,
+    "names": [
+      "NVIDIA GeForce RTX 4090"
+    ]
+  },
+  "python": "3.10.8",
+  "torch": "2.1.2+cu118",
+  "nvidia_smi": {
+    "exit_code": 0,
+    "stdout": "NVIDIA GeForce RTX 4090, 24564 MiB",
+    "stderr": ""
+  },
+  "git_head": {
+    "exit_code": 0,
+    "stdout": "b4da08647756810d24a7e51a23422bee7fbea3db",
+    "stderr": ""
+  },
+  "git_branch": {
+    "exit_code": 0,
+    "stdout": "main",
+    "stderr": ""
+  },
+  "git_status": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "core_dependency": {
+    "ready": true,
+    "expected": {
+      "distribution": "syncmate",
+      "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+      "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+      "version": "0.4.0",
+      "wheel": "syncmate-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+    },
+    "observed": {
+      "distribution_version": "0.4.0",
+      "version": "0.4.0",
+      "module_file": "/root/miniconda3/lib/python3.10/site-packages/syncmate_core/__init__.py",
+      "verified_payload_files": 60
+    },
+    "errors": []
+  },
+  "recipe": "opengu-sm005-atomic-gpu-v1",
+  "real_existing_recipe_preflight": {
+    "ready": false,
+    "errors": [
+      "atomic output already exists; inspect it, do not overwrite or retry"
+    ],
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "dependency": {
+      "ready": true,
+      "expected": {
+        "distribution": "syncmate",
+        "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+        "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+        "version": "0.4.0",
+        "wheel": "syncmate-0.4.0-py3-none-any.whl",
+        "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+      },
+      "observed": {
+        "distribution_version": "0.4.0",
+        "version": "0.4.0",
+        "module_file": "/root/miniconda3/lib/python3.10/site-packages/syncmate_core/__init__.py",
+        "verified_payload_files": 60
+      },
+      "errors": []
+    },
+    "dataset": {
+      "num_nodes": 2708,
+      "candidate_count": 1895,
+      "split_hash": "246ce2ffe94f40b2839ede3440992a705919429ad339e4cb2118a0fe97625c26"
+    },
+    "level": "verification"
+  },
+  "controlled_missing_gpu_preflight": {
+    "evidence_kind": "in-process-fault-injection-on-real-target",
+    "injection": "torch.cuda.is_available=False only inside this process",
+    "result": {
+      "ready": false,
+      "errors": [
+        "registered RTX 4090 is unavailable; no CPU fallback",
+        "atomic output already exists; inspect it, do not overwrite or retry"
+      ],
+      "gpu": null,
+      "dependency": {
+        "ready": true,
+        "expected": {
+          "distribution": "syncmate",
+          "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+          "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+          "version": "0.4.0",
+          "wheel": "syncmate-0.4.0-py3-none-any.whl",
+          "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+        },
+        "observed": {
+          "distribution_version": "0.4.0",
+          "version": "0.4.0",
+          "module_file": "/root/miniconda3/lib/python3.10/site-packages/syncmate_core/__init__.py",
+          "verified_payload_files": 60
+        },
+        "errors": []
+      },
+      "dataset": null,
+      "level": "verification"
+    }
+  },
+  "queue_before": {
+    "done/gu-full-v5-citeseer-s2024-20260722-0747.yaml": "9d58b6900e6ea10ae4e032f7046a447670f2878917f9a94397dae5296e4170d7",
+    "done/gu-full-v5-citeseer-s212-20260722-0738.yaml": "3bb102c5326bf1fea6edfcb3624de7675c0b107f412e31b79e245b0074f5fcf3",
+    "done/gu-full-v5-citeseer-s42-20260722-0727.yaml": "c75be7ac165bee4d91fc83fa8b57f2599658f213bb08d8d9312fc5fc8446cd9f",
+    "done/gu-full-v5-cora-s2024-20260722-0720.yaml": "81a6cd8e439874858fafbc96eb04ac14ec0327036b63ab4b4497a695393214a6",
+    "done/gu-full-v5-cora-s212-20260722-0713.yaml": "0f4d805c77f0dd1bd1c1e4eec604e2fda898c06f5c1dc1714a5423759a818587",
+    "done/gu-full-v5-cora-s42-20260722-0705.yaml": "c5c924ef89651f623ea9d7ed2246253899e05486d533c97d745eb861ad44c2c4",
+    "done/gu-full-v5-pubmed-s2024-20260722-0810.yaml": "471e4abcd4cec247f453e02f658d9b7e56d35e8898350d172714d8980f1c32a0",
+    "done/gu-full-v5-pubmed-s212-20260722-0802.yaml": "e1fe23ebde112b94065e86b5154a8d4cf0dfdf09452110d85345b95184b5bc05",
+    "done/gu-full-v5-pubmed-s42-20260722-0754.yaml": "6022413ef4fc67fd6fff0c590360ff5af260e8384395ac60e3742c1877a866cf",
+    "done/gu-gate-v4-20260722-0647.yaml": "28e6c0244e053709285b4bc9468344a5c6fafb7a8128b2fc78484b8eeedc9cea",
+    "done/gu-gate-v5-20260722-0702.yaml": "4a702e05b7e2189aa78dbeca32a205b064523bfa23917ae57966cd5541bc25ef",
+    "done/gu-smoke-20260722-0605.yaml": "14bbb78281b4b5ef0e70897a46ac99b60f93b049caebbb06851c096112e94510",
+    "done/sm005-b-hutch32-first-retry1-20260905.yaml": "8065551f12bda4562f587fcc0814e75036aa539e9b9f0b886e1975ee09e1b6d4",
+    "done/sm005-b-hutch32-warm-20260905.yaml": "bb20e40fc761159c7be4f7b75bb90dbe32007ea42e05c5197a1d2007313c2e51",
+    "done/sm005-d-full-auto-return-retry1-20260905.yaml": "9126951f092079580a4935a8d298959b6b001bb5ee56615c64d6193bb954a4a5",
+    "done/sm005-d-full-selector-20260905.yaml": "c1bad1110fda630c8e7664d887bf8dad8decfae8d036d4b81a2e26968655f6f8",
+    "done/sm005-gpu-cora-degree-gnndelete-20260905.yaml": "3e3450c85ae42ece3543843f100eb183d7283d1f5b7fb7149f717af199399884",
+    "failed/gu-full-v4-cora-s42-20260722-0649.yaml": "79990730a987ea1e52331f62d31367cbcd7755c6c685e66cbe149f6c6a28af3c",
+    "failed/gu-gate-20260722-0610.yaml": "d51e204e492fa8d8343dbf0f06ec1dbea3e173228395efb11d529c5a90591b3b",
+    "failed/gu-gate-v2-20260722-0614.yaml": "00bf7fec2bd21c484a9fc48b2171386c12a2bbc199f72833ec9cb77f39582bd6",
+    "failed/gu-gate-v3-20260722-0637.yaml": "a644e70a48ad4b840141ce7bb240ce3af10fd9731b6cf971644ef35a9165b92d",
+    "failed/sm005-b-hutch32-first-20260905.yaml": "df75a18a69f6058ff88082a98ba69804a046e554635dac5e7d8c50a059f218c0",
+    "blocked/gu-gate-20260722-0606.yaml": "3026e416887a8fbdf55c66f8e98d3d54d91a955c5028bd102eb9cba919d38d3f",
+    "blocked/readiness-smoke-20260722-0435.yaml": "4b73f798ed0d4f1311f7ad60049fcc38a59f7655de3ba38b785dab01cfe45449",
+    "receipts/gu-full-v4-cora-s42-20260722-0649.json": "ec36572c0724d9a59c41e308058ae155b232cbc02ffa0ae1a2c9dafa6c957b17",
+    "receipts/gu-full-v5-citeseer-s2024-20260722-0747.json": "564bb504accd3d56ed812b554c03eb012b24c15fa1a5215df5b70e504370b880",
+    "receipts/gu-full-v5-citeseer-s212-20260722-0738.json": "eed066abf8c35bc34bb35485bdb3cea49d7d1799213a16380f5d915b59c6e226",
+    "receipts/gu-full-v5-citeseer-s42-20260722-0727.json": "51442f66783834e0e2d7461981fa117e4fbd83707d98262ca6585896a719af10",
+    "receipts/gu-full-v5-cora-s2024-20260722-0720.json": "b9f39359eb79ca91d72823cd7f3e13c8f56778ea5ce6a9a60d525c6a9c3241ae",
+    "receipts/gu-full-v5-cora-s212-20260722-0713.json": "d2714ae2932ad0ec7881312eb2c49a70d15d80315f4f7a009b04decf8ca4210d",
+    "receipts/gu-full-v5-cora-s42-20260722-0705.json": "f1cec15dd7e13a2f9ed3a09c55a1294a594a456832188d33b8eab5214e6f614f",
+    "receipts/gu-full-v5-pubmed-s2024-20260722-0810.json": "d4c1d1f562cb57b14c72b675809e5adedfe8affc731952ff0b9ec4b713550a0a",
+    "receipts/gu-full-v5-pubmed-s212-20260722-0802.json": "08359d518f656f295675adfdd17835b4f12ef05ffa7f2a05a7e6bd8e188001f0",
+    "receipts/gu-full-v5-pubmed-s42-20260722-0754.json": "0d8fcb16cfd2edc6612cba7bb5d2452c468d4212437992b923d975c13d764dc7",
+    "receipts/gu-gate-20260722-0606.json": "f52cc6423cc6d56a0b870007fa8b20c5661b8603477786a8fc1979990d63a1b9",
+    "receipts/gu-gate-20260722-0610.json": "32e5988d8745e041cb39d84564642ec2c415094140a60b6463ea83c7e2b86114",
+    "receipts/gu-gate-v2-20260722-0614.json": "5de656034e5559a6c943c3653614ca05698ffaea1219b83bba77ced720941de6",
+    "receipts/gu-gate-v3-20260722-0637.json": "8898f872e5ff396b835b8fd63da43dd254b9ac268c24a9db15d88f0e9659cce9",
+    "receipts/gu-gate-v4-20260722-0647.json": "5bb45181abda65a1828bd8193ab6dddfebd90aeb39087158db341a1f7ceffe1f",
+    "receipts/gu-gate-v5-20260722-0702.json": "89fa68604cdbe80cbfc693c2fb902eeed039ae314db79e4e557361380af139b2",
+    "receipts/gu-smoke-20260722-0605.json": "8183c0e810bc271c5c384c8fcde113d144196d51f4a619696dc35a6438f6bc55",
+    "receipts/readiness-smoke-20260722-0435.json": "024f28c28ee305bc174edc44e4ffebb1092e6e3a2c29636edafc634d8df92082",
+    "receipts/sm005-b-hutch32-first-20260905.json": "db205a0a5c183e3c68c9a316bfb354d3c63e18c4555592822e2115b29870db33",
+    "receipts/sm005-b-hutch32-first-retry1-20260905.json": "fbdfdad7be97a1a5446a413ad4fd7c8096412f69029f25f8986d5ef7022eccba",
+    "receipts/sm005-b-hutch32-warm-20260905.json": "83104aed29fae95ce65ec192bfbeae1dc2ad9d79c35a7b4293d477da7b2e73da",
+    "receipts/sm005-d-full-auto-return-retry1-20260905.json": "c886a26187f381eb01d8381c2040ff8a253a398d56947f0307ccfc8dac558707",
+    "receipts/sm005-d-full-selector-20260905.json": "cb000946d265fd38ac9e07e4cf09103c50f6370cdba7d9d38abb1e76357c2b9e",
+    "receipts/sm005-gpu-cora-degree-gnndelete-20260905.json": "4faca6d5d2dd0f85f7618b1249fa2a9dec88609324d2c0d40c980ac01afb8276"
+  },
+  "queue_after": {
+    "done/gu-full-v5-citeseer-s2024-20260722-0747.yaml": "9d58b6900e6ea10ae4e032f7046a447670f2878917f9a94397dae5296e4170d7",
+    "done/gu-full-v5-citeseer-s212-20260722-0738.yaml": "3bb102c5326bf1fea6edfcb3624de7675c0b107f412e31b79e245b0074f5fcf3",
+    "done/gu-full-v5-citeseer-s42-20260722-0727.yaml": "c75be7ac165bee4d91fc83fa8b57f2599658f213bb08d8d9312fc5fc8446cd9f",
+    "done/gu-full-v5-cora-s2024-20260722-0720.yaml": "81a6cd8e439874858fafbc96eb04ac14ec0327036b63ab4b4497a695393214a6",
+    "done/gu-full-v5-cora-s212-20260722-0713.yaml": "0f4d805c77f0dd1bd1c1e4eec604e2fda898c06f5c1dc1714a5423759a818587",
+    "done/gu-full-v5-cora-s42-20260722-0705.yaml": "c5c924ef89651f623ea9d7ed2246253899e05486d533c97d745eb861ad44c2c4",
+    "done/gu-full-v5-pubmed-s2024-20260722-0810.yaml": "471e4abcd4cec247f453e02f658d9b7e56d35e8898350d172714d8980f1c32a0",
+    "done/gu-full-v5-pubmed-s212-20260722-0802.yaml": "e1fe23ebde112b94065e86b5154a8d4cf0dfdf09452110d85345b95184b5bc05",
+    "done/gu-full-v5-pubmed-s42-20260722-0754.yaml": "6022413ef4fc67fd6fff0c590360ff5af260e8384395ac60e3742c1877a866cf",
+    "done/gu-gate-v4-20260722-0647.yaml": "28e6c0244e053709285b4bc9468344a5c6fafb7a8128b2fc78484b8eeedc9cea",
+    "done/gu-gate-v5-20260722-0702.yaml": "4a702e05b7e2189aa78dbeca32a205b064523bfa23917ae57966cd5541bc25ef",
+    "done/gu-smoke-20260722-0605.yaml": "14bbb78281b4b5ef0e70897a46ac99b60f93b049caebbb06851c096112e94510",
+    "done/sm005-b-hutch32-first-retry1-20260905.yaml": "8065551f12bda4562f587fcc0814e75036aa539e9b9f0b886e1975ee09e1b6d4",
+    "done/sm005-b-hutch32-warm-20260905.yaml": "bb20e40fc761159c7be4f7b75bb90dbe32007ea42e05c5197a1d2007313c2e51",
+    "done/sm005-d-full-auto-return-retry1-20260905.yaml": "9126951f092079580a4935a8d298959b6b001bb5ee56615c64d6193bb954a4a5",
+    "done/sm005-d-full-selector-20260905.yaml": "c1bad1110fda630c8e7664d887bf8dad8decfae8d036d4b81a2e26968655f6f8",
+    "done/sm005-gpu-cora-degree-gnndelete-20260905.yaml": "3e3450c85ae42ece3543843f100eb183d7283d1f5b7fb7149f717af199399884",
+    "failed/gu-full-v4-cora-s42-20260722-0649.yaml": "79990730a987ea1e52331f62d31367cbcd7755c6c685e66cbe149f6c6a28af3c",
+    "failed/gu-gate-20260722-0610.yaml": "d51e204e492fa8d8343dbf0f06ec1dbea3e173228395efb11d529c5a90591b3b",
+    "failed/gu-gate-v2-20260722-0614.yaml": "00bf7fec2bd21c484a9fc48b2171386c12a2bbc199f72833ec9cb77f39582bd6",
+    "failed/gu-gate-v3-20260722-0637.yaml": "a644e70a48ad4b840141ce7bb240ce3af10fd9731b6cf971644ef35a9165b92d",
+    "failed/sm005-b-hutch32-first-20260905.yaml": "df75a18a69f6058ff88082a98ba69804a046e554635dac5e7d8c50a059f218c0",
+    "blocked/gu-gate-20260722-0606.yaml": "3026e416887a8fbdf55c66f8e98d3d54d91a955c5028bd102eb9cba919d38d3f",
+    "blocked/readiness-smoke-20260722-0435.yaml": "4b73f798ed0d4f1311f7ad60049fcc38a59f7655de3ba38b785dab01cfe45449",
+    "receipts/gu-full-v4-cora-s42-20260722-0649.json": "ec36572c0724d9a59c41e308058ae155b232cbc02ffa0ae1a2c9dafa6c957b17",
+    "receipts/gu-full-v5-citeseer-s2024-20260722-0747.json": "564bb504accd3d56ed812b554c03eb012b24c15fa1a5215df5b70e504370b880",
+    "receipts/gu-full-v5-citeseer-s212-20260722-0738.json": "eed066abf8c35bc34bb35485bdb3cea49d7d1799213a16380f5d915b59c6e226",
+    "receipts/gu-full-v5-citeseer-s42-20260722-0727.json": "51442f66783834e0e2d7461981fa117e4fbd83707d98262ca6585896a719af10",
+    "receipts/gu-full-v5-cora-s2024-20260722-0720.json": "b9f39359eb79ca91d72823cd7f3e13c8f56778ea5ce6a9a60d525c6a9c3241ae",
+    "receipts/gu-full-v5-cora-s212-20260722-0713.json": "d2714ae2932ad0ec7881312eb2c49a70d15d80315f4f7a009b04decf8ca4210d",
+    "receipts/gu-full-v5-cora-s42-20260722-0705.json": "f1cec15dd7e13a2f9ed3a09c55a1294a594a456832188d33b8eab5214e6f614f",
+    "receipts/gu-full-v5-pubmed-s2024-20260722-0810.json": "d4c1d1f562cb57b14c72b675809e5adedfe8affc731952ff0b9ec4b713550a0a",
+    "receipts/gu-full-v5-pubmed-s212-20260722-0802.json": "08359d518f656f295675adfdd17835b4f12ef05ffa7f2a05a7e6bd8e188001f0",
+    "receipts/gu-full-v5-pubmed-s42-20260722-0754.json": "0d8fcb16cfd2edc6612cba7bb5d2452c468d4212437992b923d975c13d764dc7",
+    "receipts/gu-gate-20260722-0606.json": "f52cc6423cc6d56a0b870007fa8b20c5661b8603477786a8fc1979990d63a1b9",
+    "receipts/gu-gate-20260722-0610.json": "32e5988d8745e041cb39d84564642ec2c415094140a60b6463ea83c7e2b86114",
+    "receipts/gu-gate-v2-20260722-0614.json": "5de656034e5559a6c943c3653614ca05698ffaea1219b83bba77ced720941de6",
+    "receipts/gu-gate-v3-20260722-0637.json": "8898f872e5ff396b835b8fd63da43dd254b9ac268c24a9db15d88f0e9659cce9",
+    "receipts/gu-gate-v4-20260722-0647.json": "5bb45181abda65a1828bd8193ab6dddfebd90aeb39087158db341a1f7ceffe1f",
+    "receipts/gu-gate-v5-20260722-0702.json": "89fa68604cdbe80cbfc693c2fb902eeed039ae314db79e4e557361380af139b2",
+    "receipts/gu-smoke-20260722-0605.json": "8183c0e810bc271c5c384c8fcde113d144196d51f4a619696dc35a6438f6bc55",
+    "receipts/readiness-smoke-20260722-0435.json": "024f28c28ee305bc174edc44e4ffebb1092e6e3a2c29636edafc634d8df92082",
+    "receipts/sm005-b-hutch32-first-20260905.json": "db205a0a5c183e3c68c9a316bfb354d3c63e18c4555592822e2115b29870db33",
+    "receipts/sm005-b-hutch32-first-retry1-20260905.json": "fbdfdad7be97a1a5446a413ad4fd7c8096412f69029f25f8986d5ef7022eccba",
+    "receipts/sm005-b-hutch32-warm-20260905.json": "83104aed29fae95ce65ec192bfbeae1dc2ad9d79c35a7b4293d477da7b2e73da",
+    "receipts/sm005-d-full-auto-return-retry1-20260905.json": "c886a26187f381eb01d8381c2040ff8a253a398d56947f0307ccfc8dac558707",
+    "receipts/sm005-d-full-selector-20260905.json": "cb000946d265fd38ac9e07e4cf09103c50f6370cdba7d9d38abb1e76357c2b9e",
+    "receipts/sm005-gpu-cora-degree-gnndelete-20260905.json": "4faca6d5d2dd0f85f7618b1249fa2a9dec88609324d2c0d40c980ac01afb8276"
+  },
+  "queue_unchanged": true,
+  "submitted_jobs": 0
+}

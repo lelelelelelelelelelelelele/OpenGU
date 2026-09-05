@@ -1,0 +1,7 @@
+{
+  "alias": "autodl-opengu",
+  "resolved": true,
+  "single_endpoint": true,
+  "effective_endpoint_sha256": "3deadad2a03472fd27ac966b2d13561ac245c8f0f6b12dc0222eada791efedca",
+  "errors": []
+}

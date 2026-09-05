@@ -4,7 +4,7 @@ Block ID: `AAGU-002`
 
 Item Version: 2.1
 
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 
 Item Type: Block
 
@@ -13,6 +13,12 @@ Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`943015daa68a37b96b306154d7c748a4120f9b64`
+
+> Source branch：`refs/heads/codex/aagu-002-device-readiness`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
