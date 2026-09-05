@@ -109,6 +109,19 @@ def test_d_full_plan_stops_after_selection():
     assert plan['expected_counts'] == (1, 0, 0)
 
 
+def test_d_full_return_reuses_benchmark_configuration_and_cache_layout():
+    from experiments.modular_execution import project_context
+    first = stage.PLANS['opengu-sm005-d-full-selector-v1']
+    warm = stage.PLANS['opengu-sm005-d-full-return-v1']
+    assert {k: v for k, v in first.items() if k != 'run_id'} == {
+        k: v for k, v in warm.items() if k != 'run_id'}
+    contexts = [project_context(p['experiment_id'], run_id=p['run_id'], request_device='cuda',
+                level='verification', repository_root=stage.ROOT) for p in (first, warm)]
+    assert contexts[0].store_root == contexts[1].store_root
+    assert contexts[0].checkpoint_root == contexts[1].checkpoint_root
+    assert contexts[0].output != contexts[1].output
+
+
 def test_d_full_rejects_gu_or_evaluation_before_data_access(monkeypatch):
     from scripts.syncmate import verify_core_dependency
     from experiments import modular_config, modular_run

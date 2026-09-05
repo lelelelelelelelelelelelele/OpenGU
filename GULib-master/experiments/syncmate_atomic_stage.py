@@ -36,6 +36,13 @@ PLANS = {
         'expected_counts': (1, 0, 0),
         'config_sha256': '1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2',
     },
+    'opengu-sm005-d-full-return-v1': {
+        'config': 'experiments/configs/sm005_atomic/experiment_d_full_selector.yaml',
+        'experiment_id': 'sm005-cora-d-full-selector',
+        'run_id': 'sm005-d-full-return-v1',
+        'expected_counts': (1, 0, 0),
+        'config_sha256': '1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2',
+    },
 }
 
 

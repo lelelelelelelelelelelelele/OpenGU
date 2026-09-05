@@ -67,3 +67,20 @@ Its immutable output is
 Run once via the normal SyncMate queue, collect and verify this exact output,
 and report actual checkpoint / Score / Selection HIT flags. Existing caches
 are preserved; no warm rerun or downstream unlearning is implied.
+
+## D-full warm run for automatic return
+
+The additional reviewed recipe `opengu-sm005-d-full-return-v1` uses the exact
+same D-full YAML and shared cache/checkpoint roots. It writes a fresh run record
+at `results/runs/modular/sm005-cora-d-full-selector/sm005-d-full-return-v1/summary.json`.
+This output directory records an invocation; it is not a second computation cache.
+Inspect checkpoint / Score / Selection HIT and producer flags to prove reuse;
+startup and input/hash verification still take time even on a full HIT.
+
+With the reviewed Core supporting automatic return, dispatch this recipe with
+`--wait --json` in a persistent background controller process and run the
+existing bounded remote worker. The same controller invocation must wait,
+collect the declared summary and verify SHA-256 without later Agent commands.
+Its scope comes from the recipe, so no per-run `device.yaml.result_roots` entry
+is needed. Device policy still selects filenames and the local landing.
+This is a transfer test, with zero GU / Evaluation and no scientific acceptance.

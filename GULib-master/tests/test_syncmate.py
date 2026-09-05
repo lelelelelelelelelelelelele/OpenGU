@@ -3366,14 +3366,14 @@ def test_inventory_groups_indexed_artifacts_by_experiment_leaf(tmp_path, monkeyp
     leaves = result["peers"]["gpu4090"]["leaves"]
     assert leaves[0]["cell"] == "cora_GCN_r0.05"
     assert leaves[0]["method_strategy"] == "GIF_im"
-    assert leaves[0]["missing"] == ["collateral.json", "_meta.json"]
+    assert leaves[0]["missing"] == ["_meta.json", "collateral.json"]
     assert leaves[1]["complete"] is True
     assert incomplete["peers"]["gpu4090"]["summary"]["shown"] == 1
     assert incomplete["peers"]["gpu4090"]["leaves"][0]["method_strategy"] == "GIF_im"
     rows = _index.inventory_csv_rows(result)
     assert rows[0]["node_id"] == "gpu4090"
     assert rows[0]["complete"] == "false"
-    assert rows[0]["missing"] == "collateral.json;_meta.json"
+    assert rows[0]["missing"] == "_meta.json;collateral.json"
     assert rows[1]["complete"] == "true"
 
 
@@ -7215,6 +7215,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "opengu-sm005-b-hutch32-first-v1",
         "opengu-sm005-b-hutch32-warm-v1",
         "opengu-sm005-d-full-selector-v1",
+        "opengu-sm005-d-full-return-v1",
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
@@ -7537,13 +7538,12 @@ def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeyp
     repo = tmp_path / "repo"
     _context.select(root=repo)
 
-    class Completed:
-        returncode = 0
-        stdout = '{"gate": {"passed": false}}'
-        stderr = "checksum mismatch"
-
-    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: Completed())
-    outcome = _dispatch.runner_agent_collect_and_gate(repo / ".syncmate" / "device.yaml", "runner-a")
+    monkeypatch.setattr(_devices, 'load_device', lambda path: ({'peers': {'runner-a': {
+        'role': 'runner', 'transport': 'local', 'repo_path': str(tmp_path / 'remote')
+    }}}, []))
+    monkeypatch.setattr(_collection, 'apply_collect', lambda *a, **k: {'errors': ['checksum mismatch']})
+    outcome = _dispatch.runner_agent_collect_and_gate(repo / ".syncmate" / "device.yaml", "runner-a",
+        recipe='opengu-sm005-d-full-return-v1', expected_git_sha='a' * 40)
 
     assert outcome["ok"] is False
     assert outcome["gate_passed"] is False

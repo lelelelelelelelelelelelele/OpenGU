@@ -1234,9 +1234,14 @@ python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe o
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
 only validated job id, static recipe, requester, and note. `--wait` observes a
-terminal result; only `done` for an acceptance-eligible recipe invokes the
-normal SyncMate `sync` collection/verification/gate chain. `failed`, `blocked`,
-timeout, checksum mismatch, or gate failure never becomes acceptance.
+terminal result, then collects and SHA-256 verifies the successful job's reviewed
+`expected_artifact_paths`, filtered by the device artifact policy. It does not
+require a per-run `device.yaml.result_roots` entry. The controller process must
+remain running; it may run in the background. Failed, blocked, timed-out or
+identity-mismatched jobs do not trigger collection. Existing checksum conflicts
+are preserved and reported. The result is `verified`; scientific acceptance
+remains `not_evaluated` unless the recipe declares a project collector profile
+and acceptance eligibility, in which case its separate Adapter gate runs.
 
 OpenGU may submit declared jobs and inspect `manifest.json`, receipts, and
 results. It must not move files between queue states, add command/argument/path
