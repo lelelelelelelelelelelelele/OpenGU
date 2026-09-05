@@ -118,7 +118,10 @@ def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
     gu['parameters']['unlearn_lr'] = .02
     write_yaml(root / 'gu.yaml', gu)
     result = run(tables, 'changed-gu', stage='unlearning', selector_refs=[], selection_input=reference,
-                 unlearning_refs=['gu.yaml'], retrain_input=original['output'], evaluation_refs=['gap.yaml'])
+                 unlearning_refs=['gu.yaml'])
+    result['evaluations'] = run(tables, 'changed-gu-metrics', stage='metrics', selector_refs=[],
+        output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
+        evaluation_refs=['gap.yaml'])['evaluations']
     write_yaml(root / 'small.yaml', {'kind': 'evaluation', 'schema_version': 1,
                                    'case': 'post_unlearning_utility_and_retrain_gap', 'metrics': ['gap']})
     small = run(tables, 'small-metrics', stage='metrics', selector_refs=[],
@@ -219,7 +222,7 @@ def test_metrics_cli_and_target_direct_shared_consumer(tables, monkeypatch, reco
     from experiments.modular_config import load_instance
     from experiments.modular_run import read_dataset, verified_selection
     from experiments.modular_model import prepare_model
-    from experiments.target_direct_v1.run_outputs import execute_bound_outputs
+    from experiments.target_direct_v1.run_outputs import execute_bound_method
     from utils.target_checkpoint import load_target_checkpoint
     reference = configs(tables)
     root = tables[0]
@@ -230,9 +233,9 @@ def test_metrics_cli_and_target_direct_shared_consumer(tables, monkeypatch, reco
     _, _, cp = prepare_model(gu, data=data, dataset_name=inputs.dataset_name,
         checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
     checkpoint = load_target_checkpoint(cp['path'], expected_file_sha256=cp['file_sha256'])
-    rows = execute_bound_outputs(gu=gu, retrain=retrain, selection=selection, data=data,
-        dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=root / 'v2',
-        runtime_root=root / 'target-stage')
+    rows = [execute_bound_method(instance=instance, selection=selection, data=data,
+        dataset_name=inputs.dataset_name, checkpoint=bound_checkpoint, store_root=root / 'v2',
+        runtime_root=root / 'target-stage') for instance, bound_checkpoint in ((gu, checkpoint), (retrain, None))]
     pairs = [{'strategy': 'degree', 'unlearning': rows[0]['output'], 'retrain': rows[1]['output']}]
     (root / 'references.json').write_text(json.dumps(pairs))
     store_before = snapshot(root / 'v2')
@@ -246,3 +249,116 @@ def test_metrics_cli_and_target_direct_shared_consumer(tables, monkeypatch, reco
     assert raw['training_producer_called'] is False
     assert raw['results'][0]['perf_unlearn'] == rows[0]['result']['f1_after']
     record_property('aagu028_cli', json.dumps({'command': command, 'result': raw, 'store_unchanged': True}))
+
+
+def test_independent_method_metrics_survive_collection_without_forward(tables, monkeypatch, record_property):
+    import shutil
+    from experiments.modular_evaluation import evaluate_modular, resolve_evaluation
+    from experiments.target_direct_v1.run_outputs import save_method_result
+    from cache_v2.unlearning_output import UnlearningOutputPayload
+    reference = configs(tables)
+    root = tables[0]
+    # GU completes first; there is no Retrain output to consume at this point.
+    gnn = method(tables, 'independent-gnn', reference, 'gu.yaml')
+    rt = method(tables, 'independent-retrain', reference, 'retrain.yaml')
+    gif = method(tables, 'independent-gif', reference, 'gif.yaml')
+    exported = []
+    for name, row in (('GNNDelete', gnn), ('Retrain', rt), ('GIF', gif)):
+        folder = root / 'exports' / name
+        save_method_result(row, store_root=root / 'v2', output_dir=folder,
+                           strategy='degree', meta={'method': name})
+        payload = UnlearningOutputPayload.from_bytes((folder / 'predictions.npz').read_bytes())
+        assert payload.content_hash == row['content_hash']
+        assert payload.state
+        raw = json.loads((folder / 'attack.json').read_text())['results']['degree']
+        assert raw['evaluation'] == row['evaluation']
+        assert not (folder / 'collateral.json').exists()
+        exported.append(raw)
+    collected = root / 'collected-store'
+    shutil.copytree(root / 'v2', collected)
+    before = snapshot(collected)
+    # A global forward hook blocks inference without changing fingerprinted method source.
+    monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)
+    monkeypatch.setattr(torch.optim.SGD, 'step', forbidden)
+    hook = torch.nn.modules.module.register_module_forward_pre_hook(forbidden)
+    try:
+        single = resolve_evaluation({'kind': 'evaluation', 'schema_version': 1, 'case': 'post_method_metrics'})
+        measured = evaluate_modular(single, [row['output'] for row in (gnn, rt, gif)], store_root=collected)
+        for row, original in zip(measured['rows'], (gnn, rt, gif)):
+            assert row['metrics'] == original['evaluation']['metrics']
+            assert row['metrics']['f1'] == original['result']['f1_after']
+        gap = resolve_evaluation({'kind': 'evaluation', 'schema_version': 1, 'case': 'post_unlearning_utility_and_retrain_gap'})
+        differences = evaluate_modular(gap, [{'unlearning': row['output'], 'retrain': rt['output']}
+                                           for row in (gnn, gif)], store_root=collected)
+    finally:
+        hook.remove()
+    assert differences['rows'][0]['metrics']['gap'] == rt['result']['f1_after'] - gnn['result']['f1_after']
+    assert before == snapshot(collected)
+    assert measured['rows'][1]['metrics']['update_detection_auc_status'] == 'missing_original_predictions'
+    record_property('aagu028_independent_collection', json.dumps({'per_method': exported,
+        'recomputed': measured, 'differences': differences, 'store_unchanged': True,
+        'training_and_forward_forbidden': True}))
+
+
+def test_auc_reports_missing_classes_without_producing_data():
+    from types import SimpleNamespace
+    from experiments.output_metrics import method_metrics, update_detection
+    payload = SimpleNamespace(arrays={'logits': np.array([[2., -1.], [3., 0.]]),
+        'y': np.array([0, 0]), 'test_mask': np.array([True, True])})
+    result = method_metrics(payload)
+    assert result['f1'] == 1.0 and result['classification_auc'] is None
+    assert result['classification_auc_status'] == 'missing_test_classes'
+    assert update_detection(payload)['update_detection_auc_status'] == 'missing_original_predictions'
+
+
+def test_matrix_runs_one_requested_method_without_inline_comparison(tables, monkeypatch):
+    from experiments import run as matrix
+    from experiments.target_direct_v1 import run_outputs as lane
+    from experiments.modular_config import load_instance
+    from experiments.modular_run import read_dataset, verified_selection
+    from experiments.modular_model import prepare_model
+    from utils.target_checkpoint import load_target_checkpoint
+    reference = configs(tables)
+    root = tables[0]
+    data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
+    selection = verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
+    gu = load_instance(root / 'gu.yaml', 'unlearning')
+    _, _, cp = prepare_model(gu, data=data, dataset_name=inputs.dataset_name,
+        checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
+    checkpoint = load_target_checkpoint(cp['path'], expected_file_sha256=cp['file_sha256'])
+    cfg = {'name': 'cpu-matrix', 'dataset': inputs.dataset_name, 'base_model': 'GCN', 'ratio': .1,
+           'methods': ['GNNDelete', 'Retrain'], 'strategies': ['degree'], 'seeds': [42],
+           'unlearning_refs': ['gu.yaml', 'retrain.yaml'], '_source_path': str(root / 'matrix.yaml'),
+           'run_root': str(root / 'matrix-results'), 'runtime_root': str(root / 'matrix-runtime'),
+           'processed_root': str(root), 'defaults': {'run_collateral': False}}
+    calls = []
+    def cpu_cell(cfg, name, strategy, seed, artifact, *, output_dir, fingerprint, git_sha):
+        calls.append(name)
+        instance = load_instance(root / ('gu.yaml' if name == 'GNNDelete' else 'retrain.yaml'), 'unlearning')
+        row = lane.execute_bound_method(instance=instance, selection=selection, data=data,
+            dataset_name=inputs.dataset_name, checkpoint=checkpoint if name == 'GNNDelete' else None,
+            store_root=root / 'v2', runtime_root=root / 'matrix-runtime')
+        lane.save_method_result(row, store_root=root / 'v2', output_dir=output_dir, strategy=strategy,
+                                meta={'config_fingerprint': fingerprint, 'method': name})
+        return 'completed'
+    monkeypatch.setattr(lane, 'execute_cell', cpu_cell)
+    # Paths/data are a disposable CPU backend; the real matrix skip/dispatch and algorithms run.
+    monkeypatch.setattr(matrix, '_content_fingerprint', lambda cfg, method, *_: 'cpu-' + method)
+    monkeypatch.setattr(matrix, 'cache_v2_settings', lambda _: {'mode': 'fixture'})
+    monkeypatch.setattr(matrix, '_record_autoreport_event', lambda **_: None)
+    monkeypatch.setattr(matrix, 'prior_attempt_context', lambda *a, **k: (1, None))
+    artifact = {**reference, 'store_root': str(root / 'v2'), 'k': len(selection.selected_nodes)}
+    assert matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
+                           selection_artifact=artifact) == 'completed'
+    assert calls == ['GNNDelete']
+    assert not matrix.cell_dir(cfg, 'Retrain', 'degree', 42).exists()
+    assert matrix.run_cell(cfg, 'Retrain', 'degree', 42, force=False, dry_run=False,
+                           selection_artifact=artifact) == 'completed'
+    assert calls == ['GNNDelete', 'Retrain']
+    monkeypatch.setattr(lane, 'execute_cell', forbidden)
+    for name in cfg['methods']:
+        assert matrix.run_cell(cfg, name, 'degree', 42, force=False, dry_run=False,
+                               selection_artifact=artifact) == 'skipped'
+    with pytest.raises(ValueError, match='post-processing'):
+        matrix.run_cell({**cfg, 'defaults': {'run_collateral': True}}, 'GNNDelete', 'degree', 42,
+                        force=False, dry_run=False, selection_artifact=artifact)

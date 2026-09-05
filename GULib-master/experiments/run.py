@@ -3,23 +3,12 @@ experiments/run.py — YAML-driven experiment runner.
 
 Replaces the ad-hoc bash scripts under scripts/experiments/. One yaml config
 describes a full experiment matrix (dataset × model × method × strategy × seed).
-Runner subprocess-calls demo_attack.py and eval_collateral.py per cell, with
-output redirected to the canonical `results/runs/` layout:
-
-    results/runs/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/
-        attack.json          # demo_attack output (single-strategy comparison JSON)
-        collateral.json      # eval_collateral output (gap, collateral, hop_decay)
-        predictions.npz      # logits_{before,unlearned,retrained} + masks (forward-only metric cache)
-        _meta.json           # config snapshot + git_sha + timestamp + hostname
-
-Skip-if-complete by default. A cell is "complete" iff:
-    1. All 4 files exist (attack.json, collateral.json, predictions.npz, _meta.json)
-    2. Each file parses (no truncation from interrupted runs)
-    3. _meta.json contains config_fingerprint matching the current yaml + matrix coords
-
-Cells that fail (2) — corrupt — or (3) — stale — are silently re-run.
-Cells written before fingerprinting (legacy) print a warning and skip; pass
---force or `rm -rf` the cell to regenerate them. Use --force to re-run any cell.
+Method-reference configurations dispatch exactly one method per matrix cell.
+Independent outputs are attack.json, output-references.json, predictions.npz
+(one model plus raw evaluation inputs), and _meta.json. Complete cells require
+verified immutable output identity. GU/Retrain comparisons run separately after
+collection; inline collateral is rejected. Existing mismatched method-output
+cells are never automatically retrained or overwritten.
 
 Usage:
     python experiments/run.py experiments/configs/phase_b_cora_gcn.yaml
@@ -36,7 +25,7 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
     seeds: [<int>, ...]
     defaults:
         save_predictions: <bool>      # default true
-        run_collateral: <bool>        # default true
+        run_collateral: false         # comparisons are post-processing
         run_update_detection_auc: <bool>  # default true; false skips optional AUC
         no_cache: <bool>              # default false (use cache)
         num_epochs: <int>             # default 100
@@ -44,7 +33,7 @@ Schema (see experiments/configs/phase_b_cora_gcn.yaml for a worked example):
         cuda: <int>                   # default 0
     processed_root: <path>             # canonical OpenGU processed pickles
     runtime_root: <path>               # mutable GU logs/checkpoints/tasks
-    extra_args: [<str>, ...]          # passed verbatim to demo_attack and eval_collateral
+    extra_args: [<str>, ...]          # passed to the selected legacy demo adapter
     method_overrides:                 # injected only for matching method
         GraphRevoker:
             extra_args: ["--partition_method", "gpa"]
@@ -259,7 +248,7 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
 
 # Bump when the set of fields hashed in _content_fingerprint changes,
 # so old fingerprints stop matching and force a clean re-run.
-_FINGERPRINT_VERSION = "v4-independent-outputs"
+_FINGERPRINT_VERSION = "v5-single-method-output"
 
 
 def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> str:
@@ -290,13 +279,9 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
     }
     if method_extra:
         payload["method_overrides"] = method_extra
-    if cfg.get("retrain_ref") or cfg.get("evaluation_ref"):
-        from experiments.modular_config import load_instance
-        directory = Path(cfg["_source_path"]).resolve().parent
-        payload["independent_instances"] = {
-            key: load_instance(directory / cfg[key], kind)
-            for key, kind in (("retrain_ref", "unlearning"), ("evaluation_ref", "evaluation"))
-        }
+    if cfg.get("unlearning_refs"):
+        from experiments.target_direct_v1.run_outputs import cell_instance
+        payload["method_instance"] = cell_instance(cfg, method, seed)
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
@@ -354,6 +339,7 @@ def cell_status(
     expected_fp: str,
     want_collateral: bool,
     expected_strategy: Optional[str] = None,
+    want_independent_outputs: bool = False,
 ) -> Tuple[str, str]:
     """Classify a cell directory.
 
@@ -378,12 +364,14 @@ def cell_status(
     required_jsons = ["_meta.json"]
     if want_collateral:
         required_jsons.append("collateral.json")
+    if want_independent_outputs:
+        required_jsons.append("output-references.json")
     for name in required_jsons:
         r = _check_json(d / name)
         if r is not None:
             return ("incomplete" if r.startswith("missing") else "corrupt"), r
 
-    if want_collateral:
+    if want_collateral or want_independent_outputs:
         r = _check_npz(d / "predictions.npz")
         if r is not None:
             return ("incomplete" if r.startswith("missing") else "corrupt"), r
@@ -587,9 +575,13 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
              selection_artifact: Optional[Mapping[str, Any]] = None) -> str:
     out_dir = cell_dir(cfg, method, strategy, seed)
     expected_fp = _content_fingerprint(cfg, method, strategy, seed)
+    independent = bool(cfg.get("unlearning_refs"))
     want_collateral = bool((cfg.get("defaults") or {}).get("run_collateral", True))
+    if independent and want_collateral:
+        raise ValueError("cross-method metrics belong to a separate post-processing invocation")
     status, reason = cell_status(
-        out_dir, expected_fp, want_collateral, expected_strategy=strategy
+        out_dir, expected_fp, want_collateral, expected_strategy=strategy,
+        want_independent_outputs=independent
     )
     identity = _report_identity(cfg, method, strategy, seed)
     if selection_artifact is not None:
@@ -600,16 +592,16 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     v2_mode = cache_v2_settings(cfg) is not None
     if v2_mode and not dry_run and selection_artifact is None:
         raise ValueError("Cache V2 runner cell has no Selection Artifact")
-    if want_collateral and not dry_run and out_dir.exists() and any(out_dir.iterdir()):
+    if independent and not dry_run and out_dir.exists() and any(out_dir.iterdir()):
         if status != "complete" or force:
             raise ValueError("existing output cell is not reusable; no automatic retraining or overwrite")
         from experiments.unlearning_outputs import load_output
-        references = json.loads((out_dir / "output-references.json").read_text(encoding="utf-8"))
-        for pair in references:
-            for role in ("unlearning", "retrain"):
-                output = load_output(pair[role], selection_artifact["store_root"])
-                if output.identity["selection"] != {key: selection_artifact[key] for key in ("artifact_id", "recipe_hash", "content_hash")}:
-                    raise ValueError("existing output cell Selection differs from requested input")
+        exported = json.loads((out_dir / "output-references.json").read_text(encoding="utf-8"))
+        output = load_output(exported['output'], selection_artifact["store_root"])
+        if output.identity["selection"] != {key: selection_artifact[key] for key in ("artifact_id", "recipe_hash", "content_hash")}:
+            raise ValueError("existing output cell Selection differs from requested input")
+        if output.identity['target']['method'] != method or (out_dir / 'predictions.npz').read_bytes() != output.canonical_bytes:
+            raise ValueError("existing output cell differs from the verified method artifact")
 
     if not force:
         if status == "complete":
@@ -680,7 +672,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     if dry_run:
         return "would_run"
 
-    if want_collateral:
+    if independent:
         from experiments.target_direct_v1.run_outputs import execute_cell
         attempt, _ = prior_attempt_context(cell_id, expected_fp, event_path=report_event_path)
         run_id = new_run_id(cell_id)
@@ -688,7 +680,7 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
                      config_fingerprint=expected_fp, git_sha=git_sha, cell_id=cell_id,
                      run_id=run_id, attempt=attempt, event_path=report_event_path)
         _record_autoreport_event(stage="run", state="started",
-            metadata={"expected_stages": ["attack", "collateral"]}, **event)
+            metadata={"expected_stages": ["attack"]}, **event)
         try:
             result = execute_cell(cfg, method, strategy, seed, selection_artifact,
                                  output_dir=out_dir, fingerprint=expected_fp, git_sha=git_sha)
@@ -696,11 +688,13 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             _record_autoreport_event(stage="run", state="failed",
                 error={"type": type(exc).__name__, "message": str(exc), "retryable": False}, **event)
             raise
-        for stage in ("attack", "collateral", "run"):
+        for stage in ("attack", "run"):
             _record_autoreport_event(stage=stage, state="completed",
                 artifacts=_existing_artifact_refs(out_dir), **event)
         return result
 
+    if want_collateral:
+        raise ValueError("legacy inline collateral execution was removed; use independent outputs and Metrics")
     out_dir.mkdir(parents=True, exist_ok=True)
     attempt, prior_failed_run_id = prior_attempt_context(
         cell_id, expected_fp, event_path=report_event_path
@@ -989,9 +983,14 @@ def main():
     ap.add_argument("--force", action="store_true", help="re-run even if outputs exist")
     ap.add_argument("--dry_run", action="store_true", help="report what would run, no execution")
     ap.add_argument("--limit", type=int, default=None, help="cap number of cells (debug)")
+    ap.add_argument("--strategy", help="select one configured strategy")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    if args.strategy is not None:
+        if cfg.get('kind') == 'experiment' or args.strategy not in cfg['strategies']:
+            raise ValueError('strategy must be selected from the configured matrix')
+        cfg['strategies'] = [args.strategy]
     if cfg.get("kind") == "experiment":
         if args.force or args.limit is not None:
             raise ValueError('modular experiments do not support force or implicit matrix truncation')

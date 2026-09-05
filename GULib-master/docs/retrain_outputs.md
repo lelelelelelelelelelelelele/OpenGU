@@ -67,7 +67,7 @@ deletion:
 
 Retrain-only 大表使用 stage: unlearning、一个 selection_input 精确引用和 unlearning_refs: [retrain.yaml]。不会调用 Selector，也不会训练原模型。
 
-GU 执行可显式提供 retrain_input 引用，或把 Retrain 作为独立 Unlearning 实例一起调度。未提供 Retrain 时，retrain-gap 在训练之前拒绝。
+GU 与 Retrain 均按 unlearning_refs 独立调度，执行阶段只生成各自输出及单方法评价。retrain_input 已删除；执行阶段声明 retrain-gap 会在训练前拒绝，必须在独立 Metrics 阶段引用双方已经完成的结果。
 
 独立 Metrics 大表：
 
@@ -107,8 +107,31 @@ $env:CUDA_VISIBLE_DEVICES = '-1'
 
 ## Target-direct 接入
 
-已注册的 syncmate_stage -> experiments/run.py 调用链通过 target_direct_v1/run_outputs.py 显式执行两个独立输出，再调用只读 Metrics。方法表和 Evaluation 表引用进入 cell 指纹。已存在但身份不一致、缺失或损坏的 cell 被拒绝，不自动覆盖或重训。
+已注册的 syncmate_stage -> experiments/run.py 按 unlearning_refs 展开独立 method cell。每次 execute_bound_method 只调用当前方法；没有 GU→Retrain 成对函数，没有 retrain_ref。正式表把 GNNDelete 与 Retrain 显式列为同级方法。已有研究的 306 个 GU 比较单元不变，Retrain 从每个 GU 单元内部隐式执行改为单独保存；两预算 canary 的每个请求分别产出两个方法结果，未放行正式矩阵。
 
-该 lane 保持 GCN、GNNDelete/GIF 的已支持边界；其他旧矩阵若仍请求隐式 collateral 路线，会明确失败。它们须提供新的持久化输出消费者，不能退回旧训练路径。
+每个方法的叶子为 attack.json（单方法原始指标、评价身份、实际调用/缓存/耗时记录）、output-references.json、predictions.npz（单个完整模型 state、logits、标签、mask 与图输入）和 _meta.json。完成检查不要求 collateral.json，也不要求另一方法先完成。方法表只允许 method 与方法参数，共同模型/训练轴由正式大表绑定；不悄悄忽略小表里的重复模型配置。
 
-新生成 target checkpoint 记录明确的训练条件；旧 checkpoint 若没有该必要身份字段，本消费链拒绝接纳。历史文件保留，不补写、迁移或自动重训。该变化只通过本地共享消费者与绑定检查验证，本 Block 未执行 SSH/GPU gate 或完整科研矩阵。
+差值与 collateral 的输入引用在结果收集后建立，单独调用 eval_collateral.py 或 modular Metrics stage。通过 Cache V2 重算时，收集所引用 Output 的 Recipe、Artifact 和完整 Selection/Score 依赖及索引到本地 Store，保留内容和身份，不能只复制一个不带依赖的 NPZ 冒充已验证 Store。导出的完整 predictions.npz 可用于独立检查模型/数组，attack.json 可直接比较其原始标量及评价口径。
+
+既有不匹配、缺失或损坏的 cell 被拒绝，不覆盖历史结果。GCN GNNDelete/GIF/Retrain 是该单方法适配器的支持范围；正式 recipe 仍只声明 GNNDelete 和参照 Retrain。其他旧矩阵若仍请求隐式 collateral 路线，会明确失败。
+
+新 target checkpoint 记录明确训练条件。GU 消费时拒绝缺失这些字段的旧 checkpoint；Retrain 本身不读取或训练原 checkpoint。历史文件不补写、迁移或自动重训。本 Block 只做 CPU 软件验证，没有执行正式 SSH/GPU gate。
+
+## 指标是否必须立即计算
+
+当前注册指标没有要求 GU 和 Retrain 同时运行的情况。保存足够输入后，以下计算均可在结果收集后进行；不得把两个方法的训练绑在评价函数里。
+
+| 指标 | 必须保存的输入 | 收集后能否计算 | 当前边界 |
+|---|---|---|---|
+| F1 / accuracy | 标签、test mask、预测类别或 logits | 可以；同口径标量也可直接比较 | 单标签分类，F1 使用 micro 平均 |
+| 分类 AUC | 标签、test mask、每类概率或 logits | 可以 | 二分类使用正类分数，多分类 OvR macro；缺少测试类别时为 null 并说明原因 |
+| 交叉熵 | 标签、test mask、logits | 可以 | 与训练 loss 分开记录 |
+| retrain-gap / gap_pct | 配对的原始 F1 标量、双方身份 | 可以直接做差；当前验证器从数组复核 | 保留同数据/划分、请求、模型、训练和评价图配对检查 |
+| 预测偏移、翻转率、图上分组诊断 | 双方逐节点预测、节点 ID、mask，分组时还需图 | 可以 | 不能仅靠两个 F1 数值恢复；现有偏移/翻转计算均只读数组 |
+| update_detection_auc | 原模型和单方法输出的预测、删除节点及对照节点 | 可以 | 这是项目现有预测变化检测协议；没有原预测时明确报告缺少输入 |
+| 泛指 MIA | 具体攻击协议所需的成员/非成员分数、标签或攻击模型 | 取决于已声明的攻击协议与保存内容 | 当前未注册通用 MIA evaluator，不能用 update_detection_auc 替代所有 MIA |
+| 训练/遗忘耗时、峰值显存 | 执行时计时/设备观测 | 无法由最终模型倒推 | 需要执行时采集；缓存热读时间不是原冷训练成本 |
+
+post_method_metrics 对 GNNDelete、GIF、Retrain 使用同一评价入口，保存 f1、accuracy、cross_entropy、classification_auc 以及可用性状态；当前更新检测 AUC 另用明确名称。Retrain 默认没有原模型预测，因此这项为 missing_original_predictions，不自动前向或重训。若后续指标缺少输入，应显式进行补充评价或报告缺失，而非让 Metrics 隐式补算。
+
+改变指标公式/库版本只改变评价 receipt；方法输出身份不包含评价配置。输出生成之后，后处理阶段不调用 model.forward、Selector 或训练入口。实际运行的时长记录按冷计算与热读区分，不能从命中结果声称获得新的训练耗时测量。

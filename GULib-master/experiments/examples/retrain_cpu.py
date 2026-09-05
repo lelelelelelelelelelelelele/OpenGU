@@ -69,15 +69,21 @@ def run_example(directory):
     selection = {key: selected['selectors'][0]['selection']['artifact'][key]
                  for key in ('artifact_id', 'recipe_hash', 'content_hash')}
     common = {'stage': 'unlearning', 'selection_input': selection}
-    cold = run('02-retrain', **common, unlearning_refs=['Retrain.yaml'])['unlearning'][0]
-    gu = run('03-gu', **common, unlearning_refs=['GNNDelete.yaml', 'GIF.yaml'])['unlearning']
+    gu = run('02-gu', **common, unlearning_refs=['GNNDelete.yaml', 'GIF.yaml'])['unlearning']
+    cold = run('03-retrain', **common, unlearning_refs=['Retrain.yaml'])['unlearning'][0]
     pairs = [{'unlearning': row['output'], 'retrain': cold['output']} for row in gu]
     def forbidden(*args, **kwargs):
         raise AssertionError('training invoked during Metrics or hot Retrain read')
-    with patch.object(torch.optim.Adam, 'step', forbidden), patch.object(torch.optim.SGD, 'step', forbidden):
-        warm = run('04-retrain-hot', **common, unlearning_refs=['Retrain.yaml'])['unlearning'][0]
-        metrics = run('05-metrics', stage='metrics', output_inputs=pairs, evaluation_refs=['gap.yaml'])
-        repeat = run('06-metrics-repeat', stage='metrics', output_inputs=pairs, evaluation_refs=['gap.yaml'])
+    write_yaml(directory / 'single.yaml', {'kind': 'evaluation', 'schema_version': 1, 'case': 'post_method_metrics'})
+    hook = torch.nn.modules.module.register_module_forward_pre_hook(forbidden)
+    try:
+        with patch.object(torch.optim.Adam, 'step', forbidden), patch.object(torch.optim.SGD, 'step', forbidden):
+            warm = run('04-retrain-hot', **common, unlearning_refs=['Retrain.yaml'])['unlearning'][0]
+            single = run('05-single-metrics', stage='metrics', output_inputs=[row['output'] for row in [*gu, cold]], evaluation_refs=['single.yaml'])
+            metrics = run('06-metrics', stage='metrics', output_inputs=pairs, evaluation_refs=['gap.yaml'])
+            repeat = run('07-metrics-repeat', stage='metrics', output_inputs=pairs, evaluation_refs=['gap.yaml'])
+    finally:
+        hook.remove()
     assert cold['output'] == warm['output'] and warm['hit']
     assert metrics['evaluations'] == repeat['evaluations']
     cli_pairs = [{'strategy': method, **pair} for method, pair in zip(('GNNDelete', 'GIF'), pairs)]
@@ -85,6 +91,8 @@ def run_example(directory):
     receipt = {'retrain_output': cold['output'], 'GU_outputs': [row['output'] for row in gu],
                'hot_retrain_producer_called': warm['producer_called'],
                'metrics': metrics['evaluations'], 'metrics_repeat_equal': True,
+               'single_method_metrics': single['evaluations'], 'method_order': ['GNNDelete', 'GIF', 'Retrain'],
+               'forward_forbidden_during_reads': True,
                'training_steps_forbidden_during_reads': True, 'software_evidence_only': True}
     (directory / 'receipt.json').write_text(json.dumps(receipt, indent=2), encoding='utf-8')
     return receipt

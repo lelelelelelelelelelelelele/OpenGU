@@ -82,7 +82,8 @@ metrics: [f1_before, f1_after, f1_drop, f1_drop_pct]
 | case | modular CPU | target-direct SyncMate | 说明 |
 |---|---:|---:|---|
 | post_unlearning_utility | 可执行 | 可执行 | 从已验证 GU Output 的原始预测计算 |
-| post_unlearning_utility_and_retrain_gap | 可执行 | 可执行 | 显式配对相同实际请求、训练与删除语义的 GU/Retrain Output |
+| post_method_metrics | 可执行（包含 Retrain） | 单方法输出 | F1、accuracy、分类 AUC、交叉熵及明确可用性 |
+| post_unlearning_utility_and_retrain_gap | 独立 Metrics stage | 收集后单独执行 | 显式配对相同实际请求、训练与删除语义的 GU/Retrain Output |
 
 Retrain 已注册为独立 Unlearning 方法；Metrics 不执行训练。独立小表、输出身份、节点删除语义、Metrics-only 配置和可重跑 CPU 示例见 [独立 Retrain 与 Metrics](retrain_outputs.md)。
 

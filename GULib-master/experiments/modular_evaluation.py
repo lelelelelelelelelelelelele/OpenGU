@@ -11,6 +11,13 @@ from experiments.effective_config import ConfigurationError, fields
 
 
 CASES = {
+    'post_method_metrics': {
+        'metrics': ('f1', 'accuracy', 'cross_entropy', 'classification_auc',
+                    'classification_auc_status', 'update_detection_auc', 'update_detection_auc_status'),
+        'required_inputs': ('method_output',),
+        'consumers': ('modular_cpu_v1', 'target_direct_syncmate_v2'),
+        'producer_version': 'single-method-output-metrics-v1',
+    },
     'post_unlearning_utility': {
         'metrics': ('f1_before', 'f1_after', 'f1_drop', 'f1_drop_pct'),
         'required_inputs': ('unlearning_result',),
@@ -62,7 +69,7 @@ def require_consumer(instance, consumer):
                 instance['case'], consumer, ', '.join(instance['required_inputs'])))
 
 
-def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, retrain_input=None):
+def evaluate_modular(instance, unlearning_rows, *, store_root, data=None):
     from experiments.unlearning_outputs import load_output, utility
     from experiments.implementation_identity import implementation_fingerprint
     require_consumer(instance, 'modular_cpu_v1')
@@ -71,11 +78,9 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, retrai
         reference = row.get('unlearning', row.get('output', row))
         outputs.append((reference, load_output(reference, store_root, data=data), row.get('retrain')))
     retrains = [(ref, payload) for ref, payload, _ in outputs if payload.identity['target']['method'] == 'Retrain']
-    if retrain_input:
-        retrains.append((retrain_input, load_output(retrain_input, store_root, data=data)))
     rows = []
     for reference, output, paired_reference in outputs:
-        if output.identity['target']['method'] == 'Retrain':
+        if output.identity['target']['method'] == 'Retrain' and instance['case'] == 'post_unlearning_utility_and_retrain_gap':
             continue
         values = utility(output)
         available = {**values, 'f1_drop_pct': values['f1_drop_ratio']}
@@ -83,6 +88,11 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, retrai
             'producer_version': instance['producer_version'],
             'implementation': implementation_fingerprint(evaluate_modular, utility),
             'unlearning_output': reference}
+        if instance['case'] == 'post_method_metrics':
+            from experiments.output_metrics import evaluate_method
+            measured = evaluate_method(reference, output)
+            available = measured['metrics']
+            identity['method_evaluation'] = measured['identity']
         if instance['case'] == 'post_unlearning_utility_and_retrain_gap':
             candidates = ([(paired_reference, load_output(paired_reference, store_root, data=data))]
                           if paired_reference else retrains)
@@ -106,5 +116,5 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, retrai
         rows.append({'evaluation_receipt_id': 'evalr_' + canonical_sha256(identity)[:32],
                      'identity': identity, 'metrics': metrics})
     if not rows:
-        raise ConfigurationError('evaluation requires at least one GU output with baseline predictions')
+        raise ConfigurationError('evaluation has no applicable method outputs')
     return {'effective_config': instance, 'rows': rows}

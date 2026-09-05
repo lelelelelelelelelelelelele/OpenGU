@@ -144,5 +144,7 @@ def run_unlearning(instance, *, selection, model, data, dataset_name, checkpoint
     reference = output_reference(stored, request.recipe.recipe_hash)
     from experiments.unlearning_outputs import load_output
     verified = load_output(reference, store_root, data=data)
+    from experiments.output_metrics import evaluate_method
     return {**reference, 'output': reference, 'hit': hit, 'producer_called': not hit,
-            'compute_seconds': seconds, 'result': utility(verified), 'target': target}
+            'compute_seconds': seconds, 'result': utility(verified), 'target': target,
+            'evaluation': evaluate_method(reference, verified)}

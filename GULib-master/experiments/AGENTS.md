@@ -51,9 +51,10 @@ SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专�
 ## 5. 通用矩阵与证据接缝
 
 一个 `run.py` YAML 固定数据集、模型和删除比例，并展开 `methods × strategies × seeds`。
-`YAML → Selection 计划或 Artifact → demo_attack.py → 可选 collateral 评估 → metadata 与审计事件`
-默认 cell 位于 `run_root/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/`，完整叶子通常包括 `attack.json`、`collateral.json`、`predictions.npz` 和 `_meta.json`。
-完整性还要求内容可解析、目标策略存在和配置指纹匹配；`--dry_run` 只展开并验证计划，不代表已经执行。
+当前 target-direct 方法表把 GNNDelete 与 Retrain 作为同级方法：每个 cell 只执行一个方法，保存自己的模型、预测、单方法指标和身份，不调用另一方法、不要求差值先完成。
+`YAML → 已验证 Selection → 单个 Unlearning 方法 → 独立 Output / Metrics → 收集后配对比较`
+单方法叶子位于 `run_root/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/`，包含 `attack.json`、`output-references.json`、`predictions.npz` 和 `_meta.json`；`collateral.json` 属于单独的后处理输出。
+完整性要求可解析、策略和配置指纹匹配、Output 字节及依赖身份通过核验。`--dry_run` 只展开并验证计划，不代表已经执行。其他专题沿用其已注册且明确的产物合同，不能靠旧隐式重训包装器执行。
 
 正式启动前先检查目标 run identity 和已有 cell 状态。不得为了继续运行而自行使用 `--force`，也不得手动删除、移动或覆盖已有正式产物；发现 complete、partial、stale、corrupt 或身份冲突时停止，按已确认的修复链判断恢复、重跑或建立新结果身份。
 

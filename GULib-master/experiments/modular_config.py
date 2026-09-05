@@ -181,7 +181,7 @@ def load_experiment(path):
     value = read_yaml(path)
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
     fields(value, required | {'round',
-        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs', 'retrain_input'},
+        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
@@ -196,7 +196,7 @@ def load_experiment(path):
     if value['stage'] == 'metrics':
         if not value.get('output_inputs') or not value.get('evaluation_refs'):
             raise ConfigurationError('metrics stage requires output_inputs and evaluation_refs')
-        if any(value.get(key) for key in ('selector_refs', 'selection_input', 'unlearning_refs', 'retrain_input')):
+        if any(value.get(key) for key in ('selector_refs', 'selection_input', 'unlearning_refs')):
             raise ConfigurationError('metrics stage consumes only explicit output references')
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')

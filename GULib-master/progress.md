@@ -10,3 +10,5 @@
 
 - Clean checkpoint 936394329433bf518fb22c800ca7233af1fb5dbe: 160/160 tests and standalone 24-node example passed; 3,995 protected historical files unchanged. First Verify exposed an obsolete rounded-result assertion, corrected in the same Block.
 - Paired formal report generated from observed evidence and inspected in Chromium; current decision pending. Report-only final diff reuses the exact checkpoint checks, with independent report/link/render verification. No formal run or acceptance action performed.
+
+- 2026-09-06: resumed same Claim (ongoing revision 4) for independent method scheduling. Initial affected suite: 61 passed. Metrics audit found no registered comparison requiring simultaneous GU/Retrain execution; timing/memory need execution-time observations.

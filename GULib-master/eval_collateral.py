@@ -20,6 +20,9 @@ def evaluate_outputs(evaluation, pairs, *, store_root, output_dir):
     targets = [output_dir / name for name in ('collateral.json', 'predictions.npz')]
     if any(path.exists() for path in targets):
         raise FileExistsError('Metrics output already exists; select a new output directory')
+    annotations = [pair['strategy'] for pair in pairs]
+    if len(set(annotations)) != len(annotations):
+        raise ValueError('each comparison needs a unique annotation; do not overwrite method predictions')
     evaluated = evaluate_modular(evaluation, pairs, store_root=store_root)
     if len(evaluated['rows']) != len(pairs):
         raise ValueError('each Metrics pair must name one GU and one Retrain output')

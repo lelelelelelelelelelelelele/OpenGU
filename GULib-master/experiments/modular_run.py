@@ -98,10 +98,9 @@ def execute(path, *, context=None, dry_run=False):
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_cpu_v1')
-    needs_retrain = any(item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations'])
-    if (config['stage'] == 'unlearning' and needs_retrain and not config.get('retrain_input')
-            and not any(item['method'] == 'Retrain' for item in config['unlearnings'])):
-        raise ConfigurationError('retrain-gap requires an explicit Retrain output or independent Retrain method')
+    if config['stage'] == 'unlearning' and any(
+            item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations']):
+        raise ConfigurationError('retrain-gap belongs to the independent metrics stage')
     directory = Path(config['source_directory'])
     # Import-time OpenGU CLI belongs to the execution adapter, not its caller's argv.
     runtime_defaults()
@@ -151,7 +150,7 @@ def execute(path, *, context=None, dry_run=False):
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint})
         summary['evaluations'] = [
-            evaluate_modular(item, summary['unlearning'], store_root=store_root, data=data, retrain_input=config.get('retrain_input')) for item in config['evaluations']
+            evaluate_modular(item, summary['unlearning'], store_root=store_root, data=data) for item in config['evaluations']
         ]
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     _write_summary(output, summary)

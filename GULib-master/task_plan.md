@@ -16,3 +16,5 @@ Errors / surprises:
 - Git root is one directory above the project; run_git sourceProject is the nested GULib-master below the caller-provided worktree path. Use its returned exact sourceProject.
 
 - Standalone caller argv exposed OpenGU import-time config parsing. Entry now initializes runtime defaults within its owned CLI context; disposable example2 completed.
+
+2026-09-06 same-Block rework: remove paired GU/Retrain dispatch; audit metrics for deferred computation; save complete per-method metrics and predictions; test collection with forward/training blocked; refresh formal reports and return to awaiting acceptance.

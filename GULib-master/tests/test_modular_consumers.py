@@ -413,6 +413,6 @@ def test_evaluation_is_independent_and_missing_retrain_fails_closed(tables):
     assert first['evaluations'][0]['rows'][0]['evaluation_receipt_id'] != second['evaluations'][0]['rows'][0]['evaluation_receipt_id']
     write_yaml(root / 'retrain-gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
         'case': 'post_unlearning_utility_and_retrain_gap'})
-    with pytest.raises(ValueError, match='requires an explicit Retrain'):
+    with pytest.raises(ValueError, match='independent metrics stage'):
         run(tables, 'unsupported-eval', stage='unlearning', selector_refs=['degree.yaml'],
             unlearning_refs=['gu.yaml'], evaluation_refs=['retrain-gap.yaml'])

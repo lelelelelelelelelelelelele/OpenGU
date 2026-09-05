@@ -3,7 +3,7 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `awaiting acceptance`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -29,9 +29,9 @@ Execution topology: `parallel`
 
 ### 核心验收
 
-- Retrain 可通过独立 Unlearning YAML 选择并由真实入口执行；可直接消费已有 Selection，过程中不调用 Selector producer。不增加第二套 Retrain 算法或隐藏方法分发。
+- Retrain 可通过独立 Unlearning YAML 选择并由真实入口执行；可直接消费已有 Selection，过程中不调用 Selector producer。不增加第二套 Retrain 算法或隐藏方法分发；正式适配器每个 cell 也只执行当前方法，不成对调用 GU 与 Retrain。
 - 在临时 CPU 小图上，以同一真实 Dataset/Split 和删除请求运行独立 Retrain，保存可复核的模型/预测与所需评价输入。明确删除监督、边/特征、训练图及评价图语义；不能仅排除 train_mask 就无条件宣称覆盖所有删除语义。
-- GNNDelete、GIF 与 Retrain 输出可按同一实际请求配对；Metrics 只读产物计算已注册的 utility / retrain-gap 指标。禁止训练入口后，单独重算 Metrics 仍成功；改变指标集合或 GU 专属参数不触发匹配 Retrain 的 producer。
+- GNNDelete、GIF 与 Retrain 输出可按同一实际请求配对；Metrics 只读产物计算已注册的 utility / retrain-gap 指标。单方法指标及必要预测独立保存，差值在结果收集后计算；禁止训练及模型前向后，单独重算 Metrics 仍成功；改变指标集合或 GU 专属参数不触发匹配 Retrain 的 producer。
 - 验证冷运行、热读取、跨 GU 复用、独立 Metrics 重算的数值和身份一致性；持久化输出不因舍入后重算而改变同一评价身份的数值。身份不同或缺失时明确 MISS/拒绝，不自动重训、猜测、下载或修复输入。
 - 真实数据/划分、实际删除请求、模型训练条件或删除语义变化时，不能误用旧 Retrain。核对所复用 Artifact 的内容哈希、完整性、代码/producer 与依赖身份；不把整个实验编号或 Metrics 配置放入 Retrain 计算身份。
 - 通过已批准范围内的 CPU 集成验证、可重跑示例、数据流说明及配对报告，由用户明确接受、返工或拒绝。完成软件验证不等于正式实验已运行或已接受。
@@ -67,11 +67,11 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-当前同一 linked source 已完成软件 Verify 与配对报告，等待用户接受、返工或拒绝。验收入口：[REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)。候选为记录的 source branch 当前 clean HEAD；软件检查点与复用依据见下方 Verify record。尚未进入 Closeout；不要重新 Claim、启动正式矩阵或把测试通过视为接受。
-
-用户提出返工时沿用同一 locator；只有明确接受后才转 block-closeout，并重新核对 live source、canonical Claim 与项目策略。AAGU-015 与其他 Block 的验收／运行边界保持其各自权威事实。
+同一 AAGU-028 正在按用户澄清返工。已删除成对调度、审查离线指标输入，并补充单方法评价与独立结果收集验证。此前 06fcd98f 候选和报告仅是历史软件证据，不能作为本轮完成或接受依据。下一步在干净新候选上统一 Verify，更新同目录配对报告，再转 awaiting acceptance；不启动正式 GPU 或 Closeout。
 
 ## Status history
+
+- 2026-09-06: 用户明确要求方法独立执行、独立保存指标，差值与预测比较在结果收集后处理；审查即时评价需求并删除 GU→Retrain 成对调度。在同一 Block 返工；此前候选及报告不再作为当前验收结论。
 
 - 2026-09-05: 已完成本地 CPU 验证和正式配对报告；当前 awaiting acceptance，人的决定待定。
 
@@ -86,7 +86,7 @@ Execution topology: `parallel`
 - 一次命令目录状态未保持，三个本任务编辑短暂落到 canonical A。逐项核对并转回 linked source，恢复原内容/换行后确认 canonical Git 工作区干净；没有对共享 Skills 或正式数据做修复。
 - 软件证据只支持约定本地 CPU 消费链；未进行正式矩阵、SSH/GPU、Apply、push、install 或清理。完成 Verify 后进入 formal 人类验收。
 
-## Verify record
+## Previous Verify record — 2026-09-05
 
 - 统一软件检查点：`936394329433bf518fb22c800ca7233af1fb5dbe`，在干净 HEAD 上执行 [verify.py](evidence/verify.py)。17 个测试文件共 160 项通过、0 失败、0 跳过；24 节点可重跑示例退出码 0。细项、运行命令、完整输出引用和原始日志哈希见 [observations.json](evidence/observations.json)。
 - 实际观察：独立 Retrain 不训练原 checkpoint、不调用 Selector；冷运行后保存完整 state／logits，热读与跨 GNNDelete/GIF 复用成功。禁止训练和选择入口后 Metrics 两次重算身份与数值相同，Store 未变；模型重建前向逐元素一致。数据／split、请求、模型／训练、删除语义、producer 和依赖错配均按测试拒绝。
@@ -94,3 +94,12 @@ Execution topology: `parallel`
 - 最终候选加入 Report／Record／证据摘要后，复用上述检查点的产品验证；检查实际差异仅为人类表面、证据与进度记录，不改变产品、训练、身份、配置或测试条件。新变化单独检查报告生成确定性、Human Surface 合同、链接、diff whitespace 和浏览器实际渲染。最终 live HEAD 与差异清单保存在 ignored `.workblock/runtime/aagu-028-final-verification.json`，不创建第二套候选类型。
 - [配对报告](REPORT.md)首屏含实际增量、核心观察、Agent 建议和唯一待决定投影。HTML 经 Chromium 1440×1000 真实渲染并查看首屏／全页：决定区在首屏，正文、表格和证据链接可读，无横向溢出、断图或脚本错误。390px 宽度额外检查文档无横向溢出；[报告 QA 记录](evidence/report_qa.json)。
 - Agent 建议接受本次软件修复；决定者为用户，当前仍待决定。正式 target-direct SSH/GPU、真实数据成本和完整矩阵为 NOT OBSERVED；未作 Apply、push、install 或清理。
+
+## Rework record — independent method results
+
+- 用户澄清：Retrain 和其他 GU 同级，统一入口依 YAML 独立执行并输出模型；单方法指标及必要预测完整保存。跨方法差值在结果回来后处理，GU 不附带调用 Retrain。审查是否存在必须即时重做的指标，只对真实需要保留充分输入。
+- 恢复同一 task、branch、locator 和 Claim；源检查点 06fcd98fd225c40aa1855ac99548a818d51d8282。Claim 当前 ongoing revision 4。原 formal 路线、保护历史产物和 CPU-only 软件验证边界继续有效。
+
+- 实现审查：现有标量、预测比较、更新检测指标不需要 GU 与 Retrain 同时运行；耗时／峰值显存属于执行时观测。泛指 MIA 尚需具体攻击协议，当前不伪造通用实现。补充统一单方法 F1／accuracy、分类 AUC、交叉熵及可用性状态；指标计算身份独立于方法输出。
+- target-direct 正式表显式列出同级 GNNDelete 与 Retrain；原 306 个 GU 比较单元的科学范围不变，原有内部重训练移为独立结果单元。每个方法完成与验真不依赖另一方法或 collateral；完整 Cache V2 依赖随结果收集后再做差。未执行正式矩阵。
+- 开发验证：原受影响 61 项通过；增加矩阵独立完成／热复用和采集后禁止 forward 的检查后，18 个 Retrain/output 测试通过。最终统一 Verify 待干净候选运行，旧结果不替代本轮。
