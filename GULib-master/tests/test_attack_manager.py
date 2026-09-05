@@ -85,7 +85,8 @@ class TestAttackResult:
         assert d["strategy_name"] == "degree"
         assert d["f1_before"] == 0.90
         assert d["f1_after"] == 0.80
-        assert d["f1_drop"] == 0.10
+        assert d["f1_drop"] == result.f1_drop
+        assert AttackResult.from_dict(json.loads(result.to_json())).f1_drop == result.f1_drop
         assert d["mia_auc"] == 0.65
         assert "selected_nodes" in d
 

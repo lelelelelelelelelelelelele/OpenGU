@@ -326,6 +326,8 @@ def _prepare_target(
             "OpenGU runtime data differs from verified target-direct profile"
         )
 
+    from experiments.modular_config import model_training
+    _, training_contract = model_training({'training': {'epochs': int(args.epochs), 'seed': int(args.seed)}})
     checkpoint_path = args.checkpoint_path.expanduser().resolve()
     training_started = time.perf_counter()
     if args.reuse_checkpoint:
@@ -338,6 +340,7 @@ def _prepare_target(
                 "processed_profile": args.split_contract.processed_profile,
                 "split_contract": args.split_contract.to_manifest(),
                 "num_epochs": int(args.epochs),
+                "training": training_contract,
                 "gcn_num_layers": int(args.gcn_num_layers),
                 "gcn_hidden": int(args.gcn_hidden),
             },
@@ -376,6 +379,7 @@ def _prepare_target(
             "processed_profile": args.split_contract.processed_profile,
             "split_contract": args.split_contract.to_manifest(),
             "num_epochs": int(args.epochs),
+            "training": training_contract,
             "gcn_num_layers": int(args.gcn_num_layers),
             "gcn_hidden": int(args.gcn_hidden),
             "data_identity": observed_identity,

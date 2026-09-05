@@ -46,6 +46,7 @@ selector_refs:
   - target_direct_formal_v2/selectors/tracin_cp_simple_6.yaml
 unlearning_refs:
   - target_direct_formal_v2/unlearning/gnndelete.yaml
+  - target_direct_formal_v2/unlearning/retrain.yaml
 evaluation_refs:
   - target_direct_formal_v2/evaluations/post_unlearning_utility_and_retrain_gap.yaml
 

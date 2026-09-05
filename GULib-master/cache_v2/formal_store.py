@@ -424,7 +424,9 @@ class FormalArtifactStore(ArtifactStore):
             expected_version = SELECTION_PAYLOAD_VERSION
             expected_extension = ".json"
         else:
-            payload_class = payload_type_for(type_value)
+            from .runtime import _decode_exact_mapping
+            wrapper = _decode_exact_mapping(parent["recipe"], "dependency Recipe")
+            payload_class = payload_type_for(type_value, ArtifactRecipe(wrapper["fields"]))
             expected_schema = payload_class.payload_schema
             expected_version = payload_class.contract_version
             expected_extension = "." + payload_class.file_extension

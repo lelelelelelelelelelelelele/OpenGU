@@ -49,7 +49,7 @@ def test_full_matrix_uses_real_parser_without_writes_or_producers(monkeypatch):
     assert all(not r['selector_refs'] and not any(r['selection_input'].values()) for r in result['stage_u'])
 
 
-def test_stage_u_refuses_missing_retrain_consumer_before_any_write(tmp_path, monkeypatch):
+def test_stage_u_refuses_inline_retrain_gap_before_any_write(tmp_path, monkeypatch):
     import experiments.modular_run as entry
 
     def forbidden(*args, **kwargs):
@@ -61,7 +61,7 @@ def test_stage_u_refuses_missing_retrain_consumer_before_any_write(tmp_path, mon
         store_root=tmp_path / 'store', checkpoint_root=tmp_path / 'checkpoints',
         runtime_root=tmp_path / 'runtime', output=tmp_path / 'result.json', executor='pytest')
     path = CONFIG / 'generated/stage_u/cora-seed42-r0.01-degree.yaml'
-    with pytest.raises(ConfigurationError, match='not implemented by modular_cpu_v1'):
+    with pytest.raises(ConfigurationError, match='retrain-gap belongs to the independent metrics stage'):
         execute(path, context=context)
     assert list(tmp_path.iterdir()) == []
 

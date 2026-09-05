@@ -18,6 +18,7 @@ def build_gu_config(
     processed_root: Path,
     runtime_root: Path,
     run_root: Path,
+    unlearning_refs: Sequence[Path] | None = None,
 ) -> dict:
     manifest_path = Path(manifest_path).expanduser().resolve()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -46,6 +47,13 @@ def build_gu_config(
         if not supplied.is_absolute():
             raise ValueError("{0} must be absolute".format(label))
         resolved[label] = supplied.resolve()
+    from experiments.modular_config import load_instance
+    refs = [Path(path).resolve() for path in unlearning_refs] if unlearning_refs is not None else [
+        Path(__file__).resolve().parents[1] / 'configs/target_direct_formal_v2/unlearning' / name
+        for name in ('gnndelete.yaml', 'retrain.yaml')]
+    instances = [load_instance(path, 'unlearning') for path in refs]
+    if not instances or len({item['method'] for item in instances}) != len(instances):
+        raise ValueError('each configured method requires one independent YAML')
     return {
         "name": "target_direct_v1_{0}_r{1}".format(
             manifest["dataset"], manifest["ratio"]
@@ -59,7 +67,8 @@ def build_gu_config(
             if key != "processed_profile"
         },
         "ratio": float(manifest["ratio"]),
-        "methods": ["GNNDelete"],
+        "methods": [item['method'] for item in instances],
+        "unlearning_refs": [str(path) for path in refs],
         "strategies": list(manifest["strategies"]),
         "seeds": [int(value) for value in manifest["seeds"]],
         "processed_root": str(resolved["processed_root"]),
@@ -74,7 +83,7 @@ def build_gu_config(
         },
         "defaults": {
             "save_predictions": True,
-            "run_collateral": True,
+            "run_collateral": False,
             "run_update_detection_auc": True,
             "no_cache": True,
             "num_epochs": 100,

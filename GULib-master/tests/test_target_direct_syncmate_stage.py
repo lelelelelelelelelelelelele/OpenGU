@@ -436,11 +436,11 @@ def test_static_stage_artifact_sets_are_exact_and_bounded():
         "warm-r0.01.json",
         "warm-r0.05.json",
     }
-    assert len(gate_1) == len(gate_5) == 4
+    assert len(gate_1) == len(gate_5) == 8
     assert all("/cora_GCN_r0.01/" in path for path in gate_1)
     assert all("/cora_GCN_r0.05/" in path for path in gate_5)
-    assert all("/GNNDelete_degree/seed42/" in path for path in gate_1)
-    assert len(full) == 68
+    assert {Path(path).parent.parent.name for path in gate_1} == {"GNNDelete_degree", "Retrain_degree"}
+    assert len(full) == 136
     assert all("/pubmed_GCN_r0.05/" in path for path in full)
     assert all("/seed2024/" in path for path in full)
 

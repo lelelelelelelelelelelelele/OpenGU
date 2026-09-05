@@ -55,7 +55,7 @@ CONFIG_SCHEMA = "target_direct_v1.syncmate_formal"
 CONFIG_VERSION = 2
 RECEIPT_SCHEMA = "target_direct_v1.syncmate_selection_cell"
 RECEIPT_VERSION = 3
-ARTIFACT_NAMES = ("attack.json", "collateral.json", "predictions.npz", "_meta.json")
+ARTIFACT_NAMES = ("attack.json", "output-references.json", "predictions.npz", "_meta.json")
 DATASETS = ("cora", "citeseer", "pubmed")
 DATASET_NODE_COUNTS = {
     "cora": 2708,
@@ -144,8 +144,8 @@ def _scientific_references(config_path: Path, value: Mapping[str, Any]):
         except ConfigurationError as exc:
             raise TargetDirectStageError(str(exc)) from exc
         if (item["kind"] != "unlearning" or item["schema_version"] != 1
-                or item["method"] != "GNNDelete" or item.get("parameters")):
-            raise TargetDirectStageError("formal GU table must select default GNNDelete")
+                or item["method"] not in ("GNNDelete", "Retrain") or item.get("parameters")):
+            raise TargetDirectStageError("formal method table must select default GNNDelete or Retrain")
         unlearnings.append({"method": item["method"]})
         sources["unlearnings"].append(str(path))
 
@@ -294,7 +294,7 @@ def load_config(
         or tuple(value.get("budget_conditioned_strategies") or ()) != ()
         or tuple(value.get("seeds") or ()) != MODEL_SEEDS
         or tuple(item["method"] for item in selectors) != FORMAL_STRATEGIES
-        or tuple(item["method"] for item in unlearnings) != ("GNNDelete",)
+        or tuple(item["method"] for item in unlearnings) != ("GNNDelete", "Retrain")
         or tuple(item["case"] for item in evaluations)
         != ("post_unlearning_utility_and_retrain_gap",)
         or set(value.get("datasets") or {}) != set(DATASETS)
@@ -451,17 +451,18 @@ def gu_artifacts(
     dataset, seed = parse_stage(stage)
     strategies = ("degree",) if gate_only else FORMAL_STRATEGIES
     paths = []
-    for strategy in strategies:
-        leaf = (
-            Path(cfg["paths"]["gu_run_root"])
-            / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
-            / "GNNDelete_{0}".format(strategy)
-            / "seed{0}".format(seed)
-        )
-        paths.extend(
-            (leaf / name).relative_to(root).as_posix()
-            for name in ARTIFACT_NAMES
-        )
+    for method in (item['method'] for item in cfg['unlearning_instances']):
+        for strategy in strategies:
+            leaf = (
+                Path(cfg["paths"]["gu_run_root"])
+                / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
+                / "{0}_{1}".format(method, strategy)
+                / "seed{0}".format(seed)
+            )
+            paths.extend(
+                (leaf / name).relative_to(root).as_posix()
+                for name in ARTIFACT_NAMES
+            )
     return tuple(paths)
 
 
@@ -995,6 +996,7 @@ def _ensure_gu_inputs(
         / ratio_token(ratio)
         / stage,
         run_root=Path(config["paths"]["gu_run_root"]),
+        unlearning_refs=config["configuration_sources"]["unlearnings"],
     )
     yaml_payload = yaml.safe_dump(
         gu_config, sort_keys=False, allow_unicode=True
@@ -1026,78 +1028,75 @@ def _validate_gu(
         for cell in manifest["cells"]
     }
     accepted = []
-    for strategy in strategies:
-        leaf = (
-            Path(config["paths"]["gu_run_root"])
-            / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
-            / "GNNDelete_{0}".format(strategy)
-            / "seed{0}".format(seed)
-        )
-        missing = [name for name in ARTIFACT_NAMES if not (leaf / name).is_file()]
-        if missing:
-            raise TargetDirectStageError(
-                "GU leaf is incomplete for {0}: {1}".format(strategy, missing)
+    for method in (item['method'] for item in config['unlearning_instances']):
+        for strategy in strategies:
+            leaf = (
+                Path(config["paths"]["gu_run_root"])
+                / "{0}_GCN_{1}".format(dataset, ratio_token(ratio))
+                / "{0}_{1}".format(method, strategy)
+                / "seed{0}".format(seed)
             )
-        attack = json.loads((leaf / "attack.json").read_text(encoding="utf-8"))
-        attack_row = (attack.get("results") or {}).get(strategy) or {}
-        if not attack_row or attack_row.get("failed") is True:
-            raise TargetDirectStageError("GU attack failed for " + strategy)
-        collateral = json.loads(
-            (leaf / "collateral.json").read_text(encoding="utf-8")
-        )
-        collateral_rows = [
-            row
-            for row in collateral.get("results") or []
-            if row.get("strategy") == strategy
-        ]
-        if len(collateral_rows) != 1:
-            raise TargetDirectStageError(
-                "GU collateral row is missing or ambiguous for " + strategy
-            )
-        meta = json.loads((leaf / "_meta.json").read_text(encoding="utf-8"))
-        artifact = meta.get("selection_artifact") or {}
-        expected_cell = cells[(strategy, seed)]
-        expected_artifact = expected_cell["artifact"]
-        expected_checkpoint = expected_cell["target_checkpoint"]
-        if (
-            meta.get("git_sha") != expected_head
-            or meta.get("method") != "GNNDelete"
-            or meta.get("strategy") != strategy
-            or int(meta.get("seed", -1)) != seed
-            or float(artifact.get("ratio", -1)) != float(ratio)
-            or artifact.get("artifact_id")
-            != expected_artifact["artifact_id"]
-            or artifact.get("recipe_hash")
-            != expected_artifact["recipe_hash"]
-            or artifact.get("content_hash")
-            != expected_artifact["content_hash"]
-            or int(artifact.get("k", -1)) != int(expected_cell["k"])
-            or float(expected_cell.get("ratio", -1)) != float(ratio)
-            or artifact.get("authoritative") is not True
-            or (artifact.get("target_checkpoint") or {}).get("state_hash")
-            != expected_checkpoint["state_hash"]
-            or (artifact.get("target_checkpoint") or {}).get("file_sha256")
-            != expected_checkpoint["file_sha256"]
-        ):
-            raise TargetDirectStageError(
-                "GU target-direct provenance mismatch for " + strategy
-            )
-        with zipfile.ZipFile(leaf / "predictions.npz") as archive:
-            if "{0}__selected_nodes.npy".format(strategy) not in archive.namelist():
+            missing = [name for name in ARTIFACT_NAMES if not (leaf / name).is_file()]
+            if missing:
                 raise TargetDirectStageError(
-                    "GU prediction identity missing for " + strategy
+                    "GU leaf is incomplete for {0}: {1}".format(strategy, missing)
                 )
-        accepted.append(
-            {
-                "strategy": strategy,
-                "ratio": float(ratio),
-                "k": int(expected_cell["k"]),
-                "selection_artifact_id": artifact["artifact_id"],
-                "target_checkpoint_state_hash": expected_checkpoint["state_hash"],
-                "attack": attack_row,
-                "collateral": collateral_rows[0],
-            }
-        )
+            attack = json.loads((leaf / "attack.json").read_text(encoding="utf-8"))
+            attack_row = (attack.get("results") or {}).get(strategy) or {}
+            if not attack_row or attack_row.get("failed") is True:
+                raise TargetDirectStageError("GU attack failed for " + strategy)
+            meta = json.loads((leaf / "_meta.json").read_text(encoding="utf-8"))
+            artifact = meta.get("selection_artifact") or {}
+            expected_cell = cells[(strategy, seed)]
+            expected_artifact = expected_cell["artifact"]
+            expected_checkpoint = expected_cell["target_checkpoint"]
+            if (
+                meta.get("git_sha") != expected_head
+                or meta.get("method") != method
+                or meta.get("strategy") != strategy
+                or int(meta.get("seed", -1)) != seed
+                or float(artifact.get("ratio", -1)) != float(ratio)
+                or artifact.get("artifact_id")
+                != expected_artifact["artifact_id"]
+                or artifact.get("recipe_hash")
+                != expected_artifact["recipe_hash"]
+                or artifact.get("content_hash")
+                != expected_artifact["content_hash"]
+                or int(artifact.get("k", -1)) != int(expected_cell["k"])
+                or float(expected_cell.get("ratio", -1)) != float(ratio)
+                or artifact.get("authoritative") is not True
+                or (artifact.get("target_checkpoint") or {}).get("state_hash")
+                != expected_checkpoint["state_hash"]
+                or (artifact.get("target_checkpoint") or {}).get("file_sha256")
+                != expected_checkpoint["file_sha256"]
+            ):
+                raise TargetDirectStageError(
+                    "GU target-direct provenance mismatch for " + strategy
+                )
+            from experiments.unlearning_outputs import load_output
+            from experiments.output_metrics import evaluate_method
+            reference = meta.get('output_reference')
+            payload = load_output(reference, config['paths']['cache_v2_root'])
+            if payload.identity['target']['method'] != method:
+                raise TargetDirectStageError('method output identity mismatch')
+            if payload.identity['selection'] != {key: artifact[key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}:
+                raise TargetDirectStageError('method output Selection mismatch')
+            if (leaf / 'predictions.npz').read_bytes() != payload.canonical_bytes:
+                raise TargetDirectStageError('collected predictions differ from the immutable output')
+            if attack_row.get('evaluation') != evaluate_method(reference, payload):
+                raise TargetDirectStageError('single-method metrics differ from saved predictions')
+            accepted.append(
+                {
+                    "strategy": strategy,
+                    "ratio": float(ratio),
+                    "k": int(expected_cell["k"]),
+                    "selection_artifact_id": artifact["artifact_id"],
+                    "target_checkpoint_state_hash": expected_checkpoint["state_hash"],
+                    "attack": attack_row,
+                    "method": method,
+                    "output_reference": reference,
+                }
+            )
     return {"accepted_cells": len(accepted), "cells": accepted}
 
 
@@ -1207,7 +1206,7 @@ def execute_gu(
     if dry_run:
         command.append("--dry_run")
     elif gate_only:
-        command.extend(["--limit", "1"])
+        command.extend(["--strategy", "degree"])
     started = time.perf_counter()
     completed = _run_command(
         command,

@@ -1,0 +1,1887 @@
+{
+  "candidate": "9de1d5f985e5d6ef1dbf162c8fd144dab799ecb9",
+  "source": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master",
+  "checks": [
+    {
+      "label": "cpu",
+      "command": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests/test_retrain_outputs.py",
+        "tests/test_modular_consumers.py",
+        "tests/test_generic_cache_v2.py",
+        "tests/test_collateral.py",
+        "tests/test_aagu009_collateral_repair.py",
+        "tests/test_update_detection_auc_policy.py",
+        "tests/test_target_direct_recipe.py",
+        "tests/test_target_direct_manifest.py",
+        "tests/test_target_direct_syncmate_stage.py",
+        "tests/test_cache_v2_runtime.py",
+        "tests/test_target_checkpoint.py",
+        "tests/test_gnndelete_architecture.py",
+        "tests/test_attack_manager.py",
+        "tests/test_selection_budget_planner.py",
+        "tests/test_cache_v2_formal_artifacts.py",
+        "tests/test_run_experiments_timeouts.py",
+        "tests/test_run_experiments_repair_validation.py",
+        "-q",
+        "--tb=short",
+        "-o",
+        "junit_family=legacy",
+        "--junitxml=E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3\\cpu.xml"
+      ],
+      "exit_code": 0,
+      "suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "163",
+          "time": "47.670",
+          "timestamp": "2026-09-06T02:01:36.171482+08:00",
+          "hostname": "DESKTOP-J0I2ET3"
+        }
+      ]
+    },
+    {
+      "label": "example",
+      "command": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "experiments/examples/retrain_cpu.py",
+        "--directory",
+        "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3\\example"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "protected_roots": [
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\selection_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\score_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\cache_v2",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\results\\runs",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\selection_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\score_cache",
+      "exists": false,
+      "file_count": 0,
+      "before_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "after_sha256": "9a295e9db1aea1300621369c85def7406e280e66c3add186d291c322216f55b6",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\cache_v2",
+      "exists": true,
+      "file_count": 0,
+      "before_sha256": "62abd487de170b01823bdaf9aaac40baa23313650e776cba1623c0423a5ace8a",
+      "after_sha256": "62abd487de170b01823bdaf9aaac40baa23313650e776cba1623c0423a5ace8a",
+      "unchanged": true
+    },
+    {
+      "root": "E:\\project\\OpenGU\\GULib-master\\results\\runs",
+      "exists": true,
+      "file_count": 3995,
+      "before_sha256": "4d03f8cebcb59223d244b13ce2342084ab83a8567a3bbf9f9891e3d9c14f624c",
+      "after_sha256": "4d03f8cebcb59223d244b13ce2342084ab83a8567a3bbf9f9891e3d9c14f624c",
+      "unchanged": true
+    }
+  ],
+  "protected_unchanged": true,
+  "consumer_evidence": [
+    {
+      "test": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "evidence": {
+        "aagu028_evidence": {
+          "retrain": {
+            "artifact_id": "pred_fbce420d_ecbc176d",
+            "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+            "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
+          },
+          "warm": {
+            "artifact_id": "pred_fbce420d_ecbc176d",
+            "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+            "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
+          },
+          "GU_outputs": [
+            {
+              "artifact_id": "pred_1bf49665_1295878c",
+              "recipe_hash": "1bf4966552bc3b0d2f3ce644662d007b9b13453b2523f2cf285527afd72fd794",
+              "content_hash": "1295878c091d3af43e8508f3f40a615596981042107363370e1ee4b71a5fd88d"
+            },
+            {
+              "artifact_id": "pred_12246945_44e417da",
+              "recipe_hash": "12246945153e5c34559dad01d9e5ece365715aae3fd7cd8e074a5b0bd69de134",
+              "content_hash": "44e417dad7f2abba04ac060ef83e175df95018f97a41e7e13a2d42e3e4ee4fe2"
+            }
+          ],
+          "metrics": [
+            {
+              "effective_config": {
+                "kind": "evaluation",
+                "schema_version": 1,
+                "case": "post_unlearning_utility_and_retrain_gap",
+                "metrics": [
+                  "perf_before",
+                  "perf_unlearn",
+                  "perf_retrain",
+                  "drop_retrain",
+                  "gap",
+                  "gap_pct"
+                ],
+                "acceptance": {},
+                "required_inputs": [
+                  "model_before",
+                  "model_unlearned",
+                  "exact_retrain_same_selection"
+                ],
+                "available_consumers": [
+                  "modular_cpu_v1",
+                  "target_direct_syncmate_v2"
+                ],
+                "producer_version": "persisted-output-retrain-gap-v2"
+              },
+              "rows": [
+                {
+                  "evaluation_receipt_id": "evalr_dd014291abd27b840953ede67684016e",
+                  "identity": {
+                    "case": "post_unlearning_utility_and_retrain_gap",
+                    "metrics": [
+                      "drop_retrain",
+                      "gap",
+                      "gap_pct",
+                      "perf_before",
+                      "perf_retrain",
+                      "perf_unlearn"
+                    ],
+                    "producer_version": "persisted-output-retrain-gap-v2",
+                    "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                    "unlearning_output": {
+                      "artifact_id": "pred_1bf49665_1295878c",
+                      "recipe_hash": "1bf4966552bc3b0d2f3ce644662d007b9b13453b2523f2cf285527afd72fd794",
+                      "content_hash": "1295878c091d3af43e8508f3f40a615596981042107363370e1ee4b71a5fd88d"
+                    },
+                    "retrain_output": {
+                      "artifact_id": "pred_fbce420d_ecbc176d",
+                      "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+                      "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
+                    }
+                  },
+                  "metrics": {
+                    "perf_before": 0.2,
+                    "perf_unlearn": 0.2,
+                    "perf_retrain": 0.2,
+                    "drop_retrain": 0.0,
+                    "gap": 0.0,
+                    "gap_pct": 0.0
+                  }
+                },
+                {
+                  "evaluation_receipt_id": "evalr_ed1d3b06b490005d4c82668b6142d3f8",
+                  "identity": {
+                    "case": "post_unlearning_utility_and_retrain_gap",
+                    "metrics": [
+                      "drop_retrain",
+                      "gap",
+                      "gap_pct",
+                      "perf_before",
+                      "perf_retrain",
+                      "perf_unlearn"
+                    ],
+                    "producer_version": "persisted-output-retrain-gap-v2",
+                    "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                    "unlearning_output": {
+                      "artifact_id": "pred_12246945_44e417da",
+                      "recipe_hash": "12246945153e5c34559dad01d9e5ece365715aae3fd7cd8e074a5b0bd69de134",
+                      "content_hash": "44e417dad7f2abba04ac060ef83e175df95018f97a41e7e13a2d42e3e4ee4fe2"
+                    },
+                    "retrain_output": {
+                      "artifact_id": "pred_fbce420d_ecbc176d",
+                      "recipe_hash": "fbce420dc6204dee296763e5e8ffb26ea849d7204ac55cddf6809904220003d3",
+                      "content_hash": "ecbc176d7d9c6a67b0eee01353b061fc8b29d61ffee1a2d0dd68c3df59c16134"
+                    }
+                  },
+                  "metrics": {
+                    "perf_before": 0.2,
+                    "perf_unlearn": 0.2,
+                    "perf_retrain": 0.2,
+                    "drop_retrain": 0.0,
+                    "gap": 0.0,
+                    "gap_pct": 0.0
+                  }
+                }
+              ]
+            }
+          ],
+          "store_unchanged_by_metrics": true,
+          "selector_and_training_forbidden": true
+        }
+      }
+    },
+    {
+      "test": "test_metrics_cli_and_target_direct_shared_consumer",
+      "evidence": {
+        "aagu028_cli": {
+          "command": [
+            "E:\\conda_package\\envs\\gnn\\python.exe",
+            "-B",
+            "-X",
+            "utf8",
+            "eval_collateral.py",
+            "--store-root",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\v2",
+            "--inputs",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\references.json",
+            "--evaluation",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\gap.yaml",
+            "--output-dir",
+            "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-201\\test_metrics_cli_and_target_di0\\cli-metrics"
+          ],
+          "result": {
+            "schema": "opengu.output_metrics",
+            "version": 1,
+            "evaluation": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "perf_before",
+                "perf_unlearn",
+                "perf_retrain",
+                "drop_retrain",
+                "gap",
+                "gap_pct"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "model_before",
+                "model_unlearned",
+                "exact_retrain_same_selection"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2"
+            },
+            "results": [
+              {
+                "strategy": "degree",
+                "perf_before": 0.2,
+                "perf_unlearn": 0.2,
+                "perf_retrain": 0.2,
+                "drop_retrain": 0.0,
+                "gap": 0.0,
+                "gap_pct": 0.0,
+                "mean_pred_shift": 0.03294701501727104,
+                "max_pred_shift": 0.09511786699295044,
+                "fraction_flipped": 0.2222222238779068,
+                "evaluation_receipt_id": "evalr_c71c5e23bf9770db013a44190e0547f2",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_03510d66_f604b28d",
+                    "recipe_hash": "03510d668792ffdf1112578cc9cb55bbaa3af9386ffe87500a92f8e52daf3744",
+                    "content_hash": "f604b28d27093e21c187575027c93520229cc015c117907ad09c67ac02011a6d"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_21e62209_1d53b4ca",
+                    "recipe_hash": "21e6220946749bb0239ce464f530988b3dda10f1dacc425f718b3aa2c7f1d352",
+                    "content_hash": "1d53b4caf88fc63740782115a625c908789b682ec7775ee808333f4b824759af"
+                  }
+                }
+              }
+            ],
+            "training_producer_called": false
+          },
+          "store_unchanged": true
+        }
+      }
+    },
+    {
+      "test": "test_independent_method_metrics_survive_collection_without_forward",
+      "evidence": {
+        "aagu028_independent_collection": {
+          "per_method": [
+            {
+              "f1_before": 0.2,
+              "f1_after": 0.2,
+              "f1_drop": 0.0,
+              "f1_drop_ratio": 0.0,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_b8a50106_6a203132",
+                "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_88129eb7129ddd8fc3bbf1c8eeaa980e",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156439335573,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.010851383209228516
+            },
+            {
+              "f1_before": null,
+              "f1_after": 0.2,
+              "f1_drop": null,
+              "f1_drop_ratio": null,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_ebaf78a3_4a01c219",
+                "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_0a36e85ad249c5ab9cc22f8fd44c9de7",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7180723631767043,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "missing_original_predictions"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.006869099999999406
+            },
+            {
+              "f1_before": 0.2,
+              "f1_after": 0.2,
+              "f1_drop": 0.0,
+              "f1_drop_ratio": 0.0,
+              "failed": false,
+              "selected_nodes": [
+                1
+              ],
+              "output": {
+                "artifact_id": "pred_27f6878d_475a72ef",
+                "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+              },
+              "evaluation": {
+                "evaluation_receipt_id": "evalr_4dc4df2181ac296fd1d7612dc66ee0d3",
+                "identity": {
+                  "output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                  "metric_libraries": {
+                    "sklearn": "1.3.2",
+                    "torch": "2.2.1+cu121",
+                    "numpy": "1.21.6"
+                  },
+                  "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156429915334,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              "producer_called": true,
+              "cache_hit": false,
+              "compute_seconds": 0.0025136470794677734
+            }
+          ],
+          "recomputed": {
+            "effective_config": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_method_metrics",
+              "metrics": [
+                "f1",
+                "accuracy",
+                "cross_entropy",
+                "classification_auc",
+                "classification_auc_status",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "method_output"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "single-method-output-metrics-v1"
+            },
+            "rows": [
+              {
+                "evaluation_receipt_id": "evalr_3337a5503eaa30df92ebf39bbc6cb72b",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_b8a50106_6a203132",
+                      "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                      "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156439335573,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_5c872fd24ea1273cde74bbeec22a661e",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_ebaf78a3_4a01c219",
+                      "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                      "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7180723631767043,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "missing_original_predictions"
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_8d8dc3f8e360304528268854a974776d",
+                "identity": {
+                  "case": "post_method_metrics",
+                  "metrics": [
+                    "accuracy",
+                    "classification_auc",
+                    "classification_auc_status",
+                    "cross_entropy",
+                    "f1",
+                    "update_detection_auc",
+                    "update_detection_auc_status"
+                  ],
+                  "producer_version": "single-method-output-metrics-v1",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "method_evaluation": {
+                    "output": {
+                      "artifact_id": "pred_27f6878d_475a72ef",
+                      "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                      "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                    },
+                    "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                    "metric_libraries": {
+                      "sklearn": "1.3.2",
+                      "torch": "2.2.1+cu121",
+                      "numpy": "1.21.6"
+                    },
+                    "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+                  }
+                },
+                "metrics": {
+                  "f1": 0.2,
+                  "accuracy": 0.2,
+                  "cross_entropy": 0.7174156429915334,
+                  "classification_auc": 0.3333333333333333,
+                  "classification_auc_status": "computed",
+                  "update_detection_auc": null,
+                  "update_detection_auc_status": "insufficient_samples"
+                }
+              }
+            ]
+          },
+          "differences": {
+            "effective_config": {
+              "kind": "evaluation",
+              "schema_version": 1,
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "perf_before",
+                "perf_unlearn",
+                "perf_retrain",
+                "drop_retrain",
+                "gap",
+                "gap_pct"
+              ],
+              "acceptance": {},
+              "required_inputs": [
+                "model_before",
+                "model_unlearned",
+                "exact_retrain_same_selection"
+              ],
+              "available_consumers": [
+                "modular_cpu_v1",
+                "target_direct_syncmate_v2"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2"
+            },
+            "rows": [
+              {
+                "evaluation_receipt_id": "evalr_f6f2c2cadf3d745d600c978a27d420e2",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_b8a50106_6a203132",
+                    "recipe_hash": "b8a501060deea1b1ee1a07c45873a178c08befd13f7b6790d8930795b17ab24f",
+                    "content_hash": "6a20313217bafbc3339e483432c10234f41f8a34a7f0f9001842491fd515aac5"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  }
+                },
+                "metrics": {
+                  "perf_before": 0.2,
+                  "perf_unlearn": 0.2,
+                  "perf_retrain": 0.2,
+                  "drop_retrain": 0.0,
+                  "gap": 0.0,
+                  "gap_pct": 0.0
+                }
+              },
+              {
+                "evaluation_receipt_id": "evalr_c0f2bb2b3006b021c15b628d0742ba4c",
+                "identity": {
+                  "case": "post_unlearning_utility_and_retrain_gap",
+                  "metrics": [
+                    "drop_retrain",
+                    "gap",
+                    "gap_pct",
+                    "perf_before",
+                    "perf_retrain",
+                    "perf_unlearn"
+                  ],
+                  "producer_version": "persisted-output-retrain-gap-v2",
+                  "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+                  "unlearning_output": {
+                    "artifact_id": "pred_27f6878d_475a72ef",
+                    "recipe_hash": "27f6878db4419516dce8c16409bad48845557aa5e44554db426702f0dedb6124",
+                    "content_hash": "475a72ef4f35fdc20d2e93286ba6463a27077bf3b12e1648dc4ae0f9fd234ced"
+                  },
+                  "retrain_output": {
+                    "artifact_id": "pred_ebaf78a3_4a01c219",
+                    "recipe_hash": "ebaf78a304380a195cf9422fdcc7f14943555df1aee172eb51f08f332dfcd0e0",
+                    "content_hash": "4a01c219d825a13bdd66cc9b91d3bc9e81dcd70e7369dac9454c0dcae7f34c3b"
+                  }
+                },
+                "metrics": {
+                  "perf_before": 0.2,
+                  "perf_unlearn": 0.2,
+                  "perf_retrain": 0.2,
+                  "drop_retrain": 0.0,
+                  "gap": 0.0,
+                  "gap_pct": 0.0
+                }
+              }
+            ]
+          },
+          "store_unchanged": true,
+          "training_and_forward_forbidden": true
+        }
+      }
+    }
+  ],
+  "raw_evidence_directory": "E:\\project\\OpenGU-worktrees\\aagu-028-retrain-metrics\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu-028-rework-verify3",
+  "example": {
+    "retrain_output": {
+      "artifact_id": "pred_b492204e_7b61c0bd",
+      "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+      "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+    },
+    "GU_outputs": [
+      {
+        "artifact_id": "pred_a26f13c9_e9bb1a3b",
+        "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+        "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+      },
+      {
+        "artifact_id": "pred_20e8907a_3be05db0",
+        "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+        "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+      }
+    ],
+    "hot_retrain_producer_called": false,
+    "metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_unlearning_utility_and_retrain_gap",
+          "metrics": [
+            "perf_before",
+            "perf_unlearn",
+            "perf_retrain",
+            "drop_retrain",
+            "gap",
+            "gap_pct"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "model_before",
+            "model_unlearned",
+            "exact_retrain_same_selection"
+          ],
+          "available_consumers": [
+            "modular_cpu_v1",
+            "target_direct_syncmate_v2"
+          ],
+          "producer_version": "persisted-output-retrain-gap-v2"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_a0c8d0bb60eb26072a66a4e2816e9904",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_b798439e88e61a1b4bc1e0bb84eebd56",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_20e8907a_3be05db0",
+                "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          }
+        ]
+      }
+    ],
+    "metrics_repeat_equal": true,
+    "single_method_metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_method_metrics",
+          "metrics": [
+            "f1",
+            "accuracy",
+            "cross_entropy",
+            "classification_auc",
+            "classification_auc_status",
+            "update_detection_auc",
+            "update_detection_auc_status"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "method_output"
+          ],
+          "available_consumers": [
+            "modular_cpu_v1",
+            "target_direct_syncmate_v2"
+          ],
+          "producer_version": "single-method-output-metrics-v1"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_0f4194f7b4640d492ebb9ea9b7ab78f9",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_a26f13c9_e9bb1a3b",
+                  "recipe_hash": "a26f13c9efa12b3668dd0cfb320b593e21385671b83842c2eccb07625cb55238",
+                  "content_hash": "e9bb1a3bfc75e324f80b0d4c790eec3497d5e32f59dfdf636db0e86bf817d0b5"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 1.0,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_79f2ae9c0a54736c0cc19cb2b2ed6182",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_20e8907a_3be05db0",
+                "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_20e8907a_3be05db0",
+                  "recipe_hash": "20e8907a9861b16cc2c201dd2f9aa1c0d2df96119b88aac2891ef52201e12408",
+                  "content_hash": "3be05db04f2ccee305e9a7bdf6d2bbda9612c89a59aa2ef078a257fe3a7e1e99"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 0.5,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_00eca6765ff037be1f202f315ae6a53e",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "d6cae440f0cdc4fca9b1c082c259805e5720e815fc06e220be8608f53445721d",
+              "unlearning_output": {
+                "artifact_id": "pred_b492204e_7b61c0bd",
+                "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_b492204e_7b61c0bd",
+                  "recipe_hash": "b492204edcb792f177552707d052217b6882816247c677b17ce49ed9b3095ee3",
+                  "content_hash": "7b61c0bd8dbcaf55fc13ae3514c56360e49efb125e4ffdab9698d1619cc8ac3d"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.7009000715050294,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "missing_original_predictions"
+            }
+          }
+        ]
+      }
+    ],
+    "method_order": [
+      "GNNDelete",
+      "GIF",
+      "Retrain"
+    ],
+    "forward_forbidden_during_reads": true,
+    "training_steps_forbidden_during_reads": true,
+    "software_evidence_only": true
+  },
+  "test_results": [
+    {
+      "name": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[training]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[model]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[semantics]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[request]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_gu_parameters_and_metrics_do_not_change_retrain",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_retrain_removes_supervision_and_incident_edges",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_corrupted_outputs_rejected_without_training",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[x]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[y]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[split]",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_changed_producer_and_missing_selection_dependency_rejected",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_aggregate_serialization_is_lossless",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_metrics_cli_and_target_direct_shared_consumer",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_independent_method_metrics_survive_collection_without_forward",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_auc_reports_missing_classes_without_producing_data",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_matrix_runs_one_requested_method_without_inline_comparison",
+      "class": "tests.test_retrain_outputs",
+      "passed": true
+    },
+    {
+      "name": "test_method_cold_warm_and_hutch_isolation",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_consumes_existing_selection_without_producer",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_default_expansion_and_budget_reuse",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_wrong_identity_fail_before_execution",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_method_and_default_equivalence",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_different_selector_and_gu_backbones",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_real_command_entry_selector_and_existing_selection",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad0]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad1]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad2]",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_all_seventeen_methods_match_pre_refactor_formulas",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_actual_dependency_implementation_changes",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_mismatched_persisted_data_and_checkpoint_rejected",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_yaml_duplicate_and_implicit_override_rejected",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_operational_fields_are_rejected_and_context_is_external",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_project_context_owns_fixed_store_runtime_device_and_output",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_minimal_method_files_expand_real_defaults",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_is_independent_and_missing_retrain_fails_closed",
+      "class": "tests.test_modular_consumers",
+      "passed": true
+    },
+    {
+      "name": "test_default_real_entry_cold_hot_and_shared_store",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_selection_hit_with_distinct_target_evaluation",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_shard_consumer_reuses_canonical_trained_selection",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[features]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[labels]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[graph]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[candidates]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[split]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[model]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_identity_changes_reject_old_result[seed]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[False-True]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[False-False]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[True-False]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_switch_semantics_all_consumers[True-True]",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_per_call_cache_override",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_tracin_exact_weight_and_data_identity",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_corrupt_artifact_fails_before_producer",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_real_demo_cli_cold_hot",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_formal_artifact_consumer_runs_real_pipeline",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_changed_score_content_is_quarantined_not_overwritten",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_random_production_is_independent_of_prior_rng_and_cache",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_trained_selector_is_independent_of_gu_parameters_and_producer",
+      "class": "tests.test_generic_cache_v2",
+      "passed": true
+    },
+    {
+      "name": "test_train_only_skips_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_default_runs_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_run_exp_mem_unaffected_by_train_only",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_missing_train_only_key",
+      "class": "tests.test_collateral.TestTrainOnlyLearningBased",
+      "passed": true
+    },
+    {
+      "name": "test_train_only_skips_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_default_runs_unlearn",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_run_exp_mem_unaffected",
+      "class": "tests.test_collateral.TestTrainOnlyShardBased",
+      "passed": true
+    },
+    {
+      "name": "test_extracts_from_target_model",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_extracts_from_model_zoo",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_fallback_to_pipeline_model",
+      "class": "tests.test_collateral.TestGetTrainedModel",
+      "passed": true
+    },
+    {
+      "name": "test_actual_writeback_reaches_collateral_hop_consumer[GIF-gif]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_actual_writeback_reaches_collateral_hop_consumer[IDEA-idea]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_missing_writeback_despite_unchanged_source[GIF-gif]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_missing_writeback_despite_unchanged_source[IDEA-idea]",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_verifier_rejects_a_method_loaded_from_a_different_checkout",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_aagu009_retired_entrypoints_are_absent",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_direct_verifier_runs_from_outside_the_checkout",
+      "class": "tests.test_aagu009_collateral_repair",
+      "passed": true
+    },
+    {
+      "name": "test_policy_defaults_on_and_canonical_flag_wins",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_gate_accepts_null_only_when_auc_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_gate_rejects_finite_auc_when_policy_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_primary_yaml_configs_make_dataset_scope_explicit",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_every_arxiv_phase_config_disables_optional_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_cell_fingerprint_distinguishes_enabled_and_disabled_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "passed": true
+    },
+    {
+      "name": "test_only_trajectory_consumers_bind_changed_checkpoint",
+      "class": "tests.test_target_direct_recipe",
+      "passed": true
+    },
+    {
+      "name": "test_gate_manifest_accepts_one_seed_and_orders_degree_first",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_all_trainable_summary",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_unapproved_seed_request",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_manifest_rejects_unapproved_ratio",
+      "class": "tests.test_target_direct_manifest",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_freezes_scope_budget_and_excludes_stress",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[train_ratio-0.6]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[val_ratio-0.2]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[test_ratio-0.1]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_invalid_split_contract[materialize_on_miss-False]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_accepts_valid_alternate_split_and_derives_budgets",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_preflight_does_not_materialize_split_before_execution_gates",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_preflight_allows_registered_split_materialization_after_gates",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_split_or_stage_cache_roots[results/cache_v2/target_direct_formal_v2/score]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_split_or_stage_cache_roots[results/cache_v2/cora-seed42]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_cache_root_experiment_or_stage_descendant[results/cache_v2/target_direct_formal_v2]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_config_rejects_cache_root_experiment_or_stage_descendant[results/cache_v2/cora-seed42]",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_each_stage_uses_one_canonical_cache_store_root",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_scientific_yaml_has_no_execution_paths_or_device",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_formal_selector_reference_is_consumed_and_frozen",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_direct_selection_rejects_unequal_cache_roots",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_direct_selection_consumes_alternate_split_without_manual_profile",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_static_stage_artifact_sets_are_exact_and_bounded",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_selection_receipt_binds_cold_warm_checkpoint_and_timings",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_stage_parser_rejects_non_matrix_seed",
+      "class": "tests.test_target_direct_syncmate_stage",
+      "passed": true
+    },
+    {
+      "name": "test_runtime_artifact_id_load_is_exact_verified_and_zero_write",
+      "class": "tests.test_cache_v2_runtime",
+      "passed": true
+    },
+    {
+      "name": "test_runtime_load_never_substitutes_artifact_or_candidate_set",
+      "class": "tests.test_cache_v2_runtime",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_round_trip_and_hash_compatibility",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_rejects_wrong_identity",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_target_checkpoint_rejects_final_trajectory_mismatch",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_gnndelete_loads_exact_target_checkpoint_without_training",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_attack_pipeline_formal_selection_validation",
+      "class": "tests.test_target_checkpoint",
+      "passed": true
+    },
+    {
+      "name": "test_gcn_delete_matches_configured_gcn_depth_for_arxiv",
+      "class": "tests.test_gnndelete_architecture",
+      "passed": true
+    },
+    {
+      "name": "test_gcn_delete_uses_gcn_hidden_for_first_deletion_layer",
+      "class": "tests.test_gnndelete_architecture",
+      "passed": true
+    },
+    {
+      "name": "test_basic_creation",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_to_dict",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_save_and_load",
+      "class": "tests.test_attack_manager.TestAttackResult",
+      "passed": true
+    },
+    {
+      "name": "test_basic_creation",
+      "class": "tests.test_attack_manager.TestComparisonResult",
+      "passed": true
+    },
+    {
+      "name": "test_relative_improvement",
+      "class": "tests.test_attack_manager.TestComparisonResult",
+      "passed": true
+    },
+    {
+      "name": "test_strategy_registration",
+      "class": "tests.test_attack_manager.TestAttackManagerBasics",
+      "passed": true
+    },
+    {
+      "name": "test_builtin_strategies_list",
+      "class": "tests.test_attack_manager.TestAttackManagerBasics",
+      "passed": true
+    },
+    {
+      "name": "test_zero_f1_before",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_negative_f1_drop",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_empty_selected_nodes",
+      "class": "tests.test_attack_manager.TestAttackResultEdgeCases",
+      "passed": true
+    },
+    {
+      "name": "test_cold_group_computes_max_once_and_fans_out_prefixes",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_warm_group_checks_max_once_and_is_zero_write",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_smaller_future_request_reuses_smallest_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_exact_k_is_preferred_over_a_larger_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_identity_change_does_not_reuse_covering_artifact",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_prefix_reuse_requires_explicit_stability_contract",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_fail_if_called_rejects_a_true_maxk_miss",
+      "class": "tests.test_selection_budget_planner",
+      "passed": true
+    },
+    {
+      "name": "test_recipe_builders_bind_minimal_identity_and_producer_versions",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_score_payload_is_deterministic_versioned_and_recipe_checked",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_prediction_payload_is_deterministic_and_validates_shapes_and_retain_mask",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_formal_store_cold_warm_chain_is_exact_zero_write_and_dependency_bound",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_canonical_cora_shape_prediction_evaluation_roundtrip_is_cpu_only",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_formal_store_rejects_missing_or_unhealthy_dependencies",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_hit_recursively_rejects_corrupt_selection_dependency",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_payload_bytes[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_reject_corrupt_header_bytes[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[score]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[prediction]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_all_formal_types_conflict_quarantine_and_corruption_fail_closed[evaluation]",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_experiment_layer_calls_upstream_producer_only_on_miss_and_never_writes_legacy",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_experiment_layer_does_not_recompute_a_corrupt_exact_candidate",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_cache_v2_formal_modules_have_no_upstream_producer_or_dataset_imports",
+      "class": "tests.test_cache_v2_formal_artifacts",
+      "passed": true
+    },
+    {
+      "name": "test_phase_state_transitions_by_output_markers",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_selection_cache_hit_moves_to_unlearning_phase",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_method_timeout_override_applies_to_both_phases",
+      "class": "tests.test_run_experiments_timeouts",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_missing_file",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_invalid_json",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_missing_results",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_strategy_mismatch",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_validate_experiment_json_complete_allows_extra_strategies",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_scan_missing_items_grid_respects_validation_mode",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    },
+    {
+      "name": "test_run_repair_uses_current_config_strategies_and_records_meta",
+      "class": "tests.test_run_experiments_repair_validation",
+      "passed": true
+    }
+  ],
+  "raw_files": {
+    "verification.json": "ccd0c60813b7672d145c451a2d05e5bb7a83a4367cc672449ba40ff698162724",
+    "cpu.xml": "aa8b501f1befdfa24583842c16a2bfeaacc3ac933812f2293d9edc9a0a7ef85b",
+    "cpu.log": "f411e313f857b183eac3dc1c3c704ae13f275cc6d4f1317ef86f60d08b2bed9c",
+    "example.log": "0e952cd88016cca25f6aca3288336611712938e5433b5320d59fdef0cd8f8482",
+    "protected-before.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc",
+    "protected-after.json": "f81cb57e47dfb96906e018dbb1af10bf41fda1cf3d71e76ff20235029cdf6bbc"
+  }
+}
