@@ -1,8 +1,10 @@
 # AAGU-015 两阶段定义
 
 本目录是 [AAGU-015](../../../.workblock/items/AAGU-015/WORKITEM.md) 的第一项配置产物。
-015 交付实验方案与可执行链路，并用必要的最小验证确认接通。306/612 表示方案展开范围，
-全量执行和完整科研结果不属于本次验收要求。当前配置仍未绑定数据或 Selection，链路尚在实现中。
+015 本轮交付当前阶段的实验方案、实际 YAML 及能力覆盖检查，验收对象不是完整执行系统或全量实验结果。
+[方案](../../../.workblock/items/AAGU-015/EXPERIMENT_PLAN.md) 明确问题、对照与指标；
+[覆盖表](../../../.workblock/items/AAGU-015/CAPABILITY_COVERAGE.md) 说明各入口支持与缺口。
+306/612 是组合覆盖；当前计划可解析但未绑定输入，Stage U 也尚不具备完整评价支持。
 
 ## 配置入口
 
@@ -55,22 +57,24 @@ TracIn 显式指定 `[1,10,25,50,75,100]`：6-checkpoint 消费全部六点，3-
 这些组由有效配置比较得到，并不是 Recipe/Artifact 哈希、实际训练次数或 cache HIT。
 GU 和 Selector 的相同模型配置也必须经过数据、训练、checkpoint、数值与实现身份核验后才能共享。
 
-## 链路实现待办
+## 配置可解析与运行可用的区别
 
-1. 三个 `datasets/*.yaml` 的 manifest、manifest SHA 和 split hash 当前为空，需要实现读取、验证和绑定接缝，
-   并验证候选与 checkpoint 准备/复用。当前生成器不自动下载或准备数据；空引用不能视为链路已接通。
-2. Stage S 需要接通完整 Score、排名和 Selection 的输出、Q1–Q4 比较和时间拆分消费者，以最小验证核对语义。
-3. Stage U 的配置直接保留 `selection_input`，没有 `selector_refs`；当前均未绑定。
-   已有 modular GU 仅支持 utility 消费；`post_unlearning_utility_and_retrain_gap` 会在写入前拒绝，
-   不得降为 utility-only 来宣称接通。还需完整重训练及删除目标、保留节点、测试、collateral、预测变化的真实消费者链。
-4. 最小端到端验证需经过实际消费者，证明固定 Selection 复用及正确模型进入评价，记录输入、代码和产物身份。
-   软件 fixture 与隔离 smoke 只能支持实现判断，不写成三数据集的科学结果。
+1. 三个 Dataset/Split 文件的 manifest、manifest SHA、split hash 当前为空。既有读取校验能力已经存在；
+   SM-005 也已有实际 Cora 输入。015 尚未绑定它们，不表示整个项目没有数据，不自动下载或准备数据。
+2. Stage S 引用现有 17 个 Selector 实现。评分/排名/Selection 原语和计时已存在；本轮 Q1–Q4 比较设计
+   在方案文档中给出，不把历史运行或底层函数存在等同本轮分析结果。
+3. Stage U 保留 `selection_input` 且没有 `selector_refs`，引用尚未绑定。独立 Evaluation 选择
+   `post_unlearning_utility_and_retrain_gap`；modular 入口当前拒绝该 case。target-direct 固定配方仅支持
+   GNNDelete；通用评估另有配置/身份合同，不能自动回退以冒充完整支持。
+4. 独立 `Retrain` 未进入 GU 方法注册；612 cell 仍只包含 GNNDelete/GIF，不能添加无法解析的 Retrain 小表。
+   已有 `run_retrain` 和 Metrics 函数不等于独立方法及只读 Metrics 架构已完成。
+5. 本轮检查交付配置到入口的准确映射及缺口。缺失能力的后续实现归属另行明确，不自动成为 015 的代码任务。
 
 ## 后续正式运行边界
 
 正式数据只能使用 `/autodl-fs/data/OpenGU/GULib-master/data/processed` 中验证过的 canonical pair。
 实际 SSH/GPU 运行仍需注册 launcher、设备配置、三端同一已落地 main、明确的 canary 范围、成本门槛和调度批准。
-这些规则服务后续正式执行；不再以缺全量科研结果或未完成正式部署来阻塞 015 的本地链路实现。
+这些规则服务后续正式执行；不以缺全量科研结果或未完成正式部署来阻塞 015 的方案与覆盖说明验收。
 旧 target-direct recipe 不替代本轮调度授权；不从本配置直接铺开 306/612 矩阵。
 
-验收所需证据是方案、链路实现与最小验证证据；完整排名对照、三数据集成本和攻击效果结论由后续获准运行产生。
+验收所需材料是当前阶段方案、真实配置、解析/展开检查和能力覆盖说明；排名对照结果、三数据集成本和攻击效果结论由后续获准运行产生。
