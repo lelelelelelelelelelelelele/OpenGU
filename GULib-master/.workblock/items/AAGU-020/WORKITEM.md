@@ -73,7 +73,7 @@ Item Type: Block
 ## Context and relations
 
 - Blueprint scope: D-GIF graph-source scoring and the preparation boundary for later large-graph scalability probes.
-- Confirmed Block relations: none.
+- 当前执行前置：AAGU-007 最小正式实验，继承 AAGU-028 已接受运行基础；后续 021/022 沿此链执行。方案整理与隔离 CPU 软件验证可先行，正式研究计时遵守共同 gate。
 - The future small-graph timing Block and large-graph probe Block are not registered here; each must receive its own identity and declare the appropriate dependency when registered.
 - `AAGU-015` is not promoted, modified, or related by this registration.
 
@@ -88,3 +88,4 @@ Item Type: Block
 ## Status history
 
 - 2026-08-27: registered from the confirmed D-full GIF primitive and timing-application preview; ready for a separate execution task to claim.
+- 2026-09-06：按用户要求把 007 置于全部实际实验之前，补齐计时路线的共同 gate；本项原语范围、direct 验收路线和生命周期不变。

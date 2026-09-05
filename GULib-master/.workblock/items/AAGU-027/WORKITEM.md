@@ -13,7 +13,7 @@ Execution topology: `sequential`
 
 ### 核心意图
 
-在 AAGU-001 实验框图与公共合同、AAGU-009 软件修复分别完成并被接受后，按当前批准的实验定义重新生成 GIF/IDEA collateral 证据，完成双端运行、收集、完整性核验及独立研究证据验收。
+在 AAGU-001 实验框图与公共合同、AAGU-009 软件修复以及 AAGU-007 最小正式实验分别被接受后，按当前批准的实验定义重新生成 GIF/IDEA collateral 证据，完成双端运行、收集、完整性核验及独立研究证据验收。
 
 ### 本次增量
 
@@ -43,6 +43,7 @@ Execution topology: `sequential`
 - Source anchor: 用户在本任务中要求“009 只修代码，跑实验和 SSH 部分移到新 Block”，并重申正式运行必须在 001 实验框图之后，015 同样遵守。
 - `AAGU-027 depends_on AAGU-001`：消费已接受的公共框架，不能先跑旧 YAML 再补实验定义。
 - `AAGU-027 depends_on AAGU-009`：使用已接受的软件修复。009 的软件回归可先进行，正式实验不可借用其 FIX 身份提前执行。
+- `AAGU-027 depends_on AAGU-007`：与其他正式实验共同遵守最小实验先行；028 的独立输出与离线 Metrics 基础由 007 继承。若全量重跑已提供匹配的新输出和完整指标，复用同批产物满足本项证据要求，不另跑重复矩阵；具体归并由 030 核对。
 - `AAGU-010 depends_on AAGU-027`：010 的真实回读与汇总验收消费这里被接受的 collateral evidence。
 - 015 的关系仍为 `AAGU-015 depends_on AAGU-001`。本轮若使用由 015 决定的 IF 科学定义，还须引用其已接受决定；不把 IF-family GU 与所有 IF selector 决策混成同一任务。
 - AAGU-026 owns modular configuration/cache implementation. 若本轮合同需要尚未实现的能力，执行前须满足对应实现前置，不能回退旧路径绕过 001；不在这里提前代替本轮定义作判断。
@@ -64,8 +65,9 @@ Execution topology: `sequential`
 
 ## Restart and next action
 
-确认 001、009 的当前接受事实，读取它们的最新交付及本 Record；在后续执行任务中使用 block-workflow Claim 同一 locator。先按 001 形成并审阅本轮实验合同，再处理双端准备和正式 gate；获准运行后完成执行、收集与研究证据验收。保留 AAGU-010 的后续消费边界。
+确认 001、009、007 的当前接受事实，读取它们的最新交付及本 Record；在后续执行任务中使用 block-workflow Claim 同一 locator。先核对本轮合同和全量重跑是否已覆盖所需证据，再处理尚缺的运行或收集工作；匹配证据只生产一次。保留 AAGU-010 的后续消费边界。
 
 ## Status history
 
 - 2026-09-04: 按用户确认的修复/实验拆分注册独立 EXP；从 009 接收正式重跑和 SSH/收集责任，依赖 001 与 009，010 改为消费这里的接受证据。状态 registered / not claimed；未继承旧 Claim、旧运行批准或历史结果的可信身份。
+- 2026-09-06：用户要求 007 作为所有实际实验的共同前置；同步此依赖与同批新结果复用边界。未 Claim、运行或变更生命周期。

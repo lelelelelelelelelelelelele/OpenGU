@@ -1,4 +1,4 @@
-# AAGU-007 · EXP · Target-Direct GU Gate
+# AAGU-007 · EXP · 最小正式实验 Gate（Target-Direct）
 
 Block ID: `AAGU-007`
 
@@ -12,26 +12,31 @@ Item Type: Block
 
 ### 核心意图
 
-在扩大实验矩阵之前，先完成并接纳最小的 Target-Direct 图遗忘实验 gate，证明当前科学定义、设备条件和证据链足以支撑一条真实正式运行路径。
+作为本轮正式实验的共同起点，在 AAGU-002 设备就绪后，先完成并接纳最小的 Target-Direct 端到端实验，证明当前科学定义、设备条件和证据链足以支撑一条真实正式运行路径。007 先于 031 Selector 大组、后续 GU 矩阵、修复重跑与正式计时实验。
 
 ### 本次增量
 
-待实验定义与设备就绪前置满足后，按最终批准的实验配方运行最小 Target-Direct gate，并把固定、可核对的源码/数据身份、运行产物、来源链和解释边界收敛为独立证据包。本 Block 不重新决定选择器或影响函数（IF）的科学定义，登记本身也不授权 GPU 执行。
+消费 AAGU-015 已接受的 Selector 定义、AAGU-028 的独立 GU/Retrain 与离线 Metrics 能力及 AAGU-002 的设备就绪证据，按获批 Target-Direct 配方运行最小切片，核对 Selector → Score/Selection → 独立 GU/Retrain 输出 → 收集与离线指标比较。把源码/数据身份、产物、来源链和解释边界收敛为独立证据包；不重新决定 IF 科学定义，也不运行完整矩阵。
+
+007 验证一条最小正式运行链；031 消费该 gate 后执行 015 的 306-cell Selector 范围与 Q1–Q4 分析。007 不依赖 031 的全量结果，不要求 030 完成总表；后续任务只复用身份仍有效且确实覆盖其入口的证据，并自行完成方法、输入和成本检查，不将一个 Target-Direct 小切片说成所有专题均已验证。
 
 ### 核心验收
 
 - gate 使用获批实验配方与明确的源码/数据身份，运行产物和来源链能逐项回溯。
 - 人能够区分正式 gate 证据与 smoke、配置预检或后续矩阵扩展，不把前者之外的状态写成科研接受。
 - 用户基于真实证据明确接受、返工或拒绝该 Target-Direct gate，之后才允许继续扩展实验矩阵。
+- 明确交接给 031、后续 GU/重跑与计时路线的已验证环节、Artifact/输出引用和未覆盖条件；不以 smoke、CPU 软件验证或历史 SyncMate 小作业替代本轮正式 gate。
 
 ## Orchestration contract
 
 - Class: `EXP`
 - Priority: `P0` after experiment-definition and device gates.
 - Source anchor: legacy target-direct experiment Todo.
-- Outcome: run and accept the smallest authorized target-direct GU gate before any matrix expansion.
+- Outcome: run and accept the smallest authorized Target-Direct end-to-end gate before the current research experiment branches expand.
 - Fact owner: [target-direct formal v2 recipe](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml); OpenGU DocMap remains scientific framing and historical navigation only.
 - Dependencies are projected by WORKPLAN, not copied into lifecycle status.
+- Prerequisites: AAGU-002、AAGU-015、AAGU-028；001/006/026/009 的已接受基础从这些前置继承。
+- Downstream: AAGU-031、后续 GU 矩阵与 AAGU-027 等正式研究路线；方案整理和隔离 CPU 软件验证不因本 gate 而阻塞。
 
 ## Acceptance route proposal
 
@@ -50,3 +55,4 @@ Item Type: Block
 ## Status history
 
 - 2026-08-26: registered from the prominent target-direct experiment Todo.
+- 2026-09-06：用户要求 007 位于所有实际实验之前，并明确与 031 的关系；沿用同一编号与 Target-Direct 最小正式范围，改为共同实验入口。仅修正合同与编排，保持 registered / not claimed，未启动作业。

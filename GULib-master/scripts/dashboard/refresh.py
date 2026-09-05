@@ -53,10 +53,12 @@ MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 # Stage sections, matched by keyword in the H2 header.
 STAGES = [
+    ("实验起点", "实验起点 · 最小正式验证"),
     ("Phase 1", "Phase 1 · Selector"),
     ("Phase 2 · 完整实验表", "Phase 2 · 完整实验表"),
     ("修复队列", "修复"),
     ("实验 timeline", "既有实验 · 待映射"),
+    ("D-full 计时路线", "D-full 计时"),
     ("写作", "写作"),
     ("画图", "画图"),
     ("支撑", "支撑"),
