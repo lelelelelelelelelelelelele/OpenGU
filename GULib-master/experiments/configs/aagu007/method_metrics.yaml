@@ -1,0 +1,11 @@
+kind: evaluation
+schema_version: 1
+case: post_method_metrics
+metrics:
+  - f1
+  - accuracy
+  - cross_entropy
+  - classification_auc
+  - classification_auc_status
+  - update_detection_auc
+  - update_detection_auc_status

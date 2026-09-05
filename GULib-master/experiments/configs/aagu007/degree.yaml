@@ -1,0 +1,15 @@
+kind: selector
+schema_version: 1
+method: degree
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01
+  denominator: train_candidate_count
+  rounding: floor_with_minimum_one
+selection_rule:
+  direction: descending
+  tie_break: node_id_ascending
+numerics:
+  dtype: float32

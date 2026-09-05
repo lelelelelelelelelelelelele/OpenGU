@@ -1,0 +1,23 @@
+# AAGU-007 理想配置草案；等待 AAGU-034 的统一规范与入口实现后绑定验证。
+# 预定落点：experiments/configs/aagu007/experiment.yaml。
+# 以下相对引用按预定落点解析；当前文档所在目录不作为运行目录。
+# 一张组合表：1 Dataset/Split × 1 Degree × 2 同级方法 × 2 训练 seeds。
+kind: experiment
+schema_version: 1
+experiment_id: aagu007-cora-degree-r001-v1
+stage: unlearning
+
+dataset_ref: ../datasets/cora.yaml
+selector_refs:
+  - ../selectors/degree.yaml
+unlearning_refs:
+  - ../unlearning/gnndelete.yaml
+  - ../unlearning/retrain.yaml
+evaluation_refs:
+  - ../evaluations/post_method_metrics.yaml
+
+# 大表优先于小表；小表优先于方法默认值。
+# 训练 seed 不改变 Dataset/Split seed 或 Random 抽样 seed。
+seeds: [122, 722]
+budget_ratios: [0.01]
+matrix: cartesian_product

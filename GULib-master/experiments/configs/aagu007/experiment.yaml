@@ -1,0 +1,28 @@
+# 旧接口的展开草案，仅留存对照，不作为最终提交版本。
+# 当前理想配置见 .workblock/items/AAGU-007/experiment.ideal.yaml；等待 AAGU-034 支持。
+# 1 个 Cora split × 1 个 Degree selector × 2 个同级方法 × 2 个训练 seed。
+# 方法轴为 GNNDelete、Retrain；各实例独立执行、缓存和保存 Output，互不调用。
+# 仅 1% 预算，训练 seed 为 122 和 722；数据 split seed 保持 2024。
+# Degree 只声明一次，四个方法实例共享同一 Selection，不按训练 seed 重算 Selector。
+# 缓存预测：已有 Degree Score / Selection 均应 HIT、producer_called=false。
+# 实验运行与 Result 交付由 SyncMate 负责，Cache 系统自动判定复用。
+# Agent 只审阅 SyncMate 交付的 Result，判断 HIT/MISS 等功能表现是否正确。
+# 预测只用于结果审查，不作为强制 HIT 或禁止正常 MISS 生产的运行开关。
+# GNNDelete / Retrain 只保存独立输出与单方法指标。
+# 后续由 SyncMate 的独立 Metrics 任务消费 retrain_gap.yaml，交付配对比较 Result。
+kind: experiment
+schema_version: 1
+experiment_id: aagu007-cora-degree-r001-seeds122-722-v1
+stage: unlearning
+
+dataset_ref: dataset.yaml
+selector_refs:
+  - degree.yaml
+unlearning_refs:
+  - gnndelete_seed122.yaml
+  - retrain_seed122.yaml
+  - gnndelete_seed722.yaml
+  - retrain_seed722.yaml
+evaluation_refs:
+  - method_metrics.yaml
+matrix: cartesian_product

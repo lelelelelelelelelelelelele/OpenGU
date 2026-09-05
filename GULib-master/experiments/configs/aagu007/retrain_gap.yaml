@@ -1,0 +1,13 @@
+# 只在收集并核验真实 GU / Retrain Output 引用后，由独立 Metrics 阶段消费。
+kind: evaluation
+schema_version: 1
+case: post_unlearning_utility_and_retrain_gap
+metrics:
+  - perf_before
+  - perf_unlearn
+  - perf_retrain
+  - drop_retrain
+  - gap
+  - gap_pct
+acceptance:
+  note: 本次验证真实执行与证据链；如实报告差值，由用户审阅决定，不预设攻击有效性阈值。
