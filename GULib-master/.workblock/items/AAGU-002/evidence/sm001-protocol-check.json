@@ -1,0 +1,14 @@
+{
+  "protocol_check": {
+    "status": "stopped",
+    "reason": "workitem-version-upgrade-required",
+    "canonicalWorkItemLocator": ".workblock/items/SM-001/WORKITEM.md",
+    "actualItemVersion": "1.0",
+    "supportedItemVersion": "2.1",
+    "recovery": "upgrade the same WorkItem to Item Version 2.1, then retry"
+  },
+  "exit_code": 3,
+  "record_sha256": "d3e53c2a806db867572506fb6206af014b4b18c154bb986dd19d1c69e6360658",
+  "record_modified_by_this_task": false,
+  "claim_created_by_this_task": false
+}

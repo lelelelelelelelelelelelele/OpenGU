@@ -1,0 +1,39 @@
+{
+  "desktop": {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "decision": {
+      "x": 347,
+      "y": 606.90625,
+      "width": 48,
+      "height": 21,
+      "top": 606.90625,
+      "right": 395,
+      "bottom": 627.90625,
+      "left": 347
+    },
+    "headings": [
+      "Human Result",
+      "场景与观察",
+      "剩余修复",
+      "证据与边界"
+    ],
+    "brokenImages": 0
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390
+  },
+  "missing_local_links": [],
+  "agent_observation": "Inspected actual desktop first screen and full-page screenshots: REFUSED status, two FAIL rows, and pending decision are legible; no clipped content, missing links, or broken images. Mobile checked for horizontal overflow only.",
+  "screenshot_directory": "E:\\project\\OpenGU-worktrees\\aagu-002-device-readiness\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu002-report-qa",
+  "files": {
+    "desktop.png": "e61f06fd6c7784ba72534ff9e3eba6ef272f9682f3bde289731d88ed4ef278c2",
+    "full.png": "f56e02820bae22467c6d02354d4a3ab5afff7fc8ce21a727b32c61cafdd7be22",
+    "layout.json": "a2db238380da119bac0cffe23a043d0b3ad78581afbe8f3990e7f46cf8aa2462"
+  },
+  "report_sha256": {
+    "REPORT.md": "eb6bda9aafd6f5872a9fc39d6fd7b103b80817e2ef584e1dccbae2f1e4d386f9",
+    "REPORT.html": "d043944e601d304b399bf8accb80abe6e2d550139123242d2fdb3e5f364e1d30"
+  }
+}
