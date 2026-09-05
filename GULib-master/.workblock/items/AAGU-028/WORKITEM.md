@@ -10,7 +10,7 @@ Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
 
-> Git baseline：`e27425e6ad8ba8dd34663098d759d83ab4804023`
+> Git baseline：`5c78fbecb8ab772a110aa04ea62197e414c272ca`
 
 > Source branch：`refs/heads/codex/aagu-028-retrain-metrics`
 
@@ -120,3 +120,10 @@ Execution topology: `parallel`
 - 本检查点之后只更新 Report、Record、证据摘要和进度记录；产品、配置、训练/缓存身份及测试条件无更改。最终 live HEAD 的实际 diff 与证据复用理由记于 `.workblock/runtime/aagu-028-rework-final-verification.json`；新增内容单独通过确定性生成、报告/WorkItem Human Surface、链接和 diff 检查，复用上述精确检查点的软件结果。
 - HTML 在 Chromium 1440×1000 真实渲染并查看首屏与全页；待决定区在首屏，8 个场景及单方法指标表可读，无横向溢出、断图或脚本错误。390px 宽度检查无文档溢出。[QA 记录](evidence/report_qa.json)。
 - Agent 建议接受本次软件修复，当前决定仍由用户作出。正式 GPU stage、完整科研矩阵、真实硬件成本为 NOT OBSERVED；不把软件测试当作研究接受。
+
+## Interrupted closeout recovery — 2026-09-06
+
+- 用户要求继续完成已被打断的同一 AAGU-028 收口。原候选 `155ffef04d22bb5fb8cfd9cfdcc6059ca623a8f6` 的接受范围继续有效；本轮不改变算法、研究 YAML、输出或指标语义。
+- 恢复的真实合并预览 tree 为 `4670e5cb5cd42463f8ebb19537895a38d8aac09b`。组合检查 77 项通过，1 项因新合入的 AAGU-015 测试仍期待“Retrain 未实现”旧错误文案而失败。实际入口已按接受的独立 Metrics 合同，在任何数据/模型访问或写入前拒绝内联 retrain-gap。
+- 通过标准 reopen 保留失败证据和同一 Claim，将当前 main `5c78fbecb8ab772a110aa04ea62197e414c272ca` 合入原 source branch，baseline 更新为新的共同祖先。仅修正上述测试名称与期望错误文案，保留 producer 禁止和零写入断言；本次适配不扩张原接受范围。
+- 原 163 项软件检查点与示例保持可复用；原预览的其他 77 项结果绑定上述 tree。修正后的 AAGU-015 全文件检查、最终预览身份/实际 diff 和验证复用理由记录于 canonical `.workblock/runtime/aagu028-combination-verify.md`，然后沿用用户继续收口授权执行同一 locator。
