@@ -1,4 +1,4 @@
-# AAGU-005 · SyncMate 跨项目可行性与正确性检验
+# AAGU-005 · SyncMate 的 OpenGU 接入与联调
 
 Block ID: `AAGU-005`
 
@@ -20,50 +20,67 @@ Execution topology: `parallel`
 
 ### 核心意图
 
-检验 SyncMate 作为跨项目复用的远程实验工具是否可行、行为是否正确，以及怎样在实际工作中发挥清晰作用。通用能力包括远程连接、会话与任务执行、实验进度监控、结果回传与校验；每个项目通过自己的配置文件和 Adapter 提供实验入口、参数、进度与产物含义。实验只在远程运行，本机按需承担控制、监控、结果收集和分析。
+让 OpenGU 通过自己的配置、Adapter 和静态配方使用 SyncMate，完成可追溯的任务提交、执行和产物返回。AAGU-005 与 SM-005 组成同一条跨项目工作链：本 Block 拥有 OpenGU 消费端，SM-005 拥有通用 Core；各自在本项目内修改、验证、提交和验收，共享联调证据。
 
 ### 本次增量
 
-以当前 Core、项目 Adapter 和实际接入为基线，检验“项目配置与任务定义 → 远程连接与运行准备 → 提交与执行 → 进度监控 → 结果回传与完整性校验 → 交给项目分析和验收”的完整工作链。以 OpenGU 为实际消费场景，并用最小的非 OpenGU 配置与 Adapter 样例检查复用边界，判断更换项目时哪些内容只需配置、哪些需要 Adapter，是否必须修改通用 Core。
+沿用同一 AAGU-005，接收此前 SM-005 实测和修复过程中产生的 OpenGU 消费端工作，负责后续 Adapter、静态配方、实验入口与运行上下文接入、产物路径和声明、Core 依赖身份检查及相邻配置、文档、测试。先核对已交付提交及证据，再在本 Block 的独立 OpenGU linked worktree 继续本侧必要修改；不重复实现已落地代码。
 
-交付可复核的成功路径、关键失败路径和分层结论，区分已有且可用的能力、项目接入问题、工具实现缺陷与尚未验证的能力，并据此给出最小修复范围。安装文档冲突、某个解释器缺包等作为具体问题核对归属，不用它们替代工具整体检验；本机不具备训练环境不构成远程实验不可行的证据。产品化投入取舍可作为检验后的建议，不再是本 Block 的主要验收对象。
+与 SM-005 共享绑定双方版本、配置、job 和产物的同一组证据。已有 Degree、B-Hutch、D-full 真实运行、冷热缓存和自动回传结果按代码与接口差异判断能否复用；不能把旧接口证据自动视作新接口实测。AAGU-015 的配置、Selector 输出和复用检查保持其独立接受范围。
 
 ### 核心验收
 
-- 可行性：通过一条最小实际远程工作链，证明项目配置可以驱动任务执行、监控和结果回传，使用者能判断当前阶段与下一步；代码存在、旧 smoke 或单纯 SSH 连通不能替代本次完整链路证据。
-- 正确性：任务与配置、代码版本、远程会话或进程、运行回执和返回产物相互对应；进度能追溯到实际运行观察并标明时间，回传文件完整且校验一致，不将过期快照或其他任务产物算作当前结果。
-- 失败行为：对配置或运行身份不匹配、任务失败、缺失或损坏产物等关键场景，能定位失败阶段、保留原因并指出下一步，不输出虚假的成功、完整或已验收状态。
-- 跨项目复用：OpenGU 场景与最小非 OpenGU Adapter 样例说明同一 Core 如何消费项目配置、执行入口、进度与产物约定；项目科研逻辑不写入通用 Core。样例验证与真实第二项目接入的证明范围明确区分。
-- 人能依据配对报告判断工具在哪些环节已可用、哪些需要修复或补充验证，并决定接受或返工本次检验。执行完成、回传校验通过和科研结果被接受分别表达。
+- OpenGU 的配置、Adapter、静态配方和入口与声明的 Core 接口、精确依赖身份一致；任务定义不能携带任意命令、路径或环境表达式。
+- 已批准的产物声明与消费者实际输出位置一致，分数、排名、Selection 等内容保留各自身份；错误身份、产物缺失和返回冲突不产生虚假成功。执行、完整性校验和科研接受分别表达。
+- 本侧针对性代码检查通过，既有证据逐项说明适用版本和复用理由；新的接口尚未真实运行时明确记录未测边界。当前用户要求仅验证代码，不以新增 GPU 实验作为本轮必需步骤，也不声称新接口已经真实联调通过。
+- OpenGU 源码由 AAGU-005 在独立 linked worktree 修改；SyncMate Core 由 SM-005 修改。共用文件先协调具体代码段，保留其他任务变化。015 的实验设计与 028 的 Retrain/Metrics 实现不在此重做。
+- 配对 Markdown/HTML 报告说明本侧增量、代码检查、可复用实测证据及未测边界，由用户独立接受或返工。SM-005 完成不自动完成本 Block，本 Block 完成也不自动接受 SM-005 或科研实验。
 
 ## Confirmed acceptance contract
 
-- Route: `practical`
-- Confirmation source: 2026-09-05 用户确认 005 正式定义为 SyncMate 工具的可行性与正确性检验，包含实际工作链，并明确实验仅在远程运行、通用能力通过项目配置与 Adapter 跨项目复用。
-- Primary surface: `tool feasibility / correctness / remote workflow integration`
-- Minimum real evidence: 当前能力与职责清单、最小实际远程工作链回执和产物校验、关键失败路径观察、OpenGU 与最小非 OpenGU Adapter 的复用检查，以及按 Core/Adapter/设备接入归属的问题和最小修复建议。未观测环节必须明确保留，不以测试替代实际链路证据。
-- Post-candidate decision: AAGU 项目负责人和 SyncMate owner 根据证据明确接受或返工本次检验；需要产品实现时再确定具体 SM 工作项范围。
-- Report size: paired Markdown/HTML report after Verify.
+- Route: `practical`；Primary surface: `OpenGU consumer integration / code correctness`。
+- Decision owner: 用户，以 OpenGU 项目负责人身份决定本侧结果；SM-005 另行拥有通用工具验收。
+- Confirmation source: 2026-09-06 用户明确这是跨 Project 协同，要求使用 AAGU-005 与 SM-005，让它们分别做两边的修改。按两个现有 Block 协作承接，保留各自仓库、编号、locator 和独立验收。
+- Minimum evidence: 经原执行任务确认的提交与接口交接、本侧针对性代码检查、精确 Core 依赖身份、已有实测证据的适用性判断、明确失败行为和未测边界。
+- Latest runtime constraint: SM-005 执行任务已转达用户当前要求 GPU 暂不可恢复，“你就测试代码正确就行”；本轮不等待 GPU、不发起新实验。未来真实联调须沿用当时有效的项目运行条件与具体授权。
+- Report size: Verify 后形成同目录 Markdown/HTML 报告；本次职责登记不预填结果。
+- Post-candidate decision: 各项目分别接受和 Closeout；接收历史提交不是对后续未验证候选的提前接受，职责划分不扩大部署或科研运行范围。
 
 ## Context and relations
 
-- Blueprint scope: SyncMate 的 Core/Project/Device 分工与远程实验生命周期；项目配置和 Adapter 拥有实验参数、执行入口、进度解释、产物格式及科研验收语义，Core 拥有通用连接、运行控制、监控、回传和校验机制。
-- Orchestration: 保留 SUPPORT、P3 与 `AAGU-005 depends_on AAGU-001`；编排事实由 WORKPLAN 拥有，本次不改变依赖或当前主推进线。
-- Related work: AAGU-002 负责正式 Device Readiness 试点与验收；005 可复用其已有证据或指出缺口，不替代其正式决定。保留 SM-003 作为相关 SyncMate 工作项入口，其现有合同须在后续承接时另行核对，不随本次修改自动改变或启动。
-- Remote execution mechanism: 远程会话与进程管理是通用能力的一部分；具体采用 tmux 或既有 runner 的方式在检验时核对，不把会话存在等同于实验进度或成功。
+- Partner: [SM-005 · SyncMate 跨项目可行性与正确性检验](E:/project/SyncMate/.workblock/items/SM-005/WORKITEM.md)。SM-005 拥有通用连接、任务控制、状态、回传、校验及公共接口；AAGU-005 拥有这些接口在 OpenGU 的具体消费。
+- Orchestration: 保留 SUPPORT、P3 与 `AAGU-005 depends_on AAGU-001`；WORKPLAN 拥有编排。本次不改变 028 主推进线，不添加两项目互相等待的循环依赖。
+- Coordination: 两边可独立推进；集成前绑定双方精确提交、Core 制品与接口合同。接口缺陷由代码所属项目修复，另一侧核验，不跨仓库代改。
+- Related work: 026 已有模块化消费者是接入基础；015 提供当前阶段配置和 Selector 证据；028 拥有 Retrain/Metrics 修复并阻挡整轮正式研究运行。002 Device Readiness、007 等科研验收及 SM-003 产品化合同保持独立。
+- Evidence: 引用 SM-005 原始报告和证据，标明 owner、受测提交及复用理由，不移动、改写或复制成新运行结果。
+
+## Received handoff · 2026-09-06
+
+原执行任务已确认停止 OpenGU 写入、提交与后续远端安装，且没有运行中的 OpenGU 命令。交接时 OpenGU 实现已提交并普通 push，工作区干净；不是待搬移的未提交补丁。此处为来源检查点，接手时重读 Git 和 Claim。
+
+- OpenGU 基线 `e27425e6ad8ba8dd34663098d759d83ab4804023`，交付 tip `e8f23a94dc7d753283442cadb1b45d8c1962234e`。
+- 范围：`scripts/syncmate/` 的 Adapter、配方、新增 `opengu_layout.py`、依赖清单与文档；`experiments/modular_execution.py`、`experiments/syncmate_atomic_stage.py`、原子配置说明；`docs/modular_experiments.md` 及两份对应测试。
+- 接口：`syncmate.run-handoff/v1`、`adapter.result_roots()`、配方 `run_identity`、共享 `modular_output_path`，stage 执行前核对 queue receipt 的 `output_contract`。新静态配方 `opengu-sm005-d-full-handoff-v1` 尚未提交运行。
+- Core 0.4.0 来源 `5dd378cb5a732d47108e58299df462320648bda8`；wheel SHA-256 `a6ecf6de385d80538b1983c49f5dee8048f4787847084fee6cadc3c761a435d2`。原任务报告双端已安装并读回，OpenGU 依赖清单为 60 文件；接手时按既有证据核验，不重放安装。
+- 原任务报告 Core 91 项、OpenGU 入口/原子配方/依赖/modular consumers 221 项通过；OpenGU 日志在 [原检查日志](E:/project/SyncMate/.workblock/runtime/sm005-output-contract/opengu-installed-tests.txt)。本次登记仅接收该事实，执行任务仍须核对证据适用性。
+- SSH OpenGU 当时仍为旧基线，尚未同步新消费端；已准备的本地安装 preflight 不等于部署完成。015 的 Closeout 若先完成代码同步，接手者应复用读回，不重复执行。
+- 原任务已调整本地 ignored `.syncmate/device.yaml`；连接事实与既有可信索引保持，快照位于 SyncMate runtime 的 `sm005-output-contract`。不凭该设备快照推导科研接受。
 
 ## Runtime and authorization boundaries
 
-- 本次只修改同一 Block 的定义，保持 registered / not claimed；不启动验证任务、远程操作、环境安装、产品实现或科研实验，也不预填报告和证据。
-- 后续 Run 使用独立 Git worktree，目标为登记时实际观察到的 canonical `refs/heads/main`；Git 工作位置不改变实验仅在远程执行的边界。本机控制/收集端只检查它自身需要的工具依赖，不要求具备远程训练环境。
-- 实际链路检验优先采用预先定义的最小远程验证任务与独立临时产物，不产生新的科研结论。若必须使用科研实验才能回答某项问题，需消费该实验独立批准的合同及正式运行条件，不能借工具检验绕过实验授权。
-- 本 Block 拥有检验、证据和最小修复建议；发现需修改 SyncMate 产品、安装方式或项目 Adapter 时，按实际责任归属承接到明确的实现范围，不扩展成整套发布、升级或恢复系统。保留真实数据、缓存、运行结果和其他项目文件。
+- 使用 `block-workflow` Claim 同一 locator，采用 `parallel` linked worktree；具体 source branch、baseline、owner 和工作区在 Claim 时绑定。本次登记不代替 Claim。
+- 写入只限 OpenGU 接入范围。`experiments/modular_execution.py` 只涉及必要运行上下文与产物路径接入；科研算法、Selector、GU、Retrain、Metrics 语义不因接入改变。涉及 028 正在修改的共同文件，先协调具体代码段。
+- SM-005 不继续修改 OpenGU 源码；本侧不修改 SyncMate Core、其 WorkItem、报告或安装策略。保留双方既有数据、缓存、结果和队列；不 stash/reset/clean 或整体回滚其他任务内容。
+- 本机进行 CPU 接入测试、配置检查、控制与审阅。当前不新跑 GPU 实验；未来正式数据和 GPU 运行须遵循 `experiments/AGENTS.md`。职责拆分不授权整轮研究矩阵。
+- 两边分别提交、验收和 Closeout。部署与安装遵循各自注册动作及已有具体授权，不能把原任务的准备脚本当作完成回执。
 
 ## Restart and next action
 
-在后续执行任务中使用 `block-workflow` Claim 同一 locator，重读本 Human Surface、当前 Core/Adapter 与设备事实，先确定最小远程验证任务、产物和失败场景，再完成可行性与正确性检验。提供配对报告后停在人类验收，不把检验通过自动投影为科研接受或产品实现授权。
+读取本 Record、项目指令、Git 与 live Claim，在独立 linked worktree 接手同一 AAGU-005。先核对上述已落地提交、Core 接口依赖、221 项检查及旧实测的复用边界，完成本侧最小必要代码核验与报告。与 SM-005 共享结果但分别验收；不启动 AAGU-010、重复矩阵或新 GPU 实验。
 
 ## Status history
 
 - 既有登记：以 SyncMate 产品化取舍为目标，保持 registered / not claimed。
 - 2026-09-05：按用户确认，将同一 AAGU-005 重定义为跨项目可行性与正确性检验，纳入完整实际远程工作链、项目配置与 Adapter 复用边界；补齐执行字段，保留编号、状态、practical 路线和编排依赖。未 Claim、执行或形成候选证据。
+- 2026-09-05：后续用户讨论让 SM-005 承担实际检验，AAGU-005 只监控其完成；该意图已传达给 SM-005，但协调任务中断，当前 canonical Record 未形成相应监控版本。保留这段历史，不将旧意图视为最新执行边界。
+- 2026-09-06：用户明确跨项目协作：AAGU-005 承担 OpenGU 消费端，SM-005 承担 SyncMate Core，分别修改与验收。取代“SM-005 同时拥有两边代码、AAGU-005 只监控并自动完成”的旧安排；沿用同一编号、practical 路线和 parallel 拓扑，登记状态仍为 registered / not claimed。

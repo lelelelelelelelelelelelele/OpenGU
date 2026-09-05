@@ -199,7 +199,7 @@ flowchart LR
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
 | AAGU-004 | SUPPORT | FlowChunk D0 acceptance decision | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
-| AAGU-005 | SUPPORT | SyncMate 跨项目可行性与正确性检验 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
+| AAGU-005 | SUPPORT | SyncMate 的 OpenGU 接入与联调 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 
 ## 12. 漂移检测与重建
 
