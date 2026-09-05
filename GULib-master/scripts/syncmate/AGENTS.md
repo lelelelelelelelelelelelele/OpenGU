@@ -24,7 +24,7 @@ Do not add generic destructive remote cleanup or execute an unconfirmed repair. 
 ## Evidence and Data Paths
 
 - Raw returned artifacts land under `results/runs/`; trusted state exists only after checksum verification into `.syncmate/artifact_index.json`.
-- Default trusted artifacts are `attack.json`, `collateral.json`, and `_meta.json`. `predictions.npz` is not included by default.
+- Generic manual collection defaults to `attack.json`, `collateral.json`, and `_meta.json`. Recipe-driven collection follows its saved output contract. Target-direct GU uses independent method leaves with `attack.json`, `output-references.json`, `predictions.npz`, and `_meta.json`; its collateral comparison is separate post-processing.
 - `.syncmate/device.yaml` is the only intentional per-device setup difference and remains untracked.
 - SSH peer definitions may declare `python_executable`; generated and executed remote SyncMate commands must use it instead of assuming the login-shell `PATH`.
 - Generated local handoff and evidence files stay under `.syncmate/`; do not promote them to tracked experiment facts.

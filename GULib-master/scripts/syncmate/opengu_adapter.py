@@ -6,11 +6,6 @@ from typing import Any, Mapping
 
 import syncmate_core as core
 
-import opengu_acceptance as acceptance_module
-import opengu_recipes as recipes_module
-import opengu_results as results_module
-
-
 OPENGU_SETUP_CONFIG_SHA256 = (
     "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa"
 )
@@ -27,7 +22,10 @@ def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Ma
     from experiments.target_direct_v1.syncmate_stage import preflight_gu
 
     contract = definition.get("gu_gate") or definition.get("gu_stage") or {}
-    return preflight_gu(str(contract.get("stage") or ""), config_path)
+    return preflight_gu(
+        str(contract.get("stage") or ""), ratio=contract["ratio"],
+        config_path=config_path, gate_only="gu_gate" in definition,
+    )
 
 
 def _atomic_preflight(definition, config_path):
@@ -51,6 +49,7 @@ class OpenGUProjectExtension:
         return ("results/runs",)
 
     def recipes(self, project_root: Path) -> Mapping[str, Mapping[str, Any]]:
+        import opengu_recipes as recipes_module
         del project_root
         return recipes_module.recipe_definitions()
 
@@ -104,6 +103,7 @@ class OpenGUProjectExtension:
         definition: Mapping[str, Any],
         context: Mapping[str, Any],
     ) -> Mapping[str, Any]:
+        import opengu_acceptance as acceptance_module
         return acceptance_module.acceptance_payload(profile, definition, context)
 
     def results(
@@ -111,6 +111,7 @@ class OpenGUProjectExtension:
         index: Mapping[str, Any],
         options: Mapping[str, Any],
     ) -> Mapping[str, Any]:
+        import opengu_results as results_module
         return results_module.results_payload(index, options)
 
 

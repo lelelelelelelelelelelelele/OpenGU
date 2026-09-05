@@ -13,7 +13,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SYNC_DIR = PROJECT_ROOT / "scripts" / "syncmate"
 RECIPE_REGISTRY_SHA256 = (
-    "2a9d4898815036a26212a8d69033e40a1da1c83a3583379b8058b792310861fd"
+    "fc99810f8b0ba89faa8c8fb79213485fe9d21b792a72d2d8737c40189c658b48"
 )
 
 
@@ -55,6 +55,11 @@ def test_full_registry_matches_reviewed_literal_contract(project_extension):
     expected_ids = {
         "smoke",
         "opengu-sm005-atomic-gpu-v1",
+        "opengu-sm005-b-hutch32-first-v1",
+        "opengu-sm005-b-hutch32-warm-v1",
+        "opengu-sm005-d-full-selector-v1",
+        "opengu-sm005-d-full-return-v1",
+        "opengu-sm005-d-full-handoff-v1",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
         *{
@@ -72,7 +77,7 @@ def test_full_registry_matches_reviewed_literal_contract(project_extension):
         },
     }
 
-    assert len(definitions) == 33
+    assert len(definitions) == 38
     assert set(definitions) == expected_ids
     assert _canonical_sha256(definitions) == RECIPE_REGISTRY_SHA256
 

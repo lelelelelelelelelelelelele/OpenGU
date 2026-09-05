@@ -4,7 +4,6 @@ import datetime as dt
 import hashlib
 import json
 import math
-import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
@@ -62,6 +61,8 @@ def _peer_evidence(
         for item in items
         if isinstance(item, Mapping) and (item.get("remote_path") or item.get("path"))
     }
+    if len(by_remote) != len(items):
+        errors.append(f"{label} artifact index contains duplicate or invalid paths")
     if (peer.get("summary") or {}).get("status") != "verified":
         errors.append(f"{label} artifact index is not verified")
     if set(by_remote) != set(expected_paths):
@@ -200,174 +201,97 @@ def _selection_acceptance(
     }
 
 
-def _read_documents(
-    expected_paths: list[str],
-    by_remote: Mapping[str, Mapping[str, Any]],
-    project_root: Path,
-    errors: list[str],
-    label: str,
-) -> tuple[dict[str, Any], dict[str, Path]]:
-    documents: dict[str, Any] = {}
-    local_by_remote: dict[str, Path] = {}
-    for remote_path in expected_paths:
-        local = _safe_project_path(project_root, (by_remote.get(remote_path) or {}).get("local_path"))
-        if local is None or not local.is_file():
-            errors.append(f"verified {label} artifact is missing locally: {remote_path}")
-            continue
-        local_by_remote[remote_path] = local
-        if remote_path.endswith(".json"):
-            try:
-                documents[remote_path.rsplit("/", 1)[-1]] = json.loads(local.read_text(encoding="utf-8"))
-            except Exception as exc:
-                errors.append(f"invalid {label} JSON {remote_path}: {exc}")
-    return documents, local_by_remote
+def _gu_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
+    from opengu_method_output import read_method_output
+    from cache_v2.contracts import validate_sha256, validate_artifact_id
 
-
-def _gu_gate_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
-    node_id = str(context.get("node_id") or "")
-    expected_git_sha = context.get("expected_git_sha")
+    is_gate = "gu_gate" in definition
+    scope = definition.get("gu_gate" if is_gate else "gu_stage") or {}
+    selectors = (scope.get("selector"),) if is_gate else tuple(scope.get("selectors") or ())
+    methods = tuple(scope.get("gu_methods") or ())
     project_root = Path(context.get("project_root") or Path.cwd())
+    expected_sha = context.get("expected_git_sha")
     _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(definition, context, "GU")
-    documents, _ = _read_documents(expected_paths, by_remote, project_root, errors, "GU")
-    gate = definition.get("gu_gate") or {}
-    target_direct = gate.get("lane") == "target_direct_white_box"
-    if not target_direct:
-        errors.append("GU gate is not the target-direct white-box lane")
-    meta = documents.get("_meta.json") or {}
-    artifact = meta.get("selection_artifact") or {}
-    checkpoint = artifact.get("target_checkpoint") or {}
-    if expected_git_sha and meta.get("git_sha") != expected_git_sha:
-        errors.append("GU _meta Git SHA differs from the dispatched SHA")
-    for field, expected in (("method", gate.get("gu_method")), ("strategy", gate.get("selector")), ("seed", gate.get("seed"))):
-        if meta.get(field) != expected:
-            errors.append(f"GU _meta {field} mismatch")
-    if (
-        artifact.get("strategy") != gate.get("selector")
-        or artifact.get("ratio") != gate.get("ratio")
-        or artifact.get("k") != gate.get("k")
-        or artifact.get("authoritative") is not True
-        or not artifact.get("artifact_id") or not artifact.get("recipe_hash") or not artifact.get("content_hash")
-    ):
-        errors.append("GU _meta Selection Artifact provenance is incomplete or changed")
-    if target_direct:
-        claims = ((meta.get("config") or {}).get("claims") or {})
-        if (
-            gate.get("parameter_scope") != "last_layer"
-            or claims.get("parameter_scope") != "last_layer"
-            or claims.get("deletion_ratio") != gate.get("ratio")
-            or not checkpoint.get("state_hash") or not checkpoint.get("file_sha256")
-        ):
-            errors.append("GU gate target-direct checkpoint/scope provenance is incomplete")
-    attack_row = ((documents.get("attack.json") or {}).get("results") or {}).get(gate.get("selector")) or {}
-    if not attack_row or attack_row.get("failed") is True:
-        errors.append("GU attack result is missing or failed")
-    collateral_rows = [
-        row for row in (documents.get("collateral.json") or {}).get("results") or []
-        if row.get("strategy") == gate.get("selector")
-    ]
-    if len(collateral_rows) != 1:
-        errors.append("GU collateral result has no unique selector row")
+    if not isinstance(expected_sha, str) or len(expected_sha) != 40 or any(c not in '0123456789abcdef' for c in expected_sha):
+        errors.append("GU acceptance requires the full dispatched Git SHA")
+    if scope.get("lane") != "target_direct_white_box" or scope.get("parameter_scope") != "last_layer":
+        errors.append("GU recipe is not the reviewed target-direct scope")
+    if not methods or len(set(methods)) != len(methods) or not selectors or len(set(selectors)) != len(selectors):
+        errors.append("GU recipe needs unique methods and selectors")
+    if len(by_remote) != len(expected_paths):
+        errors.append("GU evidence has duplicate or missing artifacts")
+    accepted = []
+    checkpoints = set()
+    selections = {}
+    pairings = {}
+    reviewed_paths = set()
+    for method in methods:
+        for selector in selectors:
+            label = str(method) + '/' + str(selector)
+            parent = (f"results/runs/target_direct_formal_v2/gu/{scope['stage'].rsplit('-seed', 1)[0]}"
+                      f"_{scope['base_model']}_r{scope['ratio']:.2f}/{method}_{selector}/seed{scope['seed']}")
+            paths = {name: parent + '/' + name for name in TARGET_DIRECT_GU_ARTIFACT_NAMES}
+            reviewed_paths.update(paths.values())
+            try:
+                read = read_method_output({name: by_remote.get(remote) for name, remote in paths.items()}, project_root)
+                meta, result, payload = read['meta'], read['result'], read['payload']
+                artifact = meta['selection_artifact']
+                checkpoint = artifact.get('target_checkpoint') or {}
+                if any(meta.get(key) != value for key, value in
+                       (('git_sha', expected_sha), ('method', method), ('strategy', selector), ('seed', scope['seed']))):
+                    raise ValueError('GU metadata differs from dispatched cell identity')
+                validate_sha256(meta.get('config_fingerprint'), 'configuration fingerprint')
+                if meta.get('fingerprint_version') != 'v5-single-method-output' or meta.get('comparison_stage') != 'deferred':
+                    raise ValueError('GU metadata does not declare independent method outputs')
+                if any(artifact.get(key) != value for key, value in
+                       (('strategy', selector), ('ratio', scope['ratio']), ('k', scope['k']), ('authoritative', True))):
+                    raise ValueError('Selection provenance differs from reviewed cell')
+                validate_artifact_id(artifact.get('artifact_id'))
+                for field in ('recipe_hash', 'content_hash'):
+                    validate_sha256(artifact.get(field), 'Selection ' + field)
+                for field in ('state_hash', 'file_sha256'):
+                    validate_sha256(checkpoint.get(field), 'target checkpoint ' + field)
+                pairing = payload.identity['pairing']
+                instance = scope['method_instances'][method]
+                if (any(pairing[key] != instance[key] for key in ('model', 'training', 'deletion'))
+                        or payload.identity['target']['parameters'] != instance['parameters']):
+                    raise ValueError('method conditions differ from reviewed configuration')
+                if (len(payload.arrays['selected_nodes']) != scope['k']
+                        or int(payload.arrays['train_mask'].sum()) != scope['candidate_count']
+                        or pairing['training']['seed'] != scope['seed']
+                        or pairing['model']['architecture'] != 'OpenGU.GCNNet'):
+                    raise ValueError('saved input, request or model differs from reviewed cell')
+                selection = payload.identity['selection']
+                if selector in selections and selections[selector] != selection:
+                    raise ValueError('methods did not consume the same Selection')
+                if selector in pairings and pairings[selector] != pairing:
+                    raise ValueError('methods do not share Dataset/Split, request and training conditions')
+                selections[selector], pairings[selector] = selection, pairing
+                checkpoints.add((checkpoint['state_hash'], checkpoint['file_sha256']))
+                accepted.append({'method': method, 'selector': selector, 'ratio': scope['ratio'],
+                    'selection_artifact_id': artifact['artifact_id'],
+                    'target_checkpoint_state_hash': checkpoint['state_hash'],
+                    'output': read['output'], 'evaluation': read['evaluation'],
+                    'f1_after': result['f1_after'], 'f1_drop': result['f1_drop'],
+                    'compute_seconds': result['compute_seconds']})
+            except Exception as exc:
+                errors.append(f'{label}: {type(exc).__name__}: {exc}')
+    if reviewed_paths != set(expected_paths):
+        errors.append('GU recipe artifact declaration differs from its method/selector cells')
+    if len(accepted) != len(methods) * len(selectors):
+        errors.append('accepted GU method count differs from the reviewed recipe')
+    if len(checkpoints) != 1:
+        errors.append('target-direct GU stage does not share one exact Selection checkpoint')
     return {
-        "generated_at": _now_iso(),
-        "mode": "target-direct-gu-acceptance",
-        "node_id": node_id, "recipe": definition.get("id"),
-        "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
-        "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),
-        "gate": dict(gate), "selection_artifact_id": artifact.get("artifact_id"),
-        "target_checkpoint_state_hash": checkpoint.get("state_hash"),
-        "passed": not errors, "errors": errors,
-    }
-
-
-def _gu_stage_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
-    node_id = str(context.get("node_id") or "")
-    expected_git_sha = context.get("expected_git_sha")
-    project_root = Path(context.get("project_root") or Path.cwd())
-    _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(definition, context, "GU stage")
-    _, local_by_remote = _read_documents(expected_paths, by_remote, project_root, errors, "GU stage")
-    stage = definition.get("gu_stage") or {}
-    target_direct = stage.get("lane") == "target_direct_white_box"
-    selectors = tuple(stage.get("selectors") or ())
-    accepted: list[dict[str, Any]] = []
-    checkpoint_hashes: set[tuple[str, str]] = set()
-    for selector in selectors:
-        suffix = f"/GNNDelete_{selector}/seed{stage.get('seed')}"
-        parents = {remote.rsplit("/", 1)[0] for remote in expected_paths if suffix in remote}
-        if len(parents) != 1:
-            errors.append("GU stage has no unique reviewed leaf: " + str(selector))
-            continue
-        parent = next(iter(parents))
-        paths = {name: parent + "/" + name for name in TARGET_DIRECT_GU_ARTIFACT_NAMES}
-        if any(remote not in local_by_remote for remote in paths.values()):
-            continue
-        try:
-            attack = json.loads(local_by_remote[paths["attack.json"]].read_text(encoding="utf-8"))
-            collateral = json.loads(local_by_remote[paths["collateral.json"]].read_text(encoding="utf-8"))
-            meta = json.loads(local_by_remote[paths["_meta.json"]].read_text(encoding="utf-8"))
-        except Exception as exc:
-            errors.append(f"invalid GU stage JSON for {selector}: {exc}")
-            continue
-        artifact = meta.get("selection_artifact") or {}
-        checkpoint = artifact.get("target_checkpoint") or {}
-        if expected_git_sha and meta.get("git_sha") != expected_git_sha:
-            errors.append("GU stage _meta Git SHA mismatch: " + str(selector))
-        if meta.get("method") != stage.get("gu_method") or meta.get("strategy") != selector or meta.get("seed") != stage.get("seed"):
-            errors.append("GU stage _meta identity mismatch: " + str(selector))
-        if (
-            artifact.get("strategy") != selector
-            or artifact.get("ratio") != stage.get("ratio")
-            or artifact.get("k") != stage.get("k")
-            or artifact.get("authoritative") is not True
-            or not artifact.get("artifact_id") or not artifact.get("recipe_hash") or not artifact.get("content_hash")
-        ):
-            errors.append("GU stage Selection provenance mismatch: " + str(selector))
-        if target_direct:
-            claims = ((meta.get("config") or {}).get("claims") or {})
-            state_hash, file_sha = checkpoint.get("state_hash"), checkpoint.get("file_sha256")
-            if (
-                stage.get("parameter_scope") != "last_layer"
-                or claims.get("parameter_scope") != "last_layer"
-                or claims.get("deletion_ratio") != stage.get("ratio")
-                or not state_hash or not file_sha
-            ):
-                errors.append("GU stage target-direct checkpoint/scope provenance mismatch: " + str(selector))
-            else:
-                checkpoint_hashes.add((state_hash, file_sha))
-        attack_row = (attack.get("results") or {}).get(selector) or {}
-        if not attack_row or attack_row.get("failed") is True:
-            errors.append("GU stage attack result is missing or failed: " + str(selector))
-        collateral_rows = [row for row in collateral.get("results") or [] if row.get("strategy") == selector]
-        if len(collateral_rows) != 1:
-            errors.append("GU stage collateral row is missing or ambiguous: " + str(selector))
-        try:
-            with zipfile.ZipFile(local_by_remote[paths["predictions.npz"]]) as archive:
-                if f"{selector}__selected_nodes.npy" not in archive.namelist():
-                    errors.append("GU stage prediction identity is missing: " + str(selector))
-        except Exception as exc:
-            errors.append(f"invalid GU stage prediction bundle {selector}: {exc}")
-        accepted.append({
-            "selector": selector, "ratio": stage.get("ratio"),
-            "selection_artifact_id": artifact.get("artifact_id"),
-            "target_checkpoint_state_hash": checkpoint.get("state_hash"),
-            "attack_total_seconds": attack_row.get("total_time"),
-            "unlearn_seconds": attack_row.get("unlearn_time"),
-            "selection_reuse_seconds": attack_row.get("selection_reuse_time"),
-            "f1_drop": attack_row.get("f1_drop"),
-            "collateral": collateral_rows[0] if len(collateral_rows) == 1 else None,
-        })
-    if len(accepted) != len(selectors):
-        errors.append("accepted GU stage selector count differs from the reviewed recipe")
-    if target_direct and len(checkpoint_hashes) != 1:
-        errors.append("target-direct GU stage does not share one exact target checkpoint")
-    return {
-        "generated_at": _now_iso(),
-        "mode": "target-direct-gu-stage-acceptance",
-        "node_id": node_id, "recipe": definition.get("id"),
-        "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
-        "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),
-        "stage": dict(stage), "expected_cells": len(selectors),
-        "accepted_cells": len(accepted), "cells": accepted,
-        "passed": not errors, "errors": errors,
+        'generated_at': _now_iso(),
+        'mode': 'target-direct-gu-acceptance' if is_gate else 'target-direct-gu-stage-acceptance',
+        'node_id': context.get('node_id'), 'recipe': definition.get('id'),
+        'expected_git_sha': expected_sha, 'observed_remote_git_sha': observed_sha,
+        'expected_artifacts': len(expected_paths), 'verified_artifacts': len(by_remote),
+        'gate' if is_gate else 'stage': dict(scope),
+        'expected_cells': len(methods) * len(selectors), 'accepted_cells': len(accepted), 'cells': accepted,
+        'target_checkpoint_state_hash': next(iter(checkpoints))[0] if len(checkpoints) == 1 else None,
+        'comparison_stage': 'deferred', 'passed': not errors, 'errors': errors,
     }
 
 
@@ -380,10 +304,8 @@ def acceptance_payload(
         result = {"passed": False, "errors": ["OpenGU acceptance profile is not reviewed"]}
     elif profile in _SELECTION_PROFILES:
         result = _selection_acceptance(definition, context)
-    elif profile in _GU_GATE_PROFILES:
-        result = _gu_gate_acceptance(definition, context)
     else:
-        result = _gu_stage_acceptance(definition, context)
+        result = _gu_acceptance(definition, context)
     result = dict(result)
     result["owner"] = "opengu"
     result["profile"] = profile

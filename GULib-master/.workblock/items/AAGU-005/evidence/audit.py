@@ -42,7 +42,7 @@ def main():
     checked_paths = ['scripts/syncmate', 'experiments/syncmate_atomic_stage.py',
                      'experiments/modular_execution.py', 'tests/test_syncmate.py',
                      'tests/test_syncmate_atomic_stage.py']
-    delta = git('diff', '--name-only', delivered, baseline, '--', *checked_paths)
+    delta = git('diff', '--name-only', delivered, 'HEAD', '--', *checked_paths)
     registry = recipes.recipe_definitions()
     atomics = []
     for name, plan in atomic.PLANS.items():
@@ -76,21 +76,24 @@ def main():
 
     visited = []
     original_preflight = target._formal_preflight
+    original_pair = target._validate_selection_pair
+    def guarded(config, stage, *, require_gpu):
+        visited.append({'stage': stage, 'require_gpu': require_gpu})
+        return {'git': {'head': git('rev-parse', 'HEAD')}, 'errors': ['read-only audit boundary']}
     def forbidden(*args, **kwargs):
-        visited.append('formal_preflight')
-        raise AssertionError('The audit must not inspect devices or formal data')
-    target._formal_preflight = forbidden
+        raise ValueError('formal data not inspected by code audit')
+    target._formal_preflight = guarded
+    target._validate_selection_pair = forbidden
     try:
         definition = registry['opengu-target-direct-gu-gate-r001-v2']
-        try:
-            result = adapter._target_gu_preflight(definition, ROOT / definition['config_path'])
-            preflight = {'status': 'PASS', 'result': result}
-        except Exception as exc:
-            preflight = {'status': 'FAIL', 'exception': type(exc).__name__, 'message': str(exc)}
+        result = adapter._target_gu_preflight(definition, ROOT / definition['config_path'])
+        preflight = {'status': 'PASS' if (visited and result['ratio'] == .01
+                     and result['gate_only'] is True and result['ready'] is False) else 'FAIL',
+                     'result': result, 'calls': visited, 'runtime_ready_observed': False,
+                     'scope': 'real signature, guarded device/data boundary; no runtime readiness claim'}
     finally:
         target._formal_preflight = original_preflight
-    preflight['formal_preflight_called'] = bool(visited)
-    preflight['cause'] = 'Adapter passes config_path as the ratio positional argument and omits gate_only.'
+        target._validate_selection_pair = original_pair
 
     source_files = [
         SM / '.workblock/items/SM-005/evidence/output-handoff/verification.json',
@@ -110,10 +113,11 @@ def main():
     data = {
         'observed_at': dt.datetime.now().astimezone().isoformat(),
         'source': str(ROOT), 'source_head_at_audit': git('rev-parse', 'HEAD'),
-        'product_baseline': baseline, 'delivered_consumer': delivered,
+        'product_baseline': git('rev-parse', 'HEAD'), 'previous_main': baseline, 'delivered_consumer': delivered,
         'delivery_is_ancestor': True, 'handoff_paths_changed_since_delivery': delta.splitlines(),
         'dependency_local': verify_core_dependency(), 'atomic_recipes': atomics,
         'formal_gu_recipe_audit': target_findings, 'formal_gu_preflight': preflight,
+        'formal_config_hash_matches': sha256_recipe_config(ROOT / recipes.TARGET_DIRECT_CONFIG) == recipes.TARGET_DIRECT_CONFIG_SHA256,
         'consumer_deployment': {k: deployment.get(k) for k in
                                 ('status', 'target', 'ssh_main', 'ssh_worktree', 'cache_preservation')},
         'core_install': {k: receipt.get(k) for k in
@@ -124,7 +128,7 @@ def main():
         'runtime_boundary': {'jobs_submitted': 0, 'gpu_runs': 0, 'producers_called': 0,
                              'data_or_cache_mutations': False},
     }
-    (HERE / 'observations.json').write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    (HERE / 'repair-observations.json').write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({'atomic_pass': sum(r['status'] == 'PASS' for r in atomics),
                       'atomic_count': len(atomics), 'formal_gu_mismatch': sum(r['status'] == 'FAIL' for r in target_findings),
                       'formal_gu_count': len(target_findings), 'preflight': preflight,

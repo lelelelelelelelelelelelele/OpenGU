@@ -1168,6 +1168,23 @@ selector and GU consumer to the same checkpoint identity, derives exact `k`
 from the registered 1%/5% ratios, and fails closed on any config, manifest,
 candidate-count, or checkpoint mismatch. No fixed-node-count fallback exists.
 
+Each target-direct GU recipe collects independent GNNDelete and Retrain outputs.
+The recipe takes its file list from the executor's `gu_artifacts` contract:
+`attack.json`, `output-references.json`, `predictions.npz`, and `_meta.json` per
+method/selector. A degree gate therefore returns 8 files; a 17-selector stage
+returns 136. The Adapter passes the registered stage, ratio, configuration and
+gate flag to the experiment preflight; full-matrix authorization is still checked.
+
+After Core verifies collection, OpenGU rechecks each file's indexed checksum,
+decodes the saved model/prediction payload, and binds its Recipe/content/Artifact
+identity to all three output references. It verifies Selection and checkpoint
+provenance, configured method conditions, shared inputs across methods, and
+recomputed single-method metrics. The collector needs no remote cache, training
+or model forward pass. Metrics receipt/protocol mismatches fail closed.
+`results` displays each method independently; `collateral.json` and cross-method
+comparisons belong to subsequent post-processing, not to these GU leaves.
+Other registered experiment surfaces retain their own declared artifact sets.
+
 On a checkout configured with `role: runner` or `role: runner+collector`:
 
 ```bash
@@ -1221,8 +1238,8 @@ bridge:
 
 ```bash
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
-# Formal one-cell Selection-to-GU infrastructure gate (after its processed
-# public profile has been staged and verified outside the timed run):
+# Formal degree gate with independent GNNDelete and Retrain outputs (after its
+# registered processed split and Selection prerequisites have been verified):
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-gate-r005-v2 --wait --json
 # Only after the gate is accepted; repeat for the reviewed 3 x 3 stage ids:
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-cora-seed42-r005-v2 --wait --json
@@ -1231,7 +1248,7 @@ python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe o
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
 only validated job id, static recipe, requester, and note. `--wait` observes a
 terminal result, then collects and SHA-256 verifies the successful job's reviewed
-`expected_artifact_paths`, filtered by the device artifact policy. It does not
+`expected_artifact_paths` from the saved execution handoff. It does not
 require a per-run `device.yaml.result_roots` entry. The controller process must
 remain running; it may run in the background. Failed, blocked, timed-out or
 identity-mismatched jobs do not trigger collection. Existing checksum conflicts

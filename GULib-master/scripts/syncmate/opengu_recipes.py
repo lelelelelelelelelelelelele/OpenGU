@@ -7,6 +7,11 @@ from typing import Any
 import yaml
 
 from experiments.target_direct_v1 import target_direct_split_contract
+from experiments.modular_config import load_instance
+from experiments.target_direct_v1.syncmate_stage import (
+    ARTIFACT_NAMES as TARGET_DIRECT_GU_ARTIFACT_NAMES,
+    gu_artifacts, load_config as load_target_direct_config,
+)
 from experiments.syncmate_atomic_stage import PLANS as ATOMIC_PLANS, output_path as atomic_output_path
 
 
@@ -40,16 +45,14 @@ GATE4_RECIPE_ALLOWED_DELTA = (
 
 TARGET_DIRECT_RECIPE_INTRODUCED_SHA = "264b38995cebc84d10402d8113ea949ca2cfa34f"
 TARGET_DIRECT_CONFIG = "experiments/configs/syncmate_target_direct_formal_v2.yaml"
-TARGET_DIRECT_CONFIG_SHA256 = "bce9203839c0f29ce463903af1cc54e9a9de1f2db31f497a2fe6967ce665c2f6"
+TARGET_DIRECT_CONFIG_SHA256 = "7d5784a04a068af7b1597ccbf918c10a91ca43270634215b6bbff0a881821c4e"
 TARGET_DIRECT_SELECTION_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/selection"
 TARGET_DIRECT_GU_OUTPUT_ROOT = "results/runs/target_direct_formal_v2/gu"
 TARGET_DIRECT_SELECTION_ARTIFACT_NAMES = (
     "cold-r0.01.json", "cold-r0.05.json",
     "warm-r0.01.json", "warm-r0.05.json", "cell.json",
 )
-TARGET_DIRECT_GU_ARTIFACT_NAMES = (
-    "attack.json", "collateral.json", "predictions.npz", "_meta.json",
-)
+TARGET_DIRECT_FORMAL_CONFIG = load_target_direct_config()
 TARGET_DIRECT_DATASETS = ("cora", "citeseer", "pubmed")
 TARGET_DIRECT_DATASET_DISPLAY = {
     "cora": "Cora", "citeseer": "CiteSeer", "pubmed": "PubMed",
@@ -162,12 +165,8 @@ def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> d
     seed = int(seed_text)
     ratio_key = _target_ratio_key(ratio)
     ratio_id = _target_ratio_id(ratio)
-    strategies = ("degree",) if gate_only else TARGET_DIRECT_STRATEGIES
-    artifacts = tuple(
-        f"{TARGET_DIRECT_GU_OUTPUT_ROOT}/{dataset}_GCN_r{ratio_key}/GNNDelete_{strategy}/seed{seed}/{name}"
-        for strategy in strategies
-        for name in TARGET_DIRECT_GU_ARTIFACT_NAMES
-    )
+    artifacts = gu_artifacts(stage, ratio=ratio, gate_only=gate_only,
+                             config=TARGET_DIRECT_FORMAL_CONFIG)
     recipe_id = (
         f"opengu-target-direct-gu-gate-{ratio_id}-v2"
         if gate_only else f"opengu-target-direct-gu-{stage}-{ratio_id}-v2"
@@ -192,12 +191,14 @@ def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> d
         "preflight_profile": "target-direct-gu-4090-v1",
         "collector_acceptance": True,
         "collector_profile": "target-direct-gu-v2" if gate_only else "target-direct-gu-stage-v2",
-        "collector_result_roots": tuple(path.rsplit("/", 1)[0] for path in artifacts[::4]),
+        "collector_result_roots": tuple(dict.fromkeys(path.rsplit("/", 1)[0] for path in artifacts)),
         "collector_artifact_names": TARGET_DIRECT_GU_ARTIFACT_NAMES,
     }
     contract: dict[str, Any] = {
         "stage": stage, "dataset": TARGET_DIRECT_DATASET_DISPLAY[dataset],
-        "base_model": "GCN", "gu_method": "GNNDelete", "seed": seed,
+        "base_model": "GCN", "gu_methods": tuple(
+            item["method"] for item in TARGET_DIRECT_FORMAL_CONFIG["unlearning_instances"]
+        ), "seed": seed,
         "ratio": float(ratio), "k": TARGET_DIRECT_K_BY_RATIO[dataset][ratio_key],
         "candidate_count": TARGET_DIRECT_CANDIDATE_COUNTS[dataset],
         "split_contract": TARGET_DIRECT_SPLIT_CONTRACT,
@@ -205,6 +206,11 @@ def _target_gu_recipe(stage: str, *, ratio: float, gate_only: bool = False) -> d
         "target_checkpoint_required": True, "scientific_comparison": not gate_only,
         "execution_authorized": bool(gate_only), "candidate_matrix_only": not gate_only,
     }
+    contract["method_instances"] = {}
+    for ref in TARGET_DIRECT_FORMAL_CONFIG["configuration_sources"]["unlearnings"]:
+        instance = load_instance(Path(ref), "unlearning")
+        instance["training"]["seed"] = seed
+        contract["method_instances"][instance["method"]] = instance
     if gate_only:
         contract["selector"] = "degree"
         definition["gu_gate"] = contract

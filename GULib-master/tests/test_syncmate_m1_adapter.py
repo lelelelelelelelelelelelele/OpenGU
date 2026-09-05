@@ -83,7 +83,7 @@ def test_opengu_recipe_preflight_and_acceptance_are_adapter_owned(
         "--json",
     )
     assert recipe.config_sha256 == (
-        "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1"
+        "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa"
     )
     assert preflight["ready"] is True
     assert acceptance == {
@@ -155,7 +155,7 @@ def test_candidate_gate2_runner_smoke_uses_clean_exact_compatibility_fixture(
     assert payload["fixture"]["tracked_tree_clean_at_dispatch"] is True
     assert len(payload["job"]["expected_git_sha"]) == 40
     assert payload["job"]["expected_config_sha256"] == (
-        "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1"
+        "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa"
     )
     assert payload["receipt"]["status"] == "done"
     assert payload["receipt"]["command"][1:] == [
