@@ -35,6 +35,7 @@ AAGU-015 的 Selector 方案与能力检查已接受；Phase 1 优先由 AAGU-03
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
+| [AAGU-032](../../.workblock/items/AAGU-032/WORKITEM.md) | DOCS/CONFIG | registered / not claimed | P0 | AAGU-001, AAGU-015, AAGU-028 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
 | [AAGU-030](../../.workblock/items/AAGU-030/WORKITEM.md) | DOCS/CONFIG | registered / not claimed | P1 | AAGU-001, AAGU-015, AAGU-026, AAGU-028 | [AAGU-030 表格与覆盖合同](../../.workblock/items/AAGU-030/WORKITEM.md) |
 | [AAGU-027](../../.workblock/items/AAGU-027/WORKITEM.md) | EXP | registered / not claimed | P1 | AAGU-001, AAGU-009, AAGU-028 | [AAGU-027 实验合同](../../.workblock/items/AAGU-027/WORKITEM.md) |
 | [AAGU-020](../../.workblock/items/AAGU-020/WORKITEM.md) | EXP | registered / not claimed | P1 | AAGU-028 | [AAGU-020 Block contract](../../.workblock/items/AAGU-020/WORKITEM.md) |
@@ -98,6 +99,7 @@ flowchart LR
     T0[AAGU-015 accepted Selector plan]
     G1[AAGU-002 device readiness]
     S0[AAGU-031 Stage S run and Q1–Q4 analysis]
+    S1[AAGU-032 GCN Retrain effectiveness plan]
     R0 --> G0 --> T0
     R0 --> T0
     R6 --> T0
@@ -106,6 +108,9 @@ flowchart LR
     T0 --> S0
     G1 --> S0
     R7 --> S0
+    G0 --> S1
+    T0 --> S1
+    R7 --> S1
   end
 
   subgraph Phase2[Phase 2 · 完整实验表 · 后续]
@@ -161,11 +166,14 @@ flowchart LR
 
 这是当前优先研究阶段。015 的表格和比较设计已接受；031 直接消费它们，先完成 002 设备就绪，再按既定运行门槛形成真实输出和分析。031 不等待 030，也不等待旧 GU/replacement 链。
 
+032 并行整理早期 D-full 有效性的 GCN + Retrain 实验表与配置，交付用户验收；方案制作不等待 002 设备就绪或 031 全矩阵完成。实际科研运行另依已验收方案与运行门槛推进。
+
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
 | AAGU-015 | EXP | Selector 两阶段实验与证据 | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
 | AAGU-002 | GATE | Device Readiness gate | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | AAGU-031 | EXP | Selector Stage S 正式运行与 Q1–Q4 分析 | P0 | AAGU-015, AAGU-002, AAGU-028 | [AAGU-031 实验合同](../../.workblock/items/AAGU-031/WORKITEM.md) |
+| AAGU-032 | DOCS/CONFIG | D-full 有效性实验表与配置 | P0 | AAGU-001, AAGU-015, AAGU-028 | [AAGU-032 实验表合同](../../.workblock/items/AAGU-032/WORKITEM.md) |
 
 ## Phase 2 · 完整实验表与后续运行映射
 
