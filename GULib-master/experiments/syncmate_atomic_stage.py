@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from scripts.syncmate.opengu_layout import atomic_output_path as output_path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLANS = {
@@ -43,11 +44,14 @@ PLANS = {
         'expected_counts': (1, 0, 0),
         'config_sha256': '1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2',
     },
+    'opengu-sm005-d-full-handoff-v1': {
+        'config': 'experiments/configs/sm005_atomic/experiment_d_full_selector.yaml',
+        'experiment_id': 'sm005-cora-d-full-selector',
+        'run_id': 'sm005-d-full-handoff-v1',
+        'expected_counts': (1, 0, 0),
+        'config_sha256': '1a0f8a2764e4f8c772d29afed43931faa12e078edccdd51c720d8eff5f5543a2',
+    },
 }
-
-
-def output_path(plan):
-    return f"results/runs/modular/{plan['experiment_id']}/{plan['run_id']}/summary.json"
 
 
 def preflight(recipe_id, root=ROOT):
@@ -99,12 +103,22 @@ def run(recipe_id):
     sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     if job['expected_git_sha'] != sha:
         raise RuntimeError('running queue job source identity changed')
+    from syncmate_core.run_handoff import build_execution_contract
+    from scripts.syncmate.opengu_recipes import recipe_definitions
+    expected = build_execution_contract(recipe_definitions()[recipe_id], project='opengu',
+                                        job_id=job['id'], git_sha=sha)
+    receipt = json.loads((ROOT / '.syncmate/runner_queue/receipts' / f"{job['id']}.json").read_text(encoding='utf-8'))
+    contract = receipt.get('output_contract')
+    if contract != expected:
+        raise RuntimeError('runner output contract differs from the reviewed experiment')
     context = project_context(plan['experiment_id'], run_id=plan['run_id'],
                               request_device='cuda', level='verification', repository_root=ROOT)
+    if [context.output.relative_to(ROOT).as_posix()] != contract['artifact_paths']:
+        raise RuntimeError('executor output differs from the SyncMate handoff')
     summary = execute(ROOT / plan['config'], context=context)
     if tuple(len(summary[key]) for key in ('selectors', 'unlearning', 'evaluations')) != plan['expected_counts']:
         raise RuntimeError('atomic execution differs from reviewed Selector/GU/Evaluation counts')
-    return {'passed': True, 'generated_artifacts': [output_path(plan)], 'queue_job_id': job['id'],
+    return {'passed': True, 'generated_artifacts': contract['artifact_paths'], 'queue_job_id': job['id'],
             'git_sha': sha, 'run_id': plan['run_id'], 'preflight': checked,
             'scientific_acceptance': 'not_evaluated'}
 
