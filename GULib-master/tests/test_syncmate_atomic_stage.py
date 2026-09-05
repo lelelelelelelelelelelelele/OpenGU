@@ -1,4 +1,7 @@
 from pathlib import Path
+import json
+import subprocess
+import sys
 import pytest
 import torch
 
@@ -76,3 +79,18 @@ def test_existing_output_refuses_repeat_even_before_execution(tmp_path, monkeypa
     result = stage.preflight(recipe_id, root=tmp_path)
     assert any('output already exists' in e for e in result['errors'])
     assert output.read_text() == 'preserved evidence'
+
+
+def test_cli_recipe_does_not_leak_into_opengu_import_time_parser():
+    # Keep real CLI parsing and consumer imports in a fresh process, but stop at
+    # preflight so this regression cannot start training on any test host.
+    source = "from experiments import syncmate_atomic_stage as s; s.preflight = lambda recipe: {'ready': False, 'errors': ['test preflight stop']}; raise SystemExit(s.main())"
+    result = subprocess.run([sys.executable, '-c', source,
+        '--recipe', 'opengu-sm005-b-hutch32-first-v1'], cwd=stage.ROOT,
+        capture_output=True, text=True)
+    assert result.returncode == 1, result.stderr
+    output = json.loads(result.stdout)
+    assert output['passed'] is False
+    assert output['generated_artifacts'] == []
+    assert output['preflight']['errors'] == ['test preflight stop']
+    assert 'unrecognized arguments' not in result.stderr

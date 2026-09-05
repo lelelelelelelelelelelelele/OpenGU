@@ -95,8 +95,15 @@ def main():
     parser.add_argument('--recipe', choices=tuple(PLANS), required=True)
     args = parser.parse_args()
     # Training libraries may print; reserve stdout for the executor's JSON contract.
-    with contextlib.redirect_stdout(sys.stderr):
-        result = run(args.recipe)
+    # OpenGU's config module parses process argv at import time. Stage arguments
+    # belong to this entry point; downstream defaults come from the reviewed YAML.
+    process_argv = sys.argv
+    try:
+        sys.argv = [process_argv[0]]
+        with contextlib.redirect_stdout(sys.stderr):
+            result = run(args.recipe)
+    finally:
+        sys.argv = process_argv
     print(json.dumps(result, indent=2, allow_nan=False))
     return 0 if result['passed'] else 1
 
