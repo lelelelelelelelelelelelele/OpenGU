@@ -1,5 +1,7 @@
 # SM-001 同号记录修正建议（未应用）
 
+> 已撤回：用户明确本轮仅处理 OpenGU 002，不接手 SM-001。以下内容保留为上一轮建议的历史，不作为 002 的执行前置条件。
+
 原记录：`E:/project/SyncMate/.workblock/items/SM-001/WORKITEM.md`。
 只读检查返回 `workitem-version-upgrade-required`：缺失 Item Version，按实际版本 1.0 处理；当前支持 2.1。尚未修改 SM-001、创建 Claim 或改动 SyncMate 产品源码。
 

@@ -68,10 +68,10 @@ def main():
             'Tracked experiments/syncmate_atomic_stage.py exact GPU and checkout checks',
         ],
         'device_comparison_limit': 'Manual normalized pilot comparison; not an enforced or reusable production dispatch receipt. GPU capacity was not measured.',
-        'aagu002_gate': {'decision': 'REFUSED', 'passed': False, 'reasons': [
-            'REFUSED preflight is not checked before queue submission',
-            'Missing preflight ready field is accepted by recipe binding',
-            'SM-001 implementation has not been accepted',
+        'aagu002_gate': {'decision': 'NOT_CONFIRMED', 'passed': False, 'reasons': [
+            'Complete current OpenGU gate path has not been demonstrated by this read-only pilot',
+            'Queue admission and process execution are distinct; explicit refusal blocked execution in the isolated test',
+            'Malformed preflight is a generic Core fixture, not an observed OpenGU adapter response',
         ]},
         'local_core_dependency': installed,
         'sources_sha256': {name: hashlib.sha256((BASE / name).read_bytes()).hexdigest() for name in (

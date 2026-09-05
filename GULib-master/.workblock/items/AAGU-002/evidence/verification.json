@@ -49,12 +49,12 @@
   ],
   "device_comparison_limit": "Manual normalized pilot comparison; not an enforced or reusable production dispatch receipt. GPU capacity was not measured.",
   "aagu002_gate": {
-    "decision": "REFUSED",
+    "decision": "NOT_CONFIRMED",
     "passed": false,
     "reasons": [
-      "REFUSED preflight is not checked before queue submission",
-      "Missing preflight ready field is accepted by recipe binding",
-      "SM-001 implementation has not been accepted"
+      "Complete current OpenGU gate path has not been demonstrated by this read-only pilot",
+      "Queue admission and process execution are distinct; explicit refusal blocked execution in the isolated test",
+      "Malformed preflight is a generic Core fixture, not an observed OpenGU adapter response"
     ]
   },
   "local_core_dependency": {

@@ -12,12 +12,6 @@
       "bottom": 627.90625,
       "left": 347
     },
-    "headings": [
-      "Human Result",
-      "场景与观察",
-      "剩余修复",
-      "证据与边界"
-    ],
     "brokenImages": 0
   },
   "mobile": {
@@ -25,15 +19,15 @@
     "scrollWidth": 390
   },
   "missing_local_links": [],
-  "agent_observation": "Inspected actual desktop first screen and full-page screenshots: REFUSED status, two FAIL rows, and pending decision are legible; no clipped content, missing links, or broken images. Mobile checked for horizontal overflow only.",
-  "screenshot_directory": "E:\\project\\OpenGU-worktrees\\aagu-002-device-readiness\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu002-report-qa",
   "files": {
-    "desktop.png": "e61f06fd6c7784ba72534ff9e3eba6ef272f9682f3bde289731d88ed4ef278c2",
-    "full.png": "f56e02820bae22467c6d02354d4a3ab5afff7fc8ce21a727b32c61cafdd7be22",
-    "layout.json": "a2db238380da119bac0cffe23a043d0b3ad78581afbe8f3990e7f46cf8aa2462"
+    "desktop.png": "8b180c958eda6c59d95f441b0e94405e6ea96858b1cdfb8e8149240f53fb2b75",
+    "full.png": "aa15e1e37e62d15b568db8828252f811cb9c9f60c2cfa1da4fe2233a20f20e69",
+    "layout.json": "5f6f4257bbf265a0736b005514788c29a00ed11a19df63b80a41ba3348ad661c"
   },
   "report_sha256": {
-    "REPORT.md": "eb6bda9aafd6f5872a9fc39d6fd7b103b80817e2ef584e1dccbae2f1e4d386f9",
-    "REPORT.html": "d043944e601d304b399bf8accb80abe6e2d550139123242d2fdb3e5f364e1d30"
-  }
+    "REPORT.md": "6fee21ff6b2d6d9102c650672b149fe3fc6e08b5b4cc07a9af2708b52a2e5b7b",
+    "REPORT.html": "9ea3e37bff039a63b9d857837213d8e6a36cfc6a4d253a78b2dbf8964b5f30a2"
+  },
+  "screenshot_directory": "E:\\project\\OpenGU-worktrees\\aagu-002-device-readiness\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu002-report-qa",
+  "agent_observation": "Inspected the full rendered report: device checks, separated queue/execution findings, and OpenGU-only scope correction are legible; the pending decision is in the first screen. No clipped text or horizontal page overflow."
 }

@@ -47,7 +47,7 @@ Execution topology: `parallel`
 ## Context and relations
 
 - Blueprint scope: OpenGU staged migration 中的 Device Readiness 与 SyncMate Device Contract；没有额外稳定 Graph/Blueprint ID。
-- Suggested relations: `AAGU-002 depends_on AAGU-001`；cross-project implementation companion `SM-001` must be independently accepted before AAGU consumes its implementation result.
+- Suggested relations: `AAGU-002 depends_on AAGU-001`。原记录曾关联 SM-001；2026-09-06 用户明确本轮只处理 OpenGU 002，不接手 SM-001，其记录升级不作为本轮推进条件。若未来消费新的外部实现，仍须核验所消费版本的实际证据。
 - Unconfirmed suggestions: formal GPU execution is not authorized by this registration.
 
 ## Runtime and authorization boundaries
@@ -64,11 +64,17 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-本轮 Claim 已建立，保持 `ongoing`。先审阅 [实测报告](REPORT.md) 与 [SM-001 同号记录修正建议](evidence/SM001-record-proposal.md)。SM-001 只读协议检查返回实际 1.0 / 支持 2.1，当前 Skill 禁止自动升级接手；确认同号修正后再由 SM-001 实施完整门禁。其实现独立接受后，在同一 AAGU-002 复验真实 READY/REFUSED 和下发拒绝路径；当前不转 awaiting_acceptance、不启动后续矩阵。
+本轮 Claim 已建立，保持 `ongoing`。只在 OpenGU 002 核验当前注册实验入口所消费的实际运行条件与最小验证证据。`ready` 是预检输出，不是需要用户填写的新参数；确认检查真的执行、失败时不启动实验，不能把布尔字段自身当作证据。把入队和开始执行分别观察，工具层的隔离异常测试不自动证明 OpenGU 实验已经错误启动。不接手 SM-001、不要求用户先升级其记录；尚未完整交付 002 验收，也不启动后续矩阵。
+
+## 当前解释修正 — 2026-09-06
+
+用户明确指出任务是 OpenGU 002，SM-001 不属于本轮。上一轮要求先处理 SM-001 的建议撤回。设备核查已有真实观察；上一轮并未新跑 OpenGU 最小任务，而是执行探测、现有 adapter 预检及隔离队列复现，因此不能宣称完整 002 已完成。
+
+`ready` 由预检对真实 GPU、路径、依赖、数据及已有结果等条件的检查结果计算。当前 OpenGU adapter 会正常返回该字段；空对象样例是通用 Core 的受控异常测试。明确拒绝的隔离任务虽已入队，但执行前被 blocked，进程启动次数为 0，不能把它描述为“缺 GPU 仍开始实验”。原验收所要求的完整门禁链路尚未补齐观察，当前为证据不足，不能仅凭字段测试判定 OpenGU 实验失败或宣告通过。
 
 ## Verify — 2026-09-06
 
-- 当前结果：设备事实满足本轮预期，但 AAGU-002 整体 `FAIL / REFUSED`。产品实现尚未修复，原 Human Surface 的门禁验收没有完成。
+- 上一轮结论曾写成 AAGU-002 整体 `FAIL / REFUSED`；当前按上方解释修正为：设备事实满足本轮预期，完整 OpenGU gate 仍为 `NOT CONFIRMED`。保留真实观察，不把通用 Core 的异常样例自动扩张为 OpenGU 实验失败。
 - 真实 SSH：`autodl-opengu` → `gpu4090`，唯一活跃检出 `/autodl-fs/data/OpenGU/GULib-master`，干净 main `b4da08647756810d24a7e51a23422bee7fbea3db`，1 张可用 RTX 4090。两端 Core 对应 `1e30a32925cecb8c29d72297fbf93bdd547259ba`，60 文件 payload 校验通过。
 - 真实 adapter 在旧输出已存在时拒绝重复执行；进程内缺 GPU 注入也明确拒绝。没有新建远端任务，队列前后文件 SHA-256 相同。GPU 容量未测量；当前 device comparison 是人工规范化观察，不能当成生产下发许可。
 - 隔离的真实 Core 复现：`ready=false` 仍写入 inbox，入队前 preflight 调用数为 0；执行前第二道检查才 blocked，进程调用数为 0。空预检 `{}` 被 recipe binding 判为 ready=true。这两项产品要求均 FAIL。
@@ -81,3 +87,4 @@ Execution topology: `parallel`
 
 - 2026-09-06：用户要求推进同一 002；补齐运行位置与明确执行授权，原 Human Surface 和 formal 验收目标保持不变。
 - 2026-09-06：完成真实设备观察、adapter 拒绝验证与两项 Core 门禁缺口复现；配对报告建议返工，Claim 保持 ongoing，等待同号 SM-001 记录修正后继续依赖实现。
+- 2026-09-06：按用户纠正撤回上一条的 SM-001 接手及升级前置条件；明确 ready 是检查输出、入队与执行分别判断，继续限定在 OpenGU 002，未接受或放行。
