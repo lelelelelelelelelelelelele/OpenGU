@@ -58,7 +58,7 @@ def tables(tmp_path, record_property):
         'matrix': 'cartesian_product'}
     yield tmp_path, experiment, gu
     runs = [json.loads(path.read_text(encoding='utf-8')) for path in sorted(tmp_path.glob('*.json'))]
-    record_property('consumer_runs', json.dumps([run for run in runs if run.get('schema') == 'opengu.modular_run']))
+    record_property('consumer_runs', json.dumps([run for run in runs if isinstance(run, dict) and run.get('schema') == 'opengu.modular_run']))
 
 
 def run(tables, name, **changes):
@@ -399,7 +399,7 @@ def test_documented_atomic_and_multi_reference_plans_are_same_cell_contract():
     assert multi['schema'] == atomic['schema'] == 'opengu.modular_run'
 
 
-def test_evaluation_is_independent_and_unimplemented_case_fails_closed(tables):
+def test_evaluation_is_independent_and_missing_retrain_fails_closed(tables):
     root = tables[0]
     first = run(tables, 'eval-full', stage='unlearning', selector_refs=['degree.yaml'],
         unlearning_refs=['gu.yaml'], evaluation_refs=['utility.yaml'])
@@ -413,6 +413,6 @@ def test_evaluation_is_independent_and_unimplemented_case_fails_closed(tables):
     assert first['evaluations'][0]['rows'][0]['evaluation_receipt_id'] != second['evaluations'][0]['rows'][0]['evaluation_receipt_id']
     write_yaml(root / 'retrain-gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
         'case': 'post_unlearning_utility_and_retrain_gap'})
-    with pytest.raises(ValueError, match='not implemented by modular_cpu_v1'):
+    with pytest.raises(ValueError, match='requires an explicit Retrain'):
         run(tables, 'unsupported-eval', stage='unlearning', selector_refs=['degree.yaml'],
             unlearning_refs=['gu.yaml'], evaluation_refs=['retrain-gap.yaml'])

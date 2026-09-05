@@ -259,7 +259,7 @@ def cell_dir(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> Path
 
 # Bump when the set of fields hashed in _content_fingerprint changes,
 # so old fingerprints stop matching and force a clean re-run.
-_FINGERPRINT_VERSION = "v3-external-selection-profile"
+_FINGERPRINT_VERSION = "v4-independent-outputs"
 
 
 def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: int) -> str:
@@ -290,6 +290,13 @@ def _content_fingerprint(cfg: Dict[str, Any], method: str, strategy: str, seed: 
     }
     if method_extra:
         payload["method_overrides"] = method_extra
+    if cfg.get("retrain_ref") or cfg.get("evaluation_ref"):
+        from experiments.modular_config import load_instance
+        directory = Path(cfg["_source_path"]).resolve().parent
+        payload["independent_instances"] = {
+            key: load_instance(directory / cfg[key], kind)
+            for key, kind in (("retrain_ref", "unlearning"), ("evaluation_ref", "evaluation"))
+        }
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
@@ -593,6 +600,16 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
     v2_mode = cache_v2_settings(cfg) is not None
     if v2_mode and not dry_run and selection_artifact is None:
         raise ValueError("Cache V2 runner cell has no Selection Artifact")
+    if want_collateral and not dry_run and out_dir.exists() and any(out_dir.iterdir()):
+        if status != "complete" or force:
+            raise ValueError("existing output cell is not reusable; no automatic retraining or overwrite")
+        from experiments.unlearning_outputs import load_output
+        references = json.loads((out_dir / "output-references.json").read_text(encoding="utf-8"))
+        for pair in references:
+            for role in ("unlearning", "retrain"):
+                output = load_output(pair[role], selection_artifact["store_root"])
+                if output.identity["selection"] != {key: selection_artifact[key] for key in ("artifact_id", "recipe_hash", "content_hash")}:
+                    raise ValueError("existing output cell Selection differs from requested input")
 
     if not force:
         if status == "complete":
@@ -662,6 +679,27 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
 
     if dry_run:
         return "would_run"
+
+    if want_collateral:
+        from experiments.target_direct_v1.run_outputs import execute_cell
+        attempt, _ = prior_attempt_context(cell_id, expected_fp, event_path=report_event_path)
+        run_id = new_run_id(cell_id)
+        event = dict(identity=identity, producer="experiments/run.py",
+                     config_fingerprint=expected_fp, git_sha=git_sha, cell_id=cell_id,
+                     run_id=run_id, attempt=attempt, event_path=report_event_path)
+        _record_autoreport_event(stage="run", state="started",
+            metadata={"expected_stages": ["attack", "collateral"]}, **event)
+        try:
+            result = execute_cell(cfg, method, strategy, seed, selection_artifact,
+                                 output_dir=out_dir, fingerprint=expected_fp, git_sha=git_sha)
+        except Exception as exc:
+            _record_autoreport_event(stage="run", state="failed",
+                error={"type": type(exc).__name__, "message": str(exc), "retryable": False}, **event)
+            raise
+        for stage in ("attack", "collateral", "run"):
+            _record_autoreport_event(stage=stage, state="completed",
+                artifacts=_existing_artifact_refs(out_dir), **event)
+        return result
 
     out_dir.mkdir(parents=True, exist_ok=True)
     attempt, prior_failed_run_id = prior_attempt_context(
@@ -881,108 +919,6 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
         artifacts=[artifact_ref(path=str(out_dir / "attack.json"), artifact_type="evaluation")],
         event_path=report_event_path,
     )
-
-    # 2) eval_collateral: writes collateral.json + predictions.npz
-    if defaults.get("run_collateral", True):
-        cmd2 = [
-            py, str(REPO_ROOT / "eval_collateral.py"),
-            "--dataset_name", cfg["dataset"],
-            "--base_model", cfg["base_model"],
-            "--unlearning_methods", method,
-            "--strategies", strategy,
-            "--unlearn_ratio", str(cfg["ratio"]),
-            "--random_seed", str(seed),
-            "--output_dir", str(out_dir),
-            "--num_epochs", str(defaults.get("num_epochs", 100)),
-            "--batch_size", str(defaults.get("batch_size", 64)),
-            "--cuda", str(defaults.get("cuda", 0)),
-            "--run_update_detection_auc", str(run_update_detection_auc),
-        ] + experiment_roots + target_checkpoint_args
-        if defaults.get("save_predictions", True):
-            cmd2.append("--save_predictions")
-        if v2_mode:
-            cmd2 += [
-                "--cache_v2_store_root", str(selection_artifact["store_root"]),
-                "--selection_artifact_id", str(selection_artifact["artifact_id"]),
-                "--selection_k", str(selection_artifact["k"]),
-            ]
-        cmd2 += extra
-        print(f"[run] eval_collateral {method}/{strategy}/seed{seed}")
-        _record_autoreport_event(
-            identity=identity,
-            stage="collateral",
-            state="started",
-            producer="experiments/run.py",
-            config_fingerprint=expected_fp,
-            git_sha=git_sha,
-            cell_id=cell_id,
-            run_id=run_id,
-            attempt=attempt,
-            event_path=report_event_path,
-        )
-        rc = subprocess.run(cmd2, cwd=str(REPO_ROOT), env=child_env).returncode
-        if rc != 0:
-            print(f"[FAIL] eval_collateral rc={rc} for {out_dir}", file=sys.stderr)
-            error = {
-                "type": "SUBPROCESS_EXIT",
-                "message": "eval_collateral.py exited with rc={0}".format(rc),
-                "returncode": rc,
-                "retryable": True,
-            }
-            _record_autoreport_event(
-                identity=identity,
-                stage="collateral",
-                state="failed",
-                producer="experiments/run.py",
-                config_fingerprint=expected_fp,
-                git_sha=git_sha,
-                cell_id=cell_id,
-                run_id=run_id,
-                attempt=attempt,
-                error=error,
-                retry=retry,
-                event_path=report_event_path,
-            )
-            _record_autoreport_event(
-                identity=identity,
-                stage="run",
-                state="failed",
-                producer="experiments/run.py",
-                config_fingerprint=expected_fp,
-                git_sha=git_sha,
-                cell_id=cell_id,
-                run_id=run_id,
-                attempt=attempt,
-                error=error,
-                retry=retry,
-                event_path=report_event_path,
-            )
-            return "failed_collateral"
-        _record_autoreport_event(
-            identity=identity,
-            stage="collateral",
-            state="completed",
-            producer="experiments/run.py",
-            config_fingerprint=expected_fp,
-            git_sha=git_sha,
-            cell_id=cell_id,
-            run_id=run_id,
-            attempt=attempt,
-            cache=(
-                [_selection_cache_observation(selection_artifact)]
-                if v2_mode
-                else [cache_observation(
-                    cache_type="result",
-                    outcome="unknown",
-                    recipe={"strategy": strategy},
-                    lookup_policy="producer_not_observed",
-                    authoritative=False,
-                    write_outcome="reused",
-                )]
-            ),
-            artifacts=[artifact_ref(path=str(out_dir / "collateral.json"), artifact_type="evaluation")],
-            event_path=report_event_path,
-        )
 
     # 3) _meta.json — audit trail + skip-decision fingerprint
     meta = {

@@ -60,6 +60,8 @@ def build_gu_config(
         },
         "ratio": float(manifest["ratio"]),
         "methods": ["GNNDelete"],
+        "retrain_ref": str(Path(__file__).resolve().parents[1] / 'configs/target_direct_formal_v2/unlearning/retrain.yaml'),
+        "evaluation_ref": str(Path(__file__).resolve().parents[1] / 'configs/target_direct_formal_v2/evaluations/post_unlearning_utility_and_retrain_gap.yaml'),
         "strategies": list(manifest["strategies"]),
         "seeds": [int(value) for value in manifest["seeds"]],
         "processed_root": str(resolved["processed_root"]),

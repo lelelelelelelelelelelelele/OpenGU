@@ -174,20 +174,6 @@ def test_shard_consumer_reuses_canonical_trained_selection(tmp_path):
     assert shard.result_cache_hit is False
 
 
-def test_collateral_consumer_exact_read_only_selection(tmp_path):
-    from eval_collateral import load_generic_selection
-    m = manager(tmp_path / "v2")
-    assert load_generic_selection(m, "degree", 2)[0] is None
-    result = m.run_attack("degree", 2)
-    before = {p: p.read_bytes() for p in (tmp_path / "v2").rglob("*") if p.is_file()}
-    selection, provenance = load_generic_selection(m, "degree", 2)
-    assert selection.artifact_id == result.selection_artifact_id
-    assert provenance["authoritative"] is True
-    assert {p: p.read_bytes() for p in before} == before
-    m.data.x[0, 0] += 1
-    assert load_generic_selection(m, "degree", 2)[0] is None
-
-
 @pytest.mark.parametrize("change", ["features", "labels", "graph", "candidates", "split", "model", "seed"])
 def test_identity_changes_reject_old_result(tmp_path, change, record_property):
     root = tmp_path / "v2"

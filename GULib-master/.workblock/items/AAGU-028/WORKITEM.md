@@ -3,12 +3,18 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`e27425e6ad8ba8dd34663098d759d83ab4804023`
+
+> Source branch：`refs/heads/codex/aagu-028-retrain-metrics`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -66,3 +72,12 @@ Execution topology: `parallel`
 ## Status history
 
 - 2026-09-05: 用户确认此前明确提出的 Retrain 独立方法要求，指定为正式实验之前的前置 FIX，并授权登记。本次 registered / not claimed；未创建任务、Claim、实现或运行实验。
+
+## Execution record
+
+- 2026-09-05：本任务 01a07195-b039-7e41-8697-79771fbf7f4f Claim 同一 AAGU-028；owner codex，canonical Claim revision 1 / ongoing。Linked source 为 E:/project/OpenGU-worktrees/aagu-028-retrain-metrics/GULib-master/GULib-master。
+- 已复现：Retrain 小表被拒绝，旧 eval_collateral 运行 GU 和隐式 Retrain，AttackResult 舍入后读回相对差值从 8.15 变为 8.14。
+- 实现独立 Retrain、精确节点删除/评价图合同和 Cache V2 单方法完整输出；Metrics 从显式引用读取原始预测。删除旧 AttackPipeline.run_retrain 与 eval_collateral 训练入口；更新 target-direct 的必要消费者及明确 checkpoint 训练条件。
+- [数据流与可重跑示例](../../../docs/retrain_outputs.md)；[软件 Verify 脚本](evidence/verify.py)。开发期真实 CPU 检查与示例已通过；最终候选将在干净 HEAD 上统一验证。
+- 一次命令目录状态未保持，三个本任务编辑短暂落到 canonical A。逐项核对并转回 linked source，恢复原内容/换行后确认 canonical Git 工作区干净；没有对共享 Skills 或正式数据做修复。
+- 软件证据只支持约定本地 CPU 消费链；未进行正式矩阵、SSH/GPU、Apply、push、install 或清理。完成 Verify 后进入 formal 人类验收。

@@ -10,7 +10,7 @@ from experiments.effective_config import fields, ConfigurationError
 from experiments.modular_config import load_experiment, resolve_budget
 from experiments.modular_evaluation import evaluate_modular, require_consumer
 from experiments.modular_execution import ExecutionContext
-from experiments.modular_model import prepare_model
+from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
 from utils.target_checkpoint import sha256_file, data_identity
@@ -94,11 +94,17 @@ def execute(path, *, context=None, dry_run=False):
     if not isinstance(context, ExecutionContext):
         raise ConfigurationError(
             'execution context must be supplied by project policy or a registered SyncMate stage')
-    if config['stage'] != 'unlearning' and config['evaluations']:
+    if config['stage'] == 'selector' and config['evaluations']:
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
         require_consumer(evaluation, 'modular_cpu_v1')
+    needs_retrain = any(item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations'])
+    if (config['stage'] == 'unlearning' and needs_retrain and not config.get('retrain_input')
+            and not any(item['method'] == 'Retrain' for item in config['unlearnings'])):
+        raise ConfigurationError('retrain-gap requires an explicit Retrain output or independent Retrain method')
     directory = Path(config['source_directory'])
+    # Import-time OpenGU CLI belongs to the execution adapter, not its caller's argv.
+    runtime_defaults()
     from attack.cache_identity import resolve_store_root
     store_root = resolve_store_root(context.store_root)
     checkpoint_root = context.checkpoint_root
@@ -113,6 +119,12 @@ def execute(path, *, context=None, dry_run=False):
         'selectors': [], 'unlearning': [], 'evaluations': []}
     if output.exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
+    if config['stage'] == 'metrics':
+        summary['evaluations'] = [evaluate_modular(item, config['output_inputs'], store_root=store_root, data=data)
+                                  for item in config['evaluations']]
+        summary['selector_producer_called'] = False
+        _write_summary(output, summary)
+        return summary
     device = torch.device(context.request_device)
     if device.type == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA requested but unavailable')
@@ -131,15 +143,22 @@ def execute(path, *, context=None, dry_run=False):
         from experiments.modular_gu import run_unlearning
         for item in config['unlearnings']:
             for selection in loaded_selections:
-                model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
-                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                model, checkpoint = None, None
+                if item['method'] != 'Retrain':
+                    model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
+                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                 result = run_unlearning(item, selection=selection, model=model, data=data,
                     dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint})
         summary['evaluations'] = [
-            evaluate_modular(item, summary['unlearning']) for item in config['evaluations']
+            evaluate_modular(item, summary['unlearning'], store_root=store_root, data=data, retrain_input=config.get('retrain_input')) for item in config['evaluations']
         ]
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
+    _write_summary(output, summary)
+    return summary
+
+
+def _write_summary(output, summary):
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x', encoding='utf-8') as handle:
         json.dump(summary, handle, indent=2, ensure_ascii=False, allow_nan=False)

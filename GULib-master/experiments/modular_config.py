@@ -58,6 +58,8 @@ def selector(value):
 
 
 def gu_defaults(method):
+    if method == 'Retrain':
+        return {}
     # Defaults are read from the real CLI owner, without importing config.py.
     import sys
     from parameter_parser import parameter_parser
@@ -73,11 +75,11 @@ def gu_defaults(method):
         return result
     if method == 'GIF':
         return {k: defaults[k] for k in ('iteration', 'scale', 'damp', 'GIF_method')}
-    raise ConfigurationError('supported GU methods: GNNDelete, GIF')
+    raise ConfigurationError('supported GU methods: GNNDelete, GIF, Retrain')
 
 
 def unlearning(value):
-    fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint'},
+    fields(value, {'kind', 'schema_version', 'method', 'model', 'training', 'parameters', 'checkpoint', 'deletion'},
                   {'kind', 'schema_version', 'method'}, 'unlearning')
     params = effective(value.get('parameters', {}), gu_defaults(value['method']))
     if value['method'] == 'GNNDelete':
@@ -85,14 +87,18 @@ def unlearning(value):
                 or params['deletion_optimizer'] != 'Adam' or params['deletion_weight_decay'] != 0
                 or params['loss_type'] != 'both_layerwise' or params['loss_fct'] != 'mse_mean'):
             raise ConfigurationError('invalid or unsupported GNNDelete node configuration')
-    else:
+    elif value['method'] == 'GIF':
         if params['iteration'] <= 0 or params['scale'] <= 0 or not 0 <= params['damp'] < 1:
             raise ConfigurationError('invalid GIF parameters')
         choice(params['GIF_method'], ('GIF', 'IF'), 'GIF_method')
     model, training = model_training({k: value[k] for k in ('model', 'training') if k in value})
     if value['method'] == 'GNNDelete' and model['architecture'] != 'OpenGU.GCNNet':
         raise ConfigurationError('GNNDelete modular node consumer currently supports GCN')
-    return {**value, 'model': model, 'training': training, 'parameters': params}
+    if value['method'] == 'Retrain' and 'checkpoint' in value:
+        raise ConfigurationError('Retrain starts from scratch and cannot consume a checkpoint')
+    from experiments.node_deletion import resolve_deletion
+    return {**value, 'model': model, 'training': training, 'parameters': params,
+            'deletion': resolve_deletion(value.get('deletion'))}
 
 
 def load_instance(path, expected_kind):
@@ -175,18 +181,25 @@ def load_experiment(path):
     value = read_yaml(path)
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
     fields(value, required | {'round',
-        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id'},
+        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs', 'retrain_input'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
-    choice(value['stage'], ('selector', 'unlearning'), 'stage')
+    choice(value['stage'], ('selector', 'unlearning', 'metrics'), 'stage')
     choice(value['matrix'], ('cartesian_product',), 'matrix')
-    if bool(value.get('selector_refs')) == bool(value.get('selection_input')):
+    if value['stage'] != 'metrics' and bool(value.get('selector_refs')) == bool(value.get('selection_input')):
         raise ConfigurationError('use selector_refs or selection_input, exactly one')
     if value['stage'] == 'selector' and (value.get('unlearning_refs') or value.get('selection_input')):
         raise ConfigurationError('selector stage needs selector_refs and no GU inputs')
     if value['stage'] == 'unlearning' and not value.get('unlearning_refs'):
         raise ConfigurationError('unlearning stage requires unlearning_refs')
+    if value['stage'] == 'metrics':
+        if not value.get('output_inputs') or not value.get('evaluation_refs'):
+            raise ConfigurationError('metrics stage requires output_inputs and evaluation_refs')
+        if any(value.get(key) for key in ('selector_refs', 'selection_input', 'unlearning_refs', 'retrain_input')):
+            raise ConfigurationError('metrics stage consumes only explicit output references')
+    elif 'output_inputs' in value:
+        raise ConfigurationError('output_inputs belongs to the metrics stage')
     result = dict(value)
     dataset_path = (path.parent / value['dataset_ref']).resolve()
     result['dataset'] = load_instance(dataset_path, 'dataset_split')
