@@ -1,0 +1,21 @@
+{
+  "product_code_checkpoint": "0d2bbe1d250d91697d0cf1204e0b1eefc3e1a4b1",
+  "files": {
+    "scope_smoke.py": "cbb9ce3515e0be406d14ee54c2682b6a97d59737997ea14fb7b38444ff773d6a",
+    "scope-smoke.json": "877d8e6bd0abd6cecce215b8df494c49f0627a28bfef64fdb911ecc785f68522",
+    "timeout_smoke.py": "030f45bda02c982719ef249982ae8cb24c2620ca5f9fbd3e0b2619583886677e",
+    "timeout-smoke.json": "061e37c7d449270a93efaad25536f8a1adc162790b8ab10a37f2c810fbd5ada7",
+    "component-smoke.xml": "9a4df788bedc976ae10d256b620c60eda9c6927c5b7927181c54f93c4c62244d",
+    "component-observations.json": "ea43162bfa3f096bcafb3766c4ba36f31c03dfd3ec259ba451524ba7fbac0415",
+    "verify_pilot.py": "41f1763664a14668f2cf8b4a00913c73ac2fbb807bdb334192bb66a9056381cf",
+    "verification.json": "44bbf763a001822a27cb51c9ff5750dd12c8a1e3b314325d1393f61c4585771d",
+    "render_report.py": "ab81555e3b50714b103728126421c2a425168676044826e36c3f03bb3ccf16e5",
+    "report-qa.json": "fd756f0d6aa6a0165df569c6368fcce78131d20f2021519016acc6d8a2966009"
+  },
+  "reproduction": [
+    "E:/conda_package/envs/gnn/python.exe -B .workblock/items/AAGU-002/evidence/scope_smoke.py",
+    "E:/conda_package/envs/gnn/python.exe -B .workblock/items/AAGU-002/evidence/timeout_smoke.py",
+    "E:/conda_package/envs/gnn/python.exe -B -m pytest tests/test_modular_consumers.py::test_real_gu_consumes_existing_selection_without_producer tests/test_modular_consumers.py::test_method_cold_warm_and_hutch_isolation tests/test_modular_consumers.py::test_evaluation_is_independent_and_missing_retrain_fails_closed tests/test_syncmate_atomic_stage.py -q"
+  ],
+  "reuse_reason": "Production code, recipes and installed dependency payload are unchanged. New candidate adds only this item evidence, reproducible harnesses and report. Raw pilot facts are retained; user clarified acceptance scope."
+}

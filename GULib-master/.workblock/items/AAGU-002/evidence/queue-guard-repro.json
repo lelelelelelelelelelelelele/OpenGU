@@ -1,0 +1,188 @@
+{
+  "evidence_kind": "local-isolated-installed-core-reproduction",
+  "python": "3.8.20",
+  "cases": {
+    "explicit_refusal": {
+      "preflight_input": {
+        "ready": false,
+        "errors": [
+          "EXPECTED_GPU_MISSING"
+        ]
+      },
+      "git_head": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+      "submitted": true,
+      "preflight_calls_before_enqueue": 0,
+      "inbox_created": true,
+      "binding": {
+        "runtime_preflight": {
+          "ready": false,
+          "errors": [
+            "EXPECTED_GPU_MISSING"
+          ]
+        },
+        "ready": false,
+        "errors": [
+          "EXPECTED_GPU_MISSING"
+        ]
+      },
+      "run_once": {
+        "status": "blocked",
+        "processed": true,
+        "job_id": "aagu002-fixture",
+        "result": {
+          "protocol": "syncmate-job/v1",
+          "job_id": "aagu002-fixture",
+          "recipe": "readiness-fixture",
+          "status": "blocked",
+          "binding": {
+            "ready": true,
+            "expected": {
+              "git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+              "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec"
+            },
+            "observed": {
+              "git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+              "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec"
+            },
+            "errors": [],
+            "action": "continue"
+          },
+          "preflight": {
+            "ready": false,
+            "errors": [
+              "EXPECTED_GPU_MISSING"
+            ],
+            "recipe_binding": {
+              "recipe": {
+                "id": "readiness-fixture",
+                "argv": [
+                  "{python}",
+                  "-c",
+                  "raise SystemExit(99)"
+                ],
+                "config_path": "fixture.json",
+                "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+                "timeout_seconds": 5,
+                "expected_artifact_paths": [],
+                "git_binding_policy": "job-exact-main-v1",
+                "preflight_profile": "controlled-readiness",
+                "collector_acceptance": "not-eligible"
+              },
+              "expected": {
+                "git_sha": null,
+                "recipe_introduced_git_sha": null,
+                "config_path": "fixture.json",
+                "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+                "timeout_seconds": 5,
+                "artifact_paths": [],
+                "collector_acceptance": "not-eligible"
+              },
+              "observed": {
+                "git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+                "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+                "git_binding_mode": "job-exact-main-v1",
+                "git_changed_paths": []
+              },
+              "git": {
+                "expected_git_sha": null,
+                "observed_git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+                "mode": "job-exact-main-v1",
+                "ok": true,
+                "changed_paths": [],
+                "errors": []
+              },
+              "runtime_preflight": {
+                "ready": false,
+                "errors": [
+                  "EXPECTED_GPU_MISSING"
+                ]
+              },
+              "ready": false,
+              "errors": [
+                "EXPECTED_GPU_MISSING"
+              ]
+            }
+          },
+          "errors": [
+            "EXPECTED_GPU_MISSING"
+          ],
+          "action": "continue",
+          "project_acceptance": {
+            "status": "not_evaluated",
+            "owner": "project"
+          },
+          "finished_at": "2026-09-06T04:54:34",
+          "recipe_binding": {
+            "recipe": {
+              "id": "readiness-fixture",
+              "argv": [
+                "{python}",
+                "-c",
+                "raise SystemExit(99)"
+              ],
+              "config_path": "fixture.json",
+              "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+              "timeout_seconds": 5,
+              "expected_artifact_paths": [],
+              "git_binding_policy": "job-exact-main-v1",
+              "preflight_profile": "controlled-readiness",
+              "collector_acceptance": "not-eligible"
+            },
+            "expected": {
+              "git_sha": null,
+              "recipe_introduced_git_sha": null,
+              "config_path": "fixture.json",
+              "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+              "timeout_seconds": 5,
+              "artifact_paths": [],
+              "collector_acceptance": "not-eligible"
+            },
+            "observed": {
+              "git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+              "config_sha256": "7c5bf16c3c83cb66234d4cd2b58030f1c47e4f91f0ac855bfaf2b9dc745a78ec",
+              "git_binding_mode": "job-exact-main-v1",
+              "git_changed_paths": []
+            },
+            "git": {
+              "expected_git_sha": null,
+              "observed_git_sha": "d2d7654686c1713a3c60a05db9914e716a6c029e",
+              "mode": "job-exact-main-v1",
+              "ok": true,
+              "changed_paths": [],
+              "errors": []
+            },
+            "runtime_preflight": {
+              "ready": false,
+              "errors": [
+                "EXPECTED_GPU_MISSING"
+              ]
+            },
+            "ready": false,
+            "errors": [
+              "EXPECTED_GPU_MISSING"
+            ]
+          },
+          "reason": "EXPECTED_GPU_MISSING"
+        },
+        "path": ".syncmate/runner_queue/blocked/aagu002-fixture.yaml"
+      },
+      "process_calls": 0,
+      "gate_check": "FAIL"
+    },
+    "missing_readiness": {
+      "preflight_input": {},
+      "git_head": "b8a5fdb142f4432926ba172f51330ea2d5018c0a",
+      "submitted": true,
+      "preflight_calls_before_enqueue": 0,
+      "inbox_created": true,
+      "binding": {
+        "runtime_preflight": {},
+        "ready": true,
+        "errors": []
+      },
+      "process_calls": 0,
+      "gate_check": "FAIL"
+    }
+  },
+  "remote_submissions": 0
+}

@@ -1,0 +1,312 @@
+{
+  "passed": true,
+  "source_checkpoint": "0d2bbe1d250d91697d0cf1204e0b1eefc3e1a4b1",
+  "dependency": {
+    "ready": true,
+    "expected": {
+      "distribution": "syncmate",
+      "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
+      "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+      "version": "0.4.0",
+      "wheel": "syncmate-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+    },
+    "observed": {
+      "distribution_version": "0.4.0",
+      "version": "0.4.0",
+      "module_file": "E:\\conda_package\\envs\\gnn\\Lib\\site-packages\\syncmate_core\\__init__.py",
+      "verified_payload_files": 60
+    },
+    "errors": []
+  },
+  "recipe_count": 38,
+  "handoffs": [
+    {
+      "recipe": "opengu-cache-v2-gate4-v1",
+      "timeout_seconds": 3600
+    },
+    {
+      "recipe": "opengu-preflight-v1",
+      "timeout_seconds": 180
+    },
+    {
+      "recipe": "opengu-sm005-atomic-gpu-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-sm005-b-hutch32-first-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-sm005-b-hutch32-warm-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-sm005-d-full-handoff-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-sm005-d-full-return-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-sm005-d-full-selector-v1",
+      "timeout_seconds": 1800
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed2024-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed2024-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed212-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed212-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed42-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-citeseer-seed42-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed2024-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed2024-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed212-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed212-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed42-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-cora-seed42-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-gate-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-gate-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed2024-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed2024-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed212-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed212-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed42-r001-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-gu-pubmed-seed42-r005-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-citeseer-seed2024-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-citeseer-seed212-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-citeseer-seed42-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-cora-seed2024-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-cora-seed212-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-cora-seed42-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-pubmed-seed2024-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-pubmed-seed212-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "opengu-target-direct-selection-pubmed-seed42-v2",
+      "timeout_seconds": 21600
+    },
+    {
+      "recipe": "smoke",
+      "timeout_seconds": 180
+    }
+  ],
+  "smoke_exit_code": 0,
+  "smoke": {
+    "generated_at": "2026-09-06T06:07:44",
+    "mode": "smoke",
+    "passed": true,
+    "kept": false,
+    "temporary": true,
+    "workdir": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\syncmate-smoke-jgg6_c9f",
+    "collector_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\syncmate-smoke-jgg6_c9f\\collector",
+    "runner_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\syncmate-smoke-jgg6_c9f\\runner",
+    "node_id": "local-runner",
+    "landing": "results/runs/local-runner",
+    "sample": {
+      "leaf": "results/runs/demo/trial-001",
+      "artifacts": [
+        "metrics.json",
+        "run_meta.json",
+        "config.yaml"
+      ]
+    },
+    "checks": {
+      "preflight_ready": true,
+      "diff_found_missing": true,
+      "collect_fetched_missing": true,
+      "collect_checksum_ok": true,
+      "verify_status": true,
+      "trusted_export_leaf": true,
+      "trusted_export_artifacts": true,
+      "checklist_written": true,
+      "runbook_written": true,
+      "action_plan_written": true,
+      "automation_core_markdown_written": true,
+      "local_artifact_exists": true
+    },
+    "summary": {
+      "diff_missing": 3,
+      "collected": 3,
+      "verified": 3,
+      "indexed": 3,
+      "export_leaves": 1,
+      "export_artifacts": 3
+    },
+    "files": {
+      "device": ".syncmate/device.yaml",
+      "preflight": ".syncmate/last_preflight.json",
+      "diff": ".syncmate/last_diff_local-runner.json",
+      "collect": ".syncmate/last_collect_local-runner.json",
+      "verify": ".syncmate/last_verify_local-runner.json",
+      "artifact_index": ".syncmate/artifact_index.json",
+      "export_manifest": ".syncmate/export_manifest.json",
+      "export_csv": ".syncmate/export_manifest.csv",
+      "dashboard": ".syncmate/status.html",
+      "automation_core": ".syncmate/automation_core.json",
+      "automation_core_markdown": ".syncmate/automation_core.md",
+      "acceptance": ".syncmate/acceptance.json",
+      "action_plan": ".syncmate/action_plan.json",
+      "action_plan_markdown": ".syncmate/action_plan.md",
+      "checklist": ".syncmate/checklist.md",
+      "runbook": ".syncmate/runbook.md",
+      "receipt": ".syncmate/receipt_local-runner.md",
+      "local_artifact": "results/runs/local-runner/demo/trial-001/metrics.json"
+    },
+    "errors": [],
+    "cleaned": true
+  },
+  "timing_evidence": [
+    {
+      "run": "sm005-b-hutch32-first-v1",
+      "source": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\sm005-gpu4090\\modular\\sm005-cora-b-hutch32-gnndelete\\sm005-b-hutch32-first-v1\\summary.json",
+      "sha256": "fc64f7b9e18b9ee1c57800bc844b6e8e5fbe281807f143607479585dc87e072d",
+      "score_hit": "False",
+      "score_access_s": "1.1823048805817962",
+      "selection_access_s": "0.3620078917592764",
+      "baseline_score_path_s": "1.1823048805817962",
+      "stored_gu_unlearn_s": "0.764",
+      "fresh_gu_compute_s": "0.764",
+      "current_gu_access_s": ""
+    },
+    {
+      "run": "sm005-b-hutch32-warm-v1",
+      "source": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\sm005-gpu4090\\modular\\sm005-cora-b-hutch32-gnndelete\\sm005-b-hutch32-warm-v1\\summary.json",
+      "sha256": "5b4268e93130418a80b7c091e0be57bcda1985fddaf0de08c1b0c74892e84ad8",
+      "score_hit": "True",
+      "score_access_s": "0.16435224376618862",
+      "selection_access_s": "0.3687750743702054",
+      "baseline_score_path_s": "1.1823048805817962",
+      "stored_gu_unlearn_s": "0.764",
+      "fresh_gu_compute_s": "0.0",
+      "current_gu_access_s": ""
+    },
+    {
+      "run": "sm005-d-full-selector-v1",
+      "source": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\sm005-gpu4090\\modular\\sm005-cora-d-full-selector\\sm005-d-full-selector-v1\\summary.json",
+      "sha256": "cfc13d971077d6bbb6f0f8f01c85b88b8474f807ea6442030fa0ba29f668d85f",
+      "score_hit": "False",
+      "score_access_s": "5.6047198716551065",
+      "selection_access_s": "0.33627592492848635",
+      "baseline_score_path_s": "5.6047198716551065",
+      "stored_gu_unlearn_s": "",
+      "fresh_gu_compute_s": "",
+      "current_gu_access_s": ""
+    },
+    {
+      "run": "sm005-gpu-v1",
+      "source": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\sm005-gpu4090\\modular\\sm005-cora-degree-gnndelete\\sm005-gpu-v1\\summary.json",
+      "sha256": "16208bf6150576d975f7bd0f9def6a0d01b6ed09c04dafb74b073859de5545b1",
+      "score_hit": "False",
+      "score_access_s": "0.22039688657969236",
+      "selection_access_s": "0.33102570194751024",
+      "baseline_score_path_s": "0.22039688657969236",
+      "stored_gu_unlearn_s": "0.8848",
+      "fresh_gu_compute_s": "0.8848",
+      "current_gu_access_s": ""
+    },
+    {
+      "run": "sm005-d-full-return-v1",
+      "source": "E:\\project\\OpenGU\\GULib-master\\results\\runs\\sm005-gpu4090\\modular\\sm005-cora-d-full-selector\\sm005-d-full-return-v1\\summary.json",
+      "sha256": "5708b6cfa47aa4589e192e5ddf0297397bc7cc6f039bc838201b89751307582b",
+      "score_hit": "True",
+      "score_access_s": "0.1172873368486762",
+      "selection_access_s": "0.27431746013462543",
+      "baseline_score_path_s": "5.6047198716551065",
+      "stored_gu_unlearn_s": "",
+      "fresh_gu_compute_s": "",
+      "current_gu_access_s": ""
+    }
+  ],
+  "timing_limits": [
+    "timeout_seconds bounds a whole job, not an independently timed selector subphase",
+    "HIT preserves historical baseline; current access cost is separate",
+    "Missing GU access/model preparation timing remains unknown, not zero",
+    "No claim that historical timing predicts the current formal 007 run"
+  ],
+  "scope": "AAGU-002 device facts, existing field integration and smoke only; formal minimum experiment belongs to AAGU-007",
+  "submitted_jobs": 0
+}

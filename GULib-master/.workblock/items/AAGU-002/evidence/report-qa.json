@@ -1,0 +1,33 @@
+{
+  "desktop": {
+    "width": 1440,
+    "scrollWidth": 1440,
+    "decision": {
+      "x": 327,
+      "y": 560.125,
+      "width": 48,
+      "height": 21,
+      "top": 560.125,
+      "right": 375,
+      "bottom": 581.125,
+      "left": 327
+    },
+    "brokenImages": 0
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390
+  },
+  "missing_local_links": [],
+  "files": {
+    "desktop.png": "c490abd243abd4a982f68b36b671024604fb5ffc4d795a9cf8dd412661d15b48",
+    "full.png": "c0f9734d285cb081cbaa81b82e2beff40631e9ddf1c0e0d8e12d72ad7444d1b6",
+    "layout.json": "49dc5cb84ae4c73e7d080fb9bae9d22473d911fd8b3fd03a189cb5513c211b9e"
+  },
+  "report_sha256": {
+    "REPORT.md": "f6015f1375a89910fcb982b3e8ae3b999f6c0ff8d0f5e8bc929b2d717b5799c3",
+    "REPORT.html": "4892a25cfb1e67f0a69b27f0a81da1ca74122446595c35a52c0ee1aef4be319c"
+  },
+  "screenshot_directory": "E:\\project\\OpenGU-worktrees\\aagu-002-device-readiness\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu002-report-qa",
+  "agent_observation": "Inspected full rendered report: component coverage, actual timeout table, expected failed state and pending decision are legible. The decision is above the desktop fold; no clipped text, broken links or page overflow. Mobile checked for horizontal overflow only."
+}
