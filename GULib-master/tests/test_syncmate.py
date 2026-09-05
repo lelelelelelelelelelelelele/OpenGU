@@ -1383,7 +1383,7 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
     assert peer["python_executable"] == "/root/miniconda3/bin/python"
     assert 'landing' not in peer and 'result_roots' not in peer
     from syncmate_core import run_handoff
-    assert run_handoff.landing_for('gpu4090') == 'results/runs/gpu4090' 
+    assert run_handoff.landing_for('gpu4090') == 'results/runs/gpu4090'
 
     try:
         _run_cli([
