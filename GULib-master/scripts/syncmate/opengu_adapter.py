@@ -12,7 +12,7 @@ import opengu_results as results_module
 
 
 OPENGU_SETUP_CONFIG_SHA256 = (
-    "03fb31feae5edb3fde21b9eab2fcc892fecb764e05fafe44b38c753fdde9f8a1"
+    "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa"
 )
 
 
@@ -46,6 +46,9 @@ class OpenGUProjectExtension:
     """OpenGU-owned policy surface consumed by the generic compatibility Core."""
 
     extension_id = "opengu"
+
+    def result_roots(self) -> tuple[str, ...]:
+        return ("results/runs",)
 
     def recipes(self, project_root: Path) -> Mapping[str, Mapping[str, Any]]:
         del project_root

@@ -6,13 +6,13 @@
 
 Current node: AAGU-028
 
-Next step: AAGU-028 已登记为 P0 前置 FIX；后续从同一 locator Claim，完成 Retrain 独立方法与 Metrics 输出复用。正式研究实验须等 028 接受并落地；015 的本阶段方案、YAML 与能力覆盖材料可独立审阅验收。
+Next step: 从 AAGU-028 同一 locator 推进 Retrain 独立方法与 Metrics 输出复用，正式研究实验须等其接受并落地。015 的本阶段方案、YAML、Selector 分数排名及未来 GU 复用小测试已获用户接受；005 与 SM-005 分别承担 OpenGU 和 Core 接入工作。
 
 ---
 
 ## 0. 一句话现状
 
-AAGU-001、AAGU-026 与 AAGU-009 已接受。当前先补齐 AAGU-028 的 Retrain / Metrics 软件链路；015 的材料候选保持独立验收边界，不以全量实验运行作为材料交付条件。各 Block 生命周期由下方 WorkItem 投影给出，未合入的候选以其同一 WorkItem 和 live Claim 为准。
+AAGU-001、AAGU-026 与 AAGU-009 已接受。当前先补齐 AAGU-028 的 Retrain / Metrics 软件链路；015 已接受本阶段实验方案、纯 Selector 配置、分数排名产物与未来 GU 复用小测试，全量实验运行不属于这次接受范围。各 Block 生命周期由下方 WorkItem 投影给出，未合入的候选以其同一 WorkItem 和 live Claim 为准。
 
 ## 1. WorkItem 状态投影
 
@@ -36,12 +36,12 @@ AAGU-001、AAGU-026 与 AAGU-009 已接受。当前先补齐 AAGU-028 的 Retrai
 | [AAGU-014](../../.workblock/items/AAGU-014/WORKITEM.md) | EXP | blocked by AAGU-013 | P2 | AAGU-013 | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-003](../../.workblock/items/AAGU-003/WORKITEM.md) | GATE | blocked by AAGU-014, AAGU-010 | P2 | AAGU-014, AAGU-010, AAGU-023 | [AAGU-003 Block contract](../../.workblock/items/AAGU-003/WORKITEM.md) |
 | [AAGU-022](../../.workblock/items/AAGU-022/WORKITEM.md) | EXP | blocked by AAGU-021 | P2 | AAGU-021 | [AAGU-022 Block contract](../../.workblock/items/AAGU-022/WORKITEM.md) |
-| [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | registered / not claimed | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
 | [AAGU-002](../../.workblock/items/AAGU-002/WORKITEM.md) | GATE | registered / not claimed | P0 | AAGU-001 | [AAGU-002 Block contract](../../.workblock/items/AAGU-002/WORKITEM.md) |
 | [AAGU-016](../../.workblock/items/AAGU-016/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [评审与 rebuttal](../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md) |
 | [AAGU-017](../../.workblock/items/AAGU-017/WORKITEM.md) | TODO | todo candidate / ready to promote | P2 | — | [实验框架总览](../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md) |
 | [AAGU-005](../../.workblock/items/AAGU-005/WORKITEM.md) | SUPPORT | registered / not claimed | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 | [AAGU-001](../../.workblock/items/AAGU-001/WORKITEM.md) | GATE | accepted / closed | P0 | AAGU-006 | [AAGU-001 合同与注册规范](../../.workblock/items/AAGU-001/WORKITEM.md) |
+| [AAGU-015](../../.workblock/items/AAGU-015/WORKITEM.md) | EXP | accepted / closed | P0 | AAGU-006, AAGU-001, AAGU-026, AAGU-009 | [AAGU-015 Block contract](../../.workblock/items/AAGU-015/WORKITEM.md) |
 | [AAGU-024](../../.workblock/items/AAGU-024/WORKITEM.md) | DOCS/PROTOCOL | accepted / closed | 未定 | — | [AAGU-024 Block contract](../../.workblock/items/AAGU-024/WORKITEM.md) |
 
 已关闭 FIX 节点已从活动投影隐藏：7 个；历史保留在对应 WorkItem 与 Git。
@@ -60,12 +60,12 @@ AAGU-001、AAGU-026 与 AAGU-009 已接受。当前先补齐 AAGU-028 的 Retrai
 
 ## 3. 当前唯一线与注意项
 
-- **Current**：当前主推进线为 `AAGU-028` 的 Retrain 独立方法与 Metrics 输出复用；本次只登记，后续 Claim 才开始实施。
+- **Current**：当前主推进线为 `AAGU-028` 的 Retrain 独立方法与 Metrics 输出复用；实时执行状态以同一 WorkItem 与 live Claim 为准。
 - **Attention ordering**：任何 awaiting-acceptance 或 blocked 节点都由生成投影置顶；本段不手工复制具体生命周期状态。
 - **Acceptance boundary**：候选验证通过不等于接受；只有明确接受后才由 `block-closeout` 投影决定并 Apply，不在当前阶段重复实施。
 - **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；核心包括真实参数归属、当前值/来源、变体配置与缓存变更影响，不以纯模板或链接代替。接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
 - **Implementation boundary**：`AAGU-026` 已交付并接受独立配置与方法级缓存实现；此前明确提出而未承接的 Retrain 独立执行 / Metrics 复用由 `AAGU-028` 修复，不转嫁为 015 的方案文档工作。
-- **IF boundary**：`AAGU-015` 当前交付本阶段实验方案、实际 YAML 和能力覆盖检查；未绑定输入、未测运行成本、未生成研究结果不属于代码缺口。使用该方案进入正式执行前仍须满足 028 及本轮运行门槛。
+- **IF boundary**：`AAGU-015` 交付本阶段实验方案、纯 Selector YAML、分数排名输出合同与未来 GU 复用的隔离 CPU 小测试；未绑定正式输入、未测正式成本、未生成研究结果不属于代码缺口。使用该方案进入正式执行前仍须满足 028 及本轮运行门槛。
 - **Experiment ordering**：所有实际实验运行，包括修复重跑、训练、评估和计时，都须先消费已接受的 `AAGU-001` 实验框图，并完成本轮定义、注册与批准。`AAGU-015` 同样在 001 之后；软件单元/回归验证可先做，但不能借 FIX 名义提前运行研究实验。
 - **Retrain prerequisite**：按用户 2026-09-05 的明确决定，`AAGU-028` 接受并落地前不启动整轮正式研究实验。007、027 和 020 三条执行根及其后续实验继承此前置；015 的材料验收、无写入检查和必要的隔离 CPU 软件验证可先行。解除此前置不自动批准任何实验。
 - **Repair split**：`AAGU-009` 只承担 IF-family 代码修复和本地软件回归；`AAGU-027` 在 001、009 接受后承接双端运行准备、正式重跑、收集及证据验收；`AAGU-010` 消费 027 的已接受结果。历史 120-cell 范围不等于当前实验批准。
@@ -199,7 +199,7 @@ flowchart LR
 | ID | 类型 | 节点 | 优先级 | 前置 | Owner |
 |---|---|---|---|---|---|
 | AAGU-004 | SUPPORT | FlowChunk D0 acceptance decision | P1 | — | [AAGU-004 Block contract](../../.workblock/items/AAGU-004/WORKITEM.md) |
-| AAGU-005 | SUPPORT | SyncMate 跨项目可行性与正确性检验 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
+| AAGU-005 | SUPPORT | SyncMate 的 OpenGU 接入与联调 | P3 | AAGU-001 | [AAGU-005 Block contract](../../.workblock/items/AAGU-005/WORKITEM.md) |
 
 ## 12. 漂移检测与重建
 

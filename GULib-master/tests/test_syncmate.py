@@ -188,8 +188,6 @@ def test_remote_status_plan_uses_peer_python_executable(tmp_path, monkeypatch, c
         "runner",
         "ssh-gpu",
         "/remote/repo",
-        "results/runs/gpu4090",
-        ["results/runs"],
         python_executable="/root/miniconda3/bin/python",
     )
     _devices.add_peer_to_device(config, "gpu4090", peer)
@@ -508,7 +506,7 @@ def test_compare_cli_reads_saved_remote_status_fingerprint(tmp_path, monkeypatch
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     _write(
@@ -618,7 +616,7 @@ def test_import_publish_saves_remote_status_and_compare_reads_it(tmp_path, monke
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/remote/repo"),
     )
     _devices.write_device_config(config_path, config)
     package = {
@@ -747,7 +745,7 @@ def test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results(tmp_
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", str(runner), "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", str(runner)),
     )
     _devices.write_device_config(collector_config, config)
 
@@ -1035,7 +1033,7 @@ def test_import_bundle_dry_run_write_plan_saves_offline_diff_only(tmp_path, monk
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "", str(runner), "results/runs/gpu4090", ["results/runs"], transport="local"),
+        _devices.build_peer_config("runner", "", str(runner), transport="local"),
     )
     _devices.write_device_config(collector_config, config)
 
@@ -1374,8 +1372,6 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
         "--ssh", "autodl-4090",
         "--repo-path", "~/autodl-fs/OpenGU/GULib-master",
         "--python-executable", "/root/miniconda3/bin/python",
-        "--result-root", "results/runs/cora_GCN_r0.05",
-        "--result-root", "results/runs/cora_GAT_r0.05",
     ]) == 0
 
     loaded, warnings = _devices.load_device(config_path)
@@ -1385,11 +1381,9 @@ def test_add_peer_cli_updates_collector_config_and_refuses_duplicate(tmp_path, m
     assert peer["role"] == "runner"
     assert peer["ssh"] == "autodl-4090"
     assert peer["python_executable"] == "/root/miniconda3/bin/python"
-    assert peer["landing"] == "results/runs/gpu4090"
-    assert peer["result_roots"] == [
-        "results/runs/cora_GCN_r0.05",
-        "results/runs/cora_GAT_r0.05",
-    ]
+    assert 'landing' not in peer and 'result_roots' not in peer
+    from syncmate_core import run_handoff
+    assert run_handoff.landing_for('gpu4090') == 'results/runs/gpu4090'
 
     try:
         _run_cli([
@@ -1503,7 +1497,6 @@ def test_setup_plan_guides_missing_collector_and_peer_config(tmp_path, monkeypat
         "--peer-ssh", "autodl-4090",
         "--peer-repo-path", "/remote/repo",
         "--peer-python-executable", "/root/miniconda3/bin/python",
-        "--result-root", "results/runs/cora_GCN_r0.05",
         "--json",
     ]) == 0
     out = json.loads(capsys.readouterr().out)
@@ -1536,7 +1529,6 @@ def test_setup_plan_can_generate_local_peer_commands(tmp_path, monkeypatch, caps
         "--peer-id", "local-runner",
         "--peer-local",
         "--peer-repo-path", "../GULib-runner-copy",
-        "--result-root", "results/runs",
         "--json",
     ]) == 0
     out = json.loads(capsys.readouterr().out)
@@ -1583,7 +1575,7 @@ def test_setup_plan_write_marks_existing_peer_not_needed(tmp_path, monkeypatch, 
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "autodl-4090", "/remote/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "autodl-4090", "/remote/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -1625,8 +1617,6 @@ def test_layout_cli_shows_peer_paths_and_trusted_outputs(tmp_path, monkeypatch, 
             "runner",
             "ssh-gpu",
             "/remote/repo",
-            "results/runs/gpu4090",
-            ["results/runs"],
             artifact_policy={"include": ["attack.json", "_meta.json"]},
         ),
     )
@@ -1692,8 +1682,6 @@ def test_layout_text_mentions_landing_and_sync_command(tmp_path, monkeypatch, ca
             "runner",
             None,
             "../GULib-runner-copy",
-            "results/runs/local-runner",
-            ["results/runs"],
             transport="local",
         ),
     )
@@ -1723,7 +1711,7 @@ def test_landings_cli_shows_local_landing_inventory_and_rows(tmp_path, monkeypat
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -1895,7 +1883,7 @@ def test_runbook_cli_writes_collector_peer_flow(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo")
     peer["artifact_policy"] = {"include": ["attack.json", "_meta.json"]}
     _devices.add_peer_to_device(config, "gpu4090", peer)
     _devices.write_device_config(config_path, config)
@@ -1990,8 +1978,8 @@ def test_refresh_updates_all_peers_without_collecting_by_default(tmp_path, monke
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
-    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo"))
+    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo"))
     _devices.write_device_config(config_path, config)
 
     calls = {"remote": [], "diff": [], "collect": [], "verify": []}
@@ -2054,8 +2042,8 @@ def test_refresh_apply_collects_selected_peer(tmp_path, monkeypatch):
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
-    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"]))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo"))
+    _devices.add_peer_to_device(config, "h800", _devices.build_peer_config("runner", "ssh-h800", "/repo"))
     _devices.write_device_config(config_path, config)
 
     calls = {"collect": []}
@@ -2087,7 +2075,7 @@ def test_refresh_apply_verify_runs_acceptance_for_selected_peer(tmp_path, monkey
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    peer = _devices.build_peer_config("runner", "ssh-h800", "/repo", "results/runs/h800", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "ssh-h800", "/repo")
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
     _devices.add_peer_to_device(config, "h800", peer)
     _devices.write_device_config(config_path, config)
@@ -2135,7 +2123,7 @@ def test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard(tmp_path, mon
     monkeypatch.setattr(_identity, 'now_iso', lambda: "2026-07-01T12:00:00")
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo")
     peer["artifact_policy"] = {"include": ["attack.json", "collateral.json", "_meta.json"]}
     _devices.add_peer_to_device(config, "gpu4090", peer)
     _devices.write_device_config(config_path, config)
@@ -2378,7 +2366,7 @@ def test_sync_no_results_skips_result_table_write(tmp_path, monkeypatch, capsys)
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -2432,8 +2420,6 @@ def test_sync_local_transport_collects_from_same_machine_repo(tmp_path, monkeypa
             "runner",
             None,
             str(runner),
-            "results/runs/local-runner",
-            ["results/runs"],
             transport="local",
         ),
     )
@@ -2470,7 +2456,7 @@ def test_sync_dry_run_skips_collect_verify_and_optional_writes(tmp_path, monkeyp
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -2516,7 +2502,7 @@ def test_refresh_verify_returns_nonzero_when_acceptance_fails(tmp_path, monkeypa
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]))
+    _devices.add_peer_to_device(config, "gpu4090", _devices.build_peer_config("runner", "ssh-gpu", "/repo"))
     _devices.write_device_config(config_path, config)
 
     monkeypatch.setattr(_collection, 'apply_remote_status', lambda node_id, *_args, **_kwargs: {"node_id": node_id, "errors": []})
@@ -3043,7 +3029,7 @@ def test_verify_cli_uses_peer_artifact_policy(tmp_path, monkeypatch):
     _context.select(root=(repo / ".syncmate").parent)
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo")
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
     _devices.add_peer_to_device(config, "gpu4090", peer)
     _devices.write_device_config(config_path, config)
@@ -3078,8 +3064,6 @@ def test_handoff_payload_renders_local_and_remote_ai_commands(tmp_path, monkeypa
         "runner",
         "ssh-gpu",
         "/tmp/Open GU/repo's copy",
-        "results/runs/gpu4090",
-        ["results/runs/cora GCN"],
     )
     peer["artifact_policy"] = {"include": ["attack.json", "predictions.npz"]}
 
@@ -3136,7 +3120,7 @@ def test_handoff_cli_writes_markdown_runbook(tmp_path, monkeypatch):
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
     config = _devices.build_device_config("local", "collector", str(repo))
-    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "ssh-gpu", "/repo")
     peer["artifact_policy"] = {"include": ["attack.json", "_meta.json"]}
     _devices.add_peer_to_device(config, "gpu4090", peer)
     _devices.write_device_config(config_path, config)
@@ -3179,12 +3163,12 @@ def test_handoff_cli_can_write_all_configured_peers(tmp_path, monkeypatch):
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo-gpu", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo-gpu"),
     )
     _devices.add_peer_to_device(
         config,
         "h800",
-        _devices.build_peer_config("runner", "ssh-h800", "/repo-h800", "results/runs/h800", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-h800", "/repo-h800"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -4077,7 +4061,7 @@ def test_archive_orphans_dry_run_and_apply(tmp_path, monkeypatch):
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(sync_dir / "device.yaml", config)
     _write(sync_dir / "remote_status_oldpeer.json", json.dumps({"generated_at": "2026-07-01T10:00:00"}).encode())
@@ -4720,7 +4704,7 @@ def test_reports_cli_returns_compact_peer_json(tmp_path, monkeypatch, capsys):
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     _write(
@@ -4918,7 +4902,7 @@ def test_receipt_cli_writes_markdown_from_saved_reports(tmp_path, monkeypatch, c
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     remote_path = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
@@ -5055,7 +5039,7 @@ def test_overview_cli_combines_layout_gate_receipt_and_next(tmp_path, monkeypatc
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -5220,7 +5204,7 @@ def test_lifecycle_cli_reports_collect_phase_from_saved_diff(tmp_path, monkeypat
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     _write(
@@ -5273,7 +5257,7 @@ def test_lifecycle_cli_reports_accepted_phase_and_trace_check(tmp_path, monkeypa
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
@@ -5713,7 +5697,7 @@ def test_automation_core_cli_can_write_machine_readable_ledger(tmp_path, monkeyp
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     remote_path = "results/runs/cora_GCN_r0.05/GIF_im/seed42/attack.json"
@@ -5831,7 +5815,7 @@ def test_acceptance_cli_can_write_machine_readable_verdict(tmp_path, monkeypatch
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     remote_leaf = "results/runs/cora_GCN_r0.05/GIF_im/seed42"
@@ -6092,7 +6076,7 @@ def test_next_cli_returns_command_queue(tmp_path, monkeypatch, capsys):
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -6144,8 +6128,6 @@ def test_preflight_payload_reports_ready_peer_commands(tmp_path, monkeypatch):
         "runner",
         "ssh-gpu",
         "/remote/repo",
-        "results/runs/gpu4090",
-        ["results/runs/cora_GCN_r0.05"],
         {"include": ["attack.json", "collateral.json", "_meta.json"]},
     )
     _devices.add_peer_to_device(config, "gpu4090", peer)
@@ -6180,7 +6162,7 @@ def test_preflight_cli_can_write_latest_report(tmp_path, monkeypatch, capsys):
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -6239,8 +6221,7 @@ def test_preflight_cli_returns_nonzero_for_bad_peer(tmp_path, monkeypatch, capsy
     assert out["summary"]["blocked"] == 1
     assert "peer-ssh-missing" in codes
     assert "peer-repo-path-missing" in codes
-    assert "peer-landing-unsafe" in codes
-    assert "peer-result-root-unsafe" in codes
+    assert "peer-output-fields-retired" in codes
     assert "peer-artifact-policy-invalid" in codes
 
 
@@ -6287,7 +6268,7 @@ def test_refresh_blocks_unknown_peer_with_preflight_json(tmp_path, monkeypatch, 
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
     monkeypatch.setattr(_collection, 'refresh_peer', lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("refresh should stop before remote calls")))
@@ -6317,7 +6298,7 @@ def test_refresh_no_save_does_not_write_blocked_preflight_report(tmp_path, monke
     _devices.add_peer_to_device(
         config,
         "gpu4090",
-        _devices.build_peer_config("runner", "ssh-gpu", "/repo", "results/runs/gpu4090", ["results/runs"]),
+        _devices.build_peer_config("runner", "ssh-gpu", "/repo"),
     )
     _devices.write_device_config(config_path, config)
 
@@ -6335,7 +6316,7 @@ def test_build_snapshot_includes_peer_configs(tmp_path, monkeypatch):
     _context.select(root=(repo / ".syncmate").parent)
     monkeypatch.setattr(_identity, 'git_state', lambda: {"dirty": False, "status_short": [], "branch": "b", "short_sha": "s"})
 
-    peer = _devices.build_peer_config("runner", "autodl-4090", "~/repo", "results/runs/gpu4090", ["results/runs"])
+    peer = _devices.build_peer_config("runner", "autodl-4090", "~/repo")
     snapshot = _snapshot.build_snapshot(
         {"device_id": "local", "role": "collector", "repo_path": str(repo), "peers": {"gpu4090": peer}},
         [],
@@ -6395,10 +6376,7 @@ def test_doctor_reports_peer_config_issues():
 
     assert "peer-config-missing-field" in codes
     assert "peer-role-invalid" in codes
-    assert "peer-landing-unsafe" in codes
-    assert "peer-result-roots-invalid" in codes
-    assert "peer-result-root-unsafe" in codes
-    assert "peer-landing-duplicate" in codes
+    assert "peer-output-fields-retired" in codes
     assert _diagnostics.status_label(snapshot, diagnostics) == "attention"
 
 
@@ -6458,8 +6436,6 @@ def test_doctor_reports_missing_remote_status_for_configured_peer(tmp_path, monk
                     "runner",
                     "ssh-gpu",
                     "/remote/repo",
-                    "results/runs/gpu4090",
-                    ["results/runs"],
                 ),
             },
         },
@@ -6933,8 +6909,6 @@ def test_dashboard_html_contains_device_status_nodes_and_actions(tmp_path, monke
                     "runner",
                     "ssh-gpu",
                     "/remote/repo",
-                    "results/runs/gpu4090",
-                    ["results/runs"],
                 ),
             },
         },
@@ -7216,6 +7190,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
         "opengu-sm005-b-hutch32-warm-v1",
         "opengu-sm005-d-full-selector-v1",
         "opengu-sm005-d-full-return-v1",
+        "opengu-sm005-d-full-handoff-v1",
         "smoke",
         "opengu-preflight-v1",
         "opengu-cache-v2-gate4-v1",
@@ -7436,7 +7411,7 @@ def test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution(t
     repo = tmp_path / "repo"
     config = _devices.build_device_config("collector-a", "collector", str(repo))
     _devices.add_peer_to_device(config, "bad-peer", _devices.build_peer_config(
-        "collector", None, str(repo), "results/runs/bad-peer", ["results/runs"], transport="local",
+        "collector", None, str(repo), transport="local",
     ))
     _context.select(root=repo)
     _context.select(root=(repo / ".syncmate").parent)
@@ -7460,8 +7435,6 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
             "runner",
             None,
             str(repo / "runner"),
-            "results/runs/runner-a",
-            ["results/runs"],
             transport="local",
         ),
     )
@@ -7482,7 +7455,9 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
                 "payload": {"git": {"sha": "c" * 40, "dirty": False, "branch": "main"}},
                 "errors": [],
             }
-        return {"ok": True, "payload": {"submitted": True}, "errors": []}
+        from syncmate_core import run_handoff
+        return {"ok": True, "payload": {"submitted": True,
+                "output_contract": run_handoff.execution_contract('opengu-cache-v2-gate4-v1', 'gate4-001', 'c' * 40)}, "errors": []}
 
     monkeypatch.setattr(_dispatch, 'runner_agent_peer_invoke', invoke)
     monkeypatch.setattr(_identity, "git_state", lambda: {"sha": "c" * 40, "branch": "main", "dirty": False})
@@ -7542,8 +7517,12 @@ def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeyp
         'role': 'runner', 'transport': 'local', 'repo_path': str(tmp_path / 'remote')
     }}}, []))
     monkeypatch.setattr(_collection, 'apply_collect', lambda *a, **k: {'errors': ['checksum mismatch']})
-    outcome = _dispatch.runner_agent_collect_and_gate(repo / ".syncmate" / "device.yaml", "runner-a",
-        recipe='opengu-sm005-d-full-return-v1', expected_git_sha='a' * 40)
+    from syncmate_core import run_handoff
+    device = {'peers': {'runner-a': {'role': 'runner', 'transport': 'local', 'repo_path': str(tmp_path / 'remote')}}}
+    saved = run_handoff.create_handoff(device, 'runner-a', 'opengu-sm005-d-full-return-v1', 'test-job', 'a' * 40)
+    outcome = _dispatch.runner_agent_collect_and_gate('runner-a', job_id='test-job', completed_job={
+        'id': 'test-job', 'state': 'done', 'recipe': 'opengu-sm005-d-full-return-v1', 'expected_git_sha': 'a' * 40,
+        'receipt': {'output_contract': saved['execution']}})
 
     assert outcome["ok"] is False
     assert outcome["gate_passed"] is False

@@ -81,6 +81,12 @@ With the reviewed Core supporting automatic return, dispatch this recipe with
 `--wait --json` in a persistent background controller process and run the
 existing bounded remote worker. The same controller invocation must wait,
 collect the declared summary and verify SHA-256 without later Agent commands.
-Its scope comes from the recipe, so no per-run `device.yaml.result_roots` entry
-is needed. Device policy still selects filenames and the local landing.
+Its scope comes from the recipe and the generated run handoff. Device setup
+contains no output roots or landing; the saved submission owns concrete paths.
 This is a transfer test, with zero GU / Evaluation and no scientific acceptance.
+
+The `opengu-sm005-d-full-handoff-v1` recipe uses the same D full YAML and cache
+identity, with its own fixed `sm005-d-full-handoff-v1` run record. The stage
+checks the queue output contract against the shared project layout before
+execution. It is a Selector-only transfer verification, not a new scientific
+configuration or acceptance gate.

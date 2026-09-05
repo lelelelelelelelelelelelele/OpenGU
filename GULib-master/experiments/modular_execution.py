@@ -9,6 +9,7 @@ import torch
 import torch_geometric
 
 from experiments.effective_config import ConfigurationError
+from scripts.syncmate.opengu_layout import modular_output_path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -68,7 +69,6 @@ def project_context(experiment_id, *, run_id, request_device, level,
         store_root=root / 'results' / 'cache_v2',
         checkpoint_root=root / 'results' / 'runtime' / 'modular' / 'checkpoints',
         runtime_root=root / 'results' / 'runtime' / 'modular' / str(run_id),
-        output=root / 'results' / 'runs' / 'modular' / str(experiment_id)
-               / str(run_id) / 'summary.json',
+        output=root / modular_output_path(experiment_id, str(run_id)),
         executor='syncmate-project-policy-v1',
     )

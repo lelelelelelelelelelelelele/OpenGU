@@ -35,7 +35,8 @@ device-specific area is:
 
 ```text
 .syncmate/
-  device.yaml     # generated or edited local identity/config, untracked
+  device.yaml     # connection and physical checkout facts, untracked
+  runs/<job_id>.json # immutable generated execution/output/return handoff
   state.json      # generated local snapshot, untracked
   history.jsonl   # compact local timeline written with state snapshots, untracked
   setup_plan.md   # optional generated setup command plan, untracked
@@ -373,7 +374,6 @@ python scripts/syncmate/syncmate.py setup-plan \
   --peer-id local-runner \
   --peer-local \
   --peer-repo-path ../GULib-runner-copy \
-  --result-root results/runs \
   --write
 ```
 
@@ -410,15 +410,12 @@ python scripts/syncmate/syncmate.py add-peer gpu4090 \
   --ssh autodl-4090 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
   --python-executable /root/miniconda3/bin/python \
-  --result-root results/runs/cora_GCN_r0.05 \
-  --result-root results/runs/cora_GAT_r0.05 \
   --artifact-include attack.json collateral.json _meta.json
 
 python scripts/syncmate/syncmate.py add-peer h800 \
   --ssh autodl-h800 \
   --repo-path ~/autodl-fs/OpenGU/GULib-master \
   --python-executable /root/miniconda3/bin/python \
-  --result-root results/runs/ogbn-arxiv_GCN_r0.01 \
   --artifact-include attack.json collateral.json _meta.json predictions.npz
 ```
 
@@ -429,7 +426,6 @@ instead of SSH:
 python scripts/syncmate/syncmate.py add-peer local-runner \
   --local \
   --repo-path ../GULib-runner-copy \
-  --result-root results/runs \
   --artifact-include attack.json collateral.json _meta.json
 ```
 
@@ -445,8 +441,8 @@ landing path is `results/runs/<node_id>`.
 For non-interactive SSH sessions, set `python_executable` to the peer's exact
 environment interpreter; remote status, manifest, queue dispatch, and generated
 handoff commands use that value instead of assuming `python` is on `PATH`.
-Landing paths and result roots should be repo-relative paths without `..`;
-`doctor` flags unsafe or duplicate peer landings before any transfer runs.
+Project output rules produce repository-relative paths; `doctor` rejects retired
+landing/result_roots fields in device setup before transfer.
 
 Collected artifacts keep the runner's run/cell layout under that landing. For
 example, if `gpu4090` exposes:
@@ -1303,3 +1299,23 @@ The frozen YAML and its registered SHA were updated together. This contract
 change does not authorize a formal run or widen the approved matrix. See the
 [modular consumer guide](../../docs/modular_experiments.md) for the independent
 local verification entry and exact existing-Selection input.
+
+## Execution and output handoff
+
+SyncMate Core 0.4.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
+runtime output paths. `opengu_layout.py` owns the modular result layout, shared
+by `ExecutionContext` and the static recipes. The queue records the resolved
+output contract; the atomic stage verifies it before invoking the consumer.
+
+Device setup keeps SSH, `repo_path` and the interpreter. Remove `landing` and
+`result_roots`; new landings are generated as `results/runs/<peer_id>`, and
+project code declares bulk inventory roots. Per-job files come from the recipe.
+Dispatch saves `.syncmate/runs/<job_id>.json`. `dispatch --wait` automatically
+collects and verifies using that record. For manual collection of a completed
+job, use `runner-agent collect <peer> --job-id <id> --json`; it uses the same
+saved route even if device setup has changed. The controller must remain online
+for automatic return. Historic indexed files retain their original addresses.
+
+A new run directory does not affect Cache V2 identity. The D full handoff probe
+uses the original benchmark YAML with run `sm005-d-full-handoff-v1`, and performs
+1 Selector / 0 GU / 0 Evaluation.

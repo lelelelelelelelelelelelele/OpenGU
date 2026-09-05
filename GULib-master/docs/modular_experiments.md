@@ -119,3 +119,11 @@ split hash、节点空间和三个 mask。入口不会下载、重切或修复�
 运行 JSON 保存完整有效配置及来源、checkpoint、Score/Selection/GU 身份、Evaluation
 receipt、HIT/MISS、producer 调用和 execution receipt。展示 ID、YAML 文件名、设备、路径和
 下游 Evaluation 不反向进入 Selector Recipe。
+
+## 运行产物交接
+
+项目 `scripts/syncmate/opengu_layout.py` 集中定义模块化结果位置；ExecutionContext
+和 SyncMate 配方共同消费它。每次提交自动生成 `.syncmate/runs/<job_id>.json`，
+绑定配置/源码、运行身份、远端输出、回传文件和本地落点。设备文件只保留接入事实，
+科研 YAML 不增加路径字段。队列和实验 stage 校验同一产物合同，自动回传和按 job
+手动补收消费保存的清单；旧结果和 Cache V2 身份保持原有语义。

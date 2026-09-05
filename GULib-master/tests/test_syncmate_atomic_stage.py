@@ -122,6 +122,49 @@ def test_d_full_return_reuses_benchmark_configuration_and_cache_layout():
     assert contexts[0].output != contexts[1].output
 
 
+def test_handoff_run_preserves_benchmark_and_uses_shared_output_rule():
+    from scripts.syncmate.opengu_recipes import recipe_definitions
+    from experiments.modular_execution import project_context
+    before = stage.PLANS['opengu-sm005-d-full-selector-v1']
+    plan = stage.PLANS['opengu-sm005-d-full-handoff-v1']
+    assert {k: v for k, v in before.items() if k != 'run_id'} == {k: v for k, v in plan.items() if k != 'run_id'}
+    context = project_context(plan['experiment_id'], run_id=plan['run_id'], request_device='cuda', level='verification')
+    definition = recipe_definitions()['opengu-sm005-d-full-handoff-v1']
+    assert definition['expected_artifact_paths'] == (context.output.relative_to(stage.ROOT).as_posix(),)
+
+
+@pytest.mark.parametrize('valid', [True, False])
+def test_executor_checks_runner_output_contract_before_consumer(tmp_path, monkeypatch, valid):
+    import yaml
+    from syncmate_core.run_handoff import build_execution_contract
+    from scripts.syncmate.opengu_recipes import recipe_definitions
+    from experiments import modular_run
+    recipe = 'opengu-sm005-d-full-handoff-v1'
+    job = {'id': 'test-job', 'recipe': recipe, 'expected_git_sha': 'a' * 40}
+    contract = build_execution_contract(recipe_definitions()[recipe], project='opengu', job_id=job['id'], git_sha='a' * 40)
+    if not valid:
+        contract['artifact_paths'] = ['results/wrong.json']
+    running = tmp_path / '.syncmate/runner_queue/running'
+    receipts = tmp_path / '.syncmate/runner_queue/receipts'
+    running.mkdir(parents=True); receipts.mkdir()
+    (running / 'test-job.yaml').write_text(yaml.safe_dump(job))
+    (receipts / 'test-job.json').write_text(json.dumps({'output_contract': contract}))
+    monkeypatch.setattr(stage, 'ROOT', tmp_path)
+    monkeypatch.setattr(stage, 'preflight', lambda recipe: {'ready': True})
+    monkeypatch.setattr(stage.subprocess, 'check_output', lambda *a, **k: 'a' * 40)
+    observed = []
+    def consume(config, *, context):
+        observed.append(context.output.relative_to(tmp_path).as_posix())
+        return {'selectors': [{}], 'unlearning': [], 'evaluations': []}
+    monkeypatch.setattr(modular_run, 'execute', consume)
+    if valid:
+        assert stage.run(recipe)['generated_artifacts'] == observed == contract['artifact_paths']
+    else:
+        with pytest.raises(RuntimeError, match='output contract differs'):
+            stage.run(recipe)
+        assert observed == []
+
+
 def test_d_full_rejects_gu_or_evaluation_before_data_access(monkeypatch):
     from scripts.syncmate import verify_core_dependency
     from experiments import modular_config, modular_run
