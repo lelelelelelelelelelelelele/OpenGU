@@ -1,0 +1,675 @@
+{
+  "passed": true,
+  "evidence_kind": "real-process-disposable-local-queue",
+  "fixture_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+  "cases": [
+    {
+      "case": "control",
+      "timeout_seconds": 5,
+      "elapsed_seconds": 0.20160609999999995,
+      "pid": 46876,
+      "checks": {
+        "expected_terminal_state": true,
+        "child_exited": true,
+        "artifact_presence_correct": true,
+        "running_queue_empty": true
+      },
+      "receipt": {
+        "state": "done",
+        "submitted_at": "2026-09-06T06:10:46",
+        "output_contract": {
+          "protocol": "syncmate.run-handoff/v1",
+          "project": "aagu002-timeout-fixture",
+          "job_id": "aagu002-control",
+          "recipe": "control",
+          "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+          "config_path": "fixture.json",
+          "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+          "timeout_seconds": 5,
+          "run_identity": {},
+          "artifact_paths": [
+            "results/runs/control/metrics.json"
+          ],
+          "collect_paths": [
+            "results/runs/control/metrics.json"
+          ]
+        },
+        "protocol": "syncmate-job/v1",
+        "job_id": "aagu002-control",
+        "updated_at": "2026-09-06T06:10:46",
+        "claimed_at": "2026-09-06T06:10:46",
+        "started_at": "2026-09-06T06:10:46",
+        "runner_id": "local-fixture",
+        "finished_at": "2026-09-06T06:10:46",
+        "exit_code": 0
+      },
+      "queue_result": {
+        "status": "done",
+        "processed": true,
+        "job_id": "aagu002-control",
+        "result": {
+          "protocol": "syncmate-job/v1",
+          "job_id": "aagu002-control",
+          "recipe": "control",
+          "status": "done",
+          "exit_code": 0,
+          "command": [
+            "E:\\conda_package\\envs\\gnn\\python.exe",
+            "-B",
+            "workload.py",
+            "control"
+          ],
+          "binding": {
+            "ready": true,
+            "expected": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "errors": [],
+            "action": "continue"
+          },
+          "preflight": {
+            "ready": true,
+            "errors": [],
+            "recipe_binding": {
+              "recipe": {
+                "id": "control",
+                "argv": [
+                  "{python}",
+                  "-B",
+                  "workload.py",
+                  "control"
+                ],
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 5,
+                "expected_artifact_paths": [
+                  "results/runs/control/metrics.json"
+                ],
+                "git_binding_policy": "job-exact-main-v1",
+                "preflight_profile": "local-fixture",
+                "collector_acceptance": "not-eligible"
+              },
+              "expected": {
+                "git_sha": null,
+                "recipe_introduced_git_sha": null,
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 5,
+                "artifact_paths": [
+                  "results/runs/control/metrics.json"
+                ],
+                "collector_acceptance": "not-eligible"
+              },
+              "observed": {
+                "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "git_binding_mode": "job-exact-main-v1",
+                "git_changed_paths": []
+              },
+              "git": {
+                "expected_git_sha": null,
+                "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "mode": "job-exact-main-v1",
+                "ok": true,
+                "changed_paths": [],
+                "errors": []
+              },
+              "runtime_preflight": {
+                "ready": true,
+                "errors": [],
+                "profile": "local-fixture",
+                "observed": {
+                  "fixture_config_exists": true
+                }
+              },
+              "ready": true,
+              "errors": []
+            }
+          },
+          "manifest": {
+            "status": "verified",
+            "artifacts": [
+              {
+                "path": "results/runs/control/metrics.json",
+                "size": 35,
+                "sha256": "a4107d4b2624edd15c1dca78b4efc15919514f8a8e6fa18d80248c213f642629"
+              }
+            ],
+            "missing": [],
+            "summary": {
+              "expected": 1,
+              "verified": 1,
+              "missing": 0
+            }
+          },
+          "execution_validation": {
+            "profile": "json-passed-v1",
+            "errors": []
+          },
+          "stdout": "{\"passed\": true}\n",
+          "stderr": "STARTED control\n",
+          "stdout_sha256": "b1c95da5e181d95c3a837b01b04513e2725984388b2256107771b77a2407ce77",
+          "stderr_sha256": "8dcf579f922f6b6df7dd24bd587977bc991ac30f1d47dacbb149419c192ff8cf",
+          "stdout_truncated": false,
+          "stderr_truncated": false,
+          "project_acceptance": {
+            "status": "not_evaluated",
+            "owner": "project"
+          },
+          "recipe_passed": true,
+          "finished_at": "2026-09-06T06:10:46",
+          "recipe_binding": {
+            "recipe": {
+              "id": "control",
+              "argv": [
+                "{python}",
+                "-B",
+                "workload.py",
+                "control"
+              ],
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 5,
+              "expected_artifact_paths": [
+                "results/runs/control/metrics.json"
+              ],
+              "git_binding_policy": "job-exact-main-v1",
+              "preflight_profile": "local-fixture",
+              "collector_acceptance": "not-eligible"
+            },
+            "expected": {
+              "git_sha": null,
+              "recipe_introduced_git_sha": null,
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 5,
+              "artifact_paths": [
+                "results/runs/control/metrics.json"
+              ],
+              "collector_acceptance": "not-eligible"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "git_binding_mode": "job-exact-main-v1",
+              "git_changed_paths": []
+            },
+            "git": {
+              "expected_git_sha": null,
+              "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "mode": "job-exact-main-v1",
+              "ok": true,
+              "changed_paths": [],
+              "errors": []
+            },
+            "runtime_preflight": {
+              "ready": true,
+              "errors": [],
+              "profile": "local-fixture",
+              "observed": {
+                "fixture_config_exists": true
+              }
+            },
+            "ready": true,
+            "errors": []
+          },
+          "reason": null
+        },
+        "path": ".syncmate/runner_queue/done/aagu002-control.yaml"
+      }
+    },
+    {
+      "case": "timeout",
+      "timeout_seconds": 1,
+      "elapsed_seconds": 1.1830931,
+      "pid": 47468,
+      "checks": {
+        "expected_terminal_state": true,
+        "child_exited": true,
+        "artifact_presence_correct": true,
+        "running_queue_empty": true,
+        "explicit_timeout_reason": true,
+        "bounded_elapsed": true,
+        "not_successfully_exited": true
+      },
+      "receipt": {
+        "state": "failed",
+        "submitted_at": "2026-09-06T06:10:46",
+        "output_contract": {
+          "protocol": "syncmate.run-handoff/v1",
+          "project": "aagu002-timeout-fixture",
+          "job_id": "aagu002-timeout",
+          "recipe": "timeout",
+          "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+          "config_path": "fixture.json",
+          "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+          "timeout_seconds": 1,
+          "run_identity": {},
+          "artifact_paths": [
+            "results/runs/timeout/metrics.json"
+          ],
+          "collect_paths": [
+            "results/runs/timeout/metrics.json"
+          ]
+        },
+        "protocol": "syncmate-job/v1",
+        "job_id": "aagu002-timeout",
+        "updated_at": "2026-09-06T06:10:47",
+        "claimed_at": "2026-09-06T06:10:46",
+        "started_at": "2026-09-06T06:10:46",
+        "runner_id": "local-fixture",
+        "finished_at": "2026-09-06T06:10:47",
+        "exit_code": null
+      },
+      "queue_result": {
+        "status": "failed",
+        "processed": true,
+        "job_id": "aagu002-timeout",
+        "result": {
+          "protocol": "syncmate-job/v1",
+          "job_id": "aagu002-timeout",
+          "recipe": "timeout",
+          "status": "failed",
+          "exit_code": null,
+          "command": [
+            "E:\\conda_package\\envs\\gnn\\python.exe",
+            "-B",
+            "workload.py",
+            "timeout"
+          ],
+          "binding": {
+            "ready": true,
+            "expected": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "errors": [],
+            "action": "continue"
+          },
+          "preflight": {
+            "ready": true,
+            "errors": [],
+            "recipe_binding": {
+              "recipe": {
+                "id": "timeout",
+                "argv": [
+                  "{python}",
+                  "-B",
+                  "workload.py",
+                  "timeout"
+                ],
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 1,
+                "expected_artifact_paths": [
+                  "results/runs/timeout/metrics.json"
+                ],
+                "git_binding_policy": "job-exact-main-v1",
+                "preflight_profile": "local-fixture",
+                "collector_acceptance": "not-eligible"
+              },
+              "expected": {
+                "git_sha": null,
+                "recipe_introduced_git_sha": null,
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 1,
+                "artifact_paths": [
+                  "results/runs/timeout/metrics.json"
+                ],
+                "collector_acceptance": "not-eligible"
+              },
+              "observed": {
+                "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "git_binding_mode": "job-exact-main-v1",
+                "git_changed_paths": []
+              },
+              "git": {
+                "expected_git_sha": null,
+                "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "mode": "job-exact-main-v1",
+                "ok": true,
+                "changed_paths": [],
+                "errors": []
+              },
+              "runtime_preflight": {
+                "ready": true,
+                "errors": [],
+                "profile": "local-fixture",
+                "observed": {
+                  "fixture_config_exists": true
+                }
+              },
+              "ready": true,
+              "errors": []
+            }
+          },
+          "manifest": {
+            "status": "failed",
+            "artifacts": [],
+            "missing": [
+              "results/runs/timeout/metrics.json"
+            ],
+            "summary": {
+              "expected": 1,
+              "verified": 0,
+              "missing": 1
+            }
+          },
+          "execution_validation": {
+            "profile": "json-passed-v1",
+            "errors": [
+              "recipe timed out after 1s"
+            ]
+          },
+          "stdout": "",
+          "stderr": "STARTED timeout\n",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_sha256": "318257db34ad98b2e1390796876ef801a90f87de561744ea3ff934ad1c08cf95",
+          "stdout_truncated": false,
+          "stderr_truncated": false,
+          "project_acceptance": {
+            "status": "not_evaluated",
+            "owner": "project"
+          },
+          "finished_at": "2026-09-06T06:10:47",
+          "recipe_binding": {
+            "recipe": {
+              "id": "timeout",
+              "argv": [
+                "{python}",
+                "-B",
+                "workload.py",
+                "timeout"
+              ],
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 1,
+              "expected_artifact_paths": [
+                "results/runs/timeout/metrics.json"
+              ],
+              "git_binding_policy": "job-exact-main-v1",
+              "preflight_profile": "local-fixture",
+              "collector_acceptance": "not-eligible"
+            },
+            "expected": {
+              "git_sha": null,
+              "recipe_introduced_git_sha": null,
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 1,
+              "artifact_paths": [
+                "results/runs/timeout/metrics.json"
+              ],
+              "collector_acceptance": "not-eligible"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "git_binding_mode": "job-exact-main-v1",
+              "git_changed_paths": []
+            },
+            "git": {
+              "expected_git_sha": null,
+              "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "mode": "job-exact-main-v1",
+              "ok": true,
+              "changed_paths": [],
+              "errors": []
+            },
+            "runtime_preflight": {
+              "ready": true,
+              "errors": [],
+              "profile": "local-fixture",
+              "observed": {
+                "fixture_config_exists": true
+              }
+            },
+            "ready": true,
+            "errors": []
+          },
+          "reason": "recipe timed out after 1s"
+        },
+        "path": ".syncmate/runner_queue/failed/aagu002-timeout.yaml"
+      }
+    },
+    {
+      "case": "after-timeout",
+      "timeout_seconds": 5,
+      "elapsed_seconds": 0.20171899999999976,
+      "pid": 39736,
+      "checks": {
+        "expected_terminal_state": true,
+        "child_exited": true,
+        "artifact_presence_correct": true,
+        "running_queue_empty": true
+      },
+      "receipt": {
+        "state": "done",
+        "submitted_at": "2026-09-06T06:10:47",
+        "output_contract": {
+          "protocol": "syncmate.run-handoff/v1",
+          "project": "aagu002-timeout-fixture",
+          "job_id": "aagu002-after-timeout",
+          "recipe": "after-timeout",
+          "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+          "config_path": "fixture.json",
+          "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+          "timeout_seconds": 5,
+          "run_identity": {},
+          "artifact_paths": [
+            "results/runs/after-timeout/metrics.json"
+          ],
+          "collect_paths": [
+            "results/runs/after-timeout/metrics.json"
+          ]
+        },
+        "protocol": "syncmate-job/v1",
+        "job_id": "aagu002-after-timeout",
+        "updated_at": "2026-09-06T06:10:47",
+        "claimed_at": "2026-09-06T06:10:47",
+        "started_at": "2026-09-06T06:10:47",
+        "runner_id": "local-fixture",
+        "finished_at": "2026-09-06T06:10:47",
+        "exit_code": 0
+      },
+      "queue_result": {
+        "status": "done",
+        "processed": true,
+        "job_id": "aagu002-after-timeout",
+        "result": {
+          "protocol": "syncmate-job/v1",
+          "job_id": "aagu002-after-timeout",
+          "recipe": "after-timeout",
+          "status": "done",
+          "exit_code": 0,
+          "command": [
+            "E:\\conda_package\\envs\\gnn\\python.exe",
+            "-B",
+            "workload.py",
+            "after-timeout"
+          ],
+          "binding": {
+            "ready": true,
+            "expected": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71"
+            },
+            "errors": [],
+            "action": "continue"
+          },
+          "preflight": {
+            "ready": true,
+            "errors": [],
+            "recipe_binding": {
+              "recipe": {
+                "id": "after-timeout",
+                "argv": [
+                  "{python}",
+                  "-B",
+                  "workload.py",
+                  "after-timeout"
+                ],
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 5,
+                "expected_artifact_paths": [
+                  "results/runs/after-timeout/metrics.json"
+                ],
+                "git_binding_policy": "job-exact-main-v1",
+                "preflight_profile": "local-fixture",
+                "collector_acceptance": "not-eligible"
+              },
+              "expected": {
+                "git_sha": null,
+                "recipe_introduced_git_sha": null,
+                "config_path": "fixture.json",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "timeout_seconds": 5,
+                "artifact_paths": [
+                  "results/runs/after-timeout/metrics.json"
+                ],
+                "collector_acceptance": "not-eligible"
+              },
+              "observed": {
+                "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+                "git_binding_mode": "job-exact-main-v1",
+                "git_changed_paths": []
+              },
+              "git": {
+                "expected_git_sha": null,
+                "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+                "mode": "job-exact-main-v1",
+                "ok": true,
+                "changed_paths": [],
+                "errors": []
+              },
+              "runtime_preflight": {
+                "ready": true,
+                "errors": [],
+                "profile": "local-fixture",
+                "observed": {
+                  "fixture_config_exists": true
+                }
+              },
+              "ready": true,
+              "errors": []
+            }
+          },
+          "manifest": {
+            "status": "verified",
+            "artifacts": [
+              {
+                "path": "results/runs/after-timeout/metrics.json",
+                "size": 41,
+                "sha256": "35b76ee33dd5afcb33d73ecf785579ed732e4e82b4a415612636106b637f208c"
+              }
+            ],
+            "missing": [],
+            "summary": {
+              "expected": 1,
+              "verified": 1,
+              "missing": 0
+            }
+          },
+          "execution_validation": {
+            "profile": "json-passed-v1",
+            "errors": []
+          },
+          "stdout": "{\"passed\": true}\n",
+          "stderr": "STARTED after-timeout\n",
+          "stdout_sha256": "b1c95da5e181d95c3a837b01b04513e2725984388b2256107771b77a2407ce77",
+          "stderr_sha256": "37b5c274cdc9594b5203a38f3f5f354986a8301bab5d5ad07d618550a757ecee",
+          "stdout_truncated": false,
+          "stderr_truncated": false,
+          "project_acceptance": {
+            "status": "not_evaluated",
+            "owner": "project"
+          },
+          "recipe_passed": true,
+          "finished_at": "2026-09-06T06:10:47",
+          "recipe_binding": {
+            "recipe": {
+              "id": "after-timeout",
+              "argv": [
+                "{python}",
+                "-B",
+                "workload.py",
+                "after-timeout"
+              ],
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 5,
+              "expected_artifact_paths": [
+                "results/runs/after-timeout/metrics.json"
+              ],
+              "git_binding_policy": "job-exact-main-v1",
+              "preflight_profile": "local-fixture",
+              "collector_acceptance": "not-eligible"
+            },
+            "expected": {
+              "git_sha": null,
+              "recipe_introduced_git_sha": null,
+              "config_path": "fixture.json",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "timeout_seconds": 5,
+              "artifact_paths": [
+                "results/runs/after-timeout/metrics.json"
+              ],
+              "collector_acceptance": "not-eligible"
+            },
+            "observed": {
+              "git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "config_sha256": "621d1b908a8259cf5fcadd06e2241afcbf14352abdc3034940ecd7abe89e1c71",
+              "git_binding_mode": "job-exact-main-v1",
+              "git_changed_paths": []
+            },
+            "git": {
+              "expected_git_sha": null,
+              "observed_git_sha": "c74495da97b679fea8e7d21093dfd5809e7b4698",
+              "mode": "job-exact-main-v1",
+              "ok": true,
+              "changed_paths": [],
+              "errors": []
+            },
+            "runtime_preflight": {
+              "ready": true,
+              "errors": [],
+              "profile": "local-fixture",
+              "observed": {
+                "fixture_config_exists": true
+              }
+            },
+            "ready": true,
+            "errors": []
+          },
+          "reason": null
+        },
+        "path": ".syncmate/runner_queue/done/aagu002-after-timeout.yaml"
+      }
+    }
+  ],
+  "after_all_jobs": {
+    "status": "idle",
+    "processed": false
+  },
+  "remote_jobs": 0,
+  "scientific_experiments": 0,
+  "limit": "Direct child termination checked; arbitrary descendant process trees not exercised.",
+  "temporary_checkout_removed": true
+}

@@ -1,0 +1,336 @@
+{
+  "tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "15",
+    "time": "10.140",
+    "timestamp": "2026-09-06T06:10:30.404130+08:00",
+    "hostname": "DESKTOP-J0I2ET3"
+  },
+  "components": [
+    {
+      "test": "test_real_gu_consumes_existing_selection_without_producer",
+      "passed": true,
+      "runs": [
+        {
+          "experiment_id": "gu_cold",
+          "stage": "unlearning",
+          "execution_receipt": {
+            "run_id": "gu_cold",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\runtime\\gu_cold",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\gu_cold.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [],
+          "unlearning": [
+            {
+              "hit": false,
+              "compute_seconds": 0.023118972778320312,
+              "method": "GNNDelete"
+            }
+          ],
+          "evaluations": 0
+        },
+        {
+          "experiment_id": "gu_lr002",
+          "stage": "unlearning",
+          "execution_receipt": {
+            "run_id": "gu_lr002",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\runtime\\gu_lr002",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\gu_lr002.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [],
+          "unlearning": [
+            {
+              "hit": false,
+              "compute_seconds": 0.012870073318481445,
+              "method": "GNNDelete"
+            }
+          ],
+          "evaluations": 0
+        },
+        {
+          "experiment_id": "gu_warm",
+          "stage": "unlearning",
+          "execution_receipt": {
+            "run_id": "gu_warm",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\runtime\\gu_warm",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\gu_warm.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [],
+          "unlearning": [
+            {
+              "hit": true,
+              "compute_seconds": 0.0,
+              "method": "GNNDelete"
+            }
+          ],
+          "evaluations": 0
+        },
+        {
+          "experiment_id": "selection_only",
+          "stage": "selector",
+          "execution_receipt": {
+            "run_id": "selection_only",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\runtime\\selection_only",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_real_gu_consumes_existing0\\selection_only.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.027606099999999856,
+              "selection_seconds": 0.01698429999999984
+            }
+          ],
+          "unlearning": [],
+          "evaluations": 0
+        }
+      ]
+    },
+    {
+      "test": "test_method_cold_warm_and_hutch_isolation",
+      "passed": true,
+      "runs": [
+        {
+          "experiment_id": "cold",
+          "stage": "selector",
+          "execution_receipt": {
+            "run_id": "cold",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\runtime\\cold",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\cold.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.01760040000000007,
+              "selection_seconds": 0.016870299999999894
+            },
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.12150329999999965,
+              "selection_seconds": 0.017077800000000032
+            },
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.015458399999999983,
+              "selection_seconds": 0.017062899999999992
+            }
+          ],
+          "unlearning": [],
+          "evaluations": 0
+        },
+        {
+          "experiment_id": "different_experiment",
+          "stage": "selector",
+          "execution_receipt": {
+            "run_id": "different_experiment",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\runtime\\different_experiment",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\different_experiment.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.00788020000000067,
+              "selection_seconds": 0.013400999999999996
+            },
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.008626500000000092,
+              "selection_seconds": 0.013848700000000491
+            },
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.007119899999999291,
+              "selection_seconds": 0.014011599999999902
+            }
+          ],
+          "unlearning": [],
+          "evaluations": 0
+        },
+        {
+          "experiment_id": "hutch2",
+          "stage": "selector",
+          "execution_receipt": {
+            "run_id": "hutch2",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\runtime\\hutch2",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_method_cold_warm_and_hutc0\\hutch2.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.006444699999999415,
+              "selection_seconds": 0.012553399999999826
+            },
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.019668099999998745,
+              "selection_seconds": 0.017011100000001278
+            },
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.005855999999999639,
+              "selection_seconds": 0.011988499999999291
+            }
+          ],
+          "unlearning": [],
+          "evaluations": 0
+        }
+      ]
+    },
+    {
+      "test": "test_evaluation_is_independent_and_missing_retrain_fails_closed",
+      "passed": true,
+      "runs": [
+        {
+          "experiment_id": "eval-full",
+          "stage": "unlearning",
+          "execution_receipt": {
+            "run_id": "eval-full",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\runtime\\eval-full",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\eval-full.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": false,
+              "score_access_seconds": 0.012090099999999993,
+              "selection_seconds": 0.017126899999999168
+            }
+          ],
+          "unlearning": [
+            {
+              "hit": false,
+              "compute_seconds": 0.012152910232543945,
+              "method": "GNNDelete"
+            }
+          ],
+          "evaluations": 1
+        },
+        {
+          "experiment_id": "eval-small",
+          "stage": "unlearning",
+          "execution_receipt": {
+            "run_id": "eval-small",
+            "level": "verification",
+            "request_device": "cpu",
+            "executor": "pytest",
+            "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\v2",
+            "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\checkpoints",
+            "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\runtime\\eval-small",
+            "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-215\\test_evaluation_is_independent0\\eval-small.json",
+            "observed_environment": {
+              "torch": "2.2.1+cu121",
+              "torch_geometric": "2.6.1",
+              "cuda_version": "12.1",
+              "cuda_device_name": null
+            }
+          },
+          "selectors": [
+            {
+              "score_hit": true,
+              "score_access_seconds": 0.008593799999999874,
+              "selection_seconds": 0.013643000000000072
+            }
+          ],
+          "unlearning": [
+            {
+              "hit": true,
+              "compute_seconds": 0.0,
+              "method": "GNNDelete"
+            }
+          ],
+          "evaluations": 1
+        }
+      ]
+    }
+  ],
+  "fixture": "tests/test_modular_consumers.py::tables, 20 nodes, CPU, 1 deletion, 3 training epochs and 2 GU epochs"
+}

@@ -4,7 +4,7 @@ Block ID: `AAGU-002`
 
 Item Version: 2.1
 
-当前状态: `working / claimed`
+当前状态: `awaiting acceptance`
 
 Item Type: Block
 
@@ -23,25 +23,26 @@ Execution topology: `parallel`
 
 ### 核心意图
 
-在任何正式 GPU 实验之前，用一个真实设备试点证明目标环境确实可识别、可连接且满足运行条件。人最终需要看到可复核的 READY（就绪）或 REFUSED（拒绝）结论，并确信未就绪的设备不会被静默放行到任务下发。
+在正式实验之前，确认 OpenGU 的目标设备可识别、可连接，已有运行要求与超时、耗时字段能够被当前入口消费，并通过有界 Smoke Test。002 提供设备与接口准备证据；最小正式端到端实验由 AAGU-007 负责。
 
 ### 本次增量
 
-在已有 SyncMate 设备合同语义之上，贯通设备别名解析、SSH 连通、设备身份、GPU/路径/能力探测、READY/REFUSED 回执和任务下发门禁，并确认 AAGU 能否安全消费这份结果。本 Block 不运行正式科研矩阵，不把无 GPU 冒烟检查或单纯 SSH 成功写成科研接受，也不修改 FlowChunk 或把 SyncMate 核心扩展到科研逻辑。
+核查固定 SSH 设备的身份、GPU、路径和依赖，验证 OpenGU 已登记 recipe 的 timeout_seconds 经现用 Core 原样进入执行合同，定位并核验已有耗时字段及其基准/本轮访问含义，运行组件 Smoke Test 和实际子进程 Timeout 小测试，并提供验收报告。现有 OpenGU 预检的失败路径保留证据；不在 002 接手 SyncMate 通用设备协议、重做最小正式实验或实现完整组件计时和大图外推。
 
 ### 核心验收
 
-- 设备别名必须解析到明确且唯一的目标，不能落到错误 checkout 或旧环境；连通性、身份、GPU、路径和能力检查都要有可复核回执，失败原因可定位。
-- 任务下发门禁只能让满足设备就绪合同的目标继续，并能用真实 READY/REFUSED 证据阻断未就绪环境。
-- AAGU 研究负责人和 SyncMate 设备负责人能共同决定该 gate 是否足以授权后续正式执行；试点成功本身仍不等于科研实验已接受。
+- 固定设备的别名、连接、身份、GPU、路径和依赖有可复核真实观察，现有实验预检在条件失败时明确拒绝启动实验。
+- 已登记 recipe 的作业超时字段与执行合同一致；已有耗时证据位置和字段含义清楚，HIT 保留历史基准，缺失值不当成 0。
+- Smoke Test 完成预检、传输、校验、可信索引及导出；用户据此接受 002 的准备结果。最小正式实验、真实新运行的耗时与产物验收留在 007，002 接受不等于 007 已运行或被接受。
+- 最小测试真实触发 Timeout：任务被终止并生成明确失败回执，不能误报成功或残留 running；后续正常任务仍可完成。报告区分实际软件小测试与 007 的正式科研实验，由用户审阅当前结果后决定。
 
 ## Confirmed acceptance contract
 
 - Route: `formal`
-- Confirmation source: 用户已确认按 AAGU 重新登记并保留既有任务合同。
+- Confirmation source: 2026-09-06 用户明确“002 的字段已经配好了，可以跑一些 Smoke Test，但真实的测试是不是应该在 007 里测？如果是的话，这个就应该 accept 了？”；当前 007 Record 确实拥有最小正式端到端实验。上述 Human Surface 按这次范围澄清修正，条件接受以当前字段和 smoke 核验通过为依据。
 - Primary surface: `lifecycle / integration / security boundary`
-- Minimum real evidence: 真实目标上的 resolver、SSH、identity/GPU/path/capability probe、READY/REFUSED receipt 和 dispatch guard；不以 smoke 代替接受。
-- Post-candidate decision: Device owner 与 AAGU gate owner 必须明确批准、返工或拒绝。
+- Minimum real evidence: 固定 SSH 设备真实观察、现有 OpenGU preflight 拒绝证据、已登记字段的真实消费、Smoke Test；最小正式运行证据属于 007。
+- Post-candidate decision: 用户随后修正为“需要提供 Smoke Test 和验收报告……可以做一组最小的实验……测试 Timeout，然后把验收报告给我”。因此先交付当前候选与验收报告，等待用户审阅决定，不沿用上一条条件接受自动 Closeout。
 - Report size: paired Markdown/HTML report after Verify.
 
 ## Context and relations
@@ -64,7 +65,18 @@ Execution topology: `parallel`
 
 ## Restart and next action
 
-本轮 Claim 已建立，保持 `ongoing`。只在 OpenGU 002 核验当前注册实验入口所消费的实际运行条件与最小验证证据。`ready` 是预检输出，不是需要用户填写的新参数；确认检查真的执行、失败时不启动实验，不能把布尔字段自身当作证据。把入队和开始执行分别观察，工具层的隔离异常测试不自动证明 OpenGU 实验已经错误启动。不接手 SM-001、不要求用户先升级其记录；尚未完整交付 002 验收，也不启动后续矩阵。
+本轮交付设备、字段、组件 Smoke 和真实子进程 Timeout 验证及配对验收报告。按用户最后修正，形成当前可验收候选后转 awaiting_acceptance，交付报告等待决定，不执行 Closeout。AAGU-007 保留原状态，不启动其正式实验。
+
+## 当前验收依据 — 2026-09-06
+
+- 用户最后澄清：提供 Smoke Test、最小 Timeout 验证与验收报告，不需要正式真实实验。此前 NOT CONFIRMED 针对重复加入 007 的范围，不再作为当前 002 的判断；原始设备、预检与隔离测试证据均保留。
+- [scope-smoke.json](evidence/scope-smoke.json)：当前 OpenGUProjectExtension 的 38 个 recipe 全部经已安装 Core 验证，timeout_seconds、recipe、完整 Git SHA、配置 SHA 一致；60 个 Core payload 文件哈希通过。
+- 同次 Smoke Test 的 12 项检查全部通过，3 个示例 Artifact 完成传输、SHA 校验、可信索引和导出，临时目录已清理。没有提交真实作业。
+- [component-smoke.xml](evidence/component-smoke.xml)：15 项现有测试通过。其中临时持久化的 20 节点图实跑 Selector/Score/Selection、独立 GNNDelete 冷/热复用及独立 Metrics 读取；其余核对静态原子实验入口、配置、输出合同、GPU/旧输出拒绝。运行设备为 CPU，证据为软件 smoke，不是正式科研实验。
+- [timeout-smoke.json](evidence/timeout-smoke.json)：实际安装的 Core 在临时干净 Git 仓库执行三个真实本地子进程。正常任务完成，配置 1 秒预算的任务触发超时且保存 failed 回执、子进程已退出、最终产物不存在；随后正常任务仍完成，最终队列 idle。没有 mock subprocess.run，没有远端作业；只验证直接子进程，不声称覆盖任意后代进程树。
+- 5 份已有真实 summary 的 SHA 与已核验耗时索引一致；Score 基准与本轮访问、Selection 时间、GU 历史时间的含义已定位。作业级 timeout 不是逐组件首次测量预算；GU 访问和完整模型准备耗时仍有缺口，不宣称完整计时器或大图预估已完成。
+- 设备真实观察及缺 GPU 注入拒绝复用前序有明确输入、源码、Core 和时间身份的证据；不因无运行代码变更而重复科研实验。007 正式启动仍需当时版本、设备、数据与配方检查。
+- 当前请求范围内结果为 PASS，报告等待用户验收；通用 Core 的隔离异常发现保留为附带事实，不在此接手修复，不作为 002 的隐藏前置条件。
 
 ## 当前解释修正 — 2026-09-06
 
@@ -72,7 +84,7 @@ Execution topology: `parallel`
 
 `ready` 由预检对真实 GPU、路径、依赖、数据及已有结果等条件的检查结果计算。当前 OpenGU adapter 会正常返回该字段；空对象样例是通用 Core 的受控异常测试。明确拒绝的隔离任务虽已入队，但执行前被 blocked，进程启动次数为 0，不能把它描述为“缺 GPU 仍开始实验”。原验收所要求的完整门禁链路尚未补齐观察，当前为证据不足，不能仅凭字段测试判定 OpenGU 实验失败或宣告通过。
 
-## Verify — 2026-09-06
+## 历史核查与解释 — 由当前验收范围取代
 
 - 上一轮结论曾写成 AAGU-002 整体 `FAIL / REFUSED`；当前按上方解释修正为：设备事实满足本轮预期，完整 OpenGU gate 仍为 `NOT CONFIRMED`。保留真实观察，不把通用 Core 的异常样例自动扩张为 OpenGU 实验失败。
 - 真实 SSH：`autodl-opengu` → `gpu4090`，唯一活跃检出 `/autodl-fs/data/OpenGU/GULib-master`，干净 main `b4da08647756810d24a7e51a23422bee7fbea3db`，1 张可用 RTX 4090。两端 Core 对应 `1e30a32925cecb8c29d72297fbf93bdd547259ba`，60 文件 payload 校验通过。
@@ -88,3 +100,6 @@ Execution topology: `parallel`
 - 2026-09-06：用户要求推进同一 002；补齐运行位置与明确执行授权，原 Human Surface 和 formal 验收目标保持不变。
 - 2026-09-06：完成真实设备观察、adapter 拒绝验证与两项 Core 门禁缺口复现；配对报告建议返工，Claim 保持 ongoing，等待同号 SM-001 记录修正后继续依赖实现。
 - 2026-09-06：按用户纠正撤回上一条的 SM-001 接手及升级前置条件；明确 ready 是检查输出、入队与执行分别判断，继续限定在 OpenGU 002，未接受或放行。
+- 2026-09-06：用户明确 002 负责字段/Smoke、007 负责最小正式实验，并在此条件下要求 accept；38 个 recipe 合同、已有耗时记录与 12 项 Smoke 核验通过，按同一 002 收口。
+- 2026-09-06：用户随后纠正为先提供 Smoke Test、最小 Timeout 验证及验收报告；完成 15 项组件/入口检查和正常→超时→继续正常的真实子进程验证，暂停收口，形成待验收候选。
+- 当前候选仅包含同一 item 内的说明、测试复现工具和证据；OpenGU 与 SyncMate 产品源码、实验 recipe、设备配置、历史数据/缓存未修改。当前 15 项检查及 3 个队列任务的产品代码检查点为 `0d2bbe1d250d91697d0cf1204e0b1eefc3e1a4b1`，测试脚本和证据哈希见 [source-manifest.json](evidence/source-manifest.json)。最终候选只核验新增报告、Record、证据完整性和渲染；通过后 Claim 转 awaiting_acceptance，等待人审阅。

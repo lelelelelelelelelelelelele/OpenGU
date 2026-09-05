@@ -1,48 +1,60 @@
-# AAGU-002 · OpenGU 设备核查完成，完整 Gate 尚未交付
+# AAGU-002 · OpenGU Smoke Test 与 Timeout 验收
 
 ## Human Result
 
 ### 实际增量
 
-已完成固定 SSH 目标的真实设备探测、现有实验预检与缺 GPU 注入检查，并在临时 Git 仓库中用当前已安装的 SyncMate Core 复现拒绝下发路径。远端新增任务为 0，队列前后哈希一致。
+已完成设备与字段核查、20 节点小图的真实 CPU 组件 Smoke、传输与证据链 Smoke，以及实际子进程的 Timeout 验证。所有运行均为有界软件测试，没有启动 007 正式实验。
 
 ### 核心观察
 
-gpu4090 身份、活跃检出、RTX 4090 和 Core 依赖核验通过。ready 是实际条件检查的输出，不是用户配置项。隔离测试中明确未就绪的任务虽已入队，执行前被挡住，进程调用为 0；空对象是工具层故障样例，不能说成真实 OpenGU 预检返回了空结果。
+组件与实验入口检查 15/15 通过；传输 Smoke 12/12 通过；38 个 recipe 的超时合同字段一致。1 秒预算的小任务实际触发超时，整次处理耗时 1.183 秒，保存 failed 回执、子进程已退出、没有最终成功产物；随后正常任务完成，最终队列 idle。
 
 ### 当前决定
 
-Agent 判断完整 Gate 证据仍不足：本轮完成探测与拒绝测试，没有新跑最小 OpenGU 任务。继续只处理 OpenGU 002，撤回接手及升级 SM-001 的前置要求。当前保持 ongoing，不将设备核查或工具层异常样例等同于完整 Gate 的通过或失败。
+Agent 建议接受本轮 Smoke 与 Timeout 准备验证。按用户最后澄清，先提供本报告供审阅，当前不写 accepted、不合并或安装。最小正式科研实验和研究结果由 007 单独运行与验收；本次通过不表示完整组件计时或大图成本预测已实现。
 
 > 当前验收决定：`待决定`
 
-## 场景与观察
+## 各部件验证
 
-| 场景 | 判断 | 实际观察 |
+| 部件 | 证据 | 结果 |
 |---|---|---|
-| 别名、连接和身份 | PASS | OpenSSH 解析到单一端点；有界 SSH 成功，远端 device_id=gpu4090、role=runner。端点仅保存摘要，不复制连接配置。 |
-| GPU 与路径 | PASS | 当前 1 张 NVIDIA GeForce RTX 4090，CUDA 可用；固定活跃检出路径正确，main 干净。GPU 空闲容量未测量。 |
-| 两端 Core | PASS | 本机与 SSH 均为已接受的 1e30a329 对应 0.4.0 payload，60 个文件哈希核验通过。 |
-| 真实实验预检 | PASS | 读取既有 Cora 输入：2708 节点、1895 候选。发现该 recipe 的输出已经存在而明确拒绝重跑，没有改写旧结果。 |
-| 缺 GPU 情况 | PASS | 在真实 SSH 探测进程内临时注入 cuda.is_available=False，现有 adapter 明确拒绝并说明不降级到 CPU。实际设备仍有 GPU；这条是受控故障注入。 |
-| 拒绝后是否入队 | FAIL | 临时仓库中的 preflight 返回 ready=false，当前 Core 仍 submitted=true 并写出 inbox；入队前 preflight 调用次数为 0。执行前第二道检查最终 blocked，进程调用次数为 0。 |
-| 不完整预检 | FAIL | 同一 Core 的 recipe binding 收到空对象 {} 后返回 ready=true。未执行这个缺字段样例的进程。 |
-| 完整 OpenGU Gate | NOT OBSERVED | 本轮形成的是设备观察及现有预检结果，尚未完成当前 OpenGU 最小任务与门禁路径的完整交付。SM-001 不属于本轮接手范围。 |
+| 设备与环境 | 真实 SSH 观察 | 固定 gpu4090 身份、唯一活跃检出、RTX 4090 和两端 60 个 Core 文件核验通过；现有 adapter 对缺 GPU 注入和已有输出明确拒绝。 |
+| 实验字段 | 38/38 recipe | timeout_seconds、recipe ID、完整 Git SHA 和配置 SHA 在实际 Core 执行合同中吻合，预算沿用配方。ready 是检查输出，不是新增的用户参数。 |
+| Selector / Score / Selection | 20 节点 CPU 实跑 | 实际调用现有消费者；冷运行计算，热运行复用；Hutch 参数改变只使对应身份失效。额外单 Selector → 单 GNNDelete 验证构成最小组件链。 |
+| GU 与 Metrics | 真实 CPU 消费者 | GNNDelete 使用已有 Selection；禁止 Selector producer 后仍能冷运行/热复用。离线指标独立读取，缺失 Retrain 证据明确拒绝。 |
+| 实验入口 | 共 15 项检查通过 | 包括上述三个组件场景，以及原子配方、输出合同、缺 GPU、旧输出和非法 recipe 等入口检查。小图训练 3 epochs，GU 2 epochs。 |
+| 传输和证据链 | 12/12 Smoke 检查 | 3 个示例 Artifact 完成传输、SHA 校验、可信索引和导出；独立临时目录已清理。 |
+| 已有耗时证据 | 5 份 summary 哈希吻合 | 可读取 Score 基准、本次访问、Selection 时间和 GU 历史时间。HIT 不改写首次基准；未知访问耗时没有填成 0。 |
 
-## 剩余修复
+## Timeout 实测
 
-1. 沿用当前 OpenGU 实验已有的 GPU、路径、依赖、数据与配置要求，核查实际入口是否执行这些检查以及失败时是否阻止实验开始；不新增需要用户填写的 ready 参数。
-2. 把排队、开始执行、完成最小任务和结果核验分别记录。对前序 1×1 证据先核对适用身份，补足真正缺失的 OpenGU Gate 证据；本轮不接手 SM-001，不把旧任务记录版本问题作为前置条件。
+| 场景 | 配置上限 | 整次处理耗时 | 作业状态 | 观察 |
+|---|---|---|---|---|
+| 正常对照 | 5 秒 | 0.202 秒 | done | 正常完成并保存产物 |
+| 实际超时 | 1 秒 | 1.183 秒 | failed | 预期失败；进程退出、无成功产物 |
+| 超时后的正常任务 | 5 秒 | 0.202 秒 | done | 正常完成并保存产物 |
 
-## 证据与边界
+三组验证均 PASS：中间任务的 failed 正是预期结果。三次处理后没有 running 作业，额外 run_once 返回 idle，没有自动重试失败任务。
 
-设备实测时间为 2026-09-05T20:54:43.715291+00:00；SSH 检出为 b4da08647756810d24a7e51a23422bee7fbea3db。本地 main 因本轮 002 登记提交向前推进，当前不满足正式实验的三方 SHA 对齐条件。本轮未推送、安装、开通设备、运行正式实验，也未运行 029 的未来部分节点接口。
+## 结论边界
 
-干净检查点 e3ce4a1cd1e2cd03107b3b63b92a6fdaa167b2fc 上的证据复核完成；11 项核验说明证据完整、工具层缺口可复现。当前按用户纠正重新区分事实与结论：两项隔离测试的 FAIL 保留，不能自动升级为 OpenGU 实验失败；完整 Gate 尚未交付。真实探测与复现数据未更改。
+- Timeout 测试在本地临时干净 Git 仓库中使用已安装 Core 的真实队列和 subprocess.run，受控任务本应等待 4 秒，预算为 1 秒。没有 mock 超时异常，也没有改写任何正式 recipe。
+- 表中的处理耗时包含预检、启动和回执开销，不能把约 1.18 秒解释为精确 CPU 计算时间。只确认直接子进程终止，未测试任意后代进程树。
+- 组件 Smoke 使用 CPU；导入时出现本机 RTX 5070 与现有 PyTorch CUDA build 不兼容警告，不代表这些 CPU 测试使用了本机 GPU。正式 GPU 环境仍是既有 SSH 4090。
+- 作业级 timeout 已接通；完整模型准备、GU 访问计时、逐组件首次测量以及大图外推仍有缺口。这些不能写成“所有计时能力已经完成”，也不阻塞当前有限 Smoke 验收。
+- 工具层仍保留预检拒绝后可入队、空预检对象可能被误判的隔离发现；明确拒绝的测试在执行前被挡住。它们不是实际 OpenGU 已在缺 GPU 时运行的证据，本轮不接手 SM-001。
+- 设备证据有时间和版本边界；007 正式运行前仍须重新核对当时的设备、三方代码身份、数据、配方及已有产物。002 不替代其科研接受。
 
-- [规范化核验与证据范围](evidence/verification.json)
-- [真实远端观察和两种 adapter 预检](evidence/remote-probe.stdout.json)
-- [隔离队列复现](evidence/queue-guard-repro.json)
-- [可重跑的远端只读探针](evidence/remote_probe.py)
-- [可重跑的本地 Core 复现](evidence/queue_guard_repro.py)
+## 证据与复核
+
+- [正常→超时→继续正常：完整回执](evidence/timeout-smoke.json)
+- [Timeout 可重跑脚本](evidence/timeout_smoke.py)
+- [15 项测试及 CPU 运行原始证据](evidence/component-smoke.xml)
+- [组件运行摘要](evidence/component-observations.json)
+- [38 个合同、传输 Smoke 与耗时证据](evidence/scope-smoke.json)
+- [真实 SSH 设备观察](evidence/remote-probe.stdout.json)
 - [同一 WorkItem](WORKITEM.md)
+
+此前范围讨论曾把 007 的正式最小实验重复加入 002，后又提出直接接受；用户最后明确先交付 Smoke、Timeout 和验收报告。当前以这一要求为准，历史原始观测保留，不沿用先前的自动 Closeout 建议。

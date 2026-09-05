@@ -3,14 +3,14 @@
     "width": 1440,
     "scrollWidth": 1440,
     "decision": {
-      "x": 347,
-      "y": 606.90625,
+      "x": 327,
+      "y": 560.125,
       "width": 48,
       "height": 21,
-      "top": 606.90625,
-      "right": 395,
-      "bottom": 627.90625,
-      "left": 347
+      "top": 560.125,
+      "right": 375,
+      "bottom": 581.125,
+      "left": 327
     },
     "brokenImages": 0
   },
@@ -20,14 +20,14 @@
   },
   "missing_local_links": [],
   "files": {
-    "desktop.png": "8b180c958eda6c59d95f441b0e94405e6ea96858b1cdfb8e8149240f53fb2b75",
-    "full.png": "aa15e1e37e62d15b568db8828252f811cb9c9f60c2cfa1da4fe2233a20f20e69",
-    "layout.json": "5f6f4257bbf265a0736b005514788c29a00ed11a19df63b80a41ba3348ad661c"
+    "desktop.png": "c490abd243abd4a982f68b36b671024604fb5ffc4d795a9cf8dd412661d15b48",
+    "full.png": "c0f9734d285cb081cbaa81b82e2beff40631e9ddf1c0e0d8e12d72ad7444d1b6",
+    "layout.json": "49dc5cb84ae4c73e7d080fb9bae9d22473d911fd8b3fd03a189cb5513c211b9e"
   },
   "report_sha256": {
-    "REPORT.md": "6fee21ff6b2d6d9102c650672b149fe3fc6e08b5b4cc07a9af2708b52a2e5b7b",
-    "REPORT.html": "9ea3e37bff039a63b9d857837213d8e6a36cfc6a4d253a78b2dbf8964b5f30a2"
+    "REPORT.md": "f6015f1375a89910fcb982b3e8ae3b999f6c0ff8d0f5e8bc929b2d717b5799c3",
+    "REPORT.html": "4892a25cfb1e67f0a69b27f0a81da1ca74122446595c35a52c0ee1aef4be319c"
   },
   "screenshot_directory": "E:\\project\\OpenGU-worktrees\\aagu-002-device-readiness\\GULib-master\\GULib-master\\.workblock\\runtime\\aagu002-report-qa",
-  "agent_observation": "Inspected the full rendered report: device checks, separated queue/execution findings, and OpenGU-only scope correction are legible; the pending decision is in the first screen. No clipped text or horizontal page overflow."
+  "agent_observation": "Inspected full rendered report: component coverage, actual timeout table, expected failed state and pending decision are legible. The decision is above the desktop fold; no clipped text, broken links or page overflow. Mobile checked for horizontal overflow only."
 }
