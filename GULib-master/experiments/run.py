@@ -602,6 +602,16 @@ def run_cell(cfg: Dict[str, Any], method: str, strategy: str, seed: int,
             raise ValueError("existing output cell Selection differs from requested input")
         if output.identity['target']['method'] != method or (out_dir / 'predictions.npz').read_bytes() != output.canonical_bytes:
             raise ValueError("existing output cell differs from the verified method artifact")
+        from experiments.target_direct_v1.run_outputs import cell_instance
+        expected = cell_instance(cfg, method, seed)
+        if output.identity['target']['parameters'] != expected['parameters'] or any(
+                output.identity['pairing'][key] != expected[key] for key in ('model', 'training', 'deletion')):
+            raise ValueError('existing output method conditions differ from requested configuration')
+        if method != 'Retrain' and output.identity['target']['checkpoint_state_hash'] != selection_artifact['target_checkpoint']['state_hash']:
+            raise ValueError('existing output checkpoint differs from requested configuration')
+        meta = json.loads((out_dir / '_meta.json').read_text(encoding='utf-8'))
+        if meta['output_reference'] != exported['output']:
+            raise ValueError('existing output references disagree')
 
     if not force:
         if status == "complete":

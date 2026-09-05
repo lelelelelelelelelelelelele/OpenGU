@@ -347,7 +347,10 @@ def test_matrix_runs_one_requested_method_without_inline_comparison(tables, monk
     monkeypatch.setattr(matrix, 'cache_v2_settings', lambda _: {'mode': 'fixture'})
     monkeypatch.setattr(matrix, '_record_autoreport_event', lambda **_: None)
     monkeypatch.setattr(matrix, 'prior_attempt_context', lambda *a, **k: (1, None))
-    artifact = {**reference, 'store_root': str(root / 'v2'), 'k': len(selection.selected_nodes)}
+    monkeypatch.setattr(lane, 'cell_instance', lambda cfg, name, seed:
+                        load_instance(root / ('gu.yaml' if name == 'GNNDelete' else 'retrain.yaml'), 'unlearning'))
+    artifact = {**reference, 'store_root': str(root / 'v2'), 'k': len(selection.selected_nodes),
+                'target_checkpoint': cp}
     assert matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
                            selection_artifact=artifact) == 'completed'
     assert calls == ['GNNDelete']
@@ -359,6 +362,12 @@ def test_matrix_runs_one_requested_method_without_inline_comparison(tables, monk
     for name in cfg['methods']:
         assert matrix.run_cell(cfg, name, 'degree', 42, force=False, dry_run=False,
                                selection_artifact=artifact) == 'skipped'
+    changed = yaml.safe_load((root / 'gu.yaml').read_text())
+    changed['parameters']['unlearn_lr'] *= 2
+    write_yaml(root / 'gu.yaml', changed)
+    with pytest.raises(ValueError, match='method conditions'):
+        matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
+                        selection_artifact=artifact)
     with pytest.raises(ValueError, match='post-processing'):
         matrix.run_cell({**cfg, 'defaults': {'run_collateral': True}}, 'GNNDelete', 'degree', 42,
                         force=False, dry_run=False, selection_artifact=artifact)
