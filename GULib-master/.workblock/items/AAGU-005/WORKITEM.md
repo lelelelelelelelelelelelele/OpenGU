@@ -4,7 +4,7 @@ Block ID: `AAGU-005`
 
 Item Version: 2.1
 
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 
 Item Type: Block
 
@@ -16,6 +16,12 @@ Execution topology: `parallel`
 
 > Apply target ref：`refs/heads/main`
 
+
+> Git baseline：`c9e094c55b42b2833fb24fcef5fe08f057605f68`
+
+> Source branch：`refs/heads/codex/aagu-005-consumer-evidence`
+
+> Remote target：`origin refs/heads/main`
 ## Human Surface
 
 ### 核心意图
@@ -49,9 +55,9 @@ Execution topology: `parallel`
 ## Context and relations
 
 - Partner: [SM-005 · SyncMate 跨项目可行性与正确性检验](E:/project/SyncMate/.workblock/items/SM-005/WORKITEM.md)。SM-005 拥有通用连接、任务控制、状态、回传、校验及公共接口；AAGU-005 拥有这些接口在 OpenGU 的具体消费。
-- Orchestration: 保留 SUPPORT、P3 与 `AAGU-005 depends_on AAGU-001`；WORKPLAN 拥有编排。本次不改变 028 主推进线，不添加两项目互相等待的循环依赖。
+- Orchestration: 保留 SUPPORT、P3 与 `AAGU-005 depends_on AAGU-001`；当前执行线与下一步由 WORKPLAN 拥有，不添加两项目互相等待的循环依赖。
 - Coordination: 两边可独立推进；集成前绑定双方精确提交、Core 制品与接口合同。接口缺陷由代码所属项目修复，另一侧核验，不跨仓库代改。
-- Related work: 026 已有模块化消费者是接入基础；015 提供当前阶段配置和 Selector 证据；028 拥有 Retrain/Metrics 修复并阻挡整轮正式研究运行。002 Device Readiness、007 等科研验收及 SM-003 产品化合同保持独立。
+- Related work: 026 已有模块化消费者是接入基础；015 提供当前阶段配置和 Selector 证据；028 的 Retrain/Metrics 软件修复已接受并落地，正式运行仍须满足各自实验门槛。002 Device Readiness、007 等科研验收及 SM-003 产品化合同保持独立。
 - Evidence: 引用 SM-005 原始报告和证据，标明 owner、受测提交及复用理由，不移动、改写或复制成新运行结果。
 
 ## Received handoff · 2026-09-06
@@ -69,14 +75,29 @@ Execution topology: `parallel`
 ## Runtime and authorization boundaries
 
 - 使用 `block-workflow` Claim 同一 locator，采用 `parallel` linked worktree；具体 source branch、baseline、owner 和工作区在 Claim 时绑定。本次登记不代替 Claim。
-- 写入只限 OpenGU 接入范围。`experiments/modular_execution.py` 只涉及必要运行上下文与产物路径接入；科研算法、Selector、GU、Retrain、Metrics 语义不因接入改变。涉及 028 正在修改的共同文件，先协调具体代码段。
+- 写入只限 OpenGU 接入范围。`experiments/modular_execution.py` 只涉及必要运行上下文与产物路径接入；科研算法、Selector、GU、Retrain、Metrics 语义不因接入改变。028 已接受的方法与指标合同保持其归属，不在本 Block 重做。
 - SM-005 不继续修改 OpenGU 源码；本侧不修改 SyncMate Core、其 WorkItem、报告或安装策略。保留双方既有数据、缓存、结果和队列；不 stash/reset/clean 或整体回滚其他任务内容。
 - 本机进行 CPU 接入测试、配置检查、控制与审阅。当前不新跑 GPU 实验；未来正式数据和 GPU 运行须遵循 `experiments/AGENTS.md`。职责拆分不授权整轮研究矩阵。
 - 两边分别提交、验收和 Closeout。部署与安装遵循各自注册动作及已有具体授权，不能把原任务的准备脚本当作完成回执。
 
 ## Restart and next action
 
-读取本 Record、项目指令、Git 与 live Claim，在独立 linked worktree 接手同一 AAGU-005。先核对上述已落地提交、Core 接口依赖、221 项检查及旧实测的复用边界，完成本侧最小必要代码核验与报告。与 SM-005 共享结果但分别验收；不启动 AAGU-010、重复矩阵或新 GPU 实验。
+交接整理与只读核对已完成，见 [REPORT.html](REPORT.html) / [REPORT.md](REPORT.md)。6 个原子配方、既有实测和双端依赖可复用；当前正式 GU 接入仍有下述已复现缺口，完整验收保持待决定，Claim 保持 ongoing。
+
+下一步在同一 linked worktree 对齐 target-direct GU 的预检参数、单方法产物声明与收集后的接受检查，再更新报告和受影响验证。不重复实现已交付原子链路，不启动新 GPU 实验、AAGU-010 或研究矩阵。
+
+## Delivery audit · 2026-09-06
+
+- 用户在核对两个 005 的接受状态后要求“对，做整理吧”。本轮承接已有消费端交付、整理报告并核对证据；未把该指令投影为完整接入范围的提前接受。
+- 通过标准 parallel Start 创建 `E:/project/OpenGU-worktrees/aagu-005-consumer-evidence/GULib-master`；同一 AAGU-005 Claim 为 `1d37bd2a-2b00-44d2-8c82-cdf36beb7e8d`，owner codex，session 澄清两个005事项。正式关联仍为本 WorkItem locator；Git baseline / branch 见顶部运行字段。
+- 交接提交 `e8f23a94dc7d753283442cadb1b45d8c1962234e` 已包含在 `c9e094c55b42b2833fb24fcef5fe08f057605f68`。所审 Adapter、配方、输出布局、原子 stage、modular_execution 及相邻两份测试相对交接提交无变化。后续 028 的方法/输出变更另由其原始 163 项与合并核验说明适用范围，不能仅叠加测试数量宣称整个接入通过。
+- SM-005 已接受并在 `6a938e2acc4616044f8340b66f8369b1a42254b0` 合并、推送。双端安装为 Core 0.4.0；本地和 SSH 消费端均 `ready=true`、60 文件内容一致、errors 为空。重建 wheel 的 ZIP 摘要不同，实际载荷与原依赖清单一致。SM-005 安装回执的 partial 仅指其本地临时制品删除被自动审批拒绝，本 Block 不重复安装或处理该清理。
+- SSH 只读读回为 clean `c9e094c5`，取代交接时“仅 preflight，尚未同步”的旧观察；原始版本和运行记录保留。新证据：[完整核对](evidence/observations.json)、[SSH 读回](evidence/remote-readback.json)。
+- 新只读跨接口检查比较真实配置/配方与执行器枚举：6 个 SM-005 原子配方通过；20 个 target-direct GU 配方产物集合不一致。gate 每项声明 4、执行器枚举 8 个文件；整组每项声明 68、执行器枚举 136 个文件。差异包括旧 collateral.json、新 output-references.json 及未声明的独立 Retrain 输出。
+- 真实预检调用还复现 `TypeError: float() argument must be a string or a number, not 'WindowsPath'`：Adapter 把 config_path 放入 ratio 位置，且未传 gate_only；异常发生在设备或数据预检之前。OpenGU GU 接受检查仍读取旧 collateral，源码定位记录在报告中。上述问题本轮未修改实现，不得记为 PASS。
+- 本轮以项目 Python 运行 `tests/test_syncmate_atomic_stage.py` 和 `tests/test_retrain_outputs.py::test_aggregate_serialization_is_lossless`：13 passed，0 failure / error；[原始 XML](evidence/targeted-checks.xml)。支持原子入口拒绝行为、合同核对和已落地 F1 无损读回，不覆盖正式 GU 端到端。
+- 配对报告结构、实际桌面渲染和全部证据链接已核对；看板从同一 WorkItem 重建，修正仍指向已关闭 028 的旧当前线，7 项看板检查通过。具体观察见 [整理验证](evidence/verification.md)。生成状态随最新事实变化，优先级和依赖未改。
+- Agent 建议先修复上述接入缺口，再接受完整 AAGU-005；报告当前决定为待决定，状态保持 working / claimed。原始 SM-005 GPU 证据仍对应其各自版本，未新增 GPU 实验、队列任务、正式数据或缓存写入。
 
 ## Status history
 
@@ -84,3 +105,4 @@ Execution topology: `parallel`
 - 2026-09-05：按用户确认，将同一 AAGU-005 重定义为跨项目可行性与正确性检验，纳入完整实际远程工作链、项目配置与 Adapter 复用边界；补齐执行字段，保留编号、状态、practical 路线和编排依赖。未 Claim、执行或形成候选证据。
 - 2026-09-05：后续用户讨论让 SM-005 承担实际检验，AAGU-005 只监控其完成；该意图已传达给 SM-005，但协调任务中断，当前 canonical Record 未形成相应监控版本。保留这段历史，不将旧意图视为最新执行边界。
 - 2026-09-06：用户明确跨项目协作：AAGU-005 承担 OpenGU 消费端，SM-005 承担 SyncMate Core，分别修改与验收。取代“SM-005 同时拥有两边代码、AAGU-005 只监控并自动完成”的旧安排；沿用同一编号、practical 路线和 parallel 拓扑，登记状态仍为 registered / not claimed。
+- 2026-09-06：按“做整理” Claim 同一 Block，在独立分支整理交付、报告与复现证据；发现正式 GU 接口缺口，保持 working / claimed，未执行完整接受或 Closeout。
