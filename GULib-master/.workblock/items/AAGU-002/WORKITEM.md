@@ -4,7 +4,7 @@ Block ID: `AAGU-002`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 Item Type: Block
 
@@ -103,3 +103,4 @@ Execution topology: `parallel`
 - 2026-09-06：用户明确 002 负责字段/Smoke、007 负责最小正式实验，并在此条件下要求 accept；38 个 recipe 合同、已有耗时记录与 12 项 Smoke 核验通过，按同一 002 收口。
 - 2026-09-06：用户随后纠正为先提供 Smoke Test、最小 Timeout 验证及验收报告；完成 15 项组件/入口检查和正常→超时→继续正常的真实子进程验证，暂停收口，形成待验收候选。
 - 当前候选仅包含同一 item 内的说明、测试复现工具和证据；OpenGU 与 SyncMate 产品源码、实验 recipe、设备配置、历史数据/缓存未修改。当前 15 项检查及 3 个队列任务的产品代码检查点为 `0d2bbe1d250d91697d0cf1204e0b1eefc3e1a4b1`，测试脚本和证据哈希见 [source-manifest.json](evidence/source-manifest.json)。最终候选只核验新增报告、Record、证据完整性和渲染；通过后 Claim 转 awaiting_acceptance，等待人审阅。
+- `accepted`（2026-09-06T06:24:43.9630555+08:00）：用户 基于 用户审阅 Smoke Test 与 Timeout 验收报告后明确：那可以 accept 了。接受同一 OpenGU AAGU-002 的设备、字段、CPU 组件 Smoke 和真实子进程 Timeout 验证；007 正式实验不在此次接受范围。 接受当前已验证候选。
