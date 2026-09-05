@@ -4,7 +4,7 @@ Block ID: `AAGU-005`
 
 Item Version: 2.1
 
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 
 Item Type: Block
 
@@ -120,3 +120,4 @@ Execution topology: `parallel`
 - 2026-09-06：按“做整理” Claim 同一 Block，在独立分支整理交付、报告与复现证据；发现正式 GU 接口缺口，保持 working / claimed，未执行完整接受或 Closeout。
 
 - 2026-09-06：按用户明确的整体修复要求完成消费端代码修复及 311 项检查，形成同一 AAGU-005 待验收候选；此前 Delivery audit 为修复前历史观察。
+- `accepted`（2026-09-06T04:24:32.6908840+08:00）：用户 基于 用户已阅读修复原因、实现与验证边界，确认：明白了，就已经修复好了呗。那其实我觉得 005 这部分已经算是修复好了。接受同一 AAGU-005 当前候选的代码正确性与 CPU 接入验证范围。 接受当前已验证候选。
