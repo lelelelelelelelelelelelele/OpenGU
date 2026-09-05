@@ -3,7 +3,7 @@
 Block ID: `AAGU-028`
 Item Version: 2.1
 Item Type: `Block`
-当前状态: `accepted`
+当前状态: `working / claimed`
 Stable locator: `.workblock/items/AAGU-028/WORKITEM.md`
 Acceptance Route: `formal`
 Execution topology: `parallel`
@@ -81,6 +81,7 @@ Execution topology: `parallel`
 
 - 2026-09-05: 用户确认此前明确提出的 Retrain 独立方法要求，指定为正式实验之前的前置 FIX，并授权登记。本次 registered / not claimed；未创建任务、Claim、实现或运行实验。
 - `accepted`（2026-09-06T02:10:49.9292258+08:00）：用户 基于 用户明确接受当前已验证候选 155ffef04d22bb5fb8cfd9cfdcc6059ca623a8f6：可以，那你 accept。接受范围为 AAGU-028 独立方法、已保存的单方法指标及结果收集后跨方法比较的软件修复。 接受当前已验证候选。
+- `accepted` -> `working / claimed`：Combination verification: 77 passed; AAGU-015 guard correctly rejects inline retrain-gap but its assertion still expects the removed missing-consumer message. Update only that guard to the accepted independent-metrics behavior, preserving the no-write/producer assertions.；返回同一 Block 返工。
 
 ## Execution record
 
