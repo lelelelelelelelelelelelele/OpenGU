@@ -8,6 +8,11 @@ Item Version: 2.1
 
 Item Type: Block
 
+Stable locator: `.workblock/items/AAGU-002/WORKITEM.md`
+Acceptance Route: `formal`
+Execution topology: `parallel`
+> Apply target ref：`refs/heads/main`
+
 ## Human Surface
 
 ### 核心意图
@@ -45,6 +50,16 @@ Item Type: Block
 - Later execution may use live provider only under explicit Device Readiness authorization and must preserve remote checkout identity.
 - Current runtime candidate, receipt, report, and target identity are not yet formed.
 
+### 本轮执行授权 — 2026-09-06
+
+用户在核对 002 尚未完成后明确要求“那你把这个推进了呀”。本轮沿用同一 Human Surface，授权 Claim 后核查与复用 SM-005/006 已有证据，使用既有 autodl-opengu 及唯一活跃检出执行有界、只读的 Device Readiness 探测与必要拒绝路径验证。该执行授权取代上方登记时的 registration-only 限制；它不接受候选，也不授权正式科研矩阵、设备付费开通、bootstrap、安装或历史结果/缓存清理。
+
+使用独立 linked worktree 形成候选和配对报告；本机负责审查与 CPU 验证，真实设备观察来自固定 SSH 目标。优先复用现用 Core/Adapter，不把 SM-001 的旧登记记录或历史 GPU 成功自动当作当前就绪。缺 GPU、身份错误或合同缺项时输出 REFUSED 和精确缺口，保持后续实验不下发。
+
 ## Restart and next action
 
-Use `block-workflow` to claim this exact WorkItem in a later execution task. Re-read the current Device Contract and remote AGENTS first; execute the smallest real pilot and stop at the formal readiness decision.
+Use `block-workflow` to claim this exact WorkItem under the user's current execution authorization. Re-read the current Device Contract and remote AGENTS; reuse existing evidence, execute the smallest readiness pilot, and present the observed READY/REFUSED conclusion for the formal decision. Do not infer acceptance or start the downstream research matrix.
+
+## Status history
+
+- 2026-09-06：用户要求推进同一 002；补齐运行位置与明确执行授权，原 Human Surface 和 formal 验收目标保持不变。
