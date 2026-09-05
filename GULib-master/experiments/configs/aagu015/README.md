@@ -1,7 +1,8 @@
 # AAGU-015 两阶段定义
 
 本目录是 [AAGU-015](../../../.workblock/items/AAGU-015/WORKITEM.md) 的第一项配置产物。
-它尚未绑定正式数据或 Selection，不能调度实验。完整 EXP 仍在进行中。
+015 交付实验方案与可执行链路，并用必要的最小验证确认接通。306/612 表示方案展开范围，
+全量执行和完整科研结果不属于本次验收要求。当前配置仍未绑定数据或 Selection，链路尚在实现中。
 
 ## 配置入口
 
@@ -54,19 +55,22 @@ TracIn 显式指定 `[1,10,25,50,75,100]`：6-checkpoint 消费全部六点，3-
 这些组由有效配置比较得到，并不是 Recipe/Artifact 哈希、实际训练次数或 cache HIT。
 GU 和 Selector 的相同模型配置也必须经过数据、训练、checkpoint、数值与实现身份核验后才能共享。
 
-## 正式门槛
+## 链路实现待办
 
-1. 三个 `datasets/*.yaml` 的 manifest、manifest SHA 和 split hash 当前为空。只能绑定
-   `/autodl-fs/data/OpenGU/GULib-master/data/processed` 中经过验证的 canonical pair；本工具不准备数据。
-2. 绑定真实候选、checkpoint/trajectory、代码、Recipe/Artifact、job/recipe receipt 与设备身份。
-3. 配置必须具有已注册的 AAGU-015 launcher。目前旧 target-direct 注册仍指向旧 recipe，不能替代本轮调度。
-4. Stage U 的配置直接保留 `selection_input`，没有 `selector_refs`；当前均未绑定。
+1. 三个 `datasets/*.yaml` 的 manifest、manifest SHA 和 split hash 当前为空，需要实现读取、验证和绑定接缝，
+   并验证候选与 checkpoint 准备/复用。当前生成器不自动下载或准备数据；空引用不能视为链路已接通。
+2. Stage S 需要接通完整 Score、排名和 Selection 的输出、Q1–Q4 比较和时间拆分消费者，以最小验证核对语义。
+3. Stage U 的配置直接保留 `selection_input`，没有 `selector_refs`；当前均未绑定。
    已有 modular GU 仅支持 utility 消费；`post_unlearning_utility_and_retrain_gap` 会在写入前拒绝，
-   不得降为 utility-only 来通过门槛。还需完整重训练及删除目标、保留节点、测试、collateral、预测变化的真实消费者链。
-5. 项目要求本地 main、origin/main、SSH 活跃 main 对齐同一已接受 SHA；当前 linked source 的配置没有落地。
-   canonical `.syncmate/device.yaml` 也尚未配置。本轮没有启动 SSH/GPU、单 cell canary 或计时实验。
-6. 完成真实 canary，分开记录共享准备、cold compute、warm access、Selection materialization、总时长和资源；
-   通过成本审阅后，用户决定正式调度范围。612 个 U cell 是候选矩阵。
+   不得降为 utility-only 来宣称接通。还需完整重训练及删除目标、保留节点、测试、collateral、预测变化的真实消费者链。
+4. 最小端到端验证需经过实际消费者，证明固定 Selection 复用及正确模型进入评价，记录输入、代码和产物身份。
+   软件 fixture 与隔离 smoke 只能支持实现判断，不写成三数据集的科学结果。
 
-Q1–Q4 以及科学解释仍由 WorkItem 拥有。阶段 S 的比较、时间与阶段 U 的研究结果均未观测；
-没有用历史结果、fixture、矩阵展开或软件测试填补它们。
+## 后续正式运行边界
+
+正式数据只能使用 `/autodl-fs/data/OpenGU/GULib-master/data/processed` 中验证过的 canonical pair。
+实际 SSH/GPU 运行仍需注册 launcher、设备配置、三端同一已落地 main、明确的 canary 范围、成本门槛和调度批准。
+这些规则服务后续正式执行；不再以缺全量科研结果或未完成正式部署来阻塞 015 的本地链路实现。
+旧 target-direct recipe 不替代本轮调度授权；不从本配置直接铺开 306/612 矩阵。
+
+验收所需证据是方案、链路实现与最小验证证据；完整排名对照、三数据集成本和攻击效果结论由后续获准运行产生。

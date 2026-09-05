@@ -4,26 +4,25 @@
 
 ### 实际增量
 
-已形成三个 Dataset/Split、17 个 Selector、GNNDelete/GIF 与评价实例，生成 306 个阶段 S cell 和 612 个阶段 U 候选 cell。424 份生成 YAML 由已接受的模块化 parser 解析；本报告只呈现配置检查点，正式实验尚未开始。
+按用户澄清，015 交付实验方案与可执行链路，并用必要的最小验证确认接通。已有 306 个阶段 S cell 和 612 个阶段 U 候选 cell 表示方案覆盖范围；424 份生成 YAML 与既有展开证据保留。全量实验和完整科研结论不属于本次验收要求。当前链路尚未完成。
 
 主要证据：[定义摘要](evidence/definition-summary.json) · [阶段 S cell 表](evidence/stage-s-cells.csv) · [阶段 U cell 表](evidence/stage-u-cells.csv)。
 
 ### 核心观察
 
-1. **PASS（配置结构）** — 三个 Dataset/Split、17 个 Selector、两种 GU 和评价引用均可解析；未知字段、错误类型引用及生成物漂移会被拒绝。真实输入尚未绑定。
-2. **PASS（无写入展开）** — 324 张真实计划表展开为 306 个 Selector cell 和 612 个 GU cell；两个 experiments/run.py CLI dry-run 成功。展开未读数据、调用 producer 或创建研究结果。
-3. **NOT OBSERVED** — 正式 data/split/candidate、checkpoint、Recipe/Artifact、job 和设备身份尚未绑定。测试确认未绑定 Dataset/Split 会在模型、Store 和结果写入前停止。
-4. **NOT OBSERVED** — 没有本轮 Score、排名或 Selection 原始产物，因此没有计算 Spearman、Kendall、top-K common fraction 或 Jaccard，也没有形成 Q1–Q4 的科学结论。
-5. **NOT OBSERVED** — 没有运行 cold compute、warm access、Selection materialization、共享准备或资源测量。配置展开与测试耗时不作为 Selector 成本。
-6. **NOT CONFIRMED** — U 计划只声明固定 selection_input，没有 selector_refs；但当前模块化 GU 缺完整重训练消费者，retrain-gap case 实际被拒绝。真实固定 Selection→GU→Retrain/Evaluation 链尚未验证。
-7. **NOT OBSERVED（完整科研报告）** — 本 Markdown/HTML 对应真实配置验证证据；技术准备、实测观察和科学判断分别标注。完整研究结果报告仍待实验及收集核验。
-8. **NOT CONFIRMED（用户决定）** — 用户尚未决定配置先行落地顺序，也未接受整个 EXP。Claim 保持 ongoing；矩阵展开和测试通过不触发研究验收。
+1. **NOT CONFIRMED（方案完整性）** — 两阶段范围、Q1–Q4、候选参数与解释边界已有定义；用户已明确 015 负责方案和链路。逐项比较设计及指标输入仍需在实现中完整对齐。
+2. **PASS（配置与展开）** — 三个 Dataset/Split、17 个 Selector、两种 GU 和评价引用可解析。324 张计划表展开为 306/612 cell；两个真实 CLI dry-run 成功，未知字段、错误引用和漂移被拒绝，未创建研究结果。
+3. **NOT OBSERVED（数据接缝）** — 读取、验证和绑定数据，以及候选/checkpoint 准备的链路还未在 015 接通。现有测试只证明空 Dataset/Split 引用会在模型、Store 和结果写入前停止。
+4. **NOT OBSERVED（S 链路验证）** — 还需把 Score、排名、Selection、相关性/选集比较和分段计时接入最小链路验证。此处缺的是可运行接口的证据，不是三数据集全量对照和成本结果。
+5. **NOT CONFIRMED（U 链路）** — U 计划只声明固定 selection_input，没有 selector_refs；普通 modular GU 仍缺完整重训练消费者。需要最小端到端验证证明同一 Selection→GU→Retrain/Evaluation 接通。
+6. **NOT OBSERVED（端到端验证）** — 已完成的 8 项检查证明配置及失败关闭边界；015 的最小实际消费者链尚未完整验证。306/612 全量运行和正式科研结论不列作缺口。
+7. **PASS（报告范围已纠正）** — 配对报告现在审阅实验方案、实现和验证证据。Claim 保持 ongoing，等待补齐链路后再交用户验收；撤回先前要求特殊先行落地配置的确认。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-Agent 判断：证据不足，不能接受整个 EXP。当前需要用户明确同一 015 的配置/入口先行落地顺序：项目要求正式实验使用三端同一已落地 main，而本 Block 的最终 formal 接受需要实验结果。决定该顺序后，仍需在同一 015 补齐正式 launcher、完整重训练与评价、真实输入和 canary/成本门槛；本检查点不申请 612-cell 调度。
+Agent 判断：链路验证证据不足，继续完成同一 015 的设计与实现。用户已经明确本次范围，无需再次确认这一范围或特殊先行合入配置。015 的验收对象是实验方案、可执行链路和必要最小验证；后续真实数据 canary、SSH/GPU 与全量实验按项目规则另行明确执行范围。
 
 ## 默认展开与当前科研配置
 
@@ -48,21 +47,21 @@ Agent 判断：证据不足，不能接受整个 EXP。当前需要用户明确�
 
 组标识是有效配置的比较指纹，不是 Recipe/Artifact 哈希、实际训练次数或 HIT。真实数据、候选、checkpoint 与 producer 身份一致后才允许共享。
 
-## 正式门槛核验
+## 实现待办与后续运行边界
 
-| 门槛 | 状态 | 实际事实 |
+| 事项 | 归属 | 当前事实 |
 | --- | --- | --- |
 | 已接受前置 | PASS | 001、006、026、009 的 accepted Record 与代码均在 main@19b3b865；026 merge 为 426aebd8。 |
-| 正式版本 | 未满足 | 本轮配置位于 linked source。读取时本地 main=19b3b865，本地 origin/main 跟踪引用=426aebd8；远端实时状态未查询。 |
-| 设备与数据 | 未满足 | canonical .syncmate/device.yaml 缺失；三份数据 manifest/hash 与真实 candidate/checkpoint 未绑定；SSH/GPU 未执行。 |
-| 正式消费者 | 未满足 | 没有注册本轮 AAGU-015 YAML 的 launcher；普通 modular GU 尚不产出完整重训练。旧 target-direct recipe 不是本轮调度批准。 |
-| Canary 与成本 | NOT OBSERVED | 尚无真实单 cell canary 或三数据集成本；全矩阵调度范围仍由用户决定。 |
+| 数据与 checkpoint | 实现待办 | 接通文件验证、绑定、候选构造和 checkpoint 准备；缺失身份不能用空引用或临时重切划分代替。 |
+| S / U 消费者 | 实现待办 | 比较、计时及完整重训练评价接缝待完成。配置能展开不等于这些消费者已接通。 |
+| 最小链路验证 | 验证待办 | 在隔离最小输入上验证真实消费者和产物身份，明确软件 fixture 与正式数据的证据差别。 |
+| 正式部署与调度 | 后续执行条件 | SSH/GPU、三端同一 main、正式输入、canary 和成本审批适用于后续正式运行；不要求 015 跑完矩阵，也不阻塞本地链路实现。 |
 
 ## 验证与证据
 
-配置检查点 59baa2ae909e7fba92278d9201c635b80be65cdc 上，8 项针对性回归、324 个 parser 计划、2 个真实 CLI dry-run 与 dashboard 校验通过。源 worktree 列入保护范围的 7 个数据/缓存/结果文件前后 SHA-256 相同；其余缺失的保护目录仍缺失。测试只核对软件边界，不构成正式实验、计时或研究证据。后续仅报告/渲染器与 Record 说明变化时复用该检查点的产品验证，并单独校验当前报告与最终 HEAD 差异。
+配置检查点 59baa2ae909e7fba92278d9201c635b80be65cdc 上，8 项针对性回归、324 个 parser 计划、2 个真实 CLI dry-run 与 dashboard 校验通过。源 worktree 列入保护范围的 7 个数据/缓存/结果文件前后 SHA-256 相同；其余缺失的保护目录仍缺失。测试只核对软件边界，不构成正式实验、计时或研究证据。本次更正 WorkItem、配置说明、看板和报告的范围文字；配置 YAML、生成器和消费者未变，复用该检查点的定义验证，单独校验更正内容。定义摘要中旧 blocking_inputs 是正式运行准备项，不作为更正后的 Block 完成条件。
 
-HTML 视觉检查：PASS（已观察范围）。Chrome headless 实际渲染并查看 1440×1100 桌面首屏、600×1800 窄屏和 1440×3300 完整报告；标题、正文、表格和决定区可读，无可见重叠或横向截断。430px 的首个 CLI 截图出现右侧截断，原因未单独验证，不作为 PASS 证据；未声称更窄视口通过。截图只支持配置检查点的报告可读性，不构成研究证据。
+更正后的 HTML 视觉检查：PASS（已观察范围）。已重新渲染并查看 1440×1100 桌面首屏、600×1800 窄屏和 1440×3300 完整页面；范围说明、待办与决定区可读，没有可见重叠或横向截断。验证仅支持当前报告的可读性，不代表链路实现完成。
 
 - [配置说明与生成命令](../../../experiments/configs/aagu015/README.md)
 - [阶段 S 源表](../../../experiments/configs/aagu015/stage_s.yaml)
@@ -73,9 +72,9 @@ HTML 视觉检查：PASS（已观察范围）。Chrome headless 实际渲染并�
 - [可重跑验证器](evidence/verify.py)
 - [完整展开及逐字段来源（本地运行证据）](../../runtime/aagu015/definition-expansion.json)
 - [干净配置检查点的验证回执](../../runtime/aagu015/verification.json)
-- [桌面首屏渲染](../../runtime/aagu015/report-desktop.png)
-- [窄屏渲染](../../runtime/aagu015/report-narrow.png)
-- [完整报告渲染](../../runtime/aagu015/report-full.png)
+- [更正后桌面首屏渲染](../../runtime/aagu015/report-scope-desktop.png)
+- [更正后窄屏渲染](../../runtime/aagu015/report-scope-narrow.png)
+- [更正后完整报告渲染](../../runtime/aagu015/report-scope-full.png)
 - [当前 WorkItem](WORKITEM.md)
 
 ## 生成 YAML 示例

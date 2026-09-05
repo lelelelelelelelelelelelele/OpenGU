@@ -6,13 +6,13 @@
 
 Current node: AAGU-015
 
-Next step: 在同一 AAGU-015 核验 YAML 与无写入矩阵展开，明确配置先行落地、真实输入绑定和正式消费者的门槛；具体检查点与后续动作见该 WorkItem。
+Next step: 在同一 AAGU-015 完成实验方案与执行链路，以必要最小验证确认数据、Selector、固定 Selection、GU、重训练和评价接通；具体待办见该 WorkItem，不调度全量实验。
 
 ---
 
 ## 0. 一句话现状
 
-AAGU-015 的四项前置已接受并进入当前 main；当前推进同一 Block 的 YAML 与定义验证，正式运行及研究验收门槛由其 WorkItem 拥有。
+AAGU-015 当前交付实验方案与链路实现，已有 YAML 和定义验证继续复用；最小验证及后续正式运行边界由其 WorkItem 拥有。
 
 ## 1. WorkItem 状态投影
 
@@ -59,12 +59,12 @@ AAGU-015 的四项前置已接受并进入当前 main；当前推进同一 Block
 
 ## 3. 当前唯一线与注意项
 
-- **Current**：当前主推进线为 `AAGU-015` 的两阶段定义与实验门槛核验；生命周期以生成投影为准。
+- **Current**：当前主推进线为 `AAGU-015` 的实验方案与链路打通；生命周期以生成投影为准。
 - **Attention ordering**：任何 awaiting-acceptance 或 blocked 节点都由生成投影置顶；本段不手工复制具体生命周期状态。
 - **Acceptance boundary**：候选验证通过不等于接受；只有明确接受后才由 `block-closeout` 投影决定并 Apply，不在当前阶段重复实施。
 - **Contract boundary**：`AAGU-001` 的范围与验收以其 WorkItem 为准；核心包括真实参数归属、当前值/来源、变体配置与缓存变更影响，不以纯模板或链接代替。接受公共规范不等于批准全部具体实验，也不要求一次冻结所有参数和矩阵。
 - **Implementation boundary**：`AAGU-015` 消费已接受的 `AAGU-026` 模块接口；配置解析、软件验证与正式研究证据分别核验，不把 026 的接受解释为 015 正式运行许可。
-- **IF boundary**：`AAGU-015` 已确认三小图、17-selector、时间记录和固定 Selection→GNNDelete/GIF 的两阶段范围。登记不授权正式执行；实施先形成可解析 YAML、无写入展开和 canary/成本证据，再按 Block 的 formal 路线进入实验与人工验收。
+- **IF boundary**：`AAGU-015` 设计三小图、17-selector、时间记录与固定 Selection→GNNDelete/GIF 的两阶段链路；本次交付方案、实现和必要最小验证，保持 formal 人类验收。全量实验、正式成本统计及科学结论属于后续获准执行，不是本次完成条件。
 - **Experiment ordering**：所有实际实验运行，包括修复重跑、训练、评估和计时，都须先消费已接受的 `AAGU-001` 实验框图，并完成本轮定义、注册与批准。`AAGU-015` 同样在 001 之后；软件单元/回归验证可先做，但不能借 FIX 名义提前运行研究实验。
 - **Repair split**：`AAGU-009` 只承担 IF-family 代码修复和本地软件回归；`AAGU-027` 在 001、009 接受后承接双端运行准备、正式重跑、收集及证据验收；`AAGU-010` 消费 027 的已接受结果。历史 120-cell 范围不等于当前实验批准。
 
@@ -86,7 +86,7 @@ flowchart LR
   end
 
   subgraph Gates[定义与设备 gate]
-    T0[AAGU-015 EXP selector and GU evidence]
+    T0[AAGU-015 EXP design and pipeline]
     G0[AAGU-001 contract and registration]
     G1[AAGU-002 device readiness]
     R0 --> G0 --> T0
