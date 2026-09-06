@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `working`
+当前状态: `verified / awaiting acceptance`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-用户认可现有执行流程，授权在同一034补接新版AutoReport的开始、完成、失败事件。当前Claim revision 9 ongoing；先固定真实CLI/Core事件测试，再修改普通入口及必要的现有V3接缝。完成受影响验证后重新交付干净HEAD供人类验收；不执行正式SSH/GPU、Apply、push、安装或清理。
+新版AutoReport已接回普通入口；测试先行记录157f30ce，产品检查点5b03cf30上48项相关验证通过，冻结测试文件未变。最新证据与报告见AutoReport补修Verify。当前只等待用户对source branch干净HEAD作人类验收决定；不执行正式SSH/GPU、Apply、push、安装或清理。
 
 ## Status history
 
@@ -160,3 +160,11 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 用户认可现有普通入口、设备配置和Core流程，将AutoReport缺失定位为小缺陷，明确要求接入现有新版系统。同一Claim revision 9 ongoing；先前“全部软件修正可接受”的建议撤回至本项验证完成。
 - 在产品代码仍为51ac0e19时先固定5项真实行为测试：直接执行和缓存重复、执行失败、dry-run、损坏日志、Core真实提交。原有临时图与Core工作区夹具复用，没有替换事件producer、生产预检或子进程。
 - RED：4失败、1通过，28.88秒。真实实验和Core已正常执行，但没有事件；损坏日志未阻止执行。dry-run无事件已通过。日志和JUnit在canonical runtime/aagu-034-autoreport；本次测试文件先提交，再补产品实现。
+
+### AutoReport 补修 Verify · 2026-09-06
+
+- 测试先提交157f30ce，冻结SHA-256见evidence/autoreport-contract.json。随后接回现有record_event/投影器；整份YAML使用显式experiment身份，原单条件producer保持其语义。冻结测试文件逐字节未改，旧Core冻结合同也未修改。
+- 干净软件检查点 `5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7` 上48项PASS，203.15秒：5项新事件验收、26项既有AutoReport、10项普通命令、7项真实Core/设备合同。开发过程另有31项GREEN，未与48累加。两条本地CUDA依赖警告保留，实际执行为CPU。
+- 实际JSONL确认：冷/热分别started/completed，attempt 1/2；错误图started/failed且无summary；dry-run零事件；损坏日志拒绝且原字节保留；Core子进程复用同一producer。完成事件的summary SHA-256逐一核对。观察、逐测试结果、源临时路径及JUnit摘要见evidence/autoreport-observations.json，真实V3投影副本见evidence/autoreport-observed/。
+- 设备与Core提交/收集职责保持已认可流程。新日志在执行根生成；Core清单未加入共享journal，不宣称其已通过远端收集。未实施正式SSH/GPU、正式数据或历史缓存操作。
+- 报告候选相对此软件检查点仅补报告、证据、Record、现有设计图说明和看板投影；按实际diff复用软件结果。新增人类表面单独检查结构、原Human Surface、冻结测试、链接、确定性重建和真实渲染。Agent建议接受当前软件修正，决定仍待用户，不执行Closeout。

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AutoReport</title>
+<style>
+:root { color-scheme: dark; --bg:#0b1020; --panel:#121a2d; --line:#26324b; --text:#e8edf7; --muted:#93a4c3; --accent:#6ee7b7; }
+* { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui,Segoe UI,sans-serif; }
+main { max-width:1500px; margin:auto; padding:32px; } h1 { margin:0 0 8px; font-size:30px; } .lede { color:var(--muted); margin:0 0 22px; }
+.cards { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0; } .card { min-width:130px; padding:12px 14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; }
+.card span { display:block; color:var(--muted); } .card strong { display:block; font-size:22px; color:var(--accent); }
+.meta { color:var(--muted); margin:12px 0 20px; } .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; }
+table { border-collapse:collapse; width:100%; min-width:1180px; background:var(--panel); } th,td { text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { position:sticky; top:0; background:#172138; color:#b7c5df; } tr:last-child td { border-bottom:0; } code { color:#a5b4fc; }
+.pill { white-space:nowrap; color:var(--accent); } .empty { color:var(--muted); text-align:center; } footer { color:var(--muted); margin-top:18px; }
+section { margin:28px 0; } section table { min-width:900px; }
+</style>
+</head>
+<body><main>
+<h1>AutoReport</h1>
+<p class="lede">Rebuildable projection of the append-only V3 event stream. This page is not the audit log.</p>
+<div class="cards"><div class="card"><span>complete</span><strong>1</strong></div></div>
+<p class="meta">Events parsed: 4 · Cells shown: 1 of 1 (bounded to 200) · Parse warnings: 0</p>
+
+<section><h2>Current V3 cells</h2>
+<div class="table-wrap"><table><thead><tr><th>Updated (UTC)</th><th>Cell</th><th>State</th><th>Stages</th><th>Cache</th><th>Attempt</th><th>Run</th><th>Config</th></tr></thead>
+<tbody><tr><td>2026-09-06T14:29:30Z</td><td>contract / cpu_fixture / selector</td><td><span class="pill">complete</span></td><td>run=completed</td><td>-</td><td>2</td><td><code>run_2e39aec1a94e55cb0c207819</code></td><td><code>91ae7c9d0955e593dfe1e49461f203563d2712fcd432d0406ff5c2a2ce24c9df</code></td></tr></tbody></table></div></section>
+
+<footer>Audit authority stays in <code>auto_report.events.jsonl</code>; archived v1/v2 Markdown and the curated baseline are read-only evidence.</footer>
+</main></body></html>

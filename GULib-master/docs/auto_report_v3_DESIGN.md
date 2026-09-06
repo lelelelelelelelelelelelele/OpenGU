@@ -8,12 +8,10 @@ Freeze the former `results/_journal/auto_report.md` byte-for-byte under `results
 
 ```mermaid
 flowchart LR
-    R["experiments/run.py + ordinary YAML"] --> E["run lifecycle"]
+    R["experiments/run.py + ordinary YAML"] -->|run lifecycle| E["AutoReport V3 events"]
     R --> K["existing modular execution → summary + outputs"]
-    A["demo_attack.py"] --> E
-    C["eval_collateral.py"] --> E
-    A --> E["selection + attack facts"]
-    C --> E["collateral facts"]
+    A["demo_attack.py"] -->|selection + attack facts| E
+    C["eval_collateral.py"] -->|collateral facts| E
     E --> J["auto_report.events.jsonl\nappend-only audit"]
     J --> S["summary.py"]
     B["auto_report_baseline.json\ncurated legacy facts"] --> S

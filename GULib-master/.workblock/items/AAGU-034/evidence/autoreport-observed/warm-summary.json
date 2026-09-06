@@ -1,0 +1,277 @@
+{
+  "schema": "opengu.modular_run",
+  "version": 2,
+  "experiment_id": "contract",
+  "case_id": null,
+  "stage": "selector",
+  "effective_selectors": [
+    {
+      "kind": "selector",
+      "schema_version": 1,
+      "method": "degree",
+      "candidate": {
+        "pool": "train_mask"
+      },
+      "budget": {
+        "mode": "k",
+        "value": 1,
+        "k": 1
+      },
+      "parameters": {},
+      "selection_rule": {
+        "direction": "descending",
+        "tie_break": "node_id_ascending"
+      },
+      "numerics": {
+        "dtype": "float32"
+      }
+    }
+  ],
+  "effective_unlearning": [],
+  "effective_evaluations": [],
+  "configuration_sources": {
+    "dataset": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\dataset.yaml",
+    "selectors": [
+      {
+        "kind": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "schema_version": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "method": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "candidate.pool": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "budget.mode": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "budget.value": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+        "selection_rule.direction": "experiments/modular_config.py:declared_defaults",
+        "selection_rule.tie_break": "experiments/modular_config.py:declared_defaults",
+        "numerics.dtype": "experiments/modular_config.py:declared_defaults"
+      }
+    ],
+    "unlearnings": [],
+    "evaluations": []
+  },
+  "experiment_annotations": {},
+  "batches": [
+    {
+      "schema": "opengu.modular_run",
+      "version": 2,
+      "experiment_id": "contract",
+      "case_id": null,
+      "stage": "selector",
+      "effective_selectors": [
+        {
+          "kind": "selector",
+          "schema_version": 1,
+          "method": "degree",
+          "candidate": {
+            "pool": "train_mask"
+          },
+          "budget": {
+            "mode": "k",
+            "value": 1
+          },
+          "parameters": {},
+          "selection_rule": {
+            "direction": "descending",
+            "tie_break": "node_id_ascending"
+          },
+          "numerics": {
+            "dtype": "float32"
+          }
+        }
+      ],
+      "effective_unlearning": [],
+      "effective_evaluations": [],
+      "configuration_sources": {
+        "dataset": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\dataset.yaml",
+        "selectors": [
+          {
+            "kind": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "schema_version": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "method": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "candidate.pool": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "budget.mode": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "budget.value": "instance:C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\degree.yaml",
+            "selection_rule.direction": "experiments/modular_config.py:declared_defaults",
+            "selection_rule.tie_break": "experiments/modular_config.py:declared_defaults",
+            "numerics.dtype": "experiments/modular_config.py:declared_defaults"
+          }
+        ],
+        "unlearnings": [],
+        "evaluations": []
+      },
+      "experiment_annotations": {},
+      "matrix_values": {
+        "training_seed": null,
+        "budget_ratio": null
+      }
+    }
+  ],
+  "logical_cells": 1,
+  "configuration_fingerprint": "91ae7c9d0955e593dfe1e49461f203563d2712fcd432d0406ff5c2a2ce24c9df",
+  "execution_receipt": {
+    "run_id": "warm",
+    "level": "verification",
+    "request_device": "cpu",
+    "executor": "experiment-run",
+    "source_git_sha": "28dce0950bf87bb65def1831a851f32ce3a0f4f4",
+    "store_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\results\\cache_v2",
+    "checkpoint_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\results\\runtime\\modular\\checkpoints",
+    "runtime_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\results\\runtime\\modular\\warm",
+    "output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\results\\runs\\modular\\contract\\warm\\summary.json",
+    "observed_environment": {
+      "python_executable": "E:\\conda_package\\envs\\gnn\\python.exe",
+      "working_directory": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0",
+      "torch": "2.2.1+cu121",
+      "torch_geometric": "2.6.1",
+      "cuda_version": "12.1",
+      "cuda_device_name": null
+    }
+  },
+  "data_identity": {
+    "num_nodes": 20,
+    "edge_index_hash": "6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2",
+    "features_hash": "8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85",
+    "labels_hash": "54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27",
+    "split_hash": "a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f"
+  },
+  "dataset": {
+    "kind": "dataset_split",
+    "schema_version": 1,
+    "dataset": {
+      "name": "cpu_fixture"
+    },
+    "preprocessing": {
+      "adapter": "OpenGU_persisted_processed_pair"
+    },
+    "split": {
+      "profile": "fixture",
+      "train_ratio": 0.5,
+      "val_ratio": 0.25,
+      "test_ratio": 0.25,
+      "seed": 7
+    },
+    "artifacts": {
+      "manifest": "dataset.json",
+      "manifest_sha256": "d7c90fc52975f9f3d67ec43c4eba2f25e1776e86b7bc63f6549a93e17c05a986",
+      "split_hash": "a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f",
+      "node_id_space": "pyg-global-node-index-v1"
+    }
+  },
+  "selectors": [
+    {
+      "score": {
+        "artifact_id": "score_4632f354_d109f9d1",
+        "recipe_hash": "4632f3549de7ea2df1082344f26230543ab8fbbb8c1a320147d8e61183163dad",
+        "content_hash": "d109f9d1799511af0d566fb480a1232f034b9588302b22c95c21baa39226190a",
+        "hit": true,
+        "producer_called": false,
+        "access_seconds": 0.008261300000000027,
+        "cold_total_seconds": null,
+        "warm_read_seconds": 0.008261300000000027,
+        "effective_parameters": {},
+        "recipe": {
+          "recipe_version": 1,
+          "fields": {
+            "artifact_kind": "score_bundle",
+            "score_family": "target_direct_method_score",
+            "score_names": [
+              "degree"
+            ],
+            "algorithm_version": "target-direct-method-score-v1",
+            "producer": {
+              "semantic_version": "target-direct-method-score-v1",
+              "source_fingerprint": "440f899d5e71167341a1ef675969b2ed0387215d23ff541d07b8e8068570604e"
+            },
+            "data_identity": {
+              "num_nodes": 20,
+              "edge_index_hash": "6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2",
+              "features_hash": "8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85",
+              "labels_hash": "54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27",
+              "split_hash": "a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f"
+            },
+            "candidate_set": {
+              "ordered_ids_hash": "8b29bbcb7189bcad90cd0591e6560397154a84c7cb576f67498e2dec54d53c7c",
+              "node_id_space": "pyg-global-node-index-v1",
+              "ranking_reusable_across_budgets": true
+            },
+            "parameters": {},
+            "method_binding": {},
+            "aggregation": {
+              "ranking": "score_desc_node_id_asc"
+            },
+            "budget_semantics": "prefix_stable_budget_independent"
+          }
+        }
+      },
+      "selection": {
+        "schema": "opengu.maxk_selection_plan",
+        "version": 1,
+        "strategy": "degree",
+        "requested_budgets_descending": [
+          1
+        ],
+        "request_max_k": 1,
+        "artifact_k": 1,
+        "cache": {
+          "root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\pytest-of-ADMIN\\pytest-242\\test_real_success_and_cached_r0\\results\\cache_v2",
+          "hit": true,
+          "outcome": "hit",
+          "producer_called": false,
+          "lookup_policy": "cache_v2_exact_recipe"
+        },
+        "artifact": {
+          "artifact_id": "sel_4e08171a_92bcb095",
+          "recipe_hash": "4e08171a97efeff14e808296b5a830bed5907abd92612cb8c36201aada19fde9",
+          "content_hash": "92bcb0957727923f0226810b0ba5e96238664ee4b04b857fa71e2be319f0427d",
+          "semantic_path": "artifacts/selection/sel_4e08171a_92bcb095/payload.json",
+          "source_score_artifact_id": "score_4632f354_d109f9d1"
+        },
+        "views": {
+          "1": {
+            "requested_k": 1,
+            "request_max_k": 1,
+            "artifact_k": 1,
+            "cache_outcome": "cache_hit",
+            "prefix_reuse": false,
+            "reuse_kind": "none",
+            "selected_nodes": [
+              1
+            ]
+          }
+        }
+      },
+      "selection_seconds": 0.018638699999999897,
+      "scores": [
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "ranking": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        0
+      ],
+      "checkpoint": null,
+      "matrix_values": {
+        "training_seed": null,
+        "budget_ratio": null
+      },
+      "selector_ref": "degree.yaml"
+    }
+  ],
+  "unlearning": [],
+  "evaluations": [],
+  "selector_producer_called": false
+}

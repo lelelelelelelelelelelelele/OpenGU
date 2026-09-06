@@ -6,17 +6,37 @@
 
 **核心问题：** 已有解析器和执行内核没有被直接接到 Core，专用 stage 又写死设备、检查队列。上一版还用替换生产预检的测试宣称接缝通过。
 
-**本次修正：** 删除该 stage；Core 直接提交普通 YAML 命令。设备读取同一 `device.yaml`，回传由 Core 收集和核验；已有 007、032 模板继续使用。
+**本次修正：** 删除该 stage；Core 直接提交普通 YAML 命令，设备来自 `device.yaml`。本次再补回迁移遗漏的 AutoReport V3 开始、完成、失败事件；已有执行内核和 007、032 模板继续使用。
 
 ### 核心观察
 
-真实 Core 队列已执行 Selector、Unlearning、Metrics，分别回传 1、33、1 个文件；与直接命令的配置和数据身份一致，热运行复用缓存，损坏或缺失文件被拒绝。先写的 33 条行为断言未改；夹具更正和分批验证见[本轮证据](evidence/core-rework-observations.json)。正式 SSH/GPU 尚未运行。
+本轮 **48 项通过**：真实命令的成功、失败和缓存重复均有正确事件；dry-run不写事件，损坏日志在执行前拒绝。5项新增测试先RED、后实现，文件未改；原Core三阶段与收集回归也通过。[真实事件与回执](evidence/autoreport-observations.json) · [实际生成的AutoReport](evidence/autoreport-observed/auto_report.html)。正式SSH/GPU尚未运行。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-Agent **建议接受这版软件修正**，依据是现有入口、设备配置和真实 Core 链路已经接通。接受对象为本 source branch 的当前干净 HEAD，决定权归用户；正式运行和科研结论另行验收。
+Agent **建议接受这版软件修正**：现有入口、设备配置、Core链路及AutoReport运行事件已有验证。接受对象为本source branch当前干净HEAD，决定权归用户；正式运行和科研结论另行验收。
+
+## AutoReport 补修：运行事件恢复
+
+用户认可Core与普通入口的流程后，补查确认 `run.py` 迁移时遗漏了现有AutoReport V3调用。Core的任务状态不能自动替代实验审计事件。本次在普通入口接回原V3 writer和投影器，没有新增报告系统或执行调度器。
+
+现在一份YAML通过配置与设备检查后写入 `run.started`，已有内核执行完成后写入 `run.completed`；执行异常写入 `run.failed` 并保留原错误。完成事件关联summary路径及SHA-256，每次运行绑定配置指纹、Git版本和执行run-id。事件位于设备选定执行根的 `results/_journal`，现有Markdown/HTML由JSONL自动重建。
+
+实际观察如下，均来自临时CPU图上的真实命令和Core子进程：
+
+| 场景 | 观察与判断 |
+|---|---|
+| 冷运行后以新run-id热运行 | 4条事件，分别为started/completed；同一实验、不同运行身份，attempt为1/2；热运行Selection HIT。PASS |
+| 图字节与manifest摘要不符 | started/failed，保存 `persisted graph digest mismatch`，没有completed或结果summary。PASS |
+| dry-run | 正确展开1条件，没有results目录或事件。PASS |
+| 既有日志损坏 | 原日志字节保留；在缓存和结果生产前拒绝。PASS |
+| Core正常提交与执行 | 同一入口生成started/completed，绑定registered运行身份及临时Git版本；无替代预检或事件函数。PASS |
+
+这里记录整份YAML的运行状态，以显式experiment身份接入V3；逐条件指标和缓存事实仍由已有summary持有，不将整张矩阵伪装成一个model/method/ratio条件。Core精确产物收集清单未增加共享journal；本次证明runner生成事件，未声称远端journal已经回传。
+
+**本次是测试先行补修：** `157f30ce` 固定5项验收测试，产品仍为 `51ac0e19` 时得到4失败/1通过；此后测试文件字节完全未改。产品补修后31项开发回归通过，干净检查点 `5b03cf30` 上48项相关验证全部通过，203.15秒。[冻结记录](evidence/autoreport-contract.json)与[逐测试结果、原始事件及摘要核对](evidence/autoreport-observations.json)可复核。此前整个034不能追认为严格TDD；原Core轮次的夹具更正仍保留在下文。
 
 ## 为什么注册 034：原始问题与修正对照
 
@@ -158,7 +178,7 @@ matrix: cartesian_product
 |---|---|
 | `experiments/run.py` | 普通配置dry-run、隔离CPU命令、已注册项目命令的同一入口 |
 | `modular_config` / `modular_run` | 公共小表、两轴展开、真实Selection绑定、统一执行 |
-| `syncmate_stage` / `OpenGUProjectExtension` | 正式位置/设备/数据/队列/输出契约政策；无第二套实验解析器 |
+| `device_context` / `OpenGUProjectExtension` / Core | 读取设备配置、绑定普通注册与输出身份、提交和收集；专用stage已删除 |
 | `target_direct_v1/{methods,scoring,recipe,method_cache}` | 17种共享评分算法及方法级Score/Selection消费者；名称留在计算身份中 |
 | `c_target_v1/{core,score_store}` | 已有张量计算、稳定排序和Score存储 |
 | `modular_model` / `modular_gu` / `unlearning_outputs` | 训练、GU/Retrain独立输出和真实消费；未新增平行GU实现 |
@@ -171,7 +191,7 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 ## Verify、复跑与证据定位
 
-当前软件检查点：`c40ee9dae7e63c3e921e221554fbc41fccabd27e`。本轮按受影响范围分批验证，最终覆盖 **257 项有效通过结果**，不是把失败运行整体标为通过：
+最新AutoReport补修检查点为 `5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7`，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 `c40ee9dae7e63c3e921e221554fbc41fccabd27e` 及其 **257 项有效通过结果**，保留各自检查点，不冒充本次重跑：
 
 | 证据范围 | 有效结果及检查点 |
 |---|---|

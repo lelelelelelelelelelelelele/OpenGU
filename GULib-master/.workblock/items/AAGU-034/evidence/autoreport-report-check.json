@@ -1,0 +1,162 @@
+{
+  "source_checkpoint": "5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7",
+  "human_surface_matches_registration": true,
+  "frozen_tests_unchanged": true,
+  "links": [
+    {
+      "target": "evidence/autoreport-observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/autoreport-observed/auto_report.html",
+      "exists": true
+    },
+    {
+      "target": "evidence/autoreport-contract.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/autoreport-observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "target": "evidence/registration-problem-source.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/core-contract-freeze.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/configuration-migration.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/retired-configs.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "target": "../../../experiments/configs/aagu007/experiment.yaml",
+      "exists": true
+    },
+    {
+      "target": "../../../experiments/configs/aagu032/experiment.yaml",
+      "exists": true
+    },
+    {
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "target": "../../../experiments/configs/experiment.template.yaml",
+      "exists": true
+    },
+    {
+      "target": "../../../docs/experiment_contract/README.md",
+      "exists": true
+    },
+    {
+      "target": "../../../docs/experiment_contract/PARAMETERS.md",
+      "exists": true
+    },
+    {
+      "target": "../../../docs/modular_experiments.md",
+      "exists": true
+    },
+    {
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/retired-tests.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/pytest.log",
+      "exists": true
+    },
+    {
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    },
+    {
+      "target": "evidence/report-desktop.png",
+      "exists": true
+    },
+    {
+      "target": "evidence/report-narrow.png",
+      "exists": true
+    },
+    {
+      "target": "evidence/render-qa.json",
+      "exists": true
+    }
+  ],
+  "actual_v3_projection": "viewed 1440x900; complete, attempt 2, 4 events, no overflow",
+  "report_projection": "desktop and narrow viewed; pending decision visible; no overflow or broken images",
+  "software_reuse": "Changes since source checkpoint contain only report/evidence/Record and a documentation diagram correction; all executable product files and tests unchanged."
+}
