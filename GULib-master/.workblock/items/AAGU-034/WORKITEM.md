@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `working / claimed`
+当前状态: `verified / awaiting acceptance`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-使用 block-workflow 重读本 locator、当前 canonical Graph/WORKPLAN、仓库指令及 live Claim，Claim 同一 Block 后再实施。先确认旧入口的活跃消费者和 032 候选中可复用的有限实现，在同一候选中完成公共配置迁移、统一命令/注册接缝及旧路径删除，再用真实命令和临时 CPU 数据验证，提交独立人工验收。
+当前已完成软件 Verify 与 formal 配对报告，停在人类验收。恢复时读取本 source WorkItem、source branch 的干净 HEAD、报告与 canonical 同一 Claim；当前决定是待决定。用户明确接受后再交给 block-closeout；若返工，在本项继续，不新建 Block，不把软件通过当作正式实验批准。
 
 ## Status history
 
@@ -84,4 +84,25 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 已核对最新 WorkItem、WORKPLAN、Graph factVersion 20、001/015/026/028 已接受记录和 live Claim。007 草案12个关联文件按用户授权单独提交为 `2b9bcafbfc789d0c60362b4246eee2a34440213b`；旧格式 dry-run 展开4个独立方法输出，未启动正式实验。
 - Owner: codex；session: AAGU-034 · 实验配置与统一执行入口修正；linked source: `E:/project/OpenGU/.worktrees/aagu-034/GULib-master/GULib-master`；authority: `E:/project/OpenGU/GULib-master`。
 - canonical Claim: `30005e0e-80bc-40da-955b-85602b1c501d`，revision 1，ongoing。仅拥有本 Block 的配置/入口/文档/测试与验收表面；保留正式 Cache V2、数据与历史 evidence。
-- 实施与验证进度：[计划](../../../.planning/aagu-034/task_plan.md)。
+- 实施过程记录在本机 ignored `.planning/aagu-034/`；持久验证与报告见下方。
+
+
+## Verify · 2026-09-06
+
+- 干净软件检查点：`380105002579c99ad003418648a85e67da413a0a`。完整相关 Verify 执行后工作树仍干净，349项测试通过（224.90秒，2条依赖警告），配置审计、dashboard projection check、SyncMate smoke均exit 0。全测试collect-only为750项，未宣称全部750项执行。
+- 普通命令真实执行 **PASS**：20节点/10训练候选，Degree、Random、a_grad_norm，两训练seed122/722，两预算0.1/0.2，独立GNNDelete/Retrain共产生24输出；实际训练使用覆盖seed，选点数1/2，源YAML字节不变。直接CLI Stage S后绑定真实summary执行Retrain，无重采样。
+- 缓存边界 **PASS**：warm禁用训练/评分仍全部HIT且输出身份一致；Score分组1/1/2、Selection分组2/2/4。有效实现与方法参数变化只影响相关producer，文件路径不进入计算键。TracIn选择函数变更会更新依赖它的producer指纹，不能承诺旧Score及下游身份继续HIT；未改写历史缓存。
+- 17方法与checkpoint语义 **PASS**：同图与原评分公式比较的最大绝对误差均0；真实100-epoch轨迹的公共point 3/6评分分别绑定[1,50,100]与[1,10,25,50,75,100]；六种TracIn配置使用同一检查，错误100步输入拒绝。
+- 独立Retrain/Metrics **PASS**：真实删除集合、保留监督与去除关联边可从输出验证；12行配对指标由保存输出读取，额外消费者回归在禁用训练和模型forward时仍完成。
+- 注册/收集接缝 **PASS（隔离本地/CPU）**：1项007普通注册为4输出/17文件；同形CPU两预算测试经过真实命令、队列/receipt、33文件收集与核验、8结果读取；重复fetched=0，9类故障拒绝。只替换OS/GPU策略，未实际SSH/GPU运行；生产预检在本机拒绝错误根/GPU且不读正式数据。
+- 配置迁移与当前引用 **PASS**：活动YAML 522→46，公共小表28、普通组合表18；015为12张维护文件/306 S/612 U/306独立Retrain，032为42条件。424张生成表删除，35历史配置Git原文保留，旧专用运行/注册/无消费者adapter退役。120文档链接核查通过，13个外部DocMap目标在canonical布局下解析。
+- 初轮回归暴露旧flat入口、旧注册常量以及已不存在的Cache V1私有hash API测试。已按实际职责更新或退役，保留有效不变量，并由真实普通命令/Cache V2消费者测试覆盖；没有恢复兼容入口。替换清单及原因见evidence/retired-tests.json。
+- **NOT OBSERVED**：正式SSH/GPU、真实数据上的成本/显存与旧缓存命中、015全矩阵、007科研gate、032科学方案接受。CiteSeer/PubMed和后续Selection/Output仍需真实资产绑定；本项未准备正式数据或启动作业。
+- formal人类表面：[REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)，唯一Human Result和当前待决定投影已检查。headless Edge桌面1440×1000、窄屏390×844及正文/边界真实渲染已查看，首屏决定清晰，无溢出/断图。Agent建议接受软件修正，决定权仍归用户。
+- 证据：[观察与349项结果](evidence/observations.json)、[精确命令与退出码](evidence/verify-checkpoint.json)、[配置审计](evidence/configuration-audit.json)、[HTML测量](evidence/render-qa.json)。原始日志/JUnit位于canonical ignored `.workblock/runtime/aagu-034-verify/`，临时数据根记录在回执；正式数据、Cache V2与历史结果不在本项修改范围。
+
+### 报告候选的 Verify 复用
+
+最终待决定对象是本 source branch 的干净 HEAD，报告与Record提交使其前进。相对上述实测检查点，仅加入本item的报告/运行证据/Verify记录和WORKPLAN、progress.html的生命周期生成投影；实验代码、公共YAML、方法、执行注册与测试合同均无差异。该diff不改变349项测试所回答的问题，复用其精确检查点结果。新增变化独立检查：Human Surface/Human Result结构、报告确定性重建、报告链接与渲染、dashboard重建及check、Git diff --check和最终干净HEAD；最终逐命令结果保存在canonical runtime final-verify.json。
+
+当前保持待决定，不写accepted，不Merge/Apply/push/install，不释放Claim或清理worktree。人明确决定前，不继续正式实验。
