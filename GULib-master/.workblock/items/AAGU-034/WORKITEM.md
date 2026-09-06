@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `working / claimed`
+当前状态: `verified / awaiting acceptance`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-用户要求继续清除旧 SyncMate Python 痕迹并核对已有 007、032 两份配置的解析路径；同一 Claim 已从 awaiting_acceptance 返回 ongoing（revision 3），本项返工中。补充验证后更新配对报告，再停在人类验收；当前未接受，不进入 Closeout 或正式实验。
+同一 Block 的旧 SyncMate 清理返工已完成并补验；已有 007、032 两份配置的真实 CLI 解析通过，配对报告已更新。恢复时读取本 source WorkItem、干净 HEAD、最新 Rework Verify、报告和 canonical 同一 Claim；当前仍待用户决定，不进入 Closeout 或正式实验。
 
 ## Status history
 
@@ -101,7 +101,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - formal人类表面：[REPORT.md](REPORT.md) / [REPORT.html](REPORT.html)，唯一Human Result和当前待决定投影已检查。headless Edge桌面1440×1000、窄屏390×844及正文/边界真实渲染已查看，首屏决定清晰，无溢出/断图。Agent建议接受软件修正，决定权仍归用户。
 - 证据：[观察与349项结果](evidence/observations.json)、[精确命令与退出码](evidence/verify-checkpoint.json)、[配置审计](evidence/configuration-audit.json)、[HTML测量](evidence/render-qa.json)。原始日志/JUnit位于canonical ignored `.workblock/runtime/aagu-034-verify/`，临时数据根记录在回执；正式数据、Cache V2与历史结果不在本项修改范围。
 
-### 报告候选的 Verify 复用
+### 首轮报告候选的 Verify 复用（历史）
 
 最终待决定对象是本 source branch 的干净 HEAD，报告与Record提交使其前进。相对上述实测检查点，仅加入本item的报告/运行证据/Verify记录和WORKPLAN、progress.html的生命周期生成投影；实验代码、公共YAML、方法、执行注册与测试合同均无差异。该diff不改变349项测试所回答的问题，复用其精确检查点结果。新增变化独立检查：Human Surface/Human Result结构、报告确定性重建、报告链接与渲染、dashboard重建及check、Git diff --check和最终干净HEAD；最终逐命令结果保存在canonical runtime final-verify.json。
 
@@ -112,3 +112,18 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 用户追问并授权清除旧 SyncMate Python 错误痕迹；再次检查发现 M1 helper 与 OpenGUAdapter 仍作为早期验证支路存在。删除该 helper、无当前消费者的 Adapter 及七项只验证旧入口的测试，修正文档中的保留说明；历史已接受记录和证据不改写。
 - 当前 syncmate.py → 独立 Core → OpenGUProjectExtension 保留。007 与 032 两份既有普通 YAML 内容不变；补充从不同 cwd 调用真实 run.py 的两项回归，核对公共引用解析、4/42 条件、2/6 批次、无 producer 和所有源 YAML 字节不变。
 - 最邻近的完整 adapter 文件回归10项通过，尚待干净候选上的受影响 SyncMate 全部回归及报告更新。
+
+### Rework Verify · 2026-09-06
+
+- 干净检查点 `81a220e927a5f2600a3c3104d5551af5b7d5d124`，当前 SyncMate 四文件205项通过；745项全测试collect-only成功，配置审计、smoke与dashboard check均exit 0，验证后工作树干净。
+- 007/032 **PASS**：从不同cwd分别执行真实CLI，公共相对路径解析正确，2/6批次、4/42条件，无producer，活动YAML原文字节未改；没有新增或改动两项的科学范围。
+- 旧 SyncMate 清理 **PASS**：M1 helper、旧OpenGUAdapter/ADAPTER和过时标记不在活动Python中；现代syncmate.py与OpenGUProjectExtension继续通过真实Core、队列、预检、收集校验和结果消费者验证。历史材料保持其原证据含义。
+- 复用边界：实际diff仅触及旧M1支路、adapter中无消费者部分、两项CLI测试以及说明/记录。原实验解析、执行内核、方法、数据与缓存代码未改，原检查点139项不受影响结果复用；七项旧M1测试明确退役。最新证据：[回执](evidence/rework-checkpoint.json)、[205项结果与复用名单](evidence/rework-observations.json)。
+- 报告提交相对此干净检查点仅更新本item证据/报告/记录与生命周期生成投影，不改变产品或测试合同。新增表面完成结构、确定性重建、链接、真实渲染、dashboard与Git差异检查；最终候选与逐项结果保存在canonical runtime本轮final-verify.json。
+- 当前决定保持待决定；验证不等于接受，canonical main尚未合并，所以其旧文件会保留到获准Closeout。未执行Apply、push、install、SSH/GPU、数据准备或历史缓存清理。
+
+### 本轮补充检查的偏差记录
+
+补充检查中的一次仓库全域 `pytest --collect-only` 误导入 `tests/` 外有顶层执行副作用的旧 IM 基准脚本，触发了本地数据下载/处理和 CPU 计算；该进程已停止。随后明确限定 `pytest tests --collect-only`，745项收集通过。逐文件核对创建时间、路径、Git忽略状态和SHA-256后，移除了本次误操作新增的57个文件（40数据、11日志、6编译缓存），并验证均不存在；没有删除既有文件或历史证据。这次误操作及其产物不计入任何正式实验通过结论。详见[新增文件与清理核验](evidence/collection-side-effects.json)及命令回执的interrupted_checks。
+
+正式执行与历史证据边界未因此获得批准；当前候选的205项隔离测试和745项限定目录收集结果独立有效。

@@ -1,0 +1,115 @@
+{
+  "candidate": "81a220e927a5f2600a3c3104d5551af5b7d5d124",
+  "source_project": "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master",
+  "fixture_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242",
+  "commands": [
+    {
+      "name": "pytest",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests/test_syncmate.py",
+        "tests/test_syncmate_full_adapter.py",
+        "tests/test_syncmate_core_dependency.py",
+        "tests/test_syncmate_gu_outputs.py",
+        "-q",
+        "--disable-warnings",
+        "-o",
+        "junit_family=legacy",
+        "--basetemp",
+        "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242",
+        "--junitxml",
+        "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\verify-tests.xml"
+      ],
+      "exit_code": 0,
+      "seconds": 124.696,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\pytest.log"
+    },
+    {
+      "name": "configuration-audit",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        ".workblock/items/AAGU-034/evidence/audit_configuration.py"
+      ],
+      "exit_code": 0,
+      "seconds": 4.943,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\configuration-audit.log"
+    },
+    {
+      "name": "collect-only",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests",
+        "--collect-only",
+        "-q",
+        "--disable-warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 10.762,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\collect-only.log"
+    },
+    {
+      "name": "syncmate-smoke",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/syncmate/syncmate.py",
+        "smoke",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.545,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\syncmate-smoke.log"
+    },
+    {
+      "name": "dashboard",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/dashboard/refresh.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.288,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\dashboard.log"
+    }
+  ],
+  "interrupted_checks": [
+    {
+      "name": "collect-only",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "--collect-only",
+        "-q",
+        "--disable-warnings"
+      ],
+      "exit_code": 4294967295,
+      "seconds": 125.716,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\collect-only.log",
+      "reason": "Stopped unscoped repository discovery after it included standalone benchmark scripts outside tests; use the maintained tests directory."
+    }
+  ],
+  "clean_after": true,
+  "passed": true
+}

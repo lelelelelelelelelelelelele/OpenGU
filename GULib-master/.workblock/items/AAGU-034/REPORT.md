@@ -4,11 +4,11 @@
 
 ### 实际增量
 
-普通 YAML 现在通过同一入口完成检查和真实执行，项目注册也复用该内核。公共小表统一持有参数；015 的逐条件配置生成器及旧专用执行路径已退役，原科学范围保留。
+普通 YAML 现在通过同一入口完成检查和真实执行，项目注册也复用该内核。公共小表统一持有参数；015 的逐条件配置生成器、旧专用执行路径及 M1 SyncMate 支路已退役。已有 007、032 两份配置适配同一规范，科学范围保留。
 
 ### 核心观察
 
-临时 CPU 图上，两训练 seed、两预算产生 24 个独立方法输出；再次运行禁用训练和评分后全部 HIT，输出身份一致。真实 100-epoch 轨迹分别选出约定的 3/6 个 checkpoint。349 项相关测试通过，活动 YAML 从 522 张减至 46 张。主要证据：[真实观察](evidence/observations.json)、[迁移审计](evidence/configuration-audit.json)。正式 SSH/GPU 实验尚未执行。
+临时 CPU 图上，两训练 seed、两预算产生 24 个独立方法输出；再次运行禁用训练和评分后全部 HIT，输出身份一致。真实 100-epoch 轨迹分别选出约定的 3/6 个 checkpoint。本轮 205 项受影响回归通过，007/032 命令分别展开 4/42 条件；139 项未受影响结果复用。活动 YAML 从 522 张减至 46 张。证据：[本轮复验](evidence/rework-observations.json)、[原始实测](evidence/observations.json)。正式 SSH/GPU 实验尚未执行；一次误收集生成的本地文件已清除，见下方检查偏差记录。
 
 ### 当前决定
 
@@ -41,7 +41,16 @@ Agent **建议接受本次软件修正**：统一入口、有效配置、缓存�
 
 一张组合表绑定一个 Dataset/Split，引用独立 Selector、Unlearning、Evaluation。仅开放训练 `seeds` 和 `budget_ratios` 两种大表覆盖：大表显式值优先于小表，小表优先于方法默认；只在内存展开，来源随结果保存。训练seed配对模型型Selector与GU/Retrain，不改split、Random抽样或Hutch探针seed；不支持任意override或给显式checkpoint换标签。
 
-下面就是仓库中的[通用模板](../../../experiments/configs/experiment.template.yaml)，放在 `experiments/configs/` 时可直接 dry-run，展开8个条件。真实执行仍需绑定并验证输入资产。
+本次通用模板适配的具体对象就是已经存在的 **007 与 032 两份配置**，没有另建一份实验方案。两份 YAML 在本轮清理中保持原文：
+
+| 现有配置 | 实际命令检查 | 展开结果 |
+|---|---|---|
+| [007](../../../experiments/configs/aagu007/experiment.yaml) | `run.py …/aagu007/experiment.yaml --dry_run` | 2批次、4独立方法输出条件 |
+| [032](../../../experiments/configs/aagu032/experiment.yaml) | `run.py …/aagu032/experiment.yaml --dry_run` | 6批次、42条件 |
+
+测试从不同临时工作目录启动真实命令，证明相对引用从各自 YAML 的所在位置解析。两者均进入 `run.py → modular_run.execute → modular_config`，没有调用 producer，所有活动源 YAML 字节保持不变；实际参数与结果见[本轮命令证据](evidence/rework-observations.json)。032 的科学配置接受仍由其自身 Block 决定。
+
+以下[通用模板](../../../experiments/configs/experiment.template.yaml)只用于说明同一结构，放在 `experiments/configs/` 时可直接 dry-run，展开8个条件。真实执行仍需绑定并验证输入资产。
 
 ```yaml
 kind: experiment
@@ -95,7 +104,7 @@ matrix: cartesian_product
 
 ### 旧路径与当前说明是否收敛 — PASS
 
-`run.py` 不再有旧flat解析与专用target-direct调度分支，`--recipe`只补充项目上下文后调用同一内核。旧atomic stage、target-direct stage/selection/config/output脚本和无活跃消费者的manifest assembler/adapter删除；过时注册、424份生成YAML及活动引用同步退役。001合同、配置说明、受影响WorkItem owner链接和看板投影已更新。完整测试集750项可正常收集，349项相关回归实际执行通过。
+`run.py` 不再有旧flat解析与专用target-direct调度分支，`--recipe`只补充项目上下文后调用同一内核。旧atomic stage、target-direct stage/selection/config/output脚本和无活跃消费者的manifest assembler/adapter删除；过时注册、424份生成YAML及活动引用同步退役。001合同、配置说明、受影响WorkItem owner链接和看板投影已更新。本轮再删除 `scripts/syncmate/syncmate_m1.py`、无当前消费者的 `OpenGUAdapter/ADAPTER` 以及七项仅验证旧 M1 支路的测试；旧“尚未批准替换”标记和活动引用清零。当前 `scripts/syncmate/syncmate.py` 仍是独立 Core 的有效项目入口，保留 `OpenGUProjectExtension`。最新745项测试可正常收集，205项受影响回归实际执行通过。
 
 旧入口与Cache V1私有API测试中失效的断言按[替换清单](evidence/retired-tests.json)退役；有效参数、数据split、AutoReport与缓存消费者检查保留。迁移中暴露的旧注册断言已更新到新注册，未通过恢复兼容层来让旧测试通过。文档检查120链接通过，其中13个DocMap链接以canonical项目位置解析；历史记录及归档材料不冒充现行运行说明。
 
@@ -105,7 +114,7 @@ matrix: cartesian_product
 |---|---|
 | `experiments/run.py` | 普通配置dry-run、隔离CPU命令、已注册项目命令的同一入口 |
 | `modular_config` / `modular_run` | 公共小表、两轴展开、真实Selection绑定、统一执行 |
-| `syncmate_stage` / OpenGU adapter | 正式位置/设备/数据/队列/输出契约政策；无第二套实验解析器 |
+| `syncmate_stage` / `OpenGUProjectExtension` | 正式位置/设备/数据/队列/输出契约政策；无第二套实验解析器 |
 | `target_direct_v1/{methods,scoring,recipe,method_cache}` | 17种共享评分算法及方法级Score/Selection消费者；名称留在计算身份中 |
 | `c_target_v1/{core,score_store}` | 已有张量计算、稳定排序和Score存储 |
 | `modular_model` / `modular_gu` / `unlearning_outputs` | 训练、GU/Retrain独立输出和真实消费；未新增平行GU实现 |
@@ -118,7 +127,11 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 ## Verify、复跑与证据定位
 
-2026-09-06，在干净软件检查点 `380105002579c99ad003418648a85e67da413a0a` 执行：
+本轮清理的干净检查点：`81a220e927a5f2600a3c3104d5551af5b7d5d124`。四个当前 SyncMate 测试文件 **205 passed，0 failed**；其中两项新增测试直接调用 007/032 命令。配置审计、当前 CLI smoke、dashboard check 及745项全测试收集均通过，验证后工作树干净。七项旧 M1 专属测试随旧入口退役；原检查点中139项未受影响测试按实际 diff 复用，名单与理由在[复验观察](evidence/rework-observations.json)。
+
+最新[命令回执](evidence/rework-checkpoint.json)和[测试日志](evidence/rework-pytest.txt)保留可复跑参数；原始 JUnit 位于 canonical `.workblock/runtime/aagu-034-rework-20260906/`。这些当前结果取代下方历史验证中涉及旧 M1 入口的部分，其余真实训练与缓存证据仍可追溯。
+
+首轮历史验证：2026-09-06，在干净软件检查点 `380105002579c99ad003418648a85e67da413a0a` 执行：
 
 | 检查 | 结果 |
 |---|---|
@@ -131,7 +144,8 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 完整参数和退出码：[命令回执](evidence/verify-checkpoint.json)；逐测试结果、实测seed/轨迹、输出引用及原始JUnit SHA-256：[观察记录](evidence/observations.json)；[测试日志](evidence/pytest.log)。原始fixture独立保留在回执的临时路径，原始JUnit位于canonical `.workblock/runtime/aagu-034-verify/`。所有测试数据与Store均为隔离临时资产。
 
 ```powershell
-& E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/experiment.template.yaml --dry_run
+& E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu007/experiment.yaml --dry_run
+& E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu032/experiment.yaml --dry_run
 & E:/conda_package/envs/gnn/python.exe -B -X utf8 -m experiments.aagu015.definitions check
 & E:/conda_package/envs/gnn/python.exe -B -m pytest tests/test_unified_execution.py tests/test_syncmate_gu_outputs.py -q
 ```
@@ -142,8 +156,10 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 ## 尚未观察与人类边界
 
-**NOT OBSERVED：** SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015后续阶段的Selection/Output摘要引用待正式阶段完成后填写。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮未准备正式数据。
+**检查偏差与修复：** 补充检查中的一次仓库全域 `pytest --collect-only` 误导入 `tests/` 外有顶层执行副作用的旧 IM 基准脚本，触发了本地数据下载/处理和 CPU 计算；该进程已停止。随后明确限定 `pytest tests --collect-only`，745项收集通过。逐文件核对创建时间、路径、Git忽略状态和SHA-256后，移除了本次误操作新增的57个文件（40数据、11日志、6编译缓存），并验证均不存在；没有删除既有文件或历史证据。这次误操作及其产物不计入任何正式实验通过结论。详见[新增文件与清理核验](evidence/collection-side-effects.json)及命令回执的interrupted_checks。
 
-本轮没有启动SSH/GPU、push、Apply、安装、历史缓存修复或清理。软件支持范围仍是已有节点删除、GCN/SGC和GNNDelete/GIF/Retrain消费者，不能推导任意模型或遗忘方法已适配。当前目标是确认统一配置和执行修正是否完成，后续正式任务必须消费人类接受后的版本。
+**NOT OBSERVED：** SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015后续阶段的Selection/Output摘要引用待正式阶段完成后填写。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。
 
-HTML呈现检查：**PASS**。已实际查看headless Edge的1440×1000桌面、390×844窄屏首屏以及正文/边界截图；决定入口分别在485px和626px内，标题、正文、表格和命令可读，无页面横向溢出、断图或页面错误。观察层是本地HTML渲染，不代表SSH/GPU运行。[桌面](evidence/report-desktop.png) · [窄屏](evidence/report-narrow.png) · [呈现测量](evidence/render-qa.json)。
+本轮没有启动远端正式SSH/GPU作业、push、Apply、安装或历史缓存修复。软件支持范围仍是已有节点删除、GCN/SGC和GNNDelete/GIF/Retrain消费者，不能推导任意模型或遗忘方法已适配。当前目标是确认统一配置和执行修正是否完成，后续正式任务必须消费人类接受后的版本。
+
+HTML呈现检查：**PASS**。已实际查看headless Edge的1440×1000桌面、390×844窄屏首屏以及正文/边界截图；首屏可见决定入口，标题、正文、表格和命令可读，无页面横向溢出、断图或页面错误。观察层是本地HTML渲染，不代表SSH/GPU运行。[桌面](evidence/report-desktop.png) · [窄屏](evidence/report-narrow.png) · [呈现测量](evidence/render-qa.json)。

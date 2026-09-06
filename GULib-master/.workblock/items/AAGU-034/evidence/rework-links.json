@@ -1,0 +1,196 @@
+{
+  "checked": 38,
+  "missing": [],
+  "links": [
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/configuration-migration.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/retired-configs.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../experiments/configs/aagu007/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../experiments/configs/aagu032/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../experiments/configs/experiment.template.yaml",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../docs/experiment_contract/README.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../docs/experiment_contract/PARAMETERS.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "../../../docs/modular_experiments.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/retired-tests.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/rework-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/rework-pytest.txt",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/pytest.log",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/report-desktop.png",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/report-narrow.png",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/REPORT.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "../../../self/dashboard/WORKPLAN.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "REPORT.md",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "REPORT.html",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/rework-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": ".workblock/items/AAGU-034/WORKITEM.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    },
+    {
+      "file": "scripts/syncmate/README.md",
+      "target": "OPENGU_RUNNER_QUEUE_INTEGRATION_PROMPT.md",
+      "exists": true
+    },
+    {
+      "file": "scripts/syncmate/README.md",
+      "target": "../../docs/modular_experiments.md",
+      "exists": true
+    }
+  ]
+}
