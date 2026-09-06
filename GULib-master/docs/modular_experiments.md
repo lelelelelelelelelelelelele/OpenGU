@@ -12,7 +12,7 @@
 
 ## Selector → 固定 Selection → 独立方法
 
-组合表可以直接引用 `selector_refs`。后续阶段也可使用精确三元 Selection 引用，或者 `selection_input: {experiment_ref: stage_s.yaml, summary: <实际路径>, sha256: <实际摘要>}`。后者只读取已经完成的 Selector summary，逐批继承它的 seed/预算与真实 Selection 引用；不启动前一阶段、不重新选点、不生成逐条件配置。summary 的配置指纹、数据身份、数量与轴值须匹配源普通表。
+Selector 与 Unlearning 组合表只通过 `selector_refs` 声明选点规则，并在各表声明本轮训练 seed 和预算。有效输入与 producer 身份确定缓存查找：精确 HIT 复用真实 Selection，MISS 才计算；无需填写上一轮 summary、SHA-256 或 Artifact ID。实际 Artifact 身份、哈希及 HIT/MISS 写入结果，独立方法继续消费经过校验的 Selection。执行与收集核验共用 `experiment_batches`、`selector_entries`、`unlearning_entries`，避免两套条件展开。
 
 GNNDelete、GIF、Retrain 各自执行、缓存、保存 Output。Retrain 使用真实删除集合，从头训练；不加载 GU checkpoint，也不调用其他方法。
 

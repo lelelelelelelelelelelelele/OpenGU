@@ -18,7 +18,7 @@ Dataset/Split、Selector、Unlearning仍是三个主要执行职责；Evaluation
 
 同语义小表只维护一份，放在[公共目录](../../experiments/configs/README.md)；参数不同的实例另存，例如B-Hutch64和GNNDelete lr0.02。未知字段、任意override、YAML merge、隐式文件继承均拒绝。
 
-所有消费者读取同一展开后的有效值；dry-run和summary展示来源。注册指纹绑定所有引用配置，Cache V2只绑定实际消费的有效输入与producer。公共路径、experiment/case ID、run_id不进入未消费它们的模块计算键。
+Selector/Unlearning只通过selector_refs声明选点，缓存自动HIT/MISS；实际Selection身份、哈希与缓存观察写入结果，不在用户配置中绑定上轮产物。执行与核验共用批次及条件展开，dry-run和summary展示有效值与来源。注册指纹绑定所有引用配置，Cache V2只绑定实际消费的有效输入与producer。公共路径、experiment/case ID、run_id不进入未消费它们的模块计算键。
 
 ## 使用顺序
 

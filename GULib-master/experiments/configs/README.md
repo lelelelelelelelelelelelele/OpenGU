@@ -22,6 +22,8 @@
 
 TracIn 公共表显式选择 steps `[1,10,25,50,75,100]`；`_3` 消费 `[1,50,100]`，`_6` 消费六个。基础训练保存每个 epoch 不代表每个 epoch 都被评分消费；`_6` 没有恰好六个输入时拒绝，不静默扩大范围。
 
+Selector/Unlearning只以 `selector_refs` 声明选点；后续方法使用相同有效规则自动查找或计算，无需手填上轮Selection产物。实际Artifact身份、哈希、HIT/MISS保存在结果中。
+
 新结果使用独立 summary 和对应的 `summary.outputs/<序号>/`，输出目录存在即拒绝覆盖。Cache V2 根据有效输入和 producer 自动 HIT/MISS；表路径、实验名称、run_id、输出位置不进入计算身份。
 
 旧扁平配置与 formal-v2 配方已退出执行，原文保存在 [历史配置](../../docs/archive/experiment-configs-pre-aagu034/)。历史结果和 Cache V2 不被迁移或清空。完整合同见 [实验规范](../../docs/experiment_contract/README.md)。

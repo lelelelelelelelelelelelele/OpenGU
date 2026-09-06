@@ -41,7 +41,7 @@
 
 组合表展开Selector×独立方法×训练seed×预算。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
 
-后续阶段可绑定已完成Selector summary及其摘要，继承真实Selection与对应轴值；Metrics可读已收集Output summary及完整预测产物。缺少、冲突或过时引用失败关闭，不重采样、不伪造资产。
+Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Metrics仍读取已收集Output summary及完整预测产物；缺少、冲突或过时Output引用失败关闭。
 
 结果布局由 `scripts/syncmate/opengu_layout.py` 拥有。一个运行保存summary，以及 `summary.outputs/<序号>/` 下的 `attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。注册指纹、全部引用配置指纹、实际运行身份和精确产物清单必须一致。收集必须通过SyncMate校验与索引后再进入结果核验；命令成功或dry-run不是科研接受。
 

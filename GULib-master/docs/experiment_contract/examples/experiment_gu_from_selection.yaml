@@ -4,13 +4,11 @@ experiment_id: illustrative_gu_lr_comparison
 round: 1
 stage: unlearning
 dataset_ref: ../../../experiments/configs/datasets/cora.yaml
-selection_input:
-  artifact_id: null
-  recipe_hash: null
-  content_hash: null
 unlearning_refs:
 - ../../../experiments/configs/unlearning/gnndelete.yaml
 - ../../../experiments/configs/unlearning/gnndelete_lr002.yaml
 matrix: cartesian_product
 evaluation_refs:
 - ../../../experiments/configs/evaluations/post_unlearning_utility.yaml
+selector_refs:
+- ../../../experiments/configs/selectors/degree.yaml

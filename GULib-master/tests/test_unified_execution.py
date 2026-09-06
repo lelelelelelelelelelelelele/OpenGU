@@ -138,19 +138,20 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
         'cold_output':str(summary_path),'warm_output':warm['execution_receipt']['output']}))
 
 
-def test_stage_s_summary_binds_real_selections_without_resampling(matrix):
+def test_stage_s_cache_supplies_real_selections_without_resampling(matrix):
     root,path=matrix
     config=yaml.safe_load(path.read_text());config.update(stage='selector',unlearning_refs=[],evaluation_refs=[])
     write_yaml(path,config)
     source=command(root,path,'selector',instrument=False)
     output=Path(source['execution_receipt']['output'])
     gu={'kind':'experiment','schema_version':1,'experiment_id':'bound-gu','stage':'unlearning',
-        'dataset_ref':'dataset.yaml','selection_input':{'experiment_ref':'experiment.yaml',
-        'summary':str(output),'sha256':hashlib.sha256(output.read_bytes()).hexdigest()},
+        'dataset_ref':'dataset.yaml', 'selector_refs':config['selector_refs'],
+        'seeds':config['seeds'], 'budget_ratios':config['budget_ratios'],
         'unlearning_refs':['retrain.yaml'],'matrix':'cartesian_product'}
     write_yaml(root/'bound.yaml',gu)
     actual=command(root,root/'bound.yaml','bound',instrument=False)
-    assert actual['selectors']==[] and actual['selector_producer_called'] is False
+    assert actual['selectors'] and actual['selector_producer_called'] is False
+    assert all(r['selection']['cache']['hit'] for r in actual['selectors'])
     expected=[r['selection']['artifact']['artifact_id'] for r in source['selectors']]
     _,rows=read_summary_outputs(Path(actual['execution_receipt']['output']),
         hashlib.sha256(Path(actual['execution_receipt']['output']).read_bytes()).hexdigest())

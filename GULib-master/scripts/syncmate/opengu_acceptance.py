@@ -89,7 +89,7 @@ def acceptance_payload(profile, definition, context):
                     or execution['run_id'] != definition['run_identity']['run_id']
                     or summary['experiment_id'] != definition['run_identity']['experiment_id']):
                 raise ValueError('collected execution identity mismatch')
-            from experiments.modular_config import load_experiment, experiment_batches, resolve_budget
+            from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, selector_entries, unlearning_entries
             config = load_experiment(root / definition['config_path'])
             from experiments.modular_config import configuration_fingerprint
             if configuration_fingerprint(root / definition['config_path']) != definition['configuration_fingerprint']:
@@ -99,13 +99,12 @@ def acceptance_payload(profile, definition, context):
             batches = list(experiment_batches(config))
             expected = [(batch, gu, selector, selector_ref, gu_ref)
                         for batch in batches
-                        for gu, gu_ref in zip(batch['unlearnings'], config['unlearning_refs'])
-                        for selector, selector_ref in zip(batch['selectors'], config['selector_refs'])]
+                        for gu, gu_ref, selector, selector_ref in unlearning_entries(batch)]
             if len(expected) != len(outputs):
                 raise ValueError('collected rows differ from ordinary matrix expansion')
             selector_rows = summary['selectors']
             expected_selectors = [(batch, selector, ref) for batch in batches
-                                  for selector, ref in zip(batch['selectors'], config['selector_refs'])]
+                                  for selector, ref in selector_entries(batch)]
             if len(selector_rows) != len(expected_selectors):
                 raise ValueError('collected Selector row count mismatch')
             for (batch, selector, ref), row in zip(expected_selectors, selector_rows):

@@ -66,9 +66,7 @@ def run_example(directory):
             'aagu028-disposable-example')
         return execute(path, context=context)
     selected = run('01-selection', stage='selector', selector_refs=['degree.yaml'])
-    selection = {key: selected['selectors'][0]['selection']['artifact'][key]
-                 for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-    common = {'stage': 'unlearning', 'selection_input': selection}
+    common = {'stage': 'unlearning', 'selector_refs': ['degree.yaml']}
     gu = run('02-gu', **common, unlearning_refs=['GNNDelete.yaml', 'GIF.yaml'])['unlearning']
     cold = run('03-retrain', **common, unlearning_refs=['Retrain.yaml'])['unlearning'][0]
     pairs = [{'unlearning': row['output'], 'retrain': cold['output']} for row in gu]

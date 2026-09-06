@@ -48,7 +48,7 @@ def dry_run(directory=CONFIG):
         'generated_yaml':0,'counts':{'stage_s':stages['s'],'stage_u':stages['u'],
             'independent_retrain':stages['retrain'],'conditional_preparation_groups':len(models),
             'conditional_score_groups':len(scores),'conditional_selection_groups':len(selections)},
-        'stage_s':rows,'boundary':'Real Dataset/Selection/Output bindings and approved formal execution remain required.'}
+        'stage_s':rows,'boundary':'Real Dataset/Output bindings and approved formal execution remain required.'}
 
 
 def main():

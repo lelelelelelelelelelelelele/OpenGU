@@ -183,40 +183,27 @@ def load_experiment(path):
     value = read_yaml(path)
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
     fields(value, required | {'round',
-        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
+        'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
         'seeds', 'budget_ratios'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
     choice(value['stage'], ('selector', 'unlearning', 'metrics'), 'stage')
     choice(value['matrix'], ('cartesian_product',), 'matrix')
-    if value['stage'] != 'metrics' and bool(value.get('selector_refs')) == bool(value.get('selection_input')):
-        raise ConfigurationError('use selector_refs or selection_input, exactly one')
-    if value['stage'] == 'selector' and (value.get('unlearning_refs') or value.get('selection_input')):
+    if value['stage'] != 'metrics' and not value.get('selector_refs'):
+        raise ConfigurationError('selector_refs is required for selector and unlearning stages')
+    if value['stage'] == 'selector' and value.get('unlearning_refs'):
         raise ConfigurationError('selector stage needs selector_refs and no GU inputs')
     if value['stage'] == 'unlearning' and not value.get('unlearning_refs'):
         raise ConfigurationError('unlearning stage requires unlearning_refs')
     if value['stage'] == 'metrics':
         if not value.get('output_inputs') or not value.get('evaluation_refs'):
             raise ConfigurationError('metrics stage requires output_inputs and evaluation_refs')
-        if any(value.get(key) for key in ('selector_refs', 'selection_input', 'unlearning_refs')):
+        if any(value.get(key) for key in ('selector_refs', 'unlearning_refs')):
             raise ConfigurationError('metrics stage consumes only explicit output references')
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')
     result = dict(value)
-    # A later stage may bind a verified selector summary. The referenced ordinary
-    # table defines its rows; it does not launch another stage or produce assets.
-    source = value.get('selection_input', {})
-    if isinstance(source, dict) and 'experiment_ref' in source:
-        fields(source, {'experiment_ref', 'summary', 'sha256'},
-               {'experiment_ref', 'summary', 'sha256'}, 'selection summary input')
-        source_path = (path.parent / source['experiment_ref']).resolve()
-        source_value = read_yaml(source_path)
-        if source_path == path or source_value.get('stage') != 'selector':
-            raise ConfigurationError('selection source must be an ordinary selector table')
-        if any(key in value for key in ('seeds', 'budget_ratios')):
-            raise ConfigurationError('bound selections inherit their source training seeds and budgets')
-        result['selection_source'] = load_experiment(source_path)
     dataset_path = (path.parent / value['dataset_ref']).resolve()
     result['dataset'] = load_instance(dataset_path, 'dataset_split')
     result['dataset_directory'] = str(dataset_path.parent)
@@ -231,8 +218,6 @@ def load_experiment(path):
         result['configuration_sources'][kind + 's'] = [configuration_sources(path.parent / ref, item)
             for ref, item in zip(refs, result[kind + 's'])]
     result['source_directory'] = str(path.parent)
-    if 'selection_source' in result and result['dataset'] != result['selection_source']['dataset']:
-        raise ConfigurationError('selection source Dataset/Split must match')
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
     return result
@@ -272,20 +257,6 @@ def experiment_batches(config):
     Within a batch, Selector x Unlearning remains the existing Cartesian product.
     Training seeds are paired across the two model consumers, not crossed.
     """
-    if 'selection_source' in config:
-        for source in experiment_batches(config['selection_source']):
-            batch = copy.deepcopy(config)
-            batch['matrix_values'] = source['matrix_values']
-            batch['selection_count'] = len(source['selectors'])
-            seed = source['matrix_values']['training_seed']
-            for index, instance in enumerate(batch['unlearnings']):
-                if seed is not None:
-                    if 'checkpoint' in instance and instance['training']['seed'] != seed:
-                        raise ConfigurationError('cannot relabel an explicit checkpoint')
-                    instance['training']['seed'] = seed
-                    batch['configuration_sources']['unlearnings'][index]['training.seed'] = 'selection_source:experiment:seeds'
-            yield batch
-        return
     for seed in config.get('seeds', [None]):
         for ratio in config.get('budget_ratios', [None]):
             batch = copy.deepcopy(config)
@@ -300,6 +271,18 @@ def experiment_batches(config):
                         instance['budget']['value'] = float(ratio)
                         sources['budget.value'] = 'experiment:budget_ratios'
             yield batch
+
+
+def selector_entries(batch):
+    """Declared order, shared by execution and collected-result verification."""
+    return list(zip(batch['selectors'], batch.get('selector_refs', [])))
+
+
+def unlearning_entries(batch):
+    """GU-major Cartesian rows with the same effective Selector declarations."""
+    return [(gu, gu_ref, selector, selector_ref)
+            for gu, gu_ref in zip(batch['unlearnings'], batch.get('unlearning_refs', []))
+            for selector, selector_ref in selector_entries(batch)]
 
 
 def configuration_fingerprint(path):
@@ -317,9 +300,6 @@ def configuration_fingerprint(path):
         refs = ([value['dataset_ref']] if 'dataset_ref' in value else [])
         for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
             refs.extend(value.get(field, []))
-        source = value.get('selection_input', {})
-        if isinstance(source, dict) and 'experiment_ref' in source:
-            refs.append(source['experiment_ref'])
         children = [document(current.parent / ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}

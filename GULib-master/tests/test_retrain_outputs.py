@@ -26,13 +26,11 @@ def configs(tables):
     write_yaml(root / 'gap.yaml', {'kind': 'evaluation', 'schema_version': 1,
                                  'case': 'post_unlearning_utility_and_retrain_gap'})
     selection = run(tables, 'selection', selector_refs=['degree.yaml'])
-    return {key: selection['selectors'][0]['selection']['artifact'][key]
-            for key in ('artifact_id', 'recipe_hash', 'content_hash')}
 
 
-def method(tables, name, reference, method_file):
-    return run(tables, 'run-' + name, stage='unlearning', selector_refs=[],
-               selection_input=reference, unlearning_refs=[method_file])['unlearning'][0]
+def method(tables, name, method_file):
+    return run(tables, 'run-' + name, stage='unlearning', selector_refs=['degree.yaml'],
+               unlearning_refs=[method_file])['unlearning'][0]
 
 
 def forbidden(*args, **kwargs):
@@ -40,18 +38,20 @@ def forbidden(*args, **kwargs):
 
 
 def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypatch, record_property):
-    reference = configs(tables)
+    configs(tables)
     import experiments.modular_run as entry
-    monkeypatch.setattr(entry, 'resolve_methods', forbidden)
-    cold = method(tables, 'retrain-cold', reference, 'retrain.yaml')
+    import functools
+    from experiments.target_direct_v1 import methods
+    monkeypatch.setitem(methods.METHODS, 'degree', functools.wraps(methods.METHODS['degree'])(forbidden))
+    cold = method(tables, 'retrain-cold', 'retrain.yaml')
     assert cold['producer_called'] and cold['checkpoint'] is None
     assert not (tables[0] / 'checkpoints').exists()
-    gnn = method(tables, 'gnn', reference, 'gu.yaml')
-    gif = method(tables, 'gif', reference, 'gif.yaml')
+    gnn = method(tables, 'gnn', 'gu.yaml')
+    gif = method(tables, 'gif', 'gif.yaml')
     monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)
     monkeypatch.setattr(torch.optim.SGD, 'step', forbidden)
     monkeypatch.setattr(entry, 'prepare_model', forbidden)
-    warm = method(tables, 'retrain-hot', reference, 'retrain.yaml')
+    warm = method(tables, 'retrain-hot', 'retrain.yaml')
     assert warm['hit'] and not warm['producer_called']
     assert cold['output'] == warm['output'] and cold['result'] == warm['result']
     pairs = [{'unlearning': row['output'], 'retrain': cold['output']} for row in (gnn, gif)]
@@ -85,9 +85,9 @@ def test_independent_retrain_cold_hot_cross_gu_and_metrics_only(tables, monkeypa
 
 @pytest.mark.parametrize('change', ['training', 'model', 'semantics', 'request'])
 def test_retrain_identity_changes_and_pairing_rejects(tables, change):
-    reference = configs(tables)
-    cold = method(tables, 'retrain-original', reference, 'retrain.yaml')
-    gnn = method(tables, 'gnn-original', reference, 'gu.yaml')
+    configs(tables)
+    cold = method(tables, 'retrain-original', 'retrain.yaml')
+    gnn = method(tables, 'gnn-original', 'gu.yaml')
     root = tables[0]
     config = yaml.safe_load((root / 'retrain.yaml').read_text())
     if change == 'training':
@@ -101,10 +101,8 @@ def test_retrain_identity_changes_and_pairing_rejects(tables, change):
         selector['budget']['value'] = 2
         write_yaml(root / 'degree.yaml', selector)
         selected = run(tables, 'selection2', selector_refs=['degree.yaml'])
-        reference = {key: selected['selectors'][0]['selection']['artifact'][key]
-                     for key in ('artifact_id', 'recipe_hash', 'content_hash')}
     write_yaml(root / 'changed.yaml', config)
-    changed = method(tables, 'changed-retrain', reference, 'changed.yaml')
+    changed = method(tables, 'changed-retrain', 'changed.yaml')
     assert changed['producer_called'] and changed['recipe_hash'] != cold['recipe_hash']
     with pytest.raises(ValueError, match='same request'):
         run(tables, 'bad-pair', stage='metrics', selector_refs=[], evaluation_refs=['gap.yaml'],
@@ -112,12 +110,12 @@ def test_retrain_identity_changes_and_pairing_rejects(tables, change):
 
 
 def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
-    reference = configs(tables)
-    original = method(tables, 'original', reference, 'retrain.yaml')
+    configs(tables)
+    original = method(tables, 'original', 'retrain.yaml')
     root, _, gu = tables
     gu['parameters']['unlearn_lr'] = .02
     write_yaml(root / 'gu.yaml', gu)
-    result = run(tables, 'changed-gu', stage='unlearning', selector_refs=[], selection_input=reference,
+    result = run(tables, 'changed-gu', stage='unlearning', selector_refs=['degree.yaml'],
                  unlearning_refs=['gu.yaml'])
     result['evaluations'] = run(tables, 'changed-gu-metrics', stage='metrics', selector_refs=[],
         output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
@@ -128,13 +126,13 @@ def test_gu_parameters_and_metrics_do_not_change_retrain(tables):
         output_inputs=[{'unlearning': result['unlearning'][0]['output'], 'retrain': original['output']}],
         evaluation_refs=['small.yaml'])
     assert small['evaluations'][0]['rows'][0]['metrics']['gap'] == result['evaluations'][0]['rows'][0]['metrics']['gap']
-    warm = method(tables, 'warm-retrain', reference, 'retrain.yaml')
+    warm = method(tables, 'warm-retrain', 'retrain.yaml')
     assert warm['output'] == original['output'] and not warm['producer_called']
 
 
 def test_retrain_removes_supervision_and_incident_edges(tables):
-    reference = configs(tables)
-    result = method(tables, 'retrain', reference, 'retrain.yaml')
+    configs(tables)
+    result = method(tables, 'retrain', 'retrain.yaml')
     payload = load_output(result['output'], tables[0] / 'v2')
     a = payload.arrays
     assert not a['retain_mask'][a['selected_nodes']].any()
@@ -156,8 +154,8 @@ def test_retrain_removes_supervision_and_incident_edges(tables):
 
 
 def test_missing_and_corrupted_outputs_rejected_without_training(tables, monkeypatch):
-    reference = configs(tables)
-    result = method(tables, 'retrain', reference, 'retrain.yaml')
+    configs(tables)
+    result = method(tables, 'retrain', 'retrain.yaml')
     monkeypatch.setattr(torch.optim.Adam, 'step', forbidden)
     wrong = {**result['output'], 'content_hash': '0' * 64}
     with pytest.raises(ValueError, match='digest'):
@@ -173,8 +171,8 @@ def test_missing_and_corrupted_outputs_rejected_without_training(tables, monkeyp
 @pytest.mark.parametrize('field', ['x', 'y', 'edge_index', 'split'])
 def test_actual_dataset_changes_cannot_consume_old_output(tables, field):
     import pickle
-    reference = configs(tables)
-    output = method(tables, 'retrain', reference, 'retrain.yaml')['output']
+    configs(tables)
+    output = method(tables, 'retrain', 'retrain.yaml')['output']
     data = pickle.loads((tables[0] / 'graph.pkl').read_bytes())
     if field == 'x':
         data.x[0, 0] += 1
@@ -196,8 +194,8 @@ def changed_retrain(*args, **kwargs):
 def test_changed_producer_and_missing_selection_dependency_rejected(tables, monkeypatch):
     from cache_v2 import CacheIndex
     import unlearning.unlearning_methods.Retrain.retrain as retrain
-    reference = configs(tables)
-    output = method(tables, 'retrain', reference, 'retrain.yaml')['output']
+    configs(tables)
+    output = method(tables, 'retrain', 'retrain.yaml')['output']
     with monkeypatch.context() as patch:
         patch.setattr(retrain, 'run_retrain', changed_retrain)
         with pytest.raises(ValueError, match='producer changed'):
@@ -219,9 +217,9 @@ def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, reco
     import subprocess
     import sys
     from pathlib import Path
-    reference = configs(tables)
+    configs(tables)
     root = tables[0]
-    rows = [method(tables, 'cli-' + name, reference, name + '.yaml') for name in ('gu', 'retrain')]
+    rows = [method(tables, 'cli-' + name, name + '.yaml') for name in ('gu', 'retrain')]
     pairs = [{'strategy': 'degree', 'unlearning': rows[0]['output'], 'retrain': rows[1]['output']}]
     (root / 'references.json').write_text(json.dumps(pairs))
     store_before = snapshot(root / 'v2')
@@ -242,12 +240,12 @@ def test_independent_method_metrics_survive_collection_without_forward(tables, m
     from experiments.modular_evaluation import evaluate_modular, resolve_evaluation
     from experiments.modular_artifacts import save_method_result
     from cache_v2.unlearning_output import UnlearningOutputPayload
-    reference = configs(tables)
+    configs(tables)
     root = tables[0]
     # GU completes first; there is no Retrain output to consume at this point.
-    gnn = method(tables, 'independent-gnn', reference, 'gu.yaml')
-    rt = method(tables, 'independent-retrain', reference, 'retrain.yaml')
-    gif = method(tables, 'independent-gif', reference, 'gif.yaml')
+    gnn = method(tables, 'independent-gnn', 'gu.yaml')
+    rt = method(tables, 'independent-retrain', 'retrain.yaml')
+    gif = method(tables, 'independent-gif', 'gif.yaml')
     exported = []
     for name, row in (('GNNDelete', gnn), ('Retrain', rt), ('GIF', gif)):
         folder = root / 'exports' / name

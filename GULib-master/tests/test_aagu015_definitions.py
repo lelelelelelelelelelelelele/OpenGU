@@ -21,16 +21,16 @@ def test_all_ordinary_tables_no_write_or_producer(monkeypatch):
         ('Cora',18),('Cora',94),('CiteSeer',23),('CiteSeer',116),('PubMed',138),('PubMed',690)}
 
 
-def test_existing_selection_stages_inherit_paired_seeds():
+def test_declared_selection_stages_pair_training_seeds():
     for path in CONFIG.glob('stage_u_*.yaml'):
         config=load_experiment(path)
-        assert config['selectors']==[]
-        assert config['selection_input']['summary'] is None
+        assert len(config['selectors'])==17
+        assert config['selector_refs']
         batches=list(experiment_batches(config))
         assert len(batches)==6
         for batch in batches:
             assert {i['training']['seed'] for i in batch['unlearnings']}=={batch['matrix_values']['training_seed']}
-            assert batch['selection_count']==17
+            assert len(batch['selectors'])==17
         assert execute(path,dry_run=True)['logical_cells']==204
 
 

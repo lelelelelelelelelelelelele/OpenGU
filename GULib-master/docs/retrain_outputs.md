@@ -65,7 +65,7 @@ deletion:
 
 ## 三种独立运行
 
-Retrain-only 大表使用 stage: unlearning、一个 selection_input 精确引用和 unlearning_refs: [retrain.yaml]。不会调用 Selector，也不会训练原模型。
+Retrain-only 大表使用 stage: unlearning、selector_refs 和 unlearning_refs: [retrain.yaml]。Selector通过有效配置自动查询缓存，HIT不重复评分或选点，MISS才计算；实际Selection身份保存在结果。Retrain自身从头训练、不加载原模型；模型型Selector若缓存缺失，仍需其声明的模型训练。
 
 GU 与 Retrain 均按 unlearning_refs 独立调度，执行阶段只生成各自输出及单方法评价。retrain_input 已删除；执行阶段声明 retrain-gap 会在训练前拒绝，必须在独立 Metrics 阶段引用双方已经完成的结果。
 
