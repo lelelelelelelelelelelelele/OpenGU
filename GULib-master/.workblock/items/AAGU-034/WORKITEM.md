@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `working / claimed`
+当前状态: `verified / awaiting acceptance`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-当前候选被用户要求在同一034返工：设备信息只能来自device.yaml/SyncMate配置，Core负责提交与回传，现有普通入口负责实验；先固定行为验收测试，再删去重复stage/设备常量及一次性接缝。原先建议接受撤回。读取本记录最新返工段及同一Claim后继续，不启动正式实验或Closeout。
+本轮已删除专用SyncMate stage及无消费者CPU helper，设备由Core读取的device.yaml传入普通入口，真实Core提交/执行/收集已完成隔离验证。软件检查点c40ee9da及分批257项有效结果见最新Verify和REPORT。当前只等待用户对source branch干净HEAD作人类验收决定；不执行正式SSH/GPU、Apply、push、安装或清理。
 
 ## Status history
 
@@ -137,9 +137,20 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 报告返工 Verify：登记引文与首次Git原文一致，原Human Surface未修改；六项问题对照、证据链接、唯一Human Result/待决定投影与确定性HTML重建检查通过。已实际查看桌面、窄屏及完整问题对照表；决定入口在550/740px处，无溢出或断图。最新表面证据见evidence/report-problem-check.json；本次仅报告变更，软件检查不重复执行，继续停在人类验收。
 
 
-## Core 接缝返工 · 2026-09-07
+## Core 接缝返工 · 2026-09-06
 
 - 用户否定专用 stage 和随实现调整测试的做法，要求设备只由 device.yaml / SyncMate 配置决定，Core 负责提交与回传，普通实验入口复用已有内核。同一 Claim revision 7 返回 ongoing；此前的接受建议不再适用于当前返工。
 - 先提交验收测试 cdc08804，普通入口设备参数及旧注册入口 RED 共7项。夹具随后补齐模型资源、比例预算、训练型评分和Core本地transport；33条验收断言经AST逐条比较完全不变。保留原始与更正后的文件hash及原因于 evidence/core-contract-freeze.json，不声称测试文件整体未改。
 - 删除 experiments/syncmate_stage.py 及其手读队列/receipt、硬编码GPU型号、执行设备和SSH绝对根。注册直接指向普通YAML命令；设备沿Core现有reader进入ExecutionContext。Core保留队列、Git绑定、进程与文件核验职责；没有修改独立Core或增加配置生成器。
 - 旧输出测试的生产preflight替换、强改CPU及手写running/receipt夹具退役，改用Core正常提交与真实子进程。当前软件候选须经固定合同及相关消费者/SyncMate回归后才能再次进入人类验收。
+
+
+### Core 返工 Verify · 2026-09-06
+
+- 软件检查点 c40ee9dae7e63c3e921e221554fbc41fccabd27e。最终分批覆盖257项有效通过结果，逐测试检查点及原始JUnit摘要见 evidence/core-rework-observations.json；各轮失败及复用边界显式保留，不将部分通过的整轮报为PASS。
+- 固定行为验收7项PASS：真实Core submit/run完成Selector、Unlearning、Metrics，与直接CLI同配置、同数据、源YAML字节不变；实际回执CPU、Python、cwd、Git身份可见。返回文件1/33/1，热执行HIT，损坏与缺失均拒绝。设备缺项/非法/越界在producer前失败。未替换生产预检、进程或设备策略。
+- 33条冻结断言未改；四处夹具更正有原始/更正hash和AST核验。旧stage文案、全注册表hash快照断言退役，保留真实白名单、绑定、路径与消费者边界。此前替换预检的接缝PASS不能作为设备贯通证明，已在报告撤回该表述。
+- 007/032原表未改，跨cwd解析4/42条件通过；配置审计46张活动YAML，015科学条件306/612/306保持。Core smoke与固定依赖核验exit 0。
+- 运行内存不足、CRLF示例hash和测试import错误均如实记录并完成受影响串行重跑。未启动正式SSH/GPU或改变远端device.yaml；后续runner需在原设备文件声明execution_device。
+- 报告/Record候选相对c40ee9da仅更正人类表面、证据和dashboard投影。软件结果按实际diff复用，新增表面执行结构、确定性生成、链接、桌面/窄屏真实渲染、dashboard与Git干净检查。
+- Agent建议接受当前软件修正，决定权仍归用户。保持同一Claim、人类验收边界；不写accepted，不Apply/push/install/Closeout或清理。

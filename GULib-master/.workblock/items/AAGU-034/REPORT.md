@@ -4,19 +4,19 @@
 
 ### 实际增量
 
-**注册时的核心问题：** 026 已有模块化内核，但仍有两套不兼容的 YAML、只支持 dry-run 的普通入口，以及继续被注册调用的旧专用路径；015 还生成了 424 份配置副本。
+**核心问题：** 已有解析器和执行内核没有被直接接到 Core，专用 stage 又写死设备、检查队列。上一版还用替换生产预检的测试宣称接缝通过。
 
-**本次修正：** 统一公共小表与实际执行链，适配已有 007、032 两份配置，退役旧入口和生成副本。034 承担这项公共设施返工，032 继续负责实验方案。
+**本次修正：** 删除该 stage；Core 直接提交普通 YAML 命令。设备读取同一 `device.yaml`，回传由 Core 收集和核验；已有 007、032 模板继续使用。
 
 ### 核心观察
 
-普通 YAML 已通过真实命令完成 24 个独立输出，禁用训练/评分后再次执行仍全部 HIT；已有 007、032 两份表经同一入口分别展开 4、42 个条件。下面逐项对照注册问题、修正和证据；[原始实测](evidence/observations.json)与[本轮复验](evidence/rework-observations.json)可复核。正式 SSH/GPU 实验尚未执行，检查偏差与清理记录保留在文末。
+真实 Core 队列已执行 Selector、Unlearning、Metrics，分别回传 1、33、1 个文件；与直接命令的配置和数据身份一致，热运行复用缓存，损坏或缺失文件被拒绝。先写的 33 条行为断言未改；夹具更正和分批验证见[本轮证据](evidence/core-rework-observations.json)。正式 SSH/GPU 尚未运行。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-Agent **建议接受本次软件修正**。请按下方六项注册问题判断是否已解决；决定权归用户，接受对象是本任务 source branch 的当前干净 HEAD。正式运行与科研结论仍由后续任务验收。
+Agent **建议接受这版软件修正**，依据是现有入口、设备配置和真实 Core 链路已经接通。接受对象为本 source branch 的当前干净 HEAD，决定权归用户；正式运行和科研结论另行验收。
 
 ## 为什么注册 034：原始问题与修正对照
 
@@ -32,12 +32,29 @@ Agent **建议接受本次软件修正**。请按下方六项注册问题判断�
 |---|---|---|
 | **1. 公共配置没有一套共同规格。** 015 与 V2 各有 17 份 Selector 表；同一 `gt_full` 参数相同，但一边要求 `candidate/budget`，另一边拒绝这些字段。 | 公共目录持有同一套小表，组合表引用；同语义实例共用，不同参数变体明确区分。 | [配置审计](evidence/configuration-audit.json)核对全部活动引用；[实际观察](evidence/observations.json)包含17方法公式对照和真实TracIn 3/6轨迹。 |
 | **2. “能检查配置”与“能实际执行”脱节。** `run.py` 对普通 `kind: experiment` 只放行 dry-run；已有真实内核没有成为统一命令路径。 | 普通检查、临时CPU执行、注册项目调用均进入同一解析/展开/执行链。 | [真实命令证据](evidence/observations.json)产生24个独立输出，另从Stage S真实摘要执行Retrain；不是仅调用解析函数。 |
-| **3. 旧专用路径仍被消费。** `opengu_recipes/opengu_adapter` 仍调用旧 target-direct stage，活动注册不能只靠迁移文件名完成修正。 | 迁移预检、指纹、输出及收集契约后退役旧解析/调度与注册；本次复核又清除了M1 helper及其旧Adapter。 | [删除清单](evidence/retired-code.json)与零活动引用审计；[收集验证](evidence/rework-observations.json)覆盖当前Core、队列、校验、结果读取。M1残留属于实施后补查，未冒充注册时已点名的问题。 |
+| **3. 旧专用路径仍被消费。** `opengu_recipes/opengu_adapter` 仍调用旧 target-direct stage，活动注册不能只靠迁移文件名完成修正。 | 迁移预检、指纹、输出及收集契约后退役旧解析/调度与注册；本次复核又清除了M1 helper及其旧Adapter。 | [删除清单](evidence/retired-code.json)与零活动引用审计；[本轮真实Core验证](evidence/core-rework-observations.json)覆盖队列、设备、校验和结果读取。M1残留属于实施后补查，未冒充注册时已点名的问题。 |
 | **4. 015 用文件复制表示实验条件。** 449份YAML中424份位于 `generated/`，按seed/预算生成，造成重复维护。 | 改为12张普通维护表和内存展开；保留原三数据集、17方法、三seed、两预算及阶段语义。 | [迁移审计](evidence/configuration-audit.json)：424副本退役；Stage S 306、Stage U 612、独立Retrain 306，文件减少未缩小科学范围。 |
 | **5. 大表覆盖规则必须落实到实际消费者。** 只允许训练seed和预算，明确优先级、来源、模型型Selector与GU/Retrain配对；不能任意override或写回小表。 | 展开有效配置并记录来源，训练、选点和缓存使用实际消费值；Dataset/Split与Random抽样seed保持各自含义。 | [CPU冷/热观察](evidence/observations.json)：实际训练seed为122/722、选点数1/2、源YAML不变；阻断producer后HIT且输出身份一致。 |
 | **6. 合同、模板和责任范围必须对齐。** 用户要求把公共整改独立登记为034，032继续只负责科学方案及最终配置验收。 | 更新001合同和配置/入口说明；通用规范适配已有007、032两份表，公共整改由034承担。 | [两份表的实际CLI检查](evidence/rework-observations.json)：跨工作目录引用正确，007为4条件、032为42条件，源表未改。正式实验及032科学接受仍由各自任务决定。 |
 
 **原始来源：**[同一 WorkItem](WORKITEM.md) 的 Human Surface、Source and relations、Observed baseline and evidence boundaries。已与首次登记提交 `619d0f75135727ad09d00d658ef48d16e9bf4841` 核对；[原文摘录与来源定位](evidence/registration-problem-source.json)保留登记原文和Git对象身份。上表是对应说明，不改写原始合同，也不撤销026此前已接受的缓存/消费者证据。
+
+## 本轮为什么再次返工
+
+上一版虽然共用实验内核，仍在新建的 `experiments/syncmate_stage.py` 中写死 RTX 4090、CUDA 和 SSH 绝对目录，手读 running queue 与 receipt。测试又替换了整个生产预检并强改 CPU，因此它证明的是经过替换的链路，不能证明真实设备配置已经进入执行上下文。此前对此接缝的“通过”表述不充分，本报告以本轮真实 Core 观察替换该结论。
+
+现在的职责如下：
+
+| 现有组件 | 当前职责 |
+|---|---|
+| `device.yaml` / Core 的 peer 配置 | 声明执行设备、目录和 SSH 解释器。普通入口使用 Core 已有 reader；缺少 `execution_device` 或指定设备不可用时拒绝，不选默认设备。 |
+| `experiments/run.py` / 原解析器及内核 | 同一普通 YAML 完成检查和执行；使用传入设备，保存本阶段结果。没有专用 recipe 分支、第二次生成 YAML 或手读队列。 |
+| OpenGU adapter / 注册 | 绑定普通配置及引用表指纹、运行身份和阶段文件清单；消费已有结果身份核验。 |
+| SyncMate Core | 正常提交、版本绑定、真实子进程、队列状态、收集、checksum 和可信索引。未修改独立 Core。 |
+
+`syncmate_stage.py` 与无消费者的 CPU context helper 已删除，旧测试中的手写 running/receipt、替换生产预检和强改设备也已移除。没有添加新的实验调度器或配置生成器。
+
+**测试先行的实际记录：** `cdc08804` 先提交行为测试并记录 7 项 RED。随后修正了夹具缺少模型资源、预算格式、训练型评分和本地 transport 四处设置，33 条断言的 AST 逐条未变。原始及更正后文件 hash 见[冻结记录](evidence/core-contract-freeze.json)。另退役了要求旧 stage 报错文案和整份注册表固定 hash 的两条实现快照断言；白名单、配置绑定、路径与真实消费者检查保留。
 
 ## 迁移前后：减少维护文件，保留逻辑条件
 
@@ -119,15 +136,19 @@ matrix: cartesian_product
 
 这些小图数值证明数据流和复用行为，不用于比较方法效果。
 
-### 注册、预检、精确输出和收集是否一致 — PASS（隔离本地/CPU）
+### 注册、设备与 Core 回传是否接通 — PASS（真实本地进程 / 临时 CPU）
 
-当前 `opengu-aagu007-v1` 绑定整组引用YAML指纹、运行身份和17个文件（1 summary + 4输出 × 4文件）。测试使用相同注册形状的两seed两预算CPU实例，真实进入 `run.py --recipe`、running queue身份和receipt契约、同一执行内核，产生33文件/8输出。正常 `apply_collect → verify_collect → artifact index → accept/results` 链路通过；重复收集fetched=0，无远端Store依赖。
+在干净临时 runner checkout 中，由 Core 的正常 submit / run 接口完成三个阶段，未替换预检、设备读取、进程或队列状态：Selector 是两 seed × 两预算的4个选择结果，回传1份摘要；Unlearning 是8个独立方法输出，回传33文件；Metrics 从已保存输出读出4组配对指标，回传1份摘要。
 
-隔离测试仅将正式OS/GPU策略替换成临时CPU策略，不声称实际使用了SSH或4090。生产预检在本机确实拒绝错误checkout与缺失GPU，未继续读取正式数据。缺文件、未核验索引、重复索引、错误Git SHA、损坏字节、错误配置，以及预算/Selector/Dataset语义错配共9类注入均失败关闭。
+直接命令与 Core 命令读取同一份源 YAML，配置指纹和 Dataset/Split 身份一致；运行后源 YAML 字节未变。执行回执记录实际 Python、cwd、设备和临时 Git SHA。先直接执行、再由 Core 执行时，Selector/Unlearning 都命中缓存，Output 身份一致。Core 实际收集并核验文件，重复收集 fetched=0；篡改和删除落地文件后均不再 verified。设备字段缺失、非法设备及越界 CUDA 索引在 producer 前失败。
+
+原有8输出的项目结果读取与9类错误注入也保持有效：文件/索引/Git SHA/字节/配置/预算/Selector/Dataset错配不能进入可信结果。当前007注册仍绑定4输出/17文件；科学结果核验与人类接受保留各自边界。完整[真实观察与分批回执](evidence/core-rework-observations.json)记录检查点及复用理由。
+
+现有设备文件已有连接、目录和解释器字段，但未声明实验进程的 CPU/CUDA 值。本次只在同一文件中增加明确的 `execution_device` 消费约定及示例。远端设备文件未修改，正式 runner 需在该文件声明实际值；没有用本地子进程冒充 SSH 或正式 GPU 观察。
 
 ### 旧路径与当前说明是否收敛 — PASS
 
-`run.py` 不再有旧flat解析与专用target-direct调度分支，`--recipe`只补充项目上下文后调用同一内核。旧atomic stage、target-direct stage/selection/config/output脚本和无活跃消费者的manifest assembler/adapter删除；过时注册、424份生成YAML及活动引用同步退役。001合同、配置说明、受影响WorkItem owner链接和看板投影已更新。本轮再删除 `scripts/syncmate/syncmate_m1.py`、无当前消费者的 `OpenGUAdapter/ADAPTER` 以及七项仅验证旧 M1 支路的测试；旧“尚未批准替换”标记和活动引用清零。当前 `scripts/syncmate/syncmate.py` 仍是独立 Core 的有效项目入口，保留 `OpenGUProjectExtension`。最新745项测试可正常收集，205项受影响回归实际执行通过。
+`run.py` 不再有旧flat解析与专用target-direct调度分支，本轮进一步删除了 `--recipe` 分支和新的 `syncmate_stage.py`，注册直接调用普通配置路径。旧atomic stage、target-direct stage/selection/config/output脚本和无活跃消费者的manifest assembler/adapter删除；过时注册、424份生成YAML及活动引用同步退役。001合同、配置说明、受影响WorkItem owner链接和看板投影已更新。本轮再删除 `scripts/syncmate/syncmate_m1.py`、无当前消费者的 `OpenGUAdapter/ADAPTER` 以及七项仅验证旧 M1 支路的测试；旧“尚未批准替换”标记和活动引用清零。当前 `scripts/syncmate/syncmate.py` 仍是独立 Core 的有效项目入口，保留 `OpenGUProjectExtension`。上一轮745项仅为收集结果、205项为当时回归结果；本轮的有效验证单独列在下文。
 
 旧入口与Cache V1私有API测试中失效的断言按[替换清单](evidence/retired-tests.json)退役；有效参数、数据split、AutoReport与缓存消费者检查保留。迁移中暴露的旧注册断言已更新到新注册，未通过恢复兼容层来让旧测试通过。文档检查120链接通过，其中13个DocMap链接以canonical项目位置解析；历史记录及归档材料不冒充现行运行说明。
 
@@ -150,9 +171,19 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 ## Verify、复跑与证据定位
 
-本轮清理的干净检查点：`81a220e927a5f2600a3c3104d5551af5b7d5d124`。四个当前 SyncMate 测试文件 **205 passed，0 failed**；其中两项新增测试直接调用 007/032 命令。配置审计、当前 CLI smoke、dashboard check 及745项全测试收集均通过，验证后工作树干净。七项旧 M1 专属测试随旧入口退役；原检查点中139项未受影响测试按实际 diff 复用，名单与理由在[复验观察](evidence/rework-observations.json)。
+当前软件检查点：`c40ee9dae7e63c3e921e221554fbc41fccabd27e`。本轮按受影响范围分批验证，最终覆盖 **257 项有效通过结果**，不是把失败运行整体标为通过：
 
-最新[命令回执](evidence/rework-checkpoint.json)和[测试日志](evidence/rework-pytest.txt)保留可复跑参数；原始 JUnit 位于 canonical `.workblock/runtime/aagu-034-rework-20260906/`。这些当前结果取代下方历史验证中涉及旧 M1 入口的部分，其余真实训练与缓存证据仍可追溯。
+| 证据范围 | 有效结果及检查点 |
+|---|---|
+| 新的 Core/设备行为、原消费者、Retrain/输出 | 44项，`c01f31dc`；包含全部7项新验收 |
+| 完整 SyncMate、原24输出冷/热命令、Core依赖 | 193项，`18051bc4`；后续删除未调用helper和更正测试import不改变其实际路径 |
+| 当前 adapter / 007、032 跨目录解析 | 10项，`c40ee9da`，整文件重跑通过 |
+| 项目结果读取、正常回传及9类故障 | 10项，本轮真实Core临时运行；后续变化不改变该执行/收集路径 |
+| 配置审计、Core smoke、依赖核验 | 均exit 0；46张活动YAML，015仍306 S / 612 U / 306独立Retrain |
+
+[本轮证据](evidence/core-rework-observations.json)列出每个入选测试、JUnit SHA-256、源检查点、实际观察及复用理由。前序349项中的方法公式、配置迁移及其他未改动问题保留原检查点；不把它们报成本轮新运行。
+
+验证过程的失败保留：示例配置曾按原始CRLF字节算hash，与Core的文本归一化规则不符，已修正；并行Torch检查曾耗尽Windows提交内存，已停止并改串行；清理旧快照测试时误删仍需使用的hashlib import，已恢复并重跑整文件。这些失败轮次不计作整体通过，详情见同一证据的 `attempts_not_counted`。
 
 首轮历史验证：2026-09-06，在干净软件检查点 `380105002579c99ad003418648a85e67da413a0a` 执行：
 
@@ -173,7 +204,7 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 & E:/conda_package/envs/gnn/python.exe -B -m pytest tests/test_unified_execution.py tests/test_syncmate_gu_outputs.py -q
 ```
 
-真实临时命令形状为 `experiments/run.py <临时组合表> --verification-root <临时绝对根> --run-id <新身份>`。新根和新run_id避免覆盖；pytest会建立所需的小图、manifest与参数表。正式项目命令为注册的 `experiments/run.py --recipe opengu-aagu007-v1`，本报告不授权执行它。
+真实临时命令形状为 `experiments/run.py <临时组合表> --device-config <临时device.yaml> --verification-root <临时绝对根> --run-id <新身份>`。新根和新run_id避免覆盖；pytest会建立所需的小图、manifest与参数表。正式项目命令为注册的 `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`，本报告不授权执行它。
 
 当前待决定候选由[同一WorkItem](WORKITEM.md)的source branch干净HEAD唯一确定。报告/证据加入后对实际diff复核，复用上述检查点中未受影响的软件证据，并单独验证新增报告与状态投影；详见WorkItem Verify记录。
 
