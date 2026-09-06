@@ -7184,7 +7184,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert contract["job_schema"]["additional_fields"] is False
     assert "expected_git_sha" in contract["job_schema"]["required"]
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
-    expected_recipes = ['smoke', 'opengu-preflight-v1', 'opengu-aagu007-v1']
+    expected_recipes = ['smoke', 'opengu-preflight-v1', 'opengu-aagu007-v2', 'opengu-aagu032-v1']
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
@@ -7430,7 +7430,7 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
             }
         from syncmate_core import run_handoff
         return {"ok": True, "payload": {"submitted": True,
-                "output_contract": run_handoff.execution_contract('opengu-aagu007-v1', 'gate4-001', 'c' * 40)}, "errors": []}
+                "output_contract": run_handoff.execution_contract('opengu-aagu007-v2', 'gate4-001', 'c' * 40)}, "errors": []}
 
     monkeypatch.setattr(_dispatch, 'runner_agent_peer_invoke', invoke)
     monkeypatch.setattr(_identity, "git_state", lambda: {"sha": "c" * 40, "branch": "main", "dirty": False})
@@ -7442,7 +7442,7 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
         config_path=repo / ".syncmate" / "device.yaml",
         node_id="runner-a",
         job_id="gate4-001",
-        recipe="opengu-aagu007-v1",
+        recipe="opengu-aagu007-v2",
         requested_by="operator",
         note="exact pin",
     )
@@ -7492,9 +7492,9 @@ def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeyp
     monkeypatch.setattr(_collection, 'apply_collect', lambda *a, **k: {'errors': ['checksum mismatch']})
     from syncmate_core import run_handoff
     device = {'peers': {'runner-a': {'role': 'runner', 'transport': 'local', 'repo_path': str(tmp_path / 'remote')}}}
-    saved = run_handoff.create_handoff(device, 'runner-a', 'opengu-aagu007-v1', 'test-job', 'a' * 40)
+    saved = run_handoff.create_handoff(device, 'runner-a', 'opengu-aagu007-v2', 'test-job', 'a' * 40)
     outcome = _dispatch.runner_agent_collect_and_gate('runner-a', job_id='test-job', completed_job={
-        'id': 'test-job', 'state': 'done', 'recipe': 'opengu-aagu007-v1', 'expected_git_sha': 'a' * 40,
+        'id': 'test-job', 'state': 'done', 'recipe': 'opengu-aagu007-v2', 'expected_git_sha': 'a' * 40,
         'receipt': {'output_contract': saved['execution']}})
 
     assert outcome["ok"] is False

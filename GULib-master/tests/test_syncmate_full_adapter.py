@@ -59,8 +59,8 @@ def test_existing_experiment_templates_use_common_cli(block, cells, batches, tmp
 
 def test_registry_contains_only_current_reviewed_recipes(project_extension):
     definitions = project_extension.recipes(PROJECT_ROOT)
-    expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v1'}
-    assert len(definitions) == 3
+    expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v2','opengu-aagu032-v1'}
+    assert len(definitions) == 4
     assert set(definitions) == expected_ids
 
 
@@ -73,7 +73,7 @@ def test_representative_recipe_fields_remain_exact(project_extension):
         "smoke",
         "--json",
     )
-    recipe = definitions['opengu-aagu007-v1']
+    recipe = definitions['opengu-aagu007-v2']
     assert recipe['timeout_seconds'] == 1800
     assert recipe['logical_cells'] == 4
     assert recipe['expected_dataset'] == {'num_nodes':2708,'candidate_count':1895}
@@ -95,6 +95,20 @@ def test_all_recipe_commands_and_artifact_paths_are_bounded(project_extension):
             assert path.parts[:2] == ("results", "runs")
 
 
+@pytest.mark.parametrize('recipe_id', ['opengu-aagu007-v2', 'opengu-aagu032-v1'])
+def test_registered_matrix_matches_actual_yaml_and_unique_outputs(project_extension, recipe_id):
+    from experiments.modular_config import configuration_fingerprint
+    from experiments.modular_run import execute
+    definition = project_extension.recipes(PROJECT_ROOT)[recipe_id]
+    config = PROJECT_ROOT / definition['config_path']
+    actual = execute(config, dry_run=True)
+    assert hashlib.sha256(config.read_bytes()).hexdigest() == definition['config_sha256']
+    assert configuration_fingerprint(config) == definition['configuration_fingerprint']
+    assert actual['logical_cells'] == definition['logical_cells']
+    paths = definition['expected_artifact_paths']
+    assert len(set(paths)) == len(paths) == 1 + 4 * actual['logical_cells']
+
+
 def test_recipe_results_are_copy_safe(project_extension):
     first = project_extension.recipes(PROJECT_ROOT)
     first["smoke"]["argv"] = ("mutated",)
@@ -114,7 +128,7 @@ def test_all_reviewed_preflight_profiles_dispatch_to_project_handlers(
         calls.append((definition["id"], str(config_path)))
         return {"ready": True, "errors": [], "source": "project-handler"}
 
-    profiles = {'modular-project-v1':'opengu-aagu007-v1'}
+    profiles = {'modular-project-v1':'opengu-aagu007-v2'}
     monkeypatch.setattr(
         adapter_module,
         "_PREFLIGHT_HANDLERS",
@@ -201,7 +215,7 @@ def test_results_parser_reads_only_verified_index_artifacts(
 @pytest.mark.parametrize(
     "profile,recipe_id",
     [
-        ('modular-output-v1','opengu-aagu007-v1'),
+        ('modular-output-v1','opengu-aagu007-v2'),
     ],
 )
 def test_unverified_index_never_passes_project_acceptance(

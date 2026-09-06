@@ -74,7 +74,7 @@ def cli(root, path, run_id):
 
 
 def declaration(root, path, stage):
-    definition = copy.deepcopy(recipe_definitions()['opengu-aagu007-v1'])
+    definition = copy.deepcopy(recipe_definitions()['opengu-aagu007-v2'])
     plan = execute(path, dry_run=True)
     summary = 'results/runs/modular/contract/registered/summary.json'
     # Expected OUTPUTS are specified independently of the artifact enumerator.
@@ -196,7 +196,7 @@ def test_device_configuration_controls_failure_before_production(workspace, devi
 
 
 def test_live_registration_invokes_ordinary_yaml_directly():
-    definition = recipe_definitions()['opengu-aagu007-v1']
+    definition = recipe_definitions()['opengu-aagu007-v2']
     assert definition['argv'][:3] == ('{python}', 'experiments/run.py', definition['config_path'])
     assert '--recipe' not in definition['argv']
     assert '--run-id' in definition['argv']

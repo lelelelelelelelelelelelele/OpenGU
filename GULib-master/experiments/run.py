@@ -49,7 +49,7 @@ def main(argv=None):
                 # in the existing summary, not fabricated model/method coordinates.
                 identity = {'scope': 'experiment', 'experiment_id': config['experiment_id'],
                     'dataset': config['dataset']['dataset']['name'], 'execution_stage': config['stage']}
-                journal = context.store_root.parent / '_journal'
+                journal = context.runtime_root.parent / '_journal'
                 event_path = journal / 'auto_report.events.jsonl'
                 cell_id = make_cell_id(identity)
                 fingerprint = configuration_fingerprint(args.config)

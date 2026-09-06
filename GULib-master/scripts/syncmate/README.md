@@ -1248,7 +1248,7 @@ bridge:
 ```bash
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
 # After the current AAGU-007 configuration and its execution are approved:
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-aagu007-v1 --wait --json
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-aagu007-v2 --wait --json
 ```
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
@@ -1313,12 +1313,21 @@ Reports older than 24 hours are flagged by `doctor` as stale.
 
 ### Ordinary experiment receipts (AAGU-034)
 
-The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`.
+The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2`.
+The repaired 007 registration uses a new run identity to preserve the previous
+unaccepted batch. `opengu-aagu032-v1` binds the existing 42-cell Cora D-full
+comparison YAML, run ID `aagu032-v1`, 169 artifacts and a 21600-second limit.
+Its execution is conditional on successful 007 collection and metric checks.
 The same parser, in-memory expansion and execution kernel serve dry-run and
 local CPU verification. The registration binds both the top YAML hash and the
 complete referenced configuration fingerprint, plus run identity and the exact
 summary / per-method payload set. Collection verifies all bytes and independent
 Output / Selection / metric identities; it does not need the remote Store.
+Metric collection preserves the producer's library-version receipt and
+independently recomputes measurements from saved predictions. Protocol and
+output identities remain exact; finite numerical metrics use relative tolerance
+1e-7 and absolute tolerance 1e-9 across collector library versions. Run audit
+facts and projections live under ignored `results/runtime/modular/_journal/`.
 Historical target-direct and completed SM-005 one-shot registrations are retired.
 Their existing evidence and Cache V2 artifacts remain unchanged. See the
 [ordinary consumer guide](../../docs/modular_experiments.md).

@@ -2,7 +2,7 @@
 
 [experiment.yaml](experiment.yaml) 已改为引用公共小表：Cora/70-10-20 split seed2024、Degree1%、训练 seeds122/722、独立 GNNDelete与Retrain，共4个方法输出。公共默认模型为GCN两层hidden64；训练100 epochs、Adam lr0.005、weight_decay1e-6；GNNDelete遗忘50 epochs、lr0.01、alpha0.5。
 
-当前软件登记为 `opengu-aagu007-v1`，入口由 SyncMate 调用 `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`；注册绑定组合表及全部公共引用的指纹、运行身份、1800秒超时和17个导出文件。它不创建运行许可，真实实验仍须按 [007 WorkItem](../../../.workblock/items/AAGU-007/WORKITEM.md) 审阅和批准。
+当前软件登记为 `opengu-aagu007-v2`，入口由 SyncMate 调用 `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v2`；注册绑定组合表及全部公共引用的指纹、运行身份、1800秒超时和17个导出文件。它不创建运行许可，真实实验仍须按 [007 WorkItem](../../../.workblock/items/AAGU-007/WORKITEM.md) 审阅和批准。
 
 当前组合表只写文件名，解析器按字段定位固定公共目录；显式相对路径也支持，按组合表所在目录解析。加载和注册指纹使用同一规则。034收口后的基线由上述WorkItem持有。
 

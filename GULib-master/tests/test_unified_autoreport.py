@@ -30,7 +30,7 @@ def experiment(workspace):
 
 
 def journal(root):
-    events, warnings = read_event_stream(root / 'results/_journal/auto_report.events.jsonl')
+    events, warnings = read_event_stream(root / 'results/runtime/modular/_journal/auto_report.events.jsonl')
     assert not warnings
     return events
 
@@ -58,7 +58,7 @@ def test_real_success_and_cached_repeat_are_separate_audited_attempts(experiment
     assert any(a['path'] == str(summary) and a['content_hash'] == hashlib.sha256(summary.read_bytes()).hexdigest()
                for a in events[-1]['artifacts'])
     for name in ('auto_report.md', 'auto_report.html'):
-        text = (root / 'results/_journal' / name).read_text(encoding='utf-8')
+        text = (root / 'results/runtime/modular/_journal' / name).read_text(encoding='utf-8')
         assert 'contract' in text and 'complete' in text
 
 
@@ -87,7 +87,7 @@ def test_dry_run_creates_no_audit_attempt(experiment):
 
 def test_corrupt_journal_stops_before_production_and_preserves_evidence(experiment):
     root, path, _ = experiment
-    event_path = root / 'results/_journal/auto_report.events.jsonl'
+    event_path = root / 'results/runtime/modular/_journal/auto_report.events.jsonl'
     event_path.parent.mkdir(parents=True)
     event_path.write_bytes(b'not a valid audit event\n')
     result = cli(root, path, 'corrupt-journal')

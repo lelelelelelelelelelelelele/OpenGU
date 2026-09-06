@@ -11,12 +11,23 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-mas
 # These fingerprints are reviewed constants, not recomputed expected values.
 # Changing any referenced table requires a new review and updated registration.
 EXPERIMENT_RECIPES = {
-    'opengu-aagu007-v1': {
+    'opengu-aagu007-v2': {
         'config_path': 'experiments/configs/aagu007/experiment.yaml',
         'config_sha256': '1394ecdf82e64a79344a15f8191d1c7514034d9862bcff6a2d829ff6c02ca717',
         'configuration_fingerprint': '9f2913185bc357de0ce8a70e7adb6b70e498bc0552217fcc2e2ef9fd6e775eaf',
-        'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v1'},
+        'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v2'},
+        'timeout_seconds': 1800,
         'logical_cells': 4,
+        'stage': 'unlearning',
+        'expected_dataset': {'num_nodes': 2708, 'candidate_count': 1895},
+    },
+    'opengu-aagu032-v1': {
+        'config_path': 'experiments/configs/aagu032/experiment.yaml',
+        'config_sha256': '35c24fe080ab546f4a8fea7bad5ee573eed6f04e8c4488cca2054d2956c730ca',
+        'configuration_fingerprint': '3d80fc0e3d5447677565871c5dc06863f944ec4aeb80ae31e2533c72bdba42d9',
+        'run_identity': {'experiment_id': 'aagu032-cora-gcn-retrain', 'run_id': 'aagu032-v1'},
+        'timeout_seconds': 21600,
+        'logical_cells': 42,
         'stage': 'unlearning',
         'expected_dataset': {'num_nodes': 2708, 'candidate_count': 1895},
     },
@@ -59,7 +70,7 @@ def recipe_definitions():
             'argv': ('{python}', 'experiments/run.py', plan['config_path'],
                      '--run-id', plan['run_identity']['run_id']),
             'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
-            'timeout_seconds': 1800, 'expected_artifact_paths': paths,
+            'timeout_seconds': plan['timeout_seconds'], 'expected_artifact_paths': paths,
             'collector_result_roots': (summary.rsplit('/', 1)[0],),
             'collector_artifact_names': ('summary.json',) + ARTIFACT_NAMES,
             'preflight_profile': 'modular-project-v1', 'collector_profile': 'modular-output-v1',

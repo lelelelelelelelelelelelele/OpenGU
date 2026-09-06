@@ -1,12 +1,30 @@
 """Fingerprint explicitly owned Python computations and their local helpers."""
 from __future__ import annotations
 
+import ast
 import hashlib
 import inspect
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def computation_source(function):
+    """Include class decorators consistently on Python 3.8 and newer."""
+    lines, first = inspect.getsourcelines(function)
+    if not inspect.isclass(function):
+        return ''.join(lines)
+    path = inspect.getsourcefile(function)
+    source = Path(path).read_text(encoding='utf-8')
+    classes = [node for node in ast.walk(ast.parse(source))
+               if isinstance(node, ast.ClassDef) and node.name == function.__name__
+               and first <= node.lineno < first + len(lines)]
+    if not classes:
+        raise ValueError('cannot locate computation class in its source')
+    node = min(classes, key=lambda value: value.lineno)
+    start = min([node.lineno] + [item.lineno for item in node.decorator_list])
+    return ''.join(source.splitlines(keepends=True)[start - 1:node.end_lineno])
 
 
 def implementation_fingerprint(*functions):
@@ -23,7 +41,7 @@ def implementation_fingerprint(*functions):
         if not path or path.startswith('<') or ROOT not in Path(path).resolve().parents:
             continue
         name = function.__module__ + '.' + function.__qualname__
-        sources[name] = inspect.getsource(function)
+        sources[name] = computation_source(function)
         if inspect.isclass(function):
             pending.extend(base for base in function.__bases__ if base is not object)
             pending.extend(value for value in vars(function).values() if inspect.isfunction(value))

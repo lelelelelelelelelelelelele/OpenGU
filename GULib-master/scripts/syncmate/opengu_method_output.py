@@ -3,7 +3,37 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path, PurePosixPath
+
+
+def verify_evaluation(saved, current, receipt_id):
+    """Verify the producer receipt and independently recompute its measurements."""
+    from cache_v2 import canonical_sha256
+    identity = saved['identity']
+    if set(identity) != set(current['identity']):
+        raise ValueError('single-method metrics identity fields differ')
+    for key, value in current['identity'].items():
+        if key != 'metric_libraries' and identity[key] != value:
+            raise ValueError('single-method metrics protocol or output differs')
+    libraries = identity['metric_libraries']
+    if (not isinstance(libraries, dict) or set(libraries) != {'sklearn', 'torch', 'numpy'}
+            or any(not isinstance(value, str) or not value for value in libraries.values())):
+        raise ValueError('single-method metrics library provenance is missing')
+    expected_id = 'evalr_' + canonical_sha256(identity)[:32]
+    if saved['evaluation_receipt_id'] != expected_id or receipt_id != expected_id:
+        raise ValueError('single-method metrics receipt digest differs')
+    if set(saved['metrics']) != set(current['metrics']):
+        raise ValueError('single-method metrics fields differ')
+    for name, expected in current['metrics'].items():
+        value = saved['metrics'][name]
+        if isinstance(expected, (int, float)) and not isinstance(expected, bool):
+            if (not isinstance(value, (int, float)) or isinstance(value, bool)
+                    or not math.isfinite(value)
+                    or not math.isclose(value, expected, rel_tol=1e-7, abs_tol=1e-9)):
+                raise ValueError('single-method metric differs from saved predictions: ' + name)
+        elif value != expected:
+            raise ValueError('single-method metric status differs: ' + name)
 
 
 def read_method_output(artifacts, project_root):
@@ -62,8 +92,8 @@ def read_method_output(artifacts, project_root):
         raise ValueError('selected nodes differ from saved output')
     if any(result.get(key) != value for key, value in utility(payload).items()):
         raise ValueError('method utility differs from saved predictions')
-    evaluation = evaluate_method(reference, payload)
-    if result.get('evaluation') != evaluation or meta.get('evaluation_receipt_id') != evaluation['evaluation_receipt_id']:
-        raise ValueError('single-method metrics receipt differs from saved predictions or current protocol')
+    recomputed = evaluate_method(reference, payload)
+    evaluation = result['evaluation']
+    verify_evaluation(evaluation, recomputed, meta.get('evaluation_receipt_id'))
     return {'payload': payload, 'meta': meta, 'result': result,
             'output': reference, 'evaluation': evaluation}
