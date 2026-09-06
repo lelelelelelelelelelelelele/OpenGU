@@ -82,18 +82,19 @@ def _normalize_scalar(value: Any) -> Any:
 
 
 def normalize_identity(identity: Mapping[str, Any]) -> Dict[str, Any]:
-    required = ("dataset", "model", "method", "ratio")
+    experiment = identity.get("scope") == "experiment"
+    required = ("experiment_id", "dataset", "execution_stage") if experiment else ("dataset", "model", "method", "ratio")
     missing = [key for key in required if identity.get(key) in (None, "")]
     if missing:
         raise EventValidationError("identity missing required fields: {0}".format(", ".join(missing)))
     normalized = {key: _normalize_scalar(value) for key, value in identity.items()}
-    for optional in ("strategy", "seed", "k"):
+    for optional in (() if experiment else ("strategy", "seed", "k")):
         normalized.setdefault(optional, None)
     return dict(sorted(normalized.items()))
 
 
 def make_cell_id(identity: Mapping[str, Any]) -> str:
-    """Return a stable ID for matrix coordinates, independent of attempts/git."""
+    """Return a stable ID for logical coordinates, independent of attempts/git."""
     return "cell_" + _digest(normalize_identity(identity), length=20)
 
 
