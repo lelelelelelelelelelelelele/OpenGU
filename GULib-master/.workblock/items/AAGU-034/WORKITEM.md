@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `working / claimed`
+当前状态: `verified / awaiting acceptance`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-新版AutoReport已接回普通入口；测试先行记录157f30ce，产品检查点5b03cf30上48项相关验证通过，冻结测试文件未变。最新证据与报告见AutoReport补修Verify。当前只等待用户对source branch干净HEAD作人类验收决定；不执行正式SSH/GPU、Apply、push、安装或清理。
+Selector声明与缓存自动复用返工已验证：16项冻结合同先RED后实现；最新产品检查点5ca0d93e，测试修正867c806a，总计311项有效通过（294项按实际diff复用+17项重跑）。用户配置仅用selector_refs，015后续表已迁移，执行与核验共用条件展开。最新证据为evidence/selector-observations.json及同一REPORT.md/HTML。当前仅等待用户对source branch干净HEAD作人工验收；不执行正式SSH/GPU、Apply、push、安装或清理。
 
 ## Status history
 
@@ -175,3 +175,13 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 本轮明确修正原Human Surface第4项中“后续阶段绑定真实Selection”的使用方式：Selector/Unlearning用户配置只声明selector_refs；运行时通过有效输入与producer解析实际Selection，Artifact身份、哈希及HIT/MISS写入结果，供方法和收集核验消费。保留Metrics的真实Output输入、数据身份检查及历史证据，禁止兼容selection_input或重新引入手工绑定分支。
 - 执行与核验共用条件展开；迁移015六张U/Retrain表、活动示例、文档及受影响测试。科学方法、数据划分、三训练seed、两预算与306/612/306条件不变。
 - 先冻结真实行为测试，再实施；继承的验收建议暂不适用。完成受影响验证后更新同一报告并重新等待人类验收，不Apply/push/install，不运行正式SSH/GPU或修改历史Cache V2。
+
+### Selector 声明返工 Verify · 2026-09-07
+
+- 16项新合同先提交465567dfa6be0d05a36755be9c71eec049acde15。产品改前RED为10失败/6通过；Python 3.8夹具字符串方法更正在冻结前完成，断言未改。冻结文件与原Core/AutoReport合同字节均核对未变。
+- 干净产品检查点5ca0d93e5fc5cdfb75f8339d713f17a64b8f324e上311项执行：310 PASS、1个旧测试引用被删除的变量而NameError。867c806ad11aa20f5f14bc6c49c2ce8d62a31294仅补测试从真实Output取得Selection身份，整份Retrain17项重跑PASS。其余294项按确切diff复用，总计311项有效PASS，不重复累加、不将失败整轮标PASS。
+- PASS：Selector/Unlearning仅允许selector_refs，selection_input/selection_source在活动代码及配置中清零；实际展开由modular_config的selector_entries/unlearning_entries共同提供给dry-run、执行与核验。六张015 U/Retrain表显式声明相同17小表、seed[42,212,2024]、预算[.01,.05]，306/612/306条件与12表不变；007/032源表及4/42条件不变。
+- PASS：无前序产物可直接计算16条件；Stage S之后同声明GU自动HIT相同Score/Selection，24输出冷/热身份相同，禁止训练/评分仍成功；Core真实本地队列、子进程、65文件收集及16条件核验通过，伪造Selection content_hash被拒绝。实际身份与HIT/MISS在结果保留，不手填历史产物。
+- PASS：17方法公式、TracIn真实轨迹、预算/训练seed、独立Retrain、Metrics只读消费、AutoReport以及完整SyncMate相关回归通过。配置/归档审计、smoke、dashboard check、20文档链接、实际独立Retrain示例通过；2条CUDA依赖警告如实保留，运行均为临时CPU验证。
+- 产品未改评分、Selection、训练、GU producer及历史缓存。报告/证据提交相对867c806a仅修改本item表面与生命周期投影，软件结果按实际diff复用，新增结构、确定性HTML、链接与真实渲染检查另行验证。逐项结果、原始JUnit哈希、失败原因与临时示例路径见evidence/selector-observations.json；旧证据保持历史含义。
+- Agent建议接受本次软件修正，决定仍归用户。验证后停在awaiting_acceptance，不进行Closeout/Apply/push/install、正式SSH/GPU、正式数据准备或历史缓存清理。

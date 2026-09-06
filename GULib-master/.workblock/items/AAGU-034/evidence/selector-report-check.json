@@ -1,0 +1,249 @@
+{
+  "human_surface_unchanged": true,
+  "explicit_user_semantic_correction_recorded": true,
+  "frozen_contract_unchanged": true,
+  "report_links": [
+    {
+      "file": "WORKITEM.md",
+      "target": "../../../self/dashboard/WORKPLAN.md"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.md"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.html"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/verify-checkpoint.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/configuration-audit.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/render-qa.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-checkpoint.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-observations.json"
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/collection-side-effects.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-contract.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-verify.txt"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-retrain-verify.txt"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/selector-configuration-audit.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/autoreport-contract.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/autoreport-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/registration-problem-source.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-contract-freeze.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-migration.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-configs.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu007/experiment.yaml"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu032/experiment.yaml"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/experiment.template.yaml"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/README.md"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/PARAMETERS.md"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/modular_experiments.md"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-tests.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/verify-checkpoint.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/pytest.log"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/collection-side-effects.json"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-desktop.png"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-narrow.png"
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/render-qa.json"
+    }
+  ],
+  "render": {
+    "layer": "local headless Edge",
+    "results": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "metrics": {
+          "bodyOverflow": false,
+          "humanResults": 1,
+          "decisions": 1,
+          "decisionBottom": 457,
+          "brokenImages": 0,
+          "title": "AAGU-034 · 实验配置与统一执行入口修正"
+        },
+        "errors": []
+      },
+      {
+        "name": "narrow",
+        "width": 390,
+        "height": 844,
+        "metrics": {
+          "bodyOverflow": false,
+          "humanResults": 1,
+          "decisions": 1,
+          "decisionBottom": 600,
+          "brokenImages": 0,
+          "title": "AAGU-034 · 实验配置与统一执行入口修正"
+        },
+        "errors": []
+      }
+    ]
+  },
+  "agent_visual_review": "Viewed desktop and narrow first screens and the full new Selector evidence table. Decision visible at 457px/600px; no overflow, broken images or clipped table text."
+}

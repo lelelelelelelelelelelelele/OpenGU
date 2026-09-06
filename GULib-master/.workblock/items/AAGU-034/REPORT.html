@@ -1,16 +1,54 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AAGU-034 · 实验配置与统一执行入口修正</title><style>*{box-sizing:border-box}html{background:#f3f5f8;color:#223345;font-family:"Segoe UI","Microsoft YaHei",sans-serif}body{margin:0 auto;max-width:1100px;padding:28px 32px 70px;font-size:16px;line-height:1.75}main{background:#fff;padding:26px 40px 48px;border:1px solid #dce3eb;border-radius:12px}h1{font-size:29px;line-height:1.35;color:#16374c;margin:0 0 22px}h2{font-size:23px;margin:34px 0 14px;padding-top:8px;border-top:1px solid #dbe3ea}h3{font-size:18px;color:#245365;margin:24px 0 7px}p{margin:7px 0 14px}section{border:1px solid #c9ddd9;border-top:4px solid #237b72;background:#f7fbfa;padding:16px 22px 18px;border-radius:8px}section h2{font-size:16px;letter-spacing:.5px;color:#237b72;border:0;margin:0 0 8px;padding:0}section h3{margin:12px 0 4px}section p{margin:4px 0 9px}blockquote{margin:10px 0;padding:8px 15px;background:#fff1d2;border-left:4px solid #ca9b32}blockquote p{margin:0!important}[data-workblock-decision]{font-weight:700;color:#7c5410}a{color:#147589;text-underline-offset:3px}code{background:#edf1f5;padding:1px 4px;border-radius:3px;font-size:.85em;overflow-wrap:anywhere}pre{background:#152e40;color:#eff5f9;padding:18px 22px;border-radius:6px;overflow:auto;line-height:1.6}pre code{background:none;color:inherit;padding:0;white-space:pre-wrap;word-break:break-word}table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.65}th{background:#eaf1f4;text-align:left;color:#244657}th,td{border:1px solid #d8e2e8;padding:10px 13px;vertical-align:top;overflow-wrap:anywhere}td:first-child{font-weight:600;width:21%}.table-wrap{overflow:auto;margin:18px 0}strong{color:#173f51}li{margin:7px 0}@media(max-width:640px){body{padding:10px 8px;font-size:15px}main{padding:20px 16px;border-radius:8px}h1{font-size:24px}h2{font-size:21px}h3{font-size:17px}section{padding:13px}th,td{padding:7px;font-size:13px}pre{padding:12px}}@media print{html{background:white}body{max-width:none;padding:0}main{border:0;padding:0}section{break-inside:avoid}h2,h3{break-after:avoid}}</style></head><body><main><h1>AAGU-034 · 实验配置与统一执行入口修正</h1>
 <section data-workblock-human-result="2.1"><h2>Human Result</h2>
 <h3>实际增量</h3>
-<p><strong>核心问题：</strong> 已有解析器和执行内核没有被直接接到 Core，专用 stage 又写死设备、检查队列。上一版还用替换生产预检的测试宣称接缝通过。</p>
-<p><strong>本次修正：</strong> 删除该 stage；Core 直接提交普通 YAML 命令，设备来自 <code>device.yaml</code>。本次再补回迁移遗漏的 AutoReport V3 开始、完成、失败事件；已有执行内核和 007、032 模板继续使用。</p>
+<p>Selector/Unlearning只用 <code>selector_refs</code> 声明选点，删除手工绑定上一轮产物的分支。缓存自动查找或计算；实际Artifact身份、哈希与HIT/MISS保留在结果中，执行和核验共用条件展开。</p>
 <h3>核心观察</h3>
-<p>本轮 <strong>48 项通过</strong>：真实命令的成功、失败和缓存重复均有正确事件；dry-run不写事件，损坏日志在执行前拒绝。5项新增测试先RED、后实现，文件未改；原Core三阶段与收集回归也通过。<a href="evidence/autoreport-observations.json">真实事件与回执</a> · <a href="evidence/autoreport-observed/auto_report.html">实际生成的AutoReport</a>。正式SSH/GPU尚未运行。</p>
+<p><strong>311项有效验证通过。</strong> 首次直接运行、跨阶段复用、热运行禁止训练/评分、真实Core收集均通过；伪造Selection身份被拒绝。015科学条件及007/032原表保持。<a href="evidence/selector-observations.json">本轮证据</a>。正式SSH/GPU未运行。</p>
 <h3>当前决定</h3>
 <blockquote>
 <p>当前验收决定：<span data-workblock-decision="pending">待决定</span></p>
 </blockquote>
-<p>Agent <strong>建议接受这版软件修正</strong>：现有入口、设备配置、Core链路及AutoReport运行事件已有验证。接受对象为本source branch当前干净HEAD，决定权归用户；正式运行和科研结论另行验收。</p>
-</section><h2>AutoReport 补修：运行事件恢复</h2>
+<p>Agent <strong>建议接受本次软件修正</strong>。对象为本source branch的干净HEAD，由用户决定；未合并，正式实验另行验收。</p>
+</section><h2>Selector 声明与自动复用补修</h2>
+<p>用户指出执行端允许 <code>selection_input</code> 替代 <code>selector_refs</code>，核验器却只按后者展开；015后续表还要求手填Stage S摘要和SHA-256。已有缓存已经能自动HIT/MISS，这个额外输入分支增加了用户配置负担，并使执行与核验的规则不一致。用户明确同意删除它并在同一034返工。</p>
+<p>现在，Selector与Unlearning都通过公共小表声明选点规则，使用同一有效训练seed与预算。<code>selector_entries</code> / <code>unlearning_entries</code> 由普通解析模块持有，dry-run计数、实际执行和收集核验共用；Score、Selection及独立方法仍使用现有缓存producer。实际使用的三元Artifact身份、哈希、命中与producer调用事实写入summary及Output。Metrics的已收集Output输入继续保留。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>实际场景</th>
+<th>观察与判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无上轮Selector结果，直接执行Unlearning</td>
+<td>两Selector（Degree/模型型评分）×两训练seed×两预算×两方法产生16个真实输出；MISS自动计算。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>先执行Selector，再以相同声明执行Unlearning</td>
+<td>Degree、Random、a_grad_norm的真实Selection Artifact逐项相同；Score/Selection全部HIT，选点producer未调用。24个方法输出正常生成。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>再次执行，禁止训练和评分</td>
+<td>训练/评分调用列表为空，24个方法输出HIT且身份一致；源YAML字节不变。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>Core真实提交、收集与核验</td>
+<td>使用相同声明热执行，收集65个文件、核验16条件；即使更新文件传输摘要，伪造Selection content_hash仍被语义核验拒绝。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>删除旧输入与迁移015</td>
+<td>活动代码/配置无旧字段和专用分支；六张U/Retrain表改为公共refs与原有两轴，12张维护表仍对应306/612/306条件。007/032保持4/42条件和原文字节。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>独立Retrain示例与输出只读消费</td>
+<td>更新后的示例真实执行；热Retrain和指标读取在禁止训练及forward时仍通过。<strong>PASS</strong></td>
+</tr>
+</tbody></table></div>
+<p><strong>测试过程与修正：</strong> <code>465567df</code>先固定16项合同测试，产品仍为<code>8ad752ed</code>时10失败、6通过。首次夹具误用Python 3.8不支持的<code>removesuffix</code>，在产品修改和冻结提交前改为等价切片，所有断言不变。冻结后测试文件未改，原Core与AutoReport合同也未改。<a href="evidence/selector-contract.json">冻结与RED回执</a>。</p>
+<p>干净产品检查点<code>5ca0d93e</code>完成311项回归，310通过、1项旧测试变量遗漏导致NameError。<code>867c806a</code>只补该测试从真实Output读取Selection身份，整份Retrain文件17项重跑通过；其余294项按实际diff复用，合计311项有效通过，未重复累加，也未把原失败轮标成整轮PASS。<a href="evidence/selector-observations.json">逐测试与复用说明</a> · <a href="evidence/selector-verify.txt">原完整回归</a> · <a href="evidence/selector-retrain-verify.txt">17项重跑</a>。</p>
+<p>活动YAML与全部引用审计、既有SyncMate smoke、dashboard check、20个文档链接和冻结合同检查均通过。<a href="evidence/selector-configuration-audit.json">最新配置审计</a>。本轮未修改评分、Selection、模型训练或GU producer，未改写任何历史缓存/正式数据。旧测试只迁移被删除的手工输入；缓存查找仍执行，producer阻断位置改在实际评分函数，缺失依赖、损坏身份和只读指标断言保留。</p>
+<p>以下保留034原始问题、前序修正与证据；各结果仍标明自己的检查点。</p>
+<h2>AutoReport 补修：运行事件恢复</h2>
 <p>用户认可Core与普通入口的流程后，补查确认 <code>run.py</code> 迁移时遗漏了现有AutoReport V3调用。Core的任务状态不能自动替代实验审计事件。本次在普通入口接回原V3 writer和投影器，没有新增报告系统或执行调度器。</p>
 <p>现在一份YAML通过配置与设备检查后写入 <code>run.started</code>，已有内核执行完成后写入 <code>run.completed</code>；执行异常写入 <code>run.failed</code> 并保留原错误。完成事件关联summary路径及SHA-256，每次运行绑定配置指纹、Git版本和执行run-id。事件位于设备选定执行根的 <code>results/_journal</code>，现有Markdown/HTML由JSONL自动重建。</p>
 <p>实际观察如下，均来自临时CPU图上的真实命令和Core子进程：</p>
@@ -67,7 +105,7 @@
 <tr>
 <td><strong>2. “能检查配置”与“能实际执行”脱节。</strong> <code>run.py</code> 对普通 <code>kind: experiment</code> 只放行 dry-run；已有真实内核没有成为统一命令路径。</td>
 <td>普通检查、临时CPU执行、注册项目调用均进入同一解析/展开/执行链。</td>
-<td><a href="evidence/observations.json">真实命令证据</a>产生24个独立输出，另从Stage S真实摘要执行Retrain；不是仅调用解析函数。</td>
+<td><a href="evidence/observations.json">真实命令证据</a>产生24个独立输出，另以相同声明自动复用Stage S缓存执行Retrain；不是仅调用解析函数。</td>
 </tr>
 <tr>
 <td><strong>3. 旧专用路径仍被消费。</strong> <code>opengu_recipes/opengu_adapter</code> 仍调用旧 target-direct stage，活动注册不能只靠迁移文件名完成修正。</td>
@@ -219,12 +257,12 @@ seeds: [42, 212]
 budget_ratios: [0.01, 0.05]
 matrix: cartesian_product
 </code></pre>
-<p>后续阶段通过 <code>selection_input: {experiment_ref, summary, sha256}</code> 读取真实 Stage S 摘要及其精确Selection，继承源表批次并核对方法、预算和身份；不会重新选点。Metrics通过 <code>output_inputs: [{summary, sha256}]</code> 读取已收集的独立输出。当前015后续引用为null，必须在真实阶段完成后填入，不以占位文件冒充资产。</p>
+<p>Selector/Unlearning只通过 <code>selector_refs</code> 声明选点，各表显式保留同一训练seed与预算；缓存自动命中或计算，无需填写上一轮Selection摘要。Metrics通过 <code>output_inputs: [{summary, sha256}]</code> 读取已收集独立输出，其真实Output引用仍须在阶段完成后填入。</p>
 <p>规范入口：<a href="../../../docs/experiment_contract/README.md">001合同</a>、<a href="../../../docs/experiment_contract/PARAMETERS.md">字段与实际依赖</a>、<a href="../../../docs/modular_experiments.md">执行数据流</a>。</p>
 <h2>验收问题与实际观察</h2>
 <h3>普通命令是否真正执行 — PASS</h3>
-<p>在20节点、10训练候选的临时图上，普通组合表经过 <code>run.py</code> 的 <code>__main__</code>、同一解析/展开器和执行内核，完成 Degree、Random、a_grad_norm × seed122/722 × 预算0.1/0.2 × GNNDelete/Retrain，共24输出。实际优化器step处记录的训练seed集合为 <code>{122,722}</code>；每次删除节点数为1或2，原YAML字节不变。另一次无测量包装的直接CLI先执行Stage S，再绑定其摘要执行独立Retrain，Selection引用逐项相同，没有重新选点。</p>
-<p>关键测试：<code>test_command_cold_warm_seed_budget_retrain_and_metrics</code>、<code>test_stage_s_summary_binds_real_selections_without_resampling</code>。前者在新Python进程中通过runpy进入真实命令，仅添加seed记录及producer阻断；不是用手工summary替代运行。</p>
+<p>在20节点、10训练候选的临时图上，普通组合表经过 <code>run.py</code> 的 <code>__main__</code>、同一解析/展开器和执行内核，完成 Degree、Random、a_grad_norm × seed122/722 × 预算0.1/0.2 × GNNDelete/Retrain，共24输出。实际优化器step处记录的训练seed集合为 <code>{122,722}</code>；每次删除节点数为1或2，原YAML字节不变。另一次无测量包装的直接CLI先执行Stage S，再以相同Selector声明自动复用缓存执行独立Retrain，Selection引用逐项相同，没有重新选点。</p>
+<p>关键测试：<code>test_command_cold_warm_seed_budget_retrain_and_metrics</code>、<code>test_stage_s_cache_supplies_real_selections_without_resampling</code>。前者在新Python进程中通过runpy进入真实命令，仅添加seed记录及producer阻断；不是用手工summary替代运行。</p>
 <h3>覆盖与缓存是否遵循真实依赖 — PASS</h3>
 <p>第二次执行同时阻断训练和评分producer，24项方法输出均HIT且身份与冷运行相同，训练/评分调用列表为空。只改预算时，Degree、Random、a_grad_norm的Score分组数分别为1、1、2；对应Selection分组为2、2、4。第二训练seed不影响无需模型的Degree/Random，模型型评分按训练seed区分。实际方法实现和Hutch参数变化的既有消费者测试也观察到相关MISS，其他评分继续HIT；移动/重命名小表不改变计算身份。</p>
 <p>本次TracIn checkpoint选择函数增加拒绝错误轨迹的检查，会改变依赖它的producer指纹；这些Score及下游Selection/Output不能承诺复用旧身份。Metrics读取与配对实现的指纹也会更新评价回执。普通YAML路径迁移本身不进入计算键；没有清空或改写历史Artifact。正式旧缓存上的命中率与重算成本未测量。</p>
@@ -293,7 +331,7 @@ matrix: cartesian_product
 </tbody></table></div>
 <p>GULib基础训练入口及历史证据读取功能保留其原职责，不构成另一套新实验格式。删除文件的精确清单见<a href="evidence/retired-code.json">入口退役</a>。</p>
 <h2>Verify、复跑与证据定位</h2>
-<p>最新AutoReport补修检查点为 <code>5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7</code>，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 <code>c40ee9dae7e63c3e921e221554fbc41fccabd27e</code> 及其 <strong>257 项有效通过结果</strong>，保留各自检查点，不冒充本次重跑：</p>
+<p>最新Selector补修的311项有效结果见上方，产品检查点为<code>5ca0d93e</code>，测试修正检查点为<code>867c806a</code>。此前AutoReport补修检查点为 <code>5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7</code>，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 <code>c40ee9dae7e63c3e921e221554fbc41fccabd27e</code> 及其 <strong>257 项有效通过结果</strong>，保留各自检查点，不冒充本次重跑：</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -363,7 +401,7 @@ matrix: cartesian_product
 <p>当前待决定候选由<a href="WORKITEM.md">同一WorkItem</a>的source branch干净HEAD唯一确定。报告/证据加入后对实际diff复核，复用上述检查点中未受影响的软件证据，并单独验证新增报告与状态投影；详见WorkItem Verify记录。</p>
 <h2>尚未观察与人类边界</h2>
 <p><strong>检查偏差与修复：</strong> 补充检查中的一次仓库全域 <code>pytest --collect-only</code> 误导入 <code>tests/</code> 外有顶层执行副作用的旧 IM 基准脚本，触发了本地数据下载/处理和 CPU 计算；该进程已停止。随后明确限定 <code>pytest tests --collect-only</code>，745项收集通过。逐文件核对创建时间、路径、Git忽略状态和SHA-256后，移除了本次误操作新增的57个文件（40数据、11日志、6编译缓存），并验证均不存在；没有删除既有文件或历史证据。这次误操作及其产物不计入任何正式实验通过结论。详见<a href="evidence/collection-side-effects.json">新增文件与清理核验</a>及命令回执的interrupted_checks。</p>
-<p><strong>NOT OBSERVED：</strong> SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015后续阶段的Selection/Output摘要引用待正式阶段完成后填写。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。</p>
+<p><strong>NOT OBSERVED：</strong> SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015 Metrics的Output摘要引用待正式阶段完成后填写；Selector/Unlearning已无手工Selection输入。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。</p>
 <p>本轮没有启动远端正式SSH/GPU作业、push、Apply、安装或历史缓存修复。软件支持范围仍是已有节点删除、GCN/SGC和GNNDelete/GIF/Retrain消费者，不能推导任意模型或遗忘方法已适配。当前目标是确认统一配置和执行修正是否完成，后续正式任务必须消费人类接受后的版本。</p>
 <p>HTML呈现检查：<strong>PASS</strong>。已实际查看headless Edge的1440×1000桌面、390×844窄屏首屏以及正文/边界截图；首屏可见决定入口，标题、正文、表格和命令可读，无页面横向溢出、断图或页面错误。观察层是本地HTML渲染，不代表SSH/GPU运行。<a href="evidence/report-desktop.png">桌面</a> · <a href="evidence/report-narrow.png">窄屏</a> · <a href="evidence/render-qa.json">呈现测量</a>。</p>
 </main></body></html>

@@ -4,19 +4,40 @@
 
 ### 实际增量
 
-**核心问题：** 已有解析器和执行内核没有被直接接到 Core，专用 stage 又写死设备、检查队列。上一版还用替换生产预检的测试宣称接缝通过。
-
-**本次修正：** 删除该 stage；Core 直接提交普通 YAML 命令，设备来自 `device.yaml`。本次再补回迁移遗漏的 AutoReport V3 开始、完成、失败事件；已有执行内核和 007、032 模板继续使用。
+Selector/Unlearning只用 `selector_refs` 声明选点，删除手工绑定上一轮产物的分支。缓存自动查找或计算；实际Artifact身份、哈希与HIT/MISS保留在结果中，执行和核验共用条件展开。
 
 ### 核心观察
 
-本轮 **48 项通过**：真实命令的成功、失败和缓存重复均有正确事件；dry-run不写事件，损坏日志在执行前拒绝。5项新增测试先RED、后实现，文件未改；原Core三阶段与收集回归也通过。[真实事件与回执](evidence/autoreport-observations.json) · [实际生成的AutoReport](evidence/autoreport-observed/auto_report.html)。正式SSH/GPU尚未运行。
+**311项有效验证通过。** 首次直接运行、跨阶段复用、热运行禁止训练/评分、真实Core收集均通过；伪造Selection身份被拒绝。015科学条件及007/032原表保持。[本轮证据](evidence/selector-observations.json)。正式SSH/GPU未运行。
 
 ### 当前决定
 
 > 当前验收决定：`待决定`
 
-Agent **建议接受这版软件修正**：现有入口、设备配置、Core链路及AutoReport运行事件已有验证。接受对象为本source branch当前干净HEAD，决定权归用户；正式运行和科研结论另行验收。
+Agent **建议接受本次软件修正**。对象为本source branch的干净HEAD，由用户决定；未合并，正式实验另行验收。
+
+## Selector 声明与自动复用补修
+
+用户指出执行端允许 `selection_input` 替代 `selector_refs`，核验器却只按后者展开；015后续表还要求手填Stage S摘要和SHA-256。已有缓存已经能自动HIT/MISS，这个额外输入分支增加了用户配置负担，并使执行与核验的规则不一致。用户明确同意删除它并在同一034返工。
+
+现在，Selector与Unlearning都通过公共小表声明选点规则，使用同一有效训练seed与预算。`selector_entries` / `unlearning_entries` 由普通解析模块持有，dry-run计数、实际执行和收集核验共用；Score、Selection及独立方法仍使用现有缓存producer。实际使用的三元Artifact身份、哈希、命中与producer调用事实写入summary及Output。Metrics的已收集Output输入继续保留。
+
+| 实际场景 | 观察与判断 |
+|---|---|
+| 无上轮Selector结果，直接执行Unlearning | 两Selector（Degree/模型型评分）×两训练seed×两预算×两方法产生16个真实输出；MISS自动计算。**PASS** |
+| 先执行Selector，再以相同声明执行Unlearning | Degree、Random、a_grad_norm的真实Selection Artifact逐项相同；Score/Selection全部HIT，选点producer未调用。24个方法输出正常生成。**PASS** |
+| 再次执行，禁止训练和评分 | 训练/评分调用列表为空，24个方法输出HIT且身份一致；源YAML字节不变。**PASS** |
+| Core真实提交、收集与核验 | 使用相同声明热执行，收集65个文件、核验16条件；即使更新文件传输摘要，伪造Selection content_hash仍被语义核验拒绝。**PASS** |
+| 删除旧输入与迁移015 | 活动代码/配置无旧字段和专用分支；六张U/Retrain表改为公共refs与原有两轴，12张维护表仍对应306/612/306条件。007/032保持4/42条件和原文字节。**PASS** |
+| 独立Retrain示例与输出只读消费 | 更新后的示例真实执行；热Retrain和指标读取在禁止训练及forward时仍通过。**PASS** |
+
+**测试过程与修正：** `465567df`先固定16项合同测试，产品仍为`8ad752ed`时10失败、6通过。首次夹具误用Python 3.8不支持的`removesuffix`，在产品修改和冻结提交前改为等价切片，所有断言不变。冻结后测试文件未改，原Core与AutoReport合同也未改。[冻结与RED回执](evidence/selector-contract.json)。
+
+干净产品检查点`5ca0d93e`完成311项回归，310通过、1项旧测试变量遗漏导致NameError。`867c806a`只补该测试从真实Output读取Selection身份，整份Retrain文件17项重跑通过；其余294项按实际diff复用，合计311项有效通过，未重复累加，也未把原失败轮标成整轮PASS。[逐测试与复用说明](evidence/selector-observations.json) · [原完整回归](evidence/selector-verify.txt) · [17项重跑](evidence/selector-retrain-verify.txt)。
+
+活动YAML与全部引用审计、既有SyncMate smoke、dashboard check、20个文档链接和冻结合同检查均通过。[最新配置审计](evidence/selector-configuration-audit.json)。本轮未修改评分、Selection、模型训练或GU producer，未改写任何历史缓存/正式数据。旧测试只迁移被删除的手工输入；缓存查找仍执行，producer阻断位置改在实际评分函数，缺失依赖、损坏身份和只读指标断言保留。
+
+以下保留034原始问题、前序修正与证据；各结果仍标明自己的检查点。
 
 ## AutoReport 补修：运行事件恢复
 
@@ -51,7 +72,7 @@ Agent **建议接受这版软件修正**：现有入口、设备配置、Core链
 | 注册时的真实问题或明确要求 | 本次对应修正 | 用什么判断修正是否成立 |
 |---|---|---|
 | **1. 公共配置没有一套共同规格。** 015 与 V2 各有 17 份 Selector 表；同一 `gt_full` 参数相同，但一边要求 `candidate/budget`，另一边拒绝这些字段。 | 公共目录持有同一套小表，组合表引用；同语义实例共用，不同参数变体明确区分。 | [配置审计](evidence/configuration-audit.json)核对全部活动引用；[实际观察](evidence/observations.json)包含17方法公式对照和真实TracIn 3/6轨迹。 |
-| **2. “能检查配置”与“能实际执行”脱节。** `run.py` 对普通 `kind: experiment` 只放行 dry-run；已有真实内核没有成为统一命令路径。 | 普通检查、临时CPU执行、注册项目调用均进入同一解析/展开/执行链。 | [真实命令证据](evidence/observations.json)产生24个独立输出，另从Stage S真实摘要执行Retrain；不是仅调用解析函数。 |
+| **2. “能检查配置”与“能实际执行”脱节。** `run.py` 对普通 `kind: experiment` 只放行 dry-run；已有真实内核没有成为统一命令路径。 | 普通检查、临时CPU执行、注册项目调用均进入同一解析/展开/执行链。 | [真实命令证据](evidence/observations.json)产生24个独立输出，另以相同声明自动复用Stage S缓存执行Retrain；不是仅调用解析函数。 |
 | **3. 旧专用路径仍被消费。** `opengu_recipes/opengu_adapter` 仍调用旧 target-direct stage，活动注册不能只靠迁移文件名完成修正。 | 迁移预检、指纹、输出及收集契约后退役旧解析/调度与注册；本次复核又清除了M1 helper及其旧Adapter。 | [删除清单](evidence/retired-code.json)与零活动引用审计；[本轮真实Core验证](evidence/core-rework-observations.json)覆盖队列、设备、校验和结果读取。M1残留属于实施后补查，未冒充注册时已点名的问题。 |
 | **4. 015 用文件复制表示实验条件。** 449份YAML中424份位于 `generated/`，按seed/预算生成，造成重复维护。 | 改为12张普通维护表和内存展开；保留原三数据集、17方法、三seed、两预算及阶段语义。 | [迁移审计](evidence/configuration-audit.json)：424副本退役；Stage S 306、Stage U 612、独立Retrain 306，文件减少未缩小科学范围。 |
 | **5. 大表覆盖规则必须落实到实际消费者。** 只允许训练seed和预算，明确优先级、来源、模型型Selector与GU/Retrain配对；不能任意override或写回小表。 | 展开有效配置并记录来源，训练、选点和缓存使用实际消费值；Dataset/Split与Random抽样seed保持各自含义。 | [CPU冷/热观察](evidence/observations.json)：实际训练seed为122/722、选点数1/2、源YAML不变；阻断producer后HIT且输出身份一致。 |
@@ -126,7 +147,7 @@ budget_ratios: [0.01, 0.05]
 matrix: cartesian_product
 ```
 
-后续阶段通过 `selection_input: {experiment_ref, summary, sha256}` 读取真实 Stage S 摘要及其精确Selection，继承源表批次并核对方法、预算和身份；不会重新选点。Metrics通过 `output_inputs: [{summary, sha256}]` 读取已收集的独立输出。当前015后续引用为null，必须在真实阶段完成后填入，不以占位文件冒充资产。
+Selector/Unlearning只通过 `selector_refs` 声明选点，各表显式保留同一训练seed与预算；缓存自动命中或计算，无需填写上一轮Selection摘要。Metrics通过 `output_inputs: [{summary, sha256}]` 读取已收集独立输出，其真实Output引用仍须在阶段完成后填入。
 
 规范入口：[001合同](../../../docs/experiment_contract/README.md)、[字段与实际依赖](../../../docs/experiment_contract/PARAMETERS.md)、[执行数据流](../../../docs/modular_experiments.md)。
 
@@ -134,9 +155,9 @@ matrix: cartesian_product
 
 ### 普通命令是否真正执行 — PASS
 
-在20节点、10训练候选的临时图上，普通组合表经过 `run.py` 的 `__main__`、同一解析/展开器和执行内核，完成 Degree、Random、a_grad_norm × seed122/722 × 预算0.1/0.2 × GNNDelete/Retrain，共24输出。实际优化器step处记录的训练seed集合为 `{122,722}`；每次删除节点数为1或2，原YAML字节不变。另一次无测量包装的直接CLI先执行Stage S，再绑定其摘要执行独立Retrain，Selection引用逐项相同，没有重新选点。
+在20节点、10训练候选的临时图上，普通组合表经过 `run.py` 的 `__main__`、同一解析/展开器和执行内核，完成 Degree、Random、a_grad_norm × seed122/722 × 预算0.1/0.2 × GNNDelete/Retrain，共24输出。实际优化器step处记录的训练seed集合为 `{122,722}`；每次删除节点数为1或2，原YAML字节不变。另一次无测量包装的直接CLI先执行Stage S，再以相同Selector声明自动复用缓存执行独立Retrain，Selection引用逐项相同，没有重新选点。
 
-关键测试：`test_command_cold_warm_seed_budget_retrain_and_metrics`、`test_stage_s_summary_binds_real_selections_without_resampling`。前者在新Python进程中通过runpy进入真实命令，仅添加seed记录及producer阻断；不是用手工summary替代运行。
+关键测试：`test_command_cold_warm_seed_budget_retrain_and_metrics`、`test_stage_s_cache_supplies_real_selections_without_resampling`。前者在新Python进程中通过runpy进入真实命令，仅添加seed记录及producer阻断；不是用手工summary替代运行。
 
 ### 覆盖与缓存是否遵循真实依赖 — PASS
 
@@ -191,7 +212,7 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 ## Verify、复跑与证据定位
 
-最新AutoReport补修检查点为 `5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7`，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 `c40ee9dae7e63c3e921e221554fbc41fccabd27e` 及其 **257 项有效通过结果**，保留各自检查点，不冒充本次重跑：
+最新Selector补修的311项有效结果见上方，产品检查点为`5ca0d93e`，测试修正检查点为`867c806a`。此前AutoReport补修检查点为 `5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7`，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 `c40ee9dae7e63c3e921e221554fbc41fccabd27e` 及其 **257 项有效通过结果**，保留各自检查点，不冒充本次重跑：
 
 | 证据范围 | 有效结果及检查点 |
 |---|---|
@@ -232,7 +253,7 @@ GULib基础训练入口及历史证据读取功能保留其原职责，不构成
 
 **检查偏差与修复：** 补充检查中的一次仓库全域 `pytest --collect-only` 误导入 `tests/` 外有顶层执行副作用的旧 IM 基准脚本，触发了本地数据下载/处理和 CPU 计算；该进程已停止。随后明确限定 `pytest tests --collect-only`，745项收集通过。逐文件核对创建时间、路径、Git忽略状态和SHA-256后，移除了本次误操作新增的57个文件（40数据、11日志、6编译缓存），并验证均不存在；没有删除既有文件或历史证据。这次误操作及其产物不计入任何正式实验通过结论。详见[新增文件与清理核验](evidence/collection-side-effects.json)及命令回执的interrupted_checks。
 
-**NOT OBSERVED：** SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015后续阶段的Selection/Output摘要引用待正式阶段完成后填写。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。
+**NOT OBSERVED：** SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015 Metrics的Output摘要引用待正式阶段完成后填写；Selector/Unlearning已无手工Selection输入。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。
 
 本轮没有启动远端正式SSH/GPU作业、push、Apply、安装或历史缓存修复。软件支持范围仍是已有节点删除、GCN/SGC和GNNDelete/GIF/Retrain消费者，不能推导任意模型或遗忘方法已适配。当前目标是确认统一配置和执行修正是否完成，后续正式任务必须消费人类接受后的版本。
 

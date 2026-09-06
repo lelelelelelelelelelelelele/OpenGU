@@ -26,10 +26,11 @@ const {chromium}=require(require.resolve('playwright',{paths:[process.argv[2]]})
    if(name==='desktop'&&metrics.decisionBottom>height)throw Error('desktop decision below first screen');
    if(name==='desktop'){
     await page.screenshot({path:path.join(__dirname,'report-full.png'),fullPage:true});
-    for(const [label,title] of [['autoreport','AutoReport 补修：运行事件恢复'],['registration','为什么注册 034：原始问题与修正对照'],['core','本轮为什么再次返工'],['body','验收问题与实际观察'],['boundary','尚未观察与人类边界']]){
+    for(const [label,title] of [['selector','Selector 声明与自动复用补修'],['autoreport','AutoReport 补修：运行事件恢复'],['registration','为什么注册 034：原始问题与修正对照'],['core','本轮为什么再次返工'],['body','验收问题与实际观察'],['boundary','尚未观察与人类边界']]){
      await page.getByRole('heading',{name:title,exact:true}).scrollIntoViewIfNeeded();
-     if(label==='registration')await page.getByRole('heading',{name:title,exact:true}).evaluate(el=>el.scrollIntoView({block:'start'}));
+     if(label==='registration'||label==='selector')await page.getByRole('heading',{name:title,exact:true}).evaluate(el=>el.scrollIntoView({block:'start'}));
      await page.screenshot({path:path.join(__dirname,'report-'+label+'.png')});
+     if(label==='selector')await page.locator('table').filter({hasText:'无上轮Selector结果'}).screenshot({path:path.join(__dirname,'report-selector-table.png')});
      if(label==='registration')await page.locator('table').filter({hasText:'公共配置没有一套共同规格'}).screenshot({path:path.join(__dirname,'report-registration-table.png')});
      if(label==='autoreport')await page.locator('table').filter({hasText:'冷运行后以新run-id热运行'}).screenshot({path:path.join(__dirname,'report-autoreport-table.png')});
     }
