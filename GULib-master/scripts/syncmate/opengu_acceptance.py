@@ -44,17 +44,23 @@ def _peer_evidence(
     peer = ((index.get("peers") or {}).get(node_id) or {}) if isinstance(index, Mapping) else {}
     errors: list[str] = []
     expected_paths = list(definition.get("expected_artifact_paths") or [])
-    items = peer.get("items") or []
+    expected = set(expected_paths)
+    # Core binds this recipe's paths to the submission handoff. The peer index
+    # also retains other runs; only this delivery participates in acceptance.
+    items = [
+        item for item in (peer.get("items") or [])
+        if isinstance(item, Mapping)
+        and str(item.get("remote_path") or item.get("path") or "") in expected
+    ]
     by_remote = {
         str(item.get("remote_path") or item.get("path")): item
         for item in items
-        if isinstance(item, Mapping) and (item.get("remote_path") or item.get("path"))
     }
     if len(by_remote) != len(items):
-        errors.append(f"{label} artifact index contains duplicate or invalid paths")
+        errors.append(f"{label} delivery artifact index contains duplicate paths")
     if (peer.get("summary") or {}).get("status") != "verified":
         errors.append(f"{label} artifact index is not verified")
-    if set(by_remote) != set(expected_paths):
+    if set(by_remote) != expected:
         errors.append(f"verified {label} artifact set differs from the reviewed recipe")
     observed_sha = ((peer.get("remote") or {}).get("git") or {}).get("sha")
     expected_sha = context.get("expected_git_sha")
@@ -82,8 +88,8 @@ def acceptance_payload(profile, definition, context):
             summary, outputs = read_summary_outputs(root / entry['local_path'], entry['sha256'])
             if summary['configuration_fingerprint'] != definition['configuration_fingerprint']:
                 raise ValueError('summary differs from registered effective configuration')
-            if summary['logical_cells'] != definition['logical_cells'] or len(outputs) != definition['logical_cells']:
-                raise ValueError('collected logical/output count differs from registration')
+            if summary['logical_cells'] != definition['logical_cells']:
+                raise ValueError('collected logical count differs from registration')
             execution = summary['execution_receipt']
             if (execution.get('source_git_sha') != context['expected_git_sha']
                     or execution['run_id'] != definition['run_identity']['run_id']
@@ -96,6 +102,11 @@ def acceptance_payload(profile, definition, context):
                 raise ValueError('collector reviewed configuration changed')
             if summary['dataset'] != config['dataset']:
                 raise ValueError('summary Dataset/Split differs from configuration')
+            stage = config['stage']
+            if stage not in ('selector', 'unlearning', 'metrics') or summary['stage'] != stage or definition['stage'] != stage:
+                raise ValueError('collected stage differs from registration or configuration')
+            if summary['data_identity']['split_hash'] != config['dataset']['artifacts']['split_hash']:
+                raise ValueError('summary Split identity differs from configuration')
             batches = list(experiment_batches(config))
             expected = [(batch, gu, selector, selector_ref, gu_ref)
                         for batch in batches
@@ -105,6 +116,14 @@ def acceptance_payload(profile, definition, context):
             selector_rows = summary['selectors']
             expected_selectors = [(batch, selector, ref) for batch in batches
                                   for selector, ref in selector_entries(batch)]
+            logical_cells = (sum(len(batch['output_inputs']) for batch in batches) if stage == 'metrics'
+                             else len(expected) if stage == 'unlearning' else len(expected_selectors))
+            if logical_cells != definition['logical_cells']:
+                raise ValueError('registered logical count differs from ordinary matrix expansion')
+            if stage != 'unlearning' and (outputs or summary['unlearning']):
+                raise ValueError('non-Unlearning stage contains method outputs')
+            if stage == 'selector' and summary['evaluations']:
+                raise ValueError('Selector stage contains evaluations')
             if len(selector_rows) != len(expected_selectors):
                 raise ValueError('collected Selector row count mismatch')
             for (batch, selector, ref), row in zip(expected_selectors, selector_rows):
@@ -117,6 +136,31 @@ def acceptance_payload(profile, definition, context):
                         or score.get('training') != selector.get('training')
                         or score.get('selector_model') != selector.get('model')):
                     raise ValueError('Selector differs from the effective configuration')
+                if stage == 'selector':
+                    k = resolve_budget(selector['budget'], definition['expected_dataset']['candidate_count'])['k']
+                    nodes = row['selection']['views'][str(k)]['selected_nodes']
+                    if len(nodes) != k or len(set(nodes)) != k:
+                        raise ValueError('Selector view differs from the effective budget')
+                    cells.append({'selector_ref': ref, 'matrix_values': batch['matrix_values'],
+                                  'selection': row['selection']['artifact']})
+            if stage == 'metrics':
+                from cache_v2 import canonical_sha256
+                evaluations = summary['evaluations']
+                if len(evaluations) != len(config['evaluations']):
+                    raise ValueError('collected Evaluation count differs from configuration')
+                for instance, evaluation in zip(config['evaluations'], evaluations):
+                    if evaluation['effective_config'] != instance or not evaluation['rows']:
+                        raise ValueError('Metrics differs from the effective evaluation configuration')
+                    # One input summary can supply multiple evaluated outputs.
+                    for row in evaluation['rows']:
+                        identity = row['identity']
+                        if (identity['case'] != instance['case']
+                                or identity['metrics'] != sorted(instance['metrics'])
+                                or identity['producer_version'] != instance['producer_version']
+                                or set(row['metrics']) != set(instance['metrics'])
+                                or row['evaluation_receipt_id'] != 'evalr_' + canonical_sha256(identity)[:32]):
+                            raise ValueError('Metrics receipt differs from the effective evaluation')
+                        cells.append({'evaluation': row})
             for index, ((batch, gu, selector, selector_ref, gu_ref), output) in enumerate(zip(expected, outputs)):
                 identity = output['payload'].identity
                 row = summary['unlearning'][index]

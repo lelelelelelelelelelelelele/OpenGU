@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-Selector声明与缓存自动复用返工已验证：16项冻结合同先RED后实现；最新产品检查点5ca0d93e，测试修正867c806a，总计311项有效通过（294项按实际diff复用+17项重跑）。用户配置仅用selector_refs，015后续表已迁移，执行与核验共用条件展开。最新证据为evidence/selector-observations.json及同一REPORT.md/HTML。当前仅等待用户对source branch干净HEAD作人工验收；不执行正式SSH/GPU、Apply、push、安装或清理。
+用户已确认阶段核验、Core 清单去重及当前交付范围三处返工通过，并明确要求 closeout。最新软件修正位于本 source branch；此前311项结果保留其原检查点含义，本轮独立 validator 结论由用户回传，Agent 未重跑测试。下一步按同一 WorkItem 完成接受投影与 Closeout；不启动正式实验。Core 去重独立提交为 SyncMate `7231b69201822f04d171f0980ab86009dfa7d398`，未更新安装包或消费者依赖绑定，不把源码接受称为部署完成。
 
 ## Status history
 
@@ -185,3 +185,11 @@ Selector声明与缓存自动复用返工已验证：16项冻结合同先RED后�
 - PASS：17方法公式、TracIn真实轨迹、预算/训练seed、独立Retrain、Metrics只读消费、AutoReport以及完整SyncMate相关回归通过。配置/归档审计、smoke、dashboard check、20文档链接、实际独立Retrain示例通过；2条CUDA依赖警告如实保留，运行均为临时CPU验证。
 - 产品未改评分、Selection、训练、GU producer及历史缓存。报告/证据提交相对867c806a仅修改本item表面与生命周期投影，软件结果按实际diff复用，新增结构、确定性HTML、链接与真实渲染检查另行验证。逐项结果、原始JUnit哈希、失败原因与临时示例路径见evidence/selector-observations.json；旧证据保持历史含义。
 - Agent建议接受本次软件修正，决定仍归用户。验证后停在awaiting_acceptance，不进行Closeout/Apply/push/install、正式SSH/GPU、正式数据准备或历史缓存清理。
+
+## 独立 validator 返工与接受 · 2026-09-07
+
+- 阶段核验：Selector、Unlearning、Metrics 按各自交付结构核对，Metrics 的输入摘要数不等同于指标行数。保持方法输出身份和文件摘要验证。
+- 清单去重：SyncMate Core 在 manifest_for_roots 按路径生成唯一记录，保留项目对当前交付重复索引的拒绝；修正由独立 SyncMate 源码提交7231b69201822f04d171f0980ab86009dfa7d398持有。
+- 验收范围：项目核验器依据经 Core 提交 handoff 绑定的清单筛选本次记录；其他任务历史条目留在索引，既不参与完整性比较，也不重新读取其文件。
+- 用户先确认前两处通过，再指出两个任务65+65文件累计索引触发范围误报；范围返工后明确回复“可以验收通过了，closeout”。这是本轮独立 validator 通过结论与接受授权的来源；未收到其原始日志或测试数量，未将此前311项结果改称本轮执行。
+- 按用户“只修改，不做测试”的要求，Agent 本轮仅检查源代码、Git 差异和交付身份，未运行任何产品测试。Closeout 可复用用户确认的同一产品内容；若目标或冲突引入新的产品差异，应停止并交回独立验证。

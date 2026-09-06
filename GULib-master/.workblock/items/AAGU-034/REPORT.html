@@ -3,13 +3,17 @@
 <h3>实际增量</h3>
 <p>Selector/Unlearning只用 <code>selector_refs</code> 声明选点，删除手工绑定上一轮产物的分支。缓存自动查找或计算；实际Artifact身份、哈希与HIT/MISS保留在结果中，执行和核验共用条件展开。</p>
 <h3>核心观察</h3>
-<p><strong>311项有效验证通过。</strong> 首次直接运行、跨阶段复用、热运行禁止训练/评分、真实Core收集均通过；伪造Selection身份被拒绝。015科学条件及007/032原表保持。<a href="evidence/selector-observations.json">本轮证据</a>。正式SSH/GPU未运行。</p>
+<p><strong>最新三处返工已由用户确认独立 validator 验收通过。</strong> 阶段输出核验、Core 清单去重和仅比较当前交付范围的修正见下文。本轮 Agent 未运行测试；此前311项结果保留原检查点及<a href="evidence/selector-observations.json">历史证据</a>，不充作本轮复验。正式SSH/GPU未运行。</p>
 <h3>当前决定</h3>
 <blockquote>
 <p>当前验收决定：<span data-workblock-decision="pending">待决定</span></p>
 </blockquote>
-<p>Agent <strong>建议接受本次软件修正</strong>。对象为本source branch的干净HEAD，由用户决定；未合并，正式实验另行验收。</p>
-</section><h2>Selector 声明与自动复用补修</h2>
+<p>用户已明确“可以验收通过了，closeout”；本节决定标记由 Closeout 写入。对象为本 source branch 的已接受产品内容；合并与部署结果另行记录，正式实验另行验收。</p>
+</section><h2>最新返工：阶段、清单唯一性与验收范围</h2>
+<p>项目核验器分别处理 Selector 选点、Unlearning 方法输出和 Metrics 指标记录，保持配置、执行身份、文件摘要及方法语义检查。Metrics 可从一份输入摘要生成多行指标，不再被要求提供 GU 输出。</p>
+<p>SyncMate Core 的重叠父子目录扫描按文件路径生成唯一清单，独立源码提交为 <code>7231b69201822f04d171f0980ab86009dfa7d398</code>。项目核验器只读取提交时绑定的清单对应的索引条目，检查当前交付是否齐全、是否重复及校验值是否一致。两个任务各65文件形成130条历史加当前索引时，第二次只比较自己的65条；历史记录保留在索引，不参与本次文件校验。</p>
+<p>验证来源为本任务用户回传：前两处通过，随后验收范围返工通过并授权 Closeout。未取得独立 validator 原始日志或数量；本轮 Agent 遵照要求未重跑测试。Core 源码提交尚不代表安装包或 OpenGU 固定依赖清单已经更新，最终部署须单独据实记录。</p>
+<h2>Selector 声明与自动复用补修</h2>
 <p>用户指出执行端允许 <code>selection_input</code> 替代 <code>selector_refs</code>，核验器却只按后者展开；015后续表还要求手填Stage S摘要和SHA-256。已有缓存已经能自动HIT/MISS，这个额外输入分支增加了用户配置负担，并使执行与核验的规则不一致。用户明确同意删除它并在同一034返工。</p>
 <p>现在，Selector与Unlearning都通过公共小表声明选点规则，使用同一有效训练seed与预算。<code>selector_entries</code> / <code>unlearning_entries</code> 由普通解析模块持有，dry-run计数、实际执行和收集核验共用；Score、Selection及独立方法仍使用现有缓存producer。实际使用的三元Artifact身份、哈希、命中与producer调用事实写入summary及Output。Metrics的已收集Output输入继续保留。</p>
 <div class="table-wrap"><table>
