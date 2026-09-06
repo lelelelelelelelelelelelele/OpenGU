@@ -1,6 +1,6 @@
 # Independent SyncMate Core dependency
 
-The OpenGU entry requires the installed `syncmate` distribution at version `0.4.0` on Python 3.8 or newer. [core_dependency.json](core_dependency.json) pins the published source commit, wheel SHA-256, and every wheel payload file. The current source is SyncMate commit `5dd378cb5a732d47108e58299df462320648bda8`; the wheel SHA-256 is `a6ecf6de385d80538b1983c49f5dee8048f4787847084fee6cadc3c761a435d2`.
+The OpenGU entry requires the installed `syncmate` distribution at version `0.4.0` on Python 3.8 or newer. [core_dependency.json](core_dependency.json) is the authoritative binding for the published source commit, wheel SHA-256, and every wheel payload file. The bound payload includes the manifest fix that emits each repository file once when collection roots overlap; version equality alone is insufficient to identify this fix.
 
 Verify the active interpreter before using `scripts/syncmate/syncmate.py`:
 

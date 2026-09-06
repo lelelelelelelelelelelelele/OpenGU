@@ -9,7 +9,7 @@
     "syncmate.py": "311a6bfd3f961ddc93c4e4329d0f9211798966b5fa935a4305bc7547008129bf",
     "syncmate_core/__init__.py": "c8db1c4f7dc2fcfdc775cf04d1d626a8bf819af3dffb3360ad64ee2e5e621586",
     "syncmate_core/acceptance.py": "282ba0f99262fe1273e01f62e206edf449f0414ca8f1981b9a531592afba5082",
-    "syncmate_core/artifacts.py": "5b93c22ed67095f2a600f263e82c803fc3fa74e37ad8eedc04a63955b0de1303",
+    "syncmate_core/artifacts.py": "cc33f9c9e6aa644c106a789bc8d933f3db659ded12f9269a85e32abe56024860",
     "syncmate_core/automation.py": "26946d8f8e9b61c87065b40042c50fa8c041e92fce552153490b7b6ca92d8ba6",
     "syncmate_core/brief.py": "02e58efd65f3789464aaca524317419b5fa8b1c1ee48c2efcad064e875aabe48",
     "syncmate_core/bundles.py": "745c3e5be727f579dede0956ca610715f9d02bbfc8b45b9972a730c40e36619d",
@@ -63,8 +63,8 @@
     "syncmate_core/workflow.py": "cc270d7778e7510bc50ae87f47d61d7e9e2edc2431a8948b3ad6260167afedc9"
   },
   "repository": "https://github.com/lelelelelelelelelelelelele/SyncMate.git",
-  "source_commit": "1e30a32925cecb8c29d72297fbf93bdd547259ba",
+  "source_commit": "e5d832b00c29482403dc3de7cf10077386af9030",
   "version": "0.4.0",
   "wheel": "syncmate-0.4.0-py3-none-any.whl",
-  "wheel_sha256": "a6fcc1d4667a69c8f42cdc7bca151cf155c754fa953bac73bb16f67bdedf86ef"
+  "wheel_sha256": "db75437232453dd98182db80377940e32d09ee05e4b4bad4d971d359684783fc"
 }
