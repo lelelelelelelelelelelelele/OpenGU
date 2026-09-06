@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `verified / awaiting acceptance`
+当前状态: `working / claimed`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-同一 Block 的旧 SyncMate 清理返工已完成并补验；已有 007、032 两份配置的真实 CLI 解析通过，配对报告已更新。恢复时读取本 source WorkItem、干净 HEAD、最新 Rework Verify、报告和 canonical 同一 Claim；当前仍待用户决定，不进入 Closeout 或正式实验。
+当前候选被用户要求在同一034返工：设备信息只能来自device.yaml/SyncMate配置，Core负责提交与回传，现有普通入口负责实验；先固定行为验收测试，再删去重复stage/设备常量及一次性接缝。原先建议接受撤回。读取本记录最新返工段及同一Claim后继续，不启动正式实验或Closeout。
 
 ## Status history
 

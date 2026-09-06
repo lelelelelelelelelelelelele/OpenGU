@@ -1,0 +1,8 @@
+{
+  "baseline": "bfbcc9ac4d7ddad79eb6d3acc9e14241ad2e762b",
+  "test_file": "tests/test_syncmate_execution_contract.py",
+  "rule": "Assertions frozen before implementation. Production preflight, device resolution, queue, process and collection are not replaced.",
+  "red_junit": "E:/project/OpenGU/GULib-master/.workblock/runtime/aagu-034-contract-red.xml",
+  "red_result": "7 failed: ordinary CLI cannot consume device.yaml; registration still calls special recipe stage",
+  "sha256": "fbe85d99564619901fd30952ffc4f39d34f1ab5ad3ed8a5c60c5e492e0a11f72"
+}
