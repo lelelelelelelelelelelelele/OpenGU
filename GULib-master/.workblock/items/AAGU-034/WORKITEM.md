@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `verified / awaiting acceptance`
+当前状态: `working`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-本轮已删除专用SyncMate stage及无消费者CPU helper，设备由Core读取的device.yaml传入普通入口，真实Core提交/执行/收集已完成隔离验证。软件检查点c40ee9da及分批257项有效结果见最新Verify和REPORT。当前只等待用户对source branch干净HEAD作人类验收决定；不执行正式SSH/GPU、Apply、push、安装或清理。
+用户认可现有执行流程，授权在同一034补接新版AutoReport的开始、完成、失败事件。当前Claim revision 9 ongoing；先固定真实CLI/Core事件测试，再修改普通入口及必要的现有V3接缝。完成受影响验证后重新交付干净HEAD供人类验收；不执行正式SSH/GPU、Apply、push、安装或清理。
 
 ## Status history
 
@@ -154,3 +154,9 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 运行内存不足、CRLF示例hash和测试import错误均如实记录并完成受影响串行重跑。未启动正式SSH/GPU或改变远端device.yaml；后续runner需在原设备文件声明execution_device。
 - 报告/Record候选相对c40ee9da仅更正人类表面、证据和dashboard投影。软件结果按实际diff复用，新增表面执行结构、确定性生成、链接、桌面/窄屏真实渲染、dashboard与Git干净检查。
 - Agent建议接受当前软件修正，决定权仍归用户。保持同一Claim、人类验收边界；不写accepted，不Apply/push/install/Closeout或清理。
+
+## AutoReport 补修 · 2026-09-06
+
+- 用户认可现有普通入口、设备配置和Core流程，将AutoReport缺失定位为小缺陷，明确要求接入现有新版系统。同一Claim revision 9 ongoing；先前“全部软件修正可接受”的建议撤回至本项验证完成。
+- 在产品代码仍为51ac0e19时先固定5项真实行为测试：直接执行和缓存重复、执行失败、dry-run、损坏日志、Core真实提交。原有临时图与Core工作区夹具复用，没有替换事件producer、生产预检或子进程。
+- RED：4失败、1通过，28.88秒。真实实验和Core已正常执行，但没有事件；损坏日志未阻止执行。dry-run无事件已通过。日志和JUnit在canonical runtime/aagu-034-autoreport；本次测试文件先提交，再补产品实现。
