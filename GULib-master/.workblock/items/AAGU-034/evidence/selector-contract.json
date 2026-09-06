@@ -1,0 +1,156 @@
+{
+  "inherited_product_checkpoint": "8ad752ed908336d4578238a845220110b6c38d11",
+  "test_commit": "465567dfa6be0d05a36755be9c71eec049acde15",
+  "test_file": "tests/test_selector_declaration_contract.py",
+  "frozen_sha256": "ebf250cd0186afc3fadda411ac65801b771ea2020c9dc63d4441b79ee9486316",
+  "red_initial": {
+    "junit": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\red.xml",
+    "sha256": "ccb25a388a6c775ad8f267b0ae4b8339f31170f0c549f1a6d2ec081cc49b4baa",
+    "tests": 16,
+    "failures": 11,
+    "errors": 0,
+    "seconds": 73.5,
+    "cases": [
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[None-selector]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[None-unlearning]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy1-selector]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy1-unlearning]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy2-selector]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy2-unlearning]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy3-selector]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy3-unlearning]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-cora]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-citeseer]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-pubmed]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-cora]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-citeseer]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-pubmed]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_selector_then_unlearning_reuses_without_summary_binding",
+        "result": "PASS"
+      },
+      {
+        "name": "test_cold_unlearning_and_core_warm_collect_share_declared_rows",
+        "result": "FAIL"
+      }
+    ]
+  },
+  "red_corrected": {
+    "junit": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\red-corrected.xml",
+    "sha256": "292143377393ff22fbe48086af474c456921a2a5c0376ee6ead83fff28da02db",
+    "tests": 16,
+    "failures": 10,
+    "errors": 0,
+    "seconds": 97.689,
+    "cases": [
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[None-selector]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[None-unlearning]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy1-selector]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy1-unlearning]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy2-selector]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy2-unlearning]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy3-selector]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_removed_selection_input_is_rejected_even_when_empty[legacy3-unlearning]",
+        "result": "PASS"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-cora]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-citeseer]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[u-204-pubmed]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-cora]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-citeseer]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_registered_followup_declares_same_selectors_and_axes[retrain-102-pubmed]",
+        "result": "FAIL"
+      },
+      {
+        "name": "test_selector_then_unlearning_reuses_without_summary_binding",
+        "result": "PASS"
+      },
+      {
+        "name": "test_cold_unlearning_and_core_warm_collect_share_declared_rows",
+        "result": "PASS"
+      }
+    ]
+  },
+  "fixture_correction": "Before product edits and the frozen test commit, replace str.removesuffix (unavailable in the project Python 3.8) with the equivalent filename slice. No assertion changed. Corrected RED: 10 product/definition failures; 6 passing behavior cases. The extra initial failure was fixture-only.",
+  "scope": "one selector declaration; real cold and warm commands; source YAML unchanged; actual Score/Selection identity; Core local collect and semantic rejection"
+}

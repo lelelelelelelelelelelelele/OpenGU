@@ -1,4 +1,0 @@
-kind: evaluation
-schema_version: 1
-case: post_unlearning_utility
-metrics: [f1_before, f1_after, f1_drop, f1_drop_pct]

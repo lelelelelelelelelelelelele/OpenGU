@@ -33,7 +33,7 @@ Item Type: Block
 - Priority: `P0` after experiment-definition and device gates.
 - Source anchor: legacy target-direct experiment Todo.
 - Outcome: run and accept the smallest authorized Target-Direct end-to-end gate before the current research experiment branches expand.
-- Fact owner: [target-direct formal v2 recipe](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml); OpenGU DocMap remains scientific framing and historical navigation only.
+- Fact owner: [007 ordinary experiment](../../../experiments/configs/aagu007/experiment.yaml); OpenGU DocMap remains scientific framing and historical navigation only.
 - Dependencies are projected by WORKPLAN, not copied into lifecycle status.
 - Prerequisites: AAGU-002、AAGU-015、AAGU-028；001/006/026/009 的已接受基础从这些前置继承。
 - Downstream: AAGU-031、后续 GU 矩阵与 AAGU-027 等正式研究路线；方案整理和隔离 CPU 软件验证不因本 gate 而阻塞。
@@ -61,3 +61,7 @@ Item Type: Block
 
 - 根据用户本轮要求，新增 `AAGU-007 depends_on AAGU-034`。034 独立修正公共配置与执行入口并迁移旧 V2 注册；007 消费其接受后的统一路径完成最小正式验证，不能继续按本记录中的历史 V2 启动说明直接执行。既有科学范围、设备/数据条件、输出核验与其他前置继续有效。
 - 事实 owner：[AAGU-034 修正合同](../AAGU-034/WORKITEM.md)。本次只更新前置和编排，007 的 registered / not claimed 生命周期不变，未启动作业。
+
+## AAGU-034 接口迁移
+
+当前配置引用公共小表，登记入口为 `opengu-aagu007-v1`，同一普通表展开4个独立方法输出。正式运行仍须先接受034并审阅本轮配置/运行；本次仅迁移软件接缝，没有Claim007或运行实验。历史formal-v2原文已移入配置档案，不再是本轮执行入口。

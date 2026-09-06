@@ -1,4 +1,0 @@
-kind: selector
-schema_version: 1
-method: b_param_hutch
-parameters: {parameter_scope: last_layer}

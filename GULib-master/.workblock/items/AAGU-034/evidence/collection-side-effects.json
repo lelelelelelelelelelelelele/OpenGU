@@ -1,0 +1,470 @@
+{
+  "scope": "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master",
+  "start": 1788685020.0,
+  "end": 1788685148.0,
+  "files": [
+    {
+      "path": "log/SGU/pubmed/GCN/2026-09-06-16-57-45.log",
+      "size": 4775,
+      "created": 1788685065.4080305,
+      "modified": 1788685075.9320781,
+      "new_in_window": true,
+      "sha256": "135064b771502bcb9f8b8da9446da896af538accaaffac820901489712bbe59b"
+    },
+    {
+      "path": "log/SGU/cora/GCN/2026-09-06-16-57-18.log",
+      "size": 4771,
+      "created": 1788685038.6665301,
+      "modified": 1788685045.7955146,
+      "new_in_window": true,
+      "sha256": "56a55e8276379e01b585c6291f1881b6edb3b93849e68fa31cf4352c6ba40353"
+    },
+    {
+      "path": "log/SGU/cora/GCN/2026-09-06-16-57-28.log",
+      "size": 5001,
+      "created": 1788685048.724999,
+      "modified": 1788685048.731508,
+      "new_in_window": true,
+      "sha256": "9f272c8afcf5785d9b791a4b96373df46704681d96aef89842a7500fa53e6f0d"
+    },
+    {
+      "path": "log/SGU/cora/GCN/2026-09-06-16-57-34.log",
+      "size": 5001,
+      "created": 1788685054.3271406,
+      "modified": 1788685054.334145,
+      "new_in_window": true,
+      "sha256": "06c6a275d04044ec67d9d1e65023b30ff415c42eaa35812ebf4b4d9a7563884f"
+    },
+    {
+      "path": "log/SGU/cora/GCN/2026-09-06-16-57-35.log",
+      "size": 5001,
+      "created": 1788685055.4971733,
+      "modified": 1788685055.5039847,
+      "new_in_window": true,
+      "sha256": "8631e2e193f75999cef7fe041c4b2addcf498e0f8abc76e9903c2ace9d7bc1a6"
+    },
+    {
+      "path": "log/SGU/cora/GCN/2026-09-06-16-57-41.log",
+      "size": 4999,
+      "created": 1788685061.123849,
+      "modified": 1788685061.1320682,
+      "new_in_window": true,
+      "sha256": "87102211c78cd26257e253cb882d8db21c55ea90787f2896a562fc2a9dddd0f1"
+    },
+    {
+      "path": "log/SGU/citeseer/GCN/2026-09-06-16-57-04.log",
+      "size": 4719,
+      "created": 1788685024.0346427,
+      "modified": 1788685031.500504,
+      "new_in_window": true,
+      "sha256": "df7044899c7346873b561ad5c363bb8fa7b5bd7264ae2d962f6d5a2e6656ef90"
+    },
+    {
+      "path": "log/SGU/citeseer/GCN/2026-09-06-16-57-15.log",
+      "size": 5017,
+      "created": 1788685035.290244,
+      "modified": 1788685035.3104744,
+      "new_in_window": true,
+      "sha256": "7d438c0fe643d13a7eca539daa248fd334f0522b1cf690204aaa220b6ffb6d6d"
+    },
+    {
+      "path": "log/SGU/citeseer/GCN/2026-09-06-16-57-31.log",
+      "size": 5017,
+      "created": 1788685051.913624,
+      "modified": 1788685051.9341385,
+      "new_in_window": true,
+      "sha256": "6f47159f6d380d87197dd258d12a907a7608eefba46053ce9ab4ec88f5cd7f62"
+    },
+    {
+      "path": "log/SGU/citeseer/GCN/2026-09-06-16-57-33.log",
+      "size": 5017,
+      "created": 1788685053.1448798,
+      "modified": 1788685053.1649334,
+      "new_in_window": true,
+      "sha256": "aff00f9b2549424a37f0858b42f36d4bc364d1096f48c53e1622501741eda360"
+    },
+    {
+      "path": "log/SGU/citeseer/GCN/2026-09-06-16-57-36.log",
+      "size": 5015,
+      "created": 1788685056.6494267,
+      "modified": 1788685056.669449,
+      "new_in_window": true,
+      "sha256": "78f1d79c01b194e822f11d567176d37d7cd7b04c34abf7e031cac03277408e5a"
+    },
+    {
+      "path": "experiments/im_benchmark/scripts/__pycache__/test_parallel_v5._estimate_spread_numba_nogil-20.py38.1.nbc",
+      "size": 40482,
+      "created": 1788685052.1557686,
+      "modified": 1788685052.1557686,
+      "new_in_window": true,
+      "sha256": "0950a7eb8f95a5c0734e41006975ab93a3540fe23274640e5b5093fbd5371b1c"
+    },
+    {
+      "path": "experiments/im_benchmark/scripts/__pycache__/test_parallel_v5._estimate_spread_numba_nogil-20.py38.nbi",
+      "size": 1307,
+      "created": 1788685052.1557686,
+      "modified": 1788685052.1557686,
+      "new_in_window": true,
+      "sha256": "7a4268497fb5b4bbf3343b211594d497b48e64f1c786a9098adf73d55dc91d7a"
+    },
+    {
+      "path": "data/unlearning_task/transductive/imbalanced/unlearning_nodes_0.1_cora_0.txt",
+      "size": 1877,
+      "created": 1788685031.5446985,
+      "modified": 1788685031.5457032,
+      "new_in_window": true,
+      "sha256": "20806e53123a3eb48902eb771114a67a6fee2477d253883a6f2fb3e061870d49"
+    },
+    {
+      "path": "data/raw/pubmed/processed/data.pt",
+      "size": 41071688,
+      "created": 1788685075.8473556,
+      "modified": 1788685075.8758218,
+      "new_in_window": true,
+      "sha256": "baafeea47874ad5c245f885d66f55818e37d79fda65111e560e1207d1e56aedb"
+    },
+    {
+      "path": "data/raw/pubmed/processed/pre_filter.pt",
+      "size": 864,
+      "created": 1788685075.8788302,
+      "modified": 1788685075.8788302,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/pubmed/processed/pre_transform.pt",
+      "size": 864,
+      "created": 1788685075.877832,
+      "modified": 1788685075.8788302,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.allx",
+      "size": 7578385,
+      "created": 1788685070.7195463,
+      "modified": 1788685071.406332,
+      "new_in_window": true,
+      "sha256": "508e538e2abdccdd54c4d3e9f49d638b4af7107d85845f66ddea5a5152658b7e"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.ally",
+      "size": 224739,
+      "created": 1788685073.9761968,
+      "modified": 1788685074.0090704,
+      "new_in_window": true,
+      "sha256": "0c37bbe3b5014ec365e9d393cf4791925e5ed94fb194305d74f064a8d7b50f0e"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.graph",
+      "size": 471808,
+      "created": 1788685074.9434583,
+      "modified": 1788685074.9991238,
+      "new_in_window": true,
+      "sha256": "5b89f0036ca22909471f1e6558eb42fa06e0c730a577bde5b058b40638f81dc9"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.test.index",
+      "size": 6000,
+      "created": 1788685075.7405293,
+      "modified": 1788685075.7575922,
+      "new_in_window": true,
+      "sha256": "b101d421688bbaecbd82e8a18f1e282378d6830f3a37666f28ebc47f844341b5"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.tx",
+      "size": 405505,
+      "created": 1788685068.334758,
+      "modified": 1788685068.386213,
+      "new_in_window": true,
+      "sha256": "4eb5f5d0f30f26497eb0ac6ac9719d09c67e284f1ed0385c93f3ef27a671da3d"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.ty",
+      "size": 12135,
+      "created": 1788685073.0470679,
+      "modified": 1788685073.0627406,
+      "new_in_window": true,
+      "sha256": "ee2e0d4819d9fbcc403689c3bf2e49face401b605932f093bc58ab6461130fdd"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.x",
+      "size": 23172,
+      "created": 1788685067.3906956,
+      "modified": 1788685067.4144325,
+      "new_in_window": true,
+      "sha256": "fbe9cb5c47200d1b7769a26e579be3b7130b556831f9d850e77c4c74f2599b33"
+    },
+    {
+      "path": "data/raw/pubmed/raw/ind.pubmed.y",
+      "size": 854,
+      "created": 1788685072.2903845,
+      "modified": 1788685072.3039985,
+      "new_in_window": true,
+      "sha256": "e6c807633307a07ed659249006536a147c7999c797f11a2560752990181b41b3"
+    },
+    {
+      "path": "data/raw/cora/processed/data.pt",
+      "size": 15723336,
+      "created": 1788685045.7701776,
+      "modified": 1788685045.775178,
+      "new_in_window": true,
+      "sha256": "a703cd242fee898ce244eb7fad2a0e084a4750f76dffcbc48c65491318567939"
+    },
+    {
+      "path": "data/raw/cora/processed/pre_filter.pt",
+      "size": 864,
+      "created": 1788685045.7781775,
+      "modified": 1788685045.7781775,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/cora/processed/pre_transform.pt",
+      "size": 864,
+      "created": 1788685045.7771814,
+      "modified": 1788685045.7781775,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.allx",
+      "size": 257305,
+      "created": 1788685041.6951702,
+      "modified": 1788685041.785747,
+      "new_in_window": true,
+      "sha256": "9419ba2f26f5c35243db64aba110e0f35a04851609e0dc5433450676ca6b8543"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.ally",
+      "size": 47959,
+      "created": 1788685044.2036583,
+      "modified": 1788685044.224897,
+      "new_in_window": true,
+      "sha256": "2b998f5cc7fedc86e7f97ca2498f47a1ffc1462c29e2d578b23bf3f62b6e7d71"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.graph",
+      "size": 59847,
+      "created": 1788685044.9717927,
+      "modified": 1788685044.9951055,
+      "new_in_window": true,
+      "sha256": "58f13302f39dde8852dad6fe6d15b89b077b6d7f837626bce671ef80344b383d"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.test.index",
+      "size": 5000,
+      "created": 1788685045.7288427,
+      "modified": 1788685045.7457726,
+      "new_in_window": true,
+      "sha256": "297ce89af2b51a6a194181c7dbe1796c6a1cf9cd9349a88383b1b1e227867875"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.tx",
+      "size": 148025,
+      "created": 1788685040.7592053,
+      "modified": 1788685040.7976444,
+      "new_in_window": true,
+      "sha256": "b9afbaa4a400df991f6f02ef677e1e44da55ffc04801fd02f9e673987829226a"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.ty",
+      "size": 28135,
+      "created": 1788685043.4344382,
+      "modified": 1788685043.455834,
+      "new_in_window": true,
+      "sha256": "41f5ac76596a1699cc33f53084a2419e92961c42bb75f36fc38e616d348532ad"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.x",
+      "size": 22119,
+      "created": 1788685040.0152736,
+      "modified": 1788685040.0331619,
+      "new_in_window": true,
+      "sha256": "23cfa55d91c6f624233f5eb7b6e3f141f1bd2b2ae39608a63cf5d084bb27baab"
+    },
+    {
+      "path": "data/raw/cora/raw/ind.cora.y",
+      "size": 4054,
+      "created": 1788685042.6942255,
+      "modified": 1788685042.710871,
+      "new_in_window": true,
+      "sha256": "94465c14eb53e04ca262198dcbb2521ee8af60fb3f3d546cd6ca24a511b0e7d1"
+    },
+    {
+      "path": "data/raw/citeseer/processed/data.pt",
+      "size": 49464008,
+      "created": 1788685031.3852575,
+      "modified": 1788685031.418359,
+      "new_in_window": true,
+      "sha256": "9addfc2e22c8fe44449224552c52b708b230fb03bef85e23d6ae42a9bdda4c0a"
+    },
+    {
+      "path": "data/raw/citeseer/processed/pre_filter.pt",
+      "size": 864,
+      "created": 1788685031.423365,
+      "modified": 1788685031.423365,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/citeseer/processed/pre_transform.pt",
+      "size": 864,
+      "created": 1788685031.4223602,
+      "modified": 1788685031.4223602,
+      "new_in_window": true,
+      "sha256": "d8e85a693a769ec1ab202c65c24be372d509f1d39b15df13aff87ce8cb3b87a9"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.allx",
+      "size": 595021,
+      "created": 1788685026.777425,
+      "modified": 1788685026.8432052,
+      "new_in_window": true,
+      "sha256": "2ac30345d95c9ec933a817ee0bdd6a5f077f8c184a20e696910192d534414668"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.ally",
+      "size": 55623,
+      "created": 1788685029.7043147,
+      "modified": 1788685029.727305,
+      "new_in_window": true,
+      "sha256": "f704b2d986dde6c2669934de1f3ae5696a6cf9455c0f6b2646a2d135ea0a1c95"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.graph",
+      "size": 61987,
+      "created": 1788685030.4533918,
+      "modified": 1788685030.4753394,
+      "new_in_window": true,
+      "sha256": "d79a4ef9d3e7169aee8946145f6b7306e35bc79bffad26346cfb94e10e9912a7"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.test.index",
+      "size": 5000,
+      "created": 1788685031.1916678,
+      "modified": 1788685031.2089388,
+      "new_in_window": true,
+      "sha256": "2af990671580b6b2df5d158d1038f8292e30c9cd821b5453f399659b25b723d4"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.tx",
+      "size": 260321,
+      "created": 1788685025.832643,
+      "modified": 1788685025.8716962,
+      "new_in_window": true,
+      "sha256": "539a8906a2da97628d212f2fdd668c109a8b3f0d36574b59e5d3fd5b5303da21"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.ty",
+      "size": 24135,
+      "created": 1788685028.4796133,
+      "modified": 1788685028.5050545,
+      "new_in_window": true,
+      "sha256": "55e5bd1ba1e733a04598753ad1a8d57957f4b8f89e74519f41f4f4938767e4ce"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.x",
+      "size": 31087,
+      "created": 1788685025.047719,
+      "modified": 1788685025.067423,
+      "new_in_window": true,
+      "sha256": "d20de19150741e555de0ed037195630fc194114ebc7fd72ced62810148aa22f6"
+    },
+    {
+      "path": "data/raw/citeseer/raw/ind.citeseer.y",
+      "size": 3014,
+      "created": 1788685027.5664783,
+      "modified": 1788685027.5816205,
+      "new_in_window": true,
+      "sha256": "8ba87e515d8e3ee3cf52f6d2c5b86aa73f11ecad825a808455209ec26cd54924"
+    },
+    {
+      "path": "data/processed/transductive/citeseer0.8_0_0.2.pkl",
+      "size": 49575047,
+      "created": 1788685031.500504,
+      "modified": 1788685031.5397046,
+      "new_in_window": true,
+      "sha256": "4ec8c1269f7ae59db6edd62b5ca9a2d244fb3ee8ea8ed9aef45eb3f671e71839"
+    },
+    {
+      "path": "data/processed/transductive/citeseer0.8_0_0.2dataset.pkl",
+      "size": 49464221,
+      "created": 1788685031.4514427,
+      "modified": 1788685031.4905057,
+      "new_in_window": true,
+      "sha256": "a4532fba2b317916d195e02d9d4bb49c3fde5e8dbac8769fd97d4aec92b39857"
+    },
+    {
+      "path": "data/processed/transductive/cora0.8_0_0.2.pkl",
+      "size": 15848213,
+      "created": 1788685045.7955146,
+      "modified": 1788685045.8035197,
+      "new_in_window": true,
+      "sha256": "2ac1f19203bd11ea1e1933d0358fc0bbfe51cc16e910b8cc431470d8ba415db3"
+    },
+    {
+      "path": "data/processed/transductive/cora0.8_0_0.2dataset.pkl",
+      "size": 15723372,
+      "created": 1788685045.7875164,
+      "modified": 1788685045.7935147,
+      "new_in_window": true,
+      "sha256": "280e5b0f7c04dd5a04bf18ff0efb93b3b3f4c348762d0ffccca03813527f5b94"
+    },
+    {
+      "path": "data/processed/transductive/pubmed0.8_0_0.2.pkl",
+      "size": 42086945,
+      "created": 1788685075.9320781,
+      "modified": 1788685075.9617288,
+      "new_in_window": true,
+      "sha256": "ca48d7c1e13177331bad381a6a3bc420c5ba925378b6d19bffd7a970ffa4c235"
+    },
+    {
+      "path": "data/processed/transductive/pubmed0.8_0_0.2dataset.pkl",
+      "size": 41071704,
+      "created": 1788685075.899119,
+      "modified": 1788685075.929077,
+      "new_in_window": true,
+      "sha256": "62fce40956529b30d5a0eabacf60ff854d4cecc3468aa3d98cc6cb8f131e48a4"
+    },
+    {
+      "path": "attack/attack_strategies/__pycache__/im_strategy._estimate_spread_numba-95.py38.1.nbc",
+      "size": 40839,
+      "created": 1788685032.3197765,
+      "modified": 1788685032.3197765,
+      "new_in_window": true,
+      "sha256": "540c15e7c652b514171a9d8f264e01e7720ab46e32a47fc3ed3aa1ea5112e299"
+    },
+    {
+      "path": "attack/attack_strategies/__pycache__/im_strategy._estimate_spread_numba-95.py38.nbi",
+      "size": 1296,
+      "created": 1788685032.3187754,
+      "modified": 1788685032.3187754,
+      "new_in_window": true,
+      "sha256": "b423ea083bf720a12a1505f14d682b2070e51e2b4280a4195e337e59e3e0a70c"
+    },
+    {
+      "path": "attack/attack_strategies/__pycache__/im_strategy._simulate_spread_numba-43.py38.1.nbc",
+      "size": 38827,
+      "created": 1788685032.0887113,
+      "modified": 1788685032.0887113,
+      "new_in_window": true,
+      "sha256": "cead2cf09f27aa75a4c76a29e5accafaf3b8cb5b856d08656ba8dd9f4d302926"
+    },
+    {
+      "path": "attack/attack_strategies/__pycache__/im_strategy._simulate_spread_numba-43.py38.nbi",
+      "size": 1300,
+      "created": 1788685032.0877128,
+      "modified": 1788685032.0877128,
+      "new_in_window": true,
+      "sha256": "5bdd8d79675dfb1ea0ed7a6f92dc08a54e0bc73f63ab633f1c63cb3fd52221a7"
+    }
+  ],
+  "cleanup": {
+    "scope": "Only new files from interrupted unscoped collection in this source worktree",
+    "tracked_files_removed": 0,
+    "removed_files": 57,
+    "existing_files_removed": 0,
+    "verified_absent": true
+  }
+}

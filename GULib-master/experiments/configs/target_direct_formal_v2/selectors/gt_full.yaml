@@ -1,4 +1,0 @@
-kind: selector
-schema_version: 1
-method: gt_full
-parameters: {parameter_scope: last_layer}

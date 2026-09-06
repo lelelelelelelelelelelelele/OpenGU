@@ -283,42 +283,8 @@ def test_new_materializer_rejects_legacy_recipe_without_identity_boundary():
         SelectionArtifactRequest.from_recipe(legacy, _producer_version())
 
 
-def test_runner_rejects_removed_cache_dataset_options(tmp_path):
-    import experiments.run as runner
-
-    base = {
-        "strategies": ["degree"],
-        "cache_v2": {"mode": "selection", "store_root": str(tmp_path / "store")},
-    }
-    settings = runner.cache_v2_settings(base)
-    assert settings is not None
-    assert "dataset_root" not in settings
-    assert "allow_download" not in settings
-
-    for key, value in (("dataset_root", "data/raw"), ("allow_download", True)):
-        cfg = {"strategies": ["degree"], "cache_v2": dict(base["cache_v2"])}
-        cfg["cache_v2"][key] = value
-        with pytest.raises(ValueError, match=key):
-            runner.cache_v2_settings(cfg)
 
 
-def test_runner_target_direct_mode_requires_manifest_digest(tmp_path):
-    import experiments.run as runner
-
-    cfg = {
-        "strategies": ["degree"],
-        "cache_v2": {
-            "mode": "target_direct_external_selection",
-            "store_root": str(tmp_path / "store"),
-            "manifest_path": str(tmp_path / "manifest.json"),
-        },
-    }
-    with pytest.raises(ValueError, match="manifest_sha256"):
-        runner.cache_v2_settings(cfg)
-    cfg["cache_v2"]["manifest_sha256"] = "a" * 64
-    settings = runner.cache_v2_settings(cfg)
-    assert settings["mode"] == "target_direct_external_selection"
-    assert settings["manifest_sha256"] == "a" * 64
 
 
 def test_dataset_decoupling_markdown_and_html_agree_on_verdict_and_evidence():

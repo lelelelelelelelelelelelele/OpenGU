@@ -1,0 +1,2302 @@
+{
+  "checkpoint": {
+    "candidate": "81a220e927a5f2600a3c3104d5551af5b7d5d124",
+    "source_project": "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master",
+    "fixture_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242",
+    "commands": [
+      {
+        "name": "pytest",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "-m",
+          "pytest",
+          "tests/test_syncmate.py",
+          "tests/test_syncmate_full_adapter.py",
+          "tests/test_syncmate_core_dependency.py",
+          "tests/test_syncmate_gu_outputs.py",
+          "-q",
+          "--disable-warnings",
+          "-o",
+          "junit_family=legacy",
+          "--basetemp",
+          "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242",
+          "--junitxml",
+          "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\verify-tests.xml"
+        ],
+        "exit_code": 0,
+        "seconds": 124.696,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\pytest.log"
+      },
+      {
+        "name": "configuration-audit",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          ".workblock/items/AAGU-034/evidence/audit_configuration.py"
+        ],
+        "exit_code": 0,
+        "seconds": 4.943,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\configuration-audit.log"
+      },
+      {
+        "name": "collect-only",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "-m",
+          "pytest",
+          "tests",
+          "--collect-only",
+          "-q",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 10.762,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\collect-only.log"
+      },
+      {
+        "name": "syncmate-smoke",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/syncmate/syncmate.py",
+          "smoke",
+          "--json"
+        ],
+        "exit_code": 0,
+        "seconds": 0.545,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\syncmate-smoke.log"
+      },
+      {
+        "name": "dashboard",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/dashboard/refresh.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "seconds": 0.288,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\dashboard.log"
+      }
+    ],
+    "interrupted_checks": [
+      {
+        "name": "collect-only",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "-m",
+          "pytest",
+          "--collect-only",
+          "-q",
+          "--disable-warnings"
+        ],
+        "exit_code": 4294967295,
+        "seconds": 125.716,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\collect-only.log",
+        "reason": "Stopped unscoped repository discovery after it included standalone benchmark scripts outside tests; use the maintained tests directory."
+      }
+    ],
+    "clean_after": true,
+    "passed": true
+  },
+  "tests_rerun": 205,
+  "tests": [
+    {
+      "name": "test_default_implementation_is_core_backed_exact_entry",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_direct_syncmate_script_bootstraps_repo_import_path",
+      "class": "tests.test_syncmate",
+      "seconds": 0.094,
+      "passed": true
+    },
+    {
+      "name": "test_report_age_and_stale_detection",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_remote_shell_commands_quote_repo_paths_and_roots",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_and_manifest_use_quoted_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_and_manifest_use_configured_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_plan_uses_peer_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_scan_results_classifies_node_bare_and_nested_layouts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_scan_progress_reports_recent_logs_and_error_keywords",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_progress_cli_returns_log_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_write_state_appends_compact_history_with_delta",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_results_table_delta_tracks_added_and_changed_rows",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_fingerprint_excludes_volatile_timestamps_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_fingerprint_cli_supports_expect_prefix",
+      "class": "tests.test_syncmate",
+      "seconds": 0.059,
+      "passed": true
+    },
+    {
+      "name": "test_compare_fingerprint_payload_reports_component_differences",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_compare_cli_reads_saved_remote_status_fingerprint",
+      "class": "tests.test_syncmate",
+      "seconds": 0.129,
+      "passed": true
+    },
+    {
+      "name": "test_build_snapshot_includes_fingerprint_and_export_manifest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_publish_cli_writes_compact_status_package",
+      "class": "tests.test_syncmate",
+      "seconds": 0.093,
+      "passed": true
+    },
+    {
+      "name": "test_publish_include_items_outputs_full_manifest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.094,
+      "passed": true
+    },
+    {
+      "name": "test_import_publish_saves_remote_status_and_compare_reads_it",
+      "class": "tests.test_syncmate",
+      "seconds": 0.041,
+      "passed": true
+    },
+    {
+      "name": "test_import_publish_no_save_previews_without_writing_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results",
+      "class": "tests.test_syncmate",
+      "seconds": 0.143,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.139,
+      "passed": true
+    },
+    {
+      "name": "test_inspect_bundle_is_read_only_and_reports_audit_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.121,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_leaves_checksum_conflicts_without_overwrite",
+      "class": "tests.test_syncmate",
+      "seconds": 0.114,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_dry_run_does_not_extract_or_write_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.105,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_dry_run_write_plan_saves_offline_diff_only",
+      "class": "tests.test_syncmate",
+      "seconds": 0.116,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_rejects_corrupt_member_before_landing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.119,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_rejects_duplicate_manifest_path_before_extract",
+      "class": "tests.test_syncmate",
+      "seconds": 0.122,
+      "passed": true
+    },
+    {
+      "name": "test_inspect_bundle_reports_invalid_manifest_without_extracting",
+      "class": "tests.test_syncmate",
+      "seconds": 0.115,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_hashes_only_json_meta_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.067,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_inventory_flags_incomplete_remote_leaf",
+      "class": "tests.test_syncmate",
+      "seconds": 0.064,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_can_include_predictions_when_requested",
+      "class": "tests.test_syncmate",
+      "seconds": 0.07,
+      "passed": true
+    },
+    {
+      "name": "test_artifact_names_for_peer_merges_global_and_peer_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_writes_config_and_refuses_overwrite",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_runner_can_record_collector_hint",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_cli_can_write_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_cli_updates_collector_config_and_refuses_duplicate",
+      "class": "tests.test_syncmate",
+      "seconds": 0.061,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_local_transport_does_not_require_ssh",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_cli_can_write_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_artifact_policy_cli_rejects_path_entries",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_requires_collector_role",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_guides_missing_collector_and_peer_config",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_can_generate_local_peer_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_local_peer_does_not_require_ssh_input",
+      "class": "tests.test_syncmate",
+      "seconds": 0.017,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_write_marks_existing_peer_not_needed",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_layout_cli_shows_peer_paths_and_trusted_outputs",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_layout_text_mentions_landing_and_sync_command",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_landings_cli_shows_local_landing_inventory_and_rows",
+      "class": "tests.test_syncmate",
+      "seconds": 0.049,
+      "passed": true
+    },
+    {
+      "name": "test_runbook_cli_writes_missing_setup_guide",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_runbook_cli_writes_collector_peer_flow",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_smoke_cli_runs_local_end_to_end_and_keeps_workspace",
+      "class": "tests.test_syncmate",
+      "seconds": 0.31,
+      "passed": true
+    },
+    {
+      "name": "test_smoke_cli_cleans_temporary_workspace_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.311,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_updates_all_peers_without_collecting_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.041,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_apply_collects_selected_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_apply_verify_runs_acceptance_for_selected_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard",
+      "class": "tests.test_syncmate",
+      "seconds": 0.076,
+      "passed": true
+    },
+    {
+      "name": "test_sync_no_results_skips_result_table_write",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_sync_local_transport_collects_from_same_machine_repo",
+      "class": "tests.test_syncmate",
+      "seconds": 0.345,
+      "passed": true
+    },
+    {
+      "name": "test_sync_dry_run_skips_collect_verify_and_optional_writes",
+      "class": "tests.test_syncmate",
+      "seconds": 0.027,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_verify_returns_nonzero_when_acceptance_fails",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_apply_remote_status_saves_snapshot_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_apply_remote_status_reports_remote_errors",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_remote_status_reports_reads_saved_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_load_remote_status_reports_accepts_utf8_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_collect_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_diff_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_load_verify_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_bundle_inspect_reports_reads_saved_audit_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_compare_manifest_detects_same_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_reports_missing_current_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_reports_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_saves_last_diff_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_counts_only_actually_fetched_missing_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_verify_collect_saves_acceptance_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_verify_collect_marks_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_verify_cli_uses_peer_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_payload_renders_local_and_remote_ai_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_cli_writes_markdown_runbook",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_cli_can_write_all_configured_peers",
+      "class": "tests.test_syncmate",
+      "seconds": 0.028,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_fetches_only_missing_and_verifies",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_reports_checksum_failure",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_index_cli_reads_persistent_artifact_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_groups_indexed_artifacts_by_experiment_leaf",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_cli_reads_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.04,
+      "passed": true
+    },
+    {
+      "name": "test_export_payload_uses_complete_trusted_leaves_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_export_cli_writes_manifest_csv_and_checks_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.145,
+      "passed": true
+    },
+    {
+      "name": "test_results_cli_extracts_metrics_from_trusted_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_export_check_returns_nonzero_on_index_checksum_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_trace_cli_shows_landing_result_chain_and_checksum_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.046,
+      "passed": true
+    },
+    {
+      "name": "test_index_helpers_respect_explicit_empty_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_index_check_detects_local_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_local_landing_path_rejects_path_escape",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_local_landing_path_rejects_unsafe_landing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_actionable_layout_and_setup_diagnostics",
+      "class": "tests.test_syncmate",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_verified_report_has_no_artifact_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_trusted_inventory_leaf_is_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_verified_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_orphaned_reports_and_index_entries",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_archive_orphans_dry_run_and_apply",
+      "class": "tests.test_syncmate",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_fail_thresholds_and_strict_behavior",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_clean_verify_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_saved_preflight_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_artifact_index_integrity",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_trusted_results_table",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_rejects_incomplete_trusted_inventory",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_rejects_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_summary_payload_compacts_peer_reports_and_actions",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_brief_payload_and_markdown_combine_status_next_and_history",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_brief_cli_writes_current_state_markdown",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_peer_reports_payload_compacts_report_details",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_reports_cli_returns_compact_peer_json",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_receipt_payload_summarizes_landing_checksums_and_local_examples",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_receipt_cli_writes_markdown_from_saved_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.03,
+      "passed": true
+    },
+    {
+      "name": "test_summary_cli_returns_machine_readable_digest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_overview_cli_combines_layout_gate_receipt_and_next",
+      "class": "tests.test_syncmate",
+      "seconds": 0.036,
+      "passed": true
+    },
+    {
+      "name": "test_overview_text_returns_nonzero_when_gate_fails",
+      "class": "tests.test_syncmate",
+      "seconds": 0.083,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_missing_setup_phase",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_collect_phase_from_saved_diff",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_accepted_phase_and_trace_check",
+      "class": "tests.test_syncmate",
+      "seconds": 0.05,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_payload_orders_executable_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_uses_import_bundle_for_saved_offline_diff",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_require_results_refreshes_table_before_gate",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_payload_marks_incremental_collect_stage",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_payload_marks_missing_results_table_after_verified_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_cli_can_write_machine_readable_stage_state",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_automation_core_cli_can_write_machine_readable_ledger",
+      "class": "tests.test_syncmate",
+      "seconds": 0.027,
+      "passed": true
+    },
+    {
+      "name": "test_acceptance_cli_can_write_machine_readable_verdict",
+      "class": "tests.test_syncmate",
+      "seconds": 0.039,
+      "passed": true
+    },
+    {
+      "name": "test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_payload_can_require_saved_preflight",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_next_cli_returns_command_queue",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_gate_cli_returns_nonzero_for_blocking_diagnostics",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_payload_reports_ready_peer_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_can_write_latest_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_blocks_missing_setup",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_returns_nonzero_for_bad_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_sync_blocks_on_preflight_before_remote_calls",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_blocks_unknown_peer_with_preflight_json",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_no_save_does_not_write_blocked_preflight_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_build_snapshot_includes_peer_configs",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_peer_config_issues",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_invalid_artifact_policies",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_missing_remote_status_for_configured_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_remote_status_errors_dirty_and_result_issues",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_fingerprint_attention_for_git_component",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_remote_status_lacks_fingerprint_metadata",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_git_mismatch_across_remote_and_manifest_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_git_id_matching_accepts_short_and_full_prefixes",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_diff_errors_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_newer_clean_verify_supersedes_planning_diff_missing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_verify_errors_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_stale_remote_diff_and_collect_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_html_contains_device_status_nodes_and_actions",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_cli_writes_workflow_report_path",
+      "class": "tests.test_syncmate",
+      "seconds": 0.037,
+      "passed": true
+    },
+    {
+      "name": "test_write_dashboard_can_skip_checklist_but_keep_runbook",
+      "class": "tests.test_syncmate",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_submit_validates_and_writes_static_dashboard",
+      "class": "tests.test_syncmate",
+      "seconds": 0.065,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_run_once_claims_only_allowlisted_smoke_job",
+      "class": "tests.test_syncmate",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_invalid_yaml_and_never_executes_it",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_refuses_to_run_on_collector_only_device",
+      "class": "tests.test_syncmate",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_contract_is_read_only_until_explicitly_written",
+      "class": "tests.test_syncmate",
+      "seconds": 0.041,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_lock_is_exclusive_and_released",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_processes_exactly_one_job_under_lock",
+      "class": "tests.test_syncmate",
+      "seconds": 0.017,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_validates_full_json_before_bounding_diagnostic_tail",
+      "class": "tests.test_syncmate",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_exact_job_git_mismatch_before_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten",
+      "class": "tests.test_syncmate",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_refuses_stale_running_without_automatic_retry",
+      "class": "tests.test_syncmate",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_inspect_distinguishes_active_and_orphaned_running",
+      "class": "tests.test_syncmate",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_dispatch_binds_clean_remote_exact_git_sha",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_peer_invoke_uses_configured_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_collect_failure_never_reports_acceptance",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_config_hash_is_line_ending_stable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_runner_recipe_requires_exact_reviewed_commit",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_runner_git_binding_refuses_abbreviated_or_invalid_identity",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_existing_experiment_templates_use_common_cli[aagu007-4-2]",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 2.476,
+      "passed": true
+    },
+    {
+      "name": "test_existing_experiment_templates_use_common_cli[aagu032-42-6]",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 2.479,
+      "passed": true
+    },
+    {
+      "name": "test_full_registry_matches_reviewed_literal_contract",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_representative_recipe_fields_remain_exact",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_all_recipe_commands_and_artifact_paths_are_bounded",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_results_are_copy_safe",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_all_reviewed_preflight_profiles_dispatch_to_project_handlers",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_unknown_preflight_profile_refuses_with_expected_observed_action",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_results_parser_reads_only_verified_index_artifacts",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_unverified_index_never_passes_project_acceptance[modular-output-v1-opengu-aagu007-v1]",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_absent_distribution_fails_closed",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_exact_payload_passes_without_self_declared_commit",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[corrupt]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[missing]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[shadow]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[version]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[residual]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_real_queue_command_collect_verify_accept_results_and_repeat",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 13.554,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[missing_output]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.786,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[unverified_index]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.913,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[duplicate_index]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.823,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[wrong_sha]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.607,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[bytes]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.154,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[config]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.51,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_budget]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.607,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_selector]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 11.307,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_dataset]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.88,
+      "passed": true
+    },
+    {
+      "name": "test_live_registration_uses_one_entry_and_all_reference_fingerprints",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_real_formal_preflight_refuses_cpu_before_dataset",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 0.023,
+      "passed": true
+    }
+  ],
+  "templates": [
+    {
+      "argv": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master\\experiments\\run.py",
+        "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master\\experiments\\configs\\aagu007\\experiment.yaml",
+        "--dry_run"
+      ],
+      "cwd": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242\\test_existing_experiment_templ0",
+      "exit_code": 0,
+      "all_source_yaml_unchanged": true,
+      "schema": "opengu.modular_run",
+      "stage": "unlearning",
+      "experiment_id": "aagu007-cora-degree-r001-v1",
+      "logical_cells": 4,
+      "producer_called": false,
+      "batches": 2,
+      "configuration_fingerprint": "91f35a95df6fba1ac825498af997800b20949e58a22fbce53001e7083ff0ed87"
+    },
+    {
+      "argv": [
+        "E:\\conda_package\\envs\\gnn\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master\\experiments\\run.py",
+        "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master\\experiments\\configs\\aagu032\\experiment.yaml",
+        "--dry_run"
+      ],
+      "cwd": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-rework-4c54554242\\test_existing_experiment_templ1",
+      "exit_code": 0,
+      "all_source_yaml_unchanged": true,
+      "schema": "opengu.modular_run",
+      "stage": "unlearning",
+      "experiment_id": "aagu032-cora-gcn-retrain",
+      "logical_cells": 42,
+      "producer_called": false,
+      "batches": 6,
+      "configuration_fingerprint": "e530a8c7489edc1d59d409a3cdd1f81ece8e4e3b78883c97c60f8cf424baee06"
+    }
+  ],
+  "retired_tests": [
+    {
+      "name": "test_candidate_wrapper_imports_independent_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_opengu_recipe_preflight_and_acceptance_are_adapter_owned",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_opengu_preflight_reports_config_mismatch_expected_observed_action",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_contract_cli_reports_adapter_and_external_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_gate1_smoke_is_temporary_and_non_formal",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.289,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_gate2_runner_smoke_uses_clean_exact_compatibility_fixture",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.575,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_cli_runs_in_a_fresh_process_with_external_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.083,
+      "passed": true
+    }
+  ],
+  "reused_tests": [
+    {
+      "name": "test_all_ordinary_tables_no_write_or_producer",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.595,
+      "passed": true
+    },
+    {
+      "name": "test_existing_selection_stages_inherit_paired_seeds",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.334,
+      "passed": true
+    },
+    {
+      "name": "test_032_remains_42_conditions",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_packages_configs_and_registry_are_not_executable",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_active_python_surface_has_no_legacy_runtime_reference",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_archived_formal_config_retains_ratio_conditioned_contract",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_historical_evidence_remains_read_only_and_navigable",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_method_cold_warm_and_hutch_isolation",
+      "class": "tests.test_modular_consumers",
+      "seconds": 1.753,
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_consumes_existing_selection_without_producer",
+      "class": "tests.test_modular_consumers",
+      "seconds": 3.556,
+      "passed": true
+    },
+    {
+      "name": "test_default_expansion_and_budget_reuse",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.701,
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_wrong_identity_fail_before_execution",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.208,
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_method_and_default_equivalence",
+      "class": "tests.test_modular_consumers",
+      "seconds": 2.373,
+      "passed": true
+    },
+    {
+      "name": "test_different_selector_and_gu_backbones",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.926,
+      "passed": true
+    },
+    {
+      "name": "test_real_command_entry_selector_and_existing_selection",
+      "class": "tests.test_modular_consumers",
+      "seconds": 5.807,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad0]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad1]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad2]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_all_seventeen_methods_match_pre_refactor_formulas",
+      "class": "tests.test_modular_consumers",
+      "seconds": 1.447,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dependency_implementation_changes",
+      "class": "tests.test_modular_consumers",
+      "seconds": 3.593,
+      "passed": true
+    },
+    {
+      "name": "test_mismatched_persisted_data_and_checkpoint_rejected",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.345,
+      "passed": true
+    },
+    {
+      "name": "test_yaml_duplicate_and_implicit_override_rejected",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_operational_fields_are_rejected_and_context_is_external",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_project_context_owns_fixed_store_runtime_device_and_output",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_minimal_method_files_expand_real_defaults",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.016,
+      "passed": true
+    },
+    {
+      "name": "test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.032,
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_is_independent_and_missing_retrain_fails_closed",
+      "class": "tests.test_modular_consumers",
+      "seconds": 2.081,
+      "passed": true
+    },
+    {
+      "name": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 3.114,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[training]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.785,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[model]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.597,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[semantics]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.613,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[request]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.771,
+      "passed": true
+    },
+    {
+      "name": "test_gu_parameters_and_metrics_do_not_change_retrain",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.895,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_removes_supervision_and_incident_edges",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.518,
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_corrupted_outputs_rejected_without_training",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.451,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[x]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.491,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[y]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.477,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.467,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[split]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.485,
+      "passed": true
+    },
+    {
+      "name": "test_changed_producer_and_missing_selection_dependency_rejected",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.486,
+      "passed": true
+    },
+    {
+      "name": "test_aggregate_serialization_is_lossless",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_metrics_cli_reads_independent_modular_outputs",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 5.669,
+      "passed": true
+    },
+    {
+      "name": "test_independent_method_metrics_survive_collection_without_forward",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 2.746,
+      "passed": true
+    },
+    {
+      "name": "test_auc_reports_missing_classes_without_producing_data",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_command_cold_warm_seed_budget_retrain_and_metrics",
+      "class": "tests.test_unified_execution",
+      "seconds": 50.216,
+      "passed": true
+    },
+    {
+      "name": "test_stage_s_summary_binds_real_selections_without_resampling",
+      "class": "tests.test_unified_execution",
+      "seconds": 11.985,
+      "passed": true
+    },
+    {
+      "name": "test_public_tracin_uses_real_100_epoch_trajectory",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.491,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value0]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value1]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value2]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[budget_ratios-value3]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[budget_ratios-value4]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[device-cuda]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[overrides-value6]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_only_trajectory_consumers_bind_changed_checkpoint",
+      "class": "tests.test_target_direct_recipe",
+      "seconds": 0.04,
+      "passed": true
+    },
+    {
+      "name": "test_fixed_split_is_disjoint_exhaustive_and_reproducible",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_fixed_split_changes_with_seed",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_split_is_the_common_opengu_split",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_native_and_target_direct_seeded_calls_are_equivalent",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_processed_root_must_be_inside_active_checkout",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_split_contract_defaults_are_70_10_20_seed2024",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_equivalent_ratio_values_share_one_contract",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_requires_a_nonempty_validation_target",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_real_processed_profile_cold_create_then_warm_hit_without_rewrite",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_real_profiles_reuse_equivalent_contract_and_keep_alternates_distinct",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_cell_and_config_identity_are_stable_and_separate",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_exact_transition_and_repeated_skip_are_deduplicated",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_run_cannot_complete_after_a_failed_stage",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_failed_stage_dominates_inconsistent_historical_run_completion",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_repeated_result_cache_hit_is_compressed_across_new_run_ids",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_repeated_selection_hit_is_compressed_but_new_attack_compute_is_kept",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.046,
+      "passed": true
+    },
+    {
+      "name": "test_append_fails_closed_when_existing_stream_is_corrupt",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_append_rejects_event_tampering_after_build",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_failed_and_retrying_events_require_structured_evidence",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_concurrent_appends_leave_projection_at_latest_stream_length",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.192,
+      "passed": true
+    },
+    {
+      "name": "test_runner_identity_envelope_keeps_child_identity_and_cell_id_consistent",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_human_cache_summary_names_authority_source_policy_and_recipe",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_partial_workflow_fixture_projects_selection_attack_complete_and_failed",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_v1_v2_fixture_is_parsed_without_migration",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_v1_writer_api_remains_available",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_writer_cannot_append_to_live_auto_report_by_default",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_production_baseline_matches_frozen_archive",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_new_auto_report_names_and_baseline_projection",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_evaluation_runner_uses_v3_skip_dedup",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_result_cache_hit_is_not_replayed_as_current_selection_hit",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_result_and_selection_misses_are_one_terminal_event_each",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_v2_selection_hit_is_authoritative_and_identifies_artifact",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_failed_attack_result_is_a_failed_terminal_event",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.033,
+      "passed": true
+    },
+    {
+      "name": "test_result_cache_exposes_verified_v2_hit_source",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.159,
+      "passed": true
+    },
+    {
+      "name": "test_collateral_partial_results_record_success_and_missing_failure",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_acceptance_markdown_and_html_agree_on_architecture_contract_and_counts",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_hybrid_alpha_changes_cache_key",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_hybrid_alpha_decoupled_from_legacy_alpha",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[RandomStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[DegreeStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[PageRankStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_tracin_trained_differs_from_random_init",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.042,
+      "passed": true
+    },
+    {
+      "name": "test_tracin_strategy_requires_trained_model_flag",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_shard_method_tracin_cache_miss_fails_fast",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.045,
+      "passed": true
+    },
+    {
+      "name": "test_graphrevoker_get_trained_model_uses_ensemble_wrapper",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_grapheraser_get_trained_model_behavior_is_unchanged",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-hybrid_alpha]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-fusion_method]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-candidate_fraction]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-im_selector_seed]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-im_batch_size]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-candidate_fraction]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-mc_rounds]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-im_batch_size]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[tracin-loss]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[pagerank-pagerank_alpha]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[True-False-transductive-imbalanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[True-True-transductive-balanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[False-False-inductive-imbalanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[False-True-inductive-balanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_cache_v2_has_no_dataset_or_selector_dependencies",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.066,
+      "passed": true
+    },
+    {
+      "name": "test_processed_provider_uses_canonical_cora_pickle_without_rebuilding_split",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_binds_dataset_candidates_strategy_seed_k_and_producer_version",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_selection_recipe_can_bind_an_explicit_source_score_artifact",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_cache_hit_does_not_call_dataset_provider_or_selection_producer",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.034,
+      "passed": true
+    },
+    {
+      "name": "test_miss_is_computed_only_by_injected_experiment_producer",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.034,
+      "passed": true
+    },
+    {
+      "name": "test_new_materializer_rejects_legacy_recipe_without_identity_boundary",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_dataset_decoupling_markdown_and_html_agree_on_verdict_and_evidence",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_policy_defaults_on_and_canonical_flag_wins",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_gate_accepts_null_only_when_auc_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_gate_rejects_finite_auc_when_policy_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_primary_yaml_configs_make_dataset_scope_explicit",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_every_arxiv_phase_config_disables_optional_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.016,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_verified_status_projects_as_awaiting_wip",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.018,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_detect_duplicate_closed_current_and_stale_todo_block",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_reject_plan_owner_that_disagrees_with_workitem",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_reject_unknown_lifecycle_status",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_updates_projection_and_generated_cards_wrap",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_registered_ready_after_dependency_is_recognized",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_workitem_statuses_are_projected_from_records",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_csv_records_alpha0_a3_and_evidence_state_semantics",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_generator_exports_usable_warning_and_rerun_fields",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_template_labels_rerun_basis_beyond_graphrevoker_only",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_story_metadata_connects_experiments_to_advisor_narrative",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.002,
+      "passed": true
+    }
+  ],
+  "reuse_checkpoint": "380105002579c99ad003418648a85e67da413a0a",
+  "reuse_reason": "Actual diff leaves experiment parser, runtime kernel, methods, data and cache consumers unchanged since the original tested checkpoint. The only product rework removes the M1 helper and its unused adapter; all current SyncMate tests rerun. Report and lifecycle changes are checked separately.",
+  "diff_from_original_checkpoint": [
+    "A\tGULib-master/.workblock/items/AAGU-034/REPORT.html",
+    "A\tGULib-master/.workblock/items/AAGU-034/REPORT.md",
+    "M\tGULib-master/.workblock/items/AAGU-034/WORKITEM.md",
+    "M\tGULib-master/.workblock/items/AAGU-034/evidence/audit_configuration.py",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/documentation-links.json",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/observations.json",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/render-qa.json",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/render_qa.cjs",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/render_report.cjs",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/report-body.png",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/report-boundary.png",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/report-desktop.png",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/report-full.png",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/report-narrow.png",
+    "M\tGULib-master/.workblock/items/AAGU-034/evidence/retired-code.json",
+    "M\tGULib-master/.workblock/items/AAGU-034/evidence/retired-tests.json",
+    "A\tGULib-master/.workblock/items/AAGU-034/evidence/verify-checkpoint.json",
+    "M\tGULib-master/scripts/syncmate/README.md",
+    "M\tGULib-master/scripts/syncmate/opengu_adapter.py",
+    "D\tGULib-master/scripts/syncmate/syncmate_m1.py",
+    "M\tGULib-master/tests/test_syncmate_full_adapter.py",
+    "D\tGULib-master/tests/test_syncmate_m1_adapter.py"
+  ],
+  "raw_junit": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-rework-20260906\\verify-tests.xml",
+  "junit_sha256": "fc0e200a404a4b6fd18e941f2c55f19aa235e4c1c45dd030da9a864845e86459"
+}

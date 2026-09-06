@@ -1,23 +1,12 @@
+"""Verify collected portable outputs; human research acceptance stays separate."""
 from __future__ import annotations
-
 import datetime as dt
 import hashlib
 import json
-import math
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 
-from opengu_recipes import (
-    TARGET_DIRECT_GU_ARTIFACT_NAMES,
-    TARGET_DIRECT_STRATEGIES,
-)
-
-
-_SELECTION_PROFILES = {"target-direct-selection-v2"}
-_GU_GATE_PROFILES = {"target-direct-gu-v2"}
-_GU_STAGE_PROFILES = {"target-direct-gu-stage-v2"}
-REVIEWED_PROFILES = _SELECTION_PROFILES | _GU_GATE_PROFILES | _GU_STAGE_PROFILES
-
+REVIEWED_PROFILES = {'modular-output-v1'}
 
 def _now_iso() -> str:
     return dt.datetime.now().isoformat(timespec="seconds")
@@ -55,17 +44,23 @@ def _peer_evidence(
     peer = ((index.get("peers") or {}).get(node_id) or {}) if isinstance(index, Mapping) else {}
     errors: list[str] = []
     expected_paths = list(definition.get("expected_artifact_paths") or [])
-    items = peer.get("items") or []
+    expected = set(expected_paths)
+    # Core binds this recipe's paths to the submission handoff. The peer index
+    # also retains other runs; only this delivery participates in acceptance.
+    items = [
+        item for item in (peer.get("items") or [])
+        if isinstance(item, Mapping)
+        and str(item.get("remote_path") or item.get("path") or "") in expected
+    ]
     by_remote = {
         str(item.get("remote_path") or item.get("path")): item
         for item in items
-        if isinstance(item, Mapping) and (item.get("remote_path") or item.get("path"))
     }
     if len(by_remote) != len(items):
-        errors.append(f"{label} artifact index contains duplicate or invalid paths")
+        errors.append(f"{label} delivery artifact index contains duplicate paths")
     if (peer.get("summary") or {}).get("status") != "verified":
         errors.append(f"{label} artifact index is not verified")
-    if set(by_remote) != set(expected_paths):
+    if set(by_remote) != expected:
         errors.append(f"verified {label} artifact set differs from the reviewed recipe")
     observed_sha = ((peer.get("remote") or {}).get("git") or {}).get("sha")
     expected_sha = context.get("expected_git_sha")
@@ -74,240 +69,135 @@ def _peer_evidence(
     return peer, errors, expected_paths, by_remote, observed_sha
 
 
-def _selection_acceptance(
-    definition: Mapping[str, Any],
-    context: Mapping[str, Any],
-) -> dict[str, Any]:
-    node_id = str(context.get("node_id") or "")
-    expected_git_sha = context.get("expected_git_sha")
-    project_root = Path(context.get("project_root") or Path.cwd())
-    _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(
-        definition, context, "selection"
-    )
-    receipt_schema = str(definition.get("selection_receipt_schema") or "")
-    if receipt_schema != "target_direct_v1.syncmate_selection_cell":
-        errors.append("target-direct selection receipt schema is not declared")
-    matrix = definition.get("selection_matrix") or {}
-    expected_cells = {
-        (dataset, int(seed))
-        for dataset in matrix.get("datasets") or ()
-        for seed in matrix.get("seeds") or ()
-    }
-    observed_cells: set[tuple[str, int]] = set()
-    receipts: list[dict[str, Any]] = []
-    for remote_path in sorted(path for path in expected_paths if path.endswith("/cell.json")):
-        item = by_remote.get(remote_path) or {}
-        local_path = _safe_project_path(project_root, item.get("local_path"))
-        if local_path is None or not local_path.is_file():
-            errors.append("verified cell receipt is missing locally: " + remote_path)
-            continue
-        try:
-            receipt = json.loads(local_path.read_text(encoding="utf-8"))
-        except Exception as exc:
-            errors.append(f"invalid cell receipt {remote_path}: {exc}")
-            continue
-        if not isinstance(receipt, dict):
-            errors.append("cell receipt root is not an object: " + remote_path)
-            continue
-        dataset, seed = receipt.get("dataset"), receipt.get("seed")
-        if not isinstance(dataset, str) or not isinstance(seed, int):
-            errors.append("cell receipt identity is invalid: " + remote_path)
-            continue
-        observed_cells.add((dataset, seed))
-        if receipt.get("schema") != receipt_schema:
-            errors.append("cell receipt schema mismatch: " + remote_path)
-        if receipt.get("status") != "success" or receipt.get("formal_score_count") != 17:
-            errors.append("cell receipt is not a successful 17-output result: " + remote_path)
-        if expected_git_sha and receipt.get("experiment_git_sha") != expected_git_sha:
-            errors.append("cell receipt Git SHA mismatch: " + remote_path)
-        if "RTX 4090" not in str(receipt.get("device_name") or ""):
-            errors.append("cell receipt is not from RTX 4090: " + remote_path)
-        for field in ("peak_gpu_allocated_bytes", "peak_gpu_reserved_bytes"):
-            if not isinstance(receipt.get(field), int) or receipt[field] <= 0:
-                errors.append(f"cell receipt has no valid {field}: {remote_path}")
-        parent = remote_path.rsplit("/", 1)[0]
-        expected_ratios = tuple(float(value) for value in matrix.get("budget_ratios") or ())
-        expected_k = matrix.get("expected_k_by_ratio") or {}
-        ratio_results = receipt.get("ratio_results") or {}
-        checkpoint = receipt.get("target_checkpoint") or {}
-        if (
-            receipt.get("version") != 3
-            or set(receipt.get("method_score_identities") or {}) != set(TARGET_DIRECT_STRATEGIES)
-            or any(not isinstance(item, dict) or not item.get('artifact_id')
-                   or not isinstance(item.get('recipe_hash'), str) or len(item['recipe_hash']) != 64
-                   or any(c not in '0123456789abcdef' for c in item['recipe_hash'])
-                   for item in (receipt.get('method_score_identities') or {}).values())
-            or receipt.get("parameter_scope") != matrix.get("parameter_scope")
-            or receipt.get("candidate_count") != matrix.get("candidate_count")
-            or tuple(float(value) for value in receipt.get("budget_ratios") or ()) != expected_ratios
-            or receipt.get("expected_k_by_ratio") != expected_k
-            or receipt.get("score_budget_semantics") != matrix.get("score_budget_semantics")
-            or tuple(receipt.get("budget_conditioned_strategies") or ()) != tuple(matrix.get("budget_conditioned_strategies") or ())
-            or type(receipt.get("method_scores_cold_total_seconds")) not in (int, float)
-            or not math.isfinite(receipt.get("method_scores_cold_total_seconds", -1))
-            or receipt.get("method_scores_cold_total_seconds", -1) < 0
-            or not isinstance(receipt.get("method_scores_warm_read_seconds"), dict)
-            or not receipt.get("method_scores_warm_read_seconds")
-            or any(type(value) not in (int, float) or not math.isfinite(value) or value < 0
-                   for value in (receipt.get("method_scores_warm_read_seconds") or {}).values())
-            or set(ratio_results) != {f"{ratio:.2f}" for ratio in expected_ratios}
-            or not checkpoint.get("file_sha256")
-            or not checkpoint.get("state_hash")
-        ):
-            errors.append("target-direct receipt timing/scope/checkpoint contract is incomplete: " + remote_path)
-        for ratio in expected_ratios:
-            ratio_key = f"{ratio:.2f}"
-            ratio_result = ratio_results.get(ratio_key) or {}
-            cold_methods = ratio_result.get("cold_method_timings") or {}
-            warm_methods = ratio_result.get("warm_method_timings") or {}
-            if (
-                float(ratio_result.get("ratio", -1)) != ratio
-                or ratio_result.get("k") != expected_k.get(ratio_key)
-                or set(cold_methods) != set(TARGET_DIRECT_STRATEGIES)
-                or set(warm_methods) != set(TARGET_DIRECT_STRATEGIES)
-                or any(
-                    item.get("status") != "success"
-                    or item.get("cache_hit") is not False
-                    or item.get("selection_projection_cache_hit") is not False
-                    or not isinstance(item.get("cold_selection_projection_seconds"), (int, float))
-                    for item in cold_methods.values()
-                )
-                or any(
-                    item.get("status") != "success"
-                    or item.get("cache_hit") is not True
-                    or item.get("selection_projection_cache_hit") is not True
-                    for item in warm_methods.values()
-                )
-                or (ratio_result.get("failure_state") or {}).get("state") != "success"
-            ):
-                errors.append("target-direct ratio projection contract is incomplete: " + ratio_key)
-            for phase, hash_field in (("cold", "cold_sha256"), ("warm", "warm_sha256")):
-                name = f"{phase}-r{ratio_key}.json"
-                evidence = by_remote.get(parent + "/" + name) or {}
-                local = _safe_project_path(project_root, evidence.get("local_path"))
-                if local is None or not local.is_file() or _sha256(local) != ratio_result.get(hash_field):
-                    errors.append(f"cell receipt does not bind verified {name}: {remote_path}")
-        receipts.append(receipt)
-    if observed_cells != expected_cells:
-        errors.append("accepted cell matrix differs from the reviewed recipe")
-    return {
-        "generated_at": _now_iso(),
-        "mode": "target-direct-selection-acceptance",
-        "node_id": node_id, "recipe": definition.get("id"),
-        "expected_git_sha": expected_git_sha, "observed_remote_git_sha": observed_sha,
-        "expected_artifacts": len(expected_paths), "verified_artifacts": len(by_remote),
-        "expected_cells": len(expected_cells), "accepted_cells": len(observed_cells),
-        "receipts": receipts, "passed": not errors, "errors": errors,
-    }
-
-
-def _gu_acceptance(definition: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
-    from opengu_method_output import read_method_output
-    from cache_v2.contracts import validate_sha256, validate_artifact_id
-
-    is_gate = "gu_gate" in definition
-    scope = definition.get("gu_gate" if is_gate else "gu_stage") or {}
-    selectors = (scope.get("selector"),) if is_gate else tuple(scope.get("selectors") or ())
-    methods = tuple(scope.get("gu_methods") or ())
-    project_root = Path(context.get("project_root") or Path.cwd())
-    expected_sha = context.get("expected_git_sha")
-    _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(definition, context, "GU")
-    if not isinstance(expected_sha, str) or len(expected_sha) != 40 or any(c not in '0123456789abcdef' for c in expected_sha):
-        errors.append("GU acceptance requires the full dispatched Git SHA")
-    if scope.get("lane") != "target_direct_white_box" or scope.get("parameter_scope") != "last_layer":
-        errors.append("GU recipe is not the reviewed target-direct scope")
-    if not methods or len(set(methods)) != len(methods) or not selectors or len(set(selectors)) != len(selectors):
-        errors.append("GU recipe needs unique methods and selectors")
-    if len(by_remote) != len(expected_paths):
-        errors.append("GU evidence has duplicate or missing artifacts")
-    accepted = []
-    checkpoints = set()
-    selections = {}
-    pairings = {}
-    reviewed_paths = set()
-    for method in methods:
-        for selector in selectors:
-            label = str(method) + '/' + str(selector)
-            parent = (f"results/runs/target_direct_formal_v2/gu/{scope['stage'].rsplit('-seed', 1)[0]}"
-                      f"_{scope['base_model']}_r{scope['ratio']:.2f}/{method}_{selector}/seed{scope['seed']}")
-            paths = {name: parent + '/' + name for name in TARGET_DIRECT_GU_ARTIFACT_NAMES}
-            reviewed_paths.update(paths.values())
-            try:
-                read = read_method_output({name: by_remote.get(remote) for name, remote in paths.items()}, project_root)
-                meta, result, payload = read['meta'], read['result'], read['payload']
-                artifact = meta['selection_artifact']
-                checkpoint = artifact.get('target_checkpoint') or {}
-                if any(meta.get(key) != value for key, value in
-                       (('git_sha', expected_sha), ('method', method), ('strategy', selector), ('seed', scope['seed']))):
-                    raise ValueError('GU metadata differs from dispatched cell identity')
-                validate_sha256(meta.get('config_fingerprint'), 'configuration fingerprint')
-                if meta.get('fingerprint_version') != 'v5-single-method-output' or meta.get('comparison_stage') != 'deferred':
-                    raise ValueError('GU metadata does not declare independent method outputs')
-                if any(artifact.get(key) != value for key, value in
-                       (('strategy', selector), ('ratio', scope['ratio']), ('k', scope['k']), ('authoritative', True))):
-                    raise ValueError('Selection provenance differs from reviewed cell')
-                validate_artifact_id(artifact.get('artifact_id'))
-                for field in ('recipe_hash', 'content_hash'):
-                    validate_sha256(artifact.get(field), 'Selection ' + field)
-                for field in ('state_hash', 'file_sha256'):
-                    validate_sha256(checkpoint.get(field), 'target checkpoint ' + field)
-                pairing = payload.identity['pairing']
-                instance = scope['method_instances'][method]
-                if (any(pairing[key] != instance[key] for key in ('model', 'training', 'deletion'))
-                        or payload.identity['target']['parameters'] != instance['parameters']):
-                    raise ValueError('method conditions differ from reviewed configuration')
-                if (len(payload.arrays['selected_nodes']) != scope['k']
-                        or int(payload.arrays['train_mask'].sum()) != scope['candidate_count']
-                        or pairing['training']['seed'] != scope['seed']
-                        or pairing['model']['architecture'] != 'OpenGU.GCNNet'):
-                    raise ValueError('saved input, request or model differs from reviewed cell')
-                selection = payload.identity['selection']
-                if selector in selections and selections[selector] != selection:
-                    raise ValueError('methods did not consume the same Selection')
-                if selector in pairings and pairings[selector] != pairing:
-                    raise ValueError('methods do not share Dataset/Split, request and training conditions')
-                selections[selector], pairings[selector] = selection, pairing
-                checkpoints.add((checkpoint['state_hash'], checkpoint['file_sha256']))
-                accepted.append({'method': method, 'selector': selector, 'ratio': scope['ratio'],
-                    'selection_artifact_id': artifact['artifact_id'],
-                    'target_checkpoint_state_hash': checkpoint['state_hash'],
-                    'output': read['output'], 'evaluation': read['evaluation'],
-                    'f1_after': result['f1_after'], 'f1_drop': result['f1_drop'],
-                    'compute_seconds': result['compute_seconds']})
-            except Exception as exc:
-                errors.append(f'{label}: {type(exc).__name__}: {exc}')
-    if reviewed_paths != set(expected_paths):
-        errors.append('GU recipe artifact declaration differs from its method/selector cells')
-    if len(accepted) != len(methods) * len(selectors):
-        errors.append('accepted GU method count differs from the reviewed recipe')
-    if len(checkpoints) != 1:
-        errors.append('target-direct GU stage does not share one exact Selection checkpoint')
-    return {
-        'generated_at': _now_iso(),
-        'mode': 'target-direct-gu-acceptance' if is_gate else 'target-direct-gu-stage-acceptance',
-        'node_id': context.get('node_id'), 'recipe': definition.get('id'),
-        'expected_git_sha': expected_sha, 'observed_remote_git_sha': observed_sha,
-        'expected_artifacts': len(expected_paths), 'verified_artifacts': len(by_remote),
-        'gate' if is_gate else 'stage': dict(scope),
-        'expected_cells': len(methods) * len(selectors), 'accepted_cells': len(accepted), 'cells': accepted,
-        'target_checkpoint_state_hash': next(iter(checkpoints))[0] if len(checkpoints) == 1 else None,
-        'comparison_stage': 'deferred', 'passed': not errors, 'errors': errors,
-    }
-
-
-def acceptance_payload(
-    profile: str,
-    definition: Mapping[str, Any],
-    context: Mapping[str, Any],
-) -> dict[str, Any]:
+def acceptance_payload(profile, definition, context):
+    errors = []
+    cells = []
     if profile not in REVIEWED_PROFILES:
-        result = {"passed": False, "errors": ["OpenGU acceptance profile is not reviewed"]}
-    elif profile in _SELECTION_PROFILES:
-        result = _selection_acceptance(definition, context)
+        errors.append('OpenGU acceptance profile is not reviewed')
     else:
-        result = _gu_acceptance(definition, context)
-    result = dict(result)
-    result["owner"] = "opengu"
-    result["profile"] = profile
-    result["status"] = "accepted" if result.get("passed") is True else "rejected"
-    return result
+        _, errors, expected_paths, by_remote, observed_sha = _peer_evidence(definition, context, 'modular')
+        root = Path(context['project_root']).resolve()
+        try:
+            for remote, entry in by_remote.items():
+                path = _safe_project_path(root, entry.get('local_path'))
+                if path is None or _sha256(path) != entry['sha256']:
+                    raise ValueError('collected checksum mismatch: ' + remote)
+            summary_remote = next(p for p in expected_paths if p.endswith('/summary.json'))
+            entry = by_remote[summary_remote]
+            from experiments.modular_artifacts import read_summary_outputs
+            summary, outputs = read_summary_outputs(root / entry['local_path'], entry['sha256'])
+            if summary['configuration_fingerprint'] != definition['configuration_fingerprint']:
+                raise ValueError('summary differs from registered effective configuration')
+            if summary['logical_cells'] != definition['logical_cells']:
+                raise ValueError('collected logical count differs from registration')
+            execution = summary['execution_receipt']
+            if (execution.get('source_git_sha') != context['expected_git_sha']
+                    or execution['run_id'] != definition['run_identity']['run_id']
+                    or summary['experiment_id'] != definition['run_identity']['experiment_id']):
+                raise ValueError('collected execution identity mismatch')
+            from experiments.modular_config import load_experiment, experiment_batches, resolve_budget, selector_entries, unlearning_entries
+            config = load_experiment(root / definition['config_path'])
+            from experiments.modular_config import configuration_fingerprint
+            if configuration_fingerprint(root / definition['config_path']) != definition['configuration_fingerprint']:
+                raise ValueError('collector reviewed configuration changed')
+            if summary['dataset'] != config['dataset']:
+                raise ValueError('summary Dataset/Split differs from configuration')
+            stage = config['stage']
+            if stage not in ('selector', 'unlearning', 'metrics') or summary['stage'] != stage or definition['stage'] != stage:
+                raise ValueError('collected stage differs from registration or configuration')
+            if summary['data_identity']['split_hash'] != config['dataset']['artifacts']['split_hash']:
+                raise ValueError('summary Split identity differs from configuration')
+            batches = list(experiment_batches(config))
+            expected = [(batch, gu, selector, selector_ref, gu_ref)
+                        for batch in batches
+                        for gu, gu_ref, selector, selector_ref in unlearning_entries(batch)]
+            if len(expected) != len(outputs):
+                raise ValueError('collected rows differ from ordinary matrix expansion')
+            selector_rows = summary['selectors']
+            expected_selectors = [(batch, selector, ref) for batch in batches
+                                  for selector, ref in selector_entries(batch)]
+            logical_cells = (sum(len(batch['output_inputs']) for batch in batches) if stage == 'metrics'
+                             else len(expected) if stage == 'unlearning' else len(expected_selectors))
+            if logical_cells != definition['logical_cells']:
+                raise ValueError('registered logical count differs from ordinary matrix expansion')
+            if stage != 'unlearning' and (outputs or summary['unlearning']):
+                raise ValueError('non-Unlearning stage contains method outputs')
+            if stage == 'selector' and summary['evaluations']:
+                raise ValueError('Selector stage contains evaluations')
+            if len(selector_rows) != len(expected_selectors):
+                raise ValueError('collected Selector row count mismatch')
+            for (batch, selector, ref), row in zip(expected_selectors, selector_rows):
+                score = row['score']['recipe']['fields']
+                if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != ref
+                        or row['selection']['strategy'] != selector['method']
+                        or score['score_names'] != [selector['method']]
+                        or score['parameters'] != selector['parameters']
+                        or score['data_identity'] != summary['data_identity']
+                        or score.get('training') != selector.get('training')
+                        or score.get('selector_model') != selector.get('model')):
+                    raise ValueError('Selector differs from the effective configuration')
+                if stage == 'selector':
+                    k = resolve_budget(selector['budget'], definition['expected_dataset']['candidate_count'])['k']
+                    nodes = row['selection']['views'][str(k)]['selected_nodes']
+                    if len(nodes) != k or len(set(nodes)) != k:
+                        raise ValueError('Selector view differs from the effective budget')
+                    cells.append({'selector_ref': ref, 'matrix_values': batch['matrix_values'],
+                                  'selection': row['selection']['artifact']})
+            if stage == 'metrics':
+                from cache_v2 import canonical_sha256
+                evaluations = summary['evaluations']
+                if len(evaluations) != len(config['evaluations']):
+                    raise ValueError('collected Evaluation count differs from configuration')
+                for instance, evaluation in zip(config['evaluations'], evaluations):
+                    if evaluation['effective_config'] != instance or not evaluation['rows']:
+                        raise ValueError('Metrics differs from the effective evaluation configuration')
+                    # One input summary can supply multiple evaluated outputs.
+                    for row in evaluation['rows']:
+                        identity = row['identity']
+                        if (identity['case'] != instance['case']
+                                or identity['metrics'] != sorted(instance['metrics'])
+                                or identity['producer_version'] != instance['producer_version']
+                                or set(row['metrics']) != set(instance['metrics'])
+                                or row['evaluation_receipt_id'] != 'evalr_' + canonical_sha256(identity)[:32]):
+                            raise ValueError('Metrics receipt differs from the effective evaluation')
+                        cells.append({'evaluation': row})
+            for index, ((batch, gu, selector, selector_ref, gu_ref), output) in enumerate(zip(expected, outputs)):
+                identity = output['payload'].identity
+                row = summary['unlearning'][index]
+                selected = next(item for item in selector_rows
+                                if item['matrix_values'] == batch['matrix_values'] and item['selector_ref'] == selector_ref)
+                k = resolve_budget(selector['budget'], definition['expected_dataset']['candidate_count'])['k']
+                if (row['matrix_values'] != batch['matrix_values'] or row['selector_ref'] != selector_ref
+                        or row['unlearning_ref'] != gu_ref
+                        or identity['pairing']['data_identity'] != summary['data_identity']
+                        or summary['data_identity']['split_hash'] != config['dataset']['artifacts']['split_hash']
+                        or len(output['payload'].arrays['y']) != definition['expected_dataset']['num_nodes']
+                        or int(output['payload'].arrays['train_mask'].sum()) != definition['expected_dataset']['candidate_count']
+                        or len(output['payload'].arrays['selected_nodes']) != k
+                        or identity['selection'] != {key: selected['selection']['artifact'][key]
+                            for key in ('artifact_id','recipe_hash','content_hash')}
+                        or output['payload'].arrays['selected_nodes'].tolist() != selected['selection']['views'][str(k)]['selected_nodes']):
+                    raise ValueError('output Dataset/Split, Selector or budget binding mismatch')
+                for name, artifact in row['collected_artifacts'].items():
+                    remote = str(PurePosixPath(summary_remote).parent / (PurePosixPath(summary_remote).stem + '.outputs') / str(index) / name)
+                    collected = by_remote[remote]
+                    actual = (root / entry['local_path']).parent / artifact['path']
+                    if (actual.resolve() != (root / collected['local_path']).resolve()
+                            or artifact['sha256'] != collected['sha256']):
+                        raise ValueError('summary output is outside the verified collected set')
+                if (identity['target']['method'] != gu['method']
+                        or identity['target']['parameters'] != gu['parameters']
+                        or identity['pairing']['model'] != gu['model']
+                        or identity['pairing']['training'] != gu['training']
+                        or identity['pairing']['deletion'] != gu['deletion']):
+                    raise ValueError('output differs from the effective method configuration')
+                cells.append({'method': gu['method'], 'seed': gu['training']['seed'],
+                    'output': output['output'], 'evaluation': output['evaluation'],
+                    'selection': identity['selection']})
+        except (ValueError, KeyError, TypeError, OSError, StopIteration) as exc:
+            errors.append(str(exc))
+    passed = not errors
+    return {'owner': 'opengu', 'profile': profile, 'passed': passed,
+            'status': 'accepted' if passed else 'rejected', 'errors': errors,
+            'accepted_cells': len(cells), 'cells': cells,
+            'scientific_acceptance': 'not_evaluated', 'generated_at': _now_iso()}

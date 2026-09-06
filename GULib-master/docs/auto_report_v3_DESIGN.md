@@ -8,11 +8,10 @@ Freeze the former `results/_journal/auto_report.md` byte-for-byte under `results
 
 ```mermaid
 flowchart LR
-    R["experiments/run.py"] -->|stable context via env| A["demo_attack.py"]
-    R -->|same cell_id/run_id| C["eval_collateral.py"]
-    R --> E["run/stage transitions"]
-    A --> E["selection + attack facts"]
-    C --> E["collateral facts"]
+    R["experiments/run.py + ordinary YAML"] -->|run lifecycle| E["AutoReport V3 events"]
+    R --> K["existing modular execution → summary + outputs"]
+    A["demo_attack.py"] -->|selection + attack facts| E
+    C["eval_collateral.py"] -->|collateral facts| E
     E --> J["auto_report.events.jsonl\nappend-only audit"]
     J --> S["summary.py"]
     B["auto_report_baseline.json\ncurated legacy facts"] --> S
@@ -30,10 +29,10 @@ Required top-level fields are:
 | `schema`, `schema_version` | `opengu.autoreport.event`, version `3` |
 | `event_id`, `dedup_key` | Stable transition identity; exact repeats are not appended |
 | `timestamp`, `producer` | UTC observation time and producing script/host |
-| `cell_id` | Stable matrix-coordinate identity, independent of attempts |
+| `cell_id` | Stable logical identity (matrix cell or explicitly scoped experiment), independent of attempts |
 | `run_id`, `attempt` | One real execution attempt shared across runner/children; retry ordinal |
 | `stage`, `state` | `selection/attack/collateral/run` × `started/completed/failed/skipped/retrying` |
-| `identity` | dataset/model/method/strategy/ratio/seed/k |
+| `identity` | Matrix cell: dataset/model/method/strategy/ratio/seed/k. Ordinary YAML: scope=experiment, experiment_id/dataset/execution_stage |
 | `git_sha`, `config_fingerprint` | Code and recipe identity kept separate from `cell_id` |
 | `cache` | Typed cache observations with recipe, Artifact/source, policy, authority, and write outcome |
 | `artifacts`, `metrics` | Outputs and stage-specific measurements |
@@ -56,7 +55,9 @@ The `AttackResult` now carries separate SelectionCache and ResultCache provenanc
 | Runner and child both report the same terminal transition | The shared run/stage/state dedup key retains the first, richer fact |
 | Dry run, internal cache probes, fixed next-step prose, repeated HIT text | Append nothing |
 
-The runner propagates one canonical identity envelope together with cell_id/run_id/config/git context. Child writers reject a mismatched cell identity instead of silently attaching different coordinates to the same cell. Before append, the writer validates the new event, recomputes event/dedup identity, validates every existing event, and refuses to append after malformed or untrusted JSONL. Append plus view refresh is serialized under one lock, so concurrent producers cannot leave an older projection on top of a newer audit line.
+The ordinary runner records one YAML invocation with explicit experiment scope, after configuration and device validation. It writes `run.started` before execution and `run.completed` or `run.failed` after observing the outcome. Config fingerprint and source Git SHA bind each attempt; metadata links the execution run-id and level. A completed event references the existing summary and its SHA-256. Cache-backed invocations are still real attempts, with separate run IDs and increasing attempt ordinals. Matrix results stay in the summary; the runner does not invent model/method/ratio coordinates or cache observations for an entire matrix.
+
+The existing independent cell producers retain their cell identity envelope. Child writers reject a mismatched cell identity instead of silently attaching different coordinates to the same cell. Before append, the writer validates the new event, recomputes event/dedup identity, validates every existing event, and refuses to append after malformed or untrusted JSONL. Append plus view refresh is serialized under one lock, so concurrent producers cannot leave an older projection on top of a newer audit line.
 
 The status projection recognizes selection-only, attack-only, collateral, complete/cached, legacy-skip, running, and failed states. It is atomically rewritten from JSONL plus the integrity-checked baseline; losing it does not lose audit evidence.
 
@@ -74,7 +75,7 @@ The status projection recognizes selection-only, attack-only, collateral, comple
 - Existing `append_report_entry`, `append_attack_result`, and `append_collateral_entry` functions remain importable only for compatibility fixtures/exports. They require an explicit `report_path`, emit a deprecation warning, and no longer synthesize next-step advice.
 - `reader.py` parses v1 experiment headings and v2 session/decision headings without modifying the source file.
 - The large ~19k-line server journal stays frozen in `archive/`; the cutover never rewrites it.
-- `experiments/run.py` owns attempt/stage boundaries and propagates identity through environment variables, avoiding new CLI arguments in legacy parsers.
+- `experiments/run.py` calls the existing V3 writer directly. Journal and projections live under the device-selected execution root's `results/_journal`; verification uses its disposable root. It does not invoke legacy parsers or propagate an experiment identity into independent cell producers. Core runs the same command; its declared artifact collection remains separate from the runner journal.
 
 Rebuild the current-state views with:
 

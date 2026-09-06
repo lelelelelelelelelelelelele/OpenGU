@@ -1,0 +1,91 @@
+{
+  "candidate": "380105002579c99ad003418648a85e67da413a0a",
+  "source_project": "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master",
+  "fixture_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3",
+  "commands": [
+    {
+      "name": "pytest",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-m",
+        "pytest",
+        "tests/test_aagu015_definitions.py",
+        "tests/test_aagu019_legacy_retirement.py",
+        "tests/test_modular_consumers.py",
+        "tests/test_retrain_outputs.py",
+        "tests/test_unified_execution.py",
+        "tests/test_target_direct_recipe.py",
+        "tests/test_target_direct_split_profile.py",
+        "tests/test_auto_report_v3.py",
+        "tests/test_phase_b_invariants.py",
+        "tests/test_cache_v2_dataset_boundary.py",
+        "tests/test_update_detection_auc_policy.py",
+        "tests/test_syncmate.py",
+        "tests/test_syncmate_gu_outputs.py",
+        "tests/test_syncmate_full_adapter.py",
+        "tests/test_syncmate_m1_adapter.py",
+        "tests/test_syncmate_core_dependency.py",
+        "tests/test_dashboard_refresh.py",
+        "tests/test_config_inventory_dashboard.py",
+        "-q",
+        "--disable-warnings",
+        "-o",
+        "junit_family=legacy",
+        "--basetemp",
+        "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3",
+        "--junitxml",
+        "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\verify-tests.xml"
+      ],
+      "exit_code": 0,
+      "seconds": 228.278,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\pytest.log"
+    },
+    {
+      "name": "configuration-audit",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        ".workblock/items/AAGU-034/evidence/audit_configuration.py"
+      ],
+      "exit_code": 0,
+      "seconds": 4.944,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\configuration-audit.log"
+    },
+    {
+      "name": "dashboard",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/dashboard/refresh.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.324,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\dashboard.log"
+    },
+    {
+      "name": "syncmate-smoke",
+      "argv": [
+        "E:/conda_package/envs/gnn/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "scripts/syncmate/syncmate.py",
+        "smoke",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.4,
+      "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\syncmate-smoke.log"
+    }
+  ],
+  "clean_after": true,
+  "passed": true
+}

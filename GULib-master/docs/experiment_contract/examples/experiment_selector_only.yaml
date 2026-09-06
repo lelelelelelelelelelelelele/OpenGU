@@ -3,6 +3,8 @@ schema_version: 1
 experiment_id: illustrative_hutch_probe_comparison
 round: 1
 stage: selector
-dataset_ref: dataset_cora.yaml
-selector_refs: [selector_b_hutch32.yaml, selector_b_hutch64.yaml]
+dataset_ref: ../../../experiments/configs/datasets/cora.yaml
+selector_refs:
+- ../../../experiments/configs/selectors/b_param_hutch.yaml
+- ../../../experiments/configs/selectors/b_param_hutch64.yaml
 matrix: cartesian_product

@@ -6,7 +6,7 @@ single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
-## Ownership and compatibility entry
+## Ownership and project entry
 
 Generic protocol, immutable job-envelope, bounded-runner, checksum, readiness,
 and device-resolution rules are owned by the independent SyncMate repository:
@@ -18,16 +18,16 @@ and device-resolution rules are owned by the independent SyncMate repository:
 
 OpenGU owns the concrete recipes, experiment preflight, result parsing,
 acceptance semantics, cache repair, and this project runbook. The default
-`scripts/syncmate/syncmate.py` compatibility entry is a thin facade: it imports
+`scripts/syncmate/syncmate.py` project entry is a thin facade: it imports
 the installed `syncmate_core` package, installs
 `scripts/syncmate/opengu_adapter.py`, and exposes the reviewed OpenGU Project
 surface without embedding transfer, queue, manifest, checksum, or trusted-index
 implementations.
 
-`scripts/syncmate/syncmate_m1.py` remains the three-command M1 Gate 1/2 helper.
-The old embedded compatibility source was removed by SM-004. The material below
-documents the OpenGU compatibility surface; it is not a second authority for
-the generic protocol.
+The old embedded implementation was removed by SM-004. AAGU-034 also removes
+the obsolete M1 helper and its separate adapter. The current CLI uses only
+`OpenGUProjectExtension`; the material below documents this OpenGU project
+surface. Historical gate evidence remains in its original WorkItems.
 
 OpenGU supplies each experiment's `timeout_seconds` in the reviewed static
 recipes in `opengu_recipes.py`. The pinned Core carries that value into the
@@ -1247,11 +1247,8 @@ bridge:
 
 ```bash
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
-# Formal degree gate with independent GNNDelete and Retrain outputs (after its
-# registered processed split and Selection prerequisites have been verified):
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-gate-r005-v2 --wait --json
-# Only after the gate is accepted; repeat for the reviewed 3 x 3 stage ids:
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-cora-seed42-r005-v2 --wait --json
+# After the current AAGU-007 configuration and its execution are approved:
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-aagu007-v1 --wait --json
 ```
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
@@ -1314,26 +1311,32 @@ comparison, pending delta, last transfer result, final checksum verification,
 and trusted results-table status.
 Reports older than 24 hours are flagged by `doctor` as stale.
 
-### Target-direct method Score receipts (AAGU-026)
+### Ordinary experiment receipts (AAGU-034)
 
-The active selection summary and receipt use version 3. Each of the 17 methods
-owns an exact Score identity in `method_scores` / `method_score_identities`.
-The second deletion ratio reuses those same method Scores, while each ratio
-owns its Selection projection. Cold/warm validation checks every method's
-producer invocation, identity, and timing; totals are timing aggregates only.
-The frozen YAML and its registered SHA were updated together. This contract
-change does not authorize a formal run or widen the approved matrix. See the
-[modular consumer guide](../../docs/modular_experiments.md) for the independent
-local verification entry and exact existing-Selection input.
+The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`.
+The same parser, in-memory expansion and execution kernel serve dry-run and
+local CPU verification. The registration binds both the top YAML hash and the
+complete referenced configuration fingerprint, plus run identity and the exact
+summary / per-method payload set. Collection verifies all bytes and independent
+Output / Selection / metric identities; it does not need the remote Store.
+Historical target-direct and completed SM-005 one-shot registrations are retired.
+Their existing evidence and Cache V2 artifacts remain unchanged. See the
+[ordinary consumer guide](../../docs/modular_experiments.md).
 
 ## Execution and output handoff
 
 SyncMate Core 0.4.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
 runtime output paths. `opengu_layout.py` owns the modular result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
-output contract; the atomic stage verifies it before invoking the consumer.
+output contract; Core validates it, invokes the ordinary command and checks its declared files.
 
-Device setup keeps SSH, `repo_path` and the interpreter. Remove `landing` and
+Device setup keeps SSH, `repo_path` and the interpreter. The runner's own
+`.syncmate/device.yaml` also declares `execution_device: cuda` (or an explicit
+CUDA index); disposable CPU verification declares `execution_device: cpu`.
+The ordinary entry uses Core's existing device reader. Missing or unavailable
+devices fail before reading graph data; there is no default device or GPU-model constant.
+The execution receipt records the actual interpreter, working directory and device.
+Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and
 project code declares bulk inventory roots. Per-job files come from the recipe.
 Dispatch saves `.syncmate/runs/<job_id>.json`. `dispatch --wait` automatically
@@ -1342,6 +1345,8 @@ job, use `runner-agent collect <peer> --job-id <id> --json`; it uses the same
 saved route even if device setup has changed. The controller must remain online
 for automatic return. Historic indexed files retain their original addresses.
 
-A new run directory does not affect Cache V2 identity. The D full handoff probe
-uses the original benchmark YAML with run `sm005-d-full-handoff-v1`, and performs
-1 Selector / 0 GU / 0 Evaluation.
+A new run directory does not affect Cache V2 identity. Changing only budget
+reuses budget-independent Scores; training seed affects only model consumers.
+The current 007 plan has four independent method outputs and seventeen exported
+files. A later Metrics recipe must bind real completed outputs before review;
+no placeholders are submitted as jobs.

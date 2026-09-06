@@ -483,7 +483,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <header class="titlebar">
   <div>
     <h1>Experiment Config Inventory <span class="tag">Coverage Heatmap</span></h1>
-    <div class="sub">__NCONFIGS__ configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · source <b>experiments/configs/</b> · generated __GENERATED_DATE__</div>
+    <div class="sub">__NCONFIGS__ configs · join: <b>_phase_b_aggregate.csv</b> (cora) + disk scan (arxiv) · historical definitions <b>docs/archive/experiment-configs-pre-aagu034/</b> · generated __GENERATED_DATE__</div>
   </div>
 </header>
 
@@ -529,7 +529,7 @@ TEMPLATE = r"""<!DOCTYPE html>
     <b>src</b> column: <code>csv</code> = completion read from <code>results/_phase_b_aggregate.csv</code>
     (cora main results) · <code>disk</code> = cell count scanned from <code>results/runs/</code>
     (arxiv + non-cora; not in the aggregate CSV). Source of configs:
-    <code>experiments/configs/</code>. Status mapping: <b style="color:var(--ok);">complete</b> /
+    <code>docs/archive/experiment-configs-pre-aagu034/</code> (historical evidence inventory; not active execution configs). Status mapping: <b style="color:var(--ok);">complete</b> /
     <b style="color:var(--warn);">partial</b> / <b style="color:var(--blocked);">not-started</b>.
   </div>
   <div class="note">

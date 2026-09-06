@@ -40,7 +40,7 @@ def test_legacy_packages_configs_and_registry_are_not_executable():
         (ROOT / "experiments" / "configs").glob("syncmate_small_selection*.yaml")
     )
     definitions = _recipes_module().recipe_definitions()
-    assert len(definitions) == 32
+    assert len(definitions) == 3
     assert not [recipe_id for recipe_id in definitions if "small-selection" in recipe_id]
 
 
@@ -58,9 +58,9 @@ def test_active_python_surface_has_no_legacy_runtime_reference():
     assert matches == {}
 
 
-def test_current_formal_config_derives_ratio_conditioned_contract():
+def test_archived_formal_config_retains_ratio_conditioned_contract():
     config = yaml.safe_load(
-        (ROOT / "experiments" / "configs" / "syncmate_target_direct_formal_v2.yaml")
+        (ROOT / "docs/archive/experiment-configs-pre-aagu034" / "syncmate_target_direct_formal_v2.yaml")
         .read_text(encoding="utf-8")
     )
     assert config["version"] == 2

@@ -42,7 +42,7 @@ Item Type: Block
 - Priority: `P0 / first`
 - Source anchor: legacy WORKPLAN target-direct dataset/split conflict.
 - Outcome: active planning and executable configuration point to one verified dataset/split identity; obsolete split/budget wording is removed from the active view rather than retained as a parallel lane.
-- Fact owner: [target-direct formal v2 recipe](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml); `experiments/AGENTS.md` owns the operational boundary but does not duplicate the recipe values.
+- Fact owner: [target-direct formal v2 recipe](../../../docs/archive/experiment-configs-pre-aagu034/syncmate_target_direct_formal_v2.yaml); `experiments/AGENTS.md` owns the operational boundary but does not duplicate the recipe values.
 - Blocks: experiment-definition and target-direct execution nodes until accepted.
 
 ## Acceptance route proposal

@@ -1,0 +1,85 @@
+{
+  "checked_local_links": 120,
+  "missing": [],
+  "scope": [
+    "docs\\experiment_contract\\PARAMETERS.md",
+    "docs\\experiment_contract\\README.md",
+    "docs\\modular_experiments.md",
+    "experiments\\README.md",
+    "experiments\\configs\\README.md",
+    "experiments\\configs\\aagu007\\README.md",
+    "experiments\\configs\\aagu015\\README.md",
+    "experiments\\configs\\aagu032\\README.md",
+    "experiments\\configs\\sm005_atomic\\README.md",
+    "scripts\\syncmate\\README.md",
+    "self\\dashboard\\WORKPLAN.md"
+  ],
+  "excluded": "immutable WorkItem history, archived docs and existing AGENTS cross-checkout links",
+  "external_links_resolved_via_authority": [
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\13_重跑与缓存修复Runbook.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\24_E7代理选集迁移实验计划.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\30_评审与汇报\\31_评审意见与rebuttal.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/_文档地图.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\_文档地图.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/13_重跑与缓存修复Runbook.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\13_重跑与缓存修复Runbook.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/24_E7代理选集迁移实验计划.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\24_E7代理选集迁移实验计划.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/30_评审与汇报/31_评审意见与rebuttal.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\30_评审与汇报\\31_评审意见与rebuttal.md"
+    },
+    {
+      "file": "self\\dashboard\\WORKPLAN.md",
+      "target": "../../../../OpenGU-DocMap/10_实验矩阵/10_实验-框架总览.md",
+      "canonical_target": "E:\\project\\OpenGU-DocMap\\10_实验矩阵\\10_实验-框架总览.md"
+    }
+  ]
+}

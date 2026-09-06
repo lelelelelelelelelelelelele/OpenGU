@@ -1,0 +1,33 @@
+{
+  "layer": "local headless Edge",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "metrics": {
+        "bodyOverflow": false,
+        "humanResults": 1,
+        "decisions": 1,
+        "decisionBottom": 457,
+        "brokenImages": 0,
+        "title": "AAGU-034 · 实验配置与统一执行入口修正"
+      },
+      "errors": []
+    },
+    {
+      "name": "narrow",
+      "width": 390,
+      "height": 844,
+      "metrics": {
+        "bodyOverflow": false,
+        "humanResults": 1,
+        "decisions": 1,
+        "decisionBottom": 600,
+        "brokenImages": 0,
+        "title": "AAGU-034 · 实验配置与统一执行入口修正"
+      },
+      "errors": []
+    }
+  ]
+}

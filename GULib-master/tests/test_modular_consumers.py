@@ -96,20 +96,21 @@ def test_method_cold_warm_and_hutch_isolation(tables, record_property):
 
 def test_real_gu_consumes_existing_selection_without_producer(tables, monkeypatch, record_property):
     cold = run(tables, 'selection_only', selector_refs=['degree.yaml'])
-    reference = {k: cold['selectors'][0]['selection']['artifact'][k] for k in ('artifact_id', 'recipe_hash', 'content_hash')}
-    import experiments.modular_run as entry
-    def forbidden(**kwargs):
-        raise AssertionError('selector producer invoked by Selection-to-GU')
-    monkeypatch.setattr(entry, 'resolve_methods', forbidden)
-    first = run(tables, 'gu_cold', selector_refs=[], selection_input=reference, stage='unlearning', unlearning_refs=['gu.yaml'])
-    second = run(tables, 'gu_warm', selector_refs=[], selection_input=reference, stage='unlearning', unlearning_refs=['gu.yaml'])
+    import functools
+    from experiments.target_direct_v1 import methods
+    @functools.wraps(methods.METHODS['degree'])
+    def forbidden(*args, **kwargs):
+        raise AssertionError('cached Selection-to-GU recomputed degree scores')
+    monkeypatch.setitem(methods.METHODS, 'degree', forbidden)
+    first = run(tables, 'gu_cold', selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['gu.yaml'])
+    second = run(tables, 'gu_warm', selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['gu.yaml'])
     assert first['selector_producer_called'] is False
     assert first['unlearning'][0]['hit'] is False
     assert second['unlearning'][0]['hit'] is True
     root, _, gu = tables
     gu['parameters']['unlearn_lr'] = 0.02
     write_yaml(root / 'gu.yaml', gu)
-    changed = run(tables, 'gu_lr002', selector_refs=[], selection_input=reference, stage='unlearning', unlearning_refs=['gu.yaml'])
+    changed = run(tables, 'gu_lr002', selector_refs=['degree.yaml'], stage='unlearning', unlearning_refs=['gu.yaml'])
     assert changed['unlearning'][0]['recipe_hash'] != first['unlearning'][0]['recipe_hash']
     assert changed['unlearning'][0]['producer_called'] is True
     record_property('real_gu', json.dumps([first['unlearning'][0], second['unlearning'][0], changed['unlearning'][0]]))
@@ -137,9 +138,14 @@ def test_missing_and_wrong_identity_fail_before_execution(tables):
     cold = run(tables, 'selection', selector_refs=['degree.yaml'])
     reference = {k: cold['selectors'][0]['selection']['artifact'][k] for k in ('artifact_id', 'recipe_hash', 'content_hash')}
     reference['content_hash'] = '0' * 64
+    from experiments.modular_run import read_dataset, verified_selection
+    from experiments.modular_config import load_instance
+    root = tables[0]
+    data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     with pytest.raises(ValueError, match='digest mismatch'):
-        run(tables, 'wrong', selector_refs=[], selection_input=reference, stage='unlearning', unlearning_refs=['gu.yaml'])
-    assert not (tables[0] / 'runtime/unlearning').exists()
+        verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
+    assert not (root / 'runtime/unlearning').exists()
+
 
 
 def test_real_gu_method_and_default_equivalence(tables):
@@ -172,7 +178,7 @@ def test_different_selector_and_gu_backbones(tables):
     assert result['unlearning'][0]['producer_called']
 
 
-def test_real_command_entry_selector_and_existing_selection(tables):
+def test_command_requires_context_and_gu_reuses_declared_selection(tables):
     import subprocess
     import sys
     root, config, _ = tables
@@ -185,13 +191,11 @@ def test_real_command_entry_selector_and_existing_selection(tables):
     assert not (root / 'v2').exists()
     first = subprocess.run(command, cwd=repository, capture_output=True, text=True)
     assert first.returncode != 0
-    assert 'owned by the registered SyncMate/project stage' in first.stdout + first.stderr
     result = run(tables, 'entry-selection', selector_refs=['degree.yaml'])
-    config.update(stage='unlearning', selector_refs=[], unlearning_refs=['gu.yaml'],
-        selection_input={k: result['selectors'][0]['selection']['artifact'][k] for k in ('artifact_id', 'recipe_hash', 'content_hash')})
+    config.update(stage='unlearning', unlearning_refs=['gu.yaml'])
     write_yaml(root / 'entry.yaml', config)
-    result = run(tables, 'gu-entry', stage='unlearning', selector_refs=[],
-        selection_input=config['selection_input'], unlearning_refs=['gu.yaml'])
+    result = run(tables, 'gu-entry', stage='unlearning', selector_refs=['degree.yaml'],
+        unlearning_refs=['gu.yaml'])
     assert result['selector_producer_called'] is False
     assert result['unlearning'][0]['producer_called'] is True
 

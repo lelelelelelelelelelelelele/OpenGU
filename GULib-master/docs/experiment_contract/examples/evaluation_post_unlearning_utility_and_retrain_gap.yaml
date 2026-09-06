@@ -1,5 +1,0 @@
-kind: evaluation
-schema_version: 1
-case: post_unlearning_utility_and_retrain_gap
-acceptance:
-  note: 具体阈值由获准实验另行冻结

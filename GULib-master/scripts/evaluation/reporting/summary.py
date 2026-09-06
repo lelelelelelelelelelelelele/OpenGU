@@ -25,6 +25,8 @@ def _escape_md(value: Any) -> str:
 
 
 def _identity_label(identity: Mapping[str, Any]) -> str:
+    if identity.get("scope") == "experiment":
+        return " / ".join(str(identity[key]) for key in ("experiment_id", "dataset", "execution_stage"))
     parts = [
         identity.get("dataset"),
         identity.get("model"),

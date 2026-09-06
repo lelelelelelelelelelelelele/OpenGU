@@ -1,0 +1,2688 @@
+{
+  "checkpoint": {
+    "candidate": "380105002579c99ad003418648a85e67da413a0a",
+    "source_project": "E:\\project\\OpenGU\\.worktrees\\aagu-034\\GULib-master\\GULib-master",
+    "fixture_root": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3",
+    "commands": [
+      {
+        "name": "pytest",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "-m",
+          "pytest",
+          "tests/test_aagu015_definitions.py",
+          "tests/test_aagu019_legacy_retirement.py",
+          "tests/test_modular_consumers.py",
+          "tests/test_retrain_outputs.py",
+          "tests/test_unified_execution.py",
+          "tests/test_target_direct_recipe.py",
+          "tests/test_target_direct_split_profile.py",
+          "tests/test_auto_report_v3.py",
+          "tests/test_phase_b_invariants.py",
+          "tests/test_cache_v2_dataset_boundary.py",
+          "tests/test_update_detection_auc_policy.py",
+          "tests/test_syncmate.py",
+          "tests/test_syncmate_gu_outputs.py",
+          "tests/test_syncmate_full_adapter.py",
+          "tests/test_syncmate_m1_adapter.py",
+          "tests/test_syncmate_core_dependency.py",
+          "tests/test_dashboard_refresh.py",
+          "tests/test_config_inventory_dashboard.py",
+          "-q",
+          "--disable-warnings",
+          "-o",
+          "junit_family=legacy",
+          "--basetemp",
+          "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3",
+          "--junitxml",
+          "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\verify-tests.xml"
+        ],
+        "exit_code": 0,
+        "seconds": 228.278,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\pytest.log"
+      },
+      {
+        "name": "configuration-audit",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          ".workblock/items/AAGU-034/evidence/audit_configuration.py"
+        ],
+        "exit_code": 0,
+        "seconds": 4.944,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\configuration-audit.log"
+      },
+      {
+        "name": "dashboard",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/dashboard/refresh.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "seconds": 0.324,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\dashboard.log"
+      },
+      {
+        "name": "syncmate-smoke",
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/syncmate/syncmate.py",
+          "smoke",
+          "--json"
+        ],
+        "exit_code": 0,
+        "seconds": 0.4,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-verify\\syncmate-smoke.log"
+      }
+    ],
+    "clean_after": true,
+    "passed": true
+  },
+  "test_count": 349,
+  "failures": 0,
+  "errors": 0,
+  "properties": {
+    "test_command_cold_warm_seed_budget_retrain_and_metrics:command_evidence": {
+      "cold_trace": {
+        "training_seeds": [
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          122,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722,
+          722
+        ],
+        "score_calls": [
+          "degree",
+          "random",
+          "a_grad_norm",
+          "a_grad_norm"
+        ]
+      },
+      "warm_trace": {
+        "training_seeds": [],
+        "score_calls": []
+      },
+      "logical_cells": 24,
+      "score_groups": {
+        "degree.yaml": 1,
+        "random.yaml": 1,
+        "a_grad_norm.yaml": 2
+      },
+      "metrics_rows": 12,
+      "cold_output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3\\test_command_cold_warm_seed_bu0\\results\\runs\\modular\\cpu-matrix\\cold\\summary.json",
+      "warm_output": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-verified-e7417ef1e3\\test_command_cold_warm_seed_bu0\\results\\runs\\modular\\cpu-matrix\\warm\\summary.json"
+    },
+    "test_public_tracin_uses_real_100_epoch_trajectory:actual_trajectory": {
+      "tracin_cp_point_3": {
+        "steps": [
+          1,
+          50,
+          100
+        ],
+        "score": "score_c21411eb_a5216418"
+      },
+      "tracin_cp_point_6": {
+        "steps": [
+          1,
+          10,
+          25,
+          50,
+          75,
+          100
+        ],
+        "score": "score_80c8f3bd_4592affb"
+      }
+    },
+    "test_all_seventeen_methods_match_pre_refactor_formulas:seventeen_method_max_abs_error": {
+      "a_grad_norm": 0.0,
+      "b_param_hutch": 0.0,
+      "degree": 0.0,
+      "gt_full": 0.0,
+      "gt_simple": 0.0,
+      "legacy": 0.0,
+      "p_graph": 0.0,
+      "p_point": 0.0,
+      "p_simple": 0.0,
+      "r_point": 0.0,
+      "random": 0.0,
+      "tracin_cp_graph_3": 0.0,
+      "tracin_cp_graph_6": 0.0,
+      "tracin_cp_point_3": 0.0,
+      "tracin_cp_point_6": 0.0,
+      "tracin_cp_simple_3": 0.0,
+      "tracin_cp_simple_6": 0.0
+    },
+    "test_real_queue_command_collect_verify_accept_results_and_repeat:actual_collection": {
+      "checked": {
+        "owner": "opengu",
+        "profile": "modular-output-v1",
+        "passed": true,
+        "status": "accepted",
+        "errors": [],
+        "accepted_cells": 8,
+        "cells": [
+          {
+            "method": "GNNDelete",
+            "seed": 122,
+            "output": {
+              "recipe_hash": "bfaa921c8ba768e79917902cdb75426e3b03922c60297e297e524d0aff26809f",
+              "content_hash": "6cc388dff99cc0dca2ec729f024a3ca280ead470376c570ec4d73f4003535b43",
+              "artifact_id": "pred_bfaa921c_6cc388df"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_f2c2d629f8ee6705930fa55aaf5a670e",
+              "identity": {
+                "output": {
+                  "recipe_hash": "bfaa921c8ba768e79917902cdb75426e3b03922c60297e297e524d0aff26809f",
+                  "content_hash": "6cc388dff99cc0dca2ec729f024a3ca280ead470376c570ec4d73f4003535b43",
+                  "artifact_id": "pred_bfaa921c_6cc388df"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.6,
+                "accuracy": 0.6,
+                "cross_entropy": 0.7114549887865944,
+                "classification_auc": 0.6666666666666666,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "insufficient_samples"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_c8428044_ec71c37f",
+              "content_hash": "ec71c37ff33961934281c66a4ce9df7c716b20cada82025a18a1c59ee71bb314",
+              "recipe_hash": "c842804454b4eb0c720b7303f0ba68737e938b7940e12a68accc2a050aee9e50"
+            }
+          },
+          {
+            "method": "Retrain",
+            "seed": 122,
+            "output": {
+              "recipe_hash": "17d424ca9d8a8e5f1586241fc0e2726a282112d53d7d47e9d1969a958ed411d9",
+              "content_hash": "fae545a4fded674e3e2883e442cecb325485bc2fd10bdf02cb1e009ce34c66d1",
+              "artifact_id": "pred_17d424ca_fae545a4"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_5e2851993772d28ae9cbf5831c21c45e",
+              "identity": {
+                "output": {
+                  "recipe_hash": "17d424ca9d8a8e5f1586241fc0e2726a282112d53d7d47e9d1969a958ed411d9",
+                  "content_hash": "fae545a4fded674e3e2883e442cecb325485bc2fd10bdf02cb1e009ce34c66d1",
+                  "artifact_id": "pred_17d424ca_fae545a4"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.6,
+                "accuracy": 0.6,
+                "cross_entropy": 0.712027805297529,
+                "classification_auc": 0.6666666666666666,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_c8428044_ec71c37f",
+              "content_hash": "ec71c37ff33961934281c66a4ce9df7c716b20cada82025a18a1c59ee71bb314",
+              "recipe_hash": "c842804454b4eb0c720b7303f0ba68737e938b7940e12a68accc2a050aee9e50"
+            }
+          },
+          {
+            "method": "GNNDelete",
+            "seed": 122,
+            "output": {
+              "recipe_hash": "9032c01e98c44c10fc1668d3addcee64b9e8cfd9bdf988c3c4a2433289b212b7",
+              "content_hash": "060d511cacb2c9eccf47543253fb1a8751f74b422a601984e606fc024acd1475",
+              "artifact_id": "pred_9032c01e_060d511c"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_fa19f62e8262ad2aa3b7b00dbcb16f42",
+              "identity": {
+                "output": {
+                  "recipe_hash": "9032c01e98c44c10fc1668d3addcee64b9e8cfd9bdf988c3c4a2433289b212b7",
+                  "content_hash": "060d511cacb2c9eccf47543253fb1a8751f74b422a601984e606fc024acd1475",
+                  "artifact_id": "pred_9032c01e_060d511c"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.6,
+                "accuracy": 0.6,
+                "cross_entropy": 0.7114549887865944,
+                "classification_auc": 0.6666666666666666,
+                "classification_auc_status": "computed",
+                "update_detection_auc": 1.0,
+                "update_detection_auc_status": "computed"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_976976a8_442856a5",
+              "content_hash": "442856a54416a9f758215ac08e04d734812803740a5037c623ded0ef2367a525",
+              "recipe_hash": "976976a8d9295818f9a81638f309b7878577eb50ab0b66f05b454843d7152670"
+            }
+          },
+          {
+            "method": "Retrain",
+            "seed": 122,
+            "output": {
+              "recipe_hash": "f61bb4412cb7ed34e28fb276aaf03b0b7fee19e82e61097afdf1a244302b7835",
+              "content_hash": "0747e88de98630773e85d714feec50d70319d6a0c74147b944b32f48594b094c",
+              "artifact_id": "pred_f61bb441_0747e88d"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_49dd7c946074fc0420f9b25c06df23e0",
+              "identity": {
+                "output": {
+                  "recipe_hash": "f61bb4412cb7ed34e28fb276aaf03b0b7fee19e82e61097afdf1a244302b7835",
+                  "content_hash": "0747e88de98630773e85d714feec50d70319d6a0c74147b944b32f48594b094c",
+                  "artifact_id": "pred_f61bb441_0747e88d"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.6,
+                "accuracy": 0.6,
+                "cross_entropy": 0.7095124138864393,
+                "classification_auc": 0.6666666666666666,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_976976a8_442856a5",
+              "content_hash": "442856a54416a9f758215ac08e04d734812803740a5037c623ded0ef2367a525",
+              "recipe_hash": "976976a8d9295818f9a81638f309b7878577eb50ab0b66f05b454843d7152670"
+            }
+          },
+          {
+            "method": "GNNDelete",
+            "seed": 722,
+            "output": {
+              "recipe_hash": "3e9b02c53ec2c77f67fb511e58c5a928cb1a65dd05e0ddba6a28781d5d9c58ad",
+              "content_hash": "4392bbdc2400cbc384dc9f5357c97d174bb37e68b0a239ffbd8464cf5bee37ea",
+              "artifact_id": "pred_3e9b02c5_4392bbdc"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_9791148b01fd06963a780adb51bbb7b7",
+              "identity": {
+                "output": {
+                  "recipe_hash": "3e9b02c53ec2c77f67fb511e58c5a928cb1a65dd05e0ddba6a28781d5d9c58ad",
+                  "content_hash": "4392bbdc2400cbc384dc9f5357c97d174bb37e68b0a239ffbd8464cf5bee37ea",
+                  "artifact_id": "pred_3e9b02c5_4392bbdc"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.4,
+                "accuracy": 0.4,
+                "cross_entropy": 0.7108668090341409,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "insufficient_samples"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_c8428044_ec71c37f",
+              "content_hash": "ec71c37ff33961934281c66a4ce9df7c716b20cada82025a18a1c59ee71bb314",
+              "recipe_hash": "c842804454b4eb0c720b7303f0ba68737e938b7940e12a68accc2a050aee9e50"
+            }
+          },
+          {
+            "method": "Retrain",
+            "seed": 722,
+            "output": {
+              "recipe_hash": "62d0a4f9988e3bf02ecc82d53abf2d8a6cf406674577172489f737a8656b9e67",
+              "content_hash": "26c706a7902dfe0258de63e967d45518645f370750b6dd14fcb1eff24c1f342c",
+              "artifact_id": "pred_62d0a4f9_26c706a7"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_10716c98a7cbf6c147c1d832b4fba0e8",
+              "identity": {
+                "output": {
+                  "recipe_hash": "62d0a4f9988e3bf02ecc82d53abf2d8a6cf406674577172489f737a8656b9e67",
+                  "content_hash": "26c706a7902dfe0258de63e967d45518645f370750b6dd14fcb1eff24c1f342c",
+                  "artifact_id": "pred_62d0a4f9_26c706a7"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.4,
+                "accuracy": 0.4,
+                "cross_entropy": 0.7171479634484422,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_c8428044_ec71c37f",
+              "content_hash": "ec71c37ff33961934281c66a4ce9df7c716b20cada82025a18a1c59ee71bb314",
+              "recipe_hash": "c842804454b4eb0c720b7303f0ba68737e938b7940e12a68accc2a050aee9e50"
+            }
+          },
+          {
+            "method": "GNNDelete",
+            "seed": 722,
+            "output": {
+              "recipe_hash": "7be5df9f89fb8c06d2ed7d97d6168afe7dcdb89095ca4fe85eaeb6cf6260a964",
+              "content_hash": "7e249de35a489640f1af774c0e4b069e98809ddd458bd6085bebea10221c306c",
+              "artifact_id": "pred_7be5df9f_7e249de3"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_44eefb6797d44ebdbf0d1eb1145c44f9",
+              "identity": {
+                "output": {
+                  "recipe_hash": "7be5df9f89fb8c06d2ed7d97d6168afe7dcdb89095ca4fe85eaeb6cf6260a964",
+                  "content_hash": "7e249de35a489640f1af774c0e4b069e98809ddd458bd6085bebea10221c306c",
+                  "artifact_id": "pred_7be5df9f_7e249de3"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.4,
+                "accuracy": 0.4,
+                "cross_entropy": 0.7108668090341409,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": 1.0,
+                "update_detection_auc_status": "computed"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_976976a8_442856a5",
+              "content_hash": "442856a54416a9f758215ac08e04d734812803740a5037c623ded0ef2367a525",
+              "recipe_hash": "976976a8d9295818f9a81638f309b7878577eb50ab0b66f05b454843d7152670"
+            }
+          },
+          {
+            "method": "Retrain",
+            "seed": 722,
+            "output": {
+              "recipe_hash": "40d87e1bc3a2f003f5491b958e05be5b040d7228db75661e810ff847038e6c2a",
+              "content_hash": "f5d836016617f564b7a683ed3befd94299f692ddfe979e4c4050168ea65d9d86",
+              "artifact_id": "pred_40d87e1b_f5d83601"
+            },
+            "evaluation": {
+              "evaluation_receipt_id": "evalr_0d397379a39de9272d01cf9f5ffb08eb",
+              "identity": {
+                "output": {
+                  "recipe_hash": "40d87e1bc3a2f003f5491b958e05be5b040d7228db75661e810ff847038e6c2a",
+                  "content_hash": "f5d836016617f564b7a683ed3befd94299f692ddfe979e4c4050168ea65d9d86",
+                  "artifact_id": "pred_40d87e1b_f5d83601"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              },
+              "metrics": {
+                "f1": 0.4,
+                "accuracy": 0.4,
+                "cross_entropy": 0.7119812719127661,
+                "classification_auc": 0.3333333333333333,
+                "classification_auc_status": "computed",
+                "update_detection_auc": null,
+                "update_detection_auc_status": "missing_original_predictions"
+              }
+            },
+            "selection": {
+              "artifact_id": "sel_976976a8_442856a5",
+              "content_hash": "442856a54416a9f758215ac08e04d734812803740a5037c623ded0ef2367a525",
+              "recipe_hash": "976976a8d9295818f9a81638f309b7878577eb50ab0b66f05b454843d7152670"
+            }
+          }
+        ],
+        "scientific_acceptance": "not_evaluated",
+        "generated_at": "2026-09-06T08:13:47"
+      },
+      "row_count": 8,
+      "repeat_fetched": 0,
+      "artifact_count": 33
+    }
+  },
+  "junit_sha256": "c337b4984aaaa525aaaab60fcca19a97015745a2574fd03f04d6d56e4404a128",
+  "raw_junit": "E:/project/OpenGU/GULib-master/.workblock/runtime/aagu-034-verify/verify-tests.xml",
+  "tests": [
+    {
+      "name": "test_all_ordinary_tables_no_write_or_producer",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.595,
+      "passed": true
+    },
+    {
+      "name": "test_existing_selection_stages_inherit_paired_seeds",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.334,
+      "passed": true
+    },
+    {
+      "name": "test_032_remains_42_conditions",
+      "class": "tests.test_aagu015_definitions",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_packages_configs_and_registry_are_not_executable",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_active_python_surface_has_no_legacy_runtime_reference",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_archived_formal_config_retains_ratio_conditioned_contract",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_historical_evidence_remains_read_only_and_navigable",
+      "class": "tests.test_aagu019_legacy_retirement",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_method_cold_warm_and_hutch_isolation",
+      "class": "tests.test_modular_consumers",
+      "seconds": 1.753,
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_consumes_existing_selection_without_producer",
+      "class": "tests.test_modular_consumers",
+      "seconds": 3.556,
+      "passed": true
+    },
+    {
+      "name": "test_default_expansion_and_budget_reuse",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.701,
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_wrong_identity_fail_before_execution",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.208,
+      "passed": true
+    },
+    {
+      "name": "test_real_gu_method_and_default_equivalence",
+      "class": "tests.test_modular_consumers",
+      "seconds": 2.373,
+      "passed": true
+    },
+    {
+      "name": "test_different_selector_and_gu_backbones",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.926,
+      "passed": true
+    },
+    {
+      "name": "test_real_command_entry_selector_and_existing_selection",
+      "class": "tests.test_modular_consumers",
+      "seconds": 5.807,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad0]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad1]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_method_configuration_fails_before_store[bad2]",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_all_seventeen_methods_match_pre_refactor_formulas",
+      "class": "tests.test_modular_consumers",
+      "seconds": 1.447,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dependency_implementation_changes",
+      "class": "tests.test_modular_consumers",
+      "seconds": 3.593,
+      "passed": true
+    },
+    {
+      "name": "test_mismatched_persisted_data_and_checkpoint_rejected",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.345,
+      "passed": true
+    },
+    {
+      "name": "test_yaml_duplicate_and_implicit_override_rejected",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_operational_fields_are_rejected_and_context_is_external",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_project_context_owns_fixed_store_runtime_device_and_output",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_minimal_method_files_expand_real_defaults",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.016,
+      "passed": true
+    },
+    {
+      "name": "test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+      "class": "tests.test_modular_consumers",
+      "seconds": 0.032,
+      "passed": true
+    },
+    {
+      "name": "test_evaluation_is_independent_and_missing_retrain_fails_closed",
+      "class": "tests.test_modular_consumers",
+      "seconds": 2.081,
+      "passed": true
+    },
+    {
+      "name": "test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 3.114,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[training]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.785,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[model]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.597,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[semantics]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.613,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_identity_changes_and_pairing_rejects[request]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.771,
+      "passed": true
+    },
+    {
+      "name": "test_gu_parameters_and_metrics_do_not_change_retrain",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 1.895,
+      "passed": true
+    },
+    {
+      "name": "test_retrain_removes_supervision_and_incident_edges",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.518,
+      "passed": true
+    },
+    {
+      "name": "test_missing_and_corrupted_outputs_rejected_without_training",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.451,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[x]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.491,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[y]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.477,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.467,
+      "passed": true
+    },
+    {
+      "name": "test_actual_dataset_changes_cannot_consume_old_output[split]",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.485,
+      "passed": true
+    },
+    {
+      "name": "test_changed_producer_and_missing_selection_dependency_rejected",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.486,
+      "passed": true
+    },
+    {
+      "name": "test_aggregate_serialization_is_lossless",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_metrics_cli_reads_independent_modular_outputs",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 5.669,
+      "passed": true
+    },
+    {
+      "name": "test_independent_method_metrics_survive_collection_without_forward",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 2.746,
+      "passed": true
+    },
+    {
+      "name": "test_auc_reports_missing_classes_without_producing_data",
+      "class": "tests.test_retrain_outputs",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_command_cold_warm_seed_budget_retrain_and_metrics",
+      "class": "tests.test_unified_execution",
+      "seconds": 50.216,
+      "passed": true
+    },
+    {
+      "name": "test_stage_s_summary_binds_real_selections_without_resampling",
+      "class": "tests.test_unified_execution",
+      "seconds": 11.985,
+      "passed": true
+    },
+    {
+      "name": "test_public_tracin_uses_real_100_epoch_trajectory",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.491,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value0]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value1]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[seeds-value2]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[budget_ratios-value3]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[budget_ratios-value4]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[device-cuda]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_invalid_axes_fail_before_execution[overrides-value6]",
+      "class": "tests.test_unified_execution",
+      "seconds": 0.012,
+      "passed": true
+    },
+    {
+      "name": "test_only_trajectory_consumers_bind_changed_checkpoint",
+      "class": "tests.test_target_direct_recipe",
+      "seconds": 0.04,
+      "passed": true
+    },
+    {
+      "name": "test_fixed_split_is_disjoint_exhaustive_and_reproducible",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_fixed_split_changes_with_seed",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_split_is_the_common_opengu_split",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_native_and_target_direct_seeded_calls_are_equivalent",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_processed_root_must_be_inside_active_checkout",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_split_contract_defaults_are_70_10_20_seed2024",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_equivalent_ratio_values_share_one_contract",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_target_direct_requires_a_nonempty_validation_target",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_real_processed_profile_cold_create_then_warm_hit_without_rewrite",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_real_profiles_reuse_equivalent_contract_and_keep_alternates_distinct",
+      "class": "tests.test_target_direct_split_profile",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_cell_and_config_identity_are_stable_and_separate",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_exact_transition_and_repeated_skip_are_deduplicated",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_run_cannot_complete_after_a_failed_stage",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_failed_stage_dominates_inconsistent_historical_run_completion",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_repeated_result_cache_hit_is_compressed_across_new_run_ids",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_repeated_selection_hit_is_compressed_but_new_attack_compute_is_kept",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.046,
+      "passed": true
+    },
+    {
+      "name": "test_append_fails_closed_when_existing_stream_is_corrupt",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_append_rejects_event_tampering_after_build",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_failed_and_retrying_events_require_structured_evidence",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_concurrent_appends_leave_projection_at_latest_stream_length",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.192,
+      "passed": true
+    },
+    {
+      "name": "test_runner_identity_envelope_keeps_child_identity_and_cell_id_consistent",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_human_cache_summary_names_authority_source_policy_and_recipe",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_partial_workflow_fixture_projects_selection_attack_complete_and_failed",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_v1_v2_fixture_is_parsed_without_migration",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_v1_writer_api_remains_available",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_writer_cannot_append_to_live_auto_report_by_default",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_production_baseline_matches_frozen_archive",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_new_auto_report_names_and_baseline_projection",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_legacy_evaluation_runner_uses_v3_skip_dedup",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_result_cache_hit_is_not_replayed_as_current_selection_hit",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_result_and_selection_misses_are_one_terminal_event_each",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_v2_selection_hit_is_authoritative_and_identifies_artifact",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_failed_attack_result_is_a_failed_terminal_event",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.033,
+      "passed": true
+    },
+    {
+      "name": "test_result_cache_exposes_verified_v2_hit_source",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.159,
+      "passed": true
+    },
+    {
+      "name": "test_collateral_partial_results_record_success_and_missing_failure",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_acceptance_markdown_and_html_agree_on_architecture_contract_and_counts",
+      "class": "tests.test_auto_report_v3",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_hybrid_alpha_changes_cache_key",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_hybrid_alpha_decoupled_from_legacy_alpha",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[RandomStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[DegreeStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_baselines_subset_of_train_mask[PageRankStrategy]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_tracin_trained_differs_from_random_init",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.042,
+      "passed": true
+    },
+    {
+      "name": "test_tracin_strategy_requires_trained_model_flag",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_shard_method_tracin_cache_miss_fails_fast",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.045,
+      "passed": true
+    },
+    {
+      "name": "test_graphrevoker_get_trained_model_uses_ensemble_wrapper",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_grapheraser_get_trained_model_behavior_is_unchanged",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-hybrid_alpha]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-fusion_method]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-candidate_fraction]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-im_selector_seed]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[hybrid-im_batch_size]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-candidate_fraction]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-mc_rounds]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[im-im_batch_size]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[tracin-loss]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_cache_key_isolation_across_hyperparams[pagerank-pagerank_alpha]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[True-False-transductive-imbalanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[True-True-transductive-balanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[False-False-inductive-imbalanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_inject_path_matches_config_unlearning_path[False-True-inductive-balanced]",
+      "class": "tests.test_phase_b_invariants",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_cache_v2_has_no_dataset_or_selector_dependencies",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.066,
+      "passed": true
+    },
+    {
+      "name": "test_processed_provider_uses_canonical_cora_pickle_without_rebuilding_split",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_binds_dataset_candidates_strategy_seed_k_and_producer_version",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_selection_recipe_can_bind_an_explicit_source_score_artifact",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_cache_hit_does_not_call_dataset_provider_or_selection_producer",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.034,
+      "passed": true
+    },
+    {
+      "name": "test_miss_is_computed_only_by_injected_experiment_producer",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.034,
+      "passed": true
+    },
+    {
+      "name": "test_new_materializer_rejects_legacy_recipe_without_identity_boundary",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_dataset_decoupling_markdown_and_html_agree_on_verdict_and_evidence",
+      "class": "tests.test_cache_v2_dataset_boundary",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_policy_defaults_on_and_canonical_flag_wins",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_gate_accepts_null_only_when_auc_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_gate_rejects_finite_auc_when_policy_is_disabled",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_primary_yaml_configs_make_dataset_scope_explicit",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_every_arxiv_phase_config_disables_optional_auc",
+      "class": "tests.test_update_detection_auc_policy",
+      "seconds": 0.016,
+      "passed": true
+    },
+    {
+      "name": "test_default_implementation_is_core_backed_exact_entry",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_direct_syncmate_script_bootstraps_repo_import_path",
+      "class": "tests.test_syncmate",
+      "seconds": 0.095,
+      "passed": true
+    },
+    {
+      "name": "test_report_age_and_stale_detection",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_shell_commands_quote_repo_paths_and_roots",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_and_manifest_use_quoted_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_and_manifest_use_configured_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_remote_status_plan_uses_peer_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_scan_results_classifies_node_bare_and_nested_layouts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_scan_progress_reports_recent_logs_and_error_keywords",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_progress_cli_returns_log_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_write_state_appends_compact_history_with_delta",
+      "class": "tests.test_syncmate",
+      "seconds": 0.164,
+      "passed": true
+    },
+    {
+      "name": "test_results_table_delta_tracks_added_and_changed_rows",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_fingerprint_excludes_volatile_timestamps_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_fingerprint_cli_supports_expect_prefix",
+      "class": "tests.test_syncmate",
+      "seconds": 0.057,
+      "passed": true
+    },
+    {
+      "name": "test_compare_fingerprint_payload_reports_component_differences",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_compare_cli_reads_saved_remote_status_fingerprint",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_build_snapshot_includes_fingerprint_and_export_manifest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_publish_cli_writes_compact_status_package",
+      "class": "tests.test_syncmate",
+      "seconds": 0.09,
+      "passed": true
+    },
+    {
+      "name": "test_publish_include_items_outputs_full_manifest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.088,
+      "passed": true
+    },
+    {
+      "name": "test_import_publish_saves_remote_status_and_compare_reads_it",
+      "class": "tests.test_syncmate",
+      "seconds": 0.044,
+      "passed": true
+    },
+    {
+      "name": "test_import_publish_no_save_previews_without_writing_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results",
+      "class": "tests.test_syncmate",
+      "seconds": 0.164,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.142,
+      "passed": true
+    },
+    {
+      "name": "test_inspect_bundle_is_read_only_and_reports_audit_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.131,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_leaves_checksum_conflicts_without_overwrite",
+      "class": "tests.test_syncmate",
+      "seconds": 0.118,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_dry_run_does_not_extract_or_write_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.112,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_dry_run_write_plan_saves_offline_diff_only",
+      "class": "tests.test_syncmate",
+      "seconds": 0.117,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_rejects_corrupt_member_before_landing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.121,
+      "passed": true
+    },
+    {
+      "name": "test_import_bundle_rejects_duplicate_manifest_path_before_extract",
+      "class": "tests.test_syncmate",
+      "seconds": 0.106,
+      "passed": true
+    },
+    {
+      "name": "test_inspect_bundle_reports_invalid_manifest_without_extracting",
+      "class": "tests.test_syncmate",
+      "seconds": 0.105,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_hashes_only_json_meta_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.066,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_inventory_flags_incomplete_remote_leaf",
+      "class": "tests.test_syncmate",
+      "seconds": 0.062,
+      "passed": true
+    },
+    {
+      "name": "test_manifest_can_include_predictions_when_requested",
+      "class": "tests.test_syncmate",
+      "seconds": 0.062,
+      "passed": true
+    },
+    {
+      "name": "test_artifact_names_for_peer_merges_global_and_peer_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_writes_config_and_refuses_overwrite",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_runner_can_record_collector_hint",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_init_device_cli_can_write_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_cli_updates_collector_config_and_refuses_duplicate",
+      "class": "tests.test_syncmate",
+      "seconds": 0.057,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_local_transport_does_not_require_ssh",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_cli_can_write_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_artifact_policy_cli_rejects_path_entries",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_add_peer_requires_collector_role",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_guides_missing_collector_and_peer_config",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_can_generate_local_peer_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_local_peer_does_not_require_ssh_input",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_setup_plan_write_marks_existing_peer_not_needed",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_layout_cli_shows_peer_paths_and_trusted_outputs",
+      "class": "tests.test_syncmate",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_layout_text_mentions_landing_and_sync_command",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_landings_cli_shows_local_landing_inventory_and_rows",
+      "class": "tests.test_syncmate",
+      "seconds": 0.049,
+      "passed": true
+    },
+    {
+      "name": "test_runbook_cli_writes_missing_setup_guide",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_runbook_cli_writes_collector_peer_flow",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_smoke_cli_runs_local_end_to_end_and_keeps_workspace",
+      "class": "tests.test_syncmate",
+      "seconds": 0.328,
+      "passed": true
+    },
+    {
+      "name": "test_smoke_cli_cleans_temporary_workspace_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.306,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_updates_all_peers_without_collecting_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.04,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_apply_collects_selected_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_apply_verify_runs_acceptance_for_selected_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard",
+      "class": "tests.test_syncmate",
+      "seconds": 0.071,
+      "passed": true
+    },
+    {
+      "name": "test_sync_no_results_skips_result_table_write",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_sync_local_transport_collects_from_same_machine_repo",
+      "class": "tests.test_syncmate",
+      "seconds": 0.334,
+      "passed": true
+    },
+    {
+      "name": "test_sync_dry_run_skips_collect_verify_and_optional_writes",
+      "class": "tests.test_syncmate",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_verify_returns_nonzero_when_acceptance_fails",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_apply_remote_status_saves_snapshot_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_apply_remote_status_reports_remote_errors",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_remote_status_reports_reads_saved_summary",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_remote_status_reports_accepts_utf8_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_collect_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_load_diff_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_verify_reports_reads_saved_summary_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_load_bundle_inspect_reports_reads_saved_audit_and_bom",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_compare_manifest_detects_same_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_reports_missing_current_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_reports_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_diff_collect_saves_last_diff_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_counts_only_actually_fetched_missing_artifacts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_verify_collect_saves_acceptance_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_verify_collect_marks_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_verify_cli_uses_peer_artifact_policy",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_payload_renders_local_and_remote_ai_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_cli_writes_markdown_runbook",
+      "class": "tests.test_syncmate",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_handoff_cli_can_write_all_configured_peers",
+      "class": "tests.test_syncmate",
+      "seconds": 0.029,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_fetches_only_missing_and_verifies",
+      "class": "tests.test_syncmate",
+      "seconds": 0.009,
+      "passed": true
+    },
+    {
+      "name": "test_apply_collect_reports_checksum_failure",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_index_cli_reads_persistent_artifact_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_groups_indexed_artifacts_by_experiment_leaf",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_cli_reads_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.036,
+      "passed": true
+    },
+    {
+      "name": "test_export_payload_uses_complete_trusted_leaves_by_default",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_export_cli_writes_manifest_csv_and_checks_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_results_cli_extracts_metrics_from_trusted_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.026,
+      "passed": true
+    },
+    {
+      "name": "test_export_check_returns_nonzero_on_index_checksum_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_trace_cli_shows_landing_result_chain_and_checksum_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.05,
+      "passed": true
+    },
+    {
+      "name": "test_index_helpers_respect_explicit_empty_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_index_check_detects_local_drift",
+      "class": "tests.test_syncmate",
+      "seconds": 0.024,
+      "passed": true
+    },
+    {
+      "name": "test_local_landing_path_rejects_path_escape",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_local_landing_path_rejects_unsafe_landing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_actionable_layout_and_setup_diagnostics",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_verified_report_has_no_artifact_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_trusted_inventory_leaf_is_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_verified_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_orphaned_reports_and_index_entries",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_archive_orphans_dry_run_and_apply",
+      "class": "tests.test_syncmate",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_fail_thresholds_and_strict_behavior",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_clean_verify_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_saved_preflight_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_artifact_index_integrity",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_requires_trusted_results_table",
+      "class": "tests.test_syncmate",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_rejects_incomplete_trusted_inventory",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_gate_payload_rejects_remote_inventory_incomplete",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_summary_payload_compacts_peer_reports_and_actions",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_brief_payload_and_markdown_combine_status_next_and_history",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_brief_cli_writes_current_state_markdown",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_peer_reports_payload_compacts_report_details",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_reports_cli_returns_compact_peer_json",
+      "class": "tests.test_syncmate",
+      "seconds": 0.034,
+      "passed": true
+    },
+    {
+      "name": "test_receipt_payload_summarizes_landing_checksums_and_local_examples",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_receipt_cli_writes_markdown_from_saved_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.027,
+      "passed": true
+    },
+    {
+      "name": "test_summary_cli_returns_machine_readable_digest",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_overview_cli_combines_layout_gate_receipt_and_next",
+      "class": "tests.test_syncmate",
+      "seconds": 0.035,
+      "passed": true
+    },
+    {
+      "name": "test_overview_text_returns_nonzero_when_gate_fails",
+      "class": "tests.test_syncmate",
+      "seconds": 0.081,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_missing_setup_phase",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_collect_phase_from_saved_diff",
+      "class": "tests.test_syncmate",
+      "seconds": 0.023,
+      "passed": true
+    },
+    {
+      "name": "test_lifecycle_cli_reports_accepted_phase_and_trace_check",
+      "class": "tests.test_syncmate",
+      "seconds": 0.041,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_payload_orders_executable_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_uses_import_bundle_for_saved_offline_diff",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_require_results_refreshes_table_before_gate",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_payload_marks_incremental_collect_stage",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_payload_marks_missing_results_table_after_verified_index",
+      "class": "tests.test_syncmate",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_workflow_cli_can_write_machine_readable_stage_state",
+      "class": "tests.test_syncmate",
+      "seconds": 0.021,
+      "passed": true
+    },
+    {
+      "name": "test_automation_core_cli_can_write_machine_readable_ledger",
+      "class": "tests.test_syncmate",
+      "seconds": 0.025,
+      "passed": true
+    },
+    {
+      "name": "test_acceptance_cli_can_write_machine_readable_verdict",
+      "class": "tests.test_syncmate",
+      "seconds": 0.219,
+      "passed": true
+    },
+    {
+      "name": "test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_next_steps_payload_can_require_saved_preflight",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_next_cli_returns_command_queue",
+      "class": "tests.test_syncmate",
+      "seconds": 0.022,
+      "passed": true
+    },
+    {
+      "name": "test_gate_cli_returns_nonzero_for_blocking_diagnostics",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_payload_reports_ready_peer_commands",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_can_write_latest_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_blocks_missing_setup",
+      "class": "tests.test_syncmate",
+      "seconds": 0.018,
+      "passed": true
+    },
+    {
+      "name": "test_preflight_cli_returns_nonzero_for_bad_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_sync_blocks_on_preflight_before_remote_calls",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_blocks_unknown_peer_with_preflight_json",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_no_save_does_not_write_blocked_preflight_report",
+      "class": "tests.test_syncmate",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_build_snapshot_includes_peer_configs",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_peer_config_issues",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_invalid_artifact_policies",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_missing_remote_status_for_configured_peer",
+      "class": "tests.test_syncmate",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_remote_status_errors_dirty_and_result_issues",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_fingerprint_attention_for_git_component",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_warns_when_remote_status_lacks_fingerprint_metadata",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_git_mismatch_across_remote_and_manifest_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_git_id_matching_accepts_short_and_full_prefixes",
+      "class": "tests.test_syncmate",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_diff_errors_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_newer_clean_verify_supersedes_planning_diff_missing",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_verify_errors_missing_and_conflicts",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_doctor_reports_stale_remote_diff_and_collect_reports",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_html_contains_device_status_nodes_and_actions",
+      "class": "tests.test_syncmate",
+      "seconds": 0.02,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_cli_writes_workflow_report_path",
+      "class": "tests.test_syncmate",
+      "seconds": 0.03,
+      "passed": true
+    },
+    {
+      "name": "test_write_dashboard_can_skip_checklist_but_keep_runbook",
+      "class": "tests.test_syncmate",
+      "seconds": 0.009,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_submit_validates_and_writes_static_dashboard",
+      "class": "tests.test_syncmate",
+      "seconds": 0.065,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_run_once_claims_only_allowlisted_smoke_job",
+      "class": "tests.test_syncmate",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_invalid_yaml_and_never_executes_it",
+      "class": "tests.test_syncmate",
+      "seconds": 0.009,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_refuses_to_run_on_collector_only_device",
+      "class": "tests.test_syncmate",
+      "seconds": 0.008,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_contract_is_read_only_until_explicitly_written",
+      "class": "tests.test_syncmate",
+      "seconds": 0.039,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_lock_is_exclusive_and_released",
+      "class": "tests.test_syncmate",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_processes_exactly_one_job_under_lock",
+      "class": "tests.test_syncmate",
+      "seconds": 0.018,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_validates_full_json_before_bounding_diagnostic_tail",
+      "class": "tests.test_syncmate",
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_blocks_exact_job_git_mismatch_before_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.015,
+      "passed": true
+    },
+    {
+      "name": "test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten",
+      "class": "tests.test_syncmate",
+      "seconds": 0.013,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_refuses_stale_running_without_automatic_retry",
+      "class": "tests.test_syncmate",
+      "seconds": 0.011,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_inspect_distinguishes_active_and_orphaned_running",
+      "class": "tests.test_syncmate",
+      "seconds": 0.016,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_dispatch_binds_clean_remote_exact_git_sha",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_peer_invoke_uses_configured_python_executable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_runner_agent_collect_failure_never_reports_acceptance",
+      "class": "tests.test_syncmate",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_config_hash_is_line_ending_stable",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_runner_recipe_requires_exact_reviewed_commit",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_runner_git_binding_refuses_abbreviated_or_invalid_identity",
+      "class": "tests.test_syncmate",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_real_queue_command_collect_verify_accept_results_and_repeat",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 11.164,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[missing_output]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.623,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[unverified_index]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.615,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[duplicate_index]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.621,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[wrong_sha]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.674,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[bytes]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 9.923,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[config]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.542,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_budget]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.618,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_selector]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.626,
+      "passed": true
+    },
+    {
+      "name": "test_collection_faults_fail_closed[semantic_dataset]",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 10.577,
+      "passed": true
+    },
+    {
+      "name": "test_live_registration_uses_one_entry_and_all_reference_fingerprints",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 0.014,
+      "passed": true
+    },
+    {
+      "name": "test_real_formal_preflight_refuses_cpu_before_dataset",
+      "class": "tests.test_syncmate_gu_outputs",
+      "seconds": 0.019,
+      "passed": true
+    },
+    {
+      "name": "test_full_registry_matches_reviewed_literal_contract",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_representative_recipe_fields_remain_exact",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_all_recipe_commands_and_artifact_paths_are_bounded",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_recipe_results_are_copy_safe",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.001,
+      "passed": true
+    },
+    {
+      "name": "test_all_reviewed_preflight_profiles_dispatch_to_project_handlers",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_unknown_preflight_profile_refuses_with_expected_observed_action",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_results_parser_reads_only_verified_index_artifacts",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_unverified_index_never_passes_project_acceptance[modular-output-v1-opengu-aagu007-v1]",
+      "class": "tests.test_syncmate_full_adapter",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_wrapper_imports_independent_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_opengu_recipe_preflight_and_acceptance_are_adapter_owned",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_opengu_preflight_reports_config_mismatch_expected_observed_action",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_contract_cli_reports_adapter_and_external_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_gate1_smoke_is_temporary_and_non_formal",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.289,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_gate2_runner_smoke_uses_clean_exact_compatibility_fixture",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.575,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_cli_runs_in_a_fresh_process_with_external_core",
+      "class": "tests.test_syncmate_m1_adapter",
+      "seconds": 0.083,
+      "passed": true
+    },
+    {
+      "name": "test_absent_distribution_fails_closed",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_exact_payload_passes_without_self_declared_commit",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[corrupt]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[missing]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[shadow]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[version]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.002,
+      "passed": true
+    },
+    {
+      "name": "test_installation_identity_failures[residual]",
+      "class": "tests.test_syncmate_core_dependency",
+      "seconds": 0.003,
+      "passed": true
+    },
+    {
+      "name": "test_candidate_verified_status_projects_as_awaiting_wip",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.018,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_detect_duplicate_closed_current_and_stale_todo_block",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_reject_plan_owner_that_disagrees_with_workitem",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.006,
+      "passed": true
+    },
+    {
+      "name": "test_drift_checks_reject_unknown_lifecycle_status",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.005,
+      "passed": true
+    },
+    {
+      "name": "test_refresh_updates_projection_and_generated_cards_wrap",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_registered_ready_after_dependency_is_recognized",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.004,
+      "passed": true
+    },
+    {
+      "name": "test_workitem_statuses_are_projected_from_records",
+      "class": "tests.test_dashboard_refresh.DashboardRefreshTests",
+      "seconds": 0.007,
+      "passed": true
+    },
+    {
+      "name": "test_inventory_csv_records_alpha0_a3_and_evidence_state_semantics",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_generator_exports_usable_warning_and_rerun_fields",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_dashboard_template_labels_rerun_basis_beyond_graphrevoker_only",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.0,
+      "passed": true
+    },
+    {
+      "name": "test_story_metadata_connects_experiments_to_advisor_narrative",
+      "class": "tests.test_config_inventory_dashboard",
+      "seconds": 0.002,
+      "passed": true
+    }
+  ]
+}

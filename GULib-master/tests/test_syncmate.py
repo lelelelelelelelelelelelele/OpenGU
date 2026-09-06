@@ -7184,34 +7184,7 @@ def test_runner_queue_contract_is_read_only_until_explicitly_written(tmp_path, m
     assert contract["job_schema"]["additional_fields"] is False
     assert "expected_git_sha" in contract["job_schema"]["required"]
     assert contract["job_schema"]["expected_git_sha_pattern"] == "[0-9a-fA-F]{40}"
-    expected_recipes = [
-        "opengu-sm005-atomic-gpu-v1",
-        "opengu-sm005-b-hutch32-first-v1",
-        "opengu-sm005-b-hutch32-warm-v1",
-        "opengu-sm005-d-full-selector-v1",
-        "opengu-sm005-d-full-return-v1",
-        "opengu-sm005-d-full-handoff-v1",
-        "smoke",
-        "opengu-preflight-v1",
-        "opengu-cache-v2-gate4-v1",
-    ]
-    expected_recipes.extend(
-        "opengu-target-direct-selection-{0}-v2".format(stage)
-        for stage in _project_recipes.TARGET_DIRECT_STAGES
-    )
-    expected_recipes.extend(
-        "opengu-target-direct-gu-gate-{0}-v2".format(
-            _project_recipes._target_direct_ratio_id(ratio)
-        )
-        for ratio in _project_recipes.TARGET_DIRECT_RATIOS
-    )
-    expected_recipes.extend(
-        "opengu-target-direct-gu-{0}-{1}-v2".format(
-            stage, _project_recipes._target_direct_ratio_id(ratio)
-        )
-        for stage in _project_recipes.TARGET_DIRECT_STAGES
-        for ratio in _project_recipes.TARGET_DIRECT_RATIOS
-    )
+    expected_recipes = ['smoke', 'opengu-preflight-v1', 'opengu-aagu007-v1']
     assert contract["execution"]["allowlisted_recipes"] == expected_recipes
     assert contract["execution"]["single_shot_flag"] == "--once"
     assert "runner-agent serve" in contract["state_machine"]["owner"]
@@ -7457,7 +7430,7 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
             }
         from syncmate_core import run_handoff
         return {"ok": True, "payload": {"submitted": True,
-                "output_contract": run_handoff.execution_contract('opengu-cache-v2-gate4-v1', 'gate4-001', 'c' * 40)}, "errors": []}
+                "output_contract": run_handoff.execution_contract('opengu-aagu007-v1', 'gate4-001', 'c' * 40)}, "errors": []}
 
     monkeypatch.setattr(_dispatch, 'runner_agent_peer_invoke', invoke)
     monkeypatch.setattr(_identity, "git_state", lambda: {"sha": "c" * 40, "branch": "main", "dirty": False})
@@ -7469,7 +7442,7 @@ def test_runner_agent_dispatch_binds_clean_remote_exact_git_sha(tmp_path, monkey
         config_path=repo / ".syncmate" / "device.yaml",
         node_id="runner-a",
         job_id="gate4-001",
-        recipe="opengu-cache-v2-gate4-v1",
+        recipe="opengu-aagu007-v1",
         requested_by="operator",
         note="exact pin",
     )
@@ -7519,36 +7492,15 @@ def test_runner_agent_collect_failure_never_reports_acceptance(tmp_path, monkeyp
     monkeypatch.setattr(_collection, 'apply_collect', lambda *a, **k: {'errors': ['checksum mismatch']})
     from syncmate_core import run_handoff
     device = {'peers': {'runner-a': {'role': 'runner', 'transport': 'local', 'repo_path': str(tmp_path / 'remote')}}}
-    saved = run_handoff.create_handoff(device, 'runner-a', 'opengu-sm005-d-full-return-v1', 'test-job', 'a' * 40)
+    saved = run_handoff.create_handoff(device, 'runner-a', 'opengu-aagu007-v1', 'test-job', 'a' * 40)
     outcome = _dispatch.runner_agent_collect_and_gate('runner-a', job_id='test-job', completed_job={
-        'id': 'test-job', 'state': 'done', 'recipe': 'opengu-sm005-d-full-return-v1', 'expected_git_sha': 'a' * 40,
+        'id': 'test-job', 'state': 'done', 'recipe': 'opengu-aagu007-v1', 'expected_git_sha': 'a' * 40,
         'receipt': {'output_contract': saved['execution']}})
 
     assert outcome["ok"] is False
     assert outcome["gate_passed"] is False
 
 
-def test_gate4_runner_recipe_is_fixed_bounded_and_collectable():
-    definition = _recipes.runner_recipe_definition("opengu-cache-v2-gate4-v1")
-
-    assert definition["argv"] == [
-        "{python}",
-        "-m",
-        "scripts.cache_v2_gate4_canary",
-        "--json",
-    ]
-    assert definition["expected_git_sha"] == _project_recipes.GATE4_RECIPE_BASE_SHA
-    assert definition["config_sha256"] == (
-        "45f587853aee6a91e85efd82ee40350435969a7b51b9539062762ae06b875980"
-    )
-    assert definition["timeout_seconds"] == 3600
-    assert definition["collector_acceptance"] is True
-    assert len(definition["expected_artifact_paths"]) == 4
-    assert all(
-        path.startswith("results/runs/__syncmate_gate4__/")
-        for path in definition["expected_artifact_paths"]
-    )
-    assert "predictions.npz" in definition["expected_artifact_paths"][2]
 
 
 def test_recipe_config_hash_is_line_ending_stable(tmp_path):
@@ -7561,8 +7513,8 @@ def test_recipe_config_hash_is_line_ending_stable(tmp_path):
     assert _identity.sha256_recipe_config(lf) == _identity.sha256_recipe_config(crlf)
 
 
-def test_gate4_runner_recipe_requires_exact_reviewed_commit(monkeypatch):
-    expected = _project_recipes.GATE4_RECIPE_BASE_SHA
+def test_runner_recipe_requires_exact_reviewed_commit(monkeypatch):
+    expected = 'a' * 40
     monkeypatch.setattr(_identity, 'run_git', lambda args: expected)
     assert _recipes.runner_recipe_git_binding(expected)['ok'] is True
     monkeypatch.setattr(_identity, 'run_git', lambda args: 'f' * 40)
@@ -7577,187 +7529,3 @@ def test_runner_git_binding_refuses_abbreviated_or_invalid_identity():
     assert not _recipes.git_binding_matches('a' * 7, 'a' * 40)
     assert not _recipes.git_binding_matches('a' * 40, 'a' * 39 + 'b')
     assert not _recipes.git_binding_matches('z' * 40, 'z' * 40)
-
-
-def test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets():
-    selection = _recipes.runner_recipe_definition(
-        "opengu-target-direct-selection-citeseer-seed212-v2"
-    )
-    gate_1 = _recipes.runner_recipe_definition(
-        "opengu-target-direct-gu-gate-r001-v2"
-    )
-    gate_5 = _recipes.runner_recipe_definition(
-        "opengu-target-direct-gu-gate-r005-v2"
-    )
-    full = _recipes.runner_recipe_definition(
-        "opengu-target-direct-gu-pubmed-seed2024-r005-v2"
-    )
-
-    assert selection["recipe_introduced_git_sha"] == (
-        "264b38995cebc84d10402d8113ea949ca2cfa34f"
-    )
-    assert selection["config_sha256"] == _project_recipes.TARGET_DIRECT_CONFIG_SHA256
-    assert selection["selection_matrix"]["candidate_count"] == 2328
-    assert selection["selection_matrix"]["split_contract"] == {
-        "processed_profile": "planetoid_70_10_20_seed2024",
-        "train_ratio": 0.7,
-        "val_ratio": 0.1,
-        "test_ratio": 0.2,
-        "split_seed": 2024,
-    }
-    assert selection["selection_matrix"]["budget_ratios"] == [0.01, 0.05]
-    assert selection["selection_matrix"]["expected_k_by_ratio"] == {
-        "0.01": 23,
-        "0.05": 116,
-    }
-    assert selection["selection_matrix"]["score_budget_semantics"] == (
-        "prefix_stable_budget_independent"
-    )
-    assert selection["selection_matrix"]["parameter_scope"] == "last_layer"
-    assert len(selection["expected_artifact_paths"]) == 5
-    assert gate_1["gu_gate"]["ratio"] == 0.01
-    assert gate_1["gu_gate"]["k"] == 18
-    assert gate_5["gu_gate"]["ratio"] == 0.05
-    assert gate_5["gu_gate"]["k"] == 94
-    assert gate_1["gu_gate"]["target_checkpoint_required"] is True
-    assert len(gate_1["expected_artifact_paths"]) == 8
-    assert set(gate_1["expected_artifact_paths"]).isdisjoint(
-        set(gate_5["expected_artifact_paths"])
-    )
-    assert full["gu_stage"]["candidate_count"] == 13801
-    assert full["gu_stage"]["split_contract"] == selection[
-        "selection_matrix"
-    ]["split_contract"]
-    assert full["gu_stage"]["k"] == 690
-    assert full["gu_stage"]["ratio"] == 0.05
-    assert full["gu_stage"]["execution_authorized"] is False
-    assert full["gu_stage"]["candidate_matrix_only"] is True
-    assert full["gu_stage"]["selectors"] == list(
-        _project_recipes.TARGET_DIRECT_STRATEGIES
-    )
-    assert len(full["expected_artifact_paths"]) == 136
-
-
-def test_target_direct_recipe_hash_matches_normalized_frozen_config_source():
-    config_path = sm.PROJECT_ROOT / _project_recipes.TARGET_DIRECT_CONFIG
-    assert _project_recipes.TARGET_DIRECT_CONFIG_SHA256 == _identity.sha256_recipe_config(config_path)
-
-
-def test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint(
-    tmp_path, monkeypatch
-):
-    repo = tmp_path / "repo"
-    sync_dir = repo / ".syncmate"
-    _context.select(root=repo)
-    _context.select(root=(sync_dir).parent)
-    definition = _recipes.runner_recipe_definition(
-        "opengu-target-direct-selection-cora-seed42-v2"
-    )
-    landing = "results/runs/gpu4090-target-direct"
-    paths = {}
-    for remote in definition["expected_artifact_paths"][:4]:
-        local = _collection.local_landing_path(landing, remote)
-        local.parent.mkdir(parents=True, exist_ok=True)
-        local.write_text('{"status":"success"}\n', encoding="utf-8")
-        paths[remote] = local
-    receipt_remote = definition["expected_artifact_paths"][4]
-    receipt_path = _collection.local_landing_path(landing, receipt_remote)
-    receipt = {
-        "schema": "target_direct_v1.syncmate_selection_cell",
-        "version": 3,
-        "dataset": "Cora",
-        "seed": 42,
-        "status": "success",
-        "experiment_git_sha": "a" * 40,
-        "parameter_scope": "last_layer",
-        "candidate_count": 1895,
-        "budget_ratios": [0.01, 0.05],
-        "expected_k_by_ratio": {"0.01": 18, "0.05": 94},
-        "formal_score_count": 17,
-        "score_budget_semantics": "prefix_stable_budget_independent",
-        "budget_conditioned_strategies": [],
-        "method_score_identities": {name: {"artifact_id": "score_" + name, "recipe_hash": "a" * 64} for name in _project_recipes.TARGET_DIRECT_STRATEGIES},
-        "method_scores_cold_total_seconds": 4.0,
-        "method_scores_warm_read_seconds": {
-            "0.01_warm": 0.02,
-            "0.05_cold_projection": 0.02,
-            "0.05_warm": 0.02,
-        },
-        "ratio_results": {
-            ratio: {
-                "ratio": float(ratio),
-                "k": expected_k,
-                "cold_method_timings": {
-                    strategy: {
-                        "status": "success",
-                        "cache_hit": False,
-                        "selection_projection_cache_hit": False,
-                        "cold_selection_projection_seconds": 0.01,
-                    }
-                    for strategy in _project_recipes.TARGET_DIRECT_STRATEGIES
-                },
-                "warm_method_timings": {
-                    strategy: {
-                        "status": "success",
-                        "cache_hit": True,
-                        "selection_projection_cache_hit": True,
-                    }
-                    for strategy in _project_recipes.TARGET_DIRECT_STRATEGIES
-                },
-                "failure_state": {"state": "success", "failure": None},
-            }
-            for ratio, expected_k in (("0.01", 18), ("0.05", 94))
-        },
-        "target_checkpoint": {
-            "file_sha256": "b" * 64,
-            "state_hash": "c" * 64,
-        },
-        "device_name": "NVIDIA GeForce RTX 4090",
-        "peak_gpu_allocated_bytes": 1024,
-        "peak_gpu_reserved_bytes": 2048,
-    }
-    for ratio, cold_index, warm_index in (
-        ("0.01", 0, 2),
-        ("0.05", 1, 3),
-    ):
-        receipt["ratio_results"][ratio]["cold_sha256"] = _evidence.sha256_file(
-            paths[definition["expected_artifact_paths"][cold_index]]
-        )
-        receipt["ratio_results"][ratio]["warm_sha256"] = _evidence.sha256_file(
-            paths[definition["expected_artifact_paths"][warm_index]]
-        )
-    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
-    paths[receipt_remote] = receipt_path
-    _index.write_artifact_index(
-        {
-            "version": 0,
-            "updated_at": "2026-07-24T00:00:00",
-            "errors": [],
-            "peers": {
-                "gpu4090": {
-                    "node_id": "gpu4090",
-                    "landing": landing,
-                    "remote": {"git": {"sha": "a" * 40}},
-                    "summary": {"status": "verified", "indexed": 5},
-                    "items": [
-                        {
-                            "remote_path": remote,
-                            "local_path": _identity.rel(paths[remote]),
-                            "sha256": _evidence.sha256_file(paths[remote]),
-                        }
-                        for remote in definition["expected_artifact_paths"]
-                    ],
-                }
-            },
-        }
-    )
-
-    result = _project_acceptance('target-direct-selection-v2',
-        definition,
-        node_id="gpu4090",
-        expected_git_sha="a" * 40,
-    )
-
-    assert result["passed"] is True
-    assert result["mode"] == "target-direct-selection-acceptance"
-    assert result["accepted_cells"] == 1

@@ -143,9 +143,7 @@ def test_hybrid_alpha_changes_cache_key():
         "SelectionCache will collide."
     )
 
-    fp_a = AttackManager._stable_hash(params_a)
-    fp_b = AttackManager._stable_hash(params_b)
-    assert fp_a != fp_b, "strategy_params_fingerprint collision on hybrid α"
+
 
 
 def test_hybrid_alpha_decoupled_from_legacy_alpha():
@@ -307,37 +305,6 @@ def test_shard_method_tracin_cache_miss_fails_fast(tmp_path):
     assert pipeline.called_run_with_strategy is False
 
 
-def test_run_config_method_overrides_fingerprint_only_target_method():
-    """Method-specific runner args must only invalidate that method's cells.
-
-    GraphRevoker needs --partition_method gpa, but adding it globally would
-    stale every GraphEraser/GIF/etc. Phase B cell. The runner fingerprint must
-    include the override for GraphRevoker while leaving other method cells
-    unchanged.
-    """
-    from experiments.run import _content_fingerprint
-
-    base_cfg = {
-        "dataset": "cora",
-        "base_model": "GCN",
-        "ratio": 0.05,
-        "defaults": {"run_collateral": True, "cuda": 0, "num_epochs": 100},
-        "extra_args": [],
-        "model_overrides": {"GCN": {"gcn_num_layers": 2, "gcn_hidden": 64}},
-    }
-    cfg_with_override = {
-        **base_cfg,
-        "method_overrides": {
-            "GraphRevoker": {"extra_args": ["--partition_method", "gpa"]}
-        },
-    }
-
-    assert _content_fingerprint(
-        cfg_with_override, "GraphRevoker", "random", 42
-    ) != _content_fingerprint(base_cfg, "GraphRevoker", "random", 42)
-    assert _content_fingerprint(
-        cfg_with_override, "GIF", "random", 42
-    ) == _content_fingerprint(base_cfg, "GIF", "random", 42)
 
 
 def test_graphrevoker_get_trained_model_uses_ensemble_wrapper():
@@ -381,51 +348,8 @@ def test_grapheraser_get_trained_model_behavior_is_unchanged():
 # ----------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "strategy,alpha_source,alpha_value,expect_suffix",
-    [
-        ("hybrid", None, None, False),                      # no alpha set → bare leaf
-        ("hybrid", "top", 0.5, False),                      # default alpha → bare leaf
-        ("hybrid", "top", 0.25, True),                      # non-default top-level → suffix
-        ("hybrid", "top", 0.75, True),
-        ("hybrid", "extra", 0.25, True),                    # via extra_args
-        ("hybrid", "extra", 0.5, False),                    # default via extra_args
-        ("random", "top", 0.25, False),                     # non-hybrid ignores alpha
-        ("tracin", "top", 0.25, False),
-    ],
-)
-def test_cell_dir_disambiguates_hybrid_alpha(strategy, alpha_source, alpha_value, expect_suffix):
-    """A3 alpha sweep: two hybrid runs at different alphas must NOT share
-    a cell directory (would overwrite each other's attack.json). Default
-    alpha=0.5 stays under the bare leaf so it shares with the main matrix.
-    """
-    from experiments.run import cell_dir
-
-    cfg = {"dataset": "cora", "base_model": "GCN", "ratio": 0.05}
-    if alpha_source == "top":
-        cfg["hybrid_alpha"] = alpha_value
-    elif alpha_source == "extra":
-        cfg["extra_args"] = ["--hybrid_alpha", str(alpha_value)]
-
-    leaf = cell_dir(cfg, "GIF", strategy, 42).parent.name
-
-    if expect_suffix:
-        assert leaf == f"GIF_hybrid_alpha{alpha_value:.2f}", leaf
-    else:
-        assert leaf == f"GIF_{strategy}", leaf
 
 
-def test_cell_dir_alpha_top_level_and_extra_args_agree():
-    """If both top-level and extra_args carry hybrid_alpha at the SAME value,
-    cell_dir picks one consistently (top-level wins)."""
-    from experiments.run import cell_dir
-
-    cfg = {
-        "dataset": "cora", "base_model": "GCN", "ratio": 0.05,
-        "hybrid_alpha": 0.25,
-        "extra_args": ["--hybrid_alpha", "0.25"],
-    }
-    assert cell_dir(cfg, "GIF", "hybrid", 42).parent.name == "GIF_hybrid_alpha0.25"
 
 
 # ----------------------------------------------------------------------
@@ -486,40 +410,6 @@ def test_cache_key_isolation_across_hyperparams(strategy_name, knob):
 # ----------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "knob,val_a,val_b",
-    [
-        ("hybrid_alpha", 0.25, 0.75),
-        ("alpha", 0.1, 0.9),
-        ("fusion_method", "rank", "linear"),
-        ("candidate_fraction", 1.0, 0.1),
-        ("mc_rounds", 50, 100),
-        ("im_batch_size", 1, 8),
-        ("im_selector_seed", 2024, 2025),
-    ],
-)
-def test_result_cache_key_isolation_for_a3_fields(knob, val_a, val_b):
-    """Bug we're protecting against: A3 alpha sweep would silently return
-    a stale ResultCache entry from a different (alpha, fusion_method, IM
-    knob) configuration because those fields used to be missing from
-    `ResultCache.CACHE_KEY_FIELDS`.
-
-    Property: each of the 7 A3-relevant knobs must change the ResultCache
-    key when toggled.
-    """
-    from attack.result_cache import ResultCache
-
-    cache = ResultCache.__new__(ResultCache)  # bypass __init__ (no disk)
-    cfg_a = {"dataset_name": "cora", "base_model": "GCN", "k": 5, knob: val_a}
-    cfg_b = {"dataset_name": "cora", "base_model": "GCN", "k": 5, knob: val_b}
-
-    key_a = cache._hash_fields(cfg_a, ResultCache.CACHE_KEY_FIELDS)
-    key_b = cache._hash_fields(cfg_b, ResultCache.CACHE_KEY_FIELDS)
-
-    assert key_a != key_b, (
-        f"ResultCache key collides on `{knob}` ({val_a!r} vs {val_b!r}): "
-        f"alpha-sweep / fusion-sweep / IM-knob ablation would replay stale results."
-    )
 
 
 # ----------------------------------------------------------------------

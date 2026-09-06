@@ -1,0 +1,11 @@
+........................................................................ [ 35%]
+........................................................................ [ 70%]
+.............................................................            [100%]
+- generated xml file: E:\project\OpenGU\GULib-master\.workblock\runtime\aagu-034-rework-20260906\verify-tests.xml -
+205 passed, 1 warning in 121.15s (0:02:01)
+
+E:\conda_package\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py:175: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import resource_filename
+E:\conda_package\envs\gnn\lib\site-packages\pkg_resources\__init__.py:3154: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('mpl_toolkits')`.
+Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+  declare_namespace(pkg)

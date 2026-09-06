@@ -1,0 +1,267 @@
+{
+  "human_surface_matches_original_registration": true,
+  "original_quote_retained": true,
+  "links": [
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/registration-problem-source.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-contract-freeze.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-migration.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-configs.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu007/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu032/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/experiment.template.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/README.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/PARAMETERS.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/modular_experiments.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-tests.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/core-rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/pytest.log",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-desktop.png",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-narrow.png",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "../../../self/dashboard/WORKPLAN.md",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.md",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.html",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    }
+  ],
+  "stage_deleted": true,
+  "aagu007_aagu032_source_unchanged": true,
+  "render": {
+    "layer": "local headless Edge",
+    "results": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "metrics": {
+          "bodyOverflow": false,
+          "humanResults": 1,
+          "decisions": 1,
+          "decisionBottom": 522,
+          "brokenImages": 0,
+          "title": "AAGU-034 · 实验配置与统一执行入口修正"
+        },
+        "errors": []
+      },
+      {
+        "name": "narrow",
+        "width": 390,
+        "height": 844,
+        "metrics": {
+          "bodyOverflow": false,
+          "humanResults": 1,
+          "decisions": 1,
+          "decisionBottom": 714,
+          "brokenImages": 0,
+          "title": "AAGU-034 · 实验配置与统一执行入口修正"
+        },
+        "errors": []
+      }
+    ]
+  },
+  "visual_review": "Agent viewed desktop, narrow, registration table and boundary images; first-screen decision visible, no overflow or missing image. Core section additionally captured."
+}

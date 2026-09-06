@@ -1,0 +1,33 @@
+E:\conda_package\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py:175: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import resource_filename
+E:\conda_package\envs\gnn\lib\site-packages\pkg_resources\__init__.py:3154: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('mpl_toolkits')`.
+Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+  declare_namespace(pkg)
+................................................F....................... [ 23%]
+........................................................................ [ 46%]
+........................................................................ [ 69%]
+........................................................................ [ 92%]
+.......................                                                  [100%]
+================================== FAILURES ===================================
+_______ test_changed_producer_and_missing_selection_dependency_rejected _______
+tests\test_retrain_outputs.py:203: in test_changed_producer_and_missing_selection_dependency_rejected
+    record = CacheIndex(tables[0] / 'v2/index.sqlite').get_artifact(reference['artifact_id'])
+E   NameError: name 'reference' is not defined
+============================== warnings summary ===============================
+tests/test_selector_declaration_contract.py::test_cold_unlearning_and_core_warm_collect_share_declared_rows
+  E:\conda_package\envs\gnn\lib\site-packages\cupy\_environment.py:216: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+    warnings.warn(
+
+tests/test_modular_consumers.py::test_method_cold_warm_and_hutch_isolation
+  E:\conda_package\envs\gnn\lib\site-packages\torch\cuda\__init__.py:218: UserWarning: 
+  NVIDIA GeForce RTX 5070 with CUDA capability sm_120 is not compatible with the current PyTorch installation.
+  The current PyTorch install supports CUDA capabilities sm_50 sm_60 sm_61 sm_70 sm_75 sm_80 sm_86 sm_90.
+  If you want to use the NVIDIA GeForce RTX 5070 GPU with PyTorch, please check the instructions at https://pytorch.org/get-started/locally/
+  
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: E:\project\OpenGU\GULib-master\.workblock\runtime\aagu-034-selector-rework\verify.xml -
+=========================== short test summary info ===========================
+FAILED tests/test_retrain_outputs.py::test_changed_producer_and_missing_selection_dependency_rejected
+1 failed, 310 passed, 2 warnings in 440.51s (0:07:20)

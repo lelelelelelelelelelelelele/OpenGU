@@ -1,0 +1,19 @@
+kind: experiment
+schema_version: 1
+experiment_id: example-cora-retrain
+stage: unlearning
+dataset_ref: datasets/cora.yaml
+selector_refs:
+- selectors/degree.yaml
+- selectors/gt_full.yaml
+unlearning_refs:
+- unlearning/retrain.yaml
+evaluation_refs:
+- evaluations/post_method_metrics.yaml
+seeds:
+- 42
+- 212
+budget_ratios:
+- 0.01
+- 0.05
+matrix: cartesian_product

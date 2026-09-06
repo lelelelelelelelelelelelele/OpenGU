@@ -1,0 +1,2768 @@
+{
+  "effective_passed": 311,
+  "broad_run": {
+    "checkpoint": "5ca0d93e5fc5cdfb75f8339d713f17a64b8f324e",
+    "junit": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\verify.xml",
+    "sha256": "ecc20eb597158c92730d4382e37dd14daca4ac3647ddc45e40b34885a745f58a",
+    "tests": 311,
+    "failures": 1,
+    "errors": 0,
+    "seconds": 440.48,
+    "cases": [
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[None-selector]",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[None-unlearning]",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy1-selector]",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy1-unlearning]",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy2-selector]",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy2-unlearning]",
+        "result": "PASS",
+        "seconds": 0.012,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy3-selector]",
+        "result": "PASS",
+        "seconds": 0.012,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy3-unlearning]",
+        "result": "PASS",
+        "seconds": 0.011,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-cora]",
+        "result": "PASS",
+        "seconds": 0.15,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-citeseer]",
+        "result": "PASS",
+        "seconds": 0.153,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-pubmed]",
+        "result": "PASS",
+        "seconds": 0.162,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-cora]",
+        "result": "PASS",
+        "seconds": 0.143,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-citeseer]",
+        "result": "PASS",
+        "seconds": 0.139,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-pubmed]",
+        "result": "PASS",
+        "seconds": 0.146,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_selector_then_unlearning_reuses_without_summary_binding",
+        "result": "PASS",
+        "seconds": 52.421,
+        "observations": {
+          "automatic_reuse": "{\"selectors\": [{\"artifact_id\": \"sel_3511e057_9162e31e\", \"recipe_hash\": \"3511e057368834a1fc931d62e36f99324a384cdd2e5752dd5373a49300127ee4\", \"content_hash\": \"9162e31e78530ac5f3d1b09cec83eef6d206deaba9c279921f35766039ce3c59\", \"semantic_path\": \"artifacts/selection/sel_3511e057_9162e31e/payload.json\", \"source_score_artifact_id\": \"score_4632f354_210f2358\"}, {\"artifact_id\": \"sel_389b0f5f_27f6e2e8\", \"recipe_hash\": \"389b0f5fbb642a280c69f02998ea72b8fdf983de265b97393ac7ef8f6e918697\", \"content_hash\": \"27f6e2e8e94dd2da2d946bbd49459c565100071c399e7e03bd607efe6a45c2fb\", \"semantic_path\": \"artifacts/selection/sel_389b0f5f_27f6e2e8/payload.json\", \"source_score_artifact_id\": \"score_cafe5a87_ef0e2a12\"}, {\"artifact_id\": \"sel_4dd60d74_84b034ea\", \"recipe_hash\": \"4dd60d7492bc11f2cd3753d9a5a7c083c1065dd6d271ca84e4216bd7e17e76d3\", \"content_hash\": \"84b034ea678429989e3285caea24be8ae4dbee1c81f22c11ab5bd94290efbae3\", \"semantic_path\": \"artifacts/selection/sel_4dd60d74_84b034ea/payload.json\", \"source_score_artifact_id\": \"score_c599a076_880f555f\"}, {\"artifact_id\": \"sel_0b5ab1fd_037f1a93\", \"recipe_hash\": \"0b5ab1fd9d481e6562703c56f5eff988f2a278badaa6e83ed377e918c04d76e4\", \"content_hash\": \"037f1a93428de6731f51458112b4d5040d24613d0b6b9bd760a7a1aa75035687\", \"semantic_path\": \"artifacts/selection/sel_0b5ab1fd_037f1a93/payload.json\", \"source_score_artifact_id\": \"score_4632f354_210f2358\"}, {\"artifact_id\": \"sel_caf674e8_9e463283\", \"recipe_hash\": \"caf674e8a839529d802f398fe93c6944c7fddf428e43aa694eb3de12a35f2cf3\", \"content_hash\": \"9e463283d6de16986353187ff1cee5a78d9b28eeb0ee8941262b557796b8cda0\", \"semantic_path\": \"artifacts/selection/sel_caf674e8_9e463283/payload.json\", \"source_score_artifact_id\": \"score_cafe5a87_ef0e2a12\"}, {\"artifact_id\": \"sel_0ff46d0a_4b9072b9\", \"recipe_hash\": \"0ff46d0a1bbcdb8e3fc2f8dbddacfec29f86e86644b3c8d419a1b8846e461b45\", \"content_hash\": \"4b9072b9b89ec8a17bf592c144b81754e3b30a6d2f9d9589a22dd8d97b372d59\", \"semantic_path\": \"artifacts/selection/sel_0ff46d0a_4b9072b9/payload.json\", \"source_score_artifact_id\": \"score_c599a076_880f555f\"}, {\"artifact_id\": \"sel_3511e057_9162e31e\", \"recipe_hash\": \"3511e057368834a1fc931d62e36f99324a384cdd2e5752dd5373a49300127ee4\", \"content_hash\": \"9162e31e78530ac5f3d1b09cec83eef6d206deaba9c279921f35766039ce3c59\", \"semantic_path\": \"artifacts/selection/sel_3511e057_9162e31e/payload.json\", \"source_score_artifact_id\": \"score_4632f354_210f2358\"}, {\"artifact_id\": \"sel_389b0f5f_27f6e2e8\", \"recipe_hash\": \"389b0f5fbb642a280c69f02998ea72b8fdf983de265b97393ac7ef8f6e918697\", \"content_hash\": \"27f6e2e8e94dd2da2d946bbd49459c565100071c399e7e03bd607efe6a45c2fb\", \"semantic_path\": \"artifacts/selection/sel_389b0f5f_27f6e2e8/payload.json\", \"source_score_artifact_id\": \"score_cafe5a87_ef0e2a12\"}, {\"artifact_id\": \"sel_851f274a_81eadd1d\", \"recipe_hash\": \"851f274a454c8e152e6e887806e5151382baabe030541358e8fb666bc846b30f\", \"content_hash\": \"81eadd1dde27e9d7cd3a5565bb53f50a0b14d26d799b490392bc08c78c07fb87\", \"semantic_path\": \"artifacts/selection/sel_851f274a_81eadd1d/payload.json\", \"source_score_artifact_id\": \"score_d484bf66_eb971bd3\"}, {\"artifact_id\": \"sel_0b5ab1fd_037f1a93\", \"recipe_hash\": \"0b5ab1fd9d481e6562703c56f5eff988f2a278badaa6e83ed377e918c04d76e4\", \"content_hash\": \"037f1a93428de6731f51458112b4d5040d24613d0b6b9bd760a7a1aa75035687\", \"semantic_path\": \"artifacts/selection/sel_0b5ab1fd_037f1a93/payload.json\", \"source_score_artifact_id\": \"score_4632f354_210f2358\"}, {\"artifact_id\": \"sel_caf674e8_9e463283\", \"recipe_hash\": \"caf674e8a839529d802f398fe93c6944c7fddf428e43aa694eb3de12a35f2cf3\", \"content_hash\": \"9e463283d6de16986353187ff1cee5a78d9b28eeb0ee8941262b557796b8cda0\", \"semantic_path\": \"artifacts/selection/sel_caf674e8_9e463283/payload.json\", \"source_score_artifact_id\": \"score_cafe5a87_ef0e2a12\"}, {\"artifact_id\": \"sel_6aa2289c_4d0a7a1f\", \"recipe_hash\": \"6aa2289cba14823f800b9468e52af3c3151c3508b582628adc663fa68fe0f4e9\", \"content_hash\": \"4d0a7a1f5ff257d8b2eeec75250620be4b9dec6727397c578f822ffabd541429\", \"semantic_path\": \"artifacts/selection/sel_6aa2289c_4d0a7a1f/payload.json\", \"source_score_artifact_id\": \"score_d484bf66_eb971bd3\"}], \"cells\": 24, \"warm_outputs\": [{\"artifact_id\": \"pred_b37dcb4f_d17424ab\", \"recipe_hash\": \"b37dcb4f0ea5cf9402014e5775bbc72e1c8d1840c2ebe6d955b6275efcbb184c\", \"content_hash\": \"d17424ab08a063547df05c3f5c25b28e7d14c1aa9e03e6c8d16bb8da6c85b261\"}, {\"artifact_id\": \"pred_66ef0fc6_3fea3930\", \"recipe_hash\": \"66ef0fc6e4ef451b0305b3b5688ecd0bf8103cc0dc21f92497ea540a2f45b2a0\", \"content_hash\": \"3fea39302f3ba7af63a28f0a8de40db6f8cfedd3fc7333454b02d6686087723e\"}, {\"artifact_id\": \"pred_c3f4700b_5c2447e6\", \"recipe_hash\": \"c3f4700b14c944e4331a619324833bbd4c6c45c64858c21c7a3d62e9d486f94c\", \"content_hash\": \"5c2447e67edd4d8433fd92baeab990f317578678eae65078f495b7550eb2618a\"}, {\"artifact_id\": \"pred_ea4515f7_09cd9992\", \"recipe_hash\": \"ea4515f771efcb8e84af1c3ca68a4773a7a9991ce786b4a956e675eecdbbb816\", \"content_hash\": \"09cd99928308963ce8e1dee2ce516ebc5e31ab79eef891c9bf1aac745e16771e\"}, {\"artifact_id\": \"pred_dedd697c_3ce062ea\", \"recipe_hash\": \"dedd697ceb35e07caf879d40497899ae28a7084bc1c0ac0d91ae4af4bf9ff404\", \"content_hash\": \"3ce062eabb986174a49d04b8eb419938ff9f5e8c57bef46d8898771994cc5276\"}, {\"artifact_id\": \"pred_a3ada32c_bc09c381\", \"recipe_hash\": \"a3ada32c717f30bba0ba9e1f42d44147c4c1b63404ad8d560f7fe5e9ec62af4d\", \"content_hash\": \"bc09c3812df1b60b420e17d892285c84c72bea026f3700a41e52bb427c51423b\"}, {\"artifact_id\": \"pred_6aaf3dbd_c50f1a23\", \"recipe_hash\": \"6aaf3dbd07b109509bed34b493236dfde66a8c920a82fef1d54390c02c393832\", \"content_hash\": \"c50f1a230633e9bcbbb7bc40e36e4f4b5c30447b6aec52e38cb808a7a27d5617\"}, {\"artifact_id\": \"pred_55725825_4df8b60a\", \"recipe_hash\": \"55725825dd4200e96e6d596a521a0bb5a9e7aa1773f87162fbc8c7cc6a37f560\", \"content_hash\": \"4df8b60aa1738816d8c8de6870c61a103266390f72b25e8bc2f6f46a41250efa\"}, {\"artifact_id\": \"pred_4e135ad9_a29492cc\", \"recipe_hash\": \"4e135ad9f77d8b69b02d093224f707ceed9b29206eebd354eee73da8f0141e73\", \"content_hash\": \"a29492ccae0f6529d645d1d7a2a1297da0c83d06fee141cb18c05658629dcd4a\"}, {\"artifact_id\": \"pred_4164baa6_c878d77b\", \"recipe_hash\": \"4164baa6c129563af1c9337ba557236821a8410b07b56f632682a96af574fa8a\", \"content_hash\": \"c878d77b39646ee3ccb1a7e27fa7b976fc167a1d6536aa478fcc5316ef2684a7\"}, {\"artifact_id\": \"pred_c689070c_95215f1e\", \"recipe_hash\": \"c689070cb90b542b6494550023c7cffbbc76713a860d9921f013e90bf6535a8e\", \"content_hash\": \"95215f1e6ab8b7ba20618cccfbe4e16b5ab0a95662ca9078890a2ce2ada7c357\"}, {\"artifact_id\": \"pred_a01cc165_9487368d\", \"recipe_hash\": \"a01cc165f07309a5015b37ad31690c9abfea215f2b8f50e4c38ca7ab82fb52e1\", \"content_hash\": \"9487368d7c7605e92a8c6b07b9f60c5ae7b9c18816c9b009ff6a558f45636c61\"}, {\"artifact_id\": \"pred_0f1a9d1c_6b7b3d3f\", \"recipe_hash\": \"0f1a9d1c87163936fe8d06a0a96b5f90e233be3e777443920d15716674be965a\", \"content_hash\": \"6b7b3d3f08bf53936e073b317f23ad1f77a00ace69c7e5eac2a5f9b54c92bf65\"}, {\"artifact_id\": \"pred_16919915_d722f0e9\", \"recipe_hash\": \"169199154dfee3a3fcd415850b48200f58fe27954f6378264f8c53ac1cedfb2a\", \"content_hash\": \"d722f0e9f33d6dd24d5a4da78c7b9eb22ae7f951eb3cdc3c046d65ba2c4aba95\"}, {\"artifact_id\": \"pred_16f0fbb7_e441e80f\", \"recipe_hash\": \"16f0fbb7bcd9eb585727f274366cb4db776d609144f2ce485a6909dfe1b775d7\", \"content_hash\": \"e441e80fd8b65a66e6595daaa0d0fdb1c6b2316924c021cb11a2d1bf007f2a81\"}, {\"artifact_id\": \"pred_b90fccdf_f48a5ffd\", \"recipe_hash\": \"b90fccdf4cf044a5c33cb3a6655017da3ac725cf265d925d2c197a9301873bbf\", \"content_hash\": \"f48a5ffdab70dd07fa5c1e729261dfbf0f047d2481bacb0984e0d202f8817bc8\"}, {\"artifact_id\": \"pred_36ecaae0_ab14932c\", \"recipe_hash\": \"36ecaae0097ce17f7ef99b7ac89e0fd0dc2fe19beb8bd8cdbf9331c09710eff2\", \"content_hash\": \"ab14932c86773cf0464069dedcd9c6e188502fa4e008539821aec2d61af74d87\"}, {\"artifact_id\": \"pred_77c29394_e86ded78\", \"recipe_hash\": \"77c29394bb85a3570aa9a07980fcadf34baa25772f87d9af38c74bb495d3a6c6\", \"content_hash\": \"e86ded788499adc794a5ed33d52317a9bfa422906483151dafe8a5b92641078f\"}, {\"artifact_id\": \"pred_0e6d9b94_e9624b72\", \"recipe_hash\": \"0e6d9b943562dfadc8b8851e967f2a3d53c226aba3d7ac9d28d6417e63683960\", \"content_hash\": \"e9624b72884822088456fceb5adcc32c390c33e1142be260fd0f6c20b58b7101\"}, {\"artifact_id\": \"pred_b0d79739_da4b94e8\", \"recipe_hash\": \"b0d797396e9d615e983c4004e7e4fd45ec7a285f159402e057db15c26474aa6d\", \"content_hash\": \"da4b94e8e1a1cb2948923eae99b0bb55e0af2f5c50b697d82bcffdbdbb2397d6\"}, {\"artifact_id\": \"pred_555f6868_7ffbf4c9\", \"recipe_hash\": \"555f6868a04313c402dc81a4179f8eaf6a3cc5c6c6a9d852205c3bf26a5866c6\", \"content_hash\": \"7ffbf4c902cd73edd534b699b4a0d4d7323c6f4735a869ada982a16f6ac8bfa2\"}, {\"artifact_id\": \"pred_5ac707d4_451aedd1\", \"recipe_hash\": \"5ac707d422da36365350a010c37a0323fe66b024ef933ca116ecf83bf74d1b9f\", \"content_hash\": \"451aedd1dd8cae9ac42535f5baaa0c156e5d7f601187c4e1f40f6a29abb670d5\"}, {\"artifact_id\": \"pred_188821e0_fa5c2499\", \"recipe_hash\": \"188821e0a6ea48e2ebb2906350b88c69db4f322e5ec2bef6cb8545ad7ae9baca\", \"content_hash\": \"fa5c24996f05ddc3b6d1de08170b3470a55a11143028502248f553043fdfa039\"}, {\"artifact_id\": \"pred_34e84ffe_417af3d5\", \"recipe_hash\": \"34e84ffe501ba6287650d4097d27454655319edb10f6459ad758dab9a64a0d8e\", \"content_hash\": \"417af3d54141b4093da5fa6f2b1c4cfb120683a55e4a434e5942f45d6f5c4e22\"}]}"
+        }
+      },
+      {
+        "id": "tests.test_selector_declaration_contract::test_cold_unlearning_and_core_warm_collect_share_declared_rows",
+        "result": "PASS",
+        "seconds": 35.296,
+        "observations": {
+          "collection": "{\"accepted_cells\": 16, \"artifact_count\": 65, \"false_selection_rejected\": true}"
+        }
+      },
+      {
+        "id": "tests.test_modular_consumers::test_method_cold_warm_and_hutch_isolation",
+        "result": "PASS",
+        "seconds": 1.942,
+        "observations": {
+          "method_change_matrix": "[{\"artifact_id\": \"score_4632f354_fc4bc3a0\", \"recipe_hash\": \"4632f3549de7ea2df1082344f26230543ab8fbbb8c1a320147d8e61183163dad\", \"content_hash\": \"fc4bc3a0734aba6c120f6e49d97af4319973abc56ded21b823f7207bb70e86af\", \"hit\": true, \"producer_called\": false, \"access_seconds\": 0.01079799999999409, \"cold_total_seconds\": null, \"warm_read_seconds\": 0.01079799999999409, \"effective_parameters\": {}, \"recipe\": {\"recipe_version\": 1, \"fields\": {\"artifact_kind\": \"score_bundle\", \"score_family\": \"target_direct_method_score\", \"score_names\": [\"degree\"], \"algorithm_version\": \"target-direct-method-score-v1\", \"producer\": {\"semantic_version\": \"target-direct-method-score-v1\", \"source_fingerprint\": \"440f899d5e71167341a1ef675969b2ed0387215d23ff541d07b8e8068570604e\"}, \"data_identity\": {\"num_nodes\": 20, \"edge_index_hash\": \"6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2\", \"features_hash\": \"8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85\", \"labels_hash\": \"54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27\", \"split_hash\": \"a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f\"}, \"candidate_set\": {\"ordered_ids_hash\": \"8b29bbcb7189bcad90cd0591e6560397154a84c7cb576f67498e2dec54d53c7c\", \"node_id_space\": \"pyg-global-node-index-v1\", \"ranking_reusable_across_budgets\": true}, \"parameters\": {}, \"method_binding\": {}, \"aggregation\": {\"ranking\": \"score_desc_node_id_asc\"}, \"budget_semantics\": \"prefix_stable_budget_independent\"}}}, {\"artifact_id\": \"score_663accb8_9b3c8f2c\", \"recipe_hash\": \"663accb8a34ec82ff49a7152082c685f315afdffb80449c9b5396c396736158e\", \"content_hash\": \"9b3c8f2c756f78c5221a469eff67be340368cf88dec503a4deb4980219a01a3b\", \"hit\": false, \"producer_called\": true, \"access_seconds\": 0.01917330000000561, \"cold_total_seconds\": 0.01917330000000561, \"warm_read_seconds\": null, \"effective_parameters\": {\"parameter_scope\": \"last_layer\", \"hessian_loss\": {\"type\": \"cross_entropy\", \"source\": \"train_mask\", \"reduction\": \"mean\"}, \"lissa\": {\"iterations\": 20, \"scale\": 25.0, \"damp\": 0.01}, \"hutchinson\": {\"probes\": 2, \"seed\": 1729}}, \"recipe\": {\"recipe_version\": 1, \"fields\": {\"artifact_kind\": \"score_bundle\", \"score_family\": \"target_direct_method_score\", \"score_names\": [\"b_param_hutch\"], \"algorithm_version\": \"target-direct-method-score-v1\", \"producer\": {\"semantic_version\": \"target-direct-method-score-v1\", \"source_fingerprint\": \"35ad063eea14b3ea5910c77560716800935359f26f1c70e8d9a58739b5f8d3a5\"}, \"data_identity\": {\"num_nodes\": 20, \"edge_index_hash\": \"6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2\", \"features_hash\": \"8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85\", \"labels_hash\": \"54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27\", \"split_hash\": \"a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f\"}, \"candidate_set\": {\"ordered_ids_hash\": \"8b29bbcb7189bcad90cd0591e6560397154a84c7cb576f67498e2dec54d53c7c\", \"node_id_space\": \"pyg-global-node-index-v1\", \"ranking_reusable_across_budgets\": true}, \"parameters\": {\"parameter_scope\": \"last_layer\", \"hessian_loss\": {\"type\": \"cross_entropy\", \"source\": \"train_mask\", \"reduction\": \"mean\"}, \"lissa\": {\"iterations\": 20, \"scale\": 25.0, \"damp\": 0.01}, \"hutchinson\": {\"probes\": 2, \"seed\": 1729}}, \"method_binding\": {}, \"aggregation\": {\"ranking\": \"score_desc_node_id_asc\"}, \"budget_semantics\": \"prefix_stable_budget_independent\", \"selector_model\": {\"architecture\": \"OpenGU.GCNNet\", \"layers\": 2, \"hidden_channels\": 4, \"dropout\": 0.5}, \"training\": {\"epochs\": 3, \"optimizer\": \"Adam\", \"lr\": 0.005, \"weight_decay\": 1e-06, \"scheduler\": \"none\", \"seed\": 42}, \"parameter_schema_hash\": \"bc364a1cfe6412216ebf0d6ca9666458357fdcb9cad9b1f854d4fd5f83bf052f\", \"numerics\": {\"dtype\": \"torch.float32\"}, \"final_state_hash\": \"3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c\"}}}, {\"artifact_id\": \"score_37430f7c_221eaf7c\", \"recipe_hash\": \"37430f7cc023108ad98bd30db250fc6cf906d4eacca0b4a3ccbc135b1674bcd3\", \"content_hash\": \"221eaf7c4e0c35f45d04395dfc7907d5678e67258e66176a74dc24c500c35fed\", \"hit\": true, \"producer_called\": false, \"access_seconds\": 0.00734150000000966, \"cold_total_seconds\": null, \"warm_read_seconds\": 0.00734150000000966, \"effective_parameters\": {\"parameter_scope\": \"last_layer\", \"target_loss\": {\"type\": \"cross_entropy\", \"source\": \"validation_mask\", \"reduction\": \"mean\"}, \"checkpoint_view\": \"cp3\", \"checkpoint_steps\": []}, \"recipe\": {\"recipe_version\": 1, \"fields\": {\"artifact_kind\": \"score_bundle\", \"score_family\": \"target_direct_method_score\", \"score_names\": [\"tracin_cp_point_3\"], \"algorithm_version\": \"target-direct-method-score-v1\", \"producer\": {\"semantic_version\": \"target-direct-method-score-v1\", \"source_fingerprint\": \"f14cc86d3ee67894cc8bace5db6b00f29e44c6b0c1563f7b3fac1a2ea12d051b\"}, \"data_identity\": {\"num_nodes\": 20, \"edge_index_hash\": \"6e30e35fde602772c10c91ca9819bae42eb85fd0f5b7069eceb46ad00cc327e2\", \"features_hash\": \"8dd59c84d0662370c9113fe548cd774f235fcad084f13ec26a3c45f317454f85\", \"labels_hash\": \"54fbe35058bdb0348207a2248259c2e28ad2ed714dc2e2b69e2153de430e6e27\", \"split_hash\": \"a3095fdb2c89c5e245f63420a826079bf1a1d3395ac087d91977d1899f58e55f\"}, \"candidate_set\": {\"ordered_ids_hash\": \"8b29bbcb7189bcad90cd0591e6560397154a84c7cb576f67498e2dec54d53c7c\", \"node_id_space\": \"pyg-global-node-index-v1\", \"ranking_reusable_across_budgets\": true}, \"parameters\": {\"parameter_scope\": \"last_layer\", \"target_loss\": {\"type\": \"cross_entropy\", \"source\": \"validation_mask\", \"reduction\": \"mean\"}, \"checkpoint_view\": \"cp3\", \"checkpoint_steps\": []}, \"method_binding\": {\"source\": \"point\"}, \"aggregation\": {\"ranking\": \"score_desc_node_id_asc\"}, \"budget_semantics\": \"prefix_stable_budget_independent\", \"selector_model\": {\"architecture\": \"OpenGU.GCNNet\", \"layers\": 2, \"hidden_channels\": 4, \"dropout\": 0.5}, \"training\": {\"epochs\": 3, \"optimizer\": \"Adam\", \"lr\": 0.005, \"weight_decay\": 1e-06, \"scheduler\": \"none\", \"seed\": 42}, \"parameter_schema_hash\": \"bc364a1cfe6412216ebf0d6ca9666458357fdcb9cad9b1f854d4fd5f83bf052f\", \"numerics\": {\"dtype\": \"torch.float32\"}, \"trajectory\": [{\"global_step\": 1, \"state_hash\": \"4fe664463f6ab67be928dc91f76e7f001806024988aa8382723c8ff2116eb7de\", \"weight\": 0.005}, {\"global_step\": 2, \"state_hash\": \"0e46ec1d171ebfeb3200269cd00e6f90d101f544a4fa5c5236fd15232b5fdb81\", \"weight\": 0.005}, {\"global_step\": 3, \"state_hash\": \"3835188512c1b8d528e5971f90be6dcbbce45d6d9d81ad704af55afa7a80dd9c\", \"weight\": 0.005}], \"target_ids_hash\": \"979fc7c473b2b926154ec59baa95517fefbab6583b911c27f4be777043ac6423\"}}}]"
+        }
+      },
+      {
+        "id": "tests.test_modular_consumers::test_real_gu_consumes_existing_selection_without_producer",
+        "result": "PASS",
+        "seconds": 3.27,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_default_expansion_and_budget_reuse",
+        "result": "PASS",
+        "seconds": 0.787,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_missing_and_wrong_identity_fail_before_execution",
+        "result": "PASS",
+        "seconds": 0.22,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_real_gu_method_and_default_equivalence",
+        "result": "PASS",
+        "seconds": 3.071,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_different_selector_and_gu_backbones",
+        "result": "PASS",
+        "seconds": 1.009,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_command_requires_context_and_gu_reuses_declared_selection",
+        "result": "PASS",
+        "seconds": 6.451,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad0]",
+        "result": "PASS",
+        "seconds": 0.014,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad1]",
+        "result": "PASS",
+        "seconds": 0.014,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad2]",
+        "result": "PASS",
+        "seconds": 0.013,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_all_seventeen_methods_match_pre_refactor_formulas",
+        "result": "PASS",
+        "seconds": 1.563,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_actual_dependency_implementation_changes",
+        "result": "PASS",
+        "seconds": 3.662,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_mismatched_persisted_data_and_checkpoint_rejected",
+        "result": "PASS",
+        "seconds": 0.361,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_yaml_duplicate_and_implicit_override_rejected",
+        "result": "PASS",
+        "seconds": 0.014,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_operational_fields_are_rejected_and_context_is_external",
+        "result": "PASS",
+        "seconds": 0.025,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_project_context_owns_fixed_store_runtime_device_and_output",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_minimal_method_files_expand_real_defaults",
+        "result": "PASS",
+        "seconds": 0.014,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+        "result": "PASS",
+        "seconds": 0.035,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_modular_consumers::test_evaluation_is_independent_and_missing_retrain_fails_closed",
+        "result": "PASS",
+        "seconds": 2.186,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+        "result": "PASS",
+        "seconds": 3.993,
+        "observations": {
+          "aagu028_evidence": "{\"retrain\": {\"artifact_id\": \"pred_124c9b4e_0b65e3e5\", \"recipe_hash\": \"124c9b4ee7660f03aaff99d7ff3435faf2daa1c25dbf83c908510e1d4eb0b080\", \"content_hash\": \"0b65e3e5b7d465f24cad5c7e0b211097eb02b79305c3a3a4c41894b35bd4b65b\"}, \"warm\": {\"artifact_id\": \"pred_124c9b4e_0b65e3e5\", \"recipe_hash\": \"124c9b4ee7660f03aaff99d7ff3435faf2daa1c25dbf83c908510e1d4eb0b080\", \"content_hash\": \"0b65e3e5b7d465f24cad5c7e0b211097eb02b79305c3a3a4c41894b35bd4b65b\"}, \"GU_outputs\": [{\"artifact_id\": \"pred_9cf6d6dd_6ab37040\", \"recipe_hash\": \"9cf6d6dd5d6e83d01c104b435a2a956c6836838cf688e6fba04c4c7ebda6c87d\", \"content_hash\": \"6ab370403f03623c93c1bc951b52e6e95c8b29baff0ca65908bbc53a02cccf17\"}, {\"artifact_id\": \"pred_5ad5e54d_b1ca7498\", \"recipe_hash\": \"5ad5e54dd98601d808e15b604a3073ba749e76b7f0310731293f2a7c59a55b26\", \"content_hash\": \"b1ca7498924b860dfd67de70f1ea84664d32638bef6b08c79c8bd25349492f46\"}], \"metrics\": [{\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"perf_before\", \"perf_unlearn\", \"perf_retrain\", \"drop_retrain\", \"gap\", \"gap_pct\"], \"acceptance\": {}, \"required_inputs\": [\"model_before\", \"model_unlearned\", \"exact_retrain_same_selection\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"persisted-output-retrain-gap-v2\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_d94a81c46668ae7aa4a8dc20a841237f\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_9cf6d6dd_6ab37040\", \"recipe_hash\": \"9cf6d6dd5d6e83d01c104b435a2a956c6836838cf688e6fba04c4c7ebda6c87d\", \"content_hash\": \"6ab370403f03623c93c1bc951b52e6e95c8b29baff0ca65908bbc53a02cccf17\"}, \"retrain_output\": {\"artifact_id\": \"pred_124c9b4e_0b65e3e5\", \"recipe_hash\": \"124c9b4ee7660f03aaff99d7ff3435faf2daa1c25dbf83c908510e1d4eb0b080\", \"content_hash\": \"0b65e3e5b7d465f24cad5c7e0b211097eb02b79305c3a3a4c41894b35bd4b65b\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}, {\"evaluation_receipt_id\": \"evalr_9f81c48c44bd48e5bb66d33be32a6874\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_5ad5e54d_b1ca7498\", \"recipe_hash\": \"5ad5e54dd98601d808e15b604a3073ba749e76b7f0310731293f2a7c59a55b26\", \"content_hash\": \"b1ca7498924b860dfd67de70f1ea84664d32638bef6b08c79c8bd25349492f46\"}, \"retrain_output\": {\"artifact_id\": \"pred_124c9b4e_0b65e3e5\", \"recipe_hash\": \"124c9b4ee7660f03aaff99d7ff3435faf2daa1c25dbf83c908510e1d4eb0b080\", \"content_hash\": \"0b65e3e5b7d465f24cad5c7e0b211097eb02b79305c3a3a4c41894b35bd4b65b\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}]}], \"store_unchanged_by_metrics\": true, \"selector_and_training_forbidden\": true}"
+        }
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[training]",
+        "result": "PASS",
+        "seconds": 2.186,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[model]",
+        "result": "PASS",
+        "seconds": 2.159,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[semantics]",
+        "result": "PASS",
+        "seconds": 2.192,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[request]",
+        "result": "PASS",
+        "seconds": 2.332,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_gu_parameters_and_metrics_do_not_change_retrain",
+        "result": "PASS",
+        "seconds": 2.579,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_removes_supervision_and_incident_edges",
+        "result": "PASS",
+        "seconds": 0.708,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_missing_and_corrupted_outputs_rejected_without_training",
+        "result": "PASS",
+        "seconds": 0.7,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[x]",
+        "result": "PASS",
+        "seconds": 0.701,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[y]",
+        "result": "PASS",
+        "seconds": 0.7,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+        "result": "PASS",
+        "seconds": 0.69,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[split]",
+        "result": "PASS",
+        "seconds": 0.694,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_changed_producer_and_missing_selection_dependency_rejected",
+        "result": "FAIL",
+        "seconds": 0.657,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_aggregate_serialization_is_lossless",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_metrics_cli_reads_independent_modular_outputs",
+        "result": "PASS",
+        "seconds": 6.21,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_independent_method_metrics_survive_collection_without_forward",
+        "result": "PASS",
+        "seconds": 3.359,
+        "observations": {
+          "aagu028_independent_collection": "{\"per_method\": [{\"f1_before\": 0.2, \"f1_after\": 0.2, \"f1_drop\": 0.0, \"f1_drop_ratio\": 0.0, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_5a6feac1_a9eafabe\", \"recipe_hash\": \"5a6feac1589b4d6581612858aa882aea047c954de0ed3f24fd9fa935c0e38c51\", \"content_hash\": \"a9eafabeec45e3dcd0774063aba6f5be4974570922ea7804344e985d36d05b46\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_695507169846709d68e405084cdf2dc0\", \"identity\": {\"output\": {\"artifact_id\": \"pred_5a6feac1_a9eafabe\", \"recipe_hash\": \"5a6feac1589b4d6581612858aa882aea047c954de0ed3f24fd9fa935c0e38c51\", \"content_hash\": \"a9eafabeec45e3dcd0774063aba6f5be4974570922ea7804344e985d36d05b46\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156439335573, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.012766122817993164}, {\"f1_before\": null, \"f1_after\": 0.2, \"f1_drop\": null, \"f1_drop_ratio\": null, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_b0d6bd5eeee3f41bb8442d04f6b43610\", \"identity\": {\"output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7180723631767043, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.0083368999999891}, {\"f1_before\": 0.2, \"f1_after\": 0.2, \"f1_drop\": 0.0, \"f1_drop_ratio\": 0.0, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_321b4507_f2f9e902\", \"recipe_hash\": \"321b45075cc8efc1d406461dd9ea5012ee4b5497c2db844dd576e3e9451dc61e\", \"content_hash\": \"f2f9e902be01b42f6ff9059c5d23c6323a764f980a69920db6ebe527edaf1af3\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_cbd87e513143c6af1c9f10f4e4847272\", \"identity\": {\"output\": {\"artifact_id\": \"pred_321b4507_f2f9e902\", \"recipe_hash\": \"321b45075cc8efc1d406461dd9ea5012ee4b5497c2db844dd576e3e9451dc61e\", \"content_hash\": \"f2f9e902be01b42f6ff9059c5d23c6323a764f980a69920db6ebe527edaf1af3\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156429915334, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.002020120620727539}], \"recomputed\": {\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_method_metrics\", \"metrics\": [\"f1\", \"accuracy\", \"cross_entropy\", \"classification_auc\", \"classification_auc_status\", \"update_detection_auc\", \"update_detection_auc_status\"], \"acceptance\": {}, \"required_inputs\": [\"method_output\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"single-method-output-metrics-v1\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_22d1a1456237d9b7718b483714c8fe91\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_5a6feac1_a9eafabe\", \"recipe_hash\": \"5a6feac1589b4d6581612858aa882aea047c954de0ed3f24fd9fa935c0e38c51\", \"content_hash\": \"a9eafabeec45e3dcd0774063aba6f5be4974570922ea7804344e985d36d05b46\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_5a6feac1_a9eafabe\", \"recipe_hash\": \"5a6feac1589b4d6581612858aa882aea047c954de0ed3f24fd9fa935c0e38c51\", \"content_hash\": \"a9eafabeec45e3dcd0774063aba6f5be4974570922ea7804344e985d36d05b46\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156439335573, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, {\"evaluation_receipt_id\": \"evalr_32360eae46b0f607b1eba9ec8f9583fa\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7180723631767043, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, {\"evaluation_receipt_id\": \"evalr_d5b59914450ddf4a2375b3b3fedc5c66\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_321b4507_f2f9e902\", \"recipe_hash\": \"321b45075cc8efc1d406461dd9ea5012ee4b5497c2db844dd576e3e9451dc61e\", \"content_hash\": \"f2f9e902be01b42f6ff9059c5d23c6323a764f980a69920db6ebe527edaf1af3\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_321b4507_f2f9e902\", \"recipe_hash\": \"321b45075cc8efc1d406461dd9ea5012ee4b5497c2db844dd576e3e9451dc61e\", \"content_hash\": \"f2f9e902be01b42f6ff9059c5d23c6323a764f980a69920db6ebe527edaf1af3\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156429915334, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}]}, \"differences\": {\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"perf_before\", \"perf_unlearn\", \"perf_retrain\", \"drop_retrain\", \"gap\", \"gap_pct\"], \"acceptance\": {}, \"required_inputs\": [\"model_before\", \"model_unlearned\", \"exact_retrain_same_selection\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"persisted-output-retrain-gap-v2\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_c557e88324bf717c946ba18164a0b188\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_5a6feac1_a9eafabe\", \"recipe_hash\": \"5a6feac1589b4d6581612858aa882aea047c954de0ed3f24fd9fa935c0e38c51\", \"content_hash\": \"a9eafabeec45e3dcd0774063aba6f5be4974570922ea7804344e985d36d05b46\"}, \"retrain_output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}, {\"evaluation_receipt_id\": \"evalr_6fc636a280be760264fa2f14c0375a69\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_321b4507_f2f9e902\", \"recipe_hash\": \"321b45075cc8efc1d406461dd9ea5012ee4b5497c2db844dd576e3e9451dc61e\", \"content_hash\": \"f2f9e902be01b42f6ff9059c5d23c6323a764f980a69920db6ebe527edaf1af3\"}, \"retrain_output\": {\"artifact_id\": \"pred_96dfe6be_78f905e6\", \"recipe_hash\": \"96dfe6be5a9ef55b0050cedb63f7cf3a3c10a9d32a2d5e3907ab285f58af3d65\", \"content_hash\": \"78f905e6cb22608a199cf8f5f20f02603c919b7efec9b4d71d07fb1cc9cf5727\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}]}, \"store_unchanged\": true, \"training_and_forward_forbidden\": true}"
+        }
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_auc_reports_missing_classes_without_producing_data",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_command_cold_warm_seed_budget_retrain_and_metrics",
+        "result": "PASS",
+        "seconds": 52.182,
+        "observations": {
+          "command_evidence": "{\"cold_trace\": {\"training_seeds\": [122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722, 722], \"score_calls\": [\"degree\", \"random\", \"a_grad_norm\", \"a_grad_norm\"]}, \"warm_trace\": {\"training_seeds\": [], \"score_calls\": []}, \"logical_cells\": 24, \"score_groups\": {\"degree.yaml\": 1, \"random.yaml\": 1, \"a_grad_norm.yaml\": 2}, \"metrics_rows\": 12, \"cold_output\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_command_cold_warm_seed_bu0\\\\results\\\\runs\\\\modular\\\\cpu-matrix\\\\cold\\\\summary.json\", \"warm_output\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_command_cold_warm_seed_bu0\\\\results\\\\runs\\\\modular\\\\cpu-matrix\\\\warm\\\\summary.json\"}"
+        }
+      },
+      {
+        "id": "tests.test_unified_execution::test_stage_s_cache_supplies_real_selections_without_resampling",
+        "result": "PASS",
+        "seconds": 14.425,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_public_tracin_uses_real_100_epoch_trajectory",
+        "result": "PASS",
+        "seconds": 0.5,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value0]",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value1]",
+        "result": "PASS",
+        "seconds": 0.032,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value2]",
+        "result": "PASS",
+        "seconds": 0.033,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[budget_ratios-value3]",
+        "result": "PASS",
+        "seconds": 0.028,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[budget_ratios-value4]",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[device-cuda]",
+        "result": "PASS",
+        "seconds": 0.013,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_execution::test_invalid_axes_fail_before_execution[overrides-value6]",
+        "result": "PASS",
+        "seconds": 0.014,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_aagu015_definitions::test_all_ordinary_tables_no_write_or_producer",
+        "result": "PASS",
+        "seconds": 0.555,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_aagu015_definitions::test_declared_selection_stages_pair_training_seeds",
+        "result": "PASS",
+        "seconds": 0.291,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_aagu015_definitions::test_032_remains_42_conditions",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_autoreport::test_real_success_and_cached_repeat_are_separate_audited_attempts",
+        "result": "PASS",
+        "seconds": 7.785,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_autoreport::test_real_execution_failure_is_audited_without_completion",
+        "result": "PASS",
+        "seconds": 4.489,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_autoreport::test_dry_run_creates_no_audit_attempt",
+        "result": "PASS",
+        "seconds": 3.904,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_autoreport::test_corrupt_journal_stops_before_production_and_preserves_evidence",
+        "result": "PASS",
+        "seconds": 3.882,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_unified_autoreport::test_real_core_submission_uses_the_same_audit_producer",
+        "result": "PASS",
+        "seconds": 4.944,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_cell_and_config_identity_are_stable_and_separate",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_exact_transition_and_repeated_skip_are_deduplicated",
+        "result": "PASS",
+        "seconds": 0.016,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_run_cannot_complete_after_a_failed_stage",
+        "result": "PASS",
+        "seconds": 0.006,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_failed_stage_dominates_inconsistent_historical_run_completion",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_repeated_result_cache_hit_is_compressed_across_new_run_ids",
+        "result": "PASS",
+        "seconds": 0.049,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_repeated_selection_hit_is_compressed_but_new_attack_compute_is_kept",
+        "result": "PASS",
+        "seconds": 0.049,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_append_fails_closed_when_existing_stream_is_corrupt",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_append_rejects_event_tampering_after_build",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_failed_and_retrying_events_require_structured_evidence",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_concurrent_appends_leave_projection_at_latest_stream_length",
+        "result": "PASS",
+        "seconds": 0.19,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_runner_identity_envelope_keeps_child_identity_and_cell_id_consistent",
+        "result": "PASS",
+        "seconds": 0.029,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_human_cache_summary_names_authority_source_policy_and_recipe",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_partial_workflow_fixture_projects_selection_attack_complete_and_failed",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_legacy_v1_v2_fixture_is_parsed_without_migration",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_legacy_v1_writer_api_remains_available",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_legacy_writer_cannot_append_to_live_auto_report_by_default",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_production_baseline_matches_frozen_archive",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_new_auto_report_names_and_baseline_projection",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_legacy_evaluation_runner_uses_v3_skip_dedup",
+        "result": "PASS",
+        "seconds": 0.046,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_result_cache_hit_is_not_replayed_as_current_selection_hit",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_result_and_selection_misses_are_one_terminal_event_each",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_v2_selection_hit_is_authoritative_and_identifies_artifact",
+        "result": "PASS",
+        "seconds": 0.025,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_failed_attack_result_is_a_failed_terminal_event",
+        "result": "PASS",
+        "seconds": 0.025,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_result_cache_exposes_verified_v2_hit_source",
+        "result": "PASS",
+        "seconds": 0.348,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_collateral_partial_results_record_success_and_missing_failure",
+        "result": "PASS",
+        "seconds": 0.045,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_auto_report_v3::test_acceptance_markdown_and_html_agree_on_architecture_contract_and_counts",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_default_implementation_is_core_backed_exact_entry",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_direct_syncmate_script_bootstraps_repo_import_path",
+        "result": "PASS",
+        "seconds": 0.09,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_report_age_and_stale_detection",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_remote_shell_commands_quote_repo_paths_and_roots",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_remote_status_and_manifest_use_quoted_commands",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_remote_status_and_manifest_use_configured_python_executable",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_remote_status_plan_uses_peer_python_executable",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_scan_results_classifies_node_bare_and_nested_layouts",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_scan_progress_reports_recent_logs_and_error_keywords",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_progress_cli_returns_log_summary",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_write_state_appends_compact_history_with_delta",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_results_table_delta_tracks_added_and_changed_rows",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_fingerprint_excludes_volatile_timestamps_by_default",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_fingerprint_cli_supports_expect_prefix",
+        "result": "PASS",
+        "seconds": 0.057,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_compare_fingerprint_payload_reports_component_differences",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_compare_cli_reads_saved_remote_status_fingerprint",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_build_snapshot_includes_fingerprint_and_export_manifest",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_publish_cli_writes_compact_status_package",
+        "result": "PASS",
+        "seconds": 0.104,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_publish_include_items_outputs_full_manifest",
+        "result": "PASS",
+        "seconds": 0.1,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_publish_saves_remote_status_and_compare_reads_it",
+        "result": "PASS",
+        "seconds": 0.041,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_publish_no_save_previews_without_writing_report",
+        "result": "PASS",
+        "seconds": 0.02,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results",
+        "result": "PASS",
+        "seconds": 0.159,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts",
+        "result": "PASS",
+        "seconds": 0.156,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_inspect_bundle_is_read_only_and_reports_audit_summary",
+        "result": "PASS",
+        "seconds": 0.14,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_bundle_leaves_checksum_conflicts_without_overwrite",
+        "result": "PASS",
+        "seconds": 0.133,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_bundle_dry_run_does_not_extract_or_write_reports",
+        "result": "PASS",
+        "seconds": 0.121,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_bundle_dry_run_write_plan_saves_offline_diff_only",
+        "result": "PASS",
+        "seconds": 0.126,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_bundle_rejects_corrupt_member_before_landing",
+        "result": "PASS",
+        "seconds": 0.136,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_import_bundle_rejects_duplicate_manifest_path_before_extract",
+        "result": "PASS",
+        "seconds": 0.126,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_inspect_bundle_reports_invalid_manifest_without_extracting",
+        "result": "PASS",
+        "seconds": 0.126,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_manifest_hashes_only_json_meta_artifacts",
+        "result": "PASS",
+        "seconds": 0.077,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_manifest_inventory_flags_incomplete_remote_leaf",
+        "result": "PASS",
+        "seconds": 0.07,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_manifest_can_include_predictions_when_requested",
+        "result": "PASS",
+        "seconds": 0.074,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_artifact_names_for_peer_merges_global_and_peer_policy",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_init_device_writes_config_and_refuses_overwrite",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_init_device_runner_can_record_collector_hint",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_init_device_cli_can_write_artifact_policy",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_add_peer_cli_updates_collector_config_and_refuses_duplicate",
+        "result": "PASS",
+        "seconds": 0.057,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_add_peer_local_transport_does_not_require_ssh",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_add_peer_cli_can_write_artifact_policy",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_artifact_policy_cli_rejects_path_entries",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_add_peer_requires_collector_role",
+        "result": "PASS",
+        "seconds": 0.02,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_setup_plan_guides_missing_collector_and_peer_config",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_setup_plan_can_generate_local_peer_commands",
+        "result": "PASS",
+        "seconds": 0.02,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_setup_plan_local_peer_does_not_require_ssh_input",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_setup_plan_write_marks_existing_peer_not_needed",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_layout_cli_shows_peer_paths_and_trusted_outputs",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_layout_text_mentions_landing_and_sync_command",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_landings_cli_shows_local_landing_inventory_and_rows",
+        "result": "PASS",
+        "seconds": 0.054,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runbook_cli_writes_missing_setup_guide",
+        "result": "PASS",
+        "seconds": 0.019,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runbook_cli_writes_collector_peer_flow",
+        "result": "PASS",
+        "seconds": 0.025,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_smoke_cli_runs_local_end_to_end_and_keeps_workspace",
+        "result": "PASS",
+        "seconds": 0.362,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_smoke_cli_cleans_temporary_workspace_by_default",
+        "result": "PASS",
+        "seconds": 0.361,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_updates_all_peers_without_collecting_by_default",
+        "result": "PASS",
+        "seconds": 0.044,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_apply_collects_selected_peer",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_apply_verify_runs_acceptance_for_selected_peer",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard",
+        "result": "PASS",
+        "seconds": 0.078,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_sync_no_results_skips_result_table_write",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_sync_local_transport_collects_from_same_machine_repo",
+        "result": "PASS",
+        "seconds": 0.383,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_sync_dry_run_skips_collect_verify_and_optional_writes",
+        "result": "PASS",
+        "seconds": 0.027,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_verify_returns_nonzero_when_acceptance_fails",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_apply_remote_status_saves_snapshot_summary",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_apply_remote_status_reports_remote_errors",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_remote_status_reports_reads_saved_summary",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_remote_status_reports_accepts_utf8_bom",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_collect_reports_reads_saved_summary_and_bom",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_diff_reports_reads_saved_summary_and_bom",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_verify_reports_reads_saved_summary_and_bom",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_load_bundle_inspect_reports_reads_saved_audit_and_bom",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_compare_manifest_detects_same_missing_and_conflicts",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_diff_collect_reports_missing_current_and_conflicts",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_diff_collect_reports_remote_inventory_incomplete",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_diff_collect_saves_last_diff_report",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_apply_collect_counts_only_actually_fetched_missing_artifacts",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_verify_collect_saves_acceptance_report",
+        "result": "PASS",
+        "seconds": 0.006,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_verify_collect_marks_remote_inventory_incomplete",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_verify_cli_uses_peer_artifact_policy",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_handoff_payload_renders_local_and_remote_ai_commands",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_handoff_cli_writes_markdown_runbook",
+        "result": "PASS",
+        "seconds": 0.028,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_handoff_cli_can_write_all_configured_peers",
+        "result": "PASS",
+        "seconds": 0.03,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_apply_collect_fetches_only_missing_and_verifies",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_apply_collect_reports_checksum_failure",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_index_cli_reads_persistent_artifact_index",
+        "result": "PASS",
+        "seconds": 0.02,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_inventory_groups_indexed_artifacts_by_experiment_leaf",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_inventory_cli_reads_index",
+        "result": "PASS",
+        "seconds": 0.039,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_export_payload_uses_complete_trusted_leaves_by_default",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_export_cli_writes_manifest_csv_and_checks_index",
+        "result": "PASS",
+        "seconds": 0.025,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_results_cli_extracts_metrics_from_trusted_index",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_export_check_returns_nonzero_on_index_checksum_drift",
+        "result": "PASS",
+        "seconds": 0.021,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_trace_cli_shows_landing_result_chain_and_checksum_drift",
+        "result": "PASS",
+        "seconds": 0.05,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_index_helpers_respect_explicit_empty_index",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_index_check_detects_local_drift",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_local_landing_path_rejects_path_escape",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_local_landing_path_rejects_unsafe_landing",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_actionable_layout_and_setup_diagnostics",
+        "result": "PASS",
+        "seconds": 0.006,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_warns_when_verified_report_has_no_artifact_index",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_warns_when_trusted_inventory_leaf_is_incomplete",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_verified_remote_inventory_incomplete",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_orphaned_reports_and_index_entries",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_archive_orphans_dry_run_and_apply",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_fail_thresholds_and_strict_behavior",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_requires_clean_verify_reports",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_requires_saved_preflight_report",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_requires_artifact_index_integrity",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_requires_trusted_results_table",
+        "result": "PASS",
+        "seconds": 0.009,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_rejects_incomplete_trusted_inventory",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_payload_rejects_remote_inventory_incomplete",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_summary_payload_compacts_peer_reports_and_actions",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_brief_payload_and_markdown_combine_status_next_and_history",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_brief_cli_writes_current_state_markdown",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_peer_reports_payload_compacts_report_details",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_reports_cli_returns_compact_peer_json",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_receipt_payload_summarizes_landing_checksums_and_local_examples",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_receipt_cli_writes_markdown_from_saved_reports",
+        "result": "PASS",
+        "seconds": 0.026,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_summary_cli_returns_machine_readable_digest",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_overview_cli_combines_layout_gate_receipt_and_next",
+        "result": "PASS",
+        "seconds": 0.041,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_overview_text_returns_nonzero_when_gate_fails",
+        "result": "PASS",
+        "seconds": 0.094,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_lifecycle_cli_reports_missing_setup_phase",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_lifecycle_cli_reports_collect_phase_from_saved_diff",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_lifecycle_cli_reports_accepted_phase_and_trace_check",
+        "result": "PASS",
+        "seconds": 0.048,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_next_steps_payload_orders_executable_commands",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_next_steps_uses_import_bundle_for_saved_offline_diff",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_next_steps_require_results_refreshes_table_before_gate",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_workflow_payload_marks_incremental_collect_stage",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_workflow_payload_marks_missing_results_table_after_verified_index",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_workflow_cli_can_write_machine_readable_stage_state",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_automation_core_cli_can_write_machine_readable_ledger",
+        "result": "PASS",
+        "seconds": 0.216,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_acceptance_cli_can_write_machine_readable_verdict",
+        "result": "PASS",
+        "seconds": 0.041,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_next_steps_payload_can_require_saved_preflight",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_next_cli_returns_command_queue",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_gate_cli_returns_nonzero_for_blocking_diagnostics",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_preflight_payload_reports_ready_peer_commands",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_preflight_cli_can_write_latest_report",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_preflight_cli_blocks_missing_setup",
+        "result": "PASS",
+        "seconds": 0.019,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_preflight_cli_returns_nonzero_for_bad_peer",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_sync_blocks_on_preflight_before_remote_calls",
+        "result": "PASS",
+        "seconds": 0.022,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_blocks_unknown_peer_with_preflight_json",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_refresh_no_save_does_not_write_blocked_preflight_report",
+        "result": "PASS",
+        "seconds": 0.023,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_build_snapshot_includes_peer_configs",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_peer_config_issues",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_invalid_artifact_policies",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_missing_remote_status_for_configured_peer",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_remote_status_errors_dirty_and_result_issues",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_fingerprint_attention_for_git_component",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_warns_when_remote_status_lacks_fingerprint_metadata",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_git_mismatch_across_remote_and_manifest_reports",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_git_id_matching_accepts_short_and_full_prefixes",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_diff_errors_missing_and_conflicts",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_newer_clean_verify_supersedes_planning_diff_missing",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_verify_errors_missing_and_conflicts",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_doctor_reports_stale_remote_diff_and_collect_reports",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_dashboard_html_contains_device_status_nodes_and_actions",
+        "result": "PASS",
+        "seconds": 0.024,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_dashboard_cli_writes_workflow_report_path",
+        "result": "PASS",
+        "seconds": 0.031,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_write_dashboard_can_skip_checklist_but_keep_runbook",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_submit_validates_and_writes_static_dashboard",
+        "result": "PASS",
+        "seconds": 0.067,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_run_once_claims_only_allowlisted_smoke_job",
+        "result": "PASS",
+        "seconds": 0.015,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_blocks_invalid_yaml_and_never_executes_it",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_refuses_to_run_on_collector_only_device",
+        "result": "PASS",
+        "seconds": 0.008,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_contract_is_read_only_until_explicitly_written",
+        "result": "PASS",
+        "seconds": 0.041,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_lock_is_exclusive_and_released",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_processes_exactly_one_job_under_lock",
+        "result": "PASS",
+        "seconds": 0.018,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_validates_full_json_before_bounding_diagnostic_tail",
+        "result": "PASS",
+        "seconds": 0.016,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution",
+        "result": "PASS",
+        "seconds": 0.015,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_blocks_exact_job_git_mismatch_before_execution",
+        "result": "PASS",
+        "seconds": 0.016,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten",
+        "result": "PASS",
+        "seconds": 0.01,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_refuses_stale_running_without_automatic_retry",
+        "result": "PASS",
+        "seconds": 0.011,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_inspect_distinguishes_active_and_orphaned_running",
+        "result": "PASS",
+        "seconds": 0.013,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_dispatch_binds_clean_remote_exact_git_sha",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_peer_invoke_uses_configured_python_executable",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_agent_collect_failure_never_reports_acceptance",
+        "result": "PASS",
+        "seconds": 0.005,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_recipe_config_hash_is_line_ending_stable",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_recipe_requires_exact_reviewed_commit",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate::test_runner_git_binding_refuses_abbreviated_or_invalid_identity",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_real_queue_command_collect_verify_accept_results_and_repeat",
+        "result": "PASS",
+        "seconds": 12.761,
+        "observations": {
+          "actual_collection": "{\"checked\": {\"owner\": \"opengu\", \"profile\": \"modular-output-v1\", \"passed\": true, \"status\": \"accepted\", \"errors\": [], \"accepted_cells\": 8, \"cells\": [{\"method\": \"GNNDelete\", \"seed\": 122, \"output\": {\"recipe_hash\": \"3fe129fba2f9f921ba2af03ef2dc4101ae0a798213913a1d0faf4cb3d3cc9842\", \"content_hash\": \"a407a38dbc777c7db3e2329ba568baf766dc9ac407ce9ba9c86641fc04401f31\", \"artifact_id\": \"pred_3fe129fb_a407a38d\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_c4615ad56691dd8c3d8c71139319b308\", \"identity\": {\"output\": {\"recipe_hash\": \"3fe129fba2f9f921ba2af03ef2dc4101ae0a798213913a1d0faf4cb3d3cc9842\", \"content_hash\": \"a407a38dbc777c7db3e2329ba568baf766dc9ac407ce9ba9c86641fc04401f31\", \"artifact_id\": \"pred_3fe129fb_a407a38d\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.6, \"accuracy\": 0.6, \"cross_entropy\": 0.7114549887865944, \"classification_auc\": 0.6666666666666666, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"selection\": {\"artifact_id\": \"sel_ddbeee7b_0b2934b6\", \"content_hash\": \"0b2934b6a7829060d6bf470f7380a27abbeaf4e9617e44800eed7187e54efe83\", \"recipe_hash\": \"ddbeee7b303f6e55184b60add8faef1c69f0a494473c81b619aeef32f4830824\"}}, {\"method\": \"Retrain\", \"seed\": 122, \"output\": {\"recipe_hash\": \"695b0695cebb10055b81532eb63cd2d1aacff68e9dbd919e7894c8a682113d24\", \"content_hash\": \"cba7496259a38cfceabb5007e1a6f1ac868f66fb2a52ae6a6638a15eb5324323\", \"artifact_id\": \"pred_695b0695_cba74962\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_0ac90e1acbceb40ddc39624e1ded7433\", \"identity\": {\"output\": {\"recipe_hash\": \"695b0695cebb10055b81532eb63cd2d1aacff68e9dbd919e7894c8a682113d24\", \"content_hash\": \"cba7496259a38cfceabb5007e1a6f1ac868f66fb2a52ae6a6638a15eb5324323\", \"artifact_id\": \"pred_695b0695_cba74962\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.6, \"accuracy\": 0.6, \"cross_entropy\": 0.7038315717530363, \"classification_auc\": 0.6666666666666666, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"selection\": {\"artifact_id\": \"sel_ddbeee7b_0b2934b6\", \"content_hash\": \"0b2934b6a7829060d6bf470f7380a27abbeaf4e9617e44800eed7187e54efe83\", \"recipe_hash\": \"ddbeee7b303f6e55184b60add8faef1c69f0a494473c81b619aeef32f4830824\"}}, {\"method\": \"GNNDelete\", \"seed\": 122, \"output\": {\"recipe_hash\": \"316561555a6a87e8c44303ba4ee5d13ccd573389f9cda923d4d624421f076ce5\", \"content_hash\": \"4a286ce1e09f22eb896ac3214da54f7927fc7d546db52c3e5e8ffab8e0465d43\", \"artifact_id\": \"pred_31656155_4a286ce1\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_c9fa729559920ff0284b5ff64944d00f\", \"identity\": {\"output\": {\"recipe_hash\": \"316561555a6a87e8c44303ba4ee5d13ccd573389f9cda923d4d624421f076ce5\", \"content_hash\": \"4a286ce1e09f22eb896ac3214da54f7927fc7d546db52c3e5e8ffab8e0465d43\", \"artifact_id\": \"pred_31656155_4a286ce1\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.6, \"accuracy\": 0.6, \"cross_entropy\": 0.7114549887865944, \"classification_auc\": 0.6666666666666666, \"classification_auc_status\": \"computed\", \"update_detection_auc\": 1.0, \"update_detection_auc_status\": \"computed\"}}, \"selection\": {\"artifact_id\": \"sel_92f885fb_05e1bbbd\", \"content_hash\": \"05e1bbbd296fa0442bb538a4a8c0a7d2bc0184c4ae11d0a9fb6537e42d530270\", \"recipe_hash\": \"92f885fbc7eae714d67974ce51a44d5b07a40be042133c1d74ebd5436593785a\"}}, {\"method\": \"Retrain\", \"seed\": 122, \"output\": {\"recipe_hash\": \"8b3d07900df424ad5a5b1b807cafe81542053aef0f4a1195262d90575fbc723b\", \"content_hash\": \"900dbdeda08c05edc0abdf411dc294e3eb66ba961ce6e33323c4a1743ee0d49d\", \"artifact_id\": \"pred_8b3d0790_900dbded\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_544de96d3a741fb423371f4bb66151eb\", \"identity\": {\"output\": {\"recipe_hash\": \"8b3d07900df424ad5a5b1b807cafe81542053aef0f4a1195262d90575fbc723b\", \"content_hash\": \"900dbdeda08c05edc0abdf411dc294e3eb66ba961ce6e33323c4a1743ee0d49d\", \"artifact_id\": \"pred_8b3d0790_900dbded\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.4, \"accuracy\": 0.4, \"cross_entropy\": 0.6969912123112703, \"classification_auc\": 0.6666666666666666, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"selection\": {\"artifact_id\": \"sel_92f885fb_05e1bbbd\", \"content_hash\": \"05e1bbbd296fa0442bb538a4a8c0a7d2bc0184c4ae11d0a9fb6537e42d530270\", \"recipe_hash\": \"92f885fbc7eae714d67974ce51a44d5b07a40be042133c1d74ebd5436593785a\"}}, {\"method\": \"GNNDelete\", \"seed\": 722, \"output\": {\"recipe_hash\": \"c1a132dfa396496a82ee9a9f2727760cff697a2f5b2c02c5cf63bbf999c865c4\", \"content_hash\": \"f41b3f957698f33261050d172db53b69b1c03912832ea51c521d53404ee31af6\", \"artifact_id\": \"pred_c1a132df_f41b3f95\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_302071ad6b2192c22e9d5e97e88bd857\", \"identity\": {\"output\": {\"recipe_hash\": \"c1a132dfa396496a82ee9a9f2727760cff697a2f5b2c02c5cf63bbf999c865c4\", \"content_hash\": \"f41b3f957698f33261050d172db53b69b1c03912832ea51c521d53404ee31af6\", \"artifact_id\": \"pred_c1a132df_f41b3f95\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.4, \"accuracy\": 0.4, \"cross_entropy\": 0.7108668090341409, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"selection\": {\"artifact_id\": \"sel_0db46745_8875e982\", \"content_hash\": \"8875e9825f42a1fe0e29ad3dcf0e00030d3f8f4c11ee85df3a39ab46f2d77109\", \"recipe_hash\": \"0db467454743f3f84ebfabae64e757515cd0947fb2380aae3910198b30dd3314\"}}, {\"method\": \"Retrain\", \"seed\": 722, \"output\": {\"recipe_hash\": \"add9e56deeecda0e1e0e15fdeaf16b6575128d4167dff4acd2c92684fae12ff5\", \"content_hash\": \"cc2fc8b302340fea5b6ebef188a7a3298ce89699fd848104d1056acf971c977b\", \"artifact_id\": \"pred_add9e56d_cc2fc8b3\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_9123043f5dac0f7dde3ca3b9487f21c8\", \"identity\": {\"output\": {\"recipe_hash\": \"add9e56deeecda0e1e0e15fdeaf16b6575128d4167dff4acd2c92684fae12ff5\", \"content_hash\": \"cc2fc8b302340fea5b6ebef188a7a3298ce89699fd848104d1056acf971c977b\", \"artifact_id\": \"pred_add9e56d_cc2fc8b3\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.4, \"accuracy\": 0.4, \"cross_entropy\": 0.7171479634484422, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"selection\": {\"artifact_id\": \"sel_0db46745_8875e982\", \"content_hash\": \"8875e9825f42a1fe0e29ad3dcf0e00030d3f8f4c11ee85df3a39ab46f2d77109\", \"recipe_hash\": \"0db467454743f3f84ebfabae64e757515cd0947fb2380aae3910198b30dd3314\"}}, {\"method\": \"GNNDelete\", \"seed\": 722, \"output\": {\"recipe_hash\": \"c86fe224b2e2d70d9151de2d374bbfe6aa1f0bfc35ce98c908553b1f386712e3\", \"content_hash\": \"263382c5b1c9a62b0527f55b273512631c316039a6302eab1e55a5614470b983\", \"artifact_id\": \"pred_c86fe224_263382c5\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_8592fcb7224b743ab96fe4bc414697f1\", \"identity\": {\"output\": {\"recipe_hash\": \"c86fe224b2e2d70d9151de2d374bbfe6aa1f0bfc35ce98c908553b1f386712e3\", \"content_hash\": \"263382c5b1c9a62b0527f55b273512631c316039a6302eab1e55a5614470b983\", \"artifact_id\": \"pred_c86fe224_263382c5\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.4, \"accuracy\": 0.4, \"cross_entropy\": 0.7108668090341409, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": 1.0, \"update_detection_auc_status\": \"computed\"}}, \"selection\": {\"artifact_id\": \"sel_d8a19cfb_0c54d610\", \"content_hash\": \"0c54d610ed05407fad1f1c34b63274b7ac9a8ff1f91e3d2a1be3fb39f27bc0b3\", \"recipe_hash\": \"d8a19cfb036dbf57ace9cd6fb745928e7343e68a24e76942bcf53b2ff007d9b1\"}}, {\"method\": \"Retrain\", \"seed\": 722, \"output\": {\"recipe_hash\": \"4866e1154c72f8e12fb2d3bdf724574628fc3dddc4aeceac3300ff0af7f8d2a8\", \"content_hash\": \"c4f835646f0f36354ccc77d777bedb5e8eeb637f6974394cfa8188b0136e82e4\", \"artifact_id\": \"pred_4866e115_c4f83564\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_aec9e93fd9b8a88911829b66d67f194e\", \"identity\": {\"output\": {\"recipe_hash\": \"4866e1154c72f8e12fb2d3bdf724574628fc3dddc4aeceac3300ff0af7f8d2a8\", \"content_hash\": \"c4f835646f0f36354ccc77d777bedb5e8eeb637f6974394cfa8188b0136e82e4\", \"artifact_id\": \"pred_4866e115_c4f83564\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.4, \"accuracy\": 0.4, \"cross_entropy\": 0.7120534535279847, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"selection\": {\"artifact_id\": \"sel_d8a19cfb_0c54d610\", \"content_hash\": \"0c54d610ed05407fad1f1c34b63274b7ac9a8ff1f91e3d2a1be3fb39f27bc0b3\", \"recipe_hash\": \"d8a19cfb036dbf57ace9cd6fb745928e7343e68a24e76942bcf53b2ff007d9b1\"}}], \"scientific_acceptance\": \"not_evaluated\", \"generated_at\": \"2026-09-07T01:37:24\"}, \"row_count\": 8, \"repeat_fetched\": 0, \"artifact_count\": 33}"
+        }
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[missing_output]",
+        "result": "PASS",
+        "seconds": 11.971,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[unverified_index]",
+        "result": "PASS",
+        "seconds": 12.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[duplicate_index]",
+        "result": "PASS",
+        "seconds": 12.043,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[wrong_sha]",
+        "result": "PASS",
+        "seconds": 12.904,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[bytes]",
+        "result": "PASS",
+        "seconds": 11.845,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[config]",
+        "result": "PASS",
+        "seconds": 12.152,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_budget]",
+        "result": "PASS",
+        "seconds": 12.38,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_selector]",
+        "result": "PASS",
+        "seconds": 14.406,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_dataset]",
+        "result": "PASS",
+        "seconds": 13.617,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_existing_experiment_templates_use_common_cli[aagu007-4-2]",
+        "result": "PASS",
+        "seconds": 2.841,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_existing_experiment_templates_use_common_cli[aagu032-42-6]",
+        "result": "PASS",
+        "seconds": 2.877,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_registry_contains_only_current_reviewed_recipes",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_representative_recipe_fields_remain_exact",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_all_recipe_commands_and_artifact_paths_are_bounded",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_recipe_results_are_copy_safe",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_all_reviewed_preflight_profiles_dispatch_to_project_handlers",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_unknown_preflight_profile_refuses_with_expected_observed_action",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_results_parser_reads_only_verified_index_artifacts",
+        "result": "PASS",
+        "seconds": 0.006,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_full_adapter::test_unverified_index_never_passes_project_acceptance[modular-output-v1-opengu-aagu007-v1]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[selector]",
+        "result": "PASS",
+        "seconds": 11.052,
+        "observations": {
+          "real_core": "{\"stage\": \"selector\", \"sha\": \"6caa794696d9ee95aa3fdb9860590351d178e0ff\", \"queue_status\": \"done\", \"declared_artifacts\": 1, \"device\": {\"run_id\": \"registered\", \"level\": \"verification\", \"request_device\": \"cpu\", \"executor\": \"experiment-run\", \"source_git_sha\": \"6caa794696d9ee95aa3fdb9860590351d178e0ff\", \"store_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm0\\\\results\\\\cache_v2\", \"checkpoint_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm0\\\\results\\\\runtime\\\\modular\\\\checkpoints\", \"runtime_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm0\\\\results\\\\runtime\\\\modular\\\\registered\", \"output\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm0\\\\results\\\\runs\\\\modular\\\\contract\\\\registered\\\\summary.json\", \"observed_environment\": {\"python_executable\": \"E:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\", \"working_directory\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm0\", \"torch\": \"2.2.1+cu121\", \"torch_geometric\": \"2.6.1\", \"cuda_version\": \"12.1\", \"cuda_device_name\": null}}, \"corrupt_and_missing_rejected\": true}"
+        }
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[unlearning]",
+        "result": "PASS",
+        "seconds": 22.589,
+        "observations": {
+          "real_core": "{\"stage\": \"unlearning\", \"sha\": \"8045e4bc88c09167009bf463bc50f10e232d033b\", \"queue_status\": \"done\", \"declared_artifacts\": 33, \"device\": {\"run_id\": \"registered\", \"level\": \"verification\", \"request_device\": \"cpu\", \"executor\": \"experiment-run\", \"source_git_sha\": \"8045e4bc88c09167009bf463bc50f10e232d033b\", \"store_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm1\\\\results\\\\cache_v2\", \"checkpoint_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm1\\\\results\\\\runtime\\\\modular\\\\checkpoints\", \"runtime_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm1\\\\results\\\\runtime\\\\modular\\\\registered\", \"output\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm1\\\\results\\\\runs\\\\modular\\\\contract\\\\registered\\\\summary.json\", \"observed_environment\": {\"python_executable\": \"E:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\", \"working_directory\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm1\", \"torch\": \"2.2.1+cu121\", \"torch_geometric\": \"2.6.1\", \"cuda_version\": \"12.1\", \"cuda_device_name\": null}}, \"corrupt_and_missing_rejected\": true}"
+        }
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[metrics]",
+        "result": "PASS",
+        "seconds": 22.287,
+        "observations": {
+          "real_core": "{\"stage\": \"metrics\", \"sha\": \"5462d1df966e1b24bb9a1e25bc810d3a3d742ec2\", \"queue_status\": \"done\", \"declared_artifacts\": 1, \"device\": {\"run_id\": \"registered\", \"level\": \"verification\", \"request_device\": \"cpu\", \"executor\": \"experiment-run\", \"source_git_sha\": \"5462d1df966e1b24bb9a1e25bc810d3a3d742ec2\", \"store_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm2\\\\results\\\\cache_v2\", \"checkpoint_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm2\\\\results\\\\runtime\\\\modular\\\\checkpoints\", \"runtime_root\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm2\\\\results\\\\runtime\\\\modular\\\\registered\", \"output\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm2\\\\results\\\\runs\\\\modular\\\\contract\\\\registered\\\\summary.json\", \"observed_environment\": {\"python_executable\": \"E:\\\\conda_package\\\\envs\\\\gnn\\\\python.exe\", \"working_directory\": \"C:\\\\Users\\\\ADMIN\\\\AppData\\\\Local\\\\Temp\\\\pytest-of-ADMIN\\\\pytest-246\\\\test_real_core_and_direct_comm2\", \"torch\": \"2.2.1+cu121\", \"torch_geometric\": \"2.6.1\", \"cuda_version\": \"12.1\", \"cuda_device_name\": null}}, \"corrupt_and_missing_rejected\": true}"
+        }
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[None]",
+        "result": "PASS",
+        "seconds": 2.915,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[invalid-device]",
+        "result": "PASS",
+        "seconds": 2.768,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[cuda:999]",
+        "result": "PASS",
+        "seconds": 2.849,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_execution_contract::test_live_registration_invokes_ordinary_yaml_directly",
+        "result": "PASS",
+        "seconds": 0.004,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_absent_distribution_fails_closed",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_exact_payload_passes_without_self_declared_commit",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_installation_identity_failures[corrupt]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_installation_identity_failures[missing]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_installation_identity_failures[shadow]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_installation_identity_failures[version]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_syncmate_core_dependency::test_installation_identity_failures[residual]",
+        "result": "PASS",
+        "seconds": 0.003,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_config_inventory_dashboard::test_inventory_csv_records_alpha0_a3_and_evidence_state_semantics",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_config_inventory_dashboard::test_generator_exports_usable_warning_and_rerun_fields",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_config_inventory_dashboard::test_dashboard_template_labels_rerun_basis_beyond_graphrevoker_only",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_config_inventory_dashboard::test_story_metadata_connects_experiments_to_advisor_narrative",
+        "result": "PASS",
+        "seconds": 0.002,
+        "observations": {}
+      }
+    ]
+  },
+  "retrain_rerun": {
+    "checkpoint": "867c806ad11aa20f5f14bc6c49c2ce8d62a31294",
+    "junit": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\retrain-verify.xml",
+    "sha256": "c4a68838a14edff75a99542516ac7af5991006d12d9db8d7768a00642684154a",
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 31.235,
+    "cases": [
+      {
+        "id": "tests.test_retrain_outputs::test_independent_retrain_cold_hot_cross_gu_and_metrics_only",
+        "result": "PASS",
+        "seconds": 5.414,
+        "observations": {
+          "aagu028_evidence": "{\"retrain\": {\"artifact_id\": \"pred_a7b43f5f_33165c0e\", \"recipe_hash\": \"a7b43f5f39068d6d2f613a97461e79f933ab19ca0eb39f253675ce9b7eaa9409\", \"content_hash\": \"33165c0e949bb46c1009b2a4cd814fe126a88c9fddfacba746816f9cbcda0eff\"}, \"warm\": {\"artifact_id\": \"pred_a7b43f5f_33165c0e\", \"recipe_hash\": \"a7b43f5f39068d6d2f613a97461e79f933ab19ca0eb39f253675ce9b7eaa9409\", \"content_hash\": \"33165c0e949bb46c1009b2a4cd814fe126a88c9fddfacba746816f9cbcda0eff\"}, \"GU_outputs\": [{\"artifact_id\": \"pred_1b146c97_8f2f51e1\", \"recipe_hash\": \"1b146c971c90d0485ee168a717475de06520e3d92991d73d2711bbca44e0b87f\", \"content_hash\": \"8f2f51e196837eea7dbcb38a7a48565ebfb28061d79fc4606802fd3fde083edc\"}, {\"artifact_id\": \"pred_fa8c7fa7_f9a6ac08\", \"recipe_hash\": \"fa8c7fa70256e1d74f2b9e9c436061bebdb55b7912fb2ec3361d8706261eec14\", \"content_hash\": \"f9a6ac08c28edad87c17d551b2886c32edd38ebe0973f6c6a29d38ef77c69a4b\"}], \"metrics\": [{\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"perf_before\", \"perf_unlearn\", \"perf_retrain\", \"drop_retrain\", \"gap\", \"gap_pct\"], \"acceptance\": {}, \"required_inputs\": [\"model_before\", \"model_unlearned\", \"exact_retrain_same_selection\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"persisted-output-retrain-gap-v2\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_1403b5fde6f992f0372fe5af7c6a1b8a\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_1b146c97_8f2f51e1\", \"recipe_hash\": \"1b146c971c90d0485ee168a717475de06520e3d92991d73d2711bbca44e0b87f\", \"content_hash\": \"8f2f51e196837eea7dbcb38a7a48565ebfb28061d79fc4606802fd3fde083edc\"}, \"retrain_output\": {\"artifact_id\": \"pred_a7b43f5f_33165c0e\", \"recipe_hash\": \"a7b43f5f39068d6d2f613a97461e79f933ab19ca0eb39f253675ce9b7eaa9409\", \"content_hash\": \"33165c0e949bb46c1009b2a4cd814fe126a88c9fddfacba746816f9cbcda0eff\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}, {\"evaluation_receipt_id\": \"evalr_6069f43d73eef195cd94d690a68381b8\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_fa8c7fa7_f9a6ac08\", \"recipe_hash\": \"fa8c7fa70256e1d74f2b9e9c436061bebdb55b7912fb2ec3361d8706261eec14\", \"content_hash\": \"f9a6ac08c28edad87c17d551b2886c32edd38ebe0973f6c6a29d38ef77c69a4b\"}, \"retrain_output\": {\"artifact_id\": \"pred_a7b43f5f_33165c0e\", \"recipe_hash\": \"a7b43f5f39068d6d2f613a97461e79f933ab19ca0eb39f253675ce9b7eaa9409\", \"content_hash\": \"33165c0e949bb46c1009b2a4cd814fe126a88c9fddfacba746816f9cbcda0eff\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}]}], \"store_unchanged_by_metrics\": true, \"selector_and_training_forbidden\": true}"
+        }
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[training]",
+        "result": "PASS",
+        "seconds": 2.179,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[model]",
+        "result": "PASS",
+        "seconds": 2.205,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[semantics]",
+        "result": "PASS",
+        "seconds": 2.173,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_identity_changes_and_pairing_rejects[request]",
+        "result": "PASS",
+        "seconds": 2.418,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_gu_parameters_and_metrics_do_not_change_retrain",
+        "result": "PASS",
+        "seconds": 2.455,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_retrain_removes_supervision_and_incident_edges",
+        "result": "PASS",
+        "seconds": 0.663,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_missing_and_corrupted_outputs_rejected_without_training",
+        "result": "PASS",
+        "seconds": 0.647,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[x]",
+        "result": "PASS",
+        "seconds": 0.652,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[y]",
+        "result": "PASS",
+        "seconds": 0.65,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[edge_index]",
+        "result": "PASS",
+        "seconds": 0.652,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_actual_dataset_changes_cannot_consume_old_output[split]",
+        "result": "PASS",
+        "seconds": 0.647,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_changed_producer_and_missing_selection_dependency_rejected",
+        "result": "PASS",
+        "seconds": 0.743,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_aggregate_serialization_is_lossless",
+        "result": "PASS",
+        "seconds": 0.0,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_metrics_cli_reads_independent_modular_outputs",
+        "result": "PASS",
+        "seconds": 6.226,
+        "observations": {}
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_independent_method_metrics_survive_collection_without_forward",
+        "result": "PASS",
+        "seconds": 3.414,
+        "observations": {
+          "aagu028_independent_collection": "{\"per_method\": [{\"f1_before\": 0.2, \"f1_after\": 0.2, \"f1_drop\": 0.0, \"f1_drop_ratio\": 0.0, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_b35581c1_40d76ed2\", \"recipe_hash\": \"b35581c1aa5c89c9717082986a6f70e53d3688d1065d6beea92a856346fd88c7\", \"content_hash\": \"40d76ed2878de85b5c8eec8495721b4db811547f8c8cd7a8b85b2b887137966b\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_962cdc059283bf1e2246987eca38bc6b\", \"identity\": {\"output\": {\"artifact_id\": \"pred_b35581c1_40d76ed2\", \"recipe_hash\": \"b35581c1aa5c89c9717082986a6f70e53d3688d1065d6beea92a856346fd88c7\", \"content_hash\": \"40d76ed2878de85b5c8eec8495721b4db811547f8c8cd7a8b85b2b887137966b\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156439335573, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.012205362319946289}, {\"f1_before\": null, \"f1_after\": 0.2, \"f1_drop\": null, \"f1_drop_ratio\": null, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_4a992d768982edcc53a0d629ad5eaa98\", \"identity\": {\"output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7180723631767043, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.008104500000001735}, {\"f1_before\": 0.2, \"f1_after\": 0.2, \"f1_drop\": 0.0, \"f1_drop_ratio\": 0.0, \"failed\": false, \"selected_nodes\": [1], \"output\": {\"artifact_id\": \"pred_84d0870e_f8c4ed5c\", \"recipe_hash\": \"84d0870ed5e95d6a9b845e720c50d0fda8bb21d28446f4b6bbbcc3b6c2c51b80\", \"content_hash\": \"f8c4ed5c94e99b20f55b07e2a75edd8f78b163d41042655731e05c83326d59ad\"}, \"evaluation\": {\"evaluation_receipt_id\": \"evalr_70fcb6e2b65fec7c1da53340bd056c17\", \"identity\": {\"output\": {\"artifact_id\": \"pred_84d0870e_f8c4ed5c\", \"recipe_hash\": \"84d0870ed5e95d6a9b845e720c50d0fda8bb21d28446f4b6bbbcc3b6c2c51b80\", \"content_hash\": \"f8c4ed5c94e99b20f55b07e2a75edd8f78b163d41042655731e05c83326d59ad\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156429915334, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, \"producer_called\": true, \"cache_hit\": false, \"compute_seconds\": 0.0029256343841552734}], \"recomputed\": {\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_method_metrics\", \"metrics\": [\"f1\", \"accuracy\", \"cross_entropy\", \"classification_auc\", \"classification_auc_status\", \"update_detection_auc\", \"update_detection_auc_status\"], \"acceptance\": {}, \"required_inputs\": [\"method_output\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"single-method-output-metrics-v1\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_d7c5fc0664281e8a39650847a704f495\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_b35581c1_40d76ed2\", \"recipe_hash\": \"b35581c1aa5c89c9717082986a6f70e53d3688d1065d6beea92a856346fd88c7\", \"content_hash\": \"40d76ed2878de85b5c8eec8495721b4db811547f8c8cd7a8b85b2b887137966b\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_b35581c1_40d76ed2\", \"recipe_hash\": \"b35581c1aa5c89c9717082986a6f70e53d3688d1065d6beea92a856346fd88c7\", \"content_hash\": \"40d76ed2878de85b5c8eec8495721b4db811547f8c8cd7a8b85b2b887137966b\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156439335573, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}, {\"evaluation_receipt_id\": \"evalr_a2fb4080897d354e3da2c573c33a94a0\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7180723631767043, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"missing_original_predictions\"}}, {\"evaluation_receipt_id\": \"evalr_d644789d1d589bf54880f93e3a357f0d\", \"identity\": {\"case\": \"post_method_metrics\", \"metrics\": [\"accuracy\", \"classification_auc\", \"classification_auc_status\", \"cross_entropy\", \"f1\", \"update_detection_auc\", \"update_detection_auc_status\"], \"producer_version\": \"single-method-output-metrics-v1\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_84d0870e_f8c4ed5c\", \"recipe_hash\": \"84d0870ed5e95d6a9b845e720c50d0fda8bb21d28446f4b6bbbcc3b6c2c51b80\", \"content_hash\": \"f8c4ed5c94e99b20f55b07e2a75edd8f78b163d41042655731e05c83326d59ad\"}, \"method_evaluation\": {\"output\": {\"artifact_id\": \"pred_84d0870e_f8c4ed5c\", \"recipe_hash\": \"84d0870ed5e95d6a9b845e720c50d0fda8bb21d28446f4b6bbbcc3b6c2c51b80\", \"content_hash\": \"f8c4ed5c94e99b20f55b07e2a75edd8f78b163d41042655731e05c83326d59ad\"}, \"protocol\": \"single-label-test-micro-f1-ovr-macro-auc-v1\", \"metric_libraries\": {\"sklearn\": \"1.3.2\", \"torch\": \"2.2.1+cu121\", \"numpy\": \"1.21.6\"}, \"implementation\": \"29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042\"}}, \"metrics\": {\"f1\": 0.2, \"accuracy\": 0.2, \"cross_entropy\": 0.7174156429915334, \"classification_auc\": 0.3333333333333333, \"classification_auc_status\": \"computed\", \"update_detection_auc\": null, \"update_detection_auc_status\": \"insufficient_samples\"}}]}, \"differences\": {\"effective_config\": {\"kind\": \"evaluation\", \"schema_version\": 1, \"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"perf_before\", \"perf_unlearn\", \"perf_retrain\", \"drop_retrain\", \"gap\", \"gap_pct\"], \"acceptance\": {}, \"required_inputs\": [\"model_before\", \"model_unlearned\", \"exact_retrain_same_selection\"], \"available_consumers\": [\"modular_v1\"], \"producer_version\": \"persisted-output-retrain-gap-v2\"}, \"rows\": [{\"evaluation_receipt_id\": \"evalr_1205db59a2be2e187202fc16d4d8af55\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_b35581c1_40d76ed2\", \"recipe_hash\": \"b35581c1aa5c89c9717082986a6f70e53d3688d1065d6beea92a856346fd88c7\", \"content_hash\": \"40d76ed2878de85b5c8eec8495721b4db811547f8c8cd7a8b85b2b887137966b\"}, \"retrain_output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}, {\"evaluation_receipt_id\": \"evalr_944e951c69c0ce992538715c1714dab9\", \"identity\": {\"case\": \"post_unlearning_utility_and_retrain_gap\", \"metrics\": [\"drop_retrain\", \"gap\", \"gap_pct\", \"perf_before\", \"perf_retrain\", \"perf_unlearn\"], \"producer_version\": \"persisted-output-retrain-gap-v2\", \"implementation\": \"c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756\", \"unlearning_output\": {\"artifact_id\": \"pred_84d0870e_f8c4ed5c\", \"recipe_hash\": \"84d0870ed5e95d6a9b845e720c50d0fda8bb21d28446f4b6bbbcc3b6c2c51b80\", \"content_hash\": \"f8c4ed5c94e99b20f55b07e2a75edd8f78b163d41042655731e05c83326d59ad\"}, \"retrain_output\": {\"artifact_id\": \"pred_4a2f022b_9f1e6b83\", \"recipe_hash\": \"4a2f022be78c84916b941b7eaf9450284b3fb65d2c6bb69b5f89bab5944a3956\", \"content_hash\": \"9f1e6b839990b9977fdc36f5c4ff29a78491820572a92e91a6d9b5f79564f897\"}}, \"metrics\": {\"perf_before\": 0.2, \"perf_unlearn\": 0.2, \"perf_retrain\": 0.2, \"drop_retrain\": 0.0, \"gap\": 0.0, \"gap_pct\": 0.0}}]}, \"store_unchanged\": true, \"training_and_forward_forbidden\": true}"
+        }
+      },
+      {
+        "id": "tests.test_retrain_outputs::test_auc_reports_missing_classes_without_producing_data",
+        "result": "PASS",
+        "seconds": 0.001,
+        "observations": {}
+      }
+    ]
+  },
+  "reused_passes": [
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[None-selector]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[None-unlearning]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy1-selector]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy1-unlearning]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy2-selector]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy2-unlearning]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy3-selector]",
+    "tests.test_selector_declaration_contract::test_removed_selection_input_is_rejected_even_when_empty[legacy3-unlearning]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-cora]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-citeseer]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[u-204-pubmed]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-cora]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-citeseer]",
+    "tests.test_selector_declaration_contract::test_registered_followup_declares_same_selectors_and_axes[retrain-102-pubmed]",
+    "tests.test_selector_declaration_contract::test_selector_then_unlearning_reuses_without_summary_binding",
+    "tests.test_selector_declaration_contract::test_cold_unlearning_and_core_warm_collect_share_declared_rows",
+    "tests.test_modular_consumers::test_method_cold_warm_and_hutch_isolation",
+    "tests.test_modular_consumers::test_real_gu_consumes_existing_selection_without_producer",
+    "tests.test_modular_consumers::test_default_expansion_and_budget_reuse",
+    "tests.test_modular_consumers::test_missing_and_wrong_identity_fail_before_execution",
+    "tests.test_modular_consumers::test_real_gu_method_and_default_equivalence",
+    "tests.test_modular_consumers::test_different_selector_and_gu_backbones",
+    "tests.test_modular_consumers::test_command_requires_context_and_gu_reuses_declared_selection",
+    "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad0]",
+    "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad1]",
+    "tests.test_modular_consumers::test_invalid_method_configuration_fails_before_store[bad2]",
+    "tests.test_modular_consumers::test_all_seventeen_methods_match_pre_refactor_formulas",
+    "tests.test_modular_consumers::test_actual_dependency_implementation_changes",
+    "tests.test_modular_consumers::test_mismatched_persisted_data_and_checkpoint_rejected",
+    "tests.test_modular_consumers::test_yaml_duplicate_and_implicit_override_rejected",
+    "tests.test_modular_consumers::test_operational_fields_are_rejected_and_context_is_external",
+    "tests.test_modular_consumers::test_project_context_owns_fixed_store_runtime_device_and_output",
+    "tests.test_modular_consumers::test_device_and_library_build_are_execution_provenance_not_recipe_identity",
+    "tests.test_modular_consumers::test_minimal_method_files_expand_real_defaults",
+    "tests.test_modular_consumers::test_documented_atomic_and_multi_reference_plans_are_same_cell_contract",
+    "tests.test_modular_consumers::test_evaluation_is_independent_and_missing_retrain_fails_closed",
+    "tests.test_unified_execution::test_command_cold_warm_seed_budget_retrain_and_metrics",
+    "tests.test_unified_execution::test_stage_s_cache_supplies_real_selections_without_resampling",
+    "tests.test_unified_execution::test_public_tracin_uses_real_100_epoch_trajectory",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value0]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value1]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[seeds-value2]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[budget_ratios-value3]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[budget_ratios-value4]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[device-cuda]",
+    "tests.test_unified_execution::test_invalid_axes_fail_before_execution[overrides-value6]",
+    "tests.test_aagu015_definitions::test_all_ordinary_tables_no_write_or_producer",
+    "tests.test_aagu015_definitions::test_declared_selection_stages_pair_training_seeds",
+    "tests.test_aagu015_definitions::test_032_remains_42_conditions",
+    "tests.test_unified_autoreport::test_real_success_and_cached_repeat_are_separate_audited_attempts",
+    "tests.test_unified_autoreport::test_real_execution_failure_is_audited_without_completion",
+    "tests.test_unified_autoreport::test_dry_run_creates_no_audit_attempt",
+    "tests.test_unified_autoreport::test_corrupt_journal_stops_before_production_and_preserves_evidence",
+    "tests.test_unified_autoreport::test_real_core_submission_uses_the_same_audit_producer",
+    "tests.test_auto_report_v3::test_cell_and_config_identity_are_stable_and_separate",
+    "tests.test_auto_report_v3::test_exact_transition_and_repeated_skip_are_deduplicated",
+    "tests.test_auto_report_v3::test_run_cannot_complete_after_a_failed_stage",
+    "tests.test_auto_report_v3::test_failed_stage_dominates_inconsistent_historical_run_completion",
+    "tests.test_auto_report_v3::test_repeated_result_cache_hit_is_compressed_across_new_run_ids",
+    "tests.test_auto_report_v3::test_repeated_selection_hit_is_compressed_but_new_attack_compute_is_kept",
+    "tests.test_auto_report_v3::test_append_fails_closed_when_existing_stream_is_corrupt",
+    "tests.test_auto_report_v3::test_append_rejects_event_tampering_after_build",
+    "tests.test_auto_report_v3::test_failed_and_retrying_events_require_structured_evidence",
+    "tests.test_auto_report_v3::test_concurrent_appends_leave_projection_at_latest_stream_length",
+    "tests.test_auto_report_v3::test_runner_identity_envelope_keeps_child_identity_and_cell_id_consistent",
+    "tests.test_auto_report_v3::test_human_cache_summary_names_authority_source_policy_and_recipe",
+    "tests.test_auto_report_v3::test_partial_workflow_fixture_projects_selection_attack_complete_and_failed",
+    "tests.test_auto_report_v3::test_legacy_v1_v2_fixture_is_parsed_without_migration",
+    "tests.test_auto_report_v3::test_legacy_v1_writer_api_remains_available",
+    "tests.test_auto_report_v3::test_legacy_writer_cannot_append_to_live_auto_report_by_default",
+    "tests.test_auto_report_v3::test_production_baseline_matches_frozen_archive",
+    "tests.test_auto_report_v3::test_new_auto_report_names_and_baseline_projection",
+    "tests.test_auto_report_v3::test_legacy_evaluation_runner_uses_v3_skip_dedup",
+    "tests.test_auto_report_v3::test_result_cache_hit_is_not_replayed_as_current_selection_hit",
+    "tests.test_auto_report_v3::test_result_and_selection_misses_are_one_terminal_event_each",
+    "tests.test_auto_report_v3::test_v2_selection_hit_is_authoritative_and_identifies_artifact",
+    "tests.test_auto_report_v3::test_failed_attack_result_is_a_failed_terminal_event",
+    "tests.test_auto_report_v3::test_result_cache_exposes_verified_v2_hit_source",
+    "tests.test_auto_report_v3::test_collateral_partial_results_record_success_and_missing_failure",
+    "tests.test_auto_report_v3::test_acceptance_markdown_and_html_agree_on_architecture_contract_and_counts",
+    "tests.test_syncmate::test_default_implementation_is_core_backed_exact_entry",
+    "tests.test_syncmate::test_direct_syncmate_script_bootstraps_repo_import_path",
+    "tests.test_syncmate::test_report_age_and_stale_detection",
+    "tests.test_syncmate::test_remote_shell_commands_quote_repo_paths_and_roots",
+    "tests.test_syncmate::test_remote_status_and_manifest_use_quoted_commands",
+    "tests.test_syncmate::test_remote_status_and_manifest_use_configured_python_executable",
+    "tests.test_syncmate::test_remote_status_plan_uses_peer_python_executable",
+    "tests.test_syncmate::test_scan_results_classifies_node_bare_and_nested_layouts",
+    "tests.test_syncmate::test_scan_progress_reports_recent_logs_and_error_keywords",
+    "tests.test_syncmate::test_progress_cli_returns_log_summary",
+    "tests.test_syncmate::test_write_state_appends_compact_history_with_delta",
+    "tests.test_syncmate::test_results_table_delta_tracks_added_and_changed_rows",
+    "tests.test_syncmate::test_fingerprint_excludes_volatile_timestamps_by_default",
+    "tests.test_syncmate::test_fingerprint_cli_supports_expect_prefix",
+    "tests.test_syncmate::test_compare_fingerprint_payload_reports_component_differences",
+    "tests.test_syncmate::test_compare_cli_reads_saved_remote_status_fingerprint",
+    "tests.test_syncmate::test_build_snapshot_includes_fingerprint_and_export_manifest",
+    "tests.test_syncmate::test_publish_cli_writes_compact_status_package",
+    "tests.test_syncmate::test_publish_include_items_outputs_full_manifest",
+    "tests.test_syncmate::test_import_publish_saves_remote_status_and_compare_reads_it",
+    "tests.test_syncmate::test_import_publish_no_save_previews_without_writing_report",
+    "tests.test_syncmate::test_bundle_and_import_bundle_offline_roundtrip_updates_trusted_results",
+    "tests.test_syncmate::test_handoff_pack_writes_evidence_only_zip_without_raw_artifacts",
+    "tests.test_syncmate::test_inspect_bundle_is_read_only_and_reports_audit_summary",
+    "tests.test_syncmate::test_import_bundle_leaves_checksum_conflicts_without_overwrite",
+    "tests.test_syncmate::test_import_bundle_dry_run_does_not_extract_or_write_reports",
+    "tests.test_syncmate::test_import_bundle_dry_run_write_plan_saves_offline_diff_only",
+    "tests.test_syncmate::test_import_bundle_rejects_corrupt_member_before_landing",
+    "tests.test_syncmate::test_import_bundle_rejects_duplicate_manifest_path_before_extract",
+    "tests.test_syncmate::test_inspect_bundle_reports_invalid_manifest_without_extracting",
+    "tests.test_syncmate::test_manifest_hashes_only_json_meta_artifacts",
+    "tests.test_syncmate::test_manifest_inventory_flags_incomplete_remote_leaf",
+    "tests.test_syncmate::test_manifest_can_include_predictions_when_requested",
+    "tests.test_syncmate::test_artifact_names_for_peer_merges_global_and_peer_policy",
+    "tests.test_syncmate::test_init_device_writes_config_and_refuses_overwrite",
+    "tests.test_syncmate::test_init_device_runner_can_record_collector_hint",
+    "tests.test_syncmate::test_init_device_cli_can_write_artifact_policy",
+    "tests.test_syncmate::test_add_peer_cli_updates_collector_config_and_refuses_duplicate",
+    "tests.test_syncmate::test_add_peer_local_transport_does_not_require_ssh",
+    "tests.test_syncmate::test_add_peer_cli_can_write_artifact_policy",
+    "tests.test_syncmate::test_artifact_policy_cli_rejects_path_entries",
+    "tests.test_syncmate::test_add_peer_requires_collector_role",
+    "tests.test_syncmate::test_setup_plan_guides_missing_collector_and_peer_config",
+    "tests.test_syncmate::test_setup_plan_can_generate_local_peer_commands",
+    "tests.test_syncmate::test_setup_plan_local_peer_does_not_require_ssh_input",
+    "tests.test_syncmate::test_setup_plan_write_marks_existing_peer_not_needed",
+    "tests.test_syncmate::test_layout_cli_shows_peer_paths_and_trusted_outputs",
+    "tests.test_syncmate::test_layout_text_mentions_landing_and_sync_command",
+    "tests.test_syncmate::test_landings_cli_shows_local_landing_inventory_and_rows",
+    "tests.test_syncmate::test_runbook_cli_writes_missing_setup_guide",
+    "tests.test_syncmate::test_runbook_cli_writes_collector_peer_flow",
+    "tests.test_syncmate::test_smoke_cli_runs_local_end_to_end_and_keeps_workspace",
+    "tests.test_syncmate::test_smoke_cli_cleans_temporary_workspace_by_default",
+    "tests.test_syncmate::test_refresh_updates_all_peers_without_collecting_by_default",
+    "tests.test_syncmate::test_refresh_apply_collects_selected_peer",
+    "tests.test_syncmate::test_refresh_apply_verify_runs_acceptance_for_selected_peer",
+    "tests.test_syncmate::test_sync_runs_apply_verify_and_writes_receipt_brief_dashboard",
+    "tests.test_syncmate::test_sync_no_results_skips_result_table_write",
+    "tests.test_syncmate::test_sync_local_transport_collects_from_same_machine_repo",
+    "tests.test_syncmate::test_sync_dry_run_skips_collect_verify_and_optional_writes",
+    "tests.test_syncmate::test_refresh_verify_returns_nonzero_when_acceptance_fails",
+    "tests.test_syncmate::test_apply_remote_status_saves_snapshot_summary",
+    "tests.test_syncmate::test_apply_remote_status_reports_remote_errors",
+    "tests.test_syncmate::test_load_remote_status_reports_reads_saved_summary",
+    "tests.test_syncmate::test_load_remote_status_reports_accepts_utf8_bom",
+    "tests.test_syncmate::test_load_collect_reports_reads_saved_summary_and_bom",
+    "tests.test_syncmate::test_load_diff_reports_reads_saved_summary_and_bom",
+    "tests.test_syncmate::test_load_verify_reports_reads_saved_summary_and_bom",
+    "tests.test_syncmate::test_load_bundle_inspect_reports_reads_saved_audit_and_bom",
+    "tests.test_syncmate::test_compare_manifest_detects_same_missing_and_conflicts",
+    "tests.test_syncmate::test_diff_collect_reports_missing_current_and_conflicts",
+    "tests.test_syncmate::test_diff_collect_reports_remote_inventory_incomplete",
+    "tests.test_syncmate::test_diff_collect_saves_last_diff_report",
+    "tests.test_syncmate::test_apply_collect_counts_only_actually_fetched_missing_artifacts",
+    "tests.test_syncmate::test_verify_collect_saves_acceptance_report",
+    "tests.test_syncmate::test_verify_collect_marks_remote_inventory_incomplete",
+    "tests.test_syncmate::test_verify_cli_uses_peer_artifact_policy",
+    "tests.test_syncmate::test_handoff_payload_renders_local_and_remote_ai_commands",
+    "tests.test_syncmate::test_handoff_cli_writes_markdown_runbook",
+    "tests.test_syncmate::test_handoff_cli_can_write_all_configured_peers",
+    "tests.test_syncmate::test_apply_collect_fetches_only_missing_and_verifies",
+    "tests.test_syncmate::test_apply_collect_reports_checksum_failure",
+    "tests.test_syncmate::test_index_cli_reads_persistent_artifact_index",
+    "tests.test_syncmate::test_inventory_groups_indexed_artifacts_by_experiment_leaf",
+    "tests.test_syncmate::test_inventory_cli_reads_index",
+    "tests.test_syncmate::test_export_payload_uses_complete_trusted_leaves_by_default",
+    "tests.test_syncmate::test_export_cli_writes_manifest_csv_and_checks_index",
+    "tests.test_syncmate::test_results_cli_extracts_metrics_from_trusted_index",
+    "tests.test_syncmate::test_export_check_returns_nonzero_on_index_checksum_drift",
+    "tests.test_syncmate::test_trace_cli_shows_landing_result_chain_and_checksum_drift",
+    "tests.test_syncmate::test_index_helpers_respect_explicit_empty_index",
+    "tests.test_syncmate::test_index_check_detects_local_drift",
+    "tests.test_syncmate::test_local_landing_path_rejects_path_escape",
+    "tests.test_syncmate::test_local_landing_path_rejects_unsafe_landing",
+    "tests.test_syncmate::test_doctor_reports_actionable_layout_and_setup_diagnostics",
+    "tests.test_syncmate::test_doctor_warns_when_verified_report_has_no_artifact_index",
+    "tests.test_syncmate::test_doctor_warns_when_trusted_inventory_leaf_is_incomplete",
+    "tests.test_syncmate::test_doctor_reports_verified_remote_inventory_incomplete",
+    "tests.test_syncmate::test_doctor_reports_orphaned_reports_and_index_entries",
+    "tests.test_syncmate::test_archive_orphans_dry_run_and_apply",
+    "tests.test_syncmate::test_gate_payload_fail_thresholds_and_strict_behavior",
+    "tests.test_syncmate::test_gate_payload_requires_clean_verify_reports",
+    "tests.test_syncmate::test_gate_payload_requires_saved_preflight_report",
+    "tests.test_syncmate::test_gate_payload_requires_artifact_index_integrity",
+    "tests.test_syncmate::test_gate_payload_requires_trusted_results_table",
+    "tests.test_syncmate::test_gate_payload_rejects_incomplete_trusted_inventory",
+    "tests.test_syncmate::test_gate_payload_rejects_remote_inventory_incomplete",
+    "tests.test_syncmate::test_summary_payload_compacts_peer_reports_and_actions",
+    "tests.test_syncmate::test_brief_payload_and_markdown_combine_status_next_and_history",
+    "tests.test_syncmate::test_brief_cli_writes_current_state_markdown",
+    "tests.test_syncmate::test_peer_reports_payload_compacts_report_details",
+    "tests.test_syncmate::test_reports_cli_returns_compact_peer_json",
+    "tests.test_syncmate::test_receipt_payload_summarizes_landing_checksums_and_local_examples",
+    "tests.test_syncmate::test_receipt_cli_writes_markdown_from_saved_reports",
+    "tests.test_syncmate::test_summary_cli_returns_machine_readable_digest",
+    "tests.test_syncmate::test_overview_cli_combines_layout_gate_receipt_and_next",
+    "tests.test_syncmate::test_overview_text_returns_nonzero_when_gate_fails",
+    "tests.test_syncmate::test_lifecycle_cli_reports_missing_setup_phase",
+    "tests.test_syncmate::test_lifecycle_cli_reports_collect_phase_from_saved_diff",
+    "tests.test_syncmate::test_lifecycle_cli_reports_accepted_phase_and_trace_check",
+    "tests.test_syncmate::test_next_steps_payload_orders_executable_commands",
+    "tests.test_syncmate::test_next_steps_uses_import_bundle_for_saved_offline_diff",
+    "tests.test_syncmate::test_next_steps_require_results_refreshes_table_before_gate",
+    "tests.test_syncmate::test_workflow_payload_marks_incremental_collect_stage",
+    "tests.test_syncmate::test_workflow_payload_marks_missing_results_table_after_verified_index",
+    "tests.test_syncmate::test_workflow_cli_can_write_machine_readable_stage_state",
+    "tests.test_syncmate::test_automation_core_cli_can_write_machine_readable_ledger",
+    "tests.test_syncmate::test_acceptance_cli_can_write_machine_readable_verdict",
+    "tests.test_syncmate::test_results_use_remote_leaf_semantics_when_landing_wraps_remote_node",
+    "tests.test_syncmate::test_next_steps_payload_can_require_saved_preflight",
+    "tests.test_syncmate::test_next_cli_returns_command_queue",
+    "tests.test_syncmate::test_gate_cli_returns_nonzero_for_blocking_diagnostics",
+    "tests.test_syncmate::test_preflight_payload_reports_ready_peer_commands",
+    "tests.test_syncmate::test_preflight_cli_can_write_latest_report",
+    "tests.test_syncmate::test_preflight_cli_blocks_missing_setup",
+    "tests.test_syncmate::test_preflight_cli_returns_nonzero_for_bad_peer",
+    "tests.test_syncmate::test_sync_blocks_on_preflight_before_remote_calls",
+    "tests.test_syncmate::test_refresh_blocks_unknown_peer_with_preflight_json",
+    "tests.test_syncmate::test_refresh_no_save_does_not_write_blocked_preflight_report",
+    "tests.test_syncmate::test_build_snapshot_includes_peer_configs",
+    "tests.test_syncmate::test_doctor_reports_peer_config_issues",
+    "tests.test_syncmate::test_doctor_reports_invalid_artifact_policies",
+    "tests.test_syncmate::test_doctor_reports_missing_remote_status_for_configured_peer",
+    "tests.test_syncmate::test_doctor_reports_remote_status_errors_dirty_and_result_issues",
+    "tests.test_syncmate::test_doctor_reports_fingerprint_attention_for_git_component",
+    "tests.test_syncmate::test_doctor_warns_when_remote_status_lacks_fingerprint_metadata",
+    "tests.test_syncmate::test_doctor_reports_git_mismatch_across_remote_and_manifest_reports",
+    "tests.test_syncmate::test_git_id_matching_accepts_short_and_full_prefixes",
+    "tests.test_syncmate::test_doctor_reports_collect_missing_errors_conflicts_and_checksum_failures",
+    "tests.test_syncmate::test_doctor_reports_diff_errors_missing_and_conflicts",
+    "tests.test_syncmate::test_doctor_newer_clean_verify_supersedes_planning_diff_missing",
+    "tests.test_syncmate::test_doctor_reports_verify_errors_missing_and_conflicts",
+    "tests.test_syncmate::test_doctor_reports_stale_remote_diff_and_collect_reports",
+    "tests.test_syncmate::test_dashboard_html_contains_device_status_nodes_and_actions",
+    "tests.test_syncmate::test_dashboard_cli_writes_workflow_report_path",
+    "tests.test_syncmate::test_write_dashboard_can_skip_checklist_but_keep_runbook",
+    "tests.test_syncmate::test_runner_queue_submit_validates_and_writes_static_dashboard",
+    "tests.test_syncmate::test_runner_queue_run_once_claims_only_allowlisted_smoke_job",
+    "tests.test_syncmate::test_runner_queue_blocks_invalid_yaml_and_never_executes_it",
+    "tests.test_syncmate::test_runner_queue_refuses_to_run_on_collector_only_device",
+    "tests.test_syncmate::test_runner_queue_contract_is_read_only_until_explicitly_written",
+    "tests.test_syncmate::test_runner_agent_lock_is_exclusive_and_released",
+    "tests.test_syncmate::test_runner_agent_processes_exactly_one_job_under_lock",
+    "tests.test_syncmate::test_runner_queue_validates_full_json_before_bounding_diagnostic_tail",
+    "tests.test_syncmate::test_runner_queue_blocks_config_or_git_binding_mismatch_before_execution",
+    "tests.test_syncmate::test_runner_queue_blocks_exact_job_git_mismatch_before_execution",
+    "tests.test_syncmate::test_runner_queue_duplicate_state_and_terminal_result_are_not_overwritten",
+    "tests.test_syncmate::test_runner_agent_refuses_stale_running_without_automatic_retry",
+    "tests.test_syncmate::test_runner_agent_inspect_distinguishes_active_and_orphaned_running",
+    "tests.test_syncmate::test_runner_agent_dispatch_rejects_nonrunner_peer_without_remote_execution",
+    "tests.test_syncmate::test_runner_agent_dispatch_binds_clean_remote_exact_git_sha",
+    "tests.test_syncmate::test_runner_agent_peer_invoke_uses_configured_python_executable",
+    "tests.test_syncmate::test_runner_agent_collect_failure_never_reports_acceptance",
+    "tests.test_syncmate::test_recipe_config_hash_is_line_ending_stable",
+    "tests.test_syncmate::test_runner_recipe_requires_exact_reviewed_commit",
+    "tests.test_syncmate::test_runner_git_binding_refuses_abbreviated_or_invalid_identity",
+    "tests.test_syncmate_gu_outputs::test_real_queue_command_collect_verify_accept_results_and_repeat",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[missing_output]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[unverified_index]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[duplicate_index]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[wrong_sha]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[bytes]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[config]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_budget]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_selector]",
+    "tests.test_syncmate_gu_outputs::test_collection_faults_fail_closed[semantic_dataset]",
+    "tests.test_syncmate_full_adapter::test_existing_experiment_templates_use_common_cli[aagu007-4-2]",
+    "tests.test_syncmate_full_adapter::test_existing_experiment_templates_use_common_cli[aagu032-42-6]",
+    "tests.test_syncmate_full_adapter::test_registry_contains_only_current_reviewed_recipes",
+    "tests.test_syncmate_full_adapter::test_representative_recipe_fields_remain_exact",
+    "tests.test_syncmate_full_adapter::test_all_recipe_commands_and_artifact_paths_are_bounded",
+    "tests.test_syncmate_full_adapter::test_recipe_results_are_copy_safe",
+    "tests.test_syncmate_full_adapter::test_all_reviewed_preflight_profiles_dispatch_to_project_handlers",
+    "tests.test_syncmate_full_adapter::test_unknown_preflight_profile_refuses_with_expected_observed_action",
+    "tests.test_syncmate_full_adapter::test_results_parser_reads_only_verified_index_artifacts",
+    "tests.test_syncmate_full_adapter::test_unverified_index_never_passes_project_acceptance[modular-output-v1-opengu-aagu007-v1]",
+    "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[selector]",
+    "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[unlearning]",
+    "tests.test_syncmate_execution_contract::test_real_core_and_direct_command_share_config_device_and_outputs[metrics]",
+    "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[None]",
+    "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[invalid-device]",
+    "tests.test_syncmate_execution_contract::test_device_configuration_controls_failure_before_production[cuda:999]",
+    "tests.test_syncmate_execution_contract::test_live_registration_invokes_ordinary_yaml_directly",
+    "tests.test_syncmate_core_dependency::test_absent_distribution_fails_closed",
+    "tests.test_syncmate_core_dependency::test_exact_payload_passes_without_self_declared_commit",
+    "tests.test_syncmate_core_dependency::test_installation_identity_failures[corrupt]",
+    "tests.test_syncmate_core_dependency::test_installation_identity_failures[missing]",
+    "tests.test_syncmate_core_dependency::test_installation_identity_failures[shadow]",
+    "tests.test_syncmate_core_dependency::test_installation_identity_failures[version]",
+    "tests.test_syncmate_core_dependency::test_installation_identity_failures[residual]",
+    "tests.test_config_inventory_dashboard::test_inventory_csv_records_alpha0_a3_and_evidence_state_semantics",
+    "tests.test_config_inventory_dashboard::test_generator_exports_usable_warning_and_rerun_fields",
+    "tests.test_config_inventory_dashboard::test_dashboard_template_labels_rerun_basis_beyond_graphrevoker_only",
+    "tests.test_config_inventory_dashboard::test_story_metadata_connects_experiments_to_advisor_narrative"
+  ],
+  "reuse_reason": "Actual diff 5ca0d93e..867c806a adds one test-local variable loaded from the actual Output; all product code and other tests unchanged. All 17 Retrain tests rerun; do not sum their earlier 16 passes.",
+  "failure_and_fix": "Full first run had 310 PASS and one NameError in the migrated missing-Selection-dependency fixture. Fix reads identity.selection from the verified actual Output before damaging the temporary dependency. Missing-dependency rejection and producer-change rejection assertions retained.",
+  "tests_migrated": "Old selection_input fixtures now declare selectors. Producer guards wrap actual score functions while preserving implementation fingerprints, instead of forbidding resolve_methods cache lookup. Internal corrupt Selection verification remains tested; only obsolete manual-binding behavior was replaced. New frozen contract, Core and AutoReport tests unchanged.",
+  "example_path": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\aagu034-selector-example-f69048edce3f4eee8aa5943deb82382b",
+  "example": {
+    "retrain_output": {
+      "artifact_id": "pred_d08560ad_1f73c54b",
+      "recipe_hash": "d08560adcad98ccefd33530e6e60951090d7d25f066cb5154b0d365b9f7a82dd",
+      "content_hash": "1f73c54bef6d2ac55facf35cd50569f649fb2970398a6fab972e1e21d41b3771"
+    },
+    "GU_outputs": [
+      {
+        "artifact_id": "pred_34b18454_4c2e07ab",
+        "recipe_hash": "34b18454c708a199b3b0f53326fa6e08fe3770deccfaa501bb6e3ceb10b35043",
+        "content_hash": "4c2e07ab9f8355b9781eec4eb0f20f2319583e505f20da08edfb307604cca6ff"
+      },
+      {
+        "artifact_id": "pred_c4ea846c_749d9733",
+        "recipe_hash": "c4ea846c39af27d169af473baeeebb88bcfa0e19cb36cbfec38cb1c185b9342e",
+        "content_hash": "749d97331f8330ff456d777a50b620225f448d481d410391559c859057789f18"
+      }
+    ],
+    "hot_retrain_producer_called": false,
+    "metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_unlearning_utility_and_retrain_gap",
+          "metrics": [
+            "perf_before",
+            "perf_unlearn",
+            "perf_retrain",
+            "drop_retrain",
+            "gap",
+            "gap_pct"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "model_before",
+            "model_unlearned",
+            "exact_retrain_same_selection"
+          ],
+          "available_consumers": [
+            "modular_v1"
+          ],
+          "producer_version": "persisted-output-retrain-gap-v2"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_c0194b5e502efd2356a6dfd56599a703",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756",
+              "unlearning_output": {
+                "artifact_id": "pred_34b18454_4c2e07ab",
+                "recipe_hash": "34b18454c708a199b3b0f53326fa6e08fe3770deccfaa501bb6e3ceb10b35043",
+                "content_hash": "4c2e07ab9f8355b9781eec4eb0f20f2319583e505f20da08edfb307604cca6ff"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_d08560ad_1f73c54b",
+                "recipe_hash": "d08560adcad98ccefd33530e6e60951090d7d25f066cb5154b0d365b9f7a82dd",
+                "content_hash": "1f73c54bef6d2ac55facf35cd50569f649fb2970398a6fab972e1e21d41b3771"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_0749ecf59649aecaff34a536b63dadf3",
+            "identity": {
+              "case": "post_unlearning_utility_and_retrain_gap",
+              "metrics": [
+                "drop_retrain",
+                "gap",
+                "gap_pct",
+                "perf_before",
+                "perf_retrain",
+                "perf_unlearn"
+              ],
+              "producer_version": "persisted-output-retrain-gap-v2",
+              "implementation": "c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756",
+              "unlearning_output": {
+                "artifact_id": "pred_c4ea846c_749d9733",
+                "recipe_hash": "c4ea846c39af27d169af473baeeebb88bcfa0e19cb36cbfec38cb1c185b9342e",
+                "content_hash": "749d97331f8330ff456d777a50b620225f448d481d410391559c859057789f18"
+              },
+              "retrain_output": {
+                "artifact_id": "pred_d08560ad_1f73c54b",
+                "recipe_hash": "d08560adcad98ccefd33530e6e60951090d7d25f066cb5154b0d365b9f7a82dd",
+                "content_hash": "1f73c54bef6d2ac55facf35cd50569f649fb2970398a6fab972e1e21d41b3771"
+              }
+            },
+            "metrics": {
+              "perf_before": 0.42857142857142855,
+              "perf_unlearn": 0.42857142857142855,
+              "perf_retrain": 0.42857142857142855,
+              "drop_retrain": 0.0,
+              "gap": 0.0,
+              "gap_pct": 0.0
+            }
+          }
+        ]
+      }
+    ],
+    "metrics_repeat_equal": true,
+    "single_method_metrics": [
+      {
+        "effective_config": {
+          "kind": "evaluation",
+          "schema_version": 1,
+          "case": "post_method_metrics",
+          "metrics": [
+            "f1",
+            "accuracy",
+            "cross_entropy",
+            "classification_auc",
+            "classification_auc_status",
+            "update_detection_auc",
+            "update_detection_auc_status"
+          ],
+          "acceptance": {},
+          "required_inputs": [
+            "method_output"
+          ],
+          "available_consumers": [
+            "modular_v1"
+          ],
+          "producer_version": "single-method-output-metrics-v1"
+        },
+        "rows": [
+          {
+            "evaluation_receipt_id": "evalr_f4fe022532ade15e27867a69a01fb290",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756",
+              "unlearning_output": {
+                "artifact_id": "pred_34b18454_4c2e07ab",
+                "recipe_hash": "34b18454c708a199b3b0f53326fa6e08fe3770deccfaa501bb6e3ceb10b35043",
+                "content_hash": "4c2e07ab9f8355b9781eec4eb0f20f2319583e505f20da08edfb307604cca6ff"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_34b18454_4c2e07ab",
+                  "recipe_hash": "34b18454c708a199b3b0f53326fa6e08fe3770deccfaa501bb6e3ceb10b35043",
+                  "content_hash": "4c2e07ab9f8355b9781eec4eb0f20f2319583e505f20da08edfb307604cca6ff"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 1.0,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_01a727eed1c4c3d602515f456c5eda3d",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756",
+              "unlearning_output": {
+                "artifact_id": "pred_c4ea846c_749d9733",
+                "recipe_hash": "c4ea846c39af27d169af473baeeebb88bcfa0e19cb36cbfec38cb1c185b9342e",
+                "content_hash": "749d97331f8330ff456d777a50b620225f448d481d410391559c859057789f18"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_c4ea846c_749d9733",
+                  "recipe_hash": "c4ea846c39af27d169af473baeeebb88bcfa0e19cb36cbfec38cb1c185b9342e",
+                  "content_hash": "749d97331f8330ff456d777a50b620225f448d481d410391559c859057789f18"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.706565594273937,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": 0.5,
+              "update_detection_auc_status": "computed"
+            }
+          },
+          {
+            "evaluation_receipt_id": "evalr_123cd6617c7436c71e3684f8b236f112",
+            "identity": {
+              "case": "post_method_metrics",
+              "metrics": [
+                "accuracy",
+                "classification_auc",
+                "classification_auc_status",
+                "cross_entropy",
+                "f1",
+                "update_detection_auc",
+                "update_detection_auc_status"
+              ],
+              "producer_version": "single-method-output-metrics-v1",
+              "implementation": "c5e8e7acf858fa76c8de49d786a0fa304c8bf9d783322468b4eed0185a870756",
+              "unlearning_output": {
+                "artifact_id": "pred_d08560ad_1f73c54b",
+                "recipe_hash": "d08560adcad98ccefd33530e6e60951090d7d25f066cb5154b0d365b9f7a82dd",
+                "content_hash": "1f73c54bef6d2ac55facf35cd50569f649fb2970398a6fab972e1e21d41b3771"
+              },
+              "method_evaluation": {
+                "output": {
+                  "artifact_id": "pred_d08560ad_1f73c54b",
+                  "recipe_hash": "d08560adcad98ccefd33530e6e60951090d7d25f066cb5154b0d365b9f7a82dd",
+                  "content_hash": "1f73c54bef6d2ac55facf35cd50569f649fb2970398a6fab972e1e21d41b3771"
+                },
+                "protocol": "single-label-test-micro-f1-ovr-macro-auc-v1",
+                "metric_libraries": {
+                  "sklearn": "1.3.2",
+                  "torch": "2.2.1+cu121",
+                  "numpy": "1.21.6"
+                },
+                "implementation": "29f146c778013909a992868f5182a7c6e801278eb5600d777f6cc1028d858042"
+              }
+            },
+            "metrics": {
+              "f1": 0.42857142857142855,
+              "accuracy": 0.42857142857142855,
+              "cross_entropy": 0.7009000715050294,
+              "classification_auc": 0.75,
+              "classification_auc_status": "computed",
+              "update_detection_auc": null,
+              "update_detection_auc_status": "missing_original_predictions"
+            }
+          }
+        ]
+      }
+    ],
+    "method_order": [
+      "GNNDelete",
+      "GIF",
+      "Retrain"
+    ],
+    "forward_forbidden_during_reads": true,
+    "training_steps_forbidden_during_reads": true,
+    "software_evidence_only": true
+  },
+  "static": {
+    "checkpoint": "5ca0d93e5fc5cdfb75f8339d713f17a64b8f324e",
+    "frozen_test_unchanged": true,
+    "old_core_and_autoreport_tests_unchanged": true,
+    "007_032_unchanged": true,
+    "score_selection_gu_training_producers_unchanged": true,
+    "active_obsolete_field_matches": [],
+    "checks": [
+      {
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          ".workblock/items/AAGU-034/evidence/audit_configuration.py"
+        ],
+        "exit_code": 0,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\static-0.log"
+      },
+      {
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/syncmate/syncmate.py",
+          "smoke",
+          "--json"
+        ],
+        "exit_code": 0,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\static-1.log"
+      },
+      {
+        "argv": [
+          "E:/conda_package/envs/gnn/python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "scripts/dashboard/refresh.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\static-2.log"
+      },
+      {
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "log": "E:\\project\\OpenGU\\GULib-master\\.workblock\\runtime\\aagu-034-selector-rework\\static-3.log"
+      }
+    ],
+    "git_clean": true
+  },
+  "documentation_links": {
+    "passed": true,
+    "links": [
+      {
+        "file": "docs/modular_experiments.md",
+        "href": "../experiments/configs/README.md",
+        "exists": true
+      },
+      {
+        "file": "docs/modular_experiments.md",
+        "href": "../experiments/configs/experiment.template.yaml",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "../../experiments/configs/README.md",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "../../experiments/configs/experiment.template.yaml",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "../modular_experiments.md",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "PARAMETERS.md",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "examples/",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "../archive/experiment-configs-pre-aagu034/",
+        "exists": true
+      },
+      {
+        "file": "docs/experiment_contract/README.md",
+        "href": "../../.workblock/items/AAGU-034/WORKITEM.md",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "datasets/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "selectors/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "unlearning/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "evaluations/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "aagu015/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "aagu007/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "aagu032/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "experiment.template.yaml",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "../../docs/archive/experiment-configs-pre-aagu034/",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/README.md",
+        "href": "../../docs/experiment_contract/README.md",
+        "exists": true
+      },
+      {
+        "file": "experiments/configs/aagu015/README.md",
+        "href": "../README.md",
+        "exists": true
+      }
+    ]
+  },
+  "warnings": "Two installed CUDA/PyTorch dependency warnings; all computation was disposable CPU verification. No formal SSH/GPU run or old Store repair."
+}

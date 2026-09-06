@@ -1,6 +1,8 @@
 """One experiment table references independent, fully resolved module instances."""
 from __future__ import annotations
 
+import copy
+import math
 from pathlib import Path
 from experiments.effective_config import read_yaml, fields, effective, choice, ConfigurationError
 from experiments.target_direct_v1.methods import resolve_parameters, uses_model, SCORE_NAMES
@@ -181,22 +183,23 @@ def load_experiment(path):
     value = read_yaml(path)
     required = {'kind', 'schema_version', 'experiment_id', 'stage', 'dataset_ref', 'matrix'}
     fields(value, required | {'round',
-        'selector_refs', 'selection_input', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs'},
+        'selector_refs', 'unlearning_refs', 'evaluation_refs', 'case_id', 'output_inputs',
+        'seeds', 'budget_ratios'},
         required, 'experiment')
     if value['kind'] != 'experiment' or type(value['schema_version']) is not int or value['schema_version'] != 1:
         raise ConfigurationError('expected experiment schema_version 1')
     choice(value['stage'], ('selector', 'unlearning', 'metrics'), 'stage')
     choice(value['matrix'], ('cartesian_product',), 'matrix')
-    if value['stage'] != 'metrics' and bool(value.get('selector_refs')) == bool(value.get('selection_input')):
-        raise ConfigurationError('use selector_refs or selection_input, exactly one')
-    if value['stage'] == 'selector' and (value.get('unlearning_refs') or value.get('selection_input')):
+    if value['stage'] != 'metrics' and not value.get('selector_refs'):
+        raise ConfigurationError('selector_refs is required for selector and unlearning stages')
+    if value['stage'] == 'selector' and value.get('unlearning_refs'):
         raise ConfigurationError('selector stage needs selector_refs and no GU inputs')
     if value['stage'] == 'unlearning' and not value.get('unlearning_refs'):
         raise ConfigurationError('unlearning stage requires unlearning_refs')
     if value['stage'] == 'metrics':
         if not value.get('output_inputs') or not value.get('evaluation_refs'):
             raise ConfigurationError('metrics stage requires output_inputs and evaluation_refs')
-        if any(value.get(key) for key in ('selector_refs', 'selection_input', 'unlearning_refs')):
+        if any(value.get(key) for key in ('selector_refs', 'unlearning_refs')):
             raise ConfigurationError('metrics stage consumes only explicit output references')
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')
@@ -215,4 +218,90 @@ def load_experiment(path):
         result['configuration_sources'][kind + 's'] = [configuration_sources(path.parent / ref, item)
             for ref, item in zip(refs, result[kind + 's'])]
     result['source_directory'] = str(path.parent)
+    # Validate matrix axes while parsing, including during the ordinary dry-run.
+    validate_repeats(result)
     return result
+
+
+def validate_repeats(config):
+    """Two explicit experimental axes, not arbitrary module-parameter overrides."""
+    for field in ('seeds', 'budget_ratios'):
+        if field not in config:
+            continue
+        values = config[field]
+        if config['stage'] == 'metrics':
+            raise ConfigurationError('metrics consumes fixed outputs and cannot declare repeat axes')
+        if not isinstance(values, list) or not values:
+            raise ConfigurationError(field + ' must be a nonempty list')
+        for value in values:
+            valid = (type(value) is int and value >= 0) if field == 'seeds' else (
+                type(value) in (int, float) and math.isfinite(value) and 0 < value <= 1)
+            if not valid:
+                raise ConfigurationError('invalid ' + field + ' value')
+        if len(set(values)) != len(values):
+            raise ConfigurationError(field + ' must not contain duplicates')
+    if 'budget_ratios' in config:
+        if not config['selectors'] or any(s['budget']['mode'] != 'ratio' for s in config['selectors']):
+            raise ConfigurationError('budget_ratios requires ratio-based selector refs')
+    if 'seeds' in config:
+        models = [s for s in config['selectors'] if uses_model(s['method'])] + config['unlearnings']
+        if not models:
+            raise ConfigurationError('seeds requires a model training consumer')
+        if any('checkpoint' in instance for instance in models):
+            raise ConfigurationError('seeds cannot relabel an explicit checkpoint; use separate instances')
+
+
+def experiment_batches(config):
+    """Resolve paired training repetitions in memory; never write leaf YAML.
+
+    Within a batch, Selector x Unlearning remains the existing Cartesian product.
+    Training seeds are paired across the two model consumers, not crossed.
+    """
+    for seed in config.get('seeds', [None]):
+        for ratio in config.get('budget_ratios', [None]):
+            batch = copy.deepcopy(config)
+            batch['matrix_values'] = {'training_seed': seed, 'budget_ratio': ratio}
+            for kind in ('selector', 'unlearning'):
+                for index, instance in enumerate(batch[kind + 's']):
+                    sources = batch['configuration_sources'][kind + 's'][index]
+                    if seed is not None and 'training' in instance:
+                        instance['training']['seed'] = seed
+                        sources['training.seed'] = 'experiment:seeds'
+                    if kind == 'selector' and ratio is not None:
+                        instance['budget']['value'] = float(ratio)
+                        sources['budget.value'] = 'experiment:budget_ratios'
+            yield batch
+
+
+def selector_entries(batch):
+    """Declared order, shared by execution and collected-result verification."""
+    return list(zip(batch['selectors'], batch.get('selector_refs', [])))
+
+
+def unlearning_entries(batch):
+    """GU-major Cartesian rows with the same effective Selector declarations."""
+    return [(gu, gu_ref, selector, selector_ref)
+            for gu, gu_ref in zip(batch['unlearnings'], batch.get('unlearning_refs', []))
+            for selector, selector_ref in selector_entries(batch)]
+
+
+def configuration_fingerprint(path):
+    """Bind all reviewed YAML text, separately from computational cache keys."""
+    import hashlib
+    import json
+    path = Path(path).resolve()
+    visited = set()
+    def document(current):
+        current = current.resolve()
+        if current in visited:
+            raise ConfigurationError('cyclic configuration references')
+        visited.add(current)
+        value = read_yaml(current)
+        refs = ([value['dataset_ref']] if 'dataset_ref' in value else [])
+        for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
+            refs.extend(value.get(field, []))
+        children = [document(current.parent / ref) for ref in refs]
+        visited.remove(current)
+        return {'document': value, 'references': children}
+    return hashlib.sha256(json.dumps(document(path), sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()

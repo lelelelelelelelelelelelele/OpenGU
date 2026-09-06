@@ -6,7 +6,7 @@
 
 `experiments/` 把研究意图组织为可运行单元，并把执行连接到可追溯证据；它编排图遗忘、攻击策略和 Cache V2，而不拥有这些模块的内部实现。
 目录包含通用 `run.py + YAML` 矩阵、跨实验复用的 Selection/Artifact 证据接缝，以及拥有独立 recipe、runner、gate、adapter 或 aggregate 的专题包。
-`configs/` 是配置容器，不表示所有 YAML 都由同一个入口消费。
+`configs/` 持有现行普通实验组合表与公共小表；它们由同一 `run.py → modular_config → modular_run` 链消费。历史专题包只按其明确有效的注册边界使用，不从旧配置推导新运行许可。
 
 ## 2. 按需加载实验上下文
 
@@ -29,36 +29,23 @@
 
 只有当前研究意图改变 claim、数据或划分、方法语义、核心指标或矩阵范围时，才建立新的实验定义；配置存在不等于它仍是当前注册实验。
 
-## 4. 找到正确的配置消费者
+## 4. 统一配置消费者
 
-- 含 `dataset`、`base_model`、`ratio`、`methods`、`strategies`、`seeds` 的配置通常属于 `run.py` 矩阵。
-- 含 `schema`、`version`、`recipe_id`、阶段定义或多数据集结构的配置通常由对应专题包解析。
-- 不根据文件名猜入口；先查找哪个模块加载、校验或绑定该配置。
+普通 `kind: experiment` 表只绑定一个Dataset/Split，引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧扁平配置和未知字段。大表只允许覆盖训练 `seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；执行时记录有效值与来源，源文件保持不变。
 
-Specialized packages commonly follow `recipe → core → runner/stage → manifest/adapter → aggregate/render`. Read the recipe and runner first; aggregate/render consume verified upstream evidence and do not define the primary experiment facts.
-**SyncMate 执行通道**：部分已注册实验从 `scripts/syncmate/syncmate.py` 及专题 `syncmate_*` recipe/stage 进入，由它把已审阅配置、阶段和预期完整 Git SHA 绑定到 SSH runner，并支持状态、回执和 Artifact 收集。
-SyncMate 不定义研究 claim 或矩阵，也不替代共享 stage check、专题 preflight 和 acceptance gate。
-注册计划指定 SyncMate 时不得改写成临时 SSH 命令或 `run.py`；未指定时也不自行切换，具体操作使用当前注册计划的命令。
+配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。普通执行和SyncMate注册均直接调用 `run.py <config.yaml> --run-id <id>`，没有专用stage或第二次YAML生成。运行设备只读取Core解析的 `.syncmate/device.yaml` 中 `execution_device`，执行根来自 `repo_path`；字段缺失或设备不可用即拒绝。Core按peer配置选择SSH目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`；该根须等于设备配置的 `repo_path`，测试资产须在根内。可用 `--device-config <temporary-device.yaml>` 指定临时设备文件；不能以本地验证代替正式SSH/GPU证据。
 
-### 最小执行导航
-
-通用矩阵在本地先用 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run` 验证定义；正式执行只使用注册计划指定的 launcher。
-
-### Target-direct 数据与划分权威
-
-当前 target-direct formal lane 的可执行 dataset、split、candidate pool 和删除预算合同只由 [`configs/syncmate_target_direct_formal_v2.yaml`](configs/syncmate_target_direct_formal_v2.yaml) 及其经过 `target_direct_v1` profile/manifest 校验后的身份拥有。recipe 必须显式声明 train/validation/test 比例、split seed 与首次缺失时是否允许物化；默认是 `0.7/0.1/0.2`、split seed 2024，但消费者不能把 default 当作合法值白名单。split mapping 是唯一配置输入，canonical profile、candidate count 与各预算 `k` 都从规范化合同派生；同 dataset、同 ratios、同 split seed 必须命中同一 OpenGU processed pair，不同合法合同使用不同 profile 并可并存。model、selector 或 unlearning seed 不得重新切分。Cache V2 继续只有一个 selection root，并通过 split contract 与实际 `split_hash` 绑定输入身份，不按 split 另建 cache 系统。历史 public-split、OpenGU 80/20、固定小 `k` 的报告和配置可以继续服务其各自实验，但不能覆盖、补全或推导当前 formal-v2 参数。任何新的执行入口都必须消费其已注册 recipe 并 fail closed；若正式研究合同改变，创建新的 versioned recipe，不保留兼容分支。
+数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以各WorkItem及普通组合表为准。
 
 ## 5. 通用矩阵与证据接缝
 
-一个 `run.py` YAML 固定数据集、模型和删除比例，并展开 `methods × strategies × seeds`。
-当前 target-direct 方法表把 GNNDelete 与 Retrain 作为同级方法：每个 cell 只执行一个方法，保存自己的模型、预测、单方法指标和身份，不调用另一方法、不要求差值先完成。
-`YAML → 已验证 Selection → 单个 Unlearning 方法 → 独立 Output / Metrics → 收集后配对比较`
-单方法叶子位于 `run_root/{dataset}_{model}_r{ratio}/{method}_{strategy}/seed{seed}/`，包含 `attack.json`、`output-references.json`、`predictions.npz` 和 `_meta.json`；`collateral.json` 属于单独的后处理输出。
-完整性要求可解析、策略和配置指纹匹配、Output 字节及依赖身份通过核验。`--dry_run` 只展开并验证计划，不代表已经执行。其他专题沿用其已注册且明确的产物合同，不能靠旧隐式重训包装器执行。
+组合表展开Selector×独立方法×训练seed×预算。两侧模型训练seed按批次配对，Degree/Random等无需模型的Selector不因训练seed变更失效。GNNDelete、GIF和Retrain各自消费真实Selection并保存独立Output，不隐式调用另一方法。
 
-正式启动前先检查目标 run identity 和已有 cell 状态。不得为了继续运行而自行使用 `--force`，也不得手动删除、移动或覆盖已有正式产物；发现 complete、partial、stale、corrupt 或身份冲突时停止，按已确认的修复链判断恢复、重跑或建立新结果身份。
+Selector/Unlearning只以selector_refs声明选点规则；两阶段按同一有效输入与producer自动查找Score/Selection缓存，HIT复用、MISS计算。实际Artifact身份、哈希和HIT/MISS保存在结果中，不要求手填上一轮Selection或summary。执行与核验共用批次及条件展开。Metrics仍读取已收集Output summary及完整预测产物；缺少、冲突或过时Output引用失败关闭。
 
-Selection 输入必须来自持久化图、划分和候选集合；多预算前缀复用只适用于显式 prefix-stable 的排序；正式 Artifact 只在验证后的精确 MISS 上调用 producer，身份或依赖不清楚时 fail closed。
+结果布局由 `scripts/syncmate/opengu_layout.py` 拥有。一个运行保存summary，以及 `summary.outputs/<序号>/` 下的 `attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。注册指纹、全部引用配置指纹、实际运行身份和精确产物清单必须一致。收集必须通过SyncMate校验与索引后再进入结果核验；命令成功或dry-run不是科研接受。
+
+正式启动前核对run identity和现有产物。入口不支持强制覆盖、隐式截断或自动重试；发现已存在、部分、过时或损坏结果时按明确的修复链处理，保护历史Cache V2和结果。多预算前缀复用只适用于显式prefix-stable排序；仅精确MISS调用producer。
 
 ### SSH 正式数据固定位置
 

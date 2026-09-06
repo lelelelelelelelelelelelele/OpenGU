@@ -1,0 +1,1584 @@
+{
+  "baseline": "2b9bcafbfc789d0c60362b4246eee2a34440213b",
+  "selectors": [
+    {
+      "method": "a_grad_norm",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "a_grad_norm",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer"
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "b_param_hutch",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "b_param_hutch",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "hessian_loss": {
+            "type": "cross_entropy",
+            "source": "train_mask",
+            "reduction": "mean"
+          },
+          "lissa": {
+            "iterations": 20,
+            "scale": 25.0,
+            "damp": 0.01
+          },
+          "hutchinson": {
+            "probes": 32,
+            "seed": 1729
+          }
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "hutchinson": {
+          "probes": 32,
+          "seed": 1729
+        }
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "degree",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "degree",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {},
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        }
+      },
+      "v2_effective_parameters": {},
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "gt_full",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "gt_full",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "hessian_loss": {
+            "type": "cross_entropy",
+            "source": "train_mask",
+            "reduction": "mean"
+          },
+          "lissa": {
+            "iterations": 20,
+            "scale": 25.0,
+            "damp": 0.01
+          },
+          "affected_hops": 2
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "gt_simple",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "gt_simple",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "hessian_loss": {
+            "type": "cross_entropy",
+            "source": "train_mask",
+            "reduction": "mean"
+          },
+          "lissa": {
+            "iterations": 20,
+            "scale": 25.0,
+            "damp": 0.01
+          },
+          "affected_hops": 2
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        },
+        "affected_hops": 2
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "legacy",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "legacy",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer"
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer"
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "p_graph",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "p_graph",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "p_point",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "p_point",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          }
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        }
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "p_simple",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "p_simple",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "r_point",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "r_point",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "hessian_loss": {
+            "type": "cross_entropy",
+            "source": "train_mask",
+            "reduction": "mean"
+          },
+          "lissa": {
+            "iterations": 20,
+            "scale": 25.0,
+            "damp": 0.01
+          }
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "hessian_loss": {
+          "type": "cross_entropy",
+          "source": "train_mask",
+          "reduction": "mean"
+        },
+        "lissa": {
+          "iterations": 20,
+          "scale": 25.0,
+          "damp": 0.01
+        }
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "random",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "random",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "seed": 104245
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        }
+      },
+      "v2_effective_parameters": {
+        "seed": 104245
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": null
+    },
+    {
+      "method": "tracin_cp_graph_3",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_graph_3",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2,
+          "checkpoint_view": "cp3",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    },
+    {
+      "method": "tracin_cp_graph_6",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_graph_6",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2,
+          "checkpoint_view": "cp_all",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    },
+    {
+      "method": "tracin_cp_point_3",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_point_3",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "checkpoint_view": "cp3",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    },
+    {
+      "method": "tracin_cp_point_6",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_point_6",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "checkpoint_view": "cp_all",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    },
+    {
+      "method": "tracin_cp_simple_3",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_simple_3",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2,
+          "checkpoint_view": "cp3",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp3",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    },
+    {
+      "method": "tracin_cp_simple_6",
+      "common_effective": {
+        "kind": "selector",
+        "schema_version": 1,
+        "method": "tracin_cp_simple_6",
+        "candidate": {
+          "pool": "train_mask"
+        },
+        "budget": {
+          "mode": "ratio",
+          "value": 0.01
+        },
+        "parameters": {
+          "parameter_scope": "last_layer",
+          "target_loss": {
+            "type": "cross_entropy",
+            "source": "validation_mask",
+            "reduction": "mean"
+          },
+          "affected_hops": 2,
+          "checkpoint_view": "cp_all",
+          "checkpoint_steps": [
+            1,
+            10,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "selection_rule": {
+          "direction": "descending",
+          "tie_break": "node_id_ascending"
+        },
+        "numerics": {
+          "dtype": "float32"
+        },
+        "model": {
+          "architecture": "OpenGU.GCNNet",
+          "layers": 2,
+          "hidden_channels": 64,
+          "dropout": 0.5
+        },
+        "training": {
+          "epochs": 100,
+          "optimizer": "Adam",
+          "lr": 0.005,
+          "weight_decay": 1e-06,
+          "scheduler": "none",
+          "seed": 42
+        }
+      },
+      "v2_effective_parameters": {
+        "parameter_scope": "last_layer",
+        "target_loss": {
+          "type": "cross_entropy",
+          "source": "validation_mask",
+          "reduction": "mean"
+        },
+        "affected_hops": 2,
+        "checkpoint_view": "cp_all",
+        "checkpoint_steps": []
+      },
+      "parameter_semantics_equal_except_explicit_trajectory_steps": true,
+      "trajectory_note": "V2 receives steps [1,10,25,50,75,100]; common tables select these steps from the 100-epoch trajectory"
+    }
+  ],
+  "mapping": [
+    {
+      "old": "experiments/configs/aagu015/selectors/a_grad_norm.yaml",
+      "new": "experiments/configs/selectors/a_grad_norm.yaml",
+      "old_sha256": "0729aaa951889a4cf9d5f215b55579d29fa3c7249c7298ef2d6d2b328f2df54d"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/b_param_hutch.yaml",
+      "new": "experiments/configs/selectors/b_param_hutch.yaml",
+      "old_sha256": "19be908268922c29f51141d715d7281f9b769dc0ac4880b5a06e4d6c213fde3c"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/degree.yaml",
+      "new": "experiments/configs/selectors/degree.yaml",
+      "old_sha256": "e85054029d715c3bff0370ed3a5ab2c9b4323610bc08ac6e2c9e4127ea84ca60"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/gt_full.yaml",
+      "new": "experiments/configs/selectors/gt_full.yaml",
+      "old_sha256": "4ceedcff392010ce44aaf89f794eff4e40937a9ba57e260531502321e55674ef"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/gt_simple.yaml",
+      "new": "experiments/configs/selectors/gt_simple.yaml",
+      "old_sha256": "2dba990bc161c7cf1a2d1bbc7bdc048dcee10189f3c949b5a038fcc414f0c533"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/legacy.yaml",
+      "new": "experiments/configs/selectors/legacy.yaml",
+      "old_sha256": "1c4b8249479bd5826acece648e3093bbfb295c62ed9f0e2dd57350d6c5ab649a"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/p_graph.yaml",
+      "new": "experiments/configs/selectors/p_graph.yaml",
+      "old_sha256": "731a6fb762b9fec9f460845c4d4e0aefa91480859174e54aafdef53d30553011"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/p_point.yaml",
+      "new": "experiments/configs/selectors/p_point.yaml",
+      "old_sha256": "d041886fac9361150db749a2dd74f533a8950d47b2e51377fbdc93bf6f541084"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/p_simple.yaml",
+      "new": "experiments/configs/selectors/p_simple.yaml",
+      "old_sha256": "968b116bce7422dab1e24e16a38708b295adc721f91360c59e1686baee83eb8d"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/r_point.yaml",
+      "new": "experiments/configs/selectors/r_point.yaml",
+      "old_sha256": "0bb9c8d9a1acb3caf16754b7785ec16fa7edb86a98ef9110577ab6cd34af1675"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/random.yaml",
+      "new": "experiments/configs/selectors/random.yaml",
+      "old_sha256": "1f6ab89430055ace597cb58f55ceb72ec184296ca44f20e5c5a86bd78f8491aa"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_graph_3.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_graph_3.yaml",
+      "old_sha256": "d682154f378f5e7706c3076771b454105eb97da7add9e9e3ce9b80599d0ba45f"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_graph_6.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_graph_6.yaml",
+      "old_sha256": "c6f018b4ba1606a741d1eba354f2f7c8645ec4aba1317df45c172ec615e71ec9"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_point_3.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_point_3.yaml",
+      "old_sha256": "97698c7fbc498981bacdb1494767a56e6e6db70179b4251242b1ec7039a4c0aa"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_point_6.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_point_6.yaml",
+      "old_sha256": "36580e9c8913e2fc9cd4432c56cb5bec7dd1444d1beed35ebb843e7b8a1521a1"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_simple_3.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_simple_3.yaml",
+      "old_sha256": "6835a71f56f8bcfcaa273863f15ec4999cc816a488155eb4b276bc4cb43c4114"
+    },
+    {
+      "old": "experiments/configs/aagu015/selectors/tracin_cp_simple_6.yaml",
+      "new": "experiments/configs/selectors/tracin_cp_simple_6.yaml",
+      "old_sha256": "34f888d03eb3789826f6ac6e167d940b751e6490ae4f1dc4ce6ac7c2b3403ef2"
+    }
+  ],
+  "deleted_yaml": [
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/a_grad_norm-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/b_param_hutch-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/degree-seedindependent-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/degree-seedindependent-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_full-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/gt_simple-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/legacy-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_graph-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_point-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/p_simple-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/random-seedindependent-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/random-seedindependent-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/r_point-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_3-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_graph_6-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_3-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_point_6-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_3-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/selectors/tracin_cp_simple_6-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/citeseer-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/cora-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed2024-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed2024-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed212-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed212-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed42-r0.01.yaml",
+    "experiments/configs/aagu015/generated/stage_s/pubmed-seed42-r0.05.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed2024-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed212-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/citeseer-seed42-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed2024-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed212-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/cora-seed42-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed2024-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed212-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.01-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-a_grad_norm.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-b_param_hutch.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-degree.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-gt_full.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-gt_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-legacy.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-p_graph.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-p_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-p_simple.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-random.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-r_point.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/generated/stage_u/pubmed-seed42-r0.05-tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GIF-seed2024.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GIF-seed212.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GIF-seed42.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GNNDelete-seed2024.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GNNDelete-seed212.yaml",
+    "experiments/configs/aagu015/generated/unlearning/GNNDelete-seed42.yaml",
+    "experiments/configs/aagu015/selectors/a_grad_norm.yaml",
+    "experiments/configs/aagu015/selectors/b_param_hutch.yaml",
+    "experiments/configs/aagu015/selectors/degree.yaml",
+    "experiments/configs/aagu015/selectors/gt_full.yaml",
+    "experiments/configs/aagu015/selectors/gt_simple.yaml",
+    "experiments/configs/aagu015/selectors/legacy.yaml",
+    "experiments/configs/aagu015/selectors/p_graph.yaml",
+    "experiments/configs/aagu015/selectors/p_point.yaml",
+    "experiments/configs/aagu015/selectors/p_simple.yaml",
+    "experiments/configs/aagu015/selectors/random.yaml",
+    "experiments/configs/aagu015/selectors/r_point.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_graph_3.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_graph_6.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_point_3.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_point_6.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_simple_3.yaml",
+    "experiments/configs/aagu015/selectors/tracin_cp_simple_6.yaml",
+    "experiments/configs/aagu015/datasets/citeseer.yaml",
+    "experiments/configs/aagu015/datasets/cora.yaml",
+    "experiments/configs/aagu015/datasets/pubmed.yaml",
+    "experiments/configs/aagu015/unlearning/gif.yaml",
+    "experiments/configs/aagu015/unlearning/gnndelete.yaml",
+    "experiments/configs/aagu015/evaluations/retrain_gap.yaml",
+    "experiments/configs/target_direct_formal_v2/evaluations/post_unlearning_utility_and_retrain_gap.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/a_grad_norm.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/b_param_hutch.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/degree.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/gt_full.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/gt_simple.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/legacy.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/p_graph.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/p_point.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/p_simple.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/random.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/r_point.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_graph_3.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_graph_6.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_point_3.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_point_6.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_simple_3.yaml",
+    "experiments/configs/target_direct_formal_v2/selectors/tracin_cp_simple_6.yaml",
+    "experiments/configs/target_direct_formal_v2/unlearning/gnndelete.yaml",
+    "experiments/configs/target_direct_formal_v2/unlearning/retrain.yaml",
+    "experiments/configs/aagu007/dataset.yaml",
+    "experiments/configs/aagu007/degree.yaml",
+    "experiments/configs/aagu007/gnndelete_seed122.yaml",
+    "experiments/configs/aagu007/gnndelete_seed722.yaml",
+    "experiments/configs/aagu007/method_metrics.yaml",
+    "experiments/configs/aagu007/retrain_gap.yaml",
+    "experiments/configs/aagu007/retrain_seed122.yaml",
+    "experiments/configs/aagu007/retrain_seed722.yaml",
+    "experiments/configs/sm005_atomic/b_hutch32.yaml",
+    "experiments/configs/sm005_atomic/dataset.yaml",
+    "experiments/configs/sm005_atomic/degree.yaml",
+    "experiments/configs/sm005_atomic/d_full.yaml",
+    "experiments/configs/sm005_atomic/gnndelete.yaml",
+    "experiments/configs/sm005_atomic/utility.yaml",
+    "experiments/configs/aagu015/stage_s.yaml",
+    "experiments/configs/aagu015/stage_u.yaml"
+  ],
+  "generated_yaml_removed": 424
+}

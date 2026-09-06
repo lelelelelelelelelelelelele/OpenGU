@@ -1,0 +1,411 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AAGU-034 · 实验配置与统一执行入口修正</title><style>*{box-sizing:border-box}html{background:#f3f5f8;color:#223345;font-family:"Segoe UI","Microsoft YaHei",sans-serif}body{margin:0 auto;max-width:1100px;padding:28px 32px 70px;font-size:16px;line-height:1.75}main{background:#fff;padding:26px 40px 48px;border:1px solid #dce3eb;border-radius:12px}h1{font-size:29px;line-height:1.35;color:#16374c;margin:0 0 22px}h2{font-size:23px;margin:34px 0 14px;padding-top:8px;border-top:1px solid #dbe3ea}h3{font-size:18px;color:#245365;margin:24px 0 7px}p{margin:7px 0 14px}section{border:1px solid #c9ddd9;border-top:4px solid #237b72;background:#f7fbfa;padding:16px 22px 18px;border-radius:8px}section h2{font-size:16px;letter-spacing:.5px;color:#237b72;border:0;margin:0 0 8px;padding:0}section h3{margin:12px 0 4px}section p{margin:4px 0 9px}blockquote{margin:10px 0;padding:8px 15px;background:#fff1d2;border-left:4px solid #ca9b32}blockquote p{margin:0!important}[data-workblock-decision]{font-weight:700;color:#7c5410}a{color:#147589;text-underline-offset:3px}code{background:#edf1f5;padding:1px 4px;border-radius:3px;font-size:.85em;overflow-wrap:anywhere}pre{background:#152e40;color:#eff5f9;padding:18px 22px;border-radius:6px;overflow:auto;line-height:1.6}pre code{background:none;color:inherit;padding:0;white-space:pre-wrap;word-break:break-word}table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.65}th{background:#eaf1f4;text-align:left;color:#244657}th,td{border:1px solid #d8e2e8;padding:10px 13px;vertical-align:top;overflow-wrap:anywhere}td:first-child{font-weight:600;width:21%}.table-wrap{overflow:auto;margin:18px 0}strong{color:#173f51}li{margin:7px 0}@media(max-width:640px){body{padding:10px 8px;font-size:15px}main{padding:20px 16px;border-radius:8px}h1{font-size:24px}h2{font-size:21px}h3{font-size:17px}section{padding:13px}th,td{padding:7px;font-size:13px}pre{padding:12px}}@media print{html{background:white}body{max-width:none;padding:0}main{border:0;padding:0}section{break-inside:avoid}h2,h3{break-after:avoid}}</style></head><body><main><h1>AAGU-034 · 实验配置与统一执行入口修正</h1>
+<section data-workblock-human-result="2.1"><h2>Human Result</h2>
+<h3>实际增量</h3>
+<p>Selector/Unlearning只用 <code>selector_refs</code> 声明选点，删除手工绑定上一轮产物的分支。缓存自动查找或计算；实际Artifact身份、哈希与HIT/MISS保留在结果中，执行和核验共用条件展开。</p>
+<h3>核心观察</h3>
+<p><strong>最新三处返工已由用户确认独立 validator 验收通过。</strong> 阶段输出核验、Core 清单去重和仅比较当前交付范围的修正见下文。本轮 Agent 未运行测试；此前311项结果保留原检查点及<a href="evidence/selector-observations.json">历史证据</a>，不充作本轮复验。正式SSH/GPU未运行。</p>
+<h3>当前决定</h3>
+<blockquote>
+<p>当前验收决定：<span data-workblock-decision="accepted">接受</span></p>
+</blockquote>
+<p>用户已明确“可以验收通过了，closeout”；本节决定标记由 Closeout 写入。对象为本 source branch 的已接受产品内容；合并与部署结果另行记录，正式实验另行验收。</p>
+</section><h2>最新返工：阶段、清单唯一性与验收范围</h2>
+<p>项目核验器分别处理 Selector 选点、Unlearning 方法输出和 Metrics 指标记录，保持配置、执行身份、文件摘要及方法语义检查。Metrics 可从一份输入摘要生成多行指标，不再被要求提供 GU 输出。</p>
+<p>SyncMate Core 的重叠父子目录扫描按文件路径生成唯一清单，独立源码提交为 <code>7231b69201822f04d171f0980ab86009dfa7d398</code>。项目核验器只读取提交时绑定的清单对应的索引条目，检查当前交付是否齐全、是否重复及校验值是否一致。两个任务各65文件形成130条历史加当前索引时，第二次只比较自己的65条；历史记录保留在索引，不参与本次文件校验。</p>
+<p>验证来源为本任务用户回传：前两处通过，随后验收范围返工通过并授权 Closeout。未取得独立 validator 原始日志或数量；本轮 Agent 遵照要求未重跑测试。Core 源码提交尚不代表安装包或 OpenGU 固定依赖清单已经更新，最终部署须单独据实记录。</p>
+<h2>Selector 声明与自动复用补修</h2>
+<p>用户指出执行端允许 <code>selection_input</code> 替代 <code>selector_refs</code>，核验器却只按后者展开；015后续表还要求手填Stage S摘要和SHA-256。已有缓存已经能自动HIT/MISS，这个额外输入分支增加了用户配置负担，并使执行与核验的规则不一致。用户明确同意删除它并在同一034返工。</p>
+<p>现在，Selector与Unlearning都通过公共小表声明选点规则，使用同一有效训练seed与预算。<code>selector_entries</code> / <code>unlearning_entries</code> 由普通解析模块持有，dry-run计数、实际执行和收集核验共用；Score、Selection及独立方法仍使用现有缓存producer。实际使用的三元Artifact身份、哈希、命中与producer调用事实写入summary及Output。Metrics的已收集Output输入继续保留。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>实际场景</th>
+<th>观察与判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无上轮Selector结果，直接执行Unlearning</td>
+<td>两Selector（Degree/模型型评分）×两训练seed×两预算×两方法产生16个真实输出；MISS自动计算。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>先执行Selector，再以相同声明执行Unlearning</td>
+<td>Degree、Random、a_grad_norm的真实Selection Artifact逐项相同；Score/Selection全部HIT，选点producer未调用。24个方法输出正常生成。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>再次执行，禁止训练和评分</td>
+<td>训练/评分调用列表为空，24个方法输出HIT且身份一致；源YAML字节不变。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>Core真实提交、收集与核验</td>
+<td>使用相同声明热执行，收集65个文件、核验16条件；即使更新文件传输摘要，伪造Selection content_hash仍被语义核验拒绝。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>删除旧输入与迁移015</td>
+<td>活动代码/配置无旧字段和专用分支；六张U/Retrain表改为公共refs与原有两轴，12张维护表仍对应306/612/306条件。007/032保持4/42条件和原文字节。<strong>PASS</strong></td>
+</tr>
+<tr>
+<td>独立Retrain示例与输出只读消费</td>
+<td>更新后的示例真实执行；热Retrain和指标读取在禁止训练及forward时仍通过。<strong>PASS</strong></td>
+</tr>
+</tbody></table></div>
+<p><strong>测试过程与修正：</strong> <code>465567df</code>先固定16项合同测试，产品仍为<code>8ad752ed</code>时10失败、6通过。首次夹具误用Python 3.8不支持的<code>removesuffix</code>，在产品修改和冻结提交前改为等价切片，所有断言不变。冻结后测试文件未改，原Core与AutoReport合同也未改。<a href="evidence/selector-contract.json">冻结与RED回执</a>。</p>
+<p>干净产品检查点<code>5ca0d93e</code>完成311项回归，310通过、1项旧测试变量遗漏导致NameError。<code>867c806a</code>只补该测试从真实Output读取Selection身份，整份Retrain文件17项重跑通过；其余294项按实际diff复用，合计311项有效通过，未重复累加，也未把原失败轮标成整轮PASS。<a href="evidence/selector-observations.json">逐测试与复用说明</a> · <a href="evidence/selector-verify.txt">原完整回归</a> · <a href="evidence/selector-retrain-verify.txt">17项重跑</a>。</p>
+<p>活动YAML与全部引用审计、既有SyncMate smoke、dashboard check、20个文档链接和冻结合同检查均通过。<a href="evidence/selector-configuration-audit.json">最新配置审计</a>。本轮未修改评分、Selection、模型训练或GU producer，未改写任何历史缓存/正式数据。旧测试只迁移被删除的手工输入；缓存查找仍执行，producer阻断位置改在实际评分函数，缺失依赖、损坏身份和只读指标断言保留。</p>
+<p>以下保留034原始问题、前序修正与证据；各结果仍标明自己的检查点。</p>
+<h2>AutoReport 补修：运行事件恢复</h2>
+<p>用户认可Core与普通入口的流程后，补查确认 <code>run.py</code> 迁移时遗漏了现有AutoReport V3调用。Core的任务状态不能自动替代实验审计事件。本次在普通入口接回原V3 writer和投影器，没有新增报告系统或执行调度器。</p>
+<p>现在一份YAML通过配置与设备检查后写入 <code>run.started</code>，已有内核执行完成后写入 <code>run.completed</code>；执行异常写入 <code>run.failed</code> 并保留原错误。完成事件关联summary路径及SHA-256，每次运行绑定配置指纹、Git版本和执行run-id。事件位于设备选定执行根的 <code>results/_journal</code>，现有Markdown/HTML由JSONL自动重建。</p>
+<p>实际观察如下，均来自临时CPU图上的真实命令和Core子进程：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>观察与判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>冷运行后以新run-id热运行</td>
+<td>4条事件，分别为started/completed；同一实验、不同运行身份，attempt为1/2；热运行Selection HIT。PASS</td>
+</tr>
+<tr>
+<td>图字节与manifest摘要不符</td>
+<td>started/failed，保存 <code>persisted graph digest mismatch</code>，没有completed或结果summary。PASS</td>
+</tr>
+<tr>
+<td>dry-run</td>
+<td>正确展开1条件，没有results目录或事件。PASS</td>
+</tr>
+<tr>
+<td>既有日志损坏</td>
+<td>原日志字节保留；在缓存和结果生产前拒绝。PASS</td>
+</tr>
+<tr>
+<td>Core正常提交与执行</td>
+<td>同一入口生成started/completed，绑定registered运行身份及临时Git版本；无替代预检或事件函数。PASS</td>
+</tr>
+</tbody></table></div>
+<p>这里记录整份YAML的运行状态，以显式experiment身份接入V3；逐条件指标和缓存事实仍由已有summary持有，不将整张矩阵伪装成一个model/method/ratio条件。Core精确产物收集清单未增加共享journal；本次证明runner生成事件，未声称远端journal已经回传。</p>
+<p><strong>本次是测试先行补修：</strong> <code>157f30ce</code> 固定5项验收测试，产品仍为 <code>51ac0e19</code> 时得到4失败/1通过；此后测试文件字节完全未改。产品补修后31项开发回归通过，干净检查点 <code>5b03cf30</code> 上48项相关验证全部通过，203.15秒。<a href="evidence/autoreport-contract.json">冻结记录</a>与<a href="evidence/autoreport-observations.json">逐测试结果、原始事件及摘要核对</a>可复核。此前整个034不能追认为严格TDD；原Core轮次的夹具更正仍保留在下文。</p>
+<h2>为什么注册 034：原始问题与修正对照</h2>
+<p>034 于 2026-09-06 注册为 <code>correction_of AAGU-026</code> 的独立 FIX。原始 WorkItem 写明：</p>
+<blockquote>
+<p>本项是 AAGU-026 的后续返工修正，解决其入口与配置规格未统一的问题，并接管 015 的冗余配置生成和 001 文档表述修正。</p>
+</blockquote>
+<p>因此，本项验收要回答的是：<strong>一份普通实验配置，是否已经能沿同一套规则进入真实训练、选点、遗忘/重训、缓存及注册收集，而无需为实验再维护专用解析器和成批 YAML？</strong></p>
+<p>下面按注册时“本次增量”的六项对应整理。第 1–4 项有登记时的代码/配置问题记录；第 5 项是当时明确的覆盖语义要求，第 6 项是文档与职责要求，不能把要求本身当成曾发生过错误实验的证据。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>注册时的真实问题或明确要求</th>
+<th>本次对应修正</th>
+<th>用什么判断修正是否成立</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1. 公共配置没有一套共同规格。</strong> 015 与 V2 各有 17 份 Selector 表；同一 <code>gt_full</code> 参数相同，但一边要求 <code>candidate/budget</code>，另一边拒绝这些字段。</td>
+<td>公共目录持有同一套小表，组合表引用；同语义实例共用，不同参数变体明确区分。</td>
+<td><a href="evidence/configuration-audit.json">配置审计</a>核对全部活动引用；<a href="evidence/observations.json">实际观察</a>包含17方法公式对照和真实TracIn 3/6轨迹。</td>
+</tr>
+<tr>
+<td><strong>2. “能检查配置”与“能实际执行”脱节。</strong> <code>run.py</code> 对普通 <code>kind: experiment</code> 只放行 dry-run；已有真实内核没有成为统一命令路径。</td>
+<td>普通检查、临时CPU执行、注册项目调用均进入同一解析/展开/执行链。</td>
+<td><a href="evidence/observations.json">真实命令证据</a>产生24个独立输出，另以相同声明自动复用Stage S缓存执行Retrain；不是仅调用解析函数。</td>
+</tr>
+<tr>
+<td><strong>3. 旧专用路径仍被消费。</strong> <code>opengu_recipes/opengu_adapter</code> 仍调用旧 target-direct stage，活动注册不能只靠迁移文件名完成修正。</td>
+<td>迁移预检、指纹、输出及收集契约后退役旧解析/调度与注册；本次复核又清除了M1 helper及其旧Adapter。</td>
+<td><a href="evidence/retired-code.json">删除清单</a>与零活动引用审计；<a href="evidence/core-rework-observations.json">本轮真实Core验证</a>覆盖队列、设备、校验和结果读取。M1残留属于实施后补查，未冒充注册时已点名的问题。</td>
+</tr>
+<tr>
+<td><strong>4. 015 用文件复制表示实验条件。</strong> 449份YAML中424份位于 <code>generated/</code>，按seed/预算生成，造成重复维护。</td>
+<td>改为12张普通维护表和内存展开；保留原三数据集、17方法、三seed、两预算及阶段语义。</td>
+<td><a href="evidence/configuration-audit.json">迁移审计</a>：424副本退役；Stage S 306、Stage U 612、独立Retrain 306，文件减少未缩小科学范围。</td>
+</tr>
+<tr>
+<td><strong>5. 大表覆盖规则必须落实到实际消费者。</strong> 只允许训练seed和预算，明确优先级、来源、模型型Selector与GU/Retrain配对；不能任意override或写回小表。</td>
+<td>展开有效配置并记录来源，训练、选点和缓存使用实际消费值；Dataset/Split与Random抽样seed保持各自含义。</td>
+<td><a href="evidence/observations.json">CPU冷/热观察</a>：实际训练seed为122/722、选点数1/2、源YAML不变；阻断producer后HIT且输出身份一致。</td>
+</tr>
+<tr>
+<td><strong>6. 合同、模板和责任范围必须对齐。</strong> 用户要求把公共整改独立登记为034，032继续只负责科学方案及最终配置验收。</td>
+<td>更新001合同和配置/入口说明；通用规范适配已有007、032两份表，公共整改由034承担。</td>
+<td><a href="evidence/rework-observations.json">两份表的实际CLI检查</a>：跨工作目录引用正确，007为4条件、032为42条件，源表未改。正式实验及032科学接受仍由各自任务决定。</td>
+</tr>
+</tbody></table></div>
+<p><strong>原始来源：</strong><a href="WORKITEM.md">同一 WorkItem</a> 的 Human Surface、Source and relations、Observed baseline and evidence boundaries。已与首次登记提交 <code>619d0f75135727ad09d00d658ef48d16e9bf4841</code> 核对；<a href="evidence/registration-problem-source.json">原文摘录与来源定位</a>保留登记原文和Git对象身份。上表是对应说明，不改写原始合同，也不撤销026此前已接受的缓存/消费者证据。</p>
+<h2>本轮为什么再次返工</h2>
+<p>上一版虽然共用实验内核，仍在新建的 <code>experiments/syncmate_stage.py</code> 中写死 RTX 4090、CUDA 和 SSH 绝对目录，手读 running queue 与 receipt。测试又替换了整个生产预检并强改 CPU，因此它证明的是经过替换的链路，不能证明真实设备配置已经进入执行上下文。此前对此接缝的“通过”表述不充分，本报告以本轮真实 Core 观察替换该结论。</p>
+<p>现在的职责如下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>现有组件</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>device.yaml</code> / Core 的 peer 配置</td>
+<td>声明执行设备、目录和 SSH 解释器。普通入口使用 Core 已有 reader；缺少 <code>execution_device</code> 或指定设备不可用时拒绝，不选默认设备。</td>
+</tr>
+<tr>
+<td><code>experiments/run.py</code> / 原解析器及内核</td>
+<td>同一普通 YAML 完成检查和执行；使用传入设备，保存本阶段结果。没有专用 recipe 分支、第二次生成 YAML 或手读队列。</td>
+</tr>
+<tr>
+<td>OpenGU adapter / 注册</td>
+<td>绑定普通配置及引用表指纹、运行身份和阶段文件清单；消费已有结果身份核验。</td>
+</tr>
+<tr>
+<td>SyncMate Core</td>
+<td>正常提交、版本绑定、真实子进程、队列状态、收集、checksum 和可信索引。未修改独立 Core。</td>
+</tr>
+</tbody></table></div>
+<p><code>syncmate_stage.py</code> 与无消费者的 CPU context helper 已删除，旧测试中的手写 running/receipt、替换生产预检和强改设备也已移除。没有添加新的实验调度器或配置生成器。</p>
+<p><strong>测试先行的实际记录：</strong> <code>cdc08804</code> 先提交行为测试并记录 7 项 RED。随后修正了夹具缺少模型资源、预算格式、训练型评分和本地 transport 四处设置，33 条断言的 AST 逐条未变。原始及更正后文件 hash 见<a href="evidence/core-contract-freeze.json">冻结记录</a>。另退役了要求旧 stage 报错文案和整份注册表固定 hash 的两条实现快照断言；白名单、配置绑定、路径与真实消费者检查保留。</p>
+<h2>迁移前后：减少维护文件，保留逻辑条件</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>对象</th>
+<th>基线</th>
+<th>当前候选</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>活动配置目录</td>
+<td>522 张 YAML，多种规格</td>
+<td>46 张：28 张公共小表、18 张普通组合表</td>
+</tr>
+<tr>
+<td>公共小表</td>
+<td>分散在015、formal-v2、007、SM005及合同示例</td>
+<td>3 Dataset/Split、18 Selector、4 Unlearning、3 Evaluation；其中包含明确的 Hutch64、GNNDelete lr=0.02 变体</td>
+</tr>
+<tr>
+<td>17 Selector</td>
+<td>015/V2 两套字段规则</td>
+<td>以015为基准的同一规范；有效参数和真实依赖逐方法核对</td>
+</tr>
+<tr>
+<td>015 维护文件</td>
+<td>449 张，其中424张生成 YAML</td>
+<td>每数据集 S、U、Retrain、Metrics 各一张，共12张；不再生成叶配置</td>
+</tr>
+<tr>
+<td>015 科学条件</td>
+<td>3数据集 × 17方法 × 3训练seed × 2预算</td>
+<td>Stage S 306；两种 GU 的 Stage U 612；独立 Retrain 306作为原有评价参照</td>
+</tr>
+<tr>
+<td>032 参考配置</td>
+<td>7方法 × 2预算 × 3训练seed</td>
+<td>42条件，公共引用；科学方案仍由032单独验收</td>
+</tr>
+<tr>
+<td>007 最小组合</td>
+<td>8张按seed等拆分的小表 + 组合表</td>
+<td>1张普通组合表引用公共小表，2seed × 1预算 × 2方法 = 4输出</td>
+</tr>
+<tr>
+<td>历史配置</td>
+<td>35张旧扁平/配方 YAML 在活动目录</td>
+<td>退出执行，原Git内容留在历史目录；A3/A5说明同时归档</td>
+</tr>
+<tr>
+<td>合同示例</td>
+<td>重复的小表与组合表</td>
+<td>4张组合示例引用公共小表</td>
+</tr>
+<tr>
+<td>执行注册</td>
+<td>38项，含旧专用与SM005注册</td>
+<td>smoke、preflight及1项普通007实验注册；旧36项删除，新增1项</td>
+</tr>
+</tbody></table></div>
+<p>18张组合表中，12张属于015，007与032各1张，1张通用模板，3张保留的SM005接口参考。参考表不提供活动作业注册，也不赋予运行批准。</p>
+<p>015仍为 Cora/CiteSeer/PubMed、训练seed <code>[42,212,2024]</code>、预算 <code>[0.01,0.05]</code>。9组训练准备、141组Score、282组Selection是有效输入相同所导出的分组预测；没有把它们当作三数据集真实缓存命中或成本证据。Metrics预期形成612组GU/Retrain比较，数量需由后续真实绑定输出确认。</p>
+<p>完整文件清单与参数对照：<a href="evidence/configuration-migration.json">配置迁移</a>、<a href="evidence/retired-configs.json">归档/示例映射</a>、<a href="evidence/configuration-audit.json">逐表展开与35项原文核对</a>。</p>
+<h2>当前规范与可复用模板</h2>
+<p>一张组合表绑定一个 Dataset/Split，引用独立 Selector、Unlearning、Evaluation。仅开放训练 <code>seeds</code> 和 <code>budget_ratios</code> 两种大表覆盖：大表显式值优先于小表，小表优先于方法默认；只在内存展开，来源随结果保存。训练seed配对模型型Selector与GU/Retrain，不改split、Random抽样或Hutch探针seed；不支持任意override或给显式checkpoint换标签。</p>
+<p>本次通用模板适配的具体对象就是已经存在的 <strong>007 与 032 两份配置</strong>，没有另建一份实验方案。两份 YAML 在本轮清理中保持原文：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>现有配置</th>
+<th>实际命令检查</th>
+<th>展开结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="../../../experiments/configs/aagu007/experiment.yaml">007</a></td>
+<td><code>run.py …/aagu007/experiment.yaml --dry_run</code></td>
+<td>2批次、4独立方法输出条件</td>
+</tr>
+<tr>
+<td><a href="../../../experiments/configs/aagu032/experiment.yaml">032</a></td>
+<td><code>run.py …/aagu032/experiment.yaml --dry_run</code></td>
+<td>6批次、42条件</td>
+</tr>
+</tbody></table></div>
+<p>测试从不同临时工作目录启动真实命令，证明相对引用从各自 YAML 的所在位置解析。两者均进入 <code>run.py → modular_run.execute → modular_config</code>，没有调用 producer，所有活动源 YAML 字节保持不变；实际参数与结果见<a href="evidence/rework-observations.json">本轮命令证据</a>。032 的科学配置接受仍由其自身 Block 决定。</p>
+<p>以下<a href="../../../experiments/configs/experiment.template.yaml">通用模板</a>只用于说明同一结构，放在 <code>experiments/configs/</code> 时可直接 dry-run，展开8个条件。真实执行仍需绑定并验证输入资产。</p>
+<pre><code class="language-yaml">kind: experiment
+schema_version: 1
+experiment_id: example-cora-retrain
+stage: unlearning
+dataset_ref: datasets/cora.yaml
+selector_refs: [selectors/degree.yaml, selectors/gt_full.yaml]
+unlearning_refs: [unlearning/retrain.yaml]
+evaluation_refs: [evaluations/post_method_metrics.yaml]
+seeds: [42, 212]
+budget_ratios: [0.01, 0.05]
+matrix: cartesian_product
+</code></pre>
+<p>Selector/Unlearning只通过 <code>selector_refs</code> 声明选点，各表显式保留同一训练seed与预算；缓存自动命中或计算，无需填写上一轮Selection摘要。Metrics通过 <code>output_inputs: [{summary, sha256}]</code> 读取已收集独立输出，其真实Output引用仍须在阶段完成后填入。</p>
+<p>规范入口：<a href="../../../docs/experiment_contract/README.md">001合同</a>、<a href="../../../docs/experiment_contract/PARAMETERS.md">字段与实际依赖</a>、<a href="../../../docs/modular_experiments.md">执行数据流</a>。</p>
+<h2>验收问题与实际观察</h2>
+<h3>普通命令是否真正执行 — PASS</h3>
+<p>在20节点、10训练候选的临时图上，普通组合表经过 <code>run.py</code> 的 <code>__main__</code>、同一解析/展开器和执行内核，完成 Degree、Random、a_grad_norm × seed122/722 × 预算0.1/0.2 × GNNDelete/Retrain，共24输出。实际优化器step处记录的训练seed集合为 <code>{122,722}</code>；每次删除节点数为1或2，原YAML字节不变。另一次无测量包装的直接CLI先执行Stage S，再以相同Selector声明自动复用缓存执行独立Retrain，Selection引用逐项相同，没有重新选点。</p>
+<p>关键测试：<code>test_command_cold_warm_seed_budget_retrain_and_metrics</code>、<code>test_stage_s_cache_supplies_real_selections_without_resampling</code>。前者在新Python进程中通过runpy进入真实命令，仅添加seed记录及producer阻断；不是用手工summary替代运行。</p>
+<h3>覆盖与缓存是否遵循真实依赖 — PASS</h3>
+<p>第二次执行同时阻断训练和评分producer，24项方法输出均HIT且身份与冷运行相同，训练/评分调用列表为空。只改预算时，Degree、Random、a_grad_norm的Score分组数分别为1、1、2；对应Selection分组为2、2、4。第二训练seed不影响无需模型的Degree/Random，模型型评分按训练seed区分。实际方法实现和Hutch参数变化的既有消费者测试也观察到相关MISS，其他评分继续HIT；移动/重命名小表不改变计算身份。</p>
+<p>本次TracIn checkpoint选择函数增加拒绝错误轨迹的检查，会改变依赖它的producer指纹；这些Score及下游Selection/Output不能承诺复用旧身份。Metrics读取与配对实现的指纹也会更新评价回执。普通YAML路径迁移本身不进入计算键；没有清空或改写历史Artifact。正式旧缓存上的命中率与重算成本未测量。</p>
+<h3>17方法与TracIn 3/6语义是否保持 — PASS</h3>
+<p>17方法在同一小图上与保留的原评分公式逐项比较，最大绝对误差均为0。公共方法参数核对一致，TracIn的差别来自轨迹消费方式：通用训练真实保存100个epoch后，公共point <code>_3</code>评分实际绑定steps <code>[1,50,100]</code>，<code>_6</code>绑定 <code>[1,10,25,50,75,100]</code>。六种TracIn配置共用该checkpoint选择函数，静态展开全部满足3/6数量；没有给<code>_6</code>显式六步的100-epoch输入被拒绝。</p>
+<p>这保留原约定的checkpoint语义，不将两套YAML字段差异直接解释成不同算法。实际轨迹及Score ID见<a href="evidence/observations.json">观察记录</a>。</p>
+<h3>独立Retrain与收集后指标是否可复核 — PASS</h3>
+<p>保存的Retrain输出包含实际删除集合、模型与原始预测。被删除节点不再参与训练监督，所有关联边从训练图移除；训练seed与当前批次一致。普通Metrics命令读取保存输出后得到12行配对指标，没有训练/评分调用。独立输出回归进一步在禁止全局模型forward、优化器step且Store快照不变时重算指标。配对要求同一Selection身份、Dataset/Split、模型、训练及删除语义，缺失或多义时拒绝。</p>
+<p>这些小图数值证明数据流和复用行为，不用于比较方法效果。</p>
+<h3>注册、设备与 Core 回传是否接通 — PASS（真实本地进程 / 临时 CPU）</h3>
+<p>在干净临时 runner checkout 中，由 Core 的正常 submit / run 接口完成三个阶段，未替换预检、设备读取、进程或队列状态：Selector 是两 seed × 两预算的4个选择结果，回传1份摘要；Unlearning 是8个独立方法输出，回传33文件；Metrics 从已保存输出读出4组配对指标，回传1份摘要。</p>
+<p>直接命令与 Core 命令读取同一份源 YAML，配置指纹和 Dataset/Split 身份一致；运行后源 YAML 字节未变。执行回执记录实际 Python、cwd、设备和临时 Git SHA。先直接执行、再由 Core 执行时，Selector/Unlearning 都命中缓存，Output 身份一致。Core 实际收集并核验文件，重复收集 fetched=0；篡改和删除落地文件后均不再 verified。设备字段缺失、非法设备及越界 CUDA 索引在 producer 前失败。</p>
+<p>原有8输出的项目结果读取与9类错误注入也保持有效：文件/索引/Git SHA/字节/配置/预算/Selector/Dataset错配不能进入可信结果。当前007注册仍绑定4输出/17文件；科学结果核验与人类接受保留各自边界。完整<a href="evidence/core-rework-observations.json">真实观察与分批回执</a>记录检查点及复用理由。</p>
+<p>现有设备文件已有连接、目录和解释器字段，但未声明实验进程的 CPU/CUDA 值。本次只在同一文件中增加明确的 <code>execution_device</code> 消费约定及示例。远端设备文件未修改，正式 runner 需在该文件声明实际值；没有用本地子进程冒充 SSH 或正式 GPU 观察。</p>
+<h3>旧路径与当前说明是否收敛 — PASS</h3>
+<p><code>run.py</code> 不再有旧flat解析与专用target-direct调度分支，本轮进一步删除了 <code>--recipe</code> 分支和新的 <code>syncmate_stage.py</code>，注册直接调用普通配置路径。旧atomic stage、target-direct stage/selection/config/output脚本和无活跃消费者的manifest assembler/adapter删除；过时注册、424份生成YAML及活动引用同步退役。001合同、配置说明、受影响WorkItem owner链接和看板投影已更新。本轮再删除 <code>scripts/syncmate/syncmate_m1.py</code>、无当前消费者的 <code>OpenGUAdapter/ADAPTER</code> 以及七项仅验证旧 M1 支路的测试；旧“尚未批准替换”标记和活动引用清零。当前 <code>scripts/syncmate/syncmate.py</code> 仍是独立 Core 的有效项目入口，保留 <code>OpenGUProjectExtension</code>。上一轮745项仅为收集结果、205项为当时回归结果；本轮的有效验证单独列在下文。</p>
+<p>旧入口与Cache V1私有API测试中失效的断言按<a href="evidence/retired-tests.json">替换清单</a>退役；有效参数、数据split、AutoReport与缓存消费者检查保留。迁移中暴露的旧注册断言已更新到新注册，未通过恢复兼容层来让旧测试通过。文档检查120链接通过，其中13个DocMap链接以canonical项目位置解析；历史记录及归档材料不冒充现行运行说明。</p>
+<h2>保留的共享模块与入口映射</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模块/入口</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>experiments/run.py</code></td>
+<td>普通配置dry-run、隔离CPU命令、已注册项目命令的同一入口</td>
+</tr>
+<tr>
+<td><code>modular_config</code> / <code>modular_run</code></td>
+<td>公共小表、两轴展开、真实Selection绑定、统一执行</td>
+</tr>
+<tr>
+<td><code>device_context</code> / <code>OpenGUProjectExtension</code> / Core</td>
+<td>读取设备配置、绑定普通注册与输出身份、提交和收集；专用stage已删除</td>
+</tr>
+<tr>
+<td><code>target_direct_v1/{methods,scoring,recipe,method_cache}</code></td>
+<td>17种共享评分算法及方法级Score/Selection消费者；名称留在计算身份中</td>
+</tr>
+<tr>
+<td><code>c_target_v1/{core,score_store}</code></td>
+<td>已有张量计算、稳定排序和Score存储</td>
+</tr>
+<tr>
+<td><code>modular_model</code> / <code>modular_gu</code> / <code>unlearning_outputs</code></td>
+<td>训练、GU/Retrain独立输出和真实消费；未新增平行GU实现</td>
+</tr>
+<tr>
+<td><code>modular_artifacts</code> / <code>opengu_method_output</code></td>
+<td>同一已验证Output的便携导出与收集后读取</td>
+</tr>
+<tr>
+<td><code>modular_evaluation</code> / <code>output_metrics</code></td>
+<td>保存输出上的独立指标与配对比较</td>
+</tr>
+<tr>
+<td><code>target_direct_v1/{split_profile,planetoid_io}</code></td>
+<td>现有Dataset/Split工具与真实冷/热测试；本轮不运行正式数据准备</td>
+</tr>
+<tr>
+<td><code>aagu015/definitions.py</code></td>
+<td>只读审计普通表；旧generate命令已删除</td>
+</tr>
+</tbody></table></div>
+<p>GULib基础训练入口及历史证据读取功能保留其原职责，不构成另一套新实验格式。删除文件的精确清单见<a href="evidence/retired-code.json">入口退役</a>。</p>
+<h2>Verify、复跑与证据定位</h2>
+<p>最新Selector补修的311项有效结果见上方，产品检查点为<code>5ca0d93e</code>，测试修正检查点为<code>867c806a</code>。此前AutoReport补修检查点为 <code>5b03cf30b9d7db1d6a0f520b8ec96fa469e5a3a7</code>，48项相关验证通过；见上方新增记录。以下是此前Core返工的软件检查点 <code>c40ee9dae7e63c3e921e221554fbc41fccabd27e</code> 及其 <strong>257 项有效通过结果</strong>，保留各自检查点，不冒充本次重跑：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>证据范围</th>
+<th>有效结果及检查点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>新的 Core/设备行为、原消费者、Retrain/输出</td>
+<td>44项，<code>c01f31dc</code>；包含全部7项新验收</td>
+</tr>
+<tr>
+<td>完整 SyncMate、原24输出冷/热命令、Core依赖</td>
+<td>193项，<code>18051bc4</code>；后续删除未调用helper和更正测试import不改变其实际路径</td>
+</tr>
+<tr>
+<td>当前 adapter / 007、032 跨目录解析</td>
+<td>10项，<code>c40ee9da</code>，整文件重跑通过</td>
+</tr>
+<tr>
+<td>项目结果读取、正常回传及9类故障</td>
+<td>10项，本轮真实Core临时运行；后续变化不改变该执行/收集路径</td>
+</tr>
+<tr>
+<td>配置审计、Core smoke、依赖核验</td>
+<td>均exit 0；46张活动YAML，015仍306 S / 612 U / 306独立Retrain</td>
+</tr>
+</tbody></table></div>
+<p><a href="evidence/core-rework-observations.json">本轮证据</a>列出每个入选测试、JUnit SHA-256、源检查点、实际观察及复用理由。前序349项中的方法公式、配置迁移及其他未改动问题保留原检查点；不把它们报成本轮新运行。</p>
+<p>验证过程的失败保留：示例配置曾按原始CRLF字节算hash，与Core的文本归一化规则不符，已修正；并行Torch检查曾耗尽Windows提交内存，已停止并改串行；清理旧快照测试时误删仍需使用的hashlib import，已恢复并重跑整文件。这些失败轮次不计作整体通过，详情见同一证据的 <code>attempts_not_counted</code>。</p>
+<p>首轮历史验证：2026-09-06，在干净软件检查点 <code>380105002579c99ad003418648a85e67da413a0a</code> 执行：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>检查</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>18个相关测试文件</td>
+<td>349 passed，0 failed，224.90s；2条依赖警告</td>
+</tr>
+<tr>
+<td>公共配置/所有引用/逻辑展开/归档原文审计</td>
+<td>exit 0</td>
+</tr>
+<tr>
+<td>dashboard refresh --check</td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>SyncMate smoke --json</td>
+<td>passed=true，errors=[]</td>
+</tr>
+<tr>
+<td>全测试收集</td>
+<td>750项，无import错误；不声称全部750项执行过</td>
+</tr>
+</tbody></table></div>
+<p>完整参数和退出码：<a href="evidence/verify-checkpoint.json">命令回执</a>；逐测试结果、实测seed/轨迹、输出引用及原始JUnit SHA-256：<a href="evidence/observations.json">观察记录</a>；<a href="evidence/pytest.log">测试日志</a>。原始fixture独立保留在回执的临时路径，原始JUnit位于canonical <code>.workblock/runtime/aagu-034-verify/</code>。所有测试数据与Store均为隔离临时资产。</p>
+<pre><code class="language-powershell">&amp; E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu007/experiment.yaml --dry_run
+&amp; E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/aagu032/experiment.yaml --dry_run
+&amp; E:/conda_package/envs/gnn/python.exe -B -X utf8 -m experiments.aagu015.definitions check
+&amp; E:/conda_package/envs/gnn/python.exe -B -m pytest tests/test_unified_execution.py tests/test_syncmate_gu_outputs.py -q
+</code></pre>
+<p>真实临时命令形状为 <code>experiments/run.py &lt;临时组合表&gt; --device-config &lt;临时device.yaml&gt; --verification-root &lt;临时绝对根&gt; --run-id &lt;新身份&gt;</code>。新根和新run_id避免覆盖；pytest会建立所需的小图、manifest与参数表。正式项目命令为注册的 <code>experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1</code>，本报告不授权执行它。</p>
+<p>当前待决定候选由<a href="WORKITEM.md">同一WorkItem</a>的source branch干净HEAD唯一确定。报告/证据加入后对实际diff复核，复用上述检查点中未受影响的软件证据，并单独验证新增报告与状态投影；详见WorkItem Verify记录。</p>
+<h2>尚未观察与人类边界</h2>
+<p><strong>检查偏差与修复：</strong> 补充检查中的一次仓库全域 <code>pytest --collect-only</code> 误导入 <code>tests/</code> 外有顶层执行副作用的旧 IM 基准脚本，触发了本地数据下载/处理和 CPU 计算；该进程已停止。随后明确限定 <code>pytest tests --collect-only</code>，745项收集通过。逐文件核对创建时间、路径、Git忽略状态和SHA-256后，移除了本次误操作新增的57个文件（40数据、11日志、6编译缓存），并验证均不存在；没有删除既有文件或历史证据。这次误操作及其产物不计入任何正式实验通过结论。详见<a href="evidence/collection-side-effects.json">新增文件与清理核验</a>及命令回执的interrupted_checks。</p>
+<p><strong>NOT OBSERVED：</strong> SSH/GPU正式运行、正式数据上的训练与缓存命中、耗时/峰值显存、015完整矩阵、007科研gate及032科学方案验收。CiteSeer/PubMed真实资产绑定尚缺，015 Metrics的Output摘要引用待正式阶段完成后填写；Selector/Unlearning已无手工Selection输入。Cora配置记录的manifest身份也须在真实checkout重验字节；本轮没有执行获准的正式数据准备流程；误触的本地生成文件已按上述清单移除。</p>
+<p>本轮没有启动远端正式SSH/GPU作业、push、Apply、安装或历史缓存修复。软件支持范围仍是已有节点删除、GCN/SGC和GNNDelete/GIF/Retrain消费者，不能推导任意模型或遗忘方法已适配。当前目标是确认统一配置和执行修正是否完成，后续正式任务必须消费人类接受后的版本。</p>
+<p>HTML呈现检查：<strong>PASS</strong>。已实际查看headless Edge的1440×1000桌面、390×844窄屏首屏以及正文/边界截图；首屏可见决定入口，标题、正文、表格和命令可读，无页面横向溢出、断图或页面错误。观察层是本地HTML渲染，不代表SSH/GPU运行。<a href="evidence/report-desktop.png">桌面</a> · <a href="evidence/report-narrow.png">窄屏</a> · <a href="evidence/render-qa.json">呈现测量</a>。</p>
+</main></body></html>
