@@ -215,27 +215,13 @@ def test_aggregate_serialization_is_lossless():
     assert original.to_dict() == AttackResult.from_dict(original.to_dict()).to_dict()
 
 
-def test_metrics_cli_and_target_direct_shared_consumer(tables, monkeypatch, record_property):
+def test_metrics_cli_reads_independent_modular_outputs(tables, monkeypatch, record_property):
     import subprocess
     import sys
     from pathlib import Path
-    from experiments.modular_config import load_instance
-    from experiments.modular_run import read_dataset, verified_selection
-    from experiments.modular_model import prepare_model
-    from experiments.target_direct_v1.run_outputs import execute_bound_method
-    from utils.target_checkpoint import load_target_checkpoint
     reference = configs(tables)
     root = tables[0]
-    data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
-    selection = verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
-    gu = load_instance(root / 'gu.yaml', 'unlearning')
-    retrain = load_instance(root / 'retrain.yaml', 'unlearning')
-    _, _, cp = prepare_model(gu, data=data, dataset_name=inputs.dataset_name,
-        checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
-    checkpoint = load_target_checkpoint(cp['path'], expected_file_sha256=cp['file_sha256'])
-    rows = [execute_bound_method(instance=instance, selection=selection, data=data,
-        dataset_name=inputs.dataset_name, checkpoint=bound_checkpoint, store_root=root / 'v2',
-        runtime_root=root / 'target-stage') for instance, bound_checkpoint in ((gu, checkpoint), (retrain, None))]
+    rows = [method(tables, 'cli-' + name, reference, name + '.yaml') for name in ('gu', 'retrain')]
     pairs = [{'strategy': 'degree', 'unlearning': rows[0]['output'], 'retrain': rows[1]['output']}]
     (root / 'references.json').write_text(json.dumps(pairs))
     store_before = snapshot(root / 'v2')
@@ -254,7 +240,7 @@ def test_metrics_cli_and_target_direct_shared_consumer(tables, monkeypatch, reco
 def test_independent_method_metrics_survive_collection_without_forward(tables, monkeypatch, record_property):
     import shutil
     from experiments.modular_evaluation import evaluate_modular, resolve_evaluation
-    from experiments.target_direct_v1.run_outputs import save_method_result
+    from experiments.modular_artifacts import save_method_result
     from cache_v2.unlearning_output import UnlearningOutputPayload
     reference = configs(tables)
     root = tables[0]
@@ -309,65 +295,3 @@ def test_auc_reports_missing_classes_without_producing_data():
     assert result['f1'] == 1.0 and result['classification_auc'] is None
     assert result['classification_auc_status'] == 'missing_test_classes'
     assert update_detection(payload)['update_detection_auc_status'] == 'missing_original_predictions'
-
-
-def test_matrix_runs_one_requested_method_without_inline_comparison(tables, monkeypatch):
-    from experiments import run as matrix
-    from experiments.target_direct_v1 import run_outputs as lane
-    from experiments.modular_config import load_instance
-    from experiments.modular_run import read_dataset, verified_selection
-    from experiments.modular_model import prepare_model
-    from utils.target_checkpoint import load_target_checkpoint
-    reference = configs(tables)
-    root = tables[0]
-    data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
-    selection = verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
-    gu = load_instance(root / 'gu.yaml', 'unlearning')
-    _, _, cp = prepare_model(gu, data=data, dataset_name=inputs.dataset_name,
-        checkpoint_root=root / 'checkpoints', device=torch.device('cpu'), reference_directory=root)
-    checkpoint = load_target_checkpoint(cp['path'], expected_file_sha256=cp['file_sha256'])
-    cfg = {'name': 'cpu-matrix', 'dataset': inputs.dataset_name, 'base_model': 'GCN', 'ratio': .1,
-           'methods': ['GNNDelete', 'Retrain'], 'strategies': ['degree'], 'seeds': [42],
-           'unlearning_refs': ['gu.yaml', 'retrain.yaml'], '_source_path': str(root / 'matrix.yaml'),
-           'run_root': str(root / 'matrix-results'), 'runtime_root': str(root / 'matrix-runtime'),
-           'processed_root': str(root), 'defaults': {'run_collateral': False}}
-    calls = []
-    def cpu_cell(cfg, name, strategy, seed, artifact, *, output_dir, fingerprint, git_sha):
-        calls.append(name)
-        instance = load_instance(root / ('gu.yaml' if name == 'GNNDelete' else 'retrain.yaml'), 'unlearning')
-        row = lane.execute_bound_method(instance=instance, selection=selection, data=data,
-            dataset_name=inputs.dataset_name, checkpoint=checkpoint if name == 'GNNDelete' else None,
-            store_root=root / 'v2', runtime_root=root / 'matrix-runtime')
-        lane.save_method_result(row, store_root=root / 'v2', output_dir=output_dir, strategy=strategy,
-                                meta={'config_fingerprint': fingerprint, 'method': name})
-        return 'completed'
-    monkeypatch.setattr(lane, 'execute_cell', cpu_cell)
-    # Paths/data are a disposable CPU backend; the real matrix skip/dispatch and algorithms run.
-    monkeypatch.setattr(matrix, '_content_fingerprint', lambda cfg, method, *_: 'cpu-' + method)
-    monkeypatch.setattr(matrix, 'cache_v2_settings', lambda _: {'mode': 'fixture'})
-    monkeypatch.setattr(matrix, '_record_autoreport_event', lambda **_: None)
-    monkeypatch.setattr(matrix, 'prior_attempt_context', lambda *a, **k: (1, None))
-    monkeypatch.setattr(lane, 'cell_instance', lambda cfg, name, seed:
-                        load_instance(root / ('gu.yaml' if name == 'GNNDelete' else 'retrain.yaml'), 'unlearning'))
-    artifact = {**reference, 'store_root': str(root / 'v2'), 'k': len(selection.selected_nodes),
-                'target_checkpoint': cp}
-    assert matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
-                           selection_artifact=artifact) == 'completed'
-    assert calls == ['GNNDelete']
-    assert not matrix.cell_dir(cfg, 'Retrain', 'degree', 42).exists()
-    assert matrix.run_cell(cfg, 'Retrain', 'degree', 42, force=False, dry_run=False,
-                           selection_artifact=artifact) == 'completed'
-    assert calls == ['GNNDelete', 'Retrain']
-    monkeypatch.setattr(lane, 'execute_cell', forbidden)
-    for name in cfg['methods']:
-        assert matrix.run_cell(cfg, name, 'degree', 42, force=False, dry_run=False,
-                               selection_artifact=artifact) == 'skipped'
-    changed = yaml.safe_load((root / 'gu.yaml').read_text())
-    changed['parameters']['unlearn_lr'] = gu['parameters']['unlearn_lr'] * 2
-    write_yaml(root / 'gu.yaml', changed)
-    with pytest.raises(ValueError, match='method conditions'):
-        matrix.run_cell(cfg, 'GNNDelete', 'degree', 42, force=False, dry_run=False,
-                        selection_artifact=artifact)
-    with pytest.raises(ValueError, match='post-processing'):
-        matrix.run_cell({**cfg, 'defaults': {'run_collateral': True}}, 'GNNDelete', 'degree', 42,
-                        force=False, dry_run=False, selection_artifact=artifact)

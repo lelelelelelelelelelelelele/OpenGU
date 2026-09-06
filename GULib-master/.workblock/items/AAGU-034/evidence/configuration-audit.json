@@ -1,0 +1,495 @@
+{
+  "passed": true,
+  "baseline": "2b9bcafbfc789d0c60362b4246eee2a34440213b",
+  "active_yaml_before": 522,
+  "active_yaml_after": 46,
+  "common_small_tables": 28,
+  "ordinary_active_experiments": 18,
+  "contract_examples": 4,
+  "aagu015_yaml_before": 449,
+  "aagu015_yaml_after": 12,
+  "generated_deleted": 424,
+  "aagu015_counts": {
+    "stage_s": 306,
+    "stage_u": 612,
+    "independent_retrain": 306,
+    "conditional_preparation_groups": 9,
+    "conditional_score_groups": 141,
+    "conditional_selection_groups": 282
+  },
+  "archive_byte_checks": [
+    {
+      "before": "experiments/configs/A3_cora_GAT_alpha0.00.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GAT_alpha0.00.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GAT_alpha0.25.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GAT_alpha0.25.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GAT_alpha0.75.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GAT_alpha0.75.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GAT_alpha1.00.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GAT_alpha1.00.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GCN_alpha0.00.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GCN_alpha0.00.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GCN_alpha0.25.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GCN_alpha0.25.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GCN_alpha0.75.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GCN_alpha0.75.yaml"
+    },
+    {
+      "before": "experiments/configs/A3_cora_GCN_alpha1.00.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A3_cora_GCN_alpha1.00.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_citeseer_r0.05.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_citeseer_r0.05.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_citeseer_r0.05_stable_notracin.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_citeseer_r0.05_stable_notracin.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_citeseer_r0.20.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_citeseer_r0.20.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_ratio_0.01.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_ratio_0.01.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_ratio_0.10.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_ratio_0.10.yaml"
+    },
+    {
+      "before": "experiments/configs/A5_ratio_0.20.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A5_ratio_0.20.yaml"
+    },
+    {
+      "before": "experiments/configs/A6_cora_gin_r0.05.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/A6_cora_gin_r0.05.yaml"
+    },
+    {
+      "before": "experiments/configs/cache_v2_cora_degree_canary.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/cache_v2_cora_degree_canary.yaml"
+    },
+    {
+      "before": "experiments/configs/cache_v2_cora_simple_selection_canary.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/cache_v2_cora_simple_selection_canary.yaml"
+    },
+    {
+      "before": "experiments/configs/cache_v2_gate4_cora_degree_canary.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/cache_v2_gate4_cora_degree_canary.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_feasibility.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_feasibility.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_hybrid_smoke.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_hybrid_smoke.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_im_only.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_im_only.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_im_only_r01.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_im_only_r01.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_T1_seed42.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_T1_seed42.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_T2_seed212.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_T2_seed212.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_T3_seed722.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_T3_seed722.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_arxiv_tracin_smoke.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_arxiv_tracin_smoke.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_cora_gat.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_cora_gat.yaml"
+    },
+    {
+      "before": "experiments/configs/phase_b_cora_gcn.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/phase_b_cora_gcn.yaml"
+    },
+    {
+      "before": "experiments/configs/sanity_graphrevoker.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/sanity_graphrevoker.yaml"
+    },
+    {
+      "before": "experiments/configs/sanity_graphrevoker_r05_full.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/sanity_graphrevoker_r05_full.yaml"
+    },
+    {
+      "before": "experiments/configs/sanity_graphrevoker_r05_notracin.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/sanity_graphrevoker_r05_notracin.yaml"
+    },
+    {
+      "before": "experiments/configs/sanity_graphrevoker_r10_full.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/sanity_graphrevoker_r10_full.yaml"
+    },
+    {
+      "before": "experiments/configs/sanity_one_cell.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/sanity_one_cell.yaml"
+    },
+    {
+      "before": "experiments/configs/syncmate_target_direct_formal_v2.yaml",
+      "after": "docs/archive/experiment-configs-pre-aagu034/syncmate_target_direct_formal_v2.yaml"
+    }
+  ],
+  "retired_runtime_reference_matches": [],
+  "registered_recipes": [
+    "smoke",
+    "opengu-preflight-v1",
+    "opengu-aagu007-v1"
+  ],
+  "registration": {
+    "config_path": "experiments/configs/aagu007/experiment.yaml",
+    "config_sha256": "7c6778824e8a67d920d7388e31565ce14e94a51422a57b851eadf34c81749b2a",
+    "configuration_fingerprint": "91f35a95df6fba1ac825498af997800b20949e58a22fbce53001e7083ff0ed87",
+    "run_identity": {
+      "experiment_id": "aagu007-cora-degree-r001-v1",
+      "run_id": "aagu007-v1"
+    },
+    "logical_cells": 4,
+    "expected_dataset": {
+      "num_nodes": 2708,
+      "candidate_count": 1895
+    },
+    "id": "opengu-aagu007-v1",
+    "argv": [
+      "{python}",
+      "experiments/run.py",
+      "--recipe",
+      "opengu-aagu007-v1"
+    ],
+    "git_binding_policy": "job-exact-main-v1",
+    "requires_job_expected_git_sha": true,
+    "timeout_seconds": 1800,
+    "expected_artifact_paths": [
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/0/attack.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/0/output-references.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/0/predictions.npz",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/0/_meta.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/1/attack.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/1/output-references.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/1/predictions.npz",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/1/_meta.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/2/attack.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/2/output-references.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/2/predictions.npz",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/2/_meta.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/3/attack.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/3/output-references.json",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/3/predictions.npz",
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1/summary.outputs/3/_meta.json"
+    ],
+    "collector_result_roots": [
+      "results/runs/modular/aagu007-cora-degree-r001-v1/aagu007-v1"
+    ],
+    "collector_artifact_names": [
+      "summary.json",
+      "attack.json",
+      "output-references.json",
+      "predictions.npz",
+      "_meta.json"
+    ],
+    "preflight_profile": "modular-project-v1",
+    "collector_profile": "modular-output-v1",
+    "collector_acceptance": true,
+    "execution_validator": "exact-artifacts-json-v1",
+    "success_predicate": "json.passed == true and all reviewed artifacts exist"
+  },
+  "rows": [
+    {
+      "path": "experiments/configs/aagu007/experiment.yaml",
+      "kind": "experiment",
+      "logical_cells": 4,
+      "stage": "unlearning",
+      "configuration_fingerprint": "91f35a95df6fba1ac825498af997800b20949e58a22fbce53001e7083ff0ed87"
+    },
+    {
+      "path": "experiments/configs/aagu015/metrics_citeseer.yaml",
+      "kind": "experiment",
+      "logical_cells": 2,
+      "stage": "metrics",
+      "configuration_fingerprint": "9397722c891b497565ae9b63940cc29ba941272c497d638f703761b8e210d866"
+    },
+    {
+      "path": "experiments/configs/aagu015/metrics_cora.yaml",
+      "kind": "experiment",
+      "logical_cells": 2,
+      "stage": "metrics",
+      "configuration_fingerprint": "6fb0e5f79acaac0fbefc33fa51a73d5152b0e4d41a1b399344abdfe4a6d17ca2"
+    },
+    {
+      "path": "experiments/configs/aagu015/metrics_pubmed.yaml",
+      "kind": "experiment",
+      "logical_cells": 2,
+      "stage": "metrics",
+      "configuration_fingerprint": "a7b26247d67a11184f1d010468cf775a080a26729cab513e07a0e36aa55a273c"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_retrain_citeseer.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "unlearning",
+      "configuration_fingerprint": "b31b4ce5f7bd415bda44b02d9a595e7786568f209ceb22f5c6c9209305f07753"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_retrain_cora.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "unlearning",
+      "configuration_fingerprint": "dcdf8d3168966e036429d19558540837e66ba67aff2952b11909149b12fb6861"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_retrain_pubmed.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "unlearning",
+      "configuration_fingerprint": "5485aff4cf6a22b0f2dca4c83162555a5a3aba7a3f574e8048d42966c5de10fd"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_s_citeseer.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "selector",
+      "configuration_fingerprint": "6532960f6ec28b94b0a08effc1783b6a36093031ca3d8568735dd4b3885a7d6e"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_s_cora.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "selector",
+      "configuration_fingerprint": "81c57cee826025701b9781e7b52aef75281e7890cf90571ed6c47ada40e17000"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_s_pubmed.yaml",
+      "kind": "experiment",
+      "logical_cells": 102,
+      "stage": "selector",
+      "configuration_fingerprint": "42ea0ea500d14b651bedbdcb11031b2c1e98459fa69793a064b50af248dcffa9"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_u_citeseer.yaml",
+      "kind": "experiment",
+      "logical_cells": 204,
+      "stage": "unlearning",
+      "configuration_fingerprint": "521f16bef0e319dcfbaf7c666e1337791007d38f1212e4c99e3f3d6a72e153f0"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_u_cora.yaml",
+      "kind": "experiment",
+      "logical_cells": 204,
+      "stage": "unlearning",
+      "configuration_fingerprint": "b3e646bea7c1ba79cf5a1f1493e9c936f23861e8873f3f7991f2de7968ca63c3"
+    },
+    {
+      "path": "experiments/configs/aagu015/stage_u_pubmed.yaml",
+      "kind": "experiment",
+      "logical_cells": 204,
+      "stage": "unlearning",
+      "configuration_fingerprint": "4004011c0cf60df8cac9d33cfc05b8b1f41382ef396340e3603449bc1cceb17d"
+    },
+    {
+      "path": "experiments/configs/aagu032/experiment.yaml",
+      "kind": "experiment",
+      "logical_cells": 42,
+      "stage": "unlearning",
+      "configuration_fingerprint": "e530a8c7489edc1d59d409a3cdd1f81ece8e4e3b78883c97c60f8cf424baee06"
+    },
+    {
+      "path": "experiments/configs/datasets/citeseer.yaml",
+      "kind": "dataset_split"
+    },
+    {
+      "path": "experiments/configs/datasets/cora.yaml",
+      "kind": "dataset_split"
+    },
+    {
+      "path": "experiments/configs/datasets/pubmed.yaml",
+      "kind": "dataset_split"
+    },
+    {
+      "path": "experiments/configs/evaluations/post_method_metrics.yaml",
+      "kind": "evaluation"
+    },
+    {
+      "path": "experiments/configs/evaluations/post_unlearning_utility.yaml",
+      "kind": "evaluation"
+    },
+    {
+      "path": "experiments/configs/evaluations/post_unlearning_utility_and_retrain_gap.yaml",
+      "kind": "evaluation"
+    },
+    {
+      "path": "experiments/configs/experiment.template.yaml",
+      "kind": "experiment",
+      "logical_cells": 8,
+      "stage": "unlearning",
+      "configuration_fingerprint": "3a81a8fe53ef0942439ec9c1917b734ba234113f89f66d9e9211afa270815db3"
+    },
+    {
+      "path": "experiments/configs/selectors/a_grad_norm.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/b_param_hutch.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/b_param_hutch64.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/degree.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/gt_full.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/gt_simple.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/legacy.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/p_graph.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/p_point.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/p_simple.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/r_point.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/random.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_graph_3.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_graph_6.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_point_3.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_point_6.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_simple_3.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/selectors/tracin_cp_simple_6.yaml",
+      "kind": "selector"
+    },
+    {
+      "path": "experiments/configs/sm005_atomic/experiment.yaml",
+      "kind": "experiment",
+      "logical_cells": 1,
+      "stage": "unlearning",
+      "configuration_fingerprint": "8dba4e01d94500b8c9f9ae808271a997c754e6e6ac4d89f4dfd6b74139943bc3"
+    },
+    {
+      "path": "experiments/configs/sm005_atomic/experiment_b_hutch32.yaml",
+      "kind": "experiment",
+      "logical_cells": 1,
+      "stage": "unlearning",
+      "configuration_fingerprint": "9550d4a10af57d72acd838d5ae4e29fda5d159f46ae4524e958c216651f562c4"
+    },
+    {
+      "path": "experiments/configs/sm005_atomic/experiment_d_full_selector.yaml",
+      "kind": "experiment",
+      "logical_cells": 1,
+      "stage": "selector",
+      "configuration_fingerprint": "f0d78ae46e4c09edd0296285c26956f0b3173fe94ccc88df7e1e6ad0ad172ae4"
+    },
+    {
+      "path": "experiments/configs/unlearning/gif.yaml",
+      "kind": "unlearning"
+    },
+    {
+      "path": "experiments/configs/unlearning/gnndelete.yaml",
+      "kind": "unlearning"
+    },
+    {
+      "path": "experiments/configs/unlearning/gnndelete_lr002.yaml",
+      "kind": "unlearning"
+    },
+    {
+      "path": "experiments/configs/unlearning/retrain.yaml",
+      "kind": "unlearning"
+    },
+    {
+      "path": "docs/experiment_contract/examples/experiment_five_selectors_two_gu.yaml",
+      "kind": "experiment",
+      "logical_cells": 10,
+      "stage": "unlearning",
+      "configuration_fingerprint": "37da764eab826610286697e677021e49c2cc2034c197b6b50f75b2683ec4ed79"
+    },
+    {
+      "path": "docs/experiment_contract/examples/experiment_gu_from_selection.yaml",
+      "kind": "experiment",
+      "logical_cells": 2,
+      "stage": "unlearning",
+      "configuration_fingerprint": "60c57560c11185288f28b4e4fc31de29f2ea70fb5fffbbf60b576438dec9b996"
+    },
+    {
+      "path": "docs/experiment_contract/examples/experiment_one_selector_one_gu.yaml",
+      "kind": "experiment",
+      "logical_cells": 1,
+      "stage": "unlearning",
+      "configuration_fingerprint": "d96267dc9ad0fe94ea590c8a9d29de9a7e3c5f0b7419f0fdde64003cc1e16345"
+    },
+    {
+      "path": "docs/experiment_contract/examples/experiment_selector_only.yaml",
+      "kind": "experiment",
+      "logical_cells": 2,
+      "stage": "selector",
+      "configuration_fingerprint": "0e4b18fbfa4f01b9719784f55c6f5da0c348c6d07b71489fdf6cdd22b97d3b96"
+    }
+  ],
+  "boundary": "configuration and source audit only; no runtime data or producer"
+}

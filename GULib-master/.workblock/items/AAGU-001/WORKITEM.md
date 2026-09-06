@@ -80,7 +80,7 @@ Execution topology: `parallel`
 
 | 当前实例 | 已观察值 | 归属与后续比较边界 |
 |---|---|---|
-| [target-direct formal v2](../../../experiments/configs/syncmate_target_direct_formal_v2.yaml) 的 split | train/val/test = 0.7/0.1/0.2；split seed = 2024 | Dataset/Split；不同合法划分应引用不同已生成资产，不能就地覆盖原资产 |
+| [target-direct formal v2](../../../docs/archive/experiment-configs-pre-aagu034/syncmate_target_direct_formal_v2.yaml) 的 split | train/val/test = 0.7/0.1/0.2；split seed = 2024 | Dataset/Split；不同合法划分应引用不同已生成资产，不能就地覆盖原资产 |
 | 同配置的 budget | 0.01、0.05；分母 train_candidate_count；floor_with_minimum_one | Selector；比较不同预算配置，最终 Selection 变化；预算无关评分可复用 |
 | 同配置的 model/training 与 GU | GCN；2 层；hidden=64；epochs=100；GU=GNNDelete；当前声明精确共享 checkpoint | 应拆为分别声明的 Selector 和 GU 参数；SGC/GCN 跨模型组合是合同目标，不声称此 formal 入口现已支持 |
 | 同配置的参数范围与轨迹 | main_parameter_scope=last_layer；checkpoint epochs=[1,10,25,50,75,100] | 各 IF/梯度方法与 TracIn 的真实依赖；其他范围、轨迹配置是不同配置表，具体科学取舍由对应实验确认 |

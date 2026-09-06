@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 from cache_v2.runtime import load_selection_artifact
 from experiments.effective_config import fields, ConfigurationError
-from experiments.modular_config import load_experiment, resolve_budget
+from experiments.modular_config import load_experiment, resolve_budget, experiment_batches, configuration_fingerprint
 from experiments.modular_evaluation import evaluate_modular, require_consumer
 from experiments.modular_execution import ExecutionContext
 from experiments.modular_model import prepare_model, runtime_defaults
@@ -56,13 +56,14 @@ def read_dataset(instance, directory):
     return data, inputs
 
 
-def verified_selection(reference, *, store_root, data, inputs):
+def verified_selection(reference, *, store_root, data, inputs, expected_selector=None, expected_k=None):
     fields(reference, {'artifact_id', 'recipe_hash', 'content_hash'},
            {'artifact_id', 'recipe_hash', 'content_hash'}, 'Selection reference')
     if any(not value for value in reference.values()):
         raise ConfigurationError('an exact existing Selection reference is required')
     loaded = load_selection_artifact(store_root, reference['artifact_id'], num_nodes=inputs.num_nodes,
-        candidate_nodes=inputs.candidate_nodes, expected_dataset_fingerprint=inputs.dataset_fingerprint,
+        candidate_nodes=inputs.candidate_nodes, expected_selector=expected_selector, expected_k=expected_k,
+        expected_dataset_fingerprint=inputs.dataset_fingerprint,
         expected_graph_fingerprint=inputs.graph_fingerprint,
         expected_parameters={'split_hash': data_identity(data)['split_hash']})
     if loaded.recipe_hash != reference['recipe_hash'] or loaded.content_hash != reference['content_hash']:
@@ -87,7 +88,14 @@ def _plan_summary(config):
 
 def execute(path, *, context=None, dry_run=False):
     config = load_experiment(path)
+    batches = list(experiment_batches(config))
     plan = _plan_summary(config)
+    plan['batches'] = [{**_plan_summary(batch), 'matrix_values': batch['matrix_values']} for batch in batches]
+    plan['logical_cells'] = sum(
+        len(batch.get('output_inputs', [])) if batch['stage'] == 'metrics' else
+        (len(batch['selectors']) or batch.get('selection_count', 1)) * (len(batch['unlearnings']) or 1)
+        for batch in batches)
+    plan['configuration_fingerprint'] = configuration_fingerprint(path)
     if dry_run:
         return {**plan, 'dry_run': True, 'execution_context_required': True,
                 'producer_called': False}
@@ -97,7 +105,7 @@ def execute(path, *, context=None, dry_run=False):
     if config['stage'] == 'selector' and config['evaluations']:
         raise ConfigurationError('the current modular consumer evaluates GU results only')
     for evaluation in config['evaluations']:
-        require_consumer(evaluation, 'modular_cpu_v1')
+        require_consumer(evaluation, 'modular_v1')
     if config['stage'] == 'unlearning' and any(
             item['case'] == 'post_unlearning_utility_and_retrain_gap' for item in config['evaluations']):
         raise ConfigurationError('retrain-gap belongs to the independent metrics stage')
@@ -109,17 +117,55 @@ def execute(path, *, context=None, dry_run=False):
     checkpoint_root = context.checkpoint_root
     runtime_root = context.runtime_root
     output = context.output
+    if output.exists() or (output.parent / (output.stem + '.outputs')).exists():
+        raise FileExistsError('each invocation must use a new run output: ' + str(output))
+    if context.executor == 'local-cpu-verification':
+        from experiments.modular_execution import verify_temporary_dataset
+        verify_temporary_dataset(config, context)
     data, inputs = read_dataset(config['dataset'], config['dataset_directory'])
-    selectors = [{**item, 'budget': resolve_budget(item['budget'], inputs.candidate_count)} for item in config['selectors']]
-    references = [config['selection_input']] if 'selection_input' in config else []
-    loaded_selections = [verified_selection(ref, store_root=store_root, data=data, inputs=inputs) for ref in references]
-    summary = {**plan, 'effective_selectors': selectors,
-        'execution_receipt': context.receipt(), 'data_identity': data_identity(data),
+    for batch in batches:
+        batch['selectors'] = [{**item, 'budget': resolve_budget(item['budget'], inputs.candidate_count)}
+                              for item in batch['selectors']]
+    references = [config['selection_input']] if 'selection_input' in config and 'selection_source' not in config else []
+    existing_selections = [verified_selection(ref, store_root=store_root, data=data, inputs=inputs) for ref in references]
+    source_rows = None
+    if 'selection_source' in config:
+        bound = config['selection_input']
+        if not bound['summary'] or not bound['sha256']:
+            raise ConfigurationError('bind a real selector summary and its SHA-256 before execution')
+        source_path = (directory / bound['summary']).resolve()
+        if sha256_file(source_path) != bound['sha256']:
+            raise ConfigurationError('selector summary checksum mismatch')
+        source_summary = json.loads(source_path.read_text(encoding='utf-8'))
+        expected = configuration_fingerprint(directory / bound['experiment_ref'])
+        if (source_summary['configuration_fingerprint'] != expected
+                or source_summary['stage'] != 'selector'
+                or source_summary['data_identity'] != data_identity(data)):
+            raise ConfigurationError('selector summary configuration or Dataset/Split mismatch')
+        source_rows = source_summary['selectors']
+        if len(source_rows) != sum(batch['selection_count'] for batch in batches):
+            raise ConfigurationError('selector summary row count mismatch')
+    summary = {**plan, 'effective_selectors': [item for batch in batches for item in batch['selectors']],
+        'effective_unlearning': [item for batch in batches for item in batch['unlearnings']],
+        'execution_receipt': context.receipt(), 'data_identity': data_identity(data), 'dataset': config['dataset'],
         'selectors': [], 'unlearning': [], 'evaluations': []}
     if output.exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
     if config['stage'] == 'metrics':
-        summary['evaluations'] = [evaluate_modular(item, config['output_inputs'], store_root=store_root, data=data)
+        rows = []
+        portable = []
+        from experiments.modular_artifacts import read_summary_outputs
+        for value in config['output_inputs']:
+            if 'summary' in value:
+                if not value['summary'] or not value.get('sha256'):
+                    raise ConfigurationError('bind real output summaries and SHA-256 before metrics')
+                previous, outputs = read_summary_outputs(directory / value['summary'], value['sha256'])
+                if previous['dataset'] != config['dataset'] or previous['data_identity'] != data_identity(data):
+                    raise ConfigurationError('metrics input Dataset/Split mismatch')
+                portable.extend((result['output'], result['payload'], None) for result in outputs)
+            else:
+                rows.append(value)
+        summary['evaluations'] = [evaluate_modular(item, rows, store_root=store_root, data=data, verified_outputs=portable)
                                   for item in config['evaluations']]
         summary['selector_producer_called'] = False
         _write_summary(output, summary)
@@ -128,31 +174,53 @@ def execute(path, *, context=None, dry_run=False):
     if device.type == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA requested but unavailable')
     data = data.to(device)
-    for item in selectors:
-        model, checkpoints, observation = None, [], None
-        if 'model' in item:
-            model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
-                checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-        resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
-            model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
-        reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
-        loaded_selections.append(verified_selection(reference, store_root=store_root, data=data, inputs=inputs))
-        summary['selectors'].append({**resolved, 'checkpoint': observation})
+    for batch in batches:
+        loaded_selections = [(selection, None) for selection in existing_selections]
+        if source_rows is not None:
+            matching = [row for row in source_rows if row['matrix_values'] == batch['matrix_values']]
+            if len(matching) != batch['selection_count']:
+                raise ConfigurationError('selector summary seed/budget binding mismatch')
+            source_batch = next(item for item in experiment_batches(config['selection_source'])
+                                if item['matrix_values'] == batch['matrix_values'])
+            if [row['selector_ref'] for row in matching] != config['selection_source']['selector_refs']:
+                raise ConfigurationError('selector summary reference order mismatch')
+            for row, instance in zip(matching, source_batch['selectors']):
+                ref = {key: row['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+                loaded_selections.append((verified_selection(ref, store_root=store_root, data=data, inputs=inputs,
+                    expected_selector=instance['method'],
+                    expected_k=resolve_budget(instance['budget'], inputs.candidate_count)['k']), row['selector_ref']))
+        for selector_index, item in enumerate(batch['selectors']):
+            model, checkpoints, observation = None, [], None
+            if 'model' in item:
+                model, checkpoints, observation = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
+                    checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+            resolved = resolve_methods(store_root=store_root, data=data, dataset_name=inputs.dataset_name,
+                model=model, checkpoints=checkpoints, selectors=[item], model_config=item.get('model'), training=item.get('training'))[item['method']]
+            reference = {key: resolved['selection']['artifact'][key] for key in ('artifact_id', 'recipe_hash', 'content_hash')}
+            loaded_selections.append((verified_selection(reference, store_root=store_root, data=data, inputs=inputs),
+                                      config['selector_refs'][selector_index]))
+            summary['selectors'].append({**resolved, 'checkpoint': observation, 'matrix_values': batch['matrix_values'],
+                'selector_ref': config['selector_refs'][selector_index]})
+        if config['stage'] == 'unlearning':
+            from experiments.modular_gu import run_unlearning
+            for gu_index, item in enumerate(batch['unlearnings']):
+                for selection, selector_ref in loaded_selections:
+                    model, checkpoint = None, None
+                    if item['method'] != 'Retrain':
+                        model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
+                            checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
+                    result = run_unlearning(item, selection=selection, model=model, data=data,
+                        dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
+                    summary['unlearning'].append({**result, 'checkpoint': checkpoint,
+                        'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
+                        'unlearning_ref': config['unlearning_refs'][gu_index]})
     if config['stage'] == 'unlearning':
-        from experiments.modular_gu import run_unlearning
-        for item in config['unlearnings']:
-            for selection in loaded_selections:
-                model, checkpoint = None, None
-                if item['method'] != 'Retrain':
-                    model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
-                        checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
-                result = run_unlearning(item, selection=selection, model=model, data=data,
-                    dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
-                summary['unlearning'].append({**result, 'checkpoint': checkpoint})
         summary['evaluations'] = [
             evaluate_modular(item, summary['unlearning'], store_root=store_root, data=data) for item in config['evaluations']
         ]
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
+    from experiments.modular_artifacts import export_outputs
+    export_outputs(summary, output=output, store_root=store_root)
     _write_summary(output, summary)
     return summary
 

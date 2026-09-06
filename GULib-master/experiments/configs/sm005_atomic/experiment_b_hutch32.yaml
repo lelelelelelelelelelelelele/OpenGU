@@ -2,11 +2,11 @@ kind: experiment
 schema_version: 1
 experiment_id: sm005-cora-b-hutch32-gnndelete
 stage: unlearning
-dataset_ref: dataset.yaml
+dataset_ref: ../datasets/cora.yaml
 selector_refs:
-- b_hutch32.yaml
+- ../selectors/b_param_hutch.yaml
 unlearning_refs:
-- gnndelete.yaml
+- ../unlearning/gnndelete.yaml
 evaluation_refs:
-- utility.yaml
+- ../evaluations/post_unlearning_utility.yaml
 matrix: cartesian_product

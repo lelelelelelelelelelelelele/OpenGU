@@ -11,33 +11,15 @@ OPENGU_SETUP_CONFIG_SHA256 = (
 )
 
 
-def _target_selection_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
-    from experiments.target_direct_v1.syncmate_stage import preflight_selection
-
-    stage = str((definition.get("selection_matrix") or {}).get("stage") or "")
-    return preflight_selection(stage, config_path)
-
-
-def _target_gu_preflight(definition: Mapping[str, Any], config_path: Path) -> Mapping[str, Any]:
-    from experiments.target_direct_v1.syncmate_stage import preflight_gu
-
-    contract = definition.get("gu_gate") or definition.get("gu_stage") or {}
-    return preflight_gu(
-        str(contract.get("stage") or ""), ratio=contract["ratio"],
-        config_path=config_path, gate_only="gu_gate" in definition,
-    )
+def _modular_preflight(definition, config_path):
+    from experiments.syncmate_stage import preflight
+    root = Path(config_path).resolve()
+    for _ in Path(definition['config_path']).parts:
+        root = root.parent
+    return preflight(definition['id'], root=root)
 
 
-def _atomic_preflight(definition, config_path):
-    from experiments.syncmate_atomic_stage import preflight
-    return preflight(definition['id'])
-
-
-_PREFLIGHT_HANDLERS = {
-    "sm005-atomic-gpu-v1": _atomic_preflight,
-    "target-direct-selection-4090-v1": _target_selection_preflight,
-    "target-direct-gu-4090-v1": _target_gu_preflight,
-}
+_PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight}
 
 
 class OpenGUProjectExtension:

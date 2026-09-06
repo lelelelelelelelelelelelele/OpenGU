@@ -10,7 +10,7 @@ def read_method_output(artifacts, project_root):
     from cache_v2 import ArtifactRecipe, ArtifactType
     from cache_v2.contracts import build_artifact_id
     from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
-    from experiments.target_direct_v1.syncmate_stage import ARTIFACT_NAMES
+    from experiments.modular_artifacts import ARTIFACT_NAMES
     from experiments.unlearning_outputs import validate_embedded_data, utility
     from experiments.output_metrics import evaluate_method
     from experiments.modular_gu import gu_producer
@@ -58,8 +58,6 @@ def read_method_output(artifacts, project_root):
     if meta['method'] == 'Retrain':
         if 'checkpoint_state_hash' in identity['target']:
             raise ValueError('Retrain must be independent of a trained checkpoint')
-    elif identity['target'].get('checkpoint_state_hash') != artifact['target_checkpoint']['state_hash']:
-        raise ValueError('GU checkpoint differs from Selection checkpoint')
     if result.get('selected_nodes') != payload.arrays['selected_nodes'].tolist():
         raise ValueError('selected nodes differ from saved output')
     if any(result.get(key) != value for key, value in utility(payload).items()):

@@ -3,10 +3,16 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `registered / not claimed`
+当前状态: `working / claimed`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
+
+> Git baseline：`2b9bcafbfc789d0c60362b4246eee2a34440213b`
+
+> Source branch：`refs/heads/codex/aagu-034-unified-execution`
+
+> Remote target：`origin refs/heads/main`
 Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Human Surface
@@ -71,3 +77,11 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 ## Status history
 
 - 2026-09-06：按用户明确要求登记独立 FIX，归为 026 的后续返工，插在 007 正式实验和 032 最终配置验收之前；registered / not claimed。未创建执行任务、Claim、修改产品代码或运行科研作业。
+
+## Run · 2026-09-06
+
+- 用户在本任务明确授权使用 block-workflow Claim/实施，同一 Block 停在人类验收；后续又明确授权先提交 canonical 的 AAGU-007 草案再继续。该授权覆盖原登记阶段的未 Claim 边界，不包含正式 GPU/SSH 作业或 Closeout。
+- 已核对最新 WorkItem、WORKPLAN、Graph factVersion 20、001/015/026/028 已接受记录和 live Claim。007 草案12个关联文件按用户授权单独提交为 `2b9bcafbfc789d0c60362b4246eee2a34440213b`；旧格式 dry-run 展开4个独立方法输出，未启动正式实验。
+- Owner: codex；session: AAGU-034 · 实验配置与统一执行入口修正；linked source: `E:/project/OpenGU/.worktrees/aagu-034/GULib-master/GULib-master`；authority: `E:/project/OpenGU/GULib-master`。
+- canonical Claim: `30005e0e-80bc-40da-955b-85602b1c501d`，revision 1，ongoing。仅拥有本 Block 的配置/入口/文档/测试与验收表面；保留正式 Cache V2、数据与历史 evidence。
+- 实施与验证进度：[计划](../../../.planning/aagu-034/task_plan.md)。

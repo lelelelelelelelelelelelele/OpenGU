@@ -3,11 +3,11 @@ schema_version: 1
 experiment_id: one-selector-one-gu
 round: 1
 stage: unlearning
-dataset_ref: dataset_cora.yaml
+dataset_ref: ../../../experiments/configs/datasets/cora.yaml
 selector_refs:
-  - selector_degree.yaml
+- ../../../experiments/configs/selectors/degree.yaml
 unlearning_refs:
-  - unlearning_gnndelete.yaml
+- ../../../experiments/configs/unlearning/gnndelete.yaml
 evaluation_refs:
-  - evaluation_post_unlearning_utility.yaml
+- ../../../experiments/configs/evaluations/post_unlearning_utility.yaml
 matrix: cartesian_product

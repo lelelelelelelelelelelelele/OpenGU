@@ -1,0 +1,13 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu015-metrics-cora
+stage: metrics
+dataset_ref: ../datasets/cora.yaml
+output_inputs:
+- summary: null
+  sha256: null
+- summary: null
+  sha256: null
+evaluation_refs:
+- ../evaluations/post_unlearning_utility_and_retrain_gap.yaml
+matrix: cartesian_product

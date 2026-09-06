@@ -15,13 +15,13 @@ CASES = {
         'metrics': ('f1', 'accuracy', 'cross_entropy', 'classification_auc',
                     'classification_auc_status', 'update_detection_auc', 'update_detection_auc_status'),
         'required_inputs': ('method_output',),
-        'consumers': ('modular_cpu_v1', 'target_direct_syncmate_v2'),
+        'consumers': ('modular_v1',),
         'producer_version': 'single-method-output-metrics-v1',
     },
     'post_unlearning_utility': {
         'metrics': ('f1_before', 'f1_after', 'f1_drop', 'f1_drop_pct'),
         'required_inputs': ('unlearning_result',),
-        'consumers': ('modular_cpu_v1', 'target_direct_syncmate_v2'),
+        'consumers': ('modular_v1',),
         'producer_version': 'persisted-output-utility-v2',
     },
     'post_unlearning_utility_and_retrain_gap': {
@@ -29,7 +29,7 @@ CASES = {
                     'gap', 'gap_pct'),
         'required_inputs': ('model_before', 'model_unlearned',
                             'exact_retrain_same_selection'),
-        'consumers': ('modular_cpu_v1', 'target_direct_syncmate_v2'),
+        'consumers': ('modular_v1',),
         'producer_version': 'persisted-output-retrain-gap-v2',
     },
 }
@@ -69,11 +69,11 @@ def require_consumer(instance, consumer):
                 instance['case'], consumer, ', '.join(instance['required_inputs'])))
 
 
-def evaluate_modular(instance, unlearning_rows, *, store_root, data=None):
+def evaluate_modular(instance, unlearning_rows, *, store_root, data=None, verified_outputs=()):
     from experiments.unlearning_outputs import load_output, utility
     from experiments.implementation_identity import implementation_fingerprint
-    require_consumer(instance, 'modular_cpu_v1')
-    outputs = []
+    require_consumer(instance, 'modular_v1')
+    outputs = list(verified_outputs)
     for row in unlearning_rows:
         reference = row.get('unlearning', row.get('output', row))
         outputs.append((reference, load_output(reference, store_root, data=data), row.get('retrain')))
@@ -98,6 +98,7 @@ def evaluate_modular(instance, unlearning_rows, *, store_root, data=None):
                           if paired_reference else retrains)
             matches = {ref['artifact_id']: (ref, payload) for ref, payload in candidates
                        if payload.identity['target']['method'] == 'Retrain'
+                       and payload.identity['selection'] == output.identity['selection']
                        and payload.identity['pairing'] == output.identity['pairing']}
             if len(matches) != 1:
                 raise ConfigurationError('retrain-gap needs exactly one verified Retrain with the same request, training and deletion semantics')

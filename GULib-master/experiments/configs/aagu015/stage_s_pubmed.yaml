@@ -1,0 +1,31 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu015-s-pubmed
+stage: selector
+dataset_ref: ../datasets/pubmed.yaml
+selector_refs:
+- ../selectors/a_grad_norm.yaml
+- ../selectors/b_param_hutch.yaml
+- ../selectors/degree.yaml
+- ../selectors/gt_full.yaml
+- ../selectors/gt_simple.yaml
+- ../selectors/legacy.yaml
+- ../selectors/p_graph.yaml
+- ../selectors/p_point.yaml
+- ../selectors/p_simple.yaml
+- ../selectors/r_point.yaml
+- ../selectors/random.yaml
+- ../selectors/tracin_cp_graph_3.yaml
+- ../selectors/tracin_cp_graph_6.yaml
+- ../selectors/tracin_cp_point_3.yaml
+- ../selectors/tracin_cp_point_6.yaml
+- ../selectors/tracin_cp_simple_3.yaml
+- ../selectors/tracin_cp_simple_6.yaml
+seeds:
+- 42
+- 212
+- 2024
+budget_ratios:
+- 0.01
+- 0.05
+matrix: cartesian_product

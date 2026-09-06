@@ -13,7 +13,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SYNC_DIR = PROJECT_ROOT / "scripts" / "syncmate"
 RECIPE_REGISTRY_SHA256 = (
-    "fc99810f8b0ba89faa8c8fb79213485fe9d21b792a72d2d8737c40189c658b48"
+    "50f517650418b6c60b78dbc81f08f52b57a6eae3d52ac6bbe539774fe97978ca"
 )
 
 
@@ -52,32 +52,8 @@ def project_extension(adapter_module):
 
 def test_full_registry_matches_reviewed_literal_contract(project_extension):
     definitions = project_extension.recipes(PROJECT_ROOT)
-    expected_ids = {
-        "smoke",
-        "opengu-sm005-atomic-gpu-v1",
-        "opengu-sm005-b-hutch32-first-v1",
-        "opengu-sm005-b-hutch32-warm-v1",
-        "opengu-sm005-d-full-selector-v1",
-        "opengu-sm005-d-full-return-v1",
-        "opengu-sm005-d-full-handoff-v1",
-        "opengu-preflight-v1",
-        "opengu-cache-v2-gate4-v1",
-        *{
-            f"opengu-target-direct-selection-{dataset}-seed{seed}-v2"
-            for dataset in ("cora", "citeseer", "pubmed")
-            for seed in (42, 212, 2024)
-        },
-        "opengu-target-direct-gu-gate-r001-v2",
-        "opengu-target-direct-gu-gate-r005-v2",
-        *{
-            f"opengu-target-direct-gu-{dataset}-seed{seed}-{ratio}-v2"
-            for dataset in ("cora", "citeseer", "pubmed")
-            for seed in (42, 212, 2024)
-            for ratio in ("r001", "r005")
-        },
-    }
-
-    assert len(definitions) == 38
+    expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v1'}
+    assert len(definitions) == 3
     assert set(definitions) == expected_ids
     assert _canonical_sha256(definitions) == RECIPE_REGISTRY_SHA256
 
@@ -91,16 +67,11 @@ def test_representative_recipe_fields_remain_exact(project_extension):
         "smoke",
         "--json",
     )
-    assert definitions["opengu-cache-v2-gate4-v1"]["timeout_seconds"] == 3600
-    selection = definitions["opengu-target-direct-selection-pubmed-seed2024-v2"]
-    assert selection["selection_matrix"]["budget_ratios"] == (0.01, 0.05)
-    assert selection["selection_matrix"]["expected_k_by_ratio"] == {
-        "0.01": 138,
-        "0.05": 690,
-    }
-    target = definitions["opengu-target-direct-gu-citeseer-seed212-r001-v2"]
-    assert target["gu_stage"]["k"] == 23
-    assert target["gu_stage"]["target_checkpoint_required"] is True
+    recipe = definitions['opengu-aagu007-v1']
+    assert recipe['timeout_seconds'] == 1800
+    assert recipe['logical_cells'] == 4
+    assert recipe['expected_dataset'] == {'num_nodes':2708,'candidate_count':1895}
+    assert recipe['requires_job_expected_git_sha'] is True
 
 
 def test_all_recipe_commands_and_artifact_paths_are_bounded(project_extension):
@@ -137,10 +108,7 @@ def test_all_reviewed_preflight_profiles_dispatch_to_project_handlers(
         calls.append((definition["id"], str(config_path)))
         return {"ready": True, "errors": [], "source": "project-handler"}
 
-    profiles = {
-        "target-direct-selection-4090-v1": "opengu-target-direct-selection-cora-seed42-v2",
-        "target-direct-gu-4090-v1": "opengu-target-direct-gu-cora-seed42-r005-v2",
-    }
+    profiles = {'modular-project-v1':'opengu-aagu007-v1'}
     monkeypatch.setattr(
         adapter_module,
         "_PREFLIGHT_HANDLERS",
@@ -227,9 +195,7 @@ def test_results_parser_reads_only_verified_index_artifacts(
 @pytest.mark.parametrize(
     "profile,recipe_id",
     [
-        ("target-direct-selection-v2", "opengu-target-direct-selection-cora-seed42-v2"),
-        ("target-direct-gu-v2", "opengu-target-direct-gu-gate-r005-v2"),
-        ("target-direct-gu-stage-v2", "opengu-target-direct-gu-cora-seed42-r005-v2"),
+        ('modular-output-v1','opengu-aagu007-v1'),
     ],
 )
 def test_unverified_index_never_passes_project_acceptance(

@@ -1,90 +1,27 @@
-# Phase B Experiment Configs
+# 公共实验配置
 
-> Created 2026-05-04. Replaces the ad-hoc bash scripts under `scripts/experiments/`.
+活动配置只有一种规范：`kind: experiment` 组合表引用四类公共小表。解析与真实执行均经过 `experiments/run.py` → `modular_config` → `modular_run`。
 
-## How to run
+| 目录 | 职责 |
+|---|---|
+| [datasets](datasets/) | 已持久化 Dataset/Split 和真实资产引用；不同 split 保留独立实例 |
+| [selectors](selectors/) | 17 种 Selector 的有效参数；另有明确的 B-Hutch64 变体 |
+| [unlearning](unlearning/) | 独立 GNNDelete、GIF、Retrain；另有明确 lr=0.02 变体 |
+| [evaluations](evaluations/) | 单方法指标、utility、收集后的 retrain-gap |
+| [aagu015](aagu015/) | 每数据集四张普通阶段表，无逐 seed/预算生成 YAML |
+| [aagu007](aagu007/) | 本轮最小实验组合表；运行仍需审阅批准 |
+| [aagu032](aagu032/) | 42 条件接口参考；科学方案由 032 单独验收 |
 
-```bash
-# From repo root
-python experiments/run.py experiments/configs/<config>.yaml
-python experiments/run.py experiments/configs/<config>.yaml --force      # re-run even if outputs exist
-python experiments/run.py experiments/configs/<config>.yaml --dry_run    # what would run, no execution
-python experiments/run.py experiments/configs/<config>.yaml --limit 5    # debug: first 5 cells only
+复制 [可复用模板](experiment.template.yaml) 后，只修改本轮引用、`seeds` 与 `budget_ratios` 等组合字段。两种覆盖仅在内存生效：大表显式值优先于小表，小表优先于方法默认值。训练 seed 配对模型型 Selector 与 GU/Retrain，不改变 split seed、Random 抽样 seed 或 Hutch 探针 seed。未知字段、任意 overrides、YAML merge 和给显式 checkpoint 换标签都拒绝。
+
+```powershell
+& E:/conda_package/envs/gnn/python.exe -B -X utf8 experiments/run.py experiments/configs/experiment.template.yaml --dry_run
 ```
 
-## Three-layer artifact decoupling
+真实本地验证需要先准备独立临时图、manifest、配置及目录，然后对该临时组合表运行 `experiments/run.py <临时实验.yaml> --verification-root <临时绝对目录> --run-id <新身份>`。此路径固定 CPU，所有数据必须位于临时根内。正式任务从 SyncMate 的登记入口进入相同命令与内核，由项目执行上下文提供 CUDA、路径、运行身份和正式检查。
 
-Every cell in `results/runs/{cell}/{method}_{strategy}/seed{N}/` writes:
+TracIn 公共表显式选择 steps `[1,10,25,50,75,100]`；`_3` 消费 `[1,50,100]`，`_6` 消费六个。基础训练保存每个 epoch 不代表每个 epoch 都被评分消费；`_6` 没有恰好六个输入时拒绝，不静默扩大范围。
 
-| Layer | File | Depends on | Recompute cost |
-|---|---|---|---|
-| **L1 Selection** | `attack.json` carries `selected_nodes`; canonical store is `results/selection_cache/{hash}.json` | (dataset, model, ratio, **strategy**, seed) — **method-agnostic** | seconds (im/tracin) |
-| **L2 Training artifacts** | `predictions.npz` — logits_{before, unlearned, retrained} + labels + masks | (dataset, model, ratio, **method**, **strategy**, seed) | minutes (full train+unlearn+retrain) |
-| **L3 Metrics** | `attack.json`, `collateral.json` | L1 + L2 + metric definitions | milliseconds (offline recompute possible) |
-| Audit | `_meta.json` | config + git_sha + hostname + timestamp | — |
+新结果使用独立 summary 和对应的 `summary.outputs/<序号>/`，输出目录存在即拒绝覆盖。Cache V2 根据有效输入和 producer 自动 HIT/MISS；表路径、实验名称、run_id、输出位置不进入计算身份。
 
-`predictions.npz::logits_before` and `collateral.json::perf_before` are the
-current method's `train_only` before model. They are not guaranteed to be a
-method-agnostic vanilla base model, especially for shard/SISA methods. See
-`self/dashboard/METRIC_FIELD_SEMANTICS.md` before using any `*_before` field in
-paper tables.
-
-**Adding a new forward-only metric** (e.g., new MIA variant, new collateral statistic): no re-train needed. Load `predictions.npz`, compute, write a new `metric_<name>.json` next to it.
-
-## Configs
-
-| File | Cell | Cells × Time |
-|---|---|---|
-| `sanity_one_cell.yaml` | 1×1×1 | ~20s — for verifying environment after refactor |
-| `phase_b_cora_gcn.yaml` | 6 method × 6 strategy × 5 seed = 180 cells (adds GraphRevoker) | ~90 min on a single 4090; if 5-method cells already exist, only GraphRevoker is new |
-| `phase_b_cora_gat.yaml` | same matrix on GAT = 180 cells | ~110 min |
-| `phase_b_arxiv_feasibility.yaml` | 5 method × random × 1 seed = 5 cells | gate before main matrix |
-| `phase_b_arxiv_T1_seed42.yaml` | 3 method × 4 strategy × seed=42 = 12 cells | ~7-8h on H800 (necessary) |
-| `phase_b_arxiv_T2_seed212.yaml` | same matrix, seed=212 = 12 cells | ~7-8h (stretch; n=2) |
-| `phase_b_arxiv_T3_seed722.yaml` | same matrix, seed=722 = 12 cells | ~7-8h (stretch; n=3) |
-| `phase_b_arxiv.yaml` | (DEPRECATED for NeurIPS-2026) all 3 seeds in one yaml | ~21-24h; superseded by T1+T2+T3 |
-
-## Path scheme
-
-```
-results/runs/
-  cora_GCN_r0.05/                # cell = (dataset, model, ratio)
-    GIF_random/                   # leaf = (method, strategy)
-      seed42/
-        attack.json               # L3
-        collateral.json           # L3
-        predictions.npz           # L2
-        _meta.json                # audit
-      seed212/...
-    GIF_im/...
-    MEGU_tracin/...
-  cora_GAT_r0.05/...
-  ogbn-arxiv_GCN_r0.05/...
-```
-
-3 levels deep before the leaf folder. Glob patterns:
-
-- All seeds for one (method, strategy): `cora_GCN_r0.05/GIF_random/seed*/attack.json`
-- All strategies for one method: `cora_GCN_r0.05/GIF_*/seed42/attack.json`
-- All methods for one strategy: `cora_GCN_r0.05/*_random/seed42/attack.json`
-- Cross-dataset: `*_GCN_r0.05/GIF_random/seed42/attack.json`
-- Cross-model on cora: `cora_*_r0.05/GIF_random/seed42/attack.json`
-
-## Strategy names (post-2026-05-04 cleanup)
-
-`im_v4` and `hybrid_v4` were renamed to `im` and `hybrid` in the registry. The old CELF / coupled-RNG implementations are no longer registered. The v4 algorithm is now canonical.
-
-## Server checklist (fresh env)
-
-1. `git pull` to get latest code (Phase A.1–A.5 fixes + runner)
-2. Conda env per `requirements.txt` (PyTorch + PyG 2.6.1 + numba + ogb + pyyaml)
-3. `python experiments/run.py experiments/configs/sanity_one_cell.yaml --force` — confirms env
-4. `python experiments/run.py experiments/configs/phase_b_arxiv_feasibility.yaml` — gate
-5. If gate passes (deadline-constrained sequence): T1 → gate → T2 → gate → T3
-   ```bash
-   python experiments/run.py experiments/configs/phase_b_arxiv_T1_seed42.yaml
-   python scripts/gate_runs.py experiments/configs/phase_b_arxiv_T1_seed42.yaml --f1-min 0.55 --f1-max 0.85
-   # …if compute remains, T2/T3
-   ```
-   For current long-run wrapping and machine placement, see the experiment section in OpenGU DocMap plus the live `WORKPLAN`; the 2026-05 deadline runbook is retired.
-6. Cora can run in parallel on a second GPU: `phase_b_cora_gcn.yaml` + `phase_b_cora_gat.yaml`
+旧扁平配置与 formal-v2 配方已退出执行，原文保存在 [历史配置](../../docs/archive/experiment-configs-pre-aagu034/)。历史结果和 Cache V2 不被迁移或清空。完整合同见 [实验规范](../../docs/experiment_contract/README.md)。

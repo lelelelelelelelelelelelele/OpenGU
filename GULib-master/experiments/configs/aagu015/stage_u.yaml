@@ -1,6 +1,0 @@
-# Fixed Selection only. Candidate expansion is not execution authorization.
-schema: aagu015.stage_u
-version: 1
-selection_source: stage_s.yaml
-unlearning_refs: [unlearning/gnndelete.yaml, unlearning/gif.yaml]
-evaluation_refs: [evaluations/retrain_gap.yaml]

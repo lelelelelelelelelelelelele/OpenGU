@@ -1,0 +1,14 @@
+kind: experiment
+schema_version: 1
+experiment_id: aagu015-retrain-pubmed
+stage: unlearning
+dataset_ref: ../datasets/pubmed.yaml
+selection_input:
+  experiment_ref: stage_s_pubmed.yaml
+  summary: null
+  sha256: null
+unlearning_refs:
+- ../unlearning/retrain.yaml
+evaluation_refs:
+- ../evaluations/post_method_metrics.yaml
+matrix: cartesian_product

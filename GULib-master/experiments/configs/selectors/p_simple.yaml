@@ -1,0 +1,8 @@
+kind: selector
+schema_version: 1
+method: p_simple
+candidate:
+  pool: train_mask
+budget:
+  mode: ratio
+  value: 0.01

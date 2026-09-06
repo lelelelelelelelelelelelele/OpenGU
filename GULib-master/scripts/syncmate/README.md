@@ -1247,11 +1247,8 @@ bridge:
 
 ```bash
 python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-preflight-v1 --wait --json
-# Formal degree gate with independent GNNDelete and Retrain outputs (after its
-# registered processed split and Selection prerequisites have been verified):
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-gate-r005-v2 --wait --json
-# Only after the gate is accepted; repeat for the reviewed 3 x 3 stage ids:
-python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-target-direct-gu-cora-seed42-r005-v2 --wait --json
+# After the current AAGU-007 configuration and its execution are approved:
+python scripts/syncmate/syncmate.py runner-agent dispatch <runner_id> --recipe opengu-aagu007-v1 --wait --json
 ```
 
 Dispatch preflights the controller, rejects unknown/non-runner peers, and sends
@@ -1314,24 +1311,24 @@ comparison, pending delta, last transfer result, final checksum verification,
 and trusted results-table status.
 Reports older than 24 hours are flagged by `doctor` as stale.
 
-### Target-direct method Score receipts (AAGU-026)
+### Ordinary experiment receipts (AAGU-034)
 
-The active selection summary and receipt use version 3. Each of the 17 methods
-owns an exact Score identity in `method_scores` / `method_score_identities`.
-The second deletion ratio reuses those same method Scores, while each ratio
-owns its Selection projection. Cold/warm validation checks every method's
-producer invocation, identity, and timing; totals are timing aggregates only.
-The frozen YAML and its registered SHA were updated together. This contract
-change does not authorize a formal run or widen the approved matrix. See the
-[modular consumer guide](../../docs/modular_experiments.md) for the independent
-local verification entry and exact existing-Selection input.
+The current recipe calls `experiments/run.py --recipe opengu-aagu007-v1`.
+The same parser, in-memory expansion and execution kernel serve dry-run and
+local CPU verification. The registration binds both the top YAML hash and the
+complete referenced configuration fingerprint, plus run identity and the exact
+summary / per-method payload set. Collection verifies all bytes and independent
+Output / Selection / metric identities; it does not need the remote Store.
+Historical target-direct and completed SM-005 one-shot registrations are retired.
+Their existing evidence and Cache V2 artifacts remain unchanged. See the
+[ordinary consumer guide](../../docs/modular_experiments.md).
 
 ## Execution and output handoff
 
 SyncMate Core 0.4.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
 runtime output paths. `opengu_layout.py` owns the modular result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
-output contract; the atomic stage verifies it before invoking the consumer.
+output contract; the project stage verifies it before invoking the consumer.
 
 Device setup keeps SSH, `repo_path` and the interpreter. Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and
@@ -1342,6 +1339,8 @@ job, use `runner-agent collect <peer> --job-id <id> --json`; it uses the same
 saved route even if device setup has changed. The controller must remain online
 for automatic return. Historic indexed files retain their original addresses.
 
-A new run directory does not affect Cache V2 identity. The D full handoff probe
-uses the original benchmark YAML with run `sm005-d-full-handoff-v1`, and performs
-1 Selector / 0 GU / 0 Evaluation.
+A new run directory does not affect Cache V2 identity. Changing only budget
+reuses budget-independent Scores; training seed affects only model consumers.
+The current 007 plan has four independent method outputs and seventeen exported
+files. A later Metrics recipe must bind real completed outputs before review;
+no placeholders are submitted as jobs.

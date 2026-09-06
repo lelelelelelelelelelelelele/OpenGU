@@ -26,6 +26,7 @@ class ExecutionContext:
     runtime_root: Path
     output: Path
     executor: str
+    source_git_sha: str = None
 
     def __post_init__(self):
         if _SAFE_ID.fullmatch(str(self.run_id)) is None:
@@ -46,6 +47,7 @@ class ExecutionContext:
         return {
             'run_id': self.run_id, 'level': self.level,
             'request_device': self.request_device, 'executor': self.executor,
+            'source_git_sha': self.source_git_sha,
             'store_root': str(self.store_root),
             'checkpoint_root': str(self.checkpoint_root),
             'runtime_root': str(self.runtime_root), 'output': str(self.output),
@@ -72,3 +74,33 @@ def project_context(experiment_id, *, run_id, request_device, level,
         output=root / modular_output_path(experiment_id, str(run_id)),
         executor='syncmate-project-policy-v1',
     )
+
+
+def verification_context(experiment_id, *, run_id, root):
+    """An explicit disposable CPU workspace, never a formal project directory."""
+    root = Path(root).expanduser()
+    if not root.is_absolute() or not root.is_dir():
+        raise ConfigurationError('verification root must be an existing absolute temporary directory')
+    root = root.resolve()
+    if root == REPO_ROOT or root in REPO_ROOT.parents or REPO_ROOT in root.parents:
+        raise ConfigurationError('verification root must be outside the source checkout')
+    context = project_context(experiment_id, run_id=run_id, request_device='cpu',
+                              level='verification', repository_root=root)
+    from dataclasses import replace
+    return replace(context, executor='local-cpu-verification')
+
+
+def verify_temporary_dataset(config, context):
+    """Local CLI verification may read only assets inside its disposable root."""
+    import json
+    root = context.store_root.parent.parent
+    artifacts = config['dataset']['artifacts']
+    if not artifacts['manifest']:
+        raise ConfigurationError('temporary dataset manifest is not bound')
+    path = (Path(config['dataset_directory']) / artifacts['manifest']).resolve()
+    try:
+        path.relative_to(root)
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+        (path.parent / manifest['data_path']).resolve().relative_to(root)
+    except ValueError as exc:
+        raise ConfigurationError('verification assets must stay inside the temporary root') from exc

@@ -175,6 +175,8 @@ def selected_checkpoint_indices(checkpoints, p):
     if any(step not in available for step in steps):
         raise ConfigurationError('requested checkpoint step is absent from the verified trajectory')
     indices = [available[step] for step in steps] if steps else list(range(len(checkpoints)))
+    if p['checkpoint_view'] == 'cp_all' and len(indices) != 6:
+        raise ConfigurationError('TracIn _6 requires exactly six checkpoint steps; it cannot consume an arbitrary full trajectory')
     return tuple(indices[i] for i in checkpoint_indices(len(indices), p['checkpoint_view']))
 
 

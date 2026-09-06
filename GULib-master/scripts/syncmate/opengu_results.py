@@ -191,6 +191,8 @@ def results_payload(
     parse_errors: list[dict[str, Any]] = []
 
     for leaf in trusted.get("leaves") or []:
+        if 'summary.json' in (leaf.get('artifacts') or {}) and 'attack.json' not in (leaf.get('artifacts') or {}):
+            continue
         if ("output-references.json" in (leaf.get("artifacts") or {})
                 or "target_direct_formal_v2/gu/" in str(leaf.get("remote_leaf") or "")):
             from opengu_method_output import read_method_output

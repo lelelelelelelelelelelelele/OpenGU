@@ -1,0 +1,49 @@
+{
+  "retired_tests": {
+    "tests/test_auto_report_v3.py": [
+      "_load_experiment_runner",
+      "test_runner_records_shared_run_id_and_retry",
+      "test_runner_rejects_empty_attack_payload_before_collateral",
+      "test_runner_dry_run_emits_no_audit_event",
+      "test_runner_v2_selection_passes_one_artifact_without_legacy_fallback",
+      "test_runner_passes_target_direct_checkpoint_binding",
+      "test_runner_passes_experiment_roots_to_attack_and_collateral",
+      "test_runner_v2_preflight_maps_materializer_envelope_and_rejects_unsupported",
+      "test_runner_keeps_dataset_and_run_roots_in_the_experiment_layer",
+      "test_runner_fingerprint_includes_effective_v2_store_root",
+      "test_runner_fingerprint_includes_experiment_runtime_root",
+      "test_runner_rejects_experiment_root_overrides_in_extra_args"
+    ],
+    "tests/test_phase_b_invariants.py": [
+      "test_run_config_method_overrides_fingerprint_only_target_method",
+      "test_cell_dir_disambiguates_hybrid_alpha",
+      "test_cell_dir_alpha_top_level_and_extra_args_agree",
+      "test_result_cache_key_isolation_for_a3_fields"
+    ],
+    "tests/test_cache_v2_dataset_boundary.py": [
+      "test_runner_rejects_removed_cache_dataset_options",
+      "test_runner_target_direct_mode_requires_manifest_digest"
+    ],
+    "tests/test_update_detection_auc_policy.py": [
+      "test_cell_fingerprint_distinguishes_enabled_and_disabled_auc"
+    ],
+    "tests/test_syncmate.py": [
+      "test_gate4_runner_recipe_is_fixed_bounded_and_collectable",
+      "test_target_direct_recipes_freeze_dynamic_k_scope_and_artifact_sets",
+      "test_target_direct_recipe_hash_matches_normalized_frozen_config_source",
+      "test_target_direct_selection_acceptance_binds_timing_scope_and_checkpoint"
+    ],
+    "tests/test_cache_v2_gate4_canary.py": [
+      "retired fixed legacy launcher tests; command/preflight/fingerprint/collection checks moved to test_unified_execution and test_syncmate_gu_outputs"
+    ],
+    "tests/test_retrain_outputs.py": [
+      "test_matrix_runs_one_requested_method_without_inline_comparison"
+    ]
+  },
+  "replacement": "tests/test_unified_execution.py and tests/test_syncmate_gu_outputs.py; unrelated core invariants retained",
+  "notes": [
+    "Collection-only audit found two imports of retired launchers; retired manifest-only tests and the old argv test, retained real processed-profile cold/warm tests.",
+    "Broad regression found eight baseline stale hash assertions against absent private Cache V1 APIs. Removed the retired ResultCache field-hash test; retained real hybrid parameter separation and Cache V2 consumer tests. No production cache code changed.",
+    "Old monkeypatched flat matrix run_cell test is replaced by real ordinary CLI independence tests."
+  ]
+}

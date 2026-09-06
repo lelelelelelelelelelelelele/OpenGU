@@ -1,7 +1,0 @@
-kind: selector
-schema_version: 1
-method: b_param_hutch
-candidate: {pool: train_mask}
-budget: {mode: ratio, value: 0.01}
-parameters:
-  parameter_scope: last_layer

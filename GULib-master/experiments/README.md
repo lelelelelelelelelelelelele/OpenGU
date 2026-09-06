@@ -1,3 +1,9 @@
+# 实验入口
+
+现行普通YAML规范见[configs/README.md](configs/README.md)，统一命令为 `experiments/run.py`。本地验证使用独立临时CPU目录；正式作业经SyncMate登记和项目预检进入同一解析/执行内核。当前任务与批准范围见WORKPLAN。
+
+以下保留原benchmark资料，属于历史研究材料，不定义当前运行入口、批准或实验结论。
+
 # 实验与节点选择 (Node Selection) Benchmark 总览
 
 本目录存放与“对抗攻击选点”（IF-IM Hybrid Selection Strategy）相关的实验基准测试代码、性能探测脚本以及运行日志分析工具。

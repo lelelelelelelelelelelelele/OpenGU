@@ -10,7 +10,6 @@ from experiments.target_direct_v1 import (
     DEFAULT_SPLIT_CONTRACT,
     target_direct_split_contract,
 )
-from experiments.target_direct_v1 import run_selection as selection_module
 from experiments.target_direct_v1 import split_profile as profile_module
 from experiments.target_direct_v1.split_profile import (
     apply_fixed_split,
@@ -328,39 +327,3 @@ def test_real_profiles_reuse_equivalent_contract_and_keep_alternates_distinct(
     for path, (payload, modified) in default_before.items():
         assert path.read_bytes() == payload
         assert path.stat().st_mtime_ns == modified
-
-
-def test_model_seed_does_not_change_registered_split_arguments(tmp_path):
-    def arguments(model_seed):
-        args = SimpleNamespace(
-            split_contract=DEFAULT_SPLIT_CONTRACT,
-            runtime_root=tmp_path / "runtime",
-            processed_root=tmp_path / "processed",
-            dataset="Cora",
-            ratio=0.01,
-            epochs=100,
-            num_threads=1,
-            seed=model_seed,
-            cuda=0,
-            gcn_num_layers=2,
-            gcn_hidden=64,
-        )
-        values = list(selection_module._parameter_argv(args, 18))
-        return {
-            flag: values[values.index(flag) + 1]
-            for flag in (
-                "--processed_profile",
-                "--train_ratio",
-                "--val_ratio",
-                "--test_ratio",
-                "--split_seed",
-            )
-        }
-
-    assert arguments(42) == arguments(212) == {
-        "--processed_profile": "planetoid_70_10_20_seed2024",
-        "--train_ratio": "0.7",
-        "--val_ratio": "0.1",
-        "--test_ratio": "0.2",
-        "--split_seed": "2024",
-    }
