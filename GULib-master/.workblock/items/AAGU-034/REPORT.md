@@ -12,7 +12,7 @@ Selector/Unlearning只用 `selector_refs` 声明选点，删除手工绑定上�
 
 ### 当前决定
 
-> 当前验收决定：`待决定`
+> 当前验收决定：`接受`
 
 用户已明确“可以验收通过了，closeout”；本节决定标记由 Closeout 写入。对象为本 source branch 的已接受产品内容；合并与部署结果另行记录，正式实验另行验收。
 

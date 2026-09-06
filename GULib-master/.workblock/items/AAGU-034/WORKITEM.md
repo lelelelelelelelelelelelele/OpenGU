@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `awaiting acceptance`
+当前状态: `accepted`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -77,6 +77,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 ## Status history
 
 - 2026-09-06：按用户明确要求登记独立 FIX，归为 026 的后续返工，插在 007 正式实验和 032 最终配置验收之前；registered / not claimed。未创建执行任务、Claim、修改产品代码或运行科研作业。
+- `accepted`（2026-09-07T05:21:07+08:00）：用户 基于 用户确认独立 validator 已通过阶段核验、清单去重与当前交付范围三处返工，并明确要求 closeout；本轮不重跑产品测试。 接受当前已验证候选。
 
 ## Run · 2026-09-06
 
