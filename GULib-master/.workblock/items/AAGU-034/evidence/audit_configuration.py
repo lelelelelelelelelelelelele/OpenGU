@@ -44,6 +44,10 @@ def audit():
     retired = ['experiments.target_direct_v1.'+name for name in
         ('run_selection','run_outputs','build_gu_config','build_manifest','adapter','syncmate_stage')]
     retired += ['experiments.syncmate_atomic_stage','target_direct_syncmate_v2']
+    retired += ['syncmate_m1', 'class OpenGUAdapter', 'physical_replacement_approved',
+                'compatibility_candidate', 'OPENGU_SETUP_CONFIG_SHA256']
+    retired_files = json.loads((Path(__file__).parent/'retired-code.json').read_text(encoding='utf-8'))
+    assert all(not (ROOT/path).exists() for path in retired_files), 'retired source file still exists'
     violations = []
     for directory in ('experiments','scripts'):
         for path in (ROOT/directory).rglob('*.py'):
@@ -61,7 +65,8 @@ def audit():
         'ordinary_active_experiments':sum(r['kind']=='experiment' for r in rows[:len(active)]),
         'contract_examples':len(examples),'aagu015_yaml_before':449,'aagu015_yaml_after':12,
         'generated_deleted':424,'aagu015_counts':contracts['counts'],'archive_byte_checks':archived,
-        'retired_runtime_reference_matches':violations,'registered_recipes':list(registry),
+        'retired_runtime_reference_matches':violations,'retired_files_absent':retired_files,
+        'registered_recipes':list(registry),
         'registration':recipe,'rows':rows,'boundary':'configuration and source audit only; no runtime data or producer'}
 
 

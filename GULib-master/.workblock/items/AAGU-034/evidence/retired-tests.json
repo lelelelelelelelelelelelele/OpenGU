@@ -38,12 +38,22 @@
     ],
     "tests/test_retrain_outputs.py": [
       "test_matrix_runs_one_requested_method_without_inline_comparison"
+    ],
+    "tests/test_syncmate_m1_adapter.py": [
+      "test_candidate_wrapper_imports_independent_core",
+      "test_opengu_recipe_preflight_and_acceptance_are_adapter_owned",
+      "test_opengu_preflight_reports_config_mismatch_expected_observed_action",
+      "test_candidate_contract_cli_reports_adapter_and_external_core",
+      "test_candidate_gate1_smoke_is_temporary_and_non_formal",
+      "test_candidate_gate2_runner_smoke_uses_clean_exact_compatibility_fixture",
+      "test_candidate_cli_runs_in_a_fresh_process_with_external_core"
     ]
   },
   "replacement": "tests/test_unified_execution.py and tests/test_syncmate_gu_outputs.py; unrelated core invariants retained",
   "notes": [
     "Collection-only audit found two imports of retired launchers; retired manifest-only tests and the old argv test, retained real processed-profile cold/warm tests.",
     "Broad regression found eight baseline stale hash assertions against absent private Cache V1 APIs. Removed the retired ResultCache field-hash test; retained real hybrid parameter separation and Cache V2 consumer tests. No production cache code changed.",
-    "Old monkeypatched flat matrix run_cell test is replaced by real ordinary CLI independence tests."
+    "Old monkeypatched flat matrix run_cell test is replaced by real ordinary CLI independence tests.",
+    "User-requested same-Block rework retires the seven M1-only tests with the obsolete helper and OpenGUAdapter. Current Core facade, reviewed recipes, fail-closed preflight and verified collection remain covered by test_syncmate, test_syncmate_full_adapter, test_syncmate_core_dependency and test_syncmate_gu_outputs. No compatibility helper is restored."
   ]
 }

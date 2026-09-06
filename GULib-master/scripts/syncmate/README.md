@@ -6,7 +6,7 @@ single-runner poller, not a scheduler or remote shell. Its job is to give
 local AI agents, remote AI agents, humans, and future dashboards the same view
 of device identity, run artifacts, result deltas, and next safe actions.
 
-## Ownership and compatibility entry
+## Ownership and project entry
 
 Generic protocol, immutable job-envelope, bounded-runner, checksum, readiness,
 and device-resolution rules are owned by the independent SyncMate repository:
@@ -18,16 +18,16 @@ and device-resolution rules are owned by the independent SyncMate repository:
 
 OpenGU owns the concrete recipes, experiment preflight, result parsing,
 acceptance semantics, cache repair, and this project runbook. The default
-`scripts/syncmate/syncmate.py` compatibility entry is a thin facade: it imports
+`scripts/syncmate/syncmate.py` project entry is a thin facade: it imports
 the installed `syncmate_core` package, installs
 `scripts/syncmate/opengu_adapter.py`, and exposes the reviewed OpenGU Project
 surface without embedding transfer, queue, manifest, checksum, or trusted-index
 implementations.
 
-`scripts/syncmate/syncmate_m1.py` remains the three-command M1 Gate 1/2 helper.
-The old embedded compatibility source was removed by SM-004. The material below
-documents the OpenGU compatibility surface; it is not a second authority for
-the generic protocol.
+The old embedded implementation was removed by SM-004. AAGU-034 also removes
+the obsolete M1 helper and its separate adapter. The current CLI uses only
+`OpenGUProjectExtension`; the material below documents this OpenGU project
+surface. Historical gate evidence remains in its original WorkItems.
 
 OpenGU supplies each experiment's `timeout_seconds` in the reviewed static
 recipes in `opengu_recipes.py`. The pinned Core carries that value into the

@@ -3,7 +3,7 @@
 Block ID: `AAGU-034`
 Item Version: 2.1
 Item Type: Block
-当前状态: `verified / awaiting acceptance`
+当前状态: `working / claimed`
 Acceptance Route: `formal`
 Execution topology: `parallel`
 > Apply target ref：`refs/heads/main`
@@ -72,7 +72,7 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 
 ## Restart and next action
 
-当前已完成软件 Verify 与 formal 配对报告，停在人类验收。恢复时读取本 source WorkItem、source branch 的干净 HEAD、报告与 canonical 同一 Claim；当前决定是待决定。用户明确接受后再交给 block-closeout；若返工，在本项继续，不新建 Block，不把软件通过当作正式实验批准。
+用户要求继续清除旧 SyncMate Python 痕迹并核对已有 007、032 两份配置的解析路径；同一 Claim 已从 awaiting_acceptance 返回 ongoing（revision 3），本项返工中。补充验证后更新配对报告，再停在人类验收；当前未接受，不进入 Closeout 或正式实验。
 
 ## Status history
 
@@ -106,3 +106,9 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 最终待决定对象是本 source branch 的干净 HEAD，报告与Record提交使其前进。相对上述实测检查点，仅加入本item的报告/运行证据/Verify记录和WORKPLAN、progress.html的生命周期生成投影；实验代码、公共YAML、方法、执行注册与测试合同均无差异。该diff不改变349项测试所回答的问题，复用其精确检查点结果。新增变化独立检查：Human Surface/Human Result结构、报告确定性重建、报告链接与渲染、dashboard重建及check、Git diff --check和最终干净HEAD；最终逐命令结果保存在canonical runtime final-verify.json。
 
 当前保持待决定，不写accepted，不Merge/Apply/push/install，不释放Claim或清理worktree。人明确决定前，不继续正式实验。
+
+## Rework · 2026-09-06 · 旧 SyncMate 残留与两份配置路径
+
+- 用户追问并授权清除旧 SyncMate Python 错误痕迹；再次检查发现 M1 helper 与 OpenGUAdapter 仍作为早期验证支路存在。删除该 helper、无当前消费者的 Adapter 及七项只验证旧入口的测试，修正文档中的保留说明；历史已接受记录和证据不改写。
+- 当前 syncmate.py → 独立 Core → OpenGUProjectExtension 保留。007 与 032 两份既有普通 YAML 内容不变；补充从不同 cwd 调用真实 run.py 的两项回归，核对公共引用解析、4/42 条件、2/6 批次、无 producer 和所有源 YAML 字节不变。
+- 最邻近的完整 adapter 文件回归10项通过，尚待干净候选上的受影响 SyncMate 全部回归及报告更新。

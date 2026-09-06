@@ -8,5 +8,7 @@
   "tests/test_syncmate_atomic_stage.py",
   "experiments/target_direct_v1/adapter.py",
   "experiments/target_direct_v1/build_manifest.py",
-  "tests/test_target_direct_manifest.py"
+  "tests/test_target_direct_manifest.py",
+  "scripts/syncmate/syncmate_m1.py",
+  "tests/test_syncmate_m1_adapter.py"
 ]

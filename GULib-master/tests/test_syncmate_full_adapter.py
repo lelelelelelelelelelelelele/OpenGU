@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
@@ -48,6 +49,26 @@ def adapter_module(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture
 def project_extension(adapter_module):
     return adapter_module.OpenGUProjectExtension()
+
+
+@pytest.mark.parametrize('block,cells,batches', [('aagu007', 4, 2), ('aagu032', 42, 6)])
+def test_existing_experiment_templates_use_common_cli(block, cells, batches, tmp_path, record_property):
+    config = PROJECT_ROOT / 'experiments' / 'configs' / block / 'experiment.yaml'
+    before = {path: path.read_bytes() for path in (PROJECT_ROOT / 'experiments/configs').rglob('*.yaml')}
+    argv = [sys.executable, '-B', '-X', 'utf8', str(PROJECT_ROOT / 'experiments/run.py'),
+            str(config), '--dry_run']
+    # A different cwd proves nested refs resolve from each existing YAML location.
+    result = subprocess.run(argv, cwd=tmp_path, capture_output=True, text=True, encoding='utf-8')
+    assert result.returncode == 0, result.stdout + result.stderr
+    plan = json.loads(result.stdout)
+    assert plan['schema'] == 'opengu.modular_run'
+    assert plan['stage'] == 'unlearning'
+    assert plan['logical_cells'] == cells
+    assert len(plan['batches']) == batches
+    assert plan['producer_called'] is False
+    assert all(path.read_bytes() == content for path, content in before.items())
+    record_property('existing_template_cli', json.dumps({'argv': argv, 'cwd': str(tmp_path),
+        'exit_code': result.returncode, 'plan': plan, 'all_source_yaml_unchanged': True}))
 
 
 def test_full_registry_matches_reviewed_literal_contract(project_extension):
