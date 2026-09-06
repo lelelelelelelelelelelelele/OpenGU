@@ -196,6 +196,7 @@ def test_changed_producer_and_missing_selection_dependency_rejected(tables, monk
     import unlearning.unlearning_methods.Retrain.retrain as retrain
     configs(tables)
     output = method(tables, 'retrain', 'retrain.yaml')['output']
+    reference = load_output(output, tables[0] / 'v2').identity['selection']
     with monkeypatch.context() as patch:
         patch.setattr(retrain, 'run_retrain', changed_retrain)
         with pytest.raises(ValueError, match='producer changed'):
