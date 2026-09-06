@@ -2,7 +2,7 @@
 
 这份文档先固定 007 想表达的实验，供用户审阅。统一规范与执行入口由 [AAGU-034](../AAGU-034/WORKITEM.md) 实现；本稿不是已验证的可提交配置，也没有启动真实实验。007 的生命周期由 [WORKITEM.md](WORKITEM.md) 持有。
 
-可直接查看 [experiment.ideal.yaml](experiment.ideal.yaml)。预定正式落点为 `experiments/configs/aagu007/experiment.yaml`；其中相对路径按该落点解释。公共小表文件名和 schema 版本仍需与 034 最终接口核对，不能把目标路径当作已存在的文件。
+可直接查看 [experiment.ideal.yaml](experiment.ideal.yaml)。预定正式落点为 `experiments/configs/aagu007/experiment.yaml`。小表引用只写文件名，由字段类型固定定位公共目录，不依赖组合表放在哪个目录。该引用规则由 034 统一入口落实；公共文件与 schema 版本仍需在接入时核对。
 
 ## 一张组合表
 
@@ -12,14 +12,14 @@ schema_version: 1
 experiment_id: aagu007-cora-degree-r001-v1
 stage: unlearning
 
-dataset_ref: ../datasets/cora.yaml
+dataset_ref: cora.yaml
 selector_refs:
-  - ../selectors/degree.yaml
+  - degree.yaml
 unlearning_refs:
-  - ../unlearning/gnndelete.yaml
-  - ../unlearning/retrain.yaml
+  - gnndelete.yaml
+  - retrain.yaml
 evaluation_refs:
-  - ../evaluations/post_method_metrics.yaml
+  - post_method_metrics.yaml
 
 seeds: [122, 722]
 budget_ratios: [0.01]
@@ -27,6 +27,17 @@ matrix: cartesian_product
 ```
 
 改 seed 或预算只改这张表。两个 Unlearning 方法各引用一份公共小表，运行时在内存中展开，不生成或维护 `gnndelete_seed122.yaml` 等逐条件副本。实验目录只拥有组合表；这份人读的审阅说明放在同一 WorkItem 下。
+
+引用字段与公共目录固定对应：
+
+| 字段 | 自动定位的目录 |
+|---|---|
+| `dataset_ref` | `experiments/configs/datasets/` |
+| `selector_refs` | `experiments/configs/selectors/` |
+| `unlearning_refs` | `experiments/configs/unlearning/` |
+| `evaluation_refs` | `experiments/configs/evaluations/` |
+
+因此组合表省略 `../` 和公共目录名；例如 `selector_refs: [degree.yaml]` 就定位公共 `selectors/degree.yaml`。Result 仍应记录系统解析出的配置来源及最终有效值。
 
 ## 公共小表表达什么
 
