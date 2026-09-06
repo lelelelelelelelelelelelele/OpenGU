@@ -8,6 +8,36 @@ from experiments.effective_config import read_yaml, fields, effective, choice, C
 from experiments.target_direct_v1.methods import resolve_parameters, uses_model, SCORE_NAMES
 
 ROOT = Path(__file__).resolve().parents[1]
+REFERENCE_DIRECTORIES = {
+    'dataset_ref': 'datasets',
+    'selector_refs': 'selectors',
+    'unlearning_refs': 'unlearning',
+    'evaluation_refs': 'evaluations',
+}
+
+
+def resolve_reference(field, reference, source_directory):
+    """Resolve public names independently of the experiment table's location.
+
+    Bare names select public instances. Explicit relative paths are anchored to
+    the containing YAML; absolute files are used directly.
+    """
+    if not isinstance(reference, str) or not reference:
+        raise ConfigurationError(f'{field} requires a YAML filename or file path')
+    path = Path(reference)
+    if not path.is_absolute():
+        if ':' in reference:
+            raise ConfigurationError(f'{field}: drive-relative paths are not allowed')
+        if '/' in reference or '\\' in reference:
+            path = Path(source_directory) / reference.replace('\\', '/')
+        else:
+            directory = (ROOT / 'experiments/configs' / REFERENCE_DIRECTORIES[field]).resolve()
+            path = (directory / reference).resolve()
+            if path.parent != directory:
+                raise ConfigurationError(f'{field} resolves outside its public directory')
+    if path.suffix not in ('.yaml', '.yml') or not path.is_file():
+        raise ConfigurationError(f'{field}: YAML file does not exist: {path}')
+    return path.resolve()
 
 
 def model_training(value):
@@ -204,7 +234,7 @@ def load_experiment(path):
     elif 'output_inputs' in value:
         raise ConfigurationError('output_inputs belongs to the metrics stage')
     result = dict(value)
-    dataset_path = (path.parent / value['dataset_ref']).resolve()
+    dataset_path = resolve_reference('dataset_ref', value['dataset_ref'], path.parent)
     result['dataset'] = load_instance(dataset_path, 'dataset_split')
     result['dataset_directory'] = str(dataset_path.parent)
     result['configuration_sources'] = {
@@ -214,9 +244,10 @@ def load_experiment(path):
         refs = value.get(field, [])
         if not isinstance(refs, list) or any(not isinstance(ref, str) for ref in refs):
             raise ConfigurationError(f'{field} must be a list of file references')
-        result[kind + 's'] = [load_instance(path.parent / ref, kind) for ref in refs]
-        result['configuration_sources'][kind + 's'] = [configuration_sources(path.parent / ref, item)
-            for ref, item in zip(refs, result[kind + 's'])]
+        paths = [resolve_reference(field, ref, path.parent) for ref in refs]
+        result[kind + 's'] = [load_instance(ref_path, kind) for ref_path in paths]
+        result['configuration_sources'][kind + 's'] = [configuration_sources(ref_path, item)
+            for ref_path, item in zip(paths, result[kind + 's'])]
     result['source_directory'] = str(path.parent)
     # Validate matrix axes while parsing, including during the ordinary dry-run.
     validate_repeats(result)
@@ -297,10 +328,10 @@ def configuration_fingerprint(path):
             raise ConfigurationError('cyclic configuration references')
         visited.add(current)
         value = read_yaml(current)
-        refs = ([value['dataset_ref']] if 'dataset_ref' in value else [])
+        refs = ([resolve_reference('dataset_ref', value['dataset_ref'], current.parent)] if 'dataset_ref' in value else [])
         for field in ('selector_refs', 'unlearning_refs', 'evaluation_refs'):
-            refs.extend(value.get(field, []))
-        children = [document(current.parent / ref) for ref in refs]
+            refs.extend(resolve_reference(field, ref, current.parent) for ref in value.get(field, []))
+        children = [document(ref) for ref in refs]
         visited.remove(current)
         return {'document': value, 'references': children}
     return hashlib.sha256(json.dumps(document(path), sort_keys=True,

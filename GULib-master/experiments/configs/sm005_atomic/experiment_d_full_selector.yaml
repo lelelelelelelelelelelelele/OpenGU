@@ -2,7 +2,7 @@ kind: experiment
 schema_version: 1
 experiment_id: sm005-cora-d-full-selector
 stage: selector
-dataset_ref: ../datasets/cora.yaml
+dataset_ref: cora.yaml
 selector_refs:
-- ../selectors/gt_full.yaml
+- gt_full.yaml
 matrix: cartesian_product

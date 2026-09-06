@@ -2,6 +2,8 @@
 
 活动配置只有一种规范：`kind: experiment` 组合表引用四类公共小表。解析与真实执行均经过 `experiments/run.py` → `modular_config` → `modular_run`。
 
+引用支持两种写法：只写文件名时按字段定位本目录下的公共小表，例如 `unlearning_refs: [gnndelete.yaml]` 读取 `unlearning/gnndelete.yaml`；显式相对路径（如 `../unlearning/gnndelete.yaml`、`./custom.yaml`）以组合表所在目录为起点。明确的绝对路径也可使用，隔离验证据此绑定临时资产。文件名引用不搜索组合表邻近目录，不受工作目录影响；加载与配置指纹使用同一解析规则。
+
 | 目录 | 职责 |
 |---|---|
 | [datasets](datasets/) | 已持久化 Dataset/Split 和真实资产引用；不同 split 保留独立实例 |

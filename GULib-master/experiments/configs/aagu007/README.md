@@ -4,7 +4,7 @@
 
 当前软件登记为 `opengu-aagu007-v1`，入口由 SyncMate 调用 `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`；注册绑定组合表及全部公共引用的指纹、运行身份、1800秒超时和17个导出文件。它不创建运行许可，真实实验仍须按 [007 WorkItem](../../../.workblock/items/AAGU-007/WORKITEM.md) 审阅和批准。
 
-当前公共引用仍按组合表所在目录解析相对路径。WorkItem 理想稿提出的“只写文件名、按字段定位固定公共目录”尚未实现；该差异及034收口后的基线由上述WorkItem持有。
+当前组合表只写文件名，解析器按字段定位固定公共目录；显式相对路径也支持，按组合表所在目录解析。加载和注册指纹使用同一规则。034收口后的基线由上述WorkItem持有。
 
 Degree不消费训练seed，四个方法输出共享其真实Selection。既有Score/Selection是否HIT，以实际Result中的精确身份与producer记录为准。预测不转化为强制HIT或禁止合法MISS的开关。
 

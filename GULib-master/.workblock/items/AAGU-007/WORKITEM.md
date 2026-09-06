@@ -72,6 +72,13 @@ Item Type: Block
 - 当前科学切片为 Cora、70/10/20 划分（split seed 2024）、Degree 1%、训练 seeds `[122, 722]`、独立 GNNDelete 与 Retrain，共4个方法输出。旧 formal-v2 的双预算不再作为本轮执行依据；本次不改变当前组合表的科学范围。
 - 统一执行链为 `experiments/run.py → modular_config → modular_run`；SyncMate recipe 调用 `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`。Selector 只声明 `selector_refs`，运行时自动解析实际 Score/Selection 与缓存复用，禁止手填旧 Selection。后续 Metrics 绑定真实 Output，按同 seed 比较 GNNDelete 与 Retrain。
 - 034 的软件接受包含统一配置、独立输出、分阶段核验和当前交付范围修正；不等于007真实SSH/GPU、正式数据、成本或科研gate已验证。运行前按当前 [Core依赖绑定](../../../scripts/syncmate/CORE_DEPENDENCY.md) 核对实际解释器及安装载荷，不把034旧记录中的部署快照当作当前状态。
-- **剩余配置差异：固定公共目录识别。** [理想稿](IDEAL_CONFIG.md) 已约定四类引用只写文件名，由字段定位 `experiments/configs/{datasets,selectors,unlearning,evaluations}/`。当前解析器仍基于组合表父目录解析，正式表仍写 `../datasets/cora.yaml` 等相对路径；该便捷引用规则尚未实现，不能称为034已交付能力。
-- 后续目录修正应同步覆盖解析、引用指纹/注册、活动配置和来源记录；验证从不同组合表位置得到同一公共实例及有效配置，并拒绝缺失或越界引用。不引入旧相对路径兼容分支，不改变算法、预算、seed或手改历史Artifact。完成后再审阅007最终配置。
+- **034合入时的配置差异（已由下述修正处理）：固定公共目录识别。** [理想稿](IDEAL_CONFIG.md) 已约定四类引用只写文件名，由字段定位 `experiments/configs/{datasets,selectors,unlearning,evaluations}/`。当时解析器仅按组合表父目录解析，正式表写 `../datasets/cora.yaml` 等相对路径；文件名公共引用不属于034已交付能力。
+- 目录修正同步覆盖解析、引用指纹/注册、活动配置和来源记录。用户后续明确要求文件名与显式相对目录两种写法均可解析；不改变算法、预算、seed或手改历史Artifact。
 - 本轮仅更新同一007的基线与剩余工作说明，保持 `registered / not claimed`，未授权或启动正式作业。
+
+## YAML公共目录解析修正 · 2026-09-07
+
+- 用户授权先在Windows main修正并提交YAML引用解析，暂不运行007，不另建Block。文件名按字段定位固定公共目录，显式相对路径以组合表所在目录为基准，两种写法共同支持；绝对文件路径可明确绑定临时验证资产。
+- 配置加载与指纹共用解析函数；活动组合表改用文件名，007注册重新绑定对应配置摘要和引用指纹。历史Artifact和科学矩阵不变，实际缓存命中仍以运行记录为准。
+- 本次为运行前的软件修正；007保持registered / not claimed，未启动正式作业。
+- 软件验证：32项公共引用/相对路径检查、30项真实CPU消费者与统一命令检查、176项SyncMate回归通过；18张活动表逐项比对仅引用写法变化，007为4输出、032为42条件。007配置摘要/注册指纹、WorkItem格式及dashboard check通过。初轮两个失败分别来自修改前进程的相对路径规则和临时绝对引用的测试分组标签，修正后受影响30项已重跑通过；CPU验证保留现有两条CUDA依赖警告，不构成正式GPU证据。

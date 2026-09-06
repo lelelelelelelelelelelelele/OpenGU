@@ -105,7 +105,7 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
     assert all(r['hit'] and not r['producer_called'] for r in warm['unlearning'])
     score_ids, selection_ids = {}, {}
     for row in cold['selectors']:
-        method = row['selector_ref'];axes = row['matrix_values']
+        method = Path(row['selector_ref']).name;axes = row['matrix_values']
         score_ids.setdefault(method,set()).add(row['score']['artifact_id'])
         selection_ids.setdefault(method,set()).add(row['selection']['artifact']['artifact_id'])
         assert row['selection']['artifact_k'] == int(10*axes['budget_ratio'])

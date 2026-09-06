@@ -2,31 +2,31 @@ kind: experiment
 schema_version: 1
 experiment_id: aagu015-u-cora
 stage: unlearning
-dataset_ref: ../datasets/cora.yaml
+dataset_ref: cora.yaml
 unlearning_refs:
-- ../unlearning/gnndelete.yaml
-- ../unlearning/gif.yaml
+- gnndelete.yaml
+- gif.yaml
 evaluation_refs:
-- ../evaluations/post_method_metrics.yaml
+- post_method_metrics.yaml
 matrix: cartesian_product
 selector_refs:
-- ../selectors/a_grad_norm.yaml
-- ../selectors/b_param_hutch.yaml
-- ../selectors/degree.yaml
-- ../selectors/gt_full.yaml
-- ../selectors/gt_simple.yaml
-- ../selectors/legacy.yaml
-- ../selectors/p_graph.yaml
-- ../selectors/p_point.yaml
-- ../selectors/p_simple.yaml
-- ../selectors/r_point.yaml
-- ../selectors/random.yaml
-- ../selectors/tracin_cp_graph_3.yaml
-- ../selectors/tracin_cp_graph_6.yaml
-- ../selectors/tracin_cp_point_3.yaml
-- ../selectors/tracin_cp_point_6.yaml
-- ../selectors/tracin_cp_simple_3.yaml
-- ../selectors/tracin_cp_simple_6.yaml
+- a_grad_norm.yaml
+- b_param_hutch.yaml
+- degree.yaml
+- gt_full.yaml
+- gt_simple.yaml
+- legacy.yaml
+- p_graph.yaml
+- p_point.yaml
+- p_simple.yaml
+- r_point.yaml
+- random.yaml
+- tracin_cp_graph_3.yaml
+- tracin_cp_graph_6.yaml
+- tracin_cp_point_3.yaml
+- tracin_cp_point_6.yaml
+- tracin_cp_simple_3.yaml
+- tracin_cp_simple_6.yaml
 seeds:
 - 42
 - 212

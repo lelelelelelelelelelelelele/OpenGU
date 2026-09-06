@@ -13,8 +13,8 @@ RUNNER_RECIPE_ALLOWED_TOOL_DELTA = ("GULib-master/scripts/syncmate/", "GULib-mas
 EXPERIMENT_RECIPES = {
     'opengu-aagu007-v1': {
         'config_path': 'experiments/configs/aagu007/experiment.yaml',
-        'config_sha256': '7c6778824e8a67d920d7388e31565ce14e94a51422a57b851eadf34c81749b2a',
-        'configuration_fingerprint': '91f35a95df6fba1ac825498af997800b20949e58a22fbce53001e7083ff0ed87',
+        'config_sha256': '1394ecdf82e64a79344a15f8191d1c7514034d9862bcff6a2d829ff6c02ca717',
+        'configuration_fingerprint': '9f2913185bc357de0ce8a70e7adb6b70e498bc0552217fcc2e2ef9fd6e775eaf',
         'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v1'},
         'logical_cells': 4,
         'stage': 'unlearning',
