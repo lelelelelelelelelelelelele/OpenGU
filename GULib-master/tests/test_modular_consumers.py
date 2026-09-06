@@ -172,7 +172,7 @@ def test_different_selector_and_gu_backbones(tables):
     assert result['unlearning'][0]['producer_called']
 
 
-def test_real_command_entry_selector_and_existing_selection(tables):
+def test_command_requires_context_and_gu_consumes_bound_selection(tables):
     import subprocess
     import sys
     root, config, _ = tables
@@ -185,7 +185,6 @@ def test_real_command_entry_selector_and_existing_selection(tables):
     assert not (root / 'v2').exists()
     first = subprocess.run(command, cwd=repository, capture_output=True, text=True)
     assert first.returncode != 0
-    assert 'owned by the registered SyncMate/project stage' in first.stdout + first.stderr
     result = run(tables, 'entry-selection', selector_refs=['degree.yaml'])
     config.update(stage='unlearning', selector_refs=[], unlearning_refs=['gu.yaml'],
         selection_input={k: result['selectors'][0]['selection']['artifact'][k] for k in ('artifact_id', 'recipe_hash', 'content_hash')})

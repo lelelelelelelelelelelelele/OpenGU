@@ -131,20 +131,6 @@ def device_context(experiment_id, *, run_id, device_file, verification_root=None
     return replace(context, source_git_sha=sha.stdout.strip() if sha.returncode == 0 else None)
 
 
-def verification_context(experiment_id, *, run_id, root):
-    """An explicit disposable CPU workspace, never a formal project directory."""
-    root = Path(root).expanduser()
-    if not root.is_absolute() or not root.is_dir():
-        raise ConfigurationError('verification root must be an existing absolute temporary directory')
-    root = root.resolve()
-    if root == REPO_ROOT or root in REPO_ROOT.parents or REPO_ROOT in root.parents:
-        raise ConfigurationError('verification root must be outside the source checkout')
-    context = project_context(experiment_id, run_id=run_id, request_device='cpu',
-                              level='verification', repository_root=root)
-    from dataclasses import replace
-    return replace(context, executor='local-cpu-verification')
-
-
 def verify_temporary_dataset(config, context):
     """Local CLI verification may read only assets inside its disposable root."""
     import json

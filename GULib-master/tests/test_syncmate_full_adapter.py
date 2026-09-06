@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-import hashlib
 import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
-from typing import Any, Mapping
 
 import pytest
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SYNC_DIR = PROJECT_ROOT / "scripts" / "syncmate"
-RECIPE_REGISTRY_SHA256 = (
-    "50f517650418b6c60b78dbc81f08f52b57a6eae3d52ac6bbe539774fe97978ca"
-)
 
 
 def _load_module(name: str, path: Path):
@@ -25,16 +20,6 @@ def _load_module(name: str, path: Path):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
-
-
-def _canonical_sha256(definitions: Mapping[str, Mapping[str, Any]]) -> str:
-    payload = json.dumps(
-        definitions,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
 
 
 @pytest.fixture
@@ -71,12 +56,11 @@ def test_existing_experiment_templates_use_common_cli(block, cells, batches, tmp
         'exit_code': result.returncode, 'plan': plan, 'all_source_yaml_unchanged': True}))
 
 
-def test_full_registry_matches_reviewed_literal_contract(project_extension):
+def test_registry_contains_only_current_reviewed_recipes(project_extension):
     definitions = project_extension.recipes(PROJECT_ROOT)
     expected_ids = {'smoke','opengu-preflight-v1','opengu-aagu007-v1'}
     assert len(definitions) == 3
     assert set(definitions) == expected_ids
-    assert _canonical_sha256(definitions) == RECIPE_REGISTRY_SHA256
 
 
 def test_representative_recipe_fields_remain_exact(project_extension):

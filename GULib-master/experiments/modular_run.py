@@ -119,7 +119,7 @@ def execute(path, *, context=None, dry_run=False):
     output = context.output
     if output.exists() or (output.parent / (output.stem + '.outputs')).exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
-    if context.level == 'verification' and context.executor in ('experiment-run', 'local-cpu-verification'):
+    if context.level == 'verification':
         from experiments.modular_execution import verify_temporary_dataset
         verify_temporary_dataset(config, context)
     data, inputs = read_dataset(config['dataset'], config['dataset_directory'])
