@@ -1,0 +1,239 @@
+{
+  "registration_quote_exact": true,
+  "original_human_surface_unchanged": true,
+  "six_registration_items_mapped": true,
+  "links": [
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/registration-problem-source.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-migration.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-configs.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu007/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/aagu032/experiment.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../experiments/configs/experiment.template.yaml",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/README.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/experiment_contract/PARAMETERS.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "../../../docs/modular_experiments.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-tests.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/retired-code.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/rework-pytest.txt",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/pytest.log",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "WORKITEM.md",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-desktop.png",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/report-narrow.png",
+      "exists": true
+    },
+    {
+      "file": "REPORT.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "../../../self/dashboard/WORKPLAN.md",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.md",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "REPORT.html",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/observations.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/verify-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/configuration-audit.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/render-qa.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-checkpoint.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/rework-observations.json",
+      "exists": true
+    },
+    {
+      "file": "WORKITEM.md",
+      "target": "evidence/collection-side-effects.json",
+      "exists": true
+    }
+  ],
+  "render_review": "Desktop, narrow screen and complete six-row registration table inspected; no overflow or broken images; problem and current decision visible.",
+  "evidence_reuse": "Report-only change from 8a55441947a727eb72113029ebdbf6d1c517ffd9; does not change the questions answered by product checkpoints 380105002579c99ad003418648a85e67da413a0a and 81a220e927a5f2600a3c3104d5551af5b7d5d124. No product tests rerun."
+}
