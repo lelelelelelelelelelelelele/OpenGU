@@ -1,4 +1,4 @@
-# AAGU-007 理想配置草案；等待 AAGU-034 的统一规范与入口实现后绑定验证。
+# AAGU-007 理想配置草案；034 已合入，文件名到固定公共目录的解析仍待实现和验证。
 # 预定落点：experiments/configs/aagu007/experiment.yaml。
 # 引用只写文件名；解析器按字段类型定位 experiments/configs/ 下的对应公共目录。
 # 一张组合表：1 Dataset/Split × 1 Degree × 2 同级方法 × 2 训练 seeds。
