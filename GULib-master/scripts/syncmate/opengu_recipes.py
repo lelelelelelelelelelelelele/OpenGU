@@ -17,6 +17,7 @@ EXPERIMENT_RECIPES = {
         'configuration_fingerprint': '91f35a95df6fba1ac825498af997800b20949e58a22fbce53001e7083ff0ed87',
         'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v1'},
         'logical_cells': 4,
+        'stage': 'unlearning',
         'expected_dataset': {'num_nodes': 2708, 'candidate_count': 1895},
     },
 }
@@ -28,7 +29,7 @@ def recipe_definitions():
             "id": "smoke",
             "argv": ("{python}", "scripts/syncmate/syncmate.py", "smoke", "--json"),
             "config_path": "scripts/syncmate/setup.example.yaml",
-            "config_sha256": "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa",
+            "config_sha256": "a04773028a9045c929f6ac3635dd3cea5b17de89184095d3e396aeb19baf77c5",
             "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
             "git_binding_policy": "job-exact-main-v1", "timeout_seconds": 180,
             "expected_artifact_paths": (), "success_predicate": "json.passed == true",
@@ -38,7 +39,7 @@ def recipe_definitions():
             "id": "opengu-preflight-v1",
             "argv": ("{python}", "scripts/syncmate/syncmate.py", "runner-preflight", "--recipe", "opengu-preflight-v1", "--json"),
             "config_path": "scripts/syncmate/setup.example.yaml",
-            "config_sha256": "9d48bbb04532151eec2cd5868a89821500440e288f65a48fbf09b152bd0660fa",
+            "config_sha256": "a04773028a9045c929f6ac3635dd3cea5b17de89184095d3e396aeb19baf77c5",
             "recipe_introduced_git_sha": RUNNER_RECIPE_INTRODUCED_SHA,
             "git_binding_policy": "job-exact-main-v1", "timeout_seconds": 180,
             "expected_artifact_paths": (
@@ -52,9 +53,11 @@ def recipe_definitions():
     }
     for recipe_id, plan in EXPERIMENT_RECIPES.items():
         summary = modular_output_path(**plan['run_identity'])
-        paths = (summary,) + output_paths(summary, plan['logical_cells'])
+        paths = (summary,) + (output_paths(summary, plan['logical_cells'])
+                             if plan['stage'] == 'unlearning' else ())
         definitions[recipe_id] = {**copy.deepcopy(plan), 'id': recipe_id,
-            'argv': ('{python}', 'experiments/run.py', '--recipe', recipe_id),
+            'argv': ('{python}', 'experiments/run.py', plan['config_path'],
+                     '--run-id', plan['run_identity']['run_id']),
             'git_binding_policy': 'job-exact-main-v1', 'requires_job_expected_git_sha': True,
             'timeout_seconds': 1800, 'expected_artifact_paths': paths,
             'collector_result_roots': (summary.rsplit('/', 1)[0],),

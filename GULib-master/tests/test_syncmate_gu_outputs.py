@@ -24,61 +24,29 @@ from syncmate_core.run_handoff import build_execution_contract
 ROOT=Path(__file__).resolve().parents[1]
 
 
+from test_syncmate_execution_contract import workspace, commit, declaration, FixtureRegistration
+from syncmate_core import queue
+
+
 @pytest.fixture
-def exported(matrix):
-    runner,path=matrix
-    config=yaml.safe_load(path.read_text());config['selector_refs']=['degree.yaml'];write_yaml(path,config)
-    subprocess.run(['git','init','-q','-b','main',str(runner)],check=True)
-    subprocess.run(['git','-C',str(runner),'-c','user.name=CPU fixture','-c','user.email=fixture@example.invalid',
-        'commit','-q','--allow-empty','-m','isolated CPU runtime'],check=True)
-    sha=subprocess.check_output(['git','-C',str(runner),'rev-parse','HEAD'],text=True).strip()
-    definition=copy.deepcopy(recipe_definitions()['opengu-aagu007-v1'])
-    summary='results/runs/modular/cpu-matrix/registered/summary.json'
-    definition.update(config_path='experiment.yaml',config_sha256=sha256_recipe_config(path),
-        configuration_fingerprint=configuration_fingerprint(path),logical_cells=8,
-        expected_dataset={'num_nodes':20,'candidate_count':10},
-        run_identity={'experiment_id':'cpu-matrix','run_id':'registered'},
-        expected_artifact_paths=[summary]+list(output_paths(summary,8)),
-        collector_result_roots=[str(Path(summary).parent).replace('\\','/')])
-    (runner/'definition.json').write_text(json.dumps(definition))
-    running=runner/'.syncmate/runner_queue/running';running.mkdir(parents=True)
-    receipts=running.parent/'receipts';receipts.mkdir()
-    job={'id':'cpu-job','recipe':definition['id'],'expected_git_sha':sha}
-    write_yaml(running/'cpu-job.yaml',job)
-    contract=build_execution_contract(definition,project='opengu',job_id='cpu-job',git_sha=sha)
-    (receipts/'cpu-job.json').write_text(json.dumps({'output_contract':contract}))
-    # Only OS/device policy is substituted for disposable CPU verification. The
-    # real CLI, parser, queue identity, handoff, executor and output checks run.
-    code=r"""
-import json,sys,runpy
-from pathlib import Path
-from dataclasses import replace
-from functools import partial
-from scripts.syncmate import opengu_recipes
-from experiments import syncmate_stage,modular_execution
-root=Path(sys.argv[1]);definition=json.loads((root/'definition.json').read_text())
-opengu_recipes.recipe_definitions=lambda:{definition['id']:definition}
-def cpu_preflight(recipe_id,root):
-    from experiments.modular_config import configuration_fingerprint
-    from experiments.modular_run import execute
-    assert configuration_fingerprint(root/definition['config_path'])==definition['configuration_fingerprint']
-    assert execute(root/definition['config_path'],dry_run=True)['logical_cells']==8
-    return {'ready':True,'errors':[],'level':'isolated_cpu_policy'}
-syncmate_stage.preflight=cpu_preflight
-original=modular_execution.project_context
-modular_execution.project_context=lambda *a,**k: replace(original(*a,**k),request_device='cpu',level='verification')
-syncmate_stage.run=partial(syncmate_stage.run,root=root)
-import torch;torch.set_num_threads(1)
-sys.argv=['experiments/run.py','--recipe',definition['id']]
-runpy.run_path('experiments/run.py',run_name='__main__')
-"""
-    result=subprocess.run([sys.executable,'-B','-X','utf8','-c',code,str(runner)],cwd=ROOT,capture_output=True,text=True,encoding='utf-8')
-    assert result.returncode==0,result.stdout+result.stderr
-    assert json.loads(result.stdout)['passed']
-    collector=runner/'collector';collector.mkdir()
-    # Collector configuration is the same reviewed small tables; no Cache or data copy.
-    for source in runner.glob('*.yaml'):(collector/source.name).write_bytes(source.read_bytes())
-    return runner,collector,sha,definition
+def exported(workspace):
+    runner, path, config = workspace
+    config.update(stage='unlearning', unlearning_refs=['gu.yaml', 'retrain.yaml'])
+    write_yaml(path, config)
+    sha = commit(runner)
+    definition = declaration(runner, path, 'unlearning')
+    with context.use(runner, extension=FixtureRegistration(definition)):
+        submitted = queue.runner_queue_submit('cpu-job', definition['id'], expected_git_sha=sha)
+        assert submitted['submitted'], submitted
+        device, warnings = devices.load_device(runner / '.syncmate/device.yaml')
+        assert not warnings
+        result = queue.runner_queue_run_once(device)
+        assert result['status'] == 'done', result
+    collector = runner / 'collector'
+    collector.mkdir()
+    for source in runner.glob('*.yaml'):
+        (collector / source.name).write_bytes(source.read_bytes())
+    return runner, collector, sha, definition
 
 
 def collect(exported):
@@ -139,26 +107,3 @@ def test_collection_faults_fail_closed(exported,fault):
         result=extension.accept('modular-output-v1',definition,collected)
         assert not result['passed'] and result['errors']
 
-
-def test_live_registration_uses_one_entry_and_all_reference_fingerprints():
-    registry=recipe_definitions()
-    assert set(registry)=={'smoke','opengu-preflight-v1','opengu-aagu007-v1'}
-    definition=registry['opengu-aagu007-v1'];path=ROOT/definition['config_path']
-    assert definition['argv']==('{python}','experiments/run.py','--recipe','opengu-aagu007-v1')
-    assert configuration_fingerprint(path)==definition['configuration_fingerprint']
-    assert sha256_recipe_config(path)==definition['config_sha256']
-    assert execute(path,dry_run=True)['logical_cells']==definition['logical_cells']==4
-    assert len(definition['expected_artifact_paths'])==17
-
-
-def test_real_formal_preflight_refuses_cpu_before_dataset(monkeypatch):
-    from experiments import syncmate_stage,modular_run
-    from scripts.syncmate import verify_core_dependency
-    monkeypatch.setattr(torch.cuda,'is_available',lambda:False)
-    monkeypatch.setattr(verify_core_dependency,'verify_core_dependency',lambda:{'errors':[]})
-    def forbidden(*a,**k):raise AssertionError('unavailable GPU reached formal data')
-    monkeypatch.setattr(modular_run,'read_dataset',forbidden)
-    checked=syncmate_stage.preflight('opengu-aagu007-v1')
-    assert not checked['ready']
-    assert any('no CPU fallback' in e for e in checked['errors'])
-    assert any('canonical SSH' in e for e in checked['errors'])

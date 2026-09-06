@@ -6,6 +6,14 @@ import json
 ARTIFACT_NAMES = ('attack.json', 'output-references.json', 'predictions.npz', '_meta.json')
 
 
+def generated_paths(summary, context):
+    """Files actually exported by this stage, relative to its execution workspace."""
+    root = context.store_root.parent.parent
+    return [context.output.relative_to(root).as_posix()] + [
+        (context.output.parent / item['path']).relative_to(root).as_posix()
+        for row in summary['unlearning'] for item in row['collected_artifacts'].values()]
+
+
 def output_paths(summary_path, count):
     parent = Path(summary_path).parent / (Path(summary_path).stem + '.outputs')
     return tuple((parent / str(i) / name).as_posix()

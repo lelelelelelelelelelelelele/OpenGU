@@ -4,11 +4,16 @@ from pathlib import Path
 from typing import Any, Mapping
 
 def _modular_preflight(definition, config_path):
-    from experiments.syncmate_stage import preflight
-    root = Path(config_path).resolve()
-    for _ in Path(definition['config_path']).parts:
-        root = root.parent
-    return preflight(definition['id'], root=root)
+    from experiments.modular_run import execute
+    plan = execute(config_path, dry_run=True)
+    errors = []
+    if plan['configuration_fingerprint'] != definition['configuration_fingerprint']:
+        errors.append('referenced configuration fingerprint changed')
+    if plan['logical_cells'] != definition['logical_cells']:
+        errors.append('expanded conditions differ from registration')
+    if plan['experiment_id'] != definition['run_identity']['experiment_id']:
+        errors.append('experiment identity differs from registration')
+    return {'ready': not errors, 'errors': errors}
 
 
 _PREFLIGHT_HANDLERS = {'modular-project-v1': _modular_preflight}

@@ -54,7 +54,12 @@ def command(root, config, run_id, *, poison=False, instrument=True):
                AAGU034_POISON='1' if poison else '0')
     argv = [sys.executable, '-B', '-X', 'utf8']
     argv += ['-c', INSTRUMENTED_ENTRY] if instrument else ['experiments/run.py']
-    argv += [str(config), '--verification-root', str(root), '--run-id', run_id]
+    device = root / '.syncmate/device.yaml'
+    device.parent.mkdir(exist_ok=True)
+    write_yaml(device, {'version': 1, 'device_id': 'temporary-cpu', 'role': 'runner',
+        'repo_path': str(root), 'execution_device': 'cpu', 'peers': {}})
+    argv += [str(config), '--verification-root', str(root), '--run-id', run_id,
+             '--device-config', str(device)]
     result = subprocess.run(argv, cwd=ROOT, env=env, capture_output=True, text=True, encoding='utf-8')
     assert result.returncode == 0, result.stdout + result.stderr
     return json.loads(result.stdout)

@@ -36,7 +36,7 @@ def workspace(tables):
     paths = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
     for relative in filter(None, paths):
         source = ROOT / relative
-        if source.suffix != '.py' or relative.startswith('tests/') or not source.is_file():
+        if (source.suffix != '.py' and not relative.startswith('model/properties/')) or relative.startswith('tests/') or not source.is_file():
             continue
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -46,8 +46,12 @@ def workspace(tables):
     write_yaml(root / '.syncmate/device.yaml', {
         'version': 1, 'device_id': 'temporary-cpu', 'role': 'runner',
         'repo_path': str(root), 'execution_device': 'cpu', 'peers': {}})
-    config.update(experiment_id='contract', selector_refs=['degree.yaml'],
+    config.update(experiment_id='contract', selector_refs=['score.yaml'],
                   seeds=[122, 722], budget_ratios=[.1, .2])
+    selector = yaml.safe_load((root / 'degree.yaml').read_text())
+    selector['budget'] = {'mode': 'ratio', 'value': .1}
+    selector.update(method='a_grad_norm', model=gu['model'], training=gu['training'])
+    write_yaml(root / 'score.yaml', selector)
     write_yaml(root / 'retrain.yaml', {**gu, 'method': 'Retrain', 'parameters': {}})
     path = root / 'experiment.yaml'
     write_yaml(path, config)
@@ -155,7 +159,8 @@ def test_real_core_and_direct_command_share_config_device_and_outputs(workspace,
     collector = root / 'collector'
     collector.mkdir()
     with context.use(collector, extension=FixtureRegistration(definition)):
-        args = ('runner', None, str(root), definition['collector_result_roots'], 'results/runs/runner')
+        peer = devices.build_peer_config('runner', None, str(root), transport='local')
+        args = ('runner', devices.transport_ssh_value(peer), str(root), definition['collector_result_roots'], 'results/runs/runner')
         opts = dict(artifact_names=definition['collector_artifact_names'],
                     expected_paths=definition['expected_artifact_paths'], expected_git_sha=sha, save=True)
         applied = collection.apply_collect(*args, **opts)

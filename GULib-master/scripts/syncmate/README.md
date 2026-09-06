@@ -1313,7 +1313,7 @@ Reports older than 24 hours are flagged by `doctor` as stale.
 
 ### Ordinary experiment receipts (AAGU-034)
 
-The current recipe calls `experiments/run.py --recipe opengu-aagu007-v1`.
+The current recipe calls `experiments/run.py experiments/configs/aagu007/experiment.yaml --run-id aagu007-v1`.
 The same parser, in-memory expansion and execution kernel serve dry-run and
 local CPU verification. The registration binds both the top YAML hash and the
 complete referenced configuration fingerprint, plus run identity and the exact
@@ -1328,9 +1328,15 @@ Their existing evidence and Cache V2 artifacts remain unchanged. See the
 SyncMate Core 0.4.0 uses `syncmate.run-handoff/v1`. Scientific YAML contains no
 runtime output paths. `opengu_layout.py` owns the modular result layout, shared
 by `ExecutionContext` and the static recipes. The queue records the resolved
-output contract; the project stage verifies it before invoking the consumer.
+output contract; Core validates it, invokes the ordinary command and checks its declared files.
 
-Device setup keeps SSH, `repo_path` and the interpreter. Remove `landing` and
+Device setup keeps SSH, `repo_path` and the interpreter. The runner's own
+`.syncmate/device.yaml` also declares `execution_device: cuda` (or an explicit
+CUDA index); disposable CPU verification declares `execution_device: cpu`.
+The ordinary entry uses Core's existing device reader. Missing or unavailable
+devices fail before reading graph data; there is no default device or GPU-model constant.
+The execution receipt records the actual interpreter, working directory and device.
+Remove `landing` and
 `result_roots`; new landings are generated as `results/runs/<peer_id>`, and
 project code declares bulk inventory roots. Per-job files come from the recipe.
 Dispatch saves `.syncmate/runs/<job_id>.json`. `dispatch --wait` automatically

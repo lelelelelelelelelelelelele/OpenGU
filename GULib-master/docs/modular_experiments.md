@@ -4,11 +4,11 @@
 
 ## 同一解析与执行路径
 
-`experiments/run.py` 的配置路径模式与 `--recipe` 模式都调用 `modular_run.execute`，并使用 `modular_config.load_experiment` / `experiment_batches`。不存在只供检查的新配置规格，也没有逐条件 YAML 生成器。一个组合表只绑定一个 Dataset/Split。
+普通命令和 SyncMate 注册都直接调用 `experiments/run.py <config.yaml> --run-id <id>`，共用 `modular_run.execute` 和 `modular_config.load_experiment` / `experiment_batches`。不存在只供检查的新配置规格，也没有逐条件 YAML 生成器。一个组合表只绑定一个 Dataset/Split。
 
 - `--dry_run` 展开真实有效值、字段来源、训练 seed/预算批次与逻辑条件数；不读数据、建 Store 或调用 producer。
-- 本地命令须显式提供 `--verification-root` 与 `--run-id`。目录必须在源码 checkout 外，输入资产也须在该根内；运行固定 CPU。
-- `--recipe` 由 SyncMate 调用，不能混入其他配置、路径或覆盖参数。登记固定配置指纹、全部引用表指纹、运行身份、超时和精确产物清单。
+- 设备只由 Core 读取的 `.syncmate/device.yaml` 决定：`repo_path` 指定执行根，`execution_device` 明确指定 `cpu`、`cuda` 或 CUDA 索引；没有设备默认值。正式执行要求在配置的 runner checkout 中使用可用 CUDA。
+- 隔离验证另需 `--verification-root <temporary-root>`；该根等于设备配置的 `repo_path`，输入资产必须在其内部。`--device-config` 可指定临时设备文件。Core 注册直接指向普通配置路径，绑定文件及引用表指纹、运行身份、超时和阶段产物；没有专用 `--recipe` 分支。
 
 ## Selector → 固定 Selection → 独立方法
 
@@ -18,7 +18,7 @@ GNNDelete、GIF、Retrain 各自执行、缓存、保存 Output。Retrain 使用
 
 ## 输出与收集后 Metrics
 
-每个运行写一个 `summary.json`，以及 `summary.outputs/<序号>/attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。summary 记录有效值、来源、配置指纹、运行回执、Score/Selection/Output 身份和相对导出路径及摘要。每个 Output 保存实际训练图、删除集合、预测和模型状态，可脱离远端 Store 验证。
+每个阶段写一个 `summary.json`；Unlearning 另写独立方法的 `summary.outputs/<序号>/attack.json`、`output-references.json`、`predictions.npz`、`_meta.json`。Selector 和 Metrics 不声明不存在的方法文件。summary 记录有效值、来源、配置指纹、运行回执、Score/Selection/Output 身份和相对导出路径及摘要。每个 Output 保存实际训练图、删除集合、预测和模型状态，可脱离远端 Store 验证。
 
 SyncMate 的 apply_collect → verify_collect → artifact index 仍是收集权威。项目验收消费者重核精确文件集合、字节摘要、运行 SHA、配置与方法身份、Selection、保存预测和指标。其通过仅表示软件证据核验，人的科研验收仍由 WorkItem 决定。
 

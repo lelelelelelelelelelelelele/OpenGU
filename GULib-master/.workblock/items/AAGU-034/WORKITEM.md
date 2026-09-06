@@ -135,3 +135,11 @@ Stable locator: `.workblock/items/AAGU-034/WORKITEM.md`
 - 此次仅检查报告原文追溯、问题到证据对应、Markdown/HTML结构、生成一致性、链接、桌面/窄屏及原始问题表真实渲染。软件结果复用38010500与81a220e9的实测检查点，以及8a554419的最终差异复核；不重复执行产品测试。当前仍待人决定。
 
 - 报告返工 Verify：登记引文与首次Git原文一致，原Human Surface未修改；六项问题对照、证据链接、唯一Human Result/待决定投影与确定性HTML重建检查通过。已实际查看桌面、窄屏及完整问题对照表；决定入口在550/740px处，无溢出或断图。最新表面证据见evidence/report-problem-check.json；本次仅报告变更，软件检查不重复执行，继续停在人类验收。
+
+
+## Core 接缝返工 · 2026-09-07
+
+- 用户否定专用 stage 和随实现调整测试的做法，要求设备只由 device.yaml / SyncMate 配置决定，Core 负责提交与回传，普通实验入口复用已有内核。同一 Claim revision 7 返回 ongoing；此前的接受建议不再适用于当前返工。
+- 先提交验收测试 cdc08804，普通入口设备参数及旧注册入口 RED 共7项。夹具随后补齐模型资源、比例预算、训练型评分和Core本地transport；33条验收断言经AST逐条比较完全不变。保留原始与更正后的文件hash及原因于 evidence/core-contract-freeze.json，不声称测试文件整体未改。
+- 删除 experiments/syncmate_stage.py 及其手读队列/receipt、硬编码GPU型号、执行设备和SSH绝对根。注册直接指向普通YAML命令；设备沿Core现有reader进入ExecutionContext。Core保留队列、Git绑定、进程与文件核验职责；没有修改独立Core或增加配置生成器。
+- 旧输出测试的生产preflight替换、强改CPU及手写running/receipt夹具退役，改用Core正常提交与真实子进程。当前软件候选须经固定合同及相关消费者/SyncMate回归后才能再次进入人类验收。

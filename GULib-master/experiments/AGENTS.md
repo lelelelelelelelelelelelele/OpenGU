@@ -33,7 +33,7 @@
 
 普通 `kind: experiment` 表只绑定一个Dataset/Split，引用 `configs/datasets/`、`selectors/`、`unlearning/`、`evaluations/` 公共实例。通用解析器拒绝旧扁平配置和未知字段。大表只允许覆盖训练 `seeds` 与 `budget_ratios`，优先级为大表显式值、小表填写值、方法默认值；执行时记录有效值与来源，源文件保持不变。
 
-配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。隔离CPU命令另需显式 `--verification-root`、`--run-id`，所有测试资产必须位于该临时根。正式作业仍经注册的SyncMate入口，由它调用 `run.py --recipe <id>` 并提供项目上下文；不使用临时SSH命令代替批准、queue、共享stage check或实验preflight。
+配置检查与实际执行都使用 `run.py → modular_config → modular_run`。本地dry-run命令为 `E:/conda_package/envs/gnn/python.exe experiments/run.py <registered-config.yaml> --dry_run`。普通执行和SyncMate注册均直接调用 `run.py <config.yaml> --run-id <id>`，没有专用stage或第二次YAML生成。运行设备只读取Core解析的 `.syncmate/device.yaml` 中 `execution_device`，执行根来自 `repo_path`；字段缺失或设备不可用即拒绝。Core按peer配置选择SSH目录及解释器，处理版本绑定、队列与回传。隔离验证另需显式 `--verification-root <temporary-root>`；该根须等于设备配置的 `repo_path`，测试资产须在根内。可用 `--device-config <temporary-device.yaml>` 指定临时设备文件；不能以本地验证代替正式SSH/GPU证据。
 
 数据/划分由公共小表及其真实manifest拥有，模型训练seed和Random抽样seed不改变split。不同合法划分使用不同实例与持久化资产，不自动物化缺失数据。旧formal-v2配置已退役，其原文仅保留在历史配置档案中；当前科学范围以各WorkItem及普通组合表为准。
 

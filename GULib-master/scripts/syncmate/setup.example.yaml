@@ -7,6 +7,7 @@ version: 0
 device_id: local-laptop
 role: collector
 repo_path: E:/project/OpenGU/GULib-master
+execution_device: cpu  # Runner's own file declares cpu, cuda or cuda:<index>; no code default.
 
 # Collector nodes list peers here. Runner-only nodes may omit peers.
 peers:
