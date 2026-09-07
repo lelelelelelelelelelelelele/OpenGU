@@ -23,7 +23,7 @@ EXPERIMENT_RECIPES = {
     },
     'opengu-aagu007-v2': {
         'config_path': 'experiments/configs/aagu007/experiment.yaml',
-        'config_sha256': '19208034fb94760b546f811af73673f97ca0cb9f12619ce41f194f807f5e8848',
+        'config_sha256': 'e0fb680d39efd67e6cdadab1ed45b4e87e52a963da02638c77ce0baf53584521',
         'configuration_fingerprint': '18a5bcc0a8fdfe7e8293d4a32800af3c0c5bf1281025d31ede88980dd274f97a',
         'run_identity': {'experiment_id': 'aagu007-cora-degree-r001-v1', 'run_id': 'aagu007-v2'},
         'timeout_seconds': 1800,
