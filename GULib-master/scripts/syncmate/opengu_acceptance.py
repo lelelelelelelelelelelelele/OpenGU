@@ -85,7 +85,7 @@ def acceptance_payload(profile, definition, context):
             summary_remote = next(p for p in expected_paths if p.endswith('/summary.json'))
             entry = by_remote[summary_remote]
             from experiments.modular_artifacts import read_summary_outputs
-            summary, outputs = read_summary_outputs(root / entry['local_path'], entry['sha256'])
+            summary, outputs = read_summary_outputs(root / entry['local_path'], entry['sha256'], dataset_root=root)
             if summary['configuration_fingerprint'] != definition['configuration_fingerprint']:
                 raise ValueError('summary differs from registered effective configuration')
             if summary['logical_cells'] != definition['logical_cells']:

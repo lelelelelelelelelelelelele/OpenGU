@@ -20,7 +20,7 @@ def write_yaml(path, value):
         value = copy.deepcopy(value)
         for field in ('dataset_refs', 'selector_refs', 'unlearning_refs', 'evaluation_refs'):
             if field in value:
-                value[field] = [str((path.parent / ref).resolve()) for ref in value[field]]
+                value[field] = [('./' + ref if not Path(ref).is_absolute() and '/' not in ref and '\\' not in ref else ref) for ref in value[field]]
     path.write_text(yaml.safe_dump(value, sort_keys=False), encoding='utf-8')
 
 
@@ -74,7 +74,7 @@ def run(tables, name, **changes):
     config['experiment_id'] = name
     write_yaml(root / (name + '.yaml'), config)
     context = ExecutionContext(run_id=name, level='verification', request_device='cpu',
-        store_root=root / 'v2', checkpoint_root=root / 'checkpoints',
+        store_root=root / 'results' / 'cache_v2', checkpoint_root=root / 'checkpoints',
         runtime_root=root / 'runtime' / name, output=root / (name + '.json'),
         executor='pytest')
     return execute(root / (name + '.yaml'), context=context)
@@ -149,7 +149,7 @@ def test_missing_and_wrong_identity_fail_before_execution(tables):
     root = tables[0]
     data, inputs = read_dataset(load_instance(root / 'dataset.yaml', 'dataset_split'), root)
     with pytest.raises(ValueError, match='digest mismatch'):
-        verified_selection(reference, store_root=root / 'v2', data=data, inputs=inputs)
+        verified_selection(reference, store_root=root / 'results' / 'cache_v2', data=data, inputs=inputs)
     assert not (root / 'runtime/unlearning').exists()
 
 

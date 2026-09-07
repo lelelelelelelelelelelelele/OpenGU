@@ -36,12 +36,12 @@ def verify_evaluation(saved, current, receipt_id):
             raise ValueError('single-method metric status differs: ' + name)
 
 
-def read_method_output(artifacts, project_root):
+def read_method_output(artifacts, project_root, *, dataset_root=None):
     from cache_v2 import ArtifactRecipe, ArtifactType
     from cache_v2.contracts import build_artifact_id
     from cache_v2.unlearning_output import OUTPUT_CONTRACT, UnlearningOutputPayload
     from experiments.modular_artifacts import ARTIFACT_NAMES
-    from experiments.unlearning_outputs import validate_embedded_data, utility
+    from experiments.unlearning_outputs import resolve_output, utility
     from experiments.output_metrics import evaluate_method
     from experiments.modular_gu import gu_producer
 
@@ -64,12 +64,14 @@ def read_method_output(artifacts, project_root):
     exported = json.loads(content['output-references.json'])
     attack = json.loads(content['attack.json'])
     payload = UnlearningOutputPayload.from_bytes(content['predictions.npz'])
-    validate_embedded_data(payload)
+    payload = resolve_output(payload, dataset_root if dataset_root is not None else root)
     identity = payload.identity
     from cache_v2 import canonical_sha256
     dataset = meta['dataset']
     binding = meta['matrix_values']
-    if (binding['dataset_name'] != dataset['dataset']['dataset']['name']
+    if (identity['dataset_input']['instance'] != dataset['dataset']
+            or identity['dataset_input'] != dataset['input_reference']
+            or binding['dataset_name'] != dataset['dataset']['dataset']['name']
             or binding['dataset_fingerprint'] != canonical_sha256(dataset['dataset'])
             or dataset['data_identity'] != identity['pairing']['data_identity']
             or dataset['data_identity']['split_hash'] != dataset['dataset']['artifacts']['split_hash']

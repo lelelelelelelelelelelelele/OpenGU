@@ -15,7 +15,7 @@ from experiments.modular_evaluation import evaluate_modular
 from experiments.unlearning_outputs import load_output
 
 
-def evaluate_outputs(evaluation, pairs, *, store_root, output_dir):
+def evaluate_outputs(evaluation, pairs, *, store_root, output_dir, dataset_root):
     output_dir = Path(output_dir)
     targets = [output_dir / name for name in ('collateral.json', 'predictions.npz')]
     if any(path.exists() for path in targets):
@@ -23,14 +23,14 @@ def evaluate_outputs(evaluation, pairs, *, store_root, output_dir):
     annotations = [pair['strategy'] for pair in pairs]
     if len(set(annotations)) != len(annotations):
         raise ValueError('each comparison needs a unique annotation; do not overwrite method predictions')
-    evaluated = evaluate_modular(evaluation, pairs, store_root=store_root)
+    evaluated = evaluate_modular(evaluation, pairs, store_root=store_root, dataset_root=dataset_root)
     if len(evaluated['rows']) != len(pairs):
         raise ValueError('each Metrics pair must name one GU and one Retrain output')
     rows, arrays = [], {}
     from experiments.gate3_degree_adapter import _scalar_metrics_from_prediction
     for pair, row in zip(pairs, evaluated['rows']):
-        gu = load_output(pair['unlearning'], store_root)
-        retrain = load_output(pair['retrain'], store_root)
+        gu = load_output(pair['unlearning'], store_root, dataset_root=dataset_root)
+        retrain = load_output(pair['retrain'], store_root, dataset_root=dataset_root)
         strategy = pair['strategy']
         if not isinstance(strategy, str) or not strategy or '/' in strategy or '__' in strategy:
             raise ValueError('invalid strategy annotation')
@@ -42,10 +42,10 @@ def evaluate_outputs(evaluation, pairs, *, store_root, output_dir):
         diagnostics = _scalar_metrics_from_prediction(SimpleNamespace(**bundle))
         rows.append({'strategy': strategy, **row['metrics'],
                      **{k: diagnostics[k] for k in ('mean_pred_shift', 'max_pred_shift', 'fraction_flipped')},
-                     'evaluation_receipt_id': row['evaluation_receipt_id'], 'identity': row['identity']})
-        arrays.update({strategy + '__' + key: value for key, value in bundle.items()})
-        for key in ('train_mask', 'evaluation_edge_index'):
-            arrays[strategy + '__' + key] = a[key]
+                     'evaluation_receipt_id': row['evaluation_receipt_id'], 'identity': row['identity'],
+                     'dataset_input': gu.identity['dataset_input'], 'deletion': gu.identity['pairing']['deletion']})
+        arrays.update({strategy + '__' + key: value for key, value in bundle.items()
+                       if key in ('logits_before', 'logits_unlearned', 'logits_retrained', 'selected_nodes')})
     output = {'schema': 'opengu.output_metrics', 'version': 1,
               'evaluation': evaluation, 'results': rows, 'training_producer_called': False}
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -59,6 +59,7 @@ def evaluate_outputs(evaluation, pairs, *, store_root, output_dir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--dataset-root', type=Path, required=True)
     parser.add_argument('--store-root', type=Path, required=True)
     parser.add_argument('--inputs', type=Path, required=True, help='JSON list of strategy / unlearning / retrain references')
     parser.add_argument('--evaluation', type=Path, required=True)
@@ -66,7 +67,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     pairs = json.loads(args.inputs.read_text(encoding='utf-8'))
     result = evaluate_outputs(load_instance(args.evaluation, 'evaluation'), pairs,
-                              store_root=args.store_root, output_dir=args.output_dir)
+                              store_root=args.store_root, output_dir=args.output_dir, dataset_root=args.dataset_root)
     print(json.dumps({'rows': len(result['results']), 'training_producer_called': False}))
     return 0
 

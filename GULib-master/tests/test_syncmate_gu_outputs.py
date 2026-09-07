@@ -56,6 +56,9 @@ def collect(exported):
         definition['collector_result_roots'],'results/runs/cpu-runner')
     options={'artifact_names':definition['collector_artifact_names'],
         'expected_paths':definition['expected_artifact_paths'],'expected_git_sha':sha,'save':True}
+    from scripts.syncmate.opengu_inputs import collect_inputs
+    collect_inputs(collector / definition['config_path'], node_id='cpu-runner',
+        ssh=devices.transport_ssh_value(peer), repo_path=str(runner), project_root=collector, expected_git_sha=sha)
     result=collection.apply_collect(*args,**options)
     assert not result.get('errors'),result
     verified=collection.verify_collect(*args,**options)

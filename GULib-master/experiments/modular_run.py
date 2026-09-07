@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import pickle
 from pathlib import Path
 import torch
 from cache_v2.runtime import load_selection_artifact
@@ -13,47 +12,8 @@ from experiments.modular_execution import ExecutionContext
 from experiments.modular_model import prepare_model, runtime_defaults
 from experiments.selection_inputs import make_dataset_selection_inputs
 from experiments.target_direct_v1.method_cache import resolve_methods
-from utils.target_checkpoint import sha256_file, data_identity
-
-
-def read_dataset(instance, directory):
-    fields(instance['dataset'], {'name', 'family'}, {'name'}, 'dataset')
-    fields(instance['artifacts'], {'manifest', 'manifest_sha256', 'split_hash', 'node_id_space'},
-           {'manifest', 'manifest_sha256', 'split_hash', 'node_id_space'}, 'dataset artifacts')
-    artifacts = instance['artifacts']
-    if artifacts['node_id_space'] != 'pyg-global-node-index-v1':
-        raise ConfigurationError('unsupported node ID space')
-    if not artifacts['manifest'] or not artifacts['manifest_sha256'] or not artifacts['split_hash']:
-        raise ConfigurationError('persisted Dataset/Split artifacts are required')
-    manifest_path = (Path(directory) / artifacts['manifest']).resolve()
-    if sha256_file(manifest_path) != artifacts['manifest_sha256']:
-        raise ConfigurationError('dataset manifest digest mismatch')
-    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-    fields(manifest, {'schema', 'version', 'dataset', 'preprocessing', 'split', 'data_path', 'data_sha256', 'data_identity'},
-                    {'schema', 'version', 'dataset', 'preprocessing', 'split', 'data_path', 'data_sha256', 'data_identity'}, 'dataset manifest')
-    if manifest['schema'] != 'opengu.persisted_dataset_split' or manifest['version'] != 1:
-        raise ConfigurationError('unknown persisted Dataset/Split manifest')
-    for key in ('dataset', 'preprocessing', 'split'):
-        if manifest[key] != instance[key]:
-            raise ConfigurationError('dataset manifest ' + key + ' mismatch')
-    data_path = (manifest_path.parent / manifest['data_path']).resolve()
-    if sha256_file(data_path) != manifest['data_sha256']:
-        raise ConfigurationError('persisted graph digest mismatch')
-    with data_path.open('rb') as handle:
-        data = pickle.load(handle)
-    n = int(data.num_nodes)
-    masks = [getattr(data, key + '_mask', None) for key in ('train', 'val', 'test')]
-    if any(mask is None or mask.dtype != torch.bool or tuple(mask.shape) != (n,) or not mask.any() for mask in masks):
-        raise ConfigurationError('three nonempty persisted boolean masks are required')
-    if not torch.stack(masks).sum(0).eq(1).all():
-        raise ConfigurationError('persisted split must partition the node space')
-    identity = data_identity(data)
-    if identity != manifest['data_identity'] or identity['split_hash'] != artifacts['split_hash']:
-        raise ConfigurationError('actual Dataset/Split identity mismatch')
-    if data.x.dtype != torch.float32 or not torch.isfinite(data.x).all():
-        raise ConfigurationError('current consumers require finite float32 features')
-    inputs = make_dataset_selection_inputs(data, dataset_name=instance['dataset']['name'].lower())
-    return data, inputs
+from utils.target_checkpoint import data_identity
+from experiments.dataset_inputs import read_dataset
 
 
 def verified_selection(reference, *, store_root, data, inputs, expected_selector=None, expected_k=None):
@@ -120,6 +80,7 @@ def execute(path, *, context=None, dry_run=False):
     output = context.output
     if output.exists() or (output.parent / (output.stem + '.outputs')).exists():
         raise FileExistsError('each invocation must use a new run output: ' + str(output))
+    dataset_root = context.store_root.parent.parent
     datasets = []
     loaded_data = []
     for index, instance in enumerate(config['datasets']):
@@ -129,7 +90,11 @@ def execute(path, *, context=None, dry_run=False):
             verify_temporary_dataset(dataset_config, context)
         data, inputs = read_dataset(instance, dataset_config['dataset_directory'])
         loaded_data.append((data, inputs))
-        datasets.append({'dataset': instance, 'data_identity': data_identity(data),
+        from experiments.dataset_inputs import bind_input
+        reference = bind_input(instance, dataset_config['dataset_directory'], dataset_root)
+        if context.level == 'formal' and any(not reference[key].startswith('data/processed/') for key in ('manifest', 'graph')):
+            raise ConfigurationError('formal inputs must stay in data/processed')
+        datasets.append({'input_reference': reference, 'dataset': instance, 'data_identity': data_identity(data),
                          'num_nodes': inputs.num_nodes, 'candidate_count': inputs.candidate_count})
     for batch in batches:
         _, inputs = loaded_data[batch['matrix_values']['dataset_index']]
@@ -151,7 +116,7 @@ def execute(path, *, context=None, dry_run=False):
                 continue
             if not value['summary'] or not value.get('sha256'):
                 raise ConfigurationError('bind real output summaries and SHA-256 before metrics')
-            previous, outputs = read_summary_outputs(directory / value['summary'], value['sha256'])
+            previous, outputs = read_summary_outputs(directory / value['summary'], value['sha256'], dataset_root=dataset_root)
             for prior in previous['datasets']:
                 if prior not in datasets:
                     raise ConfigurationError('metrics input Dataset/Split mismatch')
@@ -165,7 +130,7 @@ def execute(path, *, context=None, dry_run=False):
             binding = dataset_binding(config, index)
             for item in config['evaluations']:
                 result = evaluate_modular(item, rows, store_root=store_root, data=data,
-                    verified_outputs=portable[binding['dataset_fingerprint']])
+                    dataset_root=dataset_root, verified_outputs=portable[binding['dataset_fingerprint']])
                 summary['evaluations'].append({**result, 'dataset_binding': binding})
         summary['selector_producer_called'] = False
         _write_summary(output, summary)
@@ -196,7 +161,8 @@ def execute(path, *, context=None, dry_run=False):
                     model, _, checkpoint = prepare_model(item, data=data, dataset_name=inputs.dataset_name,
                         checkpoint_root=checkpoint_root, device=device, reference_directory=directory)
                 result = run_unlearning(item, selection=loaded_selections[selector_ref], model=model, data=data,
-                    dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root)
+                    dataset_name=inputs.dataset_name, checkpoint=checkpoint, store_root=store_root, runtime_root=runtime_root, dataset_root=dataset_root,
+                    dataset_input=datasets[batch['matrix_values']['dataset_index']]['input_reference'])
                 summary['unlearning'].append({**result, 'checkpoint': checkpoint,
                     'matrix_values': batch['matrix_values'], 'selector_ref': selector_ref,
                     'unlearning_ref': gu_ref})
@@ -205,11 +171,11 @@ def execute(path, *, context=None, dry_run=False):
         for index, (data, _) in enumerate(loaded_data):
             rows = [row for row in summary['unlearning'] if row['matrix_values']['dataset_index'] == index]
             for item in config['evaluations']:
-                result = evaluate_modular(item, rows, store_root=store_root, data=data)
+                result = evaluate_modular(item, rows, store_root=store_root, data=data, dataset_root=dataset_root)
                 summary['evaluations'].append({**result, 'dataset_binding': dataset_binding(config, index)})
     summary['selector_producer_called'] = any(item['score']['producer_called'] or item['selection']['cache']['producer_called'] for item in summary['selectors'])
     from experiments.modular_artifacts import export_outputs
-    export_outputs(summary, output=output, store_root=store_root)
+    export_outputs(summary, output=output, store_root=store_root, dataset_root=dataset_root)
     _write_summary(output, summary)
     return summary
 

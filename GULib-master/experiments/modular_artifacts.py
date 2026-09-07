@@ -20,10 +20,10 @@ def output_paths(summary_path, count):
                  for i in range(count) for name in ARTIFACT_NAMES)
 
 
-def save_method_result(row, *, store_root, output_dir, strategy, meta):
+def save_method_result(row, *, store_root, output_dir, strategy, meta, dataset_root):
     """Export the same verified payload that the independent method cached."""
     from experiments.unlearning_outputs import load_output
-    payload = load_output(row['output'], store_root)
+    payload = load_output(row['output'], store_root, dataset_root=dataset_root)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     result = {**row['result'], 'failed': False,
@@ -42,14 +42,14 @@ def save_method_result(row, *, store_root, output_dir, strategy, meta):
         handle.write(payload.canonical_bytes)
 
 
-def export_outputs(summary, *, output, store_root):
+def export_outputs(summary, *, output, store_root, dataset_root):
     for index, row in enumerate(summary['unlearning']):
         from experiments.unlearning_outputs import load_output
-        payload = load_output(row['output'], store_root)
+        payload = load_output(row['output'], store_root, dataset_root=dataset_root)
         folder = output.parent / (output.stem + '.outputs') / str(index)
         strategy = row.get('selector_ref') or 'bound-selection'
         save_method_result(row, store_root=store_root, output_dir=folder,
-            strategy=strategy, meta={'method': payload.identity['target']['method'],
+            strategy=strategy, dataset_root=dataset_root, meta={'method': payload.identity['target']['method'],
                 'strategy': strategy, 'seed': payload.identity['pairing']['training']['seed'],
                 'selection_artifact': payload.identity['selection'],
                 'matrix_values': row['matrix_values'],
@@ -63,7 +63,7 @@ def export_outputs(summary, *, output, store_root):
             for name in ARTIFACT_NAMES}
 
 
-def read_summary_outputs(path, expected_sha256):
+def read_summary_outputs(path, expected_sha256, *, dataset_root):
     """Verify a collected summary and its portable outputs without a remote Store."""
     from scripts.syncmate.opengu_method_output import read_method_output
     path = Path(path).resolve()
@@ -83,7 +83,7 @@ def read_summary_outputs(path, expected_sha256):
         seen.update(paths)
         artifacts = {name: {'local_path': item['path'], 'sha256': item['sha256']}
                      for name, item in row['collected_artifacts'].items()}
-        result = read_method_output(artifacts, path.parent)
+        result = read_method_output(artifacts, path.parent, dataset_root=dataset_root)
         if result['output'] != row['output']:
             raise ValueError('summary output differs from collected payload')
         if result['meta']['config_fingerprint'] != summary['configuration_fingerprint']:

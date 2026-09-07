@@ -116,7 +116,7 @@ def test_command_cold_warm_seed_budget_retrain_and_metrics(matrix, record_proper
     assert {k:len(v) for k,v in score_ids.items()} == {'degree.yaml':1,'random.yaml':1,'a_grad_norm.yaml':2}
     assert {k:len(v) for k,v in selection_ids.items()} == {'degree.yaml':2,'random.yaml':2,'a_grad_norm.yaml':4}
     summary_path=Path(cold['execution_receipt']['output'])
-    _, outputs = read_summary_outputs(summary_path, hashlib.sha256(summary_path.read_bytes()).hexdigest())
+    _, outputs = read_summary_outputs(summary_path, hashlib.sha256(summary_path.read_bytes()).hexdigest(), dataset_root=root)
     for row, result in zip(cold['unlearning'],outputs):
         payload=result['payload'];selected=payload.arrays['selected_nodes']
         assert len(selected)==int(10*row['matrix_values']['budget_ratio'])
@@ -154,14 +154,14 @@ def test_stage_s_cache_supplies_real_selections_without_resampling(matrix):
     assert all(r['selection']['cache']['hit'] for r in actual['selectors'])
     expected=[r['selection']['artifact']['artifact_id'] for r in source['selectors']]
     _,rows=read_summary_outputs(Path(actual['execution_receipt']['output']),
-        hashlib.sha256(Path(actual['execution_receipt']['output']).read_bytes()).hexdigest())
+        hashlib.sha256(Path(actual['execution_receipt']['output']).read_bytes()).hexdigest(), dataset_root=root)
     assert [r['payload'].identity['selection']['artifact_id'] for r in rows]==expected
     assert {r['payload'].identity['pairing']['training']['seed'] for r in rows}=={122,722}
 
 
 def test_public_tracin_uses_real_100_epoch_trajectory(tables, record_property):
     from experiments.modular_model import prepare_model
-    from experiments.modular_run import read_dataset
+    from experiments.dataset_inputs import read_dataset
     from experiments.target_direct_v1.methods import selected_checkpoint_indices
     from experiments.target_direct_v1.method_cache import resolve_methods
     root=tables[0]

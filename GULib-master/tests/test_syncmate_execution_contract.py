@@ -32,6 +32,13 @@ def git(root, *args):
 @pytest.fixture
 def workspace(tables):
     root, config, gu = tables
+    processed = root / 'data/processed'
+    processed.mkdir(parents=True)
+    for name in ('graph.pkl', 'dataset.json'):
+        (root / name).rename(processed / name)
+    instance = yaml.safe_load((root / 'dataset.yaml').read_text())
+    instance['artifacts']['manifest'] = 'data/processed/dataset.json'
+    write_yaml(root / 'dataset.yaml', instance)
     # Real tracked production files in a clean disposable runner checkout.
     paths = subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')
     for relative in filter(None, paths):

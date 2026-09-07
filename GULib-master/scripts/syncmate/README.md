@@ -1367,3 +1367,38 @@ reuses budget-independent Scores; training seed affects only model consumers.
 The current 007 plan has four independent method outputs and seventeen exported
 files. A later Metrics recipe must bind real completed outputs before review;
 no placeholders are submitted as jobs.
+
+
+### Shared Dataset/Split inputs (AAGU-036)
+
+Independent method Output v2 stores predictions, selected nodes, model state and
+method-specific tensors. It references the exact YAML-bound persisted manifest
+and graph; it does not embed features, labels, the original graph or split masks.
+The verified reader reconstructs the declared retained supervision and graph.
+
+Before collecting a run whose inputs are absent on the collector, use the same
+configured peer and experiment configuration:
+
+```powershell
+python scripts/syncmate/syncmate.py collect-inputs <peer-id> --config experiments/configs/<plan>/experiment.yaml
+python scripts/syncmate/syncmate.py runner-agent collect <peer-id> --job-id <job-id> --json
+```
+
+`collect-inputs` uses Core manifest diff, incremental collection, SHA-256 verification
+and artifact indexing. Manifest and graph are collected once to their existing
+`data/processed/` relative paths. Existing exact inputs transfer zero bytes;
+conflicting files fail without overwrite. The command does not download datasets,
+create a split, run a producer or copy inputs into each run directory. Missing
+inputs make ordinary result acceptance and offline reading fail explicitly.
+Shared input index entries are dependencies, not rows in the experiment results table.
+
+`read_summary_outputs(path, sha256, dataset_root=collector_root)` and
+`load_output(reference, store_root, dataset_root=collector_root)` explicitly bind
+the reading machine's input root. `eval_collateral.py` likewise requires
+`--dataset-root`; its derived prediction file contains only generated predictions
+and deletion requests, with shared input references in its JSON.
+
+Historical Output v1 files remain byte-for-byte unchanged. Current readers reject
+that replaced contract; no compatibility reader, in-place conversion, cleanup or
+automatic rerun is provided. New explicitly requested runs use the new output
+contract and producer identity. This change does not reclaim historical disk usage.

@@ -87,3 +87,14 @@ SSH 正式启动分两层：
 
 进程成功退出不等于可信证据；需核对 Artifact 完整可解析，metadata 的 Git SHA、配置指纹和运行身份一致，并验证 Selection、manifest 与依赖链。远端产物完成收集与核验后才进入本地结论；交接时分别说明执行、验证、可支持结论和未知项。
 正式运行暴露代码、配置、数据、指标、缓存或 provenance 缺陷时，立即停止受影响矩阵并将相关证据标为未验证；后续失效范围、修复、重跑与恢复遵循已确认的修复链，在其重新建立可信身份前不恢复矩阵或混用受影响产物。
+
+
+### Output v2 shared-input contract
+
+Output v2 stores predictions, selected nodes, model state and method-specific tensors.
+Fixed features, labels, graph and split masks are resolved from the YAML-bound
+manifest/graph. The declared deletion semantics reconstruct retained supervision
+and training/evaluation edges. Offline readers require an explicit `dataset_root`.
+Use SyncMate `collect-inputs` before result collection when exact dependencies are
+absent; it reuses existing files or collects one verified copy to `data/processed`.
+Historical Output v1 files are not converted, removed or automatically rerun.

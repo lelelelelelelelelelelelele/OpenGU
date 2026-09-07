@@ -63,3 +63,8 @@ Run the closest targeted test first, then the full SyncMate test file before tre
 - [README.md](README.md) owns the user-facing contract and command details.
 - This file owns agent maintenance guardrails; do not duplicate them in compatibility files.
 - Update the existing SyncMate planning/progress source when behavior, command semantics, generated files, or validation results change.
+
+
+Shared input collection uses `collect-inputs` and Core checksum/index verification
+into exact `data/processed/` paths. Never overwrite conflicts or copy inputs into
+each run. Shared input index entries are excluded from experiment result rows.

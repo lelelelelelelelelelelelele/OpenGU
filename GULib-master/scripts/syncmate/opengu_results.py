@@ -167,6 +167,8 @@ def _with_opengu_policy(index: Mapping[str, Any]) -> dict[str, Any]:
     for peer in (data.get("peers") or {}).values():
         if not isinstance(peer, dict):
             continue
+        peer['items'] = [item for item in peer.get('items', [])
+                         if not str(item.get('remote_path', '')).startswith('data/processed/')]
         policy = peer.setdefault("artifact_policy", {})
         if not policy.get("include"):
             policy["include"] = list(OPENGU_ARTIFACT_NAMES)

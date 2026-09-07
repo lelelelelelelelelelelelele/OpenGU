@@ -34,7 +34,7 @@ def dataset(root, stem, *, alternate=False):
     data = Data(x=torch.randn(n, 3), y=nodes % 2,
         edge_index=torch.cat([edges, edges.flip(0)], dim=1),
         train_mask=train, val_mask=val, test_mask=nodes >= 18)
-    graph = root / (stem + '.pkl'); graph.write_bytes(pickle.dumps(data))
+    graph = root / 'data/processed' / (stem + '.pkl'); graph.write_bytes(pickle.dumps(data))
     instance = {'kind': 'dataset_split', 'schema_version': 1,
         'dataset': {'name': 'cpu_second'}, 'preprocessing': {'adapter': 'OpenGU_persisted_processed_pair'},
         'split': {'profile': 'alternate' if alternate else 'second', 'train_ratio': .5,
@@ -42,8 +42,8 @@ def dataset(root, stem, *, alternate=False):
     manifest = {k: instance[k] for k in ('dataset', 'preprocessing', 'split')}
     manifest.update(schema='opengu.persisted_dataset_split', version=1, data_path=graph.name,
                     data_sha256=sha256_file(graph), data_identity=data_identity(data))
-    path = root / (stem + '.json'); path.write_text(json.dumps(manifest))
-    instance['artifacts'] = {'manifest': path.name, 'manifest_sha256': sha256_file(path),
+    path = root / 'data/processed' / (stem + '.json'); path.write_text(json.dumps(manifest))
+    instance['artifacts'] = {'manifest': path.relative_to(root).as_posix(), 'manifest_sha256': sha256_file(path),
         'split_hash': data_identity(data)['split_hash'], 'node_id_space': 'pyg-global-node-index-v1'}
     write_yaml(root / (stem + '.yaml'), instance)
     return data
@@ -75,7 +75,7 @@ def assert_hot(summary, name):
 
 def test_real_multi_dataset_lifecycle(workspace, record_property):
     root, path, config = workspace
-    first = pickle.loads((root / 'graph.pkl').read_bytes())
+    first = pickle.loads((root / 'data/processed/graph.pkl').read_bytes())
     second = dataset(root, 'second')
     config.update(stage='unlearning', unlearning_refs=['gu.yaml', 'retrain.yaml'])
     write_yaml(path, config)
@@ -103,7 +103,7 @@ def test_real_multi_dataset_lifecycle(workspace, record_property):
     assert_hot(multi, 'cpu_fixture')
     assert any(r['score']['producer_called'] for r in multi['selectors'] if r['matrix_values']['dataset_name'] == 'cpu_second')
     assert all(r['producer_called'] for r in multi['unlearning'] if r['matrix_values']['dataset_name'] == 'cpu_second')
-    _, outputs = read_summary_outputs(root / summary_path, sha256_file(root / summary_path))
+    _, outputs = read_summary_outputs(root / summary_path, sha256_file(root / summary_path), dataset_root=root)
     for row, output in zip(multi['unlearning'], outputs):
         arrays = output['payload'].arrays
         selected = arrays['selected_nodes']
