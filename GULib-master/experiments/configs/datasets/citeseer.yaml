@@ -12,7 +12,7 @@ split:
   test_ratio: 0.2
   seed: 2024
 artifacts:
-  manifest: null
-  manifest_sha256: null
-  split_hash: null
+  manifest: ../../../data/processed/transductive/citeseer__planetoid_70_10_20_seed2024.modular.json
+  manifest_sha256: ab079581b16c8ddfbe6a38edeba82a0669e7a9a7dc5577f79e9e379501651208
+  split_hash: b8877443252d36d5863e1a534712091390cfb39127a726395d65592ead0dd14d
   node_id_space: pyg-global-node-index-v1
